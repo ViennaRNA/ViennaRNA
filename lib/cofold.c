@@ -143,7 +143,7 @@ PRIVATE void init_cofold(int length, paramT *parameters){
 /*--------------------------------------------------------------------------*/
 
 PRIVATE void get_arrays(unsigned int size){
-  if(size >= sqrt(INT_MAX))
+  if(size >= (unsigned int)sqrt((double)INT_MAX))
     nrerror("get_arrays@cofold.c: sequence length exceeds addressable range");
 
   c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));

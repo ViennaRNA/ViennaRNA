@@ -292,6 +292,7 @@ int main(int argc, char *argv[]){
       }
       else{
         init_rand();
+        printf("k\tl\ten\tstructure\n");
         if(neighborhoods != NULL){
           nbhoods *tmp, *tmp2;
           for(tmp = neighborhoods; tmp != NULL; tmp = tmp->next){
@@ -300,7 +301,7 @@ int main(int argc, char *argv[]){
             l = tmp->l;
             for(i = 0; i < nstBT; i++){
               char *s = TwoDpfold_pbacktrack(q_vars, k, l);
-              printf("%d\t%d\t%s\t%6.2f\n", k, l, s, q_vars->circ ? energy_of_circ_structure(q_vars->sequence, s, 0) : energy_of_structure(q_vars->sequence, s, 0));
+              printf("%d\t%d\t%6.2f\t%s\n", k, l, q_vars->circ ? energy_of_circ_structure(q_vars->sequence, s, 0) : energy_of_structure(q_vars->sequence, s, 0), s);
             }
           }
         }
@@ -308,7 +309,7 @@ int main(int argc, char *argv[]){
           for(i=0; pf_s[i].k != INF;i++){
             for(l = 0; l < nstBT; l++){
               char *s = TwoDpfold_pbacktrack(q_vars, pf_s[i].k, pf_s[i].l);
-              printf("%d\t%d\t%s\t%6.2f\n", pf_s[i].k, pf_s[i].l, s, q_vars->circ ? energy_of_circ_structure(q_vars->sequence, s, 0) : energy_of_structure(q_vars->sequence, s, 0));
+              printf("%d\t%d\t%6.2f\t%s\n", pf_s[i].k, pf_s[i].l, q_vars->circ ? energy_of_circ_structure(q_vars->sequence, s, 0) : energy_of_structure(q_vars->sequence, s, 0), s);
             }
           }
         }
