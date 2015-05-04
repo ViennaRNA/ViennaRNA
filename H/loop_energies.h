@@ -52,7 +52,10 @@
  *  \return   The energy contribution of the introduced multiloop stem
  */
 //#define E_MLstem(A,B,C,D)     E_Stem((A),(B),(C),0,(D))
-INLINE  PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P);
+INLINE  PRIVATE int E_MLstem( int type,
+                              int si1,
+                              int sj1,
+                              paramT *P);
 
 /**
  *  \def exp_E_MLstem(A,B,C,D)
@@ -61,7 +64,10 @@ INLINE  PRIVATE int E_MLstem(int type, int si1, int sj1, paramT *P);
  *  \return The Boltzmann weighted energy contribution of the introduced multiloop stem
  */
 //#define exp_E_MLstem(A,B,C,D) exp_E_Stem((A),(B),(C),0,(D))
-INLINE  PRIVATE double exp_E_MLstem(int type, int si1, int sj1, pf_paramT *P);
+INLINE  PRIVATE double exp_E_MLstem(int type,
+                                    int si1,
+                                    int sj1,
+                                    pf_paramT *P);
 
 /**
  *  \def E_ExtLoop(A,B,C,D)
@@ -83,7 +89,10 @@ INLINE  PRIVATE double exp_E_MLstem(int type, int si1, int sj1, pf_paramT *P);
  *  \return   The energy contribution of the introduced exterior-loop stem
  */
 //#define E_ExtLoop(A,B,C,D)      E_Stem((A),(B),(C),1,(D))
-INLINE  PRIVATE int E_ExtLoop(int type, int si1, int sj1, paramT *P);
+INLINE  PRIVATE int E_ExtLoop(int type,
+                              int si1,
+                              int sj1,
+                              paramT *P);
 
 /**
  *  \def exp_E_ExtLoop(A,B,C,D)
@@ -92,7 +101,10 @@ INLINE  PRIVATE int E_ExtLoop(int type, int si1, int sj1, paramT *P);
  *  \return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
  */
 //#define exp_E_ExtLoop(A,B,C,D)  exp_E_Stem((A),(B),(C),1,(D))
-INLINE  PRIVATE double exp_E_ExtLoop(int type, int si1, int sj1, pf_paramT *P);
+INLINE  PRIVATE double exp_E_ExtLoop( int type,
+                                      int si1,
+                                      int sj1,
+                                      pf_paramT *P);
 
 /**
  *  <H2>Compute the Energy of an interior-loop</H2>
@@ -138,7 +150,15 @@ INLINE  PRIVATE double exp_E_ExtLoop(int type, int si1, int sj1, pf_paramT *P);
  *  \param  P       The datastructure containing scaled energy parameters
  *  \return The Free energy of the Interior-loop in dcal/mol
  */
-INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P);
+INLINE  PRIVATE int E_IntLoop(int n1,
+                              int n2,
+                              int type,
+                              int type_2,
+                              int si1,
+                              int sj1,
+                              int sp1,
+                              int sq1,
+                              paramT *P);
 
 
 /**
@@ -172,7 +192,12 @@ INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int
  *  \param  P     The datastructure containing scaled energy parameters
  *  \return The Free energy of the Hairpin-loop in dcal/mol
  */
-INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *string, paramT *P);
+INLINE  PRIVATE int E_Hairpin(int size,
+                              int type,
+                              int si1,
+                              int sj1,
+                              const char *string,
+                              paramT *P);
 
 /**
  *  <H2>Compute the energy contribution of a stem branching off a loop-region</H2>
@@ -219,7 +244,11 @@ INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *
  *  \return         The Free energy of the branch off the loop in dcal/mol
  * 
  */
-INLINE  PRIVATE int E_Stem(int type, int si1, int sj1, int extLoop, paramT *P);
+INLINE  PRIVATE int E_Stem( int type,
+                            int si1,
+                            int sj1,
+                            int extLoop,
+                            paramT *P);
 
 /**
  *  <H2>Compute the Boltzmann weighted energy contribution of a stem branching off a loop-region</H2>
@@ -229,7 +258,11 @@ INLINE  PRIVATE int E_Stem(int type, int si1, int sj1, int extLoop, paramT *P);
  * 
  *  \return The Boltzmann weighted energy contribution of the branch off the loop
  */
-INLINE  PRIVATE double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_paramT *P);
+INLINE  PRIVATE double exp_E_Stem(int type,
+                                  int si1,
+                                  int sj1,
+                                  int extLoop,
+                                  pf_paramT *P);
 
 /**
  *  <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of a hairpin loop</H2>
@@ -248,7 +281,12 @@ INLINE  PRIVATE double exp_E_Stem(int type, int si1, int sj1, int extLoop, pf_pa
  *  \param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
  *  \return The Boltzmann weight of the Hairpin-loop
  */
-INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, const char *string, pf_paramT *P);
+INLINE  PRIVATE double exp_E_Hairpin( int u,
+                                      int type,
+                                      short si1,
+                                      short sj1,
+                                      const char *string,
+                                      pf_paramT *P);
 
 /**
  *  <H2>Compute Boltzmann weight \f$e^{-\Delta G/kT} \f$ of interior loop</H2>
@@ -269,7 +307,15 @@ INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, cons
  *  \param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
  *  \return The Boltzmann weight of the Interior-loop
  */
-INLINE  PRIVATE double  exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P);
+INLINE  PRIVATE double  exp_E_IntLoop(int u1,
+                                      int u2,
+                                      int type,
+                                      int type2,
+                                      short si1,
+                                      short sj1,
+                                      short sp1,
+                                      short sq1,
+                                      pf_paramT *P);
 
 
 /*

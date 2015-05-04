@@ -46,8 +46,16 @@ foreach my $a (@$aln) {
     my $seq = $a->{seq};
     my $cons = $constraint;
     my @pt = make_pair_table($cons);
-    my %pair = ("AU"=> 5, "GC"=>1, "CG"=> 2, "UA"=> 6,
-		"GU"=> 3, "GT" => 3, "TG"=> 4, "UG"=> 4 );
+    my %pair = ("AU" => 5,
+		"GC" => 1, 
+		"CG" => 2, 
+		"UA" => 6,
+		"GU" => 3, 
+		"GT" => 3, 
+		"TG" => 4, 
+		"UG" => 4,
+		"AT" => 5, 
+		"TA" => 6);
 
 
     for my $p (0..length($seq)-1) {

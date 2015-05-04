@@ -964,6 +964,52 @@ PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int ene
   fflush(fp);
 }
 
+PUBLIC void putoutpU_prob_bin(double **pU,int length, int ulength, FILE *fp, int energies) {
+  /*put out unpaireds */
+  int i,k;
+  double kT= (temperature+K0)*GASCONST/1000.0;
+  double temp;
+  int *p;
+  p = (int*) space(sizeof(int)*1);
+  //write first line
+  p[0]=ulength; //u length
+  fwrite(p,sizeof(int),1,fp);
+  p[0]=length; //seq length
+  fwrite(p,sizeof(int),1,fp);
+  for (k=3; k<=(length+20); k++){ //all the other lines are set to 1000000 because we are at ulength=0
+    p[0]=1000000;
+    fwrite(p,sizeof(int),1,fp);
+  }
+  //data
+  for (i=1; i<=ulength; i++) {
+    for (k=1; k<=11; k++){//write first ten entries to 1000000
+      p[0]=1000000;
+      fwrite(p,sizeof(int),1,fp);
+    }
+    for (k=1; k<=length; k++){//write data now
+      if (i>k) {
+	p[0]=1000000;         //check if u > pos
+	fwrite(p,sizeof(int),1,fp);
+	continue;
+      }
+      else{
+	p[0]= (int) rint(100 *(-log(pU[k][i])*kT));
+	fwrite(p,sizeof(int),1,fp);
+      }
+    }
+    for (k=1; k<=9; k++){//finish by writing the last 10 entries
+      p[0]=1000000;
+      fwrite(p,sizeof(int),1,fp);
+    }
+  }
+  //free pU array;
+  for (k=1; k<=length; k++){
+    free(pU[k]);
+  }
+  free(p);
+  fflush(fp);
+}
+
 
 /*###########################################*/
 /*# deprecated functions below              #*/

@@ -16,7 +16,9 @@
  *  \param structure
  *  \param maxdist
  */
-float Lfold(const char *string, char *structure, int maxdist);
+float Lfold(const char *string,
+            char *structure,
+            int maxdist);
 
 /**
  *  \brief
@@ -26,7 +28,9 @@ float Lfold(const char *string, char *structure, int maxdist);
  *  \param maxdist
  *  \return
  */
-float aliLfold(const char **strings, char *structure, int maxdist);
+float aliLfold( const char **strings,
+                char *structure,
+                int maxdist);
 
 /**
  *  \brief
@@ -37,6 +41,10 @@ float aliLfold(const char **strings, char *structure, int maxdist);
  *  \param zsc
  *  \param min_z
  */
-float Lfoldz(const char *string, char *structure, int maxdist, int zsc, double min_z);
+float Lfoldz( const char *string,
+              char *structure,
+              int maxdist,
+              int zsc,
+              double min_z);
 
 #endif

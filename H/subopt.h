@@ -8,6 +8,7 @@
 
 /**
  *  \file subopt.h
+ *  \brief RNAsubopt and density of states declarations
  */
 
 /**
@@ -25,7 +26,10 @@
  *  \param  fp
  *  \return
  */
-SOLUTION *subopt (char *seq, char *sequence, int delta, FILE *fp);
+SOLUTION *subopt (char *seq,
+                  char *sequence,
+                  int delta,
+                  FILE *fp);
 
 /**
  *  \brief Returns list of circular subopt structures or writes to fp
@@ -39,7 +43,10 @@ SOLUTION *subopt (char *seq, char *sequence, int delta, FILE *fp);
  *  \param  fp
  *  \return
  */
-SOLUTION *subopt_circ (char *seq, char *sequence, int delta, FILE *fp);
+SOLUTION *subopt_circ ( char *seq,
+                        char *sequence,
+                        int delta,
+                        FILE *fp);
 
 /**
  *  \brief Sort output by energy

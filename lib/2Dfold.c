@@ -583,8 +583,8 @@ PRIVATE void initialize_TwoDfold_vars(TwoDfold_vars *vars){
 
 PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int distance2){
   unsigned int i, d1, d2;
-  unsigned int maxD1 = 0;
-  unsigned int maxD2 = 0;
+  unsigned int maxD1;
+  unsigned int maxD2;
   unsigned int mm;
   unsigned int length;
   TwoDfold_solution **output;
@@ -596,20 +596,29 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
 
   make_ptypes(vars);
 
+  maxD1 = vars->maxD1;
+  maxD2 = vars->maxD2;
+
   if(distance1 >= 0){
-    if((unsigned int)distance1 > vars->maxD1)
-      fprintf(stderr, "limiting maximum basepair distance 1 to %u\n", vars->maxD1);
-    vars->maxD1 = (unsigned int)distance1;
+    if((unsigned int)distance1 > maxD1)
+      fprintf(stderr,
+              "limiting maximum basepair distance 1 to %u\n",
+              maxD1);
+    else
+      maxD1 = (unsigned int)distance1;
   }
 
   if(distance2 >= 0){
-    if((unsigned int)distance2 > vars->maxD2)
-      fprintf(stderr, "limiting maximum basepair distance 2 to %u\n", vars->maxD2);
-    vars->maxD2 = (unsigned int)distance2;
+    if((unsigned int)distance2 > maxD2)
+      fprintf(stderr,
+              "limiting maximum basepair distance 2 to %u\n",
+              maxD2);
+    else
+      maxD2 = (unsigned int)distance2;
   }
 
-  maxD1 = vars->maxD1;
-  maxD2 = vars->maxD2;
+  vars->maxD1 = maxD1;
+  vars->maxD2 = maxD2;
   output = (TwoDfold_solution **)space((vars->maxD1+1) * sizeof(TwoDfold_solution *));
 
   mfe_linear(vars);
@@ -651,8 +660,8 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
 
 PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int distance2){
   unsigned int  i, d1, d2;
-  unsigned int  maxD1 = 0;
-  unsigned int  maxD2 = 0;
+  unsigned int  maxD1;
+  unsigned int  maxD2;
   unsigned int  mm;
   unsigned int  length;
   unsigned int  counter = 0;
@@ -666,20 +675,29 @@ PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int d
 
   make_ptypes(vars);
 
+  maxD1 = vars->maxD1;
+  maxD2 = vars->maxD2;
+
   if(distance1 >= 0){
-    if((unsigned int)distance1 > vars->maxD1)
-      fprintf(stderr, "limiting maximum basepair distance 1 to %u\n", vars->maxD1);
-    vars->maxD1 = (unsigned int)distance1;
+    if((unsigned int)distance1 > maxD1)
+      fprintf(stderr,
+              "TwoDfoldList@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
+              maxD1);
+    else
+      maxD1 = (unsigned int)distance1;
   }
 
   if(distance2 >= 0){
-    if((unsigned int)distance2 > vars->maxD2)
-      fprintf(stderr, "limiting maximum basepair distance 2 to %u\n", vars->maxD2);
-    vars->maxD2 = (unsigned int)distance2;
+    if((unsigned int)distance2 > maxD2)
+      fprintf(stderr,
+              "TwoDfoldList@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
+              maxD2);
+    else
+      maxD2 = (unsigned int)distance2;
   }
 
-  maxD1 = vars->maxD1;
-  maxD2 = vars->maxD2;
+  vars->maxD1 = maxD1;
+  vars->maxD2 = maxD2;
   output = (TwoDfold_solution *)space((((vars->maxD1+1)*(vars->maxD2+2))/2 + 2) * sizeof(TwoDfold_solution));
 
   mfe_linear(vars);
@@ -738,7 +756,7 @@ PUBLIC TwoDfold_solution *TwoDfoldList(TwoDfold_vars *vars, int distance1, int d
 }
 
 
-PUBLIC char *TwoDfold_backtrack_f5(unsigned int j, unsigned int k, unsigned int l, TwoDfold_vars *vars){
+PUBLIC char *TwoDfold_backtrack_f5(unsigned int j, int k, int l, TwoDfold_vars *vars){
   unsigned int i;
   char *mfe_structure = (char *)space(j+1);
   if(j < TURN + 2) return NULL;
@@ -988,39 +1006,43 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
             temp2 += E_MLstem(tt, -1, -1, P);
 
           for(u=i+TURN+2; u<j-TURN-2;u++){
+            int i1u   = my_iindx[i+1]-u;
+            int u1j1  = my_iindx[u+1]-j+1;
             /* check all cases where either M or M1 are already out of scope of maxD1 and/or maxD2 */
-            if(vars->E_M_rem[my_iindx[i+1]-u] != INF){
-              for(cnt3 = vars->k_min_values_m1[my_iindx[u+1]-j+1];
-                  cnt3 <= vars->k_max_values_m1[my_iindx[u+1]-j+1];
+            if(vars->E_M_rem[i1u] != INF){
+              for(cnt3 = vars->k_min_values_m1[u1j1];
+                  cnt3 <= vars->k_max_values_m1[u1j1];
                   cnt3++)
-                for(cnt4 = vars->l_min_values_m1[my_iindx[u+1]-j+1][cnt3];
-                    cnt4 <= vars->l_max_values_m1[my_iindx[u+1]-j+1][cnt3];
+                for(cnt4 = vars->l_min_values_m1[u1j1][cnt3];
+                    cnt4 <= vars->l_max_values_m1[u1j1][cnt3];
                     cnt4+=2){
-                  if(vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2]!= INF){
+                  if(vars->E_M1[u1j1][cnt3][cnt4/2]!= INF){
                     vars->E_C_rem[ij] = MIN2(vars->E_C_rem[ij],
-                                              vars->E_M_rem[my_iindx[i+1]-u]
-                                            + vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2]
+                                              vars->E_M_rem[i1u]
+                                            + vars->E_M1[u1j1][cnt3][cnt4/2]
                                             + temp2
                                               );
                   }
                 }
-              if(vars->E_M1_rem[my_iindx[u+1]-j+1] != INF){
+              if(vars->E_M1_rem[u1j1] != INF){
                 vars->E_C_rem[ij] = MIN2(vars->E_C_rem[ij],
-                                          vars->E_M_rem[my_iindx[i+1]-u] + vars->E_M1_rem[my_iindx[u+1]-j+1] + temp2
+                                          vars->E_M_rem[i1u]
+                                        + vars->E_M1_rem[u1j1]
+                                        + temp2
                                           );
               }
             }
-            if(vars->E_M1_rem[my_iindx[u+1]-j+1] != INF){
-              for(cnt1 = vars->k_min_values_m[my_iindx[i+1]-u];
-                  cnt1 <= vars->k_max_values_m[my_iindx[i+1]-u];
+            if(vars->E_M1_rem[u1j1] != INF){
+              for(cnt1 = vars->k_min_values_m[i1u];
+                  cnt1 <= vars->k_max_values_m[i1u];
                   cnt1++)
-                for(cnt2 = vars->l_min_values_m[my_iindx[i+1]-u][cnt1];
-                    cnt2 <= vars->l_max_values_m[my_iindx[i+1]-u][cnt1];
+                for(cnt2 = vars->l_min_values_m[i1u][cnt1];
+                    cnt2 <= vars->l_max_values_m[i1u][cnt1];
                     cnt2+=2)
-                  if(vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2] != INF){
+                  if(vars->E_M[i1u][cnt1][cnt2/2] != INF){
                     vars->E_C_rem[ij] = MIN2(vars->E_C_rem[ij],
-                                              vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2]
-                                            + vars->E_M1_rem[my_iindx[u+1]-j+1]
+                                              vars->E_M[i1u][cnt1][cnt2/2]
+                                            + vars->E_M1_rem[u1j1]
                                             + temp2
                                               );
                   }
@@ -1028,29 +1050,29 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
             /* get distance to reference if closing the multiloop
             *  d = dbp(S_{i,j}, {i,j} + S_{i+1,u} + S_{u+1,j-1})
             */
-            if(!vars->E_M[my_iindx[i+1]-u]) continue;
-            if(!vars->E_M1[my_iindx[u+1]-j+1]) continue;
+            if(!vars->E_M[i1u]) continue;
+            if(!vars->E_M1[u1j1]) continue;
 
-            d1 = base_d1 + referenceBPs1[ij] - referenceBPs1[my_iindx[i+1]-u] - referenceBPs1[my_iindx[u+1]-j+1];
-            d2 = base_d2 + referenceBPs2[ij] - referenceBPs2[my_iindx[i+1]-u] - referenceBPs2[my_iindx[u+1]-j+1];
+            d1 = base_d1 + referenceBPs1[ij] - referenceBPs1[i1u] - referenceBPs1[u1j1];
+            d2 = base_d2 + referenceBPs2[ij] - referenceBPs2[i1u] - referenceBPs2[u1j1];
 
-            for(cnt1 = vars->k_min_values_m[my_iindx[i+1]-u];
-                cnt1 <= vars->k_max_values_m[my_iindx[i+1]-u];
+            for(cnt1 = vars->k_min_values_m[i1u];
+                cnt1 <= vars->k_max_values_m[i1u];
                 cnt1++)
-              for(cnt2 = vars->l_min_values_m[my_iindx[i+1]-u][cnt1];
-                  cnt2 <= vars->l_max_values_m[my_iindx[i+1]-u][cnt1];
+              for(cnt2 = vars->l_min_values_m[i1u][cnt1];
+                  cnt2 <= vars->l_max_values_m[i1u][cnt1];
                   cnt2+=2)
-                for(cnt3 = vars->k_min_values_m1[my_iindx[u+1]-j+1];
-                    cnt3 <= vars->k_max_values_m1[my_iindx[u+1]-j+1];
+                for(cnt3 = vars->k_min_values_m1[u1j1];
+                    cnt3 <= vars->k_max_values_m1[u1j1];
                     cnt3++)
-                  for(cnt4 = vars->l_min_values_m1[my_iindx[u+1]-j+1][cnt3];
-                      cnt4 <= vars->l_max_values_m1[my_iindx[u+1]-j+1][cnt3];
+                  for(cnt4 = vars->l_min_values_m1[u1j1][cnt3];
+                      cnt4 <= vars->l_max_values_m1[u1j1][cnt3];
                       cnt4+=2){
-                    if((vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2] != INF) && (vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2]!= INF)){
+                    if((vars->E_M[i1u][cnt1][cnt2/2] != INF) && (vars->E_M1[u1j1][cnt3][cnt4/2]!= INF)){
                       if(((cnt1+cnt3+d1) <= maxD1) && ((cnt2+cnt4+d2) <= maxD2)){
                         vars->E_C[ij][cnt1+cnt3+d1][(cnt2+cnt4+d2)/2] = MIN2( vars->E_C[ij][cnt1+cnt3+d1][(cnt2+cnt4+d2)/2],
-                                                                              vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2]
-                                                                            + vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2]
+                                                                              vars->E_M[i1u][cnt1][cnt2/2]
+                                                                            + vars->E_M1[u1j1][cnt3][cnt4/2]
                                                                             + temp2
                                                                             );
                         updatePosteriorBoundaries(cnt1 + cnt3 + d1,
@@ -1061,14 +1083,14 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
                                                   &max_l_real
                                                 );
 #ifdef COUNT_STATES
-                        vars->N_C[ij][cnt1+cnt3+d1][(cnt2+cnt4+d2)/2] += vars->N_M[my_iindx[i+1]-u][cnt1][cnt2/2] * vars->N_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2];
+                        vars->N_C[ij][cnt1+cnt3+d1][(cnt2+cnt4+d2)/2] += vars->N_M[i1u][cnt1][cnt2/2] * vars->N_M1[u1j1][cnt3][cnt4/2];
 #endif
                       }
                       /* collect all cases where d1+cnt1+cnt3 or d2+cnt2+cnt4 exceeds maxD1, maxD2, respectively */
                       else{
                         vars->E_C_rem[ij] = MIN2(  vars->E_C_rem[ij],
-                                                    vars->E_M[my_iindx[i+1]-u][cnt1][cnt2/2]
-                                                  + vars->E_M1[my_iindx[u+1]-j+1][cnt3][cnt4/2]
+                                                    vars->E_M[i1u][cnt1][cnt2/2]
+                                                  + vars->E_M1[u1j1][cnt3][cnt4/2]
                                                   + temp2
                                                   );
                       }
@@ -1255,7 +1277,7 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
       /* 3rd E_M[ij] = MIN(E_M[ij], E_M[i,j-1] + c) */
       if(vars->E_M_rem[ij+1] != INF){
         vars->E_M_rem[ij] = MIN2(vars->E_M_rem[ij],
-                                  vars->E_M_rem[my_iindx[i+1]-j] + P->MLbase
+                                  vars->E_M_rem[ij+1] + P->MLbase
                                   );
       }
       if(vars->E_M[ij+1])
@@ -2044,7 +2066,7 @@ PRIVATE void backtrack_f5(unsigned int j, int k, int l, char *structure, TwoDfol
 
 PRIVATE void backtrack_c(unsigned int i, unsigned int j, int k, int l, char *structure, TwoDfold_vars *vars){
   unsigned int p, q, pq, ij, maxp, seq_length, maxD1, maxD2;
-  int *my_iindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2;
+  int *my_iindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2, cnt3, cnt4;
   int           **l_min_values, **l_max_values,**l_min_values_m, **l_max_values_m,**l_min_values_m1, **l_max_values_m1;
   int           *k_min_values, *k_max_values,*k_min_values_m, *k_max_values_m,*k_min_values_m1, *k_max_values_m1;
   int           ***E_C, ***E_M, ***E_M1, *E_C_rem, *E_M_rem, *E_M1_rem;
@@ -2156,8 +2178,6 @@ PRIVATE void backtrack_c(unsigned int i, unsigned int j, int k, int l, char *str
       }
       else{
         if(!E_C[pq]) continue;
-        /* calculate distance to reference structure... */
-
         if(d1 <= k && d2 <= l){
           if((k-d1 >= k_min_values[pq]) && (k-d1) <= k_max_values[pq])
             if((l - d2 >= l_min_values[pq][k-d1]) && (l-d2 <= l_max_values[pq][k-d1]))
@@ -2176,6 +2196,9 @@ PRIVATE void backtrack_c(unsigned int i, unsigned int j, int k, int l, char *str
     int tt;
     if(k==-1){
       for(u=i+TURN+2; u<j-TURN-2;u++){
+        int i1u, u1j1;
+        i1u   = my_iindx[i+1]-u;
+        u1j1  = my_iindx[u+1]-j+1;
         tt = rtype[type];
         energy = P->MLclosing;
         if(dangles == 2)
@@ -2183,64 +2206,88 @@ PRIVATE void backtrack_c(unsigned int i, unsigned int j, int k, int l, char *str
         else
           energy += E_MLstem(tt, -1, -1, P);
 
-        /* get distance to reference if closing this multiloop
-        *  dist3 = dbp(S_{i,j}, {i,j} + S_{i+1.u} + S_{u+1,j-1})
-        */
-        d1 = base_d1 - referenceBPs1[my_iindx[i+1]-u] - referenceBPs1[my_iindx[u+1]-j+1];
-        d2 = base_d2 - referenceBPs2[my_iindx[i+1]-u] - referenceBPs2[my_iindx[u+1]-j+1];
 
-        if(E_M_rem[my_iindx[i+1]-u] != INF){
-          if(E_M1[my_iindx[u+1]-j+1])
-          for(cnt1 = k_min_values_m1[my_iindx[u+1]-j+1];
-              cnt1 <= k_max_values_m1[my_iindx[u+1]-j+1];
+        if(E_M_rem[i1u] != INF){
+          if(E_M1[u1j1])
+          for(cnt1 = k_min_values_m1[u1j1];
+              cnt1 <= k_max_values_m1[u1j1];
               cnt1++)
-            for(cnt2 = l_min_values_m1[my_iindx[u+1]-j+1][cnt1];
-                cnt2 <= l_max_values_m1[my_iindx[u+1]-j+1][cnt1];
+            for(cnt2 = l_min_values_m1[u1j1][cnt1];
+                cnt2 <= l_max_values_m1[u1j1][cnt1];
                 cnt2 += 2){
-              if(((cnt1 + d1) > maxD1) || ((cnt2 + d2) > maxD2)){
-                if(e == (E_M_rem[my_iindx[i+1]-u] + E_M1[my_iindx[u+1]-j+1][cnt1][cnt2/2] + energy)){
-                  backtrack_m(i+1,u,-1,-1,structure,vars);
-                  backtrack_m1(u+1,j-1,cnt1,cnt2,structure,vars);
-                  return;
-                }
+              if(e == (E_M_rem[i1u] + E_M1[u1j1][cnt1][cnt2/2] + energy)){
+                backtrack_m(i+1,u,-1,-1,structure,vars);
+                backtrack_m1(u+1,j-1,cnt1,cnt2,structure,vars);
+                return;
               }
             }
-          if(E_M1_rem[my_iindx[u+1]-j+1] != INF){
-            if(e == (E_M_rem[my_iindx[i+1]-u] + E_M1_rem[my_iindx[u+1]-j+1] + energy)){
+          if(E_M1_rem[u1j1] != INF){
+            if(e == (E_M_rem[i1u] + E_M1_rem[u1j1] + energy)){
               backtrack_m(i+1, u, -1, -1, structure, vars);
               backtrack_m1(u+1, j-1, -1, -1, structure, vars);
               return;
             }
           }
         }
-        if(E_M1_rem[my_iindx[u+1]-j+1] != INF){
-          if(E_M[my_iindx[i+1]-u])
-          for(cnt1 = k_min_values_m[my_iindx[i+1]-u];
-              cnt1 <= k_max_values_m[my_iindx[i+1]-u];
+        if(E_M1_rem[u1j1] != INF){
+          if(E_M[i1u])
+          for(cnt1 = k_min_values_m[i1u];
+              cnt1 <= k_max_values_m[i1u];
               cnt1++)
-            for(cnt2 = l_min_values_m[my_iindx[i+1]-u][cnt1];
-                cnt2 <= l_max_values_m[my_iindx[i+1]-u][cnt1];
+            for(cnt2 = l_min_values_m[i1u][cnt1];
+                cnt2 <= l_max_values_m[i1u][cnt1];
                 cnt2 += 2)
-              if(((cnt1 + d1) > maxD1) || ((cnt2 + d2) > maxD2)){
-                if(e == (E_M[my_iindx[i+1]-u][cnt1][cnt2/2] + E_M1_rem[my_iindx[u+1]-j+1] + energy)){
-                  backtrack_m(i+1,u,cnt1,cnt2,structure,vars);
-                  backtrack_m1(u+1,j-1,-1,-1,structure,vars);
-                  return;
-                }
+              if(e == (E_M[i1u][cnt1][cnt2/2] + E_M1_rem[u1j1] + energy)){
+                backtrack_m(i+1,u,cnt1,cnt2,structure,vars);
+                backtrack_m1(u+1,j-1,-1,-1,structure,vars);
+                return;
               }
         }
+
+        /* now all cases where we exceed the maxD1/D2 scope by combination of E_M and E_M1 */
+        if(!E_M[i1u]) continue;
+        if(!E_M1[u1j1]) continue;
+        /* get distance to reference if closing this multiloop
+        *  dist3 = dbp(S_{i,j}, {i,j} + S_{i+1.u} + S_{u+1,j-1})
+        */
+        d1 = base_d1 - referenceBPs1[i1u] - referenceBPs1[u1j1];
+        d2 = base_d2 - referenceBPs2[i1u] - referenceBPs2[u1j1];
+        
+        for(cnt1 = vars->k_min_values_m[i1u];
+            cnt1 <= vars->k_max_values_m[i1u];
+            cnt1++)
+          for(cnt2 = vars->l_min_values_m[i1u][cnt1];
+              cnt2 <= vars->l_max_values_m[i1u][cnt1];
+              cnt2+=2)
+            for(cnt3 = vars->k_min_values_m1[u1j1];
+                cnt3 <= vars->k_max_values_m1[u1j1];
+                cnt3++)
+              for(cnt4 = vars->l_min_values_m1[u1j1][cnt3];
+                  cnt4 <= vars->l_max_values_m1[u1j1][cnt3];
+                  cnt4+=2){
+                if(((cnt1 + cnt3 + d1) > maxD1) || ((cnt2 + cnt4 + d2) > maxD2)){
+                  if(e == (E_M[i1u][cnt1][cnt2/2] + E_M1[u1j1][cnt3][cnt4/2] + energy)){
+                    backtrack_m(i+1,u,cnt1,cnt2,structure,vars);
+                    backtrack_m1(u+1,j-1,cnt3,cnt4,structure,vars);
+                    return;
+                  }
+                }
+              }
       }
     }
     else{
       for(u=i+TURN+2; u<j-TURN-2;u++){
-        if(!E_M[my_iindx[i+1]-u]) continue;
-        if(!E_M1[my_iindx[u+1]-j+1]) continue;
+        int i1u, u1j1;
+        i1u   = my_iindx[i+1]-u;
+        u1j1  = my_iindx[u+1]-j+1;
+        if(!E_M[i1u]) continue;
+        if(!E_M1[u1j1]) continue;
 
         /* get distance to reference if closing this multiloop
         *  dist3 = dbp(S_{i,j}, {i,j} + S_{i+1.u} + S_{u+1,j-1})
         */
-        d1 = base_d1 - referenceBPs1[my_iindx[i+1]-u] - referenceBPs1[my_iindx[u+1]-j+1];
-        d2 = base_d2 - referenceBPs2[my_iindx[i+1]-u] - referenceBPs2[my_iindx[u+1]-j+1];
+        d1 = base_d1 - referenceBPs1[i1u] - referenceBPs1[u1j1];
+        d2 = base_d2 - referenceBPs2[i1u] - referenceBPs2[u1j1];
 
         tt = rtype[type];
         energy = P->MLclosing;
@@ -2249,12 +2296,18 @@ PRIVATE void backtrack_c(unsigned int i, unsigned int j, int k, int l, char *str
         else
           energy += E_MLstem(tt, -1, -1, P);
 
-        if(d1 <= k && d2 <= l)
-          for(cnt1 = k_min_values_m[my_iindx[i+1]-u]; cnt1 <= MIN2(k-d1, k_max_values_m[my_iindx[i+1]-u]); cnt1++)
-            for(cnt2 = l_min_values_m[my_iindx[i+1]-u][cnt1]; cnt2 <= MIN2(l-d2, l_max_values_m[my_iindx[i+1]-u][cnt1]); cnt2+=2)
-              if(((k-d1-cnt1) >= k_min_values_m1[my_iindx[u+1]-j+1]) && ((k-d1-cnt1) <= k_max_values_m1[my_iindx[u+1]-j+1]))
-                if(((l-d2-cnt2) >= l_min_values_m1[my_iindx[u+1]-j+1][k-d1-cnt1]) && ((l-d2-cnt2) <= l_max_values_m1[my_iindx[u+1]-j+1][k-d1-cnt1]))
-                  if(energy + E_M[my_iindx[i+1]-u][cnt1][cnt2/2] + E_M1[my_iindx[u+1]-j+1][k-d1-cnt1][(l-d2-cnt2)/2] == e){
+        if((d1 <= k) && (d2 <= l))
+          for(cnt1 = k_min_values_m[i1u];
+              cnt1 <= MIN2(k-d1, k_max_values_m[i1u]);
+              cnt1++)
+            for(cnt2 = l_min_values_m[i1u][cnt1];
+                cnt2 <= MIN2(l-d2, l_max_values_m[i1u][cnt1]);
+                cnt2+=2)
+              if(     ((k-d1-cnt1) >= k_min_values_m1[u1j1])
+                  &&  ((k-d1-cnt1) <= k_max_values_m1[u1j1]))
+                if(     ((l-d2-cnt2) >= l_min_values_m1[u1j1][k-d1-cnt1])
+                    &&  ((l-d2-cnt2) <= l_max_values_m1[u1j1][k-d1-cnt1]))
+                  if(e == (energy + E_M[i1u][cnt1][cnt2/2] + E_M1[u1j1][k-d1-cnt1][(l-d2-cnt2)/2])){
                     backtrack_m(i+1, u, cnt1, cnt2, structure, vars);
                     backtrack_m1(u+1, j-1, k-d1-cnt1, l-d2-cnt2, structure, vars);
                     return;
@@ -2830,13 +2883,16 @@ PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
                     cnt2 += 2)
                   for(cnt3 = k_min_values[pq];
                       cnt3 <= k_max_values[pq];
-                      cnt3 += 2)
-                    if(((cnt1 + cnt3 + d1) > maxD1) || ((cnt2 + cnt4 + d2) > maxD2))
-                      if(E_Fc_rem == (E_C[ij][cnt1][cnt2/2] + E_C[pq][cnt3][cnt4/2] + energy)){
-                        backtrack_c(i, j, cnt1, cnt2, structure, vars);
-                        backtrack_c(p, q, cnt3, cnt4, structure, vars);
-                        return;
-                      }
+                      cnt3++)
+                    for(cnt4 = l_min_values[pq][cnt3];
+                        cnt4 <= l_max_values[pq][cnt3];
+                        cnt4 += 2)
+                      if(((cnt1 + cnt3 + d1) > maxD1) || ((cnt2 + cnt4 + d2) > maxD2))
+                        if(E_Fc_rem == (E_C[ij][cnt1][cnt2/2] + E_C[pq][cnt3][cnt4/2] + energy)){
+                          backtrack_c(i, j, cnt1, cnt2, structure, vars);
+                          backtrack_c(p, q, cnt3, cnt4, structure, vars);
+                          return;
+                        }
             } /* end for p */
           } /* end for q */
         }
@@ -3052,15 +3108,15 @@ PRIVATE void backtrack_fc(int k, int l, char *structure, TwoDfold_vars *vars){
 
 
 PRIVATE void backtrack_m2(unsigned int i, int k, int l, char *structure, TwoDfold_vars *vars){
-  unsigned int   j, ij, j3, seq_length;
+  unsigned int   j, ij, j3, n;
   unsigned int   *referenceBPs1, *referenceBPs2;
-  unsigned int d1, d2, base_d1, base_d2;
-  int *my_iindx, cnt1, cnt2;
-  int ***E_M1, ***E_M2;
+  unsigned int d1, d2, base_d1, base_d2, maxD1, maxD2;
+  int *my_iindx, cnt1, cnt2, cnt3, cnt4;
+  int ***E_M1, ***E_M2, *E_M2_rem, *E_M1_rem, e;
   int **l_min_values_m1, **l_max_values_m1, *k_min_values_m1, *k_max_values_m1;
   int **l_min_values_m2, **l_max_values_m2, *k_min_values_m2, *k_max_values_m2;
 
-  seq_length      = vars->seq_length;
+  n               = vars->seq_length;
   my_iindx        = vars->my_iindx;
   referenceBPs1   = vars->referenceBPs1;
   referenceBPs2   = vars->referenceBPs2;
@@ -3071,26 +3127,90 @@ PRIVATE void backtrack_m2(unsigned int i, int k, int l, char *structure, TwoDfol
   k_min_values_m1 = vars->k_min_values_m1;
   k_max_values_m1 = vars->k_max_values_m1;
 
+  E_M1_rem        = vars->E_M1_rem;
+
   E_M2            = vars->E_M2;
   l_min_values_m2 = vars->l_min_values_m2;
   l_max_values_m2 = vars->l_max_values_m2;
   k_min_values_m2 = vars->k_min_values_m2;
   k_max_values_m2 = vars->k_max_values_m2;
 
+  E_M2_rem        = vars->E_M2_rem;
 
-  base_d1 = referenceBPs1[my_iindx[i]-seq_length];
-  base_d2 = referenceBPs2[my_iindx[i]-seq_length];
+  maxD1           = vars->maxD1;
+  maxD2           = vars->maxD2;
+
+  base_d1 = referenceBPs1[my_iindx[i]-n];
+  base_d2 = referenceBPs2[my_iindx[i]-n];
 
   if(k == -1){
-  
+    e = E_M2_rem[i];
+    for (j=i+TURN+1; j<n-TURN-1; j++){
+      if(E_M1_rem[my_iindx[i]-j] != INF){
+        if(E_M1[my_iindx[j+1]-n])
+          for(cnt1 = k_min_values_m1[my_iindx[j+1]-n];
+              cnt1 <= k_max_values_m1[my_iindx[j+1]-n];
+              cnt1++)
+            for(cnt2 = l_min_values_m1[my_iindx[j+1]-n][cnt1];
+                cnt2 <= l_max_values_m1[my_iindx[j+1]-n][cnt1];
+                cnt2++)
+              if(e == E_M1_rem[my_iindx[i]-j] + E_M1[my_iindx[j+1]-n][cnt1][cnt2/2]){
+                backtrack_m1(i, j, k, l, structure, vars);
+                backtrack_m1(j+1, n, cnt1, cnt2, structure, vars);
+                return;
+              }
+        if(E_M1_rem[my_iindx[j+1]-n] != INF){
+          if(e == E_M1_rem[my_iindx[i]-j] + E_M1_rem[my_iindx[j+1]-n]){
+            backtrack_m1(i, j, k, l, structure, vars);
+            backtrack_m1(j+1, n, k, l, structure, vars);
+            return;
+          }
+        }
+      }
+      if(E_M1_rem[my_iindx[j+1]-n] != INF){
+        if(E_M1[my_iindx[i]-j])
+          for(cnt1 = k_min_values_m1[my_iindx[i]-j];
+              cnt1 <= k_max_values_m1[my_iindx[i]-j];
+              cnt1++)
+            for(cnt2 = l_min_values_m1[my_iindx[i]-j][cnt1];
+                cnt2 <= l_max_values_m1[my_iindx[i]-j][cnt1];
+                cnt2 += 2)
+              if(e == E_M1[my_iindx[i]-j][cnt1][cnt2/2] + E_M1_rem[my_iindx[j+1]-n]){
+                backtrack_m1(i, j, cnt1, cnt2, structure, vars);
+                backtrack_m1(j+1, n, k, l, structure, vars);
+                return;
+              }
+      }
+
+
+      if(!E_M1[my_iindx[i]-j]) continue;
+      if(!E_M1[my_iindx[j+1]-n]) continue;
+
+      d1 = referenceBPs1[my_iindx[i]-n] - referenceBPs1[my_iindx[i]-j] - referenceBPs1[my_iindx[j+1]-n];
+      d2 = referenceBPs2[my_iindx[i]-n] - referenceBPs2[my_iindx[i]-j] - referenceBPs2[my_iindx[j+1]-n];
+
+      for(cnt1 = k_min_values_m1[my_iindx[i]-j]; cnt1 <= k_max_values_m1[my_iindx[i]-j]; cnt1++)
+        for(cnt2 = l_min_values_m1[my_iindx[i]-j][cnt1]; cnt2 <= l_max_values_m1[my_iindx[i]-j][cnt1]; cnt2+=2){
+          for(cnt3 = k_min_values_m1[my_iindx[j+1]-n]; cnt3 <= k_max_values_m1[my_iindx[j+1]-n]; cnt3++)
+            for(cnt4 = l_min_values_m1[my_iindx[j+1]-n][cnt3]; cnt4 <= l_max_values_m1[my_iindx[j+1]-n][cnt3]; cnt4+=2){
+              if(((cnt1 + cnt3 + d1) > maxD1) || ((cnt2 + cnt4 + d2) > maxD2)){
+                if(e == E_M1[my_iindx[i]-j][cnt1][cnt2/2] + E_M1[my_iindx[j+1]-n][cnt3][cnt4/2]){
+                  backtrack_m1(i, j, cnt1, cnt2, structure, vars);
+                  backtrack_m1(j+1, n, cnt3, cnt4, structure, vars);
+                  return;
+                }
+              }
+            }
+        }
+    }
   }
   else{
-    for(j=i+TURN+1; j<seq_length-TURN-1; j++){
+    for(j=i+TURN+1; j<n-TURN-1; j++){
       if(!E_M1[my_iindx[i]-j]) continue;
-      if(!E_M1[my_iindx[j+1]-seq_length]) continue;
+      if(!E_M1[my_iindx[j+1]-n]) continue;
 
       ij = my_iindx[i]-j;
-      j3 = my_iindx[j+1]-seq_length;
+      j3 = my_iindx[j+1]-n;
       d1 = base_d1 - referenceBPs1[ij] - referenceBPs1[j3];
       d2 = base_d2 - referenceBPs2[ij] - referenceBPs2[j3];
 
@@ -3100,7 +3220,7 @@ PRIVATE void backtrack_m2(unsigned int i, int k, int l, char *structure, TwoDfol
             if((l - d2 - cnt2 >= l_min_values_m1[j3][k - d1 - cnt1]) && (l - d2 - cnt2 <= l_max_values_m1[j3][k-d1-cnt1]))
               if(E_M1[ij][cnt1][cnt2/2] + E_M1[j3][k-d1-cnt1][(l-d2-cnt2)/2] == E_M2[i][k][l/2]){
                 backtrack_m1(i, j, cnt1, cnt2, structure, vars);
-                backtrack_m1(j+1, seq_length, k-d1-cnt1, l-d2-cnt2, structure, vars);
+                backtrack_m1(j+1, n, k-d1-cnt1, l-d2-cnt2, structure, vars);
                 return;
               }
     }

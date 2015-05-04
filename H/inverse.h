@@ -34,7 +34,8 @@ extern  int   inv_verbose;
  *  \param  target  The target secondary structure in dot-bracket notation
  *  \return         The distance to the target in case a search was unsuccessful, 0 otherwise
  */
-float inverse_fold(char *start, const char *target);
+float inverse_fold( char *start,
+                    const char *target);
 
 /**
  *  \brief Find sequence that maximizes probability of a predefined structure
@@ -49,5 +50,6 @@ float inverse_fold(char *start, const char *target);
  *  \param  target  The target secondary structure in dot-bracket notation
  *  \return         The distance to the target in case a search was unsuccessful, 0 otherwise
  */
-float inverse_pf_fold(char *start, const char *target);
+float inverse_pf_fold(char *start,
+                      const char *target);
 #endif

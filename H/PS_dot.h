@@ -2,6 +2,7 @@
 #define __VIENNA_RNA_PACKAGE_PS_DOT_H__
 
 #include "data_structures.h"
+#include "plot_layouts.h"
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -15,15 +16,12 @@
  *  visualizations
  */
 
-/**
- *  \brief Switch for changing the secondary structure layout algorithm
- *
- *  Current possibility are 0 for a simple radial drawing or 1 for the modified
- *  radial drawing taken from the \e naview program of \ref bruccoleri_88 "Bruccoleri & Heinrich (1988)".
- *
- *  0= simple coordinates, 1= naview
- */
-extern int rna_plot_type;
+/* write PostScript drawing of structure to file with annotation */
+int PS_rna_plot_snoop_a(char *string,
+                        char *structure,
+                        char *ssfile,
+                        int *relative_access,
+                        const char *seqs[]);
 
 /**
  *  \brief Produce a secondary structure graph in PostScript and write it to 'filename'.
@@ -37,7 +35,9 @@ extern int rna_plot_type;
  *  \param file       The filename of the postscript output
  *  \return           1 on success, 0 otherwise
  */
-int PS_rna_plot(char *string, char *structure, char *file);
+int PS_rna_plot(char *string,
+                char *structure,
+                char *file);
 
 /**
  *  \brief Produce a secondary structure graph in PostScript including additional
@@ -57,7 +57,11 @@ int PS_rna_plot(char *string, char *structure, char *file);
  *  \param post       PostScript code to appear after the secondary structure plot
  *  \return           1 on success, 0 otherwise
  */
-int PS_rna_plot_a(char *string, char *structure, char *file, char *pre, char *post);
+int PS_rna_plot_a(char *string,
+                  char *structure,
+                  char *file,
+                  char *pre,
+                  char *post);
 
 /**
  *  \brief Produce a secondary structure graph in Graph Meta Language (gml) and write it to a file
@@ -71,7 +75,10 @@ int PS_rna_plot_a(char *string, char *structure, char *file, char *pre, char *po
  *  \param  option    The option flag
  *  \return           1 on success, 0 otherwise
  */
-int gmlRNA(char *string, char *structure, char *ssfile, char option);
+int gmlRNA( char *string,
+            char *structure,
+            char *ssfile,
+            char option);
 
 /**
  *  \brief  Produce a secondary structure graph in SStructView format
@@ -83,7 +90,9 @@ int gmlRNA(char *string, char *structure, char *ssfile, char option);
  *  \param  ssfile    The filename of the ssv output
  *  \return           1 on success, 0 otherwise
  */
-int ssv_rna_plot(char *string, char *structure, char *ssfile);
+int ssv_rna_plot( char *string,
+                  char *structure,
+                  char *ssfile);
 
 /**
  *  \brief Produce a secondary structure plot in SVG format and write it to a file
@@ -93,7 +102,9 @@ int ssv_rna_plot(char *string, char *structure, char *ssfile);
  *  \param ssfile     The filename of the svg output
  *  \return           1 on success, 0 otherwise
  */
-int svg_rna_plot(char *string, char *structure, char *ssfile);
+int svg_rna_plot( char *string,
+                  char *structure,
+                  char *ssfile);
 
 /**
  *  \brief Produce a secondary structure plot for further editing in XRNA
@@ -103,12 +114,19 @@ int svg_rna_plot(char *string, char *structure, char *ssfile);
  *  \param ssfile     The filename of the xrna output
  *  \return           1 on success, 0 otherwise
  */
-int xrna_plot(char *string, char *structure, char *ssfile);
+int xrna_plot(char *string,
+              char *structure,
+              char *ssfile);
 
 
-int PS_color_dot_plot(char *string, cpair *pi, char *filename);
+int PS_color_dot_plot(char *string,
+                      cpair *pi,
+                      char *filename);
 
-int PS_color_dot_plot_turn(char *seq, cpair *pi, char *filename, int winSize);
+int PS_color_dot_plot_turn( char *seq,
+                            cpair *pi,
+                            char *filename,
+                            int winSize);
 
 /**
  *  \brief Produce a postscript dot-plot from two pair lists
@@ -129,13 +147,30 @@ int PS_color_dot_plot_turn(char *seq, cpair *pi, char *filename, int winSize);
  *  \param comment  A comment
  *  \return         1 if postscript was successfully written, 0 otherwise
  */
-int PS_dot_plot_list(char *seq, char *filename, plist *pl, plist *mf, char *comment);
+int PS_dot_plot_list( char *seq,
+                      char *filename,
+                      plist *pl,
+                      plist *mf,
+                      char *comment);
 
-int PS_dot_plot_turn(char *seq, struct plist *pl, char *filename, int winSize);
+int PS_dot_plot_turn( char *seq,
+                      struct plist *pl,
+                      char *filename,
+                      int winSize);
 
-int PS_color_aln(const char *structure, const char *filename, const char *seqs[], const char *names[]);
+int PS_color_aln( const char *structure,
+                  const char *filename,
+                  const char *seqs[],
+                  const char *names[]);
 
-int simple_xy_coordinates(short *pair_table, float *X, float *Y);
+/**
+ * 	PS_color_aln for duplexes
+*/
+int aliPS_color_aln(const char *structure,
+                    const char *filename, 
+                    const char *seqs[],
+                    const char *names[]); 
+
 
 /**
  *  Wrapper to PS_dot_plot_list
@@ -152,5 +187,6 @@ int simple_xy_coordinates(short *pair_table, float *X, float *Y);
  *
  *  \deprecated This function is deprecated and will be removed soon! Use \ref PS_dot_plot_list() instead!
  */
-DEPRECATED(int PS_dot_plot(char *string, char *file));
+DEPRECATED(int PS_dot_plot( char *string,
+                            char *file));
 #endif

@@ -1,0 +1,120 @@
+# Name of your program
+package "RNApdist" # don't use package if you're using automake
+
+purpose "Calculate distances between thermodynamic RNA secondary structures ensembles"
+
+#usage "RNApdist [options]\n"
+#version "2.0"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=RNApdist_cmdl --include-getopt --default-optional --func-name=RNApdist_cmdline_parser --arg-struct-name=RNApdist_args_info"
+
+
+description "This program reads RNA sequences from stdin and calculates structure\
+ distances between the thermodynamic ensembles of their secondary structures.\n"
+
+# Options
+section "General Options"
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
+flag
+off
+
+section "Algorithms"
+
+option    "compare"     X
+"Specify the comparison directive.\n"
+details="Possible arguments for this option are: -Xp compare the structures\
+ pairwise (p), i.e. first with 2nd, third with 4th etc.\n-Xm calculate the\
+ distance matrix between all structures. The output is formatted as a lower\
+ triangle matrix.\n-Xf compare each structure to the first one.\n-Xc compare\
+ continuously, that is i-th with (i+1)th structure.\n\n"
+string
+typestr="p|m|f|c"
+default="p"
+optional
+
+option  "backtrack"     B
+"Print an \"alignment\" with gaps of the profiles. The aligned structures\
+ are written to <filename>, if specified.\n"
+details="Within the profile output, the following symbols will be used:\n\n\
+ ()  essentially upstream (downstream) paired bases\n\n\
+ {}  weakly upstream (downstream) paired bases\n\n\
+ |    strongly paired bases without preference\n\n\
+ ,    weakly paired bases without preference\n\n\
+ .    essentially unpaired bases.\n\n\
+ If <filename> is not specified, the output is written to stdout,\
+ unless the \"-Xm\" option is set in which case \"backtrack.file\" is used.\n\n"
+string
+typestr="<filename>"
+argoptional
+default="none"
+optional
+
+section "Model Details"
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
+double
+optional
+
+option  "noTetra" 4
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
+flag
+off
+
+option  "dangles"         d
+"set energy model for treatment of dangling bases\n\n"
+int
+default="2" 
+values="0","2"
+
+option  "noLP"  -
+"Produce structures without lonely pairs (helices of length 1).\n"
+details="For partition function folding this only disallows pairs that can only occur isolated. Other\
+ pairs may still occasionally occur as helices of length 1.\n\n"
+flag
+off
+
+option  "noGU"  -
+"Do not allow GU pairs\n\n"
+flag
+off
+
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices\n\n"
+flag
+off
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n\n"
+string
+typestr="paramfile"
+optional
+
+option  "nsp" -
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+details="Its argument is a comma separated list of additionally allowed pairs. If the\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ energy.\n\n"
+string
+optional
+hidden
+
+option  "energyModel" e
+"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
+int
+optional
+hidden
+
+
+
+
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"

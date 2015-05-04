@@ -29,8 +29,8 @@ short *make_pk_pair_table(const char *structure);
 
 int main(int argc, char *argv[]) {
   struct        PKplex_args_info args_info;
-  char          *id_s1, *s1, *ParamFile, *ns_bases, *c, *plexstring, *constraint;
-  char          fname[100], *temp, *annotation, **rest;
+  char          *id_s1, *s1, *orig_s1, *ParamFile, *ns_bases, *c, *plexstring, *constraint;
+  char          fname[FILENAME_MAX_LENGTH], *temp, *annotation, **rest;
   int           istty, l, i, j, noconv, length, pairdist, current, unpaired;
   int           winsize, openenergies, sym, energyCutoff;
   double        **pup = NULL; /*prob of being unpaired, lengthwise*/
@@ -49,6 +49,7 @@ int main(int argc, char *argv[]) {
   openenergies = 1;
   energyCutoff = -810;
   ParamFile = ns_bases = NULL;
+  s1 = id_s1 = orig_s1 = NULL;
 
   /*
   #############################################
@@ -130,7 +131,7 @@ int main(int argc, char *argv[]) {
     */
     if(id_s1){
       printf("%s\n", id_s1);
-      (void) sscanf(id_s1, ">%70s", fname);
+      (void) sscanf(id_s1, ">%FILENAME_ID_LENGTHs", fname);
     }
     else {
       strcpy(fname, "PKplex");
@@ -141,10 +142,14 @@ int main(int argc, char *argv[]) {
     winsize=pairdist=length;
     unpaired=MIN2(30, length-3);
 
-    if(noconv)  str_RNA2RNA(s1);
-    else        str_DNA2RNA(s1);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(s1);
+    /* store case-unmodified sequence */
+    orig_s1 = strdup(s1);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(s1);
 
-    printf("%s\n", s1);
+    printf("%s\n", orig_s1);
     if (verbose) printf("length = %d\n", length);
     /*
     ########################################################
@@ -253,7 +258,7 @@ int main(int argc, char *argv[]) {
           }
         }
         constraint[length]='\0';
-        if (verbose) printf("Constrained structure:\n%s\n%s\n", s1, constraint);
+        if (verbose) printf("Constrained structure:\n%s\n%s\n", orig_s1, constraint);
 
         fold_constrained=1;
         constrainedEnergy=fold(s1, constraint);
@@ -352,10 +357,12 @@ int main(int argc, char *argv[]) {
       free(constraint);
     }
     free(s1);
+    free(orig_s1);
     free(id_s1);
     free(plexstring);
     free(nonstandards);
     free(PlexHits);
+    s1 = id_s1 = orig_s1 = NULL;
 
 /* print user help for the next round if we get input from tty */
     if(istty) print_tty_input_seq();

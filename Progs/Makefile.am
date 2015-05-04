@@ -1,10 +1,7 @@
 
 
 if WITH_LIBSVM
-  LfoldZ_prog = RNALfoldz
-  LfoldZ_cmdl = RNALfoldz.ggo RNALfoldz_cmdl.c RNALfoldz_cmdl.h
   RNALfold_LINK = ${CXXLD} -o $@
-  RNALfoldz_LINK = ${CXXLD} -o $@
 else
   RNALfold_LINK = ${CCLD} -o $@
 endif
@@ -13,7 +10,7 @@ endif
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
     RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
-    RNAparconv RNAPKplex ${LfoldZ_prog}
+    RNAparconv RNAPKplex RNAplex RNAsnoop
 
 LDADD = $(OPENMP_CFLAGS) ../lib/libRNA.a -lm
 
@@ -21,24 +18,43 @@ AM_CFLAGS = $(OPENMP_CFLAGS)
 
 INCLUDES = -I$(srcdir)/../H -I$(srcdir)/../lib
 
-EXTRA_DIST =  RNAfold.ggo RNAfold_cmdl.c RNAfold_cmdl.h\
-              RNAalifold.ggo RNAalifold_cmdl.c RNAalifold_cmdl.h\
-              RNAcofold.ggo RNAcofold_cmdl.c  RNAcofold_cmdl.h\
-              RNAup.ggo RNAup_cmdl.c  RNAup_cmdl.h\
-              RNALfold.ggo RNALfold_cmdl.c RNALfold_cmdl.h ${LfoldZ_cmdl}\
-              RNALalifold.ggo RNALalifold_cmdl.c RNALalifold_cmdl.h\
-              RNAplfold.ggo RNAplfold_cmdl.c RNAplfold_cmdl.h\
-              RNAduplex.ggo RNAduplex_cmdl.c RNAduplex_cmdl.h\
-              RNAaliduplex.ggo RNAaliduplex_cmdl.c RNAaliduplex_cmdl.h\
-              RNAeval.ggo RNAeval_cmdl.c RNAeval_cmdl.h\
-              RNAheat.ggo RNAheat_cmdl.c RNAheat_cmdl.h\
-              RNAsubopt.ggo RNAsubopt_cmdl.c RNAsubopt_cmdl.h\
-              RNA2Dfold.ggo RNA2Dfold_cmdl.c RNA2Dfold_cmdl.h\
-              RNAparconv.ggo RNAparconv_cmdl.c RNAparconv_cmdl.h\
-              RNAinverse.ggo RNAinverse_cmdl.c RNAinverse_cmdl.h\
-              RNApaln.ggo RNApaln_cmdl.c RNApaln_cmdl.h\
-              RNAplot.ggo RNAplot_cmdl.c RNAplot_cmdl.h\
-              RNAPKplex.ggo RNAPKplex_cmdl.c RNAPKplex_cmdl.h
+GENGETOPT_CMDL =  RNAfold_cmdl.c RNAfold_cmdl.h\
+              RNAalifold_cmdl.c RNAalifold_cmdl.h\
+              RNAcofold_cmdl.c  RNAcofold_cmdl.h\
+              RNAup_cmdl.c  RNAup_cmdl.h\
+              RNALfold_cmdl.c RNALfold_cmdl.h\
+              RNALalifold_cmdl.c RNALalifold_cmdl.h\
+              RNAplfold_cmdl.c RNAplfold_cmdl.h\
+              RNAduplex_cmdl.c RNAduplex_cmdl.h\
+              RNAaliduplex_cmdl.c RNAaliduplex_cmdl.h\
+              RNAeval_cmdl.c RNAeval_cmdl.h\
+              RNAheat_cmdl.c RNAheat_cmdl.h\
+              RNAsubopt_cmdl.c RNAsubopt_cmdl.h\
+              RNA2Dfold_cmdl.c RNA2Dfold_cmdl.h\
+              RNAparconv_cmdl.c RNAparconv_cmdl.h\
+              RNAinverse_cmdl.c RNAinverse_cmdl.h\
+              RNApaln_cmdl.c RNApaln_cmdl.h\
+              RNAplot_cmdl.c RNAplot_cmdl.h\
+              RNAPKplex_cmdl.c RNAPKplex_cmdl.h\
+              RNAplex_cmdl.c RNAplex_cmdl.h\
+              RNAsnoop_cmdl.c RNAsnoop_cmdl.h\
+              RNAdistance_cmdl.c RNAdistance_cmdl.h\
+              RNApdist_cmdl.c RNApdist_cmdl.h
+
+GENGETOPT_FILES =  RNAfold.ggo RNAalifold.ggo RNAcofold.ggo\
+              RNAup.ggo RNALfold.ggo RNALalifold.ggo\
+              RNAplfold.ggo RNAduplex.ggo RNAaliduplex.ggo\
+              RNAeval.ggo RNAheat.ggo RNAsubopt.ggo RNA2Dfold.ggo\
+              RNAparconv.ggo RNAinverse.ggo RNApaln.ggo RNAplot.ggo\
+              RNAPKplex.ggo RNAplex.ggo RNAsnoop.ggo RNAdistance.ggo\
+              RNApdist.ggo
+
+EXTRA_DIST =  ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
+
+# remove all generated man pages
+maintainer-clean-local:
+	rm -rf $(GENGETOPT_CMDL)
+
 
 RNAfold.c:    RNAfold_cmdl.h
 
@@ -84,15 +100,6 @@ RNALfold_cmdl.h  RNALfold_cmdl.c: RNALfold.ggo
 	gengetopt -i RNALfold.ggo
 
 RNALfold_SOURCES=RNALfold_cmdl.c RNALfold.c
-
-#if WITH_LIBSVM
-RNALfoldz.c:       RNALfoldz_cmdl.h
-
-RNALfoldz_cmdl.h  RNALfoldz_cmdl.c: RNALfoldz.ggo
-	gengetopt -i RNALfoldz.ggo
-
-RNALfoldz_SOURCES=RNALfoldz_cmdl.c RNALfoldz.c
-#endif
 
 RNALalifold.c:      RNALalifold_cmdl.h
 
@@ -180,3 +187,31 @@ RNAPKplex_cmdl.h  RNAPKplex_cmdl.c: RNAPKplex.ggo
 	gengetopt -i RNAPKplex.ggo
 
 RNAPKplex_SOURCES=RNAPKplex_cmdl.c RNAPKplex.c
+
+RNAplex.c:    RNAplex_cmdl.h
+
+RNAplex_cmdl.h  RNAplex_cmdl.c: RNAplex.ggo
+	gengetopt -i RNAplex.ggo
+
+RNAplex_SOURCES=RNAplex_cmdl.c RNAplex.c
+
+RNAsnoop.c:    RNAsnoop_cmdl.h
+
+RNAsnoop_cmdl.h  RNAsnoop_cmdl.c: RNAsnoop.ggo
+	gengetopt -i RNAsnoop.ggo
+
+RNAsnoop_SOURCES=RNAsnoop_cmdl.c RNAsnoop.c
+
+RNAdistance.c:    RNAdistance_cmdl.h
+
+RNAdistance_cmdl.h  RNAdistance_cmdl.c: RNAdistance.ggo
+	gengetopt -i RNAdistance.ggo
+
+RNAdistance_SOURCES=RNAdistance_cmdl.c RNAdistance.c
+
+RNApdist.c:    RNApdist_cmdl.h
+
+RNApdist_cmdl.h  RNApdist_cmdl.c: RNApdist.ggo
+	gengetopt -i RNApdist.ggo
+
+RNApdist_SOURCES=RNApdist_cmdl.c RNApdist.c

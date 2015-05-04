@@ -26,11 +26,11 @@ description "The program reads RNA sequences from stdin, calculates their minimu
  word (max. 42 char) of the FASTA header will be used for output file names. PostScript files \"name_ss.ps\"\
  and \"name_dp.ps\" are produced for the structure and dot plot, respectively.\nOnce FASTA input was provided\
  all following sequences must be in FASTA format too.\nThe program will continue to read new sequences until a\
- line consisting of the single character @ or an end of file condition is encountered.\n"
+ line consisting of the single character @ or an end of file condition is encountered.\n\n"
 
 # Options
 section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n"
+sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
 
 option  "constraint"  C
 "Calculate structures subject to constraints.\n"
@@ -40,23 +40,23 @@ details="The program reads first the\
  a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
  exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
  sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\".\n"
+ folding ignores constraints of type \"|\".\n\n"
 flag
 off
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag
 off
 
 option  "noPS"  -
-"Do not produce postscript drawing of the mfe structure.\n"
+"Do not produce postscript drawing of the mfe structure.\n\n"
 flag
 off
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
- (MFE) and a structure representative are calculated in any case.\n"
+ (MFE) and a structure representative are calculated in any case.\n\n"
 
 option  "partfunc"  p
 "Calculate the partition function and base pairing probability matrix.\n"
@@ -73,7 +73,7 @@ details="In addition to the MFE structure\
  i.e. the probability that a pair (i,j) and the immediately interior pair (i+1,j-1) are formed simultaneously in\
  addition to pair probabilities. A second postscript dot plot called \"name_dp2.ps\", or \"dot2.ps\" (if the\
  sequence does not have a name), is produced that contains pair probabilities in the upper right half and stack\
- probabilities in the lower left.\n"
+ probabilities in the lower left.\n\n"
 int
 default="1"
 argoptional
@@ -86,7 +86,7 @@ option  "MEA"   -
 details="The parameter gamma tunes the importance of correctly\
  predicted pairs versus unpaired bases. Thus, for small values of gamma the MEA structure will contain\
  only pairs with very high probability.\nUsing --MEA implies -p for\
- computing the pair probabilities.\n"
+ computing the pair probabilities.\n\n"
 float
 typestr="gamma"
 default="1."
@@ -97,7 +97,7 @@ option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows).\n"
 details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n"
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
 double
 typestr="scaling factor"
 optional
@@ -108,15 +108,36 @@ option  "circ"    c
 flag
 off
 
+option  "ImFeelingLucky"  -
+"Return exactly one stochastically backtracked structure\n"
+details="This function computes the partition function and returns exactly one secondary structure\
+ stochastically sampled from the Boltzmann equilibrium according to its probability in the ensemble\n\n"
+flag
+off
+hidden
+
+
+option  "bppmThreshold" -
+"Set the threshold for base pair probabilities included in the postscript output\n"
+details="By setting the threshold the base pair probabilities that are included in the\
+ output can be varied. By default only those exceeding 1e-5 in probability will be shown as squares\
+ in the dot plot. Changing the threshold to any other value allows for increase or decrease of data.\n\n"
+double
+typestr="<value>"
+optional
+default="1e-5"
+hidden
+
+
 section "Model Details"
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
 flag
 off
 
@@ -130,7 +151,7 @@ details="\nWith -d1 only unpaired bases can participate in at most one dangling 
  moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
  and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
  treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
- energy model.\n"
+ energy model.\n\n"
 int
 default="2"
 optional
@@ -138,24 +159,24 @@ optional
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"
+ pairs may still occasionally occur as helices of length 1.\n\n"
 flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs\n"
+"Do not allow GU pairs\n\n"
 flag
 off
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n"
+"Do not allow GU pairs at the end of helices\n\n"
 flag
 off
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n"
+ documentation for details on the file format.\n\n"
 string
 typestr="paramfile"
 optional
@@ -165,34 +186,17 @@ option  "nsp" -
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n"
+ energy.\n\n"
 string
 optional
 hidden
 
 option  "energyModel" e
 "Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
 int
 optional
 hidden
 
-
-text    "References:\n\nThe calculation of mfe structures is based on dynamic programming algorithm originally developed\
- by M. Zuker and P. Stiegler.\nThe partition function algorithm is based on work by J.S. McCaskill.\nThe energy parameters\
- are taken from:\n\nD.H. Mathews, J. Sabina, M. Zuker and H. Turner \"Expanded Sequence Dependence of Thermodynamic\
- Parameters Provides Robust Prediction of RNA Secondary Structure\",  JMB, 288, pp 911-940, 1999\n\nA. Walter, D Turner,\
- J Kim, M Lyttle, P Mueller, D Mathews, M Zuker \"Coaxial stacking of helices enhances binding of oligoribonucleotides.\"\
- PNAS, 91, pp 9218-9222, 1994\n\nIf you use this program in your work you might want to cite:\n\nI.L. Hofacker, W.\
- Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster (1994) \"Fast Folding and Comparison of RNA Secondary\
- Structures\", Monatshefte f. Chemie 125: 167-188\n\nM. Zuker, P. Stiegler (1981) \"Optimal computer folding of large RNA\
- sequences using thermodynamic and auxiliary information\", Nucl Acid Res 9: 133-148\n\nJ.S. McCaskill (1990) \"The\
- equilibrium partition function and base pair binding probabilities for RNA secondary structures\", Biopolymers 29:\
- 1105-1119\n\nI.L. Hofacker & P.F. Stadler (2006) \"Memory Efficient Folding Algorithms for Circular RNA Secondary\
- Structures\", Bioinformatics\n\nA.F. Bompfuenewerer, R. Backofen, S.H. Bernhart, J. Hertel, I.L. Hofacker, P.F.\
- Stadler, S. Will (2007) \"Variations on {RNA} Folding and Alignment: Lessons from Benasque\", J. Math. Biol.\n\nD. Adams\
- (1979) \"The hitchhiker's guide to the galaxy\", Pan Books, London\n\n"
-
-text    "Written by:\n\nIvo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler, Ronny Lorenz.\n\n"
-text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n\n"

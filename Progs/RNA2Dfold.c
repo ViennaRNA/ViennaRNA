@@ -29,9 +29,8 @@ typedef struct nbhoods{
 int main(int argc, char *argv[]){
   struct        RNA2Dfold_args_info args_info;
   unsigned int  input_type;
-  char *string, *input_string;
+  char *string, *input_string, *orig_sequence;
   char *mfe_structure=NULL, *structure1=NULL, *structure2=NULL, *reference_struc1=NULL, *reference_struc2=NULL;
-  char  fname[13];
   char  *ParamFile=NULL;
   int   i, j, length, l;
   double min_en;
@@ -48,6 +47,8 @@ int main(int argc, char *argv[]){
   dangles = 2;
   struct nbhoods *neighborhoods = NULL;
   struct nbhoods *neighborhoods_cur = NULL;
+
+  string = input_string = orig_sequence = NULL;
   /*
   #############################################
   # check the command line prameters
@@ -157,9 +158,7 @@ int main(int argc, char *argv[]){
     if (istty)
       print_tty_input_seq_str("Input strings\n1st line: sequence (upper or lower case)\n2nd + 3rd line: reference structures (dot bracket notation)\n@ to quit\n");
 
-    fname[0]='\0';
     while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-      (void) sscanf(input_string, "%42s", fname);
       printf(">%s\n", input_string); /* print fasta header if available */
       free(input_string);
     }
@@ -199,14 +198,18 @@ int main(int argc, char *argv[]){
     else nrerror("2nd reference structure missing\n");
     strncpy(structure2, reference_struc2, length);
 
-    if(noconv)  str_RNA2RNA(string);
-    else        str_DNA2RNA(string);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(string);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(string);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(string);
 
     if (istty)  printf("length = %d\n", length);
 
     min_en = (circ) ? circfold(string, mfe_structure) : fold(string, mfe_structure);
 
-    printf("%s\n%s", string, mfe_structure);
+    printf("%s\n%s", orig_sequence, mfe_structure);
 
     if (istty)
       printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
@@ -221,8 +224,6 @@ int main(int argc, char *argv[]){
     mfe_vars->do_backtrack = do_backtrack;
     TwoDfold_solution *mfe_s = TwoDfoldList(mfe_vars, maxDistance1, maxDistance2);
 
-    maxDistance1 = mfe_vars->maxD1;
-    maxDistance2 = mfe_vars->maxD2;
     if(!pf){
 #ifdef COUNT_STATES
       printf("k\tl\tn\tMFE\tMFE-structure\n");
@@ -242,6 +243,8 @@ int main(int argc, char *argv[]){
     }
 
     if(pf){
+      int maxD1 = (int) mfe_vars->maxD1;
+      int maxD2 = (int) mfe_vars->maxD2;
       float mmfe = INF;
       double Q;
       for(i = 0; mfe_s[i].k != INF; i++){
@@ -258,7 +261,7 @@ int main(int argc, char *argv[]){
       destroy_TwoDfold_variables(mfe_vars);
       TwoDpfold_vars *q_vars = get_TwoDpfold_variables(string, structure1, structure2, circ);
 
-      TwoDpfold_solution *pf_s = TwoDpfoldList(q_vars, maxDistance1, maxDistance2);
+      TwoDpfold_solution *pf_s = TwoDpfoldList(q_vars, maxD1, maxD2);
 
       Q = 0.;
       
@@ -297,7 +300,7 @@ int main(int argc, char *argv[]){
             l = tmp->l;
             for(i = 0; i < nstBT; i++){
               char *s = TwoDpfold_pbacktrack(q_vars, k, l);
-              printf("%d\t%d\t%s\t%6.2f\n", k, l, s, energy_of_structure(q_vars->sequence, s, 0));
+              printf("%d\t%d\t%s\t%6.2f\n", k, l, s, q_vars->circ ? energy_of_circ_structure(q_vars->sequence, s, 0) : energy_of_structure(q_vars->sequence, s, 0));
             }
           }
         }
@@ -305,7 +308,7 @@ int main(int argc, char *argv[]){
           for(i=0; pf_s[i].k != INF;i++){
             for(l = 0; l < nstBT; l++){
               char *s = TwoDpfold_pbacktrack(q_vars, pf_s[i].k, pf_s[i].l);
-              printf("%d\t%d\t%s\t%6.2f\n", pf_s[i].k, pf_s[i].l, s, energy_of_structure(q_vars->sequence, s, 0));
+              printf("%d\t%d\t%s\t%6.2f\n", pf_s[i].k, pf_s[i].l, s, q_vars->circ ? energy_of_circ_structure(q_vars->sequence, s, 0) : energy_of_structure(q_vars->sequence, s, 0));
             }
           }
         }
@@ -325,11 +328,13 @@ int main(int argc, char *argv[]){
 
     free_arrays();
     free(string);
+    free(orig_sequence);
     free(mfe_structure);
     free(structure1);
     free(structure2);
     free(reference_struc1);
     free(reference_struc2);
+    string = orig_sequence = mfe_structure = NULL;
   } while (1);
   return 0;
 }

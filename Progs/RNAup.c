@@ -56,10 +56,10 @@ int main(int argc, char *argv[]){
   struct RNAup_args_info  args_info;
   unsigned int            input_type, up_mode;
   char                    temp_name[512], my_contrib[10], up_out[250], name[512];
-  char                    fname1[80], fname2[80], fname_target[80];
+  char                    fname1[FILENAME_MAX_LENGTH], fname2[FILENAME_MAX_LENGTH], fname_target[FILENAME_MAX_LENGTH];
   char                    *ParamFile, *ns_bases, *c, *structure;
   char                    *head, *input_string, *s1, *s2, *s3, *s_target, *cstruc1, *cstruc2, *cstruc_target, *cstruc_combined;
-  char                    cmdl_tmp[2048], *cmdl_parameters;
+  char                    cmdl_tmp[2048], *cmdl_parameters, *orig_s1, *orig_s2, *orig_target;
   int                     cmdl_parameters_length;
   int                     i, j, length1, length2, l, length_target, sym, r, istty, rotated;
   double                  energy, min_en;
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]){
   length1         = length2 = length_target = 0;
   inter_out       = NULL;
   unstr_out       = unstr_short = unstr_target = contrib1 = contrib2 = NULL;
-  structure       = ParamFile = ns_bases = head = NULL;
+  structure       = ParamFile = ns_bases = head = orig_s1 = orig_s2 = orig_target = NULL;
   fname_target[0] = '\0';
   /* allocate init length for commandline parameter string */
   cmdl_parameters_length = COMMANDLINE_PARAMETERS_INIT_LENGTH;
@@ -410,7 +410,7 @@ int main(int argc, char *argv[]){
 
     /* extract filename from fasta header if available */
     while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-      (void) sscanf(input_string, "%51s", fname1);
+      (void) sscanf(input_string, "%FILENAME_ID_LENGTHs", fname1);
       printf(">%s\n", input_string); /* print fasta header if available */
       free(input_string);
     }
@@ -455,7 +455,7 @@ int main(int argc, char *argv[]){
 
       /* extract filename from fasta header if available */
       while((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER){
-        (void) sscanf(input_string, "%51s", fname2);
+        (void) sscanf(input_string, "%FILENAME_ID_LENGTHs", fname2);
         printf(">%s\n", input_string); /* print fasta header if available */
         free(input_string);
       }
@@ -470,14 +470,17 @@ int main(int argc, char *argv[]){
       length2 = (int)strlen(s2);
     }
 
-    if(noconv){
-      str_RNA2RNA(s1);
-      str_RNA2RNA(s2);
-    }
-    else{
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv){
       str_DNA2RNA(s1);
       str_DNA2RNA(s2);
     }
+    /* store case-unmodified sequence */
+    orig_s1 = strdup(s1);
+    if(s2) orig_s2 = strdup(s2);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(s1);
+    str_uppercase(s2);
 
     /** read structure constraint(s) if necessary */
     if (fold_constrained) {
@@ -537,11 +540,12 @@ int main(int argc, char *argv[]){
         /* rotate the sequences such that the longer is the first */
         int  l  = length2; length2 = length1; length1 = l;
         char *s = s2; s2 = s1; s1 = s;
+        s = orig_s2; orig_s2 = orig_s1; orig_s1 = s;
         /* also rotate the file names */
-        char f[80];
-        strncpy(f, fname2, 51);
-        strncpy(fname2, fname1, 51);
-        strncpy(fname1, f, 51);
+        char f[FILENAME_MAX_LENGTH];
+        strncpy(f, fname2, FILENAME_ID_LENGTH);
+        strncpy(fname2, fname1, FILENAME_ID_LENGTH);
+        strncpy(fname1, f, FILENAME_ID_LENGTH);
         /* rotate constraint strings as well */
         if(fold_constrained){
           s = cstruc2; cstruc2 = cstruc1; cstruc1 = s;
@@ -558,7 +562,9 @@ int main(int argc, char *argv[]){
       if(s_target == NULL){
         if(rotated){
           s_target      = s2;
+          orig_target   = orig_s2;
           s2            = NULL;
+          orig_s2       = NULL;
           length_target = length2;
           strcpy(fname_target, fname2);
           if(fold_constrained){
@@ -568,9 +574,12 @@ int main(int argc, char *argv[]){
         }
         else{
           s_target      = s1;
+          orig_target   = orig_s1;
           length_target = length1;
           s1            = s2;
+          orig_s1       = orig_s2;
           s2            = NULL;
+          orig_s2       = NULL;
           length1       = length2;
           strcpy(fname_target, fname1);
           strcpy(fname1, fname2);
@@ -595,13 +604,15 @@ int main(int argc, char *argv[]){
     /* first file name */
     if (fname1[0] != '\0'){
       strcpy(up_out, fname1);
-      if(fname2[0] != '\0'){
-        strcat(up_out, "_");
-        strcat(up_out, fname2);
-      }
-      else if(fname_target != '\0'){
-        strcat(up_out, "_");
-        strcat(up_out, fname_target);
+      if(up_mode & (RNA_UP_MODE_2 | RNA_UP_MODE_3)){
+        if(fname2[0] != '\0'){
+          strcat(up_out, "_");
+          strcat(up_out, fname2);
+        }
+        else if(fname_target != '\0'){
+          strcat(up_out, "_");
+          strcat(up_out, fname_target);
+        }
       }
     } else {
       strcpy(up_out, "RNA");
@@ -663,15 +674,15 @@ int main(int argc, char *argv[]){
                             }
                             if(output && header){
                               head = (char *)space(sizeof(char)*(length1 + strlen(cmdl_parameters) + 512));
-                              sprintf(head, "# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, s1);
+                              sprintf(head, "# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, orig_s1);
                             }
                             contrib1 = unstr_out;
                             break;
       case RNA_UP_MODE_2:   inter_out = pf_interact(s1, s2, unstr_out, NULL, w, cstruc_combined, incr3, incr5);
-                            print_interaction(inter_out, s1, s2, unstr_out, NULL, w, incr3, incr5);
+                            print_interaction(inter_out, orig_s1, orig_s2, unstr_out, NULL, w, incr3, incr5);
                             if(output && header){
                               head = (char *)space(sizeof(char)*(length1 + length2 + strlen(cmdl_parameters) + 1024));
-                              sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, s1, length2, fname2, s2);
+                              sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, orig_s1, length2, fname2, orig_s2);
                             }
                             contrib1 = unstr_out;
                             break;
@@ -694,19 +705,19 @@ int main(int argc, char *argv[]){
                             /* check if target sequence is actually longer than query, if not rotate both sequences */
                             if(length_target < length1){
                               inter_out = pf_interact(s1, s_target, unstr_out, unstr_target, w, cstruc_combined, incr3, incr5);
-                              print_interaction(inter_out, s1, s_target, unstr_out, unstr_target, w, incr3, incr5);
+                              print_interaction(inter_out, orig_s1, orig_target, unstr_out, unstr_target, w, incr3, incr5);
                               contrib1 = unstr_out;
                               contrib2 = unstr_target;
                             }
                             else{
                               inter_out = pf_interact(s_target, s1, unstr_target, unstr_out, w, cstruc_combined, incr3, incr5);
-                              print_interaction(inter_out, s_target, s1, unstr_target, unstr_out, w, incr3, incr5);
+                              print_interaction(inter_out, orig_target, orig_s1, unstr_target, unstr_out, w, incr3, incr5);
                               contrib1 = unstr_target;
                               contrib2 = unstr_out;
                             }
                             if(output && header){
                               head = (char *)space(sizeof(char)*(length_target + length1 + strlen(cmdl_parameters) + 1024));
-                              sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length_target, fname_target, s_target, length1, fname1, s1);
+                              sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length_target, fname_target, orig_target, length1, fname1, orig_s1);
                             }
                             break;
     }
@@ -750,12 +761,14 @@ int main(int argc, char *argv[]){
     if(structure        != NULL)  free(structure);
     if(s1               != NULL)  free(s1);
     if(s2               != NULL)  free(s2);
+    if(orig_s1) free(orig_s1);
+    if(orig_s2) free(orig_s2);
     if(cstruc1          != NULL)  free(cstruc1);
     if(cstruc2          != NULL)  free(cstruc2);
     if(head             != NULL)  free(head);
     if(cstruc_combined  != NULL)  free(cstruc_combined);
 
-    structure = s1 = s2 = cstruc1 = cstruc2 = head = cstruc_combined = NULL;
+    structure = s1 = s2 = orig_s1 = orig_s2 = cstruc1 = cstruc2 = head = cstruc_combined = NULL;
 
     free_arrays(); /* for arrays for fold(...) */
   } while (1);

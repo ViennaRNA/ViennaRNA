@@ -28,6 +28,8 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
 PRIVATE double *read_concentrations(FILE *fp);
 PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces);
 
+PRIVATE double bppmThreshold;
+
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
@@ -35,8 +37,8 @@ int main(int argc, char *argv[])
   struct        RNAcofold_args_info args_info;
   unsigned int  input_type;
   char          *string, *input_string;
-  char    *structure, *cstruc, *rec_sequence, *rec_id, **rec_rest;
-  char    fname[80], ffname[80];
+  char    *structure, *cstruc, *rec_sequence, *orig_sequence, *rec_id, **rec_rest;
+  char    fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH];
   char    *ParamFile;
   char    *ns_bases, *c;
   char    *Concfile;
@@ -69,6 +71,7 @@ int main(int argc, char *argv[])
   */
   dangles       = 2;
   sfact         = 1.07;
+  bppmThreshold = 1e-5;
   noconv        = 0;
   noPS          = 0;
   do_backtrack  = 1;
@@ -84,7 +87,7 @@ int main(int argc, char *argv[])
   cstruc        = NULL;
   ns_bases      = NULL;
   rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = NULL;
+  rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
 
   /*
@@ -123,6 +126,9 @@ int main(int argc, char *argv[])
   if(args_info.all_pf_given)          doT = pf = 1;
   /* concentrations from stdin */
   if(args_info.concentrations_given)  doC = doT = pf = 1;
+  /* set the bppm threshold for the dotplot */
+  if(args_info.bppmThreshold_given)
+    bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
   /* concentrations in file */
   if(args_info.concfile_given){
     Concfile = strdup(args_info.concfile_arg);
@@ -197,7 +203,7 @@ int main(int argc, char *argv[])
     */
     if(rec_id){
       if(!istty) printf("%s\n", rec_id);
-      (void) sscanf(rec_id, ">%42s", fname);
+      (void) sscanf(rec_id, ">%FILENAME_ID_LENGTHs", fname);
     }
     else fname[0] = '\0';
 
@@ -225,8 +231,12 @@ int main(int argc, char *argv[])
       if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
     }
 
-    if(noconv)  str_RNA2RNA(rec_sequence);
-    else        str_DNA2RNA(rec_sequence);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(rec_sequence);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(rec_sequence);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(rec_sequence);
 
     if(istty){
       if (cut_point == -1)
@@ -263,10 +273,10 @@ int main(int argc, char *argv[])
     {
       char *pstring, *pstruct;
       if (cut_point == -1) {
-        pstring = strdup(rec_sequence);
+        pstring = strdup(orig_sequence);
         pstruct = strdup(structure);
       } else {
-        pstring = costring(rec_sequence);
+        pstring = costring(orig_sequence);
         pstruct = costring(structure);
       }
       printf("%s\n%s", pstring, pstruct);
@@ -300,6 +310,7 @@ int main(int argc, char *argv[])
     /*compute partition function*/
     if (pf) {
       cofoldF AB, AA, BB;
+      FLT_OR_DBL *probs;
       if (dangles==1) {
         dangles=2;   /* recompute with dangles as in pf_fold() */
         min_en = energy_of_structure(rec_sequence, structure, 0);
@@ -336,13 +347,14 @@ int main(int argc, char *argv[])
 
       printf(" , delta G binding=%6.2f\n", AB.FcAB - AB.FA - AB.FB);
 
-      assign_plist_from_pr(&prAB, pr, length, 0.00001);
+      probs = export_co_bppm();
+      assign_plist_from_pr(&prAB, probs, length, bppmThreshold);
 
       /* if (doQ) make_probsum(length,fname); */ /*compute prob of base paired*/
       /* free_co_arrays(); */
       if (doT) { /* cofold of all dimers, monomers */
         int Blength, Alength;
-        char  *Astring, *Bstring;
+        char  *Astring, *Bstring, *orig_Astring, *orig_Bstring;
         char *Newstring;
         char Newname[30];
         char comment[80];
@@ -360,6 +372,11 @@ int main(int argc, char *argv[])
         Bstring=(char *)space(sizeof(char)*(Blength+1));/*Sequence of second molecule*/
         strncat(Astring,rec_sequence,Alength);
         strncat(Bstring,rec_sequence+Alength,Blength);
+
+        orig_Astring=(char *)space(sizeof(char)*(Alength+1));/*Sequence of first molecule*/
+        orig_Bstring=(char *)space(sizeof(char)*(Blength+1));/*Sequence of second molecule*/
+        strncat(orig_Astring,orig_sequence,Alength);
+        strncat(orig_Bstring,orig_sequence+Alength,Blength);
 
         /* compute AA dimer */
         AA=do_partfunc(Astring, Alength, 2, &prAA, &mfAA);
@@ -398,7 +415,7 @@ int main(int argc, char *argv[])
         /*write New name*/
         strcpy(Newname,"AB");
         strcat(Newname,ffname);
-        (void)PS_dot_plot_list(rec_sequence, Newname, prAB, mfAB, comment);
+        (void)PS_dot_plot_list(orig_sequence, Newname, prAB, mfAB, comment);
 
         /*AA dot_plot*/
         sprintf(comment,"\n%%Homodimer AA FreeEnergy= %.9f\n",AA.FcAB);
@@ -407,8 +424,8 @@ int main(int argc, char *argv[])
         strcat(Newname,ffname);
         /*write AA sequence*/
         Newstring=(char*)space((2*Alength+1)*sizeof(char));
-        strcpy(Newstring,Astring);
-        strcat(Newstring,Astring);
+        strcpy(Newstring,orig_Astring);
+        strcat(Newstring,orig_Astring);
         (void)PS_dot_plot_list(Newstring, Newname, prAA, mfAA, comment);
         free(Newstring);
 
@@ -419,8 +436,8 @@ int main(int argc, char *argv[])
         strcat(Newname,ffname);
         /*write BB sequence*/
         Newstring=(char*)space((2*Blength+1)*sizeof(char));
-        strcpy(Newstring,Bstring);
-        strcat(Newstring,Bstring);
+        strcpy(Newstring,orig_Bstring);
+        strcat(Newstring,orig_Bstring);
         /*reset cut_point*/
         cut_point=Blength+1;
         (void)PS_dot_plot_list(Newstring, Newname, prBB, mfBB, comment);
@@ -434,7 +451,7 @@ int main(int argc, char *argv[])
         strcpy(Newname,"A");
         strcat(Newname,ffname);
         /*write BB sequence*/
-        (void)PS_dot_plot_list(Astring, Newname, prA, mfA, comment);
+        (void)PS_dot_plot_list(orig_Astring, Newname, prA, mfA, comment);
 
         /*B monomer dot plot*/
         sprintf(comment,"\n%%Monomer B FreeEnergy= %.9f\n",AB.FB);
@@ -442,8 +459,9 @@ int main(int argc, char *argv[])
         strcpy(Newname,"B");
         strcat(Newname,ffname);
         /*write BB sequence*/
-        (void)PS_dot_plot_list(Bstring, Newname, prB, mfB, comment);
-        free(Astring); free(Bstring); free(prAB); free(prAA); free(prBB); free(prA); free(prB);
+        (void)PS_dot_plot_list(orig_Bstring, Newname, prB, mfB, comment);
+        free(Astring); free(Bstring); free(orig_Astring); free(orig_Bstring);
+        free(prAB); free(prAA); free(prBB); free(prA); free(prB);
         free(mfAB); free(mfAA); free(mfBB); free(mfA); free(mfB);
 
       } /*end if(doT)*/
@@ -471,13 +489,14 @@ int main(int argc, char *argv[])
     if(cstruc) free(cstruc);
     if(rec_id) free(rec_id);
     free(rec_sequence);
+    free(orig_sequence);
     free(structure);
     /* free the rest of current dataset */
     if(rec_rest){
       for(i=0;rec_rest[i];i++) free(rec_rest[i]);
       free(rec_rest);
     }
-    rec_id = rec_sequence = structure = cstruc = NULL;
+    rec_id = rec_sequence = orig_sequence = structure = cstruc = NULL;
     rec_rest = NULL;
 
     /* print user help for the next round if we get input from tty */
@@ -542,6 +561,7 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
   double min_en;
   double sfact=1.07;
   double kT;
+  FLT_OR_DBL *probs;
   cofoldF X;
   kT = (temperature+273.15)*1.98717/1000.;
   switch (Switch)
@@ -556,8 +576,8 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       /*En=pf_fold(string, tempstruc);*/
       /* init_co_pf_fold(length); <- obsolete */
       X=co_pf_fold(string, tempstruc);
-
-      assign_plist_from_pr(tpr, pr, length, 0.00001);
+      probs = export_co_bppm();
+      assign_plist_from_pr(tpr, probs, length, bppmThreshold);
       free_co_pf_arrays();
       free(tempstruc);
       break;
@@ -574,7 +594,8 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       free_co_arrays();
       /* init_co_pf_fold(2*length); <- obsolete */
       X=co_pf_fold(Newstring, tempstruc);
-      assign_plist_from_pr(tpr, pr, 2*length, 0.00001);
+      probs = export_co_bppm();
+      assign_plist_from_pr(tpr, probs, 2*length, bppmThreshold);
       free_co_pf_arrays();
       free(Newstring);
       free(tempstruc);

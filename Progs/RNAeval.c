@@ -33,8 +33,8 @@ PRIVATE char *tokenize(char *line);
 int main(int argc, char *argv[]){
   struct RNAeval_args_info  args_info;
   unsigned int              input_type;
-  char                      *line, *string, *structure, *input_string;
-  char                      fname[80];
+  char                      *line, *string, *structure, *input_string, *orig_sequence;
+  char                      fname[FILENAME_MAX_LENGTH];
   char                      *ParamFile;
   int                       i, l, length1, length2;
   float                     energy;
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
   int                       noconv=0;
   int                       verbose = 0;
 
-  string = ParamFile = NULL;
+  string = orig_sequence = ParamFile = NULL;
 
   /*
   #############################################
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]){
     fname[0] = '\0';
     while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
       printf(">%s\n", input_string);
-      (void) sscanf(input_string, "%42s", fname);
+      (void) sscanf(input_string, "%FILENAME_ID_LENGTHs", fname);
       free(input_string);
     }
 
@@ -131,8 +131,12 @@ int main(int argc, char *argv[]){
     if(length1 != length2)
       nrerror("Sequence and Structure have unequal length.");
 
-    if(noconv)  str_RNA2RNA(string);
-    else        str_DNA2RNA(string);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(string);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(string);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(string);
 
     if(istty){
       if (cut_point == -1)
@@ -144,10 +148,10 @@ int main(int argc, char *argv[]){
     energy = (circular) ? energy_of_circ_structure(string, structure, verbose) : energy_of_structure(string, structure, verbose);
 
     if (cut_point == -1)
-      printf("%s\n%s", string, structure);
+      printf("%s\n%s", orig_sequence, structure);
     else {
       char *pstring, *pstruct;
-      pstring = costring(string);
+      pstring = costring(orig_sequence);
       pstruct = costring(structure);
       printf("%s\n%s", pstring,  pstruct);
       free(pstring);
@@ -159,7 +163,9 @@ int main(int argc, char *argv[]){
       printf(" (%6.2f)\n", energy);
 
     free(string);
+    free(orig_sequence);
     free(structure);
+    string = structure = orig_sequence = NULL;
     (void) fflush(stdout);
   } while (1);
   return 0;

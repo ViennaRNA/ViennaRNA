@@ -11,7 +11,7 @@
 
 /**
  *  \file LPfold.h
- *  \brief
+ *  \brief Function declarations of partition function variants of the Lfold algorithm
  * 
  */
 
@@ -56,7 +56,14 @@ void    update_pf_paramsLP(int length);
  *  \param  spup     file pointer for pair probabilities   
  *  \return list of pair probabilities       
  */
-plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb, double **pU, struct plist **dpp2, FILE *pUfp, FILE *spup);
+plist *pfl_fold(char *sequence,
+                int winSize,
+                int pairSize,
+                float cutoffb,
+                double **pU,
+                struct plist **dpp2,
+                FILE *pUfp,
+                FILE *spup);
 
 /**
  *  \brief Writes the unpaired probabilities (pU) or opening energies into a file
@@ -69,7 +76,28 @@ plist *pfl_fold(char *sequence, int winSize, int pairSize, float cutoffb, double
  *  \param  fp file pointer of destination file       
  *  \param  energies  switch to put out as  opening energies 
  */
-void    putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int energies);
+void    putoutpU_prob(double **pU,
+                      int length,
+                      int ulength,
+                      FILE *fp,
+                      int energies);
+
+/**
+ *  \brief Writes the unpaired probabilities (pU) or opening energies into a binary file 
+ * 
+ *  Can write either the unpaired probabilities (accessibilities) pU or
+ *  the opening energies -log(pU)kT into a file
+ *  \param  pU       pair probabilities
+ *  \param  length   length of RNA sequence 
+ *  \param  ulength  maximum length of unpaired stretch 
+ *  \param  fp file pointer of destination file       
+ *  \param  energies  switch to put out as  opening energies 
+ */
+void    putoutpU_prob_bin(double **pU,
+                          int length,
+                          int ulength,
+                          FILE *fp,
+                          int energies);
 
 /**
  *  Dunno if this function was ever used by external programs linking to RNAlib, but it

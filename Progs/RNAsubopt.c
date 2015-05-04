@@ -31,7 +31,7 @@ int main(int argc, char *argv[]){
   struct        RNAsubopt_args_info args_info;
   unsigned int  input_type;
   unsigned int  rec_type, read_opt;
-  char          fname[80], *c, *input_string, *rec_sequence, *rec_id, **rec_rest;
+  char          fname[FILENAME_MAX_LENGTH], *c, *input_string, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
   char          *cstruc, *structure, *ParamFile, *ns_bases;
   int           i, length, l, cl, sym, istty;
   double        deltaf, deltap;
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
   delta         = 100;
   deltap = n_back = noconv = circular = dos = zuker = 0;
   rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = NULL;
+  rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
   input_string  = c = cstruc = structure = ParamFile = ns_bases = NULL;
 
@@ -172,7 +172,7 @@ int main(int argc, char *argv[]){
     */
     if(rec_id){
       if(!istty) printf("%s\n", rec_id);
-      (void) sscanf(rec_id, ">%42s", fname);
+      (void) sscanf(rec_id, ">%FILENAME_ID_LENGTHs", fname);
     }
     else fname[0] = '\0';
 
@@ -200,8 +200,12 @@ int main(int argc, char *argv[]){
       if(cstruc) strncpy(structure, cstruc, sizeof(char)*(cl+1));
     }
 
-    if(noconv)  str_RNA2RNA(rec_sequence);
-    else        str_DNA2RNA(rec_sequence);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(rec_sequence);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(rec_sequence);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(rec_sequence);
 
     if(istty){
       if (cut_point == -1)
@@ -279,13 +283,14 @@ int main(int argc, char *argv[]){
     if(cstruc) free(cstruc);
     if(rec_id) free(rec_id);
     free(rec_sequence);
+    free(orig_sequence);
     free(structure);
     /* free the rest of current dataset */
     if(rec_rest){
       for(i=0;rec_rest[i];i++) free(rec_rest[i]);
       free(rec_rest);
     }
-    rec_id = rec_sequence = structure = cstruc = NULL;
+    rec_id = rec_sequence = orig_sequence = structure = cstruc = NULL;
     rec_rest = NULL;
 
     /* print user help for the next round if we get input from tty */

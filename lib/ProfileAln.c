@@ -26,7 +26,7 @@
 #include "fold_vars.h"
 #include "part_func.h"
 #include "utils.h"
-#include "ProfileDist.h"
+#include "profiledist.h"
 #include "ProfileAln.h"
 
 

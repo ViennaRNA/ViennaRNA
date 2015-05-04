@@ -18,6 +18,8 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+#include <limits.h>
+
 #include "utils.h"
 #include "energy_par.h"
 #include "fold_vars.h"
@@ -159,6 +161,9 @@ PRIVATE void init_fold(int length){
 /*--------------------------------------------------------------------------*/
 
 PRIVATE void get_arrays(unsigned int size){
+  if(size >= sqrt(INT_MAX))
+    nrerror("get_arrays@fold.c: sequence length exceeds addressable range");
+
   c     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML   = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   if (uniq_ML)
@@ -214,6 +219,7 @@ PUBLIC void free_arrays(void){
   indx = c = fML = f5 = f53 = cc = cc1 = fM1 = fM2 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   DMLi_a = DMLi_o = DMLi1_a = DMLi1_o = DMLi2_a = DMLi2_o = NULL;
   ptype       = NULL;
+  base_pair   = NULL;
   base_pair2  = NULL;
   P           = NULL;
   init_length = 0;
@@ -288,11 +294,14 @@ PUBLIC float fold(const char *string, char *structure){
   *  This block may be removed if deprecated functions
   *  relying on the global variable "base_pair" vanishs from within the package!
   */
+  base_pair = base_pair2;
+  /*
   {
     if(base_pair) free(base_pair);
     base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
     memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
   }
+  */
 
   /* check constraints */
   for(i=1;i<=length;i++) {

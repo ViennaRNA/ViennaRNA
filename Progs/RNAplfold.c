@@ -34,14 +34,14 @@ PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp);
 int main(int argc, char *argv[]){
   struct        RNAplfold_args_info args_info;
   unsigned int  error = 0;
-  char          fname[80], ffname[100], *c, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest;
+  char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *c, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
   unsigned int  input_type;
   int           i, length, l, sym, r, istty, winsize, pairdist;
   float         cutoff;
   int           tempwin, temppair, tempunpaired;
   FILE          *pUfp = NULL, *spup = NULL;
   double        **pup = NULL; /*prob of being unpaired, lengthwise*/
-  int           noconv, plexoutput, simply_putout, openenergies;
+  int           noconv, plexoutput, simply_putout, openenergies, binaries;
   plist         *pl, *dpp = NULL;
   unsigned int  rec_type, read_opt;
 
@@ -50,11 +50,11 @@ int main(int argc, char *argv[]){
   winsize       = 70;
   pairdist      = 0;
   unpaired      = 0;
-  simply_putout = plexoutput = openenergies = noconv = 0;
+  simply_putout = plexoutput = openenergies = noconv = 0;binaries=0;
   tempwin       = temppair = tempunpaired = 0;
   structure     = ParamFile = ns_bases = NULL;
   rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = NULL;
+  rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
 
   /*
@@ -97,7 +97,9 @@ int main(int argc, char *argv[]){
   if(args_info.print_onthefly_given)    simply_putout = 1;
   /* turn on RNAplex output */
   if(args_info.plex_output_given)       plexoutput = 1;
-
+  /* turn on binary output*/
+  if(args_info.binaries_given)          binaries = 1;
+    
   /* check for errorneous parameter options */
   if((pairdist < 0) || (cutoff < 0.) || (unpaired < 0) || (winsize < 0)){
     RNAplfold_cmdline_parser_print_help();
@@ -171,15 +173,19 @@ int main(int argc, char *argv[]){
     */
     if(rec_id){
       if(!istty) printf("%s\n", rec_id);
-      (void) sscanf(rec_id, ">%42s", fname);
+      (void) sscanf(rec_id, ">%FILENAME_ID_LENGTHs", fname);
     }
     else fname[0] = '\0';
 
     length    = (int)strlen(rec_sequence);
     structure = (char *) space((unsigned) length+1);
 
-    if(noconv)  str_RNA2RNA(rec_sequence);
-    else        str_DNA2RNA(rec_sequence);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(rec_sequence);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(rec_sequence);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(rec_sequence);
 
     if(istty) printf("length = %d\n", length);
 
@@ -233,7 +239,7 @@ int main(int argc, char *argv[]){
 
     if (length >= 5){
       /* construct output file names */
-      char fname1[60], fname2[60], fname3[60], fname4[60], fname_t[60];
+      char fname1[FILENAME_MAX_LENGTH], fname2[FILENAME_MAX_LENGTH], fname3[FILENAME_MAX_LENGTH], fname4[FILENAME_MAX_LENGTH], fname_t[FILENAME_MAX_LENGTH];
 
       strcpy(fname_t, (fname[0] != '\0') ? fname : "plfold");
 
@@ -246,7 +252,12 @@ int main(int argc, char *argv[]){
       strcat(fname1, "_lunp");
       strcat(fname2, "_basepairs");
       strcat(fname3, "_uplex");
-      strcat(fname4, "_openen");
+      if(binaries){
+        strcat(fname4, "_openen_bin");
+      }
+      else{
+        strcat(fname4, "_openen");
+      }
       strcat(ffname, "_dp.ps");
 
       pf_scale  = -1;
@@ -269,7 +280,7 @@ int main(int argc, char *argv[]){
       }
       else{
         pl = pfl_fold(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup);
-        PS_dot_plot_turn(rec_sequence, pl, ffname, pairdist);
+        PS_dot_plot_turn(orig_sequence, pl, ffname, pairdist);
         if (unpaired > 0){
           if(plexoutput){
             pUfp = fopen(fname3, "w");
@@ -277,7 +288,12 @@ int main(int argc, char *argv[]){
             fclose(pUfp);
           }
           pUfp = fopen(openenergies ? fname4 : fname1, "w");
-          putoutpU_prob(pup, length, unpaired, pUfp, openenergies);
+          if(binaries){
+            putoutpU_prob_bin(pup, length, unpaired, pUfp, openenergies);
+          }
+          else{
+            putoutpU_prob(pup, length, unpaired, pUfp, openenergies);
+          }
           fclose(pUfp);
         }
       }
@@ -292,8 +308,9 @@ int main(int argc, char *argv[]){
     /* clean up */
     if(rec_id) free(rec_id);
     free(rec_sequence);
+    free(orig_sequence);
     free(structure);
-    rec_id = rec_sequence = NULL;
+    rec_id = rec_sequence = orig_sequence = NULL;
     rec_rest = NULL;
     /* print user help for the next round if we get input from tty */
 

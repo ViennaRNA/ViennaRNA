@@ -9,79 +9,111 @@ purpose "Compute MFE structure, partition function and representative sample str
 # command line options passed to gengetopt
 args "--file-name=RNA2Dfold_cmdl --include-getopt --default-optional --func-name=RNA2Dfold_cmdline_parser --arg-struct-name=RNA2Dfold_args_info"
 
-description "The program does something ;)\n"
+description "The program partitions the secondary structure space into (basepair)distance classes according to\
+ two fixed reference structures. It expects a sequence and two secondary structures in dot-bracket notation as\
+ its inputs. For each distance class, the MFE representative, Boltzmann probabilities and Gibbs free energy is\
+ computed. Additionally, a stochastic backtracking routine allows to produce samples of representative suboptimal\
+ secondary structures from each partition\n\n"
 
 
 # Options
 section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n"
+sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag
 off
 
 option  "numThreads"  j
-"Set the number of threads used for calculations (only available when compiled with OpenMP support)\n"
+"Set the number of threads used for calculations (only available when compiled with OpenMP support)\n\n"
 int
 optional
 
 section "Algorithms"
 
-option  "partfunc"    p
-"calculate partition function and Boltzmann probabilities"
+option  "partfunc"  p
+"calculate partition function and thus, Boltzmann probabilities and Gibbs free energy\n\n"
 flag
 off
 
 
 option  "stochBT" -
-"backtrack a certain number of Boltzmann samples from the appropriate k,l neighborhood(s)"
+"backtrack a certain number of Boltzmann samples from the appropriate k,l neighborhood(s)\n\n"
 int
 optional
 
 option  "neighborhood"  -
-"backtrack structures from certain k,l-neighborhood only, can be specified multiple times (<k>:<l>,<m>:<n>,...)"
+"backtrack structures from certain k,l-neighborhood only, can be specified multiple times (<k>:<l>,<m>:<n>,...)\n\n"
 string
 typestr="<k>:<l>"
 multiple
 dependon="stochBT"
 
 option  "pfScale" S
-"scaling factor for pf to avoid overflows"
+"scaling factor for pf to avoid overflows\n\n"
 double
 optional
 
 option  "noBT"  -
-"do not backtrack structures, calculate energy contributions only"
+"do not backtrack structures, calculate energy contributions only\n\n"
 flag
 off
 
 option  "circ"  c
-"assume RNA sequence to be circular"
+"Assume a circular (instead of linear) RNA molecule.\n\n"
 flag
 off
 
 section "Model Details"
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 optional
 
-option  "maxDist1"        K "maximum distance to first reference structure" int 
-option  "maxDist2"        L "maximum distance to second reference structure" int 
+option  "maxDist1"  K
+"maximum distance to first reference structure"
+details="If this value is set all structures that exhibit a basepair distance greater than maxDist1 will\
+ be thrown into a distance class denoted by K=L=-1\n\n"
+int
+optional
+
+option  "maxDist2"  L
+"maximum distance to second reference structure"
+details="If this value is set all structures that exhibit a basepair distance greater than maxDist1 will\
+ be thrown into a distance class denoted by K=L=-1\n\n"
+int 
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
 flag
 off
 
-option  "parameterFile"   P "use a certain parameter file" string  typestr="filename"
-option  "dangles"         d "set energy model for treatment of dangling bases"  int default="2" values="0","2"
-option  "noGU"            - "Do not allow GU pairs" flag off
-option  "noClosingGU"       - "Do not allow GU pairs at the end of helices" flag off
+option  "parameterFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n\n"
+string
+typestr="paramfile"
 
-text    "References:\n\n"
-text    "Written by:\n\nRonny Lorenz.\n\n"
-text    "Report bugs:  \n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides
+ in any case.\nThe option -d0 ignores dangling ends altogether (mostly for debugging).\n\n"
+int
+default="2" 
+values="0","2"
+
+option  "noGU"  -
+"Do not allow GU pairs\n\n"
+flag
+off
+
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices\n\n"
+flag
+off
+
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n\n"

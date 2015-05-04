@@ -1,9 +1,8 @@
-/*
+/**
+ *  \file edit_cost.h
+ *  \brief global variables for Edit Costs included by treedist.c and stringdist.c
+ */
 
-cost.h   ::  global variables for Edit Costs
-             included by treedist.c and stringdist.c
-
-*/
 #define PRIVATE static
 
 PRIVATE char   sep    = ':';

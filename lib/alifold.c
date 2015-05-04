@@ -19,6 +19,8 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+#include <limits.h>
+
 #include "fold.h"
 #include "utils.h"
 #include "energy_par.h"
@@ -135,6 +137,9 @@ PRIVATE void init_alifold(int length){
 }
 
 PRIVATE void get_arrays(unsigned int size){
+  if(size >= sqrt(INT_MAX))
+    nrerror("get_arrays@alifold.c: sequence length exceeds addressable range");
+
   indx    = (int *) space(sizeof(int)*(size+1));
   c       = (int *) space(sizeof(int)*((size*(size+1))/2+2));
   fML     = (int *) space(sizeof(int)*((size*(size+1))/2+2));
@@ -166,6 +171,7 @@ PUBLIC  void  free_alifold_arrays(void){
   if(P)           free(P);
   indx = c = fML = f5 = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
   pscore      = NULL;
+  base_pair   = NULL;
   base_pair2  = NULL;
   P           = NULL;
   init_length = 0;
@@ -253,12 +259,14 @@ PUBLIC float alifold(const char **strings, char *structure){
   *  This block may be removed if deprecated functions
   *  relying on the global variable "base_pair" vanishs from within the package!
   */
+  base_pair = base_pair2;
+  /*
   {
     if(base_pair) free(base_pair);
     base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
     memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
   }
-
+  */
   free_sequence_arrays(n_seq, &S, &S5, &S3, &a2s, &Ss);
 
   if (backtrack_type=='C')

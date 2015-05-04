@@ -19,6 +19,8 @@
  *  The code of the MEA function also demonstrates the use of sparse dynamic
  *  programming scheme to reduce the time and memory complexity of folding.
  */
-float MEA(plist *p, char *structure, double gamma);
+float MEA(plist *p,
+          char *structure,
+          double gamma);
 
 #endif

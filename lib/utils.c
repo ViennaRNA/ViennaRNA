@@ -581,6 +581,126 @@ PUBLIC short *make_pair_table(const char *structure)
    return(table);
 }
 
+PUBLIC short *make_pair_table_snoop(const char *structure)
+{
+    /* returns array representation of structure.
+       table[i] is 0 if unpaired or j if (i.j) pair.  */
+   short i,j,hx;
+   short length;
+   short *stack;
+   short *table;
+
+   length = (short) strlen(structure);
+   stack = (short *) space(sizeof(short)*(length+1));
+   table = (short *) space(sizeof(short)*(length+2));
+   table[0] = length;
+
+   for (hx=0, i=1; i<=length; i++) {
+     switch (structure[i-1]) {
+     case '<':
+       stack[hx++]=i;
+       break;
+     case '>':
+       j = stack[--hx];
+       if (hx<0) {
+	 fprintf(stderr, "%s\n", structure);
+	 nrerror("unbalanced brackets in make_pair_table");
+       }
+       table[i]=j;
+       table[j]=i;
+       break;
+     default:   /* unpaired base, usually '.' */
+       table[i]= table[i];
+       break;
+     }
+   }
+   if (hx!=0) {
+     fprintf(stderr, "%s\n", structure);
+     nrerror("unbalanced brackets in make_pair_table");
+   }
+   free(stack);
+   return table ;
+}
+
+
+PUBLIC short *alimake_pair_table(const char *structure)
+{
+    /* returns array representation of structure.
+       table[i] is 0 if unpaired or j if (i.j) pair.  */
+   short i,j,hx;
+   short length;
+   short *stack;
+   short *table;
+
+   length = (short) strlen(structure);
+   stack = (short *) space(sizeof(short)*(length+1));
+   table = (short *) space(sizeof(short)*(length+2));
+   table[0] = length;
+
+   for (hx=0, i=1; i<=length; i++) {
+      switch (structure[i-1]) {
+       case '(':
+	 stack[hx++]=i;
+	 break;
+       case ')':
+	 j = stack[--hx];
+	 if (hx<0) {
+	    fprintf(stderr, "%s\n", structure);
+	    nrerror("unbalanced brackets in make_pair_table");
+	 }
+	 table[i]=j;
+	 table[j]=i;
+	 break;
+       default:   /* unpaired base, usually '.' */
+	 table[i]= 0;
+	 break;
+      }
+   }
+   for (hx=0, i=1; i<=length; i++) {
+      switch (structure[i-1]) {
+       case '<':
+	 stack[hx++]=i;
+	 break;
+       case '>':
+	 j = stack[--hx];
+	 if (hx<0) {
+	    fprintf(stderr, "%s\n", structure);
+	    nrerror("unbalanced brackets in make_pair_table");
+	 }
+	 table[i]=j;
+	 table[j]=i;
+	 break;
+       default:   /* unpaired base, usually '.' */
+	 table[i]= table[i];
+	 break;
+      }
+   }
+   for (hx=0, i=1; i<=length; i++) {
+     switch (structure[i-1]) {
+     case '[':
+       stack[hx++]=i;
+       break;
+     case ']':
+       j = stack[--hx];
+       if (hx<0) {
+	 fprintf(stderr, "%s\n", structure);
+	 nrerror("unbalanced brackets in make_pair_table");
+       }
+       table[i]=j;
+       table[j]=i;
+       break;
+     default:   /* unpaired base, usually '.' */
+       break;
+     }
+   }
+   if (hx!=0) {
+      fprintf(stderr, "%s\n", structure);
+      nrerror("unbalanced brackets in make_pair_table");
+   }
+   free(stack);
+   return(table);
+}
+
 PUBLIC short *copy_pair_table(const short *pt){
   short *table = (short *)space(sizeof(short) * (pt[0]+2));
   memcpy(table, pt, sizeof(short)*(pt[0]+2));
@@ -650,17 +770,17 @@ PUBLIC  void  str_DNA2RNA(char *sequence){
   if(sequence != NULL){
     l = strlen(sequence);
     for(i = 0; i < l; i++){
-      sequence[i] = toupper(sequence[i]);
       if(sequence[i] == 'T') sequence[i] = 'U';
+      if(sequence[i] == 't') sequence[i] = 'u';
     }
   }
 }
 
-PUBLIC  void  str_RNA2RNA(char *sequence){
+PUBLIC void str_uppercase(char *sequence){
   unsigned int l, i;
-  if(sequence != NULL){
+  if(sequence){
     l = strlen(sequence);
-    for(i = 0; i < l; i++)
+    for(i=0;i<l;i++)
       sequence[i] = toupper(sequence[i]);
   }
 }

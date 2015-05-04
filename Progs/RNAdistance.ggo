@@ -1,0 +1,65 @@
+# Name of your program
+package "RNAdistance" # don't use package if you're using automake
+
+purpose "Calculate distances between RNA secondary structures"
+
+#usage "RNAfold [options]\n"
+#version "2.0"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=RNAdistance_cmdl --include-getopt --default-optional --func-name=RNAdistance_cmdline_parser --arg-struct-name=RNAdistance_args_info"
+
+
+description "This program reads RNA secondary structures from stdin and calculates one or more\
+ measures for their dissimilarity, based on tree or string editing\
+ (alignment). In addition it calculates a \"base pair distance\" given by the\
+ number of base pairs present in one structure, but not the other. For\
+ structures of different length base pair distance is not recommended.\n"
+
+
+option    "distance"    D
+"Specify the distance representation to be used in calculations.\n"
+details="Use the full, HIT, weighted coarse, or coarse representation to\
+ calculate the distance. Capital letters indicate string alignment\
+ otherwise tree editing is used.\nAny combination of distances can be\
+specified.\n\n"
+string
+typestr="fhwcFHWCP"
+default="f"
+optional
+
+option    "compare"     X
+"Specify the comparison directive.\n"
+details="Possible arguments for this option are: -Xp compare the structures\
+ pairwise (p), i.e. first with 2nd, third with 4th etc.\n-Xm calculate the\
+ distance matrix between all structures. The output is formatted as a lower\
+ triangle matrix.\n-Xf compare each structure to the first one.\n-Xc compare\
+ continuously, that is i-th with (i+1)th structure.\n\n"
+string
+typestr="p|m|f|c"
+default="p"
+optional
+
+option  "shapiro"       S
+"Use the Bruce Shapiro's cost matrix for comparing coarse structures.\n\n"
+flag
+off
+
+option  "backtrack"     B
+"Print an \"alignment\" with gaps of the structures, to show matching\
+ substructures. The aligned structures are written to <filename>, if\
+ specified.\n"
+details="If <filename> is not specified, the output is written to stdout,\
+ unless the -Xm option is set in which case \"backtrack.file\" is used.\n\n"
+string
+typestr="<filename>"
+argoptional
+default="none"
+optional
+
+
+
+
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"

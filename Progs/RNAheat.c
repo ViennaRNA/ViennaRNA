@@ -34,7 +34,7 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max, float h, int 
 
 int main(int argc, char *argv[]){
   struct  RNAheat_args_info args_info;
-  char                      *string, *input_string, *ns_bases, *c, *ParamFile, *rec_sequence, *rec_id, **rec_rest;
+  char                      *string, *input_string, *ns_bases, *c, *ParamFile, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
   int                       i, length, l, sym;
   float                     T_min, T_max, h;
   int                       mpoints, istty, noconv = 0;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]){
   mpoints   = 2;
   dangles   = 2;   /* dangles can be 0 (no dangles) or 2, default is 2 */
   rec_type  = read_opt = 0;
-  rec_id    = rec_sequence = NULL;
+  rec_id    = rec_sequence = orig_sequence = NULL;
   rec_rest  = NULL;
 
   /*
@@ -150,8 +150,12 @@ int main(int argc, char *argv[]){
 
     length = (int)strlen(rec_sequence);
 
-    if(noconv)  str_RNA2RNA(rec_sequence);
-    else        str_DNA2RNA(rec_sequence);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) str_DNA2RNA(rec_sequence);
+    /* store case-unmodified sequence */
+    orig_sequence = strdup(rec_sequence);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(rec_sequence);
 
     if(istty) printf("length = %d\n", length);
     /*
@@ -166,7 +170,8 @@ int main(int argc, char *argv[]){
     /* clean up */
     if(rec_id) free(rec_id);
     free(rec_sequence);
-    rec_id = rec_sequence = NULL;
+    free(orig_sequence);
+    rec_id = rec_sequence = orig_sequence = NULL;
     rec_rest = NULL;
     /* print user help for the next round if we get input from tty */
 

@@ -33,7 +33,7 @@ option  "printAlignment"  B
  is set in which case \"backtrack.file\" is used.\n"
 details="The following symbols are used:\n (  )  essentially upstream (downstream) paired bases\n
  {  }  weakly upstream (downstream) paired bases\n |    strongly paired bases without preference\n
- ,    weakly paired bases without preference\n .    essentially unpaired bases.\n"
+ ,    weakly paired bases without preference\n .    essentially unpaired bases.\n\n"
 string
 default="stdout"
 typestr="filename"
@@ -41,7 +41,7 @@ argoptional
 optional
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag
 off
 
@@ -56,7 +56,7 @@ details="The alignment mode is passed as a single character value. The following
  'm'  - Calculate the distance matrix between all structures. The output is formatted\
  as a lower triangle matrix.\n
  'f' - Compare each structure to the first one.\n
- 'c' - Compare continuously, that is i-th with (i+1)th structure.\n"
+ 'c' - Compare continuously, that is i-th with (i+1)th structure.\n\n"
 string
 typestr="pmfc"
 optional
@@ -65,35 +65,35 @@ optional
 section "Model Details"
 
 option  "gapo"  -
-"Set the gap open penalty\n"
+"Set the gap open penalty\n\n"
 float
 typestr="open"
 optional
 
 option  "gape"  -
-"Set the gap extension penalty\n"
+"Set the gap extension penalty\n\n"
 float
 typestr="ext"
 optional
 
 option  "seqw"  -
-"Set the weight of sequence (compared to structure) in the scoring function.\n"
+"Set the weight of sequence (compared to structure) in the scoring function.\n\n"
 float
 typestr="w"
 optional
 
 option  "endgaps" -
-"Use free end-gaps\n"
+"Use free end-gaps\n\n"
 flag
 off
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
 flag
 off
 
@@ -107,7 +107,7 @@ details="\nWith -d1 only unpaired bases can participate in at most one dangling 
  moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
  and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
  treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
- energy model.\n"
+ energy model.\n\n"
 int
 default="2"
 optional
@@ -115,24 +115,24 @@ optional
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"
+ pairs may still occasionally occur as helices of length 1.\n\n"
 flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs\n"
+"Do not allow GU pairs\n\n"
 flag
 off
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n"
+"Do not allow GU pairs at the end of helices\n\n"
 flag
 off
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n"
+ documentation for details on the file format.\n\n"
 string
 typestr="paramfile"
 optional
@@ -142,21 +142,17 @@ option  "nsp" -
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n"
+ energy.\n\n"
 string
 optional
 hidden
 
 option  "energyModel" e
 "Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
 int
 optional
 hidden
 
-text    "References:\n\nBonhoeffer S, McCaskill J S, Stadler P F, Schuster P, (1993),
- \"RNA multi-structure landscapes\", Euro Biophys J:22,13-24\n\n"
-
-text    "Written by:\n\nPeter F Stadler, Ivo L Hofacker, Sebastian Bonhoeffer.\n\n"
-text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n"

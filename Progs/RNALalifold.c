@@ -39,7 +39,7 @@ PRIVATE cpair *make_color_pinfo2(char **sequences, plist *pl, int n_seq);
 int main(int argc, char *argv[]){
   struct        RNALalifold_args_info args_info;
   char          *string, *structure, *ParamFile, *ns_bases, *c;
-  char          ffname[80], gfname[80], fname[80];
+  char          ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH], fname[FILENAME_MAX_LENGTH];
   int           n_seq, i, length, sym, r, maxdist, unchangednc, unchangedcv;
   int           mis, pf, istty;
   float         cutoff;

@@ -1,5 +1,5 @@
 /**
-  \mainpage Vienna RNA Package
+  \mainpage ViennaRNA Package core - RNAlib
 \n
 
 \htmlonly <center> \endhtmlonly
@@ -81,12 +81,16 @@ float circfold (char* sequence, char* structure);
 \copybrief circfold()
 
 \verbatim
-float energy_of_structure(const char *string, const char *structure, int verbosity_level);
+float energy_of_structure(const char *string,
+                          const char *structure,
+                          int verbosity_level);
 \endverbatim
 \copybrief energy_of_structure()
 
 \verbatim
-float energy_of_circ_structure(const char *string, const char *structure, int verbosity_level);
+float energy_of_circ_structure( const char *string,
+                                const char *structure,
+                                int verbosity_level);
 \endverbatim
 \copybrief energy_of_circ_structure()
 
@@ -117,7 +121,8 @@ as described by \ref mccaskill_90 "McCaskill (1990)". The following
 functions are provided:
 
 \verbatim
-float pf_fold (char* sequence, char* structure)
+float pf_fold ( char* sequence,
+                char* structure)
 \endverbatim
 \copybrief pf_fold()
 
@@ -132,17 +137,22 @@ void update_pf_params (int length)
 \copybrief update_pf_params()
 
 \verbatim
-char *get_centroid_struct_pl(int length, double *dist, plist *pl);
+char *get_centroid_struct_pl( int length,
+                              double *dist,
+                              plist *pl);
 \endverbatim
 \copybrief get_centroid_struct_pl()
 
 \verbatim
-char *get_centroid_struct_pr(int length, double *dist, double *pr);
+char *get_centroid_struct_pr( int length,
+                              double *dist,
+                              double *pr);
 \endverbatim
 \copybrief get_centroid_struct_pr()
 
 \verbatim
-double mean_bp_distance_pr(int length, double *pr);
+double mean_bp_distance_pr( int length,
+                            double *pr);
 \endverbatim
 \copybrief mean_bp_distance_pr
 
@@ -161,12 +171,14 @@ We provide two functions that search for sequences with a given
 structure, thereby inverting the folding routines.
 
 \verbatim
-float inverse_fold (char *start, char *target)
+float inverse_fold (char *start,
+                    char *target)
 \endverbatim
 \copybrief inverse_fold()
 
 \verbatim
-float inverse_pf_fold (char *start, char *target)
+float inverse_pf_fold ( char *start,
+                        char *target)
 \endverbatim
 \copybrief inverse_pf_fold()
 
@@ -189,12 +201,18 @@ char *symbolset
 \section mp_Suboptimal_folding    Enumerating Suboptimal Structures
 
 \verbatim
-SOLUTION *subopt (char *sequence, char *constraint, int *delta, FILE *fp)
+SOLUTION *subopt (char *sequence,
+                  char *constraint,
+                  int *delta,
+                  FILE *fp)
 \endverbatim
 \copybrief subopt()
 
 \verbatim
-SOLUTION *subopt_circ (char *sequence, char *constraint, int *delta, FILE *fp)
+SOLUTION *subopt_circ ( char *sequence,
+                        char *constraint,
+                        int *delta,
+                        FILE *fp)
 \endverbatim
 \copybrief subopt_circ()
 
@@ -204,7 +222,9 @@ SOLUTION  *zukersubopt(const char *string);
 \copybrief zukersubopt()
 
 \verbatim
-char  *TwoDpfold_pbacktrack (TwoDpfold_vars *vars, unsigned int d1, unsigned int d2)
+char  *TwoDpfold_pbacktrack ( TwoDpfold_vars *vars,
+                              unsigned int d1,
+                              unsigned int d2)
 \endverbatim
 \copybrief TwoDpfold_pbacktrack()
 
@@ -260,7 +280,8 @@ int cut_point
 \copybrief cut_point
 
 \verbatim
-float cofold (char *sequence, char *structure)
+float cofold (char *sequence,
+              char *structure)
 \endverbatim
 \copybrief cofold()
 
@@ -281,7 +302,8 @@ can be divided into the conditional pair probabilities given that a re
 dimer is formed or not formed.
 
 \verbatim
-cofoldF co_pf_fold(char *sequence, char *structure);
+cofoldF co_pf_fold( char *sequence,
+                    char *structure);
 \endverbatim
 \copybrief co_pf_fold()
 
@@ -309,9 +331,12 @@ void  compute_probabilities(
 \copybrief compute_probabilities()
 
 \verbatim
-ConcEnt *get_concentrations(
-              double FEAB, double FEAA, double FEBB,
-              double FEA, double FEB, double * startconc)
+ConcEnt *get_concentrations(double FEAB,
+                            double FEAA,
+                            double FEBB,
+                            double FEA,
+                            double FEB,
+                            double * startconc)
 \endverbatim
 \copybrief get_concentrations()
 
@@ -331,7 +356,8 @@ Associated functions are:
 
 
 \verbatim
-pu_contrib *pf_unstru (char *sequence, int max_w)
+pu_contrib *pf_unstru ( char *sequence,
+                        int max_w)
 \endverbatim
 \copybrief pf_unstru()
 
@@ -371,17 +397,25 @@ Local structures can be predicted by a modified version of the
 fold() algorithm that restricts the span of all base pairs.
 
 \verbatim
-float Lfold (const char *string, char *structure, int maxdist)
+float Lfold ( const char *string,
+              char *structure,
+              int maxdist)
 \endverbatim
 \copybrief Lfold()
 
 \verbatim
-float aliLfold(const char **strings, char *structure, int maxdist)
+float aliLfold( const char **strings,
+                char *structure,
+                int maxdist)
 \endverbatim
 \copybrief aliLfold()
 
 \verbatim
-float Lfoldz (const char *string, char *structure, int maxdist, int zsc, double min_z)
+float Lfoldz (const char *string,
+              char *structure,
+              int maxdist,
+              int zsc,
+              double min_z)
 \endverbatim
 \copybrief Lfoldz()
 
@@ -416,12 +450,14 @@ with consistent and compensatory mutations and penalizes pairs that
 cannot be formed by all structures. For details see \ref hofacker_02 "Hofacker (2002)".
 
 \verbatim
-float  alifold (const char **strings, char *structure)
+float  alifold (const char **strings,
+                char *structure)
 \endverbatim
 \copybrief alifold()
 
 \verbatim
-float  circalifold (const char **strings, char *structure)
+float  circalifold (const char **strings,
+                    char *structure)
 \endverbatim
 \copybrief circalifold()
 
@@ -717,7 +753,8 @@ other. It is therefore particularly useful for comparing structures on the
 same sequence. It is implemented by
 
 \verbatim
-int bp_distance(const char *str1, const char *str2)
+int bp_distance(const char *str1,
+                const char *str2)
 \endverbatim
 \copybrief bp_distance()
 
@@ -792,7 +829,8 @@ Tree   *make_tree (char *struc)
 \copybrief make_tree()
 
 \verbatim
-float   tree_edit_distance (Tree *T1, Tree *T2) 
+float   tree_edit_distance (Tree *T1,
+                            Tree *T2) 
 \endverbatim
 \copybrief tree_edit_distance()
 
@@ -811,7 +849,8 @@ swString *Make_swString (char *string)
 \copybrief Make_swString()
 
 \verbatim
-float     string_edit_distance (swString *T1, swString *T2)
+float     string_edit_distance (swString *T1,
+                                swString *T2)
 \endverbatim
 \copybrief string_edit_distance()
 
@@ -823,12 +862,14 @@ For comparison of base pair probability matrices, the matrices are first
 condensed into probability profiles which are the compared by alignment.
 
 \verbatim
-float *Make_bp_profile_bppm (double *bppm, int length)
+float *Make_bp_profile_bppm ( double *bppm,
+                              int length)
 \endverbatim
 \copybrief Make_bp_profile_bppm()
 
 \verbatim
-float profile_edit_distance (const float *T1, const float *T2)
+float profile_edit_distance ( const float *T1,
+                              const float *T2)
 \endverbatim
 \copybrief profile_edit_distance()
 
@@ -855,7 +896,9 @@ float profile_edit_distance (const float *T1, const float *T2)
 \section utils_ss Producing secondary structure graphs
 
 \verbatim
-int PS_rna_plot (char *string, char *structure, char *file)
+int PS_rna_plot ( char *string,
+                  char *structure,
+                  char *file)
 \endverbatim
 \copybrief PS_rna_plot()
 
@@ -870,22 +913,31 @@ int PS_rna_plot_a (
 \copybrief PS_rna_plot_a()
 
 \verbatim
-int gmlRNA (char *string, char *structure, char *ssfile, char option)
+int gmlRNA (char *string,
+            char *structure,
+            char *ssfile,
+            char option)
 \endverbatim
 \copybrief gmlRNA()
 
 \verbatim
-int ssv_rna_plot (char *string, char *structure, char *ssfile)
+int ssv_rna_plot (char *string,
+                  char *structure,
+                  char *ssfile)
 \endverbatim
 \copybrief ssv_rna_plot()
 
 \verbatim
-int svg_rna_plot (char *string, char *structure, char *ssfile)
+int svg_rna_plot (char *string,
+                  char *structure,
+                  char *ssfile)
 \endverbatim
 \copybrief svg_rna_plot()
 
 \verbatim
-int xrna_plot (char *string, char *structure, char *ssfile)
+int xrna_plot ( char *string,
+                char *structure,
+                char *ssfile)
 \endverbatim
 \copybrief xrna_plot()
 
@@ -898,12 +950,16 @@ Two low-level functions provide direct access to the graph lauyouting
 algorithms:
 
 \verbatim
-int simple_xy_coordinates (short *pair_table, float *X, float *Y)
+int simple_xy_coordinates ( short *pair_table,
+                            float *X,
+                            float *Y)
 \endverbatim
 \copybrief simple_xy_coordinates()
 
 \verbatim
-int naview_xy_coordinates (short *pair_table, float *X, float *Y)
+int naview_xy_coordinates ( short *pair_table,
+                            float *X,
+                            float *Y)
 \endverbatim
 \copybrief naview_xy_coordinates()
 
@@ -918,22 +974,34 @@ int naview_xy_coordinates (short *pair_table, float *X, float *Y)
 \section utils_dot Producing (colored) dot plots for base pair probabilities
 
 \verbatim
-int PS_color_dot_plot (char *string, cpair *pi, char *filename)
+int PS_color_dot_plot ( char *string,
+                        cpair *pi,
+                        char *filename)
 \endverbatim
 \copybrief PS_color_dot_plot()
 
 \verbatim
-int PS_color_dot_plot_turn (char *seq, cpair *pi, char *filename, int winSize)
+int PS_color_dot_plot_turn (char *seq,
+                            cpair *pi,
+                            char *filename,
+                            int winSize)
 \endverbatim
 \copybrief PS_color_dot_plot_turn()
 
 \verbatim
-int PS_dot_plot_list (char *seq, char *filename, plist *pl, plist *mf, char *comment)
+int PS_dot_plot_list (char *seq,
+                      char *filename,
+                      plist *pl,
+                      plist *mf,
+                      char *comment)
 \endverbatim
 \copybrief PS_dot_plot_list()
 
 \verbatim
-int PS_dot_plot_turn (char *seq, struct plist *pl, char *filename, int winSize)
+int PS_dot_plot_turn (char *seq,
+                      struct plist *pl,
+                      char *filename,
+                      int winSize)
 \endverbatim
 \copybrief PS_dot_plot_turn()
 
@@ -961,12 +1029,14 @@ int PS_color_aln (
 Several functions provide useful applications to RNA sequences
 
 \verbatim
-char  *random_string (int l, const char symbols[])
+char  *random_string (int l,
+                      const char symbols[])
 \endverbatim
 \copybrief random_string()
 
 \verbatim
-int   hamming (const char *s1, const char *s2)
+int   hamming ( const char *s1,
+                const char *s2)
 \endverbatim
 \copybrief hamming()
 
@@ -976,9 +1046,9 @@ void str_DNA2RNA(char *sequence);
 \copybrief str_DNA2RNA()
 
 \verbatim
-void str_RNA2RNA(char *sequence);
+void str_uppercase(char *sequence);
 \endverbatim
-\copybrief str_RNA2RNA()
+\copybrief str_uppercase()
 
 \htmlonly
 <hr>
@@ -1107,7 +1177,8 @@ void  *space (unsigned size)
 \copybrief space()
 
 \verbatim
-void  *xrealloc (void *p, unsigned size)
+void  *xrealloc ( void *p,
+                  unsigned size)
 \endverbatim
 \copybrief xrealloc()
 

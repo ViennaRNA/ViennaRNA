@@ -17,37 +17,39 @@ description "Computes RNA secondary structures by first making two sequence inte
 
 # Options
 option  "cutoff"  c
-"Report only base pairs with an average probability > cutoff in the dot plot\n"
+"Report only base pairs with an average probability > cutoff in the dot plot\n\n"
 float
 default="0.01"
 optional
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 
 option  "noTetra" 4
-"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n"
+"Do not include special stabilizing energies for certain tetra-loops. Mostly for testing.\n\n"
 flag
 off
 
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"  flag  off
+ pairs may still occasionally occur as helices of length 1.\n\n"
+flag
+off
 
 option  "noGU"  -
-"Do not allow GU pairs\n"
+"Do not allow GU pairs\n\n"
 flag
 off
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n"
+"Do not allow GU pairs at the end of helices\n\n"
 flag
 off
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag
 off
 
@@ -56,7 +58,7 @@ option  "nsp" -
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n"
+ energy.\n\n"
 string
 default="empty"
 optional
@@ -64,7 +66,7 @@ optional
 option  "energyCutoff" e
 "Energy cutoff or pseudoknot initiation cost. Minimum energy gain of a pseudoknot\
  interaction for it to be returned. Pseudoknots with smaller energy gains are\
- rejected.\n"
+ rejected.\n\n"
 int
 default="-810"
 optional
@@ -72,7 +74,7 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n"
+ documentation for details on the file format.\n\n"
 string
 typestr="paramfile"
 optional
@@ -84,9 +86,16 @@ off
 
 option "subopts" s
 "print suboptimal structures whose energy difference of the pseudoknot to the optimum pseudoknot is smaller than the given value.\n"
+details="NOTE: The final energy of a structure is calculated as the sum\
+ of the pseudoknot interaction energy, the penalty for initiating\
+ a  pseudoknot and the energy of the pseudoknot-free part of the\
+ structure. The -s option only takes the pseudoknot interaction\
+ energy into account, so the final energy differences may be bigger\
+ than the specified value (default=0).\n\n"
 int
 default="0"
 optional
 
-text    "Author:\nWolfgang Beyer\n\nComments should be sent to wolfgang@tbi.univie.ac.at\n\n"
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n"
 

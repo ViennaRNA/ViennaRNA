@@ -27,11 +27,13 @@ static char rcsid[] = "$Id: RNAduplex.c,v 1.5 2007/08/26 09:41:12 ivo Exp $";
 
 int main(int argc, char *argv[]){
   struct        RNAduplex_args_info args_info;
-  char          fname[80], *input_string, *s1, *s2, *c, *ParamFile=NULL, *ns_bases=NULL;
+  char          fname[FILENAME_MAX_LENGTH], *input_string, *s1, *s2, *orig_s1, *orig_s2, *c, *ParamFile=NULL, *ns_bases=NULL;
   unsigned int  input_type;
   int           i, l, sym, r;
   int           istty, delta=-1;
   int           noconv=0;
+
+  s1 = s2 = orig_s1 = orig_s2 = NULL;
 
   /*
   #############################################
@@ -112,7 +114,7 @@ int main(int argc, char *argv[]){
     fname[0] = '\0';
     while((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER){
       printf(">%s\n", input_string);
-      (void) sscanf(input_string, "%42s", fname);
+      (void) sscanf(input_string, "%FILENAME_ID_LENGTHs", fname);
       free(input_string);
     }
 
@@ -137,14 +139,17 @@ int main(int argc, char *argv[]){
       free(input_string);
     }
 
-    if(noconv){
-      str_RNA2RNA(s1);
-      str_RNA2RNA(s2);
-    }
-    else{
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv){
       str_DNA2RNA(s1);
       str_DNA2RNA(s2);
     }
+    /* store case-unmodified sequence */
+    orig_s1 = strdup(s1);
+    orig_s2 = strdup(s2);
+    /* convert sequence to uppercase letters only */
+    str_uppercase(s1);
+    str_uppercase(s2);
 
     if (istty) printf("lengths = %d,%d\n", strlen(s1), strlen(s2));
 
@@ -177,6 +182,9 @@ int main(int argc, char *argv[]){
     (void) fflush(stdout);
     free(s1);
     free(s2);
+    free(orig_s1);
+    free(orig_s2);
+    s1 = s2 = orig_s1 = orig_s2 = NULL;
   } while (1);
   return 0;
 }

@@ -56,6 +56,8 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>    /* #defines FLT_MAX ... */
+#include <limits.h>
+
 #include "utils.h"
 #include "energy_par.h"
 #include "fold_vars.h"
@@ -169,6 +171,9 @@ PRIVATE void init_partfunc_co(int length){
 PRIVATE void get_arrays(unsigned int length){
   unsigned int size;
 
+  if(length >= sqrt(INT_MAX))
+    nrerror("get_arrays@part_func_co.c: sequence length exceeds addressable range");
+
   size      = sizeof(FLT_OR_DBL) * ((length+1)*(length+2)/2);
   q         = (FLT_OR_DBL *) space(size);
   qb        = (FLT_OR_DBL *) space(size);
@@ -244,8 +249,8 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
   init_partfunc_co(n);
 #else
   if (n > init_length) init_partfunc_co(n);
-#endif
   if (fabs(pf_params->temperature - temperature)>1e-6) update_co_pf_params(n);
+#endif
 
  /* printf("mirnatog=%d\n",mirnatog); */
 
@@ -306,11 +311,14 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
     *  This block may be removed if deprecated functions
     *  relying on the global variable "pr" vanish from within the package!
     */
+    pr = probs;
+    /*
     {
       if(pr) free(pr);
       pr = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
       memcpy(pr, probs, sizeof(FLT_OR_DBL) * ((n+1)*(n+2)/2));
     }
+    */
   }
   return X;
 }
@@ -891,6 +899,10 @@ PUBLIC void compute_probabilities(double FAB, double FA,double FB,
         lp2++;
       }
       lp1->p=(lp1->p-(1-pAB)*pp)/pAB;
+      if(lp1->p < 0.){
+        lp1->p = 0.;
+        warn_user("part_func_co: probability below zero!");
+      }
     }
   return;
 }
@@ -962,6 +974,10 @@ PUBLIC struct ConcEnt *get_concentrations(double FcAB, double FcAA, double FcBB,
   }
 
   return Concentration;
+}
+
+PUBLIC FLT_OR_DBL *export_co_bppm(void){
+  return probs;
 }
 
 /*###########################################*/

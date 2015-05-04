@@ -33,17 +33,17 @@ PRIVATE char  **annote(const char *structure, const char *AS[]);
 PRIVATE void  print_pi(const pair_info pi, FILE *file);
 PRIVATE void  print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *aliout);
 PRIVATE void  mark_endgaps(char *seq, char egap);
-PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *mfe);
+PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, plist *mfel);
 
 /*--------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
   struct        RNAalifold_args_info args_info;
   unsigned int  input_type;
-  char          ffname[80], gfname[80], fname[80];
+  char          ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH], fname[FILENAME_MAX_LENGTH];
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
   int           n_seq, i, length, sym, r, noPS;
   int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
-  double        min_en, real_en, sfact, MEAgamma;
+  double        min_en, real_en, sfact, MEAgamma, bppmThreshold;
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char          *names[MAX_NUM_NAMES];       /* sequence names */
   FILE          *clust_file = stdin;
@@ -54,6 +54,7 @@ int main(int argc, char *argv[]){
   do_backtrack  = 1;
   dangles       = 2;
   sfact         = 1.07;
+  bppmThreshold = 1e-6;
   MEAgamma      = 1.0;
   /*
   #############################################
@@ -100,6 +101,9 @@ int main(int argc, char *argv[]){
     if(args_info.MEA_arg != -1)
       MEAgamma = args_info.MEA_arg;
   }
+  /* set the bppm threshold for the dotplot */
+  if(args_info.bppmThreshold_given)
+    bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
   /* set cfactor */
   if(args_info.cfactor_given)     cv_fact = args_info.cfactor_arg;
   /* set nfactor */
@@ -263,15 +267,11 @@ int main(int argc, char *argv[]){
   if (doAlnPS)
     PS_color_aln(structure, "aln.ps", (const char const **) AS, (const char const **) names);
 
-  { /* free mfe arrays but preserve base_pair for PS_dot_plot */
-    bondT  *bp;
-    bp = base_pair; base_pair = space(16);
-    free_alifold_arrays();  /* free's base_pair */
-    base_pair = bp;
-  }
+  /* free mfe arrays */
+  free_alifold_arrays();
+
   if (pf) {
     float energy, kT;
-    plist *pl;
     char * mfe_struc;
 
     mfe_struc = strdup(structure);
@@ -283,7 +283,7 @@ int main(int argc, char *argv[]){
 
     if (cstruc!=NULL)
       strncpy(structure, cstruc, length+1);
-    energy = (circular) ? alipf_circ_fold((const char **)AS, structure, &pl) : alipf_fold((const char **)AS, structure, &pl);
+    energy = (circular) ? alipf_circ_fold((const char **)AS, structure, NULL) : alipf_fold((const char **)AS, structure, NULL);
 
     if (n_back>0) {
       /*stochastic sampling*/
@@ -313,9 +313,15 @@ int main(int argc, char *argv[]){
       cpair *cp;
       char *cent;
       double dist;
+      FLT_OR_DBL *probs = export_ali_bppm();
+      plist *pl, *mfel;
+
+      assign_plist_from_pr(&pl, probs, length, bppmThreshold);
+      assign_plist_from_db(&mfel, mfe_struc, 0.95*0.95);
+
       if (!circular){
         float *ens;
-        cent = get_centroid_struct_pl(length, &dist, pl);
+        cent = get_centroid_struct_pr(length, &dist, probs);
         ens=(float *)space(2*sizeof(float));
         energy_of_alistruct((const char **)AS, cent, n_seq, ens);
         /*cent_en = energy_of_struct(string, cent);*//*ali*/
@@ -325,7 +331,9 @@ int main(int argc, char *argv[]){
       }
       if(doMEA){
         float mea, *ens;
-        mea = MEA(pl, structure, MEAgamma);
+        plist *pl2;
+        assign_plist_from_pr(&pl2, probs, length, 1e-4/(1+MEAgamma));
+        mea = MEA(pl2, structure, MEAgamma);
         ens = (float *)space(2*sizeof(float));
         if(circular)
 		  energy_of_alistruct((const char **)AS, structure, n_seq, ens);
@@ -333,6 +341,7 @@ int main(int argc, char *argv[]){
           ens[0] = energy_of_structure(string, structure, 0);
         printf("%s {%6.2f MEA=%.2f}\n", structure, ens[0], mea);
         free(ens);
+        free(pl2);
       }
 
       if (fname[0]!='\0') {
@@ -350,7 +359,7 @@ int main(int argc, char *argv[]){
         strcpy(ffname, fname);
         strcat(ffname, "_dp.ps");
       } else strcpy(ffname, "alidot.ps");
-      cp = make_color_pinfo(AS,pl, n_seq,base_pair);
+      cp = make_color_pinfo(AS,pl, n_seq, mfel);
       (void) PS_color_dot_plot(string, cp, ffname);
       free(cp);
       free(pl);
@@ -359,7 +368,6 @@ int main(int argc, char *argv[]){
     free_alipf_arrays();
   }
   if (cstruc!=NULL) free(cstruc);
-  free(base_pair);
   (void) fflush(stdout);
   free(string);
   free(structure);
@@ -541,7 +549,7 @@ PRIVATE void print_aliout(char **AS, plist *pl, int n_seq, char * mfe, FILE *ali
 }
 
 
-PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *mfe) {
+PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, plist *mfel) {
   /* produce info for PS_color_dot_plot */
   cpair *cp;
   int i, n,s, a, b,z,t,j, c;
@@ -571,20 +579,20 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, bondT *m
       c++;
     }
   }
-  for (t=1; t<=mfe[0].i; t++) {
+  for (t=0; mfel[t].i > 0; t++) {
     int nofound=1;
       for (j=0; j<c; j++) {
-        if ((cp[j].i==mfe[t].i)&&(cp[j].j==mfe[t].j)) {
+        if ((cp[j].i==mfel[t].i)&&(cp[j].j==mfel[t].j)) {
           cp[j].mfe=1;
           nofound=0;
           break;
         }
       }
       if(nofound) {
-        fprintf(stderr,"mfe base pair with very low prob in pf: %d %d\n",mfe[t].i,mfe[t].j);
+        fprintf(stderr,"mfe base pair with very low prob in pf: %d %d\n",mfel[t].i,mfel[t].j);
         cp = (cpair *) realloc(cp,sizeof(cpair)*(c+1));
-        cp[c].i = mfe[t].i;
-        cp[c].j = mfe[t].j;
+        cp[c].i = mfel[t].i;
+        cp[c].j = mfel[t].j;
         cp[c].p = 0.;
         cp[c].mfe=1;
         c++;

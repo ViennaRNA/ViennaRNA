@@ -21,7 +21,7 @@ description "The program reads two alignments of RNA sequences in CLUSTAL format
  dot bracket format with a \"&\" separating the two strands. The range of the structure in the two\
  sequences in the format  \"from,to : from,to\"; the energy of duplex structure in kcal/mol.\nThe\
  format is especially useful for computing the hybrid structure between a small probe sequence and\
- a long target sequence.\n"
+ a long target sequence.\n\n"
 
 # Options
 section "General Options"
@@ -29,24 +29,24 @@ sectiondesc="Below are command line options which alter the general behavior of 
 
 option  "deltaEnergy" e
 "Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
- Default is calculation of mfe structure only.\n"
+ Default is calculation of mfe structure only.\n\n"
 float
 typestr="range"
 optional
 
 option  "sorted"  s
-"print output sorted by free energy\n"
+"print output sorted by free energy\n\n"
 flag
 off
 
 section "Model Details"
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n"
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
 flag
 off
 
@@ -55,12 +55,12 @@ option  "dangles" d
 details="\nWith -d1 only unpaired bases can participate in at most one dangling end, this is the\
  default for mfe folding but unsupported for the partition function folding.\n\nWith -d2 this check is ignored,\
  dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
- default for partition function folding (-p).\n-d0 ignores dangling ends altogether (mostly for\
+ default for partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly for\
  debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
  moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
  and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
  treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
- energy model.\n"
+ energy model.\n\n"
 int
 default="2"
 optional
@@ -68,22 +68,22 @@ optional
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"
+ pairs may still occasionally occur as helices of length 1.\n\n"
 flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs\n"
+"Do not allow GU pairs\n\n"
 flag
 off
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n"
+"Do not allow GU pairs at the end of helices\n\n"
 flag
 off
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n"
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag
 off
 
@@ -92,19 +92,17 @@ option  "nsp" -
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n"
+ energy.\n\n"
 string
 optional
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n"
+ documentation for details on the file format.\n\n"
 string
 typestr="paramfile"
 optional
 
-text    "See also:\n\nRNAduplex(l) RNAcofold(l) RNAfold(l)\n\n"
-text    "Written by:\n\nIvo L Hofacker\n\n"
-text    "Report bugs:\n\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at\n"

@@ -36,6 +36,9 @@
 */
 
 #define K0        273.15
+#ifdef INF
+#undef INF
+#endif
 #define INF       1000000
 #define NBPAIRS   7
 #define NST       0     /* Energy for nonstandard stacked pairs */

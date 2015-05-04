@@ -14,7 +14,7 @@
 #include "fold_vars.h"
 #include "part_func.h"
 #include "utils.h"
-#include "ProfileDist.h"
+#include "profiledist.h"
 
 /*@unused@*/
 static char rcsid[] = "$Id: ProfileDist.c,v 1.6 2002/11/07 11:49:59 ivo Exp $";
@@ -179,28 +179,7 @@ PRIVATE double average(double x, double y)
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC float *Make_bp_profile(int length)
-{
-   int i,j;
-   int L=3;
-   float *P; /* P[i*3+0] unpaired, P[i*3+1] upstream, P[i*3+2] downstream p */
-
-   P =  (float *) space((length+1)*3*sizeof(float));
-   /* indices start at 1 use first entries to store length and dimension */
-   P[0] = (float) length;
-   P[1] = (float) L;
-
-   for( i=1; i<length; i++)
-     for( j=i+1; j<=length; j++ ) {
-       P[i*L+1] += pr[iindx[i]-j];
-       P[j*L+2] += pr[iindx[i]-j];
-     }
-   for( i=1; i<=length; i++)
-     P[i*3+0] = 1 - P[i*3+1] - P[i*3+2];
-   return (float *) P;
-}
-
-PUBLIC float *Make_bp_profile_bppm(double *bppm, int length){
+PUBLIC float *Make_bp_profile_bppm(FLT_OR_DBL *bppm, int length){
    int i,j;
    int L=3;
    float *P; /* P[i*3+0] unpaired, P[i*3+1] upstream, P[i*3+2] downstream p */
@@ -256,4 +235,13 @@ PUBLIC void     free_profile(float *T)
 {
    free(T);
 }
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+PUBLIC float *Make_bp_profile(int length){
+   return Make_bp_profile_bppm(pr, length);
+}
+
 
