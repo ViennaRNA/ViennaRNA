@@ -22,7 +22,7 @@ float profile_edit_distance(const float *T1,
 
 /**
  *  \brief condense pair probability matrix into a vector containing probabilities
- *  for upstream paired, downstream paired and unpaired.
+ *  for unpaired, upstream paired and downstream paired.
  * 
  *  This resulting probability profile is used as input for profile_edit_distance
  * 

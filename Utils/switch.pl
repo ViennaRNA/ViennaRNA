@@ -155,9 +155,9 @@ sub process_input {
 }
 
 sub init_ia {
-   my $times;
+   my $times = undef;
    return sub {
-      if (undef($times)) {
+      if (!defined($times)) {
          print "Input structure1 structure2 & start string\n";
          print "    @ to quit, enter for random start string\n";
       }

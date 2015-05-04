@@ -481,8 +481,8 @@ from profiledist
 
 [ returns (float *) ]
 condense pair probability matrix C<pr> into a vector containing
-probabilities for upstream paired, downstream paired and
-unpaired. This resulting probability profile is used as input for
+probabilities for unpaired, upstream paired and downstream paired.
+This resulting probability profile is used as input for
 profile_edit_distance
 
 =item profile_edit_distance T1, T2

@@ -1363,7 +1363,7 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
   structure       = (char *) space((unsigned) 2*length+1);
   zukresults      = (SOLUTION *)space(((length*(length-1))/2)*sizeof(SOLUTION));
   mfestructure[0] = '\0';
-  BP              = (int *)space(sizeof(int)*(length+2));
+  BP              = (int *)space(sizeof(int)*(2*length+2));
 
   /* double the sequence */
   strcpy(doubleseq,string);

@@ -188,7 +188,7 @@ int main(int argc, char *argv[]){
     ########################################################
     */
     if(rec_id){
-      if(!istty) printf("%s\n", rec_id);
+      /* if(!istty) printf("%s\n", rec_id); */
       (void) sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
     else fname[0] = '\0';
@@ -242,14 +242,12 @@ int main(int argc, char *argv[]){
     if (deltap>0)
       print_energy = deltap;
 
-    /* first lines of output (suitable  for sort +1n) */
-    if (fname[0] != '\0')
-      printf("> %s [%d]\n", fname, delta);
-
     /* stochastic backtracking */
     if(n_back>0){
       double mfe, kT;
       char *ss;
+      if (fname[0] != '\0') printf(">%s\n", fname);
+
       st_back=1;
       ss = (char *) space(strlen(rec_sequence)+1);
       strncpy(ss, structure, length);
@@ -273,6 +271,10 @@ int main(int argc, char *argv[]){
     }
     /* normal subopt */
     else if(!zuker){
+      /* first lines of output (suitable  for sort +1n) */
+      if (fname[0] != '\0')
+        printf("> %s [%d]\n", fname, delta);
+
       subopt_par(rec_sequence, structure, P, delta, fold_constrained, circular, stdout);
       if (dos) {
         int i;
@@ -285,6 +287,8 @@ int main(int argc, char *argv[]){
     else{
       SOLUTION *zr;
       int i;
+      if (fname[0] != '\0') printf(">%s\n%s\n", fname, rec_sequence);
+
       if (cut_point!=-1) {
         nrerror("Sorry, zuker subopts not yet implemented for cofold\n");
       }
