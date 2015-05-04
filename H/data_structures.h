@@ -95,6 +95,19 @@ typedef struct bondTEn {
 } bondTEn;
 
 /**
+ *  \brief The data structure that contains the complete model details used throughout the calculations
+ *
+ */
+typedef struct{
+  int     dangles;      /*  dangle model (0,1,2 or 3) */
+  int     special_hp;   /*  include special hairpin contributions for tri, tetra and hexaloops */
+  int     noLP;         /*  only consider canonical structures, i.e. no 'lonely' base pairs */
+  int     noGU;         /*  do not allow GU pairs */
+  int     noGUclosure;  /*  do not allow loops to be closed by GU pair */
+  int     logML;        /*  use logarithmic scaling for multi loops */
+} model_detailsT;
+
+/**
  *  The datastructure that contains temperature scaled energy parameters.
  */
 typedef struct{
@@ -115,22 +128,26 @@ typedef struct{
   int int21[NBPAIRS+1][NBPAIRS+1][5][5][5];
   int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
   int ninio[5];
-  double lxc;
-  int MLbase;
-  int MLintern[NBPAIRS+1];
-  int MLclosing;
-  int TerminalAU;
-  int DuplexInit;
-  int Tetraloop_E[200];
-  char Tetraloops[1401];
-  int Triloop_E[40];
-  char Triloops[241];
-  int Hexaloop_E[40];
-  char Hexaloops[1801];
-  int TripleC;
-  int MultipleCA;
-  int MultipleCB;
-  double temperature;
+  double  lxc;
+  int     MLbase;
+  int     MLintern[NBPAIRS+1];
+  int     MLclosing;
+  int     TerminalAU;
+  int     DuplexInit;
+  int     Tetraloop_E[200];
+  char    Tetraloops[1401];
+  int     Triloop_E[40];
+  char    Triloops[241];
+  int     Hexaloop_E[40];
+  char    Hexaloops[1801];
+  int     TripleC;
+  int     MultipleCA;
+  int     MultipleCB;
+
+  double  temperature;  /*  temperature used for loop contribution scaling */
+
+  model_detailsT model_details;
+
 }  paramT;
 
 /**
@@ -170,11 +187,16 @@ typedef struct{
   double  expTripleC;
   double  expMultipleCA;
   double  expMultipleCB;
-  double  pf_scale;
-  double  temperature;
-  double  alpha; /* used for scaling the thermodynamic temperature independently from the energy contributions */
+
   double  kT;
-  int     dangles;
+  double  pf_scale;
+
+  double  temperature;  /*  temperature used for loop contribution scaling */
+  double  alpha;        /*  used for scaling the thermodynamic temperature in Boltzmann factors
+                            independently from the energy contributions */
+
+  model_detailsT model_details;
+
 }  pf_paramT;
 
 

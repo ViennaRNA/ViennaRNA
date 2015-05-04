@@ -99,6 +99,7 @@ PRIVATE FLT_OR_DBL  *scale=NULL, *expMLbase=NULL;
 PRIVATE char        *ptype=NULL; /* precomputed array of pair types */
 PRIVATE int         init_length;  /* length in last call to init_pf_fold()*/
 PRIVATE double      init_temp; /* temperature in last call to scale_pf_params */
+PRIVATE int         *my_iindx = NULL;
 /* make iptypes array for intermolecular constrains (ipidx for indexing)*/
 
 
@@ -219,7 +220,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
   for (d=0; d<=TURN; d++)
     for (i=1; i<=n-d; i++){
       j=i+d;
-      ij = iindx[i]-j;
+      ij = my_iindx[i]-j;
       if(d < w) {
         pu_test->H[i][d]=pu_test->I[i][d]=pu_test->M[i][d]=pu_test->E[i][d]=0.;
       }
@@ -234,7 +235,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
     /* set auxillary arrays to 0, reuse qqm and qqm1, reuse qqm2 and qq_1m2*/
     sum_M[i] = qqm[i] = qqm1[i] = qqm2[i] = qq_1m2[i] = 0;
     for (j=i+TURN+1; j<=n; j++){
-      ij = iindx[i]-j;
+      ij = my_iindx[i]-j;
       /* i need the part_func of all structures outside bp[ij] */
       if(qb[ij] > 0.0) prpr[ij]= (probs[ij]/qb[ij]);
     }
@@ -262,7 +263,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
       /* construction of partition function of segment [p,o], given that
          an unpaired region [i,i+w[ exists within [p,o] */
       u = o-p-1;
-      po = iindx[p]-o;
+      po = my_iindx[p]-o;
       type = ptype[po];
       if(type){
 
@@ -280,7 +281,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
           u1    = k-p-1;
           sum_l = 0.;
           for (l=MAX2(k+TURN+1,o-1-MAXLOOP+u1); l<o; l++) {
-            kl      = iindx[k]-l;
+            kl      = my_iindx[k]-l;
             type_2  = ptype[kl];
             if((l+1) < o) store_Io[l+1] += sum_l;
 
@@ -299,7 +300,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
       } /*end of if(type) test for bp (p,o) */
 
       /* multiple stem loop contribution
-         calculate qm2[iindx[i]-j] in the course of the calculation
+         calculate qm2[my_iindx[i]-j] in the course of the calculation
          of the multiple stem loop contribution:
          advantage: you save memory:
          instead of a (n+1)*n array for qqm2 you only need 2*n arrays
@@ -328,11 +329,11 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
         tt      =   rtype[type];
         temp    =   prpr[po] * exp_E_MLstem(tt, S1[o-1], S1[p+1], Pf) * scale[2] * Pf->expMLclosing;
         for(i=p+1; i < o; i++) {
-          int p1i = (p+1) < (i-1)  ? iindx[p+1]-(i-1)  : 0;
+          int p1i = (p+1) < (i-1)  ? my_iindx[p+1]-(i-1)  : 0;
           /*unpaired region expMLbase[i-p] left of structured
             region qq_1m2[i+1]*/
           /* @expMLbase:  note distance of i-p == i-(p+1)+1 */
-          store_M_mlbase[iindx[p+1]-i] += expMLbase[i-p] * temp * qq_1m2[i+1];
+          store_M_mlbase[my_iindx[p+1]-i] += expMLbase[i-p] * temp * qq_1m2[i+1];
           /* structured region qm[p1i] left of unpaired region */
           /* contribition for unpaired region is added after the p-loop */
           store_M_qm_o[i] += qm[p1i] * temp;
@@ -340,7 +341,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
       }
 
       for(tqm2 = 0., i=p+1; i < o; i++)
-        tqm2  +=  qm[iindx[p]-i] * qqm[i+1];
+        tqm2  +=  qm[my_iindx[p]-i] * qqm[i+1];
 
       /* qqm2[p] contrib with at least 2 loops in region (p,o) */
       qqm2[p] = tqm2;
@@ -361,7 +362,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
         /* Multiloops:*/
         /* unpaired region [i,v] between structured regions ]p,i[ and ]v,o[. */
         /* store_M_qm_o[i] = part. funct over all structured regions ]p,i[ */
-        vo = (i+v+1) <= (o-1) ? iindx[i+v+1]-(o-1): 0;
+        vo = (i+v+1) <= (o-1) ? my_iindx[i+v+1]-(o-1): 0;
         pu_test->M[i][v] += store_M_qm_o[i]*expMLbase[v+1]*qm[vo];
       }
     }
@@ -389,7 +390,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
       /* all unpaired region [i,v] for a fixed v, given that */
       /* region ]v,o[ contains at least 2 structures qq_1m2[v+1]; */
       if(v >= i) {
-        sum_M[v] += store_M_mlbase[iindx[i]-v];
+        sum_M[v] += store_M_mlbase[my_iindx[i]-v];
         if(v-i<=max_v) {
           pu_test->M[i][v-i] += sum_M[v];
         }
@@ -423,7 +424,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
 
   for (o=n-TURN-1;o>=1; o--) {
     for (p=o+TURN+1; p<=n; p++) {
-      po    = iindx[o]-p;
+      po    = my_iindx[o]-p;
       type  = ptype[po];
       /* recalculate of qqm matrix containing final stem
          contributions to multiple loop partition function
@@ -441,14 +442,14 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
       tqm2=0.;
       for(i=o+1; i < p; i++) {
         uu=0;
-        tqm2+=qqm[i]*qm[iindx[i+1]-p];
+        tqm2+=qqm[i]*qm[my_iindx[i+1]-p];
 
         if(type !=0) {
           double temp2;
           temp2=0;
           /* structured region qq_1m2[i-1] left of unpaired r. expMLbase[p-i]*/
           /* @expMLbase:  note distance of p-i == p+1-i+1 */
-           store_M_mlbase[iindx[i]-p+1] +=  qq_1m2[i-1]*expMLbase[p-i]*temp;
+           store_M_mlbase[my_iindx[i]-p+1] +=  qq_1m2[i-1]*expMLbase[p-i]*temp;
         }
       }/*end of for i ....*/
       qqm2[p] = tqm2;
@@ -461,7 +462,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
   for(i=1; i<=n;i++) {
     int v_max = MIN2(w-1,n-i);
     for(v=n; v>=i; v--){
-      sum_M[i]  += store_M_mlbase[iindx[i]-v];
+      sum_M[i]  += store_M_mlbase[my_iindx[i]-v];
       if ((v-i <= v_max) ) {
         pu_test->M[i][v-i] += sum_M[i];
       }
@@ -473,7 +474,7 @@ PUBLIC pu_contrib *pf_unstru(char *sequence, int w){
   for (i=1; i<=n; i++) {
     uu=0;
     for(j=i; j<MIN2(i+w,n+1);j++){
-      ij=iindx[i]-j;
+      ij=my_iindx[i]-j;
       temp=q1k[i-1]*1*scale[j-i+1]*qln[j+1]/q1k[n];
       pu_test->E[i][j-i]+=temp;
 
@@ -1010,7 +1011,7 @@ PRIVATE void  get_up_arrays(unsigned int length){
   qq_1m2    = (double *)    space(sizeof(double)      * l2);
   qqm       = (double *)    space(sizeof(double)      * l2);
   qqm1      = (double *)    space(sizeof(double)      * l2);
-
+  my_iindx  = get_iindx(length);
 }
 
 PRIVATE void  free_up_arrays(void){
@@ -1021,6 +1022,7 @@ PRIVATE void  free_up_arrays(void){
   if(qqm1       != NULL){ free(qqm1);       qqm1      = NULL;}
   if(qqm2       != NULL){ free(qqm2);       qqm2      = NULL;}
   if(qq_1m2     != NULL){ free(qq_1m2);     qq_1m2    = NULL;}
+  if(my_iindx   != NULL){ free(my_iindx);   my_iindx  = NULL;}
 }
 
 PUBLIC void free_interact(interact *pin) {
@@ -1068,14 +1070,14 @@ PRIVATE void encode_seq(const char *s1, const char *s2) {
 /*-------------------------------------------------------------------------*/
  /* scale energy parameters and pre-calculate Boltzmann weights:
   most of this is done in structure Pf see params.c,h (function:
-  scale_pf_parameters(), only arrays scale and expMLbase are handled here*/
+  get_scaled_pf_parameters(), only arrays scale and expMLbase are handled here*/
 PRIVATE void scale_stru_pf_params(unsigned int length)
 {
   unsigned int i;
   double  kT;
 
 
-  /* Do this only at the first call for scale_pf_parameters()
+  /* Do this only at the first call for get_scaled_pf_parameters()
      and/or if temperature has changed*/
   if(init_temp != temperature) {
     if(Pf) free(Pf);

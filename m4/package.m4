@@ -342,7 +342,7 @@ AM_CONDITIONAL(WITH_LIBSVM, test "$with_svm" != "no")
 AC_RNA_DOCUMENTATION_INIT([RNAlib])
 
 
-AC_CONFIG_FILES([Makefile ViennaRNA.spec Utils/Makefile Progs/Makefile lib/Makefile man/Makefile H/Makefile])
+AC_CONFIG_FILES([Makefile ViennaRNA.spec RNAlib2.pc Utils/Makefile Progs/Makefile lib/Makefile man/Makefile H/Makefile])
 
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 
@@ -384,8 +384,8 @@ Files will be installed in the following directories:
   Extra Data:     $_datadir
   Man pages:      $_mandir
   Documentation:  $_docdir
-    (HTML):       $_htmldir
-    (PDF):        $_pdfdir
+    (HTML):       $(eval printf "%s" $_htmldir)/html
+    (PDF):        $(eval printf "%s" $_pdfdir)
 ])
 
 ])

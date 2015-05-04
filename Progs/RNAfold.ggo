@@ -199,10 +199,10 @@ optional
 hidden
 
 option  "betaScale" -
-"Set the scaling of the boltzmann factors\n"
+"Set the scaling of the Boltzmann factors\n"
 details="The argument provided with this option enables to scale the thermodynamic temperature\
- used in the boltzmann factors independently from the temperature used to scale the individual\
- energy contributions of the loop types. The boltzmann factors then become exp(-dG/kT*betaScale)\
+ used in the Boltzmann factors independently from the temperature used to scale the individual\
+ energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
  where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
  absolute temperature.\n\n"
 double

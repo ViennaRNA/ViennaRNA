@@ -195,4 +195,17 @@ extern int    do_backtrack;
 extern char backtrack_type;
 
 char * option_string(void);
+
+/**
+ * \brief Set default model details
+ *
+ *  Use this function if you wish to initialize a #model_detailsT data structure with
+ *  its default values, i.e. the global model settings
+ *
+ *  \see
+ *
+ *  \param md A pointer to the data structure that shall be initialized
+ */
+void set_model_details(model_detailsT *md);
+
 #endif

@@ -17,6 +17,7 @@
 #include "fold_vars.h"
 #include "utils.h"
 #include "read_epars.h"
+#include "params.h"
 #include "RNAcofold_cmdl.h"
 
 /*@unused@*/
@@ -24,7 +25,7 @@ PRIVATE char rcsid[] = "$Id: RNAcofold.c,v 1.7 2006/05/10 15:14:27 ivo Exp $";
 
 PRIVATE char *costring(char *string);
 PRIVATE char *tokenize(char *line);
-PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mf);
+PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mf, pf_paramT *parameters);
 PRIVATE double *read_concentrations(FILE *fp);
 PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces);
 
@@ -44,7 +45,7 @@ int main(int argc, char *argv[])
   char    *Concfile;
   int     i, length, l, sym, r, cl;
   double  min_en;
-  double  kT, sfact;
+  double  kT, sfact, betaScale;
   int     pf, istty;
   int     noconv, noPS;
   int     doT;    /*compute dimere free energies etc.*/
@@ -62,7 +63,11 @@ int main(int argc, char *argv[])
   plist   *mfA;
   plist   *mfB;
   double  *ConcAandB;
-  unsigned int  rec_type, read_opt;
+  unsigned int    rec_type, read_opt;
+  pf_paramT       *pf_parameters;
+  model_detailsT  md;
+
+  set_model_details(&md);
 
   /*
   #############################################
@@ -80,7 +85,9 @@ int main(int argc, char *argv[])
   doC           = 0;
   doQ           = 0;
   cofi          = 0;
+  betaScale     = 1.;
   ParamFile     = NULL;
+  pf_parameters = NULL;
   string        = NULL;
   Concfile      = NULL;
   structure     = NULL;
@@ -101,15 +108,15 @@ int main(int argc, char *argv[])
   /* structure constraint */
   if(args_info.constraint_given)      fold_constrained=1;
   /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)         tetra_loop=0;
+  if(args_info.noTetra_given)         md.special_hp = tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)         dangles = args_info.dangles_arg;
+  if(args_info.dangles_given)         md.dangles = dangles = args_info.dangles_arg;
   /* do not allow weak pairs */
-  if(args_info.noLP_given)            noLonelyPairs = 1;
+  if(args_info.noLP_given)            md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)            noGU = 1;
+  if(args_info.noGU_given)            md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given)     no_closingGU = 1;
+  if(args_info.noClosingGU_given)     md.noGUclosure = no_closingGU = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)          noconv = 1;
   /* set energy model */
@@ -130,6 +137,7 @@ int main(int argc, char *argv[])
   if(args_info.bppmThreshold_given)
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
   /* concentrations in file */
+  if(args_info.betaScale_given)       betaScale = args_info.betaScale_arg;
   if(args_info.concfile_given){
     Concfile = strdup(args_info.concfile_arg);
     doC = cofi = doT = pf = 1;
@@ -317,15 +325,15 @@ int main(int argc, char *argv[])
         dangles=1;
       }
 
-      kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
+      kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
       pf_scale = exp(-(sfact*min_en)/kT/length);
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
 
-      /* init_co_pf_fold(length); <- obsolete */
+      pf_parameters = get_boltzmann_factors(temperature, betaScale, md, pf_scale);
 
       if (cstruc!=NULL)
         strncpy(structure, cstruc, length+1);
-      AB = co_pf_fold(rec_sequence, structure);
+      AB = co_pf_fold_par(rec_sequence, structure, pf_parameters, fold_constrained, do_backtrack);
 
       if (do_backtrack) {
         char *costruc;
@@ -379,16 +387,16 @@ int main(int argc, char *argv[])
         strncat(orig_Bstring,orig_sequence+Alength,Blength);
 
         /* compute AA dimer */
-        AA=do_partfunc(Astring, Alength, 2, &prAA, &mfAA);
+        AA=do_partfunc(Astring, Alength, 2, &prAA, &mfAA, pf_parameters);
         /* compute BB dimer */
-        BB=do_partfunc(Bstring, Blength, 2, &prBB, &mfBB);
+        BB=do_partfunc(Bstring, Blength, 2, &prBB, &mfBB, pf_parameters);
         /*free_co_pf_arrays();*/
 
         /* compute A monomer */
-        do_partfunc(Astring, Alength, 1, &prA, &mfA);
+        do_partfunc(Astring, Alength, 1, &prA, &mfA, pf_parameters);
 
         /* compute B monomer */
-        do_partfunc(Bstring, Blength, 1, &prB, &mfB);
+        do_partfunc(Bstring, Blength, 1, &prB, &mfB, pf_parameters);
 
         compute_probabilities(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength);
         compute_probabilities(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength);
@@ -466,6 +474,7 @@ int main(int argc, char *argv[])
 
       } /*end if(doT)*/
 
+      free(pf_parameters);
     }/*end if(pf)*/
 
 
@@ -484,7 +493,7 @@ int main(int argc, char *argv[])
     if (!doT) free_co_pf_arrays();
 
     (void) fflush(stdout);
-
+    
     /* clean up */
     if(cstruc) free(cstruc);
     if(rec_id) free(rec_id);
@@ -554,32 +563,35 @@ PRIVATE char *costring(char *string)
   return ctmp;
 }
 
-PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mfpl) {
+PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mfpl, pf_paramT *parameters){
   /*compute mfe and partition function of dimere or  monomer*/
   char *Newstring;
   char *tempstruc;
   double min_en;
   double sfact=1.07;
   double kT;
+  pf_paramT *par;
   FLT_OR_DBL *probs;
   cofoldF X;
-  kT = (temperature+273.15)*1.98717/1000.;
+  kT = parameters->kT/1000.;
   switch (Switch)
     {
     case 1: /*monomer*/
       cut_point=-1;
       tempstruc = (char *) space((unsigned)length+1);
       min_en = fold(string, tempstruc);
-      pf_scale = exp(-(sfact*min_en)/kT/(length));
       assign_plist_from_db(mfpl, tempstruc, 0.95);
       free_arrays();
       /*En=pf_fold(string, tempstruc);*/
       /* init_co_pf_fold(length); <- obsolete */
-      X=co_pf_fold(string, tempstruc);
+      par = get_boltzmann_factor_copy(parameters);
+      par->pf_scale = exp(-(sfact*min_en)/kT/(length));
+      X=co_pf_fold_par(string, tempstruc, par, 1, fold_constrained);
       probs = export_co_bppm();
       assign_plist_from_pr(tpr, probs, length, bppmThreshold);
       free_co_pf_arrays();
       free(tempstruc);
+      free(par);
       break;
 
     case 2: /*dimer*/
@@ -589,16 +601,18 @@ PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist *
       cut_point=length+1;
       tempstruc = (char *) space((unsigned)length*2+1);
       min_en = cofold(Newstring, tempstruc);
-      pf_scale =exp(-(sfact*min_en)/kT/(2*length));
       assign_plist_from_db(mfpl, tempstruc, 0.95);
       free_co_arrays();
       /* init_co_pf_fold(2*length); <- obsolete */
-      X=co_pf_fold(Newstring, tempstruc);
+      par = get_boltzmann_factor_copy(parameters);
+      par->pf_scale =exp(-(sfact*min_en)/kT/(2*length));
+      X=co_pf_fold_par(Newstring, tempstruc, par, 1, fold_constrained);
       probs = export_co_bppm();
       assign_plist_from_pr(tpr, probs, 2*length, bppmThreshold);
       free_co_pf_arrays();
       free(Newstring);
       free(tempstruc);
+      free(par);
       break;
 
     default:

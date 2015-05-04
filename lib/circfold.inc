@@ -2,7 +2,7 @@
 /* this file contains code for folding circular RNAs */
 /* it's #include'd into fold.c */
 
-float circfold(const char *string, char *structure) {
+PRIVATE void fill_arrays_circ(const char *string, int *bt){
   /* variant of fold() for circular RNAs */
   /* auxiliarry arrays:
      fM2 = multiloop region with exactly two stems, extending to 3' end
@@ -15,29 +15,9 @@ float circfold(const char *string, char *structure) {
   int Hi, Hj, Ii, Ij, Ip, Iq, Mi;
   int *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5;
   int i,j, p,q,length, energy, bonus=0, bonus_cnt=0;
-  int s=0;
-  /* if (!uniq_ML) {uniq_ML=1; init_length=-1;} */
-  circular = 1;
+  int dangle_model = P->model_details.dangles;
 
   length = (int) strlen(string);
-
-#ifdef USE_OPENMP
-  /* always init everything since all global static variables are uninitialized when entering a thread */
-  init_fold(length);
-#else
-  if (length>init_length) init_fold(length);
-#endif
-
-  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
-
-  S   = encode_sequence(string, 0);
-  S1  = encode_sequence(string, 1);
-
-  BP = (int *)space(sizeof(int)*(length+2));
-  make_ptypes(S, structure);
-
-  /* compute all arrays used by fold() for linear RNA */
-  energy = fill_arrays(string);
 
   FcH = FcI= FcM = FcMd3= FcMd5= Fc = INF;
   for (i=1; i<length; i++)
@@ -98,7 +78,7 @@ float circfold(const char *string, char *structure) {
 
   /* compute the fM2 array (multi loops with exactly 2 helices) */
   /* to get a unique ML decomposition, just use fM1 instead of fML
-     below. However, that will not work with dangles==1  */
+     below. However, that will not work with dangle_model==1  */
   for (i=1; i<length-TURN; i++) {
     int u;
     fM2[i] = INF;
@@ -115,7 +95,7 @@ float circfold(const char *string, char *structure) {
   }
   Fc = MIN2(Fc, FcM);
 
-  if (dangles==1) {
+  if (dangle_model==1) {
     int u;
     fM_d3 =  (int *) space(sizeof(int)*(length+2));
     fM_d5 =  (int *) space(sizeof(int)*(length+2));
@@ -158,35 +138,35 @@ float circfold(const char *string, char *structure) {
     }
     if (FcMd5<MIN2(Fc,FcMd3)) {
       /* looks like we have to do this ... */
-      sector[++s].i = 1;
-      sector[s].j = (Md5i>0)?Md5i:-Md5i;
-      sector[s].ml = 2;
+      sector[++(*bt)].i = 1;
+      sector[(*bt)].j = (Md5i>0)?Md5i:-Md5i;
+      sector[(*bt)].ml = 2;
       i = (Md5i>0)?Md5i+1 : -Md5i+2; /* let's backtrack fm_d5[Md5i+1] */
       for (u=i+TURN; u<length-TURN; u++)
         if (fM_d5[i] == fML[indx[u]+i] + fML[indx[length-1]+u+1]) {
-          sector[++s].i = i;
-          sector[s].j = u;
-          sector[s].ml = 1;
-          sector[++s].i =u+1;
-          sector[s].j = length-1;
-          sector[s].ml = 1;
+          sector[++(*bt)].i = i;
+          sector[(*bt)].j = u;
+          sector[(*bt)].ml = 1;
+          sector[++(*bt)].i =u+1;
+          sector[(*bt)].j = length-1;
+          sector[(*bt)].ml = 1;
           break;
         }
       Fc = FcMd5;
     } else if (FcMd3<Fc) {
       /* here we go again... */
-      sector[++s].i = (Md3i>0)?Md3i+1:-Md3i+1;
-      sector[s].j = length;
-      sector[s].ml = 2;
+      sector[++(*bt)].i = (Md3i>0)?Md3i+1:-Md3i+1;
+      sector[(*bt)].j = length;
+      sector[(*bt)].ml = 2;
       i = (Md3i>0)? Md3i : -Md3i-1; /* let's backtrack fm_d3[Md3i] */
       for (u=2+TURN; u<i-TURN; u++)
         if (fM_d3[i] == fML[indx[u]+2] + fML[indx[i]+u+1]) {
-          sector[++s].i = 2;
-          sector[s].j = u;
-          sector[s].ml = 1;
-          sector[++s].i =u+1;
-          sector[s].j = i;
-          sector[s].ml = 1;
+          sector[++(*bt)].i = 2;
+          sector[(*bt)].j = u;
+          sector[(*bt)].ml = 1;
+          sector[++(*bt)].i =u+1;
+          sector[(*bt)].j = i;
+          sector[(*bt)].ml = 1;
           break;
         }
       Fc = FcMd3;
@@ -196,17 +176,17 @@ float circfold(const char *string, char *structure) {
   }
   else if(Fc < INF){
     if (FcH==Fc) {
-      sector[++s].i = Hi;
-      sector[s].j = Hj;
-      sector[s].ml = 2;
+      sector[++(*bt)].i = Hi;
+      sector[(*bt)].j = Hj;
+      sector[(*bt)].ml = 2;
     }
     else if (FcI==Fc) {
-      sector[++s].i = Ii;
-      sector[s].j = Ij;
-      sector[s].ml = 2;
-      sector[++s].i = Ip;
-      sector[s].j = Iq;
-      sector[s].ml = 2;
+      sector[++(*bt)].i = Ii;
+      sector[(*bt)].j = Ij;
+      sector[(*bt)].ml = 2;
+      sector[++(*bt)].i = Ip;
+      sector[(*bt)].j = Iq;
+      sector[(*bt)].ml = 2;
     }
     else if (FcM==Fc) { /* grumpf we found a Multiloop */
       int fm, u;
@@ -214,66 +194,18 @@ float circfold(const char *string, char *structure) {
       fm = fM2[Mi+1];
       for (u=Mi+TURN+1; u<length-TURN; u++)
         if (fm == fML[indx[u]+Mi+1] + fML[indx[length]+u+1]) {
-                sector[++s].i=Mi+1;
-                sector[s].j=u;
-                sector[s].ml = 1;
-                sector[++s].i=u+1;
-                sector[s].j=length;
-                sector[s].ml = 1;
+                sector[++(*bt)].i=Mi+1;
+                sector[(*bt)].j=u;
+                sector[(*bt)].ml = 1;
+                sector[++(*bt)].i=u+1;
+                sector[(*bt)].j=length;
+                sector[(*bt)].ml = 1;
                 break;
         }
-      sector[++s].i = 1;
-      sector[s].j = Mi;
-      sector[s].ml = 1;
+      sector[++(*bt)].i = 1;
+      sector[(*bt)].j = Mi;
+      sector[(*bt)].ml = 1;
     }
   }
-  backtrack(string, s);
-
-#ifdef PAREN
-  parenthesis_structure(structure, base_pair2, length);
-#else
-  letter_structure(structure, base_pair2, length);
-#endif
-
-  /*
-  *  Backward compatibility:
-  *  This block may be removed if deprecated functions
-  *  relying on the global variable "base_pair" vanishs from within the package!
-  */
-  base_pair = base_pair2;
-  /*
-  {
-    if(base_pair) free(base_pair);
-    base_pair = (bondT *)space(sizeof(bondT) * (1+length/2));
-    memcpy(base_pair, base_pair2, sizeof(bondT) * (1+length/2));
-  }
-  */
-
-  /* check constraints */
-  for(i=1;i<=length;i++) {
-    if((BP[i]<0)&&(BP[i]>-4)) {
-      bonus_cnt++;
-      if((BP[i]==-3)&&(structure[i-1]==')')) bonus++;
-      if((BP[i]==-2)&&(structure[i-1]=='(')) bonus++;
-      if((BP[i]==-1)&&(structure[i-1]!='.')) bonus++;
-    }
-
-    if(BP[i]>i) {
-      int l;
-      bonus_cnt++;
-      for(l=1; l<=base_pair2[0].i; l++)
-        if((i==base_pair2[l].i)&&(BP[i]==base_pair2[l].j)) bonus++;
-    }
-  }
-
-  if (bonus_cnt>bonus) fprintf(stderr,"\ncould not enforce all constraints\n");
-  bonus*=BONUS;
-
-  free(S); free(S1); free(BP);
-
-  energy = Fc + bonus;      /*remove bonus energies from result */
-  if(energy == INF)
-    return (float) 0.0;
-  else
-    return (float) energy/100.;
 }
+

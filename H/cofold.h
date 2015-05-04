@@ -30,8 +30,13 @@
  *  \param    structure Will hold the barcket dot structure of the dimer molecule
  *  \return   minimum free energy of the structure
  */
-float     cofold( const char *sequence,
-                  char *structure);
+float cofold( const char *sequence,
+              char *structure);
+
+float cofold_par( const char *string,
+                  char *structure,
+                  paramT *parameters,
+                  int is_constrained);
 
 /**
  *  \brief Free memory occupied by cofold()
@@ -42,6 +47,8 @@ void      free_co_arrays(void);
  *  \brief Recalculate parameters
  */
 void      update_cofold_params(void);
+
+void      update_cofold_params_par(paramT *parameters);
 
 /**
  *  \brief Compute Zuker type suboptimal structures
@@ -54,6 +61,9 @@ void      update_cofold_params(void);
  *  \return         List of zuker suboptimal structures
  */
 SOLUTION  *zukersubopt(const char *string);
+
+SOLUTION  *zukersubopt_par( const char *string,
+                            paramT *parameters);
 
 /**
  *  \brief get_monomer_free_energies

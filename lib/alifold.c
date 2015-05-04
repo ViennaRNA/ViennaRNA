@@ -211,11 +211,11 @@ PUBLIC void free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, sh
     free((*a2s)[s]);
     free((*Ss)[s]);
   }
-  free(*S);
-  free(*S5);
-  free(*S3);
-  free(*a2s);
-  free(*Ss);
+  free(*S);   *S    = NULL;
+  free(*S5);  *S5   = NULL;
+  free(*S3);  *S3   = NULL;
+  free(*a2s); *a2s  = NULL;
+  free(*Ss);  *Ss   = NULL;
 }
 
 PUBLIC void update_alifold_params(void){
