@@ -75,7 +75,7 @@ PUBLIC void convert_parameter_file(const char *iname, const char *oname, unsigne
   }
 
   if(options & VRNA_CONVERT_OUTPUT_VANILLA)
-    options &= old_options;
+    options = old_options;
 
   if(oname == NULL) ofile = stdout;
   else if(!(ofile=fopen(oname,"a+"))){
@@ -213,7 +213,6 @@ PRIVATE unsigned int read_old_parameter_file(FILE *ifile, int skip_header){
     } /* else ignore line */
     free(line);
   } while((line=get_line(ifile)) && !last);
-
   return read_successfully;
 }
 
@@ -454,6 +453,8 @@ PRIVATE void  rd_Tetra_loop(FILE *fp)
   char   *buf;
 
   i=0;
+  memset(&Tetraloops_184, 0, 1400);
+  memset(&TETRA_ENERGY37_184, 0, sizeof(int)*200);
   do {
     buf = get_line(fp);
     if (buf==NULL) break;
@@ -472,6 +473,8 @@ PRIVATE void  rd_Tri_loop(FILE *fp)
   char   *buf;
 
   i=0;
+  memset(&Triloops_184, 0, 241);
+  memset(&Triloop_E37_184, 0, sizeof(int)*40);
   do {
     buf = get_line(fp);
     if (buf==NULL) break;

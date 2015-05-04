@@ -35,7 +35,7 @@ duplexT** Lduplexfold_XS( const char*s1,
                           const int il_a,
                           const int il_b,
                           const int b_a,
-                          const int b_b);//, const int target_dead, const int query_dead);
+                          const int b_b);/* , const int target_dead, const int query_dead); */
 
 /**
 *** Lduplexfold_C Computes duplexes between two single sequences and takes constraint into account
@@ -69,7 +69,7 @@ duplexT** Lduplexfold_CXS(const char*s1,
                           const int il_a,
                           const int il_b,
                           const int b_a,
-                          const int b_b);//, const int target_dead, const int query_dead);
+                          const int b_b); /*, const int target_dead, const int query_dead); */
 
 
 

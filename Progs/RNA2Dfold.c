@@ -87,9 +87,12 @@ int main(int argc, char *argv[]){
     circ=1;
 
   /* dangle options */
-  if(args_info.dangles_given)
-    dangles=args_info.dangles_arg;
-
+  if(args_info.dangles_given){
+    if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
+      warn_user("required dangle model not implemented, falling back to default dangles=2");
+    else
+      dangles = args_info.dangles_arg;
+  }
   /* set number of threads for parallel computation */
   if(args_info.numThreads_given)
 #ifdef _OPENMP
@@ -256,7 +259,7 @@ int main(int argc, char *argv[]){
         fprintf(stdout, "scaling factor %f\n", pf_scale);
 
       /* get all variables need for the folding process (some memory will be preallocated there too) */
-      //TwoDpfold_vars *q_vars = get_TwoDpfold_variables_from_MFE(mfe_vars);
+      /* TwoDpfold_vars *q_vars = get_TwoDpfold_variables_from_MFE(mfe_vars); */
       /* we dont need the mfe vars and arrays anymore, so we can savely free their occupying memory */
       destroy_TwoDfold_variables(mfe_vars);
       TwoDpfold_vars *q_vars = get_TwoDpfold_variables(string, structure1, structure2, circ);

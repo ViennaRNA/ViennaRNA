@@ -194,6 +194,12 @@ extern int    do_backtrack;
  */
 extern char backtrack_type;
 
+/**
+ *  \brief Allow G-quadruplex formation
+ */
+extern int gquad;
+
+
 char * option_string(void);
 
 /**

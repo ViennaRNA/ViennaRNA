@@ -1,9 +1,13 @@
 
 
 if WITH_LIBSVM
-  RNALfold_LINK = ${CXXLD} -o $@
+  RNALfold_LINK = ${CXXLD} \
+                  $(AM_CXXFLAGS) $(CXXFLAGS) \
+                  $(AM_LDFLAGS) $(LDFLAGS) -o $@
 else
-  RNALfold_LINK = ${CCLD} -o $@
+  RNALfold_LINK = ${CCLD} \
+                  $(AM_CFLAGS) $(CFLAGS) \
+                  $(AM_LDFLAGS) $(LDFLAGS) -o $@
 endif
 
 
@@ -16,7 +20,7 @@ LDADD = $(OPENMP_CFLAGS) ../lib/libRNA.a -lm
 
 AM_CFLAGS = $(OPENMP_CFLAGS)
 
-INCLUDES = -I$(srcdir)/../H -I$(srcdir)/../lib
+AM_CPPFLAGS = -I$(srcdir)/../H -I$(srcdir)/../lib
 
 GENGETOPT_CMDL =  RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAalifold_cmdl.c RNAalifold_cmdl.h\

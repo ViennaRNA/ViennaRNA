@@ -11,10 +11,18 @@
 #endif
 
 /**
+ *  \addtogroup energy_parameters
+ *  \brief All relevant functions to retrieve and copy precalculated energy parameter sets as well as
+ *  reading/writing the energy parameter set from/to file(s).
+ *
+ *  This module covers all relevant functions for precalculation of the energy parameters
+ *  necessary for the folding routines provided by RNAlib. Furthermore, the energy parameter set
+ *  in the RNAlib can be easily exchanged by a user-defined one. It is also possible to write the
+ *  current energy parameter set into a text file.
+ *  @{
+ *
  *  \file params.h
- *  \brief Several functions to obtain (pre)scaled energy parameter data containers
  */
-
 
 /**
  * \brief Get precomputed energy contributions for all the known loop types
@@ -70,10 +78,11 @@ pf_paramT *get_scaled_pf_parameters(void);
  *
  *  \see get_scaled_pf_parameters(), get_boltzmann_factor_copy()
  *
- *  \param  dangle_model  The dangle model to be used (possible values: 0 or 2)
- *  \param  temperature   The temperature in degC used for (re-)scaling the energy contributions
- *  \param  alpha         A scaling value that is used as a multiplication factor for the absolute
+ *  \param  temperature   The temperature in degrees Celcius used for (re-)scaling the energy contributions
+ *  \param  betaScale     A scaling value that is used as a multiplication factor for the absolute
  *                        temperature of the system
+ *  \param  md            The model details to be used
+ *  \param  pf_scale      The scaling factor for the Boltzmann factors
  *  \return               A set of precomputed Boltzmann factors
  */
 pf_paramT *get_boltzmann_factors( double temperature,
@@ -109,6 +118,10 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
                                             double betaScale,
                                             model_detailsT md,
                                             double pf_scale);
+
+/**
+ *  @}
+ */
 
 DEPRECATED(paramT     *copy_parameters(void));
 DEPRECATED(paramT     *set_parameters(paramT *dest));

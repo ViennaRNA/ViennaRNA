@@ -127,6 +127,11 @@ optional
 default="1e-6"
 hidden
 
+option  "gquad" g
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n"
+flag
+off
+
 
 section "Model Details"
 

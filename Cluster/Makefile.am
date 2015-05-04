@@ -1,7 +1,7 @@
 bin_PROGRAMS = AnalyseDists AnalyseSeqs
 man_MANS = AnalyseDists.1 AnalyseSeqs.1
 
-INCLUDES = -I$(srcdir)/../H
+AM_CPPFLAGS = -I$(srcdir)/../H
 
 AnalyseDists_SOURCES = split.c \
           distance_matrix.c \

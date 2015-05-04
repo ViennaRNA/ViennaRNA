@@ -40,7 +40,7 @@ PUBLIC paramT *scale_parameters(void){
   return get_scaled_parameters(temperature, md);
 }
 
-PUBLIC paramT *get_scaled_parameters( double temperature,
+PUBLIC paramT *get_scaled_parameters( double temp,
                                       model_detailsT md){
 
   unsigned int i,j,k,l;
@@ -51,8 +51,15 @@ PUBLIC paramT *get_scaled_parameters( double temperature,
 
   /* store the model details */
   params->model_details = md;
-  params->temperature   = temperature;
-  tempf                 = ((temperature+K0)/Tmeasure);
+  params->temperature   = temp;
+  tempf                 = ((params->temperature+K0)/Tmeasure);
+
+  for(i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
+    for(j = 3*VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3*VRNA_GQUAD_MAX_LINKER_LENGTH; j++){
+      double GQuadAlpha_T = (double)GQuadAlphadH - (double)(GQuadAlphadH - GQuadAlpha37) * tempf;
+      double GQuadBeta_T = (double)GQuadBetadH - (double)(GQuadBetadH - GQuadBeta37) * tempf;
+      params->gquad[i][j] = (int)GQuadAlpha_T*(i-1) + (int)(((double)GQuadBeta_T)*log(j - 2));
+    }
 
   for (i=0; i<31; i++)
     params->hairpin[i]  = hairpindH[i] - (hairpindH[i] - hairpin37[i])*tempf;
@@ -181,7 +188,7 @@ PUBLIC pf_paramT *get_scaled_pf_parameters(void){
   return get_boltzmann_factors(temperature, 1.0, md, pf_scale);
 }
 
-PUBLIC pf_paramT *get_boltzmann_factors(double temperature,
+PUBLIC pf_paramT *get_boltzmann_factors(double temp,
                                         double betaScale,
                                         model_detailsT md,
                                         double pf_scale){
@@ -193,13 +200,21 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temperature,
 
   pf                = (pf_paramT *)space(sizeof(pf_paramT));
   pf->model_details = md;
-  pf->temperature   = temperature;
+  pf->temperature   = temp;
   pf->alpha         = betaScale;
-  pf->kT = kT       = betaScale*(temperature+K0)*GASCONST;   /* kT in cal/mol  */
+  pf->kT = kT       = betaScale*(temp+K0)*GASCONST;   /* kT in cal/mol  */
   pf->pf_scale      = pf_scale;
-  TT                = (temperature+K0)/(Tmeasure);
+  TT                = (temp+K0)/(Tmeasure);
 
-   /* loop energies: hairpins, bulges, interior, mulit-loops */
+  for(i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
+    for(j = 3*VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3*VRNA_GQUAD_MAX_LINKER_LENGTH; j++){
+      double GQuadAlpha_T = (double)GQuadAlphadH - (double)(GQuadAlphadH - GQuadAlpha37) * TT;
+      double GQuadBeta_T = (double)GQuadBetadH - (double)(GQuadBetadH - GQuadBeta37) * TT;
+      GT = ((double)GQuadAlpha_T)*((double)(i-1)) + ((double)GQuadBeta_T)*log(((double)j) - 2.);
+      pf->expgquad[i][j] = exp( -GT*10./kT);
+    }
+
+  /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i=0; i<31; i++){
     GT  = hairpindH[i] - (hairpindH[i] - hairpin37[i])*TT;
     pf->exphairpin[i] = exp( -GT*10./kT);
@@ -245,7 +260,7 @@ PUBLIC pf_paramT *get_boltzmann_factors(double temperature,
   GT =  ML_closingdH - (ML_closingdH - ML_closing37)*TT;
   pf->expMLclosing = exp( -GT*10./kT);
 
-  for (i=0; i<=NBPAIRS; i++) { /* includes AU penalty */
+  for (i=0; i<=NBPAIRS; i++) {
     GT =  ML_interndH - (ML_interndH - ML_intern37)*TT;
     /* if (i>2) GT += TerminalAU; */
     pf->expMLintern[i] = exp( -GT*10./kT);
@@ -370,6 +385,7 @@ PUBLIC pf_paramT *get_boltzmann_factors_ali(unsigned int n_seq,
   pf->pf_scale      = pf_scale;
   pf->kT = kTn      = ((double)n_seq)*betaScale*(temperature+K0)*GASCONST;   /* kT in cal/mol  */
   TT                = (temperature+K0)/(Tmeasure);
+
 
    /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i=0; i<31; i++) {

@@ -51,7 +51,6 @@
  *  \param  D The datastructure containing scaled energy parameters
  *  \return   The energy contribution of the introduced multiloop stem
  */
-//#define E_MLstem(A,B,C,D)     E_Stem((A),(B),(C),0,(D))
 INLINE  PRIVATE int E_MLstem( int type,
                               int si1,
                               int sj1,
@@ -63,7 +62,6 @@ INLINE  PRIVATE int E_MLstem( int type,
  *  \see E_MLstem()
  *  \return The Boltzmann weighted energy contribution of the introduced multiloop stem
  */
-//#define exp_E_MLstem(A,B,C,D) exp_E_Stem((A),(B),(C),0,(D))
 INLINE  PRIVATE double exp_E_MLstem(int type,
                                     int si1,
                                     int sj1,
@@ -88,7 +86,6 @@ INLINE  PRIVATE double exp_E_MLstem(int type,
  *  \param  D The datastructure containing scaled energy parameters
  *  \return   The energy contribution of the introduced exterior-loop stem
  */
-//#define E_ExtLoop(A,B,C,D)      E_Stem((A),(B),(C),1,(D))
 INLINE  PRIVATE int E_ExtLoop(int type,
                               int si1,
                               int sj1,
@@ -100,7 +97,6 @@ INLINE  PRIVATE int E_ExtLoop(int type,
  *  \see E_ExtLoop()
  *  \return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
  */
-//#define exp_E_ExtLoop(A,B,C,D)  exp_E_Stem((A),(B),(C),1,(D))
 INLINE  PRIVATE double exp_E_ExtLoop( int type,
                                       int si1,
                                       int sj1,
@@ -357,6 +353,7 @@ INLINE  PRIVATE int E_Hairpin(int size, int type, int si1, int sj1, const char *
 INLINE  PRIVATE int E_IntLoop(int n1, int n2, int type, int type_2, int si1, int sj1, int sp1, int sq1, paramT *P){
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, energy;
+  energy = INF;
 
   if (n1>n2) { nl=n1; ns=n2;}
   else {nl=n2; ns=n1;}
@@ -511,7 +508,7 @@ INLINE  PRIVATE double exp_E_Hairpin(int u, int type, short si1, short sj1, cons
 
 INLINE  PRIVATE double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, pf_paramT *P){
   int ul, us, no_close = 0;
-  double z;
+  double z = 0.;
 
   if ((no_closingGU) && ((type2==3)||(type2==4)||(type==3)||(type==4)))
     no_close = 1;

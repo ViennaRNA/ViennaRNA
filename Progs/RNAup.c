@@ -92,6 +92,7 @@ int main(int argc, char *argv[]){
   unstr=default_u;
 
   /* early initializing */
+  dangles         = 2;
   do_backtrack    = 1;
   rotated         = 0;
   input_string    = s1 = s2 = s3 = s_target = cstruc1 = cstruc2 = cstruc_target = cstruc_combined = NULL;
@@ -142,7 +143,11 @@ int main(int argc, char *argv[]){
 
   /* set dangle model */
   if(args_info.dangles_given){
-    dangles = args_info.dangles_arg;
+    if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
+      warn_user("required dangle model not implemented, falling back to default dangles=2");
+    else
+      dangles = args_info.dangles_arg;
+
     if(header){
       sprintf(cmdl_tmp, "-d %d ", dangles);
       appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
@@ -336,7 +341,6 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
-  if (dangles!=0) dangles = 2; /* only 0 or 2 allowed */
 
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);

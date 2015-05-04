@@ -110,6 +110,10 @@
  *  placeholder for all constraining characters
  */
 #define VRNA_CONSTRAINT_ALL              128U
+/**
+ *  '+' switch for structure constraint (base is involved in a gquad)
+ */
+#define VRNA_CONSTRAINT_G                256U
 
 
 
@@ -448,6 +452,8 @@ char *unpack_structure(const char *packed);
  */
 short *make_pair_table(const char *structure);
 
+short *make_pair_table_pk(const char *structure);
+
 /**
  *  \brief Get an exact copy of a pair table
  *
@@ -481,6 +487,10 @@ short *make_pair_table_snoop(const char *structure);
  *  \param str2   Second structure in dot-bracket notation
  *  \return       The base pair distance between str1 and str2
  */
+
+int *make_loop_index_pt(short *pt);
+
+
 int bp_distance(const char *str1,
                 const char *str2);
 

@@ -60,7 +60,7 @@ static char rcsid[] = "$Id: energy_par.c,v 1.6 2004/08/12 12:11:57 ivo Exp $";
 PUBLIC double Tmeasure = 37+K0;  /* temperature of param measurements */
 
 
-//PUBLIC double lxc37=107.9;
+/* PUBLIC double lxc37=107.9; */
 PUBLIC double lxc37=107.856;
 PUBLIC int ML_intern37=-90;
 PUBLIC int ML_interndH=-220;
@@ -81,6 +81,11 @@ PUBLIC int MultipleCA37=30;
 PUBLIC int MultipleCAdH=340;
 PUBLIC int MultipleCB37=160;
 PUBLIC int MultipleCBdH=760;
+
+PUBLIC int GQuadAlpha37 = -1800;
+PUBLIC int GQuadAlphadH = -11934;
+PUBLIC int GQuadBeta37 = 1200;
+PUBLIC int GQuadBetadH = 0;
 
 PUBLIC int stack37[NBPAIRS+1][NBPAIRS+1] =
 {{   INF,   INF,   INF,   INF,   INF,   INF,   INF,   INF}
@@ -105,8 +110,8 @@ PUBLIC int hairpin37[31] = {   INF,   INF,   INF,   540,   560,   570,   540,   
 PUBLIC int hairpindH[31] = {   INF,   INF,   INF,   130,   480,   360,  -290,   130,  -290,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500,   500};
 PUBLIC int bulge37[31] = {   INF,   380,   280,   320,   360,   400,   440,   460,   470,   480,   490,   500,   510,   520,   530,   540,   540,   550,   550,   560,   570,   570,   580,   580,   580,   590,   590,   600,   600,   600,   610};
 PUBLIC int bulgedH[31] = {   INF,  1060,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710,   710};
-PUBLIC int internal_loop37[31] = {   INF,   INF,   INF,   INF,   110,   200,   200,   210,   230,   240,   250,   260,   270,   280,   290,   290,   300,   310,   310,   320,   330,   330,   340,   340,   350,   350,   350,   360,   360,   370,   370};
-PUBLIC int internal_loopdH[31] = {   INF,   INF,   INF,   INF,  -720,  -680,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130};
+PUBLIC int internal_loop37[31] = {   INF,   INF,   100,   100,   110,   200,   200,   210,   230,   240,   250,   260,   270,   280,   290,   290,   300,   310,   310,   320,   330,   330,   340,   340,   350,   350,   350,   360,   360,   370,   370};
+PUBLIC int internal_loopdH[31] = {   INF,   INF,   -720,   -720,  -720,  -680,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130,  -130};
 
 PUBLIC int mismatchI37[NBPAIRS+1][5][5] =
 {{{   INF,   INF,   INF,   INF,   INF}

@@ -4,12 +4,13 @@
 
 #include "data_structures.h"
 
-//Normal fold
+/* Normal fold */
 
 /**
 *** snofold is the stem folding array for RNAsnoop
 **/
-float  snofold( const char *sequence,
+int  snofold( const char *sequence,
+		char *structure,
                 const int max_assym,
                 const int threshold, 
                 const int min_s2,
@@ -20,9 +21,9 @@ float  snofold( const char *sequence,
 *** Free arrays and structure related to snofold
 **/
 
-void   snofree_arrays(const int length);           /* free arrays for mfe folding */
-void   snoinitialize_fold(int length); /* allocate arrays for folding */
-void   snoupdate_fold_params(void);    /* recalculate parameters */
+void   snofree_arrays(const int length);  /* free arrays for mfe folding */
+void   snoinitialize_fold(int length);    /* allocate arrays for folding */
+void   snoupdate_fold_params(void);       /* recalculate parameters */
 int    snoloop_energy(short *ptable,
                       short *s,
                       short *s1,
@@ -35,7 +36,7 @@ void   snoexport_fold_arrays( int **indx_p,
 char * snobacktrack_fold_from_pair( const char *sequence,
                                     int i,
                                     int j);
-//alifold
+/* alifold */
 float alisnofold( const char **strings,
                   const int max_assym,
                   const int threshloop, 
@@ -50,7 +51,8 @@ char  *alisnobacktrack_fold_from_pair(const char **sequence,
                                       int *cov);
 extern double cv_fact /* =1 */;
 extern double nc_fact /* =1 */;
-//max number of mismatch >>>>>..((   )).>>>> 
+
+/* max number of mismatch >>>>>..((   )).>>>> */
 #define MISMATCH 3
 
 #endif

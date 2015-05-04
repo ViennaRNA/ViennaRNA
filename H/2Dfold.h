@@ -8,10 +8,25 @@
 #define __VIENNA_RNA_PACKAGE_TWO_D_FOLD_H__
 
 /**
- *  \file 2Dfold.h
+ *  \addtogroup kl_neighborhood
+ *  \brief Compute Thermodynamic properties for a Distance Class Partitioning of the Secondary Structure Space
+ *
+ *  All functions related to this group implement the basic recursions for MFE folding, partition function
+ *  computation and stochastic backtracking with a \e classified \e dynamic \e programming approach.
+ *  The secondary structure space is divided into partitions according to the base pair distance to two
+ *  given reference structures and all relevant properties are calculated for each of the resulting partitions
+ *  \see  For further details have a look into \cite lorenz:2009
+ */
+
+/**
+ *  \addtogroup kl_neighborhood_mfe
  *  \brief Compute the minimum free energy (MFE) and secondary structures for a partitioning of
  *  the secondary structure space according to the base pair distance to two fixed reference structures
  *  basepair distance to two fixed reference structures
+ *  @{
+ *
+ *  \file 2Dfold.h
+ *
  */
 
 #include "data_structures.h"
@@ -113,4 +128,7 @@ char *TwoDfold_backtrack_f5(unsigned int j,
                             int l,
                             TwoDfold_vars *vars);
 
+/**
+ *  @}
+ */
 #endif

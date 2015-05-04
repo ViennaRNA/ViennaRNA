@@ -59,6 +59,8 @@ int         *cut_points;
 
 int         *strand;
 
+int         gquad = 0;            /* consider g-qudruplexes in the calculations */
+
 PUBLIC char * option_string(void){
   static char options[100];
   *options = '\0';
@@ -81,5 +83,6 @@ PUBLIC void set_model_details(model_detailsT *md){
     md->noGU        = noGU;
     md->noGUclosure = no_closingGU;
     md->logML       = logML;
+    md->gquad       = gquad;
   }
 }

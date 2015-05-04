@@ -63,6 +63,12 @@ int PS_rna_plot_a(char *string,
                   char *pre,
                   char *post);
 
+int PS_rna_plot_a_gquad(char *string,
+                        char *structure,
+                        char *ssfile,
+                        char *pre,
+                        char *post);
+
 /**
  *  \brief Produce a secondary structure graph in Graph Meta Language (gml) and write it to a file
  *
@@ -117,7 +123,6 @@ int svg_rna_plot( char *string,
 int xrna_plot(char *string,
               char *structure,
               char *ssfile);
-
 
 int PS_color_dot_plot(char *string,
                       cpair *pi,

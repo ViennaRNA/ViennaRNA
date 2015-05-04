@@ -36,6 +36,7 @@ int main(int argc, char *argv[]){
   maxdist       = 150;
   zsc           = 0;
   min_z         = -2.0;
+  gquad         = 0;
   rec_type      = read_opt = 0;
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
@@ -51,7 +52,12 @@ int main(int argc, char *argv[]){
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  if(args_info.dangles_given){
+    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
+      warn_user("required dangle model not implemented, falling back to default dangles=2");
+    else
+      dangles = args_info.dangles_arg;
+  }
   /* do not allow weak pairs */
   if(args_info.noLP_given)        noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
@@ -77,6 +83,8 @@ int main(int argc, char *argv[]){
   nrerror("\'z\' option is available only if compiled with SVM support!");
 #endif
   }
+  /* gquadruplex support */
+  if(args_info.gquad_given)      gquad = 1;
 
   /* check for errorneous parameter options */
   if(maxdist < 0){

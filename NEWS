@@ -2,8 +2,8 @@ See Changelog for details.
 
 Version 2.0
 ------------
-- yeeeehaa, its almost done...
-
+- Meanwhile, a lot of changes in the RNAlib have accumulated. See the Reference
+  Manual and the Changelog for further details
 - All algorithms use the Turner'04 nearest neighbor model
 - The RNAlib provides (OpenMP) threadsafe folding routines per default. This is
   enables concurrent calls to the folding routines in parallel. The feature

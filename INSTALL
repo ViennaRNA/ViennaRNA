@@ -69,14 +69,44 @@ install readseq manually, following the instructions in the readseq
 directory.
 
 There are man pages for all executables, the library is documented in
-./man/RNAlib.texinfo. You can either print this file as a manual using
-TeX (if you don't have texinfo.tex installed use the .dvi file) or use
-it as online documentation if you have the GNU texinfo package installed.
-Documentation in HTML can be found at http://www.tbi.univie.ac.at/~ivo/RNA/
+./doc/RNAlib-2.0.7.pdf as well as a set of HTML pages in
+./doc/html/index.html. Documentation in HTML can also be found at
+http://www.tbi.univie.ac.at/~ivo/RNA/
 
 
 System specific notes:
-calculating the partition function for long sequences ( >400 bases)
+
+MacOS X users:
+
+Depending on your version of gcc (< 4.4 ?) it might be necessary to deactivate OpenMP support by passing the option
+
+--disable-openmp
+
+to the ./configure script, since the OpenMP support is only partial in earlier versions of gcc shipped for MacOS X.
+
+Additionally, since MacOS X 10.5 the perl installation distributed with MacOS X seems to always include so called
+fat-binaries, i.e. binaries for multiple architecture types. Although this may be a nice portability feature of MacOS X
+it will break compilation of the perl interface to the RNAlib!
+To circumvent this problem you have two options
+
+1. Compile the perl interface without fat-binary support. Do so by setting the global shell variable ARCHFLAGS to
+include only the target architecture used for compiling RNAlib. E.g. do the following before executing make
+
+export ARCHFLAGS="-arch x86_64"
+
+2. Compile the complete ViennaRNA package with fat-binary support. Therefore, run the ./configure script in the
+following manner
+
+./configure CC="gcc -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
+            CXX="g++ -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
+            CPP="gcc -E" CXXCPP="g++ -E"
+
+The second option is not guaranteed to produce a working result, thus we suggest using the first one to create a
+single architecture build of the RNAlib perl interface! 
+
+General remarks:
+
+Calculating the partition function for long sequences ( >400 bases)
 generates a lot of floating point underflows. On some system this can slow
 down the calculation dramatically because an exception is invoked for each 
 underflow. How to avoid this problem is highly system specific:

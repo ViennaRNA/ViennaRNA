@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # -*-CPerl-*-
-# Last changed Time-stamp: <2008-10-09 09:10:49 ivo>
+# Last changed Time-stamp: <2012-11-19 17:22:03 ivo>
 # $Id: relplot.pl,v 1.10 2008/10/09 07:11:21 ivo Exp $
 # colorize a secondary structure plot with reliability annotation
 # from positional entropy
@@ -9,8 +9,8 @@ use Getopt::Std;
 $main::VERSION = 1.3;
 $Getopt::Std::STANDARD_HELP_VERSION=1;
 
-our $opt_p;
-getopts('p');
+our ($opt_p, $opt_a);
+getopts('pa');
 
 sub HELP_MESSAGE {
   print STDERR "\nusage: $0 [-p] FOO_ss.ps FOO_dp.ps > FOO_rss.ps\n";
@@ -24,7 +24,7 @@ my @ss_ps = ('',''); # head and tail of the ss.ps file
 
 my $n = swallow_ss_ps();    # read ss plot
 my @sp = posent();   # read dot plot and compute entropies
-my $Smax = $opt_p ? 1 : 0;
+my $Smax = ($opt_p || $opt_a) ? 1 : 0;
 if (!$opt_p) {
   foreach (@sp) {
     $Smax = $_ if $_>$Smax;
@@ -84,7 +84,7 @@ foreach (@sp) {
   printf "  %7.5f\n", $_;
 }
 print "] def\n\n";
-print "/invert ", $opt_p ? 'true' : 'false', " def\n";
+print "/invert ", $opt_p||$opt_a ? 'true' : 'false', " def\n";
 print "drawreliability\n";
 print "0.1 0.1 colorbar\n";
 print $ss_ps[1];  # print tail
@@ -119,9 +119,13 @@ sub posent {
     if ($opt_p) {
       $sp[$i] = $sp[$j] = $p if exists  $mfe{$i,$j};
     } else {
-      my $ss = ($p>0)?$p*log($p):0;
-      $sp[$i] += $ss;
-      $sp[$j] += $ss;
+      if ($opt_a) {
+	$sp[$i] = $sp[$j] = 1-$p if exists  $mfe{$i,$j};
+      } else {
+	my $ss = ($p>0)?$p*log($p):0;
+	$sp[$i] += $ss;
+	$sp[$j] += $ss;
+      }
     }
     $pp[$i] += $p;
     $pp[$j] += $p;
@@ -129,7 +133,7 @@ sub posent {
   my $log2 = log(2);
   for my $i (1..$n) {
     no warnings;  # $p[$i] may be undef
-    if ($opt_p) {
+    if ($opt_p || $opt_a) {
       $sp[$i] = 1-$pp[$i] if !defined $sp[$i];
     } else {
       $sp[$i] += ($pp[$i]<1) ? (1-$pp[$i])*log(1-$pp[$i]) : 0;
@@ -146,7 +150,7 @@ relplot - annotate a secdonary structure plot with reliability information
 
 =head1 SYNOPSIS
 
-   relplot [-p] file_ss.ps file_dp.ps > file_rss.ps
+   relplot [-p] [-a] file_ss.ps file_dp.ps > file_rss.ps
 
 =head1 DESCRIPTION
 
@@ -165,6 +169,8 @@ prediction more difficult and thus less reliable.
 
 If the -p switch is given, the script colors base pairs by their pair
 probability, unpaired bases use the probability of being unpaired.
+
+If the -a switch is given, the script colors base pairs by their accessibility, i.e. the probability of being unpaired.
 
 Entropy (repsectively probability) is encoded as color hue, ranging
 from red for low entropy, well-defined regions, (high probability

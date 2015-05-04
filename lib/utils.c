@@ -18,8 +18,6 @@
 #ifdef WITH_DMALLOC
 #include "dmalloc.h"
 #endif
-/*@unused@*/
-static char rcsid[] = "$Id: utils.c,v 1.19 2008/12/16 22:30:30 ivo Exp $";
 
 #define PRIVATE  static
 #define PUBLIC
@@ -235,7 +233,7 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
     return VRNA_INPUT_QUIT;
   }
   /* print line read if not disabled */
-  //if(!(option & VRNA_INPUT_NOPRINT)) printf("%s\n", line);
+  /* if(!(option & VRNA_INPUT_NOPRINT)) printf("%s\n", line); */
 
   /* eliminate whitespaces at the end of the line read */
   if(!(option & VRNA_INPUT_NO_TRUNCATION)){
@@ -581,6 +579,62 @@ PUBLIC short *make_pair_table(const char *structure)
    return(table);
 }
 
+PUBLIC short *make_pair_table_pk(const char *structure){
+   short i,j,hx, hx2;
+   short length;
+   short *stack;
+   short *stack2;
+   short *table;
+
+   length = (short) strlen(structure);
+   stack  = (short *) space(sizeof(short)*(length+1));
+   stack2 = (short *) space(sizeof(short)*(length+1));
+   table  = (short *) space(sizeof(short)*(length+2));
+   table[0] = length;
+
+   for (hx=0, hx2=0, i=1; i<=length; i++) {
+      switch (structure[i-1]) {
+       case '(':
+         stack[hx++]=i;
+         break;
+       case ')':
+         j = stack[--hx];
+         if (hx<0) {
+            fprintf(stderr, "%s\n", structure);
+            nrerror("unbalanced '()' brackets in make_pair_table_pk");
+         }
+         table[i]=j;
+         table[j]=i;
+         break;
+       case '[':
+         stack2[hx2++]=i;
+         break;
+       case ']':
+         j = stack2[--hx2];
+         if (hx2<0) {
+            fprintf(stderr, "%s\n", structure);
+            nrerror("unbalanced '[]' brackets in make_pair_table_pk");
+         }
+         table[i]=j;
+         table[j]=i;
+         break;
+       default:   /* unpaired base, usually '.' */
+         table[i]= 0;
+         break;
+      }
+   }
+   if (hx!=0) {
+      fprintf(stderr, "%s\n", structure);
+      nrerror("unbalanced '()' brackets in make_pair_table_pk");
+   } else if (hx2!=0) {
+      fprintf(stderr, "%s\n", structure);
+      nrerror("unbalanced '[]' brackets in make_pair_table_pk");
+   }
+   free(stack);
+   free(stack2);
+   return(table);
+}
+
 PUBLIC short *make_pair_table_snoop(const char *structure)
 {
     /* returns array representation of structure.
@@ -707,6 +761,43 @@ PUBLIC short *copy_pair_table(const short *pt){
   return table;
 }
 
+
+PUBLIC int *make_loop_index_pt(short *pt){
+
+  /* number each position by which loop it belongs to (positions start
+     at 1) */
+  int i,hx,l,nl;
+  int length;
+  int *stack = NULL;
+  int *loop = NULL;
+
+  length = pt[0];
+  stack  = (int *) space(sizeof(int)*(length+1));
+  loop   = (int *) space(sizeof(int)*(length+2));
+  hx=l=nl=0;
+
+  for (i=1; i<=length; i++) {
+    if ((pt[i] != 0) && (i < pt[i])) { /* ( */
+      nl++; l=nl;
+      stack[hx++]=i;
+    }
+    loop[i]=l;
+
+    if ((pt[i] != 0) && (i > pt[i])) { /* ) */
+      --hx;
+      if (hx>0)
+        l = loop[stack[hx-1]];  /* index of enclosing loop   */
+      else l=0;                 /* external loop has index 0 */
+      if (hx<0) {
+        nrerror("unbalanced brackets in make_pair_table");
+      }
+    }
+  }
+  loop[0] = nl;
+  free(stack);
+  return (loop);
+}
+
 /*---------------------------------------------------------------------------*/
 
 PUBLIC int bp_distance(const char *str1, const char *str2)
@@ -802,11 +893,11 @@ PUBLIC int *get_indx(unsigned int length){
 }
 
 PUBLIC void getConstraint(char **cstruc, const char **lines, unsigned int option){
-  int r, i, j, l, cl, stop;
+  int r, i, l, cl, stop;
   char *c, *ptr;
   if(lines){
     if(option & VRNA_CONSTRAINT_ALL)
-      option |= VRNA_CONSTRAINT_PIPE | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK | VRNA_CONSTRAINT_X;
+      option |= VRNA_CONSTRAINT_PIPE | VRNA_CONSTRAINT_ANG_BRACK | VRNA_CONSTRAINT_RND_BRACK | VRNA_CONSTRAINT_X | VRNA_CONSTRAINT_G;
 
     for(r=i=stop=0;lines[i];i++){
       l   = (int)strlen(lines[i]);
@@ -845,6 +936,10 @@ PUBLIC void getConstraint(char **cstruc, const char **lines, unsigned int option
                         *c = '.';
                       }
                       break;
+          case '+':   if(!(option & VRNA_CONSTRAINT_G)){
+                        warn_user("character '+' ignored in structure");
+                        *c = '.';
+                      }
           case '.':   break;
           case '&':   break; /* ignore concatenation char */
           default:    warn_user("unrecognized character in constraint structure");
@@ -867,8 +962,8 @@ PUBLIC char *extract_record_rest_structure( const char **lines,
                                             unsigned int option){
 
   char *structure = NULL;
-  int r, i, j, l, cl, stop;
-  char *c, *ptr;
+  int r, i, l, cl, stop;
+  char *c;
 
   if(lines){
     for(r = i = stop = 0; lines[i]; i++){

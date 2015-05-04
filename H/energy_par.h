@@ -90,6 +90,11 @@ extern char Hexaloops[];    /* string containing the special triloops */
 extern int  Hexaloop37[]; /* Bonus energy for special Triloops */
 extern int  HexaloopdH[]; /* Bonus energy for special Triloops */
 
+extern int GQuadAlpha37;
+extern int GQuadAlphadH;
+extern int GQuadBeta37;
+extern int GQuadBetadH;
+
 extern double Tmeasure;       /* temperature of param measurements */
 
 #endif

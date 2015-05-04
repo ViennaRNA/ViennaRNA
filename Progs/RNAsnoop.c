@@ -25,11 +25,11 @@
 #include "RNAsnoop_cmdl.h"
 static void  aliprint_struc(snoopT *dup, const char **s1, const char **s2, char**,char**,int count, int);
 static void  print_struc(snoopT *dup, const char *s1, const char *s2, char*, char*, int,int);
-//static void  print_struc_L(snoopT const *dup, const char *s1, const char *s2, char*, char*);
+/* static void  print_struc_L(snoopT const *dup, const char *s1, const char *s2, char*, char*); */
 
 
 static void redraw_output(char *fname, char *output, int plfold_up_flag, char *suffix, char *access, char *sname, char *tname);
-static int ** read_plfold_i(char *fname, const int beg, const int end); //read plfold profiles
+static int ** read_plfold_i(char *fname, const int beg, const int end); /* read plfold profiles */
 static int ** read_rnaup(char *fname, const int beg, const int end);
 static int get_max_u(const char *s, char delim);
 extern int cut_point;
@@ -46,9 +46,12 @@ int main(int argc, char *argv[])
   struct        RNAsnoop_args_info args_info;  
   char *string_s, *line_s, *name_s, *temp_s; /*string for snoRNA*/
   char *string_t, *line_t, *temp_t; /*string for target RNA*/
+  char *structure=NULL, *cstruc=NULL;
   char  *sname=NULL,*tname=NULL/*name of the sno RNa file, mRNA file respectively*/;
+  char *name=NULL;
   char *access;char *result_file;
   char *output_directory;
+  int fullStemEnergy;
   output_directory=NULL;
   result_file=NULL;
   access=NULL;
@@ -56,10 +59,10 @@ int main(int argc, char *argv[])
   suffix=NULL;
   FILE *sno, *mrna;
   int fast;fast=0;
-  //long int elapTicks;
-  //clock_t Begin, End;
+  /* long int elapTicks; */
+  /* clock_t Begin, End; */
   int plfold_up_flag=0;
-  int   nice,i,r,l,length_s,//, length_t, 
+  int   nice,i,r,l,length_s,/* , length_t,  */
    penalty,         /*extension penalty*/
    threshloop,         /*energy threshold on loop*/
    threshLE,         /*energy threshold on the S2 part*/
@@ -92,40 +95,75 @@ int main(int argc, char *argv[])
   nice=0;
   fast=0;
   snoop_subopt_sorted=0;
-
+  /*
+  #############################################
+  # check the command line parameters
+  #############################################
+  */
   if(RNAsnoop_cmdline_parser(argc,argv, &args_info)!=0) exit(1);
-  
-  if(args_info.produce_ps_given                      ) redraw=1;
+  /* Redraw results from RNAsnoop */
+  if(args_info.constraint_given)  fold_constrained=1;
+  /* structure constraint */
+  if(args_info.produce_ps_given)  redraw=1;
+  /*output directory for RNAsnoop results */
   output_directory=strdup(args_info.output_directory_arg);
-  if(args_info.direct_redraw_given                      ) nice=1;
-  if(args_info.from_RNAup_given                      ) {plfold_up_flag=2;access=strdup(args_info.from_RNAup_arg);}
+  /* Draw directly nice pictures from RNAsnoop*/
+  if(args_info.direct_redraw_given)  nice=1;
+  /*Accessibility files are coming from RNAup*/
+  if(args_info.from_RNAup_given) {plfold_up_flag=2;access=strdup(args_info.from_RNAup_arg);}
+  /*Suffix for the name of the accessibility files*/
   suffix=strdup(args_info.suffix_arg);
-  if(args_info.from_RNAplfold_given                      ) {plfold_up_flag=1;access=strdup(args_info.from_RNAplfold_arg);}
-  if(args_info.alignment_mode_given                      ) alignment=1;
-  if(args_info.query_given                              ) sname=strdup(args_info.query_arg);
-  if(args_info.target_given                              ) tname=strdup(args_info.target_arg);
+  /*Accessibility files are coming from RNAup*/
+  if(args_info.from_RNAplfold_given) {plfold_up_flag=1;access=strdup(args_info.from_RNAplfold_arg);}
+  /*Check if we are in alignment mode*/
+  if(args_info.alignment_mode_given) alignment=1;
+  /*Name of the stems file*/
+  if(args_info.query_given) sname=strdup(args_info.query_arg);
+  /*Name of the target file*/
+  if(args_info.target_given) tname=strdup(args_info.target_arg);
+  /*Delta for suboptimals*/
   delta=(int) (100*(args_info.energy_threshold_arg+0.1));
+  /*fast folding and target search*/
   fast=args_info.fast_folding_arg;
+  /*Penalty for duplex extension*/
   penalty=args_info.extension_cost_arg;
+  /*threshold on loop energy*/
   threshloop=args_info.minimal_loop_energy_arg;
+  /*threshold on right duplex*/
   threshRE=args_info.minimal_right_duplex_arg;
+  /*threshold on left duplex*/
   threshLE=args_info.minimal_left_duplex_arg;
+  /*threshold on minimal duplex*/
   threshDE=args_info.minimal_duplex_arg;
+  /*threshold on duplex distance*/
   distance=args_info.duplex_distance_arg;
+  /*threshold on minimal stem length*/
   half_stem=args_info.minimal_stem_length_arg;
+  /*threshold on maximal stem length*/
   max_half_stem=args_info.maximal_stem_length_arg;
-  min_s2=args_info.maximal_duplex_box_length_arg;
+  /*threshold on minimal duplex box length*/
+  min_s2=args_info.minimal_duplex_box_length_arg;
+  /*threshold on maximal duplex box length*/
   max_s2=args_info.maximal_duplex_box_length_arg;
+  /*threshold on minimal snoRNA stem loop length*/
   min_s1=args_info.minimal_snoRNA_stem_loop_length_arg;
+  /*thrshold on maximal snoRNA stem loop length*/
   max_s1=args_info.maximal_snoRNA_stem_loop_length_arg;
+  /*threshold on minimal snoRNA duplex length*/
   min_d1=args_info.minimal_snoRNA_duplex_length_arg;
+  /*threshold on minimal snoRNA duplex length*/
   min_d2=args_info.minimal_snoRNA_duplex_length_arg;
+  /*threshold on minimal duplex stem energy*/
   threshTE=args_info.minimal_duplex_stem_energy_arg;
+  /*threshold on minimal total energy*/
   threshSE=args_info.minimal_total_energy_arg;
+  /*threshold on maximal stem asymmetry*/
   max_asymm=args_info.maximal_stem_asymmetry_arg;
+  /*threshold on minimal lower stem energy*/
   threshD=args_info.minimal_lower_stem_energy_arg;
-  
-  
+  /*threshold on minimal lower stem energy*/
+  alignment_length=args_info.alignmentLength_arg;
+    
   threshloop=MIN2(threshloop,0);
 
 /*   if(plfold_up_flag && !fast){ */
@@ -148,12 +186,12 @@ int main(int argc, char *argv[])
       redraw_output(result_file, output_directory, plfold_up_flag, suffix, access,sname,tname);
     }
   
-    //readfile
-    //parse lines
-    //use current ploting function to output the results
+    /* readfile */
+    /* parse lines */
+    /* use current ploting function to output the results */
     exit(0);
   }
-  //istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
+  /* istty = isatty(fileno(stdout))&&isatty(fileno(stdin)); */
    
   min_s2+=5;
   max_s2+=5;
@@ -163,7 +201,7 @@ int main(int argc, char *argv[])
   min_d2+=5;
   
 
-  if(!alignment){
+  if(!alignment) {
     if(tname==NULL || sname==NULL) RNAsnoop_cmdline_parser_print_help();
     sno=fopen(sname, "r");
     if(sno==NULL){printf("%s: Wrong snoRNA file name\n", sname);return 0;}
@@ -175,7 +213,7 @@ int main(int argc, char *argv[])
         break;
       }
       
-      //  /* skip comment lines and get filenames */
+      /*   skip comment lines and get filenames */
       while ((*line_s=='*')||(*line_s=='\0')||(*line_s=='>')) {
         if (*line_s=='>')
           name_s = (char *) space(strlen(line_s)+1);
@@ -187,7 +225,7 @@ int main(int argc, char *argv[])
         }
       }
       if(name_s == NULL) {printf("Your snoRNA sequence: \n%s\nhas no header. Please update your fasta file\n", line_s); exit(0);}
-      //  if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
+      /*   if ((line ==NULL) || (strcmp(line, "@") == 0)) break; */
       temp_s = (char *) space(strlen(line_s)+1);
       (void) sscanf(line_s,"%s",temp_s);
       free(line_s);
@@ -201,16 +239,36 @@ int main(int argc, char *argv[])
       strcat(string_s+5, temp_s);
       strcat(string_s+5+length_s, "NNNNN\0");
       free(temp_s); 
-      snofold(string_s, max_asymm, threshloop, min_s2, max_s2, half_stem, max_half_stem);
+      /* We declare the structure variable here as it will also contains the final stem structure */
+      structure=(char *)space((unsigned) length_s+11);
+      if(fold_constrained){
+	cstruc = get_line(sno);
+	if(cstruc!=NULL){
+	  int dn3=strlen(cstruc)-(length_s-10);
+	  strcpy(structure,".....");
+	  strcat(structure, cstruc);
+	  if(dn3>=0){
+	    strcat(structure,".....\0");
+	  }
+	  else{
+	    while(dn3++){
+	      strcat(structure,".");
+	    }
+	    strcat(structure,"\0");
+	  }
+	  /* Now we fold with constraints the  */
+	}
+      }
+      fullStemEnergy = snofold(string_s, structure, max_asymm, threshloop, min_s2, max_s2, half_stem, max_half_stem);
       do{                                /* main loop for target continue until end of file */
         snoopT mfe;
         if ((line_t = get_line(mrna))==NULL) {
-          //free(line_t);
+          /* free(line_t); */
           break;
         }
         char *name_t=NULL;
         
-        // //  /* skip comment lines and get filenames */
+        /* skip comment lines and get filenames */
         while ((*line_t=='*')||(*line_t=='\0')||(*line_t=='>')) {
           if (*line_t=='>'){
             printf("%s\n", name_s);
@@ -219,7 +277,7 @@ int main(int argc, char *argv[])
             
             printf("%s\n", name_t);
             free(line_t);
-            //            free(string_t);
+            /*             free(string_t); */
               } 
           if ((line_t = get_line(mrna))==NULL) {
             free(line_t);
@@ -227,7 +285,7 @@ int main(int argc, char *argv[])
           }
         }
         if(name_t == NULL) {printf("Your target sequence: \n%s\nhas no header. Please update your fasta file\n", line_t); exit(0);}
-        //  if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
+        /*   if ((line ==NULL) || (strcmp(line, "@") == 0)) break; */
         temp_t = (char *) space(strlen(line_t)+1);
         (void) sscanf(line_t,"%s",temp_t);
         int length_t;
@@ -256,7 +314,7 @@ int main(int argc, char *argv[])
           if(!fast && !plfold_up_flag){
             subopt = snoop_subopt(string_t, string_s, delta, 5, penalty, threshloop, 
                                   threshLE,threshRE, threshDE,threshTE,threshSE,threshD,distance,
-                                  half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2);
+                                  half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2,fullStemEnergy);
             if(subopt==NULL){printf("no target found under the given constraints\n");free(subopt); free(string_t);free(line_t);continue;}
             int count=0;
             for (sub=subopt; sub->structure !=NULL; sub++) {
@@ -270,7 +328,7 @@ int main(int argc, char *argv[])
           else if(!plfold_up_flag){
             Lsnoop_subopt_list(string_t, string_s, delta, 5, penalty, threshloop, 
                                threshLE,threshRE,threshDE,threshTE,threshSE,threshD,distance,
-                               half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, alignment_length,name_output);
+                               half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, alignment_length,name_output,fullStemEnergy);
             free(string_t);
             free(line_t);
           }
@@ -278,7 +336,7 @@ int main(int argc, char *argv[])
             if(plfold_up_flag==1){
               int **access_s1; 
               char *file_s1;
-              int s1_len;//k;//,j;
+              int s1_len;/* k;*/ /*,j; */
               s1_len=strlen(string_t); 
               file_s1 = (char *) space(sizeof(char) * (strlen(name_t+1)+strlen(access)+9));
               strcpy(file_s1, access);
@@ -289,12 +347,12 @@ int main(int argc, char *argv[])
               if(fast) { 
                 Lsnoop_subopt_list_XS(string_t, string_s, (const int**) access_s1, delta, 5, penalty, threshloop,  
                                       threshLE,threshRE,threshDE,threshTE,threshSE,threshD,distance, 
-                                      half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, alignment_length,name_output); 
+                                      half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, alignment_length,name_output, fullStemEnergy); 
               }
               else{
                 snoop_subopt_XS(string_t, string_s, (const int **) access_s1, delta, 5, penalty, threshloop,  
                                 threshLE,threshRE,threshDE,threshTE,threshSE,threshD,distance, 
-                                half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, alignment_length,name_output); 
+                                half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, alignment_length,name_output,fullStemEnergy); 
               }
 /*                for(j=0; j<s1_len; j++){  */
 /*                  for(k=0; k<access_s1[0][0];k++){  */
@@ -312,7 +370,7 @@ int main(int argc, char *argv[])
             else if(plfold_up_flag==2){
               int **access_s1; 
               char *file_s1;
-              int s1_len,k;//,j;
+              int s1_len,k;/* ,j; */
               s1_len=strlen(string_t); 
               file_s1 = (char *) space(sizeof(char) * (strlen(name_t+1)+strlen(suffix) + strlen(access)+3));
               strcpy(file_s1, access);
@@ -324,12 +382,12 @@ int main(int argc, char *argv[])
               if(fast){
                 Lsnoop_subopt_list_XS(string_t, string_s, (const int**) access_s1, delta, 5, penalty, threshloop,  
                                       threshLE,threshRE,threshDE,threshTE,threshSE,threshD,distance, 
-                                      half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, alignment_length, name_output); 
+                                      half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, alignment_length, name_output, fullStemEnergy); 
               }
               else{
                 snoop_subopt_XS(string_t, string_s, (const int**) access_s1, delta, 5, penalty, threshloop,
                                 threshLE,threshRE,threshDE,threshTE,threshSE,threshD,distance,
-                                half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, alignment_length,name_output);
+                                half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, alignment_length,name_output, fullStemEnergy);
               }
                 
 
@@ -350,7 +408,7 @@ int main(int argc, char *argv[])
         }
         else{
           mfe=snoopfold(string_t, string_s, penalty, threshloop, threshLE, threshRE,threshDE,  threshD,
-                        half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2);
+                        half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, fullStemEnergy);
           if(mfe.energy < INF){
             print_struc(&mfe, string_t, string_s, name_s, name_t,0,1);
             free(mfe.structure);
@@ -366,8 +424,8 @@ int main(int argc, char *argv[])
       } while(1);
       rewind(mrna);
       snofree_arrays(strlen(string_s));  /* free's base_pair */
-      free(string_s);
-      free(name_s);
+      free(string_s);string_s=NULL;
+      free(name_s);name_s=NULL;
     } while (1);
   }
   else{
@@ -411,7 +469,7 @@ int main(int argc, char *argv[])
                           threshLE,threshRE,threshDE,threshD, 
                   half_stem, max_half_stem,  
                   min_s2, max_s2, min_s1, 
-                  max_s1, min_d1, min_d2); 
+			  max_s1, min_d1, min_d2); 
      if(!(struc.structure==NULL)){ 
        aliprint_struc(&struc, (const char**) AS1,(const char**) AS2, names1, names2,0,nice); 
        free(struc.structure); 
@@ -481,11 +539,11 @@ static void print_struc(snoopT  *dup, const char *s1, const char *s2, char *name
   s4 = (char*) space(sizeof(char) *(n2-9));
   strncpy(s4, s2+5, n2-10);
   s4[n2-10]='\0';
-  printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + 4.1 )\n%s&%s\n", 
+  printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + 4.1 ) (%5.2f) \n%s&%s\n", 
         target_struct, dup->i+1-l1,
          dup->i, dup->u, dup->j+1, dup->j + (strrchr(dup->structure,'>') - strchr(dup->structure, '>'))+1, 
          (dup->Loop_D + dup->Duplex_El + dup->Duplex_Er + dup->Loop_E) + 4.10, 
-         dup->Duplex_El, dup->Duplex_Er, dup->Loop_E, dup->Loop_D,target,s4);
+         dup->Duplex_El, dup->Duplex_Er, dup->Loop_E, dup->Loop_D,dup->fullStemEnergy,target,s4);
   if(nice){
     char *temp_seq;
     char *temp_struc;
@@ -543,7 +601,7 @@ static void aliprint_struc(snoopT  *dup, const char **s1, const char **s2, char 
   strncpy(target_struct, dup->structure+shift, l1);
   strncat(target_struct, dup->structure + (strchr(dup->structure, '&')-dup->structure), length_struct - (strchr(dup->structure, '&')-dup->structure));
   strcat(target_struct,"\0");
-  //get the corresponding alignment slice
+  /* get the corresponding alignment slice */
   int n_seq,s;
   for(s=0; s1[s]!=NULL; s++);
   n_seq=s;
@@ -608,7 +666,7 @@ static void aliprint_struc(snoopT  *dup, const char **s1, const char **s2, char 
     }
     strcat(psoutput,temp);
     strcat(psoutput,".ps\0");
-    //  psoutput[strlen(temp)+4+strlen(str)+39]='\0';
+    /*   psoutput[strlen(temp)+4+strlen(str)+39]='\0'; */
     cut_point = l1+1;
     aliPS_color_aln(dup->structure, psoutput, (const char**) target, (const char**) name_t);  
     psoutput[1]='t';
@@ -649,7 +707,7 @@ static int get_max_u(const char *s, char delim){
 
 static int ** read_rnaup(char *fname, const int beg, const int end)
 {
-  FILE *in = fopen(fname,"r"); // open RNA_up file
+  FILE *in = fopen(fname,"r"); /*  open RNA_up file */
         
   int i,j;
   int **access;
@@ -667,7 +725,7 @@ static int ** read_rnaup(char *fname, const int beg, const int end)
     exit(EXIT_FAILURE);
   }
   char tmp[2048]={0x0};
-  //char *ptr;
+  /* char *ptr; */
 
 
   if(fgets(tmp,sizeof(tmp),in)==0){
@@ -686,7 +744,7 @@ static int ** read_rnaup(char *fname, const int beg, const int end)
 /*   (void) fgets(tmp,sizeof(tmp),in); //sequence */
 
   int dim_x;
-  dim_x = get_max_u(tmp,'S'); // get unpaired regions by conting tabs in second line
+  dim_x = get_max_u(tmp,'S'); /*  get unpaired regions by conting tabs in second line */
   access = (int**) space(sizeof(int *) * (dim_x+2));
   for(i=0; i< dim_x+2; i++){
     access[i] =(int *) space(sizeof(int) * (end_r-beg_r+7));
@@ -700,18 +758,18 @@ static int ** read_rnaup(char *fname, const int beg, const int end)
   while(fgets(tmp,sizeof(tmp),in)!=0 && --end_r > -1) /* read a record */
   {
     float n;
-    //int i;
-    //int u;
+    /* int i; */
+    /* int u; */
     beg_r--;
     if(beg_r<1){ 
-      if(sscanf(tmp,"%d%n",&seq_pos,&temp)==1){ // read sequenz pos = 1. spalte
+      if(sscanf(tmp,"%d%n",&seq_pos,&temp)==1){ /*  read sequenz pos = 1. spalte */
         offset+=temp;
         int count;
         count=1;
-        while(sscanf(tmp+offset,"%f%n",&n,&temp)==1){ //read columns
+        while(sscanf(tmp+offset,"%f%n",&n,&temp)==1){ /* read columns */
           offset+=temp;
-          access[count][-beg_r+5+1]=(int) rint(100*n); //seq_pos+5
-          //          printf("%d %d %f\n", count, -beg_r, access[count][-beg_r]);
+          access[count][-beg_r+5+1]=(int) rint(100*n); /* seq_pos+5 */
+          /*           printf("%d %d %f\n", count, -beg_r, access[count][-beg_r]); */
           count++;
         }
         offset=0;
@@ -746,7 +804,7 @@ static int ** read_plfold_i(char *fname, const int beg, const int end)
   }
   
   char tmp[2048]={0x0};
-  //char *ptr;
+  /* char *ptr; */
   if(fgets(tmp,sizeof(tmp),in)==0){
     perror("Empty File");
   }
@@ -773,8 +831,8 @@ static int ** read_plfold_i(char *fname, const int beg, const int end)
   while(fgets(tmp,sizeof(tmp),in)!=0 && --end_r > -1) /* read a record */
     {
       float n;
-      //int i;
-      //int u;
+      /* int i; */
+      /* int u; */
       beg_r--;
       if(beg_r<1){
         if(sscanf(tmp,"%d\t%n",&seq_pos,&temp)==1){
@@ -783,7 +841,7 @@ static int ** read_plfold_i(char *fname, const int beg, const int end)
           count=1;
           while(sscanf(tmp+offset,"%f%n",&n,&temp)==1 ){
             offset+=temp;
-            access[count][seq_pos+5]=(int)  rint( 100 * n); //round the number
+            access[count][seq_pos+5]=(int)  rint( 100 * n); /* round the number */
             count++;
           }
           offset=0;
@@ -846,7 +904,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
           posi = (int)  (pos - results);
           length = posi;
           structure = (char *) space((length+1) * sizeof(char));
-          sscanf(results,"%s",structure); //parse structure
+          sscanf(results,"%s",structure); /* parse structure */
           char *line2;
           if((line2=get_line(stdin))!=NULL){
             sequence=(char *) space((length+1)* sizeof(char));
@@ -857,13 +915,13 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
           }
           else{
             printf("your file is fucked up");exit(0);
-          } //parse sequence
+          } /* parse sequence */
           
-          sscanf(pos, "%10d,%10d;%10d", &begin,&end,&u); //parse coordinates
+          sscanf(pos, "%10d,%10d;%10d", &begin,&end,&u); /* parse coordinates */
           if(plfold_up_flag){
             int **access_s1;
             char *file_s1;
-            //read_rnaup_file
+            /* read_rnaup_file */
             file_s1 = (char*) space(sizeof(char) * (strlen(target)+strlen(suffix)+strlen(access)+3));
             strcpy(file_s1, access);
             strcat(file_s1, "/");
@@ -895,7 +953,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
           strcat(catseq,"\0");
           strcat(catstruct,"\0");
           
-          //printf("%s\n%s\n%s\n%s", catseq,sequence,catstruct,structure);
+          /* printf("%s\n%s\n%s\n%s", catseq,sequence,catstruct,structure); */
           cut_point=l1+1;
           output_file = (char*) space((strlen(output) + strlen(query)+strlen(target)+50)*sizeof(char));
           strcpy(output_file,output);
@@ -977,8 +1035,8 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
       if(strchr(line, '(') && strchr(line,'&') && strchr(line, '(')&& strchr(line, ',') && strchr(line,':') && strchr(line, '-')) {
         count++;
         int length;
-        //int sbegin, send;
-        //int energy;
+        /* int sbegin, send; */
+        /* int energy; */
         snoopT dup;
         pos = strchr(results, ' ');
         posi = (int)  (pos - results);
@@ -997,7 +1055,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
                &(dup.Loop_E),
                &(dup.Loop_D),
                &(dup.pscd),
-               &(dup.psct)); //parse duplex stuff;
+               &(dup.psct)); /* parse duplex stuff; */
         dup.energy*=n_seq;
         dup.Duplex_El*=n_seq;
         dup.Duplex_Er*=n_seq;
@@ -1021,5 +1079,5 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
     fclose(mrna);
     fclose(sno);
   }
-  //  free(output);
+  /*   free(output); */
 }             

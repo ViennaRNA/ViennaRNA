@@ -57,6 +57,7 @@ int main(int argc, char *argv[]){
   endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = noPS = 0;
   do_backtrack  = 1;
   dangles       = 2;
+  gquad         = 0;
   sfact         = 1.07;
   bppmThreshold = 1e-6;
   MEAgamma      = 1.0;
@@ -77,13 +78,20 @@ int main(int argc, char *argv[]){
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)     md.dangles = dangles = args_info.dangles_arg;
+  if(args_info.dangles_given){
+    if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
+      warn_user("required dangle model not implemented, falling back to default dangles=2");
+    else
+      md.dangles = dangles=args_info.dangles_arg;
+  }
   /* do not allow weak pairs */
   if(args_info.noLP_given)        md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
   if(args_info.noGU_given)        md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
   if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
+  /* gquadruplex support */
+  if(args_info.gquad_given)       md.gquad = gquad = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   /* set energy model */
   if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
@@ -159,6 +167,10 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
+  if(circular && gquad){
+    nrerror("G-Quadruplex support is currently not available for circular RNA structures");
+  }
+
   make_pair_matrix();
 
   if (circular && noLonelyPairs)
@@ -210,7 +222,7 @@ int main(int argc, char *argv[]){
   }
 
   if (istty && (clust_file == stdin))
-    print_tty_input_seq_str("Input aligned sequences in clustalw format");
+    print_tty_input_seq_str("Input aligned sequences in clustalw or stockholm format\n(enter a line starting with \"//\" to indicate the end of your input)");
 
   n_seq = read_clustal(clust_file, AS, names);
   if (n_seq==0) nrerror("no sequences found");
@@ -247,7 +259,11 @@ int main(int argc, char *argv[]){
   } else {
     float *ens  = (float *)space(2*sizeof(float));
     min_en      = alifold((const char **)AS, structure);
-    energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+    if(md.gquad)
+      energy_of_ali_gquad_structure((const char **)AS, structure, n_seq, ens);
+    else
+      energy_of_alistruct((const char **)AS, structure, n_seq, ens);
+
     real_en     = ens[0];
     free(ens);
   }
@@ -267,10 +283,18 @@ int main(int argc, char *argv[]){
   if (!noPS) {
     char **A;
     A = annote(structure, (const char**) AS);
-    if (doColor)
-      (void) PS_rna_plot_a(string, structure, ffname, A[0], A[1]);
-    else
-      (void) PS_rna_plot_a(string, structure, ffname, NULL, A[1]);
+
+    if(md.gquad){
+      if (doColor)
+        (void) PS_rna_plot_a_gquad(string, structure, ffname, A[0], A[1]);
+      else
+        (void) PS_rna_plot_a_gquad(string, structure, ffname, NULL, A[1]);
+    } else {
+      if (doColor)
+        (void) PS_rna_plot_a(string, structure, ffname, A[0], A[1]);
+      else
+        (void) PS_rna_plot_a(string, structure, ffname, NULL, A[1]);
+    }
     free(A[0]); free(A[1]); free(A);
   }
   if (doAlnPS)
@@ -334,7 +358,7 @@ int main(int argc, char *argv[]){
         cent = get_centroid_struct_pr(length, &dist, probs);
         ens=(float *)space(2*sizeof(float));
         energy_of_alistruct((const char **)AS, cent, n_seq, ens);
-        /*cent_en = energy_of_struct(string, cent);*//*ali*/
+        /*cent_en = energy_of_struct(string, cent);*/ /*ali*/
         printf("%s %6.2f {%6.2f + %6.2f}\n",cent,ens[0]-ens[1],ens[0],(-1)*ens[1]);
         free(cent);
         free(ens);
@@ -586,7 +610,7 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, int n_seq, plist *m
           ncomp++;
         }}
       cp[c].hue = (ncomp-1.0)/6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
-      cp[c].sat = 1 - MIN2( 1.0, (float) (pfreq[0]*2./*pi[i].bp[0]*//(n_seq)));
+      cp[c].sat = 1 - MIN2( 1.0, (float) (pfreq[0]*2. /*pi[i].bp[0]*/ /(n_seq)));
       c++;
     }
   }

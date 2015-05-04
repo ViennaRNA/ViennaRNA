@@ -60,6 +60,12 @@ int main(int argc, char *argv[]){
     print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure");
   }
 
+  /* print user help if we get input from tty */
+  if(istty){
+    print_tty_input_seq();
+    read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
+  }
+
   /*
   #############################################
   # main loop: continue until end of file
@@ -87,10 +93,22 @@ int main(int argc, char *argv[]){
     } else
       strcpy(ffname, "rna");
 
+    structure = NULL;
+    unsigned int struct_options = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
+    struct_options |= VRNA_CONSTRAINT_ALL;
+    getConstraint(&structure, (const char **)rec_rest, struct_options);
+
+    if(strlen(rec_sequence) != strlen(structure))
+      nrerror("sequence and structure have unequal length");
+
     switch (format[0]) {
       case 'p':
         strcat(ffname, ".ps");
-        PS_rna_plot_a(rec_sequence, structure, ffname, pre, post);
+
+        (void) PS_rna_plot_a_gquad(rec_sequence, structure, ffname, pre, post);
+
+        /* PS_rna_plot_a(rec_sequence, structure, ffname, pre, post); */
+
         break;
       case 'g':
         strcat(ffname, ".gml");

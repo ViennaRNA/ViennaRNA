@@ -35,6 +35,26 @@ kcal/mol. If available the opening energy are also returned.\n"
 section "Input Options"
 sectiondesc="Below are command line options which alter the general input behavior of RNAsnoop\n"
 
+
+option "alignmentLength" L
+"Limit the extent of the interactions to L nucleotides"
+int
+default="25"
+optional
+
+option  "constraint"  C
+"Calculate the stem structure subject to constraints.\n"
+details="The program reads first the\
+ stem sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
+ for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
+ a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
+ exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
+ sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
+ folding ignores constraints of type \"|\".\n\n"
+flag
+off
+
+
 option "query" s
 "File containing the query sequence.\n"
 details="Input sequences can be given piped to RNAsnoop or given in a query file with the -s option.\
@@ -124,7 +144,7 @@ duplexes. Should be set to the maximal length of interaction to get
 good results. Smaller d leads to larger overlaps between consecutive
 duplexes\n\n"
 int
-default="1"
+default="2"
 optional
 
 option "minimal-stem-length" h

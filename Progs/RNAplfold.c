@@ -62,6 +62,7 @@ int main(int argc, char *argv[]){
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
   pf_parameters = NULL;
+
   set_model_details(&md);
 
   /*
@@ -75,7 +76,12 @@ int main(int argc, char *argv[]){
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)           md.special_hp = tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)           md.dangles = dangles = args_info.dangles_arg;
+  if(args_info.dangles_given){
+    if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
+      warn_user("required dangle model not implemented, falling back to default dangles=2");
+    else
+      md.dangles = dangles = args_info.dangles_arg;
+  }
   /* do not allow weak pairs */
   if(args_info.noLP_given)              md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */

@@ -44,7 +44,9 @@ int main(int argc, char *argv[]){
   int                       verbose = 0;
   unsigned int              rec_type, read_opt;
 
-  string = orig_sequence = ParamFile = NULL;
+  string  = orig_sequence = ParamFile = NULL;
+  gquad   = 0;
+  dangles = 2;
 
   /*
   #############################################
@@ -57,7 +59,12 @@ int main(int argc, char *argv[]){
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)     dangles = args_info.dangles_arg;
+  if(args_info.dangles_given){
+    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
+      warn_user("required dangle model not implemented, falling back to default dangles=2");
+    else
+      dangles = args_info.dangles_arg;
+  }
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
   /* set energy model */
@@ -70,6 +77,8 @@ int main(int argc, char *argv[]){
   if(args_info.logML_given)       logML = 1;
   /* be verbose */
   if(args_info.verbose_given)     verbose = 1;
+  /* gquadruplex support */
+  if(args_info.gquad_given)       gquad = 1;
 
   /* free allocated memory of command line data structure */
   RNAeval_cmdline_parser_free (&args_info);
@@ -87,6 +96,9 @@ int main(int argc, char *argv[]){
   rec_rest      = NULL;
   istty         = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
+  if(circular && gquad){
+    nrerror("G-Quadruplex support is currently not available for circular RNA structures");
+  }
 
   /* set options we wanna pass to read_record */
   if(istty){
@@ -139,7 +151,10 @@ int main(int argc, char *argv[]){
         printf("length1 = %d\nlength2 = %d\n", cut_point-1, length1-cut_point+1);
     }
 
-    energy = (circular) ? energy_of_circ_structure(string, structure, verbose) : energy_of_structure(string, structure, verbose);
+    if(gquad)
+      energy = energy_of_gquad_structure(string, structure, verbose);
+    else
+      energy = (circular) ? energy_of_circ_structure(string, structure, verbose) : energy_of_structure(string, structure, verbose);
 
     if (cut_point == -1)
       printf("%s\n%s", orig_sequence, structure);

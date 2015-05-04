@@ -14,6 +14,8 @@
 #include <omp.h>
 #endif
 
+#define LOOP_EN
+
 static char rcsid[] = "$Id: findpath.c,v 1.2 2008/10/09 15:42:45 ivo Exp $";
 
 /*
@@ -27,19 +29,15 @@ static char rcsid[] = "$Id: findpath.c,v 1.2 2008/10/09 15:42:45 ivo Exp $";
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE char    *seq=NULL;
-PRIVATE short   *S=NULL, *S1=NULL;
-PRIVATE int     BP_dist;
-PRIVATE move_t  *path=NULL;
-PRIVATE int     path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
+PRIVATE const char  *seq=NULL;
+PRIVATE short       *S=NULL, *S1=NULL;
+PRIVATE int         BP_dist;
+PRIVATE move_t      *path=NULL;
+PRIVATE int         path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
 
 #ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin in the PARALLEL directive!
-         e.g.:
-         #pragma omp parallel for copyin(pf_params)
 */
 #pragma omp threadprivate(seq, S, S1, BP_dist, path, path_fwd)
 
@@ -50,13 +48,14 @@ PRIVATE int     path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE int     energy_of_move(short *pt, short *s, short *s1, int m1, int m2);
 PRIVATE int     *pair_table_to_loop_index (short *pt);
 PRIVATE move_t  *copy_moves(move_t *mvs);
 PRIVATE int     compare_ptable(const void *A, const void *B);
 PRIVATE int     compare_energy(const void *A, const void *B);
 PRIVATE int     compare_moves_when(const void *A, const void *B);
 PRIVATE void    free_intermediate(intermediate_t *i);
+PRIVATE int     find_path_once(const char *struc1, const char *struc2, int maxE, int maxl);
+PRIVATE int     try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist);
 
 /*
 #################################
@@ -69,6 +68,129 @@ PUBLIC void free_path(path_t *path){
     while(tmp->s){ free(tmp->s); tmp++;}
     free(path);
   }
+}
+
+PUBLIC int find_saddle(const char *sequence, const char *struc1, const char *struc2, int max) {
+  int maxl, maxE, i;
+  const char *tmp;
+  move_t *bestpath=NULL;
+  int dir;
+
+  path_fwd = 0;
+  maxE = INT_MAX - 1;
+  seq = sequence;
+
+  update_fold_params();
+  make_pair_matrix();
+
+  /* nummerically encode sequence */
+  S   = encode_sequence(seq, 0);
+  S1  = encode_sequence(seq, 1);
+
+  maxl=1;
+  do {
+    int saddleE;
+    path_fwd = !path_fwd;
+    if (maxl>max) maxl=max;
+    if(path) free(path);
+    saddleE  = find_path_once(struc1, struc2, maxE, maxl);
+    if (saddleE<maxE) {
+      maxE = saddleE;
+      if (bestpath) free(bestpath);
+      bestpath = path;
+      path = NULL;
+      dir = path_fwd;
+    } else{
+      free(path);path=NULL;
+    }
+    tmp=struc1;
+    struc1=struc2;
+    struc2=tmp;
+    maxl *=2;
+  } while (maxl<2*max);
+
+  free(S); free(S1);
+  /* (re)set some globals */
+  path=bestpath;
+  path_fwd = dir;
+  return maxE;
+}
+
+PUBLIC void print_path(const char *seq, const char *struc) {
+  int d;
+  char *s;
+  s = strdup(struc);
+  printf("%s\n%s %6.2f\n", seq, s, energy_of_structure(seq,s, 0));
+  qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
+  for (d=0; d<BP_dist; d++) {
+    int i,j;
+    i = path[d].i; j=path[d].j;
+    if (i<0) { /* delete */
+      s[(-i)-1] = s[(-j)-1] = '.';
+    } else {
+      s[i-1] = '('; s[j-1] = ')';
+    }
+    printf("%s %6.2f - %6.2f\n", s, energy_of_structure(seq,s, 0), path[d].E/100.0);
+  }
+  free(s);
+}
+
+PUBLIC path_t *get_path(const char *seq, const char *s1, const char* s2, int maxkeep) {
+  int E, d;
+  path_t *route=NULL;
+
+  E = find_saddle(seq, s1, s2, maxkeep);
+
+  route = (path_t *)space((BP_dist+2)*sizeof(path_t));
+
+  qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
+
+  if (path_fwd) {
+    /* memorize start of path */
+    route[0].s  = strdup(s1);
+    route[0].en = energy_of_structure(seq, s1, 0);
+
+    for (d=0; d<BP_dist; d++) {
+      int i,j;
+      route[d+1].s = strdup(route[d].s);
+      i = path[d].i; j=path[d].j;
+      if (i<0) { /* delete */
+        route[d+1].s[(-i)-1] = route[d+1].s[(-j)-1] = '.';
+      } else {
+        route[d+1].s[i-1] = '('; route[d+1].s[j-1] = ')';
+      }
+      route[d+1].en = path[d].E/100.0;
+    }
+  }
+  else {
+    /* memorize start of path */
+
+    route[BP_dist].s  = strdup(s2);
+    route[BP_dist].en = energy_of_structure(seq, s2, 0);
+
+    for (d=0; d<BP_dist; d++) {
+      int i,j;
+      route[BP_dist-d-1].s = strdup(route[BP_dist-d].s);
+      i = path[d].i;
+      j = path[d].j;
+      if (i<0) { /* delete */
+        route[BP_dist-d-1].s[(-i)-1] = route[BP_dist-d-1].s[(-j)-1] = '.';
+      } else {
+        route[BP_dist-d-1].s[i-1] = '('; route[BP_dist-d-1].s[j-1] = ')';
+      }
+      route[BP_dist-d-1].en = path[d].E/100.0;
+    }
+  }
+
+#if _DEBUG_FINDPATH_
+  fprintf(stderr, "\n%s\n%s\n%s\n\n", seq, s1, s2);
+  for (d=0; d<=BP_dist; d++)
+    fprintf(stderr, "%s %6.2f\n", route[d].s, route[d].en);
+  fprintf(stderr, "%d\n", *num_entry);
+#endif
+
+  free(path);path=NULL;
+  return (route);
 }
 
 PRIVATE int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist) {
@@ -100,7 +222,7 @@ PRIVATE int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist
       }
     }
 #ifdef LOOP_EN
-    en = c.curr_en + energy_of_move(c.pt, S, S1, i, j);
+    en = c.curr_en + energy_of_move_pt(c.pt, S, S1, i, j);
 #else
     en = energy_of_structure_pt(seq, pt, S, S1, 0);
 #endif
@@ -119,7 +241,7 @@ PRIVATE int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist
   return num_next;
 }
 
-PRIVATE int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
+PRIVATE int find_path_once(const char *struc1, const char *struc2, int maxE, int maxl) {
   short *pt1, *pt2;
   move_t *mlist;
   int i, len, d, dist=0, result;
@@ -194,131 +316,7 @@ PRIVATE int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
 }
 
 
-PUBLIC int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
-  int maxl, maxE, i;
-  char *tmp;
-  move_t *bestpath=NULL;
-  int dir;
-
-  path_fwd = 0;
-  maxE = INT_MAX - 1;
-  seq = sequence;
-
-  update_fold_params();
-  make_pair_matrix();
-
-  /* nummerically encode sequence */
-  S   = encode_sequence(seq, 0);
-  S1  = encode_sequence(seq, 1);
-
-  maxl=1;
-  do {
-    int saddleE;
-    path_fwd = !path_fwd;
-    if (maxl>max) maxl=max;
-    if(path) free(path);
-    saddleE  = find_path_once(struc1, struc2, maxE, maxl);
-    if (saddleE<maxE) {
-      maxE = saddleE;
-      if (bestpath) free(bestpath);
-      bestpath = path;
-      path = NULL;
-      dir = path_fwd;
-    } else{
-      free(path);path=NULL;
-    }
-    tmp=struc1;
-    struc1=struc2;
-    struc2=tmp;
-    maxl *=2;
-  } while (maxl<2*max);
-
-  free(S); free(S1);
-  /* (re)set some globals */
-  path=bestpath;
-  path_fwd = dir;
-  return maxE;
-}
-
-PUBLIC void print_path(char *seq, char *struc) {
-  int d;
-  char *s;
-  s = strdup(struc);
-  printf("%s\n%s %6.2f\n", seq, s, energy_of_structure(seq,s, 0));
-  qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
-  for (d=0; d<BP_dist; d++) {
-    int i,j;
-    i = path[d].i; j=path[d].j;
-    if (i<0) { /* delete */
-      s[(-i)-1] = s[(-j)-1] = '.';
-    } else {
-      s[i-1] = '('; s[j-1] = ')';
-    }
-    printf("%s %6.2f - %6.2f\n", s, energy_of_structure(seq,s, 0), path[d].E/100.0);
-  }
-  free(s);
-}
-
-PUBLIC path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
-  int E, d;
-  path_t *route=NULL;
-
-  E = find_saddle(seq, s1, s2, maxkeep);
-
-  route = (path_t *)space((BP_dist+2)*sizeof(path_t));
-
-  qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
-
-  if (path_fwd) {
-    /* memorize start of path */
-    route[0].s  = strdup(s1);
-    route[0].en = energy_of_structure(seq, s1, 0);
-
-    for (d=0; d<BP_dist; d++) {
-      int i,j;
-      route[d+1].s = strdup(route[d].s);
-      i = path[d].i; j=path[d].j;
-      if (i<0) { /* delete */
-        route[d+1].s[(-i)-1] = route[d+1].s[(-j)-1] = '.';
-      } else {
-        route[d+1].s[i-1] = '('; route[d+1].s[j-1] = ')';
-      }
-      route[d+1].en = path[d].E/100.0;
-    }
-  }
-  else {
-    /* memorize start of path */
-
-    route[BP_dist].s  = strdup(s2);
-    route[BP_dist].en = energy_of_structure(seq, s2, 0);
-
-    for (d=0; d<BP_dist; d++) {
-      int i,j;
-      route[BP_dist-d-1].s = strdup(route[BP_dist-d].s);
-      i = path[d].i;
-      j = path[d].j;
-      if (i<0) { /* delete */
-        route[BP_dist-d-1].s[(-i)-1] = route[BP_dist-d-1].s[(-j)-1] = '.';
-      } else {
-        route[BP_dist-d-1].s[i-1] = '('; route[BP_dist-d-1].s[j-1] = ')';
-      }
-      route[BP_dist-d-1].en = path[d].E/100.0;
-    }
-  }
-
-#if _DEBUG_FINDPATH_
-  fprintf(stderr, "\n%s\n%s\n%s\n\n", seq, s1, s2);
-  for (d=0; d<=BP_dist; d++)
-    fprintf(stderr, "%s %6.2f\n", route[d].s, route[d].en);
-  fprintf(stderr, "%d\n", *num_entry);
-#endif
-
-  free(path);path=NULL;
-  return (route);
-}
-
-PRIVATE int *pair_table_to_loop_index (short *pt)
-{
+PRIVATE int *pair_table_to_loop_index (short *pt){
   /* number each position by which loop it belongs to (positions start
      at 1) */
   int i,hx,l,nl;
@@ -411,47 +409,6 @@ PRIVATE move_t* copy_moves(move_t *mvs) {
   return new;
 }
 
-PRIVATE int energy_of_move(short *pt, short *s, short *s1, int m1, int m2) {
-  int en_post, en_pre, i,j,k,l, len;
-
-  len = pt[0];
-  k = (m1>0)?m1:-m1;
-  l = (m2>0)?m2:-m2;
-  /* first find the enclosing pair i<k<l<j */
-  for (j=l+1; j<=len; j++) {
-    if (pt[j]<=0) continue; /* unpaired */
-    if (pt[j]<k) break;   /* found it */
-    if (pt[j]>j) j=pt[j]; /* skip substructure */
-    else {
-      fprintf(stderr, "%d %d %d %d ", m1, m2, j, pt[j]);
-      nrerror("illegal move or broken pair table in energy_of_move()");
-    }
-  }
-  i = (j<=len) ? pt[j] : 0;
-  en_pre = loop_energy(pt, s, s1, i);
-  en_post = 0;
-  if (m1<0) { /*it's a delete move */
-    en_pre += loop_energy(pt, s, s1, k);
-    pt[k]=0;
-    pt[l]=0;
-  } else { /* insert move */
-    pt[k]=l;
-    pt[l]=k;
-    en_post += loop_energy(pt, s, s1, k);
-  }
-  en_post += loop_energy(pt, s, s1, i);
-  /*  restore pair table */
-  if (m1<0) {
-    pt[k]=l;
-    pt[l]=k;
-  } else {
-    pt[k]=0;
-    pt[l]=0;
-  }
-  return (en_post - en_pre);
-}
-
-
 #ifdef TEST_FINDPATH
 
 int main(int argc, char *argv[]) {
@@ -484,13 +441,13 @@ int main(int argc, char *argv[]) {
     else
       print_path(seq,s2);
     free(path);
+    path = NULL;
     route = get_path(seq, s1, s2, maxkeep);
     for (r=route; r->s; r++) {
       printf("%s %6.2f - %6.2f\n", r->s, energy_of_struct(seq,r->s), r->en);
       free(r->s);
     }
   }
-  free(route);
   free(seq); free(s1); free(s2);
   return(EXIT_SUCCESS);
 }

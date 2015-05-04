@@ -91,6 +91,7 @@
 #include "params.h"
 #include "loop_energies.h"
 #include "cofold.h"
+#include "gquad.h"
 #include "subopt.h"
 
 #ifdef _OPENMP
@@ -103,9 +104,6 @@
 #define NEW_NINIO         1         /* use new asymetry penalty */
 #define STACK_BULGE1      1         /* stacking energies for bulges of size 1 */
 #define MAXALPHA          20        /* maximal length of alphabet */
-
-/*@unused@*/
-PRIVATE char UNUSED rcsid[] = "$Id: subopt.c,v 1.24 2008/11/01 21:10:20 ivo Exp $";
 
 /*
 #################################
@@ -151,16 +149,17 @@ PRIVATE int     circular            = 0;
 PRIVATE int     struct_constrained  = 0;
 PRIVATE int     *fM2 = NULL;                 /* energies of M2 */
 PRIVATE int     Fc, FcH, FcI, FcM;    /* parts of the exterior loop energies */
+PRIVATE int     with_gquad          = 0;
+
+
+PRIVATE int     *ggg = NULL;
 
 #ifdef _OPENMP
 
-/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin() in the PARALLEL directive!
-*/
 #pragma omp threadprivate(turn, Stack, nopush, best_energy, f5, c, fML, fM1, fc, indx, S, S1,\
                           ptype, P, length, minimal_energy, element_energy, threshold, sequence,\
-                          fM2, Fc, FcH, FcI, FcM, circular, struct_constrained)
+                          fM2, Fc, FcH, FcI, FcM, circular, struct_constrained,\
+                          ggg, with_gquad)
 
 #endif
 
@@ -170,6 +169,10 @@ PRIVATE int     Fc, FcH, FcI, FcM;    /* parts of the exterior loop energies */
 #################################
 */
 PRIVATE void      make_pair(int i, int j, STATE *state);
+
+/* mark a gquadruplex in the resulting dot-bracket structure */
+PRIVATE void      make_gquad(int i, int L, int l[3], STATE *state);
+
 PRIVATE INTERVAL  *make_interval (int i, int j, int ml);
 /*@out@*/ PRIVATE STATE *make_state(/*@only@*/LIST *Intervals,
                                     /*@only@*/ /*@null@*/ char *structure,
@@ -209,6 +212,18 @@ make_pair(int i, int j, STATE *state)
 {
   state->structure[i-1] = '(';
   state->structure[j-1] = ')';
+}
+
+PRIVATE void
+make_gquad(int i, int L, int l[3], STATE *state)
+{
+  int x;
+  for(x = 0; x < L; x++){
+    state->structure[i - 1 + x] = '+';
+    state->structure[i - 1 + x + L + l[0]] = '+';
+    state->structure[i - 1 + x + 2*L + l[0] + l[1]] = '+';
+    state->structure[i - 1 + x + 3*L + l[0] + l[1] + l[2]] = '+';
+  }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -517,6 +532,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
 
   logML       = P->model_details.logML;
   old_dangles = dangle_model = P->model_details.dangles;
+  with_gquad  = P->model_details.gquad;
 
   /* temporarily set dangles to 2 if necessary */
   if((P->model_details.dangles != 0) && (P->model_details.dangles != 2))
@@ -534,7 +550,13 @@ PUBLIC SOLUTION *subopt_par(char *seq,
     min_en = energy_of_circ_struct_par(sequence, struc, P, 0);
   } else {
     min_en = cofold_par(sequence, struc, P, struct_constrained);
-    export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
+
+    if(with_gquad){
+      export_cofold_arrays_gq(&f5, &c, &fML, &fM1, &fc, &ggg, &indx, &ptype);
+    } else {
+      export_cofold_arrays(&f5, &c, &fML, &fM1, &fc, &indx, &ptype);
+    }
+
     /* restore dangle model */
     P->model_details.dangles = old_dangles;
     /* re-evaluate in case we're using logML etc */
@@ -904,8 +926,8 @@ scan_interval(int i, int j, int array_flag, STATE * state)
   /* or do we subopt circular? */
   else if(array_flag == 0){
     int k, l, p, q;
-    /* if we've done everything right, we will never reach this case more than once         */
-    /* right after the initilization of the stack with ([1,n], empty, 0)                                                 */
+    /* if we've done everything right, we will never reach this case more than once   */
+    /* right after the initilization of the stack with ([1,n], empty, 0)              */
     /* lets check, if we can have an open chain without breaking the threshold        */
     /* this is an ugly work-arround cause in case of an open chain we do not have to  */
     /* backtrack anything further...                                                  */
@@ -917,14 +939,14 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       push(Stack, new_state);
     }
     /* ok, lets check if we can do an exterior hairpin without breaking the threshold */
-    /* best energy should be 0 if we are here                                                                                                                                                                 */
+    /* best energy should be 0 if we are here                                         */
     if(FcH + best_energy <= threshold){
-      /* lets search for all exterior hairpin cases, that fit into our threshold barrier */
-      /* we use index k,l to avoid confusion with i,j index of our state...                                                         */
-      /* if we reach here, i should be 1 and j should be n respectively                                                                         */
+      /* lets search for all exterior hairpin cases, that fit into our threshold barrier  */
+      /* we use index k,l to avoid confusion with i,j index of our state...               */
+      /* if we reach here, i should be 1 and j should be n respectively                   */
       for(k=i; k<j; k++)
         for (l=k+turn+1; l <= j; l++){
-          int kl, type, u, new_c, tmpE, no_close;
+          int kl, type, u, tmpE, no_close;
           u = j-l + k-1;        /* get the hairpin loop length */
           if(u<turn) continue;
 
@@ -933,8 +955,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
           no_close = ((type==3)||(type==4))&&noGUclosure;
           type=rtype[type];
           if (!type) continue;
-          if (no_close) new_c = FORBIDDEN;
-          else{
+          if (!no_close){
             /* now lets have a look at the hairpin energy */
             char loopseq[10];
             if (u<7){
@@ -944,11 +965,11 @@ scan_interval(int i, int j, int array_flag, STATE * state)
             tmpE = E_Hairpin(u, type, S1[l+1], S1[k-1], loopseq, P);
           }
           if(c[kl] + tmpE + best_energy <= threshold){
-            /* what we really have to do is something like this, isn't it? */
-            /* we have to create a new state, with interval [k,l], then we */
-            /* add our loop energy as initial energy of this state and put */
-            /* the state onto the stack R... for further refinement...         */
-            /* we also denote this new interval to be scanned in C         */
+            /* what we really have to do is something like this, isn't it?  */
+            /* we have to create a new state, with interval [k,l], then we  */
+            /* add our loop energy as initial energy of this state and put  */
+            /* the state onto the stack R... for further refinement...      */
+            /* we also denote this new interval to be scanned in C          */
             new_state = copy_state(state);
             new_interval = make_interval(k,l,2);
             push(new_state->Intervals, new_interval);
@@ -964,11 +985,10 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       /* now we search for our exterior interior loop possibilities */
       for(k=i; k<j; k++)
         for (l=k+turn+1; l <= j; l++){
-          int kl, type, tmpE, no_close;
+          int kl, type, tmpE;
 
           kl = indx[l]+k;        /* just confusing these indices ;-) */
           type = ptype[kl];
-          no_close = ((type==3)||(type==4))&&noGUclosure;
           type=rtype[type];
           if (!type) continue;
 
@@ -988,7 +1008,7 @@ scan_interval(int i, int j, int array_flag, STATE * state)
               if(c[kl] + c[indx[q]+p] + tmpE + best_energy <= threshold){
                 /* ok, similar to the hairpin stuff, we add new states onto the stack R */
                 /* but in contrast to the hairpin decomposition, we have to add two new */
-                /* intervals, enclosed by k,l and p,q respectively and we also have to */
+                /* intervals, enclosed by k,l and p,q respectively and we also have to  */
                 /* add the partial energy, that comes from the exterior interior loop   */
                 new_state = copy_state(state);
                 new_interval = make_interval(k, l, 2);
@@ -1153,13 +1173,11 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
 
   register int  k, p, q, energy, new;
   register int  mm;
-  register int  no_close, no_close_2, type, type_2;
+  register int  no_close, type, type_2;
   int           rt;
   int           dangle_model  = P->model_details.dangles;
   int           noLP          = P->model_details.noLP;
   int           noGUclosure   = P->model_details.noGUclosure;
-
-  no_close_2 = 0;
 
   type = ptype[indx[j]+i];
   if (type==0) fprintf(stderr, "repeat: Warning: %d %d can't pair\n", i,j);

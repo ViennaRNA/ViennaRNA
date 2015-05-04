@@ -69,14 +69,12 @@
 #include "pair_mat.h"
 #include "params.h"
 #include "loop_energies.h"
+#include "gquad.h"
 #include "part_func.h"
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-/*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func.c,v 1.29 2008/02/23 10:10:49 ivo Exp $";
 
 #define ISOLATED  256.0
 
@@ -92,7 +90,7 @@ PUBLIC  int         st_back = 0;
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE FLT_OR_DBL  *q=NULL, *qb=NULL, *qm=NULL, *qm1=NULL, *qqm=NULL, *qqm1=NULL, *qq=NULL, *qq1=NULL;
+PRIVATE FLT_OR_DBL  *q = NULL, *qb=NULL, *qm = NULL, *qm1 = NULL, *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
 PRIVATE FLT_OR_DBL  *probs=NULL, *prml=NULL, *prm_l=NULL, *prm_l1=NULL, *q1k=NULL, *qln=NULL;
 PRIVATE FLT_OR_DBL  *scale=NULL;
 PRIVATE FLT_OR_DBL  *expMLbase=NULL;
@@ -108,22 +106,16 @@ PRIVATE char        *sequence=NULL;
 PRIVATE char        *ptype=NULL;        /* precomputed array of pair types */
 PRIVATE pf_paramT   *pf_params=NULL;    /* the precomputed Boltzmann weights */
 PRIVATE short       *S=NULL, *S1=NULL;
+PRIVATE int         with_gquad = 0;
 
-PRIVATE double      alpha = 1.0;
-
+PRIVATE FLT_OR_DBL  *G = NULL, *Gj = NULL, *Gj1 = NULL;
 
 #ifdef _OPENMP
 
-/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin in the PARALLEL directive!
-         e.g.:
-         #pragma omp parallel for copyin(pf_params)
-*/
 #pragma omp threadprivate(q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
                           probs, scale, expMLbase, qo, qho, qio, qmo, qm2, jindx, my_iindx, init_length,\
-                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, alpha, struct_constrained)
-
+                          circular, pstruc, sequence, ptype, pf_params, S, S1, do_bppm, struct_constrained,\
+                          G, Gj, Gj1, with_gquad)
 
 #endif
 
@@ -203,6 +195,9 @@ PRIVATE void get_arrays(unsigned int length){
   expMLbase = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
   scale     = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+1));
 
+  Gj        = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+  Gj1       = (FLT_OR_DBL *) space(sizeof(FLT_OR_DBL)*(length+2));
+
   my_iindx  = get_iindx(length);
   iindx     = get_iindx(length); /* for backward compatibility and Perl wrapper */
   jindx     = get_indx(length);
@@ -235,10 +230,14 @@ PUBLIC void free_pf_arrays(void){
   if(jindx)     free(jindx);
   if(S)         free(S);
   if(S1)        free(S1);
+  if(G)         free(G);
+  if(Gj)        free(Gj);
+  if(Gj1)       free(Gj1);
 
   S = S1 = NULL;
-  q = pr = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = NULL;
+  q = pr = probs = qb = qm = qm1 = qm2 = qq = qq1 = qqm = qqm1 = q1k = qln = prm_l = prm_l1 = prml = expMLbase = scale = G = Gj = Gj1 = NULL;
   my_iindx = jindx = iindx = NULL;
+
   ptype = NULL;
 
 #ifdef SUN4
@@ -284,8 +283,9 @@ PUBLIC float pf_fold_par( const char *sequence,
   else if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params_par(n, parameters);
 #endif
 
-  S   = encode_sequence(sequence, 0);
-  S1  = encode_sequence(sequence, 1);
+  with_gquad  = parameters->model_details.gquad;
+  S           = encode_sequence(sequence, 0);
+  S1          = encode_sequence(sequence, 1);
 
   make_ptypes(S, structure);
 
@@ -327,9 +327,10 @@ PUBLIC float pf_fold_par( const char *sequence,
 
 PRIVATE void pf_linear(const char *sequence, char *structure){
 
-  int n, i,j,k,l, ij, u,u1,d,ii, type, type_2, tt;
+  int n, i,j,k,l, ij, u,u1,d,ii, type, type_2, tt, minl, maxl;
 
   int noGUclosure;
+  FLT_OR_DBL expMLstem = 0.;
 
   FLT_OR_DBL temp, Qmax=0;
   FLT_OR_DBL qbt1, *tmp;
@@ -347,6 +348,11 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
 
+  if(with_gquad){
+    expMLstem = exp_E_MLstem(0, -1, -1, pf_params);
+    G         = get_gquad_pf_matrix(S, scale, pf_params);
+  }
+
   for (d=0; d<=TURN; d++)
     for (i=1; i<=n-d; i++) {
       j=i+d;
@@ -354,7 +360,7 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
       q[ij]=1.0*scale[d+1];
       qb[ij]=qm[ij]=0.0;
     }
-
+ 
   for (i=1; i<=n; i++)
     qq[i]=qq1[i]=qqm[i]=qqm1[i]=0;
 
@@ -388,9 +394,16 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
         for (k=i+2; k<=j-1; k++) temp += qm[ii-(k-1)]*qqm1[k];
         tt = rtype[type];
         qbt1 += temp * expMLclosing * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * scale[2];
+
+        if(with_gquad){
+          qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, my_iindx, pf_params) * scale[2];
+        }
+
         qb[ij] = qbt1;
-      } /* end if (type!=0) */
-      else qb[ij] = 0.0;
+      }
+      /* end if (type!=0) */
+      else
+        qb[ij] = 0.0;
 
       /* construction of qqm matrix containing final stem
          contributions to multiple loop partition function
@@ -400,6 +413,12 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
         qbt1 = qb[ij] * exp_E_MLstem(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
         qqm[i] += qbt1;
       }
+
+      if(with_gquad){
+        /*include gquads into qqm*/
+        qqm[i] += G[my_iindx[i]-j] * expMLstem;
+      }
+
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking and circfold */
 
       /*construction of qm matrix containing multiple loop
@@ -410,9 +429,15 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
       qm[ij] = (temp + qqm[i]);
 
       /*auxiliary matrix qq for cubic order q calculation below */
-      qbt1 = qb[ij];
-      if(type)
+      qbt1=0.0;
+      if (type){
+        qbt1 += qb[ij];
         qbt1 *= exp_E_ExtLoop(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
+      }
+
+      if(with_gquad){
+        qbt1 += G[ij];
+      }
 
       qq[i] = qq1[i]*scale[1] + qbt1;
 
@@ -434,6 +459,10 @@ PRIVATE void pf_linear(const char *sequence, char *structure){
     }
     tmp = qq1;  qq1 =qq;  qq =tmp;
     tmp = qqm1; qqm1=qqm; qqm=tmp;
+
+    if(with_gquad){ /* rotate the auxilary g-quadruplex matrices */
+      tmp = Gj1; Gj1=Gj; Gj=tmp;
+    }
   }
 }
 
@@ -512,13 +541,15 @@ PRIVATE void pf_circ(const char *sequence, char *structure){
 
 /* calculate base pairing probs */
 PUBLIC void pf_create_bppm(const char *sequence, char *structure){
-  int n, i,j,k,l, ij, kl, ii,ll, type, type_2, tt, ov=0;
+  int n, i,j,k,l, ij, kl, ii, i1, ll, type, type_2, tt, u1, ov=0;
   FLT_OR_DBL  temp, Qmax=0, prm_MLb;
   FLT_OR_DBL  prmt,prmt1;
   FLT_OR_DBL  *tmp;
   FLT_OR_DBL  tmp2;
   FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
   double      max_real;
+
+  FLT_OR_DBL  expMLstem = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
@@ -573,7 +604,17 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
                 if (type_2==0) continue;
                 ln2 = i - l - 1;
                 if(ln1+ln2>MAXLOOP) continue;
-                tmp2 += qb[my_iindx[k] - l]*exp_E_IntLoop(ln1, ln2, rt, rtype[type_2], S1[j+1], S1[i-1], S1[k-1], S1[l+1], pf_params) * scale[ln1 + ln2];
+                tmp2 += qb[my_iindx[k] - l]
+                        * exp_E_IntLoop(ln1,
+                                        ln2,
+                                        rt,
+                                        rtype[type_2],
+                                        S1[j+1],
+                                        S1[i-1],
+                                        S1[k-1],
+                                        S1[l+1],
+                                        pf_params)
+                        * scale[ln1 + ln2];
               }
             }
             /* 1.2.2. i,j  delimtis the "right" part of the interior loop  */
@@ -589,21 +630,42 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
                 if (type_2==0) continue;
                 ln2 = i - 1 + n - l;
                 if(ln1+ln2>MAXLOOP) continue;
-                tmp2 += qb[my_iindx[k] - l]*exp_E_IntLoop(ln2, ln1, rtype[type_2], rt, S1[l+1], S1[k-1], S1[i-1], S1[j+1], pf_params) * scale[ln1 + ln2];
+                tmp2 += qb[my_iindx[k] - l]
+                        * exp_E_IntLoop(ln2,
+                                        ln1,
+                                        rtype[type_2],
+                                        rt,
+                                        S1[l+1],
+                                        S1[k-1],
+                                        S1[i-1],
+                                        S1[j+1],
+                                        pf_params)
+                        * scale[ln1 + ln2];
               }
             }
             /* 1.3 Exterior multiloop decomposition */
             /* 1.3.1 Middle part                    */
             if((i>TURN+2) && (j<n-TURN-1))
-              tmp2 += qm[my_iindx[1]-i+1] * qm[my_iindx[j+1]-n] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
+              tmp2 += qm[my_iindx[1]-i+1]
+                      * qm[my_iindx[j+1]-n]
+                      * expMLclosing
+                      * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
 
             /* 1.3.2 Left part                      */
             for(k=TURN+2; k < i-TURN-2; k++)
-              tmp2 += qm[my_iindx[1]-k] * qm1[jindx[i-1]+k+1] * expMLbase[n-j] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
+              tmp2 += qm[my_iindx[1]-k]
+                      * qm1[jindx[i-1]+k+1]
+                      * expMLbase[n-j]
+                      * expMLclosing
+                      * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
 
             /* 1.3.3 Right part                      */
             for(k=j+TURN+2; k < n-TURN-1;k++)
-              tmp2 += qm[my_iindx[j+1]-k] * qm1[jindx[n]+k+1] * expMLbase[i-1] * expMLclosing * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
+              tmp2 += qm[my_iindx[j+1]-k]
+                      * qm1[jindx[n]+k+1]
+                      * expMLbase[i-1]
+                      * expMLclosing
+                      * exp_E_MLstem(type, S1[i-1], S1[j+1], pf_params);
 
             /* all exterior loop decompositions for pair i,j done  */
             probs[ij] *= tmp2;
@@ -622,8 +684,9 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
           if (type&&(qb[ij]>0.)) {
             probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
             probs[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
-          } else
-            probs[ij] = 0;
+          }
+          else
+            probs[ij] = 0.;
         }
       }
     } /* end if(!circular)  */
@@ -633,21 +696,89 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
       /* 2. bonding k,l as substem of 2:loop enclosed by i,j */
       for (k=1; k<l-TURN; k++) {
         kl = my_iindx[k]-l;
-        type_2 = ptype[kl]; type_2 = rtype[type_2];
-        if (qb[kl]==0) continue;
+        type_2 = ptype[kl]; 
+        if (type_2==0) continue;
+        type_2 = rtype[type_2];
+        if (qb[kl]==0.) continue;
 
+        tmp2 = 0.;
         for (i=MAX2(1,k-MAXLOOP-1); i<=k-1; i++)
           for (j=l+1; j<=MIN2(l+ MAXLOOP -k+i+2,n); j++) {
             ij = my_iindx[i] - j;
             type = ptype[ij];
-            if ((probs[ij]>0)) {
+            if (type && (probs[ij]>0.)) {
               /* add *scale[u1+u2+2] */
-              probs[kl] += probs[ij] * (scale[k-i+j-l] *
-                        exp_E_IntLoop(k-i-1, j-l-1, type, type_2,
-                        S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params));
+              tmp2 +=  probs[ij]
+                       * (scale[k-i+j-l]
+                       * exp_E_IntLoop(k - i - 1,
+                                       j - l - 1,
+                                       type,
+                                       type_2,
+                                       S1[i + 1],
+                                       S1[j - 1],
+                                       S1[k - 1],
+                                       S1[l + 1],
+                                       pf_params));
             }
           }
+        probs[kl] += tmp2;
       }
+
+      if(with_gquad){
+        /* 2.5. bonding k,l as gquad enclosed by i,j */
+        FLT_OR_DBL *expintern = &(pf_params->expinternal[0]);
+
+        if(l < n - 3){
+          for(k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE; k++){
+            kl = my_iindx[k]-l;
+            if (G[kl]==0.) continue;
+            tmp2 = 0.;
+            i = k - 1;
+            for(j = MIN2(l + MAXLOOP + 1, n); j > l + 3; j--){
+              ij = my_iindx[i] - j;
+              type = ptype[ij];
+              if(!type) continue;
+              tmp2 += probs[ij] * expintern[j-l-1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
+            }
+            probs[kl] += tmp2 * G[kl];
+          }
+        }
+
+        if(l < n){
+          for(k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE; k++){
+            kl = my_iindx[k]-l;
+            if (G[kl]==0.) continue;
+            tmp2 = 0.;
+            j = l + 1;
+            for (i=MAX2(1,k-MAXLOOP-1); i < k - 3; i++){
+              ij = my_iindx[i] - j;
+              type = ptype[ij];
+              if(!type) continue;
+              tmp2 += probs[ij] * expintern[k - i - 1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
+            }
+            probs[kl] += tmp2 * G[kl];
+          }
+        }
+
+        if (l < n - 1){
+          for (k=3; k<=l-VRNA_GQUAD_MIN_BOX_SIZE; k++) {
+            kl = my_iindx[k]-l;
+            if (G[kl]==0.) continue;
+            tmp2 = 0.;
+            for (i=MAX2(1,k-MAXLOOP-1); i<=k-2; i++){
+              u1 = k - i - 1;
+              for (j=l+2; j<=MIN2(l + MAXLOOP - u1 + 1,n); j++) {
+                ij = my_iindx[i] - j;
+                type = ptype[ij];
+                if(!type) continue;
+                tmp2 += probs[ij] * expintern[u1+j-l-1] * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]] * scale[2];
+              }
+            }
+            probs[kl] += tmp2 * G[kl];
+          }
+        }
+      }
+
       /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
       prm_MLb = 0.;
       if (l<n) for (k=2; k<l-TURN; k++) {
@@ -657,11 +788,15 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
         ii = my_iindx[i];     /* ii-j=[i,j]     */
         ll = my_iindx[l+1];   /* ll-j=[l+1,j-1] */
         tt = ptype[ii-(l+1)]; tt=rtype[tt];
-        prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+        /* (i, l+1) closes the ML with substem (k,l) */
+        if(tt)
+          prmt1 = probs[ii-(l+1)] * expMLclosing * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
 
+        /* (i,j) with j>l+1 closes the ML with substem (k,l) */
         for (j=l+2; j<=n; j++) {
           tt = ptype[ii-j]; tt = rtype[tt];
-          prmt += probs[ii-j] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[ll-(j-1)];
+          if(tt)
+            prmt += probs[ii-j] * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params) * qm[ll-(j-1)];
         }
         kl = my_iindx[k]-l;
         tt = ptype[kl];
@@ -675,14 +810,26 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
         prml[i] = prml[ i] + prm_l[i];
 
-        if (qb[kl] == 0.) continue;
+        if(with_gquad){
+          if ((!tt) && (G[kl] == 0.)) continue;
+        } else {
+          if (qb[kl] == 0.) continue;
+        }
 
         temp = prm_MLb;
 
         for (i=1;i<=k-2; i++)
           temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
 
-        temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
+        if(with_gquad){
+          if(tt)
+            temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
+          else
+            temp    *= G[kl] * expMLstem * scale[2];
+        } else {
+          temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
+        }
+
         probs[kl]  += temp;
 
         if (probs[kl]>Qmax) {
@@ -704,7 +851,17 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
     for (i=1; i<=n; i++)
       for (j=i+TURN+1; j<=n; j++) {
         ij = my_iindx[i]-j;
-        probs[ij] *= qb[ij];
+
+        if(with_gquad){
+          if (qb[ij] > 0.)
+            probs[ij] *= qb[ij];
+          if (G[ij] > 0.){
+            probs[ij] += q1k[i-1] * G[ij] * qln[j+1]/q1k[n];
+          }
+        } else {
+          if (qb[ij] > 0.)
+            probs[ij] *= qb[ij];
+        }
       }
 
     if (structure!=NULL)
@@ -720,7 +877,7 @@ PUBLIC void pf_create_bppm(const char *sequence, char *structure){
 
 PRIVATE void scale_pf_params(unsigned int length, pf_paramT *parameters){
   unsigned int  i;
-  double        kT, scaling_factor;
+  double        scaling_factor;
 
   if(pf_params) free(pf_params);
 
@@ -774,6 +931,7 @@ PUBLIC void update_pf_params_par(int length, pf_paramT *parameters){
 /*---------------------------------------------------------------------------*/
 
 PUBLIC char bppm_symbol(const float *x){
+/*  if( ((x[1]-x[2])*(x[1]-x[2]))<0.1&&x[0]<=0.677) return '|'; */
   if( x[0] > 0.667 )  return '.';
   if( x[1] > 0.667 )  return '(';
   if( x[2] > 0.667 )  return ')';
@@ -1120,6 +1278,131 @@ PUBLIC void assign_plist_from_pr(plist **pl, FLT_OR_DBL *probs, int length, doub
   /* shrink memory to actual size needed */
   *pl = (plist *)xrealloc(*pl, count * sizeof(plist));
   free(index);
+}
+
+/* this doesn't work if free_pf_arrays() is called before */
+PUBLIC void assign_plist_gquad_from_pr( plist **pl,
+                                        int length,
+                                        double cut_off){
+
+  int i, j, k, n, count, *index;
+  count = 0;
+  n     = 2;
+
+  if(!probs){ *pl = NULL; return;}
+
+  index = get_iindx(length);
+
+  /* first guess of the size needed for pl */
+  *pl = (plist *)space(n*length*sizeof(plist));
+
+  for (i=1; i<length; i++) {
+    for (j=i+1; j<=length; j++) {
+      /* skip all entries below the cutoff */
+      if (probs[index[i]-j] < cut_off) continue;
+
+      /* do we need to allocate more memory? */
+      if (count == n * length - 1){
+        n *= 2;
+        *pl = (plist *)xrealloc(*pl, n * length * sizeof(plist));
+      }
+
+      /* check for presence of gquadruplex */
+      if((S[i] == 3) && (S[j] == 3)){
+          /* add probability of a gquadruplex at position (i,j)
+             for dot_plot
+          */
+          (*pl)[count].i      = i;
+          (*pl)[count].j      = j;
+          (*pl)[count].p      = probs[index[i] - j];
+          (*pl)[count++].type = 1;
+          /* now add the probabilies of it's actual pairing patterns */
+          plist *inner, *ptr;
+          inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
+          for(ptr=inner; ptr->i != 0; ptr++){
+              if (count == n * length - 1){
+                n *= 2;
+                *pl = (plist *)xrealloc(*pl, n * length * sizeof(plist));
+              }
+              /* check if we've already seen this pair */
+              for(k = 0; k < count; k++)
+                if(((*pl)[k].i == ptr->i) && ((*pl)[k].j == ptr->j))
+                  break;
+              (*pl)[k].i      = ptr->i;
+              (*pl)[k].j      = ptr->j;
+              (*pl)[k].type = 0;
+              if(k == count){
+                (*pl)[k].p  = ptr->p;
+                count++;
+              } else
+                (*pl)[k].p  += ptr->p;
+          }
+      } else {
+          (*pl)[count].i      = i;
+          (*pl)[count].j      = j;
+          (*pl)[count].p      = probs[index[i] - j];
+          (*pl)[count++].type = 0;
+      }
+    }
+  }
+  /* mark the end of pl */
+  (*pl)[count].i   = 0;
+  (*pl)[count].j   = 0;
+  (*pl)[count++].p = 0.;
+  /* shrink memory to actual size needed */
+  *pl = (plist *)xrealloc(*pl, count * sizeof(plist));
+  free(index);
+}
+
+/* this doesn't work if free_pf_arrays() is called before */
+PUBLIC char *get_centroid_struct_gquad_pr( int length,
+                                          double *dist){
+
+  /* compute the centroid structure of the ensemble, i.e. the strutcure
+     with the minimal average distance to all other structures
+     <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij}
+     Thus, the centroid is simply the structure containing all pairs with
+     p_ij>0.5 */
+  int i,j, k;
+  double p;
+  char  *centroid;
+  int   *my_iindx = get_iindx(length);
+
+  if (probs == NULL)
+    nrerror("get_centroid_struct_pr: probs==NULL!");
+
+  *dist = 0.;
+  centroid = (char *) space((length+1)*sizeof(char));
+  for (i=0; i<length; i++) centroid[i]='.';
+  for (i=1; i<=length; i++)
+    for (j=i+TURN+1; j<=length; j++) {
+      if ((p=probs[my_iindx[i]-j])>0.5) {
+        /* check for presence of gquadruplex */
+        if((S[i] == 3) && (S[j] == 3)){
+          int L, l[3];
+          get_gquad_pattern_pf(S, i, j, pf_params, &L, l);
+          for(k=0;k<L;k++){
+            centroid[i+k-1]\
+            = centroid[i+k+L+l[0]-1]\
+            = centroid[i+k+2*L+l[0]+l[1]-1]\
+            = centroid[i+k+3*L+l[0]+l[1]+l[2]-1]\
+            = '+';
+          }
+          /* skip everything within the gquad */
+          i = j; j = j+TURN+1;
+          *dist += (1-p); /* right? */
+          break;
+        } else {
+            centroid[i-1] = '(';
+            centroid[j-1] = ')';
+        }
+        *dist += (1-p);
+      } else
+        *dist += p;
+    }
+  free(my_iindx);
+  centroid[length] = '\0';
+  return centroid;
 }
 
 /* this function is a threadsafe replacement for centroid() */

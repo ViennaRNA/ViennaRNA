@@ -17,6 +17,7 @@
 #include "utils.h"
 #include "fold_vars.h"
 #include "fold.h"
+#include "params.h"
 #include "part_func.h"
 #include "read_epars.h"
 #include "RNAheat_cmdl.h"
@@ -62,11 +63,10 @@ int main(int argc, char *argv[]){
   if(args_info.noTetra_given)     tetra_loop=0;
   /* set dangle model */
   if(args_info.dangles_given){
-    dangles = args_info.dangles_arg;
-    if(dangles % 2){
-      warn_user("using default dangles = 2");
-      dangles = 2;
-    }
+    if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
+      warn_user("required dangle model not implemented, falling back to default dangles=2");
+    else
+      dangles = args_info.dangles_arg;
   }
   /* do not allow weak pairs */
   if(args_info.noLP_given)        noLonelyPairs = 1;
@@ -199,9 +199,14 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    kT = (temperature+K0)*GASCONST/1000;    /* in kcal */
    pf_scale = exp(-(1.07*min_en)/kT/length );
    /* init_pf_fold(length); <- obsolete */
+    pf_paramT       *pf_parameters = NULL;
+    model_detailsT  md;
+    set_model_details(&md);
 
    for (i=0; i<2*m+1; i++) {
-      F[i] = pf_fold(string, NULL);   /* T_min -2h */
+      if(pf_parameters) free(pf_parameters);
+      pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+      F[i] = pf_fold_par(string, NULL, pf_parameters, 0, 0, 0);   /* T_min -2h */
       temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
       pf_scale=exp(-(F[i]/length +h*0.00727)/kT); /* try to extrapolate F */
@@ -214,10 +219,14 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
 
       for (i=0; i<2*m; i++)
          F[i] = F[i+1];
-      F[2*m] = pf_fold(string, NULL);
+
+      F[2*m] = pf_fold_par(string, NULL, pf_parameters, 0, 0, 0);
+/*       printf("%g\n", F[2*m]);*/
       temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
       pf_scale=exp(-(F[i]/length +h*0.00727)/kT);
+      if(pf_parameters) free(pf_parameters);
+      pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
       update_pf_params(length);
    }
    free_pf_arrays();

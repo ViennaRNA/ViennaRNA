@@ -2,13 +2,13 @@
 
 /* Last changed Time-stamp: <2007-08-26 11:59:45 ivo> */
 /*                
-	   compute the duplex structure of two RNA strands,
-		allowing only inter-strand base pairs.
-	 see cofold() for computing hybrid structures without
-			     restriction.
+           compute the duplex structure of two RNA strands,
+                allowing only inter-strand base pairs.
+         see cofold() for computing hybrid structures without
+                             restriction.
 
-			     Ivo Hofacker
-			  Vienna RNA package
+                             Ivo Hofacker
+                          Vienna RNA package
 */
 
 #include <config.h>
@@ -25,7 +25,7 @@
 #include "params.h"
 #include "snoop.h"
 #include "PS_dot.h"
-//#include "fold.h"
+/* #include "fold.h" */
 #include "duplex.h"
 #include "loop_energies.h"
 /*@unused@*/
@@ -44,47 +44,47 @@ PRIVATE void  encode_seqs(const char *s1, const char *s2);
 PRIVATE short *encode_seq(const char *seq);
 
 PRIVATE void find_max_snoop(const char *s1, const char *s2, const int max, 
-			    const int alignment_length, const int* position, 
-			    const int delta, const int distance,  const int penalty, 
-			    const int threshloop, const int threshLE, const int threshRE, 
-			    const int threshDE, const int threshTE, const int threshSE, const int threshD,
-			    const int half_stem, const int max_half_stem,  const int min_s2, 
-			    const int max_s2, const int min_s1, const int  max_s1, const int min_d1, const int min_d2, const char* name);
+                            const int alignment_length, const int* position, 
+                            const int delta, const int distance,  const int penalty, 
+                            const int threshloop, const int threshLE, const int threshRE, 
+                            const int threshDE, const int threshTE, const int threshSE, const int threshD,
+                            const int half_stem, const int max_half_stem,  const int min_s2, 
+                            const int max_s2, const int min_s1, const int  max_s1, const int min_d1, const int min_d2, const char* name, const int fullStemEnergy);
 
 PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **access_s1, const int max, 
-			       const int alignment_length, const int* position, const int *position_j,
-			       const int delta, const int distance,  const int penalty, 
-			       const int threshloop, const int threshLE, const int threshRE, 
-			       const int threshDE, const int threshTE, const int threshSE, const int threshD,
-			       const int half_stem, const int max_half_stem,  const int min_s2, 
-			       const int max_s2, const int min_s1, const int  max_s1, const int min_d1, const int min_d2, const char *name);
+                               const int alignment_length, const int* position, const int *position_j,
+                               const int delta, const int distance,  const int penalty, 
+                               const int threshloop, const int threshLE, const int threshRE, 
+                               const int threshDE, const int threshTE, const int threshSE, const int threshD,
+                               const int half_stem, const int max_half_stem,  const int min_s2, 
+                               const int max_s2, const int min_s1, const int  max_s1, const int min_d1, const int min_d2, const char *name, const int fullStemEnergy);
 
 
 
 
 
 PRIVATE char * alisnoop_backtrack(int i, int j, const char ** s2, 
-				  int* Duplex_El, int* Duplex_Er, int* Loop_E, int *Loop_D, int *u, 
-				  int *pscd, int *psct, int *pscg,
-				  const int penalty, const int threshloop, 
-				  const int threshLE, const int threshRE, const int threshDE, const int threshD,
-				  const int half_stem, const int max_half_stem, 
-				  const int min_s2, const int max_s2, const int min_s1, 
-				  const int max_s1, const int min_d1, const int min_d2,
-				  const short **S1, const short **S2);
+                                  int* Duplex_El, int* Duplex_Er, int* Loop_E, int *Loop_D, int *u, 
+                                  int *pscd, int *psct, int *pscg,
+                                  const int penalty, const int threshloop, 
+                                  const int threshLE, const int threshRE, const int threshDE, const int threshD,
+                                  const int half_stem, const int max_half_stem, 
+                                  const int min_s2, const int max_s2, const int min_s1, 
+                                  const int max_s1, const int min_d1, const int min_d2,
+                                  const short **S1, const short **S2);
 
    
 PRIVATE char * snoop_backtrack(int i, int j, const char* s2, int* Duplex_El, int* Duplex_Er, int* Loop_E, int *Loop_D, int *u, 
-			       const int penalty, const int threshloop, const int threshLE, const int threshRE, const int threshDE, 
-			       const int threshD,
-			       const int half_stem, const int max_half_stem, 
-			       const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2);
+                               const int penalty, const int threshloop, const int threshLE, const int threshRE, const int threshDE, 
+                               const int threshD,
+                               const int half_stem, const int max_half_stem, 
+                               const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2);
 
 PRIVATE char * snoop_backtrack_XS(int i, int j, const char* s2, int* Duplex_El, int* Duplex_Er, int* Loop_E, int *Loop_D, int *u, 
-			       const int penalty, const int threshloop, const int threshLE, const int threshRE, const int threshDE, 
-			       const int threshD,
-			       const int half_stem, const int max_half_stem, 
-			       const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2);
+                               const int penalty, const int threshloop, const int threshLE, const int threshRE, const int threshDE, 
+                               const int threshD,
+                               const int half_stem, const int max_half_stem, 
+                               const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2);
 
 
 
@@ -101,10 +101,10 @@ PUBLIC  int snoop_subopt_sorted=0; /* from subopt.c, default 0 */
 
 
 
-#define MAXLOOP_L	3
+#define MAXLOOP_L        3
 #define MIN2(A, B)      ((A) < (B) ? (A) : (B))
 #define MAX2(A, B)      ((A) > (B) ? (A) : (B))
-#define ASS		1
+#define ASS                1
 PRIVATE paramT *P = NULL;
 
 PRIVATE int   **c = NULL;      /* energy array, given that i-j pair */
@@ -126,11 +126,11 @@ PRIVATE int delay_free=0;
 /*--------------------------------------------------------------------------*/
 
 snoopT alisnoopfold(const char **s1, const char **s2, 
-		    const int penalty, const int threshloop, 
-		    const int threshLE, const int threshRE, const int threshDE, const int threshD,
-		    const int half_stem, const int max_half_stem, 
-		    const int min_s2, const int max_s2, const int min_s1, 
-		    const int max_s1, const int min_d1, const int min_d2) {
+                    const int penalty, const int threshloop, 
+                    const int threshLE, const int threshRE, const int threshDE, const int threshD,
+                    const int half_stem, const int max_half_stem, 
+                    const int min_s2, const int max_s2, const int min_s1, 
+                    const int max_s1, const int min_d1, const int min_d2) {
   
   int s,n_seq;
   int i, j, E, l1,Emin=INF, i_min=0, j_min=0;
@@ -164,12 +164,12 @@ snoopT alisnoopfold(const char **s1, const char **s2,
   c = (int **) space(sizeof(int *) * (n1+1));
   r = (int **) space(sizeof(int *) * (n1+1));
   for (i=0; i<=n1; i++) {
-  	c[i] = (int *) space(sizeof(int) * (n2+1));
-	r[i] = (int *) space(sizeof(int) * (n2+1));
-	for(j=n2; j>-1; j--){
-		c[i][j]=INF;
-		r[i][j]=INF;
-	}
+          c[i] = (int *) space(sizeof(int) * (n2+1));
+        r[i] = (int *) space(sizeof(int) * (n2+1));
+        for(j=n2; j>-1; j--){
+                c[i][j]=INF;
+                r[i][j]=INF;
+        }
   }
   Sali1 = (short **) space((n_seq+1)*sizeof(short *));
   Sali2 = (short **) space((n_seq+1)*sizeof(short *));
@@ -182,7 +182,7 @@ snoopT alisnoopfold(const char **s1, const char **s2,
   type = (int *) space(n_seq*sizeof(int));
   type2 = (int *) space(n_seq*sizeof(int));
   type3 = (int *) space(n_seq*sizeof(int));
-  //  encode_seqs(s1, s2);
+  /*   encode_seqs(s1, s2); */
   for (i=6; i<=n1-5; i++) {
     int U; U=0;
     for (s=0; s<n_seq; s++) {
@@ -192,94 +192,94 @@ snoopT alisnoopfold(const char **s1, const char **s2,
     for (j=n2-min_d2; j>min_d1; j--) {
       int type4, k,l,psc,psc2,psc3;
       for (s=0; s<n_seq; s++) {
-	type[s] = pair[Sali1[s][i]][Sali2[s][j]];
+        type[s] = pair[Sali1[s][i]][Sali2[s][j]];
       }
       psc = covscore(type, n_seq);
       for (s=0; s<n_seq; s++) if (type[s]==0) type[s]=7;
       c[i][j] = (psc>=MINPSCORE) ? (n_seq*P->DuplexInit) : INF;
       if (psc<MINPSCORE) continue;
       if(/*  pair[Sali1[i+1]][Sali2[j-1]] &&  */
-	 U && j < max_s1 && j > min_s1 &&  
-	 j > n2 - max_s2 - max_half_stem && 
-	 j < n2 -min_s2 -half_stem ) { /*constraint on s2 and i*/
-	folden *temp;
-	temp=foldlist[j+1];
-	while(temp->next){
-	  int k = temp->k;
-	  for (s=0; s<n_seq; s++) {
-	    type2[s]= pair[Sali1[s][i-3]][Sali2[s][k+1]];
-	    type3[s]= pair[Sali1[s][i-4]][Sali2[s][k+1]];
-	  }
-	  psc2 = covscore(type2, n_seq);
-	  psc3 = covscore(type3, n_seq);
-	  if(psc2 > MINPSCORE){
-	    r[i][j]=MIN2(r[i][j],c[i-3][k+1]+temp->energy);
-	  }
-	  if(psc3 > MINPSCORE){
-	    r[i][j]=MIN2(r[i][j],c[i-4][k+1]+temp->energy);
-	  }
-	  temp=temp->next;
-	}
+         U && j < max_s1 && j > min_s1 &&  
+         j > n2 - max_s2 - max_half_stem && 
+         j < n2 -min_s2 -half_stem ) { /*constraint on s2 and i*/
+        folden *temp;
+        temp=foldlist[j+1];
+        while(temp->next){
+          int k = temp->k;
+          for (s=0; s<n_seq; s++) {
+            type2[s]= pair[Sali1[s][i-3]][Sali2[s][k+1]];
+            type3[s]= pair[Sali1[s][i-4]][Sali2[s][k+1]];
+          }
+          psc2 = covscore(type2, n_seq);
+          psc3 = covscore(type3, n_seq);
+          if(psc2 > MINPSCORE){
+            r[i][j]=MIN2(r[i][j],c[i-3][k+1]+temp->energy);
+          }
+          if(psc3 > MINPSCORE){
+            r[i][j]=MIN2(r[i][j],c[i-4][k+1]+temp->energy);
+          }
+          temp=temp->next;
+        }
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       for (s=0; s<n_seq; s++) {
-	c[i][j] += E_ExtLoop(type[s], Sali1[s][i-1],Sali2[s][j+1],P);
+        c[i][j] += E_ExtLoop(type[s], Sali1[s][i-1],Sali2[s][j+1],P);
       }
       for (k=i-1; k>0 && (i-k)<MAXLOOP_L; k--) {
-	for (l=j+1; l<=n2 ; l++) {
-	  if (i-k+l-j>2*MAXLOOP_L-2) break;
-	  if (abs(i-k-l+j) >= ASS ) continue;
-	  for (E=s=0; s<n_seq; s++) { 
-	    type4 = pair[Sali1[s][k]][Sali2[s][l]];
-	    if (type4==0) type4=7;
-	    E += E_IntLoop(i-k-1, l-j-1, type4, rtype[type[s]],
-			   Sali1[s][k+1], Sali2[s][l-1], Sali1[s][i-1], Sali2[s][j+1],P);
-	  }
-	  c[i][j] = MIN2(c[i][j], c[k][l] + E);
-	  r[i][j] = MIN2(r[i][j], r[k][l] + E);
-	}
+        for (l=j+1; l<=n2 ; l++) {
+          if (i-k+l-j>2*MAXLOOP_L-2) break;
+          if (abs(i-k-l+j) >= ASS ) continue;
+          for (E=s=0; s<n_seq; s++) { 
+            type4 = pair[Sali1[s][k]][Sali2[s][l]];
+            if (type4==0) type4=7;
+            E += E_IntLoop(i-k-1, l-j-1, type4, rtype[type[s]],
+                           Sali1[s][k+1], Sali2[s][l-1], Sali1[s][i-1], Sali2[s][j+1],P);
+          }
+          c[i][j] = MIN2(c[i][j], c[k][l] + E);
+          r[i][j] = MIN2(r[i][j], r[k][l] + E);
+        }
       }
       c[i][j]-=psc;
       r[i][j]-=psc;
       E = r[i][j]; 
       for (s=0; s<n_seq; s++) {
-	E+= E_ExtLoop(rtype[type[s]], Sali2[s][j-1], Sali1[s][i+1], P);
-	/**
-	*** if (i<n1) E += P->dangle3[rtype[type[s]]][Sali1[s][i+1]];
-	*** if (j>1)  E += P->dangle5[rtype[type[s]]][Sali2[s][j-1]];
-	*** if (type[s]>2) E += P->TerminalAU;
-	**/
+        E+= E_ExtLoop(rtype[type[s]], Sali2[s][j-1], Sali1[s][i+1], P);
+        /**
+        *** if (i<n1) E += P->dangle3[rtype[type[s]]][Sali1[s][i+1]];
+        *** if (j>1)  E += P->dangle5[rtype[type[s]]][Sali2[s][j-1]];
+        *** if (type[s]>2) E += P->TerminalAU;
+        **/
       }
       if (E<Emin) {
-	Emin=E; i_min=i; j_min=j;
+        Emin=E; i_min=i; j_min=j;
       } 
     }
   }
   if(Emin > 0){
-  	printf("no target found under the constraints chosen\n");
-	for (i=0; i<=n1; i++) {free(r[i]);free(c[i]);}
-	free(c);
-	free(r);
-	for(s=0; s<n_seq;s++){
-	  free(Sali1[s]);
-	  free(Sali2[s]);
-	}
-	free(Sali1); free(Sali2);
-	free(S2); free(SS1); free(SS2);free(type);free(type2);free(type3);
-	mfe.energy=INF;
-	mfe.structure=NULL;
-	return mfe;
+          printf("no target found under the constraints chosen\n");
+        for (i=0; i<=n1; i++) {free(r[i]);free(c[i]);}
+        free(c);
+        free(r);
+        for(s=0; s<n_seq;s++){
+          free(Sali1[s]);
+          free(Sali2[s]);
+        }
+        free(Sali1); free(Sali2);
+        free(S2); free(SS1); free(SS2);free(type);free(type2);free(type3);
+        mfe.energy=INF;
+        mfe.structure=NULL;
+        return mfe;
   }
   struc = alisnoop_backtrack(i_min, j_min,(const char**) s2, 
-			     &Duplex_El, &Duplex_Er, &Loop_E, 
-			     &Loop_D, &u, &pscd, &psct, &pscg,
-			     penalty, threshloop, threshLE, 
-			     threshRE,threshDE, threshD,
-			     half_stem, max_half_stem, min_s2, 
-			     max_s2, min_s1, max_s1, min_d1, 
-			     min_d2,(const short**) Sali1,(const short**) Sali2);
-  //if (i_min<n1-5) i_min++;
-  //if (j_min>6 ) j_min--;
+                             &Duplex_El, &Duplex_Er, &Loop_E, 
+                             &Loop_D, &u, &pscd, &psct, &pscg,
+                             penalty, threshloop, threshLE, 
+                             threshRE,threshDE, threshD,
+                             half_stem, max_half_stem, min_s2, 
+                             max_s2, min_s1, max_s1, min_d1, 
+                             min_d2,(const short**) Sali1,(const short**) Sali2);
+  /* if (i_min<n1-5) i_min++; */
+  /* if (j_min>6 ) j_min--; */
   l1 = strchr(struc, '&')-struc;
   mfe.i = i_min-5;
   mfe.j = j_min-5;
@@ -289,6 +289,7 @@ snoopT alisnoopfold(const char **s1, const char **s2,
   mfe.Loop_D = (float) Loop_D/100;
   mfe.Loop_E = (float) Loop_E/100;
   mfe.energy = (float) Emin/100 ;
+  /* mfe.fullStemEnergy = (float) fullStemEnergy/100; */
   mfe.pscd = pscd;
   mfe.psct = psct;
   mfe.structure = struc;
@@ -307,14 +308,14 @@ snoopT alisnoopfold(const char **s1, const char **s2,
 }
 
 PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int w, 
-			      const int penalty, const int threshloop, 
-			       const int threshLE, const int threshRE, const int threshDE, const int threshTE, const int threshSE, const int threshD,
-			      const int distance, const int half_stem, const int max_half_stem,
-			      const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2) {
+                              const int penalty, const int threshloop, 
+                               const int threshLE, const int threshRE, const int threshDE, const int threshTE, const int threshSE, const int threshD,
+                              const int distance, const int half_stem, const int max_half_stem,
+                               const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2) {
 
 
   short **Sali1, **Sali2;
-  //printf("%d %d\n", min_s2, max_s2);
+  /* printf("%d %d\n", min_s2, max_s2); */
   int i,j,s,n_seq, n1, n2, E, n_subopt=0, n_max;
   char *struc;
   snoopT mfe;
@@ -331,14 +332,14 @@ PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int 
   delay_free=1;
   mfe = alisnoopfold(s1, s2, penalty, threshloop, threshLE, threshRE, threshDE,threshD,
                   half_stem, max_half_stem,
-		  min_s2, max_s2, min_s1, max_s1, min_d1, min_d2);
+                     min_s2, max_s2, min_s1, max_s1, min_d1, min_d2);
   if(mfe.energy > 0){
-  	free(subopt);
-	delay_free=0;
-	return NULL;
+          free(subopt);
+        delay_free=0;
+        return NULL;
   }
   thresh = MIN2((int) ((mfe.Duplex_Er + mfe.Duplex_El + mfe.Loop_E)*100+0.1 + 410) + delta, threshTE );
- //subopt[n_subopt++]=mfe;
+ /* subopt[n_subopt++]=mfe; */
   free(mfe.structure);
   n1 = strlen(s1[0]);
   n2 = strlen(s2[0]);
@@ -365,14 +366,14 @@ PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int 
       if (psc<MINPSCORE) continue;
       E = Ed = r[i][j];
       for  (s=0; s<n_seq; s++) {
-	//	if (i<n1-5) Ed += P->dangle3[type[s]][Sali1[s][i+1]];
-	//      if (j>6)  Ed += P->dangle5[type[s]][Sali2[s][j-1]];
-	if (type[s]>2) Ed += P->TerminalAU;
+        /*         if (i<n1-5) Ed += P->dangle3[type[s]][Sali1[s][i+1]]; */
+        /*       if (j>6)  Ed += P->dangle5[type[s]][Sali2[s][j-1]]; */
+        if (type[s]>2) Ed += P->TerminalAU;
       }
       if (Ed>thresh) continue;
       /* too keep output small, remove hits that are dominated by a
-	 better one close (w) by. For simplicity we do test without
-	 adding dangles, which is slightly inaccurate. 
+         better one close (w) by. For simplicity we do test without
+         adding dangles, which is slightly inaccurate. 
       */ 
       w=1;
       for (skip=0, ii=MAX2(i-w,1); (ii<=MIN2(i+w,n1)) && type; ii++) { 
@@ -383,34 +384,34 @@ PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int 
       psct=0;
       pscg=0;
       struc = alisnoop_backtrack(i,j,s2, &Duplex_El, 
-				 &Duplex_Er, &Loop_E, &Loop_D, &u, &pscd, &psct,&pscg, 
-				 penalty, threshloop,threshLE,threshRE,threshDE, threshD,
-				 half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2,(const short int**) Sali1,(const int short **) Sali2);
-	      
+                                 &Duplex_Er, &Loop_E, &Loop_D, &u, &pscd, &psct,&pscg, 
+                                 penalty, threshloop,threshLE,threshRE,threshDE, threshD,
+                                 half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2,(const short int**) Sali1,(const int short **) Sali2);
+              
       if (Duplex_Er > threshRE || Duplex_El > threshLE || Loop_D > threshD ||
          (Duplex_Er + Duplex_El) > threshDE || 
-	 (Duplex_Er + Duplex_El + Loop_E) > threshTE ||
-	 (Duplex_Er + Duplex_El + Loop_E + Loop_D + 410) > threshSE) {
-	 	//printf(" Duplex_Er %d threshRE %d Duplex_El %d threshLE %d \n"
-		//       " Duplex_Er + Duplex_El %d  threshDE %d \n"
-		//       " Duplex_Er + Duplex_El + Loop_E %d  threshTE %d \n"
-		//       " Duplex_Er + Duplex_El + Loop_E + Loop_D %d  threshSE %d \n", 
-		//	 Duplex_Er , threshRE , Duplex_El ,threshLE,
-	        //         Duplex_Er + Duplex_El, threshDE,
-        	//         Duplex_Er + Duplex_El+  Loop_E , threshTE,
-                //	 Duplex_Er + Duplex_El+  Loop_E + Loop_D, threshSE); 
-	 	Duplex_Er=0; 
-		Duplex_El=0;
-		Loop_E = 0;
-		Loop_D = 0;
-		u=0,
-		free(struc);
-		continue;
-	}
+         (Duplex_Er + Duplex_El + Loop_E) > threshTE ||
+         (Duplex_Er + Duplex_El + Loop_E + Loop_D + 410) > threshSE) {
+                 /* printf(" Duplex_Er %d threshRE %d Duplex_El %d threshLE %d \n" */
+                /*        " Duplex_Er + Duplex_El %d  threshDE %d \n" */
+                /*        " Duplex_Er + Duplex_El + Loop_E %d  threshTE %d \n" */
+                /*        " Duplex_Er + Duplex_El + Loop_E + Loop_D %d  threshSE %d \n",  */
+                /*          Duplex_Er , threshRE , Duplex_El ,threshLE, */
+                /*          Duplex_Er + Duplex_El, threshDE, */
+                /*          Duplex_Er + Duplex_El+  Loop_E , threshTE, */
+                /*          Duplex_Er + Duplex_El+  Loop_E + Loop_D, threshSE);  */
+                 Duplex_Er=0; 
+                Duplex_El=0;
+                Loop_E = 0;
+                Loop_D = 0;
+                u=0,
+                free(struc);
+                continue;
+        }
 
       if (n_subopt+1>=n_max) {
-	n_max *= 2;
-	subopt = (snoopT *) xrealloc(subopt, n_max*sizeof(snoopT));
+        n_max *= 2;
+        subopt = (snoopT *) xrealloc(subopt, n_max*sizeof(snoopT));
       }
       
       subopt[n_subopt].i = i-5;
@@ -425,7 +426,7 @@ PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int 
       subopt[n_subopt].psct = -psct * 0.01;
       subopt[n_subopt++].structure = struc;
       
-      //i=u;
+      /* i=u; */
       Duplex_Er=0; Duplex_El=0; Loop_E=0; Loop_D=0;u=0;pscd=0;psct=0;
     }
   }
@@ -452,18 +453,18 @@ PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int 
 
 
 PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex_El, 
-				 int *Duplex_Er, int *Loop_E, int *Loop_D, int *u, 
-				 int *pscd, int *psct, int *pscg,
-				 const int penalty, const int threshloop, const int threshLE, 
-				 const int threshRE, const int threshDE, const int threshD, const int half_stem, 
-				 const int max_half_stem, 
-				 const int min_s2, const int max_s2, const int min_s1, 
-				 const int max_s1, 
-				 const int min_d1, const int min_d2,const short **Sali1, const short **Sali2) {
+                                 int *Duplex_Er, int *Loop_E, int *Loop_D, int *u, 
+                                 int *pscd, int *psct, int *pscg,
+                                 const int penalty, const int threshloop, const int threshLE, 
+                                 const int threshRE, const int threshDE, const int threshD, const int half_stem, 
+                                 const int max_half_stem, 
+                                 const int min_s2, const int max_s2, const int min_s1, 
+                                 const int max_s1, 
+                                 const int min_d1, const int min_d2,const short **Sali1, const short **Sali2) {
   /* backtrack structure going backwards from i, and forwards from j 
      return structure in bracket notation with & as separator */
   int k, l, *type,*type2,*type3,type4, E, traced, i0, j0,s,n_seq,psc;
-  int traced_r=0; //flag for following backtrack in c or r
+  int traced_r=0; /* flag for following backtrack in c or r */
   char *st1, *st2, *struc;
   char *struc_loop;
   n1 = (int) Sali1[0][0];
@@ -484,7 +485,7 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
   int *cLoop;
   folden **foldlist, **foldlist_XS;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop,&foldlist, &foldlist_XS ); 
-  i0=i; j0=j; //MIN2(i+1,n1); j0=MAX2(j-1,1);!modified
+  i0=i; j0=j; /* MIN2(i+1,n1); j0=MAX2(j-1,1);!modified */
   for (s=0; s<n_seq; s++) {
     type[s] = pair[Sali1[s][i]][Sali2[s][j]];
     if(type[s]==0) type[s] = 7;
@@ -501,112 +502,112 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
       st1[i-1] = '<';
       st2[j-1] = '>'; 
       for (s=0; s<n_seq; s++) {
-	type[s] = pair[Sali1[s][i]][Sali2[s][j]];
+        type[s] = pair[Sali1[s][i]][Sali2[s][j]];
       }
       psc = covscore(type,n_seq);
       for (s=0; s<n_seq; s++) if (type[s]==0) type[s] = 7;
       E += psc;
       *pscd +=psc;
       for (k=i-1; k>0 && (i-k)<MAXLOOP_L; k--) {
-	for (l=j+1; l<=n2 ; l++) {
-	  int LE;
-	  if (i-k+l-j>2*MAXLOOP_L-2) break;
-	  if (abs(i-k-l+j) >= ASS) continue;
-	  for (s=LE=0; s<n_seq; s++) {
-	    type4 = pair[Sali1[s][k]][Sali2[s][l]];
-	    if (type4==0) type4=7;
-	    LE += E_IntLoop(i-k-1, l-j-1, type4, rtype[type[s]], Sali1[s][k+1], Sali2[s][l-1], Sali1[s][i-1], Sali2[s][j+1],P);
-	  }
-	  if (E == r[k][l]+LE) {
-	    traced=1; 
-	    i=k; j=l;
-	    *Duplex_Er+=LE;
-	    break;
-	  }
-	}
-	if (traced) break;
+        for (l=j+1; l<=n2 ; l++) {
+          int LE;
+          if (i-k+l-j>2*MAXLOOP_L-2) break;
+          if (abs(i-k-l+j) >= ASS) continue;
+          for (s=LE=0; s<n_seq; s++) {
+            type4 = pair[Sali1[s][k]][Sali2[s][l]];
+            if (type4==0) type4=7;
+            LE += E_IntLoop(i-k-1, l-j-1, type4, rtype[type[s]], Sali1[s][k+1], Sali2[s][l-1], Sali1[s][i-1], Sali2[s][j+1],P);
+          }
+          if (E == r[k][l]+LE) {
+            traced=1; 
+            i=k; j=l;
+            *Duplex_Er+=LE;
+            break;
+          }
+        }
+        if (traced) break;
       }
       if(!traced){
-	int U=0;
-	for (s=0; s<n_seq; s++) {
-	  U+=Sali1[s][i-2];
-	}
-	U = (U==(n_seq)*4?1:0);
-	if(/*  pair[Sali1[i+1]][Sali2[j-1]] && */   //only U's are allowed
-	    U && j < max_s1 && j > min_s1 && 
-	    j > n2 - max_s2 - max_half_stem && 
-	    j < n2 -min_s2 -half_stem ) {
-	  int min_k, max_k;
-	  max_k = MIN2(n2-min_s2,j+max_half_stem+1);
-	  min_k = MAX2(j+half_stem+1, n2-max_s2);
-	  folden * temp;
-	  temp=foldlist[j+1];
-	  while(temp->next) {
-	    int psc2, psc3;
-	    int k = temp->k;
-	    for (s=0; s<n_seq; s++) {
-	      type2[s]= pair[Sali1[s][i-3]][Sali2[s][k+1]];
-	      type3[s]= pair[Sali1[s][i-4]][Sali2[s][k+1]];
-	    }
-	    psc2 = covscore(type2, n_seq);
-	    psc3 = covscore(type3, n_seq);
-	    if(psc2>MINPSCORE /*&& pair[Sali1[i-4]][Sali2[k+2]]*/    ){  //introduce structure from RNAfold
-	      if(E==c[i-3][k+1]+temp->energy){
-		*Loop_E=temp->energy;
-		st1[i-3]= '|';
-		*u=i-2;
-		int a,b;
-		//int fix_ij=indx[k-1+1]+j+1;
-		for(a=0; a< MISMATCH ;a++){
-		  for(b=0; b< MISMATCH ; b++){
-		    int ij=indx[k-1-a+1]+j+1+b;
-		    if(cLoop[ij]==temp->energy) {
-		      //int bla;
-		      struc_loop=alisnobacktrack_fold_from_pair(snoseq, j+1+b, k-a-1+1,psct);
-		    a=INF; b=INF;	
-		    }
-		  }
-		}
-		traced=1;
-		traced_r=1;
-		i=i-3;j=k+1;
-		break;
-	      }
-	    }
-	     if (psc3>MINPSCORE  /*&& pair[Sali1[i-5]][Sali2[k+2]]*/){  //introduce structure from RNAfold
-	      if(E==c[i-4][k+1]+temp->energy){
-		*Loop_E=temp->energy;
-		st1[i-3]= '|';
-		*u=i-2;
-		int a,b;
-		//int fix_ij=indx[k-1+1]+j+1;
-		for(a=0; a< MISMATCH ;a++){
-		  for(b=0; b< MISMATCH ; b++){
-		    int ij=indx[k-1-a+1]+j+1+b;
-		    if(cLoop[ij]==temp->energy) {
-		      //int bla;
-		      struc_loop=alisnobacktrack_fold_from_pair(snoseq, j+1+b, k-a-1+1,psct);
-		      a=INF; b=INF;	
-		    }
-		  }
-		}
-		traced=1;
-		traced_r=1;
-		i=i-4;j=k+1;
-		break;
-	      }
-	    } //else if
-	    temp=temp->next;
-	  } //while temp-> next
-	} //test on j 
-      }//traced?
-    }//traced_r?
+        int U=0;
+        for (s=0; s<n_seq; s++) {
+          U+=Sali1[s][i-2];
+        }
+        U = (U==(n_seq)*4?1:0);
+        if(/*  pair[Sali1[i+1]][Sali2[j-1]] && */   /* only U's are allowed */
+            U && j < max_s1 && j > min_s1 && 
+            j > n2 - max_s2 - max_half_stem && 
+            j < n2 -min_s2 -half_stem ) {
+          int min_k, max_k;
+          max_k = MIN2(n2-min_s2,j+max_half_stem+1);
+          min_k = MAX2(j+half_stem+1, n2-max_s2);
+          folden * temp;
+          temp=foldlist[j+1];
+          while(temp->next) {
+            int psc2, psc3;
+            int k = temp->k;
+            for (s=0; s<n_seq; s++) {
+              type2[s]= pair[Sali1[s][i-3]][Sali2[s][k+1]];
+              type3[s]= pair[Sali1[s][i-4]][Sali2[s][k+1]];
+            }
+            psc2 = covscore(type2, n_seq);
+            psc3 = covscore(type3, n_seq);
+            if(psc2>MINPSCORE /*&& pair[Sali1[i-4]][Sali2[k+2]]*/    ){  /* introduce structure from RNAfold */
+              if(E==c[i-3][k+1]+temp->energy){
+                *Loop_E=temp->energy;
+                st1[i-3]= '|';
+                *u=i-2;
+                int a,b;
+                /* int fix_ij=indx[k-1+1]+j+1; */
+                for(a=0; a< MISMATCH ;a++){
+                  for(b=0; b< MISMATCH ; b++){
+                    int ij=indx[k-1-a+1]+j+1+b;
+                    if(cLoop[ij]==temp->energy) {
+                      /* int bla; */
+                      struc_loop=alisnobacktrack_fold_from_pair(snoseq, j+1+b, k-a-1+1,psct);
+                    a=INF; b=INF;        
+                    }
+                  }
+                }
+                traced=1;
+                traced_r=1;
+                i=i-3;j=k+1;
+                break;
+              }
+            }
+             if (psc3>MINPSCORE  /*&& pair[Sali1[i-5]][Sali2[k+2]]*/){  /* introduce structure from RNAfold */
+              if(E==c[i-4][k+1]+temp->energy){
+                *Loop_E=temp->energy;
+                st1[i-3]= '|';
+                *u=i-2;
+                int a,b;
+                /* int fix_ij=indx[k-1+1]+j+1; */
+                for(a=0; a< MISMATCH ;a++){
+                  for(b=0; b< MISMATCH ; b++){
+                    int ij=indx[k-1-a+1]+j+1+b;
+                    if(cLoop[ij]==temp->energy) {
+                      /* int bla; */
+                      struc_loop=alisnobacktrack_fold_from_pair(snoseq, j+1+b, k-a-1+1,psct);
+                      a=INF; b=INF;        
+                    }
+                  }
+                }
+                traced=1;
+                traced_r=1;
+                i=i-4;j=k+1;
+                break;
+              }
+            } /* else if */
+            temp=temp->next;
+          } /* while temp-> next */
+        } /* test on j  */
+      }/* traced? */
+    }/* traced_r? */
     else{
       E = c[i][j]; traced=0;
       st1[i-1] = '<';
       st2[j-1] = '>'; 
       for (s=0; s<n_seq; s++) {
-	type[s] = pair[Sali1[s][i]][Sali2[s][j]];
+        type[s] = pair[Sali1[s][i]][Sali2[s][j]];
       }
       psc = covscore(type,n_seq);
       for (s=0; s<n_seq; s++) if (type[s]==0) type[s] = 7;
@@ -614,78 +615,78 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
       *pscd+=psc;
       if (!type) nrerror("backtrack failed in fold duplex c");
       for (k=i-1; (i-k)<MAXLOOP_L; k--) {
-	for (l=j+1; l<=n2; l++) {
-	  int LE;
-	  if (i-k+l-j>2*MAXLOOP_L-2) break;
-	  if (abs(i-k-l+j) >= ASS) continue;
-	  for (s=LE=0; s<n_seq; s++) {
-	    type4 = pair[Sali1[s][k]][Sali2[s][l]];
-	    if (type4==0) type4=7;
-	    LE += E_IntLoop(i-k-1, l-j-1, type4, rtype[type[s]], Sali1[s][k+1], Sali2[s][l-1], Sali1[s][i-1], Sali2[s][j+1],P);
-	  }
-	  if (E == c[k][l]+LE) {
-	    traced=1; 
-	    i=k; j=l;
-	    *Duplex_El+=LE;
-	    break;
-	  }
-	}
-	if (traced) break;
+        for (l=j+1; l<=n2; l++) {
+          int LE;
+          if (i-k+l-j>2*MAXLOOP_L-2) break;
+          if (abs(i-k-l+j) >= ASS) continue;
+          for (s=LE=0; s<n_seq; s++) {
+            type4 = pair[Sali1[s][k]][Sali2[s][l]];
+            if (type4==0) type4=7;
+            LE += E_IntLoop(i-k-1, l-j-1, type4, rtype[type[s]], Sali1[s][k+1], Sali2[s][l-1], Sali1[s][i-1], Sali2[s][j+1],P);
+          }
+          if (E == c[k][l]+LE) {
+            traced=1; 
+            i=k; j=l;
+            *Duplex_El+=LE;
+            break;
+          }
+        }
+        if (traced) break;
       }
     }
     if (!traced) { 
       for (s=0; s<n_seq; s++) {
-	int correction;
-	correction = E_ExtLoop(type[s], (i>1) ? Sali1[s][i-1] : -1, (j<n2) ? Sali2[s][j+1] : -1, P);
-	*Duplex_El += correction;
-	E          -= correction;
-	/**
-	*** if (i>1)    {E -= P->dangle5[type[s]][Sali1[s][i-1]]; *Duplex_El +=P->dangle5[type[s]][Sali1[s][i-1]];}
-	*** if (j<n2)   {E -= P->dangle3[type[s]][Sali2[s][j+1]]; *Duplex_El +=P->dangle3[type[s]][Sali2[s][j+1]];}
-	*** if (type[s]>2) {E -= P->TerminalAU;		      *Duplex_El +=P->TerminalAU;}
-	**/
+        int correction;
+        correction = E_ExtLoop(type[s], (i>1) ? Sali1[s][i-1] : -1, (j<n2) ? Sali2[s][j+1] : -1, P);
+        *Duplex_El += correction;
+        E          -= correction;
+        /**
+        *** if (i>1)    {E -= P->dangle5[type[s]][Sali1[s][i-1]]; *Duplex_El +=P->dangle5[type[s]][Sali1[s][i-1]];}
+        *** if (j<n2)   {E -= P->dangle3[type[s]][Sali2[s][j+1]]; *Duplex_El +=P->dangle3[type[s]][Sali2[s][j+1]];}
+        *** if (type[s]>2) {E -= P->TerminalAU;                      *Duplex_El +=P->TerminalAU;}
+        **/
       }
       if (E != n_seq * P->DuplexInit) {
-	nrerror("backtrack failed in fold duplex end");
+        nrerror("backtrack failed in fold duplex end");
       } else break;
     }
   }
 /*   if (i>1)  i--;  */
 /*   if (j<n2) j++;  */
-  ////struc = (char *) space(i0-i+1+j-j0+1+2); //declare final duplex structure
-  struc = (char *) space(i0-i+1+n2-1+1+2); //declare final duplex structure
+  /* struc = (char *) space(i0-i+1+j-j0+1+2); */ /* declare final duplex structure */
+  struc = (char *) space(i0-i+1+n2-1+1+2); /* declare final duplex structure */
   char * struc2;
   struc2 = (char *) space(n2+1);
-  ////char * struct_const;
+  /* char * struct_const; */
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
-  //for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.'; normal
-  // char * struct_const;
-  // struct_const = (char *) space(sizeof(char)*(n2+1));  
+  /* for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];*/ /* '.'; normal */
+  /*  char * struct_const; */
+  /*  struct_const = (char *) space(sizeof(char)*(n2+1));   */
   for (k=1; k<=n2; k++) {
-    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.';
-    struc2[k-1] = st2[k-1];//'.';
-    //     if (k>=j0 && k<=j){
-    //     	struct_const[k-1]='x';
-    //     }
-    //     else{
-    //     	if(k<j0) {struct_const[k-1]='<';}
-    //     	if(k>j) {struct_const[k-1]='>';}
-    //     }
+    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];/* '.'; */
+    struc2[k-1] = st2[k-1];/* '.'; */
+    /*      if (k>=j0 && k<=j){ */
+    /*              struct_const[k-1]='x'; */
+    /*      } */
+    /*      else{ */
+    /*              if(k<j0) {struct_const[k-1]='<';} */
+    /*              if(k>j) {struct_const[k-1]='>';} */
+    /*      } */
   }
 
-  //  char duplexseq_1[j0+1];
-  //char duplexseq_2[n2-j+3];
+  /*   char duplexseq_1[j0+1]; */
+  /* char duplexseq_2[n2-j+3]; */
   if(j<n2){
     char **duplexseq_1, **duplexseq_2;
     duplexseq_1 = (char**) space((n_seq+1) * sizeof(char*));
     duplexseq_2 = (char**) space((n_seq+1) * sizeof(char*));
     for(s=0; s<n_seq; s++){
-      duplexseq_1[s] = (char*) space((j0)*sizeof(char)); //modfied j0+1
-      duplexseq_2[s] = (char*) space((n2-j+2)*sizeof(char)); //modified j+3
-      strncpy(duplexseq_1[s], snoseq[s], j0-1); //modified j0
-      strcpy(duplexseq_2[s], snoseq[s] + j); //modified j-1
-      duplexseq_1[s][j0-1]='\0'; //modified j0
-      duplexseq_2[s][n2-j+1]='\0';//modified j+2
+      duplexseq_1[s] = (char*) space((j0)*sizeof(char)); /* modfied j0+1 */
+      duplexseq_2[s] = (char*) space((n2-j+2)*sizeof(char)); /* modified j+3 */
+      strncpy(duplexseq_1[s], snoseq[s], j0-1); /* modified j0 */
+      strcpy(duplexseq_2[s], snoseq[s] + j); /* modified j-1 */
+      duplexseq_1[s][j0-1]='\0'; /* modified j0 */
+      duplexseq_2[s][n2-j+1]='\0';/* modified j+2 */
     }
     duplexseq_1[n_seq]=NULL;
     duplexseq_2[n_seq]=NULL;
@@ -700,10 +701,10 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
       jbegin=temp.j;
       jend  =temp.j+strlen(temp.structure)-l1-2-1;
       for(k=ibegin+1; k<=iend+1; k++){
-	struc2[k-1]=temp.structure[k-ibegin-1];
+        struc2[k-1]=temp.structure[k-ibegin-1];
       }
       for(k=jbegin+j; k<=jend+j; k++){
-	struc2[k-1]=temp.structure[l1+k-j-jbegin+1];
+        struc2[k-1]=temp.structure[l1+k-j-jbegin+1];
       }
     }
     for(s=0; s<n_seq; s++){
@@ -714,13 +715,13 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
     free(temp.structure);
   }
   strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&"); 
-  //strcat(struc, st2);
+  /* strcat(struc, st2); */
   strncat(struc, struc2+5, strlen(struc2)-10);
   free(struc2);
   free(struc_loop);
   free(st1); free(st2);
   free(type);free(type2);free(type3);
-  //free_arrays();
+  /* free_arrays(); */
   return struc;
 }
 
@@ -731,35 +732,35 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
 
 
 void Lsnoop_subopt(const char *s1, const char *s2, int delta, int w, 
-		   const int penalty, const int threshloop, 
-		   const int threshLE, const int threshRE, const int threshDE, const int threshTE,const int threshSE,const int threshD,
-		   const int distance,
-		   const int half_stem, const int max_half_stem,
-		   const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const int alignment_length, const char* name)
+                   const int penalty, const int threshloop, 
+                   const int threshLE, const int threshRE, const int threshDE, const int threshTE,const int threshSE,const int threshD,
+                   const int distance,
+                   const int half_stem, const int max_half_stem,
+                   const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const int alignment_length, const char* name, const int fullStemEnergy)
 {
 
  int min_colonne=INF;
  int max_pos;
  int max;max=INF;
- //int temp;
- //int nsubopt=10;
+ /* int temp; */
+ /* int nsubopt=10; */
  n1 = (int) strlen(s1);
  n2 = (int) strlen(s2);
  int *position;
  position = (int*) space((n1+3)*sizeof(int));
 
 
-  //int Eminj, Emin_l;
-  int i, j; //l1, Emin=INF, i_min=0, j_min=0;
-  //char *struc;
-  //snoopT mfe;
+  /* int Eminj, Emin_l; */
+  int i, j; /* l1, Emin=INF, i_min=0, j_min=0; */
+  /* char *struc; */
+  /* snoopT mfe; */
   int *indx;
   int *mLoop;
   int *cLoop;
   folden **foldlist, **foldlist_XS;
   int Duplex_El, Duplex_Er;
   int Loop_D;
-  //int u;
+  /* int u; */
   int Loop_E;
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist, &foldlist_XS); 
@@ -771,12 +772,12 @@ void Lsnoop_subopt(const char *s1, const char *s2, int delta, int w,
   lc = (int **) space(sizeof(int *) * (5));
   lr = (int **) space(sizeof(int *) * (5));
   for (i=0; i<5; i++) {
-  	lc[i] = (int *) space(sizeof(int) * (n2+1));
-	lr[i] = (int *) space(sizeof(int) * (n2+1));
-	for(j=n2; j>-1; j--){
-		lc[i][j]=INF;
-		lr[i][j]=INF;
-	}
+          lc[i] = (int *) space(sizeof(int) * (n2+1));
+        lr[i] = (int *) space(sizeof(int) * (n2+1));
+        for(j=n2; j>-1; j--){
+                lc[i][j]=INF;
+                lr[i][j]=INF;
+        }
   }
   encode_seqs(s1, s2);
   for (i=1; i<=n1; i++) {
@@ -792,25 +793,25 @@ void Lsnoop_subopt(const char *s1, const char *s2, int delta, int w,
       lr[idx][j] = INF;
       if(!type) continue;
       if( /*pair[S1[i+1]][S2[j-1]]   &&  check that we have a solid base stack after the mLoop */
-	  j < max_s1 && j > min_s1 &&  
-	  j > n2 - max_s2 - max_half_stem && 
-	  j < n2 -min_s2 -half_stem && S1[i-2]==4) { /*constraint on s2 and i*/
-	int min_k, max_k;
-	max_k = MIN2(n2-min_s2,j+max_half_stem+1);
-	min_k = MAX2(j+half_stem+1, n2-max_s2);
-	for(k=min_k; k <= max_k ; k++){	 
-	  if(mLoop[indx[k-1]+j+1] < 0){
-		}
-	  if(pair[S1[i-3]][S2[k]] /*genau zwei ungepaarte nucleotiden --NU--*/
-	     && mLoop[indx[k-1]+j+1] < threshloop){  
-	    lr[idx][j]=MIN2(lr[idx][j], lc[idx_3][k]+mLoop[indx[k-1]+j+1]);
-	  }
-	  else if(pair[S1[i-4]][S2[k]] &&  mLoop[indx[k-1]+j+1] < threshloop){/*--NUN--*/
-	    lr[idx][j]=MIN2(lr[idx][j], lc[idx_4][k]+mLoop[indx[k-1]+j+1]);
-	  }
-      	}
+          j < max_s1 && j > min_s1 &&  
+          j > n2 - max_s2 - max_half_stem && 
+          j < n2 -min_s2 -half_stem && S1[i-2]==4) { /*constraint on s2 and i*/
+        int min_k, max_k;
+        max_k = MIN2(n2-min_s2,j+max_half_stem+1);
+        min_k = MAX2(j+half_stem+1, n2-max_s2);
+        for(k=min_k; k <= max_k ; k++){         
+          if(mLoop[indx[k-1]+j+1] < 0){
+                }
+          if(pair[S1[i-3]][S2[k]] /*genau zwei ungepaarte nucleotiden --NU--*/
+             && mLoop[indx[k-1]+j+1] < threshloop){  
+            lr[idx][j]=MIN2(lr[idx][j], lc[idx_3][k]+mLoop[indx[k-1]+j+1]);
+          }
+          else if(pair[S1[i-4]][S2[k]] &&  mLoop[indx[k-1]+j+1] < threshloop){/*--NUN--*/
+            lr[idx][j]=MIN2(lr[idx][j], lc[idx_4][k]+mLoop[indx[k-1]+j+1]);
+          }
+              }
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       lc[idx][j] += E_ExtLoop(type, (i>1) ? SS1[i-1] : -1, (j<n2) ? SS2[j+1] : -1, P);
       /**
       *** if (i>1)    lc[idx][j] += P->dangle5[type][SS1[i-1]];
@@ -819,25 +820,25 @@ void Lsnoop_subopt(const char *s1, const char *s2, int delta, int w,
       **/
       
       if(j<n2 && i>1){
-	type2=pair[S1[i-1]][S2[j+1]];
-      	if(type2>0){
-	  lc[idx][j]=MIN2(lc[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+2*penalty, lc[idx][j]);
-	  lr[idx][j]=MIN2(lr[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+2*penalty, lr[idx][j]);
-      	}
+        type2=pair[S1[i-1]][S2[j+1]];
+              if(type2>0){
+          lc[idx][j]=MIN2(lc[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+2*penalty, lc[idx][j]);
+          lr[idx][j]=MIN2(lr[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+2*penalty, lr[idx][j]);
+              }
       }
       if(j<n2-1 && i>2){
-	type2=pair[S1[i-2]][S2[j+2]];
-	if(type2>0 ){
-	  lc[idx][j]=MIN2(lc[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+4*penalty, lc[idx][j]);
-	  lr[idx][j]=MIN2(lr[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+4*penalty, lr[idx][j]);
-	}
+        type2=pair[S1[i-2]][S2[j+2]];
+        if(type2>0 ){
+          lc[idx][j]=MIN2(lc[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+4*penalty, lc[idx][j]);
+          lr[idx][j]=MIN2(lr[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+4*penalty, lr[idx][j]);
+        }
       }
       if(j<n2-2 && i>3){
-	type2 = pair[S1[i-3]][S2[j+3]];
-	if(type2>0){
-	  lc[idx][j]=MIN2(lc[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*penalty,lc[idx][j]);
-	  lr[idx][j]=MIN2(lr[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*penalty,lr[idx][j]);
-      	}
+        type2 = pair[S1[i-3]][S2[j+3]];
+        if(type2>0){
+          lc[idx][j]=MIN2(lc[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*penalty,lc[idx][j]);
+          lr[idx][j]=MIN2(lr[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*penalty,lr[idx][j]);
+              }
       }
       /**
       *** (type>2?P->TerminalAU:0)+(i<(n1)?P->dangle3[rtype[type]][SS1[i+1]]+penalty:0)+(j>1?P->dangle5[rtype[type]][SS2[j-1]]+penalty:0)
@@ -846,17 +847,17 @@ void Lsnoop_subopt(const char *s1, const char *s2, int delta, int w,
       }
       position[i]=min_colonne;
       if(max>=min_colonne){
-	max=min_colonne;
-	max_pos=i;
+        max=min_colonne;
+        max_pos=i;
       }
       min_colonne=INF;
  }
  
   free(S1); free(S2); free(SS1); free(SS2);
   if(max<threshTE){
-	find_max_snoop(s1, s2, max, alignment_length, position, delta, 
-		       distance, penalty, threshloop, threshLE, threshRE, threshDE, 
-		       threshTE, threshSE, threshD, half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2,name);
+        find_max_snoop(s1, s2, max, alignment_length, position, delta, 
+                       distance, penalty, threshloop, threshLE, threshRE, threshDE, 
+                       threshTE, threshSE, threshD, half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2,name, fullStemEnergy);
    }
   for (i=1; i<5; i++) {free(lc[i]);free(lr[i]);}
   free(lc[0]);free(lr[0]);
@@ -868,35 +869,35 @@ void Lsnoop_subopt(const char *s1, const char *s2, int delta, int w,
 
 
 void Lsnoop_subopt_list(const char *s1, const char *s2, int delta, int w, 
-			const int penalty, const int threshloop, 
-			const int threshLE, const int threshRE, const int threshDE, const int threshTE,const int threshSE,const int threshD,
-			const int distance,
-			const int half_stem, const int max_half_stem,
-			const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const int alignment_length,const char *name)
+                        const int penalty, const int threshloop, 
+                        const int threshLE, const int threshRE, const int threshDE, const int threshTE,const int threshSE,const int threshD,
+                        const int distance,
+                        const int half_stem, const int max_half_stem,
+                        const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const int alignment_length,const char *name,const int fullStemEnergy)
 {
  
  int min_colonne=INF;
  int max_pos;
  int max;max=INF;
- //int temp;
- //int nsubopt=10;
+ /* int temp; */
+ /* int nsubopt=10; */
  n1 = (int) strlen(s1);
  n2 = (int) strlen(s2);
  int *position;
  position = (int*) space((n1+3)*sizeof(int));
 
 
- //int Eminj, Emin_l;
-  int i, j;// l1, Emin=INF, i_min=0, j_min=0;
-  //char *struc;
-  //snoopT mfe;
+ /* int Eminj, Emin_l; */
+  int i, j;/*  l1, Emin=INF, i_min=0, j_min=0; */
+  /* char *struc; */
+  /* snoopT mfe; */
   int *indx;
   int *mLoop;
   int *cLoop;
   folden **foldlist, **foldlist_XS;
   int Duplex_El, Duplex_Er;
   int Loop_D;
-  //int u;
+  /* int u; */
   int Loop_E;
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist,  &foldlist_XS); 
@@ -909,14 +910,14 @@ void Lsnoop_subopt_list(const char *s1, const char *s2, int delta, int w,
   lc    = (int **) space(sizeof(int *) * (6));
   lr    = (int **) space(sizeof(int *) * (6));
   for (i=0; i<6; i++) {
-  	lc[i] = (int *) space(sizeof(int) * (n2+1));
-	lr[i] = (int *) space(sizeof(int) * (n2+1));
-	lpair[i] = (int *) space(sizeof(int) * (n2+1));
-	for(j=n2; j>-1; j--){
-		lc[i][j]=INF;
-		lr[i][j]=INF;
-		lpair[i][j]=0;
-	}
+          lc[i] = (int *) space(sizeof(int) * (n2+1));
+        lr[i] = (int *) space(sizeof(int) * (n2+1));
+        lpair[i] = (int *) space(sizeof(int) * (n2+1));
+        for(j=n2; j>-1; j--){
+                lc[i][j]=INF;
+                lr[i][j]=INF;
+                lpair[i][j]=0;
+        }
   }
   encode_seqs(s1, s2);
   int lim_maxj=n2-min_d2 ;
@@ -930,66 +931,66 @@ void Lsnoop_subopt_list(const char *s1, const char *s2, int delta, int w,
     int idx_4=(i-4)%5;
 
     for (j=lim_maxj; j>lim_minj; j--) {
-      int type, type2;// E, k,l;
+      int type, type2;/*  E, k,l; */
       type = pair[S1[i]][S2[j]];
       lpair[idx][j] = type;
       lc[idx][j] = (type) ? P->DuplexInit + 2*penalty : INF;
       lr[idx][j] = INF;
       if(!type) continue;
       if( /*pair[S1[i+1]][S2[j-1]] && Be sure it binds*/
-	  j < max_s1 && j > min_s1 &&  
-	  j > n2 - max_s2 - max_half_stem && 
-	  j < n2 -min_s2 -half_stem && S1[i-2]==4 ) { /*constraint on s2 and i*/
-	int min_k, max_k;
-	max_k = MIN2(n2-min_s2,j+max_half_stem+1);
-	min_k = MAX2(j+half_stem+1, n2-max_s2);
-	folden * temp;
-	temp=foldlist[j+1];
-	while(temp->next){
-	  int k = temp->k;
-	  //if(k >= min_k-1 && k < max_k){ comment to recover normal behaviour
-	  if(lpair[idx_3][k+1] /*&& lpair[idx_4][k+2]*/){
-	    lr[idx][j]=MIN2(lr[idx][j], lc[idx_3][k+1]+temp->energy);/*--NU--*/
-	  }
-	  /*else*/ if(lpair[idx_4][k+1]){/*--NUN--*/
-	    lr[idx][j]=MIN2(lr[idx][j], lc[idx_4][k+1]+temp->energy);
-	  }
-	    // }
-	  temp=temp->next;
-	}
+          j < max_s1 && j > min_s1 &&  
+          j > n2 - max_s2 - max_half_stem && 
+          j < n2 -min_s2 -half_stem && S1[i-2]==4 ) { /*constraint on s2 and i*/
+        int min_k, max_k;
+        max_k = MIN2(n2-min_s2,j+max_half_stem+1);
+        min_k = MAX2(j+half_stem+1, n2-max_s2);
+        folden * temp;
+        temp=foldlist[j+1];
+        while(temp->next){
+          int k = temp->k;
+          /* if(k >= min_k-1 && k < max_k){ comment to recover normal behaviour */
+          if(lpair[idx_3][k+1] /*&& lpair[idx_4][k+2]*/){
+            lr[idx][j]=MIN2(lr[idx][j], lc[idx_3][k+1]+temp->energy);/*--NU--*/
+          }
+          /*else*/ if(lpair[idx_4][k+1]){/*--NUN--*/
+            lr[idx][j]=MIN2(lr[idx][j], lc[idx_4][k+1]+temp->energy);
+          }
+            /*  } */
+          temp=temp->next;
+        }
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       lc[idx][j] += E_ExtLoop(type,  SS1[i-1] , SS2[j+1] , P);
       /**
       ***      lc[idx][j] += P->dangle5[type][SS1[i-1]];
       ***      lc[idx][j] += P->dangle3[type][SS2[j+1]];
       ***      if (type>2) lc[idx][j] += P->TerminalAU;
       **/
-      //      if(j<n2 && i>1){
-      //type2=pair[S1[i-1]][S2[j+1]];
-	type2=lpair[idx_1][j+1];
-	if(type2>0 ){
-	  lc[idx][j]=MIN2(lc[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+2*penalty, lc[idx][j]);
-	  lr[idx][j]=MIN2(lr[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+2*penalty, lr[idx][j]);
-	}
-	//}
-	//      if(j<n2-1 && i>2){
-	//type2=pair[S1[i-2]][S2[j+2]];
-	type2=lpair[idx_2][j+2];
-	if(type2>0 ){
-	  lc[idx][j]=MIN2(lc[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P), lc[idx][j]);
-	  lr[idx][j]=MIN2(lr[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P), lr[idx][j]);
-	  //	}
+      /*       if(j<n2 && i>1){ */
+      /* type2=pair[S1[i-1]][S2[j+1]]; */
+        type2=lpair[idx_1][j+1];
+        if(type2>0 ){
+          lc[idx][j]=MIN2(lc[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+2*penalty, lc[idx][j]);
+          lr[idx][j]=MIN2(lr[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+2*penalty, lr[idx][j]);
+        }
+        /* } */
+        /*       if(j<n2-1 && i>2){ */
+        /* type2=pair[S1[i-2]][S2[j+2]]; */
+        type2=lpair[idx_2][j+2];
+        if(type2>0 ){
+          lc[idx][j]=MIN2(lc[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P), lc[idx][j]);
+          lr[idx][j]=MIN2(lr[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P), lr[idx][j]);
+          /*         } */
       }
-	//      if(j<n2-2 && i>3){
-	//type2 = pair[S1[i-3]][S2[j+3]];
-	type2 =lpair[idx_3][j+3];
-	if(type2>0 ){
-	  lc[idx][j]=MIN2(lc[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*penalty,lc[idx][j]);
-	  lr[idx][j]=MIN2(lr[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*penalty,lr[idx][j]);
-	  //	}
+        /*       if(j<n2-2 && i>3){ */
+        /* type2 = pair[S1[i-3]][S2[j+3]]; */
+        type2 =lpair[idx_3][j+3];
+        if(type2>0 ){
+          lc[idx][j]=MIN2(lc[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*penalty,lc[idx][j]);
+          lr[idx][j]=MIN2(lr[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+6*penalty,lr[idx][j]);
+          /*         } */
       }
-      //min_colonne=MIN2(lr[idx][j]+(type>2?P->TerminalAU:0)+P->dangle3[rtype[type]][SS1[i+1]]+P->dangle5[rtype[type]][SS2[j-1]], min_colonne);
+      /* min_colonne=MIN2(lr[idx][j]+(type>2?P->TerminalAU:0)+P->dangle3[rtype[type]][SS1[i+1]]+P->dangle5[rtype[type]][SS2[j-1]], min_colonne); */
       int bla;
       bla=lr[idx][j]+E_ExtLoop(rtype[type], SS2[j-1] , SS1[i+1], P)+2*penalty;
       min_colonne=MIN2(bla, min_colonne);
@@ -1005,9 +1006,9 @@ void Lsnoop_subopt_list(const char *s1, const char *s2, int delta, int w,
   free(S1); free(S2); free(SS1); free(SS2);
   if(max<threshTE){
       find_max_snoop(s1, s2, max, alignment_length, position, 
-		     delta, distance, penalty, threshloop, 
-		     threshLE, threshRE, threshDE, threshTE, threshSE, threshD,
-		     half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2,name);
+                     delta, distance, penalty, threshloop, 
+                     threshLE, threshRE, threshDE, threshTE, threshSE, threshD,
+                     half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2,name, fullStemEnergy);
    }
   for (i=1; i<6; i++) {free(lc[i]);free(lr[i]);free(lpair[i]);}
   free(lc[0]);free(lr[0]);free(lpair[0]);
@@ -1017,25 +1018,25 @@ void Lsnoop_subopt_list(const char *s1, const char *s2, int delta, int w,
 
 
 PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const int alignment_length, const int* position, const int delta, 
-			    const int distance, const int penalty, const int threshloop,  const int threshLE, const int threshRE, 
-			    const int threshDE, const int threshTE, const int threshSE, const int threshD, 
-			    const int half_stem, const int max_half_stem, const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const char* name)
+                            const int distance, const int penalty, const int threshloop,  const int threshLE, const int threshRE, 
+                            const int threshDE, const int threshTE, const int threshSE, const int threshD, 
+                            const int half_stem, const int max_half_stem, const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const char* name, const int fullStemEnergy)
 {
   int count=0;
   int pos=n1+1;
   int threshold = MIN2(threshTE , max + delta );
-  //printf("threshTE %d max %d\n", threshTE, max);
-  //#pragma omp parallel for
-  //  for(pos=n1+1;pos>distance;pos--){
+  /* printf("threshTE %d max %d\n", threshTE, max); */
+  /* #pragma omp parallel for */
+  /*   for(pos=n1+1;pos>distance;pos--){ */
   while(pos-- > 5){
     int temp_min=0;
     if(position[pos]<(threshold)){
       int search_range;
       search_range=distance+1;
       while(--search_range){
-	if(position[pos-search_range]<=position[pos-temp_min]){
-	  temp_min=search_range;
-	}
+        if(position[pos-search_range]<=position[pos-temp_min]){
+          temp_min=search_range;
+        }
       }
       pos-=temp_min;
       int begin=MAX2(6, pos-alignment_length+1);
@@ -1043,37 +1044,37 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
       strcpy(s3, "NNNNN");
       strncat(s3, (s1+begin-1), pos-begin+2);
       strcat(s3,"NNNNN\0");
-      //printf("%s s3\n", s3); 
+      /* printf("%s s3\n", s3);  */
       snoopT test;
       test = snoopfold(s3, s2, penalty, threshloop, threshLE, threshRE, threshDE, threshD, half_stem, max_half_stem, min_s2, max_s2, min_s1, 
-		       max_s1, min_d1, min_d2);
+                       max_s1, min_d1, min_d2,fullStemEnergy);
       if(test.energy==INF){
-	free(s3);
-	continue;
+        free(s3);
+        continue;
       }
       if(test.Duplex_El > threshLE * 0.01 || test.Duplex_Er > threshRE * 0.01  ||
-	 test.Loop_D > threshD * 0.01 || (test.Duplex_Er + test.Duplex_El) > threshDE * 0.01 ||
-	 (test.Duplex_Er + test.Duplex_El + test.Loop_E + test.Loop_D + 410) > threshSE*0.01) {
-	free(test.structure);free(s3);
-	continue;
+         test.Loop_D > threshD * 0.01 || (test.Duplex_Er + test.Duplex_El) > threshDE * 0.01 ||
+         (test.Duplex_Er + test.Duplex_El + test.Loop_E + test.Loop_D + 410) > threshSE*0.01) {
+        free(test.structure);free(s3);
+        continue;
       }
       int l1;
       l1 = strchr(test.structure, '&')-test.structure;
       
       int shift=0;
       if(test.i > strlen(s3)-10){
-	test.i--;
-	l1--; 
+        test.i--;
+        l1--; 
       }
       if(test.i-l1<0){
-	l1--;
-	shift++;
+        l1--;
+        shift++;
       }
       char *target_struct =  (char*) space(sizeof(char) * (strlen(test.structure)+1));
       strncpy(target_struct, test.structure+shift, l1);
       strncat(target_struct, test.structure + (strchr(test.structure, '&')-
-					       test.structure), strlen(test.structure) - (strchr(test.structure, '&')-
-											  test.structure));
+                                               test.structure), strlen(test.structure) - (strchr(test.structure, '&')-
+                                                                                          test.structure));
       strcat(target_struct,"\0");
       char *target; 
       target = (char *) space(l1+1);
@@ -1083,40 +1084,40 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
       s4 = (char*) space(sizeof(char) *(strlen(s2)-9));
       strncpy(s4, s2+5, strlen(s2)-10);
       s4[strlen(s2)-10]='\0';
-      printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + 4.1 )\n%s&%s\n", 
-	     target_struct,begin + test.i-5-l1,begin + test.i -6 , begin + test.u -6, 
-	     test.j+1, test.j + (strrchr(test.structure,'>') - strchr(test.structure,'>'))+1 ,
-	     test.Loop_D + test.Duplex_El + test.Duplex_Er + test.Loop_E + 4.10, test.Duplex_El,
-	     test.Duplex_Er, test.Loop_E, test.Loop_D,target,s4);
+      printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + 4.1 ) (%5.2f) \n%s&%s\n", 
+             target_struct,begin + test.i-5-l1,begin + test.i -6 , begin + test.u -6, 
+             test.j+1, test.j + (strrchr(test.structure,'>') - strchr(test.structure,'>'))+1 ,
+             test.Loop_D + test.Duplex_El + test.Duplex_Er + test.Loop_E + 4.10, test.Duplex_El,
+             test.Duplex_Er, test.Loop_E, test.Loop_D,test.fullStemEnergy, target,s4);
       if(name){
-	char *temp_seq;
-	char *temp_struc;
-	char psoutput[100];
-	temp_seq = (char*) space(sizeof(char)*(l1+n2-9));
-	temp_struc = (char*) space(sizeof(char)*(l1+n2-9));
-	strcpy(temp_seq, target);
-	strcat(temp_seq, s4);
-	strncpy(temp_struc, target_struct, l1);
-	strcat(temp_struc, target_struct+l1+1);
-	temp_seq[n2+l1-10]='\0';
-	temp_struc[n2+l1-10]='\0';
-	cut_point = l1+1;
-	char str[16];char upos[16];
-	strcpy(psoutput,"sno_");
-	sprintf(str,"%d",count);
-	strcat(psoutput,str);
-	sprintf(upos,"%d",begin + test.u - 6);
-	strcat(psoutput,"_u_");
-	strcat(psoutput,upos);
-	strcat(psoutput,"_");
-	strcat(psoutput,name);
-	strcat(psoutput,".ps\0");
-	PS_rna_plot_snoop_a(temp_seq, temp_struc, psoutput, NULL, NULL);
-	cut_point = -1;
-	free(temp_seq);
-	free(temp_struc);
-	count++;
-	//free(psoutput);
+        char *temp_seq;
+        char *temp_struc;
+        char psoutput[100];
+        temp_seq = (char*) space(sizeof(char)*(l1+n2-9));
+        temp_struc = (char*) space(sizeof(char)*(l1+n2-9));
+        strcpy(temp_seq, target);
+        strcat(temp_seq, s4);
+        strncpy(temp_struc, target_struct, l1);
+        strcat(temp_struc, target_struct+l1+1);
+        temp_seq[n2+l1-10]='\0';
+        temp_struc[n2+l1-10]='\0';
+        cut_point = l1+1;
+        char str[16];char upos[16];
+        strcpy(psoutput,"sno_");
+        sprintf(str,"%d",count);
+        strcat(psoutput,str);
+        sprintf(upos,"%d",begin + test.u - 6);
+        strcat(psoutput,"_u_");
+        strcat(psoutput,upos);
+        strcat(psoutput,"_");
+        strcat(psoutput,name);
+        strcat(psoutput,".ps\0");
+        PS_rna_plot_snoop_a(temp_seq, temp_struc, psoutput, NULL, NULL);
+        cut_point = -1;
+        free(temp_seq);
+        free(temp_struc);
+        count++;
+        /* free(psoutput); */
       }
       free(s4);
       free(test.structure);
@@ -1136,11 +1137,11 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
 
 
 snoopT snoopfold(const char *s1, const char *s2, 
-		 const int penalty, const int threshloop, const int threshLE, const int threshRE, const int threshDE,
-		 const int threshD,
-		 const int half_stem, const int max_half_stem, 
-		 const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2) {
-  //int Eminj, Emin_l;
+                 const int penalty, const int threshloop, const int threshLE, const int threshRE, const int threshDE,
+                 const int threshD,
+                 const int half_stem, const int max_half_stem, 
+                 const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const int fullStemEnergy) {
+  /* int Eminj, Emin_l; */
   int i, j, l1, Emin=INF, i_min=0, j_min=0;
   char *struc;
   snoopT mfe;
@@ -1165,12 +1166,12 @@ snoopT snoopfold(const char *s1, const char *s2,
   c = (int **) space(sizeof(int *) * (n1+1));
   r = (int **) space(sizeof(int *) * (n1+1));
   for (i=0; i<=n1; i++) {
-  	c[i] = (int *) space(sizeof(int) * (n2+1));
-	r[i] = (int *) space(sizeof(int) * (n2+1));
-	for(j=n2; j>-1; j--){
-		c[i][j]=INF;
-		r[i][j]=INF;
-	}
+          c[i] = (int *) space(sizeof(int) * (n2+1));
+        r[i] = (int *) space(sizeof(int) * (n2+1));
+        for(j=n2; j>-1; j--){
+                c[i][j]=INF;
+                r[i][j]=INF;
+        }
   }
   encode_seqs(s1, s2);
   for (i=6; i<=n1-5; i++) {
@@ -1180,28 +1181,28 @@ snoopT snoopfold(const char *s1, const char *s2,
       c[i][j] = (type ) ? P->DuplexInit : INF;
       if(!type) continue;
       if(/*  pair[S1[i+1]][S2[j-1]] &&  */
-	 j < max_s1 && j > min_s1 &&  
-	 j > n2 - max_s2 - max_half_stem && 
-	 j < n2 -min_s2 -half_stem && S1[i-2]==4  ) { /*constraint on s2 and i*/
-	int min_k, max_k;
-	max_k = MIN2(n2-min_s2,j+max_half_stem);
-	min_k = MAX2(j+half_stem, n2-max_s2);
-	folden * temp;
-	temp=foldlist[j+1];
-	while(temp->next){
-	  int k = temp->k;
-	  //if(k >= min_k-1 && k < max_k){ uncomment to recovernormal behaviour
-	  if(pair[S1[i-3]][S2[k+1]] /*&& pair[S1[i-4]][S2[k+2]]*/ ){
-	    r[i][j]=MIN2(r[i][j], c[i-3][k+1]+temp->energy);
-	  }
-	  /*else*/ if(pair[S1[i-4]][S2[k+1]] /*&& pair[S1[i-5]][S2[k+2]]*/ ){
-	    r[i][j]=MIN2(r[i][j], c[i-4][k+1]+temp->energy);
-	  }
-	  //}
-	  temp=temp->next;
-	}
+         j < max_s1 && j > min_s1 &&  
+         j > n2 - max_s2 - max_half_stem && 
+         j < n2 -min_s2 -half_stem && S1[i-2]==4  ) { /*constraint on s2 and i*/
+        int min_k, max_k;
+        max_k = MIN2(n2-min_s2,j+max_half_stem);
+        min_k = MAX2(j+half_stem, n2-max_s2);
+        folden * temp;
+        temp=foldlist[j+1];
+        while(temp->next){
+          int k = temp->k;
+          /* if(k >= min_k-1 && k < max_k){ uncomment to recovernormal behaviour */
+          if(pair[S1[i-3]][S2[k+1]] /*&& pair[S1[i-4]][S2[k+2]]*/ ){
+            r[i][j]=MIN2(r[i][j], c[i-3][k+1]+temp->energy);
+          }
+          /*else*/ if(pair[S1[i-4]][S2[k+1]] /*&& pair[S1[i-5]][S2[k+2]]*/ ){
+            r[i][j]=MIN2(r[i][j], c[i-4][k+1]+temp->energy);
+          }
+          /* } */
+          temp=temp->next;
+        }
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       /**
       *** c[i][j] += P->dangle5[type][SS1[i-1]];
       *** c[i][j] += P->dangle3[type][SS2[j+1]];
@@ -1209,16 +1210,16 @@ snoopT snoopfold(const char *s1, const char *s2,
       **/
       c[i][j]+=E_ExtLoop(type, SS1[i-1] , SS2[j+1], P);
       for (k=i-1; k>0 && (i-k)<MAXLOOP_L; k--) {
-	for (l=j+1; l<=n2 ; l++) {
-	  if (i-k+l-j>2*MAXLOOP_L-2) break;
-	  if (abs(i-k-l+j) >= ASS ) continue;
-	  type2 = pair[S1[k]][S2[l]];
-	  if (!type2) continue;
-	  E = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
-			SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P);
-	  c[i][j] = MIN2(c[i][j], c[k][l]+E+(i-k+l-j)*penalty);
-	  r[i][j] = MIN2(r[i][j], r[k][l]+E+(i-k+l-j)*penalty);
-	}
+        for (l=j+1; l<=n2 ; l++) {
+          if (i-k+l-j>2*MAXLOOP_L-2) break;
+          if (abs(i-k-l+j) >= ASS ) continue;
+          type2 = pair[S1[k]][S2[l]];
+          if (!type2) continue;
+          E = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
+                        SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P);
+          c[i][j] = MIN2(c[i][j], c[k][l]+E+(i-k+l-j)*penalty);
+          r[i][j] = MIN2(r[i][j], r[k][l]+E+(i-k+l-j)*penalty);
+        }
       }
       E = r[i][j]; 
       /**
@@ -1228,22 +1229,22 @@ snoopT snoopfold(const char *s1, const char *s2,
       **/
       E+=E_ExtLoop(rtype[type], (j > 1) ? SS2[j-1] : -1, (i<n1) ? SS1[i+1] : -1, P);
       if (E<Emin) {
-	Emin=E; i_min=i; j_min=j;
+        Emin=E; i_min=i; j_min=j;
       } 
     }
   }
   if(Emin > 0){
-  	printf("no target found under the constraints chosen\n");
-	for (i=0; i<=n1; i++) {free(r[i]);free(c[i]);}
-	free(c);
-	free(r);
-	free(S1); free(S2); free(SS1); free(SS2);
-	mfe.energy=INF;
-	return mfe;
+          printf("no target found under the constraints chosen\n");
+        for (i=0; i<=n1; i++) {free(r[i]);free(c[i]);}
+        free(c);
+        free(r);
+        free(S1); free(S2); free(SS1); free(SS2);
+        mfe.energy=INF;
+        return mfe;
   }
   struc = snoop_backtrack(i_min, j_min,s2, &Duplex_El, &Duplex_Er, &Loop_E, &Loop_D, 
-			  &u, penalty, threshloop, threshLE, threshRE,threshDE, threshD,
-  		          half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2);
+                          &u, penalty, threshloop, threshLE, threshRE,threshDE, threshD,
+                            half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2);
 /*   if (i_min<n1-5) i_min++; */
 /*   if (j_min>1 ) j_min--; */
   l1 = strchr(struc, '&')-struc;
@@ -1255,6 +1256,7 @@ snoopT snoopfold(const char *s1, const char *s2,
   mfe.Loop_D = (float) Loop_D/100;
   mfe.Loop_E = (float) Loop_E/100;
   mfe.energy = (float) Emin/100 ;
+  mfe.fullStemEnergy = (float) fullStemEnergy/100;
   mfe.structure = struc;
   if (!delay_free) {
     for (i=0; i<=n1; i++) {free(r[i]);free(c[i]);}
@@ -1266,21 +1268,21 @@ snoopT snoopfold(const char *s1, const char *s2,
 }
 
 PRIVATE int snoopfold_XS_fill(const char *s1, const char *s2, const int **access_s1,
-		 const int penalty, const int threshloop, const int threshLE, const int threshRE, const int threshDE,
-		 const int threshD,
-		 const int half_stem, const int max_half_stem, 
-		 const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2) {
-  //int Eminj, Emin_l;
+                 const int penalty, const int threshloop, const int threshLE, const int threshRE, const int threshDE,
+                 const int threshD,
+                 const int half_stem, const int max_half_stem, 
+                 const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2) {
+  /* int Eminj, Emin_l; */
   int i, j, Emin=INF, i_min=0, j_min=0;
-  //char *struc;
-  //snoopT mfe;
+  /* char *struc; */
+  /* snoopT mfe; */
   int *indx;
   int *mLoop;
   int *cLoop;
   folden** foldlist, **foldlist_XS;
   int Duplex_El, Duplex_Er;
   int Loop_D;
-  //int u;
+  /* int u; */
   int Loop_E;
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop,&foldlist, &foldlist_XS ); 
@@ -1295,19 +1297,19 @@ PRIVATE int snoopfold_XS_fill(const char *s1, const char *s2, const int **access
   c_fill = (int **) space(sizeof(int *) * (n1+1));
   r_fill = (int **) space(sizeof(int *) * (n1+1));
   for (i=0; i<=n1; i++) {
-  	c_fill[i] = (int *) space(sizeof(int) * (n2+1));
-	r_fill[i] = (int *) space(sizeof(int) * (n2+1));
-	for(j=n2; j>-1; j--){
-		c_fill[i][j]=INF;
-		r_fill[i][j]=INF;
-	}
+          c_fill[i] = (int *) space(sizeof(int) * (n2+1));
+        r_fill[i] = (int *) space(sizeof(int) * (n2+1));
+        for(j=n2; j>-1; j--){
+                c_fill[i][j]=INF;
+                r_fill[i][j]=INF;
+        }
   }
   encode_seqs(s1, s2);
 
   int di[5];
   di[0]=0;  
   for (i=6; i<=n1-5; i++) {
-    di[1]=access_s1[5][i]   - access_s1[4][i-1];	   
+    di[1]=access_s1[5][i]   - access_s1[4][i-1];           
     di[2]=access_s1[5][i-1] - access_s1[4][i-2] + di[1];
     di[3]=access_s1[5][i-2] - access_s1[4][i-3] + di[2];
     di[4]=access_s1[5][i-3] - access_s1[4][i-4] + di[3];
@@ -1321,28 +1323,28 @@ PRIVATE int snoopfold_XS_fill(const char *s1, const char *s2, const int **access
       c_fill[i][j] = (type ) ? P->DuplexInit : INF;
       if(!type) continue;
       if(/*  pair[S1[i+1]][S2[j-1]] &&  */
-	 j < max_s1 && j > min_s1 &&  
-	 j > n2 - max_s2 - max_half_stem && 
-	 j < n2 -min_s2 -half_stem && S1[i-2]==4  ) { /*constraint on s2 and i*/
-	int min_k, max_k;
-	max_k = MIN2(n2-min_s2,j+max_half_stem);
-	min_k = MAX2(j+half_stem, n2-max_s2);
-	folden * temp;
-	temp=foldlist[j+1];
-	while(temp->next){
-	  int k = temp->k;
-	  //if(k >= min_k-1 && k < max_k){ uncomment to recovernormal behaviour
-	  if(pair[S1[i-3]][S2[k+1]] /*&& pair[S1[i-4]][S2[k+2]]*/ ){
-	    r_fill[i][j]=MIN2(r_fill[i][j], c_fill[i-3][k+1]+temp->energy+ di[3]);
-	  }
-	  /*else*/ if(pair[S1[i-4]][S2[k+1]] /*&& pair[S1[i-5]][S2[k+2]]*/ ){
-	    r_fill[i][j]=MIN2(r_fill[i][j], c_fill[i-4][k+1]+temp->energy + di[4]);
-	  }
-	  //}
-	  temp=temp->next;
-	}
+         j < max_s1 && j > min_s1 &&  
+         j > n2 - max_s2 - max_half_stem && 
+         j < n2 -min_s2 -half_stem && S1[i-2]==4  ) { /*constraint on s2 and i*/
+        int min_k, max_k;
+        max_k = MIN2(n2-min_s2,j+max_half_stem);
+        min_k = MAX2(j+half_stem, n2-max_s2);
+        folden * temp;
+        temp=foldlist[j+1];
+        while(temp->next){
+          int k = temp->k;
+          /* if(k >= min_k-1 && k < max_k){ uncomment to recovernormal behaviour */
+          if(pair[S1[i-3]][S2[k+1]] /*&& pair[S1[i-4]][S2[k+2]]*/ ){
+            r_fill[i][j]=MIN2(r_fill[i][j], c_fill[i-3][k+1]+temp->energy+ di[3]);
+          }
+          /*else*/ if(pair[S1[i-4]][S2[k+1]] /*&& pair[S1[i-5]][S2[k+2]]*/ ){
+            r_fill[i][j]=MIN2(r_fill[i][j], c_fill[i-4][k+1]+temp->energy + di[4]);
+          }
+          /* } */
+          temp=temp->next;
+        }
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       /**
       *** c_fill[i][j] += P->dangle5[type][SS1[i-1]];
       *** c_fill[i][j] += P->dangle3[type][SS2[j+1]];
@@ -1350,16 +1352,16 @@ PRIVATE int snoopfold_XS_fill(const char *s1, const char *s2, const int **access
       **/
       c_fill[i][j]+= E_ExtLoop(type, SS1[i-1], SS2[j+1],P);
       for (k=i-1; k>0 && (i-k)<MAXLOOP_L; k--) {
-	for (l=j+1; l<=n2 ; l++) {
-	  if (i-k+l-j>2*MAXLOOP_L-2) break;
-	  if (abs(i-k-l+j) >= ASS ) continue;
-	  type2 = pair[S1[k]][S2[l]];
-	  if (!type2) continue;
-	  E = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
-			SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P);
-	  c_fill[i][j] = MIN2(c_fill[i][j], c_fill[k][l]+E+di[i-k]);
-	  r_fill[i][j] = MIN2(r_fill[i][j], r_fill[k][l]+E+di[i-k]);
-	}
+        for (l=j+1; l<=n2 ; l++) {
+          if (i-k+l-j>2*MAXLOOP_L-2) break;
+          if (abs(i-k-l+j) >= ASS ) continue;
+          type2 = pair[S1[k]][S2[l]];
+          if (!type2) continue;
+          E = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
+                        SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P);
+          c_fill[i][j] = MIN2(c_fill[i][j], c_fill[k][l]+E+di[i-k]);
+          r_fill[i][j] = MIN2(r_fill[i][j], r_fill[k][l]+E+di[i-k]);
+        }
       }
       E = r_fill[i][j]; 
       /**
@@ -1369,7 +1371,7 @@ PRIVATE int snoopfold_XS_fill(const char *s1, const char *s2, const int **access
       **/
       E+= E_ExtLoop(rtype[type], (j > 1) ? SS2[j-1] : -1, (i<n1) ? SS1[i+1] : -1, P);
       if (E<Emin) {
-	Emin=E; i_min=i; j_min=j;
+        Emin=E; i_min=i; j_min=j;
       } 
     }
   }
@@ -1379,14 +1381,14 @@ PRIVATE int snoopfold_XS_fill(const char *s1, const char *s2, const int **access
 
 
 PUBLIC snoopT *snoop_subopt(const char *s1, const char *s2, int delta, int w, 
-			    const int penalty, const int threshloop, 
-			    const int threshLE, const int threshRE, const int threshDE, const int threshTE, const int threshSE, const int threshD,
-			    const int distance, const int half_stem, const int max_half_stem,
-			    const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2) {
+                            const int penalty, const int threshloop, 
+                            const int threshLE, const int threshRE, const int threshDE, const int threshTE, const int threshSE, const int threshD,
+                            const int distance, const int half_stem, const int max_half_stem,
+                            const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const int fullStemEnergy) {
 
 
 
-  //printf("%d %d\n", min_s2, max_s2);
+  /* printf("%d %d\n", min_s2, max_s2); */
   int i,j, n1, n2, E, n_subopt=0, n_max;
   char *struc;
   snoopT mfe;
@@ -1403,17 +1405,17 @@ PUBLIC snoopT *snoop_subopt(const char *s1, const char *s2, int delta, int w,
   delay_free=1;
   mfe = snoopfold(s1, s2, penalty, threshloop, threshLE, threshRE, threshDE,threshD,
                   half_stem, max_half_stem,
-		  min_s2, max_s2, min_s1, max_s1, min_d1, min_d2);
+                  min_s2, max_s2, min_s1, max_s1, min_d1, min_d2, fullStemEnergy);
 
 
 
   if(mfe.energy > 0){
-  	free(subopt);
-	delay_free=0;
-	return NULL;
+          free(subopt);
+        delay_free=0;
+        return NULL;
   }
   thresh = MIN2((int) ((mfe.Duplex_Er + mfe.Duplex_El + mfe.Loop_E)*100+0.1 + 410) + delta, threshTE );
- //subopt[n_subopt++]=mfe;
+ /* subopt[n_subopt++]=mfe; */
   free(mfe.structure);
   
   n1 = strlen(s1); n2=strlen(s2);
@@ -1431,8 +1433,8 @@ PUBLIC snoopT *snoop_subopt(const char *s1, const char *s2, int delta, int w,
       Ed+= E_ExtLoop(type, (j > 1) ? SS2[j-1] : -1, (i<n1) ? SS1[i+1] : -1, P);
       if (Ed>thresh) continue;
       /* too keep output small, remove hits that are dominated by a
-	 better one close (w) by. For simplicity we do test without
-	 adding dangles, which is slightly inaccurate. 
+         better one close (w) by. For simplicity we do test without
+         adding dangles, which is slightly inaccurate. 
       */ 
       /* w=1; */
 /*       for (ii=MAX2(i-w,1); (ii<=MIN2(i+w,n1)) && type; ii++) {  */
@@ -1445,28 +1447,28 @@ PUBLIC snoopT *snoop_subopt(const char *s1, const char *s2, int delta, int w,
                         half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2);
       if (Duplex_Er > threshRE || Duplex_El > threshLE || Loop_D > threshD ||
          (Duplex_Er + Duplex_El) > threshDE || 
-	 (Duplex_Er + Duplex_El + Loop_E) > threshTE ||
-	 (Duplex_Er + Duplex_El + Loop_E + Loop_D + 410) > threshSE) {
-	 	//printf(" Duplex_Er %d threshRE %d Duplex_El %d threshLE %d \n"
-		//       " Duplex_Er + Duplex_El %d  threshDE %d \n"
-		//       " Duplex_Er + Duplex_El + Loop_E %d  threshTE %d \n"
-		//       " Duplex_Er + Duplex_El + Loop_E + Loop_D %d  threshSE %d \n", 
-		//	 Duplex_Er , threshRE , Duplex_El ,threshLE,
-	        //         Duplex_Er + Duplex_El, threshDE,
-        	//         Duplex_Er + Duplex_El+  Loop_E , threshTE,
-                //	 Duplex_Er + Duplex_El+  Loop_E + Loop_D, threshSE); 
-	 	Duplex_Er=0; 
-		Duplex_El=0;
-		Loop_E = 0;
-		Loop_D = 0;
-		u=0,
-		free(struc);
-		continue;
-	}
+         (Duplex_Er + Duplex_El + Loop_E) > threshTE ||
+         (Duplex_Er + Duplex_El + Loop_E + Loop_D + 410) > threshSE) {
+                 /* printf(" Duplex_Er %d threshRE %d Duplex_El %d threshLE %d \n" */
+                /*        " Duplex_Er + Duplex_El %d  threshDE %d \n" */
+                /*        " Duplex_Er + Duplex_El + Loop_E %d  threshTE %d \n" */
+                /*        " Duplex_Er + Duplex_El + Loop_E + Loop_D %d  threshSE %d \n",  */
+                /*          Duplex_Er , threshRE , Duplex_El ,threshLE, */
+                /*          Duplex_Er + Duplex_El, threshDE, */
+                /*          Duplex_Er + Duplex_El+  Loop_E , threshTE, */
+                /*          Duplex_Er + Duplex_El+  Loop_E + Loop_D, threshSE);  */
+                 Duplex_Er=0; 
+                Duplex_El=0;
+                Loop_E = 0;
+                Loop_D = 0;
+                u=0,
+                free(struc);
+                continue;
+        }
 
       if (n_subopt+1>=n_max) {
-	n_max *= 2;
-	subopt = (snoopT *) xrealloc(subopt, n_max*sizeof(snoopT));
+        n_max *= 2;
+        subopt = (snoopT *) xrealloc(subopt, n_max*sizeof(snoopT));
       }
       subopt[n_subopt].i = i-5;
       subopt[n_subopt].j = j-5;
@@ -1476,7 +1478,9 @@ PUBLIC snoopT *snoop_subopt(const char *s1, const char *s2, int delta, int w,
       subopt[n_subopt].Loop_E = Loop_E * 0.01;
       subopt[n_subopt].Loop_D = Loop_D * 0.01;
       subopt[n_subopt].energy = (Duplex_Er +Duplex_El + Loop_E + Loop_D + 410) * 0.01 ;
+      subopt[n_subopt].fullStemEnergy = (float) fullStemEnergy * 0.01;
       subopt[n_subopt++].structure = struc;
+
       Duplex_Er=0; Duplex_El=0; Loop_E=0; Loop_D=0;u=0;
     }
   }
@@ -1494,17 +1498,17 @@ PUBLIC snoopT *snoop_subopt(const char *s1, const char *s2, int delta, int w,
 }
 
 PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s1, int delta, int w, 
-			    const int penalty, const int threshloop, 
-			    const int threshLE, const int threshRE, const int threshDE, const int threshTE, const int threshSE, const int threshD,
-			    const int distance, const int half_stem, const int max_half_stem,
-			    const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const int alignment_length, const char *name) {
+                            const int penalty, const int threshloop, 
+                            const int threshLE, const int threshRE, const int threshDE, const int threshTE, const int threshSE, const int threshD,
+                            const int distance, const int half_stem, const int max_half_stem,
+                            const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const int alignment_length, const char *name, const int fullStemEnergy) {
 
 
 
-  //printf("%d %d\n", min_s2, max_s2);
+  /* printf("%d %d\n", min_s2, max_s2); */
   int i,j, E,  n_max;
-  //char *struc;
-  //snoopT mfe;
+  /* char *struc; */
+  /* snoopT mfe; */
 
   int thresh;
 
@@ -1516,14 +1520,14 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
   n_max=16;
   delay_free=1;
   int Emin = snoopfold_XS_fill(s1, s2, access_s1,penalty, threshloop, threshLE, threshRE, threshDE,threshD,
-			       half_stem, max_half_stem,
-			       min_s2, max_s2, min_s1, max_s1, min_d1, min_d2);
+                               half_stem, max_half_stem,
+                               min_s2, max_s2, min_s1, max_s1, min_d1, min_d2);
   if(Emin > 0){
     delay_free=0;
   }
   thresh = MIN2(-100, threshTE +alignment_length*30);  
-  //  n1=strlen(s1); 
-  //  n2=strlen(s2);
+  /*   n1=strlen(s1);  */
+  /*   n2=strlen(s2); */
   
   int n3=strlen(s1);
   int n4=strlen(s2);
@@ -1552,13 +1556,13 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
       if (Ed>thresh) continue;
       
       /* to keep output small, remove hits that are dominated by a
-	 better one close (w) by. For simplicity we do test without
-	 adding dangles, which is slightly inaccurate. 
+         better one close (w) by. For simplicity we do test without
+         adding dangles, which is slightly inaccurate. 
       */ 
 /*       w=10;  */
 /*       for (ii=MAX2(i-w,1); (ii<=MIN2(i+w,n3-5)) && type; ii++) {   */
-/* 	for (jj=MAX2(j-w,1); jj<=MIN2(j+w,n4-5); jj++)  */
-/* 	  if (r_fill[ii][jj]<E) {type=0; break;}  */
+/*         for (jj=MAX2(j-w,1); jj<=MIN2(j+w,n4-5); jj++)  */
+/*           if (r_fill[ii][jj]<E) {type=0; break;}  */
 /*       }  */
 /*       i=ii;j=jj; */
       if (!type) continue;
@@ -1569,21 +1573,21 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
       strcat(s3,"NNNNN\0");
       int n5 = strlen(s3);
       snoopT test = snoopfold_XS(s3, s2, access_s1, i, j ,penalty, 
-			  threshloop, threshLE, threshRE, 
-			  threshDE, threshD, half_stem, 
-			  max_half_stem, min_s2, max_s2, min_s1, 
-			  max_s1, min_d1, min_d2);
+                          threshloop, threshLE, threshRE, 
+                          threshDE, threshD, half_stem, 
+                          max_half_stem, min_s2, max_s2, min_s1, 
+                                 max_s1, min_d1, min_d2,fullStemEnergy);
       if(test.energy==INF){
-	free(s3);
-	continue;
+        free(s3);
+        continue;
       }
       if( test.Duplex_El > threshLE * 0.01 ||test.Duplex_Er > threshRE * 0.01  || 
-	  test.Loop_D > threshD * 0.01 || (test.Duplex_Er + test.Duplex_El) > threshDE * 0.01 || 
-	  (test.Duplex_Er + test.Duplex_El + test.Loop_E) > threshTE*0.01 || (test.Duplex_Er + test.Duplex_El + test.Loop_E + test.Loop_D + 410) > threshSE*0.01) 
-	{ 
-	  free(test.structure);free(s3); 
-	  continue; 
-	}
+          test.Loop_D > threshD * 0.01 || (test.Duplex_Er + test.Duplex_El) > threshDE * 0.01 || 
+          (test.Duplex_Er + test.Duplex_El + test.Loop_E) > threshTE*0.01 || (test.Duplex_Er + test.Duplex_El + test.Loop_E + test.Loop_D + 410) > threshSE*0.01) 
+        { 
+          free(test.structure);free(s3); 
+          continue; 
+        }
       char *s4; 
       s4 = (char*) space(sizeof(char) *(n4-9)); 
       strncpy(s4, s2+5, n4-10); 
@@ -1593,49 +1597,49 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
       strncpy(s5,s3+test.i-1,n5-test.i+1-5);
       s5[n5-test.i+1-5]='\0';
       float dE = ((float) (access_s1[n5-test.i+1-5][i]))*0.01;
-      printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + %5.2f + 4.10)\n%s&%s\n" ,  
-	     test.structure, i  -  (n5 - test.i) ,i - 5, i - (n5 - test.u ),
+      printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + %5.2f + 4.10)  (%5.2f)\n%s&%s\n" ,  
+             test.structure, i  -  (n5 - test.i) ,i - 5, i - (n5 - test.u ),
              j-5, j-5 + (strrchr(test.structure,'>') - strchr(test.structure,'>')), 
-	     test.Loop_D + test.Duplex_El + test.Duplex_Er + test.Loop_E + 4.10+dE, test.Duplex_El, 
-	     test.Duplex_Er, test.Loop_E, test.Loop_D,dE , s5,s4);
+             test.Loop_D + test.Duplex_El + test.Duplex_Er + test.Loop_E + 4.10+dE, test.Duplex_El, 
+             test.Duplex_Er, test.Loop_E, test.Loop_D,dE , test.fullStemEnergy, s5,s4);
       if(name){
-	int begin_t, end_t, begin_q, end_q, and, pipe,k; 
-	char psoutput[100];
-	begin_q=0;
-	end_q=n4-10;
-	begin_t=0;
-	end_t=n5-test.i+ 1-5;
-	and=end_t+1;
-	pipe=test.u -test.i + 1;
-	cut_point = end_t +1 ;
-	char *catseq, *catstruct;// *fname; 
-	catseq = (char*) space(n5 + end_q -begin_q +2);
-	catstruct = (char*) space(n5 + end_q -begin_q +2);
-	strcpy(catseq, s5);
-	strncpy(catstruct, test.structure, end_t);
-	strcat(catseq, s4);
-	strncat(catstruct, test.structure+end_t+1, end_q-begin_q+1);
-	catstruct[end_t - begin_t + end_q-begin_q+2]='\0';
-	catseq[end_t - begin_t + end_q-begin_q+2]='\0';
-	int *relative_access;
-	relative_access = space(sizeof(int)*strlen(s5));
-	relative_access[0] = access_s1[1][i - (n5  - test.i) + 5];
-	for(k=1;k<strlen(s5);k++){
-	  relative_access[k] =  access_s1[k+1][i - (n5  - test.i) + k + 5] -  access_s1[k][i - (n5  - test.i) + k + 4];
-	}
-	char str[16];char upos[16];
-	strcpy(psoutput,"sno_XS_");
-	sprintf(str,"%d",count);
-	strcat(psoutput,str);
-	sprintf(upos,"%d",i - (n5 - test.u ));
-	strcat(psoutput,"_u_");
-	strcat(psoutput,upos);
-	strcat(psoutput,"_");
-	strcat(psoutput,name);
-	strcat(psoutput,".ps\0");
-	PS_rna_plot_snoop_a(catseq, catstruct, psoutput,relative_access,NULL);
-	free(catseq);free(catstruct);free(relative_access);
-	count++;
+        int begin_t, end_t, begin_q, end_q, and, pipe,k; 
+        char psoutput[100];
+        begin_q=0;
+        end_q=n4-10;
+        begin_t=0;
+        end_t=n5-test.i+ 1-5;
+        and=end_t+1;
+        pipe=test.u -test.i + 1;
+        cut_point = end_t +1 ;
+        char *catseq, *catstruct;/*  *fname;  */
+        catseq = (char*) space(n5 + end_q -begin_q +2);
+        catstruct = (char*) space(n5 + end_q -begin_q +2);
+        strcpy(catseq, s5);
+        strncpy(catstruct, test.structure, end_t);
+        strcat(catseq, s4);
+        strncat(catstruct, test.structure+end_t+1, end_q-begin_q+1);
+        catstruct[end_t - begin_t + end_q-begin_q+2]='\0';
+        catseq[end_t - begin_t + end_q-begin_q+2]='\0';
+        int *relative_access;
+        relative_access = space(sizeof(int)*strlen(s5));
+        relative_access[0] = access_s1[1][i - (n5  - test.i) + 5];
+        for(k=1;k<strlen(s5);k++){
+          relative_access[k] =  access_s1[k+1][i - (n5  - test.i) + k + 5] -  access_s1[k][i - (n5  - test.i) + k + 4];
+        }
+        char str[16];char upos[16];
+        strcpy(psoutput,"sno_XS_");
+        sprintf(str,"%d",count);
+        strcat(psoutput,str);
+        sprintf(upos,"%d",i - (n5 - test.u ));
+        strcat(psoutput,"_u_");
+        strcat(psoutput,upos);
+        strcat(psoutput,"_");
+        strcat(psoutput,name);
+        strcat(psoutput,".ps\0");
+        PS_rna_plot_snoop_a(catseq, catstruct, psoutput,relative_access,NULL);
+        free(catseq);free(catstruct);free(relative_access);
+        count++;
       }
       free(s3);free(s4);free(s5);free(test.structure);
     }
@@ -1650,17 +1654,17 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
 
 
 PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq, 
-			      int *Duplex_El, int *Duplex_Er, 
-			      int *Loop_E, int *Loop_D, int *u, 
-			      const int penalty, const int threshloop, 
-			      const int threshLE, const int threshRE, const int threshDE, const int threshD,
-			      const int half_stem, const int max_half_stem, 
-			      const int min_s2, const int max_s2, const int min_s1, 
-			      const int max_s1, const int min_d1, const int min_d2) {
+                              int *Duplex_El, int *Duplex_Er, 
+                              int *Loop_E, int *Loop_D, int *u, 
+                              const int penalty, const int threshloop, 
+                              const int threshLE, const int threshRE, const int threshDE, const int threshD,
+                              const int half_stem, const int max_half_stem, 
+                              const int min_s2, const int max_s2, const int min_s1, 
+                              const int max_s1, const int min_d1, const int min_d2) {
   /* backtrack structure going backwards from i, and forwards from j 
      return structure in bracket notation with & as separator */
   int k, l, type, type2, E, traced, i0, j0;
-  int traced_r=0; //flag for following backtrack in c or r
+  int traced_r=0; /* flag for following backtrack in c or r */
   char *st1, *st2, *struc;
   char *struc_loop;
 
@@ -1687,86 +1691,86 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
       type = pair[S1[i]][S2[j]];
       if (!type) nrerror("backtrack failed in fold duplex r");
       for (k=i-1; k>0 && (i-k)<MAXLOOP_L; k--) {
-	for (l=j+1; l<=n2 ; l++) {
-	  int LE;
-	  if (i-k+l-j>2*MAXLOOP_L-2) break;
-	  if (abs(i-k-l+j) >= ASS) continue;
-	  
-	  type2 = pair[S1[k]][S2[l]];
-	  if (!type2) continue;
-	  LE = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
-			 SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P);
-	  if (E == r[k][l]+LE+(i-k+l-j)*penalty) {
-	    traced=1; 
-	    i=k; j=l;
-	    *Duplex_Er+=LE;
-	    break;
-	  }
-	}
-	if (traced) break;
+        for (l=j+1; l<=n2 ; l++) {
+          int LE;
+          if (i-k+l-j>2*MAXLOOP_L-2) break;
+          if (abs(i-k-l+j) >= ASS) continue;
+          
+          type2 = pair[S1[k]][S2[l]];
+          if (!type2) continue;
+          LE = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
+                         SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P);
+          if (E == r[k][l]+LE+(i-k+l-j)*penalty) {
+            traced=1; 
+            i=k; j=l;
+            *Duplex_Er+=LE;
+            break;
+          }
+        }
+        if (traced) break;
       }
       if(!traced){
-	if(/*  pair[S1[i+1]][S2[j-1]] && */  
-	    j < max_s1 && j > min_s1 && 
-	    j > n2 - max_s2 - max_half_stem && 
-	    j < n2 -min_s2 -half_stem && 
-	    S1[i-2]==4) {
-	  int min_k, max_k;
-	  max_k = MIN2(n2-min_s2,j+max_half_stem+1);
-	  min_k = MAX2(j+half_stem+1, n2-max_s2);
-	  folden * temp;
-	  temp=foldlist[j+1];
-	  while(temp->next) {
-	    int k = temp->k;
-	    if(pair[S1[i-3]][S2[k+1]] /*&& pair[S1[i-4]][S2[k+2]]*/    ){  //introduce structure from RNAfold
-	      if(E==c[i-3][k+1]+temp->energy){
-		*Loop_E=temp->energy;
-		st1[i-3]= '|';
-		*u=i-2;
-		int a,b;
-		//int fix_ij=indx[k-1+1]+j+1;
-		for(a=0; a< MISMATCH ;a++){
-		  for(b=0; b< MISMATCH ; b++){
-		    int ij=indx[k-1-a+1]+j+1+b;
-		    if(cLoop[ij]==temp->energy) {
-		      struc_loop=snobacktrack_fold_from_pair(snoseq, j+1+b, k-a-1+1);
-		    a=INF; b=INF;	
-		    }
-		  }
-		}
-		traced=1;
-		traced_r=1;
-		i=i-3;j=k+1;
-		break;
-	      }
-	    }
-	    /*else*/ if (pair[S1[i-4]][S2[k+1]] /*&& pair[S1[i-5]][S2[k+2]]*/){  //introduce structure from RNAfold
-	      if(E==c[i-4][k+1]+temp->energy){
-		*Loop_E=temp->energy;
-		st1[i-3]= '|';
-		*u=i-2;
-		int a,b;
-		//int fix_ij=indx[k-1+1]+j+1;
-		for(a=0; a< MISMATCH ;a++){
-		  for(b=0; b< MISMATCH ; b++){
-		    int ij=indx[k-1-a+1]+j+1+b;
-		    if(cLoop[ij]==temp->energy) {
-		      struc_loop=snobacktrack_fold_from_pair(snoseq, j+1+b, k-a-1+1);
-		      a=INF; b=INF;	
-		    }
-		  }
-		}
-		traced=1;
-		traced_r=1;
-		i=i-4;j=k+1;
-		break;
-	      }
-	    } //else if
-	    temp=temp->next;
-	  } //while temp-> next
-	} //test on j 
-      }//traced?
-    }//traced_r?
+        if(/*  pair[S1[i+1]][S2[j-1]] && */  
+            j < max_s1 && j > min_s1 && 
+            j > n2 - max_s2 - max_half_stem && 
+            j < n2 -min_s2 -half_stem && 
+            S1[i-2]==4) {
+          int min_k, max_k;
+          max_k = MIN2(n2-min_s2,j+max_half_stem+1);
+          min_k = MAX2(j+half_stem+1, n2-max_s2);
+          folden * temp;
+          temp=foldlist[j+1];
+          while(temp->next) {
+            int k = temp->k;
+            if(pair[S1[i-3]][S2[k+1]] /*&& pair[S1[i-4]][S2[k+2]]*/    ){  /* introduce structure from RNAfold */
+              if(E==c[i-3][k+1]+temp->energy){
+                *Loop_E=temp->energy;
+                st1[i-3]= '|';
+                *u=i-2;
+                int a,b;
+                /* int fix_ij=indx[k-1+1]+j+1; */
+                for(a=0; a< MISMATCH ;a++){
+                  for(b=0; b< MISMATCH ; b++){
+                    int ij=indx[k-1-a+1]+j+1+b;
+                    if(cLoop[ij]==temp->energy) {
+                      struc_loop=snobacktrack_fold_from_pair(snoseq, j+1+b, k-a-1+1);
+                    a=INF; b=INF;        
+                    }
+                  }
+                }
+                traced=1;
+                traced_r=1;
+                i=i-3;j=k+1;
+                break;
+              }
+            }
+            /*else*/ if (pair[S1[i-4]][S2[k+1]] /*&& pair[S1[i-5]][S2[k+2]]*/){  /* introduce structure from RNAfold */
+              if(E==c[i-4][k+1]+temp->energy){
+                *Loop_E=temp->energy;
+                st1[i-3]= '|';
+                *u=i-2;
+                int a,b;
+                /* int fix_ij=indx[k-1+1]+j+1; */
+                for(a=0; a< MISMATCH ;a++){
+                  for(b=0; b< MISMATCH ; b++){
+                    int ij=indx[k-1-a+1]+j+1+b;
+                    if(cLoop[ij]==temp->energy) {
+                      struc_loop=snobacktrack_fold_from_pair(snoseq, j+1+b, k-a-1+1);
+                      a=INF; b=INF;        
+                    }
+                  }
+                }
+                traced=1;
+                traced_r=1;
+                i=i-4;j=k+1;
+                break;
+              }
+            } /* else if */
+            temp=temp->next;
+          } /* while temp-> next */
+        } /* test on j  */
+      }/* traced? */
+    }/* traced_r? */
     else{
       E = c[i][j]; traced=0;
       st1[i-1] = '<';
@@ -1774,22 +1778,22 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
       type = pair[S1[i]][S2[j]];
       if (!type) nrerror("backtrack failed in fold duplex c");
       for (k=i-1; (i-k)<MAXLOOP_L; k--) {
-	for (l=j+1; l<=n2; l++) {
-	  int LE;
-	  if (i-k+l-j>2*MAXLOOP_L-2) break;
-	  if (abs(i-k-l+j) >= ASS) continue;
-	  type2 = pair[S1[k]][S2[l]];
-	  if (!type2) continue;
-	  LE = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
-			 SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P);
-	  if (E == c[k][l]+LE+(i-k+l-j)*penalty) {
-	    traced=1; 
-	    i=k; j=l;
-	    *Duplex_El+=LE;
-	    break;
-	  }
-	}
-	if (traced) break;
+        for (l=j+1; l<=n2; l++) {
+          int LE;
+          if (i-k+l-j>2*MAXLOOP_L-2) break;
+          if (abs(i-k-l+j) >= ASS) continue;
+          type2 = pair[S1[k]][S2[l]];
+          if (!type2) continue;
+          LE = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
+                         SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P);
+          if (E == c[k][l]+LE+(i-k+l-j)*penalty) {
+            traced=1; 
+            i=k; j=l;
+            *Duplex_El+=LE;
+            break;
+          }
+        }
+        if (traced) break;
       }
     }
     if (!traced) { 
@@ -1800,34 +1804,34 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
       /**
       *** if (i>1)    {E -= P->dangle5[type][SS1[i-1]]; *Duplex_El +=P->dangle5[type][SS1[i-1]];}
       *** if (j<n2)   {E -= P->dangle3[type][SS2[j+1]]; *Duplex_El +=P->dangle3[type][SS2[j+1]];}
-      *** if (type>2) {E -= P->TerminalAU;		    *Duplex_El +=P->TerminalAU;}
+      *** if (type>2) {E -= P->TerminalAU;                    *Duplex_El +=P->TerminalAU;}
       **/
       if (E != P->DuplexInit) {
-	nrerror("backtrack failed in fold duplex end");
+        nrerror("backtrack failed in fold duplex end");
       } else break;
     }
   }
 /*   if (i>1)  i--; */
 /*   if (j<n2) j++; */  
-  ////struc = (char *) space(i0-i+1+j-j0+1+2); //declare final duplex structure
-  struc = (char *) space(i0-i+1+n2-1+1+2); //declare final duplex structure
+  /* struc = (char *) space(i0-i+1+j-j0+1+2); */ /* declare final duplex structure */
+  struc = (char *) space(i0-i+1+n2-1+1+2); /* declare final duplex structure */
   char * struc2;
   struc2 = (char *) space(n2+1);
-  ////char * struct_const;
+  /* char * struct_const; */
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
-  //for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.'; normal
-  // char * struct_const;
-  // struct_const = (char *) space(sizeof(char)*(n2+1));  
+  /* for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];*/ /* '.'; normal */
+  /*  char * struct_const; */
+  /*  struct_const = (char *) space(sizeof(char)*(n2+1));   */
   for (k=1; k<=n2; k++) {
-    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.';
-    struc2[k-1] = st2[k-1];//'.';
-    //     if (k>=j0 && k<=j){
-    //     	struct_const[k-1]='x';
-    //     }
-    //     else{
-    //     	if(k<j0) {struct_const[k-1]='<';}
-    //     	if(k>j) {struct_const[k-1]='>';}
-    //     }
+    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];/* '.'; */
+    struc2[k-1] = st2[k-1];/* '.'; */
+    /*      if (k>=j0 && k<=j){ */
+    /*              struct_const[k-1]='x'; */
+    /*      } */
+    /*      else{ */
+    /*              if(k<j0) {struct_const[k-1]='<';} */
+    /*              if(k>j) {struct_const[k-1]='>';} */
+    /*      } */
   }
   char duplexseq_1[j0];
   char duplexseq_2[n2-j+2];
@@ -1847,37 +1851,37 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
       jbegin=temp.j;
       jend  =temp.j+strlen(temp.structure)-l1-2-1;
       for(k=ibegin+1; k<=iend+1; k++){
-	struc2[k-1]=temp.structure[k-ibegin-1];
+        struc2[k-1]=temp.structure[k-ibegin-1];
       }
       for(k=jbegin+j; k<=jend+j; k++){
-	struc2[k-1]=temp.structure[l1+k-j-jbegin+1];
+        struc2[k-1]=temp.structure[l1+k-j-jbegin+1];
       } 
     }
     free(temp.structure);
   } 
   strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&"); 
-  //strcat(struc, st2);
+  /* strcat(struc, st2); */
   strncat(struc, struc2+5, strlen(struc2)-10);
   free(struc2);
   free(struc_loop);
   free(st1); free(st2);
-  //free_arrays();
+  /* free_arrays(); */
   return struc;
 }
 
 void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s1, int delta, int w, 
-			const int penalty, const int threshloop, 
-			const int threshLE, const int threshRE, const int threshDE, const int threshTE,const int threshSE,const int threshD,
-			const int distance,
-			const int half_stem, const int max_half_stem,
-			const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const int alignment_length, const char *name)
+                        const int penalty, const int threshloop, 
+                        const int threshLE, const int threshRE, const int threshDE, const int threshTE,const int threshSE,const int threshD,
+                        const int distance,
+                        const int half_stem, const int max_half_stem,
+                           const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const int alignment_length, const char *name, const int fullStemEnergy)
 {
  
  int min_colonne=INF;
  int max_pos;
  int max;max=INF;
- //int temp;
- //int nsubopt=10;
+ /* int temp; */
+ /* int nsubopt=10; */
  n1 = (int) strlen(s1);
  n2 = (int) strlen(s2);
  int *position;
@@ -1887,17 +1891,17 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
  position = (int*) space((n1+3)*sizeof(int));
  position_j = (int*) space((n1+3)*sizeof(int));
 
- //int Eminj, Emin_l;
-  int i, j;// l1, Emin=INF, i_min=0, j_min=0;
-  //char *struc;
-  //snoopT mfe;
+ /* int Eminj, Emin_l; */
+  int i, j;/*  l1, Emin=INF, i_min=0, j_min=0; */
+  /* char *struc; */
+  /* snoopT mfe; */
   int *indx;
   int *mLoop;
   int *cLoop;
   folden **foldlist, **foldlist_XS;
   int Duplex_El, Duplex_Er;
   int Loop_D;
-  //int u;
+  /* int u; */
   int Loop_E;
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist, &foldlist_XS); 
@@ -1910,14 +1914,14 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
   lc    = (int **) space(sizeof(int *) * (6));
   lr    = (int **) space(sizeof(int *) * (6));
   for (i=0; i<6; i++) {
-  	lc[i] = (int *) space(sizeof(int) * (n2+1));
-	lr[i] = (int *) space(sizeof(int) * (n2+1));
-	lpair[i] = (int *) space(sizeof(int) * (n2+1));
-	for(j=n2; j>-1; j--){
-		lc[i][j]=INF;
-		lr[i][j]=INF;
-		lpair[i][j]=0;
-	}
+          lc[i] = (int *) space(sizeof(int) * (n2+1));
+        lr[i] = (int *) space(sizeof(int) * (n2+1));
+        lpair[i] = (int *) space(sizeof(int) * (n2+1));
+        for(j=n2; j>-1; j--){
+                lc[i][j]=INF;
+                lr[i][j]=INF;
+                lpair[i][j]=0;
+        }
   }
   encode_seqs(s1, s2);
   int lim_maxj=n2-min_d2 ;
@@ -1930,7 +1934,7 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
     int idx_3=(i-3)%5;
     int idx_4=(i-4)%5;
     int di1, di2, di3, di4;
-    di1 = access_s1[5][i]   - access_s1[4][i-1];	   
+    di1 = access_s1[5][i]   - access_s1[4][i-1];           
     di2 =access_s1[5][i-1] - access_s1[4][i-2] + di1;
     di3 = access_s1[5][i-2] - access_s1[4][i-3] + di2;
     di4 = access_s1[5][i-3] - access_s1[4][i-4] + di3;
@@ -1939,70 +1943,70 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
     di3=MIN2(di3,495);
     di4=MIN2(di4,660);
     for (j=lim_maxj; j>lim_minj; j--) {
-      int type, type2;// E, k,l;
+      int type, type2;/*  E, k,l; */
       type = pair[S1[i]][S2[j]];
       lpair[idx][j] = type;
       lc[idx][j] = (type) ? P->DuplexInit + access_s1[1][i] : INF;
       lr[idx][j] = INF;
       if(!type) continue;
       if( /*pair[S1[i+1]][S2[j-1]] && Be sure it binds*/
-	  j < max_s1 && j > min_s1 &&  
-	  j > n2 - max_s2 - max_half_stem && 
-	  j < n2 -min_s2 -half_stem && S1[i-2]==4 ) { /*constraint on s2 and i*/
-	int min_k, max_k;
-	max_k = MIN2(n2-min_s2,j+max_half_stem+1);
-	min_k = MAX2(j+half_stem+1, n2-max_s2);
-	folden * temp;
-	temp=foldlist[j+1];
-	while(temp->next){
-	  int k = temp->k;
-	  //if(k >= min_k-1 && k < max_k){ comment to recover normal behaviour
-	  if(lpair[idx_3][k+1] && lc[idx_3][k+1] /*+di3*/ < 411 /*&& lpair[idx_4][k+2]*/){ // remove second condition
-	    lr[idx][j]=MIN2(lr[idx][j], di3 + lc[idx_3][k+1]+temp->energy);/*--NU--*/
-	  }
-	  /*else*/ if(lpair[idx_4][k+1] && /*di4 +*/ lc[idx_4][k+1] < 411  ){/*--NUN--*/ // remove second condition 
-	    lr[idx][j]=MIN2(lr[idx][j], di4 + lc[idx_4][k+1]+temp->energy);
-	  }
-	    // }
-	  temp=temp->next;
-	}
+          j < max_s1 && j > min_s1 &&  
+          j > n2 - max_s2 - max_half_stem && 
+          j < n2 -min_s2 -half_stem && S1[i-2]==4 ) { /*constraint on s2 and i*/
+        int min_k, max_k;
+        max_k = MIN2(n2-min_s2,j+max_half_stem+1);
+        min_k = MAX2(j+half_stem+1, n2-max_s2);
+        folden * temp;
+        temp=foldlist[j+1];
+        while(temp->next){
+          int k = temp->k;
+          /* if(k >= min_k-1 && k < max_k){ comment to recover normal behaviour */
+          if(lpair[idx_3][k+1] && lc[idx_3][k+1] /*+di3*/ < 411 /*&& lpair[idx_4][k+2]*/){ /*  remove second condition */
+            lr[idx][j]=MIN2(lr[idx][j], di3 + lc[idx_3][k+1]+temp->energy);/*--NU--*/
+          }
+          /*else*/ if(lpair[idx_4][k+1] && /*di4 +*/ lc[idx_4][k+1] < 411  ){/*--NUN--*/ /*  remove second condition  */
+            lr[idx][j]=MIN2(lr[idx][j], di4 + lc[idx_4][k+1]+temp->energy);
+          }
+            /*  } */
+          temp=temp->next;
+        }
       }
-      //dangle 5'SIDE relative to the mRNA 
+      /* dangle 5'SIDE relative to the mRNA  */
       /**
       *** lc[idx][j] += P->dangle5[type][SS1[i-1]];
       *** lc[idx][j] += P->dangle3[type][SS2[j+1]];
       *** if (type>2) lc[idx][j] += P->TerminalAU;
       **/
       lc[idx][j]+=E_ExtLoop(type, SS1[i-1] ,  SS2[j+1] , P);
-      //      if(j<n2 && i>1){
-      //type2=pair[S1[i-1]][S2[j+1]];
-	type2=lpair[idx_1][j+1];
-	if(type2>0 ){
-	  lc[idx][j]=MIN2(lc[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+di1, lc[idx][j]);
-	  lr[idx][j]=MIN2(lr[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+di1, lr[idx][j]);
-	}
-	type2=lpair[idx_2][j+2];
-	if(type2>0 ){
-	  lc[idx][j]=MIN2(lc[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+di2, lc[idx][j]);
-	  lr[idx][j]=MIN2(lr[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+di2, lr[idx][j]);
-	 
+      /*       if(j<n2 && i>1){ */
+      /* type2=pair[S1[i-1]][S2[j+1]]; */
+        type2=lpair[idx_1][j+1];
+        if(type2>0 ){
+          lc[idx][j]=MIN2(lc[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+di1, lc[idx][j]);
+          lr[idx][j]=MIN2(lr[idx_1][j+1]+E_IntLoop(0,0,type2, rtype[type],SS1[i], SS2[j], SS1[i-1], SS2[j+1], P)+di1, lr[idx][j]);
+        }
+        type2=lpair[idx_2][j+2];
+        if(type2>0 ){
+          lc[idx][j]=MIN2(lc[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+di2, lc[idx][j]);
+          lr[idx][j]=MIN2(lr[idx_2][j+2]+E_IntLoop(1,1,type2, rtype[type],SS1[i-1], SS2[j+1], SS1[i-1], SS2[j+1], P)+di2, lr[idx][j]);
+         
       }
-	type2 =lpair[idx_3][j+3];
-	if(type2>0 ){
-	  lc[idx][j]=MIN2(lc[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+di3,lc[idx][j]);
-	  lr[idx][j]=MIN2(lr[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+di3,lr[idx][j]);
+        type2 =lpair[idx_3][j+3];
+        if(type2>0 ){
+          lc[idx][j]=MIN2(lc[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+di3,lc[idx][j]);
+          lr[idx][j]=MIN2(lr[idx_3][j+3]+E_IntLoop(2,2,type2, rtype[type],SS1[i-2], SS2[j+2], SS1[i-1], SS2[j+1], P)+di3,lr[idx][j]);
 
       }
       int bla;
       int temp2;
       temp2=min_colonne;
       bla=lr[idx][j] + E_ExtLoop(rtype[type], SS2[j-1], SS1[i+1] , P);
-	/**
-	*** (type>2?P->TerminalAU:0)+P->dangle3[rtype[type]][SS1[i+1]]+P->dangle5[rtype[type]][SS2[j-1]];
-	**/
+        /**
+        *** (type>2?P->TerminalAU:0)+P->dangle3[rtype[type]][SS1[i+1]]+P->dangle5[rtype[type]][SS2[j-1]];
+        **/
       min_colonne=MIN2(bla, min_colonne);
       if(temp2>min_colonne){
-	min_j_colonne=j;
+        min_j_colonne=j;
       }
     }
     position[i]=min_colonne;
@@ -2018,9 +2022,9 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
 
   if(max<threshTE + 30*alignment_length){
     find_max_snoop_XS(s1, s2, access_s1,max,alignment_length, position, position_j,
-		     delta, distance, penalty, threshloop, 
-		     threshLE, threshRE, threshDE, threshTE, threshSE, threshD,
-		      half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2,name);
+                     delta, distance, penalty, threshloop, 
+                     threshLE, threshRE, threshDE, threshTE, threshSE, threshD,
+                      half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2,name,fullStemEnergy);
    }
   for (i=1; i<6; i++) {free(lc[i]);free(lr[i]);free(lpair[i]);}
   free(lc[0]);free(lr[0]);free(lpair[0]);
@@ -2030,29 +2034,29 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
 
 
 PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **access_s1, 
-			       const int max,  const int alignment_length, 
-			       const int* position, const int* position_j, const int delta, 
-			       const int distance, const int penalty, const int threshloop,  const int threshLE, const int threshRE, 
-			       const int threshDE, const int threshTE, const int threshSE, const int threshD, 
-			       const int half_stem, const int max_half_stem, const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const char *name){
+                               const int max,  const int alignment_length, 
+                               const int* position, const int* position_j, const int delta, 
+                               const int distance, const int penalty, const int threshloop,  const int threshLE, const int threshRE, 
+                               const int threshDE, const int threshTE, const int threshSE, const int threshD, 
+                               const int half_stem, const int max_half_stem, const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const char *name, const int fullStemEnergy){
   int count=0;
   int n3=strlen(s1);
   int n4=strlen(s2);
   int pos=n1-4;
   int max_pos_j;
   int threshold = MIN2(threshTE + alignment_length*30, -100);
-  //printf("threshTE %d max %d\n", threshTE, max);
-  //#pragma omp parallel for
-  //  for(pos=n1+1;pos>distance;pos--){
+  /* printf("threshTE %d max %d\n", threshTE, max); */
+  /* #pragma omp parallel for */
+  /*   for(pos=n1+1;pos>distance;pos--){ */
   while(pos-->5){
     int temp_min=0;
     if(position[pos]<(threshold)){
       int search_range;
       search_range=distance+1;
       while(--search_range){
-	if(position[pos-search_range]<=position[pos-temp_min]){
-	  temp_min=search_range;
-	}
+        if(position[pos-search_range]<=position[pos-temp_min]){
+          temp_min=search_range;
+        }
       }
       pos-=temp_min;
       max_pos_j=position_j[pos];
@@ -2065,17 +2069,17 @@ PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **acces
       int n5 = strlen(s3);
       snoopT test;
       test = snoopfold_XS(s3, s2, access_s1, pos, max_pos_j ,penalty, 
-			  threshloop, threshLE, threshRE, 
-			  threshDE, threshD, half_stem, 
-			  max_half_stem, min_s2, max_s2, min_s1, 
-			  max_s1, min_d1, min_d2);
+                          threshloop, threshLE, threshRE, 
+                          threshDE, threshD, half_stem, 
+                          max_half_stem, min_s2, max_s2, min_s1, 
+                          max_s1, min_d1, min_d2, fullStemEnergy);
       if(test.energy==INF){
-	free(s3);
-	continue;
+        free(s3);
+        continue;
       }
       if( test.Duplex_El > threshLE * 0.01 ||test.Duplex_Er > threshRE * 0.01  || 
-	 test.Loop_D > threshD * 0.01 || (test.Duplex_Er + test.Duplex_El) > threshDE * 0.01 || 
-	 (test.Duplex_Er + test.Duplex_El + test.Loop_E) > threshTE*0.01 || (test.Duplex_Er + test.Duplex_El + test.Loop_E + test.Loop_D + 410) > threshSE*0.01) { 
+         test.Loop_D > threshD * 0.01 || (test.Duplex_Er + test.Duplex_El) > threshDE * 0.01 || 
+         (test.Duplex_Er + test.Duplex_El + test.Loop_E) > threshTE*0.01 || (test.Duplex_Er + test.Duplex_El + test.Loop_E + test.Loop_D + 410) > threshSE*0.01) { 
         free(test.structure);free(s3); 
         continue; 
       }
@@ -2089,51 +2093,51 @@ PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **acces
       strncpy(s5,s3+test.i-1,n5-test.i+1-5);
       s5[n5-test.i+1-5]='\0';
       float dE = ((float) (access_s1[n5-test.i+1-5][pos]))*0.01;
-      printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + %5.2f + 4.10)\n%s&%s\n" ,  
-	     test.structure, pos  -  (n5 - test.i) ,pos - 5, pos - (n5 - test.u ),
+      printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + %5.2f + 4.10) (%5.2f)\n%s&%s\n" ,  
+             test.structure, pos  -  (n5 - test.i) ,pos - 5, pos - (n5 - test.u ),
              max_pos_j-5, max_pos_j-5 + (strrchr(test.structure,'>') - strchr(test.structure,'>')), 
-	     test.Loop_D + test.Duplex_El + test.Duplex_Er + test.Loop_E + 4.10+dE, test.Duplex_El, 
-	     test.Duplex_Er, test.Loop_E, test.Loop_D,dE , s5,s4);
+             test.Loop_D + test.Duplex_El + test.Duplex_Er + test.Loop_E + 4.10+dE, test.Duplex_El, 
+             test.Duplex_Er, test.Loop_E, test.Loop_D,dE ,test.fullStemEnergy, s5,s4);
       if(name){
-	int begin_t, end_t, begin_q, end_q, and, pipe, i; 
-	char psoutput[100];
-	begin_q=0;
-	end_q=n4-10;
-	begin_t=0;
-	end_t=n5-test.i+ 1-5;
-	and=end_t+1;
-	pipe=test.u -test.i + 1;
-	cut_point = end_t +1 ;
-	char *catseq, *catstruct;// *fname; 
-	catseq = (char*) space(n5 + end_q -begin_q +2);
-	catstruct = (char*) space(n5 + end_q -begin_q +2);
-	strcpy(catseq, s5);
-	strncpy(catstruct, test.structure, end_t);
-	strcat(catseq, s4);
-	strncat(catstruct, test.structure+end_t+1, end_q-begin_q+1);
-	catstruct[end_t - begin_t + end_q-begin_q+2]='\0';
-	catseq[end_t - begin_t + end_q-begin_q+2]='\0';
-	int *relative_access;
-	relative_access = space(sizeof(int)*strlen(s5));
+        int begin_t, end_t, begin_q, end_q, and, pipe, i; 
+        char psoutput[100];
+        begin_q=0;
+        end_q=n4-10;
+        begin_t=0;
+        end_t=n5-test.i+ 1-5;
+        and=end_t+1;
+        pipe=test.u -test.i + 1;
+        cut_point = end_t +1 ;
+        char *catseq, *catstruct;/*  *fname;  */
+        catseq = (char*) space(n5 + end_q -begin_q +2);
+        catstruct = (char*) space(n5 + end_q -begin_q +2);
+        strcpy(catseq, s5);
+        strncpy(catstruct, test.structure, end_t);
+        strcat(catseq, s4);
+        strncat(catstruct, test.structure+end_t+1, end_q-begin_q+1);
+        catstruct[end_t - begin_t + end_q-begin_q+2]='\0';
+        catseq[end_t - begin_t + end_q-begin_q+2]='\0';
+        int *relative_access;
+        relative_access = space(sizeof(int)*strlen(s5));
 
-	relative_access[0] = access_s1[1][pos - (n5  - test.i) + 5];
-	for(i=1;i<strlen(s5);i++){
-	  relative_access[i] =  access_s1[i+1][pos - (n5  - test.i) + i + 5] -  access_s1[i][pos - (n5  - test.i) + i + 4];
-	}
-	char str[16];
-	char upos[16];
-	strcpy(psoutput,"sno_XS_");
-	sprintf(str,"%d",count);
-	strcat(psoutput,str);
-	sprintf(upos,"%d",pos - (n5 - test.u ));
-	strcat(psoutput,"_u_");
-	strcat(psoutput,upos);
-	strcat(psoutput,"_");
-	strcat(psoutput,name);
-	strcat(psoutput,".ps\0");
-	PS_rna_plot_snoop_a(catseq, catstruct, psoutput,relative_access,NULL);
-	free(catseq);free(catstruct);free(relative_access);
-	count++;
+        relative_access[0] = access_s1[1][pos - (n5  - test.i) + 5];
+        for(i=1;i<strlen(s5);i++){
+          relative_access[i] =  access_s1[i+1][pos - (n5  - test.i) + i + 5] -  access_s1[i][pos - (n5  - test.i) + i + 4];
+        }
+        char str[16];
+        char upos[16];
+        strcpy(psoutput,"sno_XS_");
+        sprintf(str,"%d",count);
+        strcat(psoutput,str);
+        sprintf(upos,"%d",pos - (n5 - test.u ));
+        strcat(psoutput,"_u_");
+        strcat(psoutput,upos);
+        strcat(psoutput,"_");
+        strcat(psoutput,name);
+        strcat(psoutput,".ps\0");
+        PS_rna_plot_snoop_a(catseq, catstruct, psoutput,relative_access,NULL);
+        free(catseq);free(catstruct);free(relative_access);
+        count++;
       }
       free(s3);free(s4);free(s5);free(test.structure);
     }
@@ -2141,11 +2145,11 @@ PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **acces
 }
 
 snoopT snoopfold_XS(const char *s1, const char *s2, const int **access_s1, const int pos_i, const int pos_j,
-		 const int penalty, const int threshloop, const int threshLE, const int threshRE, const int threshDE,
-		 const int threshD,
-		 const int half_stem, const int max_half_stem, 
-		 const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2) {
-  //  int Eminj, Emin_l;
+                 const int penalty, const int threshloop, const int threshLE, const int threshRE, const int threshDE,
+                 const int threshD,
+                 const int half_stem, const int max_half_stem, 
+                    const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const int fullStemEnergy) {
+  /*   int Eminj, Emin_l; */
   int a,b,i, j, Emin=INF, a_min=0, b_min=0;
   char *struc;
   snoopT mfe;
@@ -2171,70 +2175,70 @@ snoopT snoopfold_XS(const char *s1, const char *s2, const int **access_s1, const
   c = (int **) space(sizeof(int *) * (n1+1));
   r = (int **) space(sizeof(int *) * (n1+1));
   for (i=0; i<=n1; i++) {
-  	c[i] = (int *) space(sizeof(int) * (n2+1));
-	r[i] = (int *) space(sizeof(int) * (n2+1));
-	for(j=n2; j>-1; j--){
-		c[i][j]=INF;
-		r[i][j]=INF;
-	}
+          c[i] = (int *) space(sizeof(int) * (n2+1));
+        r[i] = (int *) space(sizeof(int) * (n2+1));
+        for(j=n2; j>-1; j--){
+                c[i][j]=INF;
+                r[i][j]=INF;
+        }
   }
   encode_seqs(s1, s2);
   i=n1-5;
   j=pos_j;
-  //printf("tar: %s\nsno: %s\n ", s1, s2);
-  //printf("pos_i %d pos_j %d\n", pos_i, pos_j);
-  //printf("type %d n1 %d n2 %d S1[n1] %d S2[n2] %d", pair[S1[i]][S2[j]], n1, n2, S1[n1], S2[n2]);
+  /* printf("tar: %s\nsno: %s\n ", s1, s2); */
+  /* printf("pos_i %d pos_j %d\n", pos_i, pos_j); */
+  /* printf("type %d n1 %d n2 %d S1[n1] %d S2[n2] %d", pair[S1[i]][S2[j]], n1, n2, S1[n1], S2[n2]); */
   int type, type2, E, p,q;    
   r[i][j] = P->DuplexInit; 
-  //r[i][j] += P->dangle3[rtype[type]][SS1[i+1]] + P->dangle5[rtype[type]][SS2[j-1]]; 
+  /* r[i][j] += P->dangle3[rtype[type]][SS1[i+1]] + P->dangle5[rtype[type]][SS2[j-1]];  */
   
   if(pair[S1[i]][S2[j]]>2) r[i][j]+=P->TerminalAU;
-  for(a=i-1; a>0;a--){ //i-1
+  for(a=i-1; a>0;a--){ /* i-1 */
     r[a+1][0]=INF;
-    for(b=j+1; b<=n2-min_d2;b++){ //j+1
+    for(b=j+1; b<=n2-min_d2;b++){ /* j+1 */
       r[a][b]=INF;
       type = pair[S1[a]][S2[b]]; 
        if(!type) continue; 
        if(S1[a+1]==4){ 
-	 folden * temp; 
-	 temp=foldlist_XS[b-1]; 
-	 while(temp->next) {     
-	   int k = temp->k; 
-	   if(pair[S1[a+3]][S2[k-1]] && k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem /*&& r[a+3][k-1] + access_s1[i-(a+3)+1][pos_i] < 411*/) { //remove last condition last condition is to check if the interaction is stable enough
-	     c[a][b]=MIN2(c[a][b], r[a+3][k-1]+temp->energy); 
-	   }
-	   temp=temp->next;
-	 }
+         folden * temp; 
+         temp=foldlist_XS[b-1]; 
+         while(temp->next) {     
+           int k = temp->k; 
+           if(pair[S1[a+3]][S2[k-1]] && k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem /*&& r[a+3][k-1] + access_s1[i-(a+3)+1][pos_i] < 411*/) { /* remove last condition last condition is to check if the interaction is stable enough */
+             c[a][b]=MIN2(c[a][b], r[a+3][k-1]+temp->energy); 
+           }
+           temp=temp->next;
+         }
        }
        if(S1[a+2]==4){
-	 folden * temp; 
-	 temp=foldlist_XS[b-1]; 
-	 while(temp->next){ 
-	   int k = temp->k; 
-	   if(pair[S1[a+4]][S2[k-1]] &&  k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem /*&& r[a+4][k-1] + access_s1[i-(a+4)+1][pos_i] < 411 */ ) { //remove last condition 
-	     c[a][b]=MIN2(c[a][b], r[a+4][k-1]+temp->energy); 
-	   }
-	   temp=temp->next;
-	 }
+         folden * temp; 
+         temp=foldlist_XS[b-1]; 
+         while(temp->next){ 
+           int k = temp->k; 
+           if(pair[S1[a+4]][S2[k-1]] &&  k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem /*&& r[a+4][k-1] + access_s1[i-(a+4)+1][pos_i] < 411 */ ) { /* remove last condition  */
+             c[a][b]=MIN2(c[a][b], r[a+4][k-1]+temp->energy); 
+           }
+           temp=temp->next;
+         }
        }
-       for(p=a+1; p<n1 && (p-a) < MAXLOOP_L; p++) { //p < n1
-	 for (q=b-1; q > 1  ; q--) {  //q > 1
-	   if (p-a+b-q>2*MAXLOOP_L-2) break; 
-	   if (abs((p-a)-(b-q)) >= ASS ) continue; 
-	   type2 = pair[S1[p]][S2[q]]; 
-	   if (!type2) continue; 
-	   E = E_IntLoop(p-a-1, b-q-1, type2, rtype[type],SS1[a+1], SS2[b-1], SS1[p-1], SS2[q+1],P); 
-	   c[a][b] = MIN2(c[a][b], c[p][q]+E); 
-	   r[a][b] = MIN2(r[a][b], r[p][q]+E); 
-	 }
+       for(p=a+1; p<n1 && (p-a) < MAXLOOP_L; p++) { /* p < n1 */
+         for (q=b-1; q > 1  ; q--) {  /* q > 1 */
+           if (p-a+b-q>2*MAXLOOP_L-2) break; 
+           if (abs((p-a)-(b-q)) >= ASS ) continue; 
+           type2 = pair[S1[p]][S2[q]]; 
+           if (!type2) continue; 
+           E = E_IntLoop(p-a-1, b-q-1, type2, rtype[type],SS1[a+1], SS2[b-1], SS1[p-1], SS2[q+1],P); 
+           c[a][b] = MIN2(c[a][b], c[p][q]+E); 
+           r[a][b] = MIN2(r[a][b], r[p][q]+E); 
+         }
        }
        E = c[a][b];  
        if (type>2) E += P->TerminalAU;  
-       //       E +=P->dangle5[rtype[type]][SS1[i+1]];
-       //E +=P->dangle5[rtype[type]][SS2[j-1]]; 
+       /*        E +=P->dangle5[rtype[type]][SS1[i+1]]; */
+       /* E +=P->dangle5[rtype[type]][SS2[j-1]];  */
        E+=access_s1[i-a+1][pos_i]; 
        if (E<Emin) { 
-	 Emin=E; a_min=a; b_min=b; 
+         Emin=E; a_min=a; b_min=b; 
        }  
     }
   }
@@ -2251,8 +2255,8 @@ snoopT snoopfold_XS(const char *s1, const char *s2, const int **access_s1, const
   if(type2>2) Emin +=P->TerminalAU;
   mfe.energy = ((float) (Emin))/100;
   struc = snoop_backtrack_XS(a_min, b_min,s2, &Duplex_El, &Duplex_Er, &Loop_E, &Loop_D, 
-			     &u, penalty, threshloop, threshLE, threshRE,threshDE, threshD, 
-			     half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2); 
+                             &u, penalty, threshloop, threshLE, threshRE,threshDE, threshD, 
+                             half_stem, max_half_stem, min_s2, max_s2, min_s1, max_s1, min_d1, min_d2); 
 
   mfe.i = a_min;
   mfe.j = b_min;
@@ -2262,22 +2266,23 @@ snoopT snoopfold_XS(const char *s1, const char *s2, const int **access_s1, const
   mfe.Loop_D = (float) Loop_D/100;
   mfe.Loop_E = (float) Loop_E/100;
   mfe.energy = (float) Emin/100 ;
+  mfe.fullStemEnergy = (float) fullStemEnergy/100;
   mfe.structure = struc;
   return mfe;
 }
 
 PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq, 
-			      int *Duplex_El, int *Duplex_Er, 
-			      int *Loop_E, int *Loop_D, int *u, 
-			      const int penalty, const int threshloop, 
-			      const int threshLE, const int threshRE, const int threshDE, const int threshD,
-			      const int half_stem, const int max_half_stem, 
-			      const int min_s2, const int max_s2, const int min_s1, 
-			      const int max_s1, const int min_d1, const int min_d2) {
+                              int *Duplex_El, int *Duplex_Er, 
+                              int *Loop_E, int *Loop_D, int *u, 
+                              const int penalty, const int threshloop, 
+                              const int threshLE, const int threshRE, const int threshDE, const int threshD,
+                              const int half_stem, const int max_half_stem, 
+                              const int min_s2, const int max_s2, const int min_s1, 
+                              const int max_s1, const int min_d1, const int min_d2) {
   /* backtrack structure going backwards from i, and forwards from j 
      return structure in bracket notation with & as separator */
   int k, l, type, type2, E, traced, i0, j0;
-  int traced_c=0; //flag for following backtrack in c or r
+  int traced_c=0; /* flag for following backtrack in c or r */
   char *st1, *st2, *struc;
   char *struc_loop;
 
@@ -2290,7 +2295,7 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
   type=pair[S1[i]][S2[j]];
   snoexport_fold_arrays(&indx, &mLoop, &cLoop,&foldlist, &foldlist_XS ); 
   i0=i;j0=j;
-  //  i0=MAX2(i,1); j0=MIN2(j+1,n2);
+  /*   i0=MAX2(i,1); j0=MIN2(j+1,n2); */
   while (i<=n1 && j>=1 ) {
     if(!traced_c) {
       E = c[i][j]; traced=0;
@@ -2299,86 +2304,86 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
       type = pair[S1[i]][S2[j]];
       if (!type) nrerror("backtrack failed in fold duplex c");
       for (k=i+1; k>0 && (k-i)<MAXLOOP_L; k++) {
-	for (l=j-1; l>=1 ; l--) {
-	  int LE;
-	  if (k-i+j-l>2*MAXLOOP_L-2) break;
-	  if (abs(k-i-j+l) >= ASS) continue;
-	  type2 = pair[S1[k]][S2[l]];
-	  if (!type2) continue;
-	  LE = E_IntLoop(k-i-1, j-l-1, type2, rtype[type],
-			 SS1[i+1], SS2[j-1], SS1[k-1], SS2[l+1],P);
-	  if (E == c[k][l]+LE) {
-	    traced=1; 
-	    i=k; j=l;
-	    *Duplex_El+=LE;
-	    break;
-	  }
-	}
-	if (traced) break;
+        for (l=j-1; l>=1 ; l--) {
+          int LE;
+          if (k-i+j-l>2*MAXLOOP_L-2) break;
+          if (abs(k-i-j+l) >= ASS) continue;
+          type2 = pair[S1[k]][S2[l]];
+          if (!type2) continue;
+          LE = E_IntLoop(k-i-1, j-l-1, type2, rtype[type],
+                         SS1[i+1], SS2[j-1], SS1[k-1], SS2[l+1],P);
+          if (E == c[k][l]+LE) {
+            traced=1; 
+            i=k; j=l;
+            *Duplex_El+=LE;
+            break;
+          }
+        }
+        if (traced) break;
       }
       if(!traced){
-	if(S1[i+1]==4) {
-	  folden * temp;
-	  temp=foldlist_XS[j-1];
-	  while(temp->next) {
-	    int k = temp->k;
-	    if(pair[S1[i+3]][S2[k-1]] && k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem ) {
-	      if(E==r[i+3][k-1]+temp->energy){
-		*Loop_E=temp->energy;
-		st1[i+1]= '|';
-		st1[i+2]='.';
-		*u=i+1;
-		int a,b;
-		for(a=0; a< MISMATCH ;a++){
-		  for(b=0; b< MISMATCH ; b++){
-		    int ij=indx[j-1-a]+k+b;
-		    if(cLoop[ij]==temp->energy) {
-		      struc_loop=snobacktrack_fold_from_pair(snoseq, k+b, j-1-a); 
-		      a=INF; b=INF;	
-		    }
-		  }
-		}
-		traced=1;
-		traced_c=1;
-		i=i+3;j=k-1;
-		break;
-	      }
-	    }
-	    temp=temp->next;
-	  }
-	}
-	if (S1[i+2]==4){  //introduce structure from RNAfold
-	  folden * temp;
-	  temp=foldlist_XS[j-1];
-	  while(temp->next) {
-	    int k = temp->k;
-	    if(pair[S1[i+4]][S2[k-1]] && k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem ) {
-	      if(E==r[i+4][k-1]+temp->energy){
-		*Loop_E=temp->energy;
-		st1[i+2]= '|';
-		st1[i+1]=st1[i+3]='.';
-		*u=i+2;
-		int a,b;
-		for(a=0; a< MISMATCH ;a++){
-		  for(b=0; b< MISMATCH ; b++){
-		    int ij=indx[j-1-a]+k+b;
-		    if(cLoop[ij]==temp->energy) {
-		      struc_loop=snobacktrack_fold_from_pair(snoseq, k+b, j-a-1);
-		      a=INF; b=INF;	
-		    }
-		  }
-		}
-		traced=1;
-		traced_c=1;
-		i=i+4;j=k-1;
-		break;
-	      }
-	    }
-	    temp=temp->next;
-	  }
-	}
-      }//traced?
-    }//traced_r?
+        if(S1[i+1]==4) {
+          folden * temp;
+          temp=foldlist_XS[j-1];
+          while(temp->next) {
+            int k = temp->k;
+            if(pair[S1[i+3]][S2[k-1]] && k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem ) {
+              if(E==r[i+3][k-1]+temp->energy){
+                *Loop_E=temp->energy;
+                st1[i+1]= '|';
+                st1[i+2]='.';
+                *u=i+1;
+                int a,b;
+                for(a=0; a< MISMATCH ;a++){
+                  for(b=0; b< MISMATCH ; b++){
+                    int ij=indx[j-1-a]+k+b;
+                    if(cLoop[ij]==temp->energy) {
+                      struc_loop=snobacktrack_fold_from_pair(snoseq, k+b, j-1-a); 
+                      a=INF; b=INF;        
+                    }
+                  }
+                }
+                traced=1;
+                traced_c=1;
+                i=i+3;j=k-1;
+                break;
+              }
+            }
+            temp=temp->next;
+          }
+        }
+        if (S1[i+2]==4){  /* introduce structure from RNAfold */
+          folden * temp;
+          temp=foldlist_XS[j-1];
+          while(temp->next) {
+            int k = temp->k;
+            if(pair[S1[i+4]][S2[k-1]] && k< max_s1 && k > min_s1 && k > n2 - max_s2 - max_half_stem &&  k < n2 -min_s2 -half_stem ) {
+              if(E==r[i+4][k-1]+temp->energy){
+                *Loop_E=temp->energy;
+                st1[i+2]= '|';
+                st1[i+1]=st1[i+3]='.';
+                *u=i+2;
+                int a,b;
+                for(a=0; a< MISMATCH ;a++){
+                  for(b=0; b< MISMATCH ; b++){
+                    int ij=indx[j-1-a]+k+b;
+                    if(cLoop[ij]==temp->energy) {
+                      struc_loop=snobacktrack_fold_from_pair(snoseq, k+b, j-a-1);
+                      a=INF; b=INF;        
+                    }
+                  }
+                }
+                traced=1;
+                traced_c=1;
+                i=i+4;j=k-1;
+                break;
+              }
+            }
+            temp=temp->next;
+          }
+        }
+      }/* traced? */
+    }/* traced_r? */
     else{
       E = r[i][j]; traced=0;
       st1[i] = '<';
@@ -2386,55 +2391,55 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
       type = pair[S1[i]][S2[j]];
       if (!type) nrerror("backtrack failed in fold duplex r");
       for (k=i+1; k>0 && (k-i)<MAXLOOP_L; k++) {
-	for (l=j-1; l>=1 ; l--) {
-	  int LE;
-	  if (k-i+j-l>2*MAXLOOP_L-2) break;
-	  if (abs(k-i-j+l) >= ASS) continue;
-	  type2 = pair[S1[k]][S2[l]];
-	  if (!type2) continue;
-	  LE = E_IntLoop(k-i-1, j-l-1, type2, rtype[type],
-			 SS1[i+1], SS2[j-1], SS1[k-1], SS2[l+1],P);
-	  if (E == r[k][l]+LE) {
-	    traced=1; 
-	    i=k; j=l;
-	    *Duplex_Er+=LE;
-	    break;
-	  }
-	}
-	if (traced) break;
+        for (l=j-1; l>=1 ; l--) {
+          int LE;
+          if (k-i+j-l>2*MAXLOOP_L-2) break;
+          if (abs(k-i-j+l) >= ASS) continue;
+          type2 = pair[S1[k]][S2[l]];
+          if (!type2) continue;
+          LE = E_IntLoop(k-i-1, j-l-1, type2, rtype[type],
+                         SS1[i+1], SS2[j-1], SS1[k-1], SS2[l+1],P);
+          if (E == r[k][l]+LE) {
+            traced=1; 
+            i=k; j=l;
+            *Duplex_Er+=LE;
+            break;
+          }
+        }
+        if (traced) break;
       }
     }
     if (!traced) { 
 /*       if (i>1)    {E -= P->dangle5[type][SS1[i-1]]; *Duplex_El +=P->dangle5[type][SS1[i-1]];} */
 /*       if (j<n2)   {E -= P->dangle3[type][SS2[j+1]]; *Duplex_El +=P->dangle3[type][SS2[j+1]];} */
-      if (type>2) {E -= P->TerminalAU;	*Duplex_Er +=P->TerminalAU;}
+      if (type>2) {E -= P->TerminalAU;        *Duplex_Er +=P->TerminalAU;}
       if (E != P->DuplexInit) {
-	nrerror("backtrack failed in fold duplex end");
+        nrerror("backtrack failed in fold duplex end");
       } else break;
     }
   }
 
   
-  ////struc = (char *) space(i0-i+1+j-j0+1+2); //declare final duplex structure
-  struc = (char *) space(i-i0+1+n2); //declare final duplex structure
+  /* struc = (char *) space(i0-i+1+j-j0+1+2); */ /* declare final duplex structure */
+  struc = (char *) space(i-i0+1+n2); /* declare final duplex structure */
   char * struc2;
   struc2 = (char *) space(n2+1);
-  ////char * struct_const;
+  /* char * struct_const; */
 
   for (k=MIN2(i0,1); k<=i; k++) if (!st1[k-1]) st1[k-1] = '.';
-  //for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.'; normal
-  // char * struct_const;
-  // struct_const = (char *) space(sizeof(char)*(n2+1));  
+  /* for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = struc_loop[k-1];*/ /* '.'; normal */
+  /*  char * struct_const; */
+  /*  struct_const = (char *) space(sizeof(char)*(n2+1));   */
   for (k=1; k<=n2; k++) {
-    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];//'.';
-    struc2[k-1] = st2[k-1];//'.';
-    //     if (k>=j0 && k<=j){
-    //     	struct_const[k-1]='x';
-    //     }
-    //     else{
-    //     	if(k<j0) {struct_const[k-1]='<';}
-    //     	if(k>j) {struct_const[k-1]='>';}
-    //     }
+    if (!st2[k-1]) st2[k-1] = struc_loop[k-1];/* '.'; */
+    struc2[k-1] = st2[k-1];/* '.'; */
+    /*      if (k>=j0 && k<=j){ */
+    /*              struct_const[k-1]='x'; */
+    /*      } */
+    /*      else{ */
+    /*              if(k<j0) {struct_const[k-1]='<';} */
+    /*              if(k>j) {struct_const[k-1]='>';} */
+    /*      } */
   }
   char duplexseq_1[j];
   char duplexseq_2[n2-j0+2];
@@ -2454,16 +2459,16 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
       jbegin=temp.j;
       jend  =temp.j+strlen(temp.structure)-l1-2-1;
       for(k=ibegin+1; k<=iend+1; k++){
-	struc2[k-1]=temp.structure[k-ibegin-1];
+        struc2[k-1]=temp.structure[k-ibegin-1];
       }
       for(k=jbegin+j0; k<=jend+j0; k++){
-	struc2[k-1]=temp.structure[l1+k-j0-jbegin+1];
+        struc2[k-1]=temp.structure[l1+k-j0-jbegin+1];
       } 
     }
     free(temp.structure);
   } 
   strcpy(struc, st1+MAX2(i0,1)); strcat(struc, "&"); 
-  //strcat(struc, st2);
+  /* strcat(struc, st2); */
   strncat(struc, struc2+5, strlen(struc2)-10);
   free(struc2);
   free(struc_loop);
@@ -2473,7 +2478,7 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
     free(c);
     free(r);
     free(S1);free(S2);free(SS1);free(SS2);
-    //free_arrays();
+    /* free_arrays(); */
   return struc;
 }
 
@@ -2522,7 +2527,7 @@ PRIVATE short * aliencode_seq(const char *sequence) {
     Stemp[i]= (short) encode_char(toupper(sequence[i-1]));
 
   /* for circular folding add first base at position n+1 */
-  //Stemp[l+1] = Stemp[1];
+  /* Stemp[l+1] = Stemp[1]; */
 
   return Stemp;
 }

@@ -16,9 +16,12 @@
 #endif
 
 /**
- *  \file 2Dpfold.h
+ *  \addtogroup kl_neighborhood_pf
  *  \brief Compute the partition function and stochastically sample secondary structures for a partitioning of
  *  the secondary structure space according to the base pair distance to two fixed reference structures
+ *  @{
+ *
+ *  \file 2Dpfold.h
  */
 
 /**
@@ -68,25 +71,6 @@ TwoDpfold_vars  *get_TwoDpfold_variables_from_MFE(TwoDfold_vars *mfe_vars);
 void            destroy_TwoDpfold_variables(TwoDpfold_vars *vars);
 
 /**
- * \brief
- *
- *
- */
-DEPRECATED(FLT_OR_DBL          **TwoDpfold(TwoDpfold_vars *our_variables,
-                                int maxDistance1,
-                                int maxDistance2));
-
-/**
- * \brief
- *
- *
- */
-DEPRECATED(FLT_OR_DBL          **TwoDpfold_circ(
-                                TwoDpfold_vars *our_variables,
-                                int maxDistance1,
-                                int maxDistance2));
-
-/**
  * \brief Compute the partition function for all distance classes
  *
  * This function computes the partition functions for all distance classes
@@ -111,22 +95,30 @@ TwoDpfold_solution  *TwoDpfoldList( TwoDpfold_vars *vars,
                                     int maxDistance1,
                                     int maxDistance2);
 
+/** @} */ /* End of group kl_neighborhood_pf */
+
+/**
+ *  \addtogroup kl_neighborhood_stochbt
+ *  \brief Contains functions related to stochastic backtracking from a specified distance class
+ *  @{
+ */
+
 /**
  *  \brief Sample secondary structure representatives from a set of distance classes according to their 
  *  Boltzmann probability
  *
- * If the argument 'd1' is set to '-1', the structure will be backtracked in the distance class
- * where all structures exceeding the maximum basepair distance to either of the references reside.
+ *  If the argument 'd1' is set to '-1', the structure will be backtracked in the distance class
+ *  where all structures exceeding the maximum basepair distance to either of the references reside.
  *
- * \note The argument 'vars' must contain precalculated partition function matrices,
- * i.e. a call to TwoDpfoldList() preceding this function is mandatory!
+ *  \pre      The argument 'vars' must contain precalculated partition function matrices,
+ *            i.e. a call to TwoDpfoldList() preceding this function is mandatory!
  *
- * \see TwoDpfoldList()
+ *  \see      TwoDpfoldList()
  *
- *  \param vars   the datastructure containing all necessary folding attributes and matrices
- *  \param d1     the distance to reference1 (may be -1)
- *  \param d2     the distance to reference2
- *  \returns      a sampled secondary structure in dot-bracket notation
+ *  \param[in]  vars  the datastructure containing all necessary folding attributes and matrices
+ *  \param[in]  d1    the distance to reference1 (may be -1)
+ *  \param[in]  d2    the distance to reference2
+ *  \returns    A sampled secondary structure in dot-bracket notation
  */
 char            *TwoDpfold_pbacktrack(TwoDpfold_vars *vars,
                                       int d1,
@@ -139,21 +131,43 @@ char            *TwoDpfold_pbacktrack(TwoDpfold_vars *vars,
  * This function does essentially the same as TwoDpfold_pbacktrack with the only difference that partial structures,
  * i.e. structures beginning from the 5' end with a specified length of the sequence, are backtracked
  *
- * \note The argument 'vars' must contain precalculated partition function matrices,
- * i.e. a call to TwoDpfoldList() preceding this function is mandatory!
- * \note This function does not work (since it makes no sense) for circular RNA sequences!
+ * \note      This function does not work (since it makes no sense) for circular RNA sequences!
+ * \pre       The argument 'vars' must contain precalculated partition function matrices,
+ *            i.e. a call to TwoDpfoldList() preceding this function is mandatory!
  *
- * \see TwoDpfold_pbacktrack(), TwoDpfoldList()
+ * \see       TwoDpfold_pbacktrack(), TwoDpfoldList()
  *
- *  \param vars   the datastructure containing all necessary folding attributes and matrices
- *  \param d1     the distance to reference1 (may be -1)
- *  \param d2     the distance to reference2
- *  \param length the length of the structure beginning from the 5' end
- *  \returns      a sampled secondary structure in dot-bracket notation
+ *  \param[in]  vars    the datastructure containing all necessary folding attributes and matrices
+ *  \param[in]  d1      the distance to reference1 (may be -1)
+ *  \param[in]  d2      the distance to reference2
+ *  \param[in]  length  the length of the structure beginning from the 5' end
+ *  \returns    A sampled secondary structure in dot-bracket notation
  */
 char            *TwoDpfold_pbacktrack5( TwoDpfold_vars *vars,
                                           int d1,
                                           int d2,
                                           unsigned int length);
+
+/** @} */ /* End of group kl_neighborhood_stochbt */
+
+/**
+ * \brief
+ *
+ *
+ */
+DEPRECATED(FLT_OR_DBL          **TwoDpfold(TwoDpfold_vars *our_variables,
+                                int maxDistance1,
+                                int maxDistance2));
+
+/**
+ * \brief
+ *
+ *
+ */
+DEPRECATED(FLT_OR_DBL          **TwoDpfold_circ(
+                                TwoDpfold_vars *our_variables,
+                                int maxDistance1,
+                                int maxDistance2));
+
 
 #endif

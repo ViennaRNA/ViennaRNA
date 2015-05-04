@@ -26,14 +26,12 @@
 #include "subopt.h"
 #include "fold.h"
 #include "loop_energies.h"
+#include "gquad.h"
 #include "cofold.h"
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-/*@unused@*/
-static char rcsid[] UNUSED = "$Id: cofold.c,v 1.12 2008/12/03 16:55:50 ivo Exp $";
 
 #define PAREN
 
@@ -77,7 +75,6 @@ PRIVATE short   *S = NULL, *S1 = NULL;
 PRIVATE paramT  *P          = NULL;
 PRIVATE int     init_length = -1;
 PRIVATE int     zuker       = 0; /* Do Zuker style suboptimals? */
-PRIVATE char    alpha[]     = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 PRIVATE sect    sector[MAXSECTORS];   /* stack for backtracking */
 PRIVATE int     length;
 PRIVATE bondT   *base_pair2 = NULL;
@@ -87,18 +84,16 @@ PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
                         -3: > = base must be paired with j>i
                         -4: x = base must not pair
                         positive int: base is paired with int      */
-PRIVATE int     struct_constrained = 0;
+PRIVATE int     struct_constrained  = 0;
+PRIVATE int     with_gquad          = 0;
+
+PRIVATE int     *ggg = NULL;    /* minimum free energies of the gquadruplexes */
 
 #ifdef _OPENMP
 
-/* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin in the PARALLEL directive!
-         e.g.:
-         #pragma omp parallel for copyin(P, init_length, ...)
-*/
 #pragma omp threadprivate(mfe1, mfe2, indx, c, cc, cc1, f5, fc, fML, fM1, Fmi, DMLi, DMLi1, DMLi2,\
-                          ptype, S, S1, P, zuker, sector, length, base_pair2, BP, struct_constrained)
+                          ptype, S, S1, P, zuker, sector, length, base_pair2, BP, struct_constrained,\
+                          ggg, with_gquad)
 
 #endif
 
@@ -160,8 +155,8 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi  = (int *) space(sizeof(int)*(size+1));
   DMLi1 = (int *) space(sizeof(int)*(size+1));
   DMLi2 = (int *) space(sizeof(int)*(size+1));
-  if (base_pair2) free(base_pair2);
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
+
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+200)); /* add a guess of how many G's may be involved in a G quadruplex */
 }
 
 /*--------------------------------------------------------------------------*/
@@ -182,7 +177,9 @@ PUBLIC void free_co_arrays(void){
   if(DMLi1)       free(DMLi1);
   if(DMLi2)       free(DMLi2);
   if(P)           free(P);
-  indx = c = fML = f5 = cc = cc1 = fc = fM1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
+  if(ggg)         free(ggg);
+
+  indx = c = fML = f5 = cc = cc1 = fc = fM1 = Fmi = DMLi = DMLi1 = DMLi2 = ggg = NULL;
   ptype       = NULL;
   base_pair2  = NULL;
   P           = NULL;
@@ -191,6 +188,23 @@ PUBLIC void free_co_arrays(void){
 
 
 /*--------------------------------------------------------------------------*/
+
+PUBLIC void export_cofold_arrays_gq(  int **f5_p,
+                                      int **c_p,
+                                      int **fML_p,
+                                      int **fM1_p,
+                                      int **fc_p,
+                                      int **ggg_p,
+                                      int **indx_p,
+                                      char **ptype_p){
+
+  /* make the DP arrays available to routines such as subopt() */
+  *f5_p = f5; *c_p = c;
+  *fML_p = fML; *fM1_p = fM1;
+  *ggg_p = ggg;
+  *indx_p = indx; *ptype_p = ptype;
+  *fc_p =fc;
+}
 
 PUBLIC void export_cofold_arrays( int **f5_p,
                                   int **c_p,
@@ -234,9 +248,10 @@ PUBLIC float cofold_par(const char *string,
   else if (fabs(P->temperature - temperature)>1e-6) update_cofold_params_par(parameters);
 #endif
 
-  S   = encode_sequence(string, 0);
-  S1  = encode_sequence(string, 1);
-  S1[0] = S[0]; /* store length at pos. 0 */
+  with_gquad  = P->model_details.gquad;
+  S           = encode_sequence(string, 0);
+  S1          = encode_sequence(string, 1);
+  S1[0]       = S[0]; /* store length at pos. 0 */
 
   BP = (int *)space(sizeof(int)*(length+2));
   make_ptypes(S, structure);
@@ -278,7 +293,8 @@ PUBLIC float cofold_par(const char *string,
       int l;
       bonus_cnt++;
       for(l=1; l<=base_pair2[0].i; l++)
-        if((i==base_pair2[l].i)&&(BP[i]==base_pair2[l].j)) bonus++;
+        if(base_pair2[l].i != base_pair2[l].j)
+          if((i==base_pair2[l].i)&&(BP[i]==base_pair2[l].j)) bonus++;
     }
   }
 
@@ -311,6 +327,9 @@ PRIVATE int fill_arrays(const char *string) {
   length = (int) strlen(string);
 
   max_separation = (int) ((1.-LOCALITY)*(double)(length-2)); /* not in use */
+
+  if(with_gquad)
+    ggg = get_gquad_matrix(S, P);
 
   for (j=1; j<=length; j++) {
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
@@ -456,6 +475,15 @@ PRIVATE int fill_arrays(const char *string) {
           new_c = MIN2(new_c, decomp);
         }
 
+        if(with_gquad){
+          /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
+          if (!no_close && SAME_STRAND(i,j)) {
+            tt = rtype[type];
+            energy = E_GQuad_IntLoop(i, j, type, S1, ggg, indx, P);
+            new_c = MIN2(new_c, energy);
+          }
+        }
+
         new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
         cc[j] = new_c + bonus;
         if (noLP){
@@ -502,6 +530,11 @@ PRIVATE int fill_arrays(const char *string) {
             new_fML = MIN2(new_fML, c[indx[j-1]+i+1] + 2*P->MLbase + E_MLstem(tt, S1[i], S1[j], P));
           }
         }
+      }
+
+      if(with_gquad){
+        if(SAME_STRAND(i, j))
+          new_fML = MIN2(new_fML, ggg[indx[j] + i] + E_MLstem(0, -1, -1, P));
       }
 
       /* modular decomposition -------------------------------*/
@@ -614,7 +647,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     sector[s].ml  = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
   }
   while (s>0) {
-    int ml, fij, fi, cij, traced, i1, j1, d3, d5, mm, p, q, jj=0;
+    int ml, fij, fi, cij, traced, i1, j1, mm, p, q, jj=0, gq=0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i  = sector[s].i;
     j  = sector[s].j;
@@ -649,6 +682,15 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         case 0:   /* j or j-1 is paired. Find pairing partner */
                   for (k=j-TURN-1,traced=0; k>=i; k--) {
                     int cc;
+
+                    if(with_gquad){
+                      if(fij == ff[k-1] + ggg[indx[j]+k]){
+                        /* found the decomposition */
+                        traced = j; jj = k - 1; gq = 1;
+                        break;
+                      }
+                    }
+
                     type = ptype[indx[j]+k];
                     if(type){
                       cc = c[indx[j]+k];
@@ -665,6 +707,15 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         case 2:   /* j or j-1 is paired. Find pairing partner */
                   for (k=j-TURN-1,traced=0; k>=i; k--) {
                     int cc;
+
+                    if(with_gquad){
+                      if(fij == ff[k-1] + ggg[indx[j]+k]){
+                        /* found the decomposition */
+                        traced = j; jj = k - 1; gq = 1;
+                        break;
+                      }
+                    }
+
                     type = ptype[indx[j]+k];
                     if(type){
                       cc = c[indx[j]+k];
@@ -678,8 +729,17 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                   break;
 
         default:  for(k=j-TURN-1,traced=0; k>=i; k--){
-                    int cc, en;
+                    int cc;
                     type = ptype[indx[j]+k];
+
+                    if(with_gquad){
+                      if(fij == ff[k-1] + ggg[indx[j]+k]){
+                        /* found the decomposition */
+                        traced = j; jj = k - 1; gq = 1;
+                        break;
+                      }
+                    }
+
                     if(type){
                       cc = c[indx[j]+k];
                       if(!SAME_STRAND(k,j)) cc += P->DuplexInit;
@@ -715,6 +775,12 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
       sector[s].ml  = ml;
 
       i=k; j=traced;
+
+      if(with_gquad && gq){
+        /* goto backtrace of gquadruplex */
+        goto repeat_gquad;
+      }
+
       base_pair2[++b].i = i;
       base_pair2[b].j   = j;
       goto repeat1;
@@ -789,12 +855,18 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     }
 
     else { /* true multi-loop backtrack in fML */
-      int cij1=INF, ci1j=INF, ci1j1=INF;
       if (fML[indx[j]+i+1]+P->MLbase == fij) { /* 5' end is unpaired */
         sector[++s].i = i+1;
         sector[s].j   = j;
         sector[s].ml  = ml;
         continue;
+      }
+
+      if(with_gquad){
+        if(fij == ggg[indx[j]+i] + E_MLstem(0, -1, -1, P)){
+          /* go to backtracing of quadruplex */
+          goto repeat_gquad;
+        }
       }
 
       tt  = ptype[indx[j]+i];
@@ -904,7 +976,6 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
           continue;
     }
     else {
-      int ee = 0;
       if(dangle_model){
         if(cij == E_ExtLoop(rtype[type], SAME_STRAND(j-1,j) ? S1[j-1] : -1, SAME_STRAND(i,i+1) ? S1[i+1] : -1, P)) continue;
       }
@@ -949,6 +1020,22 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
     tt = rtype[type];
     i1 = i+1;
     j1 = j-1;
+
+    if(with_gquad){
+      /*
+        The case that is handled here actually resembles something like
+        an interior loop where the enclosing base pair is of regular
+        kind and the enclosed pair is not a canonical one but a g-quadruplex
+        that should then be decomposed further...
+      */
+      if(SAME_STRAND(i,j)){
+        if(backtrack_GQuad_IntLoop(cij, i, j, type, S, ggg, indx, &p, &q, P)){
+          i = p; j = q;
+          goto repeat_gquad;
+        }
+      }
+    }
+
     /* fake multi-loop */
     if(!SAME_STRAND(i,j)){
       int ii, jj, decomp;
@@ -1078,6 +1165,37 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         nrerror("backtracking failed in repeat");
     }
 
+    continue; /* this is a workarround to not accidentally proceed in the following block */
+
+  repeat_gquad:
+    /*
+      now we do some fancy stuff to backtrace the stacksize and linker lengths
+      of the g-quadruplex that should reside within position i,j
+    */
+    {
+      int l[3], L, a;
+      L = -1;
+      
+      get_gquad_pattern_mfe(S, i, j, P, &L, l);
+      if(L != -1){
+        /* fill the G's of the quadruplex into base_pair2 */
+        for(a=0;a<L;a++){
+          base_pair2[++b].i = i+a;
+          base_pair2[b].j   = i+a;
+          base_pair2[++b].i = i+L+l[0]+a;
+          base_pair2[b].j   = i+L+l[0]+a;
+          base_pair2[++b].i = i+L+l[0]+L+l[1]+a;
+          base_pair2[b].j   = i+L+l[0]+L+l[1]+a;
+          base_pair2[++b].i = i+L+l[0]+L+l[1]+L+l[2]+a;
+          base_pair2[b].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
+        }
+        goto repeat_gquad_exit;
+      }
+      nrerror("backtracking failed in repeat_gquad");
+    }
+  repeat_gquad_exit:
+    asm("nop");
+
   } /* end >> while (s>0) << */
 
   base_pair2[0].i = b;    /* save the total number of base pairs */
@@ -1099,7 +1217,7 @@ PRIVATE void free_end(int *array, int i, int start) {
   }
 
   for (j=start; inc*(i-j)>TURN; j+=inc) {
-    int d3, d5, ii, jj;
+    int ii, jj;
     short si, sj;
     if (i>j) { ii = j; jj = i;} /* inc>0 */
     else     { ii = i; jj = j;} /* inc<0 */
@@ -1109,11 +1227,14 @@ PRIVATE void free_end(int *array, int i, int start) {
       sj = (jj<length)  && SAME_STRAND(jj,jj+1) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
       switch(dangle_model){
-        case 0:   array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
+        case 0:   
+                  array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
                   break;
-        case 2:   array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, si, sj, P));
+        case 2:   
+                  array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, si, sj, P));
                   break;
-        default:  array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
+        default:     
+                  array[i] = MIN2(array[i], array[j-inc] + energy + E_ExtLoop(type, -1, -1, P));
                   if(inc > 0){
                     if(j > left)
                     array[i] = MIN2(array[i], array[j-2] + energy + E_ExtLoop(type, si, -1, P));
@@ -1123,6 +1244,12 @@ PRIVATE void free_end(int *array, int i, int start) {
                   break;
       }
     }
+
+    if(with_gquad){
+      if(SAME_STRAND(ii, jj))
+        array[i] = MIN2(array[i], array[j-inc] + ggg[indx[jj]+ii]);
+    }
+
     if (dangle_model%2==1) {
       /* interval ends in a dangle (i.e. i-inc is paired) */
       if (i>j) { ii = j; jj = i-1;} /* inc>0 */
@@ -1200,7 +1327,7 @@ PRIVATE void backtrack(const char *sequence) {
   backtrack_co(sequence, 0,0);
 }
 
-PRIVATE comp_pair(const void *A, const void *B) {
+PRIVATE int comp_pair(const void *A, const void *B) {
   bondT *x,*y;
   int ex, ey;
   x = (bondT *) A;
@@ -1223,8 +1350,8 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
    This is slightly wasteful compared to the normal solution */
 
   char      *doubleseq, *structure, *mfestructure, **todo;
-  int       i, j, k, counter, num_pairs, psize, p;
-  float     energy, mfenergy;
+  int       i, j, counter, num_pairs, psize, p;
+  float     energy;
   SOLUTION  *zukresults;
   bondT     *pairlist;
 
@@ -1260,7 +1387,6 @@ PUBLIC SOLUTION *zukersubopt_par(const char *string, paramT *parameters){
   make_ptypes(S, NULL); /* no constraint folding possible (yet?) with zukersubopt */
 
   (void)fill_arrays(doubleseq);
-  mfenergy = f5[cut_point-1];
 
   psize     = length;
   pairlist  = (bondT *) space(sizeof(bondT)*(psize+1));

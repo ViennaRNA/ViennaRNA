@@ -116,10 +116,6 @@ PRIVATE int         struct_constrained = 0;
 #ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-         thus we have to initialize them before usage by a seperate function!
-         OR: use copyin in the PARALLEL directive!
-         e.g.:
-         #pragma omp parallel for copyin(pf_params)
 */
 #pragma omp threadprivate(expMLbase, q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln,\
                           scale, pf_params, ptype, jindx, my_iindx, init_length, S, S1, pstruc, sequence, probs, do_bppm, alpha, struct_constrained)
@@ -948,11 +944,16 @@ PRIVATE double *Newton_Conc(double KAB, double KAA, double KBB, double concA, do
   TOL=1e-6; /*Tolerance for convergence*/
   ConcVec=(double*)space(5*sizeof(double)); /* holds concentrations */
   do {
-    det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA);
-    xn  = ( (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (KAB *cA) -
-            (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det;
-    yn  = ( (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (KAB *cB) -
-            (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det;
+    /* det = (4.0 * KAA * cA + KAB *cB + 1.0) * (4.0 * KBB * cB + KAB *cA + 1.0) - (KAB *cB) * (KAB *cA); */
+    det = 1 + 16. *KAA*KBB*cA*cB + KAB*(cA+cB) + 4.*KAA*cA + 4.*KBB*cB + 4.*KAB*(KBB*cB*cB + KAA*cA*cA);
+    /* xn  = ( (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (KAB *cA) -
+       (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det; */
+    xn  = ( (2.0 * KBB * cB*cB + cB - concB) * (KAB *cA) - KAB*cA*cB*(4. * KBB*cB + 1.) -
+	    (2.0 * KAA * cA*cA + cA - concA) * (4.0 * KBB * cB + KAB *cA + 1.0) ) /det;
+    /* yn  = ( (2.0 * KAA * cA*cA + KAB *cA *cB + cA - concA) * (KAB *cB) -
+       (2.0 * KBB * cB*cB + KAB *cA *cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det; */
+    yn  = ( (2.0 * KAA * cA*cA + cA - concA) * (KAB *cB) - KAB*cA*cB*(4. * KAA*cA + 1.) -
+            (2.0 * KBB * cB*cB + cB - concB) * (4.0 * KAA * cA + KAB *cB + 1.0) ) /det;
     EPS = fabs(xn/cA) + fabs(yn/cB);
     cA += xn;
     cB += yn;

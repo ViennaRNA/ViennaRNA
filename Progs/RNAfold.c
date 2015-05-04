@@ -1,4 +1,4 @@
-/* Last changed Time-stamp: <2007-12-05 13:55:42 ronny> */
+/* Last changed Time-stamp: <2012-02-15 18:20:49 ivo> */
 /*
                   Ineractive Access to folding Routines
 
@@ -30,6 +30,7 @@
 #include "RNAfold_cmdl.h"
 
 
+
 /*@unused@*/
 static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp $";
 
@@ -45,6 +46,7 @@ int main(int argc, char *argv[]){
   double        energy, min_en, kT, sfact;
   int           doMEA, circular, lucky;
   double        MEAgamma, bppmThreshold, betaScale;
+  paramT          *mfe_parameters;
   pf_paramT       *pf_parameters;
   model_detailsT  md;
 
@@ -60,6 +62,7 @@ int main(int argc, char *argv[]){
   noPS          = 0;
   noconv        = 0;
   circular      = 0;
+  gquad         = 0;
   fasta         = 0;
   cl            = l = length = 0;
   dangles       = 2;
@@ -85,13 +88,20 @@ int main(int argc, char *argv[]){
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
   /* set dangle model */
-  if(args_info.dangles_given)     md.dangles = dangles = args_info.dangles_arg;
+  if(args_info.dangles_given){
+    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
+      warn_user("required dangle model not implemented, falling back to default dangles=2");
+    else
+      md.dangles = dangles = args_info.dangles_arg;
+  }
   /* do not allow weak pairs */
   if(args_info.noLP_given)        md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
   if(args_info.noGU_given)        md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
   if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
+  /* gquadruplex support */
+  if(args_info.gquad_given)       md.gquad = gquad = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
   /* set energy model */
@@ -128,11 +138,17 @@ int main(int argc, char *argv[]){
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
 
+  mfe_parameters = get_scaled_parameters(temperature, md);
+
   /*
   #############################################
   # begin initializing
   #############################################
   */
+  if(circular && gquad){
+    nrerror("G-Quadruplex support is currently not available for circular RNA structures");
+  }
+
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
@@ -225,7 +241,7 @@ int main(int argc, char *argv[]){
     # begin actual computations
     ########################################################
     */
-    min_en = (circular) ? circfold(rec_sequence, structure) : fold(rec_sequence, structure);
+    min_en = fold_par(rec_sequence, structure, mfe_parameters, fold_constrained, circular);
 
     if(!lucky){
       printf("%s\n%s", orig_sequence, structure);
@@ -240,14 +256,18 @@ int main(int argc, char *argv[]){
         strcat(ffname, "_ss.ps");
       } else strcpy(ffname, "rna.ps");
 
-      if (!noPS) (void) PS_rna_plot(orig_sequence, structure, ffname);
+      if(gquad){
+        if (!noPS) (void) PS_rna_plot_a_gquad(orig_sequence, structure, ffname, NULL, NULL);
+      } else {
+        if (!noPS) (void) PS_rna_plot_a(orig_sequence, structure, ffname, NULL, NULL);
+      }
     }
     if (length>2000) free_arrays();
     if (pf) {
       char *pf_struc = (char *) space((unsigned) length+1);
       if (md.dangles==1) {
           md.dangles=2;   /* recompute with dangles as in pf_fold() */
-          min_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
+          min_en = (circular) ? energy_of_circ_struct_par(rec_sequence, structure, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, structure, mfe_parameters, 0);
           md.dangles=1;
       }
 
@@ -265,7 +285,7 @@ int main(int argc, char *argv[]){
       if(lucky){
         init_rand();
         char *s = (circular) ? pbacktrack_circ(rec_sequence) : pbacktrack(rec_sequence);
-        min_en = (circular) ? energy_of_circ_structure(rec_sequence, s, 0) : energy_of_structure(rec_sequence, s, 0);
+        min_en = (circular) ? energy_of_circ_struct_par(rec_sequence, s, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, s, mfe_parameters, 0);
         printf("%s\n%s", orig_sequence, s);
         if (istty)
           printf("\n free energy = %6.2f kcal/mol\n", min_en);
@@ -296,11 +316,23 @@ int main(int argc, char *argv[]){
           char *cent;
           double dist, cent_en;
           FLT_OR_DBL *probs = export_bppm();
-          assign_plist_from_pr(&pl1, probs, length, bppmThreshold);
+
+          if(gquad)
+            assign_plist_gquad_from_pr(&pl1, length, bppmThreshold);
+          else
+            assign_plist_from_pr(&pl1, probs, length, bppmThreshold);
+
           assign_plist_from_db(&pl2, structure, 0.95*0.95);
           /* cent = centroid(length, &dist); <- NOT THREADSAFE */
-          cent = get_centroid_struct_pr(length, &dist, probs);
-          cent_en = (circular) ? energy_of_circ_structure(rec_sequence, cent, 0) :energy_of_structure(rec_sequence, cent, 0);
+
+          if(gquad){
+            cent    = get_centroid_struct_gquad_pr(length, &dist);
+            cent_en = energy_of_gquad_structure((const char *)rec_sequence, (const char *)cent, 0);
+          } else {
+            cent    = get_centroid_struct_pr(length, &dist, probs);
+            cent_en = (circular) ? energy_of_circ_struct_par(rec_sequence, cent, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, cent, mfe_parameters, 0);
+          }
+
           printf("%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
           free(cent);
           if (fname[0]!='\0') {
@@ -325,9 +357,17 @@ int main(int argc, char *argv[]){
             float mea, mea_en;
             plist *pl;
             assign_plist_from_pr(&pl, probs, length, 1e-4/(1+MEAgamma));
-            mea = MEA(pl, structure, MEAgamma);
-            mea_en = (circular) ? energy_of_circ_structure(rec_sequence, structure, 0) : energy_of_structure(rec_sequence, structure, 0);
-            printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+
+            if(gquad){
+              mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, pf_parameters);
+              mea_en = energy_of_gquad_structure((const char *)rec_sequence, (const char *)structure, 0);
+              printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+            } else {
+              mea = MEA(pl, structure, MEAgamma);
+              mea_en = (circular) ? energy_of_circ_struct_par(rec_sequence, structure, mfe_parameters, 0) : energy_of_struct_par(rec_sequence, structure, mfe_parameters, 0);
+              printf("%s {%6.2f MEA=%.2f}\n", structure, mea_en, mea);
+            }
+
             free(pl);
           }
         }
@@ -364,5 +404,7 @@ int main(int argc, char *argv[]){
       else print_tty_input_seq();
     }
   }
+  
+  free(mfe_parameters);
   return EXIT_SUCCESS;
 }
