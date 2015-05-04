@@ -420,13 +420,13 @@ PUBLIC int *get_gquad_ali_matrix( short *S_cons,
 PUBLIC int **get_gquad_L_matrix(short *S,
                                 int start,
                                 int maxdist,
+                                int n,
                                 int **g,
                                 paramT *P){
 
   int **data;
-  int n, i, j, k, l, *gg;
+  int i, j, k, l, *gg;
   
-  n   = S[0];
   gg  = get_g_islands_sub(S, start, MIN2(n, start + maxdist + 4));
 
   if(g){ /* we just update the gquadruplex contribution for the current

@@ -117,6 +117,7 @@ int main(int argc, char *argv[]){
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     if(rec_id){
+      if(!istty) printf("%s\n", rec_id);
       (void) sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
     else fname[0] = '\0';

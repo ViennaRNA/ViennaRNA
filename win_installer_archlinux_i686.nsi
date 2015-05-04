@@ -1,4 +1,4 @@
-!define VERSION "2.1.6"
+!define VERSION "2.1.8"
 !define PACKAGE "ViennaRNA Package"
 !define MULTIUSER_INSTALLMODE_INSTDIR "${PACKAGE}"
 BrandingText "${PACKAGE} - ${VERSION} [ TBI / Institute for Theoretical Chemistry / University of Vienna ]"
@@ -95,7 +95,7 @@ section "ViennaRNA Package"
   CreateDirectory "$INSTDIR\Utils"
   File /oname=Utils\Fold Utils/Fold
   File /oname=Utils\dpzoom.pl Utils/dpzoom.pl
-  File /oname=Utils\ct2db Utils/ct2db
+  File /oname=Utils\ct2db Utils/ct2db.exe
   File /oname=Utils\ct2b.pl Utils/ct2b.pl
   File /oname=Utils\b2mt.pl Utils/b2mt.pl
   File /oname=Utils\relplot.pl Utils/relplot.pl
@@ -174,7 +174,7 @@ section "Uninstall"
   delete $INSTDIR\Utils\dpzoom.pl
   delete $INSTDIR\Utils\Fold
   delete $INSTDIR\Utils\dpzoom.pl
-  delete $INSTDIR\Utils\ct2db
+  delete $INSTDIR\Utils\ct2db.exe
   delete $INSTDIR\Utils\ct2b.pl
   delete $INSTDIR\Utils\b2mt.pl
   delete $INSTDIR\Utils\relplot.pl

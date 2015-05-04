@@ -104,7 +104,7 @@ flag
 off
 
 option  "concfile"  f
-"Specify a file with initial concentrations for the to sequences."
+"Specify a file with initial concentrations for the two sequences."
 details="The table consits of arbitrary many lines with just two numbers (the concentration of\
  sequence A and B). This option will automatically toggle the -c (and thus -a and -p) options (see above).\n\n"
 string

@@ -78,9 +78,9 @@ PRIVATE int           **ggg       = NULL;
 #ifdef _OPENMP
 
 #ifdef USE_SVM
-#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length, sd_model, avg_model, ggg, with_gquad)
+#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length, sd_model, avg_model, ggg, with_gquad, prev)
 #else
-#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length, ggg, with_gquad)
+#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length, ggg, with_gquad, prev)
 #endif
 
 #endif
@@ -232,8 +232,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
   }
 
   if(with_gquad){
-    ggg = NULL;
-    ggg = get_gquad_L_matrix(S, length - maxdist - 4, maxdist, ggg, P);
+    ggg = get_gquad_L_matrix(S, length - maxdist - 4, maxdist, length, ggg, P);
   }
 
   for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
@@ -405,6 +404,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
     /* calculate energies of 5' and 3' fragments */
     {
       static int do_backtrack = 0, prev_i=0;
+#pragma omp threadprivate(do_backtrack, prev_i)
       char *ss=NULL;
       double prevz;
       f3[i] = f3[i+1];
@@ -767,7 +767,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
           make_ptypes(S, i-1, maxdist, length);
 
           if(with_gquad){
-            ggg = get_gquad_L_matrix(S, i - 1, maxdist, ggg, P);
+            ggg = get_gquad_L_matrix(S, i - 1, maxdist, length, ggg, P);
           }
         }
         for (ii=0; ii<maxdist+5; ii++) {
