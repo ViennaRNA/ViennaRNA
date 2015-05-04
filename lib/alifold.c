@@ -60,26 +60,26 @@ PUBLIC double nc_fact=1.; /* should be made static to not interfere with other t
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE short           **S;
-PRIVATE short           **S5;               /*S5[s][i] holds next base 5' of i in sequence s*/
-PRIVATE short           **S3;               /*Sl[s][i] holds next base 3' of i in sequence s*/
-PRIVATE char            **Ss;
-PRIVATE unsigned short  **a2s;
-PRIVATE paramT          *P;
-PRIVATE int             *indx;              /* index for moving in the triangle matrices c[] and fMl[]*/
-PRIVATE int             *c;                 /* energy array, given that i-j pair */
-PRIVATE int             *cc;                /* linear array for calculating canonical structures */
-PRIVATE int             *cc1;               /*   "     "        */
-PRIVATE int             *f5;                /* energy of 5' end */
-PRIVATE int             *fML;               /* multi-loop auxiliary energy array */
-PRIVATE int             *Fmi;               /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int             *DMLi;              /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int             *DMLi1;             /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int             *DMLi2;             /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE int             *pscore;            /* precomputed array of pair types */
+PRIVATE short           **S     = NULL;
+PRIVATE short           **S5    = NULL;     /*S5[s][i] holds next base 5' of i in sequence s*/
+PRIVATE short           **S3    = NULL;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+PRIVATE char            **Ss    = NULL;
+PRIVATE unsigned short  **a2s   = NULL;
+PRIVATE paramT          *P      = NULL;
+PRIVATE int             *indx   = NULL;     /* index for moving in the triangle matrices c[] and fMl[]*/
+PRIVATE int             *c      = NULL;     /* energy array, given that i-j pair */
+PRIVATE int             *cc     = NULL;     /* linear array for calculating canonical structures */
+PRIVATE int             *cc1    = NULL;     /*   "     "        */
+PRIVATE int             *f5     = NULL;     /* energy of 5' end */
+PRIVATE int             *fML    = NULL;     /* multi-loop auxiliary energy array */
+PRIVATE int             *Fmi    = NULL;     /* holds row i of fML (avoids jumps in memory) */
+PRIVATE int             *DMLi   = NULL;     /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+PRIVATE int             *DMLi1  = NULL;     /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+PRIVATE int             *DMLi2  = NULL;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+PRIVATE int             *pscore = NULL;     /* precomputed array of pair types */
 PRIVATE int             init_length = -1;
 PRIVATE sect            sector[MAXSECTORS]; /* stack of partial structures for backtracking */
-PRIVATE bondT           *base_pair2;
+PRIVATE bondT           *base_pair2 = NULL;
 PRIVATE int             circular;
 
 #ifdef _OPENMP
@@ -219,6 +219,7 @@ PUBLIC void free_sequence_arrays(unsigned int n_seq, short ***S, short ***S5, sh
 }
 
 PUBLIC void update_alifold_params(void){
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
   if (init_length < 0) init_length=0;

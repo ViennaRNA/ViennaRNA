@@ -79,26 +79,22 @@ PRIVATE int alibacktrack(const char **strings, int s);
 
 PRIVATE paramT *P = NULL;
 
-PRIVATE int *indx; /* index for moving in the triangle matrices c[] and fMl[]*/
+PRIVATE int *indx = NULL; /* index for moving in the triangle matrices c[] and fMl[]*/
 
-PRIVATE int   *c;       /* energy array, given that i-j pair */
-PRIVATE int   *cc;      /* linear array for calculating canonical structures */
-PRIVATE int   *cc1;     /*   "     "        */
-PRIVATE int   *Fmi;     /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int   *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int   *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int   *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE char  *ptype;   /* precomputed array of pair types */
-PRIVATE short *S, *S1;
+PRIVATE int   *c = NULL;       /* energy array, given that i-j pair */
+PRIVATE int   *cc = NULL;      /* linear array for calculating canonical structures */
+PRIVATE int   *cc1 = NULL;     /*   "     "        */
+PRIVATE int   *Fmi = NULL;     /* holds row i of fML (avoids jumps in memory) */
+PRIVATE int   *DMLi = NULL;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+PRIVATE int   *DMLi1 = NULL;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+PRIVATE int   *DMLi2 = NULL;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+PRIVATE char  *ptype = NULL;   /* precomputed array of pair types */
+PRIVATE short *S = NULL, *S1 = NULL;
 PRIVATE int    init_length=-1;
-PRIVATE int    *mLoop; /*contains the minimum of c for a xy range*/
-PRIVATE folden **foldlist;
-PRIVATE folden **foldlist_XS;
-//struct sect {
-//  int  i;
-//  int  j;
-//  int ml;
-//}
+PRIVATE int    *mLoop = NULL; /*contains the minimum of c for a xy range*/
+PRIVATE folden **foldlist = NULL;
+PRIVATE folden **foldlist_XS = NULL;
+
 static sect sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 
 PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -107,7 +103,7 @@ PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 //PRIVATE int min_hairpin = TURN;
 
 /* some definitions to take circfold into account...	*/
-//PRIVATE int   *fM2;	/* fM2 = multiloop region with exactly two stems, extending to 3' end	*/
+//PRIVATE int   *fM2 = NULL;	/* fM2 = multiloop region with exactly two stems, extending to 3' end	*/
 PUBLIC	int   Fc, FcH, FcI, FcM; /* parts of the exterior loop energies			*/
 /*--------------------------------------------------------------------------*/
 
@@ -1106,6 +1102,7 @@ PRIVATE void parenthesis_structure(char *structure, int length)
 
 PUBLIC void snoupdate_fold_params(void)
 {
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
   if (init_length < 0) init_length=0;

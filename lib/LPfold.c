@@ -50,15 +50,15 @@ PRIVATE char rcsid[] UNUSED = "$Id: LPfold.c,v 1.8 2009/02/18 20:34:38 ivo Exp $
 
 PRIVATE float       cutoff;
 PRIVATE int         num_p=0; /* for counting basepairs in pairlist pl, can actually be moved into pfl_fold */
-PRIVATE FLT_OR_DBL  *expMLbase;
-PRIVATE FLT_OR_DBL  **q, **qb, **qm, *qqm, *qqm1, *qq, *qq1, **pR, **qm2, **QI5,  **q2l, **qmb;/*,**QI3,*/
-PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln;
-PRIVATE FLT_OR_DBL  *scale;
-PRIVATE char        **ptype; /* precomputed array of pair types */
-PRIVATE int         *jindx;
+PRIVATE FLT_OR_DBL  *expMLbase=NULL;
+PRIVATE FLT_OR_DBL  **q=NULL, **qb=NULL, **qm=NULL, *qqm=NULL, *qqm1=NULL, *qq=NULL, *qq1=NULL, **pR=NULL, **qm2=NULL, **QI5=NULL,  **q2l=NULL, **qmb=NULL;/*,**QI3,*/
+PRIVATE FLT_OR_DBL  *prml=NULL, *prm_l=NULL, *prm_l1=NULL, *q1k=NULL, *qln=NULL;
+PRIVATE FLT_OR_DBL  *scale=NULL;
+PRIVATE char        **ptype=NULL; /* precomputed array of pair types */
+PRIVATE int         *jindx=NULL;
 PRIVATE int         init_length = 0;  /* length in last call to init_pf_fold() */
-PRIVATE pf_paramT   *pf_params;
-PRIVATE short       *S, *S1;
+PRIVATE pf_paramT   *pf_params=NULL;
+PRIVATE short       *S=NULL, *S1=NULL;
 PRIVATE int         unpaired;
 PRIVATE int         ulength;
 PRIVATE int         pUoutput;
@@ -938,7 +938,7 @@ PRIVATE void putoutpU(double **pUx, int k, int ulength, FILE *fp) {
 PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int energies) {
   /*put out unpaireds */
   int i,k;
-  double kT= (temperature+K0)*GASCONST/1000.0;
+  double kT= pf_params->kT/1000.0;
   double temp;
   if (energies) fprintf(fp,"#opening energies\n #i$\tl=");
   else  fprintf(fp,"#unpaired probabilities\n #i$\tl=");
@@ -967,7 +967,7 @@ PUBLIC void putoutpU_prob(double **pU,int length, int ulength, FILE *fp, int ene
 PUBLIC void putoutpU_prob_bin(double **pU,int length, int ulength, FILE *fp, int energies) {
   /*put out unpaireds */
   int i,k;
-  double kT= (temperature+K0)*GASCONST/1000.0;
+  double kT= pf_params->kT/1000.0;
   double temp;
   int *p;
   p = (int*) space(sizeof(int)*1);

@@ -107,17 +107,17 @@ PUBLIC  int snoop_subopt_sorted=0; /* from subopt.c, default 0 */
 #define ASS		1
 PRIVATE paramT *P = NULL;
 
-PRIVATE int   **c;      /* energy array, given that i-j pair */
-PRIVATE int   **r;
-PRIVATE int   **lc;      /* energy array, given that i-j pair */
-PRIVATE int   **lr;
-PRIVATE int   **c_fill;
-PRIVATE int   **r_fill;
-PRIVATE int **lpair;
+PRIVATE int   **c = NULL;      /* energy array, given that i-j pair */
+PRIVATE int   **r = NULL;
+PRIVATE int   **lc = NULL;      /* energy array, given that i-j pair */
+PRIVATE int   **lr = NULL;
+PRIVATE int   **c_fill = NULL;
+PRIVATE int   **r_fill = NULL;
+PRIVATE int   **lpair = NULL;
 
 
-PRIVATE short  *S1, *SS1, *S2, *SS2;
-PRIVATE short *S1_fill, *SS1_fill, *S2_fill, *SS2_fill;
+PRIVATE short  *S1 = NULL, *SS1 = NULL, *S2 = NULL, *SS2 = NULL;
+PRIVATE short *S1_fill = NULL, *SS1_fill = NULL, *S2_fill = NULL, *SS2_fill = NULL;
 PRIVATE int   n1,n2;    /* sequence lengths */
 
 extern int cut_point;
@@ -157,7 +157,7 @@ snoopT alisnoopfold(const char **s1, const char **s2,
   if (n_seq != s) nrerror("unequal number of sequences in aliduplexfold()\n");
   
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    snoupdate_fold_params();  P = scale_parameters();
+    snoupdate_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   
@@ -764,7 +764,7 @@ void Lsnoop_subopt(const char *s1, const char *s2, int delta, int w,
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist, &foldlist_XS); 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    snoupdate_fold_params();  P = scale_parameters();
+    snoupdate_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   
@@ -901,7 +901,7 @@ void Lsnoop_subopt_list(const char *s1, const char *s2, int delta, int w,
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist,  &foldlist_XS); 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    snoupdate_fold_params();  P = scale_parameters();
+    snoupdate_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   
@@ -1158,7 +1158,7 @@ snoopT snoopfold(const char *s1, const char *s2,
   n2 = (int) strlen(s2);
   
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    snoupdate_fold_params();  P = scale_parameters();
+    snoupdate_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   
@@ -1288,7 +1288,7 @@ PRIVATE int snoopfold_XS_fill(const char *s1, const char *s2, const int **access
   n2 = (int) strlen(s2);
   
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    snoupdate_fold_params();  P = scale_parameters();
+    snoupdate_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   
@@ -1902,7 +1902,7 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist, &foldlist_XS); 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    snoupdate_fold_params();  P = scale_parameters();
+    snoupdate_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   
@@ -2164,7 +2164,7 @@ snoopT snoopfold_XS(const char *s1, const char *s2, const int **access_s1, const
   n2 = (int) strlen(s2);
   
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    snoupdate_fold_params();  P = scale_parameters();
+    snoupdate_fold_params(); if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   

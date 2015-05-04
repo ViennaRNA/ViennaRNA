@@ -119,14 +119,14 @@ PRIVATE paramT *P = NULL;
 *** c -> stack;in -> interior loop;bx/by->bulge;inx/iny->1xn loops
 **/
 
-PRIVATE int   **c, **in, **bx, **by, **inx, **iny;      
+PRIVATE int   **c=NULL, **in=NULL, **bx=NULL, **by=NULL, **inx=NULL, **iny=NULL;      
 
 /**
 *** S1, SS1, ... contains the encoded sequence for target and query
 *** n1, n2, n3, n4 contains target and query length
 **/
 
-PRIVATE short  *S1, *SS1, *S2, *SS2;/*contains the sequences*/
+PRIVATE short  *S1=NULL, *SS1=NULL, *S2=NULL, *SS2=NULL;/*contains the sequences*/
 PRIVATE int   n1,n2;    /* sequence lengths */
 PRIVATE int n3, n4; /*sequence length for the duplex*/;
 
@@ -149,7 +149,7 @@ PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2, const int **access
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
+    update_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   
@@ -353,7 +353,7 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
+    update_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   /**
@@ -674,7 +674,7 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
   int maxPenalty[4];
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)){
     update_dfold_params();
-    P = scale_parameters();
+    if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   maxPenalty[0]=(int) -1*P->stack[2][2]/2;
@@ -1173,7 +1173,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   **/
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_dfold_params();  P = scale_parameters();
+    update_dfold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   encode_seqs(s1,s2);
@@ -1613,7 +1613,7 @@ PRIVATE duplexT duplexfold(const char *s1, const char *s2, const int extension_c
   n4 = (int) strlen(s2);
  
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
+    update_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   
@@ -1759,7 +1759,7 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
   //for this i first need to rewrite backtrack in order to remove the printf functio
   //END OF DEFINITION FOR NEEDED SUBOPT DATA 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
+    update_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   /*local c array initialization---------------------------------------------*/
@@ -2375,7 +2375,7 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
   *** Sequence encoding
   **/
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
+    update_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   encode_seqs(s1,s2);
@@ -2747,6 +2747,7 @@ PRIVATE void plot_max(const int max, const int max_pos, const int max_pos_j, con
 
 PRIVATE void update_dfold_params(void)
 {
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
 }

@@ -104,8 +104,8 @@ extern double nc_fact;
 #define LOCALITY        0.      /* locality parameter for base-pairs */
 
 PRIVATE paramT *P = NULL;
-PRIVATE int   **c;
-PRIVATE int  **lc, **lin, **lbx, **lby,**linx, **liny;   
+PRIVATE int   **c = NULL;
+PRIVATE int  **lc = NULL, **lin = NULL, **lbx = NULL, **lby = NULL,**linx = NULL, **liny = NULL;   
                                              
 
 
@@ -134,7 +134,7 @@ PRIVATE duplexT aliduplexfold(const char *s1[], const char *s2[], const int exte
   if (n_seq != s) nrerror("unequal number of sequences in aliduplexfold()\n");
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
+    update_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   
@@ -672,7 +672,7 @@ PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],
   for (s=0; s2[s]!=NULL; s++);
   //printf("%d \n",i_pos);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  P = scale_parameters();
+    update_fold_params();  if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
   c = (int **) space(sizeof(int *) * (n3+1));
@@ -1258,6 +1258,7 @@ PRIVATE int covscore(const int *types, int n_seq) {
 
 PRIVATE void update_dfold_params(void)
 {
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
 }

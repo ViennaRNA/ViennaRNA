@@ -97,17 +97,17 @@ double  F_monomer[2]  = {0,0}; /* free energies of the two monomers */
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE FLT_OR_DBL  *expMLbase;
-PRIVATE FLT_OR_DBL  *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
-PRIVATE FLT_OR_DBL  *prml, *prm_l, *prm_l1, *q1k, *qln, *probs;
-PRIVATE FLT_OR_DBL  *scale;
-PRIVATE pf_paramT   *pf_params;
-PRIVATE char        *ptype; /* precomputed array of pair types */
-PRIVATE int         *jindx;
+PRIVATE FLT_OR_DBL  *expMLbase=NULL;
+PRIVATE FLT_OR_DBL  *q=NULL, *qb=NULL, *qm=NULL, *qm1=NULL, *qqm=NULL, *qqm1=NULL, *qq=NULL, *qq1=NULL;
+PRIVATE FLT_OR_DBL  *prml=NULL, *prm_l=NULL, *prm_l1=NULL, *q1k=NULL, *qln=NULL, *probs=NULL;
+PRIVATE FLT_OR_DBL  *scale=NULL;
+PRIVATE pf_paramT   *pf_params = NULL;
+PRIVATE char        *ptype=NULL; /* precomputed array of pair types */
+PRIVATE int         *jindx=NULL;
 PRIVATE int         init_length; /* length in last call to init_pf_fold() */
-PRIVATE short       *S, *S1;
-PRIVATE char        *pstruc;
-PRIVATE char        *sequence;
+PRIVATE short       *S=NULL, *S1=NULL;
+PRIVATE char        *pstruc=NULL;
+PRIVATE char        *sequence=NULL;
 
 #ifdef _OPENMP
 
@@ -279,7 +279,7 @@ PUBLIC cofoldF co_pf_fold(char *sequence, char *structure){
   if (cut_point>0){
     double kT, pbound, QAB, QToT, Qzero;
 
-    kT = (temperature+K0)*GASCONST/1000.0;
+    kT = pf_params->kT/1000.0;
     Qzero=q[iindx[1]-n];
     QAB=(q[iindx[1]-n]-q[iindx[1]-(cut_point-1)]*q[iindx[cut_point]-n])*pf_params->expDuplexInit;
     /*correction for symmetry*/
@@ -874,7 +874,7 @@ PUBLIC void compute_probabilities(double FAB, double FA,double FB,
   struct plist  *lp1, *lp2;
   int offset;
 
-  mykT=(temperature+K0)*GASCONST/1000.;
+  mykT=pf_params->kT/1000.;
 
   /* pair probabilities in pr are relative to the null model (without DuplexInit) */
 
@@ -948,7 +948,7 @@ PUBLIC struct ConcEnt *get_concentrations(double FcAB, double FcAA, double FcBB,
   struct ConcEnt *Concentration;
   double KAA, KAB, KBB, kT;
 
-  kT=(temperature+K0)*GASCONST/1000.;
+  kT=pf_params->kT/1000.;
   Concentration=(struct ConcEnt *)space(20*sizeof(struct ConcEnt));
  /* Compute equilibrium constants */
   /* again note the input free energies are not from the null model (without DuplexInit) */

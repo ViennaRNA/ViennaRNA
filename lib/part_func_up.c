@@ -89,14 +89,14 @@ static char rcsid[] UNUSED = "$Id: part_func_up.c,v 1.4 2008/07/04 14:27:36 ivo 
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE short       *S, *S1, *SS, *SS2;
+PRIVATE short       *S=NULL, *S1=NULL, *SS=NULL, *SS2=NULL;
 PRIVATE pf_paramT   *Pf = NULL;/* use this structure for all the exp-arrays*/
-PRIVATE FLT_OR_DBL  *qb, *qm, *prpr; /* add arrays for pf_unpaired()*/
-PRIVATE FLT_OR_DBL  *probs;
-PRIVATE FLT_OR_DBL  *q1k, *qln;
-PRIVATE double      *qqm2, *qq_1m2, *qqm, *qqm1;
-PRIVATE FLT_OR_DBL  *scale, *expMLbase;
-PRIVATE char        *ptype; /* precomputed array of pair types */
+PRIVATE FLT_OR_DBL  *qb=NULL, *qm=NULL, *prpr=NULL; /* add arrays for pf_unpaired()*/
+PRIVATE FLT_OR_DBL  *probs=NULL;
+PRIVATE FLT_OR_DBL  *q1k=NULL, *qln=NULL;
+PRIVATE double      *qqm2=NULL, *qq_1m2=NULL, *qqm=NULL, *qqm1=NULL;
+PRIVATE FLT_OR_DBL  *scale=NULL, *expMLbase=NULL;
+PRIVATE char        *ptype=NULL; /* precomputed array of pair types */
 PRIVATE int         init_length;  /* length in last call to init_pf_fold()*/
 PRIVATE double      init_temp; /* temperature in last call to scale_pf_params */
 /* make iptypes array for intermolecular constrains (ipidx for indexing)*/
@@ -1078,6 +1078,7 @@ PRIVATE void scale_stru_pf_params(unsigned int length)
   /* Do this only at the first call for scale_pf_parameters()
      and/or if temperature has changed*/
   if(init_temp != temperature) {
+    if(Pf) free(Pf);
     Pf=get_scaled_pf_parameters();
   }
 

@@ -54,8 +54,8 @@ static char rcsid[] UNUSED = "$Id: duplex.c,v 1.8 2007/08/26 10:08:44 ivo Exp $"
 #################################
 */
 PRIVATE paramT  *P  = NULL;
-PRIVATE int     **c;                  /* energy array, given that i-j pair */
-PRIVATE short   *S1, *SS1, *S2, *SS2;
+PRIVATE int     **c = NULL;                  /* energy array, given that i-j pair */
+PRIVATE short   *S1 = NULL, *SS1 = NULL, *S2 = NULL, *SS2 = NULL;
 PRIVATE int     n1,n2;                /* sequence lengths */
 
 #ifdef _OPENMP
@@ -101,7 +101,7 @@ PRIVATE duplexT duplexfold_cu(const char *s1, const char *s2, int clean_up){
   n2 = (int) strlen(s2);
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    P = scale_parameters();
+    if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
 
@@ -305,7 +305,7 @@ PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_u
   if (n_seq != s) nrerror("unequal number of sequences in aliduplexfold()\n");
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    P = scale_parameters();
+    if(P) free(P); P = scale_parameters();
     make_pair_matrix();
   }
 

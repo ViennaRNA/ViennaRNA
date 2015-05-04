@@ -17,6 +17,12 @@
  * 
  *  This file includes (almost) all function declarations within the <b>RNAlib</b> that are related to
  *  Partion function folding...
+ *
+ *  \note If you plan on using the functions provided from this section of the RNAlib concurrently
+ *  via <b>OpenMP</b> you have to place a <i>COPYIN</i> clause right before your <i>PARALLEL</i>
+ *  directive! Otherwise, some functions may not behave as expected.
+ *  A complete list of variables that have to be passed to the <i>COPYIN</i> clause can be found
+ *  in the detailed description of each function below.
  */
 
 /**
@@ -47,13 +53,19 @@ extern  int st_back;
  *  If #do_backtrack has been set to 0 base pairing probabilities will not
  *  be computed (saving CPU time), otherwise #pr will contain the probability
  *  that bases \a i and \a j pair.
- *  \note The global array #pr is deprecated and the user who wants the computed
- *  base pair probabilities for further computations is advised to use the function export_bppm()
+ *  \note The global array #pr is deprecated and the user who wants the calculated
+ *  base pair probabilities for further computations is advised to use the function
+ *  export_bppm()
  * 
+ *  \note <b>OpenMP notice:</b><br>This function relies on passing the following
+ *  variables to the appropriate <i>COPYIN</i> clause:<br>
+ *  q, qb, qm, qm1, qqm, qqm1, qq, qq1, prml, prm_l, prm_l1, q1k, qln, probs,
+ *  scale, expMLbase, jindx, init_length, circular, ptype, pf_params, S, S1, bt</pre>
+ *
  *  \see pf_circ_fold(), bppm_to_structure(), export_bppm()
  * 
- *  \param sequence   The RNA sequence to be computed
- *  \param structure  A pointer to a char array where a base pair probability information might be stored in a pseudo-dot-bracket notation (might be NULL, too)
+ *  \param sequence   The RNA sequence input
+ *  \param structure  A pointer to a char array where a base pair probability information can be stored in a pseudo-dot-bracket notation (may be NULL, too)
  *  \returns          The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
 float   pf_fold(const char *sequence,
@@ -62,18 +74,36 @@ float   pf_fold(const char *sequence,
 /**
  *  \brief Compute the partition function of a circular RNA sequence
  * 
+ *  \note <b>OpenMP notice:</b><br>This function relies on passing the following
+ *  variables to the appropriate <i>COPYIN</i> clause:<br>
+ *  q, qb, qm, qm1, qqm, qqm1, qq, qq1, qo, qho, qio, qmo, qm2, prml, prm_l, prm_l1,
+ *  q1k, qln, probs, scale, expMLbase, jindx, init_length, circular, ptype, pf_params,
+ *  S, S1, bt
+ *
  *  \see pf_fold()
  * 
- *  \param sequence   The RNA sequence to be computed
- *  \param structure  A pointer to a char array where a base pair probability information might be stored in a pseudo-dot-bracket notation (might be NULL, too)
+ *  \param sequence   The RNA sequence input
+ *  \param structure  A pointer to a char array where a base pair probability information can be stored in a pseudo-dot-bracket notation (may be NULL, too)
  *  \returns          The Gibbs free energy of the ensemble (\f$G = -RT \cdot \log(Q) \f$) in kcal/mol
  */
 float   pf_circ_fold( const char *sequence,
                       char *structure);
 
+float   pf_fold_par(  const char *sequence,
+                      char *structure,
+                      pf_paramT *parameters,
+                      int calculate_bppm,
+                      int is_circular);
+
 /**
  *  \brief Sample a secondary structure from the Boltzmann ensemble according its probability\n
- * 
+ *
+ *  \note You have to call pf_fold() first in order to fill the partition function matrices
+ *
+ *  \note <b>OpenMP notice:</b><br>This function relies on passing the following
+ *  variables to the appropriate <i>COPYIN</i> clause <i>(additionally to the ones needed by pf_fold())</i>:<br>
+ *  pstruc, sequence
+ *
  *  \param  sequence  The RNA sequence
  *  \return           A sampled secondary structure in dot-bracket notation
  */
@@ -83,13 +113,27 @@ char    *pbacktrack(char *sequence);
  *  \brief Sample a secondary structure of a circular RNA from the Boltzmann ensemble according its probability
  * 
  *  This function does the same as \ref pbacktrack() but assumes the RNA molecule to be circular
+ *
+ *  \note <b>OpenMP notice:</b><br>This function relies on passing the following
+ *  variables to the appropriate <i>COPYIN</i> clause <i>(additionally to the ones needed by pf_fold())</i>:<br>
+ *  pstruc, sequence
+ *
  *  \param  sequence  The RNA sequence
  *  \return           A sampled secondary structure in dot-bracket notation
  */
 char    *pbacktrack_circ(char *sequence);
 
 /**
- *  \brief Free arrays from pf_fold()
+ *  \brief Free arrays for the partition function recursions
+ *
+ *  Call this function if you want to free all allocated memory associated with
+ *  the partition function forward recursion.
+ *  \note Successive calls of pf_fold(), pf_circ_fold() already check if they should free
+ *  any memory from a previous run.
+ *  \note <b>OpenMP notice:</b><br>
+ *  This function should be called before leaving a thread in order to avoid leaking memory
+ *  
+ *  \see pf_fold(), pf_circ_fold()
  */
 void  free_pf_arrays(void);
 
@@ -101,13 +145,18 @@ void  free_pf_arrays(void);
  */
 void  update_pf_params(int length);
 
+void update_pf_params_par(int length, pf_paramT *parameters);
+
 /**
  *  \brief Get a pointer to the base pair probability array
- * 
+ *
  *  Accessing the base pair probabilities for a pair (i,j) is achieved by
  *  \verbatim FLT_OR_DBL *pr = export_bppm(); pr_ij = pr[iindx[i]-j]; \endverbatim
- * 
- *  \see get_iindx()
+ *
+ *  \note Call pf_fold() before using this function!
+ *
+ *  \see pf_fold(), pf_circ_fold(), get_iindx()
+ *
  *  \return A pointer to the base pair probability array
  */
 FLT_OR_DBL  *export_bppm(void);
@@ -142,7 +191,11 @@ void  assign_plist_from_pr( plist **pl,
 
 /**
  *  \brief Get the pointers to (almost) all relavant computation arrays used in partition function computation
- * 
+ *
+ *  \note In order to assign meaningful pointers, you have to call pf_fold first!
+ *
+ *  \see pf_fold(), pf_circ_fold()
+ *
  *  \param S_p      A pointer to the 'S' array (integer representation of nucleotides)
  *  \param S1_p     A pointer to the 'S1' array (2nd integer representation of nucleotides)
  *  \param ptype_p  A pointer to the pair type matrix
@@ -201,6 +254,8 @@ char  *get_centroid_struct_pr(int length,
 /**
  *  \brief Get the mean base pair distance of the last partition function computation
  * 
+ *  \note To ensure thread-safety, use the function mean_bp_distance_pr() instead!
+ *
  *  \see mean_bp_distance_pr()
  * 
  *  \param    length

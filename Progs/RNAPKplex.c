@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
     */
     if(id_s1){
       printf("%s\n", id_s1);
-      (void) sscanf(id_s1, ">%FILENAME_ID_LENGTHs", fname);
+      (void) sscanf(id_s1, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
     else {
       strcpy(fname, "PKplex");

@@ -550,6 +550,7 @@ PUBLIC void destroy_TwoDfold_variables(TwoDfold_vars *vars){
   {
 #endif
 
+  if(vars->P != NULL)             free(vars->P);
   if(vars->sequence != NULL)      free(vars->sequence);
   if(vars->reference_pt1 != NULL) free(vars->reference_pt1);
   if(vars->reference_pt2 != NULL) free(vars->reference_pt2);
@@ -1840,6 +1841,7 @@ PRIVATE void mfe_linear(TwoDfold_vars *vars){
 /*---------------------------------------------------------------------------*/
 
 PUBLIC void update_TwoDfold_params(TwoDfold_vars *vars){
+  if(vars->P) free(vars->P);
   vars->P = scale_parameters();
   make_pair_matrix();
 }

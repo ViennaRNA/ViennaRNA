@@ -49,50 +49,50 @@ static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
 # GLOBAL VARIABLES              #
 #################################
 */
-PUBLIC  int logML=0;            /* if nonzero use logarithmic ML energy in energy_of_struct */
-PUBLIC  int uniq_ML=0;          /* do ML decomposition uniquely (for subopt) */
-PUBLIC  int cut_point = -1;     /* set to first pos of second seq for cofolding */
-PUBLIC  int eos_debug=0;        /* verbose info from energy_of_struct */
+PUBLIC  int logML     = 0;  /* if nonzero use logarithmic ML energy in energy_of_struct */
+PUBLIC  int uniq_ML   = 0;  /* do ML decomposition uniquely (for subopt) */
+PUBLIC  int cut_point = -1; /* set to first pos of second seq for cofolding */
+PUBLIC  int eos_debug = 0;  /* verbose info from energy_of_struct */
 
 /*
 #################################
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE int     *indx;    /* index for moving in the triangle matrices c[] and fMl[]*/
-PRIVATE int     *c;       /* energy array, given that i-j pair */
-PRIVATE int     *cc;      /* linear array for calculating canonical structures */
-PRIVATE int     *cc1;     /*   "     "        */
-PRIVATE int     *f5;      /* energy of 5' end */
-PRIVATE int     *f53;     /* energy of 5' end with 3' nucleotide not available for mismatches */
-PRIVATE int     *fML;     /* multi-loop auxiliary energy array */
-PRIVATE int     *fM1;     /* second ML array, only for subopt */
-PRIVATE int     *fM2;     /* fM2 = multiloop region with exactly two stems, extending to 3' end        */
-PRIVATE int     *Fmi;     /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int     *DMLi;    /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int     *DMLi1;   /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int     *DMLi2;   /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE int     *DMLi_a;  /* DMLi_a[j] holds min energy for at least two multiloop stems in [i,j], where j is available for dangling onto a surrounding stem */
-PRIVATE int     *DMLi_o;  /* DMLi_o[j] holds min energy for at least two multiloop stems in [i,j], where j is unavailable for dangling onto a surrounding stem */
-PRIVATE int     *DMLi1_a;
-PRIVATE int     *DMLi1_o;
-PRIVATE int     *DMLi2_a;
-PRIVATE int     *DMLi2_o;
+PRIVATE int     *indx     = NULL; /* index for moving in the triangle matrices c[] and fMl[]*/
+PRIVATE int     *c        = NULL; /* energy array, given that i-j pair */
+PRIVATE int     *cc       = NULL; /* linear array for calculating canonical structures */
+PRIVATE int     *cc1      = NULL; /*   "     "        */
+PRIVATE int     *f5       = NULL; /* energy of 5' end */
+PRIVATE int     *f53      = NULL; /* energy of 5' end with 3' nucleotide not available for mismatches */
+PRIVATE int     *fML      = NULL; /* multi-loop auxiliary energy array */
+PRIVATE int     *fM1      = NULL; /* second ML array, only for subopt */
+PRIVATE int     *fM2      = NULL; /* fM2 = multiloop region with exactly two stems, extending to 3' end        */
+PRIVATE int     *Fmi      = NULL; /* holds row i of fML (avoids jumps in memory) */
+PRIVATE int     *DMLi     = NULL; /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+PRIVATE int     *DMLi1    = NULL; /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+PRIVATE int     *DMLi2    = NULL; /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+PRIVATE int     *DMLi_a   = NULL; /* DMLi_a[j] holds min energy for at least two multiloop stems in [i,j], where j is available for dangling onto a surrounding stem */
+PRIVATE int     *DMLi_o   = NULL; /* DMLi_o[j] holds min energy for at least two multiloop stems in [i,j], where j is unavailable for dangling onto a surrounding stem */
+PRIVATE int     *DMLi1_a  = NULL;
+PRIVATE int     *DMLi1_o  = NULL;
+PRIVATE int     *DMLi2_a  = NULL;
+PRIVATE int     *DMLi2_o  = NULL;
 PRIVATE int     Fc, FcH, FcI, FcM;  /* parts of the exterior loop energies */
 PRIVATE sect    sector[MAXSECTORS]; /* stack of partial structures for backtracking */
-PRIVATE char    *ptype;             /* precomputed array of pair types */
-PRIVATE short   *S, *S1;
+PRIVATE char    *ptype = NULL;      /* precomputed array of pair types */
+PRIVATE short   *S = NULL, *S1 = NULL;
 PRIVATE paramT  *P          = NULL;
 PRIVATE int     init_length = -1;
 PRIVATE int     min_hairpin = TURN;
-PRIVATE int     *BP; /* contains the structure constrainsts: BP[i]
+PRIVATE int     *BP = NULL; /* contains the structure constrainsts: BP[i]
                         -1: | = base must be paired
                         -2: < = base must be paired with j<i
                         -3: > = base must be paired with j>i
                         -4: x = base must not pair
                         positive int: base is paired with int      */
-PRIVATE short   *pair_table; /* needed by energy of struct */
-PRIVATE bondT   *base_pair2; /* this replaces base_pair from fold_vars.c */
+PRIVATE short   *pair_table = NULL; /* needed by energy of struct */
+PRIVATE bondT   *base_pair2 = NULL; /* this replaces base_pair from fold_vars.c */
 PRIVATE int     circular = 0;
 
 #ifdef _OPENMP
@@ -1317,6 +1317,7 @@ PUBLIC void parenthesis_zuker(char *structure, bondT *bp, int length){
 
 PUBLIC void update_fold_params(void)
 {
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
   if (init_length < 0) init_length=0;

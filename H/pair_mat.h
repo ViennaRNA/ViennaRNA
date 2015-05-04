@@ -33,7 +33,7 @@ static int encode_char(char c) {
   int code;
   if (energy_set>0) code = (int) (c-'A')+1;
   else {
-    char *pos;
+    const char *pos;
     pos = strchr(Law_and_Order, c);
     if (pos==NULL) code=0;
     else code = (int) (pos-Law_and_Order);

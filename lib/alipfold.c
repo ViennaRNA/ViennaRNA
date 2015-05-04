@@ -56,24 +56,24 @@ static char rcsid[] = "$Id: alipfold.c,v 1.17 2009/02/24 14:21:33 ivo Exp $";
 # PRIVATE GLOBAL VARIABLES      #
 #################################
 */
-PRIVATE FLT_OR_DBL      *expMLbase;
-PRIVATE FLT_OR_DBL      *q, *qb, *qm, *qm1, *qqm, *qqm1, *qq, *qq1;
-PRIVATE FLT_OR_DBL      *prml, *prm_l, *prm_l1, *q1k, *qln;
-PRIVATE FLT_OR_DBL      *probs;
-PRIVATE FLT_OR_DBL      *scale;
-PRIVATE short           *pscore;   /* precomputed array of covariance bonus/malus */
+PRIVATE FLT_OR_DBL      *expMLbase=NULL;
+PRIVATE FLT_OR_DBL      *q=NULL, *qb=NULL, *qm=NULL, *qm1=NULL, *qqm=NULL, *qqm1=NULL, *qq=NULL, *qq1=NULL;
+PRIVATE FLT_OR_DBL      *prml=NULL, *prm_l=NULL, *prm_l1=NULL, *q1k=NULL, *qln=NULL;
+PRIVATE FLT_OR_DBL      *probs=NULL;
+PRIVATE FLT_OR_DBL      *scale=NULL;
+PRIVATE short           *pscore=NULL;   /* precomputed array of covariance bonus/malus */
 /* some additional things for circfold  */
 PRIVATE int             circular=0;
-PRIVATE FLT_OR_DBL      qo, qho, qio, qmo, *qm2;
-PRIVATE int             *jindx;
-PRIVATE short           **S;
-PRIVATE short           **S5;               /*S5[s][i] holds next base 5' of i in sequence s*/
-PRIVATE short           **S3;               /*S3[s][i] holds next base 3' of i in sequence s*/
-PRIVATE char            **Ss;
-PRIVATE unsigned short  **a2s;
+PRIVATE FLT_OR_DBL      qo, qho, qio, qmo, *qm2=NULL;
+PRIVATE int             *jindx=NULL;
+PRIVATE short           **S=NULL;
+PRIVATE short           **S5=NULL;               /*S5[s][i] holds next base 5' of i in sequence s*/
+PRIVATE short           **S3=NULL;               /*S3[s][i] holds next base 3' of i in sequence s*/
+PRIVATE char            **Ss=NULL;
+PRIVATE unsigned short  **a2s=NULL;
 PRIVATE int             N_seq;
-PRIVATE pf_paramT       *pf_params;
-PRIVATE char            *pstruc;
+PRIVATE pf_paramT       *pf_params = NULL;
+PRIVATE char            *pstruc=NULL;
 
 #ifdef _OPENMP
 
@@ -745,10 +745,10 @@ PRIVATE void scale_pf_params(unsigned int length, int n_seq)
 {
   unsigned int i;
   double  kT, TT;
+  if(pf_params) free(pf_params);
   pf_params = get_scaled_alipf_parameters(n_seq);
 
   kT = pf_params->kT / n_seq;
-  kT = (temperature+K0)*GASCONST;
   TT = (pf_params->temperature+K0)/(Tmeasure);
 
   /* scaling factors (to avoid overflows) */

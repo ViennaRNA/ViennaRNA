@@ -27,10 +27,10 @@ static char rcsid[] = "$Id: findpath.c,v 1.2 2008/10/09 15:42:45 ivo Exp $";
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE char    *seq;
-PRIVATE short   *S, *S1;
+PRIVATE char    *seq=NULL;
+PRIVATE short   *S=NULL, *S1=NULL;
 PRIVATE int     BP_dist;
-PRIVATE move_t  *path;
+PRIVATE move_t  *path=NULL;
 PRIVATE int     path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
 
 #ifdef _OPENMP
@@ -63,6 +63,14 @@ PRIVATE void    free_intermediate(intermediate_t *i);
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
+PUBLIC void free_path(path_t *path){
+  path_t *tmp = path;
+  if(tmp){
+    while(tmp->s){ free(tmp->s); tmp++;}
+    free(path);
+  }
+}
+
 PRIVATE int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist) {
   int *loopidx, len, num_next=0, en, oldE;
   move_t *mv;
@@ -82,13 +90,13 @@ PRIVATE int try_moves(intermediate_t c, int maxE, intermediate_t *next, int dist
       pt[-j]=0;
     } else { /* insert move */
       if ((loopidx[i] == loopidx[j]) && /* i and j belong to same loop */
-	  (pt[i] == 0) && (pt[j]==0)     /* ... and are unpaired */
-	  ) {
-	pt[i]=j;
-	pt[j]=i;
+          (pt[i] == 0) && (pt[j]==0)     /* ... and are unpaired */
+          ) {
+        pt[i]=j;
+        pt[j]=i;
       } else {
-	free(pt);
-	continue; /* llegal move, try next; */
+        free(pt);
+        continue; /* llegal move, try next; */
       }
     }
 #ifdef LOOP_EN
@@ -126,14 +134,14 @@ PRIVATE int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
   for (i=1; i<=len; i++) {
     if (pt1[i] != pt2[i]) {
       if (i<pt1[i]) { /* need to delete this pair */
-	mlist[dist].i = -i;
-	mlist[dist].j = -pt1[i];
-	mlist[dist++].when = 0;
+        mlist[dist].i = -i;
+        mlist[dist].j = -pt1[i];
+        mlist[dist++].when = 0;
       }
       if (i<pt2[i]) { /* need to insert this pair */
-	mlist[dist].i = i;
-	mlist[dist].j = pt2[i];
-	mlist[dist++].when = 0;
+        mlist[dist].i = i;
+        mlist[dist].j = pt2[i];
+        mlist[dist++].when = 0;
       }
     }
   }
@@ -162,9 +170,9 @@ PRIVATE int find_path_once(char *struc1, char *struc2, int maxE, int maxl) {
     qsort(next, num_next, sizeof(intermediate_t),compare_ptable);
     for (u=0,c=1; c<num_next; c++) {
       if (memcmp(next[u].pt,next[c].pt,sizeof(short)*len)!=0) {
-	next[++u] = next[c];
+        next[++u] = next[c];
       } else {
-	free_intermediate(next+c);
+        free_intermediate(next+c);
       }
     }
     num_next = u+1;
@@ -208,19 +216,25 @@ PUBLIC int find_saddle(char *sequence, char *struc1, char *struc2, int max) {
     int saddleE;
     path_fwd = !path_fwd;
     if (maxl>max) maxl=max;
+    if(path) free(path);
     saddleE  = find_path_once(struc1, struc2, maxE, maxl);
     if (saddleE<maxE) {
       maxE = saddleE;
       if (bestpath) free(bestpath);
       bestpath = path;
+      path = NULL;
       dir = path_fwd;
-    } else
-      free(path);
-    tmp=struc1; struc1=struc2; struc2=tmp;
+    } else{
+      free(path);path=NULL;
+    }
+    tmp=struc1;
+    struc1=struc2;
+    struc2=tmp;
     maxl *=2;
   } while (maxl<2*max);
 
   free(S); free(S1);
+  /* (re)set some globals */
   path=bestpath;
   path_fwd = dir;
   return maxE;
@@ -247,7 +261,7 @@ PUBLIC void print_path(char *seq, char *struc) {
 
 PUBLIC path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
   int E, d;
-  path_t *route;
+  path_t *route=NULL;
 
   E = find_saddle(seq, s1, s2, maxkeep);
 
@@ -265,9 +279,9 @@ PUBLIC path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
       route[d+1].s = strdup(route[d].s);
       i = path[d].i; j=path[d].j;
       if (i<0) { /* delete */
-	route[d+1].s[(-i)-1] = route[d+1].s[(-j)-1] = '.';
+        route[d+1].s[(-i)-1] = route[d+1].s[(-j)-1] = '.';
       } else {
-	route[d+1].s[i-1] = '('; route[d+1].s[j-1] = ')';
+        route[d+1].s[i-1] = '('; route[d+1].s[j-1] = ')';
       }
       route[d+1].en = path[d].E/100.0;
     }
@@ -281,11 +295,12 @@ PUBLIC path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
     for (d=0; d<BP_dist; d++) {
       int i,j;
       route[BP_dist-d-1].s = strdup(route[BP_dist-d].s);
-	i = path[d].i; j=path[d].j;
+      i = path[d].i;
+      j = path[d].j;
       if (i<0) { /* delete */
-	route[BP_dist-d-1].s[(-i)-1] = route[BP_dist-d-1].s[(-j)-1] = '.';
+        route[BP_dist-d-1].s[(-i)-1] = route[BP_dist-d-1].s[(-j)-1] = '.';
       } else {
-	route[BP_dist-d-1].s[i-1] = '('; route[BP_dist-d-1].s[j-1] = ')';
+        route[BP_dist-d-1].s[i-1] = '('; route[BP_dist-d-1].s[j-1] = ')';
       }
       route[BP_dist-d-1].en = path[d].E/100.0;
     }
@@ -298,7 +313,7 @@ PUBLIC path_t *get_path(char *seq, char *s1, char* s2, int maxkeep) {
   fprintf(stderr, "%d\n", *num_entry);
 #endif
 
-  free(path);
+  free(path);path=NULL;
   return (route);
 }
 
@@ -326,10 +341,10 @@ PRIVATE int *pair_table_to_loop_index (short *pt)
     if ((pt[i] != 0) && (i > pt[i])) { /* ) */
       --hx;
       if (hx>0)
-	l = loop[stack[hx-1]];  /* index of enclosing loop   */
+        l = loop[stack[hx-1]];  /* index of enclosing loop   */
       else l=0;                 /* external loop has index 0 */
       if (hx<0) {
-	nrerror("unbalanced brackets in make_pair_table");
+        nrerror("unbalanced brackets in make_pair_table");
       }
     }
   }
@@ -339,8 +354,8 @@ PRIVATE int *pair_table_to_loop_index (short *pt)
 #ifdef _DEBUG_LOOPIDX
   fprintf(stderr,"begin loop index\n");
   fprintf(stderr,
-	  "....,....1....,....2....,....3....,....4"
-	  "....,....5....,....6....,....7....,....8\n");
+          "....,....1....,....2....,....3....,....4"
+          "....,....5....,....6....,....7....,....8\n");
   print_structure(pt, loop[0]);
   for (i=1; i<=length; i++)
     fprintf(stderr,"%2d ", loop[i]);
@@ -448,7 +463,7 @@ int main(int argc, char *argv[]) {
   for (i=1; i<argc; i++) {
     switch ( argv[i][1] ) {
     case 'm': if (strcmp(argv[i],"-m")==0)
-	sscanf(argv[++i], "%d", &maxkeep);
+        sscanf(argv[++i], "%d", &maxkeep);
       break;
     case 'v':  verbose = !strcmp(argv[i],"-v");
       break;

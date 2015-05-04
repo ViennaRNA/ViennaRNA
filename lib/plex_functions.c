@@ -37,11 +37,11 @@ PRIVATE char  *backtrack_XS(int kk, int ll, const int ii, const int jj, const in
 PRIVATE void  make_ptypes(const char *structure);
 
 PRIVATE paramT  *P = NULL;
-PRIVATE int     ***c3;      /* energy array used in duplexfold */
-PRIVATE short   *S1, *SS1;
+PRIVATE int     ***c3 = NULL;      /* energy array used in duplexfold */
+PRIVATE short   *S1 = NULL, *SS1 = NULL;
 PRIVATE int     n1;
-PRIVATE char    *ptype;     /* precomputed array of pair types */
-PRIVATE int     *indx;      /* index for moving in the triangle matrices ptype[] */
+PRIVATE char    *ptype = NULL;     /* precomputed array of pair types */
+PRIVATE int     *indx = NULL;      /* index for moving in the triangle matrices ptype[] */
 
 PUBLIC  dupVar  *PlexHits = NULL;
 PUBLIC  int     PlexHitsArrayLength = 100;
@@ -260,6 +260,7 @@ PUBLIC  dupVar  **PKLduplexfold_XS(const char *s1, int **access_s1, const int th
 
 PRIVATE void update_dfold_params(void)
 {
+  if(P) free(P);
   P = scale_parameters();
   make_pair_matrix();
 }
