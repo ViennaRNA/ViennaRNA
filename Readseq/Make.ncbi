@@ -1,0 +1,110 @@
+#
+# Unix Makefile for readseq
+# to use, command me:
+#  %  make       -- or --
+#  %  make CC=your-c-compiler-name
+#
+
+# pick an ANSI C compiler (the default Sun CC is not ANSI)
+CC=gcc  # Gnu C Compiler
+#CC=cc  # SGI Irix
+#CC=vcc # some DEC Ultrix
+
+CFLAGS=
+#CFLAGS= -DSMALLCHECKSUM  # if you prefer to use a GCG-standard 13 bit checksum
+#    instead of a full 32 bit checksum. This may enhance compatibility w/ GCG software
+
+SOURCES= readseq.c ureadseq.c ureadseq.h ureadasn.c
+DOCS= Readme readseq.help Formats Stdfiles Makefile Make.com add.gdemenu *.std
+
+
+# NCBI toolkit support for ASN.1 reader
+
+# this is path to NCBI toolkit, you must set for your system:
+NCBI=/bio/mb/ncbi
+#
+OTHERLIBS=-lm
+LIB1=-lncbi
+LIB2=-lncbiobj
+LIB3=-lncbicdr
+LIB4=-lvibrant
+INCPATH=$(NCBI)/include
+LIBPATH=$(NCBI)/lib
+NCFLAGS=$(CFLAGS) -DNCBI -I$(INCPATH)
+NLDFLAGS=-I$(INCPATH) -L$(LIBPATH)
+NLIBS=$(LIB1) $(LIB2) $(OTHERLIBS)
+
+
+all: build test
+
+#build: $(SOURCES)
+#	@echo "Compiling readseq..."
+#	$(CC) $(CFLAGS) -o readseq readseq.c ureadseq.c
+
+# if using NCBI, uncomment these lines in place of build: above
+build: $(SOURCES)
+	@echo "Compiling readseq with NCBI toolkit support...";
+	$(CC) -o readseq $(NLDFLAGS) $(NCFLAGS) readseq.c ureadseq.c ureadasn.c $(NLIBS)
+
+test: $(SOURCES) readseq
+	@echo ""
+	@echo "Test for general read/write of all chars:"
+	./readseq -p alphabet.std -otest.alpha
+	-diff test.alpha alphabet.std
+
+	@echo ""
+	@echo "Test for valid format conversions:"
+	./readseq -v -p -f=ig   nucleic.std -otest.ig
+	./readseq -v -p -f=gb   test.ig     -otest.gb
+	./readseq -v -p -f=nbrf test.gb     -otest.nbrf
+	./readseq -v -p -f=embl test.nbrf   -otest.embl
+	./readseq -v -p -f=gcg  test.embl   -otest.gcg
+	./readseq -v -p -f=strider test.gcg -otest.strider
+	./readseq -v -p -f=fitch test.strider -otest.fitch
+	./readseq -v -p -f=fasta test.fitch -otest.fasta
+	./readseq -v -p -f=pir  test.fasta  -otest.pir
+	./readseq -v -p -f=ig   test.pir    -otest.ig-b
+	-diff test.ig test.ig-b
+
+	@echo ""
+	@echo "Test for multiple-sequence format conversions:"
+	./readseq -p -f=ig    multi.std   -otest.m-ig
+	./readseq -p -f=gb    test.m-ig   -otest.m-gb
+	./readseq -p -f=nbrf  test.m-gb   -otest.m-nbrf
+	./readseq -p -f=embl  test.m-nbrf -otest.m-embl
+	./readseq -p -f=fasta test.m-embl -otest.m-fasta
+	./readseq -p -f=pir   test.m-fasta -otest.m-pir
+	./readseq -p -f=msf   test.m-pir  -otest.m-msf
+	./readseq -p -f=paup  test.m-msf  -otest.m-paup
+	./readseq -p -f=ig    test.m-paup -otest.m-ig-b
+	-diff test.m-ig test.m-ig-b
+#
+# if using NCBI, uncomment these lines
+	@echo ""
+	@echo "Test of NCBI ASN.1 conversions:"
+	./readseq -p -f=asn test.m-ig  -otest.m-asn
+	./readseq -p -f=ig  test.m-asn -otest.m-ig-c
+	-diff test.m-ig test.m-ig-c
+#
+	@echo ""
+	@echo "Expect differences in the header lines due to"
+	@echo "different format headers.  If any sequence lines"
+	@echo "differ, or if the checksums differ, there is a problem."
+	@echo "----------------------"
+	@echo ""
+	@echo "To clean up test files, command me:"
+	@echo "    make clean"
+
+
+clean:
+	rm -f *.o core test.*
+
+shar:
+	@echo "shell archiving files..."
+	-rm -f readseq*.shar
+	mkdir readseqd
+	cp $(SOURCES) readseqd
+	cp $(DOCS) readseqd
+	shar -v readseqd > readseq.shar
+	rm -rf readseqd
+

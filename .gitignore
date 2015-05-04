@@ -21,9 +21,6 @@ doxygen.conf
 # except the libsvm sources
 !libsvm*.tar.gz
 
-# ignore Readseq directory
-Readseq
-
 # ignore Fedora RPM spec file
 ViennaRNA.spec
 

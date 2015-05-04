@@ -32,8 +32,8 @@ $CCFLAGS .= ' $(AM_CXXFLAGS) $(CXXFLAGS)';
 $OPTIMIZE =~ s/-march=[a-zA-Z0-9_\-]+//g;
 $OPTIMIZE =~ s/-mtune=[a-zA-Z0-9_\-]+//g;
 
-print "CCFLAGS:\t", $CCFLAGS, "\n";
-print "OPTIMIZE:\t", $OPTIMIZE, "\n";
+# print "CCFLAGS:\t", $CCFLAGS, "\n";
+# print "OPTIMIZE:\t", $OPTIMIZE, "\n";
 
 WriteMakefile(
               MAKEFILE    =>  "Makefile.perl",

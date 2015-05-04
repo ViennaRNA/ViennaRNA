@@ -1,0 +1,134 @@
+/* Stdfiles 
+	generate standard files to test readseq
+*/
+
+C
+#include <stdio.h>
+/* no sequence formats use chars > #126, ignore these */
+main(void)
+{
+	int c;
+	puts("> alphabet['!'..'~']");
+	for (c = '!'; c <= '~'; c++) putc(c,stdout);
+	putc('\n', stdout);
+}
+
+link  -w  -t MPST -c 'MPS ' c.o  ¶
+		"{Libraries}"Interface.o  "{Libraries}"ToolLibs.o ¶
+		"{Libraries}"Runtime.o  "{CLibraries}"StdClib.o 
+link.out > alphabet.orig
+
+
+C
+#include <stdio.h>
+main(void)
+{
+/* note: symbols "*" and "/" removed as terminators for various formats */
+const char *aminos		= "ABCDEFGHIKLMNPQRSTVWXYZ";  
+const char *primenuc	= "ACGTU";
+const char *allsymbols 	= "_.-?<>{}[]()!@#$%^&=+;:'|`~\"\\";
+
+	char *c, all[256];
+	int	count;
+	
+	strcpy(all, aminos);
+	strcat(all, primenuc);
+	strcat(all, allsymbols);
+	puts("> nucleic/amino test");
+	for (count=0; count<4; count++) {
+		for (c = all; *c!=0; c++) putc(*c, stdout);
+		putc('\n', stdout);
+		}
+}
+
+link  -w  -t MPST -c 'MPS ' c.o  ¶
+		"{Libraries}"Interface.o  "{Libraries}"ToolLibs.o ¶
+		"{Libraries}"Runtime.o  "{CLibraries}"StdClib.o 
+link.out > nucleic.std
+
+#--------------------------
+
+#standards (ship w/ readseq)
+#note: not all alphabet.orig chars are expected to be passed by
+#     readseq.  Numbers are dropped.
+readseq -p alphabet.orig > alphabet.std
+readseq -p -C  alphabet.std > upper.std
+
+cat alphabet.orig
+	> alphabet['!'..'~']
+	!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+
+cat alphabet.std
+	>alphabet['!'..'~'], 83 bases, 9429 checksum.
+	!"#$%&'()*+-./:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]
+	^_`abcdefghijklmnopqrstuvwxyz{|}~
+
+cat upper.std
+	>alphabet['!'..'~'], 83 bases, 9429 checksum.
+	!"#$%&'()*+-./:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]
+	^_`ABCDEFGHIJKLMNOPQRSTUVWXYZ{|}~
+
+cat nucleic.std
+	> nucleic/amino test
+	ABCDEFGHIKLMNPQRSTVWXYZACGTU_.-?<>{}[]()!@#$%^&=+;:'|`~"\
+	ABCDEFGHIKLMNPQRSTVWXYZACGTU_.-?<>{}[]()!@#$%^&=+;:'|`~"\
+	ABCDEFGHIKLMNPQRSTVWXYZACGTU_.-?<>{}[]()!@#$%^&=+;:'|`~"\
+	ABCDEFGHIKLMNPQRSTVWXYZACGTU_.-?<>{}[]()!@#$%^&=+;:'|`~"\
+
+readseq -p nucleic.std
+	>nucleic/amino test, 228 bases, 5952 checksum.
+	ABCDEFGHIKLMNPQRSTVWXYZACGTU_.-?<>{}[]()!@#$%^&=+;
+	:'|`~"\ABCDEFGHIKLMNPQRSTVWXYZACGTU_.-?<>{}[]()!@#
+	$%^&=+;:'|`~"\ABCDEFGHIKLMNPQRSTVWXYZACGTU_.-?<>{}
+	[]()!@#$%^&=+;:'|`~"\ABCDEFGHIKLMNPQRSTVWXYZACGTU_
+	.-?<>{}[]()!@#$%^&=+;:'|`~"\
+
+
+#----------------------------------
+
+#test for general read/write of all chars:
+readseq -p alphabet.std -otest.alpha
+diff test.alpha alphabet.std
+
+#test for valid toupper, general read/write:
+readseq -p -C  alphabet.std -otest.upper
+diff test.upper upper.std
+#for vms, use "-C" to preserve case
+# readseq -p "-C"  alphabet.std -otest.upper
+
+#test for multiple sequence file conversions
+# leave out gcg, raw; 
+# test of long seq conversion ?
+# test of mail-header seq conversion ?
+
+#test for valid format conversions
+readseq -v -p -f1 nucleic.std -otest.f1
+readseq -v -p -f2 test.f1 -otest.f2
+readseq -v -p -f3 test.f2 -otest.f3
+readseq -v -p -f4 test.f3 -otest.f4
+readseq -v -p -f5 test.f4 -otest.f5
+readseq -v -p -f6 test.f5 -otest.f6
+readseq -v -p -f7 test.f6 -otest.f7
+readseq -v -p -f8 test.f7 -otest.f8
+readseq -v -p -f1 test.f8 -otest.f1b   
+diff test.f1 test.f1b
+compare test.f1 test.f1b
+
+readseq -v -p -f13 test.f8 -otest.f13   # raw, drops name
+readseq -v -p -f9 test.f8 -otest.f9   	# zuker, little used
+#readseq -v -p -f10 test.f9 -otest.f10  # olsen, input only (output=raw)
+readseq -v -p -f11 test.f8 -otest.f11	# phylip 3.2, output only
+readseq -v -p -f12 test.f8 -otest.f12	# phylip 3.3, output only
+readseq -v -p -f14 test.f8 -otest.f14	# phylip 3.4, output only
+
+
+#clean up
+rm test.Å
+
+
+#-----------------------------
+# some general tests
+
+readseq -h 
+
+readseq

@@ -1,0 +1,980 @@
+||||||||||| ReadSeq supported formats   (revised 30Dec92)
+--------------------------------------------------------
+
+    -f[ormat=]Name Format name for output:
+         1. IG/Stanford           10. Olsen (in-only)
+         2. GenBank/GB            11. Phylip3.2
+         3. NBRF                  12. Phylip
+         4. EMBL                  13. Plain/Raw
+         5. GCG                   14. PIR/CODATA
+         6. DNAStrider            15. MSF
+         7. Fitch                 16. ASN.1
+         8. Pearson/Fasta         17. PAUP
+         9. Zuker (in-only)       18. Pretty (out-only)
+
+In general, output supports only minimal subsets of each format
+needed for sequence data exchanges.  Features, descriptions
+and other format-unique information is discarded.
+
+Users of Olsen multi sequence editor (VMS).  The Olsen format
+here is produced with the print command:
+  print/out=some.file
+Use Genbank output from readseq to produce a format that this
+editor can read, and use the command
+  load/genbank some.file
+Dan Davison has a VMS program that will convert to/from the
+Olsen native binary data format.  E-mail davison@uh.edu
+
+Warning: Phylip format input is now supported (30Dec92), however the
+auto-detection of Phylip format is very probabilistic and messy,
+especially distinguishing sequential from interleaved versions. It
+is not recommended that one use readseq to convert files from Phylip
+format to others unless essential.
+
+
+
+||||||||||| ReadSeq usage             (revised 11Nov91)
+--------------------------------------------------------
+
+A. determine file format:
+
+        short skiplines;  /* result: number of header lines to skip (or 0) */
+        short error;      /* error result or 0 */
+        short format;     /* resulting format code, see ureadseq.h */
+        char  *filename   = "Mysequence.file"
+
+        format = seqFileFormat( filename, &skiplines, &error);
+        if (error!=0) fail;
+
+B. read number and list of sequences (optional)
+        short numseqs;    /* resulting number of sequences found in file */
+        char  *seqlist;   /* list of sequence names, newline separated, 0 terminated */
+
+        seqlist = listSeqs( filename, skiplines, format, &numseqs, &error);
+        if (error!=0)  display (seqlist);
+        free( seqlist);
+
+C.  read individual sequences as desired
+        short seqIndex;   /* sequence index #, or == kListSeqs for listSeqs equivalent */
+        long  seqlen;     /* length of seq */
+        char  seqid[256]; /* sequence name */
+        char  *seq;       /* sequence, 0 terminated, free when done */
+
+        seq = readSeq( seqIndex, filename, skiplines, format,
+                      &seqlen, &numseqs, &error, seqid);
+        if (error!=0) manipulate(seq);
+        free(seq);
+
+D. write sequences as desired
+        int nlines;     /* number of lines of sequence written */
+        FILE* fout;     /* open file pointer (stdout or other) */
+        short outform;  /* output format, see ureadseq.h */
+
+        nlines = writeSeq( fout, seq, seqlen, format, outform, seqid);
+
+
+Note (30Dec92): There is various processing done by the main program (in readseq.c),
+  rather than just in the subroutines (in ureadseq.c).  Especially for interleaved
+  output formats, the writeSeq subroutine does not handle interleaving, nor some of
+  the formatting at the top and end of output files.  While seqFileFormat, listSeqs,
+  and readSeq subroutines are fairly self-contained, the writeSeq depends a lot on
+  auxilliary processing.  At some point, this may be revised so writeSeq is self-
+  contained.
+
+Note 2: The NCBI toolkit (ftp from ncbi.nlm.nih.gov) is needed for the ASN.1 format
+  reading (see ureadasn.c).  A bastard (but workable I hope) ASN.1 format is written
+  by writeSeq alone.
+
+
+
+|||||||||||  sequence formats....
+---------------------------------------------------
+
+stanford/IG
+;comments
+;...
+seq1 info
+abcd...
+efgh1 (or 2 = terminator)
+;another seq
+;....
+seq2 info
+abcd...1
+--- for e.g. ----
+;     Dro5s-T.Seq  Length: 120  April 6, 1989  21:22  Check: 9487  ..
+dro5stseq
+GCCAACGACCAUACCACGCUGAAUACAUCGGUUCUCGUCCGAUCACCGAAAUUAAGCAGCGUCGCGGGCG
+GUUAGUACUUAGAUGGGGGACCGCUUGGGAACACCGCGUGUUGUUGGCCU1
+
+;  TOIG of: Dro5srna.Seq  check: 9487  from: 1  to: 120
+---------------------------------------------------
+
+Genbank:
+LOCUS    seq1 ID..
+...
+ORIGIN ...
+123456789abcdefg....(1st 9 columns are formatting)
+     hijkl...
+//         (end of sequence)
+LOCUS     seq2 ID ..
+...
+ORIGIN
+      abcd...
+//
+---------------------------------------------------
+
+NBRF format: (from uwgcg ToNBRF)
+>DL;DRO5SRNA
+Iubio$Dua0:[Gilbertd.Gcg]Dro5srna.Seq;2 => DRO5SRNA
+
+      51  AAUUAAGCAG CGUCGCGGGC GGUUAGUACU UAGAUGGGGG ACCGCUUGGG
+     101  AACACCGCGU GUUGUUGGCC U
+
+---------------------------------------------------
+
+EMBL format
+ID345 seq1 id   (the 345 are spaces)
+... other info
+SQ345Sequence   (the 3,4,5 are spaces)
+abcd...
+hijk...
+//              (! this is proper end string: 12Oct90)
+ID    seq2 id
+...
+SQ   Sequence
+abcd...
+...
+//
+---------------------------------------------------
+
+UW GCG Format:
+comments of any form, up to ".." signal
+signal line has seq id, and " Check: ####   .."
+only 1 seq/file
+
+-- e.g. --- (GCG from GenBank)
+LOCUS       DROEST6      1819 bp ss-mRNA            INV       31-AUG-1987
+    ... much more ...
+ORIGIN      1 bp upstream of EcoRI site; chromosome BK9 region 69A1.
+
+INVERTEBRATE:DROEST6  Length: 1819  January 9, 1989  16:48  Check: 8008  ..
+
+       1  GAATTCGCCG GAGTGAGGAG CAACATGAAC TACGTGGGAC TGGGACTTAT
+
+      51  CATTGTGCTG AGCTGCCTTT GGCTCGGTTC GAACGCGAGT GATACAGATG
+
+
+---------------------------------------------------
+
+DNAStrider (Mac) = modified Stanford:
+; ### from DNA Strider  Friday, April 7, 1989   11:04:24 PM
+; DNA sequence  pBR322   4363  b.p. complete sequence
+;
+abcd...
+efgh
+//  (end of sequence)
+---------------------------------------------------
+
+Fitch format:
+Dro5srna.Seq
+ GCC AAC GAC CAU ACC ACG CUG AAU ACA UCG GUU CUC GUC CGA UCA CCG AAA UUA AGC AGC
+ GUC GCG GGC GGU UAG UAC UUA GAU GGG GGA CCG CUU GGG AAC ACC GCG UGU UGU UGG CCU
+Droest6.Seq
+ GAA TTC GCC GGA GTG AGG AGC AAC ATG AAC TAC GTG GGA CTG GGA CTT ATC ATT GTG CTG
+ AGC TGC CTT TGG CTC GGT TCG AAC GCG AGT GAT ACA GAT GAC CCT CTG TTG GTG CAG CTG
+---------------------------------------------------
+
+W.Pearson/Fasta format:
+>BOVPRL GenBank entry BOVPRL from omam file.  907 nucleotides.
+TGCTTGGCTGAGGAGCCATAGGACGAGAGCTTCCTGGTGAAGTGTGTTTCTTGAAATCAT
+
+---------------------------------------------------
+Phylip version 3.2 format (e.g., DNAML):
+
+   5   13 YF                (# seqs, #bases, YF)
+Alpha     AACGTGGCCAAAT
+          aaaagggccc...  (continued sp. alpha)
+Beta      AAGGTCGCCAAAC
+          aaaagggccc...  (continued sp. beta)
+Gamma     CATTTCGTCACAA
+          aaaagggccc...  (continued sp. Gamma)
+1234567890^-- bases must start in col 11, and run 'til #bases 
+        (spaces & newlines are okay)
+---------------------------------------------------
+Phylip version 3.3 format (e.g., DNAML):
+
+  5    42  YF             (# seqs, #bases, YF)
+Turkey    AAGCTNGGGC ATTTCAGGGT
+Salmo gairAAGCCTTGGC AGTGCAGGGT
+H. SapiensACCGGTTGGC CGTTCAGGGT
+Chimp     AAACCCTTGC CGTTACGCTT
+Gorilla   AAACCCTTGC CGGTACGCTT
+1234567890^-- bases must start in col 11
+  !! this version interleaves the species -- contrary to
+     all other output formats.
+
+GAGCCCGGGC AATACAGGGT AT
+GAGCCGTGGC CGGGCACGGT AT
+ACAGGTTGGC CGTTCAGGGT AA
+AAACCGAGGC CGGGACACTC AT
+AAACCATTGC CGGTACGCTT AA
+
+---------------------------------------------------
+Phylip version 3.4 format (e.g., DNAML)
+-- Both Interleaved and sequential are permitted
+
+   5   13                (# seqs, #bases)
+Alpha     AACGTGGCCAAAT
+          aaaagggccc...  (continued sp. alpha)
+Beta      AAGGTCGCCAAAC
+          aaaagggccc...  (continued sp. beta)
+Gamma     CATTTCGTCACAA
+          aaaagggccc...  (continued sp. Gamma)
+1234567890^-- bases must start in col 11, and run 'til #bases 
+        (spaces, newlines and numbers are are ignored)
+
+---------------------------------------------------
+Gary Olsen (multiple) sequence editor /print format:
+
+!---------------------
+!17Oct91 -- error in original copy of olsen /print format, shifted right 1 space
+! here is correct copy:
+  301  40 Tb.thiop  CGCAGCGAAA----------GCUNUGCUAAUACCGCAUA-CGnCCUG-----------------------------------------------------  Tb.thiop
+123456789012345678901
+  301  42 Rhc.purp  CGUAGCGAAA----------GUUACGCUAAUACCGCAUA-UUCUGUG-----------------------------------------------------  Rhc.purp
+
+  301  44 Rhc.gela  nnngnCGAAA----------GCCGGAUUAAUACCGCAUA-CGACCUA-----------------------------------------------------  Rhc.gela
+!---------------------
+
+ RNase P RNA components.  on 20-FEB-90 17:23:58
+
+    1 (E.c. pr ):  Base pairing in Escherichia coli RNase P RNA.
+    2 (chrom   ):  Chromatium
+      :
+   12 (B.brevis):  Bacillus brevis RNase P RNA, B. James.
+   13 ( 90% con):   90% conserved
+   14 (100% con):  100% conserved
+   15 (gram+ pr):  pairing
+
+1
+ RNase P RNA components.  on 20-FEB-90 17:23:58
+
+ Posi-   Sequence
+ tion:   identity:   Data:
+
+     1   1 E.c. pr      <<<<<<<<<< {{{{{{{{<<:<<<<<<<<<<^<<<<<<====>>>>  E.c. pr
+     1   2 chrom        GGAGUCGGCCAGACAGUCGCUUCCGUCCU------------------  chrom
+            :
+     1  12 B.brevis  AUGCAGGAAAUGCGGGUAGCCGCUGCCGCAAUCGUCU-------------  B.brevis
+1234567890123456789012 <! this should be 21 not 22,
+! this example must be inset on left by 1 space from olsen /print files !
+     1  13  90% con           G  C G  A  CGC GC               -    -      90% con
+     1  14 100% con                G  A  CGC                             100% con
+     1  15 gram+ pr     <<<<<<<<<< {{{{{{{{<<<<<<<<<<<<<===============  gram+ pr
+
+    60   1 E.c. pr   >>>>>>^>>^>>>>:>>    <<<^<<<< {{{{{                 E.c. pr
+    60   2 chrom     -----GGUG-ACGGGGGAGGAAAGUCCGG-GCUCCAU-------------  chrom
+    :       :
+    60  10 B.stearo  ----UU-CG-GCCGUAGAGGAAAGUCCAUGCUCGCACGGUGCUGAGAUGC  B.stearo
+
+
+---------------------------------------------------
+  GCG MSF format
+Title line
+
+picorna.msf  MSF: 100  Type: P  January 17, 1991  17:53  Check: 541
+..
+Name: Cb3              Len:   100  Check: 7009  Weight:  1.00
+Name: E                Len:   100  Check:   60  Weight:  1.00
+
+//
+
+   1                                                   50
+Cb3  ...gpvedai .......t.. aaigr..vad tvgtgptnse aipaltaaet
+  E  gvenae.kgv tentna.tad fvaqpvylpe .nqt...... kv.affynrs
+
+   51                                                 100
+
+Cb3  ghtsqvvpgd tmqtrhvkny hsrsestien flcrsacvyf teykn.....
+  E  ...spi.gaf tvks...... gs.lesgfap .fsngtc.pn sviltpgpqf
+
+---------------------------------------------------
+     PIR format
+This is NBRF-PIR MAILSERVER version 1.45
+Command-> get PIR3:A31391
+\\\
+ENTRY           A31391       #Type Protein
+TITLE           *Esterase-6 - Fruit fly (Drosophila melanogaster)
+
+DATE            03-Aug-1992 #Sequence 03-Aug-1992 #Text 03-Aug-1992
+PLACEMENT          0.0    0.0    0.0    0.0    0.0
+COMMENT         *This entry is not verified.
+SOURCE          Drosophila melanogaster
+
+REFERENCE
+   #Authors     Cooke P.H., Oakeshott J.G.
+   #Citation    submitted to GenBank, April 1989
+   #Reference-number A31391
+   #Accession   A31391
+   #Cross-reference GB:J04167
+
+SUMMARY       #Molecular-weight 61125  #Length 544  #Checksum  1679
+SEQUENCE
+                5        10        15        20        25        30
+      1 M N Y V G L G L I I V L S C L W L G S N A S D T D D P L L V
+     31 Q L P Q G K L R G R D N G S Y Y S Y E S I P Y A E P P T G D
+     61 L R F E A P E P Y K Q K W S D I F D A T K T P V A C L Q W D
+     91 Q F T P G A N K L V G E E D C L T V S V Y K P K N S K R N S
+    121 F P V V A H I H G G A F M F G A A W Q N G H E N V M R E G K
+    151 F I L V K I S Y R L G P L G F V S T G D R D L P G N Y G L K
+    181 D Q R L A L K W I K Q N I A S F G G E P Q N V L L V G H S A
+    211 G G A S V H L Q M L R E D F G Q L A R A A F S F S G N A L D
+    241 P W V I Q K G A R G R A F E L G R N V G C E S A E D S T S L
+    271 K K C L K S K P A S E L V T A V R K F L I F S Y V P F A P F
+    301 S P V L E P S D A P D A I I T Q D P R D V I K S G K F G Q V
+    331 P W A V S Y V T E D G G Y N A A L L L K E R K S G I V I D D
+    361 L N E R W L E L A P Y L L F Y R D T K T K K D M D D Y S R K
+    391 I K Q E Y I G N Q R F D I E S Y S E L Q R L F T D I L F K N
+    421 S T Q E S L D L H R K Y G K S P A Y A Y V Y D N P A E K G I
+    451 A Q V L A N R T D Y D F G T V H G D D Y F L I F E N F V R D
+    481 V E M R P D E Q I I S R N F I N M L A D F A S S D N G S L K
+    511 Y G E C D F K D N V G S E K F Q L L A I Y I D G C Q N R Q H
+    541 V E F P
+///
+\\\
+---------------------------------------------------
+PAUP format:
+The NEXUS Format
+
+Every block starts with "BEGIN blockname;" and ends with "END;".
+Each block is composed of one or more statements, each
+terminated by a semicolon (;).
+
+Comments may be included in NEXUS files by enclosing them within
+square brackets, as in "[This is a comment]."
+
+NEXUS-conforming files are identified by a "#NEXUS" directive at
+the very beginning of the file (line 1, column 1).  If the
+#NEXUS is omitted PAUP issues a warning but continues
+processing.
+
+NEXUS files are entirely free-format.  Blanks, tabs, and
+newlines may be placed anywhere in the file.  Unless RESPECTCASE
+is requested, commands and data may be entered in upper case,
+lower case, or a mixture of upper and lower case.
+
+The following conventions are used in the syntax descriptions of
+the various blocks.  Upper-case items are entered exactly as
+shown.  Lower-case items inside of angle brackets -- e.g., <x>
+-- represent items to be substituted by the user.  Items inside
+of square brackets -- e.g., [X] -- are optional.  Items inside
+of curly braces and separated by vertical bars -- e.g.,  { X | Y
+| Z } -- are mutually exclusive options.
+
+
+The DATA Block
+
+The DATA block contains the data matrix and other associated
+information.  Its syntax is:
+
+BEGIN DATA;
+DIMENSIONS NTAX=<number of taxa> NCHAR=<number of characters>;
+  [ FORMAT  [ MISSING=<missing-symbol> ]
+        [ LABELPOS={ LEFT | RIGHT } ]
+        [ SYMBOLS="<symbols-list>" ]
+        [ INTERLEAVE ]
+        [ MATCHCHAR=<match-symbol> ]
+        [ EQUATE="<symbol>=<expansion> [<symbol>=<expansion>...]" ]
+        [ TRANSPOSE ]
+        [ RESPECTCASE ]
+        [ DATATYPE = { STANDARD | DNA | RNA | PROTEIN } ]; ]
+        [ OPTIONS [ IGNORE={ INVAR | UNINFORM } ]
+        [ MSTAXA = { UNCERTAIN | POLYMORPH | VARIABLE } ]
+        [ ZAP = "<list of zapped characters>" ] ; ]
+  [ CHARLABELS <label_1> label_2> … <label_NCHAR> ; ]
+  [ TAXLABELS <label1_1> <label1_2> <label1_NTAX> ; ]
+  [ STATELABELS <currently ignored by PAUP> ; ]
+  MATRIX <data-matrix> ;
+  END;
+
+--- example PAUP file
+
+#NEXUS
+
+[!Brown et al. (1982) primate mitochondrial DNA]
+
+begin data;
+  dimensions ntax=5 nchar=896;
+  format datatype=dna matchchar=. interleave missing='-';
+  matrix
+[                              2                    4                    6            8                    ]
+[         1                    1                    1                    1            1                    ]
+human     aagcttcaccggcgcagtca ttctcataatcgcccacggR cttacatcctcattactatt ctgcctagcaaactcaaact acgaacgcactcacagtcgc
+chimp     ................a.t. .c.................a ...............t.... ..................t. .t........c.........
+gorilla   ..................tg ....t.....t........a ........a......t.... .................... .......a..c.....c...
+orang     ................ac.. cc.....g..t.....t..a ..c........cc....g.. .................... .......a..c.....c...
+gibbon    ......t..a..t...ac.g .c.................a ..a..c..t..cc.g..... ......t............. .......a........c...
+
+[         8                    8                    8                    8            8              8     ]
+[         0                    2                    4                    6            8              9     ]
+[         1                    1                    1                    1            1              6     ]
+human     cttccccacaacaatattca tgtgcctagaccaagaagtt attatctcgaactgacactg agccacaacccaaacaaccc agctctccctaagctt
+chimp     t................... .a................c. ........a.....g..... ...a................ ................
+gorilla   ..................tc .a................c. ........a.g......... ...a.............tt. .a..............
+orang     ta....a...........t. .c.......ga......acc ..cg..a.a......tg... .a.a..c.....g...cta. .a.....a........
+gibbon    a..t.......t........ ....ac...........acc .....t..a........... .a.tg..........gctag .a..............
+  ;
+end;
+---------------------------------------------------
+
+
+
+
+
+
+|||||||||||  Sample SMTP mail header
+---------------------------------------------------
+
+- - - - - - - - -
+From GenBank-Retrieval-System@genbank.bio.net Sun Nov 10 17:28:56 1991
+Received: from genbank.bio.net by sunflower.bio.indiana.edu
+        (4.1/9.5jsm) id AA19328; Sun, 10 Nov 91 17:28:55 EST
+Received: by genbank.bio.net (5.65/IG-2.0)
+        id AA14458; Sun, 10 Nov 91 14:30:03 -0800
+Date: Sun, 10 Nov 91 14:30:03 -0800
+Message-Id: <9111102230.AA14458@genbank.bio.net>
+From: Database Server <GenBank-Retrieval-System@genbank.bio.net>
+To: gilbertd@sunflower.bio.indiana.edu
+Subject: Results of Query for drorna
+Status: R
+
+No matches on drorna.
+- - - - - -
+From GenBank-Retrieval-System@genbank.bio.net Sun Nov 10 17:28:49 1991
+Received: from genbank.bio.net by sunflower.bio.indiana.edu
+        (4.1/9.5jsm) id AA19323; Sun, 10 Nov 91 17:28:47 EST
+Received: by genbank.bio.net (5.65/IG-2.0)
+        id AA14461; Sun, 10 Nov 91 14:30:03 -0800
+Date: Sun, 10 Nov 91 14:30:03 -0800
+Message-Id: <9111102230.AA14461@genbank.bio.net>
+From: Database Server <GenBank-Retrieval-System@genbank.bio.net>
+To: gilbertd@sunflower.bio.indiana.edu
+Subject: Results of Query for droest6
+Status: R
+
+LOCUS       DROEST6      1819 bp ss-mRNA            INV       31-AUG-1987
+DEFINITION  D.melanogaster esterase-6 mRNA, complete cds.
+ACCESSION   M15961
+
+
+
+
+
+
+
+
+
+
+
+
+|||||||||||  GCG manual discussion of sequence symbols:
+---------------------------------------------------
+
+III_SEQUENCE_SYMBOLS
+
+
+     GCG programs allow all upper and lower  case  letters,  periods  (.),
+asterisks  (*),  pluses  (+),  ampersands  (&),  and ats (@) as symbols in
+biological sequences.  Nucleotide  symbols,  their  complements,  and  the
+standard  one-letter amino acid symbols are shown below in separate lists.
+The meanings of the symbols +, &, and @ have not  been  assigned  at  this
+writing (March, 1989).
+
+     GCG uses the  letter  codes  for  amino  acid  codes  and  nucleotide
+ambiguity    proposed    by    IUB    (Nomenclature    Committee,    1985,
+Eur. J. Biochem. 150; 1-5).  These codes are  compatible  with  the  codes
+used by the EMBL, GenBank, and NBRF data libraries.
+
+
+                               NUCLEOTIDES
+
+     The meaning of each symbol, its complement,  and  the  Cambridge  and
+Stanford  equivalents  are  shown below.  Cambridge files can be converted
+into GCG files and vice versa with the programs FROMSTADEN  and  TOSTADEN.
+IntelliGenetics  sequence  files  can  be interconverted with the programs
+FROMIG and TOIG.
+
+IUB/GCG      Meaning     Complement   Staden/Sanger  Stanford
+
+   A             A             T             A            A
+   C             C             G             C            C
+   G             G             C             G            G
+  T/U            T             A             T           T/U
+   M           A or C          K             5            J
+   R           A or G          Y             R            R
+   W           A or T          W             7            L
+   S           C or G          S             8            M
+   Y           C or T          R             Y            Y
+   K           G or T          M             6            K
+   V        A or C or G        B       not supported      N
+   H        A or C or T        D       not supported      N
+   D        A or G or T        H       not supported      N
+   B        C or G or T        V       not supported      N
+  X/N     G or A or T or C     X            -/X           N
+   .    not G or A or T or C   .       not supported      ?
+
+
+  The frame ambiguity codes used by Staden are not  supported  by  GCG
+and   are  translated  by  FROMSTADEN  as  the  lower  case  single  base
+equivalent.
+
+     Staden Code          Meaning              GCG
+
+         D                C or CC                c
+         V                T or TT                t
+         B                A or AA                a
+         H                G or GG                g
+         K                C or CX                c
+         L                T or TX                t
+         M                A or AX                a
+         N                G or GX                g
+
+
+                        AMINO ACIDS
+
+  Here is a list of the standard one-letter amino acid codes and their
+three-letter  equivalents.   The synonymous codons and their depiction in
+the IUB codes are shown.  You should recognize that the codons  following
+semicolons  (;)  are  not  sufficiently specific to define a single amino
+acid even though they represent the best possible back  translation  into
+the IUB codes!  All of the relationships in this list can be redefined by
+the user in a local data file described below.
+
+                                                      IUB
+Symbol 3-letter  Meaning      Codons                Depiction
+ A    Ala       Alanine      GCT,GCC,GCA,GCG         !GCX
+ B    Asp,Asn   Aspartic,
+                Asparagine   GAT,GAC,AAT,AAC         !RAY
+ C    Cys       Cysteine     TGT,TGC                 !TGY
+ D    Asp       Aspartic     GAT,GAC                 !GAY
+ E    Glu       Glutamic     GAA,GAG                 !GAR
+ F    Phe     Phenylalanine  TTT,TTC                 !TTY
+ G    Gly       Glycine      GGT,GGC,GGA,GGG         !GGX
+ H    His       Histidine    CAT,CAC                 !CAY
+ I    Ile       Isoleucine   ATT,ATC,ATA             !ATH
+ K    Lys       Lysine       AAA,AAG                 !AAR
+ L    Leu       Leucine      TTG,TTA,CTT,CTC,CTA,CTG
+!TTR,CTX,YTR;YTX
+ M    Met       Methionine   ATG                     !ATG
+ N    Asn       Asparagine   AAT,AAC                 !AAY
+ P    Pro       Proline      CCT,CCC,CCA,CCG         !CCX
+ Q    Gln       Glutamine    CAA,CAG                 !CAR
+ R    Arg       Arginine     CGT,CGC,CGA,CGG,AGA,AGG
+!CGX,AGR,MGR;MGX
+ S    Ser       Serine       TCT,TCC,TCA,TCG,AGT,AGC !TCX,AGY;WSX
+ T    Thr       Threonine    ACT,ACC,ACA,ACG         !ACX
+ V    Val       Valine       GTT,GTC,GTA,GTG         !GTX
+ W    Trp       Tryptophan   TGG                     !TGG
+ X    Xxx       Unknown                              !XXX
+ Y    Tyr       Tyrosine     TAT, TAC                !TAY
+ Z    Glu,Gln   Glutamic,
+                Glutamine    GAA,GAG,CAA,CAG         !SAR
+ *    End       Terminator   TAA, TAG, TGA           !TAR,TRA;TRR
+
+
+
+
+
+
+
+
+|||||||||||  docs from PSC on sequence formats:
+---------------------------------------------------
+
+
+          Nucleic Acid and Protein Sequence File Formats
+
+
+It will probably save you some time if you have your data in a usable
+format before you send it to us.  However, we do have the University of
+Wisconsin Genetics Computing Group programs running on our VAXen and
+this package includes several reformatting utilities.  Our programs
+usually recognize any of several standard formats, including GenBank,
+EMBL, NBRF, and MolGen/Stanford.  For the purposes of annotating an
+analysis we find the GenBank and EMBL formats most useful, particularly
+if you have already received an accession number from one of these
+organizations for your sequence.
+
+Our programs do not require that all of the line types available in
+GenBank, EMBL, or NBRF file formats be present for the file format to
+be recognized and processed.  The following pages outline the essential
+details required for correct processing of files by our programs.
+Additional information may be present but will generally be ignored.
+
+
+                      GenBank File Format
+
+File Header
+
+1.  The first line in the file must have "GENETIC SEQUENCE DATA BANK"
+    in spaces 20 through 46 (see LINE  1, below).
+2.  The next 8 lines may contain arbitrary text.  They are ignored but
+    are required to maintain the GenBank format (see LINE 2 - LINE 9).
+
+Sequence Data Entries
+
+3.  Each sequence entry in the file should have the following format.
+    a) first line:   Must have LOCUS in the first 5 spaces.  The
+                     genetic locus name or identifier must be in spaces
+                     13 - 22.  The length of the sequences is right
+                     justified in spaces 23 through 29 (see LINE  10).
+    b) second line:  Must have DEFINITION in the first 10 spaces.
+                     Spaces 13 - 80 are free form text to identify the
+                     sequence (see LINE  11).
+    c) third line:   Must have ACCESSION in the first 9 spaces.  Spaces
+                     13 - 18 must hold the primary accession number
+                     (see LINE  12).
+    d) fourth line:  Must have ORIGIN in the first 6 spaces.  Nothing
+                     else is required on this line, it indicates that
+                     the nucleic acid sequence begins on the next line
+                     (see LINE  13).
+    e) fifth line:   Begins the nucleotide sequence.  The first 9
+                     spaces of each sequence line may either be blank
+                     or may contain the position in the sequence of the
+                     first nucleotide on the line.  The next 66 spaces
+                     hold the nucleotide sequence in six blocks of ten
+                     nucleotides.  Each of the six blocks begins with a
+                     blank space followed by ten nucleotides.  Thus the
+                     first nucleotide is in space eleven of the line while
+                     the last is in space 75 (see LINE  14, LINE  15).
+    f) last line:    Must have // in the first 2 spaces to indicate
+                     termination of the sequence (see LINE  16).
+
+NOTE:  Multiple sequences may appear in each file.  To begin another
+       sequence go back to a) and start again.
+
+
+                         Example GenBank file
+
+
+LINE  1  :                   GENETIC SEQUENCE DATA BANK
+LINE  2  :
+LINE  3  :
+LINE  4  :
+LINE  5  :
+LINE  6  :
+LINE  7  :
+LINE  8  :
+LINE  9  :
+LINE 10  :LOCUS       L_Name     Length BP
+LINE 11  :DEFINITION  Describe the sequence any way you want
+LINE 12  :ACCESSION   Accession Number
+LINE 13  :ORIGIN
+LINE 14  :        1 acgtacgtac gtacgtacgt acgtacgtac gtacgtacgt a...
+LINE 15  :       61 acgt...
+LINE 16  ://
+
+
+
+                         EMBL File Format
+
+Unlike the GenBank file format the EMBL file format does not require
+a series of header lines.  Thus the first line in the file begins
+the first sequence entry of the file.
+
+1.  The first line of each sequence entry contains the two letters ID
+    in the first two spaces.  This is followed by the EMBL identifier
+    in spaces 6 through 14.  (See LINE  1).
+
+2.  The second line of each sequence entry has the two letters AC in
+    the first two spaces.  This is followed by the accession number in
+    spaces 6 through 11.  (See LINE  2).
+
+3.  The third line of each sequence entry has the two letters DE in the
+    first two spaces.  This is followed by a free form text definition
+    in spaces 6 through 72.  (See LINE  3).
+
+4.  The fourth line in each sequence entry has the two letters SQ in
+    the first two spaces.  This is followed by the length of the
+    sequence beginning at or after space 13.  After the sequence length
+    there is a blank space and the two letters BP.  (See LINE  4).
+
+5.  The nucleotide sequence begins on the fifth line of the sequence
+    entry.  Each line of sequence begins with four blank spaces. The
+    next 66 spaces hold the nucleotide sequence in six blocks of ten
+    nucleotides.  Each of the six blocks begins with a blank space
+    followed by ten nucleotides.  Thus the first nucleotide is in space
+    6 of the line while the last is in space 70.  (See LINE  5 -
+    LINE  6).
+
+6.  The last line of each sequence entry in the file is a terminator
+    line which has the two characters // in the first two spaces.
+    (See LINE  7).
+
+7.  Multiple sequences may appear in each file.  To begin another
+    sequence go back to item 1 and start again.
+
+
+                          Example EMBL file
+
+LINE  1  :ID   ID_name
+LINE  2  :AC   Accession number
+LINE  3  :DE   Describe the sequence any way you want
+LINE  4  :SQ          Length BP
+LINE  5  :     ACGTACGTAC GTACGTACGT ACGTACGTAC GTACGTA...
+LINE  6  :     ACGT...
+LINE  7  ://
+
+
+
+            NBRF (protein or nucleic acid) File Format
+
+1.  The first line of each sequence entry begins with a greater than
+  symbol, >.  This is immediately followed by the two character
+  sequence type specifier.  Space four must contain a semi-colon.
+  Beginning in space five is the sequence name or identification code
+  for the NBRF database.  The code is from four to six letters and
+  numbers.  (See LINE  1).
+
+!!!! >> add these to readseq
+          Specifier             Sequence type
+
+              P1                protein, complete
+              F1                protein, fragment
+              DL                DNA, linear
+              DC                DNA, circular
+              RL                RNA, linear
+              RC                RNA, circular
+              N1                functional RNA, other than tRNA
+              N3                tRNA
+
+2.  The second line of each sequence entry contains two kinds of
+  information.  First is the sequence name which is separated from
+  the organism or organelle name by the three character sequence
+  blank space, dash, blank space, " - ".  There is no special
+  character marking the beginning of this line.  (See LINE  2).
+
+3.  Either the amino acid or nucleic acid sequence begins on line three
+  and can begin in any space, including the first.  The sequence is
+  free format and may be interrupted by blanks for ease of reading.
+  Protein sequences man contain special punctuation to indicate
+  various indeterminacies in the sequence.  In the NBRF data files
+  all lines may be up to 500 characters long.  However some PSC
+  programs currently have a limit of 130 characters per line
+  (including blanks), and BitNet will not accept lines of over eighty
+  characters.  (See LINE  3, LINE  4, and LINE  5).
+
+  The last character in the sequence must be an asterisks, *.
+
+                       Example NBRF file
+
+ LINE  1  :>P1;CBRT
+ LINE  2  :Cytochrome b - Rat mitochondrion (SGC1)
+ LINE  3  :M T N I R K S H P L F K I I N H S F I D L P A P S
+ LINE  4  : VTHICRDVN Y GWL IRY
+ LINE  5  :TWIGGQPVEHPFIIIGQLASISYFSIILILMPISGIVEDKMLKWN*
+
+
+
+                MolGen/Stanford File Format
+
+1.  The first line in a sequence file is a comment line.  This line
+  begins with a semi-colon in the first space.  This line need
+  not be present.  If it is present it holds descriptive text.
+  There may be as many comment lines as desired at the first of
+  sequence file.  (See LINE  1).
+
+2.  The second line must be present and contains an identifier or
+  name for the sequence in the first ten spaces.  (See LINE  2).
+
+3.  The sequence begins on the third line and occupies up to eighty
+  spaces.  Spaces may be included in the sequence for ease of
+  reading.  The sequence continues for as many line as needed
+  and is terminated with a 1 or 2.  1 indicates a linear sequence
+  while 2 marks a circular sequence.  (See LINE  3 and LINE  4).
+
+                          Example MolGen/Stanford file
+
+LINE  1  :;  Describe the sequence any way you want
+LINE  2  :ECTRNAGLY2
+LINE  3  :ACGCACGTAC ACGTACGTAC   A C G T C C G T ACG TAC GTA CGT
+LINE  4  :  GCTTA   GG G C T A1
+
+
+
+
+|||||||||||  Phylip file format
+---------------------------------------------------
+
+        Phylip 3.3 File Format (DNA sequences)
+
+
+     The input and output formats for PROTPARS and for RESTML are described  in
+their  document  files.   In  general  their input formats are similar to those
+described here, except that the one-letter codes for data are specific to those
+programs  and  are  described in those document files.  Since the input formats
+for the eight DNA sequence programs apply to  all  eight,  they  are  described
+here.   Their  input  formats are standard: the data have A's, G's, C's and T's
+(or U's).  The first line of the input file contains the number of species  and
+the  number  of  sites.   As  with  the other programs, options information may
+follow this.  In the case of DNAML, DNAMLK,  and  DNADIST  an  additional  line
+(described  in  the  document file for these pograms) may follow the first one.
+Following this, each species starts on a new line.  The first 10 characters  of
+that  line  are the species name.  There then follows the base sequence of that
+species, each character being one of the letters A, B, C, D, G, H, K, M, N,  O,
+R, S, T, U, V, W, X, Y, ?, or - (a period was also previously allowed but it is
+no longer allowed, because it sometimes is used to in aligned sequences to mean
+"the  same  as  the  sequence  above").   Blanks  will  be ignored, and so will
+numerical digits.  This allows GENBANK and EMBL sequence  entries  to  be  read
+with minimum editing.
+
+     These characters can be  either  upper  or  lower  case.   The  algorithms
+convert  all  input  characters  to upper case (which is how they are treated).
+The characters constitute the IUPAC (IUB) nucleic acid code  plus  some  slight
+extensions.  They enable input of nucleic acid sequences taking full account of
+any ambiguities in the sequence.
+
+The sequences can continue over multiple lines; when this is done the sequences
+must  be  either  in  "interleaved"  format, similar to the output of alignment
+programs, or "sequential" format.  These are described  in  the  main  document
+file.   In sequential format all of one sequence is given, possibly on multiple
+lines, before the next starts.  In interleaved format the  first  part  of  the
+file  should  contain  the first part of each of the sequences, then possibly a
+line containing nothing but a carriage-return character, then the  second  part
+of  each  sequence, and so on.  Only the first parts of the sequences should be
+preceded by names.  Here is a hypothetical example of interleaved format:
+
+  5    42
+Turkey    AAGCTNGGGC ATTTCAGGGT
+Salmo gairAAGCCTTGGC AGTGCAGGGT
+H. SapiensACCGGTTGGC CGTTCAGGGT
+Chimp     AAACCCTTGC CGTTACGCTT
+Gorilla   AAACCCTTGC CGGTACGCTT
+
+GAGCCCGGGC AATACAGGGT AT
+GAGCCGTGGC CGGGCACGGT AT
+ACAGGTTGGC CGTTCAGGGT AA
+AAACCGAGGC CGGGACACTC AT
+AAACCATTGC CGGTACGCTT AA
+
+while in sequential format the same sequences would be:
+
+  5    42
+Turkey    AAGCTNGGGC ATTTCAGGGT
+GAGCCCGGGC AATACAGGGT AT
+Salmo gairAAGCCTTGGC AGTGCAGGGT
+GAGCCGTGGC CGGGCACGGT AT
+H. SapiensACCGGTTGGC CGTTCAGGGT
+ACAGGTTGGC CGTTCAGGGT AA
+Chimp     AAACCCTTGC CGTTACGCTT
+AAACCGAGGC CGGGACACTC AT
+Gorilla   AAACCCTTGC CGGTACGCTT
+AAACCATTGC CGGTACGCTT AA
+
+
+Note, of course, that a portion of a sequence like this:
+
+   300   AAGCGTGAAC GTTGTACTAA TRCAG
+
+is perfectly legal, assuming that the species name  has  gone  before,  and  is
+filled  out  to  full  length  by  blanks.  The above digits and blanks will be
+ignored, the sequence being taken as starting at the first base symbol (in this
+case an A).
+
+     The present versions of the programs may sometimes have difficulties  with
+the  blank  lines  between  groups of lines, and if so you might want to retype
+those lines, making sure that they have only a  carriage-return  and  no  blank
+characters on them, or you may perhaps have to eliminate them.  The symptoms of
+this problem are that the programs complain that the sequences are not properly
+aligned, and you can find no other cause for this complaint.
+
+------------------------------------------------
+
+
+|||||||||||  ASN.1 file format
+---------------------------------------------------
+
+
+ASN.1 -- see NCBI toolkit docs, source and examples (ncbi.nlm.nih.gov)
+
+Example asn.1 sequence file----
+
+Bioseq-set ::= {
+seq-set {
+  seq {
+    id { local id 1 } ,                 -- id essential
+    descr {  title "Dummy sequence data from nowhere"  } ,  -- optional
+    inst {                              -- inst essential
+      repr raw ,
+      mol dna ,
+      length 156 ,
+      topology linear ,
+      seq-data
+        iupacna "GAATTCATTTTTGAAACAAATCGACCTGACGACGGAATGGTACTCGAATTA
+TGGGCCAAAGGGTTTTATGGGACAAATTAATAGGTGTTCATTATATGCCACTTTCGGAGATTAGATACAGCAATGCAG
+TGGATTCAAAGCAATAGAGTTGTTCTT" 
+      } } ,
+
+        seq {
+          id { local id 2 } ,
+          descr {  title "Dummy sequence 2 data from somewhere else"  } ,
+          inst {
+                repr raw ,
+                mol dna ,
+                length 150 ,
+                topology linear ,
+                seq-data
+                  iupacna "TTTTTTTTTTTTGAAACAAATCGACCTGACGACGGAATGGTACTCGAATTA
+TGGGCCAAAGGGTTTTATGGGACAAATTAATAGGTGTTCATTATATGCCACTTTCGGAGATTAGATACAGCAATGCAG
+TGGATTCAAAGCAATAGAGTT" 
+            }
+          }
+        }
+      }
+
+
+partial ASN.1 description from toolkit
+
+Bioseq ::= SEQUENCE {
+    id SET OF Seq-id ,            -- equivalent identifiers
+    descr Seq-descr OPTIONAL , -- descriptors
+    inst Seq-inst ,            -- the sequence data
+    annot SET OF Seq-annot OPTIONAL }
+
+Seq-inst ::= SEQUENCE {            -- the sequence data itself
+    repr ENUMERATED {              -- representation class
+        not-set (0) ,              -- empty
+        virtual (1) ,              -- no seq data
+        raw (2) ,                  -- continuous sequence
+        seg (3) ,                  -- segmented sequence
+        const (4) ,                -- constructed sequence
+        ref (5) ,                  -- reference to another sequence
+        consen (6) ,               -- consensus sequence or pattern
+        map (7) ,                  -- ordered map (genetic, restriction)
+        other (255) } ,
+    mol ENUMERATED {               -- molecule class in living organism
+        not-set (0) ,              --   > cdna = rna
+        dna (1) ,
+        rna (2) ,
+        aa (3) ,
+        na (4) ,                   -- just a nucleic acid
+        other (255) } ,
+    length INTEGER OPTIONAL ,      -- length of sequence in residues
+    fuzz Int-fuzz OPTIONAL ,       -- length uncertainty
+    topology ENUMERATED {          -- topology of molecule
+        not-set (0) ,
+        linear (1) ,
+        circular (2) ,
+        tandem (3) ,               -- some part of tandem repeat
+        other (255) } DEFAULT linear ,
+    strand ENUMERATED {            -- strandedness in living organism
+        not-set (0) ,
+        ss (1) ,                   -- single strand
+        ds (2) ,                   -- double strand
+        mixed (3) ,
+        other (255) } OPTIONAL ,   -- default ds for DNA, ss for RNA, pept
+    seq-data Seq-data OPTIONAL ,   -- the sequence
+    ext Seq-ext OPTIONAL ,         -- extensions for special types
+  hist Seq-hist OPTIONAL }       -- sequence history
+
+------------------------------------------------

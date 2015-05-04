@@ -283,7 +283,7 @@ PUBLIC float pf_fold_par( const char *sequence,
   else if (fabs(pf_params->temperature - temperature)>1e-6) update_pf_params_par(n, parameters);
 #endif
 
-  with_gquad  = parameters->model_details.gquad;
+  with_gquad  = pf_params->model_details.gquad;
   S           = encode_sequence(sequence, 0);
   S1          = encode_sequence(sequence, 1);
 
