@@ -275,7 +275,7 @@ fill_arrays(vrna_fold_compound *vc){
       if (hard_constraints[ij]) {   /* a pair to consider */
         int stackEnergy = INF;
         /* hairpin ----------------------------------------------*/
-        new_c = E_hp_loop_ali(i, j, vc);
+        new_c = vrna_E_hp_loop(vc, i, j);
 
         /*--------------------------------------------------------
           check for elementary structures involving more than one
@@ -898,12 +898,10 @@ backtrack(vrna_fold_compound *vc,
     canonical = 1;
     cij += pscore[indx[j]+i];
 
-    {
-      int cc = E_hp_loop_ali(i, j, vc);
+    /* does (i,j) close a hairpin loop ? */
+    if(vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &b))
+      continue;
 
-      if (cij == cc) /* found hairpin */
-        continue;
-    }
     for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
       minq = j-i+p-MAXLOOP-2;
       if (minq<p+1+TURN) minq = p+1+TURN;

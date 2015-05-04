@@ -430,6 +430,17 @@ typedef struct vrna_sc_t {
                                             @see    vrna_sc_add_f()
                                       */
 
+  PAIR  *(*bt)(int,
+                int,
+                int,
+                int,
+                char,
+                void *);              /**<  @brief  A function pointer used to obtain backtraced
+                                                    base pairs in loop regions that were altered
+                                                    by soft constrained pseudo energy contributions
+                                            @see    vrna_sc_add_bt()
+                                      */
+                
   FLT_OR_DBL (*exp_f)(int,
                       int,
                       int,
@@ -818,6 +829,24 @@ int vrna_sc_SHAPE_to_pr(const char *shape_conversion,
 void vrna_sc_add_f( vrna_fold_compound *vc,
                     int (*f)( int, int, int, int, char, void *),
                     void *data);
+
+/**
+ *  @brief  Bind a backtracking function pointer for generalized soft constraint feature
+ *
+ *  This function allows to easily bind a function pointer to the soft constraint part
+ *  #vrna_sc_t of the #vrna_fold_compound.
+ *  The provided function should be used for backtracking purposes in loop regions
+ *  that were altered via the generalized soft constraint feature. It has to return
+ *  an array of #PAIR data structures, were the last element in the list is indicated
+ *  by a value of -1 in it's i position.
+ *
+ *  @ingroup generalized_sc
+ *
+ *  @param  vc    The fold compound the generalized soft constraint function should be bound to
+ *  @param  f     A pointer to the function that returns additional base pairs
+ */
+void vrna_sc_add_bt(vrna_fold_compound *vc,
+                    PAIR *(*f)( int, int, int, int, char, void *));
 
 /**
  *  @brief  Bind a function pointer for generalized soft constraint feature (PF version)
