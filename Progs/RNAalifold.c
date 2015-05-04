@@ -35,6 +35,29 @@ PRIVATE void  print_pi(const pair_info pi, FILE *file);
 PRIVATE void  print_aliout(char **AS, plist *pl, double threshold, int n_seq, char * mfe, FILE *aliout);
 PRIVATE void  mark_endgaps(char *seq, char egap);
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, int n_seq, plist *mfel);
+PRIVATE char  *get_ungapped_sequence(const char *seq);
+
+PRIVATE char *
+get_ungapped_sequence(const char *seq){
+
+  char  *tmp_sequence, *a, *b;
+  int   i;
+
+  tmp_sequence = strdup(seq);
+
+  b = tmp_sequence;
+  i = 0;
+  do{
+    if((*b=='-')||(*b=='_')||(*b=='~')||(*b=='.')) continue;
+    tmp_sequence[i] = *b;
+    i++;
+  }while(*(++b));
+
+  tmp_sequence = (char *)xrealloc(tmp_sequence, (i+1)*sizeof(char));
+  tmp_sequence[i] = '\0';
+
+  return tmp_sequence;
+}
 
 /*--------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
@@ -42,7 +65,7 @@ int main(int argc, char *argv[]){
   unsigned int  input_type;
   char          ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH], fname[FILENAME_MAX_LENGTH];
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
-  int           n_seq, i, length, sym, r, noPS;
+  int           n_seq, i, length, sym, r, noPS, with_sci;
   int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
   double        min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
@@ -62,6 +85,7 @@ int main(int argc, char *argv[]){
   bppmThreshold = 1e-6;
   MEAgamma      = 1.0;
   betaScale     = 1.;
+  with_sci      = 0;
 
   set_model_details(&md);
 
@@ -92,6 +116,8 @@ int main(int argc, char *argv[]){
   if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
   /* gquadruplex support */
   if(args_info.gquad_given)       md.gquad = gquad = 1;
+  /* sci computation */
+  if(args_info.sci_given)         with_sci = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   /* set energy model */
   if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
@@ -274,11 +300,45 @@ int main(int argc, char *argv[]){
   string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s", string, structure);
 
-  if (istty)
-    printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n",
-           min_en, real_en, min_en - real_en);
-  else
-    printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
+  if(istty){
+    if(with_sci){
+      float sci = min_en;
+      float e_mean = 0;
+      for (i=0; AS[i]!=NULL; i++){
+        char *seq = get_ungapped_sequence(AS[i]);
+        char *str = (char *)space(sizeof(char) * (strlen(seq) + 1));
+        e_mean    += fold(seq, str);
+        free(seq);
+        free(str);
+      }
+      e_mean  /= i;
+      sci     /= e_mean;
+
+      printf( "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)"
+              "\n SCI = %2.4f\n",
+              min_en, real_en, min_en-real_en, sci);
+    } else
+      printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n",
+             min_en, real_en, min_en - real_en);
+  } else {
+    if(with_sci){
+      float sci = min_en;
+      float e_mean = 0;
+      for (i=0; AS[i]!=NULL; i++){
+        char *seq = get_ungapped_sequence(AS[i]);
+        char *str = (char *)space(sizeof(char) * (strlen(seq) + 1));
+        e_mean    += fold(seq, str);
+        free(seq);
+        free(str);
+      }
+      e_mean  /= i;
+      sci     /= e_mean;
+
+      printf(" (%6.2f = %6.2f + %6.2f) [%2.4f]\n", min_en, real_en, min_en-real_en, sci);
+    }
+    else
+      printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
+  }
 
   strcpy(ffname, "alirna.ps");
   strcpy(gfname, "alirna.g");

@@ -15,6 +15,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+#include <limits.h>
 #include "utils.h"
 #include "energy_par.h"
 #include "fold_vars.h"
@@ -40,6 +41,10 @@
 /*@unused@*/
 #define MAXSECTORS        500     /* dimension for a backtrack array */
 #define LOCALITY          0.      /* locality parameter for base-pairs */
+
+
+#define INT_CLOSE_TO_UNDERFLOW(i)   ((i) <= (INT_MIN/16))
+#define UNDERFLOW_CORRECTION        (INT_MIN/32)
 
 /*
 #################################
@@ -74,7 +79,6 @@ PRIVATE struct svm_model  *sd_model = NULL;
 PRIVATE int           with_gquad  = 0;
 PRIVATE int           **ggg       = NULL;
 
-
 #ifdef _OPENMP
 
 #ifdef USE_SVM
@@ -96,7 +100,7 @@ PRIVATE void  get_arrays(unsigned int size, int maxdist);
 PRIVATE void  free_arrays(int maxdist);
 PRIVATE void  make_ptypes(const short *S, int i, int maxdist, int n);
 PRIVATE char  *backtrack(const char *sequence, int start, int maxdist);
-PRIVATE int   fill_arrays(const char *sequence, int maxdist, int zsc, double min_z);
+PRIVATE int   fill_arrays(const char *sequence, int maxdist, int zsc, double min_z, int *underflow);
 
 /*
 #################################
@@ -176,8 +180,15 @@ PUBLIC  float Lfold(const char *string, char *structure, int maxdist){
   return Lfoldz(string, structure, maxdist, 0, 0.0);
 }
 
-PUBLIC  float Lfoldz(const char *string, char *structure, int maxdist, int zsc, double min_z){
-  int i, energy;
+PUBLIC  float
+Lfoldz( const char *string,
+        char *structure,
+        int maxdist,
+        int zsc,
+        double min_z){
+
+  int i, energy, underflow;
+  float mfe_local;
 
   length = (int) strlen(string);
   if (maxdist>length) maxdist = length;
@@ -197,8 +208,10 @@ PUBLIC  float Lfoldz(const char *string, char *structure, int maxdist, int zsc, 
     sd_model  = svm_load_model_string(sd_model_string);
   }
 #endif
+  /* keep track of how many times we were close to an integer underflow */
+  underflow = 0;
 
-  energy = fill_arrays(string, maxdist, zsc, min_z);
+  energy = fill_arrays(string, maxdist, zsc, min_z, &underflow);
 
 #ifdef USE_SVM  /*svm*/
   if(zsc){
@@ -210,10 +223,19 @@ PUBLIC  float Lfoldz(const char *string, char *structure, int maxdist, int zsc, 
   free(S); free(S1);
   free_arrays(maxdist);
 
-  return (float) energy/100.;
+  mfe_local = (underflow > 0) ? ((float)underflow * (float)(UNDERFLOW_CORRECTION)) / 100. : 0.;
+
+  mfe_local += (float)energy/100.;
+  return mfe_local;
 }
 
-PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) {
+PRIVATE int
+fill_arrays(const char *string,
+            int maxdist,
+            int zsc,
+            double min_z,
+            int *underflow) {
+
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
   int   i, j, k, length, energy;
@@ -407,7 +429,11 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
 #pragma omp threadprivate(do_backtrack, prev_i)
       char *ss=NULL;
       double prevz;
+      
+      /* first case: i stays unpaired */
       f3[i] = f3[i+1];
+      
+      /* next all cases where i is paired */
       switch(dangles){
         /* dont use dangling end and mismatch contributions at all */
         case 0:   for(j=i+TURN+1; j<length && j<=i+maxdist; j++){
@@ -492,18 +518,20 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
       } /* switch(dangles)... */
 
       /* backtrack partial structure */
-      if (f3[i] < f3[i+1]) do_backtrack=1;
+      if (f3[i] < f3[i+1]){
+        do_backtrack=1;
+      }
       else if (do_backtrack) {
         int pairpartner; /*i+1?? is paired with pairpartner*/
         int cc;
         int traced2=0;
         fij = f3[i+1];
         lind=i+1;
-
         /*start "short" backtrack*/
 
         /*get paired base*/
-        while(fij==f3[lind+1]) lind++;
+        while(fij==f3[lind+1])
+          lind++;
 
         /*get pairpartner*/
         for (pairpartner = lind + TURN; pairpartner <= lind + maxdist; pairpartner++){
@@ -614,9 +642,9 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
           if (prev) {
             if ((i+strlen(ss)<prev_i+strlen(prev)) || strncmp(ss+prev_i-i,prev,strlen(prev))){
               /* ss does not contain prev */
-              if (dangles==2)
+              if (dangles==2){
                 printf(".%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1);
-              else
+              } else
                 printf("%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
             }
             free(prev);
@@ -756,13 +784,29 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
     }
     {
       int ii, *FF; /* rotate the auxilliary arrays */
+
+      /* check for values close to integer underflow */
+      if(INT_CLOSE_TO_UNDERFLOW(f3[i])){
+        /* correct f3 free energies and increase underflow counter */
+        int cnt, cnt2;
+        for(cnt=i; cnt <= length && cnt <= lind + maxdist + 2; cnt++) {
+          f3[cnt] -= UNDERFLOW_CORRECTION;
+        }
+        (*underflow)++;
+      }
+
       FF = DMLi2; DMLi2 = DMLi1; DMLi1 = DMLi; DMLi = FF;
       FF = cc1; cc1=cc; cc=FF;
-      for (j=0; j< maxdist+5; j++) {cc[j]=Fmi[j]=DMLi[j]=INF; }
+      for (j=0; j< maxdist+5; j++){
+        cc[j] = Fmi[j] = DMLi[j] = INF;
+      }
       if (i+maxdist+4<=length) {
-        c[i-1] = c[i+maxdist+4]; c[i+maxdist+4] = NULL;
-        fML[i-1] = fML[i+maxdist+4]; fML[i+maxdist+4]=NULL;
-        ptype[i-1] = ptype[i+maxdist+4]; ptype[i+maxdist+4] = NULL;
+        c[i-1] = c[i+maxdist+4];
+        c[i+maxdist+4] = NULL;
+        fML[i-1] = fML[i+maxdist+4];
+        fML[i+maxdist+4]=NULL;
+        ptype[i-1] = ptype[i+maxdist+4];
+        ptype[i+maxdist+4] = NULL;
         if (i>1){
           make_ptypes(S, i-1, maxdist, length);
 
@@ -775,6 +819,7 @@ PRIVATE int fill_arrays(const char *string, int maxdist, int zsc, double min_z) 
           fML[i-1][ii] = INF;
         }
       }
+
     }
   }
 

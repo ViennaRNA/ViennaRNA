@@ -841,11 +841,11 @@ PRIVATE void backtrack(const char **strings, int s) {
         that should then be decomposed further...
       */
       mm = 0;
-      for(s=0;s<n_seq;s++){
-        tt = type[s];
+      for(ss=0;ss<n_seq;ss++){
+        tt = type[ss];
         if(tt == 0) tt = 7;
         if(dangles == 2)
-          mm += P->mismatchI[tt][S3[s][i]][S5[s][j]];
+          mm += P->mismatchI[tt][S3[ss][i]][S5[ss][j]];
         if(tt > 2)
           mm += P->TerminalAU;
       }

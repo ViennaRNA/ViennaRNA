@@ -144,13 +144,18 @@ sub process_input {
       $RNA::cut_point = $cpnt;
    } else { $cpnt = -1 }
    # Sequence Constraints (no force bases supported)
-   chomp($_ = <>);
-   $cons = uc $_;
-   if (($cpnt != -1) && (length($cons) > $cpnt-1)) {
-      die "ERROR: Different Cut-Points set!\n" if ($cpnt != index($cons, "&")+1);
-      $cons =~ s/&//g;
+   $_ = <>;
+   if ($_) {
+     chomp($_);
+     $cons = uc $_;
+     if (($cpnt != -1) && (length($cons) > $cpnt-1)) {
+       die "ERROR: Different Cut-Points set!\n" if ($cpnt != index($cons, "&")+1);
+       $cons =~ s/&//g;
+     }
+     $cons .= 'N' x (length($fist)-length); # pad with N
+   } else {
+     $cons .= 'N' x length($fist); # pad with N
    }
-   $cons .= 'N' x (length($fist)-length); # pad with N
    #print "$cons\n";
    return 1;
 }

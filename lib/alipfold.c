@@ -990,7 +990,7 @@ PUBLIC void alipf_circ(const char **sequences, char *structure){
             type[s] = pair[S[s][q]][S[s][p]];
             if (type[s]==0) type[s]=7;
 
-            if (u<9){
+            if (u<7){
               strcpy(loopseq , sequences[s]+q-1);
               strncat(loopseq, sequences[s], p);
             }
