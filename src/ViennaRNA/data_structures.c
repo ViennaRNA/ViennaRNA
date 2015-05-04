@@ -21,6 +21,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/structure_utils.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/fold_vars.h"
@@ -31,6 +32,7 @@
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/cofold.h"
+#include "ViennaRNA/mm.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -82,13 +84,12 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void            add_pf_matrices( vrna_fold_compound *vc, unsigned int alloc_vector);
-PRIVATE void            add_mfe_matrices(vrna_fold_compound *vc, unsigned int alloc_vector);
+PRIVATE void            add_pf_matrices( vrna_fold_compound *vc, vrna_mx_t type, unsigned int alloc_vector);
+PRIVATE void            add_mfe_matrices(vrna_fold_compound *vc, vrna_mx_t type, unsigned int alloc_vector);
 PRIVATE void            set_fold_compound(vrna_fold_compound *vc, vrna_md_t *md_p, unsigned int options);
 PRIVATE void            make_pscores(vrna_fold_compound *vc);
-PRIVATE vrna_mx_mfe_t   *get_mfe_matrices_alloc( unsigned int n, unsigned int alloc_vector);
-PRIVATE vrna_mx_pf_t    *get_pf_matrices_alloc(unsigned int n, unsigned int alloc_vector);
-
+PRIVATE vrna_mx_mfe_t   *get_mfe_matrices_alloc(unsigned int n, vrna_mx_t type, unsigned int alloc_vector);
+PRIVATE vrna_mx_pf_t    *get_pf_matrices_alloc(unsigned int n, vrna_mx_t type, unsigned int alloc_vector);
 
 /*
 #################################
@@ -99,28 +100,575 @@ PRIVATE vrna_mx_pf_t    *get_pf_matrices_alloc(unsigned int n, unsigned int allo
 PUBLIC void
 vrna_free_mfe_matrices(vrna_fold_compound *vc){
 
+  unsigned int  i, j, ij;
+  int           cnt1;
+
   if(vc){
     vrna_mx_mfe_t *self = vc->matrices;
     if(self){
-      if(self->allocated){
-        if(self->allocated & ALLOC_F5)
-          free(self->f5);
-        if(self->allocated & ALLOC_F3)
-          free(self->f3);
-        if(self->allocated & ALLOC_HYBRID)
-          free(self->fc);
-        if(self->allocated & ALLOC_C)
-          free(self->c);
-        if(self->allocated & ALLOC_FML)
-          free(self->fML);
-        if(self->allocated & ALLOC_UNIQ)
-          free(self->fM1);
-        if(self->allocated & ALLOC_CIRC)
-          free(self->fM2);
-        free(self->ggg);
+      switch(self->type){
+        case VRNA_MX_DEFAULT:   free(self->f5);
+                                free(self->f3);
+                                free(self->fc);
+                                free(self->c);
+                                free(self->fML);
+                                free(self->fM1);
+                                free(self->fM2);
+                                free(self->ggg);
+                                break;
+
+        case VRNA_MX_2DFOLD:    /* This will be some fun... */
+#ifdef COUNT_STATES
+                                if(self->N_F5 != NULL){
+                                  for(i = 1; i <= vc->length; i++){
+                                    if(!self->N_F5[i]) continue;
+                                    for(cnt1 = self->k_min_F5[i]; cnt1 <= vars->k_max_F5[i]; cnt1++)
+                                      if(vars->l_min_F5[i][cnt1] < INF){
+                                        vars->N_F5[i][cnt1] += vars->l_min_F5[i][cnt1]/2;
+                                        free(vars->N_F5[i][cnt1]);
+                                      }
+                                    if(vars->k_min_F5[i] < INF){
+                                      vars->N_F5[i] += vars->k_min_F5[i];
+                                      free(vars->N_F5[i]);
+                                    }
+                                  }
+                                  free(vars->N_F5);
+                                }
+#endif
+
+                                if(self->E_F5 != NULL){
+                                  for(i = 1; i <= vc->length; i++){
+                                    if(!self->E_F5[i]) continue;
+                                    for(cnt1 = self->k_min_F5[i]; cnt1 <= self->k_max_F5[i]; cnt1++)
+                                      if(self->l_min_F5[i][cnt1] < INF){
+                                        self->E_F5[i][cnt1] += self->l_min_F5[i][cnt1]/2;
+                                        free(self->E_F5[i][cnt1]);
+                                      }
+                                    if(self->k_min_F5[i] < INF){
+                                      self->E_F5[i] += self->k_min_F5[i];
+                                      free(self->E_F5[i]);
+                                      self->l_min_F5[i] += self->k_min_F5[i];
+                                      self->l_max_F5[i] += self->k_min_F5[i];
+                                      free(self->l_min_F5[i]);
+                                      free(self->l_max_F5[i]);
+                                    }
+                                  }
+                                  free(self->E_F5);
+                                  free(self->l_min_F5);
+                                  free(self->l_max_F5);
+                                  free(self->k_min_F5);
+                                  free(self->k_max_F5);
+                                }
+
+                                if(self->E_F3 != NULL){
+                                  for(i = 1; i <= vc->length; i++){
+                                    if(!self->E_F3[i]) continue;
+                                    for(cnt1 = self->k_min_F3[i]; cnt1 <= self->k_max_F3[i]; cnt1++)
+                                      if(self->l_min_F3[i][cnt1] < INF){
+                                        self->E_F3[i][cnt1] += self->l_min_F3[i][cnt1]/2;
+                                        free(self->E_F3[i][cnt1]);
+                                      }
+                                    if(self->k_min_F3[i] < INF){
+                                      self->E_F3[i] += self->k_min_F3[i];
+                                      free(self->E_F3[i]);
+                                      self->l_min_F3[i] += self->k_min_F3[i];
+                                      self->l_max_F3[i] += self->k_min_F3[i];
+                                      free(self->l_min_F3[i]);
+                                      free(self->l_max_F3[i]);
+                                    }
+                                  }
+                                  free(self->E_F3);
+                                  free(self->l_min_F3);
+                                  free(self->l_max_F3);
+                                  free(self->k_min_F3);
+                                  free(self->k_max_F3);
+                                }
+
+#ifdef COUNT_STATES
+                                if(self->N_C != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->N_C[ij]) continue;
+                                      for(cnt1 = self->k_min_C[ij]; cnt1 <= self->k_max_C[ij]; cnt1++)
+                                        if(self->l_min_C[ij][cnt1] < INF){
+                                          self->N_C[ij][cnt1] += self->l_min_C[ij][cnt1]/2;
+                                          free(self->N_C[ij][cnt1]);
+                                        }
+                                      if(self->k_min_C[ij] < INF){
+                                        self->N_C[ij] += self->k_min_C[ij];
+                                        free(self->N_C[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->N_C);
+                                }
+#endif
+
+                                if(self->E_C != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->E_C[ij]) continue;
+                                      for(cnt1 = self->k_min_C[ij]; cnt1 <= self->k_max_C[ij]; cnt1++)
+                                        if(self->l_min_C[ij][cnt1] < INF){
+                                          self->E_C[ij][cnt1] += self->l_min_C[ij][cnt1]/2;
+                                          free(self->E_C[ij][cnt1]);
+                                        }
+                                      if(self->k_min_C[ij] < INF){
+                                        self->E_C[ij] += self->k_min_C[ij];
+                                        free(self->E_C[ij]);
+                                        self->l_min_C[ij] += self->k_min_C[ij];
+                                        self->l_max_C[ij] += self->k_min_C[ij];
+                                        free(self->l_min_C[ij]);
+                                        free(self->l_max_C[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->E_C);
+                                  free(self->l_min_C);
+                                  free(self->l_max_C);
+                                  free(self->k_min_C);
+                                  free(self->k_max_C);
+                                }
+
+#ifdef COUNT_STATES
+                                if(self->N_M != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->N_M[ij]) continue;
+                                      for(cnt1 = self->k_min_M[ij]; cnt1 <= self->k_max_M[ij]; cnt1++)
+                                        if(self->l_min_M[ij][cnt1] < INF){
+                                          self->N_M[ij][cnt1] += self->l_min_M[ij][cnt1]/2;
+                                          free(self->N_M[ij][cnt1]);
+                                        }
+                                      if(self->k_min_M[ij] < INF){
+                                        self->N_M[ij] += self->k_min_M[ij];
+                                        free(self->N_M[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->N_M);
+                                }
+#endif
+
+                                if(self->E_M != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->E_M[ij]) continue;
+                                      for(cnt1 = self->k_min_M[ij]; cnt1 <= self->k_max_M[ij]; cnt1++)
+                                        if(self->l_min_M[ij][cnt1] < INF){
+                                          self->E_M[ij][cnt1] += self->l_min_M[ij][cnt1]/2;
+                                          free(self->E_M[ij][cnt1]);
+                                        }
+                                      if(self->k_min_M[ij] < INF){
+                                        self->E_M[ij] += self->k_min_M[ij];
+                                        free(self->E_M[ij]);
+                                        self->l_min_M[ij] += self->k_min_M[ij];
+                                        self->l_max_M[ij] += self->k_min_M[ij];
+                                        free(self->l_min_M[ij]);
+                                        free(self->l_max_M[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->E_M);
+                                  free(self->l_min_M);
+                                  free(self->l_max_M);
+                                  free(self->k_min_M);
+                                  free(self->k_max_M);
+                                }
+
+#ifdef COUNT_STATES
+                                if(self->N_M1 != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->N_M1[ij]) continue;
+                                      for(cnt1 = self->k_min_M1[ij]; cnt1 <= self->k_max_M1[ij]; cnt1++)
+                                        if(self->l_min_M1[ij][cnt1] < INF){
+                                          self->N_M1[ij][cnt1] += self->l_min_M1[ij][cnt1]/2;
+                                          free(self->N_M1[ij][cnt1]);
+                                        }
+                                      if(self->k_min_M1[ij] < INF){
+                                        self->N_M1[ij] += self->k_min_M1[ij];
+                                        free(self->N_M1[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->N_M1);
+                                }
+#endif
+
+                                if(self->E_M1 != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->E_M1[ij]) continue;
+                                      for(cnt1 = self->k_min_M1[ij]; cnt1 <= self->k_max_M1[ij]; cnt1++)
+                                        if(self->l_min_M1[ij][cnt1] < INF){
+                                          self->E_M1[ij][cnt1] += self->l_min_M1[ij][cnt1]/2;
+                                          free(self->E_M1[ij][cnt1]);
+                                        }
+                                      if(self->k_min_M1[ij] < INF){
+                                        self->E_M1[ij] += self->k_min_M1[ij];
+                                        free(self->E_M1[ij]);
+                                        self->l_min_M1[ij] += self->k_min_M1[ij];
+                                        self->l_max_M1[ij] += self->k_min_M1[ij];
+                                        free(self->l_min_M1[ij]);
+                                        free(self->l_max_M1[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->E_M1);
+                                  free(self->l_min_M1);
+                                  free(self->l_max_M1);
+                                  free(self->k_min_M1);
+                                  free(self->k_max_M1);
+                                }
+
+                                if(self->E_M2 != NULL){
+                                  for(i = 1; i < vc->length-TURN-1; i++){
+                                    if(!self->E_M2[i]) continue;
+                                    for(cnt1 = self->k_min_M2[i]; cnt1 <= self->k_max_M2[i]; cnt1++)
+                                      if(self->l_min_M2[i][cnt1] < INF){
+                                        self->E_M2[i][cnt1] += self->l_min_M2[i][cnt1]/2;
+                                        free(self->E_M2[i][cnt1]);
+                                      }
+                                    if(self->k_min_M2[i] < INF){
+                                      self->E_M2[i] += self->k_min_M2[i];
+                                      free(self->E_M2[i]);
+                                      self->l_min_M2[i] += self->k_min_M2[i];
+                                      self->l_max_M2[i] += self->k_min_M2[i];
+                                      free(self->l_min_M2[i]);
+                                      free(self->l_max_M2[i]);
+                                    }
+                                  }
+                                  free(self->E_M2);
+                                  free(self->l_min_M2);
+                                  free(self->l_max_M2);
+                                  free(self->k_min_M2);
+                                  free(self->k_max_M2);
+                                }
+
+                                if(self->E_Fc != NULL){
+                                  for(cnt1 = self->k_min_Fc; cnt1 <= self->k_max_Fc; cnt1++)
+                                    if(self->l_min_Fc[cnt1] < INF){
+                                      self->E_Fc[cnt1] += self->l_min_Fc[cnt1]/2;
+                                      free(self->E_Fc[cnt1]);
+                                    }
+                                  if(self->k_min_Fc < INF){
+                                    self->E_Fc += self->k_min_Fc;
+                                    free(self->E_Fc);
+                                    self->l_min_Fc += self->k_min_Fc;
+                                    self->l_max_Fc += self->k_min_Fc;
+                                    free(self->l_min_Fc);
+                                    free(self->l_max_Fc);
+                                  }
+                                }
+
+                                if(self->E_FcI != NULL){
+                                  for(cnt1 = self->k_min_FcI; cnt1 <= self->k_max_FcI; cnt1++)
+                                    if(self->l_min_FcI[cnt1] < INF){
+                                      self->E_FcI[cnt1] += self->l_min_FcI[cnt1]/2;
+                                      free(self->E_FcI[cnt1]);
+                                    }
+                                  if(self->k_min_FcI < INF){
+                                    self->E_FcI += self->k_min_FcI;
+                                    free(self->E_FcI);
+                                    self->l_min_FcI += self->k_min_FcI;
+                                    self->l_max_FcI += self->k_min_FcI;
+                                    free(self->l_min_FcI);
+                                    free(self->l_max_FcI);
+                                  }
+                                }
+
+                                if(self->E_FcH != NULL){
+                                  for(cnt1 = self->k_min_FcH; cnt1 <= self->k_max_FcH; cnt1++)
+                                    if(self->l_min_FcH[cnt1] < INF){
+                                      self->E_FcH[cnt1] += self->l_min_FcH[cnt1]/2;
+                                      free(self->E_FcH[cnt1]);
+                                    }
+                                  if(self->k_min_FcH < INF){
+                                    self->E_FcH += self->k_min_FcH;
+                                    free(self->E_FcH);
+                                    self->l_min_FcH += self->k_min_FcH;
+                                    self->l_max_FcH += self->k_min_FcH;
+                                    free(self->l_min_FcH);
+                                    free(self->l_max_FcH);
+                                  }
+                                }
+
+                                if(self->E_FcM != NULL){
+                                  for(cnt1 = self->k_min_FcM; cnt1 <= self->k_max_FcM; cnt1++)
+                                    if(self->l_min_FcM[cnt1] < INF){
+                                      self->E_FcM[cnt1] += self->l_min_FcM[cnt1]/2;
+                                      free(self->E_FcM[cnt1]);
+                                    }
+                                  if(self->k_min_FcM < INF){
+                                    self->E_FcM += self->k_min_FcM;
+                                    free(self->E_FcM);
+                                    self->l_min_FcM += self->k_min_FcM;
+                                    self->l_max_FcM += self->k_min_FcM;
+                                    free(self->l_min_FcM);
+                                    free(self->l_max_FcM);
+                                  }
+                                }
+
+                                free(self->E_F5_rem);
+                                free(self->E_F3_rem);
+                                free(self->E_C_rem);
+                                free(self->E_M_rem);
+                                free(self->E_M1_rem);
+                                free(self->E_M2_rem);
+
+                                break;
+
+        default:                /* do nothing */
+                                break;
       }
       free(self);
       vc->matrices = NULL;
+    }
+  }
+}
+
+PUBLIC void
+vrna_free_pf_matrices(vrna_fold_compound *vc){
+
+  unsigned int  i, j, ij;
+  int           cnt1;
+
+  if(vc){
+    vrna_mx_pf_t  *self = vc->exp_matrices;
+    if(self){
+      switch(self->type){
+        case VRNA_MX_DEFAULT:   free(self->q);
+                                free(self->qb);
+                                free(self->qm);
+                                free(self->qm1);
+                                free(self->qm2);
+                                free(self->probs);
+                                free(self->G);
+                                free(self->q1k);
+                                free(self->qln);
+                                break;
+
+        case VRNA_MX_2DFOLD:    /* This will be some fun... */
+                                if(self->Q != NULL){
+                                  for(i = 1; i <= vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->Q[ij]) continue;
+                                      for(cnt1 = self->k_min_Q[ij]; cnt1 <= self->k_max_Q[ij]; cnt1++)
+                                        if(self->l_min_Q[ij][cnt1] < INF){
+                                          self->Q[ij][cnt1] += self->l_min_Q[ij][cnt1]/2;
+                                          free(self->Q[ij][cnt1]);
+                                        }
+                                      if(self->k_min_Q[ij] < INF){
+                                        self->Q[ij] += self->k_min_Q[ij];
+                                        free(self->Q[ij]);
+                                        self->l_min_Q[ij] += self->k_min_Q[ij];
+                                        self->l_max_Q[ij] += self->k_min_Q[ij];
+                                        free(self->l_min_Q[ij]);
+                                        free(self->l_max_Q[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->Q);
+                                  free(self->l_min_Q);
+                                  free(self->l_max_Q);
+                                  free(self->k_min_Q);
+                                  free(self->k_max_Q);
+                                }
+
+                                if(self->Q_B != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->Q_B[ij]) continue;
+                                      for(cnt1 = self->k_min_Q_B[ij]; cnt1 <= self->k_max_Q_B[ij]; cnt1++)
+                                        if(self->l_min_Q_B[ij][cnt1] < INF){
+                                          self->Q_B[ij][cnt1] += self->l_min_Q_B[ij][cnt1]/2;
+                                          free(self->Q_B[ij][cnt1]);
+                                        }
+                                      if(self->k_min_Q_B[ij] < INF){
+                                        self->Q_B[ij] += self->k_min_Q_B[ij];
+                                        free(self->Q_B[ij]);
+                                        self->l_min_Q_B[ij] += self->k_min_Q_B[ij];
+                                        self->l_max_Q_B[ij] += self->k_min_Q_B[ij];
+                                        free(self->l_min_Q_B[ij]);
+                                        free(self->l_max_Q_B[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->Q_B);
+                                  free(self->l_min_Q_B);
+                                  free(self->l_max_Q_B);
+                                  free(self->k_min_Q_B);
+                                  free(self->k_max_Q_B);
+                                }
+
+                                if(self->Q_M != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->iindx[i] - j;
+                                      if(!self->Q_M[ij]) continue;
+                                      for(cnt1 = self->k_min_Q_M[ij]; cnt1 <= self->k_max_Q_M[ij]; cnt1++)
+                                        if(self->l_min_Q_M[ij][cnt1] < INF){
+                                          self->Q_M[ij][cnt1] += self->l_min_Q_M[ij][cnt1]/2;
+                                          free(self->Q_M[ij][cnt1]);
+                                        }
+                                      if(self->k_min_Q_M[ij] < INF){
+                                        self->Q_M[ij] += self->k_min_Q_M[ij];
+                                        free(self->Q_M[ij]);
+                                        self->l_min_Q_M[ij] += self->k_min_Q_M[ij];
+                                        self->l_max_Q_M[ij] += self->k_min_Q_M[ij];
+                                        free(self->l_min_Q_M[ij]);
+                                        free(self->l_max_Q_M[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->Q_M);
+                                  free(self->l_min_Q_M);
+                                  free(self->l_max_Q_M);
+                                  free(self->k_min_Q_M);
+                                  free(self->k_max_Q_M);
+                                }
+
+                                if(self->Q_M1 != NULL){
+                                  for(i = 1; i < vc->length; i++){
+                                    for(j = i; j <= vc->length; j++){
+                                      ij = vc->jindx[j] + i;
+                                      if(!self->Q_M1[ij]) continue;
+                                      for(cnt1 = self->k_min_Q_M1[ij]; cnt1 <= self->k_max_Q_M1[ij]; cnt1++)
+                                        if(self->l_min_Q_M1[ij][cnt1] < INF){
+                                          self->Q_M1[ij][cnt1] += self->l_min_Q_M1[ij][cnt1]/2;
+                                          free(self->Q_M1[ij][cnt1]);
+                                        }
+                                      if(self->k_min_Q_M1[ij] < INF){
+                                        self->Q_M1[ij] += self->k_min_Q_M1[ij];
+                                        free(self->Q_M1[ij]);
+                                        self->l_min_Q_M1[ij] += self->k_min_Q_M1[ij];
+                                        self->l_max_Q_M1[ij] += self->k_min_Q_M1[ij];
+                                        free(self->l_min_Q_M1[ij]);
+                                        free(self->l_max_Q_M1[ij]);
+                                      }
+                                    }
+                                  }
+                                  free(self->Q_M1);
+                                  free(self->l_min_Q_M1);
+                                  free(self->l_max_Q_M1);
+                                  free(self->k_min_Q_M1);
+                                  free(self->k_max_Q_M1);
+                                }
+
+                                if(self->Q_M2 != NULL){
+                                  for(i = 1; i < vc->length-TURN-1; i++){
+                                    if(!self->Q_M2[i]) continue;
+                                    for(cnt1 = self->k_min_Q_M2[i]; cnt1 <= self->k_max_Q_M2[i]; cnt1++)
+                                      if(self->l_min_Q_M2[i][cnt1] < INF){
+                                        self->Q_M2[i][cnt1] += self->l_min_Q_M2[i][cnt1]/2;
+                                        free(self->Q_M2[i][cnt1]);
+                                      }
+                                    if(self->k_min_Q_M2[i] < INF){
+                                      self->Q_M2[i] += self->k_min_Q_M2[i];
+                                      free(self->Q_M2[i]);
+                                      self->l_min_Q_M2[i] += self->k_min_Q_M2[i];
+                                      self->l_max_Q_M2[i] += self->k_min_Q_M2[i];
+                                      free(self->l_min_Q_M2[i]);
+                                      free(self->l_max_Q_M2[i]);
+                                    }
+                                  }
+                                  free(self->Q_M2);
+                                  free(self->l_min_Q_M2);
+                                  free(self->l_max_Q_M2);
+                                  free(self->k_min_Q_M2);
+                                  free(self->k_max_Q_M2);
+                                }
+
+                                if(self->Q_c != NULL){
+                                  for(cnt1 = self->k_min_Q_c; cnt1 <= self->k_max_Q_c; cnt1++)
+                                    if(self->l_min_Q_c[cnt1] < INF){
+                                      self->Q_c[cnt1] += self->l_min_Q_c[cnt1]/2;
+                                      free(self->Q_c[cnt1]);
+                                    }
+                                  if(self->k_min_Q_c < INF){
+                                    self->Q_c += self->k_min_Q_c;
+                                    free(self->Q_c);
+                                    self->l_min_Q_c += self->k_min_Q_c;
+                                    self->l_max_Q_c += self->k_min_Q_c;
+                                    free(self->l_min_Q_c);
+                                    free(self->l_max_Q_c);
+                                  }
+                                }
+
+                                if(self->Q_cI != NULL){
+                                  for(cnt1 = self->k_min_Q_cI; cnt1 <= self->k_max_Q_cI; cnt1++)
+                                    if(self->l_min_Q_cI[cnt1] < INF){
+                                      self->Q_cI[cnt1] += self->l_min_Q_cI[cnt1]/2;
+                                      free(self->Q_cI[cnt1]);
+                                    }
+                                  if(self->k_min_Q_cI < INF){
+                                    self->Q_cI += self->k_min_Q_cI;
+                                    free(self->Q_cI);
+                                    self->l_min_Q_cI += self->k_min_Q_cI;
+                                    self->l_max_Q_cI += self->k_min_Q_cI;
+                                    free(self->l_min_Q_cI);
+                                    free(self->l_max_Q_cI);
+                                  }
+                                }
+
+                                if(self->Q_cH != NULL){
+                                  for(cnt1 = self->k_min_Q_cH; cnt1 <= self->k_max_Q_cH; cnt1++)
+                                    if(self->l_min_Q_cH[cnt1] < INF){
+                                      self->Q_cH[cnt1] += self->l_min_Q_cH[cnt1]/2;
+                                      free(self->Q_cH[cnt1]);
+                                    }
+                                  if(self->k_min_Q_cH < INF){
+                                    self->Q_cH += self->k_min_Q_cH;
+                                    free(self->Q_cH);
+                                    self->l_min_Q_cH += self->k_min_Q_cH;
+                                    self->l_max_Q_cH += self->k_min_Q_cH;
+                                    free(self->l_min_Q_cH);
+                                    free(self->l_max_Q_cH);
+                                  }
+                                }
+
+                                if(self->Q_cM != NULL){
+                                  for(cnt1 = self->k_min_Q_cM; cnt1 <= self->k_max_Q_cM; cnt1++)
+                                    if(self->l_min_Q_cM[cnt1] < INF){
+                                      self->Q_cM[cnt1] += self->l_min_Q_cM[cnt1]/2;
+                                      free(self->Q_cM[cnt1]);
+                                    }
+                                  if(self->k_min_Q_cM < INF){
+                                    self->Q_cM += self->k_min_Q_cM;
+                                    free(self->Q_cM);
+                                    self->l_min_Q_cM += self->k_min_Q_cM;
+                                    self->l_max_Q_cM += self->k_min_Q_cM;
+                                    free(self->l_min_Q_cM);
+                                    free(self->l_max_Q_cM);
+                                  }
+                                }
+
+                                free(self->Q_rem);
+                                free(self->Q_B_rem);
+                                free(self->Q_M_rem);
+                                free(self->Q_M1_rem);
+                                free(self->Q_M2_rem);
+
+                                break;
+
+        default:                /* do nothing */
+                                break;
+      }
+
+      free(self->expMLbase);
+      free(self->scale);
+
+      free(self);
+      vc->exp_matrices = NULL;
     }
   }
 }
@@ -142,39 +690,50 @@ vrna_free_fold_compound(vrna_fold_compound *vc){
     vrna_hc_free(vc->hc);
 
     /* now distinguish the vc type */
-    if(vc->type == VRNA_VC_TYPE_SINGLE){
-      free(vc->sequence);
-      free(vc->sequence_encoding);
-      free(vc->sequence_encoding2);
-      free(vc->ptype);
-      free(vc->ptype_pf_compat);
-      vrna_sc_free(vc->sc);
-
-    } else if (vc->type == VRNA_VC_TYPE_ALIGNMENT){
-      for(s=0;s<vc->n_seq;s++){
-        free(vc->sequences[s]);
-        free(vc->S[s]);
-        free(vc->S5[s]);
-        free(vc->S3[s]);
-        free(vc->Ss[s]);
-        free(vc->a2s[s]);
-      }
-      free(vc->sequences);
-      free(vc->cons_seq);
-      free(vc->S_cons);
-      free(vc->S);
-      free(vc->S5);
-      free(vc->S3);
-      free(vc->Ss);
-      free(vc->a2s);
-      free(vc->pscore);
-      if(vc->scs){
-        for(s=0;s<vc->n_seq;s++)
-          vrna_sc_free(vc->scs[s]);
-        free(vc->scs);
-      }
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:     free(vc->sequence);
+                                    free(vc->sequence_encoding);
+                                    free(vc->sequence_encoding2);
+                                    free(vc->ptype);
+                                    free(vc->ptype_pf_compat);
+                                    vrna_sc_free(vc->sc);
+                                    break;
+      case VRNA_VC_TYPE_ALIGNMENT:  for(s=0;s<vc->n_seq;s++){
+                                      free(vc->sequences[s]);
+                                      free(vc->S[s]);
+                                      free(vc->S5[s]);
+                                      free(vc->S3[s]);
+                                      free(vc->Ss[s]);
+                                      free(vc->a2s[s]);
+                                    }
+                                    free(vc->sequences);
+                                    free(vc->cons_seq);
+                                    free(vc->S_cons);
+                                    free(vc->S);
+                                    free(vc->S5);
+                                    free(vc->S3);
+                                    free(vc->Ss);
+                                    free(vc->a2s);
+                                    free(vc->pscore);
+                                    if(vc->scs){
+                                      for(s=0;s<vc->n_seq;s++)
+                                        vrna_sc_free(vc->scs[s]);
+                                      free(vc->scs);
+                                    }
+                                    break;
+      default:                      /* do nothing */
+                                    break;
     }
 
+    /* free Distance Class Partitioning stuff (should be NULL if not used */
+    free(vc->reference_pt1);
+    free(vc->reference_pt2);
+    free(vc->referenceBPs1);
+    free(vc->referenceBPs2);
+    free(vc->bpdist);
+    free(vc->mm1);
+    free(vc->mm2);
+    
     free(vc);
   }
 }
@@ -187,6 +746,7 @@ vrna_get_fold_compound( const char *sequence,
 
   int length;
   vrna_fold_compound *vc;
+  vrna_md_t           md;
 
   if(sequence == NULL) return NULL;
 
@@ -199,7 +759,14 @@ vrna_get_fold_compound( const char *sequence,
   vc->type      = VRNA_VC_TYPE_SINGLE;
   vc->length    = length;
   vc->sequence  = strdup(sequence);
-  set_fold_compound(vc, md_p, options);
+
+  /* get a copy of the model details */
+  if(md_p)
+    md = *md_p;
+  else /* this fallback relies on global parameters and thus is not threadsafe */
+    vrna_md_set_globals(&md);
+
+  set_fold_compound(vc, &md, options);
 
   return vc;
 }
@@ -211,6 +778,7 @@ vrna_get_fold_compound_ali( const char **sequences,
 
   int s, n_seq, length;
   vrna_fold_compound *vc;
+  vrna_md_t           md;
   
   if(sequences == NULL) return NULL;
 
@@ -235,95 +803,83 @@ vrna_get_fold_compound_ali( const char **sequences,
   for(s = 0; sequences[s]; s++)
     vc->sequences[s] = strdup(sequences[s]);
 
-  set_fold_compound(vc, md_p, options);
+  /* get a copy of the model details */
+  if(md_p)
+    md = *md_p;
+  else /* this fallback relies on global parameters and thus is not threadsafe */
+    vrna_md_set_globals(&md);
+
+  set_fold_compound(vc, &md, options);
 
   return vc;
 }
 
-PUBLIC void
-vrna_free_pf_matrices(vrna_fold_compound *vc){
+PUBLIC vrna_fold_compound*
+vrna_get_fold_compound_2D(const char *sequence,
+                          const char *s1,
+                          const char *s2,
+                          vrna_md_t *md_p,
+                          unsigned int options){
 
-  if(vc){
-    if(vc->exp_matrices){
-      vrna_mx_pf_t  *self = vc->exp_matrices;
-      free(self->q);
-      free(self->qb);
-      free(self->qm);
-      free(self->qm1);
-      free(self->qm2);
-      free(self->probs);
-      free(self->G);
-      free(self->q1k);
-      free(self->qln);
-      free(self->scale);
-      free(self->expMLbase);
-      free(self);
-      vc->exp_matrices = NULL;
-    }
-  }
+  int                 length, l, turn;
+  vrna_fold_compound  *vc;
+  vrna_md_t           md;
+
+
+  if(sequence == NULL) return NULL;
+
+  /* sanity check */
+  length = strlen(sequence);
+  if(length == 0)
+    vrna_message_error("vrna_get_fold_compound_2D: sequence length must be greater 0");
+
+  l = strlen(s1);
+  if(l != length)
+    vrna_message_error("vrna_get_fold_compound_2D: sequence and s1 differ in length");
+
+  l = strlen(s2);
+  if(l != length)
+    vrna_message_error("vrna_get_fold_compound_2D: sequence and s2 differ in length");
+
+  vc            = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
+  vc->type      = VRNA_VC_TYPE_SINGLE;
+  vc->length    = length;
+  vc->sequence  = strdup(sequence);
+
+  /* get a copy of the model details */
+  if(md_p)
+    md = *md_p;
+  else /* this fallback relies on global parameters and thus is not threadsafe */
+    vrna_md_set_globals(&md);
+
+  /* always make uniq ML decomposition ! */
+  md.uniq_ML = 1;
+
+  set_fold_compound(vc, &md, options | VRNA_OPTION_DIST_CLASS);
+
+  turn  = vc->params->model_details.min_loop_size;
+  vc->reference_pt1 = vrna_pt_get(s1);
+  vc->reference_pt2 = vrna_pt_get(s2);
+  vc->referenceBPs1 = vrna_refBPcnt_matrix(vc->reference_pt1, turn);
+  vc->referenceBPs2 = vrna_refBPcnt_matrix(vc->reference_pt2, turn);
+  vc->bpdist        = vrna_refBPdist_matrix(vc->reference_pt1, vc->reference_pt2, turn);
+  /* compute maximum matching with reference structure 1 disallowed */
+  vc->mm1           = maximumMatchingConstraint(vc->sequence, vc->reference_pt1);
+  /* compute maximum matching with reference structure 2 disallowed */
+  vc->mm2           = maximumMatchingConstraint(vc->sequence, vc->reference_pt2);
+
+  vc->maxD1         = vc->mm1[vc->iindx[1]-length] + vc->referenceBPs1[vc->iindx[1]-length];
+  vc->maxD2         = vc->mm2[vc->iindx[1]-length] + vc->referenceBPs2[vc->iindx[1]-length];
+
+  return vc;
 }
+
 
 /*
 #####################################
 # BEGIN OF STATIC HELPER FUNCTIONS  #
 #####################################
 */
-
-PRIVATE vrna_mx_mfe_t  *
-get_mfe_matrices_alloc( unsigned int n,
-                        unsigned int alloc_vector){
-
-  if(n >= (unsigned int)sqrt((double)INT_MAX))
-    vrna_message_error("get_mfe_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
-
-  vrna_mx_mfe_t *vars   = (vrna_mx_mfe_t *)vrna_alloc(sizeof(vrna_mx_mfe_t));
-
-  vars->allocated       = 0;
-  vars->length          = 0;
-  vars->f5              = NULL;
-  vars->f3              = NULL;
-  vars->fc              = NULL;
-  vars->c               = NULL;
-  vars->fML             = NULL;
-  vars->fM1             = NULL;
-  vars->fM2             = NULL;
-  vars->FcH             = INF;
-  vars->FcI             = INF;
-  vars->FcM             = INF;
-  vars->Fc              = INF;
-  vars->ggg             = NULL;
-
-  if(alloc_vector){
-    vars->allocated = alloc_vector;
-    vars->length    = n;
-    unsigned int size     = ((n + 1) * (n + 2)) / 2;
-    unsigned int lin_size = n + 2;
-
-    if(alloc_vector & ALLOC_F5)
-      vars->f5  = (int *) vrna_alloc(sizeof(int) * lin_size);
-
-    if(alloc_vector & ALLOC_F3)
-      vars->f3  = (int *) vrna_alloc(sizeof(int) * lin_size);
-
-    if(alloc_vector & ALLOC_HYBRID)
-      vars->fc  = (int *) vrna_alloc(sizeof(int) * lin_size);
-
-    if(alloc_vector & ALLOC_C)
-      vars->c      = (int *) vrna_alloc(sizeof(int) * size);
-
-    if(alloc_vector & ALLOC_FML)
-      vars->fML    = (int *) vrna_alloc(sizeof(int) * size);
-
-    if(alloc_vector & ALLOC_UNIQ)
-      vars->fM1    = (int *) vrna_alloc(sizeof(int) * size);
-
-    if(alloc_vector & ALLOC_CIRC)
-      vars->fM2    = (int *) vrna_alloc(sizeof(int) * lin_size);
-
-  }
-
-  return vars;
-}
 
 PRIVATE void
 set_fold_compound(vrna_fold_compound *vc,
@@ -332,7 +888,6 @@ set_fold_compound(vrna_fold_compound *vc,
 
 
   char *sequence, **sequences;
-  vrna_md_t           md;
   unsigned int        alloc_vector, length, s;
   int                 cp;                     /* cut point for cofold */
   char                *seq, *seq2;
@@ -344,12 +899,6 @@ set_fold_compound(vrna_fold_compound *vc,
   cp            = -1;
   alloc_vector  = ALLOC_NOTHING;
 
-  /* get a copy of the model details */
-  if(md_p)
-    md = *md_p;
-  else /* this fallback relies on global parameters and thus is not threadsafe */
-    set_model_details(&md);
-
   switch(vc->type){
     case VRNA_VC_TYPE_SINGLE:     sequence  = vc->sequence;
 
@@ -359,17 +908,17 @@ set_fold_compound(vrna_fold_compound *vc,
                                                                         single sequences */
                                   vc->cutpoint            = cp;
 
-                                  if((cp > 0) && (md.min_loop_size == TURN))
-                                    md.min_loop_size = 0;  /* is it safe to set this here? */
+                                  if((cp > 0) && (md_p->min_loop_size == TURN))
+                                    md_p->min_loop_size = 0;  /* is it safe to set this here? */
 
                                   free(vc->sequence);
                                   vc->sequence            = seq;
                                   vc->length              = length = strlen(seq);
-                                  vc->sequence_encoding   = vrna_seq_encode(seq, &md);
-                                  vc->sequence_encoding2  = vrna_seq_encode_simple(seq, &md);
+                                  vc->sequence_encoding   = vrna_seq_encode(seq, md_p);
+                                  vc->sequence_encoding2  = vrna_seq_encode_simple(seq, md_p);
                                   if(!(options & VRNA_OPTION_EVAL_ONLY)){
-                                    vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, &md);
-                                    vc->ptype_pf_compat     = (options & VRNA_OPTION_PF) ? get_ptypes(vc->sequence_encoding2, &md, 1) : NULL;
+                                    vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, md_p);
+                                    vc->ptype_pf_compat     = (options & (VRNA_OPTION_PF | VRNA_OPTION_DIST_CLASS)) ? get_ptypes(vc->sequence_encoding2, md_p, 1) : NULL;
                                   } else {
                                     vc->ptype           = NULL;
                                     vc->ptype_pf_compat = NULL;
@@ -383,11 +932,11 @@ set_fold_compound(vrna_fold_compound *vc,
                                   vc->length    = length = vc->length;
 
                                   vc->cons_seq  = consensus((const char **)sequences);
-                                  vc->S_cons    = vrna_seq_encode_simple(vc->cons_seq, &md);
+                                  vc->S_cons    = vrna_seq_encode_simple(vc->cons_seq, md_p);
 
                                   vc->pscore    = (int *) vrna_alloc(sizeof(int)*((length*(length+1))/2+2));
 
-                                  oldAliEn = vc->oldAliEn  = md.oldAliEn;
+                                  oldAliEn = vc->oldAliEn  = md_p->oldAliEn;
 
                                   vc->S   = (short **)          vrna_alloc((vc->n_seq+1) * sizeof(short *));
                                   vc->S5  = (short **)          vrna_alloc((vc->n_seq+1) * sizeof(short *));
@@ -402,7 +951,7 @@ set_fold_compound(vrna_fold_compound *vc,
                                                     &(vc->S3[s]),
                                                     &(vc->Ss[s]),
                                                     &(vc->a2s[s]),
-                                                    &md);
+                                                    md_p);
                                   }
                                   vc->S5[vc->n_seq]  = NULL;
                                   vc->S3[vc->n_seq]  = NULL;
@@ -418,7 +967,7 @@ set_fold_compound(vrna_fold_compound *vc,
   }
 
   /* some default init values */
-  vc->iindx         = (options & VRNA_OPTION_PF) ? vrna_get_iindx(vc->length) : NULL;
+  vc->iindx         = vrna_get_iindx(vc->length);
   vc->jindx         = vrna_get_indx(vc->length);
 
   vc->params        = NULL;
@@ -429,16 +978,22 @@ set_fold_compound(vrna_fold_compound *vc,
 
   /* now come the energy parameters */
   if(options & VRNA_OPTION_MFE)
-    vc->params      = vrna_params_get(&md);
+    vc->params      = vrna_params_get(md_p);
 
   if(options & VRNA_OPTION_PF){
     vc->exp_params  = (vc->type == VRNA_VC_TYPE_SINGLE) ? \
-                        vrna_exp_params_get(&md) : \
-                        vrna_exp_params_ali_get(vc->n_seq, &md);
+                        vrna_exp_params_get(md_p) : \
+                        vrna_exp_params_ali_get(vc->n_seq, md_p);
   }
 
-  /* prepare the allocation vector for the DP matrices */
-  if(!(options & VRNA_OPTION_EVAL_ONLY)){
+  if(!(options & VRNA_OPTION_EVAL_ONLY)){ /* allocate memory for DP matrices */
+    /* extract the matrix type from options flags */
+    vrna_mx_t type = VRNA_MX_DEFAULT;
+
+    if(options & VRNA_OPTION_DIST_CLASS)
+      type = VRNA_MX_2DFOLD;
+    else if(options & VRNA_OPTION_LFOLD)
+      type = VRNA_MX_LFOLD;
 
     /* cofolding matrices ? */
     if(options & VRNA_OPTION_HYBRID){
@@ -453,24 +1008,24 @@ set_fold_compound(vrna_fold_compound *vc,
 
     /* default PF matrices ? */
     if(options & VRNA_OPTION_PF)
-      alloc_vector |= (md.compute_bpp) ? ALLOC_PF_DEFAULT : ALLOC_PF_WO_PROBS;
+      alloc_vector |= (md_p->compute_bpp) ? ALLOC_PF_DEFAULT : ALLOC_PF_WO_PROBS;
 
     /* unique ML decomposition ? */
-    if(md.uniq_ML)
+    if(md_p->uniq_ML)
       alloc_vector |= ALLOC_UNIQ;
 
     /* matrices for circular folding ? */
-    if(md.circ){
-      md.uniq_ML = 1;
+    if(md_p->circ){
+      md_p->uniq_ML = 1;
       alloc_vector |= ALLOC_CIRC | ALLOC_UNIQ;
     }
 
     /* done with preparations, allocate memory now! */
     if(options & VRNA_OPTION_MFE)
-      add_mfe_matrices(vc, alloc_vector);
+      add_mfe_matrices(vc, type, alloc_vector);
 
     if(options & VRNA_OPTION_PF)
-      add_pf_matrices(vc, alloc_vector);
+      add_pf_matrices(vc, type, alloc_vector);
   }
 
   if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
@@ -481,31 +1036,41 @@ set_fold_compound(vrna_fold_compound *vc,
 
 }
 
-
 PRIVATE void
 add_pf_matrices(vrna_fold_compound *vc,
+                vrna_mx_t type,
                 unsigned int alloc_vector){
 
   if(vc){
-    vc->exp_matrices  = get_pf_matrices_alloc(vc->length, alloc_vector);
-    if(vc->exp_params->model_details.gquad)
-      vc->exp_matrices->G = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
-
+    vc->exp_matrices  = get_pf_matrices_alloc(vc->length, type, alloc_vector);
+    if(vc->exp_params->model_details.gquad){
+      switch(vc->type){
+        case VRNA_VC_TYPE_SINGLE:   vc->exp_matrices->G = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
+                                    break;
+        default:                    /* do nothing */
+                                    break;
+      }
+    }
     vrna_update_pf_params(vc, NULL);
   }
 }
 
 PRIVATE void
 add_mfe_matrices( vrna_fold_compound *vc,
+                  vrna_mx_t type,
                   unsigned int alloc_vector){
 
   if(vc){
-    vc->matrices = get_mfe_matrices_alloc(vc->length, alloc_vector);
+    vc->matrices = get_mfe_matrices_alloc(vc->length, type, alloc_vector);
+
     if(vc->params->model_details.gquad){
-      if(vc->type == VRNA_VC_TYPE_SINGLE){
-        vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
-      } else if(vc->type == VRNA_VC_TYPE_ALIGNMENT){
-        vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
+      switch(vc->type){
+        case VRNA_VC_TYPE_SINGLE:     vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
+                                      break;
+        case VRNA_VC_TYPE_ALIGNMENT:  vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
+                                      break;
+        default:                      /* do nothing */
+                                      break;
       }
     }
   }
@@ -513,70 +1078,362 @@ add_mfe_matrices( vrna_fold_compound *vc,
 
 
 
+PRIVATE vrna_mx_mfe_t  *
+get_mfe_matrices_alloc( unsigned int n,
+                        vrna_mx_t type,
+                        unsigned int alloc_vector){
+
+  unsigned int  i, size, lin_size;
+  vrna_mx_mfe_t *vars;
+
+  if(n >= (unsigned int)sqrt((double)INT_MAX))
+    vrna_message_error("get_mfe_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
+
+  size          = ((n + 1) * (n + 2)) / 2;
+  lin_size      = n + 2;
+  vars          = (vrna_mx_mfe_t *)vrna_alloc(sizeof(vrna_mx_mfe_t));
+  vars->length  = n;
+  vars->type    = type;
+
+  switch(type){
+    case VRNA_MX_DEFAULT:   if(alloc_vector & ALLOC_F5)
+                              vars->f5  = (int *) vrna_alloc(sizeof(int) * lin_size);
+                            else
+                              vars->f5  = NULL;
+
+                            if(alloc_vector & ALLOC_F3)
+                              vars->f3  = (int *) vrna_alloc(sizeof(int) * lin_size);
+                            else
+                              vars->f3  = NULL;
+
+                            if(alloc_vector & ALLOC_HYBRID)
+                              vars->fc  = (int *) vrna_alloc(sizeof(int) * lin_size);
+                            else
+                              vars->fc  = NULL;
+
+                            if(alloc_vector & ALLOC_C)
+                              vars->c   = (int *) vrna_alloc(sizeof(int) * size);
+                            else
+                              vars->c   = NULL;
+
+                            if(alloc_vector & ALLOC_FML)
+                              vars->fML = (int *) vrna_alloc(sizeof(int) * size);
+                            else
+                              vars->fML = NULL;
+
+                            if(alloc_vector & ALLOC_UNIQ)
+                              vars->fM1 = (int *) vrna_alloc(sizeof(int) * size);
+                            else
+                              vars->fM1 = NULL;
+
+                            if(alloc_vector & ALLOC_CIRC)
+                              vars->fM2 = (int *) vrna_alloc(sizeof(int) * lin_size);
+                            else
+                              vars->fM2 = NULL;
+
+                            /* setting exterior loop energies for circular case to INF is always safe */
+                            vars->FcH = vars->FcI = vars->FcM = vars->Fc = INF;
+
+                            vars->ggg = NULL;
+
+                            break;
+
+    case VRNA_MX_2DFOLD:    if(alloc_vector & ALLOC_F5){
+                              vars->E_F5      = (int ***) vrna_alloc(sizeof(int **) * lin_size);
+                              vars->l_min_F5  = (int **)  vrna_alloc(sizeof(int *)  * lin_size);
+                              vars->l_max_F5  = (int **)  vrna_alloc(sizeof(int *)  * lin_size);
+                              vars->k_min_F5  = (int *)   vrna_alloc(sizeof(int)    * lin_size);
+                              vars->k_max_F5  = (int *)   vrna_alloc(sizeof(int)    * lin_size);
+                              vars->E_F5_rem  = (int *)   vrna_alloc(sizeof(int)    * lin_size);
+                              for(i = 0; i <= n; i++)
+                                vars->E_F5_rem[i] = INF;
+                            } else {
+                              vars->E_F5      = NULL;
+                              vars->l_min_F5  = NULL;
+                              vars->l_max_F5  = NULL;
+                              vars->k_min_F5  = NULL;
+                              vars->k_max_F5  = NULL;
+                              vars->E_F5_rem  = NULL;
+                            }
+
+                            if(alloc_vector & ALLOC_F3){
+                              vars->E_F3      = (int ***) vrna_alloc(sizeof(int **)  * lin_size);
+                              vars->l_min_F3  = (int **)  vrna_alloc(sizeof(int *)   * lin_size);
+                              vars->l_max_F3  = (int **)  vrna_alloc(sizeof(int *)   * lin_size);
+                              vars->k_min_F3  = (int *)   vrna_alloc(sizeof(int)     * lin_size);
+                              vars->k_max_F3  = (int *)   vrna_alloc(sizeof(int)     * lin_size);
+                              vars->E_F3_rem  = (int *)   vrna_alloc(sizeof(int)    * lin_size);
+                              for(i = 0; i <= n; i++)
+                                vars->E_F3_rem[i] = INF;
+                            } else {
+                              vars->E_F3      = NULL;
+                              vars->l_min_F3  = NULL;
+                              vars->l_max_F3  = NULL;
+                              vars->k_min_F3  = NULL;
+                              vars->k_max_F3  = NULL;
+                              vars->E_F3_rem  = NULL;
+                            }
+
+                            if(alloc_vector & ALLOC_C){
+                              vars->E_C     = (int ***) vrna_alloc(sizeof(int **) * size);
+                              vars->l_min_C = (int **)  vrna_alloc(sizeof(int *)  * size);
+                              vars->l_max_C = (int **)  vrna_alloc(sizeof(int *)  * size);
+                              vars->k_min_C = (int *)   vrna_alloc(sizeof(int)    * size);
+                              vars->k_max_C = (int *)   vrna_alloc(sizeof(int)    * size);
+                              vars->E_C_rem = (int *)   vrna_alloc(sizeof(int)    * size);
+                              for(i = 0; i < size; i++)
+                                vars->E_C_rem[i] = INF;
+                            } else {
+                              vars->E_C     = NULL;
+                              vars->l_min_C = NULL;
+                              vars->l_max_C = NULL;
+                              vars->k_min_C = NULL;
+                              vars->k_max_C = NULL;
+                              vars->E_C_rem = NULL;
+                            }
+
+                            if(alloc_vector & ALLOC_FML){
+                              vars->E_M     = (int ***) vrna_alloc(sizeof(int **) * size);
+                              vars->l_min_M = (int **)  vrna_alloc(sizeof(int *)  * size);
+                              vars->l_max_M = (int **)  vrna_alloc(sizeof(int *)  * size);
+                              vars->k_min_M = (int *)   vrna_alloc(sizeof(int)    * size);
+                              vars->k_max_M = (int *)   vrna_alloc(sizeof(int)    * size);
+                              vars->E_M_rem = (int *)   vrna_alloc(sizeof(int)    * size);
+                              for(i = 0; i < size; i++)
+                                vars->E_M_rem[i] = INF;
+                            } else {
+                              vars->E_M     = NULL;
+                              vars->l_min_M = NULL;
+                              vars->l_max_M = NULL;
+                              vars->k_min_M = NULL;
+                              vars->k_max_M = NULL;
+                              vars->E_M_rem = NULL;
+                            }
+
+                            if(alloc_vector & ALLOC_UNIQ){
+                              vars->E_M1      = (int ***) vrna_alloc(sizeof(int **) * size);
+                              vars->l_min_M1  = (int **)  vrna_alloc(sizeof(int *)  * size);
+                              vars->l_max_M1  = (int **)  vrna_alloc(sizeof(int *)  * size);
+                              vars->k_min_M1  = (int *)   vrna_alloc(sizeof(int)    * size);
+                              vars->k_max_M1  = (int *)   vrna_alloc(sizeof(int)    * size);
+                              vars->E_M1_rem  = (int *)   vrna_alloc(sizeof(int)    * size);
+                              for(i = 0; i < size; i++)
+                                vars->E_M1_rem[i] = INF;
+                            } else {
+                              vars->E_M1      = NULL;
+                              vars->l_min_M1  = NULL;
+                              vars->l_max_M1  = NULL;
+                              vars->k_min_M1  = NULL;
+                              vars->k_max_M1  = NULL;
+                              vars->E_M1_rem  = NULL;
+                            }
+
+                            if(alloc_vector & ALLOC_CIRC){
+                              vars->E_M2      = (int ***) vrna_alloc(sizeof(int **)  * lin_size);
+                              vars->l_min_M2  = (int **)  vrna_alloc(sizeof(int *)   * lin_size);
+                              vars->l_max_M2  = (int **)  vrna_alloc(sizeof(int *)   * lin_size);
+                              vars->k_min_M2  = (int *)   vrna_alloc(sizeof(int)     * lin_size);
+                              vars->k_max_M2  = (int *)   vrna_alloc(sizeof(int)     * lin_size);
+                              vars->E_M2_rem  = (int *)   vrna_alloc(sizeof(int)     * lin_size);
+                              for(i = 0; i <= n; i++)
+                                vars->E_M2_rem[i] = INF;
+                            } else {
+                              vars->E_M2      = NULL;
+                              vars->l_min_M2  = NULL;
+                              vars->l_max_M2  = NULL;
+                              vars->k_min_M2  = NULL;
+                              vars->k_max_M2  = NULL;
+                              vars->E_M2_rem  = NULL;
+                            }
+
+                            /* setting exterior loop energies for circular case to INF is always safe */
+                            vars->E_Fc      = NULL;
+                            vars->E_FcH     = NULL;
+                            vars->E_FcI     = NULL;
+                            vars->E_FcM     = NULL;
+                            vars->E_Fc_rem  = INF;
+                            vars->E_FcH_rem = INF;
+                            vars->E_FcI_rem = INF;
+                            vars->E_FcM_rem = INF;
+
+#ifdef COUNT_STATES
+                            vars->N_C   = (unsigned long ***) vrna_alloc(sizeof(unsigned long **)  * size);
+                            vars->N_F5  = (unsigned long ***) vrna_alloc(sizeof(unsigned long **)  * lin_size);
+                            vars->N_M   = (unsigned long ***) vrna_alloc(sizeof(unsigned long **)  * size);
+                            vars->N_M1  = (unsigned long ***) vrna_alloc(sizeof(unsigned long **)  * size);
+#endif
+
+                            break;
+    default:                /* do nothing */
+                            break;
+  }
+
+  return vars;
+}
+
 
 
 PRIVATE vrna_mx_pf_t  *
 get_pf_matrices_alloc(unsigned int n,
+                      vrna_mx_t type,
                       unsigned int alloc_vector){
+
+  unsigned int  i, size, lin_size;
+  vrna_mx_pf_t  *vars;
 
   if(n >= (unsigned int)sqrt((double)INT_MAX))
     vrna_message_error("get_pf_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
 
-  vrna_mx_pf_t  *vars   = (vrna_mx_pf_t *)vrna_alloc(sizeof(vrna_mx_pf_t));
+  size          = ((n + 1) * (n + 2)) / 2;
+  lin_size      = n + 2;
+  vars          = (vrna_mx_pf_t *)vrna_alloc(sizeof(vrna_mx_pf_t));
+  vars->length  = n;
+  vars->type    = type;
 
-  vars->allocated       = 0;
-  vars->length          = 0;
-  vars->q               = NULL;
-  vars->qb              = NULL;
-  vars->qm              = NULL;
-  vars->qm1             = NULL;
-  vars->qm2             = NULL;
-  vars->qho             = 0.;
-  vars->qio             = 0.;
-  vars->qmo             = 0.;
-  vars->qo              = 0.;
-  vars->G               = NULL;
-  vars->q1k             = NULL;
-  vars->qln             = NULL;
 
-  vars->scale           = NULL;
-  vars->expMLbase       = NULL;
+  switch(type){
+    case VRNA_MX_DEFAULT:   if(alloc_vector & ALLOC_F)
+                              vars->q = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            else
+                              vars->q = NULL;
 
-  if(alloc_vector){
-    vars->allocated = alloc_vector;
-    vars->length    = n;
-    unsigned int size     = ((n + 1) * (n + 2)) / 2;
-    unsigned int lin_size = n + 2;
+                            if(alloc_vector & ALLOC_C)
+                              vars->qb  = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            else
+                              vars->qb = NULL;
 
-    if(alloc_vector & ALLOC_F)
-      vars->q     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            if(alloc_vector & ALLOC_FML)
+                              vars->qm    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            else
+                              vars->qm = NULL;
 
-    if(alloc_vector & ALLOC_C)
-      vars->qb    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            if(alloc_vector & ALLOC_UNIQ)
+                              vars->qm1   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            else
+                              vars->qm1 = NULL;
 
-    if(alloc_vector & ALLOC_FML)
-      vars->qm    = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            if(alloc_vector & ALLOC_CIRC)
+                              vars->qm2   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+                            else
+                              vars->qm2 = NULL;
 
-    if(alloc_vector & ALLOC_UNIQ)
-      vars->qm1   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            if(alloc_vector & ALLOC_PROBS)
+                              vars->probs = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            else
+                              vars->probs = NULL;
 
-    if(alloc_vector & ALLOC_CIRC)
-      vars->qm2   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+                            if(alloc_vector & ALLOC_AUX){
+                              vars->q1k   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+                              vars->qln   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+                            } else {
+                              vars->q1k = NULL;
+                              vars->qln = NULL;
+                            }
 
-    if(alloc_vector & ALLOC_PROBS)
-      vars->probs = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * size);
+                            break;
 
-    if(alloc_vector & ALLOC_AUX){
-      vars->q1k   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-      vars->qln   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-    }
+    case VRNA_MX_2DFOLD:    if(alloc_vector & ALLOC_F){
+                              vars->Q       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+                              vars->l_min_Q = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->l_max_Q = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->k_min_Q = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->k_max_Q = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->Q_rem   = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)     * size);
+                            } else {
+                              vars->Q       = NULL;
+                              vars->l_min_Q = NULL;
+                              vars->l_max_Q = NULL;
+                              vars->k_min_Q = NULL;
+                              vars->k_max_Q = NULL;
+                              vars->Q_rem   = NULL;
+                            }
 
-    /*  always alloc the helper arrays for unpaired nucleotides in multi-
-        branch loops and scaling
-    */
-    vars->scale     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-    vars->expMLbase = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+                            if(alloc_vector & ALLOC_C){
+                              vars->Q_B       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+                              vars->l_min_Q_B = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->l_max_Q_B = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->k_min_Q_B = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->k_max_Q_B = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->Q_B_rem   = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)     * size);
+                            } else {
+                              vars->Q_B       = NULL;
+                              vars->l_min_Q_B = NULL;
+                              vars->l_max_Q_B = NULL;
+                              vars->k_min_Q_B = NULL;
+                              vars->k_max_Q_B = NULL;
+                              vars->Q_B_rem   = NULL;
+                            }
+
+                            if(alloc_vector & ALLOC_FML){
+                              vars->Q_M       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+                              vars->l_min_Q_M = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->l_max_Q_M = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->k_min_Q_M = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->k_max_Q_M = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->Q_M_rem   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)      * size);
+                            } else {
+                              vars->Q_M       = NULL;
+                              vars->l_min_Q_M = NULL;
+                              vars->l_max_Q_M = NULL;
+                              vars->k_min_Q_M = NULL;
+                              vars->k_max_Q_M = NULL;
+                              vars->Q_M_rem   = NULL;
+                            }
+
+                            if(alloc_vector & ALLOC_UNIQ){
+                              vars->Q_M1        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **)  * size);
+                              vars->l_min_Q_M1  = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->l_max_Q_M1  = (int **)        vrna_alloc(sizeof(int *)          * size);
+                              vars->k_min_Q_M1  = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->k_max_Q_M1  = (int *)         vrna_alloc(sizeof(int)            * size);
+                              vars->Q_M1_rem    = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)     * size);
+                            } else {
+                              vars->Q_M1        = NULL;
+                              vars->l_min_Q_M1  = NULL;
+                              vars->l_max_Q_M1  = NULL;
+                              vars->k_min_Q_M1  = NULL;
+                              vars->k_max_Q_M1  = NULL;
+                              vars->Q_M1_rem    = NULL;
+                            }
+
+                            if(alloc_vector & ALLOC_CIRC){
+                              vars->Q_M2        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **)  * lin_size);
+                              vars->l_min_Q_M2  = (int **)        vrna_alloc(sizeof(int *)          * lin_size);
+                              vars->l_max_Q_M2  = (int **)        vrna_alloc(sizeof(int *)          * lin_size);
+                              vars->k_min_Q_M2  = (int *)         vrna_alloc(sizeof(int)            * lin_size);
+                              vars->k_max_Q_M2  = (int *)         vrna_alloc(sizeof(int)            * lin_size);
+                              vars->Q_M2_rem    = (FLT_OR_DBL *)  vrna_alloc(sizeof(FLT_OR_DBL)     * lin_size);
+                            }
+                            else{
+                              vars->Q_M2_rem    = NULL;
+                              vars->Q_M2        = NULL;
+                              vars->l_min_Q_M2  = NULL;
+                              vars->l_max_Q_M2  = NULL;
+                              vars->k_min_Q_M2  = NULL;
+                              vars->k_max_Q_M2  = NULL;
+                            }
+
+                            vars->Q_c       = NULL;
+                            vars->Q_cH      = NULL;
+                            vars->Q_cI      = NULL;
+                            vars->Q_cM      = NULL;
+                            vars->Q_c_rem   = 0.;
+                            vars->Q_cH_rem  = 0.;
+                            vars->Q_cI_rem  = 0.;
+                            vars->Q_cM_rem  = 0.;
+
+                            break;
+
+    default:                /* do nothing */
+                            break;
   }
+
+  /*
+      always alloc the helper arrays for unpaired nucleotides in multi-
+      branch loops and scaling
+  */
+  vars->scale     = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+  vars->expMLbase = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
 
   return vars;
 }
