@@ -192,8 +192,8 @@ PRIVATE char*     get_structure(STATE * state);
 PRIVATE int       compare(const void *solution1, const void *solution2);
 PRIVATE void      make_output(SOLUTION *SL, FILE *fp);
 PRIVATE char      *costring(char *string);
-PRIVATE void      repeat(int i, int j, STATE * state,
-                  int part_energy, int temp_energy);
+PRIVATE void      repeat(int i, int j, STATE * state, int part_energy, int temp_energy);
+PRIVATE void      repeat_gquad( int i, int j, STATE *state, int part_energy, int temp_energy);
 
 /*
 #################################
@@ -426,6 +426,8 @@ best_attainable_energy(STATE * state)
         sum += fc[next->i];
       else if (next->array_flag == 5)
         sum += fc[next->j];
+      else if (next->array_flag == 6)
+        sum += ggg[indx[next->j] + next->i];
     }
 
   return sum;
@@ -640,7 +642,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
         structure_energy = state->partial_energy / 100.;
 
 #ifdef CHECK_ENERGY
-        structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
+        structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : (with_gquad) ? energy_of_gquad_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
 
         if (!logML)
           if ((double) (state->partial_energy / 100.) != structure_energy) {
@@ -650,7 +652,7 @@ PUBLIC SOLUTION *subopt_par(char *seq,
           }
 #endif
         if (logML || (dangle_model==1) || (dangle_model==3)) { /* recalc energy */
-          structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
+          structure_energy = (circular) ? energy_of_circ_struct_par(sequence, structure, P, 0) : (with_gquad) ? energy_of_gquad_struct_par(sequence, structure, P, 0) : energy_of_struct_par(sequence, structure, P, 0);
         }
 
         e = (int) ((structure_energy-min_en)*10. + 0.1); /* avoid rounding errors */
@@ -783,6 +785,11 @@ scan_interval(int i, int j, int array_flag, STATE * state)
       cij = c[indx[j] + i] + element_energy;
       if (cij + best_energy <= threshold)
         repeat(i, j, state, element_energy, 0);
+    } else if (with_gquad){
+      element_energy = E_MLstem(0, -1, -1, P);
+      cij = ggg[indx[j] + i] + element_energy;
+      if(cij + best_energy <= threshold)
+        repeat_gquad(i, j, state, element_energy, 0);
     }
   }                                   /* array_flag == 3 || array_flag == 1 */
 
@@ -797,6 +804,19 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     if ((SAME_STRAND(i-1,i))&&(SAME_STRAND(j,j+1))) { /*backtrack in FML only if multiloop is possible*/
       for ( k = i+turn+1 ; k <= j-1-turn ; k++) {
         /* Multiloop decomposition if i,j contains more than 1 stack */
+        
+        if(with_gquad){
+          if(SAME_STRAND(k, k+1)){
+            element_energy = E_MLstem(0, -1, -1, P);
+            if(fML[indx[k]+i] + ggg[indx[j] + k + 1] + element_energy + best_energy <= threshold){
+              temp_state = copy_state (state);
+              new_interval = make_interval (i, k, 1);
+              push (temp_state->Intervals, new_interval);
+              repeat_gquad(k+1, j, temp_state, element_energy, fML[indx[k]+i]);
+              free_state_node(temp_state);
+            }
+          }
+        }
 
         type = ptype[indx[j]+k+1];
         if (type==0) continue;
@@ -828,6 +848,12 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     else if (i==cut_point) stopp=0;   /*not a multi loop*/
     for (k = i ; k <= stopp; k++) {
       /* Multiloop decomposition if i,j contains only 1 stack */
+      if(with_gquad){
+        element_energy = E_MLstem(0, -1, -1, P) + P->MLbase*(k-i+1);
+        if(ggg[indx[j] + k + 1] + element_energy + best_energy <= threshold)
+          repeat_gquad(k+1, j, state, element_energy, 0);
+      }
+
       type = ptype[indx[j]+k+1];
       if (type==0) continue;
 
@@ -884,6 +910,20 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
       for (k = j-turn-1; k > 1; k--) {
 
+        if(with_gquad){
+          if(SAME_STRAND(k,j)){
+            element_energy = 0;
+            if(f5[k-1] + ggg[indx[j]+k] + element_energy + best_energy <= threshold){
+              temp_state = copy_state(state);
+              new_interval = make_interval(1,k-1,0);
+              push(temp_state->Intervals, new_interval);
+              /* backtrace the quadruplex */
+              repeat_gquad(k, j, temp_state, element_energy, f5[k-1]);
+              free_state_node(temp_state);
+            }
+          }
+        }
+
         type = ptype[indx[j]+k];
         if (type==0)   continue;
 
@@ -921,6 +961,14 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
         if (c[indx[j]+1] + element_energy + best_energy <= threshold)
           repeat(1, j, state, element_energy, 0);
+      } else if (with_gquad){
+        if(SAME_STRAND(k,j)){
+          element_energy = 0;
+          if(ggg[indx[j]+1] + element_energy + best_energy <= threshold){
+            /* backtrace the quadruplex */
+            repeat_gquad(1, j, state, element_energy, 0);
+          }
+        }
       }
     }/* end array_flag == 0 && !circular*/
   /* or do we subopt circular? */
@@ -1083,6 +1131,16 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
     for (k = i+TURN+1; k < j; k++) {
 
+      if(with_gquad){
+        if(fc[k+1] + ggg[indx[k]+i] + best_energy <= threshold){
+          temp_state = copy_state(state);
+          new_interval = make_interval(k+1,j, 4);
+          push(temp_state->Intervals, new_interval);
+          repeat_gquad(i, k, temp_state, 0, fc[k+1]);
+          free_state_node(temp_state);
+        }
+      }
+
       type = ptype[indx[k]+i];
       if (type==0)   continue;
 
@@ -1109,6 +1167,9 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
       if (c[indx[cut_point-1]+i] + element_energy + best_energy <= threshold)
         repeat(i, cut_point-1, state, element_energy, 0);
+    } else if(with_gquad){
+      if(ggg[indx[cut_point -1] + i] + best_energy <= threshold)
+        repeat_gquad(i, cut_point - 1, state, 0, 0);
     }
   } /* array_flag == 4 */
 
@@ -1127,6 +1188,16 @@ scan_interval(int i, int j, int array_flag, STATE * state)
     }
 
     for (k = j-TURN-1; k > i; k--) {
+
+      if(with_gquad){
+        if(fc[k-1] + ggg[indx[j] + k] + best_energy <= threshold){
+          temp_state = copy_state(state);
+          new_interval = make_interval(i, k-1, 5);
+          push(temp_state->Intervals, new_interval);
+          repeat_gquad(k, j, temp_state, 0, fc[k-1]);
+          free_state_node(temp_state);
+        }
+      }
 
       type = ptype[indx[j]+k];
       if (type==0)   continue;
@@ -1153,14 +1224,76 @@ scan_interval(int i, int j, int array_flag, STATE * state)
 
       if (c[indx[j]+cut_point] + element_energy + best_energy <= threshold)
         repeat(cut_point, j, state, element_energy, 0);
+    } else if (with_gquad){
+      if(ggg[indx[j] + cut_point] + best_energy <= threshold)
+        repeat_gquad(cut_point, j, state, 0, 0);
     }
   } /* array_flag == 5 */
+
+  if (array_flag == 6) { /* we have a gquad */
+      repeat_gquad(i, j, state, 0, 0);
+      if (nopush){
+        fprintf(stderr, "%d,%d", i, j);
+        fprintf(stderr, "Oops, no solution in gquad-repeat!\n");
+      }
+      return;
+  
+  
+  }
+
   if (nopush)
     push_back(state);
   return;
 }
 
 /*---------------------------------------------------------------------------*/
+PRIVATE void
+repeat_gquad( int i,
+              int j,
+              STATE *state,
+              int part_energy,
+              int temp_energy){
+
+  /* find all gquads that fit into the energy range and the interval [i,j] */
+  STATE *new_state;
+  best_energy += part_energy; /* energy of current structural element */
+  best_energy += temp_energy; /* energy from unpushed interval */
+
+  if(SAME_STRAND(i,j)){
+    element_energy = ggg[indx[j] + i];
+    if(element_energy + best_energy <= threshold){
+      int cnt;
+      int *L;
+      int *l;
+      /* find out how many gquads we might expect in the interval [i,j] */
+      int num_gquads = get_gquad_count(S1, i, j);
+      L = (int *)space(sizeof(int) * num_gquads);
+      l = (int *)space(sizeof(int) * num_gquads * 3);
+      L[0] = -1;
+
+      get_gquad_pattern_exhaustive(S1, i, j, P, L, l, threshold - best_energy);
+
+      for(cnt = 0; L[cnt] != -1; cnt++){
+        new_state = copy_state(state);
+
+        make_gquad(i, L[cnt], &(l[3*cnt]), new_state);
+        new_state->partial_energy += part_energy;
+        new_state->partial_energy += element_energy;
+        /* new_state->best_energy =
+           hairpin[unpaired] + element_energy + best_energy; */
+        push(Stack, new_state);
+      }
+      free(L);
+      free(l);
+    }
+  }
+
+  best_energy -= part_energy;
+  best_energy -= temp_energy;
+  return;
+}
+
+
 
 PRIVATE void
 repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
@@ -1288,7 +1421,6 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
         element_energy + best_energy)  <= threshold)
       {
         INTERVAL *interval1, *interval2;
-
         new_state = copy_state(state);
         interval1 = make_interval(i+1, k, 1);
         interval2 = make_interval(k+1, j-1, 3);
@@ -1323,6 +1455,27 @@ repeat(int i, int j, STATE * state, int part_energy, int temp_energy)
       /* new_state->best_energy =
          hairpin[unpaired] + element_energy + best_energy; */
       push(Stack, new_state);
+    }
+
+    if(with_gquad){
+      /* now we have to find all loops where (i,j) encloses a gquad in an interior loops style */
+      int cnt, *p, *q, *en;
+      p = q = en = NULL;
+      en = E_GQuad_IntLoop_exhaustive(i, j, &p, &q, type, S1, ggg, threshold - best_energy, indx, P);
+      for(cnt = 0; p[cnt] != -1; cnt++){
+          new_state = copy_state(state);
+          make_pair(i, j, new_state);
+
+          new_interval = make_interval(p[cnt], q[cnt], 6);
+          push(new_state->Intervals, new_interval);
+          new_state->partial_energy += part_energy;
+          new_state->partial_energy += en[cnt];
+          /* new_state->best_energy = new + best_energy; */
+          push(Stack, new_state);
+      }
+      free(en);
+      free(p);
+      free(q);
     }
   }
 

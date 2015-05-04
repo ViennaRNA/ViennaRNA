@@ -81,6 +81,15 @@ void        get_gquad_pattern_mfe(short *S,
                                   int *L,
                                   int l[3]);
 
+void
+get_gquad_pattern_exhaustive( short *S,
+                              int i,
+                              int j,
+                              paramT *P,
+                              int *L,
+                              int *l,
+                              int threshold);
+
 void        get_gquad_pattern_pf( short *S,
                                   int i,
                                   int j,
@@ -107,6 +116,15 @@ plist       *get_plist_gquad_from_pr_max(short *S,
 
 plist       *get_plist_gquad_from_db( const char *structure,
                                       float pr);
+
+int         get_gquad_count(short *S,
+                            int i,
+                            int j);
+
+int         get_gquad_layer_count(short *S,
+                            int i,
+                            int j);
+
 
 /**
  *  given a dot-bracket structure (possibly) containing gquads encoded
@@ -454,6 +472,106 @@ E_GQuad_IntLoop(int i,
 }
 
 INLINE PRIVATE
+int *
+E_GQuad_IntLoop_exhaustive( int i,
+                            int j,
+                            int **p_p,
+                            int **q_p,
+                            int type,
+                            short *S,
+                            int *ggg,
+                            int threshold,
+                            int *index,
+                            paramT *P){
+
+  int energy, *ge, en1, en2, dangles, p, q, l1, minq, maxq;
+  int c0, c1, c2, c3, up, d53, d5, d3;
+  short si, sj;
+  int cnt = 0;
+
+  dangles = P->model_details.dangles;
+  si      = S[i + 1];
+  sj      = S[j - 1];
+  energy  = 0;
+
+  if(dangles == 2)
+    energy += P->mismatchI[type][si][sj];
+
+  if(type > 2)
+    energy += P->TerminalAU;
+
+  /* guess how many gquads are possible in interval [i+1,j-1] */
+  *p_p  = (int *)space(sizeof(int) * 256);
+  *q_p  = (int *)space(sizeof(int) * 256);
+  ge    = (int *)space(sizeof(int) * 256);
+
+  p = i + 1;
+  if(S[p] == 3){
+    if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
+      minq  = j - i + p - MAXLOOP - 2;
+      c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      minq  = MAX2(c0, minq);
+      c0    = j - 3;
+      maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+      maxq  = MIN2(c0, maxq);
+      for(q = minq; q < maxq; q++){
+        if(S[q] != 3) continue;
+        c0  = energy + ggg[index[q] + p] + P->internal_loop[j - q - 1];
+        if(c0 <= threshold){
+          ge[cnt]       = energy + P->internal_loop[j - q - 1];
+          (*p_p)[cnt]   = p;
+          (*q_p)[cnt++] = q;
+        }
+      }
+    }
+  }
+
+  for(p = i + 2;
+      p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+      p++){
+    l1    = p - i - 1;
+    if(l1>MAXLOOP) break;
+    if(S[p] != 3) continue;
+    minq  = j - i + p - MAXLOOP - 2;
+    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+    minq  = MAX2(c0, minq);
+    c0    = j - 1;
+    maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+    maxq  = MIN2(c0, maxq);
+    for(q = minq; q < maxq; q++){
+      if(S[q] != 3) continue;
+      c0  = energy + ggg[index[q] + p] + P->internal_loop[l1 + j - q - 1];
+        if(c0 <= threshold){
+          ge[cnt]       = energy + P->internal_loop[l1 + j - q - 1];
+          (*p_p)[cnt]   = p;
+          (*q_p)[cnt++] = q;
+        }
+    }
+  }
+
+  q = j - 1;
+  if(S[q] == 3)
+    for(p = i + 4;
+        p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+        p++){
+      l1    = p - i - 1;
+      if(l1>MAXLOOP) break;
+      if(S[p] != 3) continue;
+      c0  = energy + ggg[index[q] + p] + P->internal_loop[l1];
+        if(c0 <= threshold){
+          ge[cnt]       = energy + P->internal_loop[l1];
+          (*p_p)[cnt]   = p;
+          (*q_p)[cnt++] = q;
+        }
+    }
+
+
+  (*p_p)[cnt] = -1;
+
+  return ge;
+}
+
+INLINE PRIVATE
 int
 E_GQuad_IntLoop_L(int i,
                   int j,
@@ -565,6 +683,7 @@ exp_E_GQuad_IntLoop(int i,
       maxl  = MIN2(u, maxl);
       for(l = minl; l < maxl; l++){
         if(S[l] != 3) continue;
+        if(G[index[k]-l] == 0.) continue;
         q += qe * G[index[k]-l] * expintern[j - l - 1];
       }
     }
@@ -585,6 +704,7 @@ exp_E_GQuad_IntLoop(int i,
     maxl  = MIN2(r, maxl);
     for(l = minl; l < maxl; l++){
       if(S[l] != 3) continue;
+      if(G[index[k]-l] == 0.) continue;
       q += qe * G[index[k]-l] * expintern[u + j - l - 1];
     }
   }
@@ -595,6 +715,7 @@ exp_E_GQuad_IntLoop(int i,
       u    = k - i - 1;
       if(u>MAXLOOP) break;
       if(S[k] != 3) continue;
+      if(G[index[k]-l] == 0.) continue;
       q += qe * G[index[k]-l] * expintern[u];
     }
 

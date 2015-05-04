@@ -99,6 +99,12 @@ option  "zuker" z
 flag
 off
 
+option  "gquad" g
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n(no support of G-quadruplex\
+ prediction for stochastic backtracking and Zuker-style suboptimals yet)\n"
+flag
+off
+
 section "Model Details"
 
 option  "temp"  T

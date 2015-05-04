@@ -156,7 +156,7 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi1 = (int *) space(sizeof(int)*(size+1));
   DMLi2 = (int *) space(sizeof(int)*(size+1));
 
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+200)); /* add a guess of how many G's may be involved in a G quadruplex */
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
 }
 
 /*--------------------------------------------------------------------------*/
@@ -254,6 +254,12 @@ PUBLIC float cofold_par(const char *string,
   S1[0]       = S[0]; /* store length at pos. 0 */
 
   BP = (int *)space(sizeof(int)*(length+2));
+  if(with_gquad){ /* add a guess of how many G's may be involved in a G quadruplex */
+    if(base_pair2)
+      free(base_pair2);
+    base_pair2 = (bondT *) space(sizeof(bondT)*(4*(1+length/2)));
+  }
+
   make_ptypes(S, structure);
 
   energy = fill_arrays(string);
@@ -508,12 +514,23 @@ PRIVATE int fill_arrays(const char *string) {
         if (SAME_STRAND(j-1,j)) new_fML = MIN2(fML[indx[j-1]+i]+P->MLbase, new_fML);
         if (SAME_STRAND(j,j+1)) {
           energy = c[ij];
-          if(dangle_model == 2) energy += E_MLstem(type,(i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P);
-          else energy += E_MLstem(type, -1, -1, P);
+          if(dangle_model == 2)
+            energy += E_MLstem(type,(i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P);
+          else
+            energy += E_MLstem(type, -1, -1, P);
+
           new_fML = MIN2(new_fML, energy);
+
+          if(with_gquad){
+            int gggg = ggg[ij] + E_MLstem(0, -1, -1, P);
+            energy = MIN2(energy, gggg);
+            new_fML = MIN2(new_fML, energy);
+          }
+
           if(uniq_ML){
             fM1[ij] = energy;
-            if(SAME_STRAND(j-1,j)) fM1[ij] = MIN2(energy, fM1[indx[j-1]+i] + P->MLbase);
+            if(SAME_STRAND(j-1,j))
+              fM1[ij] = MIN2(energy, fM1[indx[j-1]+i] + P->MLbase);
           }
         }
         if (dangle_model%2==1) {  /* normal dangles */
@@ -801,7 +818,13 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                       if(fc[i] == fc[k+1] + c[indx[k]+i] + E_ExtLoop(type, -1, -1, P)){
                         traced = i;
                       }
+                    } else if (with_gquad){
+                      if(fc[i] == fc[k+1] + ggg[indx[k]+i]){
+                        traced = i; gq = 1;
+                        break;
+                      }
                     }
+
                     if (traced) break;
                   }
                   break;
@@ -811,6 +834,11 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                     if(type){
                       if(fc[i] == fc[k+1] + c[indx[k]+i] + E_ExtLoop(type,(i>1 && SAME_STRAND(i-1,i)) ? S1[i-1] : -1,  SAME_STRAND(k,k+1) ? S1[k+1] : -1, P)){
                         traced = i;
+                      }
+                    } else if (with_gquad){
+                      if(fc[i] == fc[k+1] + ggg[indx[k]+i]){
+                        traced = i; gq = 1;
+                        break;
                       }
                     }
                     if (traced) break;
@@ -826,7 +854,13 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
                       else if(fc[i] == fc[k+2] + c[indx[k]+i] + E_ExtLoop(type, -1, SAME_STRAND(k,k+1) ? S1[k+1] : -1, P)){
                         traced = i; jj=k+2; break;
                       }
+                    } else if (with_gquad){
+                      if(fc[i] == fc[k+1] + ggg[indx[k]+i]){
+                        traced = i; gq = 1;
+                        break;
+                      }
                     }
+
                     type = ptype[indx[k]+i+1];
                     if(type){
                       if(fc[i] == fc[k+1] + c[indx[k]+i+1] + E_ExtLoop(type, SAME_STRAND(i, i+1) ? S1[i] : -1, -1, P)){
@@ -849,6 +883,12 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
       sector[s].ml  = ml;
 
       j=k; i=traced;
+      if(with_gquad && gq){
+        /* goto backtrace of gquadruplex */
+        goto repeat_gquad;
+      }
+
+
       base_pair2[++b].i = i;
       base_pair2[b].j   = j;
       goto repeat1;
@@ -1029,7 +1069,7 @@ PRIVATE void backtrack_co(const char *string, int s, int b /* b=0: start new str
         that should then be decomposed further...
       */
       if(SAME_STRAND(i,j)){
-        if(backtrack_GQuad_IntLoop(cij, i, j, type, S, ggg, indx, &p, &q, P)){
+        if(backtrack_GQuad_IntLoop(cij - bonus, i, j, type, S, ggg, indx, &p, &q, P)){
           i = p; j = q;
           goto repeat_gquad;
         }

@@ -12,14 +12,21 @@
 @ifinfo
 @setchapternewpage odd
 @end ifinfo
+
+@dircategory Vienna RNA library
+@direntry
+* libRNA.a (texinfo).           A Library for folding and comparing RNA secondary structures
+@end direntry
+
 @titlepage
 @sp 10
-@title{Vienna RNA Package}
-@sp
-@subtitle{A Library for folding and comparing RNA secondary structures}
+@title Vienna RNA Package
+@sp 10
+@subtitle A Library for folding and comparing RNA secondary structures
 
 @vskip 0pt plus 1filll
-Copyright @copyright{1994-2002} @author{Ivo Hofacker and Peter Stadler}
+Copyright @copyright{} 1994-2013
+@author by Ivo Hofacker and Peter Stadler 
 @c @smallexample
 Revision @value{revision}
 @c @end smallexample
@@ -27,6 +34,7 @@ Revision @value{revision}
 
 @node Top, Introduction, (dir), (dir)
 @comment node-name, next,          previous, up
+
 
 @ifinfo
 This file documents the Vienna RNA Package Version @value{Version}

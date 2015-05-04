@@ -69,7 +69,7 @@ install readseq manually, following the instructions in the readseq
 directory.
 
 There are man pages for all executables, the library is documented in
-./doc/RNAlib-2.0.7.pdf as well as a set of HTML pages in
+./doc/RNAlib-2.1.3.pdf as well as a set of HTML pages in
 ./doc/html/index.html. Documentation in HTML can also be found at
 http://www.tbi.univie.ac.at/~ivo/RNA/
 

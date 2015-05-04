@@ -185,7 +185,7 @@ PRIVATE void get_arrays(unsigned int size){
   DMLi2_a = (int *) space(sizeof(int)*(size+1));
   DMLi2_o = (int *) space(sizeof(int)*(size+1));
 
-  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2+200)); /* add a guess of how many G's may be involved in a G quadruplex */
+  base_pair2 = (bondT *) space(sizeof(bondT)*(1+size/2));
 
   /* extra array(s) for circfold() */
   if(circular) fM2 =  (int *) space(sizeof(int)*(size+2));
@@ -333,6 +333,11 @@ PUBLIC float fold_par(const char *string,
   S           = encode_sequence(string, 0);
   S1          = encode_sequence(string, 1);
   BP          = (int *)space(sizeof(int)*(length+2));
+  if(with_gquad){ /* add a guess of how many G's may be involved in a G quadruplex */
+    if(base_pair2)
+      free(base_pair2);
+    base_pair2 = (bondT *) space(sizeof(bondT)*(4*(1+length/2)));
+  }
 
   make_ptypes(S, structure);
 
@@ -1100,7 +1105,7 @@ PRIVATE void backtrack(const char *string, int s) {
         kind and the enclosed pair is not a canonical one but a g-quadruplex
         that should then be decomposed further...
       */
-      if(backtrack_GQuad_IntLoop(cij, i, j, type, S, ggg, indx, &p, &q, P)){
+      if(backtrack_GQuad_IntLoop(cij - bonus, i, j, type, S, ggg, indx, &p, &q, P)){
         i = p; j = q;
         goto repeat_gquad;
       }
@@ -1404,7 +1409,11 @@ PRIVATE int en_corr_of_loop_gquad(int i,
     /* check if it's enclosed in a base pair */
     if(loop_idx[p] == 0){ q++; continue; /* g-quad in exterior loop */}
     else{
-      energy += E_MLstem(0, -1, -1, P);
+      energy += E_MLstem(0, -1, -1, P); /*  do not forget to remove this energy if
+                                            the gquad is the only one surrounded by
+                                            the enclosing pair
+                                        */
+
       /*  find its enclosing pair */
       int num_elem, num_g, elem_i, elem_j, up_mis;
       num_elem  = 0;
@@ -1473,6 +1482,7 @@ PRIVATE int en_corr_of_loop_gquad(int i,
                     if(type > 2)
                       energy += P->TerminalAU;
                     energy += P->internal_loop[s - r - 1 - up_mis];
+                    energy -= E_MLstem(0, -1, -1, P);
                     energy -= E_Hairpin(s - r - 1,
                                         type,
                                         s1[r + 1],
@@ -1508,20 +1518,24 @@ PRIVATE int en_corr_of_loop_gquad(int i,
   return energy;
 }
 
-PUBLIC float energy_of_gquad_structure( const char *string,
-                                        const char *structure,
-                                        int verbosity_level){
+PUBLIC float
+energy_of_gquad_structure(const char *string,
+                          const char *structure,
+                          int verbosity_level){
+
+  return energy_of_gquad_struct_par(string, structure, NULL, verbosity_level);
+}
+
+PUBLIC float
+energy_of_gquad_struct_par( const char *string,
+                            const char *structure,
+                            paramT *parameters,
+                            int verbosity_level){
 
   int   energy, gge, *loop_idx;
   short *ss, *ss1;
 
-#ifdef _OPENMP
-  if(P == NULL) update_fold_params();
-#else
-  if((init_length<0)||(P==NULL)) update_fold_params();
-#endif
-
-  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
+  update_fold_params_par(parameters);
 
   if (strlen(structure)!=strlen(string))
     nrerror("energy_of_struct: string and structure have unequal length");

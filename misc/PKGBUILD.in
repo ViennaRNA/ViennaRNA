@@ -4,7 +4,7 @@ pkgname=viennarna2
 pkgver=@VERSION@
 pkgrel=1
 pkgdesc="RNA Secondary Structure Prediction and Comparison"
-arch=('armv7h' 'i686' 'x86_64')
+arch=('any')
 license=('Custom')
 url="@PACKAGE_URL@"
 depends=('perl')
@@ -19,14 +19,14 @@ source=(http://www.tbi.univie.ac.at/~ronny/programs/ViennaRNA-${pkgver}.tar.gz)
 md5sums=('')
 
 build() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
+  cd "${srcdir}/ViennaRNA-${pkgver}"
   # forester does not compile (g2 breaks at DESTDIR)
   ./configure --with-cluster --prefix=/usr --without-forester || return 1
   make || return 1
 }
 
 package() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
+  cd "${srcdir}/ViennaRNA-${pkgver}"
   make DESTDIR="${pkgdir}" install || return 1
   # no need for that file
   rm $pkgdir/usr/share/info/dir

@@ -1,4 +1,4 @@
-!define VERSION "2.1.2"
+!define VERSION "2.1.3"
 !define PACKAGE "ViennaRNA Package"
 !define MULTIUSER_INSTALLMODE_INSTDIR "${PACKAGE}"
 BrandingText "${PACKAGE} - ${VERSION} [ TBI / Institute for Theoretical Chemistry / University of Vienna ]"
@@ -22,7 +22,7 @@ FunctionEnd
 # Name of the software
 name "${PACKAGE}"
 # Name of the installer
-outfile "Install-ViennaRNA-${VERSION}.exe"
+outfile "Install-ViennaRNA-${VERSION}_32bit.exe"
 
 # define the directory to install to, the desktop in this case as specified  
 # by the predefined $DESKTOP variable
@@ -120,10 +120,8 @@ section "ViennaRNA Package"
 
 
   # then all the necessary libraries
-  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
-  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
-  #File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
-  #File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
+  File "/usr/i686-w64-mingw32/lib/libgomp-1.dll"
+  File "/usr/i686-w64-mingw32/bin/pthreadGC2.dll"
   File ".local"
 
   # we also want an uninstall to be installed

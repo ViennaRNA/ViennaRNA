@@ -263,6 +263,11 @@ float energy_of_gquad_structure(const char *string,
                                 const char *structure,
                                 int verbosity_level);
 
+float energy_of_gquad_struct_par( const char *string,
+                                  const char *structure,
+                                  paramT *parameters,
+                                  int verbosity_level);
+
 /**
  *  \brief Calculate the free energy of an already folded RNA
  *
