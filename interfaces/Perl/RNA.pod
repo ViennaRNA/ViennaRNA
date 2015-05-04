@@ -372,6 +372,19 @@ the base pairing prob. matrix computed by L<pf_fold|/pf_fold>.
 Array of indices for moving withing the C<pr> array. Better use
 L<get_pr|/get_pr>.
 
+from move_set.h
+
+=over 4
+
+=item move_standard SEQUENCE, STRUCTURE, MOVE_TYPE, VERBOSITY, SHIFTS, noLP 
+
+Walking method to find local minima. There are three different kinds available
+which can be cosen using the MOVE_TYPE enum:
+0 - GRADIENT: take the neighbouring structure with the lowest energy
+1 - FIRST: take the first neighbour with a lower energy
+2 - ADAPTIVE: randomly choose a neighbour
+STRUCTURE is the start structure and will also be used to return the target structure.
+Others are options set as integers.
 
 =back
 

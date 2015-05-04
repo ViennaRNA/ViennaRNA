@@ -1,0 +1,335 @@
+# Name of your program
+package "RNAfold" # don't use package if you're using automake
+
+purpose "Calculate minimum free energy secondary structures and partition function of RNAs"
+
+#usage "RNAfold [options]\n"
+#version "2.0"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=RNAfold_cmdl --include-getopt --default-optional --func-name=RNAfold_cmdline_parser --arg-struct-name=RNAfold_args_info"
+
+
+description "The program reads RNA sequences from stdin, calculates their minimum free energy (mfe) structure\
+ and prints to stdout the mfe structure in bracket notation and its free energy. If the -p option\
+ was given it also computes the partition function (pf) and base pairing probability matrix, and\
+ prints the free energy of the thermodynamic ensemble, the frequency of the mfe structure in the ensemble,\
+ and the ensemble diversity to stdout.\n\nIt also produces PostScript files with plots of the resulting\
+ secondary structure graph and a \"dot plot\" of the base pairing matrix.\nThe dot plot shows a matrix of\
+ squares with area proportional to the pairing probability in the upper right half, and one square for each\
+ pair in the minimum free energy structure in the lower left half. For each pair i-j with probability\
+ p>10E-6 there is a line of the form\n\ni  j  sqrt(p)  ubox\n\nin the PostScript file, so that the pair\
+ probabilities can be easily extracted.\n\nSequences may be provided in a simple text format where each sequence\
+ occupies a single line. Output files are named \"rna.ps\" and \"dot.ps\". Existing files of the same name\
+ will be overwritten.\nIt is also possible to provide sequence data in FASTA format. In this case, the first\
+ word (max. 42 char) of the FASTA header will be used for output file names. PostScript files \"name_ss.ps\"\
+ and \"name_dp.ps\" are produced for the structure and dot plot, respectively.\nOnce FASTA input was provided\
+ all following sequences must be in FASTA format too.\nThe program will continue to read new sequences until a\
+ line consisting of the single character @ or an end of file condition is encountered.\n\n"
+
+# Options
+section "General Options"
+sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
+
+option  "verbose" v
+"Be verbose\n"
+flag
+off
+
+
+option  "constraint"  C
+"Calculate structures subject to constraints.\n"
+details="The program reads first the\
+ sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
+ for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
+ a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
+ exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
+ sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
+ folding ignores constraints of type \"|\".\n\n"
+string
+typestr="filename"
+default = ""
+argoptional
+
+option  "canonicalBPonly" -
+"Remove non-canonical base pairs from the structure constraint\n\n"
+flag
+off
+dependon="constraint"
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
+flag
+off
+
+option  "noPS"  -
+"Do not produce postscript drawing of the mfe structure.\n\n"
+flag
+off
+
+option  "layout-type"  t
+"Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"
+int
+default="1"
+optional
+hidden
+
+option  "format"  -
+"Select output format\n"
+details="The following output formats are recognized:\n\n\
+ V ... ViennaRNA format (simply write output to file)\n\
+       (file extension: .db)\n\n\
+ H ... Helix List, i.e. 3 columns listing start, end, and length of helices\n\
+       (file extension: .hx)\n\n\
+ C ... Connect Format, as introduced with Michael Zuker's mfold\n\
+       (file extension: .ct)\n\n\
+ B ... BPSEQ, Base Pair and SEQence format\n\
+       (file extension: .bpseq)\n\nNote: Some output formats do not allow for more data than the structure. Thus,\
+ leaving out thermodynamic properties (format \"T\") may result in loss of prediction data.\n\n"
+string
+typestr="VHCB"
+default="V"
+optional
+
+option  "outfile" o
+"Print output to file instead of stdout\n"
+details="Specifying a file name/prefix will create text output files in formats specified with the --output option.\
+ If a FASTA header precedes the input sequence, the appropriate fasta ID is used as infix for the file name.\
+ An additional infix will be appended to the file name for secondary strcuture output.\n\n\
+ \"_mfe\" ... MFE structure\n\n\
+ \"_cent\" ... Centroid structure\n\n\
+ \"_mea\" ... MEA structure\n\n\
+ The resulting output file names then become for instance\n\n\"filename_fastaID_mfe.db\"\n\n\
+ Note for batch mode:\
+ In case no FASTA headers are present in the input, only a single output file per structure type\
+ will be created. The individual results are then concatenated using the separator line:\n\n\
+ \"## NEXT RESULT ##\"\n\n"
+string
+typestr="<filename>"
+optional
+
+option  "infile"  i
+"Read a file instead of reading from stdin\n"
+details="The default behavior of RNAfold is to read input from stdin. Using this parameter\
+ the user can specify an input file name where data is read from\n\n"
+string
+typestr="<filename>"
+optional
+
+section "Algorithms"
+sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
+ (MFE) and a structure representative are calculated in any case.\n\n"
+
+option  "partfunc"  p
+"Calculate the partition function and base pairing probability matrix.\n"
+details="In addition to the MFE structure\
+ we print a coarse representation of the pair probabilities in form of a pseudo bracket notation, followed by\
+ the ensemble free energy, as well as the centroid structure derived from the pair probabilities together with\
+ its free energy and distance to the ensemble. Finally it prints the frequency of the mfe structure, and the\
+ structural diversity (mean distance between the structures in the ensemble).\nSee the description of pf_fold()\
+ and mean_bp_dist() and centroid() in the RNAlib documentation for details.\nNote that unless you also specify\
+ -d2 or -d0, the partition function and mfe calculations will use a slightly different energy model. See the\
+ discussion of dangling end options below.\n\nAn additionally passed value to this option changes the behavior\
+ of partition function calculation:\n-p0 Calculate the partition function but not the pair probabilities,\
+ saving about 50% in runtime. This prints the ensemble free energy -kT ln(Z).\n-p2 Compute stack probabilities,\
+ i.e. the probability that a pair (i,j) and the immediately interior pair (i+1,j-1) are formed simultaneously in\
+ addition to pair probabilities. A second postscript dot plot called \"name_dp2.ps\", or \"dot2.ps\" (if the\
+ sequence does not have a name), is produced that contains pair probabilities in the upper right half and stack\
+ probabilities in the lower left.\n\n"
+int
+default="1"
+argoptional
+optional
+
+option  "MEA"   -
+"Calculate an MEA (maximum expected accuracy) structure, where the expected accuracy is computed from the\
+ pair probabilities: each base pair (i,j) gets a score 2*gamma*p_ij and the score of an unpaired base is\
+ given by the probability of not forming a pair.\n"
+details="The parameter gamma tunes the importance of correctly\
+ predicted pairs versus unpaired bases. Thus, for small values of gamma the MEA structure will contain\
+ only pairs with very high probability.\nUsing --MEA implies -p for\
+ computing the pair probabilities.\n\n"
+float
+typestr="gamma"
+default="1."
+argoptional
+optional
+
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
+ overflows).\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+double
+typestr="scaling factor"
+optional
+hidden
+
+option  "circ"    c
+"Assume a circular (instead of linear) RNA molecule.\n"
+flag
+off
+
+option  "ImFeelingLucky"  -
+"Return exactly one stochastically backtracked structure\n"
+details="This function computes the partition function and returns exactly one secondary structure\
+ stochastically sampled from the Boltzmann equilibrium according to its probability in the ensemble\n\n"
+flag
+off
+hidden
+
+
+option  "bppmThreshold" -
+"Set the threshold for base pair probabilities included in the postscript output\n"
+details="By setting the threshold the base pair probabilities that are included in the\
+ output can be varied. By default only those exceeding 1e-5 in probability will be shown as squares\
+ in the dot plot. Changing the threshold to any other value allows for increase or decrease of data.\n\n"
+double
+typestr="<value>"
+optional
+default="1e-5"
+hidden
+
+option  "gquad" g
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n"
+flag
+off
+
+
+section "Model Details"
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
+double
+optional
+
+option  "noTetra" 4
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
+flag
+off
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith -d1 only unpaired bases can participate in at most one dangling end, this is the\
+ default for mfe folding but unsupported for the partition function folding.\n\nWith -d2 this check is ignored,\
+ dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
+ default for partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly for\
+ debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
+ moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
+ and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
+ treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
+ energy model.\n\n"
+int
+default="2"
+optional
+
+option  "noLP"  -
+"Produce structures without lonely pairs (helices of length 1).\n"
+details="For partition function folding this only disallows pairs that can only occur isolated. Other\
+ pairs may still occasionally occur as helices of length 1.\n\n"
+flag
+off
+
+option  "noGU"  -
+"Do not allow GU pairs\n\n"
+flag
+off
+
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices\n\n"
+flag
+off
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
+ documentation for details on the file format.\n\n"
+string
+typestr="paramfile"
+optional
+
+option  "nsp" -
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+details="Its argument is a comma separated list of additionally allowed pairs. If the\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ energy.\n\n"
+string
+optional
+hidden
+
+option  "energyModel" e
+"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
+int
+optional
+hidden
+
+option  "betaScale" -
+"Set the scaling of the Boltzmann factors\n"
+details="The argument provided with this option enables to scale the thermodynamic temperature\
+ used in the Boltzmann factors independently from the temperature used to scale the individual\
+ energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
+ where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
+ absolute temperature.\n\n"
+double
+default="1."
+optional
+dependon="partfunc"
+hidden
+
+option  "shape" -
+"Use SHAPE reactivity data in the folding recursions (does not work for PF yet)\n"
+string
+typestr="SHAPE file"
+optional
+
+option  "shapeMethod" -
+"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
+details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
+'D': Convert by using a linear equation according to Deigan et al 2009. \
+The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
+This method is recognized by a capital 'D' in the provided parameter, i.e.: \
+--shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
+non-default value if necessary, otherwise m=1.8 and b=-0.6. \
+To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
+parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
+parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
+
+'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
+SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
+Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
+The magnitude of the penalties can affected by adjusting the factor beta \
+(e.g. --shapeMethod=\"Zb0.8\").
+
+'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
+Perturbation vectors can be calculated by using RNApvmin.\n"
+string
+typestr="[D/Z/W] + [optional parameters]"
+dependon="shape"
+default="D"
+optional
+
+option  "shapeConversion" -
+"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al.\n"
+details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+'M': Use linear mapping according to Zarringhalam et al.
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n"
+string
+typestr="M/C/S/L/O  + [optional parameters]"
+default="O"
+optional
+
+option  "maxBPspan" -
+"Set the maximum base pair span\n"
+int
+default="-1"
+optional
+
+
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n\n"

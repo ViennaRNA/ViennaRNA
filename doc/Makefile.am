@@ -44,7 +44,7 @@ if WITH_REFERENCE_MANUAL_BUILD
 ## would not link the references correctly          ##
 ##--------------------------------------------------##
 $(REFERENCE_MANUAL_FILES_TAG):  @DOXYGEN_CONF@ $(pkginclude_HEADERS)
-	@doxygen@ @DOXYGEN_CONF@
+	$(AM_V_GEN)@doxygen@ @DOXYGEN_CONF@
 
 ##--------------------------------------------------##
 ## In case the HTML manual should be created, here  ##
@@ -63,9 +63,7 @@ endif WITH_REFERENCE_MANUAL_HTML
 if WITH_REFERENCE_MANUAL_PDF
 
 $(REFERENCE_MANUAL_FILES_PDF): $(REFERENCE_MANUAL_FILES_TAG)
-	cd latex; \
-	make; \
-	mv refman.pdf ../$(REFERENCE_MANUAL_FILES_PDF)
+	$(AM_V_GEN)cd latex; make; mv refman.pdf ../$(REFERENCE_MANUAL_FILES_PDF)
 
 endif WITH_REFERENCE_MANUAL_PDF
 
@@ -86,3 +84,6 @@ endif WITH_REFERENCE_MANUAL
 
 EXTRA_DIST = $(pkgdata_DATA) mainpage.h
 
+# remove all generated content
+maintainer-clean-local:
+	-rm -f *.tag *.pdf html/ latex/

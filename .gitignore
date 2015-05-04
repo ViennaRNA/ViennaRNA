@@ -9,20 +9,15 @@ depcomp
 missing
 compile
 install-sh
+config
 config.*
 .deps
 stamp-h1
-
-# ignore document directory and doxygen config
-doxygen.conf
 
 # ignore all tar.gz archives
 *.tar.gz
 # except the libsvm sources
 !libsvm*.tar.gz
-
-# ignore Fedora RPM spec file
-ViennaRNA.spec
 
 # ignore pkg-config file
 RNAlib2.pc
@@ -30,7 +25,4 @@ RNAlib2.pc
 # ignore all postscript files that might be generated
 *.ps
 
-# ignore .o files in lib
-*/*o
-.*un~
-*~
+win_installer.log

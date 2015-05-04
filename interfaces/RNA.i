@@ -1,34 +1,39 @@
 %module RNA
 //%pragma(perl5)  modulecode="@EXPORT=qw(fold);"
 %pragma(perl5)  include="RNA.pod"
+
 %{
-#include  "../H/data_structures.h"
-#include  "../H/utils.h"
-#include  "../H/fold_vars.h"
+#include  "../src/ViennaRNA/data_structures.h"
+#include  "../src/ViennaRNA/model.h"
+#include  "../src/ViennaRNA/utils.h"
+#include  "../src/ViennaRNA/structure_utils.h"
+#include  "../src/ViennaRNA/fold_vars.h"
 #undef fold
-#include  "../H/fold.h"
-#include  "../H/cofold.h"
-#include  "../H/part_func.h"
-#include  "../H/part_func_co.h"
-#include  "../H/naview.h"
-#include  "../H/plot_layouts.h"
-#include  "../H/PS_dot.h"
-#include  "../H/inverse.h"
-#include  "../H/RNAstruct.h"
-#include  "../H/treedist.h"
-#include  "../H/stringdist.h"
-#include  "../H/profiledist.h"
-#include  "../H/dist_vars.h"
-#include  "../H/pair_mat.h"
-#include  "../H/subopt.h"
-#include  "../H/energy_const.h"
-#include  "../H/params.h"
-#include  "../H/duplex.h"
-#include  "../H/alifold.h"
-#include  "../H/aln_util.h"
-#include  "../H/findpath.h"
-#include  "../H/Lfold.h"
-#include  "../H/read_epars.h"
+#include  "../src/ViennaRNA/fold.h"
+#include  "../src/ViennaRNA/eval.h"
+#include  "../src/ViennaRNA/cofold.h"
+#include  "../src/ViennaRNA/part_func.h"
+#include  "../src/ViennaRNA/part_func_co.h"
+#include  "../src/ViennaRNA/naview.h"
+#include  "../src/ViennaRNA/plot_layouts.h"
+#include  "../src/ViennaRNA/PS_dot.h"
+#include  "../src/ViennaRNA/inverse.h"
+#include  "../src/ViennaRNA/RNAstruct.h"
+#include  "../src/ViennaRNA/treedist.h"
+#include  "../src/ViennaRNA/stringdist.h"
+#include  "../src/ViennaRNA/profiledist.h"
+#include  "../src/ViennaRNA/dist_vars.h"
+#include  "../src/ViennaRNA/pair_mat.h"
+#include  "../src/ViennaRNA/subopt.h"
+#include  "../src/ViennaRNA/energy_const.h"
+#include  "../src/ViennaRNA/params.h"
+#include  "../src/ViennaRNA/duplex.h"
+#include  "../src/ViennaRNA/alifold.h"
+#include  "../src/ViennaRNA/aln_util.h"
+#include  "../src/ViennaRNA/findpath.h"
+#include  "../src/ViennaRNA/Lfold.h"
+#include  "../src/ViennaRNA/read_epars.h"
+#include  "../src/ViennaRNA/move_set.h"
 
 %}
 //
@@ -53,6 +58,13 @@
 %include typemaps.i
 %include tmaps.i  // additional typemaps
 
+/*############################################*/
+/* Include all relevant interface definitions */
+/*############################################*/
+%include essentials.i
+%include utils.i
+%include plotting.i
+
 //%title "Interface to the Vienna RNA library"
 //%section "Folding Routines"
 //%subsection "Minimum free Energy Folding"
@@ -75,7 +87,42 @@
 %newobject my_fold;
 char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore fold;
-%include  "../H/fold.h"
+
+/* these functions remain for now due to backward compatibility reasons
+%ignore update_fold_params
+%ignore free_arrays
+%ignore circfold
+*/
+
+%ignore vrna_fold;
+%ignore fold_par;
+%ignore update_fold_params_par;
+%ignore initialize_fold;
+%ignore HairpinE;
+%ignore LoopEnergy;
+%ignore export_circfold_arrays_par;
+%ignore export_circfold_arrays;
+%ignore export_fold_arrays;
+%ignore export_fold_arrays_par;
+%ignore vrna_backtrack_from_intervals;
+%ignore backtrack_fold_from_pair;
+%ignore vrna_update_fold_params;
+
+%include  "../src/ViennaRNA/fold.h"
+
+/**********************************************/
+/* BEGIN interface for energy evaluation      */
+/**********************************************/
+
+%include  "../src/ViennaRNA/eval.h"
+
+%include "../src/ViennaRNA/data_structures.h"
+
+%include  "../src/ViennaRNA/energy_const.h"
+
+/**********************************************/
+/* BEGIN interface for cofold                 */
+/**********************************************/
 
 %rename (cofold) my_cofold;
 
@@ -98,9 +145,25 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %newobject my_cofold;
 char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore cofold;
-%include  "../H/cofold.h"
 
-//%subsection "Partition function Folding"
+/* these functions remain for now due to backward compatibility reasons
+%ignore free_co_arrays;
+%ignore update_cofold_params;
+%ignore zukersubopt;
+%ignore initialize_cofold;
+*/
+%ignore cofold_par;
+%ignore update_cofold_params_par;
+%ignore export_cofold_arrays_gq;
+%ignore export_cofold_arrays;
+%ignore zukersubopt_par;
+%ignore get_monomere_mfes;
+
+%include  "../src/ViennaRNA/cofold.h"
+
+/**********************************************/
+/* BEGIN interface for partition function     */
+/**********************************************/
 
 %rename (pf_fold) my_pf_fold;
 %{
@@ -118,9 +181,38 @@ char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 
 %newobject my_pf_fold;
 char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
-
 %ignore pf_fold;
-%include  "../H/part_func.h"
+
+/* these functions remain for now due to backward compatibility reasons
+%ignore pf_circ_fold;
+%ignore pbacktrack;
+%ignore pbacktrack5;
+%ignore pbacktrack_circ;
+%ignore free_pf_arrays;
+%ignore update_pf_params;
+%ignore mean_bp_distance;
+%ignore init_pf_fold;
+%ignore centroid;
+*/
+%ignore pf_fold_par;
+%ignore update_pf_params_par;
+%ignore export_bppm;
+%ignore get_pf_arrays;
+%ignore get_subseq_F;
+%ignore mean_bp_distance_pr;
+%ignore stackProb;
+%ignore get_centroid_struct_gquad_pr;
+%ignore mean_bp_dist;
+%ignore expHairpinEnergy;
+%ignore expLoopEnergy;
+%ignore assign_plist_gquad_from_pr;
+
+%include  "../src/ViennaRNA/part_func.h"
+
+/**********************************************/
+/* BEGIN interface for cofold partition       */
+/* function                                   */
+/**********************************************/
 
 %rename (co_pf_fold) my_co_pf_fold;
 %{
@@ -153,7 +245,7 @@ char *my_co_pf_fold(char *string, char *constraints = NULL, float *OUTPUT, float
 %ignore ConcEnt;
 %ignore pairpro;
 %ignore cofoldF;
-%include  "../H/part_func_co.h"
+%include  "../src/ViennaRNA/part_func_co.h"
 
 %rename (get_concentrations) my_get_concentrations;
 %{
@@ -191,7 +283,7 @@ extern char *pbacktrack(char *sequence);
     char *seq;
     int n;
     n = strlen(target);
-    seq = random_string(n, symbolset);
+    seq = vrna_random_string(n, symbolset);
     if (start)
       strncpy(seq, start, strlen(start));
     *cost = inverse_fold(seq, target);
@@ -211,7 +303,7 @@ char * my_inverse_fold(char *start, const char *target, float *OUTPUT);
     char *seq;
     int n;
     n = strlen(target);
-    seq = random_string(n, symbolset);
+    seq = vrna_random_string(n, symbolset);
     if (start) strncpy(seq, start, n);
     *cost = inverse_pf_fold(seq, target);
     if (start)
@@ -226,11 +318,11 @@ char * my_inverse_pf_fold(char *start, const char *target, float *OUTPUT);
 
 %ignore inverse_fold;
 %ignore inverse_pf_fold;
-%include  "../H/inverse.h"
+%include  "../src/ViennaRNA/inverse.h"
 
 //%subsection "Global Variables to Modify Folding"
 //extern double *pr;  /*  base pairing prob. matrix */
-%include  "../H/fold_vars.h"
+%include  "../src/ViennaRNA/fold_vars.h"
 %extend bondT {
 	bondT *get(int i) {
 	   return self+i;
@@ -238,7 +330,7 @@ char * my_inverse_pf_fold(char *start, const char *target, float *OUTPUT);
 }
 
 %ignore alifold;
-%include "../H/alifold.h"
+%include "../src/ViennaRNA/alifold.h"
 %rename (alifold) my_alifold;
 
 %{
@@ -263,65 +355,9 @@ char *consensus(const char **AS);
 char *consens_mis(const char **AS);
 
 
-/*#######################################*/
-/* Get coordinates for xy plot           */
-/*#######################################*/
-typedef struct {
-  float X; /* X coords */
-  float Y; /* Y coords */
-} COORDINATE;
 
-%{
-  COORDINATE *get_xy_coordinates(const char *structure){
-    int i;
-    short *table = make_pair_table(structure);
-    short length = (short) strlen(structure);
-
-    COORDINATE *coords = (COORDINATE *) space((length+1)*sizeof(COORDINATE));
-    float *X = (float *) space((length+1)*sizeof(float));
-    float *Y = (float *) space((length+1)*sizeof(float));
-
-    switch(rna_plot_type){
-      case VRNA_PLOT_TYPE_SIMPLE:   simple_xy_coordinates(table, X, Y);
-                                    break;
-      case VRNA_PLOT_TYPE_CIRCULAR: simple_circplot_coordinates(table, X, Y);
-                                    break;
-      default:                      naview_xy_coordinates(table, X, Y);
-                                    break;
-    }
-
-    for(i=0;i<=length;i++){
-      coords[i].X = X[i];
-      coords[i].Y = Y[i];
-    }
-    free(table);
-    free(X);
-    free(Y);
-    return(coords);
-  }
-%}
-
-COORDINATE *get_xy_coordinates(const char *structure);
-
-%extend COORDINATE {
-  COORDINATE *get(int i) {
-    return self+i;
-  }
-
-}
-
-/*#################################*/
-/* END get coordinates for xy plot */
-/*#################################*/
-
-
-//%include  "../H/subopt.h"
+%include  "../src/ViennaRNA/subopt.h"
 // from subopt.h
-
-typedef struct {
-  float energy;                            /* energy of structure */
-  char *structure;
-} SOLUTION;
 
 %newobject subopt;
 extern  SOLUTION *subopt (char *seq, char *constraint, int delta, FILE *fp=NULL);
@@ -391,33 +427,16 @@ int    loop_degree[1000];     // loop degrees of a structure
 int    loops;                 // n of loops and stacks
 int    unpaired, pairs;       // n of unpaired digits and pairs
 
-%include  "../H/treedist.h"
-%include  "../H/stringdist.h"
+%include  "../src/ViennaRNA/treedist.h"
+%include  "../src/ViennaRNA/stringdist.h"
 %newobject Make_bp_profile;
-%include  "../H/profiledist.h"
+%include  "../src/ViennaRNA/profiledist.h"
 // from dist_vars.h
 int   edit_backtrack;  /* set to 1 if you want backtracking */
 char *aligned_line[2]; /* containes alignment after backtracking */
 int  cost_matrix;      /* 0 usual costs (default), 1 Shapiro's costs */
 
-//%section "Utilities"
-%newobject space;
-%newobject time_stamp;
-%newobject random_string;
-%newobject get_line;
-%newobject pack_structure;
-%newobject unpack_structure;
-%newobject make_pair_table;
-
-%include "../H/utils.h"
-
-// from read_epars.c
-extern void  read_parameter_file(char *fname);
-/* read energy parameters from file */
-extern void  write_parameter_file(char *fname);
-/* write energy parameters to file */
-
-// this doesn't work currently
+// this doesnt work currently
 %inline %{
 void *deref_any(void **ptr, int index) {
    /* dereference arbitray pointer */
@@ -425,11 +444,6 @@ void *deref_any(void **ptr, int index) {
 }
 %}
 
-// from params.h
-
-extern paramT *scale_parameters(void);
-extern paramT *copy_parameters(void);
-extern paramT *set_parameters(paramT *dest);
 %{
 char *get_aligned_line(int i) {
   i = i % 2;
@@ -453,8 +467,8 @@ char *get_aligned_line(int);
     short *stack;
     short *loop;
     length = strlen(structure);
-    stack = (short *) space(sizeof(short)*(length+1));
-    loop = (short *) space(sizeof(short)*(length+2));
+    stack = (short *) vrna_alloc(sizeof(short)*(length+1));
+    loop = (short *) vrna_alloc(sizeof(short)*(length+2));
     hx=l=nl=0;
     for (i=0; i<length; i++) {
       if (structure[i] == '(') {
@@ -469,7 +483,7 @@ char *get_aligned_line(int);
 	else l=0;                 /* external loop has index 0 */
 	if (hx<0) {
 	  fprintf(stderr, "%s\n", structure);
-	  nrerror("unbalanced brackets in make_pair_table");
+	  nrerror("unbalanced brackets in make_loop_index");
 	}
       }
     }
@@ -482,12 +496,12 @@ char *get_aligned_line(int);
 %init %{
 /* work around segfault when script tries to free symbolset */
 
-symbolset = (char *) space(21);
+symbolset = (char *) vrna_alloc(21);
 strcpy(symbolset, "AUGC");
 
 %}
 
-//%include "../H/duplex.h"
+//%include "../src/ViennaRNA/duplex.h"
 typedef struct {
   int i;
   int j;
@@ -505,7 +519,7 @@ short *encode_seq(char *sequence) {
   unsigned int i,l;
   short *S;
   l = strlen(sequence);
-  S = (short *) space(sizeof(short)*(l+2));
+  S = (short *) vrna_alloc(sizeof(short)*(l+2));
   S[0] = (short) l;
 
   /* make numerical encoding of sequence */
@@ -520,10 +534,24 @@ short *encode_seq(char *sequence) {
 %}
 short *encode_seq(char *sequence);
 
-%include "../H/Lfold.h"
+%include "../src/ViennaRNA/Lfold.h"
 
-%include "../H/plot_layouts.h"
 
-%include "../H/PS_dot.h"
+%include "../src/ViennaRNA/findpath.h"
 
-%include "../H/findpath.h"
+/**********************************************/
+/* BEGIN interface for cofold partition       */
+/* function                                   */
+/**********************************************/
+
+%include  "../src/ViennaRNA/move_set.h"
+
+%ignore move_gradient;
+%ignore move_first;
+%ignore move_adaptive;
+%ignore browse_neighs_pt;
+%ignore browse_neighs;
+%ignore print_stren;
+%ignore print_str;
+%ignore copy_arr;
+%ignore allocopy;
