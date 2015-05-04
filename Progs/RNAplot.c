@@ -1,6 +1,5 @@
 /*
   Plot RNA structures using different layout algorithms
-  Last changed Time-stamp: <2003-09-10 13:55:01 ivo>
 */
 
 #include <stdio.h>
@@ -17,16 +16,17 @@
 
 int main(int argc, char *argv[]){
   struct        RNAplot_args_info args_info;
-  char          *string, *input_string, *structure, *pre, *post;
+  char          *structure, *pre, *post;
   char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH];
-  int           i, r, fasta, length;
-  float         energy;
+  char          *rec_sequence, *rec_id, **rec_rest;
+  int           i, length;
   int           istty;
   char          format[5]="ps";
-  unsigned int  input_type;
+  unsigned int  rec_type, read_opt;
 
-  string = input_string = structure = pre = post = NULL;
-  fasta = length = 0;
+  structure = pre = post = NULL;
+  length = 0;
+
   /*
   #############################################
   # check the command line parameters
@@ -49,55 +49,37 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
-  istty = isatty(fileno(stdin));
+  rec_type      = read_opt = 0;
+  rec_id        = rec_sequence = NULL;
+  rec_rest      = NULL;
+  istty         = isatty(fileno(stdout)) && isatty(fileno(stdin));
+
+  /* set options we wanna pass to read_record */
+  if(istty){
+    read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
+    print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure");
+  }
 
   /*
   #############################################
   # main loop: continue until end of file
   #############################################
   */
-  do{
-    if (istty) print_tty_input_seq();
+  while(
+    !((rec_type = read_record(&rec_id, &rec_sequence, &rec_rest, read_opt))
+        & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
-    fname[0]='\0';
-
-    input_type  = get_multi_input_line(&input_string, ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0) | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0));
-
-    /* skip everything we are not interested in at this moment */
-    while(input_type & (VRNA_INPUT_MISC | VRNA_INPUT_CONSTRAINT)){
-      free(input_string); input_string  = NULL;
-      /* get more input */
-      input_type    = get_multi_input_line(&input_string, ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0) | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0));
+    if(rec_id){
+      (void) sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
+    else fname[0] = '\0';
 
-    if(input_type & VRNA_INPUT_FASTA_HEADER){
-      fasta = 1;
-      (void) sscanf(input_string, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-      if(!istty) printf("%s\n", input_string);
-      free(input_string); input_string = NULL;
-      input_type = get_multi_input_line(&input_string, VRNA_INPUT_FASTA_HEADER | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0));
-      if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
-    }
-    else if(fasta) warn_user("fasta header missing");
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
+    length = (int)strlen(rec_sequence);
 
-    if(input_type & VRNA_INPUT_SEQUENCE){
-      length        = (int)strlen(input_string);
-      string        = input_string;
-      input_string  = NULL;
-      input_type = get_multi_input_line(&input_string, ((fasta) ? VRNA_INPUT_FASTA_HEADER : 0) | (istty ? VRNA_INPUT_NOSKIP_COMMENTS : 0));
-    }
-    else nrerror("sequence missing");
-    if(input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) break;
+    structure = extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
 
-    if(input_type & VRNA_INPUT_CONSTRAINT){
-      structure = (char *) space(strlen(input_string)+1);
-      sscanf(input_string,"%s (%f)", structure, &energy);
-      free(input_string); input_string  = NULL;
-      if((int)strlen(structure) != length)  nrerror("structure and sequence differ in length!");
-    }
-    else nrerror("structure missing");
+    if(!structure) nrerror("structure missing");
+    if((int)strlen(structure) != length) nrerror("structure and sequence differ in length!");
 
     if (fname[0]!='\0'){
       strcpy(ffname, fname);
@@ -108,26 +90,43 @@ int main(int argc, char *argv[]){
     switch (format[0]) {
       case 'p':
         strcat(ffname, ".ps");
-        PS_rna_plot_a(string, structure, ffname, pre, post);
+        PS_rna_plot_a(rec_sequence, structure, ffname, pre, post);
         break;
       case 'g':
         strcat(ffname, ".gml");
-        gmlRNA(string, structure, ffname, 'x');
+        gmlRNA(rec_sequence, structure, ffname, 'x');
         break;
       case 'x':
         strcat(ffname, ".ss");
-        xrna_plot(string, structure, ffname);
+        xrna_plot(rec_sequence, structure, ffname);
         break;
       case 's':
         strcat(ffname, ".svg");
-        svg_rna_plot(string, structure, ffname);
+        svg_rna_plot(rec_sequence, structure, ffname);
         break;
       default:
         RNAplot_cmdline_parser_print_help(); exit(EXIT_FAILURE);
-     }
-     fflush(stdout);
-     free(string);
-     free(structure);
-   } while (1);
-   return 0;
+    }
+
+    fflush(stdout);
+
+    /* clean up */
+    if(rec_id) free(rec_id);
+    free(rec_sequence);
+    free(structure);
+    /* free the rest of current dataset */
+    if(rec_rest){
+      for(i=0;rec_rest[i];i++) free(rec_rest[i]);
+      free(rec_rest);
+    }
+    rec_id = rec_sequence = structure = NULL;
+    rec_rest = NULL;
+
+    /* print user help for the next round if we get input from tty */
+    if(istty){
+      print_tty_input_seq_str("Input sequence (upper or lower case) followed by structure");
+    }
+  }
+
+  return EXIT_SUCCESS;
 }

@@ -18,6 +18,7 @@
  *  Output flag of \ref get_input_line():  "something was read"
  */
 #define VRNA_INPUT_MISC                   4U
+
 /** Input/Output flag of \ref get_input_line():\n
  *  if used as input option this tells get_input_line() that the data to be read should comply
  *  with the FASTA format
@@ -25,41 +26,50 @@
  *  the function will return this flag if a fasta header was read
  */
 #define VRNA_INPUT_FASTA_HEADER           8U
+
 /** Input flag for get_input_line():\n
  *  Tell get_input_line() that we assume to read a nucleotide sequence
  * 
  */
 #define VRNA_INPUT_SEQUENCE               16U
+
 /** Input flag for get_input_line():\n
  *  Tell get_input_line() that we assume to read a structure constraint
  * 
  */
 #define VRNA_INPUT_CONSTRAINT             32U
+
 /**
  *  Input switch for \ref get_input_line():
  *  "do not trunkate the line by eliminating white spaces at end of line"
  */
 #define VRNA_INPUT_NO_TRUNCATION          256U
+
 /**
  *  Input switch for read_record():  "do fill rest array"
  */
 #define VRNA_INPUT_NO_REST                512U
+
 /**
  *  Input switch for read_record():  "never allow data to span more than one line"
  */
 #define VRNA_INPUT_NO_SPAN                1024U
+
 /**
  *  Input switch for read_record():  "do not skip empty lines"
  */
 #define VRNA_INPUT_NOSKIP_BLANK_LINES     2048U
+
 /**
  *  Output flag for read_record():  "read an empty line"
  */
 #define VRNA_INPUT_BLANK_LINE             4096U
+
 /**
  *  Input switch for \ref get_input_line():  "do not skip comment lines"
  */
 #define VRNA_INPUT_NOSKIP_COMMENTS        128U
+
 /**
  *  Output flag for read_record():  "read a comment"
  */
@@ -100,6 +110,19 @@
  *  placeholder for all constraining characters
  */
 #define VRNA_CONSTRAINT_ALL              128U
+
+
+
+/**
+ * Tell a function that an input is assumed to span several lines if used as input-option
+ * A function might also be returning this state telling that it has read data from
+ * multiple lines.
+ *
+ * \see extract_record_rest_structure(), read_record(), getConstraint()
+ *
+ */
+#define VRNA_OPTION_MULTILINE             32U
+
 
 /**
  *  Get the minimum of two comparable values
@@ -370,6 +393,25 @@ unsigned int read_record( char **header,
                           char **sequence,
                           char  ***rest,
                           unsigned int options);
+
+
+/* \brief Extract a dot-bracket structure string from (multiline)character array
+ *
+ * This function extracts a dot-bracket structure string from the 'rest' array as
+ * returned by read_record() and returns it. All occurences of comments within the
+ * 'lines' array will be skipped as long as they do not break the structure string.
+ * If no structure could be read, this function returns NULL.
+ *
+ * \see read_record()
+ *
+ * \param lines   The (multiline) character array to be parsed
+ * \param length  The assumed length of the dot-bracket string (passing a value < 1 results in no length limit)
+ * \param option  Some options which may be passed to alter the behavior of the function, use 0 for no options
+ * \return        The dot-bracket string read from lines or NULL
+ */
+char *extract_record_rest_structure(const char **lines,
+                                    unsigned int length,
+                                    unsigned int option);
 
 /**
  *  \brief Pack secondary secondary structure, 5:1 compression using base 3 encoding

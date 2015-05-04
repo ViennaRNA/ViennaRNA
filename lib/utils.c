@@ -862,6 +862,44 @@ PUBLIC void getConstraint(char **cstruc, const char **lines, unsigned int option
   }
 }
 
+PUBLIC char *extract_record_rest_structure( const char **lines,
+                                            unsigned int length,
+                                            unsigned int option){
+
+  char *structure = NULL;
+  int r, i, j, l, cl, stop;
+  char *c, *ptr;
+
+  if(lines){
+    for(r = i = stop = 0; lines[i]; i++){
+      l   = (int)strlen(lines[i]);
+      c   = (char *) space(sizeof(char) * (l+1));
+      (void) sscanf(lines[i], "%s", c);
+      cl  = (int)strlen(c);
+
+      /* line commented out ? */
+      if((*c == '#') || (*c == '%') || (*c == ';') || (*c == '/') || (*c == '*' || (*c == '\0'))){
+        /* skip leading comments only, i.e. do not allow comments inside the constraint */
+        if(!r)  continue;
+        else    break;
+      }
+
+      /* append the structure part to the output */
+      r += cl+1;
+      structure = (char *)xrealloc(structure, r*sizeof(char));
+      strcat(structure, c);
+      free(c);
+      /* stop if the assumed structure length has been reached */
+      if((length > 0) && (r-1 == length)) break;
+      /* stop if not allowed to read from multiple lines */
+      if(!(option & VRNA_OPTION_MULTILINE)) break;
+    }
+  }
+  return structure;
+}
+
+
+
 PUBLIC void constrain_ptypes(const char *constraint, unsigned int length, char *ptype, int *BP, int min_loop_size, unsigned int idx_type){
   int n,i,j,k,l;
   int hx, *stack;

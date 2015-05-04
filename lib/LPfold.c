@@ -578,7 +578,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
     if ((do_dpp)&&j<n) dpp=get_deppp(dpp,j,pairSize, n);
     FreeOldArrays(j);
   }
-  free_pf_arrays_L();
+  /* free_pf_arrays_L(); */
   free(S);
   free(S1);
   S = S1 = NULL;
