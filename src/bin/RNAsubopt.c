@@ -6,6 +6,7 @@
                           Vienna RNA package
 */
 #include <config.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -27,6 +28,54 @@
 /*@unused@*/
 static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.20 2008/12/03 16:55:44 ivo Exp $";
 
+static void
+add_shape_constraints(vrna_fold_compound *vc,
+                      const char *shape_method,
+                      const char *shape_conversion,
+                      const char *shape_file,
+                      int verbose,
+                      unsigned int constraint_type){
+
+  float p1, p2;
+  char method;
+  char *sequence;
+  double *values;
+  int length = vc->length;
+
+  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
+    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
+    return;
+  }
+
+  if(verbose){
+    fprintf(stderr, "Using SHAPE method '%c'", method);
+    if(method != 'W'){
+      if(method == 'Z')
+        fprintf(stderr, " with parameter p1=%f", p1);
+      else
+        fprintf(stderr, " with parameters p1=%f and p2=%f", p1, p2);
+    }
+    fputc('\n', stderr);
+  }
+
+  sequence = vrna_alloc(sizeof(char) * (length + 1));
+  values = vrna_alloc(sizeof(double) * (length + 1));
+  vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
+
+  if(method == 'D'){
+    (void)vrna_sc_SHAPE_add_deigan(vc, (const double *)values, p1, p2, constraint_type);
+  }
+  else if(method == 'Z'){
+    (void)vrna_sc_SHAPE_add_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
+  } else {
+    assert(method == 'W');
+    vrna_sc_add_up(vc, values, constraint_type);
+  }
+
+  free(values);
+  free(sequence);
+}
+
 PRIVATE void putoutzuker(SOLUTION* zukersolution);
 
 int main(int argc, char *argv[]){
@@ -34,10 +83,10 @@ int main(int argc, char *argv[]){
   unsigned int    input_type;
   unsigned int    rec_type, read_opt;
   char            fname[FILENAME_MAX_LENGTH], *c, *input_string, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
-  char            *constraints_file, *cstruc, *structure, *ParamFile, *ns_bases;
+  char            *constraints_file, *cstruc, *structure, *ParamFile, *ns_bases, *shape_file, *shape_method, *shape_conversion;
   int             i, length, l, cl, sym, istty;
   double          deltaf, deltap, betaScale;
-  int             delta, n_back, noconv, circular, dos, zuker, gquad;
+  int             delta, n_back, noconv, circular, dos, zuker, gquad, with_shapes, verbose, max_bp_span, enforceConstraints;
   vrna_md_t       md;
 
   do_backtrack  = 1;
@@ -51,6 +100,12 @@ int main(int argc, char *argv[]){
   rec_rest      = NULL;
   input_string  = c = cstruc = structure = ParamFile = ns_bases = NULL;
   constraints_file = NULL;
+  shape_file    = NULL;
+  shape_method  = NULL;
+  with_shapes   = 0;
+  verbose       = 0;
+  max_bp_span   = -1;
+  enforceConstraints  = 0;
 
   set_model_details(&md);
 
@@ -70,6 +125,22 @@ int main(int argc, char *argv[]){
     fold_constrained=1;
     if(args_info.constraint_arg[0] != '\0')
       constraints_file = strdup(args_info.constraint_arg);
+  }
+  /* enforce base pairs given in constraint string rather than weak enforce */
+  if(args_info.enforceConstraint_given)   enforceConstraints = 1;
+  /* SHAPE reactivity data */
+  if(args_info.shape_given){
+    with_shapes = 1;
+    shape_file = strdup(args_info.shape_arg);
+  }
+
+  shape_method = strdup(args_info.shapeMethod_arg);
+  shape_conversion = strdup(args_info.shapeConversion_arg);
+  if(args_info.verbose_given){
+    verbose = 1;
+  }
+  if(args_info.maxBPspan_given){
+    md.max_bp_span = max_bp_span = args_info.maxBPspan_arg;
   }
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     md.special_hp = tetra_loop = 0;
@@ -257,10 +328,15 @@ int main(int argc, char *argv[]){
                                 | VRNA_CONSTRAINT_DB_ANG_BRACK
                                 | VRNA_CONSTRAINT_DB_RND_BRACK;
 
+          if(enforceConstraints)
+            constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
           vrna_add_constraints(vc, (const char *)structure, constraint_options);
         }
       }
     }
+
+    if(with_shapes)
+      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE | ((n_back > 0) ? VRNA_CONSTRAINT_SOFT_PF : 0));
 
     if(istty){
       if (vc->cutpoint == -1)
