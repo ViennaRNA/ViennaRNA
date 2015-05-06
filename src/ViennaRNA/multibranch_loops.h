@@ -1279,7 +1279,7 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
                 int *component2){
 
   int ij, p, q, r, e, cp, *idx, turn, dangle_model, *my_c, *my_fML, *my_fc, *rtype;
-  unsigned char type, type_2;
+  unsigned char type, type_2, tt;
   char          *ptype;
   short         s5, s3, *S1;
   vrna_param_t  *P;
@@ -1302,6 +1302,7 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
   ptype         = vc->ptype;
   rtype         = &(md->rtype[0]);
   type          = (unsigned char)ptype[ij];
+  tt            = type;
   type          = rtype[type];
   dangle_model  = md->dangles;
 
@@ -1396,7 +1397,7 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
 
     s5 = ON_SAME_STRAND(q, *j, cp) ? S1[q] : -1;
     s3 = ON_SAME_STRAND(*i, p, cp) ? S1[p] : -1;
-                
+
     switch(dangle_model){
       case 0:   e = en - E_MLstem(type, -1, -1, P) - P->MLclosing;
                 if(sc){
@@ -1467,16 +1468,10 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
                   /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
                   if(dangle_model == 3){
                     int tmp_en = e;
-                    type = rtype[type];
-
                     if(hc->matrix[idx[r] + p] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                       type_2 = rtype[(unsigned char)ptype[idx[r] + p]];
-                      tmp_en = my_c[idx[r] + p] + P->stack[type][type_2] + my_fML[idx[q] + r + 1];
-                      if(sc){
-                        if(sc->en_basepair)
-                          tmp_en += sc->en_basepair[ij];
-                      }
-                      if(en == tmp_en + 2 * P->MLintern[1] + P->MLclosing){
+                      tmp_en = my_c[idx[r] + p] + P->stack[tt][type_2] + my_fML[idx[q] + r + 1];
+                      if(e == tmp_en + 2 * P->MLintern[1]){
                         *component1 = 2;
                         break;
                       }
@@ -1484,12 +1479,8 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
 
                     if(hc->matrix[idx[q] + r + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                       type_2 = rtype[(unsigned char)ptype[idx[q] + r + 1]];
-                      tmp_en = my_c[idx[q] + r + 1] + P->stack[type][type_2] + my_fML[idx[r] + p];
-                      if(sc){
-                        if(sc->en_basepair)
-                          tmp_en += sc->en_basepair[ij];
-                      }
-                      if (en == tmp_en + 2 * P->MLintern[1] + P->MLclosing){
+                      tmp_en = my_c[idx[q] + r + 1] + P->stack[tt][type_2] + my_fML[idx[r] + p];
+                      if (e == tmp_en + 2 * P->MLintern[1]){
                         *component2 = 2;
                         break;
                       }
@@ -1500,7 +1491,7 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
     }
   }
 
-  if(r <= *j - turn - 1){
+  if(r <= *j - turn - 3){
     *i = p;
     *k = r;
     *j = q;
