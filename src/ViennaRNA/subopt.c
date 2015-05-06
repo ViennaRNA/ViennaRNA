@@ -966,12 +966,12 @@ scan_interval(vrna_fold_compound *vc,
       type = ptype[ij];
 
       switch(dangle_model){
-        case 2:   element_energy = E_MLstem(type,
+        case 0:   element_energy = E_MLstem(type, -1, -1, P);
+                  break;
+        default:  element_energy = E_MLstem(type,
                                   (((i > 1)&&(ON_SAME_STRAND(i-1,i,cp))) || circular)       ? S1[i-1] : -1,
                                   (((j < length)&&(ON_SAME_STRAND(j,j+1,cp))) || circular)  ? S1[j+1] : -1,
                                   P);
-                  break;
-        default:  element_energy = E_MLstem(type, -1, -1, P);
                   break;
       }
 
@@ -1025,10 +1025,10 @@ scan_interval(vrna_fold_compound *vc,
           type = ptype[k1j];
 
           switch(dangle_model){
-            case 2:   s5 = (ON_SAME_STRAND(i-1,i,cp)) ? S1[k] : -1;
-                      s3 = (ON_SAME_STRAND(j,j+1,cp)) ? S1[j+1] : -1;
+            case 0:   s5 = s3 = -1;
                       break;
-            default:  s5 = s3 = -1;
+            default:  s5 = (ON_SAME_STRAND(i-1,i,cp)) ? S1[k] : -1;
+                      s3 = (ON_SAME_STRAND(j,j+1,cp)) ? S1[j+1] : -1;
                       break;
           }
 
@@ -1082,10 +1082,10 @@ scan_interval(vrna_fold_compound *vc,
           type = ptype[k1j];
 
           switch(dangle_model){
-            case 2:   s5 = (ON_SAME_STRAND(k-1,k,cp)) ? S1[k] : -1;
-                      s3 = (ON_SAME_STRAND(j,j+1,cp)) ? S1[j+1] : -1;
+            case 0:   s5 = s3 = -1;
                       break;
-            default:  s5 = s3 = -1;
+            default:  s5 = (ON_SAME_STRAND(k-1,k,cp)) ? S1[k] : -1;
+                      s3 = (ON_SAME_STRAND(j,j+1,cp)) ? S1[j+1] : -1;
                       break;
           }
 
@@ -1171,10 +1171,10 @@ scan_interval(vrna_fold_compound *vc,
 
         /* k and j pair */
         switch(dangle_model){
-          case 2:   s5 = (ON_SAME_STRAND(k-1,k,cp)) ? S1[k-1] : -1;
-                    s3 = ((j < length)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1;
+          case 0:   s5 = s3 = -1;
                     break;
-          default:  s5 = s3 = -1;
+          default:  s5 = (ON_SAME_STRAND(k-1,k,cp)) ? S1[k-1] : -1;
+                    s3 = ((j < length)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1;
                     break;
         }
         
@@ -1211,9 +1211,9 @@ scan_interval(vrna_fold_compound *vc,
       s5    = -1;
 
       switch(dangle_model){
-        case 2:   s3 = (j < length) && (ON_SAME_STRAND(j,j+1,cp)) ? S1[j+1] : -1;
+        case 0:   s3 = -1;
                   break;
-        default:  s3 = -1;
+        default:  s3 = (j < length) && (ON_SAME_STRAND(j,j+1,cp)) ? S1[j+1] : -1;
                   break;
       }
 
@@ -1221,7 +1221,6 @@ scan_interval(vrna_fold_compound *vc,
 
       if(!(ON_SAME_STRAND(1,j,cp)))
         element_energy += P->DuplexInit;
-
       if (c[kj] + element_energy + best_energy <= threshold)
         repeat(vc, 1, j, state, element_energy, 0, best_energy, threshold, env);
     }
@@ -1457,10 +1456,10 @@ scan_interval(vrna_fold_compound *vc,
         type = ptype[ik];
 
         switch(dangle_model){
-          case 2:   s5 = (i > 1) ? S1[i-1]: -1;
-                    s3 = S1[k+1];
+          case 0:   s5 = s3 = -1;
                     break;
-          default:  s5 = s3 = -1;
+          default:  s5 = (i > 1) ? S1[i-1]: -1;
+                    s3 = S1[k+1];
                     break;
         }
 
@@ -1494,9 +1493,9 @@ scan_interval(vrna_fold_compound *vc,
       s3    = -1;
 
       switch(dangle_model){
-        case 2:   s5 = (i>1) ? S1[i-1] : -1;
+        case 0:   s5 = -1;
                   break;
-        default:  s5 = -1;
+        default:  s5 = (i>1) ? S1[i-1] : -1;
                   break;
       }
 
@@ -1556,10 +1555,10 @@ scan_interval(vrna_fold_compound *vc,
         element_energy  = 0;
 
         switch(dangle_model){
-          case 2:   s5 = S1[k-1];
-                    s3 = (j < length) ? S1[j+1] : -1;
+          case 0:   s3 = s5 = -1;
                     break;
-          default:  s3 = s5 = -1;
+          default:  s5 = S1[k-1];
+                    s3 = (j < length) ? S1[j+1] : -1;
                     break;
         }
 
@@ -1593,9 +1592,9 @@ scan_interval(vrna_fold_compound *vc,
       s5    = -1;
 
       switch(dangle_model){
-        case 2:   s3 = (j<length) ? S1[j+1] : -1;
+        case 0:   s3 = -1;
                   break;
-        default:  s3 = -1;
+        default:  s3 = (j<length) ? S1[j+1] : -1;
                   break;
       }
 
@@ -1856,7 +1855,6 @@ repeat( vrna_fold_compound *vc,
 
           new = energy + c[indx[q]+p];
 
-
           if (new + best_energy <= threshold) {
             /* stack, bulge, or interior loop */
             fork_int_state(i, j, p, q, state, part_energy + energy, env);
@@ -1871,9 +1869,9 @@ repeat( vrna_fold_compound *vc,
       rt = rtype[type];
       element_energy=0;
       switch(dangle_model){
-        case 2:   element_energy = E_ExtLoop(rt, (ON_SAME_STRAND(j-1,j,cp)) ? S1[j-1] : -1, (ON_SAME_STRAND(i,i+1,cp)) ? S1[i+1] : -1, P);
+        case 0:   element_energy = E_ExtLoop(rt, -1, -1, P);
                   break;
-        default:  element_energy = E_ExtLoop(rt, -1, -1, P);
+        default:  element_energy = E_ExtLoop(rt, (ON_SAME_STRAND(j-1,j,cp)) ? S1[j-1] : -1, (ON_SAME_STRAND(i,i+1,cp)) ? S1[i+1] : -1, P);
                   break;
       }
 
@@ -1891,9 +1889,9 @@ repeat( vrna_fold_compound *vc,
 
     element_energy = mm;
     switch(dangle_model){
-      case 2:   element_energy = E_MLstem(rt, S1[j-1], S1[i+1], P) + mm;
+      case 0:   element_energy = E_MLstem(rt, -1, -1, P) + mm;
                 break;
-      default:  element_energy = E_MLstem(rt, -1, -1, P) + mm;
+      default:  element_energy = E_MLstem(rt, S1[j-1], S1[i+1], P) + mm;
                 break;
     }
 
