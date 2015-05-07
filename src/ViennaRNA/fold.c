@@ -481,17 +481,17 @@ backtrack(vrna_fold_compound *vc,
 
       /* trace back in fML array */
       case 1:   {
-                  int p, q;
-                  if(vrna_BT_mb_loop_split(vc, &i, &j, &p, &q, bp_stack, &b)){
+                  int p, q, comp1, comp2;
+                  if(vrna_BT_mb_loop_split(vc, &i, &j, &p, &q, &comp1, &comp2, bp_stack, &b)){
                     if(i > 0){
                       bt_stack[++s].i = i;
                       bt_stack[s].j   = j;
-                      bt_stack[s].ml  = 1;
+                      bt_stack[s].ml  = comp1;
                     }
                     if(p > 0){
-                      i = p;
-                      j = q;
-                      goto repeat1;
+                      bt_stack[++s].i = p;
+                      bt_stack[s].j   = q;
+                      bt_stack[s].ml  = comp2;
                     }
 
                     continue;
@@ -509,7 +509,7 @@ backtrack(vrna_fold_compound *vc,
 
       default:  vrna_message_error("Backtracking failed due to unrecognized DP matrix!");
                 break;
-    }
+    } 
 
   repeat1:
 

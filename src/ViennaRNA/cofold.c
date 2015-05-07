@@ -473,17 +473,17 @@ backtrack_co( sect bt_stack[],
 
       /* true multi-loop backtrack in fML */
       case 1: {
-                int p, q;
-                if(vrna_BT_mb_loop_split(vc, &i, &j, &p, &q, bp_list, &b)){
+                int p, q, comp1, comp2;
+                if(vrna_BT_mb_loop_split(vc, &i, &j, &p, &q, &comp1, &comp2, bp_list, &b)){
                   if(i > 0){
                     bt_stack[++s].i = i;
                     bt_stack[s].j   = j;
-                    bt_stack[s].ml  = 1;
+                    bt_stack[s].ml  = comp1;
                   }
                   if(p > 0){
-                    i = p;
-                    j = q;
-                    goto repeat1;
+                    bt_stack[++s].i = p;
+                    bt_stack[s].j   = q;
+                    bt_stack[s].ml  = comp2;
                   }
 
                   continue;
