@@ -476,7 +476,7 @@ int main(int argc, char *argv[]){
     pf_parameters = get_boltzmann_factors_ali(n_seq, temperature, betaScale, md, pf_scale);
 
     /* change energy parameters in vc */
-    vrna_update_pf_params(vc, pf_parameters);
+    vrna_exp_params_update(vc, pf_parameters);
 
     energy = vrna_ali_pf_fold(vc, structure, NULL);
 

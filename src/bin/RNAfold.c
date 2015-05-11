@@ -523,7 +523,7 @@ int main(int argc, char *argv[]){
           vc->params->model_details.dangles=1;
       }
 
-      vrna_rescale_pf_params(vc, &min_en);
+      vrna_exp_params_rescale(vc, &min_en);
 
       kT = vc->exp_params->kT/1000.;
 
@@ -592,7 +592,7 @@ int main(int argc, char *argv[]){
           (void) PS_dot_plot_list(orig_sequence, ffname, pl1, pl2, "");
           free(pl2);
           if (do_bpp==2) {
-            pl2 = stackProb(1e-5);
+            pl2 = vrna_stack_prob(vc, 1e-5);
             if (fname[0]!='\0') {
               strcpy(ffname, fname);
               strcat(ffname, "_dp2.ps");

@@ -205,7 +205,7 @@ int main(int argc, char *argv[]){
 
     vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
     mfe = (double)vrna_fold(vc, NULL);
-    vrna_rescale_pf_params(vc, &mfe);
+    vrna_exp_params_rescale(vc, &mfe);
 
     epsilon = vrna_alloc(sizeof(double) * (length + 1));
     init_perturbation_vector(epsilon, length, args_info.initialVector_arg);

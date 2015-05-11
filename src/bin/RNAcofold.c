@@ -384,7 +384,7 @@ int main(int argc, char *argv[])
         vc->params->model_details.dangles = dangles = 1;
       }
 
-      vrna_rescale_pf_params(vc, &min_en);
+      vrna_exp_params_rescale(vc, &min_en);
       kT = vc->exp_params->kT/1000.;
 
       if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
@@ -615,7 +615,7 @@ do_partfunc(char *string,
 
               par = get_boltzmann_factor_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(length));
-              vrna_update_pf_params(vc,par);
+              vrna_exp_params_update(vc, par);
               X = vrna_co_pf_fold(vc, tempstruc);
               *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
               vrna_free_fold_compound(vc);
@@ -636,7 +636,7 @@ do_partfunc(char *string,
 
               par = get_boltzmann_factor_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(2*length));
-              vrna_update_pf_params(vc,par);
+              vrna_exp_params_update(vc, par);
               X = vrna_co_pf_fold(vc, tempstruc);
               *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
               vrna_free_fold_compound(vc);

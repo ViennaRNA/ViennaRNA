@@ -74,15 +74,6 @@ float
 vrna_fold(vrna_fold_compound *vc,
           char *structure);
 
-/**
- *
- *  \ingroup mfe_fold
- * 
- */
-void
-vrna_update_fold_params(vrna_fold_compound *vc,
-                        vrna_param_t *parameters);
-
 plist *
 vrna_backtrack_from_intervals(vrna_fold_compound *vc,
                               bondT *bp_stack,
@@ -198,7 +189,7 @@ DEPRECATED(void free_arrays(void));
 /**
  *  \brief Recalculate energy parameters
  *
- *  \deprecated use vrna_update_fold_params() instead
+ *  \deprecated use vrna_params_update() instead
  *
  *  \ingroup mfe_fold
  */
@@ -207,7 +198,7 @@ DEPRECATED(void update_fold_params(void));
 /**
  *  \brief Recalculate energy parameters
  *
- *  \deprecated use vrna_update_fold_params() instead
+ *  \deprecated use vrna_params_update() instead
  *
  *  \ingroup mfe_fold
  * 

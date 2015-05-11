@@ -28,8 +28,12 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/cofold.h"
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
 #ifdef _OPENMP
 #include <omp.h>
+#endif
+
 #endif
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
@@ -49,6 +53,8 @@
 #################################
 */
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
 /* some backward compatibility stuff */
 PRIVATE int                 backward_compat           = 0;
 PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
@@ -58,6 +64,8 @@ PRIVATE float   mfe1, mfe2;       /* minimum free energies of the monomers */
 #ifdef _OPENMP
 
 #pragma omp threadprivate(mfe1, mfe2, backward_compat_compound, backward_compat)
+
+#endif
 
 #endif
 
@@ -71,109 +79,20 @@ PRIVATE void  backtrack(sect bt_stack[], bondT *bp_list, vrna_fold_compound *vc)
 PRIVATE int   fill_arrays(vrna_fold_compound *vc, int zuker);
 PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound *vc);
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
 /* wrappers for old API compatibility */
 PRIVATE void      wrap_array_export(int **f5_p,int **c_p,int **fML_p,int **fM1_p,int **fc_p,int **indx_p,char **ptype_p);
 PRIVATE float     wrap_cofold(const char *string,char *structure,vrna_param_t *parameters,int is_constrained);
 PRIVATE SOLUTION *wrap_zukersubopt( const char *string,vrna_param_t *parameters);
+
+#endif
 
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
-
-PRIVATE void
-wrap_array_export(int **f5_p,
-                  int **c_p,
-                  int **fML_p,
-                  int **fM1_p,
-                  int **fc_p,
-                  int **indx_p,
-                  char **ptype_p){
-
-  /* make the DP arrays available to routines such as subopt() */
-  if(backward_compat_compound){
-    *f5_p     = backward_compat_compound->matrices->f5;
-    *c_p      = backward_compat_compound->matrices->c;
-    *fML_p    = backward_compat_compound->matrices->fML;
-    *fM1_p    = backward_compat_compound->matrices->fM1;
-    *fc_p     = backward_compat_compound->matrices->fc;
-    *indx_p   = backward_compat_compound->jindx;
-    *ptype_p  = backward_compat_compound->ptype;
-  }
-}
-
-/*--------------------------------------------------------------------------*/
-
-PRIVATE float
-wrap_cofold(const char *string,
-            char *structure,
-            vrna_param_t *parameters,
-            int is_constrained){
-
-  unsigned int        length;
-  char                *seq;
-  vrna_fold_compound  *vc;
-  vrna_param_t        *P;
-  float               mfe;
-
-  vc      = NULL;
-  length  = strlen(string);
-
-#ifdef _OPENMP
-/* Explicitly turn off dynamic threads */
-  omp_set_dynamic(0);
-#endif
-
-  /* we need the parameter structure for hard constraints */
-  if(parameters)
-    P = get_parameter_copy(parameters);
-  else{
-    vrna_md_t md;
-    set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
-  }
-  P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
-
-  /* dirty hack to reinsert the '&' according to the global variable 'cut_point' */
-  seq = vrna_cut_point_insert(string, cut_point);
-
-  /* get compound structure */
-  vc = vrna_get_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
-
-  if(parameters){ /* replace params if necessary */
-    free(vc->params);
-    vc->params = P;
-  } else {
-    free(P);
-  }
-
-  /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
-  if(is_constrained && structure){
-    unsigned int constraint_options = 0;
-    constraint_options |= VRNA_CONSTRAINT_DB
-                          | VRNA_CONSTRAINT_DB_PIPE
-                          | VRNA_CONSTRAINT_DB_DOT
-                          | VRNA_CONSTRAINT_DB_X
-                          | VRNA_CONSTRAINT_DB_ANG_BRACK
-                          | VRNA_CONSTRAINT_DB_RND_BRACK
-                          | VRNA_CONSTRAINT_DB_INTRAMOL
-                          | VRNA_CONSTRAINT_DB_INTERMOL;
-
-    vrna_add_constraints(vc, (const char *)structure, constraint_options);
-  }
-
-  if(backward_compat_compound)
-    vrna_free_fold_compound(backward_compat_compound);
-
-  backward_compat_compound  = vc;
-  backward_compat           = 1;
-
-  /* cleanup */
-  free(seq);
-
-  return vrna_cofold(vc, structure);
-}
 
 PUBLIC float
 vrna_cofold(vrna_fold_compound  *vc,
@@ -200,6 +119,8 @@ vrna_cofold(vrna_fold_compound  *vc,
 
     vrna_parenthesis_structure(structure, bp, length);
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
     /*
     *  Backward compatibility:
     *  This block may be removed if deprecated functions
@@ -209,6 +130,9 @@ vrna_cofold(vrna_fold_compound  *vc,
       if(base_pair) free(base_pair);
       base_pair = bp;
     }
+
+#endif
+
   }
 
   if(vc->sc)
@@ -767,60 +691,6 @@ PRIVATE int comp_pair(const void *A, const void *B) {
 }
 #endif
 
-PRIVATE SOLUTION *
-wrap_zukersubopt( const char *string,
-                  vrna_param_t *parameters){
-
-  unsigned int        length;
-  char                *doubleseq;
-  vrna_fold_compound  *vc;
-  vrna_param_t        *P;
-
-  vc      = NULL;
-  length  = (int)strlen(string);
-
-#ifdef _OPENMP
-/* Explicitly turn off dynamic threads */
-  omp_set_dynamic(0);
-#endif
-
-  /* we need the parameter structure for hard constraints */
-  if(parameters)
-    P = get_parameter_copy(parameters);
-  else{
-    vrna_md_t md;
-    set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
-  }
-  P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
-
-  doubleseq = (char *)vrna_alloc((2*length+2)*sizeof(char));
-  strcpy(doubleseq,string);
-  doubleseq[length] = '&';
-  strcat(doubleseq, string);
-
-  /* get compound structure */
-  vc = vrna_get_fold_compound(doubleseq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
-
-  if(parameters){ /* replace params if necessary */
-    free(vc->params);
-    vc->params = P;
-  } else {
-    free(P);
-  }
-
-  if(backward_compat_compound)
-    vrna_free_fold_compound(backward_compat_compound);
-
-  backward_compat_compound  = vc;
-  backward_compat           = 1;
-
-  /* cleanup */
-  free(doubleseq);
-
-  return vrna_zukersubopt(vc);
-}
-
 PUBLIC SOLUTION *
 vrna_zukersubopt(vrna_fold_compound *vc){
 
@@ -913,6 +783,8 @@ vrna_zukersubopt(vrna_fold_compound *vc){
     }
   }
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
   /*
   *  Backward compatibility:
   *  This block may be removed if deprecated functions
@@ -922,6 +794,8 @@ vrna_zukersubopt(vrna_fold_compound *vc){
     if(base_pair) free(base_pair);
     base_pair = bp_list;
   }
+
+#endif
 
   /* clean up */
   free(pairlist);
@@ -984,6 +858,153 @@ vrna_cut_point_remove(const char *string,
 /*###########################################*/
 
 #ifdef  VRNA_BACKWARD_COMPAT
+
+PRIVATE void
+wrap_array_export(int **f5_p,
+                  int **c_p,
+                  int **fML_p,
+                  int **fM1_p,
+                  int **fc_p,
+                  int **indx_p,
+                  char **ptype_p){
+
+  /* make the DP arrays available to routines such as subopt() */
+  if(backward_compat_compound){
+    *f5_p     = backward_compat_compound->matrices->f5;
+    *c_p      = backward_compat_compound->matrices->c;
+    *fML_p    = backward_compat_compound->matrices->fML;
+    *fM1_p    = backward_compat_compound->matrices->fM1;
+    *fc_p     = backward_compat_compound->matrices->fc;
+    *indx_p   = backward_compat_compound->jindx;
+    *ptype_p  = backward_compat_compound->ptype;
+  }
+}
+
+/*--------------------------------------------------------------------------*/
+
+PRIVATE float
+wrap_cofold(const char *string,
+            char *structure,
+            vrna_param_t *parameters,
+            int is_constrained){
+
+  unsigned int        length;
+  char                *seq;
+  vrna_fold_compound  *vc;
+  vrna_param_t        *P;
+  float               mfe;
+
+  vc      = NULL;
+  length  = strlen(string);
+
+#ifdef _OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
+
+  /* we need the parameter structure for hard constraints */
+  if(parameters)
+    P = get_parameter_copy(parameters);
+  else{
+    vrna_md_t md;
+    set_model_details(&md);
+    P = get_scaled_parameters(temperature, md);
+  }
+  P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
+
+  /* dirty hack to reinsert the '&' according to the global variable 'cut_point' */
+  seq = vrna_cut_point_insert(string, cut_point);
+
+  /* get compound structure */
+  vc = vrna_get_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+
+  if(parameters){ /* replace params if necessary */
+    free(vc->params);
+    vc->params = P;
+  } else {
+    free(P);
+  }
+
+  /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
+  if(is_constrained && structure){
+    unsigned int constraint_options = 0;
+    constraint_options |= VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_DB_PIPE
+                          | VRNA_CONSTRAINT_DB_DOT
+                          | VRNA_CONSTRAINT_DB_X
+                          | VRNA_CONSTRAINT_DB_ANG_BRACK
+                          | VRNA_CONSTRAINT_DB_RND_BRACK
+                          | VRNA_CONSTRAINT_DB_INTRAMOL
+                          | VRNA_CONSTRAINT_DB_INTERMOL;
+
+    vrna_add_constraints(vc, (const char *)structure, constraint_options);
+  }
+
+  if(backward_compat_compound)
+    vrna_free_fold_compound(backward_compat_compound);
+
+  backward_compat_compound  = vc;
+  backward_compat           = 1;
+
+  /* cleanup */
+  free(seq);
+
+  return vrna_cofold(vc, structure);
+}
+
+PRIVATE SOLUTION *
+wrap_zukersubopt( const char *string,
+                  vrna_param_t *parameters){
+
+  unsigned int        length;
+  char                *doubleseq;
+  vrna_fold_compound  *vc;
+  vrna_param_t        *P;
+
+  vc      = NULL;
+  length  = (int)strlen(string);
+
+#ifdef _OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
+
+  /* we need the parameter structure for hard constraints */
+  if(parameters)
+    P = get_parameter_copy(parameters);
+  else{
+    vrna_md_t md;
+    set_model_details(&md);
+    P = get_scaled_parameters(temperature, md);
+  }
+  P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
+
+  doubleseq = (char *)vrna_alloc((2*length+2)*sizeof(char));
+  strcpy(doubleseq,string);
+  doubleseq[length] = '&';
+  strcat(doubleseq, string);
+
+  /* get compound structure */
+  vc = vrna_get_fold_compound(doubleseq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+
+  if(parameters){ /* replace params if necessary */
+    free(vc->params);
+    vc->params = P;
+  } else {
+    free(P);
+  }
+
+  if(backward_compat_compound)
+    vrna_free_fold_compound(backward_compat_compound);
+
+  backward_compat_compound  = vc;
+  backward_compat           = 1;
+
+  /* cleanup */
+  free(doubleseq);
+
+  return vrna_zukersubopt(vc);
+}
 
 PUBLIC void
 initialize_cofold(int length){ /* DO NOTHING */ }

@@ -366,7 +366,7 @@ int main(int argc, char *argv[]){
       strncpy(ss, structure, length);
       mfe = vrna_fold(vc, ss);
       /* rescale Boltzmann factors according to predicted MFE */
-      vrna_rescale_pf_params(vc, &mfe);
+      vrna_exp_params_rescale(vc, &mfe);
       /* ignore return value, we are not interested in the free energy */
       (void)vrna_pf_fold(vc, ss);
 

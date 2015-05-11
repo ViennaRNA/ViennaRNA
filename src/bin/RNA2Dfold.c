@@ -259,7 +259,7 @@ int main(int argc, char *argv[]){
       for(i = 0; mfe_s[i].k != INF; i++){
         if(mmfe > mfe_s[i].en) mmfe = (double)mfe_s[i].en;
       }
-      vrna_rescale_pf_params(vc, &mmfe);
+      vrna_exp_params_rescale(vc, &mmfe);
 
       /* we dont need the mfe DP arrays anymore, so we can savely free their occupying memory */
       vrna_free_mfe_matrices(vc);
