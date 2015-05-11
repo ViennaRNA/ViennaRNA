@@ -31,8 +31,12 @@
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/fold.h"
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
 #ifdef _OPENMP
 #include <omp.h>
+#endif
+
 #endif
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
@@ -49,6 +53,8 @@
 #################################
 */
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
 /* some backward compatibility stuff */
 PRIVATE int                 backward_compat           = 0;
 PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
@@ -56,6 +62,8 @@ PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 #ifdef _OPENMP
 
 #pragma omp threadprivate(backward_compat_compound, backward_compat)
+
+#endif
 
 #endif
 
@@ -69,108 +77,20 @@ PRIVATE int   fill_arrays(vrna_fold_compound *vc);
 PRIVATE void  fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt);
 PRIVATE plist *backtrack(vrna_fold_compound *vc, bondT *bp_stack, sect bt_stack[], int s);
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
 /* wrappers for old API compatibility */
 PRIVATE float wrap_fold( const char *string, char *structure, vrna_param_t *parameters, int is_constrained, int is_circular);
 PRIVATE void  wrap_array_export(int **f5_p, int **c_p, int **fML_p, int **fM1_p, int **indx_p, char **ptype_p);
 PRIVATE void  wrap_array_export_circ( int *Fc_p, int *FcH_p, int *FcI_p, int *FcM_p, int **fM2_p);
+
+#endif
 
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
-
-PRIVATE void
-wrap_array_export(int **f5_p,
-                  int **c_p,
-                  int **fML_p,
-                  int **fM1_p,
-                  int **indx_p,
-                  char **ptype_p){
-
-  /* make the DP arrays available to routines such as subopt() */
-  if(backward_compat_compound){
-    *f5_p     = backward_compat_compound->matrices->f5;
-    *c_p      = backward_compat_compound->matrices->c;
-    *fML_p    = backward_compat_compound->matrices->fML;
-    *fM1_p    = backward_compat_compound->matrices->fM1;
-    *indx_p   = backward_compat_compound->jindx;
-    *ptype_p  = backward_compat_compound->ptype;
-  }
-}
-
-PRIVATE void
-wrap_array_export_circ( int *Fc_p,
-                        int *FcH_p,
-                        int *FcI_p,
-                        int *FcM_p,
-                        int **fM2_p){
-
-  /* make the DP arrays available to routines such as subopt() */
-  if(backward_compat_compound){
-    *Fc_p   = backward_compat_compound->matrices->Fc;
-    *FcH_p  = backward_compat_compound->matrices->FcH;
-    *FcI_p  = backward_compat_compound->matrices->FcI;
-    *FcM_p  = backward_compat_compound->matrices->FcM;
-    *fM2_p  = backward_compat_compound->matrices->fM2;
-  }
-}
-
-PRIVATE float
-wrap_fold( const char *string,
-          char *structure,
-          vrna_param_t *parameters,
-          int is_constrained,
-          int is_circular){
-
-  vrna_fold_compound  *vc;
-  vrna_param_t        *P;
-
-#ifdef _OPENMP
-/* Explicitly turn off dynamic threads */
-  omp_set_dynamic(0);
-#endif
-
-  /* we need the parameter structure for hard constraints */
-  if(parameters){
-    P = get_parameter_copy(parameters);
-  } else {
-    vrna_md_t md;
-    set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
-  }
-  P->model_details.circ = is_circular;
-
-  vc = vrna_get_fold_compound(string, &(P->model_details), VRNA_OPTION_MFE);
-
-  if(parameters){ /* replace params if necessary */
-    free(vc->params);
-    vc->params = P;
-  } else {
-    free(P);
-  }
-
-  /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
-  if(is_constrained && structure){
-    unsigned int constraint_options = 0;
-    constraint_options |= VRNA_CONSTRAINT_DB
-                          | VRNA_CONSTRAINT_DB_PIPE
-                          | VRNA_CONSTRAINT_DB_DOT
-                          | VRNA_CONSTRAINT_DB_X
-                          | VRNA_CONSTRAINT_DB_ANG_BRACK
-                          | VRNA_CONSTRAINT_DB_RND_BRACK;
-
-    vrna_add_constraints(vc, (const char *)structure, constraint_options);
-  }
-
-  if(backward_compat_compound && backward_compat)
-    vrna_free_fold_compound(backward_compat_compound);
-
-  backward_compat_compound  = vc;
-  backward_compat           = 1;
-
-  return vrna_fold(vc, structure);
-}
 
 PUBLIC float
 vrna_fold(vrna_fold_compound *vc,
@@ -202,6 +122,7 @@ vrna_fold(vrna_fold_compound *vc,
 
     vrna_parenthesis_structure(structure, bp, length);
 
+#ifdef  VRNA_BACKWARD_COMPAT
     /*
     *  Backward compatibility:
     *  This block may be removed if deprecated functions
@@ -211,6 +132,8 @@ vrna_fold(vrna_fold_compound *vc,
       if(base_pair) free(base_pair);
       base_pair = bp;
     }
+#endif
+
   }
 
   if(vc->sc)
@@ -481,17 +404,17 @@ backtrack(vrna_fold_compound *vc,
 
       /* trace back in fML array */
       case 1:   {
-                  int p, q;
-                  if(vrna_BT_mb_loop_split(vc, &i, &j, &p, &q, bp_stack, &b)){
+                  int p, q, comp1, comp2;
+                  if(vrna_BT_mb_loop_split(vc, &i, &j, &p, &q, &comp1, &comp2, bp_stack, &b)){
                     if(i > 0){
                       bt_stack[++s].i = i;
                       bt_stack[s].j   = j;
-                      bt_stack[s].ml  = 1;
+                      bt_stack[s].ml  = comp1;
                     }
                     if(p > 0){
-                      i = p;
-                      j = q;
-                      goto repeat1;
+                      bt_stack[++s].i = p;
+                      bt_stack[s].j   = q;
+                      bt_stack[s].ml  = comp2;
                     }
 
                     continue;
@@ -509,7 +432,7 @@ backtrack(vrna_fold_compound *vc,
 
       default:  vrna_message_error("Backtracking failed due to unrecognized DP matrix!");
                 break;
-    }
+    } 
 
   repeat1:
 
@@ -569,45 +492,103 @@ backtrack(vrna_fold_compound *vc,
 /*---------------------------------------------------------------------------*/
 
 
-/*---------------------------------------------------------------------------*/
-
-PUBLIC  void
-vrna_update_fold_params(vrna_fold_compound *vc,
-                        vrna_param_t *parameters){
-
-  vrna_fold_compound *v;
-  if(vc){
-    v = vc;
-
-    /* what about re-setting the backward compatibility compound here? */
-    if(backward_compat_compound && backward_compat)
-      vrna_free_fold_compound(backward_compat_compound);
-
-    backward_compat_compound  = vc;
-    backward_compat           = 0;
-  } else if(backward_compat_compound && backward_compat){
-    v = backward_compat_compound;
-  } else
-    return;
-
-  if(v->params)
-    free(v->params);
-  if(parameters){
-    v->params = get_parameter_copy(parameters);
-  } else {
-    vrna_md_t md;
-    set_model_details(&md);
-    v->params = get_scaled_parameters(temperature, md);
-  }
-}
-
-
-
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
 
 #ifdef  VRNA_BACKWARD_COMPAT
+
+PRIVATE void
+wrap_array_export(int **f5_p,
+                  int **c_p,
+                  int **fML_p,
+                  int **fM1_p,
+                  int **indx_p,
+                  char **ptype_p){
+
+  /* make the DP arrays available to routines such as subopt() */
+  if(backward_compat_compound){
+    *f5_p     = backward_compat_compound->matrices->f5;
+    *c_p      = backward_compat_compound->matrices->c;
+    *fML_p    = backward_compat_compound->matrices->fML;
+    *fM1_p    = backward_compat_compound->matrices->fM1;
+    *indx_p   = backward_compat_compound->jindx;
+    *ptype_p  = backward_compat_compound->ptype;
+  }
+}
+
+PRIVATE void
+wrap_array_export_circ( int *Fc_p,
+                        int *FcH_p,
+                        int *FcI_p,
+                        int *FcM_p,
+                        int **fM2_p){
+
+  /* make the DP arrays available to routines such as subopt() */
+  if(backward_compat_compound){
+    *Fc_p   = backward_compat_compound->matrices->Fc;
+    *FcH_p  = backward_compat_compound->matrices->FcH;
+    *FcI_p  = backward_compat_compound->matrices->FcI;
+    *FcM_p  = backward_compat_compound->matrices->FcM;
+    *fM2_p  = backward_compat_compound->matrices->fM2;
+  }
+}
+
+PRIVATE float
+wrap_fold( const char *string,
+          char *structure,
+          vrna_param_t *parameters,
+          int is_constrained,
+          int is_circular){
+
+  vrna_fold_compound  *vc;
+  vrna_param_t        *P;
+
+#ifdef _OPENMP
+/* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
+
+  /* we need the parameter structure for hard constraints */
+  if(parameters){
+    P = get_parameter_copy(parameters);
+  } else {
+    vrna_md_t md;
+    set_model_details(&md);
+    P = get_scaled_parameters(temperature, md);
+  }
+  P->model_details.circ = is_circular;
+
+  vc = vrna_get_fold_compound(string, &(P->model_details), VRNA_OPTION_MFE);
+
+  if(parameters){ /* replace params if necessary */
+    free(vc->params);
+    vc->params = P;
+  } else {
+    free(P);
+  }
+
+  /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
+  if(is_constrained && structure){
+    unsigned int constraint_options = 0;
+    constraint_options |= VRNA_CONSTRAINT_DB
+                          | VRNA_CONSTRAINT_DB_PIPE
+                          | VRNA_CONSTRAINT_DB_DOT
+                          | VRNA_CONSTRAINT_DB_X
+                          | VRNA_CONSTRAINT_DB_ANG_BRACK
+                          | VRNA_CONSTRAINT_DB_RND_BRACK;
+
+    vrna_add_constraints(vc, (const char *)structure, constraint_options);
+  }
+
+  if(backward_compat_compound && backward_compat)
+    vrna_free_fold_compound(backward_compat_compound);
+
+  backward_compat_compound  = vc;
+  backward_compat           = 1;
+
+  return vrna_fold(vc, structure);
+}
 
 PUBLIC void
 free_arrays(void){
@@ -653,13 +634,35 @@ initialize_fold(int length){
 PUBLIC void
 update_fold_params(void){
 
-  vrna_update_fold_params(NULL, NULL);
+  vrna_fold_compound  *v;
+  vrna_param_t        *P;
+  vrna_md_t           md;
+
+  if(backward_compat_compound && backward_compat){
+    vrna_md_set_globals(&md);
+    P = vrna_params_get(&md);
+    vrna_params_update(backward_compat_compound, P);
+    free(P);
+  }
 }
 
 PUBLIC void
 update_fold_params_par(vrna_param_t *parameters){
 
-  vrna_update_fold_params(NULL, parameters);
+  vrna_fold_compound  *v;
+  vrna_param_t        *P;
+  vrna_md_t           md;
+
+  if(backward_compat_compound && backward_compat){
+    if(parameters)
+      vrna_params_update(backward_compat_compound, parameters);
+    else{
+      vrna_md_set_globals(&md);
+      P = vrna_params_get(&md);
+      vrna_params_update(backward_compat_compound, P);
+      free(P);
+    }
+  }
 }
 
 PUBLIC void

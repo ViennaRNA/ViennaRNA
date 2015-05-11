@@ -111,7 +111,7 @@ static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const d
 
   /* get new (constrained) MFE to scale pf computations properly */
   double mfe = (double)vrna_fold(vc, NULL);
-  vrna_rescale_pf_params(vc, &mfe);
+  vrna_exp_params_rescale(vc, &mfe);
 
   vrna_pf_fold(vc, NULL);
 
@@ -146,7 +146,7 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, con
 
   /* get new (constrained) MFE to scale pf computations properly */
   double mfe = (double)vrna_fold(vc, NULL);
-  vrna_rescale_pf_params(vc, &mfe);
+  vrna_exp_params_rescale(vc, &mfe);
 
   vrna_pf_fold(vc, NULL);
 
@@ -172,7 +172,7 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, con
     vrna_add_constraints(restricted_vc, hc_string, constraint_options);
     free(hc_string);
 
-    vrna_update_pf_params(restricted_vc, vc->exp_params);
+    vrna_exp_params_update(restricted_vc, vc->exp_params);
 
     vrna_pf_fold(restricted_vc, NULL);
     calculate_probability_unpaired(restricted_vc, conditional_prob_unpaired[i]);
@@ -197,7 +197,7 @@ static void pairing_probabilities_from_sampling(vrna_fold_compound *vc, const do
 
   /* get new (constrained) MFE to scale pf computations properly */
   double mfe = (double)vrna_fold(vc, NULL);
-  vrna_rescale_pf_params(vc, &mfe);
+  vrna_exp_params_rescale(vc, &mfe);
 
   vrna_pf_fold(vc, NULL);
 

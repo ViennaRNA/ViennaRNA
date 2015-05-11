@@ -259,11 +259,7 @@ DEPRECATED(void free_co_pf_arrays(void));
  *  This function recalculates all energy parameters given
  *  the current model settings.
  *
- *  \note This function relies on the global variables #pf_scale, #dangles and
- *        #temperature. Thus it might not be threadsafe in certain situations.
- *        Use update_co_pf_params_par() instead.
- *
- *  \see get_boltzmann_factors(), update_co_pf_params_par()
+ *  @deprecated   Use vrna_exp_params_update() instead!
  *
  *  \param    length      Length of the current RNA sequence
  */
@@ -283,7 +279,7 @@ DEPRECATED(void update_co_pf_params(int length));
  *  for the model parameters #dangles, #pf_scale and #temperature is regained, since their
  *  values are taken from this data structure during subsequent calculations.
  *
- *  \see get_boltzmann_factors(), update_co_pf_params()
+ *  @deprecated   Use vrna_exp_params_update() instead!
  *
  *  \param    length      Length of the current RNA sequence
  *  \param    parameters  data structure containing the precomputed Boltzmann factors

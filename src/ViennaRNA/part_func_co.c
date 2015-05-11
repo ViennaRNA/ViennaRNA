@@ -148,21 +148,6 @@ wrap_co_pf_fold(char *sequence,
   return vrna_co_pf_fold(vc, structure);
 }
 
-PRIVATE void
-wrap_update_pf_params(int length,
-                      vrna_exp_param_t *parameters){
-
-  vrna_exp_param_t *p = NULL;
-  if(parameters == NULL){
-    vrna_md_t md;
-    set_model_details(&md);
-    p = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
-  }
-
-  vrna_update_pf_params(backward_compat_compound, p);
-  free(p);
-}
-
 /*
 *****************************************
 * END backward compatibility wrappers   *
@@ -1431,18 +1416,37 @@ export_co_bppm(void){
 PUBLIC void
 update_co_pf_params(int length){
 
-/*----------------------------------------------------------------------*/
+  if(backward_compat_compound && backward_compat){
+    vrna_exp_param_t  *p;
+    vrna_md_t         md;
+    vrna_md_set_globals(&md);
+    p = vrna_exp_params_get(&md);
+    vrna_exp_params_update(backward_compat_compound, p);
+    free(p);
 
-/*---------------------------------------------------------------------------*/
-
-  wrap_update_pf_params(length, NULL);
+    /* compatibility with RNAup, may be removed sometime */
+    pf_scale = backward_compat_compound->exp_params->pf_scale;
+  }
 }
 
 PUBLIC void
 update_co_pf_params_par(int length,
                         vrna_exp_param_t *parameters){
 
-/*---------------------------------------------------------------------------*/
-  wrap_update_pf_params(length, parameters);
+  if(backward_compat_compound && backward_compat){
+    vrna_exp_param_t  *p;
+    vrna_md_t         md;
+    if(parameters){
+      vrna_exp_params_update(backward_compat_compound, parameters);
+    } else {
+      vrna_md_set_globals(&md);
+      p = vrna_exp_params_get(&md);
+      vrna_exp_params_update(backward_compat_compound, p);
+      free(p);
+    }
+
+    /* compatibility with RNAup, may be removed sometime */
+    pf_scale = backward_compat_compound->exp_params->pf_scale;
+  }
 }
 

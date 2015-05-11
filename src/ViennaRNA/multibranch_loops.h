@@ -961,6 +961,8 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
                       int *j,
                       int *k,
                       int *l,
+                      int *component1,
+                      int *component2,
                       bondT *bp_stack,
                       int *stack_count){
 
@@ -1032,6 +1034,8 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
 
   ij = idx[jj] + ii;
 
+  *component1 = *component2 = 1; /* split into two multi loop parts by default */
+
   /* 1. test for single component */
 
   if(with_gquad){
@@ -1049,11 +1053,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
   switch(dangle_model){
     case 0:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                 if(fij == en + E_MLstem(type, -1, -1, P)){
-                  bp_stack[++(*stack_count)].i = ii;
-                  bp_stack[(*stack_count)].j   = jj;
                   *i = *j = -1;
                   *k = ii;
                   *l = jj;
+                  *component2 = 2;  /* 2nd part is structure enclosed by base pair */
                   return 1;
                 }
               }
@@ -1061,11 +1064,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
 
     case 2:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                 if(fij == en + E_MLstem(type, S1[ii - 1], S1[jj + 1], P)){
-                  bp_stack[++(*stack_count)].i = ii;
-                  bp_stack[(*stack_count)].j   = jj;
                   *i = *j = -1;
                   *k = ii;
                   *l = jj;
+                  *component2 = 2;
                   return 1;
                 }
               }
@@ -1073,11 +1075,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
 
     default:  if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                 if(fij == en + E_MLstem(type, -1, -1, P)){
-                  bp_stack[++(*stack_count)].i = ii;
-                  bp_stack[(*stack_count)].j   = jj;
                   *i = *j = -1;
                   *k = ii;
                   *l = jj;
+                  *component2 = 2;
                   return 1;
                 }
               }
@@ -1090,11 +1091,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
 
                   type = (unsigned char)ptype[ij + 1];
                   if(tmp_en == my_c[ij+1] + E_MLstem(type, S1[ii], -1, P) + P->MLbase){
-                    bp_stack[++(*stack_count)].i = ii + 1;
-                    bp_stack[(*stack_count)].j   = jj;
                     *i = *j = -1;
                     *k = ii + 1;
                     *l = jj;
+                    *component2 = 2;
                     return 1;
                   }
                 }
@@ -1108,11 +1108,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
 
                   type = (unsigned char)ptype[idx[jj - 1] + ii];
                   if(tmp_en == my_c[idx[jj - 1] + ii] + E_MLstem(type, -1, S1[jj], P) + P->MLbase){
-                    bp_stack[++(*stack_count)].i = ii;
-                    bp_stack[(*stack_count)].j   = jj - 1;
                     *i = *j = -1;
                     *k = ii;
                     *l = jj - 1;
+                    *component2 = 2;
                     return 1;
                   }
                 }
@@ -1126,11 +1125,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
 
                   type = (unsigned char)ptype[idx[jj - 1] + ii + 1];
                   if(tmp_en == my_c[idx[jj - 1] + ii + 1] + E_MLstem(type, S1[ii], S1[jj], P) + 2 * P->MLbase){
-                    bp_stack[++(*stack_count)].i = ii + 1;
-                    bp_stack[(*stack_count)].j   = jj - 1;
                     *i = *j = -1;
                     *k = ii + 1;
                     *l = jj - 1;
+                    *component2 = 2;
                     return 1;
                   }
                 }
@@ -1140,106 +1138,12 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
 
   /* 2. Test for possible split point */
   for(u = ii + 1 + turn; u <= jj - 2 - turn; u++){
-    ij    = idx[jj] + u + 1;
-    type  = (unsigned char)ptype[ij];
-    en    = my_c[ij];
-
-    switch(dangle_model){
-      case 0:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                  if(fij == my_fML[idx[u] + ii] + en + E_MLstem(type, -1, -1, P)){
-                    bp_stack[++(*stack_count)].i = u + 1;
-                    bp_stack[(*stack_count)].j   = jj;
-                    *i = ii;
-                    *j = u;
-                    *k = u + 1;
-                    *l = jj;
-                    return 1;
-                  }
-                }
-                break;
-
-      case 2:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                  if(fij == my_fML[idx[u] + ii] + en + E_MLstem(type, S1[u], S1[jj + 1], P)){
-                    bp_stack[++(*stack_count)].i = u + 1;
-                    bp_stack[(*stack_count)].j   = jj;
-                    *i = ii;
-                    *j = u;
-                    *k = u + 1;
-                    *l = jj;
-                    return 1;
-                  }
-                }
-                break;
-
-      default:  if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                  if(fij == my_fML[idx[u] + ii] + en + E_MLstem(type, -1, -1, P)){
-                    bp_stack[++(*stack_count)].i = u + 1;
-                    bp_stack[(*stack_count)].j   = jj;
-                    *i = ii;
-                    *j = u;
-                    *k = u + 1;
-                    *l = jj;
-                    return 1;
-                  }
-                }
-                if(hc->matrix[ij + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                  if(hc->up_ml[u + 1]){
-                    en = my_c[ij + 1];
-                    if(sc)
-                      if(sc->free_energies)
-                        en += sc->free_energies[u + 1][1];
-
-                    type = (unsigned char)ptype[ij + 1];
-                    if(fij == my_fML[idx[u] + ii] + en + E_MLstem(type, S1[u + 1], -1, P) + P->MLbase){
-                      bp_stack[++(*stack_count)].i = u + 2;
-                      bp_stack[(*stack_count)].j   = jj;
-                      *i = ii;
-                      *j = u;
-                      *k = u + 2;
-                      *l = jj;
-                      return 1;
-                    }
-                  }
-                }
-                if(hc->matrix[idx[jj - 1] + u + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                  if(hc->up_ml[jj]){
-                    en = my_c[idx[jj - 1] + u + 1];
-                    if(sc)
-                      if(sc->free_energies)
-                        en += sc->free_energies[jj][1];
-
-                    type = (unsigned char)ptype[idx[jj - 1] + u + 1];
-                    if(fij == my_fML[idx[u] + ii] + en + E_MLstem(type, -1, S1[jj], P) + P->MLbase){
-                      bp_stack[++(*stack_count)].i = u + 1;
-                      bp_stack[(*stack_count)].j   = jj - 1;
-                      *i = ii;
-                      *j = u;
-                      *k = u + 1;
-                      *l = jj - 1;
-                      return 1;
-                    }
-                  }
-                }
-                if(hc->matrix[idx[jj - 1] + u + 2] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                  if(hc->up_ml[u + 1] && hc->up_ml[jj]){
-                    en = my_c[idx[jj - 1] + u + 2];
-                    if(sc)
-                      if(sc->free_energies)
-                        en += sc->free_energies[u + 1][1] + sc->free_energies[jj][1];
-
-                    type = (unsigned char)ptype[idx[jj - 1] + u + 2];
-                    if(fij == my_fML[idx[u] + ii] + en + E_MLstem(type, S1[u + 1], S1[jj], P) + 2 * P->MLbase){
-                      bp_stack[++(*stack_count)].i = u + 2;
-                      bp_stack[(*stack_count)].j   = jj - 1;
-                      *i = ii;
-                      *j = u;
-                      *k = u + 2;
-                      *l = jj - 1;
-                      return 1;
-                    }
-                  }
-                }
-                break;
+    if(fij == my_fML[idx[u] + ii] + my_fML[idx[jj] + u + 1]){
+      *i = ii;
+      *j = u;
+      *k = u + 1;
+      *l = jj;
+      return 1;
     }
   }
 
@@ -1253,12 +1157,11 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
         type_2  = rtype[(unsigned char)ptype[k1j]];
         tmp_en  = my_c[ik] + my_c[k1j] + P->stack[type][type_2] + 2*P->MLintern[1];
         if (fij == tmp_en){
-          bp_stack[++(*stack_count)].i = u + 1;
-          bp_stack[(*stack_count)].j   = jj;
           *i = ii;
           *j = u;
           *k = u + 1;
           *l = jj;
+          *component1 = *component2 = 2;
           return 1;
         }
       }
@@ -1279,7 +1182,7 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
                 int *component2){
 
   int ij, p, q, r, e, cp, *idx, turn, dangle_model, *my_c, *my_fML, *my_fc, *rtype;
-  unsigned char type, type_2;
+  unsigned char type, type_2, tt;
   char          *ptype;
   short         s5, s3, *S1;
   vrna_param_t  *P;
@@ -1302,6 +1205,7 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
   ptype         = vc->ptype;
   rtype         = &(md->rtype[0]);
   type          = (unsigned char)ptype[ij];
+  tt            = type;
   type          = rtype[type];
   dangle_model  = md->dangles;
 
@@ -1396,7 +1300,7 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
 
     s5 = ON_SAME_STRAND(q, *j, cp) ? S1[q] : -1;
     s3 = ON_SAME_STRAND(*i, p, cp) ? S1[p] : -1;
-                
+
     switch(dangle_model){
       case 0:   e = en - E_MLstem(type, -1, -1, P) - P->MLclosing;
                 if(sc){
@@ -1467,16 +1371,10 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
                   /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
                   if(dangle_model == 3){
                     int tmp_en = e;
-                    type = rtype[type];
-
                     if(hc->matrix[idx[r] + p] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                       type_2 = rtype[(unsigned char)ptype[idx[r] + p]];
-                      tmp_en = my_c[idx[r] + p] + P->stack[type][type_2] + my_fML[idx[q] + r + 1];
-                      if(sc){
-                        if(sc->en_basepair)
-                          tmp_en += sc->en_basepair[ij];
-                      }
-                      if(en == tmp_en + 2 * P->MLintern[1] + P->MLclosing){
+                      tmp_en = my_c[idx[r] + p] + P->stack[tt][type_2] + my_fML[idx[q] + r + 1];
+                      if(e == tmp_en + 2 * P->MLintern[1]){
                         *component1 = 2;
                         break;
                       }
@@ -1484,12 +1382,8 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
 
                     if(hc->matrix[idx[q] + r + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                       type_2 = rtype[(unsigned char)ptype[idx[q] + r + 1]];
-                      tmp_en = my_c[idx[q] + r + 1] + P->stack[type][type_2] + my_fML[idx[r] + p];
-                      if(sc){
-                        if(sc->en_basepair)
-                          tmp_en += sc->en_basepair[ij];
-                      }
-                      if (en == tmp_en + 2 * P->MLintern[1] + P->MLclosing){
+                      tmp_en = my_c[idx[q] + r + 1] + P->stack[tt][type_2] + my_fML[idx[r] + p];
+                      if (e == tmp_en + 2 * P->MLintern[1]){
                         *component2 = 2;
                         break;
                       }
@@ -1500,7 +1394,7 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
     }
   }
 
-  if(r <= *j - turn - 1){
+  if(r <= *j - turn - 3){
     *i = p;
     *k = r;
     *j = q;

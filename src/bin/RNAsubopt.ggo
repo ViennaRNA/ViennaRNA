@@ -42,10 +42,22 @@ flag
 off
 dependon="constraint"
 
+option  "enforceConstraint" -
+"Enforce base pairs given by round brackets ( ) in structure constraint\n\n"
+flag
+off
+dependon="constraint"
+
 option  "noconv"  -
 "Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag
 off
+
+option  "verbose" v
+"Be verbose\n"
+flag
+off
+
 
 section "Algorithms"
 sectiondesc="Select the algorithms which should be applied to the given RNA sequence.\n"
@@ -176,6 +188,57 @@ default="1."
 optional
 dependon="stochBT"
 hidden
+
+option  "shape" -
+"Use SHAPE reactivity data in the folding recursions (does not work for PF yet)\n"
+string
+typestr="SHAPE file"
+optional
+
+option  "shapeMethod" -
+"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
+details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
+'D': Convert by using a linear equation according to Deigan et al 2009. \
+The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
+This method is recognized by a capital 'D' in the provided parameter, i.e.: \
+--shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
+non-default value if necessary, otherwise m=1.8 and b=-0.6. \
+To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
+parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
+parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
+
+'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
+SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
+Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
+The magnitude of the penalties can affected by adjusting the factor beta \
+(e.g. --shapeMethod=\"Zb0.8\").
+
+'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
+Perturbation vectors can be calculated by using RNApvmin.\n"
+string
+typestr="[D/Z/W] + [optional parameters]"
+dependon="shape"
+default="D"
+optional
+
+option  "shapeConversion" -
+"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al.\n"
+details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+'M': Use linear mapping according to Zarringhalam et al.
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n"
+string
+typestr="M/C/S/L/O  + [optional parameters]"
+default="O"
+optional
+
+option  "maxBPspan" -
+"Set the maximum base pair span\n"
+int
+default="-1"
+optional
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
