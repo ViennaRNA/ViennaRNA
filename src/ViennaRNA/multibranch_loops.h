@@ -1028,7 +1028,7 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
   } while (fij == fi);
   ii--;
 
-  if (jj < ii + turn + 2){ /* no more pairs */
+  if (jj < ii + turn + 1){ /* no more pairs */
     return 0;
   }
 
