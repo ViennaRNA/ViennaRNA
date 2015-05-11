@@ -65,7 +65,7 @@ PRIVATE INLINE  void
 hc_pairs_upstream(unsigned int i,
                   char c_option,
                   char *hc,
-                  unsigned int min_loop_size,
+                  unsigned int length,
                   int *index);
 
 PRIVATE INLINE  void
@@ -73,7 +73,6 @@ hc_pairs_downstream(unsigned int i,
                     char c_option,
                     char *hc,
                     unsigned int length,
-                    unsigned int min_loop_size,
                     int *index);
 
 PRIVATE INLINE  void
@@ -521,7 +520,8 @@ apply_DB_constraint(const char *constraint,
 
       /* must pair, i.e. may not be unpaired */
       case '|':   if(options & VRNA_CONSTRAINT_DB_PIPE){
-                    hc_must_pair(j, c_option, hc, index);
+                    if(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
+                      hc_must_pair(j, c_option, hc, index);
                   }
                   break;
 
@@ -547,13 +547,17 @@ apply_DB_constraint(const char *constraint,
 
       /* pairs upstream */
       case '<':   if(options & VRNA_CONSTRAINT_DB_ANG_BRACK){
-                    hc_pairs_upstream(j, c_option, hc, min_loop_size, index);
+                    hc_pairs_downstream(j, c_option, hc, length, index);
+                    if(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
+                      hc_must_pair(j, c_option, hc, index);
                   }
                   break;
 
       /* pairs downstream */
       case '>':   if(options & VRNA_CONSTRAINT_DB_ANG_BRACK){
-                    hc_pairs_downstream(j, c_option, hc, length, min_loop_size, index);
+                    hc_pairs_upstream(j, c_option, hc, length, index);
+                    if(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
+                      hc_must_pair(j, c_option, hc, index);
                   }
                   break;
 
@@ -640,8 +644,8 @@ hc_cant_pair( unsigned int i,
               unsigned int min_loop_size,
               int *index){
 
-  hc_pairs_upstream(i, c_option, hc, min_loop_size, index);
-  hc_pairs_downstream(i, c_option, hc, length, min_loop_size, index);
+  hc_pairs_upstream(i, c_option, hc, length, index);
+  hc_pairs_downstream(i, c_option, hc, length, index);
 }
 
 PRIVATE INLINE  void
@@ -657,16 +661,17 @@ PRIVATE INLINE  void
 hc_pairs_upstream(unsigned int i,
                   char c_option,
                   char *hc,
-                  unsigned int min_loop_size,
+                  unsigned int length,
                   int *index){
 
   unsigned int l;
 
-  if(min_loop_size < i){
-    for(l = 1; l < i - min_loop_size; l++){
-      hc[index[i] + l] &= ~c_option;
-    }
-  }
+  /* prohibit downstream pairs */
+  for(l = length; l > i; l--)
+    hc[index[l] + i] = (char)0;
+  /* allow upstream pairs of given type */
+  for(l = i; l >= 1; l--)
+    hc[index[i] + l] &= c_option;
 }
 
 PRIVATE INLINE  void
@@ -674,14 +679,15 @@ hc_pairs_downstream(unsigned int i,
                     char c_option,
                     char *hc,
                     unsigned int length,
-                    unsigned int min_loop_size,
                     int *index){
 
   unsigned int l;
-
-  for(l = i + min_loop_size + 1; l <= length; l++){
-    hc[index[l] + i] &= ~c_option;
-  }
+  /* allow downstream pairs of given type */
+  for(l = length; l > i; l--)
+    hc[index[l] + i] &= c_option;
+  /* forbid upstream pairs */
+  for(l = i - 1; l >= 1; l--)
+    hc[index[i] + l] = (char)0;
 }
 
 PRIVATE INLINE  void
@@ -706,13 +712,11 @@ hc_weak_enforce_pair( unsigned int i,
   unsigned int k, l;
 
   /* don't allow pairs (k,i) 1 <= k < i */
-  hc_pairs_upstream(i, c_option, hc, min_loop_size, index);
   /* don't allow pairs (i,k) i < k <= n */ 
-  hc_pairs_downstream(i, c_option, hc, length, min_loop_size, index);
+  hc_pairs_upstream(i, (char)0, hc, length, index);
   /* don't allow pairs (k,j) 1 <= k < j */
-  hc_pairs_upstream(j, c_option, hc, min_loop_size, index);
   /* don't allow pairs (j,k) j < k <= n */ 
-  hc_pairs_downstream(j, c_option, hc, length, min_loop_size, index);
+  hc_pairs_upstream(j, (char)0, hc, length, index);
 
   /* don't allow pairs i < k < j < l */
   for(k = i+1; k < j; k++)
