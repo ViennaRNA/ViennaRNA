@@ -1,0 +1,13 @@
+# c-sources and object files are automatically generated
+*.c
+*.o
+
+# log files andd test results are of no interest
+*.log
+*.trs
+
+# ignroe executables
+fold
+utils
+energy_evaluation
+constraints

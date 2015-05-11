@@ -1,10 +1,14 @@
 #ifndef VIENNA_RNA_PACKAGE_FILE_FORMATS_H
 #define VIENNA_RNA_PACKAGE_FILE_FORMATS_H
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
+#ifdef DEPRECATION_WARNINGS
+# ifdef __GNUC__
+#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# else
+#  define DEPRECATED(func) func
+# endif
 #else
-#define DEPRECATED(func) func
+# define DEPRECATED(func) func
 #endif
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
@@ -32,13 +36,27 @@
  *  @param  db    The structure in dot-bracket format
  *  @param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
  */
-void vrna_structure_print_hx( const char *seq,
-                              const char *db,
-                              float energy,
-                              FILE *file);
+void vrna_file_helixlist( const char *seq,
+                          const char *db,
+                          float energy,
+                          FILE *file);
 
 /**
  *  @brief Print a secondary structure as connect table
+ *
+ *  Connect table file format looks like this:
+@verbatim
+300  ENERGY = 7.0  example
+  1 G       0    2   22    1
+  2 G       1    3   21    2
+@endverbatim
+ *  where the headerline is followed by 6 columns with:
+ *  1. Base number: index n
+ *  2. Base (A, C, G, T, U, X)
+ *  3. Index n-1  (0 if first nucleotide)
+ *  4. Index n+1  (0 if last nucleotide)
+ *  5. Number of the base to which n is paired. No pairing is indicated by 0 (zero).
+ *  6. Natural numbering.
  *
  *  @param  seq         The RNA sequence
  *  @param  db          The structure in dot-bracket format
@@ -46,11 +64,11 @@ void vrna_structure_print_hx( const char *seq,
  *  @param  identifier  An optional identifier for the sequence
  *  @param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
  */
-void vrna_structure_print_ct( const char *seq,
-                              const char *db,
-                              float energy,
-                              const char *identifier,
-                              FILE *file);
+void vrna_file_connect( const char *seq,
+                        const char *db,
+                        float energy,
+                        const char *identifier,
+                        FILE *file);
 
 /**
  *  @brief Print a secondary structure in bpseq format
@@ -59,17 +77,26 @@ void vrna_structure_print_ct( const char *seq,
  *  @param  db          The structure in dot-bracket format
  *  @param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
  */
-void vrna_structure_print_bpseq(const char *seq,
-                                const char *db,
-                                FILE *file);
+void vrna_file_bpseq( const char *seq,
+                      const char *db,
+                      FILE *file);
 
 #if WITH_JSON_SUPPORT
 
-void vrna_structure_print_json( const char *seq,
-                                const char *db,
-                                double energy,
-                                const char *identifier,
-                                FILE *file);
+/**
+ *  @brief Print a secondary structure in jsonformat
+ *
+ *  @param  seq         The RNA sequence
+ *  @param  db          The structure in dot-bracket format
+ *  @param  energy      The free energy
+ *  @param  identifier  An identifier for the sequence
+ *  @param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
+ */
+void vrna_file_json(const char *seq,
+                    const char *db,
+                    double energy,
+                    const char *identifier,
+                    FILE *file);
 
 #endif
 
@@ -80,7 +107,7 @@ void vrna_structure_print_json( const char *seq,
  *  A dataset is always defined to contain at least a sequence. If data starts with a
  *  fasta header, i.e. a line like
  *  @verbatim >some header info @endverbatim
- *  then vrna_read_fasta_record() will assume that the sequence that follows the header may span
+ *  then vrna_file_fasta_read_record() will assume that the sequence that follows the header may span
  *  over several lines. To disable this behavior and to assign a single line to the argument
  *  'sequence' one can pass #VRNA_INPUT_NO_SPAN in the 'options' argument.
  *  If no fasta header is read in the beginning of a data block, a sequence must not span over
@@ -108,7 +135,7 @@ char *id, *seq, **rest;
 int  i;
 id = seq = NULL;
 rest = NULL;
-while(!(vrna_read_fasta_record(&id, &seq, &rest, NULL, 0) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
+while(!(vrna_file_fasta_read_record(&id, &seq, &rest, NULL, 0) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
   if(id) printf("%s\n", id);
   printf("%s\n", seq);
   if(rest)
@@ -121,7 +148,7 @@ while(!(vrna_read_fasta_record(&id, &seq, &rest, NULL, 0) & (VRNA_INPUT_ERROR | 
   free(id);
 }
  *  @endcode
- *  In the example above, the while loop will be terminated when vrna_read_fasta_record() returns
+ *  In the example above, the while loop will be terminated when vrna_file_fasta_read_record() returns
  *  either an error, EOF, or a user initiated quit request.\n
  *  As long as data is read from stdin (we are passing NULL as the file pointer), the id is
  *  printed if it is available for the current block of data. The sequence will be printed in
@@ -137,7 +164,7 @@ while(!(vrna_read_fasta_record(&id, &seq, &rest, NULL, 0) & (VRNA_INPUT_ERROR | 
  *  @param  options   Some options which may be passed to alter the behavior of the function, use 0 for no options
  *  @return           A flag with information about what the function actually did read
  */
-unsigned int vrna_read_fasta_record(char **header,
+unsigned int vrna_file_fasta_read_record(char **header,
                                     char **sequence,
                                     char  ***rest,
                                     FILE *file,
@@ -146,11 +173,11 @@ unsigned int vrna_read_fasta_record(char **header,
 /* @brief Extract a dot-bracket structure string from (multiline)character array
  *
  * This function extracts a dot-bracket structure string from the 'rest' array as
- * returned by vrna_read_fasta_record() and returns it. All occurences of comments within the
+ * returned by vrna_file_fasta_read_record() and returns it. All occurences of comments within the
  * 'lines' array will be skipped as long as they do not break the structure string.
  * If no structure could be read, this function returns NULL.
  *
- * @see vrna_read_fasta_record()
+ * @see vrna_file_fasta_read_record()
  *
  * @param lines   The (multiline) character array to be parsed
  * @param length  The assumed length of the dot-bracket string (passing a value < 1 results in no length limit)
@@ -165,8 +192,8 @@ char *vrna_extract_record_rest_structure( const char **lines,
  *  @brief  Extract a hard constraint encoded as pseudo dot-bracket string
  *
  *  @pre      The argument 'lines' has to be a 2-dimensional character array as obtained
- *            by vrna_read_fasta_record()
- *  @see      vrna_read_fasta_record(), #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X
+ *            by vrna_file_fasta_read_record()
+ *  @see      vrna_file_fasta_read_record(), #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X
  *            #VRNA_CONSTRAINT_DB_ANG_BRACK, #VRNA_CONSTRAINT_DB_RND_BRACK
  *
  *  @param  cstruc  A pointer to a character array that is used as pseudo dot-bracket
@@ -192,7 +219,7 @@ void vrna_extract_record_rest_constraint( char **cstruc,
   * @param sequence      Pointer to an array used for storing the sequence obtained from the SHAPE reactivity file
   * @param values        Pointer to an array used for storing the values obtained from the SHAPE reactivity file
   */
-int vrna_read_SHAPE_file( const char *file_name,
+int vrna_file_SHAPE_read( const char *file_name,
                           int length,
                           double default_value,
                           char *sequence,
@@ -202,16 +229,16 @@ int vrna_read_SHAPE_file( const char *file_name,
  *  @brief  Read constraints from an input file
  *
  *  This function reads constraint definitions from a file and converts them
- *  into an array of #plist data structures. The data fields of each individual
+ *  into an array of #vrna_plist_t data structures. The data fields of each individual
  *  returned plist entry may adopt the following configurations:
  *  - plist.i == plist.j @f$ \rightarrow @f$ single nucleotide constraint
  *  - plist.i != plist.j @f$ \rightarrow @f$ base pair constraint
  *  - plist.i == 0 @f$ \rightarrow @f$ End of list
  *
  */
-plist *vrna_read_constraints_file(const char *filename,
-                                  unsigned int length,
-                                  unsigned int options);
+vrna_plist_t *vrna_file_constraints_read( const char *filename,
+                                          unsigned int length,
+                                          unsigned int options);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -226,7 +253,7 @@ DEPRECATED(char *extract_record_rest_structure( const char **lines,
 /**
  *  @brief  Get a data record from stdin
  * 
- *  @deprecated This function is deprecated! Use vrna_read_fasta_record() as a replacment.
+ *  @deprecated This function is deprecated! Use vrna_file_fasta_read_record() as a replacment.
  *
  */
 DEPRECATED(unsigned int read_record(char **header,

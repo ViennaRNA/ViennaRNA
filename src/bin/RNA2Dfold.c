@@ -213,9 +213,9 @@ int main(int argc, char *argv[]){
 
     if (istty)  printf("length = %d\n", length);
 
-    vrna_fold_compound  *vc_global = vrna_get_fold_compound(string,&md, VRNA_OPTION_MFE);
+    vrna_fold_compound_t  *vc_global = vrna_fold_compound(string,&md, VRNA_OPTION_MFE);
 
-    min_en = vrna_fold(vc_global, mfe_structure);
+    min_en = vrna_mfe(vc_global, mfe_structure);
 
     printf("%s\n%s", orig_sequence, mfe_structure);
 
@@ -227,11 +227,11 @@ int main(int argc, char *argv[]){
     printf("%s (%6.2f) <ref 1>\n", structure1, vrna_eval_structure(vc_global, structure1));
     printf("%s (%6.2f) <ref 2>\n", structure2, vrna_eval_structure(vc_global, structure2));
 
-    vrna_free_fold_compound(vc_global);
+    vrna_fold_compound_free(vc_global);
 
     /* get all variables need for the folding process (some memory will be preallocated here too) */
-    vrna_fold_compound *vc  = vrna_get_fold_compound_2D(string, structure1, structure2, &md, VRNA_OPTION_MFE | (pf ? VRNA_OPTION_PF : 0));
-    vrna_sol_TwoD_t *mfe_s  = vrna_TwoD_fold(vc, maxDistance1, maxDistance2);
+    vrna_fold_compound_t *vc  = vrna_fold_compound_TwoD(string, structure1, structure2, &md, VRNA_OPTION_MFE | (pf ? VRNA_OPTION_PF : 0));
+    vrna_sol_TwoD_t *mfe_s  = vrna_mfe_TwoD(vc, maxDistance1, maxDistance2);
 
     if(!pf){
 #ifdef COUNT_STATES
@@ -262,9 +262,9 @@ int main(int argc, char *argv[]){
       vrna_exp_params_rescale(vc, &mmfe);
 
       /* we dont need the mfe DP arrays anymore, so we can savely free their occupying memory */
-      vrna_free_mfe_matrices(vc);
+      vrna_mx_mfe_free(vc);
 
-      vrna_sol_TwoD_pf_t *pf_s = vrna_TwoD_pf_fold(vc, maxD1, maxD2);
+      vrna_sol_TwoD_pf_t *pf_s = vrna_pf_TwoD(vc, maxD1, maxD2);
 
       Q = 0.;
       
@@ -303,7 +303,7 @@ int main(int argc, char *argv[]){
             k = tmp->k;
             l = tmp->l;
             for(i = 0; i < nstBT; i++){
-              char *s = vrna_TwoD_pbacktrack(vc, k, l);
+              char *s = vrna_pbacktrack_TwoD(vc, k, l);
               printf("%d\t%d\t%6.2f\t%s\n", k, l, vrna_eval_structure(vc, s), s);
             }
           }
@@ -311,7 +311,7 @@ int main(int argc, char *argv[]){
         else{
           for(i=0; pf_s[i].k != INF;i++){
             for(l = 0; l < nstBT; l++){
-              char *s = vrna_TwoD_pbacktrack(vc, pf_s[i].k, pf_s[i].l);
+              char *s = vrna_pbacktrack_TwoD(vc, pf_s[i].k, pf_s[i].l);
               printf("%d\t%d\t%6.2f\t%s\n", pf_s[i].k, pf_s[i].l, vrna_eval_structure(vc, s), s);
             }
           }
@@ -325,7 +325,7 @@ int main(int argc, char *argv[]){
       free(mfe_s);
     }
 
-    vrna_free_fold_compound(vc);
+    vrna_fold_compound_free(vc);
 
     free(string);
     free(orig_sequence);

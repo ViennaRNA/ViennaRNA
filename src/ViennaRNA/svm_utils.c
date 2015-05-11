@@ -8,15 +8,15 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
-#include "svm.h"
 #include "svm_utils.h"
 
 #include "ViennaRNA/model_avg.inc"  /* defines avg_model_string */
 #include "ViennaRNA/model_sd.inc"   /* defines sd_model_string */
 
 
-PRIVATE svm_model *avg_model;
-PRIVATE svm_model *sd_model;
+
+PRIVATE struct svm_model *avg_model;
+PRIVATE struct svm_model *sd_model;
 
 PRIVATE void    freeFields(char** fields);
 PRIVATE char**  splitFields(char* string);
@@ -48,8 +48,8 @@ PUBLIC float get_z(char *sequence, double energy) {
   }
   free(AUGC);
   free(S);
-  svm_destroy_model(avg_model);
-  svm_destroy_model(sd_model);
+  svm_free_model_content(avg_model);
+  svm_free_model_content(sd_model);
   return my_z;
 }
 
@@ -65,7 +65,7 @@ PUBLIC int *get_seq_composition(short *S, unsigned int start, unsigned int stop,
   return ret;
 }
 
-PUBLIC double sd_regression(int N, int A, int C, int G, int T,  svm_model *sd_model){
+PUBLIC double sd_regression(int N, int A, int C, int G, int T,  struct svm_model *sd_model){
   double sd_free_energy = 0.0;
   int length = A + C + G + T + N;
   double GC_content  = (double) (G + C)/length;
@@ -153,7 +153,7 @@ PUBLIC double minimal_sd(int N, int A, int C, int G, int T ){
   return 0.450324;
 }
 
-PUBLIC svm_model  *svm_load_model_string(char *modelString){
+PUBLIC struct svm_model  *svm_load_model_string(char *modelString){
 
   /* redefinition from svm.cpp */
   char *svm_type_table[]={"c_svc","nu_svc","one_class","epsilon_svr","nu_svr",NULL};

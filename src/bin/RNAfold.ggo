@@ -11,8 +11,9 @@ purpose "Calculate minimum free energy secondary structures and partition functi
 args "--file-name=RNAfold_cmdl --include-getopt --default-optional --func-name=RNAfold_cmdline_parser --arg-struct-name=RNAfold_args_info"
 
 
-description "The program reads RNA sequences from stdin, calculates their minimum free energy (mfe) structure\
- and prints to stdout the mfe structure in bracket notation and its free energy. If the -p option\
+description "The program reads RNA sequences, calculates their minimum free energy (mfe) structure\
+ and prints the mfe structure in bracket notation and its free energy. If not specified differently\
+ using commandline arguments, input is accepted from stdin, and output printed to stdout. If the -p option\
  was given it also computes the partition function (pf) and base pairing probability matrix, and\
  prints the free energy of the thermodynamic ensemble, the frequency of the mfe structure in the ensemble,\
  and the ensemble diversity to stdout.\n\nIt also produces PostScript files with plots of the resulting\
@@ -30,44 +31,31 @@ description "The program reads RNA sequences from stdin, calculates their minimu
 
 # Options
 section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
+sectiondesc="Command line options which alter the general behavior of this program\n\n"
 
 option  "verbose" v
 "Be verbose\n"
 flag
 off
 
-
-option  "constraint"  C
-"Calculate structures subject to constraints.\n"
-details="The program reads first the\
- sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
- for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
- a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
- exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
- sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\".\n\n"
+option  "infile"  i
+"Read a file instead of reading from stdin\n"
+details="The default behavior of RNAfold is to read input from stdin. Using this parameter\
+ the user can specify an input file name where data is read from.\n\n"
 string
-typestr="filename"
-default = ""
-argoptional
+typestr="<filename>"
+optional
 
-option  "canonicalBPonly" -
-"Remove non-canonical base pairs from the structure constraint\n\n"
-flag
-off
-dependon="constraint"
-
-option  "enforceConstraint" -
-"Enforce base pairs given by round brackets ( ) in structure constraint\n\n"
-flag
-off
-dependon="constraint"
-
-option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
-flag
-off
+option  "outfile" o
+"Print output to file instead of stdout\n"
+details="Specifying a file name/prefix will print the output into a file instead of stdout.\
+ If a FASTA header precedes the input sequence, the appropriate fasta ID is used as infix for\
+ the file name. Each generated file will be suffixed with the file extension '.fold'.\
+ If a file with the same filename already exists, any output of the program will be appended\
+ to it.\n\n"
+string
+typestr="<filename>"
+optional
 
 option  "noPS"  -
 "Do not produce postscript drawing of the mfe structure.\n\n"
@@ -81,47 +69,112 @@ default="1"
 optional
 hidden
 
-option  "format"  -
-"Select output format\n"
-details="The following output formats are recognized:\n\n\
- V ... ViennaRNA format (simply write output to file)\n\
-       (file extension: .db)\n\n\
- H ... Helix List, i.e. 3 columns listing start, end, and length of helices\n\
-       (file extension: .hx)\n\n\
- C ... Connect Format, as introduced with Michael Zuker's mfold\n\
-       (file extension: .ct)\n\n\
- B ... BPSEQ, Base Pair and SEQence format\n\
-       (file extension: .bpseq)\n\nNote: Some output formats do not allow for more data than the structure. Thus,\
- leaving out thermodynamic properties (format \"T\") may result in loss of prediction data.\n\n"
-string
-typestr="VHCB"
-default="V"
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
+flag
+off
+
+# Options
+section "Structure Constraints"
+sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
+
+option  "maxBPspan" -
+"Set the maximum base pair span\n"
+int
+default="-1"
 optional
 
-option  "outfile" o
-"Print output to file instead of stdout\n"
-details="Specifying a file name/prefix will create text output files in formats specified with the --output option.\
- If a FASTA header precedes the input sequence, the appropriate fasta ID is used as infix for the file name.\
- An additional infix will be appended to the file name for secondary strcuture output.\n\n\
- \"_mfe\" ... MFE structure\n\n\
- \"_cent\" ... Centroid structure\n\n\
- \"_mea\" ... MEA structure\n\n\
- The resulting output file names then become for instance\n\n\"filename_fastaID_mfe.db\"\n\n\
- Note for batch mode:\
- In case no FASTA headers are present in the input, only a single output file per structure type\
- will be created. The individual results are then concatenated using the separator line:\n\n\
- \"## NEXT RESULT ##\"\n\n"
+option  "constraint"  C
+"Calculate structures subject to constraints.\n"
+details="The program reads first the\
+ sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
+ for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
+ a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
+ exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
+ sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
+ folding ignores constraints of type \"|\".\n\n"
+string
+typestr="<filename>"
+default = ""
+argoptional
+
+option  "batch"   -
+"Use constraints for multiple sequences.\n"
+details="Usually, constraints provided from input file only apply to a single input sequence. Therefore,\
+ RNAfold will stop its computation and quit after the first input sequence was processed. Using this\
+ switch, RNAfold processes multiple input sequences and applies the same provided constraints to each of them.\n\n"
+flag
+off
+dependon="constraint"
+
+option  "canonicalBPonly" -
+"Remove non-canonical base pairs from the structure constraint\n\n"
+flag
+off
+dependon="constraint"
+
+option  "enforceConstraint" -
+"Enforce base pairs given by round brackets ( ) in structure constraint\n\n"
+flag
+off
+dependon="constraint"
+
+option  "shape" -
+"Use SHAPE reactivity data to guide structure predictions\n"
 string
 typestr="<filename>"
 optional
 
-option  "infile"  i
-"Read a file instead of reading from stdin\n"
-details="The default behavior of RNAfold is to read input from stdin. Using this parameter\
- the user can specify an input file name where data is read from\n\n"
+option  "shapeMethod" -
+"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
+details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
+'D': Convert by using a linear equation according to Deigan et al 2009. \
+The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
+This method is recognized by a capital 'D' in the provided parameter, i.e.: \
+--shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
+non-default value if necessary, otherwise m=1.8 and b=-0.6. \
+To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
+parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
+parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
+
+'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
+SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
+Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
+The magnitude of the penalties can affected by adjusting the factor beta \
+(e.g. --shapeMethod=\"Zb0.8\").
+
+'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
+Perturbation vectors can be calculated by using RNApvmin.\n"
 string
-typestr="<filename>"
+typestr="[D/Z/W] + [optional parameters]"
+dependon="shape"
+default="D"
 optional
+
+option  "shapeConversion" -
+"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al.\n"
+details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+'M': Use linear mapping according to Zarringhalam et al.
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n"
+string
+typestr="M/C/S/L/O  + [optional parameters]"
+default="O"
+optional
+
+option  "motif"   -
+"Specify stabilizing effect of ligand binding to a particular sequence/structure motif.\n"
+details="Some ligands binding to RNAs require and/or induce particular sequence and structure motifs. For\
+ instance they bind to an interior loop, or small hairpin loop. If for such cases a binding free energy is\
+ known, the binding and therefore stabilizing effect of the ligand can be included in the folding recursions.\
+ Interior loop motifs are specified as concatenations of 5' and 3' motif, separated by an '&' character.\n\
+ Energy contributions must be specified in kcal/mol.\nSee the manpage for an example usage of this option.\n\n"
+string
+typestr="SEQUENCE,STRUCTURE,ENERGY"
+optional
+hidden
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
@@ -130,9 +183,12 @@ sectiondesc="Select additional algorithms which should be included in the calcul
 option  "partfunc"  p
 "Calculate the partition function and base pairing probability matrix.\n"
 details="In addition to the MFE structure\
- we print a coarse representation of the pair probabilities in form of a pseudo bracket notation, followed by\
- the ensemble free energy, as well as the centroid structure derived from the pair probabilities together with\
- its free energy and distance to the ensemble. Finally it prints the frequency of the mfe structure, and the\
+ we print a coarse representation of the pair probabilities in form of a pseudo bracket notation followed by\
+ the ensemble free energy. This notation makes use of the letters \" . , | { } ( ) \" denoting bases that are\
+ essentially unpaired, weakly paired, strongly paired without preference, weakly upstream (downstream) paired,\
+ or strongly up- (down-)stream paired bases, respectively. On the next line the centroid structure as derived\
+ from the pair probabilities together with its free energy and distance to the ensemble is shown. Finally it\
+ prints the frequency of the mfe structure, and the\
  structural diversity (mean distance between the structures in the ensemble).\nSee the description of pf_fold()\
  and mean_bp_dist() and centroid() in the RNAlib documentation for details.\nNote that unless you also specify\
  -d2 or -d0, the partition function and mfe calculations will use a slightly different energy model. See the\
@@ -285,56 +341,6 @@ optional
 dependon="partfunc"
 hidden
 
-option  "shape" -
-"Use SHAPE reactivity data in the folding recursions (does not work for PF yet)\n"
-string
-typestr="SHAPE file"
-optional
-
-option  "shapeMethod" -
-"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
-details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
-'D': Convert by using a linear equation according to Deigan et al 2009. \
-The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
-This method is recognized by a capital 'D' in the provided parameter, i.e.: \
---shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
-non-default value if necessary, otherwise m=1.8 and b=-0.6. \
-To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
-parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
-parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
-
-'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
-SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
-Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
-The magnitude of the penalties can affected by adjusting the factor beta \
-(e.g. --shapeMethod=\"Zb0.8\").
-
-'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
-Perturbation vectors can be calculated by using RNApvmin.\n"
-string
-typestr="[D/Z/W] + [optional parameters]"
-dependon="shape"
-default="D"
-optional
-
-option  "shapeConversion" -
-"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al.\n"
-details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
-'M': Use linear mapping according to Zarringhalam et al.
-'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
-'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
-'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
-'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n"
-string
-typestr="M/C/S/L/O  + [optional parameters]"
-default="O"
-optional
-
-option  "maxBPspan" -
-"Set the maximum base pair span\n"
-int
-default="-1"
-optional
 
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\

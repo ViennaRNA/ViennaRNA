@@ -56,6 +56,7 @@
 %typemap(freearg) char ** {
          free($1);
 }
+
 // Now a few test functions
 //%inline %{
 //int print_args(char **argv) {

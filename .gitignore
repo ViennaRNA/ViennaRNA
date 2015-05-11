@@ -19,6 +19,15 @@ stamp-h1
 # except the libsvm sources
 !libsvm*.tar.gz
 
+# logfiles of test suites
+*.log
+
+# libtool generated files
+.libs
+*.la
+*.lo
+*.o
+
 # ignore pkg-config file
 RNAlib2.pc
 

@@ -65,22 +65,22 @@ elim_trailing_ws(char *string){    /* eliminate whitespaces at the end of a char
 }
 
 PUBLIC void
-vrna_structure_print_hx(const char *seq,
-                        const char *db,
-                        float energy,
-                        FILE *file){
+vrna_file_helixlist(const char *seq,
+                    const char *db,
+                    float energy,
+                    FILE *file){
 
   int         s;
   short       *pt;
-  vrna_helix  *list;
+  vrna_hx_t   *list;
   FILE *out;
 
   if(strlen(seq) != strlen(db))
-    vrna_message_error("vrna_structure_print_hx: sequence and structure have unequal length!");
+    vrna_message_error("vrna_file_helixlist: sequence and structure have unequal length!");
 
   out   = (file) ? file : stdout;
-  pt    = vrna_pt_get(db);
-  list  = vrna_pt_to_hx(pt);
+  pt    = vrna_ptable(db);
+  list  = vrna_hx_from_ptable(pt);
 
   fprintf(out, "%s\t%6.2f\n", seq, energy);
   for(s = 0; list[s].length > 0; s++){
@@ -92,19 +92,19 @@ vrna_structure_print_hx(const char *seq,
 }
 
 PUBLIC void
-vrna_structure_print_ct(const char *seq,
-                        const char *db,
-                        float energy,
-                        const char *identifier,
-                        FILE *file){
+vrna_file_connect(const char *seq,
+                  const char *db,
+                  float energy,
+                  const char *identifier,
+                  FILE *file){
 
   int i, power_d;
   FILE *out = (file) ? file : stdout;
 
   if(strlen(seq) != strlen(db))
-    vrna_message_error("vrna_structure_print_ct: sequence and structure have unequal length!");
+    vrna_message_error("vrna_file_connect: sequence and structure have unequal length!");
 
-  short *pt = vrna_pt_get(db);
+  short *pt = vrna_ptable(db);
 
   for(power_d=0;pow(10,power_d) <= (int)strlen(seq);power_d++);
 
@@ -155,17 +155,17 @@ vrna_structure_print_ct(const char *seq,
 }
 
 PUBLIC void
-vrna_structure_print_bpseq( const char *seq,
-                            const char *db,
-                            FILE *file){
+vrna_file_bpseq(const char *seq,
+                const char *db,
+                FILE *file){
 
   int i;
   FILE *out = (file) ? file : stdout;
 
   if(strlen(seq) != strlen(db))
-    vrna_message_error("vrna_structure_print_bpseq: sequence and structure have unequal length!");
+    vrna_message_error("vrna_file_bpseq: sequence and structure have unequal length!");
 
-  short *pt = vrna_pt_get(db);
+  short *pt = vrna_ptable(db);
 
   for(i = 1; i <= pt[0]; i++){
     fprintf(out, "%d %c %d\n", i, (char)toupper(seq[i-1]), pt[i]);
@@ -179,11 +179,11 @@ vrna_structure_print_bpseq( const char *seq,
 #if WITH_JSON_SUPPORT
 
 PUBLIC void
-vrna_structure_print_json(  const char *seq,
-                            const char *db,
-                            double energy,
-                            const char *identifier,
-                            FILE *file){
+vrna_file_json( const char *seq,
+                const char *db,
+                double energy,
+                const char *identifier,
+                FILE *file){
 
   FILE *out = (file) ? file : stdout;
 
@@ -341,7 +341,7 @@ read_multiple_input_lines(char **string,
 }
 
 PUBLIC  unsigned int
-vrna_read_fasta_record( char **header,
+vrna_file_fasta_read_record( char **header,
                         char **sequence,
                         char ***rest,
                         FILE *file,
@@ -540,7 +540,7 @@ vrna_extract_record_rest_constraint(char **cstruc,
 
 
 PUBLIC int
-vrna_read_SHAPE_file( const char *file_name,
+vrna_file_SHAPE_read( const char *file_name,
                       int length,
                       double default_value,
                       char *sequence,
@@ -781,15 +781,15 @@ parse_constraints_line( const char *line,
   return ret;
 }
 
-PUBLIC  plist *
-vrna_read_constraints_file( const char *filename,
+PUBLIC  vrna_plist_t *
+vrna_file_constraints_read( const char *filename,
                             unsigned int length,
                             unsigned int options){
 
   FILE  *fp;
   int   line_number, constraint_number, constraint_number_guess;
   char  *line;
-  plist *constraints;
+  vrna_plist_t *constraints;
 
   if(!(fp = fopen(filename, "r"))){
     vrna_message_warning("Hard Constraints File could not be opened!");
@@ -799,7 +799,7 @@ vrna_read_constraints_file( const char *filename,
   line_number             = 0;
   constraint_number       = 0;
   constraint_number_guess = 10;
-  constraints             = (plist *)vrna_alloc(sizeof(plist) * constraint_number_guess);
+  constraints             = (vrna_plist_t *)vrna_alloc(sizeof(vrna_plist_t) * constraint_number_guess);
 
   while((line=get_line(fp))){
 
@@ -859,14 +859,14 @@ vrna_read_constraints_file( const char *filename,
         if((k == 0) && (l == 0) && (i == j) && (h > 0)){
           /* set correct loop type context */
           switch(command){
-            case 'P': type |= (int)VRNA_CONSTRAINT_CONTEXT_ENFORCE;
+            case 'P': type |= (int)(VRNA_CONSTRAINT_CONTEXT_ENFORCE);
                       break;
             case 'F': /* set i == j == k == l */
                       k = l = i;
                       if(orientation != '\0')
                         type |= (orientation == 'U') ? 1024 : 2048; /* add hidden flags for pairing orientation */
                       break;
-            case 'E': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
+            case 'E': type = (int)(VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);  /* soft constraints are always applied for all loops */
                       type |= 4096; /* add hidden flag indicating soft constraint */
                       break;
             case 'W': /* do nothing */
@@ -876,11 +876,12 @@ vrna_read_constraints_file( const char *filename,
           /* set correct loop type context */
           switch(command){
             case 'P': type = ~type; /* prohibit */
-                      type &= (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+                      type &= (int)(VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+                      type |= 8192;  /* since we prohibit pairs, we do not want to remove incompatible pairs */
                       break;
-            case 'F': type |= VRNA_CONSTRAINT_CONTEXT_ENFORCE;  /* enforce */
+            case 'F': type |= (int)(VRNA_CONSTRAINT_CONTEXT_ENFORCE);  /* enforce */
                       break;
-            case 'E': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
+            case 'E': type = (int)(VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);  /* soft constraints are always applied for all loops */
                       type |= 4096; /* add hidden flag indicating soft constraint */
                       break;
             case 'W': break;
@@ -906,7 +907,7 @@ vrna_read_constraints_file( const char *filename,
 
               if(constraint_number == constraint_number_guess){
                 constraint_number_guess *= 2;
-                constraints = (plist *)vrna_realloc(constraints, sizeof(plist) * constraint_number_guess);
+                constraints = (vrna_plist_t *)vrna_realloc(constraints, sizeof(vrna_plist_t) * constraint_number_guess);
               }
             }
       } else {
@@ -920,7 +921,7 @@ vrna_read_constraints_file( const char *filename,
   fclose(fp);
 
   /* resize plist to actual size */
-  constraints = (plist *)vrna_realloc(constraints, sizeof(plist) * (constraint_number + 1));
+  constraints = (vrna_plist_t *)vrna_realloc(constraints, sizeof(vrna_plist_t) * (constraint_number + 1));
 
   constraints[constraint_number].i    = 0;
   constraints[constraint_number].j    = 0;
@@ -953,7 +954,7 @@ read_record(char **header,
             char  ***rest,
             unsigned int options){
 
-  return vrna_read_fasta_record(header, sequence, rest, NULL, options);
+  return vrna_file_fasta_read_record(header, sequence, rest, NULL, options);
 }
 
 PUBLIC char *

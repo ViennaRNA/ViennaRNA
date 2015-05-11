@@ -230,6 +230,13 @@ gquad_ali_penalty(int i,
                   const short **S,
                   vrna_param_t *P);
 
+PRIVATE int **
+create_L_matrix(short *S,
+                int start,
+                int maxdist,
+                int **g,
+                vrna_param_t *P);
+
 /*
 #########################################
 # BEGIN OF PUBLIC FUNCTION DEFINITIONS  #
@@ -334,7 +341,7 @@ PUBLIC int *get_gquad_matrix(short *S, vrna_param_t *P){
   int n, size, i, j, *gg, *my_index, *data;
 
   n         = S[0];
-  my_index  = vrna_get_indx(n);
+  my_index  = vrna_idx_col_wise(n);
   gg        = get_g_islands(S);
   size      = (n * (n+1))/2 + 2;
   data      = (int *)vrna_alloc(sizeof(int) * size);
@@ -368,7 +375,7 @@ PUBLIC FLT_OR_DBL *get_gquad_pf_matrix( short *S,
   size      = (n * (n+1))/2 + 2;
   data      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
   gg        = get_g_islands(S);
-  my_index  = vrna_get_iindx(n);
+  my_index  = vrna_idx_row_wise(n);
 
   FOR_EACH_GQUAD(i, j, 1, n){
     process_gquad_enumeration(gg, i, j,
@@ -398,7 +405,7 @@ PUBLIC int *get_gquad_ali_matrix( short *S_cons,
   size      = (n * (n+1))/2 + 2;
   data      = (int *)vrna_alloc(sizeof(int) * size);
   gg        = get_g_islands(S_cons);
-  my_index  = vrna_get_indx(n);
+  my_index  = vrna_idx_col_wise(n);
 
   /* prefill the upper triangular matrix with INF */
   for(i=0;i<size;i++) data[i] = INF;
@@ -422,6 +429,28 @@ PUBLIC int **get_gquad_L_matrix(short *S,
                                 int maxdist,
                                 int **g,
                                 vrna_param_t *P){
+
+  return create_L_matrix(S, start, maxdist, g, P);
+}
+
+PUBLIC void
+vrna_gquad_mx_local_update( vrna_fold_compound_t *vc,
+                            int start){
+
+  vc->matrices->ggg_local = create_L_matrix(
+                              vc->sequence_encoding,
+                              start,
+                              vc->window_size,
+                              vc->matrices->ggg_local,
+                              vc->params);
+}
+
+PRIVATE int **
+create_L_matrix(short *S,
+                int start,
+                int maxdist,
+                int **g,
+                vrna_param_t *P){
 
   int **data;
   int n, i, j, k, *gg;
@@ -622,7 +651,7 @@ PUBLIC plist *get_plist_gquad_from_pr_max(short *S,
   pl        = (plist *)vrna_alloc((S[0]*S[0])*sizeof(plist));
   gg        = get_g_islands_sub(S, gi, gj);
   counter   = 0;
-  my_index  = vrna_get_iindx(n);
+  my_index  = vrna_idx_row_wise(n);
 
   process_gquad_enumeration(gg, gi, gj,
                             &gquad_interact,

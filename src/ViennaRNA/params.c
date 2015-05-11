@@ -58,6 +58,7 @@ PRIVATE int pf_id=-1;
 PRIVATE vrna_param_t      *get_scaled_params(vrna_md_t *md);
 PRIVATE vrna_exp_param_t  *get_scaled_exp_params(vrna_md_t *md, double pfs);
 PRIVATE vrna_exp_param_t  *get_exp_params_ali(vrna_md_t *md, unsigned int n_seq, double pfs);
+PRIVATE void              rescale_params(vrna_fold_compound_t *vc);
 
 /*
 #################################
@@ -66,7 +67,7 @@ PRIVATE vrna_exp_param_t  *get_exp_params_ali(vrna_md_t *md, unsigned int n_seq,
 */
 
 PUBLIC vrna_param_t *
-vrna_params_get(vrna_md_t *md){
+vrna_params(vrna_md_t *md){
 
   if(md){
     return get_scaled_params(md);
@@ -78,7 +79,7 @@ vrna_params_get(vrna_md_t *md){
 }
 
 PUBLIC vrna_exp_param_t *
-vrna_exp_params_get(vrna_md_t *md){
+vrna_exp_params(vrna_md_t *md){
 
   if(md){
     return  get_scaled_exp_params(md, -1.);
@@ -90,7 +91,7 @@ vrna_exp_params_get(vrna_md_t *md){
 }
 
 PUBLIC vrna_exp_param_t *
-vrna_exp_params_ali_get(unsigned int n_seq, vrna_md_t *md){
+vrna_exp_params_comparative(unsigned int n_seq, vrna_md_t *md){
 
   if(md){
     return  get_exp_params_ali(md, n_seq, -1.);
@@ -122,6 +123,123 @@ vrna_exp_params_copy(vrna_exp_param_t *par){
   }
   return copy;
 }
+
+PUBLIC void
+vrna_params_subst( vrna_fold_compound_t *vc,
+                    vrna_param_t *parameters){
+
+  if(vc){
+    if(vc->params)
+      free(vc->params);
+    if(parameters){
+      vc->params = vrna_params_copy(parameters);
+    } else {
+      switch(vc->type){
+        case VRNA_VC_TYPE_SINGLE:     /* fall through */
+
+        case VRNA_VC_TYPE_ALIGNMENT:  vc->params = vrna_params(NULL);
+                                      break;
+
+        default:                      break;
+      }
+    }
+  }
+}
+
+PUBLIC void
+vrna_params_reset(vrna_fold_compound_t *vc,
+                  vrna_md_t *md_p){
+
+  if(vc){
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:     /* fall through */
+
+      case VRNA_VC_TYPE_ALIGNMENT:  if(vc->params)
+                                      free(vc->params);
+                                    vc->params = vrna_params(md_p);
+                                    break;
+
+      default:                      break;
+    }
+  }
+}
+
+PUBLIC void
+vrna_exp_params_reset(vrna_fold_compound_t *vc,
+                      vrna_md_t *md_p){
+
+  if(vc){
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:     /* fall through */
+
+      case VRNA_VC_TYPE_ALIGNMENT:  if(vc->exp_params)
+                                      free(vc->exp_params);
+                                    vc->exp_params = vrna_exp_params(md_p);
+                                    break;
+
+      default:                      break;
+    }
+  }
+}
+
+PUBLIC void
+vrna_exp_params_subst(vrna_fold_compound_t *vc,
+                      vrna_exp_param_t *params){
+
+  if(vc){
+    if(vc->exp_params)
+      free(vc->exp_params);
+    if(params){
+      vc->exp_params = vrna_exp_params_copy(params);
+    } else {
+      switch(vc->type){
+        case VRNA_VC_TYPE_SINGLE:     vc->exp_params = vrna_exp_params(NULL);
+                                      if(vc->cutpoint > 0)
+                                        vc->exp_params->model_details.min_loop_size = 0;
+                                      break;
+
+        case VRNA_VC_TYPE_ALIGNMENT:  vc->exp_params = vrna_exp_params_comparative(vc->n_seq, NULL);
+                                      break;
+
+        default:                      break;
+      }
+    }
+    /* fill additional helper arrays for scaling etc. */
+    vrna_exp_params_rescale(vc, NULL);
+  }
+}
+
+PUBLIC void
+vrna_exp_params_rescale(vrna_fold_compound_t *vc,
+                        double *mfe){
+
+  if(vc){
+    vrna_exp_param_t *pf = vc->exp_params;
+    if(pf){
+      double kT = pf->kT;
+
+      if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
+        kT /= vc->n_seq;
+
+      vrna_md_t *md = &(pf->model_details);
+      if(mfe){
+        kT /= 1000.;
+        pf->pf_scale = exp(-(md->sfact * *mfe)/ kT / vc->length);
+      } else if(pf->pf_scale < 1.){  /* mean energy for random sequences: 184.3*length cal */
+        pf->pf_scale = exp(-(-185+(pf->temperature-37.)*7.27)/kT);
+        if(pf->pf_scale < 1.)
+          pf->pf_scale = 1.;
+      }
+      rescale_params(vc);
+    }
+  }
+}
+
+/*
+#####################################
+# BEGIN OF STATIC HELPER FUNCTIONS  #
+#####################################
+*/
 
 PRIVATE vrna_param_t *
 get_scaled_params(vrna_md_t *md){
@@ -591,6 +709,24 @@ get_exp_params_ali( vrna_md_t *md,
   return pf;
 }
 
+PRIVATE void
+rescale_params(vrna_fold_compound_t *vc){
+
+  int           i;
+  vrna_exp_param_t  *pf = vc->exp_params;
+  vrna_mx_pf_t      *m  = vc->exp_matrices;
+
+  m->scale[0] = 1.;
+  m->scale[1] = (FLT_OR_DBL)(1./pf->pf_scale);
+  m->expMLbase[0] = 1;
+  m->expMLbase[1] = (FLT_OR_DBL)(pf->expMLbase / pf->pf_scale);
+  for (i=2; i<=vc->length; i++) {
+    m->scale[i] = m->scale[i/2]*m->scale[i-(i/2)];
+    m->expMLbase[i] = (FLT_OR_DBL)pow(pf->expMLbase, (double)i) * m->scale[i];
+  }
+}
+
+
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /*###########################################*/
@@ -601,8 +737,8 @@ PUBLIC vrna_param_t *
 scale_parameters(void){
 
   vrna_md_t md;
-  vrna_md_set_globals(&md);
-  return get_scaled_params(&md);
+  set_model_details(&md);
+  return vrna_params(&md);
 }
 
 PUBLIC vrna_param_t *
@@ -629,12 +765,15 @@ get_boltzmann_factors(double temp,
 PUBLIC vrna_exp_param_t *
 get_scaled_pf_parameters(void){
 
-  vrna_md_t  md;
+  vrna_md_t         md;
+  vrna_exp_param_t  *pf;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
-  return get_scaled_exp_params(&md, pf_scale);
+  pf = vrna_exp_params(&md);
+  pf->pf_scale = pf_scale;
 
+  return pf;
 }
 
 PUBLIC vrna_exp_param_t *
@@ -657,7 +796,7 @@ get_scaled_alipf_parameters(unsigned int n_seq){
 
   vrna_md_t  md;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   return get_exp_params_ali(&md, n_seq, pf_scale);
 }
@@ -675,8 +814,11 @@ PUBLIC vrna_param_t *get_parameter_copy(vrna_param_t *par){
 
 PUBLIC vrna_param_t *copy_parameters(void){
   vrna_param_t *copy;
-  if (p.id != id) return scale_parameters();
-  else{
+  if (p.id != id){
+    vrna_md_t md;
+    set_model_details(&md);
+    return vrna_params(&md);
+  } else {
     copy = (vrna_param_t *) vrna_alloc(sizeof(vrna_param_t));
     memcpy(copy, &p, sizeof(vrna_param_t));
   }
@@ -690,7 +832,13 @@ PUBLIC vrna_param_t *set_parameters(vrna_param_t *dest){
 
 PUBLIC vrna_exp_param_t *copy_pf_param(void){
   vrna_exp_param_t *copy;
-  if (pf.id != pf_id) return get_scaled_pf_parameters();
+  if (pf.id != pf_id){
+    vrna_md_t md;
+    set_model_details(&md);
+    copy = vrna_exp_params(&md);
+    copy->pf_scale = pf_scale;
+    return copy;
+  }
   else{
     copy = (vrna_exp_param_t *) vrna_alloc(sizeof(vrna_exp_param_t));
     memcpy(copy, &pf, sizeof(vrna_exp_param_t));
@@ -704,7 +852,15 @@ PUBLIC vrna_exp_param_t *set_pf_param(vrna_param_t *dest){
 }
 
 PUBLIC vrna_exp_param_t *scale_pf_parameters(void){
-  return get_scaled_pf_parameters();
+  vrna_md_t         md;
+  vrna_exp_param_t  *pf;
+
+  set_model_details(&md);
+
+  pf = vrna_exp_params(&md);
+  pf->pf_scale = pf_scale;
+
+  return pf;
 }
 
 #endif

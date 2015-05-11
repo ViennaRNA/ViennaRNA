@@ -14,10 +14,14 @@
  *  \brief Here all all declarations of the global variables used throughout RNAlib
  */
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
+#ifdef DEPRECATION_WARNINGS
+# ifdef __GNUC__
+#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# else
+#  define DEPRECATED(func) func
+# endif
 #else
-#define DEPRECATED(func) func
+# define DEPRECATED(func) func
 #endif
 
 /**
@@ -55,7 +59,7 @@ extern int  logML;
  *  strands), concatenate the to sequences and set it to the
  *  first base of the second strand in the concatenated sequence.
  *  The default value of -1 stands for single molecule folding. The
- *  cut_point variable is also used by PS_rna_plot() and
+ *  cut_point variable is also used by vrna_file_PS_rnaplot() and
  *  PS_dot_plot() to mark the chain break in postscript plots.
  */
 extern int  cut_point;
@@ -85,6 +89,5 @@ extern int   *iindx;
 
 
 
-char * option_string(void);
 
 #endif

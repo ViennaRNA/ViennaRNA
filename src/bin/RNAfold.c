@@ -30,6 +30,7 @@
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
+#include "ViennaRNA/ligand.h"
 #include "ViennaRNA/file_formats.h"
 #include "RNAfold_cmdl.h"
 
@@ -41,7 +42,7 @@ static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp 
 /*--------------------------------------------------------------------------*/
 
 static void
-add_shape_constraints(vrna_fold_compound *vc,
+add_shape_constraints(vrna_fold_compound_t *vc,
                       const char *shape_method,
                       const char *shape_conversion,
                       const char *shape_file,
@@ -52,7 +53,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   char method;
   char *sequence;
   double *values;
-  int length = vc->length;
+  int i, length = vc->length;
 
   if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
     vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
@@ -72,20 +73,89 @@ add_shape_constraints(vrna_fold_compound *vc,
 
   sequence = vrna_alloc(sizeof(char) * (length + 1));
   values = vrna_alloc(sizeof(double) * (length + 1));
-  vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
+  vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if(method == 'D'){
-    (void)vrna_sc_SHAPE_add_deigan(vc, (const double *)values, p1, p2, constraint_type);
+    (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
   }
   else if(method == 'Z'){
-    (void)vrna_sc_SHAPE_add_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
+    (void)vrna_sc_add_SHAPE_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
   } else {
     assert(method == 'W');
-    vrna_sc_add_up(vc, values, constraint_type);
+    FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
+    for(i = 0; i < length; i++)
+      v[i] = values[i];
+
+    vrna_sc_add_up(vc, v, constraint_type);
+
+    free(v);
   }
 
   free(values);
   free(sequence);
+}
+
+static void
+add_ligand_motif( vrna_fold_compound_t *vc,
+                  char *motifstring,
+                  int verbose,
+                  unsigned int options){
+
+  int r, l, n, i, error;
+  char *seq, *str, *ptr;
+  float energy;
+
+  l = strlen(motifstring);
+  seq = vrna_alloc(sizeof(char) * (l + 1));
+  str = vrna_alloc(sizeof(char) * (l + 1));
+
+  error = 1;
+
+  if(motifstring){
+    error = 0;
+    /* parse sequence */
+    for(r = 0, ptr = motifstring; *ptr != '\0'; ptr++){
+      if(*ptr == ',')
+        break;
+      seq[r++] = *ptr;
+      toupper(seq[r-1]);
+    }
+    seq[r] = '\0';
+    seq = vrna_realloc(seq, sizeof(char) * (strlen(seq) + 1));
+
+    for(ptr++, r = 0; *ptr != '\0'; ptr++){
+      if(*ptr == ',')
+        break;
+      str[r++] = *ptr;
+    }
+    str[r] = '\0';
+    str = vrna_realloc(str, sizeof(char) * (strlen(seq) + 1));
+
+    ptr++;
+    if(!(sscanf(ptr, "%f", &energy) == 1)){
+      fprintf(stderr, "energy contribution in ligand motif missing");
+      error = 1;
+    }
+    if(strlen(seq) != strlen(str)){
+      fprintf(stderr, "sequence and structure length in ligand motif have unequal lengths");
+      error = 1;
+    }
+    if(strlen(seq) == 0){
+      fprintf(stderr, "sequence length in ligand motif is zero");
+      error = 1;
+    }
+
+    if(!error && verbose){
+      fprintf(stderr, "read ligand motif: %s, %s, %f\n", seq, str, energy);
+    }
+  }
+
+  if(error || (!vrna_sc_add_hi_motif(vc, seq, str, energy, options))){
+    vrna_message_warning("Malformatted ligand motif! Skipping stabilizing motif.");
+  }
+
+  free(seq);
+  free(str);
 }
 
 int main(int argc, char *argv[]){
@@ -95,14 +165,13 @@ int main(int argc, char *argv[]){
   char            *constraints_file, *shape_file, *shape_method, *shape_conversion;
   char            fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
   char            *ns_bases, *c;
-  int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp, enforceConstraints;
+  int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp, enforceConstraints, batch;
   unsigned int    rec_type, read_opt;
   double          energy, min_en, kT, sfact;
   int             doMEA, circular, lucky, with_shapes, verbose;
   double          MEAgamma, bppmThreshold, betaScale;
-  char            *infile, *outfile;
-;
-  int               out_v, out_hx, out_ct, out_bps;
+  char            *infile, *outfile, *ligandMotif;
+
   vrna_param_t      *mfe_parameters;
   vrna_exp_param_t  *pf_parameters;
   vrna_md_t         md;
@@ -134,13 +203,13 @@ int main(int argc, char *argv[]){
   max_bp_span   = -1;
   constraints_file = NULL;
   enforceConstraints  = 0;
+  batch         = 0;
 
   outfile       = NULL;
   infile        = NULL;
   input         = NULL;
   output        = NULL;
-  out_v         = 1;  /* default to thermodynamic properties and dot bracket string */
-  out_hx = out_ct = out_bps = 0;
+  ligandMotif   = NULL;
 
   /* apply default model details */
   set_model_details(&md);
@@ -153,7 +222,8 @@ int main(int argc, char *argv[]){
   */
   if(RNAfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
-  if(args_info.temp_given)        md.temperature = temperature = args_info.temp_arg;
+  if(args_info.temp_given)
+    md.temperature = temperature = args_info.temp_arg;
   /* structure constraint */
   if(args_info.constraint_given){
     fold_constrained=1;
@@ -161,7 +231,12 @@ int main(int argc, char *argv[]){
       constraints_file = strdup(args_info.constraint_arg);
   }
   /* enforce base pairs given in constraint string rather than weak enforce */
-  if(args_info.enforceConstraint_given)   enforceConstraints = 1;
+  if(args_info.enforceConstraint_given)
+    enforceConstraints = 1;
+
+  /* do batch jobs despite constraints read from input file */
+  if(args_info.batch_given)
+    batch = 1;
 
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
@@ -233,31 +308,13 @@ int main(int argc, char *argv[]){
   if(args_info.outfile_given){
     outfile = strdup(args_info.outfile_arg);
   }
-  if(args_info.format_given){
-    char *o,*s;
-    out_v = out_hx = out_ct = 0; /* reset defaults */
-    o = strdup(args_info.format_arg);
-    /* simply print to file */
-    s = strchr(o, 'V');
-    if(s != NULL)
-      out_v = 1;
-    /* print helix list? */
-    s = strchr(o, 'H');
-    if(s != NULL)
-      out_hx = 1;
-    /* print connect file? */
-    s = strchr(o, 'C');
-    if(s != NULL)
-      out_ct = 1;
-    /* print bpseq file? */
-    s = strchr(o, 'B');
-    if(s != NULL)
-      out_bps = 1;
-  }
   if(args_info.infile_given){
     infile = strdup(args_info.infile_arg);
   }
-  
+  if(args_info.motif_given){
+    ligandMotif = strdup(args_info.motif_arg);
+  }
+
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
@@ -304,7 +361,7 @@ int main(int argc, char *argv[]){
     }
   }
 
-  istty = isatty(fileno(stdout))&&isatty(fileno(stdin))&&(!infile);
+  istty = (!infile) && isatty(fileno(stdout)) && isatty(fileno(stdin));
 
   /* print user help if we get input from tty */
   if(istty){
@@ -315,9 +372,9 @@ int main(int argc, char *argv[]){
     else vrna_message_input_seq_simple();
   }
 
-  mfe_parameters = get_scaled_parameters(temperature, md);
+  mfe_parameters = vrna_params(&md);
 
-  /* set options we wanna pass to vrna_read_fasta_record() */
+  /* set options we wanna pass to vrna_file_fasta_read_record() */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
 
@@ -327,7 +384,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, input, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, input, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     char *prefix      = NULL;
@@ -363,17 +420,16 @@ int main(int argc, char *argv[]){
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
-    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
     length    = vc->length;
 
     structure = (char *) vrna_alloc(sizeof(char) * (length+1));
-    
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
       if(constraints_file){
-        vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+        vrna_constraints_add(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
       } else {
         cstruc = NULL;
         unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
@@ -396,7 +452,7 @@ int main(int argc, char *argv[]){
                                 | VRNA_CONSTRAINT_DB_RND_BRACK;
           if(enforceConstraints)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
-          vrna_add_constraints(vc, (const char *)structure, constraint_options);
+          vrna_constraints_add(vc, (const char *)structure, constraint_options);
         }
       }
     }
@@ -404,20 +460,24 @@ int main(int argc, char *argv[]){
     if(with_shapes)
       add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
 
+    if(ligandMotif)
+      add_ligand_motif(vc, ligandMotif, verbose, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+
     if(istty) printf("length = %d\n", length);
 
-    if(out_v){
-      if(outfile){
-        v_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
-        strcpy(v_file_name, prefix);
-        strcat(v_file_name, ".fold");
+    if(outfile){
+      v_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
+      strcpy(v_file_name, prefix);
+      strcat(v_file_name, ".fold");
 
-        output = fopen((const char *)v_file_name, "a");
-        if(!output)
-          vrna_message_error("Failed to open file for writing");
-      } else {
-        output = stdout;
-      }
+      if(infile && !strcmp(infile, v_file_name))
+        vrna_message_error("Input and output file names are identical");
+
+      output = fopen((const char *)v_file_name, "a");
+      if(!output)
+        vrna_message_error("Failed to open file for writing");
+    } else {
+      output = stdout;
     }
 
     /*
@@ -428,11 +488,7 @@ int main(int argc, char *argv[]){
 
 
 
-    min_en = (double)vrna_fold(vc, structure);
-
-    char *hx_file_name  = NULL;
-    char *ct_file_name  = NULL;
-    char *bps_file_name = NULL;
+    min_en = (double)vrna_mfe(vc, structure);
 
     if(!lucky){
       if(output){
@@ -446,74 +502,17 @@ int main(int argc, char *argv[]){
 
       }
 
-      if(outfile){
-
-        if(out_hx){
-          hx_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
-          strcpy(hx_file_name, prefix);
-          strcat(hx_file_name, ".hx");
-
-          FILE *fp = fopen((const char *)hx_file_name, "a");
-          if(!fp)
-            vrna_message_error("Failed to open file for writing");
-
-          vrna_structure_print_hx((const char *)orig_sequence,
-                                  (const char *)structure,
-                                  min_en,
-                                  fp);
-
-          fclose(fp);
-        }
-        
-        if(out_ct){
-          ct_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
-          strcpy(ct_file_name, prefix);
-          strcat(ct_file_name, ".ct");
-
-          FILE *fp = fopen((const char *)ct_file_name, "a");
-          if(!fp)
-            vrna_message_error("Failed to open file for writing");
-
-          vrna_structure_print_ct((const char *)orig_sequence,
-                                  (const char *)structure,
-                                  min_en,
-                                  (const char *)(fname[0] != '\0' ? fname : "MFE-structure"),
-                                  fp);
-
-          fclose(fp);
-        }
-
-        if(out_bps){
-          bps_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 11));
-          strcpy(bps_file_name, prefix);
-          strcat(bps_file_name, ".bpseq");
-
-          FILE *fp = fopen((const char *)bps_file_name, "a");
-          if(!fp)
-            vrna_message_error("Failed to open file for writing");
-
-          vrna_structure_print_bpseq( (const char *)orig_sequence,
-                                      (const char *)structure,
-                                      fp);
-
-          fclose(fp);
-        }
-      }
-
       if(fname[0] != '\0'){
         strcpy(ffname, fname);
         strcat(ffname, "_ss.ps");
       } else strcpy(ffname, "rna.ps");
 
-      if(gquad){
-        if (!noPS) (void) PS_rna_plot_a_gquad(orig_sequence, structure, ffname, NULL, NULL);
-      } else {
-        if (!noPS) (void) PS_rna_plot_a(orig_sequence, structure, ffname, NULL, NULL);
-      }
+      if(!noPS)
+        (void) vrna_file_PS_rnaplot_a(orig_sequence, structure, ffname, NULL, NULL, &md);
     }
 
     if (length>2000)
-      vrna_free_mfe_matrices(vc);
+      vrna_mx_mfe_free(vc);
 
     if (pf) {
       char *pf_struc = (char *) vrna_alloc((unsigned) length+1);
@@ -527,11 +526,11 @@ int main(int argc, char *argv[]){
 
       kT = vc->exp_params->kT/1000.;
 
-      if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
+      if (length>2000) fprintf(stderr, "scaling factor %f\n", vc->exp_params->pf_scale);
 
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
-      energy = vrna_pf_fold(vc, pf_struc);
+      energy = (double)vrna_pf(vc, pf_struc);
 
       /* in case we abort because of floating point errors */
       if (length>1600)
@@ -555,7 +554,8 @@ int main(int argc, char *argv[]){
           strcat(ffname, "_ss.ps");
         } else strcpy(ffname, "rna.ps");
 
-        if (!noPS) (void) PS_rna_plot(orig_sequence, s, ffname);
+        if (!noPS)
+          (void) vrna_file_PS_rnaplot(orig_sequence, s, ffname, &md);
         free(s);
       }
       else{
@@ -578,9 +578,9 @@ int main(int argc, char *argv[]){
           char *cent;
           double dist, cent_en;
 
-          pl1     = vrna_pl_get_from_pr(vc, bppmThreshold);
-          pl2     = vrna_pl_get(structure, 0.95*0.95);
-          cent    = vrna_get_centroid_struct(vc, &dist);
+          pl1     = vrna_plist_from_probs(vc, bppmThreshold);
+          pl2     = vrna_plist(structure, 0.95*0.95);
+          cent    = vrna_centroid(vc, &dist);
           cent_en = vrna_eval_structure(vc, (const char *)cent);
           if(output)
             fprintf(output, "%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
@@ -605,7 +605,7 @@ int main(int argc, char *argv[]){
           free(pf_struc);
           if(doMEA){
             float mea, mea_en;
-            plist *pl = vrna_pl_get_from_pr(vc, 1e-4/(1+MEAgamma));
+            plist *pl = vrna_plist_from_probs(vc, 1e-4/(1+MEAgamma));
 
             if(gquad){
               mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, pf_parameters);
@@ -636,7 +636,7 @@ int main(int argc, char *argv[]){
     }
 
     /* clean up */
-    vrna_free_fold_compound(vc);
+    vrna_fold_compound_free(vc);
     free(cstruc);
     free(rec_id);
     free(rec_sequence);
@@ -651,7 +651,7 @@ int main(int argc, char *argv[]){
     rec_id = rec_sequence = structure = cstruc = NULL;
     rec_rest = NULL;
 
-    if(with_shapes)
+    if(with_shapes || (constraints_file && (!batch)))
       break;
 
     /* print user help for the next round if we get input from tty */
@@ -669,5 +669,7 @@ int main(int argc, char *argv[]){
 
   free(constraints_file);
   free(mfe_parameters);
+  free(ligandMotif);
+
   return EXIT_SUCCESS;
 }

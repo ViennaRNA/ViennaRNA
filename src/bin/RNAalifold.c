@@ -32,13 +32,13 @@ static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Ex
 #define MAX_NUM_NAMES    500
 
 PRIVATE char  **annote(const char *structure, const char *AS[]);
-PRIVATE void  print_pi(const pair_info pi, FILE *file);
-PRIVATE void  print_aliout(vrna_fold_compound *vc, plist *pl, double threshold, char * mfe, FILE *aliout);
+PRIVATE void  print_pi(const vrna_pinfo_t pi, FILE *file);
+PRIVATE void  print_aliout(vrna_fold_compound_t *vc, plist *pl, double threshold, char * mfe, FILE *aliout);
 PRIVATE void  mark_endgaps(char *seq, char egap);
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, int n_seq, plist *mfel);
 
 PRIVATE void
-add_shape_constraints(vrna_fold_compound *vc,
+add_shape_constraints(vrna_fold_compound_t *vc,
                       const char *shape_method,
                       const char **shape_files,
                       const int *shape_file_association,
@@ -65,7 +65,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   }
 
   if(method == 'D'){
-    vrna_sc_SHAPE_add_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
+    vrna_sc_add_SHAPE_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
     return;
   }
 }
@@ -179,7 +179,7 @@ int main(int argc, char *argv[]){
       MEAgamma = args_info.MEA_arg;
   }
   if(args_info.betaScale_given)
-    betaScale = args_info.betaScale_arg;
+    md.betaScale = betaScale = args_info.betaScale_arg;
   /* set the bppm threshold for the dotplot */
   if(args_info.bppmThreshold_given)
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
@@ -201,12 +201,14 @@ int main(int argc, char *argv[]){
     md.oldAliEn = oldAliEn = 1;
   if(args_info.stochBT_given){
     n_back = args_info.stochBT_arg;
+    md.uniq_ML = 1;
     md.compute_bpp = do_backtrack = 0;
     pf = 1;
     vrna_init_rand();
   }
   if(args_info.stochBT_en_given){
     n_back = args_info.stochBT_en_arg;
+    md.uniq_ML = 1;
     md.compute_bpp = do_backtrack = 0;
     pf = 1;
     eval_energy = 1;
@@ -383,11 +385,11 @@ int main(int argc, char *argv[]){
   if(pf)
     options |= VRNA_CONSTRAINT_SOFT_PF;
 
-  vrna_fold_compound *vc = vrna_get_fold_compound_ali((const char **)AS, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+  vrna_fold_compound_t *vc = vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
   if(fold_constrained){
     if(constraints_file){
-      vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE);
+      vrna_constraints_add(vc, constraints_file, VRNA_CONSTRAINT_FILE);
     } else {
       constraint_options = 0;
       constraint_options |= VRNA_CONSTRAINT_DB
@@ -397,7 +399,7 @@ int main(int argc, char *argv[]){
                             | VRNA_CONSTRAINT_DB_ANG_BRACK
                             | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-      vrna_add_constraints(vc, (const char *)structure, constraint_options);
+      vrna_constraints_add(vc, (const char *)structure, constraint_options);
     }
   }
 
@@ -409,15 +411,15 @@ int main(int argc, char *argv[]){
                           verbose, \
                           VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
 
-  min_en = vrna_ali_fold(vc, structure);
+  min_en = vrna_mfe(vc, structure);
 
   if(md.circ){
     int     i;
     double  s = 0;
     for (i=0; AS[i]!=NULL; i++){
-      vrna_fold_compound *vc_tmp = vrna_get_fold_compound(AS[i], &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+      vrna_fold_compound_t *vc_tmp = vrna_fold_compound(AS[i], &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
       s += vrna_eval_structure(vc, structure);
-      vrna_free_fold_compound(vc_tmp);
+      vrna_fold_compound_free(vc_tmp);
     }
     real_en   = s/i;
   } else {
@@ -440,24 +442,18 @@ int main(int argc, char *argv[]){
     char **A;
     A = annote(structure, (const char**) AS);
 
-    if(md.gquad){
-      if (doColor)
-        (void) PS_rna_plot_a_gquad(string, structure, ffname, A[0], A[1]);
-      else
-        (void) PS_rna_plot_a_gquad(string, structure, ffname, NULL, A[1]);
-    } else {
-      if (doColor)
-        (void) PS_rna_plot_a(string, structure, ffname, A[0], A[1]);
-      else
-        (void) PS_rna_plot_a(string, structure, ffname, NULL, A[1]);
-    }
+    if (doColor)
+      (void) vrna_file_PS_rnaplot_a(string, structure, ffname, A[0], A[1], &md);
+    else
+      (void) vrna_file_PS_rnaplot_a(string, structure, ffname, NULL, A[1], &md);
+
     free(A[0]); free(A[1]); free(A);
   }
   if (doAlnPS)
     PS_color_aln(structure, "aln.ps", (const char **) AS, (const char **) names);
 
   /* free mfe arrays */
-  vrna_free_mfe_matrices(vc);
+  vrna_mx_mfe_free(vc);
 
   if (pf) {
     float energy, kT;
@@ -473,22 +469,40 @@ int main(int argc, char *argv[]){
     if (cstruc!=NULL) strncpy(structure, cstruc, length+1);
 
     /* rescale energy parameters according to above calculated pf_scale */
-    pf_parameters = get_boltzmann_factors_ali(n_seq, temperature, betaScale, md, pf_scale);
+    pf_parameters = vrna_exp_params_comparative(n_seq, &md);
+    pf_parameters->pf_scale = pf_scale;
 
     /* change energy parameters in vc */
-    vrna_exp_params_update(vc, pf_parameters);
+    vrna_exp_params_subst(vc, pf_parameters);
 
-    energy = vrna_ali_pf_fold(vc, structure, NULL);
+    energy = vrna_pf(vc, structure);
 
     if (n_back>0) {
       /*stochastic sampling*/
       for (i=0; i<n_back; i++) {
         char *s;
-        double prob=1.;
-        s = vrna_ali_pbacktrack(vc, &prob);
+#if CHECK_PROBABILITIES
+        double prob2, prob=1.;
+        s = alipbacktrack(&prob);
+        double e  = (double)vrna_eval_structure(vc, s);
+        e -= (double)vrna_eval_covar_structure(vc, s);
+        prob2 = exp((energy - e)/kT);
         printf("%s ", s);
-        if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
+        if (eval_energy ) printf("%6g (%6g) %.2f (%.2f) ",prob, prob2, -1*(kT*log(prob)-energy), e);
         printf("\n");
+#else
+        double prob=1.;
+        s = vrna_pbacktrack(vc);
+
+        printf("%s ", s);
+        if (eval_energy ){
+          double e  = (double)vrna_eval_structure(vc, s);
+          e -= (double)vrna_eval_covar_structure(vc, s);
+          prob = exp((energy - e)/kT);
+          printf("%6g %.2f  ",prob, -1*(kT*log(prob)-energy));
+        }
+        printf("\n");
+#endif
          free(s);
       }
 
@@ -510,12 +524,12 @@ int main(int argc, char *argv[]){
       double dist;
       plist *pl, *mfel;
 
-      pl    = vrna_pl_get_from_pr(vc, bppmThreshold);
-      mfel  = vrna_pl_get(mfe_struc, 0.95*0.95);
+      pl    = vrna_plist_from_probs(vc, bppmThreshold);
+      mfel  = vrna_plist(mfe_struc, 0.95*0.95);
 
       if (!circular){
         float *ens;
-        cent = vrna_get_centroid_struct(vc, &dist);
+        cent = vrna_centroid(vc, &dist);
         ens=(float *)vrna_alloc(2*sizeof(float));
         ens[0] = vrna_eval_structure(vc, cent);
         ens[1] = vrna_eval_covar_structure(vc, cent);
@@ -527,7 +541,7 @@ int main(int argc, char *argv[]){
       if(doMEA){
         float mea, *ens;
         plist *pl2;
-        pl2 = vrna_pl_get_from_pr(vc, 1e-4/(1+MEAgamma));
+        pl2 = vrna_plist_from_probs(vc, 1e-4/(1+MEAgamma));
         mea = MEA(pl2, structure, MEAgamma);
         ens = (float *)vrna_alloc(2*sizeof(float));
         ens[0] = vrna_eval_structure(vc, structure);
@@ -560,7 +574,6 @@ int main(int argc, char *argv[]){
       free(mfel);
     }
     free(mfe_struc);
-    vrna_free_fold_compound(vc);
     free(pf_parameters);
   }
   if (cstruc!=NULL) free(cstruc);
@@ -569,6 +582,7 @@ int main(int argc, char *argv[]){
     free(shape_files);
   free(string);
   free(structure);
+  vrna_fold_compound_free(vc);
   for (i=0; AS[i]; i++) {
     free(AS[i]); free(names[i]);
   }
@@ -586,7 +600,7 @@ PRIVATE void mark_endgaps(char *seq, char egap) {
   }
 }
 
-PRIVATE void print_pi(const pair_info pi, FILE *file) {
+PRIVATE void print_pi(const vrna_pinfo_t pi, FILE *file) {
   const char *pname[8] = {"","CG","GC","GU","UG","AU","UA", "--"};
   int i;
 
@@ -602,7 +616,7 @@ PRIVATE void print_pi(const pair_info pi, FILE *file) {
 /*-------------------------------------------------------------------------*/
 
 PRIVATE char **annote(const char *structure, const char *AS[]) {
-  /* produce annotation for colored drawings from PS_rna_plot_a() */
+  /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
   char *ps, *colorps, **A;
   int i, n, s, pairings, maxl;
   short *ptable;
@@ -621,7 +635,7 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
   A = (char **) vrna_alloc(sizeof(char *)*2);
   ps = (char *) vrna_alloc(maxl);
   colorps = (char *) vrna_alloc(maxl);
-  ptable = vrna_pt_get(structure);
+  ptable = vrna_ptable(structure);
   for (i=1; i<=n; i++) {
     char pps[64], ci='\0', cj='\0';
     int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;
@@ -674,18 +688,18 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
 /*-------------------------------------------------------------------------*/
 
 PRIVATE void
-print_aliout( vrna_fold_compound *vc,
+print_aliout( vrna_fold_compound_t *vc,
               plist *pl,
               double threshold,
               char *mfe,
               FILE *aliout){
 
   int k;
-  pair_info *pi;
+  vrna_pinfo_t *pi;
   char  **AS    = vc->sequences;
   int   n_seq   = vc->n_seq;
 
-  pi = vrna_ali_get_pair_info(vc, (const char *)mfe, threshold);
+  pi = vrna_aln_pinfo(vc, (const char *)mfe, threshold);
 
   /* print it */
   fprintf(aliout, "%d sequence; length of alignment %d\n",

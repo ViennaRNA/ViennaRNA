@@ -1,6 +1,6 @@
 
 /* Last changed Time-stamp: <2007-10-30 14:06:22 htafer> */
-/*                
+/*
            compute the duplex structure of two RNA strands,
                 allowing only inter-strand base pairs.
          see cofold() for computing hybrid structures without
@@ -15,21 +15,21 @@
   library containing the function used in rnaplex
   the program rnaplex uses the following function
   Lduplexfold: finds high scoring segments
-  it stores the end-position of these segments in an array 
-  and call then for each of these positions the duplexfold function 
+  it stores the end-position of these segments in an array
+  and call then for each of these positions the duplexfold function
   which allows to make backtracking for each of the high scoring position
-  It allows to find suboptimal partially overlapping (depends on a a parameter) 
+  It allows to find suboptimal partially overlapping (depends on a a parameter)
   duplexes between a long RNA and a shorter one.
-  Contrarly to RNAduplex, the energy model is not in E~log(N), 
-  where N is the length of an interial loop but used an affine model, 
+  Contrarly to RNAduplex, the energy model is not in E~log(N),
+  where N is the length of an interial loop but used an affine model,
   where the extension and begin parameter are fitted to the energy
-  parameter used by RNAduplex. This allows to check for duplex between a short RNA(20nt) 
-  and a long one at the speed of 1Mnt/s. At this speed the whole genome (3Gnt) can be analyzed for one siRNA 
+  parameter used by RNAduplex. This allows to check for duplex between a short RNA(20nt)
+  and a long one at the speed of 1Mnt/s. At this speed the whole genome (3Gnt) can be analyzed for one siRNA
   in about 50 minutes.
   The algorithm is based on an idea by Durbin and Eddy:when the alginment reach a value larger than a
-  given threshold this value is stored in an array. When the alignment score goes 
-  then under this threshold, the alignemnent begin from this value, in that way the backtracking allow us 
-  to find all non-overlapping high-scoring segments. 
+  given threshold this value is stored in an array. When the alignment score goes
+  then under this threshold, the alignemnent begin from this value, in that way the backtracking allow us
+  to find all non-overlapping high-scoring segments.
   For more information check "durbin, biological sequence analysis"
 */
 
@@ -82,7 +82,7 @@ PRIVATE void  encode_seqs(const char *s1, const char *s2);
 PRIVATE short *encode_seq(const char *seq);
 PRIVATE void  update_dfold_params(void);
 /**
-*** duplexfold(_XS)/backtrack(_XS) computes duplex interaction with standard energy and considers extension_cost 
+*** duplexfold(_XS)/backtrack(_XS) computes duplex interaction with standard energy and considers extension_cost
 *** find_max(_XS)/plot_max(_XS) find suboptimals and MFE
 *** fduplexfold(_XS) computes duplex in a plex way
 **/
@@ -95,7 +95,7 @@ PRIVATE void   plot_max(const int max, const int max_pos, const int max_pos_j, c
 PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2,const int **access_s1, const int **access_s2, const int i_pos, const int j_pos, const int threshold, const int i_flag, const int j_flag);
 /* PRIVATE char *   backtrack_XS(int i, int j, const int** access_s1, const int** access_s2); */
 PRIVATE char *backtrack_XS(int i, int j, const int **access_s1,const int **access_s2,const int i_flag, const int j_flag );
-PRIVATE void find_max_XS(const int *position, const int *position_j,const int delta, const int threshold, const int alignment_length, 
+PRIVATE void find_max_XS(const int *position, const int *position_j,const int delta, const int threshold, const int alignment_length,
                          const char *s1, const char *s2, const int **access_s1, const int **access_s2, const int fast,const int il_a, const int il_b, const int b_a, const int b_b);
 PRIVATE void plot_max_XS(const int max, const int max_pos, const int max_pos_j, const int alignment_length, const char *s1, const char *s2, const int **access_s1, const int **access_s2, const int fast,const int il_a, const int il_b, const int b_a, const int b_b);
 PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_cost, const int il_a, const int il_b, const int b_a, const int b_b);
@@ -122,7 +122,7 @@ PRIVATE vrna_param_t *P = NULL;
 *** c -> stack;in -> interior loop;bx/by->bulge;inx/iny->1xn loops
 **/
 
-PRIVATE int   **c=NULL, **in=NULL, **bx=NULL, **by=NULL, **inx=NULL, **iny=NULL;      
+PRIVATE int   **c=NULL, **in=NULL, **bx=NULL, **by=NULL, **inx=NULL, **iny=NULL;
 
 /**
 *** S1, SS1, ... contains the encoded sequence for target and query
@@ -149,15 +149,23 @@ PRIVATE int n3, n4; /*sequence length for the duplex*/;
 PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2, const int **access_s1, const int **access_s2, const int i_pos, const int j_pos, const int threshold, const int i_flag, const int j_flag) {
   int i, j,p,q, Emin=INF, l_min=0, k_min=0;
   char *struc;
+  vrna_md_t   md;
+
   struc=NULL;
   duplexT mfe;
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
+
+  set_model_details(&md);
+
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
-  
+
   c = (int **) vrna_alloc(sizeof(int *) * (n3+1));
   for (i=0; i<=n3; i++) c[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
   for (i=0; i<=n3; i++){
@@ -168,14 +176,14 @@ PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2, const int **access
   encode_seqs(s1, s2);
   int type, type2, type3, E, k,l;
   i=n3-i_flag; j=1+j_flag;
-  type = pair[S1[i]][S2[j]]; 
+  type = pair[S1[i]][S2[j]];
   if(!type){
     printf("Error during initialization of the duplex in duplexfold_XS\n");
     mfe.structure=NULL;
     mfe.energy = INF;
     return mfe;
   }
-  c[i][j] = P->DuplexInit; 
+  c[i][j] = P->DuplexInit;
   /**  if (type>2) c[i][j] += P->TerminalAU;
   ***  c[i][j]+=P->dangle3[rtype[type]][SS1[i+1]];
   ***  c[i][j]+=P->dangle5[rtype[type]][SS2[j-1]];
@@ -205,7 +213,7 @@ PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2, const int **access
       }
       type2 = pair[S1[k]][S2[l]];
       if (!type2) continue;
-      for (p=k+1; p<= n3 - i_flag && p<k+MAXLOOP-1; p++) {                  
+      for (p=k+1; p<= n3 - i_flag && p<k+MAXLOOP-1; p++) {
         for (q = l-1; q >= 1+j_flag; q--) {
           if (p-k+l-q-2>MAXLOOP) break;
           type3=pair[S1[p]][S2[q]];
@@ -214,18 +222,18 @@ PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2, const int **access
           c[k][l] = MIN2(c[k][l], c[p][q]+E);
         }
       }
-      E = c[k][l]; 
+      E = c[k][l];
       E+=access_s1[i-k+1][i_pos]+access_s2[l-1][j_pos+(l-1)-1];
       /**if (type2>2) E += P->TerminalAU;
-      ***if (k>1) E += P->dangle5[type2][SS1[k-1]]; 
+      ***if (k>1) E += P->dangle5[type2][SS1[k-1]];
       ***if (l<n4) E += P->dangle3[type2][SS2[l+1]];
       *** Replaced by the line below
       **/
       E+=E_ExtLoop(type2, (k>1) ? SS1[k-1] : -1, (l<n4) ? SS2[l+1] : -1, P);
-      
+
       if (E<Emin) {
         Emin=E; k_min=k; l_min=l;
-      } 
+      }
     }
   }
 
@@ -243,15 +251,15 @@ PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2, const int **access
 
 
   /**
-  *** find best dangles combination 
+  *** find best dangles combination
   **/
   int dx_5, dx_3, dy_5, dy_3,dGx,dGy,bonus_x;
   dx_5=0; dx_3=0; dy_5=0; dy_3=0;dGx=0;dGy=0;bonus_x=0;
   /* x--------x */
   /*  |||||||| */
   /* x--------x */
-   dGx = access_s1[i-k_min+1][i_pos];dx_3=0; dx_5=0;bonus_x=0; 
-   dGy = access_s2[l_min-j+1][j_pos + (l_min-1)]; 
+   dGx = access_s1[i-k_min+1][i_pos];dx_3=0; dx_5=0;bonus_x=0;
+   dGy = access_s2[l_min-j+1][j_pos + (l_min-1)];
 
   mfe.tb=i_pos -9 - i + k_min -1 -dx_5;
   mfe.te=i_pos -9 -1 + dx_3;
@@ -259,7 +267,7 @@ PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2, const int **access
   mfe.qe=j_pos + l_min -3 -9 + dy_3;
   mfe.ddG=(double) Emin * 0.01;
   mfe.dG1=(double) dGx*0.01 ;
-  mfe.dG2=(double) dGy*0.01 ; 
+  mfe.dG2=(double) dGy*0.01 ;
 
   mfe.energy= mfe.ddG - mfe.dG1 - mfe.dG2;
 
@@ -276,7 +284,7 @@ PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2, const int **access
 
 
 PRIVATE char *backtrack_XS(int i, int j, const int **access_s1,const int **access_s2, const int i_flag, const int j_flag) {
-  /* backtrack structure going backwards from i, and forwards from j 
+  /* backtrack structure going backwards from i, and forwards from j
      return structure in bracket notation with & as separator */
   int k, l, type, type2, E, traced, i0, j0;
   char *st1, *st2, *struc;
@@ -286,7 +294,7 @@ PRIVATE char *backtrack_XS(int i, int j, const int **access_s1,const int **acces
   while (i<=n3-i_flag && j>=1+j_flag) {
     E = c[i][j]; traced=0;
     st1[i-1] = '(';
-    st2[j-1] = ')'; 
+    st2[j-1] = ')';
     type = pair[S1[i]][S2[j]];
     if (!type) vrna_message_error("backtrack failed in fold duplex bli");
     for (k=i+1; k<=n3 && k>i-MAXLOOP-2; k++) {
@@ -297,7 +305,7 @@ PRIVATE char *backtrack_XS(int i, int j, const int **access_s1,const int **acces
         if (!type2) continue;
         LE = E_IntLoop(k-i-1, j-l-1, type, rtype[type2], SS1[i+1], SS2[j-1], SS1[k-1], SS2[l+1],P);
         if (E == c[k][l]+LE) {
-          traced=1; 
+          traced=1;
           i=k; j=l;
           break;
         }
@@ -325,7 +333,7 @@ PRIVATE char *backtrack_XS(int i, int j, const int **access_s1,const int **acces
   struc = (char *) vrna_alloc(i-i0+1+j0-j+1+2);
   for (k=MAX2(i0,1); k<=i; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j; k<=j0; k++) if (!st2[k-1]) st2[k-1] = '.';
-  strcpy(struc, st1+MAX2(i0-1,0)); strcat(struc, "&"); 
+  strcpy(struc, st1+MAX2(i0-1,0)); strcat(struc, "&");
   strcat(struc, st2+j-1);
   free(st1); free(st2);
   return struc;
@@ -357,7 +365,7 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   *** max_pos; position of best hit during recursion on target
   *** max_pos_j; position of best hit during recursion on query
   *** temp; temp variable for min_colonne
-  *** min_j_colonne; position of the minimum on query in row j 
+  *** min_j_colonne; position of the minimum on query in row j
   *** max=INF; absolute MFE
   *** n3,n4 length of target and query
   *** DJ contains the accessibility penalty for the query sequence
@@ -377,31 +385,39 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   int max=INF;
   int **DJ;
   int maxPenalty[4];
+  vrna_md_t   md;
+
   /**
   *** variable initialization
   **/
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
+
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   /**
   *** array initialization
   **/
-  c  = (int**) vrna_alloc(sizeof(int *)  * (n3+1));
+  c  = (int**) vrna_alloc(sizeof(int *) * (n3+1));
   in = (int**) vrna_alloc(sizeof(int *) * (n3+1));
   bx = (int**) vrna_alloc(sizeof(int *) * (n3+1));
   by = (int**) vrna_alloc(sizeof(int *) * (n3+1));
   inx= (int**) vrna_alloc(sizeof(int *) * (n3+1));
   iny= (int**) vrna_alloc(sizeof(int *) * (n3+1));
+  #pragma omp
   for (i=0; i<=n3; i++){
-    c[i]  = (int *) vrna_alloc(sizeof(int) * (n4+1));  
-    in[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
-    bx[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
-    by[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
-    inx[i]= (int *) vrna_alloc(sizeof(int) * (n4+1));  
-    iny[i]= (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    c[i]  = (int *) vrna_alloc(sizeof(int) * (n4+1));
+    in[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
+    bx[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
+    by[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
+    inx[i]= (int *) vrna_alloc(sizeof(int) * (n4+1));
+    iny[i]= (int *) vrna_alloc(sizeof(int) * (n4+1));
   }
   for(i=0; i<n3; i++){
     for(j=0; j<n4; j++){
@@ -418,33 +434,46 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   **/
   encode_seqs(s1,s2);
   /**
-  *** Compute accessibility penalty for the query only once
+  *** Compute max accessibility penalty for the query only once
   **/
   maxPenalty[0]=(int) -1*P->stack[2][2]/2;
   maxPenalty[1]=(int) -1*P->stack[2][2];
   maxPenalty[2]=(int) -3*P->stack[2][2]/2;
   maxPenalty[3]=(int) -2*P->stack[2][2];
-   
+
 
   DJ=(int **)   vrna_alloc(4*sizeof(int*));
   DJ[0]=(int *) vrna_alloc((1+n4)*sizeof(int));
   DJ[1]=(int *) vrna_alloc((1+n4)*sizeof(int));
   DJ[2]=(int *) vrna_alloc((1+n4)*sizeof(int));
   DJ[3]=(int *) vrna_alloc((1+n4)*sizeof(int));
-  
+
   j=n4-9;
   while(--j>9){
     int jdiff=j_pos+j-11;
-    DJ[0][j] = access_s2[5][jdiff+4] - access_s2[4][jdiff+4]           ;        
+    /**
+    *** Depending in which direction (i:1->n vs j:m->1) the accessibility is computed we get slightly different results.
+    *** We reduce the discrepancies by taking the average of d^i_k and d^j_l
+    **/
+    DJ[0][j] = 0.5*(access_s2[5][jdiff+4] - access_s2[4][jdiff+4] + access_s2[5][jdiff]  -access_s2[4][jdiff-1]  );
+    DJ[1][j] = 0.5*(access_s2[5][jdiff+5] - access_s2[4][jdiff+5] + access_s2[5][jdiff+1]-access_s2[4][jdiff]  ) + DJ[0][j];
+    DJ[2][j] = 0.5*(access_s2[5][jdiff+6] - access_s2[4][jdiff+6] + access_s2[5][jdiff+2]-access_s2[4][jdiff+1]) + DJ[1][j];
+    DJ[3][j] = 0.5*(access_s2[5][jdiff+7] - access_s2[4][jdiff+7] + access_s2[5][jdiff+3]-access_s2[4][jdiff+2]) + DJ[2][j];
+
+
+
+/*
+    DJ[0][j] = access_s2[5][jdiff+4] - access_s2[4][jdiff+4]           ;
     DJ[1][j] = access_s2[5][jdiff+5] - access_s2[4][jdiff+5] + DJ[0][j];
     DJ[2][j] = access_s2[5][jdiff+6] - access_s2[4][jdiff+6] + DJ[1][j];
     DJ[3][j] = access_s2[5][jdiff+7] - access_s2[4][jdiff+7] + DJ[2][j];
-    DJ[0][j] = MIN2(DJ[0][j],maxPenalty[0]);        
+    DJ[0][j] = MIN2(DJ[0][j],maxPenalty[0]);
     DJ[1][j] = MIN2(DJ[1][j],maxPenalty[1]);
     DJ[2][j] = MIN2(DJ[2][j],maxPenalty[2]);
     DJ[3][j] = MIN2(DJ[3][j],maxPenalty[3]);
+*/
   }
-  
+
   /**
   *** Start of the recursion
   *** first and last 10 nucleotides on target and query are dummy nucleotides
@@ -455,14 +484,20 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   while(i < i_length) {
     int di1,di2,di3,di4;
     int idiff=i_pos-(n3-10-i);
-    di1 = access_s1[5][idiff]   - access_s1[4][idiff-1];           
-    di2 = access_s1[5][idiff-1] - access_s1[4][idiff-2] + di1;
-    di3 = access_s1[5][idiff-2] - access_s1[4][idiff-3] + di2;
-    di4 = access_s1[5][idiff-3] - access_s1[4][idiff-4] + di3;
+    di1 = 0.5*(access_s1[5][idiff+4] - access_s1[4][idiff+4] + access_s1[5][idiff]   - access_s1[4][idiff-1]);
+    di2 = 0.5*(access_s1[5][idiff+3] - access_s1[4][idiff+3] + access_s1[5][idiff-1] - access_s1[4][idiff-2]) + di1;
+    di3 = 0.5*(access_s1[5][idiff+2] - access_s1[4][idiff+2] + access_s1[5][idiff-2] - access_s1[4][idiff-3]) + di2;
+    di4 = 0.5*(access_s1[5][idiff+1] - access_s1[4][idiff+1] + access_s1[5][idiff-3] - access_s1[4][idiff-4]) + di3;
+/*
+    di1 =  access_s1[5][idiff]   - access_s1[4][idiff-1];
+    di2 =  access_s1[5][idiff-1] - access_s1[4][idiff-2] + di1;
+    di3 =  access_s1[5][idiff-2] - access_s1[4][idiff-3] + di2;
+    di4 =  access_s1[5][idiff-3] - access_s1[4][idiff-4] + di3;
     di1=MIN2(di1,maxPenalty[0]);
     di2=MIN2(di2,maxPenalty[1]);
     di3=MIN2(di3,maxPenalty[2]);
     di4=MIN2(di4,maxPenalty[3]);
+*/
     j=n4-9;
     min_colonne=INF;
     while (10 < --j) {
@@ -472,12 +507,15 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
       dj2 = DJ[1][j];
       dj3 = DJ[2][j];
       dj4 = DJ[3][j];
-      int type, type2; 
+      int type, type2;
       type = pair[S1[i]][S2[j]];
       /**
       *** Start duplex
       **/
-      c[i][j]=type ? P->DuplexInit + access_s1[1][idiff]+access_s2[1][jdiff] : INF; 
+      /*
+      c[i][j]=type ? P->DuplexInit + access_s1[1][idiff]+access_s2[1][jdiff] : INF;
+      */
+      c[i][j]=type ? P->DuplexInit: INF;
       /**
       *** update lin bx by linx liny matrix
       **/
@@ -485,9 +523,9 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
       /**
       *** start/extend interior loop
       **/
-      in[i][j]=MIN2(c[i - 1][j+1]+P->mismatchI[type2][SS2[j]][SS1[i]]+iopen+iext_s+di1+dj1, 
+      in[i][j]=MIN2(c[i - 1][j+1]+P->mismatchI[type2][SS2[j]][SS1[i]]+iopen+iext_s+di1+dj1,
                     in[i - 1][j]+iext_ass + di1);
-      
+
       /**
       *** start/extend nx1 target
       *** use same type2 as for in
@@ -542,14 +580,14 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
         c[i][j]=MIN2(c[i - 3][j+3]+P->int22[type2][rtype[type]][SS1[i-2]][SS1[i-1]][SS2[j+1]][SS2[j+2]]+di3+dj3,c[i][j]);
       /**
       *** 1x2 / 2x1 stack extension
-      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to 
+      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
       *** P->int21[rtype[type]][type2][SS2[j+2]][SS1[i-1]][SS1[i-1]]
       **/
       if((type2 = pair[S1[i-3]][S2[j+2]]))
         c[i][j]=MIN2(c[i - 3][j+2]+P->int21[rtype[type]][type2][SS2[j+1]][SS1[i-2]][SS1[i-1]]+di3+dj2, c[i][j]);
       if((type2 = pair[S1[i-2]][S2[j+3]]))
         c[i][j]=MIN2(c[i - 2][j+3]+P->int21[type2][rtype[type]][SS1[i-1]][SS2[j+1]][SS2[j+2]]+di2+dj3, c[i][j]);
-      
+
       /**
       *** 2x3 / 3x2 stack extension
       **/
@@ -593,6 +631,9 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
       *** 0xn n>1
       **/
       c[i][j]=MIN2(by[i - 1][j+2]+di1+dj2+bext+bAU, c[i][j]);
+      /*
+      remove this line printf("%d\t",c[i][j]);
+      */
       temp=min_colonne;
       min_colonne=MIN2(c[i][j]+ E_ExtLoop(rtype[type], SS2[j-1], SS1[i+1], P),min_colonne);
       if(temp>min_colonne){
@@ -606,10 +647,13 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
       max_pos_j=min_j_colonne;
     }
     i++;
+    /*
+    remove this line printf("\n");
+    */
   }
   Emin=max;
   if(Emin>threshold){
-    free(S1); free(S2); free(SS1); free(SS2);  
+    free(S1); free(S2); free(SS1); free(SS2);
     for (i=0; i<=n3; i++) {
       free(c[i]);
       free(in[i]);
@@ -653,11 +697,11 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   mfe.structure = struc;
   mfe.energy_backtrack = (double) dGe * 0.01;
   mfe.energy = (double) dGeplex * 0.01;
-  mfe.opening_backtrack_x = (double) dGx * 0.01; 
+  mfe.opening_backtrack_x = (double) dGx * 0.01;
   mfe.opening_backtrack_y = (double) dGy * 0.01;
-  mfe.dG1=(double) access_s1[lengthx][endx+10] * 0.01;
-  mfe.dG2=(double) access_s2[lengthy][endy+10] * 0.01;
-  free(S1); free(S2); free(SS1); free(SS2);  
+  mfe.dG1=0;/* !remove access to complete access array (double) access_s1[lengthx][endx+10] * 0.01; */
+  mfe.dG2=0;/* !remove access to complete access array (double) access_s2[lengthy][endy+10] * 0.01; */
+  free(S1); free(S2); free(SS1); free(SS2);
   for (i=0; i<=n3; i++) {
     free(c[i]);
     free(in[i]);
@@ -675,7 +719,7 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
 }
 
 PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** access_s2, const int i_pos, const int j_pos,const int il_a, const int il_b, const int b_a, const int b_b, int *dG, int *dGplex, int *dGx, int *dGy) {
-  /* backtrack structure going backwards from i, and forwards from j 
+  /* backtrack structure going backwards from i, and forwards from j
      return structure in bracket notation with & as separator */
   int k, l, type, type2, E, traced, i0, j0;
   char *st1, *st2, *struc;
@@ -699,12 +743,18 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
   int idiff,jdiff;
   /**
   *** (type>2?P->TerminalAU:0)+P->dangle3[rtype[type]][SS1[i+1]]+P->dangle5[rtype[type]][SS2[j-1]];
-  **/ 
-  
+  **/
+
   int maxPenalty[4];
+  vrna_md_t   md;
+
+  set_model_details(&md);
+
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)){
     update_dfold_params();
-    if(P) free(P); P = scale_parameters();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   maxPenalty[0]=(int) -1*P->stack[2][2]/2;
@@ -715,21 +765,35 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
   type = pair[S1[i]][S2[j]];
   *dG+= E_ExtLoop(rtype[type], SS2[j-1] , SS1[i+1] , P);
   *dGplex=*dG;
-  
+
   while (i>10 && j<=n4-9 && traced) {
     int di1,di2,di3,di4;
     idiff=i_pos-(n3-10-i);
-    di1 = access_s1[5][idiff]   - access_s1[4][idiff-1];           
+    di1 = 0.5*(access_s1[5][idiff+4] - access_s1[4][idiff+4] + access_s1[5][idiff]   - access_s1[4][idiff-1]);
+    di2 = 0.5*(access_s1[5][idiff+3] - access_s1[4][idiff+3] + access_s1[5][idiff-1] - access_s1[4][idiff-2]) + di1;
+    di3 = 0.5*(access_s1[5][idiff+2] - access_s1[4][idiff+2] + access_s1[5][idiff-2] - access_s1[4][idiff-3]) + di2;
+    di4 = 0.5*(access_s1[5][idiff+1] - access_s1[4][idiff+1] + access_s1[5][idiff-3] - access_s1[4][idiff-4]) + di3;
+/*
+    di1 = access_s1[5][idiff]   - access_s1[4][idiff-1];
     di2 = access_s1[5][idiff-1] - access_s1[4][idiff-2] + di1;
     di3 = access_s1[5][idiff-2] - access_s1[4][idiff-3] + di2;
     di4 = access_s1[5][idiff-3] - access_s1[4][idiff-4] + di3;
     di1=MIN2(di1,maxPenalty[0]);
     di2=MIN2(di2,maxPenalty[1]);
-    di3=MIN2(di3,maxPenalty[2]); 
+    di3=MIN2(di3,maxPenalty[2]);
     di4=MIN2(di4,maxPenalty[3]);
+*/
     int dj1,dj2,dj3,dj4;
     jdiff=j_pos+j-11;
-    dj1 = access_s2[5][jdiff+4] - access_s2[4][jdiff+4];        
+    dj1=0.5*(access_s2[5][jdiff+4] - access_s2[4][jdiff+4] + access_s2[5][jdiff]  -access_s2[4][jdiff-1]  );
+    dj2=0.5*(access_s2[5][jdiff+5] - access_s2[4][jdiff+5] + access_s2[5][jdiff+1]-access_s2[4][jdiff]  ) + dj1;
+    dj3=0.5*(access_s2[5][jdiff+6] - access_s2[4][jdiff+6] + access_s2[5][jdiff+2]-access_s2[4][jdiff+1]) + dj2;
+    dj4=0.5*(access_s2[5][jdiff+7] - access_s2[4][jdiff+7] + access_s2[5][jdiff+3]-access_s2[4][jdiff+2]) + dj3;
+
+
+
+/*
+    dj1 = access_s2[5][jdiff+4] - access_s2[4][jdiff+4];
     dj2 = access_s2[5][jdiff+5] - access_s2[4][jdiff+5] + dj1;
     dj3 = access_s2[5][jdiff+6] - access_s2[4][jdiff+6] + dj2;
     dj4 = access_s2[5][jdiff+7] - access_s2[4][jdiff+7] + dj3;
@@ -737,6 +801,7 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
     dj2=MIN2(dj2,maxPenalty[1]);
     dj3=MIN2(dj3,maxPenalty[2]);
     dj4=MIN2(dj4,maxPenalty[3]);
+*/
     traced=0;
     switch(state){
     case 1:
@@ -1126,7 +1191,7 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
       }
     }
   }
-  if (!traced) { 
+  if (!traced) {
     idiff=i_pos-(n3-10-i);
     jdiff=j_pos+j-11;
     E=c[i][j];
@@ -1141,14 +1206,19 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
     *dGplex+=correction;
     E-=correction;
 
-    if (E != P->DuplexInit+access_s1[1][idiff]+access_s2[1][jdiff]) {
+/*
+ if (E != P->DuplexInit+access_s1[1][idiff]+access_s2[1][jdiff]) {
+      vrna_message_error("backtrack failed in second fold duplex");
+    }
+*/
+    if (E != P->DuplexInit) {
       vrna_message_error("backtrack failed in second fold duplex");
     }
     else{
       *dG+=P->DuplexInit;
       *dGplex+=P->DuplexInit;
-      *dGx+=access_s1[1][idiff];
-      *dGy+=access_s2[1][jdiff];
+      *dGx+=0;/* access_s1[1][idiff]; */
+      *dGy+=0;/* access_s2[1][jdiff]; */
       st1[i-1]='(';
       st2[j-1]=')';
     }
@@ -1158,16 +1228,16 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
   struc = (char *) vrna_alloc(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
-  strcpy(struc, st1+MAX2(i-1,0)); 
-  strcat(struc, "&"); 
-  strcat(struc, st2+j0-1);  
+  strcpy(struc, st1+MAX2(i-1,0));
+  strcat(struc, "&");
+  strcat(struc, st2+j0-1);
   /* printf("%s %3d,%-3d : %3d,%-3d\n", struc, i,i0,j0,j);  */
   free(st1); free(st2);
   return struc;
 }
 
 
-duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1, const int **access_s2, const int threshold, const int alignment_length, const int delta, const int fast, const int il_a, const int il_b, const int b_a, const int b_b) 
+duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1, const int **access_s2, const int threshold, const int alignment_length, const int delta, const int fast, const int il_a, const int il_b, const int b_a, const int b_b)
 {
   /**
   *** See variable definition in fduplexfold_XS
@@ -1178,13 +1248,13 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   int iopen=il_b;
   int iext_s=2*il_a;
   int iext_ass=50+il_a;
-  int min_colonne=INF; 
+  int min_colonne=INF;
   int i_length;
   int max_pos;
   int max_pos_j;
   int min_j_colonne;
   int max=INF;
-  int *position; 
+  int *position;
   int *position_j;
   int maxPenalty[4];
   int **DJ;
@@ -1193,6 +1263,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   *** Makes the computation 20% faster
   **/
   int *SA;
+  vrna_md_t   md;
   /**
   *** variable initialization
   **/
@@ -1202,8 +1273,13 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   *** Sequence encoding
   **/
 
+  set_model_details(&md);
+
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_dfold_params();  if(P) free(P); P = scale_parameters();
+    update_dfold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   encode_seqs(s1,s2);
@@ -1219,7 +1295,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   maxPenalty[1]=(int) -1*P->stack[2][2];
   maxPenalty[2]=(int) -3*P->stack[2][2]/2;
   maxPenalty[3]=(int) -2*P->stack[2][2];
-  
+
   DJ=(int **) vrna_alloc(4*sizeof(int*));
   DJ[0]=(int *) vrna_alloc(n2*sizeof(int));
   DJ[1]=(int *) vrna_alloc(n2*sizeof(int));
@@ -1227,18 +1303,24 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   DJ[3]=(int *) vrna_alloc(n2*sizeof(int));
   j=n2-9;
   while(--j>10){
-    DJ[0][j] = access_s2[5][j+4] - access_s2[4][j+4]           ;        
+    DJ[0][j] = 0.5*(access_s2[5][j+4] - access_s2[4][j+4] + access_s2[5][j]  -access_s2[4][j-1]  );
+    DJ[1][j] = 0.5*(access_s2[5][j+5] - access_s2[4][j+5] + access_s2[5][j+1]-access_s2[4][j]  ) + DJ[0][j];
+    DJ[2][j] = 0.5*(access_s2[5][j+6] - access_s2[4][j+6] + access_s2[5][j+2]-access_s2[4][j+1]) + DJ[1][j];
+    DJ[3][j] = 0.5*(access_s2[5][j+7] - access_s2[4][j+7] + access_s2[5][j+3]-access_s2[4][j+2]) + DJ[2][j];
+/*
+    DJ[0][j] = access_s2[5][j+4] - access_s2[4][j+4]           ;
     DJ[1][j] = access_s2[5][j+5] - access_s2[4][j+5] + DJ[0][j];
     DJ[2][j] = access_s2[5][j+6] - access_s2[4][j+6] + DJ[1][j];
     DJ[3][j] = access_s2[5][j+7] - access_s2[4][j+7] + DJ[2][j];
-    DJ[0][j] = MIN2(DJ[0][j],maxPenalty[0]);        
+    DJ[0][j] = MIN2(DJ[0][j],maxPenalty[0]);
     DJ[1][j] = MIN2(DJ[1][j],maxPenalty[1]);
     DJ[2][j] = MIN2(DJ[2][j],maxPenalty[2]);
     DJ[3][j] = MIN2(DJ[3][j],maxPenalty[3]);
+*/
   }
   /**
   *** instead of having 4 2-dim arrays we use a unique 1-dim array
-  *** The mapping 2d -> 1D is done based ont the macro 
+  *** The mapping 2d -> 1D is done based ont the macro
   *** LCI(i,j,l)      ((i     )*l + j)
   *** LINI(i,j,l)     ((i +  5)*l + j)
   *** LBXI(i,j,l)     ((i + 10)*l + j)
@@ -1249,7 +1331,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   *** SA has a length of 5 (number of columns we look back) *
   ***                  * 6 (number of structures we look at) *
   ***                  * length of the sequence
-  **/ 
+  **/
 
   SA=(int *) vrna_alloc(sizeof(int)*5*6*(n2+5));
   for(j=n2+4;j>=0;j--) {
@@ -1264,13 +1346,18 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   i=10 ;
   i_length= n1 - 9  ;
   while(i < i_length) {
-    int di1,di2,di3,di4; 
+    int di1,di2,di3,di4;
     int idx=i%5;
     int idx_1=(i-1)%5;
     int idx_2=(i-2)%5;
     int idx_3=(i-3)%5;
     int idx_4=(i-4)%5;
-    di1 = access_s1[5][i]   - access_s1[4][i-1];           
+    di1 = 0.5*(access_s1[5][i+4] - access_s1[4][i+4] + access_s1[5][i]   - access_s1[4][i-1]);
+    di2 = 0.5*(access_s1[5][i+3] - access_s1[4][i+3] + access_s1[5][i-1] - access_s1[4][i-2]) + di1;
+    di3 = 0.5*(access_s1[5][i+2] - access_s1[4][i+2] + access_s1[5][i-2] - access_s1[4][i-3]) + di2;
+    di4 = 0.5*(access_s1[5][i+1] - access_s1[4][i+1] + access_s1[5][i-3] - access_s1[4][i-4]) + di3;
+/*
+    di1 = access_s1[5][i]   - access_s1[4][i-1];
     di2 = access_s1[5][i-1] - access_s1[4][i-2] + di1;
     di3 = access_s1[5][i-2] - access_s1[4][i-3] + di2;
     di4 = access_s1[5][i-3] - access_s1[4][i-4] + di3;
@@ -1278,7 +1365,8 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
     di2=MIN2(di2,maxPenalty[1]);
     di3=MIN2(di3,maxPenalty[2]);
     di4=MIN2(di4,maxPenalty[3]);
-    j=n2 - 9; 
+*/
+    j=n2 - 9;
     while (--j > 9) {
       int dj1,dj2,dj3,dj4;
       dj1=DJ[0][j];
@@ -1290,7 +1378,8 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
       /**
       *** Start duplex
       **/
-      SA[LCI(idx,j,n2)] = type ? P->DuplexInit + access_s1[1][i] + access_s2[1][j] : INF;
+      /* SA[LCI(idx,j,n2)] = type ? P->DuplexInit + access_s1[1][i] + access_s2[1][j] : INF; */
+      SA[LCI(idx,j,n2)] = type ? P->DuplexInit : INF;
       /**
       *** update lin bx by linx liny matrix
       **/
@@ -1300,7 +1389,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
       **/
       SA[LINI(idx,j,n2)]=MIN2(SA[LCI(idx_1,j+1,n2)]+P->mismatchI[type2][SS2[j]][SS1[i]]+di1+dj1+iopen+iext_s,
                               SA[LINI(idx_1,j,n2)]+iext_ass + di1);
-      
+
       /**
       *** start/extend nx1 target
       *** use same type2 as for in
@@ -1331,7 +1420,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
       /**
       ***end update recursion
       **/
-      if(!type){continue;} 
+      if(!type){continue;}
       /**
       *** stack extension
       **/
@@ -1357,7 +1446,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
         SA[LCI(idx,j,n2)]=MIN2(SA[LCI(idx_3,j+3,n2)]+P->int22[type2][rtype[type]][SS1[i-2]][SS1[i-1]][SS2[j+1]][SS2[j+2]]+di3+dj3, SA[LCI(idx,j,n2)]);
       /**
       *** 1x2 / 2x1 stack extension
-      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to 
+      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
       *** P->int21[rtype[type]][type2][SS2[j+2]][SS1[i-1]][SS1[i-1]]
       **/
       if((type2 = pair[S1[i-3]][S2[j+2]]))
@@ -1407,17 +1496,19 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
       **/
       SA[LCI(idx,j,n2)]=MIN2(SA[LBYI(idx_1,j+2,n2)]+di1+dj2+bext+bAU,SA[LCI(idx,j,n2)]);
       temp=min_colonne;
-      /** 
-      *** (type>2?P->TerminalAU:0)+          
-      *** P->dangle3[rtype[type]][SS1[i+1]]+              
-      *** P->dangle5[rtype[type]][SS2[j-1]],                     
-      **/                      
+      /**
+      *** (type>2?P->TerminalAU:0)+
+      *** P->dangle3[rtype[type]][SS1[i+1]]+
+      *** P->dangle5[rtype[type]][SS2[j-1]],
+      **/
+      /* remove this line printf("LCI %d:%d %d\t",i,j,SA[LCI(idx,j,n2)]); */
+      /* remove this line printf("LI %d:%d %d\t",i,j, SA[LINI(idx,j,n2)]); */
       min_colonne=MIN2(SA[LCI(idx,j,n2)]+E_ExtLoop(rtype[type], SS2[j-1] , SS1[i+1] , P), min_colonne);
-      
+
       if(temp>min_colonne){
         min_j_colonne=j;
       }
-      
+
       /* ---------------------------------------------------------------------end update */
     }
     if(max>=min_colonne){
@@ -1427,15 +1518,16 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
     }
     position[i+delta]=min_colonne;min_colonne=INF;
     position_j[i+delta]=min_j_colonne;
+    /* remove this line printf("\n"); */
     i++;
   }
   /* printf("MAX: %d",max); */
-  free(S1); free(S2); free(SS1); free(SS2);free(SA);  
+  free(S1); free(S2); free(SS1); free(SS2);free(SA);
   if(max<threshold){
-    find_max_XS(position, position_j, delta, threshold, alignment_length, s1, s2, access_s1, access_s2, fast,il_a, il_b,b_a, b_b);  
+    find_max_XS(position, position_j, delta, threshold, alignment_length, s1, s2, access_s1, access_s2, fast,il_a, il_b,b_a, b_b);
   }
   if(max<INF){
-    plot_max_XS(max, max_pos, max_pos_j, alignment_length, s1, s2, access_s1, access_s2,fast, il_a, il_b, b_a, b_b); 
+    plot_max_XS(max, max_pos, max_pos_j, alignment_length, s1, s2, access_s1, access_s2,fast, il_a, il_b, b_a, b_b);
   }
   for (i=0; i<=3; i++) {
     free(DJ[i]);
@@ -1447,28 +1539,25 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
 }
 
 PRIVATE void find_max_XS(const int *position, const int *position_j,const int delta, const int threshold, const int alignment_length, const char *s1, const char *s2, const int **access_s1, const int **access_s2, const int fast,const int il_a, const int il_b, const int b_a, const int b_b){
-  
-  int n_max;n_max=16;
   int pos=n1-9;
   if(fast==1){
     while(10 < pos--){
-      printf("%d %d\n",pos,position[pos+delta]);
       int temp_min=0;
-      if(position[pos+delta]<(threshold)){                                        
-        int search_range;                                                   
-        search_range=delta+1;                                               
-        while(--search_range){   
+      if(position[pos+delta]<(threshold)){
+        int search_range;
+        search_range=delta+1;
+        while(--search_range){
           if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
-            temp_min=search_range;                                          
-          }                                                                 
-        }                                                                   
-        pos-=temp_min;                                                      
-        int max_pos_j;                                                      
+            temp_min=search_range;
+          }
+        }
+        pos-=temp_min;
+        int max_pos_j;
         max_pos_j=position_j[pos+delta];
         int max;
         max=position[pos+delta];
         printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100);
-        pos=MAX2(10,pos-delta);
+        pos=MAX2(10,pos+temp_min-delta);
       }
     }
   }
@@ -1488,14 +1577,15 @@ PRIVATE void find_max_XS(const int *position, const int *position_j,const int de
         int max_pos_j;
         max_pos_j=position_j[pos+delta];
         /* max_pos_j und pos entsprechen die realen position
-            in der erweiterten sequenz. 
+            in der erweiterten sequenz.
            pos=1 -> position 1 in the sequence (and not 0 like in C)
            max_pos_j -> position 1 in the sequence ( not 0 like in C)
         */
-        int begin_t=MAX2(11, pos-alignment_length+1);/* 10 */
+        int alignment_length2; alignment_length2 = MIN2(n1,n2);
+        int begin_t=MAX2(11, pos-alignment_length2+1);/* 10 */
         int end_t  =MIN2(n1-10, pos+1);
         int begin_q=MAX2(11, max_pos_j-1); /* 10 */
-        int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
+        int end_q  =MIN2(n2-10, max_pos_j+alignment_length2-1);
         char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2 + 20));
         char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2 + 20));
         strcpy(s3,"NNNNNNNNNN");strcpy(s4,"NNNNNNNNNN");
@@ -1508,21 +1598,17 @@ PRIVATE void find_max_XS(const int *position, const int *position_j,const int de
         test = fduplexfold_XS(s3, s4, access_s1, access_s2, end_t, begin_q,threshold, il_a, il_b, b_a, b_b);
         if(test.energy * 100 < threshold){
           int l1=strchr(test.structure, '&')-test.structure;
-          printf(" %s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f) [%5.2f = %5.2f + %5.2f + %5.2f]  %d \n", test.structure, 
-                 begin_t-10+test.i-l1-10, 
-                 begin_t-10+test.i-1-10, 
-                 begin_q-10 + test.j-1-10 , 
-                 (begin_q -11) + test.j + strlen(test.structure)-l1-2-10, 
-                 test.ddG, test.energy, test.opening_backtrack_x, test.opening_backtrack_y,
-                 test.energy_backtrack + test.dG1 + test.dG2, test.energy_backtrack , test.dG1 , test.dG2,
-                 position[pos+delta]);
-          pos=MAX2(10,pos-delta);
-          free(s3);free(s4);
+          printf(" %s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f) [%5.2f] i:%d,j:%d <%5.2f>\n", test.structure,
+                 begin_t-10+test.i-l1-10,
+                 begin_t-10+test.i-1-10,
+                 begin_q-10 + test.j-1-10 ,
+                 (begin_q -11) + test.j + strlen(test.structure)-l1-2-10,
+                 test.ddG, test.energy, test.opening_backtrack_x, test.opening_backtrack_y, test.energy_backtrack,
+                 pos-10, max_pos_j-10, ((double) position[pos+delta])/100);
+          pos=MAX2(10,pos+temp_min-delta);
           free(test.structure);
         }
-        else{
-          free(s3);free(s4);
-        }
+        free(s3);free(s4);
       }
     }
   }
@@ -1551,7 +1637,6 @@ PRIVATE void find_max_XS(const int *position, const int *position_j,const int de
         j_flag = (begin_q == max_pos_j-1?1:0);
         char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2));
         char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2));
-        
         strncpy(s3, (s1+begin_t),  end_t - begin_t+1);
         strncpy(s4, (s2+begin_q) , end_q - begin_q+1);
         s3[end_t -begin_t +1 ]='\0';
@@ -1559,9 +1644,9 @@ PRIVATE void find_max_XS(const int *position, const int *position_j,const int de
         duplexT test;
         test = duplexfold_XS(s3,s4,access_s1,access_s2,pos, max_pos_j,threshold,i_flag,j_flag);
         if(test.energy * 100 < threshold){
-          printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", test.structure, 
-                 test.tb,test.te,test.qb,test.qe, test.ddG, test.energy, test.dG1, test.dG2);
-          pos=MAX2(10,pos-delta);
+          printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f) i:%d,j:%d <%5.2f>\n", test.structure,
+                 test.tb,test.te,test.qb,test.qe, test.ddG, test.energy, test.dG1, test.dG2, pos-10, max_pos_j-10, ((double) position[pos+delta])/100);
+          pos=MAX2(10,pos+temp_min-delta);
         }
         free(s3);free(s4);
         free(test.structure);
@@ -1585,14 +1670,15 @@ PRIVATE int compare(const void *sub1, const void *sub2) {
 
 PRIVATE void plot_max_XS(const int max, const int max_pos, const int max_pos_j, const int alignment_length, const char *s1, const char *s2, const int ** access_s1, const int ** access_s2, const int fast,const int il_a, const int il_b, const int b_a, const int b_b)
 {
-  if(fast==1){ 
-    printf("target upper bound %d: query lower bound %d (%5.2f)\n", max_pos-3, max_pos_j, ((double)max)/100); 
-  } 
+  if(fast==1){
+    printf("target upper bound %d: query lower bound %d (%5.2f)\n", max_pos-3, max_pos_j, ((double)max)/100);
+  }
   else if(fast==2){
-    int begin_t=MAX2(11, max_pos-alignment_length+1);/* 10 */
+    int alignment_length2; alignment_length2 = MIN2(n1,n2);
+    int begin_t=MAX2(11, max_pos-alignment_length2+1);/* 10 */
     int end_t  =MIN2(n1-10, max_pos+1);
     int begin_q=MAX2(11, max_pos_j-1); /* 10 */
-    int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
+    int end_q  =MIN2(n2-10, max_pos_j+alignment_length2-1);
     char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2 + 20));
     char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2 + 20));
     strcpy(s3,"NNNNNNNNNN");strcpy(s4,"NNNNNNNNNN");
@@ -1604,18 +1690,19 @@ PRIVATE void plot_max_XS(const int max, const int max_pos, const int max_pos_j, 
     duplexT test;
     test = fduplexfold_XS(s3, s4, access_s1, access_s2, end_t, begin_q, INF, il_a, il_b, b_a, b_b);
     int l1=strchr(test.structure, '&')-test.structure;
-    printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f) [%5.2f = %5.2f + %5.2f + %5.2f] \n", test.structure, 
-           begin_t-10+test.i-l1-10, 
-           begin_t-10+test.i-1-10, 
-           begin_q-10 + test.j-1-10 , 
-           (begin_q -11) + test.j + strlen(test.structure)-l1-2-10, 
-           test.ddG, test.energy, test.opening_backtrack_x, test.opening_backtrack_y,
-           test.energy_backtrack + test.dG1 + test.dG2, test.energy_backtrack , test.dG1 , test.dG2);
+    printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f) [%5.2f] i:%d,j:%d <%5.2f>\n", test.structure,
+           begin_t-10+test.i-l1-10,
+           begin_t-10+test.i-1-10,
+           begin_q-10 + test.j-1-10 ,
+           (begin_q -11) + test.j + strlen(test.structure)-l1-2-10,
+           test.ddG, test.energy, test.opening_backtrack_x, test.opening_backtrack_y, test.energy_backtrack,
+           max_pos-10, max_pos_j-10, (double) max/100);
+
     free(s3);free(s4);
     free(test.structure);
   }
-  else{ 
-    int begin_t=MAX2(11,max_pos-alignment_length); 
+  else{
+    int begin_t=MAX2(11,max_pos-alignment_length);
     int end_t  =MIN2(n1-10, max_pos+1);
     int begin_q=MAX2(11, max_pos_j-1);
     int end_q  =MIN2(n2-10,max_pos_j+alignment_length-1);
@@ -1625,15 +1712,15 @@ PRIVATE void plot_max_XS(const int max, const int max_pos, const int max_pos_j, 
     j_flag = (begin_q == max_pos_j-1?1:0);
     char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2)); /* +1 for \0 +1 for distance */
     char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2));
-    
+
     strncpy(s3, (s1+begin_t-1),  end_t - begin_t+1);/* -1 to go from  */
     strncpy(s4, (s2+begin_q-1) , end_q - begin_q+1);/* -1 to go from  */
     s3[end_t -begin_t +1 ]='\0';/*  */
     s4[end_q -begin_q +1 ]='\0';
     duplexT test;
     test = duplexfold_XS(s3,s4,access_s1,access_s2,max_pos, max_pos_j,INF,i_flag,j_flag);
-    printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", test.structure, 
-           test.tb,test.te,test.qb,test.qe, test.ddG, test.energy, test.dG1, test.dG2);
+    printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f) i:%d,j:%d <%5.2f>\n", test.structure,
+           test.tb,test.te,test.qb,test.qe, test.ddG, test.energy, test.dG1, test.dG2, max_pos-10, max_pos_j - 10,(double) max/100);
     free(s3);free(s4);free(test.structure);
   }
 }
@@ -1646,17 +1733,22 @@ PRIVATE duplexT duplexfold(const char *s1, const char *s2, const int extension_c
   int i, j, l1, Emin=INF, i_min=0, j_min=0;
   char *struc;
   duplexT mfe;
-  
+  vrna_md_t md;
+
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
- 
+
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
-  
+
   c = (int **) vrna_alloc(sizeof(int *) * (n3+1));
-  for (i=0; i<=n3; i++) c[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
+  for (i=0; i<=n3; i++) c[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
   encode_seqs(s1, s2);
   for (i=1; i<=n3; i++) {
     for (j=n4; j>0; j--) {
@@ -1667,7 +1759,7 @@ PRIVATE duplexT duplexfold(const char *s1, const char *s2, const int extension_c
       /**
       ***       if (i>1)  c[i][j] += P->dangle5[type][SS1[i-1]]+ extension_cost;
       ***       if (j<n4) c[i][j] += P->dangle3[type][SS2[j+1]]+ extension_cost;
-      ***       if (type>2) c[i][j] += P->TerminalAU;                           
+      ***       if (type>2) c[i][j] += P->TerminalAU;
       **/
       c[i][j] += E_ExtLoop(type, (i>1) ? SS1[i-1] : -1, (j<n4) ? SS2[j+1] : -1, P);
       for (k=i-1; k>0 && k>i-MAXLOOP-2; k--) {
@@ -1680,17 +1772,17 @@ PRIVATE duplexT duplexfold(const char *s1, const char *s2, const int extension_c
           c[i][j] = MIN2(c[i][j], c[k][l]+E);
         }
       }
-      E = c[i][j]; 
+      E = c[i][j];
       /**
       ***      if (i<n3) E += P->dangle3[rtype[type]][SS1[i+1]]+extension_cost;
       ***      if (j>1)  E += P->dangle5[rtype[type]][SS2[j-1]]+extension_cost;
-      ***      if (type>2) E += P->TerminalAU;                                 
+      ***      if (type>2) E += P->TerminalAU;
       ***
       **/
       E += E_ExtLoop(rtype[type], (j > 1) ? SS2[j-1] : -1, (i<n3) ? SS1[i+1] : -1, P);
       if (E<Emin) {
         Emin=E; i_min=i; j_min=j;
-      } 
+      }
     }
   }
   struc = backtrack(i_min, j_min, extension_cost);
@@ -1711,20 +1803,20 @@ PRIVATE duplexT duplexfold(const char *s1, const char *s2, const int extension_c
 }
 
 PRIVATE char *backtrack(int i, int j, const int extension_cost) {
-  /* backtrack structure going backwards from i, and forwards from j 
+  /* backtrack structure going backwards from i, and forwards from j
      return structure in bracket notation with & as separator */
   int k, l, type, type2, E, traced, i0, j0;
   char *st1, *st2, *struc;
-  
+
   st1 = (char *) vrna_alloc(sizeof(char)*(n3+1));
   st2 = (char *) vrna_alloc(sizeof(char)*(n4+1));
-  
+
   i0=MIN2(i+1,n3); j0=MAX2(j-1,1);
 
   while (i>0 && j<=n4) {
     E = c[i][j]; traced=0;
     st1[i-1] = '(';
-    st2[j-1] = ')'; 
+    st2[j-1] = ')';
     type = pair[S1[i]][S2[j]];
     if (!type) vrna_message_error("backtrack failed in fold duplex");
     for (k=i-1; k>0 && k>i-MAXLOOP-2; k--) {
@@ -1736,15 +1828,15 @@ PRIVATE char *backtrack(int i, int j, const int extension_cost) {
         LE = E_IntLoop(i-k-1, l-j-1, type2, rtype[type],
                        SS1[k+1], SS2[l-1], SS1[i-1], SS2[j+1],P)+(i-k+l-j)*extension_cost;
         if (E == c[k][l]+LE) {
-          traced=1; 
+          traced=1;
           i=k; j=l;
           break;
         }
       }
       if (traced) break;
     }
-    if (!traced) { 
-      
+    if (!traced) {
+
       E -=  E_ExtLoop(type, (i>1) ? SS1[i-1] : -1, (j<n4) ? SS2[j+1] : -1, P);
       /**
       ***      if (i>1) E -= P->dangle5[type][SS1[i-1]]+extension_cost;
@@ -1758,13 +1850,13 @@ PRIVATE char *backtrack(int i, int j, const int extension_cost) {
   }
   if (i>1)  i--;
   if (j<n4) j++;
-  
+
   struc = (char *) vrna_alloc(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
-  strcpy(struc, st1+MAX2(i-1,0)); 
-  strcat(struc, "&"); 
-  strcat(struc, st2+j0-1);  
+  strcpy(struc, st1+MAX2(i-1,0));
+  strcat(struc, "&");
+  strcat(struc, st2+j0-1);
   /* printf("%s %3d,%-3d : %3d,%-3d\n", struc, i,i0,j0,j);  */
   free(st1); free(st2);
   return struc;
@@ -1786,6 +1878,7 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
   int temp=INF;
   int min_j_colonne;
   int max=INF;
+  vrna_md_t md;
   /* FOLLOWING NEXT 4 LINE DEFINES AN ARRAY CONTAINING POSITION OF THE SUBOPT IN S1 */
 
   n3 = (int) strlen(s1);
@@ -1796,8 +1889,12 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
   /* duplexfold them at this position and report the result at the command line */
   /* for this i first need to rewrite backtrack in order to remove the printf functio */
   /* END OF DEFINITION FOR NEEDED SUBOPT DATA  */
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   /*local c array initialization---------------------------------------------*/
@@ -1808,12 +1905,12 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
   inx= (int**) vrna_alloc(sizeof(int *) * (n3+1));
   iny= (int**) vrna_alloc(sizeof(int *) * (n3+1));
   for (i=0; i<=n3; i++){
-    c[i]  = (int *) vrna_alloc(sizeof(int) * (n4+1));  
-    in[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
-    bx[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
-    by[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
-    inx[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
-    iny[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));  
+    c[i]  = (int *) vrna_alloc(sizeof(int) * (n4+1));
+    in[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
+    bx[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
+    by[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
+    inx[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
+    iny[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
   }
   /*-------------------------------------------------------------------------*/
   /*end of array initialisation----------------------------------*/
@@ -1832,8 +1929,8 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
   }
 
   /*--------------------------------------------------------local array*/
-  
-  
+
+
   /* -------------------------------------------------------------matrix initialisierung */
   i=11;
   i_length=n3-9;
@@ -1841,12 +1938,12 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
     j=n4-9;
     min_colonne=INF;
     while (10 < --j) {
-      int type, type2; 
+      int type, type2;
       type = pair[S1[i]][S2[j]];
       /**
       *** Start duplex
       **/
-      c[i][j]=type ? P->DuplexInit + 2*extension_cost : INF; 
+      c[i][j]=type ? P->DuplexInit + 2*extension_cost : INF;
       /**
       *** update lin bx by linx liny matrix
       **/
@@ -1909,14 +2006,14 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
       c[i][j]=MIN2(c[i - 3][j+3]+P->int22[type2][rtype[type]][SS1[i-2]][SS1[i-1]][SS2[j+1]][SS2[j+2]]+6*extension_cost,c[i][j]);
       /**
       *** 1x2 / 2x1 stack extension
-      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to 
+      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
       *** P->int21[rtype[type]][type2][SS2[j+2]][SS1[i-1]][SS1[i-1]]
       **/
       type2 = pair[S1[i-3]][S2[j+2]];
       c[i][j]=MIN2(c[i - 3][j+2]+P->int21[rtype[type]][type2][SS2[j+1]][SS1[i-2]][SS1[i-1]]+5*extension_cost, c[i][j]);
       type2 = pair[S1[i-2]][S2[j+3]];
       c[i][j]=MIN2(c[i - 2][j+3]+P->int21[type2][rtype[type]][SS1[i-1]][SS2[j+1]][SS2[j+2]]+5*extension_cost, c[i][j]);
-      
+
       /**
       *** 2x3 / 3x2 stack extension
       **/
@@ -1990,7 +2087,7 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
   mfe.energy = (double) Emin/100.;
   mfe.energy_backtrack = (double) dGe/100.;
   mfe.structure = struc;
-  free(S1); free(S2); free(SS1); free(SS2);  
+  free(S1); free(S2); free(SS1); free(SS2);
   for (i=0; i<=n3; i++) {
     free(c[i]);
     free(in[i]);
@@ -2005,7 +2102,7 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
 
 
 PRIVATE char *fbacktrack(int i, int j, const int extension_cost,const int il_a, const int il_b, const int b_a, const int b_b, int *dG) {
-  /* backtrack structure going backwards from i, and forwards from j 
+  /* backtrack structure going backwards from i, and forwards from j
      return structure in bracket notation with & as separator */
   int k, l, type, type2, E, traced, i0, j0;
   char *st1, *st2, *struc;
@@ -2288,7 +2385,7 @@ PRIVATE char *fbacktrack(int i, int j, const int extension_cost,const int il_a, 
     case 4:
       if(by[i][j]==(by[i][j+1] + bext)){
         j++;
-        
+
         state=4;
         traced=1;
         break;
@@ -2345,7 +2442,7 @@ PRIVATE char *fbacktrack(int i, int j, const int extension_cost,const int il_a, 
       }
     }
   }
-  if (!traced) { 
+  if (!traced) {
     E=c[i][j];
     /**
     ***    if (i>1) {E -= P->dangle5[type][SS1[i-1]]+extension_cost; *dG+=P->dangle5[type][SS1[i-1]];}
@@ -2370,9 +2467,9 @@ PRIVATE char *fbacktrack(int i, int j, const int extension_cost,const int il_a, 
   struc = (char *) vrna_alloc(i0-i+1+j-j0+1+2);
   for (k=MAX2(i,1); k<=i0; k++) if (!st1[k-1]) st1[k-1] = '.';
   for (k=j0; k<=j; k++) if (!st2[k-1]) st2[k-1] = '.';
-  strcpy(struc, st1+MAX2(i-1,0)); 
-  strcat(struc, "&"); 
-  strcat(struc, st2+j0-1);  
+  strcpy(struc, st1+MAX2(i-1,0));
+  strcat(struc, "&");
+  strcat(struc, st2+j0-1);
   /* printf("%s %3d,%-3d : %3d,%-3d\n", struc, i,i0,j0,j);  */
   free(st1); free(st2);
   return struc;
@@ -2404,6 +2501,8 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
   *** Makes the computation 20% faster
   **/
   int *SA;
+  vrna_md_t md;
+  
   /**
   *** variable initialization
   **/
@@ -2412,8 +2511,12 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
   /**
   *** Sequence encoding
   **/
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   encode_seqs(s1,s2);
@@ -2424,7 +2527,7 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
   position_j= (int *) vrna_alloc((delta+n1+3+delta) * sizeof(int));
   /**
   *** instead of having 4 2-dim arrays we use a unique 1-dim array
-  *** The mapping 2d -> 1D is done based ont the macro 
+  *** The mapping 2d -> 1D is done based ont the macro
   *** LCI(i,j,l)      ((i     )*l + j)
   *** LINI(i,j,l)     ((i +  5)*l + j)
   *** LBXI(i,j,l)     ((i + 10)*l + j)
@@ -2435,7 +2538,7 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
   *** SA has a length of 5 (number of columns we look back) *
   ***                  * 6 (number of structures we look at) *
   ***                  * length of the sequence
-  **/ 
+  **/
   SA=(int *) vrna_alloc(sizeof(int)*5*6*(n2+5));
   for(j=n2+4;j>=0;j--) {
     SA[(j*30)   ]=SA[(j*30)+1   ]=SA[(j*30)+2   ]=SA[(j*30)+3   ]=SA[(j*30)+4   ]=INF;
@@ -2455,7 +2558,7 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
     int idx_4=(i-4)%5;
     j=n2-9;
     while (9 < --j) {
-      int type, type2; 
+      int type, type2;
       type = pair[S1[i]][S2[j]];
       /**
       *** Start duplex
@@ -2468,7 +2571,7 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
       /**
       *** start/extend interior loop
       **/
-      SA[LINI(idx,j,n2)]=MIN2(SA[LCI(idx_1,j+1,n2)]+P->mismatchI[type2][SS2[j]][SS1[i]]+iopen+iext_s, 
+      SA[LINI(idx,j,n2)]=MIN2(SA[LCI(idx_1,j+1,n2)]+P->mismatchI[type2][SS2[j]][SS1[i]]+iopen+iext_s,
                               SA[LINI(idx_1,j,n2)]+iext_ass);
       /**
       *** start/extend nx1 target
@@ -2527,7 +2630,7 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
         SA[LCI(idx,j,n2)]=MIN2(SA[LCI(idx_3,j+3,n2)]+P->int22[type2][rtype[type]][SS1[i-2]][SS1[i-1]][SS2[j+1]][SS2[j+2]]+6*extension_cost,SA[LCI(idx,j,n2)]);
       /**
       *** 1x2 / 2x1 stack extension
-      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to 
+      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
       *** P->int21[rtype[type]][type2][SS2[j+2]][SS1[i-1]][SS1[i-1]]
       **/
       if((type2 = pair[S1[i-3]][S2[j+2]]))
@@ -2577,7 +2680,7 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
       **/
       SA[LCI(idx,j,n2)]=MIN2(SA[LBYI(idx_1,j+2,n2)]+2*extension_cost+bext+bAU,SA[LCI(idx,j,n2)]);
       temp=min_colonne;
-      
+
       min_colonne=MIN2(SA[LCI(idx,j,n2)]+E_ExtLoop(rtype[type], SS2[j-1] , SS1[i+1] , P) + 2*extension_cost, min_colonne);
       if(temp>min_colonne){
         min_j_colonne=j;
@@ -2593,7 +2696,7 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
     i++;
   }
   /* printf("MAX: %d",max); */
-  free(S1); free(S2); free(SS1); free(SS2);  
+  free(S1); free(S2); free(SS1); free(SS2);
   if(max<threshold){
     find_max(position, position_j, delta, threshold, alignment_length, s1, s2, extension_cost, fast, il_a, il_b, b_a, b_b);
   }
@@ -2613,22 +2716,22 @@ PRIVATE void find_max(const int *position, const int *position_j,const int delta
   int pos=n1-9;
   if(fast==1){
     while(10 < pos--){
-      int temp_min=0;                                                               
-      if(position[pos+delta]<(threshold)){                                          
-        int search_range;                                                           
-        search_range=delta+1;                                                       
-        while(--search_range){                                                      
-          if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){                
-            temp_min=search_range;                                                  
-          }                                                                         
-        }                                                                           
-        pos-=temp_min;                                                              
-        int max_pos_j;                                                              
+      int temp_min=0;
+      if(position[pos+delta]<(threshold)){
+        int search_range;
+        search_range=delta+1;
+        while(--search_range){
+          if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
+            temp_min=search_range;
+          }
+        }
+        pos-=temp_min;
+        int max_pos_j;
         max_pos_j=position_j[pos+delta];
         int max;
         max=position[pos+delta];
         printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100);
-        pos=MAX2(10,pos-alignment_length);
+        pos=MAX2(10,pos+temp_min-delta);
       }
     }
   }
@@ -2648,14 +2751,15 @@ PRIVATE void find_max(const int *position, const int *position_j,const int delta
         int max_pos_j;
         max_pos_j=position_j[pos+delta];
         /* max_pos_j und pos entsprechen die realen position
-           in der erweiterten sequenz. 
+           in der erweiterten sequenz.
            pos=1 -> position 1 in the sequence (and not 0 like in C)
            max_pos_j -> position 1 in the sequence ( not 0 like in C)
         */
-        int begin_t=MAX2(11, pos-alignment_length+1);/* 10 */
+        int alignment_length2; alignment_length2 = MIN2(n1,n2);
+        int begin_t=MAX2(11, pos-alignment_length2+1);/* 10 */
         int end_t  =MIN2(n1-10, pos+1);
         int begin_q=MAX2(11, max_pos_j-1); /* 10 */
-        int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
+        int end_q  =MIN2(n2-10, max_pos_j+alignment_length2-1);
         char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2 + 20));
         char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2 + 20));
         strcpy(s3,"NNNNNNNNNN");strcpy(s4,"NNNNNNNNNN");
@@ -2668,27 +2772,28 @@ PRIVATE void find_max(const int *position, const int *position_j,const int delta
         test = fduplexfold(s3, s4, extension_cost,il_a, il_b, b_a, b_b);
         if(test.energy * 100 < threshold){
           int l1=strchr(test.structure, '&')-test.structure;
-          printf("%s %3d,%-3d : %3d,%-3d (%5.2f) [%5.2f]\n", test.structure, 
-                 begin_t-10+test.i-l1-10, 
-                 begin_t-10+test.i-1-10, 
-                 begin_q-10 + test.j-1-10 , 
-                 (begin_q -11) + test.j + strlen(test.structure)-l1-2-10, 
-                 test.energy,test.energy_backtrack);
-          pos=MAX2(10,pos-delta);
+          printf("%s %3d,%-3d : %3d,%-3d (%5.2f) [%5.2f]  i:%d,j:%d <%5.2f>\n", test.structure,
+                 begin_t-10+test.i-l1-10,
+                 begin_t-10+test.i-1-10,
+                 begin_q-10 + test.j-1-10 ,
+                 (begin_q -11) + test.j + strlen(test.structure)-l1-2-10,
+                 test.energy,test.energy_backtrack, pos-10, max_pos_j-10, ((double) position[pos+delta])/100);
+          pos=MAX2(10,pos+temp_min-delta);
         }
         free(s3);free(s4);
         free(test.structure);
       }
     }
   }
-  else{
+#if 0
+  else if(fast==3){
     pos=n1-9;
     while(10 < pos--){
       int temp_min=0;
       if(position[pos+delta]<(threshold)){
         int search_range;
         search_range=delta+1;
-        while(--search_range){ 
+        while(--search_range){
           if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
             temp_min=search_range;
           }
@@ -2697,14 +2802,101 @@ PRIVATE void find_max(const int *position, const int *position_j,const int delta
         int max_pos_j;
         max_pos_j=position_j[pos+delta];
         /* max_pos_j und pos entsprechen die realen position
-           in der erweiterten sequenz. 
+           in der erweiterten sequenz.
            pos=1 -> position 1 in the sequence (and not 0 like in C)
            max_pos_j -> position 1 in the sequence ( not 0 like in C)
         */
-        int begin_t=MAX2(11, pos-alignment_length+1);/* 10 */
+        //Here we can start the reverse recursion for the
+        //Starting from the reported pos / max_pos_j we start the recursion
+        //We have to be careful with the fact that all energies are inverted.
+
+        int alignment_length2;
+        //Select the smallest interaction length in order to define the new interaction length
+        alignment_length2 = MIN2(n1-pos + 1,max_pos_j - 1 + 1);
+        //
+        int begin_t=MAX2(11, pos-alignment_length2+1);/* 10 */
         int end_t  =MIN2(n1-10, pos+1);
         int begin_q=MAX2(11, max_pos_j-1); /* 10 */
-        int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
+        int end_q  =MIN2(n2-10, max_pos_j+alignment_length2-1);
+        char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2 + 20));
+        char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2 + 20));
+        strcpy(s3,"NNNNNNNNNN");strcpy(s4,"NNNNNNNNNN");
+        strncat(s3, (s1+begin_t-1),  end_t - begin_t +1);
+        strncat(s4, (s2+begin_q-1) , end_q - begin_q +1);
+        strcat(s3,"NNNNNNNNNN");strcat(s4,"NNNNNNNNNN");
+        s3[end_t -begin_t +1 +20 ]='\0';
+        s4[end_q -begin_q +1 +20]='\0';
+        duplexT test;
+        test = fduplexfold(s4, s3, extension_cost,il_a, il_b, b_a, b_b);
+        if(test.energy * 100 < threshold){
+          int structureLength=strlen(test.structure);
+          int l1=strchr(test.structure, '&')-test.structure;
+          int start_t,end_t,start_q,end_q;
+
+
+          /*reverse structure string*/
+          char *reverseStructure = (char*) vrna_alloc(sizeof(char)*(structureLength+1));
+          int posStructure;
+          for(posStructure=l1+1; posStructure < structureLength; posStructure++){
+            if(test.structure[posStructure]==')'){
+              reverseStructure[posStructure-l1-1] = '(';
+            }
+            else{
+              reverseStructure[posStructure-l1-1] = test.structure[posStructure];
+            }
+          }
+          reverseStructure[structureLength-1-l1]='&';
+          for(posStructure=0; posStructure<l1; posStructure++){
+            if(test.structure[posStructure]=='('){
+              reverseStructure[structureLength+posStructure-l1] = ')';
+            }
+            else{
+              reverseStructure[structureLength+posStructure-l1] = test.structure[posStructure];
+            }
+          }
+          reverseStructure[structureLength]='\0';
+          //          l1=strchr(reverse.structure, '&')-test.structure;
+
+
+          printf("%s %3d,%-3d : %3d,%-3d (%5.2f) [%5.2f] i:%d,j:%d <%5.2f>\n", reverseStructure,
+                 begin_t-10 + test.j-1-10,
+                 (begin_t -11) + test.j + strlen(test.structure)-l1-2-10,
+                 begin_q-10+test.i-l1-10,
+                 begin_q-10+test.i-1-10,
+                 test.energy,test.energy_backtrack,pos, max_pos_j, ((double) position[pos+delta])/100);
+          pos=MAX2(10,pos+temp_min-delta);
+        }
+        free(s3);free(s4);
+        free(test.structure);
+      }
+    }
+  }
+#endif
+  else{
+    pos=n1-9;
+    while(10 < pos--){
+      int temp_min=0;
+      if(position[pos+delta]<(threshold)){
+        int search_range;
+        search_range=delta+1;
+        while(--search_range){
+          if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
+            temp_min=search_range;
+          }
+        }
+        pos-=temp_min;
+        int max_pos_j;
+        max_pos_j=position_j[pos+delta];
+        /* max_pos_j und pos entsprechen die realen position
+           in der erweiterten sequenz.
+           pos=1 -> position 1 in the sequence (and not 0 like in C)
+           max_pos_j -> position 1 in the sequence ( not 0 like in C)
+        */
+        int alignment_length2; alignment_length2 = MIN2(n1,n2);
+        int begin_t=MAX2(11, pos-alignment_length2+1);/* 10 */
+        int end_t  =MIN2(n1-10, pos+1);
+        int begin_q=MAX2(11, max_pos_j-1); /* 10 */
+        int end_q  =MIN2(n2-10, max_pos_j+alignment_length2-1);
         char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2));
         char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2));
         strncpy(s3, (s1+begin_t-1),  end_t - begin_t +1);
@@ -2715,13 +2907,13 @@ PRIVATE void find_max(const int *position, const int *position_j,const int delta
         test = duplexfold(s3, s4, extension_cost);
         if(test.energy * 100 < threshold){
           int l1=strchr(test.structure, '&')-test.structure;
-          printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", test.structure, 
-                 begin_t-10+test.i-l1, 
-                 begin_t-10+test.i-1, 
-                 begin_q-10 + test.j-1 , 
-                 (begin_q -11) + test.j + strlen(test.structure)-l1-2, 
-                 test.energy);
-          pos=MAX2(10,pos-delta);
+          printf("%s %3d,%-3d : %3d,%-3d (%5.2f)  i:%d,j:%d <%5.2f>\n", test.structure,
+                 begin_t-10+test.i-l1,
+                 begin_t-10+test.i-1,
+                 begin_q-10 + test.j-1 ,
+                 (begin_q -11) + test.j + strlen(test.structure)-l1-2,
+                 test.energy, pos-10, max_pos_j-10, ((double) position[pos+delta])/100);
+          pos=MAX2(10,pos+temp_min-delta);
         }
         free(s3);free(s4);
         free(test.structure);
@@ -2735,10 +2927,11 @@ PRIVATE void plot_max(const int max, const int max_pos, const int max_pos_j, con
     printf("target upper bound %d: query lower bound %d (%5.2f)\n", max_pos-10, max_pos_j-10, ((double)max)/100);
   }
   else if(fast==2){
-    int begin_t=MAX2(11, max_pos-alignment_length+1);/* 10 */
+    int alignment_length2; alignment_length2 = MIN2(n1,n2);
+    int begin_t=MAX2(11, max_pos-alignment_length2+1);/* 10 */
     int end_t  =MIN2(n1-10, max_pos+1);
     int begin_q=MAX2(11, max_pos_j-1); /* 10 */
-    int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
+    int end_q  =MIN2(n2-10, max_pos_j+alignment_length2-1);
     char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2 + 20));
     char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2 + 20));
     strcpy(s3,"NNNNNNNNNN");strcpy(s4,"NNNNNNNNNN");
@@ -2750,34 +2943,35 @@ PRIVATE void plot_max(const int max, const int max_pos, const int max_pos_j, con
     duplexT test;
     test = fduplexfold(s3, s4, extension_cost,il_a, il_b, b_a, b_b);
     int l1=strchr(test.structure, '&')-test.structure;
-    printf("%s %3d,%-3d : %3d,%-3d (%5.2f) [%5.2f]\n", test.structure, 
-           begin_t-10+test.i-l1-10, 
-           begin_t-10+test.i-1-10, 
-           begin_q-10 + test.j-1-10 , 
-           (begin_q -11) + test.j + strlen(test.structure)-l1-2-10, 
-           test.energy, test.energy_backtrack);
+    printf("%s %3d,%-3d : %3d,%-3d (%5.2f) [%5.2f] i:%d,j:%d <%5.2f>\n", test.structure,
+           begin_t-10+test.i-l1-10,
+           begin_t-10+test.i-1-10,
+           begin_q-10 + test.j-1-10 ,
+           (begin_q -11) + test.j + strlen(test.structure)-l1-2-10,
+           test.energy, test.energy_backtrack,max_pos-10, max_pos_j-10,((double) max)/100);
     free(s3);free(s4);free(test.structure);
   }
   else{
     duplexT test;
-    int begin_t=MAX2(11, max_pos-alignment_length+1);
+    int alignment_length2; alignment_length2 = MIN2(n1,n2);
+    int begin_t=MAX2(11, max_pos-alignment_length2+1);
     int end_t  =MIN2(n1-10, max_pos+1);
     int begin_q=MAX2(11, max_pos_j-1);
-    int end_q  =MIN2(n2-10, max_pos_j+alignment_length-1);
+    int end_q  =MIN2(n2-10, max_pos_j+alignment_length2-1);
     char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2));
     char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2));
     strncpy(s3, (s1+begin_t-1),  end_t - begin_t + 1);
     strncpy(s4, (s2+begin_q-1) , end_q - begin_q +1 );
     s3[end_t -begin_t +1 ]='\0';
-    s4[end_q -begin_q +1 ]='\0';    
+    s4[end_q -begin_q +1 ]='\0';
     test = duplexfold(s3, s4, extension_cost);
     int l1=strchr(test.structure, '&')-test.structure;
-    printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", test.structure, 
-           begin_t-10+test.i-l1, 
-           begin_t-10+test.i-1, 
-           begin_q-10 +test.j-1 , 
-           (begin_q -11) + test.j + strlen(test.structure)-l1-2, 
-           test.energy);
+    printf("%s %3d,%-3d : %3d,%-3d (%5.2f) i:%d,j:%d <%5.2f>\n", test.structure,
+           begin_t-10+test.i-l1,
+           begin_t-10+test.i-1,
+           begin_q-10 +test.j-1 ,
+           (begin_q -11) + test.j + strlen(test.structure)-l1-2,
+           test.energy, max_pos-10, max_pos_j -10, ((double) max)/100);
     free(s3);free(s4);free(test.structure);
   }
 }
@@ -2785,8 +2979,11 @@ PRIVATE void plot_max(const int max, const int max_pos, const int max_pos_j, con
 
 PRIVATE void update_dfold_params(void)
 {
-  if(P) free(P);
-  P = scale_parameters();
+  vrna_md_t md;
+  if(P)
+    free(P);
+  set_model_details(&md);
+  P = vrna_params(&md);
   make_pair_matrix();
 }
 
@@ -2797,7 +2994,7 @@ PRIVATE void encode_seqs(const char *s1, const char *s2) {
   S1 = encode_seq(s1);
   SS1= (short *) vrna_alloc(sizeof(short)*(l+1));
   /* SS1 exists only for the special X K and I bases and energy_set!=0 */
-  
+
   for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
     SS1[i] = alias[S1[i]];   /* for mismatches of nostandard bases */
   }
@@ -2806,7 +3003,7 @@ PRIVATE void encode_seqs(const char *s1, const char *s2) {
   S2 = encode_seq(s2);
   SS2= (short *) vrna_alloc(sizeof(short)*(l+1));
   /* SS2 exists only for the special X K and I bases and energy_set!=0 */
-  
+
   for (i=1; i<=l; i++) { /* make numerical encoding of sequence */
     SS2[i] = alias[S2[i]];   /* for mismatches of nostandard bases */
   }
@@ -2848,6 +3045,3 @@ void freeDuplexT(duplexT** array)
   free(array[0]->structure);
   free(array);
 }
-
-
-

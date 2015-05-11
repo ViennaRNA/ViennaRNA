@@ -174,7 +174,7 @@ int main(int argc, char *argv[]){
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   }
 
-  rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt);
+  rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt);
   if (rec_type & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))
     return 0;
 
@@ -186,10 +186,10 @@ int main(int argc, char *argv[]){
   shape_sequence = vrna_alloc(sizeof(char) * (length + 1));
   shape_data = vrna_alloc(sizeof(double) * (length + 1));
 
-  if(vrna_read_SHAPE_file(args_info.inputs[0], length, -1, shape_sequence, shape_data))
+  if(vrna_file_SHAPE_read(args_info.inputs[0], length, -1, shape_sequence, shape_data))
   {
     double *epsilon;
-    vrna_fold_compound *vc;
+    vrna_fold_compound_t *vc;
 
     double mfe;
     double tau = 0.01;
@@ -203,8 +203,8 @@ int main(int argc, char *argv[]){
 
     vrna_sc_SHAPE_to_pr(args_info.shapeConversion_arg, shape_data, length, -1);
 
-    vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
-    mfe = (double)vrna_fold(vc, NULL);
+    vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+    mfe = (double)vrna_mfe(vc, NULL);
     vrna_exp_params_rescale(vc, &mfe);
 
     epsilon = vrna_alloc(sizeof(double) * (length + 1));
@@ -222,7 +222,7 @@ int main(int argc, char *argv[]){
                                   minimizerTolerance,
                                   print_progress);
 
-    vrna_free_fold_compound(vc);
+    vrna_fold_compound_free(vc);
 
     print_perturbation_vector(stdout, epsilon);
 

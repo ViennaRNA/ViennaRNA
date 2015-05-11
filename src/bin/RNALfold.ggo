@@ -35,6 +35,25 @@ option  "noconv"  -
 flag
 off
 
+option  "outfile" o
+"Print output to file instead of stdout\n"
+details="Specifying a file name/prefix will print the output into a file instead of stdout.\
+ If a FASTA header precedes the input sequence, the appropriate fasta ID is used as infix for\
+ the file name. Each generated file will be suffixed with the file extension '.lfold'.\
+ If a file with the same filename already exists, any output of the program will be appended\
+ to it.\n\n"
+string
+typestr="<filename>"
+optional
+
+option  "infile"  i
+"Read a file instead of reading from stdin\n"
+details="The default behavior of RNALfold is to read input from stdin. Using this parameter\
+ the user can specify an input file name where data is read from.\n\n"
+string
+typestr="<filename>"
+optional
+
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"

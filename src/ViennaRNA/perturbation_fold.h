@@ -123,7 +123,7 @@ typedef void (*progress_callback)(int iteration, double score, double *epsilon);
  *  @param callback           A pointer to a callback function used for reporting the current minimization progress
  *
  */
-void vrna_sc_minimize_pertubation(vrna_fold_compound *vc,
+void vrna_sc_minimize_pertubation(vrna_fold_compound_t *vc,
                                   const double *q_prob_unpaired,
                                   int objective_function,
                                   double sigma_squared,

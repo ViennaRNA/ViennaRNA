@@ -30,8 +30,8 @@ static const char rcsid[] = "$Id: RNALalifold.c,v 1.1 2007/06/23 09:52:29 ivo Ex
 /*@exits@*/
 PRIVATE void  usage(void);
 PRIVATE char  *annote(const char *structure, const char *AS[]);
-PRIVATE void  print_pi(const pair_info pi, FILE *file);
-PRIVATE cpair *make_color_pinfo(const pair_info *pi);
+PRIVATE void  print_pi(const vrna_pinfo_t pi, FILE *file);
+PRIVATE cpair *make_color_pinfo(const vrna_pinfo_t *pi);
 PRIVATE cpair *make_color_pinfo2(char **sequences, plist *pl, int n_seq);
 
 #define MAX_NUM_NAMES    500
@@ -47,6 +47,7 @@ int main(int argc, char *argv[]){
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char          *names[MAX_NUM_NAMES];       /* sequence names */
   FILE          *clust_file = stdin;
+  vrna_md_t     md;
 
   string = structure = ParamFile = ns_bases = NULL;
   mis = pf      = 0;
@@ -56,6 +57,9 @@ int main(int argc, char *argv[]){
   sfact         = 1.07;
   cutoff        = 0.0005;
   ribo          = 0;
+
+  vrna_md_set_default(&md);
+
   /*
   #############################################
   # check the command line parameters
@@ -63,56 +67,57 @@ int main(int argc, char *argv[]){
   */
   if(RNALalifold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
-  if(args_info.temp_given)        temperature = args_info.temp_arg;
+  if(args_info.temp_given)
+    md.temperature = temperature = args_info.temp_arg;
   /* structure constraint */
-  if(args_info.noTetra_given)     tetra_loop=0;
+  if(args_info.noTetra_given)
+    md.special_hp = tetra_loop = 0;
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
       vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
-      dangles = args_info.dangles_arg;
+      md.dangles = dangles = args_info.dangles_arg;
   }
   /* do not allow weak pairs */
-  if(args_info.noLP_given)        noLonelyPairs = 1;
+  if(args_info.noLP_given)
+    md.noLP = noLonelyPairs = 1;
   /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)        noGU = 1;
+  if(args_info.noGU_given)
+    md.noGU = noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given) no_closingGU = 1;
+  if(args_info.noClosingGU_given)
+    md.noGUclosure= no_closingGU = 1;
   /* set energy model */
-  if(args_info.energyModel_given) energy_set = args_info.energyModel_arg;
+  if(args_info.energyModel_given)
+    md.energy_set = energy_set = args_info.energyModel_arg;
   /* take another energy parameter set */
-  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
+  if(args_info.paramFile_given)
+    ParamFile = strdup(args_info.paramFile_arg);
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
-  /* set pf scaling factor */
-  if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
-  /* partition function settings */
-  if(args_info.partfunc_given){
-    pf = 1;
-    if(args_info.partfunc_arg != -1)
-      do_backtrack = args_info.partfunc_arg;
-  }
+  if(args_info.nsp_given)
+    ns_bases = strdup(args_info.nsp_arg);
+
   /* set cfactor */
   if(args_info.cfactor_given){
-    cv_fact = args_info.cfactor_arg;
+    md.cv_fact = cv_fact = args_info.cfactor_arg;
     unchangedcv = 0;
   }
   /* set nfactor */
   if(args_info.nfactor_given){
-    nc_fact = args_info.nfactor_arg;
+    md.nc_fact = nc_fact = args_info.nfactor_arg;
     unchangednc = 0;
   }
   /* set the maximum base pair span */
-  if(args_info.span_given)        maxdist = args_info.span_arg;
-  /* set the pair probability cutoff */
-  if(args_info.cutoff_given)      cutoff  = args_info.cutoff_arg;
+  if(args_info.span_given)
+    md.max_bp_span = maxdist = args_info.span_arg;
+
   /* calculate most informative sequence */
   if(args_info.mis_given)         mis = 1;
   if(args_info.csv_given)         csv = 1;
   if(args_info.ribosum_file_given){
+    md.ribo = ribo = 1;
     RibosumFile = strdup(args_info.ribosum_file_arg);
-    ribo = 1;
   }
   if(args_info.ribosum_scoring_given){
     RibosumFile = NULL;
@@ -139,13 +144,32 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
-  if ((ribo==1)&&(unchangednc)) nc_fact=0.5;
-  if ((ribo==1)&&(unchangedcv)) cv_fact=0.6;
+  if ((ribo==1)&&(unchangednc)) md.nc_fact = nc_fact=0.5;
+  if ((ribo==1)&&(unchangedcv)) md.cv_fact = cv_fact=0.6;
 
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
+    /* nonstandards = vrna_alloc(33); */
+    c=ns_bases;
+    i=sym=0;
+    if (*c=='-') {
+      sym=1; c++;
+    }
+    while (*c!='\0') {
+      if (*c!=',') {
+        md.nonstandards[i++]=*c++;
+        md.nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          md.nonstandards[i++]=*c;
+          md.nonstandards[i++]=*(c-1);
+        }
+      }
+      c++;
+    }
+
+    /* BEGIN remove me! */
     nonstandards = vrna_alloc(33);
     c=ns_bases;
     i=sym=0;
@@ -163,6 +187,7 @@ int main(int argc, char *argv[]){
       }
       c++;
     }
+    /* END remove me! */
   }
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
@@ -212,7 +237,7 @@ int main(int argc, char *argv[]){
   /*  if (length<=2500) {
     char *A;
     A = annote(structure, (const char**) AS);
-    (void) PS_rna_plot_a(string, structure, ffname, NULL, A);
+    (void) vrna_file_PS_rnaplot_a(string, structure, ffname, NULL, A, &md);
     free(A);
   } else
     fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
@@ -283,7 +308,7 @@ int main(int argc, char *argv[]){
   return 0;
 }
 
-PRIVATE void print_pi(const pair_info pi, FILE *file) {
+PRIVATE void print_pi(const vrna_pinfo_t pi, FILE *file) {
   const char *pname[8] = {"","CG","GC","GU","UG","AU","UA", "--"};
   int i;
 
@@ -297,7 +322,7 @@ PRIVATE void print_pi(const pair_info pi, FILE *file) {
   fprintf(file, "\n");
 }
 
-PRIVATE cpair *make_color_pinfo(const pair_info *pi) {
+PRIVATE cpair *make_color_pinfo(const vrna_pinfo_t *pi) {
   cpair *cp;
   int i, n;
   for (n=0; pi[n].i>0; n++);
@@ -325,7 +350,7 @@ PRIVATE char *annote(const char *structure, const char *AS[]) {
   n = strlen(AS[0]);
   maxl = 1024;
   ps = (char *) vrna_alloc(maxl);
-  ptable = vrna_pt_get(structure);
+  ptable = vrna_ptable(structure);
   for (i=1; i<=n; i++) {
     char pps[64], ci='\0', cj='\0';
     int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;

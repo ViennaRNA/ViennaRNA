@@ -3,7 +3,7 @@
 /* it's #include'd into fold.c */
 
 PRIVATE void
-fill_arrays_circ( vrna_fold_compound *vc,
+fill_arrays_circ( vrna_fold_compound_t *vc,
                   sect bt_stack[],
                   int *bt){
 
@@ -50,8 +50,8 @@ fill_arrays_circ( vrna_fold_compound *vc,
   if(hc->up_ext[1] >= length){
     Fc = 0;
     if(sc){
-      if(sc->free_energies)
-        Fc += sc->free_energies[1][length];
+      if(sc->energy_up)
+        Fc += sc->energy_up[1][length];
     }
   } else {
     Fc = INF;
@@ -63,6 +63,9 @@ fill_arrays_circ( vrna_fold_compound *vc,
       if (u<TURN) continue;
 
       ij = indx[j] + i;
+
+      if (!hard_constraints[ij])
+        continue;
 
       /* exterior hairpin case */
       new_c =   vrna_E_ext_hp_loop(vc, i, j)

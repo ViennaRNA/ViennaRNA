@@ -43,7 +43,6 @@ static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
 
 /*@unused@*/
 PRIVATE void  get_arrays(unsigned int size);
-/* PRIVATE void  scale_parameters(void); */
 /* PRIVATE int   stack_energy(int i, const char *string); */
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void encode_seq(const char *sequence);
@@ -157,7 +156,7 @@ PRIVATE void get_arrays(unsigned int size)
   DMLi1  = (int *) vrna_alloc(sizeof(int)*(size+1));
   DMLi2  = (int *) vrna_alloc(sizeof(int)*(size+1));
   if (base_pair) free(base_pair);
-  base_pair = (struct bondT *) vrna_alloc(sizeof(struct bondT)*(1+size/2));
+  base_pair = (vrna_bp_stack_t *) vrna_alloc(sizeof(vrna_bp_stack_t)*(1+size/2));
   /* extra array(s) for circfold() */
 }
 
@@ -175,7 +174,7 @@ PRIVATE void aliget_arrays(unsigned int size)
   DMLi1  = (int *) vrna_alloc(sizeof(int)*(size+1));
   DMLi2  = (int *) vrna_alloc(sizeof(int)*(size+1));
   if (base_pair) free(base_pair);
-  base_pair = (struct bondT *) vrna_alloc(sizeof(struct bondT)*(1+size/2));
+  base_pair = (vrna_bp_stack_t *) vrna_alloc(sizeof(vrna_bp_stack_t)*(1+size/2));
   /* extra array(s) for circfold() */
 }
 
@@ -287,11 +286,6 @@ int snofold(const char *string, char *structure, const int max_assym, const int 
   energy=fill_arrays(string, max_assym, threshloop, min_s2, max_s2, half_stem, max_half_stem);
   backtrack(string, s);
 
-#if 0
-        /*no structure output, no backtrack*/
-  backtrack(string, 0);
-  vrna_parenthesis_structure(structure, base_pair, length);
-#endif
   free(structure);
   free(S); free(S1); /* free(BP); */
   return energy;
@@ -433,10 +427,6 @@ float alisnofold(const char **strings, const int max_assym, const int threshloop
   make_pscores((const short **) Sali, (const char *const *) strings, n_seq, structure);
   energy=alifill_arrays(strings, max_assym, threshloop, min_s2, max_s2, half_stem, max_half_stem);
   alibacktrack((const char **)strings, 0);
-  structure = (char *) vrna_alloc((length+1)*sizeof(char));
-  vrna_parenthesis_structure(structure, base_pair, length);
-
-  free(structure);
   for (s=0; s<n_seq; s++) free(Sali[s]);
   free(Sali);
   /* free(structure); */
@@ -995,8 +985,7 @@ char *snobacktrack_fold_from_pair(const char *sequence, int i, int j) {
   base_pair[0].i=0;
   encode_seq(sequence);
   backtrack(sequence, 1);
-  structure = (char *) vrna_alloc((strlen(sequence)+1)*sizeof(char));
-  vrna_parenthesis_structure(structure, base_pair, strlen(sequence));
+  structure = vrna_db_from_bp_stack(base_pair, strlen(sequence));
   free(S);free(S1);
   return structure;
 }
@@ -1018,8 +1007,7 @@ char *alisnobacktrack_fold_from_pair(const char **strings, int i, int j, int *co
     Sali[s] = aliencode_seq(strings[s]);
   }
   *cov=alibacktrack(strings, 1);
-  structure = (char *) vrna_alloc((length+1)*sizeof(char));
-  vrna_parenthesis_structure(structure, base_pair, length);
+  structure = vrna_db_from_bp_stack(base_pair, length);
   free(S);free(S1);
   for (s=0; s<n_seq; s++) {
     free(Sali[s]);
@@ -1081,92 +1069,14 @@ PRIVATE short * aliencode_seq(const char *sequence) {
 
 PUBLIC void snoupdate_fold_params(void)
 {
-  if(P) free(P);
-  P = scale_parameters();
+  vrna_md_t md;
+  if(P)
+    free(P);
+  set_model_details(&md);
+  P = vrna_params(&md);
   make_pair_matrix();
   if (init_length < 0) init_length=0;
 }
-
-/*---------------------------------------------------------------------------*/
-/* PRIVATE short  *pair_table; */
-
-
-/*---------------------------------------------------------------------------*/
-#if 0
-PRIVATE int stack_energy(int i, const char *string)
-{
-  /* calculate energy of substructure enclosed by (i,j) */
-  int ee, energy = 0;
-  int j, p, q, type;
-
-  j=pair_table[i];
-  type = pair[S[i]][S[j]];
-  if (type==0) {
-    type=7;
-  }
-
-  p=i; q=j;
-  while (p<q) { /* process all stacks and interior loops */
-    int type_2;
-    while (pair_table[++p]==0);
-    while (pair_table[--q]==0);
-    if ((pair_table[q]!=(short)p)||(p>q)) break;
-    type_2 = pair[S[q]][S[p]];
-    if (type_2==0) {
-      type_2=7;
-    }
-    /* energy += LoopEnergy(i, j, p, q, type, type_2); */
-    if ( SAME_STRAND(i,p) && SAME_STRAND(q,j) )
-      ee = LoopEnergy(p-i-1, j-q-1, type, type_2,
-                      S1[i+1], S1[j-1], S1[p-1], S1[q+1]);
-    energy += ee;
-    i=p; j=q; type = rtype[type_2];
-  } /* end while */
-
-  /* p,q don't pair must have found hairpin or multiloop */
-
-  if (p>q) {                       /* hair pin */
-    if (SAME_STRAND(i,j))
-      ee = snoHairpinE(j-i-1, type, S1[i+1], S1[j-1], string+i-1);
-    energy += ee;
-
-    return energy;
-  }
-
-  /* (i,j) is exterior pair of multiloop */
-  while (p<j) {
-    /* add up the contributions of the substructures of the ML */
-    energy += stack_energy(p, string);
-    p = pair_table[p];
-    /* search for next base pair in multiloop */
-    while (pair_table[++p]==0);
-  }
-  {
-    int ii;
-    ii = cut_in_loop(i);
-  }
-  energy += ee;
-
-  return energy;
-}
-
-/*---------------------------------------------------------------------------*/
-
-
-/*---------------------------------------------------------------------------*/
-
-PRIVATE int cut_in_loop(int i) {
-  /* walk around the loop;  return j pos of pair after cut if
-     cut_point in loop else 0 */
-  int  p, j;
-  p = j = pair_table[i];
-  do {
-    i  = pair_table[p];  p = i+1;
-    while ( pair_table[p]==0 ) p++;
-  } while (p!=j && SAME_STRAND(i,p));
-  return SAME_STRAND(i,p) ? 0 : pair_table[p];
-}
-#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -1192,51 +1102,5 @@ PRIVATE void make_ptypes(const short *S, const char *structure) {
 
   if (fold_constrained&&(structure!=NULL)) {
     constrain_ptypes(structure, (unsigned int)n, ptype, BP, TURN, 0);
-#if 0
-    int hx, *stack;
-    char type;
-    stack = (int *) vrna_alloc(sizeof(int)*(n+1));
- 
-    for(hx=0, j=1; j<=n; j++) {
-      switch (structure[j-1]) {
-      case '|': BP[j] = -1; break;
-      case 'x': /* can't pair */
-         for (l=1; l<j-TURN; l++) ptype[indx[j]+l] = 0;
-         for (l=j+TURN+1; l<=n; l++) ptype[indx[l]+j] = 0;
-         break;
-      case '(':
-         stack[hx++]=j;
-         /* fallthrough */
-      case '<': /* pairs upstream */
-         for (l=1; l<j-TURN; l++) ptype[indx[j]+l] = 0;
-         break;
-      case ')':
-         if (hx<=0) {
-           fprintf(stderr, "%s\n", structure);
-           vrna_message_error("unbalanced brackets in constraints");
-         }
-         i = stack[--hx];
-         type = ptype[indx[j]+i];
-         for (k=i+1; k<=n; k++) ptype[indx[k]+i] = 0;
-         /* don't allow pairs i<k<j<l */
-         for (l=j; l<=n; l++)
-           for (k=i+1; k<=j; k++) ptype[indx[l]+k] = 0;
-         /* don't allow pairs k<i<l<j */
-         for (l=i; l<=j; l++)
-           for (k=1; k<=i; k++) ptype[indx[l]+k] = 0;
-         for (k=1; k<j; k++) ptype[indx[j]+k] = 0;
-         ptype[indx[j]+i] = (type==0)?7:type;
-         /* fallthrough */
-      case '>': /* pairs downstream */
-         for (l=j+TURN+1; l<=n; l++) ptype[indx[l]+j] = 0;
-         break;
-      }
-    }
-    if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      vrna_message_error("unbalanced brackets in constraint string");
-    }
-    free(stack);
-#endif
   }
 }

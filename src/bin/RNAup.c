@@ -20,6 +20,7 @@
 #include <float.h>
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/part_func.h"
@@ -967,7 +968,7 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
     }
   }
 
-  pt = vrna_pt_get(pt_inter);
+  pt = vrna_ptable(pt_inter);
 
   /* intramolecular structure in longer (_l) and shorter (_s) seq */
   (*intra_l)=(char*)vrna_alloc(sizeof(char)*(len1+1));

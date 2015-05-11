@@ -5,7 +5,7 @@
 %{
   COORDINATE *get_xy_coordinates(const char *structure){
     int i;
-    short *table = vrna_pt_get(structure);
+    short *table = vrna_ptable(structure);
     short length = (short) strlen(structure);
 
     COORDINATE *coords = (COORDINATE *) vrna_alloc((length+1)*sizeof(COORDINATE));
@@ -41,10 +41,14 @@ COORDINATE *get_xy_coordinates(const char *structure);
 
 }
 
-%include "../src/ViennaRNA/plot_layouts.h"
+%include <ViennaRNA/plot_layouts.h>
+
+%include <ViennaRNA/plot_structure.h>
+
+%include <ViennaRNA/plot_aln.h>
 
 
-%include "../src/ViennaRNA/PS_dot.h"
+%include <ViennaRNA/PS_dot.h>
 
 /*#################################*/
 /* END get coordinates for xy plot */
