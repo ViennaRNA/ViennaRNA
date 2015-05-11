@@ -303,7 +303,7 @@ int main(int argc, char *argv[]){
         cstruc = NULL;
         int cp = -1;
         unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
-        coptions |= VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK;
+        coptions |= VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK | VRNA_CONSTRAINT_DB_PIPE;
         vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
         cstruc = vrna_cut_point_remove(cstruc, &cp);
         if(vc->cutpoint != cp){

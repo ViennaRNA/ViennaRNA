@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
   double  min_en;
   double  kT, sfact, betaScale;
   int     pf, istty;
-  int     noconv, noPS;
+  int     noconv, noPS, enforceConstraints;
   int     doT;    /*compute dimere free energies etc.*/
   int     doC;    /*toggle to compute concentrations*/
   int     doQ;    /*toggle to compute prob of base being paired*/
@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
   constraints_file = NULL;
+  enforceConstraints = 0;
 
   set_model_details(&md);
   /*
@@ -115,6 +116,9 @@ int main(int argc, char *argv[])
     if(args_info.constraint_arg[0] != '\0')
       constraints_file = strdup(args_info.constraint_arg);
   }
+  /* enforce base pairs given in constraint string rather than weak enforce */
+  if(args_info.enforceConstraint_given)
+    enforceConstraints = 1;
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)
     md.special_hp = tetra_loop = 0;
@@ -274,7 +278,7 @@ int main(int argc, char *argv[])
         cstruc = NULL;
         int cp = -1;
         unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
-        coptions |= VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK;
+        coptions |= VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK | VRNA_CONSTRAINT_DB_PIPE;
         vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
         cstruc = vrna_cut_point_remove(cstruc, &cp);
         if(vc->cutpoint != cp){
@@ -299,6 +303,8 @@ int main(int argc, char *argv[])
                                 | VRNA_CONSTRAINT_DB_ANG_BRACK
                                 | VRNA_CONSTRAINT_DB_RND_BRACK;
 
+          if(enforceConstraints)
+            constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
           vrna_add_constraints(vc, (const char *)structure, constraint_options);
         }
       }
