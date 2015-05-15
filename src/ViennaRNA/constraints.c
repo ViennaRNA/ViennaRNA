@@ -670,7 +670,7 @@ hc_pairs_upstream(unsigned int i,
   for(l = length; l > i; l--)
     hc[index[l] + i] = (char)0;
   /* allow upstream pairs of given type */
-  for(l = i; l >= 1; l--)
+  for(l = i - 1; l >= 1; l--)
     hc[index[i] + l] &= c_option;
 }
 
