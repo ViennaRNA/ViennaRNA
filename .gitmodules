@@ -4,3 +4,6 @@
 [submodule "src/RNAforester"]
 	path = src/RNAforester
 	url = git@krios.tbi.univie.ac.at:rna/rnaforester.git
+[submodule "interfaces/Perl/RNA"]
+	path = interfaces/Perl/RNA
+	url = git@krios.tbi.univie.ac.at:rna/ViennaRNA-perl.git

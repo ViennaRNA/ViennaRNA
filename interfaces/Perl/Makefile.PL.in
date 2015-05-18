@@ -55,7 +55,12 @@ WriteMakefile(
               OPTIMIZE    =>  $OPTIMIZE,
               MYEXTLIB    =>  "@top_builddir@/src/ViennaRNA/libRNA.a",
               LD          =>  '${CXX}',
-              PM          =>  {"@srcdir@/RNA.pm" => '$(INST_LIBDIR)/RNA.pm'},
+              PM          =>  { "@srcdir@/RNA.pm" => '$(INST_LIBDIR)/RNA.pm',
+                                "@srcdir@/RNA/Files.pm" => '$(INST_LIBDIR)/RNA/Files.pm',
+                                "@srcdir@/RNA/Utils.pm" => '$(INST_LIBDIR)/RNA/Utils.pm',
+                                "@srcdir@/RNA/Reliability.pm" => '$(INST_LIBDIR)/RNA/Reliability.pm',
+                                "@srcdir@/RNA/Benchmark.pm" => '$(INST_LIBDIR)/RNA/Benchmark.pm'
+                              },
               OBJECT      =>  "RNA_wrap.o",
               dynamic_lib =>  {OTHERLDFLAGS => '$(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) @OPENMP_CFLAGS@'},
               AUTHOR      =>  'Ivo Hofacker <ivo@tbi.univie.ac.at>',
