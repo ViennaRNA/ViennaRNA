@@ -26,7 +26,6 @@
 static char rcsid[] = "$Id: RNApdist.c,v 1.8 2002/11/07 12:19:41 ivo Exp $";
 
 PRIVATE void command_line(int argc, char *argv[]);
-PRIVATE void usage(void);
 PRIVATE void print_aligned_lines(FILE *somewhere);
 
 PRIVATE char task;
@@ -46,15 +45,24 @@ int main(int argc, char *argv[])
   char      *structure;
   char      *line=NULL, fname[FILENAME_MAX_LENGTH], *list_title=NULL;
   plist     *pr_pl, *mfe_pl;
+  vrna_md_t *md;
+
+  /* assign globally stored model details */
+  vrna_md_set_globals(md);
 
   pr_pl = mfe_pl = NULL;
 
   command_line(argc, argv);
 
-  if((outfile[0]=='\0')&&(task=='m')&&(edit_backtrack))
+  if((outfile[0] == '\0') && (task == 'm') && edit_backtrack)
     strcpy(outfile,"backtrack.file");
-  if (outfile[0]!='\0') somewhere = fopen(outfile,"w");
-  if (somewhere==NULL) somewhere = stdout;
+
+  if(outfile[0] != '\0')
+    somewhere = fopen(outfile,"w");
+
+  if(somewhere == NULL)
+    somewhere = stdout;
+
   istty   = (isatty(fileno(stdout))&&isatty(fileno(stdin)));
 
   while (1) {
@@ -63,14 +71,24 @@ int main(int argc, char *argv[])
       printf("%s\n", ruler);
     }
 
-    type = 0;
+    type = 0; /* what is this type anyway? */
     do {  /* get sequence to fold */
-      if (line!=NULL) free(line);
       *fname='\0';
-      if ((line=get_line(stdin))==NULL) {type = 999; break;}
-      if (line[0]=='@') type = 999;
+
+      if (line != NULL)
+        free(line);
+
+      /* end do...while() loop if no more input */
+      if((line=get_line(stdin)) == NULL){
+        type = 999;
+        break;
+      }
+      /* end do...while() loop if user requested abort */
+      if(line[0]=='@')
+        type = 999;
+
       if (line[0]=='*') {
-        if (taxa_list==0) {
+        if (taxa_list==0) { 
           if (task=='m') taxa_list=1;
           printf("%s\n", line);
           type = 0;
@@ -79,14 +97,17 @@ int main(int argc, char *argv[])
           type = 888;
         }
       }
+      /* we currently read a fasta header */
       if (line[0]=='>') {
         if (sscanf(line,">%" XSTR(FILENAME_ID_LENGTH) "s", fname)!=0)
           strcat(fname, "_dp.ps");
         if (taxa_list)
           printf("%d : %s\n", n+1, line+1);
-        else printf("%s\n",line);
+        else
+          printf("%s\n",line);
         type = 0;
       }
+      /* this seems to be a crude way to identify an RNA sequence */
       if (isalpha(line[0]))  {
         char *cp;
         cp =strchr(line,' ');
@@ -123,36 +144,37 @@ int main(int argc, char *argv[])
       return 0; /* finito */
     }
 
-    length = (int) strlen(line);
-    for (i=0; i<length; i++) {
-      line[i]=toupper(line[i]);
-      if (!noconv && line[i] == 'T') line[i] = 'U';
-    }
-
-    /* init_pf_fold(length); <- obsolete */
-    structure = (char *) vrna_alloc((length+1)*sizeof(char));
-    (void) pf_fold(line,structure);
+    /* convert DNA alphabet to RNA if not explicitely switched off */
+    if(!noconv) vrna_seq_toRNA(line);
+    /* convert sequence to uppercase letters only */
+    vrna_seq_toupper(line);
 
     if (*fname=='\0')
       sprintf(fname, "%d_dp.ps", n+1);
 
-    /* PS_dot_plot(line, fname); <- NOT THREADSAFE and obsolete function! */
+    vrna_fold_compound *vc = vrna_get_fold_compound(line, md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
 
-    /* get pairlist of probability matrix */
-    assign_plist_from_pr(&pr_pl, pr, length, 1e-5);
-    /* no previous mfe call thus no mfe structure information known */
+    structure = (char *) vrna_alloc((vc->length+1)*sizeof(char));
+
+    (void) vrna_pf_fold(vc, structure);
+
+    pr_pl = vrna_pl_get_from_pr(vc, 1e-5);
+    /* fake plist for lower part, since it stays empty */
     mfe_pl = (plist *)vrna_alloc(sizeof(plist));
     mfe_pl[0].i = mfe_pl[0].j = 0;
 
     /* call threadsafe dot plot printing function */
     PS_dot_plot_list(line, fname, pr_pl, mfe_pl, "");
 
-    T[n] = Make_bp_profile_bppm(pr, length);
-    if((istty)&&(task=='m')) printf("%s\n",structure);
+    T[n] = Make_bp_profile_bppm(vc->exp_matrices->probs, vc->length);
+
+    if((istty)&&(task=='m'))
+      printf("%s\n",structure);
+
     free(structure);
     free(mfe_pl);
     free(pr_pl);
-    free_pf_arrays();
+    vrna_free_fold_compound(vc);
 
     n++;
     switch (task) {
@@ -308,14 +330,6 @@ PRIVATE void command_line(int argc, char *argv[])
 }
 
 /* ------------------------------------------------------------------------- */
-
-PRIVATE void usage(void)
-{
-  vrna_message_error("usage: RNApdist [-Xpmfc] [-B [file]] [-T temp] [-4] [-d] [-noGU]\n"
-          "                [-noCloseGU] [-noLP] [-e e_set] [-P paramfile] [-nsp pairs]");
-}
-
-/*--------------------------------------------------------------------------*/
 
 PRIVATE void print_aligned_lines(FILE *somewhere)
 {
