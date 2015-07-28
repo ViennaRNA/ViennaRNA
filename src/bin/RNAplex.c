@@ -53,12 +53,16 @@ clock_t EndTimer(clock_t begin)
 /* --------------------end include timer */
 extern int subopt_sorted;
 /* static int print_struc(duplexT const *dup); */
-static int ** average_accessibility_target(char **names, char **ALN, int number, char *access, double verhaeltnis,const int alignment_length, int binaries);
+static int ** average_accessibility_target(char **names, char **ALN, int number, char *access, double verhaeltnis,const int alignment_length, int binaries, int fast);
 /* static int ** average_accessibility_query(char **names, char **ALN, int number, char *access, double verhaeltnis); */
 static int get_max_u(const char *s, char delim);
-static int ** read_plfold_i(char *fname, const int beg, const int end,double verhaeltnis, const int length);
+static int ** read_plfold_i(char *fname, const int beg, const int end,double verhaeltnis, const int length, int fast);
+/**
+*** Compute the conditional per nucleotide directly
+ **/
 /* static int ** read_plfold_j(char *fname, const int beg, const int end,double verhaeltnis); */
-static int ** read_plfold_i_bin(char *fname, const int beg, const int end,double verhaeltnis, const int length);
+static int ** read_plfold_i_bin(char *fname, const int beg, const int end,double verhaeltnis, const int length, int fast);
+/* Compute and pass opening energies in case of f=2*/
 static int get_sequence_length_from_alignment(char *sequence);
 /* take as argument a list of hit from an alignment interaction */
 /* Accessibility can currently not be provided */
@@ -323,7 +327,11 @@ int main(int argc, char *argv[])
   }
   
   /**
-  *** Here we check if the user wants to produce PS formatted structure files from existing RNAplex dot-parenthesis-formated results. Depending on the kind of input, Alignments or single sequence we will produce either a color annotated alignment or RNAfold-like structure, respectively.
+  *** Here we check if the user wants to produce PS formatted structure files 
+  from existing RNAplex dot-parenthesis-formated results. Depending on
+  the kind of input, Alignments or single sequence we will produce
+  either a color annotated alignment or RNAfold-like structure,
+  respectively. 
   **/
   if(Resultfile) {
     /**
@@ -397,9 +405,9 @@ int main(int argc, char *argv[])
       if(access) {
         char *id_s1=NULL;
         mRNA=fopen(tname, "r");
-        if(mRNA==NULL){printf("%s: Wrong snoRNA file name\n", tname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
+        if(mRNA==NULL){printf("%s: Wrong target file name\n", tname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         sRNA=fopen(qname, "r");
-        if(sRNA==NULL){printf("%s: Wrong target file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
+        if(sRNA==NULL){printf("%s: Wrong quert file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         do {                                /* main loop: continue until end of file */
           if ((line_t = get_line(mRNA))==NULL) {
             break;
@@ -453,11 +461,11 @@ int main(int argc, char *argv[])
           strcat(file_s1, id_s1);
           strcat(file_s1, "_openen");
           if(!binaries){
-            access_s1 = read_plfold_i(file_s1,1,s1_len,verhaeltnis,alignment_length);
+            access_s1 = read_plfold_i(file_s1,1,s1_len,verhaeltnis,alignment_length, fast);
           }
           else{
             strcat(file_s1,"_bin");
-            access_s1 = read_plfold_i_bin(file_s1,1,s1_len,verhaeltnis,alignment_length);
+            access_s1 = read_plfold_i_bin(file_s1,1,s1_len,verhaeltnis,alignment_length, fast);
           }
           if(access_s1 == NULL){
             printf("Accessibility file %s not found or corrupt, look at next target RNA\n",file_s1);
@@ -518,11 +526,11 @@ int main(int argc, char *argv[])
             strcat(file_s2, id_s2);
             strcat(file_s2, "_openen");
             if(!binaries){
-              access_s2 = read_plfold_i(file_s2,1,s2_len,verhaeltnis,alignment_length);
+              access_s2 = read_plfold_i(file_s2,1,s2_len,verhaeltnis,alignment_length, fast);
             }
             else{
               strcat(file_s2,"_bin");
-              access_s2 = read_plfold_i_bin(file_s2,1,s2_len,verhaeltnis,alignment_length);
+              access_s2 = read_plfold_i_bin(file_s2,1,s2_len,verhaeltnis,alignment_length, fast);
             }
             if(access_s2 == NULL){
               printf("Accessibility file %s not found, look at next target RNA\n",file_s2);
@@ -566,9 +574,9 @@ int main(int argc, char *argv[])
       }
       else if(access==NULL){ /* t and q are defined, but no accessibility is provided */
         mRNA=fopen(tname, "r");
-        if(mRNA==NULL){printf("%s: Wrong snoRNA file name\n", tname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
+        if(mRNA==NULL){printf("%s: Wrong target file name\n", tname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         sRNA=fopen(qname, "r");
-        if(sRNA==NULL){printf("%s: Wrong target file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
+        if(sRNA==NULL){printf("%s: Wrong query file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         do {                                /* main loop: continue until end of file */
           char *id_s1=NULL; /* header of the target file  */
           if ((line_t = get_line(mRNA))==NULL) {
@@ -683,9 +691,9 @@ int main(int argc, char *argv[])
       if(access) {
         char *id_s1=NULL;
         mRNA=fopen(tname, "r");
-        if(mRNA==NULL){printf("%s: Wrong snoRNA file name\n", tname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
+        if(mRNA==NULL){printf("%s: Wrong target file name\n", tname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         sRNA=fopen(qname, "r");
-        if(sRNA==NULL){printf("%s: Wrong target file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
+        if(sRNA==NULL){printf("%s: Wrong query file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         do {                                /* main loop: continue until end of file */
           if ((line_t = get_line(mRNA))==NULL) {
             break;
@@ -739,11 +747,11 @@ int main(int argc, char *argv[])
           strcat(file_s1, id_s1);
           strcat(file_s1, "_openen");
           if(!binaries){
-            access_s1 = read_plfold_i(file_s1,1,s1_len,verhaeltnis,alignment_length);
+            access_s1 = read_plfold_i(file_s1,1,s1_len,verhaeltnis,alignment_length, fast);
           }
           else{
             strcat(file_s1,"_bin");
-            access_s1 = read_plfold_i_bin(file_s1,1,s1_len,verhaeltnis,alignment_length);
+            access_s1 = read_plfold_i_bin(file_s1,1,s1_len,verhaeltnis,alignment_length, fast);
           }
           if(access_s1 == NULL){
             printf("Accessibility file %s not found, look at next target RNA\n",file_s1);
@@ -827,11 +835,11 @@ int main(int argc, char *argv[])
             strcat(file_s2, id_s2);
             strcat(file_s2, "_openen");
             if(!binaries){
-              access_s2 = read_plfold_i(file_s2,1,s2_len,verhaeltnis,alignment_length);
+              access_s2 = read_plfold_i(file_s2,1,s2_len,verhaeltnis,alignment_length, fast);
             }
             else{
               strcat(file_s2,"_bin");
-              access_s2 = read_plfold_i_bin(file_s2,1,s2_len,verhaeltnis,alignment_length);
+              access_s2 = read_plfold_i_bin(file_s2,1,s2_len,verhaeltnis,alignment_length, fast);
             }
             if(access_s2 == NULL){
               printf("Accessibility file %s not found, look at next target RNA\n",file_s2);
@@ -866,9 +874,9 @@ int main(int argc, char *argv[])
       else if(access==NULL){ /* t and q are defined, but no accessibility is provided */
         char *id_s1=NULL;
         mRNA=fopen(tname, "r");
-        if(mRNA==NULL){printf("%s: Wrong snoRNA file name\n", tname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
+        if(mRNA==NULL){printf("%s: Wrong target file name\n", tname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         sRNA=fopen(qname, "r");
-        if(sRNA==NULL){printf("%s: Wrong target file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
+        if(sRNA==NULL){printf("%s: Wrong query file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         do {                                /* main loop: continue until end of file */
           if ((line_t = get_line(mRNA))==NULL) {
             break;
@@ -1128,11 +1136,11 @@ int main(int argc, char *argv[])
         strcat(file_s1, id_s1);strcat(file_s2, id_s2);
         strcat(file_s1, "_openen");strcat(file_s2, "_openen");
         if(!binaries){
-          access_s1 = read_plfold_i(file_s1,1,s1_len,verhaeltnis,alignment_length);
+          access_s1 = read_plfold_i(file_s1,1,s1_len,verhaeltnis,alignment_length, fast);
         }
         else{
           strcat(file_s1,"_bin");
-          access_s1 = read_plfold_i_bin(file_s1,1,s1_len,verhaeltnis,alignment_length);
+          access_s1 = read_plfold_i_bin(file_s1,1,s1_len,verhaeltnis,alignment_length, fast);
         }
         if(access_s1 == NULL){
           free(file_s1);
@@ -1144,11 +1152,11 @@ int main(int argc, char *argv[])
           continue;
         }
         if(!binaries){
-          access_s2 = read_plfold_i(file_s2,1,s2_len,verhaeltnis,alignment_length);
+          access_s2 = read_plfold_i(file_s2,1,s2_len,verhaeltnis,alignment_length, fast);
         }
         else{
           strcat(file_s2,"_bin");
-          access_s2 = read_plfold_i_bin(file_s2,1,s2_len,verhaeltnis,alignment_length);
+          access_s2 = read_plfold_i_bin(file_s2,1,s2_len,verhaeltnis,alignment_length, fast);
         }
         if(access_s2 == NULL){
           free(access_s1);
@@ -1239,8 +1247,8 @@ int main(int argc, char *argv[])
     }
     else{
       int** target_access=NULL, **query_access=NULL;
-      target_access=average_accessibility_target(names1, AS1, n_seq, access,verhaeltnis,alignment_length,binaries); /* get averaged accessibility for alignments */
-      query_access =average_accessibility_target(names2, AS2, n_seq, access,verhaeltnis,alignment_length,binaries);
+      target_access=average_accessibility_target(names1, AS1, n_seq, access,verhaeltnis,alignment_length,binaries,fast); /* get averaged accessibility for alignments */
+      query_access =average_accessibility_target(names2, AS2, n_seq, access,verhaeltnis,alignment_length,binaries,fast);
       if(!(target_access && query_access)){
         for (i=0; AS1[i]; i++) {
           free(AS1[i]); free(names1[i]);
@@ -1293,7 +1301,7 @@ static int print_struc(duplexT const *dup) {
 }
 #endif
 
-static int ** read_plfold_i(char *fname, const int beg, const int end, double verhaeltnis, const int length)
+static int ** read_plfold_i(char *fname, const int beg, const int end, double verhaeltnis, const int length, int fast)
 {
   double begin = BeginTimer();
   FILE *in=fopen(fname,"r");
@@ -1324,7 +1332,7 @@ static int ** read_plfold_i(char *fname, const int beg, const int end, double ve
   }
   int dim_x;
   dim_x=get_max_u(tmp,'\t');
-  if(length>dim_x){
+  if(length>dim_x && fast==0){
     printf("Interaction length %d is larger than the length of the largest region %d \nfor which the opening energy was computed (-u parameter of RNAplfold)\n",length,dim_x);  
     printf("Please recompute your profiles with a larger -u or set -l to a smaller interaction length\n");
     return NULL;
@@ -1339,7 +1347,7 @@ static int ** read_plfold_i(char *fname, const int beg, const int end, double ve
     }
   }
   access[0][0]=dim_x+2;
-  while(fgets(tmp,sizeof(tmp),in)!=0 && --end_r > 10) /* read a record, before we had --end_r > 10*/
+  while(fgets(tmp,sizeof(tmp),in)!=0 && --end_r > 10) /* read a record, before we have --end_r > 10*/
     {
       float n;
       /* int i; */
@@ -1372,7 +1380,6 @@ static int ** read_plfold_i(char *fname, const int beg, const int end, double ve
   float elapMilli;
   elapTicks = (EndTimer(begin) - begin);
   elapMilli = elapTicks/1000;
-  /* printf("read_plfold_i Millisecond %.2f\n",elapMilli); */
   return access;
 }
 
@@ -1406,7 +1413,7 @@ static int convert_plfold_i(char *fname)
     }
   }
   fclose(in);
-  int **access = read_plfold_i(fname,1,length+20,1,u_length);
+  int **access = read_plfold_i(fname,1,length+20,1,u_length,2);
   char *outname;
   outname = (char*) vrna_alloc((strlen(fname)+5)*sizeof(char));
   strcpy(outname,fname);
@@ -1428,7 +1435,7 @@ static int convert_plfold_i(char *fname)
 }
  
 
-static int ** read_plfold_i_bin(char *fname, const int beg, const int end, double verhaeltnis, const int length)
+static int ** read_plfold_i_bin(char *fname, const int beg, const int end, double verhaeltnis, const int length, int fast)
 {
   double begin = BeginTimer();
   FILE *fp=fopen(fname,"rb");
@@ -1446,7 +1453,7 @@ static int ** read_plfold_i_bin(char *fname, const int beg, const int end, doubl
   int lim_x;                                                
   lim_x=first_line[0];
   seqlength=first_line[1];                                  /* length of the sequence RNAplfold was ran on. */
-  if(length > lim_x){
+  if(length > lim_x && fast==0){
     printf("Interaction length %d is larger than the length of the largest region %d \nfor which the opening energy was computed (-u parameter of RNAplfold)\n",length,lim_x);  
     printf("Please recompute your profiles with a larger -u or set -l to a smaller interaction length\n");
     return NULL;
@@ -1505,7 +1512,7 @@ static int get_max_u(const char *s, char delim){
 }
 
 
-static int **average_accessibility_target(char **names, char **ALN, int number, char *access,double verhaeltnis,const int alignment_length,int binaries)
+static int **average_accessibility_target(char **names, char **ALN, int number, char *access,double verhaeltnis,const int alignment_length,int binaries, int fast)
 {
   int i;
   int *** master_access = NULL; /* contains the accessibility arrays for different */
@@ -1585,11 +1592,11 @@ static int **average_accessibility_target(char **names, char **ALN, int number, 
     }
     strcat(file_s1, "_openen");
     if(!binaries){
-      master_access[i]=read_plfold_i(file_s1,begin,end,verhaeltnis,alignment_length); /* read */
+      master_access[i]=read_plfold_i(file_s1,begin,end,verhaeltnis,alignment_length, fast); /* read */
     }
     else{
       strcat(file_s1,"_bin");
-      master_access[i]=read_plfold_i_bin(file_s1,begin,end,verhaeltnis,alignment_length); /* read */
+      master_access[i]=read_plfold_i_bin(file_s1,begin,end,verhaeltnis,alignment_length, fast); /* read */
     }
     
     free(file_s1);

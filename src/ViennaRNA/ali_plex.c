@@ -550,7 +550,7 @@ PRIVATE void alifind_max(const int *position, const int *position_j,
         int max;
         max=position[pos+delta];
         printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/(n_seq*100));
-        pos=MAX2(10,pos-delta);
+        pos=MAX2(10,pos+temp_min-delta);
       }
     }
   }
@@ -597,7 +597,7 @@ PRIVATE void alifind_max(const int *position, const int *position_j,
                  begin_t -10 +test.i-1, 
                  begin_q -10 + test.j - 1, 
                  begin_q-11 + test.j +strlen(test.structure) -l1 -2 , test.energy);
-          pos=MAX2(10,pos-delta);
+          pos=MAX2(10,pos+temp_min-delta);
           
         }
         for(i=0;i<n_seq;i++){
@@ -962,7 +962,7 @@ duplexT** aliLduplexfold_XS(const char*s1[], const char* s2[], const int **acces
       }
       psc = covscore(type, n_seq); 
       for (s=0; s<n_seq; s++) if (type[s]==0) type[s]=7;
-      lc[idx][j] = ((psc >= MINPSCORE) ? n_seq*(P->DuplexInit + access_s1[1][i] + access_s2[1][j]) : INF);
+      lc[idx][j] = ((psc >= MINPSCORE) ? n_seq*(P->DuplexInit) : INF);
       int c_stack, c_10, c_01, c_11, c_22, c_21, c_12, c_23, c_32, c_in, c_in2x, c_in2y, c_bx, c_by, c_inx, c_iny;  /* matrix c */
       int in,  in_x, in_y, in_xy; /*  in begin, in_x assymetric, in_y assymetric, in_xy symetric; */
       int inx, inx_x;
@@ -1130,7 +1130,7 @@ PRIVATE void alifind_max_XS(const int *position, const int *position_j,
         int max;
         max=position[pos+delta];
         /*         printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100); */
-        pos=MAX2(10,pos-delta);
+        pos=MAX2(10,pos+temp_min-delta);
       }
     }
   }
@@ -1177,7 +1177,7 @@ PRIVATE void alifind_max_XS(const int *position, const int *position_j,
         printf("%s %3d,%-3d: %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", test.structure,
                test.tb,test.te,test.qb,test.qe, test.ddG/n_seq, test.energy/n_seq, test.dG1/n_seq, test.dG2/n_seq);
         free(test.structure);
-        pos=MAX2(10,pos-delta);
+	pos=MAX2(10,pos+temp_min-delta);
         }
         for(i=0;i<n_seq;i++){
           free(s3[i]);free(s4[i]);
@@ -1185,6 +1185,7 @@ PRIVATE void alifind_max_XS(const int *position, const int *position_j,
         free(s3);free(s4);
         /* free(test.structure); */
       }
+      
     }
   }
 }

@@ -421,7 +421,7 @@ duplexT** Lduplexfold_CXS(const char *s1, const char *s2, const int **access_s1,
       dj4=MIN2(dj4,maxPenalty[3]);
       int type2, type,temp;
       type  = pair[S1[i]][S2[j]];
-      lc[idx][j]= type ? P->DuplexInit + access_s1[1][i] + access_s2[1][j] + bonus_2 : INF;
+      lc[idx][j]= type ? P->DuplexInit + bonus_2 : INF;
       if(!bonus_2){
         type2=pair[S2[j+1]][S1[i-1]];
         lin[idx][j]=MIN2(lc[idx_1][j+1]+P->mismatchI[type2][SS2[j]][SS1[i]]+di1+dj1+iopen+iext_s,lin[idx_1][j]+iext_ass + di1); 
@@ -544,7 +544,7 @@ PRIVATE void find_max_CXS(const int *position, const int *position_j,const int d
         int max;
         max=position[pos+delta];
         printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100);
-        pos=MAX2(10,pos-delta);
+        pos=MAX2(10,pos+temp_min-delta);
       }
     }
   }
@@ -589,7 +589,7 @@ PRIVATE void find_max_CXS(const int *position, const int *position_j,const int d
           if(dL <=  strlen(test.structure)-l1-1){
             printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", test.structure, 
                    test.tb,test.te,test.qb,test.qe, test.ddG, test.energy, test.dG1, test.dG2);
-            pos=MAX2(10,pos-delta);
+            pos=MAX2(10,pos+temp_min-delta);
           }
         }
         free(s3);free(s4);
