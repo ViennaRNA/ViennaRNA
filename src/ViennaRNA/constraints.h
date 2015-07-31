@@ -439,6 +439,35 @@ typedef struct vrna_hc_t {
   int     *up_ml;   /**<  @brief  A linear array that holds the number of allowed
                                   unpaired nucleotides in a multi branched loop
                     */
+
+  char    (*f)( vrna_fold_compound *,
+                int,
+                int,
+                int,
+                int,
+                char);  /**<  @brief  A function pointer that returns whether or
+                                        not a certain decomposition may be evaluated
+                          */
+
+  void (*pre)(vrna_fold_compound *,
+              char);                  /**<  @brief    A function pointer to some generalized hard
+                                                      constraints preprocessing function.
+                                            @details  This function will be called just before
+                                                      the forward recursions start
+                                      */
+
+  void (*post)( vrna_fold_compound *,
+                char);                /**<  @brief    A function pointer to some generalized hard
+                                                      constraints postprocessing function.
+                                            @details  This function will be called right after the
+                                                      forward recursions or backtracking, whatever
+                                                      is last.
+                                      */
+
+  void *data;                         /**<  @brief  A pointer to some structure where the user
+                                                    may store necessary data to evaluate its
+                                                    generalized hard constraint function
+                                      */
 } vrna_hc_t;
 
 /**
@@ -670,6 +699,20 @@ void vrna_hc_add_bp_nonspecific(vrna_fold_compound *vc,
  *
  */
 void vrna_hc_free(vrna_hc_t *hc);
+
+/**
+ *  @brief  Add a function pointer and/or data pointer for the generalized hard constraint
+ *          feature
+ */
+void vrna_hc_add_f( vrna_fold_compound *vc,
+                    char (*f)( vrna_fold_compound *, int, int, int, int, char),
+                    void *data);
+
+void vrna_hc_add_pre( vrna_fold_compound *vc,
+                      void (*pre)( vrna_fold_compound *, char));
+
+void vrna_hc_add_post(vrna_fold_compound *vc,
+                      void (*post)( vrna_fold_compound *, char));
 
 /**
  *  @brief Initialize an empty soft constraints data structure within a #vrna_fold_compound

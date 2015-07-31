@@ -135,6 +135,8 @@ E_mb_loop_fast( int i,
   int e             = INF;
   int dangle_model  = P->model_details.dangles;
   int *rtype        = &(P->model_details.rtype[0]);
+  char              (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char              eval_loop, el;
 
   type              = (unsigned char)ptype[ij];
 
@@ -146,14 +148,23 @@ E_mb_loop_fast( int i,
     S_j1  = ON_SAME_STRAND(j - 1, j, cp) ? S[j-1] : -1;
   }
 
-  if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
-    if((S_i1 >= 0) && (S_j1 >= 0)){ /* regular multi branch loop */
+  if((S_i1 >= 0) && (S_j1 >= 0)){ /* regular multi branch loop */
+
+    eval_loop = hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
+    el        = eval_loop;
+
+#ifdef WITH_GEN_HC
+    if(f)
+      el = (f(vc, i, j, i+1, j-1, VRNA_DECOMP_PAIR_ML)) ? el : (char)0;
+#endif
+
+    if(el){
       decomp = dmli1[j-1];
       tt = rtype[type];
-      switch(dangle_model){
-        /* no dangles */
-        case 0:   if(decomp != INF){
-                    decomp += E_MLstem(tt, -1, -1, P);
+      if(decomp != INF){
+        switch(dangle_model){
+          /* no dangles */
+          case 0:   decomp += E_MLstem(tt, -1, -1, P);
                     if(sc){
                       if(sc->en_basepair)
                         decomp += sc->en_basepair[ij];
@@ -161,12 +172,10 @@ E_mb_loop_fast( int i,
                       if(sc->f)
                         decomp += sc->f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_ML, sc->data);
                     }
-                  }
-                  break;
+                    break;
 
-        /* double dangles */
-        case 2:   if(decomp != INF){
-                    decomp += E_MLstem(tt, S_j1, S_i1, P);
+          /* double dangles */
+          case 2:   decomp += E_MLstem(tt, S_j1, S_i1, P);
                     if(sc){
                       if(sc->en_basepair)
                         decomp += sc->en_basepair[ij];
@@ -174,12 +183,10 @@ E_mb_loop_fast( int i,
                       if(sc->f)
                         decomp += sc->f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_ML, sc->data);
                     }
-                  }
-                  break;
+                    break;
 
-        /* normal dangles, aka dangles = 1 || 3 */
-        default:  if(decomp != INF){
-                    decomp += E_MLstem(tt, -1, -1, P);
+          /* normal dangles, aka dangles = 1 || 3 */
+          default:  decomp += E_MLstem(tt, -1, -1, P);
                     if(sc){
                       if(sc->en_basepair)
                         decomp += sc->en_basepair[ij];
@@ -187,87 +194,169 @@ E_mb_loop_fast( int i,
                       if(sc->f)
                         decomp += sc->f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_ML, sc->data);
                     }
-                  }
-                  if(hc_up[i+1]){
-                    if(dmli2[j-1] != INF){
-                      en = dmli2[j-1] + E_MLstem(tt, -1, S_i1, P) + P->MLbase;
-                      if(sc){
-                        if(sc->free_energies)
-                          en += sc->free_energies[i+1][1];
-
-                        if(sc->en_basepair)
-                          en += sc->en_basepair[ij];
-
-                        if(sc->f)
-                          en += sc->f(i, j, i+2, j-1, VRNA_DECOMP_PAIR_ML, sc->data);
-                      }
-                      decomp = MIN2(decomp, en);
-                    }
-                  }
-                  if(hc_up[j-1] && hc_up[i+1]){
-                    if(dmli2[j-2] != INF){
-                      en = dmli2[j-2] + E_MLstem(tt, S_j1, S_i1, P) + 2*P->MLbase;
-                      if(sc){
-                        if(sc->free_energies)
-                          en += sc->free_energies[i+1][1]
-                                + sc->free_energies[j-1][1];
-
-                        if(sc->en_basepair)
-                          en += sc->en_basepair[ij];
-
-                        if(sc->f)
-                          en += sc->f(i, j, i+2, j-2, VRNA_DECOMP_PAIR_ML, sc->data);
-                      }
-                      decomp = MIN2(decomp, en);
-                    }
-                  }
-                  if(hc_up[j-1]){
-                    if(dmli1[j-2] != INF){
-                      en = dmli1[j-2] + E_MLstem(tt, S_j1, -1, P) + P->MLbase;
-                      if(sc){
-                        if(sc->free_energies)
-                          en += sc->free_energies[j-1][1];
-
-                        if(sc->en_basepair)
-                          en += sc->en_basepair[ij];
-
-                        if(sc->f)
-                          en += sc->f(i, j, i+1, j-2, VRNA_DECOMP_PAIR_ML, sc->data);
-                      }
-                      decomp = MIN2(decomp, en);
-                    }
-                  }
-                  break;
+                    break;
+        }
       }
-      if(decomp != INF)
-        e = decomp + P->MLclosing;
     }
 
-    if(!ON_SAME_STRAND(i, j, cp)){ /* multibrach like cofold structure with cut somewhere between i and j */
-      decomp = fc[i+1] + fc[j-1];
-      tt = rtype[type];
-      switch(dangle_model){
-        case 0:   decomp += E_ExtLoop(tt, -1, -1, P);
-                  break;
-        case 2:   decomp += E_ExtLoop(tt, S_j1, S_i1, P);
-                  break;
-        default:  decomp += E_ExtLoop(tt, -1, -1, P);
-                  if((hc_up[i+1]) && (hc_up[j-1])){
-                    en     = fc[i+2] + fc[j-2] + E_ExtLoop(tt, S_j1, S_i1, P);
-                    decomp = MIN2(decomp, en);
-                  }
-                  if(hc_up[i+1]){
-                    en     = fc[i+2] + fc[j-1] + E_ExtLoop(tt, -1, S_i1, P);
-                    decomp = MIN2(decomp, en);
-                  }
-                  if(hc_up[j-1]){
-                    en     = fc[i+1] + fc[j-2] + E_ExtLoop(tt, S_j1, -1, P);
-                    decomp = MIN2(decomp, en);
-                  }
-                  break;
+    if(dangle_model % 2){  /* dangles == 1 || dangles == 3 */
+
+      el = eval_loop;
+      el = (hc_up[i + 1] > 0) ? el : (char)0;
+
+#ifdef WITH_GEN_HC
+      if(f)
+        el = (f(vc, i, j, i+2, j-1, VRNA_DECOMP_PAIR_ML)) ? el : (char)0;
+#endif
+
+      if(el){
+        if(dmli2[j-1] != INF){
+          en = dmli2[j-1] + E_MLstem(tt, -1, S_i1, P) + P->MLbase;
+          if(sc){
+            if(sc->free_energies)
+              en += sc->free_energies[i+1][1];
+
+            if(sc->en_basepair)
+              en += sc->en_basepair[ij];
+
+            if(sc->f)
+              en += sc->f(i, j, i+2, j-1, VRNA_DECOMP_PAIR_ML, sc->data);
+          }
+          decomp = MIN2(decomp, en);
+        }
       }
-      e = MIN2(e, decomp);
+
+      el = eval_loop;
+      el = ((hc_up[i + 1] > 0) && (hc_up[j-1] > 0)) ? el : (char)0;
+
+#ifdef WITH_GEN_HC
+      if(f)
+        el = (f(vc, i, j, i+2, j-2, VRNA_DECOMP_PAIR_ML)) ? el : (char)0;
+#endif
+
+      if(el){
+        if(dmli2[j-2] != INF){
+          en = dmli2[j-2] + E_MLstem(tt, S_j1, S_i1, P) + 2*P->MLbase;
+          if(sc){
+            if(sc->free_energies)
+              en += sc->free_energies[i+1][1]
+                    + sc->free_energies[j-1][1];
+
+            if(sc->en_basepair)
+              en += sc->en_basepair[ij];
+
+            if(sc->f)
+              en += sc->f(i, j, i+2, j-2, VRNA_DECOMP_PAIR_ML, sc->data);
+          }
+          decomp = MIN2(decomp, en);
+        }
+      }
+
+      el = eval_loop;
+      el = (hc_up[j-1] > 0) ? el : (char)0;
+
+#ifdef WITH_GEN_HC
+      if(f)
+        el = (f(vc, i, j, i+1, j-2, VRNA_DECOMP_PAIR_ML)) ? el : (char)0;
+#endif
+
+      if(el){
+        if(dmli1[j-2] != INF){
+          en = dmli1[j-2] + E_MLstem(tt, S_j1, -1, P) + P->MLbase;
+          if(sc){
+            if(sc->free_energies)
+              en += sc->free_energies[j-1][1];
+
+            if(sc->en_basepair)
+              en += sc->en_basepair[ij];
+
+            if(sc->f)
+              en += sc->f(i, j, i+1, j-2, VRNA_DECOMP_PAIR_ML, sc->data);
+          }
+          decomp = MIN2(decomp, en);
+        }
+      }
+
+    } /* end if dangles % 2 */
+
+    if(decomp != INF)
+      e = decomp + P->MLclosing;
+
+  } /* end regular multibranch loop */
+
+  if(!ON_SAME_STRAND(i, j, cp)){ /* multibrach like cofold structure with cut somewhere between i and j */
+
+    eval_loop = hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
+    el        = eval_loop;
+
+#ifdef WITH_GEN_HC
+    if(f)
+      el = (f(vc, i, j, i+1, j-1, VRNA_DECOMP_PAIR_ML)) ? el : (char)0;
+#endif
+
+    if(el){
+      if((fc[i+1] != INF) && (fc[j-1] != INF)){
+        decomp = fc[i+1] + fc[j-1];
+        tt = rtype[type];
+        switch(dangle_model){
+          case 0:   decomp += E_ExtLoop(tt, -1, -1, P);
+                    break;
+          case 2:   decomp += E_ExtLoop(tt, S_j1, S_i1, P);
+                    break;
+          default:  decomp += E_ExtLoop(tt, -1, -1, P);
+                    break;
+        }
+      }
     }
+
+    if(dangle_model % 2){ /* dangles == 1 || dangles == 3 */
+      el  = eval_loop;
+      el  = (hc_up[i+1] > 0) ? el : (char)0;
+
+#ifdef WITH_GEN_HC
+      if(f)
+        el = (f(vc, i, j, i+2, j-1, VRNA_DECOMP_PAIR_ML)) ? el : (char)0;
+#endif
+
+      if(el){
+        if((fc[i+2] != INF) && (fc[j-1] != INF)){
+          en     = fc[i+2] + fc[j-1] + E_ExtLoop(tt, -1, S_i1, P);
+          decomp = MIN2(decomp, en);
+        }
+      }
+
+      el  = eval_loop;
+      el  = (hc_up[j-1] > 0) ? el : (char)0;
+
+#ifdef WITH_GEN_HC
+      if(f)
+        el = (f(vc, i, j, i+1, j-2, VRNA_DECOMP_PAIR_ML)) ? el : (char)0;
+#endif
+
+      if(el){
+        if((fc[i+1] != INF) && (fc[j-2] != INF)){
+          en     = fc[i+1] + fc[j-2] + E_ExtLoop(tt, S_j1, -1, P);
+          decomp = MIN2(decomp, en);
+        }
+      }
+
+      el  = eval_loop;
+      el  = ((hc_up[i+1] > 0) && (hc_up[j-1] > 0)) ? el : (char)0;
+
+#ifdef WITH_GEN_HC
+      if(f)
+        el = (f(vc, i, j, i+2, j-2, VRNA_DECOMP_PAIR_ML)) ? el : (char)0;
+#endif
+
+      if(el){
+        if((fc[i+2] != INF) && (fc[j-2] != INF)){
+          en     = fc[i+2] + fc[j-2] + E_ExtLoop(tt, S_j1, S_i1, P);
+          decomp = MIN2(decomp, en);
+        }
+      }
+    }
+
+    e = MIN2(e, decomp);
   }
   return e;
 }
@@ -290,17 +379,35 @@ E_mb_loop_stack(int i,
   char              *ptype  = vc->ptype;
   int               *rtype  = &(md->rtype[0]);
   vrna_sc_t         *sc     = vc->sc;
+  char              (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char              eval_loop, el;
 
   e     = INF;
   ij    = indx[j] + i;
   type  = ptype[ij];
 
-  if(hc[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+  eval_loop = hc[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
+
+#ifdef WITH_GEN_HC
+  if(f)
+    eval_loop = (f(vc, i, j, i, j, VRNA_DECOMP_PAIR_ML)) ? eval_loop : (char)0;
+#endif
+
+  if(eval_loop){
     decomp = INF;
     k1j1  = indx[j-1] + i + 2 + turn + 1;
     for (k = i+2+turn; k < j-2-turn; k++, k1j1++){
       i1k   = indx[k] + i + 1;
-      if(hc[i1k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+
+      /* honour generalized hard constraint */
+      el    = hc[i1k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
+
+#ifdef WITH_GEN_HC
+      if(f)
+        el = (f(vc, i, j, i+1, k, VRNA_DECOMP_ML_COAXIAL)) ? el : (char)0;
+#endif
+
+      if(el){
         type_2  = rtype[(unsigned char)ptype[i1k]];
         en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
         if(sc){
@@ -309,7 +416,15 @@ E_mb_loop_stack(int i,
         }
         decomp  = MIN2(decomp, en);
       }
-      if(hc[k1j1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+
+      el    = hc[k1j1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
+
+#ifdef WITH_GEN_HC
+      if(f)
+        el = (f(vc, i, j, k+1, j-1, VRNA_DECOMP_ML_COAXIAL)) ? el : (char)0;
+#endif
+
+      if(el){
         type_2  = rtype[(unsigned char)ptype[k1j1]];
         en      = c[k1j1]+P->stack[type][type_2]+fML[i1k];
         if(sc){
@@ -356,10 +471,19 @@ E_ml_rightmost_stem(int i,
   int               with_gquad    = P->model_details.gquad;
   int               cp            = vc->cutpoint;
   int               e             = INF;
+  char              (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char              eval_loop;
 
   if(ON_SAME_STRAND(i - 1, i, cp)){
     if(ON_SAME_STRAND(j, j + 1, cp)){
-      if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+      eval_loop = hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
+
+#ifdef WITH_GEN_HC
+      if(f)
+        eval_loop = (f(vc, i, j, i, j, VRNA_DECOMP_ML_STEM)) ? eval_loop : (char)0;
+#endif
+
+      if(eval_loop){
         e = c[ij];
         if(e != INF){
           switch(dangle_model){
@@ -384,7 +508,14 @@ E_ml_rightmost_stem(int i,
     }
 
     if(ON_SAME_STRAND(j - 1, j, cp))
-      if(hc_up[j]){
+      eval_loop = (hc_up[j] > 0) ? (char)1 : (char)0;
+
+#ifdef WITH_GEN_HC
+      if(f)
+        eval_loop = (f(vc, i, j, i, j-1, VRNA_DECOMP_ML_ML)) ? eval_loop : (char)0;
+#endif
+
+      if(eval_loop){
         if(fm[indx[j - 1] + i] != INF){
           en = fm[indx[j - 1] + i] + P->MLbase;
           if(sc){
@@ -427,6 +558,8 @@ E_ml_stems_fast(int i,
   int               circular      = P->model_details.circ;
   int               cp            = vc->cutpoint;
   int               e             = INF;
+  char              (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char              eval_loop;
 
   /*  extension with one unpaired nucleotide at the right (3' site)
       or full branch of (i,j)
@@ -438,91 +571,107 @@ E_ml_stems_fast(int i,
       dangle models
   */
   if(ON_SAME_STRAND(i - 1, i, cp)){
-    switch(dangle_model){
-      /* no dangles */
-      case 0:   /* fall through */
+    
+    if(ON_SAME_STRAND(i, i + 1, cp)){
+      eval_loop = (hc_up[i] > 0) ? (char)1 : (char)0;
 
-      /* double dangles */
-      case 2:   if(ON_SAME_STRAND(i, i + 1, cp))
-                  if(hc_up[i]){
-                    if(fm[ij + 1] != INF){
-                      en = fm[ij + 1] + P->MLbase;
-                      if(sc){
-                        if(sc->free_energies)
-                          en += sc->free_energies[i][1];
-                        if(sc->f)
-                          en += sc->f(i, j, i+1, j, VRNA_DECOMP_ML_ML, sc->data);
-                      }
-                      e = MIN2(e, en);
-                    }
-                  }
-                break;
+#ifdef WITH_GEN_HC
+      if(f)
+        eval_loop = (f(vc, i, j, i+1, j, VRNA_DECOMP_ML_ML)) ? eval_loop : (char)0;
+#endif
 
-      /* normal dangles, aka dangle_model = 1 || 3 */
-      default:  mm5 = ((i>1) || circular) ? S[i] : -1;
-                mm3 = ((j<length) || circular) ? S[j] : -1;
-                if(ON_SAME_STRAND(i, i + 1, cp))
-                  if(hc_up[i]){
-                    if(fm[ij+1] != INF){
-                      en = fm[ij+1] + P->MLbase;
-                      if(sc){
-                        if(sc->free_energies)
-                          en += sc->free_energies[i][1];
-                        if(sc->f)
-                          en += sc->f(i, j, i+1, j, VRNA_DECOMP_ML_ML, sc->data);
-                      }
-                      e = MIN2(e, en);
-                    }
-                    if(hc[ij+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                      if(c[ij+1] != INF){
-                        type = ptype[ij+1];
-                        en = c[ij+1] + E_MLstem(type, mm5, -1, P) + P->MLbase;
-                        if(sc){
-                          if(sc->free_energies)
-                            en += sc->free_energies[i][1];
-                          if(sc->f)
-                            en += sc->f(i, j, i+1, j, VRNA_DECOMP_ML_STEM, sc->data);
-                        }
-                        e = MIN2(e, en);
-                      }
-                    }
-                  }
+      if(eval_loop){
+        if(fm[ij + 1] != INF){
+          en = fm[ij + 1] + P->MLbase;
+          if(sc){
+            if(sc->free_energies)
+              en += sc->free_energies[i][1];
+            if(sc->f)
+              en += sc->f(i, j, i+1, j, VRNA_DECOMP_ML_ML, sc->data);
+          }
+          e = MIN2(e, en);
+        }
 
-                if(ON_SAME_STRAND(j - 1, j, cp))
-                  if(hc_up[j]){
-                    if(hc[indx[j-1]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                      if(c[indx[j-1]+i] != INF){
-                        type = ptype[indx[j-1]+i];
-                        en = c[indx[j-1]+i] + E_MLstem(type, -1, mm3, P) + P->MLbase;
-                        if(sc){
-                          if(sc->free_energies)
-                            en += sc->free_energies[j][1];
-                          if(sc->f)
-                            en += sc->f(i, j, i, j-1, VRNA_DECOMP_ML_STEM, sc->data);
-                        }
-                        e = MIN2(e, en);
-                      }
-                    }
-                  }
-
-                if(ON_SAME_STRAND(j - 1, j, cp) && ON_SAME_STRAND(i, i + 1, cp))
-                  if(hc[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-                    if(hc_up[i] && hc_up[j]){
-                      if(c[indx[j-1]+i+1] != INF){
-                        type = ptype[indx[j-1]+i+1];
-                        en = c[indx[j-1]+i+1] + E_MLstem(type, mm5, mm3, P) + 2*P->MLbase;
-                        if(sc){
-                          if(sc->free_energies)
-                            en += sc->free_energies[j][1] + sc->free_energies[i][1];
-                          if(sc->f)
-                            en += sc->f(i, j, i+1, j-1, VRNA_DECOMP_ML_STEM, sc->data);
-                        }
-                        e = MIN2(e, en);
-                      }
-                    }
-                  }
-                break;
+      }
     }
+
+    if(dangle_model % 2){ /* dangle_model = 1 || 3 */
+
+      mm5 = ((i>1) || circular) ? S[i] : -1;
+      mm3 = ((j<length) || circular) ? S[j] : -1;
+
+      if(ON_SAME_STRAND(i, i + 1, cp)){
+        eval_loop = hc[ij+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
+        eval_loop = (hc_up[i] > 0) ? eval_loop : (char)0;
+
+#ifdef WITH_GEN_HC
+        if(f)
+          eval_loop = (f(vc, i, j, i+1, j, VRNA_DECOMP_ML_STEM)) ? eval_loop : (char)0;
+#endif
+
+        if(eval_loop){
+          if(c[ij+1] != INF){
+            type = ptype[ij+1];
+            en = c[ij+1] + E_MLstem(type, mm5, -1, P) + P->MLbase;
+            if(sc){
+              if(sc->free_energies)
+                en += sc->free_energies[i][1];
+              if(sc->f)
+                en += sc->f(i, j, i+1, j, VRNA_DECOMP_ML_STEM, sc->data);
+            }
+            e = MIN2(e, en);
+          }
+        }
+      }
+
+      if(ON_SAME_STRAND(j - 1, j, cp)){
+        eval_loop = hc[indx[j-1]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
+        eval_loop = (hc_up[j] > 0) ? eval_loop : (char)0;
+
+#ifdef WITH_GEN_HC
+        if(f)
+          eval_loop = (f(vc, i, j, i, j-1, VRNA_DECOMP_ML_STEM)) ? eval_loop : (char)0;
+#endif
+
+        if(eval_loop){
+          if(c[indx[j-1]+i] != INF){
+            type = ptype[indx[j-1]+i];
+            en = c[indx[j-1]+i] + E_MLstem(type, -1, mm3, P) + P->MLbase;
+            if(sc){
+              if(sc->free_energies)
+                en += sc->free_energies[j][1];
+              if(sc->f)
+                en += sc->f(i, j, i, j-1, VRNA_DECOMP_ML_STEM, sc->data);
+            }
+            e = MIN2(e, en);
+          }
+        }
+      }
+
+      if(ON_SAME_STRAND(j - 1, j, cp) && ON_SAME_STRAND(i, i + 1, cp)){
+        eval_loop = hc[indx[j-1]+i+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
+        eval_loop = (hc_up[i] && hc_up[j]) ? eval_loop : (char)0;
+
+#ifdef WITH_GEN_HC
+        if(f)
+          eval_loop = (f(vc, i, j, i+1, j-1, VRNA_DECOMP_ML_STEM)) ? eval_loop : (char)0;
+#endif
+
+        if(eval_loop){
+          if(c[indx[j-1]+i+1] != INF){
+            type = ptype[indx[j-1]+i+1];
+            en = c[indx[j-1]+i+1] + E_MLstem(type, mm5, mm3, P) + 2*P->MLbase;
+            if(sc){
+              if(sc->free_energies)
+                en += sc->free_energies[j][1] + sc->free_energies[i][1];
+              if(sc->f)
+                en += sc->f(i, j, i+1, j-1, VRNA_DECOMP_ML_STEM, sc->data);
+            }
+            e = MIN2(e, en);
+          }
+        }
+      }
+    } /* end special cases for dangles == 1 || dangles == 3 */
   }
 
   /* modular decomposition -------------------------------*/
@@ -1316,7 +1465,7 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
       if(sc->f)
         en += sc->f(ii, jj, u, u+1, VRNA_DECOMP_ML_ML_ML, sc->data);
     }
-    if(fij == my_fML[idx[u] + ii] + my_fML[idx[jj] + u + 1]){
+    if(fij == en){
       *i = ii;
       *j = u;
       *k = u + 1;

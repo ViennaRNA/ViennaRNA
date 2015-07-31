@@ -296,6 +296,8 @@ vrna_E_int_loop(vrna_fold_compound *vc,
   vrna_md_t         *md           = &(P->model_details);
   int               with_gquad    = md->gquad;
   int               turn          = md->min_loop_size;
+  char              (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char              eval_loop;
 
   /* CONSTRAINED INTERIOR LOOP start */
   if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
@@ -327,24 +329,27 @@ vrna_E_int_loop(vrna_fold_compound *vc,
       S_p1      = S + i;
       S_q1      = S + q + 1;
       for(p = i+1; p <= max_p; p++){
-
+        eval_loop = *hc_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
+#ifdef WITH_GEN_HC
+        if(f)
+          eval_loop = (f(vc, i, j, p, q, VRNA_DECOMP_PAIR_IL)) ? eval_loop : (char)0;
+#endif
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-        if(*hc_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
-
-          if(*c_pq != INF){
+        if(eval_loop){
+          energy = *c_pq;
+          if(energy != INF){
             type_2 = rtype[(unsigned char)*ptype_pq];
 
             if (noGUclosure)
               if (no_close||(type_2==3)||(type_2==4))
                 if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
-            energy = ubf_eval_int_loop( i, j, p, q,
+            energy += ubf_eval_int_loop( i, j, p, q,
                                         p_i, j_q,
                                         S_i1, S_j1, *S_p1, *S_q1,
                                         type, type_2, rtype,
                                         ij, cp,
                                         P, sc);
-            energy += *c_pq;
             e = MIN2(e, energy);
           }
 
@@ -479,6 +484,8 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
   vrna_param_t      *P;
   short             *S;
   vrna_sc_t         *sc;
+  char              (*f)(vrna_fold_compound *, int, int, int, int, char);
+  char              eval_loop;
 
   length  = vc->length;
   indx    = vc->jindx;
@@ -486,6 +493,7 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
   c       = vc->matrices->c;
   hc      = vc->hc->matrix;
   hc_up   = vc->hc->up_int;
+  f       = vc->hc->f;
   P       = vc->params;
   md      = &(P->model_details);
   turn    = md->min_loop_size;
@@ -511,7 +519,15 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
       for (q = length; q >= qmin; q--) {
         u2 = i-1 + length-q;
         if(hc_up[q+1] < u2) break;
-        if(hc[indx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
+
+        eval_loop = hc[indx[q] + p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
+
+#ifdef WITH_GEN_HC
+        if(f)
+          eval_loop = (f(vc, i, j, p, q, VRNA_DECOMP_PAIR_IL)) ? eval_loop : (char)0;
+#endif
+
+        if(eval_loop){
           type_2 = rtype[(unsigned char)ptype[indx[q]+p]];
           if (u1+u2>MAXLOOP) continue;
 
@@ -556,16 +572,25 @@ vrna_E_stack( vrna_fold_compound *vc,
   int               *indx             = vc->jindx;
   char              *hard_constraints = vc->hc->matrix;
   vrna_sc_t         *sc               = vc->sc;
+  char              (*f)(vrna_fold_compound *, int, int, int, int, char);
+  char              eval_loop;
 
-  e       = INF;
-  p       = i + 1;
-  q       = j - 1;
-  ij      = indx[j] + i;
-  pq      = indx[q] + p;
-  type    = (unsigned char)ptype[ij];
-  type_2  = rtype[(unsigned char)ptype[pq]];
+  e         = INF;
+  p         = i + 1;
+  q         = j - 1;
+  ij        = indx[j] + i;
+  pq        = indx[q] + p;
+  type      = (unsigned char)ptype[ij];
+  type_2    = rtype[(unsigned char)ptype[pq]];
+  f         = vc->hc->f;
+  eval_loop = (hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) && (hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP);
 
-  if((hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) && (hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)){
+#ifdef WITH_GEN_HC
+  if(f)
+    eval_loop = (f(vc, i, j, i+1, j-1, VRNA_DECOMP_PAIR_IL)) ? eval_loop : (char)0;
+#endif
+
+  if(eval_loop){
     if ((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))){ /* regular stack */
       e = P->stack[type][type_2];
     } else {  /* stack like cofold structure */
@@ -804,11 +829,14 @@ vrna_BT_stack(vrna_fold_compound *vc,
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
+  char          (*f)(vrna_fold_compound *, int, int, int, int, char);
+  char          eval_loop;
 
   idx         = vc->jindx;
   P           = vc->params;
   md          = &(P->model_details);
   hc          = vc->hc;
+  f           = vc->hc->f;
   sc          = vc->sc;
   my_c        = vc->matrices->c;
   ij          = idx[*j] + *i;
@@ -819,8 +847,13 @@ vrna_BT_stack(vrna_fold_compound *vc,
   if(my_c[ij] == *en){ /*  always true, if (i.j) closes canonical structure,
                           thus (i+1.j-1) must be a pair
                       */
-    if(     (hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
-        &&  (hc->matrix[idx[*j - 1] + *i + 1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)){
+    eval_loop =     (hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
+                &&  (hc->matrix[idx[*j - 1] + *i + 1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
+
+    if(f)
+      eval_loop = (f(vc, *i, *j, *i+1, *j-1, VRNA_DECOMP_PAIR_IL)) ? eval_loop : (char)0;
+
+    if(eval_loop){
       type_2 = ptype[idx[*j - 1] + *i + 1];
       type_2 = rtype[type_2];
       *en -= P->stack[type][type_2];
@@ -867,12 +900,15 @@ vrna_BT_int_loop( vrna_fold_compound *vc,
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
+  char          (*f)(vrna_fold_compound *, int, int, int, int, char);
+  char          eval_loop;
 
   cp          = vc->cutpoint;
   idx         = vc->jindx;
   P           = vc->params;
   md          = &(P->model_details);
   hc          = vc->hc;
+  f           = vc->hc->f;
   sc          = vc->sc;
   my_c        = vc->matrices->c;
   turn        = md->min_loop_size;
@@ -900,7 +936,12 @@ vrna_BT_int_loop( vrna_fold_compound *vc,
 
         type_2 = (unsigned char)ptype[idx[q]+p];
 
-        if(!(hc->matrix[idx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC))
+        eval_loop = hc->matrix[idx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
+
+        if(f)
+          eval_loop = (f(vc, *i, *j, p, q, VRNA_DECOMP_PAIR_IL)) ? eval_loop : (char)0;
+
+        if(!eval_loop)
           continue;
 
         type_2 = rtype[type_2];

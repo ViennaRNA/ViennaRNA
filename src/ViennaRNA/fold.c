@@ -104,6 +104,11 @@ vrna_fold(vrna_fold_compound *vc,
   s       = 0;
   length  = (int) vc->length;
 
+  /* initialize generalized hard constraints if necessary */
+  if(vc->hc->pre)
+    vc->hc->pre(vc, VRNA_SC_GEN_MFE);
+
+  /* initialize generalized soft constraints if necessary */
   if(vc->sc)
     if(vc->sc->pre)
       vc->sc->pre(vc, VRNA_SC_GEN_MFE);
@@ -135,6 +140,9 @@ vrna_fold(vrna_fold_compound *vc,
 #endif
 
   }
+
+  if(vc->hc->post)
+    vc->hc->post(vc, VRNA_SC_GEN_MFE);
 
   if(vc->sc)
     if(vc->sc->post)
@@ -240,7 +248,7 @@ fill_arrays(vrna_fold_compound *vc){
 
       no_close = (((type==3)||(type==4))&&noGUclosure);
 
-      if (hc_decompose) {   /* we have a pair */
+      if (hc_decompose) {   /* we evaluate this pair */
         new_c = INF;
 
         if(!no_close){
