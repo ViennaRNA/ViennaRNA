@@ -20,6 +20,7 @@
 #include <float.h>
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/part_func.h"

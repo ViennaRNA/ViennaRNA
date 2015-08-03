@@ -507,7 +507,7 @@ void vrna_message_constraint_options(unsigned int option);
  *        #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X, #VRNA_CONSTRAINT_DB_ANG_BRACK,
  *        #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_INTRAMOL
  */
-void vrna_message_constraints_all(void);
+void vrna_message_constraint_options_all(void);
 
 /**
  *  @brief  Add constraints to a #vrna_fold_compound data structure

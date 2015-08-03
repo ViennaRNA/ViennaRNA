@@ -535,7 +535,7 @@ typedef struct{
 
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
-    }
+    };
   };
 #endif
 } vrna_mx_mfe_t;
