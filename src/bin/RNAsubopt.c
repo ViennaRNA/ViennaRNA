@@ -179,6 +179,7 @@ int main(int argc, char *argv[]){
   if(args_info.stochBT_given){
     n_back = args_info.stochBT_arg;
     vrna_init_rand();
+    md.compute_bpp = 0;
   }
   if(args_info.betaScale_given)   md.betaScale = betaScale = args_info.betaScale_arg;
   /* density of states */
