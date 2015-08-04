@@ -1162,7 +1162,7 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
   double            r, qt, q_temp, qkl;
   int               i,j,ij, n, k, start, type;
   char              *pstruc;
-  int               *my_iindx, *jindx, hc_decompose;
+  int               *my_iindx, *jindx, hc_decompose, *hc_up_ext;
   FLT_OR_DBL        *q, *qb, *scale;
   char              *ptype, *hard_constraints;
   short             *S1;
@@ -1188,6 +1188,7 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
   scale     = matrices->scale;
 
   hard_constraints  = hc->matrix;
+  hc_up_ext         = hc->up_ext;
 
   FLT_OR_DBL *q1k   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+1));
   FLT_OR_DBL *qln   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
@@ -1219,18 +1220,20 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
   while (start<length) {
   /* find i position of first pair */
     for (i=start; i<length; i++) {
-      r = vrna_urn() * qln[i];
-      q_temp = qln[i+1]*scale[1];
+      if(hc_up_ext[i]){
+        r = vrna_urn() * qln[i];
+        q_temp = qln[i+1]*scale[1];
 
-      if(sc){
-        if (sc->boltzmann_factors)  
-          q_temp *= sc->boltzmann_factors[i][1];
+        if(sc){
+          if (sc->boltzmann_factors)  
+            q_temp *= sc->boltzmann_factors[i][1];
 
-        if(sc->exp_f)
-          q_temp *= sc->exp_f(i, length, i+1, n, VRNA_DECOMP_EXT_UP_5, sc->data);
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, length, i+1, n, VRNA_DECOMP_EXT_UP_5, sc->data);
+        }
+
+        if (r > q_temp)  break; /* i is paired */
       }
-
-      if (r > q_temp)  break; /* i is paired */
     }
     if (i>=length) break; /* no more pairs */
     /* now find the pairing partner j */
@@ -1278,10 +1281,11 @@ backtrack_qm( int i,
 
   /* divide multiloop into qm and qm1  */
   double            qmt, r, q_temp;
-  int               k, n;
+  int               k, n, u;
   FLT_OR_DBL        *qm, *qm1, *expMLbase;
-  int               *my_iindx, *jindx;
+  int               *my_iindx, *jindx, *hc_up_ml;
   vrna_sc_t         *sc;
+  vrna_hc_t         *hc;
 
   n = j;
   vrna_mx_pf_t  *matrices = vc->exp_matrices;
@@ -1289,7 +1293,9 @@ backtrack_qm( int i,
   my_iindx  = vc->iindx;
   jindx     = vc->jindx;
 
+  hc        = vc->hc;
   sc        = vc->sc;
+  hc_up_ml  = hc->up_ml;
 
   qm        = matrices->qm;
   qm1       = matrices->qm1;
@@ -1301,18 +1307,24 @@ backtrack_qm( int i,
     qmt = qm1[jindx[j]+i]; k=i;
     if(qmt<r)
       for(k=i+1; k<=j; k++){
-        q_temp = expMLbase[k-i] * qm1[jindx[j]+k];
+        q_temp = 0.;
+        u = k - i;
+        /* [i...k] is unpaired */
+        if(hc_up_ml[i] >= u){
+          q_temp += expMLbase[u] * qm1[jindx[j]+k];
 
-        if(sc){
-          if(sc->boltzmann_factors)
-            q_temp *= sc->boltzmann_factors[i][k-i];
+          if(sc){
+            if(sc->boltzmann_factors)
+              q_temp *= sc->boltzmann_factors[i][u];
 
-          if(sc->exp_f)
-            q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_UP_5, sc->data);
+            if(sc->exp_f)
+              q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_UP_5, sc->data);
+          }
+
+          qmt += q_temp;
         }
 
-        qmt += q_temp;
-
+        /* split between k-1, k */
         q_temp = qm[my_iindx[i]-(k-1)] * qm1[jindx[j]+k];
 
         if(sc){
@@ -1329,20 +1341,22 @@ backtrack_qm( int i,
     backtrack_qm1(k, j, pstruc, vc);
 
     if(k<i+TURN) break; /* no more pairs */
-    
-    q_temp = expMLbase[k-i];
 
-    if(sc){
-      if(sc->boltzmann_factors)
-        q_temp *= sc->boltzmann_factors[i][k-i];
+    u = k - i;
+    if(hc_up_ml[i] >= u){
+      q_temp = expMLbase[u];
 
-      if(sc->exp_f)
-        q_temp *= sc->exp_f(i, k-1, n, n, VRNA_DECOMP_ML_UP, sc->data);
+      if(sc){
+        if(sc->boltzmann_factors)
+          q_temp *= sc->boltzmann_factors[i][u];
+
+        if(sc->exp_f)
+          q_temp *= sc->exp_f(i, k-1, n, n, VRNA_DECOMP_ML_UP, sc->data);
+      }
+
+      r = vrna_urn() * (qm[my_iindx[i]-(k-1)] + q_temp);
+      if(q_temp >= r) break;
     }
-
-    r = vrna_urn() * (qm[my_iindx[i]-(k-1)] + q_temp);
-    if(q_temp >= r) break;
-
     j = k-1;
   }
 }
@@ -1358,10 +1372,11 @@ backtrack_qm1(int i,
   double        qt, r, q_temp;
   FLT_OR_DBL    *qm1, *qb, *expMLbase;
   vrna_mx_pf_t  *matrices;
-  int           *my_iindx, *jindx;
-  char          *ptype;
+  int           u, *my_iindx, *jindx, *hc_up_ml;
+  char          *ptype, *hard_constraints;
   short         *S1;
   vrna_sc_t     *sc;
+  vrna_hc_t     *hc;
   vrna_exp_param_t  *pf_params;
 
 
@@ -1372,6 +1387,9 @@ backtrack_qm1(int i,
   ptype     = vc->ptype;
 
   sc        = vc->sc;
+  hc        = vc->hc;
+  hc_up_ml  = hc->up_ml;
+  hard_constraints  = hc->matrix;
 
   matrices  = vc->exp_matrices;
   qb        = matrices->qb;
@@ -1384,23 +1402,26 @@ backtrack_qm1(int i,
   r = vrna_urn() * qm1[jindx[j]+i];
   ii = my_iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {
-    type = ptype[jindx[l] + i];
-    if (type){
-      q_temp =  qb[ii-l]
-                * exp_E_MLstem(type, S1[i-1], S1[l+1], pf_params)
-                * expMLbase[j-l];
+    if(hard_constraints[jindx[l] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+      u = j - l;
+      if(hc_up_ml[l+1] >= u){
+        type = ptype[jindx[l] + i];
+        q_temp =  qb[ii-l]
+                  * exp_E_MLstem(type, S1[i-1], S1[l+1], pf_params)
+                  * expMLbase[j-l];
 
-      if(sc){
-        if(sc->boltzmann_factors)
-          q_temp *= sc->boltzmann_factors[l+1][j-l];
+        if(sc){
+          if(sc->boltzmann_factors)
+            q_temp *= sc->boltzmann_factors[l+1][j-l];
 
-        if(sc->exp_f)
-          q_temp *= sc->exp_f(i, j, l, n, VRNA_DECOMP_ML_UP_3, sc->data);
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, l, n, VRNA_DECOMP_ML_UP_3, sc->data);
+        }
+
+        qt += q_temp;
+        if (qt>=r) break;
       }
-
-      qt += q_temp;
     }
-    if (qt>=r) break;
   }
   if (l>j) vrna_message_error("backtrack failed in qm1");
   backtrack(i, l, pstruc, vc);
@@ -1438,12 +1459,13 @@ backtrack(int i,
           char *pstruc,
           vrna_fold_compound *vc){
 
-  char              *ptype, *sequence;
+  char              *ptype, *sequence, *hard_constraints, hc_decompose;
   vrna_exp_param_t  *pf_params;
   FLT_OR_DBL        *qb, *qm, *qm1, *scale;
   vrna_mx_pf_t      *matrices;
-  int               *my_iindx, *jindx;
+  int               *my_iindx, *jindx, *hc_up_int, *hc_up_hp;
   vrna_sc_t         *sc;
+  vrna_hc_t         *hc;
   short             *S1;
 
   sequence    = vc->sequence;
@@ -1454,6 +1476,10 @@ backtrack(int i,
   jindx       = vc->jindx;
 
   sc          = vc->sc;
+  hc          = vc->hc;
+  hc_up_hp    = hc->up_hp;
+  hc_up_int   = hc->up_int;
+  hard_constraints  = hc->matrix;
 
   matrices    = vc->exp_matrices;
   qb          = matrices->qb;
@@ -1467,7 +1493,7 @@ backtrack(int i,
   double r, qbt1, qt, q_temp;
   n = j;
   do {
-    int k, l, u, u1, max_k, min_l;
+    int k, l, kl, u, u1, u2, max_k, min_l;
     unsigned char type;
     k = i;
     l = j;
@@ -1476,89 +1502,91 @@ backtrack(int i,
 
     r = vrna_urn() * qb[my_iindx[i]-j];
     type = (unsigned char)ptype[jindx[j] + i];
-    u = j-i-1;
-    /*hairpin contribution*/
-    if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
-    else{
-      q_temp = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
+    hc_decompose = hard_constraints[jindx[j] + i];
+    if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){ /* hairpin contribution */
+      u = j-i-1;
 
-      if(sc){
-        if(sc->boltzmann_factors)
-          q_temp *= sc->boltzmann_factors[i+1][u];
+      if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
+      else{
+        q_temp = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
 
-        if(sc->exp_f)
-          q_temp *= sc->exp_f(i, j, n, n, VRNA_DECOMP_PAIR_HP, sc->data);
+        if(sc){
+          if(sc->boltzmann_factors)
+            q_temp *= sc->boltzmann_factors[i+1][u];
+
+          if(sc->exp_f)
+            q_temp *= sc->exp_f(i, j, n, n, VRNA_DECOMP_PAIR_HP, sc->data);
+        }
+
+        qbt1 = q_temp;
+
       }
-
-      qbt1 = q_temp;
-
+      if (qbt1>=r) return; /* found the hairpin we're done */
     }
-    if (qbt1>=r) return; /* found the hairpin we're done */
 
-    max_k = MIN2(i+MAXLOOP+1,j-TURN-2);
-    l = MAX2(i+TURN+2,j-MAXLOOP-1);
-    for (k = i + 1; k<=max_k; k++) {
-      u1    = k-i-1;
-      min_l = MAX2(k+TURN+1,j-1-MAXLOOP+u1);
-      for (l=min_l; l<j; l++) {
-        unsigned char type_2 = (unsigned char)ptype[jindx[l] + k];
-        if (type_2) {
-          int u2 = j-l-1;
-          type_2 = rtype[type_2];
-          /* add *scale[u1+u2+2] */
-          q_temp = qb[my_iindx[k]-l]
-                   * scale[u1+u2+2]
-                   * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
+    if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){ /* interior loop contributions */
+      max_k = i + MAXLOOP + 1;
+      max_k = MIN2(max_k, j - TURN - 2);
+      max_k = MIN2(max_k, i + 1 + hc_up_int[i+1]);
+      for (k = i + 1; k<=max_k; k++) {
+        u1    = k-i-1;
+        min_l = MAX2(k+TURN+1,j-1-MAXLOOP+u1);
+        kl    = my_iindx[k] - j + 1;
+        for (u2 = 0, l=j-1; l>=min_l; l--, kl++, u2++){
+          if(hc_up_int[l+1] < u2) break;
+          if(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
+            unsigned char type_2 = (unsigned char)ptype[jindx[l] + k];
+            type_2 = rtype[type_2];
+            /* add *scale[u1+u2+2] */
+            q_temp = qb[kl]
+                     * scale[u1+u2+2]
+                     * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
 
-          if(sc){
-            if(sc->boltzmann_factors)
-              q_temp *=   sc->boltzmann_factors[i+1][u1]
-                        * sc->boltzmann_factors[l+1][u2];
+            if(sc){
+              if(sc->boltzmann_factors)
+                q_temp *=   sc->boltzmann_factors[i+1][u1]
+                          * sc->boltzmann_factors[l+1][u2];
 
-            if(sc->exp_en_stack)
-              if((i + 1 == k) && (j - 1 == l))
-                q_temp *=   sc->exp_en_stack[i]
-                          * sc->exp_en_stack[k]
-                          * sc->exp_en_stack[l]
-                          * sc->exp_en_stack[j];
+              if(sc->exp_en_stack)
+                if((i + 1 == k) && (j - 1 == l))
+                  q_temp *=   sc->exp_en_stack[i]
+                            * sc->exp_en_stack[k]
+                            * sc->exp_en_stack[l]
+                            * sc->exp_en_stack[j];
 
-            if(sc->exp_f)
-              q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+              if(sc->exp_f)
+                q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+            }
+
+            qbt1 += q_temp;
+            if (qbt1 > r) break;
           }
-
-          qbt1 += q_temp;
         }
         if (qbt1 > r) break;
       }
-      if (qbt1 > r) break;
+      if (k <= max_k) {
+        i=k; j=l;
+      } else { /* interior loop contributions did not exceed threshold, so we break */
+        break;
+      }
+    } else { /* must not be interior loop, so we break out */
+      break;
     }
-    if (l<j) {
-      i=k; j=l;
-    }
-    else break;
   } while (1);
 
   /* backtrack in multi-loop */
   {
     int k, ii, jj;
-
+    FLT_OR_DBL closingPair = 1.;
+    closingPair =   pf_params->expMLclosing
+                  * exp_E_MLstem(rtype[(unsigned char)ptype[jindx[j] + i]], S1[j-1], S1[i+1], pf_params)
+                  * scale[2];
     i++; j--;
     /* find the first split index */
     ii = my_iindx[i]; /* ii-j=[i,j] */
     jj = jindx[j]; /* jj+i=[j,i] */
-    for (qt=0., k=i+1; k<j; k++){
-      q_temp = qm[ii-(k-1)] * qm1[jj+k];
-
-      if(sc){
-        if(sc->exp_f)
-          q_temp *= sc->exp_f(i, j, k, n, VRNA_DECOMP_ML_ML_ML, sc->data);
-      }
-
-      qt += q_temp;
-    }
-    r = vrna_urn() * qt;
-    for (qt=0., k=i+1; k<j; k++) {
-      q_temp = qm[ii-(k-1)] * qm1[jj+k];
+    for (qt=qbt1, k=i+1; k<j; k++) {
+      q_temp = qm[ii-(k-1)] * qm1[jj+k] * closingPair;
 
       if(sc){
         if(sc->exp_f)
