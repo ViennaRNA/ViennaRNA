@@ -859,14 +859,14 @@ vrna_read_constraints_file( const char *filename,
         if((k == 0) && (l == 0) && (i == j) && (h > 0)){
           /* set correct loop type context */
           switch(command){
-            case 'P': type |= (int)VRNA_CONSTRAINT_CONTEXT_ENFORCE;
+            case 'P': type |= (int)(VRNA_CONSTRAINT_CONTEXT_ENFORCE);
                       break;
             case 'F': /* set i == j == k == l */
                       k = l = i;
                       if(orientation != '\0')
                         type |= (orientation == 'U') ? 1024 : 2048; /* add hidden flags for pairing orientation */
                       break;
-            case 'E': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
+            case 'E': type = (int)(VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);  /* soft constraints are always applied for all loops */
                       type |= 4096; /* add hidden flag indicating soft constraint */
                       break;
             case 'W': /* do nothing */
@@ -876,11 +876,12 @@ vrna_read_constraints_file( const char *filename,
           /* set correct loop type context */
           switch(command){
             case 'P': type = ~type; /* prohibit */
-                      type &= (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+                      type &= (int)(VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+                      type |= 8192;  /* since we prohibit pairs, we do not want to remove incompatible pairs */
                       break;
-            case 'F': type |= VRNA_CONSTRAINT_CONTEXT_ENFORCE;  /* enforce */
+            case 'F': type |= (int)(VRNA_CONSTRAINT_CONTEXT_ENFORCE);  /* enforce */
                       break;
-            case 'E': type = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;  /* soft constraints are always applied for all loops */
+            case 'E': type = (int)(VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);  /* soft constraints are always applied for all loops */
                       type |= 4096; /* add hidden flag indicating soft constraint */
                       break;
             case 'W': break;

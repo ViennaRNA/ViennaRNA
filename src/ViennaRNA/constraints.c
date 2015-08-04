@@ -262,7 +262,11 @@ vrna_add_constraints( vrna_fold_compound *vc,
                 d = 1;
               vrna_hc_add_bp_nonspecific(vc, p->i, d, (char)(p->type));
             } else {
-              vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type));
+              if(p->type & 8192){
+                vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type) | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+              } else {
+                vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type));
+              }
             }
           }
         }
