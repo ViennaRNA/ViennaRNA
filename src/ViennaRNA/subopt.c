@@ -950,6 +950,8 @@ scan_interval(vrna_fold_compound *vc,
       if(sc){
         if(sc->free_energies)
           fi += sc->free_energies[j][1];
+        if(sc->f)
+          fi += sc->f(i, j, i, j - 1, VRNA_DECOMP_ML_ML, sc->data);
       }
 
       if ((fi + best_energy <= threshold)&&(ON_SAME_STRAND(j-1,j, cp))) {
@@ -975,12 +977,14 @@ scan_interval(vrna_fold_compound *vc,
                   break;
       }
 
-/* should be unnecessary
       if(sc){
+/* should be unnecessary
         if(sc->en_basepair)
           element_energy += sc->en_basepair[ij];
-      }
 */
+        if(sc->f)
+          element_energy += sc->f(i, j, i, j, VRNA_DECOMP_ML_STEM, sc->data);
+      }
       cij += element_energy;
 
       if (cij + best_energy <= threshold)
@@ -1034,12 +1038,14 @@ scan_interval(vrna_fold_compound *vc,
 
           element_energy = E_MLstem(type, s5, s3, P);
 
-/* should be unnecessary
           if(sc){
+/* should be unnecessary
             if(sc->en_basepair)
               element_energy += sc->en_basepair[k1j];
-          }
 */
+            if(sc->f)
+              element_energy += sc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_STEM, sc->data);
+          }
 
           if(ON_SAME_STRAND(k, k+1, cp)){
             if(fML[indx[k]+i] + c[k1j] + element_energy + best_energy <= threshold){

@@ -3818,7 +3818,7 @@ PRIVATE void  adjustArrayBoundaries(FLT_OR_DBL ***array,
 }
 
 
-INLINE PRIVATE void preparePosteriorBoundaries(int size, int shift, int *min_k, int *max_k, int **min_l, int **max_l){
+PRIVATE INLINE void preparePosteriorBoundaries(int size, int shift, int *min_k, int *max_k, int **min_l, int **max_l){
   int i;
   *min_k  = INF;
   *max_k  = 0;
@@ -3835,14 +3835,14 @@ INLINE PRIVATE void preparePosteriorBoundaries(int size, int shift, int *min_k, 
   *max_l  -= shift;
 }
 
-INLINE PRIVATE void updatePosteriorBoundaries(int d1, int d2, int *min_k, int *max_k, int **min_l, int **max_l){
+PRIVATE INLINE void updatePosteriorBoundaries(int d1, int d2, int *min_k, int *max_k, int **min_l, int **max_l){
   (*min_l)[d1]  = MIN2((*min_l)[d1], d2);
   (*max_l)[d1]  = MAX2((*max_l)[d1], d2);
   *min_k        = MIN2(*min_k, d1);
   *max_k        = MAX2(*max_k, d1);
 }
 
-INLINE PRIVATE  void  prepareBoundaries(int min_k_pre, int max_k_pre, int min_l_pre, int max_l_pre, int bpdist, int *min_k, int *max_k, int **min_l, int **max_l){
+PRIVATE INLINE  void  prepareBoundaries(int min_k_pre, int max_k_pre, int min_l_pre, int max_l_pre, int bpdist, int *min_k, int *max_k, int **min_l, int **max_l){
   int cnt;
   int mem = max_k_pre - min_k_pre + 1;
 
@@ -3863,7 +3863,7 @@ INLINE PRIVATE  void  prepareBoundaries(int min_k_pre, int max_k_pre, int min_l_
   }
 }
 
-INLINE PRIVATE  void  prepareArray(FLT_OR_DBL ***array, int min_k, int max_k, int *min_l, int *max_l){
+PRIVATE INLINE  void  prepareArray(FLT_OR_DBL ***array, int min_k, int max_k, int *min_l, int *max_l){
   int i, mem;
   *array  = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (max_k - min_k + 1));
   *array  -= min_k;

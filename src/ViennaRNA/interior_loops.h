@@ -119,7 +119,7 @@ INLINE  PRIVATE double  exp_E_IntLoop(int u1,
                                       vrna_exp_param_t *P);
 
 
-INLINE PRIVATE int E_IntLoop_Co(int type,
+PRIVATE INLINE int E_IntLoop_Co(int type,
                                 int type_2,
                                 int i,
                                 int j,
@@ -137,7 +137,7 @@ INLINE PRIVATE int E_IntLoop_Co(int type,
 /**
  *  @brief Evaluate energy of a base pair stack closed by (i,j)
  */
-INLINE PRIVATE int E_stack(int i, int j, vrna_fold_compound *vc);
+PRIVATE INLINE int E_stack(int i, int j, vrna_fold_compound *vc);
 
 /*
 #################################
@@ -155,7 +155,7 @@ INLINE PRIVATE int E_stack(int i, int j, vrna_fold_compound *vc);
  *
  *  NOTE: do not include into doxygen reference manual!
  */
-INLINE PRIVATE int
+PRIVATE INLINE int
 ubf_eval_int_loop(  int i,
                     int j,
                     int p,
@@ -225,7 +225,7 @@ ubf_eval_int_loop(  int i,
  *
  *  NOTE: do not include into doxygen reference manual!
  */
-INLINE PRIVATE int
+PRIVATE INLINE int
 ubf_eval_ext_int_loop(int i,
                       int j,
                       int p,
@@ -268,7 +268,7 @@ ubf_eval_ext_int_loop(int i,
 
 }
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_E_int_loop(vrna_fold_compound *vc,
                 int i,
                 int j){
@@ -370,7 +370,102 @@ vrna_E_int_loop(vrna_fold_compound *vc,
   return e;
 }
 
-INLINE PRIVATE int
+PRIVATE INLINE FLT_OR_DBL
+vrna_exp_E_int_loop(vrna_fold_compound *vc,
+                int i,
+                int j){
+
+  int k,l, u1, u2, kl, *qb_kl, maxk, minl, tmp, *rtype, noGUclosure, no_close, energy;
+  FLT_OR_DBL    qbt1, q_temp, *qb, *G, *scale;
+  char              *ptype_pq;
+  unsigned char     type, type_2;
+  char              *hc_pq;
+  int               cp            = vc->cutpoint;
+  char              *ptype        = vc->ptype;
+  short             *S1           = vc->sequence_encoding;
+  short             S_i1          = S1[i+1];
+  short             S_j1          = S1[j-1];
+  int               *my_iindx     = vc->iindx;
+  int               *jindx        = vc->jindx;
+  char              *hc           = vc->hc->matrix;
+  int               *hc_up        = vc->hc->up_int;
+  vrna_sc_t         *sc           = vc->sc; 
+  vrna_exp_param_t  *pf_params    = vc->exp_params;
+  int               ij            = jindx[j] + i;
+  vrna_md_t         *md           = &(pf_params->model_details);
+  int               with_gquad    = md->gquad;
+  int               turn          = md->min_loop_size;
+
+  qb    = vc->exp_matrices->qb;
+  G     = vc->exp_matrices->G;
+  scale = vc->exp_matrices->scale;
+  qbt1  = 0.;
+
+  /* CONSTRAINED INTERIOR LOOP start */
+  if(hc[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
+
+    type        = (unsigned char)ptype[ij];
+    rtype       = &(md->rtype[0]);
+    noGUclosure = md->noGUclosure;
+    no_close    = (((type==3)||(type==4))&&noGUclosure);
+    maxk = i + MAXLOOP + 1;
+    maxk = MIN2(maxk, j - turn - 2);
+    maxk = MIN2(maxk, i + 1 + hc_up[i+1]);
+
+    for (k = i + 1; k <= maxk; k++) {
+      if(!ON_SAME_STRAND(i, k, cp)) break;
+      u1    = k-i-1;
+
+      minl  = MAX2(k + turn + 1, j - 1 - MAXLOOP + u1);
+      kl    = my_iindx[k] - j + 1;
+
+      for (u2 = 0, l=j-1; l>=minl; l--, kl++, u2++){
+        if(hc_up[l+1] < u2) break;
+        if(hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
+          if(!ON_SAME_STRAND(l, j, cp)) break;
+          type_2 = rtype[(unsigned char)ptype[jindx[l] + k]];
+          q_temp = qb[kl]
+                  * scale[u1+u2+2]
+                  * exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k-1], S1[l+1], pf_params);
+
+          if(sc){
+            if(sc->boltzmann_factors)
+              q_temp *= sc->boltzmann_factors[i+1][u1]
+                        * sc->boltzmann_factors[l+1][u2];
+
+            if(sc->exp_en_basepair)
+              q_temp *= sc->exp_en_basepair[ij];
+
+            if(sc->exp_f)
+              q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+
+            if(sc->exp_en_stack)
+              if((i+1 == k) && (j-1 == l)){
+                q_temp *=   sc->exp_en_stack[i]
+                          * sc->exp_en_stack[k]
+                          * sc->exp_en_stack[l]
+                          * sc->exp_en_stack[j];
+              }
+          }
+
+          qbt1 += q_temp;
+        }
+      }
+    }
+
+    if(with_gquad){
+      /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
+      if ((!no_close) && ((cp < 0) || ON_SAME_STRAND(i, j, cp))) {
+        qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, my_iindx, pf_params)
+                * scale[2];
+      }
+    }
+
+  }
+  return qbt1;
+}
+
+PRIVATE INLINE int
 vrna_E_ext_int_loop(vrna_fold_compound *vc,
                     int i,
                     int j,
@@ -444,7 +539,7 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
 }
 
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_E_stack( vrna_fold_compound *vc,
               int i,
               int j){
@@ -506,7 +601,7 @@ vrna_E_stack( vrna_fold_compound *vc,
   return e;
 }
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 E_IntLoop(int n1,
           int n2,
           int type,
@@ -630,7 +725,7 @@ INLINE  PRIVATE double exp_E_IntLoop(int u1, int u2, int type, int type2, short 
   return z;
 }
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 E_IntLoop_Co( int type,
               int type_2,
               int i,
@@ -693,7 +788,7 @@ E_IntLoop_Co( int type,
  *  @brief Backtrack a stacked pair closed by @f$ (i,j) @f$
  *
  */
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_BT_stack(vrna_fold_compound *vc,
               int *i,
               int *j,
@@ -755,7 +850,7 @@ vrna_BT_stack(vrna_fold_compound *vc,
  *  @brief Backtrack an interior loop closed by @f$ (i,j) @f$
  *
  */
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_BT_int_loop( vrna_fold_compound *vc,
                   int *i,
                   int *j,
