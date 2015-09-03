@@ -187,7 +187,6 @@ int main(int argc, char *argv[])
   /* free allocated memory of command line data structure */
   RNAcofold_cmdline_parser_free (&args_info);
 
-
   /*
   #############################################
   # begin initializing
@@ -383,7 +382,6 @@ int main(int argc, char *argv[])
     /* compute partition function */
     if (pf) {
       cofoldF AB, AA, BB;
-      FLT_OR_DBL *probs;
       if (dangles==1){
         vc->params->model_details.dangles = dangles = 2;   /* recompute with dangles as in pf_fold() */
         min_en = vrna_eval_structure(vc, structure);
@@ -409,15 +407,16 @@ int main(int argc, char *argv[])
         if (!istty) printf(" [%6.2f]\n", AB.FAB);
         else printf("\n");/*8.6.04*/
         free(costruc);
+        prAB = vrna_pl_get_from_pr(vc, bppmThreshold);
       }
+
       if ((istty)||(!do_backtrack))
         printf(" free energy of ensemble = %6.2f kcal/mol\n", AB.FAB);
+
       printf(" frequency of mfe structure in ensemble %g",
              exp((AB.FAB-min_en)/kT));
 
       printf(" , delta G binding=%6.2f\n", AB.FcAB - AB.FA - AB.FB);
-
-      prAB = vrna_pl_get_from_pr(vc, bppmThreshold);
 
       /* if (doQ) make_probsum(length,fname); */ /*compute prob of base paired*/
       /* free_co_arrays(); */
@@ -459,9 +458,11 @@ int main(int argc, char *argv[])
         /* compute B monomer */
         do_partfunc(Bstring, Blength, 1, &prB, &mfB, pf_parameters);
 
-        vrna_co_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, pf_parameters);
-        vrna_co_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, pf_parameters);
-        vrna_co_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, pf_parameters);
+        if(do_backtrack){
+          vrna_co_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, pf_parameters);
+          vrna_co_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, pf_parameters);
+          vrna_co_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, pf_parameters);
+        }
         printf("Free Energies:\nAB\t\tAA\t\tBB\t\tA\t\tB\n%.6f\t%6f\t%6f\t%6f\t%6f\n",
                AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB);
 
@@ -476,62 +477,68 @@ int main(int argc, char *argv[])
         } else strcpy(ffname, "dot5.ps");
         /*output of the 5 dot plots*/
 
-        /*AB dot_plot*/
-        /*write Free Energy into comment*/
-        sprintf(comment,"\n%%Heterodimer AB FreeEnergy= %.9f\n", AB.FcAB);
-        /*reset cut_point*/
-        cut_point=Alength+1;
-        /*write New name*/
-        strcpy(Newname,"AB");
-        strcat(Newname,ffname);
-        int cp = -1;
-        char *coseq = vrna_cut_point_remove(orig_sequence, &cp);
-        (void)PS_dot_plot_list(coseq, Newname, prAB, mfAB, comment);
-        free(coseq);
+        if(do_backtrack){
 
-        /*AA dot_plot*/
-        sprintf(comment,"\n%%Homodimer AA FreeEnergy= %.9f\n",AA.FcAB);
-        /*write New name*/
-        strcpy(Newname,"AA");
-        strcat(Newname,ffname);
-        /*write AA sequence*/
-        Newstring=(char*)vrna_alloc((2*Alength+1)*sizeof(char));
-        strcpy(Newstring,orig_Astring);
-        strcat(Newstring,orig_Astring);
-        (void)PS_dot_plot_list(Newstring, Newname, prAA, mfAA, comment);
-        free(Newstring);
+          /*AB dot_plot*/
 
-        /*BB dot_plot*/
-        sprintf(comment,"\n%%Homodimer BB FreeEnergy= %.9f\n",BB.FcAB);
-        /*write New name*/
-        strcpy(Newname,"BB");
-        strcat(Newname,ffname);
-        /*write BB sequence*/
-        Newstring=(char*)vrna_alloc((2*Blength+1)*sizeof(char));
-        strcpy(Newstring,orig_Bstring);
-        strcat(Newstring,orig_Bstring);
-        /*reset cut_point*/
-        cut_point=Blength+1;
-        (void)PS_dot_plot_list(Newstring, Newname, prBB, mfBB, comment);
-        free(Newstring);
+          /*write Free Energy into comment*/
+          sprintf(comment,"\n%%Heterodimer AB FreeEnergy= %.9f\n", AB.FcAB);
+          /*reset cut_point*/
+          cut_point=Alength+1;
 
-        /*A dot plot*/
-        /*reset cut_point*/
-        cut_point=-1;
-        sprintf(comment,"\n%%Monomer A FreeEnergy= %.9f\n",AB.FA);
-        /*write New name*/
-        strcpy(Newname,"A");
-        strcat(Newname,ffname);
-        /*write BB sequence*/
-        (void)PS_dot_plot_list(orig_Astring, Newname, prA, mfA, comment);
+          /*write New name*/
+          strcpy(Newname,"AB");
+          strcat(Newname,ffname);
+          int cp = -1;
+          char *coseq = vrna_cut_point_remove(orig_sequence, &cp);
+          (void)PS_dot_plot_list(coseq, Newname, prAB, mfAB, comment);
+          free(coseq);
 
-        /*B monomer dot plot*/
-        sprintf(comment,"\n%%Monomer B FreeEnergy= %.9f\n",AB.FB);
-        /*write New name*/
-        strcpy(Newname,"B");
-        strcat(Newname,ffname);
-        /*write BB sequence*/
-        (void)PS_dot_plot_list(orig_Bstring, Newname, prB, mfB, comment);
+          /*AA dot_plot*/
+          sprintf(comment,"\n%%Homodimer AA FreeEnergy= %.9f\n",AA.FcAB);
+          /*write New name*/
+          strcpy(Newname,"AA");
+          strcat(Newname,ffname);
+          /*write AA sequence*/
+          Newstring=(char*)vrna_alloc((2*Alength+1)*sizeof(char));
+          strcpy(Newstring,orig_Astring);
+          strcat(Newstring,orig_Astring);
+          (void)PS_dot_plot_list(Newstring, Newname, prAA, mfAA, comment);
+          free(Newstring);
+
+          /*BB dot_plot*/
+          sprintf(comment,"\n%%Homodimer BB FreeEnergy= %.9f\n",BB.FcAB);
+          /*write New name*/
+          strcpy(Newname,"BB");
+          strcat(Newname,ffname);
+          /*write BB sequence*/
+          Newstring=(char*)vrna_alloc((2*Blength+1)*sizeof(char));
+          strcpy(Newstring,orig_Bstring);
+          strcat(Newstring,orig_Bstring);
+          /*reset cut_point*/
+          cut_point=Blength+1;
+          (void)PS_dot_plot_list(Newstring, Newname, prBB, mfBB, comment);
+          free(Newstring);
+
+          /*A dot plot*/
+          /*reset cut_point*/
+          cut_point=-1;
+          sprintf(comment,"\n%%Monomer A FreeEnergy= %.9f\n",AB.FA);
+          /*write New name*/
+          strcpy(Newname,"A");
+          strcat(Newname,ffname);
+          /*write BB sequence*/
+          (void)PS_dot_plot_list(orig_Astring, Newname, prA, mfA, comment);
+
+          /*B monomer dot plot*/
+          sprintf(comment,"\n%%Monomer B FreeEnergy= %.9f\n",AB.FB);
+          /*write New name*/
+          strcpy(Newname,"B");
+          strcat(Newname,ffname);
+          /*write BB sequence*/
+          (void)PS_dot_plot_list(orig_Bstring, Newname, prB, mfB, comment);
+        }
+
         free(Astring); free(Bstring); free(orig_Astring); free(orig_Bstring);
         free(prAB); free(prAA); free(prBB); free(prA); free(prB);
         free(mfAB); free(mfAA); free(mfBB); free(mfA); free(mfB);
@@ -606,7 +613,6 @@ do_partfunc(char *string,
   double sfact=1.07;
   double kT;
   vrna_exp_param_t *par;
-  FLT_OR_DBL *probs;
   cofoldF X;
   vrna_fold_compound *vc;
   kT = parameters->kT/1000.;
@@ -623,7 +629,9 @@ do_partfunc(char *string,
               par->pf_scale = exp(-(sfact*min_en)/kT/(length));
               vrna_exp_params_update(vc, par);
               X = vrna_co_pf_fold(vc, tempstruc);
-              *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
+              if(*tpr){
+                *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
+              }
               vrna_free_fold_compound(vc);
               free(tempstruc);
               free(par);
@@ -644,7 +652,9 @@ do_partfunc(char *string,
               par->pf_scale = exp(-(sfact*min_en)/kT/(2*length));
               vrna_exp_params_update(vc, par);
               X = vrna_co_pf_fold(vc, tempstruc);
-              *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
+              if(*tpr){
+                *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
+              }
               vrna_free_fold_compound(vc);
 
               free(Newstring);

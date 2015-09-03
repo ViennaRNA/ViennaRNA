@@ -3510,7 +3510,7 @@ PRIVATE void adjustArrayBoundaries(int ***array, int *k_min, int *k_max, int **l
   *k_max      = k_max_post;
 }
 
-INLINE PRIVATE void preparePosteriorBoundaries(int size, int shift, int *min_k, int *max_k, int **min_l, int **max_l){
+PRIVATE INLINE void preparePosteriorBoundaries(int size, int shift, int *min_k, int *max_k, int **min_l, int **max_l){
   int i;
   *min_k  = INF;
   *max_k  = 0;
@@ -3527,7 +3527,7 @@ INLINE PRIVATE void preparePosteriorBoundaries(int size, int shift, int *min_k, 
   *max_l  -= shift;
 }
 
-INLINE PRIVATE void updatePosteriorBoundaries(int d1, int d2, int *min_k, int *max_k, int **min_l, int **max_l){
+PRIVATE INLINE void updatePosteriorBoundaries(int d1, int d2, int *min_k, int *max_k, int **min_l, int **max_l){
   (*min_l)[d1]  = MIN2((*min_l)[d1], d2);
   (*max_l)[d1]  = MAX2((*max_l)[d1], d2);
   *min_k        = MIN2(*min_k, d1);
@@ -3588,7 +3588,7 @@ INLINE  PRIVATE void  prepareArray2(unsigned long ***array, int min_k, int max_k
 */
 
 /* crosslink data from vars->compatibility to TwoDfold_vars structure */
-INLINE PRIVATE void
+PRIVATE INLINE void
 crosslink(TwoDfold_vars *vars){
 
   vrna_fold_compound  *c;

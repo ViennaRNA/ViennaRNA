@@ -119,7 +119,7 @@ wrap_eval_loop_pt(vrna_fold_compound *vc,
                   const short *pt,
                   int verbosity);
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 eval_int_loop(vrna_fold_compound *vc,
               int i,
               int j,
@@ -433,7 +433,7 @@ vrna_eval_move_pt(vrna_fold_compound *vc,
 #################################
 */
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 eval_int_loop(vrna_fold_compound *vc,
               int i,
               int j,
@@ -477,7 +477,7 @@ eval_int_loop(vrna_fold_compound *vc,
                             P, sc);
 }
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 eval_ext_int_loop(vrna_fold_compound *vc,
                   int i,
                   int j,

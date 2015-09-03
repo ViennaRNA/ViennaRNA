@@ -289,19 +289,25 @@
  *  @ingroup  generalized_sc
  *
  */
-#define VRNA_DECOMP_ML_UP_3     4
+#define VRNA_DECOMP_ML_STEM     4
 
 /**
  *  @ingroup  generalized_sc
  *
  */
-#define VRNA_DECOMP_ML_UP_5     6
+#define VRNA_DECOMP_ML_ML       6
 
 /**
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_ML_UP       11
+
+/**
+ *  @ingroup  generalized_sc
+ *
+ */
+#define VRNA_DECOMP_ML_COAXIAL  13
 
 /**
  *  @ingroup  generalized_sc
@@ -319,19 +325,49 @@
  *  @ingroup  generalized_sc
  *
  */
-#define VRNA_DECOMP_EXT_UP_5    10
-
-/**
- *  @ingroup  generalized_sc
- *
- */
 #define VRNA_DECOMP_EXT_UP      8
 
 /**
  *  @ingroup  generalized_sc
  *
  */
-#define VRNA_DECOMP_EXT_STEM_UP 12
+#define VRNA_DECOMP_EXT_STEM 14
+
+/**
+ *  @ingroup  generalized_sc
+ *
+ */
+#define VRNA_DECOMP_EXT_EXT_EXT 15
+
+/**
+ *  @ingroup  generalized_sc
+ *
+ */
+#define VRNA_DECOMP_EXT_STEM_EXT 16
+
+/**
+ *  @ingroup  generalized_sc
+ *
+ */
+#define VRNA_DECOMP_EXT_STEM_OUTSIDE 17
+
+/**
+ *  @ingroup  generalized_sc
+ *
+ */
+#define VRNA_DECOMP_EXT_EXT_STEM 18
+
+/**
+ *  @ingroup  generalized_sc
+ *
+ */
+#define VRNA_DECOMP_EXT_EXT_STEM1 19
+
+/**
+ *  @ingroup  generalized_sc
+ *
+ */
+#define VRNA_DECOMP_ML_ML_STEM 20
 
 
 /**

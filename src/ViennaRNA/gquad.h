@@ -165,14 +165,14 @@ INLINE  PRIVATE int backtrack_GQuad_IntLoop_L(int c,
                                               int *q,
                                               vrna_param_t *P);
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_BT_gquad_mfe(vrna_fold_compound *vc,
                   int i,
                   int j,
                   bondT *bp_stack,
                   int *stack_count);
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_BT_gquad_int(vrna_fold_compound *vc,
                   int i,
                   int j,
@@ -180,7 +180,7 @@ vrna_BT_gquad_int(vrna_fold_compound *vc,
                   bondT *bp_stack,
                   int *stack_count);
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_BT_gquad_mfe(vrna_fold_compound *vc,
                   int i,
                   int j,
@@ -219,7 +219,7 @@ vrna_BT_gquad_mfe(vrna_fold_compound *vc,
   }
 }
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_BT_gquad_int(vrna_fold_compound *vc,
                   int i,
                   int j,
@@ -507,7 +507,7 @@ INLINE  PRIVATE int backtrack_GQuad_IntLoop_L(int c,
   return 0;
 }
 
-INLINE PRIVATE
+PRIVATE INLINE
 int
 E_GQuad_IntLoop(int i,
                 int j,
@@ -640,7 +640,7 @@ E_GQuad_IntLoop(int i,
   return ge;
 }
 
-INLINE PRIVATE
+PRIVATE INLINE
 int *
 E_GQuad_IntLoop_exhaustive( int i,
                             int j,
@@ -739,7 +739,7 @@ E_GQuad_IntLoop_exhaustive( int i,
   return ge;
 }
 
-INLINE PRIVATE
+PRIVATE INLINE
 int
 E_GQuad_IntLoop_L(int i,
                   int j,
@@ -816,7 +816,7 @@ E_GQuad_IntLoop_L(int i,
   return ge;
 }
 
-INLINE PRIVATE
+PRIVATE INLINE
 FLT_OR_DBL
 exp_E_GQuad_IntLoop(int i,
                     int j,

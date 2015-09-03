@@ -102,12 +102,12 @@ exp_E_Hairpin(  int u,
                 vrna_exp_param_t *P);
 
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_eval_hp_loop(vrna_fold_compound *vc,
                   int i,
                   int j);
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
                       int i,
                       int j);
@@ -118,7 +118,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
 #################################
 */
 
-INLINE PRIVATE int
+PRIVATE INLINE int
 E_Hairpin(int size,
           int type,
           int si1,
@@ -170,7 +170,7 @@ E_Hairpin(int size,
  *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
  *
  */
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_E_hp_loop( vrna_fold_compound *vc,
                 int i,
                 int j){
@@ -196,7 +196,7 @@ vrna_E_hp_loop( vrna_fold_compound *vc,
  *  @brief  Evaluate the free energy of an exterior hairpin loop
  *          and consider possible hard constraints
  */
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_E_ext_hp_loop( vrna_fold_compound *vc,
                     int i,
                     int j){
@@ -224,7 +224,7 @@ vrna_E_ext_hp_loop( vrna_fold_compound *vc,
  *  @ingroup eval
  *
  */
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
                       int i,
                       int j){
@@ -278,7 +278,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
  *  @param  j   3'-position of the base pair
  *  @returns    Free energy of the hairpin loop closed by @f$ (i,j) @f$ in deka-kal/mol
  */
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_eval_hp_loop(vrna_fold_compound *vc,
                   int i,
                   int j){
@@ -387,7 +387,7 @@ vrna_eval_hp_loop(vrna_fold_compound *vc,
 */
 
 
-INLINE PRIVATE double
+PRIVATE INLINE double
 exp_E_Hairpin(int u,
               int type,
               short si1,
@@ -443,7 +443,7 @@ exp_E_Hairpin(int u,
  *
  *  @see E_hp_loop() for it's free energy counterpart
 */
-INLINE PRIVATE double
+PRIVATE INLINE double
 vrna_exp_E_hp_loop( vrna_fold_compound *vc,
                     int i,
                     int j){
@@ -501,7 +501,7 @@ vrna_exp_E_hp_loop( vrna_fold_compound *vc,
  *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
  *
  */
-INLINE PRIVATE int
+PRIVATE INLINE int
 vrna_BT_hp_loop(vrna_fold_compound *vc,
                 int i,
                 int j,
