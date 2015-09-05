@@ -86,13 +86,18 @@ int main(int argc, char *argv[]){
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
   if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
   /* set pf scaling factor */
+  /*
   if(args_info.pfScale_given)     sfact = args_info.pfScale_arg;
+  */
+
   /* partition function settings */
+  /*
   if(args_info.partfunc_given){
     pf = 1;
     if(args_info.partfunc_arg != -1)
       do_backtrack = args_info.partfunc_arg;
   }
+  */
   /* set cfactor */
   if(args_info.cfactor_given){
     cv_fact = args_info.cfactor_arg;
@@ -106,7 +111,10 @@ int main(int argc, char *argv[]){
   /* set the maximum base pair span */
   if(args_info.span_given)        maxdist = args_info.span_arg;
   /* set the pair probability cutoff */
+  /*
   if(args_info.cutoff_given)      cutoff  = args_info.cutoff_arg;
+  */
+
   /* calculate most informative sequence */
   if(args_info.mis_given)         mis = 1;
   if(args_info.csv_given)         csv = 1;
