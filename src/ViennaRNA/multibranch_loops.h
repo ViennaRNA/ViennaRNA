@@ -708,7 +708,7 @@ vrna_exp_E_mb_loop_fast( vrna_fold_compound *vc,
 
     if(sc){
       if(sc->exp_en_basepair)
-        qqqmmm *= sc->exp_en_basepair[my_iindx[i] + j];
+        qqqmmm *= sc->exp_en_basepair[my_iindx[i] - j];
 
       if(sc->exp_f){
         qqqmmm *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_ML, sc->data);
