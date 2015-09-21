@@ -2007,6 +2007,7 @@ recycle_last_call(const char *string,
   } else {
     md = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
     vrna_md_set_globals(md);
+    cleanup = 1;
   }
 
   if(string){
