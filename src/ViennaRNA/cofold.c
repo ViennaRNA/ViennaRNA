@@ -305,6 +305,15 @@ fill_arrays(vrna_fold_compound  *vc,
 
   energy = my_f5[length];
   if (cp<1) mfe1=mfe2=energy;
+
+  /* clean up memory */
+  free(cc);
+  free(cc1);
+  free(Fmi);
+  free(DMLi);
+  free(DMLi1);
+  free(DMLi2);
+
   return energy;
 }
 
