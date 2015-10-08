@@ -9,7 +9,13 @@ EXTRA_DIST = \
   RNAfold.pl \
   test.pl \
   RNAfold.cgi \
-  Makefile.PL
+  Makefile.PL \
+  RNA/Benchmark.pm \
+  RNA/Design.pm \
+  RNA/Files.pm \
+  RNA/Reliability.pm \
+  RNA/Utils.pm \
+  RNA/t/Design.t
 
 AM_CPPFLAGS = -I$(top_srcdir)/src
 
