@@ -175,7 +175,7 @@ sub check_input_costfunction {
     }
   }
   my $nakedfun = $optfun;
-  foreach my $fb ('eos', 'efe', 'prob', '_circ') {
+  foreach my $fb ('eos', 'efe', 'prob', '_circ', 'barr') {
     $nakedfun =~ s/$fb//g;
   }
   die "cannot interpret \'$&\' in objective function" if ($nakedfun =~ m/[^\-\+\/\(\)\.\*\d\,\s]+/g);
