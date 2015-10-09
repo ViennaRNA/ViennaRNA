@@ -50,6 +50,7 @@ GetOptions(
 
 read_input(\@structs, \$constr, \$length, \$cutpnt);
 
+--$length if $cutpnt != -1;
 $constr = 'N' x $length unless $constr;
 
 # ******************* #
