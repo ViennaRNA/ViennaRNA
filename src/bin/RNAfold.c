@@ -102,7 +102,6 @@ int main(int argc, char *argv[]){
   double          MEAgamma, bppmThreshold, betaScale;
   char            *infile, *outfile;
 ;
-  int               out_v, out_hx, out_ct, out_bps;
   vrna_param_t      *mfe_parameters;
   vrna_exp_param_t  *pf_parameters;
   vrna_md_t         md;
@@ -139,8 +138,6 @@ int main(int argc, char *argv[]){
   infile        = NULL;
   input         = NULL;
   output        = NULL;
-  out_v         = 1;  /* default to thermodynamic properties and dot bracket string */
-  out_hx = out_ct = out_bps = 0;
 
   /* apply default model details */
   set_model_details(&md);
@@ -233,27 +230,6 @@ int main(int argc, char *argv[]){
   if(args_info.outfile_given){
     outfile = strdup(args_info.outfile_arg);
   }
-  if(args_info.format_given){
-    char *o,*s;
-    out_v = out_hx = out_ct = 0; /* reset defaults */
-    o = strdup(args_info.format_arg);
-    /* simply print to file */
-    s = strchr(o, 'V');
-    if(s != NULL)
-      out_v = 1;
-    /* print helix list? */
-    s = strchr(o, 'H');
-    if(s != NULL)
-      out_hx = 1;
-    /* print connect file? */
-    s = strchr(o, 'C');
-    if(s != NULL)
-      out_ct = 1;
-    /* print bpseq file? */
-    s = strchr(o, 'B');
-    if(s != NULL)
-      out_bps = 1;
-  }
   if(args_info.infile_given){
     infile = strdup(args_info.infile_arg);
   }
@@ -304,7 +280,7 @@ int main(int argc, char *argv[]){
     }
   }
 
-  istty = isatty(fileno(stdout))&&isatty(fileno(stdin))&&(!infile);
+  istty = (!infile) && isatty(fileno(stdout)) && isatty(fileno(stdin));
 
   /* print user help if we get input from tty */
   if(istty){
@@ -406,18 +382,19 @@ int main(int argc, char *argv[]){
 
     if(istty) printf("length = %d\n", length);
 
-    if(out_v){
-      if(outfile){
-        v_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
-        strcpy(v_file_name, prefix);
-        strcat(v_file_name, ".fold");
+    if(outfile){
+      v_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
+      strcpy(v_file_name, prefix);
+      strcat(v_file_name, ".fold");
 
-        output = fopen((const char *)v_file_name, "a");
-        if(!output)
-          vrna_message_error("Failed to open file for writing");
-      } else {
-        output = stdout;
-      }
+      if(infile && !strcmp(infile, v_file_name))
+        vrna_message_error("Input and output file names are identical");
+
+      output = fopen((const char *)v_file_name, "a");
+      if(!output)
+        vrna_message_error("Failed to open file for writing");
+    } else {
+      output = stdout;
     }
 
     /*
@@ -430,10 +407,6 @@ int main(int argc, char *argv[]){
 
     min_en = (double)vrna_fold(vc, structure);
 
-    char *hx_file_name  = NULL;
-    char *ct_file_name  = NULL;
-    char *bps_file_name = NULL;
-
     if(!lucky){
       if(output){
         fprintf(output, "%s\n%s", orig_sequence, structure);
@@ -444,60 +417,6 @@ int main(int argc, char *argv[]){
 
         (void) fflush(output);
 
-      }
-
-      if(outfile){
-
-        if(out_hx){
-          hx_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
-          strcpy(hx_file_name, prefix);
-          strcat(hx_file_name, ".hx");
-
-          FILE *fp = fopen((const char *)hx_file_name, "a");
-          if(!fp)
-            vrna_message_error("Failed to open file for writing");
-
-          vrna_structure_print_hx((const char *)orig_sequence,
-                                  (const char *)structure,
-                                  min_en,
-                                  fp);
-
-          fclose(fp);
-        }
-        
-        if(out_ct){
-          ct_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
-          strcpy(ct_file_name, prefix);
-          strcat(ct_file_name, ".ct");
-
-          FILE *fp = fopen((const char *)ct_file_name, "a");
-          if(!fp)
-            vrna_message_error("Failed to open file for writing");
-
-          vrna_structure_print_ct((const char *)orig_sequence,
-                                  (const char *)structure,
-                                  min_en,
-                                  (const char *)(fname[0] != '\0' ? fname : "MFE-structure"),
-                                  fp);
-
-          fclose(fp);
-        }
-
-        if(out_bps){
-          bps_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 11));
-          strcpy(bps_file_name, prefix);
-          strcat(bps_file_name, ".bpseq");
-
-          FILE *fp = fopen((const char *)bps_file_name, "a");
-          if(!fp)
-            vrna_message_error("Failed to open file for writing");
-
-          vrna_structure_print_bpseq( (const char *)orig_sequence,
-                                      (const char *)structure,
-                                      fp);
-
-          fclose(fp);
-        }
       }
 
       if(fname[0] != '\0'){
