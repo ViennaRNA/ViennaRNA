@@ -12,7 +12,7 @@ args "--file-name=RNAfold_cmdl --include-getopt --default-optional --func-name=R
 
 
 description "The program reads RNA sequences, calculates their minimum free energy (mfe) structure\
- and prints the mfe structure in bracket notation and its free energy. If not specified differently
+ and prints the mfe structure in bracket notation and its free energy. If not specified differently\
  using commandline arguments, input is accepted from stdin, and output printed to stdout. If the -p option\
  was given it also computes the partition function (pf) and base pairing probability matrix, and\
  prints the free energy of the thermodynamic ensemble, the frequency of the mfe structure in the ensemble,\
@@ -85,7 +85,7 @@ hidden
 option  "outfile" o
 "Print output to file instead of stdout\n"
 details="Specifying a file name/prefix will create text output files in formats specified with the --output option.\
- If a FASTA header precedes the input sequence, the appropriate fasta ID is used as infix for the file name.\
+ If a FASTA header precedes the input sequence, the appropriate fasta ID is used as infix for the file name.\n\n"
 string
 typestr="<filename>"
 optional
