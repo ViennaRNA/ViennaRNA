@@ -395,7 +395,7 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   by = (int**) vrna_alloc(sizeof(int *) * (n3+1));
   inx= (int**) vrna_alloc(sizeof(int *) * (n3+1));
   iny= (int**) vrna_alloc(sizeof(int *) * (n3+1));
-  #pragma omp 
+  #pragma omp
   for (i=0; i<=n3; i++){
     c[i]  = (int *) vrna_alloc(sizeof(int) * (n4+1));
     in[i] = (int *) vrna_alloc(sizeof(int) * (n4+1));
@@ -447,14 +447,16 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
 
 
 
-//    DJ[0][j] = access_s2[5][jdiff+4] - access_s2[4][jdiff+4]           ;
-//    DJ[1][j] = access_s2[5][jdiff+5] - access_s2[4][jdiff+5] + DJ[0][j];
-//    DJ[2][j] = access_s2[5][jdiff+6] - access_s2[4][jdiff+6] + DJ[1][j];
-//    DJ[3][j] = access_s2[5][jdiff+7] - access_s2[4][jdiff+7] + DJ[2][j];
-//    DJ[0][j] = MIN2(DJ[0][j],maxPenalty[0]);
-//    DJ[1][j] = MIN2(DJ[1][j],maxPenalty[1]);
-//    DJ[2][j] = MIN2(DJ[2][j],maxPenalty[2]);
-//    DJ[3][j] = MIN2(DJ[3][j],maxPenalty[3]);
+/*
+    DJ[0][j] = access_s2[5][jdiff+4] - access_s2[4][jdiff+4]           ;
+    DJ[1][j] = access_s2[5][jdiff+5] - access_s2[4][jdiff+5] + DJ[0][j];
+    DJ[2][j] = access_s2[5][jdiff+6] - access_s2[4][jdiff+6] + DJ[1][j];
+    DJ[3][j] = access_s2[5][jdiff+7] - access_s2[4][jdiff+7] + DJ[2][j];
+    DJ[0][j] = MIN2(DJ[0][j],maxPenalty[0]);
+    DJ[1][j] = MIN2(DJ[1][j],maxPenalty[1]);
+    DJ[2][j] = MIN2(DJ[2][j],maxPenalty[2]);
+    DJ[3][j] = MIN2(DJ[3][j],maxPenalty[3]);
+*/
   }
 
   /**
@@ -471,14 +473,16 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
     di2 = 0.5*(access_s1[5][idiff+3] - access_s1[4][idiff+3] + access_s1[5][idiff-1] - access_s1[4][idiff-2]) + di1;
     di3 = 0.5*(access_s1[5][idiff+2] - access_s1[4][idiff+2] + access_s1[5][idiff-2] - access_s1[4][idiff-3]) + di2;
     di4 = 0.5*(access_s1[5][idiff+1] - access_s1[4][idiff+1] + access_s1[5][idiff-3] - access_s1[4][idiff-4]) + di3;
-//    di1 =  access_s1[5][idiff]   - access_s1[4][idiff-1];
-//    di2 =  access_s1[5][idiff-1] - access_s1[4][idiff-2] + di1;
-//    di3 =  access_s1[5][idiff-2] - access_s1[4][idiff-3] + di2;
-//    di4 =  access_s1[5][idiff-3] - access_s1[4][idiff-4] + di3;
-  //  di1=MIN2(di1,maxPenalty[0]);
-  //  di2=MIN2(di2,maxPenalty[1]);
-  //  di3=MIN2(di3,maxPenalty[2]);
-  //  di4=MIN2(di4,maxPenalty[3]);
+/*
+    di1 =  access_s1[5][idiff]   - access_s1[4][idiff-1];
+    di2 =  access_s1[5][idiff-1] - access_s1[4][idiff-2] + di1;
+    di3 =  access_s1[5][idiff-2] - access_s1[4][idiff-3] + di2;
+    di4 =  access_s1[5][idiff-3] - access_s1[4][idiff-4] + di3;
+    di1=MIN2(di1,maxPenalty[0]);
+    di2=MIN2(di2,maxPenalty[1]);
+    di3=MIN2(di3,maxPenalty[2]);
+    di4=MIN2(di4,maxPenalty[3]);
+*/
     j=n4-9;
     min_colonne=INF;
     while (10 < --j) {
@@ -493,7 +497,9 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
       /**
       *** Start duplex
       **/
-      //  c[i][j]=type ? P->DuplexInit + access_s1[1][idiff]+access_s2[1][jdiff] : INF;
+      /*
+      c[i][j]=type ? P->DuplexInit + access_s1[1][idiff]+access_s2[1][jdiff] : INF;
+      */
       c[i][j]=type ? P->DuplexInit: INF;
       /**
       *** update lin bx by linx liny matrix
@@ -610,7 +616,9 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
       *** 0xn n>1
       **/
       c[i][j]=MIN2(by[i - 1][j+2]+di1+dj2+bext+bAU, c[i][j]);
-      // remove this line printf("%d\t",c[i][j]);
+      /*
+      remove this line printf("%d\t",c[i][j]);
+      */
       temp=min_colonne;
       min_colonne=MIN2(c[i][j]+ E_ExtLoop(rtype[type], SS2[j-1], SS1[i+1], P),min_colonne);
       if(temp>min_colonne){
@@ -624,7 +632,9 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
       max_pos_j=min_j_colonne;
     }
     i++;
-    //remove this line printf("\n");
+    /*
+    remove this line printf("\n");
+    */
   }
   Emin=max;
   if(Emin>threshold){
@@ -674,8 +684,8 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   mfe.energy = (double) dGeplex * 0.01;
   mfe.opening_backtrack_x = (double) dGx * 0.01;
   mfe.opening_backtrack_y = (double) dGy * 0.01;
-  mfe.dG1=0;//!remove access to complete access array (double) access_s1[lengthx][endx+10] * 0.01;
-  mfe.dG2=0;//!remove access to complete access array (double) access_s2[lengthy][endy+10] * 0.01;
+  mfe.dG1=0;/* !remove access to complete access array (double) access_s1[lengthx][endx+10] * 0.01; */
+  mfe.dG2=0;/* !remove access to complete access array (double) access_s2[lengthy][endy+10] * 0.01; */
   free(S1); free(S2); free(SS1); free(SS2);
   for (i=0; i<=n3; i++) {
     free(c[i]);
@@ -742,31 +752,35 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
     di2 = 0.5*(access_s1[5][idiff+3] - access_s1[4][idiff+3] + access_s1[5][idiff-1] - access_s1[4][idiff-2]) + di1;
     di3 = 0.5*(access_s1[5][idiff+2] - access_s1[4][idiff+2] + access_s1[5][idiff-2] - access_s1[4][idiff-3]) + di2;
     di4 = 0.5*(access_s1[5][idiff+1] - access_s1[4][idiff+1] + access_s1[5][idiff-3] - access_s1[4][idiff-4]) + di3;
-//    di1 = access_s1[5][idiff]   - access_s1[4][idiff-1];
-//    di2 = access_s1[5][idiff-1] - access_s1[4][idiff-2] + di1;
-//    di3 = access_s1[5][idiff-2] - access_s1[4][idiff-3] + di2;
-//    di4 = access_s1[5][idiff-3] - access_s1[4][idiff-4] + di3;
-//    di1=MIN2(di1,maxPenalty[0]);
-//    di2=MIN2(di2,maxPenalty[1]);
-//    di3=MIN2(di3,maxPenalty[2]);
-//    di4=MIN2(di4,maxPenalty[3]);
+/*
+    di1 = access_s1[5][idiff]   - access_s1[4][idiff-1];
+    di2 = access_s1[5][idiff-1] - access_s1[4][idiff-2] + di1;
+    di3 = access_s1[5][idiff-2] - access_s1[4][idiff-3] + di2;
+    di4 = access_s1[5][idiff-3] - access_s1[4][idiff-4] + di3;
+    di1=MIN2(di1,maxPenalty[0]);
+    di2=MIN2(di2,maxPenalty[1]);
+    di3=MIN2(di3,maxPenalty[2]);
+    di4=MIN2(di4,maxPenalty[3]);
+*/
     int dj1,dj2,dj3,dj4;
     jdiff=j_pos+j-11;
-    dj1=0.5*(access_s2[5][jdiff+4] - access_s2[4][jdiff+4] + access_s2[5][jdiff]  -access_s2[4][jdiff-1]  );	    
+    dj1=0.5*(access_s2[5][jdiff+4] - access_s2[4][jdiff+4] + access_s2[5][jdiff]  -access_s2[4][jdiff-1]  );
     dj2=0.5*(access_s2[5][jdiff+5] - access_s2[4][jdiff+5] + access_s2[5][jdiff+1]-access_s2[4][jdiff]  ) + dj1;
     dj3=0.5*(access_s2[5][jdiff+6] - access_s2[4][jdiff+6] + access_s2[5][jdiff+2]-access_s2[4][jdiff+1]) + dj2;
     dj4=0.5*(access_s2[5][jdiff+7] - access_s2[4][jdiff+7] + access_s2[5][jdiff+3]-access_s2[4][jdiff+2]) + dj3;
 
 
 
-//    dj1 = access_s2[5][jdiff+4] - access_s2[4][jdiff+4];
-//    dj2 = access_s2[5][jdiff+5] - access_s2[4][jdiff+5] + dj1;
-//    dj3 = access_s2[5][jdiff+6] - access_s2[4][jdiff+6] + dj2;
-//    dj4 = access_s2[5][jdiff+7] - access_s2[4][jdiff+7] + dj3;
-  //  dj1=MIN2(dj1,maxPenalty[0]);
-  //  dj2=MIN2(dj2,maxPenalty[1]);
-  //  dj3=MIN2(dj3,maxPenalty[2]);
-  //  dj4=MIN2(dj4,maxPenalty[3]);
+/*
+    dj1 = access_s2[5][jdiff+4] - access_s2[4][jdiff+4];
+    dj2 = access_s2[5][jdiff+5] - access_s2[4][jdiff+5] + dj1;
+    dj3 = access_s2[5][jdiff+6] - access_s2[4][jdiff+6] + dj2;
+    dj4 = access_s2[5][jdiff+7] - access_s2[4][jdiff+7] + dj3;
+    dj1=MIN2(dj1,maxPenalty[0]);
+    dj2=MIN2(dj2,maxPenalty[1]);
+    dj3=MIN2(dj3,maxPenalty[2]);
+    dj4=MIN2(dj4,maxPenalty[3]);
+*/
     traced=0;
     switch(state){
     case 1:
@@ -1171,17 +1185,19 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
     *dGplex+=correction;
     E-=correction;
 
-// if (E != P->DuplexInit+access_s1[1][idiff]+access_s2[1][jdiff]) {
-//      vrna_message_error("backtrack failed in second fold duplex");
-//    }
+/*
+ if (E != P->DuplexInit+access_s1[1][idiff]+access_s2[1][jdiff]) {
+      vrna_message_error("backtrack failed in second fold duplex");
+    }
+*/
     if (E != P->DuplexInit) {
       vrna_message_error("backtrack failed in second fold duplex");
     }
     else{
       *dG+=P->DuplexInit;
       *dGplex+=P->DuplexInit;
-      *dGx+=0;//access_s1[1][idiff];
-      *dGy+=0;//access_s2[1][jdiff];
+      *dGx+=0;/* access_s1[1][idiff]; */
+      *dGy+=0;/* access_s2[1][jdiff]; */
       st1[i-1]='(';
       st2[j-1]=')';
     }
@@ -1264,14 +1280,16 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
     DJ[1][j] = 0.5*(access_s2[5][j+5] - access_s2[4][j+5] + access_s2[5][j+1]-access_s2[4][j]  ) + DJ[0][j];
     DJ[2][j] = 0.5*(access_s2[5][j+6] - access_s2[4][j+6] + access_s2[5][j+2]-access_s2[4][j+1]) + DJ[1][j];
     DJ[3][j] = 0.5*(access_s2[5][j+7] - access_s2[4][j+7] + access_s2[5][j+3]-access_s2[4][j+2]) + DJ[2][j];
-//    DJ[0][j] = access_s2[5][j+4] - access_s2[4][j+4]           ;
-//    DJ[1][j] = access_s2[5][j+5] - access_s2[4][j+5] + DJ[0][j];
-//    DJ[2][j] = access_s2[5][j+6] - access_s2[4][j+6] + DJ[1][j];
-//    DJ[3][j] = access_s2[5][j+7] - access_s2[4][j+7] + DJ[2][j];
-    //DJ[0][j] = MIN2(DJ[0][j],maxPenalty[0]);
-    //DJ[1][j] = MIN2(DJ[1][j],maxPenalty[1]);
-    //DJ[2][j] = MIN2(DJ[2][j],maxPenalty[2]);
-    //DJ[3][j] = MIN2(DJ[3][j],maxPenalty[3]);
+/*
+    DJ[0][j] = access_s2[5][j+4] - access_s2[4][j+4]           ;
+    DJ[1][j] = access_s2[5][j+5] - access_s2[4][j+5] + DJ[0][j];
+    DJ[2][j] = access_s2[5][j+6] - access_s2[4][j+6] + DJ[1][j];
+    DJ[3][j] = access_s2[5][j+7] - access_s2[4][j+7] + DJ[2][j];
+    DJ[0][j] = MIN2(DJ[0][j],maxPenalty[0]);
+    DJ[1][j] = MIN2(DJ[1][j],maxPenalty[1]);
+    DJ[2][j] = MIN2(DJ[2][j],maxPenalty[2]);
+    DJ[3][j] = MIN2(DJ[3][j],maxPenalty[3]);
+*/
   }
   /**
   *** instead of having 4 2-dim arrays we use a unique 1-dim array
@@ -1311,14 +1329,16 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
     di2 = 0.5*(access_s1[5][i+3] - access_s1[4][i+3] + access_s1[5][i-1] - access_s1[4][i-2]) + di1;
     di3 = 0.5*(access_s1[5][i+2] - access_s1[4][i+2] + access_s1[5][i-2] - access_s1[4][i-3]) + di2;
     di4 = 0.5*(access_s1[5][i+1] - access_s1[4][i+1] + access_s1[5][i-3] - access_s1[4][i-4]) + di3;
-//    di1 = access_s1[5][i]   - access_s1[4][i-1];
-//    di2 = access_s1[5][i-1] - access_s1[4][i-2] + di1;
-//    di3 = access_s1[5][i-2] - access_s1[4][i-3] + di2;
-//    di4 = access_s1[5][i-3] - access_s1[4][i-4] + di3;
-//    di1=MIN2(di1,maxPenalty[0]);
-//    di2=MIN2(di2,maxPenalty[1]);
-//    di3=MIN2(di3,maxPenalty[2]);
-//    di4=MIN2(di4,maxPenalty[3]);
+/*
+    di1 = access_s1[5][i]   - access_s1[4][i-1];
+    di2 = access_s1[5][i-1] - access_s1[4][i-2] + di1;
+    di3 = access_s1[5][i-2] - access_s1[4][i-3] + di2;
+    di4 = access_s1[5][i-3] - access_s1[4][i-4] + di3;
+    di1=MIN2(di1,maxPenalty[0]);
+    di2=MIN2(di2,maxPenalty[1]);
+    di3=MIN2(di3,maxPenalty[2]);
+    di4=MIN2(di4,maxPenalty[3]);
+*/
     j=n2 - 9;
     while (--j > 9) {
       int dj1,dj2,dj3,dj4;
@@ -1331,7 +1351,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
       /**
       *** Start duplex
       **/
-      //SA[LCI(idx,j,n2)] = type ? P->DuplexInit + access_s1[1][i] + access_s2[1][j] : INF;
+      /* SA[LCI(idx,j,n2)] = type ? P->DuplexInit + access_s1[1][i] + access_s2[1][j] : INF; */
       SA[LCI(idx,j,n2)] = type ? P->DuplexInit : INF;
       /**
       *** update lin bx by linx liny matrix
@@ -1454,8 +1474,8 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
       *** P->dangle3[rtype[type]][SS1[i+1]]+
       *** P->dangle5[rtype[type]][SS2[j-1]],
       **/
-      //remove this line printf("LCI %d:%d %d\t",i,j,SA[LCI(idx,j,n2)]);
-      //remove this line printf("LI %d:%d %d\t",i,j, SA[LINI(idx,j,n2)]);
+      /* remove this line printf("LCI %d:%d %d\t",i,j,SA[LCI(idx,j,n2)]); */
+      /* remove this line printf("LI %d:%d %d\t",i,j, SA[LINI(idx,j,n2)]); */
       min_colonne=MIN2(SA[LCI(idx,j,n2)]+E_ExtLoop(rtype[type], SS2[j-1] , SS1[i+1] , P), min_colonne);
 
       if(temp>min_colonne){
@@ -1471,7 +1491,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
     }
     position[i+delta]=min_colonne;min_colonne=INF;
     position_j[i+delta]=min_j_colonne;
-    //remove this line printf("\n");
+    /* remove this line printf("\n"); */
     i++;
   }
   /* printf("MAX: %d",max); */
@@ -1534,7 +1554,7 @@ PRIVATE void find_max_XS(const int *position, const int *position_j,const int de
            pos=1 -> position 1 in the sequence (and not 0 like in C)
            max_pos_j -> position 1 in the sequence ( not 0 like in C)
         */
-	int alignment_length2; alignment_length2 = MIN2(n1,n2);
+        int alignment_length2; alignment_length2 = MIN2(n1,n2);
         int begin_t=MAX2(11, pos-alignment_length2+1);/* 10 */
         int end_t  =MIN2(n1-10, pos+1);
         int begin_q=MAX2(11, max_pos_j-1); /* 10 */
@@ -1561,7 +1581,7 @@ PRIVATE void find_max_XS(const int *position, const int *position_j,const int de
           pos=MAX2(10,pos+temp_min-delta);
           free(test.structure);
         }
-	free(s3);free(s4);
+        free(s3);free(s4);
       }
     }
   }
@@ -1649,8 +1669,8 @@ PRIVATE void plot_max_XS(const int max, const int max_pos, const int max_pos_j, 
            begin_q-10 + test.j-1-10 ,
            (begin_q -11) + test.j + strlen(test.structure)-l1-2-10,
            test.ddG, test.energy, test.opening_backtrack_x, test.opening_backtrack_y, test.energy_backtrack,
-	   max_pos-10, max_pos_j-10, (double) max/100);
-           
+           max_pos-10, max_pos_j-10, (double) max/100);
+
     free(s3);free(s4);
     free(test.structure);
   }
@@ -2692,7 +2712,7 @@ PRIVATE void find_max(const int *position, const int *position_j,const int delta
            pos=1 -> position 1 in the sequence (and not 0 like in C)
            max_pos_j -> position 1 in the sequence ( not 0 like in C)
         */
-	int alignment_length2; alignment_length2 = MIN2(n1,n2);
+        int alignment_length2; alignment_length2 = MIN2(n1,n2);
         int begin_t=MAX2(11, pos-alignment_length2+1);/* 10 */
         int end_t  =MIN2(n1-10, pos+1);
         int begin_q=MAX2(11, max_pos_j-1); /* 10 */
@@ -2722,91 +2742,93 @@ PRIVATE void find_max(const int *position, const int *position_j,const int delta
       }
     }
   }
-//  else if(fast==3){
-//    pos=n1-9;
-//    while(10 < pos--){
-//      int temp_min=0;
-//      if(position[pos+delta]<(threshold)){
-//        int search_range;
-//        search_range=delta+1;
-//        while(--search_range){
-//          if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
-//            temp_min=search_range;
-//          }
-//        }
-//        pos-=temp_min;
-//        int max_pos_j;
-//        max_pos_j=position_j[pos+delta];
-//        /* max_pos_j und pos entsprechen die realen position
-//           in der erweiterten sequenz.
-//           pos=1 -> position 1 in the sequence (and not 0 like in C)
-//           max_pos_j -> position 1 in the sequence ( not 0 like in C)
-//        */
-//	//Here we can start the reverse recursion for the 
-//	//Starting from the reported pos / max_pos_j we start the recursion
-//	//We have to be careful with the fact that all energies are inverted.
-//	
-//	int alignment_length2; 
-//	//Select the smallest interaction length in order to define the new interaction length
-//	alignment_length2 = MIN2(n1-pos + 1,max_pos_j - 1 + 1);
-//	//
-//	int begin_t=MAX2(11, pos-alignment_length2+1);/* 10 */
-//        int end_t  =MIN2(n1-10, pos+1);
-//        int begin_q=MAX2(11, max_pos_j-1); /* 10 */
-//        int end_q  =MIN2(n2-10, max_pos_j+alignment_length2-1);
-//        char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2 + 20));
-//        char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2 + 20));
-//	strcpy(s3,"NNNNNNNNNN");strcpy(s4,"NNNNNNNNNN");
-//        strncat(s3, (s1+begin_t-1),  end_t - begin_t +1);
-//        strncat(s4, (s2+begin_q-1) , end_q - begin_q +1);
-//        strcat(s3,"NNNNNNNNNN");strcat(s4,"NNNNNNNNNN");
-//        s3[end_t -begin_t +1 +20 ]='\0';
-//        s4[end_q -begin_q +1 +20]='\0';
-//        duplexT test;
-//        test = fduplexfold(s4, s3, extension_cost,il_a, il_b, b_a, b_b);
-//        if(test.energy * 100 < threshold){
-//	  int structureLength=strlen(test.structure);
-//          int l1=strchr(test.structure, '&')-test.structure;
-//	  int start_t,end_t,start_q,end_q;
-//	  
-// 
-//	  /*reverse structure string*/
-//	  char *reverseStructure = (char*) vrna_alloc(sizeof(char)*(structureLength+1));
-//	  int posStructure;
-//	  for(posStructure=l1+1; posStructure < structureLength; posStructure++){
-//	    if(test.structure[posStructure]==')'){
-//	      reverseStructure[posStructure-l1-1] = '(';
-//	    }
-//	    else{
-//	      reverseStructure[posStructure-l1-1] = test.structure[posStructure];
-//	    }
-//	  }
-//	  reverseStructure[structureLength-1-l1]='&';
-//	  for(posStructure=0; posStructure<l1; posStructure++){
-//	    if(test.structure[posStructure]=='('){
-//	      reverseStructure[structureLength+posStructure-l1] = ')';
-//	    }
-//	    else{
-//	      reverseStructure[structureLength+posStructure-l1] = test.structure[posStructure];
-//	    }
-//	  }
-//	  reverseStructure[structureLength]='\0';
-//	  //	  l1=strchr(reverse.structure, '&')-test.structure;
-//
-//	  
-//	  printf("%s %3d,%-3d : %3d,%-3d (%5.2f) [%5.2f] i:%d,j:%d <%5.2f>\n", reverseStructure,
-//		 begin_t-10 + test.j-1-10,
-//		 (begin_t -11) + test.j + strlen(test.structure)-l1-2-10,
-//                 begin_q-10+test.i-l1-10,
-//                 begin_q-10+test.i-1-10,
-//                 test.energy,test.energy_backtrack,pos, max_pos_j, ((double) position[pos+delta])/100);
-//          pos=MAX2(10,pos+temp_min-delta);
-//        }
-//        free(s3);free(s4);
-//        free(test.structure);
-//      }
-//    }
-//  }
+#if 0
+  else if(fast==3){
+    pos=n1-9;
+    while(10 < pos--){
+      int temp_min=0;
+      if(position[pos+delta]<(threshold)){
+        int search_range;
+        search_range=delta+1;
+        while(--search_range){
+          if(position[pos+delta-search_range]<=position[pos+delta-temp_min]){
+            temp_min=search_range;
+          }
+        }
+        pos-=temp_min;
+        int max_pos_j;
+        max_pos_j=position_j[pos+delta];
+        /* max_pos_j und pos entsprechen die realen position
+           in der erweiterten sequenz.
+           pos=1 -> position 1 in the sequence (and not 0 like in C)
+           max_pos_j -> position 1 in the sequence ( not 0 like in C)
+        */
+        //Here we can start the reverse recursion for the
+        //Starting from the reported pos / max_pos_j we start the recursion
+        //We have to be careful with the fact that all energies are inverted.
+
+        int alignment_length2;
+        //Select the smallest interaction length in order to define the new interaction length
+        alignment_length2 = MIN2(n1-pos + 1,max_pos_j - 1 + 1);
+        //
+        int begin_t=MAX2(11, pos-alignment_length2+1);/* 10 */
+        int end_t  =MIN2(n1-10, pos+1);
+        int begin_q=MAX2(11, max_pos_j-1); /* 10 */
+        int end_q  =MIN2(n2-10, max_pos_j+alignment_length2-1);
+        char *s3 = (char*) vrna_alloc(sizeof(char)*(end_t - begin_t +2 + 20));
+        char *s4 = (char*) vrna_alloc(sizeof(char)*(end_q - begin_q +2 + 20));
+        strcpy(s3,"NNNNNNNNNN");strcpy(s4,"NNNNNNNNNN");
+        strncat(s3, (s1+begin_t-1),  end_t - begin_t +1);
+        strncat(s4, (s2+begin_q-1) , end_q - begin_q +1);
+        strcat(s3,"NNNNNNNNNN");strcat(s4,"NNNNNNNNNN");
+        s3[end_t -begin_t +1 +20 ]='\0';
+        s4[end_q -begin_q +1 +20]='\0';
+        duplexT test;
+        test = fduplexfold(s4, s3, extension_cost,il_a, il_b, b_a, b_b);
+        if(test.energy * 100 < threshold){
+          int structureLength=strlen(test.structure);
+          int l1=strchr(test.structure, '&')-test.structure;
+          int start_t,end_t,start_q,end_q;
+
+
+          /*reverse structure string*/
+          char *reverseStructure = (char*) vrna_alloc(sizeof(char)*(structureLength+1));
+          int posStructure;
+          for(posStructure=l1+1; posStructure < structureLength; posStructure++){
+            if(test.structure[posStructure]==')'){
+              reverseStructure[posStructure-l1-1] = '(';
+            }
+            else{
+              reverseStructure[posStructure-l1-1] = test.structure[posStructure];
+            }
+          }
+          reverseStructure[structureLength-1-l1]='&';
+          for(posStructure=0; posStructure<l1; posStructure++){
+            if(test.structure[posStructure]=='('){
+              reverseStructure[structureLength+posStructure-l1] = ')';
+            }
+            else{
+              reverseStructure[structureLength+posStructure-l1] = test.structure[posStructure];
+            }
+          }
+          reverseStructure[structureLength]='\0';
+          //          l1=strchr(reverse.structure, '&')-test.structure;
+
+
+          printf("%s %3d,%-3d : %3d,%-3d (%5.2f) [%5.2f] i:%d,j:%d <%5.2f>\n", reverseStructure,
+                 begin_t-10 + test.j-1-10,
+                 (begin_t -11) + test.j + strlen(test.structure)-l1-2-10,
+                 begin_q-10+test.i-l1-10,
+                 begin_q-10+test.i-1-10,
+                 test.energy,test.energy_backtrack,pos, max_pos_j, ((double) position[pos+delta])/100);
+          pos=MAX2(10,pos+temp_min-delta);
+        }
+        free(s3);free(s4);
+        free(test.structure);
+      }
+    }
+  }
+#endif
   else{
     pos=n1-9;
     while(10 < pos--){
@@ -2827,7 +2849,7 @@ PRIVATE void find_max(const int *position, const int *position_j,const int delta
            pos=1 -> position 1 in the sequence (and not 0 like in C)
            max_pos_j -> position 1 in the sequence ( not 0 like in C)
         */
-	int alignment_length2; alignment_length2 = MIN2(n1,n2);
+        int alignment_length2; alignment_length2 = MIN2(n1,n2);
         int begin_t=MAX2(11, pos-alignment_length2+1);/* 10 */
         int end_t  =MIN2(n1-10, pos+1);
         int begin_q=MAX2(11, max_pos_j-1); /* 10 */
