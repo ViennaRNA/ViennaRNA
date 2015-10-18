@@ -320,6 +320,12 @@ vrna_hc_init(vrna_fold_compound *vc){
   /* prefill default values  */
   hc_reset_to_default(vc);
 
+  /* add null pointers for the generalized hard constraint feature */
+  hc->f     = NULL;
+  hc->pre   = NULL;
+  hc->post  = NULL;
+  hc->data  = NULL;
+
   /* update */
   hc_update_up(vc);
 }
@@ -488,6 +494,52 @@ vrna_hc_free(vrna_hc_t *hc){
     free(hc);
   }
 }
+
+PUBLIC void
+vrna_hc_add_f(vrna_fold_compound *vc,
+              char (*f)( vrna_fold_compound *, int, int, int, int, char),
+              void *data){
+
+  if(vc && f){
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->hc)
+        vrna_hc_init(vc);
+
+      vc->hc->f       = f;
+      if(data)
+        vc->hc->data  = data;
+    }
+  }
+}
+
+PUBLIC void
+vrna_hc_add_pre(vrna_fold_compound *vc,
+                void (*pre)( vrna_fold_compound *, char)){
+
+  if(vc && pre){
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->hc)
+        vrna_hc_init(vc);
+
+      vc->hc->pre = pre;
+    }
+  }
+}
+
+PUBLIC void
+vrna_hc_add_post( vrna_fold_compound *vc,
+                  void (*post)( vrna_fold_compound *, char)){
+
+  if(vc && post){
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->hc)
+        vrna_hc_init(vc);
+
+      vc->hc->post = post;
+    }
+  }
+}
+
 
 PRIVATE void
 apply_DB_constraint(const char *constraint,
@@ -848,6 +900,16 @@ hc_reset_to_default(vrna_fold_compound *vc){
           }
         }
   }
+
+  /* should we reset the generalized hard constraint feature here? */
+  if(hc->post || hc->f || hc->pre || hc->data){
+    hc->post(vc, (char)0);
+    hc->f     = NULL;
+    hc->pre   = NULL;
+    hc->post  = NULL;
+    hc->data  = NULL;
+  }
+
 }
 
 PRIVATE void
