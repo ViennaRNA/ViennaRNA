@@ -65,8 +65,6 @@
 #define ALLOC_PF_WO_PROBS         (ALLOC_F | ALLOC_C | ALLOC_FML)
 #define ALLOC_PF_DEFAULT          (ALLOC_PF_WO_PROBS | ALLOC_PROBS | ALLOC_AUX)
 
-
-
 /*
 #################################
 # GLOBAL VARIABLES              #
@@ -86,11 +84,14 @@
 */
 PRIVATE void            add_pf_matrices( vrna_fold_compound *vc, vrna_mx_t type, unsigned int alloc_vector);
 PRIVATE void            add_mfe_matrices(vrna_fold_compound *vc, vrna_mx_t type, unsigned int alloc_vector);
-PRIVATE void            set_fold_compound(vrna_fold_compound *vc, vrna_md_t *md_p, unsigned int options);
+PRIVATE void            set_fold_compound(vrna_fold_compound *vc, vrna_md_t *md_p, vrna_mx_t mx_type, unsigned int mx_alloc_vector, unsigned int options);
 PRIVATE void            make_pscores(vrna_fold_compound *vc);
 PRIVATE vrna_mx_mfe_t   *get_mfe_matrices_alloc(unsigned int n, vrna_mx_t type, unsigned int alloc_vector);
 PRIVATE vrna_mx_pf_t    *get_pf_matrices_alloc(unsigned int n, vrna_mx_t type, unsigned int alloc_vector);
-PRIVATE void            rescale_params( vrna_fold_compound *vc);
+PRIVATE void            rescale_params(vrna_fold_compound *vc);
+PRIVATE unsigned int    get_mx_alloc_vector(vrna_md_t *md_p, unsigned int options);
+PRIVATE void            add_params(vrna_fold_compound *vc, vrna_md_t *md_p, unsigned int options);
+
 
 /*
 #################################
@@ -746,6 +747,7 @@ vrna_get_fold_compound( const char *sequence,
                         unsigned int options){
 
   int length;
+  unsigned int mx_alloc_vector;
   vrna_fold_compound *vc;
   vrna_md_t           md;
 
@@ -756,10 +758,10 @@ vrna_get_fold_compound( const char *sequence,
   if(length == 0)
     vrna_message_error("vrna_get_fold_compound: sequence length must be greater 0");
 
-  vc            = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
-  vc->type      = VRNA_VC_TYPE_SINGLE;
-  vc->length    = length;
-  vc->sequence  = strdup(sequence);
+  vc              = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
+  vc->type        = VRNA_VC_TYPE_SINGLE;
+  vc->length      = length;
+  vc->sequence    = strdup(sequence);
 
   /* get a copy of the model details */
   if(md_p)
@@ -767,7 +769,9 @@ vrna_get_fold_compound( const char *sequence,
   else /* this fallback relies on global parameters and thus is not threadsafe */
     vrna_md_set_globals(&md);
 
-  set_fold_compound(vc, &md, options);
+  mx_alloc_vector = get_mx_alloc_vector(&md, options);
+
+  set_fold_compound(vc, &md, VRNA_MX_DEFAULT, mx_alloc_vector, options);
 
   return vc;
 }
@@ -778,6 +782,7 @@ vrna_get_fold_compound_ali( const char **sequences,
                             unsigned int options){
 
   int s, n_seq, length;
+  unsigned int mx_alloc_vector;
   vrna_fold_compound *vc;
   vrna_md_t           md;
   
@@ -810,7 +815,9 @@ vrna_get_fold_compound_ali( const char **sequences,
   else /* this fallback relies on global parameters and thus is not threadsafe */
     vrna_md_set_globals(&md);
 
-  set_fold_compound(vc, &md, options);
+  mx_alloc_vector = get_mx_alloc_vector(&md, options);
+
+  set_fold_compound(vc, &md, VRNA_MX_DEFAULT, mx_alloc_vector, options);
 
   return vc;
 }
@@ -823,6 +830,7 @@ vrna_get_fold_compound_2D(const char *sequence,
                           unsigned int options){
 
   int                 length, l, turn;
+  unsigned int        mx_alloc_vector;
   vrna_fold_compound  *vc;
   vrna_md_t           md;
 
@@ -842,10 +850,11 @@ vrna_get_fold_compound_2D(const char *sequence,
   if(l != length)
     vrna_message_error("vrna_get_fold_compound_2D: sequence and s2 differ in length");
 
-  vc            = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
-  vc->type      = VRNA_VC_TYPE_SINGLE;
-  vc->length    = length;
-  vc->sequence  = strdup(sequence);
+  vc              = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
+  vc->type        = VRNA_VC_TYPE_SINGLE;
+  vc->length      = length;
+  vc->sequence    = strdup(sequence);
+  mx_alloc_vector = ALLOC_NOTHING;
 
   /* get a copy of the model details */
   if(md_p)
@@ -856,8 +865,11 @@ vrna_get_fold_compound_2D(const char *sequence,
   /* always make uniq ML decomposition ! */
   md.uniq_ML = 1;
 
-  set_fold_compound(vc, &md, options | VRNA_OPTION_DIST_CLASS);
+  mx_alloc_vector = get_mx_alloc_vector(&md, options);
 
+  set_fold_compound(vc, &md, VRNA_MX_2DFOLD, mx_alloc_vector, options);
+
+  /* set all fields that are unique to Distance class partitioning... */
   turn  = vc->params->model_details.min_loop_size;
   vc->reference_pt1 = vrna_pt_get(s1);
   vc->reference_pt2 = vrna_pt_get(s2);
@@ -956,6 +968,36 @@ vrna_exp_params_rescale(vrna_fold_compound *vc,
 # BEGIN OF STATIC HELPER FUNCTIONS  #
 #####################################
 */
+PRIVATE unsigned int
+get_mx_alloc_vector(vrna_md_t *md_p, unsigned int options){
+  unsigned int  v;
+
+  v = ALLOC_NOTHING;
+
+  /* default MFE matrices ? */
+  if(options & VRNA_OPTION_MFE)
+    v |= ALLOC_MFE_DEFAULT;
+
+  /* default PF matrices ? */
+  if(options & VRNA_OPTION_PF)
+    v |= (md_p->compute_bpp) ? ALLOC_PF_DEFAULT : ALLOC_PF_WO_PROBS;
+
+  if(options & VRNA_OPTION_HYBRID)
+    v |= ALLOC_HYBRID;
+
+  /* matrices for circular folding ? */
+  if(md_p->circ){
+    md_p->uniq_ML = 1; /* we need unique ML arrays for circular folding */
+    v |= ALLOC_CIRC;
+  }
+
+  /* unique ML decomposition ? */
+  if(md_p->uniq_ML)
+    v |= ALLOC_UNIQ;
+
+  return v;
+}
+
 
 PRIVATE void
 rescale_params( vrna_fold_compound *vc){
@@ -975,22 +1017,44 @@ rescale_params( vrna_fold_compound *vc){
 }
 
 PRIVATE void
+add_params( vrna_fold_compound *vc,
+            vrna_md_t *md_p,
+            unsigned int options){
+
+  if(options & VRNA_OPTION_MFE)
+    vc->params = vrna_params_get(md_p);
+
+  if(options & VRNA_OPTION_PF){
+    vc->exp_params  = (vc->type == VRNA_VC_TYPE_SINGLE) ? \
+                        vrna_exp_params_get(md_p) : \
+                        vrna_exp_params_ali_get(vc->n_seq, md_p);
+  }
+
+}
+
+PRIVATE void
 set_fold_compound(vrna_fold_compound *vc,
                   vrna_md_t *md_p,
+                  vrna_mx_t mx_type,
+                  unsigned int mx_alloc_vector,
                   unsigned int options){
 
 
   char *sequence, **sequences;
-  unsigned int        alloc_vector, length, s;
+  unsigned int        length, s;
   int                 cp;                     /* cut point for cofold */
   char                *seq, *seq2;
 
-  sequence    = NULL;
-  sequences   = NULL;
+  sequence          = NULL;
+  sequences         = NULL;
+  cp                = -1;
 
-  /* default values */
-  cp            = -1;
-  alloc_vector  = ALLOC_NOTHING;
+  /* some default init values */
+  vc->params        = NULL;
+  vc->exp_params    = NULL;
+  vc->matrices      = NULL;
+  vc->exp_matrices  = NULL;
+  vc->hc            = NULL;
 
   switch(vc->type){
     case VRNA_VC_TYPE_SINGLE:     sequence  = vc->sequence;
@@ -1011,7 +1075,8 @@ set_fold_compound(vrna_fold_compound *vc,
                                   vc->sequence_encoding2  = vrna_seq_encode_simple(seq, md_p);
                                   if(!(options & VRNA_OPTION_EVAL_ONLY)){
                                     vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, md_p);
-                                    vc->ptype_pf_compat     = (options & (VRNA_OPTION_PF | VRNA_OPTION_DIST_CLASS)) ? get_ptypes(vc->sequence_encoding2, md_p, 1) : NULL;
+                                    /* backward compatibility ptypes */
+                                    vc->ptype_pf_compat     = ((options & VRNA_OPTION_PF) || (mx_type == VRNA_MX_2DFOLD)) ? get_ptypes(vc->sequence_encoding2, md_p, 1) : NULL;
                                   } else {
                                     vc->ptype           = NULL;
                                     vc->ptype_pf_compat = NULL;
@@ -1059,70 +1124,19 @@ set_fold_compound(vrna_fold_compound *vc,
                                   break;
   }
 
-  /* some default init values */
   vc->iindx         = vrna_get_iindx(vc->length);
   vc->jindx         = vrna_get_indx(vc->length);
 
-  vc->params        = NULL;
-  vc->exp_params    = NULL;
-  vc->matrices      = NULL;
-  vc->exp_matrices  = NULL;
-  vc->hc            = NULL;
-
   /* now come the energy parameters */
-  if(options & VRNA_OPTION_MFE)
-    vc->params      = vrna_params_get(md_p);
-
-  if(options & VRNA_OPTION_PF){
-    vc->exp_params  = (vc->type == VRNA_VC_TYPE_SINGLE) ? \
-                        vrna_exp_params_get(md_p) : \
-                        vrna_exp_params_ali_get(vc->n_seq, md_p);
-  }
+  add_params(vc, md_p, options);
 
   if(!(options & VRNA_OPTION_EVAL_ONLY)){ /* allocate memory for DP matrices */
-    /* extract the matrix type from options flags */
-    vrna_mx_t type = VRNA_MX_DEFAULT;
 
-    if(options & VRNA_OPTION_DIST_CLASS)
-      type = VRNA_MX_2DFOLD;
-    else if(options & VRNA_OPTION_LFOLD)
-      type = VRNA_MX_LFOLD;
-
-    /* cofolding matrices ? */
-    if(options & VRNA_OPTION_HYBRID){
-      alloc_vector |= ALLOC_HYBRID;
-
-#if DEBUG
-      if(cp < 0) /* we could also omit this message */
-        vrna_message_warning("vrna_get_fold_compound@data_structures.c: hybrid DP matrices requested but single sequence provided");
-#endif
-
-    }
-
-    /* default MFE matrices ? */
     if(options & VRNA_OPTION_MFE)
-      alloc_vector |= ALLOC_MFE_DEFAULT;
-
-    /* default PF matrices ? */
-    if(options & VRNA_OPTION_PF)
-      alloc_vector |= (md_p->compute_bpp) ? ALLOC_PF_DEFAULT : ALLOC_PF_WO_PROBS;
-
-    /* unique ML decomposition ? */
-    if(md_p->uniq_ML)
-      alloc_vector |= ALLOC_UNIQ;
-
-    /* matrices for circular folding ? */
-    if(md_p->circ){
-      md_p->uniq_ML = 1;
-      alloc_vector |= ALLOC_CIRC | ALLOC_UNIQ;
-    }
-
-    /* done with preparations, allocate memory now! */
-    if(options & VRNA_OPTION_MFE)
-      add_mfe_matrices(vc, type, alloc_vector);
+      add_mfe_matrices(vc, mx_type, mx_alloc_vector);
 
     if(options & VRNA_OPTION_PF)
-      add_pf_matrices(vc, type, alloc_vector);
+      add_pf_matrices(vc, mx_type, mx_alloc_vector);
   }
 
   if(vc->type == VRNA_VC_TYPE_ALIGNMENT)

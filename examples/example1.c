@@ -24,7 +24,7 @@ int main(int argc, char *argv[]){
   printf("%s\n%s (%6.2f)\n", seq, mfe_structure, mfe);
 
   /* rescale parameters for Boltzmann factors */
-  vrna_rescale_pf_params(vc, &mfe);
+  vrna_exp_params_update(vc, &mfe);
 
   /* call PF function */
   FLT_OR_DBL en = vrna_pf_fold(vc, prob_string);

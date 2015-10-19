@@ -863,10 +863,6 @@ typedef struct{
 
 #define VRNA_OPTION_HYBRID          4
 
-#define VRNA_OPTION_DIST_CLASS      16
-
-#define VRNA_OPTION_LFOLD           32
-
 /**
  *  @brief  Option flag to specify that neither MFE, nor PF DP matrices are required
  *
