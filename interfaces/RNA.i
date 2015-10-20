@@ -4,6 +4,7 @@
 
 %{
 #include  "../src/ViennaRNA/data_structures.h"
+#include  "../src/ViennaRNA/dp_matrices.h"
 #include  "../src/ViennaRNA/model.h"
 #include  "../src/ViennaRNA/utils.h"
 #include  "../src/ViennaRNA/structure_utils.h"
@@ -49,8 +50,10 @@
 %include cdata.i
 
 #ifdef LARGE_PF
+#undef FLT_OR_DBL
 #define FLT_OR_DBL  double
 #else
+#undef FLT_OR_DBL
 #define FLT_OR_DBL  float
 #endif
 
