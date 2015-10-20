@@ -3,6 +3,9 @@
 /**********************************************/
 
 /* do not create default constructor and hide data fields of vrna_param_t from SWIG */
+%ignore vrna_params;
+%ignore vrna_exp_params;
+
 %nodefaultctor vrna_param_t;
 typedef struct {} vrna_param_t;
 /* do not create default constructor and hide data fields of vrna_param_t from SWIG */
@@ -53,6 +56,10 @@ typedef struct {} vrna_exp_param_t;
 %ignore copy_pf_param;
 %ignore set_pf_param;
 
+%ignore vrna_params_update;
+%ignore vrna_exp_params_update;
+%ignore vrna_exp_params_rescale;
+
 %include "../src/ViennaRNA/params.h"
 
 
@@ -68,8 +75,10 @@ typedef struct {} vrna_exp_param_t;
 /**********************************************/
 
 /* hide data fields of vrna_md_t from SWIG */
+%ignore vrna_md;
+
 %nodefaultctor vrna_md_t;
-// typedef struct {} vrna_md_t;
+typedef struct {} vrna_md_t;
 
 /* make a nice object oriented interface to vrna_md_t */
 %extend vrna_md_t {
