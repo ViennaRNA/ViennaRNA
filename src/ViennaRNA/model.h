@@ -20,6 +20,7 @@
  *  @brief The model details data structure and its corresponding modifiers
  */
 
+typedef struct vrna_md  vrna_md_t;
 
 /**
  *  @brief
@@ -166,7 +167,7 @@
  *
  *  @see  vrna_md_set_default(), vrna_md_set_globals(), vrna_md_update()
  */
-typedef struct vrna_md_t{
+struct vrna_md{
   double  temperature;      /**<  @brief  The temperature used to scale the thermodynamic parameters */
   double  betaScale;        /**<  @brief  A scaling factor for the thermodynamic temperature of the Boltzmann factors */
   int     dangles;          /**<  @brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
@@ -204,7 +205,7 @@ typedef struct vrna_md_t{
   int     rtype[8];
   short   alias[MAXALPHA+1];
   int     pair[MAXALPHA+1][MAXALPHA+1];
-} vrna_md_t;
+};
 
 
 /**

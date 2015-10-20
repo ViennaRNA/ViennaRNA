@@ -157,7 +157,7 @@ typedef struct{
   double          init_temp;      /* temperature in last call to scale_pf_params */
   FLT_OR_DBL      *scale;
   FLT_OR_DBL      pf_scale;
-  struct vrna_exp_param_t  *pf_params;     /* holds all [unscaled] pf parameters */
+  vrna_exp_param_t  *pf_params;     /* holds all [unscaled] pf parameters */
 
   int             *my_iindx;      /**<  @brief  Index for moving in quadratic distancy dimensions */
   int             *jindx;         /**<  @brief  Index for moving in the triangular matrix qm1 */
