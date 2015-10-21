@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include  <ViennaRNA/data_structures.h>
+#include  <ViennaRNA/params.h>
 #include  <ViennaRNA/utils.h>
 #include  <ViennaRNA/eval.h>
 #include  <ViennaRNA/fold.h>
@@ -24,7 +25,7 @@ int main(int argc, char *argv[]){
   printf("%s\n%s (%6.2f)\n", seq, mfe_structure, mfe);
 
   /* rescale parameters for Boltzmann factors */
-  vrna_exp_params_update(vc, &mfe);
+  vrna_exp_params_rescale(vc, &mfe);
 
   /* call PF function */
   FLT_OR_DBL en = vrna_pf_fold(vc, prob_string);
