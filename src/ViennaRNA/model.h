@@ -20,6 +20,10 @@
  *  @brief The model details data structure and its corresponding modifiers
  */
 
+#ifndef NBASES
+#define NBASES 8
+#endif
+
 typedef struct vrna_md  vrna_md_t;
 
 /**

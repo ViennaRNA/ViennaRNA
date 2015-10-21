@@ -4,6 +4,9 @@
 /**
  */
 
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
+
 /**
  *  \addtogroup local_fold
  *
@@ -23,21 +26,6 @@
  *  @}
  */
 
-/**
- *  \brief The local analog to fold().
- * 
- *  Computes the minimum free energy structure including only base pairs
- *  with a span smaller than 'maxdist'
- *
- *  \ingroup local_mfe_fold
- * 
- *  \param string
- *  \param structure
- *  \param maxdist
- */
-float Lfold(const char *string,
-            char *structure,
-            int maxdist);
 
 /**
  *  \brief
@@ -77,5 +65,25 @@ float Lfoldz( const char *string,
 float aliLfold( const char **strings,
                 char *structure,
                 int maxdist);
+
+#ifdef  VRNA_BACKWARD_COMPAT
+
+/**
+ *  \brief The local analog to fold().
+ * 
+ *  Computes the minimum free energy structure including only base pairs
+ *  with a span smaller than 'maxdist'
+ *
+ *  \ingroup local_mfe_fold
+ * 
+ *  \param string
+ *  \param structure
+ *  \param maxdist
+ */
+float Lfold(const char *string,
+            char *structure,
+            int maxdist);
+
+#endif
 
 #endif

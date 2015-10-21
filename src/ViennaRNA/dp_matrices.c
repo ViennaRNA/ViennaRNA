@@ -1181,7 +1181,12 @@ add_mfe_matrices( vrna_fold_compound *vc,
                   unsigned int alloc_vector){
 
   if(vc){
-    vc->matrices = get_mfe_matrices_alloc(vc->length, vc->length, mx_type, alloc_vector);
+    switch(mx_type){
+      case VRNA_MX_LOCAL: vc->matrices = get_mfe_matrices_alloc(vc->length, vc->maxdist, mx_type, alloc_vector);
+                          break;
+      default:            vc->matrices = get_mfe_matrices_alloc(vc->length, vc->length, mx_type, alloc_vector);
+                          break;
+    }
 
     if(vc->params->model_details.gquad){
       switch(vc->type){

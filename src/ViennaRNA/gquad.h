@@ -79,6 +79,9 @@ int         **get_gquad_L_matrix( short *S,
                                   int **g,
                                   vrna_param_t *P);
 
+void        vrna_gquad_mx_local_update( vrna_fold_compound *vc,
+                                        int start);
+
 void        get_gquad_pattern_mfe(short *S,
                                   int i,
                                   int j,

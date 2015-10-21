@@ -19,7 +19,6 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/gquad.h"
@@ -30,19 +29,7 @@
 #include "svm_utils.h"
 #endif
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
-#define PAREN
-
-#define STACK_BULGE1      1   /* stacking energies for bulges of size 1 */
-#define NEW_NINIO         1   /* new asymetry penalty */
-/*@unused@*/
-#define MAXSECTORS        500     /* dimension for a backtrack array */
-#define LOCALITY          0.      /* locality parameter for base-pairs */
-
-
+#define MAXSECTORS                  500   /* dimension for a backtrack array */
 #define INT_CLOSE_TO_UNDERFLOW(i)   ((i) <= (INT_MIN/16))
 #define UNDERFLOW_CORRECTION        (INT_MIN/32)
 
@@ -57,50 +44,20 @@
 # PRIVATE VARIABLES             #
 #################################
 */
-PRIVATE vrna_param_t  *P = NULL;
-PRIVATE int           **c = NULL;        /* energy array, given that i-j pair */
-PRIVATE int           *cc = NULL;        /* linear array for calculating canonical structures */
-PRIVATE int           *cc1 = NULL;       /*   "     "        */
-PRIVATE int           *f3 = NULL;        /* energy of 5' end */
-PRIVATE int           **fML = NULL;      /* multi-loop auxiliary energy array */
-PRIVATE int           *Fmi = NULL;       /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int           *DMLi = NULL;      /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int           *DMLi1 = NULL;     /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int           *DMLi2 = NULL;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE char          **ptype = NULL;    /* precomputed array of pair types */
-PRIVATE short         *S = NULL, *S1 = NULL;
-PRIVATE unsigned int  length;
-PRIVATE char          *prev = NULL;
-#ifdef USE_SVM
-PRIVATE struct svm_model  *avg_model = NULL;
-PRIVATE struct svm_model  *sd_model = NULL;
-#endif
-
-PRIVATE int           with_gquad  = 0;
-PRIVATE int           **ggg       = NULL;
-
-#ifdef _OPENMP
-
-#ifdef USE_SVM
-#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length, sd_model, avg_model, ggg, with_gquad)
-#else
-#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, ptype, S, S1, length, ggg, with_gquad)
-#endif
-
-#endif
 
 /*
 #################################
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void  initialize_Lfold(int length, int maxdist);
-PRIVATE void  update_fold_params(void);
-PRIVATE void  get_arrays(unsigned int size, int maxdist);
-PRIVATE void  free_arrays(int maxdist);
-PRIVATE void  make_ptypes(const short *S, int i, int maxdist, int n);
-PRIVATE char  *backtrack(const char *sequence, int start, int maxdist);
-PRIVATE int   fill_arrays(const char *sequence, int maxdist, int zsc, double min_z, int *underflow);
+PRIVATE void  make_ptypes(vrna_fold_compound *vc, int i);
+PRIVATE char  *backtrack(vrna_fold_compound *vc, int start, int maxdist);
+PRIVATE int   fill_arrays(vrna_fold_compound *vc,
+                          int zsc,
+                          double min_z,
+                          struct svm_model *avg_model,
+                          struct svm_model *sd_model,
+                          int *underflow);
 
 /*
 #################################
@@ -108,99 +65,30 @@ PRIVATE int   fill_arrays(const char *sequence, int maxdist, int zsc, double min
 #################################
 */
 
-/*--------------------------------------------------------------------------*/
-PRIVATE void initialize_Lfold(int length, int maxdist){
-
-  if (length<1) vrna_message_error("initialize_Lfold: argument must be greater 0");
-  get_arrays((unsigned) length, maxdist);
-  update_fold_params();
-}
-
-/*--------------------------------------------------------------------------*/
-PRIVATE void get_arrays(unsigned int size, int maxdist){
-  int i;
-  c     = (int **)  vrna_alloc(sizeof(int *) *(size+1));
-  fML   = (int **)  vrna_alloc(sizeof(int *) *(size+1));
-  ptype = (char **) vrna_alloc(sizeof(char *)*(size+1));
-  f3    = (int *)   vrna_alloc(sizeof(int)   *(size+2));  /* has to be one longer */
-  cc    = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
-  cc1   = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
-  Fmi   = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
-  DMLi  = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
-  DMLi1 = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
-  DMLi2 = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
-
-  for (i=size; (i>(int)size-maxdist-5) && (i>=0); i--) {
-    c[i] = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
-  }
-  for (i=size; (i>(int)size-maxdist-5) && (i>=0); i--) {
-    fML[i] = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
-  }
-  for (i=size; (i>(int)size-maxdist-5) && (i>=0); i--) {
-    ptype[i] = (char *) vrna_alloc(sizeof(char)*(maxdist+5));
-  }
-}
-
-/*--------------------------------------------------------------------------*/
-
-PRIVATE void free_arrays(int maxdist){
-  int i;
-  for (i=0; (i<maxdist+5) && (i<=length); i++){
-    free(c[i]);
-    free(fML[i]);
-    free(ptype[i]);
-  }
-  free(c);
-  free(fML);
-  free(ptype);
-  free(f3);
-  free(cc);
-  free(cc1);
-  free(Fmi);
-  free(DMLi);
-  free(DMLi1);
-  free(DMLi2);
-
-  if(ggg){
-    for (i=0; (i<maxdist+5) && (i<=length); i++){
-      free(ggg[i]);
-    }
-    free(ggg);
-    ggg = NULL;
-  }
-
-  f3    = cc = cc1 = Fmi = DMLi = DMLi1 = DMLi2 = NULL;
-  c     = fML = NULL;
-  ptype = NULL;
-}
-
-/*--------------------------------------------------------------------------*/
-
-PUBLIC  float Lfold(const char *string, char *structure, int maxdist){
-  return Lfoldz(string, structure, maxdist, 0, 0.0);
-}
-
-PUBLIC  float
+PUBLIC float
 Lfoldz( const char *string,
         char *structure,
         int maxdist,
         int zsc,
         double min_z){
 
-  int i, energy, underflow;
-  float mfe_local;
+  int                 i, energy, underflow, n;
+  float               mfe_local;
+  vrna_fold_compound  *vc;
+  vrna_md_t           md;
 
-  length = (int) strlen(string);
-  if (maxdist>length) maxdist = length;
-  initialize_Lfold(length, maxdist);
-  if (fabs(P->temperature - temperature)>1e-6) update_fold_params();
+#ifdef USE_SVM
+  struct svm_model  *avg_model = NULL;
+  struct svm_model  *sd_model = NULL;
+#endif
 
-  with_gquad  = P->model_details.gquad;
-  S           = encode_sequence(string, 0);
-  S1          = encode_sequence(string, 1);
+  vrna_md_set_globals(&md);
 
-  for (i=length; i>=(int)length-(int)maxdist-4 && i>0; i--)
-    make_ptypes(S, i, maxdist, length);
+  vc  = vrna_get_fold_compound_local(string, &md, maxdist, VRNA_OPTION_MFE);
+  n   = vc->length;
+
+  for(i = n; (i >= (int)n - (int)maxdist - 4) && (i > 0); i--)
+    make_ptypes(vc, i);
 
 #ifdef USE_SVM  /*svm*/
   if(zsc){
@@ -208,10 +96,11 @@ Lfoldz( const char *string,
     sd_model  = svm_load_model_string(sd_model_string);
   }
 #endif
+
   /* keep track of how many times we were close to an integer underflow */
   underflow = 0;
 
-  energy = fill_arrays(string, maxdist, zsc, min_z, &underflow);
+  energy = fill_arrays(vc, zsc, min_z, avg_model, sd_model, &underflow);
 
 #ifdef USE_SVM  /*svm*/
   if(zsc){
@@ -220,32 +109,82 @@ Lfoldz( const char *string,
   }
 #endif
 
-  free(S); free(S1);
-  free_arrays(maxdist);
-
   mfe_local = (underflow > 0) ? ((float)underflow * (float)(UNDERFLOW_CORRECTION)) / 100. : 0.;
 
   mfe_local += (float)energy/100.;
+
+  vrna_free_fold_compound(vc);
+
   return mfe_local;
 }
 
+/*
+#####################################
+# BEGIN OF STATIC HELPER FUNCTIONS  #
+#####################################
+*/
+
 PRIVATE int
-fill_arrays(const char *string,
-            int maxdist,
+fill_arrays(vrna_fold_compound *vc,
             int zsc,
             double min_z,
+            struct svm_model *avg_model,
+            struct svm_model *sd_model,
             int *underflow) {
 
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
-  int   i, j, k, length, energy;
+  int   i, j, k, length, energy, maxdist;
+  int   **c, **fML, *f3, **ggg;
   int   decomp, new_fML;
-  int   no_close, type, type_2, tt;
+  int   no_close, type, type_2, tt, with_gquad, dangle_model, noLP, noGUclosure, turn;
+  int   *rtype;
   int   fij;
   int   lind;
 
-  length = (int) strlen(string);
-  prev=NULL;
+  int   *cc = NULL;        /* linear array for calculating canonical structures */
+  int   *cc1 = NULL;       /*   "     "        */
+  int   *Fmi = NULL;       /* holds row i of fML (avoids jumps in memory) */
+  int   *DMLi = NULL;      /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+  int   *DMLi1 = NULL;     /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+  int   *DMLi2 = NULL;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+
+  short         *S, *S1;
+  char          *string, **ptype, *prev;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+
+
+  string        = vc->sequence;
+  length        = vc->length;
+  S             = vc->sequence_encoding2;
+  S1            = vc->sequence_encoding;
+  ptype         = vc->ptype_local;
+  maxdist       = vc->maxdist;
+  P             = vc->params;
+  md            = &(P->model_details);
+  dangle_model  = md->dangles;
+  with_gquad    = md->gquad;
+  noLP          = md->noLP;
+  noGUclosure   = md->noGUclosure;
+  turn          = md->min_loop_size;
+  rtype         = &(md->rtype[0]);
+
+  prev          = NULL;
+
+  c           = vc->matrices->c_local;
+  fML         = vc->matrices->fML_local;
+  f3          = vc->matrices->f3_local;
+  ggg         = vc->matrices->ggg_local;
+
+  cc    = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
+  cc1   = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
+  Fmi   = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
+  DMLi  = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
+  DMLi1 = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
+  DMLi2 = (int *)   vrna_alloc(sizeof(int)   *(maxdist+5));
+
+
   for (j=0; j<maxdist+5; j++)
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
   for (j=length; j>length-maxdist-4; j--) {
@@ -254,16 +193,15 @@ fill_arrays(const char *string,
   }
 
   if(with_gquad){
-    ggg = NULL;
-    ggg = get_gquad_L_matrix(S, length - maxdist - 4, maxdist, ggg, P);
+    vrna_gquad_mx_local_update(vc, length - maxdist - 4);
   }
 
-  for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
-    for (j = i+TURN+1; j <= length && j <= i+maxdist; j++) {
+  for (i = length-turn-1; i >= 1; i--) { /* i,j in [1..length] */
+    for (j = i+turn+1; j <= length && j <= i+maxdist; j++) {
       int p, q;
       type = ptype[i][j-i];
 
-      no_close = (((type==3)||(type==4))&&no_closingGU);
+      no_close = (((type==3)||(type==4))&&noGUclosure);
 
       if (type) {   /* we have a pair */
         int new_c=0, stackEnergy=INF;
@@ -276,16 +214,16 @@ fill_arrays(const char *string,
           closing pair.
           --------------------------------------------------------*/
 
-        for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++){
+        for (p = i+1; p <= MIN2(j-2-turn,i+MAXLOOP+1) ; p++){
           int minq = j-i+p-MAXLOOP-2;
-          if (minq<p+1+TURN) minq = p+1+TURN;
+          if (minq<p+1+turn) minq = p+1+turn;
           for (q = minq; q < j; q++) {
             type_2 = ptype[p][q-p];
 
             if (type_2==0) continue;
             type_2 = rtype[type_2];
 
-            if (no_closingGU)
+            if (noGUclosure)
               if (no_close||(type_2==3)||(type_2==4))
                 if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
@@ -299,14 +237,14 @@ fill_arrays(const char *string,
         if (!no_close) {
           decomp  = DMLi1[j-1-(i+1)];
           tt      = rtype[type];
-          switch(dangles){
-            /* no dangles */
+          switch(dangle_model){
+            /* no dangle_model */
             case 0:   decomp += E_MLstem(tt, -1, -1, P);
                       break;
-            /* double dangles */
+            /* double dangle_model */
             case 2:   decomp += E_MLstem(tt, S1[j-1], S1[i+1], P);
                       break;
-            /* normal dangles, aka dangles = 1 */
+            /* normal dangle_model, aka dangle_model = 1 */
             default:  decomp += E_MLstem(tt, -1, -1, P);
                       decomp = MIN2(decomp, DMLi2[j-1-(i+2)] + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase);
                       decomp = MIN2(decomp, DMLi2[j-2-(i+2)] + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase);
@@ -318,9 +256,9 @@ fill_arrays(const char *string,
 
         /* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
 
-        if (dangles==3) {
+        if (dangle_model==3) {
           decomp = INF;
-          for (k = i+2+TURN; k < j-2-TURN; k++) {
+          for (k = i+2+turn; k < j-2-turn; k++) {
             type_2 = ptype[i+1][k-i-1]; type_2 = rtype[type_2];
             if (type_2)
               decomp = MIN2(decomp, c[i+1][k-i-1]+P->stack[type][type_2]+
@@ -346,7 +284,7 @@ fill_arrays(const char *string,
 
         new_c = MIN2(new_c, cc1[j-1-(i+1)]+stackEnergy);
         cc[j-i] = new_c;
-        if (noLonelyPairs)
+        if (noLP)
           c[i][j-i] = cc1[j-1-(i+1)]+stackEnergy;
         else
           c[i][j-i] = cc[j-i];
@@ -358,18 +296,18 @@ fill_arrays(const char *string,
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
       new_fML = INF;
-      switch(dangles){
-        /* no dangles */
+      switch(dangle_model){
+        /* no dangle_model */
         case 0:   new_fML = fML[i+1][j-i-1] + P->MLbase;
                   new_fML = MIN2(new_fML, fML[i][j-1-i] + P->MLbase);
                   new_fML = MIN2(new_fML, c[i][j-i] + E_MLstem(type, -1, -1, P));
                   break;
-        /* double dangles */
+        /* double dangle_model */
         case 2:   new_fML = fML[i+1][j-i-1] + P->MLbase;
                   new_fML = MIN2(fML[i][j-1-i] + P->MLbase, new_fML);
                   new_fML = MIN2(new_fML,  c[i][j-i] + E_MLstem(type, (i>1) ? S1[i-1] : -1, (j<length) ? S1[j+1] : -1, P));
                   break;
-        /* normal dangles, aka dangles = 1 */
+        /* normal dangle_model, aka dangle_model = 1 */
         default:  /* i unpaired */
                   new_fML = fML[i+1][j-i-1] + P->MLbase;
                   /* j unpaired */
@@ -393,16 +331,16 @@ fill_arrays(const char *string,
       }
 
       /* modular decomposition -------------------------------*/
-      for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
+      for (decomp = INF, k = i+1+turn; k <= j-2-turn; k++)
         decomp = MIN2(decomp, Fmi[k-i]+fML[k+1][j-k-1]);
 
       DMLi[j-i] = decomp;               /* store for use in ML decompositon */
       new_fML   = MIN2(new_fML, decomp);
 
       /* coaxial stacking */
-      if (dangles==3) {
+      if (dangle_model==3) {
         /* additional ML decomposition as two coaxially stacked helices */
-        for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++) {
+        for (decomp = INF, k = i+1+turn; k <= j-2-turn; k++) {
           type = ptype[i][k-i]; type = rtype[type];
           type_2 = ptype[k+1][j-k-1]; type_2 = rtype[type_2];
           if (type && type_2)
@@ -429,14 +367,14 @@ fill_arrays(const char *string,
       static int do_backtrack = 0, prev_i=0;
       char *ss=NULL;
       double prevz;
-      
+
       /* first case: i stays unpaired */
       f3[i] = f3[i+1];
-      
+
       /* next all cases where i is paired */
-      switch(dangles){
+      switch(dangle_model){
         /* dont use dangling end and mismatch contributions at all */
-        case 0:   for(j=i+TURN+1; j<length && j<=i+maxdist; j++){
+        case 0:   for(j=i+turn+1; j<length && j<=i+maxdist; j++){
                     type = ptype[i][j-i];
 
                     if(with_gquad){
@@ -458,8 +396,8 @@ fill_arrays(const char *string,
                       f3[i] = MIN2(f3[i], c[i][j-i] + E_ExtLoop(type, -1, -1, P));
                   }
                   break;
-        /* always use dangles on both sides */
-        case 2:   for(j=i+TURN+1; j<length && j<=i+maxdist; j++){
+        /* always use dangle_model on both sides */
+        case 2:   for(j=i+turn+1; j<length && j<=i+maxdist; j++){
                     type = ptype[i][j-i];
 
                     if(with_gquad){
@@ -482,8 +420,8 @@ fill_arrays(const char *string,
                       f3[i] = MIN2(f3[i], c[i][j-i] + E_ExtLoop(type, (i>1) ? S1[i-1] : -1, -1, P));
                   }
                   break;
-        /* normal dangles, aka dangles = 1 */
-        default:  for(j=i+TURN+1; j<length && j<=i+maxdist; j++){
+        /* normal dangle_model, aka dangle_model = 1 */
+        default:  for(j=i+turn+1; j<length && j<=i+maxdist; j++){
                     type = ptype[i][j-i];
 
                     if(with_gquad){
@@ -515,7 +453,7 @@ fill_arrays(const char *string,
                       f3[i] = MIN2(f3[i], c[i+1][j-i-1] + E_ExtLoop(type, S1[i], -1, P));
                   }
                   break;
-      } /* switch(dangles)... */
+      } /* switch(dangle_model)... */
 
       /* backtrack partial structure */
       if (f3[i] < f3[i+1]){
@@ -534,9 +472,9 @@ fill_arrays(const char *string,
           lind++;
 
         /*get pairpartner*/
-        for (pairpartner = lind + TURN; pairpartner <= lind + maxdist; pairpartner++){
+        for (pairpartner = lind + turn; pairpartner <= lind + maxdist; pairpartner++){
           type = ptype[lind][pairpartner-lind];
-          switch(dangles){
+          switch(dangle_model){
             case 0:   if(type){
                         cc = c[lind][pairpartner-lind] + E_ExtLoop(type, -1, -1, P);
                         if(fij == cc + f3[pairpartner + 1])
@@ -616,11 +554,11 @@ fill_arrays(const char *string,
               sd_free_energy = sd_regression(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4],sd_model);
               my_z=difference/sd_free_energy;
               if (my_z<=min_z){
-                ss =  backtrack(string, lind , pairpartner+1);
+                ss =  backtrack(vc, lind, pairpartner+1);
                 if (prev) {
                   if ((i+strlen(ss)<prev_i+strlen(prev)) ||
                       strncmp(ss+prev_i-i,prev,strlen(prev))) { /* ss does not contain prev */
-                    if (dangles==2)
+                    if (dangle_model==2)
                       printf(".%s (%6.2f) %4d z= %.3f\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1, prevz);
                     else
                       printf("%s (%6.2f) %4d z=%.3f\n ", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i, prevz);
@@ -638,11 +576,11 @@ fill_arrays(const char *string,
         }
         else {
           /* original code for Lfold*/
-          ss =  backtrack(string, lind , pairpartner+1);
+          ss =  backtrack(vc, lind , pairpartner+1);
           if (prev) {
             if ((i+strlen(ss)<prev_i+strlen(prev)) || strncmp(ss+prev_i-i,prev,strlen(prev))){
               /* ss does not contain prev */
-              if (dangles==2){
+              if (dangle_model==2){
                 printf(".%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1);
               } else
                 printf("%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
@@ -657,18 +595,18 @@ fill_arrays(const char *string,
       if (i==1) {
         if (prev) {
           if(zsc) {
-            if (dangles==2)
+            if (dangle_model==2)
               printf(".%s (%6.2f) %4d z= %.2f\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1, prevz);
            else
               printf("%s (%6.2f) %4dz= %.2f \n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i, prevz);
-            free(prev); prev=NULL;
           }
           else {
-            if (dangles==2)
+            if (dangle_model==2)
               printf(".%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1);
             else
               printf("%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
           }
+          free(prev); prev=NULL;
         } else if ((f3[i]<0) && (!zsc)) do_backtrack=1;
 
         if (do_backtrack) {
@@ -683,9 +621,9 @@ fill_arrays(const char *string,
           lind=i;
           while(fij==f3[lind+1]) lind++;
           /*get pairpartner*/
-          for(pairpartner = lind + TURN; pairpartner <= lind + maxdist; pairpartner++){
+          for(pairpartner = lind + turn; pairpartner <= lind + maxdist; pairpartner++){
             type = ptype[lind][pairpartner-lind];
-            switch(dangles){
+            switch(dangle_model){
               case 0:   if(type){
                           cc = c[lind][pairpartner-lind] + E_ExtLoop(type, -1, -1, P);
                           if(fij == cc + f3[pairpartner + 1])
@@ -762,7 +700,7 @@ fill_arrays(const char *string,
                 sd_free_energy = sd_regression(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4],sd_model);
                 my_z=difference/sd_free_energy;
                 if (my_z<=min_z){
-                  ss =  backtrack(string, lind , pairpartner+1);
+                  ss =  backtrack(vc, lind , pairpartner+1);
                   printf("%s (%6.2f) %4d z= %.2f\n", ss, (f3[lind]-f3[lind+strlen(ss)-1])/100., lind, my_z);
                 }
               }
@@ -771,8 +709,8 @@ fill_arrays(const char *string,
 #endif
           }
           else {
-            ss =  backtrack(string, lind , pairpartner+1);
-            if (dangles==2)
+            ss =  backtrack(vc, lind , pairpartner+1);
+            if (dangle_model==2)
               printf("%s (%6.2f) %4d\n", ss, (f3[lind]-f3[lind+strlen(ss)-1])/100., 1);
             else
               printf("%s (%6.2f) %4d\n", ss, (f3[lind]-f3[lind+strlen(ss)])/100., 1);
@@ -797,49 +735,89 @@ fill_arrays(const char *string,
 
       FF = DMLi2; DMLi2 = DMLi1; DMLi1 = DMLi; DMLi = FF;
       FF = cc1; cc1=cc; cc=FF;
-      for (j=0; j< maxdist+5; j++){
+      for(j = 0; j < maxdist + 5; j++){
         cc[j] = Fmi[j] = DMLi[j] = INF;
       }
-      if (i+maxdist+4<=length) {
-        c[i-1] = c[i+maxdist+4];
-        c[i+maxdist+4] = NULL;
-        fML[i-1] = fML[i+maxdist+4];
-        fML[i+maxdist+4]=NULL;
-        ptype[i-1] = ptype[i+maxdist+4];
-        ptype[i+maxdist+4] = NULL;
-        if (i>1){
-          make_ptypes(S, i-1, maxdist, length);
 
+      /*
+        rotate the DP matrices
+        NOTE: here we rotate them only locally, i.e. their
+        actual configuration within vc remains intact
+      */
+      if( i + maxdist + 4 <= length ){
+        c[i - 1]                = c[i + maxdist + 4];
+        c[i + maxdist + 4]      = NULL;
+        fML[i - 1]              = fML[i + maxdist + 4];
+        fML[i + maxdist + 4]    = NULL;
+        ptype[i - 1]            = ptype[i + maxdist + 4];
+        ptype[i + maxdist + 4]  = NULL;
+        if( i > 1 ){
+          make_ptypes(vc, i - 1);
           if(with_gquad){
-            ggg = get_gquad_L_matrix(S, i - 1, maxdist, ggg, P);
+            vrna_gquad_mx_local_update(vc, i - 1);
           }
         }
-        for (ii=0; ii<maxdist+5; ii++) {
-          c[i-1][ii] = INF;
-          fML[i-1][ii] = INF;
+        for(ii = 0; ii < maxdist + 5; ii++){
+          c[i - 1][ii]    = INF;
+          fML[i - 1][ii]  = INF;
         }
       }
 
     }
   }
 
+  free(cc);
+  free(cc1);
+  free(Fmi);
+  free(DMLi);
+  free(DMLi1);
+  free(DMLi2);
+
   return f3[1];
 }
 
-PRIVATE char *backtrack(const char *string, int start, int maxdist){
+PRIVATE char *
+backtrack(vrna_fold_compound *vc,
+          int start,
+          int maxdist){
+
   /*------------------------------------------------------------------
     trace back through the "c", "f3" and "fML" arrays to get the
     base pairing list. No search for equivalent structures is done.
     This is fast, since only few structure elements are recalculated.
     ------------------------------------------------------------------*/
-  sect  sector[MAXSECTORS];   /* backtracking sectors */
-  int   i, j, k, energy, new, no_close, type, type_2, tt, s=0;
-  char  *structure;
+  sect          sector[MAXSECTORS];   /* backtracking sectors */
+  int           i, j, k, length, energy, new, no_close, type, type_2, tt, s=0;
+  int           with_gquad, bt_type, turn, dangle_model, noLP, noGUclosure, *rtype;
+  int           **c, **fML, *f3, **ggg;
+  char          *string, *structure, **ptype;
+  short         *S, *S1;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+
+  string        = vc->sequence;
+  length        = vc->length;
+  S             = vc->sequence_encoding2;
+  S1            = vc->sequence_encoding;
+  ptype         = vc->ptype_local;
+  P             = vc->params;
+  md            = &(P->model_details);
+  dangle_model  = md->dangles;
+  noLP          = md->noLP;
+  noGUclosure   = md->noGUclosure;
+  bt_type       = md->backtrack_type;
+  turn          = md->min_loop_size;
+  rtype         = &(md->rtype[0]);
+
+  c       = vc->matrices->c_local;
+  fML     = vc->matrices->fML_local;
+  f3      = vc->matrices->f3_local;
+  ggg     = vc->matrices->ggg_local;
 
   /* length = strlen(string); */
   sector[++s].i = start;
   sector[s].j   = MIN2(length, maxdist+1);
-  sector[s].ml  = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
+  sector[s].ml  = (bt_type=='M') ? 1 : ((bt_type=='C')?2:0);
 
   structure = (char *) vrna_alloc((MIN2(length-start, maxdist)+3)*sizeof(char));
   for (i=0; i<=MIN2(length-start, maxdist); i++) structure[i] = '-';
@@ -857,7 +835,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
       goto repeat1;
     }
 
-    if (j < i+TURN+1) continue; /* no more pairs in this interval */
+    if (j < i + turn + 1) continue; /* no more pairs in this interval */
 
     fij = (ml)? fML[i][j-i] : f3[i];
 
@@ -870,8 +848,8 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
         continue;
       }
       /* i or i+1 is paired. Find pairing partner */
-      switch(dangles){
-        case 0:   for(traced = 0, k=j; k>i+TURN; k--){
+      switch(dangle_model){
+        case 0:   for(traced = 0, k=j; k>i+turn; k--){
 
                     if(with_gquad){
                       if(fij == ggg[i][k-i] + f3[k+1]){
@@ -890,7 +868,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                       }
                   }
                   break;
-        case 2:   for(traced = 0, k=j; k>i+TURN; k--){
+        case 2:   for(traced = 0, k=j; k>i+turn; k--){
 
                     if(with_gquad){
                       if(fij == ggg[i][k-i] + f3[k+1]){
@@ -909,7 +887,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                       }
                   }
                   break;
-        default:  for(traced = 0,k=j; k>i+TURN; k--){
+        default:  for(traced = 0,k=j; k>i+turn; k--){
 
                     if(with_gquad){
                       if(fij == ggg[i][k-i] + f3[k+1]){
@@ -947,7 +925,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                     if(traced) break;
                   }
                   break;
-      } /* switch(dangles)...*/
+      } /* switch(dangle_model)...*/
 
       if (!traced) vrna_message_error("backtrack failed in f3");
       if (j==length) { /* backtrack only one component, unless j==length */
@@ -963,7 +941,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
       }
 
       structure[i-start] = '('; structure[j-start] = ')';
-      if (((jj==j+2) || (dangles==2)) && (j < length)) structure[j+1-start] = '.';
+      if (((jj==j+2) || (dangle_model==2)) && (j < length)) structure[j+1-start] = '.';
       goto repeat1;
     }
     else { /* trace back in fML array */
@@ -987,7 +965,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
         }
       }
 
-      switch(dangles){
+      switch(dangle_model){
         case 0:   tt = ptype[i][j-i];
                   if(fij == c[i][j-i] + E_MLstem(tt, -1, -1, P)){
                     structure[i-start] = '(';
@@ -1027,16 +1005,16 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                     goto repeat1;
                   }
                   break;
-      } /* switch(dangles)... */
+      } /* switch(dangle_model)... */
 
       /* modular decomposition */
-      for (k = i+1+TURN; k <= j-2-TURN; k++)
+      for (k = i+1+turn; k <= j-2-turn; k++)
         if (fij == (fML[i][k-i]+fML[k+1][j-(k+1)]))
           break;
 
-      if ((dangles==3)&&(k>j-2-TURN)) { /* must be coax stack */
+      if ((dangle_model==3)&&(k>j-2-turn)) { /* must be coax stack */
         ml = 2;
-        for (k = i+1+TURN; k <= j-2-TURN; k++) {
+        for (k = i+1+turn; k <= j-2-turn; k++) {
           type = ptype[i][k-i];  type= rtype[type];
           type_2 = ptype[k+1][j-(k+1)]; type_2= rtype[type_2];
           if (type && type_2)
@@ -1053,7 +1031,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
       sector[s].j   = j;
       sector[s].ml  = ml;
 
-      if (k>j-2-TURN) vrna_message_error("backtrack failed in fML");
+      if (k>j-2-turn) vrna_message_error("backtrack failed in fML");
       continue;
     }
 
@@ -1065,7 +1043,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
     type = ptype[i][j-i];
 
 
-    if (noLonelyPairs)
+    if (noLP)
       if (cij == c[i][j-i]) {
         /* (i.j) closes canonical structures, thus
            (i+1.j-1) must be a pair                */
@@ -1079,23 +1057,23 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
     canonical = 1;
 
 
-    no_close = (((type==3)||(type==4))&&no_closingGU);
+    no_close = (((type==3)||(type==4))&&noGUclosure);
     if (no_close) {
       if (cij == FORBIDDEN) continue;
     } else
       if (cij == E_Hairpin(j-i-1, type, S1[i+1], S1[j-1],string+i-1, P))
         continue;
 
-    for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
+    for (p = i+1; p <= MIN2(j-2-turn,i+MAXLOOP+1); p++) {
       int minq;
       minq = j-i+p-MAXLOOP-2;
-      if (minq<p+1+TURN) minq = p+1+TURN;
+      if (minq<p+1+turn) minq = p+1+turn;
       for (q = j-1; q >= minq; q--) {
 
         type_2 = ptype[p][q-p];
         if (type_2==0) continue;
         type_2 = rtype[type_2];
-        if (no_closingGU)
+        if (noGUclosure)
           if (no_close||(type_2==3)||(type_2==4))
             if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
@@ -1134,15 +1112,15 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
 
     sector[s+1].ml  = sector[s+2].ml = 1;
 
-    switch(dangles){
+    switch(dangle_model){
       case 0:   mm = P->MLclosing + E_MLstem(tt, -1, -1, P);
-                for(k = i+2+TURN; k < j-2-TURN; k++){
+                for(k = i+2+turn; k < j-2-turn; k++){
                   if(cij == fML[i+1][k-(i+1)] + fML[k+1][j-1-(k+1)] + mm)
                     break;
                 }
                 break;
       case 2:   mm = P->MLclosing + E_MLstem(tt, S1[j-1], S1[i+1], P);
-                for(k = i+2+TURN; k < j-2-TURN; k++){
+                for(k = i+2+turn; k < j-2-turn; k++){
                   if(cij == fML[i+1][k-(i+1)] + fML[k+1][j-1-(k+1)] + mm)
                     break;
                 }
@@ -1151,7 +1129,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                 mm5   = P->MLclosing + E_MLstem(tt, S1[j-1], -1, P) + P->MLbase;
                 mm3   = P->MLclosing + E_MLstem(tt, -1, S1[i+1], P) + P->MLbase;
                 mm53  = P->MLclosing + E_MLstem(tt, S1[j-1], S1[i+1], P) + 2*P->MLbase;
-                for(k = i+2+TURN; k < j-2-TURN; k++){
+                for(k = i+2+turn; k < j-2-turn; k++){
                   if(cij == fML[i+1][k-(i+1)] + fML[k+1][j-1-(k+1)] + mm)
                     break;
                   else if(cij == fML[i+2][k-(i+2)] + fML[k+1][j-1-(k+1)] + mm3){
@@ -1169,7 +1147,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                   }
                   /* coaxial stacking of (i.j) with (i+1.k) or (k.j-1) */
                   /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
-                  if (dangles==3) {
+                  if (dangle_model==3) {
                     int en;
                     type_2 = ptype[i+1][k-(i+1)]; type_2 = rtype[type_2];
                     if (type_2) {
@@ -1191,9 +1169,9 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
                   }
                 }
                 break;
-    } /* switch(dangles)... */
+    } /* switch(dangle_model)... */
 
-    if (k<=j-3-TURN) { /* found the decomposition */
+    if (k<=j-3-turn) { /* found the decomposition */
       sector[++s].i = i1;
       sector[s].j   = k;
       sector[++s].i = k+1;
@@ -1201,7 +1179,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
     } else {
 #if 0
       /* Y shaped ML loops fon't work yet */
-      if (dangles==3) {
+      if (dangle_model==3) {
         /* (i,j) must close a Y shaped ML loop with coax stacking */
         if (cij ==  fML[i+1][j-2-(i+2)] + mm + d3 + d5 + P->MLbase + P->MLbase) {
           i1 = i+2;
@@ -1213,7 +1191,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
         else /* last chance */
           if (cij != fML[i+1][j-1-(i+1)] + mm + P->MLbase)
             fprintf(stderr,  "backtracking failed in repeat");
-        /* if we arrive here we can express cij via fML[i1,j1]+dangles */
+        /* if we arrive here we can express cij via fML[i1,j1]+dangle_model */
         sector[++s].i = i1;
         sector[s].j   = j1;
       }
@@ -1232,7 +1210,7 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
     {
       int l[3], L, a;
       L = -1;
-      
+
       get_gquad_pattern_mfe(S, i, j, P, &L, l);
       if(L != -1){
         /* fill the G's of the quadruplex into the structure string */
@@ -1259,26 +1237,49 @@ PRIVATE char *backtrack(const char *string, int start, int maxdist){
   return structure;
 }
 
+PRIVATE void
+make_ptypes(vrna_fold_compound *vc, int i){
 
-PRIVATE void update_fold_params(void){
-  if(P) free(P);
-  P = scale_parameters();
-  make_pair_matrix();
-}
+  int       j, k, type, n, maxdist, turn, noLP;
+  short     *S;
+  char      **ptype;
+  vrna_md_t *md;
 
-/*---------------------------------------------------------------------------*/
+  n       = (int)vc->length;
+  S       = vc->sequence_encoding2;
+  ptype   = vc->ptype_local;
+  maxdist = vc->maxdist;
+  md      = &(vc->params->model_details);
+  turn    = md->min_loop_size;
+  noLP    = md->noLP;
 
-PRIVATE void make_ptypes(const short *S, int i, int maxdist, int n) {
-  int j,k, type;
+  for(k = turn + 1; k < maxdist; k++){
+    j = i + k;
+    if (j > n)
+      continue;
+    type = md->pair[S[i]][S[j]];
 
-  for (k=TURN+1; k<maxdist; k++) {
-    j = i+k;
-    if (j>n) continue;
-    type = pair[S[i]][S[j]];
-    if (noLonelyPairs && type) {
-      if (!ptype[i+1][j-1-i-1])
-        if (j==n || i==1 || (!pair[S[i-1]][S[j+1]])) type=0;
+    if(noLP && type){
+      if(!ptype[i + 1][j - 1 - i - 1])
+        if(j == n || i == 1 || (!md->pair[S[i - 1]][S[j + 1]]))
+          type = 0;
     }
-    ptype[i][j-i]=type;
+    ptype[i][j - i] = type;
   }
 }
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+#ifdef  VRNA_BACKWARD_COMPAT
+
+PUBLIC float Lfold( const char *string,
+                    char *structure,
+                    int maxdist){
+
+  return Lfoldz(string, structure, maxdist, 0, 0.0);
+}
+
+
+#endif

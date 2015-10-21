@@ -31,15 +31,6 @@ typedef struct vrna_subopt_interval   INTERVAL;
 #include <ViennaRNA/dp_matrices.h>
 #include <ViennaRNA/constraints.h>
 
-#ifndef NBASES
-#define NBASES 8
-#endif
-
-/**
- *  @brief Maximum density of states discretization for subopt
- */
-#define MAXDOS                1000
-
 /*
 * ############################################################
 * Here are the type definitions of various datastructures
@@ -667,6 +658,10 @@ vrna_fold_compound *vrna_get_fold_compound_ali( const char **sequences,
                                                 vrna_md_t *md_p,
                                                 unsigned int options);
 
+vrna_fold_compound *vrna_get_fold_compound_local( const char *sequence,
+                                                  vrna_md_t *md_p,
+                                                  unsigned int maxdist,
+                                                  unsigned int options);
 
 vrna_fold_compound *vrna_get_fold_compound_2D(const char *sequence,
                                               const char *s1,

@@ -44,6 +44,9 @@
 #################################
 */
 
+#define WITH_PTYPE          1L    /* passed to set_fold_compound() to indicate that we need to set vc->ptype */
+#define WITH_PTYPE_COMPAT   2L    /* passed to set_fold_compound() to indicate that we need to set vc->ptype_compat */
+
 /*
 #################################
 # GLOBAL VARIABLES              #
@@ -61,7 +64,7 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void            set_fold_compound(vrna_fold_compound *vc, vrna_md_t *md_p, int ptype_compat, unsigned int options);
+PRIVATE void            set_fold_compound(vrna_fold_compound *vc, vrna_md_t *md_p, unsigned int options, unsigned int aux);
 PRIVATE void            make_pscores(vrna_fold_compound *vc);
 PRIVATE void            add_params(vrna_fold_compound *vc, vrna_md_t *md_p, unsigned int options);
 
@@ -173,7 +176,7 @@ vrna_get_fold_compound( const char *sequence,
   else /* this fallback relies on global parameters and thus is not threadsafe */
     vrna_md_set_globals(&md);
 
-  set_fold_compound(vc, &md, (options & VRNA_OPTION_PF), options);
+  set_fold_compound(vc, &md, options, WITH_PTYPE | ((options & VRNA_OPTION_PF) ? WITH_PTYPE_COMPAT : 0L));
 
   if(!(options & VRNA_OPTION_EVAL_ONLY)){
     /* add default hard constraints */
@@ -181,6 +184,52 @@ vrna_get_fold_compound( const char *sequence,
 
     /* add DP matrices */
     vrna_mx_add(vc, VRNA_MX_DEFAULT, options);
+  }
+  return vc;
+}
+
+PUBLIC vrna_fold_compound*
+vrna_get_fold_compound_local( const char *sequence,
+                              vrna_md_t *md_p,
+                              unsigned int maxdist,
+                              unsigned int options){
+
+  unsigned int i, length;
+  vrna_fold_compound *vc;
+  vrna_md_t           md;
+
+  if(sequence == NULL) return NULL;
+
+  /* sanity check */
+  length = (unsigned int)strlen(sequence);
+  if(length == 0L)
+    vrna_message_error("vrna_get_fold_compound: sequence length must be greater 0");
+
+  vc              = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
+  vc->type        = VRNA_VC_TYPE_SINGLE;
+  vc->length      = length;
+  vc->sequence    = strdup(sequence);
+  vc->maxdist     = (maxdist > length) ? length : maxdist;
+
+  /* get a copy of the model details */
+  if(md_p)
+    md = *md_p;
+  else /* this fallback relies on global parameters and thus is not threadsafe */
+    vrna_md_set_globals(&md);
+
+  set_fold_compound(vc, &md, options, 0L);
+
+  vc->ptype_local = (char **) vrna_alloc(sizeof(char *)*(vc->length+1));
+  for (i = vc->length; ( i > vc->length - vc->maxdist - 5) && (i >= 0); i--){
+    vc->ptype_local[i] = (char *) vrna_alloc(sizeof(char)*(vc->maxdist+5));
+  }
+
+  if(!(options & VRNA_OPTION_EVAL_ONLY)){
+    /* add default hard constraints */
+    /* vrna_hc_init(vc); */ /* no hard constraints in Lfold, yet! */
+
+    /* add DP matrices */
+    vrna_mx_add(vc, VRNA_MX_LOCAL, options);
   }
   return vc;
 }
@@ -223,7 +272,7 @@ vrna_get_fold_compound_ali( const char **sequences,
   else /* this fallback relies on global parameters and thus is not threadsafe */
     vrna_md_set_globals(&md);
 
-  set_fold_compound(vc, &md, (options & VRNA_OPTION_PF), options);
+  set_fold_compound(vc, &md, options, WITH_PTYPE | ((options & VRNA_OPTION_PF) ? WITH_PTYPE_COMPAT : 0L));
 
   make_pscores(vc);
 
@@ -280,7 +329,7 @@ vrna_get_fold_compound_2D(const char *sequence,
   /* always make uniq ML decomposition ! */
   md.uniq_ML = 1;
 
-  set_fold_compound(vc, &md, 1, options);
+  set_fold_compound(vc, &md, options, WITH_PTYPE | WITH_PTYPE_COMPAT);
 
   if(!(options & VRNA_OPTION_EVAL_ONLY)){
     vrna_hc_init(vc); /* add default hard constraints */
@@ -332,8 +381,8 @@ add_params( vrna_fold_compound *vc,
 PRIVATE void
 set_fold_compound(vrna_fold_compound *vc,
                   vrna_md_t *md_p,
-                  int ptype_compat,
-                  unsigned int options){
+                  unsigned int options,
+                  unsigned int aux){
 
 
   char *sequence, **sequences;
@@ -370,9 +419,9 @@ set_fold_compound(vrna_fold_compound *vc,
                                   vc->sequence_encoding   = vrna_seq_encode(seq, md_p);
                                   vc->sequence_encoding2  = vrna_seq_encode_simple(seq, md_p);
                                   if(!(options & VRNA_OPTION_EVAL_ONLY)){
-                                    vc->ptype               = vrna_get_ptypes(vc->sequence_encoding2, md_p);
+                                    vc->ptype               = (aux & WITH_PTYPE) ? vrna_get_ptypes(vc->sequence_encoding2, md_p) : NULL;
                                     /* backward compatibility ptypes */
-                                    vc->ptype_pf_compat     = (ptype_compat) ? get_ptypes(vc->sequence_encoding2, md_p, 1) : NULL;
+                                    vc->ptype_pf_compat     = (aux & WITH_PTYPE_COMPAT) ? get_ptypes(vc->sequence_encoding2, md_p, 1) : NULL;
                                   } else {
                                     vc->ptype           = NULL;
                                     vc->ptype_pf_compat = NULL;
@@ -427,7 +476,6 @@ set_fold_compound(vrna_fold_compound *vc,
   add_params(vc, md_p, options);
 
 }
-
 
 PRIVATE void
 make_pscores(vrna_fold_compound *vc){

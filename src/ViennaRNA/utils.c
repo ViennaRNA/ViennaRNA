@@ -425,7 +425,7 @@ vrna_seq_encode(const char *sequence,
   unsigned int  i, l;
   short         *S = vrna_seq_encode_simple(sequence, md);
 
-  l = (unsigned int)S[0];
+  l = (unsigned int)strlen(sequence);
 
   for(i=1; i<=l; i++)
     S[i] = md->alias[S[i]];

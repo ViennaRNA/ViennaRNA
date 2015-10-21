@@ -25,11 +25,17 @@
 
 /*
 #################################
-# GLOBAL VARIABLES              #
+# PRIVATE MACROS                #
 #################################
 */
 
 #ifdef  VRNA_BACKWARD_COMPAT
+
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
 
 /*  below are the evil global variables that will vanish
     as soon as we drop backward compatibility in ViennaRNA
