@@ -105,9 +105,12 @@ sectiondesc="Select additional algorithms which should be included in the calcul
 option  "partfunc"  p
 "Calculate the partition function and base pairing probability matrix.\n"
 details="In addition to the MFE structure\
- we print a coarse representation of the pair probabilities in form of a pseudo bracket notation, followed by\
- the ensemble free energy, as well as the centroid structure derived from the pair probabilities together with\
- its free energy and distance to the ensemble. Finally it prints the frequency of the mfe structure, and the\
+ we print a coarse representation of the pair probabilities in form of a pseudo bracket notation followed by\
+ the ensemble free energy. This notation makes use of the letters \" . , | { } ( ) \" denoting bases that are\
+ essentially unpaired, weakly paired, strongly paired without preference, weakly upstream (downstream) paired,\
+ or strongly up- (down-)stream paired bases, respectively. On the next line the centroid structure as derived\
+ from the pair probabilities together with its free energy and distance to the ensemble is shown. Finally it\
+ prints the frequency of the mfe structure, and the\
  structural diversity (mean distance between the structures in the ensemble).\nSee the description of pf_fold()\
  and mean_bp_dist() and centroid() in the RNAlib documentation for details.\nNote that unless you also specify\
  -d2 or -d0, the partition function and mfe calculations will use a slightly different energy model. See the\
