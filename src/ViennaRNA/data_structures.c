@@ -124,7 +124,7 @@ vrna_free_fold_compound(vrna_fold_compound *vc){
                                     break;
     }
 
-    /* free Distance Class Partitioning stuff (should be NULL if not used */
+    /* free Distance Class Partitioning stuff (should be NULL if not used) */
     free(vc->reference_pt1);
     free(vc->reference_pt2);
     free(vc->referenceBPs1);
@@ -132,7 +132,15 @@ vrna_free_fold_compound(vrna_fold_compound *vc){
     free(vc->bpdist);
     free(vc->mm1);
     free(vc->mm2);
-    
+
+    /* free local folding related stuff (should be NULL if not used) */
+    if(vc->ptype_local){
+      for (s=0; (s < vc->maxdist + 5) && (s <= vc->length); s++){
+        free(vc->ptype_local[s]);
+      }
+      free(vc->ptype_local);
+    }
+
     free(vc);
   }
 }

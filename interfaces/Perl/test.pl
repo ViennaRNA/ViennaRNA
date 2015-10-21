@@ -183,3 +183,36 @@ ok($struc1_move, "(((.((....)).)))");
 #RNA::move_standard($seq1, $struc1_move, 2, 0, 0, 0);
 #ok("(((.(((...))))))", $struc1_move);
 #print STDERR join(',', unpack('S3', RNA::cdata($RNA::xsubi, 6))), "\n";
+
+#
+# Check things we export through essentials.i
+#
+
+# check model details structure
+my $md = RNA::vrna_md_t->new(); # default values
+ok(int($md->get_dangles()), 2);
+ok($md->{temperature}, 37.0);
+
+$RNA::dangles     = 0;
+$RNA::temperature = 40.1;
+$md = RNA::vrna_md_t->new("global"); # global values
+ok(int($md->get_dangles()), 0);
+ok($md->{temperature}, 40.1);
+
+# reset globals to default
+$RNA::dangles = 2;
+$RNA::temperature = 37.0;
+
+# check parameter structures
+my $params = RNA::vrna_param_t->new();
+ok($params->get_temperature(), 37.0);
+
+$params = RNA::vrna_param_t->new($md);
+ok($params->get_temperature(), 40.1);
+
+my $pf_params = RNA::vrna_exp_param_t->new();
+ok($pf_params->get_temperature(), 37.0);
+
+$pf_params = RNA::vrna_exp_param_t->new($md);
+ok($pf_params->get_temperature(), 40.1);
+

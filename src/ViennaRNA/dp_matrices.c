@@ -46,6 +46,7 @@
 
 
 #define ALLOC_MFE_DEFAULT         (ALLOC_F5 | ALLOC_C | ALLOC_FML)
+#define ALLOC_MFE_LOCAL           (ALLOC_F3 | ALLOC_C | ALLOC_FML)
 
 #define ALLOC_PF_WO_PROBS         (ALLOC_F | ALLOC_C | ALLOC_FML)
 #define ALLOC_PF_DEFAULT          (ALLOC_PF_WO_PROBS | ALLOC_PROBS | ALLOC_AUX)
@@ -67,8 +68,8 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE unsigned int    get_mx_alloc_vector(vrna_md_t *md_p, unsigned int options);
-PRIVATE vrna_mx_mfe_t   *get_mfe_matrices_alloc(unsigned int n, vrna_mx_t type, unsigned int alloc_vector);
+PRIVATE unsigned int    get_mx_alloc_vector(vrna_md_t *md_p, vrna_mx_t type, unsigned int options);
+PRIVATE vrna_mx_mfe_t   *get_mfe_matrices_alloc(unsigned int n, unsigned int m, vrna_mx_t type, unsigned int alloc_vector);
 PRIVATE vrna_mx_pf_t    *get_pf_matrices_alloc(unsigned int n, vrna_mx_t type, unsigned int alloc_vector);
 PRIVATE void            add_pf_matrices( vrna_fold_compound *vc, vrna_mx_t type, unsigned int alloc_vector);
 PRIVATE void            add_mfe_matrices(vrna_fold_compound *vc, vrna_mx_t type, unsigned int alloc_vector);
@@ -98,6 +99,27 @@ vrna_free_mfe_matrices(vrna_fold_compound *vc){
                                 free(self->fM1);
                                 free(self->fM2);
                                 free(self->ggg);
+                                break;
+
+        case VRNA_MX_LOCAL:     if(self->c_local)
+                                  for (i=0; (i < vc->maxdist + 5) && (i <= vc->length); i++){
+                                    free(self->c_local[i]);
+                                  }
+                                free(self->c_local);
+
+                                if(self->fML_local)
+                                  for (i=0; (i < vc->maxdist + 5) && (i <= vc->length); i++){
+                                    free(self->fML_local[i]);
+                                  }
+                                free(self->fML_local);
+
+                                if(self->ggg_local)
+                                  for (i=0; (i < vc->maxdist + 5) && (i <= vc->length); i++){
+                                    free(self->ggg_local[i]);
+                                  }
+                                free(self->ggg_local);
+
+                                free(self->f3_local);
                                 break;
 
         case VRNA_MX_2DFOLD:    /* This will be some fun... */
@@ -685,7 +707,7 @@ vrna_mx_mfe_add(vrna_fold_compound *vc,
   unsigned int mx_alloc_vector;
 
   if(vc->params){
-    mx_alloc_vector = get_mx_alloc_vector(&(vc->params->model_details), options | VRNA_OPTION_MFE);
+    mx_alloc_vector = get_mx_alloc_vector(&(vc->params->model_details), mx_type, options | VRNA_OPTION_MFE);
     add_mfe_matrices(vc, mx_type, mx_alloc_vector);
   } else {
     return 0;
@@ -701,7 +723,7 @@ vrna_mx_pf_add( vrna_fold_compound *vc,
 
   unsigned int mx_alloc_vector;
   if(vc->exp_params){
-    mx_alloc_vector = get_mx_alloc_vector(&(vc->exp_params->model_details), options | VRNA_OPTION_PF);
+    mx_alloc_vector = get_mx_alloc_vector(&(vc->exp_params->model_details), mx_type, options | VRNA_OPTION_PF);
     add_pf_matrices(vc, mx_type, mx_alloc_vector);
   } else {
     return 0;
@@ -716,14 +738,17 @@ vrna_mx_pf_add( vrna_fold_compound *vc,
 #####################################
 */
 PRIVATE unsigned int
-get_mx_alloc_vector(vrna_md_t *md_p, unsigned int options){
+get_mx_alloc_vector(vrna_md_t *md_p,
+                    vrna_mx_t mx_type,
+                    unsigned int options){
+
   unsigned int  v;
 
   v = ALLOC_NOTHING;
 
   /* default MFE matrices ? */
   if(options & VRNA_OPTION_MFE)
-    v |= ALLOC_MFE_DEFAULT;
+    v |= (mx_type == VRNA_MX_LOCAL) ? ALLOC_MFE_LOCAL : ALLOC_MFE_DEFAULT;
 
   /* default PF matrices ? */
   if(options & VRNA_OPTION_PF)
@@ -748,16 +773,17 @@ get_mx_alloc_vector(vrna_md_t *md_p, unsigned int options){
 
 PRIVATE vrna_mx_mfe_t  *
 get_mfe_matrices_alloc( unsigned int n,
+                        unsigned int m,
                         vrna_mx_t type,
                         unsigned int alloc_vector){
 
   unsigned int  i, size, lin_size;
   vrna_mx_mfe_t *vars;
 
-  if(n >= (unsigned int)sqrt((double)INT_MAX))
+  if((int)(n * m) >= (int)INT_MAX)
     vrna_message_error("get_mfe_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
 
-  size          = ((n + 1) * (n + 2)) / 2;
+  size          = ((n + 1) * (m + 2)) / 2;
   lin_size      = n + 2;
   vars          = (vrna_mx_mfe_t *)vrna_alloc(sizeof(vrna_mx_mfe_t));
   vars->length  = n;
@@ -804,6 +830,30 @@ get_mfe_matrices_alloc( unsigned int n,
 
                             vars->ggg = NULL;
 
+                            break;
+
+    case VRNA_MX_LOCAL:     if(alloc_vector & ALLOC_F3){
+                              vars->f3_local = (int *) vrna_alloc(sizeof(int) * lin_size);
+                            } else
+                              vars->f3_local = NULL;
+
+                            if(alloc_vector & ALLOC_C){
+                              vars->c_local = (int **) vrna_alloc(sizeof(int *) * lin_size);
+                              for (i = n; ( i > (unsigned int)(n - m - 5)) && (i>=0); i--){
+                                vars->c_local[i] = (int *) vrna_alloc(sizeof(int)*(m + 5));
+                              }
+                            } else
+                              vars->c_local = NULL;
+
+                            if(alloc_vector & ALLOC_FML){
+                              vars->fML_local = (int **) vrna_alloc(sizeof(int *) * lin_size);
+                              for (i = n; ( i > (unsigned int)(n - m - 5)) && (i>=0); i--){
+                                vars->fML_local[i] = (int *) vrna_alloc(sizeof(int)*(m + 5));
+                              }
+                            } else
+                              vars->fML_local = NULL;
+
+                            vars->ggg_local = NULL;
                             break;
 
     case VRNA_MX_2DFOLD:    if(alloc_vector & ALLOC_F5){
@@ -1127,15 +1177,20 @@ add_pf_matrices(vrna_fold_compound *vc,
 
 PRIVATE void
 add_mfe_matrices( vrna_fold_compound *vc,
-                  vrna_mx_t type,
+                  vrna_mx_t mx_type,
                   unsigned int alloc_vector){
 
   if(vc){
-    vc->matrices = get_mfe_matrices_alloc(vc->length, type, alloc_vector);
+    vc->matrices = get_mfe_matrices_alloc(vc->length, vc->length, mx_type, alloc_vector);
 
     if(vc->params->model_details.gquad){
       switch(vc->type){
-        case VRNA_VC_TYPE_SINGLE:     vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
+        case VRNA_VC_TYPE_SINGLE:     switch(mx_type){
+                                        case VRNA_MX_LOCAL: /* do nothing, since we handle memory somewhere else */
+                                                            break;
+                                        default:            vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
+                                                            break;
+                                      }
                                       break;
         case VRNA_VC_TYPE_ALIGNMENT:  vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
                                       break;

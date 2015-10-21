@@ -13,8 +13,17 @@
 /* below are several typedef's we use throughout the ViennaRNA library */
 typedef struct vrna_fc        vrna_fold_compound;
 typedef struct vrna_basepair  vrna_basepair_t;
-typedef struct vrna_basepair  PAIR;
 
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
+
+#ifdef VRNA_BACKWARD_COMPAT
+
+typedef struct vrna_basepair  PAIR;
+typedef struct vrna_subopt_solution   SOLUTION;
+typedef struct vrna_subopt_interval   INTERVAL;
+
+#endif
 
 #include <ViennaRNA/energy_const.h>
 #include <ViennaRNA/model.h>
@@ -101,19 +110,19 @@ struct vrna_basepair {
 /**
  *  @brief  Sequence interval stack element used in subopt.c
  */
-typedef struct {
+struct vrna_subopt_interval {
     int i;
     int j;
     int array_flag;
-} INTERVAL;
+};
 
 /**
  *  @brief  Solution element from subopt.c
  */
-typedef struct {
+struct vrna_subopt_solution {
   float energy;       /**< @brief Free Energy of structure in kcal/mol */
   char *structure;    /**< @brief Structure in dot-bracket notation */
-} SOLUTION;
+};
 
 /*
 * ############################################################
@@ -409,28 +418,28 @@ struct vrna_fc{
       @name Common data fields
       @{
    */
-  vrna_vc_t     type;           /**<  @brief  The type of the #vrna_fold_compound.
+  vrna_vc_t         type;           /**<  @brief  The type of the #vrna_fold_compound.
                                       @details Currently possible values are #VRNA_VC_TYPE_SINGLE, and #VRNA_VC_TYPE_ALIGNMENT
                                       @warning Do not edit this attribute, it will be automagically set by
                                             the corresponding get() methods for the #vrna_fold_compound.
                                             The value specified in this attribute dictates the set of other
                                             attributes to use within this data structure.
-                                      */
-  unsigned int  length;         /**<  @brief  The length of the sequence (or sequence alignment) */
-  int           cutpoint;       /**<  @brief  The position of the (cofold) cutpoint within the provided sequence.
+                                    */
+  unsigned int      length;         /**<  @brief  The length of the sequence (or sequence alignment) */
+  int               cutpoint;       /**<  @brief  The position of the (cofold) cutpoint within the provided sequence.
                                       If there is no cutpoint, this field will be set to -1
-                                */
+                                    */
 
-  vrna_hc_t               *hc;            /**<  @brief  The hard constraints data structure used for structure prediction */
+  vrna_hc_t         *hc;            /**<  @brief  The hard constraints data structure used for structure prediction */
 
-  vrna_mx_mfe_t           *matrices;      /**<  @brief  The MFE DP matrices */
-  vrna_mx_pf_t            *exp_matrices;  /**<  @brief  The PF DP matrices  */
+  vrna_mx_mfe_t     *matrices;      /**<  @brief  The MFE DP matrices */
+  vrna_mx_pf_t      *exp_matrices;  /**<  @brief  The PF DP matrices  */
 
-  vrna_param_t            *params;        /**<  @brief  The precomputed free energy contributions for each type of loop */
-  vrna_exp_param_t        *exp_params;    /**<  @brief  The precomputed free energy contributions as Boltzmann factors  */
+  vrna_param_t      *params;        /**<  @brief  The precomputed free energy contributions for each type of loop */
+  vrna_exp_param_t  *exp_params;    /**<  @brief  The precomputed free energy contributions as Boltzmann factors  */
 
-  int                     *iindx;         /**<  @brief  DP matrix accessor  */
-  int                     *jindx;         /**<  @brief  DP matrix accessor  */
+  int               *iindx;         /**<  @brief  DP matrix accessor  */
+  int               *jindx;         /**<  @brief  DP matrix accessor  */
 
   /**
       @}
@@ -544,6 +553,18 @@ struct vrna_fc{
   unsigned int    *mm1;           /**<  @brief  Maximum matching matrix, reference struct 1 disallowed */
   unsigned int    *mm2;           /**<  @brief  Maximum matching matrix, reference struct 2 disallowed */
   
+  /**
+      @}
+   */
+
+  /**
+   *  @name Additional data fields for local folding
+   *
+   *  These data fields are typically populated with meaningful data only if used in the context of local folding
+   *  @{
+   */
+  int             maxdist;        /**<  @brief  maximum base pair span (window size) */
+  char            **ptype_local;  /**<  @brief  Pair type array (for local folding) */
   /**
       @}
    */

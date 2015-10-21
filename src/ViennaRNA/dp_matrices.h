@@ -29,7 +29,7 @@ typedef struct  vrna_matrices_pf  vrna_mx_pf_t;
  */
 typedef enum {
   VRNA_MX_DEFAULT,  /**<  @brief  Default DP matrices */
-  VRNA_MX_LFOLD,    /**<  @brief  DP matrices suitable for local structure prediction
+  VRNA_MX_LOCAL,    /**<  @brief  DP matrices suitable for local structure prediction
                           @see    Lfold(), pfl_fold()
                     */
   VRNA_MX_2DFOLD    /**<  @brief  DP matrices suitable for distance class partitioned structure prediction
@@ -76,6 +76,23 @@ struct vrna_matrices_mfe {
         @}
        */
 
+#if __STDC_VERSION__ >= 201112L
+    /* C11 support for unnamed unions/structs */
+    };
+    struct {
+#endif
+      /** @name Local Folding DP matrices
+          @note These data fields are available if
+                @code vrna_mx_mfe_t.type == VRNA_MX_LOCAL @endcode
+        @{
+       */
+      int     **c_local;    /**<  @brief  Energy array, given that i-j pair */
+      int     *f3_local;    /**<  @brief  Energy of 5' end */
+      int     **fML_local;  /**<  @brief  Multi-loop auxiliary energy array */
+      int     **ggg_local;  /**<  @brief  Energies of g-quadruplexes */
+      /**
+        @}
+       */
 #if __STDC_VERSION__ >= 201112L
     /* C11 support for unnamed unions/structs */
     };
@@ -345,7 +362,7 @@ int vrna_mx_add(vrna_fold_compound *vc, vrna_mx_t type, unsigned int options);
 
 int vrna_mx_mfe_add(vrna_fold_compound *vc, vrna_mx_t mx_type, unsigned int options);
 
-int vrna_mx_pf_add( vrna_fold_compound *vc, vrna_mx_t mx_type, unsigned int options);
+int vrna_mx_pf_add(vrna_fold_compound *vc, vrna_mx_t mx_type, unsigned int options);
 
 /**
  *  @brief  Free memory occupied by the Minimum Free Energy (MFE) Dynamic Programming (DP) matrices
