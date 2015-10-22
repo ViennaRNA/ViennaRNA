@@ -1202,7 +1202,7 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
             q_temp *= sc->boltzmann_factors[j][1];
 
           if(sc->exp_f)
-            q_temp *= sc->exp_f(1, j, j-1, n, VRNA_DECOMP_EXT_UP_3, sc->data);
+            q_temp *= sc->exp_f(1, j, 1, j-1, VRNA_DECOMP_EXT_EXT, sc->data);
         }
 
         if (r > q_temp)  break; /* i is paired */
@@ -1225,10 +1225,15 @@ vrna_pbacktrack5( vrna_fold_compound *vc,
 
         if (i > 1){
           qkl *= q[my_iindx[1] - i + 1];
-        }
-        if(sc){
-          if(sc->exp_f)
-            qkl *= sc->exp_f(1, i-1, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
+          if(sc){
+            if(sc->exp_f)
+              qkl *= sc->exp_f(1, j, i-1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
+          }
+        } else {
+          if(sc){
+            if(sc->exp_f)
+              qkl *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
+          }
         }
 
         qt += qkl;
