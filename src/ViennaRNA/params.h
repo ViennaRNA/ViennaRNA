@@ -24,7 +24,9 @@
  *  @file params.h
  */
 
+/** @brief Typename for the free energy parameter data structure #vrna_params */
 typedef struct  vrna_params       vrna_param_t;
+/** @brief Typename for the Boltzmann factor data structure #vrna_exp_params */
 typedef struct  vrna_exp_params   vrna_exp_param_t;
 
 #include <ViennaRNA/energy_const.h>

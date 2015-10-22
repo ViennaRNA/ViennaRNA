@@ -33,7 +33,14 @@
  *
  */
 
+/** @brief Typename for the hard constraints data structure #vrna_hard_constraints
+ *  @ingroup  constraints
+ */
 typedef struct  vrna_hard_constraints vrna_hc_t;
+
+/** @brief Typename for the soft constraints data structure #vrna_soft_constraints
+ *  @ingroup  constraints
+ */
 typedef struct  vrna_soft_constraints vrna_sc_t;
 
 #include <ViennaRNA/data_structures.h>

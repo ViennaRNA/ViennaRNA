@@ -422,11 +422,13 @@ AC_RNA_PACKAGE_IF_ENABLED([cluster],[
 
 AC_RNA_PACKAGE_IF_ENABLED([svm],[
   AC_SUBST([LIBSVM_DIR], [libsvm-${SVM_VERSION}])
+  AC_SUBST([WITH_SVM], [USE_SVM])
   AC_SUBST([CXXLD],[${CXX}]) # this is rather a hack for RNALfold.c linking correctly
   AC_DEFINE([USE_SVM], [1], [Compute z-scores for RNALfold])
 ])
 
 AC_RNA_PACKAGE_IF_ENABLED([json],[
+  AC_SUBST([WITH_JSON], [WITH_JSON_SUPPORT])
   AC_DEFINE([WITH_JSON_SUPPORT], [1], [Add JSON support for input and output functions])
 ])
 

@@ -65,6 +65,15 @@ void vrna_structure_print_bpseq(const char *seq,
 
 #if WITH_JSON_SUPPORT
 
+/**
+ *  @brief Print a secondary structure in jsonformat
+ *
+ *  @param  seq         The RNA sequence
+ *  @param  db          The structure in dot-bracket format
+ *  @param  energy      The free energy
+ *  @param  identifier  An identifier for the sequence
+ *  @param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
+ */
 void vrna_structure_print_json( const char *seq,
                                 const char *db,
                                 double energy,

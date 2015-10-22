@@ -608,12 +608,14 @@ struct vrna_fc{
  *  sequence, or two contatenated sequences as input. For the latter, sequences need to be seperated by
  *  an '&' character like this: @verbatim char *sequence = "GGGG&CCCC"; @endverbatim
  *
- *  The optional parameter 'md_p' can be used to specify the model details for computations on the #vrna_fold_compounds
- *  content. The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
+ *  The optional parameter 'md_p' can be used to specify the model details for successive computations
+ *  based on the content of the generated #vrna_fold_compound.
+ *  The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
  *  of energy parameters. Use the macros:
  *
  *  - #VRNA_OPTION_MFE
  *  - #VRNA_OPTION_PF
+ *  - #VRNA_OPTION_WINDOW
  *  - #VRNA_OPTION_EVAL_ONLY
  *
  *  to specify the required type of computations that will be performed with the #vrna_fold_compound.
@@ -621,7 +623,8 @@ struct vrna_fc{
  *  @note The sequence string must be uppercase, and should contain only RNA (resp. DNA) alphabet depending
  *        on what energy parameter set is used
  *
- *  @see  vrna_get_fold_compound_ali(), #vrna_md_t, #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY
+ *  @see  vrna_get_fold_compound_ali(), #vrna_md_t, #VRNA_OPTION_MFE, #VRNA_OPTION_PF,
+ *        #VRNA_OPTION_EVAL_ONLY, #VRNA_OPTION_WINDOW
  *
  *  @param    sequence    A single sequence, or two concatenated sequences seperated by an '&' character
  *  @param    md_p        An optional set of model details
@@ -638,8 +641,9 @@ vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
  *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound by passing an
  *  alignment of sequences.
  *
- *  The optional parameter 'md_p' can be used to specify the model details for computations on the #vrna_fold_compounds
- *  content. The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
+ *  The optional parameter 'md_p' can be used to specify the model details for successive computations
+ *  based on the content of the generated #vrna_fold_compound.
+ *  The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
  *  of energy parameters. Use the macros:
  *
  *  - #VRNA_OPTION_MFE
