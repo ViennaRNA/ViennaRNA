@@ -26,23 +26,32 @@
  *  @}
  */
 
-
 /**
- *  \brief
- * 
+ *  \brief Local MFE prediction using a sliding window approach.
+ *
+ *  Computes minimum free energy structures using a sliding window
+ *  approach, where base pairs may not span outside the window.
+ *  In contrast to vrna_fold(), where the maximum base pair span
+ *  may be set using #vrna_md_t.max_bp_span and one globally optimal
+ *  structure is predicted, this function uses a sliding window to
+ *  retrieve all locally optimal structures within each window.
+ *  The predicted structures are written on-the-fly, either to
+ *  stdout, if a NULL pointer is passed as file parameter, or to
+ *  the corresponding filehandle.
+ *
  *  \ingroup local_mfe_fold
  * 
- *  \param string
+ *  @see vrna_get_fold_compound_window(), vrna_Lfoldz(), vrna_fold
+ *
+ *  \param vc   
  *  \param structure
  *  \param maxdist
- *  \param zsc
- *  \param min_z
  */
-float Lfoldz( const char *string,
-              char *structure,
-              int maxdist,
-              int zsc,
-              double min_z);
+float vrna_Lfold( vrna_fold_compound *vc, FILE *file);
+
+#ifdef USE_SVM
+float vrna_Lfoldz(vrna_fold_compound *vc, double min_z, FILE *file);
+#endif
 
 
 /**
@@ -83,6 +92,23 @@ float aliLfold( const char **strings,
 float Lfold(const char *string,
             char *structure,
             int maxdist);
+
+/**
+ *  \brief
+ * 
+ *  \ingroup local_mfe_fold
+ * 
+ *  \param string
+ *  \param structure
+ *  \param maxdist
+ *  \param zsc
+ *  \param min_z
+ */
+float Lfoldz( const char *string,
+              char *structure,
+              int maxdist,
+              int zsc,
+              double min_z);
 
 #endif
 

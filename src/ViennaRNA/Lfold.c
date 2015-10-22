@@ -50,14 +50,24 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void  make_ptypes(vrna_fold_compound *vc, int i);
-PRIVATE char  *backtrack(vrna_fold_compound *vc, int start, int maxdist);
-PRIVATE int   fill_arrays(vrna_fold_compound *vc,
-                          int zsc,
+PRIVATE float wrap_Lfold( vrna_fold_compound *vc,
+                          int with_zsc,
                           double min_z,
+                          FILE *file);
+PRIVATE void  make_ptypes(vrna_fold_compound *vc,
+                          int i);
+PRIVATE char  *backtrack( vrna_fold_compound *vc,
+                          int start,
+                          int maxdist);
+PRIVATE int   fill_arrays(vrna_fold_compound *vc,
+                          int with_zsc,
+                          double min_z,
+#ifdef USE_SVM
                           struct svm_model *avg_model,
                           struct svm_model *sd_model,
-                          int *underflow);
+#endif
+                          int *underflow,
+                          FILE *output);
 
 /*
 #################################
@@ -66,32 +76,54 @@ PRIVATE int   fill_arrays(vrna_fold_compound *vc,
 */
 
 PUBLIC float
-Lfoldz( const char *string,
-        char *structure,
-        int maxdist,
-        int zsc,
-        double min_z){
+vrna_Lfold( vrna_fold_compound *vc,
+            FILE *file){
 
-  int                 i, energy, underflow, n;
-  float               mfe_local;
-  vrna_fold_compound  *vc;
-  vrna_md_t           md;
+  return wrap_Lfold(vc, 0, 0.0, file);
+}
+
+#ifdef USE_SVM
+
+PUBLIC float
+vrna_Lfoldz( vrna_fold_compound *vc,
+             double min_z,
+             FILE *file){
+
+  return wrap_Lfold(vc, 1, min_z, file);
+}
+
+#endif
+
+/*
+#####################################
+# BEGIN OF STATIC HELPER FUNCTIONS  #
+#####################################
+*/
+
+PRIVATE float
+wrap_Lfold( vrna_fold_compound *vc,
+            int with_zsc,
+            double min_z,
+            FILE *file){
+
+  int     i, energy, underflow, n, maxdist;
+  float   mfe_local;
+  FILE    *out;
 
 #ifdef USE_SVM
   struct svm_model  *avg_model = NULL;
   struct svm_model  *sd_model = NULL;
 #endif
 
-  vrna_md_set_globals(&md);
-
-  vc  = vrna_get_fold_compound_local(string, &md, maxdist, VRNA_OPTION_MFE);
-  n   = vc->length;
+  n       = vc->length;
+  maxdist = vc->maxdist;
+  out     = (file) ? file : stdout;
 
   for(i = n; (i >= (int)n - (int)maxdist - 4) && (i > 0); i--)
     make_ptypes(vc, i);
 
 #ifdef USE_SVM  /*svm*/
-  if(zsc){
+  if(with_zsc){
     avg_model = svm_load_model_string(avg_model_string);
     sd_model  = svm_load_model_string(sd_model_string);
   }
@@ -100,37 +132,32 @@ Lfoldz( const char *string,
   /* keep track of how many times we were close to an integer underflow */
   underflow = 0;
 
-  energy = fill_arrays(vc, zsc, min_z, avg_model, sd_model, &underflow);
-
-#ifdef USE_SVM  /*svm*/
-  if(zsc){
+#ifdef USE_SVM
+  energy = fill_arrays(vc, with_zsc, min_z, avg_model, sd_model, &underflow, out);
+  if(with_zsc){
     svm_destroy_model(avg_model);
     svm_destroy_model(sd_model);
   }
+#else
+  energy = fill_arrays(vc, with_zsc, min_z, &underflow, out);
 #endif
 
   mfe_local = (underflow > 0) ? ((float)underflow * (float)(UNDERFLOW_CORRECTION)) / 100. : 0.;
-
   mfe_local += (float)energy/100.;
-
-  vrna_free_fold_compound(vc);
 
   return mfe_local;
 }
-
-/*
-#####################################
-# BEGIN OF STATIC HELPER FUNCTIONS  #
-#####################################
-*/
 
 PRIVATE int
 fill_arrays(vrna_fold_compound *vc,
             int zsc,
             double min_z,
+#ifdef USE_SVM
             struct svm_model *avg_model,
             struct svm_model *sd_model,
-            int *underflow) {
+#endif
+            int *underflow,
+            FILE *output){
 
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
@@ -559,9 +586,9 @@ fill_arrays(vrna_fold_compound *vc,
                   if ((i+strlen(ss)<prev_i+strlen(prev)) ||
                       strncmp(ss+prev_i-i,prev,strlen(prev))) { /* ss does not contain prev */
                     if (dangle_model==2)
-                      printf(".%s (%6.2f) %4d z= %.3f\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1, prevz);
+                      fprintf(output, ".%s (%6.2f) %4d z= %.3f\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1, prevz);
                     else
-                      printf("%s (%6.2f) %4d z=%.3f\n ", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i, prevz);
+                      fprintf(output, "%s (%6.2f) %4d z=%.3f\n ", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i, prevz);
                   }
                   free(prev);
                 }
@@ -581,9 +608,9 @@ fill_arrays(vrna_fold_compound *vc,
             if ((i+strlen(ss)<prev_i+strlen(prev)) || strncmp(ss+prev_i-i,prev,strlen(prev))){
               /* ss does not contain prev */
               if (dangle_model==2){
-                printf(".%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1);
+                fprintf(output, ".%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1);
               } else
-                printf("%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
+                fprintf(output, "%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
             }
             free(prev);
           }
@@ -596,15 +623,15 @@ fill_arrays(vrna_fold_compound *vc,
         if (prev) {
           if(zsc) {
             if (dangle_model==2)
-              printf(".%s (%6.2f) %4d z= %.2f\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1, prevz);
+              fprintf(output, ".%s (%6.2f) %4d z= %.2f\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1, prevz);
            else
-              printf("%s (%6.2f) %4dz= %.2f \n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i, prevz);
+              fprintf(output, "%s (%6.2f) %4dz= %.2f \n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i, prevz);
           }
           else {
             if (dangle_model==2)
-              printf(".%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1);
+              fprintf(output, ".%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)-1])/100., prev_i-1);
             else
-              printf("%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
+              fprintf(output, "%s (%6.2f) %4d\n", prev, (f3[prev_i]-f3[prev_i+strlen(prev)])/100., prev_i);
           }
           free(prev); prev=NULL;
         } else if ((f3[i]<0) && (!zsc)) do_backtrack=1;
@@ -701,7 +728,7 @@ fill_arrays(vrna_fold_compound *vc,
                 my_z=difference/sd_free_energy;
                 if (my_z<=min_z){
                   ss =  backtrack(vc, lind , pairpartner+1);
-                  printf("%s (%6.2f) %4d z= %.2f\n", ss, (f3[lind]-f3[lind+strlen(ss)-1])/100., lind, my_z);
+                  fprintf(output, "%s (%6.2f) %4d z= %.2f\n", ss, (f3[lind]-f3[lind+strlen(ss)-1])/100., lind, my_z);
                 }
               }
             }
@@ -711,9 +738,9 @@ fill_arrays(vrna_fold_compound *vc,
           else {
             ss =  backtrack(vc, lind , pairpartner+1);
             if (dangle_model==2)
-              printf("%s (%6.2f) %4d\n", ss, (f3[lind]-f3[lind+strlen(ss)-1])/100., 1);
+              fprintf(output, "%s (%6.2f) %4d\n", ss, (f3[lind]-f3[lind+strlen(ss)-1])/100., 1);
             else
-              printf("%s (%6.2f) %4d\n", ss, (f3[lind]-f3[lind+strlen(ss)])/100., 1);
+              fprintf(output, "%s (%6.2f) %4d\n", ss, (f3[lind]-f3[lind+strlen(ss)])/100., 1);
             free(ss);
           }
         }
@@ -1278,8 +1305,45 @@ PUBLIC float Lfold( const char *string,
                     char *structure,
                     int maxdist){
 
-  return Lfoldz(string, structure, maxdist, 0, 0.0);
+  float               energy;
+  vrna_fold_compound  *vc;
+  vrna_md_t           md;
+
+  vrna_md_set_globals(&md);
+
+  vc  = vrna_get_fold_compound_local(string, &md, maxdist, VRNA_OPTION_MFE);
+
+  energy = wrap_Lfold(vc, 0, 0.0, NULL);
+
+  vrna_free_fold_compound(vc);
+
+  return energy;
 }
 
+PUBLIC float
+Lfoldz( const char *string,
+        char *structure,
+        int maxdist,
+        int zsc,
+        double min_z){
+
+  float               energy;
+  vrna_fold_compound  *vc;
+  vrna_md_t           md;
+
+  vrna_md_set_globals(&md);
+
+  vc  = vrna_get_fold_compound_local(string, &md, maxdist, VRNA_OPTION_MFE);
+
+#ifndef USE_SVM
+  zsc = 0;  /* deactivate z-scoring if no compiled-in svm support is available */
+#endif
+
+  energy = wrap_Lfold(vc, zsc, min_z, NULL);
+
+  vrna_free_fold_compound(vc);
+
+  return energy;
+}
 
 #endif
