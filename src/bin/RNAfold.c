@@ -101,7 +101,7 @@ int main(int argc, char *argv[]){
   int             doMEA, circular, lucky, with_shapes, verbose;
   double          MEAgamma, bppmThreshold, betaScale;
   char            *infile, *outfile;
-;
+
   vrna_param_t      *mfe_parameters;
   vrna_exp_param_t  *pf_parameters;
   vrna_md_t         md;

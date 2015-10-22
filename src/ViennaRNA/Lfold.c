@@ -116,7 +116,7 @@ wrap_Lfold( vrna_fold_compound *vc,
 #endif
 
   n       = vc->length;
-  maxdist = vc->maxdist;
+  maxdist = vc->window_size;
   out     = (file) ? file : stdout;
 
   for(i = n; (i >= (int)n - (int)maxdist - 4) && (i > 0); i--)
@@ -187,7 +187,7 @@ fill_arrays(vrna_fold_compound *vc,
   S             = vc->sequence_encoding2;
   S1            = vc->sequence_encoding;
   ptype         = vc->ptype_local;
-  maxdist       = vc->maxdist;
+  maxdist       = vc->window_size;
   P             = vc->params;
   md            = &(P->model_details);
   dangle_model  = md->dangles;
@@ -1275,7 +1275,7 @@ make_ptypes(vrna_fold_compound *vc, int i){
   n       = (int)vc->length;
   S       = vc->sequence_encoding2;
   ptype   = vc->ptype_local;
-  maxdist = vc->maxdist;
+  maxdist = vc->window_size;
   md      = &(vc->params->model_details);
   turn    = md->min_loop_size;
   noLP    = md->noLP;
@@ -1303,7 +1303,7 @@ make_ptypes(vrna_fold_compound *vc, int i){
 
 PUBLIC float Lfold( const char *string,
                     char *structure,
-                    int maxdist){
+                    int window_size){
 
   float               energy;
   vrna_fold_compound  *vc;
@@ -1311,7 +1311,10 @@ PUBLIC float Lfold( const char *string,
 
   vrna_md_set_globals(&md);
 
-  vc  = vrna_get_fold_compound_local(string, &md, maxdist, VRNA_OPTION_MFE);
+  md.window_size = window_size;
+  md.max_bp_span = window_size;
+
+  vc  = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
   energy = wrap_Lfold(vc, 0, 0.0, NULL);
 
@@ -1323,7 +1326,7 @@ PUBLIC float Lfold( const char *string,
 PUBLIC float
 Lfoldz( const char *string,
         char *structure,
-        int maxdist,
+        int window_size,
         int zsc,
         double min_z){
 
@@ -1333,7 +1336,10 @@ Lfoldz( const char *string,
 
   vrna_md_set_globals(&md);
 
-  vc  = vrna_get_fold_compound_local(string, &md, maxdist, VRNA_OPTION_MFE);
+  md.window_size = window_size;
+  md.max_bp_span = window_size;
+
+  vc  = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
 #ifndef USE_SVM
   zsc = 0;  /* deactivate z-scoring if no compiled-in svm support is available */

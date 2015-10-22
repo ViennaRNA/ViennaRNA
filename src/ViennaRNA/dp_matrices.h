@@ -8,7 +8,9 @@
  *  @{
  */
 
+/** @brief Typename for the Minimum Free Energy (MFE) DP matrices data structure #vrna_matrices_mfe */
 typedef struct  vrna_matrices_mfe vrna_mx_mfe_t;
+/** @brief Typename for the Partition Function (PF) DP matrices data structure #vrna_matrices_pf */
 typedef struct  vrna_matrices_pf  vrna_mx_pf_t;
 
 #include <ViennaRNA/data_structures.h>
@@ -29,8 +31,9 @@ typedef struct  vrna_matrices_pf  vrna_mx_pf_t;
  */
 typedef enum {
   VRNA_MX_DEFAULT,  /**<  @brief  Default DP matrices */
-  VRNA_MX_LOCAL,    /**<  @brief  DP matrices suitable for local structure prediction
-                          @see    Lfold(), pfl_fold()
+  VRNA_MX_WINDOW,   /**<  @brief  DP matrices suitable for local structure prediction using
+                          window approach.
+                          @see    vrna_Lfold(), vrna_Lfoldz(), pfl_fold()
                     */
   VRNA_MX_2DFOLD    /**<  @brief  DP matrices suitable for distance class partitioned structure prediction
                           @see  vrna_TwoD_fold(), vrna_TwoD_pf_fold()
@@ -81,9 +84,9 @@ struct vrna_matrices_mfe {
     };
     struct {
 #endif
-      /** @name Local Folding DP matrices
+      /** @name Local Folding DP matrices using window approach
           @note These data fields are available if
-                @code vrna_mx_mfe_t.type == VRNA_MX_LOCAL @endcode
+                @code vrna_mx_mfe_t.type == VRNA_MX_WINDOW @endcode
         @{
        */
       int     **c_local;    /**<  @brief  Energy array, given that i-j pair */

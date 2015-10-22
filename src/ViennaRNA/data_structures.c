@@ -138,7 +138,7 @@ vrna_free_fold_compound(vrna_fold_compound *vc){
 
     /* free local folding related stuff (should be NULL if not used) */
     if(vc->ptype_local){
-      for (s=0; (s < vc->maxdist + 5) && (s <= vc->length); s++){
+      for (s=0; (s < vc->window_size + 5) && (s <= vc->length); s++){
         free(vc->ptype_local[s]);
       }
       free(vc->ptype_local);
@@ -154,8 +154,8 @@ vrna_get_fold_compound( const char *sequence,
                         vrna_md_t *md_p,
                         unsigned int options){
 
-  int length;
-  vrna_fold_compound *vc;
+  unsigned int        i, length, aux_options;
+  vrna_fold_compound  *vc;
   vrna_md_t           md;
 
   if(sequence == NULL) return NULL;
@@ -169,6 +169,7 @@ vrna_get_fold_compound( const char *sequence,
   vc->type        = VRNA_VC_TYPE_SINGLE;
   vc->length      = length;
   vc->sequence    = strdup(sequence);
+  aux_options     = 0L;
 
   /* get a copy of the model details */
   if(md_p)
@@ -176,61 +177,52 @@ vrna_get_fold_compound( const char *sequence,
   else /* this fallback relies on global parameters and thus is not threadsafe */
     vrna_md_set_globals(&md);
 
-  set_fold_compound(vc, &md, options, WITH_PTYPE | ((options & VRNA_OPTION_PF) ? WITH_PTYPE_COMPAT : 0L));
+  if(options & VRNA_OPTION_WINDOW){ /* sliding window structure prediction */
+    if(md.window_size <= 0)
+      md.window_size = (int)vc->length;
+    else if(md.window_size > (int)vc->length)
+      md.window_size = (int)vc->length;
 
-  if(!(options & VRNA_OPTION_EVAL_ONLY)){
-    /* add default hard constraints */
-    vrna_hc_init(vc);
+    vc->window_size = md.window_size;
 
-    /* add DP matrices */
-    vrna_mx_add(vc, VRNA_MX_DEFAULT, options);
-  }
-  return vc;
-}
+    if((md.max_bp_span <= 0) || (md.max_bp_span > md.window_size))
+      md.max_bp_span = md.window_size;
 
-PUBLIC vrna_fold_compound*
-vrna_get_fold_compound_local( const char *sequence,
-                              vrna_md_t *md_p,
-                              unsigned int maxdist,
-                              unsigned int options){
+    set_fold_compound(vc, &md, options, aux_options);
 
-  unsigned int i, length;
-  vrna_fold_compound *vc;
-  vrna_md_t           md;
+    vc->ptype_local = (char **) vrna_alloc(sizeof(char *)*(vc->length+1));
+    for (i = vc->length; ( i > vc->length - vc->window_size - 5) && (i >= 0); i--){
+      vc->ptype_local[i] = (char *) vrna_alloc(sizeof(char)*(vc->window_size+5));
+    }
 
-  if(sequence == NULL) return NULL;
+    if(!(options & VRNA_OPTION_EVAL_ONLY)){
+      /* add default hard constraints */
+      /* vrna_hc_init(vc); */ /* no hard constraints in Lfold, yet! */
 
-  /* sanity check */
-  length = (unsigned int)strlen(sequence);
-  if(length == 0L)
-    vrna_message_error("vrna_get_fold_compound: sequence length must be greater 0");
+      /* add DP matrices */
+      vrna_mx_add(vc, VRNA_MX_WINDOW, options);
+    }
+  } else { /* regular global structure prediction */
 
-  vc              = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
-  vc->type        = VRNA_VC_TYPE_SINGLE;
-  vc->length      = length;
-  vc->sequence    = strdup(sequence);
-  vc->maxdist     = (maxdist > length) ? length : maxdist;
+    /* set window size to entire sequence */
+    md.window_size = (int)vc->length;
 
-  /* get a copy of the model details */
-  if(md_p)
-    md = *md_p;
-  else /* this fallback relies on global parameters and thus is not threadsafe */
-    vrna_md_set_globals(&md);
+    aux_options |= WITH_PTYPE;
 
-  set_fold_compound(vc, &md, options, 0L);
+    if(options & VRNA_OPTION_PF)
+      aux_options |= WITH_PTYPE_COMPAT;
 
-  vc->ptype_local = (char **) vrna_alloc(sizeof(char *)*(vc->length+1));
-  for (i = vc->length; ( i > vc->length - vc->maxdist - 5) && (i >= 0); i--){
-    vc->ptype_local[i] = (char *) vrna_alloc(sizeof(char)*(vc->maxdist+5));
+    set_fold_compound(vc, &md, options, aux_options);
+
+    if(!(options & VRNA_OPTION_EVAL_ONLY)){
+      /* add default hard constraints */
+      vrna_hc_init(vc);
+
+      /* add DP matrices */
+      vrna_mx_add(vc, VRNA_MX_DEFAULT, options);
+    }
   }
 
-  if(!(options & VRNA_OPTION_EVAL_ONLY)){
-    /* add default hard constraints */
-    /* vrna_hc_init(vc); */ /* no hard constraints in Lfold, yet! */
-
-    /* add DP matrices */
-    vrna_mx_add(vc, VRNA_MX_LOCAL, options);
-  }
   return vc;
 }
 

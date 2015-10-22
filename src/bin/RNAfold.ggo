@@ -84,8 +84,11 @@ hidden
 
 option  "outfile" o
 "Print output to file instead of stdout\n"
-details="Specifying a file name/prefix will create text output files in formats specified with the --output option.\
- If a FASTA header precedes the input sequence, the appropriate fasta ID is used as infix for the file name.\n\n"
+details="Specifying a file name/prefix will print the output into a file instead of stdout.\
+ If a FASTA header precedes the input sequence, the appropriate fasta ID is used as infix for\
+ the file name. Each generated file will be suffixed with the file extension '.fold'.\
+ If a file with the same filename already exists, any output of the program will be appended\
+ to it.\n\n"
 string
 typestr="<filename>"
 optional
@@ -93,7 +96,7 @@ optional
 option  "infile"  i
 "Read a file instead of reading from stdin\n"
 details="The default behavior of RNAfold is to read input from stdin. Using this parameter\
- the user can specify an input file name where data is read from\n\n"
+ the user can specify an input file name where data is read from.\n\n"
 string
 typestr="<filename>"
 optional

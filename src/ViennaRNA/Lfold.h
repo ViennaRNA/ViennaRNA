@@ -31,17 +31,23 @@
  *
  *  Computes minimum free energy structures using a sliding window
  *  approach, where base pairs may not span outside the window.
- *  In contrast to vrna_fold(), where the maximum base pair span
- *  may be set using #vrna_md_t.max_bp_span and one globally optimal
- *  structure is predicted, this function uses a sliding window to
- *  retrieve all locally optimal structures within each window.
+ *  In contrast to vrna_fold(), where a maximum base pair span
+ *  may be set using the #vrna_md_t.max_bp_span attribute and one
+ *  globally optimal structure is predicted, this function uses a
+ *  sliding window to retrieve all locally optimal structures within
+ *  each window.
+ *  The size of the sliding window is set in the #vrna_md_t.window_size
+ *  attribute, prior to the retrieval of the #vrna_fold_compound
+ *  using vrna_get_fold_compound() with option #VRNA_OPTION_WINDOW
+ *
  *  The predicted structures are written on-the-fly, either to
  *  stdout, if a NULL pointer is passed as file parameter, or to
  *  the corresponding filehandle.
  *
  *  \ingroup local_mfe_fold
  * 
- *  @see vrna_get_fold_compound_window(), vrna_Lfoldz(), vrna_fold
+ *  @see  vrna_get_fold_compound(), vrna_Lfoldz(), vrna_fold(),
+ *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
  *
  *  \param vc   
  *  \param structure

@@ -11,7 +11,11 @@
  */
 
 /* below are several typedef's we use throughout the ViennaRNA library */
+
+/** @brief Typename for the fold_compound data structure #vrna_fc */
 typedef struct vrna_fc        vrna_fold_compound;
+
+/** @brief Typename for the base pair repesenting data structure #vrna_basepair */
 typedef struct vrna_basepair  vrna_basepair_t;
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
@@ -554,7 +558,7 @@ struct vrna_fc{
    *  These data fields are typically populated with meaningful data only if used in the context of local folding
    *  @{
    */
-  int             maxdist;        /**<  @brief  maximum base pair span (window size) */
+  int             window_size;    /**<  @brief  window size for local folding sliding window approach */
   char            **ptype_local;  /**<  @brief  Pair type array (for local folding) */
   /**
       @}
@@ -594,6 +598,7 @@ struct vrna_fc{
  */
 #define VRNA_OPTION_EVAL_ONLY       8
 
+#define VRNA_OPTION_WINDOW          16
 
 
 /**
@@ -657,11 +662,6 @@ vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
 vrna_fold_compound *vrna_get_fold_compound_ali( const char **sequences,
                                                 vrna_md_t *md_p,
                                                 unsigned int options);
-
-vrna_fold_compound *vrna_get_fold_compound_local( const char *sequence,
-                                                  vrna_md_t *md_p,
-                                                  unsigned int maxdist,
-                                                  unsigned int options);
 
 vrna_fold_compound *vrna_get_fold_compound_2D(const char *sequence,
                                               const char *s1,

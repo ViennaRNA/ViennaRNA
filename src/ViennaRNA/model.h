@@ -24,6 +24,7 @@
 #define NBASES 8
 #endif
 
+/** @brief Typename for the model details data structure #vrna_md */
 typedef struct vrna_md  vrna_md_t;
 
 /**
@@ -126,6 +127,12 @@ typedef struct vrna_md  vrna_md_t;
 #define VRNA_MODEL_DEFAULT_MAX_BP_SPAN    -1
 
 /**
+ *  @brief  Default model behavior for the sliding window approach
+ *  @see    #vrna_md_t.window_size, vrna_md_set_default()
+ */
+#define VRNA_MODEL_DEFAULT_WINDOW_SIZE    -1
+
+/**
  *  @brief  Default model behavior on how to evaluate the energy contribution of multibranch loops
  *  @see    #vrna_md_t.logML, vrna_md_set_default()
  */
@@ -169,7 +176,10 @@ typedef struct vrna_md  vrna_md_t;
 /**
  *  @brief The data structure that contains the complete model details used throughout the calculations
  *
- *  @see  vrna_md_set_default(), vrna_md_set_globals(), vrna_md_update()
+ *  For convenience reasons, we provide the type name #vrna_md_t to address this data structure
+ *  without the use of the struct keyword
+ *
+ *  @see  vrna_md_set_default(), vrna_md_set_globals(), vrna_md_update(), #vrna_md_t
  */
 struct vrna_md{
   double  temperature;      /**<  @brief  The temperature used to scale the thermodynamic parameters */
@@ -200,7 +210,7 @@ struct vrna_md{
                                   @note The default value for this field is #TURN, however, it may
                                   be 0 in cofolding context.
                             */
-
+  int     window_size;      /**<  @brief  Size of the sliding window for locally optimal structure predition */
   int     oldAliEn;         /**<  @brief  Use old alifold energy model */
   int     ribo;             /**<  @brief  Use ribosum scoring table in alifold energy model */
   double  cv_fact;          /**<  @brief  Covariance scaling factor for consensus structure prediction */

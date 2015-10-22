@@ -440,7 +440,7 @@ vrna_gquad_mx_local_update( vrna_fold_compound *vc,
   vc->matrices->ggg_local = create_L_matrix(
                               vc->sequence_encoding,
                               start,
-                              vc->maxdist,
+                              vc->window_size,
                               vc->matrices->ggg_local,
                               vc->params);
 }

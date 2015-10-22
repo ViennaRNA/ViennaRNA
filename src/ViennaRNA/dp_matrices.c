@@ -101,20 +101,20 @@ vrna_free_mfe_matrices(vrna_fold_compound *vc){
                                 free(self->ggg);
                                 break;
 
-        case VRNA_MX_LOCAL:     if(self->c_local)
-                                  for (i=0; (i < vc->maxdist + 5) && (i <= vc->length); i++){
+        case VRNA_MX_WINDOW:     if(self->c_local)
+                                  for (i=0; (i < vc->window_size + 5) && (i <= vc->length); i++){
                                     free(self->c_local[i]);
                                   }
                                 free(self->c_local);
 
                                 if(self->fML_local)
-                                  for (i=0; (i < vc->maxdist + 5) && (i <= vc->length); i++){
+                                  for (i=0; (i < vc->window_size + 5) && (i <= vc->length); i++){
                                     free(self->fML_local[i]);
                                   }
                                 free(self->fML_local);
 
                                 if(self->ggg_local)
-                                  for (i=0; (i < vc->maxdist + 5) && (i <= vc->length); i++){
+                                  for (i=0; (i < vc->window_size + 5) && (i <= vc->length); i++){
                                     free(self->ggg_local[i]);
                                   }
                                 free(self->ggg_local);
@@ -748,7 +748,7 @@ get_mx_alloc_vector(vrna_md_t *md_p,
 
   /* default MFE matrices ? */
   if(options & VRNA_OPTION_MFE)
-    v |= (mx_type == VRNA_MX_LOCAL) ? ALLOC_MFE_LOCAL : ALLOC_MFE_DEFAULT;
+    v |= (mx_type == VRNA_MX_WINDOW) ? ALLOC_MFE_LOCAL : ALLOC_MFE_DEFAULT;
 
   /* default PF matrices ? */
   if(options & VRNA_OPTION_PF)
@@ -832,7 +832,7 @@ get_mfe_matrices_alloc( unsigned int n,
 
                             break;
 
-    case VRNA_MX_LOCAL:     if(alloc_vector & ALLOC_F3){
+    case VRNA_MX_WINDOW:    if(alloc_vector & ALLOC_F3){
                               vars->f3_local = (int *) vrna_alloc(sizeof(int) * lin_size);
                             } else
                               vars->f3_local = NULL;
@@ -1182,19 +1182,19 @@ add_mfe_matrices( vrna_fold_compound *vc,
 
   if(vc){
     switch(mx_type){
-      case VRNA_MX_LOCAL: vc->matrices = get_mfe_matrices_alloc(vc->length, vc->maxdist, mx_type, alloc_vector);
-                          break;
-      default:            vc->matrices = get_mfe_matrices_alloc(vc->length, vc->length, mx_type, alloc_vector);
-                          break;
+      case VRNA_MX_WINDOW:  vc->matrices = get_mfe_matrices_alloc(vc->length, vc->window_size, mx_type, alloc_vector);
+                            break;
+      default:              vc->matrices = get_mfe_matrices_alloc(vc->length, vc->length, mx_type, alloc_vector);
+                            break;
     }
 
     if(vc->params->model_details.gquad){
       switch(vc->type){
         case VRNA_VC_TYPE_SINGLE:     switch(mx_type){
-                                        case VRNA_MX_LOCAL: /* do nothing, since we handle memory somewhere else */
-                                                            break;
-                                        default:            vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
-                                                            break;
+                                        case VRNA_MX_WINDOW:  /* do nothing, since we handle memory somewhere else */
+                                                              break;
+                                        default:              vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
+                                                              break;
                                       }
                                       break;
         case VRNA_VC_TYPE_ALIGNMENT:  vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq,  vc->params);
