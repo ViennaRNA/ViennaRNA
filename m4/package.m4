@@ -254,7 +254,7 @@ AM_CONDITIONAL(WITH_REFERENCE_MANUAL_HTML, test "x$with_doc_html" != xno)
 
 AC_DEFUN([AC_RNA_INIT],[
 
-SVM_VERSION=2.91
+SVM_VERSION=3.20
 with_pf_float=no
 
 dnl add packages to the configure process

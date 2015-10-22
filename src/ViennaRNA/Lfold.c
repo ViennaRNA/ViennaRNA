@@ -135,8 +135,8 @@ wrap_Lfold( vrna_fold_compound *vc,
 #ifdef USE_SVM
   energy = fill_arrays(vc, with_zsc, min_z, avg_model, sd_model, &underflow, out);
   if(with_zsc){
-    svm_destroy_model(avg_model);
-    svm_destroy_model(sd_model);
+    svm_free_model_content(avg_model);
+    svm_free_model_content(sd_model);
   }
 #else
   energy = fill_arrays(vc, with_zsc, min_z, &underflow, out);
