@@ -12,7 +12,9 @@
 
 /* below are several typedef's we use throughout the ViennaRNA library */
 
-/** @brief Typename for the fold_compound data structure #vrna_fc */
+/** @brief Typename for the fold_compound data structure #vrna_fc
+ *  @ingroup basic_data_structures
+ */
 typedef struct vrna_fc        vrna_fold_compound;
 
 /** @brief Typename for the base pair repesenting data structure #vrna_basepair */

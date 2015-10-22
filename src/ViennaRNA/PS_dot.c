@@ -11,10 +11,10 @@
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
+#include "ViennaRNA/model.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/PS_dot.h"
-#include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/plot_layouts.h"
@@ -960,7 +960,9 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
     {"0.81 1","0.81 0.6", "0.81 0.2"} /* violet */
   };
 
-  make_pair_matrix();
+  vrna_md_t   md;
+  vrna_md_set_globals(&md);
+
   n = strlen(AS[0]);
   maxl = 1024;
 
@@ -973,7 +975,7 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
     int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;
     if ((j=ptable[i])<i) continue;
     for (s=0; AS[s]!=NULL; s++) {
-      type = pair[encode_char(AS[s][i-1])][encode_char(AS[s][j-1])];
+      type = md.pair[vrna_nucleotide_encode(AS[s][i-1], &md)][vrna_nucleotide_encode(AS[s][j-1], &md)];
       pfreq[type]++;
       if (type) {
         if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
@@ -1742,6 +1744,9 @@ int PS_color_aln(const char *structure, const char *filename,
         "/Courier findfont\n"
         "[10 0 0 -10 0 0] makefont setfont\n";
 
+  vrna_md_t     md;
+
+  vrna_md_set_globals(&md);
 
   outfile = fopen(filename, "w");
 
@@ -1833,7 +1838,7 @@ int PS_color_aln(const char *structure, const char *filename,
         xx=seqsX+(col-(block-1)*columnWidth)*fontWidth;
         /* Repeat for each sequence */
         for (s=pairings=nonpair=0; s<N; s++) {
-          ptype[BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]]++;
+          ptype[md.pair[vrna_nucleotide_encode(seqs[s][i-1], &md)][vrna_nucleotide_encode(seqs[s][j-1], &md)]]++;
         }
         for (pairings=0,s=1; s<=7; s++) {
           if (ptype[s]) pairings++;
@@ -1845,7 +1850,7 @@ int PS_color_aln(const char *structure, const char *filename,
             yy=startY+(block-1)*(lineStep*(N+2)+blockStep+consStep+rulerStep)+ssStep*(block)+(s+1)*lineStep;
 
             /* Color according due color information in pi-array, only if base pair is possible */
-            if (BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]) {
+            if (md.pair[vrna_nucleotide_encode(seqs[s][i-1], &md)][vrna_nucleotide_encode(seqs[s][j-1], &md)]) {
 
               fprintf(outfile, "%.1f %.1f %.1f %.1f %s box\n",
                       xx,yy-1,xx+fontWidth,yy+fontHeight+1,color);
@@ -2007,7 +2012,10 @@ int aliPS_color_aln(const char *structure, const char *filename,
         "/Courier findfont\n"
         "[10 0 0 -10 0 0] makefont setfont\n";
         
-  
+  vrna_md_t md;
+
+  vrna_md_set_globals(&md);
+
   outfile = fopen(filename, "w");
   if (outfile == NULL) {
     fprintf(stderr, "can't open file %s - not doing alignment plot\n", 
@@ -2105,7 +2113,7 @@ int aliPS_color_aln(const char *structure, const char *filename,
         xx=seqsX+(col-(block-1)*columnWidth)*fontWidth;
         /* Repeat for each sequence */
         for (s=pairings=nonpair=0; s<N; s++) {
-          ptype[BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]]++;
+          ptype[md.pair[vrna_nucleotide_encode(seqs[s][i-1], &md)][vrna_nucleotide_encode(seqs[s][j-1], &md)]]++;
         }
         for (pairings=0,s=1; s<=7; s++) {
           if (ptype[s]) pairings++;
@@ -2117,7 +2125,7 @@ int aliPS_color_aln(const char *structure, const char *filename,
             yy=startY+(block-1)*(lineStep*(N+2)+blockStep+consStep+rulerStep)+ssStep*(block)+(s+1)*lineStep;
             
             /* Color according due color information in pi-array, only if base pair is possible */
-            if (BP_pair[ENCODE(seqs[s][i-1])][ENCODE(seqs[s][j-1])]) {
+            if (md.pair[vrna_nucleotide_encode(seqs[s][i-1], &md)][vrna_nucleotide_encode(seqs[s][j-1], &md)]) {
 
               fprintf(outfile, "%.1f %.1f %.1f %.1f %s box\n",
                       xx,yy-1,xx+fontWidth,yy+fontHeight+1,color);
