@@ -230,6 +230,13 @@ gquad_ali_penalty(int i,
                   const short **S,
                   vrna_param_t *P);
 
+PRIVATE int **
+create_L_matrix(short *S,
+                int start,
+                int maxdist,
+                int **g,
+                vrna_param_t *P);
+
 /*
 #########################################
 # BEGIN OF PUBLIC FUNCTION DEFINITIONS  #
@@ -422,6 +429,28 @@ PUBLIC int **get_gquad_L_matrix(short *S,
                                 int maxdist,
                                 int **g,
                                 vrna_param_t *P){
+
+  return create_L_matrix(S, start, maxdist, g, P);
+}
+
+PUBLIC void
+vrna_gquad_mx_local_update( vrna_fold_compound *vc,
+                            int start){
+
+  vc->matrices->ggg_local = create_L_matrix(
+                              vc->sequence_encoding,
+                              start,
+                              vc->window_size,
+                              vc->matrices->ggg_local,
+                              vc->params);
+}
+
+PRIVATE int **
+create_L_matrix(short *S,
+                int start,
+                int maxdist,
+                int **g,
+                vrna_param_t *P){
 
   int **data;
   int n, i, j, k, *gg;

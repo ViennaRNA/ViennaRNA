@@ -25,11 +25,17 @@
 
 /*
 #################################
-# GLOBAL VARIABLES              #
+# PRIVATE MACROS                #
 #################################
 */
 
 #ifdef  VRNA_BACKWARD_COMPAT
+
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
 
 /*  below are the evil global variables that will vanish
     as soon as we drop backward compatibility in ViennaRNA
@@ -115,6 +121,7 @@ vrna_md_set_default(vrna_md_t *md){
     md->energy_set        = VRNA_MODEL_DEFAULT_ENERGY_SET;
     md->max_bp_span       = VRNA_MODEL_DEFAULT_MAX_BP_SPAN;
     md->min_loop_size     = TURN;
+    md->window_size       = VRNA_MODEL_DEFAULT_WINDOW_SIZE;
     md->oldAliEn          = VRNA_MODEL_DEFAULT_ALI_OLD_EN;
     md->ribo              = VRNA_MODEL_DEFAULT_ALI_RIBO;
     md->cv_fact           = VRNA_MODEL_DEFAULT_ALI_CV_FACT;
@@ -377,6 +384,7 @@ vrna_md_set_globals(vrna_md_t *md){
     md->energy_set        = energy_set;
     md->max_bp_span       = max_bp_span;
     md->min_loop_size     = TURN;
+    md->window_size       = VRNA_MODEL_DEFAULT_WINDOW_SIZE;
     md->oldAliEn          = oldAliEn;
     md->ribo              = ribo;
     md->cv_fact           = cv_fact;

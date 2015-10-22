@@ -5,7 +5,6 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 
-#define MAXDOS 1000
 
 /**
  *  \addtogroup subopt_fold Enumerating Suboptimal Structures
@@ -16,6 +15,11 @@
  *
  *  @}
  */
+
+/**
+ *  @brief Maximum density of states discretization for subopt
+ */
+#define MAXDOS                1000
 
 /**
  *  \addtogroup subopt_wuchty

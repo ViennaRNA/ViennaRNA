@@ -4,6 +4,9 @@
 /**
  */
 
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
+
 /**
  *  \addtogroup local_fold
  *
@@ -22,6 +25,63 @@
  *
  *  @}
  */
+
+/**
+ *  \brief Local MFE prediction using a sliding window approach.
+ *
+ *  Computes minimum free energy structures using a sliding window
+ *  approach, where base pairs may not span outside the window.
+ *  In contrast to vrna_fold(), where a maximum base pair span
+ *  may be set using the #vrna_md_t.max_bp_span attribute and one
+ *  globally optimal structure is predicted, this function uses a
+ *  sliding window to retrieve all locally optimal structures within
+ *  each window.
+ *  The size of the sliding window is set in the #vrna_md_t.window_size
+ *  attribute, prior to the retrieval of the #vrna_fold_compound
+ *  using vrna_get_fold_compound() with option #VRNA_OPTION_WINDOW
+ *
+ *  The predicted structures are written on-the-fly, either to
+ *  stdout, if a NULL pointer is passed as file parameter, or to
+ *  the corresponding filehandle.
+ *
+ *  \ingroup local_mfe_fold
+ * 
+ *  @see  vrna_get_fold_compound(), vrna_Lfoldz(), vrna_fold(),
+ *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
+ *
+ *  \param vc   
+ *  \param structure
+ *  \param maxdist
+ */
+float vrna_Lfold( vrna_fold_compound *vc, FILE *file);
+
+#ifdef USE_SVM
+float vrna_Lfoldz(vrna_fold_compound *vc, double min_z, FILE *file);
+#endif
+
+
+/**
+ *  \addtogroup local_consensus_fold
+ *  @{
+ *
+ *  @}
+ */
+
+/**
+ *  \brief
+ *
+ *  \ingroup local_consensus_fold
+ * 
+ *  \param strings
+ *  \param structure
+ *  \param maxdist
+ *  \return
+ */
+float aliLfold( const char **strings,
+                char *structure,
+                int maxdist);
+
+#ifdef  VRNA_BACKWARD_COMPAT
 
 /**
  *  \brief The local analog to fold().
@@ -56,26 +116,6 @@ float Lfoldz( const char *string,
               int zsc,
               double min_z);
 
-
-/**
- *  \addtogroup local_consensus_fold
- *  @{
- *
- *  @}
- */
-
-/**
- *  \brief
- *
- *  \ingroup local_consensus_fold
- * 
- *  \param strings
- *  \param structure
- *  \param maxdist
- *  \return
- */
-float aliLfold( const char **strings,
-                char *structure,
-                int maxdist);
+#endif
 
 #endif

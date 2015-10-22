@@ -33,6 +33,9 @@
  *
  */
 
+typedef struct  vrna_hard_constraints vrna_hc_t;
+typedef struct  vrna_soft_constraints vrna_sc_t;
+
 #include <ViennaRNA/data_structures.h>
 
 /**
@@ -423,7 +426,7 @@
  *
  *  @ingroup hard_constraints
  */
-typedef struct vrna_hc_t {
+struct vrna_hard_constraints {
   char    *matrix;  /**<  @brief  Upper triangular matrix encoding where a
                                   base pair or unpaired nucleotide is allowed
                     */
@@ -468,14 +471,14 @@ typedef struct vrna_hc_t {
                                                     may store necessary data to evaluate its
                                                     generalized hard constraint function
                                       */
-} vrna_hc_t;
+};
 
 /**
  *  @brief  The soft constraints data structure
  *
  *  @ingroup soft_constraints
  */
-typedef struct vrna_sc_t {
+struct vrna_soft_constraints {
   int         **free_energies;        /**<  @brief Energy contribution for unpaired sequence stretches */
   int         *en_basepair;           /**<  @brief Energy contribution for base pairs */
   FLT_OR_DBL  **boltzmann_factors;    /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
@@ -495,12 +498,12 @@ typedef struct vrna_sc_t {
                                             @see    vrna_sc_add_f()
                                       */
 
-  PAIR  *(*bt)(int,
-                int,
-                int,
-                int,
-                char,
-                void *);              /**<  @brief  A function pointer used to obtain backtraced
+  vrna_basepair_t *(*bt)( int,
+                          int,
+                          int,
+                          int,
+                          char,
+                          void *);    /**<  @brief  A function pointer used to obtain backtraced
                                                     base pairs in loop regions that were altered
                                                     by soft constrained pseudo energy contributions
                                             @see    vrna_sc_add_bt()
@@ -536,7 +539,7 @@ typedef struct vrna_sc_t {
                                                     for pseudo energy contribution functions of the
                                                     generalized soft constraints feature
                                       */
-} vrna_sc_t;
+};
 
 /**
  *  @brief Print a help message for pseudo dot-bracket structure constraint characters to stdout.
@@ -916,7 +919,7 @@ void vrna_sc_add_f( vrna_fold_compound *vc,
  *  #vrna_sc_t of the #vrna_fold_compound.
  *  The provided function should be used for backtracking purposes in loop regions
  *  that were altered via the generalized soft constraint feature. It has to return
- *  an array of #PAIR data structures, were the last element in the list is indicated
+ *  an array of #vrna_basepair_t data structures, were the last element in the list is indicated
  *  by a value of -1 in it's i position.
  *
  *  @ingroup generalized_sc
@@ -925,7 +928,7 @@ void vrna_sc_add_f( vrna_fold_compound *vc,
  *  @param  f     A pointer to the function that returns additional base pairs
  */
 void vrna_sc_add_bt(vrna_fold_compound *vc,
-                    PAIR *(*f)( int, int, int, int, char, void *));
+                    vrna_basepair_t *(*f)( int, int, int, int, char, void *));
 
 /**
  *  @brief  Bind a function pointer for generalized soft constraint feature (PF version)

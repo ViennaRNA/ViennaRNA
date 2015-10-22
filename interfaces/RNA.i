@@ -4,6 +4,7 @@
 
 %{
 #include  "../src/ViennaRNA/data_structures.h"
+#include  "../src/ViennaRNA/dp_matrices.h"
 #include  "../src/ViennaRNA/model.h"
 #include  "../src/ViennaRNA/utils.h"
 #include  "../src/ViennaRNA/structure_utils.h"
@@ -49,8 +50,10 @@
 %include cdata.i
 
 #ifdef LARGE_PF
+#undef FLT_OR_DBL
 #define FLT_OR_DBL  double
 #else
+#undef FLT_OR_DBL
 #define FLT_OR_DBL  float
 #endif
 
@@ -116,7 +119,20 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 
 %include  "../src/ViennaRNA/eval.h"
 
+/**********************************************/
+/* BEGIN interface for data structures        */
+/**********************************************/
+
+%ignore folden;
+%ignore node;
+%ignore snoopT;
+%ignore dupVar;
+
 %include "../src/ViennaRNA/data_structures.h"
+
+/**********************************************/
+/* BEGIN interface for energy constants       */
+/**********************************************/
 
 %include  "../src/ViennaRNA/energy_const.h"
 
@@ -356,13 +372,20 @@ char *consens_mis(const char **AS);
 
 
 
-%include  "../src/ViennaRNA/subopt.h"
 // from subopt.h
 
 %newobject subopt;
 extern  SOLUTION *subopt (char *seq, char *constraint, int delta, FILE *fp=NULL);
 
 extern  int subopt_sorted;                       /* sort output by energy */
+
+%ignore vrna_subopt_solution;
+
+typedef struct {
+  float energy;
+  char  *structure;
+} SOLUTION;
+
 %extend SOLUTION {
 	SOLUTION *get(int i) {
 //	   static int size=-1;
@@ -390,6 +413,10 @@ extern  int subopt_sorted;                       /* sort output by energy */
 	   free(self);
 	}
 }
+
+%include  "../src/ViennaRNA/subopt.h"
+
+
 %{
 double get_pr(int i, int j) {
   int ii;
@@ -501,7 +528,6 @@ strcpy(symbolset, "AUGC");
 
 %}
 
-//%include "../src/ViennaRNA/duplex.h"
 typedef struct {
   int i;
   int j;
@@ -509,10 +535,10 @@ typedef struct {
   float energy;
 } duplexT;
 
-extern duplexT duplexfold(const char *s1, const char *s2);
-extern duplexT aliduplexfold(const char **s1, const char **s2);
 // problem: wrapper will not free the the structure hidden in duplexT
 // even more problem for duplex_subopt()
+
+%include "../src/ViennaRNA/duplex.h"
 
 %{
 short *encode_seq(char *sequence) {
@@ -555,3 +581,4 @@ short *encode_seq(char *sequence);
 %ignore print_str;
 %ignore copy_arr;
 %ignore allocopy;
+

@@ -1458,7 +1458,7 @@ vrna_sc_add_f(vrna_fold_compound *vc,
 
 PUBLIC void
 vrna_sc_add_bt( vrna_fold_compound *vc,
-                PAIR *(*f)( int, int, int, int, char, void *)){
+                vrna_basepair_t *(*f)( int, int, int, int, char, void *)){
 
   if(vc && f){
     if(vc->type == VRNA_VC_TYPE_SINGLE){

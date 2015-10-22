@@ -24,6 +24,9 @@
  *  @file params.h
  */
 
+typedef struct  vrna_params       vrna_param_t;
+typedef struct  vrna_exp_params   vrna_exp_param_t;
+
 #include <ViennaRNA/energy_const.h>
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/model.h>
@@ -38,7 +41,7 @@
 /**
  *  @brief The datastructure that contains temperature scaled energy parameters.
  */
-typedef struct vrna_param_t{
+struct vrna_params{
   int     id;
   int     stack[NBPAIRS+1][NBPAIRS+1];
   int     hairpin[31];
@@ -77,13 +80,12 @@ typedef struct vrna_param_t{
   double  temperature;            /**<  @brief  Temperature used for loop contribution scaling */
 
   vrna_md_t model_details;   /**<  @brief  Model details to be used in the recursions */
-
-} vrna_param_t;
+};
 
 /**
  *  @brief  The datastructure that contains temperature scaled Boltzmann weights of the energy parameters.
  */
-typedef struct vrna_exp_param_t{
+struct vrna_exp_params{
   int     id;   /**<  @brief  An identifier for the data structure
                       @deprecated This attribute will be removed in version 3
                 */
@@ -135,7 +137,7 @@ typedef struct vrna_exp_param_t{
 
   vrna_md_t model_details; /**<  @brief  Model details to be used in the recursions */
 
-} vrna_exp_param_t;
+};
 
 
 /**
@@ -215,6 +217,75 @@ vrna_exp_param_t *vrna_exp_params_ali_get(unsigned int n_seq, vrna_md_t *md);
  *  @return       A copy or a default set of the (provided) parameters
  */
 vrna_exp_param_t *vrna_exp_params_copy(vrna_exp_param_t *par);
+
+/**
+ *  @brief  Update/Reset energy parameters data structure within a #vrna_fold_compound
+ *
+ *  Passing NULL as second argument leads to a reset of the energy parameters within
+ *  vc to their default values. Otherwise, the energy parameters provided will be copied
+ *  over into vc.
+ *
+ *  @param  vc    The #vrna_fold_compound that is about to receive updated energy parameters
+ *  @param  par   The energy parameters used to substitute those within vc (Maybe NULL)
+ */
+void vrna_params_update(vrna_fold_compound *vc, vrna_param_t *par);
+
+/**
+ *  @brief Update the energy parameters for subsequent partition function computations
+ *
+ *  This function can be used to properly assign new energy parameters for partition
+ *  function computations to a #vrna_fold_compound. For this purpose, the data of the
+ *  provided pointer `params`  will be copied into `vc` and a recomputation of the partition
+ *  function scaling factor is issued, if the `pf_scale` attribute of `params` is less than `1.0`.
+ *
+ *  Passing NULL as second argument leads to a reset of the energy parameters within
+ *  vc to their default values
+ *
+ *  @see vrna_exp_params_rescale(), vrna_exp_param_t, vrna_md_t, vrna_exp_params_get()
+ *
+ *  @param  vc      The fold compound data structure
+ *  @param  params  A pointer to the new energy parameters
+ */
+void vrna_exp_params_update(vrna_fold_compound *vc, vrna_exp_param_t *params);
+
+/**
+ *  @brief Rescale Boltzmann factors for partition function computations
+ *
+ *  This function may be used to (automatically) rescale the Boltzmann factors used
+ *  in partition function computations. Since partition functions over subsequences
+ *  can easily become extremely large, the RNAlib internally rescales them to avoid
+ *  numerical over- and/or underflow. Therefore, a proper scaling factor @f$s@f$ needs to
+ *  be chosen that in turn is then used to normalize the corresponding
+ *  partition functions @f$\hat{q}[i,j] = q[i,j] / s^{(j-i+1)}@f$.
+ *
+ *  This function provides two ways to automatically adjust the scaling
+ *  factor.
+ *  1. Automatic guess
+ *  2. Automatic adjustment according to MFE
+ *
+ *  Passing `NULL` as second parameter activates the _automatic guess mode_. Here,
+ *  the scaling factor is recomputed according to a mean free energy of `184.3*length` cal
+ *  for random sequences.
+ *  @note This recomputation only takes place if the `pf_scale` attribute of the
+ *  `exp_params` datastructure contained in `vc` has a value below `1.0`.
+ *
+ *  On the other hand, if the MFE for a sequence is known, it can be used to recompute
+ *  a more robust scaling factor, since it represents the lowest free energy of the entire
+ *  ensemble of structures, i.e. the highest Boltzmann factor. To activate this second
+ *  mode of _automatic adjustment according to MFE_, a pointer to the MFE value needs to
+ *  be passed as second argument. This value is then taken to compute the scaling factor
+ *  as @f$ s = exp((sfact * MFE) / kT / length )@f$, where sfact is an additional
+ *  scaling weight located in the vrna_md_t datastructure of `exp_params` in `vc`.
+ *
+ *  The computed scaling factor @f$s@f$ will be stored as `pf_scale` attribute of the
+ *  `exp_params` datastructure in `vc`.
+ *
+ *  @see vrna_exp_params_update(), vrna_md_t, vrna_exp_param_t, #vrna_fold_compound
+ *
+ *  @param  vc  The fold compound data structure
+ *  @param  mfe A pointer to the MFE (in kcal/mol) or NULL
+ */
+void vrna_exp_params_rescale(vrna_fold_compound *vc, double *mfe);
 
 
 #ifdef  VRNA_BACKWARD_COMPAT

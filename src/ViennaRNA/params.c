@@ -58,6 +58,7 @@ PRIVATE int pf_id=-1;
 PRIVATE vrna_param_t      *get_scaled_params(vrna_md_t *md);
 PRIVATE vrna_exp_param_t  *get_scaled_exp_params(vrna_md_t *md, double pfs);
 PRIVATE vrna_exp_param_t  *get_exp_params_ali(vrna_md_t *md, unsigned int n_seq, double pfs);
+PRIVATE void              rescale_params(vrna_fold_compound *vc);
 
 /*
 #################################
@@ -122,6 +123,87 @@ vrna_exp_params_copy(vrna_exp_param_t *par){
   }
   return copy;
 }
+
+PUBLIC void
+vrna_params_update( vrna_fold_compound *vc,
+                    vrna_param_t *parameters){
+
+  if(vc){
+    if(vc->params)
+      free(vc->params);
+    if(parameters){
+      vc->params = vrna_params_copy(parameters);
+    } else {
+      switch(vc->type){
+        case VRNA_VC_TYPE_SINGLE:     /* fall through */
+
+        case VRNA_VC_TYPE_ALIGNMENT:  vc->params = vrna_params_get(NULL);
+                                      break;
+
+        default:                      break;
+      }
+    }
+  }
+}
+
+PUBLIC void
+vrna_exp_params_update( vrna_fold_compound *vc,
+                        vrna_exp_param_t *params){
+
+  if(vc){
+    if(vc->exp_params)
+      free(vc->exp_params);
+    if(params){
+      vc->exp_params = vrna_exp_params_copy(params);
+    } else {
+      switch(vc->type){
+        case VRNA_VC_TYPE_SINGLE:     vc->exp_params = vrna_exp_params_get(NULL);
+                                      if(vc->cutpoint > 0)
+                                        vc->exp_params->model_details.min_loop_size = 0;
+                                      break;
+
+        case VRNA_VC_TYPE_ALIGNMENT:  vc->exp_params = vrna_exp_params_ali_get(vc->n_seq, NULL);
+                                      break;
+
+        default:                      break;
+      }
+    }
+    /* fill additional helper arrays for scaling etc. */
+    vrna_exp_params_rescale(vc, NULL);
+  }
+}
+
+PUBLIC void
+vrna_exp_params_rescale(vrna_fold_compound *vc,
+                        double *mfe){
+
+  if(vc){
+    vrna_exp_param_t *pf = vc->exp_params;
+    if(pf){
+      double kT = pf->kT;
+
+      if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
+        kT /= vc->n_seq;
+
+      vrna_md_t *md = &(pf->model_details);
+      if(mfe){
+        kT /= 1000.;
+        pf->pf_scale = exp(-(md->sfact * *mfe)/ kT / vc->length);
+      } else if(pf->pf_scale < 1.){  /* mean energy for random sequences: 184.3*length cal */
+        pf->pf_scale = exp(-(-185+(pf->temperature-37.)*7.27)/kT);
+        if(pf->pf_scale < 1.)
+          pf->pf_scale = 1.;
+      }
+      rescale_params(vc);
+    }
+  }
+}
+
+/*
+#####################################
+# BEGIN OF STATIC HELPER FUNCTIONS  #
+#####################################
+*/
 
 PRIVATE vrna_param_t *
 get_scaled_params(vrna_md_t *md){
@@ -590,6 +672,24 @@ get_exp_params_ali( vrna_md_t *md,
 
   return pf;
 }
+
+PRIVATE void
+rescale_params(vrna_fold_compound *vc){
+
+  int           i;
+  vrna_exp_param_t  *pf = vc->exp_params;
+  vrna_mx_pf_t      *m  = vc->exp_matrices;
+
+  m->scale[0] = 1.;
+  m->scale[1] = 1./pf->pf_scale;
+  m->expMLbase[0] = 1;
+  m->expMLbase[1] = pf->expMLbase / pf->pf_scale;
+  for (i=2; i<=vc->length; i++) {
+    m->scale[i] = m->scale[i/2]*m->scale[i-(i/2)];
+    m->expMLbase[i] = pow(pf->expMLbase, (double)i) * m->scale[i];
+  }
+}
+
 
 #ifdef  VRNA_BACKWARD_COMPAT
 

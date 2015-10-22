@@ -339,7 +339,7 @@ AC_RNA_ADD_PACKAGE( [gsl],
 
 ## The following test ensures the right type for FLT_OR_DBL in the SWIG RNAlib interface
 AC_MSG_CHECKING([whether float precision is used for partition function arrays instead of double precision])
-bla=`${GREP} "^#define LARGE_PF" ${srcdir}/src/ViennaRNA/data_structures.h`
+bla=`${GREP} "^#define LARGE_PF" ${srcdir}/src/ViennaRNA/dp_matrices.h`
 if test "x$bla" = "x";
 then
   with_pf_float=yes

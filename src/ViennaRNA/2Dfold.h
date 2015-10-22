@@ -132,7 +132,7 @@ vrna_TwoD_backtrack5( vrna_fold_compound *vc,
  *              vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
  */
 typedef struct TwoDfold_vars{
-  struct vrna_param_t   *P;             /**<  @brief  Precomputed energy parameters and model details */
+  vrna_param_t    *P;             /**<  @brief  Precomputed energy parameters and model details */
   int             do_backtrack;   /**<  @brief  Flag whether to do backtracing of the structure(s) or not */
   char            *ptype;         /**<  @brief  Precomputed array of pair types */
   char            *sequence;      /**<  @brief  The input sequence  */

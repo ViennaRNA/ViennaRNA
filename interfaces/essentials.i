@@ -3,6 +3,9 @@
 /**********************************************/
 
 /* do not create default constructor and hide data fields of vrna_param_t from SWIG */
+%ignore vrna_params;
+%ignore vrna_exp_params;
+
 %nodefaultctor vrna_param_t;
 typedef struct {} vrna_param_t;
 /* do not create default constructor and hide data fields of vrna_param_t from SWIG */
@@ -19,6 +22,10 @@ typedef struct {} vrna_exp_param_t;
     vrna_param_t *P = vrna_params_get(md);
     return P;
   }
+
+  double  get_temperature(){
+    return $self->temperature;
+  }
 }
 
 /* make a nice object oriented interface to vrna_exp_param_t */
@@ -30,6 +37,10 @@ typedef struct {} vrna_exp_param_t;
   vrna_exp_param_t(vrna_md_t *md){
     vrna_exp_param_t *P = vrna_exp_params_get(md);
     return P;
+  }
+
+  double  get_temperature(){
+    return $self->temperature;
   }
 }
 
@@ -53,6 +64,10 @@ typedef struct {} vrna_exp_param_t;
 %ignore copy_pf_param;
 %ignore set_pf_param;
 
+%ignore vrna_params_update;
+%ignore vrna_exp_params_update;
+%ignore vrna_exp_params_rescale;
+
 %include "../src/ViennaRNA/params.h"
 
 
@@ -68,8 +83,19 @@ typedef struct {} vrna_exp_param_t;
 /**********************************************/
 
 /* hide data fields of vrna_md_t from SWIG */
+%ignore vrna_md;
+
 %nodefaultctor vrna_md_t;
-// typedef struct {} vrna_md_t;
+/* hide all attributes, except for some trivial ones */
+typedef struct {
+  double  temperature;
+  int     dangles;
+  int     noLP;
+  int     noGU;
+  int     noGUclosure;
+  int     special_hp;
+  int     max_bp_span;
+} vrna_md_t;
 
 /* make a nice object oriented interface to vrna_md_t */
 %extend vrna_md_t {
