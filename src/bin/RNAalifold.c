@@ -65,7 +65,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   }
 
   if(method == 'D'){
-    vrna_sc_SHAPE_add_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
+    vrna_sc_add_SHAPE_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
     return;
   }
 }
@@ -457,7 +457,7 @@ int main(int argc, char *argv[]){
     PS_color_aln(structure, "aln.ps", (const char **) AS, (const char **) names);
 
   /* free mfe arrays */
-  vrna_free_mfe_matrices(vc);
+  vrna_mx_mfe_free(vc);
 
   if (pf) {
     float energy, kT;

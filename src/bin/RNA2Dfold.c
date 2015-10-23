@@ -262,7 +262,7 @@ int main(int argc, char *argv[]){
       vrna_exp_params_rescale(vc, &mmfe);
 
       /* we dont need the mfe DP arrays anymore, so we can savely free their occupying memory */
-      vrna_free_mfe_matrices(vc);
+      vrna_mx_mfe_free(vc);
 
       vrna_sol_TwoD_pf_t *pf_s = vrna_TwoD_pf_fold(vc, maxD1, maxD2);
 

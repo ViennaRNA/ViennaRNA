@@ -351,7 +351,7 @@ struct vrna_matrices_pf {
  *
  *  @see vrna_mx_mfe_add(), vrna_mx_pf_add(), vrna_get_fold_compound(),
  *  vrna_get_fold_compound_ali(), vrna_free_fold_compound(),
- *  vrna_free_pf_matrices(), vrna_free_mfe_matrices(), #vrna_mx_t,
+ *  vrna_mx_pf_free(), vrna_mx_mfe_free(), #vrna_mx_t,
  *  #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_HYBRID, #VRNA_OPTION_EVAL_ONLY
  *
  *  @param  vc      The #vrna_fold_compound that holds pointers to the DP matrices
@@ -370,20 +370,20 @@ int vrna_mx_pf_add(vrna_fold_compound *vc, vrna_mx_t mx_type, unsigned int optio
 /**
  *  @brief  Free memory occupied by the Minimum Free Energy (MFE) Dynamic Programming (DP) matrices
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(), vrna_free_pf_matrices()
+ *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(), vrna_mx_pf_free()
  *
  *  @param  vc  The #vrna_fold_compound storing the MFE DP matrices that are to be erased from memory
  */
-void vrna_free_mfe_matrices(vrna_fold_compound *vc);
+void vrna_mx_mfe_free(vrna_fold_compound *vc);
 
 /**
  *  @brief  Free memory occupied by the Partition Function (PF) Dynamic Programming (DP) matrices
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(), vrna_free_mfe_matrices()
+ *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(), vrna_mx_mfe_free()
  *
  *  @param  vc  The #vrna_fold_compound storing the PF DP matrices that are to be erased from memory
  */
-void vrna_free_pf_matrices(vrna_fold_compound *vc);
+void vrna_mx_pf_free(vrna_fold_compound *vc);
 
 /**
  *  @}

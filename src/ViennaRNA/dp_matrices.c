@@ -82,7 +82,7 @@ PRIVATE void            add_mfe_matrices(vrna_fold_compound *vc, vrna_mx_t type,
 */
 
 PUBLIC void
-vrna_free_mfe_matrices(vrna_fold_compound *vc){
+vrna_mx_mfe_free(vrna_fold_compound *vc){
 
   unsigned int  i, j, ij;
   int           cnt1;
@@ -440,7 +440,7 @@ vrna_free_mfe_matrices(vrna_fold_compound *vc){
 }
 
 PUBLIC void
-vrna_free_pf_matrices(vrna_fold_compound *vc){
+vrna_mx_pf_free(vrna_fold_compound *vc){
 
   unsigned int  i, j, ij;
   int           cnt1;

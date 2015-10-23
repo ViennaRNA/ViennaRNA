@@ -1194,7 +1194,7 @@ vrna_sc_add_bp(vrna_fold_compound *vc,
 
 
 PUBLIC  int
-vrna_sc_SHAPE_add_zarringhalam( vrna_fold_compound *vc,
+vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound *vc,
                                 const double *reactivities,
                                 double b,
                                 double default_value,
@@ -1252,7 +1252,7 @@ vrna_sc_SHAPE_add_zarringhalam( vrna_fold_compound *vc,
 
 
 PUBLIC int
-vrna_sc_SHAPE_add_deigan( vrna_fold_compound *vc,
+vrna_sc_add_SHAPE_deigan( vrna_fold_compound *vc,
                           const double *reactivities,
                           double m,
                           double b,
@@ -1284,7 +1284,7 @@ vrna_sc_SHAPE_add_deigan( vrna_fold_compound *vc,
 }
 
 PUBLIC int
-vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
+vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound *vc,
                               const char **shape_files,
                               const int *shape_file_association,
                               double m,

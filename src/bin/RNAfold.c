@@ -75,10 +75,10 @@ add_shape_constraints(vrna_fold_compound *vc,
   vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if(method == 'D'){
-    (void)vrna_sc_SHAPE_add_deigan(vc, (const double *)values, p1, p2, constraint_type);
+    (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
   }
   else if(method == 'Z'){
-    (void)vrna_sc_SHAPE_add_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
+    (void)vrna_sc_add_SHAPE_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
   } else {
     assert(method == 'W');
     vrna_sc_add_up(vc, values, constraint_type);
@@ -432,7 +432,7 @@ int main(int argc, char *argv[]){
     }
 
     if (length>2000)
-      vrna_free_mfe_matrices(vc);
+      vrna_mx_mfe_free(vc);
 
     if (pf) {
       char *pf_struc = (char *) vrna_alloc((unsigned) length+1);

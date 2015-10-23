@@ -678,7 +678,7 @@ vrna_fold_compound *vrna_get_fold_compound_2D(const char *sequence,
 /**
  *  @brief  Free memory occupied by a #vrna_fold_compound
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_mfe_matrices(), vrna_free_pf_matrices()
+ *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_mx_mfe_free(), vrna_mx_pf_free()
  *
  *  @param  vc  The #vrna_fold_compound that is to be erased from memory
  */

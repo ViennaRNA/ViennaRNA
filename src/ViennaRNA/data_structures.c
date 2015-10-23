@@ -83,8 +83,8 @@ vrna_free_fold_compound(vrna_fold_compound *vc){
   if(vc){
 
     /* first destroy common attributes */
-    vrna_free_mfe_matrices(vc);
-    vrna_free_pf_matrices(vc);
+    vrna_mx_mfe_free(vc);
+    vrna_mx_pf_free(vc);
     free(vc->iindx);
     free(vc->jindx);
     free(vc->params);

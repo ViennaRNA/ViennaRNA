@@ -31,6 +31,8 @@
  *  in the recursions by adding bonuses/penalties in form of pseudo free energies
  *  to certain loop configurations.
  *
+ *  @file constraints.h
+ *
  */
 
 /** @brief Typename for the hard constraints data structure #vrna_hard_constraints
@@ -53,7 +55,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_PIPE              1U
@@ -63,7 +65,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_DOT               2U
@@ -72,7 +74,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_X                 4U
@@ -81,7 +83,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_ANG_BRACK         8U
@@ -90,7 +92,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_RND_BRACK         16U
@@ -103,7 +105,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_INTRAMOL    2048U
@@ -116,7 +118,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_INTERMOL    4096U
@@ -126,7 +128,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *  @warning  This flag is for future purposes only! No implementation recognizes it yet.
  */
 #define VRNA_CONSTRAINT_DB_GQUAD                8192U
@@ -168,7 +170,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
 /**
  *  @brief  Flag for vrna_add_constraints() to indicate that constraint is passed in pseudo dot-bracket notation
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraints_all()
+ *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  *  @ingroup  constraints
  *
@@ -564,7 +566,7 @@ struct vrna_soft_constraints {
  *
  *  @ingroup  constraints
  *
- *  @see  vrna_message_constraints_all(), vrna_add_constraints(), #VRNA_CONSTRAINT_DB,
+ *  @see  vrna_message_constraint_options_all(), vrna_add_constraints(), #VRNA_CONSTRAINT_DB,
  *        #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X, #VRNA_CONSTRAINT_DB_ANG_BRACK,
  *        #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_INTRAMOL
  *
@@ -602,8 +604,8 @@ void vrna_message_constraint_options_all(void);
  *  constraints by passing the corresponding options via the third parameter.
  *
  *  @see      vrna_hc_init(), vrna_sc_init(), vrna_hc_add_up(), vrna_hc_add_bp(),
- *            vrna_sc_add_up(), vrna_sc_add_bp(), vrna_sc_SHAPE_add_deigan(),
- *            vrna_sc_SHAPE_add_zarringhalam(), vrna_hc_free(), vrna_sc_free(),
+ *            vrna_sc_add_up(), vrna_sc_add_bp(), vrna_sc_add_SHAPE_deigan(),
+ *            vrna_sc_add_SHAPE_zarringhalam(), vrna_hc_free(), vrna_sc_free(),
  *            #VRNA_CONSTRAINT_FILE, #VRNA_CONSTRAINT_DB, #VRNA_CONSTRAINT_DB_PIPE,
  *            #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X, #VRNA_CONSTRAINT_DB_ANG_BRACK,
  *            #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTRAMOL,
@@ -735,8 +737,8 @@ void vrna_hc_add_post(vrna_fold_compound *vc,
  *
  *  @ingroup  soft_constraints
  *
- *  @see  vrna_sc_add_bp(), vrna_sc_add_up(), vrna_sc_SHAPE_add_deigan(),
- *        vrna_sc_SHAPE_add_zarringhalam(), vrna_sc_remove(), vrna_sc_add_f(),
+ *  @see  vrna_sc_add_bp(), vrna_sc_add_up(), vrna_sc_add_SHAPE_deigan(),
+ *        vrna_sc_add_SHAPE_zarringhalam(), vrna_sc_remove(), vrna_sc_add_f(),
  *        vrna_sc_add_exp_f(), vrna_sc_add_pre(), vrna_sc_add_post()
  *  @param  vc  The #vrna_fold_compound where an empty soft constraint feature is to be added to
  */
@@ -789,23 +791,6 @@ void vrna_sc_remove(vrna_fold_compound *vc);
 void vrna_sc_free(vrna_sc_t *sc);
 
 /**
- *  @brief  Parse a character string and extract the encoded SHAPE reactivity conversion
- *          method and possibly the parameters for conversion into pseudo free energies
- *
- *  @ingroup soft_cosntraints
- *
- *  @param  method_string   The string that contains the encoded SHAPE reactivity conversion method
- *  @param  method          A pointer to the memory location where the method character will be stored
- *  @param  param_1         A pointer to the memory location where the first parameter of the corresponding method will be stored
- *  @param  param_2         A pointer to the memory location where the second parameter of the corresponding method will be stored
- *  @return                 1 on successful extraction of the method, 0 on errors
- */
-int vrna_sc_SHAPE_parse_method( const char *method_string,
-                                char *method,
-                                float *param_1,
-                                float *param_2);
-
-/**
  *  @brief  Add SHAPE reactivity data as soft constraints (Deigan et al. method)
  *
  *  This approach of SHAPE directed RNA folding uses the simple linear ansatz
@@ -821,7 +806,7 @@ int vrna_sc_SHAPE_parse_method( const char *method_string,
  *  unchanged even when the experimental data highly disagrees with a certain motif.
  *
  *  @see  For further details, we refer to @cite deigan:2009.
- *  @see  vrna_sc_remove(), vrna_sc_SHAPE_add_zarringhalam(), vrna_sc_minimize_pertubation()
+ *  @see  vrna_sc_remove(), vrna_sc_add_SHAPE_zarringhalam(), vrna_sc_minimize_pertubation()
  *  @ingroup  soft_constraints
  *  @param  vc            The #vrna_fold_compound the soft constraints are associated with
  *  @param  reactivities  A vector of normalized SHAPE reactivities
@@ -830,7 +815,7 @@ int vrna_sc_SHAPE_parse_method( const char *method_string,
  *  @param  options       The options flag indicating how/where to store the soft constraints
  *  @return               1 on successful extraction of the method, 0 on errors
  */
-int vrna_sc_SHAPE_add_deigan( vrna_fold_compound *vc,
+int vrna_sc_add_SHAPE_deigan( vrna_fold_compound *vc,
                               const double *reactivities,
                               double m,
                               double b,
@@ -848,7 +833,7 @@ int vrna_sc_SHAPE_add_deigan( vrna_fold_compound *vc,
  *  @param  options       The options flag indicating how/where to store the soft constraints
  *  @return               1 on successful extraction of the method, 0 on errors
  */
-int vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
+int vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound *vc,
                                   const char **shape_files,
                                   const int *shape_file_association,
                                   double m,
@@ -867,7 +852,7 @@ int vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
  *  is represented by @f$ |x_i - q_i| @f$.
  *
  *  @see For further details, we refer to @cite zarringhalam:2012
- *  @see  vrna_sc_remove(), vrna_sc_SHAPE_add_deigan(), vrna_sc_minimize_pertubation()
+ *  @see  vrna_sc_remove(), vrna_sc_add_SHAPE_deigan(), vrna_sc_minimize_pertubation()
  *  @ingroup  soft_constraints
  *  @param  vc            The #vrna_fold_compound the soft constraints are associated with
  *  @param  reactivities  A vector of normalized SHAPE reactivities
@@ -875,12 +860,29 @@ int vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
  *  @param  options       The options flag indicating how/where to store the soft constraints
  *  @return               1 on successful extraction of the method, 0 on errors
  */
-int vrna_sc_SHAPE_add_zarringhalam( vrna_fold_compound *vc,
+int vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound *vc,
                                     const double *reactivities,
                                     double b,
                                     double default_value,
                                     const char *shape_conversion,
                                     unsigned int options);
+
+/**
+ *  @brief  Parse a character string and extract the encoded SHAPE reactivity conversion
+ *          method and possibly the parameters for conversion into pseudo free energies
+ *
+ *  @ingroup soft_cosntraints
+ *
+ *  @param  method_string   The string that contains the encoded SHAPE reactivity conversion method
+ *  @param  method          A pointer to the memory location where the method character will be stored
+ *  @param  param_1         A pointer to the memory location where the first parameter of the corresponding method will be stored
+ *  @param  param_2         A pointer to the memory location where the second parameter of the corresponding method will be stored
+ *  @return                 1 on successful extraction of the method, 0 on errors
+ */
+int vrna_sc_SHAPE_parse_method( const char *method_string,
+                                char *method,
+                                float *param_1,
+                                float *param_2);
 
 /**
  *  @brief Convert SHAPE reactivity values to probabilities for being unpaired
@@ -1005,7 +1007,7 @@ DEPRECATED(void print_tty_constraint(unsigned int option));
  *  @brief Print structure constraint characters to stdout
  *  (full constraint support)
  *
- *  @deprecated Use vrna_message_constraints_all() instead!
+ *  @deprecated Use vrna_message_constraint_options_all() instead!
  */
 DEPRECATED(void print_tty_constraint_full(void));
 

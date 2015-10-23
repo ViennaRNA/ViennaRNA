@@ -377,7 +377,7 @@ int main(int argc, char *argv[])
     }
 
     if (length>2000)
-      vrna_free_mfe_matrices(vc);
+      vrna_mx_mfe_free(vc);
 
     /* compute partition function */
     if (pf) {
@@ -567,7 +567,7 @@ int main(int argc, char *argv[])
       }
     }
     if (!doT)
-      vrna_free_pf_matrices(vc);
+      vrna_mx_pf_free(vc);
 
     (void) fflush(stdout);
     
@@ -623,7 +623,7 @@ do_partfunc(char *string,
               vc = vrna_get_fold_compound(string, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF);
               min_en = vrna_fold(vc, tempstruc);
               *mfpl = vrna_pl_get(tempstruc, 0.95);
-              vrna_free_mfe_matrices(vc);
+              vrna_mx_mfe_free(vc);
 
               par = get_boltzmann_factor_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(length));
@@ -646,7 +646,7 @@ do_partfunc(char *string,
               vc = vrna_get_fold_compound(Newstring, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
               min_en = vrna_cofold(vc, tempstruc);
               *mfpl = vrna_pl_get(tempstruc, 0.95);
-              vrna_free_mfe_matrices(vc);
+              vrna_mx_mfe_free(vc);
 
               par = get_boltzmann_factor_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(2*length));
