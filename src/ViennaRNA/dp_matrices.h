@@ -41,7 +41,7 @@ typedef enum {
 } vrna_mx_t;
 
 /**
- *  @brief  Minimum Free Energy (MFE) Dynamic Programming (DP) matrices data structure required within the #vrna_fold_compound
+ *  @brief  Minimum Free Energy (MFE) Dynamic Programming (DP) matrices data structure required within the #vrna_fold_compound_t
  */
 struct vrna_matrices_mfe {
   /** @name Common fields for MFE matrices
@@ -199,7 +199,7 @@ struct vrna_matrices_mfe {
 };
 
 /**
- *  @brief  Partition function (PF) Dynamic Programming (DP) matrices data structure required within the #vrna_fold_compound
+ *  @brief  Partition function (PF) Dynamic Programming (DP) matrices data structure required within the #vrna_fold_compound_t
  */
 struct vrna_matrices_pf {
   /** @name Common fields for DP matrices
@@ -336,7 +336,7 @@ struct vrna_matrices_pf {
  *  @brief  Add Dynamic Programming (DP) matrices (allocate memory)
  *
  *  This function adds DP matrices of a specific type to the provided
- *  #vrna_fold_compound, such that successive DP recursion can be applied.
+ *  #vrna_fold_compound_t, such that successive DP recursion can be applied.
  *  The function caller has to specify which type of DP matrix is requested,
  *  see #vrna_mx_t, and what kind of recursive algorithm will be applied
  *  later on, using the parameters type, and options, respectively. For the

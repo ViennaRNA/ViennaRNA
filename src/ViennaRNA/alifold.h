@@ -287,13 +287,13 @@ DEPRECATED(float alipf_circ_fold(const char **sequences, char *structure, plist 
  * 
  *  \ingroup consensus_pf_fold
  *
- *  \deprecated Usage of this function is discouraged! The new #vrna_fold_compound
+ *  \deprecated Usage of this function is discouraged! The new #vrna_fold_compound_t
  *  allows direct access to the folding matrices, including the pair probabilities!
  *  The pair probability array returned here reflects the one of the latest call
  *  to vrna_pf_comparative(), or any of the old API calls for consensus structure
  *  partition function folding.
  * 
- *  \see #vrna_fold_compound, vrna_fold_compound_comparative(), and vrna_pf_comparative()
+ *  \see #vrna_fold_compound_t, vrna_fold_compound_comparative(), and vrna_pf_comparative()
  *
  *  \return A pointer to the base pair probability array
  */
@@ -308,7 +308,7 @@ DEPRECATED(FLT_OR_DBL *export_ali_bppm(void));
  *  allocated by old API function calls. Memory allocated by any of the new API calls (starting with vrna_)
  *  will be not affected!
  *
- *  \see #vrna_fold_compound, vrna_vrna_fold_compound_free()
+ *  \see #vrna_fold_compound_t, vrna_vrna_fold_compound_free()
  *
  */
 DEPRECATED(void  free_alipf_arrays(void));
@@ -357,7 +357,7 @@ DEPRECATED(char  *alipbacktrack(double *prob));
  *  \deprecated It is discouraged to use this function! The new #vrna_fold_compound_t allows
  *  direct access to all necessary consensus structure prediction related variables!
  *
- *  \see #vrna_fold_compound, vrna_fold_compound_comparative(), vrna_pf_comparative()
+ *  \see #vrna_fold_compound_t, vrna_fold_compound_comparative(), vrna_pf_comparative()
  *
  *  \param S_p      A pointer to the 'S' array (integer representation of nucleotides)
  *  \param S5_p     A pointer to the 'S5' array
@@ -389,7 +389,7 @@ DEPRECATED(int get_alipf_arrays(short ***S_p,
  *  change in folding parameters like #temperature
  *
  *  \ingroup  consensus_fold
- *  \deprecated Usage of this function is discouraged! The new API uses #vrna_fold_compound
+ *  \deprecated Usage of this function is discouraged! The new API uses #vrna_fold_compound_t
  *  to lump all folding related necessities together, including the energy parameters. Use
  *  vrna_update_fold_params() to update the energy parameters within a #vrna_fold_compound_t.
  */

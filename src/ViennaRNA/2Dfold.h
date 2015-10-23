@@ -83,7 +83,7 @@ typedef struct vrna_sol_TwoD_t{
  * the k-attribute of the list entry.
  *
  *  @see  vrna_fold_compound_TwoD(), vrna_fold_compound_free(), vrna_pf_TwoD()
- *        vrna_backtrack5_TwoD(), #vrna_sol_TwoD_t, #vrna_fold_compound
+ *        vrna_backtrack5_TwoD(), #vrna_sol_TwoD_t, #vrna_fold_compound_t
  *
  *  @param vc         The datastructure containing all precomputed folding attributes
  *  @param distance1  maximum distance to reference1 (-1 means no restriction)

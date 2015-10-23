@@ -43,7 +43,7 @@
  *  sliding window to retrieve all locally optimal structures within
  *  each window.
  *  The size of the sliding window is set in the #vrna_md_t.window_size
- *  attribute, prior to the retrieval of the #vrna_fold_compound
+ *  attribute, prior to the retrieval of the #vrna_fold_compound_t
  *  using vrna_fold_compound() with option #VRNA_OPTION_WINDOW
  *
  *  The predicted structures are written on-the-fly, either to

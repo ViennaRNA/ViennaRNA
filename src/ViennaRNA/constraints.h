@@ -727,7 +727,7 @@ void vrna_hc_add_post(vrna_fold_compound_t *vc,
                       void (*post)( vrna_fold_compound_t *, char));
 
 /**
- *  @brief Initialize an empty soft constraints data structure within a #vrna_fold_compound
+ *  @brief Initialize an empty soft constraints data structure within a #vrna_fold_compound_t
  *
  *  This function adds a proper soft constraints data structure
  *  to the #vrna_fold_compound_t data structure.
@@ -771,7 +771,7 @@ void vrna_sc_add_up(vrna_fold_compound_t *vc,
                     unsigned int options);
 
 /**
- *  @brief  Remove soft constraints from #vrna_fold_compound
+ *  @brief  Remove soft constraints from #vrna_fold_compound_t
  *
  *  \note Accepts vrna_fold_compound_t of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
  *
@@ -963,10 +963,10 @@ void vrna_sc_add_exp_f( vrna_fold_compound_t *vc,
  *
  *  @note     The function pointer passed will be used by calls of vrna_mfe(), vrna_pf(),
  *            vrna_mfe_comparative(), vrna_pf_comparative(), vrna_mfe_dimer(), vrna_pf_dimer(), and
- *            vrna_subopt(). Each call is provided with the current #vrna_fold_compound, and
+ *            vrna_subopt(). Each call is provided with the current #vrna_fold_compound_t, and
  *            a flag to indicate whether general free energy evaluation (#VRNA_SC_GEN_MFE), or
  *            partition function computations (#VRNA_SC_GEN_PF) will take place next.
- *  @see      #VRNA_SC_GEN_MFE, #VRNA_SC_GEN_PF, #vrna_sc_t, #vrna_fold_compound
+ *  @see      #VRNA_SC_GEN_MFE, #VRNA_SC_GEN_PF, #vrna_sc_t, #vrna_fold_compound_t
  *
  *  @ingroup  generalized_sc
  *
@@ -980,10 +980,10 @@ void vrna_sc_add_pre(vrna_fold_compound_t *vc, void (*pre)( vrna_fold_compound_t
  *
  *  @note     The function pointer passed will be used by calls of vrna_mfe(), vrna_pf(),
  *            vrna_mfe_comparative(), vrna_pf_comparative(), vrna_mfe_dimer(), vrna_pf_dimer(), and
- *            vrna_subopt(). Each call is provided with the current #vrna_fold_compound, and
+ *            vrna_subopt(). Each call is provided with the current #vrna_fold_compound_t, and
  *            a flag to indicate whether general free energy evaluation (#VRNA_SC_GEN_MFE), or
  *            partition function computations (#VRNA_SC_GEN_PF) has taken place before.
- *  @see      #VRNA_SC_GEN_MFE, #VRNA_SC_GEN_PF, #vrna_sc_t, #vrna_fold_compound
+ *  @see      #VRNA_SC_GEN_MFE, #VRNA_SC_GEN_PF, #vrna_sc_t, #vrna_fold_compound_t
  *
  *  @ingroup  generalized_sc
  *

@@ -382,14 +382,14 @@ typedef struct dupVar{
  *  @brief  This module provides interfaces that deal with the most basic data structures used
  *          in structure predicting and energy evaluating function of the RNAlib.
  *
- *          Throughout the RNAlib, a data structure, the #vrna_fold_compound, is used to group
+ *          Throughout the RNAlib, a data structure, the #vrna_fold_compound_t, is used to group
  *          information and data that is required for structure prediction and energy evaluation.
- *          Here, you'll find interface functions to create, modify, and delete #vrna_fold_compound
+ *          Here, you'll find interface functions to create, modify, and delete #vrna_fold_compound_t
  *          data structures.
  */
 
 /**
- *  @brief  An enumerator that is used to specify the type of a #vrna_fold_compound
+ *  @brief  An enumerator that is used to specify the type of a #vrna_fold_compound_t
  */
 typedef enum {
   VRNA_VC_TYPE_SINGLE,    /**< Type is suitable for single, and hybridizing sequences */
@@ -676,7 +676,7 @@ vrna_fold_compound_t *vrna_fold_compound_TwoD(const char *sequence,
                                               unsigned int options);
 
 /**
- *  @brief  Free memory occupied by a #vrna_fold_compound
+ *  @brief  Free memory occupied by a #vrna_fold_compound_t
  *
  *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_mx_mfe_free(), vrna_mx_pf_free()
  *

@@ -221,7 +221,7 @@ vrna_exp_param_t *vrna_exp_params_ali_get(unsigned int n_seq, vrna_md_t *md);
 vrna_exp_param_t *vrna_exp_params_copy(vrna_exp_param_t *par);
 
 /**
- *  @brief  Update/Reset energy parameters data structure within a #vrna_fold_compound
+ *  @brief  Update/Reset energy parameters data structure within a #vrna_fold_compound_t
  *
  *  Passing NULL as second argument leads to a reset of the energy parameters within
  *  vc to their default values. Otherwise, the energy parameters provided will be copied
@@ -282,7 +282,7 @@ void vrna_exp_params_update(vrna_fold_compound_t *vc, vrna_exp_param_t *params);
  *  The computed scaling factor @f$s@f$ will be stored as `pf_scale` attribute of the
  *  `exp_params` datastructure in `vc`.
  *
- *  @see vrna_exp_params_update(), vrna_md_t, vrna_exp_param_t, #vrna_fold_compound
+ *  @see vrna_exp_params_update(), vrna_md_t, vrna_exp_param_t, #vrna_fold_compound_t
  *
  *  @param  vc  The fold compound data structure
  *  @param  mfe A pointer to the MFE (in kcal/mol) or NULL

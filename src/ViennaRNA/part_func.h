@@ -99,7 +99,7 @@ char    *vrna_pbacktrack5(vrna_fold_compound_t *vc, int length);
  *  @pre    vrna_pf() hasto be called first to fill the partition function matrices
  *
  *  @note The function will automagically detect cicular RNAs based on the model_details in exp_params as
- *        provided via the #vrna_fold_compound
+ *        provided via the #vrna_fold_compound_t
  *
  *  @param  vc      The fold compound data structure
  *  @param  length  The length of the subsequence to consider (starting with 5' end)

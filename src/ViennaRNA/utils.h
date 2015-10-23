@@ -453,7 +453,7 @@ void vrna_ali_encode( const char *sequence,
  *
  *  @note This array is always indexed via jindx, in contrast to previously
  *  different indexing between mfe and pf variants!
- *  @see  vrna_get_indx(), #vrna_fold_compound
+ *  @see  vrna_get_indx(), #vrna_fold_compound_t
  *
  */
 char  *vrna_get_ptypes( const short *S,

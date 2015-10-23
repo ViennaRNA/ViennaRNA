@@ -244,10 +244,10 @@ vrna_fold_compound_comparative( const char **sequences,
   length = strlen(sequences[0]);
   /* sanity check */
   if(length == 0)
-    vrna_message_error("vrna_fold_compound_ali: sequence length must be greater 0");
+    vrna_message_error("vrna_fold_compound_comparative: sequence length must be greater 0");
   for(s = 0; s < n_seq; s++)
     if(strlen(sequences[s]) != length)
-      vrna_message_error("vrna_fold_compound_ali: uneqal sequence lengths in alignment");
+      vrna_message_error("vrna_fold_compound_comparative: uneqal sequence lengths in alignment");
 
   vc            = (vrna_fold_compound_t *)vrna_alloc(sizeof(vrna_fold_compound_t));
   vc->type      = VRNA_VC_TYPE_ALIGNMENT;
@@ -297,15 +297,15 @@ vrna_fold_compound_TwoD(const char *sequence,
   /* sanity check */
   length = strlen(sequence);
   if(length == 0)
-    vrna_message_error("vrna_fold_compound_2D: sequence length must be greater 0");
+    vrna_message_error("vrna_fold_compound_TwoD: sequence length must be greater 0");
 
   l = strlen(s1);
   if(l != length)
-    vrna_message_error("vrna_fold_compound_2D: sequence and s1 differ in length");
+    vrna_message_error("vrna_fold_compound_TwoD: sequence and s1 differ in length");
 
   l = strlen(s2);
   if(l != length)
-    vrna_message_error("vrna_fold_compound_2D: sequence and s2 differ in length");
+    vrna_message_error("vrna_fold_compound_TwoD: sequence and s2 differ in length");
 
   vc              = (vrna_fold_compound_t *)vrna_alloc(sizeof(vrna_fold_compound_t));
   vc->type        = VRNA_VC_TYPE_SINGLE;
