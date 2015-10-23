@@ -459,15 +459,15 @@ int main(int argc, char *argv[])
         do_partfunc(Bstring, Blength, 1, &prB, &mfB, pf_parameters);
 
         if(do_backtrack){
-          vrna_co_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, pf_parameters);
-          vrna_co_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, pf_parameters);
-          vrna_co_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, pf_parameters);
+          vrna_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, pf_parameters);
+          vrna_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, pf_parameters);
+          vrna_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, pf_parameters);
         }
         printf("Free Energies:\nAB\t\tAA\t\tBB\t\tA\t\tB\n%.6f\t%6f\t%6f\t%6f\t%6f\n",
                AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB);
 
         if (doC) {
-          vrna_co_pf_get_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB, pf_parameters);
+          vrna_pf_dimer_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB, pf_parameters);
           free(ConcAandB);/*freeen*/
         }
 
@@ -683,7 +683,7 @@ do_concentrations(double FEAB,
   struct ConcEnt *result;
   int i, n;
 
-  result=vrna_co_pf_get_concentrations(FEAB, FEAA, FEBB, FEA, FEB, startconc, parameters);
+  result=vrna_pf_dimer_concentrations(FEAB, FEAA, FEBB, FEA, FEB, startconc, parameters);
 
   printf("Initial concentrations\t\trelative Equilibrium concentrations\n");
   printf("A\t\t B\t\t AB\t\t AA\t\t BB\t\t A\t\t B\n");

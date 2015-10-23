@@ -33,10 +33,10 @@
  *  MFE structure for two hybridized sequences, local optimal structures and many more. For
  *  those more specialized variants of MFE folding routines, please consult the appropriate
  *  subsections (Modules) as listed above.
- *  
+ *
  *  \file fold.h
  *  \brief MFE calculations for single RNA sequences
- * 
+ *
  *  This file includes (almost) all function declarations within the RNAlib that are related to
  *  MFE folding...
  */
@@ -55,7 +55,7 @@
 /**
  *  \brief Compute minimum free energy and an appropriate secondary
  *  structure of an RNA sequence
- * 
+ *
  *  The second parameter, \a structure, should point to an allocated
  *  block of memory with a size of at least \f$\mathrm{strlen}(\mathrm{sequence})+1\f$ to
  *  store the backtracked MFE structure. If @p NULL is passed, no backtracking will be performed.
@@ -85,7 +85,7 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
 /**
  *  \brief Compute minimum free energy and an appropriate secondary
  *  structure of an RNA sequence
- * 
+ *
  *  The first parameter given, the RNA sequence, must be \a uppercase and should only contain
  *  an alphabet \f$\Sigma\f$ that is understood by the RNAlib\n
  *  (e.g. \f$ \Sigma = \{A,U,C,G\} \f$)\n
@@ -127,7 +127,7 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
  *
  *  \return the minimum free energy (MFE) in kcal/mol
  */
-DEPRECATED(float 
+DEPRECATED(float
 fold_par( const char *sequence,
           char *structure,
           vrna_param_t *parameters,
@@ -201,7 +201,7 @@ DEPRECATED(void update_fold_params(void));
  *  \deprecated use vrna_params_update() instead
  *
  *  \ingroup mfe_fold
- * 
+ *
  */
 DEPRECATED(void update_fold_params_par(vrna_param_t *parameters));
 
@@ -209,9 +209,9 @@ DEPRECATED(void update_fold_params_par(vrna_param_t *parameters));
  *
  *  \ingroup mfe_fold
  *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
- * 
+ *
  */
-DEPRECATED(void 
+DEPRECATED(void
 export_fold_arrays( int **f5_p,
                     int **c_p,
                     int **fML_p,
@@ -223,9 +223,9 @@ export_fold_arrays( int **f5_p,
  *
  *  \ingroup mfe_fold
  *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
- * 
+ *
  */
-DEPRECATED(void 
+DEPRECATED(void
 export_fold_arrays_par( int **f5_p,
                         int **c_p,
                         int **fML_p,
@@ -238,9 +238,9 @@ export_fold_arrays_par( int **f5_p,
  *
  *  \ingroup mfe_fold
  *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
- * 
+ *
  */
-DEPRECATED(void 
+DEPRECATED(void
 export_circfold_arrays( int *Fc_p,
                         int *FcH_p,
                         int *FcI_p,
@@ -257,9 +257,9 @@ export_circfold_arrays( int *Fc_p,
  *
  *  \ingroup mfe_fold
  *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
- * 
+ *
  */
-DEPRECATED(void 
+DEPRECATED(void
 export_circfold_arrays_par( int *Fc_p,
                             int *FcH_p,
                             int *FcI_p,
@@ -308,14 +308,14 @@ DEPRECATED(int HairpinE(int size,
  *  Allocate arrays for folding\n
  *  \deprecated {This function is deprecated and will be removed soon!}
  *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
- * 
+ *
  */
 DEPRECATED(void initialize_fold(int length));
 
 /**
  *
  *  \ingroup mfe_fold
- * 
+ *
  */
 DEPRECATED(char *backtrack_fold_from_pair(char *sequence,
                                           int i,
