@@ -71,8 +71,8 @@
 PRIVATE unsigned int    get_mx_alloc_vector(vrna_md_t *md_p, vrna_mx_t type, unsigned int options);
 PRIVATE vrna_mx_mfe_t   *get_mfe_matrices_alloc(unsigned int n, unsigned int m, vrna_mx_t type, unsigned int alloc_vector);
 PRIVATE vrna_mx_pf_t    *get_pf_matrices_alloc(unsigned int n, vrna_mx_t type, unsigned int alloc_vector);
-PRIVATE void            add_pf_matrices( vrna_fold_compound *vc, vrna_mx_t type, unsigned int alloc_vector);
-PRIVATE void            add_mfe_matrices(vrna_fold_compound *vc, vrna_mx_t type, unsigned int alloc_vector);
+PRIVATE void            add_pf_matrices( vrna_fold_compound_t *vc, vrna_mx_t type, unsigned int alloc_vector);
+PRIVATE void            add_mfe_matrices(vrna_fold_compound_t *vc, vrna_mx_t type, unsigned int alloc_vector);
 
 
 /*
@@ -82,7 +82,7 @@ PRIVATE void            add_mfe_matrices(vrna_fold_compound *vc, vrna_mx_t type,
 */
 
 PUBLIC void
-vrna_mx_mfe_free(vrna_fold_compound *vc){
+vrna_mx_mfe_free(vrna_fold_compound_t *vc){
 
   unsigned int  i, j, ij;
   int           cnt1;
@@ -440,7 +440,7 @@ vrna_mx_mfe_free(vrna_fold_compound *vc){
 }
 
 PUBLIC void
-vrna_mx_pf_free(vrna_fold_compound *vc){
+vrna_mx_pf_free(vrna_fold_compound_t *vc){
 
   unsigned int  i, j, ij;
   int           cnt1;
@@ -679,7 +679,7 @@ vrna_mx_pf_free(vrna_fold_compound *vc){
 }
 
 PUBLIC int
-vrna_mx_add(vrna_fold_compound *vc,
+vrna_mx_add(vrna_fold_compound_t *vc,
             vrna_mx_t mx_type,
             unsigned int options){
 
@@ -700,7 +700,7 @@ vrna_mx_add(vrna_fold_compound *vc,
 }
 
 PUBLIC int
-vrna_mx_mfe_add(vrna_fold_compound *vc,
+vrna_mx_mfe_add(vrna_fold_compound_t *vc,
                 vrna_mx_t mx_type,
                 unsigned int options){
 
@@ -717,7 +717,7 @@ vrna_mx_mfe_add(vrna_fold_compound *vc,
 }
 
 PUBLIC int
-vrna_mx_pf_add( vrna_fold_compound *vc,
+vrna_mx_pf_add( vrna_fold_compound_t *vc,
                 vrna_mx_t mx_type,
                 unsigned int options){
 
@@ -1157,7 +1157,7 @@ get_pf_matrices_alloc(unsigned int n,
 }
 
 PRIVATE void
-add_pf_matrices(vrna_fold_compound *vc,
+add_pf_matrices(vrna_fold_compound_t *vc,
                 vrna_mx_t type,
                 unsigned int alloc_vector){
 
@@ -1176,7 +1176,7 @@ add_pf_matrices(vrna_fold_compound *vc,
 }
 
 PRIVATE void
-add_mfe_matrices( vrna_fold_compound *vc,
+add_mfe_matrices( vrna_fold_compound_t *vc,
                   vrna_mx_t mx_type,
                   unsigned int alloc_vector){
 

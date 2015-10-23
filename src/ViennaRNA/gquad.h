@@ -79,7 +79,7 @@ int         **get_gquad_L_matrix( short *S,
                                   int **g,
                                   vrna_param_t *P);
 
-void        vrna_gquad_mx_local_update( vrna_fold_compound *vc,
+void        vrna_gquad_mx_local_update( vrna_fold_compound_t *vc,
                                         int start);
 
 void        get_gquad_pattern_mfe(short *S,
@@ -169,14 +169,14 @@ INLINE  PRIVATE int backtrack_GQuad_IntLoop_L(int c,
                                               vrna_param_t *P);
 
 PRIVATE INLINE int
-vrna_BT_gquad_mfe(vrna_fold_compound *vc,
+vrna_BT_gquad_mfe(vrna_fold_compound_t *vc,
                   int i,
                   int j,
                   bondT *bp_stack,
                   int *stack_count);
 
 PRIVATE INLINE int
-vrna_BT_gquad_int(vrna_fold_compound *vc,
+vrna_BT_gquad_int(vrna_fold_compound_t *vc,
                   int i,
                   int j,
                   int en,
@@ -184,7 +184,7 @@ vrna_BT_gquad_int(vrna_fold_compound *vc,
                   int *stack_count);
 
 PRIVATE INLINE int
-vrna_BT_gquad_mfe(vrna_fold_compound *vc,
+vrna_BT_gquad_mfe(vrna_fold_compound_t *vc,
                   int i,
                   int j,
                   bondT *bp_stack,
@@ -223,7 +223,7 @@ vrna_BT_gquad_mfe(vrna_fold_compound *vc,
 }
 
 PRIVATE INLINE int
-vrna_BT_gquad_int(vrna_fold_compound *vc,
+vrna_BT_gquad_int(vrna_fold_compound_t *vc,
                   int i,
                   int j,
                   int en,

@@ -57,7 +57,7 @@
 
 /* some backward compatibility stuff */
 PRIVATE int                 backward_compat           = 0;
-PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 
 PRIVATE float   mfe1, mfe2;       /* minimum free energies of the monomers */
 
@@ -75,9 +75,9 @@ PRIVATE float   mfe1, mfe2;       /* minimum free energies of the monomers */
 #################################
 */
 
-PRIVATE void  backtrack(sect bt_stack[], bondT *bp_list, vrna_fold_compound *vc);
-PRIVATE int   fill_arrays(vrna_fold_compound *vc, int zuker);
-PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound *vc);
+PRIVATE void  backtrack(sect bt_stack[], bondT *bp_list, vrna_fold_compound_t *vc);
+PRIVATE int   fill_arrays(vrna_fold_compound_t *vc, int zuker);
+PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound_t *vc);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -95,7 +95,7 @@ PRIVATE SOLUTION *wrap_zukersubopt( const char *string,vrna_param_t *parameters)
 */
 
 PUBLIC float
-vrna_cofold(vrna_fold_compound  *vc,
+vrna_mfe_dimer(vrna_fold_compound_t  *vc,
             char                *structure){
 
   int     length, energy;
@@ -148,7 +148,7 @@ vrna_cofold(vrna_fold_compound  *vc,
 }
 
 PRIVATE int
-fill_arrays(vrna_fold_compound  *vc,
+fill_arrays(vrna_fold_compound_t  *vc,
             int                 zuker){
 
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
@@ -322,7 +322,7 @@ backtrack_co( sect bt_stack[],
               bondT *bp_list,
               int s,
               int b, /* b=0: start new structure, b \ne 0: add to existing structure */
-              vrna_fold_compound *vc) {
+              vrna_fold_compound_t *vc) {
 
   /*------------------------------------------------------------------
     trace back through the "c", "fc", "f5" and "fML" arrays to get the
@@ -516,7 +516,7 @@ PRIVATE void
 free_end( int *array,
           int i,
           int start,
-          vrna_fold_compound *vc){
+          vrna_fold_compound_t *vc){
 
   int inc, type, energy, en, length, j, left, right, cp, dangle_model, with_gquad, *indx, *c, *ggg, turn;
   vrna_param_t  *P;
@@ -680,7 +680,7 @@ free_end( int *array,
 PRIVATE void
 backtrack(sect bt_stack[],
           bondT *bp_list,
-          vrna_fold_compound *vc){
+          vrna_fold_compound_t *vc){
 
   /*routine to call backtrack_co from 1 to n, backtrack type??*/
   backtrack_co(bt_stack, bp_list, 0,0, vc);
@@ -701,7 +701,7 @@ PRIVATE int comp_pair(const void *A, const void *B) {
 #endif
 
 PUBLIC SOLUTION *
-vrna_zukersubopt(vrna_fold_compound *vc){
+vrna_zukersubopt(vrna_fold_compound_t *vc){
 
 /* Compute zuker suboptimal. Here, we're abusing the cofold() code
    "double" sequence, compute dimerarray entries, track back every base pair.
@@ -899,7 +899,7 @@ wrap_cofold(const char *string,
 
   unsigned int        length;
   char                *seq;
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_param_t        *P;
   float               mfe;
 
@@ -925,7 +925,7 @@ wrap_cofold(const char *string,
   seq = vrna_cut_point_insert(string, cut_point);
 
   /* get compound structure */
-  vc = vrna_get_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  vc = vrna_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -946,11 +946,11 @@ wrap_cofold(const char *string,
                           | VRNA_CONSTRAINT_DB_INTRAMOL
                           | VRNA_CONSTRAINT_DB_INTERMOL;
 
-    vrna_add_constraints(vc, (const char *)structure, constraint_options);
+    vrna_constraints_add(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound)
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
@@ -958,7 +958,7 @@ wrap_cofold(const char *string,
   /* cleanup */
   free(seq);
 
-  return vrna_cofold(vc, structure);
+  return vrna_mfe_dimer(vc, structure);
 }
 
 PRIVATE SOLUTION *
@@ -967,7 +967,7 @@ wrap_zukersubopt( const char *string,
 
   unsigned int        length;
   char                *doubleseq;
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_param_t        *P;
 
   vc      = NULL;
@@ -994,7 +994,7 @@ wrap_zukersubopt( const char *string,
   strcat(doubleseq, string);
 
   /* get compound structure */
-  vc = vrna_get_fold_compound(doubleseq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  vc = vrna_fold_compound(doubleseq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -1004,7 +1004,7 @@ wrap_zukersubopt( const char *string,
   }
 
   if(backward_compat_compound)
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
@@ -1022,7 +1022,7 @@ PUBLIC void
 free_co_arrays(void){
 
   if(backward_compat_compound && backward_compat){
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
     backward_compat_compound  = NULL;
     backward_compat           = 0;
   }
@@ -1092,7 +1092,7 @@ zukersubopt_par(const char *string,
 PUBLIC void
 update_cofold_params(void){
 
-  vrna_fold_compound *v;
+  vrna_fold_compound_t *v;
   
   if(backward_compat_compound && backward_compat){
     vrna_md_t md;
@@ -1109,7 +1109,7 @@ update_cofold_params(void){
 PUBLIC void
 update_cofold_params_par(vrna_param_t *parameters){
 
-  vrna_fold_compound *v;
+  vrna_fold_compound_t *v;
   
   if(backward_compat_compound && backward_compat){
     v = backward_compat_compound;

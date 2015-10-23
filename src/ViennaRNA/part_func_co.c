@@ -49,7 +49,7 @@ double  F_monomer[2]  = {0,0}; /* free energies of the two monomers */
 */
 
 /* some backward compatibility stuff */
-PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 PRIVATE int                 backward_compat           = 0;
 
 #ifdef _OPENMP
@@ -64,8 +64,8 @@ PRIVATE int                 backward_compat           = 0;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void    pf_co(vrna_fold_compound *vc);
-PRIVATE void    pf_co_bppm(vrna_fold_compound *vc, char *structure);
+PRIVATE void    pf_co(vrna_fold_compound_t *vc);
+PRIVATE void    pf_co_bppm(vrna_fold_compound_t *vc, char *structure);
 PRIVATE double  *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
 PRIVATE cofoldF wrap_co_pf_fold(char *sequence,
                                 char *structure,
@@ -95,7 +95,7 @@ wrap_co_pf_fold(char *sequence,
 
   int                 length;
   char                *seq;
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_md_t           md;
 
   vc      = NULL;
@@ -118,12 +118,12 @@ wrap_co_pf_fold(char *sequence,
     seq[i] = '&';
     for(;i<(int)length;i++)
       seq[i+1] = sequence[i];
-  } else { /* this ensures the allocation of all cofold matrices via vrna_get_fold_compound */
+  } else { /* this ensures the allocation of all cofold matrices via vrna_fold_compound_t */
     free(seq);
     seq = strdup(sequence);
   }
 
-  vc = vrna_get_fold_compound(seq, &md, VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+  vc = vrna_fold_compound(seq, &md, VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
 
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
@@ -134,18 +134,18 @@ wrap_co_pf_fold(char *sequence,
                           | VRNA_CONSTRAINT_DB_ANG_BRACK
                           | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-    vrna_add_constraints(vc, (const char *)structure, constraint_options);
+    vrna_constraints_add(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound)
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound = vc;
   backward_compat           = 1;
   iindx = backward_compat_compound->iindx;
 
   free(seq);
-  return vrna_co_pf_fold(vc, structure);
+  return vrna_pf_dimer(vc, structure);
 }
 
 /*
@@ -155,7 +155,7 @@ wrap_co_pf_fold(char *sequence,
 */
 
 PUBLIC cofoldF
-vrna_co_pf_fold(vrna_fold_compound *vc,
+vrna_pf_dimer(vrna_fold_compound_t *vc,
                 char *structure){
                 
   int             n;
@@ -269,7 +269,7 @@ vrna_co_pf_fold(vrna_fold_compound *vc,
 
 /* forward recursion of pf cofolding */
 PRIVATE void
-pf_co(vrna_fold_compound *vc){
+pf_co(vrna_fold_compound_t *vc){
 
   int               n, i,j,k,l, ij, kl, u,u1,u2,ii, type, type_2, tt, cp, turn, maxk, minl;
   FLT_OR_DBL        *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
@@ -553,7 +553,7 @@ pf_co(vrna_fold_compound *vc){
 
 /* backward recursion of pf cofolding */
 PRIVATE void
-pf_co_bppm(vrna_fold_compound *vc, char *structure){
+pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
 
   int               n, i,j,k,l, ij, kl, ii, ll, lj, u1, u2, type, type_2, tt, turn, ov=0, *my_iindx, *jindx, cp;
   FLT_OR_DBL        temp, Qmax=0, prm_MLb, tmp2, ppp;
@@ -1099,7 +1099,7 @@ vrna_co_pf_get_concentrations(double FcAB,
   p(S) = exp(-E(S)/kT)/Z
 */
 PRIVATE void
-backtrack_qm1(vrna_fold_compound *vc,
+backtrack_qm1(vrna_fold_compound_t *vc,
               int i,
               int j,
               char *pstruc){
@@ -1144,7 +1144,7 @@ backtrack_qm1(vrna_fold_compound *vc,
 }
 
 PRIVATE void
-backtrack(vrna_fold_compound *vc,
+backtrack(vrna_fold_compound_t *vc,
           int i,
           int j,
           char *pstruc){
@@ -1345,7 +1345,7 @@ PUBLIC void
 free_co_pf_arrays(void){
 
   if(backward_compat_compound && backward_compat){
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
     backward_compat_compound  = NULL;
     backward_compat           = 0;
   }

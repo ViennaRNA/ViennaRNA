@@ -41,22 +41,22 @@ extern  int eos_debug;
  *  This function allows for energy evaluation of a given pair of structure
  *  and sequence (alignment).
  *  Model details, energy parameters, and possibly soft constraints are used as provided
- *  via the parameter 'vc'. The #vrna_fold_compound does not need to contain any DP matrices,
+ *  via the parameter 'vc'. The #vrna_fold_compound_t does not need to contain any DP matrices,
  *  but requires all most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_get_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
- *  @note Accepts vrna_fold_compound of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
+ *  @note Accepts vrna_fold_compound_t of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
  *
  *  @see  vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
- *        vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_eval_covar_structure()
+ *        vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_eval_covar_structure()
  *
- *  @param vc               A vrna_fold_compound containing the energy parameters and model details
+ *  @param vc               A vrna_fold_compound_t containing the energy parameters and model details
  *  @param structure        Secondary structure in dot-bracket notation
  *  @return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-float vrna_eval_structure(vrna_fold_compound *vc,
+float vrna_eval_structure(vrna_fold_compound_t *vc,
                           const char *structure);
 
 /**
@@ -65,21 +65,21 @@ float vrna_eval_structure(vrna_fold_compound *vc,
  *  Consensus structure prediction is driven by covariance scores of base pairs in rows of the
  *  provided alignment. This function allows to retrieve the total amount of this covariance pseudo
  *  energy scores.
- *  The #vrna_fold_compound does not need to contain any DP matrices, but requires all most basic
+ *  The #vrna_fold_compound_t does not need to contain any DP matrices, but requires all most basic
  *  init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_get_fold_compound_ali(alignment, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound_comparative(alignment, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
- *  @note Accepts vrna_fold_compound of type #VRNA_VC_TYPE_ALIGNMENT only!
+ *  @note Accepts vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT only!
  *
- *  @see  vrna_get_fold_compound_ali(), vrna_eval_structure()
+ *  @see  vrna_fold_compound_comparative(), vrna_eval_structure()
  *
- *  @param vc               A vrna_fold_compound containing the energy parameters and model details
+ *  @param vc               A vrna_fold_compound_t containing the energy parameters and model details
  *  @param structure        Secondary (consensus) structure in dot-bracket notation
  *  @return                 The covariance pseudo energy score of the input structure given the input sequence alignment in kcal/mol
  */
-float vrna_eval_covar_structure(vrna_fold_compound *vc,
+float vrna_eval_covar_structure(vrna_fold_compound_t *vc,
                                 const char *structure);
 
 /**
@@ -111,17 +111,17 @@ float vrna_eval_structure_simple( const char *string,
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_get_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
  *  @see vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
  *
- *  @param vc               A vrna_fold_compound containing the energy parameters and model details
+ *  @param vc               A vrna_fold_compound_t containing the energy parameters and model details
  *  @param structure        Secondary structure in dot-bracket notation
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-float vrna_eval_structure_verbose(vrna_fold_compound *vc,
+float vrna_eval_structure_verbose(vrna_fold_compound_t *vc,
                                   const char *structure,
                                   FILE *file);
 
@@ -158,16 +158,16 @@ float vrna_eval_structure_simple_verbose( const char *string,
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_get_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
  *  @see vrna_pt_get(), vrna_eval_structure(), vrna_eval_structure_pt_verbose()
  *
- *  @param vc               A vrna_fold_compound containing the energy parameters and model details
+ *  @param vc               A vrna_fold_compound_t containing the energy parameters and model details
  *  @param pt               Secondary structure as pair_table
  *  @return                 The free energy of the input structure given the input sequence in 10cal/mol
  */
-int vrna_eval_structure_pt( vrna_fold_compound *vc,
+int vrna_eval_structure_pt( vrna_fold_compound_t *vc,
                             const short *pt);
 
 /**
@@ -196,7 +196,7 @@ int vrna_eval_structure_pt_simple(const char *string,
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_get_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
     @endcode
  *  In contrast to vrna_eval_structure_pt() this function prints detailed energy contributions
  *  based on individual loops to a file handle. If NULL is passed as file handle, this function
@@ -204,12 +204,12 @@ int vrna_eval_structure_pt_simple(const char *string,
  *
  *  @see vrna_pt_get(), vrna_eval_structure_pt(), vrna_eval_structure_verbose()
  *
- *  @param vc               A vrna_fold_compound containing the energy parameters and model details
+ *  @param vc               A vrna_fold_compound_t containing the energy parameters and model details
  *  @param pt               Secondary structure as pair_table
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in 10cal/mol
  */
-int vrna_eval_structure_pt_verbose( vrna_fold_compound *vc,
+int vrna_eval_structure_pt_verbose( vrna_fold_compound_t *vc,
                                     const short *pt,
                                     FILE *file);
 
@@ -222,7 +222,7 @@ int vrna_eval_structure_pt_verbose( vrna_fold_compound *vc,
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_get_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
     @endcode
  *  In contrast to vrna_eval_structure_pt_verbose() this function assumes default model details
  *  and default energy parameters in order to evaluate the free energy of the secondary
@@ -243,12 +243,12 @@ int vrna_eval_structure_pt_simple_verbose(const char *string,
 /**
  * @brief Calculate energy of a loop
  *
- *  @param vc         A vrna_fold_compound containing the energy parameters and model details
+ *  @param vc         A vrna_fold_compound_t containing the energy parameters and model details
  *  @param i          position of covering base pair
  *  @param pt         the pair table of the secondary structure
  *  @returns          free energy of the loop in 10cal/mol
  */
-int vrna_eval_loop_pt(vrna_fold_compound *vc,
+int vrna_eval_loop_pt(vrna_fold_compound_t *vc,
                       int i,
                       const short *pt);
 
@@ -259,13 +259,13 @@ int vrna_eval_loop_pt(vrna_fold_compound *vc,
  *  of a base pair, otherwise it is insertion (opening).
  *
  *  @see              vrna_eval_move_pt()
- *  @param vc         A vrna_fold_compound containing the energy parameters and model details
+ *  @param vc         A vrna_fold_compound_t containing the energy parameters and model details
  *  @param structure  secondary structure in dot-bracket notation
  *  @param m1         first coordinate of base pair
  *  @param m2         second coordinate of base pair
  *  @returns          energy change of the move in kcal/mol
  */
-float vrna_eval_move( vrna_fold_compound *vc,
+float vrna_eval_move( vrna_fold_compound_t *vc,
                       const char *structure,
                       int m1,
                       int m2);
@@ -278,13 +278,13 @@ float vrna_eval_move( vrna_fold_compound *vc,
  *  of a base pair, otherwise it is insertion (opening).
  *
  *  @see              vrna_eval_move()
- *  @param vc         A vrna_fold_compound containing the energy parameters and model details
+ *  @param vc         A vrna_fold_compound_t containing the energy parameters and model details
  *  @param pt         the pair table of the secondary structure
  *  @param m1         first coordinate of base pair
  *  @param m2         second coordinate of base pair
  *  @returns          energy change of the move in 10cal/mol
  */
-int vrna_eval_move_pt(vrna_fold_compound *vc,
+int vrna_eval_move_pt(vrna_fold_compound_t *vc,
                       short *pt,
                       int m1,
                       int m2);

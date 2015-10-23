@@ -142,7 +142,7 @@ static void writeTempFile(char *tempfile, const char *data)
   fclose(f);
 }
 
-START_TEST(test_vrna_read_SHAPE_file)
+START_TEST(test_vrna_file_SHAPE_read)
 {
   char tempfile[L_tmpnam + 1];
   const size_t len = 5;
@@ -152,7 +152,7 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //1 entry
   writeTempFile(tempfile, "1 A 0.5\n");
-  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "A");
   ck_assert(deltaCompare(values[1], 0.5));
@@ -160,7 +160,7 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //1 entry 2 columns
   writeTempFile(tempfile, "1 0.5\n");
-  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "N");
   ck_assert(deltaCompare(values[1], 0.5));
@@ -168,7 +168,7 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //multiple entries
   writeTempFile(tempfile, "1 A 0.1\n2 T 0.2\n3 G 0.3\n4 C 0.4\n");
-  ret = vrna_read_SHAPE_file(tempfile, 4, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 4, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "ATGC");
   ck_assert(deltaCompare(values[1], 0.1));
@@ -179,7 +179,7 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //value formats
   writeTempFile(tempfile, "1 A 1\n2 T 2.\n3 G .3\n4 C 1e-1\n");
-  ret = vrna_read_SHAPE_file(tempfile, 4, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 4, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "ATGC");
   ck_assert(deltaCompare(values[1], 1));
@@ -190,7 +190,7 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //whitespaces
   writeTempFile(tempfile, "1 \t 0.5\n2    A\t1\n");
-  ret = vrna_read_SHAPE_file(tempfile, 2, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 2, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "NA");
   ck_assert(deltaCompare(values[1], 0.5));
@@ -199,7 +199,7 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //missing value
   writeTempFile(tempfile, "1 A\n");
-  ret = vrna_read_SHAPE_file(tempfile, 1, 123, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 1, 123, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "A");
   ck_assert(deltaCompare(values[1], 123));
@@ -207,7 +207,7 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //missing nucleotide & value
   writeTempFile(tempfile, "1\n");
-  ret = vrna_read_SHAPE_file(tempfile, 1, 123, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 1, 123, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "N");
   ck_assert(deltaCompare(values[1], 123));
@@ -215,19 +215,19 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //upper limit
   writeTempFile(tempfile, "1 A 0.1\n2 T 0.2\n3 G 0.3\n4 C 0.4\n");
-  ret = vrna_read_SHAPE_file(tempfile, 3, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 3, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
   unlink(tempfile);
 
   //lower limit
   writeTempFile(tempfile, "0 A 0.1\n1 T 0.2\n2 G 0.3\n3 C 0.4\n");
-  ret = vrna_read_SHAPE_file(tempfile, 4, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 4, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
   unlink(tempfile);
 
   //unordered
   writeTempFile(tempfile, "3 G 0.3\n2 T 0.2\n4 C 0.4\n1 A 0.1\n");
-  ret = vrna_read_SHAPE_file(tempfile, 4, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 4, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "ATGC");
   ck_assert(deltaCompare(values[1], 0.1));
@@ -238,7 +238,7 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //missing indices middle
   writeTempFile(tempfile, "1 A 0.1\n4 C 0.4\n");
-  ret = vrna_read_SHAPE_file(tempfile, 4, 123, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 4, 123, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "ANNC");
   ck_assert(deltaCompare(values[1], 0.1));
@@ -249,7 +249,7 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //missing indices start end
   writeTempFile(tempfile, "2 T 0.2\n3 G 0.3\n");
-  ret = vrna_read_SHAPE_file(tempfile, 4, 123, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 4, 123, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "NTGN");
   ck_assert(deltaCompare(values[1], 123));
@@ -259,12 +259,12 @@ START_TEST(test_vrna_read_SHAPE_file)
   unlink(tempfile);
 
   //invalid file
-  ret = vrna_read_SHAPE_file(NULL, 0, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(NULL, 0, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
 
   //missing linebreak
   writeTempFile(tempfile, "1 A 0.5");
-  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "A");
   ck_assert(deltaCompare(values[1], 0.5));
@@ -272,7 +272,7 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //garbage + entry
   writeTempFile(tempfile, "\nblablabla\n#evil_comment 123\n1 A 0.5\n\ngarbage\n");
-  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 1);
   ck_assert_str_eq(sequence, "A");
   ck_assert(deltaCompare(values[1], 0.5));
@@ -280,13 +280,13 @@ START_TEST(test_vrna_read_SHAPE_file)
 
   //garbage only
   writeTempFile(tempfile, "\nblablabla\n\ngarbage\n");
-  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
   unlink(tempfile);
 
   //empty file
   writeTempFile(tempfile, "");
-  ret = vrna_read_SHAPE_file(tempfile, 1, 0, sequence, values);
+  ret = vrna_file_SHAPE_read(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
   unlink(tempfile);
 }
@@ -466,7 +466,7 @@ TCase* constraints_testcase()
 {
   TCase *tc = tcase_create("constraints");
   tcase_add_test(tc, test_vrna_sc_SHAPE_to_pr);
-  tcase_add_test(tc, test_vrna_read_SHAPE_file);
+  tcase_add_test(tc, test_vrna_file_SHAPE_read);
   tcase_add_test(tc, test_vrna_sc_SHAPE_parse_method);
 #if 0
   tcase_add_test(tc, test_vrna_sc_add_sp);

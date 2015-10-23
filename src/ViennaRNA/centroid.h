@@ -31,14 +31,14 @@
  *  @param[in]  pl      A pair list containing base pair probability information about the ensemble
  *  @return             The centroid structure of the ensemble in dot-bracket notation
  */
-char  *vrna_get_centroid_struct_pl( int length,
-                                    double *dist,
-                                    plist *pl);
+char  *vrna_centroid_from_plist(int length,
+                                double *dist,
+                                plist *pl);
 
 /**
  *  @brief Get the centroid structure of the ensemble
  *
- *  @deprecated This function was renamed to vrna_get_centroid_struct_pl()
+ *  @deprecated This function was renamed to vrna_centroid_from_plist()
  */
 DEPRECATED(char  *get_centroid_struct_pl(int length,
                               double *dist,
@@ -57,17 +57,17 @@ DEPRECATED(char  *get_centroid_struct_pl(int length,
  *  @ingroup              centroid_fold
  *  @param[in]    length  The length of the sequence
  *  @param[out]   dist    A pointer to the distance variable where the centroid distance will be written to
- *  @param[in]    pr      A upper triangular matrix containing base pair probabilities (access via iindx @ref vrna_get_iindx() )
+ *  @param[in]    probs   An upper triangular matrix containing base pair probabilities (access via iindx @ref vrna_get_iindx() )
  *  @return               The centroid structure of the ensemble in dot-bracket notation
  */
-char  *vrna_get_centroid_struct_pr( int length,
-                                    double *dist,
-                                    FLT_OR_DBL *pr);
+char  *vrna_centroid_from_probs(int length,
+                                double *dist,
+                                FLT_OR_DBL *probs);
 
 /**
  *  @brief Get the centroid structure of the ensemble
  *
- *  @deprecated This function was renamed to vrna_get_centroid_struct_pr()
+ *  @deprecated This function was renamed to vrna_centroid_from_probs()
  */
 DEPRECATED(char  *get_centroid_struct_pr(int length,
                               double *dist,
@@ -87,7 +87,7 @@ DEPRECATED(char  *get_centroid_struct_pr(int length,
  *  @param[out]   dist    A pointer to the distance variable where the centroid distance will be written to
  *  @return               The centroid structure of the ensemble in dot-bracket notation
  */
-char *vrna_get_centroid_struct( vrna_fold_compound *vc,
-                                double *dist);
+char *vrna_centroid(vrna_fold_compound_t *vc,
+                    double *dist);
 
 #endif

@@ -66,14 +66,14 @@ extern double F_monomer[2];
  *
  *  This is the cofold partition function folding.
  *
- *  \see    vrna_get_fold_compound() for how to retrieve the necessary data structure
+ *  \see    vrna_fold_compound() for how to retrieve the necessary data structure
  *
  *  \param  vc        the fold compound data structure
  *  \param  structure Will hold the structure or constraints
  *  \return           cofoldF structure containing a set of energies needed for
  *                    concentration computations.
  */
-cofoldF vrna_co_pf_fold(vrna_fold_compound *vc,
+cofoldF vrna_pf_dimer(vrna_fold_compound_t *vc,
                         char *structure);
 
 /**
@@ -151,7 +151,7 @@ ConcEnt *vrna_co_pf_get_concentrations( double FcAB,
  *        threadsafe according to concurrent changes in these variables!
  *        Use co_pf_fold_par() instead to circumvent this issue.
  *
- *  \deprecated{Use vrna_co_pf_fold() instead!}
+ *  \deprecated{Use vrna_pf_dimer() instead!}
  *
  *  \param  sequence  Concatenated RNA sequences
  *  \param  structure Will hold the structure or constraints

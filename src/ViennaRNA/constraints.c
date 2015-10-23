@@ -43,7 +43,7 @@
 #################################
 */
 PRIVATE void
-hc_add_up(vrna_fold_compound *vc,
+hc_add_up(vrna_fold_compound_t *vc,
           int i,
           char option);
 
@@ -133,10 +133,10 @@ apply_DB_constraint(const char *constraint,
                     unsigned int options);
 
 PRIVATE void
-hc_reset_to_default(vrna_fold_compound *vc);
+hc_reset_to_default(vrna_fold_compound_t *vc);
 
 PRIVATE void
-hc_update_up(vrna_fold_compound *vc);
+hc_update_up(vrna_fold_compound_t *vc);
 
 PRIVATE void
 sc_parse_parameters(const char *string,
@@ -146,32 +146,32 @@ sc_parse_parameters(const char *string,
                     float *v2);
 
 PRIVATE void
-sc_add_up_mfe(vrna_fold_compound *vc,
+sc_add_up_mfe(vrna_fold_compound_t *vc,
               const double *constraints,
               unsigned int options);
 
 PRIVATE void
-sc_add_up_pf( vrna_fold_compound *vc,
+sc_add_up_pf( vrna_fold_compound_t *vc,
               const double *constraints,
               unsigned int options);
 
 PRIVATE void
-sc_add_bp_mfe(vrna_fold_compound *vc,
+sc_add_bp_mfe(vrna_fold_compound_t *vc,
               const double **constraints,
               unsigned int options);
 
 PRIVATE void
-sc_add_bp_pf( vrna_fold_compound *vc,
+sc_add_bp_pf( vrna_fold_compound_t *vc,
               const double **constraints,
               unsigned int options);
 
 PRIVATE void
-sc_add_stack_en_mfe(vrna_fold_compound *vc,
+sc_add_stack_en_mfe(vrna_fold_compound_t *vc,
                     const double *constraints,
                     unsigned int options);
 
 PRIVATE void
-sc_add_stack_en_pf( vrna_fold_compound *vc,
+sc_add_stack_en_pf( vrna_fold_compound_t *vc,
                     const double *constraints,
                     unsigned int options);
 
@@ -203,7 +203,7 @@ vrna_message_constraint_options(unsigned int option){
 }
 
 PUBLIC  void
-vrna_add_constraints( vrna_fold_compound *vc,
+vrna_constraints_add( vrna_fold_compound_t *vc,
                       const char *constraint,
                       unsigned int options){
 
@@ -230,7 +230,7 @@ vrna_add_constraints( vrna_fold_compound *vc,
                           options);
       hc_update_up(vc);
     } else if(options & VRNA_CONSTRAINT_FILE){ /* constraints from file */
-      plist *p, *c = vrna_read_constraints_file(constraint, vc->length, options);
+      plist *p, *c = vrna_file_constraints_read(constraint, vc->length, options);
 
       /* now do something with the constraints we've just read */
       if(c){
@@ -296,7 +296,7 @@ vrna_add_constraints( vrna_fold_compound *vc,
 }
 
 PUBLIC  void
-vrna_hc_init(vrna_fold_compound *vc){
+vrna_hc_init(vrna_fold_compound_t *vc){
 
   unsigned int  n;
   vrna_hc_t     *hc;
@@ -331,7 +331,7 @@ vrna_hc_init(vrna_fold_compound *vc){
 }
 
 PUBLIC void
-vrna_hc_add_up( vrna_fold_compound *vc,
+vrna_hc_add_up( vrna_fold_compound_t *vc,
                 int i,
                 char option){
 
@@ -351,7 +351,7 @@ vrna_hc_add_up( vrna_fold_compound *vc,
 }
 
 PRIVATE void
-hc_add_up(vrna_fold_compound *vc,
+hc_add_up(vrna_fold_compound_t *vc,
           int i,
           char option){
 
@@ -392,7 +392,7 @@ hc_add_up(vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_hc_add_bp_nonspecific( vrna_fold_compound *vc,
+vrna_hc_add_bp_nonspecific( vrna_fold_compound_t *vc,
                             int i,
                             int d,
                             char option){
@@ -424,7 +424,7 @@ vrna_hc_add_bp_nonspecific( vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_hc_add_bp( vrna_fold_compound *vc,
+vrna_hc_add_bp( vrna_fold_compound_t *vc,
                 int i,
                 int j,
                 char option){
@@ -496,8 +496,8 @@ vrna_hc_free(vrna_hc_t *hc){
 }
 
 PUBLIC void
-vrna_hc_add_f(vrna_fold_compound *vc,
-              char (*f)( vrna_fold_compound *, int, int, int, int, char),
+vrna_hc_add_f(vrna_fold_compound_t *vc,
+              char (*f)( vrna_fold_compound_t *, int, int, int, int, char),
               void *data){
 
   if(vc && f){
@@ -513,8 +513,8 @@ vrna_hc_add_f(vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_hc_add_pre(vrna_fold_compound *vc,
-                void (*pre)( vrna_fold_compound *, char)){
+vrna_hc_add_pre(vrna_fold_compound_t *vc,
+                void (*pre)( vrna_fold_compound_t *, char)){
 
   if(vc && pre){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -527,8 +527,8 @@ vrna_hc_add_pre(vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_hc_add_post( vrna_fold_compound *vc,
-                  void (*post)( vrna_fold_compound *, char)){
+vrna_hc_add_post( vrna_fold_compound_t *vc,
+                  void (*post)( vrna_fold_compound_t *, char)){
 
   if(vc && post){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -811,7 +811,7 @@ hc_enforce_pair(unsigned int i,
 }
 
 PRIVATE void
-hc_reset_to_default(vrna_fold_compound *vc){
+hc_reset_to_default(vrna_fold_compound_t *vc){
 
   unsigned int      i, j, ij, min_loop_size, n;
   int               max_span, *idx;
@@ -913,7 +913,7 @@ hc_reset_to_default(vrna_fold_compound *vc){
 }
 
 PRIVATE void
-hc_update_up(vrna_fold_compound *vc){
+hc_update_up(vrna_fold_compound_t *vc){
 
   unsigned int      i, n;
   int               *idx;
@@ -1082,7 +1082,7 @@ vrna_sc_SHAPE_to_pr(const char *shape_conversion,
 }
 
 PUBLIC void
-vrna_sc_init(vrna_fold_compound *vc){
+vrna_sc_init(vrna_fold_compound_t *vc){
 
   unsigned int s;
   vrna_sc_t    *sc;
@@ -1128,7 +1128,7 @@ vrna_sc_init(vrna_fold_compound *vc){
 }
 
 PUBLIC void
-vrna_sc_remove(vrna_fold_compound *vc){
+vrna_sc_remove(vrna_fold_compound_t *vc){
 
   int s;
 
@@ -1180,7 +1180,7 @@ vrna_sc_free(vrna_sc_t *sc){
 }
 
 PUBLIC void
-vrna_sc_add_bp(vrna_fold_compound *vc,
+vrna_sc_add_bp(vrna_fold_compound_t *vc,
                         const double **constraints,
                         unsigned int options){
                         
@@ -1194,7 +1194,7 @@ vrna_sc_add_bp(vrna_fold_compound *vc,
 
 
 PUBLIC  int
-vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound *vc,
+vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *vc,
                                 const double *reactivities,
                                 double b,
                                 double default_value,
@@ -1252,7 +1252,7 @@ vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound *vc,
 
 
 PUBLIC int
-vrna_sc_add_SHAPE_deigan( vrna_fold_compound *vc,
+vrna_sc_add_SHAPE_deigan( vrna_fold_compound_t *vc,
                           const double *reactivities,
                           double m,
                           double b,
@@ -1284,7 +1284,7 @@ vrna_sc_add_SHAPE_deigan( vrna_fold_compound *vc,
 }
 
 PUBLIC int
-vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound *vc,
+vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
                               const char **shape_files,
                               const int *shape_file_association,
                               double m,
@@ -1428,7 +1428,7 @@ vrna_sc_SHAPE_parse_method( const char *method_string,
 }
 
 PUBLIC void
-vrna_sc_add_up(vrna_fold_compound *vc,
+vrna_sc_add_up(vrna_fold_compound_t *vc,
                         const double *constraints,
                         unsigned int options){
 
@@ -1440,7 +1440,7 @@ vrna_sc_add_up(vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_sc_add_f(vrna_fold_compound *vc,
+vrna_sc_add_f(vrna_fold_compound_t *vc,
               int (*f)( int, int, int, int, char, void *),
               void *data){
 
@@ -1457,7 +1457,7 @@ vrna_sc_add_f(vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_sc_add_bt( vrna_fold_compound *vc,
+vrna_sc_add_bt( vrna_fold_compound_t *vc,
                 vrna_basepair_t *(*f)( int, int, int, int, char, void *)){
 
   if(vc && f){
@@ -1471,7 +1471,7 @@ vrna_sc_add_bt( vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_sc_add_exp_f(vrna_fold_compound *vc,
+vrna_sc_add_exp_f(vrna_fold_compound_t *vc,
                   FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *),
                   void *data){
 
@@ -1488,8 +1488,8 @@ vrna_sc_add_exp_f(vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_sc_add_post( vrna_fold_compound *vc,
-                  void (*post)( vrna_fold_compound *, char)){
+vrna_sc_add_post( vrna_fold_compound_t *vc,
+                  void (*post)( vrna_fold_compound_t *, char)){
 
   if(vc && post){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -1502,8 +1502,8 @@ vrna_sc_add_post( vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_sc_add_pre(vrna_fold_compound *vc,
-                void (*pre)( vrna_fold_compound *, char)){
+vrna_sc_add_pre(vrna_fold_compound_t *vc,
+                void (*pre)( vrna_fold_compound_t *, char)){
 
   if(vc && pre){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -1560,7 +1560,7 @@ sc_parse_parameters( const char *string,
 }
 
 PRIVATE void
-sc_add_bp_mfe(vrna_fold_compound *vc,
+sc_add_bp_mfe(vrna_fold_compound_t *vc,
               const double **constraints,
               unsigned int options){
 
@@ -1586,7 +1586,7 @@ sc_add_bp_mfe(vrna_fold_compound *vc,
 }
 
 PRIVATE void
-sc_add_bp_pf( vrna_fold_compound *vc,
+sc_add_bp_pf( vrna_fold_compound_t *vc,
               const double **constraints,
               unsigned int options){
 
@@ -1622,7 +1622,7 @@ sc_add_bp_pf( vrna_fold_compound *vc,
 }
 
 PRIVATE void
-sc_add_up_mfe(vrna_fold_compound *vc,
+sc_add_up_mfe(vrna_fold_compound_t *vc,
               const double *constraints,
               unsigned int options){
 
@@ -1663,7 +1663,7 @@ sc_add_up_mfe(vrna_fold_compound *vc,
 }
 
 PRIVATE void
-sc_add_up_pf( vrna_fold_compound *vc,
+sc_add_up_pf( vrna_fold_compound_t *vc,
               const double *constraints,
               unsigned int options){
 
@@ -1719,7 +1719,7 @@ sc_add_up_pf( vrna_fold_compound *vc,
 }
 
 PRIVATE void
-sc_add_stack_en_mfe(vrna_fold_compound *vc,
+sc_add_stack_en_mfe(vrna_fold_compound_t *vc,
                     const double *constraints,
                     unsigned int options){
   int i;
@@ -1735,7 +1735,7 @@ sc_add_stack_en_mfe(vrna_fold_compound *vc,
 }
 
 PRIVATE void
-sc_add_stack_en_pf( vrna_fold_compound *vc,
+sc_add_stack_en_pf( vrna_fold_compound_t *vc,
                     const double *constraints,
                     unsigned int options){
   int i;

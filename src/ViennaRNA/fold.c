@@ -57,7 +57,7 @@
 
 /* some backward compatibility stuff */
 PRIVATE int                 backward_compat           = 0;
-PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 
 #ifdef _OPENMP
 
@@ -73,9 +73,9 @@ PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 #################################
 */
 
-PRIVATE int   fill_arrays(vrna_fold_compound *vc);
-PRIVATE void  fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt);
-PRIVATE plist *backtrack(vrna_fold_compound *vc, bondT *bp_stack, sect bt_stack[], int s);
+PRIVATE int   fill_arrays(vrna_fold_compound_t *vc);
+PRIVATE void  fill_arrays_circ(vrna_fold_compound_t *vc, sect bt_stack[], int *bt);
+PRIVATE plist *backtrack(vrna_fold_compound_t *vc, bondT *bp_stack, sect bt_stack[], int s);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -93,7 +93,7 @@ PRIVATE void  wrap_array_export_circ( int *Fc_p, int *FcH_p, int *FcI_p, int *Fc
 */
 
 PUBLIC float
-vrna_fold(vrna_fold_compound *vc,
+vrna_mfe(vrna_fold_compound_t *vc,
           char *structure){
 
   int     length, energy, s;
@@ -160,7 +160,7 @@ vrna_fold(vrna_fold_compound *vc,
 *** fill "c", "fML" and "f5" arrays and return  optimal energy
 **/
 PRIVATE int
-fill_arrays(vrna_fold_compound *vc){
+fill_arrays(vrna_fold_compound_t *vc){
 
   int               i, j, ij, length, energy, new_c, stackEnergy, no_close, type_2;
   int               noGUclosure, noLP, uniq_ML, with_gquad, dangle_model, *rtype, *indx;
@@ -319,7 +319,7 @@ fill_arrays(vrna_fold_compound *vc){
 
 
 PUBLIC plist *
-vrna_backtrack_from_intervals(vrna_fold_compound *vc,
+vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
                               bondT *bp_stack,
                               sect bt_stack[],
                               int s){
@@ -336,7 +336,7 @@ vrna_backtrack_from_intervals(vrna_fold_compound *vc,
 *** If s>0 then s items have been already pushed onto the bt_stack
 **/
 PRIVATE plist *
-backtrack(vrna_fold_compound *vc,
+backtrack(vrna_fold_compound_t *vc,
           bondT *bp_stack,
           sect bt_stack[],
           int s){
@@ -549,7 +549,7 @@ wrap_fold( const char *string,
           int is_constrained,
           int is_circular){
 
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_param_t        *P;
 
 #ifdef _OPENMP
@@ -567,7 +567,7 @@ wrap_fold( const char *string,
   }
   P->model_details.circ = is_circular;
 
-  vc = vrna_get_fold_compound(string, &(P->model_details), VRNA_OPTION_MFE);
+  vc = vrna_fold_compound(string, &(P->model_details), VRNA_OPTION_MFE);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -586,23 +586,23 @@ wrap_fold( const char *string,
                           | VRNA_CONSTRAINT_DB_ANG_BRACK
                           | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-    vrna_add_constraints(vc, (const char *)structure, constraint_options);
+    vrna_constraints_add(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound && backward_compat)
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
 
-  return vrna_fold(vc, structure);
+  return vrna_mfe(vc, structure);
 }
 
 PUBLIC void
 free_arrays(void){
 
   if(backward_compat_compound && backward_compat){
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
     backward_compat_compound = NULL;
     backward_compat          = 0;
   }
@@ -642,7 +642,7 @@ initialize_fold(int length){
 PUBLIC void
 update_fold_params(void){
 
-  vrna_fold_compound  *v;
+  vrna_fold_compound_t  *v;
   vrna_param_t        *P;
   vrna_md_t           md;
 
@@ -657,7 +657,7 @@ update_fold_params(void){
 PUBLIC void
 update_fold_params_par(vrna_param_t *parameters){
 
-  vrna_fold_compound  *v;
+  vrna_fold_compound_t  *v;
   vrna_param_t        *P;
   vrna_md_t           md;
 

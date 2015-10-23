@@ -103,12 +103,12 @@ exp_E_Hairpin(  int u,
 
 
 PRIVATE INLINE int
-vrna_eval_hp_loop(vrna_fold_compound *vc,
+vrna_eval_hp_loop(vrna_fold_compound_t *vc,
                   int i,
                   int j);
 
 PRIVATE INLINE int
-vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
+vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
                       int i,
                       int j);
 
@@ -166,18 +166,18 @@ E_Hairpin(int size,
  *  @brief  Evaluate the free energy of a hairpin loop
  *          and consider possible hard constraints
  *
- *  @note This function is polymorphic! The provided #vrna_fold_compound may be of type
+ *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
  *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
  *
  */
 PRIVATE INLINE int
-vrna_E_hp_loop( vrna_fold_compound *vc,
+vrna_E_hp_loop( vrna_fold_compound_t *vc,
                 int i,
                 int j){
 
   int   u, *hc_up;
   char  eval_loop;
-  char  (*f)(vrna_fold_compound *, int, int, int, int, char);
+  char  (*f)(vrna_fold_compound_t *, int, int, int, int, char);
 
   u         = j - i - 1;
   hc_up     = vc->hc->up_hp;
@@ -204,13 +204,13 @@ vrna_E_hp_loop( vrna_fold_compound *vc,
  *          and consider possible hard constraints
  */
 PRIVATE INLINE int
-vrna_E_ext_hp_loop( vrna_fold_compound *vc,
+vrna_E_ext_hp_loop( vrna_fold_compound_t *vc,
                     int i,
                     int j){
 
   int   u, *hc_up;
   char  eval_loop;
-  char  (*f)(vrna_fold_compound *, int, int, int, int, char);
+  char  (*f)(vrna_fold_compound_t *, int, int, int, int, char);
   
   u         = vc->length - j + i - 1;
   hc_up     = vc->hc->up_hp;
@@ -239,7 +239,7 @@ vrna_E_ext_hp_loop( vrna_fold_compound *vc,
  *
  */
 PRIVATE INLINE int
-vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
+vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
                       int i,
                       int j){
 
@@ -284,16 +284,16 @@ vrna_eval_ext_hp_loop(vrna_fold_compound *vc,
  *
  *  @ingroup eval
  *
- *  @note This function is polymorphic! The provided #vrna_fold_compound may be of type
+ *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
  *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
  *
- *  @param  vc  The #vrna_fold_compound for the particular energy evaluation
+ *  @param  vc  The #vrna_fold_compound_t for the particular energy evaluation
  *  @param  i   5'-position of the base pair
  *  @param  j   3'-position of the base pair
  *  @returns    Free energy of the hairpin loop closed by @f$ (i,j) @f$ in deka-kal/mol
  */
 PRIVATE INLINE int
-vrna_eval_hp_loop(vrna_fold_compound *vc,
+vrna_eval_hp_loop(vrna_fold_compound_t *vc,
                   int i,
                   int j){
 
@@ -458,7 +458,7 @@ exp_E_Hairpin(int u,
  *  @see E_hp_loop() for it's free energy counterpart
 */
 PRIVATE INLINE double
-vrna_exp_E_hp_loop( vrna_fold_compound *vc,
+vrna_exp_E_hp_loop( vrna_fold_compound_t *vc,
                     int i,
                     int j){
 
@@ -511,12 +511,12 @@ vrna_exp_E_hp_loop( vrna_fold_compound *vc,
 /**
  *  @brief Backtrack a hairpin loop closed by @f$ (i,j) @f$
  *
- *  @note This function is polymorphic! The provided #vrna_fold_compound may be of type
+ *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
  *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
  *
  */
 PRIVATE INLINE int
-vrna_BT_hp_loop(vrna_fold_compound *vc,
+vrna_BT_hp_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j,
                 int en,

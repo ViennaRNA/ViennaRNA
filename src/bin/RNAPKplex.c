@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
   # main loop: continue until end of file
   #############################################
   */
-  while(!(vrna_read_fasta_record(&id_s1, &s1, &rest, NULL, options) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
+  while(!(vrna_file_fasta_read_record(&id_s1, &s1, &rest, NULL, options) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
     /*
     ########################################################
     # handle user input from 'stdin'

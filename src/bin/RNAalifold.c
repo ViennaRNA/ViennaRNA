@@ -33,12 +33,12 @@ static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Ex
 
 PRIVATE char  **annote(const char *structure, const char *AS[]);
 PRIVATE void  print_pi(const pair_info pi, FILE *file);
-PRIVATE void  print_aliout(vrna_fold_compound *vc, plist *pl, double threshold, char * mfe, FILE *aliout);
+PRIVATE void  print_aliout(vrna_fold_compound_t *vc, plist *pl, double threshold, char * mfe, FILE *aliout);
 PRIVATE void  mark_endgaps(char *seq, char egap);
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, int n_seq, plist *mfel);
 
 PRIVATE void
-add_shape_constraints(vrna_fold_compound *vc,
+add_shape_constraints(vrna_fold_compound_t *vc,
                       const char *shape_method,
                       const char **shape_files,
                       const int *shape_file_association,
@@ -383,11 +383,11 @@ int main(int argc, char *argv[]){
   if(pf)
     options |= VRNA_CONSTRAINT_SOFT_PF;
 
-  vrna_fold_compound *vc = vrna_get_fold_compound_ali((const char **)AS, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+  vrna_fold_compound_t *vc = vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
   if(fold_constrained){
     if(constraints_file){
-      vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE);
+      vrna_constraints_add(vc, constraints_file, VRNA_CONSTRAINT_FILE);
     } else {
       constraint_options = 0;
       constraint_options |= VRNA_CONSTRAINT_DB
@@ -397,7 +397,7 @@ int main(int argc, char *argv[]){
                             | VRNA_CONSTRAINT_DB_ANG_BRACK
                             | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-      vrna_add_constraints(vc, (const char *)structure, constraint_options);
+      vrna_constraints_add(vc, (const char *)structure, constraint_options);
     }
   }
 
@@ -409,15 +409,15 @@ int main(int argc, char *argv[]){
                           verbose, \
                           VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
 
-  min_en = vrna_ali_fold(vc, structure);
+  min_en = vrna_mfe_comparative(vc, structure);
 
   if(md.circ){
     int     i;
     double  s = 0;
     for (i=0; AS[i]!=NULL; i++){
-      vrna_fold_compound *vc_tmp = vrna_get_fold_compound(AS[i], &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+      vrna_fold_compound_t *vc_tmp = vrna_fold_compound(AS[i], &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
       s += vrna_eval_structure(vc, structure);
-      vrna_free_fold_compound(vc_tmp);
+      vrna_fold_compound_free(vc_tmp);
     }
     real_en   = s/i;
   } else {
@@ -478,14 +478,14 @@ int main(int argc, char *argv[]){
     /* change energy parameters in vc */
     vrna_exp_params_update(vc, pf_parameters);
 
-    energy = vrna_ali_pf_fold(vc, structure, NULL);
+    energy = vrna_pf_comparative(vc, structure, NULL);
 
     if (n_back>0) {
       /*stochastic sampling*/
       for (i=0; i<n_back; i++) {
         char *s;
         double prob=1.;
-        s = vrna_ali_pbacktrack(vc, &prob);
+        s = vrna_pbacktrack_comparative(vc, &prob);
         printf("%s ", s);
         if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
         printf("\n");
@@ -515,7 +515,7 @@ int main(int argc, char *argv[]){
 
       if (!circular){
         float *ens;
-        cent = vrna_get_centroid_struct(vc, &dist);
+        cent = vrna_centroid(vc, &dist);
         ens=(float *)vrna_alloc(2*sizeof(float));
         ens[0] = vrna_eval_structure(vc, cent);
         ens[1] = vrna_eval_covar_structure(vc, cent);
@@ -560,7 +560,7 @@ int main(int argc, char *argv[]){
       free(mfel);
     }
     free(mfe_struc);
-    vrna_free_fold_compound(vc);
+    vrna_fold_compound_free(vc);
     free(pf_parameters);
   }
   if (cstruc!=NULL) free(cstruc);
@@ -674,7 +674,7 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
 /*-------------------------------------------------------------------------*/
 
 PRIVATE void
-print_aliout( vrna_fold_compound *vc,
+print_aliout( vrna_fold_compound_t *vc,
               plist *pl,
               double threshold,
               char *mfe,

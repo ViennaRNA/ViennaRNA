@@ -40,9 +40,9 @@
 */
 
 PUBLIC char *
-vrna_get_centroid_struct_pl( int length,
-                        double *dist,
-                        plist *pl){
+vrna_centroid_from_plist( int length,
+                          double *dist,
+                          plist *pl){
 
   /* compute the centroid structure of the ensemble, i.e. the strutcure
      with the minimal average distance to all other structures
@@ -71,9 +71,9 @@ vrna_get_centroid_struct_pl( int length,
 }
 
 PUBLIC char *
-vrna_get_centroid_struct_pr(int length,
-                            double *dist,
-                            FLT_OR_DBL *probs){
+vrna_centroid_from_probs( int length,
+                          double *dist,
+                          FLT_OR_DBL *probs){
 
   /* compute the centroid structure of the ensemble, i.e. the strutcure
      with the minimal average distance to all other structures
@@ -106,8 +106,8 @@ vrna_get_centroid_struct_pr(int length,
 }
 
 PUBLIC char *
-vrna_get_centroid_struct( vrna_fold_compound *vc,
-                          double *dist){
+vrna_centroid(vrna_fold_compound_t *vc,
+             double *dist){
 
   /* compute the centroid structure of the ensemble, i.e. the strutcure
      with the minimal average distance to all other structures
@@ -186,7 +186,7 @@ get_centroid_struct_pl( int length,
                         double *dist,
                         plist *pl){
 
-  return vrna_get_centroid_struct_pl(length, dist, pl);
+  return vrna_centroid_from_plist(length, dist, pl);
 }
 
 /* this function is a threadsafe replacement for centroid() */
@@ -195,6 +195,6 @@ get_centroid_struct_pr( int length,
                         double *dist,
                         FLT_OR_DBL *probs){
 
-  return vrna_get_centroid_struct_pr(length, dist, probs);
+  return vrna_centroid_from_probs(length, dist, probs);
 }
 

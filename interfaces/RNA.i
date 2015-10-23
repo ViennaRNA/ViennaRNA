@@ -97,7 +97,7 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore circfold
 */
 
-%ignore vrna_fold;
+%ignore vrna_mfe;
 %ignore fold_par;
 %ignore update_fold_params_par;
 %ignore initialize_fold;
@@ -109,7 +109,7 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore export_fold_arrays_par;
 %ignore vrna_backtrack_from_intervals;
 %ignore backtrack_fold_from_pair;
-%ignore vrna_update_fold_params;
+%ignore vrna_params_update;
 
 %include  "../src/ViennaRNA/fold.h"
 

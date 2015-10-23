@@ -341,7 +341,7 @@ read_multiple_input_lines(char **string,
 }
 
 PUBLIC  unsigned int
-vrna_read_fasta_record( char **header,
+vrna_file_fasta_read_record( char **header,
                         char **sequence,
                         char ***rest,
                         FILE *file,
@@ -540,7 +540,7 @@ vrna_extract_record_rest_constraint(char **cstruc,
 
 
 PUBLIC int
-vrna_read_SHAPE_file( const char *file_name,
+vrna_file_SHAPE_read( const char *file_name,
                       int length,
                       double default_value,
                       char *sequence,
@@ -782,7 +782,7 @@ parse_constraints_line( const char *line,
 }
 
 PUBLIC  plist *
-vrna_read_constraints_file( const char *filename,
+vrna_file_constraints_read( const char *filename,
                             unsigned int length,
                             unsigned int options){
 
@@ -954,7 +954,7 @@ read_record(char **header,
             char  ***rest,
             unsigned int options){
 
-  return vrna_read_fasta_record(header, sequence, rest, NULL, options);
+  return vrna_file_fasta_read_record(header, sequence, rest, NULL, options);
 }
 
 PUBLIC char *

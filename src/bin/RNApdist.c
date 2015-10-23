@@ -152,11 +152,11 @@ int main(int argc, char *argv[])
     if (*fname=='\0')
       sprintf(fname, "%d_dp.ps", n+1);
 
-    vrna_fold_compound *vc = vrna_get_fold_compound(line, md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+    vrna_fold_compound_t *vc = vrna_fold_compound(line, md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
 
     structure = (char *) vrna_alloc((vc->length+1)*sizeof(char));
 
-    (void) vrna_pf_fold(vc, structure);
+    (void) vrna_pf(vc, structure);
 
     pr_pl = vrna_pl_get_from_pr(vc, 1e-5);
     /* fake plist for lower part, since it stays empty */
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
     free(structure);
     free(mfe_pl);
     free(pr_pl);
-    vrna_free_fold_compound(vc);
+    vrna_fold_compound_free(vc);
 
     n++;
     switch (task) {

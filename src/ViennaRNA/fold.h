@@ -62,7 +62,7 @@
  *
  *  \ingroup mfe_fold
  *
- *  \see vrna_fold_compound(), vrna_get_fold_compound()
+ *  \see #vrna_fold_compound, vrna_fold_compound()
  *
  *  \param vc             fold compound
  *  \param structure      A pointer to the character array where the
@@ -71,11 +71,11 @@
  *  \return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_fold(vrna_fold_compound *vc,
+vrna_mfe(vrna_fold_compound_t *vc,
           char *structure);
 
 plist *
-vrna_backtrack_from_intervals(vrna_fold_compound *vc,
+vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
                               bondT *bp_stack,
                               sect bt_stack[],
                               int s);
@@ -113,9 +113,9 @@ vrna_backtrack_from_intervals(vrna_fold_compound *vc,
  *
  *  \ingroup mfe_fold
  *
- *  \deprecated use vrna_fold() instead
+ *  \deprecated use vrna_mfe() instead
  *
- *  \see vrna_fold(), fold(), circfold(), #vrna_md_t, set_energy_model(), get_scaled_parameters()
+ *  \see vrna_mfe(), fold(), circfold(), #vrna_md_t, set_energy_model(), get_scaled_parameters()
  *
  *  \param sequence       RNA sequence
  *  \param structure      A pointer to the character array where the
@@ -143,7 +143,7 @@ fold_par( const char *sequence,
  *
  *  \ingroup mfe_fold
  *
- *  \deprecated use vrna_fold() instead
+ *  \deprecated use vrna_mfe() instead
  *
  *  \see fold_par(), circfold()
  *
@@ -161,7 +161,7 @@ DEPRECATED(float fold( const char *sequence, char *structure));
  *  i.e. #temperature, #dangles, #tetra_loop, #noGU, #no_closingGU, #fold_constrained, #noLonelyPairs
  *  from the current global settings within the library
  *
- *  \deprecated Use vrna_fold() instead!
+ *  \deprecated Use vrna_mfe() instead!
  *
  *  \ingroup mfe_fold
  *
@@ -179,7 +179,7 @@ DEPRECATED(float circfold( const char *sequence, char *structure));
  *  \brief Free arrays for mfe folding
  *
  *  \ingroup mfe_fold
- *  \deprecated See vrna_fold() and #vrna_fold_compound for the usage of the new API!
+ *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  *
  */
 DEPRECATED(void free_arrays(void));
@@ -208,7 +208,7 @@ DEPRECATED(void update_fold_params_par(vrna_param_t *parameters));
 /**
  *
  *  \ingroup mfe_fold
- *  \deprecated See vrna_fold() and #vrna_fold_compound for the usage of the new API!
+ *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  * 
  */
 DEPRECATED(void 
@@ -222,7 +222,7 @@ export_fold_arrays( int **f5_p,
 /**
  *
  *  \ingroup mfe_fold
- *  \deprecated See vrna_fold() and #vrna_fold_compound for the usage of the new API!
+ *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  * 
  */
 DEPRECATED(void 
@@ -237,7 +237,7 @@ export_fold_arrays_par( int **f5_p,
 /**
  *
  *  \ingroup mfe_fold
- *  \deprecated See vrna_fold() and #vrna_fold_compound for the usage of the new API!
+ *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  * 
  */
 DEPRECATED(void 
@@ -256,7 +256,7 @@ export_circfold_arrays( int *Fc_p,
 /**
  *
  *  \ingroup mfe_fold
- *  \deprecated See vrna_fold() and #vrna_fold_compound for the usage of the new API!
+ *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  * 
  */
 DEPRECATED(void 
@@ -307,7 +307,7 @@ DEPRECATED(int HairpinE(int size,
 /**
  *  Allocate arrays for folding\n
  *  \deprecated {This function is deprecated and will be removed soon!}
- *  \deprecated See vrna_fold() and #vrna_fold_compound for the usage of the new API!
+ *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  * 
  */
 DEPRECATED(void initialize_fold(int length));

@@ -207,7 +207,7 @@ plist *vrna_pl_get(const char *struc, float pr);
 /**
  *  @brief Create a #plist from base pair probability matrix
  * 
- *  The probability matrix provided via the #vrna_fold_compound is parsed
+ *  The probability matrix provided via the #vrna_fold_compound_t is parsed
  *  and all pair probabilities above the given threshold are used to create
  *  an entry in the plist
  * 
@@ -220,7 +220,7 @@ plist *vrna_pl_get(const char *struc, float pr);
  *  @param[in]  cutoff  The cutoff value
  *  @return             A pointer to the plist that is to be created
  */
-plist *vrna_pl_get_from_pr(vrna_fold_compound *vc, double cut_off);
+plist *vrna_pl_get_from_pr(vrna_fold_compound_t *vc, double cut_off);
 
 /**
  *  @brief  Convert a list of base pairs into dot-bracket notation

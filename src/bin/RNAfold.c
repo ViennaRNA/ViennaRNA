@@ -41,7 +41,7 @@ static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp 
 /*--------------------------------------------------------------------------*/
 
 static void
-add_shape_constraints(vrna_fold_compound *vc,
+add_shape_constraints(vrna_fold_compound_t *vc,
                       const char *shape_method,
                       const char *shape_conversion,
                       const char *shape_file,
@@ -72,7 +72,7 @@ add_shape_constraints(vrna_fold_compound *vc,
 
   sequence = vrna_alloc(sizeof(char) * (length + 1));
   values = vrna_alloc(sizeof(double) * (length + 1));
-  vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
+  vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if(method == 'D'){
     (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
@@ -293,7 +293,7 @@ int main(int argc, char *argv[]){
 
   mfe_parameters = get_scaled_parameters(temperature, md);
 
-  /* set options we wanna pass to vrna_read_fasta_record() */
+  /* set options we wanna pass to vrna_file_fasta_read_record() */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
 
@@ -303,7 +303,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, input, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, input, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     char *prefix      = NULL;
@@ -339,7 +339,7 @@ int main(int argc, char *argv[]){
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
-    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
     length    = vc->length;
 
@@ -349,7 +349,7 @@ int main(int argc, char *argv[]){
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
       if(constraints_file){
-        vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+        vrna_constraints_add(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
       } else {
         cstruc = NULL;
         unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
@@ -372,7 +372,7 @@ int main(int argc, char *argv[]){
                                 | VRNA_CONSTRAINT_DB_RND_BRACK;
           if(enforceConstraints)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
-          vrna_add_constraints(vc, (const char *)structure, constraint_options);
+          vrna_constraints_add(vc, (const char *)structure, constraint_options);
         }
       }
     }
@@ -405,7 +405,7 @@ int main(int argc, char *argv[]){
 
 
 
-    min_en = (double)vrna_fold(vc, structure);
+    min_en = (double)vrna_mfe(vc, structure);
 
     if(!lucky){
       if(output){
@@ -450,7 +450,7 @@ int main(int argc, char *argv[]){
 
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
-      energy = vrna_pf_fold(vc, pf_struc);
+      energy = vrna_pf(vc, pf_struc);
 
       /* in case we abort because of floating point errors */
       if (length>1600)
@@ -499,7 +499,7 @@ int main(int argc, char *argv[]){
 
           pl1     = vrna_pl_get_from_pr(vc, bppmThreshold);
           pl2     = vrna_pl_get(structure, 0.95*0.95);
-          cent    = vrna_get_centroid_struct(vc, &dist);
+          cent    = vrna_centroid(vc, &dist);
           cent_en = vrna_eval_structure(vc, (const char *)cent);
           if(output)
             fprintf(output, "%s {%6.2f d=%.2f}\n", cent, cent_en, dist);
@@ -555,7 +555,7 @@ int main(int argc, char *argv[]){
     }
 
     /* clean up */
-    vrna_free_fold_compound(vc);
+    vrna_fold_compound_free(vc);
     free(cstruc);
     free(rec_id);
     free(rec_sequence);

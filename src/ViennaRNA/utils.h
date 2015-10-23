@@ -71,22 +71,22 @@ the library or stays hidden */
 #define VRNA_INPUT_NO_TRUNCATION          256U
 
 /**
- *  @brief  Input switch for vrna_read_fasta_record():  @e "do fill rest array"
+ *  @brief  Input switch for vrna_file_fasta_read_record():  @e "do fill rest array"
  */
 #define VRNA_INPUT_NO_REST                512U
 
 /**
- *  @brief  Input switch for vrna_read_fasta_record():  @e "never allow data to span more than one line"
+ *  @brief  Input switch for vrna_file_fasta_read_record():  @e "never allow data to span more than one line"
  */
 #define VRNA_INPUT_NO_SPAN                1024U
 
 /**
- *  @brief  Input switch for vrna_read_fasta_record():  @e "do not skip empty lines"
+ *  @brief  Input switch for vrna_file_fasta_read_record():  @e "do not skip empty lines"
  */
 #define VRNA_INPUT_NOSKIP_BLANK_LINES     2048U
 
 /**
- *  @brief  Output flag for vrna_read_fasta_record():  @e "read an empty line"
+ *  @brief  Output flag for vrna_file_fasta_read_record():  @e "read an empty line"
  */
 #define VRNA_INPUT_BLANK_LINE             4096U
 
@@ -96,7 +96,7 @@ the library or stays hidden */
 #define VRNA_INPUT_NOSKIP_COMMENTS        128U
 
 /**
- *  @brief  Output flag for vrna_read_fasta_record():  @e "read a comment"
+ *  @brief  Output flag for vrna_file_fasta_read_record():  @e "read a comment"
  */
 #define VRNA_INPUT_COMMENT                8192U
 
@@ -106,7 +106,7 @@ the library or stays hidden */
  *  If used as input-option a function might also be returning this state telling
  *  that it has read data from multiple lines.
  *
- *  @see vrna_extract_record_rest_structure(), vrna_read_fasta_record(), vrna_extract_record_rest_constraint()
+ *  @see vrna_extract_record_rest_structure(), vrna_file_fasta_read_record(), vrna_extract_record_rest_constraint()
  *
  */
 #define VRNA_OPTION_MULTILINE             32U

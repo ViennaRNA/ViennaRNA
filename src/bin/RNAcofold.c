@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
     else vrna_message_input_seq_simple();
   }
 
-  /* set options we wanna pass to vrna_read_fasta_record() */
+  /* set options we wanna pass to vrna_file_fasta_read_record() */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
 
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     /*
@@ -264,14 +264,14 @@ int main(int argc, char *argv[])
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
-    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE |  VRNA_OPTION_HYBRID | ((pf) ? VRNA_OPTION_PF : 0));
+    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE |  VRNA_OPTION_HYBRID | ((pf) ? VRNA_OPTION_PF : 0));
     length    = vc->length;
     structure = (char *) vrna_alloc((unsigned) length+1);
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
       if(constraints_file){
-        vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+        vrna_constraints_add(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
       } else {
         cstruc = NULL;
         cstruc = NULL;
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
 
           if(enforceConstraints)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
-          vrna_add_constraints(vc, (const char *)structure, constraint_options);
+          vrna_constraints_add(vc, (const char *)structure, constraint_options);
         }
       }
     }
@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
     */
 
     /* compute mfe of AB dimer */
-    min_en  = vrna_cofold(vc, structure);
+    min_en  = vrna_mfe_dimer(vc, structure);
     mfAB    = vrna_pl_get(structure, 0.95);
 
     {
@@ -397,7 +397,7 @@ int main(int argc, char *argv[])
       if (cstruc!=NULL) strncpy(structure, cstruc, length+1);
 
       /* compute partition function */
-      AB = vrna_co_pf_fold(vc, structure);
+      AB = vrna_pf_dimer(vc, structure);
 
       if (do_backtrack) {
         char *costruc;
@@ -614,25 +614,25 @@ do_partfunc(char *string,
   double kT;
   vrna_exp_param_t *par;
   cofoldF X;
-  vrna_fold_compound *vc;
+  vrna_fold_compound_t *vc;
   kT = parameters->kT/1000.;
   switch (Switch){
     case 1:   /* monomer */
               tempstruc = (char *) vrna_alloc((unsigned)length+1);
               //parameters->model_details.min_loop_size = TURN; /* we need min_loop_size of 0 to correct for Q_AB */
-              vc = vrna_get_fold_compound(string, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF);
-              min_en = vrna_fold(vc, tempstruc);
+              vc = vrna_fold_compound(string, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF);
+              min_en = vrna_mfe(vc, tempstruc);
               *mfpl = vrna_pl_get(tempstruc, 0.95);
               vrna_mx_mfe_free(vc);
 
               par = get_boltzmann_factor_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(length));
               vrna_exp_params_update(vc, par);
-              X = vrna_co_pf_fold(vc, tempstruc);
+              X = vrna_pf_dimer(vc, tempstruc);
               if(*tpr){
                 *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
               }
-              vrna_free_fold_compound(vc);
+              vrna_fold_compound_free(vc);
               free(tempstruc);
               free(par);
               parameters->model_details.min_loop_size = 0;
@@ -643,19 +643,19 @@ do_partfunc(char *string,
               Newstring = (char *)vrna_alloc(sizeof(char)*(length*2+2));
               strcat(Newstring, string); strcat(Newstring, "&"); strcat(Newstring, string);
               parameters->model_details.min_loop_size = 0;
-              vc = vrna_get_fold_compound(Newstring, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
-              min_en = vrna_cofold(vc, tempstruc);
+              vc = vrna_fold_compound(Newstring, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+              min_en = vrna_mfe_dimer(vc, tempstruc);
               *mfpl = vrna_pl_get(tempstruc, 0.95);
               vrna_mx_mfe_free(vc);
 
               par = get_boltzmann_factor_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(2*length));
               vrna_exp_params_update(vc, par);
-              X = vrna_co_pf_fold(vc, tempstruc);
+              X = vrna_pf_dimer(vc, tempstruc);
               if(*tpr){
                 *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
               }
-              vrna_free_fold_compound(vc);
+              vrna_fold_compound_free(vc);
 
               free(Newstring);
               free(tempstruc);

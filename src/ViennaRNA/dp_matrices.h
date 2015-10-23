@@ -33,10 +33,10 @@ typedef enum {
   VRNA_MX_DEFAULT,  /**<  @brief  Default DP matrices */
   VRNA_MX_WINDOW,   /**<  @brief  DP matrices suitable for local structure prediction using
                           window approach.
-                          @see    vrna_Lfold(), vrna_Lfoldz(), pfl_fold()
+                          @see    vrna_mfe_window(), vrna_mfe_window_zscore(), pfl_fold()
                     */
   VRNA_MX_2DFOLD    /**<  @brief  DP matrices suitable for distance class partitioned structure prediction
-                          @see  vrna_TwoD_fold(), vrna_TwoD_pf_fold()
+                          @see  vrna_mfe_TwoD(), vrna_pf_TwoD()
                     */
 } vrna_mx_t;
 
@@ -346,44 +346,44 @@ struct vrna_matrices_pf {
  *  required for RNA-RNA interaction prediction.
  *
  *  @note Usually, there is no need to call this function, since
- *  the constructors of #vrna_fold_compound are handling all the DP
+ *  the constructors of #vrna_fold_compound_t are handling all the DP
  *  matrix memory allocation.
  *
- *  @see vrna_mx_mfe_add(), vrna_mx_pf_add(), vrna_get_fold_compound(),
- *  vrna_get_fold_compound_ali(), vrna_free_fold_compound(),
+ *  @see vrna_mx_mfe_add(), vrna_mx_pf_add(), vrna_fold_compound(),
+ *  vrna_fold_compound_comparative(), vrna_fold_compound_free(),
  *  vrna_mx_pf_free(), vrna_mx_mfe_free(), #vrna_mx_t,
  *  #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_HYBRID, #VRNA_OPTION_EVAL_ONLY
  *
- *  @param  vc      The #vrna_fold_compound that holds pointers to the DP matrices
+ *  @param  vc      The #vrna_fold_compound_t that holds pointers to the DP matrices
  *  @param  type    The type of DP matrices requested
  *  @param  options Option flags that specify the kind of DP matrices, such
  *                  as MFE or PF arrays, and auxiliary requirements
  *  @returns        1 if DP matrices were properly allocated and attached,
  *                  0 otherwise
  */
-int vrna_mx_add(vrna_fold_compound *vc, vrna_mx_t type, unsigned int options);
+int vrna_mx_add(vrna_fold_compound_t *vc, vrna_mx_t type, unsigned int options);
 
-int vrna_mx_mfe_add(vrna_fold_compound *vc, vrna_mx_t mx_type, unsigned int options);
+int vrna_mx_mfe_add(vrna_fold_compound_t *vc, vrna_mx_t mx_type, unsigned int options);
 
-int vrna_mx_pf_add(vrna_fold_compound *vc, vrna_mx_t mx_type, unsigned int options);
+int vrna_mx_pf_add(vrna_fold_compound_t *vc, vrna_mx_t mx_type, unsigned int options);
 
 /**
  *  @brief  Free memory occupied by the Minimum Free Energy (MFE) Dynamic Programming (DP) matrices
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(), vrna_mx_pf_free()
+ *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_fold_compound_free(), vrna_mx_pf_free()
  *
- *  @param  vc  The #vrna_fold_compound storing the MFE DP matrices that are to be erased from memory
+ *  @param  vc  The #vrna_fold_compound_t storing the MFE DP matrices that are to be erased from memory
  */
-void vrna_mx_mfe_free(vrna_fold_compound *vc);
+void vrna_mx_mfe_free(vrna_fold_compound_t *vc);
 
 /**
  *  @brief  Free memory occupied by the Partition Function (PF) Dynamic Programming (DP) matrices
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(), vrna_mx_mfe_free()
+ *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_fold_compound_free(), vrna_mx_mfe_free()
  *
- *  @param  vc  The #vrna_fold_compound storing the PF DP matrices that are to be erased from memory
+ *  @param  vc  The #vrna_fold_compound_t storing the PF DP matrices that are to be erased from memory
  */
-void vrna_mx_pf_free(vrna_fold_compound *vc);
+void vrna_mx_pf_free(vrna_fold_compound_t *vc);
 
 /**
  *  @}

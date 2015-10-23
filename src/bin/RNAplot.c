@@ -56,7 +56,7 @@ int main(int argc, char *argv[]){
   rec_rest      = NULL;
   istty         = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
-  /* set options we wanna pass to vrna_read_fasta_record() */
+  /* set options we wanna pass to vrna_file_fasta_read_record() */
   if(istty){
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
     vrna_message_input_seq("Input sequence (upper or lower case) followed by structure");
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     if(rec_id){

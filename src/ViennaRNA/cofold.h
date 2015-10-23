@@ -59,7 +59,7 @@
  * 
  *  \ingroup mfe_cofold
  *
- *  \deprecated use vrna_cofold() instead
+ *  \deprecated use vrna_mfe_dimer() instead
  *
  *  \param    sequence  The two sequences concatenated
  *  \param    structure Will hold the barcket dot structure of the dimer molecule
@@ -72,7 +72,7 @@ cofold( const char *sequence,
 /**
  *  \brief Compute the minimum free energy of two interacting RNA molecules
  *
- *  \deprecated use vrna_cofold() instead
+ *  \deprecated use vrna_mfe_dimer() instead
  * 
  */
 DEPRECATED(float 
@@ -84,7 +84,7 @@ cofold_par( const char *string,
 /**
  *  \brief Compute the minimum free energy of two interacting RNA molecules
  * 
- *  The code is analog to the vrna_fold() function.
+ *  The code is analog to the vrna_mfe() function.
  * 
  *  \ingroup mfe_cofold
  *
@@ -92,7 +92,7 @@ cofold_par( const char *string,
  *  \param    structure Will hold the barcket dot structure of the dimer molecule
  *  \return   minimum free energy of the structure
  */
-float vrna_cofold(vrna_fold_compound *vc,
+float vrna_mfe_dimer(vrna_fold_compound_t *vc,
                   char *structure);
 
 /**
@@ -128,10 +128,10 @@ char *vrna_cut_point_remove(const char *string,
  *  \brief Free memory occupied by cofold()
  *
  *  \deprecated This function will only free memory allocated by a prior call of cofold() or cofold_par().
- *  See vrna_cofold() for how to use the new API
+ *  See vrna_mfe_dimer() for how to use the new API
  *
  *  \note folding matrices now reside in the fold compound, and should be free'd there
- *  \see  vrna_fc_destroy(), vrna_cofold()
+ *  \see  vrna_fc_destroy(), vrna_mfe_dimer()
  */
 DEPRECATED(void free_co_arrays(void));
 
@@ -155,7 +155,7 @@ DEPRECATED(void update_cofold_params_par(vrna_param_t *parameters));
  *  \deprecated folding matrices now reside within the fold compound. Thus, this function will
  *  only work in conjunction with a prior call to cofold() or cofold_par()
  *
- *  \see vrna_cofold() for the new API
+ *  \see vrna_mfe_dimer() for the new API
  *
  *  \param  f5_p    A pointer to the 'f5' array, i.e. array conatining best free energy in interval [1,j]
  *  \param  c_p     A pointer to the 'c' array, i.e. array containing best free energy in interval [i,j] given that i pairs with j
@@ -184,7 +184,7 @@ DEPRECATED(void export_cofold_arrays_gq(int **f5_p,
  *  \deprecated folding matrices now reside within the fold compound. Thus, this function will
  *  only work in conjunction with a prior call to cofold() or cofold_par()
  *
- *  \see vrna_cofold() for the new API
+ *  \see vrna_mfe_dimer() for the new API
  *
  *  \param  f5_p    A pointer to the 'f5' array, i.e. array conatining best free energy in interval [1,j]
  *  \param  c_p     A pointer to the 'c' array, i.e. array containing best free energy in interval [i,j] given that i pairs with j
@@ -245,7 +245,7 @@ DEPRECATED(SOLUTION  *zukersubopt_par(const char *string, vrna_param_t *paramete
  *  \param  vc  fold compound
  *  \return     List of zuker suboptimal structures
  */
-SOLUTION *vrna_zukersubopt(vrna_fold_compound *vc);
+SOLUTION *vrna_zukersubopt(vrna_fold_compound_t *vc);
 
 /**
  *  \brief get_monomer_free_energies

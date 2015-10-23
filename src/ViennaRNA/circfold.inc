@@ -3,7 +3,7 @@
 /* it's #include'd into fold.c */
 
 PRIVATE void
-fill_arrays_circ( vrna_fold_compound *vc,
+fill_arrays_circ( vrna_fold_compound_t *vc,
                   sect bt_stack[],
                   int *bt){
 

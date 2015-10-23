@@ -39,17 +39,17 @@ int compute_2Dfold_F3 = 0;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void  mfe_linear(vrna_fold_compound *vc);
-PRIVATE void  mfe_circ(vrna_fold_compound *vc);
+PRIVATE void  mfe_linear(vrna_fold_compound_t *vc);
+PRIVATE void  mfe_circ(vrna_fold_compound_t *vc);
 
 PUBLIC  void  update_TwoDfold_params(TwoDfold_vars *vars);
 
-PRIVATE void  backtrack_f5(unsigned int j, int k, int l, char *structure, vrna_fold_compound *vc);
-PRIVATE void  backtrack_c(unsigned int i, unsigned int j, int k, int l, char *structure, vrna_fold_compound *vc);
-PRIVATE void  backtrack_m(unsigned int i, unsigned int j, int k, int l, char *structure, vrna_fold_compound *vc);
-PRIVATE void  backtrack_m1(unsigned int i, unsigned int j, int k, int l, char *structure, vrna_fold_compound *vc);
-PRIVATE void  backtrack_fc(int k, int l, char *structure, vrna_fold_compound *vc);
-PRIVATE void  backtrack_m2(unsigned int i, int k, int l, char *structure, vrna_fold_compound *vc);
+PRIVATE void  backtrack_f5(unsigned int j, int k, int l, char *structure, vrna_fold_compound_t *vc);
+PRIVATE void  backtrack_c(unsigned int i, unsigned int j, int k, int l, char *structure, vrna_fold_compound_t *vc);
+PRIVATE void  backtrack_m(unsigned int i, unsigned int j, int k, int l, char *structure, vrna_fold_compound_t *vc);
+PRIVATE void  backtrack_m1(unsigned int i, unsigned int j, int k, int l, char *structure, vrna_fold_compound_t *vc);
+PRIVATE void  backtrack_fc(int k, int l, char *structure, vrna_fold_compound_t *vc);
+PRIVATE void  backtrack_m2(unsigned int i, int k, int l, char *structure, vrna_fold_compound_t *vc);
 
 PRIVATE void  adjustArrayBoundaries(int ***array, int *k_min, int *k_max, int **l_min, int **l_max, int k_min_real, int k_max_real, int *l_min_real, int *l_max_real);
 INLINE  PRIVATE void  preparePosteriorBoundaries(int size, int shift, int *min_k, int *max_k, int **min_l, int **max_l);
@@ -155,7 +155,7 @@ PUBLIC TwoDfold_solution **TwoDfold(TwoDfold_vars *vars, int distance1, int dist
 #endif
 
 PUBLIC vrna_sol_TwoD_t *
-vrna_TwoD_fold(vrna_fold_compound *vars,
+vrna_mfe_TwoD(vrna_fold_compound_t *vars,
               int distance1,
               int distance2){
 
@@ -177,7 +177,7 @@ vrna_TwoD_fold(vrna_fold_compound *vars,
   if(distance1 >= 0){
     if((unsigned int)distance1 > maxD1)
       fprintf(stderr,
-              "vrna_TwoD_fold@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
+              "vrna_mfe_TwoD@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
               maxD1);
     else
       maxD1 = (unsigned int)distance1;
@@ -186,7 +186,7 @@ vrna_TwoD_fold(vrna_fold_compound *vars,
   if(distance2 >= 0){
     if((unsigned int)distance2 > maxD2)
       fprintf(stderr,
-              "vrna_TwoD_fold@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
+              "vrna_mfe_TwoD@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
               maxD2);
     else
       maxD2 = (unsigned int)distance2;
@@ -253,7 +253,7 @@ vrna_TwoD_fold(vrna_fold_compound *vars,
 
 
 PUBLIC char *
-vrna_TwoD_backtrack5( vrna_fold_compound *vc,
+vrna_backtrack5_TwoD( vrna_fold_compound_t *vc,
                       int k,
                       int l,
                       unsigned int j){
@@ -270,7 +270,7 @@ vrna_TwoD_backtrack5( vrna_fold_compound *vc,
 }
 
 PRIVATE void
-mfe_linear(vrna_fold_compound *vc){
+mfe_linear(vrna_fold_compound_t *vc){
 
   unsigned int  d, i, j, ij, maxD1, maxD2, seq_length, dia, dib, dja, djb, *referenceBPs1, *referenceBPs2, *mm1, *mm2, *bpdist;
   int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, *jindx, circ, *rtype;
@@ -1308,7 +1308,7 @@ backtrack_f5( unsigned int j,
               int k,
               int l,
               char *structure,
-              vrna_fold_compound *vc){
+              vrna_fold_compound_t *vc){
 
   int           *my_iindx, *jindx, energy, type, dangles, cnt1, cnt2, cnt3, cnt4;
   int           **l_min_C, **l_max_C,**l_min_F5, **l_max_F5;
@@ -1518,7 +1518,7 @@ backtrack_c(unsigned int i,
             int k,
             int l,
             char *structure,
-            vrna_fold_compound *vc){
+            vrna_fold_compound_t *vc){
 
   unsigned int p, q, pq, ij, maxp, maxD1, maxD2;
   int *my_iindx, *jindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2, cnt3, cnt4, *rtype;
@@ -1784,7 +1784,7 @@ backtrack_m(unsigned int i,
             int k,
             int l,
             char *structure,
-            vrna_fold_compound *vc){
+            vrna_fold_compound_t *vc){
 
   unsigned int u, ij, seq_length, base_d1, base_d2, d1, d2, maxD1, maxD2;
   int *my_iindx, *jindx, type, energy, dangles,circ, cnt1, cnt2, cnt3, cnt4;
@@ -2050,7 +2050,7 @@ backtrack_m1( unsigned int i,
               int k,
               int l,
               char *structure,
-              vrna_fold_compound *vc){
+              vrna_fold_compound_t *vc){
 
   unsigned int  ij, seq_length, d1, d2, *referenceBPs1, *referenceBPs2, maxD1, maxD2;
   int           *my_iindx, *jindx, **l_min_C, **l_max_C,**l_min_M1, **l_max_M1;
@@ -2155,7 +2155,7 @@ PRIVATE void
 backtrack_fc( int k,
               int l,
               char *structure,
-              vrna_fold_compound *vc){
+              vrna_fold_compound_t *vc){
 
   unsigned int   d, i, j, seq_length, base_d1, base_d2, d1, d2, maxD1, maxD2;
   int   *my_iindx, *jindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype;
@@ -2601,7 +2601,7 @@ backtrack_m2( unsigned int i,
               int k,
               int l,
               char *structure,
-              vrna_fold_compound *vc){
+              vrna_fold_compound_t *vc){
 
   unsigned int   j, ij, j3, n;
   unsigned int   *referenceBPs1, *referenceBPs2;
@@ -2721,7 +2721,7 @@ backtrack_m2( unsigned int i,
 }
 
 PRIVATE void
-mfe_circ(vrna_fold_compound *vc){
+mfe_circ(vrna_fold_compound_t *vc){
 
   unsigned int  d, i, j, maxD1, maxD2, seq_length, *referenceBPs1, *referenceBPs2, d1, d2, base_d1, base_d2, *mm1, *mm2, *bpdist;
   int           *my_iindx, *jindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype;
@@ -3591,7 +3591,7 @@ INLINE  PRIVATE void  prepareArray2(unsigned long ***array, int min_k, int max_k
 PRIVATE INLINE void
 crosslink(TwoDfold_vars *vars){
 
-  vrna_fold_compound  *c;
+  vrna_fold_compound_t  *c;
   vrna_mx_mfe_t       *m;
 
   c                     = vars->compatibility;
@@ -3686,14 +3686,14 @@ get_TwoDfold_variables( const char *seq,
 
   vrna_md_t           md;
   TwoDfold_vars       *vars;
-  vrna_fold_compound  *c;
+  vrna_fold_compound_t  *c;
   vrna_mx_mfe_t       *m;
 
   vrna_md_set_globals(&md);
   md.circ = circ;
 
   vars = (TwoDfold_vars *)vrna_alloc(sizeof(TwoDfold_vars));
-  vars->compatibility = vrna_get_fold_compound_2D(seq, structure1, structure2, &md, VRNA_OPTION_MFE);
+  vars->compatibility = vrna_fold_compound_TwoD(seq, structure1, structure2, &md, VRNA_OPTION_MFE);
 
   crosslink(vars);
 
@@ -3706,7 +3706,7 @@ TwoDfold_backtrack_f5(unsigned int j,
                       int l,
                       TwoDfold_vars *vars){
 
-  return vrna_TwoD_backtrack5(vars->compatibility, k, l, j);
+  return vrna_backtrack5_TwoD(vars->compatibility, k, l, j);
 }
 
 PUBLIC void
@@ -3714,7 +3714,7 @@ destroy_TwoDfold_variables(TwoDfold_vars *vars){
 
   if(vars == NULL) return;
 
-  vrna_free_fold_compound(vars->compatibility);
+  vrna_fold_compound_free(vars->compatibility);
 
   free(vars);
 }
@@ -3726,7 +3726,7 @@ TwoDfoldList( TwoDfold_vars *vars,
 
   vrna_sol_TwoD_t *sol;
 
-  sol = vrna_TwoD_fold(vars->compatibility, distance1, distance2);
+  sol = vrna_mfe_TwoD(vars->compatibility, distance1, distance2);
 
   crosslink(vars);
 

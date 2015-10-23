@@ -82,7 +82,7 @@ SOLUTION *subopt_circ ( char *seq,
                         int delta,
                         FILE *fp);
 
-SOLUTION *vrna_subopt(vrna_fold_compound *vc,
+SOLUTION *vrna_subopt(vrna_fold_compound_t *vc,
                       int delta,
                       FILE *fp);
 

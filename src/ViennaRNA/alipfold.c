@@ -48,7 +48,7 @@
 */
 
 /* some backward compatibility stuff */
-PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 PRIVATE int                 backward_compat           = 0;
 
 #ifdef _OPENMP
@@ -63,10 +63,10 @@ PRIVATE int                 backward_compat           = 0;
 #################################
 */
 
-PRIVATE void      alipf_linear(vrna_fold_compound *vc, char *structure);
-PRIVATE void      alipf_create_bppm(vrna_fold_compound *vc, char *structure, struct plist **pl);
-PRIVATE void      backtrack(vrna_fold_compound *vc, char *pstruc, int i, int j, double *prob);
-PRIVATE void      backtrack_qm1(vrna_fold_compound *vc, char *pstruc, int i,int j, double *prob);
+PRIVATE void      alipf_linear(vrna_fold_compound_t *vc, char *structure);
+PRIVATE void      alipf_create_bppm(vrna_fold_compound_t *vc, char *structure, struct plist **pl);
+PRIVATE void      backtrack(vrna_fold_compound_t *vc, char *pstruc, int i, int j, double *prob);
+PRIVATE void      backtrack_qm1(vrna_fold_compound_t *vc, char *pstruc, int i,int j, double *prob);
 PRIVATE float     wrap_alipf_fold(const char **sequences,
                                   char *structure,
                                   plist **pl,
@@ -74,7 +74,7 @@ PRIVATE float     wrap_alipf_fold(const char **sequences,
                                   int calculate_bppm,
                                   int is_constrained,
                                   int is_circular);
-PRIVATE void      wrap_alipf_circ(vrna_fold_compound *vc,
+PRIVATE void      wrap_alipf_circ(vrna_fold_compound_t *vc,
                                   char *structure);
 
 
@@ -97,7 +97,7 @@ wrap_alipf_fold(const char **sequences,
                 int is_circular){
 
   int                 n_seq;
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_exp_param_t    *exp_params;
 
   if(sequences == NULL) return 0.;
@@ -117,7 +117,7 @@ wrap_alipf_fold(const char **sequences,
   exp_params->model_details.circ        = is_circular;
   exp_params->model_details.compute_bpp = calculate_bppm;
 
-  vc = vrna_get_fold_compound_ali(sequences, &(exp_params->model_details), VRNA_OPTION_PF);
+  vc = vrna_fold_compound_comparative(sequences, &(exp_params->model_details), VRNA_OPTION_PF);
 
   if(parameters){ /* replace exp_params if necessary */
     free(vc->exp_params);
@@ -135,21 +135,21 @@ wrap_alipf_fold(const char **sequences,
                           | VRNA_CONSTRAINT_DB_ANG_BRACK
                           | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-    vrna_add_constraints(vc, (const char *)structure, constraint_options);
+    vrna_constraints_add(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound && backward_compat_compound)
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound  = vc;
   iindx                     = backward_compat_compound->iindx;
   backward_compat           = 1;
 
-  return vrna_ali_pf_fold(vc, structure, pl);
+  return vrna_pf_comparative(vc, structure, pl);
 }
 
 PUBLIC float
-vrna_ali_pf_fold( vrna_fold_compound *vc,
+vrna_pf_comparative( vrna_fold_compound_t *vc,
                   char *structure,
                   plist **pl){
 
@@ -209,7 +209,7 @@ vrna_ali_pf_fold( vrna_fold_compound *vc,
 
 
 PRIVATE void
-alipf_linear( vrna_fold_compound *vc,
+alipf_linear( vrna_fold_compound_t *vc,
               char *structure){
 
   int         s, i,j,k,l, ij, jij, u, u1, u2, d, ii, *type, type_2, tt;
@@ -524,7 +524,7 @@ alipf_linear( vrna_fold_compound *vc,
 }
 
 PRIVATE void
-alipf_create_bppm(vrna_fold_compound *vc,
+alipf_create_bppm(vrna_fold_compound_t *vc,
                   char *structure,
                   plist **pl){
 
@@ -1077,7 +1077,7 @@ compare_pair_info(const void *pi1,
 }
 
 PUBLIC pair_info *
-vrna_ali_get_pair_info( vrna_fold_compound *vc,
+vrna_ali_get_pair_info( vrna_fold_compound_t *vc,
                         const char *structure,
                         double threshold){
 
@@ -1144,7 +1144,7 @@ vrna_ali_get_pair_info( vrna_fold_compound *vc,
 /* circular case!!!                                  */
 
 PRIVATE void
-wrap_alipf_circ(vrna_fold_compound *vc,
+wrap_alipf_circ(vrna_fold_compound_t *vc,
                 char *structure){
 
   int u, p, q, pq, k, l, s, *type;
@@ -1310,7 +1310,7 @@ wrap_alipf_circ(vrna_fold_compound *vc,
 
 
 PUBLIC char *
-vrna_ali_pbacktrack(vrna_fold_compound *vc,
+vrna_pbacktrack_comparative(vrna_fold_compound_t *vc,
                     double *prob){
 
   double r, gr, qt;
@@ -1403,7 +1403,7 @@ vrna_ali_pbacktrack(vrna_fold_compound *vc,
 
 
 PRIVATE void
-backtrack(vrna_fold_compound *vc,
+backtrack(vrna_fold_compound_t *vc,
           char *pstruc,
           int i,
           int j,
@@ -1587,7 +1587,7 @@ backtrack(vrna_fold_compound *vc,
 }
 
 PRIVATE void
-backtrack_qm1(vrna_fold_compound *vc,
+backtrack_qm1(vrna_fold_compound_t *vc,
               char *pstruc,
               int i,
               int j,
@@ -1697,7 +1697,7 @@ export_ali_bppm(void){
 PUBLIC char *
 alipbacktrack(double *prob){
 
-  return vrna_ali_pbacktrack(backward_compat_compound, prob);
+  return vrna_pbacktrack_comparative(backward_compat_compound, prob);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -1737,7 +1737,7 @@ PUBLIC void
 free_alipf_arrays(void){
 
   if(backward_compat_compound && backward_compat){
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
     backward_compat_compound  = NULL;
     backward_compat           = 0;
     iindx                     = NULL;

@@ -227,16 +227,16 @@ vrna_exp_param_t *vrna_exp_params_copy(vrna_exp_param_t *par);
  *  vc to their default values. Otherwise, the energy parameters provided will be copied
  *  over into vc.
  *
- *  @param  vc    The #vrna_fold_compound that is about to receive updated energy parameters
+ *  @param  vc    The #vrna_fold_compound_t that is about to receive updated energy parameters
  *  @param  par   The energy parameters used to substitute those within vc (Maybe NULL)
  */
-void vrna_params_update(vrna_fold_compound *vc, vrna_param_t *par);
+void vrna_params_update(vrna_fold_compound_t *vc, vrna_param_t *par);
 
 /**
  *  @brief Update the energy parameters for subsequent partition function computations
  *
  *  This function can be used to properly assign new energy parameters for partition
- *  function computations to a #vrna_fold_compound. For this purpose, the data of the
+ *  function computations to a #vrna_fold_compound_t. For this purpose, the data of the
  *  provided pointer `params`  will be copied into `vc` and a recomputation of the partition
  *  function scaling factor is issued, if the `pf_scale` attribute of `params` is less than `1.0`.
  *
@@ -248,7 +248,7 @@ void vrna_params_update(vrna_fold_compound *vc, vrna_param_t *par);
  *  @param  vc      The fold compound data structure
  *  @param  params  A pointer to the new energy parameters
  */
-void vrna_exp_params_update(vrna_fold_compound *vc, vrna_exp_param_t *params);
+void vrna_exp_params_update(vrna_fold_compound_t *vc, vrna_exp_param_t *params);
 
 /**
  *  @brief Rescale Boltzmann factors for partition function computations
@@ -287,7 +287,7 @@ void vrna_exp_params_update(vrna_fold_compound *vc, vrna_exp_param_t *params);
  *  @param  vc  The fold compound data structure
  *  @param  mfe A pointer to the MFE (in kcal/mol) or NULL
  */
-void vrna_exp_params_rescale(vrna_fold_compound *vc, double *mfe);
+void vrna_exp_params_rescale(vrna_fold_compound_t *vc, double *mfe);
 
 
 #ifdef  VRNA_BACKWARD_COMPAT

@@ -64,9 +64,9 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void            set_fold_compound(vrna_fold_compound *vc, vrna_md_t *md_p, unsigned int options, unsigned int aux);
-PRIVATE void            make_pscores(vrna_fold_compound *vc);
-PRIVATE void            add_params(vrna_fold_compound *vc, vrna_md_t *md_p, unsigned int options);
+PRIVATE void            set_fold_compound(vrna_fold_compound_t *vc, vrna_md_t *md_p, unsigned int options, unsigned int aux);
+PRIVATE void            make_pscores(vrna_fold_compound_t *vc);
+PRIVATE void            add_params(vrna_fold_compound_t *vc, vrna_md_t *md_p, unsigned int options);
 
 
 /*
@@ -76,7 +76,7 @@ PRIVATE void            add_params(vrna_fold_compound *vc, vrna_md_t *md_p, unsi
 */
 
 PUBLIC  void
-vrna_free_fold_compound(vrna_fold_compound *vc){
+vrna_fold_compound_free(vrna_fold_compound_t *vc){
 
   int s;
 
@@ -149,13 +149,13 @@ vrna_free_fold_compound(vrna_fold_compound *vc){
 }
 
 
-PUBLIC vrna_fold_compound*
-vrna_get_fold_compound( const char *sequence,
-                        vrna_md_t *md_p,
-                        unsigned int options){
+PUBLIC vrna_fold_compound_t *
+vrna_fold_compound( const char *sequence,
+                    vrna_md_t *md_p,
+                    unsigned int options){
 
   unsigned int        i, length, aux_options;
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_md_t           md;
 
   if(sequence == NULL) return NULL;
@@ -163,9 +163,9 @@ vrna_get_fold_compound( const char *sequence,
   /* sanity check */
   length = strlen(sequence);
   if(length == 0)
-    vrna_message_error("vrna_get_fold_compound: sequence length must be greater 0");
+    vrna_message_error("vrna_fold_compound: sequence length must be greater 0");
 
-  vc              = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
+  vc              = (vrna_fold_compound_t *)vrna_alloc(sizeof(vrna_fold_compound_t));
   vc->type        = VRNA_VC_TYPE_SINGLE;
   vc->length      = length;
   vc->sequence    = strdup(sequence);
@@ -226,13 +226,13 @@ vrna_get_fold_compound( const char *sequence,
   return vc;
 }
 
-PUBLIC vrna_fold_compound*
-vrna_get_fold_compound_ali( const char **sequences,
-                            vrna_md_t *md_p,
-                            unsigned int options){
+PUBLIC vrna_fold_compound_t *
+vrna_fold_compound_comparative( const char **sequences,
+                                vrna_md_t *md_p,
+                                unsigned int options){
 
   int s, n_seq, length;
-  vrna_fold_compound *vc;
+  vrna_fold_compound_t *vc;
   vrna_md_t           md;
   
   if(sequences == NULL) return NULL;
@@ -244,12 +244,12 @@ vrna_get_fold_compound_ali( const char **sequences,
   length = strlen(sequences[0]);
   /* sanity check */
   if(length == 0)
-    vrna_message_error("vrna_get_fold_compound_ali: sequence length must be greater 0");
+    vrna_message_error("vrna_fold_compound_ali: sequence length must be greater 0");
   for(s = 0; s < n_seq; s++)
     if(strlen(sequences[s]) != length)
-      vrna_message_error("vrna_get_fold_compound_ali: uneqal sequence lengths in alignment");
+      vrna_message_error("vrna_fold_compound_ali: uneqal sequence lengths in alignment");
 
-  vc            = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
+  vc            = (vrna_fold_compound_t *)vrna_alloc(sizeof(vrna_fold_compound_t));
   vc->type      = VRNA_VC_TYPE_ALIGNMENT;
 
   vc->n_seq     = n_seq;
@@ -280,15 +280,15 @@ vrna_get_fold_compound_ali( const char **sequences,
   return vc;
 }
 
-PUBLIC vrna_fold_compound*
-vrna_get_fold_compound_2D(const char *sequence,
-                          const char *s1,
-                          const char *s2,
-                          vrna_md_t *md_p,
-                          unsigned int options){
+PUBLIC vrna_fold_compound_t *
+vrna_fold_compound_TwoD(const char *sequence,
+                      const char *s1,
+                      const char *s2,
+                      vrna_md_t *md_p,
+                      unsigned int options){
 
   int                 length, l, turn;
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_md_t           md;
 
 
@@ -297,17 +297,17 @@ vrna_get_fold_compound_2D(const char *sequence,
   /* sanity check */
   length = strlen(sequence);
   if(length == 0)
-    vrna_message_error("vrna_get_fold_compound_2D: sequence length must be greater 0");
+    vrna_message_error("vrna_fold_compound_2D: sequence length must be greater 0");
 
   l = strlen(s1);
   if(l != length)
-    vrna_message_error("vrna_get_fold_compound_2D: sequence and s1 differ in length");
+    vrna_message_error("vrna_fold_compound_2D: sequence and s1 differ in length");
 
   l = strlen(s2);
   if(l != length)
-    vrna_message_error("vrna_get_fold_compound_2D: sequence and s2 differ in length");
+    vrna_message_error("vrna_fold_compound_2D: sequence and s2 differ in length");
 
-  vc              = (vrna_fold_compound *)vrna_alloc(sizeof(vrna_fold_compound));
+  vc              = (vrna_fold_compound_t *)vrna_alloc(sizeof(vrna_fold_compound_t));
   vc->type        = VRNA_VC_TYPE_SINGLE;
   vc->length      = length;
   vc->sequence    = strdup(sequence);
@@ -355,7 +355,7 @@ vrna_get_fold_compound_2D(const char *sequence,
 */
 
 PRIVATE void
-add_params( vrna_fold_compound *vc,
+add_params( vrna_fold_compound_t *vc,
             vrna_md_t *md_p,
             unsigned int options){
 
@@ -371,7 +371,7 @@ add_params( vrna_fold_compound *vc,
 }
 
 PRIVATE void
-set_fold_compound(vrna_fold_compound *vc,
+set_fold_compound(vrna_fold_compound_t *vc,
                   vrna_md_t *md_p,
                   unsigned int options,
                   unsigned int aux){
@@ -470,7 +470,7 @@ set_fold_compound(vrna_fold_compound *vc,
 }
 
 PRIVATE void
-make_pscores(vrna_fold_compound *vc){
+make_pscores(vrna_fold_compound_t *vc){
 
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */

@@ -37,14 +37,14 @@
  *
  *  Computes minimum free energy structures using a sliding window
  *  approach, where base pairs may not span outside the window.
- *  In contrast to vrna_fold(), where a maximum base pair span
+ *  In contrast to vrna_mfe(), where a maximum base pair span
  *  may be set using the #vrna_md_t.max_bp_span attribute and one
  *  globally optimal structure is predicted, this function uses a
  *  sliding window to retrieve all locally optimal structures within
  *  each window.
  *  The size of the sliding window is set in the #vrna_md_t.window_size
  *  attribute, prior to the retrieval of the #vrna_fold_compound
- *  using vrna_get_fold_compound() with option #VRNA_OPTION_WINDOW
+ *  using vrna_fold_compound() with option #VRNA_OPTION_WINDOW
  *
  *  The predicted structures are written on-the-fly, either to
  *  stdout, if a NULL pointer is passed as file parameter, or to
@@ -52,13 +52,13 @@
  *
  *  @ingroup local_mfe_fold
  * 
- *  @see  vrna_get_fold_compound(), vrna_Lfoldz(), vrna_fold(),
+ *  @see  vrna_fold_compound(), vrna_mfe_window_zscore(), vrna_mfe(),
  *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
  *
- *  @param  vc        The #vrna_fold_compound with preallocated memory for the DP matrices
+ *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
  *  @param  file      The output file handle where predictions are written to (maybe NULL)
  */
-float vrna_Lfold( vrna_fold_compound *vc, FILE *file);
+float vrna_mfe_window( vrna_fold_compound_t *vc, FILE *file);
 
 #ifdef USE_SVM
 /**
@@ -66,12 +66,12 @@ float vrna_Lfold( vrna_fold_compound *vc, FILE *file);
  *
  *  Computes minimum free energy structures using a sliding window
  *  approach, where base pairs may not span outside the window.
- *  This function is the z-score version of vrna_Lfold(), i.e.
+ *  This function is the z-score version of vrna_mfe_window(), i.e.
  *  only predictions above a certain z-score cut-off value are
  *  printed.
- *  As for vrna_Lfold(), the size of the sliding window is set in
+ *  As for vrna_mfe_window(), the size of the sliding window is set in
  *  the #vrna_md_t.window_size attribute, prior to the retrieval of
- *  the #vrna_fold_compound using vrna_get_fold_compound() with option
+ *  the #vrna_fold_compound_t using vrna_fold_compound() with option
  *  #VRNA_OPTION_WINDOW.
  *
  *  The predicted structures are written on-the-fly, either to
@@ -80,14 +80,14 @@ float vrna_Lfold( vrna_fold_compound *vc, FILE *file);
  *
  *  @ingroup local_mfe_fold
  * 
- *  @see  vrna_get_fold_compound(), vrna_Lfoldz(), vrna_fold(),
+ *  @see  vrna_fold_compound(), vrna_mfe_window_zscore(), vrna_mfe(),
  *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
  *
- *  @param  vc        The #vrna_fold_compound with preallocated memory for the DP matrices
+ *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
  *  @param  min_z     The minimal z-score for a predicted structure to appear in the output
  *  @param  file      The output file handle where predictions are written to (maybe NULL)
  */
-float vrna_Lfoldz(vrna_fold_compound *vc, double min_z, FILE *file);
+float vrna_mfe_window_zscore(vrna_fold_compound_t *vc, double min_z, FILE *file);
 #endif
 
 
@@ -122,7 +122,7 @@ float aliLfold( const char **strings,
  *
  *  @ingroup local_mfe_fold
  *
- *  @deprecated Use vrna_Lfold() instead!
+ *  @deprecated Use vrna_mfe_window() instead!
  */
 DEPRECATED(float Lfold(const char *string, char *structure, int maxdist));
 
@@ -131,7 +131,7 @@ DEPRECATED(float Lfold(const char *string, char *structure, int maxdist));
  * 
  *  @ingroup local_mfe_fold
  * 
- *  @deprecated Use vrna_Lfoldz() instead!
+ *  @deprecated Use vrna_mfe_window_zscore() instead!
  */
 DEPRECATED(float Lfoldz(const char *string, char *structure, int maxdist, int zsc, double min_z));
 

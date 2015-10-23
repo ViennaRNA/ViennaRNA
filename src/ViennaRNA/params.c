@@ -58,7 +58,7 @@ PRIVATE int pf_id=-1;
 PRIVATE vrna_param_t      *get_scaled_params(vrna_md_t *md);
 PRIVATE vrna_exp_param_t  *get_scaled_exp_params(vrna_md_t *md, double pfs);
 PRIVATE vrna_exp_param_t  *get_exp_params_ali(vrna_md_t *md, unsigned int n_seq, double pfs);
-PRIVATE void              rescale_params(vrna_fold_compound *vc);
+PRIVATE void              rescale_params(vrna_fold_compound_t *vc);
 
 /*
 #################################
@@ -125,7 +125,7 @@ vrna_exp_params_copy(vrna_exp_param_t *par){
 }
 
 PUBLIC void
-vrna_params_update( vrna_fold_compound *vc,
+vrna_params_update( vrna_fold_compound_t *vc,
                     vrna_param_t *parameters){
 
   if(vc){
@@ -147,7 +147,7 @@ vrna_params_update( vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_exp_params_update( vrna_fold_compound *vc,
+vrna_exp_params_update( vrna_fold_compound_t *vc,
                         vrna_exp_param_t *params){
 
   if(vc){
@@ -174,7 +174,7 @@ vrna_exp_params_update( vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_exp_params_rescale(vrna_fold_compound *vc,
+vrna_exp_params_rescale(vrna_fold_compound_t *vc,
                         double *mfe){
 
   if(vc){
@@ -674,7 +674,7 @@ get_exp_params_ali( vrna_md_t *md,
 }
 
 PRIVATE void
-rescale_params(vrna_fold_compound *vc){
+rescale_params(vrna_fold_compound_t *vc){
 
   int           i;
   vrna_exp_param_t  *pf = vc->exp_params;

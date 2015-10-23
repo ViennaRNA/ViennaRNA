@@ -25,7 +25,7 @@ int     find_saddle(const char *seq,
                     const char *struc2,
                     int max);
 
-int     vrna_find_saddle( vrna_fold_compound *vc,
+int     vrna_find_saddle( vrna_fold_compound_t *vc,
                           const char *struc1,
                           const char *struc2,
                           int max);
@@ -47,7 +47,7 @@ path_t* get_path( const char *seq,
                   const char* s2,
                   int maxkeep);
 
-path_t *vrna_get_path(vrna_fold_compound *vc,
+path_t *vrna_get_path(vrna_fold_compound_t *vc,
                       const char *s1,
                       const char* s2,
                       int maxkeep);

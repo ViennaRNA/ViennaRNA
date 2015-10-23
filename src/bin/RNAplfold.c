@@ -179,7 +179,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     /*

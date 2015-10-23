@@ -55,7 +55,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
+ *  @see vrna_constraints_add(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_PIPE              1U
@@ -65,7 +65,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
+ *  @see vrna_constraints_add(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_DOT               2U
@@ -74,7 +74,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
+ *  @see vrna_constraints_add(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_X                 4U
@@ -83,7 +83,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
+ *  @see vrna_constraints_add(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_ANG_BRACK         8U
@@ -92,7 +92,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
+ *  @see vrna_constraints_add(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_RND_BRACK         16U
@@ -105,7 +105,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
+ *  @see vrna_constraints_add(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_INTRAMOL    2048U
@@ -118,7 +118,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
+ *  @see vrna_constraints_add(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  */
 #define VRNA_CONSTRAINT_DB_INTERMOL    4096U
@@ -128,7 +128,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
+ *  @see vrna_constraints_add(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *  @warning  This flag is for future purposes only! No implementation recognizes it yet.
  */
 #define VRNA_CONSTRAINT_DB_GQUAD                8192U
@@ -141,7 +141,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup  constraints
  *
- *  @see vrna_add_constraints()
+ *  @see vrna_constraints_add()
  */
 #define VRNA_CONSTRAINT_DB_ENFORCE_BP           16384U
 
@@ -168,9 +168,9 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
 #define VRNA_CONSTRAINT_ALL               128U
 
 /**
- *  @brief  Flag for vrna_add_constraints() to indicate that constraint is passed in pseudo dot-bracket notation
+ *  @brief  Flag for vrna_constraints_add() to indicate that constraint is passed in pseudo dot-bracket notation
  *
- *  @see vrna_add_constraints(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
+ *  @see vrna_constraints_add(), vrna_message_constraint_options(), vrna_message_constraint_options_all()
  *
  *  @ingroup  constraints
  *
@@ -178,9 +178,9 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
 #define VRNA_CONSTRAINT_DB                256U
 
 /**
- *  @brief  Flag for vrna_add_constraints() to indicate that constraints are present in a text file
+ *  @brief  Flag for vrna_constraints_add() to indicate that constraints are present in a text file
  *
- *  @see vrna_add_constraints()
+ *  @see vrna_constraints_add()
  *
  *  @ingroup  constraints
  *
@@ -391,7 +391,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *            Use it in your implementation of the pre-, and post-processing functions to
  *            determine the mode of action required for corresponding pre-, and post-
  *            processing of data available to the function.
- *  @note     This flag will be passed by calls of vrna_fold(), vrna_ali_fold(), vrna_cofold(),
+ *  @note     This flag will be passed by calls of vrna_mfe(), vrna_mfe_comparative(), vrna_mfe_dimer(),
  *            and vrna_subopt()
  *  @ingroup  generalized_sc
  */
@@ -406,8 +406,8 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *            Use it in your implementation of the pre-, and post-processing functions to
  *            determine the mode of action required for corresponding pre-, and post-
  *            processing of data available to the function.
- *  @note     This flag will be passed by calls of vrna_pf_fold(), vrna_ali_pf_fold(), and
- *            vrna_co_pf_fold().
+ *  @note     This flag will be passed by calls of vrna_pf(), vrna_pf_comparative(), and
+ *            vrna_pf_dimer().
  *  @ingroup  generalized_sc
  */
 #define VRNA_SC_GEN_PF          (char)2
@@ -452,7 +452,7 @@ struct vrna_hard_constraints {
                                   unpaired nucleotides in a multi branched loop
                     */
 
-  char    (*f)( vrna_fold_compound *,
+  char    (*f)( vrna_fold_compound_t *,
                 int,
                 int,
                 int,
@@ -461,14 +461,14 @@ struct vrna_hard_constraints {
                                         not a certain decomposition may be evaluated
                           */
 
-  void (*pre)(vrna_fold_compound *,
+  void (*pre)(vrna_fold_compound_t *,
               char);                  /**<  @brief    A function pointer to some generalized hard
                                                       constraints preprocessing function.
                                             @details  This function will be called just before
                                                       the forward recursions start
                                       */
 
-  void (*post)( vrna_fold_compound *,
+  void (*post)( vrna_fold_compound_t *,
                 char);                /**<  @brief    A function pointer to some generalized hard
                                                       constraints postprocessing function.
                                             @details  This function will be called right after the
@@ -529,14 +529,14 @@ struct vrna_soft_constraints {
                                             @see    vrna_sc_add_exp_f()
                                       */
 
-  void (*pre)(vrna_fold_compound *,
+  void (*pre)(vrna_fold_compound_t *,
               char);                  /**<  @brief    A function pointer to some generalized soft
                                                       constraints preprocessing function.
                                             @details  This function will be called just before
                                                       the forward recursions start
                                       */
 
-  void (*post)( vrna_fold_compound *,
+  void (*post)( vrna_fold_compound_t *,
                 char);                /**<  @brief    A function pointer to some generalized soft
                                                       constraints postprocessing function.
                                             @details  This function will be called right after the
@@ -566,7 +566,7 @@ struct vrna_soft_constraints {
  *
  *  @ingroup  constraints
  *
- *  @see  vrna_message_constraint_options_all(), vrna_add_constraints(), #VRNA_CONSTRAINT_DB,
+ *  @see  vrna_message_constraint_options_all(), vrna_constraints_add(), #VRNA_CONSTRAINT_DB,
  *        #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X, #VRNA_CONSTRAINT_DB_ANG_BRACK,
  *        #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_INTRAMOL
  *
@@ -580,14 +580,14 @@ void vrna_message_constraint_options(unsigned int option);
  *
  *  @ingroup  constraints
  *
- *  @see  vrna_message_constraint_options(), vrna_add_constraints(), #VRNA_CONSTRAINT_DB,
+ *  @see  vrna_message_constraint_options(), vrna_constraints_add(), #VRNA_CONSTRAINT_DB,
  *        #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X, #VRNA_CONSTRAINT_DB_ANG_BRACK,
  *        #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_INTRAMOL
  */
 void vrna_message_constraint_options_all(void);
 
 /**
- *  @brief  Add constraints to a #vrna_fold_compound data structure
+ *  @brief  Add constraints to a #vrna_fold_compound_t data structure
  *
  *  Use this function to add/update the hard/soft constraints
  *  The function allows for passing a string 'constraint' that can either be a
@@ -618,7 +618,7 @@ void vrna_message_constraint_options_all(void);
  *                        or a pseudo dot-bracket notation of the hard constraint. May be NULL.
  *  @param  options       The option flags
  */
-void vrna_add_constraints(vrna_fold_compound *vc,
+void vrna_constraints_add(vrna_fold_compound_t *vc,
                           const char *constraint,
                           unsigned int options);
 
@@ -636,7 +636,7 @@ void vrna_add_constraints(vrna_fold_compound *vc,
  *
  *  @param  vc  The fold compound
  */
-void vrna_hc_init(vrna_fold_compound *vc);
+void vrna_hc_init(vrna_fold_compound_t *vc);
 
 /**
  *  @brief  Make a certain nucleotide unpaired
@@ -648,11 +648,11 @@ void vrna_hc_init(vrna_fold_compound *vc);
  *        #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP,
  *        #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
  *
- *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
+ *  @param  vc      The #vrna_fold_compound_t the hard constraints are associated with
  *  @param  i       The position that needs to stay unpaired (1-based)
  *  @param  option  The options flag indicating how/where to store the hard constraints
  */
-void vrna_hc_add_up(vrna_fold_compound *vc,
+void vrna_hc_add_up(vrna_fold_compound_t *vc,
                     int i,
                     char option);
 
@@ -667,12 +667,12 @@ void vrna_hc_add_up(vrna_fold_compound *vc,
  *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC,
  *        #VRNA_CONSTRAINT_CONTEXT_ENFORCE, #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
  *
- *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
+ *  @param  vc      The #vrna_fold_compound_t the hard constraints are associated with
  *  @param  i       The 5' located nucleotide position of the base pair (1-based)
  *  @param  j       The 3' located nucleotide position of the base pair (1-based)
  *  @param  option  The options flag indicating how/where to store the hard constraints
  */
-void vrna_hc_add_bp(vrna_fold_compound *vc,
+void vrna_hc_add_bp(vrna_fold_compound_t *vc,
                     int i,
                     int j,
                     char option);
@@ -688,13 +688,13 @@ void vrna_hc_add_bp(vrna_fold_compound *vc,
  *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC,
  *        #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
  *
- *  @param  vc      The #vrna_fold_compound the hard constraints are associated with
+ *  @param  vc      The #vrna_fold_compound_t the hard constraints are associated with
  *  @param  i       The position that needs to stay unpaired (1-based)
  *  @param  d       The direction of base pairing (@f$ d < 0 @f$: pairs upstream,
  *                  @f$ d > 0 @f$: pairs downstream, @f$ d == 0 @f$: no direction)
  *  @param  option  The options flag indicating in which loop type context the pairs may appear
  */
-void vrna_hc_add_bp_nonspecific(vrna_fold_compound *vc,
+void vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
                                 int i,
                                 int d,
                                 char option);
@@ -716,44 +716,44 @@ void vrna_hc_free(vrna_hc_t *hc);
  *  @brief  Add a function pointer and/or data pointer for the generalized hard constraint
  *          feature
  */
-void vrna_hc_add_f( vrna_fold_compound *vc,
-                    char (*f)( vrna_fold_compound *, int, int, int, int, char),
+void vrna_hc_add_f( vrna_fold_compound_t *vc,
+                    char (*f)( vrna_fold_compound_t *, int, int, int, int, char),
                     void *data);
 
-void vrna_hc_add_pre( vrna_fold_compound *vc,
-                      void (*pre)( vrna_fold_compound *, char));
+void vrna_hc_add_pre( vrna_fold_compound_t *vc,
+                      void (*pre)( vrna_fold_compound_t *, char));
 
-void vrna_hc_add_post(vrna_fold_compound *vc,
-                      void (*post)( vrna_fold_compound *, char));
+void vrna_hc_add_post(vrna_fold_compound_t *vc,
+                      void (*post)( vrna_fold_compound_t *, char));
 
 /**
  *  @brief Initialize an empty soft constraints data structure within a #vrna_fold_compound
  *
  *  This function adds a proper soft constraints data structure
- *  to the #vrna_fold_compound data structure.
+ *  to the #vrna_fold_compound_t data structure.
  *  If soft constraints already exist within the fold compound, they are removed.
  *
- *  \note Accepts vrna_fold_compound of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
+ *  \note Accepts vrna_fold_compound_t of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
  *
  *  @ingroup  soft_constraints
  *
  *  @see  vrna_sc_add_bp(), vrna_sc_add_up(), vrna_sc_add_SHAPE_deigan(),
  *        vrna_sc_add_SHAPE_zarringhalam(), vrna_sc_remove(), vrna_sc_add_f(),
  *        vrna_sc_add_exp_f(), vrna_sc_add_pre(), vrna_sc_add_post()
- *  @param  vc  The #vrna_fold_compound where an empty soft constraint feature is to be added to
+ *  @param  vc  The #vrna_fold_compound_t where an empty soft constraint feature is to be added to
  */
-void vrna_sc_init(vrna_fold_compound *vc);
+void vrna_sc_init(vrna_fold_compound_t *vc);
 
 /**
  *  @brief  Add soft constraints for paired nucleotides
  *
  *  @ingroup  soft_constraints
  *
- *  @param  vc          The #vrna_fold_compound the soft constraints are associated with
+ *  @param  vc          The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  constraints A two-dimensional array of pseudo free energies in @f$ kcal / mol @f$
  *  @param  options     The options flag indicating how/where to store the soft constraints
  */
-void vrna_sc_add_bp(vrna_fold_compound *vc,
+void vrna_sc_add_bp(vrna_fold_compound_t *vc,
                     const double **constraints,
                     unsigned int options);
 
@@ -762,24 +762,24 @@ void vrna_sc_add_bp(vrna_fold_compound *vc,
  *
  *  @ingroup  soft_constraints
  *
- *  @param  vc          The #vrna_fold_compound the soft constraints are associated with
+ *  @param  vc          The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  constraints A vector of pseudo free energies in @f$ kcal / mol @f$
  *  @param  options     The options flag indicating how/where to store the soft constraints
  */
-void vrna_sc_add_up(vrna_fold_compound *vc,
+void vrna_sc_add_up(vrna_fold_compound_t *vc,
                     const double *constraints,
                     unsigned int options);
 
 /**
  *  @brief  Remove soft constraints from #vrna_fold_compound
  *
- *  \note Accepts vrna_fold_compound of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
+ *  \note Accepts vrna_fold_compound_t of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
  *
  *  @ingroup  soft_constraints
  *
- *  @param  vc  The #vrna_fold_compound possibly containing soft constraints
+ *  @param  vc  The #vrna_fold_compound_t possibly containing soft constraints
  */
-void vrna_sc_remove(vrna_fold_compound *vc);
+void vrna_sc_remove(vrna_fold_compound_t *vc);
 
 /**
  *  @brief  Free memory occupied by a #vrna_sc_t data structure
@@ -808,14 +808,14 @@ void vrna_sc_free(vrna_sc_t *sc);
  *  @see  For further details, we refer to @cite deigan:2009.
  *  @see  vrna_sc_remove(), vrna_sc_add_SHAPE_zarringhalam(), vrna_sc_minimize_pertubation()
  *  @ingroup  soft_constraints
- *  @param  vc            The #vrna_fold_compound the soft constraints are associated with
+ *  @param  vc            The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  reactivities  A vector of normalized SHAPE reactivities
  *  @param  m             The slope of the conversion function
  *  @param  b             The intercept of the conversion function
  *  @param  options       The options flag indicating how/where to store the soft constraints
  *  @return               1 on successful extraction of the method, 0 on errors
  */
-int vrna_sc_add_SHAPE_deigan( vrna_fold_compound *vc,
+int vrna_sc_add_SHAPE_deigan( vrna_fold_compound_t *vc,
                               const double *reactivities,
                               double m,
                               double b,
@@ -825,7 +825,7 @@ int vrna_sc_add_SHAPE_deigan( vrna_fold_compound *vc,
  *  @brief  Add SHAPE reactivity data from files as soft constraints for consensus structure prediction (Deigan et al. method)
  *
  *  @ingroup  soft_constraints
- *  @param  vc            The #vrna_fold_compound the soft constraints are associated with
+ *  @param  vc            The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  shape_files   A set of filenames that contain normalized SHAPE reactivity data
  *  @param  shape_file_association  An array of integers that associate the files with sequences in the alignment
  *  @param  m             The slope of the conversion function
@@ -833,7 +833,7 @@ int vrna_sc_add_SHAPE_deigan( vrna_fold_compound *vc,
  *  @param  options       The options flag indicating how/where to store the soft constraints
  *  @return               1 on successful extraction of the method, 0 on errors
  */
-int vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound *vc,
+int vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
                                   const char **shape_files,
                                   const int *shape_file_association,
                                   double m,
@@ -854,13 +854,13 @@ int vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound *vc,
  *  @see For further details, we refer to @cite zarringhalam:2012
  *  @see  vrna_sc_remove(), vrna_sc_add_SHAPE_deigan(), vrna_sc_minimize_pertubation()
  *  @ingroup  soft_constraints
- *  @param  vc            The #vrna_fold_compound the soft constraints are associated with
+ *  @param  vc            The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  reactivities  A vector of normalized SHAPE reactivities
  *  @param  b             The scaling factor @f$ \beta @f$ of the conversion function
  *  @param  options       The options flag indicating how/where to store the soft constraints
  *  @return               1 on successful extraction of the method, 0 on errors
  */
-int vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound *vc,
+int vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *vc,
                                     const double *reactivities,
                                     double b,
                                     double default_value,
@@ -892,7 +892,7 @@ int vrna_sc_SHAPE_parse_method( const char *method_string,
  *
  *  @ingroup  soft_constraints
  *
- *  @see vrna_read_SHAPE_file()
+ *  @see vrna_file_SHAPE_read()
  *  @param shape_conversion String definining the method used for the conversion process
  *  @param values           Pointer to an array of SHAPE reactivities
  *  @param length           Length of the array of SHAPE reactivities
@@ -907,7 +907,7 @@ int vrna_sc_SHAPE_to_pr(const char *shape_conversion,
  *  @brief  Bind a function pointer for generalized soft constraint feature (MFE version)
  *
  *  This function allows to easily bind a function pointer and corresponding data structure
- *  to the soft constraint part #vrna_sc_t of the #vrna_fold_compound.
+ *  to the soft constraint part #vrna_sc_t of the #vrna_fold_compound_t.
  *  The function for evaluating the generalized soft constraint feature has to return
  *  a pseudo free energy @f$ \hat{E} @f$ in @f$ dacal/mol @f$, where @f$ 1 dacal/mol = 10 cal/mol @f$.
  *
@@ -917,7 +917,7 @@ int vrna_sc_SHAPE_to_pr(const char *shape_conversion,
  *  @param  f     A pointer to the function that evaluates the generalized soft constraint feature
  *  @param  data  A pointer to the data structure that holds required data for function 'f'
  */
-void vrna_sc_add_f( vrna_fold_compound *vc,
+void vrna_sc_add_f( vrna_fold_compound_t *vc,
                     int (*f)( int, int, int, int, char, void *),
                     void *data);
 
@@ -925,7 +925,7 @@ void vrna_sc_add_f( vrna_fold_compound *vc,
  *  @brief  Bind a backtracking function pointer for generalized soft constraint feature
  *
  *  This function allows to easily bind a function pointer to the soft constraint part
- *  #vrna_sc_t of the #vrna_fold_compound.
+ *  #vrna_sc_t of the #vrna_fold_compound_t.
  *  The provided function should be used for backtracking purposes in loop regions
  *  that were altered via the generalized soft constraint feature. It has to return
  *  an array of #vrna_basepair_t data structures, were the last element in the list is indicated
@@ -936,14 +936,14 @@ void vrna_sc_add_f( vrna_fold_compound *vc,
  *  @param  vc    The fold compound the generalized soft constraint function should be bound to
  *  @param  f     A pointer to the function that returns additional base pairs
  */
-void vrna_sc_add_bt(vrna_fold_compound *vc,
+void vrna_sc_add_bt(vrna_fold_compound_t *vc,
                     vrna_basepair_t *(*f)( int, int, int, int, char, void *));
 
 /**
  *  @brief  Bind a function pointer for generalized soft constraint feature (PF version)
  *
  *  This function allows to easily bind a function pointer and corresponding data structure
- *  to the soft constraint part #vrna_sc_t of the #vrna_fold_compound.
+ *  to the soft constraint part #vrna_sc_t of the #vrna_fold_compound_t.
  *  The function for evaluating the generalized soft constraint feature has to return
  *  a pseudo free energy @f$ \hat{E} @f$ as Boltzmann factor, i.e. @f$ exp(- \hat{E} / kT) @f$.
  *  The required unit for @f$ E @f$ is @f$ cal/mol @f$.
@@ -954,15 +954,15 @@ void vrna_sc_add_bt(vrna_fold_compound *vc,
  *  @param  exp_f A pointer to the function that evaluates the generalized soft constraint feature
  *  @param  data  A pointer to the data structure that holds required data for function 'f'
  */
-void vrna_sc_add_exp_f( vrna_fold_compound *vc,
+void vrna_sc_add_exp_f( vrna_fold_compound_t *vc,
                         FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *),
                         void *data);
 
 /**
  *  @brief  Add a pre-processing function for the generalized soft constraints feature
  *
- *  @note     The function pointer passed will be used by calls of vrna_fold(), vrna_pf_fold(),
- *            vrna_ali_fold(), vrna_ali_pf_fold(), vrna_cofold(), vrna_co_pf_fold(), and
+ *  @note     The function pointer passed will be used by calls of vrna_mfe(), vrna_pf(),
+ *            vrna_mfe_comparative(), vrna_pf_comparative(), vrna_mfe_dimer(), vrna_pf_dimer(), and
  *            vrna_subopt(). Each call is provided with the current #vrna_fold_compound, and
  *            a flag to indicate whether general free energy evaluation (#VRNA_SC_GEN_MFE), or
  *            partition function computations (#VRNA_SC_GEN_PF) will take place next.
@@ -973,13 +973,13 @@ void vrna_sc_add_exp_f( vrna_fold_compound *vc,
  *  @param    vc    The fold compound the generalized soft constraint function should be bound to
  *  @param    pre   A pointer to the pre-processing function
  */
-void vrna_sc_add_pre(vrna_fold_compound *vc, void (*pre)( vrna_fold_compound *, char));
+void vrna_sc_add_pre(vrna_fold_compound_t *vc, void (*pre)( vrna_fold_compound_t *, char));
 
 /**
  *  @brief  Add a post-processing function for the generalized soft constraints feature
  *
- *  @note     The function pointer passed will be used by calls of vrna_fold(), vrna_pf_fold(),
- *            vrna_ali_fold(), vrna_ali_pf_fold(), vrna_cofold(), vrna_co_pf_fold(), and
+ *  @note     The function pointer passed will be used by calls of vrna_mfe(), vrna_pf(),
+ *            vrna_mfe_comparative(), vrna_pf_comparative(), vrna_mfe_dimer(), vrna_pf_dimer(), and
  *            vrna_subopt(). Each call is provided with the current #vrna_fold_compound, and
  *            a flag to indicate whether general free energy evaluation (#VRNA_SC_GEN_MFE), or
  *            partition function computations (#VRNA_SC_GEN_PF) has taken place before.
@@ -990,7 +990,7 @@ void vrna_sc_add_pre(vrna_fold_compound *vc, void (*pre)( vrna_fold_compound *, 
  *  @param    vc    The fold compound the generalized soft constraint function should be bound to
  *  @param    post  A pointer to the post-processing function
  */
-void vrna_sc_add_post( vrna_fold_compound *vc, void (*post)( vrna_fold_compound *, char));
+void vrna_sc_add_post( vrna_fold_compound_t *vc, void (*post)( vrna_fold_compound_t *, char));
 
 #ifdef  VRNA_BACKWARD_COMPAT
 

@@ -664,7 +664,7 @@ vrna_pl_get( const char *struc,
 }
 
 PUBLIC plist *
-vrna_pl_get_from_pr(vrna_fold_compound *vc,
+vrna_pl_get_from_pr(vrna_fold_compound_t *vc,
                     double cut_off){
 
   if(!vc){

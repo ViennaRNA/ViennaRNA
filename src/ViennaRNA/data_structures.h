@@ -15,7 +15,7 @@
 /** @brief Typename for the fold_compound data structure #vrna_fc
  *  @ingroup basic_data_structures
  */
-typedef struct vrna_fc        vrna_fold_compound;
+typedef struct vrna_fc        vrna_fold_compound_t;
 
 /** @brief Typename for the base pair repesenting data structure #vrna_basepair */
 typedef struct vrna_basepair  vrna_basepair_t;
@@ -406,7 +406,7 @@ typedef enum {
  *  @warning  Reading/Writing from/to attributes that are not within the scope of the current type usually result
  *  in undefined behavior!
  *
- *  @see  #vrna_fold_compound.type, vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(),
+ *  @see  #vrna_fold_compound_t.type, vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_fold_compound_free(),
  *        #VRNA_VC_TYPE_SINGLE, #VRNA_VC_TYPE_ALIGNMENT
  */
 struct vrna_fc{
@@ -415,10 +415,10 @@ struct vrna_fc{
       @name Common data fields
       @{
    */
-  vrna_vc_t         type;           /**<  @brief  The type of the #vrna_fold_compound.
+  vrna_vc_t         type;           /**<  @brief  The type of the #vrna_fold_compound_t.
                                       @details Currently possible values are #VRNA_VC_TYPE_SINGLE, and #VRNA_VC_TYPE_ALIGNMENT
                                       @warning Do not edit this attribute, it will be automagically set by
-                                            the corresponding get() methods for the #vrna_fold_compound.
+                                            the corresponding get() methods for the #vrna_fold_compound_t.
                                             The value specified in this attribute dictates the set of other
                                             attributes to use within this data structure.
                                     */
@@ -575,7 +575,7 @@ struct vrna_fc{
  *  @brief  Option flag to specify requirement of Minimum Free Energy (MFE) DP matrices
  *          and corresponding set of energy parameters
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), #VRNA_OPTION_EVAL_ONLY
+ *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), #VRNA_OPTION_EVAL_ONLY
  */
 #define VRNA_OPTION_MFE             1
 
@@ -583,7 +583,7 @@ struct vrna_fc{
  *  @brief  Option flag to specify requirement of Partition Function (PF) DP matrices
  *          and corresponding set of Boltzmann factors
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), #VRNA_OPTION_EVAL_ONLY
+ *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), #VRNA_OPTION_EVAL_ONLY
  */
 #define VRNA_OPTION_PF              2
 
@@ -593,10 +593,10 @@ struct vrna_fc{
  *  @brief  Option flag to specify that neither MFE, nor PF DP matrices are required
  *
  *  Use this flag in conjuntion with #VRNA_OPTION_MFE, and #VRNA_OPTION_PF to save
- *  memory for a #vrna_fold_compound obtained from vrna_get_fold_compound(), or vrna_get_fold_compound_ali()
+ *  memory for a #vrna_fold_compound_t obtained from vrna_fold_compound(), or vrna_fold_compound_comparative()
  *  in cases where only energy evaluation but no structure prediction is required.
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_eval_structure()
+ *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_eval_structure()
  */
 #define VRNA_OPTION_EVAL_ONLY       8
 
@@ -604,14 +604,14 @@ struct vrna_fc{
 
 
 /**
- *  @brief  Retrieve a #vrna_fold_compound data structure for single sequences and hybridizing sequences
+ *  @brief  Retrieve a #vrna_fold_compound_t data structure for single sequences and hybridizing sequences
  *
- *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound by passing a single
+ *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound_t by passing a single
  *  sequence, or two contatenated sequences as input. For the latter, sequences need to be seperated by
  *  an '&' character like this: @verbatim char *sequence = "GGGG&CCCC"; @endverbatim
  *
  *  The optional parameter 'md_p' can be used to specify the model details for successive computations
- *  based on the content of the generated #vrna_fold_compound.
+ *  based on the content of the generated #vrna_fold_compound_t.
  *  The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
  *  of energy parameters. Use the macros:
  *
@@ -620,31 +620,31 @@ struct vrna_fc{
  *  - #VRNA_OPTION_WINDOW
  *  - #VRNA_OPTION_EVAL_ONLY
  *
- *  to specify the required type of computations that will be performed with the #vrna_fold_compound.
+ *  to specify the required type of computations that will be performed with the #vrna_fold_compound_t.
  *
  *  @note The sequence string must be uppercase, and should contain only RNA (resp. DNA) alphabet depending
  *        on what energy parameter set is used
  *
- *  @see  vrna_get_fold_compound_ali(), #vrna_md_t, #VRNA_OPTION_MFE, #VRNA_OPTION_PF,
- *        #VRNA_OPTION_EVAL_ONLY, #VRNA_OPTION_WINDOW
+ *  @see  vrna_fold_compound_free(), vrna_fold_compound_comparative(), #vrna_md_t, #VRNA_OPTION_MFE,
+ *        #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY, #VRNA_OPTION_WINDOW
  *
  *  @param    sequence    A single sequence, or two concatenated sequences seperated by an '&' character
  *  @param    md_p        An optional set of model details
  *  @param    options     The options for DP matrices memory allocation
- *  @return               A prefilled vrna_fold_compound that can be readily used for computations
+ *  @return               A prefilled vrna_fold_compound_t that can be readily used for computations
  */
-vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
-                                            vrna_md_t *md_p,
-                                            unsigned int options);
+vrna_fold_compound_t *vrna_fold_compound( const char *sequence,
+                                          vrna_md_t *md_p,
+                                          unsigned int options);
 
 /**
- *  @brief  Retrieve a #vrna_fold_compound data structure for sequence alignments
+ *  @brief  Retrieve a #vrna_fold_compound_t data structure for sequence alignments
  *
- *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound by passing an
+ *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound_t by passing an
  *  alignment of sequences.
  *
  *  The optional parameter 'md_p' can be used to specify the model details for successive computations
- *  based on the content of the generated #vrna_fold_compound.
+ *  based on the content of the generated #vrna_fold_compound_t.
  *  The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
  *  of energy parameters. Use the macros:
  *
@@ -652,24 +652,24 @@ vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
  *  - #VRNA_OPTION_PF
  *  - #VRNA_OPTION_EVAL_ONLY
  *
- *  to specify the required type of computations that will be performed with the #vrna_fold_compound.
+ *  to specify the required type of computations that will be performed with the #vrna_fold_compound_t.
  *
  *  @note The sequence strings must be uppercase, and should contain only RNA (resp. DNA) alphabet including
  *        gap characters depending on what energy parameter set is used.
  *
- *  @see  vrna_get_fold_compound(), #vrna_md_t, #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY,
- *        read_clustal()
+ *  @see  vrna_fold_compound_free(), vrna_fold_compound(), #vrna_md_t, #VRNA_OPTION_MFE, #VRNA_OPTION_PF,
+ *        #VRNA_OPTION_EVAL_ONLY, read_clustal()
  *
  *  @param    sequences   A sequence alignment including 'gap' characters
  *  @param    md_p        An optional set of model details
  *  @param    options     The options for DP matrices memory allocation
- *  @return               A prefilled vrna_fold_compound that can be readily used for computations
+ *  @return               A prefilled vrna_fold_compound_t that can be readily used for computations
  */
-vrna_fold_compound *vrna_get_fold_compound_ali( const char **sequences,
+vrna_fold_compound_t *vrna_fold_compound_comparative( const char **sequences,
                                                 vrna_md_t *md_p,
                                                 unsigned int options);
 
-vrna_fold_compound *vrna_get_fold_compound_2D(const char *sequence,
+vrna_fold_compound_t *vrna_fold_compound_TwoD(const char *sequence,
                                               const char *s1,
                                               const char *s2,
                                               vrna_md_t *md_p,
@@ -678,11 +678,11 @@ vrna_fold_compound *vrna_get_fold_compound_2D(const char *sequence,
 /**
  *  @brief  Free memory occupied by a #vrna_fold_compound
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_mx_mfe_free(), vrna_mx_pf_free()
+ *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_mx_mfe_free(), vrna_mx_pf_free()
  *
- *  @param  vc  The #vrna_fold_compound that is to be erased from memory
+ *  @param  vc  The #vrna_fold_compound_t that is to be erased from memory
  */
-void vrna_free_fold_compound(vrna_fold_compound *vc);
+void vrna_fold_compound_free(vrna_fold_compound_t *vc);
 
 /**
  *  @}
