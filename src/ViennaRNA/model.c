@@ -64,6 +64,20 @@ double  cv_fact         = VRNA_MODEL_DEFAULT_ALI_CV_FACT;
 double  nc_fact         = VRNA_MODEL_DEFAULT_ALI_NC_FACT;
 int     logML           = VRNA_MODEL_DEFAULT_LOG_ML;
 
+/* below are some more deprecated global symbols we need to get rid off */
+
+int         james_rule = 1;       /* interior loops of size 2 get energy 0.8Kcal and
+                                    no mismatches (no longer used) */
+char        *RibosumFile = NULL;  /* TODO: compile ribosums into program
+                                    Warning: this variable will vanish */
+int         csv = 0;              /*generate comma seperated output*/
+bondT       *base_pair = NULL;
+FLT_OR_DBL  *pr = NULL;           /* base pairing prob. matrix */
+int         *iindx = NULL;        /* pr[i,j] -> pr[iindx[i]-j] */
+int         fold_constrained = 0; /* fold with constraints */
+int         *cut_points;
+int         *strand;
+
 #endif
 
 /*
@@ -140,6 +154,29 @@ vrna_md_set_default(vrna_md_t *md){
     vrna_md_update(md);
 
   }
+}
+
+PUBLIC char *
+vrna_md_option_string(vrna_md_t  *md){
+  static char options[255];
+  *options = '\0';
+
+  if(md){
+    if(md->dangles != VRNA_MODEL_DEFAULT_DANGLES)
+      sprintf(options + strlen(options), "-d%d ", md->dangles);
+    if(!md->special_hp)
+      strcat(options, "-4 ");
+    if(md->noLP)
+      strcat(options, "--noLP ");
+    if(md->noGU)
+      strcat(options, "--noGU ");
+    if(md->noGUclosure)
+      strcat(options, "--noClosingGU ");
+    if(md->temperature != VRNA_MODEL_DEFAULT_TEMPERATURE)
+      sprintf(options + strlen(options), "-T %f ", md->temperature);
+  }
+
+  return options;
 }
 
 PUBLIC void
@@ -408,6 +445,16 @@ vrna_md_set_globals(vrna_md_t *md){
 
   }
 }
+
+PUBLIC char *
+option_string(void){
+
+  vrna_md_t md;
+  vrna_md_set_globals(&md);
+
+  return vrna_md_option_string(&md);
+}
+
 
 #endif
 

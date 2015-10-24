@@ -21,6 +21,12 @@
 
 static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.38 2007/02/02 15:18:13 ivo Exp $";
 
+/*
+#################################
+# PRIVATE MACROS                #
+#################################
+*/
+
 #ifndef PI
 #define  PI       3.141592654
 #endif
@@ -28,100 +34,17 @@ static char UNUSED rcsid[] = "$Id: PS_dot.c,v 1.38 2007/02/02 15:18:13 ivo Exp $
 #define SIZE 452.
 #define PMIN 0.00001
 
-/* local functions */
-PRIVATE FILE  *PS_dot_common(char *seq, int cp, char *wastlfile, char *comment,
-                             int winsize);
-PRIVATE char **annote(const char *structure, const char *AS[]);
-
-
-/*---------------------------------------------------------------------------*/
-
-/* options for gml output:
-   uppercase letters: print sequence labels
-   lowercase letters: no sequence lables
-   graphics information:
-   x X  simple xy plot
-   (nothing else implemented at present)
-   default:           no graphics data at all
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
 */
 
-PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
-{
-  FILE *gmlfile;
-  int i;
-  int length;
-  short *pair_table;
-  float *X, *Y;
-
-  gmlfile = fopen(ssfile, "w");
-  if (gmlfile == NULL) {
-     fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
-     return 0;
-  }
-
-  length = strlen(string);
-
-  pair_table = vrna_pt_get(structure);
-
-  switch(option){
-  case 'X' :
-  case 'x' :
-    /* Simple XY Plot */
-    X = (float *) vrna_alloc((length+1)*sizeof(float));
-    Y = (float *) vrna_alloc((length+1)*sizeof(float));
-    if (rna_plot_type == 0)
-      i = simple_xy_coordinates(pair_table, X, Y);
-    else
-      i = naview_xy_coordinates(pair_table, X, Y);
-
-    if(i!=length) fprintf(stderr,"strange things happening in gmlRNA ...\n");
-    break;
-  default:
-    /* No Graphics Information */
-    X = NULL;
-    Y = NULL;
-  }
-
-  fprintf(gmlfile,
-          "# Vienna RNA Package %s\n"
-          "# GML Output\n"
-          "# CreationDate: %s\n"
-          "# Name: %s\n"
-          "# Options: %s\n", VERSION, vrna_time_stamp(), ssfile, option_string());
-  fprintf(gmlfile,
-          "graph [\n"
-          " directed 0\n");
-  for (i=1; i<=length; i++){
-     fprintf(gmlfile,
-          " node [ id %d ", i);
-     if (option) fprintf(gmlfile,
-          "label \"%c\"",string[i-1]);
-     if ((option == 'X')||(option=='x'))
-       fprintf(gmlfile,
-               "\n  graphics [ x %9.4f y %9.4f ]\n", X[i-1], Y[i-1]);
-     fprintf(gmlfile," ]\n");
-  }
-  for (i=1; i<length; i++)
-    fprintf(gmlfile,
-            "edge [ source %d target %d ]\n", i, i+1);
-  for (i=1; i<=length; i++) {
-     if (pair_table[i]>i)
-        fprintf(gmlfile,
-                "edge [ source %d target %d ]\n", i, pair_table[i]);
-  }
-  fprintf(gmlfile, "]\n");
-  fclose(gmlfile);
-
-  free(pair_table);
-  free(X); free(Y);
-  return 1; /* success */
-}
-
-/*---------------------------------------------------------------------------*/
-int PS_rna_plot(char *string, char *structure, char *ssfile) {
-  return PS_rna_plot_a(string, structure, ssfile, NULL, NULL);
-}
-
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
 static const char *RNAss_head =
 "%%BeginProlog\n"
 "/RNAplot 100 dict def\n"
@@ -350,150 +273,55 @@ static const char *anote_macros =
 "} bind def\n"
  "end\n\n";
 
-int PS_rna_plot_a(char *string, char *structure, char *ssfile, char *pre, char *post)
-{
-  float  xmin, xmax, ymin, ymax;
-  int    i, length;
-  float *X, *Y;
-  FILE  *xyplot;
-  short *pair_table;
-  char *c;
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
 
-  length = strlen(string);
+PRIVATE FILE  *PS_dot_common(char *seq, int cp, char *wastlfile, char *comment,
+                             int winsize);
+PRIVATE char **annote(const char *structure, const char *AS[]);
 
-  xyplot = fopen(ssfile, "w");
-  if (xyplot == NULL) {
-    fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
-    return 0;
-  }
 
-  pair_table = vrna_pt_get(structure);
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
 
-  X = (float *) vrna_alloc((length+1)*sizeof(float));
-  Y = (float *) vrna_alloc((length+1)*sizeof(float));
-  switch(rna_plot_type){
-    case VRNA_PLOT_TYPE_SIMPLE:   i = simple_xy_coordinates(pair_table, X, Y);
-                                  break;
-    case VRNA_PLOT_TYPE_CIRCULAR: {
-                                    int radius = 3*length;
-                                    i = simple_circplot_coordinates(pair_table, X, Y);
-                                    for (i = 0; i < length; i++) {
-                                      X[i] *= radius;
-                                      X[i] += radius;
-                                      Y[i] *= radius;
-                                      Y[i] += radius;
-                                    }
-                                  }
-                                  break;
-    default:                      i = naview_xy_coordinates(pair_table, X, Y);
-                                  break;
-  }
-  if(i!=length) fprintf(stderr,"strange things happening in PS_rna_plot...\n");
+PUBLIC int
+vrna_file_PS_rnaplot( const char *string,
+                      const char *structure,
+                      const char *ssfile,
+                      vrna_md_t  *md_p){
 
-  xmin = xmax = X[0];
-  ymin = ymax = Y[0];
-  for (i = 1; i < length; i++) {
-     xmin = X[i] < xmin ? X[i] : xmin;
-     xmax = X[i] > xmax ? X[i] : xmax;
-     ymin = Y[i] < ymin ? Y[i] : ymin;
-     ymax = Y[i] > ymax ? Y[i] : ymax;
-  }
-
-  fprintf(xyplot,
-          "%%!PS-Adobe-3.0 EPSF-3.0\n"
-          "%%%%Creator: %s, ViennaRNA-%s\n"
-          "%%%%CreationDate: %s"
-          "%%%%Title: RNA Secondary Structure Plot\n"
-          "%%%%BoundingBox: 66 210 518 662\n"
-          "%%%%DocumentFonts: Helvetica\n"
-          "%%%%Pages: 1\n"
-          "%%%%EndComments\n\n"
-          "%%Options: %s\n", rcsid+5, VERSION, vrna_time_stamp(), option_string());
-  fprintf(xyplot, "%% to switch off outline pairs of sequence comment or\n"
-          "%% delete the appropriate line near the end of the file\n\n");
-  fprintf(xyplot, "%s", RNAss_head);
-
-  if (pre || post) {
-    fprintf(xyplot, "%s", anote_macros);
-  }
-  fprintf(xyplot, "%%%%EndProlog\n");
-
-  fprintf(xyplot, "RNAplot begin\n"
-          "%% data start here\n");
-
-  /* cut_point */
-  if ((c = strchr(structure, '&'))) {
-    int cutpoint;
-    cutpoint = c - structure;
-    string[cutpoint] = ' '; /* replace & with space */
-    fprintf(xyplot, "/cutpoint %d def\n", cutpoint);
-  }
-
-  /* sequence */
-  fprintf(xyplot,"/sequence (\\\n");
-  i=0;
-  while (i<length) {
-    fprintf(xyplot, "%.255s\\\n", string+i);  /* no lines longer than 255 */
-    i+=255;
-  }
-  fprintf(xyplot,") def\n");
-  /* coordinates */
-  fprintf(xyplot, "/coor [\n");
-  for (i = 0; i < length; i++)
-    fprintf(xyplot, "[%3.8f %3.8f]\n", X[i], Y[i]);
-  fprintf(xyplot, "] def\n");
-  /* correction coordinates for quadratic beziers in case we produce a circplot */
-  if(rna_plot_type == VRNA_PLOT_TYPE_CIRCULAR)
-    fprintf(xyplot, "/cpr %6.2f def\n", (float)3*length);
-  /* base pairs */
-  fprintf(xyplot, "/pairs [\n");
-  for (i = 1; i <= length; i++)
-    if (pair_table[i]>i)
-      fprintf(xyplot, "[%d %d]\n", i, pair_table[i]);
-  fprintf(xyplot, "] def\n\n");
-
-  fprintf(xyplot, "init\n\n");
-  /* draw the data */
-  if (pre) {
-    fprintf(xyplot, "%% Start Annotations\n");
-    fprintf(xyplot, "%s\n", pre);
-    fprintf(xyplot, "%% End Annotations\n");
-  }
-  fprintf(xyplot,
-          "%% switch off outline pairs or bases by removing these lines\n"
-          "drawoutline\n"
-          "drawpairs\n"
-          "drawbases\n");
-
-  if (post) {
-    fprintf(xyplot, "%% Start Annotations\n");
-    fprintf(xyplot, "%s\n", post);
-    fprintf(xyplot, "%% End Annotations\n");
-  }
-  fprintf(xyplot, "%% show it\nshowpage\n");
-  fprintf(xyplot, "end\n");
-  fprintf(xyplot, "%%%%EOF\n");
-
-  fclose(xyplot);
-
-  free(pair_table);
-  free(X); free(Y);
-  return 1; /* success */
+  return vrna_file_PS_rnaplot_a(string, structure, ssfile, NULL, NULL, md_p);
 }
 
-int PS_rna_plot_a_gquad(char *string,
-                        char *structure,
-                        char *ssfile,
-                        char *pre,
-                        char *post){
+PUBLIC int
+vrna_file_PS_rnaplot_a( const char *seq,
+                        const char *structure,
+                        const char *ssfile,
+                        const char *pre,
+                        const char *post,
+                        vrna_md_t  *md_p){
+
   float  xmin, xmax, ymin, ymax;
   int    i, length;
   int    ee, gb, ge, Lg, l[3];
   float *X, *Y;
   FILE  *xyplot;
-  short *pair_table, *pair_table_g;;
-  char *c;
+  short *pair_table, *pair_table_g;
+  char  *c, *string;
+  vrna_md_t   md;
 
+  if(!md_p){
+    vrna_md_set_globals(&md);
+    md_p  = &md;
+  }
+    
+  string = strdup(seq);
   length = strlen(string);
 
   xyplot = fopen(ssfile, "w");
@@ -548,14 +376,14 @@ int PS_rna_plot_a_gquad(char *string,
 
   fprintf(xyplot,
           "%%!PS-Adobe-3.0 EPSF-3.0\n"
-          "%%%%Creator: %s, ViennaRNA-%s\n"
+          "%%%%Creator: ViennaRNA-%s\n"
           "%%%%CreationDate: %s"
           "%%%%Title: RNA Secondary Structure Plot\n"
           "%%%%BoundingBox: 66 210 518 662\n"
           "%%%%DocumentFonts: Helvetica\n"
           "%%%%Pages: 1\n"
           "%%%%EndComments\n\n"
-          "%%Options: %s\n", rcsid+5, VERSION, vrna_time_stamp(), option_string());
+          "%%Options: %s\n", VERSION, vrna_time_stamp(), vrna_md_option_string(md_p));
   fprintf(xyplot, "%% to switch off outline pairs of sequence comment or\n"
           "%% delete the appropriate line near the end of the file\n\n");
   fprintf(xyplot, "%s", RNAss_head);
@@ -642,11 +470,94 @@ int PS_rna_plot_a_gquad(char *string,
 
   fclose(xyplot);
 
+  free(string);
   free(pair_table);
   free(pair_table_g);
   free(X); free(Y);
   return 1; /* success */
 }
+
+/* options for gml output:
+   uppercase letters: print sequence labels
+   lowercase letters: no sequence lables
+   graphics information:
+   x X  simple xy plot
+   (nothing else implemented at present)
+   default:           no graphics data at all
+*/
+
+PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
+{
+  FILE *gmlfile;
+  int i;
+  int length;
+  short *pair_table;
+  float *X, *Y;
+
+  gmlfile = fopen(ssfile, "w");
+  if (gmlfile == NULL) {
+     fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+     return 0;
+  }
+
+  length = strlen(string);
+
+  pair_table = vrna_pt_get(structure);
+
+  switch(option){
+  case 'X' :
+  case 'x' :
+    /* Simple XY Plot */
+    X = (float *) vrna_alloc((length+1)*sizeof(float));
+    Y = (float *) vrna_alloc((length+1)*sizeof(float));
+    if (rna_plot_type == 0)
+      i = simple_xy_coordinates(pair_table, X, Y);
+    else
+      i = naview_xy_coordinates(pair_table, X, Y);
+
+    if(i!=length) fprintf(stderr,"strange things happening in gmlRNA ...\n");
+    break;
+  default:
+    /* No Graphics Information */
+    X = NULL;
+    Y = NULL;
+  }
+
+  fprintf(gmlfile,
+          "# Vienna RNA Package %s\n"
+          "# GML Output\n"
+          "# CreationDate: %s\n"
+          "# Name: %s\n"
+          "# Options: %s\n", VERSION, vrna_time_stamp(), ssfile, option_string());
+  fprintf(gmlfile,
+          "graph [\n"
+          " directed 0\n");
+  for (i=1; i<=length; i++){
+     fprintf(gmlfile,
+          " node [ id %d ", i);
+     if (option) fprintf(gmlfile,
+          "label \"%c\"",string[i-1]);
+     if ((option == 'X')||(option=='x'))
+       fprintf(gmlfile,
+               "\n  graphics [ x %9.4f y %9.4f ]\n", X[i-1], Y[i-1]);
+     fprintf(gmlfile," ]\n");
+  }
+  for (i=1; i<length; i++)
+    fprintf(gmlfile,
+            "edge [ source %d target %d ]\n", i, i+1);
+  for (i=1; i<=length; i++) {
+     if (pair_table[i]>i)
+        fprintf(gmlfile,
+                "edge [ source %d target %d ]\n", i, pair_table[i]);
+  }
+  fprintf(gmlfile, "]\n");
+  fclose(gmlfile);
+
+  free(pair_table);
+  free(X); free(Y);
+  return 1; /* success */
+}
+
 
 
 int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relative_access, const char *seqs[])
@@ -2236,9 +2147,52 @@ int aliPS_color_aln(const char *structure, const char *filename,
 
 }
 
+#ifdef VRNA_BACKWARD_COMPAT
+
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
+
+PUBLIC int
+PS_rna_plot(char *string,
+            char *structure,
+            char *ssfile){
+
+  return vrna_file_PS_rnaplot((const char*)string,
+                              (const char*)structure,
+                              (const char*) ssfile,
+                              NULL);
+}
+
+PUBLIC int
+PS_rna_plot_a(char *string,
+              char *structure,
+              char *ssfile,
+              char *pre,
+              char *post){
+
+  return vrna_file_PS_rnaplot_a((const char*)string,
+                                (const char*)structure,
+                                (const char*)ssfile,
+                                (const char*)pre,
+                                (const char*)post,
+                                NULL);
+}
+
+PUBLIC int
+PS_rna_plot_a_gquad(char *string,
+                    char *structure,
+                    char *ssfile,
+                    char *pre,
+                    char *post){
+
+  return vrna_file_PS_rnaplot_a((const char*)string,
+                                (const char*)structure,
+                                (const char*)ssfile,
+                                (const char*)pre,
+                                (const char*)post,
+                                NULL);
+}
 
 int PS_dot_plot(char *string, char *wastlfile) {
   /* this is just a wrapper to call PS_dot_plot_list */
@@ -2281,4 +2235,6 @@ int PS_dot_plot(char *string, char *wastlfile) {
   free(pl);
   return (i);
 }
+
+#endif
 

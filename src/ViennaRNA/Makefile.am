@@ -30,7 +30,7 @@ pkginclude_HEADERS =  energy_par.h pair_mat.h RNAstruct.h dist_vars.h \
                       structure_utils.h model.h file_formats.h dp_matrices.h \
                       ${SVM_UTILS_H} ${SVM_H}
 
-libRNA_a_SOURCES  = dist_vars.c fold_vars.c part_func.c read_epars.c\
+libRNA_a_SOURCES  = dist_vars.c data_structures.c part_func.c read_epars.c\
                     treedist.c energy_par.c inverse.c ProfileDist.c \
                     RNAstruct.c utils.c fold.c naview.c PS_dot.c \
                     stringdist.c params.c subopt.c list.c Lfold.c \
@@ -39,7 +39,7 @@ libRNA_a_SOURCES  = dist_vars.c fold_vars.c part_func.c read_epars.c\
                     part_func_up.c ribo.c findpath.c convert_epars.c\
                     MEA.c aliLfold.c mm.c 2Dfold.c 2Dpfold.c plex_functions.c\
                     plot_layouts.c ali_plex.c c_plex.c plex.c snofold.c\
-                    snoop.c move_set.c gquad.c eval.c constraints.c data_structures.c\
+                    snoop.c move_set.c gquad.c eval.c constraints.c \
                     perturbation_fold.c centroid.c structure_utils.c model.c \
                     file_formats.c dp_matrices.c ${SVM_SRC} ${SVM_UTILS} \
                     ${JSON_SRC}

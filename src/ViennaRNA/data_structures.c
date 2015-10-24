@@ -479,7 +479,7 @@ make_pscores(vrna_fold_compound_t *vc){
 #define NONE -10000 /* score for forbidden pairs */
 
   char *structure = NULL;
-  int i,j,k,l,s, max_span;
+  int i,j,k,l,s, max_span, turn;
   float **dm;
   int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
                   {0,0,2,2,1,2,2} /* CG */,
@@ -497,6 +497,8 @@ make_pscores(vrna_fold_compound_t *vc){
   int             *indx       = vc->jindx;                                             
   int             n           = vc->length;                                            
 
+  turn    = md->min_loop_size;
+
   if (md->ribo) {
     if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
     else dm=get_ribosum((const char **)AS, n_seq, n);
@@ -511,12 +513,12 @@ make_pscores(vrna_fold_compound_t *vc){
   }
 
   max_span = md->max_bp_span;
-  if((max_span < TURN+2) || (max_span > n))
+  if((max_span < turn+2) || (max_span > n))
     max_span = n;
   for (i=1; i<n; i++) {
-    for (j=i+1; (j<i+TURN+1) && (j<=n); j++)
+    for (j=i+1; (j<i+turn+1) && (j<=n); j++)
       pscore[indx[j]+i] = NONE;
-    for (j=i+TURN+1; j<=n; j++) {
+    for (j=i+turn+1; j<=n; j++) {
       int pfreq[8]={0,0,0,0,0,0,0,0};
       double score;
       for (s=0; s<n_seq; s++) {
@@ -543,10 +545,10 @@ make_pscores(vrna_fold_compound_t *vc){
   }
 
   if (md->noLP) /* remove unwanted pairs */
-    for (k=1; k<n-TURN-1; k++)
+    for (k=1; k<n-turn-1; k++)
       for (l=1; l<=2; l++) {
         int type,ntype=0,otype=0;
-        i=k; j = i+TURN+l;
+        i=k; j = i+turn+l;
         type = pscore[indx[j]+i];
         while ((i>=1)&&(j<=n)) {
           if ((i>1)&&(j<n)) ntype = pscore[indx[j+1]+i-1];
@@ -567,8 +569,8 @@ make_pscores(vrna_fold_compound_t *vc){
     for(hx=hx2=0, j=1; j<=n; j++) {
       switch (structure[j-1]) {
       case 'x': /* can't pair */
-        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
-        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
+        for (l=1; l<j-turn; l++) pscore[indx[j]+l] = NONE;
+        for (l=j+turn+1; l<=n; l++) pscore[indx[l]+j] = NONE;
         break;
       case '(':
         stack[hx++]=j;
@@ -577,7 +579,7 @@ make_pscores(vrna_fold_compound_t *vc){
         stack2[hx2++]=j;
         /* fallthrough */
       case '<': /* pairs upstream */
-        for (l=1; l<j-TURN; l++) pscore[indx[j]+l] = NONE;
+        for (l=1; l<j-turn; l++) pscore[indx[j]+l] = NONE;
         break;
       case ']':
         if (hx2<=0) {
@@ -605,7 +607,7 @@ make_pscores(vrna_fold_compound_t *vc){
         pscore[indx[j]+i] = (psij>0) ? psij : 0;
         /* fallthrough */
       case '>': /* pairs downstream */
-        for (l=j+TURN+1; l<=n; l++) pscore[indx[l]+j] = NONE;
+        for (l=j+turn+1; l<=n; l++) pscore[indx[l]+j] = NONE;
         break;
       }
     }
