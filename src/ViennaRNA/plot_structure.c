@@ -1,7 +1,7 @@
 /*
-        PostScript and GML output for RNA secondary structures
+        PostScript and other output formats for RNA secondary structure plots
 
-                 c  Ivo Hofacker and Peter F Stadler
+                 c  Ivo Hofacker, Peter F Stadler, Ronny Lorenz
                           Vienna RNA package
 */
 #include <config.h>
@@ -29,7 +29,6 @@
 #endif
 #define  PIHALF       PI/2.
 #define SIZE 452.
-#define PMIN 0.00001
 
 /*
 #################################

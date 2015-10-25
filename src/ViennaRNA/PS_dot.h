@@ -3,6 +3,7 @@
 
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/plot_structure.h>
+#include <ViennaRNA/plot_aln.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -68,20 +69,6 @@ int PS_dot_plot_turn( char *seq,
                       struct plist *pl,
                       char *filename,
                       int winSize);
-
-int PS_color_aln( const char *structure,
-                  const char *filename,
-                  const char *seqs[],
-                  const char *names[]);
-
-/**
- * 	PS_color_aln for duplexes
-*/
-int aliPS_color_aln(const char *structure,
-                    const char *filename, 
-                    const char *seqs[],
-                    const char *names[]); 
-
 
 #ifdef VRNA_BACKWARD_COMPAT
 
