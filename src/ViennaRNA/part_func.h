@@ -63,13 +63,13 @@
  *  @note           The global array #pr is deprecated and the user who wants the calculated
  *                  base pair probabilities for further computations is advised to use the function
  *                  export_bppm()
- *  @see            vnra_get_fold_compound(), vrna_db_get_from_pr(), export_bppm(), get_boltzmann_factors(), free_pf_arrays()
+ *  @see            vrna_fold_compound(), vrna_db_from_probs(), vrna_exp_params(), free_pf_arrays()
  *  @param[in,out]  vc              The fold compound data structure
  *  @param[in,out]  structure       A pointer to a char array where a base pair probability information can be stored in a
  *                                  pseudo-dot-bracket notation (may be NULL, too)
  *  @return         The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
-float vrna_pf_fold( vrna_fold_compound *vc,
+float vrna_pf( vrna_fold_compound_t *vc,
                     char *structure);
 
 /*
@@ -82,30 +82,30 @@ float vrna_pf_fold( vrna_fold_compound *vc,
  *  @brief Sample a secondary structure of a subsequence from the Boltzmann ensemble according its probability
  *
  *  @ingroup subopt_stochbt
- *  @pre    The fold compound has to be obtained using the #VRNA_OPTION_HYBRID option in vrna_get_fold_compound()
- *  @pre    vrna_pf_fold() hasto be called first to fill the partition function matrices
+ *  @pre    The fold compound has to be obtained using the #VRNA_OPTION_HYBRID option in vrna_fold_compound()
+ *  @pre    vrna_pf() hasto be called first to fill the partition function matrices
  *
  *  @param  vc      The fold compound data structure
  *  @param  length  The length of the subsequence to consider (starting with 5' end)
  *  @return         A sampled secondary structure in dot-bracket notation
  */
-char    *vrna_pbacktrack5(vrna_fold_compound *vc, int length);
+char    *vrna_pbacktrack5(vrna_fold_compound_t *vc, int length);
 
 /**
  *  @brief Sample a secondary structure from the Boltzmann ensemble according its probability
  *
  *  @ingroup subopt_stochbt
- *  @pre    The fold compound has to be obtained using the #VRNA_OPTION_HYBRID option in vrna_get_fold_compound()
- *  @pre    vrna_pf_fold() hasto be called first to fill the partition function matrices
+ *  @pre    The fold compound has to be obtained using the #VRNA_OPTION_HYBRID option in vrna_fold_compound()
+ *  @pre    vrna_pf() hasto be called first to fill the partition function matrices
  *
  *  @note The function will automagically detect cicular RNAs based on the model_details in exp_params as
- *        provided via the #vrna_fold_compound
+ *        provided via the #vrna_fold_compound_t
  *
  *  @param  vc      The fold compound data structure
  *  @param  length  The length of the subsequence to consider (starting with 5' end)
  *  @return         A sampled secondary structure in dot-bracket notation
  */
-char    *vrna_pbacktrack(vrna_fold_compound *vc);
+char    *vrna_pbacktrack(vrna_fold_compound_t *vc);
 
 /**
  *  @brief Get the mean base pair distance in the thermodynamic ensemble from a probability matrix
@@ -134,7 +134,7 @@ double vrna_mean_bp_distance_pr(int length, FLT_OR_DBL *pr);
  *  @param vc     The fold compound data structure
  *  @return       The mean pair distance of the structure ensemble
  */
-double vrna_mean_bp_distance(vrna_fold_compound *vc);
+double vrna_mean_bp_distance(vrna_fold_compound_t *vc);
 
 /**
  *  @brief  Compute stacking probabilities
@@ -148,7 +148,7 @@ double vrna_mean_bp_distance(vrna_fold_compound *vc);
  *  @param  cutoff  A cutoff value that limits the output to stacks with @f$ p > \textrm{cutoff} @f$.
  *  @return         A list of stacks with enclosing base pair @f$(i,j)@f$ and probabiltiy @f$ p @f$
  */
-plist *vrna_stack_prob(vrna_fold_compound *vc, double cutoff);
+vrna_plist_t *vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -164,7 +164,7 @@ plist *vrna_stack_prob(vrna_fold_compound *vc, double cutoff);
  *  Set this variable to 1 prior to a call of pf_fold() to ensure that all matrices needed for stochastic backtracking
  *  are filled in the forward recursions
  *
- *  @deprecated   set the @e uniq_ML flag in #vrna_md_t before passing it to vrna_get_fold_compound().
+ *  @deprecated   set the @e uniq_ML flag in #vrna_md_t before passing it to vrna_fold_compound().
  *
  *  @ingroup subopt_stochbt
  *
@@ -192,7 +192,7 @@ extern  int st_back;
  * 
  *  @ingroup pf_fold
  *
- *  @deprecated Use vrna_pf_fold() instead
+ *  @deprecated Use vrna_pf() instead
  *
  *  @note           The global array #pr is deprecated and the user who wants the calculated
  *                  base pair probabilities for further computations is advised to use the function
@@ -202,7 +202,7 @@ extern  int st_back;
  *                  computed and may be accessed for further usage via the export_bppm() function.
  *                  A call of free_pf_arrays() will free all memory allocated by this function.
  *                  Successive calls will first free previously allocated memory before starting the computation.
- *  @see            vrna_pf_fold(), bppm_to_structure(), export_bppm(), get_boltzmann_factors(), free_pf_arrays()
+ *  @see            vrna_pf(), bppm_to_structure(), export_bppm(), vrna_exp_params(), free_pf_arrays()
  *  @param[in]      sequence        The RNA sequence input
  *  @param[in,out]  structure       A pointer to a char array where a base pair probability information can be stored in a
  *                                  pseudo-dot-bracket notation (may be NULL, too)
@@ -280,8 +280,8 @@ DEPRECATED(float   pf_fold(const char *sequence,
  *                  computed and may be accessed for further usage via the export_bppm() function.
  *                  A call of free_pf_arrays() will free all memory allocated by this function.
  *                  Successive calls will first free previously allocated memory before starting the computation.
- *  @see            vrna_pf_fold()
- *  @deprecated     Use vrna_pf_fold() instead!
+ *  @see            vrna_pf()
+ *  @deprecated     Use vrna_pf() instead!
  *  @param[in]      sequence   The RNA sequence input
  *  @param[in,out]  structure  A pointer to a char array where a base pair probability information can be
  *                  stored in a pseudo-dot-bracket notation (may be NULL, too)
@@ -331,7 +331,7 @@ DEPRECATED(char    *pbacktrack_circ(char *sequence));
  *  @note <b>OpenMP notice:</b><br>
  *  This function should be called before leaving a thread in order to avoid leaking memory
  *  
- *  @deprecated See vrna_fold_compound and its related functions for how to free memory
+ *  @deprecated See vrna_fold_compound_t and its related functions for how to free memory
  *  occupied by the dynamic programming matrices
  *
  *  @ingroup pf_fold
@@ -347,7 +347,7 @@ DEPRECATED(void  free_pf_arrays(void));
  *  Call this function to recalculate the pair matrix and energy parameters
  *  after a change in folding parameters like #temperature
  *
- *  @deprecated Use vrna_exp_params_update() instead
+ *  @deprecated Use vrna_exp_params_subst() instead
  *  @ingroup pf_fold
  *
  */
@@ -356,7 +356,7 @@ DEPRECATED(void  update_pf_params(int length));
 /**
  *  @brief Recalculate energy parameters
  *
- *  @deprecated Use vrna_exp_params_update() instead
+ *  @deprecated Use vrna_exp_params_subst() instead
  *  @ingroup pf_fold
  *
  */
@@ -374,7 +374,7 @@ DEPRECATED(void update_pf_params_par(int length, vrna_exp_param_t *parameters));
  *
  *  @pre      Call pf_fold_par(), pf_fold() or pf_circ_fold() first to fill the base pair probability array
  *
- *  @see pf_fold(), pf_circ_fold(), vrna_get_iindx()
+ *  @see pf_fold(), pf_circ_fold(), vrna_idx_row_wise()
  *
  *  @return A pointer to the base pair probability array
  */
@@ -447,7 +447,7 @@ DEPRECATED(double mean_bp_distance_pr(int length, FLT_OR_DBL *pr));
  *
  *  @deprecated   Use vrna_stack_prob() instead!
  */
-DEPRECATED(plist *stackProb(double cutoff));
+DEPRECATED(vrna_plist_t *stackProb(double cutoff));
 
 
 /**
@@ -465,7 +465,7 @@ DEPRECATED(char *centroid(int length, double *dist));
 
 /**
  *  @deprecated This function is deprecated and should not be used anymore as it is not threadsafe!
- *  @see vrna_get_centroid_struct(), vrna_get_centroid_struct_pr(), vrna_get_centroid_struct_pl()
+ *  @see vrna_centroid(), vrna_centroid_from_probs(), vrna_centroid_from_plist()
  */
 DEPRECATED(char *get_centroid_struct_gquad_pr(int length,
                                   double *dist));
@@ -499,7 +499,7 @@ DEPRECATED(double expHairpinEnergy( int u,
                                     const char *string));
 
 /* this doesn't work if free_pf_arrays() is called before */
-DEPRECATED(void assign_plist_gquad_from_pr(plist **pl,
+DEPRECATED(void assign_plist_gquad_from_pr(vrna_plist_t **pl,
                                 int length,
                                 double cut_off));
 

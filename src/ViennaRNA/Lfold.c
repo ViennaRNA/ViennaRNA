@@ -50,16 +50,16 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE float wrap_Lfold( vrna_fold_compound *vc,
+PRIVATE float wrap_Lfold( vrna_fold_compound_t *vc,
                           int with_zsc,
                           double min_z,
                           FILE *file);
-PRIVATE void  make_ptypes(vrna_fold_compound *vc,
+PRIVATE void  make_ptypes(vrna_fold_compound_t *vc,
                           int i);
-PRIVATE char  *backtrack( vrna_fold_compound *vc,
+PRIVATE char  *backtrack( vrna_fold_compound_t *vc,
                           int start,
                           int maxdist);
-PRIVATE int   fill_arrays(vrna_fold_compound *vc,
+PRIVATE int   fill_arrays(vrna_fold_compound_t *vc,
                           int with_zsc,
                           double min_z,
 #ifdef USE_SVM
@@ -76,7 +76,7 @@ PRIVATE int   fill_arrays(vrna_fold_compound *vc,
 */
 
 PUBLIC float
-vrna_Lfold( vrna_fold_compound *vc,
+vrna_mfe_window( vrna_fold_compound_t *vc,
             FILE *file){
 
   return wrap_Lfold(vc, 0, 0.0, file);
@@ -85,7 +85,7 @@ vrna_Lfold( vrna_fold_compound *vc,
 #ifdef USE_SVM
 
 PUBLIC float
-vrna_Lfoldz( vrna_fold_compound *vc,
+vrna_mfe_window_zscore( vrna_fold_compound_t *vc,
              double min_z,
              FILE *file){
 
@@ -101,7 +101,7 @@ vrna_Lfoldz( vrna_fold_compound *vc,
 */
 
 PRIVATE float
-wrap_Lfold( vrna_fold_compound *vc,
+wrap_Lfold( vrna_fold_compound_t *vc,
             int with_zsc,
             double min_z,
             FILE *file){
@@ -149,7 +149,7 @@ wrap_Lfold( vrna_fold_compound *vc,
 }
 
 PRIVATE int
-fill_arrays(vrna_fold_compound *vc,
+fill_arrays(vrna_fold_compound_t *vc,
             int zsc,
             double min_z,
 #ifdef USE_SVM
@@ -804,7 +804,7 @@ fill_arrays(vrna_fold_compound *vc,
 }
 
 PRIVATE char *
-backtrack(vrna_fold_compound *vc,
+backtrack(vrna_fold_compound_t *vc,
           int start,
           int maxdist){
 
@@ -1265,7 +1265,7 @@ backtrack(vrna_fold_compound *vc,
 }
 
 PRIVATE void
-make_ptypes(vrna_fold_compound *vc, int i){
+make_ptypes(vrna_fold_compound_t *vc, int i){
 
   int       j, k, type, n, maxdist, turn, noLP;
   short     *S;
@@ -1306,7 +1306,7 @@ PUBLIC float Lfold( const char *string,
                     int window_size){
 
   float               energy;
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_md_t           md;
 
   vrna_md_set_globals(&md);
@@ -1314,11 +1314,11 @@ PUBLIC float Lfold( const char *string,
   md.window_size = window_size;
   md.max_bp_span = window_size;
 
-  vc  = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+  vc  = vrna_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
   energy = wrap_Lfold(vc, 0, 0.0, NULL);
 
-  vrna_free_fold_compound(vc);
+  vrna_fold_compound_free(vc);
 
   return energy;
 }
@@ -1331,7 +1331,7 @@ Lfoldz( const char *string,
         double min_z){
 
   float               energy;
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_md_t           md;
 
   vrna_md_set_globals(&md);
@@ -1339,7 +1339,7 @@ Lfoldz( const char *string,
   md.window_size = window_size;
   md.max_bp_span = window_size;
 
-  vc  = vrna_get_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+  vc  = vrna_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
 #ifndef USE_SVM
   zsc = 0;  /* deactivate z-scoring if no compiled-in svm support is available */
@@ -1347,7 +1347,7 @@ Lfoldz( const char *string,
 
   energy = wrap_Lfold(vc, zsc, min_z, NULL);
 
-  vrna_free_fold_compound(vc);
+  vrna_fold_compound_free(vc);
 
   return energy;
 }

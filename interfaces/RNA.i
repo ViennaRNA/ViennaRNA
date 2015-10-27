@@ -17,6 +17,8 @@
 #include  "../src/ViennaRNA/part_func_co.h"
 #include  "../src/ViennaRNA/naview.h"
 #include  "../src/ViennaRNA/plot_layouts.h"
+#include  "../src/ViennaRNA/plot_structure.h"
+#include  "../src/ViennaRNA/plot_aln.h"
 #include  "../src/ViennaRNA/PS_dot.h"
 #include  "../src/ViennaRNA/inverse.h"
 #include  "../src/ViennaRNA/RNAstruct.h"
@@ -97,7 +99,7 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore circfold
 */
 
-%ignore vrna_fold;
+%ignore vrna_mfe;
 %ignore fold_par;
 %ignore update_fold_params_par;
 %ignore initialize_fold;
@@ -109,7 +111,7 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore export_fold_arrays_par;
 %ignore vrna_backtrack_from_intervals;
 %ignore backtrack_fold_from_pair;
-%ignore vrna_update_fold_params;
+%ignore vrna_params_update;
 
 %include  "../src/ViennaRNA/fold.h"
 
@@ -128,7 +130,18 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore snoopT;
 %ignore dupVar;
 
+%ignore plist;
+%ignore cpair;
+
+%ignore vrna_fc_s;
+%ignore vrna_bp_stack_s;
+%ignore vrna_bp_stack_t;
+
 %include "../src/ViennaRNA/data_structures.h"
+
+%ignore vrna_mx_mfe_s;
+%ignore vrna_mx_pf_s;
+%include "../src/ViennaRNA/dp_matrices.h"
 
 /**********************************************/
 /* BEGIN interface for energy constants       */
@@ -235,7 +248,7 @@ char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
   char *my_co_pf_fold(char *string, char *constraints, float *FA, float *FB, float *FcAB, float *FAB) {
     char *struc;
     float en;
-    cofoldF temp;
+    vrna_dimer_pf_t temp;
     struc = calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(string));
@@ -258,15 +271,20 @@ char *my_co_pf_fold(char *string, char *constraints = NULL, float *OUTPUT, float
 %ignore co_bppm_symbol;
 %ignore init_co_pf_fold;
 %ignore get_plist;
-%ignore ConcEnt;
 %ignore pairpro;
+%ignore ConcEnt;
+%ignore vrna_dimer_conc_t;
+%ignore vrna_dimer_conc_s;
 %ignore cofoldF;
+%ignore vrna_dimer_pf_t;
+%ignore vrna_dimer_pf_s;
+
 %include  "../src/ViennaRNA/part_func_co.h"
 
 %rename (get_concentrations) my_get_concentrations;
 %{
  void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA, double FEB, double A0, double B0, double *AB, double *AA, double *BB, double *A, double *B) {
-    ConcEnt *temp;
+    vrna_dimer_conc_t *temp;
     double *concis;
     concis = (double *)calloc(4,sizeof(double));
     concis[0]=A0;

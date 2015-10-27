@@ -24,8 +24,8 @@
 #define NBASES 8
 #endif
 
-/** @brief Typename for the model details data structure #vrna_md */
-typedef struct vrna_md  vrna_md_t;
+/** @brief Typename for the model details data structure #vrna_md_s */
+typedef struct vrna_md_s  vrna_md_t;
 
 /**
  *  @brief
@@ -181,7 +181,7 @@ typedef struct vrna_md  vrna_md_t;
  *
  *  @see  vrna_md_set_default(), vrna_md_set_globals(), vrna_md_update(), #vrna_md_t
  */
-struct vrna_md{
+struct vrna_md_s {
   double  temperature;                  /**<  @brief  The temperature used to scale the thermodynamic parameters */
   double  betaScale;                    /**<  @brief  A scaling factor for the thermodynamic temperature of the Boltzmann factors */
   int     dangles;                      /**<  @brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
@@ -230,46 +230,8 @@ struct vrna_md{
  *
  *  @param md A pointer to the data structure that is about to be initialized
  */
-void vrna_md_set_default(vrna_md_t *md);
-
-
-void vrna_md_set_nonstandards(vrna_md_t *md, const char *ns);
-
-
-void vrna_md_set_dangles(vrna_md_t *md, int d);
-
-
-int vrna_md_get_dangles(vrna_md_t *md);
-
-
-void vrna_md_set_temperature(vrna_md_t *md, double T);
-
-
-double vrna_md_get_temperature(vrna_md_t *md);
-
-
-void vrna_md_set_special_hp(vrna_md_t *md, int shp);
-
-
-int vrna_md_get_special_hp(vrna_md_t *md);
-
-
-void vrna_md_set_gquad(vrna_md_t *md, int g);
-
-
-int vrna_md_get_gquad(vrna_md_t *md);
-
-
-void vrna_md_set_nolp(vrna_md_t *md, int nolp);
-
-
-int vrna_md_get_nolp(vrna_md_t *md);
-
-
-void vrna_md_set_betascale(vrna_md_t *md, double b);
-
-
-double vrna_md_get_betascale(vrna_md_t *md);
+void
+vrna_md_set_default(vrna_md_t *md);
 
 /**
  *  @brief Update the model details data structure
@@ -283,22 +245,44 @@ double vrna_md_get_betascale(vrna_md_t *md);
  *  @see  #vrna_md_t, #vrna_md_t.energy_set, #vrna_md_t.pair, #vrna_md_t.rtype,
  *        #vrna_md_t.alias, vrna_md_set_default()
  */
-void vrna_md_update(vrna_md_t *md);
+void
+vrna_md_update(vrna_md_t *md);
 
 /**
- * @brief Set default model details
+ *  @brief  Get a corresponding commandline parameter string of the options in a #vrna_md_t
  *
- *  Use this function if you wish to initialize a #vrna_md_t data structure with
- *  its default values, i.e. the global model settings as provided by the deprecated
- *  global variables.
- *
- *  @deprecated This function will vanish as soon as backward compatibility of
- *              RNAlib is dropped (expected in version 3).
- *              Use vrna_md_set_default() instead!
- *
- *  @param md A pointer to the data structure that is about to be initialized
+ *  @note This function is not threadsafe!
  */
-void vrna_md_set_globals(vrna_md_t *md);
+char *
+vrna_md_option_string(vrna_md_t  *md);
+
+
+void vrna_md_set_nonstandards(vrna_md_t *md, const char *ns);
+
+void vrna_md_set_dangles(vrna_md_t *md, int d);
+
+int vrna_md_get_dangles(vrna_md_t *md);
+
+void vrna_md_set_temperature(vrna_md_t *md, double T);
+
+double vrna_md_get_temperature(vrna_md_t *md);
+
+void vrna_md_set_special_hp(vrna_md_t *md, int shp);
+
+int vrna_md_get_special_hp(vrna_md_t *md);
+
+void vrna_md_set_gquad(vrna_md_t *md, int g);
+
+int vrna_md_get_gquad(vrna_md_t *md);
+
+void vrna_md_set_nolp(vrna_md_t *md, int nolp);
+
+int vrna_md_get_nolp(vrna_md_t *md);
+
+void vrna_md_set_betascale(vrna_md_t *md, double b);
+
+double vrna_md_get_betascale(vrna_md_t *md);
+
 
 
 #ifdef  VRNA_BACKWARD_COMPAT
@@ -458,6 +442,25 @@ extern double nc_fact;
 extern  int logML;
 
 /* END deprecated global variables: */
+
+/**
+ * @brief Set default model details
+ *
+ *  Use this function if you wish to initialize a #vrna_md_t data structure with
+ *  its default values, i.e. the global model settings as provided by the deprecated
+ *  global variables.
+ *
+ *  @deprecated This function will vanish as soon as backward compatibility of
+ *              RNAlib is dropped (expected in version 3).
+ *              Use vrna_md_set_default() instead!
+ *
+ *  @param md A pointer to the data structure that is about to be initialized
+ */
+void
+vrna_md_set_globals(vrna_md_t *md);
+
+char *
+option_string(void);
 
 #endif
 /**

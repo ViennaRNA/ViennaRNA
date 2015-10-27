@@ -53,7 +53,7 @@
 */
 
 /* some backward compatibility stuff */
-PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 PRIVATE int                 backward_compat           = 0;
 
 #ifdef _OPENMP
@@ -68,9 +68,9 @@ PRIVATE int                 backward_compat           = 0;
 #################################
 */
 
-PRIVATE int     fill_arrays(vrna_fold_compound *vc);
-PRIVATE void    fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt);
-PRIVATE void    backtrack(vrna_fold_compound *vc, bondT *bp_stack, sect bt_stack[], int s);
+PRIVATE int     fill_arrays(vrna_fold_compound_t *vc);
+PRIVATE void    fill_arrays_circ(vrna_fold_compound_t *vc, sect bt_stack[], int *bt);
+PRIVATE void    backtrack(vrna_fold_compound_t *vc, vrna_bp_stack_t *bp_stack, sect bt_stack[], int s);
 
 PRIVATE float   wrap_alifold( const char **strings,
                               char *structure,
@@ -91,7 +91,7 @@ wrap_alifold( const char **strings,
               int is_constrained,
               int is_circular){
 
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_param_t        *P;
 
 #ifdef _OPENMP
@@ -101,15 +101,16 @@ wrap_alifold( const char **strings,
 
   /* we need the parameter structure for hard constraints */
   if(parameters){
-    P = get_parameter_copy(parameters);
+    P = vrna_params_copy(parameters);
   } else {
     vrna_md_t md;
     set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
+    md.temperature = temperature;
+    P = vrna_params(&md);
   }
   P->model_details.circ = is_circular;
 
-  vc = vrna_get_fold_compound_ali(strings, &(P->model_details), VRNA_OPTION_MFE);
+  vc = vrna_fold_compound_comparative(strings, &(P->model_details), VRNA_OPTION_MFE);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -128,27 +129,27 @@ wrap_alifold( const char **strings,
                           | VRNA_CONSTRAINT_DB_ANG_BRACK
                           | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-    vrna_add_constraints(vc, (const char *)structure, constraint_options);
+    vrna_constraints_add(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound && backward_compat)
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
 
-  return vrna_ali_fold(vc, structure);
+  return vrna_mfe_comparative(vc, structure);
 }
 
 
 
 PUBLIC float
-vrna_ali_fold(vrna_fold_compound *vc,
+vrna_mfe_comparative(vrna_fold_compound_t *vc,
               char *structure){
 
   int  length, i, s, n_seq, energy;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
-  bondT *bp;
+  vrna_bp_stack_t *bp;
 
   length      = vc->length;
   n_seq       = vc->n_seq;
@@ -168,7 +169,7 @@ vrna_ali_fold(vrna_fold_compound *vc,
   }
 
   if(structure && vc->params->model_details.backtrack){
-    bp = (bondT *)vrna_alloc(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     backtrack(vc, bp, bt_stack, s);
 
@@ -204,7 +205,7 @@ vrna_ali_fold(vrna_fold_compound *vc,
 *** the actual forward recursion to fill the energy arrays
 **/
 PRIVATE int
-fill_arrays(vrna_fold_compound *vc){
+fill_arrays(vrna_fold_compound_t *vc){
 
   int   i, j, k, p, q, energy, new_c;
   int   decomp, MLenergy, new_fML;
@@ -640,8 +641,8 @@ fill_arrays(vrna_fold_compound *vc){
 *** backtrack in the energy matrices to obtain a structure with MFE
 **/
 PRIVATE void
-backtrack(vrna_fold_compound *vc,
-          bondT *bp_stack,
+backtrack(vrna_fold_compound_t *vc,
+          vrna_bp_stack_t *bp_stack,
           sect bt_stack[],
           int s) {
 
@@ -1156,7 +1157,7 @@ PUBLIC void
 free_alifold_arrays(void){
 
   if(backward_compat_compound && backward_compat){
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
     backward_compat_compound  = NULL;
     backward_compat           = 0;
   }
@@ -1178,7 +1179,7 @@ PUBLIC float circalifold( const char **strings,
 PUBLIC void 
 update_alifold_params(void){
 
-  vrna_fold_compound *v;
+  vrna_fold_compound_t *v;
 
   if(backward_compat_compound && backward_compat){
     v = backward_compat_compound;
@@ -1188,7 +1189,7 @@ update_alifold_params(void){
 
     vrna_md_t md;
     set_model_details(&md);
-    v->params = vrna_params_get(&md);
+    v->params = vrna_params(&md);
   }
 }
 
@@ -1204,18 +1205,18 @@ energy_of_ali_gquad_structure(const char **sequences,
 
   if(sequences[0] != NULL){
     
-    vrna_fold_compound  *vc;
+    vrna_fold_compound_t  *vc;
 
     vrna_md_t md;
     set_model_details(&md);
     md.gquad = 1;
 
-    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    vc = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
     energy[0] = vrna_eval_structure(vc, structure);
     energy[1] = vrna_eval_covar_structure(vc, structure);
 
-    vrna_free_fold_compound(vc);
+    vrna_fold_compound_free(vc);
   }
   else vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
 
@@ -1232,17 +1233,17 @@ energy_of_alistruct(const char **sequences,
   short         *pt;
 
   if(sequences[0] != NULL){
-    vrna_fold_compound  *vc;
+    vrna_fold_compound_t  *vc;
 
     vrna_md_t md;
     set_model_details(&md);
 
-    vc = vrna_get_fold_compound_ali(sequences, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    vc = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
     energy[0] = vrna_eval_structure(vc, structure);
     energy[1] = vrna_eval_covar_structure(vc, structure);
 
-    vrna_free_fold_compound(vc);
+    vrna_fold_compound_free(vc);
   }
   else vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
 

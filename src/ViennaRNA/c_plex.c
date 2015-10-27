@@ -123,6 +123,7 @@ PRIVATE duplexT duplexfold_CXS(const char *s1, const char *s2, const int **acces
   char *struc;
   struc=NULL;
   duplexT mfe;
+  vrna_md_t md;
   int bonus=-10000;
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
@@ -141,8 +142,14 @@ PRIVATE duplexT duplexfold_CXS(const char *s1, const char *s2, const int **acces
       previous_const[j]=prev_temp;
     }
   }
+
+  vrna_md_set_globals(&md);
+
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
 
@@ -340,6 +347,8 @@ duplexT** Lduplexfold_CXS(const char *s1, const char *s2, const int **access_s1,
   int bonus=-10000;
   int constthreshold=0; /* minimal threshold corresponding to a structure complying to all constraints */
   int maxPenalty[4];
+  vrna_md_t   md;
+
   i=0;
   while(structure[i]!='\0'){
     if(structure[i]=='|') constthreshold+=bonus;
@@ -352,9 +361,13 @@ duplexT** Lduplexfold_CXS(const char *s1, const char *s2, const int **access_s1,
   position = (int *) vrna_alloc((delta+n1+3+delta) * sizeof(int));
   position_j= (int *) vrna_alloc((delta+n1+3+delta) * sizeof(int));
 
+  vrna_md_set_globals(&md);
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)){
-    update_dfold_params(); if(P) free(P); P = scale_parameters();
+    update_dfold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
 
@@ -642,14 +655,19 @@ PRIVATE duplexT duplexfold_C(const char *s1, const char *s2, const int extension
   int i, j, l1, Emin=INF, i_min=0, j_min=0;
   char *struc;
   duplexT mfe;
+  vrna_md_t   md;
   int bonus=-10000;
   int *previous_const; /* for each "|" constraint returns the position of the next "|" constraint */
 
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
 
+  vrna_md_set_globals(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   previous_const=(int *) vrna_alloc(sizeof(int) * (n4+1));
@@ -1121,8 +1139,11 @@ PRIVATE void plot_max_C(const int max, const int max_pos, const int max_pos_j, c
 
 PRIVATE void update_dfold_params(void)
 {
-  if(P) free(P);
-  P = scale_parameters();
+  vrna_md_t md;
+  if(P)
+    free(P);
+  vrna_md_set_globals(&md);
+  P = vrna_params(&md);
   make_pair_matrix();
 }
 

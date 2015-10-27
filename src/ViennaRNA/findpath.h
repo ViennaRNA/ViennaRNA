@@ -1,7 +1,17 @@
 #ifndef VIENNA_RNA_PACKAGE_FIND_PATH_H
 #define VIENNA_RNA_PACKAGE_FIND_PATH_H
 
+typedef struct path path_t;
+
 #include <ViennaRNA/data_structures.h>
+
+/**
+ *  @brief
+ */
+struct path {
+  double en;
+  char *s;
+};
 
 /**
  *  \file findpath.h
@@ -25,7 +35,7 @@ int     find_saddle(const char *seq,
                     const char *struc2,
                     int max);
 
-int     vrna_find_saddle( vrna_fold_compound *vc,
+int     vrna_find_saddle( vrna_fold_compound_t *vc,
                           const char *struc1,
                           const char *struc2,
                           int max);
@@ -42,12 +52,12 @@ int     vrna_find_saddle( vrna_fold_compound *vc,
  *  \param maxkeep integer how many strutures are being kept during the search
  *  \returns direct refolding path between two structures
  */
-path_t* get_path( const char *seq,
+path_t *get_path( const char *seq,
                   const char *s1,
                   const char* s2,
                   int maxkeep);
 
-path_t *vrna_get_path(vrna_fold_compound *vc,
+path_t *vrna_get_path(vrna_fold_compound_t *vc,
                       const char *s1,
                       const char* s2,
                       int maxkeep);

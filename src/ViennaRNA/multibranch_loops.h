@@ -76,12 +76,12 @@ INLINE  PRIVATE double exp_E_MLstem(int type,
  *
  *  Computes total free energy for coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1)
  */
-PRIVATE INLINE int E_mb_loop_stack(int i, int j, vrna_fold_compound *vc);
+PRIVATE INLINE int E_mb_loop_stack(int i, int j, vrna_fold_compound_t *vc);
 
 /**
  *  @brief  Backtrack the decomposition of a multi branch loop closed by @f$ (i,j) @f$
  *
- *  @param    vc          The #vrna_fold_compound filled with all relevant data for backtracking
+ *  @param    vc          The #vrna_fold_compound_t filled with all relevant data for backtracking
  *  @param    i           5' position of base pair closing the loop (will be set to 5' position
  *                        of leftmost decomposed block upon successful backtracking)
  *  @param    j           3' position of base pair closing the loop (will be set to 3' position
@@ -94,7 +94,7 @@ PRIVATE INLINE int E_mb_loop_stack(int i, int j, vrna_fold_compound *vc);
  *  @returns              1, if backtracking succeeded, 0 otherwise.
  */
 PRIVATE INLINE int
-vrna_BT_mb_loop(vrna_fold_compound *vc,
+vrna_BT_mb_loop(vrna_fold_compound_t *vc,
                 int *i,
                 int *j,
                 int *k,
@@ -112,7 +112,7 @@ vrna_BT_mb_loop(vrna_fold_compound *vc,
 PRIVATE INLINE int
 E_mb_loop_fast( int i,
                 int j,
-                vrna_fold_compound *vc,
+                vrna_fold_compound_t *vc,
                 int *dmli1,
                 int *dmli2){
 
@@ -135,7 +135,7 @@ E_mb_loop_fast( int i,
   int e             = INF;
   int dangle_model  = P->model_details.dangles;
   int *rtype        = &(P->model_details.rtype[0]);
-  char              (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char              (*f)(vrna_fold_compound_t *, int, int, int, int, char) = vc->hc->f;
   char              eval_loop, el;
 
   type              = (unsigned char)ptype[ij];
@@ -364,7 +364,7 @@ E_mb_loop_fast( int i,
 PRIVATE INLINE int
 E_mb_loop_stack(int i,
                 int j,
-                vrna_fold_compound *vc){
+                vrna_fold_compound_t *vc){
 
   int e, decomp, en, i1k, k1j1, ij, k;
   unsigned char type, type_2;
@@ -379,7 +379,7 @@ E_mb_loop_stack(int i,
   char              *ptype  = vc->ptype;
   int               *rtype  = &(md->rtype[0]);
   vrna_sc_t         *sc     = vc->sc;
-  char              (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char              (*f)(vrna_fold_compound_t *, int, int, int, int, char) = vc->hc->f;
   char              eval_loop, el;
 
   e     = INF;
@@ -451,7 +451,7 @@ E_mb_loop_stack(int i,
 PRIVATE INLINE int
 E_ml_rightmost_stem(int i,
                     int j,
-                    vrna_fold_compound *vc){
+                    vrna_fold_compound_t *vc){
 
   int               en;
   vrna_param_t      *P            = vc->params;
@@ -471,7 +471,7 @@ E_ml_rightmost_stem(int i,
   int               with_gquad    = P->model_details.gquad;
   int               cp            = vc->cutpoint;
   int               e             = INF;
-  char              (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char              (*f)(vrna_fold_compound_t *, int, int, int, int, char) = vc->hc->f;
   char              eval_loop;
 
   if(ON_SAME_STRAND(i - 1, i, cp)){
@@ -534,7 +534,7 @@ E_ml_rightmost_stem(int i,
 PRIVATE INLINE int
 E_ml_stems_fast(int i,
                 int j,
-                vrna_fold_compound *vc,
+                vrna_fold_compound_t *vc,
                 int *fmi,
                 int *dmli){
 
@@ -558,7 +558,7 @@ E_ml_stems_fast(int i,
   int               circular      = P->model_details.circ;
   int               cp            = vc->cutpoint;
   int               e             = INF;
-  char              (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char              (*f)(vrna_fold_compound_t *, int, int, int, int, char) = vc->hc->f;
   char              eval_loop;
 
   /*  extension with one unpaired nucleotide at the right (3' site)
@@ -814,7 +814,7 @@ exp_E_MLstem( int type,
 }
 
 PRIVATE INLINE FLT_OR_DBL
-vrna_exp_E_mb_loop_fast( vrna_fold_compound *vc,
+vrna_exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
                     int i,
                     int j,
                     FLT_OR_DBL *qqm1){
@@ -900,11 +900,11 @@ vrna_exp_E_mb_loop_fast( vrna_fold_compound *vc,
 */
 
 PRIVATE INLINE int
-vrna_BT_mb_loop_fake( vrna_fold_compound *vc,
+vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
                       int *u,
                       int *i,
                       int *j,
-                      bondT *bp_stack,
+                      vrna_bp_stack_t *bp_stack,
                       int *stack_count){
 
   int length, ii, jj, k, en, cp, fij, fi, *my_c, *my_fc, *my_ggg, *idx, with_gquad, dangle_model, turn;
@@ -1265,14 +1265,14 @@ vrna_BT_mb_loop_fake( vrna_fold_compound *vc,
 }
 
 PRIVATE INLINE int
-vrna_BT_mb_loop_split(vrna_fold_compound *vc,
+vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
                       int *i,
                       int *j,
                       int *k,
                       int *l,
                       int *component1,
                       int *component2,
-                      bondT *bp_stack,
+                      vrna_bp_stack_t *bp_stack,
                       int *stack_count){
 
   int length, cp, ij, ii, jj, fij, fi, u, en, *my_c, *my_fML, *my_ggg, turn, *idx, with_gquad, dangle_model, *rtype;
@@ -1504,7 +1504,7 @@ vrna_BT_mb_loop_split(vrna_fold_compound *vc,
 
 
 PRIVATE INLINE int
-vrna_BT_mb_loop(vrna_fold_compound *vc,
+vrna_BT_mb_loop(vrna_fold_compound_t *vc,
                 int *i,
                 int *j,
                 int *k,

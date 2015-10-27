@@ -140,7 +140,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
     /*
     ########################################################
@@ -202,11 +202,14 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    /* init_pf_fold(length); <- obsolete */
     vrna_exp_param_t  *pf_parameters = NULL;
     vrna_md_t         md;
-    set_model_details(&md);
+    vrna_md_set_globals(&md);
 
    for (i=0; i<2*m+1; i++) {
       if(pf_parameters) free(pf_parameters);
-      pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+      md.temperature = temperature;
+      pf_parameters = vrna_exp_params(&md);
+      pf_parameters->pf_scale = pf_scale;
+
       F[i] = pf_fold_par(string, NULL, pf_parameters, 0, 0, 0);   /* T_min -2h */
       temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
@@ -227,7 +230,9 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
       kT = (temperature+K0)*GASCONST/1000;
       pf_scale=exp(-(F[i]/length +h*0.00727)/kT);
       if(pf_parameters) free(pf_parameters);
-      pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+      md.temperature = temperature;
+      pf_parameters = vrna_exp_params(&md);
+      pf_parameters->pf_scale = pf_scale;
       update_pf_params(length);
    }
    free_pf_arrays();

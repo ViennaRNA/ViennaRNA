@@ -175,7 +175,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     /*
@@ -226,7 +226,7 @@ int main(int argc, char *argv[]){
     # done with 'stdin' handling
     ########################################################
     */
-    vrna_fold_compound *vc = vrna_get_fold_compound((const char *)rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+    vrna_fold_compound_t *vc = vrna_fold_compound((const char *)rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
     if(outfile){
       v_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
@@ -249,7 +249,7 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-    min_en = (zsc) ? vrna_Lfoldz(vc, min_z, output) : vrna_Lfold(vc, output);
+    min_en = (zsc) ? vrna_mfe_window_zscore(vc, min_z, output) : vrna_mfe_window(vc, output);
     fprintf(output, "%s\n", orig_sequence);
 
     if(!outfile && istty)
@@ -266,7 +266,7 @@ int main(int argc, char *argv[]){
     }
 
     /* clean up */
-    vrna_free_fold_compound(vc);
+    vrna_fold_compound_free(vc);
     if(rec_id) free(rec_id);
     free(rec_sequence);
     free(orig_sequence);

@@ -25,7 +25,7 @@
 /*@unused@*/
 PRIVATE char rcsid[] = "$Id: RNAcofold.c,v 1.7 2006/05/10 15:14:27 ivo Exp $";
 
-PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mf, vrna_exp_param_t *parameters);
+PRIVATE vrna_dimer_pf_t do_partfunc(char *string, int length, int Switch, plist **tpr, plist **mf, vrna_exp_param_t *parameters);
 PRIVATE double *read_concentrations(FILE *fp);
 PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces, vrna_exp_param_t *parameters);
 
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
   /* get energy parameters */
-  P = vrna_params_get(&md);
+  P = vrna_params(&md);
 
   /* print user help if we get input from tty */
   if(istty){
@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
     else vrna_message_input_seq_simple();
   }
 
-  /* set options we wanna pass to vrna_read_fasta_record() */
+  /* set options we wanna pass to vrna_file_fasta_read_record() */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
 
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     /*
@@ -264,14 +264,14 @@ int main(int argc, char *argv[])
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
-    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE |  VRNA_OPTION_HYBRID | ((pf) ? VRNA_OPTION_PF : 0));
+    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE |  VRNA_OPTION_HYBRID | ((pf) ? VRNA_OPTION_PF : 0));
     length    = vc->length;
     structure = (char *) vrna_alloc((unsigned) length+1);
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
       if(constraints_file){
-        vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+        vrna_constraints_add(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
       } else {
         cstruc = NULL;
         cstruc = NULL;
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
 
           if(enforceConstraints)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
-          vrna_add_constraints(vc, (const char *)structure, constraint_options);
+          vrna_constraints_add(vc, (const char *)structure, constraint_options);
         }
       }
     }
@@ -338,8 +338,8 @@ int main(int argc, char *argv[])
     */
 
     /* compute mfe of AB dimer */
-    min_en  = vrna_cofold(vc, structure);
-    mfAB    = vrna_pl_get(structure, 0.95);
+    min_en  = vrna_mfe_dimer(vc, structure);
+    mfAB    = vrna_plist(structure, 0.95);
 
     {
       char *pstring, *pstruct;
@@ -366,22 +366,19 @@ int main(int argc, char *argv[])
           sprintf(annot,
                   "1 %d 9  0 0.9 0.2 omark\n%d %d 9  1 0.1 0.2 omark\n",
                   vc->cutpoint-1, vc->cutpoint+1, length+1);
-        if(gquad){
-          if (!noPS) (void) PS_rna_plot_a_gquad(pstring, pstruct, ffname, annot, NULL);
-        } else {
-          if (!noPS) (void) PS_rna_plot_a(pstring, pstruct, ffname, annot, NULL);
-        }
+        if (!noPS)
+          (void) vrna_file_PS_rnaplot_a(pstring, pstruct, ffname, annot, NULL, &md);
       }
       free(pstring);
       free(pstruct);
     }
 
     if (length>2000)
-      vrna_free_mfe_matrices(vc);
+      vrna_mx_mfe_free(vc);
 
     /* compute partition function */
     if (pf) {
-      cofoldF AB, AA, BB;
+      vrna_dimer_pf_t AB, AA, BB;
       if (dangles==1){
         vc->params->model_details.dangles = dangles = 2;   /* recompute with dangles as in pf_fold() */
         min_en = vrna_eval_structure(vc, structure);
@@ -397,7 +394,7 @@ int main(int argc, char *argv[])
       if (cstruc!=NULL) strncpy(structure, cstruc, length+1);
 
       /* compute partition function */
-      AB = vrna_co_pf_fold(vc, structure);
+      AB = vrna_pf_dimer(vc, structure);
 
       if (do_backtrack) {
         char *costruc;
@@ -407,7 +404,7 @@ int main(int argc, char *argv[])
         if (!istty) printf(" [%6.2f]\n", AB.FAB);
         else printf("\n");/*8.6.04*/
         free(costruc);
-        prAB = vrna_pl_get_from_pr(vc, bppmThreshold);
+        prAB = vrna_plist_from_probs(vc, bppmThreshold);
       }
 
       if ((istty)||(!do_backtrack))
@@ -459,15 +456,15 @@ int main(int argc, char *argv[])
         do_partfunc(Bstring, Blength, 1, &prB, &mfB, pf_parameters);
 
         if(do_backtrack){
-          vrna_co_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, pf_parameters);
-          vrna_co_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, pf_parameters);
-          vrna_co_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, pf_parameters);
+          vrna_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, pf_parameters);
+          vrna_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, pf_parameters);
+          vrna_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, pf_parameters);
         }
         printf("Free Energies:\nAB\t\tAA\t\tBB\t\tA\t\tB\n%.6f\t%6f\t%6f\t%6f\t%6f\n",
                AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB);
 
         if (doC) {
-          vrna_co_pf_get_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB, pf_parameters);
+          vrna_pf_dimer_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB, pf_parameters);
           free(ConcAandB);/*freeen*/
         }
 
@@ -567,7 +564,7 @@ int main(int argc, char *argv[])
       }
     }
     if (!doT)
-      vrna_free_pf_matrices(vc);
+      vrna_mx_pf_free(vc);
 
     (void) fflush(stdout);
     
@@ -598,12 +595,12 @@ int main(int argc, char *argv[])
   return EXIT_SUCCESS;
 }
 
-PRIVATE cofoldF
+PRIVATE vrna_dimer_pf_t
 do_partfunc(char *string,
             int length,
             int Switch,
-            struct plist **tpr,
-            struct plist **mfpl,
+            plist **tpr,
+            plist **mfpl,
             vrna_exp_param_t *parameters){
 
   /*compute mfe and partition function of dimer or monomer*/
@@ -613,26 +610,26 @@ do_partfunc(char *string,
   double sfact=1.07;
   double kT;
   vrna_exp_param_t *par;
-  cofoldF X;
-  vrna_fold_compound *vc;
+  vrna_dimer_pf_t X;
+  vrna_fold_compound_t *vc;
   kT = parameters->kT/1000.;
   switch (Switch){
     case 1:   /* monomer */
               tempstruc = (char *) vrna_alloc((unsigned)length+1);
               //parameters->model_details.min_loop_size = TURN; /* we need min_loop_size of 0 to correct for Q_AB */
-              vc = vrna_get_fold_compound(string, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF);
-              min_en = vrna_fold(vc, tempstruc);
-              *mfpl = vrna_pl_get(tempstruc, 0.95);
-              vrna_free_mfe_matrices(vc);
+              vc = vrna_fold_compound(string, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF);
+              min_en = vrna_mfe(vc, tempstruc);
+              *mfpl = vrna_plist(tempstruc, 0.95);
+              vrna_mx_mfe_free(vc);
 
-              par = get_boltzmann_factor_copy(parameters);
+              par = vrna_exp_params_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(length));
-              vrna_exp_params_update(vc, par);
-              X = vrna_co_pf_fold(vc, tempstruc);
+              vrna_exp_params_subst(vc, par);
+              X = vrna_pf_dimer(vc, tempstruc);
               if(*tpr){
-                *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
+                *tpr = vrna_plist_from_probs(vc, bppmThreshold);
               }
-              vrna_free_fold_compound(vc);
+              vrna_fold_compound_free(vc);
               free(tempstruc);
               free(par);
               parameters->model_details.min_loop_size = 0;
@@ -643,19 +640,19 @@ do_partfunc(char *string,
               Newstring = (char *)vrna_alloc(sizeof(char)*(length*2+2));
               strcat(Newstring, string); strcat(Newstring, "&"); strcat(Newstring, string);
               parameters->model_details.min_loop_size = 0;
-              vc = vrna_get_fold_compound(Newstring, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
-              min_en = vrna_cofold(vc, tempstruc);
-              *mfpl = vrna_pl_get(tempstruc, 0.95);
-              vrna_free_mfe_matrices(vc);
+              vc = vrna_fold_compound(Newstring, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+              min_en = vrna_mfe_dimer(vc, tempstruc);
+              *mfpl = vrna_plist(tempstruc, 0.95);
+              vrna_mx_mfe_free(vc);
 
-              par = get_boltzmann_factor_copy(parameters);
+              par = vrna_exp_params_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(2*length));
-              vrna_exp_params_update(vc, par);
-              X = vrna_co_pf_fold(vc, tempstruc);
+              vrna_exp_params_subst(vc, par);
+              X = vrna_pf_dimer(vc, tempstruc);
               if(*tpr){
-                *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
+                *tpr = vrna_plist_from_probs(vc, bppmThreshold);
               }
-              vrna_free_fold_compound(vc);
+              vrna_fold_compound_free(vc);
 
               free(Newstring);
               free(tempstruc);
@@ -680,10 +677,10 @@ do_concentrations(double FEAB,
                   vrna_exp_param_t *parameters){
 
   /* compute and print concentrations out of free energies, calls get_concentrations */
-  struct ConcEnt *result;
+  vrna_dimer_conc_t *result;
   int i, n;
 
-  result=vrna_co_pf_get_concentrations(FEAB, FEAA, FEBB, FEA, FEB, startconc, parameters);
+  result=vrna_pf_dimer_concentrations(FEAB, FEAA, FEBB, FEA, FEB, startconc, parameters);
 
   printf("Initial concentrations\t\trelative Equilibrium concentrations\n");
   printf("A\t\t B\t\t AB\t\t AA\t\t BB\t\t A\t\t B\n");

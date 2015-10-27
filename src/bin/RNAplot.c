@@ -25,9 +25,11 @@ int main(int argc, char *argv[]){
   int           istty;
   char          format[5]="ps";
   unsigned int  rec_type, read_opt;
+  vrna_md_t     md;
 
   structure = pre = post = NULL;
   length = 0;
+  vrna_md_set_default(&md);
 
   /*
   #############################################
@@ -56,7 +58,7 @@ int main(int argc, char *argv[]){
   rec_rest      = NULL;
   istty         = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
-  /* set options we wanna pass to vrna_read_fasta_record() */
+  /* set options we wanna pass to vrna_file_fasta_read_record() */
   if(istty){
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
     vrna_message_input_seq("Input sequence (upper or lower case) followed by structure");
@@ -68,7 +70,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     if(rec_id){
@@ -101,9 +103,7 @@ int main(int argc, char *argv[]){
       case 'p':
         strcat(ffname, ".ps");
 
-        (void) PS_rna_plot_a_gquad(rec_sequence, structure, ffname, pre, post);
-
-        /* PS_rna_plot_a(rec_sequence, structure, ffname, pre, post); */
+        (void) vrna_file_PS_rnaplot_a(rec_sequence, structure, ffname, pre, post, &md);
 
         break;
       case 'g':

@@ -26,7 +26,7 @@ END_TEST
 START_TEST(test_sample_structure)
 {
   vrna_md_t md;
-  vrna_fold_compound *vc;
+  vrna_fold_compound_t *vc;
   const char sequence[] = "UGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAU";
   char *sample;
 
@@ -34,9 +34,9 @@ START_TEST(test_sample_structure)
   md.uniq_ML = 1;
   md.compute_bpp = 0;
 
-  vc = vrna_get_fold_compound(sequence, &md, VRNA_OPTION_PF);
+  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_PF);
 
-  vrna_pf_fold(vc, NULL);
+  vrna_pf(vc, NULL);
 
   sample = vrna_pbacktrack(vc);
   ck_assert_int_eq(strlen(sample), sizeof(sequence) - 1);
@@ -46,14 +46,14 @@ START_TEST(test_sample_structure)
   ck_assert_int_eq(strlen(sample), 16);
   free(sample);
 
-  vrna_free_fold_compound(vc);
+  vrna_fold_compound_free(vc);
 }
 END_TEST
 
 START_TEST(test_sc_sanity_check)
 {
   vrna_md_t md;
-  vrna_fold_compound *vc;
+  vrna_fold_compound_t *vc;
   const char sequence[] = "UGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAU";
   double *sc_up;
   double **sc_bp;
@@ -77,11 +77,11 @@ START_TEST(test_sc_sanity_check)
   vrna_md_set_default(&md);
   md.compute_bpp = 1;
 
-  vc = vrna_get_fold_compound(sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
 
-  mfe_energy_unconstrained = vrna_fold(vc, mfe_structure_unconstrained);
-  pf_energy_unconstrained = vrna_pf_fold(vc, pf_structure_unconstrained);
-  plist_unconstrained = vrna_pl_get_from_pr(vc, 0);
+  mfe_energy_unconstrained = vrna_mfe(vc, mfe_structure_unconstrained);
+  pf_energy_unconstrained = vrna_pf(vc, pf_structure_unconstrained);
+  plist_unconstrained = vrna_plist_from_probs(vc, 0);
 
   sc_up = (double *)vrna_alloc(sizeof(double) * (length + 1));
   sc_bp = (double **)vrna_alloc(sizeof(double *) * (length + 1));
@@ -94,12 +94,12 @@ START_TEST(test_sc_sanity_check)
       sc_bp[i][j] = -2.;
   }
 
-  vrna_sc_add_up(vc, sc_up, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
-  vrna_sc_add_bp(vc, sc_bp, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
+  vrna_sc_add_up(vc, (const double *)sc_up, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
+  vrna_sc_add_bp(vc, (const double **)sc_bp, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
 
-  mfe_energy_constrained = vrna_fold(vc, mfe_structure_constrained);
-  pf_energy_constrained = vrna_pf_fold(vc, pf_structure_constrained);
-  plist_constrained = vrna_pl_get_from_pr(vc, 0);
+  mfe_energy_constrained = vrna_mfe(vc, mfe_structure_constrained);
+  pf_energy_constrained = vrna_pf(vc, pf_structure_constrained);
+  plist_constrained = vrna_plist_from_probs(vc, 0);
 
   ck_assert_int_eq(strlen(mfe_structure_constrained), sizeof(sequence) - 1);
   ck_assert_int_eq(strlen(mfe_structure_unconstrained), sizeof(sequence) - 1);
@@ -120,7 +120,7 @@ START_TEST(test_sc_sanity_check)
     ck_assert(plist_constrained[i].p == plist_unconstrained[i].p);
   }
 
-  vrna_free_fold_compound(vc);
+  vrna_fold_compound_free(vc);
 
   for(i = 1; i <= length; ++i)
     free(sc_bp[i]);

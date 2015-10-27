@@ -141,7 +141,7 @@ INLINE  PRIVATE double exp_E_Stem(int type,
 PRIVATE INLINE int
 E_ext_loop( int i,
             int j,
-            vrna_fold_compound *vc){
+            vrna_fold_compound_t *vc){
 
   int           ij, en, e, type;
 
@@ -153,7 +153,7 @@ E_ext_loop( int i,
   vrna_md_t     *md               = &(P->model_details);
   char          *hard_constraints = vc->hc->matrix;
   vrna_sc_t     *sc               = vc->sc;
-  char           (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char           (*f)(vrna_fold_compound_t *, int, int, int, int, char) = vc->hc->f;
   char           eval_loop;
 
   e     = INF;
@@ -220,7 +220,7 @@ E_ext_loop( int i,
 
 
 PRIVATE INLINE void
-E_ext_loop_5( vrna_fold_compound *vc){
+E_ext_loop_5( vrna_fold_compound_t *vc){
 
   int en, i, j, ij, type;
   int               length        = (int)vc->length;
@@ -237,7 +237,7 @@ E_ext_loop_5( vrna_fold_compound *vc){
   int               *ggg          = vc->matrices->ggg;
   int               with_gquad    = P->model_details.gquad;
   int               turn          = P->model_details.min_loop_size;
-  char              (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char              (*f)(vrna_fold_compound_t *, int, int, int, int, char) = vc->hc->f;
   char              eval_loop, el;
 
   f5[0] = 0;
@@ -787,11 +787,11 @@ exp_E_ExtLoop(int type,
 }
 
 PRIVATE INLINE int
-vrna_BT_ext_loop_f5(vrna_fold_compound *vc,
+vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
                     int *k,
                     int *i,
                     int *j,
-                    bondT *bp_stack,
+                    vrna_bp_stack_t *bp_stack,
                     int *stack_count){
 
   int           length, cp, fij, fi, jj, u, en, e, *my_f5, *my_c, *my_ggg, *idx, dangle_model, turn, with_gquad;

@@ -172,7 +172,7 @@ START_TEST(test_get_ptypes)
   vrna_md_update(&details);
 
   ptype = get_ptypes(sequence, &details, 0);
-  idx = vrna_get_indx(len);
+  idx = vrna_idx_col_wise(len);
 
   for (i = 0; results[i][0]; ++i)
     ck_assert_int_eq(ptype[idx[results[i][0]] + results[i][1]], results[i][2]);

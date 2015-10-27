@@ -149,12 +149,20 @@ PRIVATE int n3, n4; /*sequence length for the duplex*/;
 PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2, const int **access_s1, const int **access_s2, const int i_pos, const int j_pos, const int threshold, const int i_flag, const int j_flag) {
   int i, j,p,q, Emin=INF, l_min=0, k_min=0;
   char *struc;
+  vrna_md_t   md;
+
   struc=NULL;
   duplexT mfe;
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
+
+  vrna_md_set_globals(&md);
+
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
 
@@ -377,13 +385,20 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   int max=INF;
   int **DJ;
   int maxPenalty[4];
+  vrna_md_t   md;
+
   /**
   *** variable initialization
   **/
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
+
+  vrna_md_set_globals(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   /**
@@ -731,9 +746,15 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
   **/
 
   int maxPenalty[4];
+  vrna_md_t   md;
+
+  vrna_md_set_globals(&md);
+
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)){
     update_dfold_params();
-    if(P) free(P); P = scale_parameters();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   maxPenalty[0]=(int) -1*P->stack[2][2]/2;
@@ -1242,6 +1263,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   *** Makes the computation 20% faster
   **/
   int *SA;
+  vrna_md_t   md;
   /**
   *** variable initialization
   **/
@@ -1251,8 +1273,13 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   *** Sequence encoding
   **/
 
+  vrna_md_set_globals(&md);
+
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_dfold_params();  if(P) free(P); P = scale_parameters();
+    update_dfold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   encode_seqs(s1,s2);
@@ -1706,12 +1733,17 @@ PRIVATE duplexT duplexfold(const char *s1, const char *s2, const int extension_c
   int i, j, l1, Emin=INF, i_min=0, j_min=0;
   char *struc;
   duplexT mfe;
+  vrna_md_t md;
 
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
 
+  vrna_md_set_globals(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
 
@@ -1846,6 +1878,7 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
   int temp=INF;
   int min_j_colonne;
   int max=INF;
+  vrna_md_t md;
   /* FOLLOWING NEXT 4 LINE DEFINES AN ARRAY CONTAINING POSITION OF THE SUBOPT IN S1 */
 
   n3 = (int) strlen(s1);
@@ -1856,8 +1889,12 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
   /* duplexfold them at this position and report the result at the command line */
   /* for this i first need to rewrite backtrack in order to remove the printf functio */
   /* END OF DEFINITION FOR NEEDED SUBOPT DATA  */
+  vrna_md_set_globals(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   /*local c array initialization---------------------------------------------*/
@@ -2464,6 +2501,8 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
   *** Makes the computation 20% faster
   **/
   int *SA;
+  vrna_md_t md;
+  
   /**
   *** variable initialization
   **/
@@ -2472,8 +2511,12 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
   /**
   *** Sequence encoding
   **/
+  vrna_md_set_globals(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   encode_seqs(s1,s2);
@@ -2936,8 +2979,11 @@ PRIVATE void plot_max(const int max, const int max_pos, const int max_pos_j, con
 
 PRIVATE void update_dfold_params(void)
 {
-  if(P) free(P);
-  P = scale_parameters();
+  vrna_md_t md;
+  if(P)
+    free(P);
+  vrna_md_set_globals(&md);
+  P = vrna_params(&md);
   make_pair_matrix();
 }
 

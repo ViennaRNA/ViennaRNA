@@ -1017,7 +1017,7 @@ PRIVATE void  get_up_arrays(unsigned int length){
   qq_1m2    = (double *)    vrna_alloc(sizeof(double)      * l2);
   qqm       = (double *)    vrna_alloc(sizeof(double)      * l2);
   qqm1      = (double *)    vrna_alloc(sizeof(double)      * l2);
-  my_iindx  = vrna_get_iindx(length);
+  my_iindx  = vrna_idx_row_wise(length);
 }
 
 PRIVATE void  free_up_arrays(void){
@@ -1087,7 +1087,9 @@ PRIVATE void scale_stru_pf_params(unsigned int length)
      and/or if temperature has changed*/
   if(init_temp != temperature) {
     if(Pf) free(Pf);
-    Pf=get_scaled_pf_parameters();
+    vrna_md_t   md;
+    vrna_md_set_globals(&md);
+    Pf=vrna_exp_params(&md);
   }
 
   init_temp = Pf->temperature;

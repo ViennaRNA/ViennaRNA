@@ -57,7 +57,7 @@
 
 /* some backward compatibility stuff */
 PRIVATE int                 backward_compat           = 0;
-PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 
 #ifdef _OPENMP
 
@@ -73,9 +73,9 @@ PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
 #################################
 */
 
-PRIVATE int   fill_arrays(vrna_fold_compound *vc);
-PRIVATE void  fill_arrays_circ(vrna_fold_compound *vc, sect bt_stack[], int *bt);
-PRIVATE plist *backtrack(vrna_fold_compound *vc, bondT *bp_stack, sect bt_stack[], int s);
+PRIVATE int           fill_arrays(vrna_fold_compound_t *vc);
+PRIVATE void          fill_arrays_circ(vrna_fold_compound_t *vc, sect bt_stack[], int *bt);
+PRIVATE vrna_plist_t  *backtrack(vrna_fold_compound_t *vc, vrna_bp_stack_t *bp_stack, sect bt_stack[], int s);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -93,12 +93,12 @@ PRIVATE void  wrap_array_export_circ( int *Fc_p, int *FcH_p, int *FcI_p, int *Fc
 */
 
 PUBLIC float
-vrna_fold(vrna_fold_compound *vc,
+vrna_mfe(vrna_fold_compound_t *vc,
           char *structure){
 
   int     length, energy, s;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
-  bondT   *bp;
+  vrna_bp_stack_t   *bp;
 
 
   s       = 0;
@@ -121,7 +121,7 @@ vrna_fold(vrna_fold_compound *vc,
   }
 
   if(structure && vc->params->model_details.backtrack){
-    bp = (bondT *)vrna_alloc(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     backtrack(vc, bp, bt_stack, s);
 
@@ -160,7 +160,7 @@ vrna_fold(vrna_fold_compound *vc,
 *** fill "c", "fML" and "f5" arrays and return  optimal energy
 **/
 PRIVATE int
-fill_arrays(vrna_fold_compound *vc){
+fill_arrays(vrna_fold_compound_t *vc){
 
   int               i, j, ij, length, energy, new_c, stackEnergy, no_close, type_2;
   int               noGUclosure, noLP, uniq_ML, with_gquad, dangle_model, *rtype, *indx;
@@ -318,9 +318,9 @@ fill_arrays(vrna_fold_compound *vc){
 #include "circfold.inc"
 
 
-PUBLIC plist *
-vrna_backtrack_from_intervals(vrna_fold_compound *vc,
-                              bondT *bp_stack,
+PUBLIC vrna_plist_t *
+vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
+                              vrna_bp_stack_t *bp_stack,
                               sect bt_stack[],
                               int s){
 
@@ -335,9 +335,9 @@ vrna_backtrack_from_intervals(vrna_fold_compound *vc,
 *** normally s=0.
 *** If s>0 then s items have been already pushed onto the bt_stack
 **/
-PRIVATE plist *
-backtrack(vrna_fold_compound *vc,
-          bondT *bp_stack,
+PRIVATE vrna_plist_t *
+backtrack(vrna_fold_compound_t *vc,
+          vrna_bp_stack_t *bp_stack,
           sect bt_stack[],
           int s){
 
@@ -549,8 +549,8 @@ wrap_fold( const char *string,
           int is_constrained,
           int is_circular){
 
-  vrna_fold_compound  *vc;
-  vrna_param_t        *P;
+  vrna_fold_compound_t  *vc;
+  vrna_param_t          *P;
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -559,15 +559,16 @@ wrap_fold( const char *string,
 
   /* we need the parameter structure for hard constraints */
   if(parameters){
-    P = get_parameter_copy(parameters);
+    P = vrna_params_copy(parameters);
   } else {
     vrna_md_t md;
     set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
+    md.temperature = temperature;
+    P = vrna_params(&md);
   }
   P->model_details.circ = is_circular;
 
-  vc = vrna_get_fold_compound(string, &(P->model_details), VRNA_OPTION_MFE);
+  vc = vrna_fold_compound(string, &(P->model_details), VRNA_OPTION_MFE);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -586,23 +587,23 @@ wrap_fold( const char *string,
                           | VRNA_CONSTRAINT_DB_ANG_BRACK
                           | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-    vrna_add_constraints(vc, (const char *)structure, constraint_options);
+    vrna_constraints_add(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound && backward_compat)
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
 
-  return vrna_fold(vc, structure);
+  return vrna_mfe(vc, structure);
 }
 
 PUBLIC void
 free_arrays(void){
 
   if(backward_compat_compound && backward_compat){
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
     backward_compat_compound = NULL;
     backward_compat          = 0;
   }
@@ -642,33 +643,25 @@ initialize_fold(int length){
 PUBLIC void
 update_fold_params(void){
 
-  vrna_fold_compound  *v;
-  vrna_param_t        *P;
   vrna_md_t           md;
 
   if(backward_compat_compound && backward_compat){
     vrna_md_set_globals(&md);
-    P = vrna_params_get(&md);
-    vrna_params_update(backward_compat_compound, P);
-    free(P);
+    vrna_params_reset(backward_compat_compound, &md);
   }
 }
 
 PUBLIC void
 update_fold_params_par(vrna_param_t *parameters){
 
-  vrna_fold_compound  *v;
-  vrna_param_t        *P;
   vrna_md_t           md;
 
   if(backward_compat_compound && backward_compat){
     if(parameters)
-      vrna_params_update(backward_compat_compound, parameters);
+      vrna_params_subst(backward_compat_compound, parameters);
     else{
       vrna_md_set_globals(&md);
-      P = vrna_params_get(&md);
-      vrna_params_update(backward_compat_compound, P);
-      free(P);
+      vrna_params_reset(backward_compat_compound, &md);
     }
   }
 }
@@ -740,13 +733,13 @@ backtrack_fold_from_pair( char *sequence,
 
   char          *structure  = NULL;
   unsigned int  length      = 0;
-  bondT         *bp         = NULL;
+  vrna_bp_stack_t         *bp         = NULL;
   sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
 
   if(sequence){
     length = strlen(sequence);
     structure = (char *) vrna_alloc((length + 1)*sizeof(char));
-    bp = (bondT *)vrna_alloc(sizeof(bondT) * (1+length/2));
+    bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (1+length/2));
   } else {
     vrna_message_error("backtrack_fold_from_pair@fold.c: no sequence given");
   }

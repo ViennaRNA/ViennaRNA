@@ -67,7 +67,8 @@ int main(int argc, char *argv[]) {
   */
   if(PKplex_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
-  if(args_info.temp_given)              temperature = args_info.temp_arg;
+  if(args_info.temp_given)
+    md.temperature = temperature = args_info.temp_arg;
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)           md.special_hp = tetra_loop=0;
   /* do not allow weak pairs */
@@ -132,7 +133,7 @@ int main(int argc, char *argv[]) {
   # main loop: continue until end of file
   #############################################
   */
-  while(!(vrna_read_fasta_record(&id_s1, &s1, &rest, NULL, options) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
+  while(!(vrna_file_fasta_read_record(&id_s1, &s1, &rest, NULL, options) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
     /*
     ########################################################
     # handle user input from 'stdin'
@@ -249,7 +250,7 @@ int main(int argc, char *argv[]) {
       double mfe_pk = 0.;
       char *mfe_struct = NULL;
 
-      par = get_scaled_parameters(temperature, md);
+      par = vrna_params(&md);
       constraint = (char *) vrna_alloc(length+1);
       mfe_struct = (char *) vrna_alloc(length+1);
 
@@ -354,11 +355,11 @@ int main(int argc, char *argv[]) {
             strcat(annotation, temp);
             sprintf(temp, "0 0 2 setrgbcolor\n2 setlinewidth\n%d cmark\n%d cmark\n1 setlinewidth", PlexHits[i].tb, PlexHits[i].qe);
             strcat(annotation, temp);
-            PS_rna_plot_a(s1, PlexHits[i].structure, fname, annotation, "");
+            vrna_file_PS_rnaplot_a(s1, PlexHits[i].structure, fname, annotation, "", &md);
             free(annotation);
             free(temp);
           } else {
-            PS_rna_plot(s1, mfe_struct, fname);
+            vrna_file_PS_rnaplot(s1, mfe_struct, fname, &md);
           }
           break;
         }
@@ -466,11 +467,11 @@ int main(int argc, char *argv[]) {
 
             sprintf(temp, "0 0 2 setrgbcolor\n2 setlinewidth\n%d cmark\n%d cmark\n1 setlinewidth", PlexHits[current].tb, PlexHits[current].qe);
             strcat(annotation, temp);
-            PS_rna_plot_a(s1, constraint, fname, annotation, "");
+            vrna_file_PS_rnaplot_a(s1, constraint, fname, annotation, "", &md);
             free(annotation);
             free(temp);
           } else {
-            PS_rna_plot(s1, constraint, fname);
+            vrna_file_PS_rnaplot(s1, constraint, fname, &md);
           }
         }
       }

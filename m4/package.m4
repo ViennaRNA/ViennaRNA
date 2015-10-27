@@ -271,12 +271,12 @@ AC_RNA_ADD_PACKAGE( [python],
                     [with_python=no],
                     [with_python=yes],
                     [${srcdir}/interfaces/Python/Makefile.am])
-AC_RNA_ADD_PACKAGE( [ruby],
-                    [Ruby interface],
-                    [no],
-                    [with_ruby=yes],
-                    [with_ruby=no],
-                    [${srcdir}/interfaces/Ruby/Makefile.am])
+##AC_RNA_ADD_PACKAGE( [ruby],
+##                    [Ruby interface],
+##                    [no],
+##                    [with_ruby=yes],
+##                    [with_ruby=no],
+##                    [${srcdir}/interfaces/Ruby/Makefile.am])
 AC_RNA_ADD_PACKAGE( [kinfold],
                     [Kinfold program],
                     [yes],
@@ -326,9 +326,9 @@ AC_RNA_ADD_PACKAGE( [doc],
                     [with_doc=yes])
 AC_RNA_ADD_PACKAGE( [check],
                     [Unit tests],
-                    [no],
-                    [with_check=yes],
-                    [with_check=no])
+                    [yes],
+                    [with_check=no],
+                    [with_check=yes])
 AC_RNA_ADD_PACKAGE( [gsl],
                     [GNU Scientific Library],
                     [yes],
@@ -455,6 +455,7 @@ AC_RNA_PACKAGE_IF_ENABLED([gsl],[
 
   if test "$ac_cv_lib_gsl_gsl_blas_dgemm" != yes; then
     AC_MSG_WARN("Can't find libgsl. Falling back to default implementation.")
+    enabled_but_failed_gsl="(libgsl not found)"
     with_gsl="no"
   fi
 ])
@@ -508,10 +509,9 @@ AC_MSG_NOTICE(
 [
 Configure successful with the following options:
 
-RNAlib Interfaces:
-  Perl Interface:       ${with_perl:-yes}      $enabled_but_failed_perl
-  Python Interface:     ${with_python:-yes}      $enabled_but_failed_python
-  Ruby Interface:       ${with_ruby:-yes}      $enabled_but_failed_ruby
+RNAlib Scripting Interfaces:
+  Perl Interface:       ${with_perl:-yes}       $enabled_but_failed_perl
+  Python Interface:     ${with_python:-yes}     $enabled_but_failed_python
 
 Extra Programs:
   Analyse{Dists,Seqs}:  ${with_cluster:-no}
@@ -521,12 +521,13 @@ Extra Programs:
 Other Options:
   SVM:                  ${with_svm:-yes}
   JSON:                 ${with_json:-yes}
+  GSL:                  ${with_gsl:-yes}        $enabled_but_failed_gsl
   Documentation:        ${with_doc:-no}
     (HTML):             ${with_doc_html:-no}
     (PDF):              ${with_doc_pdf:-no}
 
 Unit Tests:
-  check:                ${with_check:-no}      $enabled_but_failed_check
+  check:                ${with_check:-yes}      $enabled_but_failed_check
 
 -
 Files will be installed in the following directories:

@@ -179,7 +179,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     /*
@@ -282,7 +282,7 @@ int main(int argc, char *argv[]){
       }
       strcat(ffname, "_dp.ps");
 
-      pf_parameters = get_boltzmann_factors(temperature, betaScale, md, -1);
+      pf_parameters = vrna_exp_params(&md);
 
       if(unpaired > 0){
         pup       =(double **)  vrna_alloc((length+1)*sizeof(double *));

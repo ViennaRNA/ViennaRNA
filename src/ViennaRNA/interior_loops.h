@@ -137,7 +137,7 @@ PRIVATE INLINE int E_IntLoop_Co(int type,
 /**
  *  @brief Evaluate energy of a base pair stack closed by (i,j)
  */
-PRIVATE INLINE int E_stack(int i, int j, vrna_fold_compound *vc);
+PRIVATE INLINE int E_stack(int i, int j, vrna_fold_compound_t *vc);
 
 /*
 #################################
@@ -269,7 +269,7 @@ ubf_eval_ext_int_loop(int i,
 }
 
 PRIVATE INLINE int
-vrna_E_int_loop(vrna_fold_compound *vc,
+vrna_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j){
 
@@ -296,7 +296,7 @@ vrna_E_int_loop(vrna_fold_compound *vc,
   vrna_md_t         *md           = &(P->model_details);
   int               with_gquad    = md->gquad;
   int               turn          = md->min_loop_size;
-  char              (*f)(vrna_fold_compound *, int, int, int, int, char) = vc->hc->f;
+  char              (*f)(vrna_fold_compound_t *, int, int, int, int, char) = vc->hc->f;
   char              eval_loop;
 
   /* CONSTRAINED INTERIOR LOOP start */
@@ -376,7 +376,7 @@ vrna_E_int_loop(vrna_fold_compound *vc,
 }
 
 PRIVATE INLINE FLT_OR_DBL
-vrna_exp_E_int_loop(vrna_fold_compound *vc,
+vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j){
 
@@ -471,7 +471,7 @@ vrna_exp_E_int_loop(vrna_fold_compound *vc,
 }
 
 PRIVATE INLINE int
-vrna_E_ext_int_loop(vrna_fold_compound *vc,
+vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
                     int i,
                     int j,
                     int *ip,
@@ -484,7 +484,7 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
   vrna_param_t      *P;
   short             *S;
   vrna_sc_t         *sc;
-  char              (*f)(vrna_fold_compound *, int, int, int, int, char);
+  char              (*f)(vrna_fold_compound_t *, int, int, int, int, char);
   char              eval_loop;
 
   length  = vc->length;
@@ -556,7 +556,7 @@ vrna_E_ext_int_loop(vrna_fold_compound *vc,
 
 
 PRIVATE INLINE int
-vrna_E_stack( vrna_fold_compound *vc,
+vrna_E_stack( vrna_fold_compound_t *vc,
               int i,
               int j){
 
@@ -572,7 +572,7 @@ vrna_E_stack( vrna_fold_compound *vc,
   int               *indx             = vc->jindx;
   char              *hard_constraints = vc->hc->matrix;
   vrna_sc_t         *sc               = vc->sc;
-  char              (*f)(vrna_fold_compound *, int, int, int, int, char);
+  char              (*f)(vrna_fold_compound_t *, int, int, int, int, char);
   char              eval_loop;
 
   e         = INF;
@@ -814,11 +814,11 @@ E_IntLoop_Co( int type,
  *
  */
 PRIVATE INLINE int
-vrna_BT_stack(vrna_fold_compound *vc,
+vrna_BT_stack(vrna_fold_compound_t *vc,
               int *i,
               int *j,
               int *en,
-              bondT *bp_stack,
+              vrna_bp_stack_t *bp_stack,
               int *stack_count){
 
   int           ij, *idx, *my_c, *rtype;
@@ -829,7 +829,7 @@ vrna_BT_stack(vrna_fold_compound *vc,
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
-  char          (*f)(vrna_fold_compound *, int, int, int, int, char);
+  char          (*f)(vrna_fold_compound_t *, int, int, int, int, char);
   char          eval_loop;
 
   idx         = vc->jindx;
@@ -884,11 +884,11 @@ vrna_BT_stack(vrna_fold_compound *vc,
  *
  */
 PRIVATE INLINE int
-vrna_BT_int_loop( vrna_fold_compound *vc,
+vrna_BT_int_loop( vrna_fold_compound_t *vc,
                   int *i,
                   int *j,
                   int en,
-                  bondT *bp_stack,
+                  vrna_bp_stack_t *bp_stack,
                   int *stack_count){
 
   int           cp, ij, p, q, minq, turn, *idx, noGUclosure, no_close, energy, new, *my_c, *rtype;
@@ -900,7 +900,7 @@ vrna_BT_int_loop( vrna_fold_compound *vc,
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
-  char          (*f)(vrna_fold_compound *, int, int, int, int, char);
+  char          (*f)(vrna_fold_compound_t *, int, int, int, int, char);
   char          eval_loop;
 
   cp          = vc->cutpoint;

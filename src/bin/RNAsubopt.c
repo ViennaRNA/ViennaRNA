@@ -29,7 +29,7 @@
 static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.20 2008/12/03 16:55:44 ivo Exp $";
 
 static void
-add_shape_constraints(vrna_fold_compound *vc,
+add_shape_constraints(vrna_fold_compound_t *vc,
                       const char *shape_method,
                       const char *shape_conversion,
                       const char *shape_file,
@@ -60,13 +60,13 @@ add_shape_constraints(vrna_fold_compound *vc,
 
   sequence = vrna_alloc(sizeof(char) * (length + 1));
   values = vrna_alloc(sizeof(double) * (length + 1));
-  vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
+  vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if(method == 'D'){
-    (void)vrna_sc_SHAPE_add_deigan(vc, (const double *)values, p1, p2, constraint_type);
+    (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
   }
   else if(method == 'Z'){
-    (void)vrna_sc_SHAPE_add_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
+    (void)vrna_sc_add_SHAPE_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
   } else {
     assert(method == 'W');
     vrna_sc_add_up(vc, values, constraint_type);
@@ -76,7 +76,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   free(sequence);
 }
 
-PRIVATE void putoutzuker(SOLUTION* zukersolution);
+PRIVATE void putoutzuker(vrna_subopt_solution_t* zukersolution);
 
 int main(int argc, char *argv[]){
   struct          RNAsubopt_args_info args_info;
@@ -260,7 +260,7 @@ int main(int argc, char *argv[]){
     else vrna_message_input_seq_simple();
   }
 
-  /* set options we wanna pass to vrna_read_fasta_record() */
+  /* set options we wanna pass to vrna_file_fasta_read_record() */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   if(!fold_constrained) read_opt |= VRNA_INPUT_NO_REST;
 
@@ -270,7 +270,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     /*
@@ -291,7 +291,7 @@ int main(int argc, char *argv[]){
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
-    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | (circ ? 0 : VRNA_OPTION_HYBRID) | ((n_back > 0) ? VRNA_OPTION_PF : 0));
+    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | (circ ? 0 : VRNA_OPTION_HYBRID) | ((n_back > 0) ? VRNA_OPTION_PF : 0));
     length    = vc->length;
 
     structure = (char *) vrna_alloc((char) length+1);
@@ -299,7 +299,7 @@ int main(int argc, char *argv[]){
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
       if(constraints_file){
-        vrna_add_constraints(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((n_back > 0) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+        vrna_constraints_add(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((n_back > 0) ? VRNA_CONSTRAINT_SOFT_PF : 0));
       } else {
         cstruc = NULL;
         int cp = -1;
@@ -331,7 +331,7 @@ int main(int argc, char *argv[]){
 
           if(enforceConstraints)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
-          vrna_add_constraints(vc, (const char *)structure, constraint_options);
+          vrna_constraints_add(vc, (const char *)structure, constraint_options);
         }
       }
     }
@@ -365,11 +365,11 @@ int main(int argc, char *argv[]){
 
       ss = (char *) vrna_alloc(strlen(rec_sequence)+1);
       strncpy(ss, structure, length);
-      mfe = vrna_fold(vc, ss);
+      mfe = vrna_mfe(vc, ss);
       /* rescale Boltzmann factors according to predicted MFE */
       vrna_exp_params_rescale(vc, &mfe);
       /* ignore return value, we are not interested in the free energy */
-      (void)vrna_pf_fold(vc, ss);
+      (void)vrna_pf(vc, ss);
 
       free(ss);
       for (i=0; i<n_back; i++) {
@@ -396,14 +396,14 @@ int main(int argc, char *argv[]){
     }
     /* Zuker suboptimals */
     else{
-      SOLUTION *zr;
+      vrna_subopt_solution_t *zr;
       int i;
       if (fname[0] != '\0') printf(">%s\n%s\n", fname, rec_sequence);
 
       if (vc->cutpoint != -1) {
         vrna_message_error("Sorry, zuker subopts not yet implemented for cofold\n");
       }
-      zr = vrna_zukersubopt(vc);
+      zr = vrna_subopt_zuker(vc);
 
       putoutzuker(zr);
       (void)fflush(stdout);
@@ -416,7 +416,7 @@ int main(int argc, char *argv[]){
     (void)fflush(stdout);
 
     /* clean up */
-    vrna_free_fold_compound(vc);
+    vrna_fold_compound_free(vc);
 
     if(cstruc) free(cstruc);
     if(rec_id) free(rec_id);
@@ -446,7 +446,7 @@ int main(int argc, char *argv[]){
   return EXIT_SUCCESS;
 }
 
-PRIVATE void putoutzuker(SOLUTION* zukersolution) {
+PRIVATE void putoutzuker(vrna_subopt_solution_t* zukersolution) {
   int i;
   printf("%s [%.2f]\n",zukersolution[0].structure,zukersolution[0].energy/100.);
   for(i=1; zukersolution[i].structure; i++) {

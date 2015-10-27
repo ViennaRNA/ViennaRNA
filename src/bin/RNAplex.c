@@ -236,46 +236,49 @@ int main(int argc, char *argv[])
       char *id_s1=NULL;
       char *s1=NULL;
       vrna_param_t *P = NULL;
+      vrna_md_t     md;
+      vrna_md_set_globals(&md);
+
       if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-	update_fold_params();
-	P = scale_parameters();
-	make_pair_matrix();
+        update_fold_params();
+        P = vrna_params(&md);
+        make_pair_matrix();
       }
       /*Initialize parameter */
       printf("Concentration K:%3.3f TNP:%3.3f Mg:%3.3f Na:%3.3f probe:%3.3f\n\n", k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
       printf("%100s %7s %7s %7s %7s %7s\n", "sequence", "DDSL98", "DDSL04", "DRSU95", "RRXI98","CURRENT");
       do{
-	istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-	if ((line = get_line(stdin))==NULL) break;
-	/* skip empty lines, comment lines, name lines */
-	while ((*line=='*')||(*line=='\0')||(*line=='>')) {
-	  printf("%s\n", line); 
-	  if(*line=='>'){
-	    id_s1 = (char*) vrna_alloc(strlen(line)+2);
-	    (void) sscanf(line,"%s",id_s1); 
-	    memmove(id_s1, id_s1+1, strlen(id_s1));
-	  }
-	  free(line);                
-	  if ((line = get_line(stdin))==NULL) {
-	    free(id_s1);
-	    break;
-	  }
-	} 
-	if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
-	s1 = (char *) vrna_alloc(strlen(line)+1);
-	strcpy(s1,line);
-	/*compute duplex/entropy energy for the reverse complement*/;
-	double Tm;
-	Tm = probcompute_silvana_98(line, k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
-	printf("%100s  %*.2f ",s1,6,Tm);
-	Tm = probcompute_silvana_04(line, k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
-	printf("%*.2f  ",6, Tm);
-	Tm =  probcompute_sug_95(line, na_concentration, probe_concentration);
-	printf("%*.2f  ",6, Tm);
-	Tm =  probcompute_xia_98(line, na_concentration, probe_concentration);
-	printf("%*.2f  ",6, Tm);
-	Tm = probcompute_newparameters(line, k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
-	printf("%*.2f\n",6,Tm);
+        istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
+        if ((line = get_line(stdin))==NULL) break;
+        /* skip empty lines, comment lines, name lines */
+        while ((*line=='*')||(*line=='\0')||(*line=='>')) {
+          printf("%s\n", line); 
+          if(*line=='>'){
+            id_s1 = (char*) vrna_alloc(strlen(line)+2);
+            (void) sscanf(line,"%s",id_s1); 
+            memmove(id_s1, id_s1+1, strlen(id_s1));
+          }
+          free(line);                
+          if ((line = get_line(stdin))==NULL) {
+            free(id_s1);
+            break;
+          }
+        } 
+        if ((line ==NULL) || (strcmp(line, "@") == 0)) break;
+        s1 = (char *) vrna_alloc(strlen(line)+1);
+        strcpy(s1,line);
+        /*compute duplex/entropy energy for the reverse complement*/;
+        double Tm;
+        Tm = probcompute_silvana_98(line, k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
+        printf("%100s  %*.2f ",s1,6,Tm);
+        Tm = probcompute_silvana_04(line, k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
+        printf("%*.2f  ",6, Tm);
+        Tm =  probcompute_sug_95(line, na_concentration, probe_concentration);
+        printf("%*.2f  ",6, Tm);
+        Tm =  probcompute_xia_98(line, na_concentration, probe_concentration);
+        printf("%*.2f  ",6, Tm);
+        Tm = probcompute_newparameters(line, k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
+        printf("%*.2f\n",6,Tm);
       }while(1); 
     }
     RNAplex_cmdline_parser_free (&args_info);
@@ -1254,7 +1257,7 @@ int main(int argc, char *argv[])
           free(AS1[i]); free(names1[i]);
           free(AS2[i]); free(names2[i]);
         }
-	RNAplex_cmdline_parser_free (&args_info);
+        RNAplex_cmdline_parser_free (&args_info);
         return 0;
       }
       aliLduplexfold_XS((const char**)AS1, (const char**)AS2, (const int **) target_access, (const int **) query_access, n_seq*delta, alignment_length,  deltaz, fast, il_a, il_b, b_a,b_b);        
@@ -1960,10 +1963,14 @@ static int get_sequence_length_from_alignment(char *sequence){
 }
 
 static void linear_fit(int *il_a, int *il_b, int *b_a, int *b_b){ /*get fit parameters*/
+  vrna_md_t     md;
   vrna_param_t *P = NULL;
+
+  vrna_md_set_globals(&md);
+
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
-    P = scale_parameters();
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   int internal_loop_x[25] = {6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30};
@@ -2072,31 +2079,31 @@ double probcompute_silvana_98(char *s1, double k_concentration, double tris_conc
     double d_ratio_ions  = sqrt(mg_concentration / single_charged);
     if(single_charged==0){
       d_magn_corr_value = 
-	d_a - 
-	d_b * log (mg_concentration) + 
-	d_fgc * (d_c + d_d * log(mg_concentration)) + 
-	1/(2 * ((double)seqlen - 1)) * 
-	(- d_e + d_f * log (mg_concentration) + d_g * pow(log (mg_concentration),2));
+        d_a - 
+        d_b * log (mg_concentration) + 
+        d_fgc * (d_c + d_d * log(mg_concentration)) + 
+        1/(2 * ((double)seqlen - 1)) * 
+        (- d_e + d_f * log (mg_concentration) + d_g * pow(log (mg_concentration),2));
     }
     else {
       if (d_ratio_ions < 0.22) {
-	d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1/100000 * log (single_charged) + 9.40 * 1/1000000 * pow(log (single_charged),2 );
+        d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1/100000 * log (single_charged) + 9.40 * 1/1000000 * pow(log (single_charged),2 );
       }
       else {
-	if (d_ratio_ions < 6) {
-	  
-	  d_a = 3.92/100000 * (0.843 - 0.352 * sqrt(single_charged) * log (single_charged));
-	  d_d = 1.42/100000 * (1.279 - 4.03/1000 * log (single_charged) - 8.03/1000 * pow(log (single_charged),2));
-	  d_g = 8.31/100000 * (0.486 - 0.258 * log (single_charged) + 5.25/1000 * pow(log (single_charged),3));
-	  
-	  d_magn_corr_value = d_a - d_b * log
-	    (mg_concentration) + d_fgc *
-	    (d_c + d_d * log (mg_concentration)) + 1/(2 * ((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log (mg_concentration),2));
-	}
-	else {
-	  d_magn_corr_value = d_a - d_b * log (mg_concentration) + d_fgc * (d_c + d_d * log (mg_concentration)) + 1/(2 *((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log(mg_concentration),2));
-	  
-	}
+        if (d_ratio_ions < 6) {
+          
+          d_a = 3.92/100000 * (0.843 - 0.352 * sqrt(single_charged) * log (single_charged));
+          d_d = 1.42/100000 * (1.279 - 4.03/1000 * log (single_charged) - 8.03/1000 * pow(log (single_charged),2));
+          d_g = 8.31/100000 * (0.486 - 0.258 * log (single_charged) + 5.25/1000 * pow(log (single_charged),3));
+          
+          d_magn_corr_value = d_a - d_b * log
+            (mg_concentration) + d_fgc *
+            (d_c + d_d * log (mg_concentration)) + 1/(2 * ((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log (mg_concentration),2));
+        }
+        else {
+          d_magn_corr_value = d_a - d_b * log (mg_concentration) + d_fgc * (d_c + d_d * log (mg_concentration)) + 1/(2 *((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log(mg_concentration),2));
+          
+        }
       }
     }
     double temp_Tm = dH*1000  / (dS + 1.987 * log (probe_concentration/4));
@@ -2155,31 +2162,31 @@ double probcompute_silvana_04(char *s1, double k_concentration, double tris_conc
     double d_ratio_ions  = sqrt(mg_concentration / single_charged);
     if(single_charged==0){
       d_magn_corr_value = 
-	d_a - 
-	d_b * log (mg_concentration) + 
-	d_fgc * (d_c + d_d * log(mg_concentration)) + 
-	1/(2 * ((double)seqlen - 1)) * 
-	(- d_e + d_f * log (mg_concentration) + d_g * pow(log (mg_concentration),2));
+        d_a - 
+        d_b * log (mg_concentration) + 
+        d_fgc * (d_c + d_d * log(mg_concentration)) + 
+        1/(2 * ((double)seqlen - 1)) * 
+        (- d_e + d_f * log (mg_concentration) + d_g * pow(log (mg_concentration),2));
     }
     else {
       if (d_ratio_ions < 0.22) {
-	d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1/100000 * log (single_charged) + 9.40 * 1/1000000 * pow(log (single_charged),2 );
+        d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1/100000 * log (single_charged) + 9.40 * 1/1000000 * pow(log (single_charged),2 );
       }
       else {
-	if (d_ratio_ions < 6) {
-	  
-	  d_a = 3.92/100000 * (0.843 - 0.352 * sqrt(single_charged) * log (single_charged));
-	  d_d = 1.42/100000 * (1.279 - 4.03/1000 * log (single_charged) - 8.03/1000 * pow(log (single_charged),2));
-	  d_g = 8.31/100000 * (0.486 - 0.258 * log (single_charged) + 5.25/1000 * pow(log (single_charged),3));
-	  
-	  d_magn_corr_value = d_a - d_b * log
-	    (mg_concentration) + d_fgc *
-	    (d_c + d_d * log (mg_concentration)) + 1/(2 * ((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log (mg_concentration),2));
-	}
-	else {
-	  d_magn_corr_value = d_a - d_b * log (mg_concentration) + d_fgc * (d_c + d_d * log (mg_concentration)) + 1/(2 *((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log(mg_concentration),2));
-	  
-	}
+        if (d_ratio_ions < 6) {
+          
+          d_a = 3.92/100000 * (0.843 - 0.352 * sqrt(single_charged) * log (single_charged));
+          d_d = 1.42/100000 * (1.279 - 4.03/1000 * log (single_charged) - 8.03/1000 * pow(log (single_charged),2));
+          d_g = 8.31/100000 * (0.486 - 0.258 * log (single_charged) + 5.25/1000 * pow(log (single_charged),3));
+          
+          d_magn_corr_value = d_a - d_b * log
+            (mg_concentration) + d_fgc *
+            (d_c + d_d * log (mg_concentration)) + 1/(2 * ((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log (mg_concentration),2));
+        }
+        else {
+          d_magn_corr_value = d_a - d_b * log (mg_concentration) + d_fgc * (d_c + d_d * log (mg_concentration)) + 1/(2 *((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log(mg_concentration),2));
+          
+        }
       }
     }
     double temp_Tm = dH*1000  / (dS + 1.987 * log (probe_concentration/4));
@@ -2267,10 +2274,14 @@ double probcompute_newparameters(char *s1, double k_concentration, double tris_c
   /* ////////////////////////////////////////// */
   /* Folding Init */
   /* //////////////////////////////////////////   */
+  vrna_md_t   md;
   vrna_param_t *P = NULL;
+
+  vrna_md_set_globals(&md);
+
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
-    P = scale_parameters();
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   /* ///////////////////////////////////////// */
@@ -2363,31 +2374,31 @@ double probcompute_newparameters(char *s1, double k_concentration, double tris_c
     double d_ratio_ions  = sqrt(mg_concentration / single_charged);
     if(single_charged==0){
       d_magn_corr_value = 
-	d_a - 
-	d_b * log (mg_concentration) + 
-	d_fgc * (d_c + d_d * log(mg_concentration)) + 
-	1/(2 * ((double)seqlen - 1)) * 
-	(- d_e + d_f * log (mg_concentration) + d_g * pow(log (mg_concentration),2));
+        d_a - 
+        d_b * log (mg_concentration) + 
+        d_fgc * (d_c + d_d * log(mg_concentration)) + 
+        1/(2 * ((double)seqlen - 1)) * 
+        (- d_e + d_f * log (mg_concentration) + d_g * pow(log (mg_concentration),2));
     }
     else {
       if (d_ratio_ions < 0.22) {
-	d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1/100000 * log (single_charged) + 9.40 * 1/1000000 * pow(log (single_charged),2 );
+        d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1/100000 * log (single_charged) + 9.40 * 1/1000000 * pow(log (single_charged),2 );
       }
       else {
-	if (d_ratio_ions < 6) {
-	  
-	  d_a = 3.92/100000 * (0.843 - 0.352 * sqrt(single_charged) * log (single_charged));
-	  d_d = 1.42/100000 * (1.279 - 4.03/1000 * log (single_charged) - 8.03/1000 * pow(log (single_charged),2));
-	  d_g = 8.31/100000 * (0.486 - 0.258 * log (single_charged) + 5.25/1000 * pow(log (single_charged),3));
-	  
-	  d_magn_corr_value = d_a - d_b * log
-	    (mg_concentration) + d_fgc *
-	    (d_c + d_d * log (mg_concentration)) + 1/(2 * ((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log (mg_concentration),2));
-	}
-	else {
-	  d_magn_corr_value = d_a - d_b * log (mg_concentration) + d_fgc * (d_c + d_d * log (mg_concentration)) + 1/(2 *((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log(mg_concentration),2));
-	  
-	}
+        if (d_ratio_ions < 6) {
+          
+          d_a = 3.92/100000 * (0.843 - 0.352 * sqrt(single_charged) * log (single_charged));
+          d_d = 1.42/100000 * (1.279 - 4.03/1000 * log (single_charged) - 8.03/1000 * pow(log (single_charged),2));
+          d_g = 8.31/100000 * (0.486 - 0.258 * log (single_charged) + 5.25/1000 * pow(log (single_charged),3));
+          
+          d_magn_corr_value = d_a - d_b * log
+            (mg_concentration) + d_fgc *
+            (d_c + d_d * log (mg_concentration)) + 1/(2 * ((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log (mg_concentration),2));
+        }
+        else {
+          d_magn_corr_value = d_a - d_b * log (mg_concentration) + d_fgc * (d_c + d_d * log (mg_concentration)) + 1/(2 *((double)seqlen - 1)) * (- d_e + d_f * log (mg_concentration) + d_g *pow(log(mg_concentration),2));
+          
+        }
       }
     }
     double temp_Tm = dH*10  / (dS + 1.987 * log (probe_concentration/4));

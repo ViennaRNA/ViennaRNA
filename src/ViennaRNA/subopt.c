@@ -30,14 +30,14 @@
 #define false             0
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
-/*
-#################################
-# GLOBAL VARIABLES              #
-#################################
-*/
-PUBLIC  int     subopt_sorted=0;                           /* output sorted by energy */
-PUBLIC  int     density_of_states[MAXDOS+1];
-PUBLIC  double  print_energy = 9999; /* printing threshold for use with logML */
+/**
+ *  @brief  Sequence interval stack element used in subopt.c
+ */
+typedef struct INTERVAL {
+    int i;
+    int j;
+    int array_flag;
+} INTERVAL;
 
 typedef struct {
     char *structure;
@@ -53,6 +53,16 @@ typedef struct {
   int           nopush;
 } subopt_env;
 
+
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
+PUBLIC  int     subopt_sorted=0;                           /* output sorted by energy */
+PUBLIC  int     density_of_states[MAXDOS+1];
+PUBLIC  double  print_energy = 9999; /* printing threshold for use with logML */
+
 /*
 #################################
 # PRIVATE VARIABLES             #
@@ -61,7 +71,7 @@ typedef struct {
 
 /* some backward compatibility stuff */
 PRIVATE int                 backward_compat           = 0;
-PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 
 #ifdef _OPENMP
 
@@ -98,16 +108,16 @@ PRIVATE void      UNUSED print_stack(LIST * list);
 /*@only@*/ PRIVATE LIST *make_list(void);
 PRIVATE void      push(LIST * list, /*@only@*/ void *data);
 PRIVATE void      *pop(LIST * list);
-PRIVATE int       best_attainable_energy(vrna_fold_compound *vc, STATE * state);
-PRIVATE void      scan_interval(vrna_fold_compound *vc, int i, int j, int array_flag, int threshold, STATE * state, subopt_env *env);
+PRIVATE int       best_attainable_energy(vrna_fold_compound_t *vc, STATE * state);
+PRIVATE void      scan_interval(vrna_fold_compound_t *vc, int i, int j, int array_flag, int threshold, STATE * state, subopt_env *env);
 PRIVATE void      free_interval_node(/*@only@*/ INTERVAL * node);
 PRIVATE void      free_state_node(/*@only@*/ STATE * node);
 PRIVATE void      push_back(LIST *Stack, STATE * state);
 PRIVATE char*     get_structure(STATE * state);
 PRIVATE int       compare(const void *solution1, const void *solution2);
 PRIVATE void      make_output(SOLUTION *SL, int cp, FILE *fp);
-PRIVATE void      repeat(vrna_fold_compound *vc, int i, int j, STATE * state, int part_energy, int temp_energy, int best_energy, int threshold, subopt_env *env);
-PRIVATE void      repeat_gquad(vrna_fold_compound *vc, int i, int j, STATE *state, int part_energy, int temp_energy, int best_energy, int threshold, subopt_env *env);
+PRIVATE void      repeat(vrna_fold_compound_t *vc, int i, int j, STATE * state, int part_energy, int temp_energy, int best_energy, int threshold, subopt_env *env);
+PRIVATE void      repeat_gquad(vrna_fold_compound_t *vc, int i, int j, STATE *state, int part_energy, int temp_energy, int best_energy, int threshold, subopt_env *env);
 
 /*
 #################################
@@ -317,7 +327,7 @@ pop(LIST * list)
 /*---------------------------------------------------------------------------*/
 
 PRIVATE int
-best_attainable_energy( vrna_fold_compound *vc,
+best_attainable_energy( vrna_fold_compound_t *vc,
                         STATE *state){
 
   /* evaluation of best possible energy attainable within remaining intervals */
@@ -537,7 +547,7 @@ wrap_subopt(char *string,
             int is_circular,
             FILE *fp){
 
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_param_t        *P;
   char                *seq;
 
@@ -548,11 +558,12 @@ wrap_subopt(char *string,
 
   /* we need the parameter structure for hard constraints */
   if(parameters){
-    P = get_parameter_copy(parameters);
+    P = vrna_params_copy(parameters);
   } else {
     vrna_md_t md;
     set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
+    md.temperature = temperature;
+    P = vrna_params(&md);
   }
   P->model_details.circ     = is_circular;
   P->model_details.uniq_ML  = uniq_ML = 1;
@@ -561,7 +572,7 @@ wrap_subopt(char *string,
   /* dirty hack to reinsert the '&' according to the global variable 'cut_point' */
   seq = vrna_cut_point_insert(string, cut_point);
 
-  vc = vrna_get_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | ((is_circular == 0) ? VRNA_OPTION_HYBRID : (char)0));
+  vc = vrna_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | ((is_circular == 0) ? VRNA_OPTION_HYBRID : (char)0));
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -582,11 +593,11 @@ wrap_subopt(char *string,
                           | VRNA_CONSTRAINT_DB_INTRAMOL
                           | VRNA_CONSTRAINT_DB_INTERMOL;
 
-    vrna_add_constraints(vc, (const char *)structure, constraint_options);
+    vrna_constraints_add(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound && backward_compat)
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
@@ -598,7 +609,7 @@ wrap_subopt(char *string,
 }
 
 PUBLIC SOLUTION *
-vrna_subopt(vrna_fold_compound *vc,
+vrna_subopt(vrna_fold_compound_t *vc,
             int delta,
             FILE *fp){
 
@@ -650,7 +661,7 @@ vrna_subopt(vrna_fold_compound *vc,
       vc->sc->pre(vc, VRNA_SC_GEN_MFE);
 
   if(circular){
-    min_en = vrna_fold(vc, struc);
+    min_en = vrna_mfe(vc, struc);
     Fc  = vc->matrices->Fc;
     FcH = vc->matrices->FcH;
     FcI = vc->matrices->FcI;
@@ -669,7 +680,7 @@ vrna_subopt(vrna_fold_compound *vc,
     /* re-evaluate in case we're using logML etc */
     min_en = vrna_eval_structure(vc, struc);
   } else {
-    min_en = vrna_cofold(vc, struc);
+    min_en = vrna_mfe_dimer(vc, struc);
 
     fc    = vc->matrices->fc;
     f5    = vc->matrices->f5;
@@ -843,7 +854,7 @@ vrna_subopt(vrna_fold_compound *vc,
 
 
 PRIVATE void
-scan_interval(vrna_fold_compound *vc,
+scan_interval(vrna_fold_compound_t *vc,
               int i,
               int j,
               int array_flag,
@@ -1629,7 +1640,7 @@ scan_interval(vrna_fold_compound *vc,
 
 /*---------------------------------------------------------------------------*/
 PRIVATE void
-repeat_gquad( vrna_fold_compound *vc,
+repeat_gquad( vrna_fold_compound_t *vc,
               int i,
               int j,
               STATE *state,
@@ -1699,7 +1710,7 @@ repeat_gquad( vrna_fold_compound *vc,
 
 
 PRIVATE void
-repeat( vrna_fold_compound *vc,
+repeat( vrna_fold_compound_t *vc,
         int i,
         int j,
         STATE * state,

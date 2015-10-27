@@ -42,7 +42,7 @@ PUBLIC  int         st_back = 0;
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /* some backward compatibility stuff */
-PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 PRIVATE int                 backward_compat           = 0;
 
 #ifdef _OPENMP
@@ -58,15 +58,15 @@ PRIVATE int                 backward_compat           = 0;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void  pf_circ(vrna_fold_compound *vc);
-PRIVATE void  pf_linear(vrna_fold_compound *vc);
-PRIVATE void  pf_create_bppm(vrna_fold_compound *vc, char *structure);
-PRIVATE char  *wrap_pbacktrack_circ(vrna_fold_compound *vc);
+PRIVATE void  pf_circ(vrna_fold_compound_t *vc);
+PRIVATE void  pf_linear(vrna_fold_compound_t *vc);
+PRIVATE void  pf_create_bppm(vrna_fold_compound_t *vc, char *structure);
+PRIVATE char  *wrap_pbacktrack_circ(vrna_fold_compound_t *vc);
 
-PRIVATE void  backtrack(int i, int j, char *pstruc, vrna_fold_compound *vc);
-PRIVATE void  backtrack_qm(int i, int j, char *pstruc, vrna_fold_compound *vc);
-PRIVATE void  backtrack_qm1(int i,int j, char *pstruc, vrna_fold_compound *vc);
-PRIVATE void  backtrack_qm2(int u, int n, char *pstruc, vrna_fold_compound *vc);
+PRIVATE void  backtrack(int i, int j, char *pstruc, vrna_fold_compound_t *vc);
+PRIVATE void  backtrack_qm(int i, int j, char *pstruc, vrna_fold_compound_t *vc);
+PRIVATE void  backtrack_qm1(int i,int j, char *pstruc, vrna_fold_compound_t *vc);
+PRIVATE void  backtrack_qm2(int u, int n, char *pstruc, vrna_fold_compound_t *vc);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -93,7 +93,7 @@ wrap_mean_bp_distance(FLT_OR_DBL *p,
 */
 
 PUBLIC float
-vrna_pf_fold( vrna_fold_compound *vc,
+vrna_pf( vrna_fold_compound_t *vc,
               char *structure){
 
   FLT_OR_DBL        Q;
@@ -183,7 +183,7 @@ vrna_pf_fold( vrna_fold_compound *vc,
 }
 
 PRIVATE void
-pf_linear(vrna_fold_compound *vc){
+pf_linear(vrna_fold_compound_t *vc){
 
   int n, i,j,k,l, ij, kl, u,u1,u2,d,ii, maxk, minl;
   unsigned char type, type_2, tt;
@@ -480,7 +480,7 @@ pf_linear(vrna_fold_compound *vc){
 /* You have to call pf_linear first to calculate  */
 /* complete circular case!!!                      */
 PRIVATE void
-pf_circ(vrna_fold_compound *vc){
+pf_circ(vrna_fold_compound_t *vc){
 
   int u, p, q, k, l;
   int noGUclosure, turn;
@@ -588,7 +588,7 @@ pf_circ(vrna_fold_compound *vc){
 
 /* calculate base pairing probs */
 PUBLIC void
-pf_create_bppm( vrna_fold_compound *vc,
+pf_create_bppm( vrna_fold_compound_t *vc,
                 char *structure){
 
   int n, i,j,k,l, ij, kl, ii, u1, u2, ov=0;
@@ -1085,7 +1085,7 @@ pf_create_bppm( vrna_fold_compound *vc,
       }
 
     if (structure!=NULL){
-      char *s = vrna_db_get_from_pr(probs, (unsigned int)n);
+      char *s = vrna_db_from_probs(probs, (unsigned int)n);
       memcpy(structure, s, n);
       structure[n] = '\0';
       free(s);
@@ -1111,7 +1111,7 @@ pf_create_bppm( vrna_fold_compound *vc,
   p(S) = exp(-E(S)/kT)/Z
 */
 PUBLIC char *
-vrna_pbacktrack(vrna_fold_compound *vc){
+vrna_pbacktrack(vrna_fold_compound_t *vc){
 
   if(vc)
     if(vc->exp_params)
@@ -1122,7 +1122,7 @@ vrna_pbacktrack(vrna_fold_compound *vc){
 }
 
 PUBLIC char *
-vrna_pbacktrack5( vrna_fold_compound *vc,
+vrna_pbacktrack5( vrna_fold_compound_t *vc,
                   int length){
 
   double            r, qt, q_temp, qkl;
@@ -1303,7 +1303,7 @@ PRIVATE void
 backtrack_qm( int i,
               int j,
               char *pstruc,
-              vrna_fold_compound *vc){
+              vrna_fold_compound_t *vc){
 
   /* divide multiloop into qm and qm1  */
   double            qmt, r, q_temp;
@@ -1400,7 +1400,7 @@ PRIVATE void
 backtrack_qm1(int i,
               int j,
               char *pstruc,
-              vrna_fold_compound *vc){
+              vrna_fold_compound_t *vc){
 
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int           ii, l, il, type, n, turn;
@@ -1471,7 +1471,7 @@ PRIVATE void
 backtrack_qm2(int k,
               int n,
               char *pstruc,
-              vrna_fold_compound *vc){
+              vrna_fold_compound_t *vc){
 
   double qom2t, r;
   int u, turn;
@@ -1498,7 +1498,7 @@ PRIVATE void
 backtrack(int i,
           int j,
           char *pstruc,
-          vrna_fold_compound *vc){
+          vrna_fold_compound_t *vc){
 
   char              *ptype, *sequence, *hard_constraints, hc_decompose;
   vrna_exp_param_t  *pf_params;
@@ -1684,7 +1684,7 @@ PUBLIC double
 vrna_mean_bp_distance_pr( int length,
                           FLT_OR_DBL *p){
 
-  int *index = vrna_get_iindx((unsigned int) length);
+  int *index = vrna_idx_row_wise((unsigned int) length);
   double d;
 
   if (p==NULL)
@@ -1697,7 +1697,7 @@ vrna_mean_bp_distance_pr( int length,
 }
 
 PUBLIC double
-vrna_mean_bp_distance(vrna_fold_compound *vc){
+vrna_mean_bp_distance(vrna_fold_compound_t *vc){
 
   if(!vc){
     vrna_message_error("vrna_mean_bp_distance: run vrna_pf_fold first!");
@@ -1713,10 +1713,10 @@ vrna_mean_bp_distance(vrna_fold_compound *vc){
                                 vc->exp_params->model_details.min_loop_size);
 }
 
-PUBLIC plist *
-vrna_stack_prob(vrna_fold_compound *vc, double cutoff){
+PUBLIC vrna_plist_t *
+vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff){
 
-  plist             *pl;
+  vrna_plist_t             *pl;
   int               i, j, plsize, turn, length, *index, *jindx, *rtype, num;
   char              *ptype;
   FLT_OR_DBL        *qb, *probs, *scale, p;
@@ -1740,7 +1740,7 @@ vrna_stack_prob(vrna_fold_compound *vc, double cutoff){
     scale     = matrices->scale;
     turn      = pf_params->model_details.min_loop_size;
 
-    pl        = (plist *) vrna_alloc(plsize*sizeof(plist));
+    pl        = (vrna_plist_t *) vrna_alloc(plsize*sizeof(vrna_plist_t));
 
     for (i=1; i<length; i++)
       for (j=i+turn+3; j<=length; j++) {
@@ -1756,7 +1756,7 @@ vrna_stack_prob(vrna_fold_compound *vc, double cutoff){
           pl[num++].p   = p;
           if (num>=plsize) {
             plsize *= 2;
-            pl = vrna_realloc(pl, plsize*sizeof(plist));
+            pl = vrna_realloc(pl, plsize*sizeof(vrna_plist_t));
           }
         }
       }
@@ -1781,7 +1781,7 @@ wrap_pf_fold( const char *sequence,
               int is_constrained,
               int is_circular){
 
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_md_t           md;
   vc                  = NULL;
 
@@ -1794,7 +1794,7 @@ wrap_pf_fold( const char *sequence,
   md.circ         = is_circular;
   md.compute_bpp  = calculate_bppm;
 
-  vc = vrna_get_fold_compound(sequence, &md, VRNA_OPTION_PF);
+  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_PF);
 
 #if 0
   if(parameters){ /* replace exp_params if necessary */
@@ -1815,17 +1815,17 @@ wrap_pf_fold( const char *sequence,
                           | VRNA_CONSTRAINT_DB_ANG_BRACK
                           | VRNA_CONSTRAINT_DB_RND_BRACK;
 
-    vrna_add_constraints(vc, (const char *)structure, constraint_options);
+    vrna_constraints_add(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound && backward_compat)
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
   iindx = backward_compat_compound->iindx;
 
-  return vrna_pf_fold(vc, structure);
+  return vrna_pf(vc, structure);
 }
 
 PUBLIC char *
@@ -1837,7 +1837,7 @@ pbacktrack_circ(char *seq){
 
 
 PRIVATE char *
-wrap_pbacktrack_circ(vrna_fold_compound *vc){
+wrap_pbacktrack_circ(vrna_fold_compound_t *vc){
 
   double r, qt;
   int i, j, k, l, n;
@@ -1952,7 +1952,7 @@ wrap_pbacktrack_circ(vrna_fold_compound *vc){
 }
 
 
-PUBLIC plist *
+PUBLIC vrna_plist_t *
 stackProb(double cutoff){
 
   if(!(backward_compat_compound && backward_compat)){
@@ -1971,7 +1971,7 @@ centroid( int length,
   if (pr==NULL)
     vrna_message_error("pr==NULL. You need to call pf_fold() before centroid()");
 
-  return vrna_get_centroid_struct_pr(length, dist, pr);
+  return vrna_centroid_from_probs(length, dist, pr);
 }
 
 
@@ -1988,7 +1988,7 @@ mean_bp_dist(int length) {
   if (pr==NULL)
     vrna_message_error("pr==NULL. You need to call pf_fold() before mean_bp_dist()");
 
-  int *my_iindx = vrna_get_iindx(length);
+  int *my_iindx = vrna_idx_row_wise(length);
 
   for (i=1; i<=length; i++)
     for (j=i+TURN+1; j<=length; j++)
@@ -2144,7 +2144,7 @@ PUBLIC void
 free_pf_arrays(void){
 
   if(backward_compat_compound && backward_compat){
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
     backward_compat_compound  = NULL;
     backward_compat           = 0;
     iindx = NULL;
@@ -2234,12 +2234,9 @@ PUBLIC void
 update_pf_params(int length){
 
   if(backward_compat_compound && backward_compat){
-    vrna_exp_param_t  *p;
     vrna_md_t         md;
     vrna_md_set_globals(&md);
-    p = vrna_exp_params_get(&md);
-    vrna_exp_params_update(backward_compat_compound, p);
-    free(p);
+    vrna_exp_params_reset(backward_compat_compound, &md);
 
     /* compatibility with RNAup, may be removed sometime */
     pf_scale = backward_compat_compound->exp_params->pf_scale;
@@ -2251,15 +2248,12 @@ update_pf_params_par( int length,
                       vrna_exp_param_t *parameters){
 
   if(backward_compat_compound && backward_compat){
-    vrna_exp_param_t  *p;
     vrna_md_t         md;
     if(parameters){
-      vrna_exp_params_update(backward_compat_compound, parameters);
+      vrna_exp_params_subst(backward_compat_compound, parameters);
     } else {
       vrna_md_set_globals(&md);
-      p = vrna_exp_params_get(&md);
-      vrna_exp_params_update(backward_compat_compound, p);
-      free(p);
+      vrna_exp_params_reset(backward_compat_compound, &md);
     }
 
     /* compatibility with RNAup, may be removed sometime */
@@ -2271,11 +2265,11 @@ PUBLIC char *
 get_centroid_struct_gquad_pr( int length,
                               double *dist){
 
-  return vrna_get_centroid_struct(backward_compat_compound, dist);
+  return vrna_centroid(backward_compat_compound, dist);
 }
 
 PUBLIC void
-assign_plist_gquad_from_pr( plist **pl,
+assign_vrna_plist_t_gquad_from_pr( vrna_plist_t **pl,
                             int length, /* ignored */
                             double cut_off){
 
@@ -2284,7 +2278,7 @@ assign_plist_gquad_from_pr( plist **pl,
   } else if( !backward_compat_compound->exp_matrices->probs){
     *pl = NULL;
   } else {
-    *pl = vrna_pl_get_from_pr(backward_compat_compound, cut_off);
+    *pl = vrna_plist_from_probs(backward_compat_compound, cut_off);
   }
 }
 
@@ -2305,7 +2299,7 @@ mean_bp_distance_pr(int length,
                     FLT_OR_DBL *p){
 
   double d=0;
-  int *index = vrna_get_iindx((unsigned int) length);
+  int *index = vrna_idx_row_wise((unsigned int) length);
 
   if (p==NULL)
     vrna_message_error("p==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");

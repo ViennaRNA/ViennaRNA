@@ -2,13 +2,17 @@
 #define VIENNA_RNA_PACKAGE_PS_DOT_H
 
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/plot_layouts.h>
+#include <ViennaRNA/plot_structure.h>
+#include <ViennaRNA/plot_aln.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
 #else
 #define DEPRECATED(func) func
 #endif
+
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
 
 /**
  *  @addtogroup   plotting_utils
@@ -19,114 +23,6 @@
  *  @brief Various functions for plotting RNA secondary structures, dot-plots and other
  *  visualizations
  */
-
-/* write PostScript drawing of structure to file with annotation */
-int PS_rna_plot_snoop_a(char *string,
-                        char *structure,
-                        char *ssfile,
-                        int *relative_access,
-                        const char *seqs[]);
-
-/**
- *  @brief Produce a secondary structure graph in PostScript and write it to 'filename'.
- *
- *  Note that this function has changed from previous versions
- *  and now expects the structure to be plotted in dot-bracket notation as an
- *  argument. It does not make use of the global #base_pair array anymore.
- *
- *  @param string     The RNA sequence
- *  @param structure  The secondary structure in dot-bracket notation
- *  @param file       The filename of the postscript output
- *  @return           1 on success, 0 otherwise
- */
-int PS_rna_plot(char *string,
-                char *structure,
-                char *file);
-
-/**
- *  @brief Produce a secondary structure graph in PostScript including additional
- *  annotation macros and write it to 'filename'
- *
- *  Same as PS_rna_plot() but adds extra PostScript macros for various
- *  annotations (see generated PS code). The 'pre' and 'post'
- *  variables contain PostScript code that is verbatim copied in the
- *  resulting PS file just before and after the structure plot.
- *  If both arguments ('pre' and 'post') are NULL, no additional macros will
- *  be printed into the PostScript.
- *
- *  @param string     The RNA sequence
- *  @param structure  The secondary structure in dot-bracket notation
- *  @param file       The filename of the postscript output
- *  @param pre        PostScript code to appear before the secondary structure plot
- *  @param post       PostScript code to appear after the secondary structure plot
- *  @return           1 on success, 0 otherwise
- */
-int PS_rna_plot_a(char *string,
-                  char *structure,
-                  char *file,
-                  char *pre,
-                  char *post);
-
-int PS_rna_plot_a_gquad(char *string,
-                        char *structure,
-                        char *ssfile,
-                        char *pre,
-                        char *post);
-
-/**
- *  @brief Produce a secondary structure graph in Graph Meta Language (gml) and write it to a file
- *
- *  If 'option' is an uppercase letter the RNA sequence is used to label nodes, if 'option' equals
- *  @a 'X' or @a 'x' the resulting file will coordinates for an initial layout of the graph.
- *
- *  @param  string    The RNA sequence
- *  @param  structure The secondary structure in dot-bracket notation
- *  @param  ssfile    The filename of the gml output
- *  @param  option    The option flag
- *  @return           1 on success, 0 otherwise
- */
-int gmlRNA( char *string,
-            char *structure,
-            char *ssfile,
-            char option);
-
-/**
- *  @brief  Produce a secondary structure graph in SStructView format
- *
- *  Write coord file for SStructView
- *
- *  @param  string    The RNA sequence
- *  @param  structure The secondary structure in dot-bracket notation
- *  @param  ssfile    The filename of the ssv output
- *  @return           1 on success, 0 otherwise
- */
-int ssv_rna_plot( char *string,
-                  char *structure,
-                  char *ssfile);
-
-/**
- *  @brief Produce a secondary structure plot in SVG format and write it to a file
- *
- *  @param string     The RNA sequence
- *  @param structure  The secondary structure in dot-bracket notation
- *  @param ssfile     The filename of the svg output
- *  @return           1 on success, 0 otherwise
- */
-int svg_rna_plot( char *string,
-                  char *structure,
-                  char *ssfile);
-
-/**
- *  @brief Produce a secondary structure plot for further editing in XRNA
- *
- *  @param string     The RNA sequence
- *  @param structure  The secondary structure in dot-bracket notation
- *  @param ssfile     The filename of the xrna output
- *  @return           1 on success, 0 otherwise
- */
-int xrna_plot(char *string,
-              char *structure,
-              char *ssfile);
 
 int PS_color_dot_plot(char *string,
                       cpair *pi,
@@ -170,23 +66,11 @@ int vrna_plot_dp_PS_list( char *seq,
                           char *comment);
 
 int PS_dot_plot_turn( char *seq,
-                      struct plist *pl,
+                      plist *pl,
                       char *filename,
                       int winSize);
 
-int PS_color_aln( const char *structure,
-                  const char *filename,
-                  const char *seqs[],
-                  const char *names[]);
-
-/**
- * 	PS_color_aln for duplexes
-*/
-int aliPS_color_aln(const char *structure,
-                    const char *filename, 
-                    const char *seqs[],
-                    const char *names[]); 
-
+#ifdef VRNA_BACKWARD_COMPAT
 
 /**
  *  Wrapper to PS_dot_plot_list
@@ -205,6 +89,8 @@ int aliPS_color_aln(const char *structure,
  */
 DEPRECATED(int PS_dot_plot( char *string,
                             char *file));
+
+#endif
 
 /**
  * @}
