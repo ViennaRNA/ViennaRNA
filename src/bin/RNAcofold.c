@@ -25,7 +25,7 @@
 /*@unused@*/
 PRIVATE char rcsid[] = "$Id: RNAcofold.c,v 1.7 2006/05/10 15:14:27 ivo Exp $";
 
-PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, struct plist **tpr, struct plist **mf, vrna_exp_param_t *parameters);
+PRIVATE cofoldF do_partfunc(char *string, int length, int Switch, plist **tpr, plist **mf, vrna_exp_param_t *parameters);
 PRIVATE double *read_concentrations(FILE *fp);
 PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces, vrna_exp_param_t *parameters);
 
@@ -602,8 +602,8 @@ PRIVATE cofoldF
 do_partfunc(char *string,
             int length,
             int Switch,
-            struct plist **tpr,
-            struct plist **mfpl,
+            plist **tpr,
+            plist **mfpl,
             vrna_exp_param_t *parameters){
 
   /*compute mfe and partition function of dimer or monomer*/
@@ -625,9 +625,9 @@ do_partfunc(char *string,
               *mfpl = vrna_pl_get(tempstruc, 0.95);
               vrna_mx_mfe_free(vc);
 
-              par = get_boltzmann_factor_copy(parameters);
+              par = vrna_exp_params_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(length));
-              vrna_exp_params_update(vc, par);
+              vrna_exp_params_subst(vc, par);
               X = vrna_pf_dimer(vc, tempstruc);
               if(*tpr){
                 *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);
@@ -648,9 +648,9 @@ do_partfunc(char *string,
               *mfpl = vrna_pl_get(tempstruc, 0.95);
               vrna_mx_mfe_free(vc);
 
-              par = get_boltzmann_factor_copy(parameters);
+              par = vrna_exp_params_copy(parameters);
               par->pf_scale = exp(-(sfact*min_en)/kT/(2*length));
-              vrna_exp_params_update(vc, par);
+              vrna_exp_params_subst(vc, par);
               X = vrna_pf_dimer(vc, tempstruc);
               if(*tpr){
                 *tpr = vrna_pl_get_from_pr(vc, bppmThreshold);

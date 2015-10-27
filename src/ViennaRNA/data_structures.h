@@ -15,19 +15,25 @@
 /** @brief Typename for the fold_compound data structure #vrna_fc
  *  @ingroup basic_data_structures
  */
-typedef struct vrna_fc        vrna_fold_compound_t;
+typedef struct vrna_fc_s        vrna_fold_compound_t;
 
 /** @brief Typename for the base pair repesenting data structure #vrna_basepair */
-typedef struct vrna_basepair  vrna_basepair_t;
+typedef struct vrna_basepair_s  vrna_basepair_t;
+
+typedef struct vrna_plist_s     vrna_plist_t;
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 
+
 #ifdef VRNA_BACKWARD_COMPAT
 
-typedef struct vrna_basepair  PAIR;
-typedef struct vrna_subopt_solution   SOLUTION;
-typedef struct vrna_subopt_interval   INTERVAL;
+/* the following typedefs are for backward compatibility only */
+
+typedef struct vrna_basepair_s  PAIR;
+typedef struct vrna_plist_s     plist;
+typedef struct vrna_cpair_s     cpair;
+typedef struct vrna_sect_s      sect;
 
 #endif
 
@@ -45,32 +51,40 @@ typedef struct vrna_subopt_interval   INTERVAL;
 */
 
 /**
+ *  @brief  Base pair data structure used in subopt.c
+ */
+struct vrna_basepair_s {
+  int i;
+  int j;
+};
+
+/**
  *  @brief this datastructure is used as input parameter in functions of PS_dot.h and others
  */
-typedef struct plist {
+struct vrna_plist_s {
   int i;
   int j;
   float p;
   int type;
-} plist;
+};
 
 /**
  *  @brief this datastructure is used as input parameter in functions of PS_dot.c
  */
-typedef struct cpair {
+struct vrna_cpair_s {
   int i,j,mfe;
   float p, hue, sat;
-} cpair;
+};
 
 
 /**
  *  @brief  Stack of partial structures for backtracking
  */
-typedef struct sect {
+struct vrna_sect_s {
   int  i;
   int  j;
   int ml;
-} sect;
+};
 
 /**
  *  @brief  Base pair
@@ -88,38 +102,6 @@ typedef struct bondTEn {
    int j;
    int energy;
 } bondTEn;
-
-
-/*
-* ############################################################
-* SUBOPT data structures
-* ############################################################
-*/
-
-/**
- *  @brief  Base pair data structure used in subopt.c
- */
-struct vrna_basepair {
-  int i;
-  int j;
-};
-
-/**
- *  @brief  Sequence interval stack element used in subopt.c
- */
-struct vrna_subopt_interval {
-    int i;
-    int j;
-    int array_flag;
-};
-
-/**
- *  @brief  Solution element from subopt.c
- */
-struct vrna_subopt_solution {
-  float energy;       /**< @brief Free Energy of structure in kcal/mol */
-  char *structure;    /**< @brief Structure in dot-bracket notation */
-};
 
 /*
 * ############################################################
@@ -156,11 +138,11 @@ typedef struct ConcEnt {
  *  @brief
  */
 typedef struct pairpro{
-  struct plist *AB;
-  struct plist *AA;
-  struct plist *A;
-  struct plist *B;
-  struct plist *BB;
+  plist *AB;
+  plist *AA;
+  plist *A;
+  plist *B;
+  plist *BB;
 } pairpro;
 
 /**
@@ -182,40 +164,6 @@ typedef struct {
    char comp;     /**< @brief  1 iff pair is in mfe structure */
 } pair_info;
 
-
-/*
-* ############################################################
-* FINDPATH data structures
-* ############################################################
-*/
-
-/**
- *  @brief
- */
-typedef struct move {
-  int i;  /* i,j>0 insert; i,j<0 delete */
-  int j;
-  int when;  /* 0 if still available, else resulting distance from start */
-  int E;
-} move_t;
-
-/**
- *  @brief
- */
-typedef struct intermediate {
-  short *pt;      /**<  @brief  pair table */
-  int Sen;        /**<  @brief  saddle energy so far */
-  int curr_en;    /**<  @brief  current energy */
-  move_t *moves;  /**<  @brief  remaining moves to target */
-} intermediate_t;
-
-/**
- *  @brief
- */
-typedef struct path {
-  double en;
-  char *s;
-} path_t;
 
 /*
 * ############################################################
@@ -394,7 +342,7 @@ typedef struct dupVar{
 typedef enum {
   VRNA_VC_TYPE_SINGLE,    /**< Type is suitable for single, and hybridizing sequences */
   VRNA_VC_TYPE_ALIGNMENT  /**< Type is suitable for sequence alignments (consensus structure prediction) */
-} vrna_vc_t;
+} vrna_fc_type_e;
 
 
 /**
@@ -409,13 +357,13 @@ typedef enum {
  *  @see  #vrna_fold_compound_t.type, vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_fold_compound_free(),
  *        #VRNA_VC_TYPE_SINGLE, #VRNA_VC_TYPE_ALIGNMENT
  */
-struct vrna_fc{
+struct vrna_fc_s{
 
   /**
       @name Common data fields
       @{
    */
-  vrna_vc_t         type;           /**<  @brief  The type of the #vrna_fold_compound_t.
+  vrna_fc_type_e    type;           /**<  @brief  The type of the #vrna_fold_compound_t.
                                       @details Currently possible values are #VRNA_VC_TYPE_SINGLE, and #VRNA_VC_TYPE_ALIGNMENT
                                       @warning Do not edit this attribute, it will be automagically set by
                                             the corresponding get() methods for the #vrna_fold_compound_t.
@@ -633,9 +581,10 @@ struct vrna_fc{
  *  @param    options     The options for DP matrices memory allocation
  *  @return               A prefilled vrna_fold_compound_t that can be readily used for computations
  */
-vrna_fold_compound_t *vrna_fold_compound( const char *sequence,
-                                          vrna_md_t *md_p,
-                                          unsigned int options);
+vrna_fold_compound_t *
+vrna_fold_compound( const char *sequence,
+                    vrna_md_t *md_p,
+                    unsigned int options);
 
 /**
  *  @brief  Retrieve a #vrna_fold_compound_t data structure for sequence alignments
@@ -665,15 +614,17 @@ vrna_fold_compound_t *vrna_fold_compound( const char *sequence,
  *  @param    options     The options for DP matrices memory allocation
  *  @return               A prefilled vrna_fold_compound_t that can be readily used for computations
  */
-vrna_fold_compound_t *vrna_fold_compound_comparative( const char **sequences,
-                                                vrna_md_t *md_p,
-                                                unsigned int options);
+vrna_fold_compound_t *
+vrna_fold_compound_comparative( const char **sequences,
+                                vrna_md_t *md_p,
+                                unsigned int options);
 
-vrna_fold_compound_t *vrna_fold_compound_TwoD(const char *sequence,
-                                              const char *s1,
-                                              const char *s2,
-                                              vrna_md_t *md_p,
-                                              unsigned int options);
+vrna_fold_compound_t *
+vrna_fold_compound_TwoD(const char *sequence,
+                        const char *s1,
+                        const char *s2,
+                        vrna_md_t *md_p,
+                        unsigned int options);
 
 /**
  *  @brief  Free memory occupied by a #vrna_fold_compound_t
@@ -682,7 +633,8 @@ vrna_fold_compound_t *vrna_fold_compound_TwoD(const char *sequence,
  *
  *  @param  vc  The #vrna_fold_compound_t that is to be erased from memory
  */
-void vrna_fold_compound_free(vrna_fold_compound_t *vc);
+void
+vrna_fold_compound_free(vrna_fold_compound_t *vc);
 
 /**
  *  @}

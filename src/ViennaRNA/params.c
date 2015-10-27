@@ -125,7 +125,7 @@ vrna_exp_params_copy(vrna_exp_param_t *par){
 }
 
 PUBLIC void
-vrna_params_update( vrna_fold_compound_t *vc,
+vrna_params_subst( vrna_fold_compound_t *vc,
                     vrna_param_t *parameters){
 
   if(vc){
@@ -147,8 +147,44 @@ vrna_params_update( vrna_fold_compound_t *vc,
 }
 
 PUBLIC void
-vrna_exp_params_update( vrna_fold_compound_t *vc,
-                        vrna_exp_param_t *params){
+vrna_params_reset(vrna_fold_compound_t *vc,
+                  vrna_md_t *md_p){
+
+  if(vc){
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:     /* fall through */
+
+      case VRNA_VC_TYPE_ALIGNMENT:  if(vc->params)
+                                      free(vc->params);
+                                    vc->params = vrna_params_get(md_p);
+                                    break;
+
+      default:                      break;
+    }
+  }
+}
+
+PUBLIC void
+vrna_exp_params_reset(vrna_fold_compound_t *vc,
+                      vrna_md_t *md_p){
+
+  if(vc){
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:     /* fall through */
+
+      case VRNA_VC_TYPE_ALIGNMENT:  if(vc->exp_params)
+                                      free(vc->exp_params);
+                                    vc->exp_params = vrna_exp_params_get(md_p);
+                                    break;
+
+      default:                      break;
+    }
+  }
+}
+
+PUBLIC void
+vrna_exp_params_subst(vrna_fold_compound_t *vc,
+                      vrna_exp_param_t *params){
 
   if(vc){
     if(vc->exp_params)

@@ -150,7 +150,8 @@ int main(int argc, char *argv[]){
   */
   if(RNAfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
-  if(args_info.temp_given)        md.temperature = temperature = args_info.temp_arg;
+  if(args_info.temp_given)
+    md.temperature = temperature = args_info.temp_arg;
   /* structure constraint */
   if(args_info.constraint_given){
     fold_constrained=1;
@@ -291,7 +292,7 @@ int main(int argc, char *argv[]){
     else vrna_message_input_seq_simple();
   }
 
-  mfe_parameters = get_scaled_parameters(temperature, md);
+  mfe_parameters = vrna_params_get(&md);
 
   /* set options we wanna pass to vrna_file_fasta_read_record() */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;

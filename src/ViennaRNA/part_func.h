@@ -347,7 +347,7 @@ DEPRECATED(void  free_pf_arrays(void));
  *  Call this function to recalculate the pair matrix and energy parameters
  *  after a change in folding parameters like #temperature
  *
- *  @deprecated Use vrna_exp_params_update() instead
+ *  @deprecated Use vrna_exp_params_subst() instead
  *  @ingroup pf_fold
  *
  */
@@ -356,7 +356,7 @@ DEPRECATED(void  update_pf_params(int length));
 /**
  *  @brief Recalculate energy parameters
  *
- *  @deprecated Use vrna_exp_params_update() instead
+ *  @deprecated Use vrna_exp_params_subst() instead
  *  @ingroup pf_fold
  *
  */

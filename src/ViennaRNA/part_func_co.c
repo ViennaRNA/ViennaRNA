@@ -949,14 +949,14 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
 }
 
 PUBLIC void
-vrna_pf_dimer_probs( double FAB,
-                        double FA,
-                        double FB,
-                        struct plist *prAB,
-                        const plist *prA,
-                        const plist *prB,
-                        int Alength,
-                        const vrna_exp_param_t *exp_params) {
+vrna_pf_dimer_probs(double FAB,
+                    double FA,
+                    double FB,
+                    vrna_plist_t *prAB,
+                    const vrna_plist_t *prA,
+                    const vrna_plist_t *prB,
+                    int Alength,
+                    const vrna_exp_param_t *exp_params) {
 
   /*computes binding probabilities and dimer free energies*/
   int         i, j;
@@ -1279,8 +1279,8 @@ co_pf_fold_par( char *sequence,
 }
 
 
-PUBLIC struct plist *
-get_plist(struct plist *pl,
+PUBLIC plist *
+get_plist(plist *pl,
           int length,
           double cut_off){
 
@@ -1295,7 +1295,7 @@ get_plist(struct plist *pl,
       if (pr[my_iindx[i]-j]<cut_off) continue;
       if (count==n*length-1) {
         n*=2;
-        pl=(struct plist *)vrna_realloc(pl,n*length*sizeof(struct plist));
+        pl=(plist *)vrna_realloc(pl,n*length*sizeof(plist));
       }
       pl[count].i=i;
       pl[count].j=j;
@@ -1306,7 +1306,7 @@ get_plist(struct plist *pl,
   pl[count].i=0;
   pl[count].j=0; /*->??*/
   pl[count++].p=0.;
-  pl=(struct plist *)vrna_realloc(pl,(count)*sizeof(struct plist));
+  pl=(plist *)vrna_realloc(pl,(count)*sizeof(plist));
   return pl;
 }
 
@@ -1314,9 +1314,9 @@ PUBLIC void
 compute_probabilities(double FAB,
                       double FA,
                       double FB,
-                      struct plist *prAB,
-                      struct plist *prA,
-                      struct plist *prB,
+                      plist *prAB,
+                      plist *prA,
+                      plist *prB,
                       int Alength) {
 
   if(backward_compat_compound && backward_compat){
@@ -1365,12 +1365,9 @@ PUBLIC void
 update_co_pf_params(int length){
 
   if(backward_compat_compound && backward_compat){
-    vrna_exp_param_t  *p;
     vrna_md_t         md;
     vrna_md_set_globals(&md);
-    p = vrna_exp_params_get(&md);
-    vrna_exp_params_update(backward_compat_compound, p);
-    free(p);
+    vrna_exp_params_reset(backward_compat_compound, &md);
 
     /* compatibility with RNAup, may be removed sometime */
     pf_scale = backward_compat_compound->exp_params->pf_scale;
@@ -1382,15 +1379,12 @@ update_co_pf_params_par(int length,
                         vrna_exp_param_t *parameters){
 
   if(backward_compat_compound && backward_compat){
-    vrna_exp_param_t  *p;
     vrna_md_t         md;
     if(parameters){
-      vrna_exp_params_update(backward_compat_compound, parameters);
+      vrna_exp_params_subst(backward_compat_compound, parameters);
     } else {
       vrna_md_set_globals(&md);
-      p = vrna_exp_params_get(&md);
-      vrna_exp_params_update(backward_compat_compound, p);
-      free(p);
+      vrna_exp_params_reset(backward_compat_compound, &md);
     }
 
     /* compatibility with RNAup, may be removed sometime */

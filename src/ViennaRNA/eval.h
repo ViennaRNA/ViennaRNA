@@ -11,6 +11,9 @@
 #define DEPRECATED(func) func
 #endif
 
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
+
 /**
  *  @file eval.h
  *  @brief Functions and variables related to energy evaluation
@@ -294,6 +297,8 @@ int vrna_eval_move_pt_simple( const char *string,
                               int m1,
                               int m2);
 
+#ifdef VRNA_BACKWARD_COMPAT
+
 /**
  *  @brief Calculate the free energy of an already folded RNA using global model detail settings
  *
@@ -559,6 +564,8 @@ DEPRECATED(int energy_of_struct_pt( const char *string,
  */
 DEPRECATED(float energy_of_circ_struct( const char *string,
                                         const char *structure));
+
+#endif
 
 /**
  * @}

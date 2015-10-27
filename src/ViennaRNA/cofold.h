@@ -10,6 +10,9 @@
 #define DEPRECATED(func) func
 #endif
 
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
+
 /**
  *  @addtogroup cofold
  *  @brief Predict structures formed by two molecules upon hybridization.
@@ -94,6 +97,8 @@ char *vrna_cut_point_insert(const char *string,
 char *vrna_cut_point_remove(const char *string,
                             int *cp);
 
+#ifdef VRNA_BACKWARD_COMPAT
+
 /**
  *  @brief Compute the minimum free energy of two interacting RNA molecules
  *
@@ -137,13 +142,13 @@ DEPRECATED(void free_co_arrays(void));
 
 /**
  *  @brief Recalculate parameters
- *  @deprecated See vrna_params_update() for an alternative using the new API
+ *  @deprecated See vrna_params_subst() for an alternative using the new API
  */
 DEPRECATED(void update_cofold_params(void));
 
 /**
  *  @brief Recalculate parameters
- *  @deprecated See vrna_params_update() for an alternative using the new API
+ *  @deprecated See vrna_params_subst() for an alternative using the new API
  */
 DEPRECATED(void update_cofold_params_par(vrna_param_t *parameters));
 
@@ -205,49 +210,6 @@ DEPRECATED(void export_cofold_arrays( int **f5_p,
                                       char **ptype_p));
 
 
-/**
- *  @}
- */
-
-/**
- *  @brief Compute Zuker type suboptimal structures
- *
- *  Compute Suboptimal structures according to M. Zuker, i.e. for every
- *  possible base pair the minimum energy structure containing the resp. base pair.
- *  Returns a list of these structures and their energies.
- *
- *  @ingroup subopt_zuker
- *
- *  @deprecated use vrna_zukersubopt() instead
- *
- *  @param  string  RNA sequence
- *  @return         List of zuker suboptimal structures
- */
-DEPRECATED(SOLUTION  *zukersubopt(const char *string));
-
-/**
- *  @brief Compute Zuker type suboptimal structures
- *
- *  @ingroup subopt_zuker
- *
- *  @deprecated use vrna_zukersubopt() instead
- *
- */
-DEPRECATED(SOLUTION  *zukersubopt_par(const char *string, vrna_param_t *parameters));
-
-/**
- *  @brief Compute Zuker type suboptimal structures
- *
- *  Compute Suboptimal structures according to M. Zuker, i.e. for every
- *  possible base pair the minimum energy structure containing the resp. base pair.
- *  Returns a list of these structures and their energies.
- *
- *  @ingroup subopt_zuker
- *
- *  @param  vc  fold compound
- *  @return     List of zuker suboptimal structures
- */
-SOLUTION *vrna_zukersubopt(vrna_fold_compound_t *vc);
 
 /**
  *  @brief get_monomer_free_energies
@@ -266,5 +228,12 @@ DEPRECATED(void get_monomere_mfes( float *e1, float *e2));
  *  @deprecated{This function is obsolete and will be removed soon!}
  */
 DEPRECATED(void initialize_cofold(int length));
+
+#endif
+
+/**
+ *  @}
+ */
+
 
 #endif

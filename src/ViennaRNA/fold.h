@@ -189,7 +189,7 @@ DEPRECATED(void free_arrays(void));
 /**
  *  \brief Recalculate energy parameters
  *
- *  \deprecated use vrna_params_update() instead
+ *  \deprecated use vrna_params_subst() instead
  *
  *  \ingroup mfe_fold
  */
@@ -198,7 +198,7 @@ DEPRECATED(void update_fold_params(void));
 /**
  *  \brief Recalculate energy parameters
  *
- *  \deprecated use vrna_params_update() instead
+ *  \deprecated use vrna_params_subst() instead
  *
  *  \ingroup mfe_fold
  *

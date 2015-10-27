@@ -76,7 +76,7 @@ add_shape_constraints(vrna_fold_compound_t *vc,
   free(sequence);
 }
 
-PRIVATE void putoutzuker(SOLUTION* zukersolution);
+PRIVATE void putoutzuker(vrna_subopt_solution_t* zukersolution);
 
 int main(int argc, char *argv[]){
   struct          RNAsubopt_args_info args_info;
@@ -396,14 +396,14 @@ int main(int argc, char *argv[]){
     }
     /* Zuker suboptimals */
     else{
-      SOLUTION *zr;
+      vrna_subopt_solution_t *zr;
       int i;
       if (fname[0] != '\0') printf(">%s\n%s\n", fname, rec_sequence);
 
       if (vc->cutpoint != -1) {
         vrna_message_error("Sorry, zuker subopts not yet implemented for cofold\n");
       }
-      zr = vrna_zukersubopt(vc);
+      zr = vrna_subopt_zuker(vc);
 
       putoutzuker(zr);
       (void)fflush(stdout);
@@ -446,7 +446,7 @@ int main(int argc, char *argv[]){
   return EXIT_SUCCESS;
 }
 
-PRIVATE void putoutzuker(SOLUTION* zukersolution) {
+PRIVATE void putoutzuker(vrna_subopt_solution_t* zukersolution) {
   int i;
   printf("%s [%.2f]\n",zukersolution[0].structure,zukersolution[0].energy/100.);
   for(i=1; zukersolution[i].structure; i++) {

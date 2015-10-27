@@ -66,7 +66,7 @@ int vrna_plot_dp_PS_list( char *seq,
                           char *comment);
 
 int PS_dot_plot_turn( char *seq,
-                      struct plist *pl,
+                      plist *pl,
                       char *filename,
                       int winSize);
 

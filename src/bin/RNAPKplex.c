@@ -67,7 +67,8 @@ int main(int argc, char *argv[]) {
   */
   if(PKplex_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
-  if(args_info.temp_given)              temperature = args_info.temp_arg;
+  if(args_info.temp_given)
+    md.temperature = temperature = args_info.temp_arg;
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)           md.special_hp = tetra_loop=0;
   /* do not allow weak pairs */
@@ -249,7 +250,7 @@ int main(int argc, char *argv[]) {
       double mfe_pk = 0.;
       char *mfe_struct = NULL;
 
-      par = get_scaled_parameters(temperature, md);
+      par = vrna_params_get(&md);
       constraint = (char *) vrna_alloc(length+1);
       mfe_struct = (char *) vrna_alloc(length+1);
 

@@ -39,7 +39,7 @@
 #################################
 */
 
-const char *RNAdp_prolog =
+static const char *RNAdp_prolog =
 "%This file contains the square roots of the base pair probabilities in the form\n"
 "% i  j  sqrt(p(i,j)) ubox\n\n"
 "%%BeginProlog\n"
@@ -109,7 +109,7 @@ const char *RNAdp_prolog =
 "end\n"
 "%%EndProlog\n";
 
-const char *RNAdp_gquad_triangle =
+static const char *RNAdp_gquad_triangle =
 "/min { 2 copy gt { exch } if pop } bind def\n\n"
 "/utri{ % i j prob utri\n"
 "  gsave\n"
@@ -123,7 +123,7 @@ const char *RNAdp_gquad_triangle =
 "  grestore\n"
 "} bind def\n";
 
-const char *RNAdp_prolog_turn =
+static const char *RNAdp_prolog_turn =
 "/drawseq_turn {"
 "% print sequence at bottom\n"
 "   gsave\n"
@@ -351,7 +351,7 @@ int PS_color_dot_plot_turn(char *seq, cpair *pi, char *wastlfile, int winSize) {
    return 1; /* success */
 }
 
-int PS_dot_plot_turn(char *seq, struct plist *pl, char *wastlfile, int winSize) {
+int PS_dot_plot_turn(char *seq, plist *pl, char *wastlfile, int winSize) {
   /* produce color PostScript dot plot from cpair */
 
   FILE *wastl;
@@ -467,12 +467,12 @@ PS_dot_common(char *seq,
 int PS_dot_plot(char *string, char *wastlfile) {
   /* this is just a wrapper to call PS_dot_plot_list */
   int i, j, k, length, maxl, mf_num;
-  struct plist *pl;
-  struct plist *mf;
+  plist *pl;
+  plist *mf;
 
   length = strlen(string);
   maxl = 2*length;
-  pl = (struct plist *)vrna_alloc(maxl*sizeof(struct plist));
+  pl = (plist *)vrna_alloc(maxl*sizeof(plist));
   k=0;
   /*make plist out of pr array*/
   for (i=1; i<length; i++)
@@ -480,7 +480,7 @@ int PS_dot_plot(char *string, char *wastlfile) {
       if (pr[iindx[i]-j]<PMIN) continue;
       if (k>=maxl-1) {
         maxl *= 2;
-        pl = (struct plist *)vrna_realloc(pl,maxl*sizeof(struct plist));
+        pl = (plist *)vrna_realloc(pl,maxl*sizeof(plist));
       }
       pl[k].i = i;
       pl[k].j = j;
@@ -491,7 +491,7 @@ int PS_dot_plot(char *string, char *wastlfile) {
   pl[k++].p=0.;
   /*make plist out of base_pair array*/
   mf_num = base_pair ? base_pair[0].i : 0;
-  mf = (struct plist *)vrna_alloc((mf_num+1)*sizeof(struct plist));
+  mf = (plist *)vrna_alloc((mf_num+1)*sizeof(plist));
   for (k=0; k<mf_num; k++) {
     mf[k].i = base_pair[k+1].i;
     mf[k].j = base_pair[k+1].j;

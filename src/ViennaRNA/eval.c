@@ -522,14 +522,15 @@ PRIVATE  vrna_param_t *
 get_updated_params(vrna_param_t *parameters, int compat){
   vrna_param_t *P = NULL;
   if(parameters){
-    P = get_parameter_copy(parameters);
+    P = vrna_params_copy(parameters);
   } else {
     vrna_md_t md;
     if(compat)
       set_model_details(&md);
     else
       vrna_md_set_default(&md);
-    P = get_scaled_parameters(temperature, md);
+    md.temperature = temperature;
+    P = vrna_params_get(&md);
   }
   vrna_md_update(&(P->model_details));
   return P;

@@ -97,9 +97,9 @@ cofoldF vrna_pf_dimer(vrna_fold_compound_t *vc,
 void  vrna_pf_dimer_probs(double FAB,
                           double FA,
                           double FB,
-                          struct plist *prAB,
-                          const plist *prA,
-                          const plist *prB,
+                          vrna_plist_t *prAB,
+                          const vrna_plist_t *prA,
+                          const vrna_plist_t *prB,
                           int Alength,
                           const vrna_exp_param_t *exp_params);
 
@@ -186,7 +186,7 @@ DEPRECATED(cofoldF co_pf_fold_par(char *sequence, char *structure, vrna_exp_para
  *  @deprecated{ This function is deprecated and will be removed soon!}
  *  use assign_plist_from_pr() instead!
  */
-DEPRECATED(plist  *get_plist( struct plist *pl,
+DEPRECATED(plist  *get_plist( plist *pl,
                               int length,
                               double cut_off));
 
@@ -209,7 +209,7 @@ DEPRECATED(plist  *get_plist( struct plist *pl,
  *  @param prB      pair probabilities monomer
  *  @param Alength  Length of molecule A
  */
-DEPRECATED(void compute_probabilities(double FAB, double FEA, double FEB, struct plist  *prAB, struct plist  *prA, struct plist  *prB, int Alength));
+DEPRECATED(void compute_probabilities(double FAB, double FEA, double FEB, plist  *prAB, plist  *prA, plist  *prB, int Alength));
 
 /**
  *  @brief Given two start monomer concentrations a and b, compute the
@@ -269,7 +269,7 @@ DEPRECATED(void free_co_pf_arrays(void));
  *  This function recalculates all energy parameters given
  *  the current model settings.
  *
- *  @deprecated   Use vrna_exp_params_update() instead!
+ *  @deprecated   Use vrna_exp_params_subst() instead!
  *
  *  @param    length      Length of the current RNA sequence
  */
@@ -289,7 +289,7 @@ DEPRECATED(void update_co_pf_params(int length));
  *  for the model parameters #dangles, #pf_scale and #temperature is regained, since their
  *  values are taken from this data structure during subsequent calculations.
  *
- *  @deprecated   Use vrna_exp_params_update() instead!
+ *  @deprecated   Use vrna_exp_params_subst() instead!
  *
  *  @param    length      Length of the current RNA sequence
  *  @param    parameters  data structure containing the precomputed Boltzmann factors

@@ -64,7 +64,7 @@ PRIVATE int                 backward_compat           = 0;
 */
 
 PRIVATE void      alipf_linear(vrna_fold_compound_t *vc, char *structure);
-PRIVATE void      alipf_create_bppm(vrna_fold_compound_t *vc, char *structure, struct plist **pl);
+PRIVATE void      alipf_create_bppm(vrna_fold_compound_t *vc, char *structure, plist **pl);
 PRIVATE void      backtrack(vrna_fold_compound_t *vc, char *pstruc, int i, int j, double *prob);
 PRIVATE void      backtrack_qm1(vrna_fold_compound_t *vc, char *pstruc, int i,int j, double *prob);
 PRIVATE float     wrap_alipf_fold(const char **sequences,
@@ -108,7 +108,7 @@ wrap_alipf_fold(const char **sequences,
 
   /* we need vrna_exp_param_t datastructure to correctly init default hard constraints */
   if(parameters)
-    exp_params = get_boltzmann_factor_copy(parameters);
+    exp_params = vrna_exp_params_copy(parameters);
   else{
     vrna_md_t md;
     set_model_details(&md); /* get global default parameters */

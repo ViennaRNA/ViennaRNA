@@ -79,7 +79,7 @@ plist *pfl_fold(char *sequence,
                 int pairSize,
                 float cutoffb,
                 double **pU,
-                struct plist **dpp2,
+                plist **dpp2,
                 FILE *pUfp,
                 FILE *spup);
 
@@ -94,7 +94,7 @@ plist *pfl_fold_par(char *sequence,
                     int pairSize,
                     float cutoffb,
                     double **pU,
-                    struct plist **dpp2,
+                    plist **dpp2,
                     FILE *pUfp,
                     FILE *spup,
                     vrna_exp_param_t *parameters);

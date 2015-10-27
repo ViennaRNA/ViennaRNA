@@ -30,14 +30,14 @@
 #define false             0
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
-/*
-#################################
-# GLOBAL VARIABLES              #
-#################################
-*/
-PUBLIC  int     subopt_sorted=0;                           /* output sorted by energy */
-PUBLIC  int     density_of_states[MAXDOS+1];
-PUBLIC  double  print_energy = 9999; /* printing threshold for use with logML */
+/**
+ *  @brief  Sequence interval stack element used in subopt.c
+ */
+typedef struct INTERVAL {
+    int i;
+    int j;
+    int array_flag;
+} INTERVAL;
 
 typedef struct {
     char *structure;
@@ -52,6 +52,16 @@ typedef struct {
   LIST          *Stack;
   int           nopush;
 } subopt_env;
+
+
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
+PUBLIC  int     subopt_sorted=0;                           /* output sorted by energy */
+PUBLIC  int     density_of_states[MAXDOS+1];
+PUBLIC  double  print_energy = 9999; /* printing threshold for use with logML */
 
 /*
 #################################
@@ -548,11 +558,12 @@ wrap_subopt(char *string,
 
   /* we need the parameter structure for hard constraints */
   if(parameters){
-    P = get_parameter_copy(parameters);
+    P = vrna_params_copy(parameters);
   } else {
     vrna_md_t md;
     set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
+    md.temperature = temperature;
+    P = vrna_params_get(&md);
   }
   P->model_details.circ     = is_circular;
   P->model_details.uniq_ML  = uniq_ML = 1;

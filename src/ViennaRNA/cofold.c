@@ -701,7 +701,7 @@ PRIVATE int comp_pair(const void *A, const void *B) {
 #endif
 
 PUBLIC SOLUTION *
-vrna_zukersubopt(vrna_fold_compound_t *vc){
+vrna_subopt_zuker(vrna_fold_compound_t *vc){
 
 /* Compute zuker suboptimal. Here, we're abusing the cofold() code
    "double" sequence, compute dimerarray entries, track back every base pair.
@@ -913,11 +913,12 @@ wrap_cofold(const char *string,
 
   /* we need the parameter structure for hard constraints */
   if(parameters)
-    P = get_parameter_copy(parameters);
+    P = vrna_params_copy(parameters);
   else{
     vrna_md_t md;
     set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
+    md.temperature = temperature;
+    P = vrna_params_get(&md);
   }
   P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
 
@@ -980,11 +981,12 @@ wrap_zukersubopt( const char *string,
 
   /* we need the parameter structure for hard constraints */
   if(parameters)
-    P = get_parameter_copy(parameters);
+    P = vrna_params_copy(parameters);
   else{
     vrna_md_t md;
     set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
+    md.temperature = temperature;
+    P = vrna_params_get(&md);
   }
   P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
 
@@ -1012,7 +1014,7 @@ wrap_zukersubopt( const char *string,
   /* cleanup */
   free(doubleseq);
 
-  return vrna_zukersubopt(vc);
+  return vrna_subopt_zuker(vc);
 }
 
 PUBLIC void
@@ -1118,10 +1120,11 @@ update_cofold_params_par(vrna_param_t *parameters){
       free(v->params);
 
     if(parameters){
-      v->params = get_parameter_copy(parameters);
+      v->params = vrna_params_copy(parameters);
     } else {
       vrna_md_t md;
       set_model_details(&md);
+      md.temperature = temperature;
       v->params = vrna_params_get(&md);
     }
   }

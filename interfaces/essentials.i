@@ -3,8 +3,8 @@
 /**********************************************/
 
 /* do not create default constructor and hide data fields of vrna_param_t from SWIG */
-%ignore vrna_params;
-%ignore vrna_exp_params;
+%ignore vrna_param_s;
+%ignore vrna_exp_param_s;
 
 %nodefaultctor vrna_param_t;
 typedef struct {} vrna_param_t;
@@ -83,7 +83,7 @@ typedef struct {} vrna_exp_param_t;
 /**********************************************/
 
 /* hide data fields of vrna_md_t from SWIG */
-%ignore vrna_md;
+%ignore vrna_md_s;
 
 %nodefaultctor vrna_md_t;
 /* hide all attributes, except for some trivial ones */

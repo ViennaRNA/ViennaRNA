@@ -20,6 +20,26 @@
 
 #define LOOP_EN
 
+/**
+ *  @brief
+ */
+typedef struct move {
+  int i;  /* i,j>0 insert; i,j<0 delete */
+  int j;
+  int when;  /* 0 if still available, else resulting distance from start */
+  int E;
+} move_t;
+
+/**
+ *  @brief
+ */
+typedef struct intermediate {
+  short *pt;      /**<  @brief  pair table */
+  int Sen;        /**<  @brief  saddle energy so far */
+  int curr_en;    /**<  @brief  current energy */
+  move_t *moves;  /**<  @brief  remaining moves to target */
+} intermediate_t;
+
 /*
 #################################
 # GLOBAL VARIABLES              #

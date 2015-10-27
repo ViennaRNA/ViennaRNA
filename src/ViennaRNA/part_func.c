@@ -2234,12 +2234,9 @@ PUBLIC void
 update_pf_params(int length){
 
   if(backward_compat_compound && backward_compat){
-    vrna_exp_param_t  *p;
     vrna_md_t         md;
     vrna_md_set_globals(&md);
-    p = vrna_exp_params_get(&md);
-    vrna_exp_params_update(backward_compat_compound, p);
-    free(p);
+    vrna_exp_params_reset(backward_compat_compound, &md);
 
     /* compatibility with RNAup, may be removed sometime */
     pf_scale = backward_compat_compound->exp_params->pf_scale;
@@ -2251,15 +2248,12 @@ update_pf_params_par( int length,
                       vrna_exp_param_t *parameters){
 
   if(backward_compat_compound && backward_compat){
-    vrna_exp_param_t  *p;
     vrna_md_t         md;
     if(parameters){
-      vrna_exp_params_update(backward_compat_compound, parameters);
+      vrna_exp_params_subst(backward_compat_compound, parameters);
     } else {
       vrna_md_set_globals(&md);
-      p = vrna_exp_params_get(&md);
-      vrna_exp_params_update(backward_compat_compound, p);
-      free(p);
+      vrna_exp_params_reset(backward_compat_compound, &md);
     }
 
     /* compatibility with RNAup, may be removed sometime */

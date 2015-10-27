@@ -172,7 +172,7 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound_t *vc, c
     vrna_constraints_add(restricted_vc, hc_string, constraint_options);
     free(hc_string);
 
-    vrna_exp_params_update(restricted_vc, vc->exp_params);
+    vrna_exp_params_subst(restricted_vc, vc->exp_params);
 
     vrna_pf(restricted_vc, NULL);
     calculate_probability_unpaired(restricted_vc, conditional_prob_unpaired[i]);

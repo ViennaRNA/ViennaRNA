@@ -550,7 +550,7 @@ wrap_fold( const char *string,
           int is_circular){
 
   vrna_fold_compound_t  *vc;
-  vrna_param_t        *P;
+  vrna_param_t          *P;
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -559,11 +559,12 @@ wrap_fold( const char *string,
 
   /* we need the parameter structure for hard constraints */
   if(parameters){
-    P = get_parameter_copy(parameters);
+    P = vrna_params_copy(parameters);
   } else {
     vrna_md_t md;
     set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
+    md.temperature = temperature;
+    P = vrna_params_get(&md);
   }
   P->model_details.circ = is_circular;
 
@@ -642,33 +643,25 @@ initialize_fold(int length){
 PUBLIC void
 update_fold_params(void){
 
-  vrna_fold_compound_t  *v;
-  vrna_param_t        *P;
   vrna_md_t           md;
 
   if(backward_compat_compound && backward_compat){
     vrna_md_set_globals(&md);
-    P = vrna_params_get(&md);
-    vrna_params_update(backward_compat_compound, P);
-    free(P);
+    vrna_params_reset(backward_compat_compound, &md);
   }
 }
 
 PUBLIC void
 update_fold_params_par(vrna_param_t *parameters){
 
-  vrna_fold_compound_t  *v;
-  vrna_param_t        *P;
   vrna_md_t           md;
 
   if(backward_compat_compound && backward_compat){
     if(parameters)
-      vrna_params_update(backward_compat_compound, parameters);
+      vrna_params_subst(backward_compat_compound, parameters);
     else{
       vrna_md_set_globals(&md);
-      P = vrna_params_get(&md);
-      vrna_params_update(backward_compat_compound, P);
-      free(P);
+      vrna_params_reset(backward_compat_compound, &md);
     }
   }
 }

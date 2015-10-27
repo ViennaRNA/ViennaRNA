@@ -101,11 +101,12 @@ wrap_alifold( const char **strings,
 
   /* we need the parameter structure for hard constraints */
   if(parameters){
-    P = get_parameter_copy(parameters);
+    P = vrna_params_copy(parameters);
   } else {
     vrna_md_t md;
     set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
+    md.temperature = temperature;
+    P = vrna_params_get(&md);
   }
   P->model_details.circ = is_circular;
 

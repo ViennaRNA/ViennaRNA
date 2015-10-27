@@ -25,9 +25,9 @@
  */
 
 /** @brief Typename for the free energy parameter data structure #vrna_params */
-typedef struct  vrna_params       vrna_param_t;
+typedef struct  vrna_param_s       vrna_param_t;
 /** @brief Typename for the Boltzmann factor data structure #vrna_exp_params */
-typedef struct  vrna_exp_params   vrna_exp_param_t;
+typedef struct  vrna_exp_param_s   vrna_exp_param_t;
 
 #include <ViennaRNA/energy_const.h>
 #include <ViennaRNA/data_structures.h>
@@ -43,7 +43,7 @@ typedef struct  vrna_exp_params   vrna_exp_param_t;
 /**
  *  @brief The datastructure that contains temperature scaled energy parameters.
  */
-struct vrna_params{
+struct vrna_param_s {
   int     id;
   int     stack[NBPAIRS+1][NBPAIRS+1];
   int     hairpin[31];
@@ -87,7 +87,7 @@ struct vrna_params{
 /**
  *  @brief  The datastructure that contains temperature scaled Boltzmann weights of the energy parameters.
  */
-struct vrna_exp_params{
+struct vrna_exp_param_s {
   int     id;   /**<  @brief  An identifier for the data structure
                       @deprecated This attribute will be removed in version 3
                 */
@@ -153,7 +153,8 @@ struct vrna_exp_params{
  *  @param  md  A pointer to the model details to store inside the structure (Maybe NULL)
  *  @return     A pointer to the memory location where the requested parameters are stored
  */
-vrna_param_t *vrna_params_get(vrna_md_t *md);
+vrna_param_t *
+vrna_params_get(vrna_md_t *md);
 
 /**
  *  @brief Get a copy of the provided free energy parameters
@@ -166,7 +167,8 @@ vrna_param_t *vrna_params_get(vrna_md_t *md);
  *  @param  par   The free energy parameters that are to be copied (Maybe NULL)
  *  @return       A copy or a default set of the (provided) parameters
  */
-vrna_param_t *vrna_params_copy(vrna_param_t *par);
+vrna_param_t *
+vrna_params_copy(vrna_param_t *par);
 
 /**
  *  @brief  Get a data structure containing prescaled free energy parameters
@@ -190,7 +192,8 @@ vrna_param_t *vrna_params_copy(vrna_param_t *par);
  *  @param  md  A pointer to the model details to store inside the structure (Maybe NULL)
  *  @return     A pointer to the memory location where the requested parameters are stored
  */
-vrna_exp_param_t *vrna_exp_params_get(vrna_md_t *md);
+vrna_exp_param_t *
+vrna_exp_params_get(vrna_md_t *md);
 
 /**
  *  @brief  Get a data structure containing prescaled free energy parameters
@@ -205,7 +208,9 @@ vrna_exp_param_t *vrna_exp_params_get(vrna_md_t *md);
  *  @param  md      A pointer to the model details to store inside the structure (Maybe NULL)
  *  @return         A pointer to the memory location where the requested parameters are stored
  */
-vrna_exp_param_t *vrna_exp_params_ali_get(unsigned int n_seq, vrna_md_t *md);
+vrna_exp_param_t *
+vrna_exp_params_ali_get(unsigned int n_seq,
+                        vrna_md_t *md);
 
 /**
  *  @brief Get a copy of the provided free energy parameters (provided as Boltzmann factors)
@@ -218,7 +223,8 @@ vrna_exp_param_t *vrna_exp_params_ali_get(unsigned int n_seq, vrna_md_t *md);
  *  @param  par   The free energy parameters that are to be copied (Maybe NULL)
  *  @return       A copy or a default set of the (provided) parameters
  */
-vrna_exp_param_t *vrna_exp_params_copy(vrna_exp_param_t *par);
+vrna_exp_param_t *
+vrna_exp_params_copy(vrna_exp_param_t *par);
 
 /**
  *  @brief  Update/Reset energy parameters data structure within a #vrna_fold_compound_t
@@ -230,7 +236,9 @@ vrna_exp_param_t *vrna_exp_params_copy(vrna_exp_param_t *par);
  *  @param  vc    The #vrna_fold_compound_t that is about to receive updated energy parameters
  *  @param  par   The energy parameters used to substitute those within vc (Maybe NULL)
  */
-void vrna_params_update(vrna_fold_compound_t *vc, vrna_param_t *par);
+void
+vrna_params_subst( vrna_fold_compound_t *vc,
+                    vrna_param_t *par);
 
 /**
  *  @brief Update the energy parameters for subsequent partition function computations
@@ -248,7 +256,9 @@ void vrna_params_update(vrna_fold_compound_t *vc, vrna_param_t *par);
  *  @param  vc      The fold compound data structure
  *  @param  params  A pointer to the new energy parameters
  */
-void vrna_exp_params_update(vrna_fold_compound_t *vc, vrna_exp_param_t *params);
+void
+vrna_exp_params_subst(vrna_fold_compound_t *vc,
+                      vrna_exp_param_t *params);
 
 /**
  *  @brief Rescale Boltzmann factors for partition function computations
@@ -282,20 +292,27 @@ void vrna_exp_params_update(vrna_fold_compound_t *vc, vrna_exp_param_t *params);
  *  The computed scaling factor @f$s@f$ will be stored as `pf_scale` attribute of the
  *  `exp_params` datastructure in `vc`.
  *
- *  @see vrna_exp_params_update(), vrna_md_t, vrna_exp_param_t, #vrna_fold_compound_t
+ *  @see vrna_exp_params_subst(), vrna_md_t, vrna_exp_param_t, #vrna_fold_compound_t
  *
  *  @param  vc  The fold compound data structure
  *  @param  mfe A pointer to the MFE (in kcal/mol) or NULL
  */
-void vrna_exp_params_rescale(vrna_fold_compound_t *vc, double *mfe);
+void
+vrna_exp_params_rescale(vrna_fold_compound_t *vc,
+                        double *mfe);
 
+void vrna_params_reset( vrna_fold_compound_t *vc,
+                        vrna_md_t *md_p);
+
+void vrna_exp_params_reset( vrna_fold_compound_t *vc,
+                            vrna_md_t *md_p);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
 #define paramT      vrna_param_t        /* restore compatibility of struct rename */
 #define pf_paramT   vrna_exp_param_t    /* restore compatibility of struct rename */
 
-vrna_param_t *get_parameter_copy(vrna_param_t *par);
+DEPRECATED(vrna_param_t *get_parameter_copy(vrna_param_t *par));
 
 /**
  *  get a datastructure of type @ref vrna_exp_param_t which contains
@@ -306,7 +323,7 @@ vrna_param_t *get_parameter_copy(vrna_param_t *par);
  *
  *  @return The datastructure containing Boltzmann weights for use in partition function calculations
  */
-vrna_exp_param_t *get_scaled_pf_parameters(void);
+DEPRECATED(vrna_exp_param_t *get_scaled_pf_parameters(void));
 
 /**
  *  @brief Get precomputed Boltzmann factors of the loop type
@@ -333,10 +350,7 @@ vrna_exp_param_t *get_scaled_pf_parameters(void);
  *  @param  pf_scale      The scaling factor for the Boltzmann factors
  *  @return               A set of precomputed Boltzmann factors
  */
-vrna_exp_param_t *get_boltzmann_factors( double temperature,
-                                  double betaScale,
-                                  vrna_md_t md,
-                                  double pf_scale);
+DEPRECATED(vrna_exp_param_t *get_boltzmann_factors(double temperature, double betaScale, vrna_md_t md, double pf_scale));
 
 /**
  *  @brief Get a copy of already precomputed Boltzmann factors
@@ -348,7 +362,7 @@ vrna_exp_param_t *get_boltzmann_factors( double temperature,
  *  @param  parameters  The input data structure that shall be copied
  *  @return             A copy of the provided Boltzmann factor dataset
  */
-vrna_exp_param_t *get_boltzmann_factor_copy(vrna_exp_param_t *parameters);
+DEPRECATED(vrna_exp_param_t *get_boltzmann_factor_copy(vrna_exp_param_t *parameters));
 
 /**
  *  @brief Get precomputed Boltzmann factors of the loop type
@@ -357,7 +371,7 @@ vrna_exp_param_t *get_boltzmann_factor_copy(vrna_exp_param_t *parameters);
  *  @deprecated Use vrna_exp_params_ali_get() instead!
  *
  */
-vrna_exp_param_t *get_scaled_alipf_parameters(unsigned int n_seq);
+DEPRECATED(vrna_exp_param_t *get_scaled_alipf_parameters(unsigned int n_seq));
 
 /**
  *  @brief Get precomputed Boltzmann factors of the loop type
@@ -367,11 +381,7 @@ vrna_exp_param_t *get_scaled_alipf_parameters(unsigned int n_seq);
  *  @deprecated Use vrna_exp_params_ali_get() instead!
  *
  */
-vrna_exp_param_t *get_boltzmann_factors_ali( unsigned int n_seq,
-                                      double temperature,
-                                      double betaScale,
-                                      vrna_md_t md,
-                                      double pf_scale);
+DEPRECATED(vrna_exp_param_t *get_boltzmann_factors_ali(unsigned int n_seq, double temperature, double betaScale, vrna_md_t md, double pf_scale));
 
 /**
  * @brief Get precomputed energy contributions for all the known loop types
@@ -384,7 +394,7 @@ vrna_exp_param_t *get_boltzmann_factors_ali( unsigned int n_seq,
  *
  * @return     A set of precomputed energy contributions
  */
-vrna_param_t *scale_parameters(void);
+DEPRECATED(vrna_param_t *scale_parameters(void));
 
 /**
  * @brief Get precomputed energy contributions for all the known loop types
@@ -402,8 +412,7 @@ vrna_param_t *scale_parameters(void);
  *  @param md           The model details
  *  @return             precomputed energy contributions and model settings
  */
-vrna_param_t *get_scaled_parameters(double temperature,
-                              vrna_md_t md);
+DEPRECATED(vrna_param_t *get_scaled_parameters(double temperature, vrna_md_t md));
 
 DEPRECATED(vrna_param_t     *copy_parameters(void));
 DEPRECATED(vrna_param_t     *set_parameters(vrna_param_t *dest));
