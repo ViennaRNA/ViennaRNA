@@ -70,7 +70,7 @@ PRIVATE int                 backward_compat           = 0;
 
 PRIVATE int     fill_arrays(vrna_fold_compound_t *vc);
 PRIVATE void    fill_arrays_circ(vrna_fold_compound_t *vc, sect bt_stack[], int *bt);
-PRIVATE void    backtrack(vrna_fold_compound_t *vc, bondT *bp_stack, sect bt_stack[], int s);
+PRIVATE void    backtrack(vrna_fold_compound_t *vc, vrna_bp_stack_t *bp_stack, sect bt_stack[], int s);
 
 PRIVATE float   wrap_alifold( const char **strings,
                               char *structure,
@@ -106,7 +106,7 @@ wrap_alifold( const char **strings,
     vrna_md_t md;
     set_model_details(&md);
     md.temperature = temperature;
-    P = vrna_params_get(&md);
+    P = vrna_params(&md);
   }
   P->model_details.circ = is_circular;
 
@@ -149,7 +149,7 @@ vrna_mfe_comparative(vrna_fold_compound_t *vc,
 
   int  length, i, s, n_seq, energy;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
-  bondT *bp;
+  vrna_bp_stack_t *bp;
 
   length      = vc->length;
   n_seq       = vc->n_seq;
@@ -169,7 +169,7 @@ vrna_mfe_comparative(vrna_fold_compound_t *vc,
   }
 
   if(structure && vc->params->model_details.backtrack){
-    bp = (bondT *)vrna_alloc(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     backtrack(vc, bp, bt_stack, s);
 
@@ -642,7 +642,7 @@ fill_arrays(vrna_fold_compound_t *vc){
 **/
 PRIVATE void
 backtrack(vrna_fold_compound_t *vc,
-          bondT *bp_stack,
+          vrna_bp_stack_t *bp_stack,
           sect bt_stack[],
           int s) {
 
@@ -1189,7 +1189,7 @@ update_alifold_params(void){
 
     vrna_md_t md;
     set_model_details(&md);
-    v->params = vrna_params_get(&md);
+    v->params = vrna_params(&md);
   }
 }
 

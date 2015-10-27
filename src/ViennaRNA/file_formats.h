@@ -211,16 +211,16 @@ int vrna_file_SHAPE_read( const char *file_name,
  *  @brief  Read constraints from an input file
  *
  *  This function reads constraint definitions from a file and converts them
- *  into an array of #plist data structures. The data fields of each individual
+ *  into an array of #vrna_plist_t data structures. The data fields of each individual
  *  returned plist entry may adopt the following configurations:
  *  - plist.i == plist.j @f$ \rightarrow @f$ single nucleotide constraint
  *  - plist.i != plist.j @f$ \rightarrow @f$ base pair constraint
  *  - plist.i == 0 @f$ \rightarrow @f$ End of list
  *
  */
-plist *vrna_file_constraints_read(const char *filename,
-                                  unsigned int length,
-                                  unsigned int options);
+vrna_plist_t *vrna_file_constraints_read( const char *filename,
+                                          unsigned int length,
+                                          unsigned int options);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 

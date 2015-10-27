@@ -192,10 +192,10 @@ get_ungapped_sequence(const char *seq){
 }
 
 PUBLIC int
-vrna_ali_get_mpi( char *Alseq[],
-                  int n_seq,
-                  int length,
-                  int *mini){
+vrna_aln_mpi( char *Alseq[],
+              int n_seq,
+              int length,
+              int *mini){
 
   int   i, j, k, pairnum = 0, sumident = 0;
   float ident = 0, minimum = 1.;
@@ -226,7 +226,7 @@ get_mpi(char *Alseq[],
         int length,
         int *mini){
 
-  return vrna_ali_get_mpi(Alseq, n_seq, length, mini);
+  return vrna_aln_mpi(Alseq, n_seq, length, mini);
 }
 
 PUBLIC void

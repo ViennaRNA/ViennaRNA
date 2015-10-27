@@ -27,17 +27,17 @@ get_ungapped_sequence(const char *seq);
  *  @param mini
  *  @return       The mean pairwise identity
  */
-int vrna_ali_get_mpi( char *Alseq[],
-                      int n_seq,
-                      int length,
-                      int *mini);
+int vrna_aln_mpi( char *Alseq[],
+                  int n_seq,
+                  int length,
+                  int *mini);
 
 /**
  *  @brief Get the mean pairwise identity in steps from ?to?(ident)
  * 
  *  @ingroup consensus_fold
  *
- *  @deprecated Use vrna_ali_get_mpi() as a replacement
+ *  @deprecated Use vrna_aln_mpi() as a replacement
  *
  *  @param Alseq
  *  @param n_seq  The number of sequences in the alignment

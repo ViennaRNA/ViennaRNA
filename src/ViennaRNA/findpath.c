@@ -338,8 +338,8 @@ PRIVATE int find_path_once(vrna_fold_compound_t *vc, const char *struc1, const c
   int i, len, d, dist=0, result;
   intermediate_t *current, *next;
 
-  pt1 = vrna_pt_get(struc1);
-  pt2 = vrna_pt_get(struc2);
+  pt1 = vrna_ptable(struc1);
+  pt2 = vrna_ptable(struc2);
   len = (int) strlen(struc1);
 
   mlist = (move_t *) vrna_alloc(sizeof(move_t)*len); /* bp_dist < n */

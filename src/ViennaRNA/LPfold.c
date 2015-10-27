@@ -154,9 +154,9 @@ PRIVATE void get_arrays_L(unsigned int length){
     qm2 = (FLT_OR_DBL **) vrna_alloc((length+1)*sizeof(FLT_OR_DBL *));
     q2l = (FLT_OR_DBL **) vrna_alloc((length+1)*sizeof(FLT_OR_DBL *));
   }
-  my_iindx  = vrna_get_iindx(length);
-  iindx     = vrna_get_iindx(length); /* for backward compatibility and Perl wrapper */
-  jindx     = vrna_get_indx(length);
+  my_iindx  = vrna_idx_row_wise(length);
+  iindx     = vrna_idx_row_wise(length); /* for backward compatibility and Perl wrapper */
+  jindx     = vrna_idx_col_wise(length);
 }
 
 PRIVATE void free_pf_arrays_L(void){
@@ -606,8 +606,8 @@ PRIVATE void scale_pf_params(unsigned int length, vrna_exp_param_t *parameters){
     pf_params = vrna_exp_params_copy(parameters);
   } else {
     vrna_md_t  md;
-    set_model_details(&md);
-    pf_params = get_boltzmann_factors(temperature, alpha, md, pf_scale);
+    vrna_md_set_globals(&md);
+    pf_params = vrna_exp_params(&md);
   }
 
   scaling_factor = pf_params->pf_scale;

@@ -67,7 +67,7 @@ PRIVATE int                 backward_compat           = 0;
 PRIVATE void    pf_co(vrna_fold_compound_t *vc);
 PRIVATE void    pf_co_bppm(vrna_fold_compound_t *vc, char *structure);
 PRIVATE double  *Newton_Conc(double ZAB, double ZAA, double ZBB, double concA, double concB,double* ConcVec);
-PRIVATE cofoldF wrap_co_pf_fold(char *sequence,
+PRIVATE vrna_dimer_pf_t wrap_co_pf_fold(char *sequence,
                                 char *structure,
                                 vrna_exp_param_t *parameters,
                                 int calculate_bppm,
@@ -86,7 +86,7 @@ PRIVATE cofoldF wrap_co_pf_fold(char *sequence,
 *****************************************
 */
 
-PRIVATE cofoldF
+PRIVATE vrna_dimer_pf_t
 wrap_co_pf_fold(char *sequence,
                 char *structure,
                 vrna_exp_param_t *parameters,
@@ -154,13 +154,13 @@ wrap_co_pf_fold(char *sequence,
 *****************************************
 */
 
-PUBLIC cofoldF
+PUBLIC vrna_dimer_pf_t
 vrna_pf_dimer(vrna_fold_compound_t *vc,
               char *structure){
 
   int             n;
   FLT_OR_DBL      Q;
-  cofoldF         X;
+  vrna_dimer_pf_t         X;
   double          free_energy;
   char            *sequence;
   vrna_md_t       *md;
@@ -930,7 +930,7 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
       }
 
     if (structure!=NULL){
-      char *s = vrna_db_get_from_pr(probs, (unsigned int)n);
+      char *s = vrna_db_from_probs(probs, (unsigned int)n);
       memcpy(structure, s, n);
       structure[n] = '\0';
       free(s);
@@ -962,8 +962,8 @@ vrna_pf_dimer_probs(double FAB,
   int         i, j;
   double      pAB;
   double      mykT;
-  const plist *lp2;
-  plist       *lp1;
+  const vrna_plist_t *lp2;
+  vrna_plist_t       *lp1;
   int         offset;
 
   mykT = exp_params->kT/1000.;
@@ -1048,7 +1048,7 @@ Newton_Conc(double KAB,
   return ConcVec;
 }
 
-PUBLIC struct ConcEnt *
+PUBLIC vrna_dimer_conc_t *
 vrna_pf_dimer_concentrations(double FcAB,
                               double FcAA,
                               double FcBB,
@@ -1057,14 +1057,14 @@ vrna_pf_dimer_concentrations(double FcAB,
                               const double *startconc,
                               const vrna_exp_param_t *exp_params){
 
-  /*takes an array of start concentrations, computes equilibrium concentrations of dimers, monomers, returns array of concentrations in strucutre ConcEnt*/
-  double          *ConcVec;
-  int             i;
-  struct  ConcEnt *Concentration;
-  double          KAA, KAB, KBB, kT;
+  /*takes an array of start concentrations, computes equilibrium concentrations of dimers, monomers, returns array of concentrations in strucutre vrna_dimer_conc_t*/
+  double            *ConcVec;
+  int               i;
+  vrna_dimer_conc_t *Concentration;
+  double            KAA, KAB, KBB, kT;
 
   kT            = exp_params->kT/1000.;
-  Concentration = (struct ConcEnt *)vrna_alloc(20*sizeof(struct ConcEnt));
+  Concentration = (vrna_dimer_conc_t *)vrna_alloc(20*sizeof(vrna_dimer_conc_t));
  /* Compute equilibrium constants */
   /* again note the input free energies are not from the null model (without DuplexInit) */
 
@@ -1083,7 +1083,7 @@ vrna_pf_dimer_concentrations(double FcAB,
     Concentration[i/2].Bc   = ConcVec[4];
 
     if (!(((i+2)/2)%20))  {
-      Concentration = (struct ConcEnt *)vrna_realloc(Concentration,((i+2)/2+20)*sizeof(struct ConcEnt));
+      Concentration = (vrna_dimer_conc_t *)vrna_realloc(Concentration,((i+2)/2+20)*sizeof(vrna_dimer_conc_t));
     }
     free(ConcVec);
   }
@@ -1262,13 +1262,13 @@ backtrack(vrna_fold_compound_t *vc,
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-PUBLIC cofoldF
+PUBLIC vrna_dimer_pf_t
 co_pf_fold(char *sequence, char *structure){
 
   return wrap_co_pf_fold(sequence, structure, NULL, do_backtrack, fold_constrained);
 }
 
-PUBLIC cofoldF
+PUBLIC vrna_dimer_pf_t
 co_pf_fold_par( char *sequence,
                 char *structure,
                 vrna_exp_param_t *parameters,
@@ -1279,8 +1279,8 @@ co_pf_fold_par( char *sequence,
 }
 
 
-PUBLIC plist *
-get_plist(plist *pl,
+PUBLIC vrna_plist_t *
+get_plist(vrna_plist_t *pl,
           int length,
           double cut_off){
 
@@ -1295,7 +1295,7 @@ get_plist(plist *pl,
       if (pr[my_iindx[i]-j]<cut_off) continue;
       if (count==n*length-1) {
         n*=2;
-        pl=(plist *)vrna_realloc(pl,n*length*sizeof(plist));
+        pl=(vrna_plist_t *)vrna_realloc(pl,n*length*sizeof(vrna_plist_t));
       }
       pl[count].i=i;
       pl[count].j=j;
@@ -1306,7 +1306,7 @@ get_plist(plist *pl,
   pl[count].i=0;
   pl[count].j=0; /*->??*/
   pl[count++].p=0.;
-  pl=(plist *)vrna_realloc(pl,(count)*sizeof(plist));
+  pl=(vrna_plist_t *)vrna_realloc(pl,(count)*sizeof(vrna_plist_t));
   return pl;
 }
 
@@ -1314,17 +1314,17 @@ PUBLIC void
 compute_probabilities(double FAB,
                       double FA,
                       double FB,
-                      plist *prAB,
-                      plist *prA,
-                      plist *prB,
+                      vrna_plist_t *prAB,
+                      vrna_plist_t *prA,
+                      vrna_plist_t *prB,
                       int Alength) {
 
   if(backward_compat_compound && backward_compat){
-    vrna_pf_dimer_probs(FAB, FA, FB, prAB, (const plist *)prA, (const plist *)prB, Alength, (const vrna_exp_param_t *)backward_compat_compound->exp_params);
+    vrna_pf_dimer_probs(FAB, FA, FB, prAB, (const vrna_plist_t *)prA, (const vrna_plist_t *)prB, Alength, (const vrna_exp_param_t *)backward_compat_compound->exp_params);
   }
 }
 
-PUBLIC struct ConcEnt *
+PUBLIC vrna_dimer_conc_t *
 get_concentrations( double FcAB,
                     double FcAA,
                     double FcBB,

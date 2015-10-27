@@ -1,14 +1,14 @@
 #ifndef VIENNA_RNA_PACKAGE_PART_FUNC_CO_H
 #define VIENNA_RNA_PACKAGE_PART_FUNC_CO_H
 
-#include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/params.h>
-
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
 #else
 #define DEPRECATED(func) func
 #endif
+
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
 
 /**
  *  @addtogroup pf_cofold
@@ -50,6 +50,23 @@
  *  e.g. Dimitrov & Zuker (2004)
  */
 
+/** @brief Typename for the data structure that stores the dimer partition functions, #vrna_dimer_pf_s, as returned by vrna_pf_dimer() */
+typedef struct vrna_dimer_pf_s  vrna_dimer_pf_t;
+
+/** @brief Typename for the data structure that stores the dimer concentrations, #vrna_dimer_concs, as required by vrna_pf_dimer_concentration() */
+typedef struct vrna_dimer_conc_s  vrna_dimer_conc_t;
+
+
+#ifdef VRNA_BACKWARD_COMPAT
+
+typedef struct vrna_dimer_pf_s    cofoldF;
+typedef struct vrna_dimer_conc_s  ConcEnt;
+
+#endif
+
+#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/params.h>
+
 /**
  *  @brief Toggles no intrabp in 2nd mol
  */
@@ -61,6 +78,31 @@ extern int    mirnatog;
 extern double F_monomer[2];
 
 /**
+ *  @brief
+ */
+struct vrna_dimer_pf_s {
+  /* free energies for: */
+  double F0AB;  /**< @brief Null model without DuplexInit */
+  double FAB;   /**< @brief all states with DuplexInit correction */
+  double FcAB;  /**< @brief true hybrid states only */
+  double FA;    /**< @brief monomer A */
+  double FB;    /**< @brief monomer B */
+};
+
+/**
+ *  @brief
+ */
+struct vrna_dimer_conc_s {
+  double A0;    /**< @brief start concentration A */
+  double B0;    /**< @brief start concentration B */
+  double ABc;   /**< @brief End concentration AB */
+  double AAc;
+  double BBc;
+  double Ac;
+  double Bc;
+};
+
+/**
  *  @brief  Calculate partition function and base pair probabilities of
  *          nucleic acid/nucleic acid dimers
  *
@@ -70,11 +112,12 @@ extern double F_monomer[2];
  *
  *  @param  vc        the fold compound data structure
  *  @param  structure Will hold the structure or constraints
- *  @return           cofoldF structure containing a set of energies needed for
+ *  @return           vrna_dimer_pf_t structure containing a set of energies needed for
  *                    concentration computations.
  */
-cofoldF vrna_pf_dimer(vrna_fold_compound_t *vc,
-                      char *structure);
+vrna_dimer_pf_t
+vrna_pf_dimer(vrna_fold_compound_t *vc,
+              char *structure);
 
 /**
  *  @brief Compute Boltzmann probabilities of dimerization without homodimers
@@ -83,7 +126,7 @@ cofoldF vrna_pf_dimer(vrna_fold_compound_t *vc,
  *  dimer AB and the two constituent monomers A and B, compute the conditional pair
  *  probabilities given that a dimer AB actually forms.
  *  Null model pair probabilities are given as a list as produced by
- *  assign_plist_from_pr(), the dimer probabilities 'prAB' are modified in place.
+ *  vrna_plist_from_probs(), the dimer probabilities 'prAB' are modified in place.
  *
  *  @param FAB        free energy of dimer AB
  *  @param FEA        free energy of monomer A
@@ -111,7 +154,7 @@ void  vrna_pf_dimer_probs(double FAB,
  *  entries for the initial concentrations of molecules A and B (terminated by
  *  two zeroes), then computes the resulting equilibrium concentrations
  *  from the free energies for the dimers. Dimer free energies should be the
- *  dimer-only free energies, i.e. the FcAB entries from the #cofoldF struct.
+ *  dimer-only free energies, i.e. the FcAB entries from the #vrna_dimer_pf_t struct.
  *
  *  @param FEAB       Free energy of AB dimer (FcAB entry)
  *  @param FEAA       Free energy of AA dimer (FcAB entry)
@@ -120,9 +163,9 @@ void  vrna_pf_dimer_probs(double FAB,
  *  @param FEB        Free energy of monomer B
  *  @param startconc  List of start concentrations [a0],[b0],[a1],[b1],...,[an][bn],[0],[0]
  *  @param exp_params The precomputed Boltzmann factors
- *  @return ConcEnt array containing the equilibrium energies and start concentrations
+ *  @return vrna_dimer_conc_t array containing the equilibrium energies and start concentrations
  */
-ConcEnt *vrna_pf_dimer_concentrations(double FcAB,
+vrna_dimer_conc_t *vrna_pf_dimer_concentrations(double FcAB,
                                       double FcAA,
                                       double FcBB,
                                       double FEA,
@@ -155,10 +198,10 @@ ConcEnt *vrna_pf_dimer_concentrations(double FcAB,
  *
  *  @param  sequence  Concatenated RNA sequences
  *  @param  structure Will hold the structure or constraints
- *  @return           cofoldF structure containing a set of energies needed for
+ *  @return           vrna_dimer_pf_t structure containing a set of energies needed for
  *                    concentration computations.
  */
-DEPRECATED(cofoldF co_pf_fold( char *sequence, char *structure));
+DEPRECATED(vrna_dimer_pf_t co_pf_fold( char *sequence, char *structure));
 
 /**
  *  @brief Calculate partition function and base pair probabilities
@@ -176,17 +219,17 @@ DEPRECATED(cofoldF co_pf_fold( char *sequence, char *structure));
  *  @param calculate_bppm Switch to turn Base pair probability calculations on/off (0==off)
  *  @param is_constrained Switch to indicate that a structure contraint is passed via the
  *                        structure argument (0==off)
- *  @return               cofoldF structure containing a set of energies needed for
+ *  @return               vrna_dimer_pf_t structure containing a set of energies needed for
  *                        concentration computations.
  */
-DEPRECATED(cofoldF co_pf_fold_par(char *sequence, char *structure, vrna_exp_param_t *parameters, int calculate_bppm, int is_constrained));
+DEPRECATED(vrna_dimer_pf_t co_pf_fold_par(char *sequence, char *structure, vrna_exp_param_t *parameters, int calculate_bppm, int is_constrained));
 
 /**
  *  DO NOT USE THIS FUNCTION ANYMORE
  *  @deprecated{ This function is deprecated and will be removed soon!}
  *  use assign_plist_from_pr() instead!
  */
-DEPRECATED(plist  *get_plist( plist *pl,
+DEPRECATED(vrna_plist_t  *get_plist( vrna_plist_t *pl,
                               int length,
                               double cut_off));
 
@@ -209,7 +252,7 @@ DEPRECATED(plist  *get_plist( plist *pl,
  *  @param prB      pair probabilities monomer
  *  @param Alength  Length of molecule A
  */
-DEPRECATED(void compute_probabilities(double FAB, double FEA, double FEB, plist  *prAB, plist  *prA, plist  *prB, int Alength));
+DEPRECATED(void compute_probabilities(double FAB, double FEA, double FEB, vrna_plist_t  *prAB, vrna_plist_t  *prA, vrna_plist_t  *prB, int Alength));
 
 /**
  *  @brief Given two start monomer concentrations a and b, compute the
@@ -219,7 +262,7 @@ DEPRECATED(void compute_probabilities(double FAB, double FEA, double FEB, plist 
  *  entries for the initial concentrations of molecules A and B (terminated by
  *  two zeroes), then computes the resulting equilibrium concentrations
  *  from the free energies for the dimers. Dimer free energies should be the
- *  dimer-only free energies, i.e. the FcAB entries from the #cofoldF struct.
+ *  dimer-only free energies, i.e. the FcAB entries from the #vrna_dimer_pf_t struct.
  *
  *  @deprecated{ Use vrna_pf_dimer_concentrations() instead!}
  *
@@ -229,9 +272,9 @@ DEPRECATED(void compute_probabilities(double FAB, double FEA, double FEB, plist 
  *  @param FEA        Free energy of monomer A
  *  @param FEB        Free energy of monomer B
  *  @param startconc  List of start concentrations [a0],[b0],[a1],[b1],...,[an][bn],[0],[0]
- *  @return ConcEnt array containing the equilibrium energies and start concentrations
+ *  @return vrna_dimer_conc_t array containing the equilibrium energies and start concentrations
  */
-DEPRECATED(ConcEnt *get_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconc));
+DEPRECATED(vrna_dimer_conc_t *get_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconc));
 
 /**
  *  DO NOT USE THIS FUNCTION ANYMORE
@@ -249,7 +292,7 @@ DEPRECATED(void   init_co_pf_fold(int length));
  *              probability array is available through the #vrna_fold_compound_t data
  *              structure, and its associated #vrna_mx_pf_t member.
  *
- *  @see vrna_get_iindx()
+ *  @see vrna_idx_row_wise()
  *  @return A pointer to the base pair probability array
  */
 DEPRECATED(FLT_OR_DBL *export_co_bppm(void));

@@ -23,7 +23,7 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE plist *
+PRIVATE vrna_plist_t *
 wrap_get_plist( vrna_mx_pf_t *matrices,
                 int length,
                 int *index,
@@ -105,7 +105,7 @@ vrna_db_unpack(const char *packed){
 }
 
 PUBLIC short *
-vrna_pt_get(const char *structure){
+vrna_ptable(const char *structure){
 
     /* returns array representation of structure.
        table[i] is 0 if unpaired or j if (i.j) pair.  */
@@ -329,7 +329,7 @@ vrna_pt_ali_get(const char *structure){
 }
 
 PUBLIC short *
-vrna_pt_copy(const short *pt){
+vrna_ptable_copy(const short *pt){
   short *table = (short *)vrna_alloc(sizeof(short) * (pt[0]+2));
   memcpy(table, pt, sizeof(short)*(pt[0]+2));
   return table;
@@ -374,7 +374,7 @@ vrna_get_loop_index(const short *pt){
 }
 
 PUBLIC char *
-vrna_pt_to_db(short *pt){
+vrna_db_from_ptable(short *pt){
 
   int i;
   char *dotbracket = NULL;
@@ -405,8 +405,8 @@ vrna_bp_distance(const char *str1, const char *str2){
    short *t1, *t2;
 
    dist = 0;
-   t1 = vrna_pt_get(str1);
-   t2 = vrna_pt_get(str2);
+   t1 = vrna_ptable(str1);
+   t2 = vrna_ptable(str2);
 
    l = (t1[0]<t2[0])?t1[0]:t2[0];    /* minimum of the two lengths */
 
@@ -432,7 +432,7 @@ vrna_refBPcnt_matrix( const short *reference_pt,
   unsigned int size;
   length = (unsigned int)reference_pt[0];
   size  = ((length+1)*(length+2))/2;
-  iindx = vrna_get_iindx(length);
+  iindx = vrna_idx_row_wise(length);
   array = (unsigned int *) vrna_alloc(sizeof(unsigned int)*size);    /* matrix containing number of basepairs of reference structure1 in interval [i,j] */;
   for (k=0; k<=turn; k++)
     for (i=1; i<=length-k; i++) {
@@ -465,7 +465,7 @@ vrna_refBPdist_matrix(const short *pt1,
   n = (unsigned int)pt1[0];
   size = ((n+1)*(n+2))/2;
   array = (unsigned int *)vrna_alloc(sizeof(unsigned int) * size);
-  int *iindx = vrna_get_iindx(n);
+  int *iindx = vrna_idx_row_wise(n);
   for(i = n - turn - 1; i>=1; i--){
     d = 0;
     for(j = i+turn+1; j <= n; j++){
@@ -506,14 +506,14 @@ vrna_bpp_symbol(const float *x){
 }
 
 PUBLIC char *
-vrna_db_get_from_pr(const FLT_OR_DBL *p,
+vrna_db_from_probs(const FLT_OR_DBL *p,
                     unsigned int length){
 
   int    i, j, *index;
   float  P[3];   /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
   char  *s;
 
-  index = vrna_get_iindx(length);
+  index = vrna_idx_row_wise(length);
   s     = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
   for( j=1; j<=length; j++ ) {
@@ -537,7 +537,7 @@ vrna_db_get_from_pr(const FLT_OR_DBL *p,
 
 PUBLIC void
 vrna_letter_structure(char *structure,
-                      bondT *bp,
+                      vrna_bp_stack_t *bp,
                       unsigned int length){
 
   int   n, k, x, y;
@@ -571,7 +571,7 @@ vrna_letter_structure(char *structure,
 
 PUBLIC void
 vrna_parenthesis_structure( char *structure,
-                            bondT *bp,
+                            vrna_bp_stack_t *bp,
                             unsigned int length){
 
   int n, k;
@@ -592,7 +592,7 @@ vrna_parenthesis_structure( char *structure,
 
 PUBLIC void
 vrna_parenthesis_zuker( char *structure,
-                        bondT *bp,
+                        vrna_bp_stack_t *bp,
                         unsigned int length){
 
   int k, i, j, temp;
@@ -617,20 +617,20 @@ vrna_parenthesis_zuker( char *structure,
   }
 }
 
-PUBLIC plist *
-vrna_pl_get( const char *struc,
+PUBLIC vrna_plist_t *
+vrna_plist( const char *struc,
                         float pr){
 
   /* convert bracket string to plist */
   short *pt;
   int i, k = 0, size, n;
-  plist *gpl, *ptr, *pl;
+  vrna_plist_t *gpl, *ptr, *pl;
 
   size  = strlen(struc);
   n     = 2;
 
-  pt  = vrna_pt_get(struc);
-  pl = (plist *)vrna_alloc(n*size*sizeof(plist));
+  pt  = vrna_ptable(struc);
+  pl = (vrna_plist_t *)vrna_alloc(n*size*sizeof(vrna_plist_t));
   for(i = 1; i < size; i++){
     if(pt[i]>i){
       (pl)[k].i      = i;
@@ -644,7 +644,7 @@ vrna_pl_get( const char *struc,
   for(ptr = gpl; ptr->i != 0; ptr++){
     if (k == n * size - 1){
       n *= 2;
-      pl = (plist *)vrna_realloc(pl, n * size * sizeof(plist));
+      pl = (vrna_plist_t *)vrna_realloc(pl, n * size * sizeof(vrna_plist_t));
     }
     (pl)[k].i      = ptr->i;
     (pl)[k].j      = ptr->j;
@@ -658,13 +658,13 @@ vrna_pl_get( const char *struc,
   (pl)[k].p      = 0.;
   (pl)[k++].type = 0.;
   free(pt);
-  pl = (plist *)vrna_realloc(pl, k * sizeof(plist));
+  pl = (vrna_plist_t *)vrna_realloc(pl, k * sizeof(vrna_plist_t));
 
   return pl;
 }
 
-PUBLIC plist *
-vrna_pl_get_from_pr(vrna_fold_compound_t *vc,
+PUBLIC vrna_plist_t *
+vrna_plist_from_probs(vrna_fold_compound_t *vc,
                     double cut_off){
 
   if(!vc){
@@ -682,10 +682,10 @@ vrna_pl_get_from_pr(vrna_fold_compound_t *vc,
 }
 
 PUBLIC  char *
-vrna_pl_to_db(plist *pairs,
+vrna_db_from_plist(vrna_plist_t *pairs,
               unsigned int n){
 
-  plist *ptr;
+  vrna_plist_t *ptr;
   char  *structure = NULL;
   int   i;
 
@@ -704,7 +704,7 @@ vrna_pl_to_db(plist *pairs,
   return structure;
 }
 
-PRIVATE plist *
+PRIVATE vrna_plist_t *
 wrap_get_plist( vrna_mx_pf_t *matrices,
                 int length,
                 int *index,
@@ -714,7 +714,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
 
   int i, j, k, n, count, gquad;
   FLT_OR_DBL  *probs, *G, *scale;
-  plist         *pl;
+  vrna_plist_t         *pl;
 
   probs     = matrices->probs;
   G         = matrices->G;
@@ -725,7 +725,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
   n     = 2;
 
   /* first guess of the size needed for pl */
-  pl = (plist *)vrna_alloc(n*length*sizeof(plist));
+  pl = (vrna_plist_t *)vrna_alloc(n*length*sizeof(vrna_plist_t));
 
   for (i=1; i<length; i++) {
     for (j=i+1; j<=length; j++) {
@@ -735,7 +735,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
       /* do we need to allocate more memory? */
       if (count == n * length - 1){
         n *= 2;
-        pl = (plist *)vrna_realloc(pl, n * length * sizeof(plist));
+        pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
       }
 
       /* check for presence of gquadruplex */
@@ -749,12 +749,12 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
           (pl)[count].p      = probs[index[i] - j];
           (pl)[count++].type = 1;
           /* now add the probabilies of it's actual pairing patterns */
-          plist *inner, *ptr;
+          vrna_plist_t *inner, *ptr;
           inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
           for(ptr=inner; ptr->i != 0; ptr++){
               if (count == n * length - 1){
                 n *= 2;
-                pl = (plist *)vrna_realloc(pl, n * length * sizeof(plist));
+                pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
               }
               /* check if we've already seen this pair */
               for(k = 0; k < count; k++)
@@ -784,13 +784,13 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
   (pl)[count].type = 0;
   (pl)[count++].p  = 0.;
   /* shrink memory to actual size needed */
-  pl = (plist *)vrna_realloc(pl, count * sizeof(plist));
+  pl = (vrna_plist_t *)vrna_realloc(pl, count * sizeof(vrna_plist_t));
 
   return pl;
 }
 
 PUBLIC vrna_helix *
-vrna_pt_to_hx(short *pt){
+vrna_hx_from_ptable(short *pt){
 
   int i, k, n, l, s, *stack;
   vrna_helix *list;
@@ -907,7 +907,7 @@ unpack_structure(const char *packed){
 
 PUBLIC void
 parenthesis_structure(char *structure,
-                      bondT *bp,
+                      vrna_bp_stack_t *bp,
                       int length){
 
   return vrna_parenthesis_structure(structure, bp, length);
@@ -915,7 +915,7 @@ parenthesis_structure(char *structure,
 
 PUBLIC void
 letter_structure( char *structure,
-                  bondT *bp,
+                  vrna_bp_stack_t *bp,
                   int length){
 
   vrna_letter_structure(structure, bp, length);
@@ -923,14 +923,14 @@ letter_structure( char *structure,
 
 PUBLIC void
 parenthesis_zuker(char *structure,
-                  bondT *bp,
+                  vrna_bp_stack_t *bp,
                   int length){
 
   return vrna_parenthesis_zuker(structure, bp, length);
 }
 
 PUBLIC void
-assign_plist_from_pr( plist **pl,
+assign_plist_from_pr( vrna_plist_t **pl,
                       FLT_OR_DBL *probs,
                       int length,
                       double cut_off){
@@ -940,12 +940,12 @@ assign_plist_from_pr( plist **pl,
   vrna_md_t        md;
   vrna_exp_param_t *pf_params;
 
-  index     = vrna_get_iindx(length);
+  index     = vrna_idx_row_wise(length);
   matrices  = (vrna_mx_pf_t *)vrna_alloc(sizeof(vrna_mx_pf_t));
 
   set_model_details(&md);
   md.gquad        = 0;
-  pf_params       = vrna_exp_params_get(&md);
+  pf_params       = vrna_exp_params(&md);
   matrices->probs = probs;
 
   *pl = wrap_get_plist( matrices,
@@ -961,23 +961,23 @@ assign_plist_from_pr( plist **pl,
 }
 
 PUBLIC void
-assign_plist_from_db( plist **pl,
+assign_plist_from_db( vrna_plist_t **pl,
                       const char *struc,
                       float pr){
 
-  *pl = vrna_pl_get(struc, pr);
+  *pl = vrna_plist(struc, pr);
 }
 
 PUBLIC short *
 make_pair_table(const char *structure){
 
-  return vrna_pt_get(structure);
+  return vrna_ptable(structure);
 }
 
 PUBLIC short *
 copy_pair_table(const short *pt){
 
-  return vrna_pt_copy(pt);
+  return vrna_ptable_copy(pt);
 }
 
 PUBLIC short *
@@ -1036,7 +1036,7 @@ bppm_to_structure(char *structure,
                   FLT_OR_DBL *p,
                   unsigned int length){
 
-  char *s = vrna_db_get_from_pr((const FLT_OR_DBL *)p, length);
+  char *s = vrna_db_from_probs((const FLT_OR_DBL *)p, length);
   memcpy(structure, s, length);
   structure[length] = '\0';
   free(s);

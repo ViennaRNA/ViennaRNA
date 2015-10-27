@@ -3741,7 +3741,7 @@ update_TwoDfold_params(TwoDfold_vars *vars){
   vrna_md_set_globals(&md);
 
   free(vars->compatibility->params);
-  vars->compatibility->params = vrna_params_get(&md);
+  vars->compatibility->params = vrna_params(&md);
 
   crosslink(vars);
 }

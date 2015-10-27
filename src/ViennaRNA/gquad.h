@@ -172,7 +172,7 @@ PRIVATE INLINE int
 vrna_BT_gquad_mfe(vrna_fold_compound_t *vc,
                   int i,
                   int j,
-                  bondT *bp_stack,
+                  vrna_bp_stack_t *bp_stack,
                   int *stack_count);
 
 PRIVATE INLINE int
@@ -180,14 +180,14 @@ vrna_BT_gquad_int(vrna_fold_compound_t *vc,
                   int i,
                   int j,
                   int en,
-                  bondT *bp_stack,
+                  vrna_bp_stack_t *bp_stack,
                   int *stack_count);
 
 PRIVATE INLINE int
 vrna_BT_gquad_mfe(vrna_fold_compound_t *vc,
                   int i,
                   int j,
-                  bondT *bp_stack,
+                  vrna_bp_stack_t *bp_stack,
                   int *stack_count){
 
   /*
@@ -227,7 +227,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t *vc,
                   int i,
                   int j,
                   int en,
-                  bondT *bp_stack,
+                  vrna_bp_stack_t *bp_stack,
                   int *stack_count){
 
   int           energy, dangles, *idx, ij, p, q, maxl, minl, c0, l1, *rtype, *ggg;

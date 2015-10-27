@@ -904,7 +904,7 @@ vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
                       int *u,
                       int *i,
                       int *j,
-                      bondT *bp_stack,
+                      vrna_bp_stack_t *bp_stack,
                       int *stack_count){
 
   int length, ii, jj, k, en, cp, fij, fi, *my_c, *my_fc, *my_ggg, *idx, with_gquad, dangle_model, turn;
@@ -1272,7 +1272,7 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
                       int *l,
                       int *component1,
                       int *component2,
-                      bondT *bp_stack,
+                      vrna_bp_stack_t *bp_stack,
                       int *stack_count){
 
   int length, cp, ij, ii, jj, fij, fi, u, en, *my_c, *my_fML, *my_ggg, turn, *idx, with_gquad, dangle_model, *rtype;

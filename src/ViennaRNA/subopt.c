@@ -563,7 +563,7 @@ wrap_subopt(char *string,
     vrna_md_t md;
     set_model_details(&md);
     md.temperature = temperature;
-    P = vrna_params_get(&md);
+    P = vrna_params(&md);
   }
   P->model_details.circ     = is_circular;
   P->model_details.uniq_ML  = uniq_ML = 1;

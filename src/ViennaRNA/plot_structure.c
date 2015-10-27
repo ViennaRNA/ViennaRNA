@@ -324,8 +324,8 @@ vrna_file_PS_rnaplot_a( const char *seq,
     return 0;
   }
 
-  pair_table = vrna_pt_get(structure);
-  pair_table_g = vrna_pt_get(structure);
+  pair_table = vrna_ptable(structure);
+  pair_table_g = vrna_ptable(structure);
 
   ge=0;
   while ( (ee=parse_gquad(structure+ge, &Lg, l)) >0 ) {
@@ -496,7 +496,7 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
 
   length = strlen(string);
 
-  pair_table = vrna_pt_get(structure);
+  pair_table = vrna_ptable(structure);
 
   switch(option){
   case 'X' :
@@ -570,7 +570,7 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
     return 0;
   }
 
-  pair_table = vrna_pt_get(structure);
+  pair_table = vrna_ptable(structure);
   pair_table_snoop = vrna_pt_snoop_get(structure);
 
   X = (float *) vrna_alloc((length+1)*sizeof(float));
@@ -943,7 +943,7 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
     return 0;
   }
 
-  pair_table = vrna_pt_get(structure);
+  pair_table = vrna_ptable(structure);
 
   X = (float *) vrna_alloc((length+1)*sizeof(float));
   Y = (float *) vrna_alloc((length+1)*sizeof(float));
@@ -1083,7 +1083,7 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
      return 0;
   }
   length = strlen(string);
-  pair_table = vrna_pt_get(structure);
+  pair_table = vrna_ptable(structure);
 
   /* make coordinates */
   X = (float *) vrna_alloc((length+1)*sizeof(float));
@@ -1166,7 +1166,7 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
   }
 
   length = strlen(string);
-  pair_table = vrna_pt_get(structure);
+  pair_table = vrna_ptable(structure);
 
   /* make coordinates */
   X = (float *) vrna_alloc((length+1)*sizeof(float));

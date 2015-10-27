@@ -71,7 +71,7 @@ int         james_rule = 1;       /* interior loops of size 2 get energy 0.8Kcal
 char        *RibosumFile = NULL;  /* TODO: compile ribosums into program
                                     Warning: this variable will vanish */
 int         csv = 0;              /*generate comma seperated output*/
-bondT       *base_pair = NULL;
+vrna_bp_stack_t       *base_pair = NULL;
 FLT_OR_DBL  *pr = NULL;           /* base pairing prob. matrix */
 int         *iindx = NULL;        /* pr[i,j] -> pr[iindx[i]-j] */
 int         fold_constrained = 0; /* fold with constraints */

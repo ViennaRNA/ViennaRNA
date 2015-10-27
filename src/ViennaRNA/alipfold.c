@@ -112,7 +112,7 @@ wrap_alipf_fold(const char **sequences,
   else{
     vrna_md_t md;
     set_model_details(&md); /* get global default parameters */
-    exp_params = vrna_exp_params_ali_get(n_seq, &md);
+    exp_params = vrna_exp_params_comparative(n_seq, &md);
   }
   exp_params->model_details.circ        = is_circular;
   exp_params->model_details.compute_bpp = calculate_bppm;
@@ -1039,10 +1039,10 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
 
   /* did we get an adress where to save a pair-list? */
   if (pl != NULL)
-    *pl = vrna_pl_get_from_pr(vc, /*cut_off:*/ 1e-6);
+    *pl = vrna_plist_from_probs(vc, /*cut_off:*/ 1e-6);
 
   if (structure!=NULL){
-    char *s = vrna_db_get_from_pr(probs, (unsigned int)n);
+    char *s = vrna_db_from_probs(probs, (unsigned int)n);
     memcpy(structure, s, n);
     structure[n] = '\0';
     free(s);
@@ -1060,12 +1060,12 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
 
 /*---------------------------------------------------------------------------*/
 PRIVATE int
-compare_pair_info(const void *pi1,
-                  const void *pi2){
+compare_pinfo(const void *pi1,
+              const void *pi2){
 
-  pair_info *p1, *p2;
+  vrna_pinfo_t *p1, *p2;
   int  i, nc1, nc2;
-  p1 = (pair_info *)pi1;  p2 = (pair_info *)pi2;
+  p1 = (vrna_pinfo_t *)pi1;  p2 = (vrna_pinfo_t *)pi2;
   for (nc1=nc2=0, i=1; i<=6; i++) {
     if (p1->bp[i]>0) nc1++;
     if (p2->bp[i]>0) nc2++;
@@ -1076,13 +1076,13 @@ compare_pair_info(const void *pi1,
          (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
 }
 
-PUBLIC pair_info *
-vrna_ali_get_pair_info( vrna_fold_compound_t *vc,
-                        const char *structure,
-                        double threshold){
+PUBLIC vrna_pinfo_t *
+vrna_aln_pinfo( vrna_fold_compound_t *vc,
+                const char *structure,
+                double threshold){
 
   int i,j, num_p=0, max_p = 64;
-  pair_info *pi;
+  vrna_pinfo_t *pi;
   double *duck, p;
   short *ptable = NULL;
 
@@ -1094,10 +1094,10 @@ vrna_ali_get_pair_info( vrna_fold_compound_t *vc,
   FLT_OR_DBL  *probs    = vc->exp_matrices->probs;
   vrna_md_t   *md = &(vc->exp_params->model_details);
 
-  max_p = 64; pi = vrna_alloc(max_p*sizeof(pair_info));
+  max_p = 64; pi = vrna_alloc(max_p*sizeof(vrna_pinfo_t));
   duck =  (double *) vrna_alloc((n+1)*sizeof(double));
   if(structure)
-    ptable = vrna_pt_get(structure);
+    ptable = vrna_ptable(structure);
 
   for (i=1; i<n; i++)
     for (j=i+TURN+1; j<=n; j++) {
@@ -1125,14 +1125,14 @@ vrna_ali_get_pair_info( vrna_fold_compound_t *vc,
         num_p++;
         if (num_p>=max_p) {
           max_p *= 2;
-          pi = vrna_realloc(pi, max_p * sizeof(pair_info));
+          pi = vrna_realloc(pi, max_p * sizeof(vrna_pinfo_t));
         }
       }
     }
   free(duck);
-  pi = vrna_realloc(pi, (num_p+1)*sizeof(pair_info));
+  pi = vrna_realloc(pi, (num_p+1)*sizeof(vrna_pinfo_t));
   pi[num_p].i=0;
-  qsort(pi, num_p, sizeof(pair_info), compare_pair_info );
+  qsort(pi, num_p, sizeof(vrna_pinfo_t), compare_pinfo );
 
   free(ptable);
   return pi;

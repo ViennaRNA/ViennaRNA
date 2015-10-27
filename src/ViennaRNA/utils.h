@@ -375,11 +375,11 @@ void vrna_seq_toupper(char *sequence);
  * 
  *  Consult the implemented code to find out about the mapping formula ;)
  * 
- *  @see vrna_get_indx()
+ *  @see vrna_idx_col_wise()
  *  @param length The length of the RNA sequence
  *  @return       The mapper array
  */
-int *vrna_get_iindx(unsigned int length);
+int *vrna_idx_row_wise(unsigned int length);
 
 /**
  *  @brief Get an index mapper array (indx) for accessing the energy matrices, e.g. in MFE related functions.
@@ -390,12 +390,12 @@ int *vrna_get_iindx(unsigned int length);
  * 
  *  Consult the implemented code to find out about the mapping formula ;)
  * 
- *  @see vrna_get_iindx()
+ *  @see vrna_idx_row_wise()
  *  @param length The length of the RNA sequence
  *  @return       The mapper array
  * 
  */
-int *vrna_get_indx(unsigned int length);
+int *vrna_idx_col_wise(unsigned int length);
 
 /**
  *  @brief Get a numerical representation of the nucleotide sequence
@@ -440,7 +440,7 @@ int vrna_nucleotide_encode( char c,
 char vrna_nucleotide_decode(int enc,
                             vrna_md_t *md);
 
-void vrna_ali_encode( const char *sequence,
+void vrna_aln_encode( const char *sequence,
                       short **S_p,
                       short **s5_p,
                       short **s3_p,
@@ -451,13 +451,14 @@ void vrna_ali_encode( const char *sequence,
 /**
  *  @brief Get an array of the numerical encoding for each possible base pair (i,j)
  *
- *  @note This array is always indexed via jindx, in contrast to previously
+ *  @note This array is always indexed in column-wise order, in contrast to previously
  *  different indexing between mfe and pf variants!
- *  @see  vrna_get_indx(), #vrna_fold_compound_t
+ *
+ *  @see  vrna_idx_col_wise(), #vrna_fold_compound_t
  *
  */
-char  *vrna_get_ptypes( const short *S,
-                        vrna_md_t *md);
+char  *vrna_ptypes( const short *S,
+                    vrna_md_t *md);
 
 /**
  *  @}

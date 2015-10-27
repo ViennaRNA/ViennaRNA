@@ -42,7 +42,7 @@
 PUBLIC char *
 vrna_centroid_from_plist( int length,
                           double *dist,
-                          plist *pl){
+                          vrna_plist_t *pl){
 
   /* compute the centroid structure of the ensemble, i.e. the strutcure
      with the minimal average distance to all other structures
@@ -53,7 +53,7 @@ vrna_centroid_from_plist( int length,
   char *centroid;
 
   if (pl==NULL)
-    vrna_message_error("get_centroid_struct: pl==NULL!");
+    vrna_message_error("vrna_centroid_from_plist@centroid.c: pl==NULL!");
 
   *dist = 0.;
   centroid = (char *) vrna_alloc((length+1)*sizeof(char));
@@ -83,10 +83,10 @@ vrna_centroid_from_probs( int length,
   int i,j;
   double p;
   char  *centroid;
-  int   *index = vrna_get_iindx(length);
+  int   *index = vrna_idx_row_wise(length);
 
   if (probs == NULL)
-    vrna_message_error("get_centroid_struct_pr: probs==NULL!");
+    vrna_message_error("vrna_centroid_from_probs@centroid.c: probs==NULL!");
 
   *dist = 0.;
   centroid = (char *) vrna_alloc((length+1)*sizeof(char));
@@ -125,9 +125,9 @@ vrna_centroid(vrna_fold_compound_t *vc,
 
 
   if(!vc){
-    vrna_message_error("vrna_get_centroid_struct: run vrna_pf_fold first!");
+    vrna_message_error("vrna_centroid@centroid.c: run vrna_pf_fold first!");
   } else if( !vc->exp_matrices->probs){
-    vrna_message_error("vrna_get_centroid_struct: probs==NULL!");
+    vrna_message_error("vrna_centroid@centroid.c: probs==NULL!");
   }
 
   length      = vc->length;
@@ -184,7 +184,7 @@ vrna_centroid(vrna_fold_compound_t *vc,
 PUBLIC char *
 get_centroid_struct_pl( int length,
                         double *dist,
-                        plist *pl){
+                        vrna_plist_t *pl){
 
   return vrna_centroid_from_plist(length, dist, pl);
 }

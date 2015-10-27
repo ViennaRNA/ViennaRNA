@@ -130,7 +130,7 @@ int PS_color_aln(const char *structure, const char *filename,
   ssEscaped=(char *) vrna_alloc((unsigned) length*2);
   ruler=(char *) vrna_alloc((unsigned) length*2);
 
-  pair_table=vrna_pt_get(structure);
+  pair_table=vrna_ptable(structure);
   /* Get length of longest name and count sequences in alignment*/
 
   for (i=maxName=N=0; names[i] != NULL; i++) {

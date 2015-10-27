@@ -176,7 +176,7 @@ int main(int argc, char *argv[]){
     vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
   }
 
-  P = vrna_params_get(&md);
+  P = vrna_params(&md);
 
   /* set options we wanna pass to vrna_file_fasta_read_record() */
 

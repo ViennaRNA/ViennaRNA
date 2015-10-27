@@ -81,7 +81,7 @@ START_TEST(test_sc_sanity_check)
 
   mfe_energy_unconstrained = vrna_mfe(vc, mfe_structure_unconstrained);
   pf_energy_unconstrained = vrna_pf(vc, pf_structure_unconstrained);
-  plist_unconstrained = vrna_pl_get_from_pr(vc, 0);
+  plist_unconstrained = vrna_plist_from_probs(vc, 0);
 
   sc_up = (double *)vrna_alloc(sizeof(double) * (length + 1));
   sc_bp = (double **)vrna_alloc(sizeof(double *) * (length + 1));
@@ -94,12 +94,12 @@ START_TEST(test_sc_sanity_check)
       sc_bp[i][j] = -2.;
   }
 
-  vrna_sc_add_up(vc, sc_up, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
-  vrna_sc_add_bp(vc, sc_bp, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
+  vrna_sc_add_up(vc, (const double *)sc_up, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
+  vrna_sc_add_bp(vc, (const double **)sc_bp, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
 
   mfe_energy_constrained = vrna_mfe(vc, mfe_structure_constrained);
   pf_energy_constrained = vrna_pf(vc, pf_structure_constrained);
-  plist_constrained = vrna_pl_get_from_pr(vc, 0);
+  plist_constrained = vrna_plist_from_probs(vc, 0);
 
   ck_assert_int_eq(strlen(mfe_structure_constrained), sizeof(sequence) - 1);
   ck_assert_int_eq(strlen(mfe_structure_unconstrained), sizeof(sequence) - 1);

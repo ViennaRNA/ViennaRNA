@@ -73,9 +73,9 @@ PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 #################################
 */
 
-PRIVATE int   fill_arrays(vrna_fold_compound_t *vc);
-PRIVATE void  fill_arrays_circ(vrna_fold_compound_t *vc, sect bt_stack[], int *bt);
-PRIVATE plist *backtrack(vrna_fold_compound_t *vc, bondT *bp_stack, sect bt_stack[], int s);
+PRIVATE int           fill_arrays(vrna_fold_compound_t *vc);
+PRIVATE void          fill_arrays_circ(vrna_fold_compound_t *vc, sect bt_stack[], int *bt);
+PRIVATE vrna_plist_t  *backtrack(vrna_fold_compound_t *vc, vrna_bp_stack_t *bp_stack, sect bt_stack[], int s);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -98,7 +98,7 @@ vrna_mfe(vrna_fold_compound_t *vc,
 
   int     length, energy, s;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
-  bondT   *bp;
+  vrna_bp_stack_t   *bp;
 
 
   s       = 0;
@@ -121,7 +121,7 @@ vrna_mfe(vrna_fold_compound_t *vc,
   }
 
   if(structure && vc->params->model_details.backtrack){
-    bp = (bondT *)vrna_alloc(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     backtrack(vc, bp, bt_stack, s);
 
@@ -318,9 +318,9 @@ fill_arrays(vrna_fold_compound_t *vc){
 #include "circfold.inc"
 
 
-PUBLIC plist *
+PUBLIC vrna_plist_t *
 vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
-                              bondT *bp_stack,
+                              vrna_bp_stack_t *bp_stack,
                               sect bt_stack[],
                               int s){
 
@@ -335,9 +335,9 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
 *** normally s=0.
 *** If s>0 then s items have been already pushed onto the bt_stack
 **/
-PRIVATE plist *
+PRIVATE vrna_plist_t *
 backtrack(vrna_fold_compound_t *vc,
-          bondT *bp_stack,
+          vrna_bp_stack_t *bp_stack,
           sect bt_stack[],
           int s){
 
@@ -564,7 +564,7 @@ wrap_fold( const char *string,
     vrna_md_t md;
     set_model_details(&md);
     md.temperature = temperature;
-    P = vrna_params_get(&md);
+    P = vrna_params(&md);
   }
   P->model_details.circ = is_circular;
 
@@ -733,13 +733,13 @@ backtrack_fold_from_pair( char *sequence,
 
   char          *structure  = NULL;
   unsigned int  length      = 0;
-  bondT         *bp         = NULL;
+  vrna_bp_stack_t         *bp         = NULL;
   sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
 
   if(sequence){
     length = strlen(sequence);
     structure = (char *) vrna_alloc((length + 1)*sizeof(char));
-    bp = (bondT *)vrna_alloc(sizeof(bondT) * (1+length/2));
+    bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (1+length/2));
   } else {
     vrna_message_error("backtrack_fold_from_pair@fold.c: no sequence given");
   }

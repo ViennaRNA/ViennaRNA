@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) {
       double mfe_pk = 0.;
       char *mfe_struct = NULL;
 
-      par = vrna_params_get(&md);
+      par = vrna_params(&md);
       constraint = (char *) vrna_alloc(length+1);
       mfe_struct = (char *) vrna_alloc(length+1);
 
@@ -355,11 +355,11 @@ int main(int argc, char *argv[]) {
             strcat(annotation, temp);
             sprintf(temp, "0 0 2 setrgbcolor\n2 setlinewidth\n%d cmark\n%d cmark\n1 setlinewidth", PlexHits[i].tb, PlexHits[i].qe);
             strcat(annotation, temp);
-            PS_rna_plot_a(s1, PlexHits[i].structure, fname, annotation, "");
+            vrna_file_PS_rnaplot_a(s1, PlexHits[i].structure, fname, annotation, "", &md);
             free(annotation);
             free(temp);
           } else {
-            PS_rna_plot(s1, mfe_struct, fname);
+            vrna_file_PS_rnaplot(s1, mfe_struct, fname, &md);
           }
           break;
         }
@@ -467,11 +467,11 @@ int main(int argc, char *argv[]) {
 
             sprintf(temp, "0 0 2 setrgbcolor\n2 setlinewidth\n%d cmark\n%d cmark\n1 setlinewidth", PlexHits[current].tb, PlexHits[current].qe);
             strcat(annotation, temp);
-            PS_rna_plot_a(s1, constraint, fname, annotation, "");
+            vrna_file_PS_rnaplot_a(s1, constraint, fname, annotation, "", &md);
             free(annotation);
             free(temp);
           } else {
-            PS_rna_plot(s1, constraint, fname);
+            vrna_file_PS_rnaplot(s1, constraint, fname, &md);
           }
         }
       }

@@ -292,7 +292,7 @@ int main(int argc, char *argv[]){
     else vrna_message_input_seq_simple();
   }
 
-  mfe_parameters = vrna_params_get(&md);
+  mfe_parameters = vrna_params(&md);
 
   /* set options we wanna pass to vrna_file_fasta_read_record() */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
@@ -425,11 +425,8 @@ int main(int argc, char *argv[]){
         strcat(ffname, "_ss.ps");
       } else strcpy(ffname, "rna.ps");
 
-      if(gquad){
-        if (!noPS) (void) PS_rna_plot_a_gquad(orig_sequence, structure, ffname, NULL, NULL);
-      } else {
-        if (!noPS) (void) PS_rna_plot_a(orig_sequence, structure, ffname, NULL, NULL);
-      }
+      if(!noPS)
+        (void) vrna_file_PS_rnaplot_a(orig_sequence, structure, ffname, NULL, NULL, &md);
     }
 
     if (length>2000)
@@ -475,7 +472,8 @@ int main(int argc, char *argv[]){
           strcat(ffname, "_ss.ps");
         } else strcpy(ffname, "rna.ps");
 
-        if (!noPS) (void) PS_rna_plot(orig_sequence, s, ffname);
+        if (!noPS)
+          (void) vrna_file_PS_rnaplot(orig_sequence, s, ffname, &md);
         free(s);
       }
       else{
@@ -498,8 +496,8 @@ int main(int argc, char *argv[]){
           char *cent;
           double dist, cent_en;
 
-          pl1     = vrna_pl_get_from_pr(vc, bppmThreshold);
-          pl2     = vrna_pl_get(structure, 0.95*0.95);
+          pl1     = vrna_plist_from_probs(vc, bppmThreshold);
+          pl2     = vrna_plist(structure, 0.95*0.95);
           cent    = vrna_centroid(vc, &dist);
           cent_en = vrna_eval_structure(vc, (const char *)cent);
           if(output)
@@ -525,7 +523,7 @@ int main(int argc, char *argv[]){
           free(pf_struc);
           if(doMEA){
             float mea, mea_en;
-            plist *pl = vrna_pl_get_from_pr(vc, 1e-4/(1+MEAgamma));
+            plist *pl = vrna_plist_from_probs(vc, 1e-4/(1+MEAgamma));
 
             if(gquad){
               mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, pf_parameters);

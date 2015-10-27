@@ -278,7 +278,7 @@ PUBLIC  float
 vrna_eval_structure(vrna_fold_compound_t *vc,
                     const char *structure){
 
-  short *pt = vrna_pt_get(structure);
+  short *pt = vrna_ptable(structure);
   float en  = wrap_eval_structure(vc, structure, pt, NULL, -1);
 
   free(pt);
@@ -292,7 +292,7 @@ vrna_eval_covar_structure(vrna_fold_compound_t *vc,
   int res, gq, *loop_idx;
   short *pt;
 
-  pt                              = vrna_pt_get(structure);
+  pt                              = vrna_ptable(structure);
   res                             = 0;
   gq                              = vc->params->model_details.gquad;
   vc->params->model_details.gquad = 0;
@@ -319,7 +319,7 @@ vrna_eval_structure_verbose(vrna_fold_compound_t *vc,
                             const char *structure,
                             FILE *file){
 
-  short *pt = vrna_pt_get(structure);
+  short *pt = vrna_ptable(structure);
   float en  = wrap_eval_structure(vc, structure, pt, file, 1);
 
   free(pt);
@@ -373,7 +373,7 @@ vrna_eval_move( vrna_fold_compound_t *vc,
   if (strlen(structure) != vc->length)
     vrna_message_error("vrna_eval_move: sequence and structure have unequal length");
 
-  pt = vrna_pt_get(structure);
+  pt = vrna_ptable(structure);
   en = vrna_eval_move_pt(vc, pt, m1, m2);
 
   free(pt);
@@ -530,7 +530,7 @@ get_updated_params(vrna_param_t *parameters, int compat){
     else
       vrna_md_set_default(&md);
     md.temperature = temperature;
-    P = vrna_params_get(&md);
+    P = vrna_params(&md);
   }
   vrna_md_update(&(P->model_details));
   return P;

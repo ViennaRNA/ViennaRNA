@@ -282,7 +282,7 @@ int main(int argc, char *argv[]){
       }
       strcat(ffname, "_dp.ps");
 
-      pf_parameters = get_boltzmann_factors(temperature, betaScale, md, -1);
+      pf_parameters = vrna_exp_params(&md);
 
       if(unpaired > 0){
         pup       =(double **)  vrna_alloc((length+1)*sizeof(double *));

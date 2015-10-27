@@ -75,7 +75,7 @@ PRIVATE float   mfe1, mfe2;       /* minimum free energies of the monomers */
 #################################
 */
 
-PRIVATE void  backtrack(sect bt_stack[], bondT *bp_list, vrna_fold_compound_t *vc);
+PRIVATE void  backtrack(sect bt_stack[], vrna_bp_stack_t *bp_list, vrna_fold_compound_t *vc);
 PRIVATE int   fill_arrays(vrna_fold_compound_t *vc, int zuker);
 PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound_t *vc);
 
@@ -100,7 +100,7 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
 
   int     length, energy;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
-  bondT   *bp;
+  vrna_bp_stack_t   *bp;
 
   length = (int) vc->length;
 
@@ -113,7 +113,7 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
   energy = fill_arrays(vc, 0);
 
   if(structure && vc->params->model_details.backtrack){
-    bp = (bondT *)vrna_alloc(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     backtrack(bt_stack, bp, vc);
 
@@ -319,7 +319,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
 
 PRIVATE void
 backtrack_co( sect bt_stack[],
-              bondT *bp_list,
+              vrna_bp_stack_t *bp_list,
               int s,
               int b, /* b=0: start new structure, b \ne 0: add to existing structure */
               vrna_fold_compound_t *vc) {
@@ -679,7 +679,7 @@ free_end( int *array,
 
 PRIVATE void
 backtrack(sect bt_stack[],
-          bondT *bp_list,
+          vrna_bp_stack_t *bp_list,
           vrna_fold_compound_t *vc){
 
   /*routine to call backtrack_co from 1 to n, backtrack type??*/
@@ -688,10 +688,10 @@ backtrack(sect bt_stack[],
 
 #if 0
 PRIVATE int comp_pair(const void *A, const void *B) {
-  bondT *x,*y;
+  vrna_bp_stack_t *x,*y;
   int ex, ey;
-  x = (bondT *) A;
-  y = (bondT *) B;
+  x = (vrna_bp_stack_t *) A;
+  y = (vrna_bp_stack_t *) B;
   ex = c[indx[x->j]+x->i]+c[indx[x->i+length]+x->j];
   ey = c[indx[y->j]+y->i]+c[indx[y->i+length]+y->j];
   if (ex>ey) return 1;
@@ -712,7 +712,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   unsigned int  length, doublelength;
   float         energy;
   SOLUTION      *zukresults;
-  bondT         *pairlist, *bp_list;
+  vrna_bp_stack_t         *pairlist, *bp_list;
   sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   vrna_mx_mfe_t *matrices;
 
@@ -735,8 +735,8 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   (void)fill_arrays(vc, 1);
 
   psize     = length;
-  pairlist  = (bondT *) vrna_alloc(sizeof(bondT)*(psize+1));
-  bp_list   = (bondT *) vrna_alloc(sizeof(bondT) * (1 + length/2));
+  pairlist  = (vrna_bp_stack_t *) vrna_alloc(sizeof(vrna_bp_stack_t)*(psize+1));
+  bp_list   = (vrna_bp_stack_t *) vrna_alloc(sizeof(vrna_bp_stack_t) * (1 + length/2));
   todo      = (char **) vrna_alloc(sizeof(char *)*(length+1));
   for (i=1; i<length; i++) {
     todo[i] = (char *) vrna_alloc(sizeof(char)*(length+1));
@@ -748,7 +748,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
       if (ptype[indx[j]+i]==0) continue;
       if (num_pairs>=psize) {
         psize = 1.2*psize + 32;
-        pairlist = vrna_realloc(pairlist, sizeof(bondT)*(psize+1));
+        pairlist = vrna_realloc(pairlist, sizeof(vrna_bp_stack_t)*(psize+1));
       }
       pairlist[num_pairs].i   = i;
       pairlist[num_pairs++].j = j;
@@ -757,7 +757,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   }
 
 #if 0
-  qsort(pairlist, num_pairs, sizeof(bondT), comp_pair);
+  qsort(pairlist, num_pairs, sizeof(vrna_bp_stack_t), comp_pair);
 #endif
 
   for (p=0; p<num_pairs; p++) {
@@ -918,7 +918,7 @@ wrap_cofold(const char *string,
     vrna_md_t md;
     set_model_details(&md);
     md.temperature = temperature;
-    P = vrna_params_get(&md);
+    P = vrna_params(&md);
   }
   P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
 
@@ -986,7 +986,7 @@ wrap_zukersubopt( const char *string,
     vrna_md_t md;
     set_model_details(&md);
     md.temperature = temperature;
-    P = vrna_params_get(&md);
+    P = vrna_params(&md);
   }
   P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
 
@@ -1104,7 +1104,7 @@ update_cofold_params(void){
       free(v->params);
 
     set_model_details(&md);
-    v->params = vrna_params_get(&md);
+    v->params = vrna_params(&md);
   }
 }
 
@@ -1125,7 +1125,7 @@ update_cofold_params_par(vrna_param_t *parameters){
       vrna_md_t md;
       set_model_details(&md);
       md.temperature = temperature;
-      v->params = vrna_params_get(&md);
+      v->params = vrna_params(&md);
     }
   }
 }

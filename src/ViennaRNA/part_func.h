@@ -63,7 +63,7 @@
  *  @note           The global array #pr is deprecated and the user who wants the calculated
  *                  base pair probabilities for further computations is advised to use the function
  *                  export_bppm()
- *  @see            vnra_get_fold_compound(), vrna_db_get_from_pr(), export_bppm(), get_boltzmann_factors(), free_pf_arrays()
+ *  @see            vrna_fold_compound(), vrna_db_from_probs(), vrna_exp_params(), free_pf_arrays()
  *  @param[in,out]  vc              The fold compound data structure
  *  @param[in,out]  structure       A pointer to a char array where a base pair probability information can be stored in a
  *                                  pseudo-dot-bracket notation (may be NULL, too)
@@ -148,7 +148,7 @@ double vrna_mean_bp_distance(vrna_fold_compound_t *vc);
  *  @param  cutoff  A cutoff value that limits the output to stacks with @f$ p > \textrm{cutoff} @f$.
  *  @return         A list of stacks with enclosing base pair @f$(i,j)@f$ and probabiltiy @f$ p @f$
  */
-plist *vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff);
+vrna_plist_t *vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -202,7 +202,7 @@ extern  int st_back;
  *                  computed and may be accessed for further usage via the export_bppm() function.
  *                  A call of free_pf_arrays() will free all memory allocated by this function.
  *                  Successive calls will first free previously allocated memory before starting the computation.
- *  @see            vrna_pf(), bppm_to_structure(), export_bppm(), get_boltzmann_factors(), free_pf_arrays()
+ *  @see            vrna_pf(), bppm_to_structure(), export_bppm(), vrna_exp_params(), free_pf_arrays()
  *  @param[in]      sequence        The RNA sequence input
  *  @param[in,out]  structure       A pointer to a char array where a base pair probability information can be stored in a
  *                                  pseudo-dot-bracket notation (may be NULL, too)
@@ -374,7 +374,7 @@ DEPRECATED(void update_pf_params_par(int length, vrna_exp_param_t *parameters));
  *
  *  @pre      Call pf_fold_par(), pf_fold() or pf_circ_fold() first to fill the base pair probability array
  *
- *  @see pf_fold(), pf_circ_fold(), vrna_get_iindx()
+ *  @see pf_fold(), pf_circ_fold(), vrna_idx_row_wise()
  *
  *  @return A pointer to the base pair probability array
  */
@@ -447,7 +447,7 @@ DEPRECATED(double mean_bp_distance_pr(int length, FLT_OR_DBL *pr));
  *
  *  @deprecated   Use vrna_stack_prob() instead!
  */
-DEPRECATED(plist *stackProb(double cutoff));
+DEPRECATED(vrna_plist_t *stackProb(double cutoff));
 
 
 /**
@@ -499,7 +499,7 @@ DEPRECATED(double expHairpinEnergy( int u,
                                     const char *string));
 
 /* this doesn't work if free_pf_arrays() is called before */
-DEPRECATED(void assign_plist_gquad_from_pr(plist **pl,
+DEPRECATED(void assign_plist_gquad_from_pr(vrna_plist_t **pl,
                                 int length,
                                 double cut_off));
 

@@ -35,15 +35,15 @@
  *
  */
 
-/** @brief Typename for the hard constraints data structure #vrna_hard_constraints
+/** @brief Typename for the hard constraints data structure #vrna_hc_s
  *  @ingroup  constraints
  */
-typedef struct  vrna_hard_constraints vrna_hc_t;
+typedef struct  vrna_hc_s vrna_hc_t;
 
-/** @brief Typename for the soft constraints data structure #vrna_soft_constraints
+/** @brief Typename for the soft constraints data structure #vrna_sc_s
  *  @ingroup  constraints
  */
-typedef struct  vrna_soft_constraints vrna_sc_t;
+typedef struct  vrna_sc_s vrna_sc_t;
 
 #include <ViennaRNA/data_structures.h>
 
@@ -435,7 +435,7 @@ typedef struct  vrna_soft_constraints vrna_sc_t;
  *
  *  @ingroup hard_constraints
  */
-struct vrna_hard_constraints {
+struct vrna_hc_s {
   char    *matrix;  /**<  @brief  Upper triangular matrix encoding where a
                                   base pair or unpaired nucleotide is allowed
                     */
@@ -487,7 +487,7 @@ struct vrna_hard_constraints {
  *
  *  @ingroup soft_constraints
  */
-struct vrna_soft_constraints {
+struct vrna_sc_s {
   int         **free_energies;        /**<  @brief Energy contribution for unpaired sequence stretches */
   int         *en_basepair;           /**<  @brief Energy contribution for base pairs */
   FLT_OR_DBL  **boltzmann_factors;    /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */

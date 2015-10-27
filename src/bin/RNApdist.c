@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
 
     (void) vrna_pf(vc, structure);
 
-    pr_pl = vrna_pl_get_from_pr(vc, 1e-5);
+    pr_pl = vrna_plist_from_probs(vc, 1e-5);
     /* fake plist for lower part, since it stays empty */
     mfe_pl = (plist *)vrna_alloc(sizeof(plist));
     mfe_pl[0].i = mfe_pl[0].j = 0;

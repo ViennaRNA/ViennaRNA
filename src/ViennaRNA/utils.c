@@ -399,7 +399,7 @@ vrna_seq_toupper(char *sequence){
 }
 
 PUBLIC int *
-vrna_get_iindx(unsigned int length){
+vrna_idx_row_wise(unsigned int length){
 
   int i;
   int *idx = (int *)vrna_alloc(sizeof(int) * (length+1));
@@ -409,7 +409,7 @@ vrna_get_iindx(unsigned int length){
 }
 
 PUBLIC int *
-vrna_get_indx(unsigned int length){
+vrna_idx_col_wise(unsigned int length){
 
   unsigned int i;
   int *idx = (int *)vrna_alloc(sizeof(int) * (length+1));
@@ -481,7 +481,7 @@ vrna_nucleotide_decode( int enc,
 }
 
 PUBLIC void
-vrna_ali_encode(const char *sequence,
+vrna_aln_encode(const char *sequence,
                     short **S_p,
                     short **s5_p,
                     short **s3_p,
@@ -569,7 +569,7 @@ vrna_ali_encode(const char *sequence,
 
 
 PUBLIC char *
-vrna_get_ptypes(const short *S,
+vrna_ptypes(const short *S,
                 vrna_md_t *md){
 
   char *ptype;
@@ -578,7 +578,7 @@ vrna_get_ptypes(const short *S,
 
   n     = S[0];
   ptype = (char *)vrna_alloc(sizeof(char)*((n*(n+1))/2+2));
-  idx   = vrna_get_indx(n);
+  idx   = vrna_idx_col_wise(n);
 
   for (k=1; k<n-min_loop_size; k++)
     for (l=1; l<=2; l++) {
@@ -608,7 +608,7 @@ wrap_get_ptypes(const short *S,
 
   n     = S[0];
   ptype = (char *)vrna_alloc(sizeof(char)*((n*(n+1))/2+2));
-  idx   = vrna_get_iindx(n);
+  idx   = vrna_idx_row_wise(n);
 
   for (k=1; k<n-TURN; k++)
     for (l=1; l<=2; l++) {
@@ -644,19 +644,19 @@ get_ptypes( const short *S,
   if(idx_type)
     return wrap_get_ptypes(S, md);
   else
-    return vrna_get_ptypes(S, md);
+    return vrna_ptypes(S, md);
 }
 
 PUBLIC int *
 get_iindx(unsigned int length){
 
-  return vrna_get_iindx(length);
+  return vrna_idx_row_wise(length);
 }
 
 PUBLIC int *
 get_indx(unsigned int length){
 
-  return vrna_get_indx(length);
+  return vrna_idx_col_wise(length);
 }
 
 PUBLIC void

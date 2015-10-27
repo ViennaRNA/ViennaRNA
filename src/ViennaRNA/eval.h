@@ -156,7 +156,7 @@ float vrna_eval_structure_simple_verbose( const char *string,
  *  @brief Calculate the free energy of an already folded RNA
  *
  *  This function allows for energy evaluation of a given sequence/structure pair where
- *  the structure is provided in pair_table format as obtained from vrna_pt_get().
+ *  the structure is provided in pair_table format as obtained from vrna_ptable().
  *  Model details, energy parameters, and possibly soft constraints are used as provided
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
@@ -164,7 +164,7 @@ float vrna_eval_structure_simple_verbose( const char *string,
  vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
- *  @see vrna_pt_get(), vrna_eval_structure(), vrna_eval_structure_pt_verbose()
+ *  @see vrna_ptable(), vrna_eval_structure(), vrna_eval_structure_pt_verbose()
  *
  *  @param vc               A vrna_fold_compound_t containing the energy parameters and model details
  *  @param pt               Secondary structure as pair_table
@@ -181,7 +181,7 @@ int vrna_eval_structure_pt( vrna_fold_compound_t *vc,
  *  structure. Threefore, it serves as a simple interface function for energy evaluation
  *  for situations where no changes on the energy model are required.
  *
- *  @see vrna_pt_get(), vrna_eval_structure_simple(), vrna_eval_structure_pt()
+ *  @see vrna_ptable(), vrna_eval_structure_simple(), vrna_eval_structure_pt()
  *
  *  @param string           RNA sequence in uppercase letters
  *  @param pt               Secondary structure as pair_table
@@ -194,7 +194,7 @@ int vrna_eval_structure_pt_simple(const char *string,
  *  @brief Calculate the free energy of an already folded RNA
  *
  *  This function allows for energy evaluation of a given sequence/structure pair where
- *  the structure is provided in pair_table format as obtained from vrna_pt_get().
+ *  the structure is provided in pair_table format as obtained from vrna_ptable().
  *  Model details, energy parameters, and possibly soft constraints are used as provided
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
@@ -205,7 +205,7 @@ int vrna_eval_structure_pt_simple(const char *string,
  *  based on individual loops to a file handle. If NULL is passed as file handle, this function
  *  defaults to print to stdout.
  *
- *  @see vrna_pt_get(), vrna_eval_structure_pt(), vrna_eval_structure_verbose()
+ *  @see vrna_ptable(), vrna_eval_structure_pt(), vrna_eval_structure_verbose()
  *
  *  @param vc               A vrna_fold_compound_t containing the energy parameters and model details
  *  @param pt               Secondary structure as pair_table
@@ -220,7 +220,7 @@ int vrna_eval_structure_pt_verbose( vrna_fold_compound_t *vc,
  *  @brief Calculate the free energy of an already folded RNA
  *
  *  This function allows for energy evaluation of a given sequence/structure pair where
- *  the structure is provided in pair_table format as obtained from vrna_pt_get().
+ *  the structure is provided in pair_table format as obtained from vrna_ptable().
  *  Model details, energy parameters, and possibly soft constraints are used as provided
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
@@ -232,7 +232,7 @@ int vrna_eval_structure_pt_verbose( vrna_fold_compound_t *vc,
  *  structure. Threefore, it serves as a simple interface function for energy evaluation
  *  for situations where no changes on the energy model are required.
  *
- *  @see vrna_pt_get(), vrna_eval_structure_pt_verbose(), vrna_eval_structure_simple()
+ *  @see vrna_ptable(), vrna_eval_structure_pt_verbose(), vrna_eval_structure_simple()
  *
  *  @param string           RNA sequence in uppercase letters
  *  @param pt               Secondary structure as pair_table

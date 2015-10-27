@@ -24,7 +24,7 @@
 #define NBASES 8
 #endif
 
-/** @brief Typename for the model details data structure #vrna_md */
+/** @brief Typename for the model details data structure #vrna_md_s */
 typedef struct vrna_md_s  vrna_md_t;
 
 /**

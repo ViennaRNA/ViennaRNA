@@ -124,6 +124,7 @@ PRIVATE duplexT aliduplexfold(const char *s1[], const char *s2[], const int exte
   int i, j, s, n_seq, l1, Emin=INF, i_min=0, j_min=0;
   char *struc;
   duplexT mfe;
+  vrna_md_t   md;
   short **S1, **S2;
   int *type;
   n3 = (int) strlen(s1[0]);
@@ -133,8 +134,12 @@ PRIVATE duplexT aliduplexfold(const char *s1[], const char *s2[], const int exte
   for (s=0; s2[s]!=NULL; s++);
   if (n_seq != s) vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
+  vrna_md_set_globals(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
 
@@ -665,6 +670,7 @@ PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],
   int *type,*type2;
   struc=NULL;
   duplexT mfe;
+  vrna_md_t   md;
   int n_seq;
   n3 = (int) strlen(s1[0]);
   n4 = (int) strlen(s2[0]);
@@ -672,8 +678,13 @@ PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],
   n_seq = s;
   for (s=0; s2[s]!=NULL; s++);
   /* printf("%d \n",i_pos); */
+
+  vrna_md_set_globals(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    update_fold_params();  if(P) free(P); P = scale_parameters();
+    update_fold_params();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
   c = (int **) vrna_alloc(sizeof(int *) * (n3+1));
@@ -1270,8 +1281,10 @@ PRIVATE int covscore(const int *types, int n_seq) {
 
 PRIVATE void update_dfold_params(void)
 {
+  vrna_md_t md;
   if(P) free(P);
-  P = scale_parameters();
+  vrna_md_set_globals(&md);
+  P = vrna_params(&md);
   make_pair_matrix();
 }
 

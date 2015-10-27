@@ -8,7 +8,7 @@ use strict;
 use Test;
 use lib qw|blib/arch blib/lib|;
 
-BEGIN { plan tests => 26; }
+BEGIN { plan tests => 34; }
 
 use RNA;
 use warnings;

@@ -43,7 +43,6 @@ static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
 
 /*@unused@*/
 PRIVATE void  get_arrays(unsigned int size);
-/* PRIVATE void  scale_parameters(void); */
 /* PRIVATE int   stack_energy(int i, const char *string); */
 PRIVATE void  make_ptypes(const short *S, const char *structure);
 PRIVATE void encode_seq(const char *sequence);
@@ -157,7 +156,7 @@ PRIVATE void get_arrays(unsigned int size)
   DMLi1  = (int *) vrna_alloc(sizeof(int)*(size+1));
   DMLi2  = (int *) vrna_alloc(sizeof(int)*(size+1));
   if (base_pair) free(base_pair);
-  base_pair = (struct bondT *) vrna_alloc(sizeof(struct bondT)*(1+size/2));
+  base_pair = (vrna_bp_stack_t *) vrna_alloc(sizeof(vrna_bp_stack_t)*(1+size/2));
   /* extra array(s) for circfold() */
 }
 
@@ -175,7 +174,7 @@ PRIVATE void aliget_arrays(unsigned int size)
   DMLi1  = (int *) vrna_alloc(sizeof(int)*(size+1));
   DMLi2  = (int *) vrna_alloc(sizeof(int)*(size+1));
   if (base_pair) free(base_pair);
-  base_pair = (struct bondT *) vrna_alloc(sizeof(struct bondT)*(1+size/2));
+  base_pair = (vrna_bp_stack_t *) vrna_alloc(sizeof(vrna_bp_stack_t)*(1+size/2));
   /* extra array(s) for circfold() */
 }
 
@@ -1081,8 +1080,11 @@ PRIVATE short * aliencode_seq(const char *sequence) {
 
 PUBLIC void snoupdate_fold_params(void)
 {
-  if(P) free(P);
-  P = scale_parameters();
+  vrna_md_t md;
+  if(P)
+    free(P);
+  vrna_md_set_globals(&md);
+  P = vrna_params(&md);
   make_pair_matrix();
   if (init_length < 0) init_length=0;
 }

@@ -10,17 +10,24 @@
  *  @brief All datastructures and typedefs shared among the Vienna RNA Package can be found here
  */
 
-/* below are several typedef's we use throughout the ViennaRNA library */
+/* below are several convenience typedef's we use throughout the ViennaRNA library */
 
-/** @brief Typename for the fold_compound data structure #vrna_fc
+/** @brief Typename for the fold_compound data structure #vrna_fc_s
  *  @ingroup basic_data_structures
  */
 typedef struct vrna_fc_s        vrna_fold_compound_t;
 
-/** @brief Typename for the base pair repesenting data structure #vrna_basepair */
+/** @brief Typename for the base pair repesenting data structure #vrna_basepair_s */
 typedef struct vrna_basepair_s  vrna_basepair_t;
 
+/** @brief Typename for the base pair list repesenting data structure #vrna_plist_s */
 typedef struct vrna_plist_s     vrna_plist_t;
+
+/** @brief Typename for the base pair info repesenting data structure #vrna_pinfo_s */
+typedef struct vrna_pinfo_s     vrna_pinfo_t;
+
+/** @brief Typename for the base pair stack repesenting data structure #vrna_bp_stack_s */
+typedef struct vrna_bp_stack_s  vrna_bp_stack_t;
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
@@ -30,10 +37,41 @@ typedef struct vrna_plist_s     vrna_plist_t;
 
 /* the following typedefs are for backward compatibility only */
 
+/**
+ *  @brief Old typename of #vrna_base_pair_s
+ *  @deprecated Use #vrna_base_pair_t instead!
+*/
 typedef struct vrna_basepair_s  PAIR;
+
+/**
+ *  @brief Old typename of #vrna_plist_s
+ *  @deprecated Use #vrna_plist_t instead!
+*/
 typedef struct vrna_plist_s     plist;
+
+/**
+ *  @brief Old typename of #vrna_cpair_s
+ *  @deprecated Use #vrna_cpair_t instead!
+*/
 typedef struct vrna_cpair_s     cpair;
+
+/**
+ *  @brief Old typename of #vrna_sect_s
+ *  @deprecated Use #vrna_sect_t instead!
+*/
 typedef struct vrna_sect_s      sect;
+
+/**
+ *  @brief Old typename of #vrna_pinfo_s
+ *  @deprecated Use #vrna_pinfo_t instead!
+*/
+typedef struct vrna_pinfo_s     pair_info;
+
+/**
+ *  @brief Old typename of #vrna_bp_stack_s
+ *  @deprecated Use #vrna_bp_stack_t instead!
+*/
+typedef struct vrna_bp_stack_s  bondT;
 
 #endif
 
@@ -87,63 +125,12 @@ struct vrna_sect_s {
 };
 
 /**
- *  @brief  Base pair
+ *  @brief  Base pair stack element
  */
-typedef struct bondT {
+struct vrna_bp_stack_s {
    unsigned int i;
    unsigned int j;
-} bondT;
-
-/**
- *  @brief  Base pair with associated energy
- */
-typedef struct bondTEn {
-   int i;
-   int j;
-   int energy;
-} bondTEn;
-
-/*
-* ############################################################
-* COFOLD data structures
-* ############################################################
-*/
-
-/**
- *  @brief
- */
-typedef struct cofoldF {
-  /* free energies for: */
-  double F0AB;  /**< @brief Null model without DuplexInit */
-  double FAB;   /**< @brief all states with DuplexInit correction */
-  double FcAB;  /**< @brief true hybrid states only */
-  double FA;    /**< @brief monomer A */
-  double FB;    /**< @brief monomer B */
-} cofoldF;
-
-/**
- *  @brief
- */
-typedef struct ConcEnt {
-  double A0;    /**< @brief start concentration A */
-  double B0;    /**< @brief start concentration B */
-  double ABc;   /**< @brief End concentration AB */
-  double AAc;
-  double BBc;
-  double Ac;
-  double Bc;
-} ConcEnt;
-
-/**
- *  @brief
- */
-typedef struct pairpro{
-  plist *AB;
-  plist *AA;
-  plist *A;
-  plist *B;
-  plist *BB;
-} pairpro;
+};
 
 /**
  *  @brief A base pair info structure
@@ -155,14 +142,14 @@ typedef struct pairpro{
  *    + 'bp[0]' contains the number of non-compatible sequences
  *    + 'bp[1]' the number of CG pairs, etc.
  */
-typedef struct {
+struct vrna_pinfo_s {
    unsigned i;    /**<  @brief  nucleotide position i */
    unsigned j;    /**<  @brief  nucleotide position j */
    float p;       /**< @brief  Probability */
    float ent;     /**< @brief  Pseudo entropy for @f$ p(i,j) = S_i + S_j - p_ij*ln(p_ij) @f$ */
    short bp[8];   /**< @brief  Frequencies of pair_types */
    char comp;     /**< @brief  1 iff pair is in mfe structure */
-} pair_info;
+};
 
 
 /*
@@ -415,7 +402,7 @@ struct vrna_fc_s{
                                           @note This array is always indexed via jindx, in contrast to previously
                                           different indexing between mfe and pf variants!
                                           @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
-                                          @see    vrna_get_indx(), vrna_get_ptypes()
+                                          @see    vrna_idx_col_wise(), vrna_ptypes()
                                     */
       char  *ptype_pf_compat;       /**<  @brief  ptype array indexed via iindx
                                           @deprecated  This attribute will vanish in the future!

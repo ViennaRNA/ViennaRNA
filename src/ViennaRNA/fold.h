@@ -74,9 +74,9 @@ float
 vrna_mfe(vrna_fold_compound_t *vc,
           char *structure);
 
-plist *
+vrna_plist_t *
 vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
-                              bondT *bp_stack,
+                              vrna_bp_stack_t *bp_stack,
                               sect bt_stack[],
                               int s);
 

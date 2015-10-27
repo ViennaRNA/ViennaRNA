@@ -36,7 +36,7 @@ char *vrna_centroid(vrna_fold_compound_t *vc,
 /**
  *  @brief Get the centroid structure of the ensemble
  * 
- *  This function is a threadsafe replacement for @ref centroid() with a 'plist' input
+ *  This function is a threadsafe replacement for @ref centroid() with a #vrna_plist_t input
  * 
  *  The centroid is the structure with the minimal average distance to all other structures
  *  \n @f$ <d(S)> = \sum_{(i,j) \in S} (1-p_{ij}) + \sum_{(i,j) \notin S} p_{ij} @f$ \n
@@ -51,7 +51,7 @@ char *vrna_centroid(vrna_fold_compound_t *vc,
  */
 char  *vrna_centroid_from_plist(int length,
                                 double *dist,
-                                plist *pl);
+                                vrna_plist_t *pl);
 
 /**
  *  @brief Get the centroid structure of the ensemble
@@ -66,7 +66,7 @@ char  *vrna_centroid_from_plist(int length,
  *  @ingroup              centroid_fold
  *  @param[in]    length  The length of the sequence
  *  @param[out]   dist    A pointer to the distance variable where the centroid distance will be written to
- *  @param[in]    probs   An upper triangular matrix containing base pair probabilities (access via iindx @ref vrna_get_iindx() )
+ *  @param[in]    probs   An upper triangular matrix containing base pair probabilities (access via iindx @ref vrna_idx_row_wise() )
  *  @return               The centroid structure of the ensemble in dot-bracket notation
  */
 char  *vrna_centroid_from_probs(int length,
@@ -82,7 +82,7 @@ char  *vrna_centroid_from_probs(int length,
  */
 DEPRECATED(char  *get_centroid_struct_pl(int length,
                               double *dist,
-                              plist *pl));
+                              vrna_plist_t *pl));
 
 /**
  *  @brief Get the centroid structure of the ensemble

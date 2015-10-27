@@ -818,7 +818,7 @@ vrna_BT_stack(vrna_fold_compound_t *vc,
               int *i,
               int *j,
               int *en,
-              bondT *bp_stack,
+              vrna_bp_stack_t *bp_stack,
               int *stack_count){
 
   int           ij, *idx, *my_c, *rtype;
@@ -888,7 +888,7 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
                   int *i,
                   int *j,
                   int en,
-                  bondT *bp_stack,
+                  vrna_bp_stack_t *bp_stack,
                   int *stack_count){
 
   int           cp, ij, p, q, minq, turn, *idx, noGUclosure, no_close, energy, new, *my_c, *rtype;

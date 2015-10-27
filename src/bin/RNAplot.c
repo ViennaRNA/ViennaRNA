@@ -25,9 +25,11 @@ int main(int argc, char *argv[]){
   int           istty;
   char          format[5]="ps";
   unsigned int  rec_type, read_opt;
+  vrna_md_t     md;
 
   structure = pre = post = NULL;
   length = 0;
+  vrna_md_set_default(&md);
 
   /*
   #############################################
@@ -101,9 +103,7 @@ int main(int argc, char *argv[]){
       case 'p':
         strcat(ffname, ".ps");
 
-        (void) PS_rna_plot_a_gquad(rec_sequence, structure, ffname, pre, post);
-
-        /* PS_rna_plot_a(rec_sequence, structure, ffname, pre, post); */
+        (void) vrna_file_PS_rnaplot_a(rec_sequence, structure, ffname, pre, post, &md);
 
         break;
       case 'g':

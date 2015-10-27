@@ -558,7 +558,7 @@ apply_DB_constraint(const char *constraint,
 
   n         = (int)strlen(constraint);
   stack     = (int *) vrna_alloc(sizeof(int)*(n+1));
-  index     = vrna_get_indx(length);
+  index     = vrna_idx_col_wise(length);
   c_option  =   VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
               | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
               | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
@@ -1766,7 +1766,7 @@ adjust_ptypes(char *ptype,
   matrix = hc->matrix;
 
   if(idx_type){
-    index = vrna_get_iindx(length);
+    index = vrna_idx_row_wise(length);
     for(i = 1; i < length; i++)
       for(j = i + 1; j <= length; j++)
         if(matrix[index[i] - j])
@@ -1774,7 +1774,7 @@ adjust_ptypes(char *ptype,
             ptype[index[i] - j] = 7; /* set to non-canonical pair */
 
   } else {
-    index = vrna_get_indx(length);
+    index = vrna_idx_col_wise(length);
     for(i = 1; i < length; i++)
       for(j = i + 1; j <= length; j++)
         if(matrix[index[j] + i])

@@ -1085,7 +1085,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
       }
 
     if (structure!=NULL){
-      char *s = vrna_db_get_from_pr(probs, (unsigned int)n);
+      char *s = vrna_db_from_probs(probs, (unsigned int)n);
       memcpy(structure, s, n);
       structure[n] = '\0';
       free(s);
@@ -1684,7 +1684,7 @@ PUBLIC double
 vrna_mean_bp_distance_pr( int length,
                           FLT_OR_DBL *p){
 
-  int *index = vrna_get_iindx((unsigned int) length);
+  int *index = vrna_idx_row_wise((unsigned int) length);
   double d;
 
   if (p==NULL)
@@ -1713,10 +1713,10 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc){
                                 vc->exp_params->model_details.min_loop_size);
 }
 
-PUBLIC plist *
+PUBLIC vrna_plist_t *
 vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff){
 
-  plist             *pl;
+  vrna_plist_t             *pl;
   int               i, j, plsize, turn, length, *index, *jindx, *rtype, num;
   char              *ptype;
   FLT_OR_DBL        *qb, *probs, *scale, p;
@@ -1740,7 +1740,7 @@ vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff){
     scale     = matrices->scale;
     turn      = pf_params->model_details.min_loop_size;
 
-    pl        = (plist *) vrna_alloc(plsize*sizeof(plist));
+    pl        = (vrna_plist_t *) vrna_alloc(plsize*sizeof(vrna_plist_t));
 
     for (i=1; i<length; i++)
       for (j=i+turn+3; j<=length; j++) {
@@ -1756,7 +1756,7 @@ vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff){
           pl[num++].p   = p;
           if (num>=plsize) {
             plsize *= 2;
-            pl = vrna_realloc(pl, plsize*sizeof(plist));
+            pl = vrna_realloc(pl, plsize*sizeof(vrna_plist_t));
           }
         }
       }
@@ -1952,7 +1952,7 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc){
 }
 
 
-PUBLIC plist *
+PUBLIC vrna_plist_t *
 stackProb(double cutoff){
 
   if(!(backward_compat_compound && backward_compat)){
@@ -1988,7 +1988,7 @@ mean_bp_dist(int length) {
   if (pr==NULL)
     vrna_message_error("pr==NULL. You need to call pf_fold() before mean_bp_dist()");
 
-  int *my_iindx = vrna_get_iindx(length);
+  int *my_iindx = vrna_idx_row_wise(length);
 
   for (i=1; i<=length; i++)
     for (j=i+TURN+1; j<=length; j++)
@@ -2269,7 +2269,7 @@ get_centroid_struct_gquad_pr( int length,
 }
 
 PUBLIC void
-assign_plist_gquad_from_pr( plist **pl,
+assign_vrna_plist_t_gquad_from_pr( vrna_plist_t **pl,
                             int length, /* ignored */
                             double cut_off){
 
@@ -2278,7 +2278,7 @@ assign_plist_gquad_from_pr( plist **pl,
   } else if( !backward_compat_compound->exp_matrices->probs){
     *pl = NULL;
   } else {
-    *pl = vrna_pl_get_from_pr(backward_compat_compound, cut_off);
+    *pl = vrna_plist_from_probs(backward_compat_compound, cut_off);
   }
 }
 
@@ -2299,7 +2299,7 @@ mean_bp_distance_pr(int length,
                     FLT_OR_DBL *p){
 
   double d=0;
-  int *index = vrna_get_iindx((unsigned int) length);
+  int *index = vrna_idx_row_wise((unsigned int) length);
 
   if (p==NULL)
     vrna_message_error("p==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");

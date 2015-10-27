@@ -332,8 +332,8 @@ vrna_fold_compound_TwoD(const char *sequence,
 
   /* set all fields that are unique to Distance class partitioning... */
   turn  = vc->params->model_details.min_loop_size;
-  vc->reference_pt1 = vrna_pt_get(s1);
-  vc->reference_pt2 = vrna_pt_get(s2);
+  vc->reference_pt1 = vrna_ptable(s1);
+  vc->reference_pt2 = vrna_ptable(s2);
   vc->referenceBPs1 = vrna_refBPcnt_matrix(vc->reference_pt1, turn);
   vc->referenceBPs2 = vrna_refBPcnt_matrix(vc->reference_pt2, turn);
   vc->bpdist        = vrna_refBPdist_matrix(vc->reference_pt1, vc->reference_pt2, turn);
@@ -360,12 +360,12 @@ add_params( vrna_fold_compound_t *vc,
             unsigned int options){
 
   if(options & VRNA_OPTION_MFE)
-    vc->params = vrna_params_get(md_p);
+    vc->params = vrna_params(md_p);
 
   if(options & VRNA_OPTION_PF){
     vc->exp_params  = (vc->type == VRNA_VC_TYPE_SINGLE) ? \
-                        vrna_exp_params_get(md_p) : \
-                        vrna_exp_params_ali_get(vc->n_seq, md_p);
+                        vrna_exp_params(md_p) : \
+                        vrna_exp_params_comparative(vc->n_seq, md_p);
   }
 
 }
@@ -411,7 +411,7 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   vc->sequence_encoding   = vrna_seq_encode(seq, md_p);
                                   vc->sequence_encoding2  = vrna_seq_encode_simple(seq, md_p);
                                   if(!(options & VRNA_OPTION_EVAL_ONLY)){
-                                    vc->ptype               = (aux & WITH_PTYPE) ? vrna_get_ptypes(vc->sequence_encoding2, md_p) : NULL;
+                                    vc->ptype               = (aux & WITH_PTYPE) ? vrna_ptypes(vc->sequence_encoding2, md_p) : NULL;
                                     /* backward compatibility ptypes */
                                     vc->ptype_pf_compat     = (aux & WITH_PTYPE_COMPAT) ? get_ptypes(vc->sequence_encoding2, md_p, 1) : NULL;
                                   } else {
@@ -440,7 +440,7 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   vc->Ss  = (char **)           vrna_alloc((vc->n_seq+1) * sizeof(char *));
 
                                   for (s = 0; s < vc->n_seq; s++) {
-                                    vrna_ali_encode(vc->sequences[s],
+                                    vrna_aln_encode(vc->sequences[s],
                                                     &(vc->S[s]),
                                                     &(vc->S5[s]),
                                                     &(vc->S3[s]),
@@ -461,8 +461,8 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   break;
   }
 
-  vc->iindx         = vrna_get_iindx(vc->length);
-  vc->jindx         = vrna_get_indx(vc->length);
+  vc->iindx         = vrna_idx_row_wise(vc->length);
+  vc->jindx         = vrna_idx_col_wise(vc->length);
 
   /* now come the energy parameters */
   add_params(vc, md_p, options);

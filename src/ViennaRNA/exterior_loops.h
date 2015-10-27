@@ -791,7 +791,7 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
                     int *k,
                     int *i,
                     int *j,
-                    bondT *bp_stack,
+                    vrna_bp_stack_t *bp_stack,
                     int *stack_count){
 
   int           length, cp, fij, fi, jj, u, en, e, *my_f5, *my_c, *my_ggg, *idx, dangle_model, turn, with_gquad;

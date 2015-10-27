@@ -3,6 +3,8 @@
 /**********************************************/
 
 /* do not create default constructor and hide data fields of vrna_param_t from SWIG */
+%ignore paramT;
+%ignore pf_paramT;
 %ignore vrna_param_s;
 %ignore vrna_exp_param_s;
 
@@ -15,11 +17,11 @@ typedef struct {} vrna_exp_param_t;
 /* make a nice object oriented interface to vrna_param_t */
 %extend vrna_param_t {
   vrna_param_t(){
-    vrna_param_t *P = vrna_params_get(NULL);
+    vrna_param_t *P = vrna_params(NULL);
     return P;
   }
   vrna_param_t(vrna_md_t *md){
-    vrna_param_t *P = vrna_params_get(md);
+    vrna_param_t *P = vrna_params(md);
     return P;
   }
 
@@ -31,11 +33,11 @@ typedef struct {} vrna_exp_param_t;
 /* make a nice object oriented interface to vrna_exp_param_t */
 %extend vrna_exp_param_t {
   vrna_exp_param_t(){
-    vrna_exp_param_t *P = vrna_exp_params_get(NULL);
+    vrna_exp_param_t *P = vrna_exp_params(NULL);
     return P;
   }
   vrna_exp_param_t(vrna_md_t *md){
-    vrna_exp_param_t *P = vrna_exp_params_get(md);
+    vrna_exp_param_t *P = vrna_exp_params(md);
     return P;
   }
 

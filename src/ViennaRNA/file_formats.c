@@ -79,8 +79,8 @@ vrna_structure_print_hx(const char *seq,
     vrna_message_error("vrna_structure_print_hx: sequence and structure have unequal length!");
 
   out   = (file) ? file : stdout;
-  pt    = vrna_pt_get(db);
-  list  = vrna_pt_to_hx(pt);
+  pt    = vrna_ptable(db);
+  list  = vrna_hx_from_ptable(pt);
 
   fprintf(out, "%s\t%6.2f\n", seq, energy);
   for(s = 0; list[s].length > 0; s++){
@@ -104,7 +104,7 @@ vrna_structure_print_ct(const char *seq,
   if(strlen(seq) != strlen(db))
     vrna_message_error("vrna_structure_print_ct: sequence and structure have unequal length!");
 
-  short *pt = vrna_pt_get(db);
+  short *pt = vrna_ptable(db);
 
   for(power_d=0;pow(10,power_d) <= (int)strlen(seq);power_d++);
 
@@ -165,7 +165,7 @@ vrna_structure_print_bpseq( const char *seq,
   if(strlen(seq) != strlen(db))
     vrna_message_error("vrna_structure_print_bpseq: sequence and structure have unequal length!");
 
-  short *pt = vrna_pt_get(db);
+  short *pt = vrna_ptable(db);
 
   for(i = 1; i <= pt[0]; i++){
     fprintf(out, "%d %c %d\n", i, (char)toupper(seq[i-1]), pt[i]);
@@ -781,7 +781,7 @@ parse_constraints_line( const char *line,
   return ret;
 }
 
-PUBLIC  plist *
+PUBLIC  vrna_plist_t *
 vrna_file_constraints_read( const char *filename,
                             unsigned int length,
                             unsigned int options){
@@ -789,7 +789,7 @@ vrna_file_constraints_read( const char *filename,
   FILE  *fp;
   int   line_number, constraint_number, constraint_number_guess;
   char  *line;
-  plist *constraints;
+  vrna_plist_t *constraints;
 
   if(!(fp = fopen(filename, "r"))){
     vrna_message_warning("Hard Constraints File could not be opened!");
@@ -799,7 +799,7 @@ vrna_file_constraints_read( const char *filename,
   line_number             = 0;
   constraint_number       = 0;
   constraint_number_guess = 10;
-  constraints             = (plist *)vrna_alloc(sizeof(plist) * constraint_number_guess);
+  constraints             = (vrna_plist_t *)vrna_alloc(sizeof(vrna_plist_t) * constraint_number_guess);
 
   while((line=get_line(fp))){
 
@@ -907,7 +907,7 @@ vrna_file_constraints_read( const char *filename,
 
               if(constraint_number == constraint_number_guess){
                 constraint_number_guess *= 2;
-                constraints = (plist *)vrna_realloc(constraints, sizeof(plist) * constraint_number_guess);
+                constraints = (vrna_plist_t *)vrna_realloc(constraints, sizeof(vrna_plist_t) * constraint_number_guess);
               }
             }
       } else {
@@ -921,7 +921,7 @@ vrna_file_constraints_read( const char *filename,
   fclose(fp);
 
   /* resize plist to actual size */
-  constraints = (plist *)vrna_realloc(constraints, sizeof(plist) * (constraint_number + 1));
+  constraints = (vrna_plist_t *)vrna_realloc(constraints, sizeof(vrna_plist_t) * (constraint_number + 1));
 
   constraints[constraint_number].i    = 0;
   constraints[constraint_number].j    = 0;
