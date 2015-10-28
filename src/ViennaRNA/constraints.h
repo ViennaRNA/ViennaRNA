@@ -712,6 +712,8 @@ void vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
  */
 void vrna_hc_free(vrna_hc_t *hc);
 
+#ifdef WITH_GEN_HC
+
 /**
  *  @brief  Add a function pointer and/or data pointer for the generalized hard constraint
  *          feature
@@ -725,6 +727,8 @@ void vrna_hc_add_pre( vrna_fold_compound_t *vc,
 
 void vrna_hc_add_post(vrna_fold_compound_t *vc,
                       void (*post)( vrna_fold_compound_t *, char));
+
+#endif
 
 /**
  *  @brief Initialize an empty soft constraints data structure within a #vrna_fold_compound_t

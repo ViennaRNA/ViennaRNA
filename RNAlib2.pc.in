@@ -9,4 +9,4 @@ Version: @PACKAGE_VERSION@
 URL: @PACKAGE_URL@
 Libs: -L${libdir} -lRNA @LIBGOMPFLAG@
 Libs.private: -lm
-Cflags: -I${includedir}
+Cflags: -I${includedir} @GENERIC_HC_DEF@

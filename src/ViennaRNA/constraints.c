@@ -495,6 +495,8 @@ vrna_hc_free(vrna_hc_t *hc){
   }
 }
 
+#ifdef WITH_GEN_HC
+
 PUBLIC void
 vrna_hc_add_f(vrna_fold_compound_t *vc,
               char (*f)( vrna_fold_compound_t *, int, int, int, int, char),
@@ -540,6 +542,7 @@ vrna_hc_add_post( vrna_fold_compound_t *vc,
   }
 }
 
+#endif
 
 PRIVATE void
 apply_DB_constraint(const char *constraint,

@@ -19,7 +19,13 @@ fi
 ])
 
 AC_DEFUN([AC_RNA_PACKAGE_IF_ENABLED],[
-if test "x$with_$1" != xno; then
+if test "x$with_$1" != "xno"; then
+  $2
+fi
+])
+
+AC_DEFUN([AC_RNA_FEATURE_IF_ENABLED],[
+if test "x$enable_$1" != "xno"; then
   $2
 fi
 ])
@@ -75,6 +81,19 @@ AC_RNA_PACKAGE_IF_ENABLED([$1],[
 
 ])
 
+AC_DEFUN([AC_RNA_ADD_FEATURE],[
+
+# announce the feature for inclusion in the configure script
+
+AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
+            [ifelse([$3], [yes],
+              [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])], [disable feature: $2])],
+              [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])], [enable feature: $2])])],
+            [$4],
+            [$5])
+
+
+])
 
 # AC_RNA_DOCUMENTATION_INIT(PROJECT_NAME, [config-file], [documentation-output-directory])
 #
@@ -334,6 +353,16 @@ AC_RNA_ADD_PACKAGE( [gsl],
                     [yes],
                     [with_gsl=no],
                     [with_gsl=yes])
+AC_RNA_ADD_FEATURE( [boustrophedon],
+                    [Boustrophedon scheme for stochastic backtracking],
+                    [yes],
+                    [enable_boustrophedon=no],
+                    [enable_boustrophedon=yes])
+AC_RNA_ADD_FEATURE( [gen_hard_constraints],
+                    [Generic hard constraints],
+                    [no],
+                    [enable_gen_hard_constraints=yes],
+                    [enable_gen_hard_constraints=no])
 
 ## begin with initialization according to configure-time specific options
 
@@ -464,6 +493,24 @@ AC_RNA_PACKAGE_IF_ENABLED([gsl],[
   AC_DEFINE([WITH_GSL], [1], [Use GNU Scientific Library])
 ])
 
+## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
+AC_RNA_FEATURE_IF_ENABLED([boustrophedon],[
+  AC_DEFINE([WITH_BOUSTROPHEDON], [1], [Use Boustrophedon scheme for stochastic backtracking])
+])
+
+## Add preprocessor define statement for generlaized hard constraints feature
+AC_RNA_FEATURE_IF_ENABLED([gen_hard_constraints],[
+  AC_DEFINE([WITH_GEN_HC], [1], [Provide generic hard constraints])
+  GENERIC_HC_DEF=-DWITH_GEN_HC
+])
+AC_SUBST(GENERIC_HC_DEF)
+
+## Add linker flag for OpenMP in pkg-config file
+AC_RNA_FEATURE_IF_ENABLED([openmp],[
+  LIBGOMPFLAG=-lgomp
+])
+AC_SUBST(LIBGOMPFLAG)
+
 AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
 AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
 AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
@@ -472,13 +519,6 @@ AM_CONDITIONAL(WITH_JSON, test "$with_json" != "no")
 AM_CONDITIONAL(WITH_CHECK, test "$with_check" != "yes")
 AM_CONDITIONAL(WITH_GSL, test "$with_gsl" != "no")
 
-# check if we need to include -lgomp into the ldflags of our pkg-config file
-if test "$enable_openmp" != no; then
-  LIBGOMPFLAG=-lgomp
-else
-  LIBGOMPFLAG=
-fi
-AC_SUBST(LIBGOMPFLAG)
 
 AC_RNA_DOCUMENTATION_INIT([RNAlib])
 
@@ -507,27 +547,31 @@ eval _pdfdir=$(eval printf "%s" $pdfdir)
 
 AC_MSG_NOTICE(
 [
-Configure successful with the following options:
+Configured successful with the following options:
 
 RNAlib Scripting Interfaces:
-  Perl Interface:       ${with_perl:-yes}       $enabled_but_failed_perl
-  Python Interface:     ${with_python:-yes}     $enabled_but_failed_python
+  Perl Interface:           ${with_perl:-yes}       $enabled_but_failed_perl
+  Python Interface:         ${with_python:-yes}     $enabled_but_failed_python
 
 Extra Programs:
-  Analyse{Dists,Seqs}:  ${with_cluster:-no}
-  Kinfold:              ${with_kinfold:-yes}
-  RNAforester:          ${with_forester:-yes}
+  Analyse{Dists,Seqs}:      ${with_cluster:-no}
+  Kinfold:                  ${with_kinfold:-yes}
+  RNAforester:              ${with_forester:-yes}
 
 Other Options:
-  SVM:                  ${with_svm:-yes}
-  JSON:                 ${with_json:-yes}
-  GSL:                  ${with_gsl:-yes}        $enabled_but_failed_gsl
-  Documentation:        ${with_doc:-no}
-    (HTML):             ${with_doc_html:-no}
-    (PDF):              ${with_doc_pdf:-no}
+  SVM:                      ${with_svm:-yes}
+  JSON:                     ${with_json:-yes}
+  GSL:                      ${with_gsl:-yes}        $enabled_but_failed_gsl
+  Boustrophedon:            ${enable_boustrophedon:-yes}
+  Generic Hard Constraints: ${enable_gen_hard_constraints:-no}
+  OpenMP:                   ${enable_openmp:-yes}
+
+Documentation:              ${with_doc:-no}
+    (HTML):                 ${with_doc_html:-no}
+    (PDF):                  ${with_doc_pdf:-no}
 
 Unit Tests:
-  check:                ${with_check:-yes}      $enabled_but_failed_check
+  check:                    ${with_check:-yes}      $enabled_but_failed_check
 
 -
 Files will be installed in the following directories:
