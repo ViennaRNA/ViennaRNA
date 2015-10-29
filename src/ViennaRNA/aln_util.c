@@ -4,13 +4,16 @@
 */
 /* Last changed Time-stamp: <2006-01-16 11:42:38 ivo> */
 
+#include <config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
-#include <config.h>
+#include <math.h>
+
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
@@ -214,6 +217,86 @@ vrna_aln_mpi( char *Alseq[],
   if (pairnum>0)   return (int) (sumident*100/pairnum);
   else return 0;
 
+}
+
+/*---------------------------------------------------------------------------*/
+PRIVATE int
+compare_pinfo(const void *pi1,
+              const void *pi2){
+
+  vrna_pinfo_t *p1, *p2;
+  int  i, nc1, nc2;
+  p1 = (vrna_pinfo_t *)pi1;  p2 = (vrna_pinfo_t *)pi2;
+  for (nc1=nc2=0, i=1; i<=6; i++) {
+    if (p1->bp[i]>0) nc1++;
+    if (p2->bp[i]>0) nc2++;
+  }
+  /* sort mostly by probability, add
+     epsilon * comp_mutations/(non-compatible+1) to break ties */
+  return (p1->p + 0.01*nc1/(p1->bp[0]+1.)) <
+         (p2->p + 0.01*nc2/(p2->bp[0]+1.)) ? 1 : -1;
+}
+
+PUBLIC vrna_pinfo_t *
+vrna_aln_pinfo( vrna_fold_compound_t *vc,
+                const char *structure,
+                double threshold){
+
+  int i,j, num_p=0, max_p = 64;
+  vrna_pinfo_t *pi;
+  double *duck, p;
+  short *ptable = NULL;
+
+  short **S = vc->S;
+  char **AS = vc->sequences;
+  int n_seq = vc->n_seq;
+  int n     = vc->length;
+  int         *my_iindx = vc->iindx;
+  FLT_OR_DBL  *probs    = vc->exp_matrices->probs;
+  vrna_md_t   *md = &(vc->exp_params->model_details);
+
+  max_p = 64; pi = vrna_alloc(max_p*sizeof(vrna_pinfo_t));
+  duck =  (double *) vrna_alloc((n+1)*sizeof(double));
+  if(structure)
+    ptable = vrna_ptable(structure);
+
+  for (i=1; i<n; i++)
+    for (j=i+TURN+1; j<=n; j++) {
+      if ((p=probs[my_iindx[i]-j])>=threshold) {
+        duck[i] -=  p * log(p);
+        duck[j] -=  p * log(p);
+
+        int type, s;
+        pi[num_p].i   = i;
+        pi[num_p].j   = j;
+        pi[num_p].p   = p;
+        pi[num_p].ent = duck[i]+duck[j]-p*log(p);
+
+        for (type=0; type<8; type++) pi[num_p].bp[type]=0;
+        for (s=0; s<n_seq; s++) {
+          type = md->pair[S[s][i]][S[s][j]];
+          if(S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
+          if ((AS[s][i-1] == '-')||(AS[s][j-1] == '-')) type = 7;
+          if ((AS[s][i-1] == '~')||(AS[s][j-1] == '~')) type = 7;
+          pi[num_p].bp[type]++;
+        }
+        if(ptable)
+          pi[num_p].comp = (ptable[i] == j) ? 1:0;
+
+        num_p++;
+        if (num_p>=max_p) {
+          max_p *= 2;
+          pi = vrna_realloc(pi, max_p * sizeof(vrna_pinfo_t));
+        }
+      }
+    }
+  free(duck);
+  pi = vrna_realloc(pi, (num_p+1)*sizeof(vrna_pinfo_t));
+  pi[num_p].i=0;
+  qsort(pi, num_p, sizeof(vrna_pinfo_t), compare_pinfo );
+
+  free(ptable);
+  return pi;
 }
 
 /*###########################################*/

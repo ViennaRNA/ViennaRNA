@@ -122,6 +122,9 @@
  *  @defgroup   struct_utils              Parsing, Converting, and Comparing - Functions to Manipulate Secondary Structures
  *  @ingroup    utils
  *
+ *  @defgroup   aln_utils                 Various utilities for Sequence Alignments, and Comparative Structure Prediction
+ *  @ingroup    utils
+ *
  *  @defgroup   file_utils                Functions to Read/Write several File Formats for RNA Sequences, Structures, and Alignments
  *  @ingroup    utils
  *

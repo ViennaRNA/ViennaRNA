@@ -97,6 +97,7 @@ vrna_mfe(vrna_fold_compound_t *vc,
           char *structure){
 
   int     length, energy, s;
+  char    *ss;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   vrna_bp_stack_t   *bp;
 
@@ -125,7 +126,9 @@ vrna_mfe(vrna_fold_compound_t *vc,
 
     backtrack(vc, bp, bt_stack, s);
 
-    vrna_parenthesis_structure(structure, bp, length);
+    ss = vrna_db_from_bp_stack(bp, length);
+    strncpy(structure, ss, length + 1);
+    free(ss);
 
 #ifdef  VRNA_BACKWARD_COMPAT
     /*
@@ -738,7 +741,6 @@ backtrack_fold_from_pair( char *sequence,
 
   if(sequence){
     length = strlen(sequence);
-    structure = (char *) vrna_alloc((length + 1)*sizeof(char));
     bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (1+length/2));
   } else {
     vrna_message_error("backtrack_fold_from_pair@fold.c: no sequence given");
@@ -751,7 +753,7 @@ backtrack_fold_from_pair( char *sequence,
   bp[0].i = 0; /* ??? this is set by backtrack anyway... */
 
   backtrack(backward_compat_compound, bp, bt_stack, 1);
-  vrna_parenthesis_structure(structure, bp, length);
+  structure = vrna_db_from_bp_stack(bp, length);
 
   /* backward compatibitlity stuff */
   if(base_pair) free(base_pair);

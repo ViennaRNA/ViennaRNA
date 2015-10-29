@@ -53,7 +53,7 @@
 /** @brief Typename for the data structure that stores the dimer partition functions, #vrna_dimer_pf_s, as returned by vrna_pf_dimer() */
 typedef struct vrna_dimer_pf_s  vrna_dimer_pf_t;
 
-/** @brief Typename for the data structure that stores the dimer concentrations, #vrna_dimer_concs, as required by vrna_pf_dimer_concentration() */
+/** @brief Typename for the data structure that stores the dimer concentrations, #vrna_dimer_conc_s, as required by vrna_pf_dimer_concentration() */
 typedef struct vrna_dimer_conc_s  vrna_dimer_conc_t;
 
 

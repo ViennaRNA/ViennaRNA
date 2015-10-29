@@ -32,13 +32,27 @@
  *  @param  db    The structure in dot-bracket format
  *  @param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
  */
-void vrna_structure_print_hx( const char *seq,
-                              const char *db,
-                              float energy,
-                              FILE *file);
+void vrna_file_helixlist( const char *seq,
+                          const char *db,
+                          float energy,
+                          FILE *file);
 
 /**
  *  @brief Print a secondary structure as connect table
+ *
+ *  Connect table file format looks like this:
+@verbatim
+300  ENERGY = 7.0  example
+  1 G       0    2   22    1
+  2 G       1    3   21    2
+@endverbatim
+ *  where the headerline is followed by 6 columns with:
+ *  1. Base number: index n
+ *  2. Base (A, C, G, T, U, X)
+ *  3. Index n-1  (0 if first nucleotide)
+ *  4. Index n+1  (0 if last nucleotide)
+ *  5. Number of the base to which n is paired. No pairing is indicated by 0 (zero).
+ *  6. Natural numbering.
  *
  *  @param  seq         The RNA sequence
  *  @param  db          The structure in dot-bracket format
@@ -46,11 +60,11 @@ void vrna_structure_print_hx( const char *seq,
  *  @param  identifier  An optional identifier for the sequence
  *  @param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
  */
-void vrna_structure_print_ct( const char *seq,
-                              const char *db,
-                              float energy,
-                              const char *identifier,
-                              FILE *file);
+void vrna_file_connect( const char *seq,
+                        const char *db,
+                        float energy,
+                        const char *identifier,
+                        FILE *file);
 
 /**
  *  @brief Print a secondary structure in bpseq format
@@ -59,9 +73,9 @@ void vrna_structure_print_ct( const char *seq,
  *  @param  db          The structure in dot-bracket format
  *  @param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
  */
-void vrna_structure_print_bpseq(const char *seq,
-                                const char *db,
-                                FILE *file);
+void vrna_file_bpseq( const char *seq,
+                      const char *db,
+                      FILE *file);
 
 #if WITH_JSON_SUPPORT
 
@@ -74,11 +88,11 @@ void vrna_structure_print_bpseq(const char *seq,
  *  @param  identifier  An identifier for the sequence
  *  @param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
  */
-void vrna_structure_print_json( const char *seq,
-                                const char *db,
-                                double energy,
-                                const char *identifier,
-                                FILE *file);
+void vrna_file_json(const char *seq,
+                    const char *db,
+                    double energy,
+                    const char *identifier,
+                    FILE *file);
 
 #endif
 

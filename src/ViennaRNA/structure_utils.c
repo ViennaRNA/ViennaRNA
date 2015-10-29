@@ -569,33 +569,14 @@ vrna_letter_structure(char *structure,
 
 /*---------------------------------------------------------------------------*/
 
-PUBLIC void
-vrna_parenthesis_structure( char *structure,
-                            vrna_bp_stack_t *bp,
-                            unsigned int length){
-
-  int n, k;
-
-  memset(structure, '.', length);
-  structure[length] = '\0';
-
-  for (k = 1; k <= bp[0].i; k++){
-
-    if(bp[k].i == bp[k].j){ /* Gquad bonds are marked as bp[i].i == bp[i].j */
-      structure[bp[k].i-1] = '+';
-    } else { /* the following ones are regular base pairs */
-      structure[bp[k].i-1] = '(';
-      structure[bp[k].j-1] = ')';
-    }
-  }
-}
-
-PUBLIC void
-vrna_parenthesis_zuker( char *structure,
-                        vrna_bp_stack_t *bp,
-                        unsigned int length){
+PUBLIC char *
+vrna_db_from_bp_stack(vrna_bp_stack_t *bp,
+                      unsigned int length){
 
   int k, i, j, temp;
+  char *structure;
+
+  structure = vrna_alloc(sizeof(char) * (length + 1));
 
   memset(structure, '.', length);
   structure[length] = '\0';
@@ -615,6 +596,7 @@ vrna_parenthesis_zuker( char *structure,
       structure[j-1] = ')';
     }
   }
+  return structure;
 }
 
 PUBLIC vrna_plist_t *
@@ -789,16 +771,16 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
   return pl;
 }
 
-PUBLIC vrna_helix *
+PUBLIC vrna_hx_t *
 vrna_hx_from_ptable(short *pt){
 
   int i, k, n, l, s, *stack;
-  vrna_helix *list;
+  vrna_hx_t *list;
 
   n = pt[0];
   l = 0;
   s = 1;
-  list  = (vrna_helix *)vrna_alloc(sizeof(vrna_helix) * n/2);
+  list  = (vrna_hx_t *)vrna_alloc(sizeof(vrna_hx_t) * n/2);
   stack = (int *)vrna_alloc(sizeof(int) * n/2);
 
   stack[s] = 1;
@@ -823,22 +805,22 @@ vrna_hx_from_ptable(short *pt){
     }
   } while (s > 0);
 
-  list = vrna_realloc(list, (l+1)*sizeof(vrna_helix));
+  list = vrna_realloc(list, (l+1)*sizeof(vrna_hx_t));
   list[l].start = list[l].end = list[l].length = list[l].up5 = list[l].up3 = 0;
 
   free(stack);
   return list;
 }
 
-PUBLIC vrna_helix *
-vrna_hx_merge(const vrna_helix *list, int maxdist){
+PUBLIC vrna_hx_t *
+vrna_hx_merge(const vrna_hx_t *list, int maxdist){
   int merged, i, j, s, neighbors, n;
-  vrna_helix *merged_list;
+  vrna_hx_t *merged_list;
 
   for(n=0; list[n].length > 0; n++); /* check size of list */
 
-  merged_list = (vrna_helix *)vrna_alloc(sizeof(vrna_helix) * (n+1));
-  memcpy(merged_list, list, sizeof(vrna_helix) * (n+1));
+  merged_list = (vrna_hx_t *)vrna_alloc(sizeof(vrna_hx_t) * (n+1));
+  memcpy(merged_list, list, sizeof(vrna_hx_t) * (n+1));
 
   s = n+1;
 
@@ -873,7 +855,7 @@ vrna_hx_merge(const vrna_helix *list, int maxdist){
                                 + merged_list[i].up3;
         merged_list[i-1].length += merged_list[i].length;
         /* splice out helix i */
-        memmove(merged_list+i, merged_list+i+1, sizeof(vrna_helix)*(n-i));
+        memmove(merged_list+i, merged_list+i+1, sizeof(vrna_hx_t)*(n-i));
         s--;
         merged = 1;
         break;
@@ -881,7 +863,7 @@ vrna_hx_merge(const vrna_helix *list, int maxdist){
     }
   } while(merged);
 
-  merged_list = vrna_realloc(merged_list, sizeof(vrna_helix) * s);
+  merged_list = vrna_realloc(merged_list, sizeof(vrna_hx_t) * s);
 
   return merged_list;
 }
@@ -910,7 +892,9 @@ parenthesis_structure(char *structure,
                       vrna_bp_stack_t *bp,
                       int length){
 
-  return vrna_parenthesis_structure(structure, bp, length);
+  char *s = vrna_db_from_bp_stack(bp, length);
+  strncpy(structure, s, length + 1);
+  free(s);
 }
 
 PUBLIC void
@@ -926,7 +910,9 @@ parenthesis_zuker(char *structure,
                   vrna_bp_stack_t *bp,
                   int length){
 
-  return vrna_parenthesis_zuker(structure, bp, length);
+  char *s = vrna_db_from_bp_stack(bp, length);
+  strncpy(structure, s, length + 1);
+  free(s);
 }
 
 PUBLIC void

@@ -65,18 +65,18 @@ elim_trailing_ws(char *string){    /* eliminate whitespaces at the end of a char
 }
 
 PUBLIC void
-vrna_structure_print_hx(const char *seq,
-                        const char *db,
-                        float energy,
-                        FILE *file){
+vrna_file_helixlist(const char *seq,
+                    const char *db,
+                    float energy,
+                    FILE *file){
 
   int         s;
   short       *pt;
-  vrna_helix  *list;
+  vrna_hx_t   *list;
   FILE *out;
 
   if(strlen(seq) != strlen(db))
-    vrna_message_error("vrna_structure_print_hx: sequence and structure have unequal length!");
+    vrna_message_error("vrna_file_helixlist: sequence and structure have unequal length!");
 
   out   = (file) ? file : stdout;
   pt    = vrna_ptable(db);
@@ -92,17 +92,17 @@ vrna_structure_print_hx(const char *seq,
 }
 
 PUBLIC void
-vrna_structure_print_ct(const char *seq,
-                        const char *db,
-                        float energy,
-                        const char *identifier,
-                        FILE *file){
+vrna_file_connect(const char *seq,
+                  const char *db,
+                  float energy,
+                  const char *identifier,
+                  FILE *file){
 
   int i, power_d;
   FILE *out = (file) ? file : stdout;
 
   if(strlen(seq) != strlen(db))
-    vrna_message_error("vrna_structure_print_ct: sequence and structure have unequal length!");
+    vrna_message_error("vrna_file_connect: sequence and structure have unequal length!");
 
   short *pt = vrna_ptable(db);
 
@@ -155,15 +155,15 @@ vrna_structure_print_ct(const char *seq,
 }
 
 PUBLIC void
-vrna_structure_print_bpseq( const char *seq,
-                            const char *db,
-                            FILE *file){
+vrna_file_bpseq(const char *seq,
+                const char *db,
+                FILE *file){
 
   int i;
   FILE *out = (file) ? file : stdout;
 
   if(strlen(seq) != strlen(db))
-    vrna_message_error("vrna_structure_print_bpseq: sequence and structure have unequal length!");
+    vrna_message_error("vrna_file_bpseq: sequence and structure have unequal length!");
 
   short *pt = vrna_ptable(db);
 
@@ -179,11 +179,11 @@ vrna_structure_print_bpseq( const char *seq,
 #if WITH_JSON_SUPPORT
 
 PUBLIC void
-vrna_structure_print_json(  const char *seq,
-                            const char *db,
-                            double energy,
-                            const char *identifier,
-                            FILE *file){
+vrna_file_json( const char *seq,
+                const char *db,
+                double energy,
+                const char *identifier,
+                FILE *file){
 
   FILE *out = (file) ? file : stdout;
 

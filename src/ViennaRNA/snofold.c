@@ -286,11 +286,6 @@ int snofold(const char *string, char *structure, const int max_assym, const int 
   energy=fill_arrays(string, max_assym, threshloop, min_s2, max_s2, half_stem, max_half_stem);
   backtrack(string, s);
 
-#if 0
-        /*no structure output, no backtrack*/
-  backtrack(string, 0);
-  vrna_parenthesis_structure(structure, base_pair, length);
-#endif
   free(structure);
   free(S); free(S1); /* free(BP); */
   return energy;
@@ -432,10 +427,6 @@ float alisnofold(const char **strings, const int max_assym, const int threshloop
   make_pscores((const short **) Sali, (const char *const *) strings, n_seq, structure);
   energy=alifill_arrays(strings, max_assym, threshloop, min_s2, max_s2, half_stem, max_half_stem);
   alibacktrack((const char **)strings, 0);
-  structure = (char *) vrna_alloc((length+1)*sizeof(char));
-  vrna_parenthesis_structure(structure, base_pair, length);
-
-  free(structure);
   for (s=0; s<n_seq; s++) free(Sali[s]);
   free(Sali);
   /* free(structure); */
@@ -994,8 +985,7 @@ char *snobacktrack_fold_from_pair(const char *sequence, int i, int j) {
   base_pair[0].i=0;
   encode_seq(sequence);
   backtrack(sequence, 1);
-  structure = (char *) vrna_alloc((strlen(sequence)+1)*sizeof(char));
-  vrna_parenthesis_structure(structure, base_pair, strlen(sequence));
+  structure = vrna_db_from_bp_stack(base_pair, strlen(sequence));
   free(S);free(S1);
   return structure;
 }
@@ -1017,8 +1007,7 @@ char *alisnobacktrack_fold_from_pair(const char **strings, int i, int j, int *co
     Sali[s] = aliencode_seq(strings[s]);
   }
   *cov=alibacktrack(strings, 1);
-  structure = (char *) vrna_alloc((length+1)*sizeof(char));
-  vrna_parenthesis_structure(structure, base_pair, length);
+  structure = vrna_db_from_bp_stack(base_pair, length);
   free(S);free(S1);
   for (s=0; s<n_seq; s++) {
     free(Sali[s]);

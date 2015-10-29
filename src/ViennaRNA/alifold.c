@@ -148,6 +148,7 @@ vrna_mfe_comparative(vrna_fold_compound_t *vc,
               char *structure){
 
   int  length, i, s, n_seq, energy;
+  char    *ss;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   vrna_bp_stack_t *bp;
 
@@ -173,7 +174,9 @@ vrna_mfe_comparative(vrna_fold_compound_t *vc,
 
     backtrack(vc, bp, bt_stack, s);
 
-    vrna_parenthesis_structure(structure, bp, length);
+    ss = vrna_db_from_bp_stack(bp, length);
+    strncpy(structure, ss, length + 1);
+    free(ss);
 
     /*
     *  Backward compatibility:

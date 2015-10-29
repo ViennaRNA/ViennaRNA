@@ -23,11 +23,14 @@ typedef struct vrna_basepair_s  vrna_basepair_t;
 /** @brief Typename for the base pair list repesenting data structure #vrna_plist_s */
 typedef struct vrna_plist_s     vrna_plist_t;
 
-/** @brief Typename for the base pair info repesenting data structure #vrna_pinfo_s */
-typedef struct vrna_pinfo_s     vrna_pinfo_t;
-
 /** @brief Typename for the base pair stack repesenting data structure #vrna_bp_stack_s */
 typedef struct vrna_bp_stack_s  vrna_bp_stack_t;
+
+/** @brief Typename for data structure #vrna_cpair_s */
+typedef struct vrna_cpair_s  vrna_cpair_t;
+
+/** @brief Typename for stack of partial structures #vrna_sect_s */
+typedef struct vrna_sect_s  vrna_sect_t;
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
@@ -60,12 +63,6 @@ typedef struct vrna_cpair_s     cpair;
  *  @deprecated Use #vrna_sect_t instead!
 */
 typedef struct vrna_sect_s      sect;
-
-/**
- *  @brief Old typename of #vrna_pinfo_s
- *  @deprecated Use #vrna_pinfo_t instead!
-*/
-typedef struct vrna_pinfo_s     pair_info;
 
 /**
  *  @brief Old typename of #vrna_bp_stack_s
@@ -130,25 +127,6 @@ struct vrna_sect_s {
 struct vrna_bp_stack_s {
    unsigned int i;
    unsigned int j;
-};
-
-/**
- *  @brief A base pair info structure
- *
- *  For each base pair (i,j) with i,j in [0, n-1] the structure lists:
- *  - its probability 'p'
- *  - an entropy-like measure for its well-definedness 'ent'
- *  - the frequency of each type of pair in 'bp[]'
- *    + 'bp[0]' contains the number of non-compatible sequences
- *    + 'bp[1]' the number of CG pairs, etc.
- */
-struct vrna_pinfo_s {
-   unsigned i;    /**<  @brief  nucleotide position i */
-   unsigned j;    /**<  @brief  nucleotide position j */
-   float p;       /**< @brief  Probability */
-   float ent;     /**< @brief  Pseudo entropy for @f$ p(i,j) = S_i + S_j - p_ij*ln(p_ij) @f$ */
-   short bp[8];   /**< @brief  Frequencies of pair_types */
-   char comp;     /**< @brief  1 iff pair is in mfe structure */
 };
 
 

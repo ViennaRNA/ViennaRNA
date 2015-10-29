@@ -99,6 +99,7 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
             char                *structure){
 
   int     length, energy;
+  char    *s;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   vrna_bp_stack_t   *bp;
 
@@ -117,7 +118,9 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
 
     backtrack(bt_stack, bp, vc);
 
-    vrna_parenthesis_structure(structure, bp, length);
+    s = vrna_db_from_bp_stack(bp, length);
+    strncpy(structure, s, length + 1);
+    free(s);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -764,7 +767,8 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
     i=pairlist[p].i;
     j=pairlist[p].j;
     if (todo[i][j]) {
-      int k;
+      int   k;
+      char  *sz;
       bt_stack[1].i   = i;
       bt_stack[1].j   = j;
       bt_stack[1].ml  = 2;
@@ -774,9 +778,9 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
       bt_stack[1].ml  = 2;
       backtrack_co(bt_stack, bp_list, 1,bp_list[0].i, vc);
       energy = c[indx[j]+i]+c[indx[i+length]+j];
-      vrna_parenthesis_zuker(structure, bp_list, length);
+      sz = vrna_db_from_bp_stack(bp_list, length);
       zukresults[counter].energy      = energy;
-      zukresults[counter++].structure = strdup(structure);
+      zukresults[counter++].structure = sz;
       for (k = 1; k <= bp_list[0].i; k++) { /* mark all pairs in structure as done */
         int x,y;
         x=bp_list[k].i;

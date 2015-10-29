@@ -204,23 +204,6 @@ float vrna_pf_comparative(vrna_fold_compound_t *vc,
                       vrna_plist_t **pl);
 
 /**
- *  \brief Retrieve an array of #vrna_pinfo_t structures from precomputed pair probabilities
- *
- *  This array of structures contains information about positionwise pair probabilies,
- *  base pair entropy and more
- *
- *  \see #vrna_pinfo_t, and vrna_pf_comparative()
- *
- *  \param  vc          The #vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
- *  \param  structure   An optional structure in dot-bracket notation (Maybe NULL)
- *  \param  threshold   Do not include results with pair probabilities below threshold
- *  \return             The #vrna_pinfo_t array
- */
-vrna_pinfo_t *vrna_aln_pinfo(vrna_fold_compound_t *vc,
-                                  const char *structure,
-                                  double threshold);
-
-/**
  *  \brief
  * 
  *  \ingroup consensus_pf_fold

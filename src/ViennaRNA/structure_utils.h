@@ -19,17 +19,19 @@
  *  @brief Various utility- and helper-functions for secondary structure parsing, converting, etc.
  */
 
+typedef struct vrna_hx_s  vrna_hx_t;
+
 #include <stdio.h>
 
 #include <ViennaRNA/data_structures.h>
 
-typedef struct{
+struct vrna_hx_s {
   unsigned int start;
   unsigned int end;
   unsigned int length;
   unsigned int up5;
   unsigned int up3;
-} vrna_helix;
+};
 
 /**
  *  @brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
@@ -167,20 +169,16 @@ char vrna_bpp_symbol(const float *x);
 
 /**
  *  @brief Create a dot-backet/parenthesis structure from backtracking stack
- * 
+ *
+ *  This function is capable to create dot-bracket structures from suboptimal
+ *  structure prediction sensu M. Zuker
+ *
+ *  @param bp     Base pair stack containing the traced base pairs
+ *  @param length The length of the structure
+ *  @return       The secondary structure in dot-bracket notation as
+ *                provided in the input
  */
-void vrna_parenthesis_structure(char *structure,
-                                vrna_bp_stack_t *bp,
-                                unsigned int length);
-
-/**
- *  @brief Create a dot-backet/parenthesis structure from backtracking stack
- *  obtained by zuker suboptimal calculation in cofold.c
- * 
- *  @note This function is threadsafe
- */
-void vrna_parenthesis_zuker(char *structure,
-                            vrna_bp_stack_t *bp,
+char *vrna_db_from_bp_stack(vrna_bp_stack_t *bp,
                             unsigned int length);
 
 void vrna_letter_structure( char *structure,
@@ -234,8 +232,8 @@ vrna_plist_t *vrna_plist_from_probs(vrna_fold_compound_t *vc, double cut_off);
 char *vrna_db_from_plist(vrna_plist_t *pairs, unsigned int n);
 
 
-vrna_helix *vrna_hx_from_ptable(short *pt);
-vrna_helix *vrna_hx_merge(const vrna_helix *list, int maxdist);
+vrna_hx_t *vrna_hx_from_ptable(short *pt);
+vrna_hx_t *vrna_hx_merge(const vrna_hx_t *list, int maxdist);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
