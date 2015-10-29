@@ -195,7 +195,7 @@ END_TEST
 
 TCase* utils_testcase()
 {
-  TCase *tc = tcase_create("utils");
+  TCase *tc = tcase_create("Core");
   tcase_add_test(tc, test_vrna_nucleotide_encode);
   tcase_add_test(tc, test_vrna_nucleotide_decode);
   tcase_add_test(tc, test_sequence_encoding);
@@ -204,3 +204,15 @@ TCase* utils_testcase()
 
   return tc;
 }
+
+Suite *
+make_utils_suite(void)
+{
+  Suite *s = suite_create("Utils");
+
+  /* Core test case */
+  suite_add_tcase(s, utils_testcase());
+
+  return s;
+}
+

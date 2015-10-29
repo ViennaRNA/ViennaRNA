@@ -464,7 +464,7 @@ END_TEST
 
 TCase* constraints_testcase()
 {
-  TCase *tc = tcase_create("constraints");
+  TCase *tc = tcase_create("Core");
   tcase_add_test(tc, test_vrna_sc_SHAPE_to_pr);
   tcase_add_test(tc, test_vrna_file_SHAPE_read);
   tcase_add_test(tc, test_vrna_sc_SHAPE_parse_method);
@@ -473,3 +473,15 @@ TCase* constraints_testcase()
 #endif
   return tc;
 }
+
+Suite *
+make_constraints_suite(void)
+{
+  Suite *s = suite_create("Constraints");
+
+  /* Core test case */
+  suite_add_tcase(s, constraints_testcase());
+
+  return s;
+}
+

@@ -132,12 +132,8 @@ START_TEST(test_sc_sanity_check)
 }
 END_TEST
 
-TCase* constraints_testcase();
-TCase* utils_testcase();
-TCase* loop_energies_testcase();
-
 Suite *
-fold_suite(void)
+make_fold_suite(void)
 {
   Suite *s = suite_create("Fold");
 
@@ -148,25 +144,6 @@ fold_suite(void)
   tcase_add_test(tc_core, test_sc_sanity_check);
   suite_add_tcase(s, tc_core);
 
-  suite_add_tcase(s, constraints_testcase());
-  suite_add_tcase(s, utils_testcase());
-  suite_add_tcase(s, loop_energies_testcase());
-
   return s;
-}
-
-
-int
-main(void)
-{
-  int number_failed;
-  Suite *s      = fold_suite();
-  SRunner *sr   = srunner_create(s);
-  srunner_set_fork_status(sr, CK_NOFORK);
-  srunner_run_all(sr, CK_VERBOSE);
-  number_failed = srunner_ntests_failed(sr);
-  srunner_free(sr);
-
-  return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

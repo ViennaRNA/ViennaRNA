@@ -188,7 +188,7 @@ END_TEST
 
 TCase* loop_energies_testcase()
 {
-  TCase *tc = tcase_create("loop_energies");
+  TCase *tc = tcase_create("Core");
   tcase_add_test(tc, test_E_Hairpin);
   tcase_add_test(tc, test_E_MLstem);
   tcase_add_test(tc, test_E_stem);
@@ -197,3 +197,15 @@ TCase* loop_energies_testcase()
 
   return tc;
 }
+
+Suite *
+make_energies_suite(void)
+{
+  Suite *s = suite_create("Energies");
+
+  /* Core test case */
+  suite_add_tcase(s, loop_energies_testcase());
+
+  return s;
+}
+
