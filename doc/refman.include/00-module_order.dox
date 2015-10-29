@@ -10,6 +10,8 @@
  *
  *  @defgroup   inverse_fold              Inverse Secondary Structure Prediction
  *
+ *  @defgroup   paths                     Refolding paths between secondary structues
+ *
  *  @defgroup   eval                      Free Energy Evaluation for given Sequence / Structure Pairs
  *
  *  @defgroup   loops                     Processing and Evaluating Decomposed Loops
@@ -118,6 +120,9 @@
  *
  *  @defgroup   basic_data_structures     Basic Data Structures for Structure Prediction and Evaluation
  *  @ingroup    data_structures
+ *
+ *  @defgroup   direct_paths              Direct refolding paths between two secondary structures
+ *  @ingroup    paths
  *
  *  @defgroup   struct_utils              Parsing, Converting, and Comparing - Functions to Manipulate Secondary Structures
  *  @ingroup    utils

@@ -91,8 +91,8 @@ PRIVATE int     try_moves(vrna_fold_compound_t *vc, intermediate_t c, int maxE, 
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
-PUBLIC void free_path(path_t *path){
-  path_t *tmp = path;
+PUBLIC void free_path(vrna_path_t *path){
+  vrna_path_t *tmp = path;
   if(tmp){
     while(tmp->s){ free(tmp->s); tmp++;}
     free(path);
@@ -131,13 +131,13 @@ find_saddle(const char *seq,
     free(sequence);
   }
 
-  maxE = vrna_find_saddle(vc, struc1, struc2, max);
+  maxE = vrna_path_findpath_saddle(vc, struc1, struc2, max);
 
   return maxE;
 }
 
 PUBLIC int
-vrna_find_saddle( vrna_fold_compound_t *vc,
+vrna_path_findpath_saddle( vrna_fold_compound_t *vc,
                   const char *struc1,
                   const char *struc2,
                   int max) {
@@ -179,13 +179,13 @@ vrna_find_saddle( vrna_fold_compound_t *vc,
   return maxE;
 }
 
-PUBLIC path_t *
+PUBLIC vrna_path_t *
 get_path( const char *seq,
           const char *s1,
           const char* s2,
           int maxkeep){
 
-  path_t              *route    = NULL;
+  vrna_path_t              *route    = NULL;
   char                *sequence = NULL;
   vrna_fold_compound_t  *vc       = NULL;
   vrna_md_t           md;
@@ -210,23 +210,23 @@ get_path( const char *seq,
     free(sequence);
   }
 
-  route = vrna_get_path(vc, s1, s2, maxkeep);
+  route = vrna_path_findpath(vc, s1, s2, maxkeep);
 
   return (route);
 }
 
-PUBLIC path_t *
-vrna_get_path(vrna_fold_compound_t *vc,
+PUBLIC vrna_path_t *
+vrna_path_findpath(vrna_fold_compound_t *vc,
               const char *s1,
               const char* s2,
               int maxkeep){
 
   int E, d;
-  path_t *route=NULL;
+  vrna_path_t *route=NULL;
 
-  E = vrna_find_saddle(vc, s1, s2, maxkeep);
+  E = vrna_path_findpath_saddle(vc, s1, s2, maxkeep);
 
-  route = (path_t *)vrna_alloc((BP_dist+2)*sizeof(path_t));
+  route = (vrna_path_t *)vrna_alloc((BP_dist+2)*sizeof(vrna_path_t));
 
   qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
 
@@ -486,7 +486,7 @@ int main(int argc, char *argv[]) {
   char *line, *seq, *s1, *s2;
   int E, maxkeep=1000;
   int verbose=0, i;
-  path_t *route, *r;
+  vrna_path_t *route, *r;
 
   for (i=1; i<argc; i++) {
     switch ( argv[i][1] ) {
