@@ -111,7 +111,7 @@ short *vrna_pt_snoop_get(const char *structure);
 /**
  *  @brief Get a loop index representation of a structure
  */
-int *vrna_get_loop_index(const short *pt);
+int *vrna_loopidx_from_ptable(const short *pt);
 
 /**
  *  @brief Convert a pair table into dot-parenthesis notation

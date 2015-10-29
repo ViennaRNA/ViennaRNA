@@ -337,7 +337,7 @@ vrna_ptable_copy(const short *pt){
 
 
 PUBLIC int *
-vrna_get_loop_index(const short *pt){
+vrna_loopidx_from_ptable(const short *pt){
 
   /* number each position by which loop it belongs to (positions start
      at 1) */
@@ -987,7 +987,7 @@ alimake_pair_table(const char *structure){
 PUBLIC int *
 make_loop_index_pt(short *pt){
 
-  return vrna_get_loop_index((const short*)pt);
+  return vrna_loopidx_from_ptable((const short*)pt);
 }
 
 PUBLIC int

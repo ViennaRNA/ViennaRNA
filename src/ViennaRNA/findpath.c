@@ -290,7 +290,7 @@ try_moves(vrna_fold_compound_t *vc,
   short *pt;
 
   len = c.pt[0];
-  loopidx = vrna_get_loop_index(c.pt);
+  loopidx = vrna_loopidx_from_ptable(c.pt);
   oldE = c.Sen;
   for (mv=c.moves; mv->i!=0; mv++) {
     int i,j;

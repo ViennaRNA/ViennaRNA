@@ -303,7 +303,7 @@ vrna_eval_covar_structure(vrna_fold_compound_t *vc,
     vc->params->model_details.gquad = gq;
 
     if(gq){
-      loop_idx  =   vrna_get_loop_index(pt);
+      loop_idx  =   vrna_loopidx_from_ptable(pt);
       res       +=  (int)((float)covar_en_corr_of_loop_gquad_ali(vc, 1, vc->length, structure, pt, (const int *)loop_idx) / (float)vc->n_seq);
       free(loop_idx);
     }
@@ -626,7 +626,7 @@ wrap_eval_structure(vrna_fold_compound_t *vc,
                                   vc->params->model_details.gquad = gq;
 
                                   if(gq){
-                                    int *loop_idx = vrna_get_loop_index(pt);
+                                    int *loop_idx = vrna_loopidx_from_ptable(pt);
                                     res += (int)((float)en_corr_of_loop_gquad_ali(vc, 1, vc->length, structure, pt, (const int *)loop_idx) / (float)vc->n_seq);
                                     free(loop_idx);
                                   }
@@ -768,7 +768,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
   vrna_param_t      *P;
   vrna_md_t         *md;
 
-  loop_idx  = vrna_get_loop_index(pt);
+  loop_idx  = vrna_loopidx_from_ptable(pt);
   s1        = vc->sequence_encoding;
   P         = vc->params;
   md        = &(P->model_details);
