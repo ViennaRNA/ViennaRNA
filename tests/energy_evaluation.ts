@@ -1,11 +1,14 @@
-#include <check.h>
-
+#include <ViennaRNA/params.h>
 #include <ViennaRNA/utils.h>
-#include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/loop_energies.h"
+#include <ViennaRNA/loop_energies.h>
 
-START_TEST(test_E_Hairpin)
-{
+#suite Energy_Evaluating_Functions
+
+/*
+ * check for properly working E_Hairpin() function
+ */
+
+#test eval_E_hairpin
   vrna_param_t param = {0};
   int i, j, k, l;
 
@@ -55,11 +58,12 @@ START_TEST(test_E_Hairpin)
   ck_assert_int_eq(E_Hairpin(6, 0, 0, 0, "CGGGGGGG", &param), 5000);
   ck_assert_int_eq(E_Hairpin(6, 0, 0, 0, "GCCCCCCC", &param), 6000);
   ck_assert_int_eq(E_Hairpin(6, 0, 0, 0, "AUUUUUUU", &param), 107);
-}
-END_TEST
 
-START_TEST(test_E_stem)
-{
+/*
+ * check for properly working E_Stem() function
+ */
+
+#test eval_E_stem
   vrna_param_t param = {0};
 
   param.dangle3[1][1] = 3;
@@ -83,11 +87,11 @@ START_TEST(test_E_stem)
   ck_assert_int_eq(E_Stem(1, 1, 1, 0, &param), 10200);
   ck_assert_int_eq(E_Stem(1, 1, 1, 1, &param), 100);
 
-}
-END_TEST
+/*
+ * check for properly working E_MLstem() function
+ */
 
-START_TEST(test_E_MLstem)
-{
+#test eval_E_MLstem
   vrna_param_t param = {0};
   param.MLintern[1] = 1;
   param.dangle3[1][0] = 3;
@@ -109,11 +113,12 @@ START_TEST(test_E_MLstem)
   ck_assert_int_eq(E_MLstem(3, 0, -1, &param), 10065);
   ck_assert_int_eq(E_MLstem(3, -1, 0, &param), 10043);
   ck_assert_int_eq(E_MLstem(3, 0, 0, &param), 11010);
-}
-END_TEST
 
-START_TEST(test_E_ExtLoop)
-{
+/*
+ * check for properly working E_ExtLoop() function
+ */
+
+#test eval_E_ExtLoop
   vrna_param_t param = {0};
   param.dangle3[1][0] = 3;
   param.dangle5[1][0] = 5;
@@ -134,11 +139,11 @@ START_TEST(test_E_ExtLoop)
   ck_assert_int_eq(E_ExtLoop(3, -1, 0, &param), 10033);
   ck_assert_int_eq(E_ExtLoop(3, 0, 0, &param), 11000);
 
-}
-END_TEST
+/*
+ * check for properly working E_IntLoop() function
+ */
 
-START_TEST(test_E_IntLoop)
-{
+#test eval_E_IntLoop
   vrna_param_t param = {0};
 
   param.stack[1][2] = 1;
@@ -183,29 +188,3 @@ START_TEST(test_E_IntLoop)
   param.mismatchI[2][4][3] = 3;
   ck_assert_int_eq(E_IntLoop(3, 5, 1, 2, 1, 2, 3, 4, &param), 235);
   ck_assert_int_eq(E_IntLoop(5, 3, 1, 2, 1, 2, 3, 4, &param), 235);
-}
-END_TEST
-
-TCase* loop_energies_testcase()
-{
-  TCase *tc = tcase_create("Core");
-  tcase_add_test(tc, test_E_Hairpin);
-  tcase_add_test(tc, test_E_MLstem);
-  tcase_add_test(tc, test_E_stem);
-  tcase_add_test(tc, test_E_ExtLoop);
-  tcase_add_test(tc, test_E_IntLoop);
-
-  return tc;
-}
-
-Suite *
-make_energies_suite(void)
-{
-  Suite *s = suite_create("Energies");
-
-  /* Core test case */
-  suite_add_tcase(s, loop_energies_testcase());
-
-  return s;
-}
-

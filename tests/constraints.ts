@@ -1,8 +1,6 @@
-
 #include <math.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <check.h>
 
 #include <ViennaRNA/file_formats.h>
 #include <ViennaRNA/constraints.h>
@@ -16,8 +14,24 @@ static int deltaCompare(double a, double b)
   return 0;
 }
 
-START_TEST(test_vrna_sc_SHAPE_to_pr)
+static void writeTempFile(char *tempfile, const char *data)
 {
+  FILE *f;
+
+  ck_assert(tmpnam(tempfile) != NULL);
+  f = fopen(tempfile, "w");
+  ck_assert(f != NULL);
+  fputs(data, f);
+  fclose(f);
+}
+
+/* end of prologue */
+
+#suite Constraints
+
+#tcase  SoftConstraints
+
+#test test_vrna_sc_SHAPE_to_pr
   int ret;
   double negative_values[] = {0, -100, -1, -1e-10};
   double hardcoded_range_values[] = { 0, 0.125, 0.25, 0.275, 0.3, 0.5, 0.7};
@@ -128,22 +142,8 @@ START_TEST(test_vrna_sc_SHAPE_to_pr)
   ck_assert(deltaCompare(log_values_custom[5], 1));
   ck_assert(deltaCompare(log_values_custom[6], 1));
   ck_assert(deltaCompare(log_values_custom[7], 1));
-}
-END_TEST
 
-static void writeTempFile(char *tempfile, const char *data)
-{
-  FILE *f;
-
-  ck_assert(tmpnam(tempfile) != NULL);
-  f = fopen(tempfile, "w");
-  ck_assert(f != NULL);
-  fputs(data, f);
-  fclose(f);
-}
-
-START_TEST(test_vrna_file_SHAPE_read)
-{
+#test test_vrna_file_SHAPE_read
   char tempfile[L_tmpnam + 1];
   const size_t len = 5;
   char sequence[len];
@@ -289,11 +289,8 @@ START_TEST(test_vrna_file_SHAPE_read)
   ret = vrna_file_SHAPE_read(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
   unlink(tempfile);
-}
-END_TEST
 
-START_TEST(test_vrna_sc_SHAPE_parse_method)
-{
+#test test_vrna_sc_SHAPE_parse_method
   float p1, p2;
   char method;
   int ret;
@@ -416,72 +413,3 @@ START_TEST(test_vrna_sc_SHAPE_parse_method)
   ck_assert_int_eq(method, 'W');
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
-}
-END_TEST
-
-#if 0
-START_TEST(test_vrna_sc_add_sp)
-{
-  vrna_md_t md;
-  vrna_fold_compound *vc;
-  double values[] = { 0, 0, 1, -0.5 };
-
-  set_model_details(&md);
-  vc = vrna_get_fold_compound("AUG", &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
-
-  vrna_sc_add_sp_mfe(vc, values, VRNA_CONSTRAINT_SOFT_MFE);
-  ck_assert(deltaCompare(vc->sc->en_stack[1], 0));
-  ck_assert(deltaCompare(vc->sc->en_stack[2], 100));
-  ck_assert(deltaCompare(vc->sc->en_stack[3], -50));
-  ck_assert(!vc->sc->exp_en_stack);
-  vrna_sc_remove(vc);
-
-  vrna_sc_add_sp(vc, values, VRNA_CONSTRAINT_SOFT_MFE);
-  ck_assert(deltaCompare(vc->sc->en_stack[1], 0));
-  ck_assert(deltaCompare(vc->sc->en_stack[2], 100));
-  ck_assert(deltaCompare(vc->sc->en_stack[3], -50));
-  ck_assert(!vc->sc->exp_en_stack);
-  vrna_sc_remove(vc);
-
-  vrna_sc_add_sp_pf(vc, values, VRNA_CONSTRAINT_SOFT_PF);
-  ck_assert(deltaCompare(vc->sc->exp_en_stack[1], 1));
-  ck_assert(deltaCompare(vc->sc->exp_en_stack[2], 0.197398));
-  ck_assert(deltaCompare(vc->sc->exp_en_stack[3], 2.250755));
-  ck_assert(!vc->sc->en_stack);
-  vrna_sc_remove(vc);
-
-  vrna_sc_add_sp(vc, values, VRNA_CONSTRAINT_SOFT_PF);
-  ck_assert(deltaCompare(vc->sc->exp_en_stack[1], 1));
-  ck_assert(deltaCompare(vc->sc->exp_en_stack[2], 0.197398));
-  ck_assert(deltaCompare(vc->sc->exp_en_stack[3], 2.250755));
-  ck_assert(!vc->sc->en_stack);
-  vrna_sc_remove(vc);
-
-  vrna_free_fold_compound(vc);
-}
-END_TEST
-#endif
-
-TCase* constraints_testcase()
-{
-  TCase *tc = tcase_create("Core");
-  tcase_add_test(tc, test_vrna_sc_SHAPE_to_pr);
-  tcase_add_test(tc, test_vrna_file_SHAPE_read);
-  tcase_add_test(tc, test_vrna_sc_SHAPE_parse_method);
-#if 0
-  tcase_add_test(tc, test_vrna_sc_add_sp);
-#endif
-  return tc;
-}
-
-Suite *
-make_constraints_suite(void)
-{
-  Suite *s = suite_create("Constraints");
-
-  /* Core test case */
-  suite_add_tcase(s, constraints_testcase());
-
-  return s;
-}
-

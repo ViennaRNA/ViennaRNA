@@ -1,11 +1,13 @@
-#include <check.h>
 #include <stdlib.h>
 
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/utils.h>
 
-START_TEST(test_vrna_nucleotide_encode)
-{
+#suite Utilities
+
+#tcase Sequence_Utils
+
+#test test_vrna_nucleotide_encode
   vrna_md_t details = {0};
 
   ck_assert_int_eq(vrna_nucleotide_encode('\0', &details), 0);
@@ -31,11 +33,8 @@ START_TEST(test_vrna_nucleotide_encode)
   ck_assert_int_eq(vrna_nucleotide_encode('X', &details), 24);
   ck_assert_int_eq(vrna_nucleotide_encode('K', &details), 11);
   ck_assert_int_eq(vrna_nucleotide_encode('I', &details), 9);
-}
-END_TEST
 
-START_TEST(test_vrna_nucleotide_decode)
-{
+#test test_vrna_nucleotide_decode
   const char *characters = "_ACGUTXKI";
   const char *p;
   vrna_md_t details = {0};
@@ -62,11 +61,8 @@ START_TEST(test_vrna_nucleotide_decode)
   ck_assert_int_eq(vrna_nucleotide_decode(24, &details), 'X');
   ck_assert_int_eq(vrna_nucleotide_decode(11, &details), 'K');
   ck_assert_int_eq(vrna_nucleotide_decode(9, &details), 'I');
-}
-END_TEST
 
-START_TEST(test_sequence_encoding)
-{
+#test test_sequence_encoding
   vrna_md_t details = {0};
   short *data;
 
@@ -91,11 +87,10 @@ START_TEST(test_sequence_encoding)
 
   //@TODO: type = 1
   //@TODO: details.energy_set = 1
-}
-END_TEST
 
-START_TEST(test_vrna_md_update)
-{
+#tcase Model_Details
+
+#test test_vrna_md_update
   vrna_md_t details = {0};
   int i, j, count;
 
@@ -142,11 +137,10 @@ START_TEST(test_vrna_md_update)
   //@TODO: details.noGU = 1
   //@TODO: details.nonstandards
   //@TODO: details.energyset = [1, 2, 3]
-}
-END_TEST
 
-START_TEST(test_get_ptypes)
-{
+#tcase Structure_Utils
+
+#test test_get_ptypes
   vrna_md_t details = {0};
   const int len = 12;
   short sequence[] = {len, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1}; //ACGUACGUACGU
@@ -190,29 +184,3 @@ START_TEST(test_get_ptypes)
   //@TODO: extend alphabeth
   //@TODO: details.noLP = 1
   //@TODO: idx_type = 1
-}
-END_TEST
-
-TCase* utils_testcase()
-{
-  TCase *tc = tcase_create("Core");
-  tcase_add_test(tc, test_vrna_nucleotide_encode);
-  tcase_add_test(tc, test_vrna_nucleotide_decode);
-  tcase_add_test(tc, test_sequence_encoding);
-  tcase_add_test(tc, test_vrna_md_update);
-  tcase_add_test(tc, test_get_ptypes);
-
-  return tc;
-}
-
-Suite *
-make_utils_suite(void)
-{
-  Suite *s = suite_create("Utils");
-
-  /* Core test case */
-  suite_add_tcase(s, utils_testcase());
-
-  return s;
-}
-

@@ -1,8 +1,6 @@
 #include <stdio.h>      /* printf, scanf, NULL */
 #include <stdlib.h>     /* malloc, free, rand */
 
-#include <check.h>
-
 #include <ViennaRNA/fold_vars.h>
 #include <ViennaRNA/utils.h>
 #include <ViennaRNA/structure_utils.h>
@@ -10,9 +8,11 @@
 #include <ViennaRNA/fold.h>
 #include <ViennaRNA/part_func.h>
 
+#suite  MFE_Prediction
 
-START_TEST(test_fold)
-{
+#tcase  Backward_Compatibility
+
+#test test_fold
   /* unit test code */
   const char *seq1 = "CGCAGGGAUACCCGCG";
   const char *str1 = "(((.(((...))))))";
@@ -20,11 +20,12 @@ START_TEST(test_fold)
   float en = fold(seq1, structure);
   ck_assert(strcmp(str1, structure) == 0);
   free(structure);
-}
-END_TEST
 
-START_TEST(test_sample_structure)
-{
+#suite  Partition_Function
+
+#tcase Stochastic_Backtracking
+
+#test test_sample_structure
   vrna_md_t md;
   vrna_fold_compound_t *vc;
   const char sequence[] = "UGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAU";
@@ -47,11 +48,12 @@ START_TEST(test_sample_structure)
   free(sample);
 
   vrna_fold_compound_free(vc);
-}
-END_TEST
 
-START_TEST(test_sc_sanity_check)
-{
+#suite  Constraints_Implementation
+
+#tcase  Soft_Constraints
+
+#test test_sc_sanity_check
   vrna_md_t md;
   vrna_fold_compound_t *vc;
   const char sequence[] = "UGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAU";
@@ -129,21 +131,3 @@ START_TEST(test_sc_sanity_check)
 
   free(plist_constrained);
   free(plist_unconstrained);
-}
-END_TEST
-
-Suite *
-make_fold_suite(void)
-{
-  Suite *s = suite_create("Fold");
-
-  /* Core test case */
-  TCase *tc_core = tcase_create("Core");
-  tcase_add_test(tc_core, test_fold);
-  tcase_add_test(tc_core, test_sample_structure);
-  tcase_add_test(tc_core, test_sc_sanity_check);
-  suite_add_tcase(s, tc_core);
-
-  return s;
-}
-
