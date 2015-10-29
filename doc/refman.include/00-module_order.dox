@@ -49,6 +49,9 @@
  *  @defgroup   cofold                    Calculate Secondary Structures of two RNAs upon Dimerization
  *  @ingroup    folding_routines
  *
+ *  @defgroup   mfe_fold_single           MFE Structures of single Nucleic Acid Sequences
+ *  @ingroup    mfe_fold
+ *
  *  @defgroup   mfe_cofold                MFE Structures of two hybridized Sequences
  *  @ingroup    cofold mfe_fold
  *
@@ -123,6 +126,9 @@
  *
  *  @defgroup   direct_paths              Direct refolding paths between two secondary structures
  *  @ingroup    paths
+ *
+ *  @defgroup   string_utils              Parsing, Converting, and Comparing - Functions to Manipulate Sequence and Structure Strings
+ *  @ingroup    utils
  *
  *  @defgroup   struct_utils              Parsing, Converting, and Comparing - Functions to Manipulate Secondary Structures
  *  @ingroup    utils

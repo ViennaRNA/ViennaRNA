@@ -821,51 +821,6 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   return zukresults;
 }
 
-PUBLIC char *
-vrna_cut_point_insert(const char *string,
-                      int cp){
-
-  char *ctmp;
-  int len;
-
-  if(cp > 0){
-    len = strlen(string);
-    ctmp = (char *)vrna_alloc((len+2) * sizeof(char));
-    /* first sequence */
-    (void) strncpy(ctmp, string, cp-1);
-    /* spacer */
-    ctmp[cp-1] = '&';
-    /* second sequence */
-    (void) strcat(ctmp, string+cp-1);
-  } else {
-    ctmp = strdup(string);
-  }
-  return ctmp;
-}
-
-PUBLIC char *
-vrna_cut_point_remove(const char *string,
-                      int *cp){
-
-  char *pos, *copy = NULL;
-
-  *cp = -1;
-
-  if(string){
-    copy = (char *) vrna_alloc(strlen(string)+1);
-    (void) sscanf(string, "%s", copy);
-    pos = strchr(copy, '&');
-    if (pos) {
-      *cp = (int)(pos - copy) + 1;
-      if (*cp >= strlen(copy)) *cp = -1;
-      if (strchr(pos+1, '&')) vrna_message_error("more than one cut-point in input");
-      for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
-    }
-  }
-
-  return copy;
-}
-
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/

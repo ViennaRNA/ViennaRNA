@@ -17,7 +17,7 @@ if WITH_JSON
   JSON_INC    = -I$(top_srcdir)/src/json
 endif
 
-pkginclude_HEADERS =  energy_par.h pair_mat.h RNAstruct.h dist_vars.h \
+pkginclude_HEADERS =  energy_par.h pair_mat.h RNAstruct.h dist_vars.h mfe.h \
                       fold.h part_func.h stringdist.h edit_cost.h fold_vars.h \
                       profiledist.h treedist.h energy_const.h inverse.h PS_dot.h \
                       utils.h params.h subopt.h cofold.h duplex.h alifold.h aln_util.h \
@@ -27,18 +27,18 @@ pkginclude_HEADERS =  energy_par.h pair_mat.h RNAstruct.h dist_vars.h \
                       naview.h 2Dfold.h 2Dpfold.h read_epars.h convert_epars.h PKplex.h\
                       plot_layouts.h ali_plex.h plex.h snofold.h snoop.h move_set.h\
                       gquad.h constraints.h eval.h perturbation_fold.h centroid.h\
-                      structure_utils.h model.h file_formats.h dp_matrices.h \
+                      structure_utils.h string_utils.h model.h file_formats.h dp_matrices.h \
                       plot_structure.h plot_aln.h ${SVM_UTILS_H} ${SVM_H} ${JSON_H}
 
 libRNA_a_SOURCES  = dist_vars.c data_structures.c part_func.c read_epars.c\
                     treedist.c energy_par.c inverse.c ProfileDist.c \
-                    RNAstruct.c utils.c fold.c naview.c PS_dot.c \
+                    RNAstruct.c utils.c mfe.c fold.c naview.c PS_dot.c \
                     stringdist.c params.c subopt.c list.c Lfold.c \
                     cofold.c part_func_co.c ProfileAln.c duplex.c \
-                    alifold.c alipfold.c aln_util.c LPfold.c \
+                    alifold.c alipfold.c aln_util.c LPfold.c string_utils.c \
                     part_func_up.c ribo.c findpath.c convert_epars.c\
-                    MEA.c aliLfold.c mm.c 2Dfold.c 2Dpfold.c plex_functions.c\
-                    plot_layouts.c ali_plex.c c_plex.c plex.c snofold.c\
+                    MEA.c aliLfold.c mm.c 2Dfold.c 2Dpfold.c plex_functions.c \
+                    plot_layouts.c ali_plex.c c_plex.c plex.c snofold.c \
                     snoop.c move_set.c gquad.c eval.c constraints.c \
                     perturbation_fold.c centroid.c structure_utils.c model.c \
                     file_formats.c dp_matrices.c plot_structure.c plot_aln.c\

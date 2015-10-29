@@ -4,6 +4,7 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/ribo.h>
+#include <ViennaRNA/mfe.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -68,30 +69,6 @@ DEPRECATED(extern  double  nc_fact);
 # MFE VARIANTS OF THE ALIFOLD IMPLEMENTATION #
 ##############################################
 */
-
-/**
- *  \brief Compute MFE and according consensus structure of an alignment of sequences
- * 
- *  This function predicts the consensus structure for the alignment stored in
- *  vc and returns the minimum free energy; the mfe structure in bracket
- *  notation is returned in 'structure'.
- *  \note vc has to be of type #VRNA_VC_TYPE_ALIGNMENT.
- * 
- *  \note Sufficient space must be allocated for 'structure' before calling
- *  vrna_mfe_comparative(). Passing NULL to the 'structure' or setting #vrna_md_t.backtrack to
- *  0 turns of backtracing an no structure will be returned.
- * 
- *  \ingroup consensus_mfe_fold
- *
- *  \see vrna_fold_compound_comparative()
- * 
- *  \param vc         The fold compound structure of type #VRNA_VC_TYPE_ALIGNMENT
- *  \param structure  A pointer to a character array that will be overwritten by
- *                    a consensus structure that exhibits the MFE. (Maybe NULL)
- *  \return           The free energy score in kcal/mol
- */
-float vrna_mfe_comparative( vrna_fold_compound_t *vc,
-                    char *structure);
 
 /**
  *  \brief Compute MFE and according consensus structure of an alignment of sequences

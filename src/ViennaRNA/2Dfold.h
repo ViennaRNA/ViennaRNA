@@ -24,7 +24,7 @@
  *  computation and stochastic backtracking with a @e classified @e dynamic @e programming approach.
  *  The secondary structure space is divided into partitions according to the base pair distance to two
  *  given reference structures and all relevant properties are calculated for each of the resulting partitions
- *  @see  For further details have a look into @cite lorenz:2009
+ *  @see For further details, we refer to Lorenz et al. 2009 @cite lorenz:2009
  */
 
 /**
@@ -32,8 +32,8 @@
  *  @brief Compute the minimum free energy (MFE) and secondary structures for a partitioning of
  *  the secondary structure space according to the base pair distance to two fixed reference structures
  *  basepair distance to two fixed reference structures
+ *  @see For further details, we refer to Lorenz et al. 2009 @cite lorenz:2009
  *  @{
- *
  *  @file 2Dfold.h
  *
  */

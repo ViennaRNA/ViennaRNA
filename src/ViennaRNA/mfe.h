@@ -1,0 +1,101 @@
+#ifndef VIENNA_RNA_PACKAGE_MFE_H
+#define VIENNA_RNA_PACKAGE_MFE_H
+
+#include <ViennaRNA/data_structures.h>
+
+/**
+ *  @addtogroup mfe_fold
+ *  @ingroup folding_routines
+ *  @brief This section covers all functions and variables related to the calculation
+ *  of minimum free energy (MFE) structures.
+ *
+ *  The library provides a fast dynamic programming minimum free energy
+ *  folding algorithm as described in @cite zuker:1981.
+ *  All relevant parts that directly implement the "Zuker & Stiegler" algorithm for single
+ *  sequences are described in this section.
+ *
+ *  Folding of circular RNA sequences is handled as a post-processing step of the forward
+ *  recursions. See @cite hofacker:2006 for further details.
+ *
+ *  Nevertheless, the RNAlib also
+ *  provides interfaces for the prediction of consensus MFE structures of sequence alignments,
+ *  MFE structure for two hybridized sequences, local optimal structures and many more. For
+ *  those more specialized variants of MFE folding routines, please consult the appropriate
+ *  subsections (Modules) as listed above.
+ *
+ *  @file mfe.h
+ *  @brief MFE calculations for single RNA sequences
+ *
+ *  This file includes (almost) all function declarations within the RNAlib that are related to
+ *  MFE folding...
+ */
+
+/**
+ *  @brief Compute minimum free energy and an appropriate secondary
+ *  structure of an RNA sequence
+ *
+ *  The second parameter, @a structure, should point to an allocated
+ *  block of memory with a size of at least @f$\mathrm{strlen}(\mathrm{sequence})+1@f$ to
+ *  store the backtracked MFE structure. If @p NULL is passed, no backtracking will be performed.
+ *
+ *  @ingroup mfe_fold
+ *
+ *  @see #vrna_fold_compound_t, vrna_fold_compound(), vrna_fold(), vrna_circfold()
+ *
+ *  @param vc             fold compound
+ *  @param structure      A pointer to the character array where the
+ *                        secondary structure in dot-bracket notation will be written to (Maybe NULL)
+ *
+ *  @return the minimum free energy (MFE) in kcal/mol
+ */
+float
+vrna_mfe(vrna_fold_compound_t *vc,
+          char *structure);
+
+/**
+ *  @brief Compute the minimum free energy of two interacting RNA molecules
+ *
+ *  The code is analog to the vrna_mfe() function.
+ *
+ *  @ingroup mfe_fold
+ *  @ingroup mfe_cofold
+ *
+ *  @param    vc  fold compound
+ *  @param    structure Will hold the barcket dot structure of the dimer molecule
+ *  @return   minimum free energy of the structure
+ */
+float vrna_mfe_dimer( vrna_fold_compound_t *vc,
+                      char *structure);
+
+/**
+ *  \brief Compute MFE and according consensus structure of an alignment of sequences
+ * 
+ *  This function predicts the consensus structure for the alignment stored in
+ *  vc and returns the minimum free energy; the mfe structure in bracket
+ *  notation is returned in 'structure'.
+ *  \note vc has to be of type #VRNA_VC_TYPE_ALIGNMENT.
+ * 
+ *  \note Sufficient space must be allocated for 'structure' before calling
+ *  vrna_mfe_comparative(). Passing NULL to the 'structure' or setting #vrna_md_t.backtrack to
+ *  0 turns of backtracing an no structure will be returned.
+ * 
+ *  \ingroup consensus_mfe_fold
+ *
+ *  \see vrna_fold_compound_comparative()
+ * 
+ *  \param vc         The fold compound structure of type #VRNA_VC_TYPE_ALIGNMENT
+ *  \param structure  A pointer to a character array that will be overwritten by
+ *                    a consensus structure that exhibits the MFE. (Maybe NULL)
+ *  \return           The free energy score in kcal/mol
+ */
+float vrna_mfe_comparative( vrna_fold_compound_t *vc,
+                    char *structure);
+
+vrna_plist_t *
+vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
+                              vrna_bp_stack_t *bp_stack,
+                              sect bt_stack[],
+                              int s);
+
+
+#endif

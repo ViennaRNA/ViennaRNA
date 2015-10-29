@@ -3,6 +3,7 @@
 
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
+#include <ViennaRNA/mfe.h>
 #include <ViennaRNA/eval.h>
 
 #ifdef __GNUC__
@@ -15,83 +16,79 @@
 #define VRNA_BACKWARD_COMPAT
 
 /**
- *  \addtogroup mfe_fold
- *  \ingroup folding_routines
- *  \brief This section covers all functions and variables related to the calculation
- *  of minimum free energy (MFE) structures.
- *
- *  The library provides a fast dynamic programming minimum free energy
- *  folding algorithm as described in \cite zuker:1981.
- *  All relevant parts that directly implement the "Zuker & Stiegler" algorithm for single
- *  sequences are described in this section.
- *
- *  Folding of circular RNA sequences is handled as a post-processing step of the forward
- *  recursions. See \cite hofacker:2006 for further details.
- *
- *  Nevertheless, the RNAlib also
- *  provides interfaces for the prediction of consensus MFE structures of sequence alignments,
- *  MFE structure for two hybridized sequences, local optimal structures and many more. For
- *  those more specialized variants of MFE folding routines, please consult the appropriate
- *  subsections (Modules) as listed above.
- *
- *  \file fold.h
- *  \brief MFE calculations for single RNA sequences
- *
- *  This file includes (almost) all function declarations within the RNAlib that are related to
- *  MFE folding...
- */
-
-/**
- *  \addtogroup mfe_fold
+ *  @file fold.h
+ *  @brief MFE calculations for single RNA sequences
+ *  
+ *  @addtogroup mfe_fold_single
  *  @{
- *    \brief This module contains all functions and variables related to the calculation
+ *    @brief This module contains all functions and variables related to the calculation
  *    of global minimum free energy structures for single sequences.
  *
  *    The library provides a fast dynamic programming minimum free energy
- *    folding algorithm as described by \ref zuker_81 "Zuker & Stiegler (1981)".
- *  @}
+ *    folding algorithm as described by "Zuker & Stiegler (1981)" @cite zuker:1981.
  */
 
 /**
- *  \brief Compute minimum free energy and an appropriate secondary
- *  structure of an RNA sequence
+ *  @brief Compute Minimum Free Energy (MFE), and a corresponding secondary structure for an RNA sequence
  *
- *  The second parameter, \a structure, should point to an allocated
- *  block of memory with a size of at least \f$\mathrm{strlen}(\mathrm{sequence})+1\f$ to
- *  store the backtracked MFE structure. If @p NULL is passed, no backtracking will be performed.
+ *  This simplified interface to vrna_mfe() computes the MFE and, if required, a secondary structure for an
+ *  RNA sequence using default options. Memory required for dynamic programming (DP) matrices will
+ *  be allocated and free'd on-the-fly. Hence, after return of this function, the recursively filled
+ *  matrices are not available any more for any post-processing, e.g. suboptimal backtracking, etc.
  *
- *  \ingroup mfe_fold
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe(),
+ *  and the data structure #vrna_fold_compound_t instead.
  *
- *  \see #vrna_fold_compound, vrna_fold_compound()
+ *  @see vrna_circfold(), vrna_mfe(), vrna_fold_compound(), #vrna_fold_compound_t
  *
- *  \param vc             fold compound
- *  \param structure      A pointer to the character array where the
- *                        secondary structure in dot-bracket notation will be written to (Maybe NULL)
- *
- *  \return the minimum free energy (MFE) in kcal/mol
+ *  @param sequence   RNA sequence
+ *  @param structure  A pointer to the character array where the
+ *         secondary structure in dot-bracket notation will be written to
+ *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_mfe(vrna_fold_compound_t *vc,
+vrna_fold(const char *string,
           char *structure);
 
-vrna_plist_t *
-vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
-                              vrna_bp_stack_t *bp_stack,
-                              sect bt_stack[],
-                              int s);
+/**
+ *  @brief Compute Minimum Free Energy (MFE), and a corresponding secondary structure for a circular RNA sequence
+ *
+ *  This simplified interface to vrna_mfe() computes the MFE and, if required, a secondary structure for a
+ *  circular RNA sequence using default options. Memory required for dynamic programming (DP) matrices will
+ *  be allocated and free'd on-the-fly. Hence, after return of this function, the recursively filled
+ *  matrices are not available any more for any post-processing, e.g. suboptimal backtracking, etc.
+ *
+ *  Folding of circular RNA sequences is handled as a post-processing step of the forward
+ *  recursions. See @cite hofacker:2006 for further details.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  @see vrna_fold(), vrna_mfe(), vrna_fold_compound(), #vrna_fold_compound_t
+ *
+ *  @param sequence   RNA sequence
+ *  @param structure  A pointer to the character array where the
+ *         secondary structure in dot-bracket notation will be written to
+ *  @return the minimum free energy (MFE) in kcal/mol
+ */
+float
+vrna_circfold(const char *string,
+              char *structure);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /**
- *  \brief Compute minimum free energy and an appropriate secondary
+ *  @brief Compute minimum free energy and an appropriate secondary
  *  structure of an RNA sequence
  *
- *  The first parameter given, the RNA sequence, must be \a uppercase and should only contain
- *  an alphabet \f$\Sigma\f$ that is understood by the RNAlib\n
- *  (e.g. \f$ \Sigma = \{A,U,C,G\} \f$)\n
+ *  The first parameter given, the RNA sequence, must be @a uppercase and should only contain
+ *  an alphabet @f$\Sigma@f$ that is understood by the RNAlib\n
+ *  (e.g. @f$ \Sigma = \{A,U,C,G\} @f$)\n
  *
- *  The second parameter, \a structure, must always point to an allocated
- *  block of memory with a size of at least \f$\mathrm{strlen}(\mathrm{sequence})+1\f$
+ *  The second parameter, @a structure, must always point to an allocated
+ *  block of memory with a size of at least @f$\mathrm{strlen}(\mathrm{sequence})+1@f$
  *
  *  If the third parameter is NULL, global model detail settings are assumed for the folding
  *  recursions. Otherwise, the provided parameters are used.
@@ -105,27 +102,25 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
  *  parameter to non-zero
  *
  *  After a successful call of fold_par(), a backtracked secondary structure (in dot-bracket notation)
- *  that exhibits the minimum of free energy will be written to the memory \a structure is pointing to.
+ *  that exhibits the minimum of free energy will be written to the memory @a structure is pointing to.
  *  The function returns the minimum of free energy for any fold of the sequence given.
  *
- *  \note OpenMP: Passing NULL to the 'parameters' argument involves access to several global model
+ *  @note OpenMP: Passing NULL to the 'parameters' argument involves access to several global model
  *        detail variables and thus is not to be considered threadsafe
  *
- *  \ingroup mfe_fold
+ *  @deprecated use vrna_mfe() instead!
  *
- *  \deprecated use vrna_mfe() instead
+ *  @see vrna_mfe(), fold(), circfold(), #vrna_md_t, set_energy_model(), get_scaled_parameters()
  *
- *  \see vrna_mfe(), fold(), circfold(), #vrna_md_t, set_energy_model(), get_scaled_parameters()
- *
- *  \param sequence       RNA sequence
- *  \param structure      A pointer to the character array where the
+ *  @param sequence       RNA sequence
+ *  @param structure      A pointer to the character array where the
  *                        secondary structure in dot-bracket notation will be written to
- *  \param parameters     A data structure containing the prescaled energy contributions
+ *  @param parameters     A data structure containing the prescaled energy contributions
  *                        and the model details. (NULL may be passed, see OpenMP notes above)
- *  \param is_constrained Switch to indicate that a structure contraint is passed via the structure argument (0==off)
- *  \param is_circular    Switch to (de-)activate postprocessing steps in case RNA sequence is circular (0==off)
+ *  @param is_constrained Switch to indicate that a structure contraint is passed via the structure argument (0==off)
+ *  @param is_circular    Switch to (de-)activate postprocessing steps in case RNA sequence is circular (0==off)
  *
- *  \return the minimum free energy (MFE) in kcal/mol
+ *  @return the minimum free energy (MFE) in kcal/mol
  */
 DEPRECATED(float
 fold_par( const char *sequence,
@@ -135,51 +130,46 @@ fold_par( const char *sequence,
           int is_circular));
 
 /**
- *  \brief Compute minimum free energy and an appropriate secondary structure of an RNA sequence
+ *  @brief Compute minimum free energy and an appropriate secondary structure of an RNA sequence
  *
  *  This function essentially does the same thing as fold_par(). However, it takes its model details,
  *  i.e. #temperature, #dangles, #tetra_loop, #noGU, #no_closingGU, #fold_constrained, #noLonelyPairs
  *  from the current global settings within the library
  *
- *  \ingroup mfe_fold
+ *  @deprecated use vrna_fold(), or vrna_mfe() instead!
  *
- *  \deprecated use vrna_mfe() instead
+ *  @see fold_par(), circfold()
  *
- *  \see fold_par(), circfold()
- *
- *  \param sequence RNA sequence
- *  \param structure A pointer to the character array where the
+ *  @param sequence RNA sequence
+ *  @param structure A pointer to the character array where the
  *         secondary structure in dot-bracket notation will be written to
- *  \return the minimum free energy (MFE) in kcal/mol
+ *  @return the minimum free energy (MFE) in kcal/mol
  */
 DEPRECATED(float fold( const char *sequence, char *structure));
 
 /**
- *  \brief Compute minimum free energy and an appropriate secondary structure of a circular RNA sequence
+ *  @brief Compute minimum free energy and an appropriate secondary structure of a circular RNA sequence
  *
  *  This function essentially does the same thing as fold_par(). However, it takes its model details,
  *  i.e. #temperature, #dangles, #tetra_loop, #noGU, #no_closingGU, #fold_constrained, #noLonelyPairs
  *  from the current global settings within the library
  *
- *  \deprecated Use vrna_mfe() instead!
+ *  @deprecated Use vrna_circfold(), or vrna_mfe() instead!
  *
- *  \ingroup mfe_fold
+ *  @see fold_par(), circfold()
  *
- *  \see fold_par(), circfold()
- *
- *  \param sequence RNA sequence
- *  \param structure A pointer to the character array where the
+ *  @param sequence RNA sequence
+ *  @param structure A pointer to the character array where the
  *         secondary structure in dot-bracket notation will be written to
- *  \return the minimum free energy (MFE) in kcal/mol
+ *  @return the minimum free energy (MFE) in kcal/mol
  */
 DEPRECATED(float circfold( const char *sequence, char *structure));
 
 
 /**
- *  \brief Free arrays for mfe folding
+ *  @brief Free arrays for mfe folding
  *
- *  \ingroup mfe_fold
- *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
+ *  @deprecated See vrna_fold(), vrna_circfold(), or vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  *
  */
 DEPRECATED(void free_arrays(void));
@@ -187,28 +177,24 @@ DEPRECATED(void free_arrays(void));
 
 
 /**
- *  \brief Recalculate energy parameters
+ *  @brief Recalculate energy parameters
  *
- *  \deprecated use vrna_params_subst() instead
+ *  @deprecated For non-default model settings use the new API with vrna_params_subst() and vrna_mfe() instead!
  *
- *  \ingroup mfe_fold
  */
 DEPRECATED(void update_fold_params(void));
 
 /**
- *  \brief Recalculate energy parameters
+ *  @brief Recalculate energy parameters
  *
- *  \deprecated use vrna_params_subst() instead
- *
- *  \ingroup mfe_fold
+ *  @deprecated For non-default model settings use the new API with vrna_params_subst() and vrna_mfe() instead!
  *
  */
 DEPRECATED(void update_fold_params_par(vrna_param_t *parameters));
 
 /**
  *
- *  \ingroup mfe_fold
- *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
+ *  @deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  *
  */
 DEPRECATED(void
@@ -221,8 +207,7 @@ export_fold_arrays( int **f5_p,
 
 /**
  *
- *  \ingroup mfe_fold
- *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
+ *  @deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  *
  */
 DEPRECATED(void
@@ -236,8 +221,7 @@ export_fold_arrays_par( int **f5_p,
 
 /**
  *
- *  \ingroup mfe_fold
- *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
+ *  @deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  *
  */
 DEPRECATED(void
@@ -255,8 +239,7 @@ export_circfold_arrays( int *Fc_p,
 
 /**
  *
- *  \ingroup mfe_fold
- *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
+ *  @deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  *
  */
 DEPRECATED(void
@@ -282,8 +265,8 @@ export_circfold_arrays_par( int *Fc_p,
 /* a pointer to the energy parameter datastructure as additional argument */
 
 /**
- *  \deprecated {This function is deprecated and will be removed soon.
- *  Use \ref E_IntLoop() instead!}
+ *  @deprecated {This function is deprecated and will be removed soon.
+ *  Use @ref E_IntLoop() instead!}
  */
 DEPRECATED(int LoopEnergy(int n1,
                           int n2,
@@ -295,8 +278,8 @@ DEPRECATED(int LoopEnergy(int n1,
                           int sq1));
 
 /**
- *  \deprecated {This function is deprecated and will be removed soon.
- *  Use \ref E_Hairpin() instead!}
+ *  @deprecated {This function is deprecated and will be removed soon.
+ *  Use @ref E_Hairpin() instead!}
  */
 DEPRECATED(int HairpinE(int size,
                         int type,
@@ -306,15 +289,12 @@ DEPRECATED(int HairpinE(int size,
 
 /**
  *  Allocate arrays for folding\n
- *  \deprecated {This function is deprecated and will be removed soon!}
- *  \deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
+ *  @deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  *
  */
 DEPRECATED(void initialize_fold(int length));
 
 /**
- *
- *  \ingroup mfe_fold
  *
  */
 DEPRECATED(char *backtrack_fold_from_pair(char *sequence,
@@ -323,5 +303,9 @@ DEPRECATED(char *backtrack_fold_from_pair(char *sequence,
 
 
 #endif
+
+/**
+ *  @}
+ */
 
 #endif
