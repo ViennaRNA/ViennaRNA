@@ -55,6 +55,30 @@
  *  routines.
  */
 
+/**
+ *  @brief Compute Minimum Free Energy (MFE), and a corresponding secondary structure for two dimerized RNA sequences
+ *
+ *  This simplified interface to vrna_mfe() computes the MFE and, if required, a secondary structure for
+ *  two RNA sequences upon dimerization using default options. Memory required for dynamic programming
+ *  (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of this function, the
+ *  recursively filled matrices are not available any more for any post-processing, e.g. suboptimal
+ *  backtracking, etc.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  @see vrna_mfe_dimer(), vrna_fold_compound(), #vrna_fold_compound_t, vrna_cut_point_insert()
+ *
+ *  @param sequence   two RNA sequences separated by the '&' character
+ *  @param structure  A pointer to the character array where the
+ *         secondary structure in dot-bracket notation will be written to
+ *  @return the minimum free energy (MFE) in kcal/mol
+ */
+float
+vrna_cofold(const char *string,
+            char *structure);
+
 #ifdef VRNA_BACKWARD_COMPAT
 
 /**

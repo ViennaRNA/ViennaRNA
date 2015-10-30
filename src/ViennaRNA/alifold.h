@@ -1,6 +1,9 @@
 #ifndef VIENNA_RNA_PACKAGE_ALIFOLD_H
 #define VIENNA_RNA_PACKAGE_ALIFOLD_H
 
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
+
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/ribo.h>
@@ -40,6 +43,63 @@
  *
  *  @}
  */
+
+/**
+ *  @brief  Compute Minimum Free Energy (MFE), and a corresponding consensus secondary structure
+ *          for an RNA sequence alignment using a comparative method
+ *
+ *  @ingroup consensus_mfe_fold
+ *
+ *  This simplified interface to vrna_mfe_comparative() computes the MFE and, if required, a consensus secondary
+ *  structure for an RNA sequence alignment using default options. Memory required for dynamic programming
+ *  (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of this function, the
+ *  recursively filled matrices are not available any more for any post-processing, e.g. suboptimal
+ *  backtracking, etc.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe_comparative(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  @see vrna_circalifold(), vrna_mfe_comparative(), vrna_fold_compound(), #vrna_fold_compound_t
+ *
+ *  @param sequences  RNA sequence alignment
+ *  @param structure  A pointer to the character array where the
+ *         secondary structure in dot-bracket notation will be written to
+ *  @return the minimum free energy (MFE) in kcal/mol
+ */
+float
+vrna_alifold( const char **ssequences,
+              char *structure);
+
+/**
+ *  @brief  Compute Minimum Free Energy (MFE), and a corresponding consensus secondary structure
+ *          for a sequence alignment of circular RNAs using a comparative method
+ *
+ *  @ingroup consensus_mfe_fold
+ *
+ *  This simplified interface to vrna_mfe_comparative() computes the MFE and, if required, a consensus secondary
+ *  structure for an RNA sequence alignment using default options. Memory required for dynamic programming
+ *  (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of this function, the
+ *  recursively filled matrices are not available any more for any post-processing, e.g. suboptimal
+ *  backtracking, etc.
+ *
+ *  Folding of circular RNA sequences is handled as a post-processing step of the forward
+ *  recursions. See @cite hofacker:2006 for further details.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe_comparative(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  @see vrna_alifold(), vrna_mfe_comparative(), vrna_fold_compound(), #vrna_fold_compound_t
+ *
+ *  @param sequences  Sequence alignment of circular RNAs
+ *  @param structure  A pointer to the character array where the
+ *         secondary structure in dot-bracket notation will be written to
+ *  @return the minimum free energy (MFE) in kcal/mol
+ */
+float
+vrna_circalifold( const char **ssequences,
+                  char *structure);
 
 /**
  *  \brief This variable controls the weight of the covariance term in the
@@ -82,8 +142,8 @@ DEPRECATED(extern  double  nc_fact);
  * 
  *  \ingroup consensus_mfe_fold
  * 
- *  \deprecated Usage of this function is discouraged! Use vrna_mfe_comparative() instead
- *  \see vrna_mfe_comparative()
+ *  \deprecated Usage of this function is discouraged! Use vrna_alifold(), or vrna_mfe_comparative() instead!
+ *  \see vrna_alifold(), vrna_mfe_comparative()
  *
  *  \param strings    A pointer to a NULL terminated array of character arrays
  *  \param structure  A pointer to a character array that may contain a constraining consensus structure
@@ -97,8 +157,8 @@ DEPRECATED(float alifold( const char **strings, char *structure));
  * 
  *  \ingroup consensus_mfe_fold
  * 
- *  \deprecated Usage of this function is discouraged! Use vrna_mfe_comparative() instead
- *  \see vrna_mfe_comparative()
+ *  \deprecated Usage of this function is discouraged! Use vrna_alicircfold(), and vrna_mfe_comparative() instead!
+ *  \see vrna_alicircfold(), vrna_alifold(), vrna_mfe_comparative()
  * 
  *  \param strings    A pointer to a NULL terminated array of character arrays
  *  \param structure  A pointer to a character array that may contain a constraining consensus structure

@@ -84,6 +84,44 @@ PRIVATE float   wrap_alifold( const char **strings,
 #################################
 */
 
+PUBLIC float
+vrna_alifold( const char **strings,
+              char *structure){
+
+  float                 mfe;
+  vrna_fold_compound_t  *vc;
+  vrna_md_t             md;
+
+  vrna_md_set_default(&md);
+
+  vc  = vrna_fold_compound_comparative(strings, &md, VRNA_OPTION_MFE);
+  mfe = vrna_mfe_comparative(vc, structure);
+
+  vrna_fold_compound_free(vc);
+
+  return mfe;
+}
+
+PUBLIC float
+vrna_circalifold( const char **sequences,
+                  char *structure){
+
+  float                 mfe;
+  vrna_fold_compound_t  *vc;
+  vrna_md_t             md;
+
+  vrna_md_set_default(&md);
+  md.circ = 1;
+
+  vc  = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_MFE);
+  mfe = vrna_mfe_comparative(vc, structure);
+
+  vrna_fold_compound_free(vc);
+
+  return mfe;
+}
+
+
 PRIVATE float
 wrap_alifold( const char **strings,
               char *structure,
@@ -140,7 +178,6 @@ wrap_alifold( const char **strings,
 
   return vrna_mfe_comparative(vc, structure);
 }
-
 
 
 PUBLIC float
@@ -1156,6 +1193,8 @@ backtrack(vrna_fold_compound_t *vc,
 /*# deprecated functions below              #*/
 /*###########################################*/
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
 PUBLIC void
 free_alifold_arrays(void){
 
@@ -1252,3 +1291,5 @@ energy_of_alistruct(const char **sequences,
 
   return energy[0];
 }
+
+#endif

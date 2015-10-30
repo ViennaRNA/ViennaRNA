@@ -96,11 +96,6 @@ vrna_fold(const char *string,
   vrna_fold_compound_t  *vc;
   vrna_md_t             md;
 
-#ifdef _OPENMP
-/* Explicitly turn off dynamic threads */
-  omp_set_dynamic(0);
-#endif
-
   vrna_md_set_default(&md);
   vc  = vrna_fold_compound(string, &md, VRNA_OPTION_MFE);
   mfe = vrna_mfe(vc, structure);
@@ -117,11 +112,6 @@ vrna_circfold(const char *string,
   float                 mfe;
   vrna_fold_compound_t  *vc;
   vrna_md_t             md;
-
-#ifdef _OPENMP
-/* Explicitly turn off dynamic threads */
-  omp_set_dynamic(0);
-#endif
 
   vrna_md_set_default(&md);
   md.circ = 1;
