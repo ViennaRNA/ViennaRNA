@@ -1309,7 +1309,7 @@ PUBLIC float Lfold( const char *string,
   vrna_fold_compound_t  *vc;
   vrna_md_t           md;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   md.window_size = window_size;
   md.max_bp_span = window_size;
@@ -1334,7 +1334,7 @@ Lfoldz( const char *string,
   vrna_fold_compound_t  *vc;
   vrna_md_t           md;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   md.window_size = window_size;
   md.max_bp_span = window_size;

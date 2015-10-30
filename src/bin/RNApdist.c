@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
   vrna_md_t *md;
 
   /* assign globally stored model details */
-  vrna_md_set_globals(md);
+  set_model_details(md);
 
   pr_pl = mfe_pl = NULL;
 

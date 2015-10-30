@@ -2007,7 +2007,7 @@ recycle_last_call(const char *string,
     md = &(P->model_details);
   } else {
     md = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
-    vrna_md_set_globals(md);
+    set_model_details(md);
     cleanup = 1;
   }
 
@@ -2274,7 +2274,7 @@ loop_energy(short *pt,
   vrna_md_t           md;
   vrna_fold_compound_t  *vc;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   /* convert encoded sequence back to actual string */
   seq = (char *)vrna_alloc(sizeof(char) * (s[0]+1));
@@ -2319,7 +2319,7 @@ energy_of_move_pt(short *pt,
   vrna_md_t           md;
   vrna_fold_compound_t  *vc;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   /* convert encoded sequence back to actual string */
   seq = (char *)vrna_alloc(sizeof(char) * (s[0]+1));

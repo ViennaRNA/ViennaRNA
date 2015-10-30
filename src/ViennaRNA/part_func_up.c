@@ -1088,7 +1088,7 @@ PRIVATE void scale_stru_pf_params(unsigned int length)
   if(init_temp != temperature) {
     if(Pf) free(Pf);
     vrna_md_t   md;
-    vrna_md_set_globals(&md);
+    set_model_details(&md);
     Pf=vrna_exp_params(&md);
   }
 

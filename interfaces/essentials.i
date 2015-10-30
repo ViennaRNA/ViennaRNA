@@ -112,7 +112,7 @@ typedef struct {
   vrna_md_t(char *type){
     vrna_md_t *md = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
     if(!strcmp(type, "global"))
-      vrna_md_set_globals(md);
+      set_model_details(md);
     else
       vrna_md_set_default(md);
     return md;
@@ -128,7 +128,7 @@ typedef struct {
     vrna_md_set_default($self);
   }
   void set_from_globals(){
-    vrna_md_set_globals($self);
+    set_model_details($self);
   }
   void print(){
     printf( "temperature:     %g\n"
@@ -179,7 +179,7 @@ typedef struct {
 }
 
 %ignore vrna_md_set_default;
-%ignore vrna_md_set_globals;
+%ignore set_model_details;
 %ignore vrna_md_set_nonstandards;
 %ignore vrna_md_set_dangles;
 %ignore vrna_md_get_dangles;

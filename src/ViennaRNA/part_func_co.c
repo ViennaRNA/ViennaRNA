@@ -1366,7 +1366,7 @@ update_co_pf_params(int length){
 
   if(backward_compat_compound && backward_compat){
     vrna_md_t         md;
-    vrna_md_set_globals(&md);
+    set_model_details(&md);
     vrna_exp_params_reset(backward_compat_compound, &md);
 
     /* compatibility with RNAup, may be removed sometime */
@@ -1383,7 +1383,7 @@ update_co_pf_params_par(int length,
     if(parameters){
       vrna_exp_params_subst(backward_compat_compound, parameters);
     } else {
-      vrna_md_set_globals(&md);
+      set_model_details(&md);
       vrna_exp_params_reset(backward_compat_compound, &md);
     }
 

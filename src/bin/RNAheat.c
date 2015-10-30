@@ -202,7 +202,7 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    /* init_pf_fold(length); <- obsolete */
     vrna_exp_param_t  *pf_parameters = NULL;
     vrna_md_t         md;
-    vrna_md_set_globals(&md);
+    set_model_details(&md);
 
    for (i=0; i<2*m+1; i++) {
       if(pf_parameters) free(pf_parameters);

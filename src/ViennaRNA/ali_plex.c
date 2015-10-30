@@ -134,7 +134,7 @@ PRIVATE duplexT aliduplexfold(const char *s1[], const char *s2[], const int exte
   for (s=0; s2[s]!=NULL; s++);
   if (n_seq != s) vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
     if(P)
@@ -679,7 +679,7 @@ PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],
   for (s=0; s2[s]!=NULL; s++);
   /* printf("%d \n",i_pos); */
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
     if(P)
@@ -1283,7 +1283,7 @@ PRIVATE void update_dfold_params(void)
 {
   vrna_md_t md;
   if(P) free(P);
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   P = vrna_params(&md);
   make_pair_matrix();
 }

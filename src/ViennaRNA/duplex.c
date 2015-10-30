@@ -97,7 +97,7 @@ PRIVATE duplexT duplexfold_cu(const char *s1, const char *s2, int clean_up){
   n1 = (int) strlen(s1);
   n2 = (int) strlen(s2);
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     if(P)
       free(P);
@@ -301,7 +301,7 @@ PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_u
   for (s=0; s2[s]!=NULL; s++);
   if (n_seq != s) vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     if(P)
       free(P);

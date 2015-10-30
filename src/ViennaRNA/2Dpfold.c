@@ -3989,7 +3989,7 @@ get_TwoDpfold_variables(const char *seq,
   vrna_fold_compound_t  *c;
   vrna_mx_mfe_t       *m;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   md.circ = circ;
 
   vars = (TwoDpfold_vars *)malloc(sizeof(TwoDpfold_vars));

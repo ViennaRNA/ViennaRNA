@@ -8,6 +8,7 @@
 #include  "../src/ViennaRNA/model.h"
 #include  "../src/ViennaRNA/utils.h"
 #include  "../src/ViennaRNA/structure_utils.h"
+#include  "../src/ViennaRNA/string_utils.h"
 #include  "../src/ViennaRNA/fold_vars.h"
 #undef fold
 #include  "../src/ViennaRNA/mfe.h"
@@ -607,4 +608,22 @@ short *encode_seq(char *sequence);
 %ignore print_str;
 %ignore copy_arr;
 %ignore allocopy;
+
+/**********************************************/
+/* BEGIN interface for generic utilities      */
+/**********************************************/
+
+%include  "../src/ViennaRNA/utils.h"
+
+/**********************************************/
+/* BEGIN interface for string utilities       */
+/**********************************************/
+
+%include  "../src/ViennaRNA/string_utils.h"
+
+/**********************************************/
+/* BEGIN interface for structure utilities    */
+/**********************************************/
+
+%include  "../src/ViennaRNA/structure_utils.h"
 

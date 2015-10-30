@@ -111,7 +111,7 @@ find_saddle(const char *seq,
   vrna_md_t           md;
 
   vc = NULL;
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   if(backward_compat_compound){
     if(!strcmp(seq, backward_compat_compound->sequence)){ /* check if sequence is the same as before */
@@ -190,7 +190,7 @@ get_path( const char *seq,
   vrna_fold_compound_t  *vc       = NULL;
   vrna_md_t           md;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   if(backward_compat_compound){
     if(!strcmp(seq, backward_compat_compound->sequence)){ /* check if sequence is the same as before */

@@ -143,7 +143,7 @@ PRIVATE duplexT duplexfold_CXS(const char *s1, const char *s2, const int **acces
     }
   }
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
@@ -361,7 +361,7 @@ duplexT** Lduplexfold_CXS(const char *s1, const char *s2, const int **access_s1,
   position = (int *) vrna_alloc((delta+n1+3+delta) * sizeof(int));
   position_j= (int *) vrna_alloc((delta+n1+3+delta) * sizeof(int));
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)){
     update_dfold_params();
@@ -662,7 +662,7 @@ PRIVATE duplexT duplexfold_C(const char *s1, const char *s2, const int extension
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
     if(P)
@@ -1142,7 +1142,7 @@ PRIVATE void update_dfold_params(void)
   vrna_md_t md;
   if(P)
     free(P);
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   P = vrna_params(&md);
   make_pair_matrix();
 }

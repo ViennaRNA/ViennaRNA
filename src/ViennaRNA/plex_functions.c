@@ -275,7 +275,7 @@ PRIVATE void update_dfold_params(void){
   vrna_md_t md;
   if(P)
     free(P);
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   P = vrna_params(&md);
   make_pair_matrix();
 }

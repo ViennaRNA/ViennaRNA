@@ -97,7 +97,7 @@ int PS_color_aln(const char *structure, const char *filename,
 
   vrna_md_t     md;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   outfile = fopen(filename, "w");
 
@@ -365,7 +365,7 @@ int aliPS_color_aln(const char *structure, const char *filename,
         
   vrna_md_t md;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   outfile = fopen(filename, "w");
   if (outfile == NULL) {

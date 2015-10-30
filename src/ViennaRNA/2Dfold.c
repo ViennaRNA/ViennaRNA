@@ -3689,7 +3689,7 @@ get_TwoDfold_variables( const char *seq,
   vrna_fold_compound_t  *c;
   vrna_mx_mfe_t       *m;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   md.circ = circ;
 
   vars = (TwoDfold_vars *)vrna_alloc(sizeof(TwoDfold_vars));
@@ -3738,7 +3738,7 @@ update_TwoDfold_params(TwoDfold_vars *vars){
 
   vrna_md_t md;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   free(vars->compatibility->params);
   vars->compatibility->params = vrna_params(&md);

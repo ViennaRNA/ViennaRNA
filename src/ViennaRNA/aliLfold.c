@@ -116,7 +116,7 @@ PRIVATE void initialize_aliLfold(int length, int maxdist){
   make_pair_matrix();
   if(P) free(P);
   vrna_md_t   md;
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   P = vrna_params(&md);
 }
 

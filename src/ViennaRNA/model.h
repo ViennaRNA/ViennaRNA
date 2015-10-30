@@ -179,7 +179,7 @@ typedef struct vrna_md_s  vrna_md_t;
  *  For convenience reasons, we provide the type name #vrna_md_t to address this data structure
  *  without the use of the struct keyword
  *
- *  @see  vrna_md_set_default(), vrna_md_set_globals(), vrna_md_update(), #vrna_md_t
+ *  @see  vrna_md_set_default(), set_model_details(), vrna_md_update(), #vrna_md_t
  */
 struct vrna_md_s {
   double  temperature;                  /**<  @brief  The temperature used to scale the thermodynamic parameters */
@@ -223,9 +223,9 @@ struct vrna_md_s {
 
 
 /**
- * @brief Set default model details
+ * @brief Apply default model details to a provided #vrna_md_t data structure
  *
- *  Use this function if you wish to initialize a #vrna_md_t data structure with
+ *  Use this function to initialize a #vrna_md_t data structure with
  *  its default values
  *
  *  @param md A pointer to the data structure that is about to be initialized
@@ -256,39 +256,208 @@ vrna_md_update(vrna_md_t *md);
 char *
 vrna_md_option_string(vrna_md_t  *md);
 
+void
+vrna_md_set_nonstandards(vrna_md_t *md, const char *ns);
 
-void vrna_md_set_nonstandards(vrna_md_t *md, const char *ns);
+/**
+ *  @brief  Reset the global default model details to their initial values
+ *
+ *  This function resets the global default model details to their initial values,
+ *  i.e. as specified by the ViennaRNA Package release. This is useful, e.g. after
+ *  changes have made by the user, and defaults need to be restored.
+ *
+ *  @note The global default parameters affect all function calls of RNAlib where
+ *        model details are not explicitely provided. Hence, any change of them
+ *        is not considered threadsafe
+ *  @see  vrna_md_set_default(), #vrna_md_t
+ */
+void
+vrna_md_defaults_reset(void);
 
-void vrna_md_set_dangles(vrna_md_t *md, int d);
+/**
+ *  @brief  Set default temperature for energy evaluation of loops
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_TEMPERATURE
+ *  @param T  Temperature in centigrade
+ */
+void
+vrna_md_defaults_temperature(double T);
 
-int vrna_md_get_dangles(vrna_md_t *md);
+/**
+ *  @brief  Set default scaling factor of thermodynamic temperature in Boltzmann factors
+ *
+ *  Bolzmann factors are then computed as @f$ exp(-E / (b \cdot kT))@f$.
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_BETA_SCALE
+ *  @param b  The scaling factor, default is 1.0
+ */
+void
+vrna_md_defaults_betaScale(double b);
 
-void vrna_md_set_temperature(vrna_md_t *md, double T);
+/**
+ *  @brief  Set default dangle model for structure prediction
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_DANGLES
+ *  @param d  The dangle model
+ */
+void
+vrna_md_defaults_dangles(int d);
 
-double vrna_md_get_temperature(vrna_md_t *md);
+/**
+ *  @brief  Set default behavior for lookup of tabulated free energies for special hairpin loops, such as Tri-, Tetra-, or Hexa-loops.
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_SPECIAL_HP
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_special_hp(int flag);
 
-void vrna_md_set_special_hp(vrna_md_t *md, int shp);
+/**
+ *  @brief  Set default behavior for prediction of canonical secondary structures
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_NO_LP
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_noLP(int flag);
 
-int vrna_md_get_special_hp(vrna_md_t *md);
+/**
+ *  @brief  Set default behavior for treatment of G-U wobble pairs
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_NO_GU
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_noGU(int flag);
 
-void vrna_md_set_gquad(vrna_md_t *md, int g);
+/**
+ *  @brief  Set default behavior for G-U pairs as closing pair for loops
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_NO_GU_CLOSURE
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_noGUclosure(int flag);
 
-int vrna_md_get_gquad(vrna_md_t *md);
+/**
+ *  @brief  Set default behavior whether input sequences are circularized
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_CIRC
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_circ(int flag);
 
-void vrna_md_set_nolp(vrna_md_t *md, int nolp);
+/**
+ *  @brief  Set default behavior for treatment of G-Quadruplexes
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_GQUAD
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_gquad(int flag);
 
-int vrna_md_get_nolp(vrna_md_t *md);
+/**
+ *  @brief  Set default behavior for creating additional matrix for unique multibranch loop prediction
+ *  @note   Activating this option usually results in higher memory consumption!
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_UNIQ_ML
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_uniq_ML(int flag);
 
-void vrna_md_set_betascale(vrna_md_t *md, double b);
+/**
+ *  @brief  Set default energy set
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_ENERGY_SET
+ *  @param  e   Energy set (0, 1, 2, 3)
+ */
+void
+vrna_md_defaults_energy_set(int e);
 
-double vrna_md_get_betascale(vrna_md_t *md);
+/**
+ *  @brief  Set default behavior for whether to backtrack secondary structures
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_BACKTRACK
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_backtrack(int flag);
 
+/**
+ *  @brief  Set default backtrack type, i.e. which DP matrix is used
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_BACKTRACK_TYPE
+ *  @param  t   The type ('F', 'C', or 'M')
+ */
+void
+vrna_md_defaults_backtrack_type(char t);
 
+/**
+ *  @brief  Set the default behavior for whether to compute base pair probabilities after partition function computation
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_COMPUTE_BPP
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_compute_bpp(int flag);
+
+/**
+ *  @brief  Set default maximal base pair span
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_MAX_BP_SPAN
+ *  @param  span  Maximal base pair span
+ */
+void
+vrna_md_defaults_max_bp_span(int span);
+
+/**
+ *  @brief  Set default minimal loop size
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #TURN
+ *  @param  size  Minimal size, i.e. number of unpaired nucleotides for a hairpin loop
+ */
+void
+vrna_md_defaults_min_loop_size(int size);
+
+/**
+ *  @brief  Set default window size for sliding window structure prediction approaches
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_WINDOW_SIZE
+ *  @param  size  The size of the sliding window
+ */
+void
+vrna_md_defaults_window_size(int size);
+
+/**
+ *  @brief  Set default behavior for whether to use old energy model for comparative structure prediction
+ *  @note   This option is outdated. Activating the old energy model usually results in worse consensus
+ *          structure predictions.
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_ALI_OLD_EN
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_oldAliEn(int flag);
+
+/**
+ *  @brief  Set default behavior for whether to use Ribosum Scoring in comparative structure prediction
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_ALI_RIBO
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_ribo(int flag);
+
+/**
+ *  @brief  Set the default covariance scaling factor used in comparative structure prediction
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_ALI_CV_FACT
+ *  @param  factor  The covariance factor
+ */
+void
+vrna_md_defaults_cv_fact(double factor);
+
+/**
+ *  @brief
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_ALI_NC_FACT
+ *  @param
+ */
+void
+vrna_md_defaults_nc_fact(double factor);
+
+/**
+ *  @brief  Set the default scaling factor used to avoid under-/overflows in partition function computation
+ *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t
+ *  @param  factor  The scaling factor  (default: 1.07)
+ */
+void
+vrna_md_defaults_sfact(double factor);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
 #define model_detailsT        vrna_md_t               /* restore compatibility of struct rename */
-#define set_model_details(a)  vrna_md_set_globals(a)  /* restore compatibility of function rename */
 
 /* BEGIN deprecated global variables: */
 
@@ -297,6 +466,7 @@ double vrna_md_get_betascale(vrna_md_t *md);
  * 
  *  Default is 37C. You have to call the update_..._params() functions after
  *  changing this parameter.
+ *  @deprecated   Use vrna_md_defaults_temperature() instead to change the default temperature
  */
 extern double temperature;
 
@@ -457,7 +627,7 @@ extern  int logML;
  *  @param md A pointer to the data structure that is about to be initialized
  */
 void
-vrna_md_set_globals(vrna_md_t *md);
+set_model_details(vrna_md_t *md);
 
 char *
 option_string(void);

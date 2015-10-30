@@ -82,7 +82,7 @@ PUBLIC float MEA_seq(plist *p, const char *sequence, char *structure, double gam
     } else {
       vrna_exp_param_t *pf_params;
       vrna_md_t         md;
-      vrna_md_set_globals(&md);
+      set_model_details(&md);
       pf_params = vrna_exp_params(&md);
       S = vrna_seq_encode(sequence, &(pf_params->model_details));
       with_gquad = pf_params->model_details.gquad;

@@ -737,7 +737,7 @@ PUBLIC vrna_param_t *
 scale_parameters(void){
 
   vrna_md_t md;
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   return vrna_params(&md);
 }
 
@@ -768,7 +768,7 @@ get_scaled_pf_parameters(void){
   vrna_md_t         md;
   vrna_exp_param_t  *pf;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   pf = vrna_exp_params(&md);
   pf->pf_scale = pf_scale;
@@ -796,7 +796,7 @@ get_scaled_alipf_parameters(unsigned int n_seq){
 
   vrna_md_t  md;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   return get_exp_params_ali(&md, n_seq, pf_scale);
 }
@@ -816,7 +816,7 @@ PUBLIC vrna_param_t *copy_parameters(void){
   vrna_param_t *copy;
   if (p.id != id){
     vrna_md_t md;
-    vrna_md_set_globals(&md);
+    set_model_details(&md);
     return vrna_params(&md);
   } else {
     copy = (vrna_param_t *) vrna_alloc(sizeof(vrna_param_t));
@@ -834,7 +834,7 @@ PUBLIC vrna_exp_param_t *copy_pf_param(void){
   vrna_exp_param_t *copy;
   if (pf.id != pf_id){
     vrna_md_t md;
-    vrna_md_set_globals(&md);
+    set_model_details(&md);
     copy = vrna_exp_params(&md);
     copy->pf_scale = pf_scale;
     return copy;
@@ -855,7 +855,7 @@ PUBLIC vrna_exp_param_t *scale_pf_parameters(void){
   vrna_md_t         md;
   vrna_exp_param_t  *pf;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   pf = vrna_exp_params(&md);
   pf->pf_scale = pf_scale;

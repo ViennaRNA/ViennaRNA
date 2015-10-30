@@ -153,7 +153,7 @@ snoopT alisnoopfold(const char **s1, const char **s2,
   for (s=0; s2[s]!=NULL; s++);
   if (n_seq != s) vrna_message_error("unequal number of sequences in aliduplexfold()\n");
   
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     snoupdate_fold_params();
     if(P)
@@ -767,7 +767,7 @@ void Lsnoop_subopt(const char *s1, const char *s2, int delta, int w,
 
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist, &foldlist_XS); 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     snoupdate_fold_params();
     if(P)
@@ -911,7 +911,7 @@ void Lsnoop_subopt_list(const char *s1, const char *s2, int delta, int w,
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist,  &foldlist_XS); 
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     snoupdate_fold_params();
     if(P)
@@ -1173,7 +1173,7 @@ snoopT snoopfold(const char *s1, const char *s2,
   n1 = (int) strlen(s1);
   n2 = (int) strlen(s2);
   
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     snoupdate_fold_params();
     if(P)
@@ -1309,7 +1309,7 @@ PRIVATE int snoopfold_XS_fill(const char *s1, const char *s2, const int **access
   n1 = (int) strlen(s1);
   n2 = (int) strlen(s2);
   
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     snoupdate_fold_params();
     if(P)
@@ -1932,7 +1932,7 @@ void Lsnoop_subopt_list_XS(const char *s1, const char *s2,  const int **access_s
   Duplex_El=0;Duplex_Er=0;Loop_E=0, Loop_D=0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist, &foldlist_XS); 
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     snoupdate_fold_params();
     if(P)
@@ -2199,7 +2199,7 @@ snoopT snoopfold_XS(const char *s1, const char *s2, const int **access_s1, const
   n1 = (int) strlen(s1);
   n2 = (int) strlen(s2);
   
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     snoupdate_fold_params();
     if(P)

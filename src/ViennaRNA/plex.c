@@ -156,7 +156,7 @@ PRIVATE duplexT duplexfold_XS(const char *s1, const char *s2, const int **access
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
@@ -393,7 +393,7 @@ PRIVATE duplexT fduplexfold_XS(const char *s1, const char *s2, const int **acces
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
     if(P)
@@ -748,7 +748,7 @@ PRIVATE char *fbacktrack_XS(int i, int j, const int** access_s1, const int** acc
   int maxPenalty[4];
   vrna_md_t   md;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)){
     update_dfold_params();
@@ -1273,7 +1273,7 @@ duplexT ** Lduplexfold_XS(const char *s1, const char *s2, const int **access_s1,
   *** Sequence encoding
   **/
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_dfold_params();
@@ -1738,7 +1738,7 @@ PRIVATE duplexT duplexfold(const char *s1, const char *s2, const int extension_c
   n3 = (int) strlen(s1);
   n4 = (int) strlen(s2);
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
     if(P)
@@ -1889,7 +1889,7 @@ PRIVATE duplexT fduplexfold(const char *s1, const char *s2, const int extension_
   /* duplexfold them at this position and report the result at the command line */
   /* for this i first need to rewrite backtrack in order to remove the printf functio */
   /* END OF DEFINITION FOR NEEDED SUBOPT DATA  */
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
     if(P)
@@ -2511,7 +2511,7 @@ duplexT ** Lduplexfold(const char *s1, const char *s2, const int threshold, cons
   /**
   *** Sequence encoding
   **/
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
     if(P)
@@ -2982,7 +2982,7 @@ PRIVATE void update_dfold_params(void)
   vrna_md_t md;
   if(P)
     free(P);
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
   P = vrna_params(&md);
   make_pair_matrix();
 }

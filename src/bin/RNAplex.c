@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
       char *s1=NULL;
       vrna_param_t *P = NULL;
       vrna_md_t     md;
-      vrna_md_set_globals(&md);
+      set_model_details(&md);
 
       if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
         update_fold_params();
@@ -1966,7 +1966,7 @@ static void linear_fit(int *il_a, int *il_b, int *b_a, int *b_b){ /*get fit para
   vrna_md_t     md;
   vrna_param_t *P = NULL;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();
@@ -2277,7 +2277,7 @@ double probcompute_newparameters(char *s1, double k_concentration, double tris_c
   vrna_md_t   md;
   vrna_param_t *P = NULL;
 
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
     update_fold_params();

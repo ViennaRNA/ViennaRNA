@@ -270,7 +270,7 @@ update_fold_params(void){
   vrna_md_t           md;
 
   if(backward_compat_compound && backward_compat){
-    vrna_md_set_globals(&md);
+    set_model_details(&md);
     vrna_params_reset(backward_compat_compound, &md);
   }
 }
@@ -284,7 +284,7 @@ update_fold_params_par(vrna_param_t *parameters){
     if(parameters)
       vrna_params_subst(backward_compat_compound, parameters);
     else{
-      vrna_md_set_globals(&md);
+      set_model_details(&md);
       vrna_params_reset(backward_compat_compound, &md);
     }
   }

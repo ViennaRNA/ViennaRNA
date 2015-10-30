@@ -606,7 +606,7 @@ PRIVATE void scale_pf_params(unsigned int length, vrna_exp_param_t *parameters){
     pf_params = vrna_exp_params_copy(parameters);
   } else {
     vrna_md_t  md;
-    vrna_md_set_globals(&md);
+    set_model_details(&md);
     pf_params = vrna_exp_params(&md);
   }
 

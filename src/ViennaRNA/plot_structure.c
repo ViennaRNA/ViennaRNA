@@ -311,7 +311,7 @@ vrna_file_PS_rnaplot_a( const char *seq,
   vrna_md_t   md;
 
   if(!md_p){
-    vrna_md_set_globals(&md);
+    set_model_details(&md);
     md_p  = &md;
   }
     
@@ -866,7 +866,7 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
   };
 
   vrna_md_t   md;
-  vrna_md_set_globals(&md);
+  set_model_details(&md);
 
   n = strlen(AS[0]);
   maxl = 1024;
