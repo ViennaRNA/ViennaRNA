@@ -197,6 +197,7 @@ $RNA::dangles     = 0;
 $RNA::temperature = 40.1;
 $md = RNA::vrna_md_t->new("global"); # global values
 ok(int($md->get_dangles()), 0);
+ok(int($RNA::dangles), 0);
 ok($md->{temperature}, 40.1);
 
 # reset globals to default

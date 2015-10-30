@@ -48,6 +48,25 @@
         argvi++;
 }
 
+/* get / set global model details */
+%typemap(varin) double temperature {
+  vrna_md_defaults_temperature((double)SvNV($input));
+}
+
+%typemap(varout) double temperature {
+  sv_setnv($result, (double) vrna_md_defaults_temperature_get());
+}
+
+%typemap(varin) int dangles {
+  $1 = SvIV($input);
+  vrna_md_defaults_dangles($1);
+}
+
+%typemap(varout) int dangles {
+  $1 = vrna_md_defaults_dangles_get();
+  sv_setiv($result, (IV) ($1));
+}
+
 #endif
 
 // Typemaps that are independent of scripting language
@@ -56,6 +75,7 @@
 %typemap(freearg) char ** {
          free($1);
 }
+
 // Now a few test functions
 //%inline %{
 //int print_args(char **argv) {
@@ -114,6 +134,22 @@
     PyErr_SetString(PyExc_TypeError,"not a list");
     return NULL;
   }
+}
+
+/* get / set global model details */
+%typemap(varin) int temperature {
+  $1 = PyInt_AsLong($input);
+  vrna_md_defaults_temperature($1);
+}
+
+%typemap(varin) int dangles {
+  $1 = PyInt_AsLong($input);
+  vrna_md_defaults_dangles($1);
+}
+
+%typemap(varout) int dangles {
+  $1 = vrna_md_defaults_dangles_get();
+  $result = PyInt_FromLong($1);
 }
 
 #endif

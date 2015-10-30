@@ -365,6 +365,7 @@ char * my_inverse_pf_fold(char *start, const char *target, float *OUTPUT);
 
 //%subsection "Global Variables to Modify Folding"
 //extern double *pr;  /*  base pairing prob. matrix */
+
 %include  "../src/ViennaRNA/fold_vars.h"
 %extend bondT {
 	bondT *get(int i) {

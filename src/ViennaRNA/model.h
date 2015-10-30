@@ -283,6 +283,14 @@ void
 vrna_md_defaults_temperature(double T);
 
 /**
+ *  @brief  Get default temperature for energy evaluation of loops
+ *  @see vrna_md_defaults_temperature(), vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_TEMPERATURE
+ *  @return  The global default settings for temperature in centigrade
+ */
+double
+vrna_md_defaults_temperature_get(void);
+
+/**
  *  @brief  Set default scaling factor of thermodynamic temperature in Boltzmann factors
  *
  *  Bolzmann factors are then computed as @f$ exp(-E / (b \cdot kT))@f$.
@@ -299,6 +307,14 @@ vrna_md_defaults_betaScale(double b);
  */
 void
 vrna_md_defaults_dangles(int d);
+
+/**
+ *  @brief  Get default dangle model for structure prediction
+ *  @see vrna_md_defaults_dangles(), vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_DANGLES
+ *  @return The global default settings for the dangle model
+ */
+int
+vrna_md_defaults_dangles_get(void);
 
 /**
  *  @brief  Set default behavior for lookup of tabulated free energies for special hairpin loops, such as Tri-, Tetra-, or Hexa-loops.

@@ -263,7 +263,7 @@ vrna_md_defaults_reset(void){
   energy_set      = defaults.energy_set;
   do_backtrack    = defaults.compute_bpp;
   backtrack_type  = defaults.backtrack_type;
-  *nonstandards   = defaults.nonstandards;
+  nonstandards    = defaults.nonstandards;
   max_bp_span     = defaults.max_bp_span;
   oldAliEn        = defaults.oldAliEn;
   ribo            = defaults.ribo;
@@ -278,10 +278,19 @@ vrna_md_defaults_reset(void){
 PUBLIC void
 vrna_md_defaults_temperature(double T){
 
-  if(T >= -K0)
+  if(T >= -K0){
     defaults.temperature = T;
-  else
+#ifdef VRNA_BACKWARD_COMPAT
+    temperature = T;
+#endif
+  } else
     vrna_message_warning("vrna_md_defaults_temperature@model.c: Temperature out of range, T must be above absolute zero. Not changing anything!");
+}
+
+PUBLIC double
+vrna_md_defaults_temperature_get(void){
+
+  return defaults.temperature;
 }
 
 PUBLIC void
@@ -292,10 +301,19 @@ vrna_md_defaults_betaScale(double b){
 
 PUBLIC void
 vrna_md_defaults_dangles(int d){
-  if((d >= 0) && (d <= 3))
+  if((d >= 0) && (d <= 3)){
     defaults.dangles = d;
-  else
+#ifdef VRNA_BACKWARD_COMPAT
+    dangles = d;
+#endif
+  } else
     vrna_message_warning("vrna_md_defaults_dangles@model.c: Dangles out of range, must be (0 <= d <= 3). Not changing anything!");
+}
+
+PUBLIC int
+vrna_md_defaults_dangles_get(void){
+
+  return defaults.dangles;
 }
 
 PUBLIC void
