@@ -29,13 +29,53 @@
 #################################
 */
 
-#ifdef  VRNA_BACKWARD_COMPAT
-
 /*
 #################################
 # GLOBAL VARIABLES              #
 #################################
 */
+
+vrna_md_t vrna_md_defaults = {
+  VRNA_MODEL_DEFAULT_TEMPERATURE,
+  1.,
+  VRNA_MODEL_DEFAULT_DANGLES,
+  VRNA_MODEL_DEFAULT_SPECIAL_HP,
+  VRNA_MODEL_DEFAULT_NO_LP,
+  VRNA_MODEL_DEFAULT_NO_GU,
+  VRNA_MODEL_DEFAULT_NO_GU_CLOSURE,
+  VRNA_MODEL_DEFAULT_LOG_ML,
+  VRNA_MODEL_DEFAULT_CIRC,
+  VRNA_MODEL_DEFAULT_GQUAD,
+  VRNA_MODEL_DEFAULT_CANONICAL_BP,
+  VRNA_MODEL_DEFAULT_UNIQ_ML,
+  VRNA_MODEL_DEFAULT_ENERGY_SET,
+  VRNA_MODEL_DEFAULT_BACKTRACK,
+  VRNA_MODEL_DEFAULT_BACKTRACK_TYPE,
+  VRNA_MODEL_DEFAULT_COMPUTE_BPP,
+  {0},
+  VRNA_MODEL_DEFAULT_MAX_BP_SPAN,
+  TURN,
+  VRNA_MODEL_DEFAULT_WINDOW_SIZE,
+  VRNA_MODEL_DEFAULT_ALI_OLD_EN,
+  VRNA_MODEL_DEFAULT_ALI_RIBO,
+  VRNA_MODEL_DEFAULT_ALI_CV_FACT,
+  VRNA_MODEL_DEFAULT_ALI_NC_FACT,
+  1.07,
+  {0, 2, 1, 4, 3, 6, 5, 7},
+  {0, 1, 2, 3, 4, 3, 2, 0},
+  {
+    { 0, 0, 0, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 5, 0, 0, 5},
+    { 0, 0, 0, 1, 0, 0, 0, 0},
+    { 0, 0, 2, 0, 3, 0, 0, 0},
+    { 0, 6, 0, 4, 0, 0, 0, 6},
+    { 0, 0, 0, 0, 0, 0, 2, 0},
+    { 0, 0, 0, 0, 0, 1, 0, 0},
+    { 0, 6, 0, 0, 5, 0, 0, 0}
+  }
+};
+
+#ifdef  VRNA_BACKWARD_COMPAT
 
 /*  below are the evil global variables that will vanish
     as soon as we drop backward compatibility in ViennaRNA
