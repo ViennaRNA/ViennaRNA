@@ -58,13 +58,11 @@
 }
 
 %typemap(varin) int dangles {
-  $1 = SvIV($input);
-  vrna_md_defaults_dangles($1);
+  vrna_md_defaults_dangles(SvIV($input));
 }
 
 %typemap(varout) int dangles {
-  $1 = vrna_md_defaults_dangles_get();
-  sv_setiv($result, (IV) ($1));
+  sv_setiv($result, (IV) vrna_md_defaults_dangles_get());
 }
 
 #endif
@@ -138,18 +136,19 @@
 
 /* get / set global model details */
 %typemap(varin) int temperature {
-  $1 = PyInt_AsLong($input);
-  vrna_md_defaults_temperature($1);
+  vrna_md_defaults_temperature(PyFloat_AsDouble($input));
+}
+
+%typemap(varout) int temperature {
+  $result = PyFloat_FromDouble(vrna_md_defaults_temperature_get());
 }
 
 %typemap(varin) int dangles {
-  $1 = PyInt_AsLong($input);
-  vrna_md_defaults_dangles($1);
+  vrna_md_defaults_dangles(PyInt_AsLong($input));
 }
 
 %typemap(varout) int dangles {
-  $1 = vrna_md_defaults_dangles_get();
-  $result = PyInt_FromLong($1);
+  $result = PyInt_FromLong(vrna_md_defaults_dangles_get());
 }
 
 #endif

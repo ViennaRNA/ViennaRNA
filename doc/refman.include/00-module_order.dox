@@ -18,6 +18,8 @@
  *
  *  @defgroup   energy_parameters         Energy Parameter Sets and Boltzmann Factors
  *
+ *  @defgroup   model_details             Manipulation of the Prediction Models
+ *
  *  @defgroup   data_structures           Data Structures and Preprocessor Macros
  *
  *  @defgroup   utils                     Utilities
