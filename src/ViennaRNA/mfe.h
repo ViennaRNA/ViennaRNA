@@ -90,6 +90,66 @@ float vrna_mfe_dimer( vrna_fold_compound_t *vc,
 float vrna_mfe_comparative( vrna_fold_compound_t *vc,
                     char *structure);
 
+/**
+ *  @brief Local MFE prediction using a sliding window approach.
+ *
+ *  Computes minimum free energy structures using a sliding window
+ *  approach, where base pairs may not span outside the window.
+ *  In contrast to vrna_mfe(), where a maximum base pair span
+ *  may be set using the #vrna_md_t.max_bp_span attribute and one
+ *  globally optimal structure is predicted, this function uses a
+ *  sliding window to retrieve all locally optimal structures within
+ *  each window.
+ *  The size of the sliding window is set in the #vrna_md_t.window_size
+ *  attribute, prior to the retrieval of the #vrna_fold_compound_t
+ *  using vrna_fold_compound() with option #VRNA_OPTION_WINDOW
+ *
+ *  The predicted structures are written on-the-fly, either to
+ *  stdout, if a NULL pointer is passed as file parameter, or to
+ *  the corresponding filehandle.
+ *
+ *  @ingroup local_mfe_fold
+ * 
+ *  @see  vrna_fold_compound(), vrna_mfe_window_zscore(), vrna_mfe(),
+ *        vrna_Lfold(), vrna_Lfoldz(),
+ *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
+ *
+ *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
+ *  @param  file      The output file handle where predictions are written to (maybe NULL)
+ */
+float vrna_mfe_window( vrna_fold_compound_t *vc, FILE *file);
+
+#ifdef USE_SVM
+/**
+ *  @brief Local MFE prediction using a sliding window approach (with z-score cut-off)
+ *
+ *  Computes minimum free energy structures using a sliding window
+ *  approach, where base pairs may not span outside the window.
+ *  This function is the z-score version of vrna_mfe_window(), i.e.
+ *  only predictions above a certain z-score cut-off value are
+ *  printed.
+ *  As for vrna_mfe_window(), the size of the sliding window is set in
+ *  the #vrna_md_t.window_size attribute, prior to the retrieval of
+ *  the #vrna_fold_compound_t using vrna_fold_compound() with option
+ *  #VRNA_OPTION_WINDOW.
+ *
+ *  The predicted structures are written on-the-fly, either to
+ *  stdout, if a NULL pointer is passed as file parameter, or to
+ *  the corresponding filehandle.
+ *
+ *  @ingroup local_mfe_fold
+ * 
+ *  @see  vrna_fold_compound(), vrna_mfe_window_zscore(), vrna_mfe(),
+ *        vrna_Lfold(), vrna_Lfoldz(),
+ *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
+ *
+ *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
+ *  @param  min_z     The minimal z-score for a predicted structure to appear in the output
+ *  @param  file      The output file handle where predictions are written to (maybe NULL)
+ */
+float vrna_mfe_window_zscore(vrna_fold_compound_t *vc, double min_z, FILE *file);
+#endif
+
 vrna_plist_t *
 vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
                               vrna_bp_stack_t *bp_stack,

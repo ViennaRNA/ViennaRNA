@@ -25,6 +25,8 @@
  *  @}
  */
 
+#include <ViennaRNA/mfe.h>
+
 /**
  *  @addtogroup local_mfe_fold
  *  @{
@@ -33,61 +35,67 @@
  */
 
 /**
- *  @brief Local MFE prediction using a sliding window approach.
+ *  @brief Local MFE prediction using a sliding window approach (simplified interface)
+ * 
+ *  This simplified interface to vrna_mfe_window() computes the MFE and locally
+ *  optimal secondary structure using default options. Structures are predicted
+ *  using a sliding window approach, where base pairs may not span outside the
+ *  window. Memory required for dynamic programming (DP) matrices will
+ *  be allocated and free'd on-the-fly. Hence, after return of this function, the recursively filled
+ *  matrices are not available any more for any post-processing.
  *
- *  Computes minimum free energy structures using a sliding window
- *  approach, where base pairs may not span outside the window.
- *  In contrast to vrna_mfe(), where a maximum base pair span
- *  may be set using the #vrna_md_t.max_bp_span attribute and one
- *  globally optimal structure is predicted, this function uses a
- *  sliding window to retrieve all locally optimal structures within
- *  each window.
- *  The size of the sliding window is set in the #vrna_md_t.window_size
- *  attribute, prior to the retrieval of the #vrna_fold_compound_t
- *  using vrna_fold_compound() with option #VRNA_OPTION_WINDOW
- *
- *  The predicted structures are written on-the-fly, either to
- *  stdout, if a NULL pointer is passed as file parameter, or to
- *  the corresponding filehandle.
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe_window(),
+ *  and the data structure #vrna_fold_compound_t instead.
  *
  *  @ingroup local_mfe_fold
- * 
- *  @see  vrna_fold_compound(), vrna_mfe_window_zscore(), vrna_mfe(),
- *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
  *
- *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
- *  @param  file      The output file handle where predictions are written to (maybe NULL)
+ *  @see  vrna_mfe_window(), vrna_Lfoldz(), vrna_mfe_window_zscore(), vrna_fold_compound(),
+ *        #vrna_fold_compound_t
+ *
+ *  @param  string      The nucleic acid sequence
+ *  @param  window_size The window size for locally optimal structures
+ *  @param  file        The output file handle where predictions are written to (if NULL, output is written to stdout)
  */
-float vrna_mfe_window( vrna_fold_compound_t *vc, FILE *file);
+float
+vrna_Lfold( const char *string,
+            int window_size,
+            FILE  *file);
 
 #ifdef USE_SVM
 /**
- *  @brief Local MFE prediction using a sliding window approach (with z-score cut-off)
- *
- *  Computes minimum free energy structures using a sliding window
- *  approach, where base pairs may not span outside the window.
- *  This function is the z-score version of vrna_mfe_window(), i.e.
+ *  @brief Local MFE prediction using a sliding window approach with z-score cut-off (simplified interface)
+ * 
+ *  This simplified interface to vrna_mfe_window_zscore() computes the MFE and locally
+ *  optimal secondary structure using default options. Structures are predicted
+ *  using a sliding window approach, where base pairs may not span outside the
+ *  window. Memory required for dynamic programming (DP) matrices will
+ *  be allocated and free'd on-the-fly. Hence, after return of this function, the recursively filled
+ *  matrices are not available any more for any post-processing.
+ *  This function is the z-score version of vrna_Lfold(), i.e.
  *  only predictions above a certain z-score cut-off value are
  *  printed.
- *  As for vrna_mfe_window(), the size of the sliding window is set in
- *  the #vrna_md_t.window_size attribute, prior to the retrieval of
- *  the #vrna_fold_compound_t using vrna_fold_compound() with option
- *  #VRNA_OPTION_WINDOW.
  *
- *  The predicted structures are written on-the-fly, either to
- *  stdout, if a NULL pointer is passed as file parameter, or to
- *  the corresponding filehandle.
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe_window(),
+ *  and the data structure #vrna_fold_compound_t instead.
  *
  *  @ingroup local_mfe_fold
- * 
- *  @see  vrna_fold_compound(), vrna_mfe_window_zscore(), vrna_mfe(),
- *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
  *
- *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
- *  @param  min_z     The minimal z-score for a predicted structure to appear in the output
- *  @param  file      The output file handle where predictions are written to (maybe NULL)
+ *  @see  vrna_mfe_window_zscore(), vrna_Lfold(), vrna_mfe_window(), vrna_fold_compound(),
+ *        #vrna_fold_compound_t
+ *
+ *  @param  string      The nucleic acid sequence
+ *  @param  window_size The window size for locally optimal structures
+ *  @param  min_z       The minimal z-score for a predicted structure to appear in the output
+ *  @param  file        The output file handle where predictions are written to (if NULL, output is written to stdout)
  */
-float vrna_mfe_window_zscore(vrna_fold_compound_t *vc, double min_z, FILE *file);
+float
+vrna_Lfoldz(const char *string,
+            int window_size,
+            double min_z,
+            FILE *file);
+
 #endif
 
 

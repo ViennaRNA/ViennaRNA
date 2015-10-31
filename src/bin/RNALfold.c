@@ -17,6 +17,7 @@
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/mfe.h"
 #include "ViennaRNA/Lfold.h"
 #include "ViennaRNA/file_formats.h"
 #include "RNALfold_cmdl.h"

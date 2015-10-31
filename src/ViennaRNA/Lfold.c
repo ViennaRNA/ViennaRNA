@@ -76,6 +76,29 @@ PRIVATE int   fill_arrays(vrna_fold_compound_t *vc,
 */
 
 PUBLIC float
+vrna_Lfold( const char *string,
+            int window_size,
+            FILE  *file){
+
+  float               energy;
+  vrna_fold_compound_t  *vc;
+  vrna_md_t           md;
+
+  vrna_md_set_default(&md);
+
+  md.window_size = window_size;
+  md.max_bp_span = window_size;
+
+  vc  = vrna_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+
+  energy = wrap_Lfold(vc, 0, 0.0, file);
+
+  vrna_fold_compound_free(vc);
+
+  return energy;
+}
+
+PUBLIC float
 vrna_mfe_window( vrna_fold_compound_t *vc,
             FILE *file){
 
@@ -83,6 +106,30 @@ vrna_mfe_window( vrna_fold_compound_t *vc,
 }
 
 #ifdef USE_SVM
+
+PUBLIC float
+vrna_Lfoldz(const char *string,
+            int window_size,
+            double min_z,
+            FILE *file){
+
+  float               energy;
+  vrna_fold_compound_t  *vc;
+  vrna_md_t           md;
+
+  vrna_md_set_default(&md);
+
+  md.window_size = window_size;
+  md.max_bp_span = window_size;
+
+  vc  = vrna_fold_compound(string, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+
+  energy = wrap_Lfold(vc, 1, min_z, file);
+
+  vrna_fold_compound_free(vc);
+
+  return energy;
+}
 
 PUBLIC float
 vrna_mfe_window_zscore( vrna_fold_compound_t *vc,
