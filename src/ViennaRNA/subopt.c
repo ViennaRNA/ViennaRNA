@@ -413,7 +413,7 @@ PRIVATE void make_output(SOLUTION *SL, int cp, FILE *fp)  /* prints stuff */
     }
 }
 
-STATE *
+PRIVATE STATE *
 derive_new_state( int i,
                   int j,
                   STATE *s,
@@ -429,7 +429,7 @@ derive_new_state( int i,
   return s_new;
 }
 
-void
+PRIVATE void
 fork_state( int i,
             int j,
             STATE *s,
@@ -442,7 +442,7 @@ fork_state( int i,
   env->nopush = false;
 }
 
-void
+PRIVATE void
 fork_int_state( int i, int j,
                 int p, int q,
                 STATE *s,
@@ -456,7 +456,7 @@ fork_int_state( int i, int j,
   env->nopush = false;
 }
 
-void
+PRIVATE void
 fork_state_pair(int i,
                 int j,
                 STATE *s,
@@ -472,7 +472,7 @@ fork_state_pair(int i,
   env->nopush = false;
 }
 
-void
+PRIVATE void
 fork_two_states_pair( int i,
                       int j,
                       int k,
@@ -503,7 +503,7 @@ fork_two_states_pair( int i,
 }
 
 
-void
+PRIVATE void
 fork_two_states(int i,
                 int j,
                 int p,
@@ -605,12 +605,13 @@ wrap_subopt(char *string,
   /* cleanup */
   free(seq);
 
-  return vrna_subopt(vc, delta, fp);
+  return vrna_subopt(vc, delta, subopt_sorted, fp);
 }
 
 PUBLIC SOLUTION *
 vrna_subopt(vrna_fold_compound_t *vc,
             int delta,
+            int sorted,
             FILE *fp){
 
   subopt_env    *env;

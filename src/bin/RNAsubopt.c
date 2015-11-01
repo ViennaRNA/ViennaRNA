@@ -385,7 +385,7 @@ int main(int argc, char *argv[]){
       if (fname[0] != '\0')
         printf("> %s [%d]\n", fname, delta);
 
-      vrna_subopt(vc, delta, stdout);
+      vrna_subopt(vc, delta, subopt_sorted, stdout);
 
       if (dos) {
         int i;

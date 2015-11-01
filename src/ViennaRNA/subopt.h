@@ -58,11 +58,13 @@ struct vrna_subopt_sol_s {
  *
  *  \param  vc
  *  \param  delta
+ *  @param  sorted  Sort results by energy in ascending order
  *  \param  fp
  *  \return
  */
 vrna_subopt_solution_t *vrna_subopt(vrna_fold_compound_t *vc,
                                     int delta,
+                                    int sorted,
                                     FILE *fp);
 
 /**
