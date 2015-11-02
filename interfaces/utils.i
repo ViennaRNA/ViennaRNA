@@ -6,9 +6,23 @@
 /* BEGIN interface for generic utilities      */
 /**********************************************/
 
-%newobject space;
-%newobject time_stamp;
-%newobject get_line;
+%ignore get_line;
+%ignore get_input_line;
+%ignore get_ptypes;
+%ignore get_indx;
+%ignore get_iindx;
+%ignore print_tty_input_seq;
+%ignore print_tty_input_seq_str;
+%ignore warn_user;
+%ignore nrerror;
+%ignore space;
+%ignore xrealloc;
+%ignore init_rand;
+%ignore urn;
+%ignore int_urn;
+%ignore filecopy;
+%ignore time_stamp;
+
 
 %include  "../src/ViennaRNA/utils.h"
 
@@ -18,13 +32,10 @@
 
 /* random string */
 %ignore random_string;
-%ignore vrna_random_string;
 %rename (random_string) vrna_random_string;
 %newobject random_string;
 
 /* hamming distance */
-%ignore vrna_hamming_distance;
-%ignore vrna_hamming_distance_bound;
 %rename (hamming_distance) vrna_hamming_distance;
 %rename (hamming_distance_bound) vrna_hamming_distance_bound;
 
@@ -48,14 +59,12 @@ int my_hamming(const char *s1, const char *s2);
 int my_hamming_bound(const char *s1, const char *s2, int n);
 
 /* RNA -> DNA conversion */
-%ignore vrna_seq_toRNA;
 %ignore str_DNA2RNA;
 
 /* string uppercase
  * (there is surely a more efficient version in the target language,
  * so we do not wrap them)
  */
-%ignore vrna_seq_toupper;
 %ignore str_uppercase;
 
 /* encoding / decoding of nucleotide sequences */
@@ -80,16 +89,6 @@ short *encode_seq(char *sequence) {
 %}
 short *encode_seq(char *sequence);
 
-%ignore vrna_seq_encode;
-%ignore vrna_seq_encode_simple;
-%ignore vrna_nucleotide_encode;
-%ignore vrna_nucleotide_decode;
-%ignore vrna_aln_encode;
-
-/* insertion/removal of cut point '&' character in string */
-%ignore vrna_cut_point_insert;
-%ignore vrna_cut_point_remove;
-
 %include  "../src/ViennaRNA/string_utils.h"
 
 /**********************************************/
@@ -97,7 +96,6 @@ short *encode_seq(char *sequence);
 /**********************************************/
 
 /* compressing / decompressing dot-bracket strings */
-%ignore vrna_db_pack;
 %rename (db_pack) vrna_db_pack;
 %newobject db_pack;
 
@@ -111,7 +109,6 @@ short *encode_seq(char *sequence);
 %}
 char *my_pack_structure(const char *s);
 
-%ignore vrn_db_unpack;
 %rename (db_unpack) vrna_db_unpack;
 %newobject db_unpack;
 
@@ -159,19 +156,29 @@ char *my_unpack_structure(const char *packed);
 %}
 
 /* pair table related functions */
-%ignore vrna_ptable;
-%ignore vrna_pt_pk_get;
-%ignore vrna_ptable_copy;
-%ignore vrna_pt_ali_get;
-%ignore vrna_pt_snoop_get;
-%ignore vrna_db_from_ptable;
-%ignore vrna_loopidx_from_ptable;
 %ignore make_pair_table;
 %ignore make_pair_table_pk;
 %ignore copy_pair_table;
 %ignore alimake_pair_table;
 %ignore make_pair_table_snoop;
 %ignore make_loop_index_pt;
+
+%ignore vrna_hx_t;
+%ignore vrna_hx_s;
+
+%ignore assign_plist_from_db;
+%ignore bp_distance;
+%ignore make_referenceBP_array;
+%ignore compute_BPdifferences;
+%ignore assign_plist_from_pr;
+%ignore parenthesis_structure;
+%ignore parenthesis_zuker;
+%ignore letter_structure;
+%ignore bppm_to_structure;
+%ignore bppm_symbol;
+
+
+
 
 
 

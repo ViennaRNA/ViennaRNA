@@ -54,7 +54,6 @@
 %array_functions(short, shortP);
 %include cdata.i
 
-
 #ifdef LARGE_PF
 #undef FLT_OR_DBL
 #define FLT_OR_DBL  double
@@ -69,11 +68,20 @@
 
 //%title "Interface to the Vienna RNA library"
 
+/* do not wrap any function prefixed by 'vrna_' */
+%rename("$ignore",  %$isfunction, regextarget=1) "^vrna_";
+
+/* do not wrap any data structure, typedef, or enum prefixed by 'vrna_' */
+%rename("$ignore",  %$isclass, regextarget=1) "^vrna_";
+%rename("$ignore",  %$istypedef, regextarget=1) "^vrna_";
+%rename("$ignore",  %$isenum, regextarget=1) "^vrna_";
+
 /*############################################*/
 /* Include all relevant interface definitions */
 /*############################################*/
 %include params.i
 %include model_details.i
+%include fold_compound.i
 %include utils.i
 %include plotting.i
 %include constraints.i
@@ -96,14 +104,9 @@
 %ignore plist;
 %ignore cpair;
 
-%ignore vrna_fc_s;
-%ignore vrna_bp_stack_s;
-%ignore vrna_bp_stack_t;
 
 %include "../src/ViennaRNA/data_structures.h"
 
-%ignore vrna_mx_mfe_s;
-%ignore vrna_mx_pf_s;
 %include "../src/ViennaRNA/dp_matrices.h"
 
 //%subsection "Global Variables to Modify Folding"

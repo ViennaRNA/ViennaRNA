@@ -48,9 +48,6 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 /* BEGIN interface for advance MFE prediction */
 /**********************************************/
 
-%ignore vrna_mfe;
-%ignore vrna_backtrack_from_intervals;
-
 %include  "../src/ViennaRNA/mfe.h"
 
 /**********************************************/
@@ -85,6 +82,7 @@ char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore zukersubopt;
 %ignore initialize_cofold;
 */
+
 %ignore cofold_par;
 %ignore update_cofold_params_par;
 %ignore export_cofold_arrays_gq;
@@ -116,4 +114,18 @@ char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 
 %newobject my_alifold;
 char *my_alifold(char **strings, char *constraints = NULL, float *OUTPUT);
+
+%ignore energy_of_alistruct;
+%ignore energy_of_ali_gquad_structure;
+
+%ignore alipf_fold_par;
+%ignore alipf_fold;
+%ignore alipf_circ_fold;
+%ignore export_ali_bppm;
+%ignore free_alipf_arrays;
+%ignore alipbacktrack;
+%ignore get_alipf_arrays;
+%ignore update_alifold_params;
+
+
 %include "../src/ViennaRNA/alifold.h"

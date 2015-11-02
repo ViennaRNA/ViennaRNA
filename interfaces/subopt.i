@@ -41,17 +41,12 @@ typedef struct {
         }
 }
 
-%ignore vrna_subopt_solution_t;
-%ignore vrna_subopt_sol_s
-%ignore vrna_subopt
-%ignore vrna_subopt_zuker
-
 %newobject subopt;
 extern  SOLUTION *subopt (char *seq, char *constraint, int delta, FILE *fp=NULL);
 
-%ignore subopt_par
-%ignore subopt_circ
-%ignore zukersubopt
-%ignore zukersubopt_par
+%ignore subopt_par;
+%ignore subopt_circ;
+%ignore zukersubopt;
+%ignore zukersubopt_par;
 
 %include  "../src/ViennaRNA/subopt.h"

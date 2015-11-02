@@ -21,6 +21,9 @@
 char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore pf_fold;
 
+%newobject pbacktrack;
+extern char *pbacktrack(char *sequence);
+
 /* these functions remain for now due to backward compatibility reasons
 %ignore pf_circ_fold;
 %ignore pbacktrack;
@@ -32,6 +35,7 @@ char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore init_pf_fold;
 %ignore centroid;
 */
+
 %ignore pf_fold_par;
 %ignore update_pf_params_par;
 %ignore export_bppm;
@@ -51,6 +55,8 @@ char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
 /* BEGIN interface for cofold partition       */
 /* function                                   */
 /**********************************************/
+
+%ignore cofoldF;
 
 %rename (co_pf_fold) my_co_pf_fold;
 %{
@@ -76,19 +82,16 @@ char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
 char *my_co_pf_fold(char *string, char *constraints = NULL, float *OUTPUT, float *OUTPUT, float *OUTPUT, float *OUTPUT);
 
 %ignore co_pf_fold;
+%ignore co_pf_fold_par;
 %ignore compute_probabilities;
+%ignore get_concentrations;
+%ignore export_co_bppm;
+%ignore update_co_pf_params_par;
 %ignore co_bppm_symbol;
 %ignore init_co_pf_fold;
 %ignore get_plist;
 %ignore pairpro;
 %ignore ConcEnt;
-%ignore vrna_dimer_conc_t;
-%ignore vrna_dimer_conc_s;
-%ignore cofoldF;
-%ignore vrna_dimer_pf_t;
-%ignore vrna_dimer_pf_s;
-
-%include  "../src/ViennaRNA/part_func_co.h"
 
 %rename (get_concentrations) my_get_concentrations;
 %{
@@ -114,9 +117,8 @@ char *my_co_pf_fold(char *string, char *constraints = NULL, float *OUTPUT, float
 %newobject my_get_concentrations;
 void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,double FEB, double A0, double BO, double *OUTPUT, double *OUTPUT, double *OUTPUT, double *OUTPUT, double *OUTPUT);
 
+%include  "../src/ViennaRNA/part_func_co.h"
 
-%newobject pbacktrack;
-extern char *pbacktrack(char *sequence);
 
 
 

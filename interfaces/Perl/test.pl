@@ -7,8 +7,8 @@
 use strict;
 use Test;
 use lib qw|blib/arch blib/lib|;
-
-BEGIN { plan tests => 34; }
+use Data::Dumper;
+BEGIN { plan tests => 36; }
 
 use RNA;
 use warnings;
@@ -174,7 +174,7 @@ my $struc1_move = "(..............)";
 RNA::move_standard($seq1, $struc1_move, 0, 0, 0, 0);
 ok($struc1_move, "................");
 
-my $struc1_move = "(..............)";
+$struc1_move = "(..............)";
 RNA::move_standard($seq1, $struc1_move, 1, 0, 0, 0);
 ok($struc1_move, "(((.((....)).)))");
 
@@ -185,18 +185,18 @@ ok($struc1_move, "(((.((....)).)))");
 #print STDERR join(',', unpack('S3', RNA::cdata($RNA::xsubi, 6))), "\n";
 
 #
-# Check things we export through essentials.i
+# Check new scripting language interface
 #
 
 # check model details structure
-my $md = RNA::vrna_md_t->new(); # default values
-ok(int($md->get_dangles()), 2);
+my $md = RNA::md->new(); # default values
+ok(int($md->{dangles}), 2);
 ok($md->{temperature}, 37.0);
 
 $RNA::dangles     = 0;
 $RNA::temperature = 40.1;
-$md = RNA::vrna_md_t->new("global"); # global values
-ok(int($md->get_dangles()), 0);
+$md = RNA::md->new("global"); # global values
+ok(int($md->{dangles}), 0);
 ok(int($RNA::dangles), 0);
 ok($md->{temperature}, 40.1);
 
@@ -205,15 +205,51 @@ $RNA::dangles = 2;
 $RNA::temperature = 37.0;
 
 # check parameter structures
-my $params = RNA::vrna_param_t->new();
+my $params = RNA::param->new();
 ok($params->get_temperature(), 37.0);
 
-$params = RNA::vrna_param_t->new($md);
+$params = RNA::param->new($md);
 ok($params->get_temperature(), 40.1);
 
-my $pf_params = RNA::vrna_exp_param_t->new();
+my $pf_params = RNA::exp_param->new();
 ok($pf_params->get_temperature(), 37.0);
 
-$pf_params = RNA::vrna_exp_param_t->new($md);
+$pf_params = RNA::exp_param->new($md);
 ok($pf_params->get_temperature(), 40.1);
 
+undef $md;
+
+my $fc = new RNA::fold_compound($seq1);
+($ss, $mfe) = $fc->mfe();
+printf "%s [ %6.2f ]\n", $ss, $mfe;
+ok($ss eq $struc1);
+
+undef $fc;
+
+#$md = new RNA::md();
+#$md->{noGU} = 1;
+#$fc = new RNA::fold_compound("GGGGGGGGGGGGAAAUUUUUUCCCCCC", $md);
+#print RNA::vrna_mfe($fc, undef), "\n";
+#undef $fc;
+#undef $md;
+#
+#$RNA::noGU = 1;
+#$md = new RNA::md("global");
+#$fc = new RNA::fold_compound("GGGGGGGGGGGGAAAUUUUUUCCCCCC", $md);
+#print RNA::vrna_mfe($fc, undef), "\n";
+#
+#undef $fc;
+#undef $md;
+#$md = new RNA::md();
+#$fc = new RNA::fold_compound("GGGGGGGGGGGGAAAUUUUUUCCCCCC", $md);
+#print RNA::vrna_mfe($fc, undef), "\n";
+#
+#$RNA::noGU = 0;
+#undef $fc;
+#undef $md;
+#$md = new RNA::md();
+#$fc = new RNA::fold_compound("GGGGGGGGGGGGAAAUUUUUUCCCCCC", $md);
+#($ss, $mfe) = $fc->mfe();
+#printf "%s [ %6.2f ]\n", $ss, $mfe;
+#undef $fc;
+#undef $md;
