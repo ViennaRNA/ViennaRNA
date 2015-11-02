@@ -480,6 +480,8 @@ struct vrna_hc_s {
                                                     may store necessary data to evaluate its
                                                     generalized hard constraint function
                                       */
+
+  void (*delete_data)( void *);
 };
 
 /**
@@ -548,6 +550,7 @@ struct vrna_sc_s {
                                                     for pseudo energy contribution functions of the
                                                     generalized soft constraints feature
                                       */
+  void (*delete_data)( void *);
 };
 
 /**
@@ -907,6 +910,10 @@ int vrna_sc_SHAPE_to_pr(const char *shape_conversion,
                         int length,
                         double default_value);
 
+void vrna_sc_add_data(vrna_fold_compound_t *vc,
+                      void *data,
+                      void (*delete_data)(void *));
+
 /**
  *  @brief  Bind a function pointer for generalized soft constraint feature (MFE version)
  *
@@ -922,8 +929,7 @@ int vrna_sc_SHAPE_to_pr(const char *shape_conversion,
  *  @param  data  A pointer to the data structure that holds required data for function 'f'
  */
 void vrna_sc_add_f( vrna_fold_compound_t *vc,
-                    int (*f)( int, int, int, int, char, void *),
-                    void *data);
+                    int (*f)( int, int, int, int, char, void *));
 
 /**
  *  @brief  Bind a backtracking function pointer for generalized soft constraint feature
@@ -959,8 +965,7 @@ void vrna_sc_add_bt(vrna_fold_compound_t *vc,
  *  @param  data  A pointer to the data structure that holds required data for function 'f'
  */
 void vrna_sc_add_exp_f( vrna_fold_compound_t *vc,
-                        FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *),
-                        void *data);
+                        FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *));
 
 /**
  *  @brief  Add a pre-processing function for the generalized soft constraints feature

@@ -31,6 +31,7 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/ligand.h"
 #include "RNAfold_cmdl.h"
 
 
@@ -86,175 +87,6 @@ add_shape_constraints(vrna_fold_compound_t *vc,
 
   free(values);
   free(sequence);
-}
-
-typedef struct{
-  int i;
-  int j;
-  int k;
-  int l;
-  int e;
-  int alt;
-} vrna_quadruple_position;
-
-static void scanForIntMotif(char *seq, char *motif1, char *motif2, vrna_quadruple_position **pos){
-
-  int   i, j, k, l, l1, l2, n, cnt, cnt2;
-  char  *ptr;
-  
-  n     = (int) strlen(seq);
-  l1    = (int) strlen(motif1);
-  l2    = (int) strlen(motif2);
-  cnt   = 0;
-  cnt2  = 5; /* initial guess how many matching motifs we might encounter */
-
-  *pos = (vrna_quadruple_position *)vrna_alloc(sizeof(vrna_quadruple_position) * cnt2);
-
-  for(i = 0; i <= n - l1 - l2; i++){
-    if(seq[i] == motif1[0]){
-      for(j = i+1; j < i + l1; j++){
-        if(seq[j] == motif1[j-i]){
-          continue;
-        }
-        else goto next_i;
-      }
-      for(k = j + 1; k <= n - l2; k++){
-        if(seq[k] == motif2[0]){
-          for(l = k + 1; l < k + l2; l++){
-            if(seq[l] == motif2[l-k]){
-              continue;
-            }
-            else goto next_k;
-          }
-          /* we found a quadruple, so store it */
-          (*pos)[cnt].i   = i + 1;
-          (*pos)[cnt].j   = l;
-          (*pos)[cnt].k   = j;
-          (*pos)[cnt++].l = k + 1;
-
-          /* allocate more memory if necessary */
-          if(cnt == cnt2){
-            cnt2 *= 2;
-            *pos = (vrna_quadruple_position *)vrna_realloc(*pos, sizeof(vrna_quadruple_position) * cnt2);
-          }
-        }
-/* early exit from l loop */
-next_k: continue;
-      }
-    }
-/* early exit from j loop */
-next_i: continue;
-  }
-
-  /* reallocate to actual size */
-  *pos = (vrna_quadruple_position *)vrna_realloc(*pos, sizeof(vrna_quadruple_position) * (cnt + 1));
-
-  /* set end marker */
-  (*pos)[cnt].i = (*pos)[cnt].j = (*pos)[cnt].k = (*pos)[cnt++].l = 0;
-}
-
-static int
-AptamerContrib(int i, int j, int k, int l, char d, void *data){
-
-  vrna_quadruple_position *pos;
-
-  if(d & VRNA_DECOMP_PAIR_IL){
-    for(pos = data; pos->i; pos++){
-      if((pos->i == i) && (pos->j == j) && (pos->k == k) && (pos->l == l)){
-        return pos->e;
-      }
-    }
-  }
-
-  return 0;
-}
-
-static FLT_OR_DBL
-expAptamerContrib(int i, int j, int k, int l, char d, void *data){
-
-  vrna_quadruple_position *pos;
-  FLT_OR_DBL exp_e = 1.;
-  double kT = (37. + K0) * GASCONST;
-
-  if(d & VRNA_DECOMP_PAIR_IL){
-    for(pos = data; pos->i; pos++){
-      if((pos->i == i) && (pos->j == j) && (pos->k == k) && (pos->l == l)){
-        exp_e =   exp(-pos->e*10./kT);
-        exp_e +=  exp(-pos->alt*10./kT); /* add alternative, i.e. unbound ligand */
-      }
-    }
-  }
-
-  return exp_e;
-}
-
-static vrna_quadruple_position *
-AptamerInit(char *sequence,
-            char *motif1,
-            char *motif2,
-            int  e,
-            int  alt){
-
-  vrna_quadruple_position *pos, *next;
-  
-  scanForIntMotif(sequence, motif1, motif2, &pos);
-
-  for(next = pos; next->i; next++){
-    next->e   = e;
-    next->alt = alt;
-  }
-
-  return pos;
-}
-
-static void
-InitAptamerContribs(vrna_fold_compound *vc, char where){
-
-  char  *seq5   = "GAUACCAG";
-  char  *seq3   = "CCCUUGGCAGC";
-  int   e       = -922; /* deltaG according to K_d = 0.32 umol/L taken from jenison et al. 1994 */
-
-  /* compute the actual pseudo energy of the ligand */
-  char *motif   = "(...((.()....))...)";  /* aptamer conformation */
-  char *motif2  = "(......().........)";  /* according interior loop conformation */
-  char *seq     = (char*)vrna_alloc(sizeof(char) * (strlen(seq5) + strlen(seq3) + 2));
-  seq = strcat(seq, seq5);
-  seq = strcat(seq, "&");
-  seq = strcat(seq, seq3);
-  vrna_md_t md;
-  vrna_md_set_globals(&md);
-  /* create temporary vrna_fold_compound for energy evaluation */
-  vrna_fold_compound *tmp_vc = vrna_get_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-  int alt     = (int)(vrna_eval_structure(tmp_vc, motif2) * 100.);
-  int corr    = (int)(vrna_eval_structure(tmp_vc, motif) * 100.);
-  e           += corr - alt;
-
-  if(where == VRNA_SC_GEN_MFE){
-    if(vc){
-      if(vc->sc){
-        vrna_quadruple_position *positions = AptamerInit(vc->sequence, seq5, seq3, e, alt);
-
-        vc->sc->data = (void *)positions;
-      }
-    }
-  }
-
-  vrna_free_fold_compound(tmp_vc);
-  free(seq);
-}
-
-static void
-RemoveAptamerContribs(vrna_fold_compound *vc, char where){
-
-  if(where == VRNA_SC_GEN_PF){
-    if(vc){
-      if(vc->sc){
-        vrna_quadruple_position *positions = (vrna_quadruple_position *)vc->sc->data;
-        free(positions);
-        vc->sc->data = NULL;
-      }
-    }
-  }
 }
 
 
@@ -575,10 +407,12 @@ int main(int argc, char *argv[]){
     */
 
     /* add generalized soft-constraints to predict aptamer-ligand complexes */
-    vrna_sc_add_f(vc, &AptamerContrib, NULL);
-    vrna_sc_add_exp_f(vc, &expAptamerContrib, NULL);
-    vrna_sc_add_pre(vc, &InitAptamerContribs);
-    vrna_sc_add_post(vc, &RemoveAptamerContribs);
+    vrna_sc_add_hi_motif( vc,
+                          "GAUACCAG&CCCUUGGCAGC",   /*  sequence motif */
+                          "(...((.(&)....))...)",   /*  structure motif */
+                          -9.22,                    /*  deltaG according to K_d = 0.32 umol/L
+                                                        taken from Jenison et al. 1994 */
+                          VRNA_OPTION_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
 
     min_en = (double)vrna_mfe(vc, structure);
 

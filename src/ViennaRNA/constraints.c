@@ -1104,6 +1104,7 @@ vrna_sc_init(vrna_fold_compound_t *vc){
                                     sc->f                 = NULL;
                                     sc->exp_f             = NULL;
                                     sc->data              = NULL;
+                                    sc->delete_data       = NULL;
 
                                     vc->sc  = sc;
                                     break;
@@ -1120,6 +1121,7 @@ vrna_sc_init(vrna_fold_compound_t *vc){
                                       sc->f                 = NULL;
                                       sc->exp_f             = NULL;
                                       sc->data              = NULL;
+                                      sc->delete_data       = NULL;
 
                                       vc->scs[s]  = sc;
                                     }
@@ -1177,6 +1179,9 @@ vrna_sc_free(vrna_sc_t *sc){
 
     if(sc->exp_en_stack)
       free(sc->exp_en_stack);
+
+    if(sc->delete_data)
+      sc->delete_data(sc->data);
 
     free(sc);
   }
@@ -1443,9 +1448,24 @@ vrna_sc_add_up(vrna_fold_compound_t *vc,
 }
 
 PUBLIC void
+vrna_sc_add_data( vrna_fold_compound_t *vc,
+                  void *data,
+                  void (*delete_data)(void *)){
+
+  if(vc){
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->sc)
+        vrna_sc_init(vc);
+
+      vc->sc->data        = data;
+      vc->sc->delete_data = delete_data;
+    }
+  }
+}
+
+PUBLIC void
 vrna_sc_add_f(vrna_fold_compound_t *vc,
-              int (*f)( int, int, int, int, char, void *),
-              void *data){
+              int (*f)( int, int, int, int, char, void *)){
 
   if(vc && f){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -1453,8 +1473,6 @@ vrna_sc_add_f(vrna_fold_compound_t *vc,
         vrna_sc_init(vc);
 
       vc->sc->f       = f;
-      if(data)
-        vc->sc->data  = data;
     }
   }
 }
@@ -1475,8 +1493,7 @@ vrna_sc_add_bt( vrna_fold_compound_t *vc,
 
 PUBLIC void
 vrna_sc_add_exp_f(vrna_fold_compound_t *vc,
-                  FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *),
-                  void *data){
+                  FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *)){
 
   if(vc && exp_f){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -1484,8 +1501,6 @@ vrna_sc_add_exp_f(vrna_fold_compound_t *vc,
         vrna_sc_init(vc);
 
       vc->sc->exp_f   = exp_f;
-      if(data)
-        vc->sc->data  = data;
     }
   }
 }
