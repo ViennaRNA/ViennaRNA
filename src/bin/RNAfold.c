@@ -412,7 +412,7 @@ int main(int argc, char *argv[]){
                           "(...((.(&)....))...)",   /*  structure motif */
                           -9.22,                    /*  deltaG according to K_d = 0.32 umol/L
                                                         taken from Jenison et al. 1994 */
-                          VRNA_OPTION_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+                          VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
     min_en = (double)vrna_mfe(vc, structure);
 

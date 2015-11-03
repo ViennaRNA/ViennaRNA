@@ -86,8 +86,6 @@ scanForIntMotif(char *seq, char *motif1, char *motif2, quadruple_position **pos)
           (*pos)[cnt].k   = j;
           (*pos)[cnt++].l = k + 1;
 
-          printf("post: %d, %d, %d, %d\n", i + 1, j, k + 1, l);
-
           /* allocate more memory if necessary */
           if(cnt == cnt2){
             cnt2 *= 2;
@@ -150,22 +148,6 @@ expAptamerContrib(int i, int j, int k, int l, char d, void *data){
   }
 
   return exp_e;
-}
-
-static void
-InitAptamerContribs(vrna_fold_compound_t *vc, char where){
-  if(where == VRNA_SC_GEN_MFE){
-    if(vc){
-      if(vc->sc){
-        ligand_data *ldata = (ligand_data *)vc->sc->data;
-
-        quadruple_position *positions;
-        scanForIntMotif(vc->sequence, ldata->seq_motif_5, ldata->seq_motif_3, &positions);
-        ldata->positions = (void *)positions;
-      }
-    }
-  }
-
 }
 
 PUBLIC int
@@ -238,13 +220,15 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
       ldata->seq_motif_3 = NULL;
     }
 
+    /* scan for motif positions */
+    scanForIntMotif(vc->sequence, ldata->seq_motif_5, ldata->seq_motif_3, &(ldata->positions));
+
     /* add generalized soft-constraints to predict aptamer-ligand complexes */
     vrna_sc_add_data(vc, (void *)ldata, &delete_ligand_data);
-
-    vrna_sc_add_f(vc, &AptamerContrib);
-    vrna_sc_add_exp_f(vc, &expAptamerContrib);
-
-    vrna_sc_add_pre(vc, &InitAptamerContribs);
+    if(options & VRNA_OPTION_MFE)
+      vrna_sc_add_f(vc, &AptamerContrib);
+    if(options & VRNA_OPTION_PF)
+      vrna_sc_add_exp_f(vc, &expAptamerContrib);
 
     return 1; /* success */
 }
