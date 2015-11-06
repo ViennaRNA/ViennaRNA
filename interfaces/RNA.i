@@ -40,6 +40,7 @@
 #include  "../src/ViennaRNA/Lfold.h"
 #include  "../src/ViennaRNA/read_epars.h"
 #include  "../src/ViennaRNA/move_set.h"
+#include  "../src/ViennaRNA/ligand.h"
 
 %}
 //

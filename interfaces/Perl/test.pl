@@ -226,6 +226,17 @@ ok($ss eq $struc1);
 
 undef $fc;
 
+# test theophylline ligand binding interface
+$fc = new RNA::fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG");
+($ss, $mfe) = $fc->mfe();
+printf "%s [ %6.2f ]\n", $ss, $mfe;
+
+$fc->sc_add_hi_motif("GAUACCAG&CCCUUGGCAGC", "(...((((&)...)))...)", -9.22);
+($ss, $mfe) = $fc->mfe();
+printf "%s [ %6.2f ]\n", $ss, $mfe;
+
+undef $fc;
+
 #$md = new RNA::md();
 #$md->{noGU} = 1;
 #$fc = new RNA::fold_compound("GGGGGGGGGGGGAAAUUUUUUCCCCCC", $md);

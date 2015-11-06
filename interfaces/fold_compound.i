@@ -54,6 +54,28 @@ typedef struct {} vrna_fold_compound_t;
     *OUTPUT = vrna_mfe($self, structure);
     return structure;
   }
+
+  void sc_remove(){
+    vrna_sc_remove($self);
+  }
+
+  void sc_add_up(const double *constraints, unsigned int options=VRNA_OPTION_MFE){
+    vrna_sc_add_up($self, constraints, options);
+  }
+
+  void sc_add_bp(const double **constraints, unsigned int options=VRNA_OPTION_MFE){
+    vrna_sc_add_bp($self, constraints, options);
+  }
+
+  int sc_add_hi_motif(const char *seq,
+                      const char *structure,
+                      double energy,
+                      unsigned int options=VRNA_OPTION_MFE){
+
+    return vrna_sc_add_hi_motif($self, seq, structure, energy, options);
+  }
+
 }
 
 %include "../src/ViennaRNA/data_structures.h"
+%include "../src/ViennaRNA/ligand.h"
