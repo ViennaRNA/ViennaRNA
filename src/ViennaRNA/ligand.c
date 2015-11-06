@@ -197,11 +197,11 @@ backtrack_hi_motif(int i, int j, int k, int l, char d, void *data){
         pairs = vrna_alloc(sizeof(vrna_basepair_t) * (ldata->pair_count + 1));
         vrna_basepair_t *pptr;
         int             count;
-        for(count = 0,pptr = ldata->pairs; pptr->i != -1; pptr++, count++){
+        for(count = 0,pptr = ldata->pairs; pptr->i != 0; pptr++, count++){
           pairs[count].i = i + pptr->i - 1;
-          pairs[count].j = (pptr->j < 0) ? j + pptr->j + 1 : i + pptr->j - 1;
+          pairs[count].j = (pptr->j < 0) ? j + pptr->j - 1 : i + pptr->j - 1;
         }
-        pairs[count].i = pairs[count].j = -1;
+        pairs[count].i = pairs[count].j = 0;
 #endif
 
         return pairs;
@@ -289,6 +289,7 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
         } else if(ldata->struct_motif_5[i-1] == ')'){
           pairs[pair_count].i = stack[--stack_count];
           pairs[pair_count].j = i;
+          /* printf("p[%d, %d]\n", pairs[pair_count].i, pairs[pair_count].j); */
           pair_count++;
           if(stack_count < 0){
             vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: 5' structure motif contains unbalanced brackets");
@@ -298,10 +299,11 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
       }
       for(i = 2; i < strlen(ldata->struct_motif_3); i++){ /* go through 3' side of motif */
         if(ldata->struct_motif_3[i-1] == '('){
-          stack[stack_count++] = -(strlen(ldata->struct_motif_3) - (strlen(ldata->struct_motif_3) - i) - 1);
+          stack[stack_count++] = -(strlen(ldata->struct_motif_3) - i - 1);
         } else if(ldata->struct_motif_3[i-1] == ')'){
           pairs[pair_count].i = stack[--stack_count];
-          pairs[pair_count].j = -(strlen(ldata->struct_motif_3) - (strlen(ldata->struct_motif_3) - i) - 1);
+          pairs[pair_count].j = -(strlen(ldata->struct_motif_3) - i - 1);
+          /* printf("p[%d, %d]\n", pairs[pair_count].i, pairs[pair_count].j); */
           pair_count++;
           if(stack_count < 0){
             vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: 3' structure motif contains unbalanced brackets");
@@ -310,7 +312,7 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
         }
       }
       pairs = vrna_realloc(pairs, sizeof(vrna_basepair_t) * (pair_count + 1));
-      pairs[pair_count].i = pairs[pair_count].j = -1;
+      pairs[pair_count].i = pairs[pair_count].j = 0;
       ldata->pairs = pairs;
       ldata->pair_count = pair_count;
       free(stack);
