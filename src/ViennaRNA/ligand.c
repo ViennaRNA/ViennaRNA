@@ -32,6 +32,8 @@ typedef struct{
   char  *struct_motif_3;
   int   energy;
   int   energy_alt;
+  int   pair_count;
+  vrna_basepair_t *pairs;
 
   quadruple_position *positions;
 } ligand_data;
@@ -46,6 +48,7 @@ delete_ligand_data(void *data){
   free(ldata->struct_motif_5);
   free(ldata->struct_motif_3);
   free(ldata->positions);
+  free(ldata->pairs);
 
   free(data);
 }
@@ -150,6 +153,65 @@ expAptamerContrib(int i, int j, int k, int l, char d, void *data){
   return exp_e;
 }
 
+static vrna_basepair_t *
+backtrack_hi_motif(int i, int j, int k, int l, char d, void *data){
+
+  int                 bp_size = 15;
+  vrna_basepair_t     *pairs = NULL;
+  quadruple_position  *pos;
+  ligand_data         *ldata;
+
+  if(d & VRNA_DECOMP_PAIR_IL){
+    ldata = (ligand_data *)data;
+    for(pos = ldata->positions; pos->i; pos++){
+      if((pos->i == i) && (pos->j == j) && (pos->k == k) && (pos->l == l)){
+        /* found motif in our list, lets create pairs */
+        char  *ptr;
+#if 0
+        int   actual_size = 0;
+        pairs = vrna_alloc(sizeof(vrna_basepair_t) * bp_size);
+
+        for(ptr=ldata->struct_motif_5; *ptr != '\0'; ptr++, i++){
+          if(*ptr == '.'){
+            pairs[actual_size].i = pairs[actual_size].j = i;
+            actual_size++;
+            if(actual_size == bp_size){
+              bp_size *= 2;
+              pairs = vrna_realloc(pairs, sizeof(vrna_basepair_t) * bp_size);
+            }
+          }
+        }
+        for(ptr=ldata->struct_motif_3; *ptr != '\0'; ptr++, l++){
+          if(*ptr == '.'){
+            pairs[actual_size].i = pairs[actual_size].j = l;
+            actual_size++;
+            if(actual_size == bp_size){
+              bp_size *= 2;
+              pairs = vrna_realloc(pairs, sizeof(vrna_basepair_t) * bp_size);
+            }
+          }
+        }
+        pairs = vrna_realloc(pairs, sizeof(vrna_basepair_t) * (actual_size + 1));
+        pairs[actual_size].i = pairs[actual_size].j = -1;
+#else
+        pairs = vrna_alloc(sizeof(vrna_basepair_t) * (ldata->pair_count + 1));
+        vrna_basepair_t *pptr;
+        int             count;
+        for(count = 0,pptr = ldata->pairs; pptr->i != -1; pptr++, count++){
+          pairs[count].i = i + pptr->i - 1;
+          pairs[count].j = (pptr->j < 0) ? j + pptr->j + 1 : i + pptr->j - 1;
+        }
+        pairs[count].i = pairs[count].j = -1;
+#endif
+
+        return pairs;
+      }
+    }
+  }
+
+  return pairs;
+}
+
 PUBLIC int
 vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
                       const char *seq,
@@ -197,7 +259,7 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
       ldata->struct_motif_3[strlen(motif) - cp + 1] = '\0';
 
       /* compute alternative contribution and energy correction */
-      motif2  = vrna_alloc(sizeof(char) * strlen(structure));
+      motif2  = vrna_alloc(sizeof(char) * (strlen(structure) + 1));
       memset(motif2, '.', strlen(structure) - 1);
       motif2[strlen(structure)] = '\0';
       /* insert corresponding interior loop motif (....(&)...) */
@@ -215,6 +277,43 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
 
       ldata->energy     = (int)(energy*100.);
       ldata->energy_alt = alt;
+
+      /* pre-construct additional base pairs for backtracking */
+      int *stack = vrna_alloc(sizeof(int)*(strlen(seq)+1));
+      vrna_basepair_t *pairs = vrna_alloc(sizeof(vrna_basepair_t)*(strlen(seq)+1));
+      int pair_count = 0;
+      int stack_count = 0;
+      for(stack_count = 0, i = 2; i < strlen(ldata->struct_motif_5); i++){ /* go through 5' side of motif */
+        if(ldata->struct_motif_5[i-1] == '('){
+          stack[stack_count++] = i;
+        } else if(ldata->struct_motif_5[i-1] == ')'){
+          pairs[pair_count].i = stack[--stack_count];
+          pairs[pair_count].j = i;
+          pair_count++;
+          if(stack_count < 0){
+            vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: 5' structure motif contains unbalanced brackets");
+            return 0;
+          }
+        }
+      }
+      for(i = 2; i < strlen(ldata->struct_motif_3); i++){ /* go through 3' side of motif */
+        if(ldata->struct_motif_3[i-1] == '('){
+          stack[stack_count++] = -(strlen(ldata->struct_motif_3) - (strlen(ldata->struct_motif_3) - i) - 1);
+        } else if(ldata->struct_motif_3[i-1] == ')'){
+          pairs[pair_count].i = stack[--stack_count];
+          pairs[pair_count].j = -(strlen(ldata->struct_motif_3) - (strlen(ldata->struct_motif_3) - i) - 1);
+          pair_count++;
+          if(stack_count < 0){
+            vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: 3' structure motif contains unbalanced brackets");
+            return 0;
+          }
+        }
+      }
+      pairs = vrna_realloc(pairs, sizeof(vrna_basepair_t) * (pair_count + 1));
+      pairs[pair_count].i = pairs[pair_count].j = -1;
+      ldata->pairs = pairs;
+      ldata->pair_count = pair_count;
+      free(stack);
     } else {
       ldata->seq_motif_5 = sequence;
       ldata->seq_motif_3 = NULL;
@@ -225,6 +324,7 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
 
     /* add generalized soft-constraints to predict aptamer-ligand complexes */
     vrna_sc_add_data(vc, (void *)ldata, &delete_ligand_data);
+    vrna_sc_add_bt(vc, &backtrack_hi_motif);
     if(options & VRNA_OPTION_MFE)
       vrna_sc_add_f(vc, &AptamerContrib);
     if(options & VRNA_OPTION_PF)
