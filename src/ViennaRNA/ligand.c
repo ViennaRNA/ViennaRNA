@@ -322,16 +322,17 @@ expAptamerContrib(int i, int j, int k, int l, char d, void *data){
   FLT_OR_DBL          exp_e;
   double              kT;
 
+  exp_e = 1.;
 
   if(d & VRNA_DECOMP_PAIR_IL){
     ldata = (ligand_data *)data;
-    exp_e = 1.;
     kT    = (37. + K0) * GASCONST;
 
     for(pos = ldata->positions; pos->i; pos++){
       if((pos->i == i) && (pos->j == j) && (pos->k == k) && (pos->l == l)){
-        exp_e =   exp(-ldata->energy*10./kT);
-        exp_e +=  exp(-ldata->energy_alt*10./kT); /* add alternative, i.e. unbound ligand */
+        exp_e =   exp((double) (-ldata->energy) * 10./kT);
+        exp_e +=  exp((double) (-ldata->energy_alt) * 10./kT); /* add alternative, i.e. unbound ligand */
+        break;
       }
     }
   }
@@ -347,16 +348,17 @@ expAptamerContribHairpin(int i, int j, int k, int l, char d, void *data){
   FLT_OR_DBL          exp_e;
   double              kT;
 
+  exp_e = 1.;
 
   if(d & VRNA_DECOMP_PAIR_HP){
     ldata = (ligand_data *)data;
-    exp_e = 1.;
     kT    = (37. + K0) * GASCONST;
 
     for(pos = ldata->positions; pos->i; pos++){
       if((pos->i == i) && (pos->j == j)){
-        exp_e =   exp(-ldata->energy*10./kT);
-        exp_e +=  exp(-ldata->energy_alt*10./kT); /* add alternative, i.e. unbound ligand */
+        exp_e =   exp((double) (-ldata->energy) * 10./kT);
+        exp_e +=  exp((double) (-ldata->energy_alt) * 10./kT); /* add alternative, i.e. unbound ligand */
+        break;
       }
     }
   }
