@@ -95,7 +95,7 @@ int main(int argc, char *argv[]){
   char            *constraints_file, *shape_file, *shape_method, *shape_conversion;
   char            fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
   char            *ns_bases, *c;
-  int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp, enforceConstraints;
+  int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp, enforceConstraints, batch;
   unsigned int    rec_type, read_opt;
   double          energy, min_en, kT, sfact;
   int             doMEA, circular, lucky, with_shapes, verbose;
@@ -133,6 +133,7 @@ int main(int argc, char *argv[]){
   max_bp_span   = -1;
   constraints_file = NULL;
   enforceConstraints  = 0;
+  batch         = 0;
 
   outfile       = NULL;
   infile        = NULL;
@@ -159,7 +160,12 @@ int main(int argc, char *argv[]){
       constraints_file = strdup(args_info.constraint_arg);
   }
   /* enforce base pairs given in constraint string rather than weak enforce */
-  if(args_info.enforceConstraint_given)   enforceConstraints = 1;
+  if(args_info.enforceConstraint_given)
+    enforceConstraints = 1;
+
+  /* do batch jobs despite constraints read from input file */
+  if(args_info.batch_given)
+    batch = 1;
 
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
@@ -569,7 +575,7 @@ int main(int argc, char *argv[]){
     rec_id = rec_sequence = structure = cstruc = NULL;
     rec_rest = NULL;
 
-    if(with_shapes)
+    if(with_shapes || (constraints_file && (!batch)))
       break;
 
     /* print user help for the next round if we get input from tty */
