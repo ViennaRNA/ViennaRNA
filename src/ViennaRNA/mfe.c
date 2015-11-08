@@ -77,14 +77,9 @@ vrna_mfe(vrna_fold_compound_t *vc,
   s       = 0;
   length  = (int) vc->length;
 
-  /* initialize generalized hard constraints if necessary */
-  if(vc->hc->pre)
-    vc->hc->pre(vc, VRNA_SC_GEN_MFE);
-
-  /* initialize generalized soft constraints if necessary */
-  if(vc->sc)
-    if(vc->sc->pre)
-      vc->sc->pre(vc, VRNA_SC_GEN_MFE);
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_MFE_PRE);
 
   energy = fill_arrays(vc);
 
@@ -92,6 +87,10 @@ vrna_mfe(vrna_fold_compound_t *vc,
     fill_arrays_circ(vc, bt_stack, &s);
     energy = vc->matrices->Fc;
   }
+
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_MFE_POST);
 
   if(structure && vc->params->model_details.backtrack){
     bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
@@ -115,13 +114,6 @@ vrna_mfe(vrna_fold_compound_t *vc,
 #endif
 
   }
-
-  if(vc->hc->post)
-    vc->hc->post(vc, VRNA_SC_GEN_MFE);
-
-  if(vc->sc)
-    if(vc->sc->post)
-      vc->sc->post(vc, VRNA_SC_GEN_MFE);
 
   if (vc->params->model_details.backtrack_type=='C')
     return (float) vc->matrices->c[vc->jindx[length]+1]/100.;

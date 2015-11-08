@@ -186,11 +186,15 @@ vrna_pf_dimer(vrna_fold_compound_t *vc,
 #endif
 #endif
 
-  if(vc->sc)
-    if(vc->sc->pre)
-      vc->sc->pre(vc, VRNA_SC_GEN_PF);
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_PF_PRE);
 
   pf_co(vc);
+
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_PF_POST);
 
   if (md->backtrack_type=='C')
     Q = matrices->qb[vc->iindx[1]-n];
@@ -251,10 +255,6 @@ vrna_pf_dimer(vrna_fold_compound_t *vc,
     }
     */
   }
-
-  if(vc->sc)
-    if(vc->sc->post)
-      vc->sc->post(vc, VRNA_SC_GEN_PF);
 
 #ifdef SUN4
   standard_arithmetic();

@@ -193,11 +193,9 @@ vrna_mfe_comparative(vrna_fold_compound_t *vc,
   n_seq       = vc->n_seq;
   s           = 0;
 
-  if(vc->scs)
-    for(i = 0; i < n_seq; i++){
-      if(vc->scs[i]->pre)
-        vc->scs[i]->pre(vc, VRNA_SC_GEN_MFE);
-    }
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_MFE_PRE);
 
   energy = fill_arrays(vc);
 
@@ -205,6 +203,10 @@ vrna_mfe_comparative(vrna_fold_compound_t *vc,
     fill_arrays_circ(vc, bt_stack, &s);
     energy = vc->matrices->Fc;
   }
+
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_MFE_POST);
 
   if(structure && vc->params->model_details.backtrack){
     bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
@@ -225,12 +227,6 @@ vrna_mfe_comparative(vrna_fold_compound_t *vc,
       base_pair = bp;
     }
   }
-
-  if(vc->scs)
-    for(i = 0; i < n_seq; i++){
-      if(vc->scs[i]->post)
-        vc->scs[i]->post(vc, VRNA_SC_GEN_MFE);
-    }
 
   if (vc->params->model_details.backtrack_type=='C')
     return (float) vc->matrices->c[vc->jindx[length]+1]/(n_seq*100.);

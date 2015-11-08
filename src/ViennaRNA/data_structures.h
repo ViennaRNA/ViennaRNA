@@ -32,6 +32,63 @@ typedef struct vrna_cpair_s  vrna_cpair_t;
 /** @brief Typename for stack of partial structures #vrna_sect_s */
 typedef struct vrna_sect_s  vrna_sect_t;
 
+/**
+ *  @brief Callback to free memory allocated for auxiliary user-provided data
+ *
+ *  @ingroup basic_data_structures
+ *  This type of user-implemented function usually deletes auxiliary data structures.
+ *  The user must take care to free all the memory occupied by the data structure passed.
+ * 
+ *  @param data    The data that needs to be free'd
+ */
+typedef void (vrna_callback_free_auxdata)(void *data);
+
+/**
+ *  @brief Callback to perform specific user-defined actions before, or after recursive computations
+ *
+ *  @ingroup basic_data_structures
+ *  @see #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
+ *  @param vc      The #vrna_fold_compound_t that is currently processed
+ *  @param status  The status indicator
+ */
+typedef void (vrna_callback_recursion_status)(vrna_fold_compound_t *vc, unsigned char status);
+
+
+/**
+ *  @brief  Status message indicating that MFE computations are about to begin
+ *
+ *  @ingroup basic_data_structures
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_mfe(), vrna_fold(), vrna_circfold(),
+ *        vrna_alifold(), vrna_circalifold(), vrna_cofold()
+ */
+#define VRNA_STATUS_MFE_PRE     (unsigned char)1
+
+/**
+ *  @brief  Status message indicating that MFE computations are finished
+ *
+ *  @ingroup basic_data_structures
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_mfe(), vrna_fold(), vrna_circfold(),
+ *        vrna_alifold(), vrna_circalifold(), vrna_cofold()
+ */
+#define VRNA_STATUS_MFE_POST    (unsigned char)2
+
+/**
+ *  @brief  Status message indicating that Partition function computations are about to begin
+ *
+ *  @ingroup basic_data_structures
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_pf()
+ */
+#define VRNA_STATUS_PF_PRE      (unsigned char)3
+
+/**
+ *  @brief  Status message indicating that Partition function computations are finished
+ *
+ *  @ingroup basic_data_structures
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_pf()
+ */
+#define VRNA_STATUS_PF_POST     (unsigned char)4
+
+
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 
@@ -41,8 +98,8 @@ typedef struct vrna_sect_s  vrna_sect_t;
 /* the following typedefs are for backward compatibility only */
 
 /**
- *  @brief Old typename of #vrna_base_pair_s
- *  @deprecated Use #vrna_base_pair_t instead!
+ *  @brief Old typename of #vrna_basepair_s
+ *  @deprecated Use #vrna_basepair_t instead!
 */
 typedef struct vrna_basepair_s  PAIR;
 
@@ -353,6 +410,20 @@ struct vrna_fc_s{
 
   /**
       @}
+
+      @name User-defined data fields
+      @{
+   */
+  vrna_callback_recursion_status *stat_cb;  /**<  @brief  Recursion status callback (usually called just before, and
+                                                          after recursive computations in the library
+                                            */
+
+  void              *auxdata;               /**<  @brief  A pointer to auxiliary, user-defined data */
+
+  vrna_callback_free_auxdata *free_auxdata; /**<  @brief A callback to free auxdata */
+
+  /**
+      @}
    */
 
 #if __STDC_VERSION__ >= 201112L
@@ -600,6 +671,10 @@ vrna_fold_compound_TwoD(const char *sequence,
  */
 void
 vrna_fold_compound_free(vrna_fold_compound_t *vc);
+
+void vrna_fold_compound_add_auxdata(vrna_fold_compound_t *vc,
+                                    void *data,
+                                    vrna_callback_free_auxdata *f);
 
 /**
  *  @}
