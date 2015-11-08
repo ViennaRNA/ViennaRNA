@@ -31,7 +31,6 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/file_formats.h"
-#include "ViennaRNA/ligand.h"
 #include "RNAfold_cmdl.h"
 
 
@@ -88,7 +87,6 @@ add_shape_constraints(vrna_fold_compound_t *vc,
   free(values);
   free(sequence);
 }
-
 
 int main(int argc, char *argv[]){
   FILE            *input, *output;
@@ -406,13 +404,7 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-    /* add generalized soft-constraints to predict aptamer-ligand complexes */
-    vrna_sc_add_hi_motif( vc,
-                          "GAUACCAG&CCCUUGGCAGC",   /*  sequence motif */
-                          "(...((((&)...)))...)",   /*  structure motif */
-                          -9.22,                    /*  deltaG according to K_d = 0.32 umol/L
-                                                        taken from Jenison et al. 1994 */
-                          VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+
 
     min_en = (double)vrna_mfe(vc, structure);
 
