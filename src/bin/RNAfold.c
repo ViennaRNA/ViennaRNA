@@ -30,6 +30,7 @@
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
+#include "ViennaRNA/ligand.h"
 #include "ViennaRNA/file_formats.h"
 #include "RNAfold_cmdl.h"
 
@@ -88,6 +89,68 @@ add_shape_constraints(vrna_fold_compound_t *vc,
   free(sequence);
 }
 
+static void
+add_ligand_motif( vrna_fold_compound_t *vc,
+                  char *motifstring,
+                  int verbose,
+                  unsigned int options){
+
+  int r, l, n, i, error;
+  char *seq, *str, *ptr;
+  float energy;
+
+  l = strlen(motifstring);
+  seq = vrna_alloc(sizeof(char) * (l + 1));
+  str = vrna_alloc(sizeof(char) * (l + 1));
+
+  error = 1;
+
+  if(motifstring){
+    error = 0;
+    /* parse sequence */
+    for(r = 0, ptr = motifstring; *ptr != '\0'; ptr++){
+      if(*ptr == ',')
+        break;
+      seq[r++] = *ptr;
+    }
+    seq[r] = '\0';
+    seq = vrna_realloc(seq, sizeof(char) * (strlen(seq) + 1));
+
+    for(ptr++, r = 0; *ptr != '\0'; ptr++){
+      if(*ptr == ',')
+        break;
+      str[r++] = *ptr;
+    }
+    str[r] = '\0';
+    str = vrna_realloc(str, sizeof(char) * (strlen(seq) + 1));
+
+    ptr++;
+    if(!(sscanf(ptr, "%f", &energy) == 1)){
+      fprintf(stderr, "energy contribution in ligand motif missing");
+      error = 1;
+    }
+    if(strlen(seq) != strlen(str)){
+      fprintf(stderr, "sequence and structure length in ligand motif have unequal lengths");
+      error = 1;
+    }
+    if(strlen(seq) == 0){
+      fprintf(stderr, "sequence length in ligand motif is zero");
+      error = 1;
+    }
+
+    if(!error && verbose){
+      fprintf(stderr, "read ligand motif: %s, %s, %f\n", seq, str, energy);
+    }
+  }
+
+  if(error || (!vrna_sc_add_hi_motif(vc, seq, str, energy, options))){
+    vrna_message_warning("Malformatted ligand motif! Skipping stabilizing motif.");
+  }
+
+  free(seq);
+  free(str);
+}
+
 int main(int argc, char *argv[]){
   FILE            *input, *output;
   struct          RNAfold_args_info args_info;
@@ -100,7 +163,7 @@ int main(int argc, char *argv[]){
   double          energy, min_en, kT, sfact;
   int             doMEA, circular, lucky, with_shapes, verbose;
   double          MEAgamma, bppmThreshold, betaScale;
-  char            *infile, *outfile;
+  char            *infile, *outfile, *ligandMotif;
 
   vrna_param_t      *mfe_parameters;
   vrna_exp_param_t  *pf_parameters;
@@ -139,6 +202,7 @@ int main(int argc, char *argv[]){
   infile        = NULL;
   input         = NULL;
   output        = NULL;
+  ligandMotif   = NULL;
 
   /* apply default model details */
   set_model_details(&md);
@@ -240,7 +304,10 @@ int main(int argc, char *argv[]){
   if(args_info.infile_given){
     infile = strdup(args_info.infile_arg);
   }
-  
+  if(args_info.motif_given){
+    ligandMotif = strdup(args_info.motif_arg);
+  }
+
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
@@ -351,7 +418,6 @@ int main(int argc, char *argv[]){
     length    = vc->length;
 
     structure = (char *) vrna_alloc(sizeof(char) * (length+1));
-    
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
@@ -386,6 +452,9 @@ int main(int argc, char *argv[]){
 
     if(with_shapes)
       add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+
+    if(ligandMotif)
+      add_ligand_motif(vc, ligandMotif, verbose, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
     if(istty) printf("length = %d\n", length);
 
@@ -593,5 +662,7 @@ int main(int argc, char *argv[]){
 
   free(constraints_file);
   free(mfe_parameters);
+  free(ligandMotif);
+
   return EXIT_SUCCESS;
 }
