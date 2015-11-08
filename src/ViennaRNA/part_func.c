@@ -120,15 +120,20 @@ vrna_pf( vrna_fold_compound_t *vc,
 #endif
 #endif
 
-  if(vc->sc)
-    if(vc->sc->pre)
-      vc->sc->pre(vc, VRNA_SC_GEN_PF);
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_PF_PRE);
+
 
   /* do the linear pf fold and fill all matrices  */
   pf_linear(vc);
 
   if(md->circ)
     pf_circ(vc); /* do post processing step for circular RNAs */
+
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_PF_POST);
 
   /* calculate base pairing probability matrix (bppm)  */
   if(md->compute_bpp){
@@ -153,10 +158,6 @@ vrna_pf( vrna_fold_compound_t *vc,
 #endif
 
   }
-
-  if(vc->sc)
-    if(vc->sc->post)
-      vc->sc->post(vc, VRNA_SC_GEN_PF);
 
   if (md->backtrack_type=='C')
     Q = matrices->qb[vc->iindx[1]-n];

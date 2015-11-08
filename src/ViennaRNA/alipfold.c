@@ -163,11 +163,9 @@ vrna_pf_comparative( vrna_fold_compound_t *vc,
   vrna_md_t         *md       = &(params->model_details);
   vrna_mx_pf_t      *matrices = vc->exp_matrices;
 
-  if(vc->scs)
-    for(i = 0; i < n_seq; i++){
-      if(vc->scs[i]->pre)
-        vc->scs[i]->pre(vc, VRNA_SC_GEN_PF);
-    }
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_PF_PRE);
 
   alipf_linear(vc, structure);
 
@@ -175,6 +173,10 @@ vrna_pf_comparative( vrna_fold_compound_t *vc,
   /* RNAs                                         */
   if(md->circ)
     wrap_alipf_circ(vc, structure);
+
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_PF_POST);
 
   if (md->backtrack_type=='C')      Q = matrices->qb[vc->iindx[1]-n];
   else if (md->backtrack_type=='M') Q = matrices->qm[vc->iindx[1]-n];
@@ -197,11 +199,6 @@ vrna_pf_comparative( vrna_fold_compound_t *vc,
     pr = matrices->probs;
   }
 
-  if(vc->scs)
-    for(i = 0; i < n_seq; i++){
-      if(vc->scs[i]->post)
-        vc->scs[i]->post(vc, VRNA_SC_GEN_PF);
-    }
 
   return free_energy;
 }

@@ -321,10 +321,9 @@ vrna_hc_init(vrna_fold_compound_t *vc){
   hc_reset_to_default(vc);
 
   /* add null pointers for the generalized hard constraint feature */
-  hc->f     = NULL;
-  hc->pre   = NULL;
-  hc->post  = NULL;
-  hc->data  = NULL;
+  hc->f           = NULL;
+  hc->data        = NULL;
+  hc->free_data   = NULL;
 
   /* update */
   hc_update_up(vc);
@@ -486,11 +485,15 @@ PUBLIC void
 vrna_hc_free(vrna_hc_t *hc){
 
   if(hc){
-    if(hc->matrix)  free(hc->matrix);
-    if(hc->up_ext)  free(hc->up_ext);
-    if(hc->up_hp)   free(hc->up_hp);
-    if(hc->up_int)  free(hc->up_int);
-    if(hc->up_ml)   free(hc->up_ml);
+    free(hc->matrix);
+    free(hc->up_ext);
+    free(hc->up_hp);
+    free(hc->up_int);
+    free(hc->up_ml);
+
+    if(hc->free_data)
+      hc->free_data(hc->data);
+
     free(hc);
   }
 }
@@ -499,45 +502,30 @@ vrna_hc_free(vrna_hc_t *hc){
 
 PUBLIC void
 vrna_hc_add_f(vrna_fold_compound_t *vc,
-              char (*f)( vrna_fold_compound_t *, int, int, int, int, char),
-              void *data){
+              vrna_callback_hc_evaluate *f){
 
   if(vc && f){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
       if(!vc->hc)
         vrna_hc_init(vc);
 
-      vc->hc->f       = f;
-      if(data)
-        vc->hc->data  = data;
+      vc->hc->f = f;
     }
   }
 }
 
 PUBLIC void
-vrna_hc_add_pre(vrna_fold_compound_t *vc,
-                void (*pre)( vrna_fold_compound_t *, char)){
+vrna_hc_add_data( vrna_fold_compound_t *vc,
+                  void *data,
+                  vrna_callback_free_auxdata *f){
 
-  if(vc && pre){
+  if(vc && data){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
       if(!vc->hc)
         vrna_hc_init(vc);
 
-      vc->hc->pre = pre;
-    }
-  }
-}
-
-PUBLIC void
-vrna_hc_add_post( vrna_fold_compound_t *vc,
-                  void (*post)( vrna_fold_compound_t *, char)){
-
-  if(vc && post){
-    if(vc->type == VRNA_VC_TYPE_SINGLE){
-      if(!vc->hc)
-        vrna_hc_init(vc);
-
-      vc->hc->post = post;
+      vc->hc->data        = data;
+      vc->hc->free_data   = f;
     }
   }
 }
@@ -905,12 +893,13 @@ hc_reset_to_default(vrna_fold_compound_t *vc){
   }
 
   /* should we reset the generalized hard constraint feature here? */
-  if(hc->post || hc->f || hc->pre || hc->data){
-    hc->post(vc, (char)0);
-    hc->f     = NULL;
-    hc->pre   = NULL;
-    hc->post  = NULL;
-    hc->data  = NULL;
+  if(hc->f || hc->data){
+    if(hc->free_data)
+      hc->free_data(hc->data);
+
+    hc->f           = NULL;
+    hc->data        = NULL;
+    hc->free_data   = NULL;
   }
 
 }
@@ -1104,6 +1093,7 @@ vrna_sc_init(vrna_fold_compound_t *vc){
                                     sc->f                 = NULL;
                                     sc->exp_f             = NULL;
                                     sc->data              = NULL;
+                                    sc->free_data         = NULL;
 
                                     vc->sc  = sc;
                                     break;
@@ -1120,6 +1110,7 @@ vrna_sc_init(vrna_fold_compound_t *vc){
                                       sc->f                 = NULL;
                                       sc->exp_f             = NULL;
                                       sc->data              = NULL;
+                                      sc->free_data         = NULL;
 
                                       vc->scs[s]  = sc;
                                     }
@@ -1166,17 +1157,14 @@ vrna_sc_free(vrna_sc_t *sc){
       for(i = 0; sc->boltzmann_factors[i]; free(sc->boltzmann_factors[i++]));
       free(sc->boltzmann_factors);
     }
-    if(sc->en_basepair)
-      free(sc->en_basepair);
+    
+    free(sc->en_basepair);
+    free(sc->exp_en_basepair);
+    free(sc->en_stack);
+    free(sc->exp_en_stack);
 
-    if(sc->exp_en_basepair)
-      free(sc->exp_en_basepair);
-
-    if(sc->en_stack)
-      free(sc->en_stack);
-
-    if(sc->exp_en_stack)
-      free(sc->exp_en_stack);
+    if(sc->free_data)
+      sc->free_data(sc->data);
 
     free(sc);
   }
@@ -1443,9 +1431,24 @@ vrna_sc_add_up(vrna_fold_compound_t *vc,
 }
 
 PUBLIC void
+vrna_sc_add_data( vrna_fold_compound_t *vc,
+                  void *data,
+                  vrna_callback_free_auxdata *free_data){
+
+  if(vc){
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->sc)
+        vrna_sc_init(vc);
+
+      vc->sc->data        = data;
+      vc->sc->free_data   = free_data;
+    }
+  }
+}
+
+PUBLIC void
 vrna_sc_add_f(vrna_fold_compound_t *vc,
-              int (*f)( int, int, int, int, char, void *),
-              void *data){
+              vrna_callback_sc_energy *f){
 
   if(vc && f){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -1453,15 +1456,13 @@ vrna_sc_add_f(vrna_fold_compound_t *vc,
         vrna_sc_init(vc);
 
       vc->sc->f       = f;
-      if(data)
-        vc->sc->data  = data;
     }
   }
 }
 
 PUBLIC void
 vrna_sc_add_bt( vrna_fold_compound_t *vc,
-                vrna_basepair_t *(*f)( int, int, int, int, char, void *)){
+                vrna_callback_sc_backtrack *f){
 
   if(vc && f){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -1475,8 +1476,7 @@ vrna_sc_add_bt( vrna_fold_compound_t *vc,
 
 PUBLIC void
 vrna_sc_add_exp_f(vrna_fold_compound_t *vc,
-                  FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *),
-                  void *data){
+                  vrna_callback_sc_exp_energy *exp_f){
 
   if(vc && exp_f){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -1484,36 +1484,6 @@ vrna_sc_add_exp_f(vrna_fold_compound_t *vc,
         vrna_sc_init(vc);
 
       vc->sc->exp_f   = exp_f;
-      if(data)
-        vc->sc->data  = data;
-    }
-  }
-}
-
-PUBLIC void
-vrna_sc_add_post( vrna_fold_compound_t *vc,
-                  void (*post)( vrna_fold_compound_t *, char)){
-
-  if(vc && post){
-    if(vc->type == VRNA_VC_TYPE_SINGLE){
-      if(!vc->sc)
-        vrna_sc_init(vc);
-
-      vc->sc->post       = post;
-    }
-  }
-}
-
-PUBLIC void
-vrna_sc_add_pre(vrna_fold_compound_t *vc,
-                void (*pre)( vrna_fold_compound_t *, char)){
-
-  if(vc && pre){
-    if(vc->type == VRNA_VC_TYPE_SINGLE){
-      if(!vc->sc)
-        vrna_sc_init(vc);
-
-      vc->sc->pre = pre;
     }
   }
 }

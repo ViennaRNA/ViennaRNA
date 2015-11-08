@@ -144,6 +144,9 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc){
       free(vc->ptype_local);
     }
 
+    if(vc->free_auxdata)
+      vc->free_auxdata(vc->auxdata);
+
     free(vc);
   }
 }
@@ -165,11 +168,12 @@ vrna_fold_compound( const char *sequence,
   if(length == 0)
     vrna_message_error("vrna_fold_compound: sequence length must be greater 0");
 
-  vc              = (vrna_fold_compound_t *)vrna_alloc(sizeof(vrna_fold_compound_t));
-  vc->type        = VRNA_VC_TYPE_SINGLE;
-  vc->length      = length;
-  vc->sequence    = strdup(sequence);
-  aux_options     = 0L;
+  vc            = vrna_alloc(sizeof(vrna_fold_compound_t));
+  vc->type      = VRNA_VC_TYPE_SINGLE;
+  vc->length    = length;
+  vc->sequence  = strdup(sequence);
+  aux_options   = 0L;
+
 
   /* get a copy of the model details */
   if(md_p)
@@ -190,9 +194,9 @@ vrna_fold_compound( const char *sequence,
 
     set_fold_compound(vc, &md, options, aux_options);
 
-    vc->ptype_local = (char **) vrna_alloc(sizeof(char *)*(vc->length+1));
+    vc->ptype_local = vrna_alloc(sizeof(char *)*(vc->length+1));
     for (i = vc->length; ( i > vc->length - vc->window_size - 5) && (i >= 0); i--){
-      vc->ptype_local[i] = (char *) vrna_alloc(sizeof(char)*(vc->window_size+5));
+      vc->ptype_local[i] = vrna_alloc(sizeof(char)*(vc->window_size+5));
     }
 
     if(!(options & VRNA_OPTION_EVAL_ONLY)){
@@ -249,12 +253,12 @@ vrna_fold_compound_comparative( const char **sequences,
     if(strlen(sequences[s]) != length)
       vrna_message_error("vrna_fold_compound_comparative: uneqal sequence lengths in alignment");
 
-  vc            = (vrna_fold_compound_t *)vrna_alloc(sizeof(vrna_fold_compound_t));
+  vc            = vrna_alloc(sizeof(vrna_fold_compound_t));
   vc->type      = VRNA_VC_TYPE_ALIGNMENT;
 
   vc->n_seq     = n_seq;
   vc->length    = length;
-  vc->sequences = (char **)vrna_alloc(sizeof(char *) * (vc->n_seq + 1));
+  vc->sequences = vrna_alloc(sizeof(char *) * (vc->n_seq + 1));
   for(s = 0; sequences[s]; s++)
     vc->sequences[s] = strdup(sequences[s]);
 
@@ -307,10 +311,10 @@ vrna_fold_compound_TwoD(const char *sequence,
   if(l != length)
     vrna_message_error("vrna_fold_compound_TwoD: sequence and s2 differ in length");
 
-  vc              = (vrna_fold_compound_t *)vrna_alloc(sizeof(vrna_fold_compound_t));
-  vc->type        = VRNA_VC_TYPE_SINGLE;
-  vc->length      = length;
-  vc->sequence    = strdup(sequence);
+  vc                = vrna_alloc(sizeof(vrna_fold_compound_t));
+  vc->type          = VRNA_VC_TYPE_SINGLE;
+  vc->length        = length;
+  vc->sequence      = strdup(sequence);
 
   /* get a copy of the model details */
   if(md_p)
@@ -346,6 +350,17 @@ vrna_fold_compound_TwoD(const char *sequence,
   vc->maxD2         = vc->mm2[vc->iindx[1]-length] + vc->referenceBPs2[vc->iindx[1]-length];
 
   return vc;
+}
+
+PUBLIC void
+vrna_fold_compound_add_auxdata( vrna_fold_compound_t *vc,
+                                void *data,
+                                vrna_callback_free_auxdata *f){
+
+  if(vc && data){
+    vc->auxdata       = data;
+    vc->free_auxdata  = f;
+  }
 }
 
 /*
@@ -392,6 +407,8 @@ set_fold_compound(vrna_fold_compound_t *vc,
   vc->matrices      = NULL;
   vc->exp_matrices  = NULL;
   vc->hc            = NULL;
+  vc->auxdata       = NULL;
+  vc->free_auxdata  = NULL;
 
   switch(vc->type){
     case VRNA_VC_TYPE_SINGLE:     sequence  = vc->sequence;
@@ -429,15 +446,15 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   vc->cons_seq  = consensus((const char **)sequences);
                                   vc->S_cons    = vrna_seq_encode_simple(vc->cons_seq, md_p);
 
-                                  vc->pscore    = (int *) vrna_alloc(sizeof(int)*((length*(length+1))/2+2));
+                                  vc->pscore    = vrna_alloc(sizeof(int)*((length*(length+1))/2+2));
 
                                   oldAliEn = vc->oldAliEn  = md_p->oldAliEn;
 
-                                  vc->S   = (short **)          vrna_alloc((vc->n_seq+1) * sizeof(short *));
-                                  vc->S5  = (short **)          vrna_alloc((vc->n_seq+1) * sizeof(short *));
-                                  vc->S3  = (short **)          vrna_alloc((vc->n_seq+1) * sizeof(short *));
-                                  vc->a2s = (unsigned short **) vrna_alloc((vc->n_seq+1) * sizeof(unsigned short *));
-                                  vc->Ss  = (char **)           vrna_alloc((vc->n_seq+1) * sizeof(char *));
+                                  vc->S   = vrna_alloc((vc->n_seq+1) * sizeof(short *));
+                                  vc->S5  = vrna_alloc((vc->n_seq+1) * sizeof(short *));
+                                  vc->S3  = vrna_alloc((vc->n_seq+1) * sizeof(short *));
+                                  vc->a2s = vrna_alloc((vc->n_seq+1) * sizeof(unsigned short *));
+                                  vc->Ss  = vrna_alloc((vc->n_seq+1) * sizeof(char *));
 
                                   for (s = 0; s < vc->n_seq; s++) {
                                     vrna_aln_encode(vc->sequences[s],
@@ -461,8 +478,8 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   break;
   }
 
-  vc->iindx         = vrna_idx_row_wise(vc->length);
-  vc->jindx         = vrna_idx_col_wise(vc->length);
+  vc->iindx = vrna_idx_row_wise(vc->length);
+  vc->jindx = vrna_idx_col_wise(vc->length);
 
   /* now come the energy parameters */
   add_params(vc, md_p, options);
@@ -504,9 +521,9 @@ make_pscores(vrna_fold_compound_t *vc){
     else dm=get_ribosum((const char **)AS, n_seq, n);
   }
   else { /*use usual matrix*/
-    dm=(float **)vrna_alloc(7*sizeof(float*));
+    dm = vrna_alloc(7*sizeof(float*));
     for (i=0; i<7;i++) {
-      dm[i]=(float *)vrna_alloc(7*sizeof(float));
+      dm[i] = vrna_alloc(7*sizeof(float));
       for (j=0; j<7; j++)
         dm[i][j] = (float) olddm[i][j];
     }
@@ -563,8 +580,8 @@ make_pscores(vrna_fold_compound_t *vc){
 
   if (fold_constrained&&(structure!=NULL)) {
     int psij, hx, hx2, *stack, *stack2;
-    stack = (int *) vrna_alloc(sizeof(int)*(n+1));
-    stack2 = (int *) vrna_alloc(sizeof(int)*(n+1));
+    stack = vrna_alloc(sizeof(int)*(n+1));
+    stack2 = vrna_alloc(sizeof(int)*(n+1));
 
     for(hx=hx2=0, j=1; j<=n; j++) {
       switch (structure[j-1]) {
