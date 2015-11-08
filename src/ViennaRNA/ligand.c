@@ -51,6 +51,20 @@ typedef struct{
 */
 
 static void
+split_sequence( const char *string,
+                      char **seq1,
+                      char **seq2,
+                      int cp);
+
+static void
+correctMotifContribution( const char *seq,
+                          const char *struct_motif,
+                          const char *struct_motif_alt,
+                          int *contribution,
+                          int *contribution_alt,
+                          vrna_md_t *md);
+
+static void
 delete_ligand_data(void *data);
 
 static int
@@ -71,8 +85,10 @@ backtrack_int_motif(int i, int j, int k, int l, char d, void *data);
 static vrna_basepair_t *
 backtrack_hp_motif(int i, int j, int k, int l, char d, void *data);
 
-static void
-scanForMotif(char *seq, char *motif1, char *motif2, quadruple_position **pos);
+static quadruple_position *
+scanForMotif( const char *seq,
+              const char *motif1,
+              const char *motif2);
 
 static vrna_basepair_t *
 scanForPairs( const char  *motif5,
@@ -93,65 +109,50 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
                       unsigned int options){
 
     int                   i, cp, cp2;
-    char                  *sequence, *motif, *motif2;
-    vrna_md_t             md;
+    char                  *sequence, *motif, *motif_alt;
+    vrna_md_t             *md_p;
     ligand_data           *ldata;
-    vrna_fold_compound_t  *tmp_vc;
 
-    set_model_details(&md);
+    sequence              = NULL;
+    motif                 = NULL;
+    motif_alt             = NULL;
+    ldata                 = NULL;
+    md_p                  = NULL;
 
+    sequence  = vrna_cut_point_remove(seq, &cp);                /* ligand sequence motif  */
+    motif     = vrna_cut_point_remove(structure, &cp2);         /* ligand structure motif */
+
+    /* check for obvious inconsistencies in input sequence/structure motif */
+    if(cp != cp2){
+      vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: Cutpoint in sequence and structure motif differ!");
+      goto hi_motif_error;
+    } else if(strlen(seq) != strlen(structure)){
+      vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: length of sequence and structure motif differ!");
+      goto hi_motif_error;
+    }
+
+    /* create auxiliary soft constraints data structure */
     ldata                 = vrna_alloc(sizeof(ligand_data));
-    ldata->seq_motif_5 = NULL;
-    ldata->seq_motif_3 = NULL;
+    ldata->seq_motif_5    = NULL;
+    ldata->seq_motif_3    = NULL;
     ldata->struct_motif_5 = NULL;
     ldata->struct_motif_3 = NULL;
     ldata->positions      = NULL;
+    ldata->energy         = (int)(energy * 100.);
 
-    sequence  = vrna_cut_point_remove(seq, &cp);        /* ligand sequence motif  */
-    motif     = vrna_cut_point_remove(structure, &cp2); /* ligand structure motif */
+    split_sequence(sequence, &(ldata->seq_motif_5), &(ldata->seq_motif_3), cp);
+    split_sequence(motif, &(ldata->struct_motif_5), &(ldata->struct_motif_3), cp);
 
-    if(cp != cp2){
-      vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: Cutpoint in sequence and structure motif differ!");
-      return 0;
-    } else if(strlen(seq) != strlen(structure)){
-      vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: length of sequence and structure motif differ!");
-      return 0;
-    }
+    motif_alt = vrna_alloc(sizeof(char) * (strlen(motif) + 1)); /* alternative structure motif */
+    memset(motif_alt, '.', strlen(motif) - 1);
 
     if(cp > 0){
-      ldata->seq_motif_5 = vrna_alloc(sizeof(char) * cp);
-      strncpy(ldata->seq_motif_5, sequence, cp - 1);
-      ldata->seq_motif_5[cp - 1] = '\0';
-      ldata->struct_motif_5 = vrna_alloc(sizeof(char) * cp);
-      strncpy(ldata->struct_motif_5, motif, cp - 1);
-      ldata->struct_motif_5[cp - 1] = '\0';
-
-      ldata->seq_motif_3 = vrna_alloc(sizeof(char) * (strlen(sequence) - cp + 2));
-      strncpy(ldata->seq_motif_3, sequence + cp - 1, (strlen(sequence) - cp + 1));
-      ldata->seq_motif_3[strlen(sequence) - cp + 1] = '\0';
-      ldata->struct_motif_3 = vrna_alloc(sizeof(char) * (strlen(motif) - cp + 2));
-      strncpy(ldata->struct_motif_3, motif + cp - 1, (strlen(motif) - cp + 1));
-      ldata->struct_motif_3[strlen(motif) - cp + 1] = '\0';
-
-      /* compute alternative contribution and energy correction */
-      motif2  = vrna_alloc(sizeof(char) * (strlen(structure) + 1));
-      memset(motif2, '.', strlen(structure) - 1);
-      motif2[strlen(structure)] = '\0';
-      /* insert corresponding interior loop motif (....(&)...) */
-      motif2[0] = '(';
-      motif2[cp-2] = '(';
-      motif2[cp-1] = ')';
-      motif2[strlen(structure) - 2] = ')';
-      motif2[strlen(structure) - 1] = '\0';
-
-      /* create temporary vrna_fold_compound for energy evaluation */
-      tmp_vc = vrna_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-      int alt     = (int)(vrna_eval_structure(tmp_vc, motif2) * 100.);
-      int corr    = (int)(vrna_eval_structure(tmp_vc, motif) * 100.);
-      energy     += (double)(corr - alt) / 100.;
-
-      ldata->energy     = (int)(energy*100.);
-      ldata->energy_alt = alt;
+      /* construct corresponding alternative interior loop motif (....(&)...) */
+      motif_alt[0] = '(';
+      motif_alt[cp-2] = '(';
+      motif_alt[cp-1] = ')';
+      motif_alt[strlen(motif) - 1] = ')';
+      motif_alt[strlen(motif)] = '\0';
 
       vrna_sc_add_bt(vc, &backtrack_int_motif);
       if(options & VRNA_OPTION_MFE)
@@ -160,27 +161,10 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
         vrna_sc_add_exp_f(vc, &expAptamerContrib);
 
     } else {
-      ldata->seq_motif_5 = sequence;
-      ldata->seq_motif_3 = NULL;
-      ldata->struct_motif_5 = motif;
-      ldata->struct_motif_3 = NULL;
-
-      /* compute alternative contribution and energy correction */
-      motif2  = vrna_alloc(sizeof(char) * (strlen(motif) + 1));
-      memset(motif2, '.', strlen(motif) - 1);
-      /* insert corresponding hairpin motif (....) */
-      motif2[0] = '(';
-      motif2[strlen(motif) - 1] = ')';
-      motif2[strlen(motif)] = '\0';
-
-      /* create temporary vrna_fold_compound for energy evaluation */
-      tmp_vc = vrna_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-      int alt     = (int)(vrna_eval_structure(tmp_vc, motif2) * 100.);
-      int corr    = (int)(vrna_eval_structure(tmp_vc, motif) * 100.);
-      energy     += (double)(corr - alt) / 100.;
-
-      ldata->energy     = (int)(energy*100.);
-      ldata->energy_alt = alt;
+      /* construct corresponding alternative hairpin motif (....) */
+      motif_alt[0] = '(';
+      motif_alt[strlen(motif) - 1] = ')';
+      motif_alt[strlen(motif)] = '\0';
 
       vrna_sc_add_bt(vc, &backtrack_hp_motif);
       if(options & VRNA_OPTION_MFE)
@@ -189,15 +173,23 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
         vrna_sc_add_exp_f(vc, &expAptamerContribHairpin);
     }
 
+    /* correct motif contributions */
+    if(vc->params)
+      md_p = &(vc->params->model_details);
+    else
+      md_p = &(vc->exp_params->model_details);
+
+    correctMotifContribution(seq, motif, motif_alt, &(ldata->energy), &(ldata->energy_alt), md_p);
+
     /* scan for sequence motif positions */
-    scanForMotif(vc->sequence, ldata->seq_motif_5, ldata->seq_motif_3, &(ldata->positions));
+    ldata->positions = scanForMotif(vc->sequence, ldata->seq_motif_5, ldata->seq_motif_3);
 
     /* scan for additional base pairs in the structure motif */
     int pair_count = 0;
     vrna_basepair_t *pairs = scanForPairs(ldata->struct_motif_5, ldata->struct_motif_3, &pair_count);
     if((pair_count > 0) && (pairs == NULL)){ /* error while parsing structure motif */
       vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: Error while parsing additional pairs in structure motif");
-      return 0;
+      goto hi_motif_error;
     }
 
     ldata->pairs      = pairs;
@@ -206,7 +198,69 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
     /* add generalized soft-constraint data structure and corresponding 'delete' function */
     vrna_sc_add_data(vc, (void *)ldata, &delete_ligand_data);
 
+    free(sequence);
+    free(motif);
+    free(motif_alt);
+
     return 1; /* success */
+
+/* exit with error */
+hi_motif_error:
+
+    free(sequence);
+    free(motif);
+    free(motif_alt);
+    delete_ligand_data(ldata);
+
+    return 0;
+}
+
+static void
+split_sequence( const char *string,
+                      char **seq1,
+                      char **seq2,
+                      int cp){
+
+  int l = (int)strlen(string);
+  *seq1 = NULL;
+  *seq2 = NULL;
+
+  if(cp > 0){
+    if(cp < l){
+      *seq1 = vrna_alloc(sizeof(char) * cp);
+      strncpy(*seq1, string, cp - 1);
+      (*seq1)[cp - 1] = '\0';
+      *seq2 = vrna_alloc(sizeof(char) * (l - cp + 2));
+      strncpy(*seq2, string + cp - 1, (l - cp + 1));
+      (*seq2)[l - cp + 1] = '\0';
+    }
+  } else {
+    *seq1 = vrna_alloc(sizeof(char) * (l+1));
+    strncpy(*seq1, string, l);
+    (*seq1)[l] = '\0';
+  }
+}
+
+static void
+correctMotifContribution( const char *seq,
+                          const char *struct_motif,
+                          const char *struct_motif_alt,
+                          int *contribution,
+                          int *contribution_alt,
+                          vrna_md_t *md){
+
+  float                 alt, corr, energy;
+  vrna_fold_compound_t  *tmp_vc;
+
+  tmp_vc  = vrna_fold_compound(seq, md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  alt     = vrna_eval_structure(tmp_vc, struct_motif_alt);
+  corr    = vrna_eval_structure(tmp_vc, struct_motif);
+  energy  = corr - alt;
+
+  *contribution     += (int)(energy * 100.);
+  *contribution_alt  = (int)(alt    * 100.);
+
+  vrna_fold_compound_free(tmp_vc);
 }
 
 static void
@@ -397,11 +451,14 @@ backtrack_hp_motif(int i, int j, int k, int l, char d, void *data){
   return pairs;
 }
 
-static void
-scanForMotif(char *seq, char *motif1, char *motif2, quadruple_position **pos){
+static quadruple_position *
+scanForMotif( const char *seq,
+              const char *motif1,
+              const char *motif2){
 
   int   i, j, k, l, l1, l2, n, cnt, cnt2;
   char  *ptr;
+  quadruple_position *pos;
   
   n     = (int) strlen(seq);
   l1    = (int) strlen(motif1);
@@ -409,7 +466,7 @@ scanForMotif(char *seq, char *motif1, char *motif2, quadruple_position **pos){
   cnt   = 0;
   cnt2  = 5; /* initial guess how many matching motifs we might encounter */
 
-  *pos = (quadruple_position *)vrna_alloc(sizeof(quadruple_position) * cnt2);
+  pos = (quadruple_position *)vrna_alloc(sizeof(quadruple_position) * cnt2);
 
   for(i = 0; i <= n - l1 - l2; i++){
     if(seq[i] == motif1[0]){
@@ -430,15 +487,15 @@ scanForMotif(char *seq, char *motif1, char *motif2, quadruple_position **pos){
               else goto next_k;
             }
             /* we found a quadruple, so store it */
-            (*pos)[cnt].i   = i + 1;
-            (*pos)[cnt].j   = l;
-            (*pos)[cnt].k   = j;
-            (*pos)[cnt++].l = k + 1;
+            pos[cnt].i   = i + 1;
+            pos[cnt].j   = l;
+            pos[cnt].k   = j;
+            pos[cnt++].l = k + 1;
 
             /* allocate more memory if necessary */
             if(cnt == cnt2){
               cnt2 *= 2;
-              *pos = (quadruple_position *)vrna_realloc(*pos, sizeof(quadruple_position) * cnt2);
+              pos = (quadruple_position *)vrna_realloc(pos, sizeof(quadruple_position) * cnt2);
             }
           }
 /* early exit from l loop */
@@ -446,15 +503,15 @@ next_k: continue;
         }
       } else { /* hairpin loop motif */
         /* store it */
-        (*pos)[cnt].i   = i + 1;
-        (*pos)[cnt].j   = j;
-        (*pos)[cnt].k   = 0;
-        (*pos)[cnt++].l = 0;
+        pos[cnt].i   = i + 1;
+        pos[cnt].j   = j;
+        pos[cnt].k   = 0;
+        pos[cnt++].l = 0;
 
         /* allocate more memory if necessary */
         if(cnt == cnt2){
           cnt2 *= 2;
-          *pos = (quadruple_position *)vrna_realloc(*pos, sizeof(quadruple_position) * cnt2);
+          pos = (quadruple_position *)vrna_realloc(pos, sizeof(quadruple_position) * cnt2);
         }
       }
     }
@@ -463,10 +520,12 @@ next_i: continue;
   }
 
   /* reallocate to actual size */
-  *pos = (quadruple_position *)vrna_realloc(*pos, sizeof(quadruple_position) * (cnt + 1));
+  pos = (quadruple_position *)vrna_realloc(pos, sizeof(quadruple_position) * (cnt + 1));
 
   /* set end marker */
-  (*pos)[cnt].i = (*pos)[cnt].j = (*pos)[cnt].k = (*pos)[cnt++].l = 0;
+  pos[cnt].i = pos[cnt].j = pos[cnt].k = pos[cnt++].l = 0;
+
+  return pos;
 }
 
 static vrna_basepair_t *
