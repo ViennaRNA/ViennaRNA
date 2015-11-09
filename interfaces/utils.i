@@ -168,6 +168,14 @@ char *my_unpack_structure(const char *packed);
 
 %ignore assign_plist_from_db;
 %ignore bp_distance;
+%rename (bp_distance) my_bp_distance;
+%{
+  int my_bp_distance(const char *str1, const char *str2){
+    return vrna_bp_distance(str1,str2);
+  }
+%}
+int my_bp_distance(const char *str1, const char *str2);
+
 %ignore make_referenceBP_array;
 %ignore compute_BPdifferences;
 %ignore assign_plist_from_pr;

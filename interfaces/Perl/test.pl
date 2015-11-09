@@ -8,7 +8,7 @@ use strict;
 use Test;
 use lib qw|blib/arch blib/lib|;
 use Data::Dumper;
-BEGIN { plan tests => 36; }
+BEGIN { plan tests => 37; }
 
 use RNA;
 use warnings;
@@ -28,6 +28,8 @@ my $struc2="((((((...))).)))";
 
 # calculate a hamming distance (from util.c)
 ok(RNA::hamming($seq1, $seq2), 16);
+
+ok(RNA::bp_distance($struc1, $struc2), 6);
 
 # check a global variable
 ok($RNA::temperature, 37);
