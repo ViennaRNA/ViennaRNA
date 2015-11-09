@@ -147,6 +147,10 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
     memset(motif_alt, '.', strlen(motif) - 1);
 
     if(cp > 0){
+      if((motif[0] != '(') || (motif[strlen(motif) - 1] != ')') || (motif[cp-2] != '(') || (motif[cp-1] != ')')){
+        vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: No closing and/or enclosed pair in interior loop motif!");
+        goto hi_motif_error;
+      }
       /* construct corresponding alternative interior loop motif (....(&)...) */
       motif_alt[0] = '(';
       motif_alt[cp-2] = '(';
@@ -161,6 +165,11 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
         vrna_sc_add_exp_f(vc, &expAptamerContrib);
 
     } else {
+      if((motif[0] != '(') || (motif[strlen(motif) - 1] != ')')){
+        vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: No closing pair in hairpin motif!");
+        goto hi_motif_error;
+      }
+
       /* construct corresponding alternative hairpin motif (....) */
       motif_alt[0] = '(';
       motif_alt[strlen(motif) - 1] = ')';

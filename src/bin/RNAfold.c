@@ -112,6 +112,7 @@ add_ligand_motif( vrna_fold_compound_t *vc,
       if(*ptr == ',')
         break;
       seq[r++] = *ptr;
+      toupper(seq[r-1]);
     }
     seq[r] = '\0';
     seq = vrna_realloc(seq, sizeof(char) * (strlen(seq) + 1));
