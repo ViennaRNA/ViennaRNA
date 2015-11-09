@@ -85,6 +85,7 @@ $ViennaDesign->explore_sequence_space;
 # Main Design Loop #
 # ................ #
 
+
 my %final;
 my ($seq, $cost, $count);
 for (1 .. $n) {
