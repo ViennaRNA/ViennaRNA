@@ -542,7 +542,7 @@ vrna_BT_hp_loop(vrna_fold_compound_t *vc,
     if(sc)
       if(sc->bt){
         vrna_basepair_t *ptr, *aux_bps;
-        aux_bps = sc->bt(i, j, -1, -1, VRNA_DECOMP_PAIR_HP, sc->data);
+        aux_bps = sc->bt(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
         for(ptr = aux_bps; ptr && ptr->i != 0; ptr++){
           bp_stack[++(*stack_count)].i = ptr->i;
           bp_stack[(*stack_count)].j   = ptr->j;

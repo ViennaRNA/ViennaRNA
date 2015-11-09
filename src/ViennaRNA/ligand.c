@@ -293,7 +293,7 @@ AptamerContrib(int i, int j, int k, int l, char d, void *data){
   quadruple_position  *pos;
   ligand_data         *ldata;
 
-  if(d & VRNA_DECOMP_PAIR_IL){
+  if(d == VRNA_DECOMP_PAIR_IL){
     ldata = (ligand_data *)data;
     for(pos = ((ligand_data *)data)->positions; pos->i; pos++){
       if((pos->i == i) && (pos->j == j) && (pos->k == k) && (pos->l == l)){
@@ -311,7 +311,7 @@ AptamerContribHairpin(int i, int j, int k, int l, char d, void *data){
   quadruple_position  *pos;
   ligand_data         *ldata;
 
-  if(d & VRNA_DECOMP_PAIR_HP){
+  if(d == VRNA_DECOMP_PAIR_HP){
     ldata = (ligand_data *)data;
     for(pos = ((ligand_data *)data)->positions; pos->i; pos++){
       if((pos->i == i) && (pos->j == j)){
@@ -333,7 +333,7 @@ expAptamerContrib(int i, int j, int k, int l, char d, void *data){
 
   exp_e = 1.;
 
-  if(d & VRNA_DECOMP_PAIR_IL){
+  if(d == VRNA_DECOMP_PAIR_IL){
     ldata = (ligand_data *)data;
     kT    = (37. + K0) * GASCONST;
 
@@ -359,7 +359,7 @@ expAptamerContribHairpin(int i, int j, int k, int l, char d, void *data){
 
   exp_e = 1.;
 
-  if(d & VRNA_DECOMP_PAIR_HP){
+  if(d == VRNA_DECOMP_PAIR_HP){
     ldata = (ligand_data *)data;
     kT    = (37. + K0) * GASCONST;
 
@@ -383,7 +383,7 @@ backtrack_int_motif(int i, int j, int k, int l, char d, void *data){
   quadruple_position  *pos;
   ligand_data         *ldata;
 
-  if(d & VRNA_DECOMP_PAIR_IL){
+  if(d == VRNA_DECOMP_PAIR_IL){
     ldata = (ligand_data *)data;
     for(pos = ldata->positions; pos->i; pos++){
       if((pos->i == i) && (pos->j == j) && (pos->k == k) && (pos->l == l)){
@@ -443,7 +443,7 @@ backtrack_hp_motif(int i, int j, int k, int l, char d, void *data){
   ligand_data         *ldata;
   vrna_basepair_t     *pptr;
 
-  if(d & VRNA_DECOMP_PAIR_HP){
+  if(d == VRNA_DECOMP_PAIR_HP){
     ldata = (ligand_data *)data;
     for(pos = ldata->positions; pos->i; pos++){
       if((pos->i == i) && (pos->j == j)){

@@ -799,6 +799,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             }
           } else
             probs[ij] = 0.;
+          
         }
       }
     } /* end if(!circular)  */
@@ -1088,16 +1089,39 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
     }  /* end for (l=..)   */
 
-    if(sc){
-      if(sc->f){
-        /*  correct pairing probabilities for auxiliary base pairs from hairpin-, or interior loop motifs
-            as augmented by the generalized soft constraints feature
-        */
-        for(i = 0; i < corr_cnt; i++){
-          ij = my_iindx[bp_correction[i].i] - bp_correction[i].j;
-          /* printf("correcting pair %d, %d by %f\n", bp_correction[i].i, bp_correction[i].j, bp_correction[i].p); */
-          probs[ij] += bp_correction[i].p / qb[ij];
+    if(sc && sc->f && sc->bt){
+      for (i=1; i<=n; i++)
+        for (j=i+turn+1; j<=n; j++) {
+          ij = my_iindx[i]-j;
+          /*  search for possible auxiliary base pairs in hairpin loop motifs to store
+              the corresponding probability corrections
+          */ 
+          if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
+            vrna_basepair_t *ptr, *aux_bps;
+            aux_bps = sc->bt(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
+            if(aux_bps){
+              FLT_OR_DBL qhp = vrna_exp_E_hp_loop(vc, i, j);
+              for(ptr = aux_bps; ptr && ptr->i != 0; ptr++){
+                bp_correction[corr_cnt].i = ptr->i;
+                bp_correction[corr_cnt].j = ptr->j;
+                bp_correction[corr_cnt++].p = probs[ij] * qhp;
+                if(corr_cnt == corr_size){
+                  corr_size += 5;
+                  bp_correction = vrna_realloc(bp_correction, sizeof(vrna_plist_t) * corr_size);
+                }
+              }
+            }
+            free(aux_bps);
+          }
         }
+
+      /*  correct pairing probabilities for auxiliary base pairs from hairpin-, or interior loop motifs
+          as augmented by the generalized soft constraints feature
+      */
+      for(i = 0; i < corr_cnt; i++){
+        ij = my_iindx[bp_correction[i].i] - bp_correction[i].j;
+        /* printf("correcting pair %d, %d by %f\n", bp_correction[i].i, bp_correction[i].j, bp_correction[i].p); */
+        probs[ij] += bp_correction[i].p / qb[ij];
       }
     }
     free(bp_correction);
