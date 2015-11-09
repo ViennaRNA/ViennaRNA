@@ -32,6 +32,7 @@ my ($n, $m) = (1, 1e10);
 my $startseq =undef;
 my $ParamFile=undef;
 my $verbose = 0;
+my $jango = 0;
 
 GetOptions(
   "o|optfun=s"  => sub{$optfun = check_input_costfunction($_[1])},
@@ -43,6 +44,7 @@ GetOptions(
 
   "P|params=s"  => \$ParamFile,
   "v|verbose=i" => \$verbose,
+  "j|jango=i"   => \$jango,
 
   "h|help"      => sub{pod2usage(1)},
   "man"         => sub{pod2usage(-exitstatus => 1, -verbose => 2)},
@@ -83,9 +85,23 @@ $ViennaDesign->explore_sequence_space;
 # Main Design Loop #
 # ................ #
 
+
 my %final;
 my ($seq, $cost, $count);
 for (1 .. $n) {
+
+  # Jango-Method: 
+  if ($jango) {
+    warn "Jango with $jango presamples\n";
+    $startseq = $ViennaDesign->find_a_sequence;
+    for (my $c=0; $c<$jango; ++$c) {
+      my $tmpseq = $ViennaDesign->find_a_sequence;
+      if ($ViennaDesign->eval_sequence($tmpseq) < $ViennaDesign->eval_sequence($startseq)) {
+        $startseq = $tmpseq;
+      }
+    }
+  }
+
   $seq = ($startseq) ? $startseq : $ViennaDesign->find_a_sequence;
   $seq = $ViennaDesign->optimize_sequence($seq, $m);
 
