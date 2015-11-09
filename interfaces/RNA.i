@@ -134,6 +134,41 @@ typedef struct {
 %include "../src/ViennaRNA/duplex.h"
 %include "../src/ViennaRNA/Lfold.h"
 
+/**********************************************/
+/* BEGIN interface for findpath heursitic     */
+/**********************************************/
+
+/* scripting language access through 'fold_compound' instead of 'vrna_fold_compound_t' */
+%rename(path) vrna_path_t;
+
+/* no default constructor / destructor */
+%nodefaultdtor vrna_path_t;
+
+typedef struct {
+  double en;  /**<  @brief  Free energy of current structure */
+  char *s;    /**<  @brief  Secondary structure in dot-bracket notation */
+} vrna_path_t;
+
+%extend vrna_path_t {
+  vrna_path_t *get(int i) {
+    return $self+i;
+  }
+
+  int size() {
+    path_t *st;
+    for (st=$self; st->s; st++);
+    return (int)(st-$self);
+  }
+
+  ~vrna_path_t() {
+    vrna_path_t *st;
+    for (st=$self; st->s; st++)
+      free(st->s);
+    free($self);
+  }
+}
+
+%newobject get_path;
 
 %include "../src/ViennaRNA/findpath.h"
 
