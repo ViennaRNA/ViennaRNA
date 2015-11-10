@@ -335,7 +335,7 @@ pf2D_linear(vrna_fold_compound_t *vc){
   mm1           = vc->mm1;
   mm2           = vc->mm2;
   bpdist        = vc->bpdist;
-
+  Qmax          = 0.;
 
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */

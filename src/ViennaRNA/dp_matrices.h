@@ -205,8 +205,11 @@ struct vrna_mx_pf_s {
   /** @name Common fields for DP matrices
       @{
    */
-  vrna_mx_type_e     type;
-  unsigned int  length;
+  vrna_mx_type_e  type;
+  unsigned int    length;
+  FLT_OR_DBL      *scale;
+  FLT_OR_DBL      *expMLbase;
+
 
   /**
       @}
@@ -238,8 +241,6 @@ struct vrna_mx_pf_s {
       FLT_OR_DBL  qio;
       FLT_OR_DBL  qmo;
 
-      FLT_OR_DBL  *scale;
-      FLT_OR_DBL  *expMLbase;
   /**
       @}
    */
