@@ -879,6 +879,7 @@ backtrack(vrna_fold_compound_t *vc,
   dangle_model  = md->dangles;
   noLP          = md->noLP;
   noGUclosure   = md->noGUclosure;
+  with_gquad    = md->gquad;
   bt_type       = md->backtrack_type;
   turn          = md->min_loop_size;
   rtype         = &(md->rtype[0]);
