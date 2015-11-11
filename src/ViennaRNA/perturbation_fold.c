@@ -56,28 +56,28 @@ static void addSoftConstraint(vrna_fold_compound_t *vc, const double *epsilon, i
 
   sc = vrna_alloc(sizeof(vrna_sc_t));
 
-  sc->boltzmann_factors = vrna_alloc(sizeof(double*) * (length + 2));
-  sc->boltzmann_factors[0] = vrna_alloc(1);
+  sc->exp_energy_up = vrna_alloc(sizeof(double*) * (length + 2));
+  sc->exp_energy_up[0] = vrna_alloc(1);
   for (i = 1; i <= length; ++i)
-    sc->boltzmann_factors[i] = vrna_alloc(sizeof(double) * (length - i + 2));
+    sc->exp_energy_up[i] = vrna_alloc(sizeof(double) * (length - i + 2));
 
   for (i = 1; i <= length; ++i)
   {
-    sc->boltzmann_factors[i][0] = 1;
+    sc->exp_energy_up[i][0] = 1;
     for (j = 1; j <= length - i + 1; ++j)
-      sc->boltzmann_factors[i][j] = sc->boltzmann_factors[i][j-1] * exp(-(epsilon[i + j - 1]) / kT);
+      sc->exp_energy_up[i][j] = sc->exp_energy_up[i][j-1] * exp(-(epsilon[i + j - 1]) / kT);
   }
 
   /* also add sc for MFE computation */
-  sc->free_energies = vrna_alloc(sizeof(int*) * (length + 2));
-  sc->free_energies[0] = vrna_alloc(sizeof(int));
+  sc->energy_up = vrna_alloc(sizeof(int*) * (length + 2));
+  sc->energy_up[0] = vrna_alloc(sizeof(int));
   for (i = 1; i <= length; ++i)
-    sc->free_energies[i] = vrna_alloc(sizeof(int) * (length - i + 2));
+    sc->energy_up[i] = vrna_alloc(sizeof(int) * (length - i + 2));
 
   for (i = 1; i <= length; ++i){
-    sc->free_energies[i][0] = 0;
+    sc->energy_up[i][0] = 0;
     for (j = 1; j <= length - i + 1; ++j)
-      sc->free_energies[i][j] = sc->free_energies[i][j-1] + (epsilon[i + j - 1]*100.);
+      sc->energy_up[i][j] = sc->energy_up[i][j-1] + (epsilon[i + j - 1]*100.);
   }
 
   vc->sc = sc;

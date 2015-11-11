@@ -952,8 +952,8 @@ scan_interval(vrna_fold_compound_t *vc,
         fi = fML[indx[j-1] + i] + P->MLbase;
 
       if(sc){
-        if(sc->free_energies)
-          fi += sc->free_energies[j][1];
+        if(sc->energy_up)
+          fi += sc->energy_up[j][1];
         if(sc->f)
           fi += sc->f(i, j, i, j - 1, VRNA_DECOMP_ML_ML, sc->data);
       }
@@ -983,8 +983,8 @@ scan_interval(vrna_fold_compound_t *vc,
 
       if(sc){
 /* should be unnecessary
-        if(sc->en_basepair)
-          element_energy += sc->en_basepair[ij];
+        if(sc->energy_bp)
+          element_energy += sc->energy_bp[ij];
 */
         if(sc->f)
           element_energy += sc->f(i, j, i, j, VRNA_DECOMP_ML_STEM, sc->data);
@@ -1044,8 +1044,8 @@ scan_interval(vrna_fold_compound_t *vc,
 
           if(sc){
 /* should be unnecessary
-            if(sc->en_basepair)
-              element_energy += sc->en_basepair[k1j];
+            if(sc->energy_bp)
+              element_energy += sc->energy_bp[k1j];
 */
             if(sc->f)
               element_energy += sc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_STEM, sc->data);
@@ -1079,8 +1079,8 @@ scan_interval(vrna_fold_compound_t *vc,
           element_energy = E_MLstem(0, -1, -1, P) + P->MLbase * up;
 
           if(sc){
-            if(sc->free_energies)
-              element_energy += sc->free_energies[i][up];
+            if(sc->energy_up)
+              element_energy += sc->energy_up[i][up];
           }
 
           if(ggg[k1j] + element_energy + best_energy <= threshold)
@@ -1104,12 +1104,12 @@ scan_interval(vrna_fold_compound_t *vc,
           element_energy += P->MLbase * up;
 
           if(sc){
-            if(sc->free_energies)
-              element_energy += sc->free_energies[i][up];
+            if(sc->energy_up)
+              element_energy += sc->energy_up[i][up];
 
 /* should be unnecessary
-            if(sc->en_basepair)
-              element_energy += sc->en_basepair[k1j];
+            if(sc->energy_bp)
+              element_energy += sc->energy_bp[k1j];
 */
           }
 
@@ -1151,8 +1151,8 @@ scan_interval(vrna_fold_compound_t *vc,
     if(hc->up_ext[j]){
       tmp_en = 0;
       if(sc){
-        if(sc->free_energies)
-          tmp_en += sc->free_energies[j][1];
+        if(sc->energy_up)
+          tmp_en += sc->energy_up[j][1];
       }
       if (f5[j-1] + tmp_en + best_energy <= threshold) {
         /* no basepair, nibbling of 3'-end */
@@ -1247,8 +1247,8 @@ scan_interval(vrna_fold_compound_t *vc,
       tmp_en = 0;
 
       if(sc){
-        if(sc->free_energies)
-          tmp_en += sc->free_energies[1][length];
+        if(sc->energy_up)
+          tmp_en += sc->energy_up[1][length];
       }
 
       if(tmp_en <= threshold){
@@ -1293,9 +1293,9 @@ scan_interval(vrna_fold_compound_t *vc,
               tmpE = E_Hairpin(u, type, S1[l+1], S1[k-1], loopseq, P);
 
               if(sc){
-                if(sc->free_energies)
-                  tmpE += sc->free_energies[1][k-1]
-                          + sc->free_energies[l+1][j-l-1];
+                if(sc->energy_up)
+                  tmpE += sc->energy_up[1][k-1]
+                          + sc->energy_up[l+1][j-l-1];
 
                 if(sc->f) /* should this be (l,k) instead of (k,l) ? */
                   tmpE += sc->f(k, l, k, l, VRNA_DECOMP_PAIR_HP, sc->data);
@@ -1349,17 +1349,17 @@ scan_interval(vrna_fold_compound_t *vc,
                   tmpE = E_IntLoop(u1, u2, type, type_2, S1[l+1], S1[k-1], S1[p-1], S1[q+1], P);
                   
                   if(sc){
-                    if(sc->free_energies)
-                      tmpE += sc->free_energies[l+1][p-l-1]
-                              + sc->free_energies[q+1][j-q]
-                              + sc->free_energies[1][k-1];
+                    if(sc->energy_up)
+                      tmpE += sc->energy_up[l+1][p-l-1]
+                              + sc->energy_up[q+1][j-q]
+                              + sc->energy_up[1][k-1];
                     
-                    if(sc->en_stack)
+                    if(sc->energy_stack)
                       if(u1 + u2 == 0)
-                        tmpE += sc->en_stack[k]
-                                + sc->en_stack[l]
-                                + sc->en_stack[p]
-                                + sc->en_stack[q];
+                        tmpE += sc->energy_stack[k]
+                                + sc->energy_stack[l]
+                                + sc->energy_stack[p]
+                                + sc->energy_stack[q];
                   }
 
                   if(c[kl] + c[indx[q]+p] + tmpE + best_energy <= threshold){
@@ -1439,8 +1439,8 @@ scan_interval(vrna_fold_compound_t *vc,
       tmp_en = 0;
 
       if(sc){
-        if(sc->free_energies)
-          tmp_en += sc->free_energies[i][1];
+        if(sc->energy_up)
+          tmp_en += sc->energy_up[i][1];
       }
 
       if (fc[i+1] + tmp_en + best_energy <= threshold) {
@@ -1477,8 +1477,8 @@ scan_interval(vrna_fold_compound_t *vc,
 
 /* should be unnecessary
         if(sc){
-          if(sc->en_basepair)
-            element_energy += sc->en_basepair[ik];
+          if(sc->energy_bp)
+            element_energy += sc->energy_bp[ik];
         }
 */
 
@@ -1513,8 +1513,8 @@ scan_interval(vrna_fold_compound_t *vc,
 
 /* should be unnecessary
       if(sc){
-        if(sc->en_basepair)
-          element_energy += sc->en_basepair[ik];
+        if(sc->energy_bp)
+          element_energy += sc->energy_bp[ik];
       }
 */
 
@@ -1537,8 +1537,8 @@ scan_interval(vrna_fold_compound_t *vc,
       tmp_en = 0;
 
       if(sc){
-        if(sc->free_energies)
-          tmp_en += sc->free_energies[j][1];
+        if(sc->energy_up)
+          tmp_en += sc->energy_up[j][1];
       }
 
       if (fc[j-1] + tmp_en + best_energy <= threshold) {
@@ -1576,8 +1576,8 @@ scan_interval(vrna_fold_compound_t *vc,
 
 /*  should be unnecessary
         if(sc){
-          if(sc->en_basepair)
-            element_energy += sc->en_basepair[kj];
+          if(sc->energy_bp)
+            element_energy += sc->energy_bp[kj];
         }
 */
 
@@ -1783,14 +1783,14 @@ repeat( vrna_fold_compound_t *vc,
             energy = E_IntLoop(0, 0, type, type_2,S1[i+1],S1[j-1],S1[i+1],S1[j-1], P);
 
           if(sc){
-            if(sc->en_basepair)
-              energy += sc->en_basepair[ij];
+            if(sc->energy_bp)
+              energy += sc->energy_bp[ij];
 
-            if(sc->en_stack)
-              energy += sc->en_stack[i]
-                        + sc->en_stack[i+1]
-                        + sc->en_stack[j-1]
-                        + sc->en_stack[j];
+            if(sc->energy_stack)
+              energy += sc->energy_stack[i]
+                        + sc->energy_stack[i+1]
+                        + sc->energy_stack[j-1]
+                        + sc->energy_stack[j];
 
             if(sc->f)
               energy += sc->f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_IL, sc->data);
@@ -1845,19 +1845,19 @@ repeat( vrna_fold_compound_t *vc,
           new = energy + c[indx[q]+p];
 
           if(sc){
-            if(sc->free_energies)
-              energy  +=  sc->free_energies[i+1][p-i-1]
-                          + sc->free_energies[q+1][j-q-1];
+            if(sc->energy_up)
+              energy  +=  sc->energy_up[i+1][p-i-1]
+                          + sc->energy_up[q+1][j-q-1];
 
-            if(sc->en_basepair)
-              energy  += sc->en_basepair[ij];
+            if(sc->energy_bp)
+              energy  += sc->energy_bp[ij];
 
-            if(sc->en_stack)
+            if(sc->energy_stack)
               if((p == i+1) && (q == j-1))
-                energy  +=  sc->en_stack[i]
-                            + sc->en_stack[p]
-                            + sc->en_stack[q]
-                            + sc->en_stack[j];
+                energy  +=  sc->energy_stack[i]
+                            + sc->energy_stack[p]
+                            + sc->energy_stack[q]
+                            + sc->energy_stack[j];
 
             if(sc->f)
               energy  += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
@@ -1906,8 +1906,8 @@ repeat( vrna_fold_compound_t *vc,
     }
 
     if(sc){
-      if(sc->en_basepair)
-        element_energy += sc->en_basepair[ij];
+      if(sc->energy_bp)
+        element_energy += sc->energy_bp[ij];
     }
 
     for (k = i + 1 + turn; k <= j - 2 - turn; k++)  {
@@ -1944,12 +1944,12 @@ repeat( vrna_fold_compound_t *vc,
           tmp_en = en[cnt];
 
           if(sc){
-            if(sc->en_basepair)
-              tmp_en += sc->en_basepair[ij];
+            if(sc->energy_bp)
+              tmp_en += sc->energy_bp[ij];
 
-            if(sc->free_energies)
-              tmp_en += sc->free_energies[i+1][p[cnt] - i - 1]
-                        + sc->free_energies[q[cnt]+1][j - q[cnt] - 1];
+            if(sc->energy_up)
+              tmp_en += sc->energy_up[i+1][p[cnt] - i - 1]
+                        + sc->energy_up[q[cnt]+1][j - q[cnt] - 1];
           }
 
           new_state = derive_new_state(p[cnt], q[cnt], state, tmp_en + part_energy, 6);

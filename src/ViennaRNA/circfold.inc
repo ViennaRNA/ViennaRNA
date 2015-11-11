@@ -50,8 +50,8 @@ fill_arrays_circ( vrna_fold_compound_t *vc,
   if(hc->up_ext[1] >= length){
     Fc = 0;
     if(sc){
-      if(sc->free_energies)
-        Fc += sc->free_energies[1][length];
+      if(sc->energy_up)
+        Fc += sc->energy_up[1][length];
     }
   } else {
     Fc = INF;

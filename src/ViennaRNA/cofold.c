@@ -571,8 +571,8 @@ free_end( int *array,
     if (i==start) array[i]=0;
     else array[i] = array[i-inc];
     if(sc){
-      if(sc->free_energies)
-        array[i] += sc->free_energies[i][1];
+      if(sc->energy_up)
+        array[i] += sc->energy_up[i][1];
     }
   } else
     array[i] = INF;
@@ -618,8 +618,8 @@ free_end( int *array,
                           if(array[j-2] != INF){
                             en = array[j-2] + energy + E_ExtLoop(type, si, -1, P);
                             if(sc)
-                              if(sc->free_energies)
-                                en += sc->free_energies[ii-1][1];
+                              if(sc->energy_up)
+                                en += sc->energy_up[ii-1][1];
 
                             array[i] = MIN2(array[i], en);
                           }
@@ -630,8 +630,8 @@ free_end( int *array,
                         if(array[j+2] != INF){
                           en = array[j+2] + energy + E_ExtLoop(type, -1, sj, P);
                           if(sc)
-                            if(sc->free_energies)
-                              en += sc->free_energies[jj+1][1];
+                            if(sc->energy_up)
+                              en += sc->energy_up[jj+1][1];
 
                           array[i] = MIN2(array[i], en);
                         }
@@ -666,8 +666,8 @@ free_end( int *array,
             if(array[j-inc] != INF){
               en = array[j - inc] + energy + E_ExtLoop(type, -1, sj, P);
               if(sc)
-                if(sc->free_energies)
-                  en += sc->free_energies[jj+1][1];
+                if(sc->energy_up)
+                  en += sc->energy_up[jj+1][1];
 
               array[i] = MIN2(array[i], en);
             }
@@ -677,8 +677,8 @@ free_end( int *array,
             if(array[j - inc] != INF){
               en = array[j - inc] + energy + E_ExtLoop(type, si, -1, P);
               if(sc)
-                if(sc->free_energies)
-                  en += sc->free_energies[ii-1][1];
+                if(sc->energy_up)
+                  en += sc->energy_up[ii-1][1];
 
               array[i] = MIN2(array[i], en);
             }
@@ -689,8 +689,8 @@ free_end( int *array,
             if(array[j-2*inc] != INF){
               en = array[j-2*inc] + energy + E_ExtLoop(type, si, sj, P);
               if(sc)
-                if(sc->free_energies)
-                  en += sc->free_energies[ii-1][1] + sc->free_energies[jj+1][1];
+                if(sc->energy_up)
+                  en += sc->energy_up[ii-1][1] + sc->energy_up[jj+1][1];
 
               array[i] = MIN2(array[i], en);
             }

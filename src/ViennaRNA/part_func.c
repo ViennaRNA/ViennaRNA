@@ -264,8 +264,8 @@ pf_linear(vrna_fold_compound_t *vc){
         q[ij]=1.0*scale[d+1];
 
         if(sc){
-          if(sc->boltzmann_factors)
-            q[ij] *= sc->boltzmann_factors[i][d+1];
+          if(sc->exp_energy_up)
+            q[ij] *= sc->exp_energy_up[i][d+1];
           if(sc->exp_f)
             q[ij] *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_UP, sc->data);
         }
@@ -307,8 +307,8 @@ pf_linear(vrna_fold_compound_t *vc){
         q_temp  =  qqm1[i] * expMLbase[1];
 
         if(sc){
-          if(sc->boltzmann_factors)
-            q_temp *= sc->boltzmann_factors[j][1];
+          if(sc->exp_energy_up)
+            q_temp *= sc->exp_energy_up[j][1];
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, i, j-1, VRNA_DECOMP_ML_ML, sc->data);
@@ -358,8 +358,8 @@ pf_linear(vrna_fold_compound_t *vc){
       if(sc){
         for (k=i+1; k<=maxk; k++, ii++){
           q_temp = expMLbase[ii] * qqm[k];
-          if(sc->boltzmann_factors)
-            q_temp *= sc->boltzmann_factors[i][ii];
+          if(sc->exp_energy_up)
+            q_temp *= sc->exp_energy_up[i][ii];
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, k, j, VRNA_DECOMP_ML_ML, sc->data);
@@ -381,8 +381,8 @@ pf_linear(vrna_fold_compound_t *vc){
         q_temp = qq1[i] * scale[1];
 
         if(sc){
-          if(sc->boltzmann_factors)
-            q_temp *= sc->boltzmann_factors[j][1];
+          if(sc->exp_energy_up)
+            q_temp *= sc->exp_energy_up[j][1];
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, i, j-1, VRNA_DECOMP_EXT_EXT, sc->data);
@@ -415,8 +415,8 @@ pf_linear(vrna_fold_compound_t *vc){
         q_temp = 1.0 * scale[j-i+1];
 
         if(sc){
-          if(sc->boltzmann_factors)
-            q_temp *= sc->boltzmann_factors[i][j-i+1];
+          if(sc->exp_energy_up)
+            q_temp *= sc->exp_energy_up[i][j-i+1];
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_UP, sc->data);
@@ -832,19 +832,19 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                           * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
 
                   if(sc){
-                    if(sc->boltzmann_factors)
-                      tmp2 *=   sc->boltzmann_factors[i+1][u1]
-                              * sc->boltzmann_factors[l+1][u2];
+                    if(sc->exp_energy_up)
+                      tmp2 *=   sc->exp_energy_up[i+1][u1]
+                              * sc->exp_energy_up[l+1][u2];
 
-                    if(sc->exp_en_basepair)
-                      tmp2 *=   sc->exp_en_basepair[ij];
+                    if(sc->exp_energy_bp)
+                      tmp2 *=   sc->exp_energy_bp[ij];
 
-                    if(sc->exp_en_stack){
+                    if(sc->exp_energy_stack){
                       if((i+1 == k) && (j-1 == l)){
-                        tmp2 *=   sc->exp_en_stack[i]
-                                * sc->exp_en_stack[k]
-                                * sc->exp_en_stack[l]
-                                * sc->exp_en_stack[j];
+                        tmp2 *=   sc->exp_energy_stack[i]
+                                * sc->exp_energy_stack[k]
+                                * sc->exp_energy_stack[l]
+                                * sc->exp_energy_stack[j];
                       }
                     }
 
@@ -965,8 +965,8 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
             if(sc){
               /* which decompositions are covered here? => (i, l+1) -> enclosing pair, (k,l) -> enclosed pair, */
-              if(sc->exp_en_basepair)
-                prmt1 *= sc->exp_en_basepair[ii - (l+1)];
+              if(sc->exp_energy_bp)
+                prmt1 *= sc->exp_energy_bp[ii - (l+1)];
 
 /*
               if(sc->exp_f)
@@ -994,8 +994,8 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                     * qm[lj];
 
               if(sc){
-                if(sc->exp_en_basepair)
-                  ppp *= sc->exp_en_basepair[ij];
+                if(sc->exp_energy_bp)
+                  ppp *= sc->exp_energy_bp[ij];
 /*
                 if(sc->exp_f)
                   ppp *= sc->exp_f(i, j, l+1, j-1, , sc->data);
@@ -1014,8 +1014,8 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           if(hc->up_ml[l+1]){
             ppp = prm_l1[i] * expMLbase[1];
             if(sc){
-              if(sc->boltzmann_factors)
-                ppp *= sc->boltzmann_factors[l+1][1];
+              if(sc->exp_energy_up)
+                ppp *= sc->exp_energy_up[l+1][1];
 
 /*
               if(sc_exp_f)
@@ -1031,8 +1031,8 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           if(hc->up_ml[i]){
             ppp = prm_MLb*expMLbase[1];
             if(sc){
-              if(sc->boltzmann_factors)
-                ppp *= sc->boltzmann_factors[i][1];
+              if(sc->exp_energy_up)
+                ppp *= sc->exp_energy_up[i][1];
 
 /*
               if(sc->exp_f)
@@ -1255,8 +1255,8 @@ vrna_pbacktrack5( vrna_fold_compound_t *vc,
         q_temp = q[my_iindx[1] - j + 1] * scale[1];
   
         if(sc){
-          if (sc->boltzmann_factors)  
-            q_temp *= sc->boltzmann_factors[j][1];
+          if (sc->exp_energy_up)  
+            q_temp *= sc->exp_energy_up[j][1];
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(1, j, 1, j-1, VRNA_DECOMP_EXT_EXT, sc->data);
@@ -1311,8 +1311,8 @@ vrna_pbacktrack5( vrna_fold_compound_t *vc,
         q_temp = qln[i+1]*scale[1];
 
         if(sc){
-          if (sc->boltzmann_factors)  
-            q_temp *= sc->boltzmann_factors[i][1];
+          if (sc->exp_energy_up)  
+            q_temp *= sc->exp_energy_up[i][1];
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, length, i+1, length, VRNA_DECOMP_EXT_EXT, sc->data);
@@ -1405,8 +1405,8 @@ backtrack_qm( int i,
           q_temp += expMLbase[u] * qm1[jindx[j]+k];
 
           if(sc){
-            if(sc->boltzmann_factors)
-              q_temp *= sc->boltzmann_factors[i][u];
+            if(sc->exp_energy_up)
+              q_temp *= sc->exp_energy_up[i][u];
 
             if(sc->exp_f)
               q_temp *= sc->exp_f(i, j, k, j, VRNA_DECOMP_ML_ML, sc->data);
@@ -1439,8 +1439,8 @@ backtrack_qm( int i,
       q_temp = expMLbase[u];
 
       if(sc){
-        if(sc->boltzmann_factors)
-          q_temp *= sc->boltzmann_factors[i][u];
+        if(sc->exp_energy_up)
+          q_temp *= sc->exp_energy_up[i][u];
 
         if(sc->exp_f)
           q_temp *= sc->exp_f(i, k-1, i, k-1, VRNA_DECOMP_ML_UP, sc->data);
@@ -1505,8 +1505,8 @@ backtrack_qm1(int i,
                   * expMLbase[j-l];
 
         if(sc){
-          if(sc->boltzmann_factors)
-            q_temp *= sc->boltzmann_factors[l+1][j-l];
+          if(sc->exp_energy_up)
+            q_temp *= sc->exp_energy_up[l+1][j-l];
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, i, l, VRNA_DECOMP_ML_STEM, sc->data);
@@ -1611,8 +1611,8 @@ backtrack(int i,
         q_temp = exp_E_Hairpin(u, type, S1[i+1], S1[j-1], sequence+i-1, pf_params) * scale[u+2];
 
         if(sc){
-          if(sc->boltzmann_factors)
-            q_temp *= sc->boltzmann_factors[i+1][u];
+          if(sc->exp_energy_up)
+            q_temp *= sc->exp_energy_up[i+1][u];
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
@@ -1643,16 +1643,16 @@ backtrack(int i,
                      * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
 
             if(sc){
-              if(sc->boltzmann_factors)
-                q_temp *=   sc->boltzmann_factors[i+1][u1]
-                          * sc->boltzmann_factors[l+1][u2];
+              if(sc->exp_energy_up)
+                q_temp *=   sc->exp_energy_up[i+1][u1]
+                          * sc->exp_energy_up[l+1][u2];
 
-              if(sc->exp_en_stack)
+              if(sc->exp_energy_stack)
                 if((i + 1 == k) && (j - 1 == l))
-                  q_temp *=   sc->exp_en_stack[i]
-                            * sc->exp_en_stack[k]
-                            * sc->exp_en_stack[l]
-                            * sc->exp_en_stack[j];
+                  q_temp *=   sc->exp_energy_stack[i]
+                            * sc->exp_energy_stack[k]
+                            * sc->exp_energy_stack[l]
+                            * sc->exp_energy_stack[j];
 
               if(sc->exp_f)
                 q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);

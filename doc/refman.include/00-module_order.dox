@@ -123,7 +123,10 @@
  *  @defgroup   generalized_sc            Generalized Soft Constraints
  *  @ingroup    soft_constraints
  *
- *  @defgroup   basic_data_structures     Basic Data Structures for Structure Prediction and Evaluation
+ *  @defgroup   fold_compound             The Fold Compound
+ *  @ingroup    data_structures
+ *
+ *  @defgroup   dp_matrices               The Dynamic Programming Matrices
  *  @ingroup    data_structures
  *
  *  @defgroup   direct_paths              Direct refolding paths between two secondary structures

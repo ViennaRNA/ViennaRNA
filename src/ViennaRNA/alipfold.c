@@ -266,8 +266,8 @@ alipf_linear( vrna_fold_compound_t *vc,
           for(s = 0; s < n_seq; s++)
             if(sc[s]){
               int u = d + 1 /* a2s[s][j] - a2s[s][i] + 1 */;
-              if(sc[s]->boltzmann_factors)
-                q[ij] *= sc[s]->boltzmann_factors[a2s[s][i]][u];
+              if(sc[s]->exp_energy_up)
+                q[ij] *= sc[s]->exp_energy_up[a2s[s][i]][u];
             }
       }
       qb[ij]=qm[ij]=0.0;
@@ -310,11 +310,11 @@ alipf_linear( vrna_fold_compound_t *vc,
                 if(sc[s]){
                   u = a2s[s][j-1] - a2s[s][i];
 
-                  if(sc[s]->exp_en_basepair)
-                    qbt1 *= sc[s]->exp_en_basepair[jij];
+                  if(sc[s]->exp_energy_bp)
+                    qbt1 *= sc[s]->exp_energy_bp[jij];
 
-                  if(sc[s]->boltzmann_factors)
-                    qbt1 *= sc[s]->boltzmann_factors[a2s[s][i]+1][u];
+                  if(sc[s]->exp_energy_up)
+                    qbt1 *= sc[s]->exp_energy_up[a2s[s][i]+1][u];
                 }
               }
             qbt1 *= scale[j-i+1];
@@ -359,19 +359,19 @@ alipf_linear( vrna_fold_compound_t *vc,
                     u1 = k - i - 1;
                     u2 = j - l - 1;
 */
-                    if(sc[s]->exp_en_basepair)
-                      qloop *=    sc[s]->exp_en_basepair[jij];
+                    if(sc[s]->exp_energy_bp)
+                      qloop *=    sc[s]->exp_energy_bp[jij];
 
-                    if(sc[s]->boltzmann_factors)
-                      qloop *=    sc[s]->boltzmann_factors[a2s[s][i]+1][u1]
-                                * sc[s]->boltzmann_factors[a2s[s][l]+1][u2];
+                    if(sc[s]->exp_energy_up)
+                      qloop *=    sc[s]->exp_energy_up[a2s[s][i]+1][u1]
+                                * sc[s]->exp_energy_up[a2s[s][l]+1][u2];
 
-                    if(sc[s]->exp_en_stack)
+                    if(sc[s]->exp_energy_stack)
                       if(u1 + u2 == 0){
-                        qloop *=    sc[s]->exp_en_stack[i]
-                                  * sc[s]->exp_en_stack[k]
-                                  * sc[s]->exp_en_stack[l]
-                                  * sc[s]->exp_en_stack[j];
+                        qloop *=    sc[s]->exp_energy_stack[i]
+                                  * sc[s]->exp_energy_stack[k]
+                                  * sc[s]->exp_energy_stack[l]
+                                  * sc[s]->exp_energy_stack[j];
                       }
                   }
                 }
@@ -395,8 +395,8 @@ alipf_linear( vrna_fold_compound_t *vc,
           if(sc)
             for(s = 0; s < n_seq; s++){
               if(sc[s]){
-                if(sc[s]->exp_en_basepair)
-                  temp *= sc[s]->exp_en_basepair[jij];
+                if(sc[s]->exp_energy_bp)
+                  temp *= sc[s]->exp_energy_bp[jij];
               }
             }
           temp *= scale[2] ;
@@ -416,8 +416,8 @@ alipf_linear( vrna_fold_compound_t *vc,
         if(sc)
           for(s = 0; s < n_seq; s++){
             if(sc[s]){
-              if(sc[s]->boltzmann_factors)
-                temp *= sc[s]->boltzmann_factors[a2s[s][i]][1];
+              if(sc[s]->exp_energy_up)
+                temp *= sc[s]->exp_energy_up[a2s[s][i]][1];
             }
           }
         qqm[i] += temp;
@@ -446,8 +446,8 @@ alipf_linear( vrna_fold_compound_t *vc,
         if(sc)
           for(s = 0; s < n_seq; s++){
             if(sc[s]){
-              if(sc[s]->boltzmann_factors)
-                temp2 *= sc[s]->boltzmann_factors[a2s[s][i]][a2s[s][k] - a2s[s][i]];
+              if(sc[s]->exp_energy_up)
+                temp2 *= sc[s]->exp_energy_up[a2s[s][i]][a2s[s][k] - a2s[s][i]];
             }
           }
         temp += temp2;
@@ -467,8 +467,8 @@ alipf_linear( vrna_fold_compound_t *vc,
         if(sc)
           for(s = 0; s < n_seq; s++){
             if(sc[s]){
-              if(sc[s]->boltzmann_factors)
-                temp *= sc[s]->boltzmann_factors[a2s[s][i]][1];
+              if(sc[s]->exp_energy_up)
+                temp *= sc[s]->exp_energy_up[a2s[s][i]][1];
             }
           }
         qbt1 += temp;
@@ -482,8 +482,8 @@ alipf_linear( vrna_fold_compound_t *vc,
         if(sc)
           for(s = 0; s < n_seq; s++){
             if(sc[s]){
-              if(sc[s]->boltzmann_factors)
-                temp2 *= sc[s]->boltzmann_factors[a2s[s][i]][a2s[s][j] - a2s[s][i] + 1];
+              if(sc[s]->exp_energy_up)
+                temp2 *= sc[s]->exp_energy_up[a2s[s][i]][a2s[s][j] - a2s[s][i] + 1];
             }
           }
         temp += temp2;
@@ -626,9 +626,9 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
               if(sc)
                 for(s = 0; s < n_seq; s++){
                   if(sc[s]){
-                    if(sc[s]->boltzmann_factors)
-                      qbt1 *=   ((i > 1) ? sc[s]->boltzmann_factors[a2s[s][j]+1][a2s[s][n] - a2s[s][j]] : 1.)
-                              * ((j < n) ? sc[s]->boltzmann_factors[a2s[s][1]][a2s[s][i] - a2s[s][1]] : 1.);
+                    if(sc[s]->exp_energy_up)
+                      qbt1 *=   ((i > 1) ? sc[s]->exp_energy_up[a2s[s][j]+1][a2s[s][n] - a2s[s][j]] : 1.)
+                              * ((j < n) ? sc[s]->exp_energy_up[a2s[s][1]][a2s[s][i] - a2s[s][1]] : 1.);
                    }
                 }
             }
@@ -690,16 +690,16 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
                       ln1a= a2s[s][n]-a2s[s][j];
                       ln1a+=a2s[s][k-1];
 
-                      if(sc[s]->boltzmann_factors)
-                        qloop *=    sc[s]->boltzmann_factors[a2s[s][l]+1][ln2a]
-                                  * ((j < n) ? sc[s]->boltzmann_factors[a2s[s][j]+1][a2s[s][n] - a2s[s][j]] : 1.)
-                                  * ((k > 1) ? sc[s]->boltzmann_factors[1][a2s[s][k]-1] : 1.);
+                      if(sc[s]->exp_energy_up)
+                        qloop *=    sc[s]->exp_energy_up[a2s[s][l]+1][ln2a]
+                                  * ((j < n) ? sc[s]->exp_energy_up[a2s[s][j]+1][a2s[s][n] - a2s[s][j]] : 1.)
+                                  * ((k > 1) ? sc[s]->exp_energy_up[1][a2s[s][k]-1] : 1.);
 
-                      if((ln1a + ln2a == 0) && sc[s]->exp_en_stack)
-                        qloop *=    sc[s]->exp_en_stack[a2s[s][k]]
-                                  * sc[s]->exp_en_stack[a2s[s][l]]
-                                  * sc[s]->exp_en_stack[a2s[s][i]]
-                                  * sc[s]->exp_en_stack[a2s[s][j]];
+                      if((ln1a + ln2a == 0) && sc[s]->exp_energy_stack)
+                        qloop *=    sc[s]->exp_energy_stack[a2s[s][k]]
+                                  * sc[s]->exp_energy_stack[a2s[s][l]]
+                                  * sc[s]->exp_energy_stack[a2s[s][i]]
+                                  * sc[s]->exp_energy_stack[a2s[s][j]];
                     }
                   }
                 tmp2 += qb[my_iindx[k] - l] * qloop * scale[ln1+ln2];
@@ -753,16 +753,16 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
                       ln1 = a2s[s][k] - a2s[s][j+1];
                       ln2 = a2s[s][i-1] + a2s[s][n] - a2s[s][l];
 
-                      if(sc[s]->boltzmann_factors)
-                        qloop *=    sc[s]->boltzmann_factors[a2s[s][j]+1][ln1]
-                                  * ((l < n) ? sc[s]->boltzmann_factors[a2s[s][l]+1][a2s[s][n] - a2s[s][l]] : 1.)
-                                  * ((i > 1) ? sc[s]->boltzmann_factors[1][a2s[s][i]-1] : 1.);
+                      if(sc[s]->exp_energy_up)
+                        qloop *=    sc[s]->exp_energy_up[a2s[s][j]+1][ln1]
+                                  * ((l < n) ? sc[s]->exp_energy_up[a2s[s][l]+1][a2s[s][n] - a2s[s][l]] : 1.)
+                                  * ((i > 1) ? sc[s]->exp_energy_up[1][a2s[s][i]-1] : 1.);
 
-                      if((ln1 + ln2 == 0) && sc[s]->exp_en_stack)
-                        qloop *=    sc[s]->exp_en_stack[a2s[s][k]]
-                                  * sc[s]->exp_en_stack[a2s[s][l]]
-                                  * sc[s]->exp_en_stack[a2s[s][i]]
-                                  * sc[s]->exp_en_stack[a2s[s][j]];
+                      if((ln1 + ln2 == 0) && sc[s]->exp_energy_stack)
+                        qloop *=    sc[s]->exp_energy_stack[a2s[s][k]]
+                                  * sc[s]->exp_energy_stack[a2s[s][l]]
+                                  * sc[s]->exp_energy_stack[a2s[s][i]]
+                                  * sc[s]->exp_energy_stack[a2s[s][j]];
                     }
                   }
                 tmp2 += qb[my_iindx[k] - l] * qloop * scale[ln1+ln2];
@@ -791,11 +791,11 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
               if(sc)
                 for(s = 0; s < n_seq; s++){
                   if(sc[s]){
-                    if(sc[s]->exp_en_basepair)
-                      tmp3 *= sc[s]->exp_en_basepair[jindx[j] + i];
+                    if(sc[s]->exp_energy_bp)
+                      tmp3 *= sc[s]->exp_energy_bp[jindx[j] + i];
 
-                    if(sc[s]->boltzmann_factors)
-                      tmp3 *= sc[s]->boltzmann_factors[a2s[s][j]+1][a2s[s][n]-a2s[s][j]];
+                    if(sc[s]->exp_energy_up)
+                      tmp3 *= sc[s]->exp_energy_up[a2s[s][j]+1][a2s[s][n]-a2s[s][j]];
                   }
                 }
 
@@ -813,11 +813,11 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
               if(sc)
                 for(s = 0; s < n_seq; s++){
                   if(sc[s]){
-                    if(sc[s]->exp_en_basepair)
-                      tmp3 *= sc[s]->exp_en_basepair[jindx[j] + i];
+                    if(sc[s]->exp_energy_bp)
+                      tmp3 *= sc[s]->exp_energy_bp[jindx[j] + i];
 
-                    if(sc[s]->boltzmann_factors)
-                      tmp3 *= sc[s]->boltzmann_factors[a2s[s][1]][a2s[s][i]-a2s[s][1]];
+                    if(sc[s]->exp_energy_up)
+                      tmp3 *= sc[s]->exp_energy_up[a2s[s][1]][a2s[s][i]-a2s[s][1]];
                   }
                 }
 
@@ -893,19 +893,19 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
                 u1 = k - i - 1;
                 u2 = j - l - 1;
 */
-                if(sc[s]->exp_en_basepair)
-                  qloop *= sc[s]->exp_en_basepair[jindx[j] + i];
+                if(sc[s]->exp_energy_bp)
+                  qloop *= sc[s]->exp_energy_bp[jindx[j] + i];
 
-                if(sc[s]->boltzmann_factors)
-                  qloop *=    sc[s]->boltzmann_factors[a2s[s][i]+1][u1]
-                              * sc[s]->boltzmann_factors[a2s[s][l]+1][u2];
+                if(sc[s]->exp_energy_up)
+                  qloop *=    sc[s]->exp_energy_up[a2s[s][i]+1][u1]
+                              * sc[s]->exp_energy_up[a2s[s][l]+1][u2];
 
-                if(sc[s]->exp_en_stack)
+                if(sc[s]->exp_energy_stack)
                   if(u1 + u2 == 0)
-                    qloop *=    sc[s]->exp_en_stack[i]
-                              * sc[s]->exp_en_stack[k]
-                              * sc[s]->exp_en_stack[l]
-                              * sc[s]->exp_en_stack[j];
+                    qloop *=    sc[s]->exp_energy_stack[i]
+                              * sc[s]->exp_energy_stack[k]
+                              * sc[s]->exp_energy_stack[l]
+                              * sc[s]->exp_energy_stack[j];
 
               }
             }
@@ -935,8 +935,8 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
           if(sc)
             for(s = 0; s < n_seq; s++){
               if(sc[s]){
-                if(sc[s]->exp_en_basepair)
-                  prmt1 *= sc[s]->exp_en_basepair[jindx[l+1] + i];
+                if(sc[s]->exp_energy_bp)
+                  prmt1 *= sc[s]->exp_energy_bp[jindx[l+1] + i];
               }
             }
         }
@@ -954,8 +954,8 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
           if(sc)
             for(s = 0; s < n_seq; s++){
               if(sc[s]){
-                if(sc[s]->exp_en_basepair)
-                  pp *= sc[s]->exp_en_basepair[jindx[j] + i];
+                if(sc[s]->exp_energy_bp)
+                  pp *= sc[s]->exp_energy_bp[jindx[j] + i];
               }
             }
 
@@ -971,8 +971,8 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
           if(sc)
             for(s = 0; s < n_seq; s++){
               if(sc[s]){
-                if(sc[s]->boltzmann_factors)
-                  pp *= sc[s]->boltzmann_factors[a2s[s][l+1]][1];
+                if(sc[s]->exp_energy_up)
+                  pp *= sc[s]->exp_energy_up[a2s[s][l+1]][1];
               }
             }
         }
@@ -984,8 +984,8 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
           if(sc)
             for(s = 0; s < n_seq; s++){
               if(sc[s]){
-                if(sc[s]->boltzmann_factors)
-                  pp *= sc[s]->boltzmann_factors[a2s[s][i]][1];
+                if(sc[s]->exp_energy_up)
+                  pp *= sc[s]->exp_energy_up[a2s[s][i]][1];
               }
             }
         }
@@ -1138,9 +1138,9 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
           if(sc)
             for(s = 0; s < n_seq; s++){
               if(sc[s]){
-                if(sc[s]->boltzmann_factors){
-                  qbt1 *=   ((p > 1) ? sc[s]->boltzmann_factors[1][a2s[s][p]-1] : 1.)
-                          * ((q < n) ? sc[s]->boltzmann_factors[a2s[s][q]+1][a2s[s][n] - a2s[s][q]] : 1.);
+                if(sc[s]->exp_energy_up){
+                  qbt1 *=   ((p > 1) ? sc[s]->exp_energy_up[1][a2s[s][p]-1] : 1.)
+                          * ((q < n) ? sc[s]->exp_energy_up[a2s[s][q]+1][a2s[s][n] - a2s[s][q]] : 1.);
                 }
               }
             }
@@ -1188,16 +1188,16 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
                 int ln1a = a2s[s][k] - 1 - a2s[s][q];
                 int ln2a = a2s[s][n] - a2s[s][l] + a2s[s][p] - 1;
                 if(sc[s]){
-                  if((ln1a+ln2a == 0) && (sc[s]->exp_en_stack))
-                    qloop *=    sc[s]->exp_en_stack[a2s[s][p]]
-                              * sc[s]->exp_en_stack[a2s[s][q]]
-                              * sc[s]->exp_en_stack[a2s[s][k]]
-                              * sc[s]->exp_en_stack[a2s[s][l]];
+                  if((ln1a+ln2a == 0) && (sc[s]->exp_energy_stack))
+                    qloop *=    sc[s]->exp_energy_stack[a2s[s][p]]
+                              * sc[s]->exp_energy_stack[a2s[s][q]]
+                              * sc[s]->exp_energy_stack[a2s[s][k]]
+                              * sc[s]->exp_energy_stack[a2s[s][l]];
 
-                  if(sc[s]->boltzmann_factors)
-                    qloop *=    sc[s]->boltzmann_factors[a2s[s][q] + 1][ln1a]
-                              * ((l < n) ? sc[s]->boltzmann_factors[a2s[s][l]+1][a2s[s][n] - a2s[s][l]] : 1.)
-                              * ((p > 1) ? sc[s]->boltzmann_factors[1][a2s[s][p]-1] : 1.);
+                  if(sc[s]->exp_energy_up)
+                    qloop *=    sc[s]->exp_energy_up[a2s[s][q] + 1][ln1a]
+                              * ((l < n) ? sc[s]->exp_energy_up[a2s[s][l]+1][a2s[s][n] - a2s[s][l]] : 1.)
+                              * ((p > 1) ? sc[s]->exp_energy_up[1][a2s[s][p]-1] : 1.);
                 }
               }
 
@@ -1404,11 +1404,11 @@ backtrack(vrna_fold_compound_t *vc,
               int u1 = a2s[s][k-1] - a2s[s][i];
               int u2 = a2s[s][j-1] - a2s[s][l];
               if(u1 + u2 == 0)
-                if(sc[s]->exp_en_stack)
-                  qloop *=    sc[s]->exp_en_stack[i]
-                            * sc[s]->exp_en_stack[k]
-                            * sc[s]->exp_en_stack[l]
-                            * sc[s]->exp_en_stack[j];
+                if(sc[s]->exp_energy_stack)
+                  qloop *=    sc[s]->exp_energy_stack[i]
+                            * sc[s]->exp_energy_stack[k]
+                            * sc[s]->exp_energy_stack[l]
+                            * sc[s]->exp_energy_stack[j];
             }
           }
 

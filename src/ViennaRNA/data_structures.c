@@ -323,7 +323,8 @@ vrna_fold_compound_TwoD(const char *sequence,
     set_model_details(&md);
 
   /* always make uniq ML decomposition ! */
-  md.uniq_ML = 1;
+  md.uniq_ML      = 1;
+  md.compute_bpp  = 0;
 
   set_fold_compound(vc, &md, options, WITH_PTYPE | WITH_PTYPE_COMPAT);
 
@@ -358,8 +359,21 @@ vrna_fold_compound_add_auxdata( vrna_fold_compound_t *vc,
                                 vrna_callback_free_auxdata *f){
 
   if(vc && data){
+
+    if(vc->free_auxdata) /* free pre-existing auxdata */
+      vc->free_auxdata(vc->auxdata);
+
     vc->auxdata       = data;
     vc->free_auxdata  = f;
+  }
+}
+
+PUBLIC void
+vrna_fold_compound_add_callback(vrna_fold_compound_t *vc,
+                                vrna_callback_recursion_status *f){
+
+  if(vc && f){
+    vc->stat_cb       = f;
   }
 }
 

@@ -710,8 +710,8 @@ eval_circ_pt( vrna_fold_compound_t *vc,
   switch(degree){
     case 0:   /* unstructured */
               if(sc){
-                if(sc->free_energies)
-                  en0 += sc->free_energies[1][length];
+                if(sc->energy_up)
+                  en0 += sc->energy_up[1][length];
               }
               break;
 
@@ -1027,8 +1027,8 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
 
   /* add soft constraints for first unpaired nucleotides */
   if(sc){
-    if(sc->free_energies)
-      bonus += (i==0) ? sc->free_energies[1][p-1] : sc->free_energies[i][p-1];
+    if(sc->energy_up)
+      bonus += (i==0) ? sc->energy_up[1][p-1] : sc->energy_up[i][p-1];
     /* how do we handle generalized soft constraints here ? */
   }
 
@@ -1079,8 +1079,8 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
 
     /* add soft constraints for unpaired region */
     if(sc && (q_prev + 1 <= length)){
-      if(sc->free_energies){
-        bonus += sc->free_energies[q_prev + 1][p - q_prev - 1];
+      if(sc->energy_up){
+        bonus += sc->energy_up[q_prev + 1][p - q_prev - 1];
       }
       /* how do we handle generalized soft constraints here ? */
     }
@@ -1146,8 +1146,8 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
     j = (int)pt[i];
     /* (i,j) is closing pair of multibranch loop, add soft constraints */
     if(sc){
-      if(sc->en_basepair)
-        bonus += sc->en_basepair[idx[j] + i];
+      if(sc->energy_bp)
+        bonus += sc->energy_bp[idx[j] + i];
     }
   }
 
@@ -1169,8 +1169,8 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
 
   /* add bonus energies for first stretch of unpaired nucleotides */
   if(sc){
-    if(sc->free_energies)
-      bonus += sc->free_energies[i+1][u];
+    if(sc->energy_up)
+      bonus += sc->energy_up[i+1][u];
   }
 
   switch(dangle_model){
@@ -1189,8 +1189,8 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                 u += p - q - 1; /* add unpaired nucleotides */
 
                 if(sc){
-                  if(sc->free_energies)
-                    bonus += sc->free_energies[q+1][p-q-1];
+                  if(sc->energy_up)
+                    bonus += sc->energy_up[q+1][p-q-1];
                 }
 
               }
@@ -1221,8 +1221,8 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                 u += p - q - 1; /* add unpaired nucleotides */
 
                 if(sc){
-                  if(sc->free_energies)
-                    bonus += sc->free_energies[q+1][p-q-1];
+                  if(sc->energy_up)
+                    bonus += sc->energy_up[q+1][p-q-1];
                 }
               }
               if(i > 0){  /* actual closing pair */
@@ -1265,8 +1265,8 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                   u += p-i1-1;
 
                   if(sc){
-                    if(sc->free_energies)
-                      bonus += sc->free_energies[i1+1][p-i1-1];
+                    if(sc->energy_up)
+                      bonus += sc->energy_up[i1+1][p-i1-1];
                   }
 
                   /* get position of pairing partner */
@@ -1383,8 +1383,8 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                 u += p - q - 1; /* add unpaired nucleotides */
 
                 if(sc){
-                  if(sc->free_energies)
-                    bonus += sc->free_energies[q+1][p-q-1];
+                  if(sc->energy_up)
+                    bonus += sc->energy_up[q+1][p-q-1];
                 }
               }
               if(i > 0){  /* actual closing pair */

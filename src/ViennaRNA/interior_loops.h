@@ -193,19 +193,19 @@ ubf_eval_int_loop(  int i,
 
   /* add soft constraints */
   if(sc){
-    if(sc->free_energies)
-      energy += sc->free_energies[i+1][u1]
-                + sc->free_energies[q+1][u2];
+    if(sc->energy_up)
+      energy += sc->energy_up[i+1][u1]
+                + sc->energy_up[q+1][u2];
 
-    if(sc->en_basepair)
-      energy += sc->en_basepair[ij];
+    if(sc->energy_bp)
+      energy += sc->energy_bp[ij];
 
-    if(sc->en_stack)
+    if(sc->energy_stack)
       if((p==i+1) && (q == j-1))
-        energy +=   sc->en_stack[i]
-                  + sc->en_stack[p]
-                  + sc->en_stack[q]
-                  + sc->en_stack[j];
+        energy +=   sc->energy_stack[i]
+                  + sc->energy_stack[p]
+                  + sc->energy_stack[q]
+                  + sc->energy_stack[j];
 
     if(sc->f)
       energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
@@ -248,17 +248,17 @@ ubf_eval_ext_int_loop(int i,
 
   /* add soft constraints */
   if(sc){
-    if(sc->free_energies)
-      energy += sc->free_energies[j+1][p-j-1]
-                + sc->free_energies[q+1][length-q]
-                + sc->free_energies[1][i-1];
+    if(sc->energy_up)
+      energy += sc->energy_up[j+1][p-j-1]
+                + sc->energy_up[q+1][length-q]
+                + sc->energy_up[1][i-1];
 
-    if(sc->en_stack)
+    if(sc->energy_stack)
       if((p==i+1) && (q == j-1))
-        energy +=   sc->en_stack[i]
-                  + sc->en_stack[p]
-                  + sc->en_stack[q]
-                  + sc->en_stack[j];
+        energy +=   sc->energy_stack[i]
+                  + sc->energy_stack[p]
+                  + sc->energy_stack[q]
+                  + sc->energy_stack[j];
 
     if(sc->f)
       energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
@@ -296,7 +296,7 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
   vrna_md_t         *md           = &(P->model_details);
   int               with_gquad    = md->gquad;
   int               turn          = md->min_loop_size;
-  char              (*f)(vrna_fold_compound_t *, int, int, int, int, char) = vc->hc->f;
+  vrna_callback_hc_evaluate *f    = vc->hc->f;
   char              eval_loop;
 
   /* CONSTRAINED INTERIOR LOOP start */
@@ -332,7 +332,7 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
         eval_loop = *hc_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
 #ifdef WITH_GEN_HC
         if(f)
-          eval_loop = (f(vc, i, j, p, q, VRNA_DECOMP_PAIR_IL)) ? eval_loop : (char)0;
+          eval_loop = (f(i, j, p, q, VRNA_DECOMP_PAIR_IL, vc->hc->data)) ? eval_loop : (char)0;
 #endif
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
         if(eval_loop){
@@ -434,22 +434,22 @@ vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
                   * exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k-1], S1[l+1], pf_params);
 
           if(sc){
-            if(sc->boltzmann_factors)
-              q_temp *= sc->boltzmann_factors[i+1][u1]
-                        * sc->boltzmann_factors[l+1][u2];
+            if(sc->exp_energy_up)
+              q_temp *= sc->exp_energy_up[i+1][u1]
+                        * sc->exp_energy_up[l+1][u2];
 
-            if(sc->exp_en_basepair)
-              q_temp *= sc->exp_en_basepair[ij];
+            if(sc->exp_energy_bp)
+              q_temp *= sc->exp_energy_bp[ij];
 
             if(sc->exp_f)
               q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
 
-            if(sc->exp_en_stack)
+            if(sc->exp_energy_stack)
               if((i+1 == k) && (j-1 == l)){
-                q_temp *=   sc->exp_en_stack[i]
-                          * sc->exp_en_stack[k]
-                          * sc->exp_en_stack[l]
-                          * sc->exp_en_stack[j];
+                q_temp *=   sc->exp_energy_stack[i]
+                          * sc->exp_energy_stack[k]
+                          * sc->exp_energy_stack[l]
+                          * sc->exp_energy_stack[j];
               }
           }
 
@@ -477,15 +477,15 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
                     int *ip,
                     int *iq){
 
-  int ij, q, p, e, u1, u2, qmin, energy, *rtype, length, *indx, *hc_up, *c, turn;
-  unsigned char     type, type_2;
-  vrna_md_t         *md;
-  char              *ptype, *hc;
-  vrna_param_t      *P;
-  short             *S;
-  vrna_sc_t         *sc;
-  char              (*f)(vrna_fold_compound_t *, int, int, int, int, char);
-  char              eval_loop;
+  int                       ij, q, p, e, u1, u2, qmin, energy, *rtype, length, *indx, *hc_up, *c, turn;
+  unsigned char             type, type_2;
+  vrna_md_t                 *md;
+  char                      *ptype, *hc;
+  vrna_param_t              *P;
+  short                     *S;
+  vrna_sc_t                 *sc;
+  vrna_callback_hc_evaluate *f;
+  char                      eval_loop;
 
   length  = vc->length;
   indx    = vc->jindx;
@@ -524,7 +524,7 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
 
 #ifdef WITH_GEN_HC
         if(f)
-          eval_loop = (f(vc, i, j, p, q, VRNA_DECOMP_PAIR_IL)) ? eval_loop : (char)0;
+          eval_loop = (f(i, j, p, q, VRNA_DECOMP_PAIR_IL, vc->hc->data)) ? eval_loop : (char)0;
 #endif
 
         if(eval_loop){
@@ -572,7 +572,7 @@ vrna_E_stack( vrna_fold_compound_t *vc,
   int               *indx             = vc->jindx;
   char              *hard_constraints = vc->hc->matrix;
   vrna_sc_t         *sc               = vc->sc;
-  char              (*f)(vrna_fold_compound_t *, int, int, int, int, char);
+  vrna_callback_hc_evaluate *f;
   char              eval_loop;
 
   e         = INF;
@@ -587,7 +587,7 @@ vrna_E_stack( vrna_fold_compound_t *vc,
 
 #ifdef WITH_GEN_HC
   if(f)
-    eval_loop = (f(vc, i, j, i+1, j-1, VRNA_DECOMP_PAIR_IL)) ? eval_loop : (char)0;
+    eval_loop = (f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_IL, vc->hc->data)) ? eval_loop : (char)0;
 #endif
 
   if(eval_loop){
@@ -608,15 +608,15 @@ vrna_E_stack( vrna_fold_compound_t *vc,
 
     /* add soft constraints */
     if(sc){
-      if(sc->en_basepair)
-        e += sc->en_basepair[ij];
+      if(sc->energy_bp)
+        e += sc->energy_bp[ij];
 
-      if(sc->en_stack)
+      if(sc->energy_stack)
         if((p==i+1) && (q == j-1))
-          e +=  sc->en_stack[i]
-                + sc->en_stack[p]
-                + sc->en_stack[q]
-                + sc->en_stack[j];
+          e +=  sc->energy_stack[i]
+                + sc->energy_stack[p]
+                + sc->energy_stack[q]
+                + sc->energy_stack[j];
 
       if(sc->f)
         e += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
@@ -829,7 +829,7 @@ vrna_BT_stack(vrna_fold_compound_t *vc,
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
-  char          (*f)(vrna_fold_compound_t *, int, int, int, int, char);
+  vrna_callback_hc_evaluate *f;
   char          eval_loop;
 
   idx         = vc->jindx;
@@ -851,20 +851,20 @@ vrna_BT_stack(vrna_fold_compound_t *vc,
                 &&  (hc->matrix[idx[*j - 1] + *i + 1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
 
     if(f)
-      eval_loop = (f(vc, *i, *j, *i+1, *j-1, VRNA_DECOMP_PAIR_IL)) ? eval_loop : (char)0;
+      eval_loop = (f(*i, *j, *i+1, *j-1, VRNA_DECOMP_PAIR_IL, hc->data)) ? eval_loop : (char)0;
 
     if(eval_loop){
       type_2 = ptype[idx[*j - 1] + *i + 1];
       type_2 = rtype[type_2];
       *en -= P->stack[type][type_2];
       if(sc){
-        if(sc->en_basepair)
-          *en -= sc->en_basepair[ij];
-        if(sc->en_stack)
-          *en -=    sc->en_stack[*i]
-                  + sc->en_stack[*i + 1]
-                  + sc->en_stack[*j - 1]
-                  + sc->en_stack[*j];
+        if(sc->energy_bp)
+          *en -= sc->energy_bp[ij];
+        if(sc->energy_stack)
+          *en -=    sc->energy_stack[*i]
+                  + sc->energy_stack[*i + 1]
+                  + sc->energy_stack[*j - 1]
+                  + sc->energy_stack[*j];
         if(sc->f)
           *en -= sc->f(*i, *j, *i + 1, *j - 1, VRNA_DECOMP_PAIR_IL, sc->data);
       }
@@ -900,7 +900,7 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
-  char          (*f)(vrna_fold_compound_t *, int, int, int, int, char);
+  vrna_callback_hc_evaluate *f;
   char          eval_loop;
 
   cp          = vc->cutpoint;
@@ -939,7 +939,7 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
         eval_loop = hc->matrix[idx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
 
         if(f)
-          eval_loop = (f(vc, *i, *j, p, q, VRNA_DECOMP_PAIR_IL)) ? eval_loop : (char)0;
+          eval_loop = (f(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, hc->data)) ? eval_loop : (char)0;
 
         if(!eval_loop)
           continue;

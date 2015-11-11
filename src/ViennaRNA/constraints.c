@@ -1084,12 +1084,12 @@ vrna_sc_init(vrna_fold_compound_t *vc){
 
     switch(vc->type){
       case VRNA_VC_TYPE_SINGLE:     sc                    = (vrna_sc_t *)vrna_alloc(sizeof(vrna_sc_t));
-                                    sc->free_energies     = NULL;
-                                    sc->en_basepair       = NULL;
-                                    sc->en_stack          = NULL;
-                                    sc->exp_en_stack      = NULL;
-                                    sc->boltzmann_factors = NULL;
-                                    sc->exp_en_basepair   = NULL;
+                                    sc->energy_up     = NULL;
+                                    sc->energy_bp       = NULL;
+                                    sc->energy_stack          = NULL;
+                                    sc->exp_energy_stack      = NULL;
+                                    sc->exp_energy_up = NULL;
+                                    sc->exp_energy_bp   = NULL;
                                     sc->f                 = NULL;
                                     sc->exp_f             = NULL;
                                     sc->data              = NULL;
@@ -1101,12 +1101,12 @@ vrna_sc_init(vrna_fold_compound_t *vc){
       case VRNA_VC_TYPE_ALIGNMENT:  vc->scs = (vrna_sc_t **)vrna_alloc(sizeof(vrna_sc_t*) * (vc->n_seq + 1));
                                     for(s = 0; s < vc->n_seq; s++){
                                       sc                    = (vrna_sc_t *)vrna_alloc(sizeof(vrna_sc_t));
-                                      sc->free_energies     = NULL;
-                                      sc->en_basepair       = NULL;
-                                      sc->en_stack          = NULL;
-                                      sc->exp_en_stack      = NULL;
-                                      sc->boltzmann_factors = NULL;
-                                      sc->exp_en_basepair   = NULL;
+                                      sc->energy_up     = NULL;
+                                      sc->energy_bp       = NULL;
+                                      sc->energy_stack          = NULL;
+                                      sc->exp_energy_stack      = NULL;
+                                      sc->exp_energy_up = NULL;
+                                      sc->exp_energy_bp   = NULL;
                                       sc->f                 = NULL;
                                       sc->exp_f             = NULL;
                                       sc->data              = NULL;
@@ -1149,19 +1149,19 @@ vrna_sc_free(vrna_sc_t *sc){
 
   int i;
   if(sc){
-    if(sc->free_energies){
-      for(i = 0; sc->free_energies[i]; free(sc->free_energies[i++]));
-      free(sc->free_energies);
+    if(sc->energy_up){
+      for(i = 0; sc->energy_up[i]; free(sc->energy_up[i++]));
+      free(sc->energy_up);
     }
-    if(sc->boltzmann_factors){
-      for(i = 0; sc->boltzmann_factors[i]; free(sc->boltzmann_factors[i++]));
-      free(sc->boltzmann_factors);
+    if(sc->exp_energy_up){
+      for(i = 0; sc->exp_energy_up[i]; free(sc->exp_energy_up[i++]));
+      free(sc->exp_energy_up);
     }
     
-    free(sc->en_basepair);
-    free(sc->exp_en_basepair);
-    free(sc->en_stack);
-    free(sc->exp_en_stack);
+    free(sc->energy_bp);
+    free(sc->exp_energy_bp);
+    free(sc->energy_stack);
+    free(sc->exp_energy_stack);
 
     if(sc->free_data)
       sc->free_data(sc->data);
@@ -1355,7 +1355,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
             }
             pseudo_energies[i] = (int)(e1 * 100.);
           }
-          vc->scs[shape_file_association[s]]->en_stack = pseudo_energies;
+          vc->scs[shape_file_association[s]]->energy_stack = pseudo_energies;
         }
 
         if(options & VRNA_CONSTRAINT_SOFT_PF){
@@ -1370,7 +1370,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
             }
             exp_pe[i] = exp(-(e1 * 1000.) / vc->exp_params->kT );
           }
-          vc->scs[shape_file_association[s]]->exp_en_stack = exp_pe;
+          vc->scs[shape_file_association[s]]->exp_energy_stack = exp_pe;
         }
         
         free(reactivities);
@@ -1548,12 +1548,12 @@ sc_add_bp_mfe(vrna_fold_compound_t *vc,
       vrna_sc_init(vc);
 
     sc              = vc->sc;
-    sc->en_basepair = (int *)vrna_alloc(sizeof(int) * (((n + 1) * (n + 2)) / 2));
+    sc->energy_bp = (int *)vrna_alloc(sizeof(int) * (((n + 1) * (n + 2)) / 2));
 
     idx = vc->jindx;
     for(i = 1; i < n; i++)
       for(j=i+1; j<=n; j++)
-        sc->en_basepair[idx[j]+i] = (int)(constraints[i][j] * 100.);
+        sc->energy_bp[idx[j]+i] = (int)(constraints[i][j] * 100.);
 
   }
 }
@@ -1581,15 +1581,15 @@ sc_add_bp_pf( vrna_fold_compound_t *vc,
     double            kT          = exp_params->kT;
     double            TT          = (temperature+K0)/(Tmeasure);
 
-    if(sc->exp_en_basepair)
-      free(sc->exp_en_basepair);
-    sc->exp_en_basepair     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
+    if(sc->exp_energy_bp)
+      free(sc->exp_energy_bp);
+    sc->exp_energy_bp     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
 
     idx = vc->iindx;
     for(i = 1; i < n; i++)
       for(j=i+1; j<=n; j++){
         GT = constraints[i][j] * TT * 1000.;
-        sc->exp_en_basepair[idx[i]-j] = exp( -GT / kT);
+        sc->exp_energy_bp[idx[i]-j] = exp( -GT / kT);
       }
   }
 }
@@ -1611,24 +1611,24 @@ sc_add_up_mfe(vrna_fold_compound_t *vc,
     sc  = vc->sc;
     /*  allocate memory such that we can access the soft constraint
         energies of a subsequence of length j starting at position i
-        via sc->free_energies[i][j]
+        via sc->energy_up[i][j]
     */
-    if(sc->free_energies){
+    if(sc->energy_up){
       for(i = 0; i <= n; i++)
-        if(sc->free_energies[i])
-          free(sc->free_energies[i]);
-      free(sc->free_energies);
+        if(sc->energy_up[i])
+          free(sc->energy_up[i]);
+      free(sc->energy_up);
     }
 
-    sc->free_energies = (int **)vrna_alloc(sizeof(int *) * (n + 2));
+    sc->energy_up = (int **)vrna_alloc(sizeof(int *) * (n + 2));
     for(i = 0; i <= n; i++)
-      sc->free_energies[i] = (int *)vrna_alloc(sizeof(int) * (n - i + 2));
+      sc->energy_up[i] = (int *)vrna_alloc(sizeof(int) * (n - i + 2));
 
-    sc->free_energies[n+1] = NULL;
+    sc->energy_up[n+1] = NULL;
 
     for(i = 1; i <= n; i++){
       for(j = 1; j <= (n - i + 1); j++){
-        sc->free_energies[i][j] =   sc->free_energies[i][j-1]
+        sc->energy_up[i][j] =   sc->energy_up[i][j-1]
                                   + (int)(constraints[i+j-1] * 100); /* convert to 10kal/mol */
       }
     }
@@ -1663,28 +1663,28 @@ sc_add_up_pf( vrna_fold_compound_t *vc,
 
     /*  allocate memory such that we can access the soft constraint
         energies of a subsequence of length j starting at position i
-        via sc->boltzmann_factors[i][j]
+        via sc->exp_energy_up[i][j]
     */
-    if(sc->boltzmann_factors){
+    if(sc->exp_energy_up){
       for(i = 0; i <= n; i++)
-        if(sc->boltzmann_factors[i])
-          free(sc->boltzmann_factors[i]);
-      free(sc->boltzmann_factors);
+        if(sc->exp_energy_up[i])
+          free(sc->exp_energy_up[i]);
+      free(sc->exp_energy_up);
     }
 
-    sc->boltzmann_factors = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 2));
+    sc->exp_energy_up = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 2));
     for(i = 0; i <= n; i++){
-      sc->boltzmann_factors[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n - i + 2));
+      sc->exp_energy_up[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n - i + 2));
       for(j = 0; j < n - i + 2; j++)
-        sc->boltzmann_factors[i][j] = 1.;
+        sc->exp_energy_up[i][j] = 1.;
     }
 
-    sc->boltzmann_factors[n+1] = NULL;
+    sc->exp_energy_up[n+1] = NULL;
 
     for(i = 1; i <= n; i++){
       for(j = 1; j <= (n - i + 1); j++){
         GT  = (double)((int)(constraints[i+j-1] * 100)) * TT * 10.; /* convert to cal/mol */
-        sc->boltzmann_factors[i][j] =   sc->boltzmann_factors[i][j-1]
+        sc->exp_energy_up[i][j] =   sc->exp_energy_up[i][j-1]
                                       * exp( -GT / kT);
       }
     }
@@ -1700,11 +1700,11 @@ sc_add_stack_en_mfe(vrna_fold_compound_t *vc,
   if(!vc->sc)
     vrna_sc_init(vc);
 
-  if(!vc->sc->en_stack)
-    vc->sc->en_stack = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
+  if(!vc->sc->energy_stack)
+    vc->sc->energy_stack = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
 
   for(i = 1; i <= vc->length; ++i)
-    vc->sc->en_stack[i] += (int)(constraints[i] * 100.);
+    vc->sc->energy_stack[i] += (int)(constraints[i] * 100.);
 }
 
 PRIVATE void
@@ -1716,14 +1716,14 @@ sc_add_stack_en_pf( vrna_fold_compound_t *vc,
   if(!vc->sc)
     vrna_sc_init(vc);
 
-  if(!vc->sc->exp_en_stack){
-    vc->sc->exp_en_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
+  if(!vc->sc->exp_energy_stack){
+    vc->sc->exp_energy_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
     for(i = 0; i <= vc->length; ++i)
-      vc->sc->exp_en_stack[i] = 1;
+      vc->sc->exp_energy_stack[i] = 1;
   }
 
   for(i = 1; i <= vc->length; ++i)
-    vc->sc->exp_en_stack[i] *= exp(-(constraints[i] * 1000.)/ vc->exp_params->kT);
+    vc->sc->exp_energy_stack[i] *= exp(-(constraints[i] * 1000.)/ vc->exp_params->kT);
 }
 
 PRIVATE INLINE  void

@@ -348,8 +348,8 @@ pf_co(vrna_fold_compound_t *vc){
         q[ij] = scale[1];
 
         if(sc){
-          if(sc->boltzmann_factors)
-            q[ij] *= sc->boltzmann_factors[i][1];
+          if(sc->exp_energy_up)
+            q[ij] *= sc->exp_energy_up[i][1];
           if(sc->exp_f)
             q[ij] *= sc->exp_f(i, i, i, i, VRNA_DECOMP_EXT_UP, sc->data);
         }
@@ -406,8 +406,8 @@ pf_co(vrna_fold_compound_t *vc){
           q_temp  =  qqm1[i] * expMLbase[1];
 
           if(sc){
-            if(sc->boltzmann_factors)
-              q_temp *= sc->boltzmann_factors[j][1];
+            if(sc->exp_energy_up)
+              q_temp *= sc->exp_energy_up[j][1];
 
             if(sc->exp_f)
               q_temp *= sc->exp_f(i, j, i, j-1, VRNA_DECOMP_ML_ML, sc->data);
@@ -456,8 +456,8 @@ pf_co(vrna_fold_compound_t *vc){
           q_temp = expMLbase[ii] * qqm[k];
 
           if(sc){
-            if(sc->boltzmann_factors)
-              q_temp *= sc->boltzmann_factors[i][ii];
+            if(sc->exp_energy_up)
+              q_temp *= sc->exp_energy_up[i][ii];
 
             if(sc->exp_f)
               q_temp *= sc->exp_f(i, j, k, j, VRNA_DECOMP_ML_ML, sc->data);
@@ -485,8 +485,8 @@ pf_co(vrna_fold_compound_t *vc){
         q_temp = qq1[i] * scale[1];
 
         if(sc){
-          if(sc->boltzmann_factors)
-            q_temp *= sc->boltzmann_factors[j][1];
+          if(sc->exp_energy_up)
+            q_temp *= sc->exp_energy_up[j][1];
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, i, j-1, VRNA_DECOMP_EXT_EXT, sc->data);
@@ -504,8 +504,8 @@ pf_co(vrna_fold_compound_t *vc){
         q_temp = 1.0 * scale[j-i+1];
 
         if(sc){
-          if(sc->boltzmann_factors)
-            q_temp *= sc->boltzmann_factors[i][j-i+1];
+          if(sc->exp_energy_up)
+            q_temp *= sc->exp_energy_up[i][j-i+1];
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_UP, sc->data);
@@ -683,19 +683,19 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
                             * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
 
                     if(sc){
-                      if(sc->boltzmann_factors)
-                        tmp2 *=   sc->boltzmann_factors[i+1][u1]
-                                * sc->boltzmann_factors[l+1][u2];
+                      if(sc->exp_energy_up)
+                        tmp2 *=   sc->exp_energy_up[i+1][u1]
+                                * sc->exp_energy_up[l+1][u2];
 
-                      if(sc->exp_en_basepair)
-                        tmp2 *=   sc->exp_en_basepair[ij];
+                      if(sc->exp_energy_bp)
+                        tmp2 *=   sc->exp_energy_bp[ij];
 
-                      if(sc->exp_en_stack){
+                      if(sc->exp_energy_stack){
                         if((i+1 == k) && (j-1 == l)){
-                          tmp2 *=   sc->exp_en_stack[i]
-                                  * sc->exp_en_stack[k]
-                                  * sc->exp_en_stack[l]
-                                  * sc->exp_en_stack[j];
+                          tmp2 *=   sc->exp_energy_stack[i]
+                                  * sc->exp_energy_stack[k]
+                                  * sc->exp_energy_stack[l]
+                                  * sc->exp_energy_stack[j];
                         }
                       }
 
@@ -732,8 +732,8 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
 
               if(sc){
                 /* which decompositions are covered here? => (i, l+1) -> enclosing pair, (k,l) -> enclosed pair, */
-                if(sc->exp_en_basepair)
-                  prmt1 *= sc->exp_en_basepair[ii - (l+1)];
+                if(sc->exp_energy_bp)
+                  prmt1 *= sc->exp_energy_bp[ii - (l+1)];
 
 /*
                 if(sc->exp_f)
@@ -760,8 +760,8 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
                         * qm[ll-(j-1)];
 
                   if(sc){
-                    if(sc->exp_en_basepair)
-                      ppp *= sc->exp_en_basepair[ij];
+                    if(sc->exp_energy_bp)
+                      ppp *= sc->exp_energy_bp[ij];
 /*
                     if(sc->exp_f)
                       ppp *= sc->exp_f(i, j, l+1, j-1, , sc->data);
@@ -782,8 +782,8 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
           if(hc->up_ml[l+1]){
             ppp = prm_l1[i] * expMLbase[1];
             if(sc){
-              if(sc->boltzmann_factors)
-                ppp *= sc->boltzmann_factors[l+1][1];
+              if(sc->exp_energy_up)
+                ppp *= sc->exp_energy_up[l+1][1];
 
 /*
               if(sc_exp_f)
@@ -799,8 +799,8 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
           if(hc->up_ml[i]){
             ppp = prm_MLb*expMLbase[1];
             if(sc){
-              if(sc->boltzmann_factors)
-                ppp *= sc->boltzmann_factors[i][1];
+              if(sc->exp_energy_up)
+                ppp *= sc->exp_energy_up[i][1];
 
 /*
               if(sc->exp_f)

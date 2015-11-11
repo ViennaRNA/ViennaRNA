@@ -32,7 +32,6 @@
  *  to certain loop configurations.
  *
  *  @file constraints.h
- *
  */
 
 /** @brief Typename for the hard constraints data structure #vrna_hc_s
@@ -45,7 +44,20 @@ typedef struct  vrna_hc_s vrna_hc_t;
  */
 typedef struct  vrna_sc_s vrna_sc_t;
 
-typedef char (vrna_callback_hc_evaluate)(vrna_fold_compound_t *vc, int i, int j, int k, int l, char d);
+/**
+ * @brief Callback to evaluate whether or not a particular decomposition step is contributing to the solution space
+ *
+ * @ingroup hard_constraints
+ *
+ * @param i         Left (5') delimiter position of substructure
+ * @param j         Right (3') delimiter position of substructure
+ * @param k
+ * @param l
+ * @param d         Decomposition step indicator
+ * @param data      Auxiliary data
+ * @return          Pseudo energy contribution in deka-kalories per mol
+ */
+typedef char (vrna_callback_hc_evaluate)(int i, int j, int k, int l, char d, void *data);
 
 /**
  * @brief Callback to retrieve pseudo energy contribution for soft constraint feature
@@ -428,37 +440,6 @@ typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int i, int j, int k, int l
  */
 #define VRNA_DECOMP_ML_ML_STEM 20
 
-
-/**
- *  @brief    A flag passed to the generalized soft constraints pre-, and post- functions to
- *            indicate Minimum Free Energy (MFE) processing
- *  @details  This flag is passed as second argument to the pre-, and post- processing
- *            funtions that are bound to the #vrna_sc_t structure via vrna_sc_add_pre(), and
- *            vrna_sc_add_post(), respectively.
- *            Use it in your implementation of the pre-, and post-processing functions to
- *            determine the mode of action required for corresponding pre-, and post-
- *            processing of data available to the function.
- *  @note     This flag will be passed by calls of vrna_mfe(), vrna_mfe_comparative(), vrna_mfe_dimer(),
- *            and vrna_subopt()
- *  @ingroup  generalized_sc
- */
-#define VRNA_SC_GEN_MFE         (char)1
-
-/**
- *  @brief    A flag passed to the generalized soft constraints pre-, and post- functions to
- *            indicate Partition function (PF) processing
- *  @details  This flag is passed as second argument to the pre-, and post- processing
- *            funtions that are bound to the #vrna_sc_t structure via vrna_sc_add_pre(), and
- *            vrna_sc_add_post(), respectively.
- *            Use it in your implementation of the pre-, and post-processing functions to
- *            determine the mode of action required for corresponding pre-, and post-
- *            processing of data available to the function.
- *  @note     This flag will be passed by calls of vrna_pf(), vrna_pf_comparative(), and
- *            vrna_pf_dimer().
- *  @ingroup  generalized_sc
- */
-#define VRNA_SC_GEN_PF          (char)2
-
 /**
  *  @brief  The hard constraints data structure
  *
@@ -469,7 +450,7 @@ typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int i, int j, int k, int l
  *  following types of base pairs:
  *  - in the exterior loop (#VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)
  *  - enclosing a hairpin (#VRNA_CONSTRAINT_CONTEXT_HP_LOOP)
- *  - enclosing an interior loop (#VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
+ *  - enclosing an interior loop (#VRNA_CONSTRAINT_CONTEXT_INT_LOOP)  
  *  - enclosed by an exterior loop (#VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)
  *  - enclosing a multi branch loop (#VRNA_CONSTRAINT_CONTEXT_MB_LOOP)
  *  - enclosed by a multi branch loop (#VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
@@ -477,13 +458,15 @@ typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int i, int j, int k, int l
  *  The four linear arrays 'up_xxx' provide the number of available unpaired
  *  nucleotides (including position i) 3' of each position in the sequence.
  *
- *  @see  get_hard_constraints(), vrna_hc_free(), #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP,
- *        #VRNA_CONSTRAINT_CONTEXT_HP_LOOP, #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP_ENC, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC
+ *  @see  vrna_hc_init(), vrna_hc_free(), #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_HP_LOOP, #VRNA_CONSTRAINT_CONTEXT_INT_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP_ENC, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC
  *
  *  @ingroup hard_constraints
  */
 struct vrna_hc_s {
-  char    *matrix;  /**<  @brief  Upper triangular matrix encoding where a
+  char    *matrix;  /**<  @brief  Upper triangular matrix that encodes where a
                                   base pair or unpaired nucleotide is allowed
                     */
   int     *up_ext;  /**<  @brief  A linear array that holds the number of allowed
@@ -508,7 +491,16 @@ struct vrna_hc_s {
                                                     generalized hard constraint function
                                       */
 
-  vrna_callback_free_auxdata *free_data;
+  vrna_callback_free_auxdata *free_data;  /**<  @brief  A pointer to a function to free memory
+                                                        occupied by auxiliary data
+
+                                                The function this pointer is pointing to will be
+                                                called upon destruction of the #vrna_hc_s, and
+                                                provided with the vrna_hc_s.data pointer that
+                                                may hold auxiliary data. Hence, to avoid leaking
+                                                memory, the user may use this pointer to free
+                                                memory occupied by auxiliary data.
+                                          */
 };
 
 /**
@@ -517,13 +509,13 @@ struct vrna_hc_s {
  *  @ingroup soft_constraints
  */
 struct vrna_sc_s {
-  int         **free_energies;        /**<  @brief Energy contribution for unpaired sequence stretches */
-  int         *en_basepair;           /**<  @brief Energy contribution for base pairs */
-  FLT_OR_DBL  **boltzmann_factors;    /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
-  FLT_OR_DBL  *exp_en_basepair;       /**<  @brief Boltzmann Factors of the energy contribution for base pairs */
+  int         **energy_up;            /**<  @brief Energy contribution for stretches of unpaired nucleotides */
+  int         *energy_bp;             /**<  @brief Energy contribution for base pairs */
+  FLT_OR_DBL  **exp_energy_up;        /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
+  FLT_OR_DBL  *exp_energy_bp;         /**<  @brief Boltzmann Factors of the energy contribution for base pairs */
 
-  int         *en_stack;              /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
-  FLT_OR_DBL  *exp_en_stack;          /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
+  int         *energy_stack;          /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
+  FLT_OR_DBL  *exp_energy_stack;      /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
 
   /* generalized soft contraints below */
   vrna_callback_sc_energy *f;         /**<  @brief  A function pointer used for pseudo

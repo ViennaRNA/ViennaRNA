@@ -175,18 +175,20 @@ vrna_E_hp_loop( vrna_fold_compound_t *vc,
                 int i,
                 int j){
 
-  int   u, *hc_up;
-  char  eval_loop;
-  char  (*f)(vrna_fold_compound_t *, int, int, int, int, char);
+  int                       u, *hc_up;
+  char                      eval_loop;
+  vrna_callback_hc_evaluate *f;
+  vrna_hc_t                 *hc;
 
   u         = j - i - 1;
-  hc_up     = vc->hc->up_hp;
-  f         = vc->hc->f;
-  eval_loop = vc->hc->matrix[vc->jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
+  hc        = vc->hc;
+  hc_up     = hc->up_hp;
+  f         = hc->f;
+  eval_loop = hc->matrix[vc->jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
 
 #ifdef WITH_GEN_HC
   if(f)
-    eval_loop = (f(vc, i, j, i+1, j-1, VRNA_DECOMP_PAIR_HP)) ? eval_loop : (char)0;
+    eval_loop = (f(i, j, i, j, VRNA_DECOMP_PAIR_HP, hc->data)) ? eval_loop : (char)0;
 #endif
 
   /* is this base pair allowed to close a hairpin (like) loop ? */
@@ -208,18 +210,20 @@ vrna_E_ext_hp_loop( vrna_fold_compound_t *vc,
                     int i,
                     int j){
 
-  int   u, *hc_up;
-  char  eval_loop;
-  char  (*f)(vrna_fold_compound_t *, int, int, int, int, char);
-  
+  int                       u, *hc_up;
+  char                      eval_loop;
+  vrna_callback_hc_evaluate *f;
+  vrna_hc_t                 *hc;
+
   u         = vc->length - j + i - 1;
-  hc_up     = vc->hc->up_hp;
-  f         = vc->hc->f;
-  eval_loop = vc->hc->matrix[vc->jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
+  hc        = vc->hc;
+  hc_up     = hc->up_hp;
+  f         = hc->f;
+  eval_loop = hc->matrix[vc->jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
 
 #ifdef WITH_GEN_HC
   if(f)
-    eval_loop = (f(vc, j, i, j+1, i-1, VRNA_DECOMP_PAIR_HP)) ? eval_loop : (char)0;
+    eval_loop = (f(j, i, j, i, VRNA_DECOMP_PAIR_HP, hc->data)) ? eval_loop : (char)0;
 #endif
 
   /* is this base pair allowed to close a hairpin (like) loop ? */
@@ -268,12 +272,12 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
   e = E_Hairpin(u, type, S[j + 1], S[i - 1],  loopseq, P);
 
   if(sc){
-    if(sc->free_energies)
-      e +=  sc->free_energies[j + 1][vc->length - j]
-            + sc->free_energies[1][i - 1];
+    if(sc->energy_up)
+      e +=  sc->energy_up[j + 1][vc->length - j]
+            + sc->energy_up[1][i - 1];
 
     if(sc->f)
-      e += sc->f(j, i, j-1, i+1, VRNA_DECOMP_PAIR_HP, sc->data);
+      e += sc->f(j, i, j, i, VRNA_DECOMP_PAIR_HP, sc->data);
   }
 
   return e;
@@ -336,14 +340,14 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
 
                                   /* add soft constraints */
                                   if(sc){
-                                    if(sc->free_energies)
-                                      e += sc->free_energies[i+1][u];
+                                    if(sc->energy_up)
+                                      e += sc->energy_up[i+1][u];
 
-                                    if(sc->en_basepair){
-                                      e += sc->en_basepair[ij];
+                                    if(sc->energy_bp){
+                                      e += sc->energy_bp[ij];
                                     }
                                     if(sc->f)
-                                      e += sc->f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_HP, sc->data);
+                                      e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
                                   }
                                   break;
     /* sequence alignments */
@@ -372,14 +376,14 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
                                       if(scs[s]){
                                         u = a2s[s][j-1]-a2s[s][i];
 
-                                        if(scs[s]->free_energies)
-                                          e += scs[s]->free_energies[a2s[s][i]+1][u];
+                                        if(scs[s]->energy_up)
+                                          e += scs[s]->energy_up[a2s[s][i]+1][u];
 
-                                        if(scs[s]->en_basepair)
-                                          e += scs[s]->en_basepair[idx[j] + i];
+                                        if(scs[s]->energy_bp)
+                                          e += scs[s]->energy_bp[idx[j] + i];
 
                                         if(scs[s]->f)
-                                          e += scs[s]->f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_HP, scs[s]->data);
+                                          e += scs[s]->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, scs[s]->data);
                                       }
                                     }
 
@@ -494,11 +498,11 @@ vrna_exp_E_hp_loop( vrna_fold_compound_t *vc,
 
       /* add soft constraints */
       if(sc){
-        if(sc->boltzmann_factors)
-          q *= sc->boltzmann_factors[i+1][u];
+        if(sc->exp_energy_up)
+          q *= sc->exp_energy_up[i+1][u];
 
-        if(sc->exp_en_basepair)
-          q *= sc->exp_en_basepair[ij];
+        if(sc->exp_energy_bp)
+          q *= sc->exp_energy_bp[ij];
 
         if(sc->exp_f)
           q *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
