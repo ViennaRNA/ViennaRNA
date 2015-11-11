@@ -390,12 +390,6 @@ typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int i, int j, int k, int l
  *  @ingroup  generalized_sc
  *
  */
-#define VRNA_DECOMP_EXT_UP_3    7
-
-/**
- *  @ingroup  generalized_sc
- *
- */
 #define VRNA_DECOMP_EXT_UP      8
 
 /**
