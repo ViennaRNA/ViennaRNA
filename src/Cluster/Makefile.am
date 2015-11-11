@@ -1,7 +1,10 @@
 bin_PROGRAMS = AnalyseDists AnalyseSeqs
 man_MANS = AnalyseDists.1 AnalyseSeqs.1
 
-AM_CPPFLAGS = -I$(top_srcdir)/src
+AM_CFLAGS = $(OPENMP_CFLAGS) @AM_CFLAGS@
+AM_CXXFLAGS = $(OPENMP_CFLAGS) @AM_CXXFLAGS@
+AM_CPPFLAGS = -I$(top_srcdir)/src @AM_CPPFLAGS@
+AM_LDFLAGS = @AM_LDFLAGS@
 
 AnalyseDists_SOURCES = split.c \
           distance_matrix.c \

@@ -1,5 +1,10 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
+AM_CFLAGS = $(OPENMP_CFLAGS) @AM_CFLAGS@
+AM_CXXFLAGS = $(OPENMP_CFLAGS) @AM_CXXFLAGS@
+AM_CPPFLAGS =  -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC} @FPIC@ @AM_CPPFLAGS@
+AM_LDFLAGS = @AM_LDFLAGS@
+
 lib_LIBRARIES = libRNA.a
 
 
@@ -41,7 +46,8 @@ libRNA_a_SOURCES  = dist_vars.c data_structures.c part_func.c read_epars.c\
                     plot_layouts.c ali_plex.c c_plex.c plex.c snofold.c \
                     snoop.c move_set.c gquad.c eval.c constraints.c ligand.c \
                     perturbation_fold.c centroid.c structure_utils.c model.c \
-                    file_formats.c dp_matrices.c plot_structure.c plot_aln.c\
+                    file_formats.c dp_matrices.c plot_structure.c plot_aln.c \
+                    exterior_loops.c hairpin_loops.c interior_loops.c multibranch_loops.c \
                     ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC}
 
 libRNA_a_CFLAGS = $(AM_CFLAGS) $(OPENMP_CFLAGS) @FPIC@
@@ -52,6 +58,3 @@ noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
                   1.8.4_epars.h 1.8.4_intloops.h ${SVM_H} ${JSON_H}
 
 EXTRA_DIST = $(pkginclude_HEADERS) circfold.inc alicircfold.inc model_avg.inc model_sd.inc ${SVM_H} ${JSON_H}
-
-AM_CPPFLAGS = -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC} @FPIC@
-

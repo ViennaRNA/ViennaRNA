@@ -1,3 +1,7 @@
+AM_CFLAGS = $(OPENMP_CFLAGS) @AM_CFLAGS@
+AM_CXXFLAGS = $(OPENMP_CFLAGS) @AM_CXXFLAGS@
+AM_CPPFLAGS = -I$(top_srcdir)/src @AM_CPPFLAGS@
+AM_LDFLAGS = @AM_LDFLAGS@
 
 
 if WITH_LIBSVM
@@ -17,10 +21,6 @@ bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAparconv RNAPKplex RNAplex RNAsnoop RNApvmin
 
 LDADD = $(OPENMP_CFLAGS) $(top_builddir)/src/ViennaRNA/libRNA.a
-
-AM_CFLAGS = $(OPENMP_CFLAGS)
-
-AM_CPPFLAGS = -I$(top_srcdir)/src
 
 GENGETOPT_CMDL =  RNAfold_cmdl.c RNAfold_cmdl.h\
               RNAalifold_cmdl.c RNAalifold_cmdl.h\

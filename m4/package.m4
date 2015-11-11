@@ -363,8 +363,41 @@ AC_RNA_ADD_FEATURE( [gen_hard_constraints],
                     [no],
                     [enable_gen_hard_constraints=yes],
                     [enable_gen_hard_constraints=no])
+AC_RNA_ADD_FEATURE( [lto],
+                    [Link time optimization],
+                    [yes],
+                    [enable_lto=no],
+                    [enable_lto=yes])
 
 ## begin with initialization according to configure-time specific options
+
+## Add compiler and linker flag for link time optimization
+AC_RNA_FEATURE_IF_ENABLED([lto],[
+  # cehck whether the compiler accepts LTO option
+  AX_CHECK_COMPILE_FLAG([-flto], [
+    ## check whether the linker also does
+    AX_CHECK_LINK_FLAG([-flto], [
+      enable_lto="yes"
+      ], [
+      enable_lto="no"
+      ],[],[])
+    ], [
+    enable_lto="no"
+  ],[],[])
+  ## append -flto flag if all checks went fine
+  if test "x$enable_lto" != "xno" ; then
+    AX_APPEND_FLAG([-flto], [AM_CFLAGS])
+    AX_APPEND_FLAG([-flto], [AM_CXXFLAGS])
+    AX_APPEND_FLAG([-flto], [AM_LDFLAGS])
+  fi
+])
+
+# distribute additional compiler and linker flags
+# --> set these variables instead of CFLAGS, CXXFLAGS, or LDFLAGS
+AC_SUBST([AM_CPPFLAGS])
+AC_SUBST([AM_CXXFLAGS])
+AC_SUBST([AM_CFLAGS])
+AC_SUBST([AM_LDFLAGS])
 
 ## The following test ensures the right type for FLT_OR_DBL in the SWIG RNAlib interface
 AC_MSG_CHECKING([whether float precision is used for partition function arrays instead of double precision])
@@ -565,6 +598,7 @@ Other Options:
   Boustrophedon:            ${enable_boustrophedon:-yes}
   Generic Hard Constraints: ${enable_gen_hard_constraints:-no}
   OpenMP:                   ${enable_openmp:-yes}
+  LTO:                      ${enable_lto:-yes}
 
 Documentation:              ${with_doc:-no}
     (HTML):                 ${with_doc_html:-no}
