@@ -373,22 +373,30 @@ AC_RNA_ADD_FEATURE( [lto],
 
 ## Add compiler and linker flag for link time optimization
 AC_RNA_FEATURE_IF_ENABLED([lto],[
-  # cehck whether the compiler accepts LTO option
-  AX_CHECK_COMPILE_FLAG([-flto], [
-    ## check whether the linker also does
-    AX_CHECK_LINK_FLAG([-flto], [
-      enable_lto="yes"
-      ], [
-      enable_lto="no"
-      ],[],[])
-    ], [
-    enable_lto="no"
-  ],[],[])
-  ## append -flto flag if all checks went fine
+  # check whether the compiler accepts LTO option
+  AX_CHECK_COMPILE_FLAG([-flto], [], [enable_lto="no"],[],[])
+  # do we still wanna compile with LTO? Then we need to check the linker
   if test "x$enable_lto" != "xno" ; then
-    AX_APPEND_FLAG([-flto], [AM_CFLAGS])
-    AX_APPEND_FLAG([-flto], [AM_CXXFLAGS])
-    AX_APPEND_FLAG([-flto], [AM_LDFLAGS])
+    ## check whether the linker also does
+    AX_CHECK_LINK_FLAG([-flto], [], [enable_lto="no"],[],[])
+
+    ## append -flto flag if all checks went fine
+    if test "x$enable_lto" != "xno" ; then
+      AX_APPEND_FLAG([-flto], [AM_CFLAGS])
+      AX_APPEND_FLAG([-flto], [AM_CXXFLAGS])
+      AX_APPEND_FLAG([-flto], [AM_LDFLAGS])
+
+      ## Here we have to hack a little. Some systems do not provide the liblto plugin for
+      ## ar/ranlib/ld by default. However, gcc provides some wrappers, gcc-ar, gcc-ranlib,
+      ## and gcc-ld that do so. Therefore, we substitute the program env vars if we detected
+      ## compilation with GNU gcc
+      if test "x$ax_cv_c_compiler_vendor" == "xgnu" ; then
+        AC_MSG_WARN([GNU GCC detected! Setting ar/ranlib/ld to their gcc-* wrappers])
+        AR="gcc-ar"
+        RANLIB="gcc-ranlib"
+        LD="gcc-ld"
+      fi
+    fi
   fi
 ])
 
@@ -398,6 +406,10 @@ AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_LDFLAGS])
+# substitute the environment variables in case they have changed above?
+AC_SUBST([AR])
+AC_SUBST([RANLIB])
+AC_SUBST([LD])
 
 ## The following test ensures the right type for FLT_OR_DBL in the SWIG RNAlib interface
 AC_MSG_CHECKING([whether float precision is used for partition function arrays instead of double precision])

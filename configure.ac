@@ -7,6 +7,7 @@ AC_CONFIG_AUX_DIR(config)
 
 AC_SUBST(VERSION)
 
+AC_CONFIG_MACRO_DIRS([m4])
 m4_include([m4/package.m4])
 
 dnl change the default installation prefix
@@ -47,6 +48,7 @@ fi
 
 AC_PROG_INSTALL
 AC_PROG_RANLIB
+AM_PROG_AR
 AC_PROG_MAKE_SET
 AC_PROG_GREP
 AC_PROG_MKDIR_P
@@ -57,6 +59,10 @@ AC_PROG_LN_S
 dnl Check for OpenMP and prepare flags
 AC_OPENMP
 AC_SUBST(OPENMP_CFLAGS)
+
+dnl Set cache variable $ax_cv_c_compiler_vendor to determined compiler vendor
+dnl (we need this for proper substituting ar/ranlib/ld for LTO)
+AX_COMPILER_VENDOR
 
 dnl Checks for libraries.
 AC_CHECK_LIB([m], [exp])
