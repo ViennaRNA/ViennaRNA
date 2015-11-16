@@ -340,10 +340,16 @@ vrna_BT_hp_loop(vrna_fold_compound_t *vc,
                 vrna_bp_stack_t *bp_stack,
                 int   *stack_count){
 
-  int       e;
+  int       e, u;
   vrna_sc_t *sc;
 
   sc  = NULL;
+
+  u = j - i - 1;
+
+  if(vc->hc->up_hp[i+1] < u)
+    return 0;
+
   e   = vrna_E_hp_loop(vc, i, j);
 
   if(e == en){

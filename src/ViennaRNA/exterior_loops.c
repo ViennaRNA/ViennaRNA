@@ -342,6 +342,7 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                 }
               }
 
+              f5[length] = INF;
               if(f5[length-1] != INF){
                 eval_loop = (hc_up[length] > 0) ? (char)1 : (char)0;
 #ifdef WITH_GEN_HC
