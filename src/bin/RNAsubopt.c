@@ -396,13 +396,23 @@ int main(int argc, char *argv[]){
     }
     /* Zuker suboptimals */
     else{
+      char *doubleseq;
       vrna_subopt_solution_t *zr;
-      int i;
-      if (fname[0] != '\0') printf(">%s\n%s\n", fname, rec_sequence);
 
       if (vc->cutpoint != -1) {
         vrna_message_error("Sorry, zuker subopts not yet implemented for cofold\n");
       }
+
+      doubleseq = (char *)vrna_alloc((2*length+2)*sizeof(char));
+      strcpy(doubleseq,rec_sequence);
+      doubleseq[length] = '&';
+      strcat(doubleseq, rec_sequence);
+      vrna_fold_compound_free(vc);
+      vc = vrna_fold_compound(doubleseq, &md, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+
+      int i;
+      if (fname[0] != '\0') printf(">%s\n%s\n", fname, rec_sequence);
+
       zr = vrna_subopt_zuker(vc);
 
       putoutzuker(zr);
@@ -411,6 +421,7 @@ int main(int argc, char *argv[]){
         free(zr[i].structure);
       }
       free(zr);
+      free(doubleseq);
     }
     
     (void)fflush(stdout);

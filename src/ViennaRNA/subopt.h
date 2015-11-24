@@ -74,7 +74,17 @@ vrna_subopt_solution_t *vrna_subopt(vrna_fold_compound_t *vc,
  *  possible base pair the minimum energy structure containing the resp. base pair.
  *  Returns a list of these structures and their energies.
  *
+ *  @bug  Do not use this function yet! For now, the inpute has to be a
+ *        #vrna_fold_compound_t with a double sequence input. This means
+ *        that the original sequence s was fed to vrna_fold_compound() as a
+ *        RNAcofold-like string s + '&' + s . This behavior will be fixed in
+ *        a future version of this function, which will then internally
+ *        abstract from the single sequence to the input required to use
+ *        the cofold implementation!
+ *
  *  @ingroup subopt_zuker
+ *
+ *  @see zuker_subopt(), zuker_subopt_par()
  *
  *  @param  vc  fold compound
  *  @return     List of zuker suboptimal structures

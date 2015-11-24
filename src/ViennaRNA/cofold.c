@@ -78,6 +78,7 @@ PRIVATE float   mfe1, mfe2;       /* minimum free energies of the monomers */
 PRIVATE void  backtrack(sect bt_stack[], vrna_bp_stack_t *bp_list, vrna_fold_compound_t *vc);
 PRIVATE int   fill_arrays(vrna_fold_compound_t *vc, int zuker);
 PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound_t *vc);
+PRIVATE void  doubleseq(vrna_fold_compound_t *vc);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -724,6 +725,65 @@ PRIVATE int comp_pair(const void *A, const void *B) {
 }
 #endif
 
+#if 0
+PRIVATE void
+doubleseq(vrna_fold_compound_t *vc){
+  char          *seq, *doubleseq;
+  unsigned int  length;
+
+  seq     = vc->sequence;
+  length  = vc->length;
+
+  /* do some magic to re-use cofold code */
+  vc->sequence  = vrna_realloc(vc->sequence, sizeof(char)*(2*length+2));
+  memcpy(vc->sequence+length, vc->sequence, sizeof(char) * length);
+  vc->sequence[2*length] = '\0';
+  vc->length    = (unsigned int)strlen(vc->sequence);
+  vc->cutpoint  = length;
+
+  vc->sequence_encoding = vrna_realloc(vc->sequence_encoding, sizeof(short)*(vc->length + 2));
+  memcpy(vc->sequence_encoding+length+1, vc->sequence_encoding+1, sizeof(short)*length);
+  vc->sequence_encoding[0] = vc->sequence_encoding[vc->length];
+  vc->sequence_encoding[vc->length+1] = vc->sequence_encoding[1];
+
+  vc->sequence_encoding2 = vrna_realloc(vc->sequence_encoding2, sizeof(short)*(vc->length + 2));
+  memcpy(vc->sequence_encoding2 + length + 1, vc->sequence_encoding2 + 1, sizeof(short)*length);
+  vc->sequence_encoding2[0] = vc->length;
+  vc->sequence_encoding2[vc->length+1] = 0;
+
+  free(vc->ptype);
+  vc->ptype = vrna_ptypes(vc->sequence_encoding2, &(vc->params->model_details));
+  free(vc->iindx);
+  vc->iindx = vrna_idx_row_wise(vc->length);
+  free(vc->jindx);
+  vc->jindx = vrna_idx_col_wise(vc->length);
+
+  vrna_hc_init(vc);
+
+  /* add DP matrices */
+  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0L);
+}
+#endif
+
+typedef struct{
+  int i;
+  int j;
+  int e;
+  int idxj;
+} zuker_pair;
+
+PRIVATE int comp_pair(const void *A, const void *B) {
+  zuker_pair *x,*y;
+  int ex, ey;
+  x = (zuker_pair *) A;
+  y = (zuker_pair *) B;
+  ex = x->e;
+  ey = y->e;
+  if (ex>ey) return 1;
+  if (ex<ey) return -1;
+  return (x->idxj + x->i - y->idxj + y->i);
+}
+
 PUBLIC SOLUTION *
 vrna_subopt_zuker(vrna_fold_compound_t *vc){
 
@@ -736,9 +796,17 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   unsigned int  length, doublelength;
   float         energy;
   SOLUTION      *zukresults;
-  vrna_bp_stack_t         *pairlist, *bp_list;
+  vrna_bp_stack_t         *bp_list;
+  zuker_pair              *pairlist;
   sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   vrna_mx_mfe_t *matrices;
+  vrna_md_t     md;
+
+#if 0
+  vc->params->model_details.min_loop_size = 0;
+  /* do some magic to re-use cofold code */
+  //doubleseq(vc);
+#endif
 
   doublelength    = vc->length;
   length          = doublelength/2;
@@ -759,7 +827,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   (void)fill_arrays(vc, 1);
 
   psize     = length;
-  pairlist  = (vrna_bp_stack_t *) vrna_alloc(sizeof(vrna_bp_stack_t)*(psize+1));
+  pairlist  = (zuker_pair *) vrna_alloc(sizeof(zuker_pair)*(psize+1));
   bp_list   = (vrna_bp_stack_t *) vrna_alloc(sizeof(vrna_bp_stack_t) * (1 + length/2));
   todo      = (char **) vrna_alloc(sizeof(char *)*(length+1));
   for (i=1; i<length; i++) {
@@ -772,16 +840,19 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
       if (ptype[indx[j]+i]==0) continue;
       if (num_pairs>=psize) {
         psize = 1.2*psize + 32;
-        pairlist = vrna_realloc(pairlist, sizeof(vrna_bp_stack_t)*(psize+1));
+        pairlist = vrna_realloc(pairlist, sizeof(zuker_pair)*(psize+1));
       }
-      pairlist[num_pairs].i   = i;
-      pairlist[num_pairs++].j = j;
+      pairlist[num_pairs].i       = i;
+      pairlist[num_pairs].j       = j;
+      pairlist[num_pairs].e       = c[indx[j]+i]+c[indx[i+length]+j];
+      pairlist[num_pairs++].idxj  = indx[j];
+
       todo[i][j]=1;
     }
   }
 
-#if 0
-  qsort(pairlist, num_pairs, sizeof(vrna_bp_stack_t), comp_pair);
+#if 1
+  qsort(pairlist, num_pairs, sizeof(zuker_pair), comp_pair);
 #endif
 
   for (p=0; p<num_pairs; p++) {
@@ -798,7 +869,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
       bt_stack[1].j   = i + length;
       bt_stack[1].ml  = 2;
       backtrack_co(bt_stack, bp_list, 1,bp_list[0].i, vc);
-      energy = c[indx[j]+i]+c[indx[i+length]+j];
+      energy = pairlist[p].e;
       sz = vrna_db_from_bp_stack(bp_list, length);
       zukresults[counter].energy      = energy;
       zukresults[counter++].structure = sz;
