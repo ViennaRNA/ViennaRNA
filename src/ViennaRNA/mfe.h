@@ -33,15 +33,24 @@
 
 /**
  *  @brief Compute minimum free energy and an appropriate secondary
- *  structure of an RNA sequence
+ *  structure of an RNA sequence, or RNA sequence alignment
  *
- *  The second parameter, @a structure, should point to an allocated
+ *  Depending on the type of the provided #vrna_fold_compound_t, this function
+ *  predicts the MFE for a single sequence, or a corresponding averaged MFE for
+ *  a sequence alignment. If backtracking is activated, it also constructs the
+ *  corresponding secondary structure, or consensus structure.
+ *  Therefore, the second parameter, @a structure, has to point to an allocated
  *  block of memory with a size of at least @f$\mathrm{strlen}(\mathrm{sequence})+1@f$ to
- *  store the backtracked MFE structure. If @p NULL is passed, no backtracking will be performed.
+ *  store the backtracked MFE structure. (For consensus structures, this is the length of
+ *  the alignment + 1. If @p NULL is passed, no backtracking will be performed.
  *
  *  @ingroup mfe_fold
  *
- *  @see #vrna_fold_compound_t, vrna_fold_compound(), vrna_fold(), vrna_circfold()
+ *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
+ *        #VRNA_VC_TYPE_SINGLE, and #VRNA_VC_TYPE_ALIGNMENT.
+ *
+ *  @see #vrna_fold_compound_t, vrna_fold_compound(), vrna_fold(), vrna_circfold(),
+ *        vrna_fold_compound_comparative(), vrna_alifold(), vrna_circalifold()
  *
  *  @param vc             fold compound
  *  @param structure      A pointer to the character array where the
@@ -66,30 +75,6 @@ vrna_mfe(vrna_fold_compound_t *vc,
  */
 float vrna_mfe_dimer( vrna_fold_compound_t *vc,
                       char *structure);
-
-/**
- *  @brief Compute MFE and according consensus structure of an alignment of sequences
- * 
- *  This function predicts the consensus structure for the alignment stored in
- *  vc and returns the minimum free energy; the mfe structure in bracket
- *  notation is returned in 'structure'.
- *  @note vc has to be of type #VRNA_VC_TYPE_ALIGNMENT.
- * 
- *  @note Sufficient space must be allocated for 'structure' before calling
- *  vrna_mfe_comparative(). Passing NULL to the 'structure' or setting #vrna_md_t.backtrack to
- *  0 turns of backtracing an no structure will be returned.
- * 
- *  @ingroup consensus_mfe_fold
- *
- *  @see vrna_fold_compound_comparative()
- * 
- *  @param vc         The fold compound structure of type #VRNA_VC_TYPE_ALIGNMENT
- *  @param structure  A pointer to a character array that will be overwritten by
- *                    a consensus structure that exhibits the MFE. (Maybe NULL)
- *  @return           The free energy score in kcal/mol
- */
-float vrna_mfe_comparative( vrna_fold_compound_t *vc,
-                    char *structure);
 
 /**
  *  @brief Local MFE prediction using a sliding window approach.

@@ -409,7 +409,7 @@ int main(int argc, char *argv[]){
                           verbose, \
                           VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
 
-  min_en = vrna_mfe_comparative(vc, structure);
+  min_en = vrna_mfe(vc, structure);
 
   if(md.circ){
     int     i;

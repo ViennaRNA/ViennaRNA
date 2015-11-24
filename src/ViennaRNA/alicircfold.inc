@@ -3,9 +3,9 @@
 /* it's #include'd into alifold.c */
 
 PRIVATE void
-fill_arrays_circ( vrna_fold_compound_t *vc,
-                  sect bt_stack[],
-                  int *bt){
+fill_arrays_comparative_circ( vrna_fold_compound_t *vc,
+                              sect bt_stack[],
+                              int *bt){
 
   /* variant of alifold() for circular RNAs */
   /* auxiliarry arrays:
