@@ -178,8 +178,8 @@ vrna_fold_compound( const char *sequence,
   /* get a copy of the model details */
   if(md_p)
     md = *md_p;
-  else /* this fallback relies on global parameters and thus is not threadsafe */
-    set_model_details(&md);
+  else
+    vrna_md_set_default(&md);
 
   if(options & VRNA_OPTION_WINDOW){ /* sliding window structure prediction */
     if(md.window_size <= 0)
@@ -266,7 +266,7 @@ vrna_fold_compound_comparative( const char **sequences,
   if(md_p)
     md = *md_p;
   else /* this fallback relies on global parameters and thus is not threadsafe */
-    set_model_details(&md);
+    vrna_md_set_default(&md);
 
   set_fold_compound(vc, &md, options, WITH_PTYPE | ((options & VRNA_OPTION_PF) ? WITH_PTYPE_COMPAT : 0L));
 
@@ -320,7 +320,7 @@ vrna_fold_compound_TwoD(const char *sequence,
   if(md_p)
     md = *md_p;
   else /* this fallback relies on global parameters and thus is not threadsafe */
-    set_model_details(&md);
+    vrna_md_set_default(&md);
 
   /* always make uniq ML decomposition ! */
   md.uniq_ML      = 1;
