@@ -177,7 +177,12 @@ vrna_mx_mfe_add(vrna_fold_compound_t *vc,
   unsigned int mx_alloc_vector;
 
   if(vc->params){
-    mx_alloc_vector = get_mx_alloc_vector(&(vc->params->model_details), mx_type, options | VRNA_OPTION_MFE);
+    options |= VRNA_OPTION_MFE;
+    if(vc->cutpoint > 0)
+      options |= VRNA_OPTION_HYBRID;
+
+    mx_alloc_vector = get_mx_alloc_vector(&(vc->params->model_details), mx_type, options);
+    vrna_mx_mfe_free(vc);
     add_mfe_matrices(vc, mx_type, mx_alloc_vector);
   } else {
     return 0;
@@ -194,6 +199,7 @@ vrna_mx_pf_add( vrna_fold_compound_t *vc,
   unsigned int mx_alloc_vector;
   if(vc->exp_params){
     mx_alloc_vector = get_mx_alloc_vector(&(vc->exp_params->model_details), mx_type, options | VRNA_OPTION_PF);
+    vrna_mx_pf_free(vc);
     add_pf_matrices(vc, mx_type, mx_alloc_vector);
   } else {
     return 0;
