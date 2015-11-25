@@ -2,7 +2,7 @@ pkgbindir = $(pkgdatadir)/bin
 pkgbin_PROGRAMS = b2ct popt ct2db
 
 pscript = b2mt.pl ct2b.pl dpzoom.pl mountain.pl relplot.pl rotate_ss.pl cmount.pl colorrna.pl coloraln.pl refold.pl switch.pl
-pkgbin_SCRIPTS = $(pscript) Fold
+pkgbin_SCRIPTS = $(pscript)
 
 AM_CFLAGS = $(OPENMP_CFLAGS) @AM_CFLAGS@
 AM_CXXFLAGS = $(OPENMP_CFLAGS) @AM_CXXFLAGS@
