@@ -37,7 +37,6 @@
 #endif
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
-#define TURN2             3       /* used by zukersubopt */
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /*
@@ -78,7 +77,8 @@ PRIVATE float   mfe1, mfe2;       /* minimum free energies of the monomers */
 PRIVATE void  backtrack(sect bt_stack[], vrna_bp_stack_t *bp_list, vrna_fold_compound_t *vc);
 PRIVATE int   fill_arrays(vrna_fold_compound_t *vc, int zuker);
 PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound_t *vc);
-PRIVATE void  doubleseq(vrna_fold_compound_t *vc);
+PRIVATE void  doubleseq(vrna_fold_compound_t *vc);  /* do magic */
+PRIVATE void  halfseq(vrna_fold_compound_t *vc);    /* undo magic */
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -711,27 +711,11 @@ backtrack(sect bt_stack[],
   backtrack_co(bt_stack, bp_list, 0,0, vc);
 }
 
-#if 0
-PRIVATE int comp_pair(const void *A, const void *B) {
-  vrna_bp_stack_t *x,*y;
-  int ex, ey;
-  x = (vrna_bp_stack_t *) A;
-  y = (vrna_bp_stack_t *) B;
-  ex = c[indx[x->j]+x->i]+c[indx[x->i+length]+x->j];
-  ey = c[indx[y->j]+y->i]+c[indx[y->i+length]+y->j];
-  if (ex>ey) return 1;
-  if (ex<ey) return -1;
-  return (indx[x->j]+x->i - indx[y->j]+y->i);
-}
-#endif
-
-#if 0
 PRIVATE void
 doubleseq(vrna_fold_compound_t *vc){
-  char          *seq, *doubleseq;
+
   unsigned int  length;
 
-  seq     = vc->sequence;
   length  = vc->length;
 
   /* do some magic to re-use cofold code */
@@ -739,7 +723,7 @@ doubleseq(vrna_fold_compound_t *vc){
   memcpy(vc->sequence+length, vc->sequence, sizeof(char) * length);
   vc->sequence[2*length] = '\0';
   vc->length    = (unsigned int)strlen(vc->sequence);
-  vc->cutpoint  = length;
+  vc->cutpoint  = length+1;
 
   vc->sequence_encoding = vrna_realloc(vc->sequence_encoding, sizeof(short)*(vc->length + 2));
   memcpy(vc->sequence_encoding+length+1, vc->sequence_encoding+1, sizeof(short)*length);
@@ -763,7 +747,39 @@ doubleseq(vrna_fold_compound_t *vc){
   /* add DP matrices */
   vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0L);
 }
-#endif
+
+PRIVATE void
+halfseq(vrna_fold_compound_t *vc){
+
+  unsigned int halflength;
+
+  halflength = vc->length/2;
+
+  vc->sequence = vrna_realloc(vc->sequence, sizeof(char)*(halflength + 1));
+  vc->sequence[halflength] = '\0';
+  vc->length = (unsigned int)strlen(vc->sequence);
+  vc->cutpoint = -1;
+
+  vc->sequence_encoding = vrna_realloc(vc->sequence_encoding, sizeof(short)*(vc->length + 2));
+  vc->sequence_encoding[0] = vc->sequence_encoding[vc->length];
+  vc->sequence_encoding[vc->length+1] = vc->sequence_encoding[1];
+
+  vc->sequence_encoding2 = vrna_realloc(vc->sequence_encoding2, sizeof(short)*(vc->length + 2));
+  vc->sequence_encoding2[0] = vc->length;
+  vc->sequence_encoding2[vc->length+1] = 0;
+
+  free(vc->ptype);
+  vc->ptype = vrna_ptypes(vc->sequence_encoding2, &(vc->params->model_details));
+  free(vc->iindx);
+  vc->iindx = vrna_idx_row_wise(vc->length);
+  free(vc->jindx);
+  vc->jindx = vrna_idx_col_wise(vc->length);
+
+  vrna_hc_init(vc);
+
+  /* add DP matrices */
+  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0L);
+}
 
 typedef struct{
   int i;
@@ -792,7 +808,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
    This is slightly wasteful compared to the normal solution */
 
   char          *structure, *mfestructure, **todo, *ptype;
-  int           i, j, counter, num_pairs, psize, p, *indx, *c;
+  int           i, j, counter, num_pairs, psize, p, *indx, *c, turn;
   unsigned int  length, doublelength;
   float         energy;
   SOLUTION      *zukresults;
@@ -800,13 +816,14 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   zuker_pair              *pairlist;
   sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   vrna_mx_mfe_t *matrices;
-  vrna_md_t     md;
+  vrna_md_t     *md;
 
-#if 0
-  vc->params->model_details.min_loop_size = 0;
-  /* do some magic to re-use cofold code */
-  //doubleseq(vc);
-#endif
+  md                = &(vc->params->model_details);
+  turn              = md->min_loop_size;
+
+  /* do some magic to re-use cofold code although vc is single sequence */
+  md->min_loop_size = 0;
+  doubleseq(vc);
 
   doublelength    = vc->length;
   length          = doublelength/2;
@@ -836,7 +853,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
 
   /* Make a list of all base pairs */
   for (i=1; i<length; i++) {
-    for (j=i+TURN2+1/*??*/; j<=length; j++) {
+    for (j=i+turn+1/*??*/; j<=length; j++) {
       if (ptype[indx[j]+i]==0) continue;
       if (num_pairs>=psize) {
         psize = 1.2*psize + 32;
@@ -851,9 +868,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
     }
   }
 
-#if 1
   qsort(pairlist, num_pairs, sizeof(zuker_pair), comp_pair);
-#endif
 
   for (p=0; p<num_pairs; p++) {
     i=pairlist[p].i;
@@ -909,6 +924,10 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   free(todo);
   free(structure);
   free(mfestructure);
+
+  /* undo magic */
+  halfseq(vc);
+  md->min_loop_size = turn;
 
   return zukresults;
 }

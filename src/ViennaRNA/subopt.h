@@ -2,12 +2,18 @@
 #ifndef VIENNA_RNA_PACKAGE_SUBOPT_H
 #define VIENNA_RNA_PACKAGE_SUBOPT_H
 
+#ifdef __GNUC__
+#define DEPRECATED(func) func __attribute__ ((deprecated))
+#else
+#define DEPRECATED(func) func
+#endif
+
 /**
- *  \addtogroup subopt_fold Enumerating Suboptimal Structures
- *  \ingroup folding_routines
+ *  @addtogroup subopt_fold Enumerating Suboptimal Structures
+ *  @ingroup folding_routines
  *  @{
- *    \file subopt.h
- *    \brief RNAsubopt and density of states declarations
+ *    @file subopt.h
+ *    @brief RNAsubopt and density of states declarations
  *
  *  @}
  */
@@ -39,88 +45,93 @@ struct vrna_subopt_sol_s {
 #define MAXDOS                1000
 
 /**
- *  \addtogroup subopt_wuchty
+ *  @addtogroup subopt_wuchty
  *  @{
  *
  *  @}
  */
 
 /**
- *  \brief Returns list of subopt structures or writes to fp
+ *  @brief Returns list of subopt structures or writes to fp
  * 
  *  This function produces <b>all</b> suboptimal secondary structures within
- *  'delta' * 0.01 kcal/mol of the optimum. The results are either
- *  directly written to a 'fp' (if 'fp' is not NULL), or
+ *  'delta' * 0.01 kcal/mol of the optimum, see @cite wuchty:1999. The results
+ *  are either directly written to a 'fp' (if 'fp' is not NULL), or
  *  (fp==NULL) returned in a #vrna_subopt_solution_t * list terminated
  *  by an entry were the 'structure' member is NULL.
  *
- *  \ingroup subopt_wuchty
+ *  @ingroup subopt_wuchty
  *
- *  \param  vc
- *  \param  delta
+ *  @see vrna_subopt_zuker()
+ *  @param  vc
+ *  @param  delta
  *  @param  sorted  Sort results by energy in ascending order
- *  \param  fp
- *  \return
+ *  @param  fp
+ *  @return
  */
-vrna_subopt_solution_t *vrna_subopt(vrna_fold_compound_t *vc,
-                                    int delta,
-                                    int sorted,
-                                    FILE *fp);
+vrna_subopt_solution_t *
+vrna_subopt(vrna_fold_compound_t *vc,
+            int delta,
+            int sorted,
+            FILE *fp);
 
 /**
  *  @brief Compute Zuker type suboptimal structures
  *
- *  Compute Suboptimal structures according to M. Zuker, i.e. for every
+ *  Compute Suboptimal structures according to M. Zuker @cite zuker:1989 , i.e. for every
  *  possible base pair the minimum energy structure containing the resp. base pair.
  *  Returns a list of these structures and their energies.
  *
- *  @bug  Do not use this function yet! For now, the inpute has to be a
- *        #vrna_fold_compound_t with a double sequence input. This means
- *        that the original sequence s was fed to vrna_fold_compound() as a
- *        RNAcofold-like string s + '&' + s . This behavior will be fixed in
- *        a future version of this function, which will then internally
- *        abstract from the single sequence to the input required to use
- *        the cofold implementation!
+ *  @note This function internally uses the cofold implementation to compute
+ *        the suboptimal structures. For that purpose, the function doubles
+ *        the sequence and enlarges the DP matrices, which in fact will grow
+ *        by a factor of 4 during the computation!
+ *        At the end of the structure prediction, everything will be re-set
+ *        to its original requriements, i.e. normal sequence, normal (empty)
+ *        DP matrices.
+ *
+ *  @bug  Due to resizing, any pre-existing constraints will be lost!
  *
  *  @ingroup subopt_zuker
  *
- *  @see zuker_subopt(), zuker_subopt_par()
+ *  @see vrna_subopt(), zukersubopt(), zukersubopt_par()
  *
  *  @param  vc  fold compound
  *  @return     List of zuker suboptimal structures
  */
-vrna_subopt_solution_t *vrna_subopt_zuker(vrna_fold_compound_t *vc);
+vrna_subopt_solution_t *
+vrna_subopt_zuker(vrna_fold_compound_t *vc);
 
 /**
- *  \brief printing threshold for use with logML
+ *  @brief printing threshold for use with logML
  * 
- *  \ingroup subopt_wuchty
+ *  @ingroup subopt_wuchty
  *
  */
 extern  double  print_energy;
 
 /**
- *  \brief Sort output by energy
+ *  @brief Sort output by energy
  * 
- *  \ingroup subopt_wuchty
+ *  @ingroup subopt_wuchty
  *
  */
 extern  int     subopt_sorted;
 
 /**
- *  \addtogroup dos
+ *  @addtogroup dos
  *  @{
  */
 
 /**
- *  \brief The Density of States
+ *  @brief The Density of States
  *
  *  This array contains the density of states for an RNA sequences after a call to subopt_par(),
  *  subopt() or subopt_circ().
  *
- *  \pre  Call one of the functions subopt_par(), subopt() or subopt_circ() prior accessing the contents
+ *  @pre  Call one of the functions subopt_par(), subopt() or subopt_circ() prior accessing the contents
  *        of this array
- *  \see  subopt_par(), subopt(), subopt_circ()
+ *  @see  subopt_par(), subopt(), subopt_circ()
  *
  */
 extern  int     density_of_states[MAXDOS+1];
@@ -130,7 +141,7 @@ extern  int     density_of_states[MAXDOS+1];
 #ifdef VRNA_BACKWARD_COMPAT
 
 /**
- *  \brief Returns list of subopt structures or writes to fp
+ *  @brief Returns list of subopt structures or writes to fp
  * 
  *  This function produces <b>all</b> suboptimal secondary structures within
  *  'delta' * 0.01 kcal/mol of the optimum. The results are either
@@ -138,36 +149,36 @@ extern  int     density_of_states[MAXDOS+1];
  *  (fp==NULL) returned in a #SOLUTION * list terminated
  *  by an entry were the 'structure' pointer is NULL.
  *
- *  \ingroup subopt_wuchty
+ *  @ingroup subopt_wuchty
  *
- *  \param  seq
- *  \param  structure
- *  \param  delta
- *  \param  fp
- *  \return
+ *  @param  seq
+ *  @param  structure
+ *  @param  delta
+ *  @param  fp
+ *  @return
  */
 DEPRECATED(SOLUTION *subopt (char *seq, char *structure, int delta, FILE *fp));
 
 /**
- *  \brief Returns list of subopt structures or writes to fp
+ *  @brief Returns list of subopt structures or writes to fp
  * 
- *  \ingroup subopt_wuchty
+ *  @ingroup subopt_wuchty
  */
 DEPRECATED(SOLUTION *subopt_par(char *seq, char *structure, vrna_param_t *parameters, int delta, int is_constrained, int is_circular, FILE *fp));
 
 /**
- *  \brief Returns list of circular subopt structures or writes to fp
+ *  @brief Returns list of circular subopt structures or writes to fp
  * 
  *  This function is similar to subopt() but calculates secondary structures
  *  assuming the RNA sequence to be circular instead of linear
  * 
- *  \ingroup subopt_wuchty
+ *  @ingroup subopt_wuchty
  *
- *  \param  seq
- *  \param  sequence
- *  \param  delta
- *  \param  fp
- *  \return
+ *  @param  seq
+ *  @param  sequence
+ *  @param  delta
+ *  @param  fp
+ *  @return
  */
 DEPRECATED(SOLUTION *subopt_circ(char *seq, char *sequence, int delta, FILE *fp));
 
