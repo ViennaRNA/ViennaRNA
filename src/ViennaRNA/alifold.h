@@ -8,6 +8,8 @@
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/ribo.h>
 #include <ViennaRNA/mfe.h>
+#include <ViennaRNA/part_func.h>
+#include <ViennaRNA/boltzmann_sampling.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -332,26 +334,6 @@ DEPRECATED(FLT_OR_DBL *export_ali_bppm(void));
  *
  */
 DEPRECATED(void  free_alipf_arrays(void));
-
-/**
- *  @addtogroup consensus_stochbt
- *  @{
- *
- *  @}
- */
-
-/**
- *  @brief Sample a consensus secondary structure from the Boltzmann ensemble according its probability
- * 
- *  @ingroup consensus_stochbt
- *
- *  @see vrna_pf_comparative() for precomputing the partition function matrices, and
- *
- *  @param  vc    The #vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
- *  @param  prob  to be described (berni)
- *  @return       A sampled consensus secondary structure in dot-bracket notation
- */
-char *vrna_pbacktrack_comparative(vrna_fold_compound_t *vc, double *prob);
 
 /**
  *  @brief Sample a consensus secondary structure from the Boltzmann ensemble according its probability

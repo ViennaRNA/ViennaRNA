@@ -32,7 +32,8 @@ pkginclude_HEADERS =  energy_par.h pair_mat.h RNAstruct.h dist_vars.h mfe.h \
                       plot_layouts.h ali_plex.h plex.h snofold.h snoop.h move_set.h\
                       gquad.h constraints.h eval.h perturbation_fold.h centroid.h\
                       structure_utils.h string_utils.h model.h file_formats.h dp_matrices.h \
-                      plot_structure.h plot_aln.h ligand.h ${SVM_UTILS_H} ${SVM_H} ${JSON_H}
+                      plot_structure.h plot_aln.h ligand.h boltzmann_sampling.h \
+                      ${SVM_UTILS_H} ${SVM_H} ${JSON_H}
 
 libRNA_a_SOURCES  = dist_vars.c data_structures.c part_func.c read_epars.c\
                     treedist.c energy_par.c inverse.c ProfileDist.c \
@@ -47,7 +48,7 @@ libRNA_a_SOURCES  = dist_vars.c data_structures.c part_func.c read_epars.c\
                     perturbation_fold.c centroid.c structure_utils.c model.c \
                     file_formats.c dp_matrices.c plot_structure.c plot_aln.c \
                     exterior_loops.c hairpin_loops.c interior_loops.c multibranch_loops.c \
-                    ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC}
+                    boltzmann_sampling.c ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC}
 
 libRNA_a_CFLAGS = $(AM_CFLAGS) @FPIC@
 libRNA_a_CXXFLAGS = $(AM_CFLAGS) @FPIC@

@@ -4,6 +4,7 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/centroid.h>
+#include <ViennaRNA/boltzmann_sampling.h>
 
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__ ((deprecated))
@@ -69,43 +70,14 @@
  *                                  pseudo-dot-bracket notation (may be NULL, too)
  *  @return         The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
-float vrna_pf( vrna_fold_compound_t *vc,
-                    char *structure);
+float vrna_pf(vrna_fold_compound_t *vc,
+              char *structure);
 
 /*
 #################################################
 # OTHER PARTITION FUNCTION RELATED DECLARATIONS #
 #################################################
 */
-
-/**
- *  @brief Sample a secondary structure of a subsequence from the Boltzmann ensemble according its probability
- *
- *  @ingroup subopt_stochbt
- *  @pre    The fold compound has to be obtained using the #VRNA_OPTION_HYBRID option in vrna_fold_compound()
- *  @pre    vrna_pf() hasto be called first to fill the partition function matrices
- *
- *  @param  vc      The fold compound data structure
- *  @param  length  The length of the subsequence to consider (starting with 5' end)
- *  @return         A sampled secondary structure in dot-bracket notation
- */
-char    *vrna_pbacktrack5(vrna_fold_compound_t *vc, int length);
-
-/**
- *  @brief Sample a secondary structure from the Boltzmann ensemble according its probability
- *
- *  @ingroup subopt_stochbt
- *  @pre    The fold compound has to be obtained using the #VRNA_OPTION_HYBRID option in vrna_fold_compound()
- *  @pre    vrna_pf() hasto be called first to fill the partition function matrices
- *
- *  @note The function will automagically detect cicular RNAs based on the model_details in exp_params as
- *        provided via the #vrna_fold_compound_t
- *
- *  @param  vc      The fold compound data structure
- *  @param  length  The length of the subsequence to consider (starting with 5' end)
- *  @return         A sampled secondary structure in dot-bracket notation
- */
-char    *vrna_pbacktrack(vrna_fold_compound_t *vc);
 
 /**
  *  @brief Get the mean base pair distance in the thermodynamic ensemble from a probability matrix
