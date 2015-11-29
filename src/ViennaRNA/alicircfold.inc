@@ -16,8 +16,8 @@ fill_arrays_comparative_circ( vrna_fold_compound_t *vc,
      fM_d5 = multiloop region with >= 2 stems, extending to pos n-1
              (a pair (1,k) will form a 5' dangle with pos n)
   */
-  int               Fc, FcH, FcI, FcM, Hi, Hj, Ii, Ij, Ip, Iq, Mi, FcMd3, FcMd5;
-  int               i, j, ij, p, q, u, length, energy, new_c, fm, n_seq, *type, *rtype, s, rt, si1, sj1;
+  int               Fc, FcH, FcI, FcM, Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi, FcMd3, FcMd5;
+  int               i, j, ij, p, q, u, length, energy, new_c, fm, n_seq, *rtype, s, rt, si1, sj1;
   int               *indx, *c, *fML, *fM2;
   short             **S, **S5, **S3;
   char              **Ss;
@@ -45,10 +45,8 @@ fill_arrays_comparative_circ( vrna_fold_compound_t *vc,
   n_seq             = vc->n_seq;
   length            = vc->length;
   rtype             = &(md->rtype[0]);
-  type              = (int *) vrna_alloc(n_seq*sizeof(int));
 
   /* extra arrays for circfold() */
-  fM2 = (int *) vrna_alloc(sizeof(int)*(length+2));
   FcH = FcI= FcM = FcMd3= FcMd5= INF;
 
   if(hc->up_ext[1] >= length){
@@ -73,98 +71,28 @@ fill_arrays_comparative_circ( vrna_fold_compound_t *vc,
       if (!hard_constraints[ij])
         continue;
 
-      for(s = 0; s < n_seq; s++){
-        type[s] = md->pair[S[s][i]][S[s][j]];
-        if (type[s]==0) type[s]=7;
+      /* exterior hairpin case */
+      new_c =   vrna_E_ext_hp_loop(vc, i, j)
+              + c[ij];
+
+      if (new_c<FcH) {
+        FcH = new_c;
+        Hi  = i;
+        Hj  = j;
       }
 
-      new_c = 0;
-      if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
-        if(hc->up_hp[j+1] >= u){
-          for (s=0; s<n_seq; s++) {
-            char loopseq[10];
-            u = a2s[s][length] - a2s[s][j] + a2s[s][i] - 1;
+      /* exterior interior loop case */
+      ip = iq = 0;
+      new_c =   vrna_E_ext_int_loop(vc, i, j, &ip, &iq)
+              + c[ij];
 
-            rt=rtype[type[s]];
-            if (u<9) {
-              strcpy(loopseq , Ss[s] + a2s[s][j] - 1);
-              strncat(loopseq, Ss[s], a2s[s][i]);
-            }
-            si1 = S5[s][i];
-            sj1 = S3[s][j];
-            if (u < 3) new_c+=600;
-            else new_c += E_Hairpin(u, rt, sj1, si1,  loopseq, P);
-          }
-          if(sc)
-            for(s=0;s < n_seq; s++){
-              if(sc[s]){
-                if(sc[s]->energy_up){
-                  new_c +=    ((i > 1) ? sc[s]->energy_up[1][a2s[s][i] - 1] : 0)
-                            + ((j < length) ? sc[s]->energy_up[a2s[s][j] + 1][a2s[s][length] - a2s[s][j]] : 0);
-                }
-              }
-            }
-          new_c += c[ij];
-          if (new_c<FcH) {
-            FcH = new_c; Hi=i; Hj=j;
-          }
-        }
-      }
-
-      if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
-        for (p = j+1; p < length ; p++) {
-          int u1, qmin;
-          u1 = p-j-1;
-          if(u1 + i - 1 > MAXLOOP)
-            break;
-          if(hc->up_int[j+1] < u1)
-            break;
-
-          qmin = u1+i-1+length-MAXLOOP;
-          if (qmin<p+TURN+1) qmin = p+TURN+1;
-          for (q = qmin; q <=length; q++) {
-            int u2, sq1, type_2;
-            u2 = i-1 + length-q;
-
-            if(!(hard_constraints[indx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP))
-              continue;
-            if(u1+u2>MAXLOOP)
-              continue;
-            if(hc->up_int[q+1] < u2)
-              continue;
-
-            for (energy = s=0; s<n_seq; s++) {
-              rt=rtype[type[s]];
-              type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
-              if (type_2 ==0) type_2=7;
-              si1 = S5[s][i];
-              sq1 = S3[s][q];
-              u1 = a2s[s][p] - 1 - a2s[s][j];
-              u2 = a2s[s][i] - 1 + (a2s[s][length] - a2s[s][q]);
-              energy += E_IntLoop(u1, u2, rt, type_2,
-                                   S3[s][j], si1, S5[s][p], sq1, P);
-            }
-            if(sc)
-              for(s = 0; s < n_seq; s++){
-                if(sc[s]){
-                  u1 = a2s[s][p] - 1 - a2s[s][j];
-                  u2 = a2s[s][i] - 1 + (a2s[s][length] - a2s[s][q]);
-                  if((u1+u2 == 0) && (sc[s]->energy_stack))
-                    energy +=   sc[s]->energy_stack[a2s[s][i]]
-                              + sc[s]->energy_stack[a2s[s][j]]
-                              + sc[s]->energy_stack[a2s[s][p]]
-                              + sc[s]->energy_stack[a2s[s][q]];
-                  if(sc[s]->energy_up)
-                    energy +=   sc[s]->energy_up[a2s[s][j] + 1][u1]
-                              + ((q < length) ? sc[s]->energy_up[a2s[s][q]+1][a2s[s][length]-a2s[s][q]] : 0)
-                              + ((i > 1) ? sc[s]->energy_up[1][a2s[s][i]-1] : 0);
-                }
-              }
-            new_c = c[ij] + c[indx[q]+p] + energy;
-            if (new_c<FcI) {
-              FcI = new_c; Ii=i; Ij=j; Ip=p; Iq=q;
-            }
-          }
+      if(ip != 0){
+        if(new_c < FcI){
+          FcI = new_c;
+          Ii  = i;
+          Ij  = j;
+          Ip  = ip;
+          Iq  = iq;
         }
       }
     }

@@ -153,8 +153,6 @@ ubf_eval_int_loop(  int i,
                     int j,
                     int p,
                     int q,
-                    int u1,
-                    int u2,
                     short si,
                     short sj,
                     short sp,
@@ -167,7 +165,10 @@ ubf_eval_int_loop(  int i,
                     vrna_param_t *P,
                     vrna_sc_t *sc){
 
-  int energy;
+  int energy, u1, u2;
+
+  u1 = p - i - 1;
+  u2 = j - q - 1;
 
   if((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))){ /* regular interior loop */
     energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
@@ -223,8 +224,6 @@ ubf_eval_ext_int_loop(int i,
                       int j,
                       int p,
                       int q,
-                      int u1,
-                      int u2,
                       short si,
                       short sj,
                       short sp,
@@ -235,16 +234,20 @@ ubf_eval_ext_int_loop(int i,
                       vrna_param_t *P,
                       vrna_sc_t *sc){
 
-  int energy;
+  int energy, u1, u2, u3;
+  
+  u1 = i - 1;
+  u2 = p - j - 1;
+  u3 = length - q;
 
-  energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
+  energy = E_IntLoop(u2, u1 + u3, type, type_2, si, sj, sp, sq, P);
 
   /* add soft constraints */
   if(sc){
     if(sc->energy_up)
-      energy += sc->energy_up[j+1][p-j-1]
-                + sc->energy_up[q+1][length-q]
-                + sc->energy_up[1][i-1];
+      energy += sc->energy_up[j+1][u2]
+                + sc->energy_up[q+1][u3]
+                + sc->energy_up[1][u1];
 
     if(sc->energy_stack)
       if((p==i+1) && (q == j-1))

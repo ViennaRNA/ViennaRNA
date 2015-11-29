@@ -166,6 +166,10 @@ vrna_E_hp_loop( vrna_fold_compound_t *vc,
 /**
  *  @brief  Evaluate the free energy of an exterior hairpin loop
  *          and consider possible hard constraints
+ *
+ *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
+ *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *
  */
 int
 vrna_E_ext_hp_loop( vrna_fold_compound_t *vc,
@@ -262,7 +266,11 @@ exp_E_Hairpin(int u,
 /**
  *  @brief High-Level function for hairpin loop energy evaluation (partition function variant)
  *
- *  @see E_hp_loop() for it's free energy counterpart
+ *  @see vrna_E_hp_loop() for it's free energy counterpart
+ *
+ *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
+ *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *
 */
 double
 vrna_exp_E_hp_loop( vrna_fold_compound_t *vc,

@@ -288,36 +288,11 @@ alipf_linear( vrna_fold_compound_t *vc,
       }
 
       psc = pscore[jij];
+      qbt1 = 0.;
 
       if(hard_constraints[jij]){
-
-        /* hairpin contribution */
-        if(hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
-          if(hc->up_hp[i+1] >= j - i - 1){
-            for (qbt1=1,s=0; s<n_seq; s++) {
-              u = a2s[s][j-1] - a2s[s][i];
-              if (a2s[s][i]<1) continue;
-              char loopseq[10];
-              if (u<9){
-                strncpy(loopseq, Ss[s]+a2s[s][i]-1, 10);
-              }
-              qbt1 *= exp_E_Hairpin(u, type[s], S3[s][i], S5[s][j], loopseq, pf_params);
-            }
-            if(sc)
-              for(s = 0; s < n_seq; s++){
-                if(sc[s]){
-                  u = a2s[s][j-1] - a2s[s][i];
-
-                  if(sc[s]->exp_energy_bp)
-                    qbt1 *= sc[s]->exp_energy_bp[jij];
-
-                  if(sc[s]->exp_energy_up)
-                    qbt1 *= sc[s]->exp_energy_up[a2s[s][i]+1][u];
-                }
-              }
-            qbt1 *= scale[j-i+1];
-          }
-        }
+        /* process hairpin loop(s) */
+        qbt1 += vrna_exp_E_hp_loop(vc, i, j);
 
         /* interior loops with interior pair k,l */
         if(hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
