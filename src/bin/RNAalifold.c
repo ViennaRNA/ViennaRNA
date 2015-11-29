@@ -555,7 +555,6 @@ int main(int argc, char *argv[]){
       free(mfel);
     }
     free(mfe_struc);
-    vrna_fold_compound_free(vc);
     free(pf_parameters);
   }
   if (cstruc!=NULL) free(cstruc);
@@ -564,6 +563,7 @@ int main(int argc, char *argv[]){
     free(shape_files);
   free(string);
   free(structure);
+  vrna_fold_compound_free(vc);
   for (i=0; AS[i]; i++) {
     free(AS[i]); free(names[i]);
   }
