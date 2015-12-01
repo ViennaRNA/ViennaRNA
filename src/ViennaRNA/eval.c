@@ -470,6 +470,7 @@ eval_int_loop(vrna_fold_compound_t *vc,
     type = 7;
 
   return ubf_eval_int_loop( i, j, p, q,
+                            i + 1, j - 1, p - 1, q + 1,
                             si, sj, sp, sq,
                             type, type_2, rtype,
                             ij, cp,
@@ -508,6 +509,7 @@ eval_ext_int_loop(vrna_fold_compound_t *vc,
     type = 7;
 
   return ubf_eval_ext_int_loop( i, j, p, q,
+                                i - 1, j + 1, p - 1, q + 1,
                                 si, sj, sp, sq,
                                 type, type_2,
                                 length,

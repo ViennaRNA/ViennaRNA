@@ -134,6 +134,7 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
                                                 if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
                                             energy += ubf_eval_int_loop(i, j, p, q,
+                                                                        i + 1, j - 1, p - 1, q + 1,
                                                                         S_i1, S_j1, *S_p1, *S_q1,
                                                                         type, type_2, rtype,
                                                                         ij, cp,
@@ -148,6 +149,7 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
                                               sc = (scs && scs[s]) ? scs[s] : NULL;
 
                                               energy += ubf_eval_int_loop(a2s[s][i], a2s[s][j],a2s[s][p],a2s[s][q],
+                                                                          a2s[s][i + 1], a2s[s][j - 1], a2s[s][p - 1], a2s[s][q + 1],
                                                                           S3[s][i], S5[s][j], S5[s][p], S3[s][q],
                                                                           types[s], type_2, rtype,
                                                                           ij, cp,
@@ -438,6 +440,7 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
             case VRNA_VC_TYPE_SINGLE:     type_2  = rtype[(unsigned char)ptype[indx[q]+p]];
 
                                           energy  = ubf_eval_ext_int_loop(i, j, p, q,
+                                                                          i - 1, j + 1, p - 1, q + 1,
                                                                           S[j+1], S[i-1], S[p-1], S[q+1],
                                                                           type, type_2,
                                                                           length,
@@ -451,6 +454,7 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
                                             sc = (scs && scs[s]) ? scs[s] : NULL;
 
                                             energy += ubf_eval_ext_int_loop(a2s[s][i], a2s[s][j], a2s[s][p], a2s[s][q],
+                                                                            a2s[s][i - 1], a2s[s][j + 1], a2s[s][p - 1], a2s[s][q + 1],
                                                                             S3[s][j], S5[s][i], S5[s][p], S3[s][q],
                                                                             types[s], type_2,
                                                                             a2s[s][length],
@@ -734,6 +738,7 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
               continue;  /* continue unless stack */
 
         energy = ubf_eval_int_loop( *i, *j, p, q,
+                                    (*i) + 1, (*j) - 1, p - 1, q + 1,
                                     S1[*i+1], S1[*j-1], S1[p-1], S1[q+1],
                                     type, type_2,
                                     rtype,

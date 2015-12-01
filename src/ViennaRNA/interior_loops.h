@@ -141,7 +141,7 @@ int E_stack(int i, int j, vrna_fold_compound_t *vc);
 /*
  *  ugly but fast interior loop evaluation
  *
- *  This function may be included in your own code, but actually only serves
+ *  Avoid including this function in your own code. It only serves
  *  as a fast inline block internally re-used throughout the RNAlib. It
  *  evalutes the free energy of interior loops in single sequences or sequence
  *  hybrids. Soft constraints are also applied if available.
@@ -153,6 +153,10 @@ ubf_eval_int_loop(  int i,
                     int j,
                     int p,
                     int q,
+                    int i1,
+                    int j1,
+                    int p1,
+                    int q1,
                     short si,
                     short sj,
                     short sp,
@@ -167,15 +171,15 @@ ubf_eval_int_loop(  int i,
 
   int energy, u1, u2;
 
-  u1 = p - i - 1;
-  u2 = j - q - 1;
+  u1 = p1 - i;
+  u2 = j1 - q;
 
   if((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))){ /* regular interior loop */
     energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
   } else { /* interior loop like cofold structure */
     short Si, Sj;
-    Si  = ON_SAME_STRAND(i, i + 1, cp) ? si : -1;
-    Sj  = ON_SAME_STRAND(j - 1, j, cp) ? sj : -1;
+    Si  = ON_SAME_STRAND(i, i1, cp) ? si : -1;
+    Sj  = ON_SAME_STRAND(j1, j, cp) ? sj : -1;
     energy = E_IntLoop_Co(rtype[type], rtype[type_2],
                             i, j, p, q,
                             cp,
@@ -188,14 +192,14 @@ ubf_eval_int_loop(  int i,
   /* add soft constraints */
   if(sc){
     if(sc->energy_up)
-      energy += sc->energy_up[i+1][u1]
-                + sc->energy_up[q+1][u2];
+      energy += sc->energy_up[i1][u1]
+                + sc->energy_up[q1][u2];
 
     if(sc->energy_bp)
       energy += sc->energy_bp[ij];
 
     if(sc->energy_stack)
-      if((p==i+1) && (q == j-1))
+      if((p==i1) && (q == j1) /* && (p1 == i) && (q1 == j) */)
         energy +=   sc->energy_stack[i]
                   + sc->energy_stack[p]
                   + sc->energy_stack[q]
@@ -212,7 +216,7 @@ ubf_eval_int_loop(  int i,
 /*
  *  ugly but fast exterior interior loop evaluation
  *
- *  This function may be included in your own code, but actually only serves
+ *  Avoid including this function in your own code. It only serves
  *  as a fast inline block internally re-used throughout the RNAlib. It
  *  evalutes the free energy of interior loops in single sequences or sequence
  *  hybrids. Soft constraints are also applied if available.
@@ -224,6 +228,10 @@ ubf_eval_ext_int_loop(int i,
                       int j,
                       int p,
                       int q,
+                      int i1,
+                      int j1,
+                      int p1,
+                      int q1,
                       short si,
                       short sj,
                       short sp,
@@ -236,8 +244,8 @@ ubf_eval_ext_int_loop(int i,
 
   int energy, u1, u2, u3;
   
-  u1 = i - 1;
-  u2 = p - j - 1;
+  u1 = i1;
+  u2 = p1 - j;
   u3 = length - q;
 
   energy = E_IntLoop(u2, u1 + u3, type, type_2, si, sj, sp, sq, P);
@@ -245,12 +253,12 @@ ubf_eval_ext_int_loop(int i,
   /* add soft constraints */
   if(sc){
     if(sc->energy_up)
-      energy += sc->energy_up[j+1][u2]
-                + sc->energy_up[q+1][u3]
+      energy += sc->energy_up[j1][u2]
+                + sc->energy_up[q1][u3]
                 + sc->energy_up[1][u1];
 
     if(sc->energy_stack)
-      if((p==i+1) && (q == j-1))
+      if((p1==j) && (i == 1) && (q == length) /* && (j1 == p) && (i1 == 0) */)
         energy +=   sc->energy_stack[i]
                   + sc->energy_stack[p]
                   + sc->energy_stack[q]

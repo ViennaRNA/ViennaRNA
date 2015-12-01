@@ -174,7 +174,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
                                   
                                   for (s=0; s<n_seq; s++) {
                                     char loopseq[10];
-                                    u = a2s[s][length] - a2s[s][j] + a2s[s][i] - 1;
+                                    u = a2s[s][length] - a2s[s][j] + a2s[s][i - 1];
 
                                     if (u<9) {
                                       strcpy(loopseq , Ss[s] + a2s[s][j] - 1);
@@ -187,8 +187,8 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
                                     for(s=0;s < n_seq; s++){
                                       if(scs[s]){
                                         if(scs[s]->energy_up){
-                                          e +=    ((i > 1) ? scs[s]->energy_up[1][a2s[s][i] - 1] : 0)
-                                                    + ((j < length) ? scs[s]->energy_up[a2s[s][j] + 1][a2s[s][length] - a2s[s][j]] : 0);
+                                          e +=    ((i > 1) ? scs[s]->energy_up[1][a2s[s][i - 1]] : 0)
+                                                    + ((j < length) ? scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]] : 0);
                                         }
                                         if(scs[s]->f)
                                           e += scs[s]->f(a2s[s][j], a2s[s][i], a2s[s][j], a2s[s][i], VRNA_DECOMP_PAIR_HP, scs[s]->data);
@@ -299,7 +299,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
                                         u = a2s[s][j-1]-a2s[s][i];
 
                                         if(scs[s]->energy_up)
-                                          e += scs[s]->energy_up[a2s[s][i]+1][u];
+                                          e += scs[s]->energy_up[a2s[s][i + 1]][u];
 
                                         if(scs[s]->energy_bp)
                                           e += scs[s]->energy_bp[ij];
@@ -453,7 +453,7 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
                                           qbt1 *= scs[s]->exp_energy_bp[ij];
 
                                         if(scs[s]->exp_energy_up)
-                                          qbt1 *= scs[s]->exp_energy_up[a2s[s][i]+1][u];
+                                          qbt1 *= scs[s]->exp_energy_up[a2s[s][i + 1]][u];
 
                                         if(scs[s]->exp_f)
                                           qbt1 *= scs[s]->exp_f(a2s[s][i], a2s[s][j], a2s[s][i], a2s[s][j], VRNA_DECOMP_PAIR_HP, scs[s]->data);
