@@ -76,6 +76,8 @@ which would result in an output like this
 .ft
 .fi
 
+[CONSTRAINT EXAMPLES]
+
 Secondary structure constraints may be given in addition to the sequence information, too.
 Using the first sequence of the previous example and restricting the nucleotides of the
 outermost helix to be unpaired, i.e. base pairs (2,47) and (3,46) the input file should
@@ -107,6 +109,13 @@ This represents the minimum free energy and a structure representative of the RN
 sequence given that nucleotides 2,3,46 and 47 must not be involved in any base pair.
 For further information about constrained folding refer to the details of the -C option
 and the reference manual of RNAlib.
+
+Since version 2.2 the ViennaRNA Package distinguishes hard and soft constraints.
+As a consequence, structure predictions are easily amenable to a versatile set of constraints,
+such as maximal base pair span, incorporation of SHAPE reactivity data, and RNA-ligand binding
+to hairpin, or interior loop motifs.
+
+
 
 [REFERENCES]
 
