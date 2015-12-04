@@ -1084,12 +1084,12 @@ vrna_sc_init(vrna_fold_compound_t *vc){
 
     switch(vc->type){
       case VRNA_VC_TYPE_SINGLE:     sc                    = (vrna_sc_t *)vrna_alloc(sizeof(vrna_sc_t));
-                                    sc->energy_up     = NULL;
-                                    sc->energy_bp       = NULL;
-                                    sc->energy_stack          = NULL;
-                                    sc->exp_energy_stack      = NULL;
-                                    sc->exp_energy_up = NULL;
-                                    sc->exp_energy_bp   = NULL;
+                                    sc->energy_up         = NULL;
+                                    sc->energy_bp         = NULL;
+                                    sc->energy_stack      = NULL;
+                                    sc->exp_energy_stack  = NULL;
+                                    sc->exp_energy_up     = NULL;
+                                    sc->exp_energy_bp     = NULL;
                                     sc->f                 = NULL;
                                     sc->exp_f             = NULL;
                                     sc->data              = NULL;
@@ -1101,12 +1101,12 @@ vrna_sc_init(vrna_fold_compound_t *vc){
       case VRNA_VC_TYPE_ALIGNMENT:  vc->scs = (vrna_sc_t **)vrna_alloc(sizeof(vrna_sc_t*) * (vc->n_seq + 1));
                                     for(s = 0; s < vc->n_seq; s++){
                                       sc                    = (vrna_sc_t *)vrna_alloc(sizeof(vrna_sc_t));
-                                      sc->energy_up     = NULL;
-                                      sc->energy_bp       = NULL;
-                                      sc->energy_stack          = NULL;
-                                      sc->exp_energy_stack      = NULL;
-                                      sc->exp_energy_up = NULL;
-                                      sc->exp_energy_bp   = NULL;
+                                      sc->energy_up         = NULL;
+                                      sc->energy_bp         = NULL;
+                                      sc->energy_stack      = NULL;
+                                      sc->exp_energy_stack  = NULL;
+                                      sc->exp_energy_up     = NULL;
+                                      sc->exp_energy_bp     = NULL;
                                       sc->f                 = NULL;
                                       sc->exp_f             = NULL;
                                       sc->data              = NULL;
@@ -1282,18 +1282,24 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
                               double b,
                               unsigned int options){
 
-  float   reactivity, *reactivities, e1;
-  char    *line, nucleotide, *sequence;
-  int     s, i, p, r, position, *pseudo_energies, n_seq;
+  float           reactivity, *reactivities, e1;
+  char            *line, nucleotide, *sequence;
+  int             s, i, p, r, position, *pseudo_energies, n_seq;
+  unsigned short  **a2s;
 
   if(vc->type == VRNA_VC_TYPE_ALIGNMENT){
     n_seq = vc->n_seq;
+    a2s   = vc->a2s;
 
     vrna_sc_init(vc);
 
     for(s = 0; shape_file_association[s] != -1; s++){
-      if(shape_file_association[s] > n_seq)
+      int ss = shape_file_association[s]; /* actual sequence number in alignment */
+
+      if(ss >= n_seq){
         vrna_message_warning("SHAPE file association exceeds sequence number in alignment");
+        continue;
+      }
 
       /* read the shape file */
       FILE *fp;
@@ -1304,6 +1310,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
         reactivities  = (float *)vrna_alloc(sizeof(float) * (vc->length + 1));
         sequence      = (char *)vrna_alloc(sizeof(char) * (vc->length + 1));
 
+        /* initialize reactivities with missing data for entire alignment length */
         for(i = 1; i <= vc->length; i++)
           reactivities[i] = -1.;
 
@@ -1344,18 +1351,31 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
             reactivities[i] = m * log(reactivities[i] + 1.) + b; /* this should be a value in kcal/mol */
         }
 
-        /* begin actual storage of the pseudo energies */
-
+        /*  begin actual storage of the pseudo energies */
+        /*  beware of the fact that energy_stack will be accessed through a2s[s] array,
+            hence pseudo_energy might be gap-free (default)
+        */
         if(options & VRNA_CONSTRAINT_SOFT_MFE){
+          int energy, cnt, gaps, is_gap;
           pseudo_energies = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
-          for(p = 0, i = 1; i<=vc->length; i++){
-            e1 = (i - p > 0) ? reactivities[i - p] : 0.;
-            if(vc->sequences[shape_file_association[s]][i-1] == '-'){
-              p++; e1 = 0.;
+          for(gaps = cnt = 0, i = 1; i<=vc->length; i++){
+            is_gap  = (vc->sequences[ss][i-1] == '-') ? 1 : 0;
+            energy  = ((i - gaps > 0) && !(is_gap)) ? (int)(reactivities[i - gaps] * 100.) : 0;
+
+            if(vc->params->model_details.oldAliEn){
+              pseudo_energies[i] = energy;
+              cnt++;
+            } else if(!is_gap){ /* store gap-free */
+              pseudo_energies[a2s[ss][i]] = energy;
+              cnt++;
             }
-            pseudo_energies[i] = (int)(e1 * 100.);
+
+            gaps += is_gap;
           }
-          vc->scs[shape_file_association[s]]->energy_stack = pseudo_energies;
+
+          /* resize to actual number of entries */
+          pseudo_energies = vrna_realloc(pseudo_energies, sizeof(int) * (cnt + 2));
+          vc->scs[ss]->energy_stack = pseudo_energies;
         }
 
         if(options & VRNA_CONSTRAINT_SOFT_PF){
@@ -1365,12 +1385,12 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
 
           for(p = 0, i = 1; i<=vc->length; i++){
             e1 = (i - p > 0) ? reactivities[i - p] : 0.;
-            if(vc->sequences[shape_file_association[s]][i-1] == '-'){
+            if(vc->sequences[ss][i-1] == '-'){
               p++; e1 = 0.;
             }
             exp_pe[i] = exp(-(e1 * 1000.) / vc->exp_params->kT );
           }
-          vc->scs[shape_file_association[s]]->exp_energy_stack = exp_pe;
+          vc->scs[ss]->exp_energy_stack = exp_pe;
         }
         
         free(reactivities);

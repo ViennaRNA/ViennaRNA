@@ -199,12 +199,13 @@ ubf_eval_int_loop(  int i,
       energy += sc->energy_bp[ij];
 
     if(sc->energy_stack)
-      if((p==i1) && (q == j1) /* && (p1 == i) && (q1 == j) */)
-        energy +=   sc->energy_stack[i]
+      if(u1 + u2 == 0){
+        int a =   sc->energy_stack[i]
                   + sc->energy_stack[p]
                   + sc->energy_stack[q]
                   + sc->energy_stack[j];
-
+        energy += a;
+      }
     if(sc->f)
       energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
   }
@@ -258,7 +259,7 @@ ubf_eval_ext_int_loop(int i,
                 + sc->energy_up[1][u1];
 
     if(sc->energy_stack)
-      if((p1==j) && (i == 1) && (q == length) /* && (j1 == p) && (i1 == 0) */)
+      if(u1 + u2 + u3 == 0)
         energy +=   sc->energy_stack[i]
                   + sc->energy_stack[p]
                   + sc->energy_stack[q]
