@@ -54,7 +54,7 @@ Perl_interface: $(SWIG_wrapper) Makefile.perl
 # by the uninstall target too
 #
 Makefile.perl: Makefile.PL Makefile
-	$(AM_V_GEN)@PerlCmd@ Makefile.PL PREFIX=$(prefix) INSTALL_BASE= 
+	$(AM_V_GEN)@PerlCmd@ Makefile.PL PREFIX=$(prefix) INSTALL_BASE= CC=$(CC)
 	$(SED) -i \
   's#$$(NOECHO) $$(UNINSTALL) $$(PERL_ARCHLIB)/auto/$$(FULLEXT)/.packlist#$$(NOECHO) $$(UNINSTALL) $$(DESTINSTALLARCHLIB)/auto/$$(FULLEXT)/.packlist#g' \
   Makefile.perl
