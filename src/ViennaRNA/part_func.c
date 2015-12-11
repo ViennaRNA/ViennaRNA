@@ -349,10 +349,10 @@ pf_linear(vrna_fold_compound_t *vc){
         }
       }
 
-      maxk = MIN2(i+hc_up_ml[i], j);
-      ii = 1; /* length of unpaired stretch */
+      maxk  = MIN2(i+hc_up_ml[i], j);
+      ii    = maxk - i; /* length of unpaired stretch */
       if(sc){
-        for (k=i+1; k<=maxk; k++, ii++){
+        for (k=maxk; k>i; k--, ii--){
           q_temp = expMLbase[ii] * qqm[k];
           if(sc->exp_energy_up)
             q_temp *= sc->exp_energy_up[i][ii];
@@ -363,7 +363,7 @@ pf_linear(vrna_fold_compound_t *vc){
           temp += q_temp;
         }
       } else {
-        for (k=i+1; k<=maxk; k++, ii++){
+        for (k=maxk; k>i; k--, ii--){
           temp += expMLbase[ii] * qqm[k];
         }
       }
@@ -656,12 +656,25 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   max_real      = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
   sequence      = vc->sequence;
 
+
   if((S != NULL) && (S1 != NULL)){
 
     expMLclosing  = pf_params->expMLclosing;
     with_gquad    = pf_params->model_details.gquad;
     rtype         = &(pf_params->model_details.rtype[0]);
     n             = S[0];
+
+    /*
+      The hc_local array provides row-wise access to hc->matrix, i.e.
+      my_iindx. Using this in the cubic order loop for multiloops below
+      results in way faster computation due to fewer cache misses. Also,
+      it introduces only little memory overhead, e.g. ~450MB for
+      sequences of length 30,000
+    */
+    char *hc_local = (char *)vrna_alloc(sizeof(char) * (((n + 1) * (n + 2)) /2 + 2));
+    for(i = 1; i <= n; i++)
+      for(j = i; j <= n; j++)
+        hc_local[my_iindx[i] - j] = hard_constraints[jindx[j] + i];
 
     FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
     FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
@@ -784,7 +797,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
         for (j=i+turn+1; j<=n; j++) {
           ij = my_iindx[i]-j;
-          if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+          if(hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
             type      = (unsigned char)ptype[jindx[j] + i];
             probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
             probs[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
@@ -810,7 +823,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
         if (qb[kl]==0.) continue;
 
-        if(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
+        if(hc_local[kl] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
           for(i = MAX2(1, k - MAXLOOP - 1); i <= k - 1; i++){
             u1 = k - i - 1;
             if(hc_up_int[i+1] < u1) continue;
@@ -820,7 +833,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               if(hc_up_int[l+1] < u2) break;
 
               ij = my_iindx[i] - j;
-              if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
+              if(hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
                 type = (unsigned char)ptype[jindx[j] + i];
                 if(probs[ij] > 0){
                   tmp2 =  probs[ij]
@@ -954,7 +967,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           ii = my_iindx[i];     /* ii-j=[i,j]     */
           tt = (unsigned char)ptype[jindx[l+1] + i];
           tt = rtype[tt];
-          if(hard_constraints[jindx[l+1] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+          if(hc_local[ii - (l + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
             prmt1 = probs[ii-(l+1)]
                     * expMLclosing
                     * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
@@ -971,13 +984,14 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             }
           }
           int lj;
+          short s3;
           FLT_OR_DBL ppp;
           ij = my_iindx[i] - (l+2);
           lj = my_iindx[l+1]-(l+1);
+          s3 = S1[i+1];
           for (j = l + 2; j<=n; j++, ij--, lj--){
-            if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
-              tt = (unsigned char)ptype[jindx[j] + i];
-              tt = rtype[tt];
+            if(hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+              tt = (unsigned char)md->pair[S1[j]][S1[i]];
               /* which decomposition is covered here? =>
                 i + 1 = k < l < j:
                 (i,j)       -> enclosing pair
@@ -986,7 +1000,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                 
               */
               ppp = probs[ij]
-                    * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)
+                    * exp_E_MLstem(tt, S1[j-1], s3, pf_params)
                     * qm[lj];
 
               if(sc){
@@ -1051,7 +1065,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             if (qb[kl] == 0.) continue;
           }
 
-          if(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+          if(hc_local[kl] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
 
             temp = prm_MLb;
 
@@ -1092,7 +1106,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           /*  search for possible auxiliary base pairs in hairpin loop motifs to store
               the corresponding probability corrections
           */ 
-          if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
+          if(hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
             vrna_basepair_t *ptr, *aux_bps;
             aux_bps = sc->bt(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
             if(aux_bps){
@@ -1152,9 +1166,11 @@ pf_create_bppm( vrna_fold_compound_t *vc,
     free(prm_l1);
     free(prml);
 
+    free(hc_local);
   } /* end if((S != NULL) && (S1 != NULL))  */
   else
     vrna_message_error("bppm calculations have to be done after calling forward recursion\n");
+
   return;
 }
 
