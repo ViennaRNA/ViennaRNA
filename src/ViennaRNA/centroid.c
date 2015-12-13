@@ -81,7 +81,7 @@ vrna_centroid_from_probs( int length,
      Thus, the centroid is simply the structure containing all pairs with
      p_ij>0.5 */
   int i,j;
-  double p;
+  FLT_OR_DBL p;
   char  *centroid;
   int   *index = vrna_idx_row_wise(length);
 
@@ -115,7 +115,7 @@ vrna_centroid(vrna_fold_compound_t *vc,
      Thus, the centroid is simply the structure containing all pairs with
      p_ij>0.5 */
   int i,j, k, length;
-  double p;
+  FLT_OR_DBL p;
   char  *centroid;
   short *S;
   vrna_mx_pf_t      *matrices;

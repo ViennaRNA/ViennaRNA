@@ -21,7 +21,7 @@
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 
-PRIVATE double exp_eval_hp_loop( vrna_fold_compound_t *vc, int i, int j);
+PRIVATE FLT_OR_DBL exp_eval_hp_loop( vrna_fold_compound_t *vc, int i, int j);
 
 /*
 #################################
@@ -332,14 +332,14 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
  *
  *  @see E_hp_loop() for it's free energy counterpart
 */
-PUBLIC double
+PUBLIC FLT_OR_DBL
 vrna_exp_E_hp_loop( vrna_fold_compound_t *vc,
                     int i,
                     int j){
 
   int                       u, *hc_up;
   char                      eval_loop;
-  double                    q;
+  FLT_OR_DBL                q;
   vrna_callback_hc_evaluate *f;
   vrna_hc_t                 *hc;
 
@@ -366,13 +366,13 @@ vrna_exp_E_hp_loop( vrna_fold_compound_t *vc,
   return q;
 }
 
-PRIVATE double
+PRIVATE FLT_OR_DBL
 exp_eval_hp_loop( vrna_fold_compound_t *vc,
                   int i,
                   int j){
 
   int               u, ij, type, n_seq, s, *types, cp, *idx;
-  double            q, qbt1;
+  FLT_OR_DBL        q, qbt1;
   FLT_OR_DBL        *scale;
   short             *S, **SS, **S5, **S3;
   char              **Ss;

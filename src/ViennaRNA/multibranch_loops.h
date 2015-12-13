@@ -50,7 +50,7 @@ PRIVATE INLINE int E_MLstem( int type,
  *  @see E_MLstem()
  *  @return The Boltzmann weighted energy contribution of the introduced multiloop stem
  */
-PRIVATE INLINE double exp_E_MLstem(int type,
+PRIVATE INLINE FLT_OR_DBL exp_E_MLstem(int type,
                                     int si1,
                                     int sj1,
                                     vrna_exp_param_t *P);
@@ -142,7 +142,7 @@ PRIVATE INLINE int E_MLstem(int type, int si1, int sj1, vrna_param_t *P){
 
 
 
-PRIVATE INLINE double
+PRIVATE INLINE FLT_OR_DBL
 exp_E_MLstem( int type,
               int si1,
               int sj1,
@@ -163,7 +163,7 @@ exp_E_MLstem( int type,
     energy *= P->expTermAU;
 
   energy *= P->expMLintern[type];
-  return energy;
+  return (FLT_OR_DBL)energy;
 }
 
 FLT_OR_DBL

@@ -101,15 +101,15 @@ PRIVATE INLINE int E_IntLoop(int n1,
  *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
  *  @return The Boltzmann weight of the Interior-loop
  */
-PRIVATE INLINE double  exp_E_IntLoop(int u1,
-                                      int u2,
-                                      int type,
-                                      int type2,
-                                      short si1,
-                                      short sj1,
-                                      short sp1,
-                                      short sq1,
-                                      vrna_exp_param_t *P);
+PRIVATE INLINE FLT_OR_DBL exp_E_IntLoop(int u1,
+                                        int u2,
+                                        int type,
+                                        int type2,
+                                        short si1,
+                                        short sj1,
+                                        short sp1,
+                                        short sq1,
+                                        vrna_exp_param_t *P);
 
 
 PRIVATE INLINE int E_IntLoop_Co(int type,
@@ -344,7 +344,17 @@ E_IntLoop(int n1,
   return energy;
 }
 
-PRIVATE INLINE double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, vrna_exp_param_t *P){
+PRIVATE INLINE FLT_OR_DBL
+exp_E_IntLoop(int u1,
+              int u2,
+              int type,
+              int type2,
+              short si1,
+              short sj1,
+              short sp1,
+              short sq1,
+              vrna_exp_param_t *P){
+
   int ul, us, no_close = 0;
   double z = 0.;
 
@@ -364,37 +374,37 @@ PRIVATE INLINE double exp_E_IntLoop(int u1, int u2, int type, int type2, short s
         if (type>2) z *= P->expTermAU;
         if (type2>2) z *= P->expTermAU;
       }
-      return z;
+      return (FLT_OR_DBL)z;
     }
     else if (us==1) {
       if (ul==1){                    /* 1x1 loop */
-        return P->expint11[type][type2][si1][sj1];
+        return (FLT_OR_DBL)(P->expint11[type][type2][si1][sj1]);
       }
       if (ul==2) {                  /* 2x1 loop */
         if (u1==1)
-          return P->expint21[type][type2][si1][sq1][sj1];
+          return (FLT_OR_DBL)(P->expint21[type][type2][si1][sq1][sj1]);
         else
-          return P->expint21[type2][type][sq1][si1][sp1];
+          return (FLT_OR_DBL)(P->expint21[type2][type][sq1][si1][sp1]);
       }
       else {  /* 1xn loop */
         z = P->expinternal[ul+us] * P->expmismatch1nI[type][si1][sj1] * P->expmismatch1nI[type2][sq1][sp1];
-        return z * P->expninio[2][ul-us];
+        return (FLT_OR_DBL)(z * P->expninio[2][ul-us]);
       }
     }
     else if (us==2) {
       if(ul==2) /* 2x2 loop */
-        return P->expint22[type][type2][si1][sp1][sq1][sj1];
+        return (FLT_OR_DBL)(P->expint22[type][type2][si1][sp1][sq1][sj1]);
       else if(ul==3){              /* 2x3 loop */
         z = P->expinternal[5]*P->expmismatch23I[type][si1][sj1]*P->expmismatch23I[type2][sq1][sp1];
-        return z * P->expninio[2][1];
+        return (FLT_OR_DBL)(z * P->expninio[2][1]);
       }
     }
     /* generic interior loop (no else here!)*/
     z = P->expinternal[ul+us] * P->expmismatchI[type][si1][sj1] * P->expmismatchI[type2][sq1][sp1];
-    return z * P->expninio[2][ul-us];
+    return (FLT_OR_DBL)(z * P->expninio[2][ul-us]);
 
   }
-  return z;
+  return (FLT_OR_DBL)z;
 }
 
 PRIVATE INLINE int
@@ -460,7 +470,7 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j);
 
-FLT_OR_DBL
+PUBLIC FLT_OR_DBL
 vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j);
@@ -490,7 +500,16 @@ E_IntLoop(int n1,
           vrna_param_t *P);
 
 
-double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, vrna_exp_param_t *P);
+PUBLIC FLT_OR_DBL
+exp_E_IntLoop(int u1,
+              int u2,
+              int type,
+              int type2,
+              short si1,
+              short sj1,
+              short sp1,
+              short sq1,
+              vrna_exp_param_t *P);
 
 int
 E_IntLoop_Co( int type,

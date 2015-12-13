@@ -208,10 +208,11 @@ alipf_linear( vrna_fold_compound_t *vc,
               char *structure){
 
   int         s, i,j,k,l, ij, jij, u, u1, u2, d, ii, *type, type_2, tt;
-  FLT_OR_DBL  temp, temp2;
+  FLT_OR_DBL  temp, temp2, Qmax=0.;
   FLT_OR_DBL  qbt1, *tmp;
   FLT_OR_DBL  *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
   double      kTn;
+  double      max_real;
 
   int               n_seq             = vc->n_seq;
   int               n                 = vc->length;
@@ -243,6 +244,7 @@ alipf_linear( vrna_fold_compound_t *vc,
   type  = (int *)vrna_alloc(sizeof(int) * n_seq);
 
   int max_bpspan = (md->max_bp_span > 0) ? md->max_bp_span : n;
+  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   /* allocate memory for helper arrays */
   qq        = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
@@ -301,7 +303,7 @@ alipf_linear( vrna_fold_compound_t *vc,
               break;
 
             for (l=MAX2(k+TURN+1,j-1-MAXLOOP+k-i-1); l<=j-1; l++){
-              double qloop=1.;
+              FLT_OR_DBL qloop=1.;
 
               if(!(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC))
                 continue;
@@ -467,19 +469,17 @@ alipf_linear( vrna_fold_compound_t *vc,
 
       q[ij] = temp;
 
-#ifndef LARGE_PF
       if (temp>Qmax) {
         Qmax = temp;
-        if (Qmax>FLT_MAX/10.)
-          fprintf(stderr, "%d %d %g\n", i,j,temp);
+        if (Qmax>max_real/10.)
+          fprintf(stderr, "Q close to overflow: %d %d %g\n", i,j,temp);
       }
-      if (temp>FLT_MAX) {
+      if (temp>=max_real) {
         PRIVATE char msg[128];
-        sprintf(msg, "overflow in pf_fold while calculating q[%d,%d]\n"
-          "use larger pf_scale", i,j);
+        snprintf(msg, 127, "overflow in pf_fold while calculating q[%d,%d]\n"
+                     "use larger pf_scale", i,j);
         vrna_message_error(msg);
       }
-#endif
     }
     tmp = qq1;  qq1 =qq;  qq =tmp;
     tmp = qqm1; qqm1=qqm; qqm=tmp;
@@ -500,7 +500,7 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
 
   int s;
   int i,j,k,l, ij, kl, ii, ll, tt, *type, ov=0;
-  FLT_OR_DBL temp, prm_MLb;
+  FLT_OR_DBL temp, prm_MLb, Qmax=0.;
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp, tmp2, tmp3;
 
@@ -535,7 +535,8 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
   FLT_OR_DBL        *probs        = matrices->probs;
   char              *hard_constraints = hc->matrix;
 
-  double kTn, pp;
+  double kTn;
+  FLT_OR_DBL pp;
 
   FLT_OR_DBL *prm_l   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
   FLT_OR_DBL *prm_l1  = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
@@ -636,7 +637,7 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
                 if(!(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP))
                   continue;
                 
-                double qloop=1.;
+                FLT_OR_DBL qloop=1.;
                 if(qb[my_iindx[k]-l]==0.){
                   qloop=0.;
                   continue;
@@ -703,7 +704,7 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
                 if(!(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP))
                   continue;
 
-                double qloop=1.;
+                FLT_OR_DBL qloop=1.;
                 if(qb[my_iindx[k]-l]==0.){
                   qloop=0.;
                   continue;
@@ -841,7 +842,7 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
           continue;
 
         for (j=l+1; j<=MIN2(l+ MAXLOOP -k+i+2,n); j++) {
-          double qloop=1;
+          FLT_OR_DBL qloop=1;
           ij = my_iindx[i] - j;
 
           if(probs[ij] == 0.) continue;
@@ -1145,7 +1146,7 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
             if(hc->up_int[l+1] < ln2)
               continue;
 
-            double qloop=1.;
+            FLT_OR_DBL qloop=1.;
             if (qb[my_iindx[k]-l]==0.){ qloop=0.; continue;}
 
             for (s=0; s<n_seq; s++){

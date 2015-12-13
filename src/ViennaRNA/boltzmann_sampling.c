@@ -69,7 +69,7 @@ PUBLIC char *
 vrna_pbacktrack5( vrna_fold_compound_t *vc,
                   int length){
 
-  double            r, qt, q_temp, qkl;
+  FLT_OR_DBL        r, qt, q_temp, qkl;
   int               i,j,ij, n, k, u, start, type;
   char              *pstruc;
   int               *my_iindx, *jindx, hc_decompose, *hc_up_ext;
@@ -250,7 +250,7 @@ backtrack_qm( int i,
               vrna_fold_compound_t *vc){
 
   /* divide multiloop into qm and qm1  */
-  double            qmt, r, q_temp;
+  FLT_OR_DBL        qmt, r, q_temp;
   int               k, n, u, cnt, span, turn;
   FLT_OR_DBL        *qm, *qm1, *expMLbase;
   int               *my_iindx, *jindx, *hc_up_ml;
@@ -348,7 +348,7 @@ backtrack_qm1(int i,
 
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int           ii, l, il, type, n, turn;
-  double        qt, r, q_temp;
+  FLT_OR_DBL    qt, r, q_temp;
   FLT_OR_DBL    *qm1, *qb, *expMLbase;
   vrna_mx_pf_t  *matrices;
   int           u, *my_iindx, *jindx, *hc_up_ml;
@@ -417,10 +417,10 @@ backtrack_qm2(int k,
               char *pstruc,
               vrna_fold_compound_t *vc){
 
-  double qom2t, r;
-  int u, turn;
-  FLT_OR_DBL *qm1, *qm2;
-  int *jindx;
+  FLT_OR_DBL  qom2t, r;
+  int         u, turn;
+  FLT_OR_DBL  *qm1, *qm2;
+  int         *jindx;
 
   jindx     = vc->jindx;
   qm1       = vc->exp_matrices->qm1;
@@ -447,6 +447,7 @@ backtrack(int i,
   char              *ptype, *sequence, *hard_constraints, hc_decompose;
   vrna_exp_param_t  *pf_params;
   FLT_OR_DBL        *qb, *qm, *qm1, *scale, tmp;
+  FLT_OR_DBL        r, qbt1, qt, q_temp;
   vrna_mx_pf_t      *matrices;
   int               *my_iindx, *jindx, *hc_up_int, *hc_up_hp;
   vrna_sc_t         *sc;
@@ -476,7 +477,6 @@ backtrack(int i,
   int turn        = pf_params->model_details.min_loop_size;
   int   *rtype    = &(pf_params->model_details.rtype[0]);
   int n;
-  double r, qbt1, qt, q_temp;
   n = j;
   do {
     int k, l, kl, u, u1, u2, max_k, min_l;
@@ -604,8 +604,8 @@ backtrack(int i,
 PRIVATE char *
 wrap_pbacktrack_circ(vrna_fold_compound_t *vc){
 
-  double r, qt;
-  int i, j, k, l, n;
+  FLT_OR_DBL  r, qt;
+  int         i, j, k, l, n;
   vrna_exp_param_t   *pf_params;
   FLT_OR_DBL  qo, qmo;
   FLT_OR_DBL  *scale, *qb, *qm, *qm2;
@@ -721,10 +721,10 @@ PUBLIC char *
 vrna_pbacktrack_comparative(vrna_fold_compound_t *vc,
                     double *prob){
 
-  double r, gr, qt;
-  int k,i,j, start,s;
-  double probs=1;
-  char  *pstruc = NULL;
+  FLT_OR_DBL  r, gr, qt;
+  int         k,i,j, start,s;
+  FLT_OR_DBL      probs=1;
+  char        *pstruc = NULL;
 
   int               n_seq       = vc->n_seq;
   int               n           = vc->length;
@@ -786,7 +786,7 @@ vrna_pbacktrack_comparative(vrna_fold_compound_t *vc,
       int xtype;
       /*  type = ptype[my_iindx[i]-j];
           if (type) {*/
-      double qkl;
+      FLT_OR_DBL qkl;
       if (qb[my_iindx[i]-j]>0) {
         qkl = qb[my_iindx[i]-j]*qln[j+1];  /*if psc too small qb=0!*/
         for (s=0; s< n_seq; s++) {
@@ -839,12 +839,12 @@ backtrack_comparative(vrna_fold_compound_t *vc,
   FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
 
   /*backtrack given i,j basepair!*/
-  double kTn = pf_params->kT/10.;
+  FLT_OR_DBL kTn = pf_params->kT/10.;
   int *type = (int *)vrna_alloc(sizeof(int) * n_seq);
 
   do {
-    double r, qbt1, max_k, min_l;
-    int k, l, u, u1, u2, s;
+    FLT_OR_DBL  r, qbt1, max_k, min_l;
+    int         k, l, u, u1, u2, s;
     pstruc[i-1] = '('; pstruc[j-1] = ')';
     for (s=0; s<n_seq; s++) {
       type[s] = md->pair[S[s][i]][S[s][j]];
@@ -877,7 +877,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       min_l = MAX2(k+TURN+1,j-1-MAXLOOP+k-i-1);
 
       for (l=min_l; l<j; l++){
-        double qloop=1;
+        FLT_OR_DBL qloop=1;
         int type_2;
         if (qb[my_iindx[k]-l]==0) {qloop=0; continue;}
         for (s=0; s<n_seq; s++) {
@@ -931,9 +931,9 @@ backtrack_comparative(vrna_fold_compound_t *vc,
 
   /* backtrack in multi-loop */
   {
-    double r, qt;
+    FLT_OR_DBL r, qt;
     int k, ii, jj;
-    double qttemp=0;;
+    FLT_OR_DBL qttemp=0;;
     i++; j--;
     /* find the first split index */
     ii = my_iindx[i]; /* ii-j=[i,j] */
@@ -1018,7 +1018,7 @@ backtrack_qm1_comparative(vrna_fold_compound_t *vc,
 
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   int ii, l, xtype,s;
-  double qt, r, tempz;
+  FLT_OR_DBL qt, r, tempz;
   r = vrna_urn() * qm1[jindx[j]+i];
   ii = my_iindx[i];
   for (qt=0., l=i+TURN+1; l<=j; l++) {

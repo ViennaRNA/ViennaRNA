@@ -21,16 +21,6 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
 ##                    [with_ruby=no],
 ##                    [${srcdir}/interfaces/Ruby/Makefile.am])
 
-  ## The following test ensures the right type for FLT_OR_DBL in the SWIG RNAlib interface
-  AC_MSG_CHECKING([whether float precision is used for partition function arrays instead of double precision])
-  bla=`${GREP} "^#define LARGE_PF" ${srcdir}/src/ViennaRNA/dp_matrices.h`
-  if test "x$bla" = "x";
-  then
-    with_pf_float=yes
-  fi
-  AC_MSG_RESULT([$with_pf_float])
-  AM_CONDITIONAL([WITH_LARGE_PF], [test "$with_pf_float" != "yes"])
-
   # check prerequisites for Perl interface
   AC_ARG_VAR([PerlCmd], [Perl executable])
   if test "x$PerlCmd" = "x";

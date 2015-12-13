@@ -634,7 +634,7 @@ E_ExtLoop(int type,
   return energy;
 }
 
-PUBLIC double
+PUBLIC FLT_OR_DBL
 exp_E_Stem( int type,
             int si1,
             int sj1,
@@ -654,10 +654,10 @@ exp_E_Stem( int type,
     energy *= P->expTermAU;
 
   if(!extLoop) energy *= P->expMLintern[type];
-  return energy;
+  return (FLT_OR_DBL)energy;
 }
 
-PUBLIC double
+PUBLIC FLT_OR_DBL
 exp_E_ExtLoop(int type,
               int si1,
               int sj1,
@@ -677,7 +677,7 @@ exp_E_ExtLoop(int type,
   if(type > 2)
     energy *= P->expTermAU;
 
-  return energy;
+  return (FLT_OR_DBL)energy;
 }
 
 PUBLIC int

@@ -41,7 +41,7 @@ int E_ExtLoop(int type,
  *  @see E_ExtLoop()
  *  @return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
  */
-double exp_E_ExtLoop( int type,
+FLT_OR_DBL exp_E_ExtLoop( int type,
                       int si1,
                       int sj1,
                       vrna_exp_param_t *P);
@@ -105,7 +105,7 @@ int E_Stem( int type,
  * 
  *  @return The Boltzmann weighted energy contribution of the branch off the loop
  */
-double exp_E_Stem(int type,
+FLT_OR_DBL exp_E_Stem(int type,
                   int si1,
                   int sj1,
                   int extLoop,

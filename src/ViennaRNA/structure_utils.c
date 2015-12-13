@@ -520,12 +520,12 @@ vrna_db_from_probs(const FLT_OR_DBL *p,
     P[0] = 1.0;
     P[1] = P[2] = 0.0;
     for( i=1; i<j; i++) {
-      P[2] += p[index[i]-j];    /* j is paired downstream */
-      P[0] -= p[index[i]-j];    /* j is unpaired */
+      P[2] += (float)p[index[i]-j];    /* j is paired downstream */
+      P[0] -= (float)p[index[i]-j];    /* j is unpaired */
     }
     for( i=j+1; i<=length; i++ ) {
-      P[1] += p[index[j]-i];    /* j is paired upstream */
-      P[0] -= p[index[j]-i];    /* j is unpaired */
+      P[1] += (float)p[index[j]-i];    /* j is paired upstream */
+      P[0] -= (float)p[index[j]-i];    /* j is unpaired */
     }
     s[j-1] = vrna_bpp_symbol(P);
   }
@@ -712,7 +712,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
   for (i=1; i<length; i++) {
     for (j=i+1; j<=length; j++) {
       /* skip all entries below the cutoff */
-      if (probs[index[i]-j] < cut_off) continue;
+      if (probs[index[i]-j] < (FLT_OR_DBL)cut_off) continue;
 
       /* do we need to allocate more memory? */
       if (count == n * length - 1){
@@ -728,7 +728,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
           */
           (pl)[count].i      = i;
           (pl)[count].j      = j;
-          (pl)[count].p      = probs[index[i] - j];
+          (pl)[count].p      = (float)probs[index[i] - j];
           (pl)[count++].type = 1;
           /* now add the probabilies of it's actual pairing patterns */
           vrna_plist_t *inner, *ptr;
@@ -755,7 +755,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
       } else {
           (pl)[count].i      = i;
           (pl)[count].j      = j;
-          (pl)[count].p      = probs[index[i] - j];
+          (pl)[count].p      = (float)probs[index[i] - j];
           (pl)[count++].type = 0;
       }
     }

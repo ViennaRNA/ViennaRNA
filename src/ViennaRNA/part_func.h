@@ -80,6 +80,14 @@ float vrna_pf(vrna_fold_compound_t *vc,
 */
 
 /**
+ *  @brief  Find out whether partition function computations are using
+ *          single precision floating points
+ *
+ *  @see #FLT_OR_DBL
+ */
+int vrna_pf_float_precision(void);
+
+/**
  *  @brief Get the mean base pair distance in the thermodynamic ensemble from a probability matrix
  * 
  *  @f$<d> = \sum_{a,b} p_a p_b d(S_a,S_b)@f$\n

@@ -887,7 +887,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
       if(with_gquad){
         /* 2.5. bonding k,l as gquad enclosed by i,j */
-        FLT_OR_DBL *expintern = &(pf_params->expinternal[0]);
+        double *expintern = &(pf_params->expinternal[0]);
         FLT_OR_DBL qe;
 
         if(l < n - 3){
@@ -903,7 +903,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               qe = (type > 2) ? pf_params->expTermAU : 1.;
               tmp2 +=   probs[ij]
                       * qe
-                      * expintern[j-l-1]
+                      * (FLT_OR_DBL)expintern[j-l-1]
                       * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]]
                       * scale[2];
             }
@@ -925,7 +925,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                 qe = (type > 2) ? pf_params->expTermAU : 1.;
                 tmp2 +=   probs[ij]
                         * qe
-                        * expintern[u1+j-l-1]
+                        * (FLT_OR_DBL)expintern[u1+j-l-1]
                         * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]]
                         * scale[2];
               }
@@ -947,7 +947,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               qe = (type > 2) ? pf_params->expTermAU : 1.;
               tmp2 +=   probs[ij]
                       * qe
-                      * expintern[k - i - 1]
+                      * (FLT_OR_DBL)expintern[k - i - 1]
                       * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]]
                       * scale[2];
             }
@@ -1282,6 +1282,11 @@ vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff){
   return pl;
 }
 
+PUBLIC int
+vrna_pf_float_precision(void){
+
+  return (sizeof(FLT_OR_DBL) == sizeof(float));
+}
 
 /*###########################################*/
 /*# deprecated functions below              #*/

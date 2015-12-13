@@ -17,15 +17,6 @@ typedef struct  vrna_mx_pf_s  vrna_mx_pf_t;
 
 #include <ViennaRNA/data_structures.h>
 
-/* to use floats instead of doubles in pf_fold() comment next line */
-#define LARGE_PF
-
-#ifdef  LARGE_PF
-#define FLT_OR_DBL double
-#else
-#define FLT_OR_DBL float
-#endif
-
 /**
  *  @brief  An enumerator that is used to specify the type of a polymorphic Dynamic Programming (DP)
  *  matrix data structure

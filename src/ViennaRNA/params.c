@@ -717,12 +717,12 @@ rescale_params(vrna_fold_compound_t *vc){
   vrna_mx_pf_t      *m  = vc->exp_matrices;
 
   m->scale[0] = 1.;
-  m->scale[1] = 1./pf->pf_scale;
+  m->scale[1] = (FLT_OR_DBL)(1./pf->pf_scale);
   m->expMLbase[0] = 1;
-  m->expMLbase[1] = pf->expMLbase / pf->pf_scale;
+  m->expMLbase[1] = (FLT_OR_DBL)(pf->expMLbase / pf->pf_scale);
   for (i=2; i<=vc->length; i++) {
     m->scale[i] = m->scale[i/2]*m->scale[i-(i/2)];
-    m->expMLbase[i] = pow(pf->expMLbase, (double)i) * m->scale[i];
+    m->expMLbase[i] = (FLT_OR_DBL)pow(pf->expMLbase, (double)i) * m->scale[i];
   }
 }
 

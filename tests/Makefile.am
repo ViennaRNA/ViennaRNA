@@ -1,5 +1,5 @@
 AM_CPPFLAGS = -I$(top_srcdir)/src
-AM_CFLAGS = @CHECK_CFLAGS@ -I$(top_builddir)/src/  $(OPENMP_CFLAGS)
+AM_CFLAGS = @CHECK_CFLAGS@ -I$(top_builddir)/src/  $(OPENMP_CFLAGS) @FLOAT_PF_FLAG@
 LDADD = $(top_builddir)/src/ViennaRNA/libRNA.a @CHECK_LIBS@
 
 EXTRA_DIST =  energy_evaluation.ts \

@@ -829,18 +829,19 @@ exp_E_GQuad_IntLoop(int i,
                     int *index,
                     vrna_exp_param_t *pf){
 
-  int k, l, minl, maxl, u, r;
-  FLT_OR_DBL q, qe, *expintern;
-  short si, sj;
+  int         k, l, minl, maxl, u, r;
+  FLT_OR_DBL  q, qe;
+  double      *expintern;
+  short       si, sj;
 
   q         = 0;
   si        = S[i + 1];
   sj        = S[j - 1];
-  qe        = pf->expmismatchI[type][si][sj];
+  qe        = (FLT_OR_DBL)pf->expmismatchI[type][si][sj];
   expintern = pf->expinternal;
 
   if(type > 2)
-    qe *= pf->expTermAU;
+    qe *= (FLT_OR_DBL)pf->expTermAU;
 
   k = i + 1;
   if(S[k] == 3){
@@ -854,7 +855,7 @@ exp_E_GQuad_IntLoop(int i,
       for(l = minl; l < maxl; l++){
         if(S[l] != 3) continue;
         if(G[index[k]-l] == 0.) continue;
-        q += qe * G[index[k]-l] * expintern[j - l - 1];
+        q += qe * G[index[k]-l] * (FLT_OR_DBL)expintern[j - l - 1];
       }
     }
   }
@@ -875,7 +876,7 @@ exp_E_GQuad_IntLoop(int i,
     for(l = minl; l < maxl; l++){
       if(S[l] != 3) continue;
       if(G[index[k]-l] == 0.) continue;
-      q += qe * G[index[k]-l] * expintern[u + j - l - 1];
+      q += qe * G[index[k]-l] * (FLT_OR_DBL)expintern[u + j - l - 1];
     }
   }
 
@@ -886,7 +887,7 @@ exp_E_GQuad_IntLoop(int i,
       if(u>MAXLOOP) break;
       if(S[k] != 3) continue;
       if(G[index[k]-l] == 0.) continue;
-      q += qe * G[index[k]-l] * expintern[u];
+      q += qe * G[index[k]-l] * (FLT_OR_DBL)expintern[u];
     }
 
   return q;

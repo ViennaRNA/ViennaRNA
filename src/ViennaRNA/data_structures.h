@@ -32,6 +32,20 @@ typedef struct vrna_cpair_s  vrna_cpair_t;
 /** @brief Typename for stack of partial structures #vrna_sect_s */
 typedef struct vrna_sect_s  vrna_sect_t;
 
+/* to use floats instead of doubles in pf_fold() comment next line */
+/*
+#define LARGE_PF
+*/
+
+/** @brief Typename for floating point number in partition function computations */
+#ifdef  USE_FLOAT_PF
+typedef float FLT_OR_DBL;
+#else
+typedef double  FLT_OR_DBL;
+#endif
+
+/** @
+
 /**
  *  @brief Callback to free memory allocated for auxiliary user-provided data
  *

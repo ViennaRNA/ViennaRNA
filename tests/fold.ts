@@ -2,6 +2,7 @@
 #include <stdlib.h>     /* malloc, free, rand */
 
 #include <ViennaRNA/fold_vars.h>
+#include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/utils.h>
 #include <ViennaRNA/structure_utils.h>
 #include <ViennaRNA/constraints.h>
@@ -57,8 +58,8 @@
   vrna_md_t md;
   vrna_fold_compound_t *vc;
   const char sequence[] = "UGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAU";
-  double *sc_up;
-  double **sc_bp;
+  FLT_OR_DBL *sc_up;
+  FLT_OR_DBL **sc_bp;
   int i, j;
   const int length = sizeof(sequence) - 1;
 
@@ -81,26 +82,28 @@
 
   vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
 
-  mfe_energy_unconstrained = vrna_mfe(vc, mfe_structure_unconstrained);
-  pf_energy_unconstrained = vrna_pf(vc, pf_structure_unconstrained);
+  mfe_energy_unconstrained = (double)vrna_mfe(vc, mfe_structure_unconstrained);
+  vrna_exp_params_rescale(vc, &mfe_energy_unconstrained);
+  pf_energy_unconstrained = (double)vrna_pf(vc, pf_structure_unconstrained);
   plist_unconstrained = vrna_plist_from_probs(vc, 0);
 
-  sc_up = (double *)vrna_alloc(sizeof(double) * (length + 1));
-  sc_bp = (double **)vrna_alloc(sizeof(double *) * (length + 1));
+  sc_up = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
+  sc_bp = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (length + 1));
 
   for(i = 1; i <= length; ++i)
   {
-    sc_up[i] = -1.;
-    sc_bp[i] = (double *)vrna_alloc(sizeof(double) * (length + 1));
+    sc_up[i] = -1;
+    sc_bp[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
     for(j = i + 1; j <= length; ++j)
-      sc_bp[i][j] = -2.;
+      sc_bp[i][j] = -2;
   }
 
-  vrna_sc_add_up(vc, (const double *)sc_up, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
-  vrna_sc_add_bp(vc, (const double **)sc_bp, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
+  vrna_sc_add_up(vc, (const FLT_OR_DBL *)sc_up, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
+  vrna_sc_add_bp(vc, (const FLT_OR_DBL **)sc_bp, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
 
-  mfe_energy_constrained = vrna_mfe(vc, mfe_structure_constrained);
-  pf_energy_constrained = vrna_pf(vc, pf_structure_constrained);
+  mfe_energy_constrained = (double)vrna_mfe(vc, mfe_structure_constrained);
+  vrna_exp_params_rescale(vc, &mfe_energy_constrained);
+  pf_energy_constrained = (double)vrna_pf(vc, pf_structure_constrained);
   plist_constrained = vrna_plist_from_probs(vc, 0);
 
   ck_assert_int_eq(strlen(mfe_structure_constrained), sizeof(sequence) - 1);

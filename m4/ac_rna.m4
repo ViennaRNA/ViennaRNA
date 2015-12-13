@@ -20,6 +20,7 @@ RNA_ENABLE_GSL
 RNA_ENABLE_OPENMP
 RNA_ENABLE_BOUSTROPHEDON
 RNA_ENABLE_GEN_HC
+RNA_ENABLE_FLOATPF
 
 ## Set post conditions for feature
 ## settings
@@ -101,6 +102,7 @@ Other Options:
   Generic Hard Constraints: ${enable_gen_hard_constraints:-no}
   OpenMP:                   ${enable_openmp:-yes}
   LTO:                      ${enable_lto:-yes}      $enabled_but_failed_lto
+  Float Precision (PF):     ${enable_floatpf:-no}
 
 Documentation:              ${with_doc:-no}
     (HTML):                 ${with_doc_html:-no}

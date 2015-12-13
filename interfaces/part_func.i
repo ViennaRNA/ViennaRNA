@@ -24,6 +24,9 @@ char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %newobject pbacktrack;
 extern char *pbacktrack(char *sequence);
 
+/* make the float precision identifier available through the interface */
+%rename (pf_float_precision) vrna_pf_float_precision;
+
 /* these functions remain for now due to backward compatibility reasons
 %ignore pf_circ_fold;
 %ignore pbacktrack;

@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 AM_CFLAGS = $(OPENMP_CFLAGS)
 AM_CXXFLAGS = $(OPENMP_CFLAGS)
-AM_CPPFLAGS =  -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC}
+AM_CPPFLAGS =  -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC} @FLOAT_PF_FLAG@
 
 lib_LIBRARIES = libRNA.a
 

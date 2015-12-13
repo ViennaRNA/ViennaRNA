@@ -132,3 +132,26 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
 ])
 
 
+#
+#
+#
+
+AC_DEFUN([RNA_ENABLE_FLOATPF],[
+
+  RNA_ADD_FEATURE([floatpf],
+                  [Floating point precision in partition function computations],
+                  [no],
+                  [enable_floatpf=yes],
+                  [enable_floatpf=no])
+
+  # Handle floating point precision flag
+  RNA_FEATURE_IF_ENABLED([floatpf],[
+    AC_DEFINE([USE_FLOAT_PF], [1], [Use floating point precision in partition function computations])
+  
+    AC_SUBST([WITH_FLOAT_PF], [USE_FLOAT_PF])
+    AC_SUBST([FLOAT_PF_FLAG], [-DUSE_FLOAT_PF])
+##  AX_APPEND_FLAG([-DUSE_FLOAT_PF], [AM_CPPFLAGS])
+  ])
+
+
+])
