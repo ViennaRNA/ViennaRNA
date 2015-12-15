@@ -534,7 +534,7 @@ next_i: continue;
   pos = (quadruple_position *)vrna_realloc(pos, sizeof(quadruple_position) * (cnt + 1));
 
   /* set end marker */
-  pos[cnt].i = pos[cnt].j = pos[cnt].k = pos[cnt++].l = 0;
+  pos[cnt].i = pos[cnt].j = pos[cnt].k = pos[cnt].l = 0;
 
   return pos;
 }

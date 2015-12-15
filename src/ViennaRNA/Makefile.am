@@ -1,9 +1,8 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-AM_CFLAGS = $(OPENMP_CFLAGS) @AM_CFLAGS@
-AM_CXXFLAGS = $(OPENMP_CFLAGS) @AM_CXXFLAGS@
-AM_CPPFLAGS =  -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC} @FPIC@ @AM_CPPFLAGS@
-AM_LDFLAGS = @AM_LDFLAGS@
+AM_CFLAGS = $(OPENMP_CFLAGS)
+AM_CXXFLAGS = $(OPENMP_CFLAGS)
+AM_CPPFLAGS =  -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC}
 
 lib_LIBRARIES = libRNA.a
 
@@ -50,7 +49,8 @@ libRNA_a_SOURCES  = dist_vars.c data_structures.c part_func.c read_epars.c\
                     exterior_loops.c hairpin_loops.c interior_loops.c multibranch_loops.c \
                     ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC}
 
-libRNA_a_CFLAGS = $(AM_CFLAGS) $(OPENMP_CFLAGS) @FPIC@
+libRNA_a_CFLAGS = $(AM_CFLAGS) @FPIC@
+libRNA_a_CXXFLAGS = $(AM_CFLAGS) @FPIC@
 
 
 noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
