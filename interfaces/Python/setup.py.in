@@ -126,6 +126,10 @@ extra_compile_args=['@OPENMP_CFLAGS@']
 
 if sys.platform != 'darwin':
     extra_link_args.append('-s')
+
+os.environ["CC"] = "@CC@"
+os.environ["CXX"] = "@CXX@"
+os.environ["LDSHARED"] = "@CXX@ -shared @LTO_LDFLAGS@"
  
 extension = Extension("_RNA",
                       ["RNA_wrap.c"],

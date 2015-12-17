@@ -63,7 +63,7 @@ WriteMakefile(
                                 "@srcdir@/RNA/Design.pm" => '$(INST_LIBDIR)/RNA/Design.pm'
                               },
               OBJECT      =>  "RNA_wrap.o",
-              dynamic_lib =>  {OTHERLDFLAGS => '$(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) @OPENMP_CFLAGS@'},
+              dynamic_lib =>  {OTHERLDFLAGS => '@CXXFLAGS@ @LDFLAGS@ @OPENMP_CFLAGS@'},
               test        =>  { TESTS => '@srcdir@/RNA/t/*.t' },
               AUTHOR      =>  'Ivo Hofacker <ivo@tbi.univie.ac.at>',
               VERSION     =>  '@VERSION@'
