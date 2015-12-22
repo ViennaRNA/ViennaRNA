@@ -188,9 +188,6 @@ vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
               q_temp *= sc->exp_energy_up[i+1][u1]
                         * sc->exp_energy_up[l+1][u2];
 
-            if(sc->exp_energy_bp)
-              q_temp *= sc->exp_energy_bp[ij];
-
             if(sc->exp_f)
               q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
 
@@ -215,6 +212,11 @@ vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
                 * scale[2];
       }
     }
+
+    if(sc && sc->exp_energy_bp){
+      qbt1 *= sc->exp_energy_bp[my_iindx[i] - j];
+    }
+
 
   }
   return qbt1;
