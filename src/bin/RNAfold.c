@@ -520,7 +520,7 @@ int main(int argc, char *argv[]){
 
       kT = vc->exp_params->kT/1000.;
 
-      if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
+      if (length>2000) fprintf(stderr, "scaling factor %f\n", vc->exp_params->pf_scale);
 
       if (cstruc!=NULL) strncpy(pf_struc, cstruc, length+1);
 
