@@ -424,7 +424,7 @@ E_ml_rightmost_stem(int i,
 
     }
 
-    if(ON_SAME_STRAND(j - 1, j, cp))
+    if(ON_SAME_STRAND(j - 1, j, cp)){
       eval_loop = (hc_up[j] > 0) ? (char)1 : (char)0;
 
 #ifdef WITH_GEN_HC
@@ -444,6 +444,7 @@ E_ml_rightmost_stem(int i,
           e = MIN2(e, en);
         }
       }
+    }
   }
   return e;
 }
