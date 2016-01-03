@@ -1,4 +1,4 @@
-#!/usr/bin/perl -Iblib/arch -Iblib/lib
+#!/usr/bin/perl -I.libs
 
 # Last changed Time-stamp: <2007-09-27 17:21:23 ivo>
 

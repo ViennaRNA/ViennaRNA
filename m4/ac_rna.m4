@@ -9,6 +9,11 @@
 
 AC_DEFUN([AC_RNA_INIT],[
 
+AX_COMPILER_VENDOR
+AC_CANONICAL_HOST
+
+AC_CHECK_PROG(PERL,perl,perl)
+
 ##------------------##
 ## Enable Features  ##
 ##------------------##

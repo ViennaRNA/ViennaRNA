@@ -17,7 +17,6 @@ AC_DEFUN([RNA_ENABLE_SVM],[
   RNA_PACKAGE_IF_ENABLED([svm],[
     AC_SUBST([LIBSVM_DIR], [libsvm-${SVM_VERSION}])
     AC_SUBST([WITH_SVM], [USE_SVM])
-    AC_SUBST([CXXLD],[${CXX}]) # this is rather a hack for RNALfold.c linking correctly
     AC_DEFINE([USE_SVM], [1], [Compute z-scores for RNALfold])
   ])
 

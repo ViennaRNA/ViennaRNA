@@ -1,4 +1,2 @@
 RNA_wrap.c
-__init__.py
-build/
-setup.py
+RNA.py
