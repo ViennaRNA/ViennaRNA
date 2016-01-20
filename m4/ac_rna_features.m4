@@ -154,3 +154,25 @@ AC_DEFUN([RNA_ENABLE_FLOATPF],[
 
 
 ])
+
+
+#
+# Warn about usage of deprecated symbols
+#
+
+AC_DEFUN([RNA_ENABLE_DEPRECATION_WARNINGS],[
+
+  RNA_ADD_FEATURE([warn_deprecated],
+                  [Warn upon usage of deprecated symbols],
+                  [no],
+                  [enable_warn_deprecated=yes],
+                  [enable_warn_deprecated=no])
+
+  ## Add preprocessor define statement for deprecation warnings
+  RNA_FEATURE_IF_ENABLED([warn_deprecated],[
+    AC_DEFINE([WITH_DEPRECATION_WARNING], [1], [Warn upon usage of deprecated symbols])
+    DEPRECATION_WARNING=-DDEPRECATION_WARNINGS
+  ])
+  AC_SUBST(DEPRECATION_WARNING)
+])
+

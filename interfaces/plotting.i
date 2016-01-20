@@ -41,14 +41,14 @@ COORDINATE *get_xy_coordinates(const char *structure);
 
 }
 
-%include "../src/ViennaRNA/plot_layouts.h"
+%include <ViennaRNA/plot_layouts.h>
 
-%include "../src/ViennaRNA/plot_structure.h"
+%include <ViennaRNA/plot_structure.h>
 
-%include "../src/ViennaRNA/plot_aln.h"
+%include <ViennaRNA/plot_aln.h>
 
 
-%include "../src/ViennaRNA/PS_dot.h"
+%include <ViennaRNA/PS_dot.h>
 
 /*#################################*/
 /* END get coordinates for xy plot */

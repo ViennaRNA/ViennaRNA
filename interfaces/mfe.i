@@ -42,13 +42,13 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore export_fold_arrays_par;
 %ignore backtrack_fold_from_pair;
 
-%include  "../src/ViennaRNA/fold.h"
+%include  <ViennaRNA/fold.h>
 
 /**********************************************/
 /* BEGIN interface for advance MFE prediction */
 /**********************************************/
 
-%include  "../src/ViennaRNA/mfe.h"
+%include  <ViennaRNA/mfe.h>
 
 /**********************************************/
 /* BEGIN interface for cofold                 */
@@ -90,7 +90,7 @@ char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 %ignore zukersubopt_par;
 %ignore get_monomere_mfes;
 
-%include  "../src/ViennaRNA/cofold.h"
+%include  <ViennaRNA/cofold.h>
 
 /**********************************************/
 /* BEGIN interface for alifold                */
@@ -105,7 +105,7 @@ char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
     struc = calloc(strlen(strings[0])+1,sizeof(char));
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(strings[0]));
-    *energy = alifold(strings, struc);
+    *energy = alifold((const char **)strings, struc);
     if (constraints)
       strncpy(constraints, struc, strlen(constraints));
     return(struc);
@@ -128,4 +128,4 @@ char *my_alifold(char **strings, char *constraints = NULL, float *OUTPUT);
 %ignore update_alifold_params;
 
 
-%include "../src/ViennaRNA/alifold.h"
+%include <ViennaRNA/alifold.h>

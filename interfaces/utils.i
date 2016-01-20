@@ -24,7 +24,7 @@
 %ignore time_stamp;
 
 
-%include  "../src/ViennaRNA/utils.h"
+%include  <ViennaRNA/utils.h>
 
 /**********************************************/
 /* BEGIN interface for string utilities       */
@@ -89,7 +89,7 @@ short *encode_seq(char *sequence) {
 %}
 short *encode_seq(char *sequence);
 
-%include  "../src/ViennaRNA/string_utils.h"
+%include  <ViennaRNA/string_utils.h>
 
 /**********************************************/
 /* BEGIN interface for structure utilities    */
@@ -190,7 +190,7 @@ int my_bp_distance(const char *str1, const char *str2);
 
 
 
-%include  "../src/ViennaRNA/structure_utils.h"
+%include  <ViennaRNA/structure_utils.h>
 
 /**********************************************/
 /* BEGIN interface for alignment utilities    */

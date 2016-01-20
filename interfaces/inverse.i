@@ -56,5 +56,5 @@ strcpy(symbolset, "AUGC");
 
 %}
 
-%include  "../src/ViennaRNA/inverse.h"
+%include  <ViennaRNA/inverse.h>
 

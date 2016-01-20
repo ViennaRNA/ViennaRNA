@@ -6,4 +6,4 @@
 %ignore print_tty_constraint_full;
 %ignore constrain_ptypes;
 
-%include  "../src/ViennaRNA/constraints.h"
+%include  <ViennaRNA/constraints.h>

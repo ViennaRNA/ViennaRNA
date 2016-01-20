@@ -18,7 +18,7 @@ nobase_dist_perlmod_DATA = \
   test.pl \
   RNA/t/Design.t
 
-RNA_la_CPPFLAGS = -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS) @FLOAT_PF_FLAG@
+RNA_la_CPPFLAGS = -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS) @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
 RNA_la_LIBADD = $(LDADD) $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PERLXS_LIBS) -lstdc++
 RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic $(PERLXS_LDFLAGS) -Wc,$(LTO_LDFLAGS)
 

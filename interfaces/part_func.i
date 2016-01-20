@@ -52,7 +52,7 @@ extern char *pbacktrack(char *sequence);
 %ignore expLoopEnergy;
 %ignore assign_plist_gquad_from_pr;
 
-%include  "../src/ViennaRNA/part_func.h"
+%include  <ViennaRNA/part_func.h>
 
 /**********************************************/
 /* BEGIN interface for cofold partition       */
@@ -120,7 +120,7 @@ char *my_co_pf_fold(char *string, char *constraints = NULL, float *OUTPUT, float
 %newobject my_get_concentrations;
 void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,double FEB, double A0, double BO, double *OUTPUT, double *OUTPUT, double *OUTPUT, double *OUTPUT, double *OUTPUT);
 
-%include  "../src/ViennaRNA/part_func_co.h"
+%include  <ViennaRNA/part_func_co.h>
 
 
 

@@ -77,5 +77,5 @@ typedef struct {} vrna_fold_compound_t;
 
 }
 
-%include "../src/ViennaRNA/data_structures.h"
-%include "../src/ViennaRNA/ligand.h"
+%include <ViennaRNA/data_structures.h>
+%include <ViennaRNA/ligand.h>
