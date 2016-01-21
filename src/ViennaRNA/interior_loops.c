@@ -156,6 +156,86 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
   return e;
 }
 
+PRIVATE INLINE int
+ubf_eval_int_loop_comparative(int col_i,
+                              int col_j,
+                              int col_p,
+                              int col_q,
+                              unsigned char type,
+                              unsigned char type_2,
+                              int *rtype,
+                              int ij,
+                              int cp,
+                              vrna_param_t *P,
+                              short *SS,
+                              short *S5,
+                              short *S3,
+                              unsigned short *a2s,
+                              vrna_sc_t *sc){
+
+  int energy, u1, u2;
+  int i, j, p, q, i1, j1, p1, q1;
+  short si, sj, sp, sq;
+
+  i   = a2s[col_i];
+  j   = a2s[col_j];
+  p   = a2s[col_p];
+  q   = a2s[col_q];
+  i1  = a2s[col_i + 1];
+  j1  = a2s[col_j - 1];
+  p1  = a2s[col_p - 1];
+  q1  = a2s[col_q + 1];
+
+  si = S3[col_i];
+  sj = S5[col_j];
+  sp = S5[col_p];
+  sq = S3[col_q];
+
+  u1 = p1 - i;
+  u2 = j1 - q;
+
+  if((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))){ /* regular interior loop */
+    energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
+  } else { /* interior loop like cofold structure */
+    short Si, Sj;
+    Si  = ON_SAME_STRAND(i, i1, cp) ? si : -1;
+    Sj  = ON_SAME_STRAND(j1, j, cp) ? sj : -1;
+    energy = E_IntLoop_Co(rtype[type], rtype[type_2],
+                            i, j, p, q,
+                            cp,
+                            Si, Sj,
+                            sp, sq,
+                            P->model_details.dangles,
+                            P);
+  }
+
+  /* add soft constraints */
+  if(sc){
+    if(sc->energy_up)
+      energy += sc->energy_up[i1][u1]
+                + sc->energy_up[q1][u2];
+
+    if(sc->energy_bp)
+      energy += sc->energy_bp[ij];
+
+    if(sc->energy_stack)
+      if(u1 + u2 == 0){
+        if(SS[col_i] && SS[col_j] && SS[col_p] && SS[col_q]){ /* no gap allowed */
+          int a =   sc->energy_stack[i]
+                    + sc->energy_stack[p]
+                    + sc->energy_stack[q]
+                    + sc->energy_stack[j];
+          energy += a;
+        }
+      }
+    if(sc->f)
+      energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+  }
+
+  return energy;
+
+}
+
 PRIVATE int
 E_int_loop_comparative( vrna_fold_compound_t *vc,
                         int i,
@@ -247,12 +327,15 @@ E_int_loop_comparative( vrna_fold_compound_t *vc,
 
               sc = (scs && scs[s]) ? scs[s] : NULL;
 
-              energy += ubf_eval_int_loop(a2s[s][i], a2s[s][j],a2s[s][p],a2s[s][q],
-                                          a2s[s][i + 1], a2s[s][j - 1], a2s[s][p - 1], a2s[s][q + 1],
-                                          S3[s][i], S5[s][j], S5[s][p], S3[s][q],
+              energy += ubf_eval_int_loop_comparative(i, j, p, q,
                                           types[s], type_2, rtype,
                                           ij, cp,
-                                          P, sc);
+                                          P,
+                                          SS[s],
+                                          S5[s],
+                                          S3[s],
+                                          a2s[s],
+                                          sc);
             }
 
             e = MIN2(e, energy);
@@ -658,12 +741,14 @@ vrna_E_stack( vrna_fold_compound_t *vc,
                                           if(scs[s]->energy_bp)
                                             e +=  scs[s]->energy_bp[ij];
 
-                                          if(scs[s]->energy_stack)
-                                            e +=  scs[s]->energy_stack[a2s[s][i]]
-                                                  + scs[s]->energy_stack[a2s[s][p]]
-                                                  + scs[s]->energy_stack[a2s[s][q]]
-                                                  + scs[s]->energy_stack[a2s[s][j]];
-
+                                          if(scs[s]->energy_stack){
+                                            if(SS[s][i] && SS[s][j] && SS[s][p] && SS[s][q]){ /* don't allow gaps in stack */
+                                              e +=  scs[s]->energy_stack[a2s[s][i]]
+                                                    + scs[s]->energy_stack[a2s[s][p]]
+                                                    + scs[s]->energy_stack[a2s[s][q]]
+                                                    + scs[s]->energy_stack[a2s[s][j]];
+                                            }
+                                          }
                                           if(scs[s]->f)
                                             e += scs[s]->f(a2s[s][i], a2s[s][j], a2s[s][p], a2s[s][q], VRNA_DECOMP_PAIR_IL, scs[s]->data);
 

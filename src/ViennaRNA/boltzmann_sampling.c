@@ -895,11 +895,14 @@ backtrack_comparative(vrna_fold_compound_t *vc,
               int u1 = a2s[s][k-1] - a2s[s][i];
               int u2 = a2s[s][j-1] - a2s[s][l];
               if(u1 + u2 == 0)
-                if(sc[s]->exp_energy_stack)
-                  qloop *=    sc[s]->exp_energy_stack[i]
-                            * sc[s]->exp_energy_stack[k]
-                            * sc[s]->exp_energy_stack[l]
-                            * sc[s]->exp_energy_stack[j];
+                if(sc[s]->exp_energy_stack){
+                  if(S[s][i] && S[s][j] && S[s][k] && S[s][l]){ /* don't allow gaps in stack */
+                    qloop *=    sc[s]->exp_energy_stack[i]
+                              * sc[s]->exp_energy_stack[k]
+                              * sc[s]->exp_energy_stack[l]
+                              * sc[s]->exp_energy_stack[j];
+                  }
+                }
             }
           }
 
