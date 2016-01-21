@@ -12,8 +12,15 @@ pkgpylib_DATA = RNA/__init__.py RNA/__init__.pyc
 _RNA_la_SOURCES = $(top_srcdir)/interfaces/RNA.i $(SWIG_wrapper)
 
 _RNA_la_CPPFLAGS = -I$(top_srcdir)/src $(PYTHON_CPPFLAGS) $(SWIG_PYTHON_CPPFLAGS) @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
-_RNA_la_LIBADD = $(LDADD) $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PYTHON_LIBS) $(PYTHON_EXTRA_LIBS) -lstdc++
-_RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic $(PYTHON_EXTRA_LDFLAGS) -Wc,$(LTO_LDFLAGS)
+_RNA_la_LIBADD = $(LDADD) $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PYTHON_LIBS) $(PYTHON_EXTRA_LIBS)
+if WITH_LIBSVM
+_RNA_la_LIBADD += -lstdc++
+endif
+
+_RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic $(PYTHON_EXTRA_LDFLAGS)
+if WITH_LTO
+_RNA_la_LDFLAGS += -Wc,$(LTO_LDFLAGS)
+endif
 
 $(SWIG_wrapper): $(SWIG_src)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src @FLOAT_PF_FLAG@ \

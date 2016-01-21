@@ -18,6 +18,12 @@ libRNA_la_SOURCES =
 libRNA_la_LIBADD = libRNA_conv.la
 libRNA_la_LDFLAGS = -avoid-version -static
 
+# Dummy C++ source to cause C++ linking.
+if WITH_LIBSVM
+nodist_EXTRA_libRNA_la_SOURCES = dummy.cxx
+else
+nodist_EXTRA_libRNA_la_SOURCES = 
+endif
 
 if WITH_LIBSVM
   SVM_SRC     = ../@LIBSVM_DIR@/svm.cpp

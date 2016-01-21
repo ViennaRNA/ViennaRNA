@@ -138,4 +138,5 @@ AC_DEFUN([RNA_ENABLE_LTO],[
   AC_SUBST([AR])
   AC_SUBST([RANLIB])
   AC_SUBST([NM])
+  AM_CONDITIONAL(WITH_LTO, test "$ac_lto_supported" != "no")
 ])

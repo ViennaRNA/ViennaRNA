@@ -9,6 +9,13 @@ bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
 
 LDADD = $(OPENMP_CFLAGS) $(top_builddir)/src/ViennaRNA/libRNA_conv.la
 
+# Link agains stdc++ if we use SVM in RNALfold
+RNALfold_LDADD = $(LDADD)
+if WITH_LIBSVM
+RNALfold_LDADD += -lstdc++
+endif
+
+
 GENGETOPT_CMDL =  RNAfold_cmdl.c RNAfold_cmdl.h \
               RNAalifold_cmdl.c RNAalifold_cmdl.h \
               RNAcofold_cmdl.c  RNAcofold_cmdl.h \
