@@ -5,14 +5,12 @@
 #define VRNA_BACKWARD_COMPAT
 
 #ifdef DEPRECATION_WARNINGS
-# pragma warn("something")
 # ifdef __GNUC__
 #  define DEPRECATED(func) func __attribute__ ((deprecated))
 # else
 #  define DEPRECATED(func) func
 # endif
 #else
-# pragma warn("something else")
 # define DEPRECATED(func) func
 #endif
 
