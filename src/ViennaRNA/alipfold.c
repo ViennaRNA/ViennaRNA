@@ -27,6 +27,7 @@
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/eval.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/structure_utils.h"
@@ -279,7 +280,21 @@ export_ali_bppm(void){
 PUBLIC char *
 alipbacktrack(double *prob){
 
-  return vrna_pbacktrack_comparative(backward_compat_compound, prob);
+  if(backward_compat_compound)
+    if(backward_compat_compound->exp_matrices){
+      vrna_exp_param_t *params = backward_compat_compound->exp_params;
+      int n     = backward_compat_compound->length;
+      int n_seq = backward_compat_compound->n_seq;
+      int *idx  = backward_compat_compound->iindx;
+      double Q  = (double)backward_compat_compound->exp_matrices->q[idx[1]-n];
+      char *s   = vrna_pbacktrack(backward_compat_compound);
+      double e  = (double)vrna_eval_structure(backward_compat_compound, s);
+      e        -= (double)vrna_eval_covar_structure(backward_compat_compound, s);
+      double fe = (-log(Q)-n*log(params->pf_scale))*params->kT/(1000.0 * n_seq);
+      *prob     = exp((fe - e)/params->kT);
+      return s;
+    }
+  return NULL;
 }
 
 /*-------------------------------------------------------------------------*/

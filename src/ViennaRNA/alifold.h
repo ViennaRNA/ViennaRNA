@@ -382,7 +382,7 @@ DEPRECATED(void  free_alipf_arrays(void));
  * 
  *  @ingroup consensus_stochbt
  *
- *  @deprecated Use vrna_pbacktrack_comparative() instead!
+ *  @deprecated Use vrna_pbacktrack() instead!
  *
  *  @param  prob  to be described (berni)
  *  @return       A sampled consensus secondary structure in dot-bracket notation

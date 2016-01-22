@@ -40,8 +40,22 @@ PRIVATE void  backtrack_qm(int i, int j, char *pstruc, vrna_fold_compound_t *vc)
 PRIVATE void  backtrack_qm1(int i,int j, char *pstruc, vrna_fold_compound_t *vc);
 PRIVATE void  backtrack_qm2(int u, int n, char *pstruc, vrna_fold_compound_t *vc);
 PRIVATE char  *wrap_pbacktrack_circ(vrna_fold_compound_t *vc);
+
 PRIVATE void  backtrack_comparative(vrna_fold_compound_t *vc, char *pstruc, int i, int j, double *prob);
 PRIVATE void  backtrack_qm1_comparative(vrna_fold_compound_t *vc, char *pstruc, int i,int j, double *prob);
+
+/*
+ *  @brief Sample a consensus secondary structure from the Boltzmann ensemble according its probability
+ * 
+ *  @ingroup consensus_stochbt
+ *
+ *  @see vrna_pf() for precomputing the partition function matrices, and
+ *
+ *  @param  vc    The #vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
+ *  @param  prob  to be described (berni)
+ *  @return       A sampled consensus secondary structure in dot-bracket notation
+ */
+PRIVATE char *pbacktrack_comparative(vrna_fold_compound_t *vc, double *prob);
 
 /*
 #################################
@@ -57,12 +71,28 @@ PRIVATE void  backtrack_qm1_comparative(vrna_fold_compound_t *vc, char *pstruc, 
 PUBLIC char *
 vrna_pbacktrack(vrna_fold_compound_t *vc){
 
-  if(vc)
-    if(vc->exp_params)
-      if(vc->exp_params->model_details.circ)
-        return wrap_pbacktrack_circ(vc);
+  char    *structure  = NULL;
+  double  prob        = 1.;
 
-  return vrna_pbacktrack5(vc, vc->length);
+  if(vc && vc->exp_params){
+      switch(vc->type){
+        case VRNA_VC_TYPE_SINGLE:     if(vc->exp_params->model_details.circ){
+                                        return wrap_pbacktrack_circ(vc);
+                                      } else {
+                                        return vrna_pbacktrack5(vc, vc->length);
+                                      }
+                                      break;
+
+        case VRNA_VC_TYPE_ALIGNMENT:  return pbacktrack_comparative(vc, &prob);
+                                      break;
+
+        default:                      vrna_message_warning("unrecognized fold compound type");
+                                      return structure;
+                                      break;
+      }
+  }
+
+  return structure;
 }
 
 PUBLIC char *
@@ -140,9 +170,9 @@ vrna_pbacktrack5( vrna_fold_compound_t *vc,
       if(hc_up_ext[j]){
         r = vrna_urn() * q[my_iindx[1] - j];
         q_temp = q[my_iindx[1] - j + 1] * scale[1];
-  
+
         if(sc){
-          if (sc->exp_energy_up)  
+          if (sc->exp_energy_up)
             q_temp *= sc->exp_energy_up[j][1];
 
           if(sc->exp_f)
@@ -198,7 +228,7 @@ vrna_pbacktrack5( vrna_fold_compound_t *vc,
         q_temp = qln[i+1]*scale[1];
 
         if(sc){
-          if (sc->exp_energy_up)  
+          if (sc->exp_energy_up)
             q_temp *= sc->exp_energy_up[i][1];
 
           if(sc->exp_f)
@@ -572,7 +602,7 @@ backtrack(int i,
       if(sc->exp_f)
         closingPair *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_ML, sc->data);
     }
-    
+
     i++; j--;
     /* find the first split index */
     ii = my_iindx[i]; /* ii-j=[i,j] */
@@ -717,9 +747,9 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc){
 }
 
 
-PUBLIC char *
-vrna_pbacktrack_comparative(vrna_fold_compound_t *vc,
-                    double *prob){
+PRIVATE char *
+pbacktrack_comparative( vrna_fold_compound_t *vc,
+                        double *prob){
 
   FLT_OR_DBL  r, gr, qt;
   int         k,i,j, start,s;
@@ -728,9 +758,9 @@ vrna_pbacktrack_comparative(vrna_fold_compound_t *vc,
 
   int               n_seq       = vc->n_seq;
   int               n           = vc->length;
-  short             **S         = vc->S;                                                                   
-  short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
-  short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  short             **S         = vc->S;
+  short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+  short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   vrna_exp_param_t  *pf_params  = vc->exp_params;
   vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
@@ -818,11 +848,11 @@ backtrack_comparative(vrna_fold_compound_t *vc,
           double *prob){
 
   int               n_seq       = vc->n_seq;
-  short             **S         = vc->S;                                                                   
-  short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
-  short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  char              **Ss        = vc->Ss;                                                                   
-  unsigned short    **a2s       = vc->a2s;                                                                   
+  short             **S         = vc->S;
+  short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+  short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+  char              **Ss        = vc->Ss;
+  unsigned short    **a2s       = vc->a2s;
   vrna_exp_param_t  *pf_params  = vc->exp_params;
   vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
@@ -833,7 +863,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
   FLT_OR_DBL        *qb         = matrices->qb;
   FLT_OR_DBL        *qm         = matrices->qm;
   FLT_OR_DBL        *qm1        = matrices->qm1;
-  int               *pscore     = vc->pscore;     /* precomputed array of pair types */             
+  int               *pscore     = vc->pscore;     /* precomputed array of pair types */
 
   FLT_OR_DBL        *scale        = matrices->scale;
   FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
@@ -870,7 +900,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       return; /* found the hairpin we're done */
     }
 
-    
+
     max_k = MIN2(i+MAXLOOP+1,j-TURN-2);
     l = MAX2(i+TURN+2,j-MAXLOOP-1);
     for (k=i+1; k<=max_k; k++){
@@ -927,7 +957,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       i=k; j=l;
     }
     else {
-       *prob=*prob*(1-qbt1/(qb[my_iindx[i]-j]/exp(pscore[jindx[j]+i]/kTn)));
+      *prob=*prob*(1-qbt1/(qb[my_iindx[i]-j]/exp(pscore[jindx[j]+i]/kTn)));
       break;
     }
   } while (1);
@@ -987,8 +1017,8 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       if (k<i+TURN) break; /* no more pairs */
       r = vrna_urn() * (qm[ii-(k-1)] + expMLbase[k-i]);
       if (expMLbase[k-i] >= r) {
-        break; /* no more pairs */
         *prob = *prob * expMLbase[k-i] / (qm[ii-(k-1)] + expMLbase[k-i]);
+        break; /* no more pairs */
       }
       j = k-1;
       /* whatishere?? */
@@ -1005,9 +1035,9 @@ backtrack_qm1_comparative(vrna_fold_compound_t *vc,
               double *prob){
 
   int               n_seq       = vc->n_seq;
-  short             **S         = vc->S;                                                                   
-  short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
-  short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  short             **S         = vc->S;
+  short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+  short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   vrna_exp_param_t  *pf_params  = vc->exp_params;
   vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   vrna_md_t         *md         = &(pf_params->model_details);
