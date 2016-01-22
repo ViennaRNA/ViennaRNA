@@ -89,7 +89,7 @@ int vrna_aln_mpi( char *Alseq[],
  *  This array of structures contains information about positionwise pair probabilies,
  *  base pair entropy and more
  *
- *  \see #vrna_pinfo_t, and vrna_pf_comparative()
+ *  \see #vrna_pinfo_t, and vrna_pf()
  *
  *  \param  vc          The #vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
  *  \param  structure   An optional structure in dot-bracket notation (Maybe NULL)

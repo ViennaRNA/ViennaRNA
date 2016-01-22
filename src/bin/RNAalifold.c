@@ -473,7 +473,7 @@ int main(int argc, char *argv[]){
     /* change energy parameters in vc */
     vrna_exp_params_subst(vc, pf_parameters);
 
-    energy = vrna_pf_comparative(vc, structure, NULL);
+    energy = vrna_pf(vc, structure);
 
     if (n_back>0) {
       /*stochastic sampling*/

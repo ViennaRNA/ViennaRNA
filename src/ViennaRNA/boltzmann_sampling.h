@@ -54,7 +54,7 @@ char    *vrna_pbacktrack(vrna_fold_compound_t *vc);
  * 
  *  @ingroup consensus_stochbt
  *
- *  @see vrna_pf_comparative() for precomputing the partition function matrices, and
+ *  @see vrna_pf() for precomputing the partition function matrices, and
  *
  *  @param  vc    The #vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
  *  @param  prob  to be described (berni)
