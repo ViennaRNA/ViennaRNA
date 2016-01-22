@@ -101,15 +101,15 @@ PRIVATE INLINE int E_IntLoop(int n1,
  *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
  *  @return The Boltzmann weight of the Interior-loop
  */
-PRIVATE INLINE double  exp_E_IntLoop(int u1,
-                                      int u2,
-                                      int type,
-                                      int type2,
-                                      short si1,
-                                      short sj1,
-                                      short sp1,
-                                      short sq1,
-                                      vrna_exp_param_t *P);
+PRIVATE INLINE FLT_OR_DBL exp_E_IntLoop(int u1,
+                                        int u2,
+                                        int type,
+                                        int type2,
+                                        short si1,
+                                        short sj1,
+                                        short sp1,
+                                        short sq1,
+                                        vrna_exp_param_t *P);
 
 
 PRIVATE INLINE int E_IntLoop_Co(int type,
@@ -141,7 +141,7 @@ int E_stack(int i, int j, vrna_fold_compound_t *vc);
 /*
  *  ugly but fast interior loop evaluation
  *
- *  This function may be included in your own code, but actually only serves
+ *  Avoid including this function in your own code. It only serves
  *  as a fast inline block internally re-used throughout the RNAlib. It
  *  evalutes the free energy of interior loops in single sequences or sequence
  *  hybrids. Soft constraints are also applied if available.
@@ -153,8 +153,10 @@ ubf_eval_int_loop(  int i,
                     int j,
                     int p,
                     int q,
-                    int u1,
-                    int u2,
+                    int i1,
+                    int j1,
+                    int p1,
+                    int q1,
                     short si,
                     short sj,
                     short sp,
@@ -167,14 +169,17 @@ ubf_eval_int_loop(  int i,
                     vrna_param_t *P,
                     vrna_sc_t *sc){
 
-  int energy;
+  int energy, u1, u2;
+
+  u1 = p1 - i;
+  u2 = j1 - q;
 
   if((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))){ /* regular interior loop */
     energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
   } else { /* interior loop like cofold structure */
     short Si, Sj;
-    Si  = ON_SAME_STRAND(i, i + 1, cp) ? si : -1;
-    Sj  = ON_SAME_STRAND(j - 1, j, cp) ? sj : -1;
+    Si  = ON_SAME_STRAND(i, i1, cp) ? si : -1;
+    Sj  = ON_SAME_STRAND(j1, j, cp) ? sj : -1;
     energy = E_IntLoop_Co(rtype[type], rtype[type_2],
                             i, j, p, q,
                             cp,
@@ -187,19 +192,20 @@ ubf_eval_int_loop(  int i,
   /* add soft constraints */
   if(sc){
     if(sc->energy_up)
-      energy += sc->energy_up[i+1][u1]
-                + sc->energy_up[q+1][u2];
+      energy += sc->energy_up[i1][u1]
+                + sc->energy_up[q1][u2];
 
     if(sc->energy_bp)
       energy += sc->energy_bp[ij];
 
     if(sc->energy_stack)
-      if((p==i+1) && (q == j-1))
-        energy +=   sc->energy_stack[i]
+      if(u1 + u2 == 0){
+        int a =   sc->energy_stack[i]
                   + sc->energy_stack[p]
                   + sc->energy_stack[q]
                   + sc->energy_stack[j];
-
+        energy += a;
+      }
     if(sc->f)
       energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
   }
@@ -211,7 +217,7 @@ ubf_eval_int_loop(  int i,
 /*
  *  ugly but fast exterior interior loop evaluation
  *
- *  This function may be included in your own code, but actually only serves
+ *  Avoid including this function in your own code. It only serves
  *  as a fast inline block internally re-used throughout the RNAlib. It
  *  evalutes the free energy of interior loops in single sequences or sequence
  *  hybrids. Soft constraints are also applied if available.
@@ -223,8 +229,10 @@ ubf_eval_ext_int_loop(int i,
                       int j,
                       int p,
                       int q,
-                      int u1,
-                      int u2,
+                      int i1,
+                      int j1,
+                      int p1,
+                      int q1,
                       short si,
                       short sj,
                       short sp,
@@ -235,19 +243,23 @@ ubf_eval_ext_int_loop(int i,
                       vrna_param_t *P,
                       vrna_sc_t *sc){
 
-  int energy;
+  int energy, u1, u2, u3;
+  
+  u1 = i1;
+  u2 = p1 - j;
+  u3 = length - q;
 
-  energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
+  energy = E_IntLoop(u2, u1 + u3, type, type_2, si, sj, sp, sq, P);
 
   /* add soft constraints */
   if(sc){
     if(sc->energy_up)
-      energy += sc->energy_up[j+1][p-j-1]
-                + sc->energy_up[q+1][length-q]
-                + sc->energy_up[1][i-1];
+      energy += sc->energy_up[j1][u2]
+                + sc->energy_up[q1][u3]
+                + sc->energy_up[1][u1];
 
     if(sc->energy_stack)
-      if((p==i+1) && (q == j-1))
+      if(u1 + u2 + u3 == 0)
         energy +=   sc->energy_stack[i]
                   + sc->energy_stack[p]
                   + sc->energy_stack[q]
@@ -332,7 +344,17 @@ E_IntLoop(int n1,
   return energy;
 }
 
-PRIVATE INLINE double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, vrna_exp_param_t *P){
+PRIVATE INLINE FLT_OR_DBL
+exp_E_IntLoop(int u1,
+              int u2,
+              int type,
+              int type2,
+              short si1,
+              short sj1,
+              short sp1,
+              short sq1,
+              vrna_exp_param_t *P){
+
   int ul, us, no_close = 0;
   double z = 0.;
 
@@ -352,37 +374,37 @@ PRIVATE INLINE double exp_E_IntLoop(int u1, int u2, int type, int type2, short s
         if (type>2) z *= P->expTermAU;
         if (type2>2) z *= P->expTermAU;
       }
-      return z;
+      return (FLT_OR_DBL)z;
     }
     else if (us==1) {
       if (ul==1){                    /* 1x1 loop */
-        return P->expint11[type][type2][si1][sj1];
+        return (FLT_OR_DBL)(P->expint11[type][type2][si1][sj1]);
       }
       if (ul==2) {                  /* 2x1 loop */
         if (u1==1)
-          return P->expint21[type][type2][si1][sq1][sj1];
+          return (FLT_OR_DBL)(P->expint21[type][type2][si1][sq1][sj1]);
         else
-          return P->expint21[type2][type][sq1][si1][sp1];
+          return (FLT_OR_DBL)(P->expint21[type2][type][sq1][si1][sp1]);
       }
       else {  /* 1xn loop */
         z = P->expinternal[ul+us] * P->expmismatch1nI[type][si1][sj1] * P->expmismatch1nI[type2][sq1][sp1];
-        return z * P->expninio[2][ul-us];
+        return (FLT_OR_DBL)(z * P->expninio[2][ul-us]);
       }
     }
     else if (us==2) {
       if(ul==2) /* 2x2 loop */
-        return P->expint22[type][type2][si1][sp1][sq1][sj1];
+        return (FLT_OR_DBL)(P->expint22[type][type2][si1][sp1][sq1][sj1]);
       else if(ul==3){              /* 2x3 loop */
         z = P->expinternal[5]*P->expmismatch23I[type][si1][sj1]*P->expmismatch23I[type2][sq1][sp1];
-        return z * P->expninio[2][1];
+        return (FLT_OR_DBL)(z * P->expninio[2][1]);
       }
     }
     /* generic interior loop (no else here!)*/
     z = P->expinternal[ul+us] * P->expmismatchI[type][si1][sj1] * P->expmismatchI[type2][sq1][sp1];
-    return z * P->expninio[2][ul-us];
+    return (FLT_OR_DBL)(z * P->expninio[2][ul-us]);
 
   }
-  return z;
+  return (FLT_OR_DBL)z;
 }
 
 PRIVATE INLINE int
@@ -448,7 +470,7 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j);
 
-FLT_OR_DBL
+PUBLIC FLT_OR_DBL
 vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j);
@@ -478,7 +500,16 @@ E_IntLoop(int n1,
           vrna_param_t *P);
 
 
-double exp_E_IntLoop(int u1, int u2, int type, int type2, short si1, short sj1, short sp1, short sq1, vrna_exp_param_t *P);
+PUBLIC FLT_OR_DBL
+exp_E_IntLoop(int u1,
+              int u2,
+              int type,
+              int type2,
+              short si1,
+              short sj1,
+              short sp1,
+              short sq1,
+              vrna_exp_param_t *P);
 
 int
 E_IntLoop_Co( int type,

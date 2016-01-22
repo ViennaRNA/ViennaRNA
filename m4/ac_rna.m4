@@ -9,6 +9,11 @@
 
 AC_DEFUN([AC_RNA_INIT],[
 
+AX_COMPILER_VENDOR
+AC_CANONICAL_HOST
+
+AC_CHECK_PROG(PERL,perl,perl)
+
 ##------------------##
 ## Enable Features  ##
 ##------------------##
@@ -20,6 +25,8 @@ RNA_ENABLE_GSL
 RNA_ENABLE_OPENMP
 RNA_ENABLE_BOUSTROPHEDON
 RNA_ENABLE_GEN_HC
+RNA_ENABLE_FLOATPF
+RNA_ENABLE_DEPRECATION_WARNINGS
 
 ## Set post conditions for feature
 ## settings
@@ -101,6 +108,7 @@ Other Options:
   Generic Hard Constraints: ${enable_gen_hard_constraints:-no}
   OpenMP:                   ${enable_openmp:-yes}
   LTO:                      ${enable_lto:-yes}      $enabled_but_failed_lto
+  Float Precision (PF):     ${enable_floatpf:-no}
 
 Documentation:              ${with_doc:-no}
     (HTML):                 ${with_doc_html:-no}

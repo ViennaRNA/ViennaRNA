@@ -201,12 +201,14 @@ int main(int argc, char *argv[]){
     md.oldAliEn = oldAliEn = 1;
   if(args_info.stochBT_given){
     n_back = args_info.stochBT_arg;
+    md.uniq_ML = 1;
     md.compute_bpp = do_backtrack = 0;
     pf = 1;
     vrna_init_rand();
   }
   if(args_info.stochBT_en_given){
     n_back = args_info.stochBT_en_arg;
+    md.uniq_ML = 1;
     md.compute_bpp = do_backtrack = 0;
     pf = 1;
     eval_energy = 1;
@@ -473,17 +475,34 @@ int main(int argc, char *argv[]){
     /* change energy parameters in vc */
     vrna_exp_params_subst(vc, pf_parameters);
 
-    energy = vrna_pf_comparative(vc, structure, NULL);
+    energy = vrna_pf(vc, structure);
 
     if (n_back>0) {
       /*stochastic sampling*/
       for (i=0; i<n_back; i++) {
         char *s;
-        double prob=1.;
-        s = vrna_pbacktrack_comparative(vc, &prob);
+#if CHECK_PROBABILITIES
+        double prob2, prob=1.;
+        s = alipbacktrack(&prob);
+        double e  = (double)vrna_eval_structure(vc, s);
+        e -= (double)vrna_eval_covar_structure(vc, s);
+        prob2 = exp((energy - e)/kT);
         printf("%s ", s);
-        if (eval_energy ) printf("%6g %.2f ",prob, -1*(kT*log(prob)-energy));
+        if (eval_energy ) printf("%6g (%6g) %.2f (%.2f) ",prob, prob2, -1*(kT*log(prob)-energy), e);
         printf("\n");
+#else
+        double prob=1.;
+        s = vrna_pbacktrack(vc);
+
+        printf("%s ", s);
+        if (eval_energy ){
+          double e  = (double)vrna_eval_structure(vc, s);
+          e -= (double)vrna_eval_covar_structure(vc, s);
+          prob = exp((energy - e)/kT);
+          printf("%6g %.2f  ",prob, -1*(kT*log(prob)-energy));
+        }
+        printf("\n");
+#endif
          free(s);
       }
 
@@ -555,7 +574,6 @@ int main(int argc, char *argv[]){
       free(mfel);
     }
     free(mfe_struc);
-    vrna_fold_compound_free(vc);
     free(pf_parameters);
   }
   if (cstruc!=NULL) free(cstruc);
@@ -564,6 +582,7 @@ int main(int argc, char *argv[]){
     free(shape_files);
   free(string);
   free(structure);
+  vrna_fold_compound_free(vc);
   for (i=0; AS[i]; i++) {
     free(AS[i]); free(names[i]);
   }

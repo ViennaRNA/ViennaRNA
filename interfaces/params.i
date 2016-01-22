@@ -70,7 +70,7 @@ typedef struct {
 %ignore copy_pf_param;
 %ignore set_pf_param;
 
-%include "../src/ViennaRNA/params.h"
+%include <ViennaRNA/params.h>
 
 
 
@@ -78,10 +78,10 @@ typedef struct {
 /* BEGIN interface for parameter file I/O     */
 /**********************************************/
 
-%include "../src/ViennaRNA/read_epars.h"
+%include <ViennaRNA/read_epars.h>
 
 /**********************************************/
 /* BEGIN interface for energy constants       */
 /**********************************************/
 
-%include  "../src/ViennaRNA/energy_const.h"
+%include  <ViennaRNA/energy_const.h>

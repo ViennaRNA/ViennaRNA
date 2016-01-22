@@ -342,7 +342,7 @@ fill_arrays(vrna_fold_compound_t *vc){
 PRIVATE int
 fill_arrays_comparative(vrna_fold_compound_t *vc){
 
-  int   i, j, k, p, q, energy, new_c;
+  int   i, j, k, p, q, energy, stackEnergy, new_c;
   int   decomp, MLenergy, new_fML;
   int   s, *type, type_2, tt;
   int   *cc;        /* linear array for calculating canonical structures */
@@ -409,125 +409,11 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
 
       psc = pscore[indx[j]+i];
       if (hard_constraints[ij]) {   /* a pair to consider */
-        int stackEnergy = INF;
+        new_c = INF;
+
         /* hairpin ----------------------------------------------*/
-        new_c = vrna_E_hp_loop(vc, i, j);
-
-        /*--------------------------------------------------------
-          check for elementary structures involving more than one
-          closing pair.
-          --------------------------------------------------------*/
-
-        if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
-          for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
-            if(hc->up_int[i+1] < p - i - 1)
-              break;
-
-            minq = j-i+p-MAXLOOP-2;
-            if (minq<p+1+TURN) minq = p+1+TURN;
-            for (q = minq; q < j; q++) {
-              if(!(hard_constraints[indx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC))
-                continue;
-              if(hc->up_int[q+1] < j - q - 1)
-                continue;
-
-              for (energy = s=0; s<n_seq; s++) {
-                int u1 = a2s[s][p-1]-a2s[s][i];
-                int u2 = a2s[s][j-1]-a2s[s][q];
-                type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
-                if (type_2 == 0) type_2 = 7;
-                energy += E_IntLoop(u1, u2, type[s], type_2,
-                                     S3[s][i], S5[s][j],
-                                     S5[s][p], S3[s][q], P);
-              }
-
-              if(sc){
-                for(s = 0; s < n_seq; s++){
-                  if(sc[s]){
-                    int u1 = a2s[s][p-1]-a2s[s][i];
-                    int u2 = a2s[s][j-1]-a2s[s][q];
-/*
-                    int u1 = p - i - 1;
-                    int u2 = j - q - 1;
-*/
-                    if(sc[s]->energy_bp)
-                      energy +=   sc[s]->energy_bp[indx[j] + i];
-
-                    if(sc[s]->energy_up)
-                      energy +=   sc[s]->energy_up[a2s[s][i]+1][u1]
-                                + sc[s]->energy_up[a2s[s][q]+1][u2];
-
-                    if(u1 + u2 == 0)
-                      if(sc[s]->energy_stack)
-                        energy +=   sc[s]->energy_stack[i]
-                                  + sc[s]->energy_stack[p]
-                                  + sc[s]->energy_stack[q]
-                                  + sc[s]->energy_stack[j];
-
-                  }
-                }
-              }
-
-              if ((p==i+1)&&(j==q+1)){
-                stackEnergy = energy; /* remember stack energy */
-              }
-              new_c = MIN2(new_c, energy + c[indx[q]+p]);
-            } /* end q-loop */
-          } /* end p-loop */
-
-          if(md->gquad){
-            decomp = 0;
-            for(s=0;s<n_seq;s++){
-              tt = type[s];
-              if(dangle_model == 2)
-                decomp += P->mismatchI[tt][S3[s][i]][S5[s][j]];
-              if(tt > 2)
-                decomp += P->TerminalAU;
-            }
-            for(p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-              l1    = p - i - 1;
-              if(l1>MAXLOOP) break;
-              if(S_cons[p] != 3) continue;
-              minq  = j - i + p - MAXLOOP - 2;
-              c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-              minq  = MAX2(c0, minq);
-              c0    = j - 1;
-              maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-              maxq  = MIN2(c0, maxq);
-              for(q = minq; q < maxq; q++){
-                if(S_cons[q] != 3) continue;
-                c0    = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1 + j - q - 1];
-                new_c = MIN2(new_c, c0);
-              }
-            }
-
-            p = i + 1;
-            if(S_cons[p] == 3){
-              if(p < j - VRNA_GQUAD_MIN_BOX_SIZE){
-                minq  = j - i + p - MAXLOOP - 2;
-                c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-                minq  = MAX2(c0, minq);
-                c0    = j - 3;
-                maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-                maxq  = MIN2(c0, maxq);
-                for(q = minq; q < maxq; q++){
-                  if(S_cons[q] != 3) continue;
-                  c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[j - q - 1];
-                  new_c   = MIN2(new_c, c0);
-                }
-              }
-            }
-            q = j - 1;
-            if(S_cons[q] == 3)
-              for(p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++){
-                l1    = p - i - 1;
-                if(l1>MAXLOOP) break;
-                if(S_cons[p] != 3) continue;
-                c0  = decomp + ggg[indx[q] + p] + n_seq * P->internal_loop[l1];
-                new_c   = MIN2(new_c, c0);
-              }
-          }
-        } /* end if interior loop */
+        energy  = vrna_E_hp_loop(vc, i, j);
+        new_c   = MIN2(new_c, energy);
 
         /* multi-loop decomposition ------------------------*/
         if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
@@ -555,15 +441,19 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
           new_c = MIN2(new_c, MLenergy);
         }
 
+        /* check for interior loops */
+        energy  = vrna_E_int_loop(vc, i, j);
+        new_c   = MIN2(new_c, energy);
 
-        new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
-
-        cc[j] = new_c - psc; /* add covariance bonnus/penalty */
-        if (md->noLP)
-          c[ij] = cc1[j-1]+stackEnergy-psc;
-        else
-          c[ij] = cc[j];
-
+        /* remember stack energy for --noLP option */
+        if(md->noLP){
+          stackEnergy = vrna_E_stack(vc, i, j);
+          new_c       = MIN2(new_c, cc1[j-1]+stackEnergy);
+          cc[j]       = new_c - psc; /* add covariance bonnus/penalty */
+          c[ij]       = cc1[j-1] + stackEnergy - psc;
+        } else {
+          c[ij]       = new_c - psc; /* add covariance bonnus/penalty */
+        }
       } /* end >> if (pair) << */
 
       else c[ij] = INF;
@@ -1012,7 +902,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       bp_stack[++b].i = i;
       bp_stack[b].j   = j;
       cov_en += pscore[indx[j]+i];
-      goto repeat1;
+      goto repeat1_comparative;
     }
 
     if (j < i+TURN+1) continue; /* no more pairs in this interval */
@@ -1105,13 +995,13 @@ backtrack_comparative(vrna_fold_compound_t *vc,
 
       if(with_gquad && gq){
         /* goto backtrace of gquadruplex */
-        goto repeat_gquad;
+        goto repeat_gquad_comparative;
       }
 
       bp_stack[++b].i = i;
       bp_stack[b].j   = j;
       cov_en += pscore[indx[j]+i];
-      goto repeat1;
+      goto repeat1_comparative;
     }
     else { /* trace back in fML array */
       if(hc->up_ml[i]){
@@ -1135,7 +1025,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       if(md->gquad){
         if(fij == ggg[indx[j]+i] + n_seq * E_MLstem(0, -1, -1, P)){
           /* go to backtracing of quadruplex */
-          goto repeat_gquad;
+          goto repeat_gquad_comparative;
         }
       }
 
@@ -1161,7 +1051,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
           bp_stack[++b].i = i;
           bp_stack[b].j   = j;
           cov_en += pscore[indx[j]+i];
-          goto repeat1;
+          goto repeat1_comparative;
         }
       }
 
@@ -1180,7 +1070,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       continue;
     }
 
-  repeat1:
+  repeat1_comparative:
 
     /*----- begin of "repeat:" -----*/
     if (canonical)  cij = c[indx[j]+i];
@@ -1209,7 +1099,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
         cov_en += pscore[indx[j-1]+i+1];
         i++; j--;
         canonical=0;
-        goto repeat1;
+        goto repeat1_comparative;
       }
     canonical = 1;
     cij += pscore[indx[j]+i];
@@ -1248,12 +1138,14 @@ backtrack_comparative(vrna_fold_compound_t *vc,
               int u2 = j - q - 1;
 */
               if(u1 + u2 == 0)
-                if(sc[ss]->energy_stack)
-                  energy +=   sc[ss]->energy_stack[i]
-                            + sc[ss]->energy_stack[p]
-                            + sc[ss]->energy_stack[q]
-                            + sc[ss]->energy_stack[j];
-
+                if(sc[ss]->energy_stack){
+                  if(S[ss][i] && S[ss][j] && S[ss][p] && S[ss][q]){ /* don't allow gaps in stack */
+                    energy +=   sc[ss]->energy_stack[a2s[ss][i]]
+                              + sc[ss]->energy_stack[a2s[ss][p]]
+                              + sc[ss]->energy_stack[a2s[ss][q]]
+                              + sc[ss]->energy_stack[a2s[ss][j]];
+                  }
+                }
               if(sc[ss]->energy_bp)
                 energy += sc[ss]->energy_bp[indx[j] + i];
 
@@ -1268,7 +1160,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
           bp_stack[b].j   = q;
           cov_en += pscore[indx[q]+p];
           i = p, j = q;
-          goto repeat1;
+          goto repeat1_comparative;
         }
       }
     }
@@ -1314,7 +1206,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
           c0  = mm + ggg[indx[q] + p] + n_seq * P->internal_loop[l1 + j - q - 1];
           if(cij == c0){
             i=p;j=q;
-            goto repeat_gquad;
+            goto repeat_gquad_comparative;
           }
         }
       }
@@ -1331,7 +1223,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
             if(S_cons[q] != 3) continue;
             if(cij == mm + ggg[indx[q] + p] + n_seq * P->internal_loop[j - q - 1]){
               i = p; j=q;
-              goto repeat_gquad;
+              goto repeat_gquad_comparative;
             }
           }
         }
@@ -1344,7 +1236,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
           if(S_cons[p] != 3) continue;
           if(cij == mm + ggg[indx[q] + p] + n_seq * P->internal_loop[l1]){
             i = p; j = q;
-            goto repeat_gquad;
+            goto repeat_gquad_comparative;
           }
         }
     }
@@ -1390,7 +1282,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
 
     continue; /* this is a workarround to not accidentally proceed in the following block */
 
-  repeat_gquad:
+  repeat_gquad_comparative:
     /*
       now we do some fancy stuff to backtrace the stacksize and linker lengths
       of the g-quadruplex that should reside within position i,j
@@ -1445,15 +1337,15 @@ backtrack_comparative(vrna_fold_compound_t *vc,
                   bp_stack[++b].i = i+L+l[0]+L+l[1]+L+l[2]+a;
                   bp_stack[b].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
                 }
-                goto repeat_gquad_exit;
+                goto repeat_gquad_comparative_exit;
               }
             }
           }
         }
       }
-      vrna_message_error("backtracking failed in repeat_gquad");
+      vrna_message_error("backtracking failed in repeat_gquad_comparative");
     }
-  repeat_gquad_exit:
+  repeat_gquad_comparative_exit:
     asm("nop");
 
   }

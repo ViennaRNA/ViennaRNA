@@ -166,6 +166,10 @@ vrna_E_hp_loop( vrna_fold_compound_t *vc,
 /**
  *  @brief  Evaluate the free energy of an exterior hairpin loop
  *          and consider possible hard constraints
+ *
+ *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
+ *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *
  */
 int
 vrna_E_ext_hp_loop( vrna_fold_compound_t *vc,
@@ -207,7 +211,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
 *************************************
 */
 
-PRIVATE INLINE double
+PRIVATE INLINE FLT_OR_DBL
 exp_E_Hairpin(int u,
               int type,
               short si1,
@@ -223,7 +227,7 @@ exp_E_Hairpin(int u,
   else
     q = P->exphairpin[30] * exp( -(P->lxc*log( u/30.))*10./kT);
 
-  if(u < 3) return q; /* should only be the case when folding alignments */
+  if(u < 3) return (FLT_OR_DBL)q; /* should only be the case when folding alignments */
 
   if(P->model_details.special_hp){
     if(u==4){
@@ -231,7 +235,7 @@ exp_E_Hairpin(int u,
       strncpy(tl, string, 6);
       if ((ts=strstr(P->Tetraloops, tl))){
         if(type != 7)
-          return (P->exptetra[(ts-P->Tetraloops)/7]);
+          return (FLT_OR_DBL)(P->exptetra[(ts-P->Tetraloops)/7]);
         else
           q *= P->exptetra[(ts-P->Tetraloops)/7];
       }
@@ -240,31 +244,35 @@ exp_E_Hairpin(int u,
       char tl[9]={0,0,0,0,0,0,0,0,0}, *ts;
       strncpy(tl, string, 8);
       if ((ts=strstr(P->Hexaloops, tl)))
-        return  (P->exphex[(ts-P->Hexaloops)/9]);
+        return  (FLT_OR_DBL)(P->exphex[(ts-P->Hexaloops)/9]);
     }
     else if(u==3){
       char tl[6]={0,0,0,0,0,0}, *ts;
       strncpy(tl, string, 5);
       if ((ts=strstr(P->Triloops, tl)))
-        return (P->exptri[(ts-P->Triloops)/6]);
+        return (FLT_OR_DBL)(P->exptri[(ts-P->Triloops)/6]);
       if (type>2)
-        return q * P->expTermAU;
+        return (FLT_OR_DBL)(q * P->expTermAU);
       else
-        return q;
+        return (FLT_OR_DBL)q;
     }
   }
   q *= P->expmismatchH[type][si1][sj1];
 
-  return q;
+  return (FLT_OR_DBL)q;
 }
 
 
 /**
  *  @brief High-Level function for hairpin loop energy evaluation (partition function variant)
  *
- *  @see E_hp_loop() for it's free energy counterpart
+ *  @see vrna_E_hp_loop() for it's free energy counterpart
+ *
+ *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
+ *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *
 */
-double
+FLT_OR_DBL
 vrna_exp_E_hp_loop( vrna_fold_compound_t *vc,
                     int i,
                     int j);

@@ -8,11 +8,17 @@
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/ribo.h>
 #include <ViennaRNA/mfe.h>
+#include <ViennaRNA/part_func.h>
+#include <ViennaRNA/boltzmann_sampling.h>
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
+#ifdef DEPRECATION_WARNINGS
+# ifdef __GNUC__
+#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# else
+#  define DEPRECATED(func) func
+# endif
 #else
-#define DEPRECATED(func) func
+# define DEPRECATED(func) func
 #endif
 
 /**
@@ -44,23 +50,29 @@
  *  @}
  */
 
+/*
+##############################################
+# MFE VARIANTS OF THE ALIFOLD IMPLEMENTATION #
+##############################################
+*/
+
 /**
  *  @brief  Compute Minimum Free Energy (MFE), and a corresponding consensus secondary structure
  *          for an RNA sequence alignment using a comparative method
  *
  *  @ingroup consensus_mfe_fold
  *
- *  This simplified interface to vrna_mfe_comparative() computes the MFE and, if required, a consensus secondary
+ *  This simplified interface to vrna_mfe() computes the MFE and, if required, a consensus secondary
  *  structure for an RNA sequence alignment using default options. Memory required for dynamic programming
  *  (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of this function, the
  *  recursively filled matrices are not available any more for any post-processing, e.g. suboptimal
  *  backtracking, etc.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe_comparative(),
+ *  you require other conditions than specified by the default model details, use vrna_mfe(),
  *  and the data structure #vrna_fold_compound_t instead.
  *
- *  @see vrna_circalifold(), vrna_mfe_comparative(), vrna_fold_compound(), #vrna_fold_compound_t
+ *  @see vrna_circalifold(), vrna_mfe(), vrna_fold_compound(), #vrna_fold_compound_t
  *
  *  @param sequences  RNA sequence alignment
  *  @param structure  A pointer to the character array where the
@@ -77,7 +89,7 @@ vrna_alifold( const char **ssequences,
  *
  *  @ingroup consensus_mfe_fold
  *
- *  This simplified interface to vrna_mfe_comparative() computes the MFE and, if required, a consensus secondary
+ *  This simplified interface to vrna_mfe() computes the MFE and, if required, a consensus secondary
  *  structure for an RNA sequence alignment using default options. Memory required for dynamic programming
  *  (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of this function, the
  *  recursively filled matrices are not available any more for any post-processing, e.g. suboptimal
@@ -87,10 +99,10 @@ vrna_alifold( const char **ssequences,
  *  recursions. See @cite hofacker:2006 for further details.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe_comparative(),
+ *  you require other conditions than specified by the default model details, use vrna_mfe(),
  *  and the data structure #vrna_fold_compound_t instead.
  *
- *  @see vrna_alifold(), vrna_mfe_comparative(), vrna_fold_compound(), #vrna_fold_compound_t
+ *  @see vrna_alifold(), vrna_mfe(), vrna_fold_compound(), #vrna_fold_compound_t
  *
  *  @param sequences  Sequence alignment of circular RNAs
  *  @param structure  A pointer to the character array where the
@@ -101,34 +113,82 @@ float
 vrna_circalifold( const char **ssequences,
                   char *structure);
 
+/*
+#############################################################
+# PARTITION FUNCTION VARIANTS OF THE ALIFOLD IMPLEMENTATION #
+#############################################################
+*/
+
+
 /**
- *  @brief This variable controls the weight of the covariance term in the
- *  energy function of alignment folding algorithms
- * 
+ *  @addtogroup consensus_pf_fold
  *  @ingroup consensus_fold
+ *  @{
  *
- *  @deprecated See #vrna_md_t.cv_fact, and vrna_mfe_comparative() to avoid using global variables
- *
- *  Default is 1.
+ *  @}
  */
-DEPRECATED(extern  double  cv_fact);
+
 /**
- *  @brief This variable controls the magnitude of the penalty for non-compatible sequences in
- *  the covariance term of alignment folding algorithms.
- * 
- *  @ingroup consensus_fold
- * 
- *  @deprecated See #vrna_md_t.nc_fact, and vrna_mfe_comparative() to avoid using global variables
+ *  @brief  Compute Partition function @f$Q@f$ (and base pair probabilities) for an RNA
+ *          sequence alignment using a comparative method
  *
- *  Default is 1.
+ *  @ingroup consensus_pf_fold
+ *
+ *  This simplified interface to vrna_pf() computes the partition function and, if required,
+ *  base pair probabilities for an RNA sequence alignment using default options. Memory required for
+ *  dynamic programming (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of
+ *  this function, the recursively filled matrices are not available any more for any post-processing.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_pf(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  @see vrna_pf_circalifold(), vrna_pf(), vrna_fold_compound_comparative(), #vrna_fold_compound_t
+ *
+ *  @param sequences  RNA sequence alignment
+ *  @param structure  A pointer to the character array where position-wise pairing propensity
+ *                    will be stored. (Maybe NULL)
+ *  @param pl         A pointer to a list of #vrna_plist_t to store pairing probabilities (Maybe NULL)
+ *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
-DEPRECATED(extern  double  nc_fact);
+float vrna_pf_alifold(const char **strings, char *structure, vrna_plist_t **pl);
+
+/**
+ *  @brief  Compute Partition function @f$Q@f$ (and base pair probabilities) for an alignment
+ *          of circular RNA sequences using a comparative method
+ *
+ *  @ingroup consensus_pf_fold
+ *
+ *  This simplified interface to vrna_pf() computes the partition function and, if required,
+ *  base pair probabilities for an RNA sequence alignment using default options. Memory required for
+ *  dynamic programming (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of
+ *  this function, the recursively filled matrices are not available any more for any post-processing.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_pf(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  Folding of circular RNA sequences is handled as a post-processing step of the forward
+ *  recursions. See @cite hofacker:2006 for further details.
+ *
+ *  @see vrna_pf_alifold(), vrna_pf(), vrna_fold_compound_comparative(), #vrna_fold_compound_t
+ *
+ *  @param sequences  Sequence alignment of circular RNAs
+ *  @param structure  A pointer to the character array where position-wise pairing propensity
+ *                    will be stored. (Maybe NULL)
+ *  @param pl         A pointer to a list of #vrna_plist_t to store pairing probabilities (Maybe NULL)
+ *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
+ */
+float vrna_pf_circalifold(const char **sequences, char *structure, vrna_plist_t **pl);
+
+#ifdef  VRNA_BACKWARD_COMPAT
 
 /*
-##############################################
-# MFE VARIANTS OF THE ALIFOLD IMPLEMENTATION #
-##############################################
+#################################################
+# DEPRECATED FUNCTIONS                          #
+#################################################
 */
+
 
 /**
  *  @brief Compute MFE and according consensus structure of an alignment of sequences
@@ -142,8 +202,8 @@ DEPRECATED(extern  double  nc_fact);
  * 
  *  @ingroup consensus_mfe_fold
  * 
- *  @deprecated Usage of this function is discouraged! Use vrna_alifold(), or vrna_mfe_comparative() instead!
- *  @see vrna_alifold(), vrna_mfe_comparative()
+ *  @deprecated Usage of this function is discouraged! Use vrna_alifold(), or vrna_mfe() instead!
+ *  @see vrna_alifold(), vrna_mfe()
  *
  *  @param strings    A pointer to a NULL terminated array of character arrays
  *  @param structure  A pointer to a character array that may contain a constraining consensus structure
@@ -157,8 +217,8 @@ DEPRECATED(float alifold( const char **strings, char *structure));
  * 
  *  @ingroup consensus_mfe_fold
  * 
- *  @deprecated Usage of this function is discouraged! Use vrna_alicircfold(), and vrna_mfe_comparative() instead!
- *  @see vrna_alicircfold(), vrna_alifold(), vrna_mfe_comparative()
+ *  @deprecated Usage of this function is discouraged! Use vrna_alicircfold(), and vrna_mfe() instead!
+ *  @see vrna_alicircfold(), vrna_alifold(), vrna_mfe()
  * 
  *  @param strings    A pointer to a NULL terminated array of character arrays
  *  @param structure  A pointer to a character array that may contain a constraining consensus structure
@@ -201,51 +261,35 @@ DEPRECATED(float energy_of_alistruct(const char **sequences, const char *structu
 
 DEPRECATED(float energy_of_ali_gquad_structure(const char **sequences, const char *structure, int n_seq, float *energy));
 
-/*
-#############################################################
-# PARTITION FUNCTION VARIANTS OF THE ALIFOLD IMPLEMENTATION #
-#############################################################
-*/
-
-
 /**
- *  @addtogroup consensus_pf_fold
+ *  @brief This variable controls the weight of the covariance term in the
+ *  energy function of alignment folding algorithms
+ * 
  *  @ingroup consensus_fold
- *  @{
  *
- *  @}
+ *  @deprecated See #vrna_md_t.cv_fact, and vrna_mfe() to avoid using global variables
+ *
+ *  Default is 1.
  */
-
-
+DEPRECATED(extern  double  cv_fact);
 /**
- *  @brief Compute partition function and base pair probabilities for
- *  a sequence alignment.
+ *  @brief This variable controls the magnitude of the penalty for non-compatible sequences in
+ *  the covariance term of alignment folding algorithms.
  * 
- *  The partition function version of vrna_mfe_comparative() works in analogy to
- *  vrna_pf(). Pair probabilities are returned via the 'pl' variable
- *  as a list of #vrna_plist_t structs. The list is terminated by the first entry
- *  with pl.i = 0.
+ *  @ingroup consensus_fold
  * 
- *  @ingroup consensus_pf_fold
+ *  @deprecated See #vrna_md_t.nc_fact, and vrna_mfe() to avoid using global variables
  *
- *  @see vrna_aln_pinfo() for a replacement of pl with more detailed
- *  information
- * 
- *  @param vc         The #vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT
- *  @param structure  A pointer to a character array of length of the alignment (Maybe NULL)
- *  @param pl         A pointer to a #vrna_plist_t pointer where the pair probabilities are stored (Maybe NULL)
- *  @return           Gibbs free energy of the consensus fold space
+ *  Default is 1.
  */
-float vrna_pf_comparative(vrna_fold_compound_t *vc,
-                      char *structure,
-                      vrna_plist_t **pl);
+DEPRECATED(extern  double  nc_fact);
 
 /**
  *  @brief
  * 
  *  @ingroup consensus_pf_fold
  * 
- *  @deprecated Use vrna_pf_comparative() instead
+ *  @deprecated Use vrna_pf() instead
  *
  *  @param  sequences
  *  @param  structure
@@ -275,7 +319,7 @@ DEPRECATED(float alipf_fold_par( const char **sequences,
  * 
  *  @ingroup consensus_pf_fold
  * 
- *  @deprecated Use vrna_pf_comparative() instead
+ *  @deprecated Use vrna_pf() instead
  *
  *  @param sequences
  *  @param structure
@@ -289,7 +333,7 @@ DEPRECATED(float alipf_fold( const char **sequences, char *structure, vrna_plist
  * 
  *  @ingroup consensus_pf_fold
  *
- *  @deprecated Use vrna_pf_comparative() instead
+ *  @deprecated Use vrna_pf() instead
  * 
  *  @param sequences
  *  @param structure
@@ -310,10 +354,10 @@ DEPRECATED(float alipf_circ_fold(const char **sequences, char *structure, vrna_p
  *  @deprecated Usage of this function is discouraged! The new #vrna_fold_compound_t
  *  allows direct access to the folding matrices, including the pair probabilities!
  *  The pair probability array returned here reflects the one of the latest call
- *  to vrna_pf_comparative(), or any of the old API calls for consensus structure
+ *  to vrna_pf(), or any of the old API calls for consensus structure
  *  partition function folding.
  * 
- *  @see #vrna_fold_compound_t, vrna_fold_compound_comparative(), and vrna_pf_comparative()
+ *  @see #vrna_fold_compound_t, vrna_fold_compound_comparative(), and vrna_pf()
  *
  *  @return A pointer to the base pair probability array
  */
@@ -334,31 +378,11 @@ DEPRECATED(FLT_OR_DBL *export_ali_bppm(void));
 DEPRECATED(void  free_alipf_arrays(void));
 
 /**
- *  @addtogroup consensus_stochbt
- *  @{
- *
- *  @}
- */
-
-/**
  *  @brief Sample a consensus secondary structure from the Boltzmann ensemble according its probability
  * 
  *  @ingroup consensus_stochbt
  *
- *  @see vrna_pf_comparative() for precomputing the partition function matrices, and
- *
- *  @param  vc    The #vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
- *  @param  prob  to be described (berni)
- *  @return       A sampled consensus secondary structure in dot-bracket notation
- */
-char *vrna_pbacktrack_comparative(vrna_fold_compound_t *vc, double *prob);
-
-/**
- *  @brief Sample a consensus secondary structure from the Boltzmann ensemble according its probability
- * 
- *  @ingroup consensus_stochbt
- *
- *  @deprecated Use vrna_pbacktrack_comparative() instead!
+ *  @deprecated Use vrna_pbacktrack() instead!
  *
  *  @param  prob  to be described (berni)
  *  @return       A sampled consensus secondary structure in dot-bracket notation
@@ -377,7 +401,7 @@ DEPRECATED(char  *alipbacktrack(double *prob));
  *  @deprecated It is discouraged to use this function! The new #vrna_fold_compound_t allows
  *  direct access to all necessary consensus structure prediction related variables!
  *
- *  @see #vrna_fold_compound_t, vrna_fold_compound_comparative(), vrna_pf_comparative()
+ *  @see #vrna_fold_compound_t, vrna_fold_compound_comparative(), vrna_pf()
  *
  *  @param S_p      A pointer to the 'S' array (integer representation of nucleotides)
  *  @param S5_p     A pointer to the 'S5' array
@@ -414,5 +438,8 @@ DEPRECATED(int get_alipf_arrays(short ***S_p,
  *  vrna_update_fold_params() to update the energy parameters within a #vrna_fold_compound_t.
  */
 DEPRECATED(void update_alifold_params(void));
+
+#endif
+
 
 #endif

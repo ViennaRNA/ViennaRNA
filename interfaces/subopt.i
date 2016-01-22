@@ -49,4 +49,4 @@ extern  SOLUTION *subopt (char *seq, char *constraint, int delta, FILE *fp=NULL)
 %ignore zukersubopt;
 %ignore zukersubopt_par;
 
-%include  "../src/ViennaRNA/subopt.h"
+%include  <ViennaRNA/subopt.h>

@@ -1,10 +1,14 @@
 #ifndef VIENNA_RNA_PACKAGE_ALN_UTIL_H
 #define VIENNA_RNA_PACKAGE_ALN_UTIL_H
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
+#ifdef DEPRECATION_WARNINGS
+# ifdef __GNUC__
+#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# else
+#  define DEPRECATED(func) func
+# endif
 #else
-#define DEPRECATED(func) func
+# define DEPRECATED(func) func
 #endif
 
 /**
@@ -85,7 +89,7 @@ int vrna_aln_mpi( char *Alseq[],
  *  This array of structures contains information about positionwise pair probabilies,
  *  base pair entropy and more
  *
- *  \see #vrna_pinfo_t, and vrna_pf_comparative()
+ *  \see #vrna_pinfo_t, and vrna_pf()
  *
  *  \param  vc          The #vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
  *  \param  structure   An optional structure in dot-bracket notation (Maybe NULL)

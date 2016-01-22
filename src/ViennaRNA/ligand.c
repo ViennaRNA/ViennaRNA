@@ -105,7 +105,7 @@ PUBLIC int
 vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
                       const char *seq,
                       const char *structure,
-                      double energy,
+                      FLT_OR_DBL energy,
                       unsigned int options){
 
     int                   i, cp, cp2;
@@ -339,8 +339,8 @@ expAptamerContrib(int i, int j, int k, int l, char d, void *data){
 
     for(pos = ldata->positions; pos->i; pos++){
       if((pos->i == i) && (pos->j == j) && (pos->k == k) && (pos->l == l)){
-        exp_e =   exp((double) (-ldata->energy) * 10./kT);
-        exp_e +=  exp((double) (-ldata->energy_alt) * 10./kT); /* add alternative, i.e. unbound ligand */
+        exp_e =   (FLT_OR_DBL)exp((double) (-ldata->energy) * 10./kT);
+        exp_e +=  (FLT_OR_DBL)exp((double) (-ldata->energy_alt) * 10./kT); /* add alternative, i.e. unbound ligand */
         break;
       }
     }
@@ -365,8 +365,8 @@ expAptamerContribHairpin(int i, int j, int k, int l, char d, void *data){
 
     for(pos = ldata->positions; pos->i; pos++){
       if((pos->i == i) && (pos->j == j)){
-        exp_e =   exp((double) (-ldata->energy) * 10./kT);
-        exp_e +=  exp((double) (-ldata->energy_alt) * 10./kT); /* add alternative, i.e. unbound ligand */
+        exp_e =   (FLT_OR_DBL)exp((double) (-ldata->energy) * 10./kT);
+        exp_e +=  (FLT_OR_DBL)exp((double) (-ldata->energy_alt) * 10./kT); /* add alternative, i.e. unbound ligand */
         break;
       }
     }

@@ -22,7 +22,7 @@
 static void calculate_probability_unpaired(vrna_fold_compound_t *vc, double *probability)
 {
   int length = vc->length;
-  double *probs = vc->exp_matrices->probs;
+  FLT_OR_DBL *probs = vc->exp_matrices->probs;
   int *iidx = vc->iindx;
   int i, j;
 
@@ -56,10 +56,10 @@ static void addSoftConstraint(vrna_fold_compound_t *vc, const double *epsilon, i
 
   sc = vrna_alloc(sizeof(vrna_sc_t));
 
-  sc->exp_energy_up = vrna_alloc(sizeof(double*) * (length + 2));
+  sc->exp_energy_up = vrna_alloc(sizeof(FLT_OR_DBL*) * (length + 2));
   sc->exp_energy_up[0] = vrna_alloc(1);
   for (i = 1; i <= length; ++i)
-    sc->exp_energy_up[i] = vrna_alloc(sizeof(double) * (length - i + 2));
+    sc->exp_energy_up[i] = vrna_alloc(sizeof(FLT_OR_DBL) * (length - i + 2));
 
   for (i = 1; i <= length; ++i)
   {

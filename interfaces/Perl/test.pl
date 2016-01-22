@@ -1,4 +1,4 @@
-#!/usr/bin/perl -Iblib/arch -Iblib/lib
+#!/usr/bin/perl -I.libs
 
 # Last changed Time-stamp: <2007-09-27 17:21:23 ivo>
 
@@ -18,7 +18,6 @@ use warnings;
 # Insert your test code below (better if it prints "ok 13"
 # (correspondingly "not ok 13") depending on the success of chunk 13
 # of the test code):
-
 
 my $seq1  ="CGCAGGGAUACCCGCG";
 my $struc1="(((.(((...))))))";
@@ -107,7 +106,7 @@ ok(RNA::cdata($RNA::xsubi, 6),pack('S3', 171,42,93));
 # get a bp prob in two different ways
 my $p1 = RNA::get_pr(2,15);
 my $ii = RNA::intP_getitem($RNA::iindx, 2);
-my $p2 = RNA::doubleP_getitem($RNA::pr, $ii-15);
+my $p2 = (RNA::pf_float_precision() != 0) ? RNA::floatP_getitem($RNA::pr, $ii-15) : RNA::doubleP_getitem($RNA::pr, $ii-15);
 ok(($p1<0.999) && ($p1>0.99) && (abs($p1-$p2)<1.2e-7));
 
 my $bpf = RNA::Make_bp_profile(length($seq1));

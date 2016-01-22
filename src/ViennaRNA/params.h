@@ -1,10 +1,14 @@
 #ifndef VIENNA_RNA_PACKAGE_PARAMS_H
 #define VIENNA_RNA_PACKAGE_PARAMS_H
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
+#ifdef DEPRECATION_WARNINGS
+# ifdef __GNUC__
+#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# else
+#  define DEPRECATED(func) func
+# endif
 #else
-#define DEPRECATED(func) func
+# define DEPRECATED(func) func
 #endif
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */

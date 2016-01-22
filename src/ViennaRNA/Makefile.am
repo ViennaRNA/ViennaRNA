@@ -2,10 +2,28 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 AM_CFLAGS = $(OPENMP_CFLAGS)
 AM_CXXFLAGS = $(OPENMP_CFLAGS)
-AM_CPPFLAGS =  -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC}
+AM_CPPFLAGS =  -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC} @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
 
-lib_LIBRARIES = libRNA.a
+# the library names to build
+lib_LTLIBRARIES = libRNA.la
 
+# convenience library
+noinst_LTLIBRARIES = libRNA_conv.la
+
+# where to install the headers on the system
+libRNA_ladir = $(includedir)/ViennaRNA
+libRNA_la_SOURCES = 
+
+# ldflags to avoid version information
+libRNA_la_LIBADD = libRNA_conv.la
+libRNA_la_LDFLAGS = -avoid-version -static
+
+# Dummy C++ source to cause C++ linking.
+if WITH_LIBSVM
+nodist_EXTRA_libRNA_la_SOURCES = dummy.cxx
+else
+nodist_EXTRA_libRNA_la_SOURCES = 
+endif
 
 if WITH_LIBSVM
   SVM_SRC     = ../@LIBSVM_DIR@/svm.cpp
@@ -32,9 +50,10 @@ pkginclude_HEADERS =  energy_par.h pair_mat.h RNAstruct.h dist_vars.h mfe.h \
                       plot_layouts.h ali_plex.h plex.h snofold.h snoop.h move_set.h\
                       gquad.h constraints.h eval.h perturbation_fold.h centroid.h\
                       structure_utils.h string_utils.h model.h file_formats.h dp_matrices.h \
-                      plot_structure.h plot_aln.h ligand.h ${SVM_UTILS_H} ${SVM_H} ${JSON_H}
+                      plot_structure.h plot_aln.h ligand.h boltzmann_sampling.h \
+                      ${SVM_UTILS_H} ${SVM_H} ${JSON_H}
 
-libRNA_a_SOURCES  = dist_vars.c data_structures.c part_func.c read_epars.c\
+libRNA_conv_la_SOURCES  = dist_vars.c data_structures.c part_func.c read_epars.c\
                     treedist.c energy_par.c inverse.c ProfileDist.c \
                     RNAstruct.c utils.c mfe.c fold.c naview.c PS_dot.c \
                     stringdist.c params.c subopt.c list.c Lfold.c \
@@ -47,11 +66,19 @@ libRNA_a_SOURCES  = dist_vars.c data_structures.c part_func.c read_epars.c\
                     perturbation_fold.c centroid.c structure_utils.c model.c \
                     file_formats.c dp_matrices.c plot_structure.c plot_aln.c \
                     exterior_loops.c hairpin_loops.c interior_loops.c multibranch_loops.c \
-                    ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC}
+                    boltzmann_sampling.c ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC}
 
-libRNA_a_CFLAGS = $(AM_CFLAGS) @FPIC@
-libRNA_a_CXXFLAGS = $(AM_CFLAGS) @FPIC@
+# static library for subpackages
+BUILT_SOURCES = libRNA.a
 
+libRNA.a: libRNA.la
+	$(LIBTOOL) --config > libtoolconfig.tmp
+## ksh requires a path on the sourced file.
+	. ./libtoolconfig.tmp; cp "$$objdir/libRNA.a" ./
+	rm -f libtoolconfig.tmp
+
+clean-local:
+	-rm -f libRNA.a
 
 noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
                   intl22.h intl22dH.h list.h\

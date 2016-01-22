@@ -3,44 +3,45 @@
 %pragma(perl5)  include="RNA.pod"
 
 %{
-#include  "../src/ViennaRNA/data_structures.h"
-#include  "../src/ViennaRNA/dp_matrices.h"
-#include  "../src/ViennaRNA/model.h"
-#include  "../src/ViennaRNA/utils.h"
-#include  "../src/ViennaRNA/structure_utils.h"
-#include  "../src/ViennaRNA/string_utils.h"
-#include  "../src/ViennaRNA/fold_vars.h"
-#include  "../src/ViennaRNA/constraints.h"
+
+#include  <ViennaRNA/data_structures.h>
+#include  <ViennaRNA/dp_matrices.h>
+#include  <ViennaRNA/model.h>
+#include  <ViennaRNA/utils.h>
+#include  <ViennaRNA/structure_utils.h>
+#include  <ViennaRNA/string_utils.h>
+#include  <ViennaRNA/fold_vars.h>
+#include  <ViennaRNA/constraints.h>
 #undef fold
-#include  "../src/ViennaRNA/mfe.h"
-#include  "../src/ViennaRNA/fold.h"
-#include  "../src/ViennaRNA/eval.h"
-#include  "../src/ViennaRNA/cofold.h"
-#include  "../src/ViennaRNA/part_func.h"
-#include  "../src/ViennaRNA/part_func_co.h"
-#include  "../src/ViennaRNA/naview.h"
-#include  "../src/ViennaRNA/plot_layouts.h"
-#include  "../src/ViennaRNA/plot_structure.h"
-#include  "../src/ViennaRNA/plot_aln.h"
-#include  "../src/ViennaRNA/PS_dot.h"
-#include  "../src/ViennaRNA/inverse.h"
-#include  "../src/ViennaRNA/RNAstruct.h"
-#include  "../src/ViennaRNA/treedist.h"
-#include  "../src/ViennaRNA/stringdist.h"
-#include  "../src/ViennaRNA/profiledist.h"
-#include  "../src/ViennaRNA/dist_vars.h"
-#include  "../src/ViennaRNA/pair_mat.h"
-#include  "../src/ViennaRNA/subopt.h"
-#include  "../src/ViennaRNA/energy_const.h"
-#include  "../src/ViennaRNA/params.h"
-#include  "../src/ViennaRNA/duplex.h"
-#include  "../src/ViennaRNA/alifold.h"
-#include  "../src/ViennaRNA/aln_util.h"
-#include  "../src/ViennaRNA/findpath.h"
-#include  "../src/ViennaRNA/Lfold.h"
-#include  "../src/ViennaRNA/read_epars.h"
-#include  "../src/ViennaRNA/move_set.h"
-#include  "../src/ViennaRNA/ligand.h"
+#include  <ViennaRNA/mfe.h>
+#include  <ViennaRNA/fold.h>
+#include  <ViennaRNA/eval.h>
+#include  <ViennaRNA/cofold.h>
+#include  <ViennaRNA/part_func.h>
+#include  <ViennaRNA/part_func_co.h>
+#include  <ViennaRNA/naview.h>
+#include  <ViennaRNA/plot_layouts.h>
+#include  <ViennaRNA/plot_structure.h>
+#include  <ViennaRNA/plot_aln.h>
+#include  <ViennaRNA/PS_dot.h>
+#include  <ViennaRNA/inverse.h>
+#include  <ViennaRNA/RNAstruct.h>
+#include  <ViennaRNA/treedist.h>
+#include  <ViennaRNA/stringdist.h>
+#include  <ViennaRNA/profiledist.h>
+#include  <ViennaRNA/dist_vars.h>
+#include  <ViennaRNA/pair_mat.h>
+#include  <ViennaRNA/subopt.h>
+#include  <ViennaRNA/energy_const.h>
+#include  <ViennaRNA/params.h>
+#include  <ViennaRNA/duplex.h>
+#include  <ViennaRNA/alifold.h>
+#include  <ViennaRNA/aln_util.h>
+#include  <ViennaRNA/findpath.h>
+#include  <ViennaRNA/Lfold.h>
+#include  <ViennaRNA/read_epars.h>
+#include  <ViennaRNA/move_set.h>
+#include  <ViennaRNA/ligand.h>
 
 %}
 //
@@ -54,14 +55,6 @@
 %array_functions(unsigned short, ushortP);
 %array_functions(short, shortP);
 %include cdata.i
-
-#ifdef LARGE_PF
-#undef FLT_OR_DBL
-#define FLT_OR_DBL  double
-#else
-#undef FLT_OR_DBL
-#define FLT_OR_DBL  float
-#endif
 
 %constant double VERSION = 0.3;
 %include typemaps.i
@@ -106,14 +99,14 @@
 %ignore cpair;
 
 
-%include "../src/ViennaRNA/data_structures.h"
+%include <ViennaRNA/data_structures.h>
 
-%include "../src/ViennaRNA/dp_matrices.h"
+%include <ViennaRNA/dp_matrices.h>
 
 //%subsection "Global Variables to Modify Folding"
 //extern double *pr;  /*  base pairing prob. matrix */
 
-%include  "../src/ViennaRNA/fold_vars.h"
+%include  <ViennaRNA/fold_vars.h>
 %extend bondT {
 	bondT *get(int i) {
 	   return self+i;
@@ -131,8 +124,8 @@ typedef struct {
 // problem: wrapper will not free the the structure hidden in duplexT
 // even more problem for duplex_subopt()
 
-%include "../src/ViennaRNA/duplex.h"
-%include "../src/ViennaRNA/Lfold.h"
+%include <ViennaRNA/duplex.h>
+%include <ViennaRNA/Lfold.h>
 
 /**********************************************/
 /* BEGIN interface for findpath heursitic     */
@@ -170,9 +163,9 @@ typedef struct {
 
 %newobject get_path;
 
-%include "../src/ViennaRNA/findpath.h"
+%include <ViennaRNA/findpath.h>
 
-%include  "../src/ViennaRNA/move_set.h"
+%include  <ViennaRNA/move_set.h>
 
 %ignore move_gradient;
 %ignore move_first;

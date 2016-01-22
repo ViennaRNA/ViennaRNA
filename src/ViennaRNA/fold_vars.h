@@ -14,10 +14,14 @@
  *  \brief Here all all declarations of the global variables used throughout RNAlib
  */
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
+#ifdef DEPRECATION_WARNINGS
+# ifdef __GNUC__
+#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# else
+#  define DEPRECATED(func) func
+# endif
 #else
-#define DEPRECATED(func) func
+# define DEPRECATED(func) func
 #endif
 
 /**

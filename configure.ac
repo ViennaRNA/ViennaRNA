@@ -7,7 +7,7 @@ AC_CONFIG_AUX_DIR(config)
 
 AC_SUBST(VERSION)
 
-AC_CONFIG_MACRO_DIRS([m4])
+AC_CONFIG_MACRO_DIR([m4])
 
 dnl change the default installation prefix
 dnl AC_PREFIX_DEFAULT(/usr/local/RNA)
@@ -31,9 +31,6 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_CC
 AC_PROG_CPP
-AC_PROG_CC_FPIC
-
-AC_ARG_VAR(FPIC,[compiler flag for generating PIC code that can be used in a shared library])
 
 if test "$GCC" = yes; then
    AC_DEFINE(UNUSED, __attribute__ ((unused)), avoid warning about unused variables)
@@ -42,7 +39,6 @@ else
 fi
 
 AC_PROG_INSTALL
-AC_PROG_RANLIB
 AM_PROG_AR
 AC_PROG_MAKE_SET
 AC_PROG_GREP
@@ -50,6 +46,11 @@ AC_PROG_MKDIR_P
 AM_PROG_CC_C_O
 AC_PROG_SED
 AC_PROG_LN_S
+
+AC_PROG_LIBTOOL
+LT_INIT([pic-only, static])
+AC_SUBST(LIBTOOL_DEPS)
+
 
 dnl Check for OpenMP and prepare flags
 AC_OPENMP

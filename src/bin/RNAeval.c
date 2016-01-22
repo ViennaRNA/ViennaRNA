@@ -43,7 +43,7 @@ add_shape_constraints(vrna_fold_compound_t *vc,
   char method;
   char *sequence;
   double *values;
-  int length = vc->length;
+  int i, length = vc->length;
 
   if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
     vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
@@ -72,7 +72,13 @@ add_shape_constraints(vrna_fold_compound_t *vc,
     (void)vrna_sc_add_SHAPE_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
   } else {
     assert(method == 'W');
-    vrna_sc_add_up(vc, values, constraint_type);
+    FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
+    for(i = 0; i < length; i++)
+      v[i] = values[i];
+
+    vrna_sc_add_up(vc, v, constraint_type);
+
+    free(v);
   }
 
   free(values);

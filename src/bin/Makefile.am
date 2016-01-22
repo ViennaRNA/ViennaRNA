@@ -1,66 +1,63 @@
 AM_CFLAGS = $(OPENMP_CFLAGS) @AM_CFLAGS@
 AM_CXXFLAGS = $(OPENMP_CFLAGS) @AM_CXXFLAGS@
-AM_CPPFLAGS = -I$(top_srcdir)/src @AM_CPPFLAGS@
-
-if WITH_LIBSVM
-  RNALfold_LINK = ${CXXLD} \
-                  $(AM_CXXFLAGS) $(CXXFLAGS) \
-                  $(AM_LDFLAGS) $(LDFLAGS) -o $@
-else
-  RNALfold_LINK = ${CCLD} \
-                  $(AM_CFLAGS) $(CFLAGS) \
-                  $(AM_LDFLAGS) $(LDFLAGS) -o $@
-endif
-
+AM_CPPFLAGS = -I$(top_srcdir)/src @AM_CPPFLAGS@ @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
 
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
     RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
     RNAparconv RNAPKplex RNAplex RNAsnoop RNApvmin
 
-LDADD = $(OPENMP_CFLAGS) $(top_builddir)/src/ViennaRNA/libRNA.a
+LDADD = $(OPENMP_CFLAGS) $(top_builddir)/src/ViennaRNA/libRNA_conv.la
 
-GENGETOPT_CMDL =  RNAfold_cmdl.c RNAfold_cmdl.h\
-              RNAalifold_cmdl.c RNAalifold_cmdl.h\
-              RNAcofold_cmdl.c  RNAcofold_cmdl.h\
-              RNAup_cmdl.c  RNAup_cmdl.h\
-              RNALfold_cmdl.c RNALfold_cmdl.h\
-              RNALalifold_cmdl.c RNALalifold_cmdl.h\
-              RNAplfold_cmdl.c RNAplfold_cmdl.h\
-              RNAduplex_cmdl.c RNAduplex_cmdl.h\
-              RNAaliduplex_cmdl.c RNAaliduplex_cmdl.h\
-              RNAeval_cmdl.c RNAeval_cmdl.h\
-              RNAheat_cmdl.c RNAheat_cmdl.h\
-              RNAsubopt_cmdl.c RNAsubopt_cmdl.h\
-              RNA2Dfold_cmdl.c RNA2Dfold_cmdl.h\
-              RNAparconv_cmdl.c RNAparconv_cmdl.h\
-              RNAinverse_cmdl.c RNAinverse_cmdl.h\
-              RNApaln_cmdl.c RNApaln_cmdl.h\
-              RNAplot_cmdl.c RNAplot_cmdl.h\
-              RNAPKplex_cmdl.c RNAPKplex_cmdl.h\
-              RNAplex_cmdl.c RNAplex_cmdl.h\
-              RNAsnoop_cmdl.c RNAsnoop_cmdl.h\
-              RNAdistance_cmdl.c RNAdistance_cmdl.h\
+# Link agains stdc++ if we use SVM in RNALfold
+RNALfold_LDADD = $(LDADD)
+if WITH_LIBSVM
+RNALfold_LDADD += -lstdc++
+endif
+
+
+GENGETOPT_CMDL =  RNAfold_cmdl.c RNAfold_cmdl.h \
+              RNAalifold_cmdl.c RNAalifold_cmdl.h \
+              RNAcofold_cmdl.c  RNAcofold_cmdl.h \
+              RNAup_cmdl.c  RNAup_cmdl.h \
+              RNALfold_cmdl.c RNALfold_cmdl.h \
+              RNALalifold_cmdl.c RNALalifold_cmdl.h \
+              RNAplfold_cmdl.c RNAplfold_cmdl.h \
+              RNAduplex_cmdl.c RNAduplex_cmdl.h \
+              RNAaliduplex_cmdl.c RNAaliduplex_cmdl.h \
+              RNAeval_cmdl.c RNAeval_cmdl.h \
+              RNAheat_cmdl.c RNAheat_cmdl.h \
+              RNAsubopt_cmdl.c RNAsubopt_cmdl.h \
+              RNA2Dfold_cmdl.c RNA2Dfold_cmdl.h \
+              RNAparconv_cmdl.c RNAparconv_cmdl.h \
+              RNAinverse_cmdl.c RNAinverse_cmdl.h \
+              RNApaln_cmdl.c RNApaln_cmdl.h \
+              RNAplot_cmdl.c RNAplot_cmdl.h \
+              RNAPKplex_cmdl.c RNAPKplex_cmdl.h \
+              RNAplex_cmdl.c RNAplex_cmdl.h \
+              RNAsnoop_cmdl.c RNAsnoop_cmdl.h \
+              RNAdistance_cmdl.c RNAdistance_cmdl.h \
               RNApdist_cmdl.c RNApdist_cmdl.h \
               RNApvmin_cmdl.c RNApvmin_cmdl.h
 
-GENGETOPT_FILES =  RNAfold.ggo RNAalifold.ggo RNAcofold.ggo\
-              RNAup.ggo RNALfold.ggo RNALalifold.ggo\
-              RNAplfold.ggo RNAduplex.ggo RNAaliduplex.ggo\
-              RNAeval.ggo RNAheat.ggo RNAsubopt.ggo RNA2Dfold.ggo\
-              RNAparconv.ggo RNAinverse.ggo RNApaln.ggo RNAplot.ggo\
-              RNAPKplex.ggo RNAplex.ggo RNAsnoop.ggo RNAdistance.ggo\
+GENGETOPT_FILES =  RNAfold.ggo RNAalifold.ggo RNAcofold.ggo \
+              RNAup.ggo RNALfold.ggo RNALalifold.ggo \
+              RNAplfold.ggo RNAduplex.ggo RNAaliduplex.ggo \
+              RNAeval.ggo RNAheat.ggo RNAsubopt.ggo RNA2Dfold.ggo \
+              RNAparconv.ggo RNAinverse.ggo RNApaln.ggo RNAplot.ggo \
+              RNAPKplex.ggo RNAplex.ggo RNAsnoop.ggo RNAdistance.ggo \
               RNApdist.ggo RNApvmin.ggo
 
 EXTRA_DIST =  ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
 
-# remove all generated man pages
-maintainer-clean-local:
-	rm -rf $(GENGETOPT_CMDL)
 
 # how we make the commandline interface parser
 %_cmdl.h %_cmdl.c: %.ggo
 	$(AM_V_GEN)gengetopt -i $<
+
+# remove all generated man pages
+maintainer-clean-local:
+	rm -rf $(GENGETOPT_CMDL)
 
 RNAfold_SOURCES=RNAfold_cmdl.c RNAfold.c
 

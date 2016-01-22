@@ -93,5 +93,5 @@ extern double cv_fact;
 extern double nc_fact;
 extern double sfact;
 
-%include "../src/ViennaRNA/model.h"
+%include <ViennaRNA/model.h>
 

@@ -1,15 +1,21 @@
 #ifndef VIENNA_RNA_PACKAGE_CONSTRAINTS_H
 #define VIENNA_RNA_PACKAGE_CONSTRAINTS_H
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
+#ifdef DEPRECATION_WARNINGS
+# ifdef __GNUC__
+#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# else
+#  define DEPRECATED(func) func
+# endif
 #else
-#define DEPRECATED(func) func
+# define DEPRECATED(func) func
 #endif
 
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
+
+#include <ViennaRNA/data_structures.h>
 
 /**
  *  @addtogroup constraints
@@ -741,7 +747,7 @@ void vrna_sc_init(vrna_fold_compound_t *vc);
  *  @param  options     The options flag indicating how/where to store the soft constraints
  */
 void vrna_sc_add_bp(vrna_fold_compound_t *vc,
-                    const double **constraints,
+                    const FLT_OR_DBL **constraints,
                     unsigned int options);
 
 /**
@@ -754,7 +760,7 @@ void vrna_sc_add_bp(vrna_fold_compound_t *vc,
  *  @param  options     The options flag indicating how/where to store the soft constraints
  */
 void vrna_sc_add_up(vrna_fold_compound_t *vc,
-                    const double *constraints,
+                    const FLT_OR_DBL *constraints,
                     unsigned int options);
 
 /**
@@ -875,7 +881,7 @@ int vrna_sc_SHAPE_parse_method( const char *method_string,
  *  @brief Convert SHAPE reactivity values to probabilities for being unpaired
  *
  *  This function parses the informations from a given file and stores the result
- *  in the preallocated string sequence and the double array values.
+ *  in the preallocated string sequence and the #FLT_OR_DBL array values.
  *
  *  @ingroup  soft_constraints
  *

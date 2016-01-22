@@ -64,6 +64,9 @@ fill_arrays_circ( vrna_fold_compound_t *vc,
 
       ij = indx[j] + i;
 
+      if (!hard_constraints[ij])
+        continue;
+
       /* exterior hairpin case */
       new_c =   vrna_E_ext_hp_loop(vc, i, j)
               + my_c[ij];

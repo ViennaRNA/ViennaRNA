@@ -17,7 +17,6 @@ AC_DEFUN([RNA_ENABLE_SVM],[
   RNA_PACKAGE_IF_ENABLED([svm],[
     AC_SUBST([LIBSVM_DIR], [libsvm-${SVM_VERSION}])
     AC_SUBST([WITH_SVM], [USE_SVM])
-    AC_SUBST([CXXLD],[${CXX}]) # this is rather a hack for RNALfold.c linking correctly
     AC_DEFINE([USE_SVM], [1], [Compute z-scores for RNALfold])
   ])
 
@@ -131,4 +130,49 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
   AC_SUBST(LIBGOMPFLAG)
 ])
 
+
+#
+#
+#
+
+AC_DEFUN([RNA_ENABLE_FLOATPF],[
+
+  RNA_ADD_FEATURE([floatpf],
+                  [Floating point precision in partition function computations],
+                  [no],
+                  [enable_floatpf=yes],
+                  [enable_floatpf=no])
+
+  # Handle floating point precision flag
+  RNA_FEATURE_IF_ENABLED([floatpf],[
+    AC_DEFINE([USE_FLOAT_PF], [1], [Use floating point precision in partition function computations])
+  
+    AC_SUBST([WITH_FLOAT_PF], [USE_FLOAT_PF])
+    AC_SUBST([FLOAT_PF_FLAG], [-DUSE_FLOAT_PF])
+##  AX_APPEND_FLAG([-DUSE_FLOAT_PF], [AM_CPPFLAGS])
+  ])
+
+
+])
+
+
+#
+# Warn about usage of deprecated symbols
+#
+
+AC_DEFUN([RNA_ENABLE_DEPRECATION_WARNINGS],[
+
+  RNA_ADD_FEATURE([warn_deprecated],
+                  [Warn upon usage of deprecated symbols],
+                  [no],
+                  [enable_warn_deprecated=yes],
+                  [enable_warn_deprecated=no])
+
+  ## Add preprocessor define statement for deprecation warnings
+  RNA_FEATURE_IF_ENABLED([warn_deprecated],[
+    AC_DEFINE([WITH_DEPRECATION_WARNING], [1], [Warn upon usage of deprecated symbols])
+    DEPRECATION_WARNING=-DDEPRECATION_WARNINGS
+  ])
+  AC_SUBST(DEPRECATION_WARNING)
+])
 

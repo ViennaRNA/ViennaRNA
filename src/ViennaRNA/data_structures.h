@@ -32,6 +32,13 @@ typedef struct vrna_cpair_s  vrna_cpair_t;
 /** @brief Typename for stack of partial structures #vrna_sect_s */
 typedef struct vrna_sect_s  vrna_sect_t;
 
+/** @brief Typename for floating point number in partition function computations */
+#ifdef  USE_FLOAT_PF
+typedef float FLT_OR_DBL;
+#else
+typedef double  FLT_OR_DBL;
+#endif
+
 /**
  *  @brief Callback to free memory allocated for auxiliary user-provided data
  *
@@ -100,31 +107,31 @@ typedef void (vrna_callback_recursion_status)(vrna_fold_compound_t *vc, unsigned
 /**
  *  @brief Old typename of #vrna_basepair_s
  *  @deprecated Use #vrna_basepair_t instead!
-*/
+ */
 typedef struct vrna_basepair_s  PAIR;
 
 /**
  *  @brief Old typename of #vrna_plist_s
  *  @deprecated Use #vrna_plist_t instead!
-*/
+ */
 typedef struct vrna_plist_s     plist;
 
 /**
  *  @brief Old typename of #vrna_cpair_s
  *  @deprecated Use #vrna_cpair_t instead!
-*/
+ */
 typedef struct vrna_cpair_s     cpair;
 
 /**
  *  @brief Old typename of #vrna_sect_s
  *  @deprecated Use #vrna_sect_t instead!
-*/
+ */
 typedef struct vrna_sect_s      sect;
 
 /**
  *  @brief Old typename of #vrna_bp_stack_s
  *  @deprecated Use #vrna_bp_stack_t instead!
-*/
+ */
 typedef struct vrna_bp_stack_s  bondT;
 
 #endif
