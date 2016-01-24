@@ -66,7 +66,7 @@ auto/RNA/RNA.so: RNA.la
 ## Perl Test Suite
 ##
 
-AM_TESTS_ENVIRONMENT = PERL5LIB='$(srcdir)/.:${PERL5LIB}'; export PERL5LIB;
+AM_TESTS_ENVIRONMENT = PERL5LIB='$(srcdir):$(builddir):${PERL5LIB}'; export PERL5LIB;
 LOG_COMPILER = $(PERL)
 AM_LOG_FLAGS = -Mstrict -w
 TESTS = test.pl \

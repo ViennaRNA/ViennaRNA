@@ -6,7 +6,6 @@
 # (It may become useful if the test is moved to ./t subdirectory.)
 use strict;
 use Test;
-use lib qw|blib/arch blib/lib|;
 use Data::Dumper;
 BEGIN { plan tests => 37; }
 

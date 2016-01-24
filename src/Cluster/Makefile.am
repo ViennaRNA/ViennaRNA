@@ -3,7 +3,7 @@ man_MANS = AnalyseDists.1 AnalyseSeqs.1
 
 AM_CFLAGS = $(OPENMP_CFLAGS) @AM_CFLAGS@
 AM_CXXFLAGS = $(OPENMP_CFLAGS) @AM_CXXFLAGS@
-AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @AM_CPPFLAGS@ @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
+AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) -I$(top_builddir) @AM_CPPFLAGS@ @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
 AM_LDFLAGS = @AM_LDFLAGS@
 
 AnalyseDists_SOURCES = split.c \

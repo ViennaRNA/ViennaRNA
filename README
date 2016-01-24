@@ -1,4 +1,4 @@
-This is Version 2.1.7 of the ViennaRNA Package.
+This is Version 2.2.0 of the ViennaRNA Package.
 ------------------------------------------------
 See the NEWS and Changelog files for differences to previous versions.
 
@@ -56,6 +56,7 @@ RNAPKplex       Predict RNA secondary structures including pseudoknots
 RNAplex         Find targets of a query RNA
 RNAplfold       Calculate average pair probabilities for locally stable secondary structures
 RNAplot         Draw RNA Secondary Structures in PostScript, SVG, or GML
+RNApvmin        Calculate a perturbation vector that minimizes discripancies between predicted and observed pairing probabilities
 RNAsnoop        Find targets of a query H/ACA snoRNA
 RNAsubopt       Calculate suboptimal secondary structures of RNAs
 RNAup           Calculate the thermodynamics of RNA-RNA interactions 

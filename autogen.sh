@@ -38,7 +38,7 @@ fi
 
 # Produce ./configure
 echo "Creating configure..."
-autoreconf -vi -I config -I m4
+autoreconf -vi -I config
 
 echo ""
 echo "You can run ./configure now."
