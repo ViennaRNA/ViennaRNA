@@ -43,7 +43,7 @@
 #################################
 */
 PRIVATE void
-hc_add_up(vrna_fold_compound *vc,
+hc_add_up(vrna_fold_compound_t *vc,
           int i,
           char option);
 
@@ -65,7 +65,7 @@ PRIVATE INLINE  void
 hc_pairs_upstream(unsigned int i,
                   char c_option,
                   char *hc,
-                  unsigned int min_loop_size,
+                  unsigned int length,
                   int *index);
 
 PRIVATE INLINE  void
@@ -73,7 +73,6 @@ hc_pairs_downstream(unsigned int i,
                     char c_option,
                     char *hc,
                     unsigned int length,
-                    unsigned int min_loop_size,
                     int *index);
 
 PRIVATE INLINE  void
@@ -134,10 +133,10 @@ apply_DB_constraint(const char *constraint,
                     unsigned int options);
 
 PRIVATE void
-hc_reset_to_default(vrna_fold_compound *vc);
+hc_reset_to_default(vrna_fold_compound_t *vc);
 
 PRIVATE void
-hc_update_up(vrna_fold_compound *vc);
+hc_update_up(vrna_fold_compound_t *vc);
 
 PRIVATE void
 sc_parse_parameters(const char *string,
@@ -147,33 +146,33 @@ sc_parse_parameters(const char *string,
                     float *v2);
 
 PRIVATE void
-sc_add_up_mfe(vrna_fold_compound *vc,
-              const double *constraints,
+sc_add_up_mfe(vrna_fold_compound_t *vc,
+              const FLT_OR_DBL *constraints,
               unsigned int options);
 
 PRIVATE void
-sc_add_up_pf( vrna_fold_compound *vc,
-              const double *constraints,
+sc_add_up_pf( vrna_fold_compound_t *vc,
+              const FLT_OR_DBL *constraints,
               unsigned int options);
 
 PRIVATE void
-sc_add_bp_mfe(vrna_fold_compound *vc,
-              const double **constraints,
+sc_add_bp_mfe(vrna_fold_compound_t *vc,
+              const FLT_OR_DBL **constraints,
               unsigned int options);
 
 PRIVATE void
-sc_add_bp_pf( vrna_fold_compound *vc,
-              const double **constraints,
+sc_add_bp_pf( vrna_fold_compound_t *vc,
+              const FLT_OR_DBL **constraints,
               unsigned int options);
 
 PRIVATE void
-sc_add_stack_en_mfe(vrna_fold_compound *vc,
-                    const double *constraints,
+sc_add_stack_en_mfe(vrna_fold_compound_t *vc,
+                    const FLT_OR_DBL *constraints,
                     unsigned int options);
 
 PRIVATE void
-sc_add_stack_en_pf( vrna_fold_compound *vc,
-                    const double *constraints,
+sc_add_stack_en_pf( vrna_fold_compound_t *vc,
+                    const FLT_OR_DBL *constraints,
                     unsigned int options);
 
 
@@ -204,7 +203,7 @@ vrna_message_constraint_options(unsigned int option){
 }
 
 PUBLIC  void
-vrna_add_constraints( vrna_fold_compound *vc,
+vrna_constraints_add( vrna_fold_compound_t *vc,
                       const char *constraint,
                       unsigned int options){
 
@@ -231,26 +230,26 @@ vrna_add_constraints( vrna_fold_compound *vc,
                           options);
       hc_update_up(vc);
     } else if(options & VRNA_CONSTRAINT_FILE){ /* constraints from file */
-      plist *p, *c = vrna_read_constraints_file(constraint, vc->length, options);
+      plist *p, *c = vrna_file_constraints_read(constraint, vc->length, options);
 
       /* now do something with the constraints we've just read */
       if(c){
-        double  **sc_bp       = (double **)vrna_alloc(sizeof(double *) * (vc->length + 1));
-        double  *sc_up        = (double *)vrna_alloc(sizeof(double) * (vc->length + 1));
+        FLT_OR_DBL  **sc_bp       = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (vc->length + 1));
+        FLT_OR_DBL  *sc_up        = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
         int     sc_up_present = 0;
         int     sc_bp_present = 0;
 
         for(i = 0; i <= vc->length; i++)
-          sc_bp[i] = (double *)vrna_alloc(sizeof(double) * (vc->length + 1));
+          sc_bp[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
 
         for(p = c; p->i; p++){
           if(p->type & 4096){ /* soft constraint */
             if(p->j == 0){  /* pseudo energy for unpairedness */
               sc_up_present = 1;
-              sc_up[p->i] += (double)p->p;
+              sc_up[p->i] += (FLT_OR_DBL)p->p;
             } else { /* pseudo energy for base pair */
               sc_bp_present = 1;
-              sc_bp[p->i][p->j] += (double)p->p;
+              sc_bp[p->i][p->j] += (FLT_OR_DBL)p->p;
             }
           } else {  /* hard constraint */
             if(p->j == 0){
@@ -263,7 +262,11 @@ vrna_add_constraints( vrna_fold_compound *vc,
                 d = 1;
               vrna_hc_add_bp_nonspecific(vc, p->i, d, (char)(p->type));
             } else {
-              vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type));
+              if(p->type & 8192){
+                vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type) | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+              } else {
+                vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type));
+              }
             }
           }
         }
@@ -276,9 +279,9 @@ vrna_add_constraints( vrna_fold_compound *vc,
         if(sc_up_present || sc_bp_present){
           vrna_sc_init(vc);
           if(sc_bp_present)
-            vrna_sc_add_bp(vc, (const double **)sc_bp, options);
+            vrna_sc_add_bp(vc, (const FLT_OR_DBL **)sc_bp, options);
           if(sc_up_present)
-            vrna_sc_add_up(vc, (const double *)sc_up, options);
+            vrna_sc_add_up(vc, (const FLT_OR_DBL *)sc_up, options);
         }
         /* clean up */
         for(i = 0; i <= vc->length; i++)
@@ -293,7 +296,7 @@ vrna_add_constraints( vrna_fold_compound *vc,
 }
 
 PUBLIC  void
-vrna_hc_init(vrna_fold_compound *vc){
+vrna_hc_init(vrna_fold_compound_t *vc){
 
   unsigned int  n;
   vrna_hc_t     *hc;
@@ -317,12 +320,17 @@ vrna_hc_init(vrna_fold_compound *vc){
   /* prefill default values  */
   hc_reset_to_default(vc);
 
+  /* add null pointers for the generalized hard constraint feature */
+  hc->f           = NULL;
+  hc->data        = NULL;
+  hc->free_data   = NULL;
+
   /* update */
   hc_update_up(vc);
 }
 
 PUBLIC void
-vrna_hc_add_up( vrna_fold_compound *vc,
+vrna_hc_add_up( vrna_fold_compound_t *vc,
                 int i,
                 char option){
 
@@ -342,7 +350,7 @@ vrna_hc_add_up( vrna_fold_compound *vc,
 }
 
 PRIVATE void
-hc_add_up(vrna_fold_compound *vc,
+hc_add_up(vrna_fold_compound_t *vc,
           int i,
           char option){
 
@@ -383,7 +391,7 @@ hc_add_up(vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_hc_add_bp_nonspecific( vrna_fold_compound *vc,
+vrna_hc_add_bp_nonspecific( vrna_fold_compound_t *vc,
                             int i,
                             int d,
                             char option){
@@ -415,7 +423,7 @@ vrna_hc_add_bp_nonspecific( vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_hc_add_bp( vrna_fold_compound *vc,
+vrna_hc_add_bp( vrna_fold_compound_t *vc,
                 int i,
                 int j,
                 char option){
@@ -477,14 +485,52 @@ PUBLIC void
 vrna_hc_free(vrna_hc_t *hc){
 
   if(hc){
-    if(hc->matrix)  free(hc->matrix);
-    if(hc->up_ext)  free(hc->up_ext);
-    if(hc->up_hp)   free(hc->up_hp);
-    if(hc->up_int)  free(hc->up_int);
-    if(hc->up_ml)   free(hc->up_ml);
+    free(hc->matrix);
+    free(hc->up_ext);
+    free(hc->up_hp);
+    free(hc->up_int);
+    free(hc->up_ml);
+
+    if(hc->free_data)
+      hc->free_data(hc->data);
+
     free(hc);
   }
 }
+
+#ifdef WITH_GEN_HC
+
+PUBLIC void
+vrna_hc_add_f(vrna_fold_compound_t *vc,
+              vrna_callback_hc_evaluate *f){
+
+  if(vc && f){
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->hc)
+        vrna_hc_init(vc);
+
+      vc->hc->f = f;
+    }
+  }
+}
+
+PUBLIC void
+vrna_hc_add_data( vrna_fold_compound_t *vc,
+                  void *data,
+                  vrna_callback_free_auxdata *f){
+
+  if(vc && data){
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->hc)
+        vrna_hc_init(vc);
+
+      vc->hc->data        = data;
+      vc->hc->free_data   = f;
+    }
+  }
+}
+
+#endif
 
 PRIVATE void
 apply_DB_constraint(const char *constraint,
@@ -503,7 +549,7 @@ apply_DB_constraint(const char *constraint,
 
   n         = (int)strlen(constraint);
   stack     = (int *) vrna_alloc(sizeof(int)*(n+1));
-  index     = vrna_get_indx(length);
+  index     = vrna_idx_col_wise(length);
   c_option  =   VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
               | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
               | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
@@ -521,7 +567,8 @@ apply_DB_constraint(const char *constraint,
 
       /* must pair, i.e. may not be unpaired */
       case '|':   if(options & VRNA_CONSTRAINT_DB_PIPE){
-                    hc_must_pair(j, c_option, hc, index);
+                    if(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
+                      hc_must_pair(j, c_option, hc, index);
                   }
                   break;
 
@@ -547,13 +594,17 @@ apply_DB_constraint(const char *constraint,
 
       /* pairs upstream */
       case '<':   if(options & VRNA_CONSTRAINT_DB_ANG_BRACK){
-                    hc_pairs_upstream(j, c_option, hc, min_loop_size, index);
+                    hc_pairs_downstream(j, c_option, hc, length, index);
+                    if(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
+                      hc_must_pair(j, c_option, hc, index);
                   }
                   break;
 
       /* pairs downstream */
       case '>':   if(options & VRNA_CONSTRAINT_DB_ANG_BRACK){
-                    hc_pairs_downstream(j, c_option, hc, length, min_loop_size, index);
+                    hc_pairs_upstream(j, c_option, hc, length, index);
+                    if(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
+                      hc_must_pair(j, c_option, hc, index);
                   }
                   break;
 
@@ -640,8 +691,8 @@ hc_cant_pair( unsigned int i,
               unsigned int min_loop_size,
               int *index){
 
-  hc_pairs_upstream(i, c_option, hc, min_loop_size, index);
-  hc_pairs_downstream(i, c_option, hc, length, min_loop_size, index);
+  hc_pairs_upstream(i, c_option, hc, length, index);
+  hc_pairs_downstream(i, c_option, hc, length, index);
 }
 
 PRIVATE INLINE  void
@@ -657,16 +708,17 @@ PRIVATE INLINE  void
 hc_pairs_upstream(unsigned int i,
                   char c_option,
                   char *hc,
-                  unsigned int min_loop_size,
+                  unsigned int length,
                   int *index){
 
   unsigned int l;
 
-  if(min_loop_size < i){
-    for(l = 1; l < i - min_loop_size; l++){
-      hc[index[i] + l] &= ~c_option;
-    }
-  }
+  /* prohibit downstream pairs */
+  for(l = length; l > i; l--)
+    hc[index[l] + i] = (char)0;
+  /* allow upstream pairs of given type */
+  for(l = i - 1; l >= 1; l--)
+    hc[index[i] + l] &= c_option;
 }
 
 PRIVATE INLINE  void
@@ -674,14 +726,15 @@ hc_pairs_downstream(unsigned int i,
                     char c_option,
                     char *hc,
                     unsigned int length,
-                    unsigned int min_loop_size,
                     int *index){
 
   unsigned int l;
-
-  for(l = i + min_loop_size + 1; l <= length; l++){
-    hc[index[l] + i] &= ~c_option;
-  }
+  /* allow downstream pairs of given type */
+  for(l = length; l > i; l--)
+    hc[index[l] + i] &= c_option;
+  /* forbid upstream pairs */
+  for(l = i - 1; l >= 1; l--)
+    hc[index[i] + l] = (char)0;
 }
 
 PRIVATE INLINE  void
@@ -706,13 +759,11 @@ hc_weak_enforce_pair( unsigned int i,
   unsigned int k, l;
 
   /* don't allow pairs (k,i) 1 <= k < i */
-  hc_pairs_upstream(i, c_option, hc, min_loop_size, index);
   /* don't allow pairs (i,k) i < k <= n */ 
-  hc_pairs_downstream(i, c_option, hc, length, min_loop_size, index);
+  hc_pairs_upstream(i, (char)0, hc, length, index);
   /* don't allow pairs (k,j) 1 <= k < j */
-  hc_pairs_upstream(j, c_option, hc, min_loop_size, index);
   /* don't allow pairs (j,k) j < k <= n */ 
-  hc_pairs_downstream(j, c_option, hc, length, min_loop_size, index);
+  hc_pairs_upstream(j, (char)0, hc, length, index);
 
   /* don't allow pairs i < k < j < l */
   for(k = i+1; k < j; k++)
@@ -751,7 +802,7 @@ hc_enforce_pair(unsigned int i,
 }
 
 PRIVATE void
-hc_reset_to_default(vrna_fold_compound *vc){
+hc_reset_to_default(vrna_fold_compound_t *vc){
 
   unsigned int      i, j, ij, min_loop_size, n;
   int               max_span, *idx;
@@ -840,10 +891,21 @@ hc_reset_to_default(vrna_fold_compound *vc){
           }
         }
   }
+
+  /* should we reset the generalized hard constraint feature here? */
+  if(hc->f || hc->data){
+    if(hc->free_data)
+      hc->free_data(hc->data);
+
+    hc->f           = NULL;
+    hc->data        = NULL;
+    hc->free_data   = NULL;
+  }
+
 }
 
 PRIVATE void
-hc_update_up(vrna_fold_compound *vc){
+hc_update_up(vrna_fold_compound_t *vc){
 
   unsigned int      i, n;
   int               *idx;
@@ -1012,7 +1074,7 @@ vrna_sc_SHAPE_to_pr(const char *shape_conversion,
 }
 
 PUBLIC void
-vrna_sc_init(vrna_fold_compound *vc){
+vrna_sc_init(vrna_fold_compound_t *vc){
 
   unsigned int s;
   vrna_sc_t    *sc;
@@ -1022,15 +1084,16 @@ vrna_sc_init(vrna_fold_compound *vc){
 
     switch(vc->type){
       case VRNA_VC_TYPE_SINGLE:     sc                    = (vrna_sc_t *)vrna_alloc(sizeof(vrna_sc_t));
-                                    sc->free_energies     = NULL;
-                                    sc->en_basepair       = NULL;
-                                    sc->en_stack          = NULL;
-                                    sc->exp_en_stack      = NULL;
-                                    sc->boltzmann_factors = NULL;
-                                    sc->exp_en_basepair   = NULL;
+                                    sc->energy_up         = NULL;
+                                    sc->energy_bp         = NULL;
+                                    sc->energy_stack      = NULL;
+                                    sc->exp_energy_stack  = NULL;
+                                    sc->exp_energy_up     = NULL;
+                                    sc->exp_energy_bp     = NULL;
                                     sc->f                 = NULL;
                                     sc->exp_f             = NULL;
                                     sc->data              = NULL;
+                                    sc->free_data         = NULL;
 
                                     vc->sc  = sc;
                                     break;
@@ -1038,15 +1101,16 @@ vrna_sc_init(vrna_fold_compound *vc){
       case VRNA_VC_TYPE_ALIGNMENT:  vc->scs = (vrna_sc_t **)vrna_alloc(sizeof(vrna_sc_t*) * (vc->n_seq + 1));
                                     for(s = 0; s < vc->n_seq; s++){
                                       sc                    = (vrna_sc_t *)vrna_alloc(sizeof(vrna_sc_t));
-                                      sc->free_energies     = NULL;
-                                      sc->en_basepair       = NULL;
-                                      sc->en_stack          = NULL;
-                                      sc->exp_en_stack      = NULL;
-                                      sc->boltzmann_factors = NULL;
-                                      sc->exp_en_basepair   = NULL;
+                                      sc->energy_up         = NULL;
+                                      sc->energy_bp         = NULL;
+                                      sc->energy_stack      = NULL;
+                                      sc->exp_energy_stack  = NULL;
+                                      sc->exp_energy_up     = NULL;
+                                      sc->exp_energy_bp     = NULL;
                                       sc->f                 = NULL;
                                       sc->exp_f             = NULL;
                                       sc->data              = NULL;
+                                      sc->free_data         = NULL;
 
                                       vc->scs[s]  = sc;
                                     }
@@ -1058,7 +1122,7 @@ vrna_sc_init(vrna_fold_compound *vc){
 }
 
 PUBLIC void
-vrna_sc_remove(vrna_fold_compound *vc){
+vrna_sc_remove(vrna_fold_compound_t *vc){
 
   int s;
 
@@ -1085,33 +1149,30 @@ vrna_sc_free(vrna_sc_t *sc){
 
   int i;
   if(sc){
-    if(sc->free_energies){
-      for(i = 0; sc->free_energies[i]; free(sc->free_energies[i++]));
-      free(sc->free_energies);
+    if(sc->energy_up){
+      for(i = 0; sc->energy_up[i]; free(sc->energy_up[i++]));
+      free(sc->energy_up);
     }
-    if(sc->boltzmann_factors){
-      for(i = 0; sc->boltzmann_factors[i]; free(sc->boltzmann_factors[i++]));
-      free(sc->boltzmann_factors);
+    if(sc->exp_energy_up){
+      for(i = 0; sc->exp_energy_up[i]; free(sc->exp_energy_up[i++]));
+      free(sc->exp_energy_up);
     }
-    if(sc->en_basepair)
-      free(sc->en_basepair);
+    
+    free(sc->energy_bp);
+    free(sc->exp_energy_bp);
+    free(sc->energy_stack);
+    free(sc->exp_energy_stack);
 
-    if(sc->exp_en_basepair)
-      free(sc->exp_en_basepair);
-
-    if(sc->en_stack)
-      free(sc->en_stack);
-
-    if(sc->exp_en_stack)
-      free(sc->exp_en_stack);
+    if(sc->free_data)
+      sc->free_data(sc->data);
 
     free(sc);
   }
 }
 
 PUBLIC void
-vrna_sc_add_bp(vrna_fold_compound *vc,
-                        const double **constraints,
+vrna_sc_add_bp(vrna_fold_compound_t *vc,
+                        const FLT_OR_DBL **constraints,
                         unsigned int options){
                         
 
@@ -1124,7 +1185,7 @@ vrna_sc_add_bp(vrna_fold_compound *vc,
 
 
 PUBLIC  int
-vrna_sc_SHAPE_add_zarringhalam( vrna_fold_compound *vc,
+vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *vc,
                                 const double *reactivities,
                                 double b,
                                 double default_value,
@@ -1132,7 +1193,8 @@ vrna_sc_SHAPE_add_zarringhalam( vrna_fold_compound *vc,
                                 unsigned int options){
 
   int       i, j, n, ret;
-  double    *pr, *up, **bp;
+  double        *pr;
+  FLT_OR_DBL    *up, **bp;
   vrna_md_t *md;
 
   ret = 0; /* error */
@@ -1151,18 +1213,18 @@ vrna_sc_SHAPE_add_zarringhalam( vrna_fold_compound *vc,
       /*  now, convert them into pseudo free energies for unpaired, and
           paired nucleotides
       */
-      up = (double *)vrna_alloc(sizeof(double) * (n + 1));
-      bp = (double **)vrna_alloc(sizeof(double *) * (n + 1));
+      up = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+      bp = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
       for(i = 1; i <= n; ++i){
         up[i] = b * fabs(pr[i] - 1);
-        bp[i] = (double *)vrna_alloc(sizeof(double) * (n + 1));
+        bp[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
         for(j = i + md->min_loop_size + 1; j <= n; ++j)
           bp[i][j] = b * (pr[i] + pr[j]);
       }
 
       /* add the pseudo energies as soft constraints */
-      vrna_sc_add_up(vc, (const double *)up, options);
-      vrna_sc_add_bp(vc, (const double **)bp, options);
+      vrna_sc_add_up(vc, (const FLT_OR_DBL *)up, options);
+      vrna_sc_add_bp(vc, (const FLT_OR_DBL **)bp, options);
 
       /* clean up memory */
       for(i = 1; i <= n; ++i)
@@ -1182,29 +1244,29 @@ vrna_sc_SHAPE_add_zarringhalam( vrna_fold_compound *vc,
 
 
 PUBLIC int
-vrna_sc_SHAPE_add_deigan( vrna_fold_compound *vc,
+vrna_sc_add_SHAPE_deigan( vrna_fold_compound_t *vc,
                           const double *reactivities,
                           double m,
                           double b,
                           unsigned int options){
 
   int     i;
-  double  *values;
+  FLT_OR_DBL  *values;
 
   if(vc && reactivities && (vc->type == VRNA_VC_TYPE_SINGLE)){
 
-    values = (double *)vrna_alloc(sizeof(double) * (vc->length + 1));
+    values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
 
     /* first convert the values according to provided slope and intercept values */
     for (i = 1; i <= vc->length; ++i){
-      values[i] = reactivities[i] < 0 ? 0 : m * log(reactivities[i] + 1) + b;
+      values[i] = reactivities[i] < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivities[i] + 1) + b);
     }
 
     if(options & VRNA_CONSTRAINT_SOFT_MFE)
-      sc_add_stack_en_mfe(vc, (const double *)values, options);
+      sc_add_stack_en_mfe(vc, (const FLT_OR_DBL *)values, options);
 
     if(options & VRNA_CONSTRAINT_SOFT_PF)
-      sc_add_stack_en_pf(vc, (const double *)values, options);
+      sc_add_stack_en_pf(vc, (const FLT_OR_DBL *)values, options);
 
     free(values);
     return 1; /* success */
@@ -1214,25 +1276,31 @@ vrna_sc_SHAPE_add_deigan( vrna_fold_compound *vc,
 }
 
 PUBLIC int
-vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
+vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
                               const char **shape_files,
                               const int *shape_file_association,
                               double m,
                               double b,
                               unsigned int options){
 
-  float   reactivity, *reactivities, e1;
-  char    *line, nucleotide, *sequence;
-  int     s, i, p, r, position, *pseudo_energies, n_seq;
+  float           reactivity, *reactivities, e1;
+  char            *line, nucleotide, *sequence;
+  int             s, i, p, r, position, *pseudo_energies, n_seq;
+  unsigned short  **a2s;
 
   if(vc->type == VRNA_VC_TYPE_ALIGNMENT){
     n_seq = vc->n_seq;
+    a2s   = vc->a2s;
 
     vrna_sc_init(vc);
 
     for(s = 0; shape_file_association[s] != -1; s++){
-      if(shape_file_association[s] > n_seq)
+      int ss = shape_file_association[s]; /* actual sequence number in alignment */
+
+      if(ss >= n_seq){
         vrna_message_warning("SHAPE file association exceeds sequence number in alignment");
+        continue;
+      }
 
       /* read the shape file */
       FILE *fp;
@@ -1243,6 +1311,7 @@ vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
         reactivities  = (float *)vrna_alloc(sizeof(float) * (vc->length + 1));
         sequence      = (char *)vrna_alloc(sizeof(char) * (vc->length + 1));
 
+        /* initialize reactivities with missing data for entire alignment length */
         for(i = 1; i <= vc->length; i++)
           reactivities[i] = -1.;
 
@@ -1283,18 +1352,31 @@ vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
             reactivities[i] = m * log(reactivities[i] + 1.) + b; /* this should be a value in kcal/mol */
         }
 
-        /* begin actual storage of the pseudo energies */
-
+        /*  begin actual storage of the pseudo energies */
+        /*  beware of the fact that energy_stack will be accessed through a2s[s] array,
+            hence pseudo_energy might be gap-free (default)
+        */
         if(options & VRNA_CONSTRAINT_SOFT_MFE){
+          int energy, cnt, gaps, is_gap;
           pseudo_energies = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
-          for(p = 0, i = 1; i<=vc->length; i++){
-            e1 = (i - p > 0) ? reactivities[i - p] : 0.;
-            if(vc->sequences[shape_file_association[s]][i-1] == '-'){
-              p++; e1 = 0.;
+          for(gaps = cnt = 0, i = 1; i<=vc->length; i++){
+            is_gap  = (vc->sequences[ss][i-1] == '-') ? 1 : 0;
+            energy  = ((i - gaps > 0) && !(is_gap)) ? (int)(reactivities[i - gaps] * 100.) : 0;
+
+            if(vc->params->model_details.oldAliEn){
+              pseudo_energies[i] = energy;
+              cnt++;
+            } else if(!is_gap){ /* store gap-free */
+              pseudo_energies[a2s[ss][i]] = energy;
+              cnt++;
             }
-            pseudo_energies[i] = (int)(e1 * 100.);
+
+            gaps += is_gap;
           }
-          vc->scs[shape_file_association[s]]->en_stack = pseudo_energies;
+
+          /* resize to actual number of entries */
+          pseudo_energies = vrna_realloc(pseudo_energies, sizeof(int) * (cnt + 2));
+          vc->scs[ss]->energy_stack = pseudo_energies;
         }
 
         if(options & VRNA_CONSTRAINT_SOFT_PF){
@@ -1304,12 +1386,12 @@ vrna_sc_SHAPE_add_deigan_ali( vrna_fold_compound *vc,
 
           for(p = 0, i = 1; i<=vc->length; i++){
             e1 = (i - p > 0) ? reactivities[i - p] : 0.;
-            if(vc->sequences[shape_file_association[s]][i-1] == '-'){
+            if(vc->sequences[ss][i-1] == '-'){
               p++; e1 = 0.;
             }
-            exp_pe[i] = exp(-(e1 * 1000.) / vc->exp_params->kT );
+            exp_pe[i] = (FLT_OR_DBL)exp(-(e1 * 1000.) / vc->exp_params->kT );
           }
-          vc->scs[shape_file_association[s]]->exp_en_stack = exp_pe;
+          vc->scs[ss]->exp_energy_stack = exp_pe;
         }
         
         free(reactivities);
@@ -1358,8 +1440,8 @@ vrna_sc_SHAPE_parse_method( const char *method_string,
 }
 
 PUBLIC void
-vrna_sc_add_up(vrna_fold_compound *vc,
-                        const double *constraints,
+vrna_sc_add_up(vrna_fold_compound_t *vc,
+                        const FLT_OR_DBL *constraints,
                         unsigned int options){
 
   if(options & VRNA_CONSTRAINT_SOFT_MFE)
@@ -1370,9 +1452,24 @@ vrna_sc_add_up(vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_sc_add_f(vrna_fold_compound *vc,
-              int (*f)( int, int, int, int, char, void *),
-              void *data){
+vrna_sc_add_data( vrna_fold_compound_t *vc,
+                  void *data,
+                  vrna_callback_free_auxdata *free_data){
+
+  if(vc){
+    if(vc->type == VRNA_VC_TYPE_SINGLE){
+      if(!vc->sc)
+        vrna_sc_init(vc);
+
+      vc->sc->data        = data;
+      vc->sc->free_data   = free_data;
+    }
+  }
+}
+
+PUBLIC void
+vrna_sc_add_f(vrna_fold_compound_t *vc,
+              vrna_callback_sc_energy *f){
 
   if(vc && f){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -1380,15 +1477,13 @@ vrna_sc_add_f(vrna_fold_compound *vc,
         vrna_sc_init(vc);
 
       vc->sc->f       = f;
-      if(data)
-        vc->sc->data  = data;
     }
   }
 }
 
 PUBLIC void
-vrna_sc_add_bt( vrna_fold_compound *vc,
-                PAIR *(*f)( int, int, int, int, char, void *)){
+vrna_sc_add_bt( vrna_fold_compound_t *vc,
+                vrna_callback_sc_backtrack *f){
 
   if(vc && f){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -1401,9 +1496,8 @@ vrna_sc_add_bt( vrna_fold_compound *vc,
 }
 
 PUBLIC void
-vrna_sc_add_exp_f(vrna_fold_compound *vc,
-                  FLT_OR_DBL (*exp_f)( int, int, int, int, char, void *),
-                  void *data){
+vrna_sc_add_exp_f(vrna_fold_compound_t *vc,
+                  vrna_callback_sc_exp_energy *exp_f){
 
   if(vc && exp_f){
     if(vc->type == VRNA_VC_TYPE_SINGLE){
@@ -1411,36 +1505,6 @@ vrna_sc_add_exp_f(vrna_fold_compound *vc,
         vrna_sc_init(vc);
 
       vc->sc->exp_f   = exp_f;
-      if(data)
-        vc->sc->data  = data;
-    }
-  }
-}
-
-PUBLIC void
-vrna_sc_add_post( vrna_fold_compound *vc,
-                  void (*post)( vrna_fold_compound *, char)){
-
-  if(vc && post){
-    if(vc->type == VRNA_VC_TYPE_SINGLE){
-      if(!vc->sc)
-        vrna_sc_init(vc);
-
-      vc->sc->post       = post;
-    }
-  }
-}
-
-PUBLIC void
-vrna_sc_add_pre(vrna_fold_compound *vc,
-                void (*pre)( vrna_fold_compound *, char)){
-
-  if(vc && pre){
-    if(vc->type == VRNA_VC_TYPE_SINGLE){
-      if(!vc->sc)
-        vrna_sc_init(vc);
-
-      vc->sc->pre = pre;
     }
   }
 }
@@ -1490,8 +1554,8 @@ sc_parse_parameters( const char *string,
 }
 
 PRIVATE void
-sc_add_bp_mfe(vrna_fold_compound *vc,
-              const double **constraints,
+sc_add_bp_mfe(vrna_fold_compound_t *vc,
+              const FLT_OR_DBL **constraints,
               unsigned int options){
 
   unsigned int  i, j, n;
@@ -1505,19 +1569,19 @@ sc_add_bp_mfe(vrna_fold_compound *vc,
       vrna_sc_init(vc);
 
     sc              = vc->sc;
-    sc->en_basepair = (int *)vrna_alloc(sizeof(int) * (((n + 1) * (n + 2)) / 2));
+    sc->energy_bp = (int *)vrna_alloc(sizeof(int) * (((n + 1) * (n + 2)) / 2));
 
     idx = vc->jindx;
     for(i = 1; i < n; i++)
       for(j=i+1; j<=n; j++)
-        sc->en_basepair[idx[j]+i] = (int)(constraints[i][j] * 100.);
+        sc->energy_bp[idx[j]+i] = (int)(constraints[i][j] * 100.);
 
   }
 }
 
 PRIVATE void
-sc_add_bp_pf( vrna_fold_compound *vc,
-              const double **constraints,
+sc_add_bp_pf( vrna_fold_compound_t *vc,
+              const FLT_OR_DBL **constraints,
               unsigned int options){
 
   unsigned int  i, j, n;
@@ -1538,22 +1602,22 @@ sc_add_bp_pf( vrna_fold_compound *vc,
     double            kT          = exp_params->kT;
     double            TT          = (temperature+K0)/(Tmeasure);
 
-    if(sc->exp_en_basepair)
-      free(sc->exp_en_basepair);
-    sc->exp_en_basepair     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
+    if(sc->exp_energy_bp)
+      free(sc->exp_energy_bp);
+    sc->exp_energy_bp     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
 
     idx = vc->iindx;
     for(i = 1; i < n; i++)
       for(j=i+1; j<=n; j++){
         GT = constraints[i][j] * TT * 1000.;
-        sc->exp_en_basepair[idx[i]-j] = exp( -GT / kT);
+        sc->exp_energy_bp[idx[i]-j] = (FLT_OR_DBL)exp( -GT / kT);
       }
   }
 }
 
 PRIVATE void
-sc_add_up_mfe(vrna_fold_compound *vc,
-              const double *constraints,
+sc_add_up_mfe(vrna_fold_compound_t *vc,
+              const FLT_OR_DBL *constraints,
               unsigned int options){
 
   unsigned int  i, j, n;
@@ -1568,24 +1632,24 @@ sc_add_up_mfe(vrna_fold_compound *vc,
     sc  = vc->sc;
     /*  allocate memory such that we can access the soft constraint
         energies of a subsequence of length j starting at position i
-        via sc->free_energies[i][j]
+        via sc->energy_up[i][j]
     */
-    if(sc->free_energies){
+    if(sc->energy_up){
       for(i = 0; i <= n; i++)
-        if(sc->free_energies[i])
-          free(sc->free_energies[i]);
-      free(sc->free_energies);
+        if(sc->energy_up[i])
+          free(sc->energy_up[i]);
+      free(sc->energy_up);
     }
 
-    sc->free_energies = (int **)vrna_alloc(sizeof(int *) * (n + 2));
+    sc->energy_up = (int **)vrna_alloc(sizeof(int *) * (n + 2));
     for(i = 0; i <= n; i++)
-      sc->free_energies[i] = (int *)vrna_alloc(sizeof(int) * (n - i + 2));
+      sc->energy_up[i] = (int *)vrna_alloc(sizeof(int) * (n - i + 2));
 
-    sc->free_energies[n+1] = NULL;
+    sc->energy_up[n+1] = NULL;
 
     for(i = 1; i <= n; i++){
       for(j = 1; j <= (n - i + 1); j++){
-        sc->free_energies[i][j] =   sc->free_energies[i][j-1]
+        sc->energy_up[i][j] =   sc->energy_up[i][j-1]
                                   + (int)(constraints[i+j-1] * 100); /* convert to 10kal/mol */
       }
     }
@@ -1593,8 +1657,8 @@ sc_add_up_mfe(vrna_fold_compound *vc,
 }
 
 PRIVATE void
-sc_add_up_pf( vrna_fold_compound *vc,
-              const double *constraints,
+sc_add_up_pf( vrna_fold_compound_t *vc,
+              const FLT_OR_DBL *constraints,
               unsigned int options){
 
   unsigned int  i, j, n;
@@ -1620,67 +1684,67 @@ sc_add_up_pf( vrna_fold_compound *vc,
 
     /*  allocate memory such that we can access the soft constraint
         energies of a subsequence of length j starting at position i
-        via sc->boltzmann_factors[i][j]
+        via sc->exp_energy_up[i][j]
     */
-    if(sc->boltzmann_factors){
+    if(sc->exp_energy_up){
       for(i = 0; i <= n; i++)
-        if(sc->boltzmann_factors[i])
-          free(sc->boltzmann_factors[i]);
-      free(sc->boltzmann_factors);
+        if(sc->exp_energy_up[i])
+          free(sc->exp_energy_up[i]);
+      free(sc->exp_energy_up);
     }
 
-    sc->boltzmann_factors = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 2));
+    sc->exp_energy_up = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 2));
     for(i = 0; i <= n; i++){
-      sc->boltzmann_factors[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n - i + 2));
+      sc->exp_energy_up[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n - i + 2));
       for(j = 0; j < n - i + 2; j++)
-        sc->boltzmann_factors[i][j] = 1.;
+        sc->exp_energy_up[i][j] = 1.;
     }
 
-    sc->boltzmann_factors[n+1] = NULL;
+    sc->exp_energy_up[n+1] = NULL;
 
     for(i = 1; i <= n; i++){
       for(j = 1; j <= (n - i + 1); j++){
         GT  = (double)((int)(constraints[i+j-1] * 100)) * TT * 10.; /* convert to cal/mol */
-        sc->boltzmann_factors[i][j] =   sc->boltzmann_factors[i][j-1]
-                                      * exp( -GT / kT);
+        sc->exp_energy_up[i][j] =   sc->exp_energy_up[i][j-1]
+                                      * (FLT_OR_DBL)exp( -GT / kT);
       }
     }
   }
 }
 
 PRIVATE void
-sc_add_stack_en_mfe(vrna_fold_compound *vc,
-                    const double *constraints,
+sc_add_stack_en_mfe(vrna_fold_compound_t *vc,
+                    const FLT_OR_DBL *constraints,
                     unsigned int options){
   int i;
 
   if(!vc->sc)
     vrna_sc_init(vc);
 
-  if(!vc->sc->en_stack)
-    vc->sc->en_stack = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
+  if(!vc->sc->energy_stack)
+    vc->sc->energy_stack = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
 
   for(i = 1; i <= vc->length; ++i)
-    vc->sc->en_stack[i] += (int)(constraints[i] * 100.);
+    vc->sc->energy_stack[i] += (int)(constraints[i] * 100.);
 }
 
 PRIVATE void
-sc_add_stack_en_pf( vrna_fold_compound *vc,
-                    const double *constraints,
+sc_add_stack_en_pf( vrna_fold_compound_t *vc,
+                    const FLT_OR_DBL *constraints,
                     unsigned int options){
   int i;
 
   if(!vc->sc)
     vrna_sc_init(vc);
 
-  if(!vc->sc->exp_en_stack){
-    vc->sc->exp_en_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
+  if(!vc->sc->exp_energy_stack){
+    vc->sc->exp_energy_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
     for(i = 0; i <= vc->length; ++i)
-      vc->sc->exp_en_stack[i] = 1;
+      vc->sc->exp_energy_stack[i] = 1.;
   }
 
   for(i = 1; i <= vc->length; ++i)
-    vc->sc->exp_en_stack[i] *= exp(-(constraints[i] * 1000.)/ vc->exp_params->kT);
+    vc->sc->exp_energy_stack[i] *= (FLT_OR_DBL)exp(-(constraints[i] * 1000.)/ vc->exp_params->kT);
 }
 
 PRIVATE INLINE  void
@@ -1696,7 +1760,7 @@ adjust_ptypes(char *ptype,
   matrix = hc->matrix;
 
   if(idx_type){
-    index = vrna_get_iindx(length);
+    index = vrna_idx_row_wise(length);
     for(i = 1; i < length; i++)
       for(j = i + 1; j <= length; j++)
         if(matrix[index[i] - j])
@@ -1704,7 +1768,7 @@ adjust_ptypes(char *ptype,
             ptype[index[i] - j] = 7; /* set to non-canonical pair */
 
   } else {
-    index = vrna_get_indx(length);
+    index = vrna_idx_col_wise(length);
     for(i = 1; i < length; i++)
       for(j = i + 1; j <= length; j++)
         if(matrix[index[j] + i])
@@ -1741,16 +1805,109 @@ constrain_ptypes( const char *constraint,
                   int min_loop_size,
                   unsigned int idx_type){
 
-  apply_DB_constraint(constraint,
-                      ptype,
-                      length,
-                      (unsigned int)min_loop_size,
-                      -1,
-                      VRNA_CONSTRAINT_DB_PIPE
-                    | VRNA_CONSTRAINT_DB_DOT
-                    | VRNA_CONSTRAINT_DB_X
-                    | VRNA_CONSTRAINT_DB_ANG_BRACK
-                    | VRNA_CONSTRAINT_DB_RND_BRACK);
+  int n,i,j,k,l;
+  int hx, *stack;
+  char type;
+  int *index;
+
+  if(constraint == NULL) return;
+
+  n = (int)strlen(constraint);
+
+  stack = vrna_alloc(sizeof(int)*(n+1));
+
+  if(!idx_type){ /* index allows access in energy matrices at pos (i,j) via index[j]+i */
+    index = vrna_idx_col_wise(length);
+
+    for(hx=0, j=1; j<=n; j++){
+      switch(constraint[j-1]){
+        case '|':   if(BP) BP[j] = -1;
+                    break;
+        case 'x':   /* can't pair */
+                    for (l=1; l<j-min_loop_size; l++)
+                      ptype[index[j]+l] = 0;
+                    for (l=j+min_loop_size+1; l<=(int)length; l++)
+                      ptype[index[l]+j] = 0;
+                    break;
+        case '(':   stack[hx++]=j;
+                    /* fallthrough */
+        case '<':   /* pairs upstream */
+                    for (l=1; l<j-min_loop_size; l++)
+                      ptype[index[j]+l] = 0;
+                    break;
+        case ')':   if (hx<=0) {
+                      fprintf(stderr, "%s\n", constraint);
+                      vrna_message_error("unbalanced brackets in constraint");
+                    }
+                    i = stack[--hx];
+                    type = ptype[index[j]+i];
+                    for (k=i+1; k<=(int)length; k++)
+                      ptype[index[k]+i] = 0;
+                    /* don't allow pairs i<k<j<l */
+                    for (l=j; l<=(int)length; l++)
+                      for (k=i+1; k<=j; k++)
+                        ptype[index[l]+k] = 0;
+                    /* don't allow pairs k<i<l<j */
+                    for (l=i; l<=j; l++)
+                      for (k=1; k<=i; k++)
+                        ptype[index[l]+k] = 0;
+                    for (k=1; k<j; k++)
+                      ptype[index[j]+k] = 0;
+                    ptype[index[j]+i] = (type==0) ? 7 : type;
+                    /* fallthrough */
+        case '>':   /* pairs downstream */
+                    for (l=j+min_loop_size+1; l<=(int)length; l++)
+                      ptype[index[l]+j] = 0;
+                    break;
+      }
+    }
+  }
+  else{ /* index allows access in energy matrices at pos (i,j) via index[i]-j */
+    index = vrna_idx_row_wise(length);
+
+    for(hx=0, j=1; j<=n; j++) {
+      switch (constraint[j-1]) {
+        case 'x':   /* can't pair */
+                    for (l=1; l<j-min_loop_size; l++)
+                      ptype[index[l]-j] = 0;
+                    for (l=j+min_loop_size+1; l<=(int)length; l++)
+                      ptype[index[j]-l] = 0;
+                    break;
+        case '(':   stack[hx++]=j;
+                    /* fallthrough */
+        case '<':   /* pairs upstream */
+                    for (l=1; l<j-min_loop_size; l++)
+                      ptype[index[l]-j] = 0;
+                    break;
+        case ')':   if (hx<=0) {
+                      fprintf(stderr, "%s\n", constraint);
+                      vrna_message_error("unbalanced brackets in constraints");
+                    }
+                    i = stack[--hx];
+                    type = ptype[index[i]-j];
+                    /* don't allow pairs i<k<j<l */
+                    for (k=i; k<=j; k++)
+                      for (l=j; l<=(int)length; l++)
+                        ptype[index[k]-l] = 0;
+                    /* don't allow pairs k<i<l<j */
+                    for (k=1; k<=i; k++)
+                      for (l=i; l<=j; l++)
+                        ptype[index[k]-l] = 0;
+                    ptype[index[i]-j] = (type==0) ? 7 : type;
+                    /* fallthrough */
+        case '>':   /* pairs downstream */
+                    for (l=j+min_loop_size+1; l<=(int)length; l++)
+                      ptype[index[j]-l] = 0;
+                    break;
+      }
+    }
+  }
+  if (hx!=0) {
+    fprintf(stderr, "%s\n", constraint);
+    vrna_message_error("unbalanced brackets in constraint string");
+  }
+  free(index);
+  free(stack);
 }
 
 #endif

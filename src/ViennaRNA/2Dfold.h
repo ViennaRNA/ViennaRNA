@@ -10,10 +10,14 @@
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
+#ifdef DEPRECATION_WARNINGS
+# ifdef __GNUC__
+#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# else
+#  define DEPRECATED(func) func
+# endif
 #else
-#define DEPRECATED(func) func
+# define DEPRECATED(func) func
 #endif
 
 /**
@@ -24,7 +28,7 @@
  *  computation and stochastic backtracking with a @e classified @e dynamic @e programming approach.
  *  The secondary structure space is divided into partitions according to the base pair distance to two
  *  given reference structures and all relevant properties are calculated for each of the resulting partitions
- *  @see  For further details have a look into @cite lorenz:2009
+ *  @see For further details, we refer to Lorenz et al. 2009 @cite lorenz:2009
  */
 
 /**
@@ -32,8 +36,8 @@
  *  @brief Compute the minimum free energy (MFE) and secondary structures for a partitioning of
  *  the secondary structure space according to the base pair distance to two fixed reference structures
  *  basepair distance to two fixed reference structures
+ *  @see For further details, we refer to Lorenz et al. 2009 @cite lorenz:2009
  *  @{
- *
  *  @file 2Dfold.h
  *
  */
@@ -42,7 +46,7 @@
 #include <ViennaRNA/params.h>
 
 /**
- *  @brief Solution element returned from vrna_TwoD_fold()
+ *  @brief Solution element returned from vrna_mfe_TwoD()
  *
  *  This element contains free energy and structure for the appropriate
  *  kappa (k), lambda (l) neighborhood
@@ -53,7 +57,7 @@
  *
  *  A value of #INF in k denotes the end of a list
  *
- *  @see  vrna_TwoD_fold()
+ *  @see  vrna_mfe_TwoD()
  */
 typedef struct vrna_sol_TwoD_t{
   int k;          /**<  @brief  Distance to first reference */
@@ -82,8 +86,8 @@ typedef struct vrna_sol_TwoD_t{
  * The end of the list is denoted by an attribute value of #INF in
  * the k-attribute of the list entry.
  *
- *  @see  vrna_get_fold_compound_2D(), vrna_free_fold_compound(), vrna_TwoD_pf_fold()
- *        vrna_TwoD_backtrack5(), #vrna_sol_TwoD_t, #vrna_fold_compound
+ *  @see  vrna_fold_compound_TwoD(), vrna_fold_compound_free(), vrna_pf_TwoD()
+ *        vrna_backtrack5_TwoD(), #vrna_sol_TwoD_t, #vrna_fold_compound_t
  *
  *  @param vc         The datastructure containing all precomputed folding attributes
  *  @param distance1  maximum distance to reference1 (-1 means no restriction)
@@ -92,7 +96,7 @@ typedef struct vrna_sol_TwoD_t{
  *                    for each distance class
  */
 vrna_sol_TwoD_t *
-vrna_TwoD_fold(vrna_fold_compound *vc,
+vrna_mfe_TwoD(vrna_fold_compound_t *vc,
               int distance1,
               int distance2);
 
@@ -103,11 +107,11 @@ vrna_TwoD_fold(vrna_fold_compound *vc,
  * length and residing in a specific distance class.
  * If the argument 'k' gets a value of -1, the structure that is backtracked is assumed to
  * reside in the distance class where all structures exceeding the maximum basepair distance
- * specified in vrna_TwoD_fold() belong to.
+ * specified in vrna_mfe_TwoD() belong to.
  * @note The argument 'vars' must contain precalculated energy values in the energy matrices,
- * i.e. a call to vrna_TwoD_fold() preceding this function is mandatory!
+ * i.e. a call to vrna_mfe_TwoD() preceding this function is mandatory!
  *
- * @see vrna_TwoD_fold()
+ * @see vrna_mfe_TwoD()
  *
  * @param vc    The datastructure containing all precomputed folding attributes
  * @param j     The length in nucleotides beginning from the 5' end
@@ -115,7 +119,7 @@ vrna_TwoD_fold(vrna_fold_compound *vc,
  * @param l     distance to reference2
  */
 char *
-vrna_TwoD_backtrack5( vrna_fold_compound *vc,
+vrna_backtrack5_TwoD( vrna_fold_compound_t *vc,
                       int k,
                       int l,
                       unsigned int j);
@@ -128,11 +132,11 @@ vrna_TwoD_backtrack5( vrna_fold_compound *vc,
  *  @brief Variables compound for 2Dfold MFE folding
  *
  *  @deprecated This data structure will be removed from the library soon!
- *              Use #vrna_fold_compound and the corresponding functions vrna_get_fold_compound_2D(),
- *              vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
+ *              Use #vrna_fold_compound_t and the corresponding functions vrna_fold_compound_TwoD(),
+ *              vrna_mfe_TwoD(), and vrna_fold_compound_free() instead!
  */
 typedef struct TwoDfold_vars{
-  struct vrna_param_t   *P;             /**<  @brief  Precomputed energy parameters and model details */
+  vrna_param_t    *P;             /**<  @brief  Precomputed energy parameters and model details */
   int             do_backtrack;   /**<  @brief  Flag whether to do backtracing of the structure(s) or not */
   char            *ptype;         /**<  @brief  Precomputed array of pair types */
   char            *sequence;      /**<  @brief  The input sequence  */
@@ -240,7 +244,7 @@ typedef struct TwoDfold_vars{
   unsigned long             ***N_M1;
 #endif
 
-  vrna_fold_compound *compatibility;
+  vrna_fold_compound_t *compatibility;
 } TwoDfold_vars;
 
 /**
@@ -252,8 +256,8 @@ typedef struct TwoDfold_vars{
  * 
  *  @note Make sure that the reference structures are compatible with the sequence according to Watson-Crick- and Wobble-base pairing
  * 
- *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_compound_2D(), vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
+ *  @deprecated Use the new API that relies on #vrna_fold_compound_t and the corresponding functions
+ *              vrna_fold_compound_TwoD(), vrna_mfe_TwoD(), and vrna_fold_compound_free() instead!
  *
  *  @param seq          The RNA sequence
  *  @param structure1   The first reference structure in dot-bracket notation
@@ -272,8 +276,8 @@ get_TwoDfold_variables( const char *seq,
  * 
  *  This function free's all allocated memory that depends on the datastructure given.
  * 
- *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_compound_2D(), vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
+ *  @deprecated Use the new API that relies on #vrna_fold_compound_t and the corresponding functions
+ *              vrna_fold_compound_TwoD(), vrna_mfe_TwoD(), and vrna_fold_compound_free() instead!
  *
  *  @param our_variables  A pointer to the datastructure to be destroyed
  */
@@ -298,8 +302,8 @@ destroy_TwoDfold_variables(TwoDfold_vars *our_variables));
  * The end of the list is denoted by an attribute value of #INF in
  * the k-attribute of the list entry.
  *
- *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_compound_2D(), vrna_TwoD_fold(), and vrna_free_fold_compound() instead!
+ *  @deprecated Use the new API that relies on #vrna_fold_compound_t and the corresponding functions
+ *              vrna_fold_compound_TwoD(), vrna_mfe_TwoD(), and vrna_fold_compound_free() instead!
  *
  * @param vars      the datastructure containing all predefined folding attributes
  * @param distance1 maximum distance to reference1 (-1 means no restriction)
@@ -317,13 +321,13 @@ TwoDfoldList( TwoDfold_vars *vars,
  * length and residing in a specific distance class.
  * If the argument 'k' gets a value of -1, the structure that is backtracked is assumed to
  * reside in the distance class where all structures exceeding the maximum basepair distance
- * specified in vrna_TwoDfold() belong to.
+ * specified in TwoDfold() belong to.
  * @note The argument 'vars' must contain precalculated energy values in the energy matrices,
- * i.e. a call to vrna_TwoDfold() preceding this function is mandatory!
+ * i.e. a call to TwoDfold() preceding this function is mandatory!
  *
- *  @deprecated Use the new API that relies on #vrna_fold_compound and the corresponding functions
- *              vrna_get_fold_compound_2D(), vrna_TwoD_fold(), vrna_TwoD_backtrack5(), and
- *              vrna_free_fold_compound() instead!
+ *  @deprecated Use the new API that relies on #vrna_fold_compound_t and the corresponding functions
+ *              vrna_fold_compound_TwoD(), vrna_mfe_TwoD(), vrna_backtrack5_TwoD(), and
+ *              vrna_fold_compound_free() instead!
  *
  * @param j     The length in nucleotides beginning from the 5' end
  * @param k     distance to reference1 (may be -1)

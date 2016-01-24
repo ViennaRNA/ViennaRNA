@@ -16,7 +16,7 @@
 
 \n
 
-@date     1994-2015
+@date     1994-2016
 @authors   Ivo Hofacker, Peter Stadler, Ronny Lorenz and many more
 
 <h3>Table of Contents</h3>
@@ -28,6 +28,7 @@
 \li @ref mp_utils
 \li @ref file_formats
 \li @ref newAPI
+\li @ref swig_interface
 \li @ref mp_example
 
 <hr>
@@ -49,7 +50,7 @@ described in separate man pages. The latest version of the package
 including source code and html versions of the documentation can be found
 at
 \n\n
-http://www.tbi.univie.ac.at/~ivo/RNA/
+http://www.tbi.univie.ac.at/RNA/
 
 
 

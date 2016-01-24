@@ -1,11 +1,62 @@
 #ifndef VIENNA_RNA_PACKAGE_ALN_UTIL_H
 #define VIENNA_RNA_PACKAGE_ALN_UTIL_H
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
+#ifdef DEPRECATION_WARNINGS
+# ifdef __GNUC__
+#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# else
+#  define DEPRECATED(func) func
+# endif
 #else
-#define DEPRECATED(func) func
+# define DEPRECATED(func) func
 #endif
+
+/**
+ *  @addtogroup   aln_utils
+ *
+ *  @{
+ *
+ *  @file aln_util.h
+ *  @brief Various utility- and helper-functions for sequence alignments and comparative structure prediction
+ */
+
+/** @brief Typename for the base pair info repesenting data structure #vrna_pinfo_s */
+typedef struct vrna_pinfo_s     vrna_pinfo_t;
+
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
+
+
+#ifdef VRNA_BACKWARD_COMPAT
+
+/* the following typedefs are for backward compatibility only */
+
+/**
+ *  @brief Old typename of #vrna_pinfo_s
+ *  @deprecated Use #vrna_pinfo_t instead!
+*/
+typedef struct vrna_pinfo_s     pair_info;
+
+#endif
+
+/**
+ *  @brief A base pair info structure
+ *
+ *  For each base pair (i,j) with i,j in [0, n-1] the structure lists:
+ *  - its probability 'p'
+ *  - an entropy-like measure for its well-definedness 'ent'
+ *  - the frequency of each type of pair in 'bp[]'
+ *    + 'bp[0]' contains the number of non-compatible sequences
+ *    + 'bp[1]' the number of CG pairs, etc.
+ */
+struct vrna_pinfo_s {
+   unsigned i;    /**<  @brief  nucleotide position i */
+   unsigned j;    /**<  @brief  nucleotide position j */
+   float p;       /**< @brief  Probability */
+   float ent;     /**< @brief  Pseudo entropy for @f$ p(i,j) = S_i + S_j - p_ij*ln(p_ij) @f$ */
+   short bp[8];   /**< @brief  Frequencies of pair_types */
+   char comp;     /**< @brief  1 iff pair is in mfe structure */
+};
 
 int read_clustal( FILE *clust,
                   char *AlignedSeqs[],
@@ -27,17 +78,34 @@ get_ungapped_sequence(const char *seq);
  *  @param mini
  *  @return       The mean pairwise identity
  */
-int vrna_ali_get_mpi( char *Alseq[],
-                      int n_seq,
-                      int length,
-                      int *mini);
+int vrna_aln_mpi( char *Alseq[],
+                  int n_seq,
+                  int length,
+                  int *mini);
+
+/**
+ *  \brief Retrieve an array of #vrna_pinfo_t structures from precomputed pair probabilities
+ *
+ *  This array of structures contains information about positionwise pair probabilies,
+ *  base pair entropy and more
+ *
+ *  \see #vrna_pinfo_t, and vrna_pf()
+ *
+ *  \param  vc          The #vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
+ *  \param  structure   An optional structure in dot-bracket notation (Maybe NULL)
+ *  \param  threshold   Do not include results with pair probabilities below threshold
+ *  \return             The #vrna_pinfo_t array
+ */
+vrna_pinfo_t *vrna_aln_pinfo(vrna_fold_compound_t *vc,
+                                  const char *structure,
+                                  double threshold);
 
 /**
  *  @brief Get the mean pairwise identity in steps from ?to?(ident)
  * 
  *  @ingroup consensus_fold
  *
- *  @deprecated Use vrna_ali_get_mpi() as a replacement
+ *  @deprecated Use vrna_aln_mpi() as a replacement
  *
  *  @param Alseq
  *  @param n_seq  The number of sequences in the alignment
@@ -125,6 +193,10 @@ void  free_sequence_arrays( unsigned int n_seq,
                             unsigned short ***a2s,
                             char ***Ss);
 
+
+/**
+ * @}
+ */
 
 
 #endif

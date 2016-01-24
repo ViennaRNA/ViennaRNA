@@ -9,6 +9,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/part_func.h"
+#include "ViennaRNA/MEA.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/structure_utils.h"
 #include "ViennaRNA/params.h"
@@ -145,14 +146,14 @@ int main(int argc, char *argv[]){
     if(pkfree){
       float mea, MEAgamma;
       MEAgamma = 2.0;
-      vrna_exp_param_t *params = vrna_exp_params_get(NULL);
+      vrna_exp_param_t *params = vrna_exp_params(NULL);
 
       structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
       strcpy(structure, seq);
 
       mea = MEA_seq(pairs, seq, structure, MEAgamma, params);
 
-      char *structure_tmp = vrna_pl_to_db(pairs, length);
+      char *structure_tmp = vrna_db_from_plist(pairs, length);
       int d =  vrna_bp_distance((const char *)structure, (const char *)structure_tmp);
       if(verbose && (d > 0))
         fprintf(stderr, "removed %d pairs from pseudoknotted structure\n", d);
@@ -160,7 +161,7 @@ int main(int argc, char *argv[]){
       free(structure_tmp);
       free(params);
     } else {
-      structure = vrna_pl_to_db(pairs, length);
+      structure = vrna_db_from_plist(pairs, length);
     }
 
     printf("%s\n%s\n", seq, structure);

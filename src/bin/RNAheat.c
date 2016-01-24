@@ -140,7 +140,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
     /*
     ########################################################
@@ -200,19 +200,22 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
    kT = (temperature+K0)*GASCONST/1000;    /* in kcal */
    pf_scale = exp(-(1.07*min_en)/kT/length );
    /* init_pf_fold(length); <- obsolete */
-    vrna_exp_param_t  *pf_parameters = NULL;
-    vrna_md_t         md;
-    set_model_details(&md);
+   vrna_exp_param_t  *pf_parameters = NULL;
+   vrna_md_t         md;
+   set_model_details(&md);
+   pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
 
+   update_pf_params_par(length, pf_parameters);
    for (i=0; i<2*m+1; i++) {
-      if(pf_parameters) free(pf_parameters);
-      pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+
       F[i] = pf_fold_par(string, NULL, pf_parameters, 0, 0, 0);   /* T_min -2h */
-      temperature += h;
+      md.temperature = temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
       pf_scale=exp(-(F[i]/length +h*0.00727)/kT); /* try to extrapolate F */
-      update_pf_params(length);
-   }
+      free(pf_parameters);
+      pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+      update_pf_params_par(length, pf_parameters);
+}
    while (temperature <= (T_max+m*h+h)) {
 
       hc = - ddiff(F,h,m)* (temperature +K0 - m*h -h);
@@ -226,9 +229,10 @@ PRIVATE void heat_capacity(char *string, float T_min, float T_max,
       temperature += h;
       kT = (temperature+K0)*GASCONST/1000;
       pf_scale=exp(-(F[i]/length +h*0.00727)/kT);
-      if(pf_parameters) free(pf_parameters);
+      free(pf_parameters);
+      md.temperature = temperature;
       pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
-      update_pf_params(length);
+      update_pf_params_par(length, pf_parameters);
    }
    free_pf_arrays();
 }

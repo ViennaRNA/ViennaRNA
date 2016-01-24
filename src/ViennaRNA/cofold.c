@@ -37,7 +37,6 @@
 #endif
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
-#define TURN2             3       /* used by zukersubopt */
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /*
@@ -57,7 +56,7 @@
 
 /* some backward compatibility stuff */
 PRIVATE int                 backward_compat           = 0;
-PRIVATE vrna_fold_compound  *backward_compat_compound = NULL;
+PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 
 PRIVATE float   mfe1, mfe2;       /* minimum free energies of the monomers */
 
@@ -75,9 +74,11 @@ PRIVATE float   mfe1, mfe2;       /* minimum free energies of the monomers */
 #################################
 */
 
-PRIVATE void  backtrack(sect bt_stack[], bondT *bp_list, vrna_fold_compound *vc);
-PRIVATE int   fill_arrays(vrna_fold_compound *vc, int zuker);
-PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound *vc);
+PRIVATE void  backtrack(sect bt_stack[], vrna_bp_stack_t *bp_list, vrna_fold_compound_t *vc);
+PRIVATE int   fill_arrays(vrna_fold_compound_t *vc, int zuker);
+PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound_t *vc);
+PRIVATE void  doubleseq(vrna_fold_compound_t *vc);  /* do magic */
+PRIVATE void  halfseq(vrna_fold_compound_t *vc);    /* undo magic */
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -95,29 +96,57 @@ PRIVATE SOLUTION *wrap_zukersubopt( const char *string,vrna_param_t *parameters)
 */
 
 PUBLIC float
-vrna_cofold(vrna_fold_compound  *vc,
+vrna_cofold(const char *seq,
+            char *structure){
+
+  float                 mfe;
+  vrna_fold_compound_t  *vc;
+  vrna_md_t             md;
+
+  vrna_md_set_default(&md);
+  md.min_loop_size = 0;  /* set min loop length to 0 */
+
+  /* get compound structure */
+  vc = vrna_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+
+  mfe = vrna_mfe_dimer(vc, structure);
+
+  vrna_fold_compound_free(vc);
+
+  return mfe;
+}
+
+PUBLIC float
+vrna_mfe_dimer(vrna_fold_compound_t  *vc,
             char                *structure){
 
   int     length, energy;
+  char    *s;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
-  bondT   *bp;
+  vrna_bp_stack_t   *bp;
 
   length = (int) vc->length;
 
   vc->sequence_encoding[0] = vc->sequence_encoding2[0]; /* store length at pos. 0 in S1 too */
 
-  if(vc->sc)
-    if(vc->sc->pre)
-      vc->sc->pre(vc, VRNA_SC_GEN_MFE);
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_MFE_PRE);
 
   energy = fill_arrays(vc, 0);
 
+  /* call user-defined recursion status callback function */
+  if(vc->stat_cb)
+    vc->stat_cb(vc, VRNA_STATUS_MFE_POST);
+
   if(structure && vc->params->model_details.backtrack){
-    bp = (bondT *)vrna_alloc(sizeof(bondT) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     backtrack(bt_stack, bp, vc);
 
-    vrna_parenthesis_structure(structure, bp, length);
+    s = vrna_db_from_bp_stack(bp, length);
+    strncpy(structure, s, length + 1);
+    free(s);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -135,10 +164,6 @@ vrna_cofold(vrna_fold_compound  *vc,
 
   }
 
-  if(vc->sc)
-    if(vc->sc->post)
-      vc->sc->post(vc, VRNA_SC_GEN_MFE);
-
   if (vc->params->model_details.backtrack_type=='C')
     return (float) vc->matrices->c[vc->jindx[length]+1]/100.;
   else if (vc->params->model_details.backtrack_type=='M')
@@ -148,7 +173,7 @@ vrna_cofold(vrna_fold_compound  *vc,
 }
 
 PRIVATE int
-fill_arrays(vrna_fold_compound  *vc,
+fill_arrays(vrna_fold_compound_t  *vc,
             int                 zuker){
 
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
@@ -305,15 +330,24 @@ fill_arrays(vrna_fold_compound  *vc,
 
   energy = my_f5[length];
   if (cp<1) mfe1=mfe2=energy;
+
+  /* clean up memory */
+  free(cc);
+  free(cc1);
+  free(Fmi);
+  free(DMLi);
+  free(DMLi1);
+  free(DMLi2);
+
   return energy;
 }
 
 PRIVATE void
 backtrack_co( sect bt_stack[],
-              bondT *bp_list,
+              vrna_bp_stack_t *bp_list,
               int s,
               int b, /* b=0: start new structure, b \ne 0: add to existing structure */
-              vrna_fold_compound *vc) {
+              vrna_fold_compound_t *vc) {
 
   /*------------------------------------------------------------------
     trace back through the "c", "fc", "f5" and "fML" arrays to get the
@@ -507,7 +541,7 @@ PRIVATE void
 free_end( int *array,
           int i,
           int start,
-          vrna_fold_compound *vc){
+          vrna_fold_compound_t *vc){
 
   int inc, type, energy, en, length, j, left, right, cp, dangle_model, with_gquad, *indx, *c, *ggg, turn;
   vrna_param_t  *P;
@@ -538,8 +572,8 @@ free_end( int *array,
     if (i==start) array[i]=0;
     else array[i] = array[i-inc];
     if(sc){
-      if(sc->free_energies)
-        array[i] += sc->free_energies[i][1];
+      if(sc->energy_up)
+        array[i] += sc->energy_up[i][1];
     }
   } else
     array[i] = INF;
@@ -585,8 +619,8 @@ free_end( int *array,
                           if(array[j-2] != INF){
                             en = array[j-2] + energy + E_ExtLoop(type, si, -1, P);
                             if(sc)
-                              if(sc->free_energies)
-                                en += sc->free_energies[ii-1][1];
+                              if(sc->energy_up)
+                                en += sc->energy_up[ii-1][1];
 
                             array[i] = MIN2(array[i], en);
                           }
@@ -597,8 +631,8 @@ free_end( int *array,
                         if(array[j+2] != INF){
                           en = array[j+2] + energy + E_ExtLoop(type, -1, sj, P);
                           if(sc)
-                            if(sc->free_energies)
-                              en += sc->free_energies[jj+1][1];
+                            if(sc->energy_up)
+                              en += sc->energy_up[jj+1][1];
 
                           array[i] = MIN2(array[i], en);
                         }
@@ -633,8 +667,8 @@ free_end( int *array,
             if(array[j-inc] != INF){
               en = array[j - inc] + energy + E_ExtLoop(type, -1, sj, P);
               if(sc)
-                if(sc->free_energies)
-                  en += sc->free_energies[jj+1][1];
+                if(sc->energy_up)
+                  en += sc->energy_up[jj+1][1];
 
               array[i] = MIN2(array[i], en);
             }
@@ -644,8 +678,8 @@ free_end( int *array,
             if(array[j - inc] != INF){
               en = array[j - inc] + energy + E_ExtLoop(type, si, -1, P);
               if(sc)
-                if(sc->free_energies)
-                  en += sc->free_energies[ii-1][1];
+                if(sc->energy_up)
+                  en += sc->energy_up[ii-1][1];
 
               array[i] = MIN2(array[i], en);
             }
@@ -656,8 +690,8 @@ free_end( int *array,
             if(array[j-2*inc] != INF){
               en = array[j-2*inc] + energy + E_ExtLoop(type, si, sj, P);
               if(sc)
-                if(sc->free_energies)
-                  en += sc->free_energies[ii-1][1] + sc->free_energies[jj+1][1];
+                if(sc->energy_up)
+                  en += sc->energy_up[ii-1][1] + sc->energy_up[jj+1][1];
 
               array[i] = MIN2(array[i], en);
             }
@@ -670,42 +704,126 @@ free_end( int *array,
 
 PRIVATE void
 backtrack(sect bt_stack[],
-          bondT *bp_list,
-          vrna_fold_compound *vc){
+          vrna_bp_stack_t *bp_list,
+          vrna_fold_compound_t *vc){
 
   /*routine to call backtrack_co from 1 to n, backtrack type??*/
   backtrack_co(bt_stack, bp_list, 0,0, vc);
 }
 
-#if 0
+PRIVATE void
+doubleseq(vrna_fold_compound_t *vc){
+
+  unsigned int  length;
+
+  length  = vc->length;
+
+  /* do some magic to re-use cofold code */
+  vc->sequence  = vrna_realloc(vc->sequence, sizeof(char)*(2*length+2));
+  memcpy(vc->sequence+length, vc->sequence, sizeof(char) * length);
+  vc->sequence[2*length] = '\0';
+  vc->length    = (unsigned int)strlen(vc->sequence);
+  vc->cutpoint  = length+1;
+
+  vc->sequence_encoding = vrna_realloc(vc->sequence_encoding, sizeof(short)*(vc->length + 2));
+  memcpy(vc->sequence_encoding+length+1, vc->sequence_encoding+1, sizeof(short)*length);
+  vc->sequence_encoding[0] = vc->sequence_encoding[vc->length];
+  vc->sequence_encoding[vc->length+1] = vc->sequence_encoding[1];
+
+  vc->sequence_encoding2 = vrna_realloc(vc->sequence_encoding2, sizeof(short)*(vc->length + 2));
+  memcpy(vc->sequence_encoding2 + length + 1, vc->sequence_encoding2 + 1, sizeof(short)*length);
+  vc->sequence_encoding2[0] = vc->length;
+  vc->sequence_encoding2[vc->length+1] = 0;
+
+  free(vc->ptype);
+  vc->ptype = vrna_ptypes(vc->sequence_encoding2, &(vc->params->model_details));
+  free(vc->iindx);
+  vc->iindx = vrna_idx_row_wise(vc->length);
+  free(vc->jindx);
+  vc->jindx = vrna_idx_col_wise(vc->length);
+
+  vrna_hc_init(vc);
+
+  /* add DP matrices */
+  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0L);
+}
+
+PRIVATE void
+halfseq(vrna_fold_compound_t *vc){
+
+  unsigned int halflength;
+
+  halflength = vc->length/2;
+
+  vc->sequence = vrna_realloc(vc->sequence, sizeof(char)*(halflength + 1));
+  vc->sequence[halflength] = '\0';
+  vc->length = (unsigned int)strlen(vc->sequence);
+  vc->cutpoint = -1;
+
+  vc->sequence_encoding = vrna_realloc(vc->sequence_encoding, sizeof(short)*(vc->length + 2));
+  vc->sequence_encoding[0] = vc->sequence_encoding[vc->length];
+  vc->sequence_encoding[vc->length+1] = vc->sequence_encoding[1];
+
+  vc->sequence_encoding2 = vrna_realloc(vc->sequence_encoding2, sizeof(short)*(vc->length + 2));
+  vc->sequence_encoding2[0] = vc->length;
+  vc->sequence_encoding2[vc->length+1] = 0;
+
+  free(vc->ptype);
+  vc->ptype = vrna_ptypes(vc->sequence_encoding2, &(vc->params->model_details));
+  free(vc->iindx);
+  vc->iindx = vrna_idx_row_wise(vc->length);
+  free(vc->jindx);
+  vc->jindx = vrna_idx_col_wise(vc->length);
+
+  vrna_hc_init(vc);
+
+  /* add DP matrices */
+  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0L);
+}
+
+typedef struct{
+  int i;
+  int j;
+  int e;
+  int idxj;
+} zuker_pair;
+
 PRIVATE int comp_pair(const void *A, const void *B) {
-  bondT *x,*y;
+  zuker_pair *x,*y;
   int ex, ey;
-  x = (bondT *) A;
-  y = (bondT *) B;
-  ex = c[indx[x->j]+x->i]+c[indx[x->i+length]+x->j];
-  ey = c[indx[y->j]+y->i]+c[indx[y->i+length]+y->j];
+  x = (zuker_pair *) A;
+  y = (zuker_pair *) B;
+  ex = x->e;
+  ey = y->e;
   if (ex>ey) return 1;
   if (ex<ey) return -1;
-  return (indx[x->j]+x->i - indx[y->j]+y->i);
+  return (x->idxj + x->i - y->idxj + y->i);
 }
-#endif
 
 PUBLIC SOLUTION *
-vrna_zukersubopt(vrna_fold_compound *vc){
+vrna_subopt_zuker(vrna_fold_compound_t *vc){
 
 /* Compute zuker suboptimal. Here, we're abusing the cofold() code
    "double" sequence, compute dimerarray entries, track back every base pair.
    This is slightly wasteful compared to the normal solution */
 
   char          *structure, *mfestructure, **todo, *ptype;
-  int           i, j, counter, num_pairs, psize, p, *indx, *c;
+  int           i, j, counter, num_pairs, psize, p, *indx, *c, turn;
   unsigned int  length, doublelength;
   float         energy;
   SOLUTION      *zukresults;
-  bondT         *pairlist, *bp_list;
+  vrna_bp_stack_t         *bp_list;
+  zuker_pair              *pairlist;
   sect          bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   vrna_mx_mfe_t *matrices;
+  vrna_md_t     *md;
+
+  md                = &(vc->params->model_details);
+  turn              = md->min_loop_size;
+
+  /* do some magic to re-use cofold code although vc is single sequence */
+  md->min_loop_size = 0;
+  doubleseq(vc);
 
   doublelength    = vc->length;
   length          = doublelength/2;
@@ -726,8 +844,8 @@ vrna_zukersubopt(vrna_fold_compound *vc){
   (void)fill_arrays(vc, 1);
 
   psize     = length;
-  pairlist  = (bondT *) vrna_alloc(sizeof(bondT)*(psize+1));
-  bp_list   = (bondT *) vrna_alloc(sizeof(bondT) * (1 + length/2));
+  pairlist  = (zuker_pair *) vrna_alloc(sizeof(zuker_pair)*(psize+1));
+  bp_list   = (vrna_bp_stack_t *) vrna_alloc(sizeof(vrna_bp_stack_t) * (1 + length/2));
   todo      = (char **) vrna_alloc(sizeof(char *)*(length+1));
   for (i=1; i<length; i++) {
     todo[i] = (char *) vrna_alloc(sizeof(char)*(length+1));
@@ -735,27 +853,29 @@ vrna_zukersubopt(vrna_fold_compound *vc){
 
   /* Make a list of all base pairs */
   for (i=1; i<length; i++) {
-    for (j=i+TURN2+1/*??*/; j<=length; j++) {
+    for (j=i+turn+1/*??*/; j<=length; j++) {
       if (ptype[indx[j]+i]==0) continue;
       if (num_pairs>=psize) {
         psize = 1.2*psize + 32;
-        pairlist = vrna_realloc(pairlist, sizeof(bondT)*(psize+1));
+        pairlist = vrna_realloc(pairlist, sizeof(zuker_pair)*(psize+1));
       }
-      pairlist[num_pairs].i   = i;
-      pairlist[num_pairs++].j = j;
+      pairlist[num_pairs].i       = i;
+      pairlist[num_pairs].j       = j;
+      pairlist[num_pairs].e       = c[indx[j]+i]+c[indx[i+length]+j];
+      pairlist[num_pairs++].idxj  = indx[j];
+
       todo[i][j]=1;
     }
   }
 
-#if 0
-  qsort(pairlist, num_pairs, sizeof(bondT), comp_pair);
-#endif
+  qsort(pairlist, num_pairs, sizeof(zuker_pair), comp_pair);
 
   for (p=0; p<num_pairs; p++) {
     i=pairlist[p].i;
     j=pairlist[p].j;
     if (todo[i][j]) {
-      int k;
+      int   k;
+      char  *sz;
       bt_stack[1].i   = i;
       bt_stack[1].j   = j;
       bt_stack[1].ml  = 2;
@@ -764,10 +884,10 @@ vrna_zukersubopt(vrna_fold_compound *vc){
       bt_stack[1].j   = i + length;
       bt_stack[1].ml  = 2;
       backtrack_co(bt_stack, bp_list, 1,bp_list[0].i, vc);
-      energy = c[indx[j]+i]+c[indx[i+length]+j];
-      vrna_parenthesis_zuker(structure, bp_list, length);
+      energy = pairlist[p].e;
+      sz = vrna_db_from_bp_stack(bp_list, length);
       zukresults[counter].energy      = energy;
-      zukresults[counter++].structure = strdup(structure);
+      zukresults[counter++].structure = sz;
       for (k = 1; k <= bp_list[0].i; k++) { /* mark all pairs in structure as done */
         int x,y;
         x=bp_list[k].i;
@@ -805,52 +925,11 @@ vrna_zukersubopt(vrna_fold_compound *vc){
   free(structure);
   free(mfestructure);
 
+  /* undo magic */
+  halfseq(vc);
+  md->min_loop_size = turn;
+
   return zukresults;
-}
-
-PUBLIC char *
-vrna_cut_point_insert(const char *string,
-                      int cp){
-
-  char *ctmp;
-  int len;
-
-  if(cp > 0){
-    len = strlen(string);
-    ctmp = (char *)vrna_alloc((len+2) * sizeof(char));
-    /* first sequence */
-    (void) strncpy(ctmp, string, cp-1);
-    /* spacer */
-    ctmp[cp-1] = '&';
-    /* second sequence */
-    (void) strcat(ctmp, string+cp-1);
-  } else {
-    ctmp = strdup(string);
-  }
-  return ctmp;
-}
-
-PUBLIC char *
-vrna_cut_point_remove(const char *string,
-                      int *cp){
-
-  char *pos, *copy = NULL;
-
-  *cp = -1;
-
-  if(string){
-    copy = (char *) vrna_alloc(strlen(string)+1);
-    (void) sscanf(string, "%s", copy);
-    pos = strchr(copy, '&');
-    if (pos) {
-      *cp = (int)(pos - copy) + 1;
-      if (*cp >= strlen(copy)) *cp = -1;
-      if (strchr(pos+1, '&')) vrna_message_error("more than one cut-point in input");
-      for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
-    }
-  }
-
-  return copy;
 }
 
 /*###########################################*/
@@ -890,7 +969,7 @@ wrap_cofold(const char *string,
 
   unsigned int        length;
   char                *seq;
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_param_t        *P;
   float               mfe;
 
@@ -904,11 +983,12 @@ wrap_cofold(const char *string,
 
   /* we need the parameter structure for hard constraints */
   if(parameters)
-    P = get_parameter_copy(parameters);
+    P = vrna_params_copy(parameters);
   else{
     vrna_md_t md;
     set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
+    md.temperature = temperature;
+    P = vrna_params(&md);
   }
   P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
 
@@ -916,7 +996,7 @@ wrap_cofold(const char *string,
   seq = vrna_cut_point_insert(string, cut_point);
 
   /* get compound structure */
-  vc = vrna_get_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  vc = vrna_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -937,11 +1017,11 @@ wrap_cofold(const char *string,
                           | VRNA_CONSTRAINT_DB_INTRAMOL
                           | VRNA_CONSTRAINT_DB_INTERMOL;
 
-    vrna_add_constraints(vc, (const char *)structure, constraint_options);
+    vrna_constraints_add(vc, (const char *)structure, constraint_options);
   }
 
   if(backward_compat_compound)
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
@@ -949,7 +1029,7 @@ wrap_cofold(const char *string,
   /* cleanup */
   free(seq);
 
-  return vrna_cofold(vc, structure);
+  return vrna_mfe_dimer(vc, structure);
 }
 
 PRIVATE SOLUTION *
@@ -958,7 +1038,7 @@ wrap_zukersubopt( const char *string,
 
   unsigned int        length;
   char                *doubleseq;
-  vrna_fold_compound  *vc;
+  vrna_fold_compound_t  *vc;
   vrna_param_t        *P;
 
   vc      = NULL;
@@ -971,11 +1051,12 @@ wrap_zukersubopt( const char *string,
 
   /* we need the parameter structure for hard constraints */
   if(parameters)
-    P = get_parameter_copy(parameters);
+    P = vrna_params_copy(parameters);
   else{
     vrna_md_t md;
     set_model_details(&md);
-    P = get_scaled_parameters(temperature, md);
+    md.temperature = temperature;
+    P = vrna_params(&md);
   }
   P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
 
@@ -985,7 +1066,7 @@ wrap_zukersubopt( const char *string,
   strcat(doubleseq, string);
 
   /* get compound structure */
-  vc = vrna_get_fold_compound(doubleseq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  vc = vrna_fold_compound(doubleseq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -995,7 +1076,7 @@ wrap_zukersubopt( const char *string,
   }
 
   if(backward_compat_compound)
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
@@ -1003,7 +1084,7 @@ wrap_zukersubopt( const char *string,
   /* cleanup */
   free(doubleseq);
 
-  return vrna_zukersubopt(vc);
+  return vrna_subopt_zuker(vc);
 }
 
 PUBLIC void
@@ -1013,7 +1094,7 @@ PUBLIC void
 free_co_arrays(void){
 
   if(backward_compat_compound && backward_compat){
-    vrna_free_fold_compound(backward_compat_compound);
+    vrna_fold_compound_free(backward_compat_compound);
     backward_compat_compound  = NULL;
     backward_compat           = 0;
   }
@@ -1083,7 +1164,7 @@ zukersubopt_par(const char *string,
 PUBLIC void
 update_cofold_params(void){
 
-  vrna_fold_compound *v;
+  vrna_fold_compound_t *v;
   
   if(backward_compat_compound && backward_compat){
     vrna_md_t md;
@@ -1093,14 +1174,14 @@ update_cofold_params(void){
       free(v->params);
 
     set_model_details(&md);
-    v->params = vrna_params_get(&md);
+    v->params = vrna_params(&md);
   }
 }
 
 PUBLIC void
 update_cofold_params_par(vrna_param_t *parameters){
 
-  vrna_fold_compound *v;
+  vrna_fold_compound_t *v;
   
   if(backward_compat_compound && backward_compat){
     v = backward_compat_compound;
@@ -1109,11 +1190,12 @@ update_cofold_params_par(vrna_param_t *parameters){
       free(v->params);
 
     if(parameters){
-      v->params = get_parameter_copy(parameters);
+      v->params = vrna_params_copy(parameters);
     } else {
       vrna_md_t md;
       set_model_details(&md);
-      v->params = vrna_params_get(&md);
+      md.temperature = temperature;
+      v->params = vrna_params(&md);
     }
   }
 }

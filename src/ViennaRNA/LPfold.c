@@ -88,8 +88,8 @@ PRIVATE void  GetPtype(int j, int pairsize, const short *S, int n);
 PRIVATE void  FreeOldArrays(int i);
 PRIVATE void  GetNewArrays(int j, int winSize);
 PRIVATE void  printpbar(FLT_OR_DBL **prb,int winSize, int i, int n);
-PRIVATE plist *get_deppp(struct plist *pl, int start, int pairsize, int length);
-PRIVATE plist *get_plistW(struct plist *pl, int length, int start, FLT_OR_DBL **Tpr, int winSize);
+PRIVATE plist *get_deppp(plist *pl, int start, int pairsize, int length);
+PRIVATE plist *get_plistW(plist *pl, int length, int start, FLT_OR_DBL **Tpr, int winSize);
 PRIVATE void  print_plist(int length, int start, FLT_OR_DBL **Tpr, int winSize, FILE *fp);
 PRIVATE void  compute_pU(int k, int ulength, double **pU, int winSize, int n, char *sequence);
 PRIVATE void  putoutpU(double **pU,int k, int ulength, FILE *fp);
@@ -154,9 +154,9 @@ PRIVATE void get_arrays_L(unsigned int length){
     qm2 = (FLT_OR_DBL **) vrna_alloc((length+1)*sizeof(FLT_OR_DBL *));
     q2l = (FLT_OR_DBL **) vrna_alloc((length+1)*sizeof(FLT_OR_DBL *));
   }
-  my_iindx  = vrna_get_iindx(length);
-  iindx     = vrna_get_iindx(length); /* for backward compatibility and Perl wrapper */
-  jindx     = vrna_get_indx(length);
+  my_iindx  = vrna_idx_row_wise(length);
+  iindx     = vrna_idx_row_wise(length); /* for backward compatibility and Perl wrapper */
+  jindx     = vrna_idx_col_wise(length);
 }
 
 PRIVATE void free_pf_arrays_L(void){
@@ -215,7 +215,7 @@ PUBLIC plist *pfl_fold( char *sequence,
                         int pairSize,
                         float cutoffb,
                         double **pU,
-                        struct plist **dpp2,
+                        plist **dpp2,
                         FILE *pUfp,
                         FILE *spup){
   return pfl_fold_par(sequence, winSize, pairSize, cutoffb, pU, dpp2, pUfp, spup, NULL);
@@ -226,7 +226,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
                             int pairSize,
                             float cutoffb,
                             double **pU,
-                            struct plist **dpp2,
+                            plist **dpp2,
                             FILE *pUfp,
                             FILE *spup,
                             vrna_exp_param_t *parameters){
@@ -289,7 +289,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
   num_p = 0;
-  pl    = (struct plist *)vrna_alloc(1000*sizeof(struct plist));
+  pl    = (plist *)vrna_alloc(1000*sizeof(plist));
 
 
   /*ALWAYS q[i][j] => i>j!!*/
@@ -603,11 +603,11 @@ PRIVATE void scale_pf_params(unsigned int length, vrna_exp_param_t *parameters){
   if(pf_params) free(pf_params);
 
   if(parameters){
-    pf_params = get_boltzmann_factor_copy(parameters);
+    pf_params = vrna_exp_params_copy(parameters);
   } else {
     vrna_md_t  md;
     set_model_details(&md);
-    pf_params = get_boltzmann_factors(temperature, alpha, md, pf_scale);
+    pf_params = vrna_exp_params(&md);
   }
 
   scaling_factor = pf_params->pf_scale;
@@ -719,7 +719,7 @@ PRIVATE plist *get_plistW(plist *pl, int length,
   pl[num_p].i=0;
   pl[num_p].j=0;
   pl[num_p].p=0.;
-  /* pl=(struct plist *)vrna_realloc(pl,(count)*sizeof(struct plist)); */
+  /* pl=(plist *)vrna_realloc(pl,(count)*sizeof(plist)); */
   return pl;
 }
 

@@ -36,36 +36,6 @@ section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"
 
-option  "partfunc"  p
-"Calculate the partition function and base pairing probability matrix in addition to the mfe structure."
-details="Default is calculation of mfe structure only. In addition to the MFE structure we print a coarse\
- representation of the pair probabilities in form of a pseudo bracket notation, followed by the ensemble\
- free energy, as well as the centroid structure derived from the pair probabilities together with\
- its free energy and distance to the ensemble. Finally it prints the frequency of the mfe structure.\n\nAn\
- additionally passed value to this option changes the behavior of partition function calculation:\n-p0\
- \tCalculate the partition function but not the pair probabilities, saving about 50% in runtime. This\
- prints the ensemble free energy -kT ln(Z).\n\n"
-int
-default="1"
-argoptional
-optional
-
-option  "cutoff"  c
-"Report only base pairs with an average probability > cutoff in the dot plot\n\n"
-float
-default="0.01"
-optional
-
-option  "pfScale" S
-"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
- overflows).\n"
-details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
-double
-typestr="scaling factor"
-optional
-hidden
-
 option  "mis" -
 "Output \"most informative sequence\" instead of simple consensus: For each column of the alignment\
  output the set of nucleotides with frequence greater than average in IUPAC notation.\n\n"

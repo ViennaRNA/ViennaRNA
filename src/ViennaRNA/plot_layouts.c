@@ -88,7 +88,7 @@ PRIVATE void loop(int i, int j, short *pair_table)
 
   short *remember;
 
-  remember = (short *) vrna_alloc((1+(j-i)/5)*2*sizeof(short));
+  remember = (short *) vrna_alloc((3+(j-i)/5)*2*sizeof(short));
 
   i_old = i-1, j++;         /* j has now been set to the partner of the
                                previous pair for correct while-loop
@@ -109,7 +109,7 @@ PRIVATE void loop(int i, int j, short *pair_table)
       do {
         k++, l--, ladder++;        /* go along the stack region */
       }
-      while (pair_table[k] == l);
+      while ((pair_table[k] == l) && (pair_table[k] > k));
 
       fill = ladder-2;
       if (ladder >= 2) {
@@ -125,7 +125,8 @@ PRIVATE void loop(int i, int j, short *pair_table)
         }
       }
       stack_size[++stk] = ladder;
-      loop(k, l, pair_table);
+      if(k <= l)
+        loop(k, l, pair_table);
     }
   }
   polygon = PI*(count-2)/(float)count; /* bending angle in loop polygon */

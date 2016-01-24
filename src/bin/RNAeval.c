@@ -32,7 +32,7 @@
 #endif
 
 static void
-add_shape_constraints(vrna_fold_compound *vc,
+add_shape_constraints(vrna_fold_compound_t *vc,
                       const char *shape_method,
                       const char *shape_conversion,
                       const char *shape_file,
@@ -43,7 +43,7 @@ add_shape_constraints(vrna_fold_compound *vc,
   char method;
   char *sequence;
   double *values;
-  int length = vc->length;
+  int i, length = vc->length;
 
   if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
     vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
@@ -63,16 +63,22 @@ add_shape_constraints(vrna_fold_compound *vc,
 
   sequence = vrna_alloc(sizeof(char) * (length + 1));
   values = vrna_alloc(sizeof(double) * (length + 1));
-  vrna_read_SHAPE_file(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
+  vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if(method == 'D'){
-    (void)vrna_sc_SHAPE_add_deigan(vc, (const double *)values, p1, p2, constraint_type);
+    (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
   }
   else if(method == 'Z'){
-    (void)vrna_sc_SHAPE_add_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
+    (void)vrna_sc_add_SHAPE_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
   } else {
     assert(method == 'W');
-    vrna_sc_add_up(vc, values, constraint_type);
+    FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
+    for(i = 0; i < length; i++)
+      v[i] = values[i];
+
+    vrna_sc_add_up(vc, v, constraint_type);
+
+    free(v);
   }
 
   free(values);
@@ -176,9 +182,9 @@ int main(int argc, char *argv[]){
     vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
   }
 
-  P = vrna_params_get(&md);
+  P = vrna_params(&md);
 
-  /* set options we wanna pass to vrna_read_fasta_record() */
+  /* set options we wanna pass to vrna_file_fasta_read_record() */
 
   if(istty){
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
@@ -192,7 +198,7 @@ int main(int argc, char *argv[]){
   #############################################
   */
   while(
-    !((rec_type = vrna_read_fasta_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
         & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
 
     /*
@@ -212,7 +218,7 @@ int main(int argc, char *argv[]){
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
-    vrna_fold_compound *vc = vrna_get_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
     tmp       = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
 
@@ -282,7 +288,7 @@ int main(int argc, char *argv[]){
     free(orig_sequence);
     string = orig_sequence = NULL;
 
-    vrna_free_fold_compound(vc);
+    vrna_fold_compound_free(vc);
 
     if(with_shapes)
       break;

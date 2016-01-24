@@ -1,4 +1,4 @@
-#!/usr/bin/perl -Iblib/arch -Iblib/lib
+#!/usr/bin/perl -I.libs
 
 # Last changed Time-stamp: <2007-09-27 17:21:23 ivo>
 
@@ -6,9 +6,8 @@
 # (It may become useful if the test is moved to ./t subdirectory.)
 use strict;
 use Test;
-use lib qw|blib/arch blib/lib|;
-
-BEGIN { plan tests => 26; }
+use Data::Dumper;
+BEGIN { plan tests => 37; }
 
 use RNA;
 use warnings;
@@ -19,7 +18,6 @@ use warnings;
 # (correspondingly "not ok 13") depending on the success of chunk 13
 # of the test code):
 
-
 my $seq1  ="CGCAGGGAUACCCGCG";
 my $struc1="(((.(((...))))))";
 my $seq2  ="GCGCCCAUAGGGACGC";
@@ -28,6 +26,8 @@ my $struc2="((((((...))).)))";
 
 # calculate a hamming distance (from util.c)
 ok(RNA::hamming($seq1, $seq2), 16);
+
+ok(RNA::bp_distance($struc1, $struc2), 6);
 
 # check a global variable
 ok($RNA::temperature, 37);
@@ -105,7 +105,7 @@ ok(RNA::cdata($RNA::xsubi, 6),pack('S3', 171,42,93));
 # get a bp prob in two different ways
 my $p1 = RNA::get_pr(2,15);
 my $ii = RNA::intP_getitem($RNA::iindx, 2);
-my $p2 = RNA::doubleP_getitem($RNA::pr, $ii-15);
+my $p2 = (RNA::pf_float_precision() != 0) ? RNA::floatP_getitem($RNA::pr, $ii-15) : RNA::doubleP_getitem($RNA::pr, $ii-15);
 ok(($p1<0.999) && ($p1>0.99) && (abs($p1-$p2)<1.2e-7));
 
 my $bpf = RNA::Make_bp_profile(length($seq1));
@@ -174,7 +174,7 @@ my $struc1_move = "(..............)";
 RNA::move_standard($seq1, $struc1_move, 0, 0, 0, 0);
 ok($struc1_move, "................");
 
-my $struc1_move = "(..............)";
+$struc1_move = "(..............)";
 RNA::move_standard($seq1, $struc1_move, 1, 0, 0, 0);
 ok($struc1_move, "(((.((....)).)))");
 
@@ -183,3 +183,91 @@ ok($struc1_move, "(((.((....)).)))");
 #RNA::move_standard($seq1, $struc1_move, 2, 0, 0, 0);
 #ok("(((.(((...))))))", $struc1_move);
 #print STDERR join(',', unpack('S3', RNA::cdata($RNA::xsubi, 6))), "\n";
+
+#
+# Check new scripting language interface
+#
+
+# check model details structure
+my $md = RNA::md->new(); # default values
+ok(int($md->{dangles}), 2);
+ok($md->{temperature}, 37.0);
+
+$RNA::dangles     = 0;
+$RNA::temperature = 40.1;
+$md = RNA::md->new("global"); # global values
+ok(int($md->{dangles}), 0);
+ok(int($RNA::dangles), 0);
+ok($md->{temperature}, 40.1);
+
+# reset globals to default
+$RNA::dangles = 2;
+$RNA::temperature = 37.0;
+
+# check parameter structures
+my $params = RNA::param->new();
+ok($params->get_temperature(), 37.0);
+
+$params = RNA::param->new($md);
+ok($params->get_temperature(), 40.1);
+
+my $pf_params = RNA::exp_param->new();
+ok($pf_params->get_temperature(), 37.0);
+
+$pf_params = RNA::exp_param->new($md);
+ok($pf_params->get_temperature(), 40.1);
+
+undef $md;
+
+my $fc = new RNA::fold_compound($seq1);
+($ss, $mfe) = $fc->mfe();
+printf "%s [ %6.2f ]\n", $ss, $mfe;
+ok($ss eq $struc1);
+
+undef $fc;
+
+# test theophylline ligand binding interface
+$RNA::noLonelyPairs = 0;
+$fc = new RNA::fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG");
+($ss, $mfe) = $fc->mfe();
+printf "%s [ %6.2f ]\n", $ss, $mfe;
+
+$fc->sc_add_hi_motif("GAUACCAG&CCCUUGGCAGC", "(...((((&)...)))...)", -9.22);
+($ss, $mfe) = $fc->mfe();
+printf "%s [ %6.2f ]\n", $ss, $mfe;
+
+$fc->sc_remove();
+
+$fc->sc_add_hi_motif("GAAAAAU", "(.....)", -19);
+($ss, $mfe) = $fc->mfe();
+printf "%s [ %6.2f ]\n", $ss, $mfe;
+
+undef $fc;
+
+#$md = new RNA::md();
+#$md->{noGU} = 1;
+#$fc = new RNA::fold_compound("GGGGGGGGGGGGAAAUUUUUUCCCCCC", $md);
+#print RNA::vrna_mfe($fc, undef), "\n";
+#undef $fc;
+#undef $md;
+#
+#$RNA::noGU = 1;
+#$md = new RNA::md("global");
+#$fc = new RNA::fold_compound("GGGGGGGGGGGGAAAUUUUUUCCCCCC", $md);
+#print RNA::vrna_mfe($fc, undef), "\n";
+#
+#undef $fc;
+#undef $md;
+#$md = new RNA::md();
+#$fc = new RNA::fold_compound("GGGGGGGGGGGGAAAUUUUUUCCCCCC", $md);
+#print RNA::vrna_mfe($fc, undef), "\n";
+#
+#$RNA::noGU = 0;
+#undef $fc;
+#undef $md;
+#$md = new RNA::md();
+#$fc = new RNA::fold_compound("GGGGGGGGGGGGAAAUUUUUUCCCCCC", $md);
+#($ss, $mfe) = $fc->mfe();
+#printf "%s [ %6.2f ]\n", $ss, $mfe;
+#undef $fc;
+#undef $md;

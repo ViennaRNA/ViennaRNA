@@ -18,7 +18,7 @@ PRIVATE char  scale2[] = "....,....5....,....6....,....7....,....8";
 
 PRIVATE void usage(void);
 
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
    int      n,i,j,l;
    int      intty;

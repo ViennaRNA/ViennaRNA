@@ -79,6 +79,9 @@ int         **get_gquad_L_matrix( short *S,
                                   int **g,
                                   vrna_param_t *P);
 
+void        vrna_gquad_mx_local_update( vrna_fold_compound_t *vc,
+                                        int start);
+
 void        get_gquad_pattern_mfe(short *S,
                                   int i,
                                   int j,
@@ -165,26 +168,26 @@ INLINE  PRIVATE int backtrack_GQuad_IntLoop_L(int c,
                                               int *q,
                                               vrna_param_t *P);
 
-INLINE PRIVATE int
-vrna_BT_gquad_mfe(vrna_fold_compound *vc,
+PRIVATE INLINE int
+vrna_BT_gquad_mfe(vrna_fold_compound_t *vc,
                   int i,
                   int j,
-                  bondT *bp_stack,
+                  vrna_bp_stack_t *bp_stack,
                   int *stack_count);
 
-INLINE PRIVATE int
-vrna_BT_gquad_int(vrna_fold_compound *vc,
+PRIVATE INLINE int
+vrna_BT_gquad_int(vrna_fold_compound_t *vc,
                   int i,
                   int j,
                   int en,
-                  bondT *bp_stack,
+                  vrna_bp_stack_t *bp_stack,
                   int *stack_count);
 
-INLINE PRIVATE int
-vrna_BT_gquad_mfe(vrna_fold_compound *vc,
+PRIVATE INLINE int
+vrna_BT_gquad_mfe(vrna_fold_compound_t *vc,
                   int i,
                   int j,
-                  bondT *bp_stack,
+                  vrna_bp_stack_t *bp_stack,
                   int *stack_count){
 
   /*
@@ -219,12 +222,12 @@ vrna_BT_gquad_mfe(vrna_fold_compound *vc,
   }
 }
 
-INLINE PRIVATE int
-vrna_BT_gquad_int(vrna_fold_compound *vc,
+PRIVATE INLINE int
+vrna_BT_gquad_int(vrna_fold_compound_t *vc,
                   int i,
                   int j,
                   int en,
-                  bondT *bp_stack,
+                  vrna_bp_stack_t *bp_stack,
                   int *stack_count){
 
   int           energy, dangles, *idx, ij, p, q, maxl, minl, c0, l1, *rtype, *ggg;
@@ -507,7 +510,7 @@ INLINE  PRIVATE int backtrack_GQuad_IntLoop_L(int c,
   return 0;
 }
 
-INLINE PRIVATE
+PRIVATE INLINE
 int
 E_GQuad_IntLoop(int i,
                 int j,
@@ -640,7 +643,7 @@ E_GQuad_IntLoop(int i,
   return ge;
 }
 
-INLINE PRIVATE
+PRIVATE INLINE
 int *
 E_GQuad_IntLoop_exhaustive( int i,
                             int j,
@@ -739,7 +742,7 @@ E_GQuad_IntLoop_exhaustive( int i,
   return ge;
 }
 
-INLINE PRIVATE
+PRIVATE INLINE
 int
 E_GQuad_IntLoop_L(int i,
                   int j,
@@ -816,7 +819,7 @@ E_GQuad_IntLoop_L(int i,
   return ge;
 }
 
-INLINE PRIVATE
+PRIVATE INLINE
 FLT_OR_DBL
 exp_E_GQuad_IntLoop(int i,
                     int j,
@@ -826,18 +829,19 @@ exp_E_GQuad_IntLoop(int i,
                     int *index,
                     vrna_exp_param_t *pf){
 
-  int k, l, minl, maxl, u, r;
-  FLT_OR_DBL q, qe, *expintern;
-  short si, sj;
+  int         k, l, minl, maxl, u, r;
+  FLT_OR_DBL  q, qe;
+  double      *expintern;
+  short       si, sj;
 
   q         = 0;
   si        = S[i + 1];
   sj        = S[j - 1];
-  qe        = pf->expmismatchI[type][si][sj];
+  qe        = (FLT_OR_DBL)pf->expmismatchI[type][si][sj];
   expintern = pf->expinternal;
 
   if(type > 2)
-    qe *= pf->expTermAU;
+    qe *= (FLT_OR_DBL)pf->expTermAU;
 
   k = i + 1;
   if(S[k] == 3){
@@ -851,7 +855,7 @@ exp_E_GQuad_IntLoop(int i,
       for(l = minl; l < maxl; l++){
         if(S[l] != 3) continue;
         if(G[index[k]-l] == 0.) continue;
-        q += qe * G[index[k]-l] * expintern[j - l - 1];
+        q += qe * G[index[k]-l] * (FLT_OR_DBL)expintern[j - l - 1];
       }
     }
   }
@@ -872,7 +876,7 @@ exp_E_GQuad_IntLoop(int i,
     for(l = minl; l < maxl; l++){
       if(S[l] != 3) continue;
       if(G[index[k]-l] == 0.) continue;
-      q += qe * G[index[k]-l] * expintern[u + j - l - 1];
+      q += qe * G[index[k]-l] * (FLT_OR_DBL)expintern[u + j - l - 1];
     }
   }
 
@@ -883,7 +887,7 @@ exp_E_GQuad_IntLoop(int i,
       if(u>MAXLOOP) break;
       if(S[k] != 3) continue;
       if(G[index[k]-l] == 0.) continue;
-      q += qe * G[index[k]-l] * expintern[u];
+      q += qe * G[index[k]-l] * (FLT_OR_DBL)expintern[u];
     }
 
   return q;

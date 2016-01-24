@@ -4,10 +4,14 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
+#ifdef DEPRECATION_WARNINGS
+# ifdef __GNUC__
+#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# else
+#  define DEPRECATED(func) func
+# endif
 #else
-#define DEPRECATED(func) func
+# define DEPRECATED(func) func
 #endif
 
 /**
@@ -79,7 +83,7 @@ plist *pfl_fold(char *sequence,
                 int pairSize,
                 float cutoffb,
                 double **pU,
-                struct plist **dpp2,
+                plist **dpp2,
                 FILE *pUfp,
                 FILE *spup);
 
@@ -94,7 +98,7 @@ plist *pfl_fold_par(char *sequence,
                     int pairSize,
                     float cutoffb,
                     double **pU,
-                    struct plist **dpp2,
+                    plist **dpp2,
                     FILE *pUfp,
                     FILE *spup,
                     vrna_exp_param_t *parameters);

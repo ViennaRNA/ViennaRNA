@@ -19,10 +19,10 @@
 #include <gsl/gsl_multimin.h>
 #endif
 
-static void calculate_probability_unpaired(vrna_fold_compound *vc, double *probability)
+static void calculate_probability_unpaired(vrna_fold_compound_t *vc, double *probability)
 {
   int length = vc->length;
-  double *probs = vc->exp_matrices->probs;
+  FLT_OR_DBL *probs = vc->exp_matrices->probs;
   int *iidx = vc->iindx;
   int i, j;
 
@@ -48,7 +48,7 @@ static double calculate_norm(double *vector, int length)
   return sqrt(sum);
 }
 
-static void addSoftConstraint(vrna_fold_compound *vc, const double *epsilon, int length)
+static void addSoftConstraint(vrna_fold_compound_t *vc, const double *epsilon, int length)
 {
   vrna_sc_t *sc;
   int i, j;
@@ -56,28 +56,28 @@ static void addSoftConstraint(vrna_fold_compound *vc, const double *epsilon, int
 
   sc = vrna_alloc(sizeof(vrna_sc_t));
 
-  sc->boltzmann_factors = vrna_alloc(sizeof(double*) * (length + 2));
-  sc->boltzmann_factors[0] = vrna_alloc(1);
+  sc->exp_energy_up = vrna_alloc(sizeof(FLT_OR_DBL*) * (length + 2));
+  sc->exp_energy_up[0] = vrna_alloc(1);
   for (i = 1; i <= length; ++i)
-    sc->boltzmann_factors[i] = vrna_alloc(sizeof(double) * (length - i + 2));
+    sc->exp_energy_up[i] = vrna_alloc(sizeof(FLT_OR_DBL) * (length - i + 2));
 
   for (i = 1; i <= length; ++i)
   {
-    sc->boltzmann_factors[i][0] = 1;
+    sc->exp_energy_up[i][0] = 1;
     for (j = 1; j <= length - i + 1; ++j)
-      sc->boltzmann_factors[i][j] = sc->boltzmann_factors[i][j-1] * exp(-(epsilon[i + j - 1]) / kT);
+      sc->exp_energy_up[i][j] = sc->exp_energy_up[i][j-1] * exp(-(epsilon[i + j - 1]) / kT);
   }
 
   /* also add sc for MFE computation */
-  sc->free_energies = vrna_alloc(sizeof(int*) * (length + 2));
-  sc->free_energies[0] = vrna_alloc(sizeof(int));
+  sc->energy_up = vrna_alloc(sizeof(int*) * (length + 2));
+  sc->energy_up[0] = vrna_alloc(sizeof(int));
   for (i = 1; i <= length; ++i)
-    sc->free_energies[i] = vrna_alloc(sizeof(int) * (length - i + 2));
+    sc->energy_up[i] = vrna_alloc(sizeof(int) * (length - i + 2));
 
   for (i = 1; i <= length; ++i){
-    sc->free_energies[i][0] = 0;
+    sc->energy_up[i][0] = 0;
     for (j = 1; j <= length - i + 1; ++j)
-      sc->free_energies[i][j] = sc->free_energies[i][j-1] + (epsilon[i + j - 1]*100.);
+      sc->energy_up[i][j] = sc->energy_up[i][j-1] + (epsilon[i + j - 1]*100.);
   }
 
   vc->sc = sc;
@@ -94,7 +94,7 @@ static double evaluate_objective_function_contribution(double value, int objecti
   return 0;
 }
 
-static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int objective_function)
+static double evaluate_perturbation_vector_score(vrna_fold_compound_t *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int objective_function)
 {
   double kT, ret = 0;
   double ret2 = 0.;
@@ -110,10 +110,10 @@ static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const d
   vc->exp_params->model_details.compute_bpp = 1;
 
   /* get new (constrained) MFE to scale pf computations properly */
-  double mfe = (double)vrna_fold(vc, NULL);
+  double mfe = (double)vrna_mfe(vc, NULL);
   vrna_exp_params_rescale(vc, &mfe);
 
-  vrna_pf_fold(vc, NULL);
+  vrna_pf(vc, NULL);
 
   calculate_probability_unpaired(vc, p_prob_unpaired);
 
@@ -136,7 +136,7 @@ static double evaluate_perturbation_vector_score(vrna_fold_compound *vc, const d
   return ret + ret2;
 }
 
-static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, const double *epsilon, double *prob_unpaired, double **conditional_prob_unpaired)
+static void pairing_probabilities_from_restricted_pf(vrna_fold_compound_t *vc, const double *epsilon, double *prob_unpaired, double **conditional_prob_unpaired)
 {
   int length = vc->length;
   int i;
@@ -145,17 +145,17 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, con
   vc->exp_params->model_details.compute_bpp = 1;
 
   /* get new (constrained) MFE to scale pf computations properly */
-  double mfe = (double)vrna_fold(vc, NULL);
+  double mfe = (double)vrna_mfe(vc, NULL);
   vrna_exp_params_rescale(vc, &mfe);
 
-  vrna_pf_fold(vc, NULL);
+  vrna_pf(vc, NULL);
 
   calculate_probability_unpaired(vc, prob_unpaired);
 
   #pragma omp parallel for private(i)
   for (i = 1; i <= length; ++i)
   {
-    vrna_fold_compound *restricted_vc;
+    vrna_fold_compound_t *restricted_vc;
     char *hc_string;
     unsigned int constraint_options = VRNA_CONSTRAINT_DB
                                       | VRNA_CONSTRAINT_DB_PIPE
@@ -168,23 +168,23 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound *vc, con
     memset(hc_string, '.', length);
     hc_string[i - 1] = 'x';
 
-    restricted_vc = vrna_get_fold_compound(vc->sequence, &(vc->exp_params->model_details), VRNA_OPTION_PF);
-    vrna_add_constraints(restricted_vc, hc_string, constraint_options);
+    restricted_vc = vrna_fold_compound(vc->sequence, &(vc->exp_params->model_details), VRNA_OPTION_PF);
+    vrna_constraints_add(restricted_vc, hc_string, constraint_options);
     free(hc_string);
 
-    vrna_exp_params_update(restricted_vc, vc->exp_params);
+    vrna_exp_params_subst(restricted_vc, vc->exp_params);
 
-    vrna_pf_fold(restricted_vc, NULL);
+    vrna_pf(restricted_vc, NULL);
     calculate_probability_unpaired(restricted_vc, conditional_prob_unpaired[i]);
 
     restricted_vc->sc = NULL;
-    vrna_free_fold_compound(restricted_vc);
+    vrna_fold_compound_free(restricted_vc);
   }
 
   vrna_sc_remove(vc);
 }
 
-static void pairing_probabilities_from_sampling(vrna_fold_compound *vc, const double *epsilon, int sample_size, double *prob_unpaired, double **conditional_prob_unpaired)
+static void pairing_probabilities_from_sampling(vrna_fold_compound_t *vc, const double *epsilon, int sample_size, double *prob_unpaired, double **conditional_prob_unpaired)
 {
   double kT;
   int length = vc->length;
@@ -196,10 +196,10 @@ static void pairing_probabilities_from_sampling(vrna_fold_compound *vc, const do
   vc->exp_params->model_details.compute_bpp = 0;
 
   /* get new (constrained) MFE to scale pf computations properly */
-  double mfe = (double)vrna_fold(vc, NULL);
+  double mfe = (double)vrna_mfe(vc, NULL);
   vrna_exp_params_rescale(vc, &mfe);
 
-  vrna_pf_fold(vc, NULL);
+  vrna_pf(vc, NULL);
 
 
   #pragma omp parallel for private(s)
@@ -260,7 +260,7 @@ static void freeProbabilityArrays(double *unpaired, double **conditional_unpaire
   free(conditional_unpaired);
 }
 
-static void evaluate_perturbation_vector_gradient(vrna_fold_compound *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int objective_function, int sample_size, double *gradient)
+static void evaluate_perturbation_vector_gradient(vrna_fold_compound_t *vc, const double *epsilon, const double *q_prob_unpaired, double sigma_squared, double tau_squared, int objective_function, int sample_size, double *gradient)
 {
   double *p_prob_unpaired;
   double **p_conditional_prob_unpaired;
@@ -313,7 +313,7 @@ static void evaluate_perturbation_vector_gradient(vrna_fold_compound *vc, const 
 
 #ifdef WITH_GSL
 typedef struct parameters_gsl {
-  vrna_fold_compound *vc;
+  vrna_fold_compound_t *vc;
   const double *q_prob_unpaired;
   double sigma_squared;
   double tau_squared;
@@ -344,7 +344,7 @@ static void fdf_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *g)
 #endif /* WITH_GSL */
 
 PUBLIC void
-vrna_sc_minimize_pertubation(vrna_fold_compound *vc,
+vrna_sc_minimize_pertubation(vrna_fold_compound_t *vc,
                               const double *q_prob_unpaired,
                               int objective_function,
                               double sigma_squared,

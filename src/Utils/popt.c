@@ -65,7 +65,7 @@ int main (int argc, char *argv[])
     r = sscanf(line, "%s %f", structure, &energy);
     free(line);
     if (r==0) continue;
-    ptable = vrna_pt_get(structure);
+    ptable = vrna_ptable(structure);
 
     popt = 0;
     for (i = 0; i < length; i++) {

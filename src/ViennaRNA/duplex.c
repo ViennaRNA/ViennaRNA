@@ -92,12 +92,16 @@ PRIVATE duplexT duplexfold_cu(const char *s1, const char *s2, int clean_up){
   int i, j, Emin=INF, i_min=0, j_min=0;
   char *struc;
   duplexT mfe;
+  vrna_md_t md;
 
   n1 = (int) strlen(s1);
   n2 = (int) strlen(s2);
 
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    if(P) free(P); P = scale_parameters();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
 
@@ -288,6 +292,7 @@ PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_u
   duplexT mfe;
   short **S1, **S2;
   int *type;
+  vrna_md_t md;
   n1 = (int) strlen(s1[0]);
   n2 = (int) strlen(s2[0]);
 
@@ -296,8 +301,11 @@ PRIVATE duplexT aliduplexfold_cu(const char *s1[], const char *s2[], int clean_u
   for (s=0; s2[s]!=NULL; s++);
   if (n_seq != s) vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
+  set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature)>1e-6)) {
-    if(P) free(P); P = scale_parameters();
+    if(P)
+      free(P);
+    P = vrna_params(&md);
     make_pair_matrix();
   }
 

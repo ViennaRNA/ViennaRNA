@@ -28,7 +28,7 @@
  *  This is the plot type definition for several RNA structure plotting functions telling
  *  them to use <b>Simple</b> plotting algorithm
  *
- *  @see rna_plot_type, PS_rna_plot_a(), PS_rna_plot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
+ *  @see rna_plot_type, vrna_file_PS_rnaplot_a(), vrna_file_PS_rnaplot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
  */
 #define VRNA_PLOT_TYPE_SIMPLE     0
 
@@ -38,7 +38,7 @@
  *  This is the plot type definition for several RNA structure plotting functions telling
  *  them to use <b>Naview</b> plotting algorithm
  *
- *  @see rna_plot_type, PS_rna_plot_a(), PS_rna_plot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
+ *  @see rna_plot_type, vrna_file_PS_rnaplot_a(), vrna_file_PS_rnaplot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
  */
 #define VRNA_PLOT_TYPE_NAVIEW     1
 
@@ -48,7 +48,7 @@
  *  This is the plot type definition for several RNA structure plotting functions telling
  *  them to produce a <b>Circular plot</b>
  *
- *  @see rna_plot_type, PS_rna_plot_a(), PS_rna_plot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
+ *  @see rna_plot_type, vrna_file_PS_rnaplot_a(), vrna_file_PS_rnaplot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
  */
 #define VRNA_PLOT_TYPE_CIRCULAR   2
 
@@ -78,8 +78,8 @@ extern int rna_plot_type;
 /**
  *  @brief Calculate nucleotide coordinates for secondary structure plot the <i>Simple way</i>
  *
- *  @see make_pair_table(), rna_plot_type, simple_circplot_coordinates(), naview_xy_coordinates(), PS_rna_plot_a(),
- *  PS_rna_plot, svg_rna_plot()
+ *  @see make_pair_table(), rna_plot_type, simple_circplot_coordinates(), naview_xy_coordinates(), vrna_file_PS_rnaplot_a(),
+ *  vrna_file_PS_rnaplot, svg_rna_plot()
  *
  *  @param  pair_table  The pair table of the secondary structure
  *  @param  X           a pointer to an array with enough allocated space to hold the x coordinates
@@ -102,8 +102,8 @@ int simple_xy_coordinates(short *pair_table,
  *  can then be used to calculate the coordinates for @f$P^t@f$, i.e. @f$ P^{t}_x[i] = X[i] * rs@f$
  *  and @f$P^{t}_y[i] = Y[i] * rs@f$.
  *
- *  @see make_pair_table(), rna_plot_type, simple_xy_coordinates(), naview_xy_coordinates(), PS_rna_plot_a(),
- *  PS_rna_plot, svg_rna_plot()
+ *  @see make_pair_table(), rna_plot_type, simple_xy_coordinates(), naview_xy_coordinates(), vrna_file_PS_rnaplot_a(),
+ *  vrna_file_PS_rnaplot, svg_rna_plot()
  *
  *  @param  pair_table  The pair table of the secondary structure
  *  @param  x           a pointer to an array with enough allocated space to hold the x coordinates

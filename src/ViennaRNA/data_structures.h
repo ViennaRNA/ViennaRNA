@@ -10,27 +10,137 @@
  *  @brief All datastructures and typedefs shared among the Vienna RNA Package can be found here
  */
 
-#include <ViennaRNA/energy_const.h>
-#include <ViennaRNA/model.h>
-#include <ViennaRNA/params.h>
+/* below are several convenience typedef's we use throughout the ViennaRNA library */
 
-/* to use floats instead of doubles in pf_fold() comment next line */
-#define LARGE_PF
+/** @brief Typename for the fold_compound data structure #vrna_fc_s
+ *  @ingroup fold_compound
+ */
+typedef struct vrna_fc_s        vrna_fold_compound_t;
 
-#ifdef  LARGE_PF
-#define FLT_OR_DBL double
+/** @brief Typename for the base pair repesenting data structure #vrna_basepair_s */
+typedef struct vrna_basepair_s  vrna_basepair_t;
+
+/** @brief Typename for the base pair list repesenting data structure #vrna_plist_s */
+typedef struct vrna_plist_s     vrna_plist_t;
+
+/** @brief Typename for the base pair stack repesenting data structure #vrna_bp_stack_s */
+typedef struct vrna_bp_stack_s  vrna_bp_stack_t;
+
+/** @brief Typename for data structure #vrna_cpair_s */
+typedef struct vrna_cpair_s  vrna_cpair_t;
+
+/** @brief Typename for stack of partial structures #vrna_sect_s */
+typedef struct vrna_sect_s  vrna_sect_t;
+
+/** @brief Typename for floating point number in partition function computations */
+#ifdef  USE_FLOAT_PF
+typedef float FLT_OR_DBL;
 #else
-#define FLT_OR_DBL float
-#endif
-
-#ifndef NBASES
-#define NBASES 8
+typedef double  FLT_OR_DBL;
 #endif
 
 /**
- *  @brief Maximum density of states discretization for subopt
+ *  @brief Callback to free memory allocated for auxiliary user-provided data
+ *
+ *  @ingroup fold_compound
+ *  This type of user-implemented function usually deletes auxiliary data structures.
+ *  The user must take care to free all the memory occupied by the data structure passed.
+ * 
+ *  @param data    The data that needs to be free'd
  */
-#define MAXDOS                1000
+typedef void (vrna_callback_free_auxdata)(void *data);
+
+/**
+ *  @brief Callback to perform specific user-defined actions before, or after recursive computations
+ *
+ *  @ingroup fold_compound
+ *  @see #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
+ *  @param vc      The #vrna_fold_compound_t that is currently processed
+ *  @param status  The status indicator
+ */
+typedef void (vrna_callback_recursion_status)(vrna_fold_compound_t *vc, unsigned char status);
+
+
+/**
+ *  @brief  Status message indicating that MFE computations are about to begin
+ *
+ *  @ingroup fold_compound
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_callback_recursion_status(), vrna_mfe(), vrna_fold(), vrna_circfold(),
+ *        vrna_alifold(), vrna_circalifold(), vrna_cofold()
+ */
+#define VRNA_STATUS_MFE_PRE     (unsigned char)1
+
+/**
+ *  @brief  Status message indicating that MFE computations are finished
+ *
+ *  @ingroup fold_compound
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_callback_recursion_status(), vrna_mfe(), vrna_fold(), vrna_circfold(),
+ *        vrna_alifold(), vrna_circalifold(), vrna_cofold()
+ */
+#define VRNA_STATUS_MFE_POST    (unsigned char)2
+
+/**
+ *  @brief  Status message indicating that Partition function computations are about to begin
+ *
+ *  @ingroup fold_compound
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_callback_recursion_status(), vrna_pf()
+ */
+#define VRNA_STATUS_PF_PRE      (unsigned char)3
+
+/**
+ *  @brief  Status message indicating that Partition function computations are finished
+ *
+ *  @ingroup fold_compound
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_callback_recursion_status(), vrna_pf()
+ */
+#define VRNA_STATUS_PF_POST     (unsigned char)4
+
+
+/* make this interface backward compatible with RNAlib < 2.2.0 */
+#define VRNA_BACKWARD_COMPAT
+
+
+#ifdef VRNA_BACKWARD_COMPAT
+
+/* the following typedefs are for backward compatibility only */
+
+/**
+ *  @brief Old typename of #vrna_basepair_s
+ *  @deprecated Use #vrna_basepair_t instead!
+ */
+typedef struct vrna_basepair_s  PAIR;
+
+/**
+ *  @brief Old typename of #vrna_plist_s
+ *  @deprecated Use #vrna_plist_t instead!
+ */
+typedef struct vrna_plist_s     plist;
+
+/**
+ *  @brief Old typename of #vrna_cpair_s
+ *  @deprecated Use #vrna_cpair_t instead!
+ */
+typedef struct vrna_cpair_s     cpair;
+
+/**
+ *  @brief Old typename of #vrna_sect_s
+ *  @deprecated Use #vrna_sect_t instead!
+ */
+typedef struct vrna_sect_s      sect;
+
+/**
+ *  @brief Old typename of #vrna_bp_stack_s
+ *  @deprecated Use #vrna_bp_stack_t instead!
+ */
+typedef struct vrna_bp_stack_s  bondT;
+
+#endif
+
+#include <ViennaRNA/energy_const.h>
+#include <ViennaRNA/model.h>
+#include <ViennaRNA/params.h>
+#include <ViennaRNA/dp_matrices.h>
+#include <ViennaRNA/constraints.h>
 
 /*
 * ############################################################
@@ -40,177 +150,49 @@
 */
 
 /**
+ *  @brief  Base pair data structure used in subopt.c
+ */
+struct vrna_basepair_s {
+  int i;
+  int j;
+};
+
+/**
  *  @brief this datastructure is used as input parameter in functions of PS_dot.h and others
  */
-typedef struct plist {
+struct vrna_plist_s {
   int i;
   int j;
   float p;
   int type;
-} plist;
+};
 
 /**
  *  @brief this datastructure is used as input parameter in functions of PS_dot.c
  */
-typedef struct cpair {
+struct vrna_cpair_s {
   int i,j,mfe;
   float p, hue, sat;
-} cpair;
+};
 
 
 /**
  *  @brief  Stack of partial structures for backtracking
  */
-typedef struct sect {
+struct vrna_sect_s {
   int  i;
   int  j;
   int ml;
-} sect;
+};
 
 /**
- *  @brief  Base pair
+ *  @brief  Base pair stack element
  */
-typedef struct bondT {
+struct vrna_bp_stack_s {
    unsigned int i;
    unsigned int j;
-} bondT;
+};
 
-/**
- *  @brief  Base pair with associated energy
- */
-typedef struct bondTEn {
-   int i;
-   int j;
-   int energy;
-} bondTEn;
-
-
-/*
-* ############################################################
-* SUBOPT data structures
-* ############################################################
-*/
-
-/**
- *  @brief  Base pair data structure used in subopt.c
- */
-typedef struct {
-  int i;
-  int j;
-} PAIR;
-
-/**
- *  @brief  Sequence interval stack element used in subopt.c
- */
-typedef struct {
-    int i;
-    int j;
-    int array_flag;
-} INTERVAL;
-
-/**
- *  @brief  Solution element from subopt.c
- */
-typedef struct {
-  float energy;       /**< @brief Free Energy of structure in kcal/mol */
-  char *structure;    /**< @brief Structure in dot-bracket notation */
-} SOLUTION;
-
-/*
-* ############################################################
-* COFOLD data structures
-* ############################################################
-*/
-
-/**
- *  @brief
- */
-typedef struct cofoldF {
-  /* free energies for: */
-  double F0AB;  /**< @brief Null model without DuplexInit */
-  double FAB;   /**< @brief all states with DuplexInit correction */
-  double FcAB;  /**< @brief true hybrid states only */
-  double FA;    /**< @brief monomer A */
-  double FB;    /**< @brief monomer B */
-} cofoldF;
-
-/**
- *  @brief
- */
-typedef struct ConcEnt {
-  double A0;    /**< @brief start concentration A */
-  double B0;    /**< @brief start concentration B */
-  double ABc;   /**< @brief End concentration AB */
-  double AAc;
-  double BBc;
-  double Ac;
-  double Bc;
-} ConcEnt;
-
-/**
- *  @brief
- */
-typedef struct pairpro{
-  struct plist *AB;
-  struct plist *AA;
-  struct plist *A;
-  struct plist *B;
-  struct plist *BB;
-} pairpro;
-
-/**
- *  @brief A base pair info structure
- *
- *  For each base pair (i,j) with i,j in [0, n-1] the structure lists:
- *  - its probability 'p'
- *  - an entropy-like measure for its well-definedness 'ent'
- *  - the frequency of each type of pair in 'bp[]'
- *    + 'bp[0]' contains the number of non-compatible sequences
- *    + 'bp[1]' the number of CG pairs, etc.
- */
-typedef struct {
-   unsigned i;    /**<  @brief  nucleotide position i */
-   unsigned j;    /**<  @brief  nucleotide position j */
-   float p;       /**< @brief  Probability */
-   float ent;     /**< @brief  Pseudo entropy for @f$ p(i,j) = S_i + S_j - p_ij*ln(p_ij) @f$ */
-   short bp[8];   /**< @brief  Frequencies of pair_types */
-   char comp;     /**< @brief  1 iff pair is in mfe structure */
-} pair_info;
-
-
-/*
-* ############################################################
-* FINDPATH data structures
-* ############################################################
-*/
-
-/**
- *  @brief
- */
-typedef struct move {
-  int i;  /* i,j>0 insert; i,j<0 delete */
-  int j;
-  int when;  /* 0 if still available, else resulting distance from start */
-  int E;
-} move_t;
-
-/**
- *  @brief
- */
-typedef struct intermediate {
-  short *pt;      /**<  @brief  pair table */
-  int Sen;        /**<  @brief  saddle energy so far */
-  int curr_en;    /**<  @brief  current energy */
-  move_t *moves;  /**<  @brief  remaining moves to target */
-} intermediate_t;
-
-/**
- *  @brief
- */
-typedef struct path {
-  double en;
-  char *s;
-} path_t;
 
 /*
 * ############################################################
@@ -371,316 +353,25 @@ typedef struct dupVar{
 */
 
 /**
- *  @addtogroup   basic_data_structures  Basic Data Structures for Structure Prediction and Evaluation
+ *  @addtogroup   fold_compound   The Fold Compound
  *  @{
  *
- *  @brief  This module provides interfaces that deal with the most basic data structures used
+ *  @brief  This module provides interfaces that deal with the most basic data structure used
  *          in structure predicting and energy evaluating function of the RNAlib.
  *
- *          Throughout the RNAlib, a data structure, the #vrna_fold_compound, is used to group
+ *          Throughout the entire RNAlib, the #vrna_fold_compound_t, is used to group
  *          information and data that is required for structure prediction and energy evaluation.
- *          Here, you'll find interface functions to create, modify, and delete #vrna_fold_compound
+ *          Here, you'll find interface functions to create, modify, and delete #vrna_fold_compound_t
  *          data structures.
  */
 
 /**
- *  @brief  An enumerator that is used to specify the type of a polymorphic Dynamic Programming (DP)
- *  matrix data structure
- *  @see #vrna_mx_mfe_t, #vrna_mx_pf_t
- */
-typedef enum {
-  VRNA_MX_DEFAULT,  /**<  @brief  Default DP matrices */
-  VRNA_MX_LFOLD,    /**<  @brief  DP matrices suitable for local structure prediction
-                          @see    Lfold(), pfl_fold()
-                    */
-  VRNA_MX_2DFOLD    /**<  @brief  DP matrices suitable for distance class partitioned structure prediction
-                          @see  vrna_TwoD_fold(), vrna_TwoD_pf_fold()
-                    */
-} vrna_mx_t;
-
-
-/**
- *  @brief  Minimum Free Energy (MFE) Dynamic Programming (DP) matrices data structure required within the #vrna_fold_compound
- */
-typedef struct{
-  /** @name Common fields for MFE matrices
-      @{
-   */
-  vrna_mx_t     type;
-  unsigned int  length;    /**<  @brief  Length of the sequence, therefore an indicator of the size of the DP matrices */
-  /**
-      @}
-   */
-
-#if __STDC_VERSION__ >= 201112L
-    /* C11 support for unnamed unions/structs */
-  union {
-    struct {
-#endif
-      /** @name Default DP matrices
-          @note These data fields are available if
-                @code vrna_mx_mfe_t.type == VRNA_MX_DEFAULT @endcode
-        @{
-       */
-      int     *c;   /**<  @brief  Energy array, given that i-j pair */
-      int     *f5;  /**<  @brief  Energy of 5' end */
-      int     *f3;  /**<  @brief  Energy of 3' end */
-      int     *fc;  /**<  @brief  Energy from i to cutpoint (and vice versa if i>cut) */
-      int     *fML; /**<  @brief  Multi-loop auxiliary energy array */
-      int     *fM1; /**<  @brief  Second ML array, only for unique multibrnach loop decomposition */
-      int     *fM2; /**<  @brief  Energy for a multibranch loop region with exactly two stems, extending to 3' end */
-      int     *ggg; /**<  @brief  Energies of g-quadruplexes */
-      int     Fc;   /**<  @brief  Minimum Free Energy of entire circular RNA */
-      int     FcH;
-      int     FcI;
-      int     FcM;
-      /**
-        @}
-       */
-
-#if __STDC_VERSION__ >= 201112L
-    /* C11 support for unnamed unions/structs */
-    };
-    struct {
-#endif
-
-      /** @name Distance Class DP matrices
-          @note These data fields are available if
-                @code vrna_mx_mfe_t.type == VRNA_MX_2DFOLD @endcode
-        @{
-      */
-      int             ***E_F5;
-      int             **l_min_F5;
-      int             **l_max_F5;
-      int             *k_min_F5;
-      int             *k_max_F5;
-
-      int             ***E_F3;
-      int             **l_min_F3;
-      int             **l_max_F3;
-      int             *k_min_F3;
-      int             *k_max_F3;
-
-      int             ***E_C;
-      int             **l_min_C;
-      int             **l_max_C;
-      int             *k_min_C;
-      int             *k_max_C;
-
-      int             ***E_M;
-      int             **l_min_M;
-      int             **l_max_M;
-      int             *k_min_M;
-      int             *k_max_M;
-
-      int             ***E_M1;
-      int             **l_min_M1;
-      int             **l_max_M1;
-      int             *k_min_M1;
-      int             *k_max_M1;
-
-      int             ***E_M2;
-      int             **l_min_M2;
-      int             **l_max_M2;
-      int             *k_min_M2;
-      int             *k_max_M2;
-
-      int             **E_Fc;
-      int             *l_min_Fc;
-      int             *l_max_Fc;
-      int             k_min_Fc;
-      int             k_max_Fc;
-
-      int             **E_FcH;
-      int             *l_min_FcH;
-      int             *l_max_FcH;
-      int             k_min_FcH;
-      int             k_max_FcH;
-
-      int             **E_FcI;
-      int             *l_min_FcI;
-      int             *l_max_FcI;
-      int             k_min_FcI;
-      int             k_max_FcI;
-
-      int             **E_FcM;
-      int             *l_min_FcM;
-      int             *l_max_FcM;
-      int             k_min_FcM;
-      int             k_max_FcM;
-
-      /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
-      int             *E_F5_rem;
-      int             *E_F3_rem;
-      int             *E_C_rem;
-      int             *E_M_rem;
-      int             *E_M1_rem;
-      int             *E_M2_rem;
-
-      int             E_Fc_rem;
-      int             E_FcH_rem;
-      int             E_FcI_rem;
-      int             E_FcM_rem;
-
-#ifdef COUNT_STATES
-      unsigned long   ***N_F5;
-      unsigned long   ***N_C;
-      unsigned long   ***N_M;
-      unsigned long   ***N_M1;
-#endif
-
-      /**
-        @}
-       */
-
-#if __STDC_VERSION__ >= 201112L
-    /* C11 support for unnamed unions/structs */
-    }
-  };
-#endif
-} vrna_mx_mfe_t;
-
-/**
- *  @brief  Partition function (PF) Dynamic Programming (DP) matrices data structure required within the #vrna_fold_compound
- */
-typedef struct{
-  /** @name Common fields for DP matrices
-      @{
-   */
-  vrna_mx_t     type;
-  unsigned int  length;
-
-  /**
-      @}
-   */
-
-#if __STDC_VERSION__ >= 201112L
-    /* C11 support for unnamed unions/structs */
-  union {
-    struct {
-#endif
-
-  /** @name Default PF matrices
-      @note These data fields are available if
-            @code vrna_mx_pf_t.type == VRNA_MX_DEFAULT @endcode
-      @{
-   */
-      FLT_OR_DBL  *q;
-      FLT_OR_DBL  *qb;
-      FLT_OR_DBL  *qm;
-      FLT_OR_DBL  *qm1;
-      FLT_OR_DBL  *probs;
-      FLT_OR_DBL  *q1k;
-      FLT_OR_DBL  *qln;
-      FLT_OR_DBL  *G;
-
-      FLT_OR_DBL  qo;
-      FLT_OR_DBL  *qm2;
-      FLT_OR_DBL  qho;
-      FLT_OR_DBL  qio;
-      FLT_OR_DBL  qmo;
-
-      FLT_OR_DBL  *scale;
-      FLT_OR_DBL  *expMLbase;
-  /**
-      @}
-   */
-
-#if __STDC_VERSION__ >= 201112L
-    /* C11 support for unnamed unions/structs */
-    };
-    struct {
-#endif
-
-  /** @name Distance Class DP matrices
-      @note These data fields are available if
-            @code vrna_mx_pf_t.type == VRNA_MX_2DFOLD @endcode
-      @{
-   */
-      FLT_OR_DBL      ***Q;
-      int             **l_min_Q;
-      int             **l_max_Q;
-      int             *k_min_Q;
-      int             *k_max_Q;
-
-
-      FLT_OR_DBL      ***Q_B;
-      int             **l_min_Q_B;
-      int             **l_max_Q_B;
-      int             *k_min_Q_B;
-      int             *k_max_Q_B;
-
-      FLT_OR_DBL      ***Q_M;
-      int             **l_min_Q_M;
-      int             **l_max_Q_M;
-      int             *k_min_Q_M;
-      int             *k_max_Q_M;
-
-      FLT_OR_DBL      ***Q_M1;
-      int             **l_min_Q_M1;
-      int             **l_max_Q_M1;
-      int             *k_min_Q_M1;
-      int             *k_max_Q_M1;
-
-      FLT_OR_DBL      ***Q_M2;
-      int             **l_min_Q_M2;
-      int             **l_max_Q_M2;
-      int             *k_min_Q_M2;
-      int             *k_max_Q_M2;
-
-      FLT_OR_DBL      **Q_c;
-      int             *l_min_Q_c;
-      int             *l_max_Q_c;
-      int             k_min_Q_c;
-      int             k_max_Q_c;
-
-      FLT_OR_DBL      **Q_cH;
-      int             *l_min_Q_cH;
-      int             *l_max_Q_cH;
-      int             k_min_Q_cH;
-      int             k_max_Q_cH;
-
-      FLT_OR_DBL      **Q_cI;
-      int             *l_min_Q_cI;
-      int             *l_max_Q_cI;
-      int             k_min_Q_cI;
-      int             k_max_Q_cI;
-
-      FLT_OR_DBL      **Q_cM;
-      int             *l_min_Q_cM;
-      int             *l_max_Q_cM;
-      int             k_min_Q_cM;
-      int             k_max_Q_cM;
-
-      /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
-      FLT_OR_DBL      *Q_rem;
-      FLT_OR_DBL      *Q_B_rem;
-      FLT_OR_DBL      *Q_M_rem;
-      FLT_OR_DBL      *Q_M1_rem;
-      FLT_OR_DBL      *Q_M2_rem;
-
-      FLT_OR_DBL      Q_c_rem;
-      FLT_OR_DBL      Q_cH_rem;
-      FLT_OR_DBL      Q_cI_rem;
-      FLT_OR_DBL      Q_cM_rem;
-  /**
-      @}
-   */
-
-#if __STDC_VERSION__ >= 201112L
-    /* C11 support for unnamed unions/structs */
-    };
-  };
-#endif
-} vrna_mx_pf_t;
-
-/**
- *  @brief  An enumerator that is used to specify the type of a #vrna_fold_compound
+ *  @brief  An enumerator that is used to specify the type of a #vrna_fold_compound_t
  */
 typedef enum {
   VRNA_VC_TYPE_SINGLE,    /**< Type is suitable for single, and hybridizing sequences */
   VRNA_VC_TYPE_ALIGNMENT  /**< Type is suitable for sequence alignments (consensus structure prediction) */
-} vrna_vc_t;
+} vrna_fc_type_e;
 
 
 /**
@@ -692,37 +383,56 @@ typedef enum {
  *  @warning  Reading/Writing from/to attributes that are not within the scope of the current type usually result
  *  in undefined behavior!
  *
- *  @see  #vrna_fold_compound.type, vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(),
+ *  @see  #vrna_fold_compound_t.type, vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_fold_compound_free(),
  *        #VRNA_VC_TYPE_SINGLE, #VRNA_VC_TYPE_ALIGNMENT
  */
-typedef struct{
+struct vrna_fc_s{
 
   /**
       @name Common data fields
       @{
    */
-  vrna_vc_t     type;           /**<  @brief  The type of the #vrna_fold_compound.
+  vrna_fc_type_e    type;           /**<  @brief  The type of the #vrna_fold_compound_t.
                                       @details Currently possible values are #VRNA_VC_TYPE_SINGLE, and #VRNA_VC_TYPE_ALIGNMENT
                                       @warning Do not edit this attribute, it will be automagically set by
-                                            the corresponding get() methods for the #vrna_fold_compound.
+                                            the corresponding get() methods for the #vrna_fold_compound_t.
                                             The value specified in this attribute dictates the set of other
                                             attributes to use within this data structure.
-                                      */
-  unsigned int  length;         /**<  @brief  The length of the sequence (or sequence alignment) */
-  int           cutpoint;       /**<  @brief  The position of the (cofold) cutpoint within the provided sequence.
+                                    */
+  unsigned int      length;         /**<  @brief  The length of the sequence (or sequence alignment) */
+  int               cutpoint;       /**<  @brief  The position of the (cofold) cutpoint within the provided sequence.
                                       If there is no cutpoint, this field will be set to -1
-                                */
+                                    */
 
-  struct vrna_hc_t        *hc;            /**<  @brief  The hard constraints data structure used for structure prediction */
+  vrna_hc_t         *hc;            /**<  @brief  The hard constraints data structure used for structure prediction */
 
-  vrna_mx_mfe_t           *matrices;      /**<  @brief  The MFE DP matrices */
-  vrna_mx_pf_t            *exp_matrices;  /**<  @brief  The PF DP matrices  */
+  vrna_mx_mfe_t     *matrices;      /**<  @brief  The MFE DP matrices */
+  vrna_mx_pf_t      *exp_matrices;  /**<  @brief  The PF DP matrices  */
 
-  struct vrna_param_t     *params;        /**<  @brief  The precomputed free energy contributions for each type of loop */
-  struct vrna_exp_param_t *exp_params;    /**<  @brief  The precomputed free energy contributions as Boltzmann factors  */
+  vrna_param_t      *params;        /**<  @brief  The precomputed free energy contributions for each type of loop */
+  vrna_exp_param_t  *exp_params;    /**<  @brief  The precomputed free energy contributions as Boltzmann factors  */
 
-  int                     *iindx;         /**<  @brief  DP matrix accessor  */
-  int                     *jindx;         /**<  @brief  DP matrix accessor  */
+  int               *iindx;         /**<  @brief  DP matrix accessor  */
+  int               *jindx;         /**<  @brief  DP matrix accessor  */
+
+  /**
+      @}
+
+      @name User-defined data fields
+      @{
+   */
+  vrna_callback_recursion_status *stat_cb;  /**<  @brief  Recursion status callback (usually called just before, and
+                                                          after recursive computations in the library
+                                                  @see    vrna_callback_recursion_status(), vrna_fold_compound_add_callback()
+                                            */
+
+  void              *auxdata;               /**<  @brief  A pointer to auxiliary, user-defined data
+                                                  @see vrna_fold_compound_add_auxdata(), #vrna_fold_compound_t.free_auxdata
+                                            */
+
+  vrna_callback_free_auxdata *free_auxdata; /**<  @brief A callback to free auxiliary user data whenever the fold_compound itself is free'd
+                                                  @see  #vrna_fold_compound_t.auxdata, vrna_callback_free_auxdata()
+                                            */
 
   /**
       @}
@@ -753,14 +463,14 @@ typedef struct{
                                           @note This array is always indexed via jindx, in contrast to previously
                                           different indexing between mfe and pf variants!
                                           @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
-                                          @see    vrna_get_indx(), vrna_get_ptypes()
+                                          @see    vrna_idx_col_wise(), vrna_ptypes()
                                     */
       char  *ptype_pf_compat;       /**<  @brief  ptype array indexed via iindx
                                           @deprecated  This attribute will vanish in the future!
                                           It's meant for backward compatibility only!
                                           @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
                                     */
-      struct vrna_sc_t *sc;         /**<  @brief  The soft constraints for usage in structure prediction and evaluation
+      vrna_sc_t *sc;                /**<  @brief  The soft constraints for usage in structure prediction and evaluation
                                           @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
                                     */
 
@@ -805,7 +515,7 @@ typedef struct{
       int             *pscore;      /**<  @brief  Precomputed array of pair types expressed as pairing scores
                                           @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
-      struct vrna_sc_t **scs;       /**<  @brief  A set of soft constraints (for each sequence in the alignment)
+      vrna_sc_t       **scs;        /**<  @brief  A set of soft constraints (for each sequence in the alignment)
                                           @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
       int             oldAliEn;
@@ -840,7 +550,19 @@ typedef struct{
       @}
    */
 
-} vrna_fold_compound;
+  /**
+   *  @name Additional data fields for local folding
+   *
+   *  These data fields are typically populated with meaningful data only if used in the context of local folding
+   *  @{
+   */
+  int             window_size;    /**<  @brief  window size for local folding sliding window approach */
+  char            **ptype_local;  /**<  @brief  Pair type array (for local folding) */
+  /**
+      @}
+   */
+
+};
 
 
 /* the definitions below should be used for functions that return/receive/destroy fold compound data structures */
@@ -849,7 +571,7 @@ typedef struct{
  *  @brief  Option flag to specify requirement of Minimum Free Energy (MFE) DP matrices
  *          and corresponding set of energy parameters
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), #VRNA_OPTION_EVAL_ONLY
+ *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), #VRNA_OPTION_EVAL_ONLY
  */
 #define VRNA_OPTION_MFE             1
 
@@ -857,199 +579,149 @@ typedef struct{
  *  @brief  Option flag to specify requirement of Partition Function (PF) DP matrices
  *          and corresponding set of Boltzmann factors
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), #VRNA_OPTION_EVAL_ONLY
+ *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), #VRNA_OPTION_EVAL_ONLY
  */
 #define VRNA_OPTION_PF              2
 
 #define VRNA_OPTION_HYBRID          4
 
-#define VRNA_OPTION_DIST_CLASS      16
-
-#define VRNA_OPTION_LFOLD           32
-
 /**
  *  @brief  Option flag to specify that neither MFE, nor PF DP matrices are required
  *
  *  Use this flag in conjuntion with #VRNA_OPTION_MFE, and #VRNA_OPTION_PF to save
- *  memory for a #vrna_fold_compound obtained from vrna_get_fold_compound(), or vrna_get_fold_compound_ali()
+ *  memory for a #vrna_fold_compound_t obtained from vrna_fold_compound(), or vrna_fold_compound_comparative()
  *  in cases where only energy evaluation but no structure prediction is required.
  *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_eval_structure()
+ *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_eval_structure()
  */
 #define VRNA_OPTION_EVAL_ONLY       8
 
+#define VRNA_OPTION_WINDOW          16
 
 
 /**
- *  @brief  Retrieve a #vrna_fold_compound data structure for single sequences and hybridizing sequences
+ *  @brief  Retrieve a #vrna_fold_compound_t data structure for single sequences and hybridizing sequences
  *
- *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound by passing a single
+ *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound_t by passing a single
  *  sequence, or two contatenated sequences as input. For the latter, sequences need to be seperated by
  *  an '&' character like this: @verbatim char *sequence = "GGGG&CCCC"; @endverbatim
  *
- *  The optional parameter 'md_p' can be used to specify the model details for computations on the #vrna_fold_compounds
- *  content. The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
+ *  The optional parameter 'md_p' can be used to specify the model details for successive computations
+ *  based on the content of the generated #vrna_fold_compound_t.
+ *  The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
  *  of energy parameters. Use the macros:
  *
  *  - #VRNA_OPTION_MFE
  *  - #VRNA_OPTION_PF
+ *  - #VRNA_OPTION_WINDOW
  *  - #VRNA_OPTION_EVAL_ONLY
  *
- *  to specify the required type of computations that will be performed with the #vrna_fold_compound.
+ *  to specify the required type of computations that will be performed with the #vrna_fold_compound_t.
  *
  *  @note The sequence string must be uppercase, and should contain only RNA (resp. DNA) alphabet depending
  *        on what energy parameter set is used
  *
- *  @see  vrna_get_fold_compound_ali(), #vrna_md_t, #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY
+ *  @see  vrna_fold_compound_free(), vrna_fold_compound_comparative(), #vrna_md_t, #VRNA_OPTION_MFE,
+ *        #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY, #VRNA_OPTION_WINDOW
  *
  *  @param    sequence    A single sequence, or two concatenated sequences seperated by an '&' character
  *  @param    md_p        An optional set of model details
  *  @param    options     The options for DP matrices memory allocation
- *  @return               A prefilled vrna_fold_compound that can be readily used for computations
+ *  @return               A prefilled vrna_fold_compound_t that can be readily used for computations
  */
-vrna_fold_compound *vrna_get_fold_compound( const char *sequence,
-                                            vrna_md_t *md_p,
-                                            unsigned int options);
+vrna_fold_compound_t *
+vrna_fold_compound( const char *sequence,
+                    vrna_md_t *md_p,
+                    unsigned int options);
 
 /**
- *  @brief  Retrieve a #vrna_fold_compound data structure for sequence alignments
+ *  @brief  Retrieve a #vrna_fold_compound_t data structure for sequence alignments
  *
- *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound by passing an
+ *  This function provides an easy interface to obtain a prefilled #vrna_fold_compound_t by passing an
  *  alignment of sequences.
  *
- *  The optional parameter 'md_p' can be used to specify the model details for computations on the #vrna_fold_compounds
- *  content. The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
+ *  The optional parameter 'md_p' can be used to specify the model details for successive computations
+ *  based on the content of the generated #vrna_fold_compound_t.
+ *  The third parameter 'options' is used to specify the DP matrix requirements and the corresponding set
  *  of energy parameters. Use the macros:
  *
  *  - #VRNA_OPTION_MFE
  *  - #VRNA_OPTION_PF
  *  - #VRNA_OPTION_EVAL_ONLY
  *
- *  to specify the required type of computations that will be performed with the #vrna_fold_compound.
+ *  to specify the required type of computations that will be performed with the #vrna_fold_compound_t.
  *
  *  @note The sequence strings must be uppercase, and should contain only RNA (resp. DNA) alphabet including
  *        gap characters depending on what energy parameter set is used.
  *
- *  @see  vrna_get_fold_compound(), #vrna_md_t, #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY,
- *        read_clustal()
+ *  @see  vrna_fold_compound_free(), vrna_fold_compound(), #vrna_md_t, #VRNA_OPTION_MFE, #VRNA_OPTION_PF,
+ *        #VRNA_OPTION_EVAL_ONLY, read_clustal()
  *
  *  @param    sequences   A sequence alignment including 'gap' characters
  *  @param    md_p        An optional set of model details
  *  @param    options     The options for DP matrices memory allocation
- *  @return               A prefilled vrna_fold_compound that can be readily used for computations
+ *  @return               A prefilled vrna_fold_compound_t that can be readily used for computations
  */
-vrna_fold_compound *vrna_get_fold_compound_ali( const char **sequences,
-                                                vrna_md_t *md_p,
-                                                unsigned int options);
+vrna_fold_compound_t *
+vrna_fold_compound_comparative( const char **sequences,
+                                vrna_md_t *md_p,
+                                unsigned int options);
 
-
-vrna_fold_compound *vrna_get_fold_compound_2D(const char *sequence,
-                                              const char *s1,
-                                              const char *s2,
-                                              vrna_md_t *md_p,
-                                              unsigned int options);
+vrna_fold_compound_t *
+vrna_fold_compound_TwoD(const char *sequence,
+                        const char *s1,
+                        const char *s2,
+                        vrna_md_t *md_p,
+                        unsigned int options);
 
 /**
- *  @brief  Update/Reset energy parameters data structure within a #vrna_fold_compound
+ *  @brief  Free memory occupied by a #vrna_fold_compound_t
  *
- *  Passing NULL as second argument leads to a reset of the energy parameters within
- *  vc to their default values. Otherwise, the energy parameters provided will be copied
- *  over into vc.
+ *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_mx_mfe_free(), vrna_mx_pf_free()
  *
- *  @ingroupd energy_parameters
- *
- *  @param  vc    The #vrna_fold_compound that is about to receive updated energy parameters
- *  @param  par   The energy parameters used to substitute those within vc (Maybe NULL)
+ *  @param  vc  The #vrna_fold_compound_t that is to be erased from memory
  */
-void vrna_params_update(vrna_fold_compound *vc, vrna_param_t *par);
+void
+vrna_fold_compound_free(vrna_fold_compound_t *vc);
 
 /**
- *  @brief Update the energy parameters for subsequent partition function computations
+ *  @brief  Add auxiliary data to the #vrna_fold_compound_t
  *
- *  This function can be used to properly assign new energy parameters for partition
- *  function computations to a #vrna_fold_compound. For this purpose, the data of the
- *  provided pointer `params`  will be copied into `vc` and a recomputation of the partition
- *  function scaling factor is issued, if the `pf_scale` attribute of `params` is less than `1.0`.
+ *  This function allows to bind arbitrary data to a #vrna_fold_compound_t which may later on be used
+ *  by one of the callback functions, e.g. vrna_callback_recursion_status(). To allow for proper cleanup
+ *  of the memory occupied by this auxiliary data, the user may also provide a pointer to a cleanup function
+ *  that free's the corresponding memory. This function will be called automatically when the #vrna_fold_compound_t
+ *  is free'd with vrna_fold_compound_free().
  *
- *  Passing NULL as second argument leads to a reset of the energy parameters within
- *  vc to their default values
+ *  @note Before attaching the arbitrary data pointer, this function will call the vrna_callback_free_auxdata()
+ *        on any pre-existing data that is already attached.
  *
- *  @see vrna_exp_params_rescale(), vrna_exp_param_t, vrna_md_t, vrna_exp_params_get()
- *
- *  @ingroup energy_parameters
- *
- *  @param  vc      The fold compound data structure
- *  @param  params  A pointer to the new energy parameters
+ *  @see vrna_callback_free_auxdata()
+ *  @param  vc    The fold_compound the arbitrary data pointer should be associated with
+ *  @param  data  A pointer to an arbitrary data structure
+ *  @param  f     A pointer to function that free's memory occupied by the arbitrary data (May be NULL)
  */
-void vrna_exp_params_update(vrna_fold_compound *vc, vrna_exp_param_t *params);
+void vrna_fold_compound_add_auxdata(vrna_fold_compound_t *vc,
+                                    void *data,
+                                    vrna_callback_free_auxdata *f);
 
 /**
- *  @brief Rescale Boltzmann factors for partition function computations
+ *  @brief  Add a recursion status callback to the #vrna_fold_compound_t
  *
- *  This function may be used to (automatically) rescale the Boltzmann factors used
- *  in partition function computations. Since partition functions over subsequences
- *  can easily become extremely large, the RNAlib internally rescales them to avoid
- *  numerical over- and/or underflow. Therefore, a proper scaling factor @f$s@f$ needs to
- *  be chosen that in turn is then used to normalize the corresponding
- *  partition functions @f$\hat{q}[i,j] = q[i,j] / s^{(j-i+1)}@f$.
+ *  Binding a recursion status callback function to a #vrna_fold_compound_t allows to perform
+ *  arbitrary operations just before, or after an actual recursive computations, e.g. MFE prediction,
+ *  is performed by the RNAlib. The callback function will be provided with a pointer to its
+ *  #vrna_fold_compound_t, and a status message. Hence, it has complete access to all variables that
+ *  incluence the recursive computations.
  *
- *  This function provides two ways to automatically adjust the scaling
- *  factor.
- *  1. Automatic guess
- *  2. Automatic adjustment according to MFE
+ *  @see  vrna_callback_recursion_status(), #vrna_fold_compound_t,
+ *        #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
  *
- *  Passing `NULL` as second parameter activates the _automatic guess mode_. Here,
- *  the scaling factor is recomputed according to a mean free energy of `184.3*length` cal
- *  for random sequences.
- *  @note This recomputation only takes place if the `pf_scale` attribute of the
- *  `exp_params` datastructure contained in `vc` has a value below `1.0`.
- *
- *  On the other hand, if the MFE for a sequence is known, it can be used to recompute
- *  a more robust scaling factor, since it represents the lowest free energy of the entire
- *  ensemble of structures, i.e. the highest Boltzmann factor. To activate this second
- *  mode of _automatic adjustment according to MFE_, a pointer to the MFE value needs to
- *  be passed as second argument. This value is then taken to compute the scaling factor
- *  as @f$ s = exp((sfact * MFE) / kT / length )@f$, where sfact is an additional
- *  scaling weight located in the vrna_md_t datastructure of `exp_params` in `vc`.
- *
- *  The computed scaling factor @f$s@f$ will be stored as `pf_scale` attribute of the
- *  `exp_params` datastructure in `vc`.
- *
- *  @see vrna_exp_params_update(), vrna_md_t, vrna_exp_param_t, #vrna_fold_compound
- *
- *  @ingroup energy_parameters
- *
- *  @param  vc  The fold compound data structure
- *  @param  mfe A pointer to the MFE (in kcal/mol) or NULL
+ *  @param  vc    The fold_compound the callback function should be attached to
+ *  @param  f     The pointer to the recursion status callback function
  */
-void vrna_exp_params_rescale(vrna_fold_compound *vc, double *mfe);
-
-/**
- *  @brief  Free memory occupied by a #vrna_fold_compound
- *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_mfe_matrices(), vrna_free_pf_matrices()
- *
- *  @param  vc  The #vrna_fold_compound that is to be erased from memory
- */
-void vrna_free_fold_compound(vrna_fold_compound *vc);
-
-/**
- *  @brief  Free memory occupied by the Minimum Free Energy (MFE) Dynamic Programming (DP) matrices
- *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(), vrna_free_pf_matrices()
- *
- *  @param  vc  The #vrna_fold_compound storing the MFE DP matrices that are to be erased from memory
- */
-void vrna_free_mfe_matrices(vrna_fold_compound *vc);
-
-/**
- *  @brief  Free memory occupied by the Partition Function (PF) Dynamic Programming (DP) matrices
- *
- *  @see vrna_get_fold_compound(), vrna_get_fold_compound_ali(), vrna_free_fold_compound(), vrna_free_mfe_matrices()
- *
- *  @param  vc  The #vrna_fold_compound storing the PF DP matrices that are to be erased from memory
- */
-void vrna_free_pf_matrices(vrna_fold_compound *vc);
+void vrna_fold_compound_add_callback( vrna_fold_compound_t *vc,
+                                      vrna_callback_recursion_status *f);
 
 /**
  *  @}

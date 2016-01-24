@@ -52,6 +52,12 @@ flag
 off
 dependon="constraint"
 
+option  "enforceConstraint" -
+"Enforce base pairs given by round brackets ( ) in structure constraint\n\n"
+flag
+off
+dependon="constraint"
+
 option  "noconv"  -
 "Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag

@@ -1,23 +1,21 @@
-!define VERSION "2.1.6"
+!define VERSION "2.2.0"
 !define PACKAGE "ViennaRNA Package"
 !define MULTIUSER_INSTALLMODE_INSTDIR "${PACKAGE}"
 BrandingText "${PACKAGE} - ${VERSION} [ TBI / Institute for Theoretical Chemistry / University of Vienna ]"
+
+!define WELCOME_TITLE 'Welcome to the ${PACKAGE} ${VERSION} setup wizard!'
+ 
+!define UNWELCOME_TITLE 'Welcome to the ${PACKAGE} ${VERSION} uninstall wizard!'
+ 
+!define FINISH_TITLE 'Finished installing the ${PACKAGE} ${VERSION}!'
+ 
+!define UNFINISH_TITLE 'Finished uninstalling the ${PACKAGE} ${VERSION}!'
 
 !define MULTIUSER_EXECUTIONLEVEL Highest
 !define MULTIUSER_MUI
 !define MULTIUSER_INSTALLMODE_COMMANDLINE
 !include MultiUser.nsh
 !include MUI2.nsh
-
-!insertmacro MUI_LANGUAGE "English"
-
-Function .onInit
-  !insertmacro MULTIUSER_INIT
-FunctionEnd
-
-Function un.onInit
-  !insertmacro MULTIUSER_UNINIT
-FunctionEnd
 
 # Name of the software
 name "${PACKAGE}"
@@ -28,35 +26,43 @@ outfile "Install-ViennaRNA-${VERSION}_32bit.exe"
 # by the predefined $DESKTOP variable
 #installDir "$PROGRAMFILES\${PACKAGE}"
 
+!define MUI_WELCOMEPAGE_TITLE '${WELCOME_TITLE}'
+!define MUI_WELCOMEPAGE_TITLE_3LINES
+!insertmacro MUI_PAGE_WELCOME
+
 #Page license
 !insertmacro MUI_PAGE_LICENSE "licence.txt"
 
+#Page Install mode
 !insertmacro MULTIUSER_PAGE_INSTALLMODE
+
 #Page directory
 !insertmacro MUI_PAGE_DIRECTORY
-#Page instfiles
 
+#Page instfiles
 !insertmacro MUI_PAGE_INSTFILES 
 
-#Page components
-#ComponentText bla
+!define MUI_FINISHPAGE_TITLE '${FINISH_TITLE}'
+!define MUI_FINISHPAGE_TITLE_3LINES
+!insertmacro MUI_PAGE_FINISH
 
-#Section "ViennaRNA Base" s1 
-#SectionEnd
-#Section Kinfold s2
-#SectionEnd
-#Section /o RNAforester s3
-#SectionEnd
-#Section Readseq s4
-#SectionEnd
-#Section /o "Perl interface" s5
-#SectionEnd
-#Section Utils s6
-#SectionEnd
+!define MUI_WELCOMEPAGE_TITLE  '${UNWELCOME_TITLE}'
+!define MUI_WELCOMEPAGE_TITLE_3LINES
+!insertmacro MUI_UNPAGE_WELCOME
+!insertmacro MUI_UNPAGE_INSTFILES
+!define MUI_FINISHPAGE_TITLE '${UNFINISH_TITLE}'
+!define MUI_FINISHPAGE_TITLE_3LINES
+!insertmacro MUI_UNPAGE_FINISH
 
+Function .onInit
+  !insertmacro MULTIUSER_INIT
+FunctionEnd
 
-UninstPage uninstConfirm
-UninstPage instfiles
+Function un.onInit
+  !insertmacro MULTIUSER_UNINIT
+FunctionEnd
+
+!insertmacro MUI_LANGUAGE "English"
  
 # default section
 section "ViennaRNA Package"
@@ -67,47 +73,47 @@ section "ViennaRNA Package"
   # define what to install and place it in the output path
 
   # first all executable programs
-  File "Progs\RNAeval.exe"
-  File "Progs\RNAfold.exe"
-  File "Progs\RNAheat.exe"
-  File "Progs\RNApdist.exe"
-  File "Progs\RNAdistance.exe"
-  File "Progs\RNAinverse.exe"
-  File "Progs\RNAplot.exe"
-  File "Progs\RNAsubopt.exe"
-  File "Progs\RNALfold.exe"
-  File "Progs\RNAcofold.exe"
-  File "Progs\RNAduplex.exe"
-  File "Progs\RNApaln.exe"
-  File "Progs\RNAalifold.exe"
-  File "Progs\RNAplfold.exe"
-  File "Progs\RNAup.exe"
-  File "Progs\RNAaliduplex.exe"
-  File "Progs\RNAparconv.exe"
-  File "Progs\RNAPKplex.exe"
-  File "Progs\RNALalifold.exe"
-  File "Progs\RNA2Dfold.exe"
-  File "Progs\RNAplex.exe"
-  File "Progs\RNAsnoop.exe"
-  File "Kinfold\Kinfold.exe"
+  File "src\bin\.libs\RNAeval.exe"
+  File "src\bin\.libs\RNAfold.exe"
+  File "src\bin\.libs\RNAheat.exe"
+  File "src\bin\.libs\RNApdist.exe"
+  File "src\bin\.libs\RNAdistance.exe"
+  File "src\bin\.libs\RNAinverse.exe"
+  File "src\bin\.libs\RNAplot.exe"
+  File "src\bin\.libs\RNAsubopt.exe"
+  File "src\bin\.libs\RNALfold.exe"
+  File "src\bin\.libs\RNAcofold.exe"
+  File "src\bin\.libs\RNAduplex.exe"
+  File "src\bin\.libs\RNApaln.exe"
+  File "src\bin\.libs\RNAalifold.exe"
+  File "src\bin\.libs\RNAplfold.exe"
+  File "src\bin\.libs\RNAup.exe"
+  File "src\bin\.libs\RNAaliduplex.exe"
+  File "src\bin\.libs\RNAparconv.exe"
+  File "src\bin\.libs\RNAPKplex.exe"
+  File "src\bin\.libs\RNApvmin.exe"
+  File "src\bin\.libs\RNALalifold.exe"
+  File "src\bin\.libs\RNA2Dfold.exe"
+  File "src\bin\.libs\RNAplex.exe"
+  File "src\bin\.libs\RNAsnoop.exe"
+  File "src\Kinfold\Kinfold.exe"
 
   # create the Utils directory and add programs there
   CreateDirectory "$INSTDIR\Utils"
-  File /oname=Utils\Fold Utils/Fold
-  File /oname=Utils\dpzoom.pl Utils/dpzoom.pl
-  File /oname=Utils\ct2db Utils/ct2db
-  File /oname=Utils\ct2b.pl Utils/ct2b.pl
-  File /oname=Utils\b2mt.pl Utils/b2mt.pl
-  File /oname=Utils\relplot.pl Utils/relplot.pl
-  File /oname=Utils\mountain.pl Utils/mountain.pl
-  File /oname=Utils\rotate_ss.pl Utils/rotate_ss.pl
-  File /oname=Utils\colorrna.pl Utils/colorrna.pl
-  File /oname=Utils\cmount.pl Utils/cmount.pl
-  File /oname=Utils\coloraln.pl Utils/coloraln.pl
-  File /oname=Utils\switch.pl Utils/switch.pl
-  File /oname=Utils\refold.pl Utils/refold.pl
-  File /oname=Utils\b2ct.exe Utils/b2ct.exe
-  File /oname=Utils\popt.exe Utils/popt.exe
+  File /oname=Utils\dpzoom.pl src/Utils/dpzoom.pl
+  File /oname=Utils\ct2db.exe src/Utils/.libs/ct2db.exe
+  File /oname=Utils\ct2b.pl src/Utils/ct2b.pl
+  File /oname=Utils\b2mt.pl src/Utils/b2mt.pl
+  File /oname=Utils\relplot.pl src/Utils/relplot.pl
+  File /oname=Utils\mountain.pl src/Utils/mountain.pl
+  File /oname=Utils\rotate_ss.pl src/Utils/rotate_ss.pl
+  File /oname=Utils\colorrna.pl src/Utils/colorrna.pl
+  File /oname=Utils\cmount.pl src/Utils/cmount.pl
+  File /oname=Utils\coloraln.pl src/Utils/coloraln.pl
+  File /oname=Utils\switch.pl src/Utils/switch.pl
+  File /oname=Utils\refold.pl src/Utils/refold.pl
+  File /oname=Utils\b2ct.exe src/Utils/.libs/b2ct.exe
+  File /oname=Utils\popt.exe src/Utils/.libs/popt.exe
 
   # create the misc directory and add files
   CreateDirectory "$INSTDIR\Misc"
@@ -121,9 +127,12 @@ section "ViennaRNA Package"
 
 
   # then all the necessary libraries
-  File "/usr/i686-w64-mingw32/lib/libgomp-1.dll"
-  File "/usr/i686-w64-mingw32/bin/pthreadGC2.dll"
-  File "/usr/i686-w64-mingw32/lib/libgcc_s_sjlj-1.dll"
+  File "/usr/i686-w64-mingw32/bin/libgomp-1.dll"
+  File "/usr/i686-w64-mingw32/bin/libwinpthread-1.dll"
+  File "/usr/i686-w64-mingw32/bin/libgcc_s_sjlj-1.dll"
+  File "/usr/i686-w64-mingw32/bin/libgsl-0.dll"
+  File "/usr/i686-w64-mingw32/bin/libgslcblas-0.dll"
+  
   File ".local"
 
   # we also want an uninstall to be installed
@@ -144,8 +153,6 @@ section "Uninstall"
   # Try to remove the Start Menu folder - this will only happen if it is empty
   rmDir "$SMPROGRAMS\${PACKAGE}"
 
-  delete $INSTDIR\uninstaller.exe
-
   # now delete installed file
   delete $INSTDIR\RNAeval.exe
   delete $INSTDIR\RNAfold.exe
@@ -165,6 +172,7 @@ section "Uninstall"
   delete $INSTDIR\RNAaliduplex.exe
   delete $INSTDIR\RNAparconv.exe
   delete $INSTDIR\RNAPKplex.exe
+  delete $INSTDIR\RNApvmin.exe
   delete $INSTDIR\RNALalifold.exe
   delete $INSTDIR\RNA2Dfold.exe
   delete $INSTDIR\RNAplex.exe
@@ -172,9 +180,8 @@ section "Uninstall"
   delete $INSTDIR\Kinfold.exe
 
   delete $INSTDIR\Utils\dpzoom.pl
-  delete $INSTDIR\Utils\Fold
   delete $INSTDIR\Utils\dpzoom.pl
-  delete $INSTDIR\Utils\ct2db
+  delete $INSTDIR\Utils\ct2db.exe
   delete $INSTDIR\Utils\ct2b.pl
   delete $INSTDIR\Utils\b2mt.pl
   delete $INSTDIR\Utils\relplot.pl
@@ -200,10 +207,13 @@ section "Uninstall"
   rmDir  $INSTDIR\Misc
 
   delete $INSTDIR\libgomp-1.dll
-  delete $INSTDIR\pthreadGC2.dll
+  delete $INSTDIR\libwinpthread-1.dll
   delete $INSTDIR\libgcc_s_sjlj-1.dll
+  delete $INSTDIR\libgsl-0.dll
+  delete $INSTDIR\libgslcblas-0.dll
   delete $INSTDIR\.local
 
+  delete "$INSTDIR\Uninstall-${PACKAGE}.exe"
   rmDir  $INSTDIR
 
 sectionEnd

@@ -258,7 +258,7 @@ PUBLIC  dupVar  **PKLduplexfold_XS( const char *s1,
   S1 = encode_sequence(s1, 0);
   SS1 = encode_sequence(s1, 1);
 
-  indx  = vrna_get_indx(n1);
+  indx  = vrna_idx_col_wise(n1);
   ptype = (char *) vrna_alloc(sizeof(char)*((n1*(n1+1))/2+2));
   make_ptypes(s1);
 
@@ -272,8 +272,11 @@ PUBLIC  dupVar  **PKLduplexfold_XS( const char *s1,
 /*---------------------------------UTILS------------------------------------------*/
 
 PRIVATE void update_dfold_params(void){
-  if(P) free(P);
-  P = scale_parameters();
+  vrna_md_t md;
+  if(P)
+    free(P);
+  set_model_details(&md);
+  P = vrna_params(&md);
   make_pair_matrix();
 }
 
