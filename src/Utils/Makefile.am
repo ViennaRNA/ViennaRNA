@@ -23,9 +23,7 @@ ct2db_cmdl.h ct2db_cmdl.c:  ct2db.ggo
 ct2db_SOURCES=ct2db_cmdl.c ct2db.c
 
 install-data-hook:
-	$(AM_V_GEN)if test -n "@PerlCmd@"; then \
-	  for i in $(pscript); \
-	  do \
-	    $(PERL) -npi -e 's|^#!\S+|#!'$(PERL)'|' $(DESTDIR)$(pkgbindir)/$$i ; \
-	  done \
-	fi
+	$(AM_V_GEN)for i in $(pscript); \
+	do \
+	  $(PERL) -npi -e 's|^#!\S+|#!'$(PERL)'|' $(DESTDIR)$(pkgbindir)/$$i ; \
+	done
