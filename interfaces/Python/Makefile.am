@@ -5,9 +5,11 @@ EXTRA_DIST = \
   $(SWIG_module_name).py
 
 
-pyexec_LTLIBRARIES = _RNA.la
-pkgpylibdir = $(pyexecdir)/RNA
-pkgpylib_DATA = RNA/__init__.py RNA/__init__.pyc
+pkgpyexecdir = $(pyexecdir)/RNA
+pkgpythondir = $(pythondir)/RNA
+
+pkgpyexec_LTLIBRARIES = _RNA.la
+pkgpython_DATA = RNA/__init__.py RNA/__init__.pyc
 
 _RNA_la_SOURCES = $(top_srcdir)/interfaces/RNA.i $(SWIG_wrapper)
 
@@ -50,13 +52,13 @@ clean-local:
 # and Python doesn't use libltdl.  Note that the library gets installed by
 # install-data, so that's where we need to hook.
 install-data-hook:
-	rm -f $(DESTDIR)$(pyexecdir)/_RNA.la
+	rm -f $(DESTDIR)$(pkgpyexecdir)/_RNA.la
 
 # Because we don't install the .la file, "make uninstall" doesn't work and
 # we need to remove the file ourselves.
 uninstall-local:
 	eval `grep '^dlname=' $(pyexec_LTLIBRARIES)` ; \
-	rm -f $(DESTDIR)$(pyexecdir)/"$$dlname"
+	rm -f $(DESTDIR)$(pkgpyexecdir)/"$$dlname"
 
 ## remove all generated content
 maintainer-clean-local:

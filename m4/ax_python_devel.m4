@@ -259,6 +259,17 @@ EOD`
 	AC_SUBST([PYTHON_SITE_PKG])
 
 	#
+	# Check for site exec packages
+	#
+	AC_MSG_CHECKING([for Python site-packages extension modules path])
+	if test -z "$PYTHON_SITE_PKG_EXEC"; then
+		PYTHON_SITE_PKG_EXEC=`$PYTHON -c "import distutils.sysconfig; \
+		        print (distutils.sysconfig.get_python_lib(1,0));"`
+	fi
+	AC_MSG_RESULT([$PYTHON_SITE_PKG_EXEC])
+	AC_SUBST([PYTHON_SITE_PKG_EXEC])
+
+	#
 	# libraries which must be linked in when embedding
 	#
 	AC_MSG_CHECKING(python extra libraries)

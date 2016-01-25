@@ -50,7 +50,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
   ])
 
   RNA_PACKAGE_IF_ENABLED([perl],[
-    AX_PERL_EXT([$prefix])
+    AX_PERL_EXT
     if test "x$PERL" = "x"; then
       AC_MSG_ERROR([Perl is required to build.])
       [enable_perl_status="Perl is required to build."]
@@ -62,6 +62,27 @@ AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
 
   # prepare all files for perl interface
   RNA_PACKAGE_IF_ENABLED([perl],[
+    # Compose the correct installation path for perl modules
+    #
+    # here we actually have to account for INSTALLDIRS env variable, which can be
+    #
+    # site    = where the local systems administrator installs packages to
+    # vendor  = where system packages are installed to, or
+    # core    = where perl core packages are installed
+    #
+    # The default selection is 'site', but upon packaging for a specific distribution
+    # we might want the user to set this to 'vendor'
+    #
+    AS_IF([ test "x$INSTALLDIRS" == "xvendor" ],[
+      PERL_ARCH_RELATIVE_INSTALL_DIR=`echo ${PERL_EXT_VENDORARCH} | sed "s,${PERL_EXT_VENDORPREFIX},,"`
+      PERL_LIB_RELATIVE_INSTALL_DIR=`echo ${PERL_EXT_VENDORLIB} | sed "s,${PERL_EXT_VENDORPREFIX},,"`
+      ],[
+      PERL_ARCH_RELATIVE_INSTALL_DIR=`echo ${PERL_EXT_SITEARCH} | sed "s,${PERL_EXT_SITEPREFIX},,"`
+      PERL_LIB_RELATIVE_INSTALL_DIR=`echo ${PERL_EXT_SITELIB} | sed "s,${PERL_EXT_SITEPREFIX},,"`
+    ])
+    AC_SUBST(PERL_ARCH_RELATIVE_INSTALL_DIR)
+    AC_SUBST(PERL_LIB_RELATIVE_INSTALL_DIR)
+
     AC_DEFINE([WITH_PERL_INTERFACE], [1], [Create the perl interface to RNAlib])
     AC_SUBST([PERL_INTERFACE], [Perl])
     AC_CONFIG_FILES([interfaces/Perl/Makefile])
@@ -97,6 +118,13 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
     AX_PYTHON_DEVEL([< '3.0.0'])
     AM_PATH_PYTHON
     AX_SWIG_PYTHON
+##    pythondir=$PYTHON_SITE_PKG
+##    pyexecdir=$PYTHON_SITE_PKG_EXEC
+
+    AC_SUBST(PYTHONDIR,$pythondir)
+    AC_SUBST(PKGPYTHONDIR,$pkgpythondir)
+    AC_SUBST(PYEXECDIR,$pyexecdir)
+    AC_SUBST(PKGPYEXECDIR,$pkgpyexecdir)
 
     AC_DEFINE([WITH_PYTHON_INTERFACE], [1], [Create the python interface to RNAlib])
     AC_SUBST([PYTHON_INTERFACE], [Python])
