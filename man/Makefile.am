@@ -3,7 +3,8 @@ info_TEXINFOS = RNAlib.texi
 dist_man_MANS = RNA2Dfold.1 RNAaliduplex.1 RNAalifold.1 RNAcofold.1 RNAduplex.1 RNAeval.1\
                 RNAfold.1 RNAheat.1 RNAinverse.1 RNALalifold.1 RNALfold.1\
                 RNApaln.1 RNAparconv.1 RNAplfold.1 RNAplot.1 RNApvmin.1 RNAsubopt.1 RNAup.1\
-                RNAPKplex.1 RNAsnoop.1 RNAplex.1 RNAdistance.1 RNApdist.1
+                RNAPKplex.1 RNAsnoop.1 RNAplex.1 RNAdistance.1 RNApdist.1 \
+                ct2db.1
 
 # remove all generated man pages
 maintainer-clean-local:
@@ -167,6 +168,10 @@ RNApdist.1:  ../src/bin/RNApdist.ggo
                 --opt-include=./include/ref_energy_par.inc\
                 "./cmdlopt.sh ../src/bin/RNApdist.ggo" > RNApdist.1
 
+ct2db.1:  ../src/Utils/ct2db.ggo
+	$(AM_V_GEN)./help2man -N --help-option=--detailed-help\
+                --opt-include=./include/ref_package.inc\
+                "./cmdlopt.sh ../src/Utils/ct2db.ggo" > ct2db.1
 
 
 

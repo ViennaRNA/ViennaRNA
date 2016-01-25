@@ -1,0 +1,11 @@
+# ignore ArchLinux PKGBUILD file
+PKGBUILD
+
+# ignore Fedora RPM spec file
+viennarna.spec
+
+# ignore NSIS windows installer files
+win_installer_archlinux_i686.nsi
+win_installer_archlinux_x86_64.nsi
+win_installer_fedora_i686.nsi
+win_installer_fedora_x86_64.nsi

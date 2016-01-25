@@ -13,7 +13,7 @@
 
 PRIVATE void usage(void);
 
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
    int     i,j;
    float **dm;
@@ -82,4 +82,5 @@ main(int argc, char *argv[])
 PRIVATE void usage(void)
 {
    vrna_message_error("usage: AnalyseDist [-X[swn]]");
+   exit(0);
 }

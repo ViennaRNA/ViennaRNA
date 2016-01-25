@@ -5,9 +5,11 @@ EXTRA_DIST = \
   $(SWIG_module_name).py
 
 
-pyexec_LTLIBRARIES = _RNA.la
-pkgpylibdir = $(pyexecdir)/RNA
-pkgpylib_DATA = RNA/__init__.py RNA/__init__.pyc
+pkgpyexecdir = $(pyexecdir)/RNA
+pkgpythondir = $(pythondir)/RNA
+
+pkgpyexec_LTLIBRARIES = _RNA.la
+pkgpython_PYTHON = RNA/__init__.py
 
 _RNA_la_SOURCES = $(top_srcdir)/interfaces/RNA.i $(SWIG_wrapper)
 
@@ -33,15 +35,8 @@ $(SWIG_module_name).py: $(SWIG_wrapper)
 # We rename RNA.py to __init__.py so that it can be installed
 # in an "RNA" directory and be treated as a package.
 RNA/__init__.py: $(SWIG_module_name).py
-	-test -d RNA || mkdir RNA
-##	$(MKDIR_P) RNA
+	-test -d RNA || $(MKDIR_P) RNA
 	cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/__init__.py
-
-# We "import _RNA" first so that if we fail to import the glue library
-# we don't generate a broken .pyc or .pyo.
-RNA/__init__.pyc: RNA/__init__.py _RNA.la
-	PYTHONPATH=".libs:$$PYTHONPATH" $(PYTHON) -c "import _RNA"
-	PYTHONPATH="RNA:.libs:$$PYTHONPATH" $(PYTHON) -c "import RNA"
 
 clean-local:
 	-rm -rf RNA
@@ -50,13 +45,13 @@ clean-local:
 # and Python doesn't use libltdl.  Note that the library gets installed by
 # install-data, so that's where we need to hook.
 install-data-hook:
-	rm -f $(DESTDIR)$(pyexecdir)/_RNA.la
+	rm -f $(DESTDIR)$(pkgpyexecdir)/_RNA.la
 
 # Because we don't install the .la file, "make uninstall" doesn't work and
 # we need to remove the file ourselves.
 uninstall-local:
-	eval `grep '^dlname=' $(pyexec_LTLIBRARIES)` ; \
-	rm -f $(DESTDIR)$(pyexecdir)/"$$dlname"
+	eval `grep '^dlname=' $(pkgpyexec_LTLIBRARIES)` ; \
+	rm -f $(DESTDIR)$(pkgpyexecdir)/"$$dlname"
 
 ## remove all generated content
 maintainer-clean-local:

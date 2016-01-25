@@ -136,7 +136,7 @@ float vrna_mfe_window( vrna_fold_compound_t *vc, FILE *file);
 float vrna_mfe_window_zscore(vrna_fold_compound_t *vc, double min_z, FILE *file);
 #endif
 
-vrna_plist_t *
+void
 vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
                               vrna_bp_stack_t *bp_stack,
                               sect bt_stack[],
