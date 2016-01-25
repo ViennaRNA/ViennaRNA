@@ -14,9 +14,7 @@ nobase_dist_perlmod_DATA = \
   RNA/Design.pm \
   RNA/Files.pm \
   RNA/Reliability.pm \
-  RNA/Utils.pm \
-  test.pl \
-  RNA/t/Design.t
+  RNA/Utils.pm
 
 RNA_la_CPPFLAGS = -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS) @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
 
@@ -39,7 +37,9 @@ EXTRA_DIST = \
   $(SWIG_wrapper) \
   $(PERL_MODULE) \
   RNAfold.pl \
-  RNAfold.cgi
+  RNAfold.cgi \
+  test.pl \
+  RNA/t/Design.t
 
 ##
 ## SWIG interface wrapper code generation
