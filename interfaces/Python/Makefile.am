@@ -9,7 +9,7 @@ pkgpyexecdir = $(pyexecdir)/RNA
 pkgpythondir = $(pythondir)/RNA
 
 pkgpyexec_LTLIBRARIES = _RNA.la
-pkgpython_DATA = RNA/__init__.py RNA/__init__.pyc
+pkgpython_PYTHON = RNA/__init__.py
 
 _RNA_la_SOURCES = $(top_srcdir)/interfaces/RNA.i $(SWIG_wrapper)
 
@@ -35,15 +35,8 @@ $(SWIG_module_name).py: $(SWIG_wrapper)
 # We rename RNA.py to __init__.py so that it can be installed
 # in an "RNA" directory and be treated as a package.
 RNA/__init__.py: $(SWIG_module_name).py
-	-test -d RNA || mkdir RNA
-##	$(MKDIR_P) RNA
+	-test -d RNA || $(MKDIR_P) RNA
 	cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/__init__.py
-
-# We "import _RNA" first so that if we fail to import the glue library
-# we don't generate a broken .pyc or .pyo.
-RNA/__init__.pyc: RNA/__init__.py _RNA.la
-	PYTHONPATH=".libs:$$PYTHONPATH" $(PYTHON) -c "import _RNA"
-	PYTHONPATH="RNA:.libs:$$PYTHONPATH" $(PYTHON) -c "import RNA"
 
 clean-local:
 	-rm -rf RNA
