@@ -56,7 +56,7 @@
 
 PRIVATE int           fill_arrays(vrna_fold_compound_t *vc);
 PRIVATE void          fill_arrays_circ(vrna_fold_compound_t *vc, sect bt_stack[], int *bt);
-PRIVATE vrna_plist_t  *backtrack(vrna_fold_compound_t *vc, vrna_bp_stack_t *bp_stack, sect bt_stack[], int s);
+PRIVATE void          backtrack(vrna_fold_compound_t *vc, vrna_bp_stack_t *bp_stack, sect bt_stack[], int s);
 
 PRIVATE int           fill_arrays_comparative(vrna_fold_compound_t *vc);
 PRIVATE void          fill_arrays_comparative_circ(vrna_fold_compound_t *vc, sect bt_stack[], int *bt);
@@ -662,13 +662,13 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
 
 #include "ViennaRNA/alicircfold.inc"
 
-PUBLIC vrna_plist_t *
+PUBLIC void
 vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
                               vrna_bp_stack_t *bp_stack,
                               sect bt_stack[],
                               int s){
 
-  return backtrack(vc, bp_stack, bt_stack, s);
+  backtrack(vc, bp_stack, bt_stack, s);
 } 
 
 /**
@@ -679,7 +679,7 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
 *** normally s=0.
 *** If s>0 then s items have been already pushed onto the bt_stack
 **/
-PRIVATE vrna_plist_t *
+PRIVATE void
 backtrack(vrna_fold_compound_t *vc,
           vrna_bp_stack_t *bp_stack,
           sect bt_stack[],
