@@ -2,6 +2,18 @@
 #
 # Copyright (c) 1994-2016 Ivo Hofacker, Peter Stadler, ivo@tbi.univie.ac.at
 #
+
+%{!?__python2: %global __python2 /usr/bin/python2}
+%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%global __provides_exclude_from ^%{python2_sitearch}/.*\\.so$
+
+##%if 0%{?suse_version} || 0%{?fedora} || 0%{?rhel_version} || 0%{?centos_version}
+%{!?_pkgdocdir: %global _pkgdocdir %%{_docdir}/%{name}}
+##%else
+##%{!?_pkgdocdir: %global _pkgdocdir %{buildroot}%{_docdir}/%{name}-%{version}}
+##%endif
+
 Name:           @PACKAGE_NAME@
 Version:        @PACKAGE_VERSION@
 Release:        1%{?dist}
@@ -9,6 +21,7 @@ Summary:        RNA Secondary Structure Prediction and Comparison
 
 Vendor:         Ivo Hofacker, TBI - University of Vienna
 Packager:       Ronny Lorenz <ronny@tbi.univie.ac.at>
+Distribution:   ViennaRNA Package
 
 Group:          Applications/Engineering
 License:        Free for non commercial use.
@@ -16,15 +29,26 @@ URL:            @PACKAGE_URL@
 Source0:        http://www.tbi.univie.ac.at/RNA/packages/source/%{name}-%{version}.tar.gz
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
+BuildRequires:  autoconf
+BuildRequires:  automake
+BuildRequires:  libtool
+BuildRequires:  rpm-devel
+
 BuildRequires:  libstdc++-devel
-BuildRequires:  gcc glibc-devel info
+BuildRequires:  gcc gcc-c++ glibc-devel info
 BuildRequires:  gsl-devel 
-BuildRequires:  perl-devel perl-ExtUtils-Embed
-BuildRequires:  python2-devel 
+BuildRequires:  perl(ExtUtils::Embed)
 
 Requires:       perl python libstdc++ glibc info gsl
 Provides:       libRNA.a = %{version}-%{release}
 Provides:       Kinfold
+
+%if 0%{?suse_version}
+BuildRequires:  python-devel 
+%else
+BuildRequires:  python2-devel 
+%endif
+
 
 %description
 The ViennaRNA package consists of a library and several standalone
@@ -63,7 +87,7 @@ Python binding for ViennaRNA library.
 %setup -q
 
 %build
-%configure --with-cluster --without-forester INSTALLDIRS=vendor
+%configure --with-cluster --without-forester INSTALLDIRS=vendor --docdir=%{_pkgdocdir}
 make %{?_smp_mflags}
 
 %install
@@ -109,13 +133,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/RNAplex.1.gz
 
 %files devel
+%defattr(-,root,root,-)
 %{_libdir}/libRNA.a
 %{_libdir}/libRNA.la
-%attr(755,root,root) %defattr(644,root,root,755)
 %{_includedir}/%{name}
 %{_libdir}/pkgconfig/RNAlib2.pc
-%dir %{_pkgdocdir}
-%doc %{_pkgdocdir}/*
+%doc %{_pkgdocdir}
 %doc /usr/share/info/RNAlib.info.gz
 
 %files -n perl-RNA
