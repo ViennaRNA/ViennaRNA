@@ -12,7 +12,8 @@ AC_DEFUN([AC_RNA_INIT],[
 AX_COMPILER_VENDOR
 AC_CANONICAL_HOST
 
-AC_PATH_PROG([PERL],[perl],[no])
+AC_ARG_VAR([PERL],[The perl interpreter])
+AC_PATH_PROGS([PERL],[$PERL perl],[no])
 AS_IF([test "$PERL" == "no"],[
   AC_MSG_ERROR([Perl is required to install and run the ViennaRNA Package])
 ])
