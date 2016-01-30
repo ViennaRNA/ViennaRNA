@@ -18,6 +18,8 @@ Name:           @PACKAGE_NAME@
 Version:        @PACKAGE_VERSION@
 Release:        1%{?dist}
 Summary:        RNA Secondary Structure Prediction and Comparison
+Provides: 		ViennaRNA = %{version}-%{release}
+Obsoletes:		ViennaRNA < 2.2.0-1
 
 Vendor:         Ivo Hofacker, TBI - University of Vienna
 Packager:       Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -26,7 +28,7 @@ Distribution:   ViennaRNA Package
 Group:          Applications/Engineering
 License:        Free for non commercial use.
 URL:            @PACKAGE_URL@
-Source0:        http://www.tbi.univie.ac.at/RNA/packages/source/%{name}-%{version}.tar.gz
+Source0:        http://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-%{version}.tar.gz
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 BuildRequires:  autoconf
@@ -58,7 +60,7 @@ probabilities and partition functions, for comparing secondary
 structures, and the design of RNA sequences with a desired structure.
 
 %package devel
-Summary:	Header files for ViennaRNA
+Summary:	Library and header files for ViennaRNA RNAlib
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	libstdc++-devel
@@ -67,28 +69,33 @@ Requires: pkgconfig
 %description devel
 Header files for ViennaRNA.
 
-%package -n perl-RNA
-Summary:	Perl binding for ViennaRNA library
+%package -n perl-rna
+Summary:	Perl binding for ViennaRNA RNAlib
 Group:		Development/Languages/Perl
 Requires:	%{name} = %{version}-%{release}
 
-%description -n perl-RNA
-Perl binding for ViennaRNA library.
+%description -n perl-rna
+Perl binding for ViennaRNA RNAlib.
 
 %package -n python2-rna
-Summary:	Python binding for ViennaRNA library
+Summary:	Python binding for ViennaRNA RNAlib
 Group:		Libraries/Python
 Requires:	%{name} = %{version}-%{release}
 
 %description -n python2-rna
-Python binding for ViennaRNA library.
+Python binding for ViennaRNA RNAlib.
 
 %prep
-%setup -q
+%setup -n ViennaRNA-%{version} -q
 
 %build
+%if 0%{?fedora} && 0%{?fedora_version} < 21
+%configure --with-cluster --without-forester --disable-lto INSTALLDIRS=vendor --docdir=%{_pkgdocdir}
+%else
 %configure --with-cluster --without-forester INSTALLDIRS=vendor --docdir=%{_pkgdocdir}
+%endif
 make %{?_smp_mflags}
+
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -104,7 +111,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %{_bindir}/*
-%{_datadir}/%{name}/
+%{_datadir}/ViennaRNA/
 %{_mandir}/man1/RNAplfold.1.gz
 %{_mandir}/man1/AnalyseSeqs.1.gz
 %{_mandir}/man1/Kinfold.1.gz
@@ -136,15 +143,16 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_libdir}/libRNA.a
 %{_libdir}/libRNA.la
-%{_includedir}/%{name}
+%{_includedir}/ViennaRNA
 %{_libdir}/pkgconfig/RNAlib2.pc
 %doc %{_pkgdocdir}
 %doc /usr/share/info/RNAlib.info.gz
 
-%files -n perl-RNA
+%files -n perl-rna
 %defattr(644,root,root,755)
 %{perl_vendorlib}/RNA.pm
 %{perl_vendorlib}/RNA
+%{perl_vendorarch}/auto/RNA
 %attr(755,root,root) %{perl_vendorarch}/auto/RNA/RNA.so
 
 %files -n python2-rna
