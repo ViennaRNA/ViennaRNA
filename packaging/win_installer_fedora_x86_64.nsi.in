@@ -1,4 +1,4 @@
-!define VERSION "2.2.0"
+!define VERSION "@VERSION@"
 !define PACKAGE "ViennaRNA Package"
 !define MULTIUSER_INSTALLMODE_INSTDIR "${PACKAGE}"
 BrandingText "${PACKAGE} - ${VERSION} [ TBI / Institute for Theoretical Chemistry / University of Vienna ]"
@@ -20,7 +20,7 @@ BrandingText "${PACKAGE} - ${VERSION} [ TBI / Institute for Theoretical Chemistr
 # Name of the software
 name "${PACKAGE}"
 # Name of the installer
-outfile "Install-ViennaRNA-${VERSION}_32bit.exe"
+outfile "Install-ViennaRNA-${VERSION}_64bit.exe"
 
 # define the directory to install to, the desktop in this case as specified  
 # by the predefined $DESKTOP variable
@@ -61,7 +61,7 @@ FunctionEnd
 Function un.onInit
   !insertmacro MULTIUSER_UNINIT
 FunctionEnd
-
+ 
 !insertmacro MUI_LANGUAGE "English"
  
 # default section
@@ -127,11 +127,11 @@ section "ViennaRNA Package"
 
 
   # then all the necessary libraries
-  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
-  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libwinpthread-1.dll"
-  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll"
-  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgsl-0.dll"
-  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgslcblas-0.dll"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libwinpthread-1.dll"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgcc_s_seh-1.dll"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgsl-0.dll"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgslcblas-0.dll"
   
   File ".local"
 
@@ -208,7 +208,7 @@ section "Uninstall"
 
   delete $INSTDIR\libgomp-1.dll
   delete $INSTDIR\libwinpthread-1.dll
-  delete $INSTDIR\libgcc_s_sjlj-1.dll
+  delete $INSTDIR\libgcc_s_seh-1.dll
   delete $INSTDIR\libgsl-0.dll
   delete $INSTDIR\libgslcblas-0.dll
   delete $INSTDIR\.local

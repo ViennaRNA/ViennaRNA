@@ -69,10 +69,12 @@ RNA_ENABLE_UNIT_TESTS
 ## Prepare files    ##
 ##------------------##
 
-AC_CONFIG_FILES([misc/Makefile misc/ViennaRNA.spec misc/PKGBUILD])
+AC_CONFIG_FILES([misc/Makefile])
 AC_CONFIG_FILES([interfaces/Makefile])
 AC_CONFIG_FILES([Makefile RNAlib2.pc src/Utils/Makefile src/bin/Makefile src/Makefile man/Makefile src/ViennaRNA/Makefile doc/Makefile])
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
+AC_CONFIG_FILES([packaging/viennarna.spec packaging/PKGBUILD])
+AC_CONFIG_FILES([packaging/win_installer_archlinux_i686.nsi packaging/win_installer_archlinux_x86_64.nsi packaging/win_installer_fedora_i686.nsi packaging/win_installer_fedora_x86_64.nsi])
 
 ])
 

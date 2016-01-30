@@ -14,12 +14,12 @@
 ##%{!?_pkgdocdir: %global _pkgdocdir %{buildroot}%{_docdir}/%{name}-%{version}}
 ##%endif
 
-Name:           @PACKAGE_NAME@
+Name:           viennarna
 Version:        @PACKAGE_VERSION@
 Release:        1%{?dist}
 Summary:        RNA Secondary Structure Prediction and Comparison
-Provides: 		ViennaRNA = %{version}-%{release}
-Obsoletes:		ViennaRNA < 2.2.0-1
+Provides:       ViennaRNA = %{version}-%{release}
+Obsoletes:      ViennaRNA < 2.2.0-1
 
 Vendor:         Ivo Hofacker, TBI - University of Vienna
 Packager:       Ronny Lorenz <ronny@tbi.univie.ac.at>
