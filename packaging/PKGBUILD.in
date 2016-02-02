@@ -8,6 +8,7 @@ pkgdesc="RNA Secondary Structure Prediction and Comparison"
 arch=('x86_64' 'i686' 'armv7h' 'arm')
 license=('Custom')
 url="@PACKAGE_URL@"
+groups=('viennarna-package')
 makedepends=( 'perl'
               'python2'
               'libtool'

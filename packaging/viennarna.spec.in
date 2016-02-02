@@ -23,7 +23,7 @@ Obsoletes:      ViennaRNA < 2.2.0-1
 
 Vendor:         Ivo Hofacker, TBI - University of Vienna
 Packager:       Ronny Lorenz <ronny@tbi.univie.ac.at>
-Distribution:   ViennaRNA Package
+Distribution:   viennarna-package
 
 Group:          Applications/Engineering
 License:        Free for non commercial use.
