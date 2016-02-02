@@ -291,4 +291,5 @@ PRIVATE void usage(void)
 {
    vrna_message_error("usage: AnalyseSeqs [-X[bswnm]] [-Q] [-M{mask}] \n"
    "                   [-D{H|A[,cost]|G[,cost1,cost2]}] [-d{D|B|H|S}]");
+   exit(0);
 }
