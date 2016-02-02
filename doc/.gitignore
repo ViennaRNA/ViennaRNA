@@ -7,3 +7,4 @@ latex
 doxygen.warnings
 *.tag
 *.pdf
+dox

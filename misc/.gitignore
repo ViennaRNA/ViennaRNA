@@ -1,6 +1,0 @@
-# ignore ArchLinux PKGBUILD file
-PKGBUILD
-
-# ignore Fedora RPM spec file
-ViennaRNA.spec
-

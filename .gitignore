@@ -13,6 +13,12 @@ config
 config.*
 .deps
 stamp-h1
+.dirstamp
+ylwrap
+
+# ignore libtoolize generated files
+m4/libtool.m4
+m4/lt*.m4
 
 # ignore all tar.gz archives
 *.tar.gz
@@ -33,5 +39,3 @@ RNAlib2.pc
 
 # ignore all postscript files that might be generated
 *.ps
-
-win_installer.log
