@@ -172,8 +172,6 @@ int main(int argc, char *argv[]){
   double          MEAgamma, bppmThreshold, betaScale;
   char            *infile, *outfile, *ligandMotif;
 
-  vrna_param_t      *mfe_parameters;
-  vrna_exp_param_t  *pf_parameters;
   vrna_md_t         md;
 
   rec_type      = read_opt = 0;
@@ -181,7 +179,6 @@ int main(int argc, char *argv[]){
   rec_rest      = NULL;
   ParamFile     = NULL;
   ns_bases      = NULL;
-  pf_parameters = NULL;
   do_bpp        = do_backtrack  = 1;  /* set local (do_bpp) and global (do_backtrack) default for bpp computation */
   pf            = 0;
   sfact         = 1.07;
@@ -371,8 +368,6 @@ int main(int argc, char *argv[]){
     }
     else vrna_message_input_seq_simple();
   }
-
-  mfe_parameters = vrna_params(&md);
 
   /* set options we wanna pass to vrna_file_fasta_read_record() */
   if(istty)             read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
@@ -608,7 +603,7 @@ int main(int argc, char *argv[]){
             plist *pl = vrna_plist_from_probs(vc, 1e-4/(1+MEAgamma));
 
             if(gquad){
-              mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, pf_parameters);
+              mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, vc->exp_params);
             } else {
               mea = MEA(pl, structure, MEAgamma);
             }
@@ -626,7 +621,6 @@ int main(int argc, char *argv[]){
           fprintf(output, "\n");
         }
       }
-      free(pf_parameters);
     }
     if(output)
       (void) fflush(output);
@@ -668,7 +662,6 @@ int main(int argc, char *argv[]){
     fclose(input);
 
   free(constraints_file);
-  free(mfe_parameters);
   free(ligandMotif);
 
   return EXIT_SUCCESS;
