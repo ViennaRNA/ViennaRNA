@@ -600,7 +600,12 @@ int main(int argc, char *argv[]){
           free(pf_struc);
           if(doMEA){
             float mea, mea_en;
+            /*  this is a hack since vrna_plist_from_probs() always resolves g-quad pairs,
+                while MEA_seq() still expects unresolved gquads */
+            int gq = vc->exp_params->model_details.gquad;
+            vc->exp_params->model_details.gquad = 0;
             plist *pl = vrna_plist_from_probs(vc, 1e-4/(1+MEAgamma));
+            vc->exp_params->model_details.gquad = gq;
 
             if(gquad){
               mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, vc->exp_params);

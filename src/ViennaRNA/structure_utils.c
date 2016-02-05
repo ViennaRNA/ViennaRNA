@@ -721,36 +721,34 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
       }
 
       /* check for presence of gquadruplex */
-      if(gquad){
-        if((S[i] == 3) && (S[j] == 3)){
-          /* add probability of a gquadruplex at position (i,j)
-             for dot_plot
-          */
-          (pl)[count].i      = i;
-          (pl)[count].j      = j;
-          (pl)[count].p      = (float)probs[index[i] - j];
-          (pl)[count++].type = 1;
-          /* now add the probabilies of it's actual pairing patterns */
-          vrna_plist_t *inner, *ptr;
-          inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
-          for(ptr=inner; ptr->i != 0; ptr++){
-              if (count == n * length - 1){
-                n *= 2;
-                pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
-              }
-              /* check if we've already seen this pair */
-              for(k = 0; k < count; k++)
-                if(((pl)[k].i == ptr->i) && ((pl)[k].j == ptr->j))
-                  break;
-              (pl)[k].i      = ptr->i;
-              (pl)[k].j      = ptr->j;
-              (pl)[k].type = 0;
-              if(k == count){
-                (pl)[k].p  = ptr->p;
-                count++;
-              } else
-                (pl)[k].p  += ptr->p;
-          }
+      if(gquad && (S[i] == 3) && (S[j] == 3)){
+        /* add probability of a gquadruplex at position (i,j)
+           for dot_plot
+        */
+        (pl)[count].i      = i;
+        (pl)[count].j      = j;
+        (pl)[count].p      = (float)probs[index[i] - j];
+        (pl)[count++].type = 1;
+        /* now add the probabilies of it's actual pairing patterns */
+        vrna_plist_t *inner, *ptr;
+        inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
+        for(ptr=inner; ptr->i != 0; ptr++){
+            if (count == n * length - 1){
+              n *= 2;
+              pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
+            }
+            /* check if we've already seen this pair */
+            for(k = 0; k < count; k++)
+              if(((pl)[k].i == ptr->i) && ((pl)[k].j == ptr->j))
+                break;
+            (pl)[k].i      = ptr->i;
+            (pl)[k].j      = ptr->j;
+            (pl)[k].type = 0;
+            if(k == count){
+              (pl)[k].p  = ptr->p;
+              count++;
+            } else
+              (pl)[k].p  += ptr->p;
         }
       } else {
           (pl)[count].i      = i;
