@@ -19,7 +19,6 @@ Version:        @PACKAGE_VERSION@
 Release:        1%{?dist}
 Summary:        RNA Secondary Structure Prediction and Comparison
 Provides:       ViennaRNA = %{version}-%{release}
-Obsoletes:      ViennaRNA < 2.2.0-1
 
 Vendor:         Ivo Hofacker, TBI - University of Vienna
 Packager:       Ronny Lorenz <ronny@tbi.univie.ac.at>
@@ -41,8 +40,7 @@ BuildRequires:  gcc gcc-c++ glibc-devel info
 BuildRequires:  gsl-devel 
 BuildRequires:  perl(ExtUtils::Embed)
 
-Requires:       perl python libstdc++ glibc info gsl
-Provides:       libRNA.a = %{version}-%{release}
+Requires:       perl libstdc++ glibc info gsl
 Provides:       Kinfold
 
 %if 0%{?suse_version}
@@ -62,9 +60,10 @@ structures, and the design of RNA sequences with a desired structure.
 %package devel
 Summary:	Library and header files for ViennaRNA RNAlib
 Group:		Development/Libraries
+Provides:   libRNA.a = %{version}-%{release}
 Requires:	%{name} = %{version}-%{release}
 Requires:	libstdc++-devel
-Requires: pkgconfig
+Requires:   pkgconfig
 
 %description devel
 Header files for ViennaRNA.
@@ -73,6 +72,8 @@ Header files for ViennaRNA.
 Summary:	Perl binding for ViennaRNA RNAlib
 Group:		Development/Languages/Perl
 Requires:	%{name} = %{version}-%{release}
+Requires:	perl
+
 
 %description -n perl-rna
 Perl binding for ViennaRNA RNAlib.
@@ -81,18 +82,36 @@ Perl binding for ViennaRNA RNAlib.
 Summary:	Python binding for ViennaRNA RNAlib
 Group:		Libraries/Python
 Requires:	%{name} = %{version}-%{release}
+Requires:	python
 
 %description -n python2-rna
 Python binding for ViennaRNA RNAlib.
+
+%package compat
+Summary:		Transitional package for ViennaRNA to new package split
+Group:          Applications/Engineering
+Obsoletes:      ViennaRNA < 2.2.1
+Requires:  		viennarna = 2.2.1
+Requires:  		viennarna-devel = 2.2.1
+Requires:		perl-rna = 2.2.1
+Requires:		python2-rna = 2.2.1
+
+%description compat
+This package only exists to help transition ViennaRNA users to the new
+package split. Older versions of ViennaRNA contained the entire package.
+With version 2.2.1, we split the package into core, development, and
+scripting language interface packages to conform to distribution requirements.
+This compat package will be removed after one distribution release cycle,
+please do not reference it or depend on it in any way.
 
 %prep
 %setup -n ViennaRNA-%{version} -q
 
 %build
 %if 0%{?fedora} && 0%{?fedora_version} < 21
-%configure --with-cluster --without-forester --disable-lto INSTALLDIRS=vendor --docdir=%{_pkgdocdir}
+%configure --with-cluster --without-forester --disable-lto --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
 %else
-%configure --with-cluster --without-forester INSTALLDIRS=vendor --docdir=%{_pkgdocdir}
+%configure --with-cluster --without-forester --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
 %endif
 make %{?_smp_mflags}
 
@@ -160,3 +179,5 @@ rm -rf $RPM_BUILD_ROOT
 %{python2_sitearch}/RNA
 %attr(755,root,root) %{python2_sitearch}/RNA/_RNA.so
 %{python2_sitelib}/RNA
+
+%files compat
