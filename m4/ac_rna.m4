@@ -12,7 +12,8 @@ AC_DEFUN([AC_RNA_INIT],[
 AX_COMPILER_VENDOR
 AC_CANONICAL_HOST
 
-AC_PATH_PROG([PERL],[perl],[no])
+AC_ARG_VAR([PERL],[The perl interpreter])
+AC_PATH_PROGS([PERL],[$PERL perl],[no])
 AS_IF([test "$PERL" == "no"],[
   AC_MSG_ERROR([Perl is required to install and run the ViennaRNA Package])
 ])
@@ -68,10 +69,12 @@ RNA_ENABLE_UNIT_TESTS
 ## Prepare files    ##
 ##------------------##
 
-AC_CONFIG_FILES([misc/Makefile misc/ViennaRNA.spec misc/PKGBUILD])
+AC_CONFIG_FILES([misc/Makefile])
 AC_CONFIG_FILES([interfaces/Makefile])
 AC_CONFIG_FILES([Makefile RNAlib2.pc src/Utils/Makefile src/bin/Makefile src/Makefile man/Makefile src/ViennaRNA/Makefile doc/Makefile])
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
+AC_CONFIG_FILES([packaging/viennarna.spec packaging/PKGBUILD])
+AC_CONFIG_FILES([packaging/win_installer_archlinux_i686.nsi packaging/win_installer_archlinux_x86_64.nsi packaging/win_installer_fedora_i686.nsi packaging/win_installer_fedora_x86_64.nsi])
 
 ])
 
@@ -87,6 +90,23 @@ eval _mandir=$(eval printf "%s" $mandir)
 eval _docdir=$(eval printf "%s" $docdir)
 eval _htmldir=$(eval printf "%s" $htmldir)
 eval _pdfdir=$(eval printf "%s" $pdfdir)
+
+AS_IF([test $with_perl = "yes"],[
+  eval _perl_arch_dir=$(eval printf "%s" "$prefix" ${PERL_ARCH_RELATIVE_INSTALL_DIR})
+  eval _perl_lib_dir=$(eval printf "%s" "$prefix" ${PERL_LIB_RELATIVE_INSTALL_DIR})
+  ], [
+  _perl_arch_dir=""
+  _perl_lib_dir=""
+  _perl_install="Not to be installed"
+])
+AS_IF([test $with_python = "yes"],[
+  eval _python_arch_dir=$(eval printf "%s" ${pyexecdir})
+  eval _python_lib_dir=$(eval printf "%s" ${pythondir})
+  ],[
+    _python_arch_dir=""
+    _python_lib_dir=""
+    _python_install="Not to be installed"
+])
 
 # Notify the user
 
@@ -123,14 +143,20 @@ Unit Tests:
 -
 Files will be installed in the following directories:
 
-  Executables:    $_bindir
-  Libraries:      $_libdir
-  Header files:   $_includedir
-  Extra Data:     $_datadir
-  Man pages:      $_mandir
-  Documentation:  $_docdir
-    (HTML):       $(eval printf "%s" $_htmldir)
-    (PDF):        $(eval printf "%s" $_pdfdir)
+  Executables:      $_bindir
+  Libraries:        $_libdir
+  Header files:     $_includedir
+  Extra Data:       $_datadir
+  Man pages:        $_mandir
+  Documentation:    $_docdir
+    (HTML):         $(eval printf "%s" $_htmldir)
+    (PDF):          $(eval printf "%s" $_pdfdir)
+  Perl Interface:   $_perl_install
+    (binaries):     $_perl_arch_dir
+    (scripts):      $_perl_lib_dir
+  Python Interface: $_python_install
+    (binaries):     $_python_arch_dir
+    (scripts):      $_python_lib_dir
 ])
 
 ])

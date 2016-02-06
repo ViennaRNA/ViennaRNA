@@ -45,10 +45,10 @@ int main(int argc, char *argv[])
   char      *structure;
   char      *line=NULL, fname[FILENAME_MAX_LENGTH], *list_title=NULL;
   plist     *pr_pl, *mfe_pl;
-  vrna_md_t *md;
+  vrna_md_t md;
 
   /* assign globally stored model details */
-  set_model_details(md);
+  set_model_details(&md);
 
   pr_pl = mfe_pl = NULL;
 
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
     if (*fname=='\0')
       sprintf(fname, "%d_dp.ps", n+1);
 
-    vrna_fold_compound_t *vc = vrna_fold_compound(line, md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+    vrna_fold_compound_t *vc = vrna_fold_compound(line, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
 
     structure = (char *) vrna_alloc((vc->length+1)*sizeof(char));
 

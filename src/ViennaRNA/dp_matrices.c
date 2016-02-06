@@ -223,7 +223,10 @@ add_pf_matrices(vrna_fold_compound_t *vc,
     vc->exp_matrices  = get_pf_matrices_alloc(vc->length, type, alloc_vector);
     if(vc->exp_params->model_details.gquad){
       switch(vc->type){
-        case VRNA_VC_TYPE_SINGLE:   vc->exp_matrices->G = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
+        case VRNA_VC_TYPE_SINGLE:   vc->exp_matrices->G = NULL;
+                                    /* can't do that here, since scale[] is not filled yet :( 
+                                      vc->exp_matrices->G = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
+                                    */
                                     break;
         default:                    /* do nothing */
                                     break;

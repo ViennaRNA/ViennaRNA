@@ -64,8 +64,6 @@ int main(int argc, char *argv[])
   plist   *mfB;
   double  *ConcAandB;
   unsigned int    rec_type, read_opt;
-  vrna_param_t      *P;
-  vrna_exp_param_t  *pf_parameters;
   vrna_md_t         md;
 
 
@@ -88,7 +86,6 @@ int main(int argc, char *argv[])
   betaScale     = 1.;
   gquad         = 0;
   ParamFile     = NULL;
-  pf_parameters = NULL;
   string        = NULL;
   Concfile      = NULL;
   structure     = NULL;
@@ -219,9 +216,6 @@ int main(int argc, char *argv[])
     }
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-
-  /* get energy parameters */
-  P = vrna_params(&md);
 
   /* print user help if we get input from tty */
   if(istty){
@@ -444,27 +438,27 @@ int main(int argc, char *argv[])
         strncat(orig_Bstring,orig_sequence+Alength+1,Blength);
 
         /* compute AA dimer */
-        AA=do_partfunc(Astring, Alength, 2, &prAA, &mfAA, pf_parameters);
+        AA=do_partfunc(Astring, Alength, 2, &prAA, &mfAA, vc->exp_params);
         /* compute BB dimer */
-        BB=do_partfunc(Bstring, Blength, 2, &prBB, &mfBB, pf_parameters);
+        BB=do_partfunc(Bstring, Blength, 2, &prBB, &mfBB, vc->exp_params);
         /*free_co_pf_arrays();*/
 
         /* compute A monomer */
-        do_partfunc(Astring, Alength, 1, &prA, &mfA, pf_parameters);
+        do_partfunc(Astring, Alength, 1, &prA, &mfA, vc->exp_params);
 
         /* compute B monomer */
-        do_partfunc(Bstring, Blength, 1, &prB, &mfB, pf_parameters);
+        do_partfunc(Bstring, Blength, 1, &prB, &mfB, vc->exp_params);
 
         if(do_backtrack){
-          vrna_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, pf_parameters);
-          vrna_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, pf_parameters);
-          vrna_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, pf_parameters);
+          vrna_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, vc->exp_params);
+          vrna_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, vc->exp_params);
+          vrna_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, vc->exp_params);
         }
         printf("Free Energies:\nAB\t\tAA\t\tBB\t\tA\t\tB\n%.6f\t%6f\t%6f\t%6f\t%6f\n",
                AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB);
 
         if (doC) {
-          vrna_pf_dimer_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB, pf_parameters);
+          vrna_pf_dimer_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB, vc->exp_params);
           free(ConcAandB);/*freeen*/
         }
 
@@ -542,7 +536,6 @@ int main(int argc, char *argv[])
 
       } /*end if(doT)*/
 
-      free(pf_parameters);
     }/*end if(pf)*/
 
 
@@ -626,7 +619,7 @@ do_partfunc(char *string,
               par->pf_scale = exp(-(sfact*min_en)/kT/(length));
               vrna_exp_params_subst(vc, par);
               X = vrna_pf_dimer(vc, tempstruc);
-              if(*tpr){
+              if(tpr){
                 *tpr = vrna_plist_from_probs(vc, bppmThreshold);
               }
               vrna_fold_compound_free(vc);
@@ -649,7 +642,7 @@ do_partfunc(char *string,
               par->pf_scale = exp(-(sfact*min_en)/kT/(2*length));
               vrna_exp_params_subst(vc, par);
               X = vrna_pf_dimer(vc, tempstruc);
-              if(*tpr){
+              if(tpr){
                 *tpr = vrna_plist_from_probs(vc, bppmThreshold);
               }
               vrna_fold_compound_free(vc);

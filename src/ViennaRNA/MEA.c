@@ -158,28 +158,25 @@ PRIVATE plist *prune_sort(plist *p, double *pu, int n, double gamma, short *S, i
   for (i=1; i<=n; i++) pu[i]=1.;
 
   for (pc=p; pc->i >0; pc++) {
-    if(gq){
-      if(!S) vrna_message_error("no sequence information available in MEA gquad!");
-      pu[pc->i] -= pc->p;
-      pu[pc->j] -= pc->p;
-      /* now remove all cases where i/j are within a gquad */
-      for(pc2=p; pc2->i > 0; pc2++){
+    pu[pc->i] -= pc->p;
+    pu[pc->j] -= pc->p;
+  }
+
+  if(gq){
+    if(!S) vrna_message_error("no sequence information available in MEA gquad!");
+    /* remove probabilities that i or j are enclosed by a gquad */
+    for (i=1; i<=n; i++){
+      for(pc2 = p; pc2->i > 0; pc2++){
+        /* skip all non-gquads */
         if(S[pc2->i] != 3) continue;
         if(S[pc2->j] != 3) continue;
-        /* check whether pc->i is enclosed in gquad */
-        if(pc2->i < pc->i)
-          if(pc2->j > pc->i)
-            pu[pc->i] -= pc2->p;
-        /* check whether pc->j is enclosed in gquad */
-        if(pc2->i < pc->j)
-          if(pc2->j > pc->j)
-            pu[pc->j] -= pc2->p;
+        /* remove only if i is enclosed */
+        if((pc2->i < i) && (pc2->j > i))
+          pu[i] -= pc2->p;
       }
-    } else {
-      pu[pc->i] -= pc->p;
-      pu[pc->j] -= pc->p;
     }
   }
+
   size = n+1;
   pp = vrna_alloc(sizeof(plist)*(n+1));
   for (pc=p; pc->i >0; pc++) {

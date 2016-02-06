@@ -358,16 +358,19 @@ pf_linear(vrna_fold_compound_t *vc){
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
 
-  if(with_gquad)
+  if(with_gquad){
     expMLstem = exp_E_MLstem(0, -1, -1, pf_params);
-
+    free(vc->exp_matrices->G);
+    vc->exp_matrices->G = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
+    G = vc->exp_matrices->G;
+  }
 
   for (d=0; d<=turn; d++)
     for (i=1; i<=n-d; i++) {
       j=i+d;
       ij = my_iindx[i]-j;
       if(hc_up_ext[i] > d){
-        q[ij]=1.0*scale[d+1];
+        q[ij]=1.0*scale[d+1]; 
 
         if(sc){
           if(sc->exp_energy_up)
@@ -1253,13 +1256,15 @@ pf_create_bppm( vrna_fold_compound_t *vc,
         ij = my_iindx[i]-j;
 
         if(with_gquad){
-          probs[ij] *= qb[ij];
+          if (qb[ij] > 0.)
+            probs[ij] *= qb[ij];
 
           if (G[ij] > 0.){
             probs[ij] += q1k[i-1] * G[ij] * qln[j+1]/q1k[n];
           }
         } else {
-          probs[ij] *= qb[ij];
+          if (qb[ij] > 0.)
+            probs[ij] *= qb[ij];
         }
       }
 

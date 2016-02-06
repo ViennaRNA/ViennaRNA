@@ -2,12 +2,12 @@ include ../generic.mk
 
 PERL_MODULE = $(SWIG_module_name).pm
 
-perlextdir = $(PERL_EXT_LIB)/auto/RNA
+perlextdir = $(prefix)$(PERL_ARCH_RELATIVE_INSTALL_DIR)/auto/RNA
 perlext_LTLIBRARIES = RNA.la
 
 RNA_la_SOURCES = $(SWIG_src) RNA_wrap.c
 
-perlmoddir = $(PERL_EXT_LIB)
+perlmoddir = $(prefix)$(PERL_LIB_RELATIVE_INSTALL_DIR)
 nobase_dist_perlmod_DATA = \
   $(PERL_MODULE) \
   RNA/Benchmark.pm \
