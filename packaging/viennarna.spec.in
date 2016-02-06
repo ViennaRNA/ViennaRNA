@@ -157,6 +157,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/RNApaln.1.gz
 %{_mandir}/man1/RNAdistance.1.gz
 %{_mandir}/man1/RNAplex.1.gz
+%{_mandir}/man1/ct2db.1.gz
 
 %files devel
 %defattr(-,root,root,-)

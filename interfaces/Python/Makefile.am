@@ -50,7 +50,7 @@ install-data-hook:
 # Because we don't install the .la file, "make uninstall" doesn't work and
 # we need to remove the file ourselves.
 uninstall-local:
-	eval `grep '^dlname=' $(pyexec_LTLIBRARIES)` ; \
+	eval `grep '^dlname=' $(pkgpyexec_LTLIBRARIES)` ; \
 	rm -f $(DESTDIR)$(pkgpyexecdir)/"$$dlname"
 
 ## remove all generated content

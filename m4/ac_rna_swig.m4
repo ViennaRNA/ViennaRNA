@@ -11,7 +11,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
                   [${srcdir}/interfaces/Makefile.am])
 
   AS_IF([test "x$with_swig" != "xno"],[
-    AX_PKG_SWIG(3.0.0, [has_swig="yes"], [has_swig="no"])
+    AX_PKG_SWIG(2.0.0, [has_swig="yes"], [has_swig="no"])
   ])
 
   RNA_ENABLE_SWIG_PERL

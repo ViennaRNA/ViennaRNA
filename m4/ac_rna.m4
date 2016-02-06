@@ -91,6 +91,23 @@ eval _docdir=$(eval printf "%s" $docdir)
 eval _htmldir=$(eval printf "%s" $htmldir)
 eval _pdfdir=$(eval printf "%s" $pdfdir)
 
+AS_IF([test $with_perl = "yes"],[
+  eval _perl_arch_dir=$(eval printf "%s" "$prefix" ${PERL_ARCH_RELATIVE_INSTALL_DIR})
+  eval _perl_lib_dir=$(eval printf "%s" "$prefix" ${PERL_LIB_RELATIVE_INSTALL_DIR})
+  ], [
+  _perl_arch_dir=""
+  _perl_lib_dir=""
+  _perl_install="Not to be installed"
+])
+AS_IF([test $with_python = "yes"],[
+  eval _python_arch_dir=$(eval printf "%s" ${pyexecdir})
+  eval _python_lib_dir=$(eval printf "%s" ${pythondir})
+  ],[
+    _python_arch_dir=""
+    _python_lib_dir=""
+    _python_install="Not to be installed"
+])
+
 # Notify the user
 
 AC_MSG_NOTICE([
@@ -126,14 +143,20 @@ Unit Tests:
 -
 Files will be installed in the following directories:
 
-  Executables:    $_bindir
-  Libraries:      $_libdir
-  Header files:   $_includedir
-  Extra Data:     $_datadir
-  Man pages:      $_mandir
-  Documentation:  $_docdir
-    (HTML):       $(eval printf "%s" $_htmldir)
-    (PDF):        $(eval printf "%s" $_pdfdir)
+  Executables:      $_bindir
+  Libraries:        $_libdir
+  Header files:     $_includedir
+  Extra Data:       $_datadir
+  Man pages:        $_mandir
+  Documentation:    $_docdir
+    (HTML):         $(eval printf "%s" $_htmldir)
+    (PDF):          $(eval printf "%s" $_pdfdir)
+  Perl Interface:   $_perl_install
+    (binaries):     $_perl_arch_dir
+    (scripts):      $_perl_lib_dir
+  Python Interface: $_python_install
+    (binaries):     $_python_arch_dir
+    (scripts):      $_python_lib_dir
 ])
 
 ])
