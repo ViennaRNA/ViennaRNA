@@ -676,6 +676,10 @@ vrna_E_stack( vrna_fold_compound_t *vc,
   f         = vc->hc->f;
   eval_loop = (hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) && (hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP);
 
+  if((j - i - 1) < 2){
+    return e;
+  }
+
 #ifdef WITH_GEN_HC
   if(f)
     eval_loop = (f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_IL, vc->hc->data)) ? eval_loop : (char)0;
