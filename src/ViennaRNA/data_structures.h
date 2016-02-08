@@ -515,6 +515,10 @@ struct vrna_fc_s{
       int             *pscore;      /**<  @brief  Precomputed array of pair types expressed as pairing scores
                                           @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */
+      short           *pscore_pf_compat;  /**<  @brief  Precomputed array of pair types expressed as pairing scores indexed via iindx
+                                                @deprecated  This attribute will vanish in the future!
+                                                @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
+                                    */
       vrna_sc_t       **scs;        /**<  @brief  A set of soft constraints (for each sequence in the alignment)
                                           @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
                                     */

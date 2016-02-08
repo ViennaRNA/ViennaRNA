@@ -58,43 +58,43 @@ probabilities and partition functions, for comparing secondary
 structures, and the design of RNA sequences with a desired structure.
 
 %package devel
-Summary:	Library and header files for ViennaRNA RNAlib
-Group:		Development/Libraries
-Provides:   libRNA.a = %{version}-%{release}
-Requires:	%{name} = %{version}-%{release}
-Requires:	libstdc++-devel
-Requires:   pkgconfig
+Summary:  Library and header files for ViennaRNA RNAlib
+Group:    Development/Libraries
+Provides: libRNA.a = %{version}-%{release}
+Requires: %{name} = %{version}-%{release}
+Requires: libstdc++-devel
+Requires: pkgconfig
 
 %description devel
 Header files for ViennaRNA.
 
 %package -n perl-rna
-Summary:	Perl binding for ViennaRNA RNAlib
-Group:		Development/Languages/Perl
-Requires:	%{name} = %{version}-%{release}
-Requires:	perl
+Summary:  Perl binding for ViennaRNA RNAlib
+Group:    Development/Languages/Perl
+Requires: %{name} = %{version}-%{release}
+Requires: perl
 
 
 %description -n perl-rna
 Perl binding for ViennaRNA RNAlib.
 
 %package -n python2-rna
-Summary:	Python binding for ViennaRNA RNAlib
-Group:		Libraries/Python
-Requires:	%{name} = %{version}-%{release}
-Requires:	python
+Summary:  Python binding for ViennaRNA RNAlib
+Group:    Libraries/Python
+Requires: %{name} = %{version}-%{release}
+Requires: python
 
 %description -n python2-rna
 Python binding for ViennaRNA RNAlib.
 
 %package compat
-Summary:		Transitional package for ViennaRNA to new package split
-Group:          Applications/Engineering
-Obsoletes:      ViennaRNA < 2.2.1
-Requires:  		viennarna = 2.2.1
-Requires:  		viennarna-devel = 2.2.1
-Requires:		perl-rna = 2.2.1
-Requires:		python2-rna = 2.2.1
+Summary:    Transitional package for ViennaRNA to new package split
+Group:      Applications/Engineering
+Obsoletes:  ViennaRNA < 2.2.1
+Requires:   viennarna = %{version}
+Requires:   viennarna-devel = %{version}
+Requires:   perl-rna = %{version}
+Requires:   python2-rna = %{version}
 
 %description compat
 This package only exists to help transition ViennaRNA users to the new
@@ -108,7 +108,7 @@ please do not reference it or depend on it in any way.
 %setup -n ViennaRNA-%{version} -q
 
 %build
-%if 0%{?fedora} && 0%{?fedora_version} < 21
+%if 0%{?fedora} && 0%{?fedora_version} < 22
 %configure --with-cluster --without-forester --disable-lto --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
 %else
 %configure --with-cluster --without-forester --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl

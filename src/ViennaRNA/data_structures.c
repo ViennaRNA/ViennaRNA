@@ -117,6 +117,7 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc){
                                     free(vc->Ss);
                                     free(vc->a2s);
                                     free(vc->pscore);
+                                    free(vc->pscore_pf_compat);
                                     if(vc->scs){
                                       for(s=0;s<vc->n_seq;s++)
                                         vrna_sc_free(vc->scs[s]);
@@ -238,7 +239,10 @@ vrna_fold_compound_comparative( const char **sequences,
   int s, n_seq, length;
   vrna_fold_compound_t *vc;
   vrna_md_t           md;
-  
+  unsigned int        aux_options;
+
+  aux_options = 0L;
+ 
   if(sequences == NULL) return NULL;
 
   for(s=0;sequences[s];s++); /* count the sequences */
@@ -268,7 +272,13 @@ vrna_fold_compound_comparative( const char **sequences,
   else /* this fallback relies on global parameters and thus is not threadsafe */
     vrna_md_set_default(&md);
 
-  set_fold_compound(vc, &md, options, WITH_PTYPE | ((options & VRNA_OPTION_PF) ? WITH_PTYPE_COMPAT : 0L));
+
+  aux_options |= WITH_PTYPE;
+
+  if(options & VRNA_OPTION_PF)
+    aux_options |= WITH_PTYPE_COMPAT;
+
+  set_fold_compound(vc, &md, options, aux_options);
 
   make_pscores(vc);
 
@@ -461,6 +471,8 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   vc->S_cons    = vrna_seq_encode_simple(vc->cons_seq, md_p);
 
                                   vc->pscore    = vrna_alloc(sizeof(int)*((length*(length+1))/2+2));
+                                  /* backward compatibility ptypes */
+                                  vc->pscore_pf_compat = (aux & WITH_PTYPE_COMPAT) ? vrna_alloc(sizeof(int)*((length*(length+1))/2+2)) : NULL;
 
                                   oldAliEn = vc->oldAliEn  = md_p->oldAliEn;
 
@@ -526,6 +538,7 @@ make_pscores(vrna_fold_compound_t *vc){
   vrna_md_t       *md         = (vc->params) ? &(vc->params->model_details) : &(vc->exp_params->model_details);
   int             *pscore     = vc->pscore;     /* precomputed array of pair types */             
   int             *indx       = vc->jindx;                                             
+  int             *my_iindx   = vc->iindx;                                             
   int             n           = vc->length;                                            
 
   turn    = md->min_loop_size;
@@ -653,4 +666,14 @@ make_pscores(vrna_fold_compound_t *vc){
     free(dm[i]);
   }
   free(dm);
+
+  /* copy over pscores for backward compatibility */
+  if(vc->pscore_pf_compat){
+    for(i = 1; i < n; i++)
+      for(j = i; j <= n; j++){
+        printf("%d,%d => %d\n", i, j, pscore[indx[j] + i]);
+        vc->pscore_pf_compat[my_iindx[i] - j] = (short)pscore[indx[j] + i];
+      }
+  }
+
 }

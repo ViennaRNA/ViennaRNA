@@ -121,6 +121,52 @@ static const char *RNAdp_gquad_triangle =
 "  exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub\n"
 "  moveto lineto lineto closepath fill\n"
 "  grestore\n"
+"} bind def\n"
+"/uHmotif{ % i j uHmotif\n"
+"  gsave\n"
+"  1 min 2 div\n"
+"  0.85 mul 0.15 add 0.95  0.99\n"
+"  3 1 roll % prepare hsb color\n"
+"  sethsbcolor\n"
+"  % now produce the coordinates for lines\n"
+"  exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub\n"
+"  moveto lineto lineto closepath fill\n"
+"  grestore\n"
+"} bind def\n"
+"/lHmotif{ % i j lHmotif\n"
+"  gsave\n"
+"  1 min 2 div\n"
+"  0.85 mul 0.15 add 0.95  0.99\n"
+"  3 1 roll % prepare hsb color\n"
+"  sethsbcolor\n"
+"  % now produce the coordinates for lines\n"
+"  dup len exch sub dup 4 -1 roll 1 sub dup 3 1 roll dup len exch sub\n"
+"  moveto lineto lineto closepath fill\n"
+"  grestore\n"
+"} bind def\n"
+"/uImotif{ % i j k l uImotif\n"
+"  gsave\n"
+"  1 min 2 div\n"
+"  0.85 mul 0.15 add 0.95  0.99\n"
+"  3 1 roll % prepare hsb color\n"
+"  sethsbcolor\n"
+"  % now produce the coordinates for lines\n"
+"  1 sub dup 5 1 roll exch len exch sub dup 5 1 roll 3 -1 roll dup\n"
+"  5 1 roll exch 4 1 roll 3 1 roll exch 1 sub len exch sub dup 3 1 roll\n"
+"  moveto lineto lineto lineto closepath fill\n"
+"  grestore\n"
+"} bind def\n"
+"/lImotif{ % i j k l lImotif\n"
+"  gsave\n"
+"  1 min 2 div\n"
+"  0.85 mul 0.15 add 0.95  0.99\n"
+"  3 1 roll % prepare hsb color\n"
+"  sethsbcolor\n"
+"  % now produce the coordinates for lines\n"
+"  4 -1 roll 1 sub dup 5 1 roll exch 1 sub len exch sub dup 3 -1 roll exch\n"
+"  5 -1 roll len exch sub dup 6 -1 roll dup 3 1 roll 7 4 roll\n"
+"  moveto lineto lineto lineto closepath fill\n"
+"  grestore\n"
 "} bind def\n";
 
 static const char *RNAdp_prolog_turn =
@@ -282,16 +328,63 @@ vrna_plot_dp_PS_list( char *seq,
 
   /* print triangles for g-quadruplexes in upper half */
   fprintf(wastl,"\n%%start of quadruplex data\n");
-  for (pl1=pl; pl1->type == 1; pl1++) {
-    tmp = sqrt(pl1->p);
-    fprintf(wastl, "%d %d %1.9f utri\n", pl1->i, pl1->j, tmp);
+  for (pl1=pl; pl1->i > 0; pl1++) {
+    if(pl1->type == 1){
+      tmp = sqrt(pl1->p);
+      fprintf(wastl, "%d %d %1.9f utri\n", pl1->i, pl1->j, tmp);
+    }
+  }
+
+  /* print triangles for hairpin loop motifs in upper half */
+  fprintf(wastl,"\n%%start of Hmotif data\n");
+  for (pl1=pl; pl1->i > 0; pl1++) {
+    if(pl1->type == 2){
+      tmp = sqrt(pl1->p);
+      fprintf(wastl, "%d %d %1.9f uHmotif\n", pl1->i, pl1->j, tmp);
+    }
+  }
+  for (pl1=mf; pl1->i > 0; pl1++) {
+    if(pl1->type == 2){
+      tmp = sqrt(pl1->p);
+      fprintf(wastl, "%d %d %1.9f lHmotif\n", pl1->i, pl1->j, tmp);
+    }
+  }
+
+  /* print triangles for hairpin loop motifs in upper half */
+  fprintf(wastl,"\n%%start of Imotif data\n");
+  int   a,b;
+  float ppp;
+  a = b = 0;
+  for (pl1=pl; pl1->i > 0; pl1++) {
+    if(pl1->type == 3){
+      if(a == 0){
+        a = pl1->i;
+        b = pl1->j;
+        ppp = tmp = sqrt(pl1->p);
+      } else {
+        fprintf(wastl, "%d %d %d %d %1.9f uImotif\n", a, b, pl1->i, pl1->j, ppp);
+        a = b = 0;
+      }
+    }
+  }
+  for (a = b= 0, pl1=mf; pl1->i > 0; pl1++) {
+    if(pl1->type == 3){
+      if(a == 0){
+        a = pl1->i;
+        b = pl1->j;
+        ppp = sqrt(pl1->p);
+      } else {
+        fprintf(wastl, "%d %d %d %d %1.9f lImotif\n", a, b, pl1->i, pl1->j, ppp);
+        a = b = 0;
+      }
+    }
   }
 
   fprintf(wastl, "\n%%draw the grid\ndrawgrid\n\n");
   fprintf(wastl,"%%start of base pair probability data\n");
 
   /* print boxes in upper right half*/
-  for (; pl1->i>0; pl1++) {
+  for (pl1 = pl; pl1->i>0; pl1++) {
     tmp = sqrt(pl1->p);
     if(pl1->type == 0)
         fprintf(wastl,"%d %d %1.9f ubox\n", pl1->i, pl1->j, tmp);
@@ -301,7 +394,8 @@ vrna_plot_dp_PS_list( char *seq,
   /* print boxes in lower left half (mfe) */
   for (pl1=mf; pl1->i>0; pl1++) {
     tmp = sqrt(pl1->p);
-    fprintf(wastl,"%d %d %1.7f lbox\n", pl1->i, pl1->j, tmp);
+    if(pl1->type == 0)
+      fprintf(wastl,"%d %d %1.7f lbox\n", pl1->i, pl1->j, tmp);
   }
 
   fprintf(wastl,"showpage\n"
