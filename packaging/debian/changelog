@@ -1,0 +1,12 @@
+viennarna (2.2.2-1) UNRELEASED; urgency=low
+
+  * Bugfix for RNAcofold --noLP issue
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Mon, 08 Feb 2016 18:37:12 +0100
+
+viennarna (2.2.1-2) UNRELEASED; urgency=low
+
+  * Split packages into core, development files, and scripting language interfaces
+  * Renamed package from vienna-rna to viennarna
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Mon, 08 Feb 2016 11:58:12 +0100

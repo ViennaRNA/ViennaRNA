@@ -1,0 +1,48 @@
+Source: viennarna
+Maintainer: Ronny Lorenz <ronny@tbi.univie.ac.at>
+Section: science
+Priority: optional
+Standards-Version: 3.9.5
+X-Python-Version: >= 2.7
+Build-Depends: debhelper (>= 9), pkg-config, libgsl0-dev, gawk, perl, libperl-dev, python, python-dev, lsb-release
+
+Package: viennarna
+Architecture: any
+Depends: libgomp1 (>= 4.4.5-1), libgsl0ldbl, ${shlibs:Depends}, ${misc:Depends}
+Replaces: vienna-rna (<< 2.2.1-2)
+Breaks: vienna-rna (<< 2.2.1-2)
+Recommends: python-rna, perl-rna
+Description: Vienna RNA Package - Core
+ The Vienna RNA Package Core consists of several executable
+ programs and various scripts for the prediction and comparison
+ of RNA secondary structures.
+
+Package: viennarna-dev
+Architecture: any
+Conflicts: vienna-rna (<< 2.2.1-2)
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: ViennaRNA Package - RNAlib Development files
+ Header files and static RNAlib C-library of the ViennaRNA Package
+
+Package: viennarna-doc
+Architecture: any
+Conflicts: vienna-rna (<< 2.2.1-2)
+Description: ViennaRNA Package - RNAlib Reference Manual
+ Reference Manual for RNAlib C-library in PDF and HTML format
+
+Package: python-rna
+Architecture: any
+Conflicts: vienna-rna (<< 2.2.1-2)
+Depends: ${python:Depends}, ${misc:Depends}, ${shlibs:Depends}, python
+Description: Python bindings to ViennaRNA RNAlib
+ The RNA class to access RNAlib C-library functions from
+ within Python scripts
+
+Package: perl-rna
+Architecture: any
+Conflicts: vienna-rna (<< 2.2.1-2)
+Depends: ${perl:Depends}, ${misc:Depends}, ${shlibs:Depends}, perl
+Description: Perl bindings to ViennaRNA RNAlib
+ The RNA module to access RNAlib C-library functions from
+ within Perl scripts
+
