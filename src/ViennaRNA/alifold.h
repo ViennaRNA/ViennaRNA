@@ -9,6 +9,7 @@
 #include <ViennaRNA/ribo.h>
 #include <ViennaRNA/mfe.h>
 #include <ViennaRNA/part_func.h>
+#include <ViennaRNA/aln_util.h>
 #include <ViennaRNA/boltzmann_sampling.h>
 
 #ifdef DEPRECATION_WARNINGS
@@ -423,7 +424,7 @@ DEPRECATED(int get_alipf_arrays(short ***S_p,
                      FLT_OR_DBL **qm_p,
                      FLT_OR_DBL **q1k_p,
                      FLT_OR_DBL **qln_p,
-                     int **pscore));
+                     short **pscore));
 
 
 /**

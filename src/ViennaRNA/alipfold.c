@@ -51,7 +51,7 @@
 
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
-PRIVATE int                 backward_compat           = 0;
+PRIVATE int                   backward_compat           = 0;
 
 #ifdef _OPENMP
 
@@ -309,7 +309,7 @@ get_alipf_arrays( short ***S_p,
                   FLT_OR_DBL **qm_p,
                   FLT_OR_DBL **q1k_p,
                   FLT_OR_DBL **qln_p,
-                  int **pscore_p) {
+                  short **pscore_p) {
 
   if(backward_compat_compound){
     if(backward_compat_compound->exp_matrices)
@@ -323,7 +323,7 @@ get_alipf_arrays( short ***S_p,
         *qm_p     = backward_compat_compound->exp_matrices->qm;
         *q1k_p    = backward_compat_compound->exp_matrices->q1k;
         *qln_p    = backward_compat_compound->exp_matrices->qln;
-        *pscore_p = backward_compat_compound->pscore;
+        *pscore_p = backward_compat_compound->pscore_pf_compat;
         return 1;
       }
   }
