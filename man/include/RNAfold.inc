@@ -115,13 +115,19 @@ As a consequence, structure predictions are easily amenable to a versatile set o
 such as maximal base pair span, incorporation of SHAPE reactivity data, and RNA-ligand binding
 to hairpin, or interior loop motifs.
 
-Limit the maximum distance of basepairs, for instance to 600nt:
+.I Restricting the maximal span of a base pair
+
+A convenience commandline option allows you to easily limit the distance (j - i + 1) between
+two nucleotides i and j that form a basepair. For instance a limit of 600nt can be accomplished
+using:
 
 .nf
 .ft CW
   $ RNAfold --maxBPspan 600
 .ft
 .fi
+
+.I Guide structure prediction with SHAPE reactivity data
 
 Use SHAPE reactivity data to guide secondary structure prediction:
 
@@ -132,8 +138,8 @@ Use SHAPE reactivity data to guide secondary structure prediction:
 .fi
 
 where the file reactivities.dat is a two column text file with sequence positions (1-based)
-and normalized reactivity values. Missing values may be left out, or assigned a negative
-score:
+and normalized reactivity values (usually between 0 and 2. Missing values may be left out,
+or assigned a negative score:
 
 .nf
 .ft CW
@@ -150,6 +156,8 @@ score:
 
 Note, that RNAfold will only process the first sequence in the input file, when provided
 with SHAPE reactivity data!
+
+.I More complex structure constraints
 
 Structure constraints beyond those that can be expressed with a pseudo-dot bracket notation
 may be provided in a constraints definition file:
@@ -199,6 +207,38 @@ option:
   $ RNAfold --constraint=constraints.txt --batch < sequences.fa
 .ft
 .fi
+
+.I Ligand binding contributions to specific hairpin/interior loop motifs
+
+A convenience function allows to specify a hairping/interior loop motif where a ligand
+is binding with a particular binding free energy dG.
+Here is an example that adds a theophylline binding motif. Free energy contribution of
+this motif of dG=-9.22kcal/mol is derived from k_d=0.32umol/l, taken from Jenison et al.
+1994. Although the structure motif consists of a symmetric interior loop of size 6,
+followed by a small helix of 3 basepairs, and a bulge of 3 nucleotides, the entire
+structure can still be represented by one interior loop.
+See the below mofif description where the '&' character splits the motif into a 5' and
+a 3' part. The first line gives the sequences motif, the second line shows the actual
+structure motif of the aptamer pocket, and the third line is the interior loop motif
+that fully encapsulates the theophylline aptamer:
+
+.nf
+.ft CW
+  GAUACCAG&CCCUUGGCAGC
+  (...((((&)...)))...)
+  (......(&).........)
+.ft
+.fi
+
+To use the above information in the folding recursions of RNAfold, one only needs to
+provide the motif itself, and binding free energy:
+
+.nf
+.ft CW
+  $ RNAfold --motif="GAUACCAG&CCCUUGGCAGC,(...((((&)...)))...),-9.22" < sequences.fa
+.ft
+.fi
+
 
 
 [REFERENCES]
