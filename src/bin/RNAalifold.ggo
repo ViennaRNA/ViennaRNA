@@ -32,21 +32,6 @@ option  "verbose" v
 flag
 off
 
-option  "constraint"  C
-"Calculate structures subject to constraints.\nThe constraining structure will be read from 'stdin',\
- the alignment has to be given as a file name on the command line.\n"
-details="The program reads first the\
- sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
- for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
- a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
- exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
- sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\".\n\n"
-string
-typestr="filename"
-default = ""
-argoptional
-
 option  "color"   -
 "Produce a colored version of the consensus strcture plot \"alirna.ps\" (default b&w only)\n\n"
 flag
@@ -69,6 +54,59 @@ int
 default="1"
 optional
 hidden
+
+# Options
+section "Structure Constraints"
+sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
+
+option  "maxBPspan" -
+"Set the maximum base pair span\n"
+int
+default="-1"
+optional
+
+option  "constraint"  C
+"Calculate structures subject to constraints.\nThe constraining structure will be read from 'stdin',\
+ the alignment has to be given as a file name on the command line.\n"
+details="The program reads first the\
+ sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
+ for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
+ a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
+ exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
+ sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
+ folding ignores constraints of type \"|\".\n\n"
+string
+typestr="filename"
+default = ""
+argoptional
+
+option  "shape" -
+"Use SHAPE reactivity data to guide structure predictions\n"
+details="Multiple shapefiles for the individual sequences in the alignment may be specified \
+ as a comma separated list. An optional association of particular shape files to a specific \
+ sequence in the alignment can be expressed by prepending the sequence number to the filename, \
+ e.g. \"5=seq5.shape,3=seq3.shape\" will assign the reactivity values from file seq5.shape to \
+ the fifth sequence in the alignment, and the values from file seq3.shape to sequence 3. If \
+ no assignment is specified, the reactivity values are assigned to corresponding sequences in \
+ the order they are given.\n\n"
+string
+typestr="file1,file2"
+multiple(1-)
+optional
+
+option  "shapeMethod" -
+"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
+details="Currently, the only data conversion method available is that of to Deigan et al 2009. \
+ This method is the default and is recognized by a capital 'D' in the provided parameter, i.e.: \
+ --shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
+ non-default value if necessary. Otherwise m=1.8 and b=-0.6 as stated in the paper mentionen before. \
+ To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
+ parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
+ parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\"."
+string
+typestr="D[mX][bY]"
+dependon="shape"
+optional
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
@@ -255,35 +293,6 @@ default="1."
 optional
 dependon="partfunc"
 hidden
-
-option  "shape" -
-"Use SHAPE reactivity data in the folding recursions (does not work for PF yet)\n"
-string
-typestr="SHAPE files"
-multiple(1-)
-optional
-
-option  "shapeMethod" -
-"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
-details="Currently, the only data conversion method available is according to Deigan et al 2009. \
- This method is the default and is recognized by a capital 'D' in the provided parameter, i.e.: \
- --shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
- non-default value if necessary. Otherwise m=1.8 and b=-0.6 as stated in the paper mentionen before. \
- To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
- parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
- parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\"."
-string
-typestr="D[mX][bY]"
-dependon="shape"
-optional
-
-option  "maxBPspan" -
-"Set the maximum base pair span\n"
-int
-default="-1"
-optional
-
-
 
 
 text  "Caveats:\n\nSequences are not weighted. If possible, do not mix very similar and\
