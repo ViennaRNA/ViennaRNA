@@ -102,6 +102,94 @@ scanForPairs( const char  *motif5,
 */
 
 PUBLIC int
+vrna_sc_detect_hi_motif(vrna_fold_compound_t *vc,
+                        const char *structure,
+                        int *i,
+                        int *j,
+                        int *k,
+                        int *l){
+
+  int p, q, n;
+  quadruple_position  *pos;
+  ligand_data         *ldata;
+
+  if(vc && vc->sc && vc->sc->data){
+    n = vc->length;
+    ldata = (ligand_data *)vc->sc->data;
+
+    for(p = *i; p < n; p++){
+      for(pos = ldata->positions; pos->i; pos++){
+        if(pos->i == p){
+          /* check whether we find the motif in the provided structure */
+          int i_m, j_m, k_m, l_m;
+          i_m = pos->i;
+          j_m = pos->j;
+          k_m = pos->k;
+          l_m = pos->l;
+          for(q = 0; q < strlen(ldata->struct_motif_5); q++){
+            if(ldata->struct_motif_5[q] != structure[i_m+q-1])
+              break;
+          }
+          if(q == strlen(ldata->struct_motif_5)){ /* 5' motif detected */
+            if(k_m > 0){
+              for(q = 0; q < strlen(ldata->struct_motif_3); q++){
+                if(ldata->struct_motif_3[q] != structure[l_m+q-1])
+                  break;
+              }
+              if(q == strlen(ldata->struct_motif_3)){ /* 3' motif detected */
+                *i = i_m;
+                *j = j_m;
+                *k = k_m;
+                *l = l_m;
+                return 1;
+              }
+            } else {
+                *i = i_m;
+                *j = j_m;
+                *k = k_m;
+                *l = l_m;
+                return 1;
+            }
+          }
+        }
+      }
+    }
+      
+  }
+  return 0;
+}
+
+PUBLIC int
+vrna_sc_get_hi_motif( vrna_fold_compound_t *vc,
+                      int *i,
+                      int *j,
+                      int *k,
+                      int *l){
+
+  int p, n;
+  quadruple_position  *pos;
+  ligand_data         *ldata;
+
+  if(vc && vc->sc && vc->sc->data){
+    n = vc->length;
+    ldata = (ligand_data *)vc->sc->data;
+
+    for(p = *i; p < n; p++){
+      for(pos = ldata->positions; pos->i; pos++){
+        if(pos->i == p){
+          *i = pos->i;
+          *j = pos->j;
+          *k = pos->k;
+          *l = pos->l;
+          return 1;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+PUBLIC int
 vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
                       const char *seq,
                       const char *structure,
