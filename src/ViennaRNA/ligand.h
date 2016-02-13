@@ -40,6 +40,20 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
                       FLT_OR_DBL energy,
                       unsigned int options);
 
+int
+vrna_sc_detect_hi_motif(vrna_fold_compound_t *vc,
+                        const char *structure,
+                        int *i,
+                        int *j,
+                        int *k,
+                        int *l);
+
+int
+vrna_sc_get_hi_motif( vrna_fold_compound_t *vc,
+                      int *i,
+                      int *j,
+                      int *k,
+                      int *l);
 
 /**
  * @}
