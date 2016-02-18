@@ -630,20 +630,20 @@ int main(int argc, char *argv[]){
                   pl1 = vrna_realloc(pl1, sizeof(vrna_plist_t) * (size + add + 1));
                 }
               } else { /* interior loop motif */
-                pl2[size + cnt].i = a;
-                pl2[size + cnt].j = b;
-                pl2[size + cnt].p = 0.95*0.95;
-                pl2[size + cnt].type = 3;
+                pl1[size + cnt].i = a;
+                pl1[size + cnt].j = b;
+                pl1[size + cnt].p = 0.95*0.95;
+                pl1[size + cnt].type = 3;
                 cnt++;
-                pl2[size + cnt].i = c;
-                pl2[size + cnt].j = d;
-                pl2[size + cnt].p = 0.95*0.95;
-                pl2[size + cnt].type = 3;
+                pl1[size + cnt].i = c;
+                pl1[size + cnt].j = d;
+                pl1[size + cnt].p = 0.95*0.95;
+                pl1[size + cnt].type = 3;
                 cnt++;
                 if(cnt == add){
                   add += 10;
                   /* increase length of pl1 */
-                  pl2 = vrna_realloc(pl2, sizeof(vrna_plist_t) * (size + add + 1));
+                  pl1 = vrna_realloc(pl1, sizeof(vrna_plist_t) * (size + add + 1));
                 }
               }
 
