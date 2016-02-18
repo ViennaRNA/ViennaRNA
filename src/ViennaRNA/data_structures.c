@@ -671,7 +671,6 @@ make_pscores(vrna_fold_compound_t *vc){
   if(vc->pscore_pf_compat){
     for(i = 1; i < n; i++)
       for(j = i; j <= n; j++){
-        printf("%d,%d => %d\n", i, j, pscore[indx[j] + i]);
         vc->pscore_pf_compat[my_iindx[i] - j] = (short)pscore[indx[j] + i];
       }
   }
