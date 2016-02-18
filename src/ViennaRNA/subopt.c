@@ -1895,7 +1895,7 @@ repeat( vrna_fold_compound_t *vc,
   mm = P->MLclosing;
   rt = rtype[type];
 
-  if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+  if((hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) && (i != cp-1) && (j != cp)){
 
     element_energy = mm;
     switch(dangle_model){
@@ -1910,12 +1910,12 @@ repeat( vrna_fold_compound_t *vc,
         element_energy += sc->energy_bp[ij];
     }
 
-    for (k = i + 1 + turn; k <= j - 2 - turn; k++)  {
+    for (k = i + turn + 2; k <= j - turn - 2; k++)  {
       /* multiloop decomposition */
-      if ((fML[indx[k] + i+1] + fM1[indx[j-1] + k+1] +
+      if ((fML[indx[k-1] + i+1] + fM1[indx[j-1] + k] +
           element_energy + best_energy)  <= threshold)
         {
-          fork_two_states_pair(i, j, k+1, state, part_energy + element_energy, 1, 3, env);
+          fork_two_states_pair(i, j, k, state, part_energy + element_energy, 1, 3, env);
         }
     }
   }
