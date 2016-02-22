@@ -6,10 +6,9 @@ EXTRA_DIST = \
 
 
 pkgpyexecdir = $(pyexecdir)/RNA
-pkgpythondir = $(pythondir)/RNA
 
 pkgpyexec_LTLIBRARIES = _RNA.la
-pkgpython_PYTHON = RNA/__init__.py
+pkgpyexec_PYTHON = RNA/__init__.py
 
 _RNA_la_SOURCES = $(top_srcdir)/interfaces/RNA.i $(SWIG_wrapper)
 
