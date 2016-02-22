@@ -73,7 +73,6 @@ PRIVATE vrna_dimer_pf_t wrap_co_pf_fold(char *sequence,
                                 int calculate_bppm,
                                 int is_constrained);
 
-
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -167,6 +166,8 @@ vrna_pf_dimer(vrna_fold_compound_t *vc,
   vrna_exp_param_t  *params;
   vrna_mx_pf_t      *matrices;
 
+  vrna_fold_compound_prepare(vc, VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+
   params    = vc->exp_params;
   n         = vc->length;
   md        = &(params->model_details);
@@ -188,13 +189,13 @@ vrna_pf_dimer(vrna_fold_compound_t *vc,
 
   /* call user-defined recursion status callback function */
   if(vc->stat_cb)
-    vc->stat_cb(vc, VRNA_STATUS_PF_PRE);
+    vc->stat_cb(VRNA_STATUS_PF_PRE, vc->auxdata);
 
   pf_co(vc);
 
   /* call user-defined recursion status callback function */
   if(vc->stat_cb)
-    vc->stat_cb(vc, VRNA_STATUS_PF_POST);
+    vc->stat_cb(VRNA_STATUS_PF_POST, vc->auxdata);
 
   if (md->backtrack_type=='C')
     Q = matrices->qb[vc->iindx[1]-n];
@@ -564,7 +565,7 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
   short             *S,*S1;
-  unsigned char     *ptype;
+  char              *ptype;
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
   vrna_mx_pf_t      *matrices;

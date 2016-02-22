@@ -223,7 +223,7 @@ vrna_fold_compound( const char *sequence,
       /* add default hard constraints */
       vrna_hc_init(vc);
 
-      /* add DP matrices */
+      /* add DP matrices (if required) */
       vrna_mx_add(vc, VRNA_MX_DEFAULT, options);
     }
   }
@@ -286,10 +286,9 @@ vrna_fold_compound_comparative( const char **sequences,
     /* add default hard constraints */
     vrna_hc_init(vc);
 
-    /* add DP matrices */
+    /* add DP matrices (if required) */
     vrna_mx_add(vc, VRNA_MX_DEFAULT, options);
   }
-
 
   return vc;
 }
@@ -387,6 +386,85 @@ vrna_fold_compound_add_callback(vrna_fold_compound_t *vc,
   }
 }
 
+PUBLIC int
+vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
+                            unsigned int options){
+  int ret = 1; /* success */
+
+  if(options & VRNA_OPTION_MFE){   /* prepare for MFE computation */
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:     if(!vc->ptype)
+                                      vc->ptype = vrna_ptypes(vc->sequence_encoding2,
+                                                              &(vc->params->model_details));
+                                    break;
+      case VRNA_VC_TYPE_ALIGNMENT:  break;
+      default:                      break;
+    }
+
+    if(options & VRNA_OPTION_WINDOW){ /* Windowing approach, a.k.a. locally optimal */
+      /*  check whether we have the correct DP matrices attached, and if there is
+          enough memory allocated
+      */
+      if(!vc->matrices || (vc->matrices->type != VRNA_MX_WINDOW) || (vc->matrices->length < vc->length)){
+        /* here we simply pass '0' as options, since we call mx_mfe_add() explicitely */
+        vrna_mx_mfe_add(vc, VRNA_MX_WINDOW, options);
+      }
+    } else { /* default is regular MFE */
+      /*  check whether we have the correct DP matrices attached, and if there is
+          enough memory allocated
+      */
+      if(!vc->matrices || (vc->matrices->type != VRNA_MX_DEFAULT) || (vc->matrices->length < vc->length)){
+        vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, options);
+      }
+    }
+  }
+
+  if(options & VRNA_OPTION_PF){   /* prepare for partition function computation */
+
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:     /* get pre-computed Boltzmann factors if not present*/
+                                    if(!vc->exp_params)
+                                      vc->exp_params      = vrna_exp_params(&(vc->params->model_details));
+
+                                    if(!vc->ptype)
+                                      vc->ptype           = vrna_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details));
+#ifdef VRNA_BACKWARD_COMPAT
+                                    /* backward compatibility ptypes */
+                                    if(!vc->ptype_pf_compat)
+                                      vc->ptype_pf_compat = get_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details), 1);
+#endif
+                                    /* get precomputed Boltzmann factors for soft-constraints (if any) */
+                                    if(vc->sc){
+                                      if(!vc->sc->exp_energy_up)
+                                        vrna_sc_add_up(vc, NULL, VRNA_OPTION_PF);
+                                      if(!vc->sc->exp_energy_bp)
+                                        vrna_sc_add_bp(vc, NULL, VRNA_OPTION_PF);
+                                      if(!vc->sc->exp_energy_stack)
+                                        vrna_sc_add_SHAPE_deigan(vc, NULL, 0, 0, VRNA_OPTION_PF);
+                                    }
+
+                                    break;
+
+      case VRNA_VC_TYPE_ALIGNMENT:  /* get pre-computed Boltzmann factors if not present*/
+                                    if(!vc->exp_params)
+                                      vc->exp_params  = vrna_exp_params_comparative(vc->n_seq, &(vc->params->model_details));
+                                    break;
+
+      default:                      break;
+    }
+
+    /*  Add DP matrices, if not they are not present */
+    if(!vc->exp_matrices || (vc->exp_matrices->type != VRNA_MX_DEFAULT) || (vc->exp_matrices->length < vc->length)){
+      vrna_mx_pf_add(vc, VRNA_MX_DEFAULT, options);
+    }
+  }
+
+  return ret;
+}
+
+
+
+
 /*
 #####################################
 # BEGIN OF STATIC HELPER FUNCTIONS  #
@@ -398,8 +476,8 @@ add_params( vrna_fold_compound_t *vc,
             vrna_md_t *md_p,
             unsigned int options){
 
-  if(options & VRNA_OPTION_MFE)
-    vc->params = vrna_params(md_p);
+  /* ALWAYS add regular energy parameters */
+  vc->params = vrna_params(md_p);
 
   if(options & VRNA_OPTION_PF){
     vc->exp_params  = (vc->type == VRNA_VC_TYPE_SINGLE) ? \

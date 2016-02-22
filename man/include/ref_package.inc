@@ -9,3 +9,7 @@ I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster (
 "Fast Folding and Comparison of RNA Secondary Structures",
 Monatshefte f. Chemie: 125, pp 167-188
 
+[REPORTING BUGS]
+
+If in doubt our program is right, nature is at fault.
+Comments should be sent to rna@tbi.univie.ac.at.

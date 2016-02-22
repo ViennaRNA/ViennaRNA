@@ -9,9 +9,16 @@
 %rename (fold) my_fold;
 
 %{
+  char *my_fold(char *string, float *energy) {
+    char *struc;
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
+    *energy = fold(string, struc);
+    return(struc);
+  }
+
   char *my_fold(char *string, char *constraints, float *energy) {
     char *struc;
-    struc = calloc(strlen(string)+1,sizeof(char));
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(string));
     *energy = fold(string, struc);
@@ -22,7 +29,8 @@
 %}
 
 %newobject my_fold;
-char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
+char *my_fold(char *string, float *OUTPUT);
+char *my_fold(char *string, char *constraints, float *OUTPUT);
 %ignore fold;
 
 /* these functions remain for now due to backward compatibility reasons
@@ -57,9 +65,19 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %rename (cofold) my_cofold;
 
 %{
+  char *my_cofold(char *string, float *energy) {
+    char *struc;
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
+    if (cut_point > strlen(string)) {
+       cut_point = -1;
+    } 
+    *energy = cofold(string, struc);
+    return(struc);
+  }
+
   char *my_cofold(char *string, char *constraints, float *energy) {
     char *struc;
-    struc = calloc(strlen(string)+1,sizeof(char));
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(string));
     if (cut_point > strlen(string)) {
@@ -73,7 +91,8 @@ char *my_fold(char *string, char *constraints = NULL, float *OUTPUT);
 %}
 
 %newobject my_cofold;
-char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
+char *my_cofold(char *string, float *OUTPUT);
+char *my_cofold(char *string, char *constraints, float *OUTPUT);
 %ignore cofold;
 
 /* these functions remain for now due to backward compatibility reasons
@@ -96,16 +115,35 @@ char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 /* BEGIN interface for alifold                */
 /**********************************************/
 
-%ignore alifold;
 %rename (alifold) my_alifold;
 
 %{
-  char *my_alifold(char **strings, char *constraints, float *energy) {
+#include <string>
+#include <cstring>
+#include <vector>
+
+  char *my_alifold(std::vector<std::string> alignment, float *energy) {
     char *struc;
-    struc = calloc(strlen(strings[0])+1,sizeof(char));
+    /* convert std::vector<std::string> to vector<const char *> */
+    std::vector<const char*>  vc;
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
+    vc.push_back(NULL); /* mark end of sequences */
+
+    struc = (char *)calloc(strlen(vc[0])+1,sizeof(char));
+    *energy = alifold((const char **)&vc[0], struc);
+    return(struc);
+  }
+  char *my_alifold(std::vector<std::string> alignment, char *constraints, float *energy) {
+    char *struc;
+    /* convert std::vector<std::string> to vector<const char *> */
+    std::vector<const char*>  vc;
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
+    vc.push_back(NULL); /* mark end of sequences */
+
+    struc = (char *)calloc(strlen(vc[0])+1,sizeof(char));
     if (constraints && fold_constrained)
-      strncpy(struc, constraints, strlen(strings[0]));
-    *energy = alifold((const char **)strings, struc);
+      strncpy(struc, constraints, strlen(vc[0]));
+    *energy = alifold((const char **)&vc[0], struc);
     if (constraints)
       strncpy(constraints, struc, strlen(constraints));
     return(struc);
@@ -113,7 +151,9 @@ char *my_cofold(char *string, char *constraints = NULL, float *OUTPUT);
 %}
 
 %newobject my_alifold;
-char *my_alifold(char **strings, char *constraints = NULL, float *OUTPUT);
+char *my_alifold(std::vector<std::string> alignment, float *OUTPUT);
+char *my_alifold(std::vector<std::string> alignment, char *constraints, float *OUTPUT);
+%ignore alifold;
 
 %ignore energy_of_alistruct;
 %ignore energy_of_ali_gquad_structure;
@@ -127,5 +167,39 @@ char *my_alifold(char **strings, char *constraints = NULL, float *OUTPUT);
 %ignore get_alipf_arrays;
 %ignore update_alifold_params;
 
+
+%extend vrna_fold_compound_t {
+
+  char *mfe(float *OUTPUT){
+
+    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
+    *OUTPUT = vrna_mfe($self, structure);
+    return structure;
+  }
+
+  /* MFE for 2 RNA strands */
+  char *mfe_dimer(float *OUTPUT){
+
+    char *structure = (char*)vrna_alloc(sizeof(char) * ($self->length + 1));
+    *OUTPUT = vrna_mfe_dimer($self, structure);
+    return structure;
+  }
+
+  float mfe_window(FILE *file=NULL){
+
+    return vrna_mfe_window($self,file);
+  }
+
+  /* ONLY possible if USE_SVM is set
+  float mfe_window_zscore(double min_z,FILE *file=NULL){
+
+    return vrna_mfe_window_zscore($self,min_z,file);
+  }*/
+  
+}
+
+/* tell swig that these functions return objects that require memory management */
+%newobject vrna_fold_compound_t::mfe;
+%newobject vrna_fold_compound_t::mfe_dimer;
 
 %include <ViennaRNA/alifold.h>

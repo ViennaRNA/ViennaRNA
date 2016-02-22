@@ -28,6 +28,7 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/string_utils.h>
 #include <ViennaRNA/structure_utils.h>
+#include <ViennaRNA/alphabet.h>
 
 /* two helper macros to indicate whether a function should be exported in
 the library or stays hidden */
@@ -104,18 +105,6 @@ the library or stays hidden */
  *  @brief  Output flag for vrna_file_fasta_read_record():  @e "read a comment"
  */
 #define VRNA_INPUT_COMMENT                8192U
-
-/**
- *  @brief  Tell a function that an input is assumed to span several lines
- *
- *  If used as input-option a function might also be returning this state telling
- *  that it has read data from multiple lines.
- *
- *  @see vrna_extract_record_rest_structure(), vrna_file_fasta_read_record(), vrna_extract_record_rest_constraint()
- *
- */
-#define VRNA_OPTION_MULTILINE             32U
-
 
 /**
  *  @brief Get the minimum of two comparable values
@@ -317,24 +306,10 @@ int *vrna_idx_row_wise(unsigned int length);
 int *vrna_idx_col_wise(unsigned int length);
 
 /**
- *  @brief Get an array of the numerical encoding for each possible base pair (i,j)
- *
- *  @note This array is always indexed in column-wise order, in contrast to previously
- *  different indexing between mfe and pf variants!
- *
- *  @see  vrna_idx_col_wise(), #vrna_fold_compound_t
- *
- */
-char  *vrna_ptypes( const short *S,
-                    vrna_md_t *md);
-
-/**
  *  @}
  */
 
 #ifdef  VRNA_BACKWARD_COMPAT
-
-DEPRECATED(char  *get_ptypes(const short *S, vrna_md_t *md, unsigned int idx_type));
 
 DEPRECATED(int   *get_indx(unsigned int length));
 

@@ -100,7 +100,7 @@ vrna_pf_alifold(const char **strings,
     md.compute_bpp = 0;
   }
 
-  vc  = vrna_fold_compound_comparative(strings, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+  vc  = vrna_fold_compound_comparative(strings, &md, VRNA_OPTION_DEFAULT);
   mfe = (double)vrna_pf(vc, structure);
   vrna_exp_params_rescale(vc, &mfe);
   free_energy = vrna_pf(vc, structure);
@@ -135,7 +135,7 @@ vrna_pf_circalifold(const char **sequences,
     md.compute_bpp = 0;
   }
 
-  vc  = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+  vc  = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_DEFAULT);
   mfe = (double)vrna_mfe(vc, structure);
   vrna_exp_params_rescale(vc, &mfe);
   free_energy = vrna_pf(vc, structure);

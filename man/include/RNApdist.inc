@@ -13,7 +13,7 @@ or a number if unnamed.
 
 Peter F Stadler, Ivo L Hofacker, Sebastian Bonhoeffer.
 
-[REFERENCES]
+[>REFERENCES]
 
 S. Bonhoeffer, J.S. McCaskill, P.F. Stadler, P. Schuster (1993),
 "RNA multi-structure landscapes",

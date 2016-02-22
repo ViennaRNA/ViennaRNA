@@ -98,8 +98,8 @@
       sc_bp[i][j] = -2;
   }
 
-  vrna_sc_add_up(vc, (const FLT_OR_DBL *)sc_up, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
-  vrna_sc_add_bp(vc, (const FLT_OR_DBL **)sc_bp, VRNA_CONSTRAINT_SOFT_MFE | VRNA_CONSTRAINT_SOFT_PF);
+  vrna_sc_add_up(vc, (const FLT_OR_DBL *)sc_up, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+  vrna_sc_add_bp(vc, (const FLT_OR_DBL **)sc_bp, VRNA_OPTION_MFE | VRNA_OPTION_PF);
 
   mfe_energy_constrained = (double)vrna_mfe(vc, mfe_structure_constrained);
   vrna_exp_params_rescale(vc, &mfe_energy_constrained);

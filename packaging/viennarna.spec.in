@@ -124,6 +124,43 @@ rm -rf $RPM_BUILD_ROOT
 # crude bugfix for info clash
 rm -f $RPM_BUILD_ROOT/usr/share/info/dir
 
+########################################
+# Stripping of our static LTO libRNA.a
+# totally destroys the library, i.e.
+# linking against libRNA fails with lots
+# of 'undefined reference' errors.
+# To avoid this, we can either turn off
+# LTO at compile time, or disable
+# stripping of the static library itself
+#
+# We do the latter here!
+########################################
+
+# Extract %%__os_install_post into os_install_post~
+cat << \EOF > os_install_post~
+%__os_install_post
+EOF
+
+# remove stripping of static libraries
+sed -i -e 's!/usr/lib/rpm[^[:space:]]*/brp-strip-static-archive[[:space:]]%{__strip}!!g' os_install_post~
+sed -i -e 's!/usr/lib/rpm[^[:space:]]*/brp-strip-static-archive!!g' os_install_post~
+
+# openSUSE does not call 'brp-strip-static-archive' but
+# calls its own brp_suse script, which by default strips
+# debug symbols from binary files. Luckily, it provides an
+# environment variable to turn off stripping debug symbols
+%if 0%{?suse_version}
+# get rid of /usr/lib/rpm/brp-strip-debug
+export NO_BRP_STRIP_DEBUG=true
+%endif
+
+%define __os_install_post . ./os_install_post~
+
+########################################
+# The above should ensure not to
+# accidentally strip libRNA.a
+########################################
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 

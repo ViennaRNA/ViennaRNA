@@ -129,7 +129,7 @@ length 3 ending at position 2 exists).
 If the -b option is selected position and dGu_s values for the shorter sequence
 are written after the information for the target sequence.
 
-[REFERENCES]
+[>REFERENCES]
 
 U. Mueckstein, H. Tafer, J. Hackermueller, S.H. Bernhart, P.F. Stadler, and I.L. Hofacker (2006),
 "Thermodynamics of RNA-RNA Binding",

@@ -5,7 +5,14 @@ PERL_MODULE = $(SWIG_module_name).pm
 perlextdir = $(prefix)$(PERL_ARCH_RELATIVE_INSTALL_DIR)/auto/RNA
 perlext_LTLIBRARIES = RNA.la
 
-RNA_la_SOURCES = $(SWIG_src) RNA_wrap.c
+INTERFACE_FILES = $(SWIG_src) \
+                  tmaps.i \
+                  globals-md.i \
+                  callbacks-fc.i \
+                  callbacks-sc.i
+
+RNA_la_SOURCES =  $(INTERFACE_FILES) \
+                  $(SWIG_wrapper)
 
 perlmoddir = $(prefix)$(PERL_LIB_RELATIVE_INSTALL_DIR)
 nobase_dist_perlmod_DATA = \
@@ -14,7 +21,8 @@ nobase_dist_perlmod_DATA = \
   RNA/Design.pm \
   RNA/Files.pm \
   RNA/Reliability.pm \
-  RNA/Utils.pm
+  RNA/Utils.pm \
+  RNA/Params.pm
 
 RNA_la_CPPFLAGS = -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS) @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
 
@@ -23,31 +31,24 @@ if WITH_LIBSVM
 RNA_la_LIBADD += -lstdc++
 endif
 
-RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic $(PERLXS_LDFLAGS)
-
-##if WITH_LTO
-##RNA_la_LDFLAGS += -Wc,$(LTO_LDFLAGS)
-##endif
+RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -shrext $(PERL_SO) $(PERLXS_LDFLAGS)
 
 SOURCES = RNA.pod
 
-BUILT_SOURCES = auto/RNA/RNA.so
+BUILT_SOURCES = auto/RNA/RNA$(PERL_SO)
 
 EXTRA_DIST = \
   $(SWIG_wrapper) \
   $(PERL_MODULE) \
-  RNAfold.pl \
-  RNAfold.cgi \
-  test.pl \
   RNA/t/Design.t
 
 ##
 ## SWIG interface wrapper code generation
 ##
 
-$(SWIG_wrapper) $(PERL_MODULE): $(SWIG_src)
+$(SWIG_wrapper) $(PERL_MODULE): $(INTERFACE_FILES)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src @FLOAT_PF_FLAG@ \
-                  -perl5 -proxy -const \
+                  -perl5 -proxy -const -c++ \
                   -module RNA -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
 
@@ -55,25 +56,15 @@ $(SWIG_wrapper) $(PERL_MODULE): $(SWIG_src)
 ## copy shared library for perl-tests
 ##
 
-auto/RNA/RNA.so: RNA.la
+auto/RNA/RNA$(PERL_SO): RNA.la
 	$(MKDIR_P) auto/RNA
 	$(LIBTOOL) --config > libtoolconfig.tmp
 ## ksh requires a path on the sourced file.
-	. ./libtoolconfig.tmp; cp "$$objdir/RNA.so" auto/RNA
+	. ./libtoolconfig.tmp; cp "$$objdir/RNA$(PERL_SO)" auto/RNA
 	rm -f libtoolconfig.tmp
 
-##
-## Perl Test Suite
-##
-
-AM_TESTS_ENVIRONMENT = PERL5LIB='$(srcdir):$(builddir):${PERL5LIB}'; export PERL5LIB;
-LOG_COMPILER = $(PERL)
-AM_LOG_FLAGS = -Mstrict -w
-TESTS = test.pl \
-        RNA/t/Design.t
-
 clean-local:
-	-rm -rf auto test.coord test_dp.ps test_ss.ps test_ss_a.ps test.par
+	-rm -rf auto
 
 ## Remove the .la file - RNA.la is never linked against (it's a module)
 ## and Perl doesn't use libltdl.  Note that the library gets installed by

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+    <pkg-ref id="org.TBI.ViennaRNA.core"/>
+    <pkg-ref id="org.TBI.ViennaRNA.cluster"/>
+    <pkg-ref id="org.TBI.ViennaRNA.kinfold"/>
+    <pkg-ref id="org.TBI.ViennaRNA.rnaforester"/>
+    <pkg-ref id="org.TBI.ViennaRNA.kinwalker"/>
+    <pkg-ref id="org.TBI.ViennaRNA.libRNA"/>
+    <pkg-ref id="org.TBI.ViennaRNA.perl"/>
+    <pkg-ref id="org.TBI.ViennaRNA.python"/>
+    <options customize="always" hostArchitectures="i386,x86_64" />
+    <domains enable_localSystem="true" enableCurrentUserHome="false" enable_anywhere="false" />
+    <background file="ohm.png" mime-type="image/png" alignment="right" scaling="none" />
+    <title>@PACKAGE_NAME@ Package @PACKAGE_VERSION@</title>
+    <welcome file="welcome.txt" mime-type="text/plain" />
+    <readme file="README" mime-type="text/plain" />
+    <license file="COPYING" mime-type="text/plain" />
+    <conclusion file="conclusion.html" mime-type="text/html" />
+     <choices-outline>
+        <line choice="org.TBI.ViennaRNA.core"/>
+        <line choice="org.TBI.ViennaRNA.cluster"/>
+        <line choice="org.TBI.ViennaRNA.kinfold"/>
+        <line choice="org.TBI.ViennaRNA.rnaforester"/>
+        <line choice="org.TBI.ViennaRNA.kinwalker"/>
+        <line choice="org.TBI.ViennaRNA.libRNA"/>
+        <line choice="org.TBI.ViennaRNA.perl"/>
+        <line choice="org.TBI.ViennaRNA.python"/>
+    </choices-outline>
+    <choice id="org.TBI.ViennaRNA.core" title="Core" enabled="false"
+        description="Executable programs, utilities, and corresponding manual pages">
+        <pkg-ref id="org.TBI.ViennaRNA.core">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Core.pkg</pkg-ref>
+    </choice>
+    <choice id="org.TBI.ViennaRNA.cluster" title="Cluster Analysis" start_selected="false"
+        description="The programs AnalyseSeqs and AnalyseDists offer some cluster analysis tools (split decomposition, statistical geometry, neighbor joining, Ward's method) for sequences and distance data">
+        <pkg-ref id="org.TBI.ViennaRNA.cluster">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Cluster%20Analysis.pkg</pkg-ref>
+    </choice>
+    <choice id="org.TBI.ViennaRNA.kinfold" title="Kinfold"
+        description="Simulate kinetic folding of RNA secondary structures">
+        <pkg-ref id="org.TBI.ViennaRNA.kinfold">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Kinfold.pkg</pkg-ref>
+    </choice>
+    <choice id="org.TBI.ViennaRNA.rnaforester" title="RNAforester"
+        description="Compare RNA secondary structures via forest alignment">
+        <pkg-ref id="org.TBI.ViennaRNA.rnaforester">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20RNAforester.pkg</pkg-ref>
+    </choice>
+    <choice id="org.TBI.ViennaRNA.kinwalker" title="Kinwalker" start_selected="false"
+        description="Predict (co-transcriptional) RNA folding trajectories">
+        <pkg-ref id="org.TBI.ViennaRNA.kinwalker">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Kinwalker.pkg</pkg-ref>
+    </choice>
+    <choice id="org.TBI.ViennaRNA.libRNA" title="Development Files"
+        description="C-library, header files, and reference documentation">
+        <pkg-ref id="org.TBI.ViennaRNA.libRNA">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Development.pkg</pkg-ref>
+    </choice>
+    <choice id="org.TBI.ViennaRNA.perl" title="Perl Interface"
+        description="Perl bindings for the C-library and additional Perl packages">
+        <pkg-ref id="org.TBI.ViennaRNA.perl">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@Perl.pkg</pkg-ref>
+    </choice>
+    <choice id="org.TBI.ViennaRNA.python" title="Python Interface"
+        description="Python 2 bindings for the C-library">
+        <pkg-ref id="org.TBI.ViennaRNA.python">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@Python.pkg</pkg-ref>
+    </choice>
+    <pkg-ref id="org.TBI.ViennaRNA.core" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Core.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.cluster" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Cluster%20Analysis.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.kinfold" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Kinfold.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.rnaforester" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20RNAforester.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.kinwalker" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Kinwalker.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.libRNA" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Development.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.perl" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Perl.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.python" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Python.pkg</pkg-ref>
+</installer-gui-script>

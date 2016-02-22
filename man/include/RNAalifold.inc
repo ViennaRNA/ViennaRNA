@@ -2,7 +2,7 @@
 
 Ivo L Hofacker, Stephan Bernhart, Ronny Lorenz
 
-[REFERENCES]
+[>REFERENCES]
 
 The algorithm is a variant of the dynamic programming algorithms of M. Zuker and P. Stiegler (mfe)
 and J.S. McCaskill (pf) adapted for sets of aligned sequences with covariance information.

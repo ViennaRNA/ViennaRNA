@@ -5,6 +5,13 @@
 ## Several macros for AC_RNA_INIT ##
 ##--------------------------------##
 
+AC_DEFUN([AC_RNA_APPEND_VAR_COMMA],[
+  if test "x$$1" != "x" ; then
+    $1="${$1}, "
+  fi
+  $1="${$1}$2"
+])
+
 AC_DEFUN([AC_RNA_TEST_FILE],[
 AC_MSG_CHECKING([for $1])
 if test -f $1 ; then
@@ -113,11 +120,17 @@ AC_DEFUN([RNA_ADD_FEATURE],[
 
 AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
             [ifelse([$3], [yes],
-              [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])], [disable feature: $2])],
-              [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])], [enable feature: $2])])],
+              [ifelse([$6], [],
+                [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])], [$2])],
+                [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])@<:@=ARG@:>@], [$2 @<:@default ARG=$6@:>@])]
+              )],
+              [ifelse([$6], [],
+                [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])], [$2])],
+                [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])@<:@=ARG@:>@], [$2 @<:@default ARG=$6@:>@])]
+              )]
+            )],
             [$4],
             [$5])
-
 
 ])
 
@@ -130,8 +143,14 @@ AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
 # This macro also substitutes the automake variables
 # AM_CPPFLAGS, AM_CFLAGS, AM_CXXFLAGS, and AM_LDFLAGS
 #
+# As a bonus, we subsitute RNALIB_CFLAGS and
+# RNALIB_LIBS to pass them further to our subprojects
+#
 
 AC_DEFUN([RNA_FEATURE_POST],[
+
+  VRNA_LIBS=" -L\$(top_builddir)/../../src/ViennaRNA -lRNA ${LIBGOMPFLAG} ${LTO_LDFLAGS}"
+  VRNA_CFLAGS=" -I\$(top_srcdir)/../../src/ViennaRNA -I\$(top_srcdir)/../../src ${GENERIC_HC_DEF} ${FLOAT_PF_FLAG} ${DEPRECATION_WARNING}"
 
   # substitute automake variables in case we set them somewhere
   # in our autoconf mess
@@ -140,9 +159,11 @@ AC_DEFUN([RNA_FEATURE_POST],[
   AC_SUBST([AM_CFLAGS])
   AC_SUBST([AM_CXXFLAGS])
   AC_SUBST([AM_LDFLAGS])
+  AC_SUBST([VRNA_LIBS])
+  AC_SUBST([VRNA_CFLAGS])
 
   # Replace/add flags in/to ac_configure_args
-  for var in CFLAGS CXXFLAGS LDFLAGS AR RANLIB NM; do
+  for var in CC CXX CFLAGS CXXFLAGS LDFLAGS AR RANLIB NM VRNA_CFLAGS VRNA_LIBS; do
     value=`eval echo \\${${var}}`
     if test "x$value" != "x" ; then
       AS_CASE([$ac_configure_args],

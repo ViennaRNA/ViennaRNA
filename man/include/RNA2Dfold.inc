@@ -2,7 +2,8 @@
 
 Ronny Lorenz
 
-[REFERENCES]
+[>REFERENCES]
+
 R. Lorenz, C. Flamm, I.L. Hofacker (2009),
 "2D Projections of RNA folding Landscapes",
 GI, Lecture Notes in Informatics, German Conference on Bioinformatics 2009: 157, pp 11-20

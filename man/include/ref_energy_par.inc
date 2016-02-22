@@ -1,4 +1,4 @@
-[REFERENCES]
+[>REFERENCES]
 
 .I The energy parameters are taken from:
 

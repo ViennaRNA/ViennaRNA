@@ -41,7 +41,7 @@ the perturbation energies as soft constraints.
 .ft
 .fi
 
-[REFERENCES]
+[>REFERENCES]
 
 S. Washietl, I.L. Hofacker, P.F. Stadler, M. Kellis (2012)
 "RNA folding with soft constraints: reconciliation of probing data and thermodynamics secondary structure prediction"

@@ -51,7 +51,7 @@ extern  int eos_debug;
  *  via the parameter 'vc'. The #vrna_fold_compound_t does not need to contain any DP matrices,
  *  but requires all most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
  *  @note Accepts vrna_fold_compound_t of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
@@ -75,7 +75,7 @@ float vrna_eval_structure(vrna_fold_compound_t *vc,
  *  The #vrna_fold_compound_t does not need to contain any DP matrices, but requires all most basic
  *  init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_fold_compound_comparative(alignment, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound_comparative(alignment, NULL, VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
  *  @note Accepts vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT only!
@@ -118,7 +118,7 @@ float vrna_eval_structure_simple( const char *string,
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
  *  @see vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
@@ -165,7 +165,7 @@ float vrna_eval_structure_simple_verbose( const char *string,
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
  *  @see vrna_ptable(), vrna_eval_structure(), vrna_eval_structure_pt_verbose()
@@ -203,7 +203,7 @@ int vrna_eval_structure_pt_simple(const char *string,
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_EVAL_ONLY);
     @endcode
  *  In contrast to vrna_eval_structure_pt() this function prints detailed energy contributions
  *  based on individual loops to a file handle. If NULL is passed as file handle, this function
@@ -229,7 +229,7 @@ int vrna_eval_structure_pt_verbose( vrna_fold_compound_t *vc,
  *  via the parameter 'vc'. The fold_compound does not need to contain any DP matrices,
  *  but all the most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_EVAL_ONLY);
     @endcode
  *  In contrast to vrna_eval_structure_pt_verbose() this function assumes default model details
  *  and default energy parameters in order to evaluate the free energy of the secondary

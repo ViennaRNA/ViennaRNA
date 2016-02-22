@@ -914,7 +914,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
             }
           }
           else{
-            printf("your file is fucked up");exit(0);
+            printf("your file is messed up");exit(0);
           } /* parse sequence */
           
           sscanf(pos, "%10d,%10d;%10d", &begin,&end,&u); /* parse coordinates */

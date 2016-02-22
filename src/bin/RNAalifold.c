@@ -24,6 +24,7 @@
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints_SHAPE.h"
 #include "RNAalifold_cmdl.h"
 
 /*@unused@*/
@@ -380,24 +381,18 @@ int main(int argc, char *argv[]){
   # begin actual calculations
   ########################################################
   */
-  options = VRNA_CONSTRAINT_SOFT_MFE;
+  options = VRNA_OPTION_MFE;
 
   if(pf)
-    options |= VRNA_CONSTRAINT_SOFT_PF;
+    options |= VRNA_OPTION_PF;
 
   vrna_fold_compound_t *vc = vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
   if(fold_constrained){
     if(constraints_file){
-      vrna_constraints_add(vc, constraints_file, VRNA_CONSTRAINT_FILE);
+      vrna_constraints_add(vc, constraints_file, 0);
     } else {
-      constraint_options = 0;
-      constraint_options |= VRNA_CONSTRAINT_DB
-                            | VRNA_CONSTRAINT_DB_PIPE
-                            | VRNA_CONSTRAINT_DB_DOT
-                            | VRNA_CONSTRAINT_DB_X
-                            | VRNA_CONSTRAINT_DB_ANG_BRACK
-                            | VRNA_CONSTRAINT_DB_RND_BRACK;
+      constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
 
       vrna_constraints_add(vc, (const char *)structure, constraint_options);
     }
@@ -409,7 +404,7 @@ int main(int argc, char *argv[]){
                           (const char **)shape_files, \
                           shape_file_association, \
                           verbose, \
-                          VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+                          VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
   min_en = vrna_mfe(vc, structure);
 
