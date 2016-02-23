@@ -1,3 +1,27 @@
+viennarna (2.2.4-2) UNRELEASED; urgency=low
+
+  * Fixed python binding install directory
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Mon, 21 Feb 2016 17:00:00 +0100
+
+viennarna (2.2.4-1) UNRELEASED; urgency=low
+
+  * Bump to upstream release 2.2.4
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Fri, 19 Feb 2016 21:30:00 +0100
+
+viennarna (2.2.3-2) UNRELEASED; urgency=low
+
+  * Small fix for motif anntoation in upper part of dot-plot
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Tue, 16 Feb 2016 10:24:12 +0100
+
+viennarna (2.2.3-1) UNRELEASED; urgency=low
+
+  * Bump to upstream release 2.2.3
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Sat, 13 Feb 2016 18:47:12 +0100
+
 viennarna (2.2.2-1) UNRELEASED; urgency=low
 
   * Bugfix for RNAcofold --noLP issue
