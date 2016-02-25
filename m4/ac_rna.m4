@@ -44,6 +44,7 @@ RNA_FEATURE_POST
 RNA_ENABLE_PKG_KINFOLD
 RNA_ENABLE_PKG_FORESTER
 RNA_ENABLE_PKG_CLUSTER
+RNA_ENABLE_PKG_KINWALKER
 
 ##--------------------##
 ## Enable scripting   ##
@@ -122,6 +123,7 @@ Extra Programs:
   Analyse{Dists,Seqs}:      ${with_cluster:-no}
   Kinfold:                  ${with_kinfold:-yes}
   RNAforester:              ${with_forester:-yes}
+  Kinwalker:                ${with_kinwalker:-no}
 
 Other Options:
   SVM:                      ${with_svm:-yes}

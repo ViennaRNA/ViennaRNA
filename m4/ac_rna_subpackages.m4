@@ -58,3 +58,23 @@ AC_DEFUN([RNA_ENABLE_PKG_CLUSTER],[
 
   AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
 ])
+
+#
+# Kinwalker subpackage
+#
+
+AC_DEFUN([RNA_ENABLE_PKG_KINWALKER],[
+  RNA_ADD_PACKAGE([kinwalker],
+                  [Kinwalker program],
+                  [yes],
+                  [with_kinwalker=yes],
+                  [with_kinwalker=no],
+                  [${srcdir}/src/Kinwalker/Makefile.am])
+
+  RNA_PACKAGE_IF_ENABLED([kinwalker],[
+    AC_CONFIG_SUBDIRS([src/Kinwalker])
+  ])
+
+  AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinwalker" != "yes")
+])
+
