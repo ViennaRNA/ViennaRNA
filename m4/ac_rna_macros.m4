@@ -130,8 +130,14 @@ AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
 # This macro also substitutes the automake variables
 # AM_CPPFLAGS, AM_CFLAGS, AM_CXXFLAGS, and AM_LDFLAGS
 #
+# As a bonus, we subsitute RNALIB_CFLAGS and
+# RNALIB_LIBS to pass them further to our subprojects
+#
 
 AC_DEFUN([RNA_FEATURE_POST],[
+
+  RNALIB_LIBS=" -L$(topbuilddir)../../src/ViennaRNA -lRNA ${LIBGOMPFLAG} ${LTO_LDFLAGS}"
+  RNALIB_CFLAGS=" -I$(abs_topsrcdir)../../src/ViennaRNA -I$(abs_topsrcdir)../../src ${GENERIC_HC_DEF} ${FLOAT_PF_FLAG} ${DEPRECATION_WARNING}"
 
   # substitute automake variables in case we set them somewhere
   # in our autoconf mess
@@ -140,9 +146,11 @@ AC_DEFUN([RNA_FEATURE_POST],[
   AC_SUBST([AM_CFLAGS])
   AC_SUBST([AM_CXXFLAGS])
   AC_SUBST([AM_LDFLAGS])
+  AC_SUBST([RNALIB_LIBS])
+  AC_SUBST([RNALIB_CFLAGS])
 
   # Replace/add flags in/to ac_configure_args
-  for var in CFLAGS CXXFLAGS LDFLAGS AR RANLIB NM; do
+  for var in CFLAGS CXXFLAGS LDFLAGS AR RANLIB NM RNALIB_CFLAGS RNALIB_LIBS; do
     value=`eval echo \\${${var}}`
     if test "x$value" != "x" ; then
       AS_CASE([$ac_configure_args],
