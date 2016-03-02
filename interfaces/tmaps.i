@@ -77,12 +77,16 @@
 
 // Python typemaps
 #ifdef SWIGPYTHON
-// convert between python and C file handle
+
+#ifdef PY3
+%include "file_py3.i" // python 3 FILE *
+#else
 %typemap(in) FILE * {
   if (PyFile_Check($input)) /* check for undef */
         $1 = PyFile_AsFile($input);
   else  $1 = NULL;
 }
+#endif// convert between python and C file handle
 
 %typemap(out) float [ANY] {
   int i;
