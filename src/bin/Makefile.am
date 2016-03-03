@@ -59,6 +59,7 @@ EXTRA_DIST =  ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
 .ggo_cmdl.c:
 	$(AM_V_GEN)gengetopt -i $<
 
+_cmdl.c_cmdl.h :
 
 # remove all generated man pages
 maintainer-clean-local:
