@@ -108,6 +108,14 @@ AS_IF([test $with_python = "yes"],[
     _python_lib_dir=""
     _python_install="Not to be installed"
 ])
+AS_IF([test $with_python3 = "yes"],[
+  eval _python3_arch_dir=$(eval printf "%s" ${py3execdir})
+  eval _python3_lib_dir=$(eval printf "%s" ${python3dir})
+  ],[
+    _python3_arch_dir=""
+    _python3_lib_dir=""
+    _python3_install="Not to be installed"
+])
 
 # Notify the user
 
@@ -118,6 +126,7 @@ Configured successful with the following options:
 RNAlib Scripting Interfaces:
   Perl Interface:           ${with_perl:-yes}       $enabled_but_failed_perl
   Python Interface:         ${with_python:-yes}     $enabled_but_failed_python
+  Python3 Interface:        ${with_python3:-yes}     $enabled_but_failed_python3
 
 Extra Programs:
   Analyse{Dists,Seqs}:      ${with_cluster:-no}
@@ -145,20 +154,23 @@ Unit Tests:
 -
 Files will be installed in the following directories:
 
-  Executables:      $_bindir
-  Libraries:        $_libdir
-  Header files:     $_includedir
-  Extra Data:       $_datadir
-  Man pages:        $_mandir
-  Documentation:    $_docdir
-    (HTML):         $(eval printf "%s" $_htmldir)
-    (PDF):          $(eval printf "%s" $_pdfdir)
-  Perl Interface:   $_perl_install
-    (binaries):     $_perl_arch_dir
-    (scripts):      $_perl_lib_dir
-  Python Interface: $_python_install
-    (binaries):     $_python_arch_dir
-    (scripts):      $_python_lib_dir
+  Executables:        $_bindir
+  Libraries:          $_libdir
+  Header files:       $_includedir
+  Extra Data:         $_datadir
+  Man pages:          $_mandir
+  Documentation:      $_docdir
+    (HTML):           $(eval printf "%s" $_htmldir)
+    (PDF):            $(eval printf "%s" $_pdfdir)
+  Perl Interface:     $_perl_install
+    (binaries):       $_perl_arch_dir
+    (scripts):        $_perl_lib_dir
+  Python Interface:   $_python_install
+    (binaries):       $_python_arch_dir
+    (scripts):        $_python_lib_dir
+  Python3 Interface:  $_python3_install
+    (binaries):       $_python3_arch_dir
+    (scripts):        $_python3_lib_dir
 ])
 
 ])
