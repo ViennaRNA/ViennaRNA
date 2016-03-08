@@ -28,6 +28,7 @@ my $cutpnt = -1;
 my $optfun = 'eos(1)+eos(2)-2*efe() + 0.3*(eos(1)-eos(2)+0.00)**2';
 my $scores = ({AAAAA => 5, CCCCC => 5, GGGGG => 5, UUUUU => 5});
 my $bprobs = ({A => 0.25, C => 0.25, G => 0.25, U => 0.25});
+my $bpenal = 500;
 
 my ($n, $m) = (1, 1e10);
 my $startseq =undef;
@@ -39,7 +40,7 @@ GetOptions(
   # ViennaDesign parameters
   "o|optfun=s"  => sub{$optfun = check_input_costfunction($_[1])},
   "a|avoid=s"   => sub{$scores = check_input_avoid($_[1])},
-  "p|bprobs=s"  => sub{$bprobs = check_input_base_probs($_[1])},
+  "p|bprobs=s"  => sub{($bprobs,$bpenal) = check_input_base_probs($_[1], $bpenal)},
   "n|number=i"  => \$n, # number of independent runs
   "m|maxiter=i" => \$m, # maximal number of steps
   "s|start=s"   => \$startseq,
@@ -72,6 +73,7 @@ $ViennaDesign->set_structures(@structs);
 $ViennaDesign->set_constraint($constr);
 $ViennaDesign->set_optfunc($optfun);
 $ViennaDesign->set_base_probs($bprobs);
+$ViennaDesign->set_base_penalty($bpenal);
 $ViennaDesign->set_score_motifs($scores);
 RNA::read_parameter_file($ParamFile) if ($ParamFile);
 #alternative: $ViennaDesign->set_parameter_file($ParamFile) if $ParamFile;
@@ -80,6 +82,7 @@ if ($verbose) {
   print "Option-check:\n";
   print "Score: $_ = $$scores{$_}\n" foreach keys %$scores;
   print "Base-prob $_ = $$bprobs{$_}\n" foreach keys %$bprobs;
+  print "Base-penalty $bpenal\n";
   print "Objective Function: ".$ViennaDesign->get_optfunc."\n";
   $ViennaDesign->set_verbosity($verbose);
 }
@@ -100,7 +103,7 @@ for (1 .. $n) {
   # Jango-Method: 
   if ($jango) {
     warn "Jango with $jango presamples\n";
-    die "Conflicting Options (--jango & --start)" if $startseq;
+    die "Conflicting Options (--jango & --start)" if $_==1 && $startseq;
     $startseq = $ViennaDesign->find_a_sequence;
     for (my $c=0; $c<$jango; ++$c) {
       my $tmpseq = $ViennaDesign->find_a_sequence;
@@ -200,7 +203,7 @@ sub check_input_costfunction {
     }
   }
   my $nakedfun = $optfun;
-  foreach my $fb ('eos', 'efe', 'prob', '_circ', 'barr') {
+  foreach my $fb ('eos', 'efe', 'prob', '_circ', 'barr', 'acc') {
     $nakedfun =~ s/$fb//g;
   }
   die "cannot interpret \'$&\' in objective function" if ($nakedfun =~ m/[^\-\+\/\(\)\.\*\d\,\s]+/g);
@@ -228,12 +231,16 @@ sub check_input_avoid {
 }
 
 sub check_input_base_probs {
-  my $input = shift;
+  my ($input, $penalty) = shift;
   my %bprobs;
 
   foreach my $a (split ',', $input) {
     my @tmp = (split ':', $a);
-    $bprobs{$tmp[0]}=$tmp[1];
+    if ($tmp[0] eq 'k') {
+      $penalty = $tmp[1];
+    } else {
+      $bprobs{$tmp[0]}=$tmp[1];
+    }
   }
 
   if (%bprobs) {
@@ -245,7 +252,7 @@ sub check_input_base_probs {
     }
     die "Base probabilities must sum up to 1. Currently: $tot\n" if ($tot < 0.98 || $tot > 1.02);
   }
-  return (%bprobs) ? \%bprobs : undef;
+  return \%bprobs, $penalty;
 }
 
 __END__
@@ -260,26 +267,32 @@ RNAdesign.pl [-o, --options] < constraints.in
 
 =head1 DESCRIPTION
 
-Design an RNA (or DNA) via adaptive walks in the sequence landscape. The input
-file specifies both structure and sequence constraints. Multiple secondary
-structure constraints followed by an (optional) sequence constraint in I<IUPAC>
-code (i.e. A, C, G, U/T, N, R, Y, S, M, W, K, V, H, D, B) are strictly enforced
-during the design process. However, B<RNAdesign.pl> avoids difficulties of
-multstable designs where a single nucleotide has more than two dependencies. In
-that case, base-pair constraints are not strictly enforced, but still evaluated
-in the objective function. A warning will be printed to *STDERR*.
+Conformational design an RNA (or DNA) molecules. An initially random sequence is
+iteratively mutated and evaluated according to an objective function (see
+Option: B<--optfun>). Whenever a better scoring sequence has been found, the
+mutation is accepted, the algorithm terminates once a local minimum is found.
+For algorithmic details as well as for chosing an objective function see
+
+  Stefan Badelt, "Control of RNA function by conformational design", PhD Thesis (2016)
+
+The input file contains (one or more) secondary structures followed by one
+(optional) sequence constraint in I<IUPAC> code (i.e. A, C, G, U/T, N, R, Y, S,
+M, W, K, V, H, D, B). Both sequence and structure constraints are strictly
+enforced during the design process. However, B<RNAdesign.pl> avoids difficulties
+of multstable designs where a single nucleotide has more than two dependencies.
+In that case, base-pair constraints are not strictly enforced, but still
+evaluated in the objective function. A warning will be printed to *STDERR*.
+
+  Input example:
+  ((((....((((...))))...))))
+  ((((....))))...((((...))))
+  NNNNGNRANNNNNNNNNNNNNNAUGN
 
 Secondary structures must be specified with a well-balanced dot-bracket terms.
 They may contain the following special characters: B<'&'> connects two sequences
 to design a pair of interacting RNAs; B<'x'> when a structure is used in the
 objective function to compute the accessibility of nucleotides (i. e. the
 probability of being unpaired).
-
-  Input example:
-  ((((....((((...))))...))))
-  ((((....))))...((((...))))
-  ............xxx...........
-  NNNNGNRANNNNNNNNNNNNNNAUGN
 
 =head1 PREREQUISTES
 
@@ -288,7 +301,7 @@ library, which has been introduced in B<ViennaRNA package-v2.2>.
 
 =head1 WEB
 
-A web interface to the B<RNA::Design> library is available at
+A web interface to call this script is available at
 
   http://rna.tbi.univie.ac.at/rnadesign
 
@@ -306,29 +319,33 @@ For Details on the Algorithms see
 
 =item B<-o, --optfun> <string>
 
-The objective function can be customized using a simple interface to the
-functions of the B<ViennaRNA package>. Every input secondary structure *can*
-serve as full target conformation or structure constraint. The objective
-function can include terms to compute the free energy of a target structure,
-the (constrained) ensemble free energy, the (conditional) probabilities of
-secondary structure elements, the accessibility of subsequences and the
-direct-path barriers between two structures. All of these terms exist for
-linear, circular, and cofolded molecules, as well as for custom specified
-temperatures. Indices B<i, j> correspond to the secondary structures specified
-in the input file, B<t> is optional to specify the temperature in Celsius. By
-default, computations use the standard temperature of 37C.
+The objective function is an interface to functions of the B<ViennaRNA package>.
+Every input secondary structure *can* serve as full target conformation or
+structure constraint. The objective function can include terms to compute the
+free energy of a target structure, the (constrained) ensemble free energy, the
+(conditional) probabilities of secondary structure elements, the accessibility
+of subsequences and the direct-path barriers between two structures. All of
+these terms exist for linear, circular, and cofolded molecules, as well as for
+custom specified temperatures. Indices B<i, j> correspond to the secondary
+structures specified in the input file, B<t> is optional to specify the
+temperature in Celsius. By default, computations use the standard temperature of
+37C.
 
-  eos(i,t): Energy of structure i at temperature t. [circular: eos_circ(i,t)]
+  eos(i,t): Free energy of structure i at temperature t. [circular: eos_circ(i,t)]
 
   efe(i,t): Free energy of a constrained secondary structure ensemble. Omitting
-  i, or specifying i=0 computes the unconstraint enemble. [circular: efe_circ(i,t)]
+  i, or specifying i=0 computes the unconstraint ensemble free energy.
+  [circular: efe_circ(i,t)]
 
-  prob(i,j,t): Probability of structure i given structure j. The probability is 
-  computed form the partition functions Pr(i|j)=Z_i/Z_j. Hence, the constraint j 
-  should include the constraint of i. [circular: prob_circ(i,j,t)]
+  prob(i,j,t): Probability of structure i given structure j. The probability is
+  computed from the equilibrium partition functions: Pr(i|j)=Z_i/Z_j. Hence, the
+  constraint i should include the constraint of j (Pr(i|j)=Z_i+j/Z_j). Omitting
+  j, or specifying j=0 computes the probability of i in the unconstrained
+  ensemble Pr(i)=Z_i/Z.  [circular: prob_circ(i,j,t)]
 
-  acc(i,t): Accessibility of an RNA/DNA motif specified with 'x' in the
-  structure input. [circular: acc_circ(i,t)]
+  acc(i,j,t): Accessibility of an RNA/DNA motif. This function is exatly the
+  same as prob(i,j,t), however, it is ment to be used with constraints that use
+  the character 'x' to specify strictly unpaired regions. [circular: acc_circ(i,j,t)]
 
   barr(i,j,t): direct path energy barrier from i to j computed using findpath.
   [circular: not implemented]
@@ -343,7 +360,8 @@ Default: I<'eos(1)+eos(2)-2*efe()+0.3*(eos(1)-eos(2)+0.00)**2'>
 A set of sequence motifs that recieve an extra penalty. Whenever one of these
 motifs is found in a sequence, its penalty is added to the score of the
 objective function. Specify pairs of B<motif:penalty> as a comma-separated
-string.
+string. It is allowed to give certain motifs a negative contribution in order
+to favor them during the optimization.
 
 Default: I<AAAAA:5,CCCCC:5,GGGGG:5,UUUUU:5>
 
@@ -354,10 +372,10 @@ observed nucleotide content differs from target values, a penalty is added to th
 objective function (see B<--optfun>). Let B<p> be a vector of specified base
 probabilities and B<q> a vector of observed nucleotide percentages, then the
 similarity of these vectors is computed as B<s=sum_n(sqrt(p_n*q_n))> where B<n>
-is the index for B<A,C,G,U>. The penalty is calculated B<(1-s)*100>. Specify
+is the index for B<A,C,G,U>. The penalty is calculated B<(1-s)*k>. Specify
 base probabilities as a comma-separated string of <base>:<prob> tuples.
 
-Default: I<A:0.25,C:0.25,G:0.25,U:0.25>
+Default: I<A:0.25,C:0.25,G:0.25,U:0.25,k:500>
 
 =item B<-n, --number> <int>
 
