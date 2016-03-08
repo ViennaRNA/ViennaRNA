@@ -6,10 +6,6 @@ use Getopt::Long qw( :config posix_default bundling no_ignore_case );
 use Pod::Usage;
 use RNA::Design;
 
-# TODO: 
-#   *) Make penalty for bprobs accessible and distribute non-specialized values
-#       => + update manpage
-
 # ********************** #
 # Initialize RNA::Design #
 # ...................... #
@@ -23,6 +19,7 @@ my @structs;
 my $constr;
 my $length = 0;
 my $cutpnt = -1;
+my $findpath = 10;
 
 # These are also the defaults in RNA::Design.pm
 my $optfun = 'eos(1)+eos(2)-2*efe() + 0.3*(eos(1)-eos(2)+0.00)**2';
@@ -43,6 +40,7 @@ GetOptions(
   "p|bprobs=s"  => sub{($bprobs,$bpenal) = check_input_base_probs($_[1], $bpenal)},
   "n|number=i"  => \$n, # number of independent runs
   "m|maxiter=i" => \$m, # maximal number of steps
+  "findpath=i"  => \$findpath,
   "s|start=s"   => \$startseq,
 
   # ViennaRNA energy parameters
@@ -75,6 +73,7 @@ $ViennaDesign->set_optfunc($optfun);
 $ViennaDesign->set_base_probs($bprobs);
 $ViennaDesign->set_base_penalty($bpenal);
 $ViennaDesign->set_score_motifs($scores);
+$ViennaDesign->set_findpath_bound($findpath);
 RNA::read_parameter_file($ParamFile) if ($ParamFile);
 #alternative: $ViennaDesign->set_parameter_file($ParamFile) if $ParamFile;
 
@@ -87,6 +86,10 @@ if ($verbose) {
   $ViennaDesign->set_verbosity($verbose);
 }
 
+# ******************* #
+# Design Preparations #
+# ................... #
+
 $ViennaDesign->find_dependency_paths;
 $ViennaDesign->explore_sequence_space;
 #$ViennaDesign->eval_sequence($ViennaDesign->find_a_sequence);
@@ -94,7 +97,6 @@ $ViennaDesign->explore_sequence_space;
 # **************** #
 # Main Design Loop #
 # ................ #
-
 
 my %final;
 my ($seq, $cost, $count);
@@ -259,7 +261,7 @@ __END__
 
 =head1 NAME
 
-RNAdesign.pl - Flexible design of multistable RNA molecules
+RNAdesign.pl - Flexible design of multi-stable RNA molecules
 
 =head1 SYNOPSIS
 
@@ -271,15 +273,15 @@ Conformational design an RNA (or DNA) molecules. An initially random sequence is
 iteratively mutated and evaluated according to an objective function (see
 Option: B<--optfun>). Whenever a better scoring sequence has been found, the
 mutation is accepted, the algorithm terminates once a local minimum is found.
-For algorithmic details as well as for chosing an objective function see
 
-  Stefan Badelt, "Control of RNA function by conformational design", PhD Thesis (2016)
+For algorithmic details as well as for choosing an objective function see Stefan
+Badelt, "Control of RNA function by conformational design", PhD Thesis (2016).
 
 The input file contains (one or more) secondary structures followed by one
 (optional) sequence constraint in I<IUPAC> code (i.e. A, C, G, U/T, N, R, Y, S,
 M, W, K, V, H, D, B). Both sequence and structure constraints are strictly
 enforced during the design process. However, B<RNAdesign.pl> avoids difficulties
-of multstable designs where a single nucleotide has more than two dependencies.
+of multi-stable designs where a single nucleotide has more than two dependencies.
 In that case, base-pair constraints are not strictly enforced, but still
 evaluated in the objective function. A warning will be printed to *STDERR*.
 
@@ -288,15 +290,15 @@ evaluated in the objective function. A warning will be printed to *STDERR*.
   ((((....))))...((((...))))
   NNNNGNRANNNNNNNNNNNNNNAUGN
 
-Secondary structures must be specified with a well-balanced dot-bracket terms.
-They may contain the following special characters: B<'&'> connects two sequences
-to design a pair of interacting RNAs; B<'x'> when a structure is used in the
-objective function to compute the accessibility of nucleotides (i. e. the
-probability of being unpaired).
+Secondary structures must be specified with a well-balanced dot-bracket string.
+They may contain the following special characters: B<'&'> connects two
+sequences to design a pair of interacting RNAs, B<'x'> when a structure is used
+in the objective function to compute the accessibility of nucleotides (i. e.
+the probability of being unpaired).
 
 =head1 PREREQUISTES
 
-This script is part of the B<ViennaRNA package>. It requires the B<RNA::Design> perl
+This script is part of the B<ViennaRNA package>. It requires the B<RNA::Design> Perl
 library, which has been introduced in B<ViennaRNA package-v2.2>.
 
 =head1 WEB
@@ -319,17 +321,17 @@ For Details on the Algorithms see
 
 =item B<-o, --optfun> <string>
 
-The objective function is an interface to functions of the B<ViennaRNA package>.
-Every input secondary structure *can* serve as full target conformation or
-structure constraint. The objective function can include terms to compute the
-free energy of a target structure, the (constrained) ensemble free energy, the
-(conditional) probabilities of secondary structure elements, the accessibility
-of subsequences and the direct-path barriers between two structures. All of
-these terms exist for linear, circular, and cofolded molecules, as well as for
-custom specified temperatures. Indices B<i, j> correspond to the secondary
-structures specified in the input file, B<t> is optional to specify the
-temperature in Celsius. By default, computations use the standard temperature of
-37C.
+The objective function is a simplified interface to access functions of the
+B<ViennaRNA package>. Every input secondary structure *can* serve as full
+target conformation or structure constraint. The objective function can include
+terms to compute the free energy of a target structure, the (constrained)
+ensemble free energy, the (conditional) probabilities of secondary structure
+elements, the accessibility of subsequences and the direct-path barriers
+between two structures. All of these terms exist for linear, circular, and
+cofolded molecules, as well as for custom specified temperatures. In the
+following examples, the indices B<i, j> correspond to the secondary structures
+specified in the input file, B<t> is optional to specify the temperature in
+Celsius. By default, computations use the standard temperature of 37C.
 
   eos(i,t): Free energy of structure i at temperature t. [circular: eos_circ(i,t)]
 
@@ -339,11 +341,11 @@ temperature in Celsius. By default, computations use the standard temperature of
 
   prob(i,j,t): Probability of structure i given structure j. The probability is
   computed from the equilibrium partition functions: Pr(i|j)=Z_i/Z_j. Hence, the
-  constraint i should include the constraint of j (Pr(i|j)=Z_i+j/Z_j). Omitting
+  constraint i *must* include the constraint of j (Pr(i|j)=Z_i+j/Z_j). Omitting
   j, or specifying j=0 computes the probability of i in the unconstrained
-  ensemble Pr(i)=Z_i/Z.  [circular: prob_circ(i,j,t)]
+  ensemble Pr(i)=Z_i/Z. [circular: prob_circ(i,j,t)]
 
-  acc(i,j,t): Accessibility of an RNA/DNA motif. This function is exatly the
+  acc(i,j,t): Accessibility of an RNA/DNA motif. This function is exactly the
   same as prob(i,j,t), however, it is ment to be used with constraints that use
   the character 'x' to specify strictly unpaired regions. [circular: acc_circ(i,j,t)]
 
@@ -357,7 +359,7 @@ Default: I<'eos(1)+eos(2)-2*efe()+0.3*(eos(1)-eos(2)+0.00)**2'>
 
 =item B<-a, --avoid> <string>
 
-A set of sequence motifs that recieve an extra penalty. Whenever one of these
+A set of sequence motifs that receive an extra penalty. Whenever one of these
 motifs is found in a sequence, its penalty is added to the score of the
 objective function. Specify pairs of B<motif:penalty> as a comma-separated
 string. It is allowed to give certain motifs a negative contribution in order
@@ -385,12 +387,17 @@ Specify the number of independent sequence designs. Default: B<1>
 
 Maximum number of trial/error improvements during adaptive walk. The default is
 B<1e10>, however, this threshold is only important for large sequence designs,
-as the value is caculated automatically form the number of possible sequence
+as the value is calculated automatically form the number of possible sequence
 mutations. 
 
 =item B<-s, --start> <string>
 
 Specify a starting sequence for adaptive optimization.
+
+=item B<--findpath> <int>
+
+Specify an upper bound for the 'findpath' direct path search used in the
+objective function: B<barr(i,j,t)>. Default B<10>.
 
 =item B<-P, --params> <path-to-file>
 
@@ -407,15 +414,15 @@ ViennaRNA dangling energy model. Default: 2
 
 =item B<--noGU> <flag>
 
-Turn off energies for GU basepairs. 
+Turn off energies for GU base-pairs. 
 
 =item B<--noCloseGU> <flag>
 
-Turn off energies for GU basepairs at the end of helices.
+Turn off energies for GU base-pairs at the end of helices.
 
 =item B<-v, --verbose> <int>
 
-Use *stderr* to report every sequence accepted during the adaptive walk
+Print settings and report every sequence accepted during the adaptive walk.
 
 =item B<-h, --help>
 
@@ -423,13 +430,17 @@ Print short help
 
 =item B<--man>
 
-Prints the manual page and exits
+Show the manual page
 
 =back
 
 =head1 AUTHOR
 
 Stefan Badelt E<lt>stef@tbi.univie.ac.atE<gt>
+
+=head1 VERSION-LOG
+
+  1.00 -- initial release (March, 8th 1016)
 
 =cut
 
