@@ -8,18 +8,22 @@ CHECKMK_FILES = \
               energy_evaluation.ts \
               constraints.ts \
               fold.ts \
-              utils.ts
+              utils.ts \
+              eval_structure.ts 
+
 
 CHECK_CFILES = \
               energy_evaluation.c \
               constraints.c \
               fold.c \
-              utils.c
+              utils.c \
+              eval_structure.c
 
 TESTS = energy_evaluation \
         constraints \
         fold \
-        utils
+        utils \
+        eval_structure 
 
 check_PROGRAMS = ${TESTS}
 
