@@ -14,7 +14,8 @@ nobase_dist_perlmod_DATA = \
   RNA/Design.pm \
   RNA/Files.pm \
   RNA/Reliability.pm \
-  RNA/Utils.pm
+  RNA/Utils.pm \
+  RNA/Params.pm
 
 RNA_la_CPPFLAGS = -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS) @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
 
