@@ -22,6 +22,7 @@ AS_IF([test "$PERL" == "no"],[
 ## Enable Features  ##
 ##------------------##
 
+RNA_ENABLE_OSX
 RNA_ENABLE_LTO
 RNA_ENABLE_SVM
 RNA_ENABLE_JSON
@@ -116,6 +117,10 @@ AS_IF([test $with_python3 = "yes"],[
     _python3_lib_dir=""
     _python3_install="Not to be installed"
 ])
+AS_IF([test "x$enable_universal_binary" != "xno"],[
+  _osx_arch=$osx_arch
+  ],[
+])
 
 # Notify the user
 
@@ -124,9 +129,9 @@ AC_MSG_NOTICE([
 Configured successful with the following options:
 
 RNAlib Scripting Interfaces:
-  Perl Interface:           ${with_perl:-yes}       $enabled_but_failed_perl
-  Python Interface:         ${with_python:-yes}     $enabled_but_failed_python
-  Python3 Interface:        ${with_python3:-yes}     $enabled_but_failed_python3
+  Perl Interface:           ${with_perl:-yes}      $enabled_but_failed_perl
+  Python Interface:         ${with_python:-yes}      $enabled_but_failed_python
+  Python3 Interface:        ${with_python3:-yes}      $enabled_but_failed_python3
 
 Extra Programs:
   Analyse{Dists,Seqs}:      ${with_cluster:-no}
@@ -137,12 +142,13 @@ Extra Programs:
 Other Options:
   SVM:                      ${with_svm:-yes}
   JSON:                     ${with_json:-yes}
-  GSL:                      ${with_gsl:-yes}        $enabled_but_failed_gsl
+  GSL:                      ${with_gsl:-yes}      $enabled_but_failed_gsl
   Boustrophedon:            ${enable_boustrophedon:-yes}
   Generic Hard Constraints: ${enable_gen_hard_constraints:-no}
   OpenMP:                   ${enable_openmp:-yes}
   LTO:                      ${enable_lto:-yes}      $enabled_but_failed_lto
   Float Precision (PF):     ${enable_floatpf:-no}
+  MacOSX Universal Binary:  ${enable_universal_binary:-no}      $_osx_arch
 
 Documentation:              ${with_doc:-no}
     (HTML):                 ${with_doc_html:-no}

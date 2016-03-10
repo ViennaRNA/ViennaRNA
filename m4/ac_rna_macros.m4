@@ -113,11 +113,17 @@ AC_DEFUN([RNA_ADD_FEATURE],[
 
 AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
             [ifelse([$3], [yes],
-              [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])], [disable feature: $2])],
-              [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])], [enable feature: $2])])],
+              [ifelse([$6], [],
+                [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])], [$2])],
+                [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])@<:@=ARG@:>@], [$2 @<:@default ARG=$6@:>@])]
+              )],
+              [ifelse([$6], [],
+                [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])], [$2])],
+                [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])@<:@=ARG@:>@], [$2 @<:@default ARG=$6@:>@])]
+              )]
+            )],
             [$4],
             [$5])
-
 
 ])
 
@@ -136,7 +142,7 @@ AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
 
 AC_DEFUN([RNA_FEATURE_POST],[
 
-  VRNA_LIBS=" -L\$(top_builddir)../../src/ViennaRNA -lRNA ${LIBGOMPFLAG} ${LTO_LDFLAGS}"
+  VRNA_LIBS=" -L\$(top_builddir)/../../src/ViennaRNA -lRNA ${LIBGOMPFLAG} ${LTO_LDFLAGS}"
   VRNA_CFLAGS=" -I\$(top_srcdir)/../../src/ViennaRNA -I\$(top_srcdir)/../../src ${GENERIC_HC_DEF} ${FLOAT_PF_FLAG} ${DEPRECATION_WARNING}"
 
   # substitute automake variables in case we set them somewhere
