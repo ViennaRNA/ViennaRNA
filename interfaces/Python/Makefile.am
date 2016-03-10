@@ -18,7 +18,7 @@ if WITH_LIBSVM
 _RNA_la_LIBADD += -lstdc++
 endif
 
-_RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic $(PYTHON_EXTRA_LDFLAGS)
+_RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -shrext "$(PYTHON_SO)" $(PYTHON_EXTRA_LDFLAGS)
 if WITH_LTO
 _RNA_la_LDFLAGS += -Wc,$(LTO_LDFLAGS)
 endif
@@ -36,6 +36,13 @@ $(SWIG_module_name).py: $(SWIG_wrapper)
 RNA/__init__.py: $(SWIG_module_name).py
 	-test -d RNA || $(MKDIR_P) RNA
 	cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/__init__.py
+
+RNA/_RNA$(PYTHON_SO): _RNA.la
+	$(MKDIR_P) RNA
+	$(LIBTOOL) --config > libtoolconfig.tmp
+## ksh requires a path on the sourced file.
+	. ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON_SO) RNA
+	rm -f libtoolconfig.tmp
 
 clean-local:
 	-rm -rf RNA

@@ -293,6 +293,19 @@ EOD`
 	AC_MSG_RESULT([$PYTHON_EXTRA_LIBS])
 	AC_SUBST(PYTHON_EXTRA_LIBS)
 
+  #
+  # Extension of dynamic library
+  # Usually ".so", but for example, Mac OS X uses ".dylib".
+  #
+  AC_ARG_VAR(PYTHON_SO, [Python dynamic library extension])
+	AC_MSG_CHECKING([for python module extension])
+	if test -z "$PYTHON_SO"; then
+    PYTHON_SO=`$PYTHON -c "import distutils.sysconfig; \
+      print(distutils.sysconfig.get_config_vars('SO')[[0]])"`
+  fi
+	AC_MSG_RESULT([$PYTHON_SO])
+	AC_SUBST(PYTHON_SO)
+
 	#
 	# final check to see if everything compiles alright
 	#

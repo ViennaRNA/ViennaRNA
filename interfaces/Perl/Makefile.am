@@ -24,7 +24,7 @@ if WITH_LIBSVM
 RNA_la_LIBADD += -lstdc++
 endif
 
-RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic $(PERLXS_LDFLAGS)
+RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -shrext $(PERL_SO) $(PERLXS_LDFLAGS)
 
 ##if WITH_LTO
 ##RNA_la_LDFLAGS += -Wc,$(LTO_LDFLAGS)
@@ -32,7 +32,7 @@ RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic $(PERLXS_LDFLAGS
 
 SOURCES = RNA.pod
 
-BUILT_SOURCES = auto/RNA/RNA.so
+BUILT_SOURCES = auto/RNA/RNA$(PERL_SO)
 
 EXTRA_DIST = \
   $(SWIG_wrapper) \
@@ -56,11 +56,11 @@ $(SWIG_wrapper) $(PERL_MODULE): $(SWIG_src)
 ## copy shared library for perl-tests
 ##
 
-auto/RNA/RNA.so: RNA.la
+auto/RNA/RNA$(PERL_SO): RNA.la
 	$(MKDIR_P) auto/RNA
 	$(LIBTOOL) --config > libtoolconfig.tmp
 ## ksh requires a path on the sourced file.
-	. ./libtoolconfig.tmp; cp "$$objdir/RNA.so" auto/RNA
+	. ./libtoolconfig.tmp; cp "$$objdir/RNA$(PERL_SO)" auto/RNA
 	rm -f libtoolconfig.tmp
 
 ##

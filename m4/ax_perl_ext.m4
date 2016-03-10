@@ -204,12 +204,12 @@ AC_DEFUN([AX_PERL_EXT],[
                 #
                 # Check for Perl dynamic library extension.
                 #
-                AC_ARG_VAR(PERL_EXT_DLEXT, [Perl dynamic library extension])
+                AC_ARG_VAR(PERL_SO, [Perl dynamic library extension])
                 AC_MSG_CHECKING([for Perl dynamic library extension])
-                if test -z "$PERL_EXT_DLEXT" ; then
-                        [PERL_EXT_DLEXT=`$PERL -MConfig -e 'print ".", $Config{'dlext'};'`];
+                if test -z "$PERL_SO" ; then
+                        [PERL_SO=`$PERL -MConfig -e 'print ".", $Config{'dlext'};'`];
                 fi
-                AC_MSG_RESULT([$PERL_EXT_DLEXT])
-                AC_SUBST(PERL_EXT_DLEXT)
+                AC_MSG_RESULT([$PERL_SO])
+                AC_SUBST(PERL_SO)
         fi
 ])
