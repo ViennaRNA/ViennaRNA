@@ -1,0 +1,10 @@
+This is Version 2.2.4 of the ViennaRNA Package.
+------------------------------------------------
+
+The ViennaRNA Package consists of a few stand alone programs and a 
+library that you can link your own programs with. The library can
+also be accessed through our scripting interfaces for Perl and Python
+
+Together with this version we distribute the Kinfold, RNAforester,
+and Kinwalker programs.
+

@@ -53,5 +53,6 @@ AC_DEFUN([RNA_ENABLE_OSX],[
 
   ])
 
+  AC_CONFIG_FILES([packaging/macosx/Makefile packaging/macosx/Distribution.xml])
 
 ])
