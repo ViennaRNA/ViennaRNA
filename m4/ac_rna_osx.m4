@@ -10,6 +10,205 @@ AC_DEFUN([RNA_ENABLE_OSX],[
                   [enable_universal_binary=no],
                   ["-arch i386 -arch x86_64"])
 
+  RNA_ADD_FEATURE([macosx-sdk],
+                  [use a specific Mac OS X SDK],
+                  [no],
+                  [enable_macosx_sdk=$enableval],
+                  [enable_macosx_sdk=no],
+                  ["latest"])
+
+  RNA_ADD_FEATURE([macosx-sdk-path],
+                  [specify the path to a specific Mac OS X SDK],
+                  [no],
+                  [ enable_macosx_sdk_path=$enableval
+                    enable_macosx_sdk="custom"
+                  ],
+                  [enable_macosx_sdk_path=auto],
+                  ["auto"])
+
+  RNA_ADD_FEATURE([macosx-installer],
+                  [generate MacOSX Installer Disk Image],
+                  [no],
+                  [enable_macosx_installer=yes],
+                  [enable_macosx_installer=no])
+
+  RNA_FEATURE_IF_ENABLED([macosx_installer],[
+
+    ## This option is only meant for MacOSX
+    case "$host" in
+        *darwin*)   AC_PATH_PROG([PKGBUILD], [pkgbuild],[no])
+                    AC_PATH_PROG([PRODUCTBUILD], [productbuild],[no])
+                    AC_PATH_PROG([HDIUTIL], [hdiutil],[no])
+
+                    AS_IF([test "$PKGBUILD" == "no" || test "$PRODUCTBUILD" == "no" || test "$HDITOOL" == "no"],[
+                        AC_MSG_ERROR([
+**********************************************************************
+        --enable-macosx-installer requires the programs pkgbuild,
+        productbuild, and hdituil! Make sure they are in your PATH!
+**********************************************************************
+                        ])
+                    ],[
+                      AC_SUBST([MACOSX_INSTALLER], [packaging/macosx])
+                    ])
+                    ;;
+        *)          AC_MSG_ERROR([
+**********************************************************************
+        --enable-macosx-installer is intended for use on MacOSX only!
+**********************************************************************
+                    ])
+                    ;;
+    esac
+  ])
+
+  AM_CONDITIONAL(WITH_MACOSX_INSTALLER, test "$enable_macosx_installer" != "no")
+
+  RNA_FEATURE_IF_ENABLED([macosx_sdk],[
+
+    ## This option is only meant for MacOSX
+    case "$host" in
+        *darwin*)   ;;
+        *)          AC_MSG_ERROR([
+**********************************************************************
+        --enable-macosx-sdk is intended for use on MacOSX only!
+**********************************************************************
+                    ])
+                    ;;
+    esac
+
+    macosx_sdk_path=
+    macosx_sdk_version=
+    
+    # check whether a specific path was given by the user
+    if test "x$enable_macosx_sdk_path" != "xauto" ; then
+      if test -d "$enable_macosx_sdk_path" ; then
+        macosx_sdk_path="$enable_macosx_sdk_path"
+        # determine the version
+        macosx_sdk_version=10.11
+      else
+        AC_MSG_ERROR([
+**********************************************************************
+  Unable to set the MacOSX SDK path!
+
+  The path you've specified is not a directory!
+**********************************************************************
+        ])
+      fi
+    else
+      # determine xcode path automatically
+      if test -x /usr/bin/xcode-select ; then
+        xcodepath="`xcode-select -p`"
+      else
+        AC_MSG_ERROR([
+**********************************************************************
+  /usr/bin/xcode-select is missing!
+  
+  Unable to automatically determine SDK path! Please specify the
+  SDK path using the --macosx-sdk-path parameter, or fix your XCode
+  installation
+**********************************************************************
+        ])
+      fi
+
+      # automatic determination of latest SDK
+      if test "x$enable_macosx_sdk" = "xyes" || test "x$enable_macosx_sdk" = "xlatest" ; then
+        ## check for possible SDKs in descending order
+        macosx_sdk_versions="10.11 10.10 10.9 10.8 10.7 10.6 10.5"
+      else
+        macosx_sdk_versions="${enable_macosx_sdk}"
+      fi
+
+      for v in ${macosx_sdk_versions} ; do
+        AC_MSG_CHECKING([for MacOSX SDK $v])
+        if test -d "$xcodepath/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$v.sdk" ; then
+          macosx_sdk_path="$xcodepath/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${v}.sdk"
+          macosx_sdk_version="$v"
+          AC_MSG_RESULT([${macosx_sdk_path}])
+          break
+        else
+          AC_MSG_RESULT([not found])
+        fi
+      done
+    fi
+
+    if test -z "$macosx_sdk_path" ; then
+      AC_MSG_ERROR([
+**********************************************************************
+  Unable to set/determine the SDK path!
+
+  Either you specified a non-existing version, or, if you have not
+  specified a version at all, your XCode installation is missing a
+  version we are aware of!
+**********************************************************************
+                  ])
+    else
+      bitness=-m64
+
+      if test "$with_macosx_version_min_required" = ""; then
+          case $macosx_sdk_version in
+          10.5)
+              with_macosx_version_min_required="10.5";;
+          *)
+              with_macosx_version_min_required="10.6";;
+          esac
+      fi
+
+      if test "$with_macosx_version_max_allowed" = ""; then
+          with_macosx_version_max_allowed="$macosx_sdk_version"
+      fi
+
+      ## if everything seems to be correct, lets start to set configurations
+      AC_MSG_WARN([setting up build for MacOSX SDK ${macosx_sdk_version}])
+      AC_MSG_CHECKING([what compiler to use])
+      case $macosx_sdk_version in
+        10.5)
+            CC="${gccprefix}gcc-4.2"
+            CXX="${gccprefix}g++-4.2"
+            INSTALL_NAME_TOOL=`xcrun -find install_name_tool`
+            ;;
+        10.6)
+            # did someone copy her 10.6 sdk into xcode 4 (needed on Mountain Lion)?
+            if test "$(echo $macosx_sdk_path | cut -c1-23)" = "/Applications/Xcode.app"; then
+                CC="`xcrun -find gcc`"
+                CXX="`xcrun -find g++`"
+            else
+                CC="gcc-4.2"
+                CXX="g++-4.2"
+            fi
+            CFLAGS="${CFLAGS} $bitness"
+            CXXFLAGS="${CXXFLAGS} $bitness"
+            LDFLAGS="${LDFLAGS} $bitness"
+            INSTALL_NAME_TOOL=`xcrun -find install_name_tool`
+            #LIBTOOL=libtool
+            ;;
+        10.7|10.8|10.9|10.10|10.11)
+            if test "$with_macosx_version_min_required" != 10.6; then
+              # Use libc++ instead of libstdc++ when possible
+              stdlib=-stdlib=libc++
+            fi
+
+            CC="`xcrun -find clang`"
+            CXX="`xcrun -find clang++`"
+
+            CFLAGS="${CFLAGS} $bitness"
+            CXXFLAGS="${CXXFLAGS} $bitness $stdlib"
+            LDFLAGS="${LDFLAGS} $bitness"
+
+            INSTALL_NAME_TOOL=`xcrun -find install_name_tool`
+            AR=`xcrun -find ar`
+            NM=`xcrun -find nm`
+            STRIP=`xcrun -find strip`
+            RANLIB=`xcrun -find ranlib`
+            ;;
+      esac
+      CFLAGS="${CFLAGS} -mmacosx-version-min=$with_macosx_version_min_required -isysroot $macosx_sdk_path"
+      CXXFLAGS="${CXXFLAGS} -mmacosx-version-min=$with_macosx_version_min_required -isysroot $macosx_sdk_path"
+      LDFLAGS="${LDFLAGS} -mmacosx-version-min=$with_macosx_version_min_required -isysroot $macosx_sdk_path"
+
+      AC_MSG_RESULT([$CC and $CXX])
+    fi
+
+  ])
+
 
   RNA_FEATURE_IF_ENABLED([universal_binary],[
 
@@ -53,6 +252,6 @@ AC_DEFUN([RNA_ENABLE_OSX],[
 
   ])
 
-  AC_CONFIG_FILES([packaging/macosx/Makefile packaging/macosx/Distribution.xml])
+  AC_CONFIG_FILES([packaging/macosx/Makefile packaging/macosx/Distribution.xml packaging/macosx/resources/welcome.txt])
 
 ])

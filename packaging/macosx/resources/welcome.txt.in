@@ -1,4 +1,4 @@
-This is Version 2.2.4 of the ViennaRNA Package.
+This is Version @PACKAGE_VERSION@ of the @PACKAGE_NAME@ Package.
 ------------------------------------------------
 
 The ViennaRNA Package consists of a few stand alone programs and a 

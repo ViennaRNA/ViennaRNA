@@ -156,7 +156,7 @@ AC_DEFUN([RNA_FEATURE_POST],[
   AC_SUBST([VRNA_CFLAGS])
 
   # Replace/add flags in/to ac_configure_args
-  for var in CFLAGS CXXFLAGS LDFLAGS AR RANLIB NM VRNA_CFLAGS VRNA_LIBS; do
+  for var in CC CXX CFLAGS CXXFLAGS LDFLAGS AR RANLIB NM VRNA_CFLAGS VRNA_LIBS; do
     value=`eval echo \\${${var}}`
     if test "x$value" != "x" ; then
       AS_CASE([$ac_configure_args],

@@ -1,3 +1,12 @@
+prepare_verbose = $(prepare_verbose_@AM_V@)
+prepare_verbose_ = $(prepare_verbose_@AM_DEFAULT_V@)
+prepare_verbose_0 = @echo PREPARE $@;
+pkg_verbose = $(pkg_verbose_@AM_V@)
+pkg_verbose_ = $(pkg_verbose_@AM_DEFAULT_V@)
+pkg_verbose_0 = @echo PKG-GEN $@;
+dmg_verbose = $(dmg_verbose_@AM_V@)
+dmg_verbose_ = $(dmg_verbose_@AM_DEFAULT_V@)
+dmg_verbose_0 = @echo DMG-GEN $@;
 
 EXTRA_DIST =  resources/welcome.txt \
               resources/conclusion.html \
@@ -68,123 +77,134 @@ remove_staging_python_dir = \
     || { find $(staging_python_dir) -type d ! -perm -200 -exec chmod u+w {} ';' \
          && rm -fr $(staging_python_dir); }; }
 
+if WITH_MACOSX_INSTALLER
+DISK_IMAGE = "${MACOSX_DMG_FILE}"
+else
+DISK_IMAGE = 
+endif
+
+all: $(DISK_IMAGE)
+
 ##
 ## copy README and COPYING from top_srcdir to this ./resources/
 ##
-prepare-pkg:
-	$(MKDIR_P) ./resources
-	cp $(top_srcdir)/README $(top_srcdir)/COPYING ./resources/ 
+resources:
+	$(prepare_verbose)$(MKDIR_P) ./resources
+	$(prepare_verbose)cp $(top_srcdir)/README $(top_srcdir)/COPYING ./resources/ 
 
 ##
 ## prepare Core staging directory
 ##
-prepare-staging-core:
-	$(remove_staging_core_dir)
-	$(MKDIR_P) $(staging_core_dir)$(prefix)/bin
-	cd $(top_srcdir)/src/bin \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_core_dir)
-	cd $(top_srcdir)/src/Utils \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_core_dir)
-	cd $(top_srcdir)/man \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_core_dir)
-	cd $(top_srcdir)/misc \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_core_dir)
+staging-core:
+	$(prepare_verbose)$(remove_staging_core_dir)
+	$(AM_V_at)$(MKDIR_P) $(staging_core_dir)$(prefix)/bin
+	$(AM_V_at)cd $(top_srcdir)/src/bin \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_core_dir)
+	$(AM_V_at)cd $(top_srcdir)/src/Utils \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_core_dir)
+	$(AM_V_at)cd $(top_srcdir)/man \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_core_dir)
+	$(AM_V_at)cd $(top_srcdir)/misc \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_core_dir)
 
 ##
 ## prepare Cluster Analysis staging directory
 ##
-prepare-staging-cluster:
-	$(remove_staging_cluster_dir)
-	cd $(top_srcdir)/src/Cluster \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_cluster_dir)
+staging-cluster:
+	$(prepare_verbose)$(remove_staging_cluster_dir)
+	$(AM_V_at)cd $(top_srcdir)/src/Cluster \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_cluster_dir)
 
 ##
 ## prepare Kinfold staging directory
 ##
-prepare-staging-kinfold:
-	$(remove_staging_kinfold_dir)
-	cd $(top_srcdir)/src/Kinfold \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_kinfold_dir)
+staging-kinfold:
+	$(prepare_verbose)$(remove_staging_kinfold_dir)
+	$(AM_V_at)cd $(top_srcdir)/src/Kinfold \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_kinfold_dir)
 
 ##
 ## prepare RNAforester staging directory
 ##
-prepare-staging-forester:
-	$(remove_staging_forester_dir)
-	$(MKDIR_P) $(staging_forester_dir)$(prefix)/bin
-	cp $(top_srcdir)/src/RNAforester/src/RNAforester $(staging_forester_dir)$(prefix)/bin
-	cd $(top_srcdir)/src/RNAforester/man \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_forester_dir)
+staging-forester:
+	$(prepare_verbose)$(remove_staging_forester_dir)
+	$(AM_V_at)$(MKDIR_P) $(staging_forester_dir)$(prefix)/bin
+	$(AM_V_at)cp $(top_srcdir)/src/RNAforester/src/RNAforester $(staging_forester_dir)$(prefix)/bin
+	$(AM_V_at)cd $(top_srcdir)/src/RNAforester/man \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_forester_dir)
 
 ##
 ## prepare Kinwalker staging directory
 ##
-prepare-staging-kinwalker:
-	$(remove_staging_kinwalker_dir)
-	cd $(top_srcdir)/src/Kinwalker \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_kinwalker_dir)
+staging-kinwalker:
+	$(prepare_verbose)$(remove_staging_kinwalker_dir)
+	$(AM_V_at)cd $(top_srcdir)/src/Kinwalker \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_kinwalker_dir)
 
 ##
 ## prepare Development staging directory
 ##
-prepare-staging-libRNA:
-	$(remove_staging_libRNA_dir)
-	cd $(top_srcdir)/doc \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_libRNA_dir)
-	cd $(top_srcdir)/src/ViennaRNA \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_libRNA_dir)
-	$(MKDIR_P) $(staging_libRNA_dir)$(prefix)/lib/pkgconfig
-	cp $(top_srcdir)/RNAlib2.pc $(staging_libRNA_dir)$(prefix)/lib/pkgconfig
+staging-libRNA:
+	$(prepare_verbose)$(remove_staging_libRNA_dir)
+	$(AM_V_at)cd $(top_srcdir)/doc \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_libRNA_dir)
+	$(AM_V_at)cd $(top_srcdir)/src/ViennaRNA \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_libRNA_dir)
+	$(AM_V_at)$(MKDIR_P) $(staging_libRNA_dir)$(prefix)/lib/pkgconfig
+	$(AM_V_at)cp $(top_srcdir)/RNAlib2.pc $(staging_libRNA_dir)$(prefix)/lib/pkgconfig
 
 ##
 ## prepare Perl staging directory
 ##
-prepare-staging-perl:
-	$(remove_staging_perl_dir)
-	cd $(top_srcdir)/interfaces/Perl \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_perl_dir)
+staging-perl:
+	$(prepare_verbose)$(remove_staging_perl_dir)
+	$(AM_V_at)cd $(top_srcdir)/interfaces/Perl \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_perl_dir)
 
 ##
 ## prepare Python staging directory
 ##
-prepare-staging-python:
-	$(remove_staging_python_dir)
-	cd $(top_srcdir)/interfaces/Python \
-	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_python_dir)
+staging-python:
+	$(prepare_verbose)$(remove_staging_python_dir)
+	$(AM_V_at)cd $(top_srcdir)/interfaces/Python \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_python_dir)
 
-"${CORE_PKG_FILE}": prepare-staging-core
-	$(AM_V_GEN)pkgbuild --identifier org.TBI.ViennaRNA.core --version @PACKAGE_VERSION@ \
+##
+## Actual installer package targets below
+##
+"${CORE_PKG_FILE}": staging-core
+	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.core --version @PACKAGE_VERSION@ \
       --root ${staging_core_dir} "${CORE_PKG_FILE}"
 
-"${DEV_PKG_FILE}": prepare-staging-libRNA
-	$(AM_V_GEN)pkgbuild --identifier org.TBI.ViennaRNA.libRNA --version @PACKAGE_VERSION@ \
+"${DEV_PKG_FILE}": staging-libRNA
+	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.libRNA --version @PACKAGE_VERSION@ \
       --root ${staging_libRNA_dir} "${DEV_PKG_FILE}"
 
-"${CLUSTER_PKG_FILE}": prepare-staging-cluster
-	$(AM_V_GEN)pkgbuild --identifier org.TBI.ViennaRNA.cluster --version @PACKAGE_VERSION@ \
+"${CLUSTER_PKG_FILE}": staging-cluster
+	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.cluster --version @PACKAGE_VERSION@ \
       --root ${staging_cluster_dir} "${CLUSTER_PKG_FILE}"
 
-"${KINFOLD_PKG_FILE}": prepare-staging-kinfold
-	$(AM_V_GEN)pkgbuild --identifier org.TBI.ViennaRNA.kinfold --version @PACKAGE_VERSION@ \
+"${KINFOLD_PKG_FILE}": staging-kinfold
+	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.kinfold --version @PACKAGE_VERSION@ \
       --root ${staging_kinfold_dir} "${KINFOLD_PKG_FILE}"
 
-"${KINWALKER_PKG_FILE}": prepare-staging-kinwalker
-	$(AM_V_GEN)pkgbuild --identifier org.TBI.ViennaRNA.kinwalker --version @PACKAGE_VERSION@ \
+"${KINWALKER_PKG_FILE}": staging-kinwalker
+	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.kinwalker --version @PACKAGE_VERSION@ \
       --root ${staging_kinwalker_dir} "${KINWALKER_PKG_FILE}"
 
-"${FORESTER_PKG_FILE}": prepare-staging-forester
-	$(AM_V_GEN)pkgbuild --identifier org.TBI.ViennaRNA.rnaforester --version @PACKAGE_VERSION@ \
+"${FORESTER_PKG_FILE}": staging-forester
+	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.rnaforester --version @PACKAGE_VERSION@ \
       --root ${staging_forester_dir} "${FORESTER_PKG_FILE}"
 
-"${PERL_PKG_FILE}": prepare-staging-perl
-	$(AM_V_GEN)pkgbuild --identifier org.TBI.ViennaRNA.perl --version @PACKAGE_VERSION@ \
+"${PERL_PKG_FILE}": staging-perl
+	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.perl --version @PACKAGE_VERSION@ \
       --root ${staging_perl_dir} "${PERL_PKG_FILE}"
 
-"${PYTHON_PKG_FILE}": prepare-staging-python
-	$(AM_V_GEN)pkgbuild --identifier org.TBI.ViennaRNA.python --version @PACKAGE_VERSION@ \
+"${PYTHON_PKG_FILE}": staging-python
+	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.python --version @PACKAGE_VERSION@ \
       --root ${staging_python_dir} "${PYTHON_PKG_FILE}"
 
-"${VRNA_PKG_FILE}":  prepare-pkg \
+"${VRNA_PKG_FILE}":  resources \
                 "${CORE_PKG_FILE}" \
                 "${DEV_PKG_FILE}" \
                 "${CLUSTER_PKG_FILE}" \
@@ -193,32 +213,51 @@ prepare-staging-python:
                 "${KINWALKER_PKG_FILE}" \
                 "${PERL_PKG_FILE}" \
                 "${PYTHON_PKG_FILE}"
-	$(AM_V_GEN)productbuild  --distribution ./Distribution.xml \
+	$(pkg_verbose)$(PRODUCTBUILD)  --distribution ./Distribution.xml \
       --package-path . \
       --resources ./resources \
       ./"${VRNA_PKG_FILE}"
 
-"${MACOSX_DMG_FILE}": "${VRNA_PKG_FILE}"
-	$(MKDIR_P) disk_image
-	cp "${VRNA_PKG_FILE}" disk_image
-	cp $(top_srcdir)/README $(top_srcdir)/NEWS $(top_srcdir)/ChangeLog $(top_srcdir)/AUTHORS $(top_srcdir)/THANKS disk_image/ 
-	cp $(top_srcdir)/COPYING disk_image/License
-	$(AM_V_GEN)hdiutil create -ov -fs HFSX -layout SPUD -format UDZO \
+disk_image:
+	$(prepare_verbose)$(MKDIR_P) disk_image
+	$(AM_V_at)cp "${VRNA_PKG_FILE}" disk_image
+	$(AM_V_at)cp $(top_srcdir)/README $(top_srcdir)/NEWS $(top_srcdir)/ChangeLog $(top_srcdir)/AUTHORS $(top_srcdir)/THANKS disk_image/ 
+	$(AM_V_at)cp $(top_srcdir)/COPYING disk_image/License
+
+"${MACOSX_DMG_FILE}": "${VRNA_PKG_FILE}" disk_image
+	$(dmg_verbose)$(HDIUTIL) create -ov -fs HFSX -layout SPUD -format UDZO \
     -volname ${MACOSX_DMG_NAME} -srcfolder disk_image \
     -imagekey zlib-level=9 -scrub "${MACOSX_DMG_FILE}"
 
-DiskImage: "${MACOSX_DMG_FILE}"
-	@echo "Creating MacOSX Installer disk image"
+
+clean-local:
+	$(remove_staging_core_dir)
+	$(remove_staging_libRNA_dir)
+	$(remove_staging_kinfold_dir)
+	$(remove_staging_cluster_dir)
+	$(remove_staging_kinwalker_dir)
+	$(remove_staging_forester_dir)
+	$(remove_staging_perl_dir)
+	$(remove_staging_python_dir)
+	-rm -rf disk_image
+	-rm -f  "${VRNA_PKG_FILE}" \
+          "${PYTHON_PKG_FILE}" \
+          "${PERL_PKG_FILE}" \
+          "${FORESTER_PKG_FILE}" \
+          "${KINWALKER_PKG_FILE}" \
+          "${KINFOLD_PKG_FILE}" \
+          "${CLUSTER_PKG_FILE}" \
+          "${DEV_PKG_FILE}" \
+          "${CORE_PKG_FILE}"
 
 
-PHONY:  prepare-pkg \
-        prepare-staging-core \
-        prepare-staging-libRNA \
-        prepare-staging-cluster \
-        prepare-staging-kinfold \
-        prepare-staging-forester \
-        prepare-staging-kinwalker \
-        prepare-staging-perl \
-        prepare-staging-python \
-        DiskImage
-
+PHONY:  resources \
+        staging-core \
+        staging-libRNA \
+        staging-cluster \
+        staging-kinfold \
+        staging-forester \
+        staging-kinwalker \
+        staging-perl \
+        staging-python \
+        disk_image
