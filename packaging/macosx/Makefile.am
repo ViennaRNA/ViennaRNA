@@ -1,5 +1,7 @@
 
-EXTRA_DIST = resources/welcome.txt
+EXTRA_DIST =  resources/welcome.txt \
+              resources/conclusion.html \
+              resources/ohm.png
 
 srcdir  = @srcdir@
 thisdir = packaging/macosx
@@ -22,8 +24,9 @@ FORESTER_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ RNAforester".pkg
 DEV_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Development".pkg
 PERL_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Perl".pkg
 PYTHON_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Python".pkg
-MACOSX_DMG_NAME=@PACKAGE_NAME@-@PACKAGE_VERSION@
-MACOSX_DMG_FILE=${MACOSX_DMG_NAME}-macosx.dmg
+VRNA_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Installer".pkg
+MACOSX_DMG_NAME="@PACKAGE_NAME@\ @PACKAGE_VERSION@"
+MACOSX_DMG_FILE="@PACKAGE_NAME@-@PACKAGE_VERSION@-MacOSX".dmg
 
 remove_staging_core_dir = \
   { test ! -d $(staging_core_dir) \
@@ -130,7 +133,7 @@ prepare-staging-libRNA:
 	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_libRNA_dir)
 	cd $(top_srcdir)/src/ViennaRNA \
 	&& $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_libRNA_dir)
-	$(MKDIR_P) $(staging_core_dir)$(prefix)/lib/pkgconfig
+	$(MKDIR_P) $(staging_libRNA_dir)$(prefix)/lib/pkgconfig
 	cp $(top_srcdir)/RNAlib2.pc $(staging_libRNA_dir)$(prefix)/lib/pkgconfig
 
 ##
@@ -181,7 +184,7 @@ prepare-staging-python:
 	$(AM_V_GEN)pkgbuild --identifier org.TBI.ViennaRNA.python --version @PACKAGE_VERSION@ \
       --root ${staging_python_dir} "${PYTHON_PKG_FILE}"
 
-Installer.pkg:  prepare-pkg \
+"${VRNA_PKG_FILE}":  prepare-pkg \
                 "${CORE_PKG_FILE}" \
                 "${DEV_PKG_FILE}" \
                 "${CLUSTER_PKG_FILE}" \
@@ -193,14 +196,20 @@ Installer.pkg:  prepare-pkg \
 	$(AM_V_GEN)productbuild  --distribution ./Distribution.xml \
       --package-path . \
       --resources ./resources \
-      ./Installer.pkg
+      ./"${VRNA_PKG_FILE}"
 
-"${DMG_FILE}": Installer.pkg
+"${MACOSX_DMG_FILE}": "${VRNA_PKG_FILE}"
 	$(MKDIR_P) disk_image
-	cp Installer.pkg disk_image
+	cp "${VRNA_PKG_FILE}" disk_image
+	cp $(top_srcdir)/README $(top_srcdir)/NEWS $(top_srcdir)/ChangeLog $(top_srcdir)/AUTHORS $(top_srcdir)/THANKS disk_image/ 
+	cp $(top_srcdir)/COPYING disk_image/License
 	$(AM_V_GEN)hdiutil create -ov -fs HFSX -layout SPUD -format UDZO \
     -volname ${MACOSX_DMG_NAME} -srcfolder disk_image \
     -imagekey zlib-level=9 -scrub "${MACOSX_DMG_FILE}"
+
+DiskImage: "${MACOSX_DMG_FILE}"
+	@echo "Creating MacOSX Installer disk image"
+
 
 PHONY:  prepare-pkg \
         prepare-staging-core \
@@ -210,4 +219,6 @@ PHONY:  prepare-pkg \
         prepare-staging-forester \
         prepare-staging-kinwalker \
         prepare-staging-perl \
-        prepare-staging-python
+        prepare-staging-python \
+        DiskImage
+

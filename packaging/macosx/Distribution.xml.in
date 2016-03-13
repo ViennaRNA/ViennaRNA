@@ -9,10 +9,13 @@
     <pkg-ref id="org.TBI.ViennaRNA.perl"/>
     <pkg-ref id="org.TBI.ViennaRNA.python"/>
     <options customize="always" hostArchitectures="i386,x86_64" />
+    <domains enable_localSystem="true" enableCurrentUserHome="false" enable_anywhere="false" />
+    <background file="ohm.png" mime-type="image/png" alignment="right" scaling="none" />
     <title>@PACKAGE_NAME@ Package @PACKAGE_VERSION@</title>
     <welcome file="welcome.txt" mime-type="text/plain" />
     <readme file="README" mime-type="text/plain" />
     <license file="COPYING" mime-type="text/plain" />
+    <conclusion file="conclusion.html" mime-type="text/html" />
      <choices-outline>
         <line choice="org.TBI.ViennaRNA.core"/>
         <line choice="org.TBI.ViennaRNA.cluster"/>
