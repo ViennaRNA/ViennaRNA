@@ -34,7 +34,7 @@ DEV_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Development".pkg
 PERL_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Perl".pkg
 PYTHON_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Python".pkg
 VRNA_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Installer".pkg
-MACOSX_DMG_NAME="@PACKAGE_NAME@\ @PACKAGE_VERSION@"
+MACOSX_DMG_NAME="@PACKAGE_NAME@ @PACKAGE_VERSION@"
 MACOSX_DMG_FILE="@PACKAGE_NAME@-@PACKAGE_VERSION@-MacOSX".dmg
 
 remove_staging_core_dir = \
@@ -98,6 +98,7 @@ resources:
 staging-core:
 	$(prepare_verbose)$(remove_staging_core_dir)
 	$(AM_V_at)$(MKDIR_P) $(staging_core_dir)$(prefix)/bin
+	$(AM_V_at)cp uninstall-ViennaRNA-Package.sh $(staging_core_dir)$(prefix)/bin/
 	$(AM_V_at)cd $(top_srcdir)/src/bin \
       && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_core_dir)
 	$(AM_V_at)cd $(top_srcdir)/src/Utils \
