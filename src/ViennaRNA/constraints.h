@@ -211,6 +211,28 @@ typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int i, int j, int k, int l
 #define VRNA_CONSTRAINT_DB_ENFORCE_BP           16384U
 
 /**
+ *  @brief Switch for dot-bracket structure constraint with default symbols
+ *
+ *  This flag conveniently combines all possible symbols in dot-bracket notation
+ *  for hard constraints and #VRNA_CONSTRAINT_DB
+ *
+ *  @ingroup  constraints
+ *
+ *  @see vrna_constraints_add()
+ */
+#define VRNA_CONSTRAINT_DB_DEFAULT \
+    (   VRNA_CONSTRAINT_DB \
+      | VRNA_CONSTRAINT_DB_PIPE \
+      | VRNA_CONSTRAINT_DB_DOT \
+      | VRNA_CONSTRAINT_DB_X \
+      | VRNA_CONSTRAINT_DB_ANG_BRACK \
+      | VRNA_CONSTRAINT_DB_RND_BRACK \
+      | VRNA_CONSTRAINT_DB_INTRAMOL \
+      | VRNA_CONSTRAINT_DB_INTERMOL \
+      | VRNA_CONSTRAINT_DB_GQUAD \
+    )
+
+/**
  *  @brief  constraint may span over several lines
  *
  *  @ingroup  hard_constraints
@@ -396,6 +418,14 @@ typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int i, int j, int k, int l
  *  @ingroup  generalized_sc
  *
  */
+#define VRNA_DECOMP_ML_ML_STEM 20
+
+/**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of multibranch loop part
+ *
+ *  @ingroup  generalized_sc
+ *
+ */
 #define VRNA_DECOMP_ML_COAXIAL  13
 
 /**
@@ -461,14 +491,6 @@ typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int i, int j, int k, int l
  *
  */
 #define VRNA_DECOMP_EXT_EXT_STEM1 19
-
-/**
- *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of multibranch loop part
- *
- *  @ingroup  generalized_sc
- *
- */
-#define VRNA_DECOMP_ML_ML_STEM 20
 
 /**
  *  @brief  The hard constraints data structure
