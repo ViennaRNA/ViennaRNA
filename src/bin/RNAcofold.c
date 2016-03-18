@@ -335,6 +335,14 @@ int main(int argc, char *argv[])
     min_en  = vrna_mfe_dimer(vc, structure);
     mfAB    = vrna_plist(structure, 0.95);
 
+    /* check whether the constraint allows for any solution */
+    if(fold_constrained && constraints_file){
+      if(min_en == (double)(INF/100.)){
+        fprintf(stderr, "ERROR: Supplied structure constraints create empty solution set for sequence:\n%s\n", orig_sequence);
+        exit(EXIT_FAILURE);
+      }
+    }
+
     {
       char *pstring, *pstruct;
       pstring = strdup(orig_sequence);
