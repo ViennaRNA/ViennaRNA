@@ -424,7 +424,9 @@ int main(int argc, char *argv[]){
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
       if(constraints_file){
+        /** [Adding hard constraints from file] */
         vrna_constraints_add(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+        /** [Adding hard constraints from file] */
       } else {
         cstruc = NULL;
         unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
@@ -438,6 +440,7 @@ int main(int argc, char *argv[]){
         if(cstruc){
           strncpy(structure, cstruc, sizeof(char)*(cl+1));
 
+          /** [Adding hard constraints from pseudo dot-bracket] */
           unsigned int constraint_options = 0;
           constraint_options |= VRNA_CONSTRAINT_DB
                                 | VRNA_CONSTRAINT_DB_PIPE
@@ -448,6 +451,7 @@ int main(int argc, char *argv[]){
           if(enforceConstraints)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
           vrna_constraints_add(vc, (const char *)structure, constraint_options);
+          /** [Adding hard constraints from pseudo dot-bracket] */
         }
       }
     }

@@ -335,7 +335,7 @@ typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int i, int j, int k, int l
                                                       | VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
 
 /**
- *  @brief  Generalized constraint folding flag indicating hairpin loop decomposition step
+ *  @brief  Flag passed to generic softt constraints callback to indicate hairpin loop decomposition step
  *
  *  @ingroup  generalized_sc
  *
@@ -343,7 +343,7 @@ typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int i, int j, int k, int l
 #define VRNA_DECOMP_PAIR_HP     1
 
 /**
- *  @brief  Generalized constraint folding flag indicating interior loop decomposition step
+ *  @brief  Flag passed to generic soft constraints callback to indicate interior loop decomposition step
  *
  *  @ingroup  generalized_sc
  *
@@ -351,90 +351,120 @@ typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int i, int j, int k, int l
 #define VRNA_DECOMP_PAIR_IL     2
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate multibranch loop decomposition step
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_PAIR_ML     3
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of multibranch loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_ML_ML_ML    5
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of multibranch loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_ML_STEM     4
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of multibranch loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_ML_ML       6
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of multibranch loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_ML_UP       11
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of multibranch loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_ML_COAXIAL  13
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of exterior loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_EXT     9
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of exterior loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_UP      8
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of exterior loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_STEM 14
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of exterior loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_EXT_EXT 15
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of exterior loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_STEM_EXT 16
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of exterior loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_STEM_OUTSIDE 17
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of exterior loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_EXT_STEM 18
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of exterior loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
 #define VRNA_DECOMP_EXT_EXT_STEM1 19
 
 /**
+ *  @brief  Flag passed to generic soft constraints callback to indicate decomposition of multibranch loop part
+ *
  *  @ingroup  generalized_sc
  *
  */
@@ -604,6 +634,19 @@ void vrna_message_constraint_options_all(void);
  *            #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_GQUAD
  *
  *  @ingroup  constraints
+ *
+ *  The following is an example for adding hard constraints given in
+ *  pseudo dot-bracket notation. Here, @p vc is the #vrna_fold_compound_t object,
+ *  @p structure is a char array with the hard constraint in dot-bracket notation,
+ *  and @p enforceConstraints is a flag indicating whether or not constraints for
+ *  base pairs should be enforced instead of just doing a removal of base pair that
+ *  conflict with the constraint.
+ *
+ *  @snippet RNAfold.c Adding hard constraints from pseudo dot-bracket
+ *
+ *  In constrat to the above, constraints may also be read from file:
+ *
+ *  @snippet RNAfold.c Adding hard constraints from file
  *
  *  @param  vc            The fold compound
  *  @param  constraint    A string with either the filename of the constraint definitions
