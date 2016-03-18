@@ -651,7 +651,7 @@ parse_constraints_line( const char *line,
     case 'F':   /* fall through */
     case 'P':   max_entries = 5;
                 break;
-    case 'W':   /* fall through */
+    case 'C':   /* fall through */
     case 'E':   max_entries = 4;
                 break;
     case '#': case ';': case '%': case '/': case ' ':
@@ -869,7 +869,8 @@ vrna_file_constraints_read( const char *filename,
             case 'E': type = (int)(VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);  /* soft constraints are always applied for all loops */
                       type |= 4096; /* add hidden flag indicating soft constraint */
                       break;
-            case 'W': /* do nothing */
+            case 'C': type |= (int)(VRNA_CONSTRAINT_CONTEXT_ENFORCE); /* enforce context dependency */
+                      break;
             default:  break;
           }
         } else { /* base pair constraint */
@@ -884,7 +885,7 @@ vrna_file_constraints_read( const char *filename,
             case 'E': type = (int)(VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);  /* soft constraints are always applied for all loops */
                       type |= 4096; /* add hidden flag indicating soft constraint */
                       break;
-            case 'W': break;
+            case 'C': break;  /* remove conflicting pairs only */
             default:  break;
           }
         }

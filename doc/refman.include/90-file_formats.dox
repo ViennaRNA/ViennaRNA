@@ -17,7 +17,7 @@
   The following set of commands is recognized:
   -  @p F @f$ \ldots @f$ Force
   -  @p P @f$ \ldots @f$ Prohibit
-  -  @p W @f$ \ldots @f$ Weakly enforce, i.e. remove conflicts only
+  -  @p C @f$ \ldots @f$ Conflicts/Context dependency
   -  @p A @f$ \ldots @f$ Allow (for non-canonical pairs)
   -  @p E @f$ \ldots @f$ Soft constraints for unpaired position(s), or base pair(s)
 
@@ -81,16 +81,14 @@
       Prohibit any nucleotide @f$ p \in [i:j] @f$ to pair with any other nucleotide
       @f$ q \in [k:l] @f$. The optional loop type specifier @p [WHERE] allows to
       specify the type of loop they are disallowed to be the closing or an enclosed pair of.
-  -#  @b "Weakly prohibit a range of nucleotide positions to be paired":\n
-      Syntax: @verbatim W i 0 k [WHERE] @endverbatim
+  -#  @b "Enforce a loop context for a range of nucleotide positions":\n
+      Syntax: @verbatim C i 0 k [WHERE] @endverbatim
       Description:\n
-      This command is meant as a complement to @em prohibiting nucleotides to be paired,
+      This command enforces nucleotides to be unpaired similar to @em prohibiting nucleotides to be paired,
       as described above. It too marks the corresponding nucleotides to be unpaired, however,
-      they are not required to appear in the optional loop type context. They are rather
-      prohibited from forming base pairs only. The optional loop type context specifier
-      @p [WHERE] may be used to prohibit pairing in specific contexts.
-  -#  @b "Weakly enforce a set of consecutive base pairs":\n
-      Syntax: @verbatim W i j k @endverbatim\n
+      the @p [WHERE] flag can be used to enforce specfic loop types the nucleotides must appear in.
+  -#  @b "Remove pairs that conflict with a set of consecutive base pairs":\n
+      Syntax: @verbatim C i j k @endverbatim\n
       Description:\n
       Remove all base pairs that conflict with a set of consecutive base pairs
       @f$ (i,j), \ldots, (i+(k-1), j-(k-1)) @f$. Two base pairs @f$ (i,j) @f$ and @f$ (p,q) @f$
