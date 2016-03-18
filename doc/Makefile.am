@@ -82,7 +82,12 @@ endif
 install-htmlDATA: vrna_htmlrefman_inst
 uninstall-htmlDATA: vrna_htmlrefman_uninst
 
-EXTRA_DIST = $(pkgdata_DATA) refman.include html latex @REFERENCE_MANUAL_PDF_NAME@
+EXTRA_DIST =  $(pkgdata_DATA) \
+              refman.include \
+              refman.images \
+              html \
+              latex \
+              @REFERENCE_MANUAL_PDF_NAME@
 
 # remove all generated content
 maintainer-clean-local:
