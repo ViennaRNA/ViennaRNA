@@ -63,15 +63,18 @@ extern "C" {
 %include tmaps.i  // additional typemaps
 
 /* prepare conversions to native types, such as lists */
+%include "std_pair.i";
 %include "std_vector.i";
 %include "std_string.i";
 
 namespace std {
-  %template(IntVector) vector<int>;
-  %template(DoubleVector) vector<double>;
-  %template(StringVector) vector<string>;
-  %template(ConstCharVector) vector<const char*>;
-  %template(SOLUTIONVector) vector<SOLUTION>;
+  %template(DoublePair) std::pair<double,double>;
+  %template(IntVector) std::vector<int>;
+  %template(DoubleVector) std::vector<double>;
+  %template(StringVector) std::vector<string>;
+  %template(ConstCharVector) std::vector<const char*>;
+  %template(SOLUTIONVector) std::vector<SOLUTION>;
+  %template(CoordinateVector) std::vector<COORDINATE>;
 };
 
 %{

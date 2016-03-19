@@ -188,6 +188,13 @@ $struc1_move = "(..............)";
 RNA::move_standard($seq1, $struc1_move, 1, 0, 0, 0);
 ok($struc1_move, "(((.((....)).)))");
 
+# test simple_xy_coordinates
+my $coords = RNA::simple_xy_coordinates($struc1);
+
+foreach my $c (@{$coords}){
+  print $c->{X}, ",", $c->{Y}, "\n";
+}
+
 #TODO use xsubi random generator, set seed and check here
 #my $struc1_move = "(..............)";
 #RNA::move_standard($seq1, $struc1_move, 2, 0, 0, 0);
