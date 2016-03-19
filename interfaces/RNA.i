@@ -62,6 +62,17 @@ extern "C" {
 %include typemaps.i
 %include tmaps.i  // additional typemaps
 
+/* handle exceptions */
+%include "exception.i"
+
+%exception {
+  try {
+    $action
+  } catch (const std::exception& e) {
+    SWIG_exception(SWIG_RuntimeError, e.what());
+  }
+}
+
 /* prepare conversions to native types, such as lists */
 %include "std_pair.i";
 %include "std_vector.i";
