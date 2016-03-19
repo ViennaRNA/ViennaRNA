@@ -80,6 +80,7 @@ std::vector<SOLUTION> my_subopt(char *seq, int delta, FILE *fp);
 std::vector<SOLUTION> my_subopt(char *seq, int delta);
 SOLUTION *my_subopt(char *seq, char *constraint, int delta);
 
+%ignore subopt;
 %ignore subopt_par;
 %ignore subopt_circ;
 %ignore zukersubopt;
