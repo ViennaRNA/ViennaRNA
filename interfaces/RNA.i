@@ -4,6 +4,7 @@
 
 %{
 
+extern "C" {
 #include  <ViennaRNA/data_structures.h>
 #include  <ViennaRNA/dp_matrices.h>
 #include  <ViennaRNA/model.h>
@@ -42,6 +43,7 @@
 #include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
 #include  <ViennaRNA/ligand.h>
+}
 
 %}
 //
@@ -60,6 +62,16 @@
 %include typemaps.i
 %include tmaps.i  // additional typemaps
 
+%include "std_vector.i";
+%include "std_string.i";
+
+namespace std {
+  %template(IntVector) vector<int>;
+  %template(DoubleVector) vector<double>;
+  %template(StringVector) vector<string>;
+  %template(ConstCharVector) vector<const char*>;
+};
+
 //%title "Interface to the Vienna RNA library"
 
 /* do not wrap any function prefixed by 'vrna_' */
@@ -69,6 +81,24 @@
 %rename("$ignore",  %$isclass, regextarget=1) "^vrna_";
 %rename("$ignore",  %$istypedef, regextarget=1) "^vrna_";
 %rename("$ignore",  %$isenum, regextarget=1) "^vrna_";
+
+%{
+#include <string>
+#include <cstring>
+
+using namespace std;
+
+const char *convert_vecstring2veccharcp(const std::string & s){
+  return s.c_str();
+}
+
+char *convert_vecstring2veccharp(const std::string & s){
+  char *pc = new char[s.size()+1];
+  std::strcpy(pc, s.c_str());
+  return pc;
+}
+
+%}
 
 /*############################################*/
 /* Include all relevant interface definitions */

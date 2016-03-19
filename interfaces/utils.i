@@ -155,6 +155,28 @@ char *my_unpack_structure(const char *packed);
   }
 %}
 
+%rename (ptable) my_ptable;
+
+%{
+#include <vector>
+
+using namespace std;
+
+  vector<int> my_ptable(string str){
+    short int* pt = ::vrna_ptable(str.c_str());
+    vector<int> v_pt;
+    int i;
+
+    for(i=0; i <= pt[0]; i++){
+      v_pt.push_back(pt[i]);
+    }
+    free(pt);
+    return v_pt;
+  }
+%}
+
+std::vector<int> my_ptable(std::string str);
+
 /* pair table related functions */
 %ignore make_pair_table;
 %ignore make_pair_table_pk;

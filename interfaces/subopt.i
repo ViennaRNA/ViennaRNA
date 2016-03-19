@@ -41,8 +41,30 @@ typedef struct {
         }
 }
 
+%rename (subopt) my_subopt;
+
+%{
+  SOLUTION *my_subopt(char *seq, char *constraint, int delta, FILE *fp){
+    return subopt(seq, constraint, delta, fp);
+  }
+  SOLUTION *my_subopt(char *seq, int delta, FILE *fp){
+    return subopt(seq, NULL, delta, fp);
+  }
+  SOLUTION *my_subopt(char *seq, int delta){
+    return subopt(seq, NULL, delta, NULL);
+  }
+  SOLUTION *my_subopt(char *seq, char *constraint, int delta){
+    return subopt(seq, constraint, delta, NULL);
+  }
+
+%}
+
 %newobject subopt;
-extern  SOLUTION *subopt (char *seq, char *constraint, int delta, FILE *fp=NULL);
+
+SOLUTION *my_subopt(char *seq, char *constraint, int delta, FILE *fp);
+SOLUTION *my_subopt(char *seq, int delta, FILE *fp);
+SOLUTION *my_subopt(char *seq, int delta);
+SOLUTION *my_subopt(char *seq, char *constraint, int delta);
 
 %ignore subopt_par;
 %ignore subopt_circ;

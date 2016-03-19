@@ -5,9 +5,15 @@
 
 %rename (pf_fold) my_pf_fold;
 %{
+  char *my_pf_fold(char *string, float *energy) {
+    char *struc;
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
+    *energy = pf_fold(string, struc);
+    return(struc);
+  }
   char *my_pf_fold(char *string, char *constraints, float *energy) {
     char *struc;
-    struc = calloc(strlen(string)+1,sizeof(char));
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(string));
     *energy = pf_fold(string, struc);
@@ -18,7 +24,8 @@
 %}
 
 %newobject my_pf_fold;
-char *my_pf_fold(char *string, char *constraints = NULL, float *OUTPUT);
+char *my_pf_fold(char *string, float *OUTPUT);
+char *my_pf_fold(char *string, char *constraints, float *OUTPUT);
 %ignore pf_fold;
 
 %newobject pbacktrack;
@@ -63,11 +70,23 @@ extern char *pbacktrack(char *sequence);
 
 %rename (co_pf_fold) my_co_pf_fold;
 %{
+  char *my_co_pf_fold(char *string, float *FA, float *FB, float *FcAB, float *FAB) {
+    char *struc;
+    float en;
+    vrna_dimer_pf_t temp;
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
+    temp=co_pf_fold(string, struc);
+    *FAB = temp.FAB;
+    *FcAB = temp.FcAB;
+    *FA = temp.FA;
+    *FB = temp.FB;
+    return(struc);
+  }
   char *my_co_pf_fold(char *string, char *constraints, float *FA, float *FB, float *FcAB, float *FAB) {
     char *struc;
     float en;
     vrna_dimer_pf_t temp;
-    struc = calloc(strlen(string)+1,sizeof(char));
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(string));
     temp=co_pf_fold(string, struc);
@@ -82,7 +101,8 @@ extern char *pbacktrack(char *sequence);
 %}
 
 %newobject my_co_pf_fold;
-char *my_co_pf_fold(char *string, char *constraints = NULL, float *OUTPUT, float *OUTPUT, float *OUTPUT, float *OUTPUT);
+char *my_co_pf_fold(char *string, float *OUTPUT, float *OUTPUT, float *OUTPUT, float *OUTPUT);
+char *my_co_pf_fold(char *string, char *constraints, float *OUTPUT, float *OUTPUT, float *OUTPUT, float *OUTPUT);
 
 %ignore co_pf_fold;
 %ignore co_pf_fold_par;

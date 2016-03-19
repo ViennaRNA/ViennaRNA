@@ -5,7 +5,7 @@ PERL_MODULE = $(SWIG_module_name).pm
 perlextdir = $(prefix)$(PERL_ARCH_RELATIVE_INSTALL_DIR)/auto/RNA
 perlext_LTLIBRARIES = RNA.la
 
-RNA_la_SOURCES = $(SWIG_src) RNA_wrap.c
+RNA_la_SOURCES = $(SWIG_src) $(SWIG_wapper)
 
 perlmoddir = $(prefix)$(PERL_LIB_RELATIVE_INSTALL_DIR)
 nobase_dist_perlmod_DATA = \
@@ -48,7 +48,7 @@ EXTRA_DIST = \
 
 $(SWIG_wrapper) $(PERL_MODULE): $(SWIG_src)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src @FLOAT_PF_FLAG@ \
-                  -perl5 -proxy -const \
+                  -perl5 -proxy -const -c++ \
                   -module RNA -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
 
