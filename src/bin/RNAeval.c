@@ -20,6 +20,7 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints_SHAPE.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/cofold.h"
@@ -239,7 +240,7 @@ int main(int argc, char *argv[]){
     free(tmp);
 
     if(with_shapes)
-      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE);
+      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_OPTION_MFE);
 
     if(istty){
       if (vc->cutpoint == -1)

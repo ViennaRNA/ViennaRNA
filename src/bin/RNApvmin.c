@@ -12,6 +12,7 @@
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints_SHAPE.h"
 #include "ViennaRNA/perturbation_fold.h"
 #include "ViennaRNA/file_formats.h"
 #include "RNApvmin_cmdl.h"

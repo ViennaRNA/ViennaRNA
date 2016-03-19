@@ -101,6 +101,22 @@ void vrna_file_json(const char *seq,
 #endif
 
 /**
+ *  @brief  Tell a function that an input is assumed to span several lines
+ *
+ *  If used as input-option a function might also be returning this state telling
+ *  that it has read data from multiple lines.
+ *
+ *  @see vrna_extract_record_rest_structure(), vrna_file_fasta_read_record()
+ *
+ */
+#define VRNA_OPTION_MULTILINE             32U
+/**
+ *  @brief parse multiline constraint
+ *  @deprecated see vrna_extract_record_rest_structure()
+ */
+#define VRNA_CONSTRAINT_MULTILINE         32U
+
+/**
  *  @brief  Get a (fasta) data set from a file or stdin
  * 
  *  This function may be used to obtain complete datasets from a filehandle or stdin.
@@ -170,13 +186,15 @@ unsigned int vrna_file_fasta_read_record(char **header,
                                     FILE *file,
                                     unsigned int options);
 
-/* @brief Extract a dot-bracket structure string from (multiline)character array
+/** @brief Extract a dot-bracket structure string from (multiline)character array
  *
  * This function extracts a dot-bracket structure string from the 'rest' array as
  * returned by vrna_file_fasta_read_record() and returns it. All occurences of comments within the
  * 'lines' array will be skipped as long as they do not break the structure string.
  * If no structure could be read, this function returns NULL.
  *
+ * @pre      The argument 'lines' has to be a 2-dimensional character array as obtained
+ *            by vrna_file_fasta_read_record()
  * @see vrna_file_fasta_read_record()
  *
  * @param lines   The (multiline) character array to be parsed
@@ -186,25 +204,6 @@ unsigned int vrna_file_fasta_read_record(char **header,
  */
 char *vrna_extract_record_rest_structure( const char **lines,
                                           unsigned int length,
-                                          unsigned int option);
-
-/**
- *  @brief  Extract a hard constraint encoded as pseudo dot-bracket string
- *
- *  @pre      The argument 'lines' has to be a 2-dimensional character array as obtained
- *            by vrna_file_fasta_read_record()
- *  @see      vrna_file_fasta_read_record(), #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X
- *            #VRNA_CONSTRAINT_DB_ANG_BRACK, #VRNA_CONSTRAINT_DB_RND_BRACK
- *
- *  @param  cstruc  A pointer to a character array that is used as pseudo dot-bracket
- *                  output
- *  @param  lines   A 2-dimensional character array with the extension lines from the FASTA
- *                  input
- *  @param  option  The option flags that define the behavior and recognition pattern of
- *                  this function
- */
-void vrna_extract_record_rest_constraint( char **cstruc,
-                                          const char **lines,
                                           unsigned int option);
 
 /**
@@ -242,9 +241,27 @@ vrna_plist_t *vrna_file_constraints_read( const char *filename,
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
-/* @brief Extract a dot-bracket structure string from (multiline)character array
+/**
+ *  @brief  Extract a hard constraint encoded as pseudo dot-bracket string
  *
- * @deprecated This function is deprecated! Use vrna_extract_record_rest_structure() as a replacment.
+ *  @deprecated     Use vrna_extract_record_rest_structure() instead!
+ *  @pre      The argument 'lines' has to be a 2-dimensional character array as obtained
+ *            by vrna_file_fasta_read_record()
+ *  @see      vrna_file_fasta_read_record(), #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X
+ *            #VRNA_CONSTRAINT_DB_ANG_BRACK, #VRNA_CONSTRAINT_DB_RND_BRACK
+ *
+ *  @param  cstruc  A pointer to a character array that is used as pseudo dot-bracket
+ *                  output
+ *  @param  lines   A 2-dimensional character array with the extension lines from the FASTA
+ *                  input
+ *  @param  option  The option flags that define the behavior and recognition pattern of
+ *                  this function
+ */
+DEPRECATED(void vrna_extract_record_rest_constraint( char **cstruc, const char **lines, unsigned int option));
+
+/** @brief Extract a dot-bracket structure string from (multiline)character array
+ *
+ * @deprecated This function is deprecated! Use \fn vrna_extract_record_rest_structure() as a replacment.
  */
 DEPRECATED(char *extract_record_rest_structure( const char **lines,
                                                 unsigned int length,

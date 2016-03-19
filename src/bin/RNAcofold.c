@@ -13,6 +13,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints_SHAPE.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/fold.h"
@@ -265,14 +266,13 @@ int main(int argc, char *argv[])
     /* parse the rest of the current dataset to obtain a structure constraint */
     if(fold_constrained){
       if(constraints_file){
-        vrna_constraints_add(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+        vrna_constraints_add(vc, constraints_file, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
       } else {
         cstruc = NULL;
         cstruc = NULL;
         int cp = -1;
-        unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
-        coptions |= VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK | VRNA_CONSTRAINT_DB_PIPE;
-        vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
+        unsigned int coptions = (rec_id) ? VRNA_OPTION_MULTILINE : 0;
+        cstruc = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc = vrna_cut_point_remove(cstruc, &cp);
         if(vc->cutpoint != cp){
           fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
@@ -288,14 +288,7 @@ int main(int argc, char *argv[])
         if(cstruc){
           strncpy(structure, cstruc, sizeof(char)*(cl+1));
 
-          unsigned int constraint_options = 0;
-          constraint_options |= VRNA_CONSTRAINT_DB
-                                | VRNA_CONSTRAINT_DB_PIPE
-                                | VRNA_CONSTRAINT_DB_DOT
-                                | VRNA_CONSTRAINT_DB_X
-                                | VRNA_CONSTRAINT_DB_ANG_BRACK
-                                | VRNA_CONSTRAINT_DB_RND_BRACK;
-
+          unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
           if(enforceConstraints)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
           vrna_constraints_add(vc, (const char *)structure, constraint_options);

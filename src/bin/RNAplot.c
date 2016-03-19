@@ -92,9 +92,8 @@ int main(int argc, char *argv[]){
       strcpy(ffname, "rna");
 
     structure = NULL;
-    unsigned int struct_options = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
-    struct_options |= VRNA_CONSTRAINT_ALL;
-    vrna_extract_record_rest_constraint(&structure, (const char **)rec_rest, struct_options);
+    unsigned int struct_options = (rec_id) ? VRNA_OPTION_MULTILINE : 0;
+    structure = vrna_extract_record_rest_structure((const char **)rec_rest, 0, struct_options);
 
     if(strlen(rec_sequence) != strlen(structure))
       vrna_message_error("sequence and structure have unequal length");

@@ -463,81 +463,9 @@ vrna_extract_record_rest_constraint(char **cstruc,
                                     const char **lines,
                                     unsigned int option){
 
-  int r, i, l, cl, stop;
-  char *c, *ptr;
-  if(lines){
-    if(option & VRNA_CONSTRAINT_ALL)
-      option |=   VRNA_CONSTRAINT_DB_PIPE
-                | VRNA_CONSTRAINT_DB_ANG_BRACK
-                | VRNA_CONSTRAINT_DB_RND_BRACK
-                | VRNA_CONSTRAINT_DB_X
-                | VRNA_CONSTRAINT_DB_INTRAMOL
-                | VRNA_CONSTRAINT_DB_INTERMOL;
-
-    for(r=i=stop=0;lines[i];i++){
-      l   = (int)strlen(lines[i]);
-      c   = (char *) vrna_alloc(sizeof(char) * (l+1));
-      (void) sscanf(lines[i], "%s", c);
-      cl  = (int)strlen(c);
-      /* line commented out ? */
-      if((*c == '#') || (*c == '%') || (*c == ';') || (*c == '/') || (*c == '*' || (*c == '\0'))){
-        /* skip leading comments only, i.e. do not allow comments inside the constraint */
-        if(!r)  continue;
-        else    break;
-      }
-
-      /* check current line for actual constraining structure */
-      for(ptr = c;*c;c++){
-        switch(*c){
-          case '|':   if(!(option & VRNA_CONSTRAINT_DB_PIPE)){
-                        vrna_message_warning("constraints of type '|' not allowed");
-                        *c = '.';
-                      }
-                      break;
-          case '<':   
-          case '>':   if(!(option & VRNA_CONSTRAINT_DB_ANG_BRACK)){
-                        vrna_message_warning("constraints of type '<' or '>' not allowed");
-                        *c = '.';
-                      }
-                      break;
-          case '(':
-          case ')':   if(!(option & VRNA_CONSTRAINT_DB_RND_BRACK)){
-                        vrna_message_warning("constraints of type '(' or ')' not allowed");
-                        *c = '.';
-                      }
-                      break;
-          case 'x':   if(!(option & VRNA_CONSTRAINT_DB_X)){
-                        vrna_message_warning("constraints of type 'x' not allowed");
-                        *c = '.';
-                      }
-                      break;
-          case 'e':   if(!(option & VRNA_CONSTRAINT_DB_INTERMOL)){
-                        vrna_message_warning("constraints of type 'e' not allowed");
-                        *c = '.';
-                      }
-                      break;
-          case 'l':   if(!(option & VRNA_CONSTRAINT_DB_INTRAMOL)){
-                        vrna_message_warning("constraints of type 'l' not allowed");
-                        *c = '.';
-                      }
-                      break;  /*only intramolecular basepairing */
-          case '.':   break;
-          case '&':   break; /* ignore concatenation char */
-          default:    vrna_message_warning("unrecognized character in constraint structure");
-                      break;
-        }
-      }
-
-      r += cl+1;
-      *cstruc = (char *)vrna_realloc(*cstruc, r*sizeof(char));
-      strcat(*cstruc, ptr);
-      free(ptr);
-      /* stop if not in fasta mode or multiple words on line */
-      if(!(option & VRNA_CONSTRAINT_MULTILINE) || (cl != l)) break;
-    }
-  }
+  *cstruc = vrna_extract_record_rest_structure(lines, 0, option | (option & VRNA_CONSTRAINT_MULTILINE) ? VRNA_OPTION_MULTILINE : 0);
+  
 }
-
 
 PUBLIC int
 vrna_file_SHAPE_read( const char *file_name,

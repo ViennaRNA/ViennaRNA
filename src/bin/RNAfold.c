@@ -30,6 +30,7 @@
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints_SHAPE.h"
 #include "ViennaRNA/ligand.h"
 #include "ViennaRNA/file_formats.h"
 #include "RNAfold_cmdl.h"
@@ -425,13 +426,12 @@ int main(int argc, char *argv[]){
     if(fold_constrained){
       if(constraints_file){
         /** [Adding hard constraints from file] */
-        vrna_constraints_add(vc, constraints_file, VRNA_CONSTRAINT_FILE | VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+        vrna_constraints_add(vc, constraints_file, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
         /** [Adding hard constraints from file] */
       } else {
         cstruc = NULL;
-        unsigned int coptions = (rec_id) ? VRNA_CONSTRAINT_MULTILINE : 0;
-        coptions |= VRNA_CONSTRAINT_ALL;
-        vrna_extract_record_rest_constraint(&cstruc, (const char **)rec_rest, coptions);
+        unsigned int coptions = (rec_id) ? VRNA_OPTION_MULTILINE : 0;
+        cstruc = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
         if(cl == 0)           vrna_message_warning("structure constraint is missing");
@@ -441,13 +441,7 @@ int main(int argc, char *argv[]){
           strncpy(structure, cstruc, sizeof(char)*(cl+1));
 
           /** [Adding hard constraints from pseudo dot-bracket] */
-          unsigned int constraint_options = 0;
-          constraint_options |= VRNA_CONSTRAINT_DB
-                                | VRNA_CONSTRAINT_DB_PIPE
-                                | VRNA_CONSTRAINT_DB_DOT
-                                | VRNA_CONSTRAINT_DB_X
-                                | VRNA_CONSTRAINT_DB_ANG_BRACK
-                                | VRNA_CONSTRAINT_DB_RND_BRACK;
+          unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
           if(enforceConstraints)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
           vrna_constraints_add(vc, (const char *)structure, constraint_options);
@@ -457,7 +451,7 @@ int main(int argc, char *argv[]){
     }
 
     if(with_shapes)
-      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_CONSTRAINT_SOFT_MFE | ((pf) ? VRNA_CONSTRAINT_SOFT_PF : 0));
+      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
     if(ligandMotif)
       add_ligand_motif(vc, ligandMotif, verbose, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
