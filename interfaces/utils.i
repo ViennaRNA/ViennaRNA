@@ -163,7 +163,7 @@ char *my_unpack_structure(const char *packed);
 using namespace std;
 
   vector<int> my_ptable(string str){
-    short int* pt = ::vrna_ptable(str.c_str());
+    short int* pt = vrna_ptable(str.c_str());
     vector<int> v_pt;
     int i;
 

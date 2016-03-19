@@ -5,7 +5,7 @@ PERL_MODULE = $(SWIG_module_name).pm
 perlextdir = $(prefix)$(PERL_ARCH_RELATIVE_INSTALL_DIR)/auto/RNA
 perlext_LTLIBRARIES = RNA.la
 
-RNA_la_SOURCES = $(SWIG_src) $(SWIG_wapper)
+RNA_la_SOURCES = $(SWIG_src) $(SWIG_wrapper)
 
 perlmoddir = $(prefix)$(PERL_LIB_RELATIVE_INSTALL_DIR)
 nobase_dist_perlmod_DATA = \
