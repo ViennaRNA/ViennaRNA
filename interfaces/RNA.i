@@ -62,6 +62,7 @@ extern "C" {
 %include typemaps.i
 %include tmaps.i  // additional typemaps
 
+/* prepare conversions to native types, such as lists */
 %include "std_vector.i";
 %include "std_string.i";
 
@@ -70,7 +71,25 @@ namespace std {
   %template(DoubleVector) vector<double>;
   %template(StringVector) vector<string>;
   %template(ConstCharVector) vector<const char*>;
+  %template(SOLUTIONVector) vector<SOLUTION>;
 };
+
+%{
+#include <string>
+#include <cstring>
+
+using namespace std;
+
+  const char *convert_vecstring2veccharcp(const std::string & s){
+    return s.c_str();
+  }
+
+  char *convert_vecstring2veccharp(const std::string & s){
+    char *pc = new char[s.size()+1];
+    std::strcpy(pc, s.c_str());
+    return pc;
+  }
+%}
 
 //%title "Interface to the Vienna RNA library"
 
@@ -81,24 +100,6 @@ namespace std {
 %rename("$ignore",  %$isclass, regextarget=1) "^vrna_";
 %rename("$ignore",  %$istypedef, regextarget=1) "^vrna_";
 %rename("$ignore",  %$isenum, regextarget=1) "^vrna_";
-
-%{
-#include <string>
-#include <cstring>
-
-using namespace std;
-
-const char *convert_vecstring2veccharcp(const std::string & s){
-  return s.c_str();
-}
-
-char *convert_vecstring2veccharp(const std::string & s){
-  char *pc = new char[s.size()+1];
-  std::strcpy(pc, s.c_str());
-  return pc;
-}
-
-%}
 
 /*############################################*/
 /* Include all relevant interface definitions */

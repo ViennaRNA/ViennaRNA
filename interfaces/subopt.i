@@ -47,11 +47,25 @@ typedef struct {
   SOLUTION *my_subopt(char *seq, char *constraint, int delta, FILE *fp){
     return subopt(seq, constraint, delta, fp);
   }
-  SOLUTION *my_subopt(char *seq, int delta, FILE *fp){
-    return subopt(seq, NULL, delta, fp);
+  std::vector<SOLUTION> my_subopt(char *seq, int delta, FILE *fp){
+    std::vector<SOLUTION> ret;
+    SOLUTION *sol = subopt(seq, NULL, delta, fp);
+    for(int i = 0; sol[i].structure != NULL; i++){
+      ret.push_back(sol[i]);
+    }
+    free(sol);
+    /* hopefully the structures will be free'd when the vector is destroyed */
+    return ret;
   }
-  SOLUTION *my_subopt(char *seq, int delta){
-    return subopt(seq, NULL, delta, NULL);
+  std::vector<SOLUTION> my_subopt(char *seq, int delta){
+    std::vector<SOLUTION> ret;
+    SOLUTION *sol = subopt(seq, NULL, delta, NULL);
+    for(int i = 0; sol[i].structure != NULL; i++){
+      ret.push_back(sol[i]);
+    }
+    free(sol);
+    /* hopefully the structures will be free'd when the vector is destroyed */
+    return ret;
   }
   SOLUTION *my_subopt(char *seq, char *constraint, int delta){
     return subopt(seq, constraint, delta, NULL);
@@ -62,8 +76,8 @@ typedef struct {
 %newobject subopt;
 
 SOLUTION *my_subopt(char *seq, char *constraint, int delta, FILE *fp);
-SOLUTION *my_subopt(char *seq, int delta, FILE *fp);
-SOLUTION *my_subopt(char *seq, int delta);
+std::vector<SOLUTION> my_subopt(char *seq, int delta, FILE *fp);
+std::vector<SOLUTION> my_subopt(char *seq, int delta);
 SOLUTION *my_subopt(char *seq, char *constraint, int delta);
 
 %ignore subopt_par;

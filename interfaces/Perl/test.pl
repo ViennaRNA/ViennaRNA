@@ -152,6 +152,16 @@ for (0..$solution->size()) {
   			$solution->get($_)->{energy}
 	if defined  $solution->get($_)->{structure};
 }
+
+# test native array output of subopt()
+my $solution = RNA::subopt($seq1, 500);
+
+printf "%d suboptimals\n", scalar(@{$solution});
+foreach my $s (@{$solution}){
+  printf("%s %6.2f\n", $s->{structure}, $s->{energy});
+}
+
+
 $RNA::cut_point = 3;
 my $e =  RNA::energy_of_struct("GCGC", "(())");
 ok(int($e*100+0.5), 70);
