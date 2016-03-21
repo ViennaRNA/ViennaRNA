@@ -27,6 +27,7 @@
 #include "ViennaRNA/part_func_up.h"
 #include "ViennaRNA/duplex.h"
 #include "ViennaRNA/energy_const.h"
+#include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/constraints.h"
 #include "RNAup_cmdl.h"
 

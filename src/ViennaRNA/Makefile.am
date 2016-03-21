@@ -51,6 +51,7 @@ pkginclude_HEADERS =  energy_par.h pair_mat.h RNAstruct.h dist_vars.h mfe.h \
                       gquad.h constraints.h eval.h perturbation_fold.h centroid.h\
                       structure_utils.h string_utils.h model.h file_formats.h dp_matrices.h \
                       plot_structure.h plot_aln.h ligand.h boltzmann_sampling.h \
+                      constraints_SHAPE.h constraints_hard.h constraints_soft.h \
                       ${SVM_UTILS_H} ${SVM_H} ${JSON_H}
 
 libRNA_conv_la_SOURCES  = dist_vars.c data_structures.c part_func.c read_epars.c\
@@ -66,7 +67,8 @@ libRNA_conv_la_SOURCES  = dist_vars.c data_structures.c part_func.c read_epars.c
                     perturbation_fold.c centroid.c structure_utils.c model.c \
                     file_formats.c dp_matrices.c plot_structure.c plot_aln.c \
                     exterior_loops.c hairpin_loops.c interior_loops.c multibranch_loops.c \
-                    boltzmann_sampling.c ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC}
+                    boltzmann_sampling.c ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC} \
+                    constraints_SHAPE.c constraints_hard.c constraints_soft.c
 
 # static library for subpackages
 BUILT_SOURCES = libRNA.a

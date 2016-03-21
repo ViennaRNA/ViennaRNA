@@ -577,7 +577,7 @@ struct vrna_fc_s{
  *
  *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), #VRNA_OPTION_EVAL_ONLY
  */
-#define VRNA_OPTION_MFE             1
+#define VRNA_OPTION_MFE             1U
 
 /**
  *  @brief  Option flag to specify requirement of Partition Function (PF) DP matrices
@@ -585,9 +585,9 @@ struct vrna_fc_s{
  *
  *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), #VRNA_OPTION_EVAL_ONLY
  */
-#define VRNA_OPTION_PF              2
+#define VRNA_OPTION_PF              2U
 
-#define VRNA_OPTION_HYBRID          4
+#define VRNA_OPTION_HYBRID          4U
 
 /**
  *  @brief  Option flag to specify that neither MFE, nor PF DP matrices are required
@@ -598,10 +598,11 @@ struct vrna_fc_s{
  *
  *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_eval_structure()
  */
-#define VRNA_OPTION_EVAL_ONLY       8
+#define VRNA_OPTION_EVAL_ONLY       8U
 
-#define VRNA_OPTION_WINDOW          16
+#define VRNA_OPTION_WINDOW          16U
 
+#define VRNA_OPTION_DEFAULT         32U
 
 /**
  *  @brief  Retrieve a #vrna_fold_compound_t data structure for single sequences and hybridizing sequences

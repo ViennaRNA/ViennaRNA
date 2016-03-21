@@ -4,11 +4,22 @@
 #include "data_structures.h"
 
 /**
+ *  @file perturbation_fold.h
+ *  @brief Find a vector of perturbation energies that minimizes the discripancies between predicted and observed pairing probabilities and the amount of neccessary adjustments
+ *  @ingroup perturbation
+ */
+
+/**
+ *  @addtogroup perturbation
+ *  @brief Find a vector of perturbation energies that minimizes the discripancies between predicted and observed pairing probabilities and the amount of neccessary adjustments
+ */
+
+/**
  * @brief Use the sum of squared aberrations as objective function
  *
  * @f$ F(\vec\epsilon) = \sum_{i = 1}^n{ \frac{\epsilon_i^2}{\tau^2} } + \sum_{i = 1}^n{ \frac{(p_i(\vec\epsilon) - q_i)^2}{\sigma^2} } \to min @f$
  *
- * @ingroup soft_constraints
+ * @ingroup perturbation
  */
 #define VRNA_OBJECTIVE_FUNCTION_QUADRATIC 0
 
@@ -17,14 +28,14 @@
  *
  * @f$ F(\vec\epsilon) = \sum_{i = 1}^n{ \frac{|\epsilon_i|}{\tau^2} } + \sum_{i = 1}^n{ \frac{|p_i(\vec\epsilon) - q_i|}{\sigma^2} } \to min @f$
  *
- * @ingroup soft_constraints
+ * @ingroup perturbation
  */
 #define VRNA_OBJECTIVE_FUNCTION_ABSOLUTE 1
 
 /**
  * @brief Use a custom implementation of the gradient descent algorithm to minimize the objective function
  *
- * @ingroup soft_constraints
+ * @ingroup perturbation
  */
 #define VRNA_MINIMIZER_DEFAULT 0
 
@@ -33,7 +44,7 @@
  *
  * Please note that this algorithm can only be used when the GNU Scientific Library is available on your system
  *
- * @ingroup soft_constraints
+ * @ingroup perturbation
  */
 #define VRNA_MINIMIZER_CONJUGATE_FR 1
 
@@ -42,7 +53,7 @@
  *
  * Please note that this algorithm can only be used when the GNU Scientific Library is available on your system
  *
- * @ingroup soft_constraints
+ * @ingroup perturbation
  */
 #define VRNA_MINIMIZER_CONJUGATE_PR 2
 
@@ -51,7 +62,7 @@
  *
  * Please note that this algorithm can only be used when the GNU Scientific Library is available on your system
  *
- * @ingroup soft_constraints
+ * @ingroup perturbation
  */
 #define VRNA_MINIMIZER_VECTOR_BFGS 3
 
@@ -60,7 +71,7 @@
  *
  * Please note that this algorithm can only be used when the GNU Scientific Library is available on your system
  *
- * @ingroup soft_constraints
+ * @ingroup perturbation
  */
 #define VRNA_MINIMIZER_VECTOR_BFGS2 4
 
@@ -69,7 +80,7 @@
  *
  * Please note that this algorithm can only be used when the GNU Scientific Library is available on your system
  *
- * @ingroup soft_constraints
+ * @ingroup perturbation
  */
 #define VRNA_MINIMIZER_STEEPEST_DESCENT 5
 
@@ -80,7 +91,7 @@
  * @param score     The score of the objective function
  * @param epsilon   The perturbation vector yielding the reported score
  *
- * @ingroup soft_constraints
+ * @ingroup perturbation
  */
 typedef void (*progress_callback)(int iteration, double score, double *epsilon);
 
@@ -108,7 +119,7 @@ typedef void (*progress_callback)(int iteration, double score, double *epsilon);
  *  The progress of the minimization process can be tracked by implementing and passing a callback function.
  *
  *  @see For further details we refere to @cite washietl:2012.
- *  @ingroup soft_constraints
+ *  @ingroup perturbation
  *
  *  @param vc                 Pointer to a fold compound
  *  @param q_prob_unpaired    Pointer to an array containing the probability to be unpaired for each nucleotide

@@ -20,6 +20,8 @@
  *
  *  @defgroup   model_details             Manipulation of the Prediction Models
  *
+ *  @defgroup   constraints               Constraining the Secondary Structure Predictions and Evaluations
+ *
  *  @defgroup   data_structures           Data Structures and Preprocessor Macros
  *
  *  @defgroup   utils                     Utilities
@@ -111,17 +113,20 @@
  *  @defgroup   dos                       Compute the Density of States
  *  @ingroup    class_fold
  *
- *  @defgroup   constraints               Constraining the Secondary Structure Recursions
- *  @ingroup    folding_routines
- *
  *  @defgroup   hard_constraints          Hard Constraints
  *  @ingroup    constraints
  *
  *  @defgroup   soft_constraints          Soft Constraints
  *  @ingroup    constraints
  *
- *  @defgroup   generalized_sc            Generalized Soft Constraints
- *  @ingroup    soft_constraints
+ *  @defgroup   SHAPE_reactivities        Incorporating SHAPE reactivity data
+ *  @ingroup    constraints
+ *
+ *  @defgroup   ligands                   Incorporating ligands binding to specific sequence/structure motifs
+ *  @ingroup    constraints
+ *
+ *  @defgroup   perturbation              Generate soft constraints from data
+ *  @ingroup    constraints
  *
  *  @defgroup   fold_compound             The Fold Compound
  *  @ingroup    data_structures

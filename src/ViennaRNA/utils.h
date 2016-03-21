@@ -106,18 +106,6 @@ the library or stays hidden */
 #define VRNA_INPUT_COMMENT                8192U
 
 /**
- *  @brief  Tell a function that an input is assumed to span several lines
- *
- *  If used as input-option a function might also be returning this state telling
- *  that it has read data from multiple lines.
- *
- *  @see vrna_extract_record_rest_structure(), vrna_file_fasta_read_record(), vrna_extract_record_rest_constraint()
- *
- */
-#define VRNA_OPTION_MULTILINE             32U
-
-
-/**
  *  @brief Get the minimum of two comparable values
  */
 #define MIN2(A, B)      ((A) < (B) ? (A) : (B))
