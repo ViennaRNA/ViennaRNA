@@ -35,6 +35,22 @@
 #define VRNA_CONSTRAINT_FILE              0
 
 /**
+ *  @brief  Indicate generation of constraints for MFE folding
+ *  @deprecated   Use #VRNA_OPTION_MFE instead!
+ *  @ingroup  constraints
+ *
+ */
+#define VRNA_CONSTRAINT_SOFT_MFE              VRNA_OPTION_MFE
+
+/**
+ *  @brief  Indicate generation of constraints for partition function computation
+ *  @deprecated   Use #VRNA_OPTION_PF instead!
+ *  @ingroup  constraints
+ *
+ */
+#define VRNA_CONSTRAINT_SOFT_PF               VRNA_OPTION_PF
+
+/**
  *  @brief  Flag passed to generic softt constraints callback to indicate hairpin loop decomposition step
  *
  *  @ingroup  constraints
