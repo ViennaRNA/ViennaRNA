@@ -1,6 +1,6 @@
 pkgbindir = $(pkgdatadir)/bin
 
-pscript = b2mt.pl ct2b.pl dpzoom.pl mountain.pl relplot.pl rotate_ss.pl cmount.pl colorrna.pl coloraln.pl refold.pl switch.pl
+pscript = b2mt.pl ct2b.pl dpzoom.pl mountain.pl relplot.pl rotate_ss.pl cmount.pl colorrna.pl coloraln.pl refold.pl switch.pl RNAdesign.pl
 
 bin_PROGRAMS = b2ct popt ct2db
 
