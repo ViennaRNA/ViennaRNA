@@ -842,6 +842,8 @@ vrna_subopt(vrna_fold_compound_t *vc,
     SolutionList = NULL;
   }
 
+  /* cleanup memory */
+  free(env);
   return SolutionList;
 }
 

@@ -161,6 +161,7 @@ foreach my $s (@{$solution}){
   printf("%s %6.2f\n", $s->{structure}, $s->{energy});
 }
 
+$solution = "";
 
 $RNA::cut_point = 3;
 my $e =  RNA::energy_of_struct("GCGC", "(())");

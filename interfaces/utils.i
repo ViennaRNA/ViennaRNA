@@ -33,7 +33,7 @@
 /* random string */
 %ignore random_string;
 %rename (random_string) vrna_random_string;
-%newobject random_string;
+%newobject vrna_random_string;
 
 /* hamming distance */
 %rename (hamming_distance) vrna_hamming_distance;
@@ -97,11 +97,11 @@ short *encode_seq(char *sequence);
 
 /* compressing / decompressing dot-bracket strings */
 %rename (db_pack) vrna_db_pack;
-%newobject db_pack;
+%newobject vrna_db_pack;
 
 %ignore pack_structure;
 %rename (pack_structure) my_pack_structure;
-%newobject pack_structure;
+%newobject my_pack_structure;
 %{
   char *my_pack_structure(const char *s){
     return vrna_db_pack(s);
@@ -110,11 +110,11 @@ short *encode_seq(char *sequence);
 char *my_pack_structure(const char *s);
 
 %rename (db_unpack) vrna_db_unpack;
-%newobject db_unpack;
+%newobject vrna_db_unpack;
 
 %ignore unpack_structure;
 %rename (unpack_structure) my_unpack_structure;
-%newobject unpack_structure;
+%newobject my_unpack_structure;
 %{
   char *my_unpack_structure(const char *packed){
     return vrna_db_unpack(packed);
