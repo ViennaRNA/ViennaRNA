@@ -113,6 +113,21 @@ namespace std {
     std::strcpy(pc, s.c_str());
     return pc;
   }
+  
+  /*const short* convert_vecint2vecshort(const int * i)
+  {
+	  /*return (const short *)i;
+  
+	  
+	  return (const short *) *i;
+}
+  */
+  const short *convert_vecint2vecshortpt(const int & i)
+  {
+	    
+	  return (const short *) &i;
+  }
+  
 %}
 
 //%title "Interface to the Vienna RNA library"

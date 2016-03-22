@@ -37,98 +37,150 @@
 /* hide all attributes in vrna_fold_compound_t */
 typedef struct {} vrna_fold_compound_t;
 
+
 /* scripting language takes ownership of objects returned by mfe() method */
 %newobject vrna_fold_compound_t::mfe;
+%newobject vrna_fold_compound_t::pt_test;
+%newobject vrna_fold_compound_t::eval_covar_structure;
+%newobject vrna_fold_compound_t::centroid;
+%newobject vrna_fold_compound_t::eval_structure_pt;
 
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
 
+
+	
+	
+	  /*int testFunction(std::vector<string> st)
+  {
+	  
+	  return 6666;
+  }
   
-  
-  /* the default constructor, *md is optional, for single sequences*/
+  int testFunction(std::vector<string> st, FILE *file )
+  {
+	  
+	  return 7777;
+  }
+  int testFunction(std::vector<string> st, std::vector<string> fg)
+  {
+	  
+	  return 8888;
+  }*/
+	  
+  /* the default constructor, *md and option are optional, for single sequences*/
   vrna_fold_compound_t(const char *sequence, vrna_md_t *md=NULL, unsigned int options=VRNA_OPTION_MFE){
     return vrna_fold_compound(sequence, md, options);
   }
-   /*the constructor for alignments, *md is optional  
-   vrna_fold_compound_t(const char **sequences, vrna_md_t *md=NULL, unsigned int options=VRNA_OPTION_MFE){
-   return vrna_fold_compound_comparative(sequences, md, options);
-  }*/
-  /*vrna_fold_compound_t(const char **sequences){
-    return vrna_fold_compound_comparative(sequences, NULL, VRNA_OPTION_MFE);
-  }*/
-  /* constructor for distance class partitioning, *md is optional, for single sequences
-  vrna_fold_compound_t(const char *sequence,char *s1,char *s2, vrna_md_t *md=NULL, unsigned int options=VRNA_OPTION_MFE){
+   /*the constructor for alignments, *md and options are optional  */
+   vrna_fold_compound_t(std::vector<string> alignment, vrna_md_t *md=NULL, unsigned int options=VRNA_OPTION_MFE)
+   {
+	   std::vector<const char*>  vc;
+	   transform(alignment.begin(), alignment.end(), back_inserter(vc), convert_vecstring2veccharcp);
+	   vc.push_back(NULL); /* mark end of sequences */
+	   return vrna_fold_compound_comparative((const char **)&vc[0], md, options);
+  }
+  /* constructor for distance class partitioning, *md and options are, for single sequences*/
+  vrna_fold_compound_t(const char *sequence,char *s1,char *s2, vrna_md_t *md=NULL, unsigned int options=VRNA_OPTION_MFE)
+  {
     return vrna_fold_compound_TwoD(sequence,s1,s2, md, options);
-  }*/
-  
+  }
   
   
   
   ~vrna_fold_compound_t(){
     vrna_fold_compound_free($self);
   }
+  
 
   vrna_fc_type_e type(){
     return $self->type;
   }
 
+  
+  /*##############
+   * from MFE.h
+	###########*/
+  
   char *mfe(float *OUTPUT){
     char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
     *OUTPUT = vrna_mfe($self, structure);
     return structure;
   }
-  /*MFE for 2 dimerisated RNA strands*/
+  /*MFE for 2 RNA strands*/
   char *mfe_dimer(float *OUTPUT){
-    char *structure = vrna_alloc(sizeof(char) * ($self->length + 1));
+    char *structure = (char*)vrna_alloc(sizeof(char) * ($self->length + 1));
     *OUTPUT = vrna_mfe_dimer($self, structure);
     return structure;
   }
   
-  char* testFunction(const char** str,vrna_md_t *md=NULL,unsigned int options=VRNA_OPTION_MFE)
+  float mfe_window(FILE *file=NULL)
   {
-	  return "geht eh";
-  }
-  char* testFunction2(const char** str,unsigned int options=VRNA_OPTION_MFE,vrna_md_t *md=NULL)
-  {
-	  return "geht auch";
+	  return vrna_mfe_window($self,file);
   }
   
-  /*calculate MFE of given structure in dot bracket format*/
+  /*ONLY possible if USE_SVM is set
+  float mfe_window_zscore(double min_z,FILE *file=NULL)
+  {
+	  return vrna_mfe_window_zscore($self,min_z,file);
+  }*/
   
-  
-  /*####################
+   /*##############
    * from eval.h
-#####################################*/
+	###########*/
   
   
   float eval_structure(const char *structure){
 	  return vrna_eval_structure($self,structure);
   }
   /*calculate MFE of given pairtable*/
-  float eval_structure_pt(short * pt)
-  {	  
-	return vrna_eval_structure_pt($self,pt);
-	  
-}
+  float eval_structure_pt(std::vector<int> pt)
+  {
+	  std::vector<const short*> vc;
+	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshortpt);
+	  vc.push_back(NULL); 
+	  return vrna_eval_structure_pt($self,(short*)&vc[0]);
+  }
   
-  /*MFE of given structure, but now with different FileHandler for verbose, Default value = NULL + STDOUT*/
-  float eval_structure_verbose(const char *structure, FILE *file=NULL)
+  
+  /*float pt_test(std::vector<const int> pt)
+  {
+	  std::vector<const short *> vc;
+	  
+	  
+	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
+	  vc.push_back(NULL);
+	  
+	  const short * s = vc.back();
+	  free(&vc);
+	  
+	  return vrna_eval_structure_pt($self,(short*)&pt[0]) ;
+  }*/
+  
+  /*MFE of given structure, but now with different FileHandler for verbose*/
+  float eval_structure_verbose(char *structure, FILE *file)
   {
 	  return vrna_eval_structure_verbose($self,structure,file);
   }
+    float eval_structure_verbose(char *structure)
+  {
+	  return vrna_eval_structure_verbose($self,structure,NULL);
+  }
+  
  /*MFE of given pairtable, with different FileHandler for verbose, Default value = NULL + STDOUT*/
   float eval_structure_pt_verbose(short *pt, FILE *file=NULL)
   {
 	  return vrna_eval_structure_pt_verbose($self,pt,file);
   }
   
-  /*returns the energy for a secondary consensus structure calculated for a given set of alignment sequences*/
-  float eval_covar_structure(char *structure)
+  /*returns the consensus structure for a given set of alignment sequences and their energy*/
+  char *eval_covar_structure(float *OUTPUT)
   {
-	  return vrna_eval_covar_structure($self,structure);
+	  char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
+	  *OUTPUT = vrna_eval_covar_structure($self, structure);
+	  return structure;
   }
 
-  
   /*returns the energy of a loop specified by i to pt[i]*/
   float eval_loop_pt(int i, short *pt)
   {
@@ -140,13 +192,15 @@ typedef struct {} vrna_fold_compound_t;
   {
 	  return vrna_eval_move($self,structure,m1,m2);
   }
-  /*returns the energy change by introducing a move on a given pairtable*/
-  float eval_move_pt(short *pt,int m1, int m2)
+  /*returns the energy change by introducing a move on a given pairtable
+  float eval_move_pt(std::vector<const int> pt,int m1, int m2)
   {
-	  return vrna_eval_move_pt($self,pt,m1,m2);
-  }
+	  std::vector<const short*> vc;
+	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshortpt);
+	  vc.push_back(NULL); /* mark end of nullpointer 
+	  return vrna_eval_move_pt($self,(short*)&vc[0],m1,m2);
+  }*/
   
-
 
   
 /*####
@@ -154,10 +208,10 @@ in centroid.h
 ######*/
   
   /*calculates the centroid structure for alignment, and the distance to it*/
-  double *centroid(char *OUTPUT)
+  double centroid(char *OUTPUT)
   {
-	  double *dist= malloc(sizeof(double));
-	  *OUTPUT = vrna_centroid($self,dist);
+	  double dist;
+	  OUTPUT = vrna_centroid($self,&dist);
 	  return dist;
   }
 
@@ -276,9 +330,14 @@ int sc_get_hi_motif(    int *i,
 }
 
 
-
-
-
+  /* "HEADER" definitions for overloaded functions !!!IT IS NOT WORKING
+##################################################*/
+/*float eval_structure_verbose(const char *structure, FILE *file);
+float eval_structure_verbose(const char *structure);
+int testFunction(std::vector<string> st);
+int testFunction(std::vector<string> st, FILE *file );
+int testFunction(std::vector<string> st, std::vector<string> fg);
+*/
 
 
 }
@@ -308,3 +367,4 @@ typedef struct {
 } vrna_basepair_t;
 
 %include <ViennaRNA/data_structures.h>
+
