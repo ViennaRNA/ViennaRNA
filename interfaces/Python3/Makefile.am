@@ -4,7 +4,8 @@ AM_CFLAGS += $(PYTHON3_CFLAGS)
 
 EXTRA_DIST = \
   $(SWIG_wrapper) \
-  $(SWIG_module_name).py
+  $(SWIG_module_name).py \
+  test.py3
 
 INTERFACE_FILES = $(SWIG_src) \
                   tmaps.i \
@@ -68,6 +69,15 @@ RNA/_RNA$(PYTHON3_SO): _RNA.la
 ## ksh requires a path on the sourced file.
 	. ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON3_SO) RNA
 	rm -f libtoolconfig.tmp
+
+##
+## Python Test suite
+##
+AM_TESTS_ENVIRONMENT = PYTHON3PATH='$(srcdir):$(builddir):${PYTHON3PATH}'; export PYTHON3PATH;
+LOG_COMPILER = $(PYTHON3)
+AM_LOG_FLAGS = -W all
+TESTS = test.py3
+
 
 CLEANFILES = \
     RNA/_RNA$(PYTHON3_SO) \

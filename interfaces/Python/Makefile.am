@@ -4,7 +4,8 @@ AM_CFLAGS += $(PYTHON2_CFLAGS)
 
 EXTRA_DIST = \
   $(SWIG_wrapper) \
-  $(SWIG_module_name).py
+  $(SWIG_module_name).py \
+  test.py
 
 INTERFACE_FILES = $(SWIG_src) \
                   tmaps.i \
@@ -33,6 +34,12 @@ if WITH_LTO
 _RNA_la_LDFLAGS += -Wc,$(LTO_LDFLAGS)
 endif
 
+BUILT_SOURCES = RNA/_RNA$(PYTHON_SO) RNA/__init__.py
+ 	 	
+##
+## SWIG interface wrapper code generation
+##
+
 $(SWIG_wrapper): $(SWIG_src)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) \
@@ -55,6 +62,18 @@ RNA/_RNA$(PYTHON2_SO): _RNA.la
 ## ksh requires a path on the sourced file.
 	. ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON2_SO) RNA
 	rm -f libtoolconfig.tmp
+
+##
+## Python Test suite
+##
+AM_TESTS_ENVIRONMENT = PYTHONPATH='$(srcdir):$(builddir):${PYTHONPATH}'; export PYTHONPATH;
+LOG_COMPILER = $(PYTHON)
+AM_LOG_FLAGS = -W all
+TESTS = test.py
+
+        
+
+
 
 clean-local:
 	-rm -rf RNA
