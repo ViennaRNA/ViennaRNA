@@ -79,6 +79,7 @@ PRIVATE int   fill_arrays(vrna_fold_compound_t *vc, int zuker);
 PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound_t *vc);
 PRIVATE void  doubleseq(vrna_fold_compound_t *vc);  /* do magic */
 PRIVATE void  halfseq(vrna_fold_compound_t *vc);    /* undo magic */
+PRIVATE void  assure_dp_matrices( vrna_fold_compound_t *vc);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -107,7 +108,7 @@ vrna_cofold(const char *seq,
   md.min_loop_size = 0;  /* set min loop length to 0 */
 
   /* get compound structure */
-  vc = vrna_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  vc = vrna_fold_compound(seq, &md, 0);
 
   mfe = vrna_mfe_dimer(vc, structure);
 
@@ -128,6 +129,8 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
   length = (int) vc->length;
 
   vc->sequence_encoding[0] = vc->sequence_encoding2[0]; /* store length at pos. 0 in S1 too */
+
+  assure_dp_matrices(vc);
 
   /* call user-defined recursion status callback function */
   if(vc->stat_cb)
@@ -170,6 +173,18 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
     return (float) vc->matrices->fML[vc->jindx[length]+1]/100.;
   else
     return (float) energy/100.;
+}
+
+PRIVATE void
+assure_dp_matrices( vrna_fold_compound_t *vc){
+
+  /*  check whether we have the correct DP matrices attached, and if there is
+      enough memory allocated
+  */
+  if(!vc->matrices || (vc->matrices->type != VRNA_MX_DEFAULT) || (vc->matrices->length < vc->length)){
+    /* here we simply pass '0' as options, since we call mx_mfe_add() explicitely */
+    vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, VRNA_OPTION_HYBRID);
+  }
 }
 
 PRIVATE int
@@ -745,7 +760,7 @@ doubleseq(vrna_fold_compound_t *vc){
   vrna_hc_init(vc);
 
   /* add DP matrices */
-  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0L);
+  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0);
 }
 
 PRIVATE void
@@ -778,7 +793,7 @@ halfseq(vrna_fold_compound_t *vc){
   vrna_hc_init(vc);
 
   /* add DP matrices */
-  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0L);
+  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0);
 }
 
 typedef struct{
@@ -839,6 +854,8 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
 
   /* store length at pos. 0 */
   vc->sequence_encoding[0] = vc->sequence_encoding2[0];
+
+  assure_dp_matrices(vc);
 
   /* get mfe and do forward recursion */
   (void)fill_arrays(vc, 1);
@@ -996,7 +1013,7 @@ wrap_cofold(const char *string,
   seq = vrna_cut_point_insert(string, cut_point);
 
   /* get compound structure */
-  vc = vrna_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  vc = vrna_fold_compound(seq, &(P->model_details), 0);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -1066,7 +1083,7 @@ wrap_zukersubopt( const char *string,
   strcat(doubleseq, string);
 
   /* get compound structure */
-  vc = vrna_fold_compound(doubleseq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  vc = vrna_fold_compound(doubleseq, &(P->model_details), 0);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);

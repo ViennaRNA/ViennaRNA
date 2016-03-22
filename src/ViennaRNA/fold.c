@@ -97,7 +97,7 @@ vrna_fold(const char *string,
   vrna_md_t             md;
 
   vrna_md_set_default(&md);
-  vc  = vrna_fold_compound(string, &md, VRNA_OPTION_MFE);
+  vc  = vrna_fold_compound(string, &md, 0);
   mfe = vrna_mfe(vc, structure);
 
   vrna_fold_compound_free(vc);
@@ -115,7 +115,7 @@ vrna_circfold(const char *string,
 
   vrna_md_set_default(&md);
   md.circ = 1;
-  vc      = vrna_fold_compound(string, &md, VRNA_OPTION_MFE);
+  vc      = vrna_fold_compound(string, &md, 0);
   mfe     = vrna_mfe(vc, structure);
 
   vrna_fold_compound_free(vc);
@@ -192,7 +192,7 @@ wrap_fold( const char *string,
   }
   P->model_details.circ = is_circular;
 
-  vc = vrna_fold_compound(string, &(P->model_details), VRNA_OPTION_MFE);
+  vc = vrna_fold_compound(string, &(P->model_details), 0);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);

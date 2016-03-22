@@ -223,7 +223,7 @@ vrna_fold_compound( const char *sequence,
       /* add default hard constraints */
       vrna_hc_init(vc);
 
-      /* add DP matrices */
+      /* add DP matrices (if required) */
       vrna_mx_add(vc, VRNA_MX_DEFAULT, options);
     }
   }
@@ -286,10 +286,9 @@ vrna_fold_compound_comparative( const char **sequences,
     /* add default hard constraints */
     vrna_hc_init(vc);
 
-    /* add DP matrices */
+    /* add DP matrices (if required) */
     vrna_mx_add(vc, VRNA_MX_DEFAULT, options);
   }
-
 
   return vc;
 }
@@ -398,8 +397,8 @@ add_params( vrna_fold_compound_t *vc,
             vrna_md_t *md_p,
             unsigned int options){
 
-  if(options & VRNA_OPTION_MFE)
-    vc->params = vrna_params(md_p);
+  /* ALWAYS add regular energy parameters */
+  vc->params = vrna_params(md_p);
 
   if(options & VRNA_OPTION_PF){
     vc->exp_params  = (vc->type == VRNA_VC_TYPE_SINGLE) ? \

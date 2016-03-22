@@ -63,6 +63,7 @@ PRIVATE void  pf_create_bppm(vrna_fold_compound_t *vc, char *structure);
 PRIVATE void  alipf_linear(vrna_fold_compound_t *vc);
 PRIVATE void  alipf_create_bppm(vrna_fold_compound_t *vc, char *structure);
 PRIVATE void  wrap_alipf_circ(vrna_fold_compound_t *vc, char *structure);
+PRIVATE void  guarantee_preconditions( vrna_fold_compound_t *vc);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -107,8 +108,8 @@ vrna_pf_fold( const char *seq,
     md.compute_bpp = 0;
   }
 
-  vc  = vrna_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
-  mfe = (double)vrna_pf(vc, structure);
+  vc  = vrna_fold_compound(seq, &md, 0);
+  mfe = (double)vrna_pf(vc, NULL);
   vrna_exp_params_rescale(vc, &mfe);
   free_energy = vrna_pf(vc, structure);
 
@@ -142,8 +143,8 @@ vrna_pf_circfold( const char *seq,
     md.compute_bpp = 0;
   }
 
-  vc  = vrna_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
-  mfe = (double)vrna_mfe(vc, structure);
+  vc  = vrna_fold_compound(seq, &md, 0);
+  mfe = (double)vrna_mfe(vc, NULL);
   vrna_exp_params_rescale(vc, &mfe);
   free_energy = vrna_pf(vc, structure);
 
@@ -171,11 +172,13 @@ vrna_pf( vrna_fold_compound_t *vc,
   free_energy = (float)(INF/100.);
 
   if(vc){
-    params    = vc->exp_params;
-    n         = vc->length;
-    md        = &(params->model_details);
-    matrices  = vc->exp_matrices;
+    /* make sure, that we have the DP matrices */
+    guarantee_preconditions(vc);
 
+    n         = vc->length;
+    params    = vc->exp_params;
+    matrices  = vc->exp_matrices;
+    md        = &(params->model_details);
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -285,6 +288,39 @@ vrna_pf( vrna_fold_compound_t *vc,
   }
 
   return free_energy;
+}
+
+PRIVATE void
+guarantee_preconditions(vrna_fold_compound_t *vc){
+
+  switch(vc->type){
+    case VRNA_VC_TYPE_SINGLE:     /* get pre-computed Boltzmann factors if not present*/
+                                  if(!vc->exp_params)
+                                    vc->exp_params  = vrna_exp_params(&(vc->params->model_details));
+
+                                  /* get precomputed Boltzmann factors for soft-constraints (if any) */
+                                  if(vc->sc){
+                                    if(!vc->sc->exp_energy_up)
+                                      vrna_sc_add_up(vc, NULL, VRNA_OPTION_PF);
+                                    if(!vc->sc->exp_energy_bp)
+                                      vrna_sc_add_bp(vc, NULL, VRNA_OPTION_PF);
+                                  }
+
+                                  break;
+
+    case VRNA_VC_TYPE_ALIGNMENT:  /* get pre-computed Boltzmann factors if not present*/
+                                  if(!vc->exp_params)
+                                    vc->exp_params  = vrna_exp_params_comparative(vc->n_seq, &(vc->params->model_details));
+                                  break;
+
+    default:                      break;
+  }
+
+  /*  Add DP matrices, if not they are not present */
+  if(!vc->exp_matrices || (vc->exp_matrices->type != VRNA_MX_DEFAULT) || (vc->exp_matrices->length < vc->length)){
+    /* here we simply pass '0' as options, since we call mx_pf_add() explicitely */
+    vrna_mx_pf_add(vc, VRNA_MX_DEFAULT, 0);
+  }
 }
 
 PRIVATE void

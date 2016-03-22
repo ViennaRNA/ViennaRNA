@@ -169,6 +169,7 @@ assure_dp_matrices( vrna_fold_compound_t *vc){
       enough memory allocated
   */
   if(!vc->matrices || (vc->matrices->type != VRNA_MX_DEFAULT) || (vc->matrices->length < vc->length)){
+    /* here we simply pass '0' as options, since we call mx_mfe_add() explicitely */
     vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, (unsigned int)0);
   }
 }
