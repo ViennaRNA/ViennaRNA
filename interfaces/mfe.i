@@ -122,24 +122,22 @@ char *my_cofold(char *string, char *constraints, float *OUTPUT);
 #include <cstring>
 #include <vector>
 
-using namespace std;
-
-  char *my_alifold(vector<string> alignment, float *energy) {
+  char *my_alifold(std::vector<std::string> alignment, float *energy) {
     char *struc;
-    /* convert vector<string> to vector<const char *> */
+    /* convert std::vector<std::string> to vector<const char *> */
     std::vector<const char*>  vc;
-    transform(alignment.begin(), alignment.end(), back_inserter(vc), convert_vecstring2veccharcp);
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
     vc.push_back(NULL); /* mark end of sequences */
 
     struc = (char *)calloc(strlen(vc[0])+1,sizeof(char));
     *energy = alifold((const char **)&vc[0], struc);
     return(struc);
   }
-  char *my_alifold(vector<string> alignment, char *constraints, float *energy) {
+  char *my_alifold(std::vector<std::string> alignment, char *constraints, float *energy) {
     char *struc;
-    /* convert vector<string> to vector<const char *> */
+    /* convert std::vector<std::string> to vector<const char *> */
     std::vector<const char*>  vc;
-    transform(alignment.begin(), alignment.end(), back_inserter(vc), convert_vecstring2veccharcp);
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
     vc.push_back(NULL); /* mark end of sequences */
 
     struc = (char *)calloc(strlen(vc[0])+1,sizeof(char));

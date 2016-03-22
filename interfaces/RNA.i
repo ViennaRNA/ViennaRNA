@@ -92,8 +92,6 @@ namespace std {
 #include <string>
 #include <cstring>
 
-using namespace std;
-
   const char *convert_vecstring2veccharcp(const std::string & s){
     return s.c_str();
   }

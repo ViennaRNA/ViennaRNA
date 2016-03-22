@@ -70,6 +70,9 @@ int my_hamming_bound(const char *s1, const char *s2, int n);
 /* encoding / decoding of nucleotide sequences */
 
 %{
+
+#include <cstring>
+
 short *encode_seq(char *sequence) {
   unsigned int i,l;
   short *S;
@@ -160,11 +163,9 @@ char *my_unpack_structure(const char *packed);
 %{
 #include <vector>
 
-using namespace std;
-
-  vector<int> my_ptable(string str){
+  std::vector<int> my_ptable(std::string str){
     short int* pt = vrna_ptable(str.c_str());
-    vector<int> v_pt;
+    std::vector<int> v_pt;
     int i;
 
     for(i=0; i <= pt[0]; i++){
