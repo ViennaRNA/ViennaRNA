@@ -4,6 +4,7 @@
 
 %{
 
+extern "C" {
 #include  <ViennaRNA/data_structures.h>
 #include  <ViennaRNA/dp_matrices.h>
 #include  <ViennaRNA/model.h>
@@ -42,6 +43,7 @@
 #include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
 #include  <ViennaRNA/ligand.h>
+}
 
 %}
 //
@@ -59,6 +61,49 @@
 %constant double VERSION = 0.3;
 %include typemaps.i
 %include tmaps.i  // additional typemaps
+
+/* handle exceptions */
+%include "exception.i"
+
+%exception {
+  try {
+    $action
+  } catch (const std::exception& e) {
+    SWIG_exception(SWIG_RuntimeError, e.what());
+  }
+}
+
+/* prepare conversions to native types, such as lists */
+%include "std_pair.i";
+%include "std_vector.i";
+%include "std_string.i";
+
+namespace std {
+  %template(DoublePair) std::pair<double,double>;
+  %template(IntVector) std::vector<int>;
+  %template(DoubleVector) std::vector<double>;
+  %template(StringVector) std::vector<string>;
+  %template(ConstCharVector) std::vector<const char*>;
+  %template(SOLUTIONVector) std::vector<SOLUTION>;
+  %template(CoordinateVector) std::vector<COORDINATE>;
+};
+
+%{
+#include <string>
+#include <cstring>
+
+using namespace std;
+
+  const char *convert_vecstring2veccharcp(const std::string & s){
+    return s.c_str();
+  }
+
+  char *convert_vecstring2veccharp(const std::string & s){
+    char *pc = new char[s.size()+1];
+    std::strcpy(pc, s.c_str());
+    return pc;
+  }
+%}
 
 //%title "Interface to the Vienna RNA library"
 

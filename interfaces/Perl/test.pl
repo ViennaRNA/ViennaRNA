@@ -152,6 +152,17 @@ for (0..$solution->size()) {
   			$solution->get($_)->{energy}
 	if defined  $solution->get($_)->{structure};
 }
+
+# test native array output of subopt()
+my $solution = RNA::subopt($seq1, 500);
+
+printf "%d suboptimals\n", scalar(@{$solution});
+foreach my $s (@{$solution}){
+  printf("%s %6.2f\n", $s->{structure}, $s->{energy});
+}
+
+$solution = "";
+
 $RNA::cut_point = 3;
 my $e =  RNA::energy_of_struct("GCGC", "(())");
 ok(int($e*100+0.5), 70);
@@ -177,6 +188,13 @@ ok($struc1_move, "................");
 $struc1_move = "(..............)";
 RNA::move_standard($seq1, $struc1_move, 1, 0, 0, 0);
 ok($struc1_move, "(((.((....)).)))");
+
+# test simple_xy_coordinates
+my $coords = RNA::simple_xy_coordinates($struc1);
+
+foreach my $c (@{$coords}){
+  print $c->{X}, ",", $c->{Y}, "\n";
+}
 
 #TODO use xsubi random generator, set seed and check here
 #my $struc1_move = "(..............)";

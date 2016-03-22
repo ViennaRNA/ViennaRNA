@@ -25,7 +25,7 @@ endif
 
 $(SWIG_wrapper): $(SWIG_src)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src @FLOAT_PF_FLAG@ \
-                  $(AX_SWIG_PYTHON_OPT) \
+                  $(AX_SWIG_PYTHON_OPT) -c++ \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
 

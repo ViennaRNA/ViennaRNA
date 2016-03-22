@@ -50,7 +50,7 @@ typedef struct {} vrna_fold_compound_t;
   }
 
   char *mfe(float *OUTPUT){
-    char *structure = vrna_alloc(sizeof(char) * ($self->length + 1));
+    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
     *OUTPUT = vrna_mfe($self, structure);
     return structure;
   }

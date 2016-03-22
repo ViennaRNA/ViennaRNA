@@ -29,7 +29,7 @@ endif
 
 $(SWIG_wrapper): $(SWIG_src)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src -DPY3 @FLOAT_PF_FLAG@ \
-                  -python -modern -py3 \
+                  -python -modern -py3 -c++ \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
 

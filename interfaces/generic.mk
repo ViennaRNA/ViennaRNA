@@ -22,6 +22,6 @@ SWIG_misc_src = \
 
 SWIG_module_name = RNA
 
-SWIG_wrapper = RNA_wrap.c
+SWIG_wrapper = RNA_wrap.cpp
 
 SWIG_src = $(SWIG_main_src) $(SWIG_misc_src) $(SWIG_tmaps)
