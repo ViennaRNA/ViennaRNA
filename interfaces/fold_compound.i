@@ -182,14 +182,18 @@ typedef struct {} vrna_fold_compound_t;
 in centroid.h
 ######*/
   
-  /*calculates the centroid structure for alignment, and the distance to it*/
+  /*calculates the centroid structure for alignment, and the distance to it 
+   NOT working because of segmentation fault
   double centroid(char *OUTPUT)
   {
+	  std::cout << $self->length <<"\n" << $self->type << "\n" ;
 	  double dist;
 	  OUTPUT = vrna_centroid($self,&dist);
 	  return dist;
-  }
+  }*/
 
+
+  
 
   /*##########
    from constraints.h
@@ -205,17 +209,14 @@ in centroid.h
 	  vrna_hc_init($self);
   }
   
-  void hc_add_up(int i, char option)
+  void hc_add_up(int i, char option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
   {
-	  return vrna_hc_add_up($self,i,option);
+	  vrna_hc_add_up($self,i,option);
   }
   
   
   
-  void hc_add_bp_nonspecific(int i,int d,char option)
-  {
-	vrna_hc_add_bp_nonspecific($self,i,d,option);  
-  }
+  
   
   void sc_init(vrna_fold_compound_t *vc)
   {
@@ -348,4 +349,5 @@ typedef struct {
 } vrna_basepair_t;
 
 %include <ViennaRNA/data_structures.h>
+
 

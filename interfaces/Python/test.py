@@ -19,6 +19,12 @@ filename="output_test.txt";
 
 ##		 1234567890
 struct1_pt =	 [len(struct1),16,15,14,0,13,12,11,0,0,0,7,6,5,3,2,1];
+
+seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
+str_con_def=	"(((....)))(((....)))";
+str_con=	"..........(((....)))";
+
+
 class FoldCompoundTest(unittest.TestCase):
 	
 	def test_create_fold_compound_Single(self):
@@ -119,7 +125,6 @@ class FoldCompoundTest(unittest.TestCase):
 		print covarStructure, "[ %6.2f" %pseudoEScore ,"]\n";
 		self.assertTrue(pseudoEScore);
 	
-	#return the energy of only the hairpin loop
 	def test_eval_loop_pt(self):
 		print "test_eval_loop_pt";		
 		fc= RNA.fold_compound(seq1);
@@ -150,22 +155,25 @@ class FoldCompoundTest(unittest.TestCase):
 		print "\n", struct1, " moveset (-7,-11) --> [%6.2f" % energy ,"]\n";
 		
 	
+
 	#not workgin due to segmentation fault
 	#def test_centroid(self):
 		#print "test_centroid\n";
-		#fc=RNA.fold_compound(align,None,RNA.VRNA_OPTION_MFE | RNA.VRNA_OPTION_EVAL_ONLY);
+		#fc=RNA.fold_compound(align);
 		#(cs,dist) = fc.centroid();
+		#print dist;
 		#print cs, "\tDistance of :  %6.2f" %dist ,"\n";
 	
 	
 	
-	####contraints.h
+	####constraints.h
 	
 	
 	def test_constraints_add(self):
-		seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
-		str_con_def=	"(((....)))(((....)))";
-		str_con=	"..........(((....)))";
+		#seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
+		#str_con_def=	"(((....)))(((....)))";
+		#hc.txt=	"xxx.................
+		#str_con=	"..........(((....)))";
 		
 		hc_file=	"hc.txt";
 		print "test_constraints_add";
@@ -179,6 +187,18 @@ class FoldCompoundTest(unittest.TestCase):
 		(ss,mfe) = fc.mfe();
 		print ss, "[ %6.2f" %mfe ,"]\n";
 		self.assertEqual(ss,str_con_def);
+	
+	def test_hc_add_up(self):
+		#seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
+		#str_con_def=	"(((....)))(((....)))";
+		#str_con=	"..........(((....)))";
+		print "test_hc_add_up\n";
+		fc = RNA.fold_compound(seq_con);
+		fc.hc_add_up(1,RNA.VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+		(ss,mfe) = fc.mfe();
+		print ss, "[ %6.2f" %mfe ,"]\n";
+		self.assertEqual(ss,".((....)).(((....)))");
+		
 		
 		
 if __name__ == '__main__':
