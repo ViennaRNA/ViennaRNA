@@ -439,6 +439,8 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
                                         vrna_sc_add_up(vc, NULL, VRNA_OPTION_PF);
                                       if(!vc->sc->exp_energy_bp)
                                         vrna_sc_add_bp(vc, NULL, VRNA_OPTION_PF);
+                                      if(!vc->sc->exp_energy_stack)
+                                        vrna_sc_add_SHAPE_deigan(vc, NULL, 0, 0, VRNA_OPTION_PF);
                                     }
 
                                     break;

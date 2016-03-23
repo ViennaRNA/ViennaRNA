@@ -165,7 +165,7 @@ vrna_sc_add_bp( vrna_fold_compound_t *vc,
                 const FLT_OR_DBL **constraints,
                 unsigned int options){
 
-  if(vc){
+  if(vc && (vc->type == VRNA_VC_TYPE_SINGLE)){
     if(constraints){
       /* always add (pure) soft constraints */
       sc_add_bp(vc, constraints);
@@ -181,7 +181,7 @@ vrna_sc_add_up( vrna_fold_compound_t *vc,
                 const FLT_OR_DBL *constraints,
                 unsigned int options){
 
-  if(vc){
+  if(vc && (vc->type == VRNA_VC_TYPE_SINGLE)){
     if(constraints){
       /* always add (pure) soft constraints */
       sc_add_up(vc, constraints);

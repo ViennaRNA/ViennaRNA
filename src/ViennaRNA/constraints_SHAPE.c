@@ -49,9 +49,7 @@ sc_add_stack_en_mfe(vrna_fold_compound_t *vc,
                     unsigned int options);
 
 PRIVATE void
-sc_add_stack_en_pf( vrna_fold_compound_t *vc,
-                    const FLT_OR_DBL *constraints,
-                    unsigned int options);
+prepare_Boltzmann_weights_stack(vrna_fold_compound_t *vc);
 
 /*
 #################################
@@ -220,26 +218,27 @@ vrna_sc_add_SHAPE_deigan( vrna_fold_compound_t *vc,
   int     i;
   FLT_OR_DBL  *values;
 
-  if(vc && reactivities && (vc->type == VRNA_VC_TYPE_SINGLE)){
+  if(vc && (vc->type == VRNA_VC_TYPE_SINGLE)){
+    if(reactivities){
 
-    values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
+      values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
 
-    /* first convert the values according to provided slope and intercept values */
-    for (i = 1; i <= vc->length; ++i){
-      values[i] = reactivities[i] < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivities[i] + 1) + b);
+      /* first convert the values according to provided slope and intercept values */
+      for (i = 1; i <= vc->length; ++i){
+        values[i] = reactivities[i] < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivities[i] + 1) + b);
+      }
+
+      /* always store soft constraints in plain format */
+      sc_add_stack_en_mfe(vc, (const FLT_OR_DBL *)values, options);
+      free(values);
     }
 
-    /* always store soft constraints in plain format */
-    sc_add_stack_en_mfe(vc, (const FLT_OR_DBL *)values, options);
-
     if(options & VRNA_OPTION_PF)
-      sc_add_stack_en_pf(vc, (const FLT_OR_DBL *)values, options);
+      prepare_Boltzmann_weights_stack(vc);
 
-    free(values);
     return 1; /* success */
-  } else {
-    return 0; /* error */
   }
+  return 0; /* error */
 }
 
 PUBLIC int
@@ -255,7 +254,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
   int             s, i, p, r, position, *pseudo_energies, n_seq;
   unsigned short  **a2s;
 
-  if(vc->type == VRNA_VC_TYPE_ALIGNMENT){
+  if(vc && (vc->type == VRNA_VC_TYPE_ALIGNMENT)){
     n_seq = vc->n_seq;
     a2s   = vc->a2s;
 
@@ -466,21 +465,19 @@ sc_add_stack_en_mfe(vrna_fold_compound_t *vc,
 }
 
 PRIVATE void
-sc_add_stack_en_pf( vrna_fold_compound_t *vc,
-                    const FLT_OR_DBL *constraints,
-                    unsigned int options){
+prepare_Boltzmann_weights_stack(vrna_fold_compound_t *vc){
   int i;
+  vrna_sc_t *sc = vc->sc;
 
-  if(!vc->sc)
-    vrna_sc_init(vc);
+  if(sc->energy_stack){
+    if(!sc->exp_energy_stack){
+      sc->exp_energy_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
+      for(i = 0; i <= vc->length; ++i)
+        sc->exp_energy_stack[i] = 1.;
+    }
 
-  if(!vc->sc->exp_energy_stack){
-    vc->sc->exp_energy_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
-    for(i = 0; i <= vc->length; ++i)
-      vc->sc->exp_energy_stack[i] = 1.;
+    for(i = 1; i <= vc->length; ++i)
+      sc->exp_energy_stack[i] = (FLT_OR_DBL)exp(-(sc->energy_stack[i] * 10.)/ vc->exp_params->kT);
   }
-
-  for(i = 1; i <= vc->length; ++i)
-    vc->sc->exp_energy_stack[i] *= (FLT_OR_DBL)exp(-(constraints[i] * 1000.)/ vc->exp_params->kT);
 }
 
