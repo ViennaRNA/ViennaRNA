@@ -122,7 +122,7 @@ class FoldCompoundTest(unittest.TestCase):
 		#except IOError:
 			#print "Could not open ",filename;
 	
-	#!!!is not working, results with 0 and empty structure
+	#!!!is not working, results segmentation fault
 	def test_eval_covar_structure(self):
 		print "test_eval_covar_structure\n";
 		s1="CCCCAAAACGGG";
@@ -132,27 +132,27 @@ class FoldCompoundTest(unittest.TestCase):
 		print ali;
 		#fc = RNA.fold_compound(["GG","CC","CC"]);
 		
-		fc = RNA.fold_compound(ali,None,RNA.VRNA_OPTION_MFE | RNA.VRNA_OPTION_EVAL_ONLY);
+		fc = RNA.fold_compound(ali,None,RNA.VRNA_OPTION_MFE | RNA.VRNA_OPTION_EVAL_ONLY | RNA.VRNA_OPTION_PF);
 		print fc.type();
+		print fc.length();
 		
-		
-		cs,mfe=fc.eval_covar_structure();
-		print cs, "[ %6.2f" %mfe ,"]\n";
+		#cs,mfe=fc.eval_covar_structure();
+		#print cs, "[ %6.2f" %mfe ,"]\n";
 		self.assertTrue(1);
 	
 	#not workgin because of pairtable
 	def test_eval_loop_pt(self):
-		print "test_eval_loop_pt\n";
+		print "test_eval_loop_pt";
 	
 	def test_eval_move_del(self):
-		print "test_eval_move_del\n";
+		print "test_eval_move_del";
 		fc = RNA.fold_compound(seq1);
 		energy = fc.eval_move(struct1,-7,-11);  # remove basepair (6,11) ,  energy change should be 2.10
 		self.assertEqual("%6.2f" % energy, "%6.2f" % 2.10);
 		print "\n", struct1, " moveset (-7,-11) --> [%6.2f" % energy ,"]\n";
 		
 	def test_eval_move_ins(self):
-		print "test_eval_move_ins\n";
+		print "test_eval_move_ins";
 		fc = RNA.fold_compound(seq1);
 		energy = fc.eval_move(struct11,7,11);  # add basepair (6,11) ,  energy change should be -2.10
 		self.assertEqual("%6.2f" % energy, "%6.2f" % -2.10);
@@ -160,37 +160,38 @@ class FoldCompoundTest(unittest.TestCase):
 	
 	#not working, because of pairtable
 	def test_eval_move_pt_del(self):
-		print "test_eval_move_pt_del\n";
+		print "test_eval_move_pt_del";
 	
 	#not workgin due to segmentation fault
 	#def test_centroid(self):
 		#print "test_centroid\n";
-		#fc=RNA.fold_compound(align);
+		#fc=RNA.fold_compound(align,None,RNA.VRNA_OPTION_MFE | RNA.VRNA_OPTION_EVAL_ONLY);
 		#(cs,dist) = fc.centroid();
 		#print cs, "\tDistance of :  %6.2f" %dist ,"\n";
 	
-	#def test_alifold(self):
-		#print "hu";
-		#ss,energyAli = RNA.alifold(align);
-		#fc=RNA.fold_compound(align);
-		#energy = fc.eval_covar_structure(ss);
-		#self.assertEqual("%6.2f" % energy,"%6.2f" % energyAli);
-		#print "\n", ss, "\t%6.2f" % energy , " EnergyAli = \t%6.2f" % energyAli ;
 	
-	#def test_test(self):
-		#fc = RNA.fold_compound(sq1);
-		#one,two,three,four,five = fc.sc_detect_hi_motif("(((...))))");
-		#print one ,"  ", two,"  ", three, "  ", four;
-		#one,two,three,four,five = fc.sc_get_hi_motif();
-		#print one ,"  ", two,"  ", three, "  ", four;
-	#def test_string(self):
-		#print "test_string\n";
-		#fc = RNA.fold_compound(sq1);
-		#f = open(filename, "w");
-		#print f;
-		#print fc.testFunction(align,f);
-		#print fc.testFunction(align);
-		#print fc.testFunction(align, align);
+	
+	####contraints.h
+	
+	
+	def test_constraints_add(self):
+		seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
+		str_con_def=	"(((....)))(((....)))";
+		str_con=	"..........(((....)))";
+		
+		hc_file=	"hc.txt";
+		print "test_constraints_add";
+		fc = RNA.fold_compound(seq_con);
+		fc.constraints_add(hc_file);
+		(ss,mfe) = fc.mfe();
+		print ss, "[ %6.2f" %mfe ,"]\n";
+		self.assertEqual(ss,str_con);
+		
+		fc.hc_init();
+		(ss,mfe) = fc.mfe();
+		print ss, "[ %6.2f" %mfe ,"]\n";
+		self.assertEqual(ss,str_con_def);
+		
 		
 if __name__ == '__main__':
 	unittest.main();

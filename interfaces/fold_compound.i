@@ -77,6 +77,11 @@ typedef struct {} vrna_fold_compound_t;
   vrna_fc_type_e type(){
     return $self->type;
   }
+  
+  unsigned int length()
+  {
+	  return $self->length;
+  }
 
   
   /*##############
@@ -152,11 +157,12 @@ typedef struct {} vrna_fold_compound_t;
   
   /*returns the consensus structure for a given set of alignment sequences and their energy*/
   const char *eval_covar_structure(float *OUTPUT)
-  {
-	  const char *structure = (const char *)vrna_alloc(sizeof(char) * ($self->length+1));
+  {    
+	  const char *structure = (const char *)calloc(($self->length+1),sizeof(char));
 	  *OUTPUT = vrna_eval_covar_structure($self, structure);
 	  return structure;
   }
+  
 /*
   char *mfe(float *OUTPUT){
     char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
@@ -199,12 +205,11 @@ in centroid.h
   }
 
 
-
   /*##########
    from constraints.h
 ################*/
   
-  void contraints_add(const char *constraint, unsigned int options)
+  void constraints_add(const char *constraint, unsigned int options=VRNA_OPTION_MFE)
   {
 	  vrna_constraints_add($self,constraint, options);
   }
