@@ -1,8 +1,71 @@
+AUTOMAKE_OPTIONS = subdir-objects
+
 AM_CPPFLAGS = -I$(top_srcdir)/src
 AM_CFLAGS = @CHECK_CFLAGS@ -I$(top_builddir)/src/  $(OPENMP_CFLAGS) @FLOAT_PF_FLAG@
 LDADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la @CHECK_LIBS@
 
+EXTRA_DIST =  ${CHECKMK_FILES} ${CHECK_CFILES}
+
 SUFFIXES = .c .ts
+TEST_EXTENSIONS = .pl .t .py .py3
+
+if WITH_UNIT_TESTS
+
+AM_TESTS_ENVIRONMENT =  PERL5LIB='$(top_srcdir)/interfaces/Perl:$(top_builddir)/interfaces/Perl:${PERL5LIB}'; \
+                        export PERL5LIB; \
+                        PYTHONPATH='$(top_builddir)/interfaces/Python/RNA:${PYTHONPATH}'; \
+                        PYTHONPATH='$(top_builddir)/interfaces/Python3/RNA:${PYTHONPATH}' \
+                        export PYTHONPATH;
+
+######################################
+## unit tests for Perl5 interface   ##
+######################################
+if WITH_PERL_TESTS
+
+PL_LOG_COMPILER = $(PERL)
+T_LOG_COMPILER = $(PERL)
+AM_PL_LOG_FLAGS = -Mstrict -w
+AM_T_LOG_FLAGS = -Mstrict -w
+
+# add test scripts here
+PERL_TESTS =  perl5/test-RNA.pl \
+              perl5/test-RNA-Design.t
+
+perl5/test-RNA-Design.t: $(top_srcdir)/interfaces/Perl/RNA/t/Design.t
+	cp $(top_srcdir)/interfaces/Perl/RNA/t/Design.t ./perl5/test-RNA-Design.t
+
+endif
+
+######################################
+## unit tests for Python2 interface ##
+######################################
+if WITH_PYTHON_TESTS
+
+PY_LOG_COMPILER = $(PYTHON)
+AM_PY_LOG_FLAGS = 
+
+# add test scripts here
+PYTHON_TESTS = 
+
+endif
+
+######################################
+## unit tests for Python3 interface ##
+######################################
+if WITH_PYTHON3_TESTS
+
+PY3_LOG_COMPILER = $(PYTHON3)
+AM_PY3_LOG_FLAGS = 
+
+# add test scripts here
+PYTHON3_TESTS = 
+
+endif
+
+######################################
+## unit tests for C-library         ##
+######################################
+if WITH_CHECK
 
 CHECKMK_FILES = \
               energy_evaluation.ts \
@@ -11,7 +74,6 @@ CHECKMK_FILES = \
               utils.ts \
               eval_structure.ts 
 
-
 CHECK_CFILES = \
               energy_evaluation.c \
               constraints.c \
@@ -19,17 +81,24 @@ CHECK_CFILES = \
               utils.c \
               eval_structure.c
 
-TESTS = energy_evaluation \
-        constraints \
-        fold \
-        utils \
-        eval_structure 
+LIBRARY_TESTS = energy_evaluation \
+                constraints \
+                fold \
+                utils \
+                eval_structure 
 
-check_PROGRAMS = ${TESTS}
+check_PROGRAMS = ${LIBRARY_TESTS}
+
+endif
+
+TESTS = ${LIBRARY_TESTS} ${PERL_TESTS} ${PYTHON_TESTS} ${PYTHON3_TESTS}
 
 ## Below are the rules how to create the test suite executables
 ## See checkmk man page for details about *.ts files
 .ts.c:
 	$(AM_V_GEN)checkmk $< > $@
 
-EXTRA_DIST =  ${CHECKMK_FILES} ${CHECK_CFILES}
+endif
+
+clean-local:
+	-rm -rf test.coord test_dp.ps test_ss.ps test_ss_a.ps test.par

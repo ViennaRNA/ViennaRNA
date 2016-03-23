@@ -3,8 +3,3 @@ RNA.pm
 RNA_wrap.*
 auto
 
-# ignore make check output
-test_ss.ps
-test_ss_a.ps
-test.coord
-test.par
