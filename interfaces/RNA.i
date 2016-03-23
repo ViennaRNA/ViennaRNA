@@ -114,18 +114,9 @@ namespace std {
     return pc;
   }
   
-  /*const short* convert_vecint2vecshort(const int * i)
+  short convert_vecint2vecshort(const int & i)
   {
-	  /*return (const short *)i;
-  
-	  
-	  return (const short *) *i;
-}
-  */
-  const short *convert_vecint2vecshortpt(const int & i)
-  {
-	    
-	  return (const short *) &i;
+	  return (short) i;
   }
   
 %}

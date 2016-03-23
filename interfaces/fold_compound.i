@@ -117,31 +117,17 @@ typedef struct {} vrna_fold_compound_t;
   
   
   float eval_structure(const char *structure){
+	  std::cout <<"c++ : " << $self->sequence <<"\n";
 	  return vrna_eval_structure($self,structure);
   }
-  /*calculate MFE of given pairtable
+  /*calculate MFE of given pairtable*/
   float eval_structure_pt(std::vector<int> pt)
   {
-	  std::vector<const short*> vc;
-	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshortpt);
-	  vc.push_back(NULL); 
-	  return vrna_eval_structure_pt($self,(short*)&vc[0]);
-  }*/
-  
-  
-  /*float pt_test(std::vector<const int> pt)
-  {
-	  std::vector<const short *> vc;
-	  
-	  
+	  std::vector<short> vc;
 	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
-	  vc.push_back(NULL);
-	  
-	  const short * s = vc.back();
-	  free(&vc);
-	  
-	  return vrna_eval_structure_pt($self,(short*)&pt[0]) ;
-  }*/
+	  return vrna_eval_structure_pt($self,(const short*)&vc[0]);
+  }
+  
   
   /*MFE of given structure, but now with different FileHandler for verbose, NULL = STDOUT*/
   float eval_structure_verbose(char *structure, FILE *file)
@@ -150,17 +136,17 @@ typedef struct {} vrna_fold_compound_t;
   }
   
  /*MFE of given pairtable, with different FileHandler for verbose, Default value = NULL + STDOUT*/
-  float eval_structure_pt_verbose(short *pt, FILE *file=NULL)
+  float eval_structure_pt_verbose(std::vector<int> pt, FILE *file)
   {
-	  return vrna_eval_structure_pt_verbose($self,pt,file);
+	  std::vector<short> vc;
+	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
+	  return vrna_eval_structure_pt_verbose($self,(const short*)&vc[0],file);
   }
   
-  /*returns the consensus structure for a given set of alignment sequences and their energy*/
-  const char *eval_covar_structure(float *OUTPUT)
+  /*returns the energy for a structure to a given set of alignment sequences*/
+  float eval_covar_structure2(char * structure)
   {    
-	  const char *structure = (const char *)calloc(($self->length+1),sizeof(char));
-	  *OUTPUT = vrna_eval_covar_structure($self, structure);
-	  return structure;
+	  return vrna_eval_covar_structure($self, structure);
   }
   
 /*
@@ -218,6 +204,13 @@ in centroid.h
   {
 	  vrna_hc_init($self);
   }
+  
+  void hc_add_up(int i, char option)
+  {
+	  return vrna_hc_add_up($self,i,option);
+  }
+  
+  
   
   void hc_add_bp_nonspecific(int i,int d,char option)
   {
