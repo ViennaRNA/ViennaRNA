@@ -28,14 +28,13 @@
 vrna_sc_add_hi_motif( vc,
                       "GAUACCAG&CCCUUGGCAGC",
                       "(...((((&)...)))...)",
-                      -9.22,
-                      VRNA_OPTION_MFE); @endcode
+                      -9.22, VRNA_OPTION_DEFAULT); @endcode
  *
  *  @param  vc        The #vrna_fold_compound_t the motif is applied to
  *  @param  seq       The sequence motif (may be interspaced by '&' character
  *  @param  structure The structure motif (may be interspaced by '&' character
  *  @param  energy    The free energy of the motif (e.g. binding free energy)
- *  @param  options   Options indicating whether to use the motif in MFE prediction, and/or PF predictions
+ *  @param  options   Options
  *  @return           non-zero value if application of the motif using soft constraints was successful
  *  
  */

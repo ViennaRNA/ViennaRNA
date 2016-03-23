@@ -185,7 +185,7 @@ vrna_eval_structure_simple( const char *string,
   float e;
 
   /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vrna_fold_compound_t *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
 
   /* evaluate structure */
   e = vrna_eval_structure(vc, structure);
@@ -204,7 +204,7 @@ vrna_eval_structure_simple_verbose( const char *string,
   float e;
 
   /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vrna_fold_compound_t *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
 
   /* evaluate structure */
   e = vrna_eval_structure_verbose(vc, structure, file);
@@ -222,7 +222,7 @@ vrna_eval_structure_pt_simple(const char *string,
   int e;
 
   /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vrna_fold_compound_t *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
 
   /* evaluate structure */
   e = vrna_eval_structure_pt(vc, pt);
@@ -241,7 +241,7 @@ vrna_eval_structure_pt_simple_verbose(const char *string,
   int e;
 
   /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vrna_fold_compound_t *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
 
   /* evaluate structure */
   e = vrna_eval_structure_pt_verbose(vc, pt, file);
@@ -262,7 +262,7 @@ vrna_eval_move_pt_simple( const char *string,
   int e;
 
   /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  vrna_fold_compound_t *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
 
   /* evaluate structure */
   e = vrna_eval_move_pt(vc, pt, m1, m2);
@@ -2024,7 +2024,7 @@ recycle_last_call(const char *string,
   if(!vc){
     vrna_fold_compound_free(backward_compat_compound);
     seq = vrna_cut_point_insert(string, cut_point);
-    backward_compat_compound = vc = vrna_fold_compound(seq, md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    backward_compat_compound = vc = vrna_fold_compound(seq, md, VRNA_OPTION_EVAL_ONLY);
     if(P){
       free(vc->params);
       vc->params = get_updated_params(P, 1);

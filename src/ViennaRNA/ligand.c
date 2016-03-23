@@ -247,10 +247,8 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
       motif_alt[strlen(motif)] = '\0';
 
       vrna_sc_add_bt(vc, &backtrack_int_motif);
-      if(options & VRNA_OPTION_MFE)
-        vrna_sc_add_f(vc, &AptamerContrib);
-      if(options & VRNA_OPTION_PF)
-        vrna_sc_add_exp_f(vc, &expAptamerContrib);
+      vrna_sc_add_f(vc, &AptamerContrib);
+      vrna_sc_add_exp_f(vc, &expAptamerContrib);
 
     } else {
       if((motif[0] != '(') || (motif[strlen(motif) - 1] != ')')){
@@ -264,10 +262,8 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
       motif_alt[strlen(motif)] = '\0';
 
       vrna_sc_add_bt(vc, &backtrack_hp_motif);
-      if(options & VRNA_OPTION_MFE)
-        vrna_sc_add_f(vc, &AptamerContribHairpin);
-      if(options & VRNA_OPTION_PF)
-        vrna_sc_add_exp_f(vc, &expAptamerContribHairpin);
+      vrna_sc_add_f(vc, &AptamerContribHairpin);
+      vrna_sc_add_exp_f(vc, &expAptamerContribHairpin);
     }
 
     /* correct motif contributions */
@@ -349,7 +345,7 @@ correctMotifContribution( const char *seq,
   float                 alt, corr, energy;
   vrna_fold_compound_t  *tmp_vc;
 
-  tmp_vc  = vrna_fold_compound(seq, md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+  tmp_vc  = vrna_fold_compound(seq, md, VRNA_OPTION_EVAL_ONLY);
   alt     = vrna_eval_structure(tmp_vc, struct_motif_alt);
   corr    = vrna_eval_structure(tmp_vc, struct_motif);
   energy  = corr - alt;

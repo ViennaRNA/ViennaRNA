@@ -79,7 +79,6 @@ PRIVATE int   fill_arrays(vrna_fold_compound_t *vc, int zuker);
 PRIVATE void  free_end(int *array, int i, int start, vrna_fold_compound_t *vc);
 PRIVATE void  doubleseq(vrna_fold_compound_t *vc);  /* do magic */
 PRIVATE void  halfseq(vrna_fold_compound_t *vc);    /* undo magic */
-PRIVATE void  assure_dp_matrices( vrna_fold_compound_t *vc);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -130,7 +129,7 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
 
   vc->sequence_encoding[0] = vc->sequence_encoding2[0]; /* store length at pos. 0 in S1 too */
 
-  assure_dp_matrices(vc);
+  vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
 
   /* call user-defined recursion status callback function */
   if(vc->stat_cb)
@@ -173,18 +172,6 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
     return (float) vc->matrices->fML[vc->jindx[length]+1]/100.;
   else
     return (float) energy/100.;
-}
-
-PRIVATE void
-assure_dp_matrices( vrna_fold_compound_t *vc){
-
-  /*  check whether we have the correct DP matrices attached, and if there is
-      enough memory allocated
-  */
-  if(!vc->matrices || (vc->matrices->type != VRNA_MX_DEFAULT) || (vc->matrices->length < vc->length)){
-    /* here we simply pass '0' as options, since we call mx_mfe_add() explicitely */
-    vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, VRNA_OPTION_HYBRID);
-  }
 }
 
 PRIVATE int
@@ -840,6 +827,8 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   md->min_loop_size = 0;
   doubleseq(vc);
 
+  vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+
   doublelength    = vc->length;
   length          = doublelength/2;
   indx            = vc->jindx;
@@ -854,8 +843,6 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
 
   /* store length at pos. 0 */
   vc->sequence_encoding[0] = vc->sequence_encoding2[0];
-
-  assure_dp_matrices(vc);
 
   /* get mfe and do forward recursion */
   (void)fill_arrays(vc, 1);

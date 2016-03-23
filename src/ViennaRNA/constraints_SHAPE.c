@@ -168,7 +168,7 @@ vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *vc,
 
   if(vc && reactivities && (vc->type == VRNA_VC_TYPE_SINGLE)){
     n   = vc->length;
-    md  = (options & VRNA_OPTION_PF) ? &(vc->exp_params->model_details) : &(vc->params->model_details);
+    md  = &(vc->params->model_details);
 
     /* first we copy over the reactivities to convert them into probabilities later on */
     pr = (double *)vrna_alloc(sizeof(double) * (n + 1));
@@ -229,8 +229,8 @@ vrna_sc_add_SHAPE_deigan( vrna_fold_compound_t *vc,
       values[i] = reactivities[i] < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivities[i] + 1) + b);
     }
 
-    if(options & VRNA_OPTION_MFE)
-      sc_add_stack_en_mfe(vc, (const FLT_OR_DBL *)values, options);
+    /* always store soft constraints in plain format */
+    sc_add_stack_en_mfe(vc, (const FLT_OR_DBL *)values, options);
 
     if(options & VRNA_OPTION_PF)
       sc_add_stack_en_pf(vc, (const FLT_OR_DBL *)values, options);
@@ -323,28 +323,27 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
         /*  beware of the fact that energy_stack will be accessed through a2s[s] array,
             hence pseudo_energy might be gap-free (default)
         */
-        if(options & VRNA_OPTION_MFE){
-          int energy, cnt, gaps, is_gap;
-          pseudo_energies = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
-          for(gaps = cnt = 0, i = 1; i<=vc->length; i++){
-            is_gap  = (vc->sequences[ss][i-1] == '-') ? 1 : 0;
-            energy  = ((i - gaps > 0) && !(is_gap)) ? (int)(reactivities[i - gaps] * 100.) : 0;
+        /* ALWAYS store soft constraints in plain format */
+        int energy, cnt, gaps, is_gap;
+        pseudo_energies = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
+        for(gaps = cnt = 0, i = 1; i<=vc->length; i++){
+          is_gap  = (vc->sequences[ss][i-1] == '-') ? 1 : 0;
+          energy  = ((i - gaps > 0) && !(is_gap)) ? (int)(reactivities[i - gaps] * 100.) : 0;
 
-            if(vc->params->model_details.oldAliEn){
-              pseudo_energies[i] = energy;
-              cnt++;
-            } else if(!is_gap){ /* store gap-free */
-              pseudo_energies[a2s[ss][i]] = energy;
-              cnt++;
-            }
-
-            gaps += is_gap;
+          if(vc->params->model_details.oldAliEn){
+            pseudo_energies[i] = energy;
+            cnt++;
+          } else if(!is_gap){ /* store gap-free */
+            pseudo_energies[a2s[ss][i]] = energy;
+            cnt++;
           }
 
-          /* resize to actual number of entries */
-          pseudo_energies = vrna_realloc(pseudo_energies, sizeof(int) * (cnt + 2));
-          vc->scs[ss]->energy_stack = pseudo_energies;
+          gaps += is_gap;
         }
+
+        /* resize to actual number of entries */
+        pseudo_energies = vrna_realloc(pseudo_energies, sizeof(int) * (cnt + 2));
+        vc->scs[ss]->energy_stack = pseudo_energies;
 
         if(options & VRNA_OPTION_PF){
           FLT_OR_DBL *exp_pe = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));

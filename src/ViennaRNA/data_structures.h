@@ -571,6 +571,8 @@ struct vrna_fc_s{
 
 /* the definitions below should be used for functions that return/receive/destroy fold compound data structures */
 
+#define VRNA_OPTION_DEFAULT         0U
+
 /**
  *  @brief  Option flag to specify requirement of Minimum Free Energy (MFE) DP matrices
  *          and corresponding set of energy parameters
@@ -602,8 +604,6 @@ struct vrna_fc_s{
 
 #define VRNA_OPTION_WINDOW          16U
 
-#define VRNA_OPTION_DEFAULT         32U
-
 /**
  *  @brief  Retrieve a #vrna_fold_compound_t data structure for single sequences and hybridizing sequences
  *
@@ -621,11 +621,12 @@ struct vrna_fc_s{
  *  - #VRNA_OPTION_PF
  *  - #VRNA_OPTION_WINDOW
  *  - #VRNA_OPTION_EVAL_ONLY
+ *  - #VRNA_OPTION_DEFAULT
  *
  *  to specify the required type of computations that will be performed with the #vrna_fold_compound_t.
  *
  *  If you just need the folding compound serving as a container for your data, you can simply pass
- *  0 to the @p option parameter. This creates a #vrna_fold_compound_t without DP
+ *  #VRNA_OPTION_DEFAULT to the @p option parameter. This creates a #vrna_fold_compound_t without DP
  *  matrices, thus saving memory. Subsequent calls of any structure prediction function will then take
  *  care of allocating the memory required for the DP matrices.
  *  If you only intend to evaluate structures instead of actually predicting them, you may use the
@@ -662,11 +663,12 @@ vrna_fold_compound( const char *sequence,
  *  - #VRNA_OPTION_MFE
  *  - #VRNA_OPTION_PF
  *  - #VRNA_OPTION_EVAL_ONLY
+ *  - #VRNA_OPTION_DEFAULT
  *
  *  to specify the required type of computations that will be performed with the #vrna_fold_compound_t.
  *
  *  If you just need the folding compound serving as a container for your data, you can simply pass
- *  0 to the @p option parameter. This creates a #vrna_fold_compound_t without DP
+ *  #VRNA_OPTION_DEFAULT to the @p option parameter. This creates a #vrna_fold_compound_t without DP
  *  matrices, thus saving memory. Subsequent calls of any structure prediction function will then take
  *  care of allocating the memory required for the DP matrices.
  *  If you only intend to evaluate structures instead of actually predicting them, you may use the
@@ -694,6 +696,10 @@ vrna_fold_compound_TwoD(const char *sequence,
                         const char *s2,
                         vrna_md_t *md_p,
                         unsigned int options);
+
+int
+vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
+                            unsigned int options);
 
 /**
  *  @brief  Free memory occupied by a #vrna_fold_compound_t

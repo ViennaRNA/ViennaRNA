@@ -817,7 +817,14 @@ hc_reset_to_default(vrna_fold_compound_t *vc){
     /* this should be fixed such that ij loses its hard constraint type if it does not
        allow for enclosing an interior loop, etc.
     */
-    if(md->noLP)
+    /*  ???????
+        Is this necessary? We could leave the noLP option somewhere else, i.e. do not enforce it
+        on the level of ptype/constraints, but an the level of recursions...
+        ???????
+    */
+    if(md->noLP){
+      if(!vc->ptype)
+        vc->ptype = vrna_ptypes(vc->sequence_encoding2, md);
       for(i = 1; i < n; i++)
         for(j = i + min_loop_size + 1; j <= n; j++){
           if(hc->matrix[idx[j] +i]){
@@ -826,6 +833,7 @@ hc_reset_to_default(vrna_fold_compound_t *vc){
             }
           }
         }
+    }
   }
 
   /* should we reset the generalized hard constraint feature here? */
