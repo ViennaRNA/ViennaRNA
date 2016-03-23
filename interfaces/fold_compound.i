@@ -48,25 +48,6 @@ typedef struct {} vrna_fold_compound_t;
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
 
-
-	
-	
-	  /*int testFunction(std::vector<string> st)
-  {
-	  
-	  return 6666;
-  }
-  
-  int testFunction(std::vector<string> st, FILE *file )
-  {
-	  
-	  return 7777;
-  }
-  int testFunction(std::vector<string> st, std::vector<string> fg)
-  {
-	  
-	  return 8888;
-  }*/
 	  
   /* the default constructor, *md and option are optional, for single sequences*/
   vrna_fold_compound_t(const char *sequence, vrna_md_t *md=NULL, unsigned int options=VRNA_OPTION_MFE){
@@ -133,14 +114,14 @@ typedef struct {} vrna_fold_compound_t;
   float eval_structure(const char *structure){
 	  return vrna_eval_structure($self,structure);
   }
-  /*calculate MFE of given pairtable*/
+  /*calculate MFE of given pairtable
   float eval_structure_pt(std::vector<int> pt)
   {
 	  std::vector<const short*> vc;
 	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshortpt);
 	  vc.push_back(NULL); 
 	  return vrna_eval_structure_pt($self,(short*)&vc[0]);
-  }
+  }*/
   
   
   /*float pt_test(std::vector<const int> pt)
@@ -157,14 +138,10 @@ typedef struct {} vrna_fold_compound_t;
 	  return vrna_eval_structure_pt($self,(short*)&pt[0]) ;
   }*/
   
-  /*MFE of given structure, but now with different FileHandler for verbose*/
+  /*MFE of given structure, but now with different FileHandler for verbose, NULL = STDOUT*/
   float eval_structure_verbose(char *structure, FILE *file)
   {
 	  return vrna_eval_structure_verbose($self,structure,file);
-  }
-    float eval_structure_verbose(char *structure)
-  {
-	  return vrna_eval_structure_verbose($self,structure,NULL);
   }
   
  /*MFE of given pairtable, with different FileHandler for verbose, Default value = NULL + STDOUT*/
@@ -174,13 +151,19 @@ typedef struct {} vrna_fold_compound_t;
   }
   
   /*returns the consensus structure for a given set of alignment sequences and their energy*/
-  char *eval_covar_structure(float *OUTPUT)
+  const char *eval_covar_structure(float *OUTPUT)
   {
-	  char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
+	  const char *structure = (const char *)vrna_alloc(sizeof(char) * ($self->length+1));
 	  *OUTPUT = vrna_eval_covar_structure($self, structure);
 	  return structure;
   }
-
+/*
+  char *mfe(float *OUTPUT){
+    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
+    *OUTPUT = vrna_mfe($self, structure);
+    return structure;
+  }*/
+  
   /*returns the energy of a loop specified by i to pt[i]*/
   float eval_loop_pt(int i, short *pt)
   {

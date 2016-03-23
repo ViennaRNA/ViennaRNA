@@ -91,21 +91,23 @@ class FoldCompoundTest(unittest.TestCase):
 		
 		#print fc.eval_structure_pt(pt);
 	
-		
-	
-	
-	# not working because overloading function with filenames is not recognised, but without it is???	
+	# Testing with filehandler and with stdout	
 	def test_eval_structure_verbose(self):
-		print "test_eval_structure_verbose\n";
+		print "test_eval_structure_verbose";
 		fc = RNA.fold_compound(seq1);
 		try:
 			f = open(filename, "w")
 			print filename ," is opened for writing\n";
 			energy = fc.eval_structure_verbose(struct1,f);
+			energy2 = fc.eval_structure_verbose(struct1,None);
+			
 			self.assertEqual("%6.2f" % energy, "%6.2f" % -5.60);
-			print "\n", struct1, "%6.2f" % energy;
+			print  struct1, "[%6.2f" % energy,"]\n";
 		except IOError:
-			print "Could not open ",filename;
+			print "Could not open ",filename;	
+	
+	
+	
 	
 	#not working because of pairtbale and filehandler, and the energy is also not right(should be changed)
 	#def test_eval_structure_pt_verbose(self):
@@ -120,14 +122,23 @@ class FoldCompoundTest(unittest.TestCase):
 		#except IOError:
 			#print "Could not open ",filename;
 	
-	#geht nicht wegen irgendweinen segmentation foult error
+	#!!!is not working, results with 0 and empty structure
 	def test_eval_covar_structure(self):
 		print "test_eval_covar_structure\n";
-		fc = RNA.fold_compound(align);
+		s1="CCCCAAAACGGG";
+		s2="CCCGAAAAGGGG";
+		s3="CCCCAAAAGGGG";
+		ali = [s1,s2,s3];
+		print ali;
+		#fc = RNA.fold_compound(["GG","CC","CC"]);
+		
+		fc = RNA.fold_compound(ali,None,RNA.VRNA_OPTION_MFE | RNA.VRNA_OPTION_EVAL_ONLY);
 		print fc.type();
-		#(cs,mfe) = fc.eval_covar_structure();
-		#print cs, "[ %6.2f" %mfe ,"]\n";
-		#self.assertEqual(cs,struct1);
+		
+		
+		cs,mfe=fc.eval_covar_structure();
+		print cs, "[ %6.2f" %mfe ,"]\n";
+		self.assertTrue(1);
 	
 	#not workgin because of pairtable
 	def test_eval_loop_pt(self):
