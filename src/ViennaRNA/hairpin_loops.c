@@ -371,7 +371,7 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
                   int i,
                   int j){
 
-  int               u, ij, type, n_seq, s, *types, cp, *idx;
+  int               u, ij, type, n_seq, s, *types, cp, *idx, *iidx;
   FLT_OR_DBL        q, qbt1;
   FLT_OR_DBL        *scale;
   short             *S, **SS, **S5, **S3;
@@ -383,6 +383,7 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
 
   cp    = vc->cutpoint;
   idx   = vc->jindx;
+  iidx  = vc->iindx;
   P     = vc->exp_params;
   md    = &(P->model_details);
   scale = vc->exp_matrices->scale;
@@ -409,7 +410,7 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
                                       q *= sc->exp_energy_up[i+1][u];
 
                                     if(sc->exp_energy_bp)
-                                      q *= sc->exp_energy_bp[ij];
+                                      q *= sc->exp_energy_bp[iidx[i] - j];
 
                                     if(sc->exp_f)
                                       q *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
@@ -450,7 +451,7 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
                                         u = a2s[s][j-1] - a2s[s][i];
 
                                         if(scs[s]->exp_energy_bp)
-                                          qbt1 *= scs[s]->exp_energy_bp[ij];
+                                          qbt1 *= scs[s]->exp_energy_bp[iidx[i] - j];
 
                                         if(scs[s]->exp_energy_up)
                                           qbt1 *= scs[s]->exp_energy_up[a2s[s][i + 1]][u];

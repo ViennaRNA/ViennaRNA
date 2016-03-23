@@ -107,8 +107,8 @@ vrna_pf_fold( const char *seq,
     md.compute_bpp = 0;
   }
 
-  vc  = vrna_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
-  mfe = (double)vrna_pf(vc, structure);
+  vc  = vrna_fold_compound(seq, &md, 0);
+  mfe = (double)vrna_pf(vc, NULL);
   vrna_exp_params_rescale(vc, &mfe);
   free_energy = vrna_pf(vc, structure);
 
@@ -142,8 +142,8 @@ vrna_pf_circfold( const char *seq,
     md.compute_bpp = 0;
   }
 
-  vc  = vrna_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
-  mfe = (double)vrna_mfe(vc, structure);
+  vc  = vrna_fold_compound(seq, &md, 0);
+  mfe = (double)vrna_mfe(vc, NULL);
   vrna_exp_params_rescale(vc, &mfe);
   free_energy = vrna_pf(vc, structure);
 
@@ -171,11 +171,13 @@ vrna_pf( vrna_fold_compound_t *vc,
   free_energy = (float)(INF/100.);
 
   if(vc){
-    params    = vc->exp_params;
-    n         = vc->length;
-    md        = &(params->model_details);
-    matrices  = vc->exp_matrices;
+    /* make sure, that we have the DP matrices */
+    vrna_fold_compound_prepare(vc, VRNA_OPTION_PF);
 
+    n         = vc->length;
+    params    = vc->exp_params;
+    matrices  = vc->exp_matrices;
+    md        = &(params->model_details);
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */

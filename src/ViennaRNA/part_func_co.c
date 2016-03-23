@@ -73,7 +73,6 @@ PRIVATE vrna_dimer_pf_t wrap_co_pf_fold(char *sequence,
                                 int calculate_bppm,
                                 int is_constrained);
 
-
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -166,6 +165,8 @@ vrna_pf_dimer(vrna_fold_compound_t *vc,
   vrna_md_t       *md;
   vrna_exp_param_t  *params;
   vrna_mx_pf_t      *matrices;
+
+  vrna_fold_compound_prepare(vc, VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
 
   params    = vc->exp_params;
   n         = vc->length;

@@ -62,8 +62,6 @@ PRIVATE int           fill_arrays_comparative(vrna_fold_compound_t *vc);
 PRIVATE void          fill_arrays_comparative_circ(vrna_fold_compound_t *vc, sect bt_stack[], int *bt);
 PRIVATE void          backtrack_comparative(vrna_fold_compound_t *vc, vrna_bp_stack_t *bp_stack, sect bt_stack[], int s);
 
-PRIVATE void          assure_dp_matrices( vrna_fold_compound_t *vc);
-
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -86,11 +84,11 @@ vrna_mfe( vrna_fold_compound_t *vc,
   if(vc){
     length  = (int) vc->length;
 
+    vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE);
+
     /* call user-defined recursion status callback function */
     if(vc->stat_cb)
       vc->stat_cb(vc, VRNA_STATUS_MFE_PRE);
-
-    assure_dp_matrices(vc);
 
     switch(vc->type){
       case VRNA_VC_TYPE_SINGLE:     energy = fill_arrays(vc);
@@ -161,18 +159,6 @@ vrna_mfe( vrna_fold_compound_t *vc,
 
   return mfe;
 }
-
-PRIVATE void
-assure_dp_matrices( vrna_fold_compound_t *vc){
-
-  /*  check whether we have the correct DP matrices attached, and if there is
-      enough memory allocated
-  */
-  if(!vc->matrices || (vc->matrices->type != VRNA_MX_DEFAULT) || (vc->matrices->length < vc->length)){
-    vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, (unsigned int)0);
-  }
-}
-
 
 /**
 *** fill "c", "fML" and "f5" arrays and return  optimal energy

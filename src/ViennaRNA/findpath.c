@@ -127,7 +127,7 @@ find_saddle(const char *seq,
 
     sequence = vrna_cut_point_insert(seq, cut_point);
 
-    backward_compat_compound = vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    backward_compat_compound = vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_EVAL_ONLY);
 
     free(sequence);
   }
@@ -206,7 +206,7 @@ get_path( const char *seq,
 
     sequence = vrna_cut_point_insert(seq, cut_point);
 
-    backward_compat_compound = vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    backward_compat_compound = vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_EVAL_ONLY);
 
     free(sequence);
   }

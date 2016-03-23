@@ -42,8 +42,6 @@ PRIVATE char  *inbuf = NULL;
 PRIVATE char  *inbuf2 = NULL;
 PRIVATE unsigned int typebuf2 = 0;
 
-PRIVATE char  *wrap_get_ptypes(const short *S, vrna_md_t *md);  /* provides backward compatibility for old ptypes array in pf computations */
-
 /*-------------------------------------------------------------------------*/
 
 #ifndef WITH_DMALLOC
@@ -340,84 +338,12 @@ vrna_idx_col_wise(unsigned int length){
   return idx;
 }
 
-PUBLIC char *
-vrna_ptypes(const short *S,
-                vrna_md_t *md){
-
-  char *ptype;
-  int n,i,j,k,l,*idx;
-  int min_loop_size = md->min_loop_size;
-
-  n     = S[0];
-  ptype = (char *)vrna_alloc(sizeof(char)*((n*(n+1))/2+2));
-  idx   = vrna_idx_col_wise(n);
-
-  for (k=1; k<n-min_loop_size; k++)
-    for (l=1; l<=2; l++) {
-      int type,ntype=0,otype=0;
-      i=k; j = i+min_loop_size+l; if (j>n) continue;
-      type = md->pair[S[i]][S[j]];
-      while ((i>=1)&&(j<=n)) {
-        if ((i>1)&&(j<n)) ntype = md->pair[S[i-1]][S[j+1]];
-        if (md->noLP && (!otype) && (!ntype))
-          type = 0; /* i.j can only form isolated pairs */
-        ptype[idx[j]+i] = (char) type;
-        otype =  type;
-        type  = ntype;
-        i--; j++;
-      }
-    }
-  free(idx);
-  return ptype;
-}
-
-PRIVATE char *
-wrap_get_ptypes(const short *S,
-                vrna_md_t *md){
-
-  char *ptype;
-  int n,i,j,k,l,*idx;
-
-  n     = S[0];
-  ptype = (char *)vrna_alloc(sizeof(char)*((n*(n+1))/2+2));
-  idx   = vrna_idx_row_wise(n);
-
-  for (k=1; k<n-TURN; k++)
-    for (l=1; l<=2; l++) {
-      int type,ntype=0,otype=0;
-      i=k; j = i+TURN+l; if (j>n) continue;
-      type = md->pair[S[i]][S[j]];
-      while ((i>=1)&&(j<=n)) {
-        if ((i>1)&&(j<n)) ntype = md->pair[S[i-1]][S[j+1]];
-        if (md->noLP && (!otype) && (!ntype))
-          type = 0; /* i.j can only form isolated pairs */
-        ptype[idx[i]-j] = (char) type;
-        otype =  type;
-        type  = ntype;
-        i--; j++;
-      }
-    }
-  free(idx);
-  return ptype;
-}
-
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
-
-PUBLIC char *
-get_ptypes( const short *S,
-            vrna_md_t *md,
-            unsigned int idx_type){
-
-  if(idx_type)
-    return wrap_get_ptypes(S, md);
-  else
-    return vrna_ptypes(S, md);
-}
 
 PUBLIC int *
 get_iindx(unsigned int length){

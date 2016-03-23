@@ -56,7 +56,7 @@ struct vrna_path_s {
  *  The #vrna_fold_compound_t does not require memory for any DP matrices,
  *  but requires all most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
  *  @see vrna_fold_compound(), #vrna_fold_compound_t, vrna_path_findpath()
@@ -83,7 +83,7 @@ int vrna_path_findpath_saddle(vrna_fold_compound_t *vc,
  *  The #vrna_fold_compound_t does not require memory for any DP matrices,
  *  but requires all most basic init values as one would get from a call like this:
  *  @code{.c}
- vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+ vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
  *  @see vrna_fold_compound(), #vrna_fold_compound_t, vrna_path_findpath_saddle()

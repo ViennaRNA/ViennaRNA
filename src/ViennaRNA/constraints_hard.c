@@ -119,12 +119,6 @@ hc_intermolecular_only( unsigned int i,
                         int cut,
                         int *index);
 
-PRIVATE INLINE  void
-adjust_ptypes(char *ptype,
-              vrna_hc_t *hc,
-              unsigned int length,
-              unsigned int indx_type);
-
 PRIVATE void
 apply_DB_constraint(const char *constraint,
                     char *ptype,
@@ -775,57 +769,69 @@ hc_reset_to_default(vrna_fold_compound_t *vc){
                               | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
                               | VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
 
-  if(vc->type == VRNA_VC_TYPE_ALIGNMENT){
-    /* 2. all base pairs with pscore above threshold are allowed in all contexts */
-    for(j = n; j > min_loop_size + 1; j--){
-      ij = idx[j]+1;
-      for(i=1; i < j - min_loop_size; i++, ij++)
-        if((j-i+1) > max_span){
-          hc->matrix[ij] = (char)0;
-        } else {
-          hc->matrix[ij] = (vc->pscore[idx[j]+i] >= md->cv_fact*MINPSCORE) ? VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS : (char)0;
-        }
-    }
-    /* correct for no lonely pairs (assuming that ptypes already incorporate noLP status) */
-    /* this should be included in the pscore which is checked above */
-  } else {
-    /* 2. all canonical base pairs are allowed in all contexts */
-    for(j = n; j > min_loop_size + 1; j--){
-      ij = idx[j]+1;
-      for(i=1; i < j - min_loop_size; i++, ij++){
-        char opt = (char)0;
-        if((j-i+1) <= max_span){
-          int t = md->pair[S[i]][S[j]];
-          switch(t){
-            case 0:   break;
-            case 3:   /* fallthrough */
-            case 4:   if(md->noGU){
-                        break;
-                      } else if(md->noGUclosure){
-                        opt = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS & ~(VRNA_CONSTRAINT_CONTEXT_HP_LOOP | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
-                        break;
-                      } /* else fallthrough */
-            default:  opt = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-                      break;
-          }
-        }
-        hc->matrix[ij] = opt;
-      }
-    }
+  /* 2. all base pairs with pscore above threshold are allowed in all contexts */
+  switch(vc->type){
+    case VRNA_VC_TYPE_ALIGNMENT:  for(j = n; j > min_loop_size + 1; j--){
+                                    ij = idx[j]+1;
+                                    for(i=1; i < j - min_loop_size; i++, ij++){
+                                      char opt = (char)0;
+                                      if((j-i+1) <= max_span){
+                                        if(vc->pscore[idx[j]+i] >= md->cv_fact*MINPSCORE)
+                                          opt = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+                                      }
+                                      hc->matrix[ij] = opt;
+                                    }
+                                  }
+                                  break;
 
-    /* correct for no lonely pairs (assuming that ptypes already incorporate noLP status) */
-    /* this should be fixed such that ij loses its hard constraint type if it does not
-       allow for enclosing an interior loop, etc.
-    */
-    if(md->noLP)
-      for(i = 1; i < n; i++)
-        for(j = i + min_loop_size + 1; j <= n; j++){
-          if(hc->matrix[idx[j] +i]){
-            if(!vc->ptype[idx[j] + i]){
-              hc->matrix[idx[j] + i] = (char)0;
-            }
-          }
-        }
+    case VRNA_VC_TYPE_SINGLE:     for(j = n; j > min_loop_size + 1; j--){
+                                    ij = idx[j]+1;
+                                    for(i=1; i < j - min_loop_size; i++, ij++){
+                                      char opt = (char)0;
+                                      if((j-i+1) <= max_span){
+                                        int t = md->pair[S[i]][S[j]];
+                                        switch(t){
+                                          case 0:   break;
+                                          case 3:   /* fallthrough */
+                                          case 4:   if(md->noGU){
+                                                      break;
+                                                    } else if(md->noGUclosure){
+                                                      opt = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+                                                      opt &= ~(VRNA_CONSTRAINT_CONTEXT_HP_LOOP | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+                                                      break;
+                                                    } /* else fallthrough */
+                                          default:  opt = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+                                                    break;
+                                        }
+                                      }
+                                      hc->matrix[ij] = opt;
+                                    }
+                                  }
+
+                                  /* correct for no lonely pairs (assuming that ptypes already incorporate noLP status) */
+                                  /* this should be fixed such that ij loses its hard constraint type if it does not
+                                     allow for enclosing an interior loop, etc.
+                                  */
+                                  /*  ???????
+                                      Is this necessary? We could leave the noLP option somewhere else, i.e. do not enforce it
+                                      on the level of ptype/constraints, but an the level of recursions...
+                                      ???????
+                                  */
+                                  if(md->noLP){
+                                    if(!vc->ptype)
+                                      vc->ptype = vrna_ptypes(vc->sequence_encoding2, md);
+                                    for(i = 1; i < n; i++)
+                                      for(j = i + min_loop_size + 1; j <= n; j++){
+                                        if(hc->matrix[idx[j] +i]){
+                                          if(!vc->ptype[idx[j] + i]){
+                                            hc->matrix[idx[j] + i] = (char)0;
+                                          }
+                                        }
+                                      }
+                                  }
+                                  break;
+
+    default:                      break;
   }
 
   /* should we reset the generalized hard constraint feature here? */
@@ -910,39 +916,6 @@ hc_update_up(vrna_fold_compound_t *vc){
 
 }
 
-
-PRIVATE INLINE  void
-adjust_ptypes(char *ptype,
-              vrna_hc_t *hc,
-              unsigned int length,
-              unsigned int idx_type){
-
-  unsigned  int i,j;
-  int           *index;
-  char          *matrix;
-
-  matrix = hc->matrix;
-
-  if(idx_type){
-    index = vrna_idx_row_wise(length);
-    for(i = 1; i < length; i++)
-      for(j = i + 1; j <= length; j++)
-        if(matrix[index[i] - j])
-          if(!ptype[index[i] - j])
-            ptype[index[i] - j] = 7; /* set to non-canonical pair */
-
-  } else {
-    index = vrna_idx_col_wise(length);
-    for(i = 1; i < length; i++)
-      for(j = i + 1; j <= length; j++)
-        if(matrix[index[j] + i])
-          if(!ptype[index[j] + i])
-            ptype[index[j] + i] = 7; /* set to non-canonical pair */
-
-  }
-  free(index);
-}
-  
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /*###########################################*/

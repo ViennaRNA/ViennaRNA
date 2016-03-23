@@ -107,7 +107,7 @@ vrna_cofold(const char *seq,
   md.min_loop_size = 0;  /* set min loop length to 0 */
 
   /* get compound structure */
-  vc = vrna_fold_compound(seq, &md, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  vc = vrna_fold_compound(seq, &md, 0);
 
   mfe = vrna_mfe_dimer(vc, structure);
 
@@ -128,6 +128,8 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
   length = (int) vc->length;
 
   vc->sequence_encoding[0] = vc->sequence_encoding2[0]; /* store length at pos. 0 in S1 too */
+
+  vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
 
   /* call user-defined recursion status callback function */
   if(vc->stat_cb)
@@ -745,7 +747,7 @@ doubleseq(vrna_fold_compound_t *vc){
   vrna_hc_init(vc);
 
   /* add DP matrices */
-  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0L);
+  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0);
 }
 
 PRIVATE void
@@ -778,7 +780,7 @@ halfseq(vrna_fold_compound_t *vc){
   vrna_hc_init(vc);
 
   /* add DP matrices */
-  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0L);
+  vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, 0);
 }
 
 typedef struct{
@@ -824,6 +826,8 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   /* do some magic to re-use cofold code although vc is single sequence */
   md->min_loop_size = 0;
   doubleseq(vc);
+
+  vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
 
   doublelength    = vc->length;
   length          = doublelength/2;
@@ -996,7 +1000,7 @@ wrap_cofold(const char *string,
   seq = vrna_cut_point_insert(string, cut_point);
 
   /* get compound structure */
-  vc = vrna_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  vc = vrna_fold_compound(seq, &(P->model_details), 0);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -1066,7 +1070,7 @@ wrap_zukersubopt( const char *string,
   strcat(doubleseq, string);
 
   /* get compound structure */
-  vc = vrna_fold_compound(doubleseq, &(P->model_details), VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  vc = vrna_fold_compound(doubleseq, &(P->model_details), 0);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
