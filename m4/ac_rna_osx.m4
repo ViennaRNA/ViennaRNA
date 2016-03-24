@@ -3,34 +3,20 @@ AC_DEFUN([RNA_ENABLE_OSX],[
 
   AX_REQUIRE_DEFINED([RNA_ADD_FEATURE])
 
-  RNA_ADD_FEATURE([universal-binary],
-                  [generate universal (fat) binaries on MacOSX],
-                  [no],
-                  [enable_universal_binary=$enableval],
-                  [enable_universal_binary=no],
-                  ["-arch i386 -arch x86_64"])
+  RNA_ENABLE_OSX_UNIVERSAL_BINARY
+  RNA_ENABLE_OSX_SDK
+  RNA_ENABLE_OSX_INSTALLER
+])
 
-  RNA_ADD_FEATURE([macosx-sdk],
-                  [use a specific Mac OS X SDK],
-                  [no],
-                  [enable_macosx_sdk=$enableval],
-                  [enable_macosx_sdk=no],
-                  ["latest"])
-
-  RNA_ADD_FEATURE([macosx-sdk-path],
-                  [specify the path to a specific Mac OS X SDK],
-                  [no],
-                  [ enable_macosx_sdk_path=$enableval
-                    enable_macosx_sdk="custom"
-                  ],
-                  [enable_macosx_sdk_path=auto],
-                  ["auto"])
+AC_DEFUN([RNA_ENABLE_OSX_INSTALLER],[
 
   RNA_ADD_FEATURE([macosx-installer],
                   [generate MacOSX Installer Disk Image],
                   [no],
                   [enable_macosx_installer=yes],
                   [enable_macosx_installer=no])
+
+  AC_CONFIG_FILES([packaging/macosx/Makefile packaging/macosx/Distribution.xml packaging/macosx/resources/welcome.txt])
 
   RNA_FEATURE_IF_ENABLED([macosx_installer],[
 
@@ -61,6 +47,25 @@ AC_DEFUN([RNA_ENABLE_OSX],[
   ])
 
   AM_CONDITIONAL(WITH_MACOSX_INSTALLER, test "$enable_macosx_installer" != "no")
+])
+
+AC_DEFUN([RNA_ENABLE_OSX_SDK],[
+
+  RNA_ADD_FEATURE([macosx-sdk],
+                  [use a specific Mac OS X SDK],
+                  [no],
+                  [enable_macosx_sdk=$enableval],
+                  [enable_macosx_sdk=no],
+                  ["latest"])
+
+  RNA_ADD_FEATURE([macosx-sdk-path],
+                  [specify the path to a specific Mac OS X SDK],
+                  [no],
+                  [ enable_macosx_sdk_path=$enableval
+                    enable_macosx_sdk="custom"
+                  ],
+                  [enable_macosx_sdk_path=auto],
+                  ["auto"])
 
   RNA_FEATURE_IF_ENABLED([macosx_sdk],[
 
@@ -208,7 +213,16 @@ AC_DEFUN([RNA_ENABLE_OSX],[
     fi
 
   ])
+])
 
+AC_DEFUN([RNA_ENABLE_OSX_UNIVERSAL_BINARY],[
+
+  RNA_ADD_FEATURE([universal-binary],
+                  [generate universal (fat) binaries on MacOSX],
+                  [no],
+                  [enable_universal_binary=$enableval],
+                  [enable_universal_binary=no],
+                  ["-arch i386 -arch x86_64"])
 
   RNA_FEATURE_IF_ENABLED([universal_binary],[
 
@@ -252,6 +266,5 @@ AC_DEFUN([RNA_ENABLE_OSX],[
 
   ])
 
-  AC_CONFIG_FILES([packaging/macosx/Makefile packaging/macosx/Distribution.xml packaging/macosx/resources/welcome.txt])
 
 ])
