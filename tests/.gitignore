@@ -6,8 +6,18 @@
 *.log
 *.trs
 
-# ignroe executables
+# ignore executables
 fold
 utils
 energy_evaluation
 constraints
+eval_structure
+
+# ignore perl5 unit test output
+test_ss.ps
+test_ss_a.ps
+test.coord
+test.par
+# ignore all tests we copy over from interfaces/Perl/RNA/t
+perl5/test-RNA-Design.t
+

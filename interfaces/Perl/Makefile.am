@@ -63,18 +63,8 @@ auto/RNA/RNA$(PERL_SO): RNA.la
 	. ./libtoolconfig.tmp; cp "$$objdir/RNA$(PERL_SO)" auto/RNA
 	rm -f libtoolconfig.tmp
 
-##
-## Perl Test Suite
-##
-
-AM_TESTS_ENVIRONMENT = PERL5LIB='$(srcdir):$(builddir):${PERL5LIB}'; export PERL5LIB;
-LOG_COMPILER = $(PERL)
-AM_LOG_FLAGS = -Mstrict -w
-TESTS = test.pl \
-        RNA/t/Design.t
-
 clean-local:
-	-rm -rf auto test.coord test_dp.ps test_ss.ps test_ss_a.ps test.par
+	-rm -rf auto
 
 ## Remove the .la file - RNA.la is never linked against (it's a module)
 ## and Perl doesn't use libltdl.  Note that the library gets installed by

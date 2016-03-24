@@ -154,8 +154,8 @@ Documentation:              ${with_doc:-no}
     (HTML):                 ${with_doc_html:-no}
     (PDF):                  ${with_doc_pdf:-no}
 
-Unit Tests:
-  check:                    ${with_check:-yes}      $enabled_but_failed_check
+Unit Tests:                 ${enable_unittests:-yes}
+  C-Library:                ${with_check:-yes}      $enabled_but_failed_check
 
 -
 Files will be installed in the following directories:
