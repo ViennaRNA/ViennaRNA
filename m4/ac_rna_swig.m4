@@ -1,4 +1,24 @@
 
+AC_DEFUN([RNA_GET_SWIG_INTERFACES],[
+  ## collect the scripting language interfaces we gonna build
+  _swig_packages=0
+  AS_IF([test "x$with_perl" = "xyes"],[
+    AC_RNA_APPEND_VAR_COMMA($1, [Perl 5])
+    _swig_packages=1
+  ])
+  AS_IF([test "x$with_python" = "xyes"],[
+    AC_RNA_APPEND_VAR_COMMA($1, [Python 2])
+    _swig_packages=1
+  ])
+  AS_IF([test "x$with_python3" = "xyes"],[
+    AC_RNA_APPEND_VAR_COMMA($1, [Python 3])
+    _swig_packages=1
+  ])
+  AS_IF([test "x$with_swig" != "xyes" || test "$_swig_packages" -eq "0"],[
+    AC_RNA_APPEND_VAR_COMMA($1, [None])
+  ])
+])
+
 AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
 
   AX_REQUIRE_DEFINED([AX_PKG_SWIG])
@@ -26,6 +46,8 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
 ##                    [${srcdir}/interfaces/Ruby/Makefile.am])
 
 ])
+
+
 AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
 
   RNA_ADD_PACKAGE([perl],

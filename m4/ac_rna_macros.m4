@@ -5,6 +5,13 @@
 ## Several macros for AC_RNA_INIT ##
 ##--------------------------------##
 
+AC_DEFUN([AC_RNA_APPEND_VAR_COMMA],[
+  if test "x$$1" != "x" ; then
+    $1="${$1}, "
+  fi
+  $1="${$1}$2"
+])
+
 AC_DEFUN([AC_RNA_TEST_FILE],[
 AC_MSG_CHECKING([for $1])
 if test -f $1 ; then

@@ -122,43 +122,61 @@ AS_IF([test "x$enable_universal_binary" != "xno"],[
   ],[
 ])
 
+## collect enabled swig interfaces
+RNA_GET_SWIG_INTERFACES(_swig_languages_enabled)
+
+## collect enabled unit tests
+RNA_GET_UNIT_TESTS(_unit_tests_enabled)
+
+## collect enabled subpackages
+RNA_GET_SUBPACKAGES(_packages_enabled)
+
+## collect additional options
+RNA_GET_FEATURE(_features_enabled)
+
+## collect doxygen reference manual settings
+RNA_GET_DOXYGEN_REFMAN(_refman_enabled)
+
+## collect MacOSX config (if any)
+RNA_GET_MACOSX_CONFIG(_macosx_enabled)
+AS_IF([test "x$_macosx_enabled" != "x"], [
+  AC_RNA_APPEND_VAR_COMMA(_features_enabled, [$_macosx_enabled])
+])
+
 # Notify the user
 
 AC_MSG_NOTICE([
 
-Configured successful with the following options:
+############################################
+# ViennaRNA Package configured successfully
+# with the following options:
+############################################
 
-RNAlib Scripting Interfaces:
-  Perl Interface:           ${with_perl:-yes}      $enabled_but_failed_perl
-  Python Interface:         ${with_python:-yes}      $enabled_but_failed_python
-  Python3 Interface:        ${with_python3:-yes}      $enabled_but_failed_python3
 
-Extra Programs:
-  Analyse{Dists,Seqs}:      ${with_cluster:-no}
-  Kinfold:                  ${with_kinfold:-yes}
-  RNAforester:              ${with_forester:-yes}
-  Kinwalker:                ${with_kinwalker:-no}
+  * Extra Programs:
 
-Other Options:
-  SVM:                      ${with_svm:-yes}
-  JSON:                     ${with_json:-yes}
-  GSL:                      ${with_gsl:-yes}      $enabled_but_failed_gsl
-  Boustrophedon:            ${enable_boustrophedon:-yes}
-  Generic Hard Constraints: ${enable_gen_hard_constraints:-no}
-  OpenMP:                   ${enable_openmp:-yes}
-  LTO:                      ${enable_lto:-yes}      $enabled_but_failed_lto
-  Float Precision (PF):     ${enable_floatpf:-no}
-  MacOSX Universal Binary:  ${enable_universal_binary:-no}      $_osx_arch
+    ( ${_packages_enabled} )
 
-Documentation:              ${with_doc:-no}
-    (HTML):                 ${with_doc_html:-no}
-    (PDF):                  ${with_doc_pdf:-no}
+  * Other Options:
 
-Unit Tests:                 ${enable_unittests:-yes}
-  C-Library:                ${with_check:-yes}      $enabled_but_failed_check
+    ( ${_features_enabled} )
 
--
-Files will be installed in the following directories:
+  * RNAlib Scripting Language Interfaces:
+  
+    ( ${_swig_languages_enabled} )
+
+  * RNAlib Documentation:
+
+    ( ${_refman_enabled} )
+
+  * Unit Tests will be performed for:
+  
+    ( ${_unit_tests_enabled} )
+
+############################################
+# Files will be installed in the following
+# directories:
+############################################
 
   Executables:        $_bindir
   Libraries:          $_libdir

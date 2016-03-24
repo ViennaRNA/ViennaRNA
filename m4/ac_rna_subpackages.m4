@@ -1,4 +1,28 @@
 
+AC_DEFUN([RNA_GET_SUBPACKAGES],[
+  _sub_packages=0
+  ## collect the subpackages/programs we gonna build
+  AS_IF([test "x$with_cluster" = "xyes"], [
+    AC_RNA_APPEND_VAR_COMMA($1, [Analyse{Dists,Seqs}])
+    _sub_packages=1
+  ])
+  AS_IF([test "x$with_kinfold" = "xyes"],[
+    AC_RNA_APPEND_VAR_COMMA($1, [Kinfold])
+    _sub_packages=1
+  ])
+  AS_IF([test "x$with_forester" = "xyes"],[
+    AC_RNA_APPEND_VAR_COMMA($1, [RNAforester])
+    _sub_packages=1
+  ])
+  AS_IF([test "x$with_kinwalker" = "xyes"],[
+    AC_RNA_APPEND_VAR_COMMA($1, [Kinwalker])
+    _sub_packages=1
+  ])
+  AS_IF([test "$_sub_packages" -eq 0],[
+    AC_RNA_APPEND_VAR_COMMA($1, [None])
+  ])
+])
+
 #
 # Kinfold subpackage
 #
@@ -15,7 +39,7 @@ AC_DEFUN([RNA_ENABLE_PKG_KINFOLD],[
     AC_CONFIG_SUBDIRS([src/Kinfold])
   ])
 
-  AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinfold" != "no")
+  AM_CONDITIONAL(MAKE_KINFOLD, test "x$with_kinfold" != "xno")
 ])
 
 
@@ -34,7 +58,7 @@ AC_DEFUN([RNA_ENABLE_PKG_FORESTER],[
     AC_CONFIG_SUBDIRS([src/RNAforester])
   ])
 
-  AM_CONDITIONAL(MAKE_FORESTER, test "$with_forester" != "no")
+  AM_CONDITIONAL(MAKE_FORESTER, test "x$with_forester" != "xno")
 ])
 
 
@@ -56,7 +80,7 @@ AC_DEFUN([RNA_ENABLE_PKG_CLUSTER],[
     AC_CONFIG_FILES([src/Cluster/Makefile])
   ])
 
-  AM_CONDITIONAL(MAKE_CLUSTER, test "$with_cluster" = "yes")
+  AM_CONDITIONAL(MAKE_CLUSTER, test "x$with_cluster" = "xyes")
 ])
 
 #
@@ -75,6 +99,5 @@ AC_DEFUN([RNA_ENABLE_PKG_KINWALKER],[
     AC_CONFIG_SUBDIRS([src/Kinwalker])
   ])
 
-  AM_CONDITIONAL(MAKE_KINFOLD, test "$with_kinwalker" != "yes")
+  AM_CONDITIONAL(MAKE_KINFOLD, test "x$with_kinwalker" != "xyes")
 ])
-

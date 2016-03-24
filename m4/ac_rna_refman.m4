@@ -1,6 +1,13 @@
 # RNA_ENABLE_DOXYGEN_REFMAN(PROJECT_NAME, [config-file], [documentation-output-directory])
 #
 #
+AC_DEFUN([RNA_GET_DOXYGEN_REFMAN],[
+  ## collect the subpackages/programs we gonna build
+  AS_IF([test "x$with_doc" != "xyes"], [ AC_RNA_APPEND_VAR_COMMA($1, [None]) ])
+  AS_IF([test "x$with_doc_pdf" = "xyes"], [ AC_RNA_APPEND_VAR_COMMA($1, [PDF]) ])
+  AS_IF([test "x$with_doc_html" = "xyes"],[ AC_RNA_APPEND_VAR_COMMA($1, [HTML]) ])
+])
+
 AC_DEFUN([RNA_ENABLE_DOXYGEN_REFMAN],[
 
 RNA_ADD_PACKAGE([doc_pdf],
