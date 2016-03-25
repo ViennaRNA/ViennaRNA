@@ -115,6 +115,8 @@ AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
 
 AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
 
+  AX_REQUIRE_DEFINED([AX_PYTHON2_DEVEL])
+
   RNA_ADD_PACKAGE([python],
                   [Python interface],
                   [yes],
@@ -138,24 +140,29 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
   ])
 
   AS_IF([test "x$with_python" != "xno"],[
-    AX_PYTHON_DEVEL([< '3.0.0'])
-    AM_PATH_PYTHON
-    AX_SWIG_PYTHON
-##    pythondir=$PYTHON_SITE_PKG
-##    pyexecdir=$PYTHON_SITE_PKG_EXEC
 
-    AC_SUBST(PYTHONDIR,$pythondir)
-    AC_SUBST(PKGPYTHONDIR,$pkgpythondir)
-    AC_SUBST(PYEXECDIR,$pyexecdir)
-    AC_SUBST(PKGPYEXECDIR,$pkgpyexecdir)
+    ## check for python2 config
+    AX_PYTHON2_DEVEL
 
-    AC_DEFINE([WITH_PYTHON_INTERFACE], [1], [Create the python interface to RNAlib])
-    AC_SUBST([PYTHON_INTERFACE], [Python])
-    AC_CONFIG_FILES([interfaces/Python/Makefile])
+    if test "x$python2_enabled_but_failed" != "x"
+    then
+      $with_python2="no"
+    else
+      AC_SUBST(PYTHON2DIR,$python2dir)
+      AC_SUBST(PKGPYTHON2DIR,$pkgpython2dir)
+      AC_SUBST(PYEXEC2DIR,$py2execdir)
+      AC_SUBST(PKGPYEXEC2DIR,$pkgpy2execdir)
+
+      AC_DEFINE([WITH_PYTHON2_INTERFACE], [1], [Create the python2 interface to RNAlib])
+      AC_SUBST([PYTHON2_INTERFACE], [Python])
+      AC_CONFIG_FILES([interfaces/Python/Makefile])
+    fi
   ])
 ])
 
 AC_DEFUN([RNA_ENABLE_SWIG_PYTHON3],[
+
+  AX_REQUIRE_DEFINED([AX_PYTHON3_DEVEL])
 
   RNA_ADD_PACKAGE([python3],
                   [Python3 interface],
@@ -180,77 +187,18 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON3],[
   ])
 
   AS_IF([test "x$with_python3" != "xno"],[
-    # (AM_PATH_PYTHON) cannot be used for multiple Python version at once
-    if test -z "$PYTHON3" ; then
-      AC_PATH_PROG([PYTHON3], [python3])
+
+    ## check for python3 config
+    AX_PYTHON3_DEVEL
+
+    if test "x$python3_enabled_but_failed" != "x"
+    then
+      $with_python3="no"
+    else
+      AC_DEFINE([WITH_PYTHON3_INTERFACE], [1], [Create the Python3 interface to RNAlib])
+      AC_SUBST([PYTHON3_INTERFACE], [Python3])
     fi
-    AC_ARG_VAR(PYTHON3, [Path to Python3 interpreter])
 
-    AC_PATH_PROG([PYTHON3_CONFIG], [python3-config], [no])
-                [if test "$PYTHON3_CONFIG" = "no"]
-                [then]
-                    [echo "The python3-config program was not found in the search path. Please ensure"]
-                    [echo "that it is installed and its directory is included in the search path."]
-                    [echo "Then run configure again before attempting to build OpenSCAP."]
-                    [exit 1]
-                [fi]
-
-    AC_MSG_CHECKING([for Python3 include path])
-    PYTHON3_INCLUDES=`python3-config --includes 2> /dev/null`
-    AC_SUBST(PYTHON3_INCLUDES)
-    AC_MSG_RESULT([$PYTHON3_INCLUDES])
-
-    AC_MSG_CHECKING([for Python3 compile flags])
-    PYTHON3_CFLAGS=`python3-config --cflags 2> /dev/null`
-    AC_SUBST(PYTHON3_CFLAGS)
-    AC_MSG_RESULT([$PYTHON3_CFLAGS])
-
-    AC_MSG_CHECKING([for Python3 link flags])
-    PYTHON3_LIBS=`python3-config --libs 2> /dev/null`
-    AC_SUBST(PYTHON3_LIBS)
-    AC_MSG_RESULT([$PYTHON3_LIBS])
-
-    AC_MSG_CHECKING([for directory to install Python3 scripts in])
-    if test -z "$PYTHON3_DIR" ; then
-      # the string concatenation below is just a trick to prevent substitution
-      PYTHON3_DIR=`$PYTHON3 -c "import distutils.sysconfig; \
-            print(distutils.sysconfig.get_python_lib(0,0,prefix='$' '{prefix}'))"`
-    fi
-    AC_SUBST(python3dir, $PYTHON3_DIR)
-    AC_MSG_RESULT([$PYTHON3_DIR])
-    AC_ARG_VAR(PYTHON3_DIR, [Directory to install python3 scripts in])
-
-    AC_MSG_CHECKING([for directory to install architecture dependent python3 things in])
-    if test -z "$PYTHON3_EXECDIR" ; then
-      PYTHON3_EXECDIR=`$PYTHON3 -c "import distutils.sysconfig; \
-            print(distutils.sysconfig.get_python_lib(1,0,prefix='$' '{exec_prefix}'))"`
-    fi
-    AC_SUBST(py3execdir, $PYTHON3_EXECDIR)
-    AC_MSG_RESULT([$PYTHON3_EXECDIR])
-    AC_ARG_VAR(PYTHON3_EXECDIR, [Directory to install architecture dependent python3 things in])
-
-    AC_MSG_CHECKING([for Python3 module extension])
-    dnl Usually ".so", but for example, Mac OS X uses ".dylib".
-    PYTHON3_SO=`$PYTHON3 -c "import distutils.sysconfig; \
-            print(distutils.sysconfig.get_config_vars('SO')[[0]])"`
-    AC_SUBST(PYTHON3_SO)
-    AC_MSG_RESULT([$PYTHON3_SO])
-
-    AC_MSG_CHECKING([for Python3 tag for cached compiled scripts])
-    PYTHON3_CACHE_TAG=`$PYTHON3 -c "import imp; \
-            print(imp.get_tag())"`
-    AC_SUBST(PYTHON3_CACHE_TAG)
-    AC_MSG_RESULT([$PYTHON3_CACHE_TAG])
-
-    AC_MSG_CHECKING([for Python3 extension of cached and optimized bytecode])
-    PYTHON3_CACHE_OPT1_EXT=`$PYTHON3 -c "import imp,sys; \
-            print('%s.pyo'%imp.get_tag()) if sys.version_info.minor<5 \
-            else print('{1}{2}'.format(*imp.util.cache_from_source('',optimization=1).rpartition(imp.get_tag())))"`
-    AC_SUBST(PYTHON3_CACHE_OPT1_EXT)
-    AC_MSG_RESULT([$PYTHON3_CACHE_OPT1_EXT])
-
-    AC_DEFINE([WITH_PYTHON3_INTERFACE], [1], [Create the Python3 interface to RNAlib])
-    AC_SUBST([PYTHON3_INTERFACE], [Python3])
     AC_CONFIG_FILES([interfaces/Python3/Makefile])
   ])
 ])
