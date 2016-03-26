@@ -13,6 +13,9 @@ extern "C" {
 #include  <ViennaRNA/string_utils.h>
 #include  <ViennaRNA/fold_vars.h>
 #include  <ViennaRNA/constraints.h>
+#include  <ViennaRNA/constraints_hard.h>
+#include  <ViennaRNA/constraints_soft.h>
+#include  <ViennaRNA/constraints_SHAPE.h>
 #undef fold
 #include  <ViennaRNA/mfe.h>
 #include  <ViennaRNA/fold.h>
@@ -108,10 +111,12 @@ namespace std {
 /* do not wrap any function prefixed by 'vrna_' */
 %rename("$ignore",  %$isfunction, regextarget=1) "^vrna_";
 
-/* do not wrap any data structure, typedef, or enum prefixed by 'vrna_' */
+/* do not wrap any data structure, typedef, enum, or constant prefixed by 'vrna_' || 'VRNA_' */
 %rename("$ignore",  %$isclass, regextarget=1) "^vrna_";
 %rename("$ignore",  %$istypedef, regextarget=1) "^vrna_";
 %rename("$ignore",  %$isenum, regextarget=1) "^vrna_";
+%rename("$ignore",  %$isconstant, regextarget=1) "^VRNA_";
+%rename("$ignore",  %$isconstant, regextarget=1) "^vrna_";
 
 /*############################################*/
 /* Include all relevant interface definitions */

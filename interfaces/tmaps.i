@@ -1,5 +1,5 @@
 // Perl typemaps
- #ifdef SWIGPERL5
+#ifdef SWIGPERL5
 // convert between perl and C file handle
 %typemap(in) FILE * {
   if (SvOK($input)) /* check for undef */

@@ -11,6 +11,8 @@ SWIG_misc_src = \
   $(srcdir)/../constraints.i \
   $(srcdir)/../eval.i \
   $(srcdir)/../fold_compound.i \
+  $(srcdir)/../fold_compound_callbacks_python.i \
+  $(srcdir)/../fold_compound_callbacks_perl5.i \
   $(srcdir)/../inverse.i \
   $(srcdir)/../mfe.i \
   $(srcdir)/../model_details.i \

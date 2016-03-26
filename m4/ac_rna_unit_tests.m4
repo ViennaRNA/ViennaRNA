@@ -72,8 +72,6 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
 
     RNA_PACKAGE_IF_ENABLED([check],[
       AC_DEFINE([WITH_CHECK], [1], [Include C-library Unit tests])
-      AC_SUBST([CHECK_DIR], [tests])
-      AC_CONFIG_FILES([tests/Makefile])
     ])
 
     RNA_FEATURE_IF_ENABLED([check_perl],[
@@ -111,5 +109,7 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
   AM_CONDITIONAL(WITH_PERL_TESTS, test "x$enable_check_perl" != "xno")
   AM_CONDITIONAL(WITH_PYTHON_TESTS, test "x$enable_check_python" != "xno")
   AM_CONDITIONAL(WITH_PYTHON3_TESTS, test "x$enable_check_python3" != "xno")
+
+  AC_CONFIG_FILES([tests/Makefile tests/RNApath.py])
 ])
 
