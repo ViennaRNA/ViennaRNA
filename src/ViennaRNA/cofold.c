@@ -133,13 +133,13 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
 
   /* call user-defined recursion status callback function */
   if(vc->stat_cb)
-    vc->stat_cb(vc, VRNA_STATUS_MFE_PRE);
+    vc->stat_cb(VRNA_STATUS_MFE_PRE, vc->auxdata);
 
   energy = fill_arrays(vc, 0);
 
   /* call user-defined recursion status callback function */
   if(vc->stat_cb)
-    vc->stat_cb(vc, VRNA_STATUS_MFE_POST);
+    vc->stat_cb(VRNA_STATUS_MFE_POST, vc->auxdata);
 
   if(structure && vc->params->model_details.backtrack){
     bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */

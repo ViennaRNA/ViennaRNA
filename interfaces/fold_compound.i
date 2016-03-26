@@ -17,6 +17,14 @@
 %ignore snoopT;
 %ignore dupVar;
 
+#ifdef SWIGPYTHON
+%include fold_compound_callbacks_python.i
+#endif
+
+#ifdef SWIGPERL5
+%include fold_compound_callbacks_perl5.i
+#endif
+
 /* start constructing a sane interface to vrna_fold_compound_t */
 
 %rename(fc_type) vrna_fc_type_e;
@@ -37,7 +45,7 @@ typedef struct {} vrna_fold_compound_t;
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
 
-  /* the default constructor */
+   /* the default constructor */
   vrna_fold_compound_t(char *sequence, vrna_md_t *md=NULL, unsigned int options=VRNA_OPTION_MFE){
     return vrna_fold_compound(sequence, md, options);
   }
@@ -75,7 +83,69 @@ typedef struct {} vrna_fold_compound_t;
     return vrna_sc_add_hi_motif($self, seq, structure, energy, options);
   }
 
+#ifdef SWIGPYTHON
+  void add_auxdata(PyObject *data, PyObject *free_data){
+    fc_add_pydata($self, data, free_data);
+  }
+
+  void add_callback(PyObject *PyFunc){
+    fc_add_pycallback($self, PyFunc);
+  }
+
+  void sc_add_data(PyObject *data, PyObject *free_data){
+    sc_add_pydata($self, data, free_data);
+  }
+  
+  void sc_add_f(PyObject *PyFunc){
+    sc_add_f_pycallback($self, PyFunc);
+  }
+
+  void sc_add_exp_f(PyObject *PyFunc){
+    sc_add_exp_f_pycallback($self, PyFunc);
+  }
+
+#endif
+
+#ifdef SWIGPERL5
+  void add_auxdata(SV *data, SV *free_data){
+    fc_add_perl_data($self, data, free_data);
+  }
+
+  void add_callback(SV *PerlFunc){
+    fc_add_perl_callback($self, PerlFunc);
+  }
+
+  void sc_add_data(SV *data, SV *free_data){
+    sc_add_perl_data($self, data, free_data);
+  }
+  
+  void sc_add_f(SV *PerlFunc){
+    sc_add_f_perl_callback($self, PerlFunc);
+  }
+
+  void sc_add_exp_f(SV *PerlFunc){
+    sc_add_exp_f_perl_callback($self, PerlFunc);
+  }
+
+#endif
 }
 
+/*
+ *  Rename all the preprocessor macros defined in data_structures.h
+ *  (wrapped as constants)
+ */
+%constant unsigned char STATUS_MFE_PRE  = VRNA_STATUS_MFE_PRE;
+%constant unsigned char STATUS_MFE_POST = VRNA_STATUS_MFE_POST;
+%constant unsigned char STATUS_PF_PRE   = VRNA_STATUS_PF_PRE;
+%constant unsigned char STATUS_PF_POST  = VRNA_STATUS_PF_POST;
+
+%constant unsigned int OPTION_DEFAULT   = VRNA_OPTION_DEFAULT;
+%constant unsigned int OPTION_MFE       = VRNA_OPTION_MFE;
+%constant unsigned int OPTION_PF        = VRNA_OPTION_PF;
+%constant unsigned int OPTION_HYBRID    = VRNA_OPTION_HYBRID;
+%constant unsigned int OPTION_EVAL_ONLY = VRNA_OPTION_EVAL_ONLY;
+%constant unsigned int OPTION_WINDOW    = VRNA_OPTION_WINDOW;
+
+
+
 %include <ViennaRNA/data_structures.h>
-%include <ViennaRNA/ligand.h>

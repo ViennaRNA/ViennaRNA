@@ -1,7 +1,5 @@
 #!/usr/bin/perl -I.libs
 
-# Last changed Time-stamp: <2007-09-27 17:21:23 ivo>
-
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
 use strict;

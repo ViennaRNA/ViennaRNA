@@ -11,10 +11,7 @@ TEST_EXTENSIONS = .pl .t .py .py3
 
 if WITH_UNIT_TESTS
 
-AM_TESTS_ENVIRONMENT =  PERL5LIB='$(top_srcdir)/interfaces/Perl:$(top_builddir)/interfaces/Perl:${PERL5LIB}'; \
-                        export PERL5LIB; \
-                        PYTHONPATH='$(top_builddir)/interfaces/Python/RNA:${PYTHONPATH}'; \
-                        PYTHONPATH='$(top_builddir)/interfaces/Python3/RNA:${PYTHONPATH}' \
+AM_TESTS_ENVIRONMENT =  PYTHONPATH='.:${PYTHONPATH}'; \
                         export PYTHONPATH;
 
 ######################################
@@ -24,11 +21,16 @@ if WITH_PERL_TESTS
 
 PL_LOG_COMPILER = $(PERL)
 T_LOG_COMPILER = $(PERL)
-AM_PL_LOG_FLAGS = -Mstrict -w
-AM_T_LOG_FLAGS = -Mstrict -w
+AM_PL_LOG_FLAGS = -Mstrict -w \
+                  -I$(top_srcdir)/interfaces/Perl \
+                  -I$(top_builddir)/interfaces/Perl:${PERL5LIB}
+AM_T_LOG_FLAGS = -Mstrict -w \
+                  -I$(top_srcdir)/interfaces/Perl \
+                  -I$(top_builddir)/interfaces/Perl:${PERL5LIB}
 
 # add test scripts here
 PERL_TESTS =  perl5/test-RNA.pl \
+              perl5/test-RNA-callbacks.pl \
               perl5/test-RNA-Design.t
 
 perl5/test-RNA-Design.t: $(top_srcdir)/interfaces/Perl/RNA/t/Design.t
@@ -41,11 +43,11 @@ endif
 ######################################
 if WITH_PYTHON_TESTS
 
-PY_LOG_COMPILER = $(PYTHON)
+PY_LOG_COMPILER = $(PYTHON2)
 AM_PY_LOG_FLAGS = 
 
 # add test scripts here
-PYTHON_TESTS = 
+PYTHON2_TESTS = python/test-RNA-callbacks.py
 
 endif
 
@@ -58,7 +60,7 @@ PY3_LOG_COMPILER = $(PYTHON3)
 AM_PY3_LOG_FLAGS = 
 
 # add test scripts here
-PYTHON3_TESTS = 
+PYTHON3_TESTS = python3/test-RNA-callbacks.py
 
 endif
 
@@ -91,7 +93,7 @@ check_PROGRAMS = ${LIBRARY_TESTS}
 
 endif
 
-TESTS = ${LIBRARY_TESTS} ${PERL_TESTS} ${PYTHON_TESTS} ${PYTHON3_TESTS}
+TESTS = ${LIBRARY_TESTS} ${PERL_TESTS} ${PYTHON2_TESTS} ${PYTHON3_TESTS}
 
 ## Below are the rules how to create the test suite executables
 ## See checkmk man page for details about *.ts files

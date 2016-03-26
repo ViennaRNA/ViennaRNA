@@ -147,10 +147,12 @@ AS_IF([test "x$_macosx_enabled" != "x"], [
 
 AC_MSG_NOTICE([
 
-############################################
-# ViennaRNA Package configured successfully
-# with the following options:
-############################################
+################################################
+#         ViennaRNA Package ${PACKAGE_VERSION}             ##
+#                                             ##
+# configured successfully with the following  ##
+# options:                                    ##
+################################################
 
 
   * Extra Programs:
@@ -173,10 +175,11 @@ AC_MSG_NOTICE([
   
     ( ${_unit_tests_enabled} )
 
-############################################
-# Files will be installed in the following
-# directories:
-############################################
+
+##############################################
+# Files will be installed in the following  ##
+# directories:                              ##
+##############################################
 
   Executables:        $_bindir
   Libraries:          $_libdir
@@ -186,10 +189,10 @@ AC_MSG_NOTICE([
   Documentation:      $_docdir
     (HTML):           $(eval printf "%s" $_htmldir)
     (PDF):            $(eval printf "%s" $_pdfdir)
-  Perl Interface:     $_perl_install
+  Perl5 Interface:    $_perl_install
     (binaries):       $_perl_arch_dir
     (scripts):        $_perl_lib_dir
-  Python Interface:   $_python2_install
+  Python2 Interface:  $_python2_install
     (binaries):       $_python2_arch_dir
     (scripts):        $_python2_lib_dir
   Python3 Interface:  $_python3_install

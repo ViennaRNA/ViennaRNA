@@ -189,13 +189,13 @@ vrna_pf_dimer(vrna_fold_compound_t *vc,
 
   /* call user-defined recursion status callback function */
   if(vc->stat_cb)
-    vc->stat_cb(vc, VRNA_STATUS_PF_PRE);
+    vc->stat_cb(VRNA_STATUS_PF_PRE, vc->auxdata);
 
   pf_co(vc);
 
   /* call user-defined recursion status callback function */
   if(vc->stat_cb)
-    vc->stat_cb(vc, VRNA_STATUS_PF_POST);
+    vc->stat_cb(VRNA_STATUS_PF_POST, vc->auxdata);
 
   if (md->backtrack_type=='C')
     Q = matrices->qb[vc->iindx[1]-n];
