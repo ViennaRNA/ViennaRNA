@@ -194,7 +194,7 @@ vrna_pf( vrna_fold_compound_t *vc,
 
     /* call user-defined recursion status callback function */
     if(vc->stat_cb)
-      vc->stat_cb(vc, VRNA_STATUS_PF_PRE);
+      vc->stat_cb(VRNA_STATUS_PF_PRE, vc->auxdata);
 
     switch(vc->type){
       case VRNA_VC_TYPE_SINGLE:     /* do the linear pf fold and fill all matrices  */
@@ -223,7 +223,7 @@ vrna_pf( vrna_fold_compound_t *vc,
     
     /* call user-defined recursion status callback function */
     if(vc->stat_cb)
-      vc->stat_cb(vc, VRNA_STATUS_PF_POST);
+      vc->stat_cb(VRNA_STATUS_PF_POST, vc->auxdata);
 
     /* calculate base pairing probability matrix (bppm)  */
     if(md->compute_bpp){

@@ -55,10 +55,11 @@ typedef void (vrna_callback_free_auxdata)(void *data);
  *
  *  @ingroup fold_compound
  *  @see #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
- *  @param vc      The #vrna_fold_compound_t that is currently processed
- *  @param status  The status indicator
+ *  @param status   The status indicator
+ *  @param data     The data structure that was assigned with vrna_fold_compound_add_auxdata()
+ *  @param status   The status indicator
  */
-typedef void (vrna_callback_recursion_status)(vrna_fold_compound_t *vc, unsigned char status);
+typedef void (vrna_callback_recursion_status)(unsigned char status, void *data);
 
 
 /**
