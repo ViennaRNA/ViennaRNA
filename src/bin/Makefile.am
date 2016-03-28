@@ -9,6 +9,8 @@ bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
 
 LDADD = $(OPENMP_CFLAGS) $(top_builddir)/src/ViennaRNA/libRNA_conv.la
 
+SUFFIXES = _cmdl.c _cmdl.h .ggo
+
 # Link agains stdc++ if we use SVM in RNALfold
 RNALfold_LDADD = $(LDADD)
 if WITH_LIBSVM
@@ -51,9 +53,12 @@ GENGETOPT_FILES =  RNAfold.ggo RNAalifold.ggo RNAcofold.ggo \
 EXTRA_DIST =  ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
 
 
+## Below are the rules how to create the test suite executables
 # how we make the commandline interface parser
-%_cmdl.h %_cmdl.c: %.ggo
+## See checkmk man page for details about *.ts files
+.ggo_cmdl.c:
 	$(AM_V_GEN)gengetopt -i $<
+
 
 # remove all generated man pages
 maintainer-clean-local:
