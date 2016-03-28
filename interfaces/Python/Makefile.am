@@ -14,6 +14,8 @@ pkgpy2exec_DATA = RNA/__init__.py
 
 _RNA_la_SOURCES = $(top_srcdir)/interfaces/RNA.i $(SWIG_wrapper)
 
+BUILT_SOURCES = RNA/_RNA$(PYTHON2_SO)
+
 _RNA_la_CPPFLAGS = -I$(top_srcdir)/src $(PYTHON2_INCLUDES) @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
 _RNA_la_LIBADD = $(LDADD) $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PYTHON2_LIBS)
 if WITH_LIBSVM

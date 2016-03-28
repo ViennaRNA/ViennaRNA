@@ -39,7 +39,6 @@ EXTRA_DIST = \
   $(PERL_MODULE) \
   RNAfold.pl \
   RNAfold.cgi \
-  test.pl \
   RNA/t/Design.t
 
 ##

@@ -2,6 +2,6 @@ import sys
 
 def addSwigInterfacePath(version=2):
     if version == 3:
-        sys.path.insert(0, '@top_srcdir@/interfaces/Python3')
+        sys.path.insert(0, '@top_builddir@/interfaces/Python3')
     else:
-        sys.path.insert(0, '@top_srcdir@/interfaces/Python')
+        sys.path.insert(0, '@top_builddir@/interfaces/Python')

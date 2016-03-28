@@ -4,8 +4,6 @@ AM_CPPFLAGS = -I$(top_srcdir)/src
 AM_CFLAGS = @CHECK_CFLAGS@ -I$(top_builddir)/src/  $(OPENMP_CFLAGS) @FLOAT_PF_FLAG@
 LDADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la @CHECK_LIBS@
 
-EXTRA_DIST =  ${CHECKMK_FILES} ${CHECK_CFILES}
-
 SUFFIXES = .c .ts
 TEST_EXTENSIONS = .pl .t .py .py3
 
@@ -19,22 +17,30 @@ AM_TESTS_ENVIRONMENT =  PYTHONPATH='.:${PYTHONPATH}'; \
 ######################################
 if WITH_PERL_TESTS
 
+BUILT_SOURCES = perl5/test-RNA-Design.t 
+
 PL_LOG_COMPILER = $(PERL)
 T_LOG_COMPILER = $(PERL)
 AM_PL_LOG_FLAGS = -Mstrict -w \
-                  -I$(top_srcdir)/interfaces/Perl \
-                  -I$(top_builddir)/interfaces/Perl:${PERL5LIB}
+                  -I$(top_builddir)/interfaces/Perl \
+                  -I$(top_srcdir)/interfaces/Perl
 AM_T_LOG_FLAGS = -Mstrict -w \
-                  -I$(top_srcdir)/interfaces/Perl \
-                  -I$(top_builddir)/interfaces/Perl:${PERL5LIB}
+                  -I$(top_builddir)/interfaces/Perl \
+                  -I$(top_srcdir)/interfaces/Perl
 
 # add test scripts here
 PERL_TESTS =  perl5/test-RNA.pl \
               perl5/test-RNA-callbacks.pl \
               perl5/test-RNA-Design.t
 
+PERL_TEST_OUTPUT =  test.coord \
+                    test_dp.ps \
+                    test_ss.ps \
+                    test_ss_a.ps \
+                    test.par
+
 perl5/test-RNA-Design.t: $(top_srcdir)/interfaces/Perl/RNA/t/Design.t
-	cp $(top_srcdir)/interfaces/Perl/RNA/t/Design.t ./perl5/test-RNA-Design.t
+	cp $(top_srcdir)/interfaces/Perl/RNA/t/Design.t $(builddir)/perl5/test-RNA-Design.t
 
 endif
 
@@ -60,7 +66,7 @@ PY3_LOG_COMPILER = $(PYTHON3)
 AM_PY3_LOG_FLAGS = 
 
 # add test scripts here
-PYTHON3_TESTS = python3/test-RNA-callbacks.py
+PYTHON3_TESTS = python3/test-RNA-callbacks.py3
 
 endif
 
@@ -102,5 +108,12 @@ TESTS = ${LIBRARY_TESTS} ${PERL_TESTS} ${PYTHON2_TESTS} ${PYTHON3_TESTS}
 
 endif
 
+EXTRA_DIST =  ${CHECKMK_FILES} ${CHECK_CFILES} \
+              ${PERL_TESTS} \
+              ${PYTHON2_TESTS} \
+              ${PYTHON3_TESTS}
+
 clean-local:
-	-rm -rf test.coord test_dp.ps test_ss.ps test_ss_a.ps test.par
+	-rm -rf ${PERL_TEST_OUTPUT} \
+          *.pyc \
+          __pycache__
