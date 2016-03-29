@@ -146,7 +146,6 @@ class FoldCompoundTest(unittest.TestCase):
 		self.assertEqual("%6.2f" % energy, "%6.2f" % -2.10);
 		print "\n", struct11, " moveset (7,11) --> [%6.2f" % energy,"]\n";	
 	
-	#not working, because of pairtable
 	def test_eval_move_pt_del(self):
 		print "test_eval_move_pt_del";
 		fc = RNA.fold_compound(seq1);
@@ -172,7 +171,7 @@ class FoldCompoundTest(unittest.TestCase):
 	def test_constraints_add(self):
 		#seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
 		#str_con_def=	"(((....)))(((....)))";
-		#hc.txt=	"xxx.................
+		#hc.txt=	"xxx.................";
 		#str_con=	"..........(((....)))";
 		
 		hc_file=	"hc.txt";
@@ -188,18 +187,92 @@ class FoldCompoundTest(unittest.TestCase):
 		print ss, "[ %6.2f" %mfe ,"]\n";
 		self.assertEqual(ss,str_con_def);
 	
+	###!!!!try toget the COntraint option to python
 	def test_hc_add_up(self):
 		#seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
 		#str_con_def=	"(((....)))(((....)))";
 		#str_con=	"..........(((....)))";
 		print "test_hc_add_up\n";
 		fc = RNA.fold_compound(seq_con);
-		fc.hc_add_up(1,RNA.VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+		#fc.hc_add_up(1,RNA.VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+		fc.hc_add_up(1);
+		
 		(ss,mfe) = fc.mfe();
 		print ss, "[ %6.2f" %mfe ,"]\n";
 		self.assertEqual(ss,".((....)).(((....)))");
 		
+	def test_hc_add_bp_nonspecific(self):
+		print "test_hc_add_bp_nonspecific";
+		#GGGCCCCCCCCCCCCCCCCC
+		#(((......)))........
+		fc=RNA.fold_compound("GGGCCCCCCCCCCCCCCCCC");
+		fc.hc_add_bp_nonspecific(20,-1); # force the last base to pair with some bases upstream
+		(ss,mfe) = fc.mfe();
+		print ss, "[ %6.2f" %mfe ,"]\n";
+		self.assertEqual(ss,"(((..............)))");
+	
+	#adding the constraint is not correct, function is wrong????
+	def test_hc_add_bp(self):
+		print "test_hc_add_bp";
+		seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
+		str_con_def=	"(((....)))(((....)))";
+		fc=RNA.fold_compound(seq_con);
+		fc.hc_add_bp(3,20);
+		(ss,mfe) = fc.mfe();
+		print ss, "[ %6.2f" %mfe ,"]\n";
+		self.assertEqual(ss,"...........((....)).");
 		
+	
+	#try to get the VRNA_CONSTRAINT_DB_DEFAULT options to python
+	def test_hc_add_from_db(self):
+		print "test_hc_add_from_db";
+		#seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
+		#str_con_def=	"(((....)))(((....)))";
+		#hc.txt=	"xxx.................";
+		#str_con=	"..........(((....)))";
+		fc = RNA.fold_compound(seq_con);
+		fc.hc_add_from_db("xxx.................");
+		(ss,mfe) = fc.mfe();
+		print ss, "[ %6.2f" %mfe ,"]\n";
+		self.assertEqual(ss,str_con);
+		
+		
+	#change to realistic data
+	def test_sc_add_SHAPE_deigan(self):
+		print "test_sc_add_SHAPE_deigan";
+		seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
+		fc=RNA.fold_compound(seq_con);
+		reactivities =[4.4,3.3,3.3];  # just random stuff, should be changed to realistic data
+		ret = fc.sc_add_SHAPE_deigan(reactivities,1.8,-0.6,RNA.VRNA_OPTION_MFE);
+		(ss,mfe) = fc.mfe();
+		print ss, "[ %6.2f" %mfe ,"]\n";
+		self.assertEqual(ret,1);
+	
+	#only for testing the function, none real functionality
+	
+	
+	# we need real shape files
+	#def test_sc_add_SHAPE_deigan_ali(self):
+		#print "test_sc_add_SHAPE_deigan_ali";
+		#fc=RNA.fold_compound(align);   
+		#files = ["shape_deigan_file1","shape_deigan_file2","shape_deigan_file3"];
+		#assoc = [1,2,3];
+		#ret = fc.sc_add_SHAPE_deigan_ali(files, assoc,1.8,-0.6);
+		#(ss,mfe) = fc.mfe();
+		#print ss, "[ %6.2f" %mfe ,"]\n";
+		#self.assertEqual(ret,1);
+					
+	
+	def test_sc_add_SHAPE_zarringhalam(self):
+		print "test_sc_add_SHAPE_zarringhalam";
+		seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
+		fc=RNA.fold_compound(seq_con);
+		reactivities =[4.4,3.3,3.3];  
+		ret = fc.sc_add_SHAPE_zarringhalam(reactivities,0.6,0.5,"M"); # just random stuff, should be changed to realistic data
+		(ss,mfe) = fc.mfe();
+		print ss, "[ %6.2f" %mfe ,"]\n";
+		self.assertEqual(ret,1);
+	
 		
 if __name__ == '__main__':
 	unittest.main();

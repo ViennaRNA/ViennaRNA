@@ -208,71 +208,72 @@ in centroid.h
   {
 	  vrna_hc_init($self);
   }
-  
+  /*Make a certain nucleotide unpaired*/
   void hc_add_up(int i, char option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
   {
 	  vrna_hc_add_up($self,i,option);
   }
-  
-  
-  
-  
-  
-  void sc_init(vrna_fold_compound_t *vc)
+  /*Enforce a nucleotide to be paired (upstream/downstream)*/
+  void hc_add_bp_nonspecific(int i, int d, char option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
   {
-	  vrna_sc_init($self);
+	  vrna_hc_add_bp_nonspecific($self,i,d,option);
   }
   
-  
-  void sc_remove(){
-    vrna_sc_remove($self);
-  }
-
-  void sc_add_up(const double *constraints, unsigned int options=VRNA_OPTION_MFE){
-    vrna_sc_add_up($self, constraints, options);
-  }
-
-  void sc_add_bp(const double **constraints, unsigned int options=VRNA_OPTION_MFE){
-    vrna_sc_add_bp($self, constraints, options);
-  }
-
-  int sc_add_hi_motif(const char *seq,const char *structure,double energy,unsigned int options=VRNA_OPTION_MFE){
-
-    return vrna_sc_add_hi_motif($self, seq, structure, energy, options);
-  }
-  
-  void sc_remove()
+  /*Favorize/Enforce  a certain base pair (i,j)*/
+  void hc_add_bp(int i, int j, char option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
   {
-	  vrna_sc_remove($self);
+	  vrna_hc_add_bp($self,i,j,option);
   }
   
   
-  int sc_add_SHAPE_deigan(const double *reactivities,
-                              double m,
-                              double b,
-                              unsigned int options)
+  int hc_add_from_db(const char *constraint, unsigned int options=VRNA_CONSTRAINT_DB_DEFAULT)
   {
-	  return vrna_sc_add_SHAPE_deigan($self,reactivities,m,b,options);
+	  return vrna_hc_add_from_db($self,constraint,options);
   }
+  
+  
+  
+  
+  
+  /*Soft contraints are not yet imoplemented*/
 
+  
+  
+  
+  /*MFE of given pairtable, with different FileHandler for verbose, Default value = NULL + STDOUT*/
+  float eval_structure_pt_verbose(std::vector<int> pt, FILE *file)
+  {
+	  std::vector<short> vc;
+	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
+	  return vrna_eval_structure_pt_verbose($self,(const short*)&vc[0],file);
+  }
+  int sc_add_SHAPE_deigan(std::vector<double> reactivities, double m, double b, unsigned int options=VRNA_OPTION_MFE)
+  {
+	 
+	return vrna_sc_add_SHAPE_deigan($self,(const double *)&reactivities[0],m,b,options);
+	  
+  }
+  
+  
 
-  int sc_add_SHAPE_deigan_ali(const char **shape_files,
-                                  const int *shape_file_association,
+int sc_add_SHAPE_deigan_ali(std::vector<string> shape_files,
+                                  std::vector<int> shape_file_association,
                                   double m,
                                   double b,
-                                  unsigned int options)
-  {
-	  return vrna_sc_add_SHAPE_deigan_ali($self,shape_files,shape_file_association,m,b,options);                                  
-  }
+                                  unsigned int options=VRNA_OPTION_MFE)
+{
+	std::vector<const char*>  vc;
+	transform(shape_files.begin(), shape_files.end(), back_inserter(vc), convert_vecstring2veccharcp);
+	vc.push_back(NULL); /* mark end of vector */
+	return vrna_sc_add_SHAPE_deigan_ali($self,(const char **) &vc[0], (const int *) &shape_file_association[0],m,b,options);
+}
 
-  int sc_add_SHAPE_zarringhalam(const double *reactivities,
-                                    double b,
-                                    double default_value,
-                                    const char *shape_conversion,
-                                    unsigned int options)
-  {
-	  return vrna_sc_add_SHAPE_zarringhalam($self,reactivities,b,default_value,shape_conversion,options);
-  }
+ 
+int sc_add_SHAPE_zarringhalam(std::vector<double> reactivities, double b, double default_value, const char * shape_conversion,unsigned int options=VRNA_OPTION_MFE)
+{
+	return vrna_sc_add_SHAPE_zarringhalam($self,(const double *) &reactivities[0],b,default_value,shape_conversion,options);
+}
+
   
 /*END constraints.h
 #########################################*/
