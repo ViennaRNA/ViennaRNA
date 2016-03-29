@@ -292,35 +292,35 @@ int sc_detect_hi_motif(const char *structure,
                         int *j,
                         int *k,
                         int *l)*/
-  int sc_detect_hi_motif(const char *structure)                      
-{
-	
-	cout << $self->sc->data;
-	int i=0;
-	int j=0;
-	int k=0;
-	int l=0;
-	
-	cout << " i = " << i;
-	cout << " j = " << j;
-	cout << " k = " << k;
-	cout << " l = " << l;
-	cout << " &i = " << &i;
-	cout << " &j = " << &j;
-	cout << " &k = " << &k;
-	cout << " &l = " << &l;
-	
-	
-	int ret = vrna_sc_detect_hi_motif($self,structure,&i,&j,&k,&l);
-	
-	cout << " ret = " << ret;
-	cout << " i = " << i;
-	cout << " j = " << j;
-	cout << " k = " << k;
-	cout << " l = " << l;
-	
-	return ret;
-}
+//   int sc_detect_hi_motif(const char *structure)                      
+// {
+// 	
+// 	cout << $self->sc->data;
+// 	int i=0;
+// 	int j=0;
+// 	int k=0;
+// 	int l=0;
+// 	
+// 	cout << " i = " << i;
+// 	cout << " j = " << j;
+// 	cout << " k = " << k;
+// 	cout << " l = " << l;
+// 	cout << " &i = " << &i;
+// 	cout << " &j = " << &j;
+// 	cout << " &k = " << &k;
+// 	cout << " &l = " << &l;
+// 	
+// 	
+// 	int ret = vrna_sc_detect_hi_motif($self,structure,&i,&j,&k,&l);
+// 	
+// 	cout << " ret = " << ret;
+// 	cout << " i = " << i;
+// 	cout << " j = " << j;
+// 	cout << " k = " << k;
+// 	cout << " l = " << l;
+// 	
+// 	return ret;
+// }
 
 
 
@@ -328,21 +328,21 @@ int sc_detect_hi_motif(const char *structure,
 
 
 /* return 1 or 0 if success and the base positions in a givens tructure if the given motif was found*/
-%apply int *OUTPUT {int *i, int *j, int *k, int *l};  /* HERE more return parameters are defined*/
-int sc_get_hi_motif(    int *i,
-                        int *j,
-                        int *k,
-                        int *l)
-{
-	
-	int ret =  vrna_sc_get_hi_motif($self,i,j,k,l);
-	cout << " ret = " << ret;
-	cout << " i = " << *i;
-	cout << " j = " << *j;
-	cout << " k = " << *k;
-	cout << " l = " << *l;
-	return ret;
-}
+// %apply int *OUTPUT {int *i, int *j, int *k, int *l};  /* HERE more return parameters are defined*/
+// int sc_get_hi_motif(    int *i,
+//                         int *j,
+//                         int *k,
+//                         int *l)
+// {
+// 	
+// 	int ret =  vrna_sc_get_hi_motif($self,i,j,k,l);
+// 	cout << " ret = " << ret;
+// 	cout << " i = " << *i;
+// 	cout << " j = " << *j;
+// 	cout << " k = " << *k;
+// 	cout << " l = " << *l;
+// 	return ret;
+// }
 
 
   /* "HEADER" definitions for overloaded functions !!!IT IS NOT WORKING
