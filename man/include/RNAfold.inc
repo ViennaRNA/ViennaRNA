@@ -3,6 +3,7 @@
 Ivo L Hofacker, Walter Fontana, Sebastian Bonhoeffer, Peter F Stadler, Ronny Lorenz
 
 [EXAMPLES]
+
 Single line sequence input and calculation of partition function and MEA structure
 
 .nf
@@ -76,7 +77,8 @@ which would result in an output like this
 .ft
 .fi
 
-[CONSTRAINT EXAMPLES]
+[>EXAMPLES]
+.SH "CONSTRAINT EXAMPLES"
 
 Secondary structure constraints may be given in addition to the sequence information, too.
 Using the first sequence of the previous example and restricting the nucleotides of the
@@ -241,7 +243,7 @@ provide the motif itself, and binding free energy:
 
 
 
-[REFERENCES]
+[>REFERENCES]
 
 M. Zuker, P. Stiegler (1981),
 "Optimal computer folding of large RNA sequences using thermodynamic and auxiliary information",

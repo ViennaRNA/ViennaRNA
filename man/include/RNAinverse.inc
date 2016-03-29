@@ -3,6 +3,7 @@
 Ivo L Hofacker
 
 [EXAMPLES]
+
 To search 5 times for sequences forming a simple hairpin structure interrupted by one GA mismatch call
 
 .nf
@@ -22,7 +23,7 @@ and enter the lines
 .fi
 
 
-[REFERENCES]
+[>REFERENCES]
 
 D.H. Turner, N. Sugimoto, S.M. Freier (1988),
 "RNA structure prediction",

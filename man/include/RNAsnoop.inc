@@ -2,7 +2,7 @@
 
 Hakim Tafer, Ivo L. Hofacker
 
-[REFERENCES]
+[>REFERENCES]
 
 The calculation of duplex structure is based on dynamic programming algorithm originally
 developed by Rehmsmeier and in parallel by Hofacker.

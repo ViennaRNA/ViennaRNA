@@ -1,4 +1,15 @@
+doxygen_verbose = $(doxygen_verbose_@AM_V@)
+doxygen_verbose_ = $(doxygen_verbose_@AM_DEFAULT_V@)
+doxygen_verbose_0 = @echo "  DOC      $@";
+
 pkgdata_DATA = viennarna.bib
+
+clean_latex = \
+{ \
+  cd latex && \
+  rm -f *.ps *.dvi *.aux *.toc *.idx *.ind *.ilg *.log *.out *.brf *.blg *.bbl refman.pdf doxyref.log && \
+  cd .. ; \
+}
 
 if WITH_REFERENCE_MANUAL
 
@@ -25,8 +36,7 @@ endif WITH_REFERENCE_MANUAL_PDF
 if WITH_REFERENCE_MANUAL_BUILD
 
 dox: $(pkginclude_HEADERS)
-	$(AM_V_GEN)@doxygen@ @DOXYGEN_CONF@
-	touch dox
+	$(doxygen_verbose)@doxygen@ @DOXYGEN_CONF@; touch dox
 
 ##--------------------------------------------------##
 ## In case the HTML manual should be created, here  ##
@@ -45,7 +55,22 @@ endif WITH_REFERENCE_MANUAL_HTML
 if WITH_REFERENCE_MANUAL_PDF
 
 $(REFERENCE_MANUAL_FILES_PDF): dox
-	$(AM_V_GEN)cd latex; make; mv refman.pdf "../$(REFERENCE_MANUAL_FILES_PDF)"
+	$(doxygen_verbose)$(clean_latex); \
+  cd latex; pdflatex refman &>> doxyref.log; \
+  /usr/bin/makeindex refman.idx &>> doxyref.log; \
+  bibtex refman &>> doxyref.log; \
+  pdflatex refman &>> doxyref.log; \
+  pdflatex refman &>> doxyref.log; \
+  latex_count=8 ; \
+  while egrep -s 'Rerun (LaTeX|to get cross-references right)' refman.log && [ $$latex_count -gt 0 ] ;\
+      do \
+        echo "Rerunning latex...." ;\
+        pdflatex refman &>> doxyref.log ;\
+        latex_count=`expr $$latex_count - 1` ;\
+      done; \
+  /usr/bin/makeindex refman.idx &>> doxyref.log; \
+  pdflatex refman &>> doxyref.log; \
+  mv refman.pdf "../$(REFERENCE_MANUAL_FILES_PDF)"
 
 endif WITH_REFERENCE_MANUAL_PDF
 
@@ -88,6 +113,9 @@ EXTRA_DIST =  $(pkgdata_DATA) \
               html \
               latex \
               @REFERENCE_MANUAL_PDF_NAME@
+
+clean-local:
+	$(clean_latex)
 
 # remove all generated content
 maintainer-clean-local:
