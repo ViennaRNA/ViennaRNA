@@ -215,10 +215,10 @@ in centroid.h
   }
   
   /*Favorize/Enforce  a certain base pair (i,j)*/
-  void hc_add_bp(int i, int j, char option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
+  void hc_add_bp(int i, int j, char option= VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
   {
 	  vrna_hc_add_bp($self,i,j,option);
-  }
+  } 
   
   
   int hc_add_from_db(const char *constraint, unsigned int options=VRNA_CONSTRAINT_DB_DEFAULT)

@@ -1,3 +1,6 @@
+import RNApath
+
+RNApath.addSwigInterfacePath()
 
 
 import RNA
@@ -15,7 +18,7 @@ seq3  =		"GCGCACAUAGUGACGC";
 struct3=	"(..(((...)))...)";
 align=[seq1,seq2,seq3];
 
-filename="output_test.txt";
+
 
 ##		 1234567890
 struct1_pt =	 [len(struct1),16,15,14,0,13,12,11,0,0,0,7,6,5,3,2,1];
@@ -93,6 +96,7 @@ class FoldCompoundTest(unittest.TestCase):
 	def test_eval_structure_verbose(self):
 		print "test_eval_structure_verbose";
 		fc = RNA.fold_compound(seq1);
+		filename= "data/output_test.txt";
 		try:
 			f = open(filename, "w")
 			print filename ," is opened for writing\n";
@@ -108,6 +112,7 @@ class FoldCompoundTest(unittest.TestCase):
 	
 	#def test_eval_structure_pt_verbose(self):
 		print "test_eval_structure_pt_verbose\n";
+		filename= "data/output_test.txt";
 		try:
 			f = open(filename, "w")
 			print filename ," is opened for writing\n";
@@ -184,7 +189,7 @@ class FoldCompoundTest(unittest.TestCase):
 		#hc.txt=	"xxx.................";
 		#str_con=	"..........(((....)))";
 		
-		hc_file=	"hc.txt";
+		hc_file=	"data/hc.txt";
 		print "test_constraints_add";
 		fc = RNA.fold_compound(seq_con);
 		fc.constraints_add(hc_file);
@@ -204,9 +209,7 @@ class FoldCompoundTest(unittest.TestCase):
 		#str_con=	"..........(((....)))";
 		print "test_hc_add_up\n";
 		fc = RNA.fold_compound(seq_con);
-		#fc.hc_add_up(1,RNA.VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
-		fc.hc_add_up(1);
-		
+		fc.hc_add_up(1,RNA.CONSTRAINT_CONTEXT_ALL_LOOPS);
 		(ss,mfe) = fc.mfe();
 		print ss, "[ %6.2f" %mfe ,"]\n";
 		self.assertEqual(ss,".((....)).(((....)))");
@@ -221,16 +224,15 @@ class FoldCompoundTest(unittest.TestCase):
 		print ss, "[ %6.2f" %mfe ,"]\n";
 		self.assertEqual(ss,"(((..............)))");
 	
-	#adding the constraint is not correct, function is wrong????, with enforce options
 	def test_hc_add_bp(self):
 		print "test_hc_add_bp";
 		seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
 		str_con_def=	"(((....)))(((....)))";
 		fc=RNA.fold_compound(seq_con);
-		fc.hc_add_bp(3,20);
+		fc.hc_add_bp(1,20,RNA.CONSTRAINT_CONTEXT_ENFORCE | RNA.CONSTRAINT_CONTEXT_ALL_LOOPS);
 		(ss,mfe) = fc.mfe();
 		print ss, "[ %6.2f" %mfe ,"]\n";
-		self.assertEqual(ss,"...........((....)).");
+		self.assertEqual(ss,"(((..............)))");
 		
 	
 	#try to get the VRNA_CONSTRAINT_DB_DEFAULT options to python
@@ -247,39 +249,26 @@ class FoldCompoundTest(unittest.TestCase):
 		self.assertEqual(ss,str_con);
 		
 		
-	#
-	#def test_sc_add_SHAPE_deigan(self):
-		#print "test_sc_add_SHAPE_deigan";
-		#seq_telomerase  =  	"GGGCUGUUUUUCUCGCUGACUUUCAGCCCAACACAAAAAAAGUCAGC";  # directly /home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/sequences_ct_files/Telomerase_pseudoknot_human.fa
-		#fc=RNA.fold_compound(seq_telomerase);
-		#reactivities = getShapeDataFromFile("/home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/shape_data/Telomerase_pseudoknot_human.shape_2rows");
-		#ret = fc.sc_add_SHAPE_deigan(reactivities,1.8,-0.6,RNA.VRNA_OPTION_MFE);
-		#(ss,mfe) = fc.mfe();
-		#print ss, "[ %6.2f" %mfe ,"]\n";
-		#self.assertEqual(ret,1);
-		
 	def test_sc_add_SHAPE_deigan(self):
 		print "test_sc_add_SHAPE_deigan";
-		seq_ribo  =  	"GACUCGGGGUGCCCUUCUGCGUGAAGGCUGAGAAAUACCCGUAUCACCUGAUCUGGAUAAUGCCAGCGUAGGGAAGUUC";  # directly /home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/sequences_ct_files/TPP_riboswitch_E.coli.db
+		seq_ribo  =  	"GACUCGGGGUGCCCUUCUGCGUGAAGGCUGAGAAAUACCCGUAUCACCUGAUCUGGAUAAUGCCAGCGUAGGGAAGUUC";  # directly from data/TPP_riboswitch_E.coli.db
 		fc=RNA.fold_compound(seq_ribo);
-		reactivities = getShapeDataFromFile("/home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/shape_data/TPP_riboswitch_E.coli.shape_2rows");
-		ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.VRNA_OPTION_MFE);
+		reactivities = getShapeDataFromFile("data/TPP_riboswitch_E.coli.shape_2rows");
+		ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_MFE);
 		(ss,mfe) = fc.mfe();
 		print ss, "[ %6.2f" %mfe ,"]\n";
 		self.assertEqual(ret,1);
 
-	
-	#only for testing the function, none real functionality
-	
+
 	
 	# we need real shape files with alignments, now we have unequal sequence length
 	#def test_sc_add_SHAPE_deigan_ali(self):
 		#print "test_sc_add_SHAPE_deigan_ali";
-		##Sequence Ali from /home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/sequences_ct_files/5domain16S_rRNA_E.coli.fa
-		## and    	   /home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/sequences_ct_files/5domain16S_rRNA_H.volcanii.fa
+		##Sequence Ali from data/5domain16S_rRNA_E.coli.fa
+		## and    	   data/5domain16S_rRNA_H.volcanii.fa
 		## shape data from 
-		#shapeData1 = "/home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/5domain16S_rRNA_E.coli.shape_2rows";
-		#shapeData2 = "/home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/5domain16S_rRNA_H.volcanii.shape_2rows";
+		#shapeData1 = "data/5domain16S_rRNA_E.coli.shape_2rows";
+		#shapeData2 = "data/5domain16S_rRNA_H.volcanii.shape_2rows";
 		#shapeAli = ["GAUUGAACGCUGGCGGCAGGCCUAACACAUGCAAGUCGAACGGUAACAGGAAGAAGCUUGCUUCUUUGCUGACGAGUGGCGGACGGGUGAGUAAUGUCUGGGAAACUGCCUGAUGGAGGGGGAUAACUACUGGAAACGGUAGCUAAUACCGCAUAACGUCGCAAGACCAAAGAGGGGGACCUUCGGGCCUCUUGCCAUCGGAUGUGCCCAGAUGGGAUUAGCUAGUAGGUGGGGUAACGGCUCACCUAGGCGACGAUCCCUAGCUGGUCUGAGAGGAUGACCAGCCACACUGGAACUGAGACACGGUCCAGACUCCUACGGGAGGCAGCAGUGGGGAAUAUUGCACAAUGGGCGCAAGCCUGAUGCAGCCAUGCCGCGUGUAUGAAGAAGGCCUUCGGGUUGUAAAGUACUUUCAGCGGGGAGGAAGGGAGUAAAGUUAAUACCUUUGCUCAUUGACGUUACCCGCAGAAGAAGCACCGGCUAACUCCGUGCCAGCAGCCGCGGUAAUACGGAGGGUGCAAGCGUUAAUC","GGUCAUUGCUAUUGGGGUCCGAUUUAGCCAUGCUAGUUGCACGAGUUCAUACUCGUGGCGAAAAGCUCAGUAACACGUGGCCAAACUACCCUACAGAGAACGAUAACCUCGGGAAACUGAGGCUAAUAGUUCAUACGGGAGUCAUGCUGGAAUGCCGACUCCCCGAAACGCUCAGGCGCUGUAGGAUGUGGCUGCGGCCGAUUAGGUAGACGGUGGGGUAACGGCCCACCGUGCCGAUAAUCGGUACGGGUUGUGAGAGCAAGAGCCCGGAGACGGAAUCUGAGACAAGAUUCCGGGCCCUACGGGGCGCAGCAGGCGCGAAACCUUUACACUGCACGCAAGUGCGAUAAGGGGACCCCAAGUGCGAGGGCAUAUAGUCCUCGCUUUUCUCGACCGUAAGGCGGUCGAGGAAUAAGAGCUGGGCAAGACCGGUGCCAGCCGCCGCGGUAAUACCGGCAGCUCAAGUGAUGACC"];
 		#fc=RNA.fold_compound(shapeAli);   
 		#assoc = [1,2];
@@ -313,6 +302,7 @@ class FoldCompoundTest(unittest.TestCase):
 		self.assertEqual(ret,1);
 		
 	
+	# wait for implementation
 	# test not possible because data from soft constraints from folding comopund has to be set, with set data
 	#def test_sc_detect_hi_motif(self):
 		#print "test_sc_detect_hi_motif";
@@ -329,7 +319,10 @@ class FoldCompoundTest(unittest.TestCase):
 		#(ret,i,j,k,l)= fc.sc_get_hi_motif();
 		#print "\n",ret,"\t",i,"\t",j,"\t",k,"\t",l;
 		#self.assertEqual(ret,1);
-		
+	
+	
+	
+	
 if __name__ == '__main__':
 	unittest.main();
 

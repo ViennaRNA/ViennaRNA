@@ -4,8 +4,7 @@ AM_CFLAGS += $(PYTHON2_CFLAGS)
 
 EXTRA_DIST = \
   $(SWIG_wrapper) \
-  $(SWIG_module_name).py \
-  test.py
+  $(SWIG_module_name).py
 
 INTERFACE_FILES = $(SWIG_src) \
                   tmaps.i \
@@ -34,7 +33,6 @@ if WITH_LTO
 _RNA_la_LDFLAGS += -Wc,$(LTO_LDFLAGS)
 endif
 
-BUILT_SOURCES = RNA/_RNA$(PYTHON_SO) RNA/__init__.py
  	 	
 ##
 ## SWIG interface wrapper code generation
@@ -63,13 +61,6 @@ RNA/_RNA$(PYTHON2_SO): _RNA.la
 	. ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON2_SO) RNA
 	rm -f libtoolconfig.tmp
 
-##
-## Python Test suite
-##
-AM_TESTS_ENVIRONMENT = PYTHONPATH='$(srcdir):$(builddir):${PYTHONPATH}'; export PYTHONPATH;
-LOG_COMPILER = $(PYTHON)
-AM_LOG_FLAGS = -W all
-TESTS = test.py
 
         
 
