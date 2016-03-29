@@ -269,10 +269,13 @@ int sc_add_SHAPE_zarringhalam(std::vector<double> reactivities, double b, double
 }
 
   
-/*END constraints.h
-#########################################*/
+  /*##########
+   end constraints.h
+################*/
 	
-/*#######start ligand.h###*/
+  /*##########
+   from ligand.h
+################*/
 
 /*only double is argument energy of function, not float or double*/
 
@@ -295,29 +298,8 @@ int sc_detect_hi_motif(const char *structure,
 //   int sc_detect_hi_motif(const char *structure)                      
 // {
 // 	
-// 	cout << $self->sc->data;
-// 	int i=0;
-// 	int j=0;
-// 	int k=0;
-// 	int l=0;
-// 	
-// 	cout << " i = " << i;
-// 	cout << " j = " << j;
-// 	cout << " k = " << k;
-// 	cout << " l = " << l;
-// 	cout << " &i = " << &i;
-// 	cout << " &j = " << &j;
-// 	cout << " &k = " << &k;
-// 	cout << " &l = " << &l;
-// 	
 // 	
 // 	int ret = vrna_sc_detect_hi_motif($self,structure,&i,&j,&k,&l);
-// 	
-// 	cout << " ret = " << ret;
-// 	cout << " i = " << i;
-// 	cout << " j = " << j;
-// 	cout << " k = " << k;
-// 	cout << " l = " << l;
 // 	
 // 	return ret;
 // }
@@ -336,13 +318,39 @@ int sc_detect_hi_motif(const char *structure,
 // {
 // 	
 // 	int ret =  vrna_sc_get_hi_motif($self,i,j,k,l);
-// 	cout << " ret = " << ret;
-// 	cout << " i = " << *i;
-// 	cout << " j = " << *j;
-// 	cout << " k = " << *k;
-// 	cout << " l = " << *l;
 // 	return ret;
 // }
+  /*##########
+   end ligands.h
+################*/
+
+  
+    /*##########
+   from part_func.h
+################*/
+  
+
+char *mfe(float *OUTPUT){
+    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
+    *OUTPUT = vrna_mfe($self, structure);
+    return structure;
+  }
+  
+  
+char *pf(float *OUTPUT)
+{
+	char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1)); /*output is a structure pointer*/
+	
+	*OUTPUT= vrna_pf($self, structure);
+	
+	return structure;
+}
+
+ 
+ double mean_bp_distance()
+ {
+	 return vrna_mean_bp_distance($self);
+ }
 
 
   /* "HEADER" definitions for overloaded functions !!!IT IS NOT WORKING

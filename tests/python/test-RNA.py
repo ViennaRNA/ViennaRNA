@@ -321,6 +321,18 @@ class FoldCompoundTest(unittest.TestCase):
 		#self.assertEqual(ret,1);
 	
 	
+	## partition function from here
+	
+	def test_pf(self):
+		print "test_pf";
+		fc= RNA.fold_compound(seq1);
+		(ss,gfe) = fc.pf();
+		print ss, "[ %6.2f" %gfe ,"]\n";
+		self.assertTrue(ss);
+		bp_dis = fc.mean_bp_distance();
+		print seq1 ,"\t meanBPDistance : ", bp_dis,"\n";
+		self.assertTrue(bp_dis);
+	
 	
 	
 if __name__ == '__main__':
