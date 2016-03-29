@@ -50,6 +50,7 @@
 #include "ViennaRNA/datastructures/stream_output.h"
 #include "ViennaRNA/combinatorics.h"
 #include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/ugly_bt.h"
 
 #include "RNAfold_cmdl.h"
 #include "gengetopt_helpers.h"
@@ -334,7 +335,7 @@ collect_unnamed_options(struct RNAfold_args_info  *ggostruct,
   *num_files = 0;
 
   /* collect all unnamed options */
-  if (ggostruct->inputs_num > 0) {
+  if ((ggostruct->inputs_num > 0) && (!sanitize_input(ggostruct->inputs[0]))) {
     input_files = (char **)vrna_realloc(input_files, sizeof(char *) * ggostruct->inputs_num);
     for (i = 0; i < ggostruct->inputs_num; i++)
       input_files[(*num_files)++] = strdup(ggostruct->inputs[i]);
