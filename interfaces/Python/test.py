@@ -25,6 +25,16 @@ str_con_def=	"(((....)))(((....)))";
 str_con=	"..........(((....)))";
 
 
+def getShapeDataFromFile(filepath):
+	
+	retVec = [];
+	with open(filepath, 'r') as f:
+		lines = f.readlines();
+		
+		for line in lines:
+			retVec.append(float(line.split(' ')[1]));
+	return retVec;
+
 class FoldCompoundTest(unittest.TestCase):
 	
 	def test_create_fold_compound_Single(self):
@@ -211,7 +221,7 @@ class FoldCompoundTest(unittest.TestCase):
 		print ss, "[ %6.2f" %mfe ,"]\n";
 		self.assertEqual(ss,"(((..............)))");
 	
-	#adding the constraint is not correct, function is wrong????
+	#adding the constraint is not correct, function is wrong????, with enforce options
 	def test_hc_add_bp(self):
 		print "test_hc_add_bp";
 		seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
@@ -237,27 +247,35 @@ class FoldCompoundTest(unittest.TestCase):
 		self.assertEqual(ss,str_con);
 		
 		
-	#change to realistic data
+	#
 	def test_sc_add_SHAPE_deigan(self):
 		print "test_sc_add_SHAPE_deigan";
-		seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
-		fc=RNA.fold_compound(seq_con);
-		reactivities =[4.4,3.3,3.3];  # just random stuff, should be changed to realistic data
+		seq_telomerase  =  	"GGGCUGUUUUUCUCGCUGACUUUCAGCCCAACACAAAAAAAGUCAGC";  # directly /home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/sequences_ct_files/Telomerase_pseudoknot_human.fa
+		fc=RNA.fold_compound(seq_telomerase);
+		reactivities = getShapeDataFromFile("/home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/shape_data/Telomerase_pseudoknot_human.shape_2rows");
 		ret = fc.sc_add_SHAPE_deigan(reactivities,1.8,-0.6,RNA.VRNA_OPTION_MFE);
 		(ss,mfe) = fc.mfe();
 		print ss, "[ %6.2f" %mfe ,"]\n";
 		self.assertEqual(ret,1);
+		
+
+
 	
 	#only for testing the function, none real functionality
 	
 	
-	# we need real shape files
+	# we need real shape files with alignments, now we have unequal sequence length
 	#def test_sc_add_SHAPE_deigan_ali(self):
 		#print "test_sc_add_SHAPE_deigan_ali";
-		#fc=RNA.fold_compound(align);   
-		#files = ["shape_deigan_file1","shape_deigan_file2","shape_deigan_file3"];
-		#assoc = [1,2,3];
-		#ret = fc.sc_add_SHAPE_deigan_ali(files, assoc,1.8,-0.6);
+		##Sequence Ali from /home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/sequences_ct_files/5domain16S_rRNA_E.coli.fa
+		## and    	   /home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/sequences_ct_files/5domain16S_rRNA_H.volcanii.fa
+		## shape data from 
+		#shapeData1 = "/home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/5domain16S_rRNA_E.coli.shape_2rows";
+		#shapeData2 = "/home/mescalin/mario/projects/interfaces/ShapeKnots_DATA/5domain16S_rRNA_H.volcanii.shape_2rows";
+		#shapeAli = ["GAUUGAACGCUGGCGGCAGGCCUAACACAUGCAAGUCGAACGGUAACAGGAAGAAGCUUGCUUCUUUGCUGACGAGUGGCGGACGGGUGAGUAAUGUCUGGGAAACUGCCUGAUGGAGGGGGAUAACUACUGGAAACGGUAGCUAAUACCGCAUAACGUCGCAAGACCAAAGAGGGGGACCUUCGGGCCUCUUGCCAUCGGAUGUGCCCAGAUGGGAUUAGCUAGUAGGUGGGGUAACGGCUCACCUAGGCGACGAUCCCUAGCUGGUCUGAGAGGAUGACCAGCCACACUGGAACUGAGACACGGUCCAGACUCCUACGGGAGGCAGCAGUGGGGAAUAUUGCACAAUGGGCGCAAGCCUGAUGCAGCCAUGCCGCGUGUAUGAAGAAGGCCUUCGGGUUGUAAAGUACUUUCAGCGGGGAGGAAGGGAGUAAAGUUAAUACCUUUGCUCAUUGACGUUACCCGCAGAAGAAGCACCGGCUAACUCCGUGCCAGCAGCCGCGGUAAUACGGAGGGUGCAAGCGUUAAUC","GGUCAUUGCUAUUGGGGUCCGAUUUAGCCAUGCUAGUUGCACGAGUUCAUACUCGUGGCGAAAAGCUCAGUAACACGUGGCCAAACUACCCUACAGAGAACGAUAACCUCGGGAAACUGAGGCUAAUAGUUCAUACGGGAGUCAUGCUGGAAUGCCGACUCCCCGAAACGCUCAGGCGCUGUAGGAUGUGGCUGCGGCCGAUUAGGUAGACGGUGGGGUAACGGCCCACCGUGCCGAUAAUCGGUACGGGUUGUGAGAGCAAGAGCCCGGAGACGGAAUCUGAGACAAGAUUCCGGGCCCUACGGGGCGCAGCAGGCGCGAAACCUUUACACUGCACGCAAGUGCGAUAAGGGGACCCCAAGUGCGAGGGCAUAUAGUCCUCGCUUUUCUCGACCGUAAGGCGGUCGAGGAAUAAGAGCUGGGCAAGACCGGUGCCAGCCGCCGCGGUAAUACCGGCAGCUCAAGUGAUGACC"];
+		#fc=RNA.fold_compound(shapeAli);   
+		#assoc = [1,2];
+		#ret = fc.sc_add_SHAPE_deigan_ali([shapeData1,shapeData2], assoc,1.8,-0.6);
 		#(ss,mfe) = fc.mfe();
 		#print ss, "[ %6.2f" %mfe ,"]\n";
 		#self.assertEqual(ret,1);
@@ -273,6 +291,39 @@ class FoldCompoundTest(unittest.TestCase):
 		print ss, "[ %6.2f" %mfe ,"]\n";
 		self.assertEqual(ret,1);
 	
+	# start with ligand.h
+	# test theophylline ligand binding interface
+	
+	def test_sc_add_hi_motif(self):
+		print "test_sc_add_hi_motif";
+		fc= RNA.fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG");
+		#struct =	      ".(((((..((((((((((((((((((....(((((((............)))))))........)))))))))))))...))))))))))..............";
+		#structWithMotif=      "((((...((((((((......)))))...)))...))))...((.((((((((((.((((((.((.((((....)))).))..)))))).))))))))))))..";
+		ret = fc.sc_add_hi_motif("GAUACCAG&CCCUUGGCAGC","(...((((&)...)))...)",-9.22);
+		(ss,mfe) = fc.mfe();
+		print ret,"\t",ss, "[ %6.2f" %mfe ,"]\n";
+		self.assertEqual(ret,1);
+		
+	
+	# test not possible because data from soft constraints from folding comopund has to be set, with set data
+	#def test_sc_detect_hi_motif(self):
+		#print "test_sc_detect_hi_motif";
+		#fc= RNA.fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG");
+		##(ret,i,j,k,l)= fc.sc_detect_hi_motif("(...((((&)...)))...)");
+		#ret= fc.sc_detect_hi_motif("(...((((&)...)))...)");
+		##print "\n",ret,"\t",i,"\t",j,"\t",k,"\t",l;
+		#self.assertEqual(ret,1);
+	
+	# test not possible because data from soft constraints from folding comopund has to be set, with set data
+	#def test_sc_get_hi_motif(self):
+		#print "test_sc_get_hi_motif";
+		#fc= RNA.fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG");
+		#(ret,i,j,k,l)= fc.sc_get_hi_motif();
+		#print "\n",ret,"\t",i,"\t",j,"\t",k,"\t",l;
+		#self.assertEqual(ret,1);
 		
 if __name__ == '__main__':
 	unittest.main();
+
+
+

@@ -148,12 +148,7 @@ typedef struct {} vrna_fold_compound_t;
 	  return vrna_eval_covar_structure($self, structure);
   }
   
-/*
-  char *mfe(float *OUTPUT){
-    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
-    *OUTPUT = vrna_mfe($self, structure);
-    return structure;
-  }*/
+
   
   /*returns the energy of a loop specified by i to pt[i]*/
   float eval_loop_pt(int i, std::vector<int> pt)
@@ -236,17 +231,16 @@ in centroid.h
   
   
   /*Soft contraints are not yet imoplemented*/
-
-  
-  
-  
-  /*MFE of given pairtable, with different FileHandler for verbose, Default value = NULL + STDOUT*/
-  float eval_structure_pt_verbose(std::vector<int> pt, FILE *file)
+  void sc_remove()
   {
-	  std::vector<short> vc;
-	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
-	  return vrna_eval_structure_pt_verbose($self,(const short*)&vc[0],file);
+	  vrna_sc_remove($self);
   }
+  void sc_init()
+  {
+	  vrna_sc_init($self);
+  }
+  
+  
   int sc_add_SHAPE_deigan(std::vector<double> reactivities, double m, double b, unsigned int options=VRNA_OPTION_MFE)
   {
 	 
@@ -285,21 +279,53 @@ int sc_add_SHAPE_zarringhalam(std::vector<double> reactivities, double b, double
 int sc_add_hi_motif(const char *seq,
                       const char *structure,
                       double energy,
-                      unsigned int options)
+                      unsigned int options=VRNA_OPTION_MFE)
 {
 	return vrna_sc_add_hi_motif($self,seq,structure,energy,options);
 }
 
-/* return 1 or 0 if success and the base positions in a given structure if the given motif was found*/
-%apply int *OUTPUT {int *i, int *j, int *k, int *l};  /* HERE more return parameters are defined*/
+
+/* return 1 or 0 if success and the base positions in a given structure if the given motif was found
+%apply int *OUTPUT {int *i, int *j, int *k, int *l};  /* HERE more return parameters are defined
 int sc_detect_hi_motif(const char *structure,
                         int *i,
                         int *j,
                         int *k,
-                        int *l)
+                        int *l)*/
+  int sc_detect_hi_motif(const char *structure)                      
 {
-	return vrna_sc_detect_hi_motif($self,structure,i,j,k,l);
+	
+	cout << $self->sc->data;
+	int i=0;
+	int j=0;
+	int k=0;
+	int l=0;
+	
+	cout << " i = " << i;
+	cout << " j = " << j;
+	cout << " k = " << k;
+	cout << " l = " << l;
+	cout << " &i = " << &i;
+	cout << " &j = " << &j;
+	cout << " &k = " << &k;
+	cout << " &l = " << &l;
+	
+	
+	int ret = vrna_sc_detect_hi_motif($self,structure,&i,&j,&k,&l);
+	
+	cout << " ret = " << ret;
+	cout << " i = " << i;
+	cout << " j = " << j;
+	cout << " k = " << k;
+	cout << " l = " << l;
+	
+	return ret;
 }
+
+
+
+
+
 
 /* return 1 or 0 if success and the base positions in a givens tructure if the given motif was found*/
 %apply int *OUTPUT {int *i, int *j, int *k, int *l};  /* HERE more return parameters are defined*/
@@ -309,7 +335,13 @@ int sc_get_hi_motif(    int *i,
                         int *l)
 {
 	
-	return vrna_sc_get_hi_motif($self,i,j,k,l);
+	int ret =  vrna_sc_get_hi_motif($self,i,j,k,l);
+	cout << " ret = " << ret;
+	cout << " i = " << *i;
+	cout << " j = " << *j;
+	cout << " k = " << *k;
+	cout << " l = " << *l;
+	return ret;
 }
 
 
