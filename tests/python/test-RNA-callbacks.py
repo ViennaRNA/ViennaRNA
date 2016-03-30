@@ -27,13 +27,33 @@ def blubb(i,j,k,l,d,data=None):
     return 0
 
 def bt(i,j,k,l,d,data=None):
-    print d
-    print data
+    """
+    The backtracking callback must return a list of base pairs
+    Here, the base pairs may be given in one of the three ways
+    shown below:
+    """
+
     if d == RNA.DECOMP_PAIR_HP:
         """
-        add an extra basepair inside any hairpin
+        1. We create a list of dictionaries with 'i' and 'j'
+        keys that specify the coordinates of the base pair (i,j)
         """
-        return [(i+1,j-1)]
+        bp = { 'i' : i+1, 'j' : j-1 }
+
+        """
+        2. We create a list of tuples (i,j)
+        """
+        bp = (i+1, j-1)
+
+        """
+        3. We create a list of RNA::basepair objects
+        """
+        bp = RNA.basepair()
+        bp.i = i+1
+        bp.j = j-1
+
+        return [ bp ]
+
     return None
 
 a.add_auxdata(b, None)

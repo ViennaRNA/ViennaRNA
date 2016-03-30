@@ -127,6 +127,10 @@ typedef struct {} vrna_fold_compound_t;
     sc_add_f_perl_callback($self, PerlFunc);
   }
 
+  void sc_add_bt(SV *PerlFunc){
+    sc_add_bt_perl_callback($self, PerlFunc);
+  }
+
   void sc_add_exp_f(SV *PerlFunc){
     sc_add_exp_f_perl_callback($self, PerlFunc);
   }

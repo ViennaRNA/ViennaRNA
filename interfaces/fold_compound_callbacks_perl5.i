@@ -26,6 +26,7 @@ typedef struct {
 
 static void       perl_wrap_fc_status_callback(unsigned char status, void *data);
 static int        perl_wrap_sc_f_callback(int i, int j, int k, int l, char d, void *data);
+static vrna_basepair_t *perl_wrap_sc_bt_callback(int i, int j, int k, int l, char d, void *data);
 static FLT_OR_DBL perl_wrap_sc_exp_f_callback(int i, int j, int k, int l, char d, void *data);
 
 static void
@@ -258,7 +259,6 @@ sc_add_exp_f_perl_callback( vrna_fold_compound_t *vc,
   }
 }
 
-#if 0
 static vrna_basepair_t *
 sc_add_bt_perl_callback(vrna_fold_compound_t *vc,
                         SV *PerlFunc){
@@ -271,7 +271,7 @@ sc_add_bt_perl_callback(vrna_fold_compound_t *vc,
   if(vc->sc->data){
     cb = (perl_sc_callback_t *)vc->sc->data;
     /* release previous callback */
-    if(SvOK(cb->cb_bt))
+    if(cb->cb_bt && SvOK(cb->cb_bt))
       SvREFCNT_dec(cb->cb_bt);
   } else {
     cb = (perl_sc_callback_t *)vrna_alloc(sizeof(perl_sc_callback_t));
@@ -290,7 +290,6 @@ sc_add_bt_perl_callback(vrna_fold_compound_t *vc,
     vc->sc->free_data = &delete_perl_sc_callback;
   }
 }
-#endif
 
 static void
 sc_add_perl_data( vrna_fold_compound_t *vc,
@@ -499,12 +498,118 @@ perl_wrap_sc_exp_f_callback(int i,
   return ret;
 }
 
+static vrna_basepair_t *
+perl_wrap_sc_bt_callback( int i,
+                          int j,
+                          int k,
+                          int l,
+                          char d,
+                          void *data){
+
+  int c, count, len, num_pairs;
+  SV *func, *arglist, *result, *bp;
+  perl_sc_callback_t *cb = (perl_sc_callback_t *)data;
+  vrna_basepair_t *ptr, *pairs = NULL;
+  func = cb->cb_bt;
+  /* compose function call */
+  if(SvOK(func)){
+    dSP;
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(sp);
+    SV* pSVi = sv_newmortal();
+    sv_setiv(pSVi, (IV)i);
+    XPUSHs(pSVi);
+    SV* pSVj = sv_newmortal();
+    sv_setiv(pSVj, (IV)j);
+    XPUSHs(pSVj);
+    SV* pSVk = sv_newmortal();
+    sv_setiv(pSVk, (IV)k);
+    XPUSHs(pSVk);
+    SV* pSVl = sv_newmortal();
+    sv_setiv(pSVl, (IV)l);
+    XPUSHs(pSVl);
+    SV* pSVd = sv_newmortal();
+    sv_setiv(pSVd, (IV)d);
+    XPUSHs(pSVd);
+
+    if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
+      XPUSHs(cb->data);
+    PUTBACK;
+    count = perl_call_sv(func, G_ARRAY);
+
+    SPAGAIN;
+
+    if(count == 0){ /* no additional base pairs */
+      PUTBACK;
+      FREETMPS;
+      LEAVE;
+      return NULL;
+    }
+
+    /* when we get here, we should have got an array of something */
+    len       = 10;
+    num_pairs = 0;
+    pairs     = (vrna_basepair_t *)vrna_alloc(sizeof(vrna_basepair_t) * len);
+    /* result should be list of pairs */
+    for(c=0; c < count; c++){
+      /* pop SV off the stack */
+      bp = POPs;
+      /* if list entry is defined and a reference */
+      if(SvOK(bp) && SvROK(bp)){
+        /* maybe the user was so kind to create a list of vrna_basepair_t? */
+        if(SWIG_ConvertPtr(bp, (void **) &ptr, SWIGTYPE_p_vrna_basepair_t, SWIG_POINTER_EXCEPTION) == 0){
+          pairs[num_pairs] = *ptr;
+          num_pairs++;
+        } /* check whether we've got a reference to a hash */
+        else if(SvTYPE(SvRV(bp)) == SVt_PVHV){
+          HV *pair = (HV*)SvRV(bp);
+          /* check whether the hash has 'i' and 'j' keys */
+          if(hv_exists(pair, "i", 1) && hv_exists(pair, "j", 1)){
+            pairs[num_pairs].i = (int)SvIV(* hv_fetch(pair, "i", 1, 0));
+            pairs[num_pairs].j = (int)SvIV(* hv_fetch(pair, "j", 1, 0));
+            num_pairs++;
+          }
+        }
+        /* check whether we've got a refrence to an array */
+        else if(SvTYPE(SvRV(bp)) == SVt_PVAV){
+          AV *pair = (AV*)SvRV(bp);
+          if(av_len(pair) == 1){ /* size of array must be 2, av_len() returns highest index */
+            SV **pair_i = av_fetch(pair, 0, 0);
+            SV **pair_j = av_fetch(pair, 1, 0);
+            if(pair_i && pair_j){
+              pairs[num_pairs].i = (int)SvIV(* pair_i);
+              pairs[num_pairs].j = (int)SvIV(* pair_j);
+              num_pairs++;
+            }
+          }
+        } else {
+          continue;
+        }
+      }
+      /* increase length if necessary */
+      if(num_pairs == len){
+        len = (int)(1.2 * len);
+        pairs = (vrna_basepair_t *)vrna_realloc(pairs, sizeof(vrna_basepair_t)*len);
+      }
+    }
+    /* put end marker in list */
+    pairs[num_pairs].i = pairs[num_pairs].j = 0;
+    pairs = (vrna_basepair_t *)vrna_realloc(pairs, sizeof(vrna_basepair_t)*(num_pairs+1));
+
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+  }
+  return pairs;
+}
+
 %}
 
 static void fc_add_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
 static void fc_add_perl_data(vrna_fold_compound_t *vc, SV *data, SV *PerlFunc);
 static void sc_add_f_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
-//static void sc_add_bt_perl_callback(vrna_fold_compound_t *vc, SV *PyFunc);
+static void sc_add_bt_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
 static void sc_add_exp_f_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
 static void sc_add_perl_data(vrna_fold_compound_t *vc, SV *data, SV *PerlFunc);
 

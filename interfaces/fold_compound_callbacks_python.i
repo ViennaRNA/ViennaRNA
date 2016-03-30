@@ -343,8 +343,13 @@ py_wrap_sc_bt_callback( int i,
     /* result should be list of pairs */
     for(c=0; c < PyList_Size(result); c++){
       bp = PyList_GetItem(result, c);
-      /* extract pair */
-      if(PyTuple_Check(bp)){
+      /* maybe the user was so kind to create a list of vrna_basepair_t? */
+      if(SWIG_ConvertPtr(bp, (void **) &ptr, SWIGTYPE_p_vrna_basepair_t, SWIG_POINTER_EXCEPTION) == 0){
+        pairs[num_pairs] = *ptr;
+        num_pairs++;
+      }
+      /* users may also specify base pairs as tuples of size 2 */
+      else if(PyTuple_Check(bp)){
         if(   (PyTuple_Size(bp) == 2)
           &&  PyInt_Check(PyTuple_GetItem(bp, 0))
           &&  PyInt_Check(PyTuple_GetItem(bp, 1))){
@@ -353,10 +358,18 @@ py_wrap_sc_bt_callback( int i,
           num_pairs++;
         }
       }
-      /* maybe the user was so kind to create a list of vrna_basepair_t? */
-      else if(SWIG_ConvertPtr(bp, (void **) &ptr, SWIGTYPE_p_vrna_basepair_t, SWIG_POINTER_EXCEPTION) == 0){
-        pairs[num_pairs] = *ptr;
-        num_pairs++;
+      /* or is it even a dictionary with i j keys? */
+      else if(PyDict_Check(bp)){
+        /* check whether the dictionary actually contains the correct keys */
+        PyObject *bp_i, *bp_j;
+        bp_i = PyDict_GetItemString(bp, "i");
+        bp_j = PyDict_GetItemString(bp, "j");
+        /* both dictionary keys must be present and the corresponding values have to be integer types */
+        if(bp_i && bp_j && PyInt_Check(bp_i) && PyInt_Check(bp_j)){
+          pairs[num_pairs].i = (int)PyInt_AsLong(bp_i);
+          pairs[num_pairs].j = (int)PyInt_AsLong(bp_j);
+          num_pairs++;
+        }
       } else {
         continue;
       }
