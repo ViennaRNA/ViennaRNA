@@ -26,10 +26,21 @@ def blubb(i,j,k,l,d,data=None):
 
     return 0
 
+def bt(i,j,k,l,d,data=None):
+    print d
+    print data
+    if d == RNA.DECOMP_PAIR_HP:
+        """
+        add an extra basepair inside any hairpin
+        """
+        return [(i+1,j-1)]
+    return None
+
 a.add_auxdata(b, None)
 a.add_callback(bla)
 a.sc_add_data(c, None)
 a.sc_add_f(blubb)
+a.sc_add_bt(bt)
 (s, mfe) = a.mfe()
 print "%s %6.2f\n" %  (s, mfe)
 

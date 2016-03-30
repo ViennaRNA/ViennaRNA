@@ -100,6 +100,10 @@ typedef struct {} vrna_fold_compound_t;
     sc_add_f_pycallback($self, PyFunc);
   }
 
+  void sc_add_bt(PyObject *PyFunc){
+    sc_add_bt_pycallback($self, PyFunc);
+  }
+
   void sc_add_exp_f(PyObject *PyFunc){
     sc_add_exp_f_pycallback($self, PyFunc);
   }
@@ -146,6 +150,11 @@ typedef struct {} vrna_fold_compound_t;
 %constant unsigned int OPTION_EVAL_ONLY = VRNA_OPTION_EVAL_ONLY;
 %constant unsigned int OPTION_WINDOW    = VRNA_OPTION_WINDOW;
 
+%rename(basepair) vrna_basepair_t;
 
+typedef struct {
+  int i;
+  int j;
+} vrna_basepair_t;
 
 %include <ViennaRNA/data_structures.h>

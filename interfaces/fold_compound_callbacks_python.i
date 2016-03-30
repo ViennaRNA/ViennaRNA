@@ -22,6 +22,7 @@ typedef struct {
 
 static void       py_wrap_fc_status_callback(unsigned char status, void *data);
 static int        py_wrap_sc_f_callback(int i, int j, int k, int l, char d, void *data);
+static vrna_basepair_t *py_wrap_sc_bt_callback( int i, int j, int k, int l, char d,                        void *data);
 static FLT_OR_DBL py_wrap_sc_exp_f_callback(int i, int j, int k, int l, char d, void *data);
 
 static void
@@ -161,7 +162,6 @@ sc_add_exp_f_pycallback(vrna_fold_compound_t *vc,
   }
 }
 
-#if 0
 static vrna_basepair_t *
 sc_add_bt_pycallback( vrna_fold_compound_t *vc,
                       PyObject *PyFunc){
@@ -192,7 +192,6 @@ sc_add_bt_pycallback( vrna_fold_compound_t *vc,
     vc->sc->free_data = &delete_py_sc_callback;
   }
 }
-#endif
 
 static void
 fc_add_pydata(vrna_fold_compound_t *vc,
@@ -309,12 +308,72 @@ py_wrap_sc_f_callback(int i,
 
   func = cb->cb_f;
   /* compose argument list */
-  arglist = Py_BuildValue("(i,i,i,i,c,O)", i, j, k, l, d, (cb->data) ? cb->data : Py_None);
+  arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
   result =  PyEval_CallObject(func, arglist);
   ret = (int)PyInt_AsLong(result);
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return ret;
+}
+
+static vrna_basepair_t *
+py_wrap_sc_bt_callback( int i,
+                        int j,
+                        int k,
+                        int l,
+                        char d,
+                        void *data){
+
+  int c, len, num_pairs;
+  PyObject *func, *arglist, *result, *bp;
+  py_sc_callback_t *cb = (py_sc_callback_t *)data;
+  vrna_basepair_t *ptr, *pairs = NULL;
+  func = cb->cb_bt;
+  /* compose argument list */
+  arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
+  result =  PyEval_CallObject(func, arglist);
+  if((result == NULL) || (result == Py_None))
+    return NULL;
+
+  if(PyList_Check(result)){
+    len       = 10;
+    num_pairs = 0;
+    pairs     = (vrna_basepair_t *)vrna_alloc(sizeof(vrna_basepair_t) * len);
+  
+    /* result should be list of pairs */
+    for(c=0; c < PyList_Size(result); c++){
+      bp = PyList_GetItem(result, c);
+      /* extract pair */
+      if(PyTuple_Check(bp)){
+        if(   (PyTuple_Size(bp) == 2)
+          &&  PyInt_Check(PyTuple_GetItem(bp, 0))
+          &&  PyInt_Check(PyTuple_GetItem(bp, 1))){
+          pairs[num_pairs].i = (int)PyInt_AsLong(PyTuple_GetItem(bp, 0));
+          pairs[num_pairs].j = (int)PyInt_AsLong(PyTuple_GetItem(bp, 1));
+          num_pairs++;
+        }
+      }
+      /* maybe the user was so kind to create a list of vrna_basepair_t? */
+      else if(SWIG_ConvertPtr(bp, (void **) &ptr, SWIGTYPE_p_vrna_basepair_t, SWIG_POINTER_EXCEPTION) == 0){
+        pairs[num_pairs] = *ptr;
+        num_pairs++;
+      } else {
+        continue;
+      }
+
+      /* increase length if necessary */
+      if(num_pairs == len){
+        len = (int)(1.2 * len);
+        pairs = (vrna_basepair_t *)vrna_realloc(pairs, sizeof(vrna_basepair_t)*len);
+      }
+    }
+    /* put end marker in list */
+    pairs[num_pairs].i = pairs[num_pairs].j = 0;
+    pairs = (vrna_basepair_t *)vrna_realloc(pairs, sizeof(vrna_basepair_t)*(num_pairs+1));
+  }
+  Py_DECREF(arglist);
+  Py_XDECREF(result);
+  return pairs;
 }
 
 static FLT_OR_DBL
@@ -331,7 +390,7 @@ py_wrap_sc_exp_f_callback(int i,
 
   func = cb->cb_exp_f;
   /* compose argument list */
-  arglist = Py_BuildValue("(i,i,i,i,c,O)", i, j, k, l, d, (cb->data) ? cb->data : Py_None);
+  arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
   result =  PyEval_CallObject(func, arglist);
   ret = (FLT_OR_DBL)PyFloat_AsDouble(result);
   Py_DECREF(arglist);
@@ -345,7 +404,7 @@ static void fc_add_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
 static void fc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *PyFunc);
 
 static void sc_add_f_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
-//static void sc_add_bt_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
+static vrna_basepair_t *sc_add_bt_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
 static void sc_add_exp_f_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
 static void sc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *PyFunc);
 
