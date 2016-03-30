@@ -199,6 +199,9 @@ in centroid.h
 	  vrna_constraints_add($self,constraint, options);
   }
   
+  /*##########
+   from constraints_hard.h
+################*/
   void hc_init()
   {
 	  vrna_hc_init($self);
@@ -226,11 +229,13 @@ in centroid.h
 	  return vrna_hc_add_from_db($self,constraint,options);
   }
   
+  /*##########
+   from end constraints_hard.h
+################*/
   
-  
-  
-  
-  /*Soft contraints are not yet imoplemented*/
+  /*##########
+   from constraints_soft.h
+################*/
   void sc_remove()
   {
 	  vrna_sc_remove($self);
@@ -240,6 +245,76 @@ in centroid.h
 	  vrna_sc_init($self);
   }
   
+  
+  /*not abel to use double vector multidimensional, not recognized
+  void sc_add_bp(std::vector<std::vector<int>> constraints,unsigned int options=VRNA_OPTION_MFE)
+  {
+	  std::cout <<"geht";
+  }*/
+  
+
+
+ void sc_add_up(std::vector<FLT_OR_DBL> constraint,unsigned int options=VRNA_OPTION_MFE)
+ {
+	vrna_sc_add_up($self, (const FLT_OR_DBL *)&constraint[0], options);
+ }
+
+  
+  #ifdef SWIGPYTHON
+  void add_auxdata(PyObject *data, PyObject *free_data){
+    fc_add_pydata($self, data, free_data);
+  }
+
+  void add_callback(PyObject *PyFunc){
+    fc_add_pycallback($self, PyFunc);
+  }
+
+  void sc_add_data(PyObject *data, PyObject *free_data){
+    sc_add_pydata($self, data, free_data);
+  }
+  
+  void sc_add_f(PyObject *PyFunc){
+    sc_add_f_pycallback($self, PyFunc);
+  }
+
+  void sc_add_exp_f(PyObject *PyFunc){
+    sc_add_exp_f_pycallback($self, PyFunc);
+  }
+
+#endif
+
+#ifdef SWIGPERL5
+  void add_auxdata(SV *data, SV *free_data){
+    fc_add_perl_data($self, data, free_data);
+  }
+
+  void add_callback(SV *PerlFunc){
+    fc_add_perl_callback($self, PerlFunc);
+  }
+
+  void sc_add_data(SV *data, SV *free_data){
+    sc_add_perl_data($self, data, free_data);
+  }
+  
+  void sc_add_f(SV *PerlFunc){
+    sc_add_f_perl_callback($self, PerlFunc);
+  }
+
+  void sc_add_exp_f(SV *PerlFunc){
+    sc_add_exp_f_perl_callback($self, PerlFunc);
+  }
+
+#endif
+
+
+  
+  /*##########
+   end constraints_soft.h
+################*/
+  
+  /*##########
+   from constraints_SHAPE.h
+################*/
   
   int sc_add_SHAPE_deigan(std::vector<double> reactivities, double m, double b, unsigned int options=VRNA_OPTION_MFE)
   {
@@ -268,7 +343,9 @@ int sc_add_SHAPE_zarringhalam(std::vector<double> reactivities, double b, double
 	return vrna_sc_add_SHAPE_zarringhalam($self,(const double *) &reactivities[0],b,default_value,shape_conversion,options);
 }
 
-  
+  /*##########
+   end constraints_SHAPE.h
+################*/
   /*##########
    end constraints.h
 ################*/
@@ -277,11 +354,9 @@ int sc_add_SHAPE_zarringhalam(std::vector<double> reactivities, double b, double
    from ligand.h
 ################*/
 
-/*only double is argument energy of function, not float or double*/
-
 int sc_add_hi_motif(const char *seq,
                       const char *structure,
-                      double energy,
+                      FLT_OR_DBL energy,
                       unsigned int options=VRNA_OPTION_MFE)
 {
 	return vrna_sc_add_hi_motif($self,seq,structure,energy,options);
@@ -306,9 +381,6 @@ int sc_detect_hi_motif(const char *structure,
 
 
 
-
-
-
 /* return 1 or 0 if success and the base positions in a givens tructure if the given motif was found*/
 // %apply int *OUTPUT {int *i, int *j, int *k, int *l};  /* HERE more return parameters are defined*/
 // int sc_get_hi_motif(    int *i,
@@ -328,13 +400,7 @@ int sc_detect_hi_motif(const char *structure,
     /*##########
    from part_func.h
 ################*/
-  
 
-char *mfe(float *OUTPUT){
-    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
-    *OUTPUT = vrna_mfe($self, structure);
-    return structure;
-  }
   
   
 char *pf(float *OUTPUT)
@@ -353,15 +419,9 @@ char *pf(float *OUTPUT)
  }
 
 
-  /* "HEADER" definitions for overloaded functions !!!IT IS NOT WORKING
-##################################################*/
-/*float eval_structure_verbose(const char *structure, FILE *file);
-float eval_structure_verbose(const char *structure);
-int testFunction(std::vector<string> st);
-int testFunction(std::vector<string> st, FILE *file );
-int testFunction(std::vector<string> st, std::vector<string> fg);
-*/
-
+/*##########
+   end part_func.h
+################*/
 
 }
 

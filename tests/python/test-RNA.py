@@ -186,7 +186,7 @@ class FoldCompoundTest(unittest.TestCase):
 	def test_constraints_add(self):
 		#seq_con  =  	"CCCAAAAGGGCCCAAAAGGG";
 		#str_con_def=	"(((....)))(((....)))";
-		#hc.txt=	"xxx.................";
+		#hc.txt=	"P 1 0 2";
 		#str_con=	"..........(((....)))";
 		
 		hc_file=	"data/hc.txt";
@@ -201,6 +201,14 @@ class FoldCompoundTest(unittest.TestCase):
 		(ss,mfe) = fc.mfe();
 		print ss, "[ %6.2f" %mfe ,"]\n";
 		self.assertEqual(ss,str_con_def);
+		
+		#sc.txt = E 3 8 1 -5
+		sc_file = "data/sc.txt";
+		fc.sc_init();
+		fc.constraints_add(sc_file);
+		(ss,mfeNew) = fc.mfe();
+		print ss, "[ %6.2f" %mfeNew ,"]\n";
+		self.assertEqual("%6.2f" %mfe, "%6.2f" % (mfeNew +5));
 	
 	###!!!!try toget the COntraint option to python
 	def test_hc_add_up(self):
@@ -248,7 +256,59 @@ class FoldCompoundTest(unittest.TestCase):
 		print ss, "[ %6.2f" %mfe ,"]\n";
 		self.assertEqual(ss,str_con);
 		
+	
+	def test_sc_add_up(self):
+		print "test_sc_add_up";
 		
+		#		"1234567890
+		seq_sc  =  	"CCCAAAAGGG";
+		fc = RNA.fold_compound(seq_sc);
+		(ss,mfe) = fc.mfe();
+		print ss, "[ %6.2f" %mfe ,"]\n";
+		self.assertEqual(ss,"(((....)))");
+		
+		fc.sc_init();
+		
+		m= [0.0,-5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];  #E 1 0 1 -5 ,  position 1 gets -5 if unpaired , vector starts with 0 and not 1
+		
+		fc.sc_add_up(m);
+		(ss,mfeNew) = fc.mfe();
+		print ss, "[ %6.2f" %mfeNew ,"]\n";
+		self.assertEqual("%6.2f" %mfeNew,"%6.2f" % -5.70);
+		
+	
+	#not working because, double float vecot is not recognized by c++
+	#def test_sc_add_bp(self):
+		#print "test_sc_add_bp";
+		
+		##m = [
+		##[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+		##[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+		##[0.0,0.0,0.0,0.0,0.0,0.0,0.0,-5.0,0.0,0.0],
+		##[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+		##[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+		##[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+		##[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+		##[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+		##[0.0,0.0,-5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+		##[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+		##[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]];  # add energy of -5 to basepair (3-8)
+		
+		#m= [
+		#[3,4,5],
+		#[4,6,5]];
+		
+		##		"1234567890
+		#seq_sc  =  	"CCCAAAAGGG";
+		#fc = RNA.fold_compound(seq_sc);
+		#fc.sc_init();
+		#fc.sc_add_bp(m);
+		#(ss,mfeNew) = fc.mfe();
+		#print ss, "[ %6.2f" %mfeNew ,"]\n";
+		#self.assertEqual(1,0);
+	
+	
+	
 	def test_sc_add_SHAPE_deigan(self):
 		print "test_sc_add_SHAPE_deigan";
 		seq_ribo  =  	"GACUCGGGGUGCCCUUCUGCGUGAAGGCUGAGAAAUACCCGUAUCACCUGAUCUGGAUAAUGCCAGCGUAGGGAAGUUC";  # directly from data/TPP_riboswitch_E.coli.db
