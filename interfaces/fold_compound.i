@@ -17,13 +17,9 @@
 %ignore snoopT;
 %ignore dupVar;
 
-#ifdef SWIGPYTHON
-%include fold_compound_callbacks_python.i
-#endif
-
-#ifdef SWIGPERL5
-%include fold_compound_callbacks_perl5.i
-#endif
+/* add callback binding methods for fold_compound */
+%include callbacks-fc.i
+%include callbacks-sc.i
 
 /* start constructing a sane interface to vrna_fold_compound_t */
 
@@ -83,60 +79,8 @@ typedef struct {} vrna_fold_compound_t;
     return vrna_sc_add_hi_motif($self, seq, structure, energy, options);
   }
 
-#ifdef SWIGPYTHON
-  void add_auxdata(PyObject *data, PyObject *free_data){
-    fc_add_pydata($self, data, free_data);
-  }
-
-  void add_callback(PyObject *PyFunc){
-    fc_add_pycallback($self, PyFunc);
-  }
-
-  void sc_add_data(PyObject *data, PyObject *free_data){
-    sc_add_pydata($self, data, free_data);
-  }
-  
-  void sc_add_f(PyObject *PyFunc){
-    sc_add_f_pycallback($self, PyFunc);
-  }
-
-  void sc_add_bt(PyObject *PyFunc){
-    sc_add_bt_pycallback($self, PyFunc);
-  }
-
-  void sc_add_exp_f(PyObject *PyFunc){
-    sc_add_exp_f_pycallback($self, PyFunc);
-  }
-
-#endif
-
-#ifdef SWIGPERL5
-  void add_auxdata(SV *data, SV *free_data){
-    fc_add_perl_data($self, data, free_data);
-  }
-
-  void add_callback(SV *PerlFunc){
-    fc_add_perl_callback($self, PerlFunc);
-  }
-
-  void sc_add_data(SV *data, SV *free_data){
-    sc_add_perl_data($self, data, free_data);
-  }
-  
-  void sc_add_f(SV *PerlFunc){
-    sc_add_f_perl_callback($self, PerlFunc);
-  }
-
-  void sc_add_bt(SV *PerlFunc){
-    sc_add_bt_perl_callback($self, PerlFunc);
-  }
-
-  void sc_add_exp_f(SV *PerlFunc){
-    sc_add_exp_f_perl_callback($self, PerlFunc);
-  }
-
-#endif
 }
+
 
 /*
  *  Rename all the preprocessor macros defined in data_structures.h

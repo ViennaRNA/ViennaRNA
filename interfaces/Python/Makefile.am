@@ -6,13 +6,19 @@ EXTRA_DIST = \
   $(SWIG_wrapper) \
   $(SWIG_module_name).py
 
+INTERFACE_FILES = $(SWIG_src) \
+                  tmaps.i \
+                  globals-md.i \
+                  callbacks-fc.i \
+                  callbacks-sc.i
 
 pkgpy2execdir = $(py2execdir)/RNA
 
 pkgpy2exec_LTLIBRARIES = _RNA.la
 pkgpy2exec_DATA = RNA/__init__.py
 
-_RNA_la_SOURCES = $(top_srcdir)/interfaces/RNA.i $(SWIG_wrapper)
+_RNA_la_SOURCES = $(INTERFACE_FILES) \
+                  $(SWIG_wrapper)
 
 BUILT_SOURCES = RNA/_RNA$(PYTHON2_SO)
 
@@ -28,7 +34,9 @@ _RNA_la_LDFLAGS += -Wc,$(LTO_LDFLAGS)
 endif
 
 $(SWIG_wrapper): $(SWIG_src)
-	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src @FLOAT_PF_FLAG@ \
+	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
+                  -I$(srcdir) \
+                  @FLOAT_PF_FLAG@ \
                   -python -modern  -c++ \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)

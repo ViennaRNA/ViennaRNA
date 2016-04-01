@@ -1,6 +1,6 @@
 AM_CPPFLAGS = -I$(top_srcdir)/src
 
-SUBDIRS = @PERL_INTERFACE@ @PYTHON2_INTERFACE@ @PYTHON3_INTERFACE@ # @RUBY_INTERFACE@
+SUBDIRS = @PERL_INTERFACE@ @PYTHON2_INTERFACE@ @PYTHON3_INTERFACE@
 
 SOURCES = RNA.i \
           compare.i \
@@ -16,8 +16,6 @@ SOURCES = RNA.i \
           subopt.i \
           utils.i \
           ptr2array.i \
-          tmaps.i \
-          md_globals_tmaps.i \
           generic.mk
 
 EXTRA_DIST =  RNA.i \
@@ -34,8 +32,6 @@ EXTRA_DIST =  RNA.i \
               subopt.i \
               utils.i \
               ptr2array.i \
-              tmaps.i \
-              md_globals_tmaps.i \
               generic.mk
 
 

@@ -63,7 +63,16 @@ extern "C" {
 
 %constant double VERSION = 0.3;
 %include typemaps.i
-%include tmaps.i  // additional typemaps
+
+// Typemaps that are independent of scripting language
+
+// This cleans up the char ** array after the function call
+%typemap(freearg) char ** {
+         free($1);
+}
+
+// Additional target language specific typemaps
+%include tmaps.i
 
 /* handle exceptions */
 %include "exception.i"

@@ -6,6 +6,12 @@ EXTRA_DIST = \
   $(SWIG_wrapper) \
   $(SWIG_module_name).py
 
+INTERFACE_FILES = $(SWIG_src) \
+                  tmaps.i \
+                  file_py3.i \
+                  globals-md.i \
+                  callbacks-fc.i \
+                  callbacks-sc.i
 
 pkgpyexecdir = $(py3execdir)/RNA
 
@@ -14,7 +20,8 @@ pkgpyexec_DATA =  RNA/__init__.py \
                   RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc \
                   RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@
 
-_RNA_la_SOURCES = $(top_srcdir)/interfaces/RNA.i $(SWIG_wrapper)
+_RNA_la_SOURCES = $(INTERFACE_FILES) \
+                  $(SWIG_wrapper)
 
 BUILT_SOURCES = RNA/_RNA$(PYTHON3_SO)
 
@@ -30,7 +37,9 @@ _RNA_la_LDFLAGS += -Wc,$(LTO_LDFLAGS)
 endif
 
 $(SWIG_wrapper): $(SWIG_src)
-	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src -DPY3 @FLOAT_PF_FLAG@ \
+	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
+                  -I$(srcdir) \
+                  -DPY3 @FLOAT_PF_FLAG@ \
                   -python -modern -py3 -c++ \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)

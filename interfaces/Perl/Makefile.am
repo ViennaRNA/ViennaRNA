@@ -5,7 +5,14 @@ PERL_MODULE = $(SWIG_module_name).pm
 perlextdir = $(prefix)$(PERL_ARCH_RELATIVE_INSTALL_DIR)/auto/RNA
 perlext_LTLIBRARIES = RNA.la
 
-RNA_la_SOURCES = $(SWIG_src) $(SWIG_wrapper)
+INTERFACE_FILES = $(SWIG_src) \
+                  tmaps.i \
+                  globals-md.i \
+                  callbacks-fc.i \
+                  callbacks-sc.i
+
+RNA_la_SOURCES =  $(INTERFACE_FILES) \
+                  $(SWIG_wrapper)
 
 perlmoddir = $(prefix)$(PERL_LIB_RELATIVE_INSTALL_DIR)
 nobase_dist_perlmod_DATA = \
@@ -26,10 +33,6 @@ endif
 
 RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -shrext $(PERL_SO) $(PERLXS_LDFLAGS)
 
-##if WITH_LTO
-##RNA_la_LDFLAGS += -Wc,$(LTO_LDFLAGS)
-##endif
-
 SOURCES = RNA.pod
 
 BUILT_SOURCES = auto/RNA/RNA$(PERL_SO)
@@ -37,15 +40,13 @@ BUILT_SOURCES = auto/RNA/RNA$(PERL_SO)
 EXTRA_DIST = \
   $(SWIG_wrapper) \
   $(PERL_MODULE) \
-  RNAfold.pl \
-  RNAfold.cgi \
   RNA/t/Design.t
 
 ##
 ## SWIG interface wrapper code generation
 ##
 
-$(SWIG_wrapper) $(PERL_MODULE): $(SWIG_src)
+$(SWIG_wrapper) $(PERL_MODULE): $(INTERFACE_FILES)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src @FLOAT_PF_FLAG@ \
                   -perl5 -proxy -const -c++ \
                   -module RNA -o $(SWIG_wrapper) \
