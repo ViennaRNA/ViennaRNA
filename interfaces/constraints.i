@@ -2,6 +2,14 @@
 /* BEGIN interface for structure constraints  */
 /**********************************************/
 
+
+%extend vrna_fold_compound_t {
+
+  void constraints_add(const char *constraint, unsigned int options=VRNA_OPTION_MFE){
+    vrna_constraints_add($self,constraint, options);
+  }
+}
+
 %ignore print_tty_constraint;
 %ignore print_tty_constraint_full;
 %ignore constrain_ptypes;
@@ -26,32 +34,3 @@
 
 %include  <ViennaRNA/constraints.h>
 
-%constant unsigned int CONSTRAINT_DB            = VRNA_CONSTRAINT_DB;
-%constant unsigned int CONSTRAINT_DB_ENFORCE_BP = VRNA_CONSTRAINT_DB_ENFORCE_BP;
-%constant unsigned int CONSTRAINT_DB_PIPE       = VRNA_CONSTRAINT_DB_PIPE;
-%constant unsigned int CONSTRAINT_DB_DOT        = VRNA_CONSTRAINT_DB_DOT;
-%constant unsigned int CONSTRAINT_DB_X          = VRNA_CONSTRAINT_DB_X;
-%constant unsigned int CONSTRAINT_DB_ANG_BRACK  = VRNA_CONSTRAINT_DB_ANG_BRACK;
-%constant unsigned int CONSTRAINT_DB_RND_BRACK  = VRNA_CONSTRAINT_DB_RND_BRACK;
-%constant unsigned int CONSTRAINT_DB_INTRAMOL   = VRNA_CONSTRAINT_DB_INTRAMOL;
-%constant unsigned int CONSTRAINT_DB_INTERMOL   = VRNA_CONSTRAINT_DB_INTERMOL;
-%constant unsigned int CONSTRAINT_DB_GQUAD      = VRNA_CONSTRAINT_DB_GQUAD;
-%constant unsigned int CONSTRAINT_DB_DEFAULT    = VRNA_CONSTRAINT_DB_DEFAULT;
-
-%constant int CONSTRAINT_CONTEXT_EXT_LOOP     = (int)VRNA_CONSTRAINT_CONTEXT_EXT_LOOP;
-%constant int CONSTRAINT_CONTEXT_HP_LOOP      = (int)VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
-%constant int CONSTRAINT_CONTEXT_INT_LOOP     = (int)VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
-%constant int CONSTRAINT_CONTEXT_INT_LOOP_ENC = (int)VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
-%constant int CONSTRAINT_CONTEXT_MB_LOOP      = (int)VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
-%constant int CONSTRAINT_CONTEXT_MB_LOOP_ENC  = (int)VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
-%constant int CONSTRAINT_CONTEXT_ENFORCE      = (int)VRNA_CONSTRAINT_CONTEXT_ENFORCE;
-%constant int CONSTRAINT_CONTEXT_NO_REMOVE    = (int)VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
-%constant int CONSTRAINT_CONTEXT_ALL_LOOPS    = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-
-%include  <ViennaRNA/constraints_hard.h>
-
-%include  <ViennaRNA/constraints_soft.h>
-
-%include  <ViennaRNA/constraints_SHAPE.h>
-
-%include  <ViennaRNA/ligand.h>

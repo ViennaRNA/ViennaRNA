@@ -59,6 +59,23 @@ extern char *pbacktrack(char *sequence);
 %ignore expLoopEnergy;
 %ignore assign_plist_gquad_from_pr;
 
+%extend vrna_fold_compound_t{
+
+  char *pf(float *OUTPUT){
+
+    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1)); /*output is a structure pointer*/
+    *OUTPUT= vrna_pf($self, structure);
+    return structure;
+  }
+
+  double mean_bp_distance(){
+    return vrna_mean_bp_distance($self);
+  }
+}
+
+/* tell swig that these functions return objects that require memory management */
+%newobject vrna_fold_compound_t::pf;
+
 %include  <ViennaRNA/part_func.h>
 
 /**********************************************/
@@ -139,6 +156,20 @@ char *my_co_pf_fold(char *string, char *constraints, float *OUTPUT, float *OUTPU
 
 %newobject my_get_concentrations;
 void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,double FEB, double A0, double BO, double *OUTPUT, double *OUTPUT, double *OUTPUT, double *OUTPUT, double *OUTPUT);
+
+%extend vrna_fold_compound_t{
+
+  char *pf_dimer(float *OUTPUT){
+
+    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1)); /*output is a structure pointer*/
+    vrna_dimer_pf_t temp = vrna_pf_dimer($self, structure);
+    *OUTPUT = (float)temp.FcAB;
+    return structure;
+  }
+}
+
+/* tell swig that these functions return objects that require memory management */
+%newobject vrna_fold_compound_t::pf_dimer;
 
 %include  <ViennaRNA/part_func_co.h>
 

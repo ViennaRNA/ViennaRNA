@@ -53,7 +53,11 @@ PY_LOG_COMPILER = $(PYTHON2)
 AM_PY_LOG_FLAGS = 
 
 # add test scripts here
-PYTHON2_TESTS = python/test-RNA-callbacks.py
+PYTHON2_TESTS = python/test-RNA-callbacks.py \
+		python/test-RNA-mfe_eval.py \
+		python/test-RNA-constraints.py \
+		python/test-RNA.py 
+		
 
 endif
 
@@ -66,7 +70,8 @@ PY3_LOG_COMPILER = $(PYTHON3)
 AM_PY3_LOG_FLAGS = 
 
 # add test scripts here
-PYTHON3_TESTS = python3/test-RNA-callbacks.py3
+PYTHON3_TESTS = python3/test-RNA-callbacks.py3 \
+		python3/test-RNA.py3
 
 endif
 

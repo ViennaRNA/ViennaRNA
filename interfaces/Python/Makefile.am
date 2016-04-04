@@ -33,6 +33,11 @@ if WITH_LTO
 _RNA_la_LDFLAGS += -Wc,$(LTO_LDFLAGS)
 endif
 
+ 	 	
+##
+## SWIG interface wrapper code generation
+##
+
 $(SWIG_wrapper): $(SWIG_src)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) \

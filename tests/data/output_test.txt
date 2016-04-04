@@ -1,0 +1,7 @@
+External loop                           :     0
+Interior loop (  1, 16) CG; (  2, 15) GC:  -240
+Interior loop (  2, 15) GC; (  3, 14) CG:  -340
+Interior loop (  3, 14) CG; (  5, 13) GC:   140
+Interior loop (  5, 13) GC; (  6, 12) GC:  -330
+Interior loop (  6, 12) GC; (  7, 11) GC:  -330
+Hairpin  loop (  7, 11) GC              :   540

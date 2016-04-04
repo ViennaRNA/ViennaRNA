@@ -4,7 +4,7 @@ AM_CFLAGS += $(PYTHON3_CFLAGS)
 
 EXTRA_DIST = \
   $(SWIG_wrapper) \
-  $(SWIG_module_name).py
+  $(SWIG_module_name).py 
 
 INTERFACE_FILES = $(SWIG_src) \
                   tmaps.i \

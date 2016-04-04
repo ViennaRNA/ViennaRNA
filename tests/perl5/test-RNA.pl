@@ -5,7 +5,8 @@
 use strict;
 use Test;
 use Data::Dumper;
-BEGIN { plan tests => 37; }
+use FileHandle;
+BEGIN { plan tests => 50; }
 
 use RNA;
 use warnings;
@@ -259,6 +260,97 @@ $fc->sc_add_hi_motif("GAAAAAU", "(.....)", -19);
 printf "%s [ %6.2f ]\n", $ss, $mfe;
 
 undef $fc;
+
+##########################################################################################################################
+#starting with fold_compound test (Mario Koestl)
+
+
+my $sq1  =  "CGCAGGGAUACCCGCG";
+my $struct1="(((.(((...))))))";
+my $sq2  ="  GCGCCCAUAGGGACGC";
+my $struct2="((((((...))).)))";
+my $sq4  ="  GCGCACAUAGUGACGC";
+my $struct4="(..(((...)))...)";
+my @alignment = ("CGCAGGGAUACCCGCG","GCGCCCAUAGGGACGC","GCGCACAUAGUGACGC");
+
+####################################################
+$fc = new RNA::fold_compound($sq1);
+$mfe = sprintf "%6.2f", $fc->eval_structure($struct1);
+ok($mfe,sprintf "%6.2f",-5.60 ); #as computed with RNAeval
+printf "\n%s [ %6.2f ]\n", $struct1, $mfe;
+undef $fc;
+
+###################################################
+#		12345678
+# seqquence 	CCAAAAGG:
+# structure	((....))
+   
+#$fc = new RNA::fold_compound("CCAAAAGG");
+#my @pairtable = (length("((....))"),7,6,0,0,0,0,2,1);   #pairtable[0] = length of structure, 0 if no basepair, 
+
+
+#$mfe = sprintf "%6.2f", $fc->eval_structure_pt(RNA::vrna_ptable("((....))"));
+#ok($mfe,sprintf "%6.2f",0.80*100 ); #as computed with RNAeval, * 100 because eval_structure_pt results 10kal/mol, and not kcal/mol
+#printf "\n%s [ %6.2f ]\n", "((....))", $mfe;
+#undef $fc; 
+
+
+##################Test for alignments####################################
+#my @align2 = ("GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC");
+#my ($css2, $cen2) = RNA::alifold(\@align);
+
+#my $fc2 = new RNA::fold_compound($sq1);
+#$fc = new RNA::fold_compound(@align2);
+
+#print "",$fc2->testFunction(\@align2);
+#print "",$fc2->testFunction2(\@align2);
+#(my $cs,$mfe) = $fc->eval_covar_structure();
+#$mfe = sprintf("%6.2f",$mfe);
+#ok($mfe,sprintf("%6.2f",-1.93) ); #as computed with RNAAlifold
+#printf "Fold_compound Test\ns\n%s [ %6.2f ]\n", $ss, $mfe;
+#undef $fc;
+
+######################################################3
+#my $sq1  =  "CGCAGGGAUACCCGCG";
+#my $struct1="(((.(((...))))))";
+$fc = new RNA::fold_compound($sq1);
+my $fh= FileHandle->new("outputFile_test.txt","w");
+$mfe = sprintf "%6.2f", $fc->eval_structure_verbose($struct1,$fh);
+ok($mfe,sprintf "%6.2f",-5.60 ); #as computed with RNAeval
+printf "\n%s [ %6.2f ]\n", $struct1, $mfe;
+undef $fc;
+###################################################
+#my $sq1  =  "CGCAGGGAUACCCGCG";
+#my $struct1="(((.(((...))))))";
+#	      0123456789012345
+#  $str_del= "(((.((.....)))))" -> m1 = -6, m2 = -10  , energyStr = -3.5 , energy_move = 2.1
+#  $str_ins= "(((.(((...))))))" -> m1 = 6, m2 = 10  , energyStr =   -5.6, energy_move = -2.1
+
+#	     01234567890123456 
+my $str=     "(((.(((...))))))";
+my $str_del= "(((.((.....)))))";
+my $m1=-7;
+my $m2 = -11;
+$fc = new RNA::fold_compound($sq1);
+my $e_move =  $fc->eval_move($str,$m1,$m2); #delete the basePair
+ok(sprintf "%6.2f", $e_move, 2.1 ); #as computed with RNAeval
+printf "\n%s  with Moveset: (%i,%i) = [ %6.2f ] \n", $str,$m1,$m2, $e_move;
+
+$m1=7;
+$m2=11;
+$e_move = sprintf "%6.2f", $fc->eval_move($str_del,$m1,$m2); # add the basepair
+ok(sprintf "%6.2f", $e_move,-2.1); 
+printf "\n%s  with Moveset: (%i,%i) = [ %6.2f ] \n", $str_del,$m1,$m2, $e_move;
+
+undef $fc;
+#############################################
+
+
+
+####################################
+
+
+
 
 #$md = new RNA::md();
 #$md->{noGU} = 1;

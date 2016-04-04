@@ -46,6 +46,8 @@ extern "C" {
 #include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
 #include  <ViennaRNA/ligand.h>
+#include  <ViennaRNA/hairpin_loops.h>
+#include  <ViennaRNA/interior_loops.h>
 }
 
 %}
@@ -98,6 +100,7 @@ namespace std {
   %template(ConstCharVector) std::vector<const char*>;
   %template(SOLUTIONVector) std::vector<SOLUTION>;
   %template(CoordinateVector) std::vector<COORDINATE>;
+  %template(DoubleVectorVector) std::vector<std::vector<double> >;
 };
 
 %{
@@ -113,6 +116,15 @@ namespace std {
     std::strcpy(pc, s.c_str());
     return pc;
   }
+  
+  short convert_vecint2vecshort(const int & i){
+    return (short) i;
+  }
+
+  FLT_OR_DBL convert_vecdbl2vecFLR_OR_DBL(const double & d){
+    return (FLT_OR_DBL) d;
+  }
+
 %}
 
 //%title "Interface to the Vienna RNA library"
@@ -136,6 +148,10 @@ namespace std {
 %include utils.i
 %include plotting.i
 %include constraints.i
+%include constraints_hard.i
+%include constraints_soft.i
+%include constraints_SHAPE.i
+%include constraints_ligand.i
 %include eval.i
 %include mfe.i
 %include part_func.i
@@ -165,9 +181,11 @@ namespace std {
 
 %include  <ViennaRNA/fold_vars.h>
 %extend bondT {
-	bondT *get(int i) {
-	   return self+i;
-	}
+
+  bondT *get(int i) {
+
+    return self+i;
+  }
 }
 
 
