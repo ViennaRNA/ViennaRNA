@@ -144,6 +144,26 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
 
 
 
+%extend vrna_fold_compound_t{
+
+char *pf(float *OUTPUT)
+{
+	char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1)); /*output is a structure pointer*/
+	
+	*OUTPUT= vrna_pf($self, structure);
+	
+	return structure;
+}
+
+ 
+ double mean_bp_distance()
+ {
+	 return vrna_mean_bp_distance($self);
+ }
+	
+}
+
+
 
 %{
 double get_pr(int i, int j) {

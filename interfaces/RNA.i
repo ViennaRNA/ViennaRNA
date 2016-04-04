@@ -46,6 +46,8 @@ extern "C" {
 #include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
 #include  <ViennaRNA/ligand.h>
+#include  <ViennaRNA/hairpin_loops.h>
+#include  <ViennaRNA/interior_loops.h>
 }
 
 %}
@@ -142,6 +144,10 @@ namespace std {
 %include utils.i
 %include plotting.i
 %include constraints.i
+%include constraints_hard.i
+%include constraints_soft.i
+%include constraints_SHAPE.i
+%include constraints_ligand.i
 %include eval.i
 %include mfe.i
 %include part_func.i

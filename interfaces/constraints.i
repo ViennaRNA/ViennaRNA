@@ -2,6 +2,15 @@
 /* BEGIN interface for structure constraints  */
 /**********************************************/
 
+
+%extend vrna_fold_compound_t {
+	
+  void constraints_add(const char *constraint, unsigned int options=VRNA_OPTION_MFE)
+  {
+	  vrna_constraints_add($self,constraint, options);
+  }
+}
+
 %ignore print_tty_constraint;
 %ignore print_tty_constraint_full;
 %ignore constrain_ptypes;
@@ -24,7 +33,6 @@
 %constant int DECOMP_EXT_EXT_STEM     = (int)VRNA_DECOMP_EXT_EXT_STEM;
 %constant int DECOMP_EXT_EXT_STEM1    = (int)VRNA_DECOMP_EXT_EXT_STEM1;
 
-%include  <ViennaRNA/constraints.h>
 
 %constant unsigned int CONSTRAINT_DB            = VRNA_CONSTRAINT_DB;
 %constant unsigned int CONSTRAINT_DB_ENFORCE_BP = VRNA_CONSTRAINT_DB_ENFORCE_BP;
@@ -48,10 +56,8 @@
 %constant int CONSTRAINT_CONTEXT_NO_REMOVE    = (int)VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
 %constant int CONSTRAINT_CONTEXT_ALL_LOOPS    = (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
-%include  <ViennaRNA/constraints_hard.h>
 
-%include  <ViennaRNA/constraints_soft.h>
 
-%include  <ViennaRNA/constraints_SHAPE.h>
 
-%include  <ViennaRNA/ligand.h>
+%include  <ViennaRNA/constraints.h>
+

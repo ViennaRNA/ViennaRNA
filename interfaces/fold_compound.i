@@ -83,93 +83,11 @@ typedef struct {} vrna_fold_compound_t;
 	  return $self->length;
   }
 
-  
-  /*##############
-   * from MFE.h
-	###########*/
-  
-  char *mfe(float *OUTPUT){
-    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
-    *OUTPUT = vrna_mfe($self, structure);
-    return structure;
-  }
-  /*MFE for 2 RNA strands*/
-  char *mfe_dimer(float *OUTPUT){
-    char *structure = (char*)vrna_alloc(sizeof(char) * ($self->length + 1));
-    *OUTPUT = vrna_mfe_dimer($self, structure);
-    return structure;
-  }
-  
-  float mfe_window(FILE *file=NULL)
-  {
-	  return vrna_mfe_window($self,file);
-  }
-  
-  /*ONLY possible if USE_SVM is set
-  float mfe_window_zscore(double min_z,FILE *file=NULL)
-  {
-	  return vrna_mfe_window_zscore($self,min_z,file);
-  }*/
-  
-   /*##############
-   * from eval.h
-	###########*/
-  
-  
-  float eval_structure(const char *structure){
-	  return vrna_eval_structure($self,structure);
-  }
-  /*calculate MFE of given pairtable*/
-  float eval_structure_pt(std::vector<int> pt)
-  {
-	  std::vector<short> vc;
-	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
-	  return vrna_eval_structure_pt($self,(const short*)&vc[0]);
-  }
-  
-  
-  /*MFE of given structure, but now with different FileHandler for verbose, NULL = STDOUT*/
-  float eval_structure_verbose(char *structure, FILE *file)
-  {
-	  return vrna_eval_structure_verbose($self,structure,file);
-  }
-  
- /*MFE of given pairtable, with different FileHandler for verbose, Default value = NULL + STDOUT*/
-  float eval_structure_pt_verbose(std::vector<int> pt, FILE *file)
-  {
-	  std::vector<short> vc;
-	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
-	  return vrna_eval_structure_pt_verbose($self,(const short*)&vc[0],file);
-  }
-  
-  /*returns the energy for a structure to a given set of alignment sequences*/
-  float eval_covar_structure2(char * structure)
-  {    
-	  return vrna_eval_covar_structure($self, structure);
-  }
-  
 
   
-  /*returns the energy of a loop specified by i to pt[i]*/
-  float eval_loop_pt(int i, std::vector<int> pt)
-  {
-	  std::vector<short> vc;
-	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
-	  return vrna_eval_loop_pt($self,i,(const short*)&vc[0]);
-  }
   
-  /*returns the energy change by introducing a move on a given structure*/
-  float eval_move(const char *structure,int m1, int m2)
-  {
-	  return vrna_eval_move($self,structure,m1,m2);
-  }
-  /*returns the energy change by introducing a move on a given pairtable*/
-  float eval_move_pt(std::vector<int> pt,int m1, int m2)
-  {
-	  std::vector<short> vc;
-	  transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
-	  return vrna_eval_move_pt($self,((short*)&vc[0]),m1,m2);   /*attention here no cosnt short* as argument*/
-  }
+  
+  
   
 
   
@@ -177,251 +95,99 @@ typedef struct {} vrna_fold_compound_t;
 in centroid.h
 ######*/
   
-  /*calculates the centroid structure for alignment, and the distance to it 
-   NOT working because of segmentation fault
-  double centroid(char *OUTPUT)
+
+  char *centroid(double *OUTPUT)
   {
-	  std::cout << $self->length <<"\n" << $self->type << "\n" ;
-	  double dist;
-	  OUTPUT = vrna_centroid($self,&dist);
-	  return dist;
-  }*/
-
-
-  
-
-  /*##########
-   from constraints.h
-################*/
-  
-  void constraints_add(const char *constraint, unsigned int options=VRNA_OPTION_MFE)
-  {
-	  vrna_constraints_add($self,constraint, options);
-  }
-  
-  /*##########
-   from constraints_hard.h
-################*/
-  void hc_init()
-  {
-	  vrna_hc_init($self);
-  }
-  /*Make a certain nucleotide unpaired*/
-  void hc_add_up(int i, char option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
-  {
-	  vrna_hc_add_up($self,i,option);
-  }
-  /*Enforce a nucleotide to be paired (upstream/downstream)*/
-  void hc_add_bp_nonspecific(int i, int d, char option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
-  {
-	  vrna_hc_add_bp_nonspecific($self,i,d,option);
-  }
-  
-  /*Favorize/Enforce  a certain base pair (i,j)*/
-  void hc_add_bp(int i, int j, char option= VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
-  {
-	  vrna_hc_add_bp($self,i,j,option);
-  } 
-  
-  
-  int hc_add_from_db(const char *constraint, unsigned int options=VRNA_CONSTRAINT_DB_DEFAULT)
-  {
-	  return vrna_hc_add_from_db($self,constraint,options);
-  }
-  
-  /*##########
-   from end constraints_hard.h
-################*/
-  
-  /*##########
-   from constraints_soft.h
-################*/
-  void sc_remove()
-  {
-	  vrna_sc_remove($self);
-  }
-  void sc_init()
-  {
-	  vrna_sc_init($self);
-  }
-  
-  
-  /*not abel to use double vector multidimensional, not recognized
-  void sc_add_bp(std::vector<std::vector<int>> constraints,unsigned int options=VRNA_OPTION_MFE)
-  {
-	  std::cout <<"geht";
-  }*/
-  
-
-
- void sc_add_up(std::vector<FLT_OR_DBL> constraint,unsigned int options=VRNA_OPTION_MFE)
- {
-	vrna_sc_add_up($self, (const FLT_OR_DBL *)&constraint[0], options);
- }
-
-  
-  #ifdef SWIGPYTHON
-  void add_auxdata(PyObject *data, PyObject *free_data){
-    fc_add_pydata($self, data, free_data);
+	  return vrna_centroid($self,OUTPUT);
   }
 
-  void add_callback(PyObject *PyFunc){
-    fc_add_pycallback($self, PyFunc);
-  }
-
-  void sc_add_data(PyObject *data, PyObject *free_data){
-    sc_add_pydata($self, data, free_data);
-  }
   
-  void sc_add_f(PyObject *PyFunc){
-    sc_add_f_pycallback($self, PyFunc);
-  }
-
-  void sc_add_exp_f(PyObject *PyFunc){
-    sc_add_exp_f_pycallback($self, PyFunc);
-  }
-
-#endif
-
-#ifdef SWIGPERL5
-  void add_auxdata(SV *data, SV *free_data){
-    fc_add_perl_data($self, data, free_data);
-  }
-
-  void add_callback(SV *PerlFunc){
-    fc_add_perl_callback($self, PerlFunc);
-  }
-
-  void sc_add_data(SV *data, SV *free_data){
-    sc_add_perl_data($self, data, free_data);
-  }
-  
-  void sc_add_f(SV *PerlFunc){
-    sc_add_f_perl_callback($self, PerlFunc);
-  }
-
-  void sc_add_exp_f(SV *PerlFunc){
-    sc_add_exp_f_perl_callback($self, PerlFunc);
-  }
-
-#endif
 
 
   
-  /*##########
-   end constraints_soft.h
-################*/
   
-  /*##########
-   from constraints_SHAPE.h
-################*/
-  
-  int sc_add_SHAPE_deigan(std::vector<double> reactivities, double m, double b, unsigned int options=VRNA_OPTION_MFE)
-  {
-	 
-	return vrna_sc_add_SHAPE_deigan($self,(const double *)&reactivities[0],m,b,options);
-	  
-  }
-  
-  
-
-int sc_add_SHAPE_deigan_ali(std::vector<string> shape_files,
-                                  std::vector<int> shape_file_association,
-                                  double m,
-                                  double b,
-                                  unsigned int options=VRNA_OPTION_MFE)
-{
-	std::vector<const char*>  vc;
-	transform(shape_files.begin(), shape_files.end(), back_inserter(vc), convert_vecstring2veccharcp);
-	vc.push_back(NULL); /* mark end of vector */
-	return vrna_sc_add_SHAPE_deigan_ali($self,(const char **) &vc[0], (const int *) &shape_file_association[0],m,b,options);
-}
-
- 
-int sc_add_SHAPE_zarringhalam(std::vector<double> reactivities, double b, double default_value, const char * shape_conversion,unsigned int options=VRNA_OPTION_MFE)
-{
-	return vrna_sc_add_SHAPE_zarringhalam($self,(const double *) &reactivities[0],b,default_value,shape_conversion,options);
-}
-
-  /*##########
-   end constraints_SHAPE.h
-################*/
-  /*##########
-   end constraints.h
-################*/
-	
-  /*##########
-   from ligand.h
-################*/
-
-int sc_add_hi_motif(const char *seq,
-                      const char *structure,
-                      FLT_OR_DBL energy,
-                      unsigned int options=VRNA_OPTION_MFE)
-{
-	return vrna_sc_add_hi_motif($self,seq,structure,energy,options);
-}
-
-
-/* return 1 or 0 if success and the base positions in a given structure if the given motif was found
-%apply int *OUTPUT {int *i, int *j, int *k, int *l};  /* HERE more return parameters are defined
-int sc_detect_hi_motif(const char *structure,
-                        int *i,
-                        int *j,
-                        int *k,
-                        int *l)*/
-//   int sc_detect_hi_motif(const char *structure)                      
-// {
-// 	
-// 	
-// 	int ret = vrna_sc_detect_hi_motif($self,structure,&i,&j,&k,&l);
-// 	
-// 	return ret;
-// }
-
-
-
-/* return 1 or 0 if success and the base positions in a givens tructure if the given motif was found*/
-// %apply int *OUTPUT {int *i, int *j, int *k, int *l};  /* HERE more return parameters are defined*/
-// int sc_get_hi_motif(    int *i,
-//                         int *j,
-//                         int *k,
-//                         int *l)
-// {
-// 	
-// 	int ret =  vrna_sc_get_hi_motif($self,i,j,k,l);
-// 	return ret;
-// }
-  /*##########
-   end ligands.h
-################*/
-
-  
-    /*##########
-   from part_func.h
-################*/
-
-  
-  
-char *pf(float *OUTPUT)
-{
-	char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1)); /*output is a structure pointer*/
-	
-	*OUTPUT= vrna_pf($self, structure);
-	
-	return structure;
-}
-
- 
- double mean_bp_distance()
- {
-	 return vrna_mean_bp_distance($self);
- }
 
 
 /*##########
-   end part_func.h
+   from hairpin_loops.h
 ################*/
+
+
+ 
+
+ int E_hp_loop(int i, int j)
+ {
+	 return vrna_E_hp_loop($self,i,j);
+ }
+ int E_ext_hp_loop(int i, int j)
+ {
+	 return vrna_E_ext_hp_loop($self, i,j);
+ }
+ FLT_OR_DBL exp_E_hp_loop(int i, int j)
+ {
+	 return vrna_exp_E_hp_loop($self, i, j);
+ }
+
+// 
+/*##########
+   end hairpin_loops.h
+################*/
+
+
+/*##########
+   from interior_loops.h
+################*/
+
+
+int E_int_loop(int i, int j)
+{
+	return vrna_E_int_loop($self,i,j);
+}
+
+
+FLT_OR_DBL exp_E_int_loop(int i, int j)
+{
+	return vrna_exp_E_int_loop($self,i,j);
+}
+
+/*int E_ext_int_loop(int i, int j, 
+
+int
+vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    int *ip,
+                    int *iq);
+*/
+
+int E_stack(int i, int j)
+{
+	vrna_E_stack($self,i,j);
+}
+
+
+/*int
+vrna_BT_stack(vrna_fold_compound_t *vc,
+              int *i,
+              int *j,
+              int *en,
+              vrna_bp_stack_t *bp_stack,
+              int *stack_count);
+
+int
+vrna_BT_int_loop( vrna_fold_compound_t *vc,
+                  int *i,
+                  int *j,
+                  int en,
+                  vrna_bp_stack_t *bp_stack,
+                  int *stack_count);
+*/
+
+/*##########
+   end interior_loops.h
+################*/
+
+
 
 }
 
