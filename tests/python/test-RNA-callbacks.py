@@ -10,12 +10,14 @@ a = RNA.fold_compound("GGGGAAAACCCC")
 b = { 'test': "something" }
 c = { 'what' : "theheck" }
 
+
 def bla(d, data=None):
     if d == RNA.STATUS_MFE_PRE:
         print "about to start MFE recursions\n"
     if d == RNA.STATUS_MFE_POST:
         print "finished MFE recursions\n"
     print data
+
 
 def blubb(i,j,k,l,d,data=None):
     if d == RNA.DECOMP_PAIR_HP:
@@ -25,6 +27,7 @@ def blubb(i,j,k,l,d,data=None):
         return -1000
 
     return 0
+
 
 def bt(i,j,k,l,d,data=None):
     """

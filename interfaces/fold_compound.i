@@ -21,7 +21,6 @@
 %include callbacks-fc.i
 %include callbacks-sc.i
 
-
 /* start constructing a sane interface to vrna_fold_compound_t */
 
 %rename(fc_type) vrna_fc_type_e;
@@ -33,42 +32,41 @@
 %nodefaultctor vrna_fold_compound_t;
 %nodefaultdtor vrna_fold_compound_t;
 
-
 /* hide all attributes in vrna_fold_compound_t */
 typedef struct {} vrna_fold_compound_t;
-
-
-/* scripting language takes ownership of objects returned by mfe() method */
-%newobject vrna_fold_compound_t::mfe;
-%newobject vrna_fold_compound_t::pt_test;
-%newobject vrna_fold_compound_t::eval_covar_structure;
-%newobject vrna_fold_compound_t::centroid;
-%newobject vrna_fold_compound_t::eval_structure_pt;
 
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
 
-	  
   /* the default constructor, *md and option are optional, for single sequences*/
-  vrna_fold_compound_t(const char *sequence, vrna_md_t *md=NULL, unsigned int options=VRNA_OPTION_MFE){
+  vrna_fold_compound_t( const char *sequence,
+                        vrna_md_t *md=NULL,
+                        unsigned int options=VRNA_OPTION_DEFAULT){
+
     return vrna_fold_compound(sequence, md, options);
   }
-   /*the constructor for alignments, *md and options are optional  */
-   vrna_fold_compound_t(std::vector<string> alignment, vrna_md_t *md=NULL, unsigned int options=VRNA_OPTION_MFE)
-   {
-	   std::vector<const char*>  vc;
-	   transform(alignment.begin(), alignment.end(), back_inserter(vc), convert_vecstring2veccharcp);
-	   vc.push_back(NULL); /* mark end of sequences */
-	   return vrna_fold_compound_comparative((const char **)&vc[0], md, options);
+
+  /*the constructor for alignments, *md and options are optional  */
+  vrna_fold_compound_t( std::vector<string> alignment,
+                        vrna_md_t *md=NULL,
+                        unsigned int options=VRNA_OPTION_DEFAULT){
+
+    std::vector<const char*>  vc;
+    transform(alignment.begin(), alignment.end(), back_inserter(vc), convert_vecstring2veccharcp);
+    vc.push_back(NULL); /* mark end of sequences */
+    return vrna_fold_compound_comparative((const char **)&vc[0], md, options);
   }
+
   /* constructor for distance class partitioning, *md and options are, for single sequences*/
-  vrna_fold_compound_t(const char *sequence,char *s1,char *s2, vrna_md_t *md=NULL, unsigned int options=VRNA_OPTION_MFE)
-  {
+  vrna_fold_compound_t( const char *sequence,
+                        char *s1,
+                        char *s2,
+                        vrna_md_t *md=NULL,
+                        unsigned int options=VRNA_OPTION_DEFAULT){
+
     return vrna_fold_compound_TwoD(sequence,s1,s2, md, options);
   }
-  
-  
-  
+
   ~vrna_fold_compound_t(){
     vrna_fold_compound_free($self);
   }
@@ -78,77 +76,48 @@ typedef struct {} vrna_fold_compound_t;
     return $self->type;
   }
   
-  unsigned int length()
-  {
-	  return $self->length;
+  unsigned int length(){
+    return $self->length;
   }
 
+  /*  ################
+      # in centroid.h
+      ################
+  */
 
-  
-  
-  
-  
-  
-
-  
-/*####
-in centroid.h
-######*/
-  
-
-  char *centroid(double *OUTPUT)
-  {
-	  return vrna_centroid($self,OUTPUT);
+  char *centroid(double *OUTPUT){
+    return vrna_centroid($self,OUTPUT);
   }
 
-  
+  /*  ################
+      # from hairpin_loops.h
+      ################
+  */
 
+  int E_hp_loop(int i, int j){
+    return vrna_E_hp_loop($self,i,j);
+  }
 
-  
-  
+  int E_ext_hp_loop(int i, int j){
+    return vrna_E_ext_hp_loop($self, i,j);
+  }
 
+  FLT_OR_DBL exp_E_hp_loop(int i, int j){
+    return vrna_exp_E_hp_loop($self, i, j);
+  }
 
-/*##########
-   from hairpin_loops.h
-################*/
+  /*  ################
+      # from interior_loops.h
+      ################
+  */
 
+  int E_int_loop(int i, int j){
+    return vrna_E_int_loop($self,i,j);
+  }
 
- 
-
- int E_hp_loop(int i, int j)
- {
-	 return vrna_E_hp_loop($self,i,j);
- }
- int E_ext_hp_loop(int i, int j)
- {
-	 return vrna_E_ext_hp_loop($self, i,j);
- }
- FLT_OR_DBL exp_E_hp_loop(int i, int j)
- {
-	 return vrna_exp_E_hp_loop($self, i, j);
- }
-
-// 
-/*##########
-   end hairpin_loops.h
-################*/
-
-
-/*##########
-   from interior_loops.h
-################*/
-
-
-int E_int_loop(int i, int j)
-{
-	return vrna_E_int_loop($self,i,j);
-}
-
-
-FLT_OR_DBL exp_E_int_loop(int i, int j)
-{
-	return vrna_exp_E_int_loop($self,i,j);
-}
+  FLT_OR_DBL exp_E_int_loop(int i, int j){
+    return vrna_exp_E_int_loop($self,i,j);
+  }
 
 /*int E_ext_int_loop(int i, int j, 
 
@@ -162,7 +131,7 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
 
 int E_stack(int i, int j)
 {
-	vrna_E_stack($self,i,j);
+        vrna_E_stack($self,i,j);
 }
 
 
@@ -191,6 +160,8 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
 
 }
 
+%newobject vrna_fold_compound_t::centroid;
+
 
 /*
  *  Rename all the preprocessor macros defined in data_structures.h
@@ -216,5 +187,3 @@ typedef struct {
 } vrna_basepair_t;
 
 %include <ViennaRNA/data_structures.h>
-
-

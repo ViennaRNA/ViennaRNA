@@ -100,6 +100,7 @@ namespace std {
   %template(ConstCharVector) std::vector<const char*>;
   %template(SOLUTIONVector) std::vector<SOLUTION>;
   %template(CoordinateVector) std::vector<COORDINATE>;
+  %template(DoubleVectorVector) std::vector<std::vector<double> >;
 };
 
 %{
@@ -116,11 +117,14 @@ namespace std {
     return pc;
   }
   
-  short convert_vecint2vecshort(const int & i)
-  {
-	  return (short) i;
+  short convert_vecint2vecshort(const int & i){
+    return (short) i;
   }
-  
+
+  FLT_OR_DBL convert_vecdbl2vecFLR_OR_DBL(const double & d){
+    return (FLT_OR_DBL) d;
+  }
+
 %}
 
 //%title "Interface to the Vienna RNA library"
@@ -177,9 +181,11 @@ namespace std {
 
 %include  <ViennaRNA/fold_vars.h>
 %extend bondT {
-	bondT *get(int i) {
-	   return self+i;
-	}
+
+  bondT *get(int i) {
+
+    return self+i;
+  }
 }
 
 

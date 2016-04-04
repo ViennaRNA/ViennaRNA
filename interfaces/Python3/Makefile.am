@@ -69,7 +69,6 @@ RNA/_RNA$(PYTHON3_SO): _RNA.la
 	. ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON3_SO) RNA
 	rm -f libtoolconfig.tmp
 
-
 CLEANFILES = \
     RNA/_RNA$(PYTHON3_SO) \
     RNA/__init__.py \

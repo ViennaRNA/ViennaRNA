@@ -5,11 +5,11 @@
 %extend vrna_fold_compound_t {
 
 int sc_add_hi_motif(const char *seq,
-                      const char *structure,
-                      FLT_OR_DBL energy,
-                      unsigned int options=VRNA_OPTION_MFE)
-{
-	return vrna_sc_add_hi_motif($self,seq,structure,energy,options);
+                    const char *structure,
+                    FLT_OR_DBL energy,
+                    unsigned int options=VRNA_OPTION_DEFAULT){
+
+  return vrna_sc_add_hi_motif($self,seq,structure,energy,options);
 }
 
 
@@ -22,11 +22,11 @@ int sc_detect_hi_motif(const char *structure,
                         int *l)*/
 //   int sc_detect_hi_motif(const char *structure)                      
 // {
-// 	
-// 	
-// 	int ret = vrna_sc_detect_hi_motif($self,structure,&i,&j,&k,&l);
-// 	
-// 	return ret;
+//         
+//         
+//         int ret = vrna_sc_detect_hi_motif($self,structure,&i,&j,&k,&l);
+//         
+//         return ret;
 // }
 
 
@@ -38,13 +38,11 @@ int sc_detect_hi_motif(const char *structure,
 //                         int *k,
 //                         int *l)
 // {
-// 	
-// 	int ret =  vrna_sc_get_hi_motif($self,i,j,k,l);
-// 	return ret;
+//         
+//         int ret =  vrna_sc_get_hi_motif($self,i,j,k,l);
+//         return ret;
 // }
 
 }
-
-
 
 %include  <ViennaRNA/ligand.h>

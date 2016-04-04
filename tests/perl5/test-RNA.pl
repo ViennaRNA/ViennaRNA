@@ -17,10 +17,6 @@ use warnings;
 # (correspondingly "not ok 13") depending on the success of chunk 13
 # of the test code):
 
-
-
-
-
 my $seq1  ="CGCAGGGAUACCCGCG";
 my $struc1="(((.(((...))))))";
 my $seq2  ="GCGCCCAUAGGGACGC";
@@ -247,10 +243,6 @@ ok($ss eq $struc1);
 
 undef $fc;
 
-
-
-
-
 # test theophylline ligand binding interface
 $RNA::noLonelyPairs = 0;
 $fc = new RNA::fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG");
@@ -266,7 +258,6 @@ $fc->sc_remove();
 $fc->sc_add_hi_motif("GAAAAAU", "(.....)", -19);
 ($ss, $mfe) = $fc->mfe();
 printf "%s [ %6.2f ]\n", $ss, $mfe;
-
 
 undef $fc;
 

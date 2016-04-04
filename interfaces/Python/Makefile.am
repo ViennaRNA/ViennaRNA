@@ -61,11 +61,6 @@ RNA/_RNA$(PYTHON2_SO): _RNA.la
 	. ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON2_SO) RNA
 	rm -f libtoolconfig.tmp
 
-
-        
-
-
-
 clean-local:
 	-rm -rf RNA
 
