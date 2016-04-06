@@ -162,18 +162,32 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual("%6.2f" %mfeNew,"%6.2f" % -7.5)
 
 
-    #def test_sc_add_SHAPE_deigan(self):
-        #print "test_sc_add_SHAPE_deigan"
-        #seq_ribo  =      getShapeSequenceFromFile("data/TPP_riboswitch_E.coli.db")
-        #reactivities = getShapeDataFromFile("data/TPP_riboswitch_E.coli.shape_2rows")
+    def test_sc_add_deigan(self):
+        print "test_sc_add_deigan";
+        seq  =  getShapeSequenceFromFile("data/Lysine_riboswitch_T._martima.db");
+        reactivities = getShapeDataFromFile("data/Lysine_riboswitch_T._martima.shape_2rows");
 
-        #fc=RNA.fold_compound(seq_ribo)
-        #print reactivities
+        fc=RNA.fold_compound(seq);
+        print reactivities;
 
-        #ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_MFE);  # these values were copied from ronnys Talk about constraints
-        #(ss,mfe) = fc.mfe()
-        #print ss, "[ %6.2f" %mfe ,"]\n"
-        #self.assertEqual("%6.2f" %mfe,"%6.2f" % -52.54 )
+        ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_MFE);
+        (ss,mfe) = fc.mfe();
+        print ss, "[ %6.4f" %mfe ,"]\n";
+        self.assertEqual("%6.4f" %mfe,"%6.4f" % -121.2400 );
+
+
+    def test_sc_add_SHAPE_deigan2(self):
+        print "test_sc_add_SHAPE_deigan2";
+        seq_ribo  = getShapeSequenceFromFile("data/TPP_riboswitch_E.coli.db");
+        reactivities = getShapeDataFromFile("data/TPP_riboswitch_E.coli.shape_2rows");
+
+        fc=RNA.fold_compound(seq_ribo);
+        print reactivities;
+
+        ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_MFE);  # these values were copied from ronnys Talk about constraints
+        (ss,mfe) = fc.mfe();
+        print ss, "[ %6.2f" %mfe ,"]\n";
+        self.assertEqual("%6.2f" %mfe,"%6.2f" % -52.54 );
 
 
     # I just added completely randomly choosen sequences and shape data, this test only checks if the function can be called, not if it results correct results.
@@ -192,18 +206,6 @@ class constraintsTest(unittest.TestCase):
         (ss,mfe) = fc.mfe()
         print ss, "[ %6.2f" %mfe ,"]\n"
         self.assertEqual(ret,1)
-
-
-    # problem occurs if zero is passed as shape data, result differs of about 0.1 range???????
-    #def test_SHAPETEST(self):
-        #print "SEPP"
-        #seq1 = "CCCAAAAGGG"
-        #react = getShapeDataFromFile("data/test.shape_2rows")
-        #fc=RNA.fold_compound(seq1)
-        #ret = fc.sc_add_SHAPE_deigan(react,1.9,-0.7,RNA.OPTION_MFE);  # these values were copied from ronnys Talk about constraints
-        #(ss,mfe) = fc.mfe()
-        #print ss, "[ %6.4f" %mfe ,"]\n"
-        #self.assertEqual("%6.4f" %mfe,"%6.4f" % -7.1300 )
 
 
     #def test_sc_add_SHAPE_zarringhalam(self):
