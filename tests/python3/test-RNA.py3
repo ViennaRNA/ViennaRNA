@@ -104,7 +104,7 @@ class FoldCompoundTest(unittest.TestCase):
         #    "123456789012"
         seq1 =  "AGACAAAAGACA"
         struct1=".(.(....).)."
-        fc=RNA.fold_compound(seq1)
+        fc=RNA.fold_compound(seq1, None, RNA.OPTION_MFE)
         e = fc.E_int_loop(2,11)
         print(seq1, " 2,7  = [ %6.2f" %e ,"] \n")
         self.assertEqual("%6.2f" %e,"%6.2f" % +80)

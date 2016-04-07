@@ -143,7 +143,7 @@ class constraintsTest(unittest.TestCase):
         m = [
         [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
         [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0.0,0.0],
+        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
         [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-5.0,0.0],
         [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
         [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
@@ -151,7 +151,7 @@ class constraintsTest(unittest.TestCase):
         [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
         [0.0,0.0,-5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
         [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]];
+        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]]
 
         seq_sc  =      "CCCAAAAGGG"
         fc = RNA.fold_compound(seq_sc)
@@ -163,31 +163,31 @@ class constraintsTest(unittest.TestCase):
 
 
     def test_sc_add_deigan(self):
-        print "test_sc_add_deigan";
-        seq  =  getShapeSequenceFromFile("data/Lysine_riboswitch_T._martima.db");
-        reactivities = getShapeDataFromFile("data/Lysine_riboswitch_T._martima.shape_2rows");
+        print "test_sc_add_deigan"
+        seq  =  getShapeSequenceFromFile("data/Lysine_riboswitch_T._martima.db")
+        reactivities = getShapeDataFromFile("data/Lysine_riboswitch_T._martima.shape_2rows")
 
-        fc=RNA.fold_compound(seq);
-        print reactivities;
+        fc=RNA.fold_compound(seq)
+        print reactivities
 
-        ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_MFE);
-        (ss,mfe) = fc.mfe();
-        print ss, "[ %6.4f" %mfe ,"]\n";
-        self.assertEqual("%6.4f" %mfe,"%6.4f" % -121.2400 );
+        ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_DEFAULT)
+        (ss,mfe) = fc.mfe()
+        print ss, "[ %6.4f" %mfe ,"]\n"
+        self.assertEqual("%6.4f" %mfe,"%6.4f" % -121.55 )
 
 
     def test_sc_add_SHAPE_deigan2(self):
-        print "test_sc_add_SHAPE_deigan2";
-        seq_ribo  = getShapeSequenceFromFile("data/TPP_riboswitch_E.coli.db");
-        reactivities = getShapeDataFromFile("data/TPP_riboswitch_E.coli.shape_2rows");
+        print "test_sc_add_SHAPE_deigan2"
+        seq_ribo  = getShapeSequenceFromFile("data/TPP_riboswitch_E.coli.db")
+        reactivities = getShapeDataFromFile("data/TPP_riboswitch_E.coli.shape_2rows")
 
-        fc=RNA.fold_compound(seq_ribo);
-        print reactivities;
+        fc=RNA.fold_compound(seq_ribo)
+        print reactivities
 
-        ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_MFE);  # these values were copied from ronnys Talk about constraints
-        (ss,mfe) = fc.mfe();
-        print ss, "[ %6.2f" %mfe ,"]\n";
-        self.assertEqual("%6.2f" %mfe,"%6.2f" % -52.54 );
+        ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_DEFAULT);  # these values were copied from ronnys Talk about constraints
+        (ss,mfe) = fc.mfe()
+        print ss, "[ %6.2f" %mfe ,"]\n"
+        self.assertEqual("%6.2f" %mfe,"%6.2f" % -52.61 )
 
 
     # I just added completely randomly choosen sequences and shape data, this test only checks if the function can be called, not if it results correct results.

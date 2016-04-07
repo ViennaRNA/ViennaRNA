@@ -39,7 +39,6 @@ class FoldCompoundTest(unittest.TestCase):
         self.assertTrue(fc)
 
 
-
     ###centroid.h
     def test_centroid(self):
         print "test_centroid\n"
@@ -50,9 +49,7 @@ class FoldCompoundTest(unittest.TestCase):
         self.assertTrue(sc and dist)
 
 
-
     ## partition function from here
-
     def test_pf(self):
         print "test_pf"
         fc= RNA.fold_compound(seq1)
@@ -65,7 +62,6 @@ class FoldCompoundTest(unittest.TestCase):
 
 
     # hairpin_loops.h from here
-
     def test_eval_hp_loop(self):
         print "test_eval_hp_loop"
         seq1  =      "GCAAAAGG"
@@ -101,8 +97,8 @@ class FoldCompoundTest(unittest.TestCase):
         #print seq1, " 2,7  = [ %6.2f" %ehair ,"] \n"
         #self.assertEqual("%6.2f" %ehair,"%6.2f" % +410)
 
-    #interior_loops.h from here
 
+    #interior_loops.h from here
     def test_E_int_loop(self):
         print "test_E_int_loop"
         #    "123456789012"
@@ -112,6 +108,7 @@ class FoldCompoundTest(unittest.TestCase):
         e = fc.E_int_loop(2,11)
         print seq1, " 2,7  = [ %6.2f" %e ,"] \n"
         self.assertEqual("%6.2f" %e,"%6.2f" % +80)
+
 
 if __name__ == '__main__':
     unittest.main()
