@@ -47,7 +47,7 @@ typedef struct {} vrna_fold_compound_t;
   }
 
   /*the constructor for alignments, *md and options are optional  */
-  vrna_fold_compound_t( std::vector<string> alignment,
+  vrna_fold_compound_t( std::vector<std::string> alignment,
                         vrna_md_t *md=NULL,
                         unsigned int options=VRNA_OPTION_DEFAULT){
 

@@ -327,7 +327,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
         pseudo_energies = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
         for(gaps = cnt = 0, i = 1; i<=vc->length; i++){
           is_gap  = (vc->sequences[ss][i-1] == '-') ? 1 : 0;
-          energy  = ((i - gaps > 0) && !(is_gap)) ? (int)(reactivities[i - gaps] * 100.) : 0;
+          energy  = ((i - gaps > 0) && !(is_gap)) ? (int)roundf(reactivities[i - gaps] * 100.) : 0;
 
           if(vc->params->model_details.oldAliEn){
             pseudo_energies[i] = energy;
@@ -461,7 +461,7 @@ sc_add_stack_en_mfe(vrna_fold_compound_t *vc,
     vc->sc->energy_stack = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
 
   for(i = 1; i <= vc->length; ++i)
-    vc->sc->energy_stack[i] += (int)(constraints[i] * 100.);
+    vc->sc->energy_stack[i] = (int)roundf(constraints[i] * 100.);
 }
 
 PRIVATE void

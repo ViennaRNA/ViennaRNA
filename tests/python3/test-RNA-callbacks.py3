@@ -17,6 +17,7 @@ def bla(d, data=None):
         print("finished MFE recursions\n")
     print(data)
 
+
 def blubb(i,j,k,l,d,data=None):
     if d == RNA.DECOMP_PAIR_HP:
         """
@@ -34,4 +35,4 @@ a.sc_add_f(blubb)
 print(s, " ", mfe)
 
 if __name__ == '__main__':
-    unittest.main();
+    unittest.main()

@@ -273,7 +273,7 @@ sc_add_bp(vrna_fold_compound_t *vc,
   idx = vc->jindx;
   for(i = 1; i < n; i++)
     for(j=i+1; j<=n; j++)
-      sc->energy_bp[idx[j]+i] = (int)(constraints[i][j] * 100.);
+      sc->energy_bp[idx[j]+i] = (int)roundf(constraints[i][j] * 100.);
 
 }
 
@@ -311,7 +311,7 @@ sc_add_up(vrna_fold_compound_t *vc,
     for(i = 1; i <= n; i++){
       for(j = 1; j <= (n - i + 1); j++){
         sc->energy_up[i][j] =   sc->energy_up[i][j-1]
-                                  + (int)(constraints[i+j-1] * 100); /* convert to 10kal/mol */
+                                  + (int)roundf(constraints[i+j-1] * 100.); /* convert to 10kal/mol */
       }
     }
   }

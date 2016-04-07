@@ -101,7 +101,8 @@ namespace std {
   %template(ConstCharVector) std::vector<const char*>;
   %template(SOLUTIONVector) std::vector<SOLUTION>;
   %template(CoordinateVector) std::vector<COORDINATE>;
-  %template(DoubleVectorVector) std::vector<std::vector<double> >;
+  %template(DoubleDoubleVector) std::vector< std::vector<double> > ;
+  %template(IntIntVector) std::vector<std::vector<int> > ;
 };
 
 %{
