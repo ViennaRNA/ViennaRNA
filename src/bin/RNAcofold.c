@@ -459,7 +459,7 @@ int main(int argc, char *argv[])
                AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB);
 
         if (doC) {
-          vrna_pf_dimer_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB, vc->exp_params);
+          do_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB, vc->exp_params);
           free(ConcAandB);/*freeen*/
         }
 
