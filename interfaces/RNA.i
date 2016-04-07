@@ -48,6 +48,7 @@ extern "C" {
 #include  <ViennaRNA/ligand.h>
 #include  <ViennaRNA/hairpin_loops.h>
 #include  <ViennaRNA/interior_loops.h>
+#include  <ViennaRNA/file_formats.h>
 }
 
 %}
@@ -158,6 +159,7 @@ namespace std {
 %include subopt.i
 %include inverse.i
 %include compare.i
+%include file_formats.i
 
 /**********************************************/
 /* BEGIN interface for data structures        */

@@ -15,6 +15,7 @@ SOURCES = RNA.i \
           plotting.i \
           subopt.i \
           utils.i \
+          file_formats.i \
           ptr2array.i \
           generic.mk
 
@@ -31,6 +32,7 @@ EXTRA_DIST =  RNA.i \
               plotting.i \
               subopt.i \
               utils.i \
+              file_formats.i \
               ptr2array.i \
               generic.mk
 

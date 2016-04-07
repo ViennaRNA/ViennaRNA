@@ -20,7 +20,8 @@ SWIG_misc_src = \
   $(srcdir)/../part_func.i \
   $(srcdir)/../plotting.i \
   $(srcdir)/../subopt.i \
-  $(srcdir)/../utils.i
+  $(srcdir)/../utils.i \
+  $(srcdir)/../file_formats.i
 
 SWIG_module_name = RNA
 
