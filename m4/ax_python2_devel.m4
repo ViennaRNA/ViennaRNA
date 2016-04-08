@@ -3,12 +3,12 @@ AC_DEFUN([AX_PYTHON2_DEVEL],[
 
     # (AM_PATH_PYTHON) cannot be used for multiple Python version at once
     if test -z "$PYTHON2" ; then
-      AC_PATH_PROGS([PYTHON2], [python2 python2.7], [no])
+      AC_PATH_PROGS([PYTHON2], [python2 python2.7 python2.6], [no])
     fi
     AC_ARG_VAR(PYTHON2, [Path to Python2 interpreter])
 
     if test "${PYTHON2}" != "no" ; then
-      AC_PATH_PROGS([PYTHON2_CONFIG], [python2-config python2.7-config], [no])
+      AC_PATH_PROGS([PYTHON2_CONFIG], [python2-config python2.7-config python2.6-config], [no])
       if test "$PYTHON2_CONFIG" = "no"
       then
         AC_MSG_WARN([

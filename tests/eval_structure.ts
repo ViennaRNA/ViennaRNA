@@ -27,7 +27,7 @@
 
 
 
-typedef struct rnaStr 
+typedef struct rnaStr
 {
     char *sequence;
     char *structure;
@@ -53,11 +53,11 @@ typedef struct rnaStr
  *  (3,10) CG-CC TM         =                       -70
  *  (11,18) CG-GG TM        =                       -140
  *  930 + 3 * -90           =                       +660
- *   energyManuelMultiDangle2 =                     +350 
- 
+ *   energyManuelMultiDangle2 =                     +350
+
     Overal =                                        +400
  */
-    
+
     str.sequence=" ACCCAAAAGGCCAAAAGGGC";
     str.structure=".(((....))((....))).";
     str.dangle=2;
@@ -65,9 +65,9 @@ typedef struct rnaStr
 
     strList[count]=str;
     count++;
-    
+
     /*################################################
-     
+
      exterior (24,2) GC-AA TM    -110
      (4,11)CG-AU WC        -210
      (5,10)AU-AA TM        -80
@@ -76,7 +76,7 @@ typedef struct rnaStr
      (14,21)AU-CG WC        -220
      CG-AA TM            -150
      hairpin 4            560
-     
+
      Multiloop(Dangle 2)
     a  + b * branch
     930 + 3 * -90        = 660
@@ -88,7 +88,7 @@ typedef struct rnaStr
      Overall:            800
 
  */
-    
+
     str.sequence= "ACACAAAAAUGUUACAAAAGUCCGA";
     str.structure=".(.((....))..((....))..).";
     str.dangle=2;
@@ -96,7 +96,7 @@ typedef struct rnaStr
 
     strList[count]=str;
     count++;
-    
+
     /*################################################
      exterior (24,2) UA-AA TM    -100
      (24,2) AU closure         50
@@ -120,7 +120,7 @@ typedef struct rnaStr
      Overall:            960
 
  */
-    
+
     str.sequence= "AAACAAAAAUGUUACAAAAGUCCUA";
     str.structure=".(.((....))..((....))..).";
     str.dangle=2;
@@ -151,7 +151,7 @@ typedef struct rnaStr
      Overall:            960
 
  */
-    
+
     str.sequence= "AGACAAAAAUGUUACAAAAGUCCUA";
     str.structure=".(.((....))..((....))..).";
     str.dangle=2;
@@ -167,12 +167,12 @@ typedef struct rnaStr
  *  (11,18) same stack                              -330
  *  (12,17) same hairpin                            +410
  *                                                  +50
- *  Multiloop Dangle option 3             
+ *  Multiloop Dangle option 3
  *   (3,10),(11,18) GC-CG WC pair(flush coaxial) = -340
- *   930 + 3 * -90           =                     +660  
+ *   930 + 3 * -90           =                     +660
  *   energyManuelMultiDangle3                    = +320
     Overall=                                      +370*/
-    
+
     str.sequence="ACCCAAAAGGCCAAAAGGGC";
     str.structure=".(((....))((....))).";
     str.dangle=3;
@@ -181,7 +181,7 @@ typedef struct rnaStr
     strList[count]=str;
     count++;
     /*################################################
-     
+
      exterior  GC-AA TM        -110
      1.Branch
      (4,11)CG-AU WC        -210
@@ -209,7 +209,7 @@ typedef struct rnaStr
      Overall:            740
 
  */
-    
+
     str.sequence= "ACACAAAAAUGUUACAAAAGUCCAAAAGGCGA";
     str.structure=".(.((....))..((....))((....)).).";
     str.dangle=2;
@@ -219,8 +219,8 @@ typedef struct rnaStr
     count++;
     /*################################################*/
 
-    
-    
+
+
     str.sequence=" CAAAAAAG";
     str.structure="(......)";
     str.dangle=2;
@@ -228,7 +228,7 @@ typedef struct rnaStr
 
     strList[count]=str;
     count++;
-    
+
     /*################################################*/
     str.sequence=" CCAAAAAAGG";
     str.structure="((......))";
@@ -237,9 +237,9 @@ typedef struct rnaStr
 
     strList[count]=str;
     count++;
-    
+
     /*################################################*/
-    
+
     str.sequence=" CAAAAAAAUG";
     str.structure="((......))";
     str.dangle=2;
@@ -247,7 +247,7 @@ typedef struct rnaStr
 
     strList[count]=str;
     count++;
-    
+
     /*################################################*/
     str.sequence=" GAAAAAACCC";
     str.structure="(........)";
@@ -256,7 +256,7 @@ typedef struct rnaStr
 
     strList[count]=str;
     count++;
-    
+
     /*################################################*/
     str.sequence=" CACAAAAAAGAG";
     str.structure="(.(......).)";
@@ -266,8 +266,8 @@ typedef struct rnaStr
     strList[count]=str;
     count++;
     /*################################################*/
-    
-    
+
+
     str.sequence=" CAGCAAAAAAGAUG";
     str.structure="((.(......).))";
     str.dangle=2;
@@ -276,7 +276,7 @@ typedef struct rnaStr
     strList[count]=str;
     count++;
     /*################################################*/
-    
+
     str.sequence=" AGCAAAAAAGAU";
     str.structure="(.(......).)";
     str.dangle=2;
@@ -285,9 +285,9 @@ typedef struct rnaStr
     strList[count]=str;
     count++;
     /*################################################*/
-    
-    
-    
+
+
+
     str.sequence=" CUAAAAAAAUCAG";
     str.structure="(.(......)..)";
     str.dangle=2;
@@ -303,24 +303,28 @@ typedef struct rnaStr
 
     strList[count]=str;
     count++;
-    
+
      /*################################################*/
-    
+
 }
-    
-    
+
+
     char s[100]="";
     vrna_fold_compound_t *vc;
     short * pairtable;
-    for(int i=0;i< sizeof(strList)/sizeof(strList[0]);i++)
+    int i;
+    for(i=0;i< sizeof(strList)/sizeof(strList[0]);i++)
     {
         vc = vrna_fold_compound(strList[i].sequence, NULL, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
         vc->params->model_details.dangles=strList[i].dangle;
         pairtable = vrna_ptable(strList[i].structure);
         int vrnaEnergy=vrna_eval_structure_pt(vc,pairtable);
-        
-        sprintf(s,"\n structure: %s   sequence: %s   manuel = %i , vRNA =  %i\n",strList[i].structure,strList[i].sequence,strList[i].energy,vrnaEnergy);
-        ck_assert_msg(strList[i].energy==vrnaEnergy,s);
+
+        ck_assert_msg(strList[i].energy==vrnaEnergy,
+                      "\n structure: %s   sequence: %s   manually = %i , vRNA =  %i\n",
+                      strList[i].structure, strList[i].sequence, strList[i].energy, vrnaEnergy);
+        free(pairtable);
+        vrna_fold_compound_free(vc);
     }
-    
+
 }
