@@ -131,7 +131,7 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
 
 int E_stack(int i, int j)
 {
-        vrna_E_stack($self,i,j);
+  return vrna_E_stack($self,i,j);
 }
 
 

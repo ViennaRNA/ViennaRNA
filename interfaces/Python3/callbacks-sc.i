@@ -103,7 +103,7 @@ sc_add_exp_f_pycallback(vrna_fold_compound_t *vc,
   }
 }
 
-static vrna_basepair_t *
+static void
 sc_add_bt_pycallback( vrna_fold_compound_t *vc,
                       PyObject *PyFunc){
 
@@ -300,7 +300,7 @@ py_wrap_sc_exp_f_callback(int i,
 %}
 
 static void             sc_add_f_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
-static vrna_basepair_t  *sc_add_bt_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
+static void             sc_add_bt_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
 static void             sc_add_exp_f_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
 static void             sc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *PyFunc);
 

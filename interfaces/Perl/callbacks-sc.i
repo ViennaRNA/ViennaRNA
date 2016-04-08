@@ -131,14 +131,14 @@ sc_add_exp_f_perl_callback( vrna_fold_compound_t *vc,
   }
 }
 
-static vrna_basepair_t *
+static void
 sc_add_bt_perl_callback(vrna_fold_compound_t *vc,
                         SV *PerlFunc){
 
   /* check whether PerlFunc actually is a reference to a Perl subroutine */
   if(SvTYPE(SvRV(PerlFunc)) != SVt_PVCV){
     fprintf(stderr, "Warning: invalid argument for fold_compound::sc_add_bt, must be code reference\n");
-    return NULL;
+    return;
   }
 
   /* try to dispose of previous callback */
