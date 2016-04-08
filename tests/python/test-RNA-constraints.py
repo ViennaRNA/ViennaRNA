@@ -13,7 +13,7 @@ datadir = RNApath.getDataDirPath()
 
 def getShapeDataFromFile(filepath):
     retVec = []
-    retVec.append(-999.0); # fucking 0 position is not working
+    retVec.append(-999.0);  # data list is 1-based, so we add smth. at pos 0
     count=1
     with open(filepath, 'r') as f:
         lines = f.readlines()

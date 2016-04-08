@@ -565,7 +565,7 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
   short             *S,*S1;
-  unsigned char     *ptype;
+  char              *ptype;
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
   vrna_mx_pf_t      *matrices;

@@ -437,7 +437,8 @@ mfe_matrices_alloc_window(vrna_mx_mfe_t *vars,
                           unsigned int m,
                           unsigned int alloc_vector){
 
-  unsigned int  n, i, size, lin_size;
+  int i;
+  unsigned int  n, size, lin_size;
 
   n             = vars->length;
   size          = ((n + 1) * (m + 2)) / 2;
@@ -453,14 +454,14 @@ mfe_matrices_alloc_window(vrna_mx_mfe_t *vars,
 
   if(alloc_vector & ALLOC_C){
     vars->c_local = (int **) vrna_alloc(sizeof(int *) * lin_size);
-    for (i = n; ( i > (unsigned int)(n - m - 5)) && (i>=0); i--){
+    for (i = (int)n; ( i > ((int)n - (int)m - 5)) && (i>=0); i--){
       vars->c_local[i] = (int *) vrna_alloc(sizeof(int)*(m + 5));
     }
   }
 
   if(alloc_vector & ALLOC_FML){
     vars->fML_local = (int **) vrna_alloc(sizeof(int *) * lin_size);
-    for (i = n; ( i > (unsigned int)(n - m - 5)) && (i>=0); i--){
+    for (i = (int)n; ( i > ((int)n - (int)m - 5)) && (i>=0); i--){
       vars->fML_local[i] = (int *) vrna_alloc(sizeof(int)*(m + 5));
     }
   }

@@ -686,7 +686,7 @@ fill_pair_matrices(vrna_md_t *md){
                 if(md->noGU)
                   md->pair[3][4] = md->pair[4][3] = 0;
 
-                if(md->nonstandards != NULL) {  /* allow nonstandard bp's (encoded by type=7) */
+                if(md->nonstandards[0] != '\0') {  /* allow nonstandard bp's (encoded by type=7) */
                    for(i = 0; i < (int)strlen(md->nonstandards); i += 2)
                       md->pair[vrna_nucleotide_encode(md->nonstandards[i], md)]
                         [vrna_nucleotide_encode(md->nonstandards[i+1], md)] = 7;

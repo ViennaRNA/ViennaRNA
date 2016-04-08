@@ -714,7 +714,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   FLT_OR_DBL  *q1k, *qln;
   FLT_OR_DBL  qo;
 
-  unsigned char     *ptype;
+  char              *ptype;
 
   double            max_real;
   int               *rtype, with_gquad;
