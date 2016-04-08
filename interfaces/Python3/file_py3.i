@@ -101,6 +101,13 @@ dispose_file(FILE **fp) {
   $1 = NULL;
 }
 
+/*
+   Changes ViennaRNA Package 04/2016
+   Commented out the below 'check' typemap such that we are able to pass 'None'
+   for FILE * arguments. This special case should be covered everywhere within
+   our code
+*/
+#if 0
 %typemap(check, noblock = 1) FILE* {
   if ($1 == NULL) {
     /* The generated wrapper function raises TypeError on mismatching types. */
@@ -108,9 +115,14 @@ dispose_file(FILE **fp) {
                         "$argnum"" of type '" "$type""'");
   }
 }
+#endif
 
 %typemap(in, noblock = 1, fragment = "obj_to_file") FILE* {
-  $1 = obj_to_file($input);
+  if($input == Py_None){
+    $1 = NULL;
+  } else {
+    $1 = obj_to_file($input);
+  }
 }
 
 %typemap(freearg, noblock = 1, fragment = "dispose_file") FILE* {

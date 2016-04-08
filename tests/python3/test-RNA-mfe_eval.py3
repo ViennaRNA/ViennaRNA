@@ -65,8 +65,7 @@ class mfe_eval_functionTest(unittest.TestCase):
             with open(filename, 'w') as f:
                 print(filename ," is opened for writing\n")
                 energy = fc.eval_structure_verbose(struct1,f)
-                # not allowed to pass None as file pointer
-                #energy2 = fc.eval_structure_verbose(struct1,None)
+                energy2 = fc.eval_structure_verbose(struct1,None)
 
                 self.assertEqual("%6.2f" % energy, "%6.2f" % -5.60)
                 print( struct1, "[%6.2f" % energy,"]\n")
@@ -84,8 +83,7 @@ class mfe_eval_functionTest(unittest.TestCase):
                 fc=RNA.fold_compound(seq1)
 
                 energy = fc.eval_structure_pt_verbose(struct1_pt,f)/100;  # / 100 for dcal
-                # not allowed to pass None as file pointer
-                #energy2 = fc.eval_structure_pt_verbose(struct1_pt,None)/100;  # / 100 for dcal
+                energy2 = fc.eval_structure_pt_verbose(struct1_pt,None)/100;  # / 100 for dcal
 
                 self.assertEqual("%6.2f" % energy, "%6.2f" % -5.6)
                 print( struct1, "[%6.2f" % energy,"]\n")
