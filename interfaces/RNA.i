@@ -4,6 +4,7 @@
 
 %{
 
+extern "C" {
 #include  <ViennaRNA/data_structures.h>
 #include  <ViennaRNA/dp_matrices.h>
 #include  <ViennaRNA/model.h>
@@ -12,6 +13,9 @@
 #include  <ViennaRNA/string_utils.h>
 #include  <ViennaRNA/fold_vars.h>
 #include  <ViennaRNA/constraints.h>
+#include  <ViennaRNA/constraints_hard.h>
+#include  <ViennaRNA/constraints_soft.h>
+#include  <ViennaRNA/constraints_SHAPE.h>
 #undef fold
 #include  <ViennaRNA/mfe.h>
 #include  <ViennaRNA/fold.h>
@@ -42,6 +46,10 @@
 #include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
 #include  <ViennaRNA/ligand.h>
+#include  <ViennaRNA/hairpin_loops.h>
+#include  <ViennaRNA/interior_loops.h>
+#include  <ViennaRNA/file_formats.h>
+}
 
 %}
 //
@@ -58,17 +66,80 @@
 
 %constant double VERSION = 0.3;
 %include typemaps.i
-%include tmaps.i  // additional typemaps
+
+// Typemaps that are independent of scripting language
+
+// This cleans up the char ** array after the function call
+%typemap(freearg) char ** {
+         free($1);
+}
+
+// Additional target language specific typemaps
+%include tmaps.i
+
+/* handle exceptions */
+%include "exception.i"
+
+%exception {
+  try {
+    $action
+  } catch (const std::exception& e) {
+    SWIG_exception(SWIG_RuntimeError, e.what());
+  }
+}
+
+/* prepare conversions to native types, such as lists */
+%include "std_pair.i";
+%include "std_vector.i";
+%include "std_string.i";
+
+namespace std {
+  %template(DoublePair) std::pair<double,double>;
+  %template(IntVector) std::vector<int>;
+  %template(DoubleVector) std::vector<double>;
+  %template(StringVector) std::vector<string>;
+  %template(ConstCharVector) std::vector<const char*>;
+  %template(SOLUTIONVector) std::vector<SOLUTION>;
+  %template(CoordinateVector) std::vector<COORDINATE>;
+  %template(DoubleDoubleVector) std::vector< std::vector<double> > ;
+  %template(IntIntVector) std::vector<std::vector<int> > ;
+};
+
+%{
+#include <string>
+#include <cstring>
+
+  const char *convert_vecstring2veccharcp(const std::string & s){
+    return s.c_str();
+  }
+
+  char *convert_vecstring2veccharp(const std::string & s){
+    char *pc = new char[s.size()+1];
+    std::strcpy(pc, s.c_str());
+    return pc;
+  }
+  
+  short convert_vecint2vecshort(const int & i){
+    return (short) i;
+  }
+
+  FLT_OR_DBL convert_vecdbl2vecFLR_OR_DBL(const double & d){
+    return (FLT_OR_DBL) d;
+  }
+
+%}
 
 //%title "Interface to the Vienna RNA library"
 
 /* do not wrap any function prefixed by 'vrna_' */
 %rename("$ignore",  %$isfunction, regextarget=1) "^vrna_";
 
-/* do not wrap any data structure, typedef, or enum prefixed by 'vrna_' */
+/* do not wrap any data structure, typedef, enum, or constant prefixed by 'vrna_' || 'VRNA_' */
 %rename("$ignore",  %$isclass, regextarget=1) "^vrna_";
 %rename("$ignore",  %$istypedef, regextarget=1) "^vrna_";
 %rename("$ignore",  %$isenum, regextarget=1) "^vrna_";
+%rename("$ignore",  %$isconstant, regextarget=1) "^VRNA_";
+%rename("$ignore",  %$isconstant, regextarget=1) "^vrna_";
 
 /*############################################*/
 /* Include all relevant interface definitions */
@@ -79,12 +150,17 @@
 %include utils.i
 %include plotting.i
 %include constraints.i
+%include constraints_hard.i
+%include constraints_soft.i
+%include constraints_SHAPE.i
+%include constraints_ligand.i
 %include eval.i
 %include mfe.i
 %include part_func.i
 %include subopt.i
 %include inverse.i
 %include compare.i
+%include file_formats.i
 
 /**********************************************/
 /* BEGIN interface for data structures        */
@@ -108,9 +184,11 @@
 
 %include  <ViennaRNA/fold_vars.h>
 %extend bondT {
-	bondT *get(int i) {
-	   return self+i;
-	}
+
+  bondT *get(int i) {
+
+    return self+i;
+  }
 }
 
 

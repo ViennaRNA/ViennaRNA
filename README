@@ -1,4 +1,4 @@
-This is Version 2.2.4 of the ViennaRNA Package.
+This is Version 2.2.5 of the ViennaRNA Package.
 ------------------------------------------------
 See the NEWS and Changelog files for differences to previous versions.
 
@@ -72,10 +72,6 @@ For more detailed information see the man pages. Perl utilities contain
 POD documentation that can be read by typing e.g.
 perldoc relplot.pl
 
-We have included a patched version of D.G. Gilbert's readseq program
-for those who often process sequence files from databanks. See the
-the documentation in that directory for details.
-
 Since version 2.0 the build-in energy parameters (available as parameter
 file default.par as well) are taken from:
 
@@ -104,7 +100,7 @@ supporting further developments with a donation.
 
 The most recent source code and documentation should always be available on
 the web at 
-http://www.tbi.univie.ac.a/~ivo/RNA
+http://www.tbi.univie.ac.a/RNA
 
 We need your feedback! Send your comments, suggestions, and questions to
 rna@tbi.univie.ac.at

@@ -33,7 +33,7 @@
 /* random string */
 %ignore random_string;
 %rename (random_string) vrna_random_string;
-%newobject random_string;
+%newobject vrna_random_string;
 
 /* hamming distance */
 %rename (hamming_distance) vrna_hamming_distance;
@@ -70,6 +70,9 @@ int my_hamming_bound(const char *s1, const char *s2, int n);
 /* encoding / decoding of nucleotide sequences */
 
 %{
+
+#include <cstring>
+
 short *encode_seq(char *sequence) {
   unsigned int i,l;
   short *S;
@@ -97,11 +100,11 @@ short *encode_seq(char *sequence);
 
 /* compressing / decompressing dot-bracket strings */
 %rename (db_pack) vrna_db_pack;
-%newobject db_pack;
+%newobject vrna_db_pack;
 
 %ignore pack_structure;
 %rename (pack_structure) my_pack_structure;
-%newobject pack_structure;
+%newobject my_pack_structure;
 %{
   char *my_pack_structure(const char *s){
     return vrna_db_pack(s);
@@ -110,11 +113,11 @@ short *encode_seq(char *sequence);
 char *my_pack_structure(const char *s);
 
 %rename (db_unpack) vrna_db_unpack;
-%newobject db_unpack;
+%newobject vrna_db_unpack;
 
 %ignore unpack_structure;
 %rename (unpack_structure) my_unpack_structure;
-%newobject unpack_structure;
+%newobject my_unpack_structure;
 %{
   char *my_unpack_structure(const char *packed){
     return vrna_db_unpack(packed);
@@ -154,6 +157,26 @@ char *my_unpack_structure(const char *packed);
     return loop;
   }
 %}
+
+%rename (ptable) my_ptable;
+
+%{
+#include <vector>
+
+  std::vector<int> my_ptable(std::string str){
+    short int* pt = vrna_ptable(str.c_str());
+    std::vector<int> v_pt;
+    int i;
+
+    for(i=0; i <= pt[0]; i++){
+      v_pt.push_back(pt[i]);
+    }
+    free(pt);
+    return v_pt;
+  }
+%}
+
+std::vector<int> my_ptable(std::string str);
 
 /* pair table related functions */
 %ignore make_pair_table;

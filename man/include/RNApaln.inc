@@ -2,7 +2,7 @@
 
 Peter F Stadler, Ivo L Hofacker, Sebastian Bonhoeffer
 
-[REFERENCES]
+[>REFERENCES]
 
 Bonhoeffer S, McCaskill J S, Stadler P F, Schuster P (1993),
 "RNA multi-structure landscapes",

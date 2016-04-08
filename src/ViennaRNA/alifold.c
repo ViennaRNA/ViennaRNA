@@ -89,7 +89,7 @@ vrna_alifold( const char **strings,
 
   vrna_md_set_default(&md);
 
-  vc  = vrna_fold_compound_comparative(strings, &md, VRNA_OPTION_MFE);
+  vc  = vrna_fold_compound_comparative(strings, &md, VRNA_OPTION_DEFAULT);
   mfe = vrna_mfe(vc, structure);
 
   vrna_fold_compound_free(vc);
@@ -108,7 +108,7 @@ vrna_circalifold( const char **sequences,
   vrna_md_set_default(&md);
   md.circ = 1;
 
-  vc  = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_MFE);
+  vc  = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_DEFAULT);
   mfe = vrna_mfe(vc, structure);
 
   vrna_fold_compound_free(vc);
@@ -143,7 +143,7 @@ wrap_alifold( const char **strings,
   }
   P->model_details.circ = is_circular;
 
-  vc = vrna_fold_compound_comparative(strings, &(P->model_details), VRNA_OPTION_MFE);
+  vc = vrna_fold_compound_comparative(strings, &(P->model_details), VRNA_OPTION_DEFAULT);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -153,17 +153,8 @@ wrap_alifold( const char **strings,
   }
 
   /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
-  if(is_constrained && structure){
-    unsigned int constraint_options = 0;
-    constraint_options |= VRNA_CONSTRAINT_DB
-                          | VRNA_CONSTRAINT_DB_PIPE
-                          | VRNA_CONSTRAINT_DB_DOT
-                          | VRNA_CONSTRAINT_DB_X
-                          | VRNA_CONSTRAINT_DB_ANG_BRACK
-                          | VRNA_CONSTRAINT_DB_RND_BRACK;
-
-    vrna_constraints_add(vc, (const char *)structure, constraint_options);
-  }
+  if(is_constrained && structure)
+    vrna_constraints_add(vc, (const char *)structure, VRNA_CONSTRAINT_DB_DEFAULT);
 
   if(backward_compat_compound && backward_compat)
     vrna_fold_compound_free(backward_compat_compound);
@@ -239,7 +230,7 @@ energy_of_ali_gquad_structure(const char **sequences,
     set_model_details(&md);
     md.gquad = 1;
 
-    vc = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    vc = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_EVAL_ONLY);
 
     energy[0] = vrna_eval_structure(vc, structure);
     energy[1] = vrna_eval_covar_structure(vc, structure);
@@ -266,7 +257,7 @@ energy_of_alistruct(const char **sequences,
     vrna_md_t md;
     set_model_details(&md);
 
-    vc = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    vc = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_EVAL_ONLY);
 
     energy[0] = vrna_eval_structure(vc, structure);
     energy[1] = vrna_eval_covar_structure(vc, structure);

@@ -572,7 +572,7 @@ wrap_subopt(char *string,
   /* dirty hack to reinsert the '&' according to the global variable 'cut_point' */
   seq = vrna_cut_point_insert(string, cut_point);
 
-  vc = vrna_fold_compound(seq, &(P->model_details), VRNA_OPTION_MFE | ((is_circular == 0) ? VRNA_OPTION_HYBRID : (char)0));
+  vc = vrna_fold_compound(seq, &(P->model_details), ((is_circular == 0) ? VRNA_OPTION_HYBRID : VRNA_OPTION_DEFAULT));
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -631,6 +631,8 @@ vrna_subopt(vrna_fold_compound_t *vc,
   char          *ptype;
   short         *S, *S1;
   vrna_sc_t     *sc;
+
+  vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
 
   max_sol             = 128;
   n_sol               = 0;
@@ -842,6 +844,8 @@ vrna_subopt(vrna_fold_compound_t *vc,
     SolutionList = NULL;
   }
 
+  /* cleanup memory */
+  free(env);
   return SolutionList;
 }
 

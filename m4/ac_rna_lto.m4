@@ -78,11 +78,21 @@ AC_DEFUN([RNA_ENABLE_LTO],[
           ## Here we have to distinguish at least OS X, since it
           ## does not use gold plugin as Linux does
           case "$host" in
-            *darwin*)   AC_MSG_WARN([Building for OS X])
-                        LTO_FLAGS="-flto"
-                        AX_APPEND_FLAG(["$LTO_FLAGS"], [LDFLAGS])
-                        ## and again for the pkg-config file
-                        LTO_LDFLAGS="${LTO_FLAGS}"
+            *darwin*)   if test "x$enable_universal_binary" != "xno" ; then
+                          AC_MSG_WARN([
+**********************************************************************
+No LTO support for MacOSX combination with clang/llvm and universal binaries!
+We will disable LTO support now!
+**********************************************************************
+                                      ])
+                          ac_lto_supported="no"
+                        else
+                          AC_MSG_WARN([Building for OS X])
+                          LTO_FLAGS="-flto"
+                          AX_APPEND_FLAG(["$LTO_FLAGS"], [LDFLAGS])
+                          ## and again for the pkg-config file
+                          LTO_LDFLAGS="${LTO_FLAGS}"
+                        fi
                         ;;
             *linux*)    AC_MSG_WARN([Building for Linux])
                         AC_CHECK_TOOL([OUR_AR], [llvm-ar], [no])

@@ -58,7 +58,7 @@ typedef struct {
  * global variables with their corresponding getter/setter
  * functions in the library
  */
-%include md_globals_tmaps.i
+%include globals-md.i
 
 /*
  * The list of available global variables in the scripting

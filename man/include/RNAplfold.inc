@@ -17,7 +17,7 @@ the probability that [i-x+1..i] is unpaired.
 
 Stephan H Bernhart, Ivo L Hofacker, Peter F Stadler, Ronny Lorenz
 
-[REFERENCES]
+[>REFERENCES]
 
 S. H. Bernhart, I.L. Hofacker, and P.F. Stadler (2006),
 "Local Base Pairing Probabilities in Large RNAs",

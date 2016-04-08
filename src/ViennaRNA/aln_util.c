@@ -1,6 +1,6 @@
 /*
-			       aln_util.c
-	       Helper functions frelated to alignments
+                               aln_util.c
+               Helper functions frelated to alignments
 */
 /* Last changed Time-stamp: <2006-01-16 11:42:38 ivo> */
 
@@ -70,14 +70,14 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
      }
      else {
        if (strcmp(name, names[nn])!=0) {
-	 /* name doesn't match */
-	 fprintf(stderr,
-		 "Sorry, your file is fucked up (inconsitent seq-names)\n");
-	 free(line); free(seq);
-	 return 0;
+         /* name doesn't match */
+         fprintf(stderr,
+                 "Sorry, your file is messed up (inconsitent seq-names)\n");
+         free(line); free(seq);
+         return 0;
        }
        AlignedSeqs[nn] = (char *)
-	 vrna_realloc(AlignedSeqs[nn], strlen(seq)+strlen(AlignedSeqs[nn])+1);
+         vrna_realloc(AlignedSeqs[nn], strlen(seq)+strlen(AlignedSeqs[nn])+1);
        strcat(AlignedSeqs[nn], seq);
      }
      nn++;
@@ -101,8 +101,8 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    n = strlen(AlignedSeqs[0]);
    for (nn=1; nn<num_seq; nn++) {
      if (strlen(AlignedSeqs[nn])!=n) {
-       fprintf(stderr, "Sorry, your file is fucked up.\n"
-	       "Unequal lengths!\n\n");
+       fprintf(stderr, "Sorry, your file is messed up.\n"
+               "Unequal lengths!\n\n");
        return 0;
      }
    }

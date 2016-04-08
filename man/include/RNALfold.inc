@@ -2,7 +2,7 @@
 
 Ivo L Hofacker, Peter F Stadler, Ronny Lorenz
 
-[REFERENCES]
+[>REFERENCES]
 
 I.L. Hofacker, B. Priwitzer, and P.F. Stadler (2004),
 "Prediction of Locally Stable RNA Secondary Structures for Genome-Wide Surveys",

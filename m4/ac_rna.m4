@@ -22,6 +22,7 @@ AS_IF([test "$PERL" == "no"],[
 ## Enable Features  ##
 ##------------------##
 
+RNA_ENABLE_OSX
 RNA_ENABLE_LTO
 RNA_ENABLE_SVM
 RNA_ENABLE_JSON
@@ -44,6 +45,7 @@ RNA_FEATURE_POST
 RNA_ENABLE_PKG_KINFOLD
 RNA_ENABLE_PKG_FORESTER
 RNA_ENABLE_PKG_CLUSTER
+RNA_ENABLE_PKG_KINWALKER
 
 ##--------------------##
 ## Enable scripting   ##
@@ -100,63 +102,102 @@ AS_IF([test $with_perl = "yes"],[
   _perl_install="Not to be installed"
 ])
 AS_IF([test $with_python = "yes"],[
-  eval _python_arch_dir=$(eval printf "%s" ${pyexecdir})
-  eval _python_lib_dir=$(eval printf "%s" ${pythondir})
+  eval _python2_arch_dir=$(eval printf "%s" ${py2execdir})
+  eval _python2_lib_dir=$(eval printf "%s" ${python2dir})
   ],[
-    _python_arch_dir=""
-    _python_lib_dir=""
-    _python_install="Not to be installed"
+    _python2_arch_dir=""
+    _python2_lib_dir=""
+    _python2_install="Not to be installed"
+])
+AS_IF([test $with_python3 = "yes"],[
+  eval _python3_arch_dir=$(eval printf "%s" ${py3execdir})
+  eval _python3_lib_dir=$(eval printf "%s" ${python3dir})
+  ],[
+    _python3_arch_dir=""
+    _python3_lib_dir=""
+    _python3_install="Not to be installed"
+])
+AS_IF([test "x$enable_universal_binary" != "xno"],[
+  _osx_arch=$osx_arch
+  ],[
+])
+
+## collect enabled swig interfaces
+RNA_GET_SWIG_INTERFACES(_swig_languages_enabled)
+
+## collect enabled unit tests
+RNA_GET_UNIT_TESTS(_unit_tests_enabled)
+
+## collect enabled subpackages
+RNA_GET_SUBPACKAGES(_packages_enabled)
+
+## collect additional options
+RNA_GET_FEATURE(_features_enabled)
+
+## collect doxygen reference manual settings
+RNA_GET_DOXYGEN_REFMAN(_refman_enabled)
+
+## collect MacOSX config (if any)
+RNA_GET_MACOSX_CONFIG(_macosx_enabled)
+AS_IF([test "x$_macosx_enabled" != "x"], [
+  AC_RNA_APPEND_VAR_COMMA(_features_enabled, [$_macosx_enabled])
 ])
 
 # Notify the user
 
 AC_MSG_NOTICE([
 
-Configured successful with the following options:
+################################################
+#         ViennaRNA Package ${PACKAGE_VERSION}             ##
+#                                             ##
+# configured successfully with the following  ##
+# options:                                    ##
+################################################
 
-RNAlib Scripting Interfaces:
-  Perl Interface:           ${with_perl:-yes}       $enabled_but_failed_perl
-  Python Interface:         ${with_python:-yes}     $enabled_but_failed_python
 
-Extra Programs:
-  Analyse{Dists,Seqs}:      ${with_cluster:-no}
-  Kinfold:                  ${with_kinfold:-yes}
-  RNAforester:              ${with_forester:-yes}
+  * Extra Programs:
 
-Other Options:
-  SVM:                      ${with_svm:-yes}
-  JSON:                     ${with_json:-yes}
-  GSL:                      ${with_gsl:-yes}        $enabled_but_failed_gsl
-  Boustrophedon:            ${enable_boustrophedon:-yes}
-  Generic Hard Constraints: ${enable_gen_hard_constraints:-no}
-  OpenMP:                   ${enable_openmp:-yes}
-  LTO:                      ${enable_lto:-yes}      $enabled_but_failed_lto
-  Float Precision (PF):     ${enable_floatpf:-no}
+    ( ${_packages_enabled} )
 
-Documentation:              ${with_doc:-no}
-    (HTML):                 ${with_doc_html:-no}
-    (PDF):                  ${with_doc_pdf:-no}
+  * Other Options:
 
-Unit Tests:
-  check:                    ${with_check:-yes}      $enabled_but_failed_check
+    ( ${_features_enabled} )
 
--
-Files will be installed in the following directories:
+  * RNAlib Scripting Language Interfaces:
+  
+    ( ${_swig_languages_enabled} )
 
-  Executables:      $_bindir
-  Libraries:        $_libdir
-  Header files:     $_includedir
-  Extra Data:       $_datadir
-  Man pages:        $_mandir
-  Documentation:    $_docdir
-    (HTML):         $(eval printf "%s" $_htmldir)
-    (PDF):          $(eval printf "%s" $_pdfdir)
-  Perl Interface:   $_perl_install
-    (binaries):     $_perl_arch_dir
-    (scripts):      $_perl_lib_dir
-  Python Interface: $_python_install
-    (binaries):     $_python_arch_dir
-    (scripts):      $_python_lib_dir
+  * RNAlib Documentation:
+
+    ( ${_refman_enabled} )
+
+  * Unit Tests will be performed for:
+  
+    ( ${_unit_tests_enabled} )
+
+
+##############################################
+# Files will be installed in the following  ##
+# directories:                              ##
+##############################################
+
+  Executables:        $_bindir
+  Libraries:          $_libdir
+  Header files:       $_includedir
+  Extra Data:         $_datadir
+  Man pages:          $_mandir
+  Documentation:      $_docdir
+    (HTML):           $(eval printf "%s" $_htmldir)
+    (PDF):            $(eval printf "%s" $_pdfdir)
+  Perl5 Interface:    $_perl_install
+    (binaries):       $_perl_arch_dir
+    (scripts):        $_perl_lib_dir
+  Python2 Interface:  $_python2_install
+    (binaries):       $_python2_arch_dir
+    (scripts):        $_python2_lib_dir
+  Python3 Interface:  $_python3_install
+    (binaries):       $_python3_arch_dir
+    (scripts):        $_python3_lib_dir
 ])
 
 ])

@@ -30,7 +30,8 @@ lines neither containing a valid structure nor starting with > are ignored.
 
 Walter Fontana, Ivo L Hofacker, Peter F Stadler
 
-[REFERENCES]
+[>REFERENCES]
+
 B.A. Shapiro (1988),
 "An algorithm for comparing multiple RNA secondary structures"
 CABIOS: 4, pp 381-393
