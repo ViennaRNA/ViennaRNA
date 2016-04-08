@@ -32,13 +32,16 @@ AM_T_LOG_FLAGS = -Mstrict -w \
 PERL_TESTS =  perl5/test-RNA.pl \
               perl5/test-RNA-callbacks.pl \
               perl5/test-RNA-Design.t \
-	      perl5/test-RNA-mfe_eval.pl
+              perl5/test-RNA-mfe_eval.pl
 
+# add test script output files here
 PERL_TEST_OUTPUT =  test.coord \
                     test_dp.ps \
                     test_ss.ps \
                     test_ss_a.ps \
-                    test.par
+                    test.par \
+                    test-RNA-mfe_eval.pl.out \
+                    outputFile_test.txt
 
 perl5/test-RNA-Design.t: $(top_srcdir)/interfaces/Perl/RNA/t/Design.t
 	cp $(top_srcdir)/interfaces/Perl/RNA/t/Design.t $(builddir)/perl5/test-RNA-Design.t
@@ -55,10 +58,12 @@ AM_PY_LOG_FLAGS =
 
 # add test scripts here
 PYTHON2_TESTS = python/test-RNA-callbacks.py \
-		python/test-RNA-mfe_eval.py \
-		python/test-RNA-constraints.py \
-		python/test-RNA.py 
-		
+                python/test-RNA-mfe_eval.py \
+                python/test-RNA-constraints.py \
+                python/test-RNA.py 
+
+# add test script output files here
+PYTHON2_TEST_OUTPUT = test-RNA-mfe_eval.py.out
 
 endif
 
@@ -72,9 +77,12 @@ AM_PY3_LOG_FLAGS =
 
 # add test scripts here
 PYTHON3_TESTS = python3/test-RNA-callbacks.py3 \
-		python3/test-RNA-mfe_eval.py3 \
-		python3/test-RNA-constraints.py3 \
-		python3/test-RNA.py3 
+                python3/test-RNA-mfe_eval.py3 \
+                python3/test-RNA-constraints.py3 \
+                python3/test-RNA.py3 
+
+# add test script output files here
+PYTHON3_TEST_OUTPUT = test-RNA-mfe_eval.py3.out
 
 endif
 
@@ -116,12 +124,15 @@ TESTS = ${LIBRARY_TESTS} ${PERL_TESTS} ${PYTHON2_TESTS} ${PYTHON3_TESTS}
 
 endif
 
-EXTRA_DIST =  ${CHECKMK_FILES} ${CHECK_CFILES} \
+EXTRA_DIST =  data \
+              ${CHECKMK_FILES} ${CHECK_CFILES} \
               ${PERL_TESTS} \
               ${PYTHON2_TESTS} \
               ${PYTHON3_TESTS}
 
 clean-local:
 	-rm -rf ${PERL_TEST_OUTPUT} \
-          *.pyc \
-          __pycache__
+                $(PYTHON2_TEST_OUTPUT) \
+                $(PYTHON3_TEST_OUTPUT) \
+                *.pyc \
+                __pycache__

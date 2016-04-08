@@ -5,3 +5,6 @@ def addSwigInterfacePath(version=2):
         sys.path.insert(0, '@top_builddir@/interfaces/Python3')
     else:
         sys.path.insert(0, '@top_builddir@/interfaces/Python')
+
+def getDataDirPath():
+    return "@top_srcdir@/tests/data/"

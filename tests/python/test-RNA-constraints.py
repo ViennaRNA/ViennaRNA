@@ -9,6 +9,7 @@ seq_con     = "CCCAAAAGGGCCCAAAAGGG"
 str_con     = "..........(((....)))"
 str_con_def = "(((....)))(((....)))"
 
+datadir = RNApath.getDataDirPath()
 
 def getShapeDataFromFile(filepath):
     retVec = []
@@ -47,7 +48,7 @@ class constraintsTest(unittest.TestCase):
         #hc.txt=    "P 1 0 2"
         #str_con=    "..........(((....)))"
 
-        hc_file=    "data/hc.txt"
+        hc_file = datadir + "hc.txt"
         print "test_constraints_add"
         fc = RNA.fold_compound(seq_con)
         fc.constraints_add(hc_file)
@@ -61,7 +62,7 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual(ss,str_con_def)
 
         #sc.txt = E 3 8 1 -5
-        sc_file = "data/sc.txt"
+        sc_file = datadir + "sc.txt"
         fc.sc_init()
         fc.constraints_add(sc_file)
         (ss,mfeNew) = fc.mfe()
@@ -164,8 +165,8 @@ class constraintsTest(unittest.TestCase):
 
     def test_sc_add_deigan(self):
         print "test_sc_add_deigan"
-        seq  =  getShapeSequenceFromFile("data/Lysine_riboswitch_T._martima.db")
-        reactivities = getShapeDataFromFile("data/Lysine_riboswitch_T._martima.shape_2rows")
+        seq  =  getShapeSequenceFromFile(datadir + "Lysine_riboswitch_T._martima.db")
+        reactivities = getShapeDataFromFile(datadir + "Lysine_riboswitch_T._martima.shape_2rows")
 
         fc=RNA.fold_compound(seq)
         print reactivities
@@ -178,8 +179,8 @@ class constraintsTest(unittest.TestCase):
 
     def test_sc_add_SHAPE_deigan2(self):
         print "test_sc_add_SHAPE_deigan2"
-        seq_ribo  = getShapeSequenceFromFile("data/TPP_riboswitch_E.coli.db")
-        reactivities = getShapeDataFromFile("data/TPP_riboswitch_E.coli.shape_2rows")
+        seq_ribo  = getShapeSequenceFromFile(datadir + "TPP_riboswitch_E.coli.db")
+        reactivities = getShapeDataFromFile(datadir + "TPP_riboswitch_E.coli.shape_2rows")
 
         fc=RNA.fold_compound(seq_ribo)
         print reactivities

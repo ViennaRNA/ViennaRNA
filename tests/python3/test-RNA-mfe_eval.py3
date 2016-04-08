@@ -60,7 +60,7 @@ class mfe_eval_functionTest(unittest.TestCase):
     def test_eval_structure_verbose(self):
         print("test_eval_structure_verbose")
         fc = RNA.fold_compound(seq1)
-        filename= "data/output_test.txt"
+        filename= "test-RNA-mfe_eval.py3.out"
         try:
             with open(filename, 'w') as f:
                 print(filename ," is opened for writing\n")
@@ -73,10 +73,9 @@ class mfe_eval_functionTest(unittest.TestCase):
             print("Could not open ",filename);
 
 
-
     def test_eval_structure_pt_verbose(self):
         print("test_eval_structure_pt_verbose\n")
-        filename= "data/output_test.txt"
+        filename= "test-RNA-mfe_eval.py3.out"
         try:
             with open(filename, 'w') as f:
                 print(filename ," is opened for writing\n")
@@ -117,7 +116,7 @@ class mfe_eval_functionTest(unittest.TestCase):
     def test_eval_move_del(self):
         print("test_eval_move_del")
         fc = RNA.fold_compound(seq1)
-        energy = fc.eval_move(struct1,-7,-11);  # remove basepair (6,11) ,  energy change should be 2.10
+        energy = fc.eval_move(struct1,-7,-11);  # remove basepair (7,11) ,  energy change should be 2.10
         self.assertEqual("%6.2f" % energy, "%6.2f" % 2.10)
         print("\n", struct1, " moveset (-7,-11) --> [%6.2f" % energy ,"]\n")
 
@@ -125,7 +124,7 @@ class mfe_eval_functionTest(unittest.TestCase):
     def test_eval_move_ins(self):
         print("test_eval_move_ins")
         fc = RNA.fold_compound(seq1)
-        energy = fc.eval_move(struct11,7,11);  # add basepair (6,11) ,  energy change should be -2.10
+        energy = fc.eval_move(struct11,7,11);  # add basepair (7,11) ,  energy change should be -2.10
         self.assertEqual("%6.2f" % energy, "%6.2f" % -2.10)
         print("\n", struct11, " moveset (7,11) --> [%6.2f" % energy,"]\n");
 
@@ -133,7 +132,7 @@ class mfe_eval_functionTest(unittest.TestCase):
     def test_eval_move_pt_del(self):
         print("test_eval_move_pt_del")
         fc = RNA.fold_compound(seq1)
-        energy = fc.eval_move_pt(struct1_pt,-7,-11) /100;  # remove basepair (6,11) ,  energy change should be 2.10
+        energy = fc.eval_move_pt(struct1_pt,-7,-11) /100;  # remove basepair (7,11) ,  energy change should be 2.10
         self.assertEqual("%6.2f" % energy, "%6.2f" % 2.10)
         print("\n", struct1, " moveset (-7,-11) --> [%6.2f" % energy ,"]\n")
 

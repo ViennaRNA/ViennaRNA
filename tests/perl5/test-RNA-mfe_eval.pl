@@ -22,7 +22,7 @@ my $ss=""; #return string
 my $mfe=0;
 my $energy=0;
 
-my $outFile="data/output_test.txt";
+my $outFile="test-RNA-mfe_eval.pl.out";
 my $fh;
 
 ##################################
