@@ -209,13 +209,11 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %{perl_vendorlib}/RNA.pm
 %{perl_vendorlib}/RNA
-%{perl_vendorarch}/auto/RNA
 %attr(755,root,root) %{perl_vendorarch}/auto/RNA/RNA.so
 
 %files -n python2-rna
 %defattr(644,root,root,755)
 %{python2_sitearch}/RNA
 %attr(755,root,root) %{python2_sitearch}/RNA/_RNA.so
-%{python2_sitelib}/RNA
 
 %files compat

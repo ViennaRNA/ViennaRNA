@@ -63,7 +63,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
     ## if swig is not available, check whether we already have swig generated sources
     if test "x$has_swig" != "xyes"
     then
-      AC_RNA_TEST_FILE([${srcdir}/interfaces/Perl/RNA_wrap.c],[],[
+      AC_RNA_TEST_FILE([${srcdir}/interfaces/Perl/RNA_wrap.cpp],[],[
         with_perl="no"
       ])
       AC_RNA_TEST_FILE([${srcdir}/interfaces/Perl/RNA.pm],[],[
@@ -130,7 +130,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
     ## if swig is not available, check whether we already have swig generated sources
     if test "x$has_swig" != "xyes"
     then
-      AC_RNA_TEST_FILE([${srcdir}/interfaces/Python/RNA_wrap.c],[],[
+      AC_RNA_TEST_FILE([${srcdir}/interfaces/Python/RNA_wrap.cpp],[],[
         with_python="no"
       ])
       AC_RNA_TEST_FILE([${srcdir}/interfaces/Python/RNA.py],[],[
@@ -177,7 +177,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON3],[
     ## if swig is not available, check whether we already have swig generated sources
     if test "x$has_swig" != "xyes"
     then
-      AC_RNA_TEST_FILE([${srcdir}/interfaces/Python3/RNA_wrap.c],[],[
+      AC_RNA_TEST_FILE([${srcdir}/interfaces/Python3/RNA_wrap.cpp],[],[
         with_python3="no"
       ])
       AC_RNA_TEST_FILE([${srcdir}/interfaces/Python3/RNA.py],[],[
