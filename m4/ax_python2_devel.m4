@@ -3,12 +3,12 @@ AC_DEFUN([AX_PYTHON2_DEVEL],[
 
     # (AM_PATH_PYTHON) cannot be used for multiple Python version at once
     if test -z "$PYTHON2" ; then
-      AC_PATH_PROG([PYTHON2], [python2], [no])
+      AC_PATH_PROGS([PYTHON2], [python2 python2.7], [no])
     fi
     AC_ARG_VAR(PYTHON2, [Path to Python2 interpreter])
 
     if test "${PYTHON2}" != "no" ; then
-      AC_PATH_PROG([PYTHON2_CONFIG], [python2-config], [no])
+      AC_PATH_PROGS([PYTHON2_CONFIG], [python2-config python2.7-config], [no])
       if test "$PYTHON2_CONFIG" = "no"
       then
         AC_MSG_WARN([
@@ -19,17 +19,17 @@ that it is installed and its directory is included in the search path.
       else
 
         AC_MSG_CHECKING([for Python2 include path])
-        PYTHON2_INCLUDES=`python2-config --includes 2> /dev/null`
+        PYTHON2_INCLUDES=`${PYTHON2_CONFIG} --includes 2> /dev/null`
         AC_SUBST(PYTHON2_INCLUDES)
         AC_MSG_RESULT([$PYTHON2_INCLUDES])
 
         AC_MSG_CHECKING([for Python2 compile flags])
-        PYTHON2_CFLAGS=`python2-config --cflags 2> /dev/null`
+        PYTHON2_CFLAGS=`${PYTHON2_CONFIG} --cflags 2> /dev/null`
         AC_SUBST(PYTHON2_CFLAGS)
         AC_MSG_RESULT([$PYTHON2_CFLAGS])
 
         AC_MSG_CHECKING([for Python2 link flags])
-        PYTHON2_LIBS=`python2-config --libs 2> /dev/null`
+        PYTHON2_LIBS=`${PYTHON2_CONFIG} --libs 2> /dev/null`
         AC_SUBST(PYTHON2_LIBS)
         AC_MSG_RESULT([$PYTHON2_LIBS])
 

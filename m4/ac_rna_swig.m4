@@ -146,7 +146,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
 
     if test "x$python2_enabled_but_failed" != "x"
     then
-      $with_python2="no"
+      with_python="no"
     else
       AC_SUBST(PYTHON2DIR,$python2dir)
       AC_SUBST(PKGPYTHON2DIR,$pkgpython2dir)
@@ -193,7 +193,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON3],[
 
     if test "x$python3_enabled_but_failed" != "x"
     then
-      $with_python3="no"
+      with_python3="no"
     else
       AC_DEFINE([WITH_PYTHON3_INTERFACE], [1], [Create the Python3 interface to RNAlib])
       AC_SUBST([PYTHON3_INTERFACE], [Python3])
