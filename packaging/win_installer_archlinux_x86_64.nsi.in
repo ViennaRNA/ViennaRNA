@@ -17,6 +17,12 @@ BrandingText "${PACKAGE} - ${VERSION} [ TBI / Institute for Theoretical Chemistr
 !include MultiUser.nsh
 !include MUI2.nsh
 
+# defines for newer versions
+!include Sections.nsh
+# SECTION_OFF is defined in Sections.nsh as 0xFFFFFFFE
+!define SECTION_ON ${SF_SELECTED} # 0x1
+
+
 # Name of the software
 name "${PACKAGE}"
 # Name of the installer
@@ -28,13 +34,18 @@ outfile "Install-ViennaRNA-${VERSION}_64bit.exe"
 
 !define MUI_WELCOMEPAGE_TITLE '${WELCOME_TITLE}'
 !define MUI_WELCOMEPAGE_TITLE_3LINES
+
 !insertmacro MUI_PAGE_WELCOME
 
 #Page license
-!insertmacro MUI_PAGE_LICENSE "licence.txt"
+!insertmacro MUI_PAGE_LICENSE "..\licence.txt"
 
 #Page Install mode
 !insertmacro MULTIUSER_PAGE_INSTALLMODE
+
+#Page component selection
+!define MUI_COMPONENTSPAGE_SMALLDESC
+!insertmacro MUI_PAGE_COMPONENTS
 
 #Page directory
 !insertmacro MUI_PAGE_DIRECTORY
@@ -44,6 +55,7 @@ outfile "Install-ViennaRNA-${VERSION}_64bit.exe"
 
 !define MUI_FINISHPAGE_TITLE '${FINISH_TITLE}'
 !define MUI_FINISHPAGE_TITLE_3LINES
+!define MUI_FINISHPAGE_NOAUTOCLOSE
 !insertmacro MUI_PAGE_FINISH
 
 !define MUI_WELCOMEPAGE_TITLE  '${UNWELCOME_TITLE}'
@@ -52,20 +64,14 @@ outfile "Install-ViennaRNA-${VERSION}_64bit.exe"
 !insertmacro MUI_UNPAGE_INSTFILES
 !define MUI_FINISHPAGE_TITLE '${UNFINISH_TITLE}'
 !define MUI_FINISHPAGE_TITLE_3LINES
+!define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !insertmacro MUI_UNPAGE_FINISH
 
-Function .onInit
-  !insertmacro MULTIUSER_INIT
-FunctionEnd
-
-Function un.onInit
-  !insertmacro MULTIUSER_UNINIT
-FunctionEnd
- 
 !insertmacro MUI_LANGUAGE "English"
 
 # default section
-section "ViennaRNA Package"
+section "Core" sec_core
+  SectionIn RO
  
   # define the output path for this file
   setOutPath $INSTDIR
@@ -73,57 +79,39 @@ section "ViennaRNA Package"
   # define what to install and place it in the output path
 
   # first all executable programs
-  File "src\bin\.libs\RNAeval.exe"
-  File "src\bin\.libs\RNAfold.exe"
-  File "src\bin\.libs\RNAheat.exe"
-  File "src\bin\.libs\RNApdist.exe"
-  File "src\bin\.libs\RNAdistance.exe"
-  File "src\bin\.libs\RNAinverse.exe"
-  File "src\bin\.libs\RNAplot.exe"
-  File "src\bin\.libs\RNAsubopt.exe"
-  File "src\bin\.libs\RNALfold.exe"
-  File "src\bin\.libs\RNAcofold.exe"
-  File "src\bin\.libs\RNAduplex.exe"
-  File "src\bin\.libs\RNApaln.exe"
-  File "src\bin\.libs\RNAalifold.exe"
-  File "src\bin\.libs\RNAplfold.exe"
-  File "src\bin\.libs\RNAup.exe"
-  File "src\bin\.libs\RNAaliduplex.exe"
-  File "src\bin\.libs\RNAparconv.exe"
-  File "src\bin\.libs\RNAPKplex.exe"
-  File "src\bin\.libs\RNApvmin.exe"
-  File "src\bin\.libs\RNALalifold.exe"
-  File "src\bin\.libs\RNA2Dfold.exe"
-  File "src\bin\.libs\RNAplex.exe"
-  File "src\bin\.libs\RNAsnoop.exe"
-  File "src\Kinfold\Kinfold.exe"
-
-  # create the Utils directory and add programs there
-  CreateDirectory "$INSTDIR\Utils"
-  File /oname=Utils\dpzoom.pl src/Utils/dpzoom.pl
-  File /oname=Utils\ct2db.exe src/Utils/.libs/ct2db.exe
-  File /oname=Utils\ct2b.pl src/Utils/ct2b.pl
-  File /oname=Utils\b2mt.pl src/Utils/b2mt.pl
-  File /oname=Utils\relplot.pl src/Utils/relplot.pl
-  File /oname=Utils\mountain.pl src/Utils/mountain.pl
-  File /oname=Utils\rotate_ss.pl src/Utils/rotate_ss.pl
-  File /oname=Utils\colorrna.pl src/Utils/colorrna.pl
-  File /oname=Utils\cmount.pl src/Utils/cmount.pl
-  File /oname=Utils\coloraln.pl src/Utils/coloraln.pl
-  File /oname=Utils\switch.pl src/Utils/switch.pl
-  File /oname=Utils\refold.pl src/Utils/refold.pl
-  File /oname=Utils\b2ct.exe src/Utils/.libs/b2ct.exe
-  File /oname=Utils\popt.exe src/Utils/.libs/popt.exe
+  File "../src/bin/.libs/RNAeval.exe"
+  File "../src/bin/.libs/RNAfold.exe"
+  File "../src/bin/.libs/RNAheat.exe"
+  File "../src/bin/.libs/RNApdist.exe"
+  File "../src/bin/.libs/RNAdistance.exe"
+  File "../src/bin/.libs/RNAinverse.exe"
+  File "../src/bin/.libs/RNAplot.exe"
+  File "../src/bin/.libs/RNAsubopt.exe"
+  File "../src/bin/.libs/RNALfold.exe"
+  File "../src/bin/.libs/RNAcofold.exe"
+  File "../src/bin/.libs/RNAduplex.exe"
+  File "../src/bin/.libs/RNApaln.exe"
+  File "../src/bin/.libs/RNAalifold.exe"
+  File "../src/bin/.libs/RNAplfold.exe"
+  File "../src/bin/.libs/RNAup.exe"
+  File "../src/bin/.libs/RNAaliduplex.exe"
+  File "../src/bin/.libs/RNAparconv.exe"
+  File "../src/bin/.libs/RNAPKplex.exe"
+  File "../src/bin/.libs/RNApvmin.exe"
+  File "../src/bin/.libs/RNALalifold.exe"
+  File "../src/bin/.libs/RNA2Dfold.exe"
+  File "../src/bin/.libs/RNAplex.exe"
+  File "../src/bin/.libs/RNAsnoop.exe"
 
   # create the misc directory and add files
   CreateDirectory "$INSTDIR\Misc"
-  File /oname=Misc\rna_turner2004.par misc/rna_turner2004.par
-  File /oname=Misc\rna_turner1999.par misc/rna_turner1999.par
-  File /oname=Misc\rna_andronescu2007.par misc/rna_andronescu2007.par
-  File /oname=Misc\dna_mathews2004.par misc/dna_mathews2004.par
-  File /oname=Misc\dna_mathews1999.par misc/dna_mathews1999.par
-  File /oname=Misc\2Dlandscape_pf.gri misc/2Dlandscape_pf.gri
-  File /oname=Misc\2Dlandscape_mfe.gri misc/2Dlandscape_mfe.gri
+  File /oname=Misc\rna_turner2004.par ../misc/rna_turner2004.par
+  File /oname=Misc\rna_turner1999.par ../misc/rna_turner1999.par
+  File /oname=Misc\rna_andronescu2007.par ../misc/rna_andronescu2007.par
+  File /oname=Misc\dna_mathews2004.par ../misc/dna_mathews2004.par
+  File /oname=Misc\dna_mathews1999.par ../misc/dna_mathews1999.par
+  File /oname=Misc\2Dlandscape_pf.gri ../misc/2Dlandscape_pf.gri
+  File /oname=Misc\2Dlandscape_mfe.gri ../misc/2Dlandscape_mfe.gri
 
 
   # then all the necessary libraries
@@ -142,7 +130,40 @@ section "ViennaRNA Package"
   createDirectory "$SMPROGRAMS\${PACKAGE}"
   createShortCut "$SMPROGRAMS\${PACKAGE}\Uninstall-${PACKAGE}.lnk" "$INSTDIR\Uninstall-${PACKAGE}.exe"
 
+SectionEnd
+
+Section "Utilities" sec_utils
+  # create the Utils directory and add programs there
+  CreateDirectory "$INSTDIR\Utils"
+  File /oname=Utils\dpzoom.pl ../src/Utils/dpzoom.pl
+  File /oname=Utils\ct2db.exe ../src/Utils/.libs/ct2db.exe
+  File /oname=Utils\ct2b.pl ../src/Utils/ct2b.pl
+  File /oname=Utils\b2mt.pl ../src/Utils/b2mt.pl
+  File /oname=Utils\relplot.pl ../src/Utils/relplot.pl
+  File /oname=Utils\mountain.pl ../src/Utils/mountain.pl
+  File /oname=Utils\rotate_ss.pl ../src/Utils/rotate_ss.pl
+  File /oname=Utils\colorrna.pl ../src/Utils/colorrna.pl
+  File /oname=Utils\cmount.pl ../src/Utils/cmount.pl
+  File /oname=Utils\coloraln.pl ../src/Utils/coloraln.pl
+  File /oname=Utils\switch.pl ../src/Utils/switch.pl
+  File /oname=Utils\refold.pl ../src/Utils/refold.pl
+  File /oname=Utils\b2ct.exe ../src/Utils/.libs/b2ct.exe
+  File /oname=Utils\popt.exe ../src/Utils/.libs/popt.exe
+
 sectionEnd
+
+Section "Cluster Analysis" sec_cluster
+  File "../src/Cluster/.libs/AnalyseDists.exe"
+  File "../src/Cluster/.libs/AnalyseSeqs.exe"
+SectionEnd
+
+Section "Kinfold" sec_kinfold
+  File "../src/Kinfold/Kinfold.exe"
+SectionEnd
+
+Section "Kinwalker" sec_kinwalker
+  File "../src/Kinwalker/kinwalker.exe"
+SectionEnd
 
 # create a section to define what the uninstaller does.
 # the section will always be named "Uninstall"
@@ -178,6 +199,9 @@ section "Uninstall"
   delete $INSTDIR\RNAplex.exe
   delete $INSTDIR\RNAsnoop.exe
   delete $INSTDIR\Kinfold.exe
+  delete $INSTDIR\kinwalker.exe
+  delete $INSTDIR\AnalyseDists.exe
+  delete $INSTDIR\AnalyseSeqs.exe
 
   delete $INSTDIR\Utils\dpzoom.pl
   delete $INSTDIR\Utils\dpzoom.pl
@@ -217,3 +241,48 @@ section "Uninstall"
   rmDir  $INSTDIR
 
 sectionEnd
+
+LangString DESC_core ${LANG_ENGLISH} "The exectuable programs, energy parameter files, and the Uninstaller."
+LangString DESC_utils ${LANG_ENGLISH} "Various utility programs and perl scripts"
+LangString DESC_kinfold ${LANG_ENGLISH} "Simulate kinetic folding of RNA secondary structures"
+LangString DESC_cluster ${LANG_ENGLISH} "The Sequence and Distance data cluster analysis tools AnalyseDists and AnalyseSeqs"
+LangString DESC_kinwalker ${LANG_ENGLISH} "Predict (co-transcriptional) RNA folding trajectories"
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${sec_core} $(DESC_core)
+  !insertmacro MUI_DESCRIPTION_TEXT ${sec_utils} $(DESC_utils)
+  !insertmacro MUI_DESCRIPTION_TEXT ${sec_cluster} $(DESC_cluster)
+  !insertmacro MUI_DESCRIPTION_TEXT ${sec_kinfold} $(DESC_kinfold)
+  !insertmacro MUI_DESCRIPTION_TEXT ${sec_kinwalker} $(DESC_kinwalker)
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
+
+Function .onInit
+  !insertmacro MULTIUSER_INIT
+
+  Push $0
+
+  StrCpy $1 ${sec_utils}
+  SectionGetFlags ${sec_utils} $0
+  IntOp $0 $0 | ${SECTION_ON}
+  SectionSetFlags ${sec_utils} $0
+
+  SectionGetFlags ${sec_cluster} $0
+  IntOp $0 $0 & ${SECTION_OFF}
+  SectionSetFlags ${sec_cluster} $0
+
+  SectionGetFlags ${sec_kinfold} $0
+  IntOp $0 $0 & ${SECTION_ON}
+  SectionSetFlags ${sec_kinfold} $0
+
+  SectionGetFlags ${sec_kinwalker} $0
+  IntOp $0 $0 & ${SECTION_OFF}
+  SectionSetFlags ${sec_kinwalker} $0
+
+  Pop $0
+
+FunctionEnd
+
+Function un.onInit
+  !insertmacro MULTIUSER_UNINIT
+FunctionEnd
+
