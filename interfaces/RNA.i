@@ -64,7 +64,8 @@ extern "C" {
 %array_functions(short, shortP);
 %include cdata.i
 
-%constant double VERSION = 0.3;
+/* %constant double VERSION = 0.3; */
+%include version.i
 %include typemaps.i
 
 // Typemaps that are independent of scripting language

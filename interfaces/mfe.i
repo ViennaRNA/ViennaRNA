@@ -39,6 +39,37 @@ char *my_fold(char *string, char *constraints, float *OUTPUT);
 %ignore circfold
 */
 
+%rename (circfold) my_circfold;
+
+%{
+  char *my_circfold(char *string, float *energy) {
+    char *struc;
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
+    *energy = circfold(string, struc);
+    return(struc);
+  }
+  char *my_circfold(char *string, char *constraints, float *energy) {
+    char *struc;
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
+    if (constraints && fold_constrained)
+      strncpy(struc, constraints, strlen(string));
+    *energy = circfold(string, struc);
+    if (constraints)
+      strncpy(constraints, struc, strlen(constraints));
+    return(struc);
+  }
+%}
+
+%newobject my_circfold;
+char *my_circfold(char *string, float *OUTPUT);
+char *my_circfold(char *string, char *constraints, float *OUTPUT);
+%ignore circfold;
+
+
+
+
+%rename (cofold) my_cofold;
+
 %ignore fold_par;
 %ignore update_fold_params_par;
 %ignore initialize_fold;

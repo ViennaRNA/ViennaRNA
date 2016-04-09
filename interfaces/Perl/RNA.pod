@@ -1,7 +1,6 @@
 =head1 NAME
 
-RNA - interface to the Vienna RNA library (libRNA.a)
-Version 0.3
+RNA - interface to the ViennaRNA C-library (libRNA.a)
 
 =head1 SYNOPSIS
 
@@ -371,6 +370,8 @@ the base pairing prob. matrix computed by L<pf_fold|/pf_fold>.
 
 Array of indices for moving withing the C<pr> array. Better use
 L<get_pr|/get_pr>.
+
+=back
 
 from move_set.h
 

@@ -158,7 +158,8 @@ vrna_fold_compound( const char *sequence,
                     vrna_md_t *md_p,
                     unsigned int options){
 
-  unsigned int        i, length, aux_options;
+  int i;
+  unsigned int        length, aux_options;
   vrna_fold_compound_t  *vc;
   vrna_md_t           md;
 
@@ -196,7 +197,7 @@ vrna_fold_compound( const char *sequence,
     set_fold_compound(vc, &md, options, aux_options);
 
     vc->ptype_local = vrna_alloc(sizeof(char *)*(vc->length+1));
-    for (i = vc->length; ( i > vc->length - vc->window_size - 5) && (i >= 0); i--){
+    for (i = (int)vc->length; ( i > (int)vc->length - vc->window_size - 5) && (i >= 0); i--){
       vc->ptype_local[i] = vrna_alloc(sizeof(char)*(vc->window_size+5));
     }
 
@@ -394,8 +395,9 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
   if(options & VRNA_OPTION_MFE){   /* prepare for MFE computation */
     switch(vc->type){
       case VRNA_VC_TYPE_SINGLE:     if(!vc->ptype)
-                                      vc->ptype = vrna_ptypes(vc->sequence_encoding2,
-                                                              &(vc->params->model_details));
+                                      if(!(options & VRNA_OPTION_WINDOW))
+                                        vc->ptype = vrna_ptypes(vc->sequence_encoding2,
+                                                                &(vc->params->model_details));
                                     break;
       case VRNA_VC_TYPE_ALIGNMENT:  break;
       default:                      break;
@@ -429,6 +431,7 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
                                     if(!vc->ptype)
                                       vc->ptype           = vrna_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details));
 #ifdef VRNA_BACKWARD_COMPAT
+                                    vc->exp_params->pf_scale = pf_scale;
                                     /* backward compatibility ptypes */
                                     if(!vc->ptype_pf_compat)
                                       vc->ptype_pf_compat = get_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details), 1);
@@ -448,6 +451,9 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
       case VRNA_VC_TYPE_ALIGNMENT:  /* get pre-computed Boltzmann factors if not present*/
                                     if(!vc->exp_params)
                                       vc->exp_params  = vrna_exp_params_comparative(vc->n_seq, &(vc->params->model_details));
+#ifdef VRNA_BACKWARD_COMPAT
+                                    vc->exp_params->pf_scale = pf_scale;
+#endif
                                     break;
 
       default:                      break;
@@ -457,6 +463,11 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
     if(!vc->exp_matrices || (vc->exp_matrices->type != VRNA_MX_DEFAULT) || (vc->exp_matrices->length < vc->length)){
       vrna_mx_pf_add(vc, VRNA_MX_DEFAULT, options);
     }
+#ifdef VRNA_BACKWARD_COMPAT
+    else { /* re-compute pf_scale and MLbase contributions (for RNAup)*/
+      vrna_exp_params_rescale(vc, NULL);
+    }
+#endif
   }
 
   return ret;

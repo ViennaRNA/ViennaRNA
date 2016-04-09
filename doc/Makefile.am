@@ -6,9 +6,11 @@ pkgdata_DATA = viennarna.bib
 
 clean_latex = \
 { \
-  cd latex && \
-  rm -f *.ps *.dvi *.aux *.toc *.idx *.ind *.ilg *.log *.out *.brf *.blg *.bbl refman.pdf doxyref.log && \
-  cd .. ; \
+  test ! -d latex \
+  ||  { cd latex \
+        && rm -f *.ps *.dvi *.aux *.toc *.idx *.ind *.ilg *.log *.out *.brf *.blg *.bbl refman.pdf doxyref.log \
+        && cd .. ; \
+      } \
 }
 
 if WITH_REFERENCE_MANUAL

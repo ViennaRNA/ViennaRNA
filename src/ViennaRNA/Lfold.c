@@ -270,6 +270,7 @@ fill_arrays(vrna_fold_compound_t *vc,
 
   if(with_gquad){
     vrna_gquad_mx_local_update(vc, length - maxdist - 4);
+    ggg = vc->matrices->ggg_local;
   }
 
   for (i = length-turn-1; i >= 1; i--) { /* i,j in [1..length] */
@@ -831,6 +832,7 @@ fill_arrays(vrna_fold_compound_t *vc,
           make_ptypes(vc, i - 1);
           if(with_gquad){
             vrna_gquad_mx_local_update(vc, i - 1);
+            ggg = vc->matrices->ggg_local;
           }
         }
         for(ii = 0; ii < maxdist + 5; ii++){
@@ -1333,7 +1335,7 @@ make_ptypes(vrna_fold_compound_t *vc, int i){
   for(k = turn + 1; k < maxdist; k++){
     j = i + k;
     if (j > n)
-      continue;
+      break;
     type = md->pair[S[i]][S[j]];
 
     if(noLP && type){

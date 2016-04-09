@@ -1,26 +1,27 @@
 # Maintainer: Ronny Lorenz <ronny at tbi dot univie dot ac dot at>
 
 pkgbase=viennarna
-pkgname=('viennarna' 'python2-rna' 'perl-rna')
+pkgname=('viennarna' 'python-rna' 'python2-rna' 'perl-rna')
 pkgver=@VERSION@
 pkgrel=1
 pkgdesc="RNA Secondary Structure Prediction and Comparison"
-arch=('x86_64' 'i686' 'armv7h' 'arm')
+arch=('x86_64' 'i686')
 license=('Custom')
 url="@PACKAGE_URL@"
 groups=('viennarna-package')
 makedepends=( 'perl'
               'python2'
+              'python'
               'libtool'
               'check')
 source=(http://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-${pkgver}.tar.gz)
 
 options=('staticlibs' '!strip')
-sha256sums=('78910cc1dc44de22ba081d841c84a32dfc52f0ec186447eafd82cb15cfdbf991')
+sha256sums=('619b20ab360d1f00819d5cb3442d70ad14fdb99eeb3e26308faabd2c77f4aa5d')
 
 build() {
   cd "${srcdir}/ViennaRNA-${pkgver}"
-  ./configure --with-cluster --prefix=/usr INSTALLDIRS=vendor PYTHON_VERSION=2
+  ./configure --with-cluster --with-python3 --prefix=/usr INSTALLDIRS=vendor
   make
 }
 
@@ -65,6 +66,9 @@ package_viennarna() {
   make DESTDIR="${pkgdir}" install
   cd ..
 
+  # install pkg-config file
+  install -Dm644 RNAlib2.pc "$pkgdir/usr/lib/pkgconfig/RNAlib2.pc"
+
   install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 
   # cleanup after dirty install ...
@@ -78,9 +82,16 @@ package_viennarna() {
 }
 
 package_python2-rna() {
-  depends=('python2' viennarna="$pkgver")
+  depends=('python2' viennarna="${pkgver}")
   cd "${srcdir}/ViennaRNA-${pkgver}"
   cd interfaces/Python
+  make DESTDIR="${pkgdir}" install
+}
+
+package_python-rna() {
+  depends=('python' viennarna="${pkgver}")
+  cd "${srcdir}/ViennaRNA-${pkgver}"
+  cd interfaces/Python3
   make DESTDIR="${pkgdir}" install
 }
 

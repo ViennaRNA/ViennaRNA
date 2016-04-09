@@ -1,8 +1,6 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2012-12-04 19:24:24 stef>
 # tool for the design of bistable RNA molecules
-
 
 # additional paths were perl looks for RNA.pm and RNA/barriers.pm
 # use lib '/home/RNA/barriers';
@@ -28,9 +26,9 @@ my ($optseq, $optcost, $e);
 my @fibo = (0,1);
 my %cos;
 my $cpnt= -1; # Cofold
-my $dg = 0;   # deltaG for normal Switches
+my $dG = 0;   # deltaG for normal Switches
 
- Getopt::Long::config('no_ignore_case');
+Getopt::Long::config('no_ignore_case');
 &usage() unless GetOptions("T=f" => \$Temperature1,
                            "T2=f" => \$Temperature2,
                            "4" => sub {$RNA::tetra_loop = 0},
@@ -45,7 +43,7 @@ my $dg = 0;   # deltaG for normal Switches
                            "trial=i" => \$nom,
                            "bar=f" => \$bar,
                            "g=f" => \$small,
-                           "dG=f" => \$dg,
+                           "dG=f" => \$dG,
                            "circ", # circular RNA switches
                            "v");
 
@@ -57,13 +55,16 @@ $nom = ($nom >= 1) ? $nom : 1000;
 $border = ($border >=1) ? $border : 100;
 my $interactiv = init_ia(0);
 my $ia = 1 if -t STDIN && -t STDOUT && $#ARGV < 0;
- RNA::read_parameter_file($ParamFile) if ($ParamFile);
- RNA::init_rand();
- srand();
+RNA::read_parameter_file($ParamFile) if ($ParamFile);
+RNA::init_rand();
+srand();
 
 for(;;) { # main loop
    $interactiv->() if $ia;
    last if !process_input();
+   if ($bar && $opt_circ) {
+     print STDERR "Cannot optimize barriers for circular species\n"; $bar=0;
+   }
 
    my @fist = make_pair_table ($fist);
    my @sest = make_pair_table ($sest);
@@ -125,13 +126,12 @@ sub fibo {
    return $fibo[$length];
 }
 
-
 sub process_input {
     $_ = <>;
-   return 0 if !defined $_;
+    return 0 if !defined $_;
     chomp;
     $fist = $_;
-   return 0 if $fist eq '@';
+    return 0 if $fist eq '@';
     $cpnt = index($fist, "&")+1;
     chomp($_ = <>);
     $sest = $_;
@@ -144,13 +144,18 @@ sub process_input {
         $RNA::cut_point = $cpnt;
     } else { $cpnt = -1 }
     # Sequence Constraints (no force bases supported)
-    chomp($_ = <>);
-    $cons = uc $_;
-    if (($cpnt != -1) && (length($cons) > $cpnt-1)) {
-        die "ERROR: Different Cut-Points set!\n" if ($cpnt != index($cons, "&")+1);
-        $cons =~ s/&//g;
+    $_ = <>;
+    if ($_) {
+        chomp($_);
+        $cons = uc $_;
+        if (($cpnt != -1) && (length($cons) > $cpnt-1)) {
+            die "ERROR: Different Cut-Points set!\n" if ($cpnt != index($cons, "&")+1);
+            $cons =~ s/&//g;
+        }
+        $cons .= 'N' x (length($fist)-length); # pad with N
+    } else {
+        $cons .= 'N' x length($fist); # pad with N
     }
-    $cons .= 'N' x (length($fist)-length); # pad with N
     #print "$cons\n";
     return 1;
 }
@@ -412,13 +417,13 @@ sub cost_function {
       } 
       
       $cost = ($e1-$f1)+($e2-$f2) +
-          $small*(($e1-$e1s+$dg) + ($e2 - $e2s+$dg));
+          $small*(($e1-$e1s+$dG) + ($e2 - $e2s+$dG));
   } else {
-      $cost = $e1+$e1s-2*$f1+$small*($e1-$e1s+$dg)*($e1-$e1s+$dg);
+      $cost = $e1+$e1s-2*$f1+$small*($e1-$e1s+$dG)*($e1-$e1s+$dG);
       if ($bar && ((!defined $refcost) || $cost<$refcost)) {
           $sE = RNA::find_saddle($seq, $fist, $sest, 20)/100.;
           $sE -= ($e1+$e1s)/2;
-          printf "sE = %6.2f %6.2f\n", $sE,(0.1*$small*($sE - $bar)*($sE - $bar)) ;
+          printf "sE = %6.2f %6.2f\n", $sE,(0.1*$small*($sE - $bar)*($sE - $bar)) if ($opt_v);
           $cost += (0.1*$small*($sE - $bar)*($sE - $bar));
       }
   }
@@ -484,6 +489,7 @@ program specific options:
  -trial <int> max number of sequences tested per run (default: $nom)
  -g <float>   small positivie parameter for costfunction (default: $small)
  -bar <float> barrier hight, seperating the two states (default: $bar)
+ -dG <float>  energy difference between the two states (default: $dG)
  -T2 <float>  for temperature sensitive switches, temperature at which
               2nd structure is ground-state (default: undef)
 standard Vienna RNA options:
@@ -526,7 +532,8 @@ For details of the algorithm see:  Flamm et al.,
 "Design of Multi-Stable RNA Molecules", RNA 7:254-265 (2001)
 
 Input consists of three lines, the first two containing the target
-structures in dot bracket notations. The third line may be used to
+structures in dot bracket notations. Structures may contain a '&' to 
+model bistability of two interacting RNAs (using RNAcofold algorithm). The third line may be used to
 define sequence constraints: It contains a sequence string using
 IUPAC codes for nucleotide classes (i.e. C<Y> for pyrimidine, C<R> for
 purine, C<N> for anything...). If the line is empty or shorter than the
@@ -558,10 +565,9 @@ Parameter of the cost function that weights the importance of
 equal energies, and desired energy barriers.
 
 The cost function primarily optimizes product of Boltzman
-probabilities of the two structures C<p(S1)*P(S2)>, in addition it
+probabilities of the two structures C<P(S1)*P(S2)>, in addition it
 contains a penalty proportional to C<[E(S1)-E(S2)]^2> that
-enforces equal energies for both structures. With the --bar it
-also tries design for a given energy barrier. The -g parameter
+enforces equal energies for both structures. The -g parameter
 defines the weight of these additional cost function terms.
 
 =item B<-T> <float>
@@ -577,9 +583,12 @@ temperatures at which structures S1 and S2 should be prefered.
 
 Size of the desired energy barrier between the two structures in
 kcal/mol. A fast heuristic that looks at shortest refolding paths is
-used to estimate the barrier. Requires a recent version of the Vienna
-RNA package that includes the find_saddle() function for estimating
-refolding paths.
+used to estimate the barrier.
+
+=item B<-dG> <float>
+
+Specify an energy difference between the two optimized structures 
+(kcal/mol). The energy is added to the second conformation.
 
 =item ViennaRNA standard options
 

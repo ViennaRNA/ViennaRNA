@@ -1,15 +1,20 @@
 include ../generic.mk
 
+
 PERL_MODULE = $(SWIG_module_name).pm
 
 perlextdir = $(prefix)$(PERL_ARCH_RELATIVE_INSTALL_DIR)/auto/RNA
 perlext_LTLIBRARIES = RNA.la
 
+LANG_SPECIFIC_INTERFACE_FILES = \
+  $(srcdir)/tmaps.i \
+  $(srcdir)/globals-md.i \
+  $(srcdir)/callbacks-fc.i \
+  $(srcdir)/callbacks-sc.i \
+  $(builddir)/version.i
+
 INTERFACE_FILES = $(SWIG_src) \
-                  tmaps.i \
-                  globals-md.i \
-                  callbacks-fc.i \
-                  callbacks-sc.i
+                  $(LANG_SPECIFIC_INTERFACE_FILES)
 
 RNA_la_SOURCES =  $(INTERFACE_FILES) \
                   $(SWIG_wrapper)
@@ -24,33 +29,51 @@ nobase_dist_perlmod_DATA = \
   RNA/Utils.pm \
   RNA/Params.pm
 
-RNA_la_CPPFLAGS = -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS) @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
+RNA_la_CFLAGS = $(RNA_CFLAGS) $(PERLXS_CFLAGS)
+RNA_la_CXXFLAGS = $(RNA_CXXFLAGS)
+RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS)
 
 RNA_la_LIBADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PERLXS_LIBS)
 if WITH_LIBSVM
 RNA_la_LIBADD += -lstdc++
 endif
 
-RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -shrext $(PERL_SO) $(PERLXS_LDFLAGS)
+RNA_la_LDFLAGS =
 
-SOURCES = RNA.pod
+if WITH_LTO
+RNA_la_CFLAGS += $(LTO_CFLAGS)
+RNA_la_CXXFLAGS += $(LTO_CXXFLAGS)
+RNA_la_LDFLAGS += $(LTO_LDFLAGS)
+endif
+
+RNA_la_LDFLAGS += -avoid-version -module -shared -export-dynamic -shrext $(PERL_SO) $(PERLXS_LDFLAGS)
+
+SOURCES = $(srcdir)/RNA.pod
 
 BUILT_SOURCES = auto/RNA/RNA$(PERL_SO)
 
 EXTRA_DIST = \
   $(SWIG_wrapper) \
+  RNA.pod \
   $(PERL_MODULE) \
-  RNA/t/Design.t
+  RNA/t/Design.t \
+  $(LANG_SPECIFIC_INTERFACE_FILES)
 
 ##
 ## SWIG interface wrapper code generation
 ##
 
+if HAS_SWIG
+
 $(SWIG_wrapper) $(PERL_MODULE): $(INTERFACE_FILES)
-	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src @FLOAT_PF_FLAG@ \
+	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
+                  -I$(srcdir) -I$(builddir) \
+                  @FLOAT_PF_FLAG@ \
                   -perl5 -proxy -const -c++ \
                   -module RNA -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
+
+endif
 
 ##
 ## copy shared library for perl-tests

@@ -55,6 +55,17 @@ default="1"
 optional
 hidden
 
+option  "outfile-prefix" o
+"Prefix of output file names\n\n"
+details="If this parameter is set, the output files will be prefixed by\
+ the provided string. Hence, the output files will obey the following naming convention:\
+ \"prefix_ss.ps\" (secondary structure plot), \"prefix_dp.ps\" (dot-plot), \"prefix_aln.ps\"\
+ (annotated alignment), and \"prefix_ali.out\" (list of likely pairs).\n\n"
+string
+typestr="prefix"
+optional
+
+
 # Options
 section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
@@ -179,7 +190,12 @@ default="1e-6"
 hidden
 
 option  "gquad" g
-"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n"
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n\n"
+flag
+off
+
+option  "sci" -
+"Compute the structure conservation index (SCI) for the MFE consensus structure of the alignment\n\n"
 flag
 off
 

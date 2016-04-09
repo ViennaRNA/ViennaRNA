@@ -234,6 +234,7 @@ PRIVATE int **
 create_L_matrix(short *S,
                 int start,
                 int maxdist,
+                int n,
                 int **g,
                 vrna_param_t *P);
 
@@ -427,10 +428,11 @@ PUBLIC int *get_gquad_ali_matrix( short *S_cons,
 PUBLIC int **get_gquad_L_matrix(short *S,
                                 int start,
                                 int maxdist,
+                                int n,
                                 int **g,
                                 vrna_param_t *P){
 
-  return create_L_matrix(S, start, maxdist, g, P);
+  return create_L_matrix(S, start, maxdist, n, g, P);
 }
 
 PUBLIC void
@@ -441,6 +443,7 @@ vrna_gquad_mx_local_update( vrna_fold_compound_t *vc,
                               vc->sequence_encoding,
                               start,
                               vc->window_size,
+                              vc->length,
                               vc->matrices->ggg_local,
                               vc->params);
 }
@@ -449,13 +452,13 @@ PRIVATE int **
 create_L_matrix(short *S,
                 int start,
                 int maxdist,
+                int n,
                 int **g,
                 vrna_param_t *P){
 
   int **data;
-  int n, i, j, k, *gg;
-  
-  n   = S[0];
+  int i, j, k, *gg;
+
   gg  = get_g_islands_sub(S, start, MIN2(n, start + maxdist + 4));
 
   if(g){ /* we just update the gquadruplex contribution for the current
@@ -946,8 +949,16 @@ PRIVATE void gquad_mfe_ali( int i,
                             void *S,
                             void *n_seq){
 
-  int en[2], cc;
+  int j, en[2], cc;
   en[0] = en[1] = INF;
+
+  for(j=0;j<3;j++){
+    if(l[j] > VRNA_GQUAD_MAX_LINKER_LENGTH) return;
+    if(l[j] < VRNA_GQUAD_MIN_LINKER_LENGTH) return;
+  }
+  if(L > VRNA_GQUAD_MAX_STACK_SIZE) return;
+  if(L < VRNA_GQUAD_MIN_STACK_SIZE) return;
+
   gquad_mfe_ali_en(i, L, l, (void *)(&(en[0])), P, S, n_seq);
   if(en[1] != INF){
     cc  = en[0] + en[1];

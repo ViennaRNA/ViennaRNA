@@ -28,6 +28,32 @@ char *my_pf_fold(char *string, float *OUTPUT);
 char *my_pf_fold(char *string, char *constraints, float *OUTPUT);
 %ignore pf_fold;
 
+%rename (pf_circ_fold) my_pf_circ_fold;
+%{
+  char *my_pf_circ_fold(char *string, float *energy) {
+    char *struc;
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
+    *energy = pf_circ_fold(string, struc);
+    return(struc);
+  }
+  char *my_pf_circ_fold(char *string, char *constraints, float *energy) {
+    char *struc;
+    struc = (char *)calloc(strlen(string)+1,sizeof(char));
+    if (constraints && fold_constrained)
+      strncpy(struc, constraints, strlen(string));
+    *energy = pf_circ_fold(string, struc);
+    if (constraints)
+      strncpy(constraints, struc, strlen(constraints));
+    return(struc);
+  }
+%}
+
+%newobject my_pf_circ_fold;
+char *my_pf_circ_fold(char *string, char *constraints, float *OUTPUT);
+char *my_pf_circ_fold(char *string, float *OUTPUT);
+
+%ignore pf_circ_fold;
+
 %newobject pbacktrack;
 extern char *pbacktrack(char *sequence);
 
@@ -174,7 +200,31 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
 %include  <ViennaRNA/part_func_co.h>
 
 
+%extend vrna_fold_compound_t{
 
+  std::vector<std::vector<double> > bpp(void){
+    std::vector<std::vector<double> > probabilities;
+    vrna_fold_compound_t *vc = $self;
+    if(vc->exp_matrices && vc->exp_matrices->probs){
+      int turn, i, j, *idx, n;
+      FLT_OR_DBL *probs;
+
+      n     = vc->length;
+      idx   = vc->iindx;
+      turn  = vc->exp_params->model_details.min_loop_size;
+      probs = vc->exp_matrices->probs;
+
+      probabilities.push_back(std::vector<double>(n+1, 0.));
+      for(i=1; i <= n; i++){
+        int u = MIN2(i + turn + 1, n);
+        probabilities.push_back(std::vector<double>(u, 0.));
+        for(j = u; j <= n; j++)
+          probabilities[i].push_back((double)probs[idx[i] - j]);
+      }
+    }
+    return probabilities;
+  }
+}
 
 %{
 double get_pr(int i, int j) {

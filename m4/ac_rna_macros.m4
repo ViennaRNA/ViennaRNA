@@ -149,9 +149,6 @@ AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
 
 AC_DEFUN([RNA_FEATURE_POST],[
 
-  VRNA_LIBS=" -L\$(top_builddir)/../../src/ViennaRNA -lRNA ${LIBGOMPFLAG} ${LTO_LDFLAGS}"
-  VRNA_CFLAGS=" -I\$(top_srcdir)/../../src/ViennaRNA -I\$(top_srcdir)/../../src ${GENERIC_HC_DEF} ${FLOAT_PF_FLAG} ${DEPRECATION_WARNING}"
-
   # substitute automake variables in case we set them somewhere
   # in our autoconf mess
 
@@ -159,6 +156,15 @@ AC_DEFUN([RNA_FEATURE_POST],[
   AC_SUBST([AM_CFLAGS])
   AC_SUBST([AM_CXXFLAGS])
   AC_SUBST([AM_LDFLAGS])
+
+  AC_SUBST([RNA_CFLAGS])
+  AC_SUBST([RNA_CXXFLAGS])
+  AC_SUBST([RNA_CPPFLAGS])
+  AC_SUBST([RNA_LDFLAGS])
+
+  VRNA_LIBS=" ${RNA_LDFLAGS} -L\$(top_builddir)/../../src/ViennaRNA -lRNA ${LIBGOMPFLAG}"
+  VRNA_CFLAGS=" -I\$(top_srcdir)/../../src/ViennaRNA -I\$(top_srcdir)/../../src ${RNA_CPPFLAGS} ${RNA_CFLAGS}"
+
   AC_SUBST([VRNA_LIBS])
   AC_SUBST([VRNA_CFLAGS])
 

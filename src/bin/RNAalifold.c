@@ -75,14 +75,14 @@ add_shape_constraints(vrna_fold_compound_t *vc,
 int main(int argc, char *argv[]){
   struct        RNAalifold_args_info args_info;
   unsigned int  input_type, options, constraint_options, longest_string;
-  char          ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH], fname[FILENAME_MAX_LENGTH];
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
-  int           s, n_seq, i, length, sym, noPS, with_shapes, verbose;
+  int           s, n_seq, i, length, sym, noPS, with_shapes, verbose, with_sci;
   int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
   double        min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
   char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
   char          *names[MAX_NUM_NAMES];       /* sequence names */
   char          *constraints_file, **shape_files, *shape_method;
+  char          *filename_plot, *filename_dot, *filename_aln, *filename_out, *prefix;
   int           *shape_file_association;
   char          *tmp_string;
   int           tmp_number;
@@ -90,24 +90,29 @@ int main(int argc, char *argv[]){
   vrna_exp_param_t  *pf_parameters;
   vrna_md_t     md;
 
-  fname[0] = ffname[0] = gfname[0] = '\0';
   string = structure = cstruc = ParamFile = ns_bases = NULL;
   pf_parameters = NULL;
   endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = noPS = 0;
-  do_backtrack  = 1;
-  dangles       = 2;
-  gquad         = 0;
-  sfact         = 1.07;
-  bppmThreshold = 1e-6;
-  MEAgamma      = 1.0;
-  betaScale     = 1.;
-  shape_files   = NULL;
-  shape_file_association = 0;
-  shape_method  = NULL;
-  with_shapes   = 0;
-  max_bp_span   = -1;
-  verbose       = 0;
-  constraints_file = NULL;
+  do_backtrack            = 1;
+  dangles                 = 2;
+  gquad                   = 0;
+  sfact                   = 1.07;
+  bppmThreshold           = 1e-6;
+  MEAgamma                = 1.0;
+  betaScale               = 1.;
+  shape_files             = NULL;
+  shape_file_association  = 0;
+  shape_method            = NULL;
+  with_shapes             = 0;
+  max_bp_span             = -1;
+  verbose                 = 0;
+  with_sci                = 0;
+  constraints_file        = NULL;
+  prefix                  = NULL;
+  filename_plot           = NULL;
+  filename_dot            = NULL;
+  filename_aln            = NULL;
+  filename_out            = NULL;
 
   set_model_details(&md);
 
@@ -281,6 +286,14 @@ int main(int argc, char *argv[]){
       fprintf(stderr, "can't open %s\n", args_info.inputs[0]);
     }
   }
+  
+  if(args_info.outfile_prefix_given){
+    prefix = strdup(args_info.outfile_prefix_arg);
+  }
+
+  /* sci computation */
+  if(args_info.sci_given)
+    with_sci = 1;
 
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free (&args_info);
@@ -424,28 +437,80 @@ int main(int argc, char *argv[]){
   string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s", string, structure);
 
-  if (istty)
-    printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n",
-           min_en, real_en, min_en - real_en);
-  else
-    printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
+  if(istty){
+    if(with_sci){
+      float sci = min_en;
+      float e_mean = 0;
+      for (i=0; AS[i]!=NULL; i++){
+        char *seq = get_ungapped_sequence(AS[i]);
+        e_mean    += vrna_fold(seq, NULL);
+        free(seq);
+      }
+      e_mean  /= i;
+      sci     /= e_mean;
 
-  strcpy(ffname, "alirna.ps");
-  strcpy(gfname, "alirna.g");
+      printf( "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)"
+              "\n SCI = %2.4f\n",
+              min_en, real_en, min_en-real_en, sci);
+    } else
+      printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n",
+             min_en, real_en, min_en - real_en);
+  } else {
+    if(with_sci){
+      float sci = min_en;
+      float e_mean = 0;
+      for (i=0; AS[i]!=NULL; i++){
+        char *seq = get_ungapped_sequence(AS[i]);
+        e_mean    += fold(seq, NULL);
+        free(seq);
+      }
+      e_mean  /= i;
+      sci     /= e_mean;
+
+      printf(" (%6.2f = %6.2f + %6.2f) [sci = %2.4f]\n", min_en, real_en, min_en-real_en, sci);
+    }
+    else
+      printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
+  }
+
+  if(prefix){
+    int l = strlen(prefix);
+    filename_plot = (char *)vrna_alloc((l + 7) * sizeof(char));
+    filename_dot  = (char *)vrna_alloc((l + 7) * sizeof(char));
+    filename_aln  = (char *)vrna_alloc((l + 8) * sizeof(char));
+    filename_out  = (char *)vrna_alloc((l + 9) * sizeof(char));
+    strncpy(filename_plot, prefix, l);
+    strncpy(filename_dot, prefix, l);
+    strncpy(filename_aln, prefix, l);
+    strncpy(filename_out, prefix, l);
+    strcat(filename_plot, "_ss.ps");
+    strcat(filename_dot, "_dp.ps");
+    strcat(filename_aln, "_aln.ps");
+    strcat(filename_out, "_ali.out");
+  } else {
+    filename_plot = (char *)vrna_alloc((10) * sizeof(char));
+    filename_dot  = (char *)vrna_alloc((10) * sizeof(char));
+    filename_aln  = (char *)vrna_alloc((7) * sizeof(char));
+    filename_out  = (char *)vrna_alloc((11) * sizeof(char));
+    strcpy(filename_plot, "alirna.ps");
+    strcpy(filename_dot, "alidot.ps");
+    strcpy(filename_aln, "aln.ps");
+    strcpy(filename_out, "alifold.out");
+  }
 
   if (!noPS) {
     char **A;
     A = annote(structure, (const char**) AS);
 
     if (doColor)
-      (void) vrna_file_PS_rnaplot_a(string, structure, ffname, A[0], A[1], &md);
+      (void) vrna_file_PS_rnaplot_a(string, structure, filename_plot, A[0], A[1], &md);
     else
-      (void) vrna_file_PS_rnaplot_a(string, structure, ffname, NULL, A[1], &md);
+      (void) vrna_file_PS_rnaplot_a(string, structure, filename_plot, NULL, A[1], &md);
 
     free(A[0]); free(A[1]); free(A);
   }
   if (doAlnPS)
-    PS_color_aln(structure, "aln.ps", (const char **) AS, (const char **) names);
+    PS_color_aln(structure, filename_aln, (const char **) AS, (const char **) names);
 
   /* free mfe arrays */
   vrna_mx_mfe_free(vc);
@@ -547,23 +612,15 @@ int main(int argc, char *argv[]){
         free(pl2);
       }
 
-      if (fname[0]!='\0') {
-        strcpy(ffname, fname);
-        strcat(ffname, "_ali.out");
-      } else strcpy(ffname, "alifold.out");
-      aliout = fopen(ffname, "w");
+      aliout = fopen(filename_out, "w");
       if (!aliout) {
-        fprintf(stderr, "can't open %s    skipping output\n", ffname);
+        fprintf(stderr, "can't open %s    skipping output\n", filename_out);
       } else {
         print_aliout(vc, pl, bppmThreshold, mfe_struc, aliout);
       }
       fclose(aliout);
-      if (fname[0]!='\0') {
-        strcpy(ffname, fname);
-        strcat(ffname, "_dp.ps");
-      } else strcpy(ffname, "alidot.ps");
       cp = make_color_pinfo(AS,pl, bppmThreshold, n_seq, mfel);
-      (void) PS_color_dot_plot(string, cp, ffname);
+      (void) PS_color_dot_plot(string, cp, filename_dot);
       free(cp);
       free(pl);
       free(mfel);
@@ -577,6 +634,11 @@ int main(int argc, char *argv[]){
     free(shape_files);
   free(string);
   free(structure);
+  free(filename_plot);
+  free(filename_dot);
+  free(filename_aln);
+  free(filename_out);
+  free(prefix);
   vrna_fold_compound_free(vc);
   for (i=0; AS[i]; i++) {
     free(AS[i]); free(names[i]);

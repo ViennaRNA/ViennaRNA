@@ -21,103 +21,128 @@ AC_DEFUN([RNA_ENABLE_LTO],[
 
   RNA_FEATURE_IF_ENABLED([lto],[
 
-  ac_lto_supported=no
+    ac_lto_supported=no
 
 
   # check whether the compiler accepts LTO option
-  AX_CHECK_COMPILE_FLAG([-flto], [ac_lto_supported=yes],[ac_lto_supported=no],[],[])
+    AC_LANG_PUSH([C])
+    AX_CHECK_COMPILE_FLAG([-flto], [ac_lto_supported=yes],[ac_lto_supported=no],[],[])
+    AC_LANG_POP([C])
 
-  # do we have support from the compiler?
-  if test "x$ac_lto_supported" != "xno" ; then
+    if test "x$ac_lto_supported" != "xno" ; then
+      AC_LANG_PUSH([C++])
+      AX_CHECK_COMPILE_FLAG([-flto], [],[ac_lto_supported=no],[],[])
+      AC_LANG_POP([C++])
+    fi
 
-    ## Does the user want to explicitely set the ar/ranlib/nm commands?
-    AS_IF([test "x$USER_AR" != "x" || test "x$USER_RANLIB" != "x" || test "x$USER_NM" != "x"],[
-      ## The user explicitely set at least one of the above variables. Check if all are set!
-      AC_PATH_PROG([OUR_AR], [$USER_AR], [no])
-      AC_PATH_PROG([OUR_RANLIB], [$USER_RANLIB], [no])
-      AC_PATH_PROG([OUR_NM], [$USER_NM], [no])
-      AS_IF([test "$OUR_AR" == "no" || test "$OUR_RANLIB" == "no" || test "$OUR_NM" == "no"],[
-        enable_lto="no"
-        ac_lto_supported="no"
-        AC_MSG_ERROR([Please make sure that you set all three of the USER_AR/USER_RANLIB/USER_NM variables, and that the tools exist in your PATH])
-      ],[
-        AC_MSG_WARN([Using ar/ranlib/nm tools as specified by user settings])
-        LTO_FLAGS="-flto"
-        AR="$OUR_AR"
-        RANLIB="$OUR_RANLIB"
-        NM="$OUR_NM"
-        AX_APPEND_FLAG(["$LTO_FLAGS"], [LDFLAGS])
-        LTO_LDFLAGS="${LTO_FLAGS}"
+    ## prepare compile settings
+    if test "x$ac_lto_supported" != "xno" ; then
+
+      ## set compile flags
+      LTO_CFLAGS="-flto"
+      LTO_CXXFLAGS="-flto"
+
+      AS_IF([ test "x$ax_cv_c_compiler_vendor" == "xgnu" ], [
+        LTO_CFLAGS="${LTO_CFLAGS} -ffat-lto-objects"
+        LTO_CXXFLAGS="${LTO_CXXFLAGS} -ffat-lto-objects"
+      ],[])
+    fi
+
+    ## prepare linker settings
+    if test "x$ac_lto_supported" != "xno" ; then
+      LTO_LDFLAGS="-flto"
+
+      AS_IF([ test "x$ax_cv_c_compiler_vendor" == "xclang" ],[
+            ## Here we have to distinguish at least OS X, since it
+            ## does not use gold plugin as Linux does
+            case "$host" in
+              *darwin*)   ;;
+              *linux*)    AX_CHECK_LINK_FLAG([-fuse-ld=gold], [
+                            ## switch explicitely to ld-gold
+                            LTO_LDFLAGS="-fuse-ld=gold ${LTO_LDFLAGS}"
+                          ], [
+                            ac_lto_supported="no"],[], [])
+                          ;;
+              *)          AC_MSG_WARN([Unknown target host, deactivating LTO support])
+                          ac_lto_supported="no"
+                          ;;
+            esac
       ])
-    ], [
-      ## no explicit user settings, so we proceed by distinguishing the compiler we use
-      ## Here we have to hack a little. Some systems do not provide the liblto plugin for
-      ## ar/ranlib/nm by default. However, gcc provides some wrappers, gcc-ar, gcc-ranlib,
-      ## and gcc-nm that do so. LLVM does it likewise.
-      ## Therefore, we substitute the program env vars if we detected compilation with a
-      ## compiler that we know uses this scheme
-      AC_MSG_WARN([Trying to re-set ar/ranlib/nm to compiler specific wrappers])
-      AS_CASE([$ax_cv_c_compiler_vendor],
-      [gnu],[
-          AC_CHECK_TOOL([OUR_AR], [gcc-ar], [no])
-          AC_CHECK_TOOL([OUR_RANLIB], [gcc-ranlib], [no])
-          AC_CHECK_TOOL([OUR_NM], [gcc-nm], [no])
-          AS_IF([test "$OUR_AR" == "no" || test "$OUR_RANLIB" == "no" || test "$OUR_NM" == "no"],[
-            enable_lto="no"
-            ac_lto_supported="no"
-          ],[
-            LTO_FLAGS="-flto"
-            AR="$OUR_AR"
-            RANLIB="$OUR_RANLIB"
-            NM="$OUR_NM"
-            AX_APPEND_FLAG(["$LTO_FLAGS"], [LDFLAGS])
-            LTO_LDFLAGS="${LTO_FLAGS}"
-          ])
-        ],
-      [clang],[
-          ## Here we have to distinguish at least OS X, since it
-          ## does not use gold plugin as Linux does
-          case "$host" in
-            *darwin*)   if test "x$enable_universal_binary" != "xno" ; then
-                          AC_MSG_WARN([
+    fi
+
+
+    # set ar/ranlib/nm
+    if test "x$ac_lto_supported" != "xno" ; then
+
+      ## Does the user want to explicitely set the ar/ranlib/nm commands?
+      AS_IF([test "x$USER_AR" != "x" || test "x$USER_RANLIB" != "x" || test "x$USER_NM" != "x"],[
+        ## The user explicitely set at least one of the above variables. Check if all are set!
+        AC_PATH_PROG([OUR_AR], [$USER_AR], [no])
+        AC_PATH_PROG([OUR_RANLIB], [$USER_RANLIB], [no])
+        AC_PATH_PROG([OUR_NM], [$USER_NM], [no])
+        AS_IF([test "$OUR_AR" == "no" || test "$OUR_RANLIB" == "no" || test "$OUR_NM" == "no"],[
+          enable_lto="no"
+          ac_lto_supported="no"
+          AC_MSG_ERROR([Please make sure that you set all three of the USER_AR/USER_RANLIB/USER_NM variables, and that the tools exist in your PATH])
+        ],[
+          AC_MSG_WARN([Using ar/ranlib/nm tools as specified by user settings])
+          AR="$OUR_AR"
+          RANLIB="$OUR_RANLIB"
+          NM="$OUR_NM"
+        ])
+      ], [
+        ## no explicit user settings, so we proceed by distinguishing the compiler we use
+        ## Here we have to hack a little. Some systems do not provide the liblto plugin for
+        ## ar/ranlib/nm by default. However, gcc provides some wrappers, gcc-ar, gcc-ranlib,
+        ## and gcc-nm that do so. LLVM does it likewise.
+        ## Therefore, we substitute the program env vars if we detected compilation with a
+        ## compiler that we know uses this scheme
+        AC_MSG_WARN([Trying to re-set ar/ranlib/nm to compiler specific wrappers])
+        AS_CASE([$ax_cv_c_compiler_vendor],
+          [gnu],[
+            AC_CHECK_TOOL([OUR_AR], [gcc-ar], [no])
+            AC_CHECK_TOOL([OUR_RANLIB], [gcc-ranlib], [no])
+            AC_CHECK_TOOL([OUR_NM], [gcc-nm], [no])
+            AS_IF([test "$OUR_AR" == "no" || test "$OUR_RANLIB" == "no" || test "$OUR_NM" == "no"],[
+              enable_lto="no"
+              ac_lto_supported="no"
+            ],[
+              AR="$OUR_AR"
+              RANLIB="$OUR_RANLIB"
+              NM="$OUR_NM"
+            ])
+          ],
+          [clang],[
+            ## Here we have to distinguish at least OS X, since it
+            ## does not use gold plugin as Linux does
+            case "$host" in
+              *darwin*)   if test "x$enable_universal_binary" != "xno" ; then
+                            AC_MSG_WARN([
 **********************************************************************
 No LTO support for MacOSX combination with clang/llvm and universal binaries!
 We will disable LTO support now!
 **********************************************************************
                                       ])
-                          ac_lto_supported="no"
-                        else
-                          AC_MSG_WARN([Building for OS X])
-                          LTO_FLAGS="-flto"
-                          AX_APPEND_FLAG(["$LTO_FLAGS"], [LDFLAGS])
-                          ## and again for the pkg-config file
-                          LTO_LDFLAGS="${LTO_FLAGS}"
-                        fi
-                        ;;
-            *linux*)    AC_MSG_WARN([Building for Linux])
-                        AC_CHECK_TOOL([OUR_AR], [llvm-ar], [no])
-                        AC_CHECK_TOOL([OUR_RANLIB], [llvm-ranlib], [no])
-                        AC_CHECK_TOOL([OUR_NM], [llvm-nm], [no])
-                        AS_IF([test "$OUR_AR" == "no"|| test "$OUR_RANLIB" == "no" || test "$OUR_NM" == "no" ],[
-                          ac_lto_supported="no"
-                        ],[
-                          AX_CHECK_LINK_FLAG([-fuse-ld=gold], [
-                            LTO_FLAGS="-flto"
+                            ac_lto_supported="no"
+                          else
+                            AC_MSG_WARN([Building for OS X])
+                          fi
+                          ;;
+              *linux*)    AC_MSG_WARN([Building for Linux])
+                          AC_CHECK_TOOL([OUR_AR], [llvm-ar], [no])
+                          AC_CHECK_TOOL([OUR_RANLIB], [llvm-ranlib], [no])
+                          AC_CHECK_TOOL([OUR_NM], [llvm-nm], [no])
+                          AS_IF([test "$OUR_AR" == "no"|| test "$OUR_RANLIB" == "no" || test "$OUR_NM" == "no" ],[
+                            ac_lto_supported="no"
+                          ],[
                             AR="$OUR_AR"
                             RANLIB="$OUR_RANLIB"
                             NM="$OUR_NM"
-                            ## switch explicitely to ld-gold
-                            AX_APPEND_FLAG([-fuse-ld=gold], [LDFLAGS])
-                            AX_APPEND_FLAG(["$LTO_FLAGS"], [LDFLAGS])
-                            ## and again for the pkg-config file
-                            LTO_LDFLAGS="-fuse-ld=gold ${LTO_FLAGS}"
-                           ], [
-                            ac_lto_supported="no"],[], [])
-                        ])
-                        ;;
-            *)          AC_MSG_WARN([Unknown target host, deactivating LTO support])
-                        ac_lto_supported="no"
-                        ;;
+                          ])
+                          ;;
+              *)          AC_MSG_WARN([Unknown target host, deactivating LTO support])
+                          ac_lto_supported="no"
+                          ;;
           esac
         ],
       [
@@ -127,23 +152,23 @@ We will disable LTO support now!
 
     ## append -flto flag if all checks went fine
     if test "x$ac_lto_supported" != "xno" ; then
-      AX_APPEND_FLAG(["$LTO_FLAGS"], [CFLAGS])
-      AX_APPEND_FLAG(["$LTO_FLAGS"], [CXXFLAGS])
+      AX_APPEND_FLAG(["$LTO_LDFLAGS"], [RNA_LDFLAGS])
+      AX_APPEND_FLAG(["$LTO_CFLAGS"], [RNA_CFLAGS])
+      AX_APPEND_FLAG(["$LTO_CXXFLAGS"], [RNA_CXXFLAGS])
     else
       AC_MSG_WARN([Your compiler/linker combination does not support link-time optimization (LTO)])
       enable_lto="no"
       enabled_but_failed_lto="unsupported"
     fi
-  fi
+    fi
   ])
 
   # distribute additional compiler and linker flags
   # --> set these variables instead of CFLAGS, CXXFLAGS, or LDFLAGS
-  AC_SUBST([CXXFLAGS])
-  AC_SUBST([CFLAGS])
-  AC_SUBST([LDFLAGS])
-  AC_SUBST([LTO_FLAGS])
+  AC_SUBST([LTO_CFLAGS])
+  AC_SUBST([LTO_CXXFLAGS])
   AC_SUBST([LTO_LDFLAGS])
+
   # substitute the environment variables in case they have changed above?
   AC_SUBST([AR])
   AC_SUBST([RANLIB])

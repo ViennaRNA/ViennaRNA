@@ -34,6 +34,8 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
     AX_PKG_SWIG(2.0.0, [has_swig="yes"], [has_swig="no"])
   ])
 
+  AM_CONDITIONAL(HAS_SWIG, test "x$has_swig" != "xno")
+  
   RNA_ENABLE_SWIG_PERL
   RNA_ENABLE_SWIG_PYTHON
   RNA_ENABLE_SWIG_PYTHON3
@@ -108,7 +110,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
 
     AC_DEFINE([WITH_PERL_INTERFACE], [1], [Create the perl interface to RNAlib])
     AC_SUBST([PERL_INTERFACE], [Perl])
-    AC_CONFIG_FILES([interfaces/Perl/Makefile])
+    AC_CONFIG_FILES([interfaces/Perl/Makefile interfaces/Perl/version.i])
   ])
 
 ])
@@ -155,7 +157,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
 
       AC_DEFINE([WITH_PYTHON2_INTERFACE], [1], [Create the python2 interface to RNAlib])
       AC_SUBST([PYTHON2_INTERFACE], [Python])
-      AC_CONFIG_FILES([interfaces/Python/Makefile])
+      AC_CONFIG_FILES([interfaces/Python/Makefile interfaces/Python/version.i])
     fi
   ])
 ])
@@ -199,6 +201,6 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON3],[
       AC_SUBST([PYTHON3_INTERFACE], [Python3])
     fi
 
-    AC_CONFIG_FILES([interfaces/Python3/Makefile])
+    AC_CONFIG_FILES([interfaces/Python3/Makefile interfaces/Python3/version.i])
   ])
 ])

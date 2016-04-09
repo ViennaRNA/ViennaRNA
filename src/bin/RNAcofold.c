@@ -575,6 +575,7 @@ int main(int argc, char *argv[])
     }
     rec_id = rec_sequence = orig_sequence = structure = cstruc = NULL;
     rec_rest = NULL;
+    vrna_fold_compound_free(vc);
 
     /* print user help for the next round if we get input from tty */
     if(istty){

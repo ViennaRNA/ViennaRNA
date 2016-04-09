@@ -90,7 +90,7 @@ AC_DEFUN([RNA_ENABLE_PKG_CLUSTER],[
 AC_DEFUN([RNA_ENABLE_PKG_KINWALKER],[
   RNA_ADD_PACKAGE([kinwalker],
                   [Kinwalker program],
-                  [yes],
+                  [no],
                   [with_kinwalker=yes],
                   [with_kinwalker=no],
                   [${srcdir}/src/Kinwalker/Makefile.am])

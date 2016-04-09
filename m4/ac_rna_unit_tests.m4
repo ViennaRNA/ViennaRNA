@@ -110,6 +110,6 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
   AM_CONDITIONAL(WITH_PYTHON_TESTS, test "x$enable_check_python" != "xno")
   AM_CONDITIONAL(WITH_PYTHON3_TESTS, test "x$enable_check_python3" != "xno")
 
-  AC_CONFIG_FILES([tests/Makefile tests/RNApath.py])
+  AC_CONFIG_FILES([tests/Makefile tests/RNApath.py tests/RNApath.pm])
 ])
 
