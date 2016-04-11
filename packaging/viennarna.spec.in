@@ -8,11 +8,20 @@
 %{!?python2_sitearch: %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %global __provides_exclude_from ^%{python2_sitearch}/.*\\.so$
 
-##%if 0%{?suse_version} || 0%{?fedora} || 0%{?rhel_version} || 0%{?centos_version}
+%if 0%{?fedora} > 12 || 0%{?rhel} > 7 || 0%{?suse_version}
+%global with_python3 1
+
+%{!?__python3: %global __python3 /usr/bin/python3}
+%{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python3_sitearch: %global python3_sitearch %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+
+%global python3_modext %(%{__python3} -c "from distutils.sysconfig import get_config_vars; print(get_config_vars('SO')[[0]])")
+
+%global __provides_exclude_from ^%{python3_sitearch}/.*\\.so$
+
+%endif
+
 %{!?_pkgdocdir: %global _pkgdocdir %%{_docdir}/%{name}}
-##%else
-##%{!?_pkgdocdir: %global _pkgdocdir %{buildroot}%{_docdir}/%{name}-%{version}}
-##%endif
 
 Name:           viennarna
 Version:        @PACKAGE_VERSION@
@@ -44,9 +53,17 @@ Requires:       perl libstdc++ glibc info gsl
 Provides:       Kinfold
 
 %if 0%{?suse_version}
-BuildRequires:  python-devel 
+BuildRequires:  python-devel python
 %else
-BuildRequires:  python2-devel 
+BuildRequires:  python2-devel python2
+%endif
+
+%if 0%{?with_python3}
+%if 0%{?suse_version} || 0%{?fedora}
+BuildRequires:  python3-devel python3
+%else
+BuildRequires:  python-devel python
+%endif
 %endif
 
 
@@ -78,40 +95,52 @@ Requires: perl
 %description -n perl-rna
 Perl binding for ViennaRNA RNAlib.
 
-%package -n python2-rna
-Summary:  Python binding for ViennaRNA RNAlib
+%if 0%{?suse_version}
+
+%package -n python-rna
+Summary:  Python 2 bindings for ViennaRNA RNAlib
 Group:    Libraries/Python
 Requires: %{name} = %{version}-%{release}
 Requires: python
 
+%description -n python-rna
+Python 2 bindings for ViennaRNA RNAlib.
+
+%else
+
+%package -n python2-rna
+Summary:  Python 2 bindings for ViennaRNA RNAlib
+Group:    Libraries/Python
+Requires: %{name} = %{version}-%{release}
+Requires: python2
+
 %description -n python2-rna
-Python binding for ViennaRNA RNAlib.
+Python 2 bindings for ViennaRNA RNAlib.
 
-%package compat
-Summary:    Transitional package for ViennaRNA to new package split
-Group:      Applications/Engineering
-Obsoletes:  ViennaRNA < 2.2.1
-Requires:   viennarna = %{version}
-Requires:   viennarna-devel = %{version}
-Requires:   perl-rna = %{version}
-Requires:   python2-rna = %{version}
+%endif
 
-%description compat
-This package only exists to help transition ViennaRNA users to the new
-package split. Older versions of ViennaRNA contained the entire package.
-With version 2.2.1, we split the package into core, development, and
-scripting language interface packages to conform to distribution requirements.
-This compat package will be removed after one distribution release cycle,
-please do not reference it or depend on it in any way.
+
+%if 0%{?with_python3}
+
+%package -n python3-rna
+Summary:  Python 3 bindings for ViennaRNA RNAlib
+Group:    Libraries/Python
+Requires: %{name} = %{version}-%{release}
+Requires: python3
+
+%description -n python3-rna
+Python 3 bindings for ViennaRNA RNAlib.
+
+%endif
 
 %prep
 %setup -n ViennaRNA-%{version} -q
 
 %build
 %if 0%{?fedora} && 0%{?fedora_version} < 22
-%configure --with-cluster --without-forester --disable-lto --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
+%configure --with-python3 --with-cluster --without-forester --disable-lto --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
 %else
-%configure --with-cluster --without-forester --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
+%configure --with-python3 --with-cluster --without-forester --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
 %endif
 make %{?_smp_mflags}
 
@@ -209,11 +238,28 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %{perl_vendorlib}/RNA.pm
 %{perl_vendorlib}/RNA
+%{perl_vendorarch}/auto/RNA
 %attr(755,root,root) %{perl_vendorarch}/auto/RNA/RNA.so
 
-%files -n python2-rna
-%defattr(644,root,root,755)
-%{python2_sitearch}/RNA
-%attr(755,root,root) %{python2_sitearch}/RNA/_RNA.so
+%if 0%{?suse_version}
 
-%files compat
+%files -n python-rna
+%defattr(-,root,root,-)
+%{python2_sitearch}/RNA/
+
+%else
+
+%files -n python2-rna
+%defattr(-,root,root,-)
+%{python2_sitearch}/RNA/
+
+%endif
+
+%if 0%{?with_python3}
+
+%files -n python3-rna
+%defattr(-,root,root,-)
+%{python3_sitearch}/RNA/
+
+%endif
+
