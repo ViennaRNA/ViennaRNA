@@ -14,10 +14,11 @@ INTERFACE_FILES = $(SWIG_src) \
                   callbacks-sc.i
 
 pkgpyexecdir = $(py3execdir)/RNA
+pkgpycachedir = $(pkgpyexecdir)/__pycache__
 
 pkgpyexec_LTLIBRARIES = _RNA.la
-pkgpyexec_DATA =  RNA/__init__.py \
-                  RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc \
+pkgpyexec_DATA =  RNA/__init__.py
+pkgpycache_DATA = RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc \
                   RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@
 
 _RNA_la_SOURCES = $(INTERFACE_FILES) \
