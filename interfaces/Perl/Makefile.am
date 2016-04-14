@@ -9,7 +9,8 @@ INTERFACE_FILES = $(SWIG_src) \
                   tmaps.i \
                   globals-md.i \
                   callbacks-fc.i \
-                  callbacks-sc.i
+                  callbacks-sc.i \
+                  version.i
 
 RNA_la_SOURCES =  $(INTERFACE_FILES) \
                   $(SWIG_wrapper)
