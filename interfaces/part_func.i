@@ -174,7 +174,31 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
 %include  <ViennaRNA/part_func_co.h>
 
 
+%extend vrna_fold_compound_t{
 
+  std::vector<std::vector<double> > bpp(void){
+    std::vector<std::vector<double> > probabilities;
+    vrna_fold_compound_t *vc = $self;
+    if(vc->exp_matrices && vc->exp_matrices->probs){
+      int turn, i, j, *idx, n;
+      FLT_OR_DBL *probs;
+
+      n     = vc->length;
+      idx   = vc->iindx;
+      turn  = vc->exp_params->model_details.min_loop_size;
+      probs = vc->exp_matrices->probs;
+
+      probabilities.push_back(std::vector<double>(n+1, 0.));
+      for(i=1; i <= n; i++){
+        int u = MIN2(i + turn + 1, n);
+        probabilities.push_back(std::vector<double>(u, 0.));
+        for(j = u; j <= n; j++)
+          probabilities[i].push_back((double)probs[idx[i] - j]);
+      }
+    }
+    return probabilities;
+  }
+}
 
 %{
 double get_pr(int i, int j) {

@@ -64,7 +64,8 @@ extern "C" {
 %array_functions(short, shortP);
 %include cdata.i
 
-%constant double VERSION = 0.3;
+/* %constant double VERSION = 0.3; */
+%include version.i
 %include typemaps.i
 
 // Typemaps that are independent of scripting language
@@ -161,7 +162,6 @@ namespace std {
 %include inverse.i
 %include compare.i
 %include file_formats.i
-%include version.i
 
 /**********************************************/
 /* BEGIN interface for data structures        */

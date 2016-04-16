@@ -5,6 +5,7 @@
 %}
 
 %perlcode %{
-$VERSION = '@PACKAGE_VERSION@';
+our $VERSION = '@PACKAGE_VERSION@';
+sub VERSION () { $VERSION };
 %}
 
