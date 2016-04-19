@@ -578,7 +578,9 @@ vrna_db_from_bp_stack(vrna_bp_stack_t *bp,
 
   structure = vrna_alloc(sizeof(char) * (length + 1));
 
-  memset(structure, '.', length);
+  if(length > 0)
+    memset(structure, '.', length);
+
   structure[length] = '\0';
 
   for (k = 1; k <= bp[0].i; k++) {
