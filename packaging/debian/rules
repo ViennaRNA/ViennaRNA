@@ -3,14 +3,14 @@ export DH_VERBOSE=1
 
 PERLARCHLIB := $(shell perl -MConfig -e 'print substr($$Config{vendorarch}, 1);')
 
-BUILDOPTS= --with-cluster --without-forester --disable-silent-rules
+BUILDOPTS= --with-cluster --without-forester --with-python3 --disable-silent-rules
 
 ifeq ($(shell lsb_release --short --codename),wheezy)
 BUILDOPTS+= --disable-lto
 endif
 
 %:
-	dh $@ --parallel --with python2
+	dh $@ --parallel --with python2,python3
 
 override_dh_auto_configure:
 	dh_auto_configure --  $(BUILDOPTS) INSTALLDIRS=vendor

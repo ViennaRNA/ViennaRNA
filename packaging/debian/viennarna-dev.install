@@ -1,3 +1,4 @@
 usr/include/ViennaRNA
 usr/lib/*/libRNA.a
+usr/lib/*/pkgconfig/RNAlib2.pc
 
