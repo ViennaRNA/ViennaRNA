@@ -1,0 +1,11 @@
+%{
+/** @file version.i.in
+ * @brief Set $RNA::VERSION to the bindings version
+ */
+%}
+
+%perlcode %{
+our $VERSION = '@PACKAGE_VERSION@';
+sub VERSION () { $VERSION };
+%}
+

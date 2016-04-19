@@ -1333,7 +1333,7 @@ make_ptypes(vrna_fold_compound_t *vc, int i){
   for(k = turn + 1; k < maxdist; k++){
     j = i + k;
     if (j > n)
-      continue;
+      break;
     type = md->pair[S[i]][S[j]];
 
     if(noLP && type){

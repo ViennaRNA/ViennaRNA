@@ -11,7 +11,8 @@ INTERFACE_FILES = $(SWIG_src) \
                   file_py3.i \
                   globals-md.i \
                   callbacks-fc.i \
-                  callbacks-sc.i
+                  callbacks-sc.i \
+                  version.i
 
 pkgpyexecdir = $(py3execdir)/RNA
 pkgpycachedir = $(pkgpyexecdir)/__pycache__

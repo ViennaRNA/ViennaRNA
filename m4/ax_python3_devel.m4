@@ -3,12 +3,12 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
 
     # (AM_PATH_PYTHON) cannot be used for multiple Python version at once
     if test -z "$PYTHON3" ; then
-      AC_PATH_PROG([PYTHON3], [python3], [no])
+      AC_PATH_PROGS([PYTHON3], [python3 python35 python3.5 python34 python3.4 python33 python3.3], [no])
     fi
     AC_ARG_VAR(PYTHON3, [Path to Python3 interpreter])
 
     if test "${PYTHON3}" != "no" ; then
-      AC_PATH_PROG([PYTHON3_CONFIG], [python3-config], [no])
+      AC_PATH_PROGS([PYTHON3_CONFIG], [python3-config python35-config python3.5-config python34-config python3.4-config python33-config python3.3-config], [no])
       if test "$PYTHON3_CONFIG" = "no"
       then
         AC_MSG_WARN([
@@ -19,17 +19,17 @@ that it is installed and its directory is included in the search path.
       else
 
         AC_MSG_CHECKING([for Python3 include path])
-        PYTHON3_INCLUDES=`python3-config --includes 2> /dev/null`
+        PYTHON3_INCLUDES=`$PYTHON3_CONFIG --includes 2> /dev/null`
         AC_SUBST(PYTHON3_INCLUDES)
         AC_MSG_RESULT([$PYTHON3_INCLUDES])
 
         AC_MSG_CHECKING([for Python3 compile flags])
-        PYTHON3_CFLAGS=`python3-config --cflags 2> /dev/null`
+        PYTHON3_CFLAGS=`$PYTHON3_CONFIG --cflags 2> /dev/null`
         AC_SUBST(PYTHON3_CFLAGS)
         AC_MSG_RESULT([$PYTHON3_CFLAGS])
 
         AC_MSG_CHECKING([for Python3 link flags])
-        PYTHON3_LIBS=`python3-config --libs 2> /dev/null`
+        PYTHON3_LIBS=`$PYTHON3_CONFIG --libs 2> /dev/null`
         AC_SUBST(PYTHON3_LIBS)
         AC_MSG_RESULT([$PYTHON3_LIBS])
 

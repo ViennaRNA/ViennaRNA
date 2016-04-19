@@ -10,7 +10,8 @@ INTERFACE_FILES = $(SWIG_src) \
                   tmaps.i \
                   globals-md.i \
                   callbacks-fc.i \
-                  callbacks-sc.i
+                  callbacks-sc.i \
+                  version.i
 
 pkgpy2execdir = $(py2execdir)/RNA
 

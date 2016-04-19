@@ -158,7 +158,8 @@ vrna_fold_compound( const char *sequence,
                     vrna_md_t *md_p,
                     unsigned int options){
 
-  unsigned int        i, length, aux_options;
+  int i;
+  unsigned int        length, aux_options;
   vrna_fold_compound_t  *vc;
   vrna_md_t           md;
 
@@ -196,7 +197,7 @@ vrna_fold_compound( const char *sequence,
     set_fold_compound(vc, &md, options, aux_options);
 
     vc->ptype_local = vrna_alloc(sizeof(char *)*(vc->length+1));
-    for (i = vc->length; ( i > vc->length - vc->window_size - 5) && (i >= 0); i--){
+    for (i = (int)vc->length; ( i > (int)vc->length - vc->window_size - 5) && (i >= 0); i--){
       vc->ptype_local[i] = vrna_alloc(sizeof(char)*(vc->window_size+5));
     }
 
