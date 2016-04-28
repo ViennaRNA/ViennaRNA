@@ -35,7 +35,9 @@ AM_T_LOG_FLAGS = -Mstrict -w \
 PERL_TESTS =  perl5/test-RNA.pl \
               perl5/test-RNA-callbacks.pl \
               perl5/test-RNA-Design.t \
-              perl5/test-RNA-mfe_eval.pl
+              perl5/test-RNA-mfe_eval.pl \
+              perl5/test-RNA-constraints.pl
+	      
 
 # add test script output files here
 PERL_TEST_OUTPUT =  test.coord \
