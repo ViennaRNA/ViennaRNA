@@ -430,6 +430,7 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
                                     if(!vc->ptype)
                                       vc->ptype           = vrna_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details));
 #ifdef VRNA_BACKWARD_COMPAT
+                                    vc->exp_params->pf_scale = pf_scale;
                                     /* backward compatibility ptypes */
                                     if(!vc->ptype_pf_compat)
                                       vc->ptype_pf_compat = get_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details), 1);
@@ -449,6 +450,9 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
       case VRNA_VC_TYPE_ALIGNMENT:  /* get pre-computed Boltzmann factors if not present*/
                                     if(!vc->exp_params)
                                       vc->exp_params  = vrna_exp_params_comparative(vc->n_seq, &(vc->params->model_details));
+#ifdef VRNA_BACKWARD_COMPAT
+                                    vc->exp_params->pf_scale = pf_scale;
+#endif
                                     break;
 
       default:                      break;
@@ -458,6 +462,11 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
     if(!vc->exp_matrices || (vc->exp_matrices->type != VRNA_MX_DEFAULT) || (vc->exp_matrices->length < vc->length)){
       vrna_mx_pf_add(vc, VRNA_MX_DEFAULT, options);
     }
+#ifdef VRNA_BACKWARD_COMPAT
+    else { /* re-compute pf_scale and MLbase contributions (for RNAup)*/
+      vrna_exp_params_rescale(vc, NULL);
+    }
+#endif
   }
 
   return ret;

@@ -1101,6 +1101,7 @@ PRIVATE void scale_stru_pf_params(unsigned int length)
     pf_scale = exp(-(-185+(Pf->temperature-37.)*7.27)/kT);
     if (pf_scale<1) pf_scale=1;
   }
+  Pf->pf_scale = pf_scale;
   scale[0] = 1.;
   scale[1] = 1./pf_scale;
   expMLbase[0] = 1;
