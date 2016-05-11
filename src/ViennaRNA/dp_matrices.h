@@ -376,6 +376,10 @@ vrna_mx_pf_add( vrna_fold_compound_t *vc,
                 vrna_mx_type_e mx_type,
                 unsigned int options);
 
+int
+vrna_mx_prepare(vrna_fold_compound_t *vc,
+                unsigned int options);
+
 /**
  *  @brief  Free memory occupied by the Minimum Free Energy (MFE) Dynamic Programming (DP) matrices
  *

@@ -246,7 +246,7 @@ vrna_fold_compound_comparative( const char **sequences,
   vrna_md_t           md;
   unsigned int        aux_options;
 
-  aux_options = 0L;
+  aux_options = 0U;
  
   if(sequences == NULL) return NULL;
 
@@ -407,22 +407,7 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
       default:                      break;
     }
 
-    if(options & VRNA_OPTION_WINDOW){ /* Windowing approach, a.k.a. locally optimal */
-      /*  check whether we have the correct DP matrices attached, and if there is
-          enough memory allocated
-      */
-      if(!vc->matrices || (vc->matrices->type != VRNA_MX_WINDOW) || (vc->matrices->length < vc->length)){
-        /* here we simply pass '0' as options, since we call mx_mfe_add() explicitely */
-        vrna_mx_mfe_add(vc, VRNA_MX_WINDOW, options);
-      }
-    } else { /* default is regular MFE */
-      /*  check whether we have the correct DP matrices attached, and if there is
-          enough memory allocated
-      */
-      if(!vc->matrices || (vc->matrices->type != VRNA_MX_DEFAULT) || (vc->matrices->length < vc->length)){
-        vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, options);
-      }
-    }
+
   }
 
   if(options & VRNA_OPTION_PF){   /* prepare for partition function computation */
@@ -449,6 +434,9 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
                                         vrna_sc_add_SHAPE_deigan(vc, NULL, 0, 0, VRNA_OPTION_PF);
                                     }
 
+                                    if(vc->domains_up) /* turn on unique ML decomposition with qm1 array */
+                                      vc->exp_params->model_details.uniq_ML = 1;
+
                                     break;
 
       case VRNA_VC_TYPE_ALIGNMENT:  /* get pre-computed Boltzmann factors if not present*/
@@ -458,12 +446,10 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
 
       default:                      break;
     }
-
-    /*  Add DP matrices, if not they are not present */
-    if(!vc->exp_matrices || (vc->exp_matrices->type != VRNA_MX_DEFAULT) || (vc->exp_matrices->length < vc->length)){
-      vrna_mx_pf_add(vc, VRNA_MX_DEFAULT, options);
-    }
   }
+
+  /* Add DP matrices, if not they are not present or do not fit current settings */
+  vrna_mx_prepare(vc, options);
 
   return ret;
 }

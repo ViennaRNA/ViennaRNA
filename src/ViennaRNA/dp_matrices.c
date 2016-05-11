@@ -72,6 +72,8 @@
 #################################
 */
 PRIVATE unsigned int    get_mx_alloc_vector(vrna_md_t *md_p, vrna_mx_type_e type, unsigned int options);
+PRIVATE unsigned int    get_mx_mfe_alloc_vector_current(vrna_mx_mfe_t *mx, vrna_mx_type_e mx_type);
+PRIVATE unsigned int    get_mx_pf_alloc_vector_current(vrna_mx_pf_t *mx, vrna_mx_type_e mx_type);
 PRIVATE void            mfe_matrices_alloc_default(vrna_mx_mfe_t *vars, unsigned int m, unsigned int alloc_vector);
 PRIVATE void            mfe_matrices_free_default(vrna_mx_mfe_t *self);
 PRIVATE void            mfe_matrices_alloc_window(vrna_mx_mfe_t *vars, unsigned int m, unsigned int alloc_vector);
@@ -204,12 +206,149 @@ vrna_mx_pf_add( vrna_fold_compound_t *vc,
   return 1;
 }
 
+PUBLIC int
+vrna_mx_prepare(vrna_fold_compound_t *vc,
+                unsigned int options){
+
+  int             ret, realloc;
+  unsigned int    mx_alloc_vector, mx_alloc_vector_current;
+  vrna_mx_type_e  mx_type;
+
+  ret = 1;
+
+  if(vc){
+    /*  check whether we have the correct DP matrices attached, and if there is
+        enough memory allocated
+    */
+    if(options & VRNA_OPTION_MFE){  /* prepare for MFE computation */
+      if(options & VRNA_OPTION_WINDOW){ /* Windowing approach, a.k.a. locally optimal */
+        mx_type = VRNA_MX_WINDOW;
+      } else {                          /* default is regular MFE */
+        mx_type = VRNA_MX_DEFAULT;
+      }
+
+      if(vc->cutpoint > 0)
+        options |= VRNA_OPTION_HYBRID;
+
+      realloc = 0;
+
+      if(!vc->matrices || (vc->matrices->type != mx_type) || (vc->matrices->length < vc->length)){
+        realloc = 1;
+      } else {
+        mx_alloc_vector         = get_mx_alloc_vector(&(vc->params->model_details), mx_type, options);
+        mx_alloc_vector_current = get_mx_mfe_alloc_vector_current(vc->matrices, mx_type);
+        if((mx_alloc_vector & mx_alloc_vector_current) != mx_alloc_vector)
+          realloc = 1;
+      }
+
+      if(realloc) /* Add DP matrices, if not they are not present */
+        ret &= vrna_mx_mfe_add(vc, mx_type, options);
+
+    }
+
+    if(options & VRNA_OPTION_PF){   /* prepare for partition function computations */
+      if(!vc->exp_params) /* return failure if exp_params data is not present */
+        return 0;
+
+      mx_type = VRNA_MX_DEFAULT;  /* for now, we only check default matrices */
+
+      if(vc->cutpoint > 0)
+        options |= VRNA_OPTION_HYBRID;
+
+      realloc = 0;
+
+      /*  Add DP matrices, if not they are not present */
+      if(!vc->exp_matrices || (vc->exp_matrices->type != mx_type) || (vc->exp_matrices->length < vc->length)){
+        realloc = 1;
+      } else {
+        mx_alloc_vector         = get_mx_alloc_vector(&(vc->exp_params->model_details), mx_type, options);
+        mx_alloc_vector_current = get_mx_pf_alloc_vector_current(vc->exp_matrices, mx_type);
+        if((mx_alloc_vector & mx_alloc_vector_current) != mx_alloc_vector)
+          realloc = 1;
+      }
+      
+      if(realloc){ /* Add DP matrices, if not they are not present */
+        ret &= vrna_mx_pf_add(vc, mx_type, options);
+      }
+#ifdef VRNA_BACKWARD_COMPAT
+      else { /* re-compute pf_scale and MLbase contributions (for RNAup)*/
+        vrna_exp_params_rescale(vc, NULL);
+      }
+#endif
+  
+    }
+  } else {
+    ret = 0;
+  }
+
+  return ret;
+}
 /*
 #####################################
 # BEGIN OF STATIC HELPER FUNCTIONS  #
 #####################################
 */
+PRIVATE unsigned int
+get_mx_mfe_alloc_vector_current(vrna_mx_mfe_t *mx,
+                                vrna_mx_type_e mx_type){
 
+  unsigned int mx_alloc_vector = ALLOC_NOTHING;
+
+  if(mx){
+    switch(mx_type){
+      case VRNA_MX_DEFAULT: if(mx->f5)
+                              mx_alloc_vector |= ALLOC_F5;
+                            if(mx->f3)
+                              mx_alloc_vector |= ALLOC_F3;
+                            if(mx->fc)
+                              mx_alloc_vector |= ALLOC_HYBRID;
+                            if(mx->c)
+                              mx_alloc_vector |= ALLOC_C;
+                            if(mx->fML)
+                              mx_alloc_vector |= ALLOC_FML;
+                            if(mx->fM1)
+                              mx_alloc_vector |= ALLOC_UNIQ;
+                            if(mx->fM2)
+                              mx_alloc_vector |= ALLOC_CIRC;
+                            break;
+
+      default:              break;
+    }
+  }
+  
+  return mx_alloc_vector;
+}
+
+PRIVATE unsigned int
+get_mx_pf_alloc_vector_current( vrna_mx_pf_t *mx,
+                                vrna_mx_type_e mx_type){
+
+  unsigned int mx_alloc_vector = ALLOC_NOTHING;
+
+  if(mx){
+    switch(mx_type){
+      case VRNA_MX_DEFAULT: if(mx->q)
+                              mx_alloc_vector |= ALLOC_F;
+                            if(mx->qb)
+                              mx_alloc_vector |= ALLOC_C;
+                            if(mx->qm)
+                              mx_alloc_vector |= ALLOC_FML;
+                            if(mx->qm1)
+                              mx_alloc_vector |= ALLOC_UNIQ;
+                            if(mx->qm2)
+                              mx_alloc_vector |= ALLOC_CIRC;
+                            if(mx->probs)
+                              mx_alloc_vector |= ALLOC_PROBS;
+                            if(mx->q1k && mx->qln)
+                              mx_alloc_vector |= ALLOC_AUX;
+                            break;
+
+      default:              break;
+    }
+  }
+
+  return mx_alloc_vector;
+}
 PRIVATE void
 add_pf_matrices(vrna_fold_compound_t *vc,
                 vrna_mx_type_e type,
