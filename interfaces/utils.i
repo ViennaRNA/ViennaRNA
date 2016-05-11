@@ -225,3 +225,26 @@ int my_bp_distance(const char *str1, const char *str2);
 char *consensus(const char **AS);
 char *consens_mis(const char **AS);
 
+
+
+
+/**********************************************/
+/* BEGIN interface for Move_Set utilities    */
+/**********************************************/
+
+%rename (move_standard) my_move_standard;
+
+%{
+  char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,int verbosity_level, int shifts, int noLP){
+    OUTPUT = move_standard(seq,struc,type,verbosity_level,shifts,noLP);
+    return structure;   
+  }
+%}
+%newobject my_move_standard;
+char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,int verbosity_level, int shifts, int noLP);
+%ignore move_standard;
+
+%include  <ViennaRNA/move_set.h>
+
+
+

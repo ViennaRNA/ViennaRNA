@@ -34,7 +34,7 @@
   }
   
   /* compute covariance contributions for consensus structure given in dot-bracket notation */
-  float eval_covar_structure2(char * structure){
+  float eval_covar_structure(char * structure){
 
     return vrna_eval_covar_structure($self, structure);
   }

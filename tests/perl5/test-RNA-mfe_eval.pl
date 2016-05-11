@@ -91,7 +91,7 @@ my @ali = ($s1,$s2,$s3);
 my $covarStructure = "((((....))))";
 
 $fc = new RNA::fold_compound(\@ali);
-my $ps_energy=$fc->eval_covar_structure2($covarStructure);
+my $ps_energy=$fc->eval_covar_structure($covarStructure);
 printf("%s [%6.2f] \n",$covarStructure,$ps_energy);
 ok($ps_energy != 0);
 undef $fc;

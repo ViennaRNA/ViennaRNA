@@ -94,7 +94,6 @@ is($tree_dist,2);
 # check access to a C array
 #is(RNA::ptrvalue($RNA::iindx,3),108);
 is(RNA::intP_getitem($RNA::iindx,3),108);
-
 # memmove does not work in current swig versions
 # RNA::memmove($RNA::xsubi, pack('S3', 171,42,93));
 # use shortP_setitem instead
@@ -102,7 +101,8 @@ RNA::ushortP_setitem($RNA::xsubi, 0, 171);
 RNA::ushortP_setitem($RNA::xsubi, 1, 42);
 RNA::ushortP_setitem($RNA::xsubi, 2, 93);
 is(RNA::cdata($RNA::xsubi, 6),pack('S3', 171,42,93));
-
+#my $foo = pack("S2",1,2);
+#print "$foo\n",
 
 
 # get a bp prob in two different ways
@@ -110,6 +110,7 @@ my $p1 = RNA::get_pr(2,15);
 my $ii = RNA::intP_getitem($RNA::iindx, 2);
 my $p2 = (RNA::pf_float_precision() != 0) ? RNA::floatP_getitem($RNA::pr, $ii-15) : RNA::doubleP_getitem($RNA::pr, $ii-15);
 ok(($p1<0.999) && ($p1>0.99) && (abs($p1-$p2)<1.2e-7));
+
 
 my $bpf = RNA::Make_bp_profile(length($seq1));
 my @bpf = unpack("f*",RNA::cdata($bpf, length($seq1)*4*3));
@@ -186,13 +187,15 @@ RNA::free_alifold_arrays();
 # check the move_set.h functions
 $RNA::cut_point=-1;
 my $struc1_move = "(..............)";
-# move_standar( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
-RNA::move_standard($seq1, $struc1_move, 0, 1, 0, 0);
-is($struc1_move, "................");
+# move_standard( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
+my ($s,$energy) = RNA::move_standard($seq1, $struc1_move, 0, 1, 0, 0);
+print("energy = $energy, s = $s\n"); 
+is($s, "................");
 
 $struc1_move = "(..............)";
-RNA::move_standard($seq1, $struc1_move, 1, 1, 0, 0);
-is($struc1_move, "(((.((....)).)))");
+($s,$energy) = RNA::move_standard($seq1, $struc1_move, 1, 1, 0, 0);
+print("energy = $energy, s = $s\n"); 
+is($s, "(((.((....)).)))");
 
 # test simple_xy_coordinates
 my $coords = RNA::simple_xy_coordinates($struc1);

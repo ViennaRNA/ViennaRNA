@@ -100,7 +100,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         covarStructure = "((((....))))"
 
         fc = RNA.fold_compound(ali)
-        pseudoEScore=fc.eval_covar_structure2(covarStructure)
+        pseudoEScore=fc.eval_covar_structure(covarStructure)
         print covarStructure, "[ %6.2f" %pseudoEScore ,"]\n"
         self.assertTrue(pseudoEScore)
 

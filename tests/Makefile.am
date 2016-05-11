@@ -65,7 +65,8 @@ AM_PY_LOG_FLAGS =
 PYTHON2_TESTS = python/test-RNA-callbacks.py \
                 python/test-RNA-mfe_eval.py \
                 python/test-RNA-constraints.py \
-                python/test-RNA.py 
+		python/test-RNA-utils.py \                
+		python/test-RNA.py 
 
 # add test script output files here
 PYTHON2_TEST_OUTPUT = test-RNA-mfe_eval.py.out

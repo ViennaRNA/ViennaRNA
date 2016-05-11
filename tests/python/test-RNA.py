@@ -5,7 +5,7 @@ RNApath.addSwigInterfacePath()
 
 import RNA
 import unittest
-
+from struct import *
 seq1      = "CGCAGGGAUACCCGCG"
 struct1   = "(((.(((...))))))"
 
@@ -40,7 +40,19 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(struct,'(((..........)))')
         self.assertEqual(RNA.energy_of_struct(seq1,struct),cmfe)
         RNA.cvar.fold_constrained = 0
-    def test_cofold(self):
+    def test_tree_distance(self):
+        print("test_tree_distance\n");
+        xstruc = RNA.expand_Full(struct1)
+        T1 = RNA.make_tree(xstruc)
+        xstruc = RNA.expand_Full(struct2)
+        T2 = RNA.make_tree(xstruc)
+        RNA.edit_backtrack = 1
+        tree_dist = RNA.tree_edit_distance(T1, T2)
+        # print RNA::get_aligned_line(0), RNA::get_aligned_line(1),"\n"
+        self.assertEqual(tree_dist,2)
+        
+        
+    def test_cofold_andMore(self):
         print("test_cofold\n")
         RNA.cvar.cut_point = len(seq1)+1
         (costruct,comfe) = RNA.cofold(seq1 + seq2)
@@ -67,44 +79,38 @@ class GeneralTests(unittest.TestCase):
         #pf_fo ld
         s,f = RNA.pf_fold(seq1,struct)
         self.assertTrue(f < mfe)
-        self.assertTrue(mfe-f<0.8)
-    def test_tree_distance(self):
-        print("test_tree_distance\n");
-        xstruc = RNA.expand_Full(struct1)
-        T1 = RNA.make_tree(xstruc)
-        xstruc = RNA.expand_Full(struct2)
-        T2 = RNA.make_tree(xstruc)
-        RNA.edit_backtrack = 1
-        tree_dist = RNA.tree_edit_distance(T1, T2)
-        # print RNA::get_aligned_line(0), RNA::get_aligned_line(1),"\n"
-        self.assertEqual(tree_dist,2)
-    
-    #def test_check_access_C_array(self): # !!!NOT working, NONE in cvar.iindx
-        #print("test_check_access_C_array\n");
-        #print("WHAT ",RNA.cvar.iindx)
-        #ret = RNA.intP_getitem(RNA.cvar.iindx,3)
-        #print(ret);
-        #self.assertEqual(ret,108);     
-        #RNA.ushortP_setitem(RNA.cvar.xsubi, 0, 171);
-        #RNA.ushortP_setitem(RNA.cvar.xsubi, 1, 42);
-        #RNA.ushortP_setitem(RNA.cvar.xsubi, 2, 93);
-        #self.assertEqual(RNA.cdata(RNA.cvar.xsubi, 6),pack('HHH',171,42,93));
+        self.assertTrue(mfe-f < 0.8)
         
-     #def test_bp_prop(self): #geht auch nicht da iindex nicht geht 
-         #print("test_bp_prop\n");
-         
+        
+        print("test_check_access_C_array\n")
+        ret = RNA.intP_getitem(RNA.cvar.iindx,3)
+        self.assertEqual(ret,108)
+        RNA.ushortP_setitem(RNA.cvar.xsubi, 0, 171)
+        RNA.ushortP_setitem(RNA.cvar.xsubi, 1, 42)
+        RNA.ushortP_setitem(RNA.cvar.xsubi, 2, 93)
+        self.assertEqual(RNA.cdata(RNA.cvar.xsubi, 6),pack('HHH',171,42,93)) 
 
-        #p1 = RNA.get_pr(2,15);
-        #ii = RNA.intP_getitem($RNA::iindx, 2);
-        #my $p2 = (RNA::pf_float_precision() != 0) ? RNA::floatP_getitem($RNA::pr, $ii-15) : RNA::doubleP_getitem($RNA::pr, $ii-15);
-        #ok(($p1<0.999) && ($p1>0.99) && (abs($p1-$p2)<1.2e-7));
+        print("test_bp_prop\n")
 
-        #my $bpf = RNA::Make_bp_profile(length($seq1));
-        #my @bpf = unpack("f*",RNA::cdata($bpf, length($seq1)*4*3));
+        p1 = RNA.get_pr(2,15)
+        ii = RNA.intP_getitem(RNA.cvar.iindx, 2)
+       
+        if(RNA.pf_float_precision() != 0) :
+             p2 = RNA.floatP_getitem(RNA.cvar.pr, ii-15)
+        else:
+             p2 = RNA.doubleP_getitem(RNA.cvar.pr, ii-15)
+        self.assertTrue(p1 < 0.999 and abs(p1-p2) < 1.2e-7)
+      
+        #bpf = RNA.Make_bp_profile(len(seq1));
+        #bpfArray = [];
+        #bpfArray = unpack('f*',RNA.cdata(bpf, len(seq1)*4*3)); !!!did not find f* operator in python
+        
+        
         #ok (($bpf[2*3]+$bpf[2*3+1]>.99999)&&$bpf[2*3+2]==0 &&
             #($bpf[2*3+1]>=$p1));
         #my $pack = RNA::pack_structure($struc1);
         #is (RNA::unpack_structure($pack), $struc1);
+        
     def test_parse_structure(self):
         print("test_parse_structure\n")
         RNA.parse_structure(struct1)
@@ -131,6 +137,7 @@ class GeneralTests(unittest.TestCase):
         (ss, en) = RNA.fold(sinv)
         self.assertEqual(ss, struct1)
     
+    
     def test_suboptimal(self):
         print("test_suboptimal\n")
             
@@ -156,9 +163,7 @@ class GeneralTests(unittest.TestCase):
         for s in solution:
             print("%s %6.2f\n" % (s.structure,s.energy))
         
-
         solution = ""
-
         RNA.cvar.cut_point = 3
         e =  RNA.energy_of_struct("GCGC", "(())")
         self.assertEqual(int(e*100+0.5), 70)
@@ -171,24 +176,30 @@ class GeneralTests(unittest.TestCase):
         align = ["GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC"]
         (css, cen) = RNA.alifold(align)
         self.assertEqual(css,"(((.(((...)))..))).")
-        #print(align[0]);
-        #RNA.consens_mis(["GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC"])  !!!TypeError: list must contain strings, WTF definetly string
-        #self.assertEqual(RNA.consens_mis(align), "SMBHBHYDRBGDVWmVKBB")
-        #RNA.free_alifold_arrays()
         
-    #def test_moveSets(self): # !!!not working, because struct1_move is apperently not passed as reference
-        #print("test_moveSets") 
+        align = ["GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC"]
+        
+        (css, cen) = RNA.alifold(align)
+        self.assertEqual(css,"(((.(((...)))..))).")
+        self.assertEqual(RNA.consens_mis(align), "SMBHBHYDRBGDVWmVKBB")
+        RNA.free_alifold_arrays()
+        
+        
+    def test_moveSets(self): # !!!not working, because struct1_move is apperently not passed as reference
+        print("test_moveSets") 
 
-        #RNA.cvar.cut_point=-1
+        RNA.cvar.cut_point=-1
+        struct1_move = "(..............)"
+        # move_standard( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
+        (s,energy) = RNA.move_standard(seq1, struct1_move, 0, 1, 0, 0)
+        print("energy = ",energy," s = ",s,"\n");
+        self.assertEqual(s, "................")
+
         #struct1_move = "(..............)"
-        ## move_standar( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
-        #RNA.move_standard(seq1, struct1_move, 0, 1, 0, 0)
-        ##self.assertEqual(struct1_move, "................")
-
-
-        #struct1_move = "(..............)"
-        #RNA.move_standard(seq1, struct1_move, 1, 1, 0, 0)
-        #self.assertEqual(struct1_move, "(((.((....)).)))")
+        #(s,energy) =  RNA.move_standard(seq1, struct1_move, 1, 1, 0, 0)
+        #self.assertEqual(s, "(((.((....)).)))")
+        
+        
     def test_simplexycoordinates(self):
         print("test_simplexycoordinates\n")
         
