@@ -236,8 +236,8 @@ char *consens_mis(const char **AS);
 
 %{
   char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,int verbosity_level, int shifts, int noLP){
-    OUTPUT = move_standard(seq,struc,type,verbosity_level,shifts,noLP);
-    return structure;   
+    *OUTPUT = move_standard(seq,struc,type,verbosity_level,shifts,noLP);
+    return struc;   
   }
 %}
 %newobject my_move_standard;

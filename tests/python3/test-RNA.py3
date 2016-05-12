@@ -194,13 +194,13 @@ class GeneralTests(unittest.TestCase):
         (css, cen) = RNA.alifold(align)
         self.assertEqual(css,"(((.(((...)))..))).")
         #print(align[0]);
-        RNA.consens_mis(align)  #!!!TypeError: list must contain strings, WTF definetly string
+        RNA.consens_mis(align)  #!!!TypeError: list must contain strings, WTF definetly string. No Idea what this error should be exactly
         for s in (align):
             print(type(s) is str);
         #self.assertEqual(RNA.consens_mis(align), "SMBHBHYDRBGDVWmVKBB")
         #RNA.free_alifold_arrays()
         
-    #def test_moveSets(self): # !!!not working, because struct1_move is apperently not passed as reference
+    #def test_moveSets(self): # !!!not working, because segmentation fault by calling the interface function
         #print("test_moveSets") 
 
         #RNA.cvar.cut_point=-1
