@@ -47,11 +47,15 @@ EXTRA_DIST = \
 ## SWIG interface wrapper code generation
 ##
 
+if HAS_SWIG
+
 $(SWIG_wrapper) $(PERL_MODULE): $(INTERFACE_FILES)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src @FLOAT_PF_FLAG@ \
                   -perl5 -proxy -const -c++ \
                   -module RNA -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
+
+endif
 
 ##
 ## copy shared library for perl-tests

@@ -39,6 +39,8 @@ endif
 ## SWIG interface wrapper code generation
 ##
 
+if HAS_SWIG
+
 $(SWIG_wrapper): $(SWIG_src)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) \
@@ -48,6 +50,8 @@ $(SWIG_wrapper): $(SWIG_src)
                   $(SWIG_main_src)
 
 $(SWIG_module_name).py: $(SWIG_wrapper)
+
+endif
 
 # We rename RNA.py to __init__.py so that it can be installed
 # in an "RNA" directory and be treated as a package.

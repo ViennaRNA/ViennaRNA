@@ -34,6 +34,8 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
     AX_PKG_SWIG(2.0.0, [has_swig="yes"], [has_swig="no"])
   ])
 
+  AM_CONDITIONAL(HAS_SWIG, test "x$has_swig" != "xno")
+  
   RNA_ENABLE_SWIG_PERL
   RNA_ENABLE_SWIG_PYTHON
   RNA_ENABLE_SWIG_PYTHON3
