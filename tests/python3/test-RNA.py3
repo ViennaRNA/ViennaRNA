@@ -193,26 +193,25 @@ class GeneralTests(unittest.TestCase):
         
         (css, cen) = RNA.alifold(align)
         self.assertEqual(css,"(((.(((...)))..))).")
-        #print(align[0]);
-        RNA.consens_mis(align)  #!!!TypeError: list must contain strings, WTF definetly string. No Idea what this error should be exactly
-        for s in (align):
-            print(type(s) is str);
-        #self.assertEqual(RNA.consens_mis(align), "SMBHBHYDRBGDVWmVKBB")
-        #RNA.free_alifold_arrays()
+        RNA.consens_mis(align) 
+        self.assertEqual(RNA.consens_mis(align), "SMBHBHYDRBGDVWmVKBB")
+        RNA.free_alifold_arrays()
         
-    #def test_moveSets(self): # !!!not working, because segmentation fault by calling the interface function
-        #print("test_moveSets") 
+    def test_moveSets(self):
+        print("test_moveSets") 
 
-        #RNA.cvar.cut_point=-1
-        #struct1_move = "(..............)"
-        ## move_standar( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
-        #RNA.move_standard(seq1, struct1_move, 0, 1, 0, 0)
-        ##self.assertEqual(struct1_move, "................")
+        RNA.cvar.cut_point=-1
+        struct1_move = "(..............)"
+        #move_standard( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
+        (s,energy) = RNA.move_standard(seq1, struct1_move, 0, 1, 0, 0)
+        print("energy = ",energy," s = ",s,"\n");
+        self.assertEqual(s, "................")
 
-
-        #struct1_move = "(..............)"
-        #RNA.move_standard(seq1, struct1_move, 1, 1, 0, 0)
-        #self.assertEqual(struct1_move, "(((.((....)).)))")
+        struct1_move = "(..............)"
+        (s,energy) =  RNA.move_standard(seq1, struct1_move, 1, 1, 0, 0)
+        self.assertEqual(s, "(((.((....)).)))")
+        
+        
     def test_simplexycoordinates(self):
         print("test_simplexycoordinates\n")
         

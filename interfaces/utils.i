@@ -178,6 +178,47 @@ char *my_unpack_structure(const char *packed);
 
 std::vector<int> my_ptable(std::string str);
 
+
+/*pairtable with pseudoknots*/
+%rename (ptable_pk) my_ptable_pk;
+
+%{
+#include <vector>
+
+  std::vector<int> my_ptable_pk(std::string str){
+   short int* pt_pk = vrna_pt_pk_get(str.c_str());
+    std::vector<int> v_pt;
+    int i;
+
+    for(i=0; i <= pt_pk[0]; i++){
+      v_pt.push_back(pt_pk[i]);
+    }
+    free(pt_pk);
+    return v_pt; 
+  }
+%}
+
+std::vector<int> my_ptable_pk(std::string str);
+
+
+%rename (db_from_ptable) my_db_from_ptable;
+
+%{
+#include <vector>
+  char *my_db_from_ptable(std::vector<int> pt)
+  {
+    std::vector<short> vc;
+    transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
+    return vrna_db_from_ptable((short*)&vc[0]);
+  }
+%}
+
+char *my_db_from_ptable(std::vector<int> pt);
+
+
+
+    
+
 /* pair table related functions */
 %ignore make_pair_table;
 %ignore make_pair_table_pk;
@@ -213,6 +254,37 @@ int my_bp_distance(const char *str1, const char *str2);
 
 
 
+
+/*%rename (plist) my_plist;
+%{
+#include <vector>
+  std::vector<vrna_plist_t> my_plist(std::string struc, float pr){
+    
+    std::vector<vrna_plist_t > vc;
+    vrna_plist_t *ptr, *plist;
+    
+    ptr = vrna_plist(struc.c_str(),pr);
+   
+    
+    while(ptr->i and ptr->j != 0)
+    {
+      vrna_plist_t pl;
+      pl.i = ptr->i;
+      pl.j = ptr->j;
+      pl.p = ptr->p;
+      pl.type = ptr->type;
+      
+      vc.push_back(pl);
+      ptr++;
+    }
+
+    free(ptr);
+
+    return vc;
+  }
+%}
+std::vector<vrna_plist_t> my_plist(const char *struc, float pr);
+*/
 %include  <ViennaRNA/structure_utils.h>
 
 /**********************************************/
@@ -236,8 +308,10 @@ char *consens_mis(const char **AS);
 
 %{
   char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,int verbosity_level, int shifts, int noLP){
-    *OUTPUT = move_standard(seq,struc,type,verbosity_level,shifts,noLP);
-    return struc;   
+    char *structure =  (char *)calloc(strlen(struc)+1,sizeof(char));
+    strcpy(structure,struc);
+    *OUTPUT = move_standard(seq,structure,type,verbosity_level,shifts,noLP);
+    return structure;   
   }
 %}
 %newobject my_move_standard;
@@ -245,6 +319,10 @@ char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,
 %ignore move_standard;
 
 %include  <ViennaRNA/move_set.h>
+
+
+
+
 
 
 

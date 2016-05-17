@@ -190,14 +190,14 @@ class GeneralTests(unittest.TestCase):
 
         RNA.cvar.cut_point=-1
         struct1_move = "(..............)"
-        # move_standard( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
+        #move_standard( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
         (s,energy) = RNA.move_standard(seq1, struct1_move, 0, 1, 0, 0)
         print("energy = ",energy," s = ",s,"\n");
         self.assertEqual(s, "................")
 
-        #struct1_move = "(..............)"
-        #(s,energy) =  RNA.move_standard(seq1, struct1_move, 1, 1, 0, 0)
-        #self.assertEqual(s, "(((.((....)).)))")
+        struct1_move = "(..............)"
+        (s,energy) =  RNA.move_standard(seq1, struct1_move, 1, 1, 0, 0)
+        self.assertEqual(s, "(((.((....)).)))")
         
         
     def test_simplexycoordinates(self):
