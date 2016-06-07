@@ -190,7 +190,12 @@ default="1e-6"
 hidden
 
 option  "gquad" g
-"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n"
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n\n"
+flag
+off
+
+option  "sci" -
+"Compute the structure conservation index (SCI) for the MFE consensus structure of the alignment\n\n"
 flag
 off
 
