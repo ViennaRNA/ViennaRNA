@@ -436,7 +436,7 @@ vrna_eval_move_pt(vrna_fold_compound_t *vc,
       if (pt[p] != 0) {
         if (ON_SAME_STRAND(p, pt[p], cp)) /* Skip stuff */
           p=pt[p];
-        else { c++; } /* Count a basepair */
+        else if (++c > 1) break; /* Count a basepair, break if we have more than one */
       }
       p++;
     }
