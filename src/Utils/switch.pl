@@ -1,8 +1,6 @@
 #!/usr/bin/perl -w
 # -*-Perl-*-
-# Last changed Time-stamp: <2012-12-04 19:24:24 stef>
 # tool for the design of bistable RNA molecules
-
 
 # additional paths were perl looks for RNA.pm and RNA/barriers.pm
 # use lib '/home/RNA/barriers';
@@ -28,7 +26,7 @@ my ($optseq, $optcost, $e);
 my @fibo = (0,1);
 my %cos;
 my $cpnt= -1; # Cofold
-my $dg = 0;   # deltaG for normal Switches
+my $dG = 0;   # deltaG for normal Switches
 
 Getopt::Long::config('no_ignore_case');
 &usage() unless GetOptions("T=f" => \$Temperature1,
@@ -45,7 +43,7 @@ Getopt::Long::config('no_ignore_case');
                            "trial=i" => \$nom,
                            "bar=f" => \$bar,
                            "g=f" => \$small,
-                           "dG=f" => \$dg,
+                           "dG=f" => \$dG,
                            "circ", # circular RNA switches
                            "v");
 
@@ -128,13 +126,12 @@ sub fibo {
    return $fibo[$length];
 }
 
-
 sub process_input {
     $_ = <>;
-   return 0 if !defined $_;
+    return 0 if !defined $_;
     chomp;
     $fist = $_;
-   return 0 if $fist eq '@';
+    return 0 if $fist eq '@';
     $cpnt = index($fist, "&")+1;
     chomp($_ = <>);
     $sest = $_;
@@ -147,13 +144,18 @@ sub process_input {
         $RNA::cut_point = $cpnt;
     } else { $cpnt = -1 }
     # Sequence Constraints (no force bases supported)
-    chomp($_ = <>);
-    $cons = uc $_;
-    if (($cpnt != -1) && (length($cons) > $cpnt-1)) {
-        die "ERROR: Different Cut-Points set!\n" if ($cpnt != index($cons, "&")+1);
-        $cons =~ s/&//g;
+    $_ = <>;
+    if ($_) {
+        chomp($_);
+        $cons = uc $_;
+        if (($cpnt != -1) && (length($cons) > $cpnt-1)) {
+            die "ERROR: Different Cut-Points set!\n" if ($cpnt != index($cons, "&")+1);
+            $cons =~ s/&//g;
+        }
+        $cons .= 'N' x (length($fist)-length); # pad with N
+    } else {
+        $cons .= 'N' x length($fist); # pad with N
     }
-    $cons .= 'N' x (length($fist)-length); # pad with N
     #print "$cons\n";
     return 1;
 }
@@ -415,13 +417,13 @@ sub cost_function {
       } 
       
       $cost = ($e1-$f1)+($e2-$f2) +
-          $small*(($e1-$e1s+$dg) + ($e2 - $e2s+$dg));
+          $small*(($e1-$e1s+$dG) + ($e2 - $e2s+$dG));
   } else {
-      $cost = $e1+$e1s-2*$f1+$small*($e1-$e1s+$dg)*($e1-$e1s+$dg);
+      $cost = $e1+$e1s-2*$f1+$small*($e1-$e1s+$dG)*($e1-$e1s+$dG);
       if ($bar && ((!defined $refcost) || $cost<$refcost)) {
           $sE = RNA::find_saddle($seq, $fist, $sest, 20)/100.;
           $sE -= ($e1+$e1s)/2;
-          printf "sE = %6.2f %6.2f\n", $sE,(0.1*$small*($sE - $bar)*($sE - $bar)) ;
+          printf "sE = %6.2f %6.2f\n", $sE,(0.1*$small*($sE - $bar)*($sE - $bar)) if ($opt_v);
           $cost += (0.1*$small*($sE - $bar)*($sE - $bar));
       }
   }
@@ -487,6 +489,7 @@ program specific options:
  -trial <int> max number of sequences tested per run (default: $nom)
  -g <float>   small positivie parameter for costfunction (default: $small)
  -bar <float> barrier hight, seperating the two states (default: $bar)
+ -dG <float>  energy difference between the two states (default: $dG)
  -T2 <float>  for temperature sensitive switches, temperature at which
               2nd structure is ground-state (default: undef)
 standard Vienna RNA options:
