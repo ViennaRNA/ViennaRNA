@@ -388,9 +388,13 @@ vrna_eval_move_pt(vrna_fold_compound_t *vc,
                   int m2){
 
   /*compute change in energy given by move (m1,m2)*/
-  int en_post, en_pre, i,j,k,l, len;
+  int en_post, en_pre, i,j,k,l, len, cp;
+  vrna_param_t *P;
+  
+  len = vc->length;
+  cp  = vc->cutpoint;
+  P   = vc->params;
 
-  len = pt[0];
   k = (m1>0)?m1:-m1;
   l = (m2>0)?m2:-m2;
   /* first find the enclosing pair i<k<l<j */
@@ -424,6 +428,25 @@ vrna_eval_move_pt(vrna_fold_compound_t *vc,
     pt[k]=0;
     pt[l]=0;
   }
+
+  /* Cofolding -- Check if move changes COFOLD-Penalty */
+  if (!ON_SAME_STRAND(k, l, cp)) {
+    int p, c; p=c=0;
+    for (p=1; p < cp; ) { /* Count basepairs between two strands */
+      if (pt[p] != 0) {
+        if (ON_SAME_STRAND(p, pt[p], cp)) /* Skip stuff */
+          p=pt[p];
+        else { c++; } /* Count a basepair */
+      }
+      p++;
+    }
+    if (m1<0 && c==1) /* First and only inserted basepair */
+      return (en_post - en_pre - P->DuplexInit);
+    else
+      if (c==0) /* Must have been a delete move */
+        return (en_post - en_pre + P->DuplexInit);
+  }
+
   return (en_post - en_pre);
 }
 
