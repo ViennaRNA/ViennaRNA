@@ -395,8 +395,9 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
   if(options & VRNA_OPTION_MFE){   /* prepare for MFE computation */
     switch(vc->type){
       case VRNA_VC_TYPE_SINGLE:     if(!vc->ptype)
-                                      vc->ptype = vrna_ptypes(vc->sequence_encoding2,
-                                                              &(vc->params->model_details));
+                                      if(!(options & VRNA_OPTION_WINDOW))
+                                        vc->ptype = vrna_ptypes(vc->sequence_encoding2,
+                                                                &(vc->params->model_details));
                                     break;
       case VRNA_VC_TYPE_ALIGNMENT:  break;
       default:                      break;

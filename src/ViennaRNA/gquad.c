@@ -234,6 +234,7 @@ PRIVATE int **
 create_L_matrix(short *S,
                 int start,
                 int maxdist,
+                int n,
                 int **g,
                 vrna_param_t *P);
 
@@ -427,10 +428,11 @@ PUBLIC int *get_gquad_ali_matrix( short *S_cons,
 PUBLIC int **get_gquad_L_matrix(short *S,
                                 int start,
                                 int maxdist,
+                                int n,
                                 int **g,
                                 vrna_param_t *P){
 
-  return create_L_matrix(S, start, maxdist, g, P);
+  return create_L_matrix(S, start, maxdist, n, g, P);
 }
 
 PUBLIC void
@@ -441,6 +443,7 @@ vrna_gquad_mx_local_update( vrna_fold_compound_t *vc,
                               vc->sequence_encoding,
                               start,
                               vc->window_size,
+                              vc->length,
                               vc->matrices->ggg_local,
                               vc->params);
 }
@@ -449,13 +452,13 @@ PRIVATE int **
 create_L_matrix(short *S,
                 int start,
                 int maxdist,
+                int n,
                 int **g,
                 vrna_param_t *P){
 
   int **data;
-  int n, i, j, k, *gg;
-  
-  n   = S[0];
+  int i, j, k, *gg;
+
   gg  = get_g_islands_sub(S, start, MIN2(n, start + maxdist + 4));
 
   if(g){ /* we just update the gquadruplex contribution for the current
