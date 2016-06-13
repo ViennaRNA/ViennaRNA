@@ -1,13 +1,14 @@
-AM_CFLAGS = $(OPENMP_CFLAGS) @AM_CFLAGS@
-AM_CXXFLAGS = $(OPENMP_CFLAGS) @AM_CXXFLAGS@
-AM_CPPFLAGS = -I$(top_srcdir)/src @AM_CPPFLAGS@ @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
+AM_CFLAGS = $(RNA_CFLAGS)
+AM_CXXFLAGS = $(RNA_CXXFLAGS)
+AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src
+AM_LDFLAGS = $(RNA_LDFLAGS)
 
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
     RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
     RNAparconv RNAPKplex RNAplex RNAsnoop RNApvmin
 
-LDADD = $(OPENMP_CFLAGS) $(top_builddir)/src/ViennaRNA/libRNA_conv.la
+LDADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la
 
 SUFFIXES = _cmdl.c _cmdl.h .ggo
 

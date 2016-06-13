@@ -52,10 +52,6 @@ LT_INIT([pic-only, static])
 AC_SUBST(LIBTOOL_DEPS)
 
 
-dnl Check for OpenMP and prepare flags
-AC_OPENMP
-AC_SUBST(OPENMP_CFLAGS)
-
 dnl Checks for libraries.
 AC_CHECK_LIB([m], [exp])
 

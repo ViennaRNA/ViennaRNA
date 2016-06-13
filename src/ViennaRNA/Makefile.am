@@ -1,8 +1,9 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-AM_CFLAGS = $(OPENMP_CFLAGS)
-AM_CXXFLAGS = $(OPENMP_CFLAGS)
-AM_CPPFLAGS =  -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC} @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
+AM_CFLAGS = $(RNA_CFLAGS)
+AM_CXXFLAGS = $(RNA_CXXFLAGS)
+AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC}
+AM_LDFLAGS = $(RNA_LDFLAGS)
 
 # the library names to build
 lib_LTLIBRARIES = libRNA.la
@@ -16,7 +17,7 @@ libRNA_la_SOURCES =
 
 # ldflags to avoid version information
 libRNA_la_LIBADD = libRNA_conv.la
-libRNA_la_LDFLAGS = -avoid-version -static
+libRNA_la_LDFLAGS = -avoid-version -static $(LTO_LDFLAGS)
 
 # Dummy C++ source to cause C++ linking.
 if WITH_LIBSVM

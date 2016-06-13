@@ -18,6 +18,26 @@ AS_IF([test "$PERL" == "no"],[
   AC_MSG_ERROR([Perl is required to install and run the ViennaRNA Package])
 ])
 
+##--------------------------##  
+## Additional Compile Flags ##
+##--------------------------##
+
+AC_LANG_PUSH([C])
+AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing], [
+  AX_APPEND_FLAG(["-fno-strict-aliasing"], [RNA_CFLAGS])
+],[],[],[])
+AC_LANG_POP([C])
+
+AC_LANG_PUSH([C++])
+AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing], [
+  AX_APPEND_FLAG(["-fno-strict-aliasing"], [RNA_CXXFLAGS])
+],[],[],[])
+AC_LANG_POP([C++])
+
+AX_CHECK_LINK_FLAG([-fno-strict-aliasing], [
+  AX_APPEND_FLAG(["-fno-strict-aliasing"], [RNA_LDFLAGS])
+], [],[], [])
+
 ##------------------##
 ## Enable Features  ##
 ##------------------##
