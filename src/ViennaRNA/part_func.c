@@ -292,8 +292,8 @@ vrna_pf( vrna_fold_compound_t *vc,
 PRIVATE void
 pf_linear(vrna_fold_compound_t *vc){
 
-  int n, i,j,k,l, ij, kl, u,u1,u2,d,ii, maxk, minl;
-  unsigned char type, type_2, tt;
+  int n, i,j,k, ij, kl, d, ii, maxk;
+  unsigned char type;
 
   FLT_OR_DBL  expMLstem = 0.;
 
@@ -305,7 +305,7 @@ pf_linear(vrna_fold_compound_t *vc){
   FLT_OR_DBL  *expMLbase;
   short       *S1;
   int         *my_iindx, *jindx;
-  char        *ptype, *sequence;
+  char        *ptype;
 
   vrna_exp_param_t  *pf_params;
   vrna_mx_pf_t      *matrices = vc->exp_matrices;
@@ -315,14 +315,11 @@ pf_linear(vrna_fold_compound_t *vc){
   vrna_hc_t       *hc = vc->hc;
   vrna_sc_t       *sc = vc->sc;
 
-  FLT_OR_DBL  expMLclosing = pf_params->expMLclosing;
   double      max_real;
-  int         *rtype;
   int         with_gquad  = md->gquad;
   int         circular    = md->circ;
   int         turn        = md->min_loop_size;
 
-  sequence  = vc->sequence;
   n         = vc->length;
   my_iindx  = vc->iindx;
   jindx     = vc->jindx;
@@ -343,13 +340,9 @@ pf_linear(vrna_fold_compound_t *vc){
   int         hc_decompose;
   char        *hard_constraints = hc->matrix;
   int         *hc_up_ext        = hc->up_ext;
-  int         *hc_up_hp         = hc->up_hp;
-  int         *hc_up_int        = hc->up_int;
   int         *hc_up_ml         = hc->up_ml;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
-
-  rtype       = &(md->rtype[0]);
 
   /* allocate memory for helper arrays */
   qq        = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
@@ -394,7 +387,6 @@ pf_linear(vrna_fold_compound_t *vc){
     for (i = j - turn - 1; i >= 1; i--) {
       /* construction of partition function of segment i,j */
       /* firstly that given i binds j : qb(i,j) */
-      u             = j - i - 1;
       ij            = my_iindx[i] - j;
       type          = (unsigned char)ptype[jindx[j] + i];
       hc_decompose  = hard_constraints[jindx[j] + i];
@@ -710,7 +702,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   FLT_OR_DBL  *tmp;
   FLT_OR_DBL  tmp2;
   FLT_OR_DBL  expMLclosing;
-  FLT_OR_DBL  *q, *qb, *qm, *qm1, *G, *probs, *scale, *expMLbase;
+  FLT_OR_DBL  *qb, *qm, *qm1, *G, *probs, *scale, *expMLbase;
   FLT_OR_DBL  *q1k, *qln;
   FLT_OR_DBL  qo;
 
@@ -746,7 +738,6 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
   matrices          = vc->exp_matrices;
 
-  q                 = matrices->q;
   qb                = matrices->qb;
   qm                = matrices->qm;
   qm1               = matrices->qm1;
@@ -759,12 +750,8 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   qo                = matrices->qo;
 
   FLT_OR_DBL  expMLstem         = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
-  int         hc_decompose;
   char        *hard_constraints = hc->matrix;
-  int         *hc_up_ext        = hc->up_ext;
-  int         *hc_up_hp         = hc->up_hp;
   int         *hc_up_int        = hc->up_int;
-  int         *hc_up_ml         = hc->up_ml;
 
   int           corr_size       = 5;
   int           corr_cnt        = 0;
@@ -1411,7 +1398,7 @@ vrna_pf_float_precision(void){
 PRIVATE void
 alipf_linear( vrna_fold_compound_t *vc){
 
-  int         s, i,j,k,l, ij, jij, u, u1, u2, d, ii, *type, type_2, tt;
+  int         s, i,j,k,l, ij, jij, u1, u2, d, ii, *type, type_2, tt;
   FLT_OR_DBL  temp, temp2, Qmax=0.;
   FLT_OR_DBL  qbt1, *tmp;
   FLT_OR_DBL  *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
@@ -1423,7 +1410,6 @@ alipf_linear( vrna_fold_compound_t *vc){
   short             **S               = vc->S;                                                               
   short             **S5              = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/        
   short             **S3              = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/        
-  char              **Ss              = vc->Ss;                                                               
   unsigned short    **a2s             = vc->a2s;                                                               
   vrna_exp_param_t  *pf_params        = vc->exp_params;
   vrna_mx_pf_t      *matrices         = vc->exp_matrices;
@@ -1447,7 +1433,6 @@ alipf_linear( vrna_fold_compound_t *vc){
   kTn   = pf_params->kT/10.;   /* kT in cal/mol  */
   type  = (int *)vrna_alloc(sizeof(int) * n_seq);
 
-  int max_bpspan = (md->max_bp_span > 0) ? md->max_bp_span : n;
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   /* allocate memory for helper arrays */
@@ -1705,11 +1690,13 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
 
   int s;
   int i,j,k,l, ij, kl, ii, ll, tt, *type, ov=0;
-  FLT_OR_DBL temp, prm_MLb, Qmax=0.;
+  FLT_OR_DBL temp, prm_MLb;
+#ifdef USE_FLOAT_PF
+  FLT_OR_DBL Qmax=0.;
+#endif
   FLT_OR_DBL prmt,prmt1;
   FLT_OR_DBL qbt1, *tmp, tmp2, tmp3;
 
-  char            **sequences   = vc->sequences;
   int             n_seq         = vc->n_seq;
   int             n             = vc->length;
 
@@ -2252,7 +2239,6 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
   int u, p, q, pq, k, l, s, *type;
   FLT_OR_DBL qbt1, qot, qo, qho, qio, qmo;
 
-  char              **sequences = vc->sequences;
   int               n_seq       = vc->n_seq;
   int               n           = vc->length;
   short             **S         = vc->S;                                                                   
@@ -2271,7 +2257,6 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
   FLT_OR_DBL        *qm         = matrices->qm;
   FLT_OR_DBL        *qm1        = matrices->qm1;
   FLT_OR_DBL        *qm2        = matrices->qm2;
-  int               *pscore     = vc->pscore;     /* precomputed array of pair types */             
   FLT_OR_DBL        *scale      = matrices->scale;
   FLT_OR_DBL        expMLclosing      = pf_params->expMLclosing;
   char              *hard_constraints = hc->matrix;
@@ -2290,11 +2275,9 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
 
   for(p=1;p<n;p++){
     for(q=p+TURN+1;q<=n;q++){
-      int psc;
       u = n-q + p-1;
       if (u<TURN) continue;
       pq  = jindx[q] + p;
-      psc = pscore[pq];
 
       if(!hard_constraints[pq]) continue;
 
@@ -2763,7 +2746,6 @@ pbacktrack_circ(char *seq){
 
   char      *structure;
   vrna_md_t *md;
-  int       old_circ;
 
   structure = NULL;
 
