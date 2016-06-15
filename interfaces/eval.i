@@ -11,7 +11,7 @@
   }
 
   /* calculate free energy for structure given in pairtable */
-  float eval_structure_pt(std::vector<int> pt){
+  int eval_structure_pt(std::vector<int> pt){
 
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
@@ -26,7 +26,7 @@
   }
   
   /* compute free energy for structure given in pairtable (verbose), with different FileHandler for verbose, Default value = NULL + STDOUT*/
-  float eval_structure_pt_verbose(std::vector<int> pt, FILE *file){
+  int eval_structure_pt_verbose(std::vector<int> pt, FILE *file){
 
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
@@ -40,7 +40,7 @@
   }
 
   /* returns the energy of a loop specified by i to pt[i] */
-  float eval_loop_pt(int i, std::vector<int> pt){
+  int eval_loop_pt(int i, std::vector<int> pt){
 
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
@@ -54,7 +54,7 @@
   }
 
   /* returns the energy change by introducing a move on a given pairtable */
-  float eval_move_pt(std::vector<int> pt,int m1, int m2){
+  int eval_move_pt(std::vector<int> pt,int m1, int m2){
 
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
