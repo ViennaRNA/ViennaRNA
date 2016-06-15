@@ -439,7 +439,7 @@ struct vrna_fc_s{
       @}
    */
 
-#if __STDC_VERSION__ >= 201112L
+#if ( __STDC_VERSION__ >= 201112L ) || ( __cplusplus >= 201103L )
     /* C11 support for unnamed unions/structs */
   union {
     struct {
@@ -479,7 +479,7 @@ struct vrna_fc_s{
       @}
    */
 
-#if __STDC_VERSION__ >= 201112L
+#if ( __STDC_VERSION__ >= 201112L ) || ( __cplusplus >= 201103L )
     /* C11 support for unnamed unions/structs */
     };
     struct {
@@ -528,7 +528,7 @@ struct vrna_fc_s{
   /**
       @}
    */
-#if __STDC_VERSION__ >= 201112L
+#if ( __STDC_VERSION__ >= 201112L ) || ( __cplusplus >= 201103L )
     };
   };
 #endif
