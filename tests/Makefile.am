@@ -1,7 +1,10 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-AM_CPPFLAGS = -I$(top_srcdir)/src
-AM_CFLAGS = @CHECK_CFLAGS@ -I$(top_builddir)/src/  $(OPENMP_CFLAGS) @FLOAT_PF_FLAG@
+AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src
+AM_CFLAGS = $(RNA_CFLAGS) @CHECK_CFLAGS@ -I$(top_builddir)/src/
+AM_CXXFLAGS = $(RNA_CXXFLAGS)
+AM_LDFLAGS = $(RNA_LDFLAGS)
+
 LDADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la @CHECK_LIBS@
 
 SUFFIXES = .c .ts

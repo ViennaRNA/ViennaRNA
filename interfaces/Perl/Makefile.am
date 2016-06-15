@@ -1,5 +1,6 @@
 include ../generic.mk
 
+
 PERL_MODULE = $(SWIG_module_name).pm
 
 perlextdir = $(prefix)$(PERL_ARCH_RELATIVE_INSTALL_DIR)/auto/RNA
@@ -25,14 +26,24 @@ nobase_dist_perlmod_DATA = \
   RNA/Utils.pm \
   RNA/Params.pm
 
-RNA_la_CPPFLAGS = -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS) @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
+RNA_la_CFLAGS = $(RNA_CFLAGS) $(PERLXS_CFLAGS)
+RNA_la_CXXFLAGS = $(RNA_CXXFLAGS)
+RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS)
 
 RNA_la_LIBADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PERLXS_LIBS)
 if WITH_LIBSVM
 RNA_la_LIBADD += -lstdc++
 endif
 
-RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -shrext $(PERL_SO) $(PERLXS_LDFLAGS)
+RNA_la_LDFLAGS =
+
+if WITH_LTO
+RNA_la_CFLAGS += $(LTO_CFLAGS)
+RNA_la_CXXFLAGS += $(LTO_CXXFLAGS)
+RNA_la_LDFLAGS += $(LTO_LDFLAGS)
+endif
+
+RNA_la_LDFLAGS += -avoid-version -module -shared -export-dynamic -shrext $(PERL_SO) $(PERLXS_LDFLAGS)
 
 SOURCES = RNA.pod
 

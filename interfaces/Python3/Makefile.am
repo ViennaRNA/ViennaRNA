@@ -1,7 +1,5 @@
 include ../generic.mk
 
-AM_CFLAGS += $(PYTHON3_CFLAGS)
-
 EXTRA_DIST = \
   $(SWIG_wrapper) \
   $(SWIG_module_name).py 
@@ -27,16 +25,23 @@ _RNA_la_SOURCES = $(INTERFACE_FILES) \
 
 BUILT_SOURCES = RNA/_RNA$(PYTHON3_SO)
 
-_RNA_la_CPPFLAGS = -I$(top_srcdir)/src $(PYTHON3_INCLUDES) @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@
+_RNA_la_CFLAGS = $(RNA_CFLAGS) $(PYTHON3_CFLAGS)
+_RNA_la_CXXFLAGS = $(RNA_CXXFLAGS)
+_RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PYTHON3_INCLUDES)
+
 _RNA_la_LIBADD = $(LDADD) $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PYTHON3_LIBS)
 if WITH_LIBSVM
 _RNA_la_LIBADD += -lstdc++
 endif
 
 _RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -shrext "$(PYTHON3_SO)"
+
 if WITH_LTO
-_RNA_la_LDFLAGS += -Wc,$(LTO_LDFLAGS)
+_RNA_la_CFLAGS += $(LTO_CFLAGS)
+_RNA_la_CXXFLAGS += $(LTO_CXXFLAGS)
+_RNA_la_LDFLAGS += $(LTO_LDFLAGS)
 endif
+
 
 if HAS_SWIG
 

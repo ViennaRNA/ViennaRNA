@@ -156,6 +156,7 @@ AC_DEFUN([RNA_ENABLE_GEN_HC],[
   RNA_FEATURE_IF_ENABLED([gen_hard_constraints],[
     AC_DEFINE([WITH_GEN_HC], [1], [Provide generic hard constraints])
     GENERIC_HC_DEF=-DWITH_GEN_HC
+    AX_APPEND_FLAG(["${GENERIC_HC_DEF}"], [RNA_CPPFLAGS])
   ])
   AC_SUBST(GENERIC_HC_DEF)
 ])
@@ -167,11 +168,32 @@ AC_DEFUN([RNA_ENABLE_GEN_HC],[
 
 AC_DEFUN([RNA_ENABLE_OPENMP],[
 
-  ## Add linker flag for OpenMP in pkg-config file
   RNA_FEATURE_IF_ENABLED([openmp],[
-    LIBGOMPFLAG=-lgomp
+    AC_LANG_PUSH([C])
+    AX_OPENMP([],[enable_openmp="no"])
+    AC_LANG_POP([C])
+
+    if test "x$enable_openmp" != "xno"
+    then
+      OMP_CFLAGS="$OPENMP_CFLAGS"
+
+      AC_LANG_PUSH([C++])
+      AX_OPENMP([],[enable_openmp="no"])
+      AC_LANG_POP([C++])
+
+      if test "x$enable_openmp" != "xno"
+      then
+        AX_APPEND_FLAG(["$OMP_CFLAGS"], [RNA_CFLAGS])
+        AX_APPEND_FLAG(["$OPENMP_CXXFLAGS"], [RNA_CXXFLAGS])
+        LIBGOMPFLAG=-lgomp
+      fi
+    fi
+
   ])
+
   AC_SUBST(LIBGOMPFLAG)
+  AC_SUBST(OPENMP_CFLAGS)
+  AC_SUBST(OPENMP_CXXFLAGS)
 ])
 
 
@@ -193,7 +215,7 @@ AC_DEFUN([RNA_ENABLE_FLOATPF],[
   
     AC_SUBST([WITH_FLOAT_PF], [USE_FLOAT_PF])
     AC_SUBST([FLOAT_PF_FLAG], [-DUSE_FLOAT_PF])
-##  AX_APPEND_FLAG([-DUSE_FLOAT_PF], [AM_CPPFLAGS])
+    AX_APPEND_FLAG(["${FLOAT_PF_FLAG}"], [RNA_CPPFLAGS])
   ])
 
 
@@ -216,6 +238,7 @@ AC_DEFUN([RNA_ENABLE_DEPRECATION_WARNINGS],[
   RNA_FEATURE_IF_ENABLED([warn_deprecated],[
     AC_DEFINE([WITH_DEPRECATION_WARNING], [1], [Warn upon usage of deprecated symbols])
     DEPRECATION_WARNING=-DDEPRECATION_WARNINGS
+    AX_APPEND_FLAG(["${DEPRECATION_WARNING}"], [RNA_CPPFLAGS])
   ])
   AC_SUBST(DEPRECATION_WARNING)
 ])
