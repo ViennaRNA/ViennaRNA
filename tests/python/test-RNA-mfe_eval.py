@@ -51,7 +51,7 @@ class mfe_eval_functionTest(unittest.TestCase):
     def test_eval_structure_pt(self):
         print "test_eval_structure_pt\n"
         fc=RNA.fold_compound(seq1)
-        energy= fc.eval_structure_pt(struct1_pt) /100; #/100 for dcal
+        energy= fc.eval_structure_pt(struct1_pt) /100.; #/100 for dcal
 
         self.assertEqual("%6.2f" % energy, "%6.2f" % -5.60)
         print  struct1, "[%6.2f" % energy,"]\n"
@@ -82,8 +82,8 @@ class mfe_eval_functionTest(unittest.TestCase):
             print filename ," is opened for writing\n"
             fc=RNA.fold_compound(seq1)
 
-            energy = fc.eval_structure_pt_verbose(struct1_pt,f)/100;  # / 100 for dcal
-            energy2 = fc.eval_structure_pt_verbose(struct1_pt,None)/100;  # / 100 for dcal
+            energy = fc.eval_structure_pt_verbose(struct1_pt,f)/100.;  # / 100 for dcal
+            energy2 = fc.eval_structure_pt_verbose(struct1_pt,None)/100.;  # / 100 for dcal
 
             self.assertEqual("%6.2f" % energy, "%6.2f" % -5.6)
             print  struct1, "[%6.2f" % energy,"]\n"
@@ -108,7 +108,7 @@ class mfe_eval_functionTest(unittest.TestCase):
     def test_eval_loop_pt(self):
         print "test_eval_loop_pt"
         fc= RNA.fold_compound(seq1)
-        energy= fc.eval_loop_pt(6,struct1_pt) /100; #/100 for dcal
+        energy= fc.eval_loop_pt(6,struct1_pt) / 100.; #/100 for dcal
         print "[ %6.2f" %energy ,"]\n"
         self.assertEqual("%6.2f" % energy,"%6.2f" % -3.3)
 
@@ -132,7 +132,7 @@ class mfe_eval_functionTest(unittest.TestCase):
     def test_eval_move_pt_del(self):
         print "test_eval_move_pt_del"
         fc = RNA.fold_compound(seq1)
-        energy = fc.eval_move_pt(struct1_pt,-7,-11) /100;  # remove basepair (7,11) ,  energy change should be 2.10
+        energy = fc.eval_move_pt(struct1_pt,-7,-11) / 100.;  # remove basepair (7,11) ,  energy change should be 2.10
         self.assertEqual("%6.2f" % energy, "%6.2f" % 2.10)
         print "\n", struct1, " moveset (-7,-11) --> [%6.2f" % energy ,"]\n"
 

@@ -138,19 +138,19 @@ char *my_unpack_structure(const char *packed);
     hx=l=nl=0;
     for (i=0; i<length; i++) {
       if (structure[i] == '(') {
-	nl++; l=nl;
-	stack[hx++]=i;
+        nl++; l=nl;
+        stack[hx++]=i;
       }
       loop[i]=l;
       if (structure[i] ==')') {
-	--hx;
-	if (hx>0)
-	  l = loop[stack[hx-1]];  /* index of enclosing loop   */
-	else l=0;                 /* external loop has index 0 */
-	if (hx<0) {
-	  fprintf(stderr, "%s\n", structure);
-	  nrerror("unbalanced brackets in make_loop_index");
-	}
+        --hx;
+        if (hx>0)
+          l = loop[stack[hx-1]];  /* index of enclosing loop   */
+        else l=0;                 /* external loop has index 0 */
+        if (hx<0) {
+          fprintf(stderr, "%s\n", structure);
+          nrerror("unbalanced brackets in make_loop_index");
+        }
       }
     }
     free(stack);
@@ -179,7 +179,7 @@ char *my_unpack_structure(const char *packed);
 std::vector<int> my_ptable(std::string str);
 
 
-/*pairtable with pseudoknots*/
+/* pairtable with pseudoknots */
 %rename (ptable_pk) my_ptable_pk;
 
 %{
@@ -216,9 +216,6 @@ std::vector<int> my_ptable_pk(std::string str);
 char *my_db_from_ptable(std::vector<int> pt);
 
 
-
-    
-
 /* pair table related functions */
 %ignore make_pair_table;
 %ignore make_pair_table_pk;
@@ -250,41 +247,57 @@ int my_bp_distance(const char *str1, const char *str2);
 %ignore bppm_symbol;
 
 
+typedef struct {
+  int i;
+  int j;
+  float p;
+  int type;
+} vrna_plist_t;
+
+%nodefaultdtor vrna_plist_t;
+
+%extend vrna_plist_t {
+
+  ~vrna_plist_t() {
+    free($self);
+  }
+}
+
+namespace std {
+  %template(PlistVector) std::vector<vrna_plist_t>;
+};
 
 
 
+%rename (plist) my_plist;
 
-
-/*%rename (plist) my_plist;
 %{
 #include <vector>
-  std::vector<vrna_plist_t> my_plist(std::string struc, float pr){
+  std::vector<vrna_plist_t> my_plist(std::string structure, float pr = 0.95*0.95){
     
     std::vector<vrna_plist_t > vc;
     vrna_plist_t *ptr, *plist;
     
-    ptr = vrna_plist(struc.c_str(),pr);
-   
-    
-    while(ptr->i and ptr->j != 0)
-    {
+    plist = vrna_plist(structure.c_str(),pr);
+
+    for(ptr=plist; ptr->i && ptr->j; ptr++){
       vrna_plist_t pl;
       pl.i = ptr->i;
       pl.j = ptr->j;
       pl.p = ptr->p;
       pl.type = ptr->type;
-      
       vc.push_back(pl);
-      ptr++;
     }
 
-    free(ptr);
+    free(plist);
 
     return vc;
   }
 %}
-std::vector<vrna_plist_t> my_plist(const char *struc, float pr);
-*/
+
+%newobject my_plist;
+std::vector<vrna_plist_t> my_plist(std::string structure, float pr);
+
 %include  <ViennaRNA/structure_utils.h>
 
 /**********************************************/
@@ -296,8 +309,6 @@ std::vector<vrna_plist_t> my_plist(const char *struc, float pr);
 %newobject consensus_mis;
 char *consensus(const char **AS);
 char *consens_mis(const char **AS);
-
-
 
 
 /**********************************************/

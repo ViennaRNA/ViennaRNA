@@ -183,7 +183,7 @@ $mm[9][1] = -5.0;
 
 $seq_sc  =      "CCCAAAAGGG";
 $fc = new RNA::fold_compound($seq_sc);
-$fc->sc_add_bp_perl(\@mm);
+$fc->sc_add_bp(\@mm);
 ($ss,$mfeNew) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfeNew);
 # mfe unconstrained is -2.5

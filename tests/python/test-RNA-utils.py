@@ -27,15 +27,15 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(struct1,RNA.db_from_ptable(pairTable))
     
     def test_basePairDistance(self):
-      print("test_basePairDistance\n")
-      d = RNA.bp_distance("(((.(((...))))))","(((..........)))")
-      self.assertEqual(d,3)
-    
-   # def test_plists(self):
-   #   print("test_plists\n")
-      #plist = RNA.plist(struct1,0.6)
-      #print plist
-    
+        print("test_basePairDistance\n")
+        d = RNA.bp_distance("(((.(((...))))))","(((..........)))")
+        self.assertEqual(d,3)
+
+    def test_plists(self):
+        print("test_plists\n")
+        plist = RNA.plist(struct1,0.6)
+        print plist
+
     #def test_findpath(self):
     #  print("test_findpath\n")
     #  fc = RNA.fold_compound(seq1)
@@ -44,6 +44,6 @@ class GeneralTests(unittest.TestCase):
     #  
     #  l = fc.path_findpath(struct1,struct2,10)
     #  print l
-      
+
 if __name__ == '__main__':
     unittest.main()
