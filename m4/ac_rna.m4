@@ -18,7 +18,7 @@ AS_IF([test "$PERL" == "no"],[
   AC_MSG_ERROR([Perl is required to install and run the ViennaRNA Package])
 ])
 
-##--------------------------##  
+##--------------------------##
 ## Additional Compile Flags ##
 ##--------------------------##
 
@@ -109,9 +109,6 @@ eval _libdir=$(eval printf "%s" $libdir)
 eval _includedir=$(eval printf "%s" $includedir)
 eval _datadir=$(eval printf "%s" $datadir)
 eval _mandir=$(eval printf "%s" $mandir)
-eval _docdir=$(eval printf "%s" $docdir)
-eval _htmldir=$(eval printf "%s" $htmldir)
-eval _pdfdir=$(eval printf "%s" $pdfdir)
 
 AS_IF([test $with_perl = "yes"],[
   eval _perl_arch_dir=$(eval printf "%s" "$prefix" ${PERL_ARCH_RELATIVE_INSTALL_DIR})
@@ -140,6 +137,20 @@ AS_IF([test $with_python3 = "yes"],[
 AS_IF([test "x$enable_universal_binary" != "xno"],[
   _osx_arch=$osx_arch
   ],[
+])
+
+AS_IF([test "x$with_doc" != "xno"],[
+  eval _docdir=$(eval printf "%s" $docdir)
+  AS_IF([test "x$with_doc_html" != "xno"],[
+    eval _htmldir=$(eval printf "%s" $htmldir)],[
+    _htmldir=""
+    ])
+  AS_IF([test "x$with_doc_pdf" != "xno"],[
+    eval _pdfdir=$(eval printf "%s" $pdfdir)],[
+    _pdfdir=""
+  ])
+  ],[
+  _docdir="Not to be installed"
 ])
 
 ## collect enabled swig interfaces
@@ -184,7 +195,7 @@ AC_MSG_NOTICE([
     ( ${_features_enabled} )
 
   * RNAlib Scripting Language Interfaces:
-  
+
     ( ${_swig_languages_enabled} )
 
   * RNAlib Documentation:
@@ -192,7 +203,7 @@ AC_MSG_NOTICE([
     ( ${_refman_enabled} )
 
   * Unit Tests will be performed for:
-  
+
     ( ${_unit_tests_enabled} )
 
 

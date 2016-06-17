@@ -20,7 +20,7 @@ AM_TESTS_ENVIRONMENT =  PYTHONPATH='.:${PYTHONPATH}'; \
 ######################################
 if WITH_PERL_TESTS
 
-BUILT_SOURCES = perl5/test-RNA-Design.t 
+BUILT_SOURCES = perl5/test-RNA-Design.t
 
 PL_LOG_COMPILER = $(PERL)
 T_LOG_COMPILER = $(PERL)
@@ -37,7 +37,7 @@ PERL_TESTS =  perl5/test-RNA.pl \
               perl5/test-RNA-Design.t \
               perl5/test-RNA-mfe_eval.pl \
               perl5/test-RNA-constraints.pl
-	      
+
 
 # add test script output files here
 PERL_TEST_OUTPUT =  test.coord \
@@ -59,14 +59,14 @@ endif
 if WITH_PYTHON_TESTS
 
 PY_LOG_COMPILER = $(PYTHON2)
-AM_PY_LOG_FLAGS = 
+AM_PY_LOG_FLAGS =
 
 # add test scripts here
 PYTHON2_TESTS = python/test-RNA-callbacks.py \
                 python/test-RNA-mfe_eval.py \
                 python/test-RNA-constraints.py \
-		python/test-RNA-utils.py \                
-		python/test-RNA.py 
+                python/test-RNA-utils.py \
+                python/test-RNA.py
 
 # add test script output files here
 PYTHON2_TEST_OUTPUT = test-RNA-mfe_eval.py.out
@@ -79,13 +79,13 @@ endif
 if WITH_PYTHON3_TESTS
 
 PY3_LOG_COMPILER = $(PYTHON3)
-AM_PY3_LOG_FLAGS = 
+AM_PY3_LOG_FLAGS =
 
 # add test scripts here
 PYTHON3_TESTS = python3/test-RNA-callbacks.py3 \
                 python3/test-RNA-mfe_eval.py3 \
                 python3/test-RNA-constraints.py3 \
-                python3/test-RNA.py3 
+                python3/test-RNA.py3
 
 # add test script output files here
 PYTHON3_TEST_OUTPUT = test-RNA-mfe_eval.py3.out
@@ -102,7 +102,7 @@ CHECKMK_FILES = \
               constraints.ts \
               fold.ts \
               utils.ts \
-              eval_structure.ts 
+              eval_structure.ts
 
 CHECK_CFILES = \
               energy_evaluation.c \
@@ -115,7 +115,7 @@ LIBRARY_TESTS = energy_evaluation \
                 constraints \
                 fold \
                 utils \
-                eval_structure 
+                eval_structure
 
 check_PROGRAMS = ${LIBRARY_TESTS}
 
