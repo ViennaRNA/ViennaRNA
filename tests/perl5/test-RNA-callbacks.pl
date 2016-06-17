@@ -4,11 +4,12 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use Test;
-BEGIN { plan tests => 0; }
+use Test::More tests => 1;
+#BEGIN { plan tests => 0; }
 
 use RNA;
 
+is(1,1); # at least one test should be here
 my $a = new RNA::fold_compound("GGGGAAAACCCC");
 
 my %b = ('test' => "something");

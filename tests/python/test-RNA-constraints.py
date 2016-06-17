@@ -127,9 +127,9 @@ class constraintsTest(unittest.TestCase):
         print ss, "[ %6.2f" %mfe ,"]\n"
         self.assertEqual(ss,"(((....)))")
 
-        fc.sc_init()
+        #fc.sc_init()
 
-        m= [0.0,-5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];  #E 1 0 1 -5 ,  position 1 gets -5 if unpaired , vector starts with 0 and not 1
+        m= [0.0,-5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];  #E 1 0 1 -1 ,  position 1 gets -5 if unpaired ,".((....))." structure should be prefered!!Attention vector starts with position 0
 
         fc.sc_add_up(m)
         (ss,mfeNew) = fc.mfe()
@@ -140,27 +140,18 @@ class constraintsTest(unittest.TestCase):
     def test_sc_add_bp(self):
         print "test_sc_add_bp"
 
-        # add energy of -5.0 kcal/mol to basepair (3,8)
-        m = [
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-5.0,0.0],
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-        [0.0,0.0,-5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-        [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]]
+        #add energy of -5 to basepair 1-9 if formed, prefed structure should now be ((.....))., with a energy of -4.90
+        m = [[0 for x in range(11)] for y in range(11)]
+        m[1][9] = -5.0; # base 1-9 should get -5.0 if basepair
+        m[9][1] = -5.0; # base 1-9 should get -5.0 if basepair
 
-        seq_sc  =      "CCCAAAAGGG"
+
+        seq_sc = "CCCAAAAGGG"
         fc = RNA.fold_compound(seq_sc)
         fc.sc_add_bp(m)
         (ss,mfeNew) = fc.mfe()
         print ss, "[ %6.2f" %mfeNew ,"]\n"
-        # mfe unconstrained is -2.5, plus -5.0 constraint
-        self.assertEqual("%6.2f" %mfeNew,"%6.2f" % -7.5)
+        self.assertEqual("%6.2f" %mfeNew,"%6.2f" % -4.90)
 
 
     def test_sc_add_deigan(self):
@@ -209,16 +200,16 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual(ret,1)
 
 
-    #def test_sc_add_SHAPE_zarringhalam(self):
-        #print "test_sc_add_SHAPE_zarringhalam"
-        #seq_ribo  =      getShapeSequenceFromFile("data/TPP_riboswitch_E.coli.db")
-        #fc=RNA.fold_compound(seq_ribo)
-        #reactivities = getShapeDataFromFile("data/TPP_riboswitch_E.coli.shape_2rows")
-
-        #ret = fc.sc_add_SHAPE_zarringhalam(reactivities,0.5,0.5,"M"); # these values were copied from ronnys Talk about constraints
-        #(ss,mfe) = fc.mfe()
-        #print ss, "[ %6.2f" %mfe ,"]\n"
-        #self.assertEqual("%6.2f" %mfe,"%6.2f" % -5.34 )
+    def test_sc_add_SHAPE_zarringhalam(self):
+        print "test_sc_add_SHAPE_zarringhalam"
+        seq_ribo  = getShapeSequenceFromFile("data/TPP_riboswitch_E.coli.db")
+        fc=RNA.fold_compound(seq_ribo)
+        reactivities = getShapeDataFromFile("data/TPP_riboswitch_E.coli.shape_2rows")
+        print reactivities
+        ret = fc.sc_add_SHAPE_zarringhalam(reactivities,0.5,0.5,"O"); # these values were copied from ronnys Talk about constraints, O = default value
+        (ss,mfe) = fc.mfe()
+        print ss, "[ %6.2f" %mfe ,"]\n"
+        self.assertEqual("%6.2f" %mfe,"%6.2f" % -5.28 )
 
 
     def test_sc_add_hi_motif(self):
@@ -237,6 +228,23 @@ class constraintsTest(unittest.TestCase):
 
     # wait with implementation
     #def test_sc_get_hi_motif(self):
+
+    def test_theophylline_ligand_binding_interface(self):
+        print("test_theophylline_ligand_binding_interface\n")
+        RNA.noLonelyPairs = 0
+        fc = RNA.fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG")
+        (ss, mfe) = fc.mfe()
+        print("%s [ %6.2f ]\n" % (ss, mfe))
+
+        fc.sc_add_hi_motif("GAUACCAG&CCCUUGGCAGC", "(...((((&)...)))...)", -9.22)
+        (ss, mfe) = fc.mfe()
+        print("%s [ %6.2f ]\n" % (ss, mfe))
+
+        fc.sc_remove()
+
+        fc.sc_add_hi_motif("GAAAAAU", "(.....)", -19)
+        (ss, mfe) = fc.mfe()
+        print("%s [ %6.2f ]\n" %(ss, mfe))
 
 
 if __name__ == '__main__':

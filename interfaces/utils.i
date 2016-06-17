@@ -138,19 +138,19 @@ char *my_unpack_structure(const char *packed);
     hx=l=nl=0;
     for (i=0; i<length; i++) {
       if (structure[i] == '(') {
-	nl++; l=nl;
-	stack[hx++]=i;
+        nl++; l=nl;
+        stack[hx++]=i;
       }
       loop[i]=l;
       if (structure[i] ==')') {
-	--hx;
-	if (hx>0)
-	  l = loop[stack[hx-1]];  /* index of enclosing loop   */
-	else l=0;                 /* external loop has index 0 */
-	if (hx<0) {
-	  fprintf(stderr, "%s\n", structure);
-	  nrerror("unbalanced brackets in make_loop_index");
-	}
+        --hx;
+        if (hx>0)
+          l = loop[stack[hx-1]];  /* index of enclosing loop   */
+        else l=0;                 /* external loop has index 0 */
+        if (hx<0) {
+          fprintf(stderr, "%s\n", structure);
+          nrerror("unbalanced brackets in make_loop_index");
+        }
       }
     }
     free(stack);
@@ -177,6 +177,44 @@ char *my_unpack_structure(const char *packed);
 %}
 
 std::vector<int> my_ptable(std::string str);
+
+
+/* pairtable with pseudoknots */
+%rename (ptable_pk) my_ptable_pk;
+
+%{
+#include <vector>
+
+  std::vector<int> my_ptable_pk(std::string str){
+   short int* pt_pk = vrna_pt_pk_get(str.c_str());
+    std::vector<int> v_pt;
+    int i;
+
+    for(i=0; i <= pt_pk[0]; i++){
+      v_pt.push_back(pt_pk[i]);
+    }
+    free(pt_pk);
+    return v_pt; 
+  }
+%}
+
+std::vector<int> my_ptable_pk(std::string str);
+
+
+%rename (db_from_ptable) my_db_from_ptable;
+
+%{
+#include <vector>
+  char *my_db_from_ptable(std::vector<int> pt)
+  {
+    std::vector<short> vc;
+    transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
+    return vrna_db_from_ptable((short*)&vc[0]);
+  }
+%}
+
+char *my_db_from_ptable(std::vector<int> pt);
+
 
 /* pair table related functions */
 %ignore make_pair_table;
@@ -209,9 +247,56 @@ int my_bp_distance(const char *str1, const char *str2);
 %ignore bppm_symbol;
 
 
+typedef struct {
+  int i;
+  int j;
+  float p;
+  int type;
+} vrna_plist_t;
+
+%nodefaultdtor vrna_plist_t;
+
+%extend vrna_plist_t {
+
+  ~vrna_plist_t() {
+    free($self);
+  }
+}
+
+namespace std {
+  %template(PlistVector) std::vector<vrna_plist_t>;
+};
 
 
 
+%rename (plist) my_plist;
+
+%{
+#include <vector>
+  std::vector<vrna_plist_t> my_plist(std::string structure, float pr = 0.95*0.95){
+    
+    std::vector<vrna_plist_t > vc;
+    vrna_plist_t *ptr, *plist;
+    
+    plist = vrna_plist(structure.c_str(),pr);
+
+    for(ptr=plist; ptr->i && ptr->j; ptr++){
+      vrna_plist_t pl;
+      pl.i = ptr->i;
+      pl.j = ptr->j;
+      pl.p = ptr->p;
+      pl.type = ptr->type;
+      vc.push_back(pl);
+    }
+
+    free(plist);
+
+    return vc;
+  }
+%}
+
+%newobject my_plist;
+std::vector<vrna_plist_t> my_plist(std::string structure, float pr);
 
 %include  <ViennaRNA/structure_utils.h>
 
@@ -224,4 +309,31 @@ int my_bp_distance(const char *str1, const char *str2);
 %newobject consensus_mis;
 char *consensus(const char **AS);
 char *consens_mis(const char **AS);
+
+
+/**********************************************/
+/* BEGIN interface for Move_Set utilities    */
+/**********************************************/
+
+%rename (move_standard) my_move_standard;
+
+%{
+  char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,int verbosity_level, int shifts, int noLP){
+    char *structure =  (char *)calloc(strlen(struc)+1,sizeof(char));
+    strcpy(structure,struc);
+    *OUTPUT = move_standard(seq,structure,type,verbosity_level,shifts,noLP);
+    return structure;   
+  }
+%}
+%newobject my_move_standard;
+char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,int verbosity_level, int shifts, int noLP);
+%ignore move_standard;
+
+%include  <ViennaRNA/move_set.h>
+
+
+
+
+
+
 

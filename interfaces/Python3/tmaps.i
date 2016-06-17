@@ -19,8 +19,8 @@
     $1 = (char **) malloc((size+1)*sizeof(char *));
     for (i = 0; i < size; i++) {
       PyObject *o = PyList_GetItem($input,i);
-      if (PyString_Check(o))
-        $1[i] = PyString_AsString(PyList_GetItem($input,i));
+      if (PyUnicode_Check(o))
+        $1[i] = PyString_AsString(PyUnicode_AsASCIIString(o));
       else {
         PyErr_SetString(PyExc_TypeError,"list must contain strings");
         free($1);
