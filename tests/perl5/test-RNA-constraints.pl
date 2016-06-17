@@ -34,11 +34,11 @@ sub getShapeDataFromFile
 
     foreach my $line (<$fh>)
     {
-    
+
         my @sp= split(/ /,$line);
         my $pos = $sp[0];
         my $value = $sp[1];
-        
+
         if($pos == $count)
         {
             push(@retVec,$value +0.00); # make float from string
@@ -52,7 +52,7 @@ sub getShapeDataFromFile
             $count=$pos;
         }
         $count+=1;
-    
+
     }
     return @retVec;
 }
@@ -116,7 +116,7 @@ $fc->hc_add_bp_nonspecific(20,-1); # force the last base to pair with some bases
 ($ss,$mfe) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfe);
 is($ss,"(((..............)))");
-##################################       
+##################################
 ##def test_hc_add_bp
 print "test_hc_add_bp";
 #$seq_con  =      "CCCAAAAGGGCCCAAAAGGG";
@@ -126,7 +126,7 @@ $fc->hc_add_bp(1,20,RNA::CONSTRAINT_CONTEXT_ENFORCE | RNA::CONSTRAINT_CONTEXT_AL
 ($ss,$mfe) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfe);
 is($ss,"(((..............)))");
-##################################   
+##################################
 ##test_hc_add_from_db
 print "test_hc_add_from_db";
 #seq_con  =      "CCCAAAAGGGCCCAAAAGGG";
@@ -138,7 +138,7 @@ $fc->hc_add_from_db("xxx.................");
 ($ss,$mfe) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfe);
 is($ss,$str_con);
-################################## 
+##################################
 ##test_sc_add_up
 print "test_sc_add_up";
 #        "1234567890
@@ -163,34 +163,34 @@ print "test_sc_add_bp";
 
 
 
-my @mm= (
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
-[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]);
+#my @mm= (
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+#[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]);
+#
+##print Dumper(\@mm);
+#$mm[1][9] = -5.0;
+#$mm[9][1] = -5.0;
+#
+#$seq_sc  =      "CCCAAAAGGG";
+#$fc = new RNA::fold_compound($seq_sc);
+#$fc->sc_add_bp(\@mm);
+#($ss,$mfeNew) = $fc->mfe();
+#printf("%s [%6.2f] \n",$ss,$mfeNew);
+## mfe unconstrained is -2.5
+#is(sprintf ("%6.2f",$mfeNew), sprintf("%6.2f",-4.90));
 
-#print Dumper(\@mm);
-$mm[1][9] = -5.0;
-$mm[9][1] = -5.0;
 
-$seq_sc  =      "CCCAAAAGGG";
-$fc = new RNA::fold_compound($seq_sc);
-$fc->sc_add_bp(\@mm);
-($ss,$mfeNew) = $fc->mfe();
-printf("%s [%6.2f] \n",$ss,$mfeNew);
-# mfe unconstrained is -2.5
-is(sprintf ("%6.2f",$mfeNew), sprintf("%6.2f",-4.90));
- 
-
-################################## 
+##################################
 ##test_sc_add_deigan
 print "test_sc_add_deigan\n";
 my $seq  =  getShapeSequenceFromFile($datadir . "Lysine_riboswitch_T._martima.db");
@@ -203,8 +203,8 @@ $fc->sc_add_SHAPE_deigan(\@reactivities,1.9,-0.7,RNA::OPTION_DEFAULT);
 ($ss,$mfe) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfe);
 is(sprintf ("%6.2f",$mfe), sprintf("%6.2f",-121.55));
-################################## 
-##test_sc_add_SHAPE_deigan2       
+##################################
+##test_sc_add_SHAPE_deigan2
 print "test_sc_add_SHAPE_deigan2";
 my $seq_ribo  =  getShapeSequenceFromFile($datadir . "TPP_riboswitch_E.coli.db");
 my @reactivities_ribo = getShapeDataFromFile($datadir . "TPP_riboswitch_E.coli.shape_2rows");
@@ -216,7 +216,7 @@ $fc->sc_add_SHAPE_deigan(\@reactivities_ribo,1.9,-0.7,RNA::OPTION_DEFAULT);
 ($ss,$mfe) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfe);
 is(sprintf ("%6.2f",$mfe), sprintf("%6.2f",-52.61));
-##################################        
+##################################
 # I just added completely randomly choosen sequences and shape data, this test only checks if the function can be called, not if it results correct results.
 ##test_sc_add_SHAPE_deigan_ali
 print "test_sc_add_SHAPE_deigan_ali";
@@ -234,7 +234,7 @@ my $ret = $fc->sc_add_SHAPE_deigan_ali(\@shapeAli, \@assoc,1.8,-0.6);
 ($ss,$mfe) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfe);
 is($ret,1);
-##################################   
+##################################
 ##test_sc_add_SHAPE_zarringhalam
 print("test_sc_add_SHAPE_zarringhalam");
 $seq_ribo  =  getShapeSequenceFromFile($datadir . "TPP_riboswitch_E.coli.db");
@@ -259,7 +259,7 @@ my $r=$fc->sc_add_hi_motif("GAUACCAG&CCCUUGGCAGC","(...((((&)...)))...)",-9.22);
 ($ss,$mfe) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfe);
 is($r,1);
-##################################     
+##################################
 # test theophylline ligand binding interface
 $RNA::noLonelyPairs = 0;
 $fc = new RNA::fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG");
@@ -277,14 +277,3 @@ $fc->sc_add_hi_motif("GAAAAAU", "(.....)", -19);
 printf "%s [ %6.2f ]\n", $ss, $mfe;
 
 undef $fc;
-       
-
-       
-
-
-
-
-
-        
-
-

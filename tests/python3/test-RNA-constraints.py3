@@ -138,9 +138,9 @@ class constraintsTest(unittest.TestCase):
 
     def test_sc_add_bp(self):
         print("test_sc_add_bp")
-        
+
         #add energy of -5 to basepair 1-9 if formed, prefed structure should now be ((.....))., with a energy of -4.90, #matrix is also beginning with position 0
-        m = [[0 for x in range(11)] for y in range(11)]  
+        m = [[0 for x in range(11)] for y in range(11)]
         m[1][9] = -5.0; # base 1-9 should get -5.0 if basepair
         m[9][1] = -5.0; # base 1-9 should get -5.0 if basepair
 
@@ -224,7 +224,7 @@ class constraintsTest(unittest.TestCase):
 
     # wait with implementation
     #def test_sc_get_hi_motif(self):
-    
+
     def test_theophylline_ligand_binding_interface(self):
         print("test_theophylline_ligand_binding_interface\n")
         RNA.noLonelyPairs = 0
@@ -241,8 +241,8 @@ class constraintsTest(unittest.TestCase):
         fc.sc_add_hi_motif("GAAAAAU", "(.....)", -19)
         (ss, mfe) = fc.mfe()
         print("%s [ %6.2f ]\n" %(ss, mfe))
-    
-    
+
+
 
 if __name__ == '__main__':
     unittest.main()

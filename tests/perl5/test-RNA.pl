@@ -62,10 +62,10 @@ ok(($cf<$comfe)&&($comfe-$cf<1.3));
 #test concentration computation
 my $fcaa;
 my $fcbb;
-my ($usel1,$usel2, $usel3); 
+my ($usel1,$usel2, $usel3);
 ($x,$usel1, $usel2, $fcaa, $usel3)= RNA::co_pf_fold($seq1. $seq1, $struct);
 $RNA::cut_point = length($seq2)+1;
-($x,$usel1, $usel2, $fcbb, $usel3)= RNA::co_pf_fold($seq2. $seq2, $struct); 
+($x,$usel1, $usel2, $fcbb, $usel3)= RNA::co_pf_fold($seq2. $seq2, $struct);
 my ($AB,$AA,$BB,$A,$B)=RNA::get_concentrations($fcab, $fcaa, $fcbb,$ac, $bc, 1e-5, 1e-5);
 
 $AB/=2e-5;
@@ -189,12 +189,12 @@ $RNA::cut_point=-1;
 my $struc1_move = "(..............)";
 # move_standard( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
 my ($s,$energy) = RNA::move_standard($seq1, $struc1_move, 0, 1, 0, 0);
-print("energy = $energy, s = $s\n"); 
+print("energy = $energy, s = $s\n");
 is($s, "................");
 
 $struc1_move = "(..............)";
 ($s,$energy) = RNA::move_standard($seq1, $struc1_move, 1, 1, 0, 0);
-print("energy = $energy, s = $s\n"); 
+print("energy = $energy, s = $s\n");
 is($s, "(((.((....)).)))");
 
 # test simple_xy_coordinates

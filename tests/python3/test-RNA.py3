@@ -27,13 +27,13 @@ class GeneralTests(unittest.TestCase):
         print("test_hammingDistance \t calculate a hamming distance")
         self.assertEqual(RNA.hamming(seq1,seq2),16)
         self.assertEqual(RNA.bp_distance(struct1,struct2),6)
-        
-        
+
+
     def test_temperature(self):
-        print("test_temperature\n") 
+        print("test_temperature\n")
         self.assertEqual(RNA.cvar.temperature,37)
-        
-        
+
+
     def test_foldASequence(self):
         print("test_foldASequence\n")
         # new better interface
@@ -41,8 +41,8 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(struct,struct1)
         # check energy
         self.assertEqual(RNA.energy_of_struct(seq1,struct1), mfe)
-        
-        
+
+
     def test_constrained_folding(self):
         print("test_constrained_folding\n")
         RNA.cvar.fold_constrained = 1
@@ -50,7 +50,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(struct,'(((..........)))')
         self.assertEqual(RNA.energy_of_struct(seq1,struct),cmfe)
         RNA.cvar.fold_constrained = 0
-        
+
     def test_tree_distance(self):
         print("test_tree_distance\n");
         xstruc = RNA.expand_Full(struct1)
@@ -61,8 +61,8 @@ class GeneralTests(unittest.TestCase):
         tree_dist = RNA.tree_edit_distance(T1, T2)
         # print RNA::get_aligned_line(0), RNA::get_aligned_line(1),"\n"
         self.assertEqual(tree_dist,2)
-        
-        
+
+
     def test_cofold_andMore(self):
         print("test_cofold\n")
         RNA.cvar.cut_point = len(seq1)+1
@@ -83,7 +83,7 @@ class GeneralTests(unittest.TestCase):
         BB/=2e-5
         A/=2e-5
         B/=2e-5
-        
+
         ret = (abs(AB-0.0)+abs(AA-0.00578)+abs(BB-0.01100)+abs(A-0.48843)+abs(B-0.47801))
         self.assertTrue(ret<0.0001)
         RNA.cvar.cut_point=-1
@@ -91,8 +91,8 @@ class GeneralTests(unittest.TestCase):
         s,f = RNA.pf_fold(seq1,struct)
         self.assertTrue(f < mfe)
         self.assertTrue(mfe-f < 0.8)
-        
-        
+
+
         print("test_check_access_C_array\n")
         #print("WHAT ",RNA.cvar.iindx)
         ret = RNA.intP_getitem(RNA.cvar.iindx,3)
@@ -104,24 +104,24 @@ class GeneralTests(unittest.TestCase):
 
         #unp = unpack('HHH',bytes('\udcab\x00*\x00]\x00','UTF-8'));
         #print("SEPP",unp);
-        
+
         print("test_bp_prop\n")
-         
+
 
         p1 = RNA.get_pr(2,15)
         ii = RNA.intP_getitem(RNA.cvar.iindx, 2)
-       
+
         if(RNA.pf_float_precision() != 0) :
              p2 = RNA.floatP_getitem(RNA.cvar.pr, ii-15)
         else:
              p2 = RNA.doubleP_getitem(RNA.cvar.pr, ii-15)
         self.assertTrue(p1 < 0.999 and abs(p1-p2) < 1.2e-7)
-      
+
         #bpf = RNA.Make_bp_profile(len(seq1));
         #bpfArray = [];
         #bpfArray = unpack('@f',RNA.cdata(bpf, len(seq1)*4*3));
-        
-        
+
+
         #ok (($bpf[2*3]+$bpf[2*3+1]>.99999)&&$bpf[2*3+2]==0 &&
             #($bpf[2*3+1]>=$p1));
         #my $pack = RNA::pack_structure($struc1);
@@ -133,7 +133,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(RNA.cvar.pairs,6)
         self.assertEqual(RNA.cvar.unpaired,4)
         self.assertEqual(RNA.intP_getitem(RNA.cvar.loop_degree,1),2)
-    
+
     def test_rna_plots(self):
         print("test_rna_plots\n")
         RNA.PS_rna_plot(seq1, struct1, "test_ss.ps")
@@ -143,7 +143,7 @@ class GeneralTests(unittest.TestCase):
         RNA.ssv_rna_plot(seq1, struct, "test.coord")
         print("please check the two postscript files test_ss.ps and test_dp.ps\n")
         RNA.write_parameter_file("test.par")
-    
+
     def test_different_symbol_set(self):
         print("test_different_symbol_set\n")
         RNA.cvar.symbolset = "GC"
@@ -151,11 +151,11 @@ class GeneralTests(unittest.TestCase):
         (sinv, cost) = RNA.inverse_fold(start, struct1)
         (ss, en) = RNA.fold(sinv)
         self.assertEqual(ss, struct1)
-    
+
     def test_suboptimal(self):
         print("test_suboptimal\n")
-            
-            
+
+
         RNA.free_pf_arrays()
         RNA.free_arrays()
         RNA.free_co_arrays()
@@ -169,14 +169,14 @@ class GeneralTests(unittest.TestCase):
         # the last access should produce a "value out of range" warning
             if(solution.get(x).structure) :
                 print("%s,%6.2f\n" % (solution.get(x).structure,solution.get(x).energy))
-            
+
 
         ## test native array output of subopt()
         solution = RNA.subopt(seq1, 500)
         print("%d suboptimals \n" % len(solution))
         for s in solution:
             print("%s %6.2f\n" % (s.structure,s.energy))
-        
+
 
         solution = ""
 
@@ -188,17 +188,17 @@ class GeneralTests(unittest.TestCase):
 
         self.assertEqual(duplex.structure, ".(((.....(((.&)))))).")
         duplex=None
-        
+
         align = ["GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC"]
-        
+
         (css, cen) = RNA.alifold(align)
         self.assertEqual(css,"(((.(((...)))..))).")
-        RNA.consens_mis(align) 
+        RNA.consens_mis(align)
         self.assertEqual(RNA.consens_mis(align), "SMBHBHYDRBGDVWmVKBB")
         RNA.free_alifold_arrays()
-        
+
     def test_moveSets(self):
-        print("test_moveSets") 
+        print("test_moveSets")
 
         RNA.cvar.cut_point=-1
         struct1_move = "(..............)"
@@ -210,19 +210,19 @@ class GeneralTests(unittest.TestCase):
         struct1_move = "(..............)"
         (s,energy) =  RNA.move_standard(seq1, struct1_move, 1, 1, 0, 0)
         self.assertEqual(s, "(((.((....)).)))")
-        
-        
+
+
     def test_simplexycoordinates(self):
         print("test_simplexycoordinates\n")
-        
+
         coords = RNA.simple_xy_coordinates(struct1)
 
         for c in (coords):
             print(c.X, ",", c.Y, "\n")
-        
+
     def test_model_details_structure(self):
         print("test_model_details_parameter_structure\n")
-    
+
         # check model details structure
         md = RNA.md(); # default values
         self.assertEqual(int(md.dangles), 2)
@@ -238,19 +238,19 @@ class GeneralTests(unittest.TestCase):
         #reset globals to default
         RNA.cvar.dangles = 2
         RNA.cvar.temperature= 37.0
-        
+
         # check parameter structures
         params = RNA.param()
         self.assertEqual(params.get_temperature(),37.0)
         params = RNA.param(md)
         self.assertEqual(params.get_temperature(),40.1)
-        
+
         pf_params = RNA.exp_param()
         self.assertEqual(pf_params.get_temperature(),37.0)
         pf_params = RNA.exp_param(md)
         self.assertEqual(pf_params.get_temperature(),40.1)
         md = None
-                
+
 class FoldCompoundTest(unittest.TestCase):
 
     def test_create_fold_compound_Single(self):
