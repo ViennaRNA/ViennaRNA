@@ -202,9 +202,9 @@ class constraintsTest(unittest.TestCase):
 
     def test_sc_add_SHAPE_zarringhalam(self):
         print "test_sc_add_SHAPE_zarringhalam"
-        seq_ribo  = getShapeSequenceFromFile("data/TPP_riboswitch_E.coli.db")
+        seq_ribo  = getShapeSequenceFromFile(datadir + "TPP_riboswitch_E.coli.db")
         fc=RNA.fold_compound(seq_ribo)
-        reactivities = getShapeDataFromFile("data/TPP_riboswitch_E.coli.shape_2rows")
+        reactivities = getShapeDataFromFile(datadir + "TPP_riboswitch_E.coli.shape_2rows")
         print reactivities
         ret = fc.sc_add_SHAPE_zarringhalam(reactivities,0.5,0.5,"O"); # these values were copied from ronnys Talk about constraints, O = default value
         (ss,mfe) = fc.mfe()

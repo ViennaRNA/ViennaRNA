@@ -21,3 +21,5 @@ test.par
 # ignore all tests we copy over from interfaces/Perl/RNA/t
 perl5/test-RNA-Design.t
 
+RNApath.pm
+RNApath.py

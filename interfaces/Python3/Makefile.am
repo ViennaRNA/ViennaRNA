@@ -1,16 +1,15 @@
 include ../generic.mk
 
-EXTRA_DIST = \
-  $(SWIG_wrapper) \
-  $(SWIG_module_name).py 
+LANG_SPECIFIC_INTERFACE_FILES = \
+  $(srcdir)/tmaps.i \
+  $(srcdir)/file_py3.i \
+  $(srcdir)/globals-md.i \
+  $(srcdir)/callbacks-fc.i \
+  $(srcdir)/callbacks-sc.i \
+  $(builddir)/version.i
 
 INTERFACE_FILES = $(SWIG_src) \
-                  tmaps.i \
-                  file_py3.i \
-                  globals-md.i \
-                  callbacks-fc.i \
-                  callbacks-sc.i \
-                  version.i
+                  $(LANG_SPECIFIC_INTERFACE_FILES)
 
 pkgpyexecdir = $(py3execdir)/RNA
 pkgpycachedir = $(pkgpyexecdir)/__pycache__
@@ -24,6 +23,11 @@ _RNA_la_SOURCES = $(INTERFACE_FILES) \
                   $(SWIG_wrapper)
 
 BUILT_SOURCES = RNA/_RNA$(PYTHON3_SO)
+
+EXTRA_DIST = \
+  $(SWIG_wrapper) \
+  $(SWIG_module_name).py \
+  $(LANG_SPECIFIC_INTERFACE_FILES)
 
 _RNA_la_CFLAGS = $(RNA_CFLAGS) $(PYTHON3_CFLAGS)
 _RNA_la_CXXFLAGS = $(RNA_CXXFLAGS)
@@ -47,7 +51,7 @@ if HAS_SWIG
 
 $(SWIG_wrapper): $(SWIG_src)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
-                  -I$(srcdir) \
+                  -I$(srcdir) -I$(builddir) \
                   -DPY3 @FLOAT_PF_FLAG@ \
                   -python -modern -py3 -c++ \
                   -o $(SWIG_wrapper) \

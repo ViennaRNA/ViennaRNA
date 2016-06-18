@@ -1,15 +1,14 @@
 include ../generic.mk
 
-EXTRA_DIST = \
-  $(SWIG_wrapper) \
-  $(SWIG_module_name).py
+LANG_SPECIFIC_INTERFACE_FILES = \
+  $(srcdir)/tmaps.i \
+  $(srcdir)/globals-md.i \
+  $(srcdir)/callbacks-fc.i \
+  $(srcdir)/callbacks-sc.i \
+  $(builddir)/version.i
 
 INTERFACE_FILES = $(SWIG_src) \
-                  tmaps.i \
-                  globals-md.i \
-                  callbacks-fc.i \
-                  callbacks-sc.i \
-                  version.i
+                  $(LANG_SPECIFIC_INTERFACE_FILES)
 
 pkgpy2execdir = $(py2execdir)/RNA
 
@@ -20,6 +19,11 @@ _RNA_la_SOURCES = $(INTERFACE_FILES) \
                   $(SWIG_wrapper)
 
 BUILT_SOURCES = RNA/_RNA$(PYTHON2_SO)
+
+EXTRA_DIST = \
+  $(SWIG_wrapper) \
+  $(SWIG_module_name).py \
+  $(LANG_SPECIFIC_INTERFACE_FILES)
 
 _RNA_la_CFLAGS = $(RNA_CFLAGS) $(PYTHON2_CFLAGS)
 _RNA_la_CXXFLAGS = $(RNA_CXXFLAGS)
@@ -46,7 +50,7 @@ if HAS_SWIG
 
 $(SWIG_wrapper): $(SWIG_src)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
-                  -I$(srcdir) \
+                  -I$(srcdir) -I$(builddir) \
                   @FLOAT_PF_FLAG@ \
                   -python -modern  -c++ \
                   -o $(SWIG_wrapper) \
