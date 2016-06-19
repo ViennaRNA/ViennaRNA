@@ -23,3 +23,8 @@ perl5/test-RNA-Design.t
 
 RNApath.pm
 RNApath.py
+RNApath.pyc
+__pycache__
+test-RNA-mfe_eval.pl.out
+test-RNA-mfe_eval.py.out
+test-RNA-mfe_eval.py3.out
