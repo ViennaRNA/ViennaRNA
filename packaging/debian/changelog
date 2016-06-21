@@ -1,3 +1,9 @@
+viennarna (2.2.6-1) UNRELEASED; urgency=low
+
+ * Bump to upstream release 2.2.6
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Sun, 19 Jun 2016 13:00:00 +0200
+
 viennarna (2.2.5-2) UNRELEASED; urgency=low
 
  * Include Python3 bindings to RNAlib
