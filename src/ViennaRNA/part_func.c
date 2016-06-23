@@ -2482,7 +2482,6 @@ wrap_pf_fold( const char *sequence,
   backward_compat_compound  = vc;
   backward_compat           = 1;
   iindx = backward_compat_compound->iindx;
-  vc->exp_params->pf_scale = pf_scale;
 
   return vrna_pf(vc, structure);
 }
