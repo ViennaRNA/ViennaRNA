@@ -2452,17 +2452,11 @@ wrap_pf_fold( const char *sequence,
   md.circ         = is_circular;
   md.compute_bpp  = calculate_bppm;
 
-  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_PF);
+  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_DEFAULT);
 
-#if 0
-  if(parameters){ /* replace exp_params if necessary */
-    free(vc->exp_params);
-    vc->exp_params = exp_params;
-  } else {
-    free(exp_params);
-  }
-#endif
-  
+  /* prepare exp_params and set global pf_scale */
+  vc->exp_params = vrna_exp_params(&md);
+  vc->exp_params->pf_scale = pf_scale;
 
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
