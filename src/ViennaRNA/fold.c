@@ -192,7 +192,7 @@ wrap_fold( const char *string,
   }
   P->model_details.circ = is_circular;
 
-  vc = vrna_fold_compound(string, &(P->model_details), 0);
+  vc = vrna_fold_compound(string, &(P->model_details), VRNA_OPTION_DEFAULT);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
