@@ -112,6 +112,7 @@ uninstall-htmlDATA: vrna_htmlrefman_uninst
 EXTRA_DIST =  $(pkgdata_DATA) \
               refman.include \
               refman.images \
+              dox \
               html \
               latex \
               @REFERENCE_MANUAL_PDF_NAME@
