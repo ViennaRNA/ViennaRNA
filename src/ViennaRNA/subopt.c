@@ -1783,33 +1783,34 @@ repeat( vrna_fold_compound_t *vc,
           type_2 = rtype[ptype[indx[j-1]+i+1]];
           energy = 0;
 
-          if(ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j, cp))
+          if(ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j, cp)){
             energy = E_IntLoop(0, 0, type, type_2,S1[i+1],S1[j-1],S1[i+1],S1[j-1], P);
 
-          if(sc){
-            if(sc->energy_bp)
-              energy += sc->energy_bp[ij];
+            if(sc){
+              if(sc->energy_bp)
+                energy += sc->energy_bp[ij];
 
-            if(sc->energy_stack)
-              energy += sc->energy_stack[i]
-                        + sc->energy_stack[i+1]
-                        + sc->energy_stack[j-1]
-                        + sc->energy_stack[j];
+              if(sc->energy_stack)
+                energy += sc->energy_stack[i]
+                          + sc->energy_stack[i+1]
+                          + sc->energy_stack[j-1]
+                          + sc->energy_stack[j];
 
-            if(sc->f)
-              energy += sc->f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_IL, sc->data);
+              if(sc->f)
+                energy += sc->f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_IL, sc->data);
+            }
+
+            new_state = derive_new_state(i+1, j-1, state, part_energy + energy, 2);
+            make_pair(i, j, new_state);
+            make_pair(i+1, j-1, new_state);
+
+            /* new_state->best_energy = new + best_energy; */
+            push(env->Stack, new_state);
+            env->nopush = false;
+            if (i==1 || state->structure[i-2]!='('  || state->structure[j]!=')')
+              /* adding a stack is the only possible structure */
+              return;
           }
-
-          new_state = derive_new_state(i+1, j-1, state, part_energy + energy, 2);
-          make_pair(i, j, new_state);
-          make_pair(i+1, j-1, new_state);
-
-          /* new_state->best_energy = new + best_energy; */
-          push(env->Stack, new_state);
-          env->nopush = false;
-          if (i==1 || state->structure[i-2]!='('  || state->structure[j]!=')')
-            /* adding a stack is the only possible structure */
-            return;
         }
       }
   }

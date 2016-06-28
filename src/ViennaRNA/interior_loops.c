@@ -778,7 +778,7 @@ vrna_BT_stack(vrna_fold_compound_t *vc,
               vrna_bp_stack_t *bp_stack,
               int *stack_count){
 
-  int           ij, *idx, *my_c, *rtype;
+  int           ij, p, q, *idx, *my_c, *rtype, cp;
   char          *ptype;
   unsigned char type, type_2;
 
@@ -789,6 +789,7 @@ vrna_BT_stack(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *f;
   char          eval_loop;
 
+  cp          = vc->cutpoint;
   idx         = vc->jindx;
   P           = vc->params;
   md          = &(P->model_details);
@@ -800,33 +801,52 @@ vrna_BT_stack(vrna_fold_compound_t *vc,
   ptype       = vc->ptype;
   type        = (unsigned char)ptype[ij];
   rtype       = &(md->rtype[0]);
+  p           = *i + 1;
+  q           = *j - 1;
 
   if(my_c[ij] == *en){ /*  always true, if (i.j) closes canonical structure,
                           thus (i+1.j-1) must be a pair
                       */
     eval_loop =     (hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
-                &&  (hc->matrix[idx[*j - 1] + *i + 1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
+                &&  (hc->matrix[idx[q] + p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
 
     if(f)
-      eval_loop = (f(*i, *j, *i+1, *j-1, VRNA_DECOMP_PAIR_IL, hc->data)) ? eval_loop : (char)0;
+      eval_loop = (f(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, hc->data)) ? eval_loop : (char)0;
 
     if(eval_loop){
-      type_2 = ptype[idx[*j - 1] + *i + 1];
+      type_2 = ptype[idx[q] + p];
       type_2 = rtype[type_2];
-      *en -= P->stack[type][type_2];
+
+      if ((cp < 0) || (ON_SAME_STRAND(*i, p, cp) && ON_SAME_STRAND(q, *j, cp))){ /* regular stack */
+        *en    -= P->stack[type][type_2];
+      } else { /* stack like cofold structure */
+        short si, sj, *S;
+        S     = vc->sequence_encoding;
+        si    = ON_SAME_STRAND(*i, p, cp) ? S[p] : -1;
+        sj    = ON_SAME_STRAND(q, *j, cp) ? S[q] : -1;
+        *en  -= E_IntLoop_Co(rtype[type], rtype[type_2],
+                                      *i, *j, p, q,
+                                      cp,
+                                      si, sj,
+                                      S[p-1], S[q+1],
+                                      md->dangles,
+                                      P);
+      
+      }
+
       if(sc){
         if(sc->energy_bp)
           *en -= sc->energy_bp[ij];
         if(sc->energy_stack)
           *en -=    sc->energy_stack[*i]
-                  + sc->energy_stack[*i + 1]
-                  + sc->energy_stack[*j - 1]
+                  + sc->energy_stack[p]
+                  + sc->energy_stack[q]
                   + sc->energy_stack[*j];
         if(sc->f)
-          *en -= sc->f(*i, *j, *i + 1, *j - 1, VRNA_DECOMP_PAIR_IL, sc->data);
+          *en -= sc->f(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
       }
-      bp_stack[++(*stack_count)].i = *i + 1;
-      bp_stack[(*stack_count)].j   = *j - 1;
+      bp_stack[++(*stack_count)].i = p;
+      bp_stack[(*stack_count)].j   = q;
       (*i)++;
       (*j)--;
       return 1;
