@@ -274,15 +274,14 @@ fill_arrays(vrna_fold_compound_t  *vc,
 
         /* remember stack energy for --noLP option */
         if(noLP){
-          int stackEnergy = vrna_E_stack(vc, i, j);
-          new_c           = MIN2(new_c, cc1[j-1]+stackEnergy);
-          cc[j]           = new_c;
-
-          if (ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j,cp))
+          if (ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j,cp)){
+            int stackEnergy = vrna_E_stack(vc, i, j);
+            new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
             my_c[ij] = cc1[j-1]+stackEnergy;
-          else /* currently we don't allow stacking over the cut point */
+          } else { /* currently we don't allow stacking over the cut point */
             my_c[ij] = FORBIDDEN;
-
+          }
+          cc[j] = new_c;
         } else {
           my_c[ij] = new_c;
         }
@@ -499,7 +498,7 @@ backtrack_co( sect bt_stack[],
       if(vrna_BT_stack(vc, &i, &j, &cij, bp_list, &b)){
         canonical = 0;
         goto repeat1;
-      }
+    }
 
     canonical = 1;
 
