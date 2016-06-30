@@ -1281,8 +1281,8 @@ scan_interval(vrna_fold_compound_t *vc,
           if(hc->up_hp[l+1] < u)
             break;
 
+          kl = indx[l]+k;
           if(hc->matrix[kl] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
-            kl = indx[l]+k;        /* just confusing these indices ;-) */
             type = ptype[kl];
             no_close = ((type==3)||(type==4))&&noGUclosure;
             type=rtype[type];
