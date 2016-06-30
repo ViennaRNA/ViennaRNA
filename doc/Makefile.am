@@ -93,7 +93,12 @@ if WITH_REFERENCE_MANUAL_HTML
 
 vrna_htmlrefman_inst: installdirs html
 	@$(NORMAL_INSTALL)
-	cp -r html/* "$(DESTDIR)$(htmldir)"
+	test -d $(builddir)/html || $(LN_S) $(srcdir)/html $(builddir)/html
+	cp -r $(builddir)/html/* "$(DESTDIR)$(htmldir)"
+	chmod 644 "$(DESTDIR)$(htmldir)"/*
+	chmod 755 "$(DESTDIR)$(htmldir)"/search
+	chmod 644 "$(DESTDIR)$(htmldir)"/search/*
+	{ test ! -h $(builddir)/html || rm -f $(builddir)/html; }
 
 vrna_htmlrefman_uninst:
 	@$(NORMAL_UNINSTALL)
@@ -109,6 +114,28 @@ endif
 install-htmlDATA: vrna_htmlrefman_inst
 uninstall-htmlDATA: vrna_htmlrefman_uninst
 
+if WITH_REFERENCE_MANUAL_PDF
+
+vrna_pdfrefman_inst: installdirs $(REFERENCE_MANUAL_FILES_PDF)
+	@$(NORMAL_INSTALL)
+	test -f $(builddir)/$(REFERENCE_MANUAL_FILES_PDF) || $(LN_S) $(srcdir)/$(REFERENCE_MANUAL_FILES_PDF) $(builddir)/$(REFERENCE_MANUAL_FILES_PDF)
+	$(INSTALL_DATA) $(builddir)/$(REFERENCE_MANUAL_FILES_PDF) $(DESTDIR)$(pdfdir)
+	{ test ! -h $(builddir)/$(REFERENCE_MANUAL_FILES_PDF) || rm -f $(builddir)/$(REFERENCE_MANUAL_FILES_PDF); }
+
+vrna_pdfrefman_uninst:
+	@$(NORMAL_UNINSTALL)
+	rm -f "$(DESTDIR)$(pdfdir)/$(REFERENCE_MANUAL_FILES_PDF)"
+
+else
+
+vrna_pdfrefman_inst:
+vrna_pdfrefman_uninst:
+
+endif
+
+install-pdfDATA: vrna_pdfrefman_inst
+uninstall-pdfDATA: vrna_pdfrefman_uninst
+
 EXTRA_DIST =  $(pkgdata_DATA) \
               refman.include \
               refman.images \
@@ -122,7 +149,7 @@ clean-local:
 
 # remove all generated content
 maintainer-clean-local:
-	-rm -rf *.pdf html/ latex/ doxygen.warnings dox
+	-rm -rf *.pdf html latex doxygen.warnings dox
 
 distclean-local:
-	-rm -rf *.pdf html/ latex/ doxygen.warnings dox
+	-rm -rf *.pdf html latex doxygen.warnings dox
