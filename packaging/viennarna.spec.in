@@ -62,7 +62,7 @@ BuildRequires:  gcc gcc-c++ glibc-devel info
 BuildRequires:  gsl-devel 
 BuildRequires:  perl(ExtUtils::Embed)
 
-Requires:       perl libstdc++ glibc info gsl
+Requires:       perl glibc info gsl
 Provides:       Kinfold
 
 %if 0%{?suse_version}
