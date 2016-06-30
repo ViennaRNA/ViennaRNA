@@ -110,9 +110,6 @@ PRIVATE char * fbacktrack_XS(int i, int j, const int **access_s1, const int **ac
 #define MAXSECTORS      500     /* dimension for a backtrack array */
 #define LOCALITY        0.      /* locality parameter for base-pairs */
 
-#define MIN2(A, B)      ((A) < (B) ? (A) : (B))
-#define MAX2(A, B)      ((A) > (B) ? (A) : (B))
-
 PRIVATE vrna_param_t *P = NULL;
 
 /**
