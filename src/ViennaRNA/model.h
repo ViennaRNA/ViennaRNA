@@ -183,6 +183,7 @@ typedef struct vrna_md_s  vrna_md_t;
  *  without the use of the struct keyword
  *
  *  @see  vrna_md_set_default(), set_model_details(), vrna_md_update(), #vrna_md_t
+ *
  */
 struct vrna_md_s {
   double  temperature;                  /**<  @brief  The temperature used to scale the thermodynamic parameters */
