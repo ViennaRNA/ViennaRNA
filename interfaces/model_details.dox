@@ -1,7 +1,6 @@
 /**
 
 @struct vrna_md_s
-
 @scripting
 This data structure is wrapped as an object @b md with multiple related functions attached as methods.
 <br><br>
