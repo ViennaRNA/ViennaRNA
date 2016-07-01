@@ -3,7 +3,7 @@
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
 use strict;
-use Test::More tests => 46;
+use Test::More tests => 49;
 use Data::Dumper;
 use FileHandle;
 
@@ -295,10 +295,18 @@ ok($ss);
 my $bp_dis = $fc->mean_bp_distance();
 printf "\n%s [ %6.2f ]\n", $seq1, $bp_dis;
 ok($bp_dis);
+
 ####################################################
+## test_pf_dimer:
+print "test_pf_dimer\n";
+$fc = new RNA::fold_compound($seq1 ."&". $seq2);
+($costruct, $comfe) = $fc->mfe_dimer();
+is($costruct, "(((.(((...))))))((((((...))).)))");
+$cmfe = $fc->eval_structure($costruct);
+ok(abs($comfe-$cmfe) < 1e-5);
 
-
-
+($x,$ac,$bc,$fcab,$cf) = $fc->pf_dimer();
+ok(($cf < $comfe) and ($comfe - $cf < 1.3));
 
 
 # $md = new RNA::md();

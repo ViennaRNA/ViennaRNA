@@ -280,6 +280,18 @@ class FoldCompoundTest(unittest.TestCase):
         self.assertTrue(bp_dis)
 
 
+    def test_pf_dimer(self):
+        print "testing pf_dimer() method"
+        fc = RNA.fold_compound(seq1 + "&" + seq2)
+        (costruct, comfe) = fc.mfe_dimer()
+        self.assertEqual(costruct, "(((.(((...))))))((((((...))).)))")
+        cmfe = fc.eval_structure(costruct)
+        self.assertTrue(abs(comfe-cmfe) < 1e-5)
+
+        (x,ac,bc,fcab,cf) = fc.pf_dimer()
+        self.assertTrue((cf < comfe) and (comfe - cf < 1.3))
+
+
     # hairpin_loops.h from here
     #def test_eval_hp_loop(self):
      #   print "test_eval_hp_loop"
