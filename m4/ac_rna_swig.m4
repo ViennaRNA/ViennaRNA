@@ -168,9 +168,9 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON3],[
 
   RNA_ADD_PACKAGE([python3],
                   [Python3 interface],
-                  [no],
-                  [with_python3=yes],
+                  [yes],
                   [with_python3=no],
+                  [with_python3=yes],
                   [${srcdir}/interfaces/Python3/Makefile.am])
 
 
