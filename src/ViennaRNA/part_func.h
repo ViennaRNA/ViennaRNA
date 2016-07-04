@@ -88,13 +88,13 @@ float vrna_pf(vrna_fold_compound_t *vc, char *structure);
  *
  *  @see vrna_pf_circfold(), vrna_pf(), vrna_fold_compound(), #vrna_fold_compound_t
  *
- *  @param sequences  RNA sequence
+ *  @param sequence   RNA sequence
  *  @param structure  A pointer to the character array where position-wise pairing propensity
  *                    will be stored. (Maybe NULL)
  *  @param pl         A pointer to a list of #vrna_plist_t to store pairing probabilities (Maybe NULL)
  *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
-float vrna_pf_fold(const char *seq, char *structure, vrna_plist_t **pl);
+float vrna_pf_fold(const char *sequence, char *structure, vrna_plist_t **pl);
 
 /**
  *  @brief  Compute Partition function @f$Q@f$ (and base pair probabilities) for a circular
@@ -116,13 +116,13 @@ float vrna_pf_fold(const char *seq, char *structure, vrna_plist_t **pl);
  *
  *  @see vrna_pf_fold(), vrna_pf(), vrna_fold_compound(), #vrna_fold_compound_t
  *
- *  @param sequences  A circular RNA sequence
+ *  @param sequence  A circular RNA sequence
  *  @param structure  A pointer to the character array where position-wise pairing propensity
  *                    will be stored. (Maybe NULL)
  *  @param pl         A pointer to a list of #vrna_plist_t to store pairing probabilities (Maybe NULL)
  *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
-float vrna_pf_circfold(const char *seq, char *structure, vrna_plist_t **pl);
+float vrna_pf_circfold(const char *sequence, char *structure, vrna_plist_t **pl);
 
 /*
 #################################################

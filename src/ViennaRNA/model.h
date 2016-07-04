@@ -236,7 +236,7 @@ struct vrna_md_s {
   int     oldAliEn;                     /**<  @brief  Use old alifold energy model */
   int     ribo;                         /**<  @brief  Use ribosum scoring table in alifold energy model */
   double  cv_fact;                      /**<  @brief  Covariance scaling factor for consensus structure prediction */
-  double  nc_fact;
+  double  nc_fact;                      /**<  @brief  Scaling factor to weight covariance contributions of non-canonical pairs */
   double  sfact;                        /**<  @brief  Scaling factor for partition function scaling */
   int     rtype[8];                     /**<  @brief  Reverse base pair type array */
   short   alias[MAXALPHA+1];            /**<  @brief  alias of an integer nucleotide representation */

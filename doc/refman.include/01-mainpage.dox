@@ -28,7 +28,7 @@
 \li @ref mp_utils
 \li @ref file_formats
 \li @ref newAPI
-\li @ref swig_interface
+\li @ref scripting
 \li @ref mp_example
 
 <hr>

@@ -4,10 +4,10 @@
 /**
  *  @file data_structures.h
  *
- *  @addtogroup   data_structures   Common Data Structures and Preprocessor Macros
+ *  @addtogroup   data_structures
  *  @{
  *
- *  @brief All datastructures and typedefs shared among the Vienna RNA Package can be found here
+ *  @brief Most datastructures and typedefs shared among the ViennaRNA Package can be found here
  */
 
 /* below are several convenience typedef's we use throughout the ViennaRNA library */
@@ -214,7 +214,7 @@ typedef struct pu_contrib {
 } pu_contrib;
 
 /**
- *  @brief
+ *  @brief  interaction data structure for RNAup
  */
 typedef struct interact {
   double *Pi;       /**<  @brief  probabilities of interaction */
@@ -255,7 +255,7 @@ typedef struct constrain{
 */
 
 /**
- *  @brief
+ *  @brief  Data structure for RNAduplex
  */
 typedef struct {
   int i;
@@ -283,7 +283,7 @@ typedef struct {
 */
 
 /**
- *  @brief
+ *  @brief  Data structure for RNAsnoop (fold energy list)
  */
 typedef struct node {
   int k;
@@ -292,7 +292,7 @@ typedef struct node {
 } folden;
 
 /**
- *  @brief
+ *  @brief  Data structure for RNAsnoop
  */
 typedef struct {
   int i;
@@ -321,7 +321,7 @@ typedef struct {
 */
 
 /**
- *  @brief
+ *  @brief  Data structure used in RNApkplex
  */
 typedef struct dupVar{
   int i;
@@ -572,6 +572,9 @@ struct vrna_fc_s{
 
 /* the definitions below should be used for functions that return/receive/destroy fold compound data structures */
 
+/**
+ *  @brief  Option flag to specify default settings/requirements
+ */
 #define VRNA_OPTION_DEFAULT         0U
 
 /**
@@ -590,6 +593,9 @@ struct vrna_fc_s{
  */
 #define VRNA_OPTION_PF              2U
 
+/**
+ *  @brief  Option flag to specify requirement of dimer DP matrices
+ */
 #define VRNA_OPTION_HYBRID          4U
 
 /**
@@ -603,6 +609,9 @@ struct vrna_fc_s{
  */
 #define VRNA_OPTION_EVAL_ONLY       8U
 
+/**
+ *  @brief  Option flag to specify requirement of DP matrices for local folding approaches
+ */
 #define VRNA_OPTION_WINDOW          16U
 
 /**

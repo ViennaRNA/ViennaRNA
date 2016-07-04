@@ -97,9 +97,9 @@ vrna_pf_TwoD(vrna_fold_compound_t *vc,
  *
  *  @see      vrna_pf_TwoD()
  *
- *  @param[in]  vars  the datastructure containing all necessary folding attributes and matrices
- *  @param[in]  d1    the distance to reference1 (may be -1)
- *  @param[in]  d2    the distance to reference2
+ *  @param[inout]  vc The #vrna_fold_compound_t datastructure containing all necessary folding attributes and matrices
+ *  @param[in]  d1    The distance to reference1 (may be -1)
+ *  @param[in]  d2    The distance to reference2
  *  @returns    A sampled secondary structure in dot-bracket notation
  */
 char *
@@ -120,11 +120,11 @@ vrna_pbacktrack_TwoD( vrna_fold_compound_t *vc,
  *
  * @see       vrna_pbacktrack_TwoD(), vrna_pf_TwoD()
  *
- *  @param[in]  vars    the datastructure containing all necessary folding attributes and matrices
- *  @param[in]  d1      the distance to reference1 (may be -1)
- *  @param[in]  d2      the distance to reference2
- *  @param[in]  length  the length of the structure beginning from the 5' end
- *  @returns    A sampled secondary structure in dot-bracket notation
+ *  @param[inout] vc    The #vrna_fold_compound_t datastructure containing all necessary folding attributes and matrices
+ *  @param[in]  d1      The distance to reference1 (may be -1)
+ *  @param[in]  d2      The distance to reference2
+ *  @param[in]  length  The length of the structure beginning from the 5' end
+ *  @returns            A sampled secondary structure in dot-bracket notation
  */
 char *
 vrna_pbacktrack5_TwoD(vrna_fold_compound_t *vc,
@@ -308,7 +308,7 @@ destroy_TwoDpfold_variables(TwoDpfold_vars *vars));
  *  @deprecated Use the new API that relies on #vrna_fold_compound_t and the corresponding functions
  *              vrna_fold_compound_TwoD(), vrna_pf_TwoD(), and vrna_fold_compound_free() instead!
  *
- * @see get_TwoDpfold_variables(), destroy_TwoDpfold_variables(), #TwoDpfold_solution
+ * @see get_TwoDpfold_variables(), destroy_TwoDpfold_variables(), #vrna_sol_TwoD_pf_t
  *
  * @param vars          the datastructure containing all necessary folding attributes and matrices
  * @param maxDistance1  the maximum basepair distance to reference1 (may be -1)

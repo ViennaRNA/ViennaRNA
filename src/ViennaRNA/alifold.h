@@ -81,7 +81,7 @@
  *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_alifold( const char **ssequences,
+vrna_alifold( const char **sequences,
               char *structure);
 
 /**
@@ -111,7 +111,7 @@ vrna_alifold( const char **ssequences,
  *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_circalifold( const char **ssequences,
+vrna_circalifold( const char **sequences,
                   char *structure);
 
 /*
@@ -152,7 +152,7 @@ vrna_circalifold( const char **ssequences,
  *  @param pl         A pointer to a list of #vrna_plist_t to store pairing probabilities (Maybe NULL)
  *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
-float vrna_pf_alifold(const char **strings, char *structure, vrna_plist_t **pl);
+float vrna_pf_alifold(const char **sequences, char *structure, vrna_plist_t **pl);
 
 /**
  *  @brief  Compute Partition function @f$Q@f$ (and base pair probabilities) for an alignment
@@ -413,6 +413,7 @@ DEPRECATED(char  *alipbacktrack(double *prob));
  *  @param qm_p     A pointer to the Q<sup>M</sup> matrix
  *  @param q1k_p    A pointer to the 5' slice of the Q matrix (@f$q1k(k) = Q(1, k)@f$)
  *  @param qln_p    A pointer to the 3' slice of the Q matrix (@f$qln(l) = Q(l, n)@f$)
+ *  @param pscore   A pointer to the start of a pscore list
  *  @return         Non Zero if everything went fine, 0 otherwise
  */
 DEPRECATED(int get_alipf_arrays(short ***S_p,

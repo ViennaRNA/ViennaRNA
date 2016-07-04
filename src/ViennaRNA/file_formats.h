@@ -32,9 +32,10 @@
 /**
  *  @brief Print a secondary structure as helix list
  *
- *  \param  seq         The RNA sequence
- *  @param  db    The structure in dot-bracket format
- *  @param  file  The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
+ *  \param  seq     The RNA sequence
+ *  @param  db      The structure in dot-bracket format
+ *  @param  energy  Free energy of the structure in kcal/mol
+ *  @param  file    The file handle used to print to (print defaults to 'stdout' if(file == NULL) )
  */
 void vrna_file_helixlist( const char *seq,
                           const char *db,

@@ -81,11 +81,13 @@ int vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
  *  @see For further details, we refer to @cite zarringhalam:2012
  *  @see  vrna_sc_remove(), vrna_sc_add_SHAPE_deigan(), vrna_sc_minimize_pertubation()
  *  @ingroup SHAPE_reactivities
- *  @param  vc            The #vrna_fold_compound_t the soft constraints are associated with
- *  @param  reactivities  A vector of normalized SHAPE reactivities
- *  @param  b             The scaling factor @f$ \beta @f$ of the conversion function
- *  @param  options       The options flag indicating how/where to store the soft constraints
- *  @return               1 on successful extraction of the method, 0 on errors
+ *  @param  vc                The #vrna_fold_compound_t the soft constraints are associated with
+ *  @param  reactivities      A vector of normalized SHAPE reactivities
+ *  @param  b                 The scaling factor @f$ \beta @f$ of the conversion function
+ *  @param  default_value     The default value for a nucleotide where reactivity data is missing for
+ *  @param  shape_conversion  A flag that specifies how to convert reactivities to probabilities
+ *  @param  options           The options flag indicating how/where to store the soft constraints
+ *  @return                   1 on successful extraction of the method, 0 on errors
  */
 int vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *vc,
                                     const double *reactivities,

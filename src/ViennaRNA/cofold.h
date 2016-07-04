@@ -80,7 +80,7 @@
  *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_cofold(const char *string,
+vrna_cofold(const char *sequence,
             char *structure);
 
 #ifdef VRNA_BACKWARD_COMPAT

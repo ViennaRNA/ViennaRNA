@@ -19,16 +19,16 @@
 #define VRNA_BACKWARD_COMPAT
 
 /**
- *  @file eval.h
- *  @brief Functions and variables related to energy evaluation
- *  of sequence/structure pairs.
+ *  @file     eval.h
+ *  @brief    Functions and variables related to energy evaluation of sequence/structure pairs.
+ *  @ingroup  eval
  */
 
 
 /**
- *  @addtogroup eval Functions to Evaluate Free Energies for given Sequence / Structure Pairs
  *
  *  @{
+ *    @addtogroup eval
  *    @brief This module contains all functions and variables related to energy evaluation
  *    of sequence/structure pairs.
  *

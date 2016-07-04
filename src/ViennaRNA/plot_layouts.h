@@ -65,7 +65,7 @@ typedef struct {
  *  @brief Switch for changing the secondary structure layout algorithm
  *
  *  Current possibility are 0 for a simple radial drawing or 1 for the modified
- *  radial drawing taken from the @e naview program of @ref bruccoleri_88 "Bruccoleri & Heinrich (1988)".
+ *  radial drawing taken from the @e naview program of @cite bruccoleri:1988.
  *
  *  @note To provide thread safety please do not rely on this global variable in future implementations
  *  but pass a plot type flag directly to the function that decides which layout algorithm it may use!

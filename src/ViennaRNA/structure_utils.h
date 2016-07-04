@@ -23,12 +23,18 @@
  *  @brief Various utility- and helper-functions for secondary structure parsing, converting, etc.
  */
 
+/**
+ *  @brief Convenience typedef for data structure #vrna_hx_s
+ */
 typedef struct vrna_hx_s  vrna_hx_t;
 
 #include <stdio.h>
 
 #include <ViennaRNA/data_structures.h>
 
+/**
+ *  @brief  Data structure representing an entry of a helix list
+ */
 struct vrna_hx_s {
   unsigned int start;
   unsigned int end;
@@ -218,9 +224,9 @@ vrna_plist_t *vrna_plist(const char *struc, float pr);
  *  entries
  * 
  *  @ingroup            pf_fold
- *  @param[in]  vc      The fold compound
- *  @param[in]  cutoff  The cutoff value
- *  @return             A pointer to the plist that is to be created
+ *  @param[in]  vc        The fold compound
+ *  @param[in]  cut_off   The cutoff value
+ *  @return               A pointer to the plist that is to be created
  */
 vrna_plist_t *vrna_plist_from_probs(vrna_fold_compound_t *vc, double cut_off);
 

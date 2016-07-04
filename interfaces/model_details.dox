@@ -2,22 +2,24 @@
 
 @struct vrna_md_s
 @scripting
+@parblock
 This data structure is wrapped as an object @b md with multiple related functions attached as methods.
-<br><br>
+
 A new set of default parameters can be obtained by calling the constructure of
-@b md::<br>
-- @em md() -- Initialize with default settings
-.
+@b md:<br>
+  - @em md() -- Initialize with default settings
+
 The resulting object has a list of attached methods which directly correspond to
 functions that mainly operate on the corresponding @em C data structure:<br>
   - @em reset() -- \ref vrna_md_set_default()
   - @em set_from_globals() -- \ref set_model_details()
   - @em option_string() -- \ref  vrna_md_option_string()
-.
+
 Note, that default parameters can be modified by directly setting any of the following
 global variables. Internally, getting/setting default parameters using their global variable
 representative translates into calls of the following functions, therefore these wrappers for
 these functions do not exist in the scripting language interface(s):
+
 | global variable | @em C getter                          | @em C setter                      |
 |-----------------|---------------------------------------|-----------------------------------|
 | temperature     | vrna_md_defaults_temperature_get()    | vrna_md_defaults_temperature()    |
@@ -47,5 +49,7 @@ these functions do not exist in the scripting language interface(s):
 | cv_fact         | vrna_md_defaults_cv_fact_get()        | vrna_md_defaults_cv_fact()        |
 | nc_fact         | vrna_md_defaults_nc_fact_get()        | vrna_md_defaults_nc_fact()        |
 | sfact           | vrna_md_defaults_sfact_get()          | vrna_md_defaults_sfact()          |
+
+@endparblock
 
 */

@@ -23,10 +23,17 @@
  */
 #define VRNA_BACKWARD_COMPAT
 
+/**
+ *  @brief Typename for the subopt solution list repesenting data structure #vrna_subopt_sol_s
+ */
 typedef struct vrna_subopt_sol_s   vrna_subopt_solution_t;
 
 #ifdef VRNA_BACKWARD_COMPAT
 
+/**
+ *  @brief  Backward compatibility typedef for #vrna_subopt_sol_s
+ *  @deprecated Use #vrna_subopt_solution_t instead!
+ */
 typedef struct vrna_subopt_sol_s   SOLUTION;
 
 #endif

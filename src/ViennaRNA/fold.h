@@ -52,7 +52,7 @@
  *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_fold(const char *string,
+vrna_fold(const char *sequence,
           char *structure);
 
 /**
@@ -78,7 +78,7 @@ vrna_fold(const char *string,
  *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_circfold(const char *string,
+vrna_circfold(const char *sequence,
               char *structure);
 
 #ifdef  VRNA_BACKWARD_COMPAT
