@@ -1090,7 +1090,7 @@ PRIVATE void find_max_C(const int *position, const int *position_j,const int del
                    begin_t-10+test.i-l1,
                    begin_t-10+test.i-1,
                    begin_q-10 + test.j-1 ,
-                   (begin_q -11) + test.j + strlen(test.structure)-l1-2,
+                   (begin_q -11) + test.j + (int)strlen(test.structure)-l1-2,
                    test.energy);
             pos=MAX2(10,pos-delta);
           }
@@ -1129,7 +1129,7 @@ PRIVATE void plot_max_C(const int max, const int max_pos, const int max_pos_j, c
     if(dL <=  strlen(test.structure)-l1-1){
       printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", test.structure,
              begin_t-10+test.i-l1, begin_t-10+test.i-1, begin_q-10 +test.j-1 ,
-             (begin_q -11) + test.j + strlen(test.structure)-l1-2  , test.energy);
+             (begin_q -11) + test.j + (int)strlen(test.structure)-l1-2  , test.energy);
       free(s3);free(s4);free(test.structure);
     }
     free(local_structure);

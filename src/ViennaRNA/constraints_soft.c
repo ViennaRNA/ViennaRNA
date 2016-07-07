@@ -37,13 +37,6 @@
 #################################
 */
 PRIVATE void
-sc_parse_parameters(const char *string,
-                    char c1,
-                    char c2,
-                    float *v1,
-                    float *v2);
-
-PRIVATE void
 sc_add_up(vrna_fold_compound_t *vc,
           const FLT_OR_DBL *constraints);
 

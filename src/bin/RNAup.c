@@ -492,7 +492,7 @@ int main(int argc, char *argv[]){
     /** read structure constraint(s) if necessary */
     if (fold_constrained) {
       char  *cstruc_tmp = NULL;
-      int   old_cut;
+      int   old_cut = -1;
 
       input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
       if(input_type & VRNA_INPUT_QUIT){ break;}
@@ -616,7 +616,7 @@ int main(int argc, char *argv[]){
           strcat(up_out, "_");
           strcat(up_out, fname2);
         }
-        else if(fname_target != '\0'){
+        else if(fname_target[0] != '\0'){
           strcat(up_out, "_");
           strcat(up_out, fname_target);
         }

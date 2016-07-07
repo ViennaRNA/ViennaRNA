@@ -175,8 +175,8 @@ snoopT alisnoopfold(const char **s1, const char **s2,
   Sali1 = (short **) vrna_alloc((n_seq+1)*sizeof(short *));
   Sali2 = (short **) vrna_alloc((n_seq+1)*sizeof(short *));
   for (s=0; s<n_seq; s++) {
-    if (strlen(s1[s]) != n1) vrna_message_error("uneqal seqence lengths");
-    if (strlen(s2[s]) != n2) vrna_message_error("uneqal seqence lengths");
+    if ((int)strlen(s1[s]) != n1) vrna_message_error("uneqal seqence lengths");
+    if ((int)strlen(s2[s]) != n2) vrna_message_error("uneqal seqence lengths");
     Sali1[s] = aliencode_seq(s1[s]);
     Sali2[s] = aliencode_seq(s2[s]);
   }
@@ -342,15 +342,15 @@ PUBLIC snoopT *alisnoop_subopt(const char **s1, const char **s2, int delta, int 
   thresh = MIN2((int) ((mfe.Duplex_Er + mfe.Duplex_El + mfe.Loop_E)*100+0.1 + 410) + delta, threshTE );
  /* subopt[n_subopt++]=mfe; */
   free(mfe.structure);
-  n1 = strlen(s1[0]);
-  n2 = strlen(s2[0]);
+  n1 = (int)strlen(s1[0]);
+  n2 = (int)strlen(s2[0]);
   for (s=0; s1[s]!=NULL; s++);
   n_seq = s;
   Sali1 = (short **) vrna_alloc((n_seq+1)*sizeof(short *));
   Sali2 = (short **) vrna_alloc((n_seq+1)*sizeof(short *));
   for (s=0; s<n_seq; s++) {
-    if (strlen(s1[s]) != n1) vrna_message_error("uneqal seqence lengths");
-    if (strlen(s2[s]) != n2) vrna_message_error("uneqal seqence lengths");
+    if ((int)strlen(s1[s]) != n1) vrna_message_error("uneqal seqence lengths");
+    if ((int)strlen(s2[s]) != n2) vrna_message_error("uneqal seqence lengths");
     Sali1[s] = aliencode_seq(s1[s]);
     Sali2[s] = aliencode_seq(s2[s]);
   }
@@ -700,7 +700,7 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
       ibegin=temp.i-l1;
       iend  =temp.i-1;
       jbegin=temp.j;
-      jend  =temp.j+strlen(temp.structure)-l1-2-1;
+      jend  =temp.j+(int)strlen(temp.structure)-l1-2-1;
       for(k=ibegin+1; k<=iend+1; k++){
         struc2[k-1]=temp.structure[k-ibegin-1];
       }
@@ -717,7 +717,7 @@ PRIVATE char *alisnoop_backtrack(int i, int j, const char ** snoseq, int *Duplex
   }
   strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&"); 
   /* strcat(struc, st2); */
-  strncat(struc, struc2+5, strlen(struc2)-10);
+  strncat(struc, struc2+5, (int)strlen(struc2)-10);
   free(struc2);
   free(struc_loop);
   free(st1); free(st2);
@@ -1076,7 +1076,7 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
       l1 = strchr(test.structure, '&')-test.structure;
       
       int shift=0;
-      if(test.i > strlen(s3)-10){
+      if(test.i > (int)strlen(s3)-10){
         test.i--;
         l1--; 
       }
@@ -1087,7 +1087,7 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
       char *target_struct =  (char*) vrna_alloc(sizeof(char) * (strlen(test.structure)+1));
       strncpy(target_struct, test.structure+shift, l1);
       strncat(target_struct, test.structure + (strchr(test.structure, '&')-
-                                               test.structure), strlen(test.structure) - (strchr(test.structure, '&')-
+                                               test.structure), (int)strlen(test.structure) - (strchr(test.structure, '&')-
                                                                                           test.structure));
       strcat(target_struct,"\0");
       char *target; 
@@ -1096,8 +1096,8 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
       target[l1]='\0';
       char *s4;
       s4 = (char*) vrna_alloc(sizeof(char) *(strlen(s2)-9));
-      strncpy(s4, s2+5, strlen(s2)-10);
-      s4[strlen(s2)-10]='\0';
+      strncpy(s4, s2+5, (int)strlen(s2)-10);
+      s4[(int)strlen(s2)-10]='\0';
       printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + 4.1 ) (%5.2f) \n%s&%s\n", 
              target_struct,begin + test.i-5-l1,begin + test.i -6 , begin + test.u -6, 
              test.j+1, test.j + (strrchr(test.structure,'>') - strchr(test.structure,'>'))+1 ,
@@ -1442,7 +1442,7 @@ PUBLIC snoopT *snoop_subopt(const char *s1, const char *s2, int delta, int w,
  /* subopt[n_subopt++]=mfe; */
   free(mfe.structure);
   
-  n1 = strlen(s1); n2=strlen(s2);
+  n1 = (int)strlen(s1); n2=(int)strlen(s2);
   for (i=n1; i>0; i--) {
     for (j=1; j<=n2; j++) {
       int type, Ed;
@@ -1550,11 +1550,11 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
     delay_free=0;
   }
   thresh = MIN2(-100, threshTE +alignment_length*30);  
-  /*   n1=strlen(s1);  */
-  /*   n2=strlen(s2); */
+  /*   n1=(int)strlen(s1);  */
+  /*   n2=(int)strlen(s2); */
   
-  int n3=strlen(s1);
-  int n4=strlen(s2);
+  int n3=(int)strlen(s1);
+  int n4=(int)strlen(s2);
   S1_fill = (short*)vrna_alloc(sizeof(short)*(n3+2));
   S2_fill = (short*)vrna_alloc(sizeof(short)*(n4+2));
   SS1_fill = (short*)vrna_alloc(sizeof(short)*(n3+1));
@@ -1595,7 +1595,7 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
       char *s3 = (char*) vrna_alloc(sizeof(char)*(end-begin+2)+5);
       strncpy(s3, (s1+begin), end - begin +1);
       strcat(s3,"NNNNN\0");
-      int n5 = strlen(s3);
+      int n5 = (int)strlen(s3);
       snoopT test = snoopfold_XS(s3, s2, access_s1, i, j ,penalty, 
                           threshloop, threshLE, threshRE, 
                           threshDE, threshD, half_stem, 
@@ -1648,7 +1648,7 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
         int *relative_access;
         relative_access = vrna_alloc(sizeof(int)*strlen(s5));
         relative_access[0] = access_s1[1][i - (n5  - test.i) + 5];
-        for(k=1;k<strlen(s5);k++){
+        for(k=1;k<(int)strlen(s5);k++){
           relative_access[k] =  access_s1[k+1][i - (n5  - test.i) + k + 5] -  access_s1[k][i - (n5  - test.i) + k + 4];
         }
         char str[16];char upos[16];
@@ -1873,7 +1873,7 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
       ibegin=temp.i-l1;
       iend  =temp.i-1;
       jbegin=temp.j;
-      jend  =temp.j+strlen(temp.structure)-l1-2-1;
+      jend  =temp.j+(int)strlen(temp.structure)-l1-2-1;
       for(k=ibegin+1; k<=iend+1; k++){
         struc2[k-1]=temp.structure[k-ibegin-1];
       }
@@ -1885,7 +1885,7 @@ PRIVATE char *snoop_backtrack(int i, int j, const char* snoseq,
   } 
   strcpy(struc, st1+MAX2(i-1,0)); strcat(struc, "&"); 
   /* strcat(struc, st2); */
-  strncat(struc, struc2+5, strlen(struc2)-10);
+  strncat(struc, struc2+5, (int)strlen(struc2)-10);
   free(struc2);
   free(struc_loop);
   free(st1); free(st2);
@@ -2071,8 +2071,8 @@ PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **acces
                                const int threshDE, const int threshTE, const int threshSE, const int threshD, 
                                const int half_stem, const int max_half_stem, const int min_s2, const int max_s2, const int min_s1, const int max_s1, const int min_d1, const int min_d2, const char *name, const int fullStemEnergy){
   int count=0;
-  int n3=strlen(s1);
-  int n4=strlen(s2);
+  int n3=(int)strlen(s1);
+  int n4=(int)strlen(s2);
   int pos=n1-4;
   int max_pos_j;
   int threshold = MIN2(threshTE + alignment_length*30, -100);
@@ -2097,7 +2097,7 @@ PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **acces
       strncpy(s3, (s1+begin), end - begin +1);
       strcat(s3,"NNNNN\0");
 
-      int n5 = strlen(s3);
+      int n5 = (int)strlen(s3);
       snoopT test;
       test = snoopfold_XS(s3, s2, access_s1, pos, max_pos_j ,penalty, 
                           threshloop, threshLE, threshRE, 
@@ -2152,7 +2152,7 @@ PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **acces
         relative_access = vrna_alloc(sizeof(int)*strlen(s5));
 
         relative_access[0] = access_s1[1][pos - (n5  - test.i) + 5];
-        for(i=1;i<strlen(s5);i++){
+        for(i=1;i<(int)strlen(s5);i++){
           relative_access[i] =  access_s1[i+1][pos - (n5  - test.i) + i + 5] -  access_s1[i][pos - (n5  - test.i) + i + 4];
         }
         char str[16];
@@ -2493,7 +2493,7 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
       ibegin=temp.i-l1;
       iend  =temp.i-1;
       jbegin=temp.j;
-      jend  =temp.j+strlen(temp.structure)-l1-2-1;
+      jend  =temp.j+(int)strlen(temp.structure)-l1-2-1;
       for(k=ibegin+1; k<=iend+1; k++){
         struc2[k-1]=temp.structure[k-ibegin-1];
       }
@@ -2505,7 +2505,7 @@ PRIVATE char *snoop_backtrack_XS(int i, int j, const char* snoseq,
   } 
   strcpy(struc, st1+MAX2(i0,1)); strcat(struc, "&"); 
   /* strcat(struc, st2); */
-  strncat(struc, struc2+5, strlen(struc2)-10);
+  strncat(struc, struc2+5, (int)strlen(struc2)-10);
   free(struc2);
   free(struc_loop);
   free(st1); free(st2);

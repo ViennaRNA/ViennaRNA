@@ -594,7 +594,7 @@ parse_constraints_line( const char *line,
   tmp_loop  = (char)0;
 
   /* now lets scan the entire line for content */
-  while(!ret && (entries_seen < max_entries) && (sscanf(line+pos,"%15s%n", buf, &pp) == 1)){
+  while(!ret && (entries_seen < max_entries) && (sscanf(line+pos,"%15s%n", &buf[0], &pp) == 1)){
     pos += pp;
     switch(entries_seen){
       case 0: /* must be i, or range */
@@ -663,7 +663,7 @@ parse_constraints_line( const char *line,
                   }
                 }
               } else { /*  must be loop type, or orientation */
-                if(sscanf(buf, "%8s%n", &buf2, &pp) == 1){
+                if(sscanf(buf, "%8s%n", &buf2[0], &pp) == 1){
                   buf2[8] = '\0';
                   if(pp == strlen(buf)){
                     for(c = &(buf2[0]); (*c != '\0') && (!ret); c++){

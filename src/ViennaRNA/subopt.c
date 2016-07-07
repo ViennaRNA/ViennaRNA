@@ -1304,14 +1304,15 @@ scan_interval(vrna_fold_compound_t *vc,
                 if(sc->f) /* should this be (l,k) instead of (k,l) ? */
                   tmpE += sc->f(k, l, k, l, VRNA_DECOMP_PAIR_HP, sc->data);
               }
-            }
-            if(c[kl] + tmpE + best_energy <= threshold){
-              /* what we really have to do is something like this, isn't it?  */
-              /* we have to create a new state, with interval [k,l], then we  */
-              /* add our loop energy as initial energy of this state and put  */
-              /* the state onto the stack R... for further refinement...      */
-              /* we also denote this new interval to be scanned in C          */
-              fork_state(k, l, state, tmpE, 2, env);
+
+              if(c[kl] + tmpE + best_energy <= threshold){
+                /* what we really have to do is something like this, isn't it?  */
+                /* we have to create a new state, with interval [k,l], then we  */
+                /* add our loop energy as initial energy of this state and put  */
+                /* the state onto the stack R... for further refinement...      */
+                /* we also denote this new interval to be scanned in C          */
+                fork_state(k, l, state, tmpE, 2, env);
+              }
             }
           }
         }

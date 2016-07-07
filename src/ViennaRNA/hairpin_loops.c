@@ -280,6 +280,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
                                   a2s   = vc->a2s;                                                      
                                   scs   = vc->scs;
                                   n_seq = vc->n_seq;
+                                  ij    = idx[j] + i;
                                   types = (int *)vrna_alloc(sizeof(int) * n_seq);
 
                                   for (s=0; s<n_seq; s++) {

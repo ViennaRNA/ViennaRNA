@@ -94,9 +94,6 @@ PRIVATE void            add_mfe_matrices(vrna_fold_compound_t *vc, vrna_mx_type_
 PUBLIC void
 vrna_mx_mfe_free(vrna_fold_compound_t *vc){
 
-  unsigned int  i, j, ij;
-  int           cnt1;
-
   if(vc){
     vrna_mx_mfe_t *self = vc->matrices;
     if(self){
@@ -121,9 +118,6 @@ vrna_mx_mfe_free(vrna_fold_compound_t *vc){
 
 PUBLIC void
 vrna_mx_pf_free(vrna_fold_compound_t *vc){
-
-  unsigned int  i, j, ij;
-  int           cnt1;
 
   if(vc){
     vrna_mx_pf_t  *self = vc->exp_matrices;
@@ -153,10 +147,9 @@ vrna_mx_add(vrna_fold_compound_t *vc,
             vrna_mx_type_e mx_type,
             unsigned int options){
 
-  unsigned int mx_alloc_vector;
   int ret;
-  
-  ret             = 1;
+
+  ret = 1;
 
   if(options & VRNA_OPTION_MFE){
     ret &= vrna_mx_mfe_add(vc, mx_type, options);
@@ -273,7 +266,6 @@ get_mfe_matrices_alloc( unsigned int n,
                         vrna_mx_type_e type,
                         unsigned int alloc_vector){
 
-  unsigned int  i, size, lin_size;
   vrna_mx_mfe_t *vars;
 
   if((int)(n * m) >= (int)INT_MAX)
@@ -305,13 +297,12 @@ get_pf_matrices_alloc(unsigned int n,
                       vrna_mx_type_e type,
                       unsigned int alloc_vector){
 
-  unsigned int  i, size, lin_size;
+  unsigned int  lin_size;
   vrna_mx_pf_t  *vars;
 
   if(n >= (unsigned int)sqrt((double)INT_MAX))
     vrna_message_error("get_pf_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
 
-  size          = ((n + 1) * (n + 2)) / 2;
   lin_size      = n + 2;
   vars          = (vrna_mx_pf_t *)vrna_alloc(sizeof(vrna_mx_pf_t));
   vars->length  = n;
@@ -438,10 +429,9 @@ mfe_matrices_alloc_window(vrna_mx_mfe_t *vars,
                           unsigned int alloc_vector){
 
   int i;
-  unsigned int  n, size, lin_size;
+  unsigned int  n, lin_size;
 
   n             = vars->length;
-  size          = ((n + 1) * (m + 2)) / 2;
   lin_size      = n + 2;
 
   vars->f3_local = NULL;
@@ -952,7 +942,7 @@ pf_matrices_alloc_default(vrna_mx_pf_t *vars,
                           unsigned int m,
                           unsigned int alloc_vector){
 
-  unsigned int  n, i, size, lin_size;
+  unsigned int  n, size, lin_size;
 
   n             = vars->length;
   size          = ((n + 1) * (n + 2)) / 2;
@@ -1010,7 +1000,7 @@ pf_matrices_alloc_2Dfold( vrna_mx_pf_t *vars,
                           unsigned int m,
                           unsigned int alloc_vector){
 
-  unsigned int  n, i, size, lin_size;
+  unsigned int  n, size, lin_size;
 
   n             = vars->length;
   size          = ((n + 1) * (n + 2)) / 2;
