@@ -521,7 +521,7 @@ fork_two_states(int i,
   interval1 = make_interval(i, j, flag1);
   interval2 = make_interval(p, q, flag2);
 
-  if(j - i < q - p){
+  if((j - i) < (q - p)){
     push(new_state->Intervals, interval1);
     push(new_state->Intervals, interval2);
   } else {
@@ -619,18 +619,15 @@ vrna_subopt(vrna_fold_compound_t *vc,
   INTERVAL      *interval;
   SOLUTION      *SolutionList;
   unsigned long max_sol, n_sol;
-  int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular, with_gquad, threshold, cp;
+  int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular, threshold, cp;
   double        structure_energy, min_en, eprint;
   char          *struc, *structure, *sequence;
   float         correction;
   vrna_param_t  *P;
   vrna_md_t     *md;
   int           minimal_energy;
-  int           Fc, FcH, FcI, FcM, *fM2;
-  int           *fc, *f5, *c, *fML, *fM1, *ggg, *indx;
-  char          *ptype;
-  short         *S, *S1;
-  vrna_sc_t     *sc;
+  int           Fc;
+  int           *f5;
 
   vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
 
@@ -639,11 +636,8 @@ vrna_subopt(vrna_fold_compound_t *vc,
   sequence            = vc->sequence;
   length              = vc->length;
   cp                  = vc->cutpoint;
-  S                   = vc->sequence_encoding2;
-  S1                  = vc->sequence_encoding;
   P                   = vc->params;
   md                  = &(P->model_details);
-  sc                  = vc->sc;
 
   /* do mfe folding to get fill arrays and get ground state energy  */
   /* in case dangles is neither 0 or 2, set dangles=2 while folding */
@@ -651,7 +645,6 @@ vrna_subopt(vrna_fold_compound_t *vc,
   circular    = md->circ;
   logML       = md->logML;
   old_dangles = dangle_model = md->dangles;
-  with_gquad  = md->gquad;
 
   /* temporarily set dangles to 2 if necessary */
   if((md->dangles != 0) && (md->dangles != 2))
@@ -662,17 +655,7 @@ vrna_subopt(vrna_fold_compound_t *vc,
   if(circular){
     min_en = vrna_mfe(vc, struc);
     Fc  = vc->matrices->Fc;
-    FcH = vc->matrices->FcH;
-    FcI = vc->matrices->FcI;
-    FcM = vc->matrices->FcM;
-    fM2  = vc->matrices->fM2;
     f5    = vc->matrices->f5;
-    c     = vc->matrices->c;
-    fML   = vc->matrices->fML;
-    fM1   = vc->matrices->fM1;
-    ggg   = vc->matrices->ggg;
-    indx  = vc->jindx;
-    ptype = vc->ptype;
 
     /* restore dangle model */
     md->dangles = old_dangles;
@@ -681,14 +664,7 @@ vrna_subopt(vrna_fold_compound_t *vc,
   } else {
     min_en = vrna_mfe_dimer(vc, struc);
 
-    fc    = vc->matrices->fc;
     f5    = vc->matrices->f5;
-    c     = vc->matrices->c;
-    fML   = vc->matrices->fML;
-    fM1   = vc->matrices->fM1;
-    ggg   = vc->matrices->ggg;
-    indx  = vc->jindx;
-    ptype = vc->ptype;
 
     /* restore dangle model */
     md->dangles = old_dangles;
@@ -827,7 +803,6 @@ vrna_subopt(vrna_fold_compound_t *vc,
       /* get (and remove) next interval of state to analyze */
 
       interval = pop(state->Intervals);
-
       scan_interval(vc, interval->i, interval->j, interval->array_flag, threshold, state, env);
 
       free_interval_node(interval);        /* free the current interval */
@@ -876,20 +851,18 @@ scan_interval(vrna_fold_compound_t *vc,
   register int    noLP;
   int             element_energy, best_energy;
   int             *fc, *f5, *c, *fML, *fM1, *ggg;
-  int             Fc, FcH, FcI, FcM, *fM2;
-  int             length, *indx, *rtype, circular, with_gquad, noGUclosure, turn, cp;
-  char            *ptype, *sequence;
-  short           *S, *S1;
+  int             FcH, FcI, FcM, *fM2;
+  int             length, *indx, *rtype, circular, with_gquad, turn, cp;
+  char            *ptype;
+  short           *S1;
   char            *hard_constraints, hc_decompose;
   vrna_hc_t       *hc;
   vrna_sc_t       *sc;
 
-  sequence  = vc->sequence;
   length    = vc->length;
   cp        = vc->cutpoint;
   indx      = vc->jindx;
   ptype     = vc->ptype;
-  S         = vc->sequence_encoding2;
   S1        = vc->sequence_encoding;
   P         = vc->params;
   md        = &(P->model_details);
@@ -899,7 +872,6 @@ scan_interval(vrna_fold_compound_t *vc,
   noLP          = md->noLP;
   circular      = md->circ;
   with_gquad    = md->gquad;
-  noGUclosure   = md->noGUclosure;
   turn          = md->min_loop_size;
 
   fc  = vc->matrices->fc;
@@ -908,7 +880,6 @@ scan_interval(vrna_fold_compound_t *vc,
   fML = vc->matrices->fML;
   fM1 = vc->matrices->fM1;
   ggg = vc->matrices->ggg;
-  Fc  = vc->matrices->Fc;
   FcH = vc->matrices->FcH;
   FcI = vc->matrices->FcI;
   FcM = vc->matrices->FcM;
@@ -1274,46 +1245,18 @@ scan_interval(vrna_fold_compound_t *vc,
           break;
 
         for (l=j; l >= k + turn + 1; l--){
-          int kl, type, u, tmpE, no_close;
-          u = j-l + k-1;        /* get the hairpin loop length */
-          if(u<turn) continue;
+          int kl, tmpE;
 
-          if(hc->up_hp[l+1] < u)
-            break;
+          kl    = indx[l] + k;
+          tmpE  = vrna_E_hp_loop(vc, l, k);
 
-          kl = indx[l]+k;
-          if(hc->matrix[kl] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
-            type = ptype[kl];
-            no_close = ((type==3)||(type==4))&&noGUclosure;
-            type=rtype[type];
-
-            if (!no_close){
-              /* now lets have a look at the hairpin energy */
-              char loopseq[10];
-              if (u<7){
-                strcpy(loopseq , sequence+l-1);
-                strncat(loopseq, sequence, k);
-              }
-              tmpE = E_Hairpin(u, type, S1[l+1], S1[k-1], loopseq, P);
-
-              if(sc){
-                if(sc->energy_up)
-                  tmpE += sc->energy_up[1][k-1]
-                          + sc->energy_up[l+1][j-l-1];
-
-                if(sc->f) /* should this be (l,k) instead of (k,l) ? */
-                  tmpE += sc->f(k, l, k, l, VRNA_DECOMP_PAIR_HP, sc->data);
-              }
-
-              if(c[kl] + tmpE + best_energy <= threshold){
-                /* what we really have to do is something like this, isn't it?  */
-                /* we have to create a new state, with interval [k,l], then we  */
-                /* add our loop energy as initial energy of this state and put  */
-                /* the state onto the stack R... for further refinement...      */
-                /* we also denote this new interval to be scanned in C          */
-                fork_state(k, l, state, tmpE, 2, env);
-              }
-            }
+          if(c[kl] + tmpE + best_energy <= threshold){
+            /* what we really have to do is something like this, isn't it?  */
+            /* we have to create a new state, with interval [k,l], then we  */
+            /* add our loop energy as initial energy of this state and put  */
+            /* the state onto the stack R... for further refinement...      */
+            /* we also denote this new interval to be scanned in C          */
+            fork_state(k, l, state, tmpE, 2, env);
           }
         }
       }
@@ -1323,11 +1266,12 @@ scan_interval(vrna_fold_compound_t *vc,
     if(FcI + best_energy <= threshold){
       /* now we search for our exterior interior loop possibilities */
       for(k=i; k<j; k++){
-        for (l=j; l >= k + turn + 1; l++){
+        for (l=j; l >= k + turn + 1; l--){
           int kl, type, tmpE;
 
           kl    = indx[l]+k;        /* just confusing these indices ;-) */
-          if(hc->matrix[kl] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
+
+          if(hard_constraints[kl] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
             type  = ptype[kl];
             type  = rtype[type];
 
@@ -1346,7 +1290,7 @@ scan_interval(vrna_fold_compound_t *vc,
                 if(hc->up_int[q+1] < (j - q + k - 1))
                   break;
 
-                if(hc->matrix[indx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
+                if(hard_constraints[indx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
                   type_2 = rtype[ptype[indx[q]+p]];
                   
                   u2 = k-1 + j-q;
@@ -1372,7 +1316,7 @@ scan_interval(vrna_fold_compound_t *vc,
                     /* but in contrast to the hairpin decomposition, we have to add two new */
                     /* intervals, enclosed by k,l and p,q respectively and we also have to  */
                     /* add the partial energy, that comes from the exterior interior loop   */
-                    fork_two_states(k, l, p, q, state, 2, 2, tmpE, env);
+                    fork_two_states(k, l, p, q, state, tmpE, 2, 2, env);
                   }
                 }
               }
@@ -1649,20 +1593,15 @@ repeat_gquad( vrna_fold_compound_t *vc,
               subopt_env *env){
 
   int           *ggg, *indx, element_energy, cp;
-  short         *S, *S1;
+  short         *S1;
   vrna_param_t  *P;
-  vrna_hc_t     *hc;
-  vrna_sc_t     *sc;
 
   indx  = vc->jindx;
   cp    = vc->cutpoint;
   ggg   = vc->matrices->ggg;
-  S     = vc->sequence_encoding2;
   S1    = vc->sequence_encoding;
   P     = vc->params;
 
-  hc    = vc->hc;
-  sc    = vc->sc;
 
   /* find all gquads that fit into the energy range and the interval [i,j] */
   STATE *new_state;
@@ -1722,25 +1661,20 @@ repeat( vrna_fold_compound_t *vc,
   /* within interval closed by basepair i,j */
 
   STATE           *new_state;
-  INTERVAL        *new_interval;
   vrna_param_t    *P;
   vrna_md_t       *md;
 
   register int  ij, k, p, q, energy, new;
   register int  mm;
   register int  no_close, type, type_2;
-  char          *ptype, *sequence;
+  char          *ptype;
   int           element_energy;
-  int             *fc, *f5, *c, *fML, *fM1, *ggg;
-  int             Fc, FcH, FcI, FcM, *fM2;
-  int           rt, *indx, *rtype, length, noGUclosure, noLP, with_gquad, dangle_model, turn, cp;
-  short         *S, *S1;
+  int             *fc, *c, *fML, *fM1, *ggg;
+  int           rt, *indx, *rtype, noGUclosure, noLP, with_gquad, dangle_model, turn, cp;
+  short         *S1;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
-  sequence  = vc->sequence;
-  length    = vc->length;
-  S         = vc->sequence_encoding2;
   S1        = vc->sequence_encoding;
   ptype     = vc->ptype;
   indx      = vc->jindx;
@@ -1756,16 +1690,10 @@ repeat( vrna_fold_compound_t *vc,
   turn          = md->min_loop_size;
 
   fc  = vc->matrices->fc;
-  f5  = vc->matrices->f5;
   c   = vc->matrices->c;
   fML = vc->matrices->fML;
   fM1 = vc->matrices->fM1;
   ggg = vc->matrices->ggg;
-  Fc  = vc->matrices->Fc;
-  FcH = vc->matrices->FcH;
-  FcI = vc->matrices->FcI;
-  FcM = vc->matrices->FcM;
-  fM2 = vc->matrices->fM2;
 
   hc    = vc->hc;
   sc    = vc->sc;
