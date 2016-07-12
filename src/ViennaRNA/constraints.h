@@ -8,20 +8,12 @@
 #include <ViennaRNA/constraints_soft.h>
 #include <ViennaRNA/constraints_SHAPE.h>
 #include <ViennaRNA/perturbation_fold.h>
-#include <ViennaRNA/ligand.h>
+#include <ViennaRNA/constraints_ligand.h>
 
 /**
  *  @file     constraints.h
  *  @brief    Functions and data structures for constraining secondary structure predictions and evaluation
  *  @ingroup  constraints
- */
-
-/**
- *  @addtogroup constraints
- *  @brief This module covers all functions and variables related to the
- *  problem of incorporating secondary structure constraints into the folding
- *  recursions.
- *
  */
 
 /**
@@ -305,6 +297,12 @@
 
  */
 #define VRNA_DECOMP_EXT_EXT_STEM1 19
+
+
+#define VRNA_DECOMP_EXT_L         20
+
+
+#define VRNA_DECOMP_EXT_EXT_L     21
 
 /**
  *  @brief  Add constraints to a #vrna_fold_compound_t data structure

@@ -93,6 +93,7 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc){
     free(vc->params);
     free(vc->exp_params);
     vrna_hc_free(vc->hc);
+    vrna_ud_remove(vc);
 
     /* now distinguish the vc type */
     switch(vc->type){
@@ -522,6 +523,10 @@ set_fold_compound(vrna_fold_compound_t *vc,
   vc->hc            = NULL;
   vc->auxdata       = NULL;
   vc->free_auxdata  = NULL;
+
+  vc->domains_struc = NULL;
+  vc->domains_up    = NULL;
+  vc->aux_grammar   = NULL;
 
   switch(vc->type){
     case VRNA_VC_TYPE_SINGLE:     sequence  = vc->sequence;

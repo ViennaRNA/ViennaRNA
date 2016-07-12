@@ -16,6 +16,8 @@
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/exterior_loops.h"
 #include "ViennaRNA/gquad.h"
+#include "ViennaRNA/structured_domains.h"
+#include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/hairpin_loops.h"
 
 #ifdef ON_SAME_STRAND
@@ -228,16 +230,18 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
   char            **Ss;
   unsigned short  **a2s;
   short           *S, **SS, **S5, **S3;
-  int             u, e, s, ij, cp, type, *types, *idx, n_seq;
+  int             u, e, s, ij, cp, type, *types, *idx, n_seq, en;
   vrna_param_t    *P;
   vrna_sc_t       *sc, **scs;
   vrna_md_t       *md;
+  vrna_ud_t       *ligands_up;
 
-  cp  = vc->cutpoint;
-  idx = vc->jindx;
-  P   = vc->params;
-  md  = &(P->model_details);
-  e   = INF;
+  cp          = vc->cutpoint;
+  idx         = vc->jindx;
+  P           = vc->params;
+  md          = &(P->model_details);
+  ligands_up  = vc->domains_up;
+  e           = INF;
 
   switch(vc->type){
     /* single sequences and cofolding hybrids */
@@ -262,17 +266,31 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
                                       e = E_ExtLoop(md->rtype[type], -1, -1, P);
                                   }
 
-                                  /* add soft constraints */
-                                  if(sc){
-                                    if(sc->energy_up)
-                                      e += sc->energy_up[i+1][u];
-
-                                    if(sc->energy_bp){
-                                      e += sc->energy_bp[ij];
+                                  /* consider possible ligand binding */
+                                  if(ligands_up){
+                                    if(ligands_up->energy_cb){
+                                      en = ligands_up->energy_cb(vc, i+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, ligands_up->data);
+                                      if(en != INF){
+                                        e += en;
+                                      } else {
+                                        e = INF;
+                                      }
                                     }
-                                    if(sc->f)
-                                      e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
+                                  } else {
+
+                                    /* add soft constraints */
+                                    if(sc){
+                                      if(sc->energy_up)
+                                        e += sc->energy_up[i+1][u];
+
+                                      if(sc->energy_bp){
+                                        e += sc->energy_bp[ij];
+                                      }
+                                      if(sc->f)
+                                        e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
+                                    }
                                   }
+
                                   break;
     /* sequence alignments */
     case  VRNA_VC_TYPE_ALIGNMENT: SS    = vc->S;                                                               

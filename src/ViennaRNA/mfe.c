@@ -31,6 +31,8 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/gquad.h"
+#include "ViennaRNA/structured_domains.h"
+#include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/mfe.h"
 
@@ -184,6 +186,7 @@ fill_arrays(vrna_fold_compound_t *vc){
   vrna_mx_mfe_t     *matrices;
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
+  vrna_ud_t   *ligands_up;
 
   length            = (int)vc->length;
   ptype             = vc->ptype;
@@ -206,7 +209,7 @@ fill_arrays(vrna_fold_compound_t *vc){
   my_fML            = matrices->fML;
   my_fM1            = matrices->fM1;
   my_ggg            = matrices->ggg;
-
+  ligands_up        = vc->domains_up;
 
   /* allocate memory for all helper arrays */
   cc    = (int *) vrna_alloc(sizeof(int)*(length + 2));
@@ -216,6 +219,10 @@ fill_arrays(vrna_fold_compound_t *vc){
   DMLi1 = (int *) vrna_alloc(sizeof(int)*(length + 1));
   DMLi2 = (int *) vrna_alloc(sizeof(int)*(length + 1));
 
+
+  /* pre-processing ligand binding production rule(s) */
+  if(ligands_up && ligands_up->prod_cb)
+    ligands_up->prod_cb(vc, ligands_up->data);
 
   /* prefill helper arrays */
   for(j = 0; j <= length; j++){

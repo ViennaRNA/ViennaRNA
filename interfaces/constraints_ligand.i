@@ -45,4 +45,4 @@ int sc_detect_hi_motif(const char *structure,
 
 }
 
-%include  <ViennaRNA/ligand.h>
+%include  <ViennaRNA/constraints_ligand.h>

@@ -34,7 +34,9 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/constraints_SHAPE.h"
-#include "ViennaRNA/ligand.h"
+#include "ViennaRNA/constraints_ligand.h"
+#include "ViennaRNA/structured_domains.h"
+#include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/file_formats.h"
 #include "RNAfold_cmdl.h"
 
@@ -515,6 +517,10 @@ int main(int argc, char *argv[]){
         vrna_message_info(stdout, msg);
       free(msg);
     }
+
+    /*
+    vrna_ud_add_motif(vc, "AAAA", -15., VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS);
+    */
 
     if(outfile){
       v_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
