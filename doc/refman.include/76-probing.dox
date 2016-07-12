@@ -1,0 +1,18 @@
+/**
+
+  @addtogroup probing_data
+  @brief Include experimental structure probing data to guide structure predictions
+
+*/
+
+/**
+
+@addtogroup SHAPE_reactivities
+@brief Incorporate SHAPE reactivity structure probing data
+into the folding recursions by means of soft constraints
+
+Details for our implementation to incorporate SHAPE reactivity data to guide
+secondary structure prediction can be found in @cite lorenz:2016a
+
+*/
+

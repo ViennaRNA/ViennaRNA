@@ -13,12 +13,16 @@
 #endif
 
 /**
- *  @addtogroup   loops
- *
- *  @{
- *
- *  @file gquad.h
+ *  @file       gquad.h
+ *  @ingroup    paired_modules
+ *  @brief      G-quadruplexes
+ */
+
+/**
+ *  @addtogroup gquads
  *  @brief Various functions related to G-quadruplex computations
+ *  @{
+ *  @ingroup gquads
  */
 
 

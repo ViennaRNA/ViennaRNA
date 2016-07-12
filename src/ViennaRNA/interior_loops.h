@@ -20,12 +20,14 @@
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /**
- *  @addtogroup   loops
- *
+ *  @file     interior_loops.h
+ *  @ingroup  loops
+ *  @brief    Energy evaluation of interior loops for MFE and partition function calculations
+ */
+
+/**
  *  @{
- *
- *  @file interior_loops.h
- *  @brief Energy evaluation of interior loops for MFE and partition function calculations
+ *  @ingroup   loops
  */
 
 /**

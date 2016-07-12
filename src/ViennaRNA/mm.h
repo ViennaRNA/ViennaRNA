@@ -2,12 +2,10 @@
 #define VIENNA_RNA_PACKAGE_MM_H
 
 /**
- *  @addtogroup   folding_routines
  *
- *  @{
- *
- *  \file mm.h
- *  \brief Several Maximum Matching implementations
+ *  @file mm.h
+ *  @ingroup subopt_and_representatives
+ *  @brief Several Maximum Matching implementations
  *
  *  This file contains the declarations for several maximum matching implementations
  */
@@ -21,9 +19,5 @@ unsigned int *maximumMatchingConstraint(const char *string,
 unsigned int *maximumMatching2Constraint( const char *string,
                                           short *ptable,
                                           short *ptable2);
-
-/**
- * @}
- */
 
 #endif

@@ -1,0 +1,8 @@
+/**
+
+@addtogroup   model_details
+@brief        Functions and data structures to fine-tune the implemented
+              secondary structure evaluation model.
+
+
+*/

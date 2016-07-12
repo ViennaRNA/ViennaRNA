@@ -15,12 +15,14 @@
 #endif
 
 /**
- *  @addtogroup   utils
- *
+ *  @file     utils.h
+ *  @ingroup  utils
+ *  @brief    General utility- and helper-functions used throughout the @em ViennaRNA @em Package
+ */
+
+/**
  *  @{
- *
- *  @file utils.h
- *  @brief General utility- and helper-functions used throughout the @em ViennaRNA @em Package
+ *  @ingroup  utils
  */
 
 #include <stdio.h>

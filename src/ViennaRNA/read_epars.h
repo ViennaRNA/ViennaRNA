@@ -2,6 +2,12 @@
 #define VIENNA_RNA_PACKAGE_READ_EPARS_H
 
 /**
+ *  @file     read_epars.h
+ *  @ingroup  energy_parameters
+ *  @brief    Read and write energy parameter files
+ */
+
+/**
  *  @addtogroup energy_parameters_rw
  *  @brief  Read and Write energy parameter sets from and to text files
  *
@@ -9,8 +15,7 @@
  *  @cite mathews:2004 and @cite turner:2010, is compiled into the library.
  *
  *  @{
- *  @file read_epars.h
- *
+ *  @ingroup  energy_parameters_rw
  */
 
 /**

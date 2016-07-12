@@ -18,12 +18,14 @@
 #define VRNA_BACKWARD_COMPAT
 
 /**
- *  @addtogroup   plotting_utils
- *
- *  @{
- *
  *  @file plot_structure.h
+ *  @ingroup   plotting_utils
  *  @brief Various functions for plotting RNA secondary structures
+ */
+
+/**
+ *  @{
+ *  @ingroup   plotting_utils
  */
 
 /* write PostScript drawing of structure to file with annotation */

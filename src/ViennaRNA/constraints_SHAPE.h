@@ -12,12 +12,6 @@
  */
 
 /**
- *  @addtogroup SHAPE_reactivities
- *  @brief Incorporate SHAPE reactivity structure probing data
- *  into the folding recursions by means of soft constraints
- */
-
-/**
  *  @brief  Add SHAPE reactivity data as soft constraints (Deigan et al. method)
  *
  *  This approach of SHAPE directed RNA folding uses the simple linear ansatz

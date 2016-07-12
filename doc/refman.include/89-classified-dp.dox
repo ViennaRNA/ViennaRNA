@@ -1,0 +1,11 @@
+/**
+ *  @addtogroup kl_neighborhood
+ *  @brief Compute Thermodynamic properties for a Distance Class Partitioning of the Secondary Structure Space
+ *
+ *  All functions related to this group implement the basic recursions for MFE folding, partition function
+ *  computation and stochastic backtracking with a @e classified @e dynamic @e programming approach.
+ *  The secondary structure space is divided into partitions according to the base pair distance to two
+ *  given reference structures and all relevant properties are calculated for each of the resulting partitions
+ *  @see For further details, we refer to Lorenz et al. 2009 @cite lorenz:2009
+ */
+

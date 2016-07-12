@@ -1,0 +1,12 @@
+/**
+
+@addtogroup pf_fold
+@brief Compuate the partition function and various equilibrium properties
+derived from it.
+
+
+Instead of the minimum free energy structure the partition function of all possible structures
+and from that the pairing probability for every possible pair can be calculated, using a dynamic
+programming algorithm as described in @cite mccaskill:1990. 
+
+*/

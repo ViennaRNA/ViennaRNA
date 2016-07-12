@@ -4,8 +4,9 @@
 #include <limits.h>
 
 /**
- *  \file energy_const.h
- *  energy constants
+ *  @file     energy_const.h
+ *  @ingroup  energy_parameters
+ *  @brief    Energy parameter constants
  */
 
 /** The gas constant */

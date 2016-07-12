@@ -1,4 +1,4 @@
-/** \file dp_matricess.c **/
+/** \file dp_matrices.c **/
 
 /*
                   Dynamic Programming matrix related functions
@@ -8,9 +8,9 @@
                   dynamic programming (DP) matrices used in the folding
                   recurrences throughout the VienneRNA paclage
 
-                  c Ronny Lorenx
+                  c Ronny Lorenz
 
-                  Vienna RNA package
+                  ViennaRNA package
 */
 
 #ifdef HAVE_CONFIG_H

@@ -2,12 +2,17 @@
 #define VIENNA_RNA_PACKAGE_FIND_PATH_H
 
 /**
- *  @file findpath.h
- *
+ *  @file     findpath.h
+ *  @ingroup  paths
+ *  @brief    A breadth-first search heuristic for optimal direct folding paths
+ */
+
+/**
  *  @addtogroup   direct_paths
- *  @{
+ *  @brief Heuristics to explore direct, optimal (re-)folding paths between two secondary structures
  *
- *  @brief Implementation of heuristics to explore optimal (re-)folding paths between two secondary structures
+ *  @{
+ *  @ingroup  direct_paths
  */
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */

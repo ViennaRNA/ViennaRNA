@@ -1,9 +1,11 @@
 /**
 
+
 @addtogroup constraints
 
-This module provides general functions that allow for an easy control of
+@brief This module provides general functions that allow for an easy control of
 constrained secondary structure prediction and evaluation.
+
 Secondary Structure constraints can be subdivided into two groups:
 
 - @ref hard_constraints, and
@@ -75,4 +77,16 @@ by minimizing the discrepancy between their predicted and expected pairing
 probability is available in submodule @ref perturbation.
 
 */
+
+/**
+
+@addtogroup soft_constraints
+@brief      Functions and data structures for secondary structure soft constraints
+
+Soft-constraints are used to change position specific contributions
+in the recursions by adding bonuses/penalties in form of pseudo free energies
+to certain loop configurations.
+
+*/
+
 

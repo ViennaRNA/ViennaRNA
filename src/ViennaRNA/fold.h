@@ -21,15 +21,20 @@
 
 /**
  *  @file fold.h
+ *  @ingroup  mfe_fold
  *  @brief MFE calculations for single RNA sequences
- *  
+ */
+
+/**
  *  @addtogroup mfe_fold_single
- *  @{
- *    @brief This module contains all functions and variables related to the calculation
- *    of global minimum free energy structures for single sequences.
+ *  @brief This module contains all functions and variables related to the calculation
+ *  of global minimum free energy structures for single sequences.
  *
- *    The library provides a fast dynamic programming minimum free energy
- *    folding algorithm as described by "Zuker & Stiegler (1981)" @cite zuker:1981.
+ *  The library provides a fast dynamic programming minimum free energy
+ *  folding algorithm as described by "Zuker & Stiegler (1981)" @cite zuker:1981.
+ *
+ *  @{
+ *  @ingroup  mfe_fold_single
  */
 
 /**

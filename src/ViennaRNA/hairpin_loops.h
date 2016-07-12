@@ -14,12 +14,16 @@
 #endif
 
 /**
- *  @addtogroup   loops
+ *
+ *  @file     hairpin_loops.h
+ *  @ingroup  loops
+ *  @brief    Energy evaluation of hairpin loops for MFE and partition function calculations
+ */
+
+/**
  *
  *  @{
- *
- *  @file hairpin_loops.h
- *  @brief Energy evaluation of hairpin loops for MFE and partition function calculations
+ *  @ingroup   loops
  */
 
 
@@ -188,7 +192,7 @@ vrna_E_ext_hp_loop( vrna_fold_compound_t *vc,
 /**
  *  @brief Evaluate free energy of an exterior hairpin loop
  *
- *  @ingroup eval
+ *  @ingroup loops
  *
  */
 int
@@ -199,7 +203,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
 /**
  *  @brief Evaluate free energy of a hairpin loop
  *
- *  @ingroup eval
+ *  @ingroup loops
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
  *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT

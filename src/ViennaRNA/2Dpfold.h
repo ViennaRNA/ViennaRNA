@@ -1,9 +1,3 @@
-/*
-      minimum free energy
-      RNA secondary structure with
-      basepair distance d to reference structure prediction
-
-*/
 #ifndef VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H
 #define VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H
 
@@ -21,13 +15,19 @@
 #endif
 
 /**
+ *  @file 2Dpfold.h
+ *  @ingroup kl_neighborhood
+ *  @brief Partition function implementations for base pair distance classes
+ *
+ */
+
+/**
  *  @addtogroup kl_neighborhood_pf
  *  @brief Compute the partition function and stochastically sample secondary structures for a partitioning of
  *  the secondary structure space according to the base pair distance to two fixed reference structures
+ *
  *  @{
- *
- *  @file 2Dpfold.h
- *
+ *  @ingroup  kl_neighborhood_pf
  */
 
 #include <ViennaRNA/data_structures.h>

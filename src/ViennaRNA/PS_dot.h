@@ -19,13 +19,15 @@
 #define VRNA_BACKWARD_COMPAT
 
 /**
- *  @addtogroup   plotting_utils
- *
- *  @{
- *
  *  @file PS_dot.h
+ *  @ingroup   plotting_utils
  *  @brief Various functions for plotting RNA secondary structures, dot-plots and other
  *  visualizations
+ */
+
+/**
+ *  @{
+ *  @ingroup   plotting_utils
  */
 
 int PS_color_dot_plot(char *string,

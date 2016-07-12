@@ -1,14 +1,13 @@
 /**
- *  @addtogroup   plotting_utils
- *
+ *  @file     plot_layouts.h
+ *  @ingroup  plotting_utils
+ *  @brief    Secondary structure plot layout algorithms
+ */
+
+/**
  *  @{
+ *  @ingroup   plotting_utils
  *
- * @file plot_layouts.h
- *
- * @brief Secondary structure plot layout algorithms
- *
- *  c Ronny Lorenz
- *    The ViennaRNA Package
  */
 #ifndef VIENNA_RNA_PACKAGE_PLOT_LAYOUTS_H
 #define VIENNA_RNA_PACKAGE_PLOT_LAYOUTS_H

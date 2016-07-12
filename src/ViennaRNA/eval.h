@@ -20,18 +20,17 @@
 
 /**
  *  @file     eval.h
- *  @brief    Functions and variables related to energy evaluation of sequence/structure pairs.
  *  @ingroup  eval
+ *  @brief    Functions and variables related to energy evaluation of sequence/structure pairs.
  */
 
 
 /**
+ *  @addtogroup eval
+ *  @brief Functions and variables related to free energy evaluation of sequence/structure pairs.
  *
  *  @{
- *    @addtogroup eval
- *    @brief This module contains all functions and variables related to energy evaluation
- *    of sequence/structure pairs.
- *
+ *  @ingroup  eval
  */
 
 /** @brief set to first pos of second seq for cofolding  */
