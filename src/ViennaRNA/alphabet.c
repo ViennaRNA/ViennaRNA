@@ -61,6 +61,57 @@ PRIVATE char  *wrap_get_ptypes(const short *S, vrna_md_t *md);  /* provides back
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
+PUBLIC int
+vrna_nucleotide_IUPAC_identity( char nt,
+                                char mask){
+
+  char n1,n2,*p;
+
+  p   = NULL;
+  n1  = toupper(nt);
+  n2  = toupper(mask);
+
+  switch(n1){
+    case 'A': p = strchr("ARMWDHVN", n2);
+              break;
+    case 'C': p = strchr("CYMSBHVN", n2);
+              break;
+    case 'G': p = strchr("GRKSBDVN", n2);
+              break;
+    case 'T': p = strchr("TYKWBDHN", n2);
+              break;
+    case 'U': p = strchr("UYKWBDHN", n2);
+              break;
+    case 'I': p = strchr("IN", n2);
+              break;
+    case 'R': p = strchr("AGR", n2);
+              break;
+    case 'Y': p = strchr("CTUY", n2);
+              break;
+    case 'K': p = strchr("GTUK", n2);
+              break;
+    case 'M': p = strchr("ACM", n2);
+              break;
+    case 'S': p = strchr("GCS", n2);
+              break;
+    case 'W': p = strchr("ATUW", n2);
+              break;
+    case 'B': p = strchr("GCTBU", n2);
+              break;
+    case 'D': p = strchr("AGTUD", n2);
+              break;
+    case 'H': p = strchr("ACTUH", n2);
+              break;
+    case 'V': p = strchr("ACGV", n2);
+              break;
+    case 'N': p = strchr("ACGTUN", n2);
+              break;
+  }
+
+  return (p) ? 1 : 0;
+}
+
+
 PUBLIC char *
 vrna_ptypes(const short *S,
                 vrna_md_t *md){

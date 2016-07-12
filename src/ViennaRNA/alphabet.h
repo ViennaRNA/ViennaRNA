@@ -25,6 +25,8 @@
 
 #include <ViennaRNA/model.h>
 
+int vrna_nucleotide_IUPAC_identity(char a, char b);
+
 /**
  *  @brief Get an array of the numerical encoding for each possible base pair (i,j)
  *
