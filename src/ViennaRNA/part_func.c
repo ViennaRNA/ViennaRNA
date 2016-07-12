@@ -691,7 +691,7 @@ pf_circ(vrna_fold_compound_t *vc){
 }
 
 /* calculate base pairing probs */
-PUBLIC void
+PRIVATE void
 pf_create_bppm( vrna_fold_compound_t *vc,
                 char *structure){
 
