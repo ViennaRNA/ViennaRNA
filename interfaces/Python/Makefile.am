@@ -11,14 +11,15 @@ INTERFACE_FILES = $(SWIG_src) \
                   $(LANG_SPECIFIC_INTERFACE_FILES)
 
 pkgpy2execdir = $(py2execdir)/RNA
+pkgpy2cmoddir = $(py2execdir)
 
-pkgpy2exec_LTLIBRARIES = _RNA.la
+pkgpy2cmod_LTLIBRARIES = _RNA.la
 pkgpy2exec_DATA = RNA/__init__.py
 
 _RNA_la_SOURCES = $(INTERFACE_FILES) \
                   $(SWIG_wrapper)
 
-BUILT_SOURCES = RNA/_RNA$(PYTHON2_SO)
+BUILT_SOURCES = _RNA$(PYTHON2_SO)
 
 EXTRA_DIST = \
   $(SWIG_wrapper) \
@@ -66,27 +67,26 @@ RNA/__init__.py: $(SWIG_module_name).py
 	-test -d RNA || $(MKDIR_P) RNA
 	cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/__init__.py
 
-RNA/_RNA$(PYTHON2_SO): _RNA.la
-	$(MKDIR_P) RNA
+_RNA$(PYTHON2_SO): _RNA.la
 	$(LIBTOOL) --config > libtoolconfig.tmp
 ## ksh requires a path on the sourced file.
-	. ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON2_SO) RNA
+	. ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON2_SO) .
 	rm -f libtoolconfig.tmp
 
 clean-local:
-	-rm -rf RNA
+	-rm -rf RNA _RNA$(PYTHON2_SO)
 
 # Remove the .la file - RNA.la is never linked against (it's a module)
 # and Python doesn't use libltdl.  Note that the library gets installed by
 # install-data, so that's where we need to hook.
 install-data-hook:
-	rm -f $(DESTDIR)$(pkgpy2execdir)/_RNA.la
+	rm -f $(DESTDIR)$(pkgpy2cmoddir)/_RNA.la
 
 # Because we don't install the .la file, "make uninstall" doesn't work and
 # we need to remove the file ourselves.
 uninstall-local:
-	eval `grep '^dlname=' $(pkgpy2exec_LTLIBRARIES)` ; \
-	rm -f $(DESTDIR)$(pkgpy2execdir)/"$$dlname"
+	eval `grep '^dlname=' $(pkgpy2cmod_LTLIBRARIES)` ; \
+	rm -f $(DESTDIR)$(pkgpy2cmoddir)/"$$dlname"
 
 ## remove all generated content
 maintainer-clean-local:
