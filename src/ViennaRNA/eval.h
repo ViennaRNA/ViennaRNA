@@ -284,12 +284,7 @@ float vrna_eval_move( vrna_fold_compound_t *vc,
  *  If the parameters m1 and m2 are negative, it is deletion (opening)
  *  of a base pair, otherwise it is insertion (opening).
  *
- *  @post             After successfully evaluating the free energy of the requested
- *                    move, the supplied pair table @p pt is updated accordingly,
- *                    i.e. @p pt represents the structure after application of
- *                    the respective move.
- *                    
- *  @see              vrna_eval_move(), vrna_ptable()
+ *  @see              vrna_eval_move()
  *  @param vc         A vrna_fold_compound_t containing the energy parameters and model details
  *  @param pt         the pair table of the secondary structure
  *  @param m1         first coordinate of base pair
