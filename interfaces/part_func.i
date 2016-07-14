@@ -103,6 +103,8 @@ extern char *pbacktrack(char *sequence);
 %newobject vrna_fold_compound_t::pf;
 
 %include  <ViennaRNA/part_func.h>
+%include  <ViennaRNA/equilibrium_probs.h>
+%include  <ViennaRNA/boltzmann_sampling.h>
 
 /**********************************************/
 /* BEGIN interface for cofold partition       */
