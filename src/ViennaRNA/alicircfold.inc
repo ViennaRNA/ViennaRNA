@@ -72,7 +72,7 @@ fill_arrays_comparative_circ( vrna_fold_compound_t *vc,
         continue;
 
       /* exterior hairpin case */
-      new_c =   vrna_E_ext_hp_loop(vc, i, j)
+      new_c =   vrna_E_hp_loop(vc, j, i)
               + c[ij];
 
       if (new_c<FcH) {

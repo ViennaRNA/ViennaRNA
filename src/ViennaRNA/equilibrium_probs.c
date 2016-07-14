@@ -42,6 +42,9 @@ PRIVATE void  pf_create_bppm(vrna_fold_compound_t *vc, char *structure);
 PRIVATE void  alipf_create_bppm(vrna_fold_compound_t *vc, char *structure);
 PRIVATE INLINE void bppm_circ(vrna_fold_compound_t *vc);
 
+PRIVATE FLT_OR_DBL  numerator_single(vrna_fold_compound_t *vc, int i, int j);
+PRIVATE FLT_OR_DBL  numerator_comparative(vrna_fold_compound_t *vc, int i, int j);
+
 
 PRIVATE double
 wrap_mean_bp_distance(FLT_OR_DBL *p,
@@ -552,6 +555,25 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   return;
 }
 
+PRIVATE FLT_OR_DBL
+numerator_single( vrna_fold_compound_t *vc,
+                  int i,
+                  int j){
+
+  return 1.;
+}
+
+PRIVATE FLT_OR_DBL
+numerator_comparative(vrna_fold_compound_t *vc,
+                      int i,
+                      int j){
+
+  int     *pscore = vc->pscore;             /* precomputed array of pair types */                      
+  double  kTn     = vc->exp_params->kT/10.; /* kT in cal/mol  */
+  int     *jindx  = vc->jindx;
+
+  return exp(pscore[jindx[j]+i]/kTn);
+}
 
 /* calculate base pairing probs */
 PRIVATE INLINE void
@@ -567,6 +589,7 @@ bppm_circ(vrna_fold_compound_t *vc){
   vrna_exp_param_t  *pf_params;
   vrna_mx_pf_t      *matrices;
   vrna_md_t         *md;
+  FLT_OR_DBL (*numerator_f)(vrna_fold_compound_t *vc, int i, int j);
 
   pf_params         = vc->exp_params;
   md                = &(pf_params->model_details);
@@ -593,6 +616,15 @@ bppm_circ(vrna_fold_compound_t *vc){
   rtype         = &(pf_params->model_details.rtype[0]);
   n             = S[0];
 
+  switch(vc->type){
+    case  VRNA_VC_TYPE_SINGLE:    numerator_f = numerator_single;
+                                  break;
+    case  VRNA_VC_TYPE_ALIGNMENT: numerator_f = numerator_comparative;
+                                  break;
+    default:                      numerator_f = NULL;
+                                  break;
+  }
+
   /*
     The hc_local array provides row-wise access to hc->matrix, i.e.
     my_iindx. Using this in the cubic order loop for multiloops below
@@ -611,20 +643,15 @@ bppm_circ(vrna_fold_compound_t *vc){
       probs[my_iindx[i]-j] = 0;
     for (j=i+turn+1; j<=n; j++) {
       ij = my_iindx[i]-j;
-      type = (unsigned char)ptype[jindx[j] + i];
-      if (type&&(qb[ij]>0.)) {
-        probs[ij] = 1./qo;
+      if(qb[ij] > 0.){
+        probs[ij] = numerator_f(vc, i, j)/qo;
+
+        type = (unsigned char)ptype[jindx[j] + i];
+
         unsigned char rt = rtype[type];
 
         /* 1.1. Exterior Hairpin Contribution */
-        int u = i + n - j -1;
-        /* get the loop sequence */
-        char loopseq[10];
-        if (u<7){
-          strcpy(loopseq , sequence+j-1);
-          strncat(loopseq, sequence, i);
-        }
-        tmp2 = exp_E_Hairpin(u, rt, S1[j+1], S1[i-1], loopseq, pf_params) * scale[u];
+        tmp2 = vrna_exp_E_hp_loop(vc, j, i);
 
         /* 1.2. Exterior Interior Loop Contribution                     */
         /* 1.2.1. i,j  delimtis the "left" part of the interior loop    */
@@ -916,30 +943,7 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
           tmp2 = 0.;
 
           /* 1.1. Exterior Hairpin Contribution */
-          if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
-            int u = i + n - j -1;
-            if(hc->up_hp[j + 1] >= u){
-              for (qbt1=1.,s=0; s<n_seq; s++) {
-                int u1 = a2s[s][i] - 1 + a2s[s][n] - a2s[s][j];
-
-                char loopseq[10];
-                if (u1<9){
-                  strcpy(loopseq , Ss[s] + a2s[s][j] - 1);
-                  strncat(loopseq, Ss[s], a2s[s][i]);
-                }
-                qbt1 *= exp_E_Hairpin(u1, type[s], S3[s][j], S5[s][i], loopseq, pf_params);
-              }
-              if(sc)
-                for(s = 0; s < n_seq; s++){
-                  if(sc[s]){
-                    if(sc[s]->exp_energy_up)
-                      qbt1 *=   ((i > 1) ? sc[s]->exp_energy_up[a2s[s][j]+1][a2s[s][n] - a2s[s][j]] : 1.)
-                              * ((j < n) ? sc[s]->exp_energy_up[a2s[s][1]][a2s[s][i] - a2s[s][1]] : 1.);
-                   }
-                }
-            }
-            tmp2 = qbt1 * scale[u];
-          }
+          tmp2 += vrna_exp_E_hp_loop(vc, j, i);
 
           /* 1.2. Exterior Interior Loop Contribution */
           /* recycling of k and l... */

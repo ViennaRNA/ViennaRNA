@@ -587,7 +587,7 @@ pf_circ(vrna_fold_compound_t *vc){
   short       *S1;
 
   vrna_exp_param_t     *pf_params = vc->exp_params;
-  FLT_OR_DBL    *qb, *qm, *qm1, *qm2, qo, qho, qio, qmo;
+  FLT_OR_DBL    *qb, *qm, *qm1, *qm2, qo, qho, qio, qmo, qbt1;
   vrna_mx_pf_t  *matrices;
 
   sequence  = vc->sequence;
@@ -629,6 +629,9 @@ pf_circ(vrna_fold_compound_t *vc){
     for(q = p + turn + 1; q <= n; q++){
       int type;
       /* 1. get exterior hairpin contribution  */
+      qbt1 = qb[my_iindx[p]-q] * vrna_exp_E_hp_loop(vc, q, p);
+      qho += qbt1;
+
       u = n-q + p-1;
       if (u<turn) continue;
       type = ptype[jindx[q] + p];
@@ -636,12 +639,6 @@ pf_circ(vrna_fold_compound_t *vc){
        /* cause we want to calc the exterior loops, we need the reversed pair type from now on  */
       type=rtype[type];
 
-      char loopseq[10];
-      if (u<7){
-        strcpy(loopseq , sequence+q-1);
-        strncat(loopseq, sequence, p);
-      }
-      qho += (((type==3)||(type==4))&&noGUclosure) ? 0. : qb[my_iindx[p]-q] * exp_E_Hairpin(u, type, S1[q+1], S1[p-1],  loopseq, pf_params) * scale[u];
 
       /* 2. exterior interior loops, i "define" the (k,l) pair as "outer pair"  */
       /* so "outer type" is rtype[type[k,l]] and inner type is type[p,q]        */
@@ -1144,18 +1141,6 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
 
   free(type);
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /*###########################################*/
