@@ -226,7 +226,7 @@ E_mb_loop_fast( vrna_fold_compound_t *vc,
                 dangle_model, *rtype;
   vrna_sc_t     *sc;
   vrna_param_t  *P;
-  vrna_ud_t     *ligands_up;
+  vrna_ud_t     *domains_up;
 #ifdef WITH_GEN_HC
   vrna_callback_hc_evaluate *f;
 #endif
@@ -245,7 +245,7 @@ E_mb_loop_fast( vrna_fold_compound_t *vc,
   dangle_model  = P->model_details.dangles;
   rtype         = &(P->model_details.rtype[0]);
   type          = (unsigned char)ptype[ij];
-  ligands_up    = vc->domains_up;
+  domains_up    = vc->domains_up;
   /* init values */
   e             = INF;
   decomp        = INF;
@@ -634,7 +634,7 @@ E_ml_rightmost_stem(int i,
                     dangle_model, with_gquad, cp, e, u, k, cnt;
   vrna_param_t      *P;
   vrna_sc_t         *sc;
-  vrna_ud_t         *ligands_up;
+  vrna_ud_t         *domains_up;
 #ifdef WITH_GEN_HC
   vrna_callback_hc_evaluate *f;
 #endif
@@ -655,7 +655,7 @@ E_ml_rightmost_stem(int i,
   dangle_model  = P->model_details.dangles;
   with_gquad    = P->model_details.gquad;
   cp            = vc->cutpoint;
-  ligands_up    = vc->domains_up;
+  domains_up    = vc->domains_up;
   e             = INF;
 
 #ifdef WITH_GEN_HC
@@ -721,9 +721,9 @@ E_ml_rightmost_stem(int i,
       }
     }
 
-    if(ligands_up && ligands_up->energy_cb){
-      for(cnt = 0; cnt < ligands_up->motif_count; cnt++){
-        u = ligands_up->motif_size[cnt];
+    if(domains_up && domains_up->energy_cb){
+      for(cnt = 0; cnt < domains_up->motif_count; cnt++){
+        u = domains_up->motif_size[cnt];
         k = j - u + 1;
         if(ON_SAME_STRAND(j - u, j, cp)){
           eval_loop = (hc_up[k] >= u) ? (char)1 : (char)0;
@@ -734,7 +734,7 @@ E_ml_rightmost_stem(int i,
 #endif
           if(eval_loop){
             if(fm[indx[k - 1] + i] != INF){
-              en = ligands_up->energy_cb(vc, k, j, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, ligands_up->data);
+              en = domains_up->energy_cb(vc, k, j, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
               if(en != INF){
                 en +=   fm[indx[k - 1] + i]
                       + P->MLbase;
@@ -770,7 +770,7 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
                 cnt;
   vrna_sc_t     *sc;
   vrna_param_t  *P;
-  vrna_ud_t     *ligands_up;
+  vrna_ud_t     *domains_up;
 #ifdef WITH_GEN_HC
   vrna_callback_hc_evaluate *f;
 #endif
@@ -792,7 +792,7 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
   rtype         = &(P->model_details.rtype[0]);
   circular      = P->model_details.circ;
   cp            = vc->cutpoint;
-  ligands_up   = vc->domains_up;
+  domains_up    = vc->domains_up;
   e             = INF;
 
 #ifdef WITH_GEN_HC
@@ -834,9 +834,9 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
     }
 
     /* extension with bound ligand on 5'site */
-    if(ligands_up && ligands_up->energy_cb){
-      for(cnt = 0; cnt < ligands_up->motif_count; cnt++){
-        u = ligands_up->motif_size[cnt];
+    if(domains_up && domains_up->energy_cb){
+      for(cnt = 0; cnt < domains_up->motif_count; cnt++){
+        u = domains_up->motif_size[cnt];
         k = i + u - 1;
         if(ON_SAME_STRAND(i, k + 1, cp)){
           eval_loop = (hc_up[i] >= u) ? (char)1 : (char)0;
@@ -848,7 +848,7 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
 
           if(eval_loop){
             if(fm[ij + u] != INF){
-              en = ligands_up->energy_cb(vc, i, k, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, ligands_up->data);
+              en = domains_up->energy_cb(vc, i, k, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
               if(en != INF){
                 en +=   fm[ij + u]
                       + P->MLbase;
@@ -1753,7 +1753,7 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
-  vrna_ud_t     *ligands_up;
+  vrna_ud_t     *domains_up;
 
   P             = vc->params;
   md            = &(P->model_details);
@@ -1763,7 +1763,7 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
   ptype         = vc->ptype;
   rtype         = &(md->rtype[0]);
   S1            = vc->sequence_encoding;
-  ligands_up    = vc->domains_up;
+  domains_up    = vc->domains_up;
 
   my_c          = vc->matrices->c;
   my_fML        = vc->matrices->fML;
@@ -1775,7 +1775,7 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
   ii = *i;
   jj = *j;
 
-  if(ligands_up && ligands_up->energy_cb){
+  if(domains_up && domains_up->energy_cb){
     /* nibble off unpaired stretches at 3' site */
     do{
       do{ /* process regular unpaired nucleotides (unbound by ligand) first */
@@ -1797,11 +1797,11 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
 
       do{ /* next nibble off ligand */
         fij = my_fML[idx[jj] + ii];
-        for(cnt = 0; cnt < ligands_up->motif_count; cnt++){
-          u = ligands_up->motif_size[cnt];
+        for(cnt = 0; cnt < domains_up->motif_count; cnt++){
+          u = domains_up->motif_size[cnt];
           kk = jj - u + 1;
           if(kk >= ii){
-            en = ligands_up->energy_cb(vc, kk, jj, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, ligands_up->data);
+            en = domains_up->energy_cb(vc, kk, jj, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
             fi = (hc->up_ml[kk] >= u) ? my_fML[idx[kk-1] + ii] + u * P->MLbase: INF;
             fi += en;
 
@@ -1839,11 +1839,11 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
 
       do{ /* next nibble off ligand */
         fij = my_fML[idx[jj] + ii];
-        for(cnt = 0; cnt < ligands_up->motif_count; cnt++){
-          u = ligands_up->motif_size[cnt];
+        for(cnt = 0; cnt < domains_up->motif_count; cnt++){
+          u = domains_up->motif_size[cnt];
           kk = ii + u - 1;
           if(kk <= jj){
-            en = ligands_up->energy_cb(vc, ii, kk, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, ligands_up->data);
+            en = domains_up->energy_cb(vc, ii, kk, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
             fi = (hc->up_ml[ii] >= u) ? my_fML[idx[jj] + kk + 1] + u * P->MLbase: INF;
             fi += en;
 

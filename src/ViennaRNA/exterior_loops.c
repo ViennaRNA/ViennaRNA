@@ -149,7 +149,7 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                 *ggg, with_gquad, turn, k, u;
   vrna_sc_t     *sc;
   vrna_param_t  *P;
-  vrna_ud_t     *ligands_up;
+  vrna_ud_t     *domains_up;
 #ifdef WITH_GEN_HC
   vrna_callback_hc_evaluate *f;
 #endif
@@ -168,7 +168,7 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
   ggg           = vc->matrices->ggg;
   with_gquad    = P->model_details.gquad;
   turn          = P->model_details.min_loop_size;
-  ligands_up    = vc->domains_up;
+  domains_up    = vc->domains_up;
 
 #ifdef WITH_GEN_HC
   f = vc->hc->f;
@@ -198,14 +198,14 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
     }
   }
 
-  if(ligands_up && ligands_up->energy_cb){ /* do we include ligand binding? */
+  if(domains_up && domains_up->energy_cb){ /* do we include ligand binding? */
     /*  construct all possible combinations of
         f[i-1] + L[i,j] with j <= turn + 1
     */
     for(i = 1; i <= turn + 1; i++){
       if(f5[i-1] != INF){
-        for(k = 0; k < ligands_up->motif_count; k++){
-          u = ligands_up->motif_size[k];
+        for(k = 0; k < domains_up->motif_count; k++){
+          u = domains_up->motif_size[k];
           j = i + u - 1;
           if(j <= turn + 1){
             eval_loop = (hc_up[i] >= u) ? (char)1 : (char)0;
@@ -215,7 +215,7 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
 #endif
             if(eval_loop){
               en =    f5[i-1]
-                    + ligands_up->energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, ligands_up->data);
+                    + domains_up->energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
               f5[j] = MIN2(f5[j], en);
             }
           }
@@ -334,13 +334,13 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                 }
               }
 
-              if(ligands_up){ /* do we include ligand binding? */
+              if(domains_up){ /* do we include ligand binding? */
                 /*  construct all possible combinations of
                     f[i-1] + L[i,j] with (turn + 1) < j <= length
                 */
                 for(j = length; j > turn + 1; j--){
-                  for(k = 0; k < ligands_up->motif_count; k++){
-                    u = ligands_up->motif_size[k];
+                  for(k = 0; k < domains_up->motif_count; k++){
+                    u = domains_up->motif_size[k];
                     i = j - u + 1;
                     if((i > 0) && (f5[i-1] != INF)){
                       eval_loop = (hc_up[i] >= u) ? (char)1 : (char)0;
@@ -350,7 +350,7 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
 #endif
                       if(eval_loop){
                         en =    f5[i-1]
-                              + ligands_up->energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, ligands_up->data);
+                              + domains_up->energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
                         f5[j] = MIN2(f5[j], en);
                       }
                     }
@@ -566,13 +566,13 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                 }
               }
 
-              if(ligands_up){ /* do we include ligand binding? */
+              if(domains_up){ /* do we include ligand binding? */
                 /*  construct all possible combinations of
                     f[i-1] + L[i,j] with (turn + 1) < j <= length
                 */
                 for(j = length; j > turn + 1; j--){
-                  for(k = 0; k < ligands_up->motif_count; k++){
-                    u = ligands_up->motif_size[k];
+                  for(k = 0; k < domains_up->motif_count; k++){
+                    u = domains_up->motif_size[k];
                     i = j - u + 1;
                     if((i > 0) && (f5[i-1] != INF)){
                       eval_loop = (hc_up[i] >= u) ? (char)1 : (char)0;
@@ -582,7 +582,7 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
 #endif
                       if(eval_loop){
                         en =    f5[i-1]
-                              + ligands_up->energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, ligands_up->data);
+                              + domains_up->energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
                         f5[j] = MIN2(f5[j], en);
                       }
                     }
@@ -775,13 +775,13 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                 }
               }
 
-              if(ligands_up){ /* do we include ligand binding? */
+              if(domains_up){ /* do we include ligand binding? */
                 /*  construct all possible combinations of
                     f[i-1] + L[i,j] with (turn + 1) < j <= length
                 */
                 for(j = length; j > turn + 1; j--){
-                  for(k = 0; k < ligands_up->motif_count; k++){
-                    u = ligands_up->motif_size[k];
+                  for(k = 0; k < domains_up->motif_count; k++){
+                    u = domains_up->motif_size[k];
                     i = j - u + 1;
                     if((i > 0) && (f5[i-1] != INF)){
                       eval_loop = (hc_up[i] >= u) ? (char)1 : (char)0;
@@ -791,7 +791,7 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
 #endif
                       if(eval_loop){
                         en =    f5[i-1]
-                              + ligands_up->energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, ligands_up->data);
+                              + domains_up->energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
                         f5[j] = MIN2(f5[j], en);
                       }
                     }
@@ -913,7 +913,7 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
-  vrna_ud_t     *ligands_up;
+  vrna_ud_t     *domains_up;
 
   length        = vc->length;
   cp            = vc->cutpoint;
@@ -924,7 +924,7 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
   my_f5         = vc->matrices->f5;
   my_c          = vc->matrices->c;
   my_ggg        = vc->matrices->ggg;
-  ligands_up    = vc->domains_up;
+  domains_up    = vc->domains_up;
   idx           = vc->jindx;
   ptype         = vc->ptype;
   S1            = vc->sequence_encoding;
@@ -935,7 +935,7 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
   jj = *k;
 
   /* nibble off unpaired 3' stretches harboring bound ligands (interspersed with unpaired nucleotides) */
-  if(ligands_up && ligands_up->energy_cb){
+  if(domains_up && domains_up->energy_cb){
     do{
       do{
         fij = my_f5[jj];
@@ -959,11 +959,11 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
       do{
         fij = my_f5[jj];
         /* nibble off ligand */
-        for(cnt = 0; cnt < ligands_up->motif_count; cnt++){
-          u = ligands_up->motif_size[cnt];
+        for(cnt = 0; cnt < domains_up->motif_count; cnt++){
+          u = domains_up->motif_size[cnt];
           ii = jj - u + 1;
           if(ii > 0){
-            en = ligands_up->energy_cb(vc, ii, jj, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, ligands_up->data);
+            en = domains_up->energy_cb(vc, ii, jj, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
             fi = (hc->up_ext[ii] >= u) ? my_f5[ii-1] : INF;
             fi += en;
 

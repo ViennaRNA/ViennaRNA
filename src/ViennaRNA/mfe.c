@@ -171,7 +171,7 @@ vrna_mfe( vrna_fold_compound_t *vc,
 PRIVATE int
 fill_arrays(vrna_fold_compound_t *vc){
 
-  int               i, j, ij, length, energy, new_c, stackEnergy, no_close, type_2;
+  int               i, j, ij, length, energy, new_c, stackEnergy, no_close, type_2, turn;
   int               noGUclosure, noLP, uniq_ML, with_gquad, dangle_model, *rtype, *indx;
   int               *my_f5, *my_c, *my_fML, *my_fM1, *my_ggg, hc_decompose, *hc_up_ml;
   int               *cc, *cc1;  /* auxilary arrays for canonical structures     */
@@ -186,7 +186,7 @@ fill_arrays(vrna_fold_compound_t *vc){
   vrna_mx_mfe_t     *matrices;
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
-  vrna_ud_t   *ligands_up;
+  vrna_ud_t         *domains_up;
 
   length            = (int)vc->length;
   ptype             = vc->ptype;
@@ -198,6 +198,7 @@ fill_arrays(vrna_fold_compound_t *vc){
   uniq_ML           = P->model_details.uniq_ML;
   with_gquad        = P->model_details.gquad;
   dangle_model      = P->model_details.dangles;
+  turn              = P->model_details.min_loop_size;
   rtype             = &(P->model_details.rtype[0]);
   hc                = vc->hc;
   hard_constraints  = hc->matrix;
@@ -209,7 +210,7 @@ fill_arrays(vrna_fold_compound_t *vc){
   my_fML            = matrices->fML;
   my_fM1            = matrices->fM1;
   my_ggg            = matrices->ggg;
-  ligands_up        = vc->domains_up;
+  domains_up        = vc->domains_up;
 
   /* allocate memory for all helper arrays */
   cc    = (int *) vrna_alloc(sizeof(int)*(length + 2));
@@ -219,10 +220,12 @@ fill_arrays(vrna_fold_compound_t *vc){
   DMLi1 = (int *) vrna_alloc(sizeof(int)*(length + 1));
   DMLi2 = (int *) vrna_alloc(sizeof(int)*(length + 1));
 
+  if((turn < 0) || (turn > length))
+    turn = length; /* does this make any sense? */
 
   /* pre-processing ligand binding production rule(s) */
-  if(ligands_up && ligands_up->prod_cb)
-    ligands_up->prod_cb(vc, ligands_up->data);
+  if(domains_up && domains_up->prod_cb)
+    domains_up->prod_cb(vc, domains_up->data);
 
   /* prefill helper arrays */
   for(j = 0; j <= length; j++){
@@ -232,7 +235,7 @@ fill_arrays(vrna_fold_compound_t *vc){
 
   /* prefill matrices with init contributions */
   for(j = 1; j <= length; j++)
-    for(i = (j > TURN ? (j - TURN) : 1); i < j; i++){
+    for(i = (j > turn ? (j - turn) : 1); i < j; i++){
       my_c[indx[j] + i] = my_fML[indx[j] + i] = INF;
       if(uniq_ML)
         my_fM1[indx[j] + i] = INF;
@@ -240,7 +243,7 @@ fill_arrays(vrna_fold_compound_t *vc){
 
   /* start recursion */
 
-  if (length <= TURN){
+  if (length <= turn){
     /* clean up memory */
     free(cc);
     free(cc1);
@@ -252,9 +255,9 @@ fill_arrays(vrna_fold_compound_t *vc){
     return 0;
   }
 
-  for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
+  for (i = length-turn-1; i >= 1; i--) { /* i,j in [1..length] */
 
-    for (j = i+TURN+1; j <= length; j++) {
+    for (j = i+turn+1; j <= length; j++) {
       ij            = indx[j]+i;
       type          = (unsigned char)ptype[ij];
       hc_decompose  = hard_constraints[ij];
@@ -338,7 +341,7 @@ fill_arrays(vrna_fold_compound_t *vc){
 PRIVATE int
 fill_arrays_comparative(vrna_fold_compound_t *vc){
 
-  int   i, j, k, p, q, energy, stackEnergy, new_c;
+  int   i, j, k, p, q, turn, energy, stackEnergy, new_c;
   int   decomp, MLenergy, new_fML;
   int   s, *type, type_2, tt;
   int   *cc;        /* linear array for calculating canonical structures */
@@ -381,20 +384,25 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
   DMLi1 = (int *) vrna_alloc(sizeof(int)*(length+1));
   DMLi2 = (int *) vrna_alloc(sizeof(int)*(length+1));
 
+  turn  = md->min_loop_size;
+
+  if((turn < 0) || (turn > length))
+    turn = length;
+
   /* init energies */
 
   int max_bpspan = (md->max_bp_span > 0) ? md->max_bp_span : length;
 
   for (j=1; j<=length; j++){
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
-    for (i=(j>TURN?(j-TURN):1); i<j; i++) {
+    for (i=(j>turn?(j-turn):1); i<j; i++) {
       c[indx[j]+i] = fML[indx[j]+i] = INF;
     }
   }
 
   /* begin recursions */
-  for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
-    for (j = i+TURN+1; j <= length; j++) {
+  for (i = length-turn-1; i >= 1; i--) { /* i,j in [1..length] */
+    for (j = i+turn+1; j <= length; j++) {
       int ij, psc, l1, maxq, minq, c0;
       ij = indx[j]+i;
 
@@ -447,7 +455,7 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
   /* calculate energies of 5' and 3' fragments */
 
   f5[0] = 0;
-  for(j = 1; j <= TURN + 1; j++){
+  for(j = 1; j <= turn + 1; j++){
     if(hc->up_ext[j]){
       energy = f5[j-1];
       if((energy < INF) && sc)
@@ -464,7 +472,7 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
   }
 
   switch(dangle_model){
-    case 0:   for(j = TURN + 2; j <= length; j++){
+    case 0:   for(j = turn + 2; j <= length; j++){
                 f5[j] = INF;
 
                 if(hc->up_ext[j]){
@@ -496,7 +504,7 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
                   }
                 }
 
-                for(i = j - TURN - 1; i > 1; i--){
+                for(i = j - turn - 1; i > 1; i--){
                   if(hard_constraints[indx[j]+i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     if(c[indx[j]+i]<INF){
                       energy = f5[i-1] + c[indx[j]+i];
@@ -517,7 +525,7 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
               }
               break;
 
-    default:  for(j = TURN + 2; j <= length; j++){
+    default:  for(j = turn + 2; j <= length; j++){
                 f5[j] = INF;
 
                 if(hc->up_ext[j]){
@@ -549,7 +557,7 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
                   }
                 }
 
-                for(i = j - TURN - 1; i > 1; i--){
+                for(i = j - turn - 1; i > 1; i--){
                   if(hard_constraints[indx[j]+i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     if (c[indx[j]+i]<INF) {
                       energy = f5[i-1] + c[indx[j]+i];
@@ -779,7 +787,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
    /* normally s=0.
      If s>0 then s items have been already pushed onto the sector stack */
 
-  int  i, j, k, p, q, energy, en, c0, l1, minq, maxq, type_2, tt, mm, b=0, cov_en = 0, *type;
+  int  i, j, k, p, q, turn, energy, en, c0, l1, minq, maxq, type_2, tt, mm, b=0, cov_en = 0, *type;
 
   int             n_seq         = vc->n_seq;
   int             length        = vc->length;
@@ -804,7 +812,10 @@ backtrack_comparative(vrna_fold_compound_t *vc,
   vrna_hc_t       *hc           = vc->hc;
   vrna_sc_t       **sc          = vc->scs;
 
-  type = (int *) vrna_alloc(n_seq*sizeof(int));
+  type  = (int *) vrna_alloc(n_seq*sizeof(int));
+  turn  = md->min_loop_size;
+  if((turn < 0) || (turn > length))
+    turn = length;
 
   if (s==0) {
     bt_stack[++s].i = 1;
@@ -825,7 +836,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       goto repeat1_comparative;
     }
 
-    if (j < i+TURN+1) continue; /* no more pairs in this interval */
+    if (j < i+turn+1) continue; /* no more pairs in this interval */
 
     if(ml != 0){
       fij = fML[indx[j]+i];
@@ -852,7 +863,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
     if (ml == 0) { /* backtrack in f5 */
       switch(dangle_model){
         case 0:   /* j or j-1 is paired. Find pairing partner */
-                  for (i=j-TURN-1,traced=0; i>=1; i--) {
+                  for (i=j-turn-1,traced=0; i>=1; i--) {
                     int en;
                     jj = i-1;
 
@@ -878,7 +889,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
                   }
                   break;
         default:  /* j or j-1 is paired. Find pairing partner */
-                  for (i=j-TURN-1,traced=0; i>=1; i--) {
+                  for (i=j-turn-1,traced=0; i>=1; i--) {
                     int en;
                     jj = i-1;
                     if (hc->matrix[indx[j] + i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
@@ -975,7 +986,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
         }
       }
 
-      for (k = i+1+TURN; k <= j-2-TURN; k++)
+      for (k = i+1+turn; k <= j-2-turn; k++)
         if (fij == (fML[indx[k]+i]+fML[indx[j]+k+1]))
           break;
 
@@ -986,7 +997,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       bt_stack[s].j   = j;
       bt_stack[s].ml  = ml;
 
-      if (k>j-2-TURN) vrna_message_error("backtrack failed in fML");
+      if (k>j-2-turn) vrna_message_error("backtrack failed in fML");
       continue;
     }
 
@@ -1028,9 +1039,9 @@ backtrack_comparative(vrna_fold_compound_t *vc,
     if(vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &b))
       continue;
 
-    for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
+    for (p = i+1; p <= MIN2(j-2-turn,i+MAXLOOP+1); p++) {
       minq = j-i+p-MAXLOOP-2;
-      if (minq<p+1+TURN) minq = p+1+TURN;
+      if (minq<p+1+turn) minq = p+1+turn;
       if(hc->up_int[i+1] < (p - i - 1)) break;
 
       for (q = j-1; q >= minq; q--) {
@@ -1185,11 +1196,11 @@ backtrack_comparative(vrna_fold_compound_t *vc,
 
       bt_stack[s+1].ml  = bt_stack[s+2].ml = 1;
 
-      for (k = i1+TURN+1; k < j1-TURN-1; k++){
+      for (k = i1+turn+1; k < j1-turn-1; k++){
         if(cij == fML[indx[k]+i1] + fML[indx[j1]+k+1] + mm) break;
       }
 
-      if (k<=j-3-TURN) { /* found the decomposition */
+      if (k<=j-3-turn) { /* found the decomposition */
         bt_stack[++s].i = i1;
         bt_stack[s].j   = k;
         bt_stack[++s].i = k+1;

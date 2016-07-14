@@ -173,7 +173,7 @@ vrna_pf( vrna_fold_compound_t *vc,
   free_energy = (float)(INF/100.);
 
   if(vc){
-    /* make sure, that we have the DP matrices */
+    /* make sure, everything is set up properly to start partition function computations */
     vrna_fold_compound_prepare(vc, VRNA_OPTION_PF);
 
     n         = vc->length;
@@ -286,28 +286,33 @@ vrna_pf( vrna_fold_compound_t *vc,
 PRIVATE void
 pf_linear(vrna_fold_compound_t *vc){
 
-  int n, i,j, k, ij, kl, d, ii, maxk;
+  int n, i,j, k, ij, kl, d, ii, maxk, u, l;
   unsigned char type;
 
-  FLT_OR_DBL  expMLstem = 0.;
+  FLT_OR_DBL        expMLstem = 0.;
 
-  FLT_OR_DBL  temp, Qmax=0;
-  FLT_OR_DBL  qbt1, *tmp, q_temp;
-  FLT_OR_DBL  *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
-  FLT_OR_DBL  *q, *qb, *qm, *qm1, *G, *q1k, *qln;
-  FLT_OR_DBL  *scale;
-  FLT_OR_DBL  *expMLbase;
-  short       *S1;
-  int         *my_iindx, *jindx;
-  char        *ptype;
-
+  FLT_OR_DBL        temp, Qmax=0;
+  FLT_OR_DBL        qbt1, *tmp, q_temp;
+  FLT_OR_DBL        *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
+  FLT_OR_DBL        *q, *qb, *qm, *qm1, *G, *q1k, *qln;
+  FLT_OR_DBL        *scale;
+  FLT_OR_DBL        *expMLbase;
+  short             *S1;
+  int               *my_iindx, *jindx;
+  char              *ptype, *sequence;
+  vrna_ud_t         *domains_up;
+  vrna_md_t         *md;
+  vrna_hc_t         *hc;
+  vrna_sc_t         *sc;
+  vrna_mx_pf_t      *matrices;
   vrna_exp_param_t  *pf_params;
-  vrna_mx_pf_t      *matrices = vc->exp_matrices;
 
-  pf_params             = vc->exp_params;
-  vrna_md_t       *md = &(pf_params->model_details);
-  vrna_hc_t       *hc = vc->hc;
-  vrna_sc_t       *sc = vc->sc;
+  matrices    = vc->exp_matrices;
+  pf_params   = vc->exp_params;
+  md          = &(pf_params->model_details);
+  hc          = vc->hc;
+  sc          = vc->sc;
+  domains_up  = vc->domains_up;
 
   double      max_real;
   int         with_gquad  = md->gquad;
@@ -347,6 +352,11 @@ pf_linear(vrna_fold_compound_t *vc){
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
 
+  /* pre-processing ligand binding production rule(s) and auxiliary memory */
+  if(domains_up && domains_up->exp_prod_cb){
+    domains_up->exp_prod_cb(vc, domains_up->data);
+  }
+
   if(with_gquad){
     expMLstem = exp_E_MLstem(0, -1, -1, pf_params);
     free(vc->exp_matrices->G);
@@ -366,6 +376,10 @@ pf_linear(vrna_fold_compound_t *vc){
             q[ij] *= sc->exp_energy_up[i][d+1];
           if(sc->exp_f)
             q[ij] *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_UP, sc->data);
+        }
+
+        if(domains_up && domains_up->exp_energy_cb){
+          q[ij] *= domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
         }
       } else {
         q[ij] = 0.;
@@ -437,6 +451,19 @@ pf_linear(vrna_fold_compound_t *vc){
         qqm[i] += G[my_iindx[i]-j] * expMLstem;
       }
 
+      if(domains_up && domains_up->exp_energy_cb){
+        for(k = 0; k < domains_up->motif_count; k++){
+          u = domains_up->motif_size[k];
+          l = j - u + 1;
+          if((l > i) && (hc_up_ml[l] >= u)){
+            q_temp =    qm1[jindx[l-1]+i]
+                      * expMLbase[u]
+                      * domains_up->exp_energy_cb(vc, l, j, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+            qqm[i] += q_temp;
+          }
+        }
+      }
+
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking and circfold */
 
       /*construction of qm matrix containing multiple loop
@@ -457,20 +484,44 @@ pf_linear(vrna_fold_compound_t *vc){
 
       maxk  = MIN2(i+hc_up_ml[i], j);
       ii    = maxk - i; /* length of unpaired stretch */
-      if(sc){
-        for (k=maxk; k>i; k--, ii--){
-          q_temp = expMLbase[ii] * qqm[k];
-          if(sc->exp_energy_up)
-            q_temp *= sc->exp_energy_up[i][ii];
+      if(domains_up && domains_up->exp_energy_cb){
+        if(sc){
+          for (k=maxk; k>i; k--, ii--){
+            q_temp =    expMLbase[ii]
+                      * domains_up->exp_energy_cb(vc, i, k-1,VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP, domains_up->data)
+                      * qqm[k];
 
-          if(sc->exp_f)
-            q_temp *= sc->exp_f(i, j, k, j, VRNA_DECOMP_ML_ML, sc->data);
+            if(sc->exp_energy_up)
+              q_temp *= sc->exp_energy_up[i][ii];
 
-          temp += q_temp;
+            if(sc->exp_f)
+              q_temp *= sc->exp_f(i, j, k, j, VRNA_DECOMP_ML_ML, sc->data);
+
+            temp += q_temp;
+          }
+        } else {
+          for (k=maxk; k>i; k--, ii--){
+            temp +=   expMLbase[ii]
+                    * domains_up->exp_energy_cb(vc, i, k-1,VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP, domains_up->data)
+                    * qqm[k];
+          }
         }
       } else {
-        for (k=maxk; k>i; k--, ii--){
-          temp += expMLbase[ii] * qqm[k];
+        if(sc){
+          for (k=maxk; k>i; k--, ii--){
+            q_temp = expMLbase[ii] * qqm[k];
+            if(sc->exp_energy_up)
+              q_temp *= sc->exp_energy_up[i][ii];
+
+            if(sc->exp_f)
+              q_temp *= sc->exp_f(i, j, k, j, VRNA_DECOMP_ML_ML, sc->data);
+
+            temp += q_temp;
+          }
+        } else {
+          for (k=maxk; k>i; k--, ii--){
+            temp += expMLbase[ii] * qqm[k];
+          }
         }
       }
 
@@ -512,17 +563,17 @@ pf_linear(vrna_fold_compound_t *vc){
       temp = qq[i];
 
       /* the entire stretch [i,j] is unpaired */
-      if(hc_up_ext[i] >= (j-i+1)){
-        q_temp = 1.0 * scale[j-i+1];
+      u = j - i + 1;
+      if(hc_up_ext[i] >= u){
+        q_temp = 1.0 * scale[u];
 
         if(sc){
           if(sc->exp_energy_up)
-            q_temp *= sc->exp_energy_up[i][j-i+1];
+            q_temp *= sc->exp_energy_up[i][u];
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_UP, sc->data);
         }
-
         temp += q_temp;
       }
 
@@ -539,6 +590,35 @@ pf_linear(vrna_fold_compound_t *vc){
         }
       }
 
+      if(domains_up && domains_up->exp_energy_cb){
+        q_temp = 0.;
+        ii = my_iindx[i];
+        for(k = 0; k < domains_up->motif_count; k++){
+          u = domains_up->motif_size[k];
+          l = j - u + 1;
+
+          if((l >= i) && (hc_up_ext[l] >= u)){
+            qbt1 =    scale[u]
+                    * domains_up->exp_energy_cb(vc, l, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+
+            if(sc){
+              if(sc->exp_energy_up)
+                qbt1 *= sc->exp_energy_up[l][u];
+
+              if(sc->exp_f)
+                qbt1 *= sc->exp_f(i, j, l - 1, l, VRNA_DECOMP_EXT_EXT_L, sc->data);
+            }
+
+            if(l > i){
+              q_temp += q[ii - l + 1] * qbt1;
+            } else if(l == i){
+              q_temp += qbt1;
+            }
+          }
+        }
+        temp += q_temp;
+      }
+
       q[ij] = temp;
       if (temp>Qmax) {
         Qmax = temp;
@@ -552,9 +632,8 @@ pf_linear(vrna_fold_compound_t *vc){
         vrna_message_error(msg);
       }
     }
-    tmp = qq1;  qq1 =qq;  qq =tmp;
-    tmp = qqm1; qqm1=qqm; qqm=tmp;
-
+    tmp = qq1;  qq1 = qq;   qq  = tmp;
+    tmp = qqm1; qqm1 = qqm; qqm = tmp;
   }
 
   /* prefill linear qln, q1k arrays */

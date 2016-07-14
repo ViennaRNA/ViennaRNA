@@ -234,13 +234,13 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
   vrna_param_t    *P;
   vrna_sc_t       *sc, **scs;
   vrna_md_t       *md;
-  vrna_ud_t       *ligands_up;
+  vrna_ud_t       *domains_up;
 
   cp          = vc->cutpoint;
   idx         = vc->jindx;
   P           = vc->params;
   md          = &(P->model_details);
-  ligands_up  = vc->domains_up;
+  domains_up  = vc->domains_up;
   e           = INF;
 
   switch(vc->type){
@@ -267,28 +267,25 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
                                   }
 
                                   /* consider possible ligand binding */
-                                  if(ligands_up){
-                                    if(ligands_up->energy_cb){
-                                      en = ligands_up->energy_cb(vc, i+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, ligands_up->data);
-                                      if(en != INF){
-                                        e += en;
-                                      } else {
-                                        e = INF;
-                                      }
+                                  if(domains_up && domains_up->energy_cb){
+                                    en = domains_up->energy_cb(vc, i+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
+                                    if(en != INF){
+                                      e += en;
+                                    } else {
+                                      e = INF;
                                     }
-                                  } else {
+                                  }
 
-                                    /* add soft constraints */
-                                    if(sc){
-                                      if(sc->energy_up)
-                                        e += sc->energy_up[i+1][u];
+                                  /* add soft constraints */
+                                  if(sc){
+                                    if(sc->energy_up)
+                                      e += sc->energy_up[i+1][u];
 
-                                      if(sc->energy_bp){
-                                        e += sc->energy_bp[ij];
-                                      }
-                                      if(sc->f)
-                                        e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
+                                    if(sc->energy_bp){
+                                      e += sc->energy_bp[ij];
                                     }
+                                    if(sc->f)
+                                      e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
                                   }
 
                                   break;
@@ -417,14 +414,16 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
   vrna_exp_param_t  *P;
   vrna_sc_t         *sc, **scs;
   vrna_md_t         *md;
+  vrna_ud_t         *domains_up;
 
-  cp    = vc->cutpoint;
-  idx   = vc->jindx;
-  iidx  = vc->iindx;
-  P     = vc->exp_params;
-  md    = &(P->model_details);
-  scale = vc->exp_matrices->scale;
-  types = NULL;
+  cp          = vc->cutpoint;
+  idx         = vc->jindx;
+  iidx        = vc->iindx;
+  P           = vc->exp_params;
+  md          = &(P->model_details);
+  scale       = vc->exp_matrices->scale;
+  types       = NULL;
+  domains_up  = vc->domains_up;
 
   q     = 0.;
   ij    = idx[j] + i;
@@ -442,6 +441,10 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
                                     q = exp_E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P);
                                   } else { /* hairpin-like exterior loop (for cofolding) */
                                     /* this is currently handle somewhere else */
+                                  }
+
+                                  if(domains_up && domains_up->exp_energy_cb){
+                                    q *= domains_up->exp_energy_cb(vc, i+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
                                   }
 
                                   /* add soft constraints */
@@ -524,6 +527,7 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
   vrna_exp_param_t  *P;
   vrna_sc_t         *sc, **scs;
   vrna_md_t         *md;
+  vrna_ud_t         *domains_up;
 
   n           = vc->length;
   idx         = vc->jindx;
@@ -532,6 +536,7 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
   noGUclosure = md->noGUclosure;
   scale       = vc->exp_matrices->scale;
   types       = NULL;
+  domains_up  = vc->domains_up;
   rtype       = &(md->rtype[0]);
 
   q     = 0.;
@@ -558,6 +563,10 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
                                   }
 
                                   q = exp_E_Hairpin(u, type, S[j+1], S[i-1], loopseq, P);
+
+                                  if(domains_up && domains_up->exp_energy_cb){
+                                    q *= domains_up->exp_energy_cb(vc, j+1, i-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
+                                  }
 
                                   /* add soft constraints */
                                   if(sc){

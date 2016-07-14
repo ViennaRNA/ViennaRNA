@@ -114,7 +114,7 @@ E_int_loop( vrna_fold_compound_t *vc,
   vrna_param_t      *P;
   vrna_md_t         *md;
   vrna_mx_mfe_t     *matrices;
-  vrna_ud_t         *ligands_up;
+  vrna_ud_t         *domains_up;
 #ifdef WITH_GEN_HC
   vrna_callback_hc_evaluate *f;
 #endif
@@ -133,7 +133,7 @@ E_int_loop( vrna_fold_compound_t *vc,
   md            = &(P->model_details);
   with_gquad    = md->gquad;
   turn          = md->min_loop_size;
-  ligands_up    = vc->domains_up;
+  domains_up    = vc->domains_up;
 
 #ifdef WITH_GEN_HC
   f = vc->hc->f;
@@ -159,7 +159,7 @@ E_int_loop( vrna_fold_compound_t *vc,
     if(type == 0)
       type = 7;
 
-    if(ligands_up && ligands_up->energy_cb){
+    if(domains_up && domains_up->energy_cb){
       for(q = j - 1; q >= max_q; q--){
         j_q = j - q - 1;
 
@@ -561,13 +561,13 @@ eval_interior_loop( vrna_fold_compound_t *vc,
   vrna_param_t      *P;
   vrna_sc_t         *sc;
   vrna_md_t         *md;
-  vrna_ud_t   *ligands_up;
+  vrna_ud_t         *domains_up;
 
   S           = vc->sequence_encoding;
   cp          = vc->cutpoint;
   P           = vc->params;
   sc          = vc->sc;
-  ligands_up  = vc->domains_up;
+  domains_up  = vc->domains_up;
   md          = &(P->model_details);
   rtype       = &(md->rtype[0]);
   idx         = vc->jindx;
@@ -602,6 +602,14 @@ eval_interior_loop( vrna_fold_compound_t *vc,
                             P);
   }
 
+  /* unstructured domains */
+  if(domains_up && domains_up->energy_cb){
+    if(u1 > 0)
+      energy += domains_up->energy_cb(vc, i+1, p-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+    if(u2 > 0)
+      energy += domains_up->energy_cb(vc, q+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+  }
+
   /* add soft constraints */
   if(sc){
     if(sc->energy_up)
@@ -623,11 +631,6 @@ eval_interior_loop( vrna_fold_compound_t *vc,
       energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
   }
 
-  if(ligands_up && ligands_up->energy_cb){
-    energy +=   ligands_up->energy_cb(vc, i+1, p-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, ligands_up->data)
-              + ligands_up->energy_cb(vc, q+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, ligands_up->data);
-  }
-
   return energy;
 }
 
@@ -646,6 +649,7 @@ exp_E_int_loop( vrna_fold_compound_t *vc,
   vrna_sc_t         *sc; 
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
+  vrna_ud_t         *domains_up;
 
   cp          = vc->cutpoint;
   ptype       = vc->ptype;
@@ -665,6 +669,7 @@ exp_E_int_loop( vrna_fold_compound_t *vc,
   qb          = vc->exp_matrices->qb;
   G           = vc->exp_matrices->G;
   scale       = vc->exp_matrices->scale;
+  domains_up  = vc->domains_up;
   qbt1        = 0.;
 
   /* CONSTRAINED INTERIOR LOOP start */
@@ -701,6 +706,15 @@ exp_E_int_loop( vrna_fold_compound_t *vc,
                   * scale[u1+u2+2]
                   * exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k-1], S1[l+1], pf_params);
 
+          /* unstructured domains */
+          if(domains_up && domains_up->exp_energy_cb){
+            if(u1 > 0)
+              q_temp *= domains_up->exp_energy_cb(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+            if(u2 > 0)
+              q_temp *= domains_up->exp_energy_cb(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+          }
+
+          /* soft constraints */
           if(sc){
             if(sc->exp_energy_up)
               q_temp *= sc->exp_energy_up[i+1][u1]
@@ -1264,7 +1278,7 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
-  vrna_ud_t     *ligands_up;
+  vrna_ud_t     *domains_up;
 #ifdef WITH_GEN_HC
   vrna_callback_hc_evaluate *f;
 #endif
@@ -1284,7 +1298,7 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
   S1          = vc->sequence_encoding;
   noGUclosure = md->noGUclosure;
   no_close    = (((type==3)||(type==4))&&noGUclosure);
-  ligands_up  = vc->domains_up;
+  domains_up  = vc->domains_up;
 
 #ifdef WITH_GEN_HC
   f           = vc->hc->f;
@@ -1295,7 +1309,7 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
     if(type == 0)
       type = 7;
 
-    if(ligands_up && ligands_up->energy_cb){
+    if(domains_up && domains_up->energy_cb){
       for (p = *i+1; p <= MIN2(*j-2-turn,*i+MAXLOOP+1); p++) {
         minq = *j-*i+p-MAXLOOP-2;
         if (minq<p+1+turn)
