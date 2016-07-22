@@ -292,8 +292,9 @@ pf_linear(vrna_fold_compound_t *vc){
   FLT_OR_DBL        expMLstem = 0.;
 
   FLT_OR_DBL        temp, Qmax=0;
-  FLT_OR_DBL        qbt1, *tmp, q_temp;
-  FLT_OR_DBL        *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
+  FLT_OR_DBL        qbt1, *tmp, q_temp, q_temp2;
+  FLT_OR_DBL        *qqm, *qqm1, *qq, *qq1;
+  FLT_OR_DBL        **qqmu, **qqu;
   FLT_OR_DBL        *q, *qb, *qm, *qm1, *G, *q1k, *qln;
   FLT_OR_DBL        *scale;
   FLT_OR_DBL        *expMLbase;
@@ -318,6 +319,8 @@ pf_linear(vrna_fold_compound_t *vc){
   int         with_gquad  = md->gquad;
   int         circular    = md->circ;
   int         turn        = md->min_loop_size;
+  int         with_ud     = (domains_up && domains_up->exp_energy_cb);
+  int         ud_max_size = 0;
 
   n         = vc->length;
   my_iindx  = vc->iindx;
@@ -348,13 +351,29 @@ pf_linear(vrna_fold_compound_t *vc){
   qq1       = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
   qqm       = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
   qqm1      = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+  qqu       = NULL;
+  qqmu      = NULL;
 
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
 
   /* pre-processing ligand binding production rule(s) and auxiliary memory */
-  if(domains_up && domains_up->exp_prod_cb){
-    domains_up->exp_prod_cb(vc, domains_up->data);
+  if(with_ud){
+    if(domains_up->exp_prod_cb){
+      domains_up->exp_prod_cb(vc, domains_up->data);
+    }
+
+    for(u = 0; u < domains_up->uniq_motif_count; u++)
+      if(ud_max_size < domains_up->uniq_motif_size[u])
+        ud_max_size = domains_up->uniq_motif_size[u];
+
+    qqu = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *) * (ud_max_size + 1));
+    for(u = 0; u <= ud_max_size; u++)
+      qqu[u] = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+
+    qqmu = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *) * (ud_max_size + 1));
+    for(u = 0; u <= ud_max_size; u++)
+      qqmu[u] = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
   }
 
   if(with_gquad){
@@ -378,18 +397,15 @@ pf_linear(vrna_fold_compound_t *vc){
             q[ij] *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_UP, sc->data);
         }
 
-        if(domains_up && domains_up->exp_energy_cb){
-          q[ij] *= domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+        if(with_ud){
+          q[ij] *= domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, domains_up->data);
         }
       } else {
         q[ij] = 0.;
       }
 
-      qb[ij]  = qm[ij] = 0.0;
+      qb[ij] = qm[ij] = 0.0;
     }
-
-  for (i=0; i<=n; i++)
-    qq[i] = qq1[i] = qqm[i] = qqm1[i] = 0;
 
   for (j = turn + 2; j <= n; j++) {
     for (i = j - turn - 1; i >= 1; i--) {
@@ -419,6 +435,10 @@ pf_linear(vrna_fold_compound_t *vc){
          from segment i,j */
       qqm[i] = 0.;
 
+      if(with_ud){
+        qqmu[0][i] = 0.;
+      }
+
       if(hc_up_ml[j]){
         q_temp  =  qqm1[i] * expMLbase[1];
 
@@ -428,6 +448,27 @@ pf_linear(vrna_fold_compound_t *vc){
 
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, i, j-1, VRNA_DECOMP_ML_ML, sc->data);
+        }
+
+        if(with_ud){
+          int cnt;
+          for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+            u = domains_up->uniq_motif_size[cnt];
+            if(hc_up_ml[j] >= u){
+              if(j + u < n){
+                q_temp2 =   qqmu[u][i]
+                          * domains_up->exp_energy_cb(vc, j, j + u, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data)
+                          * expMLbase[u];
+
+                if(sc){
+                  if(sc->exp_energy_up)
+                    q_temp2 *= sc->exp_energy_up[j][u];
+                }
+                q_temp += q_temp2;
+              }
+            }
+          }
+          qqmu[0][i] = q_temp;
         }
 
         qqm[i] = q_temp;
@@ -442,26 +483,18 @@ pf_linear(vrna_fold_compound_t *vc){
             qbt1 *= sc->exp_f(i, j, i, j, VRNA_DECOMP_ML_STEM, sc->data);
         }
 
-
         qqm[i] += qbt1;
+
+        if(with_ud)
+          qqmu[0][i] += qbt1;
       }
 
       if(with_gquad){
         /*include gquads into qqm*/
         qqm[i] += G[my_iindx[i]-j] * expMLstem;
-      }
 
-      if(domains_up && domains_up->exp_energy_cb){
-        for(k = 0; k < domains_up->motif_count; k++){
-          u = domains_up->motif_size[k];
-          l = j - u + 1;
-          if((l > i) && (hc_up_ml[l] >= u)){
-            q_temp =    qm1[jindx[l-1]+i]
-                      * expMLbase[u]
-                      * domains_up->exp_energy_cb(vc, l, j, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
-            qqm[i] += q_temp;
-          }
-        }
+        if(with_ud)
+          qqmu[0][i] += G[my_iindx[i]-j] * expMLstem;
       }
 
       if (qm1) qm1[jindx[j]+i] = qqm[i]; /* for stochastic backtracking and circfold */
@@ -484,7 +517,7 @@ pf_linear(vrna_fold_compound_t *vc){
 
       maxk  = MIN2(i+hc_up_ml[i], j);
       ii    = maxk - i; /* length of unpaired stretch */
-      if(domains_up && domains_up->exp_energy_cb){
+      if(with_ud){
         if(sc){
           for (k=maxk; k>i; k--, ii--){
             q_temp =    expMLbase[ii]
@@ -541,6 +574,27 @@ pf_linear(vrna_fold_compound_t *vc){
             q_temp *= sc->exp_f(i, j, i, j-1, VRNA_DECOMP_EXT_EXT, sc->data);
         }
 
+        if(with_ud){
+          int cnt;
+          for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+            u = domains_up->uniq_motif_size[u];
+            if(hc_up_ext[j] >= u){
+              if(j + u <= n){
+                q_temp2 =   qqu[u][i]
+                          * domains_up->exp_energy_cb(vc, j, j + u, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data)
+                          * scale[u];
+
+                if(sc){
+                  if(sc->exp_energy_up)
+                    q_temp2 *= sc->exp_energy_up[j][u];
+                }
+
+                q_temp += q_temp2;
+              }
+            }
+          }
+        }
+
         qbt1 += q_temp;
       }
 
@@ -559,6 +613,10 @@ pf_linear(vrna_fold_compound_t *vc){
       }
 
       qq[i] = qbt1;
+
+      if(with_ud)
+        qqu[0][i] = qbt1;
+
       /*construction of partition function for segment i,j */
       temp = qq[i];
 
@@ -574,6 +632,13 @@ pf_linear(vrna_fold_compound_t *vc){
           if(sc->exp_f)
             q_temp *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_UP, sc->data);
         }
+
+/*
+        if(with_ud){
+          q_temp *= domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, domains_up->data);
+        }
+*/
+
         temp += q_temp;
       }
 
@@ -588,35 +653,6 @@ pf_linear(vrna_fold_compound_t *vc){
         for (k=i; k<j; k++, kl--){
           temp += q[kl] * qq[k+1];
         }
-      }
-
-      if(domains_up && domains_up->exp_energy_cb){
-        q_temp = 0.;
-        ii = my_iindx[i];
-        for(k = 0; k < domains_up->motif_count; k++){
-          u = domains_up->motif_size[k];
-          l = j - u + 1;
-
-          if((l >= i) && (hc_up_ext[l] >= u)){
-            qbt1 =    scale[u]
-                    * domains_up->exp_energy_cb(vc, l, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
-
-            if(sc){
-              if(sc->exp_energy_up)
-                qbt1 *= sc->exp_energy_up[l][u];
-
-              if(sc->exp_f)
-                qbt1 *= sc->exp_f(i, j, l - 1, l, VRNA_DECOMP_EXT_EXT_L, sc->data);
-            }
-
-            if(l > i){
-              q_temp += q[ii - l + 1] * qbt1;
-            } else if(l == i){
-              q_temp += qbt1;
-            }
-          }
-        }
-        temp += q_temp;
       }
 
       q[ij] = temp;
@@ -634,6 +670,19 @@ pf_linear(vrna_fold_compound_t *vc){
     }
     tmp = qq1;  qq1 = qq;   qq  = tmp;
     tmp = qqm1; qqm1 = qqm; qqm = tmp;
+
+    /* rotate auxiliary arrays for unstructured domains */
+    if(with_ud){
+      tmp = qqu[ud_max_size];
+      for(u = ud_max_size; u > 0; u--)
+        qqu[u] = qqu[u - 1];
+      qqu[0] = tmp;
+
+      tmp = qqmu[ud_max_size];
+      for(u = ud_max_size; u > 0; u--)
+        qqmu[u] = qqmu[u - 1];
+      qqmu[0] = tmp;
+    }
   }
 
   /* prefill linear qln, q1k arrays */
@@ -652,6 +701,14 @@ pf_linear(vrna_fold_compound_t *vc){
   free(qqm);
   free(qqm1);
 
+  if(with_ud){
+    for(u = 0; u <= ud_max_size; u++){
+      free(qqu[u]);
+      free(qqmu[u]);
+    }
+    free(qqu);
+    free(qqmu);
+  }
 }
 
 /* calculate partition function for circular case */
