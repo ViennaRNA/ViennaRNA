@@ -268,6 +268,8 @@ remove_ligands_up(vrna_fold_compound_t *vc){
   free(vc->domains_up->motif_en);
   free(vc->domains_up->motif_type);
 
+  free(vc->domains_up->uniq_motif_size);
+
   free(vc->domains_up);
 
   vc->domains_up = NULL;
@@ -278,17 +280,19 @@ init_ligands_up(vrna_fold_compound_t *vc){
 
   vc->domains_up = (vrna_ud_t *)vrna_alloc(sizeof(vrna_ud_t));
 
-  vc->domains_up->motif_count   = 0;
-  vc->domains_up->motif         = NULL;
-  vc->domains_up->motif_size    = NULL;
-  vc->domains_up->motif_en      = NULL;
-  vc->domains_up->motif_type    = NULL;
-  vc->domains_up->prod_cb       = NULL;
-  vc->domains_up->exp_prod_cb   = NULL;
-  vc->domains_up->energy_cb     = NULL;
-  vc->domains_up->exp_energy_cb = NULL;
-  vc->domains_up->data          = NULL;
-  vc->domains_up->free_data     = NULL;
+  vc->domains_up->uniq_motif_count  = 0;
+  vc->domains_up->uniq_motif_size   = NULL;
+  vc->domains_up->motif_count       = 0;
+  vc->domains_up->motif             = NULL;
+  vc->domains_up->motif_size        = NULL;
+  vc->domains_up->motif_en          = NULL;
+  vc->domains_up->motif_type        = NULL;
+  vc->domains_up->prod_cb           = NULL;
+  vc->domains_up->exp_prod_cb       = NULL;
+  vc->domains_up->energy_cb         = NULL;
+  vc->domains_up->exp_energy_cb     = NULL;
+  vc->domains_up->data              = NULL;
+  vc->domains_up->free_data         = NULL;
 }
 
 /*
@@ -305,15 +309,37 @@ add_ligand_motif( vrna_fold_compound_t *vc,
                   double motif_en,
                   unsigned int loop_type){
 
-  vc->domains_up->motif                                   = (char **)vrna_realloc(vc->domains_up->motif, sizeof(char *) * (vc->domains_up->motif_count + 1));
-  vc->domains_up->motif[vc->domains_up->motif_count]      = strdup(motif);
-  vc->domains_up->motif_size                              = (unsigned int *)vrna_realloc(vc->domains_up->motif_size, sizeof(unsigned int *) * (vc->domains_up->motif_count + 1));
-  vc->domains_up->motif_size[vc->domains_up->motif_count] = strlen(motif);
-  vc->domains_up->motif_en                                = (double *)vrna_realloc(vc->domains_up->motif_en, sizeof(double) * (vc->domains_up->motif_count + 1));
-  vc->domains_up->motif_en[vc->domains_up->motif_count]   = motif_en;
-  vc->domains_up->motif_type                              = (unsigned int *)vrna_realloc(vc->domains_up->motif_type, sizeof(double) * (vc->domains_up->motif_count + 1));
-  vc->domains_up->motif_type[vc->domains_up->motif_count] = loop_type;
-  vc->domains_up->motif_count++;
+  unsigned int  i, n, same_size;
+  vrna_ud_t     *ud;
+
+  n   = (unsigned int)strlen(motif);
+  ud  = vc->domains_up;
+
+  /* First, we update the list of unique motif lengths */
+  for(same_size = i = 0; i < ud->uniq_motif_count; i++){
+    if(ud->uniq_motif_size[i] == n){
+      same_size = 1;
+      break;
+    }
+  }
+
+  if(!same_size){
+    ud->uniq_motif_size = (unsigned int *)vrna_realloc(ud->uniq_motif_size, sizeof(unsigned int *) * (ud->uniq_motif_count + 1));
+    ud->uniq_motif_size[ud->uniq_motif_count] = n;
+    ud->uniq_motif_count++;
+  }
+
+  /* And finally, we store the motif */
+  ud->motif                       = (char **)vrna_realloc(ud->motif, sizeof(char *) * (ud->motif_count + 1));
+  ud->motif[ud->motif_count]      = strdup(motif);
+  ud->motif_size                  = (unsigned int *)vrna_realloc(ud->motif_size, sizeof(unsigned int *) * (ud->motif_count + 1));
+  ud->motif_size[ud->motif_count] = n;
+  ud->motif_en                    = (double *)vrna_realloc(ud->motif_en, sizeof(double) * (ud->motif_count + 1));
+  ud->motif_en[ud->motif_count]   = motif_en;
+  ud->motif_type                  = (unsigned int *)vrna_realloc(ud->motif_type, sizeof(double) * (ud->motif_count + 1));
+  ud->motif_type[ud->motif_count] = loop_type;
+  ud->motif_count++;
+
 }
 
 PRIVATE void
@@ -594,7 +620,8 @@ prepare_default_data( vrna_fold_compound_t *vc,
   data->n = n;
   free_default_data(data);
 
-  /*  create motif_list for associating a nucleotide position with all
+  /*
+      create motif_list for associating a nucleotide position with all
       motifs that start there
   */
   data->motif_list_ext  = (int **)vrna_alloc(sizeof(int *) * (n+1));
@@ -926,19 +953,19 @@ default_exp_energy( vrna_fold_compound_t *vc,
     ij    = idx[i] - j;
     switch(loop_type){
       case VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP: if(data->exp_energies_ext)
-                                              q = data->exp_energies_ext[ij];
+                                                q = data->exp_energies_ext[ij];
                                               break;
 
       case VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP:  if(data->exp_energies_hp)
-                                              q = data->exp_energies_hp[ij];
+                                                q = data->exp_energies_hp[ij];
                                               break;
 
       case VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP: if(data->exp_energies_int)
-                                              q = data->exp_energies_int[ij];
+                                                q = data->exp_energies_int[ij];
                                               break;
 
       case VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP:  if(data->exp_energies_mb)
-                                              q = data->exp_energies_mb[ij];
+                                                q = data->exp_energies_mb[ij];
                                               break;
     }
   }

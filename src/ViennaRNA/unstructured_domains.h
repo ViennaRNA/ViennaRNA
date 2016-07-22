@@ -125,11 +125,14 @@ struct vrna_unstructured_domain_s {
     Keep track of all added motifs
   **********************************
   */
-  int                             motif_count;    /**<  @brief Number of distinguished motifs */
-  char                            **motif;        /**<  @brief Motif sequences */
-  unsigned int                    *motif_size;    /**<  @brief Motif lengths */
-  double                          *motif_en;      /**<  @brief Ligand binding free energy contribution */
-  unsigned int                    *motif_type;    /**<  @brief Type of motif, i.e. loop type the ligand binds to */
+  int                             uniq_motif_count; /**<  @brief The unique number of motifs of different lengths */ 
+  unsigned int                    *uniq_motif_size; /**<  @brief An array storing a unique list of motif lengths */
+
+  int                             motif_count;      /**<  @brief Total number of distinguished motifs */
+  char                            **motif;          /**<  @brief Motif sequences */
+  unsigned int                    *motif_size;      /**<  @brief Motif lengths */
+  double                          *motif_en;        /**<  @brief Ligand binding free energy contribution */
+  unsigned int                    *motif_type;      /**<  @brief Type of motif, i.e. loop type the ligand binds to */
 
   /*
   **********************************
