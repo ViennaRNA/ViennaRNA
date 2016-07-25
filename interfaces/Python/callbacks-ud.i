@@ -15,6 +15,12 @@ typedef struct {
   PyObject  *delete_data;
 } py_ud_callback_t;
 
+static vrna_callback_ud_production      py_wrap_ud_prod_rule;
+static vrna_callback_ud_exp_production  py_wrap_ud_exp_prod_rule;
+static vrna_callback_ud_energy          py_wrap_ud_energy;
+static vrna_callback_ud_exp_energy      py_wrap_ud_exp_energy;
+
+
 static void
 delete_py_ud_callback(void * data){
 
@@ -38,6 +44,7 @@ delete_py_ud_callback(void * data){
   /* finally free pycallback */
   free(cb);
 }
+
 
 static void
 ud_set_pydata(vrna_fold_compound_t *vc,
@@ -76,17 +83,113 @@ ud_set_pydata(vrna_fold_compound_t *vc,
   Py_XINCREF(data);
   Py_XINCREF(PyFunc);
 
-  vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
+  if(!(vc->domains_up && vc->domains_up->data))
+    vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
 
 }
 
 
+static void
+ud_set_prod_rule_cb(vrna_fold_compound_t *vc,
+                    PyObject *PyFunc){
+
+  /* try to dispose of previous callback */
+  py_ud_callback_t * cb;
+  if(vc->domains_up && vc->domains_up->data){
+    cb = (py_ud_callback_t *)vc->domains_up->data;
+    /* release previous callback */
+    Py_XDECREF(cb->prod_rule);
+  } else {
+    cb = (py_ud_callback_t *)vrna_alloc(sizeof(py_ud_callback_t));
+    cb->prod_rule     = NULL;
+    cb->exp_prod_rule = NULL;
+    cb->energy        = NULL;
+    cb->exp_energy    = NULL;
+    cb->data          = NULL;
+    cb->delete_data   = NULL;
+  }
+  cb->prod_rule = PyFunc; /* remember callback */
+  Py_XINCREF(PyFunc);     /* Increase referenc counter */
+
+  /* finaly bind callback wrapper to fold compound */
+  if(!(vc->domains_up && vc->domains_up->data))
+    vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
+
+  vrna_ud_set_prod_rule(vc, &py_wrap_ud_prod_rule);
+}
+
+
+static void
+ud_set_exp_prod_rule_cb(vrna_fold_compound_t *vc,
+                        PyObject *PyFunc){
+
+  /* try to dispose of previous callback */
+  py_ud_callback_t * cb;
+  if(vc->domains_up && vc->domains_up->data){
+    cb = (py_ud_callback_t *)vc->domains_up->data;
+    /* release previous callback */
+    Py_XDECREF(cb->exp_prod_rule);
+  } else {
+    cb = (py_ud_callback_t *)vrna_alloc(sizeof(py_ud_callback_t));
+    cb->prod_rule     = NULL;
+    cb->exp_prod_rule = NULL;
+    cb->energy        = NULL;
+    cb->exp_energy    = NULL;
+    cb->data          = NULL;
+    cb->delete_data   = NULL;
+  }
+  cb->exp_prod_rule = PyFunc; /* remember callback */
+  Py_XINCREF(PyFunc);         /* Increase referenc counter */
+
+  /* finaly bind callback wrapper to fold compound */
+  if(!(vc->domains_up && vc->domains_up->data))
+    vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
+
+  vrna_ud_set_exp_prod_rule(vc, &py_wrap_ud_exp_prod_rule);
+}
+
+
+static void
+py_wrap_ud_prod_rule( vrna_fold_compound_t *vc,
+                      void *data){
+
+  int ret;
+  PyObject *func, *arglist, *result;
+  py_ud_callback_t *cb = (py_ud_callback_t *)data;
+
+  func = cb->prod_rule;
+  /* compose argument list */
+  arglist = Py_BuildValue("(O,O)", vc, (cb->data) ? cb->data : Py_None);
+  result =  PyEval_CallObject(func, arglist);
+  Py_DECREF(arglist);
+  Py_XDECREF(result);
+  return /*void*/;
+}
+
+
+static void
+py_wrap_ud_exp_prod_rule( vrna_fold_compound_t *vc,
+                          void *data){
+
+  int ret;
+  PyObject *func, *arglist, *result;
+  py_ud_callback_t *cb = (py_ud_callback_t *)data;
+
+  func = cb->exp_prod_rule;
+  /* compose argument list */
+  arglist = Py_BuildValue("(O,O)", vc, (cb->data) ? cb->data : Py_None);
+  result =  PyEval_CallObject(func, arglist);
+  Py_DECREF(arglist);
+  Py_XDECREF(result);
+  return /*void*/;
+}
+
 %}
 
 static void ud_set_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *PyFuncOrNone);
-/*
 static void ud_set_prod_rule_cb(vrna_fold_compound_t *vc, PyObject *PyFunc);
 static void ud_set_exp_prod_rule_cb(vrna_fold_compound_t *vc, PyObject *PyFunc);
+/*
 static void ud_set_energy_cb(vrna_fold_compound_t *vc, PyObject *PyFunc);
 static void ud_set_exp_energy_cb(vrna_fold_compound_t *vc, PyObject *PyFunc);
 */
@@ -96,6 +199,14 @@ static void ud_set_exp_energy_cb(vrna_fold_compound_t *vc, PyObject *PyFunc);
 
   void ud_set_data(PyObject *data, PyObject *PyFuncOrNone=Py_None){
     ud_set_pydata($self, data, PyFuncOrNone);
+  }
+
+  void ud_set_prod_rule(PyObject *PyFuncOrNone=Py_None){
+    ud_set_prod_rule_cb($self, PyFuncOrNone);
+  }
+
+  void ud_set_exp_prod_rule(PyObject *PyFuncOrNone=Py_None){
+    ud_set_exp_prod_rule_cb($self, PyFuncOrNone);
   }
 
 }
