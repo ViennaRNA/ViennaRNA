@@ -171,19 +171,10 @@ perl_wrap_fc_status_callback( unsigned char status,
 
 %}
 
-%typemap(in) SV *PerlFunc {
-  $1 = $input;
-}
-
-%typemap(in) SV *data {
-  $1 = $input;
-}
-
-
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
-  void add_auxdata(SV *data, SV *free_data){
-    fc_add_perl_data($self, data, free_data);
+  void add_auxdata(SV *data, SV *PerlFunc){
+    fc_add_perl_data($self, data, PerlFunc);
   }
 
   void add_callback(SV *PerlFunc){

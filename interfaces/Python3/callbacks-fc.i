@@ -124,24 +124,12 @@ py_wrap_fc_status_callback( unsigned char status,
 %}
 
 static void fc_add_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
-static void fc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *PyFunc);
-
-%typemap(in) PyObject *PyFunc {
-  if (!PyCallable_Check($input)) {
-      PyErr_SetString(PyExc_TypeError, "Need a callable object!");
-      return NULL;
-  }
-  $1 = $input;
-}
-
-%typemap(in) PyObject * {
-  $1 = $input;
-}
+static void fc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *PyFuncOrNone);
 
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
-  void add_auxdata(PyObject *data, PyObject *free_data){
-    fc_add_pydata($self, data, free_data);
+  void add_auxdata(PyObject *data, PyObject *PyFuncOrNone=Py_None){
+    fc_add_pydata($self, data, PyFuncOrNone);
   }
 
   void add_callback(PyObject *PyFunc){

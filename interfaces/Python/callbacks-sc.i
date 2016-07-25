@@ -147,7 +147,7 @@ sc_add_pydata(vrna_fold_compound_t *vc,
 
   /* try to dispose of previous data */
   if(vc->sc->data){
-    cb = (py_sc_callback_t *)vc->auxdata;
+    cb = (py_sc_callback_t *)vc->sc->data;
     if(cb->data != Py_None){
       if(cb->delete_data != Py_None){
         PyObject *func, *arglist, *result;
@@ -299,28 +299,16 @@ py_wrap_sc_exp_f_callback(int i,
 
 %}
 
-static void             sc_add_f_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
-static void             sc_add_bt_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
-static void             sc_add_exp_f_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
-static void             sc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *PyFunc);
-
-%typemap(in) PyObject *PyFunc {
-  if (!PyCallable_Check($input)) {
-      PyErr_SetString(PyExc_TypeError, "Need a callable object!");
-      return NULL;
-  }
-  $1 = $input;
-}
-
-%typemap(in) PyObject * {
-  $1 = $input;
-}
+static void sc_add_f_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
+static void sc_add_bt_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
+static void sc_add_exp_f_pycallback(vrna_fold_compound_t *vc, PyObject *PyFunc);
+static void sc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *PyFuncOrNone);
 
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
 
-  void sc_add_data(PyObject *data, PyObject *free_data){
-    sc_add_pydata($self, data, free_data);
+  void sc_add_data(PyObject *data, PyObject *PyFuncOrNone=Py_None){
+    sc_add_pydata($self, data, PyFuncOrNone);
   }
   
   void sc_add_f(PyObject *PyFunc){

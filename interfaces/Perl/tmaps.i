@@ -45,3 +45,11 @@
         sv_2mortal($result);
         argvi++;
 }
+
+%typemap(in) SV *PerlFunc {
+  $1 = $input;
+}
+
+%typemap(in) SV *data {
+  $1 = $input;
+}

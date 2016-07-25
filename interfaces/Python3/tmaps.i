@@ -33,3 +33,26 @@
     return NULL;
   }
 }
+
+%typemap(in) PyObject *PyFunc {
+  if (!PyCallable_Check($input)) {
+      PyErr_SetString(PyExc_TypeError, "Need a callable object!");
+      return NULL;
+  }
+  $1 = $input;
+}
+
+%typemap(in) PyObject *PyFuncOrNone {
+  if($input != Py_None){
+    if (!PyCallable_Check($input)) {
+        PyErr_SetString(PyExc_TypeError, "Need a callable object!");
+        return NULL;
+    }
+  }
+  $1 = $input;
+}
+
+
+%typemap(in) PyObject * {
+  $1 = $input;
+}
