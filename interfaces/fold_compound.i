@@ -20,6 +20,7 @@
 /* add callback binding methods for fold_compound */
 %include callbacks-fc.i
 %include callbacks-sc.i
+%include callbacks-ud.i
 
 /* start constructing a sane interface to vrna_fold_compound_t */
 

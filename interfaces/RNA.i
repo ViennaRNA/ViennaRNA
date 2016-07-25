@@ -171,6 +171,8 @@ namespace std {
 %include inverse.i
 %include compare.i
 %include file_formats.i
+%include grammar.i
+
 
 /**********************************************/
 /* BEGIN interface for data structures        */
