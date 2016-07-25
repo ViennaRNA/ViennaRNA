@@ -148,15 +148,19 @@ vrna_seq_encode(const char *sequence,
                 vrna_md_t *md){
 
   unsigned int  i, l;
-  short         *S = vrna_seq_encode_simple(sequence, md);
+  short         *S = NULL;
+  
+  if(sequence && md){
+    S = vrna_seq_encode_simple(sequence, md);
 
-  l = (unsigned int)strlen(sequence);
+    l = (unsigned int)strlen(sequence);
 
-  for(i=1; i<=l; i++)
-    S[i] = md->alias[S[i]];
+    for(i=1; i<=l; i++)
+      S[i] = md->alias[S[i]];
 
-  S[l+1] = S[1];
-  S[0] = S[l];
+    S[l+1] = S[1];
+    S[0] = S[l];
+  }
 
   return S;
 }
@@ -165,14 +169,19 @@ PUBLIC short *
 vrna_seq_encode_simple( const char *sequence,
                         vrna_md_t *md){
 
-  unsigned int i,l = (unsigned int)strlen(sequence);
-  short         *S = (short *) vrna_alloc(sizeof(short)*(l+2));
+  unsigned int  i, l;
+  short         *S = NULL;
 
-  for(i=1; i<=l; i++) /* make numerical encoding of sequence */
-    S[i]= (short) vrna_nucleotide_encode(toupper(sequence[i-1]), md);
+  if(sequence && md){
+    l = (unsigned int)strlen(sequence);
+    S = (short *) vrna_alloc(sizeof(short)*(l+2));
 
-  S[l+1] = S[1];
-  S[0] = (short) l;
+    for(i=1; i<=l; i++) /* make numerical encoding of sequence */
+      S[i]= (short) vrna_nucleotide_encode(toupper(sequence[i-1]), md);
+
+    S[l+1] = S[1];
+    S[0] = (short) l;
+  }
 
   return S;
 }
@@ -182,16 +191,20 @@ vrna_nucleotide_encode( char c,
                         vrna_md_t *md){
 
   /* return numerical representation of nucleotide used e.g. in vrna_md_t.pair[][] */
-  int code;
-  if (md->energy_set>0) code = (int) (c-'A')+1;
-  else {
-    const char *pos;
-    pos = strchr(Law_and_Order, c);
-    if (pos==NULL) code=0;
-    else code = (int) (pos-Law_and_Order);
-    if (code>5) code = 0;
-    if (code>4) code--; /* make T and U equivalent */
+  int code = -1;
+
+  if(md){
+    if (md->energy_set>0) code = (int) (c-'A')+1;
+    else {
+      const char *pos;
+      pos = strchr(Law_and_Order, c);
+      if (pos==NULL) code=0;
+      else code = (int) (pos-Law_and_Order);
+      if (code>5) code = 0;
+      if (code>4) code--; /* make T and U equivalent */
+    }
   }
+
   return code;
 }
 
@@ -199,10 +212,14 @@ PUBLIC  char
 vrna_nucleotide_decode( int enc,
                         vrna_md_t *md){
 
-  if(md->energy_set > 0)
-    return (char)enc + 'A' - 1;
-  else
-    return (char)Law_and_Order[enc];
+  if(md){
+    if(md->energy_set > 0)
+      return (char)enc + 'A' - 1;
+    else
+      return (char)Law_and_Order[enc];
+  } else {
+    return (char)0;
+  }
 }
 
 PUBLIC void
