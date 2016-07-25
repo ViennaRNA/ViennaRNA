@@ -124,6 +124,7 @@ pkginclude_HEADERS =  \
     constraints_hard.h \
     constraints_soft.h \
     alphabet.h \
+    sequence.h \
     grammar.h \
     structured_domains.h \
     unstructured_domains.h \
@@ -187,6 +188,7 @@ libRNA_conv_la_SOURCES = \
     walk.c \
     ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC} \
     alphabet.c \
+    sequence.c \
     unstructured_domains.c
 
 libRNA_constraints_la_SOURCES = \

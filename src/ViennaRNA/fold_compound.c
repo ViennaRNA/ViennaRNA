@@ -105,6 +105,7 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc)
     free(vc->strand_number);
     vrna_hc_free(vc->hc);
     vrna_ud_remove(vc);
+    vrna_sequence_remove_all(vc);
 
     /* now distinguish the vc type */
     switch (vc->type) {
@@ -195,6 +196,9 @@ vrna_fold_compound(const char   *sequence,
   vc->sequence    = strdup(sequence);
   vc->params      = NULL;
   vc->exp_params  = NULL;
+  vc->nucleotides = NULL;
+  vc->strands     = 0;
+
   aux_options     = 0L;
 
 
@@ -285,6 +289,8 @@ vrna_fold_compound_comparative(const char   **sequences,
     vc->sequences[s] = strdup(sequences[s]);
   vc->params      = NULL;
   vc->exp_params  = NULL;
+  vc->nucleotides = NULL;
+  vc->strands     = 0;
 
   /* get a copy of the model details */
   if (md_p)
@@ -377,6 +383,8 @@ vrna_fold_compound_TwoD(const char    *sequence,
   vc->sequence    = strdup(sequence);
   vc->params      = NULL;
   vc->exp_params  = NULL;
+  vc->nucleotides = NULL;
+  vc->strands     = 0;
 
   /* get a copy of the model details */
   if (md_p)

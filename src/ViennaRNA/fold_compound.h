@@ -100,6 +100,7 @@ typedef void (vrna_callback_recursion_status)(unsigned char status,
 
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/params.h>
+#include <ViennaRNA/sequence.h>
 #include <ViennaRNA/dp_matrices.h>
 #include <ViennaRNA/constraints.h>
 #include <ViennaRNA/grammar.h>
@@ -145,6 +146,9 @@ struct vrna_fc_s {
                                      */
 
   unsigned int      *strand_number; /**<  @brief  The strand number a particular nucleotide is associated with */
+
+  unsigned int      strands;
+  vrna_seq_t        *nucleotides;
 
   vrna_hc_t         *hc;            /**<  @brief  The hard constraints data structure used for structure prediction */
 
