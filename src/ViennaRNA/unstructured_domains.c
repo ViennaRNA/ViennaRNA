@@ -884,36 +884,27 @@ default_energy( vrna_fold_compound_t *vc,
     return 0;
 
   if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MOTIF){
-    switch(loop_type){
-      case VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP:   en = default_energy_ext_motif(i, j, data);
-                                                break;
-
-      case VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP:    en = default_energy_hp_motif(i, j, data);
-                                                break;
-
-      case VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP:   en = default_energy_int_motif(i, j, data);
-                                                break;
-
-      case VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP:    en = default_energy_mb_motif(i, j, data);
-                                                break;
-    }
+    if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP)
+      en = default_energy_ext_motif(i, j, data);
+    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP)
+      en = default_energy_hp_motif(i, j, data);
+    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP)
+      en = default_energy_int_motif(i, j, data);
+    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP)
+      en = default_energy_mb_motif(i, j, data);
   } else {
-    switch(loop_type){
-      case VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP:   if(data->energies_ext)
-                                                  en = data->energies_ext[ij];
-                                                break;
-
-      case VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP:    if(data->energies_hp)
-                                                  en = data->energies_hp[ij];
-                                                break;
-
-      case VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP:   if(data->energies_int)
-                                                  en = data->energies_int[ij];
-                                                break;
-
-      case VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP:    if(data->energies_mb)
-                                                  en = data->energies_mb[ij];
-                                                break;
+    if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP){
+      if(data->energies_ext)
+        en = data->energies_ext[ij];
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP){
+      if(data->energies_hp)
+        en = data->energies_hp[ij];
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
+      if(data->energies_int)
+        en = data->energies_int[ij];
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP){
+      if(data->energies_mb)
+        en = data->energies_mb[ij];
     }
   }
 
@@ -935,38 +926,35 @@ default_exp_energy( vrna_fold_compound_t *vc,
   data  = (struct ligands_up_data_default *)d;
 
   if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MOTIF){
-    switch(loop_type){
-      case VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP: q = default_exp_energy_ext_motif(i, j, data);
-                                              break;
+    if(j < i)
+      return 0.;
 
-      case VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP:  q = default_exp_energy_hp_motif(i, j, data);
-                                              break;
-
-      case VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP: q = default_exp_energy_int_motif(i, j, data);
-                                              break;
-
-      case VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP:  q = default_exp_energy_mb_motif(i, j, data);
-                                              break;
-    }
+    if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP)
+      q = default_exp_energy_ext_motif(i, j, data);
+    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP)
+      q = default_exp_energy_hp_motif(i, j, data);
+    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP)
+      q = default_exp_energy_int_motif(i, j, data);
+    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP)
+      q = default_exp_energy_mb_motif(i, j, data);
   } else {
+    if(j < i)
+      return 1.;
+
     idx   = vc->iindx;
     ij    = idx[i] - j;
-    switch(loop_type){
-      case VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP: if(data->exp_energies_ext)
-                                                q = data->exp_energies_ext[ij];
-                                              break;
-
-      case VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP:  if(data->exp_energies_hp)
-                                                q = data->exp_energies_hp[ij];
-                                              break;
-
-      case VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP: if(data->exp_energies_int)
-                                                q = data->exp_energies_int[ij];
-                                              break;
-
-      case VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP:  if(data->exp_energies_mb)
-                                                q = data->exp_energies_mb[ij];
-                                              break;
+    if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP){
+      if(data->exp_energies_ext)
+        q = data->exp_energies_ext[ij];
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP){
+      if(data->exp_energies_hp)
+        q = data->exp_energies_hp[ij];
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
+      if(data->exp_energies_int)
+        q = data->exp_energies_int[ij];
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP){
+      if(data->exp_energies_mb)
+        q = data->exp_energies_mb[ij];
     }
   }
 
@@ -984,8 +972,9 @@ default_energy_ext_motif( int i,
   if(data->motif_list_ext[i]){
     k = 0;
     while(-1 != (m = data->motif_list_ext[i][k])){
-      if((i + data->len[m] - 1) == j)
+      if((i + data->len[m] - 1) == j){
         return data->dG[m];
+      }
       k++;
     }
   }
