@@ -357,7 +357,7 @@ perl_wrap_sc_bt_callback( int i,
                           void *data){
 
   int c, count, len, num_pairs;
-  SV *func, *arglist, *result, *bp;
+  SV *func, *bp;
   perl_sc_callback_t *cb = (perl_sc_callback_t *)data;
   vrna_basepair_t *ptr, *pairs = NULL;
   func = cb->cb_bt;

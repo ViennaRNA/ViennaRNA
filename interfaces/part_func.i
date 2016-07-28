@@ -117,7 +117,6 @@ extern char *pbacktrack(char *sequence);
 %{
   char *my_co_pf_fold(char *string, float *FA, float *FB, float *FcAB, float *FAB) {
     char *struc;
-    float en;
     vrna_dimer_pf_t temp;
     struc = (char *)calloc(strlen(string)+1,sizeof(char));
     temp=co_pf_fold(string, struc);
@@ -129,7 +128,6 @@ extern char *pbacktrack(char *sequence);
   }
   char *my_co_pf_fold(char *string, char *constraints, float *FA, float *FB, float *FcAB, float *FAB) {
     char *struc;
-    float en;
     vrna_dimer_pf_t temp;
     struc = (char *)calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
