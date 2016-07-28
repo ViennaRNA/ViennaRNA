@@ -679,7 +679,7 @@ vrna_subopt(vrna_fold_compound_t *vc,
   if (fp) {
     char *SeQ;
     SeQ = vrna_cut_point_insert(sequence, cp);
-    fprintf(fp, "%s %6d %6d\n", SeQ, (int) (correction+100*min_en), delta);
+    fprintf(fp, "%s %6.2f %6.2f\n", SeQ, min_en, (float)delta/100.);
     free(SeQ);
   }
 
