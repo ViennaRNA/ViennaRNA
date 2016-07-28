@@ -722,8 +722,8 @@ E_ml_rightmost_stem(int i,
     }
 
     if(domains_up && domains_up->energy_cb){
-      for(cnt = 0; cnt < domains_up->motif_count; cnt++){
-        u = domains_up->motif_size[cnt];
+      for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+        u = domains_up->uniq_motif_size[cnt];
         k = j - u + 1;
         if(ON_SAME_STRAND(j - u, j, cp)){
           eval_loop = (hc_up[k] >= u) ? (char)1 : (char)0;
@@ -835,8 +835,8 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
 
     /* extension with bound ligand on 5'site */
     if(domains_up && domains_up->energy_cb){
-      for(cnt = 0; cnt < domains_up->motif_count; cnt++){
-        u = domains_up->motif_size[cnt];
+      for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+        u = domains_up->uniq_motif_size[cnt];
         k = i + u - 1;
         if(ON_SAME_STRAND(i, k + 1, cp)){
           eval_loop = (hc_up[i] >= u) ? (char)1 : (char)0;
@@ -1797,8 +1797,8 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
 
       do{ /* next nibble off ligand */
         fij = my_fML[idx[jj] + ii];
-        for(cnt = 0; cnt < domains_up->motif_count; cnt++){
-          u = domains_up->motif_size[cnt];
+        for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+          u = domains_up->uniq_motif_size[cnt];
           kk = jj - u + 1;
           if(kk >= ii){
             en = domains_up->energy_cb(vc, kk, jj, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
@@ -1839,8 +1839,8 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
 
       do{ /* next nibble off ligand */
         fij = my_fML[idx[jj] + ii];
-        for(cnt = 0; cnt < domains_up->motif_count; cnt++){
-          u = domains_up->motif_size[cnt];
+        for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+          u = domains_up->uniq_motif_size[cnt];
           kk = ii + u - 1;
           if(kk <= jj){
             en = domains_up->energy_cb(vc, ii, kk, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
