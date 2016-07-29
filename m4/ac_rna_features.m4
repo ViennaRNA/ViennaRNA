@@ -185,7 +185,7 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
       then
         AX_APPEND_FLAG(["$OMP_CFLAGS"], [RNA_CFLAGS])
         AX_APPEND_FLAG(["$OPENMP_CXXFLAGS"], [RNA_CXXFLAGS])
-        LIBGOMPFLAG=-lgomp
+        LIBGOMPFLAG=["$OPENMP_CXXFLAGS"]
       fi
     fi
 
