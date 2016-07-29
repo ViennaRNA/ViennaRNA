@@ -541,7 +541,7 @@ static void print_struc(snoopT  *dup, const char *s1, const char *s2, char *name
   s4[n2-10]='\0';
   printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + 4.1 ) (%5.2f) \n%s&%s\n", 
         target_struct, dup->i+1-l1,
-         dup->i, dup->u, dup->j+1, dup->j + (strrchr(dup->structure,'>') - strchr(dup->structure, '>'))+1, 
+         dup->i, dup->u, dup->j+1, dup->j + (int)(strrchr(dup->structure,'>') - strchr(dup->structure, '>'))+1, 
          (dup->Loop_D + dup->Duplex_El + dup->Duplex_Er + dup->Loop_E) + 4.10, 
          dup->Duplex_El, dup->Duplex_Er, dup->Loop_E, dup->Loop_D,dup->fullStemEnergy,target,s4);
   if(nice){
@@ -622,7 +622,7 @@ static void aliprint_struc(snoopT  *dup, const char **s1, const char **s2, char 
 
   printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + 4.1; duplex cov = %5.2f; stem cov = %5.2f )\n%s\n",  
           dup->structure, dup->i+1-l1, 
-          dup->i, dup->u, dup->j+1, dup->j + (strrchr(dup->structure,'>') - strchr(dup->structure, '>'))+1,
+          dup->i, dup->u, dup->j+1, dup->j + (int)(strrchr(dup->structure,'>') - strchr(dup->structure, '>'))+1,
           (dup->Loop_D + dup->Duplex_El + dup->Duplex_Er + dup->Loop_E)/n_seq + 4.10,  
           dup->Duplex_El/n_seq, dup->Duplex_Er/n_seq, dup->Loop_E/n_seq, dup->Loop_D/n_seq,dup->pscd/n_seq, dup->psct/n_seq,consens ); 
   if(nice){

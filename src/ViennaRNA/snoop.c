@@ -1100,7 +1100,7 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
       s4[(int)strlen(s2)-10]='\0';
       printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + 4.1 ) (%5.2f) \n%s&%s\n", 
              target_struct,begin + test.i-5-l1,begin + test.i -6 , begin + test.u -6, 
-             test.j+1, test.j + (strrchr(test.structure,'>') - strchr(test.structure,'>'))+1 ,
+             test.j+1, test.j + (int)(strrchr(test.structure,'>') - strchr(test.structure,'>'))+1 ,
              test.Loop_D + test.Duplex_El + test.Duplex_Er + test.Loop_E + 4.10, test.Duplex_El,
              test.Duplex_Er, test.Loop_E, test.Loop_D,test.fullStemEnergy, target,s4);
       if(name){
@@ -1623,7 +1623,7 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
       float dE = ((float) (access_s1[n5-test.i+1-5][i]))*0.01;
       printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + %5.2f + 4.10)  (%5.2f)\n%s&%s\n" ,  
              test.structure, i  -  (n5 - test.i) ,i - 5, i - (n5 - test.u ),
-             j-5, j-5 + (strrchr(test.structure,'>') - strchr(test.structure,'>')), 
+             j-5, j-5 + (int)(strrchr(test.structure,'>') - strchr(test.structure,'>')), 
              test.Loop_D + test.Duplex_El + test.Duplex_Er + test.Loop_E + 4.10+dE, test.Duplex_El, 
              test.Duplex_Er, test.Loop_E, test.Loop_D,dE , test.fullStemEnergy, s5,s4);
       if(name){
@@ -2126,7 +2126,7 @@ PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **acces
       float dE = ((float) (access_s1[n5-test.i+1-5][pos]))*0.01;
       printf("%s %3d,%-3d;%3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f + %5.2f + %5.2f + 4.10) (%5.2f)\n%s&%s\n" ,  
              test.structure, pos  -  (n5 - test.i) ,pos - 5, pos - (n5 - test.u ),
-             max_pos_j-5, max_pos_j-5 + (strrchr(test.structure,'>') - strchr(test.structure,'>')), 
+             max_pos_j-5, max_pos_j-5 + (int)(strrchr(test.structure,'>') - strchr(test.structure,'>')), 
              test.Loop_D + test.Duplex_El + test.Duplex_Er + test.Loop_E + 4.10+dE, test.Duplex_El, 
              test.Duplex_Er, test.Loop_E, test.Loop_D,dE ,test.fullStemEnergy, s5,s4);
       if(name){

@@ -158,7 +158,7 @@ int main(int argc, char *argv[]){
     vrna_seq_toupper(s1);
     vrna_seq_toupper(s2);
 
-    if (istty) printf("lengths = %d,%d\n", strlen(s1), strlen(s2));
+    if (istty) printf("lengths = %d,%d\n", (int)strlen(s1), (int)strlen(s2));
 
     /*
     ########################################################
@@ -200,5 +200,5 @@ PRIVATE void print_struc(duplexT const *dup) {
   int l1;
   l1 = strchr(dup->structure, '&')-dup->structure;
   printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", dup->structure, dup->i+1-l1,
-         dup->i, dup->j, dup->j+strlen(dup->structure)-l1-2, dup->energy);
+         dup->i, dup->j, dup->j+(int)strlen(dup->structure)-l1-2, dup->energy);
 }

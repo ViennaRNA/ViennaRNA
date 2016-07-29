@@ -1108,7 +1108,7 @@ int main(int argc, char *argv[])
         if (!noconv && s2[l] == 'T') s2[l] = 'U';
       }
       if (istty)
-        printf("lengths = %d,%d\n", strlen(s1), strlen(s2));
+        printf("lengths = %d,%d\n", (int)strlen(s1), (int)strlen(s2));
 
       if(alignment_length==0){alignment_length=40;}
 
