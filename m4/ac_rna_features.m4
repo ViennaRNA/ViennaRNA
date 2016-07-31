@@ -53,9 +53,7 @@ AC_DEFUN([RNA_ENABLE_SVM],[
 
   RNA_ADD_PACKAGE([svm],
                   [svm classifiers],
-                  [yes],
-                  [with_svm=no],
-                  [with_svm=yes],
+                  [yes],[],[],
                   [${srcdir}/src/libsvm-${SVM_VERSION}/svm.cpp ${srcdir}/src/libsvm-${SVM_VERSION}/svm.h])
 
   RNA_PACKAGE_IF_ENABLED([svm],[
@@ -76,9 +74,7 @@ AC_DEFUN([RNA_ENABLE_JSON],[
 
   RNA_ADD_PACKAGE([json],
                   [json in/out support],
-                  [yes],
-                  [with_json=no],
-                  [with_json=yes],
+                  [yes],[],[],
                   [${srcdir}/src/json/json.c ${srcdir}/src/json/json.h])
 
   RNA_PACKAGE_IF_ENABLED([json],[
@@ -98,8 +94,7 @@ AC_DEFUN([RNA_ENABLE_GSL],[
 
   RNA_ADD_PACKAGE([gsl],
                   [GNU Scientific Library],
-                  [yes],
-                  [with_gsl=no],
+                  [yes],[],[],
                   [with_gsl=yes])
 
   # check prerequisties for gsl support
@@ -129,9 +124,7 @@ AC_DEFUN([RNA_ENABLE_BOUSTROPHEDON],[
 
   RNA_ADD_FEATURE([boustrophedon],
                   [Boustrophedon scheme for stochastic backtracking],
-                  [yes],
-                  [enable_boustrophedon=no],
-                  [enable_boustrophedon=yes])
+                  [yes])
 
   ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
   RNA_FEATURE_IF_ENABLED([boustrophedon],[
@@ -148,9 +141,7 @@ AC_DEFUN([RNA_ENABLE_GEN_HC],[
 
   RNA_ADD_FEATURE([gen_hard_constraints],
                   [Generic hard constraints],
-                  [no],
-                  [enable_gen_hard_constraints=yes],
-                  [enable_gen_hard_constraints=no])
+                  [no])
 
   ## Add preprocessor define statement for generlaized hard constraints feature
   RNA_FEATURE_IF_ENABLED([gen_hard_constraints],[
@@ -167,6 +158,10 @@ AC_DEFUN([RNA_ENABLE_GEN_HC],[
 #
 
 AC_DEFUN([RNA_ENABLE_OPENMP],[
+
+  RNA_ADD_FEATURE([openmp],
+                  [OpenMP support],
+                  [yes])
 
   RNA_FEATURE_IF_ENABLED([openmp],[
     AC_LANG_PUSH([C])
@@ -205,9 +200,7 @@ AC_DEFUN([RNA_ENABLE_FLOATPF],[
 
   RNA_ADD_FEATURE([floatpf],
                   [Floating point precision in partition function computations],
-                  [no],
-                  [enable_floatpf=yes],
-                  [enable_floatpf=no])
+                  [no])
 
   # Handle floating point precision flag
   RNA_FEATURE_IF_ENABLED([floatpf],[
@@ -230,9 +223,7 @@ AC_DEFUN([RNA_ENABLE_DEPRECATION_WARNINGS],[
 
   RNA_ADD_FEATURE([warn_deprecated],
                   [Warn upon usage of deprecated symbols],
-                  [no],
-                  [enable_warn_deprecated=yes],
-                  [enable_warn_deprecated=no])
+                  [no])
 
   ## Add preprocessor define statement for deprecation warnings
   RNA_FEATURE_IF_ENABLED([warn_deprecated],[

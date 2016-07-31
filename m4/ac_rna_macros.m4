@@ -32,7 +32,13 @@ fi
 #
 
 AC_DEFUN([RNA_PACKAGE_IF_ENABLED],[
-if test "x$with_$1" != "xno"; then
+if test "x$with_$1" = "xyes"; then
+  $2
+fi
+])
+
+AC_DEFUN([RNA_PACKAGE_IF_DISABLED],[
+if test "x$with_$1" = "xno"; then
   $2
 fi
 ])
@@ -46,7 +52,13 @@ fi
 #
 
 AC_DEFUN([RNA_FEATURE_IF_ENABLED],[
-if test "x$enable_$1" != "xno"; then 
+if test "x$enable_$1" = "xyes"; then
+  $2
+fi
+])
+
+AC_DEFUN([RNA_FEATURE_IF_DISABLED],[
+if test "x$enable_$1" = "xno"; then
   $2
 fi
 ])
@@ -74,21 +86,24 @@ fi
 #       package-desciption: a very brief description used for the package
 #                           specific help output in configure script
 #
-#       default-on:         package build | installed by default
+#       is-default:         package build | installed by default
 #                           Values: "yes" or "no"
 #
-# Example: RNA_ADD_PACKAGE([foo], [the incredible Foo program], [yes], [with_foo=no], [with_foo=yes], [file1 file2])
+# Example: RNA_ADD_PACKAGE([foo], [the incredible Foo program], [yes], [with_bar=no], [], [file1 file2])
 #
 
 AC_DEFUN([RNA_ADD_PACKAGE],[
 
 # announce the option to include it in configure script
-AC_ARG_WITH(m4_translit([[$1]], [_], [-]),
-            [ifelse([$3], [yes],
-              [AS_HELP_STRING([--without-m4_translit([$1], [_], [-])], [do not build | install $2])],
-              [AS_HELP_STRING([--with-m4_translit([$1], [_], [-])], [build | install $2])])],
-            [$4],
-            [$5])
+m4_if([$3],[yes],[
+  AC_ARG_WITH(m4_translit([[$1]], [_], [-]),
+            [AS_HELP_STRING([--without-m4_translit([$1], [_], [-])], [do not build | install $2])])
+  AS_IF([ test "x$with_$1" != "xno"],[with_$1=yes])
+  ],[
+  AC_ARG_WITH(m4_translit([[$1]], [_], [-]),
+            [AS_HELP_STRING([--with-m4_translit([$1], [_], [-])], [build | install $2])])
+  AS_IF([ test "x$with_$1" != "xyes"],[with_$1=no])
+])
 
 # check if enabling the package makes sense at configure-time
 # and deactivate it if not
@@ -101,14 +116,24 @@ RNA_PACKAGE_IF_ENABLED([$1],[
   done
 ])
 
+m4_if([$3],[yes],[
+  # take action depending on configure-time user settings
+  m4_if(["x$4"], ["x"],[], [ RNA_PACKAGE_IF_DISABLED([$1],[$4])])
+  m4_if(["x$5"], ["x"],[], [ RNA_PACKAGE_IF_ENABLED([$1],[$5])])
+],[
+  # take action depending on configure-time user settings
+  m4_if(["x$4"], ["x"],[], [ RNA_PACKAGE_IF_ENABLED([$1],[$4])])
+  m4_if(["x$5"], ["x"],[], [ RNA_PACKAGE_IF_DISABLED([$1],[$5])])
+])
+
 ])
 
 
 #
 # RNA_ADD_FEATURE(feature-name,
 #                 feature-description,
-#                 default-on,
-#                 [action-if-not-default],
+#                 is-default,
+#                 [action-if-no-default],
 #                 [action-if-default])
 #
 # Add a feature to the ViennaRNA Package
@@ -118,19 +143,29 @@ AC_DEFUN([RNA_ADD_FEATURE],[
 
 # announce the feature for inclusion in the configure script
 
-AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
-            [ifelse([$3], [yes],
-              [ifelse([$6], [],
+m4_if([$3],[yes],[
+  AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
+            [ifelse([$6], [],
                 [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])], [$2])],
                 [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])@<:@=ARG@:>@], [$2 @<:@default ARG=$6@:>@])]
-              )],
-              [ifelse([$6], [],
+            )])
+  AS_IF([ test "x$enable_$1" = "x" ], [ enable_$1=yes ])
+
+  # take action depending on configure-time user settings
+  m4_if(["x$4"], ["x"],[], [ RNA_FEATURE_IF_ENABLED([$1],[$4])])
+  m4_if(["x$5"], ["x"],[], [ RNA_FEATURE_IF_DISABLED([$1],[$5])])
+  ],[
+  AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
+            [ifelse([$6], [],
                 [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])], [$2])],
                 [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])@<:@=ARG@:>@], [$2 @<:@default ARG=$6@:>@])]
-              )]
-            )],
-            [$4],
-            [$5])
+            )])
+  AS_IF([ (test "x$enable_$1" = "x") || (test "x$enable_$1" = "xno") ], [ enable_$1=no ])
+
+  # take action depending on configure-time user settings
+  m4_if(["x$4"], ["x"],[], [ RNA_FEATURE_IF_DISABLED([$1],[$4])])
+  m4_if(["x$5"], ["x"],[], [ RNA_FEATURE_IF_ENABLED([$1],[$5])])
+])
 
 ])
 

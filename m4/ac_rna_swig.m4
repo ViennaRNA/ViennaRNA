@@ -25,9 +25,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
 
   RNA_ADD_PACKAGE([swig],
                   [SWIG scripting language interfaces],
-                  [yes],
-                  [with_swig=no],
-                  [with_swig=yes],
+                  [yes],[],[],
                   [${srcdir}/interfaces/Makefile.am])
 
   AS_IF([test "x$with_swig" != "xno"],[
@@ -40,13 +38,6 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
   RNA_ENABLE_SWIG_PYTHON
   RNA_ENABLE_SWIG_PYTHON3
 
-##RNA_ADD_PACKAGE( [ruby],
-##                    [Ruby interface],
-##                    [no],
-##                    [with_ruby=yes],
-##                    [with_ruby=no],
-##                    [${srcdir}/interfaces/Ruby/Makefile.am])
-
 ])
 
 
@@ -54,9 +45,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
 
   RNA_ADD_PACKAGE([perl],
                   [Perl interface],
-                  [yes],
-                  [with_perl=no],
-                  [with_perl=yes],
+                  [yes],[],[],
                   [${srcdir}/interfaces/Perl/Makefile.am])
 
 
@@ -121,9 +110,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
 
   RNA_ADD_PACKAGE([python],
                   [Python interface],
-                  [yes],
-                  [with_python=no],
-                  [with_python=yes],
+                  [yes],[],[],
                   [${srcdir}/interfaces/Python/Makefile.am])
 
 
@@ -168,9 +155,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON3],[
 
   RNA_ADD_PACKAGE([python3],
                   [Python3 interface],
-                  [yes],
-                  [with_python3=no],
-                  [with_python3=yes],
+                  [yes],[],[],
                   [${srcdir}/interfaces/Python3/Makefile.am])
 
 

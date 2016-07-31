@@ -9,9 +9,7 @@ AC_DEFUN([RNA_ENABLE_LTO],[
 
   RNA_ADD_FEATURE([lto],
                   [Link time optimization],
-                  [yes],
-                  [enable_lto=no],
-                  [enable_lto=yes])
+                  [yes])
 
   # Allow for user-overwrite of ar/ranlib/nm command
   AC_ARG_VAR([USER_AR],[User settings to overwrite the ar command])
