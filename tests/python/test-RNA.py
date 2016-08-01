@@ -32,13 +32,13 @@ class GeneralTests(unittest.TestCase):
         (struct, mfe) = RNA.fold(seq1)
         self.assertEqual(struct,struct1)
         # check energy
-        self.assertEqual(RNA.energy_of_struct(seq1,struct1), mfe)
+        self.assertTrue(abs(RNA.energy_of_struct(seq1, struct1) - mfe) < 0.0001)
     def test_constrained_folding(self):
         print("test_constrained_folding\n")
         RNA.cvar.fold_constrained = 1
         (struct,cmfe) = RNA.fold(seq1,"....xx....xx....")
         self.assertEqual(struct,'(((..........)))')
-        self.assertEqual(RNA.energy_of_struct(seq1,struct),cmfe)
+        self.assertTrue(abs(RNA.energy_of_struct(seq1, struct) - cmfe) < 0.0001)
         RNA.cvar.fold_constrained = 0
     def test_tree_distance(self):
         print("test_tree_distance\n");
