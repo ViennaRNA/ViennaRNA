@@ -8,6 +8,7 @@ export ac_cv_func_malloc_0_nonnull=yes
 
 CONFIGURE_OPTIONS=" --without-perl \
                     --without-python \
+                    --without-python3 \
                     --without-forester \
                     --with-cluster \
                     --with-kinwalker"
