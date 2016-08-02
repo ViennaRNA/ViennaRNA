@@ -195,7 +195,7 @@ sc_add_perl_data( vrna_fold_compound_t *vc,
 
   /* try to dispose of previous data */
   if(vc->sc->data){
-    cb = (perl_sc_callback_t *)vc->auxdata;
+    cb = (perl_sc_callback_t *)vc->sc->data;
     if(cb->data && SvOK(cb->data)){
       if(cb->delete_data && SvOK(cb->delete_data)){
         dSP;
@@ -357,7 +357,7 @@ perl_wrap_sc_bt_callback( int i,
                           void *data){
 
   int c, count, len, num_pairs;
-  SV *func, *arglist, *result, *bp;
+  SV *func, *bp;
   perl_sc_callback_t *cb = (perl_sc_callback_t *)data;
   vrna_basepair_t *ptr, *pairs = NULL;
   func = cb->cb_bt;
@@ -461,19 +461,11 @@ static void sc_add_bt_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
 static void sc_add_exp_f_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
 static void sc_add_perl_data(vrna_fold_compound_t *vc, SV *data, SV *PerlFunc);
 
-%typemap(in) SV *PerlFunc{
-  $1 = $input;
-}
-
-%typemap(in) SV *data{
-  $1 = $input;
-}
-
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
 
-  void sc_add_data(SV *data, SV *free_data){
-    sc_add_perl_data($self, data, free_data);
+  void sc_add_data(SV *data, SV *PerlFunc){
+    sc_add_perl_data($self, data, PerlFunc);
   }
   
   void sc_add_f(SV *PerlFunc){

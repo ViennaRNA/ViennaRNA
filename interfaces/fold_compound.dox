@@ -1,0 +1,23 @@
+/**
+
+@struct vrna_fc_s
+@scripting
+@parblock
+
+This data structure is wrapped as an object @b fold_compound with several related functions attached as methods.
+
+A new @b fold_compound can be obtained by calling one of its constructors:<br>
+  - @em fold_compound(seq) -- Initialize with a single sequence, or two concatenated sequences
+    separated by an ampersand character '&' (for cofolding)
+  - @em fold_compound(aln) -- Initialize with a sequence alignment @em aln stored as a list
+    of sequences (with gap characters)
+  .
+
+The resulting object has a list of attached methods which in most cases directly correspond to
+functions that mainly operate on the corresponding @em C data structure:<br>
+  - @em type() -- Get the type of the @em fold_compound (See #vrna_fc_type_e)
+  - @em length() -- Get the length of the sequence(s) or alignment stored within the @em fold_compound
+  .
+
+@endparblock
+*/

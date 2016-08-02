@@ -84,8 +84,9 @@ int vrna_hamming_distance(const char *s1, const char *s2);
  *
  *  This function is similar to vrna_hamming_distance() but instead of comparing both sequences
  *  up to their actual length only the first 'n' characters are taken into account
- *  @param s1   The first sequence
- *  @param s2   The second sequence
+ *  @param  s1  The first sequence
+ *  @param  s2  The second sequence
+ *  @param  n   The length of the subsequences to consider (starting from the 5' end)
  *  @return     The hamming distance between s1 and s2
  */
 int vrna_hamming_distance_bound(const char *s1, const char *s2, int n);

@@ -22,6 +22,8 @@ extern "C" {
 #include  <ViennaRNA/eval.h>
 #include  <ViennaRNA/cofold.h>
 #include  <ViennaRNA/part_func.h>
+#include  <ViennaRNA/equilibrium_probs.h>
+#include  <ViennaRNA/boltzmann_sampling.h>
 #include  <ViennaRNA/part_func_co.h>
 #include  <ViennaRNA/naview.h>
 #include  <ViennaRNA/plot_layouts.h>

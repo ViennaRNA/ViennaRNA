@@ -152,11 +152,20 @@ E_Hairpin(int size,
 
 /**
  *  @brief  Evaluate the free energy of a hairpin loop
- *          and consider possible hard constraints
+ *          and consider hard constraints if they apply
+ *
+ *  This function evaluates the free energy of a hairpin loop
+ *
+ *  In case the base pair is not allowed due to a constraint
+ *  conflict, this function returns #INF.
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
  *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
  *
+ *  @param vc   The #vrna_fold_compound_t that stores all relevant model settings
+ *  @param i    The 5' nucleotide of the base pair (3' to evaluate the pair as exterior hairpin loop)
+ *  @param j    The 3' nucleotide of the base pair (5' to evaluate the pair as exterior hairpin loop)
+ *  @returns    The free energy of the hairpin loop in 10cal/mol
  */
 int
 vrna_E_hp_loop( vrna_fold_compound_t *vc,

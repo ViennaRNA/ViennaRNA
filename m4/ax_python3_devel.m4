@@ -28,10 +28,15 @@ that it is installed and its directory is included in the search path.
         AC_SUBST(PYTHON3_CFLAGS)
         AC_MSG_RESULT([$PYTHON3_CFLAGS])
 
-        AC_MSG_CHECKING([for Python3 link flags])
+        AC_MSG_CHECKING([for Python3 libs])
         PYTHON3_LIBS=`$PYTHON3_CONFIG --libs 2> /dev/null`
         AC_SUBST(PYTHON3_LIBS)
         AC_MSG_RESULT([$PYTHON3_LIBS])
+
+        AC_MSG_CHECKING([for Python3 ld flags])
+        PYTHON3_LDFLAGS=`$PYTHON3_CONFIG --ldflags 2> /dev/null`
+        AC_SUBST(PYTHON3_LDFLAGS)
+        AC_MSG_RESULT([$PYTHON3_LDFLAGS])
 
         AC_MSG_CHECKING([for directory to install Python3 scripts in])
         if test -z "$PYTHON3_DIR" ; then

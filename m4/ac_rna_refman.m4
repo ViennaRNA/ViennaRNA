@@ -12,21 +12,17 @@ AC_DEFUN([RNA_ENABLE_DOXYGEN_REFMAN],[
 
 RNA_ADD_PACKAGE([doc_pdf],
                 [PDF RNAlib reference manual],
-                [yes],
-                [with_doc_pdf=no],
-                [with_doc_pdf=yes])
+                [yes])
 RNA_ADD_PACKAGE([doc_html],
                 [HTML RNAlib reference manual],
-                [yes],
-                [with_doc_html=no],
-                [with_doc_html=yes])
+                [yes])
 RNA_ADD_PACKAGE([doc],
                 [RNAlib reference manual],
                 [yes],
                 [ with_doc=no
                   with_doc_pdf=no
                   with_doc_html=no],
-                [with_doc=yes])
+                [])
 
 
 AC_PATH_PROG(doxygen, [doxygen],no)

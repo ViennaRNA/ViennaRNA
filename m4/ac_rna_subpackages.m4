@@ -30,9 +30,7 @@ AC_DEFUN([RNA_GET_SUBPACKAGES],[
 AC_DEFUN([RNA_ENABLE_PKG_KINFOLD],[
   RNA_ADD_PACKAGE([kinfold],
                   [Kinfold program],
-                  [yes],
-                  [with_kinfold=no],
-                  [with_kinfold=yes],
+                  [yes],[],[],
                   [${srcdir}/src/Kinfold/Makefile.am])
 
   RNA_PACKAGE_IF_ENABLED([kinfold],[
@@ -49,9 +47,7 @@ AC_DEFUN([RNA_ENABLE_PKG_KINFOLD],[
 AC_DEFUN([RNA_ENABLE_PKG_FORESTER],[
   RNA_ADD_PACKAGE([forester],
                   [RNAforester program],
-                  [yes],
-                  [with_forester=no],
-                  [with_forester=yes],
+                  [yes],[],[],
                   [${srcdir}/src/RNAforester/Makefile.am])
 
   RNA_PACKAGE_IF_ENABLED([forester],[
@@ -69,9 +65,7 @@ AC_DEFUN([RNA_ENABLE_PKG_FORESTER],[
 AC_DEFUN([RNA_ENABLE_PKG_CLUSTER],[
   RNA_ADD_PACKAGE([cluster],
                   [AnalyseSeqs and AnalyseDists],
-                  [no],
-                  [with_cluster=yes],
-                  [with_cluster=no],
+                  [no],[],[],
                   [${srcdir}/src/Cluster/Makefile.am])
 
   RNA_PACKAGE_IF_ENABLED([cluster],[
@@ -90,9 +84,7 @@ AC_DEFUN([RNA_ENABLE_PKG_CLUSTER],[
 AC_DEFUN([RNA_ENABLE_PKG_KINWALKER],[
   RNA_ADD_PACKAGE([kinwalker],
                   [Kinwalker program],
-                  [no],
-                  [with_kinwalker=yes],
-                  [with_kinwalker=no],
+                  [no],[],[],
                   [${srcdir}/src/Kinwalker/Makefile.am])
 
   RNA_PACKAGE_IF_ENABLED([kinwalker],[

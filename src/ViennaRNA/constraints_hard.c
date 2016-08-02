@@ -740,6 +740,7 @@ hc_reset_to_default(vrna_fold_compound_t *vc){
   vrna_hc_t         *hc;
   short             *S;
 
+  md  = NULL;
   n   = vc->length;
   hc  = vc->hc;
   idx = vc->jindx;

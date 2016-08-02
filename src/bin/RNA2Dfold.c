@@ -127,19 +127,20 @@ int main(int argc, char *argv[]){
   for (i = 0; i < args_info.neighborhood_given; i++){
     int kappa, lambda;
     kappa = lambda = 0;
-    if(sscanf(args_info.neighborhood_arg[i], "%d:%d", &kappa, &lambda) == 2);
-    if ((kappa>-2) && (lambda>-2)){
-      if(neighborhoods_cur != NULL){
-        neighborhoods_cur->next = (nbhoods *)vrna_alloc(sizeof(nbhoods));
-        neighborhoods_cur = neighborhoods_cur->next;
+    if(sscanf(args_info.neighborhood_arg[i], "%d:%d", &kappa, &lambda) == 2){
+      if ((kappa>-2) && (lambda>-2)){
+        if(neighborhoods_cur != NULL){
+          neighborhoods_cur->next = (nbhoods *)vrna_alloc(sizeof(nbhoods));
+          neighborhoods_cur = neighborhoods_cur->next;
+        }
+        else{
+          neighborhoods = (nbhoods *)vrna_alloc(sizeof(nbhoods));
+          neighborhoods_cur = neighborhoods;
+        }
+        neighborhoods_cur->k = kappa;
+        neighborhoods_cur->l = lambda;
+        neighborhoods_cur->next = NULL;
       }
-      else{
-        neighborhoods = (nbhoods *)vrna_alloc(sizeof(nbhoods));
-        neighborhoods_cur = neighborhoods;
-      }
-      neighborhoods_cur->k = kappa;
-      neighborhoods_cur->l = lambda;
-      neighborhoods_cur->next = NULL;
     }
   }
   /* free allocated memory of command line data structure */

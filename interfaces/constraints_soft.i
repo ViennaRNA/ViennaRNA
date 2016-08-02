@@ -17,18 +17,18 @@
 
     /* make sure that the constraints matrix is large enough */
     FLT_OR_DBL **c = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * ($self->length + 1));
-    for(int i = 0; i <= $self->length; i++)
+    for(unsigned int i = 0; i <= $self->length; i++)
       c[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * ($self->length + 1));
 
     /* copy input data (missing values have value 0 */
-    for(int i = 0; (i < constraints.size()) && (i <= $self->length); i++)
-      for(int j = i; (j < constraints[i].size()) && (j <= $self->length); j++)
+    for(unsigned int i = 0; (i < constraints.size()) && (i <= $self->length); i++)
+      for(unsigned int j = i; (j < constraints[i].size()) && (j <= $self->length); j++)
         c[i][j] = (FLT_OR_DBL)constraints[i][j];
 
     vrna_sc_add_bp($self, (const FLT_OR_DBL **)c, options);
 
     /* cleanup */
-    for(int i = 0; i <= $self->length; i++)
+    for(unsigned int i = 0; i <= $self->length; i++)
       free(c[i]);
     free(c);
   }

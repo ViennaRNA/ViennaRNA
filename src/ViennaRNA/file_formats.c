@@ -594,7 +594,7 @@ parse_constraints_line( const char *line,
   tmp_loop  = (char)0;
 
   /* now lets scan the entire line for content */
-  while(!ret && (entries_seen < max_entries) && (sscanf(line+pos,"%15s%n", buf, &pp) == 1)){
+  while(!ret && (entries_seen < max_entries) && (sscanf(line+pos,"%15s%n", &buf[0], &pp) == 1)){
     pos += pp;
     switch(entries_seen){
       case 0: /* must be i, or range */
@@ -663,7 +663,7 @@ parse_constraints_line( const char *line,
                   }
                 }
               } else { /*  must be loop type, or orientation */
-                if(sscanf(buf, "%8s%n", &buf2, &pp) == 1){
+                if(sscanf(buf, "%8s%n", &buf2[0], &pp) == 1){
                   buf2[8] = '\0';
                   if(pp == strlen(buf)){
                     for(c = &(buf2[0]); (*c != '\0') && (!ret); c++){
@@ -764,8 +764,8 @@ vrna_file_constraints_read( const char *filename,
               valid = 1;
             }
           }
-        } else if((k <= 0) && (orientation == '\0')){ /* range [i:j] and l */
-          if((i < j) && (j < l)){
+        } else if(k <= 0){ /* range [i:j] and l */
+          if((i < j) && (j < l) && (orientation == '\0')){
             k     = l;
             valid = 1;
           }
@@ -777,6 +777,11 @@ vrna_file_constraints_read( const char *filename,
               j     = i;
               valid = 1;
             }
+          }
+        } else if((i < j) && (k < l) && (i <= k) && (j <= l) && (orientation == '\0')){  /* range [i:j] and [k:l] */
+          if(command == 'P'){ /* we only allow this for 'prohibit pairing between two ranges' */
+            h     = 0;
+            valid = 1;
           }
         }
       }
@@ -819,19 +824,13 @@ vrna_file_constraints_read( const char *filename,
         }
 
         /* construct list of constraints */
-        for(cnt1 = i; cnt1 <= j; cnt1++)
-          for(cnt2 = k; cnt2 <= l; cnt2++)
-            for(cnt3 = h; cnt3 != 0; cnt3--){
-              constraints[constraint_number].i    = cnt1 + (cnt3 - 1);
+        if(h == 0){ /* range mode */
+          for(cnt1 = i; cnt1 <= j; cnt1++)
+            for(cnt2 = MAX2(cnt1 + 1, k); cnt2 <= l; cnt2++){
+              constraints[constraint_number].i    = cnt1;
+              constraints[constraint_number].j    = cnt2;
               constraints[constraint_number].p    = e;
               constraints[constraint_number].type = type;
-              if(cnt2 == 0){  /* enforce unpairedness of nucleotide */
-                constraints[constraint_number].j  = 0;
-              } else if((i == j) && (j == k) && (k == l)){  /* enforce pairedness of nucleotide */
-                constraints[constraint_number].j  = cnt1 + (cnt3 - 1);
-              } else {  /* enforce / prohibit base pair */
-                constraints[constraint_number].j  = cnt2 - (cnt3 - 1);
-              }
               constraint_number++;
 
               if(constraint_number == constraint_number_guess){
@@ -839,6 +838,28 @@ vrna_file_constraints_read( const char *filename,
                 constraints = (vrna_plist_t *)vrna_realloc(constraints, sizeof(vrna_plist_t) * constraint_number_guess);
               }
             }
+        } else {
+          for(cnt1 = i; cnt1 <= j; cnt1++)
+            for(cnt2 = k; cnt2 <= l; cnt2++)
+              for(cnt3 = h; cnt3 != 0; cnt3--){
+                constraints[constraint_number].i    = cnt1 + (cnt3 - 1);
+                constraints[constraint_number].p    = e;
+                constraints[constraint_number].type = type;
+                if(cnt2 == 0){  /* enforce unpairedness of nucleotide */
+                  constraints[constraint_number].j  = 0;
+                } else if((i == j) && (j == k) && (k == l)){  /* enforce pairedness of nucleotide */
+                  constraints[constraint_number].j  = cnt1 + (cnt3 - 1);
+                } else {  /* enforce / prohibit base pair */
+                  constraints[constraint_number].j  = cnt2 - (cnt3 - 1);
+                }
+                constraint_number++;
+
+                if(constraint_number == constraint_number_guess){
+                  constraint_number_guess *= 2;
+                  constraints = (vrna_plist_t *)vrna_realloc(constraints, sizeof(vrna_plist_t) * constraint_number_guess);
+                }
+              }
+        }
       } else {
         fprintf(stderr, "WARNING: Incorrect constraint command in input file %s, line %d\n", filename, line_number);
       }

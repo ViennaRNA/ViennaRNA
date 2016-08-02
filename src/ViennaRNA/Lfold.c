@@ -443,7 +443,7 @@ fill_arrays(vrna_fold_compound_t *vc,
     {
       static int do_backtrack = 0, prev_i=0;
       char *ss=NULL;
-      double prevz;
+      double prevz = 0.;
 
       /* first case: i stays unpaired */
       f3[i] = f3[i+1];

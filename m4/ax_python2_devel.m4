@@ -28,10 +28,15 @@ that it is installed and its directory is included in the search path.
         AC_SUBST(PYTHON2_CFLAGS)
         AC_MSG_RESULT([$PYTHON2_CFLAGS])
 
-        AC_MSG_CHECKING([for Python2 link flags])
+        AC_MSG_CHECKING([for Python2 libs])
         PYTHON2_LIBS=`${PYTHON2_CONFIG} --libs 2> /dev/null`
         AC_SUBST(PYTHON2_LIBS)
         AC_MSG_RESULT([$PYTHON2_LIBS])
+
+        AC_MSG_CHECKING([for Python2 ldflags])
+        PYTHON2_LDFLAGS=`${PYTHON2_CONFIG} --ldflags 2> /dev/null`
+        AC_SUBST(PYTHON2_LDFLAGS)
+        AC_MSG_RESULT([$PYTHON2_LDFLAGS])
 
         AC_MSG_CHECKING([for directory to install Python2 scripts in])
         if test -z "$PYTHON2_DIR" ; then

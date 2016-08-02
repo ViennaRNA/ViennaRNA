@@ -6,7 +6,7 @@ AC_DEFUN([RNA_GET_MACOSX_CONFIG],[
     MacOSX Universal binary{$osx_arch}])
     _osx_config=1
   ])
-  AS_IF([test "x$enable_macosx-installer" = "xyes"],[
+  AS_IF([test "x$enable_macosx_installer" = "xyes"],[
     AC_RNA_APPEND_VAR_COMMA($1, [MacOSX Installer])
     _osx_config=1
   ])
@@ -27,11 +27,9 @@ AC_DEFUN([RNA_ENABLE_OSX],[
 
 AC_DEFUN([RNA_ENABLE_OSX_INSTALLER],[
 
-  RNA_ADD_FEATURE([macosx-installer],
+  RNA_ADD_FEATURE([macosx_installer],
                   [generate MacOSX Installer Disk Image],
-                  [no],
-                  [enable_macosx_installer=yes],
-                  [enable_macosx_installer=no])
+                  [no])
 
   AC_CONFIG_FILES([packaging/macosx/Makefile packaging/macosx/Distribution.xml packaging/macosx/resources/welcome.txt])
 
@@ -68,19 +66,15 @@ AC_DEFUN([RNA_ENABLE_OSX_INSTALLER],[
 
 AC_DEFUN([RNA_ENABLE_OSX_SDK],[
 
-  RNA_ADD_FEATURE([macosx-sdk],
+  RNA_ADD_FEATURE([macosx_sdk],
                   [use a specific Mac OS X SDK],
-                  [no],
-                  [enable_macosx_sdk=$enableval],
-                  [enable_macosx_sdk=no],
+                  [no],[],[],
                   ["latest"])
 
-  RNA_ADD_FEATURE([macosx-sdk-path],
+  RNA_ADD_FEATURE([macosx_sdk_path],
                   [specify the path to a specific Mac OS X SDK],
                   [no],
-                  [ enable_macosx_sdk_path=$enableval
-                    enable_macosx_sdk="custom"
-                  ],
+                  [enable_macosx_sdk="custom"],
                   [enable_macosx_sdk_path=auto],
                   ["auto"])
 
@@ -234,11 +228,9 @@ AC_DEFUN([RNA_ENABLE_OSX_SDK],[
 
 AC_DEFUN([RNA_ENABLE_OSX_UNIVERSAL_BINARY],[
 
-  RNA_ADD_FEATURE([universal-binary],
+  RNA_ADD_FEATURE([universal_binary],
                   [generate universal (fat) binaries on MacOSX],
-                  [no],
-                  [enable_universal_binary=$enableval],
-                  [enable_universal_binary=no],
+                  [no],[],[],
                   ["-arch i386 -arch x86_64"])
 
   RNA_FEATURE_IF_ENABLED([universal_binary],[

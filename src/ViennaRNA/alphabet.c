@@ -61,6 +61,57 @@ PRIVATE char  *wrap_get_ptypes(const short *S, vrna_md_t *md);  /* provides back
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
+PUBLIC int
+vrna_nucleotide_IUPAC_identity( char nt,
+                                char mask){
+
+  char n1,n2,*p;
+
+  p   = NULL;
+  n1  = toupper(nt);
+  n2  = toupper(mask);
+
+  switch(n1){
+    case 'A': p = strchr("ARMWDHVN", n2);
+              break;
+    case 'C': p = strchr("CYMSBHVN", n2);
+              break;
+    case 'G': p = strchr("GRKSBDVN", n2);
+              break;
+    case 'T': p = strchr("TYKWBDHN", n2);
+              break;
+    case 'U': p = strchr("UYKWBDHN", n2);
+              break;
+    case 'I': p = strchr("IN", n2);
+              break;
+    case 'R': p = strchr("AGR", n2);
+              break;
+    case 'Y': p = strchr("CTUY", n2);
+              break;
+    case 'K': p = strchr("GTUK", n2);
+              break;
+    case 'M': p = strchr("ACM", n2);
+              break;
+    case 'S': p = strchr("GCS", n2);
+              break;
+    case 'W': p = strchr("ATUW", n2);
+              break;
+    case 'B': p = strchr("GCTBU", n2);
+              break;
+    case 'D': p = strchr("AGTUD", n2);
+              break;
+    case 'H': p = strchr("ACTUH", n2);
+              break;
+    case 'V': p = strchr("ACGV", n2);
+              break;
+    case 'N': p = strchr("ACGTUN", n2);
+              break;
+  }
+
+  return (p) ? 1 : 0;
+}
+
+
 PUBLIC char *
 vrna_ptypes(const short *S,
                 vrna_md_t *md){
@@ -97,15 +148,19 @@ vrna_seq_encode(const char *sequence,
                 vrna_md_t *md){
 
   unsigned int  i, l;
-  short         *S = vrna_seq_encode_simple(sequence, md);
+  short         *S = NULL;
+  
+  if(sequence && md){
+    S = vrna_seq_encode_simple(sequence, md);
 
-  l = (unsigned int)strlen(sequence);
+    l = (unsigned int)strlen(sequence);
 
-  for(i=1; i<=l; i++)
-    S[i] = md->alias[S[i]];
+    for(i=1; i<=l; i++)
+      S[i] = md->alias[S[i]];
 
-  S[l+1] = S[1];
-  S[0] = S[l];
+    S[l+1] = S[1];
+    S[0] = S[l];
+  }
 
   return S;
 }
@@ -114,14 +169,19 @@ PUBLIC short *
 vrna_seq_encode_simple( const char *sequence,
                         vrna_md_t *md){
 
-  unsigned int i,l = (unsigned int)strlen(sequence);
-  short         *S = (short *) vrna_alloc(sizeof(short)*(l+2));
+  unsigned int  i, l;
+  short         *S = NULL;
 
-  for(i=1; i<=l; i++) /* make numerical encoding of sequence */
-    S[i]= (short) vrna_nucleotide_encode(toupper(sequence[i-1]), md);
+  if(sequence && md){
+    l = (unsigned int)strlen(sequence);
+    S = (short *) vrna_alloc(sizeof(short)*(l+2));
 
-  S[l+1] = S[1];
-  S[0] = (short) l;
+    for(i=1; i<=l; i++) /* make numerical encoding of sequence */
+      S[i]= (short) vrna_nucleotide_encode(toupper(sequence[i-1]), md);
+
+    S[l+1] = S[1];
+    S[0] = (short) l;
+  }
 
   return S;
 }
@@ -131,16 +191,20 @@ vrna_nucleotide_encode( char c,
                         vrna_md_t *md){
 
   /* return numerical representation of nucleotide used e.g. in vrna_md_t.pair[][] */
-  int code;
-  if (md->energy_set>0) code = (int) (c-'A')+1;
-  else {
-    const char *pos;
-    pos = strchr(Law_and_Order, c);
-    if (pos==NULL) code=0;
-    else code = (int) (pos-Law_and_Order);
-    if (code>5) code = 0;
-    if (code>4) code--; /* make T and U equivalent */
+  int code = -1;
+
+  if(md){
+    if (md->energy_set>0) code = (int) (c-'A')+1;
+    else {
+      const char *pos;
+      pos = strchr(Law_and_Order, c);
+      if (pos==NULL) code=0;
+      else code = (int) (pos-Law_and_Order);
+      if (code>5) code = 0;
+      if (code>4) code--; /* make T and U equivalent */
+    }
   }
+
   return code;
 }
 
@@ -148,10 +212,14 @@ PUBLIC  char
 vrna_nucleotide_decode( int enc,
                         vrna_md_t *md){
 
-  if(md->energy_set > 0)
-    return (char)enc + 'A' - 1;
-  else
-    return (char)Law_and_Order[enc];
+  if(md){
+    if(md->energy_set > 0)
+      return (char)enc + 'A' - 1;
+    else
+      return (char)Law_and_Order[enc];
+  } else {
+    return (char)0;
+  }
 }
 
 PUBLIC void

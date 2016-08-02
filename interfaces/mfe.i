@@ -99,7 +99,7 @@ char *my_circfold(char *string, char *constraints, float *OUTPUT);
   char *my_cofold(char *string, float *energy) {
     char *struc;
     struc = (char *)calloc(strlen(string)+1,sizeof(char));
-    if (cut_point > strlen(string)) {
+    if (cut_point > (int)strlen(string)) {
        cut_point = -1;
     } 
     *energy = cofold(string, struc);
@@ -111,7 +111,7 @@ char *my_circfold(char *string, char *constraints, float *OUTPUT);
     struc = (char *)calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
       strncpy(struc, constraints, strlen(string));
-    if (cut_point > strlen(string)) {
+    if (cut_point > (int)strlen(string)) {
        cut_point = -1;
     } 
     *energy = cofold(string, struc);

@@ -3,12 +3,8 @@
 # Copyright (c) 1994-2016 Ivo Hofacker, Peter Stadler, ivo@tbi.univie.ac.at
 #
 
-%{!?__python2: %global __python2 /usr/bin/python2}
-%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%global __provides_exclude_from ^%{python2_sitearch}/.*\\.so$
 
-%if 0%{?centos_version} >= 700
+%if 0%{?centos_version} >= 700 || %{defined el7}
 %global with_python3 1
 %global with_epel7 1
 %else
@@ -19,20 +15,6 @@
 %endif
 %endif
 
-%if 0%{?with_python3}
-%if 0%{?with_epel7}
-%{!?__python3: %global __python3 /usr/bin/python3.4}
-%else
-%{!?__python3: %global __python3 /usr/bin/python3}
-%endif
-
-%{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-%{!?python3_sitearch: %global python3_sitearch %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%global python3_modext %(%{__python3} -c "from distutils.sysconfig import get_config_vars; print(get_config_vars('SO')[[0]])")
-
-%global __provides_exclude_from ^%{python3_sitearch}/.*\\.so$
-
-%endif
 
 %{!?_pkgdocdir: %global _pkgdocdir %%{_docdir}/%{name}}
 
@@ -62,7 +44,7 @@ BuildRequires:  gcc gcc-c++ glibc-devel info
 BuildRequires:  gsl-devel 
 BuildRequires:  perl(ExtUtils::Embed)
 
-Requires:       perl libstdc++ glibc info gsl
+Requires:       perl glibc info gsl
 Provides:       Kinfold
 
 %if 0%{?suse_version}
@@ -84,6 +66,25 @@ BuildRequires:  python-devel python
 %endif
 
 
+%{!?__python2: %global __python2 /usr/bin/python2}
+%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%global __provides_exclude_from ^%{python2_sitearch}/.*\\.so$
+
+%if 0%{?with_python3}
+%if 0%{?with_epel7}
+%{!?__python3: %global __python3 /usr/bin/python3.4}
+%else
+%{!?__python3: %global __python3 /usr/bin/python3}
+%endif
+
+%{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python3_sitearch: %global python3_sitearch %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%global python3_modext %(%{__python3} -c "from distutils.sysconfig import get_config_vars; print(get_config_vars('SO')[[0]])")
+
+%global __provides_exclude_from ^%{python3_sitearch}/.*\\.so$
+
+%endif
 %description
 The ViennaRNA package consists of a library and several standalone
 programs for RNA secondary structure analysis. It includes algorithms
@@ -165,9 +166,9 @@ Python 3 bindings for ViennaRNA RNAlib.
 
 %build
 %if 0%{?fedora} && 0%{?fedora_version} < 22
-%configure --with-python3 --with-cluster --without-forester --disable-lto --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
+%configure --with-cluster --without-forester --disable-lto --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
 %else
-%configure --with-python3 --with-cluster --without-forester --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
+%configure --with-cluster --without-forester --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
 %endif
 make %{?_smp_mflags}
 
@@ -272,12 +273,14 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -n python-rna
 %defattr(-,root,root,-)
-%{python2_sitearch}/RNA/
+%{python_sitearch}/*
+%{python_sitearch}/RNA/
 
 %else
 
 %files -n python2-rna
 %defattr(-,root,root,-)
+%{python2_sitearch}/*
 %{python2_sitearch}/RNA/
 
 %endif
@@ -286,6 +289,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -n python3-rna
 %defattr(-,root,root,-)
+%{python3_sitearch}/*
 %{python3_sitearch}/RNA/
 
 %endif

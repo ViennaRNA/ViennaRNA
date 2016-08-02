@@ -41,7 +41,6 @@ char    *vrna_pbacktrack5(vrna_fold_compound_t *vc, int length);
  *        provided via the #vrna_fold_compound_t
  *
  *  @param  vc      The fold compound data structure
- *  @param  length  The length of the subsequence to consider (starting with 5' end)
  *  @return         A sampled secondary structure in dot-bracket notation
  */
 char    *vrna_pbacktrack(vrna_fold_compound_t *vc);

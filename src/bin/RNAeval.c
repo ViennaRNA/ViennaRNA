@@ -147,7 +147,8 @@ int main(int argc, char *argv[]){
   if(args_info.logML_given)
     md.logML = logML = 1;
   /* be verbose */
-  if(args_info.verbose_given)     verbose = 1;
+  if(args_info.verbose_given)
+    verbose = 1;
   /* gquadruplex support */
   if(args_info.gquad_given)
     md.gquad = gquad = 1;
@@ -159,9 +160,6 @@ int main(int argc, char *argv[]){
 
   shape_method = strdup(args_info.shapeMethod_arg);
   shape_conversion = strdup(args_info.shapeConversion_arg);
-  if(args_info.verbose_given){
-    verbose = 1;
-  }
 
   /* free allocated memory of command line data structure */
   RNAeval_cmdline_parser_free (&args_info);
@@ -256,10 +254,7 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-    if(verbose)
-      energy = vrna_eval_structure_verbose(vc, structure, NULL);
-    else
-      energy = vrna_eval_structure(vc, structure);
+    energy = vrna_eval_structure_v(vc, structure, verbose, NULL);
 
     if (vc->cutpoint == -1)
       printf("%s\n%s", orig_sequence, structure);

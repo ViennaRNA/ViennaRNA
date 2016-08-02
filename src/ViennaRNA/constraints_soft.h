@@ -215,7 +215,7 @@ void vrna_sc_free(vrna_sc_t *sc);
  *
  *  @param  vc        The fold compound the generic soft constraint function should be bound to
  *  @param  data      A pointer to the data structure that holds required data for function 'f'
- *  @param  free_data A pointer to a function that free's the memory occupied by @data (Maybe NULL)
+ *  @param  free_data A pointer to a function that free's the memory occupied by @p data (Maybe NULL)
  */
 void vrna_sc_add_data(vrna_fold_compound_t *vc,
                       void *data,

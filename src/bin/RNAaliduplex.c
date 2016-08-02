@@ -168,5 +168,5 @@ PRIVATE void print_struc(duplexT const *dup) {
   int l1;
   l1 = strchr(dup->structure, '&')-dup->structure;
   printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", dup->structure, dup->i+1-l1,
-         dup->i, dup->j, dup->j+strlen(dup->structure)-l1-2, dup->energy);
+         dup->i, dup->j, dup->j+(int)strlen(dup->structure)-l1-2, dup->energy);
 }

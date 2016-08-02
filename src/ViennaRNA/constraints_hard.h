@@ -255,8 +255,14 @@ typedef char (vrna_callback_hc_evaluate)(int i, int j, int k, int l, char d, voi
  */
 #define VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC   (char)0x20
 
+/**
+ *  @brief  Hard constraint flag to indicate enforcement of constraints
+ */
 #define VRNA_CONSTRAINT_CONTEXT_ENFORCE       (char)0x40
 
+/**
+ *  @brief  Hard constraint flag to indicate not to remove base pairs that conflict with a given constraint
+ */
 #define VRNA_CONSTRAINT_CONTEXT_NO_REMOVE     (char)0x80
 
 /**
@@ -292,8 +298,7 @@ typedef char (vrna_callback_hc_evaluate)(int i, int j, int k, int l, char d, voi
  *
  *  @see  vrna_hc_init(), vrna_hc_free(), #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP,
  *        #VRNA_CONSTRAINT_CONTEXT_HP_LOOP, #VRNA_CONSTRAINT_CONTEXT_INT_LOOP,
- *        #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP_ENC, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP,
- *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC
+ *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC
  *
  *  @ingroup hard_constraints
  */

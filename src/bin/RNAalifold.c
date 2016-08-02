@@ -426,7 +426,7 @@ int main(int argc, char *argv[]){
     double  s = 0;
     for (i=0; AS[i]!=NULL; i++){
       vrna_fold_compound_t *vc_tmp = vrna_fold_compound(AS[i], &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-      s += vrna_eval_structure(vc, structure);
+      s += vrna_eval_structure(vc_tmp, structure);
       vrna_fold_compound_free(vc_tmp);
     }
     real_en   = s/i;
@@ -491,7 +491,7 @@ int main(int argc, char *argv[]){
     filename_plot = (char *)vrna_alloc((10) * sizeof(char));
     filename_dot  = (char *)vrna_alloc((10) * sizeof(char));
     filename_aln  = (char *)vrna_alloc((7) * sizeof(char));
-    filename_out  = (char *)vrna_alloc((11) * sizeof(char));
+    filename_out  = (char *)vrna_alloc((12) * sizeof(char));
     strcpy(filename_plot, "alirna.ps");
     strcpy(filename_dot, "alidot.ps");
     strcpy(filename_aln, "aln.ps");

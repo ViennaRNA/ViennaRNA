@@ -152,7 +152,9 @@ static void pairing_probabilities_from_restricted_pf(vrna_fold_compound_t *vc, c
 
   calculate_probability_unpaired(vc, prob_unpaired);
 
+#ifdef _OPENMP
   #pragma omp parallel for private(i)
+#endif
   for (i = 1; i <= length; ++i)
   {
     vrna_fold_compound_t *restricted_vc;
@@ -202,12 +204,16 @@ static void pairing_probabilities_from_sampling(vrna_fold_compound_t *vc, const 
   vrna_pf(vc, NULL);
 
 
+#ifdef _OPENMP
   #pragma omp parallel for private(s)
+#endif
   for (s = 0; s < sample_size; ++s)
   {
     char *sample = vrna_pbacktrack(vc);
 
+#ifdef _OPENMP
     #pragma omp critical
+#endif
     {
       for (i = 1; i <= length; ++i)
       {

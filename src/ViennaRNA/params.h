@@ -350,7 +350,7 @@ void vrna_exp_params_reset( vrna_fold_compound_t *vc,
 typedef struct vrna_param_s     paramT;
 
 /**
- *  @brief Old typename of #vrna_ex_param_s
+ *  @brief Old typename of #vrna_exp_param_s
  *  @deprecated Use #vrna_exp_param_t instead!
 */
 typedef struct vrna_exp_param_s pf_paramT;

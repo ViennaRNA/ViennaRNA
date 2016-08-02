@@ -25,7 +25,7 @@ PRIVATE char**  splitLines(char* string);
 PUBLIC float get_z(char *sequence, double energy) {
   double average_free_energy;
   double sd_free_energy;
-  float my_z;
+  float my_z = 0.;
   int info_avg;
   make_pair_matrix();
   short *S      = encode_sequence(sequence, 0);
@@ -180,7 +180,7 @@ PUBLIC struct svm_model  *svm_load_model_string(char *modelString){
   /* Read header until support vectors start */
   lines=splitLines(modelString);
   i=0;
-  while (strcmp(lines[i],"SV")!=0){
+  while (lines[i] && (strcmp(lines[i],"SV")!=0)){
         fields=splitFields(lines[i]);
 
         key=fields[0];

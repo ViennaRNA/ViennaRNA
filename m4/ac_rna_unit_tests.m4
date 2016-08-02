@@ -31,33 +31,23 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
 
   RNA_ADD_FEATURE([unittests],
                   [Unit tests],
-                  [yes],
-                  [enable_unittests=no],
-                  [enable_unittests=yes])
+                  [yes])
 
   RNA_ADD_PACKAGE([check],
                   [C-library Unit tests],
-                  [yes],
-                  [with_check=no],
-                  [with_check=yes])
+                  [yes])
 
-  RNA_ADD_FEATURE([check-perl],
+  RNA_ADD_FEATURE([check_perl],
                   [Perl interface Unit tests],
-                  [yes],
-                  [enable_check_perl=no],
-                  [enable_check_perl=yes])
+                  [yes])
 
-  RNA_ADD_FEATURE([check-python],
+  RNA_ADD_FEATURE([check_python],
                   [Python interface Unit tests],
-                  [yes],
-                  [enable_check_python=no],
-                  [enable_check_python=yes])
+                  [yes])
 
-  RNA_ADD_FEATURE([check-python3],
+  RNA_ADD_FEATURE([check_python3],
                   [Python3 interface Unit tests],
-                  [yes],
-                  [enable_check_python3=no],
-                  [enable_check_python3=yes])
+                  [yes])
 
   RNA_FEATURE_IF_ENABLED([unittests],[
 

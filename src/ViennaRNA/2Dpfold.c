@@ -1266,7 +1266,7 @@ pf2D_circ(vrna_fold_compound_t *vc){
   int *min_l_real, *max_l_real, *min_l_real_qcH, *max_l_real_qcH, *min_l_real_qcI, *max_l_real_qcI,*min_l_real_qcM, *max_l_real_qcM;
   int update_c, update_cH, update_cI, update_cM;
 
-  update_c = update_cH = update_cI, update_cM = 0;
+  update_c = update_cH = update_cI = update_cM = 0;
 
   min_k = min_l = 0;
 
@@ -3437,6 +3437,8 @@ backtrack_qm1(vrna_fold_compound_t *vc,
 
   unsigned int ii, l;
   int type;
+
+  r = 0.;
 
   /* find qm1 contribution */
   if(d1 == -1)

@@ -1,3 +1,231 @@
+v 2.2.8
+  * Fix bad memory access in RNAalifold
+  * Fix regression in RNAalifold to restore covariance contribution ratio determination for circular RNA alignments
+  * Changed output of RNAsubopt in energy-band enumeration mode to print MFE and energy range in kcal/mol instead of 10cal/mol
+  * Include latest Kinfold sources that make use of v3.0 API, therefore speeding up runtime substantially
+  * Re-activate warnings in RNAeval when non-canonical base pairs are encountered
+  * Fix syntactic incompatibilities that potentially prevented compilation with compilers other than gcc
+  * dd function to compare nucleotides encoded in IUPAC format
+  * Fix regression in energy evaluation for circular RNA sequences
+  * Fix regression in suboptimal structure enumeration for circular RNAs
+  * Allow for P i-j k-l commands in constraint definition files
+  * Make free energy evaluation functions polymorphic
+  * Add free energy evaluation functions that allow for specifying verbosity level
+  * Secure functions in alphabet.c against NULL pointer arguments
+  * Fix incompatibility with swig >= 3.0.9
+  * Fix memory leak in swig-generated scripting language interface(s) for user-provided target language soft-constraint callbacks
+  * Expose additional functions to swig-generated scripting language interface(s)
+  * Build Python3 interface by default
+  * Start of more comprehensive scripting language interface documentation
+  * Fix linking of python2/python3 interfaces when libpython is in non-standard directory
+  * Restructured viennarna.spec for RPM based distributions
+  * Several syntactic changes in the implementation to minimize compiler warnings
+  * Fix --with-*/--without-* and --enable-*/--disable-* configure script behavior
+
+
+v 2.2.7
+  * Fix partition function scaling for long sequences in RNAfold, RNAalifold, and RNAup
+  * Fix backtracking issue in RNAcofold when --noLP option is activated
+  * Fix hard constraints issue for circular RNAs in generating suboptimal structures
+  * Rebuild reference manual only when actually required
+
+
+v 2.2.6
+  * Plugged memory leak in RNAcofold
+  * Fixed partition function rescaling bug in RNAup
+  * Fixed bug in RNALfold with window sizes larger than sequence length
+  * Re-added SCI parameter for RNAalifold
+  * Fixed backtracking issue for large G-quadruplexes in RNAalifold
+  * Fixed missing FASTA id in RNAeval output
+  * Added option to RNAalifold that allows to specify prefix for output files
+  * Several fixes and additional functions/methods in scripting language interface(s)
+  * Added version information for scripting language interface(s)
+  * Some changes to allow for compilation with newer compilers, such as gcc 6.1
+
+
+v 2.2.5
+  * Fixed regression in RNAcofold that prohibited output of concentration computations
+  * Fixed behavior of RNAfold and RNAcofold when hard constraints create empty solution set (programs now abort with error message)
+  * Added optional Python 3 interface
+  * Added RNA::Params Perl 5 sub-package
+  * Update RNA::Design Perl 5 sub-package
+  * Simplified usage of v3.0 API with default options
+  * Wrap more functions of v3.0 API in SWIG generated scripting language interfaces
+  * Plugged some memory leaks in SWIG generated scripting language interfaces
+  * Changed parameters of recursion status callback in vrna_fold_compound_t
+  * Enable definition and binding of callback functions from within SWIG target language
+  * Added optional subpackage Kinwalker
+  * Added several configure options to ease building and packaging under MacOS X
+  * Added new utility script RNAdesign.pl
+
+
+v 2.2.4
+  * Fixed bug in RNAsubopt that occasionally produced cofolded structures twice
+  * Removed debugging output in preparations of consensus structure prediction datastructures
+
+
+v 2.2.3
+  * Added postscipt annotations for found ligand motifs in RNAfold
+  * Added more documentation for the constraints features in RNAfold and RNAalifold
+  * Restore backward compatibility of get_alipf_arrays()
+
+
+v 2.2.2
+  * Fix regression bug that occasionally prevented backtracking with RNAcofold --noLP
+
+
+v 2.2.1
+  * Fix regression bug that made RNAcofold -a unusable
+  * Fix regression bug that prohibited RNAfold to compute the MEA structure when G-Quadruplex support was switched on
+  * Fix bug in Kinfold to enable loading energy parameters from file
+  * Fix potential use of uninitialized value in RNApdist
+  * Add manpage for ct2db
+  * Fix MEA computation when G-Quadruplex support is activated
+  * Allow for vendor installation of the perl interface using INSTALLDIRS=vendor at configure time
+  * Install architecture dependent and independent files of the perl and python interface to their correct file system locations
+
+
+v 2.2.0
+  * RNAforester is now of version 2.0
+  * New program RNApvmin to compute pseudo-energy pertubation vector that minimizes discrepancy between observed and predicted pairing probabilities
+  * SHAPE reactivity support for RNAfold, RNAsubopt, and RNAalifold
+  * Ligand binding to hairpin- and interior-loop motif support in RNAfold
+  * New commandline option to limit maximum base pair span for RNAfold, RNAsubopt, RNAcofold, and RNAalifold
+  * Bugfix in RNAheat to remove numerical instabilities
+  * Bugfix in RNAplex to allow for computation of interactions without length limitation
+  * Bugfix in RNAplot for simple layouts and hairpins of size 0
+  * (generic) hard- and soft-constraints for MFE, partition function, base pair probabilities, stochastic backtracking, and suboptimal secondary structures of single sequences, sequence alignments, and sequence dimers
+  * libsvm version as required for z-scoring in RNALfold is now 3.20
+  * Stochastic backtracking for single sequences is faster due to usage of Boustrophedon scheme
+  * First polymorphic functions vrna_mfe(), vrna_pf(), and vrna_pbacktrack().
+  * The FLT_OR_DBL macro is now a typedef
+  * New functions to convert between different secondary structure representations, such as helix lists, and RNAshapes abstractions
+  * First object-oriented interface for new API functions in the scripting language interfaces
+  * new ViennaRNA-perl submodule that augments the Perl interface to RNAlib
+  * Ligand binding to hairpin- and interior-loop motif support in C-library and scripting language interfaces.
+  * Libraries are generated using libtool
+  * Linking of libraries and executables defaults to use Link Time Optimization (LTO)
+  * Large changes in directory structure of the source code files
+
+
+v 2.1.9
+  * Fixed integer underflow bug in RNALfold
+  * Added Sequence Conservation index (SCI) option to RNAalifold
+  * Fixed bug in energy evaluation of dangling ends / terminal mismatches of exterior loops and multibranch loops
+  * Fixed bug in alifold partition function for circular RNAs
+  * Fixed bug in alifold that scrambled backtracing with activated G-Quadruplex support
+  * Fixed bug in alifold backtracking for larger G-Quadruplexes
+
+
+v 2.1.8
+  * Repaired incorporation of RNAinverse user provided alphabet
+  * Fix missing FASTA ID in RNAeval output
+  * prevent race condition in parallel calls of Lfold()
+  * Fixed memory bug in Lfold() that occured using long sequences and activated G-Quad support
+  * Added latest version of switch.pl
+
+
+v 2.1.7
+  * Fixed bug in RNALfold -z
+  * Python and Perl interface are compiling again under MacOSX
+  * Fixed handling of C arrays in Python interface
+  * Added latest version of switch.pl
+  * Make relplot.pl work with RNAcofold output
+
+
+v 2.1.6
+  * New commandline switches allow for elimination of non-canonical base pairs from constraint structures in RNAfold, RNAalifold and RNAsubopt
+  * updated moveset functions
+  * final fix for discrepancy of tri-loop evaluation between partition function and mfe
+  * pkg-config file now includes the OpenMP linker flag if necessary
+  * New program ct2db allows for conversion of .ct files into dot-bracket notation (incl. pseudo-knot removal)
+
+
+v 2.1.5
+  * Fix for discrepancy between special hairpin loop evaluation in partition functions and MFE
+
+
+v 2.1.4
+  * Fix of G-quadruplex support in subopt()
+  * Fix for discrepancy between special hairpin loop evaluation in partition functions and MFE
+
+
+v 2.1.3
+  * RNAfold: Bugfix for ignoring user specified energy parameter files
+  * RNAcofold: Bugfix for crashing upon constrained folding without specifying a constraint structure
+  * RNAsubopt: Added G-quadruplex support
+  * RNAalifold: Added parameter option to specify base pair probability threshold in dotplot
+  * Fix of several G-quadruplex related bugs
+  * Added G-quadruplex support in subopt()
+
+
+v 2.1.2
+  * RNAfold: Bugfix for randomly missing probabilities in dot-plot during batch job execution
+  * RNAeval: Bugfix for misinterpreted G-quadruplex containing sequences where the quadruplex starts at nucleotide 1
+  * RNAsubopt: Slight changes to the output of stochastic backtracking and zuker subopt
+  * Fix of some memory leaks
+  * Bugfixes in zukersubopt(), assign_plist_from_pr()
+  * New threadsafe variants of putoutpU_prob*() for LPfold()
+  * Provision of python2 interface support. 
+
+
+v 2.1.1
+  * Bugfix to restore backward compatibility with ViennaRNA Package 1.8.x API (this bug also affected proper usage of the the perl interface)
+
+
+v 2.1.0
+  * G-Quadruplex support in RNAfold, RNAcofold, RNALfold, RNAalifold, RNAeval and RNAplot
+  * LPfold got a new option to output its computations in split-mode
+  * several G-Quadruplex related functions were introduced with this release
+  * several functions for moves in an RNA landscape were introduced
+  * new function in alipfold.c now enables access to the partition function matrices of alipf_fold()
+  * different numeric approach was implement for concentration dependend co-folding to avoid instabilities which occured under certain circumstances
+
+
+v 2.0.7
+  * Bugfix for RNAplfold where segfault happened upon usage of -O option
+  * Corrected misbehavior of RNAeval and RNAplot in tty mode
+
+
+v 2.0.6
+  * Bugfix for bad type casting with gcc under MacOSX (resulted in accidental "sequence too long" errors)
+  * Bugfix for disappearing tri-/hexaloop contributions when read in from certain parameter files
+  * Bugfix for RNALfold that segfaulted on short strange sequences like AT+ repeats
+  * Change of RNA2Dfold output format for stochastic backtracking
+
+
+v 2.0.5
+  * Restored z-score computation capabilities in RNALfold
+
+
+v 2.0.4
+  * Bugfix for RNAcofold partition function
+  * Perl wrapper compatibility to changed RNAlib has been restored
+  * Backward compatibility for partition function calls has been restored 
+
+
+v 2.0.3
+  * Bugfix for RNAalifold partition function and base pair probabilities in v2.0.3b
+  * Added Boltzmann factor scaling in RNAsubopt, RNAalifold, RNAplfold and RNAcofold
+  * Bugfix for alipfold() in v2.0.3b
+  * Restored threadsafety of folding matrix access in LPfold.c, alipfold.c, part_func.c, part_func_co.c and part_func_up.c
+  * Added several new functions regarding threadsafe function calls in terms of concurrently changing the model details
+  * Added pkg-config file in the distribution to allow easy checks for certain RNAlib2 versions, compiler flags and linker flags.
+
+
+v 2.0.2
+  * added support for Boltzmann factor scaling in RNAfold
+  * fixed fastaheader to filename bug
+  * plugged some memory leaks
+
+
+v 2.0.1
+  * First official release of version 2.0
+  * included latest bugfixes
+
+
+__History__
+
 2011-03-10  Ronny Lorenz  <ronny@tbi.univie.ac.at>
 	* new naming scheme for all shipped energy parameter files
 	* fixed bugs that appear while compiling with gcc under MacOS X

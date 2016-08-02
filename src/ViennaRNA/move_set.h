@@ -1,7 +1,9 @@
 #ifndef __MOVE_SET_H
 #define __MOVE_SET_H
 
-/* used data structure*/
+/**
+ *  @brief  Data structure for energy_of_move()
+ */
 typedef struct _struct_en{
   int energy;        /* energy in 10kcal/mol*/
   short *structure;  /* structure in energy_of_move format*/

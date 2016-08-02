@@ -1,0 +1,55 @@
+/**
+
+@struct vrna_md_s
+@scripting
+@parblock
+This data structure is wrapped as an object @b md with multiple related functions attached as methods.
+
+A new set of default parameters can be obtained by calling the constructure of
+@b md:<br>
+  - @em md() -- Initialize with default settings
+
+The resulting object has a list of attached methods which directly correspond to
+functions that mainly operate on the corresponding @em C data structure:<br>
+  - @em reset() -- \ref vrna_md_set_default()
+  - @em set_from_globals() -- \ref set_model_details()
+  - @em option_string() -- \ref  vrna_md_option_string()
+
+Note, that default parameters can be modified by directly setting any of the following
+global variables. Internally, getting/setting default parameters using their global variable
+representative translates into calls of the following functions, therefore these wrappers for
+these functions do not exist in the scripting language interface(s):
+
+| global variable | @em C getter                          | @em C setter                      |
+|-----------------|---------------------------------------|-----------------------------------|
+| temperature     | vrna_md_defaults_temperature_get()    | vrna_md_defaults_temperature()    |
+| dangles         | vrna_md_defaults_dangles_get()        | vrna_md_defaults_dangles()        |
+| betaScale       | vrna_md_defaults_betaScale_get()      | vrna_md_defaults_betaScale()      |
+| tetra_loop      | this is an alias of @em special_hp    |                                   |
+| special_hp      | vrna_md_defaults_special_hp_get()     | vrna_md_defaults_special_hp()     |
+| noLonelyPairs   | this is an alias of @em noLP          |                                   |
+| noLP            | vrna_md_defaults_noLP_get()           | vrna_md_defaults_noLP()           |
+| noGU            | vrna_md_defaults_noGU_get()           | vrna_md_defaults_noGU()           |
+| no_closingGU    | this is an alias of @em noGUclosure   |                                   |
+| noGUclosure     | vrna_md_defaults_noGUclosure_get()    | vrna_md_defaults_noGUclosure()    |
+| logML           | vrna_md_defaults_logML_get()          | vrna_md_defaults_logML()          |
+| circ            | vrna_md_defaults_circ_get()           | vrna_md_defaults_circ()           |
+| gquad           | vrna_md_defaults_gquad_get()          | vrna_md_defaults_gquad()          |
+| uniq_ML         | vrna_md_defaults_uniq_ML_get()        | vrna_md_defaults_uniq_ML()        |
+| energy_set      | vrna_md_defaults_energy_set_get()     | vrna_md_defaults_energy_set()     |
+| backtrack       | vrna_md_defaults_backtrack_get()      | vrna_md_defaults_backtrack()      |
+| backtrack_type  | vrna_md_defaults_backtrack_type_get() | vrna_md_defaults_backtrack_type() |
+| do_backtrack    | this is an alias of @em compute_bpp   |                                   |
+| compute_bpp     | vrna_md_defaults_compute_bpp_get()    | vrna_md_defaults_compute_bpp()    |
+| max_bp_span     | vrna_md_defaults_max_bp_span_get()    | vrna_md_defaults_max_bp_span()    |
+| min_loop_size   | vrna_md_defaults_min_loop_size_get()  | vrna_md_defaults_min_loop_size()  |
+| window_size     | vrna_md_defaults_window_size_get()    | vrna_md_defaults_window_size()    |
+| oldAliEn        | vrna_md_defaults_oldAliEn_get()       | vrna_md_defaults_oldAliEn()       |
+| ribo            | vrna_md_defaults_ribo_get()           | vrna_md_defaults_ribo()           |
+| cv_fact         | vrna_md_defaults_cv_fact_get()        | vrna_md_defaults_cv_fact()        |
+| nc_fact         | vrna_md_defaults_nc_fact_get()        | vrna_md_defaults_nc_fact()        |
+| sfact           | vrna_md_defaults_sfact_get()          | vrna_md_defaults_sfact()          |
+
+@endparblock
+
+*/

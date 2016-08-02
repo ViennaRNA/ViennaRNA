@@ -1,13 +1,14 @@
 /**
 
-@page  swig_interface   Scripting Language interface(s)
+@page  scripting   Scripting Language interface(s)
+@brief  Notes on functions and structures wrapped to the scripting language interface(s)
 
-@section swig_intro Introduction
+@section scripting_intro Introduction
 
 For an easy integration into scripting languages, we provide an automatically
-generated interface to the RNAlib C-library, generated with swig.
+generated interface to the RNAlib C-library, generated with scripting.
 
-@subsection swig_renaming  Function renaming scheme
+@subsection scripting_renaming  Function renaming scheme
 
 The main difference when using a scripting language interface compared
 to direct calls of RNAlib C functions is, that the prefix 'vrna_' is
@@ -17,25 +18,25 @@ calls in perl or python are RNA::fold(), and RNA.fold(), respectively.
 Functions that are dedicated to work on specific data structures only,
 e.g. the #vrna_fold_compound_t, are usually not exported at all. Instead,
 they are attached as object methods of a corresponding class
-(see @ref swig_oo_interface for detailed information).
+(see @ref scripting_oo_interface for detailed information).
 
-@subsection swig_oo_interface Object oriented Interface for data structures
+@subsection scripting_oo_interface Object oriented Interface for data structures
 
 For data structures, typedefs, and enumerations the 'vrna_' prefixes are
 dropped as well, together with their suffixes '_s', '_t', and '_e', respectively.
 Furthermore, data structures are usually transformed into classes and
 relevant functions of the C-library are attached as methods.
 
-@section swig_examples Examples
+@section scripting_examples Examples
 
-@subsection swig_perl_examples  Perl Examples
+@subsection scripting_perl_examples  Perl Examples
 
-@subsubsection swig_perl_examples_flat Using the Flat Interface
+@subsubsection scripting_perl_examples_flat Using the Flat Interface
 
 Example 1: "Simple MFE prediction"
 @include example1.pl
 
-@subsubsection swig_perl_examples_oo Using the Object Oriented (OO) Interface
+@subsubsection scripting_perl_examples_oo Using the Object Oriented (OO) Interface
 
 The 'fold_compound' class that serves as an object oriented interface for #vrna_fold_compound_t
 
@@ -43,7 +44,8 @@ Example 1: "Simple MFE prediction"
 @include oo_example1.pl
 
 
-@subsection swig_python_examples Python Examples
+@subsection scripting_python_examples Python Examples
+
+@section scripting_wrappers  How functions, structures, enums, and macro definitions are wrapped
 
 */
-

@@ -40,7 +40,7 @@ class GeneralTests(unittest.TestCase):
         (struct, mfe) = RNA.fold(seq1)
         self.assertEqual(struct,struct1)
         # check energy
-        self.assertEqual(RNA.energy_of_struct(seq1,struct1), mfe)
+        self.assertTrue(abs(RNA.energy_of_struct(seq1,struct1) - mfe) < 0.0001)
 
 
     def test_constrained_folding(self):
@@ -48,7 +48,7 @@ class GeneralTests(unittest.TestCase):
         RNA.cvar.fold_constrained = 1
         (struct,cmfe) = RNA.fold(seq1,"....xx....xx....")
         self.assertEqual(struct,'(((..........)))')
-        self.assertEqual(RNA.energy_of_struct(seq1,struct),cmfe)
+        self.assertTrue(abs(RNA.energy_of_struct(seq1,struct) - cmfe) < 0.0001)
         RNA.cvar.fold_constrained = 0
 
     def test_tree_distance(self):
@@ -292,6 +292,18 @@ class FoldCompoundTest(unittest.TestCase):
         bp_dis = fc.mean_bp_distance()
         print(seq1 ,"\t meanBPDistance : ", bp_dis,"\n")
         self.assertTrue(bp_dis)
+
+
+    def test_pf_dimer(self):
+        print("testing pf_dimer() method")
+        fc = RNA.fold_compound(seq1 + "&" + seq2)
+        (costruct, comfe) = fc.mfe_dimer()
+        self.assertEqual(costruct, "(((.(((...))))))((((((...))).)))")
+        cmfe = fc.eval_structure(costruct)
+        self.assertTrue(abs(comfe-cmfe) < 1e-5)
+
+        (x,ac,bc,fcab,cf) = fc.pf_dimer()
+        self.assertTrue((cf < comfe) and (comfe - cf < 1.3))
 
 
     # hairpin_loops.h from here

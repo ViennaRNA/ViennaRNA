@@ -121,7 +121,7 @@ PRIVATE int delay_free=0;
 
 /*----------------------------------------------ALIDUPLEXFOLD-----------------------------------------------------------------------------------------------------------*/
 PRIVATE duplexT aliduplexfold(const char *s1[], const char *s2[], const int extension_cost) {
-  int i, j, s, n_seq, l1, Emin=INF, i_min=0, j_min=0;
+  int i, j, s, n_seq, Emin=INF, i_min=0, j_min=0;
   char *struc;
   duplexT mfe;
   vrna_md_t   md;
@@ -196,7 +196,6 @@ PRIVATE duplexT aliduplexfold(const char *s1[], const char *s2[], const int exte
   struc = alibacktrack(i_min, j_min, (const short int**) S1, (const short int**) S2 , extension_cost);
   if (i_min<n3) i_min++;
   if (j_min>1 ) j_min--;
-  l1 = strchr(struc, '&')-struc;
   int size;
   size=strlen(struc)-1;
   Emin-=size * n_seq * extension_cost;
@@ -601,7 +600,7 @@ PRIVATE void alifind_max(const int *position, const int *position_j,
                  begin_t -10 +test.i-l1,
                  begin_t -10 +test.i-1,
                  begin_q -10 + test.j - 1,
-                 begin_q-11 + test.j +strlen(test.structure) -l1 -2 , test.energy);
+                 begin_q-11 + test.j + (int)strlen(test.structure) -l1 -2 , test.energy);
           pos=MAX2(10,pos+temp_min-delta);
 
         }
@@ -650,7 +649,7 @@ PRIVATE void aliplot_max(const int max, const int max_pos, const int max_pos_j, 
            begin_t -10 +test.i-l1,
            begin_t -10 +test.i-1,
            begin_q-10 + test.j - 1,
-           begin_q -11 + test.j +strlen(test.structure) - l1 - 2,
+           begin_q -11 + test.j + (int)strlen(test.structure) - l1 - 2,
            test.energy);
     for(i=0; i<n_seq ; i++){
       free(s3[i]);free(s4[i]);
@@ -766,9 +765,9 @@ PRIVATE duplexT aliduplexfold_XS(const char *s1[], const char *s2[],
     } else{
     struc = alibacktrack_XS(k_min, l_min,(const short int**)S1,(const short int**)S2,access_s1, access_s2,i_flag,j_flag);
     }
-  int dx_5, dx_3, dy_5, dy_3,dGx,dGy,bonus_x, bonus_y,temp_dangle;
-  dx_5=0; dx_3=0; dy_5=0; dy_3=0;dGx=0;dGy=0;bonus_x=0; bonus_y=0;temp_dangle=0;
-  dGx =n_seq*(access_s1[i-k_min+1][i_pos]);dx_3=0; dx_5=0;bonus_x=0;
+  int dx_5, dx_3, dy_5, dy_3,dGx,dGy;
+  dx_5=0; dx_3=0; dy_5=0; dy_3=0;dGx=0;dGy=0;
+  dGx =n_seq*(access_s1[i-k_min+1][i_pos]);dx_3=0; dx_5=0;
   dGy =n_seq*access_s2[l_min-j+1][j_pos + (l_min-1)-1];
   mfe.tb=i_pos -9 - i + k_min -1 -dx_5;
   mfe.te=i_pos -9 -1 + dx_3;
@@ -1136,11 +1135,13 @@ PRIVATE void alifind_max_XS(const int *position, const int *position_j,
           }
         }
         pos-=temp_min;
+        /*
         int max_pos_j;
         max_pos_j=position_j[pos+delta];
         int max;
         max=position[pos+delta];
-        /*         printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100); */
+        printf("target upper bound %d: query lower bound %d  (%5.2f) \n", pos-10, max_pos_j-10, ((double)max)/100);
+        */
         pos=MAX2(10,pos+temp_min-delta);
       }
     }
