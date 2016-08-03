@@ -419,20 +419,8 @@ int main(int argc, char *argv[]){
                           verbose, \
                           VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
-  min_en = vrna_mfe(vc, structure);
-
-  if(md.circ){
-    int     i;
-    double  s = 0;
-    for (i=0; AS[i]!=NULL; i++){
-      vrna_fold_compound_t *vc_tmp = vrna_fold_compound(AS[i], &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-      s += vrna_eval_structure(vc_tmp, structure);
-      vrna_fold_compound_free(vc_tmp);
-    }
-    real_en   = s/i;
-  } else {
-    real_en       = vrna_eval_structure(vc, structure);
-  }
+  min_en  = vrna_mfe(vc, structure);
+  real_en = vrna_eval_structure(vc, structure);
 
   string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s", string, structure);
