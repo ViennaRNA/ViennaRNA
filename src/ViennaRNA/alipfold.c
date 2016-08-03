@@ -192,6 +192,7 @@ wrap_alipf_fold(const char **sequences,
   } else {
     free(exp_params);
   }
+  vc->exp_params->pf_scale = pf_scale;
 
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
