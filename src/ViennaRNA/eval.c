@@ -511,36 +511,74 @@ eval_ext_int_loop(vrna_fold_compound_t *vc,
                   int p,
                   int q){
 
-  int             u1, u2, length;
+  int             e, u1, u2, length;
+  unsigned int    s, n_seq;
+  short           **SS, **S5, **S3;
+  unsigned short  **a2s;
   unsigned char   type, type_2;
   short           *S, si, sj, sp, sq;
   vrna_param_t    *P;
   vrna_md_t       *md;
-  vrna_sc_t       *sc;
+  vrna_sc_t       *sc, **scs;
 
   length  = vc->length;
   P       = vc->params;
   md      = &(P->model_details);
   S       = vc->sequence_encoding;
-  si      = S[j+1];
-  sj      = S[i-1];
-  sp      = S[p-1];
-  sq      = S[q+1];
-  type    = (unsigned char)md->pair[S[j]][S[i]];
-  type_2  = (unsigned char)md->pair[S[q]][S[p]];
-  sc      = vc->sc;
+  e       = INF;
 
-  if(type == 0)
-    type = 7;
-  if(type_2 == 0)
-    type_2 = 7;
+  switch(vc->type){
+    case VRNA_VC_TYPE_SINGLE:     si      = S[j+1];
+                                  sj      = S[i-1];
+                                  sp      = S[p-1];
+                                  sq      = S[q+1];
+                                  type    = (unsigned char)md->pair[S[j]][S[i]];
+                                  type_2  = (unsigned char)md->pair[S[q]][S[p]];
+                                  sc      = vc->sc;
 
-  return ubf_eval_ext_int_loop( i, j, p, q,
-                                i - 1, j + 1, p - 1, q + 1,
-                                si, sj, sp, sq,
-                                type, type_2,
-                                length,
-                                P, sc);
+                                  if(type == 0)
+                                    type = 7;
+                                  if(type_2 == 0)
+                                    type_2 = 7;
+
+                                  e = ubf_eval_ext_int_loop(i, j, p, q,
+                                                            i - 1, j + 1, p - 1, q + 1,
+                                                            si, sj, sp, sq,
+                                                            type, type_2,
+                                                            length,
+                                                            P, sc);
+                                  break;
+
+    case VRNA_VC_TYPE_ALIGNMENT:  n_seq = vc->n_seq;
+                                  SS      = vc->S;
+                                  S5      = vc->S5; /* S5[s][i] holds next base 5' of i in sequence s */
+                                  S3      = vc->S3; /* Sl[s][i] holds next base 3' of i in sequence s */
+                                  a2s     = vc->a2s;
+                                  n_seq   = vc->n_seq;
+                                  scs     = vc->scs;
+
+                                  for (e = 0, s = 0; s < n_seq; s++) {
+                                    type    = (unsigned char)md->pair[SS[s][j]][SS[s][i]];
+                                    if(type == 0)
+                                      type = 7;
+                                    type_2  = (unsigned char)md->pair[SS[s][q]][SS[s][p]]; /* q,p not p,q! */
+                                    if(type_2 == 0)
+                                      type_2 = 7;
+
+                                    sc = (scs && scs[s]) ? scs[s] : NULL;
+
+                                    e += ubf_eval_ext_int_loop(a2s[s][i], a2s[s][j], a2s[s][p], a2s[s][q],
+                                                                    a2s[s][i - 1], a2s[s][j + 1], a2s[s][p - 1], a2s[s][q + 1],
+                                                                    S3[s][j], S5[s][i], S5[s][p], S3[s][q],
+                                                                    type, type_2,
+                                                                    a2s[s][length],
+                                                                    P, sc);
+                                  }
+
+                                  break;
+  }
+
+  return e;
 }
 
 PRIVATE  vrna_param_t *
@@ -646,8 +684,11 @@ wrap_eval_structure(vrna_fold_compound_t *vc,
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  res = (int)((float)eval_pt(vc, pt, file, verbosity) / (float)vc->n_seq);
-
+    case VRNA_VC_TYPE_ALIGNMENT:  if(vc->params->model_details.circ){
+                                    res = (int)((float)eval_circ_pt(vc, pt, file, verbosity) / (float)vc->n_seq);
+                                  } else {
+                                    res = (int)((float)eval_pt(vc, pt, file, verbosity) / (float)vc->n_seq);
+                                  }
                                   vc->params->model_details.gquad = gq;
 
                                   if(gq){
@@ -704,9 +745,11 @@ eval_circ_pt( vrna_fold_compound_t *vc,
               FILE *file,
               int verbosity_level){
 
+  unsigned int      s, n_seq;
   int               i, j, length, energy, en0, degree;
+  unsigned short    **a2s;
   vrna_param_t      *P;
-  vrna_sc_t         *sc;
+  vrna_sc_t         *sc, **scs;
   FILE              *out;
 
   energy        = 0;
@@ -714,7 +757,8 @@ eval_circ_pt( vrna_fold_compound_t *vc,
   degree        = 0;
   length        = vc->length;
   P             = vc->params;
-  sc            = vc->sc;
+  sc            = (vc->type == VRNA_VC_TYPE_SINGLE) ? vc->sc : NULL;
+  scs           = (vc->type == VRNA_VC_TYPE_ALIGNMENT) ? vc->scs : NULL;
   out           = (file) ? file : stdout;
 
   if(P->model_details.gquad)
@@ -735,12 +779,23 @@ eval_circ_pt( vrna_fold_compound_t *vc,
   /* evaluate exterior loop itself */
   switch(degree){
     case 0:   /* unstructured */
-              if(sc){
-                if(sc->energy_up)
-                  en0 += sc->energy_up[1][length];
+              switch(vc->type){
+                case VRNA_VC_TYPE_SINGLE:     if(sc){
+                                                if(sc->energy_up)
+                                                  en0 += sc->energy_up[1][length];
+                                              }
+                                              break;
+
+                case VRNA_VC_TYPE_ALIGNMENT:  n_seq = vc->n_seq;
+                                              a2s   = vc->a2s;
+                                              if(scs)
+                                                for(s = 0; s < n_seq; s++){
+                                                  if(scs[s] && scs[s]->energy_up)
+                                                    en0 += scs[s]->energy_up[1][a2s[s][length]];
+                                                }
+                                              break;
               }
               break;
-
     case 1:   /* hairpin loop */
               en0 = vrna_eval_ext_hp_loop(vc, i, j);
               break;
@@ -757,8 +812,10 @@ eval_circ_pt( vrna_fold_compound_t *vc,
               break;
 
     default:  /* multibranch loop */
-              en0 =   energy_of_ml_pt(vc, 0, (const short *)pt)
-                    - P->MLintern[0];
+              en0 = energy_of_ml_pt(vc, 0, (const short *)pt);
+
+              if(vc->type == VRNA_VC_TYPE_SINGLE)
+                en0 -= E_MLstem(0, -1, -1, P); /* remove virtual closing pair */
               break;
   }
 
@@ -1301,7 +1358,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                 int i,
                 const short *pt){
 
-  int               energy, cx_energy, tmp, tmp2, best_energy=INF, bonus, *idx, cp, dangle_model, logML, *rtype, ss, n, n_seq;
+  int               energy, cx_energy, tmp, tmp2, best_energy=INF, bonus, *idx, cp, dangle_model, logML, circular, *rtype, ss, n, n_seq;
   int               i1, j, p, q, q_prev, q_prev2, u, uu, x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang;
   int               e_stem, e_stem5, e_stem3, e_stem53;
   int               mlintern[NBPAIRS+1];
@@ -1323,6 +1380,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
   md  = &(P->model_details);
   idx = vc->jindx;
 
+  circular      = md->circ;
   dangle_model  = md->dangles;
   logML         = md->logML;
   rtype         = &(md->rtype[0]);
@@ -1544,8 +1602,8 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                                                   if(tt == 0)
                                                     tt = 7;
 
-                                                  mm5 = (a2s[ss][p] > 1) ? S5[ss][p] : -1;
-                                                  mm3 = (a2s[ss][q] < a2s[ss][S[0][0]]) ? S3[ss][q] : -1;
+                                                  mm5 = ((a2s[ss][p] > 1) || circular) ? S5[ss][p] : -1;
+                                                  mm3 = ((a2s[ss][q] < a2s[ss][S[0][0]]) || circular) ? S3[ss][q] : -1;
                                                   energy += E_MLstem(tt, mm5, mm3, P);
                                                 }
 
