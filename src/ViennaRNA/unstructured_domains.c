@@ -972,9 +972,8 @@ default_energy_ext_motif( int i,
   if(data->motif_list_ext[i]){
     k = 0;
     while(-1 != (m = data->motif_list_ext[i][k])){
-      if((i + data->len[m] - 1) == j){
-        return data->dG[m];
-      }
+      if((i + data->len[m] - 1) == j)
+        e = MIN2(e, data->dG[m]);
       k++;
     }
   }
@@ -993,7 +992,7 @@ default_energy_hp_motif(int i,
     k = 0;
     while(-1 != (m = data->motif_list_hp[i][k])){
       if((i + data->len[m] - 1) == j)
-        return data->dG[m];
+        e = MIN2(e, data->dG[m]);
       k++;
     }
   }
@@ -1012,7 +1011,7 @@ default_energy_int_motif( int i,
     k = 0;
     while(-1 != (m = data->motif_list_int[i][k])){
       if((i + data->len[m] - 1) == j)
-        return data->dG[m];
+        e = MIN2(e, data->dG[m]);
       k++;
     }
   }
@@ -1031,7 +1030,7 @@ default_energy_mb_motif(int i,
     k = 0;
     while(-1 != (m = data->motif_list_mb[i][k])){
       if((i + data->len[m] - 1) == j)
-        return data->dG[m];
+        e = MIN2(2, data->dG[m]);
       k++;
     }
   }
@@ -1050,7 +1049,7 @@ default_exp_energy_ext_motif( int i,
     k = 0;
     while(-1 != (m = data->motif_list_ext[i][k])){
       if((i + data->len[m] - 1) == j)
-        return data->exp_dG[m];
+        q += data->exp_dG[m];
       k++;
     }
   }
@@ -1070,7 +1069,7 @@ default_exp_energy_hp_motif(int i,
     k = 0;
     while(-1 != (m = data->motif_list_hp[i][k])){
       if((i + data->len[m] - 1) == j)
-        return data->exp_dG[m];
+        q += data->exp_dG[m];
       k++;
     }
   }
@@ -1090,7 +1089,7 @@ default_exp_energy_int_motif( int i,
     k = 0;
     while(-1 != (m = data->motif_list_int[i][k])){
       if((i + data->len[m] - 1) == j)
-        return data->exp_dG[m];
+        q += data->exp_dG[m];
       k++;
     }
   }
@@ -1110,7 +1109,7 @@ default_exp_energy_mb_motif(int i,
     k = 0;
     while(-1 != (m = data->motif_list_mb[i][k])){
       if((i + data->len[m] - 1) == j)
-        return data->exp_dG[m];
+        q += data->exp_dG[m];
       k++;
     }
   }
