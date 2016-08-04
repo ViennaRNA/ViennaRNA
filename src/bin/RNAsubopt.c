@@ -1,10 +1,14 @@
-/* Last changed Time-stamp: <2008-12-03 16:38:01 ivo> */
 /*
                 Ineractive access to suboptimal folding
 
                            c Ivo L Hofacker
                           Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <config.h>
 #include <assert.h>
 #include <stdio.h>
@@ -26,8 +30,6 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAsubopt_cmdl.h"
 
-/*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.20 2008/12/03 16:55:44 ivo Exp $";
 
 static void
 add_shape_constraints(vrna_fold_compound_t *vc,

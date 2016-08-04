@@ -1,10 +1,13 @@
-/* Last changed Time-stamp: <2008-07-02 17:10:04 berni> */
 /*
                   Ineractive Access to folding Routines
 
                   c Ivo L Hofacker
                   Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,9 +26,6 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/file_formats.h"
 #include "RNAplfold_cmdl.h"
-
-/*@unused@*/
-static char rcsid[] = "$Id: RNAplfold.c,v 1.10 2008/07/02 15:34:24 ivo Exp $";
 
 int unpaired;
 PRIVATE void putout_pup(double *pup,int length, int winsize, char *name);

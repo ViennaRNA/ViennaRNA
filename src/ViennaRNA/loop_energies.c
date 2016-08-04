@@ -1,6 +1,8 @@
 /* Functions for Loop energy computations */
 
-
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

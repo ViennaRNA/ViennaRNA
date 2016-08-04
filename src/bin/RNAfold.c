@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2012-02-15 18:20:49 ivo> */
 /*
                   Ineractive Access to folding Routines
 
@@ -12,6 +11,10 @@
 *** This code provides an interface for MFE and Partition function folding
 *** of single linear or circular RNA molecules.
 **/
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <assert.h>
 #include <stdio.h>
@@ -35,10 +38,6 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAfold_cmdl.h"
 
-
-
-/*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.25 2009/02/24 14:22:21 ivo Exp $";
 
 /*--------------------------------------------------------------------------*/
 

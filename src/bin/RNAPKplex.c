@@ -1,10 +1,13 @@
-/* Last changed Time-stamp: <2010-06-30 17:42:12 wolfgang> */
 /*
              Compute pseudoknotted structure of an RNA
 
                            c Ivo L Hofacker
                           Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

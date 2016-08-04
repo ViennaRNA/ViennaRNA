@@ -1,5 +1,3 @@
-
-/* Last changed Time-stamp: <2007-12-05 14:05:51 ivo> */
 /*
                   minimum free energy
                   RNA secondary structure prediction
@@ -11,7 +9,10 @@
                   Vienna RNA package
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -25,8 +26,7 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/snofold.h"
 #include "ViennaRNA/loop_energies.h"
-/*@unused@*/
-static char rcsid[] UNUSED = "$Id: fold.c,v 1.38 2007/12/19 10:27:42 ivo Exp $";
+
 #ifdef __GNUC__
 #define INLINE inline
 #else

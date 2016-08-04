@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2008-12-03 17:44:38 ivo> */
 /*
                   minimum free energy
                   RNA secondary structure prediction
@@ -10,7 +9,10 @@
                   Vienna RNA package
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

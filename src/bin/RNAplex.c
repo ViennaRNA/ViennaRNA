@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2007-10-29 17:34:19 htafer> */
 /*                
              Compute duplex structure of two RNA strands
 
@@ -6,6 +5,9 @@
                           Vienna RNA package
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <ctype.h>
 #include <dirent.h>
@@ -29,9 +31,6 @@
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/read_epars.h"
 #include "RNAplex_cmdl.h"
-
-
-
 
 
 clock_t BeginTimer()
@@ -82,7 +81,7 @@ double     probcompute_sug_95(char *s1, double na_concentration, double probe_co
 double probcompute_newparameters(char *s1,double k_concentration, double tris_concentration,double mg_concentration, double na_concentration, double probe_concentration);
 /*@unused@*/
 static int convert_plfold_i(char *fname);/* convert test accessibility into bin accessibility. */
-static char rcsid[] = "$Id: rnaplex.c,v 1.10 2007/12/21 15:30:48 htafer Exp $";
+
 
 static char  scale[] = "....,....1....,....2....,....3....,....4"
   "....,....5....,....6....,....7....,....8";

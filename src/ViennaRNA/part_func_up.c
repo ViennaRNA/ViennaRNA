@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2008-07-04 15:57:03 ulim> */
 /*
                   partiton function for RNA secondary structures
 
@@ -52,7 +51,10 @@
   Initial revision
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,8 +71,7 @@
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/part_func_up.h"
 #include "ViennaRNA/duplex.h"
-/*@unused@*/
-static char rcsid[] UNUSED = "$Id: part_func_up.c,v 1.4 2008/07/04 14:27:36 ivo Exp $";
+
 
 #define CO_TURN 0
 #define ZERO(A) (fabs(A) < DBL_EPSILON)

@@ -1,10 +1,13 @@
-/* Last changed Time-stamp: <2003-04-23 11:56:44 ivo> */
 /*
                   Ineractive Access to folding Routines
 
                   c Ivo L Hofacker
                   Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,8 +25,6 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNALfold_cmdl.h"
 
-/*@unused@*/
-static char rcsid[] = "$Id: RNALfold.c,v 1.2 2003/07/14 13:38:47 ivo Exp $";
 
 int main(int argc, char *argv[]){
   FILE                        *input, *output;

@@ -3,18 +3,20 @@
 		      Peter F Stadler, Ivo Hofacker
 			   Vienna RNA Package
 */
-/* Last changed Time-stamp: <2005-07-23 10:19:40 ivo> */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
-#include  "edit_cost.h"
-#include  "dist_vars.h"
-#include  "utils.h"
+#include "ViennaRNA/edit_cost.h"
+#include "ViennaRNA/dist_vars.h"
+#include "ViennaRNA/utils.h"
 
-static char rcsid[] = "$Id: stringdist.c,v 1.3 2005/07/24 08:37:15 ivo Exp $";
 
 #define PUBLIC
 #define PRIVATE        static

@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2006-03-02 22:32:02 ivo> */
 /*
                   minimum free energy consensus
                   RNA secondary structure prediction
@@ -9,7 +8,10 @@
                   Vienna RNA package
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -28,10 +30,6 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-
-/*@unused@*/
-static char rcsid[] UNUSED = "$Id: aliLfold.c,v 1.1 2007/06/23 08:49:57 ivo Exp $";
 
 
 #define PAREN

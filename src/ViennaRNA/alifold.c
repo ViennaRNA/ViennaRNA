@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2009-02-24 15:17:17 ivo> */
 /*
                   minimum free energy folding
                   for a set of aligned sequences
@@ -12,8 +11,10 @@
 *** \file alifold.c
 **/
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

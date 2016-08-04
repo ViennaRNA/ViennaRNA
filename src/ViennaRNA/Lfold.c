@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2007-09-04 11:16:01 ivo> */
 /*
                   minimum free energy
                   RNA secondary structure prediction
@@ -9,7 +8,10 @@
                   Vienna RNA package
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -1304,7 +1306,7 @@ backtrack(vrna_fold_compound_t *vc,
       vrna_message_error("backtracking failed in repeat_gquad");
     }
   repeat_gquad_exit:
-    asm("nop");
+    __asm("nop");
 
   }
 

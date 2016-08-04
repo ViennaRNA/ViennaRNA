@@ -1,7 +1,4 @@
 /*
-  Last changed Time-stamp: <2008-07-04 16:15:50 ulim>
-  $Id: RNAup.c,v 1.5 2008/07/04 14:27:09 ivo Exp $
-
   Ineractive Access to cofolding routines
   c Ivo L Hofacker
   Vienna RNA package
@@ -10,6 +7,10 @@
 /**
 *** \file RNAup.c
 **/
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,9 +31,6 @@
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/constraints.h"
 #include "RNAup_cmdl.h"
-
-/*@unused@*/
-static char rcsid[] = "$Id: RNAup.c,v 1.5 2008/07/04 14:27:09 ivo Exp $";
 
 #define MIN(x,y) (((x)<(y)) ? (x) : (y))
 #define MAX(x,y) (((x)>(y)) ? (x) : (y))

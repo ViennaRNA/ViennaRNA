@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 dnl Every other copy of the package version number gets its value from here
 AC_INIT([ViennaRNA],[2.2.8],[rna@tbi.univie.ac.at],[ViennaRNA], [http://www.tbi.univie.ac.at/RNA])
-AC_PREREQ([2.59])
+AC_PREREQ([2.60])
 AC_CONFIG_AUX_DIR(config)
 
 AC_SUBST(VERSION)
@@ -37,6 +37,8 @@ if test "$GCC" = yes; then
 else
    AC_DEFINE(UNUSED,, only for gcc)
 fi
+
+AC_USE_SYSTEM_EXTENSIONS
 
 AC_PROG_INSTALL
 AM_PROG_AR

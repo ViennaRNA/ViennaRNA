@@ -1,10 +1,14 @@
-/* Last changed Time-stamp: <2008-09-02 10:47:24 ivo> */
 /*
 
           Calculate Energy of given Sequences and Structures
                            c Ivo L Hofacker
                           Vienna RNA Pckage
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

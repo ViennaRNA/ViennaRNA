@@ -1,10 +1,13 @@
-/* Last changed Time-stamp: <2006-03-02 22:48:15 ivo> */
 /*
                   Local version of RNAalifold
 
                   c Ivo L Hofacker, Stephan Bernhart
                   Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,8 +27,6 @@
 #include "ViennaRNA/read_epars.h"
 #include "RNALalifold_cmdl.h"
 
-/*@unused@*/
-static const char rcsid[] = "$Id: RNALalifold.c,v 1.1 2007/06/23 09:52:29 ivo Exp $";
 
 /*@exits@*/
 PRIVATE void  usage(void);

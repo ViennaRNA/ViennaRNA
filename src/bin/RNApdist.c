@@ -3,6 +3,11 @@
           Peter F Stadler, Ivo L Hofacker, Sebastian Bonhoeffer
                         Vienna RNA Package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -22,8 +27,6 @@
 
 #define MAXLENGTH  10000
 #define MAXSEQ      1000
-/*@unused@*/
-static char rcsid[] = "$Id: RNApdist.c,v 1.8 2002/11/07 12:19:41 ivo Exp $";
 
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE void print_aligned_lines(FILE *somewhere);

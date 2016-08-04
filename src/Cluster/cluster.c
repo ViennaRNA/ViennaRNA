@@ -1,9 +1,13 @@
-/* Last changed Time-stamp: <95/07/12 19:52:41 ivo> */
 /*
 		 Cluster Analysis using Ward's Method
 		Ward J Amer Stat Ass, 58 (1963), p236
 		   c Peter Stadler and Ivo Hofacker
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

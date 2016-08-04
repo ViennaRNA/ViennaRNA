@@ -8,6 +8,10 @@
             calculates specific heat using C = - T d^2/dT^2 G(T)
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,8 +27,6 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAheat_cmdl.h"
 
-/*@unused@*/
-static char rcsid[] = "$Id: RNAheat.c,v 1.12 2000/09/28 11:23:14 ivo Rel $";
 
 #define MAXWIDTH  201
 #define GASCONST  1.98717  /* in [cal/K] */

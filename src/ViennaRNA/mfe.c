@@ -13,7 +13,10 @@
                   Vienna RNA package
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -1332,7 +1335,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       vrna_message_error("backtracking failed in repeat_gquad_comparative");
     }
   repeat_gquad_comparative_exit:
-    asm("nop");
+    __asm("nop");
 
   }
 

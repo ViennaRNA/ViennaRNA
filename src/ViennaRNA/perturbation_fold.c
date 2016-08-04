@@ -1,6 +1,9 @@
-#include "perturbation_fold.h"
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include "perturbation_fold.h"
 #include "eval.h"
 #include "fold_vars.h"
 #include "constraints.h"

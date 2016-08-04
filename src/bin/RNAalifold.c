@@ -1,10 +1,13 @@
-/* Last changed Time-stamp: <2009-02-24 14:49:24 ivo> */
 /*
                   Access to alifold Routines
 
                   c Ivo L Hofacker
                   Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,9 +29,6 @@
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/constraints_SHAPE.h"
 #include "RNAalifold_cmdl.h"
-
-/*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Exp $";
 
 #define MAX_NUM_NAMES    500
 

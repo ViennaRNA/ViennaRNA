@@ -1,4 +1,3 @@
- /* Last changed Time-stamp: <2007-10-30 14:06:22 htafer> */
 /*
            compute the duplex structure of two RNA strands,
                 allowing only inter-strand base pairs.
@@ -32,7 +31,10 @@
   For more information check "durbin, biological sequence analysis"
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -47,8 +49,7 @@
 #include "ViennaRNA/plex.h"
 #include "ViennaRNA/ali_plex.h"
 #include "ViennaRNA/loop_energies.h"
-/*@unused@*/
-static char rcsid[] UNUSED = "$Id: plex.c,v 1.14 2007/06/12 12:50:16 htafer Exp $";
+
 /* int subopt_sorted=0; */
 
 #define PUBLIC

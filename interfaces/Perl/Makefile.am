@@ -68,7 +68,7 @@ if HAS_SWIG
 $(SWIG_wrapper) $(PERL_MODULE): $(INTERFACE_FILES)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
-                  @FLOAT_PF_FLAG@ \
+                  $(RNA_CPPFLAGS) \
                   -perl5 -proxy -const -c++ \
                   -module RNA -o $(SWIG_wrapper) \
                   $(SWIG_main_src)

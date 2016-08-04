@@ -42,6 +42,7 @@ AX_CHECK_LINK_FLAG([-fno-strict-aliasing], [
 ## Enable Features  ##
 ##------------------##
 
+RNA_ENABLE_C11
 RNA_ENABLE_OSX
 RNA_ENABLE_LTO
 RNA_ENABLE_SVM

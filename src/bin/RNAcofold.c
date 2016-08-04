@@ -1,7 +1,10 @@
-/* Last changed Time-stamp: <2006-04-05 12:58:49 ivo> */
 /*
                   c Ivo L Hofacker, Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,9 +25,6 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
 #include "RNAcofold_cmdl.h"
-
-/*@unused@*/
-PRIVATE char rcsid[] = "$Id: RNAcofold.c,v 1.7 2006/05/10 15:14:27 ivo Exp $";
 
 PRIVATE vrna_dimer_pf_t do_partfunc(char *string, int length, int Switch, plist **tpr, plist **mf, vrna_exp_param_t *parameters);
 PRIVATE double *read_concentrations(FILE *fp);

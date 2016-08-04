@@ -23,13 +23,14 @@
    (C) 1991 Kendall Bennett.
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/list.h"
-
-/*@unused@*/
-static char rcsid[] = "$Id: list.c,v 1.5 2003/07/14 13:36:58 ivo Exp $";
 
 #define PUBLIC
 PUBLIC void *

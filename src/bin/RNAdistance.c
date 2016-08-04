@@ -3,6 +3,11 @@
            Walter Fontana, Ivo L Hofacker, Peter F Stadler
                           Vienna RNA Package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -22,8 +27,7 @@
 
 #define PUBLIC
 #define PRIVATE     static
-/*@unused@*/
-static char rcsid[] = "$Id: RNAdistance.c,v 1.8 2005/07/24 08:35:15 ivo Exp $";
+
 PRIVATE void command_line(int argc, char *argv[]);
 PRIVATE int parse_input(char *line);
 PRIVATE int check_tree(char *line, char alpha[]);

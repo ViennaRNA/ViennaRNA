@@ -1,7 +1,10 @@
 /* SHAPE reactivity data handling */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <assert.h>
-#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

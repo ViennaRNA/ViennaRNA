@@ -5,7 +5,10 @@
 			    c Ivo Hofacker
 			  Vienna RNA package
 */
-/* Last changed Time-stamp: <2009-03-19 10:43:32 ivo> */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #define TDIST 0     /* use tree distance */
 #define PF    1     /* include support for partiton function */
