@@ -1,0 +1,197 @@
+/**
+
+@page  install  Installation and Configuration of RNAlib Features
+
+
+@section  installation  Installing the ViennaRNA Package
+
+For best portability the ViennaRNA package uses the GNU autoconf and automake tools. The instructions below are
+for installing the ViennaRNA package from source. However, pre-compiled binaries for various Linux distributions,
+as well as for Windows users are available from Download section of the <a href="https://www.tbi.univie.ac.at/RNA">main ViennaRNA homepage</a>.
+
+@subsection quickstart  Quickstart
+
+Usually you'll just unpack, configure and make. To do this type:
+
+@verbatim
+tar -zxvf ViennaRNA-2.2.8.tar.gz
+cd ViennaRNA-2.2.8
+./configure
+make
+sudo make install
+@endverbatim
+
+@subsection userdir_install   Installation without root privileges
+
+If you do not have root privileges on your computer, you might want to install the ViennaRNA Package to a
+location where you actually have write access to. To do so, you can set the installation prefix of the
+./configure script like so:
+
+@verbatim
+./configure --prefix=/home/username/ViennaRNA
+make install
+@endverbatim
+
+This will install the entire ViennaRNA Package into a new directory ViennaRNA directly into the users username home directory.
+
+@subsection macosx_notes  Notes for MacOS X users
+
+Although users will find /usr/bin/gcc and /usr/bin/g++ exectuables in their directory tree, these programs are not at all
+what they pretend to be. Instead of including the GNU programs, Apple decided to install clang/llvm in disguise. Unfortunately,
+the default version of clang/llvm does not support OpenMP (yet), but only complains at a late stage of the build process when
+this support is required. Therefore, it seems necessary to deactivate OpenMP support by passing the option --disable-openmp
+to the ./configure script.
+
+Additionally, since MacOS X 10.5 the perl and python installation distributed with MacOS X always include so called
+universal-binaries (a.k.a. fat-binaries), i.e. binaries for multiple architecture types.
+In order to compile and link the programs, library, and scripting language interfaces of the ViennaRNA Package for multiple
+architectures, we've added a new configure switch that sets up the required changes automatically:
+
+@verbatim
+./configure --enable-universal-binary
+@endverbatim
+
+@note Note, that with link time optimization turned on, MacOS X's default compiler (llvm/clang) generates an intermediary
+binary format that can not easily be combined into a multi-architecture library. Therefore, the --enable-universal-binary
+switch turns off link time optimization!
+
+
+@section  configuration Configuring RNAlib features
+
+The ViennaRNA Package includes additional executable programs such as RNAforester, Kinfold, and Kinwalker. Furthermore, we
+include several features in our C-library that may be activated by default, or have to be explicitely turned on at configure-time.
+Below we list a selection of the available configure options that affect the features included in all executable programs,
+the RNAlib C-library, and the corresponding scripting language interface(s).
+
+@subsection config_swig   Scripting Interfaces
+
+The ViennaRNA Package comes with scripting language interfaces for Perl 5, Python 2, and Python 3 (provided by swig),
+that allow one to use the implemented algorithms directly without the need of calling an executable program. The interfaces
+are build by default whenever the autoconf toolchain detects the required build tools on your system. You may, however,
+explicitely turn off particular scripting language interface support at configure-time, for instance for Perl 5 and Python 2,
+before the actual installation.
+
+Example:
+
+@verbatim
+./configure --without-perl --without-python
+@endverbatim
+
+Disabling the scripting language support alltogether can be accomplished using the following switch:
+@verbatim
+./configure --without-swig
+@endverbatim
+
+@subsection config_cluster  Cluster Analysis
+
+The programs AnalyseSeqs and AnalyseDists offer some cluster analysis tools (split decomposition, statistical geometry, neighbor
+joining, Ward's method) for sequences and distance data. To also build these programs add --with-cluster to your configure options.
+
+@subsection config_kinfold  Kinfold
+
+The Kinfold program can be used to simulate the folding dynamics of an RNA molecule, and is compiled by default. Use the
+--without-kinfold option to skip compilation and installation of Kinfold.
+
+@subsection config_forester RNAforester
+
+The RNAforester program is used for comparing secondary structures using tree alignment. Similar to Kinfold, use the
+--without-forester option to skip compilation and installation of RNAforester.
+
+@subsection config_kinwalker  Kinwalker
+
+The Kinwalker algorithm performs co-transcriptional folding of RNAs, starting at a user specified structure (default: open chain)
+and ending at the minimum free energy structure. Compilation and installation of this program is deactivated by default. Use the
+--with-kinwalker option to enable building and installation of Kinwalker.
+
+@subsection config_lto  Link Time Optimization (LTO)
+
+To increase the performance of our implementations, the ViennaRNA Package tries to make use of the Link Time Optimization (LTO)
+feature of modern C-compilers. If you are experiencing any troubles at make-time or run-time, or the configure script for some
+reason detects that your compiler supports this feature although it doesn't, you can deactivate it using the flag
+
+@verbatim
+./configure --disable-lto
+@endverbatim
+
+@subsection config_boustrophedon  Stochastic backtracking using Boustrophedon scheme
+
+Stochastic backtracking for single RNA sequences, e.g. available through the RNAsubopt program, received a major speedup by
+implementing a Boustrophedon scheme (see this article for details). If for some reason you want to deactivate this feature, you
+can do that by adding the following switch to the configure script:
+
+@verbatim
+./configure --disable-boustrophedon
+@endverbatim
+
+
+@subsection config_generic_hc   Generic Hard Constraints
+
+The new constraints framework also implements first steps for generic hard constraints. However, this feature is deactivated by
+default due to performance reasons. Most users do not need this advanced feature since it is only accessible through the RNAlib
+C-library. If you want to develop third-party programs that link against RNAlib and make use of this feature, you need to enable
+it using by adding the following configure switch:
+
+@verbatim
+./configure --enable-gen-hard-constraints
+@endverbatim
+
+
+@subsection config_svm  SVM Z-score filter in RNALfold
+
+By default, RNALfold that comes with the ViennaRNA Package allows for z-score filtering of its predicted results using a support
+vector machine (SVM). However, the library we use to implement this feature (libsvm) is statically linked to our own RNAlib. If
+this introduces any problems for your own third-party programs that link against RNAlib, you can safely switch off the z-scoring
+implementation using
+
+@verbatim
+./configure --without-svm
+@endverbatim
+
+
+@subsection config_gsl  GNU Scientific Library
+
+The new program RNApvmin computes a pseudo-energy pertubation vector that aims to minimize the discrepancy of predicted, and
+observed pairing probabilities. For that purpose it implements several methods to solve the optimization problem. Many of them are
+provided by the GNU Scientific Library, which is why the RNApvmin program, and the RNAlib C-library are required to be linked against
+libgsl. If this introduces any problems in your own third-party programs that link against RNAlib, you can turn off a larger protion
+of available minimizers in RNApvmin and linking against libgsl alltogether, using the switch
+
+@verbatim
+./configure --without-gsl
+@endverbatim
+
+
+@subsection config_float_pf   Single precision partition function
+
+Calculation of partition functions (via RNAfold -p) uses double precision floats by default, to avoid overflow errors on longer
+sequences. If your machine has little memory and you dont't plan to fold sequences over 1000 bases in length you can compile the
+package to do the computions in single precision by running
+
+@verbatim
+./configure --enable-floatpf
+@endverbatim
+
+@note Using this option is discouraged and not necessary on most modern computers.
+
+
+@subsection config_help   Help
+
+For a complete list of all ./configure options and important environment variables, type
+
+@verbatim
+./configure --help
+@endverbatim
+
+For more general information on the build process see the INSTALL.configure file.
+
+
+@section  linking   Linking against RNAlib
+
+@subsection linking_flags   Compiler and Linker flags
+
+@subsection linking_pkgconfig The pkg-config tool
+
+@subsection linking_caveats Caveats
+@copybrief vrna_C11_features()
+
+ */

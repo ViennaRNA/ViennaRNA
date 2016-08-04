@@ -23,6 +23,7 @@
 <hr>
 
 \li @ref mp_intro
+\li @ref install
 \li @ref folding_routines
 \li @ref mp_parse
 \li @ref mp_utils
