@@ -98,8 +98,7 @@ AC_DEFUN([RNA_ENABLE_GSL],[
 
   RNA_ADD_PACKAGE([gsl],
                   [GNU Scientific Library],
-                  [yes],[],[],
-                  [with_gsl=yes])
+                  [yes])
 
   # check prerequisties for gsl support
   RNA_PACKAGE_IF_ENABLED([gsl],[
@@ -114,9 +113,11 @@ AC_DEFUN([RNA_ENABLE_GSL],[
   ])
   RNA_PACKAGE_IF_ENABLED([gsl],[
     AC_DEFINE([WITH_GSL], [1], [Use GNU Scientific Library])
+    GSL_LIBS="-lgsl -lgslcblas"
   ])
 
-  AM_CONDITIONAL(WITH_GSL, test "$with_gsl" != "no")
+  AC_SUBST([GSL_LIBS])
+  AM_CONDITIONAL(WITH_GSL, test "x$with_gsl" = "xyes")
 ])
 
 
