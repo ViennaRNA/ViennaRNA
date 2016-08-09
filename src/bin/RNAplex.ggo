@@ -51,7 +51,7 @@ optional
 
 option "binary" b
 "Allow the reading and parsing of memory dumped opening energy file\n"
-details="The -b option allows to read and process opening energy files which are saved in binary format\n\
+details="The -b option allows one to read and process opening energy files which are saved in binary format\n\
  This can reduce by a factor of 500x-1000x the time needed to process those files. RNAplex recognizes the\
  corresponding opening energy files by looking for files named after the sequence and containing the suffix\
  _openen_bin. Please look at the man page of RNAplfold if you need more information on how to produce binary\
@@ -85,7 +85,7 @@ optional
 
 option "extension-cost" c
 "Cost to add to each nucleotide in a duplex\n"
-details="Cost of extending a duplex by one nucleotide. Allows to find compact duplexes, having few/small bulges or interior loops\
+details="Cost of extending a duplex by one nucleotide. Allows one to find compact duplexes, having few/small bulges or interior loops\
  Only useful when no accessibility profiles are available. This option is disabled if accessibility profiles are used (-a option)\n\n"
 default="0"
 int
@@ -135,7 +135,7 @@ optional
 
 option "fast-folding" f
 "Speedup of the target search\n"
-details="This option allows to decide if the backtracking has to be done (-f 0, -f 2) or not (-f 1). For -f 0 the structure is computed\
+details="This option allows one to decide if the backtracking has to be done (-f 0, -f 2) or not (-f 1). For -f 0 the structure is computed\
  based on the standard energy model. This is the slowest and most precise mode of RNAplex. With -f 2, the structure is computed based on the approximated\
  plex model. If a lot of targets are returned this is can greatly improve the runtime of RNAplex. -f 1 is the fastest mode, as no structure\
  are recomputed \n\n"
@@ -192,7 +192,7 @@ optional
 
 option "produce-ps" I
 "Draw an alignment annotated interaction from RNAplex\n"
-details="This option allows to produce interaction figures in PS-format a la RNAalifold, where base-pair conservation is represented in\
+details="This option allows one to produce interaction figures in PS-format a la RNAalifold, where base-pair conservation is represented in\
  color-coded format. In this mode no interaction are computed, but the -I option indicates the location of the file containing interactions\
  between two RNA (alignments/sequence) from a previous run. If the -A option is not set a structure figure a la RNAfold with color-coded annotation of the accessibilities is returned\n\n"
 string
@@ -200,7 +200,7 @@ optional
 
 option "WindowLength" L
 "Tells how large the region around the target site should be for redrawing the alignment interaction\n"
-details="This option allow to specify how large the region surrounding the target site should be set when generating the alignment figure of the interaction\n\n"
+details="This option allows one to specify how large the region surrounding the target site should be set when generating the alignment figure of the interaction\n\n"
 int
 default="1"
 optional

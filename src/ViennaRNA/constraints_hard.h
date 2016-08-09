@@ -284,7 +284,7 @@ typedef char (vrna_callback_hc_evaluate)(int i, int j, int k, int l, char d, voi
  *  The content of this data structure determines the decomposition pattern
  *  used in the folding recursions. Attribute 'matrix' is used as source for
  *  the branching pattern of the decompositions during all folding recursions.
- *  Any entry in matrix[i,j] consists of the 6 LSB that allows to distinguish the
+ *  Any entry in matrix[i,j] consists of the 6 LSB that allows one to distinguish the
  *  following types of base pairs:
  *  - in the exterior loop (#VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)
  *  - enclosing a hairpin (#VRNA_CONSTRAINT_CONTEXT_HP_LOOP)

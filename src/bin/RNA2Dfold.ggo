@@ -12,7 +12,7 @@ args "--file-name=RNA2Dfold_cmdl --include-getopt --default-optional --func-name
 description "The program partitions the secondary structure space into (basepair)distance classes according to\
  two fixed reference structures. It expects a sequence and two secondary structures in dot-bracket notation as\
  its inputs. For each distance class, the MFE representative, Boltzmann probabilities and Gibbs free energy is\
- computed. Additionally, a stochastic backtracking routine allows to produce samples of representative suboptimal\
+ computed. Additionally, a stochastic backtracking routine allows one to produce samples of representative suboptimal\
  secondary structures from each partition\n\n"
 
 

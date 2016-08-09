@@ -103,7 +103,7 @@ vrna_mfe_TwoD(vrna_fold_compound_t *vc,
 /**
  * @brief Backtrack a minimum free energy structure from a 5' section of specified length
  *
- * This function allows to backtrack a secondary structure beginning at the 5' end, a specified
+ * This function allows one to backtrack a secondary structure beginning at the 5' end, a specified
  * length and residing in a specific distance class.
  * If the argument 'k' gets a value of -1, the structure that is backtracked is assumed to
  * reside in the distance class where all structures exceeding the maximum basepair distance
@@ -317,7 +317,7 @@ TwoDfoldList( TwoDfold_vars *vars,
 /**
  * @brief Backtrack a minimum free energy structure from a 5' section of specified length
  *
- * This function allows to backtrack a secondary structure beginning at the 5' end, a specified
+ * This function allows one to backtrack a secondary structure beginning at the 5' end, a specified
  * length and residing in a specific distance class.
  * If the argument 'k' gets a value of -1, the structure that is backtracked is assumed to
  * reside in the distance class where all structures exceeding the maximum basepair distance

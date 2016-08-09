@@ -28,7 +28,7 @@ default="70"
 optional
 
 option  "csv"   -
-"Create comma seperated output (csv)\n\n"
+"Create comma separated output (csv)\n\n"
 flag
 off
 

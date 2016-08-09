@@ -212,7 +212,7 @@ option:
 
 .I Ligand binding contributions to specific hairpin/interior loop motifs
 
-A convenience function allows to specify a hairping/interior loop motif where a ligand
+A convenience function allows one to specify a hairping/interior loop motif where a ligand
 is binding with a particular binding free energy dG.
 Here is an example that adds a theophylline binding motif. Free energy contribution of
 this motif of dG=-9.22kcal/mol is derived from k_d=0.32umol/l, taken from Jenison et al.

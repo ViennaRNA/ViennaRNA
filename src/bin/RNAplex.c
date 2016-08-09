@@ -1362,7 +1362,7 @@ static int ** read_plfold_i(char *fname, const int beg, const int end, double ve
           count=1;
           while(sscanf(tmp+offset,"%f%n",&n,&temp)==1 ){
             offset+=temp;
-            /* seq_pos - beg allows to get the accessibility right */
+            /* seq_pos - beg allows one to get the accessibility right */
             access[count][seq_pos - beg +11]= (int)  rint( 100 * n); /* round the number */
             access[count][seq_pos - beg +11]*=verhaeltnis; /* 10 stands here for the number of nucleotides */
             count++;

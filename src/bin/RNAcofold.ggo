@@ -12,7 +12,7 @@ purpose "calculate secondary structures of two RNAs with dimerization"
 args "--file-name=RNAcofold_cmdl --include-getopt --default-optional --func-name=RNAcofold_cmdline_parser --arg-struct-name=RNAcofold_args_info"
 
 
-description "The program works much like RNAfold, but allows to specify two RNA sequences wich are\
+description "The program works much like RNAfold, but allows one to specify two RNA sequences which are\
  then allowed to form a dimer structure. RNA sequences are read from stdin in the usual\
  format, i.e. each line of input corresponds to one sequence, except for lines starting\
  with \">\" which contain the name of the next sequence.\nTo compute the hybrid structure\

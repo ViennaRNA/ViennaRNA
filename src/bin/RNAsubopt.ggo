@@ -109,13 +109,13 @@ off
 
 option  "dos" D
 "Compute density of states instead of secondary structures\n"
-details="This option enables the evaluation of the number of secondary structures in certain energy bands arround\
+details="This option enables the evaluation of the number of secondary structures in certain energy bands around\
  the MFE.\n"
 flag
 off
 
 option  "zuker" z
-"Compute Zuker suboptimals instead of all suboptimal structures within an engery band arround the MFE.\n\n"
+"Compute Zuker suboptimals instead of all suboptimal structures within an engery band around the MFE.\n\n"
 flag
 off
 

@@ -236,7 +236,7 @@ char  *get_line(FILE *fp);
  *  Retrieve a line from 'stdin' savely while skipping comment characters and
  *  other features
  *  This function returns the type of input it has read if recognized.
- *  An option argument allows to switch between different reading modes.\n
+ *  An option argument allows one to switch between different reading modes.\n
  *  Currently available options are:\n
  *  #VRNA_INPUT_NOPRINT_COMMENTS, #VRNA_INPUT_NOSKIP_COMMENTS, #VRNA_INPUT_NOELIM_WS_SUFFIX
  * 

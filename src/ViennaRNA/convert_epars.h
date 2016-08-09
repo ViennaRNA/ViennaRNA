@@ -62,7 +62,7 @@
 /**
  *  Convert/dump a Vienna 1.8.4 formatted energy parameter file
  * 
- *  The options argument allows to control the different output modes.\n
+ *  The options argument allows one to control the different output modes.\n
  *  Currently available options are:\n
  *  #VRNA_CONVERT_OUTPUT_ALL, #VRNA_CONVERT_OUTPUT_HP, #VRNA_CONVERT_OUTPUT_STACK\n
  *  #VRNA_CONVERT_OUTPUT_MM_HP, #VRNA_CONVERT_OUTPUT_MM_INT, #VRNA_CONVERT_OUTPUT_MM_INT_1N\n
