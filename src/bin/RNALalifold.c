@@ -122,7 +122,7 @@ int main(int argc, char *argv[]){
   }
   if(args_info.ribosum_scoring_given){
     RibosumFile = NULL;
-    ribo = 1;
+    md.ribo = ribo = 1;
   }
 
   /* check unnamed options a.k.a. filename of input alignment */

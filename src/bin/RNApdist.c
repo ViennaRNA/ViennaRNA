@@ -28,7 +28,7 @@
 #define MAXLENGTH  10000
 #define MAXSEQ      1000
 
-PRIVATE void command_line(int argc, char *argv[]);
+PRIVATE void command_line(int argc, char *argv[], vrna_md_t *md);
 PRIVATE void print_aligned_lines(FILE *somewhere);
 
 PRIVATE char task;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
   pr_pl = mfe_pl = NULL;
 
-  command_line(argc, argv);
+  command_line(argc, argv, &md);
 
   if((outfile[0] == '\0') && (task == 'm') && edit_backtrack)
     strcpy(outfile,"backtrack.file");
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 
 /* ----------------------------------------------------------------- */
 
-PRIVATE void command_line(int argc, char *argv[])
+PRIVATE void command_line(int argc, char *argv[], vrna_md_t *md)
 {
 
   int i, sym;
@@ -244,33 +244,34 @@ PRIVATE void command_line(int argc, char *argv[])
 
   /* temperature */
   if(args_info.temp_given)
-    temperature = args_info.temp_arg;
+    md->temperature = temperature = args_info.temp_arg;
 
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)
-    tetra_loop=0;
+    md->special_hp = tetra_loop=0;
 
   /* set dangle model */
   if(args_info.dangles_given){
-    dangles = args_info.dangles_arg;
-    if(dangles) dangles = 2;
+    md->dangles = dangles = args_info.dangles_arg;
+    if(dangles)
+      md->dangles = dangles = 2;
   }
 
   /* set energy model */
   if(args_info.energyModel_given)
-    energy_set = args_info.energyModel_arg;
+    md->energy_set = energy_set = args_info.energyModel_arg;
 
   /* do not allow weak pairs */
   if(args_info.noLP_given)
-    noLonelyPairs = 1;
+    md->noLP = noLonelyPairs = 1;
 
   /* do not allow wobble pairs (GU) */
   if(args_info.noGU_given)
-    noGU = 1;
+    md->noGU = noGU = 1;
 
   /* do not allow weak closing pairs (AU,GU) */
   if(args_info.noClosingGU_given)
-    no_closingGU = 1;
+    md->noGUclosure = no_closingGU = 1;
 
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)
@@ -324,6 +325,23 @@ PRIVATE void command_line(int argc, char *argv[])
         if ((sym)&&(*c!=*(c-1))) {
           nonstandards[i++]=*c;
           nonstandards[i++]=*(c-1);
+        }
+      }
+      c++;
+    }
+    /* and again for md */
+    c=ns_bases;
+    i=sym=0;
+    if (*c=='-') {
+      sym=1; c++;
+    }
+    while (*c!='\0') {
+      if (*c!=',') {
+        md->nonstandards[i++]=*c++;
+        md->nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          md->nonstandards[i++]=*c;
+          md->nonstandards[i++]=*(c-1);
         }
       }
       c++;

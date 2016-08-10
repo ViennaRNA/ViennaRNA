@@ -215,6 +215,23 @@ int main(int argc, char *argv[])
       }
       c++;
     }
+    /* and again for md */
+    c=ns_bases;
+    i=sym=0;
+    if (*c=='-') {
+      sym=1; c++;
+    }
+    while (*c!='\0') {
+      if (*c!=',') {
+        md.nonstandards[i++]=*c++;
+        md.nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          md.nonstandards[i++]=*c;
+          md.nonstandards[i++]=*(c-1);
+        }
+      }
+      c++;
+    }
   }
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 

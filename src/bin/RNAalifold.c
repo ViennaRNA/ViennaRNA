@@ -165,7 +165,7 @@ int main(int argc, char *argv[]){
     ns_bases = strdup(args_info.nsp_arg);
   /* set pf scaling factor */
   if(args_info.pfScale_given)
-    sfact = args_info.pfScale_arg;
+    md.sfact = sfact = args_info.pfScale_arg;
   /* assume RNA sequence to be circular */
   if(args_info.circ_given)
     md.circ = circular = 1;
@@ -330,6 +330,23 @@ int main(int argc, char *argv[]){
         if ((sym)&&(*c!=*(c-1))) {
           nonstandards[i++]=*c;
           nonstandards[i++]=*(c-1);
+        }
+      }
+      c++;
+    }
+    /* and again for md */
+    c=ns_bases;
+    i=sym=0;
+    if (*c=='-') {
+      sym=1; c++;
+    }
+    while (*c!='\0') {
+      if (*c!=',') {
+        md.nonstandards[i++]=*c++;
+        md.nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          md.nonstandards[i++]=*c;
+          md.nonstandards[i++]=*(c-1);
         }
       }
       c++;
