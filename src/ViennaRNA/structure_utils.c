@@ -66,7 +66,7 @@ vrna_db_pack(const char *struc){
       case ')':
         p += 2;
         break;
-      default: vrna_message_error("pack_structure: illegal charcter in structure");
+      default: vrna_message_error("pack_structure: illegal character in structure");
       }
       if (i<l) i++;
     }

@@ -4,7 +4,7 @@ Section: science
 Priority: optional
 Standards-Version: 3.9.5
 X-Python-Version: >= 2.7
-Build-Depends: debhelper (>= 9), pkg-config, libgsl0-dev | libgsl-dev, gawk, perl, libperl-dev, python, python-dev, python3, python3-dev, lsb-release
+Build-Depends: debhelper (>= 9), pkg-config, libgsl0-dev | libgsl-dev, gawk, perl, libperl-dev, python-all, python-all-dev, python3-all, python3-all-dev, lsb-release
 
 Package: viennarna
 Architecture: any
@@ -18,6 +18,7 @@ Description: Vienna RNA Package - Core
  of RNA secondary structures.
 
 Package: viennarna-dev
+Section: devel
 Architecture: any
 Conflicts: vienna-rna (<< 2.2.1-2)
 Depends: ${misc:Depends}, ${shlibs:Depends}
@@ -25,12 +26,14 @@ Description: ViennaRNA Package - RNAlib Development files
  Header files and static RNAlib C-library of the ViennaRNA Package
 
 Package: viennarna-doc
-Architecture: any
+Section: doc
+Architecture: all
 Conflicts: vienna-rna (<< 2.2.1-2)
 Description: ViennaRNA Package - RNAlib Reference Manual
  Reference Manual for RNAlib C-library in PDF and HTML format
 
 Package: python-rna
+Section: python
 Architecture: any
 Conflicts: vienna-rna (<< 2.2.1-2)
 Depends: ${python:Depends}, ${misc:Depends}, ${shlibs:Depends}, python
@@ -39,6 +42,7 @@ Description: Python 2 bindings to ViennaRNA RNAlib
  within Python 2 scripts
 
 Package: python3-rna
+Section: python
 Architecture: any
 Conflicts: vienna-rna (<< 2.2.1-2)
 Depends: ${python3:Depends}, ${misc:Depends}, ${shlibs:Depends}, python3
@@ -46,8 +50,8 @@ Description: Python 3 bindings to ViennaRNA RNAlib
  The RNA class to access RNAlib C-library functions from
  within Python 3 scripts
 
-
 Package: perl-rna
+Section: perl
 Architecture: any
 Conflicts: vienna-rna (<< 2.2.1-2)
 Depends: ${perl:Depends}, ${misc:Depends}, ${shlibs:Depends}, perl

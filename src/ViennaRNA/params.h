@@ -312,7 +312,7 @@ vrna_exp_params_rescale(vrna_fold_compound_t *vc,
  *  @brief  Reset free energy parameters within a #vrna_fold_compound_t
  *          according to provided, or default model details
  *
- *  This function allow to rescale free energy parameters for subsequent structure
+ *  This function allows one to rescale free energy parameters for subsequent structure
  *  prediction or evaluation according to a set of model details, e.g. temperature
  *  values. To do so, the caller provides either a pointer to a set of model details
  *  to be used for rescaling, or NULL if global default setting should be used.
@@ -329,7 +329,7 @@ void vrna_params_reset( vrna_fold_compound_t *vc,
  *          within a #vrna_fold_compound_t according to provided, or
  *          default model details
  *
- *  This function allow to rescale Boltzmann factors for subsequent prartition
+ *  This function allows one to rescale Boltzmann factors for subsequent prartition
  *  function computations according to a set of model details, e.g. temperature
  *  values. To do so, the caller provides either a pointer to a set of model details
  *  to be used for rescaling, or NULL if global default setting should be used.

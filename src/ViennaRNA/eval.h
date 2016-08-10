@@ -70,7 +70,7 @@ float vrna_eval_structure(vrna_fold_compound_t *vc,
  *  @brief Calculate the pseudo energy derived by the covariance scores of a set of aligned sequences
  *
  *  Consensus structure prediction is driven by covariance scores of base pairs in rows of the
- *  provided alignment. This function allows to retrieve the total amount of this covariance pseudo
+ *  provided alignment. This function allows one to retrieve the total amount of this covariance pseudo
  *  energy scores.
  *  The #vrna_fold_compound_t does not need to contain any DP matrices, but requires all most basic
  *  init values as one would get from a call like this:

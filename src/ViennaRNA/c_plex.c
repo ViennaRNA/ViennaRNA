@@ -15,13 +15,13 @@
   Lduplexfold: finds high scoring segments
   it stores the end-position of these segments in an array
   and call then for each of these positions the duplexfold function
-  which allows to make backtracking for each of the high scoring position
-  It allows to find suboptimal partially overlapping (depends on a a parameter)
+  which allows one to make backtracking for each of the high scoring position
+  It allows one to find suboptimal partially overlapping (depends on a a parameter)
   duplexes between a long RNA and a shorter one.
   Contrarly to RNAduplex, the energy model is not in E~log(N),
   where N is the length of an interial loop but used an affine model,
   where the extension and begin parameter are fitted to the energy
-  parameter used by RNAduplex. This allows to check for duplex between a short RNA(20nt)
+  parameter used by RNAduplex. This allows one to check for duplex between a short RNA(20nt)
   and a long one at the speed of 1Mnt/s. At this speed the whole genome (3Gnt) can be analyzed for one siRNA
   in about 50 minutes.
   The algorithm is based on an idea by Durbin and Eddy:when the alginment reach a value larger than a

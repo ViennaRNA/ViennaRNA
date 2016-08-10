@@ -113,6 +113,17 @@ reason detects that your compiler supports this feature although it doesn't, you
 ./configure --disable-lto
 @endverbatim
 
+@subsection config_openmp  OpenMP support
+
+To enable concurrent computation of our implementations and in some cases parallelization of the algorithms we make use
+of the OpenMP API. This interface is well understood by most modern compilers. However, in some cases it might be
+necessary to deactivate OpenMP support and therefore transform @em RNAlib into a C-library that is not entirely @em thread-safe.
+To do so, add the following configure option
+
+@verbatim
+./configure --disable-openmp
+@endverbatim
+
 @subsection config_boustrophedon  Stochastic backtracking using Boustrophedon scheme
 
 Stochastic backtracking for single RNA sequences, e.g. available through the RNAsubopt program, received a major speedup by
@@ -161,6 +172,22 @@ of available minimizers in RNApvmin and linking against libgsl alltogether, usin
 @endverbatim
 
 
+@subsection config_c11   Disable C11/C++11 feature support
+...Some text
+
+@verbatim
+./configure --disable-c11
+@endverbatim
+
+
+@subsection config_deprecated   Enable warnings for use of deprecated symbols
+...Some text
+
+@verbatim
+./configure --enable-warn-deprecated
+@endverbatim
+
+
 @subsection config_float_pf   Single precision partition function
 
 Calculation of partition functions (via RNAfold -p) uses double precision floats by default, to avoid overflow errors on longer
@@ -187,16 +214,87 @@ For more general information on the build process see the INSTALL.configure file
 
 @section  linking   Linking against RNAlib
 
+In order to use our implemented algorithms you simply need to link your program to our @em RNAlib C-library that
+usually comes along with the ViennaRNA Package installation. If you've installed the ViennaRNA Package as a
+pre-build binary package, you probably need the corresponding development package, e.g. @em viennarna-devel, or
+@em viennarna-dev. The only thing that is left is to include the ViennaRNA header files into your source code,
+e.g.:
+
+@verbatim
+#include <ViennaRNA/mfe.h>
+@endverbatim
+
+and start using our fast and efficinet algorithm implementations.
+
+@see In the @ref mp_example section, we list a small set of example code that usually is a good starting point for
+your application.
+
 @subsection linking_flags   Compiler and Linker flags
 
+Of course, simply adding the ViennaRNA header files into your source code is usually not enough. You probably need
+to tell your compiler where to find the header files, and sometimes add additional pre-processor directives.
+Whenever your installation of @em RNAlib was build with default settings and the header files were installed
+into their default location, a simple
+
+@verbatim
+-I/usr/include
+@endverbatim
+
+pre-processor/compile flag should suffice. It can even be omitted in this case, since your compiler should search
+this directory by default anyway. You only need to change the path from @em /usr/include to the correct location
+whenever the header files have been installed into a non-standard directory.
+
+On the other hand, if you've compiled @em RNAlib with some non-default settings then you probably need to define
+some additional pre-processor macros:
+
+- @em WITH_GEN_HC @f$\ldots@f$ Enable the generic hard constraints API.
+                  @warning This directive should be added to your pre-processor/compile flags only if @em RNAlib was
+                  build with the @em --enable-gen-hard-constraints configure option.
+                  @see @ref config_generic_hc and @ref hard_constraints
+- @em VRNA_DISABLE_C11_FEATURES @f$\ldots@f$ Disable C11/C++11 features.
+                  @warning Add this directive to your pre-processor/compile flags only if @em RNAlib was build with
+                  the @em --disable-c11 configure option.
+                  @see @ref config_c11 and vrna_C11_features()
+- @em DEPRECATION_WARNINGS @f$\ldots@f$ Enable warnings for using deprecated symbols.
+                  @note Adding this directive enables compiler warnings whenever you use symbols in @em RNAlib
+                  that are marked @em deprecated.
+                  @see @ref config_deprecated and @ref deprecated
+- @em USE_FLOAT_PF @f$\ldots@f$ Use single precision floating point operations instead of double precision in
+                  partition function computations.
+                  @warning Define this macro only if @em RNAlib was build with the @em --enable-floatpf
+                  configure option!
+                  @see @ref config_float_pf
+
+.
+
+Simply add the corresponding defintion(s) to your pre-processor/compile flags, for instance:
+
+@verbatim
+-DVRNA_DISABLE_C11_FEATURES
+@endverbatim
+
+Finally, linking against @em RNAlib is achieved by adding the following linker flag
+
+@verbatim
+-L/usr/lib -lRNA -flto -fopenmp
+@endverbatim
+
+Again, the path to the library, @em /usr/lib, may be omitted if this path is searched for libraries by
+default. The second flag tells the linker to include @em libRNA.a, and the remaining two flags activate
+@ref config_lto and @ref config_openmp support, respectively. 
+@note Depending on your linker, the last two flags may differ.
+@note Depending on your configure time decisions, you can drop one or both of the last flags.
 
 @subsection linking_pkgconfig The pkg-config tool
 
 Instead of hard-coding the required compiler and linker flags, you can also let the @em pkg-config tool
-automatically determine the required flags. This tool is usually available for any Linux distribution
+automatically determine the required flags. This tool is usually packaged for any Linux distribution
 and should be available for MacOS X and MinGW as well. We ship a file @em RNAlib2.pc which is
-usually installed along with the static library. The compiler flags required for properly building
-your code that uses @em RNAlib can be easily obtained via
+installed along with the static @em libRNA.a C-library and populated with all required compiler and
+linker flags that correspond to your configure time decisions.
+
+The compiler flags required for properly building your code that uses @em RNAlib can be easily obtained
+via
 
 @verbatim
 pkg-config --cflags RNAlib2
@@ -208,10 +306,7 @@ You get the corresponding linker flags using
 pkg-config --libs RNAlib2
 @endverbatim
 
-With this widely accepted standard it is also very easy to integrate compilation/linking against
-@em RNAlib in your @em autotools project, just have a look at the @em PKG_CHECK_MODULES macro.
+With this widely accepted standard it is also very easy to integrate @em RNAlib in your @em autotools
+project, just have a look at the @em PKG_CHECK_MODULES macro.
 
-@subsection linking_caveats Caveats
-@copybrief vrna_C11_features()
-
- */
+*/

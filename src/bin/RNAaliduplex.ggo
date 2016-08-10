@@ -14,7 +14,7 @@ args "--file-name=RNAaliduplex_cmdl --include-getopt --default-optional --unamed
 description "The program reads two alignments of RNA sequences in CLUSTAL format and predicts optimal and\
  suboptimal binding sites, hybridization energies and the corresponding structures. The calculation\
  takes only inter-molecular base pairs into account, for the general case use RNAcofold. The use of\
- alignments allows to focus on binding sites that are evolutionary conserved. Note, that the two\
+ alignments allows one to focus on binding sites that are evolutionary conserved. Note, that the two\
  input alignments need to have equal number of sequences and the same order, i.e. the 1st sequence\
  in file1 will be hybridized to the 1st in file2 etc.\n\nThe computed binding sites, energies, and\
  structures are written to stdout, one structure per line. Each line consist of: The structure in\
