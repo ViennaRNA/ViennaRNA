@@ -173,8 +173,7 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
     AX_OPENMP([],[enable_openmp="no"])
     AC_LANG_POP([C])
 
-    if test "x$enable_openmp" != "xno"
-    then
+    AS_IF([ test "x$enable_openmp" != "xno" ],[
       OMP_CFLAGS="$OPENMP_CFLAGS"
 
       AC_LANG_PUSH([C++])
@@ -183,12 +182,11 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
 
       if test "x$enable_openmp" != "xno"
       then
-        AX_APPEND_FLAG(["$OMP_CFLAGS"], [RNA_CFLAGS])
-        AX_APPEND_FLAG(["$OPENMP_CXXFLAGS"], [RNA_CXXFLAGS])
-        LIBGOMPFLAG=["$OPENMP_CXXFLAGS"]
+        RNA_CFLAGS="${RNA_CFLAGS} ${OMP_CFLAGS}"
+        RNA_CXXFLAGS="${RNA_CXXFLAGS} ${OPENMP_CXXFLAGS}"
+        LIBGOMPFLAG="$OPENMP_CXXFLAGS"
       fi
-    fi
-
+    ])
   ])
 
   AC_SUBST(LIBGOMPFLAG)
