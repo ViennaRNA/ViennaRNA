@@ -198,41 +198,9 @@ int main(int argc, char *argv[])
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = vrna_alloc(33);
-    c=ns_bases;
-    i=sym=0;
-    if (*c=='-') {
-      sym=1; c++;
-    }
-    while (*c!='\0') {
-      if (*c!=',') {
-        nonstandards[i++]=*c++;
-        nonstandards[i++]=*c;
-        if ((sym)&&(*c!=*(c-1))) {
-          nonstandards[i++]=*c;
-          nonstandards[i++]=*(c-1);
-        }
-      }
-      c++;
-    }
-    /* and again for md */
-    c=ns_bases;
-    i=sym=0;
-    if (*c=='-') {
-      sym=1; c++;
-    }
-    while (*c!='\0') {
-      if (*c!=',') {
-        md.nonstandards[i++]=*c++;
-        md.nonstandards[i++]=*c;
-        if ((sym)&&(*c!=*(c-1))) {
-          md.nonstandards[i++]=*c;
-          md.nonstandards[i++]=*(c-1);
-        }
-      }
-      c++;
-    }
+    vrna_md_set_nonstandards(&md, ns_bases);
   }
+
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
   /* print user help if we get input from tty */

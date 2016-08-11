@@ -148,6 +148,7 @@ PRIVATE vrna_md_t defaults = {
 
 /* Fill the base pair type encodings according to the model details */
 PRIVATE void fill_pair_matrices(vrna_md_t *md);
+PRIVATE void copy_nonstandards(vrna_md_t *md, const char *ns);
 
 /*
 #################################
@@ -198,18 +199,63 @@ vrna_md_option_string(vrna_md_t  *md){
   return options;
 }
 
-PUBLIC void
-vrna_md_set_nonstandards(vrna_md_t *md, const char *ns){
+PRIVATE void
+copy_nonstandards(vrna_md_t *md, const char *ns){
 
-  if(md)
-    if(ns){
-      unsigned int n = strlen(ns);
-      if(n < 33){
-        memcpy(md->nonstandards, ns, strlen(ns)*sizeof(char));
-        md->nonstandards[n] = '\0';
-      } else
+  unsigned int n = strlen(ns);
+  if(n < 64){
+    memcpy(md->nonstandards, ns, strlen(ns)*sizeof(char));
+    md->nonstandards[n] = '\0';
+  }
+}
+
+PUBLIC void
+vrna_md_set_nonstandards(vrna_md_t *md, const char *ns_bases){
+
+  const char    *c;
+  unsigned int  n;
+  int           i, sym;
+
+  if(md){
+    if(ns_bases){
+      n = strlen(ns_bases);
+      if(n < 33){ /* parse the ns_bases list */
+        c = ns_bases;
+        i = sym = 0;
+        if(*c == '-'){
+          sym=1;
+          c++;
+        }
+
+        while(*c != '\0'){
+          if(*c != ','){
+            md->nonstandards[i++] = *c++;
+            md->nonstandards[i++] = *c;
+            if((sym) && (*c != *(c-1))){
+              md->nonstandards[i++] = *c;
+              md->nonstandards[i++] = *(c-1);
+            }
+          }
+          c++;
+        }
+        md->nonstandards[i] = (char)0;
+
+#ifdef  VRNA_BACKWARD_COMPAT
+        free(nonstandards);
+        nonstandards = vrna_alloc(33);
+        memcpy(nonstandards, &(md->nonstandards[0]), 33*sizeof(char));
+#endif
+      } else {
         vrna_message_warning("vrna_md_set_nonstandards: list too long, dropping nonstandards!");
+      }
+    } else { /* remove nonstandards */
+      md->nonstandards[0] = (char)0;
+#ifdef  VRNA_BACKWARD_COMPAT
+      free(nonstandards);
+      nonstandards = (char)0;
+#endif
     }
+  }
 }
 
 PUBLIC void
@@ -269,7 +315,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p){
     vrna_md_defaults_temperature(md_p->temperature);
     vrna_md_defaults_betaScale(md_p->betaScale);
     vrna_md_defaults_sfact(md_p->sfact);
-    vrna_md_set_nonstandards(&defaults, &(md_p->nonstandards[0]));
+    copy_nonstandards(&defaults, &(md_p->nonstandards[0]));
   }
 
   /* set default values for the pair/rtype[pair] stuff */
@@ -795,7 +841,7 @@ set_model_details(vrna_md_t *md){
     md->sfact             = 1.07;
 
     if(nonstandards){
-      memcpy(md->nonstandards, nonstandards, strlen(nonstandards)*sizeof(char));
+      copy_nonstandards(md, nonstandards);
     } else {
       md->nonstandards[0] = (char)0;
     }
