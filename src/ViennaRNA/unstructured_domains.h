@@ -31,7 +31,7 @@
  *  @image html   GCrecursion.svg
  *  @image latex  GCrecursion.eps
  *
- *  A default implementation allows to readily use this feature by simply adding sequence motifs and correpsonding
+ *  A default implementation allows one to readily use this feature by simply adding sequence motifs and corresponding
  *  binding free energies with the function vrna_ud_add_motif() (see also @ref ligands_up).
  *
  *  The grammar extension is realized using a callback function that

@@ -3,7 +3,7 @@
  *  @brief Predict structures formed by two molecules upon hybridization.
  *
  *  The function of an RNA molecule often depends on its interaction with
- *  other RNAs. The following routines therefore allow to predict structures
+ *  other RNAs. The following routines therefore allows one to predict structures
  *  formed by two RNA molecules upon hybridization.\n
  *  One approach to co-folding two RNAs consists of concatenating the two
  *  sequences and keeping track of the concatenation point in all energy
