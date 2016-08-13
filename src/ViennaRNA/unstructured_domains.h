@@ -154,7 +154,7 @@ struct vrna_unstructured_domain_s {
 
 
 /**
- *  @brief  Add a ligand binding motif
+ *  @brief  Add an unstructured domain motif, e.g. for ligand binding
  *
  *  This function adds a ligand binding motif and the associated binding free energy
  *  to the #vrna_ud_t attribute of a #vrna_fold_compound_t. The motif data
