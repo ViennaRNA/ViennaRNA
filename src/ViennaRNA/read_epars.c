@@ -96,7 +96,7 @@ PUBLIC void read_parameter_file(const char fname[]){
     return;
   }
 
-  if (!(line = get_line(fp))) {
+  if (!(line = vrna_read_line(fp))) {
     fprintf(stderr," File %s is improper.\n", fname);
     fclose(fp);
     return;
@@ -110,7 +110,7 @@ PUBLIC void read_parameter_file(const char fname[]){
   }
   free(line);
 
-  while((line=get_line(fp))) {
+  while((line=vrna_read_line(fp))) {
 
     r = sscanf(line, "# %255s", ident);
     if (r==1) {
@@ -293,7 +293,7 @@ PRIVATE char *get_array1(int *arr, int size)
 
   i = last = 0;
   while( i<size ) {
-    line = get_line(fp);
+    line = vrna_read_line(fp);
     if (!line) vrna_message_error("unexpected end of file in get_array1");
     ignore_comment(line);
     pos=0;
@@ -493,7 +493,7 @@ PRIVATE void  rd_Tetraloop37(void)
   memset(&Tetraloop37, 0, sizeof(int)*40);
   memset(&TetraloopdH, 0, sizeof(int)*40);
   do {
-    buf = get_line(fp);
+    buf = vrna_read_line(fp);
     if (buf==NULL) break;
     r = sscanf(buf,"%6s %d %d", &Tetraloops[7*i], &Tetraloop37[i], &TetraloopdH[i]);
     strcat(Tetraloops, " ");
@@ -515,7 +515,7 @@ PRIVATE void  rd_Hexaloop37(void)
   memset(&Hexaloop37, 0, sizeof(int)*40);
   memset(&HexaloopdH, 0, sizeof(int)*40);
   do {
-    buf = get_line(fp);
+    buf = vrna_read_line(fp);
     if (buf==NULL) break;
     r = sscanf(buf,"%8s %d %d", &Hexaloops[9*i], &Hexaloop37[i], &HexaloopdH[i]);
     strcat(Hexaloops, " ");
@@ -537,7 +537,7 @@ PRIVATE void  rd_Triloop37(void)
   memset(&Triloop37,  0, sizeof(int)*40);
   memset(&TriloopdH,  0, sizeof(int)*40);
   do {
-    buf = get_line(fp);
+    buf = vrna_read_line(fp);
     if (buf==NULL) break;
     r = sscanf(buf,"%5s %d %d", &Triloops[6*i], &Triloop37[i], &TriloopdH[i]);
     strcat(Triloops, " ");

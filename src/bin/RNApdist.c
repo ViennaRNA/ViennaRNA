@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
         free(line);
 
       /* end do...while() loop if no more input */
-      if((line=get_line(stdin)) == NULL){
+      if((line=vrna_read_line(stdin)) == NULL){
         type = 999;
         break;
       }

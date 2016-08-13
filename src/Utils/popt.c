@@ -38,10 +38,10 @@ int main (int argc, char *argv[])
 
   if (argc>1) help();
   
-  line = get_line (stdin);
+  line = vrna_read_line (stdin);
   if (*line=='>') {
     free (line);
-    line = get_line (stdin);
+    line = vrna_read_line (stdin);
   }
 
   /* read the sequence */
@@ -59,7 +59,7 @@ int main (int argc, char *argv[])
   
   /* get of suboptimal structures */
 
-  while ((line = get_line (stdin))) {
+  while ((line = vrna_read_line (stdin))) {
     int r, popt;
     
     r = sscanf(line, "%s %f", structure, &energy);

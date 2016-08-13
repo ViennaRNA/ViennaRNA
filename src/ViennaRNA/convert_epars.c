@@ -98,7 +98,7 @@ PRIVATE unsigned int read_old_parameter_file(FILE *ifile, int skip_header){
   int                   r, last;
   unsigned  int         read_successfully = 0;
 
-  if (!(line = get_line(ifile))) {
+  if (!(line = vrna_read_line(ifile))) {
     vrna_message_warning("convert_epars: can't read input parameter file");
     return 0;
   }
@@ -110,7 +110,7 @@ PRIVATE unsigned int read_old_parameter_file(FILE *ifile, int skip_header){
       return 0;
     }
     free(line);
-    line = get_line(ifile);
+    line = vrna_read_line(ifile);
   }
   last = 0;
   do{
@@ -216,7 +216,7 @@ PRIVATE unsigned int read_old_parameter_file(FILE *ifile, int skip_header){
       }
     } /* else ignore line */
     free(line);
-  } while((line=get_line(ifile)) && !last);
+  } while((line=vrna_read_line(ifile)) && !last);
   return read_successfully;
 }
 
@@ -240,7 +240,7 @@ PRIVATE char *get_array1(int *arr, int size, FILE *fp){
   char  *line, buf[16];
   i = last = 0;
   while( i<size ) {
-    line = get_line(fp);
+    line = vrna_read_line(fp);
     if (!line) vrna_message_error("convert_epars: unexpected end of file in get_array1");
     ignore_comment(line);
     pos=0;
@@ -460,7 +460,7 @@ PRIVATE void  rd_Tetra_loop(FILE *fp)
   memset(&Tetraloops_184, 0, 1400);
   memset(&TETRA_ENERGY37_184, 0, sizeof(int)*200);
   do {
-    buf = get_line(fp);
+    buf = vrna_read_line(fp);
     if (buf==NULL) break;
     r = sscanf(buf,"%6s %d", &Tetraloops_184[7*i], &TETRA_ENERGY37_184[i]);
     strcat(Tetraloops_184, " ");
@@ -480,7 +480,7 @@ PRIVATE void  rd_Tri_loop(FILE *fp)
   memset(&Triloops_184, 0, 241);
   memset(&Triloop_E37_184, 0, sizeof(int)*40);
   do {
-    buf = get_line(fp);
+    buf = vrna_read_line(fp);
     if (buf==NULL) break;
     r = sscanf(buf,"%5s %d", &Triloops_184[6*i], &Triloop_E37_184[i]);
     Triloops_184[6*i+5]=' ';

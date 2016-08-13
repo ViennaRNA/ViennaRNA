@@ -227,7 +227,7 @@ read_multiple_input_lines(char **string,
   int   str_length = 0;
   FILE  *in = (file) ? file : stdin;
 
-  line = (inbuf2) ? inbuf2 : get_line(in);
+  line = (inbuf2) ? inbuf2 : vrna_read_line(in);
   inbuf2 = NULL;
   do{
 
@@ -338,7 +338,7 @@ read_multiple_input_lines(char **string,
                     }
     }
     free(line);
-    line = get_line(in);
+    line = vrna_read_line(in);
   }while(line);
 
   return (state==2) ? VRNA_INPUT_CONSTRAINT : (state==1) ? VRNA_INPUT_SEQUENCE : VRNA_INPUT_ERROR;
@@ -499,7 +499,7 @@ vrna_file_SHAPE_read( const char *file_name,
 
   sequence[length] = '\0';
 
-  while((line=get_line(fp))){
+  while((line=vrna_read_line(fp))){
     int position;
     unsigned char nucleotide = 'N';
     double reactivity = default_value;
@@ -734,7 +734,7 @@ vrna_file_constraints_read( const char *filename,
   constraint_number_guess = 10;
   constraints             = (vrna_plist_t *)vrna_alloc(sizeof(vrna_plist_t) * constraint_number_guess);
 
-  while((line=get_line(fp))){
+  while((line=vrna_read_line(fp))){
 
     int i, j, k, l, h, cnt1, cnt2, cnt3, error, type, valid;
     float e;

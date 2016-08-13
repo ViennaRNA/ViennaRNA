@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     do {  /* get sequence to fold */
       if (line!=NULL) free(line);
       *fname='\0';
-      if ((line=get_line(stdin))==NULL) {type = 999; break;}
+      if ((line=vrna_read_line(stdin))==NULL) {type = 999; break;}
       if (line[0]=='@') type = 999;
       if (line[0]=='*') {
         if (taxa_list==0) {

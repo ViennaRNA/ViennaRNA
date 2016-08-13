@@ -233,8 +233,7 @@ char  *vrna_time_stamp(void);
  *  @param  fp  A file pointer to the stream where the function should read from
  *  @return     A pointer to the resulting string
  */
-/*@only@*/ /*@null@*/
-char  *get_line(FILE *fp);
+char  *vrna_read_line(FILE *fp);
 
 /**
  *  Retrieve a line from 'stdin' savely while skipping comment characters and
@@ -318,6 +317,20 @@ int *vrna_idx_col_wise(unsigned int length);
 DEPRECATED(int   *get_indx(unsigned int length));
 
 DEPRECATED(int   *get_iindx(unsigned int length));
+
+/**
+ *  @brief Read a line of arbitrary length from a stream
+ *
+ *  Returns a pointer to the resulting string. The necessary memory is
+ *  allocated and should be released using @e free() when the string is
+ *  no longer needed.
+ *
+ *	@deprecated	Use vrna_read_line() as a substitute!
+ *
+ *  @param  fp  A file pointer to the stream where the function should read from
+ *  @return     A pointer to the resulting string
+ */
+DEPRECATED(char  *get_line(FILE *fp));
 
 /**
  *  @brief Print a line to @e stdout that asks for an input sequence

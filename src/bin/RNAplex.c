@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
       printf("%100s %7s %7s %7s %7s %7s\n", "sequence", "DDSL98", "DDSL04", "DRSU95", "RRXI98","CURRENT");
       do{
         istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
-        if ((line = get_line(stdin))==NULL) break;
+        if ((line = vrna_read_line(stdin))==NULL) break;
         /* skip empty lines, comment lines, name lines */
         while ((*line=='*')||(*line=='\0')||(*line=='>')) {
           printf("%s\n", line); 
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
             memmove(id_s1, id_s1+1, strlen(id_s1));
           }
           free(line);                
-          if ((line = get_line(stdin))==NULL) {
+          if ((line = vrna_read_line(stdin))==NULL) {
             free(id_s1);
             break;
           }
@@ -411,7 +411,7 @@ int main(int argc, char *argv[])
         sRNA=fopen(qname, "r");
         if(sRNA==NULL){printf("%s: Wrong quert file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         do {                                /* main loop: continue until end of file */
-          if ((line_t = get_line(mRNA))==NULL) {
+          if ((line_t = vrna_read_line(mRNA))==NULL) {
             break;
           }
           /*parse line, get id for further accessibility fetching*/
@@ -430,7 +430,7 @@ int main(int argc, char *argv[])
             if(line_t){
               free(line_t);
             }
-            if ((line_t = get_line(mRNA))==NULL) {
+            if ((line_t = vrna_read_line(mRNA))==NULL) {
               break;
             }
           } 
@@ -479,7 +479,7 @@ int main(int argc, char *argv[])
           }
           do{
             char *id_s2=NULL;
-            if ((line_q = get_line(sRNA))==NULL) {
+            if ((line_q = vrna_read_line(sRNA))==NULL) {
               break;
             }
             while ((*line_q=='*')||(*line_q=='\0')||(*line_q=='>')) {
@@ -497,7 +497,7 @@ int main(int argc, char *argv[])
               if(line_q){
                 free(line_q);
               }
-              if ((line_q = get_line(sRNA))==NULL) {
+              if ((line_q = vrna_read_line(sRNA))==NULL) {
                 break;
               }
             } 
@@ -581,7 +581,7 @@ int main(int argc, char *argv[])
         if(sRNA==NULL){printf("%s: Wrong query file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         do {                                /* main loop: continue until end of file */
           char *id_s1=NULL; /* header of the target file  */
-          if ((line_t = get_line(mRNA))==NULL) {
+          if ((line_t = vrna_read_line(mRNA))==NULL) {
             break;
           }
           /*parse line, get id for further accessibility fetching*/
@@ -600,7 +600,7 @@ int main(int argc, char *argv[])
             if(line_t){
               free(line_t);
             }
-            if ((line_t = get_line(mRNA))==NULL) {
+            if ((line_t = vrna_read_line(mRNA))==NULL) {
               break;
             }
           } 
@@ -626,7 +626,7 @@ int main(int argc, char *argv[])
           do{
             /*read sRNA files*/
             char *id_s2=NULL;
-            if ((line_q = get_line(sRNA))==NULL) {
+            if ((line_q = vrna_read_line(sRNA))==NULL) {
               break;
             }
             while ((*line_q=='*')||(*line_q=='\0')||(*line_q=='>')) {
@@ -644,7 +644,7 @@ int main(int argc, char *argv[])
               if(line_q){
                 free(line_q);
               }
-              if ((line_q = get_line(sRNA))==NULL) {
+              if ((line_q = vrna_read_line(sRNA))==NULL) {
                 break;
               }
             } 
@@ -697,7 +697,7 @@ int main(int argc, char *argv[])
         sRNA=fopen(qname, "r");
         if(sRNA==NULL){printf("%s: Wrong query file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         do {                                /* main loop: continue until end of file */
-          if ((line_t = get_line(mRNA))==NULL) {
+          if ((line_t = vrna_read_line(mRNA))==NULL) {
             break;
           }
           /*parse line, get id for further accessibility fetching*/
@@ -716,7 +716,7 @@ int main(int argc, char *argv[])
             if(line_t){
               free(line_t);
             }
-            if ((line_t = get_line(mRNA))==NULL) {
+            if ((line_t = vrna_read_line(mRNA))==NULL) {
               break;
             }
           } 
@@ -766,7 +766,7 @@ int main(int argc, char *argv[])
           do{
             char *id_s2=NULL;
             /*read sRNA files*/
-            if ((line_q = get_line(sRNA))==NULL) {
+            if ((line_q = vrna_read_line(sRNA))==NULL) {
               break;
             }
             while ((*line_q=='*')||(*line_q=='\0')||(*line_q=='>')) {
@@ -784,7 +784,7 @@ int main(int argc, char *argv[])
               if(line_q){
                 free(line_q);
               }
-              if ((line_q = get_line(sRNA))==NULL) {
+              if ((line_q = vrna_read_line(sRNA))==NULL) {
                 break;
               }
             } 
@@ -805,7 +805,7 @@ int main(int argc, char *argv[])
               if (!noconv && s2[l] == 'T') s2[l] = 'U';
             }
             structure = (char *) vrna_alloc((unsigned) s2_len+1);
-            cstruc = get_line(sRNA);
+            cstruc = vrna_read_line(sRNA);
             if (cstruc!=NULL) {
               int dn3=strlen(cstruc)-(s2_len-20);
               strcpy(structure,"..........");
@@ -880,7 +880,7 @@ int main(int argc, char *argv[])
         sRNA=fopen(qname, "r");
         if(sRNA==NULL){printf("%s: Wrong query file name\n", qname);    RNAplex_cmdline_parser_free (&args_info);return 0;}
         do {                                /* main loop: continue until end of file */
-          if ((line_t = get_line(mRNA))==NULL) {
+          if ((line_t = vrna_read_line(mRNA))==NULL) {
             break;
           }
           /*parse line, get id for further accessibility fetching*/
@@ -899,7 +899,7 @@ int main(int argc, char *argv[])
             if(line_t){
               free(line_t);
             }
-            if ((line_t = get_line(mRNA))==NULL) {
+            if ((line_t = vrna_read_line(mRNA))==NULL) {
               break;
             }
           } 
@@ -926,7 +926,7 @@ int main(int argc, char *argv[])
           do{
             char *id_s2=NULL;
             /*read sRNA files*/
-            if ((line_q = get_line(sRNA))==NULL) {
+            if ((line_q = vrna_read_line(sRNA))==NULL) {
               break;
             }
             while ((*line_q=='*')||(*line_q=='\0')||(*line_q=='>')) {
@@ -944,7 +944,7 @@ int main(int argc, char *argv[])
               if(line_q){
                 free(line_q);
               }
-              if ((line_q = get_line(sRNA))==NULL) {
+              if ((line_q = vrna_read_line(sRNA))==NULL) {
                 break;
               }
             } 
@@ -965,7 +965,7 @@ int main(int argc, char *argv[])
               if (!noconv && s2[l] == 'T') s2[l] = 'U';
             }
             structure = (char *) vrna_alloc((unsigned) s2_len+1);
-            cstruc = get_line(sRNA);
+            cstruc = vrna_read_line(sRNA);
             if (cstruc!=NULL) {
               int dn3=strlen(cstruc)-(s2_len-20);
               strcpy(structure,"..........");
@@ -1027,7 +1027,7 @@ int main(int argc, char *argv[])
       }
       fname[0]='\0';
       
-      if ((line = get_line(stdin))==NULL) break;
+      if ((line = vrna_read_line(stdin))==NULL) break;
       /* skip empty lines, comment lines, name lines */
       while ((*line=='*')||(*line=='\0')||(*line=='>')) {
         printf("%s\n", line); 
@@ -1037,7 +1037,7 @@ int main(int argc, char *argv[])
           memmove(id_s1, id_s1+1, strlen(id_s1));
         }
         free(line);                
-        if ((line = get_line(stdin))==NULL) {
+        if ((line = vrna_read_line(stdin))==NULL) {
           free(id_s1);
           break;
         }
@@ -1049,7 +1049,7 @@ int main(int argc, char *argv[])
       strcat(s1,line);
       free(line);
       strcat(s1,"NNNNNNNNNN\0");
-      if ((line = get_line(stdin))==NULL) break;
+      if ((line = vrna_read_line(stdin))==NULL) break;
       /* skip comment lines and get filenames */
       
       while ((*line=='*')||(*line=='\0')||(*line=='>')) {
@@ -1060,7 +1060,7 @@ int main(int argc, char *argv[])
           memmove(id_s2, id_s2+1, strlen(id_s2));
         }
         free(line);                
-        if ((line = get_line(stdin))==NULL) {
+        if ((line = vrna_read_line(stdin))==NULL) {
           free(id_s2);break;
         }
       } 
@@ -1078,7 +1078,7 @@ int main(int argc, char *argv[])
       
       structure = (char *) vrna_alloc((unsigned) n2+1);
       if (fold_constrained) {
-        cstruc = get_line(stdin);
+        cstruc = vrna_read_line(stdin);
         if (cstruc!=NULL && (cstruc[0]=='>')){
           int dn3=strlen(cstruc)-(n2-20);
           strcpy(structure,"..........");
@@ -1694,7 +1694,7 @@ static void aliprint_struct(FILE *Result, /* result file */
     /**
     *** Quit if the result file does not exist
     **/
-    if ((result = get_line(Result))==NULL) {
+    if ((result = vrna_read_line(Result))==NULL) {
       free(result);
       break;
     }
