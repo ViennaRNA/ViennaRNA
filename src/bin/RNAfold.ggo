@@ -222,6 +222,15 @@ typestr="SEQUENCE,STRUCTURE,ENERGY"
 optional
 hidden
 
+
+option  "domains"   -
+"Read structure domain specifications from file\n\n"
+string
+typestr="<filename>"
+optional
+hidden
+
+
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"

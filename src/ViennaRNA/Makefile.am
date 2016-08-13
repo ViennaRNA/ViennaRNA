@@ -125,6 +125,7 @@ pkginclude_HEADERS =  \
     structured_domains.h \
     unstructured_domains.h \
     file_formats_msa.h \
+    commands.h \
     ${SVM_UTILS_H} \
     ${SVM_H} \
     ${JSON_H}
@@ -190,7 +191,8 @@ libRNA_utils_la_SOURCES = \
     string_utils.c \
     structure_utils.c \
     file_formats.c \
-    file_formats_msa.c
+    file_formats_msa.c \
+    commands.c
 
 libRNA_plotting_la_SOURCES = \
     plot_aln.c \

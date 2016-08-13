@@ -38,6 +38,7 @@
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/commands.h"
 #include "RNAfold_cmdl.h"
 
 #include "ViennaRNA/color_output.inc"
@@ -178,10 +179,10 @@ add_ligand_motif( vrna_fold_compound_t *vc,
 int main(int argc, char *argv[]){
   FILE            *input, *output;
   struct          RNAfold_args_info args_info;
-  char            *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc,
-                  *orig_sequence, *constraints_file, *shape_file, *shape_method,
-                  *shape_conversion, fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH],
-                  *ParamFile, *ns_bases, *infile, *outfile, *ligandMotif, *id_prefix;
+  char            *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence,
+                  *constraints_file, *shape_file, *shape_method, *shape_conversion,
+                  fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile, *ns_bases,
+                  *infile, *outfile, *ligandMotif, *id_prefix, *command_file;
   unsigned int    rec_type, read_opt;
   int             i, length, l, cl, istty, pf, noPS, noconv, do_bpp, enforceConstraints,
                   batch, auto_id, id_digits, doMEA, circular, lucky, with_shapes,
@@ -226,6 +227,7 @@ int main(int argc, char *argv[]){
   input               = NULL;
   output              = NULL;
   ligandMotif         = NULL;
+  command_file        = NULL;
 
   /* apply default model details */
   set_model_details(&md);
@@ -330,6 +332,9 @@ int main(int argc, char *argv[]){
   if(args_info.motif_given){
     ligandMotif = strdup(args_info.motif_arg);
   }
+  if(args_info.domains_given){
+    command_file = strdup(args_info.domains_arg);
+  }
 
   if(args_info.auto_id_given){
     auto_id = 1;
@@ -387,6 +392,10 @@ int main(int argc, char *argv[]){
 
   if (ns_bases != NULL) {
     vrna_md_set_nonstandards(&md, ns_bases);
+  }
+
+  if (command_file != NULL) {
+    vrna_file_commands_read(command_file, 0U);
   }
 
   istty_in  = isatty(fileno(stdin));
@@ -1064,6 +1073,7 @@ int main(int argc, char *argv[]){
   free(shape_method);
   free(shape_conversion);
   free(id_prefix);
+  free(command_file);
 
   return EXIT_SUCCESS;
 }
