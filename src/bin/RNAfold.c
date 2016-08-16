@@ -189,6 +189,7 @@ int main(int argc, char *argv[]){
                   verbose, istty_in, istty_out;
   long int        seq_number;
   double          energy, min_en, kT, sfact, MEAgamma, bppmThreshold, betaScale;
+  vrna_cmd_t      *commands;
   vrna_md_t       md;
 
   rec_type            = read_opt = 0;
@@ -228,6 +229,7 @@ int main(int argc, char *argv[]){
   output              = NULL;
   ligandMotif         = NULL;
   command_file        = NULL;
+  commands            = NULL;
 
   /* apply default model details */
   set_model_details(&md);
@@ -395,7 +397,7 @@ int main(int argc, char *argv[]){
   }
 
   if (command_file != NULL) {
-    vrna_file_commands_read(command_file, 0U);
+    commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_DEFAULTS);
   }
 
   istty_in  = isatty(fileno(stdin));
@@ -526,6 +528,9 @@ int main(int argc, char *argv[]){
         vrna_message_info(stdout, msg);
       free(msg);
     }
+
+    if(commands)
+      vrna_commands_apply(vc, commands);
 
     /*
     vrna_ud_add_motif(vc, "AAAA", -15., VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS);
@@ -1074,6 +1079,7 @@ int main(int argc, char *argv[]){
   free(shape_conversion);
   free(id_prefix);
   free(command_file);
+  vrna_commands_free(commands);
 
   return EXIT_SUCCESS;
 }
