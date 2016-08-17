@@ -796,8 +796,7 @@ vrna_file_constraints_read( const char *filename,
         if((k == 0) && (l == 0) && (i == j) && (h > 0)){
           /* set correct loop type context */
           switch(command){
-            case 'P': type |= (int)(VRNA_CONSTRAINT_CONTEXT_ENFORCE);
-                      break;
+            case 'P': break;
             case 'F': /* set i == j == k == l */
                       k = l = i;
                       if(orientation != '\0')
