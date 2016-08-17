@@ -180,7 +180,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
         for (j=i+turn+1; j<=n; j++) {
           ij = my_iindx[i]-j;
-          if(hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+          if((hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) && (qb[ij] > 0.)){
             type      = (unsigned char)ptype[jindx[j] + i];
             probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
             probs[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
@@ -191,7 +191,6 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             }
           } else
             probs[ij] = 0.;
-          
         }
       }
     } /* end if(!circular)  */
@@ -356,7 +355,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                     * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
 
             if(sc){
-              /* which decompositions are covered here? => (i, l+1) -> enclosing pair, (k,l) -> enclosed pair, */
+              /* which decompositions are covered here? => (k-1, l+1) -> enclosing pair */
               if(sc->exp_energy_bp)
                 prmt1 *= sc->exp_energy_bp[ii - (l+1)];
 
@@ -380,7 +379,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                 (i,j)       -> enclosing pair
                 (k, l)      -> enclosed pair
                 (l+1, j-1)  -> multiloop part with at least one stem
-                
+                a.k.a. (k,l) is left-most stem in multiloop closed by (k-1, j)
               */
               ppp = probs[ij]
                     * exp_E_MLstem(tt, S1[j-1], s3, pf_params)
@@ -416,8 +415,8 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 */
             }
             prm_l[i] = ppp + prmt1;
-          } else {
-            prm_l[i] = 0.;
+          } else { /* skip configuration where l+1 is unpaired */
+            prm_l[i] = prmt1;
           }
 
           /* i is unpaired */
@@ -437,10 +436,11 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             /* same as:    prm_MLb = 0;
                for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
-            prml[i] = prml[ i] + prm_l[i];
-          } else {
-            prm_MLb = 0.;
+          } else { /* skip all configurations where i is unpaired */
+            prm_MLb = prml[i];
           }
+
+          prml[i] = prml[i] + prm_l[i];
 
           if(with_gquad){
             if ((!tt) && (G[kl] == 0.)) continue;
