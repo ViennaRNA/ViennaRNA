@@ -218,7 +218,7 @@ fill_arrays(vrna_fold_compound_t *vc){
 
 
   /* prefill helper arrays */
-  for(j = 1; j <= length; j++){
+  for(j = 0; j <= length; j++){
     Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
   }
 

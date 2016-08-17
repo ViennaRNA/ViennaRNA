@@ -38,7 +38,7 @@ E_mb_loop_fast( int i,
                 int *dmli1,
                 int *dmli2){
 
-  int decomp, en;
+  int decomp, en, e;
   unsigned char type, tt;
   short S_i1, S_j1;
 
@@ -54,13 +54,16 @@ E_mb_loop_fast( int i,
 
   int ij            = indx[j] + i;
   int hc_decompose  = hc[ij];
-  int e             = INF;
   int dangle_model  = P->model_details.dangles;
   int *rtype        = &(P->model_details.rtype[0]);
   vrna_callback_hc_evaluate *f  = vc->hc->f;
   char              eval_loop, el;
 
   type              = (unsigned char)ptype[ij];
+
+  /* init values */
+  e       = INF;
+  decomp  = INF;
 
   if(cp < 0){
     S_i1    = S[i+1];
