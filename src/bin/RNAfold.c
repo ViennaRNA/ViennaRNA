@@ -334,8 +334,8 @@ int main(int argc, char *argv[]){
   if(args_info.motif_given){
     ligandMotif = strdup(args_info.motif_arg);
   }
-  if(args_info.domains_given){
-    command_file = strdup(args_info.domains_arg);
+  if(args_info.commands_given){
+    command_file = strdup(args_info.commands_arg);
   }
 
   if(args_info.auto_id_given){
