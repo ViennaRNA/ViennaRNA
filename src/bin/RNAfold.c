@@ -6,11 +6,11 @@
 */
 
 /** \file
-*** \brief RNAfold program source code
-***
-*** This code provides an interface for MFE and Partition function folding
-*** of single linear or circular RNA molecules.
-**/
+ *  \brief RNAfold program source code
+ *
+ *  This code provides an interface for MFE and Partition function folding
+ *  of single linear or circular RNA molecules.
+ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"

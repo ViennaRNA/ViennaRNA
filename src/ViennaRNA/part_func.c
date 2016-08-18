@@ -479,7 +479,7 @@ pf_linear(vrna_fold_compound_t *vc){
       /*auxiliary matrix qq for cubic order q calculation below */
       qbt1 = 0.;
 
-      if(hc_up_ext[j]){
+      if(hc_up_ext[j]){ /* all exterior loop parts [i, j] with exactly one stem (i, u) i < u < j */
         q_temp = qq1[i] * scale[1];
 
         if(sc){
@@ -493,7 +493,7 @@ pf_linear(vrna_fold_compound_t *vc){
         qbt1 += q_temp;
       }
 
-      if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+      if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){ /* exterior loop part with stem (i, j) */
         q_temp  = qb[ij]
                   * exp_E_ExtLoop(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
         if(sc){
@@ -508,11 +508,10 @@ pf_linear(vrna_fold_compound_t *vc){
       }
 
       qq[i] = qbt1;
-
       /*construction of partition function for segment i,j */
       temp = qq[i];
 
-      /* the whole stretch [i,j] is unpaired */
+      /* the entire stretch [i,j] is unpaired */
       if(hc_up_ext[i] >= (j-i+1)){
         q_temp = 1.0 * scale[j-i+1];
 
