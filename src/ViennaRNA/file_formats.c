@@ -580,6 +580,7 @@ parse_constraints_line( const char *line,
   char buf[256], buf2[10], *c, tmp_loop;
 
   switch(command){
+    case 'A':   /* fall through */
     case 'F':   /* fall through */
     case 'P':   max_entries = 5;
                 break;
@@ -797,6 +798,9 @@ vrna_file_constraints_read( const char *filename,
           /* set correct loop type context */
           switch(command){
             case 'P': break;
+            case 'A': /* this case allows particular nucleotides to form non-canonical pairs */
+                      type |= 8192; /* do not remove possibility to stay unpaired */
+                      /* fall through */
             case 'F': /* set i == j == k == l */
                       k = l = i;
                       if(orientation != '\0')
@@ -821,7 +825,9 @@ vrna_file_constraints_read( const char *filename,
             case 'E': type = (int)(VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);  /* soft constraints are always applied for all loops */
                       type |= 4096; /* add hidden flag indicating soft constraint */
                       break;
-            case 'C': break;  /* remove conflicting pairs only */
+            case 'C': break;        /* remove conflicting pairs only */
+            case 'A': type |= 8192; /* since we allow pairs, we do not want to remove incompatible pairs */
+                      break;
             default:  break;
           }
         }

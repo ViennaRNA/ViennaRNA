@@ -110,7 +110,10 @@ vrna_constraints_add( vrna_fold_compound_t *vc,
                   d = -1;
                 else if(2048 & p->type)
                   d = 1;
-                vrna_hc_add_bp_nonspecific(vc, p->i, d, (char)(p->type));
+                if(p->type & 8192)
+                  vrna_hc_add_bp_nonspecific(vc, p->i, d, (char)(p->type) | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+                else
+                  vrna_hc_add_bp_nonspecific(vc, p->i, d, (char)(p->type));
               } else {
                 if(p->type & 8192){
                   vrna_hc_add_bp(vc, p->i, p->j, (char)(p->type) | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
