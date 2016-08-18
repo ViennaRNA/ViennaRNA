@@ -416,6 +416,9 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
                                   u     = j - i - 1;
                                   type  = vc->ptype[ij];
 
+                                  if(type == 0)
+                                    type = 7;
+
                                   if((cp < 0) || ON_SAME_STRAND(i, j, cp)){ /* regular hairpin loop */
                                     q = exp_E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P);
                                   } else { /* hairpin-like exterior loop (for cofolding) */
@@ -523,6 +526,9 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
                                   S         = vc->sequence_encoding;
                                   sc        = vc->sc;
                                   type      = rtype[vc->ptype[ij]];
+
+                                  if(type == 0)
+                                    type = 7;
 
                                   if(((type==3)||(type==4))&&noGUclosure)
                                     return q;

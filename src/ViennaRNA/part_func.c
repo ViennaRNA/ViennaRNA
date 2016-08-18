@@ -387,6 +387,9 @@ pf_linear(vrna_fold_compound_t *vc){
       qbt1          = 0;
       q_temp        = 0.;
 
+      if(type == 0)
+        type = 7;
+
       if(hc_decompose){
         /* process hairpin loop(s) */
         qbt1 += vrna_exp_E_hp_loop(vc, i, j);

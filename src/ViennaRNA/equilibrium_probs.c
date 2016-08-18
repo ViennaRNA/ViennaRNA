@@ -182,6 +182,10 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           ij = my_iindx[i]-j;
           if((hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) && (qb[ij] > 0.)){
             type      = (unsigned char)ptype[jindx[j] + i];
+
+            if(type == 0)
+              type = 7;
+
             probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
             probs[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
             if(sc){
@@ -203,6 +207,9 @@ pf_create_bppm( vrna_fold_compound_t *vc,
         type_2  = (unsigned char)ptype[jindx[l] + k];
         type_2  = rtype[type_2];
 
+        if(type_2 == 0)
+          type_2 = 7;
+
         if (qb[kl]==0.) continue;
 
         if(hc_local[kl] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
@@ -217,6 +224,10 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               ij = my_iindx[i] - j;
               if(hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
                 type = (unsigned char)ptype[jindx[j] + i];
+
+                if(type == 0)
+                  type = 7;
+
                 if(probs[ij] > 0){
                   tmp2 =  probs[ij]
                           * scale[u1 + u2 + 2]
@@ -349,6 +360,10 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           ii = my_iindx[i];     /* ii-j=[i,j]     */
           tt = (unsigned char)ptype[jindx[l+1] + i];
           tt = rtype[tt];
+
+          if(tt == 0)
+            tt = 7;
+
           if(hc_local[ii - (l + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
             prmt1 = probs[ii-(l+1)]
                     * expMLclosing
@@ -461,6 +476,10 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               else
                 temp    *= G[kl] * expMLstem * scale[2];
             } else {
+
+              if(tt == 0)
+                tt = 7;
+
               temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
             }
 

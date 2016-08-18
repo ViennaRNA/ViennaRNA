@@ -64,6 +64,10 @@ E_ext_loop( int i,
       eval_loop = (f(i, j, i, j, VRNA_DECOMP_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
     if(eval_loop){
+
+      if(type == 0)
+        type = 7;
+
       switch(md->dangles){
         case 2:   e = E_ExtLoop(type, S[i-1], S[j+1], P);
                   break;
@@ -86,6 +90,10 @@ E_ext_loop( int i,
 #endif
       if(eval_loop){
         type = vc->ptype[ij];
+
+        if(type == 0)
+          type = 7;
+
         en = E_ExtLoop(type, -1, S[j], P);
         if(sc){
           if(sc->f)
@@ -102,6 +110,10 @@ E_ext_loop( int i,
 #endif
       if(eval_loop){
         type = vc->ptype[ij];
+
+        if(type == 0)
+          type = 7;
+
         en = E_ExtLoop(type, S[i], -1, P);
         if(sc){
           if(sc->f)
@@ -203,7 +215,12 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                           eval_loop = (f(1, j, i-1, i, VRNA_DECOMP_EXT_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                         if(eval_loop){
-                          en  = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+                          type = (int)ptype[ij];
+
+                          if(type == 0)
+                            type = 7;
+
+                          en  = f5[i-1] + c[ij] + E_ExtLoop(type, -1, -1, P);
                           en += sc->f(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
                           f5[j] = MIN2(f5[j], en);
                         }
@@ -226,7 +243,12 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                           eval_loop = (f(1, j, i-1, i, VRNA_DECOMP_EXT_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                         if(eval_loop){
-                          en    = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+                          type = (int)ptype[ij];
+
+                          if(type == 0)
+                            type = 7;
+
+                          en    = f5[i-1] + c[ij] + E_ExtLoop(type, -1, -1, P);
                           f5[j] = MIN2(f5[j], en);
                         }
                       }
@@ -246,7 +268,12 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                     eval_loop = (f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                   if(eval_loop){
-                    en    = c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+                    type = (int)ptype[ij];
+
+                    if(type == 0)
+                      type = 7;
+
+                    en    = c[ij] + E_ExtLoop(type, -1, -1, P);
                     if(sc){
                       if(sc->f)
                         en += sc->f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
@@ -293,7 +320,12 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                           eval_loop = (f(1, j, i-1, i, VRNA_DECOMP_EXT_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                         if(eval_loop){
-                          en    = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], S[i-1], S[j+1], P);
+                          type = (int)ptype[ij];
+
+                          if(type == 0)
+                            type = 7;
+
+                          en    = f5[i-1] + c[ij] + E_ExtLoop(type, S[i-1], S[j+1], P);
                           en   += sc->f(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
                           f5[j] = MIN2(f5[j], en);
                         }
@@ -316,7 +348,12 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                           eval_loop = (f(1, j, i-1, i, VRNA_DECOMP_EXT_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                         if(eval_loop){
-                          en    = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], S[i-1], S[j+1], P);
+                          type = (int)ptype[ij];
+
+                          if(type == 0)
+                            type = 7;
+
+                          en    = f5[i-1] + c[ij] + E_ExtLoop(type, S[i-1], S[j+1], P);
                           f5[j] = MIN2(f5[j], en);
                         }
                       }
@@ -336,7 +373,12 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                     eval_loop = (f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                   if(eval_loop){
-                    en    = c[ij] + E_ExtLoop(ptype[ij], -1, S[j+1], P);
+                    type = (int)ptype[ij];
+
+                    if(type == 0)
+                      type = 7;
+
+                    en    = c[ij] + E_ExtLoop(type, -1, S[j+1], P);
                     if(sc){
                       if(sc->f)
                         en += sc->f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
@@ -380,7 +422,12 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                         eval_loop = (f(1, length, i-1, i, VRNA_DECOMP_EXT_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                       if(eval_loop){
-                        en          = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], S[i-1], -1, P);
+                        type = (int)ptype[ij];
+
+                        if(type == 0)
+                          type = 7;
+
+                        en          = f5[i-1] + c[ij] + E_ExtLoop(type, S[i-1], -1, P);
                         en         += sc->f(1, length, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
                         f5[length]  = MIN2(f5[length], en);
                       }
@@ -403,7 +450,12 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                         eval_loop = (f(1, length, i-1, i, VRNA_DECOMP_EXT_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                       if(eval_loop){
-                        en          = f5[i-1] + c[ij] + E_ExtLoop(ptype[ij], S[i-1], -1, P);
+                        type = (int)ptype[ij];
+
+                        if(type == 0)
+                          type = 7;
+
+                        en          = f5[i-1] + c[ij] + E_ExtLoop(type, S[i-1], -1, P);
                         f5[length]  = MIN2(f5[length], en);
                       }
                     }
@@ -423,7 +475,12 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                   eval_loop = (f(1, length, 1, length, VRNA_DECOMP_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                 if(eval_loop){
-                  en          = c[ij] + E_ExtLoop(ptype[ij], -1, -1, P);
+                  type = (int)ptype[ij];
+
+                  if(type == 0)
+                    type = 7;
+
+                  en          = c[ij] + E_ExtLoop(type, -1, -1, P);
                   if(sc){
                     if(sc->f)
                       en += sc->f(1, length, 1, length, VRNA_DECOMP_EXT_STEM, sc->data);
@@ -468,7 +525,11 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                         eval_loop = (f(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                       if(eval_loop){
-                        type  = ptype[ij];
+                        type = (int)ptype[ij];
+
+                        if(type == 0)
+                          type = 7;
+
                         en    = f5[i-1] + c[ij] + E_ExtLoop(type, -1, -1, P);
                         if(sc){
                           if(sc->f)
@@ -487,6 +548,11 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                       eval_loop = (f(1, j, i-2, i, VRNA_DECOMP_EXT_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                     if(eval_loop){
+                      type = (int)ptype[ij];
+
+                      if(type == 0)
+                        type = 7;
+
                       en    = f5[i-2] + c[ij] + E_ExtLoop(type, S[i-1], -1, P);
 
                       if(sc){
@@ -509,7 +575,11 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                         el = (f(1, j, i-1, i, VRNA_DECOMP_EXT_EXT_STEM1, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                       if(el){
-                        type  = ptype[ij];
+                        type = (int)ptype[ij];
+
+                        if(type == 0)
+                          type = 7;
+
                         en    = f5[i-1] + c[ij] + E_ExtLoop(type, -1, S[j], P);
 
                         if(sc){
@@ -530,6 +600,11 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                         el = (f(1, j, i-2, i, VRNA_DECOMP_EXT_EXT_STEM1, vc->hc->data)) ? el : (char)0;
 #endif
                       if(el){
+                        type = (int)ptype[ij];
+
+                        if(type == 0)
+                          type = 7;
+
                         en    = f5[i-2] + c[ij] + E_ExtLoop(type, S[i-1], S[j], P);
 
                         if(sc){
@@ -558,7 +633,11 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                     eval_loop = (f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                   if(eval_loop){
-                    type  = ptype[ij];
+                    type = (int)ptype[ij];
+
+                    if(type == 0)
+                      type = 7;
+
                     en    = c[ij] + E_ExtLoop(type, -1, -1, P);
                     if(sc){
                       if(sc->f)
@@ -576,7 +655,11 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
                     eval_loop = (f(1, j, 1, j-1, VRNA_DECOMP_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
 #endif
                   if(eval_loop){
-                    type  = ptype[ij];
+                    type = (int)ptype[ij];
+
+                    if(type == 0)
+                      type = 7;
+
                     en    = c[ij] + E_ExtLoop(type, -1, S[j], P);
 
                     if(sc){
@@ -760,6 +843,10 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
 
                 if(hc->matrix[idx[jj] + u] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                   type = (unsigned char)ptype[idx[jj] + u];
+
+                  if(type == 0)
+                    type = 7;
+
                   en = my_c[idx[jj] + u];
                   if(sc){
                     if(sc->f)
@@ -794,6 +881,10 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
                 if(hc->matrix[idx[jj] + u] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                   mm5   = ((u > 1) && ON_SAME_STRAND(u - 1, u, cp)) ? S1[u - 1] : -1;
                   type  = (unsigned char)ptype[idx[jj] + u];
+
+                  if(type == 0)
+                    type = 7;
+
                   en    = my_c[idx[jj] + u];
                   if(sc){
                     if(sc->f)
@@ -824,6 +915,10 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
 
               if(hc->matrix[idx[jj] + 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                 type  = (unsigned char)ptype[idx[jj] + 1];
+
+                if(type == 0)
+                  type = 7;
+
                 en    = my_c[idx[jj] + 1];
                 if(sc){
                   if(sc->f)
@@ -846,6 +941,10 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
                   if(ON_SAME_STRAND(jj - 1, jj, cp)){
                     mm3   = S1[jj];
                     type  = (unsigned char)ptype[idx[jj - 1] + 1];
+
+                    if(type == 0)
+                      type = 7;
+
                     en    = my_c[idx[jj - 1] + 1];
                     if(sc){
                       if(sc->energy_up)
@@ -881,6 +980,10 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
 
                 if(hc->matrix[idx[jj] + u] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                   type  = (unsigned char)ptype[idx[jj] + u];
+
+                  if(type == 0)
+                    type = 7;
+
                   en    = my_c[idx[jj] + u];
                   
                   if(!ON_SAME_STRAND(u, jj, cp))
@@ -925,6 +1028,10 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
                     if(ON_SAME_STRAND(jj - 1, jj, cp)){
                       mm3   = S1[jj];
                       type  = (unsigned char)ptype[idx[jj - 1] + u];
+
+                      if(type == 0)
+                        type = 7;
+
                       en    = my_c[idx[jj - 1] + u];
                       if(!ON_SAME_STRAND(u, jj - 1, cp))
                         en += P->DuplexInit;

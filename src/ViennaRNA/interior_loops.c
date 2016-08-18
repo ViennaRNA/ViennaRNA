@@ -89,6 +89,9 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
 
     sc        = vc->sc;
 
+    if(type == 0)
+      type = 7;
+
     for(q = j - 1; q >= max_q; q--){
       j_q = j - q - 1;
 
@@ -121,6 +124,9 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
           energy = *c_pq;
           if(energy != INF){
             type_2 = rtype[(unsigned char)*ptype_pq];
+
+            if(type_2 == 0)
+              type_2 = 7;
 
             if (noGUclosure)
               if (no_close||(type_2==3)||(type_2==4))
@@ -294,7 +300,8 @@ E_int_loop_comparative( vrna_fold_compound_t *vc,
 
     for (s=0; s<n_seq; s++) {
       types[s] = md->pair[SS[s][i]][SS[s][j]];
-      if (types[s]==0) types[s]=7;
+      if(types[s] == 0)
+        types[s] = 7;
     }
 
 
@@ -327,7 +334,8 @@ E_int_loop_comparative( vrna_fold_compound_t *vc,
           if(energy != INF){
             for (s=0; s<n_seq; s++) {
               type_2 = md->pair[SS[s][q]][SS[s][p]]; /* q,p not p,q! */
-              if (type_2 == 0) type_2 = 7;
+              if(type_2 == 0)
+                type_2 = 7;
 
               sc = (scs && scs[s]) ? scs[s] : NULL;
 
@@ -456,6 +464,9 @@ vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
     maxk = MIN2(maxk, j - turn - 2);
     maxk = MIN2(maxk, i + 1 + hc_up[i+1]);
 
+    if(type == 0)
+      type = 7;
+
     for (k = i + 1; k <= maxk; k++) {
       if(!ON_SAME_STRAND(i, k, cp)) break;
       u1    = k-i-1;
@@ -468,6 +479,10 @@ vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
         if(hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
           if(!ON_SAME_STRAND(l, j, cp)) break;
           type_2 = rtype[(unsigned char)ptype[jindx[l] + k]];
+
+          if(type_2 == 0)
+            type_2 = 7;
+
           q_temp = qb[kl]
                   * scale[u1+u2+2]
                   * exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k-1], S1[l+1], pf_params);
@@ -552,6 +567,10 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
     /* prepare necessary variables */
     switch(vc->type){
       case VRNA_VC_TYPE_SINGLE:     type    = rtype[(unsigned char)ptype[ij]];
+
+                                    if(type == 0)
+                                      type = 7;
+
                                     S       = vc->sequence_encoding;
                                     sc      = vc->sc;
 
@@ -568,7 +587,8 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
 
                                     for (s=0; s<n_seq; s++) {
                                       types[s] = md->pair[SS[s][j]][SS[s][i]];
-                                      if (types[s]==0) types[s]=7;
+                                      if(types[s] == 0)
+                                        types[s] = 7;
                                     }
 
                                     break;
@@ -604,6 +624,9 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
           switch(vc->type){
             case VRNA_VC_TYPE_SINGLE:     type_2  = rtype[(unsigned char)ptype[indx[q]+p]];
 
+                                          if(type_2 == 0)
+                                            type_2 = 7;
+
                                           energy  = ubf_eval_ext_int_loop(i, j, p, q,
                                                                           i - 1, j + 1, p - 1, q + 1,
                                                                           S[j+1], S[i-1], S[p-1], S[q+1],
@@ -614,7 +637,8 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
 
             case VRNA_VC_TYPE_ALIGNMENT:  for (energy = s=0; s<n_seq; s++) {
                                             type_2 = md->pair[SS[s][q]][SS[s][p]]; /* q,p not p,q! */
-                                            if (type_2 ==0) type_2=7;
+                                            if(type_2 == 0)
+                                              type_2 = 7;
 
                                             sc = (scs && scs[s]) ? scs[s] : NULL;
 
@@ -696,6 +720,11 @@ vrna_E_stack( vrna_fold_compound_t *vc,
                                     type    = (unsigned char)ptype[ij];
                                     type_2  = rtype[(unsigned char)ptype[pq]];
                                     sc      = vc->sc;
+
+                                    if(type == 0)
+                                      type = 7;
+                                    if(type_2 == 0)
+                                      type_2 = 7;
 
                                     if ((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))){ /* regular stack */
                                       e = P->stack[type][type_2];
@@ -821,6 +850,11 @@ vrna_BT_stack(vrna_fold_compound_t *vc,
       type_2 = ptype[idx[q] + p];
       type_2 = rtype[type_2];
 
+      if(type == 0)
+        type = 7;
+      if(type_2 == 0)
+        type_2 = 7;
+
       if ((cp < 0) || (ON_SAME_STRAND(*i, p, cp) && ON_SAME_STRAND(q, *j, cp))){ /* regular stack */
         *en    -= P->stack[type][type_2];
       } else { /* stack like cofold structure */
@@ -899,6 +933,10 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
   no_close    = (((type==3)||(type==4))&&noGUclosure);
 
   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
+
+    if(type == 0)
+      type = 7;
+
     for (p = *i+1; p <= MIN2(*j-2-turn,*i+MAXLOOP+1); p++) {
       minq = *j-*i+p-MAXLOOP-2;
       if (minq<p+1+turn)
@@ -912,7 +950,6 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
           break;
 
         type_2 = (unsigned char)ptype[idx[q]+p];
-
         eval_loop = hc->matrix[idx[q]+p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
 
         if(f)
@@ -922,6 +959,9 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
           continue;
 
         type_2 = rtype[type_2];
+
+        if(type_2 == 0)
+          type_2 = 7;
 
         if(noGUclosure)
           if(no_close||(type_2==3)||(type_2==4))

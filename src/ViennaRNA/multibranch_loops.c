@@ -86,6 +86,10 @@ E_mb_loop_fast( int i,
     if(el){
       decomp = dmli1[j-1];
       tt = rtype[type];
+
+      if(tt == 0)
+        tt = 7;
+
       if(decomp != INF){
         switch(dangle_model){
           /* no dangles */
@@ -136,6 +140,11 @@ E_mb_loop_fast( int i,
 
       if(el){
         if(dmli2[j-1] != INF){
+          tt = rtype[type];
+
+          if(tt == 0)
+            tt = 7;
+
           en = dmli2[j-1] + E_MLstem(tt, -1, S_i1, P) + P->MLbase;
           if(sc){
             if(sc->energy_up)
@@ -161,6 +170,11 @@ E_mb_loop_fast( int i,
 
       if(el){
         if(dmli2[j-2] != INF){
+          tt = rtype[type];
+
+          if(tt == 0)
+            tt = 7;
+
           en = dmli2[j-2] + E_MLstem(tt, S_j1, S_i1, P) + 2*P->MLbase;
           if(sc){
             if(sc->energy_up)
@@ -187,6 +201,11 @@ E_mb_loop_fast( int i,
 
       if(el){
         if(dmli1[j-2] != INF){
+          tt = rtype[type];
+
+          if(tt == 0)
+            tt = 7;
+
           en = dmli1[j-2] + E_MLstem(tt, S_j1, -1, P) + P->MLbase;
           if(sc){
             if(sc->energy_up)
@@ -223,6 +242,10 @@ E_mb_loop_fast( int i,
       if((fc[i+1] != INF) && (fc[j-1] != INF)){
         decomp = fc[i+1] + fc[j-1];
         tt = rtype[type];
+
+        if(tt == 0)
+          tt = 7;
+
         switch(dangle_model){
           case 0:   decomp += E_ExtLoop(tt, -1, -1, P);
                     break;
@@ -245,6 +268,11 @@ E_mb_loop_fast( int i,
 
       if(el){
         if((fc[i+2] != INF) && (fc[j-1] != INF)){
+          tt = rtype[type];
+
+          if(tt == 0)
+            tt = 7;
+
           en     = fc[i+2] + fc[j-1] + E_ExtLoop(tt, -1, S_i1, P);
           decomp = MIN2(decomp, en);
         }
@@ -260,6 +288,11 @@ E_mb_loop_fast( int i,
 
       if(el){
         if((fc[i+1] != INF) && (fc[j-2] != INF)){
+          tt = rtype[type];
+
+          if(tt == 0)
+            tt = 7;
+
           en     = fc[i+1] + fc[j-2] + E_ExtLoop(tt, S_j1, -1, P);
           decomp = MIN2(decomp, en);
         }
@@ -275,6 +308,11 @@ E_mb_loop_fast( int i,
 
       if(el){
         if((fc[i+2] != INF) && (fc[j-2] != INF)){
+          tt = rtype[type];
+
+          if(tt == 0)
+            tt = 7;
+
           en     = fc[i+2] + fc[j-2] + E_ExtLoop(tt, S_j1, S_i1, P);
           decomp = MIN2(decomp, en);
         }
@@ -319,6 +357,9 @@ E_mb_loop_stack(int i,
 #endif
 
   if(eval_loop){
+    if(type == 0)
+      type = 7;
+
     decomp = INF;
     k1j1  = indx[j-1] + i + 2 + turn + 1;
     for (k = i+2+turn; k < j-2-turn; k++, k1j1++){
@@ -334,6 +375,10 @@ E_mb_loop_stack(int i,
 
       if(el){
         type_2  = rtype[(unsigned char)ptype[i1k]];
+
+        if(type_2 == 0)
+          type_2 = 7;
+
         en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
         if(sc){
           if(sc->f)
@@ -351,6 +396,10 @@ E_mb_loop_stack(int i,
 
       if(el){
         type_2  = rtype[(unsigned char)ptype[k1j1]];
+
+        if(type_2 == 0)
+          type_2 = 7;
+
         en      = c[k1j1]+P->stack[type][type_2]+fML[i1k];
         if(sc){
           if(sc->f)
@@ -409,6 +458,10 @@ E_ml_rightmost_stem(int i,
 #endif
 
       if(eval_loop){
+
+        if(type == 0)
+          type = 7;
+
         e = c[ij];
         if(e != INF){
           switch(dangle_model){
@@ -538,6 +591,10 @@ E_ml_stems_fast(int i,
         if(eval_loop){
           if(c[ij+1] != INF){
             type = ptype[ij+1];
+  
+            if(type == 0)
+              type = 7;
+
             en = c[ij+1] + E_MLstem(type, mm5, -1, P) + P->MLbase;
             if(sc){
               if(sc->energy_up)
@@ -562,6 +619,10 @@ E_ml_stems_fast(int i,
         if(eval_loop){
           if(c[indx[j-1]+i] != INF){
             type = ptype[indx[j-1]+i];
+
+            if(type == 0)
+              type = 7;
+
             en = c[indx[j-1]+i] + E_MLstem(type, -1, mm3, P) + P->MLbase;
             if(sc){
               if(sc->energy_up)
@@ -586,6 +647,10 @@ E_ml_stems_fast(int i,
         if(eval_loop){
           if(c[indx[j-1]+i+1] != INF){
             type = ptype[indx[j-1]+i+1];
+
+            if(type == 0)
+              type = 7;
+
             en = c[indx[j-1]+i+1] + E_MLstem(type, mm5, mm3, P) + 2*P->MLbase;
             if(sc){
               if(sc->energy_up)
@@ -651,6 +716,12 @@ E_ml_stems_fast(int i,
       if((hc[ik] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) && (hc[k1j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)){
         type    = rtype[(unsigned char)ptype[ik]];
         type_2  = rtype[(unsigned char)ptype[k1j]];
+
+        if(type == 0)
+          type = 7;
+        if(type_2 == 0)
+          type_2 = 7;
+
         en      = c[ik] + c[k1j] + P->stack[type][type_2];
         if(sc){
           if(sc->f)
@@ -665,6 +736,12 @@ E_ml_stems_fast(int i,
       if((hc[ik] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) && (hc[k1j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)){
         type    = rtype[(unsigned char)ptype[ik]];
         type_2  = rtype[(unsigned char)ptype[k1j]];
+
+        if(type == 0)
+          type = 7;
+        if(type_2 == 0)
+          type_2 = 7;
+
         en      = c[ik] + c[k1j] + P->stack[type][type_2];
         if(sc){
           if(sc->f)
@@ -726,6 +803,10 @@ vrna_exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
     type    = (unsigned char)ptype[ij];
     rtype   = &(md->rtype[0]);
     tt      = rtype[type];
+
+    if(tt == 0)
+      tt = 7;
+
     qqqmmm  =   expMLclosing
               * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)
               * scale[2];
@@ -843,6 +924,10 @@ vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
       case 0:   for(k = ii + turn + 1; k <= jj; k++){
                   if(hc->matrix[idx[k] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     type = (unsigned char)ptype[idx[k] + ii];
+
+                    if(type == 0)
+                      type = 7;
+
                     if(fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, -1, -1, P)){
                       bp_stack[++(*stack_count)].i = ii;
                       bp_stack[(*stack_count)].j   = k;
@@ -868,6 +953,10 @@ vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
                   if(hc->matrix[idx[k] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     mm3 = ON_SAME_STRAND(k, k + 1, cp) ? S1[k + 1] : -1;
                     type = (unsigned char)ptype[idx[k] + ii];
+
+                    if(type == 0)
+                      type = 7;
+
                     if(fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, mm5,  mm3, P)){
                       bp_stack[++(*stack_count)].i = ii;
                       bp_stack[(*stack_count)].j   = k;
@@ -892,6 +981,10 @@ vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
       default:  for(k = ii + turn + 1; k <= jj; k++){
                   if(hc->matrix[idx[k] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     type = (unsigned char)ptype[idx[k] + ii];
+
+                    if(type == 0)
+                      type = 7;
+
                     if(fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, -1, -1, P)){
                       bp_stack[++(*stack_count)].i = ii;
                       bp_stack[(*stack_count)].j   = k;
@@ -932,6 +1025,10 @@ vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
                       mm5   = ON_SAME_STRAND(ii, ii + 1,cp) ? S1[ii] : -1;
                       mm3   = ON_SAME_STRAND(k, k + 1,cp) ? S1[k + 1] : -1;
                       type  = ptype[idx[k] + ii + 1];
+
+                      if(type == 0)
+                        type = 7;
+
                       en    = my_c[idx[k] + ii + 1];
                       if(sc)
                         if(sc->energy_up)
@@ -1005,6 +1102,10 @@ vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
 
                   if(hc->matrix[idx[jj] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     type  = (unsigned char)ptype[idx[jj] + k];
+
+                    if(type == 0)
+                      type = 7;
+
                     en    = my_c[idx[jj] + k];
                     if(!ON_SAME_STRAND(k, jj, cp))
                       en += P->DuplexInit;
@@ -1033,6 +1134,10 @@ vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
                   if(hc->matrix[idx[jj] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     mm5   = ((k > 1) && ON_SAME_STRAND(k - 1, k, cp)) ? S1[k - 1] : -1;
                     type  = (unsigned char)ptype[idx[jj] + k];
+
+                    if(type == 0)
+                      type = 7;
+
                     en    = my_c[idx[jj] + k];
                     if(!ON_SAME_STRAND(k, jj, cp))
                       en += P->DuplexInit;
@@ -1062,6 +1167,10 @@ vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
 
                   if(hc->matrix[idx[jj] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     type  = (unsigned char)ptype[idx[jj] + k];
+
+                    if(type == 0)
+                      type = 7;
+
                     en    = my_c[idx[jj] + k];
                     if(!ON_SAME_STRAND(k, jj, cp))
                       en += P->DuplexInit;
@@ -1095,6 +1204,10 @@ vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
 
                   if(hc->matrix[idx[jj - 1] + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
                     type = (unsigned char)ptype[idx[jj - 1] + k];
+
+                    if(type == 0)
+                      type = 7;
+
                     if(hc->up_ext[jj]){
                       if(ON_SAME_STRAND(jj - 1, jj, cp)){
                         mm3 = S1[jj];
@@ -1239,6 +1352,7 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
   }
 
   type  = (unsigned char)ptype[ij];
+
   en    = my_c[ij];
   if(sc){
     if(sc->f)
@@ -1246,6 +1360,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
   }
   switch(dangle_model){
     case 0:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+
+                if(type == 0)
+                  type = 7;
+
                 if(fij == en + E_MLstem(type, -1, -1, P)){
                   *i = *j = -1;
                   *k = ii;
@@ -1257,6 +1375,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
               break;
 
     case 2:   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+
+                if(type == 0)
+                  type = 7;
+
                 if(fij == en + E_MLstem(type, S1[ii - 1], S1[jj + 1], P)){
                   *i = *j = -1;
                   *k = ii;
@@ -1268,6 +1390,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
               break;
 
     default:  if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+
+                if(type == 0)
+                  type = 7;
+
                 if(fij == en + E_MLstem(type, -1, -1, P)){
                   *i = *j = -1;
                   *k = ii;
@@ -1286,6 +1412,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
                       tmp_en -= sc->f(ii, jj, ii+1, jj, VRNA_DECOMP_ML_STEM, sc->data);
                   }
                   type = (unsigned char)ptype[ij + 1];
+
+                  if(type == 0)
+                    type = 7;
+
                   if(tmp_en == my_c[ij+1] + E_MLstem(type, S1[ii], -1, P) + P->MLbase){
                     *i = *j = -1;
                     *k = ii + 1;
@@ -1305,6 +1435,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
                       tmp_en -= sc->f(ii, jj, ii, jj-1, VRNA_DECOMP_ML_STEM, sc->data);
                   }
                   type = (unsigned char)ptype[idx[jj - 1] + ii];
+
+                  if(type == 0)
+                    type = 7;
+
                   if(tmp_en == my_c[idx[jj - 1] + ii] + E_MLstem(type, -1, S1[jj], P) + P->MLbase){
                     *i = *j = -1;
                     *k = ii;
@@ -1324,6 +1458,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
                       tmp_en -= sc->f(ii, jj, ii+1, jj-1, VRNA_DECOMP_ML_STEM, sc->data);
                   }
                   type = (unsigned char)ptype[idx[jj - 1] + ii + 1];
+
+                  if(type == 0)
+                    type = 7;
+
                   if(tmp_en == my_c[idx[jj - 1] + ii + 1] + E_MLstem(type, S1[ii], S1[jj], P) + 2 * P->MLbase){
                     *i = *j = -1;
                     *k = ii + 1;
@@ -1360,6 +1498,12 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
       if((hc->matrix[ik] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) && (hc->matrix[k1j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)){
         type    = rtype[(unsigned char)ptype[ik]];
         type_2  = rtype[(unsigned char)ptype[k1j]];
+
+        if(type == 0)
+          type = 7;
+        if(type_2 == 0)
+          type_2 = 7;
+
         tmp_en  = my_c[ik] + my_c[k1j] + P->stack[type][type_2] + 2*P->MLintern[1];
         if(sc){
           if(sc->f)
@@ -1424,6 +1568,11 @@ vrna_BT_mb_loop(vrna_fold_compound_t *vc,
   r = q - turn - 1;
 
   if(hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+
+    if(type == 0)
+      type = 7;
+    if(tt == 0)
+      tt = 7;
 
     /* is it a fake multi-loop? */
     if(!ON_SAME_STRAND(*i, *j, cp)){
@@ -1615,6 +1764,10 @@ vrna_BT_mb_loop(vrna_fold_compound_t *vc,
                     tmp_en = e;
                     if(hc->matrix[idx[r] + p] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                       type_2 = rtype[(unsigned char)ptype[idx[r] + p]];
+
+                      if(type_2 == 0)
+                        type_2 = 7;
+
                       tmp_en = my_c[idx[r] + p] + P->stack[tt][type_2] + my_fML[idx[q] + r + 1];
                       if(sc){
                         if(sc->f){
@@ -1630,6 +1783,10 @@ vrna_BT_mb_loop(vrna_fold_compound_t *vc,
 
                     if(hc->matrix[idx[q] + r + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
                       type_2 = rtype[(unsigned char)ptype[idx[q] + r + 1]];
+
+                      if(type_2 == 0)
+                        type_2 = 7;
+
                       tmp_en = my_c[idx[q] + r + 1] + P->stack[tt][type_2] + my_fML[idx[r] + p];
                       if(sc){
                         if(sc->f){

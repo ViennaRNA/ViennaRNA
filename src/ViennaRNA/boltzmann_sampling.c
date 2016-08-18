@@ -199,6 +199,10 @@ vrna_pbacktrack5( vrna_fold_compound_t *vc,
       type          = ptype[jindx[j] + i];
       hc_decompose  = hard_constraints[jindx[j] + i];
       if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+
+        if(type == 0)
+          type = 7;
+
         qkl = qb[ij] * exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
 
         if (i > 1){
@@ -250,6 +254,10 @@ vrna_pbacktrack5( vrna_fold_compound_t *vc,
       type          = ptype[jindx[j] + i];
       hc_decompose  = hard_constraints[jindx[j] + i];
       if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+
+        if(type == 0)
+          type = 7;
+
         qkl = qb[ij] * exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
 
         if (j<length){
@@ -421,6 +429,10 @@ backtrack_qm1(int i,
       u = j - l;
       if(hc_up_ml[l+1] >= u){
         type = ptype[il];
+
+        if(type == 0)
+          type = 7;
+
         q_temp =  qb[ii-l]
                   * exp_E_MLstem(type, S1[i-1], S1[l+1], pf_params)
                   * expMLbase[j-l];
@@ -525,6 +537,10 @@ backtrack(int i,
     type = (unsigned char)ptype[jindx[j] + i];
     hc_decompose = hard_constraints[jindx[j] + i];
     if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){ /* hairpin contribution */
+
+      if(type == 0)
+        type = 7;
+
       u = j-i-1;
 
       if (((type==3)||(type==4))&&noGUclosure) qbt1 = 0;
@@ -546,6 +562,10 @@ backtrack(int i,
     }
 
     if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){ /* interior loop contributions */
+
+      if(type == 0)
+        type = 7;
+
       max_k = i + MAXLOOP + 1;
       max_k = MIN2(max_k, j - turn - 2);
       max_k = MIN2(max_k, i + 1 + hc_up_int[i+1]);
@@ -558,6 +578,10 @@ backtrack(int i,
           if(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
             unsigned char type_2 = (unsigned char)ptype[jindx[l] + k];
             type_2 = rtype[type_2];
+
+            if(type_2 == 0)
+              type_2 = 7;
+
             /* add *scale[u1+u2+2] */
             q_temp = qb[kl]
                      * scale[u1+u2+2]
@@ -597,10 +621,11 @@ backtrack(int i,
 
   /* backtrack in multi-loop */
   {
-    int k, ii, jj;
+    int k, ii, jj, tt;
     FLT_OR_DBL closingPair;
+    tt = rtype[(unsigned char)ptype[jindx[j] + i]];
     closingPair =   pf_params->expMLclosing
-                  * exp_E_MLstem(rtype[(unsigned char)ptype[jindx[j] + i]], S1[j-1], S1[i+1], pf_params)
+                  * exp_E_MLstem(tt, S1[j-1], S1[i+1], pf_params)
                   * scale[2];
     if(sc){
       if(sc->exp_f)
