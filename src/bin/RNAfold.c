@@ -818,6 +818,8 @@ int main(int argc, char *argv[]){
 
   free(constraints_file);
   free(ligandMotif);
+  free(shape_method);
+  free(shape_conversion);
 
   return EXIT_SUCCESS;
 }
