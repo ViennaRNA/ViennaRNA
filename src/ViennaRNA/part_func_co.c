@@ -387,6 +387,10 @@ pf_co(vrna_fold_compound_t *vc){
         /*qc contribution*/
         if (!ON_SAME_STRAND(i,j,cp)){
           tt = rtype[type];
+
+          if(tt == 0)
+            tt = 7;
+
           temp=q[my_iindx[i+1]-(cp-1)]*q[my_iindx[cp]-(j-1)];
           if ((j==cp)&&(i==cp-1)) temp=scale[2];
           else if (i==cp-1) temp=q[my_iindx[cp]-(j-1)]*scale[1];
@@ -423,8 +427,13 @@ pf_co(vrna_fold_compound_t *vc){
 
       if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
         if(ON_SAME_STRAND(i-1,i,cp) && ON_SAME_STRAND(j,j+1,cp)){
+          tt = type;
+
+          if(tt == 0)
+            tt = 7;
+
           qbt1    =   qb[ij];
-          qbt1    *=  exp_E_MLstem(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
+          qbt1    *=  exp_E_MLstem(tt, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
           if(sc){
             if(sc->exp_f)
               q_temp *= sc->exp_f(i, j, i, j, VRNA_DECOMP_ML_STEM, sc->data);
@@ -477,8 +486,13 @@ pf_co(vrna_fold_compound_t *vc){
       qbt1 = 0.;
 
       if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+        tt = type;
+
+        if(tt == 0)
+          tt = 7;
+
         qbt1 =  qb[ij]
-                * exp_E_ExtLoop(type, ((i>1)&&(ON_SAME_STRAND(i-1,i,cp))) ? S1[i-1] : -1, ((j<n)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1, pf_params);
+                * exp_E_ExtLoop(tt, ((i>1)&&(ON_SAME_STRAND(i-1,i,cp))) ? S1[i-1] : -1, ((j<n)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1, pf_params);
         if(sc){
           if(sc->exp_f)
             qbt1 *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
@@ -530,7 +544,6 @@ pf_co(vrna_fold_compound_t *vc){
         temp += q_temp;
       }
       q[ij] = temp;
-
       if (temp>Qmax) {
         Qmax = temp;
         if (Qmax>max_real/10.)
@@ -645,6 +658,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
         ij = my_iindx[i]-j;
         if((hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) && (qb[ij] > 0.)){
           type  = ptype[jindx[j] + i];
+
+          if(type == 0)
+            type = 7;
+
           probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
           probs[ij] *= exp_E_ExtLoop(type, ((i>1)&&(ON_SAME_STRAND(i-1,i,cp))) ? S1[i-1] : -1, ((j<n)&&(ON_SAME_STRAND(j,j+1,cp))) ? S1[j+1] : -1, pf_params);
           if(sc){
@@ -668,6 +685,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
         if(qb[kl]==0.) continue;
 
         if(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
+
+          if(type_2 == 0)
+            type_2 = 7;
+
           for(i = MAX2(1, k - MAXLOOP - 1); i <= k - 1; i++){
             u1 = k - i - 1;
             if(hc_up_int[i+1] < u1) continue;
@@ -682,6 +703,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
                 if ((ON_SAME_STRAND(i,k,cp)) && (ON_SAME_STRAND(l,j,cp))){
                   type = (unsigned char)ptype[jindx[j] + i];
                   if(probs[ij] > 0){
+
+                    if(type == 0)
+                      type = 7;
+
                     tmp2  = probs[ij]
                             * scale[u1 + u2 + 2]
                             * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
@@ -730,6 +755,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
           tt    = rtype[tt];
           if (ON_SAME_STRAND(i,k,cp)){
             if(hard_constraints[jindx[l+1] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+
+              if(tt == 0)
+                tt = 7;
+
               prmt1 = probs[ii-(l+1)]
                       * expMLclosing
                       * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
@@ -753,6 +782,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
                 if (ON_SAME_STRAND(j-1,j,cp)){ /*??*/
                   tt    =   (unsigned char)ptype[jindx[j] + i];
                   tt    =   rtype[tt];
+
+                  if(tt == 0)
+                    tt = 7;
+
                   /* which decomposition is covered here? =>
                     i + 1 = k < l < j:
                     (i,j)       -> enclosing pair
@@ -796,7 +829,7 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
             }
             prm_l[i] = ppp + prmt1;
           } else {
-            prm_l[i] = 0.;
+            prm_l[i] = prmt1;
           }
 
           /* i is unpaired */
@@ -816,10 +849,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
             /* same as:    prm_MLb = 0;
                for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
-            prml[i] = prml[ i] + prm_l[i];
           } else {
-            prm_MLb = 0.;
+            prm_MLb = prml[i];
           }
+          prml[i] = prml[ i] + prm_l[i];
 
           if (qb[kl] == 0.) continue;
 
@@ -831,6 +864,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
                 temp += prml[i]*qm[my_iindx[i+1] - (k-1)];
               }
             }
+
+            if(tt == 0)
+              tt = 7;
+
             temp *= exp_E_MLstem( tt,
                                   ((k>1) && ON_SAME_STRAND(k-1,k,cp)) ? S1[k-1] : -1,
                                   ((l<n) && ON_SAME_STRAND(l,l+1,cp)) ? S1[l+1] : -1,
@@ -865,6 +902,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
             for (k=1; k<cp; k++) {
               kt    = my_iindx[k]-t;
               type  = rtype[(unsigned char)ptype[jindx[t] + k]];
+
+              if(type == 0)
+                type = 7;
+
               temp  = probs[kt]
                       * exp_E_ExtLoop(type, S1[t-1], (ON_SAME_STRAND(k,k+1,cp)) ? S1[k+1] : -1, pf_params)
                       * scale[2];
@@ -884,6 +925,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
             kl        =   my_iindx[k]-l;
             type      =   ptype[jindx[l] + k];
             temp      =   Qrout[l];
+
+            if(type == 0)
+              type = 7;
+
             temp      *=  exp_E_ExtLoop(type, (k>cp) ? S1[k-1] : -1, (l < n) ? S1[l+1] : -1, pf_params);
             if (k>cp)
               temp    *=  q[my_iindx[cp]-(k-1)];
@@ -899,6 +944,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
               sk=my_iindx[s]-k;
               if (qb[sk]) {
                 type      =   rtype[(unsigned char)ptype[jindx[k] + s]];
+
+                if(type == 0)
+                  type = 7;
+
                 temp      =   probs[sk]
                               * exp_E_ExtLoop(type, (ON_SAME_STRAND(k-1,k,cp)) ? S1[k-1] : -1, S1[s+1], pf_params)
                               * scale[2];
@@ -917,6 +966,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
           if (qb[my_iindx[k]-l]) {
             type    =   ptype[jindx[l] + k];
             temp    =   Qlout[k];
+
+            if(type == 0)
+              type = 7;
+
             temp    *=  exp_E_ExtLoop(type, (k>1) ? S1[k-1] : -1, (l<(cp-1)) ? S1[l+1] : -1, pf_params);
             if (l+1<cp)
               temp  *=  q[my_iindx[l+1]-(cp-1)];

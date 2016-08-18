@@ -597,6 +597,10 @@ free_end( int *array,
     else     { ii = i; jj = j;} /* inc<0 */
     type = ptype[indx[jj]+ii];
     if(hard_constraints[indx[jj]+ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+
+      if(type == 0)
+        type = 7;
+
       si = (ii>1)       && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
       sj = (jj<length)  && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
@@ -661,6 +665,10 @@ free_end( int *array,
         continue;
 
       type = ptype[indx[jj]+ii];
+
+      if(type == 0)
+        type = 7;
+
       si = (ii > left)  && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
       sj = (jj < right) && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
