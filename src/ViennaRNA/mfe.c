@@ -264,7 +264,7 @@ fill_arrays(vrna_fold_compound_t *vc){
           new_c = MIN2(new_c, energy);
 
           /* check for multibranch loops */
-          energy  = E_mb_loop_fast(i, j, vc, DMLi1, DMLi2);
+          energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
           new_c   = MIN2(new_c, energy);
         }
 
@@ -292,7 +292,7 @@ fill_arrays(vrna_fold_compound_t *vc){
 
       /* done with c[i,j], now compute fML[i,j] and fM1[i,j] */
 
-      my_fML[ij] = E_ml_stems_fast(i, j, vc, Fmi, DMLi);
+      my_fML[ij] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
 
       if(uniq_ML){  /* compute fM1 for unique decomposition */
         my_fM1[ij] = E_ml_rightmost_stem(i, j, vc);
@@ -404,31 +404,9 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
         energy  = vrna_E_hp_loop(vc, i, j);
         new_c   = MIN2(new_c, energy);
 
-        /* multi-loop decomposition ------------------------*/
-        if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
-          decomp = DMLi1[j-1];
-          if(dangle_model){
-            for(s=0; s<n_seq; s++){
-              tt = rtype[type[s]];
-              decomp += E_MLstem(tt, S5[s][j], S3[s][i], P);
-            }
-          }
-          else{
-            for(s=0; s<n_seq; s++){
-              tt = rtype[type[s]];
-              decomp += E_MLstem(tt, -1, -1, P);
-            }
-          }
-          if(sc)
-            for(s=0; s<n_seq; s++){
-              if(sc[s]){
-                if(sc[s]->energy_bp)
-                  decomp += sc[s]->energy_bp[indx[j] + i];
-              }
-            }
-          MLenergy = decomp + n_seq*P->MLclosing;
-          new_c = MIN2(new_c, MLenergy);
-        }
+        /* check for multibranch loops */
+        energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
+        new_c   = MIN2(new_c, energy);
 
         /* check for interior loops */
         energy  = vrna_E_int_loop(vc, i, j);
@@ -446,65 +424,10 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
       } /* end >> if (pair) << */
 
       else c[ij] = INF;
+
       /* done with c[i,j], now compute fML[i,j] */
-      /* free ends ? -----------------------------------------*/
-      new_fML = INF;
+      fML[ij] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
 
-      if(hc->up_ml[i]){
-        energy = fML[ij+1] + n_seq * P->MLbase;
-        if(sc)
-          for(s=0; s < n_seq; s++){
-            if(sc[s]){
-              if(sc[s]->energy_up)
-                energy += sc[s]->energy_up[a2s[s][i]][1];
-            }
-          }
-        new_fML = MIN2(new_fML, energy);
-      }
-
-      if(hc->up_ml[j]){
-        energy = fML[indx[j-1]+i] + n_seq * P->MLbase;
-        if(sc)
-          for(s=0;s < n_seq; s++){
-            if(sc[s]){
-              if(sc[s]->energy_up)
-                energy += sc[s]->energy_up[a2s[s][j]][1];
-            }
-          }
-        new_fML = MIN2(new_fML, energy);
-      }
-
-      if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-        energy = c[ij];
-        if(dangle_model){
-          for (s=0; s<n_seq; s++) {
-            energy += E_MLstem(type[s], S5[s][i], S3[s][j], P);
-          }
-        }
-        else{
-          for (s=0; s<n_seq; s++) {
-            energy += E_MLstem(type[s], -1, -1, P);
-          }
-        }
-        new_fML = MIN2(energy, new_fML);
-
-        if(md->gquad){
-          decomp = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
-          new_fML = MIN2(new_fML, decomp);
-        }
-      }
-
-
-      /* modular decomposition -------------------------------*/
-      for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
-        decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
-
-      DMLi[j] = decomp;               /* store for use in ML decompositon */
-      new_fML = MIN2(new_fML,decomp);
-
-      /* coaxial stacking deleted */
-
-      fML[ij] = Fmi[j] = new_fML;     /* substring energy */
     } /* END for j */
 
     {

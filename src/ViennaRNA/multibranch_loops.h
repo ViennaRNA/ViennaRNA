@@ -96,11 +96,11 @@ vrna_BT_mb_loop(vrna_fold_compound_t *vc,
 
 
 int
-E_mb_loop_fast( int i,
-                int j,
-                vrna_fold_compound_t *vc,
-                int *dmli1,
-                int *dmli2);
+vrna_E_mb_loop_fast(vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    int *dmli1,
+                    int *dmli2);
 
 int
 E_mb_loop_stack(int i,
@@ -114,11 +114,11 @@ E_ml_rightmost_stem(int i,
 
 
 int
-E_ml_stems_fast(int i,
-                int j,
-                vrna_fold_compound_t *vc,
-                int *fmi,
-                int *dmli);
+vrna_E_ml_stems_fast( vrna_fold_compound_t *vc,
+                      int i,
+                      int j,
+                      int *fmi,
+                      int *dmli);
 
 PRIVATE INLINE int E_MLstem(int type, int si1, int sj1, vrna_param_t *P){
   int energy = 0;

@@ -261,7 +261,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
           new_c   = MIN2(new_c, energy);
 
           /* check for multibranch loops */
-          energy  = E_mb_loop_fast(i, j, vc, DMLi1, DMLi2);
+          energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
           new_c   = MIN2(new_c, energy);
         }
 
@@ -294,7 +294,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
 
-      my_fML[ij] = E_ml_stems_fast(i, j, vc, Fmi, DMLi);
+      my_fML[ij] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
 
       if(uniq_ML){  /* compute fM1 for unique decomposition */
         my_fM1[ij] = E_ml_rightmost_stem(i, j, vc);
