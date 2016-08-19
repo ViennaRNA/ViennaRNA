@@ -24,6 +24,12 @@
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 
+PRIVATE FLT_OR_DBL
+exp_E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
+                                int i,
+                                int j,
+                                FLT_OR_DBL *qqm1);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -38,32 +44,38 @@ E_mb_loop_fast( int i,
                 int *dmli1,
                 int *dmli2){
 
-  int decomp, en, e;
   unsigned char type, tt;
-  short S_i1, S_j1;
+  char          *ptype, *hc, eval_loop, el;
+  short         S_i1, S_j1, *S;
+  int           decomp, en, e, cp, *indx, *hc_up, *fc, ij, hc_decompose,
+                dangle_model, *rtype;
+  vrna_sc_t     *sc;
+  vrna_param_t  *P;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *f;
+#endif
 
-  int               cp      = vc->cutpoint;
-  char              *ptype  = vc->ptype;
-  short             *S      = vc->sequence_encoding;
-  int               *indx   = vc->jindx;
-  char              *hc     = vc->hc->matrix;
-  int               *hc_up  = vc->hc->up_ml;
-  vrna_sc_t         *sc     = vc->sc;
-  int               *fc     = vc->matrices->fc;
-  vrna_param_t      *P      = vc->params;
-
-  int ij            = indx[j] + i;
-  int hc_decompose  = hc[ij];
-  int dangle_model  = P->model_details.dangles;
-  int *rtype        = &(P->model_details.rtype[0]);
-  vrna_callback_hc_evaluate *f  = vc->hc->f;
-  char              eval_loop, el;
-
-  type              = (unsigned char)ptype[ij];
-
+  cp            = vc->cutpoint;
+  ptype         = vc->ptype;
+  S             = vc->sequence_encoding;
+  indx          = vc->jindx;
+  hc            = vc->hc->matrix;
+  hc_up         = vc->hc->up_ml;
+  sc            = vc->sc;
+  fc            = vc->matrices->fc;
+  P             = vc->params;
+  ij            = indx[j] + i;
+  hc_decompose  = hc[ij];
+  dangle_model  = P->model_details.dangles;
+  rtype         = &(P->model_details.rtype[0]);
+  type          = (unsigned char)ptype[ij];
   /* init values */
-  e       = INF;
-  decomp  = INF;
+  e             = INF;
+  decomp        = INF;
+
+#ifdef WITH_GEN_HC
+  f  = vc->hc->f;
+#endif
 
   if(cp < 0){
     S_i1    = S[i+1];
@@ -329,25 +341,33 @@ E_mb_loop_stack(int i,
                 int j,
                 vrna_fold_compound_t *vc){
 
-  int e, decomp, en, i1k, k1j1, ij, k;
   unsigned char type, type_2;
+  char          eval_loop, el, *hc, *ptype;
+  int           e, decomp, en, i1k, k1j1, ij, k, *indx, *c, *fML, turn, *rtype;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_sc_t     *sc;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *f;
+#endif
 
-  int               *indx   = vc->jindx;
-  char              *hc     = vc->hc->matrix;
-  int               *c      = vc->matrices->c;
-  int               *fML    = vc->matrices->fML;
-  vrna_param_t      *P      = vc->params;
-  vrna_md_t         *md     = &(P->model_details);
-  int               turn    = md->min_loop_size;
-  char              *ptype  = vc->ptype;
-  int               *rtype  = &(md->rtype[0]);
-  vrna_sc_t         *sc     = vc->sc;
-  vrna_callback_hc_evaluate *f  = vc->hc->f;
-  char              eval_loop, el;
-
+  indx  = vc->jindx;
+  hc    = vc->hc->matrix;
+  c     = vc->matrices->c;
+  fML   = vc->matrices->fML;
+  P     = vc->params;
+  md    = &(P->model_details);
+  turn  = md->min_loop_size;
+  ptype = vc->ptype;
+  rtype = &(md->rtype[0]);
+  sc    = vc->sc;
   e     = INF;
   ij    = indx[j] + i;
   type  = ptype[ij];
+
+#ifdef WITH_GEN_HC
+  f = vc->hc->f;
+#endif
 
   eval_loop = hc[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
 
@@ -382,7 +402,7 @@ E_mb_loop_stack(int i,
         en      = c[i1k]+P->stack[type][type_2]+fML[k1j1];
         if(sc){
           if(sc->f)
-            en += sc->f(i, j, i+1, k, VRNA_DECOMP_ML_COAXIAL, sc->data); 
+            en += sc->f(i, j, i+1, k, VRNA_DECOMP_ML_COAXIAL, sc->data);
         }
         decomp  = MIN2(decomp, en);
       }
@@ -427,26 +447,37 @@ E_ml_rightmost_stem(int i,
                     int j,
                     vrna_fold_compound_t *vc){
 
-  int               en;
-  vrna_param_t      *P            = vc->params;
-  int               length        = vc->length;
-  short             *S            = vc->sequence_encoding;
-  int               *indx         = vc->jindx;
-  char              *hc           = vc->hc->matrix;
-  int               *hc_up        = vc->hc->up_ml;
-  vrna_sc_t         *sc           = vc->sc;
-  int               *c            = vc->matrices->c;
-  int               *fm           = (P->model_details.uniq_ML) ? vc->matrices->fM1 : vc->matrices->fML;
-  int               *ggg          = vc->matrices->ggg;
-  int               ij            = indx[j] + i;
-  int               type          = vc->ptype[ij];
-  int               hc_decompose  = hc[ij];
-  int               dangle_model  = P->model_details.dangles;
-  int               with_gquad    = P->model_details.gquad;
-  int               cp            = vc->cutpoint;
-  int               e             = INF;
-  vrna_callback_hc_evaluate *f    = vc->hc->f;
-  char              eval_loop;
+  char              eval_loop, *hc;
+  short             *S;
+  int               en, length, *indx, *hc_up, *c, *fm, *ggg, ij, type, hc_decompose,
+                    dangle_model, with_gquad, cp, e;
+  vrna_param_t      *P;
+  vrna_sc_t         *sc;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *f;
+#endif
+
+  P             = vc->params;
+  length        = vc->length;
+  S             = vc->sequence_encoding;
+  indx          = vc->jindx;
+  hc            = vc->hc->matrix;
+  hc_up         = vc->hc->up_ml;
+  sc            = vc->sc;
+  c             = vc->matrices->c;
+  fm            = (P->model_details.uniq_ML) ? vc->matrices->fM1 : vc->matrices->fML;
+  ggg           = vc->matrices->ggg;
+  ij            = indx[j] + i;
+  type          = vc->ptype[ij];
+  hc_decompose  = hc[ij];
+  dangle_model  = P->model_details.dangles;
+  with_gquad    = P->model_details.gquad;
+  cp            = vc->cutpoint;
+  e             = INF;
+
+#ifdef WITH_GEN_HC
+  f = vc->hc->f;
+#endif
 
   if(ON_SAME_STRAND(i - 1, i, cp)){
     if(ON_SAME_STRAND(j, j + 1, cp)){
@@ -517,28 +548,38 @@ E_ml_stems_fast(int i,
                 int *fmi,
                 int *dmli){
 
-  int k, en, decomp, mm5, mm3, type_2, k1j, stop;
+  char          *ptype, *hc, eval_loop;
+  short         *S;
+  int           k, en, decomp, mm5, mm3, type_2, k1j, stop, length, *indx, *hc_up,
+                *c, *fm, ij, dangle_model, turn, type, *rtype, circular, cp, e;
+  vrna_sc_t     *sc;
+  vrna_param_t  *P;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *f;
+#endif
 
-  int               length        = (int)vc->length;
-  char              *ptype        = vc->ptype;
-  short             *S            = vc->sequence_encoding;
-  int               *indx         = vc->jindx;
-  char              *hc           = vc->hc->matrix;
-  int               *hc_up        = vc->hc->up_ml;
-  vrna_sc_t         *sc           = vc->sc;
-  int               *c            = vc->matrices->c;
-  int               *fm           = vc->matrices->fML;
-  vrna_param_t      *P            = vc->params;
-  int               ij            = indx[j] + i;
-  int               dangle_model  = P->model_details.dangles;
-  int               turn          = P->model_details.min_loop_size;
-  int               type          = ptype[ij];
-  int               *rtype        = &(P->model_details.rtype[0]);
-  int               circular      = P->model_details.circ;
-  int               cp            = vc->cutpoint;
-  int               e             = INF;
-  vrna_callback_hc_evaluate *f    = vc->hc->f;
-  char              eval_loop;
+  length        = (int)vc->length;
+  ptype         = vc->ptype;
+  S             = vc->sequence_encoding;
+  indx          = vc->jindx;
+  hc            = vc->hc->matrix;
+  hc_up         = vc->hc->up_ml;
+  sc            = vc->sc;
+  c             = vc->matrices->c;
+  fm            = vc->matrices->fML;
+  P             = vc->params;
+  ij            = indx[j] + i;
+  dangle_model  = P->model_details.dangles;
+  turn          = P->model_details.min_loop_size;
+  type          = ptype[ij];
+  rtype         = &(P->model_details.rtype[0]);
+  circular      = P->model_details.circ;
+  cp            = vc->cutpoint;
+  e             = INF;
+
+#ifdef WITH_GEN_HC
+  f = vc->hc->f;
+#endif
 
   /*  extension with one unpaired nucleotide at the right (3' site)
       or full branch of (i,j)
@@ -550,7 +591,7 @@ E_ml_stems_fast(int i,
       dangle models
   */
   if(ON_SAME_STRAND(i - 1, i, cp)){
-    
+
     if(ON_SAME_STRAND(i, i + 1, cp)){
       eval_loop = (hc_up[i] > 0) ? (char)1 : (char)0;
 
@@ -591,7 +632,7 @@ E_ml_stems_fast(int i,
         if(eval_loop){
           if(c[ij+1] != INF){
             type = ptype[ij+1];
-  
+
             if(type == 0)
               type = 7;
 
@@ -774,14 +815,21 @@ vrna_exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
                     int j,
                     FLT_OR_DBL *qqm1){
 
-  int               ij, k, kl, *my_iindx, *jindx, *rtype, cp;
-  FLT_OR_DBL        qbt1, temp, qqqmmm, *qm, *scale, expMLclosing;
   unsigned char     type, tt;
   char              hc, *ptype;
-  vrna_sc_t         *sc;
   short             *S1;
+  int               ij, k, kl, *my_iindx, *jindx, *rtype, cp;
+  FLT_OR_DBL        qbt1, temp, qqqmmm, *qm, *scale, expMLclosing;
+  vrna_sc_t         *sc;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
+
+  if(vc){
+    if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
+      return exp_E_mb_loop_fast_comparative(vc, i, j, qqm1);
+  } else {
+    return 0.;
+  }
 
   cp            = vc->cutpoint;
   my_iindx      = vc->iindx;
@@ -851,6 +899,82 @@ vrna_exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
   return qbt1;
 }
 
+PRIVATE FLT_OR_DBL
+exp_E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
+                                int i,
+                                int j,
+                                FLT_OR_DBL *qqm1){
+
+  char              hc;
+  short             **S, **S5, **S3;
+  int               jij, k, kl, *my_iindx, *jindx, *types, n_seq, s;
+  FLT_OR_DBL        qbt1, temp, qqqmmm, *qm, *scale, expMLclosing;
+  vrna_sc_t         **scs;
+  vrna_exp_param_t  *pf_params;
+  vrna_md_t         *md;
+
+  my_iindx      = vc->iindx;
+  jindx         = vc->jindx;
+  qm            = vc->exp_matrices->qm;
+  scale         = vc->exp_matrices->scale;
+  pf_params     = vc->exp_params;
+  md            = &(pf_params->model_details);
+  jij           = jindx[j] + i;
+  hc            = vc->hc->matrix[jij];
+  expMLclosing  = pf_params->expMLclosing;
+  qbt1          = 0.;
+  types         = NULL;
+
+  /*multiple stem loop contribution*/
+  if(hc & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+
+    S       = vc->S;
+    S5      = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+    S3      = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+    scs     = vc->scs;
+    n_seq   = vc->n_seq;
+    types   = (int *)vrna_alloc(sizeof(int) * n_seq);
+
+    qqqmmm  = 1.;
+
+    for(s = 0; s < n_seq; s++){
+      types[s] = md->pair[S[s][j]][S[s][i]];
+      if(types[s] == 0)
+        types[s] = 7;
+    }
+
+    for(s = 0; s < n_seq; s++){
+      qqqmmm *=   exp_E_MLstem(types[s], S5[s][j], S3[s][i], pf_params)
+                * expMLclosing;
+    }
+
+    if(scs){
+      for(s = 0; s < n_seq; s++){
+        if(scs[s]){
+          if(scs[s]->exp_energy_bp)
+            qqqmmm *= scs[s]->exp_energy_bp[my_iindx[i] - j];
+        }
+      }
+    }
+
+    /* multi-loop loop contribution */
+    temp  = 0.;
+    kl    = my_iindx[i+1]-(i+1);
+
+    for(k = i + 2; k <= j - 1; k++, kl--){
+      temp += qm[kl] * qqm1[k];
+    }
+
+    temp *= scale[2];
+
+    qbt1 = temp * qqqmmm;
+  }
+
+  /* cleanup */
+  free(types);
+
+  return qbt1;
+}
 
 /*
 #################################
@@ -866,10 +990,11 @@ vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
                       vrna_bp_stack_t *bp_stack,
                       int *stack_count){
 
-  int length, ii, jj, k, en, cp, fij, fi, *my_c, *my_fc, *my_ggg, *idx, with_gquad, dangle_model, turn;
   unsigned char type;
   char          *ptype;
-  short   mm5, mm3, *S1;
+  short         mm5, mm3, *S1;
+  int           length, ii, jj, k, en, cp, fij, fi, *my_c, *my_fc, *my_ggg,
+                *idx, with_gquad, dangle_model, turn;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
@@ -1266,17 +1391,17 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
                       vrna_bp_stack_t *bp_stack,
                       int *stack_count){
 
-  int length, cp, ij, ii, jj, fij, fi, u, en, *my_c, *my_fML, *my_ggg, turn, *idx, with_gquad, dangle_model, *rtype;
   unsigned char type, type_2;
   char          *ptype;
   short         *S1;
+  int           ij, ii, jj, fij, fi, u, en, *my_c, *my_fML, *my_ggg,
+                turn, *idx, with_gquad, dangle_model, *rtype;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
-  length        = vc->length;
-  cp            = vc->cutpoint;
+
   P             = vc->params;
   md            = &(P->model_details);
   hc            = vc->hc;
@@ -1286,10 +1411,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
   rtype         = &(md->rtype[0]);
   S1            = vc->sequence_encoding;
 
-  my_c    = vc->matrices->c;
-  my_fML  = vc->matrices->fML;
-  my_ggg  = vc->matrices->ggg;
-  turn    = md->min_loop_size;
+  my_c          = vc->matrices->c;
+  my_fML        = vc->matrices->fML;
+  my_ggg        = vc->matrices->ggg;
+  turn          = md->min_loop_size;
   with_gquad    = md->gquad;
   dangle_model  = md->dangles;
 
@@ -1534,10 +1659,11 @@ vrna_BT_mb_loop(vrna_fold_compound_t *vc,
                 int *component1,
                 int *component2){
 
-  int ij, p, q, r, e, tmp_en, cp, *idx, turn, dangle_model, *my_c, *my_fML, *my_fc, *rtype;
   unsigned char type, type_2, tt;
   char          *ptype;
   short         s5, s3, *S1;
+  int           ij, p, q, r, e, tmp_en, cp, *idx, turn, dangle_model,
+                *my_c, *my_fML, *my_fc, *rtype;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;

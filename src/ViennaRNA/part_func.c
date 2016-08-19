@@ -691,7 +691,7 @@ vrna_pf_float_precision(void){
 PRIVATE void
 alipf_linear( vrna_fold_compound_t *vc){
 
-  int         s, i,j,k, ij, jij, d, ii, *type, tt, turn;
+  int         s, i,j,k, ij, jij, d, ii, *type, turn;
   FLT_OR_DBL  temp, temp2, Qmax=0.;
   FLT_OR_DBL  qbt1, *tmp;
   FLT_OR_DBL  *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
@@ -716,11 +716,9 @@ alipf_linear( vrna_fold_compound_t *vc){
   FLT_OR_DBL        *qm               = matrices->qm;
   FLT_OR_DBL        *qm1              = matrices->qm1;
   int               *pscore           = vc->pscore;     /* precomputed array of pair types */                  
-  int               *rtype            = &(md->rtype[0]);
   int               circular          = md->circ;
   FLT_OR_DBL        *scale            = matrices->scale;
   FLT_OR_DBL        *expMLbase        = matrices->expMLbase;
-  FLT_OR_DBL        expMLclosing      = pf_params->expMLclosing;
   char              *hard_constraints = hc->matrix;
 
   turn  = md->min_loop_size;
@@ -772,39 +770,21 @@ alipf_linear( vrna_fold_compound_t *vc){
         if (type[s]==0) type[s]=7;
       }
 
-      psc = pscore[jij];
-      qbt1 = 0.;
+      psc   = pscore[jij];
+      qbt1  = 0.;
 
       if(hard_constraints[jij]){
         /* process hairpin loop(s) */
         qbt1 += vrna_exp_E_hp_loop(vc, i, j);
         /* process interior loop(s) */
         qbt1 += vrna_exp_E_int_loop(vc, i, j);
+        /* process multibranch loop(s) */
+        qbt1 += vrna_exp_E_mb_loop_fast(vc, i, j, qqm1);
 
-        if(hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
-          /* multi-loop loop contribution */
-          ii = my_iindx[i+1]; /* ii-k=[i+1,k-1] */
-          temp = 0.0;
-          for (k=i+2; k<=j-1; k++)
-            temp += qm[ii-(k-1)] * qqm1[k];
-          for (s=0; s<n_seq; s++) {
-            tt = rtype[type[s]];
-            temp *= exp_E_MLstem(tt, S5[s][j], S3[s][i], pf_params) * expMLclosing;
-          }
-          if(sc)
-            for(s = 0; s < n_seq; s++){
-              if(sc[s]){
-                if(sc[s]->exp_energy_bp)
-                  temp *= sc[s]->exp_energy_bp[jij];
-              }
-            }
-          temp *= scale[2] ;
-          qbt1 += temp;
-        }
-        qb[ij] = qbt1;
-        qb[ij] *= exp(psc/kTn);
-      } /* end if (type!=0) */
-      else qb[ij] = 0.0;
+        qbt1 *= exp(psc/kTn);
+      }
+
+      qb[ij] = qbt1;
 
       /* construction of qqm matrix containing final stem
          contributions to multiple loop partition function
