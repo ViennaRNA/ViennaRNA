@@ -9,7 +9,7 @@ For best portability the ViennaRNA package uses the GNU autoconf and automake to
 for installing the ViennaRNA package from source. However, pre-compiled binaries for various Linux distributions,
 as well as for Windows users are available from Download section of the <a href="https://www.tbi.univie.ac.at/RNA">main ViennaRNA homepage</a>.
 
-@subsection quickstart  Quickstart
+@subsection quickstart  Quick-start
 
 Usually you'll just unpack, configure and make. To do this type:
 
@@ -36,7 +36,7 @@ This will install the entire ViennaRNA Package into a new directory ViennaRNA di
 
 @subsection macosx_notes  Notes for MacOS X users
 
-Although users will find /usr/bin/gcc and /usr/bin/g++ exectuables in their directory tree, these programs are not at all
+Although users will find /usr/bin/gcc and /usr/bin/g++ executables in their directory tree, these programs are not at all
 what they pretend to be. Instead of including the GNU programs, Apple decided to install clang/llvm in disguise. Unfortunately,
 the default version of clang/llvm does not support OpenMP (yet), but only complains at a late stage of the build process when
 this support is required. Therefore, it seems necessary to deactivate OpenMP support by passing the option --disable-openmp
@@ -59,7 +59,7 @@ switch turns off link time optimization!
 @section  configuration Configuring RNAlib features
 
 The ViennaRNA Package includes additional executable programs such as RNAforester, Kinfold, and Kinwalker. Furthermore, we
-include several features in our C-library that may be activated by default, or have to be explicitely turned on at configure-time.
+include several features in our C-library that may be activated by default, or have to be explicitly turned on at configure-time.
 Below we list a selection of the available configure options that affect the features included in all executable programs,
 the RNAlib C-library, and the corresponding scripting language interface(s).
 
@@ -67,8 +67,8 @@ the RNAlib C-library, and the corresponding scripting language interface(s).
 
 The ViennaRNA Package comes with scripting language interfaces for Perl 5, Python 2, and Python 3 (provided by swig),
 that allow one to use the implemented algorithms directly without the need of calling an executable program. The interfaces
-are build by default whenever the autoconf toolchain detects the required build tools on your system. You may, however,
-explicitely turn off particular scripting language interface support at configure-time, for instance for Perl 5 and Python 2,
+are build by default whenever the autoconf tool-chain detects the required build tools on your system. You may, however,
+explicitly turn off particular scripting language interface support at configure-time, for instance for Perl 5 and Python 2,
 before the actual installation.
 
 Example:
@@ -77,7 +77,7 @@ Example:
 ./configure --without-perl --without-python
 @endverbatim
 
-Disabling the scripting language support alltogether can be accomplished using the following switch:
+Disabling the scripting language support all-together can be accomplished using the following switch:
 @verbatim
 ./configure --without-swig
 @endverbatim
@@ -85,23 +85,44 @@ Disabling the scripting language support alltogether can be accomplished using t
 @subsection config_cluster  Cluster Analysis
 
 The programs AnalyseSeqs and AnalyseDists offer some cluster analysis tools (split decomposition, statistical geometry, neighbor
-joining, Ward's method) for sequences and distance data. To also build these programs add --with-cluster to your configure options.
+joining, Ward's method) for sequences and distance data. To also build these programs add
+
+@verbatim
+--with-cluster
+@endverbatim
+
+to your configure options.
 
 @subsection config_kinfold  Kinfold
 
 The Kinfold program can be used to simulate the folding dynamics of an RNA molecule, and is compiled by default. Use the
---without-kinfold option to skip compilation and installation of Kinfold.
+
+@verbatim
+--without-kinfold
+@endverbatim
+
+option to skip compilation and installation of Kinfold.
 
 @subsection config_forester RNAforester
 
 The RNAforester program is used for comparing secondary structures using tree alignment. Similar to Kinfold, use the
---without-forester option to skip compilation and installation of RNAforester.
+
+@verbatim
+--without-forester
+@endverbatim
+
+option to skip compilation and installation of RNAforester.
 
 @subsection config_kinwalker  Kinwalker
 
 The Kinwalker algorithm performs co-transcriptional folding of RNAs, starting at a user specified structure (default: open chain)
 and ending at the minimum free energy structure. Compilation and installation of this program is deactivated by default. Use the
---with-kinwalker option to enable building and installation of Kinwalker.
+
+@verbatim
+--with-kinwalker
+@endverbatim
+
+option to enable building and installation of Kinwalker.
 
 @subsection config_lto  Link Time Optimization (LTO)
 
@@ -161,11 +182,11 @@ implementation using
 
 @subsection config_gsl  GNU Scientific Library
 
-The new program RNApvmin computes a pseudo-energy pertubation vector that aims to minimize the discrepancy of predicted, and
+The new program RNApvmin computes a pseudo-energy perturbation vector that aims to minimize the discrepancy of predicted, and
 observed pairing probabilities. For that purpose it implements several methods to solve the optimization problem. Many of them are
 provided by the GNU Scientific Library, which is why the RNApvmin program, and the RNAlib C-library are required to be linked against
-libgsl. If this introduces any problems in your own third-party programs that link against RNAlib, you can turn off a larger protion
-of available minimizers in RNApvmin and linking against libgsl alltogether, using the switch
+libgsl. If this introduces any problems in your own third-party programs that link against RNAlib, you can turn off a larger portion
+of available minimizers in RNApvmin and linking against libgsl all-together, using the switch
 
 @verbatim
 ./configure --without-gsl
@@ -173,7 +194,13 @@ of available minimizers in RNApvmin and linking against libgsl alltogether, usin
 
 
 @subsection config_c11   Disable C11/C++11 feature support
-...Some text
+By default, we use C11/C++11 features in our implementations. This mainly accounts
+for unnamed unions/structs within @em RNAlib. The configure script automatically
+detects whether or not your compiler understands these features. In case you are
+using an older compiler, these features will be deactivated by setting a specific
+pre-processor directive. If for some reason you want to deactivate C11/C++11
+features despite the capabilities of your compiler, use the following configure
+option:
 
 @verbatim
 ./configure --disable-c11
@@ -181,7 +208,11 @@ of available minimizers in RNApvmin and linking against libgsl alltogether, usin
 
 
 @subsection config_deprecated   Enable warnings for use of deprecated symbols
-...Some text
+Since version 2.2 we are in the process of transforming the API of our @em RNAlib.
+Hence, several symbols are marked as @em deprecated whenever they have been
+replaced by the new API. By default, deprecation warnings at compile time are
+deactivated. If you want to get your terminal spammed by tons of deprecation
+warnings, enable them using:
 
 @verbatim
 ./configure --enable-warn-deprecated
@@ -191,8 +222,8 @@ of available minimizers in RNApvmin and linking against libgsl alltogether, usin
 @subsection config_float_pf   Single precision partition function
 
 Calculation of partition functions (via RNAfold -p) uses double precision floats by default, to avoid overflow errors on longer
-sequences. If your machine has little memory and you dont't plan to fold sequences over 1000 bases in length you can compile the
-package to do the computions in single precision by running
+sequences. If your machine has little memory and you don't plan to fold sequences over 1000 bases in length you can compile the
+package to do the computations in single precision by running
 
 @verbatim
 ./configure --enable-floatpf
@@ -224,9 +255,9 @@ e.g.:
 #include <ViennaRNA/mfe.h>
 @endverbatim
 
-and start using our fast and efficinet algorithm implementations.
+and start using our fast and efficient algorithm implementations.
 
-@see In the @ref mp_example section, we list a small set of example code that usually is a good starting point for
+@see In the @ref mp_example and @ref newAPI_examples sections, we list a small set of example code that usually is a good starting point for
 your application.
 
 @subsection linking_flags   Compiler and Linker flags
@@ -267,7 +298,7 @@ some additional pre-processor macros:
 
 .
 
-Simply add the corresponding defintion(s) to your pre-processor/compile flags, for instance:
+Simply add the corresponding definition(s) to your pre-processor/compile flags, for instance:
 
 @verbatim
 -DVRNA_DISABLE_C11_FEATURES
@@ -276,7 +307,7 @@ Simply add the corresponding defintion(s) to your pre-processor/compile flags, f
 Finally, linking against @em RNAlib is achieved by adding the following linker flag
 
 @verbatim
--L/usr/lib -lRNA -flto -fopenmp
+-L/usr/lib -lRNA -fopenmp
 @endverbatim
 
 Again, the path to the library, @em /usr/lib, may be omitted if this path is searched for libraries by
@@ -284,6 +315,9 @@ default. The second flag tells the linker to include @em libRNA.a, and the remai
 @ref config_lto and @ref config_openmp support, respectively. 
 @note Depending on your linker, the last two flags may differ.
 @note Depending on your configure time decisions, you can drop one or both of the last flags.
+@note In case you've compiled @em RNAlib with LTO support (See @ref config_lto) and
+      you are using the same compiler for your third-party project that links against
+      our library, you may add the @code -flto @endcode flag to enable Link Time Optimization.
 
 @subsection linking_pkgconfig The pkg-config tool
 
