@@ -15,17 +15,21 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/interior_loops.h"
 
-/*
-  TODO:
-  - merge E_int_loop for single sequences and alignments
-    to have less maintenance effort. There codebase is
-    the same anyway
-*/
+
+PRIVATE int
+E_int_loop( vrna_fold_compound_t *vc,
+            int i,
+            int j);
 
 PRIVATE int
 E_int_loop_comparative( vrna_fold_compound_t *vc,
                         int i,
                         int j);
+
+PRIVATE FLT_OR_DBL
+exp_E_int_loop( vrna_fold_compound_t *vc,
+                int i,
+                int j);
 
 PRIVATE FLT_OR_DBL
 exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
@@ -44,6 +48,52 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j){
 
+  int e = INF;
+
+  if(vc){
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:
+        e = E_int_loop(vc, i, j);
+        break;
+
+      case VRNA_VC_TYPE_ALIGNMENT:
+        e = E_int_loop_comparative(vc, i, j);
+        break;
+    }
+  }
+
+  return e;
+}
+
+
+PUBLIC FLT_OR_DBL
+vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
+                int i,
+                int j){
+
+  FLT_OR_DBL q = 0.;
+
+  if(vc){
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:
+        q = exp_E_int_loop(vc, i, j);
+        break;
+
+      case VRNA_VC_TYPE_ALIGNMENT:
+        q = exp_E_int_loop_comparative(vc, i, j);
+        break;
+    }
+  }
+
+  return q;
+}
+
+
+PRIVATE int
+E_int_loop( vrna_fold_compound_t *vc,
+            int i,
+            int j){
+
   unsigned char     type, type_2;
   char              *ptype, *ptype_pq, *hc_pq, *hc, eval_loop;
   short             *S, S_i1, S_j1, *S_p1, *S_q1;
@@ -57,13 +107,6 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
 #ifdef WITH_GEN_HC
   vrna_callback_hc_evaluate *f;
 #endif
-
-  if(vc){
-    if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
-      return E_int_loop_comparative(vc, i, j);
-  } else {
-    return INF;
-  }
 
   cp            = vc->cutpoint;
   indx          = vc->jindx;
@@ -438,8 +481,9 @@ E_int_loop_comparative( vrna_fold_compound_t *vc,
   return e;
 }
 
-PUBLIC FLT_OR_DBL
-vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
+
+PRIVATE FLT_OR_DBL
+exp_E_int_loop( vrna_fold_compound_t *vc,
                 int i,
                 int j){
 
@@ -453,13 +497,6 @@ vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
   vrna_sc_t         *sc; 
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
-
-  if(vc){
-    if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
-      return exp_E_int_loop_comparative(vc, i, j);
-  } else {
-    return 0.;
-  }
 
   cp          = vc->cutpoint;
   ptype       = vc->ptype;

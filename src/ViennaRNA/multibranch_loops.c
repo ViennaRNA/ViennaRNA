@@ -24,11 +24,12 @@
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 
-PRIVATE FLT_OR_DBL
-exp_E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
-                                int i,
-                                int j,
-                                FLT_OR_DBL *qqm1);
+PRIVATE int
+E_mb_loop_fast( vrna_fold_compound_t *vc,
+                int i,
+                int j,
+                int *dmli1,
+                int *dmli2);
 
 PRIVATE int
 E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
@@ -36,6 +37,18 @@ E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
                             int j,
                             int *dmli1,
                             int *dmli2);
+
+PRIVATE FLT_OR_DBL
+exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    FLT_OR_DBL *qqm1);
+
+PRIVATE FLT_OR_DBL
+exp_E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
+                                int i,
+                                int j,
+                                FLT_OR_DBL *qqm1);
 
 PRIVATE int
 E_ml_stems_fast(vrna_fold_compound_t *vc,
@@ -56,6 +69,79 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t *vc,
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
+
+PUBLIC int
+vrna_E_mb_loop_fast(vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    int *dmli1,
+                    int *dmli2){
+
+  int e = INF;
+
+  if(vc){
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:
+        e = E_mb_loop_fast(vc, i, j, dmli1, dmli2);
+        break;
+
+      case VRNA_VC_TYPE_ALIGNMENT:
+        e = E_mb_loop_fast_comparative(vc, i, j, dmli1, dmli2);
+        break;
+    }
+  }
+
+  return e;
+}
+
+
+PUBLIC int
+vrna_E_ml_stems_fast( vrna_fold_compound_t *vc,
+                      int i,
+                      int j,
+                      int *fmi,
+                      int *dmli){
+
+  int e = INF;
+
+  if(vc){
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:     
+        e = E_ml_stems_fast(vc, i, j, fmi, dmli);
+        break;
+
+      case VRNA_VC_TYPE_ALIGNMENT:
+        e = E_ml_stems_fast_comparative(vc, i, j, fmi, dmli);
+        break;
+    }
+  }
+
+  return e;
+}
+
+
+PUBLIC FLT_OR_DBL
+vrna_exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    FLT_OR_DBL *qqm1){
+
+  FLT_OR_DBL q = 0.;
+
+  if(vc){
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:
+        q = exp_E_mb_loop_fast(vc, i, j, qqm1);
+        break;
+
+      case VRNA_VC_TYPE_ALIGNMENT:
+        q = exp_E_mb_loop_fast_comparative(vc, i, j, qqm1);
+        break;
+    }
+  }
+
+  return q;
+}
 
 
 PRIVATE int
@@ -124,12 +210,12 @@ E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
 }
 
 
-PUBLIC int
-vrna_E_mb_loop_fast(vrna_fold_compound_t *vc,
-                    int i,
-                    int j,
-                    int *dmli1,
-                    int *dmli2){
+PRIVATE int
+E_mb_loop_fast( vrna_fold_compound_t *vc,
+                int i,
+                int j,
+                int *dmli1,
+                int *dmli2){
 
   unsigned char type, tt;
   char          *ptype, *hc, eval_loop, el;
@@ -141,13 +227,6 @@ vrna_E_mb_loop_fast(vrna_fold_compound_t *vc,
 #ifdef WITH_GEN_HC
   vrna_callback_hc_evaluate *f;
 #endif
-
-  if(vc){
-    if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
-      return E_mb_loop_fast_comparative(vc, i, j, dmli1, dmli2);
-  } else {
-    return INF;
-  }
 
   cp            = vc->cutpoint;
   ptype         = vc->ptype;
@@ -635,30 +714,6 @@ E_ml_rightmost_stem(int i,
   return e;
 }
 
-PUBLIC int
-vrna_E_ml_stems_fast( vrna_fold_compound_t *vc,
-                      int i,
-                      int j,
-                      int *fmi,
-                      int *dmli){
-
-  int e = INF;
-
-  if(vc){
-    switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     
-        e = E_ml_stems_fast(vc, i, j, fmi, dmli);
-        break;
-
-      case VRNA_VC_TYPE_ALIGNMENT:
-        e = E_ml_stems_fast_comparative(vc, i, j, fmi, dmli);
-        break;
-    }
-  }
-
-  return e;
-}
-
 PRIVATE int
 E_ml_stems_fast(vrna_fold_compound_t *vc,
                 int i,
@@ -1035,8 +1090,8 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t *vc,
   return e;
 }
 
-PUBLIC FLT_OR_DBL
-vrna_exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
+PRIVATE FLT_OR_DBL
+exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
                     int i,
                     int j,
                     FLT_OR_DBL *qqm1){
@@ -1049,13 +1104,6 @@ vrna_exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
   vrna_sc_t         *sc;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
-
-  if(vc){
-    if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
-      return exp_E_mb_loop_fast_comparative(vc, i, j, qqm1);
-  } else {
-    return 0.;
-  }
 
   cp            = vc->cutpoint;
   my_iindx      = vc->iindx;
