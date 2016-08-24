@@ -23,6 +23,7 @@
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params.h"
@@ -31,6 +32,8 @@
 #include "RNAalifold_cmdl.h"
 
 #define MAX_NUM_NAMES    500
+
+#define NEW_ALN_PARSER    1
 
 PRIVATE char  **annote(const char *structure, const char *AS[]);
 PRIVATE void  print_pi(const vrna_pinfo_t pi, FILE *file);
@@ -79,10 +82,11 @@ int main(int argc, char *argv[]){
   int           s, n_seq, i, length, sym, noPS, with_shapes, verbose, with_sci;
   int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
   double        min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
-  char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
-  char          *names[MAX_NUM_NAMES];       /* sequence names */
+  char          **AS;          /* aligned sequences */
+  char          **names;       /* sequence names */
   char          *constraints_file, **shape_files, *shape_method;
-  char          *filename_plot, *filename_dot, *filename_aln, *filename_out, *prefix;
+  char          *filename_plot, *filename_dot, *filename_aln, *filename_out, *prefix, *filename_in;
+  char          *tmp_id, *tmp_structure;
   int           *shape_file_association;
   char          *tmp_string;
   int           tmp_number;
@@ -113,7 +117,9 @@ int main(int argc, char *argv[]){
   filename_dot            = NULL;
   filename_aln            = NULL;
   filename_out            = NULL;
-
+  filename_in             = NULL;
+  tmp_id                  = NULL;
+  tmp_structure           = NULL;
   set_model_details(&md);
 
   /*
@@ -281,6 +287,7 @@ int main(int argc, char *argv[]){
 
   /* alignment file name given as unnamed option? */
   if(args_info.inputs_num == 1){
+    filename_in = strdup(args_info.inputs[0]);
     clust_file = fopen(args_info.inputs[0], "r");
     if (clust_file == NULL) {
       fprintf(stderr, "can't open %s\n", args_info.inputs[0]);
@@ -344,7 +351,25 @@ int main(int argc, char *argv[]){
   if (istty && (clust_file == stdin))
     vrna_message_input_seq("Input aligned sequences in clustalw or stockholm format\n(enter a line starting with \"//\" to indicate the end of your input)");
 
+  /* read the alignment */
+#if NEW_ALN_PARSER
+  n_seq = vrna_file_alignment_read(filename_in, &names, &AS, &tmp_id, &tmp_structure, 0);
+
+  if(tmp_id){
+    if(prefix){
+      prefix = (char *)vrna_realloc(prefix, sizeof(char) * (strlen(prefix) + strlen(tmp_id) + 2));
+      prefix = strcat(prefix, "_");
+      prefix = strcat(prefix, tmp_id);
+    } else {
+      prefix = strdup(tmp_id);
+    }
+  }
+#else
+  AS    = (char **)vrna_alloc(sizeof(char *) * MAX_NUM_NAMES);
+  names = (char **)vrna_alloc(sizeof(char *) * MAX_NUM_NAMES);
   n_seq = read_clustal(clust_file, AS, names);
+#endif
+
   if (n_seq==0) vrna_message_error("no sequences found");
 
   if(with_shapes){
@@ -610,11 +635,17 @@ int main(int argc, char *argv[]){
   free(filename_dot);
   free(filename_aln);
   free(filename_out);
+  free(filename_in);
   free(prefix);
   vrna_fold_compound_free(vc);
+
   for (i=0; AS[i]; i++) {
-    free(AS[i]); free(names[i]);
+    free(AS[i]);
+    free(names[i]);
   }
+  free(AS);
+  free(names);
+
   return 0;
 }
 
