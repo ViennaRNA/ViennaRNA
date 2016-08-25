@@ -28,7 +28,7 @@
 #include <stdio.h>
 
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/file_formats_aln.h>
+#include <ViennaRNA/file_formats_msa.h>
 
 /**
  *  @brief Print a secondary structure as helix list

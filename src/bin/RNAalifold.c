@@ -77,7 +77,7 @@ add_shape_constraints(vrna_fold_compound_t *vc,
 /*--------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
   struct        RNAalifold_args_info args_info;
-  unsigned int  input_type, options, constraint_options, longest_string;
+  unsigned int  input_type, options, constraint_options, longest_string, input_format_options;
   char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
   int           s, n_seq, i, length, sym, noPS, with_shapes, verbose, with_sci;
   int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
@@ -120,6 +120,8 @@ int main(int argc, char *argv[]){
   filename_in             = NULL;
   tmp_id                  = NULL;
   tmp_structure           = NULL;
+  input_format_options    = VRNA_FILE_FORMAT_MSA_CLUSTAL; /* default to ClustalW format */
+
   set_model_details(&md);
 
   /*
@@ -288,10 +290,19 @@ int main(int argc, char *argv[]){
   /* alignment file name given as unnamed option? */
   if(args_info.inputs_num == 1){
     filename_in = strdup(args_info.inputs[0]);
-    clust_file = fopen(args_info.inputs[0], "r");
+    clust_file  = fopen(filename_in, "r");
     if (clust_file == NULL) {
-      fprintf(stderr, "can't open %s\n", args_info.inputs[0]);
+      fprintf(stderr, "unable to open %s\n", filename_in);
+      vrna_message_error("Input file can't be read!");
     }
+
+    /*
+        Use default alignment file formats.
+        This may be overridden when we parse the
+        --input-format parameter below
+    */
+    input_format_options  = VRNA_FILE_FORMAT_MSA_DEFAULT;
+
   }
   
   if(args_info.outfile_prefix_given){
@@ -302,6 +313,26 @@ int main(int argc, char *argv[]){
   if(args_info.sci_given)
     with_sci = 1;
 
+  if(args_info.input_format_given){
+    switch(args_info.input_format_arg[0]){
+      case 'C': /* ClustalW format */
+        input_format_options  = VRNA_FILE_FORMAT_MSA_CLUSTAL;
+        break;
+
+      case 'S': /* Stockholm 1.0 format */
+        input_format_options  = VRNA_FILE_FORMAT_MSA_STOCKHOLM;
+        break;
+
+      case 'F': /* FASTA format */
+        input_format_options  = VRNA_FILE_FORMAT_MSA_FASTA;
+        break;
+
+      default:
+        vrna_message_warning("Unknown input format specified");
+        break;
+    }
+  }
+
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free (&args_info);
 
@@ -310,6 +341,15 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
+
+  if(filename_in){
+    unsigned int format_guess = vrna_file_msa_detect_format(filename_in, input_format_options);
+    if(format_guess == VRNA_FILE_FORMAT_MSA_UNKNOWN)
+      vrna_message_error("Input file is in wrong format, or doesn't contain any sequences!");
+
+    input_format_options = format_guess;
+  }
+
   if(circular && gquad){
     vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
   }
@@ -321,7 +361,8 @@ int main(int argc, char *argv[]){
               "some structures may be missed when using --noLP\n"
               "Try rotating your sequence a few times\n");
 
-  if (ParamFile != NULL) read_parameter_file(ParamFile);
+  if (ParamFile != NULL)
+    read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
     vrna_md_set_nonstandards(&md, ns_bases);
@@ -348,12 +389,31 @@ int main(int argc, char *argv[]){
     else vrna_message_warning("constraints missing");
   }
 
-  if (istty && (clust_file == stdin))
-    vrna_message_input_seq("Input aligned sequences in clustalw or stockholm format\n(enter a line starting with \"//\" to indicate the end of your input)");
+  if (istty && (clust_file == stdin)){
+    switch(input_format_options){
+      case VRNA_FILE_FORMAT_MSA_CLUSTAL:
+        vrna_message_input_seq( "Input aligned sequences in ClustalW format\n"
+                                "enter a line starting with \"//\" to indicate the end of your input)");
+        break;
 
-  /* read the alignment */
-#if NEW_ALN_PARSER
-  n_seq = vrna_file_alignment_read(filename_in, &names, &AS, &tmp_id, &tmp_structure, 0);
+      case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
+        vrna_message_input_seq( "Input aligned sequences in Stockholm format\n"
+                                "enter a line starting with \"//\" to indicate the end of your input)");
+        break;
+
+      case VRNA_FILE_FORMAT_MSA_FASTA:
+        vrna_message_input_seq( "Input aligned sequences in FASTA format\n"
+                                "enter a line starting with \"//\" to indicate the end of your input)");
+        break;
+
+      default:
+        vrna_message_error("Which input format are you using?");
+        break;
+    }
+  }
+
+  /* read the first record from input file */
+  n_seq = vrna_file_msa_read_record(clust_file, &names, &AS, &tmp_id, &tmp_structure, input_format_options);
 
   if(tmp_id){
     if(prefix){
@@ -364,11 +424,6 @@ int main(int argc, char *argv[]){
       prefix = strdup(tmp_id);
     }
   }
-#else
-  AS    = (char **)vrna_alloc(sizeof(char *) * MAX_NUM_NAMES);
-  names = (char **)vrna_alloc(sizeof(char *) * MAX_NUM_NAMES);
-  n_seq = read_clustal(clust_file, AS, names);
-#endif
 
   if (n_seq==0) vrna_message_error("no sequences found");
 

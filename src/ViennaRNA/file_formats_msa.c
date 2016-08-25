@@ -1,7 +1,7 @@
 /*
-    file_formats_aln.c
+    file_formats_msa.c
 
-    Various functions dealing with file formats for RNA sequence alingments
+    Various functions dealing with file formats for Multiple Sequence Alignments (MSA)
 
     (c) 2016 Ronny Lorenz
 
@@ -22,15 +22,9 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/file_formats.h"
-#include "ViennaRNA/file_formats_aln.h"
+#include "ViennaRNA/file_formats_msa.h"
 
 #define MAX_NUM_NAMES    500
-
-/*
-#################################
-# PRIVATE VARIABLES             #
-#################################
-*/
 
 /*
 #################################
@@ -38,15 +32,13 @@
 #################################
 */
 
-typedef int (aln_parser_function)(FILE *fp, char ***names, char ***aln, char **id, char **structure);
+typedef int (aln_parser_function)(FILE *fp, char ***names, char ***aln, char **id, char **structure, int verbosity);
 
 typedef struct {
   unsigned int        code;
   aln_parser_function *parser;
+  const char          *name;
 } parsable;
-
-/* number of known alignment parsers */
-#define NUM_PARSERS 3
 
 PRIVATE aln_parser_function parse_aln_stockholm;
 
@@ -71,30 +63,92 @@ check_alignment(const char **names,
                 const char **aln,
                 int seq_num);
 
+PRIVATE void
+free_msa_record(char ***names,
+                char ***aln,
+                char **id,
+                char **structure);
+
+/*
+#################################
+# STATIC VARIABLES              #
+#################################
+*/
+
+/* number of known alignment parsers */
+#define NUM_PARSERS 3
+
+static parsable known_parsers[NUM_PARSERS] = {
+  /* option, parser, name */
+  { VRNA_FILE_FORMAT_MSA_STOCKHOLM, parse_aln_stockholm,  "Stockholm 1.0 format" },
+  { VRNA_FILE_FORMAT_MSA_CLUSTAL,   parse_aln_clustal,    "ClustalW format" },
+  { VRNA_FILE_FORMAT_MSA_FASTA,     parse_aln_fasta,      "FASTA format" }
+};
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
+PUBLIC unsigned int
+vrna_file_msa_detect_format(const char *filename,
+                            unsigned int options){
+
+  FILE          *fp;
+  char          **names, **aln;
+  unsigned int  format;
+  int           i, r;
+  long int      fp_position;
+
+  names     = NULL;
+  aln       = NULL;
+  format    = VRNA_FILE_FORMAT_MSA_UNKNOWN;
+
+  /* if no alignment file format(s) were specified we probe for all of them */
+  if(options == 0)
+    options = VRNA_FILE_FORMAT_MSA_DEFAULT;
+
+  if(!(fp = fopen(filename, "r"))){
+    vrna_message_warning("Alignment file could not be opened!");
+    return format;
+  }
+
+  r           = -1;
+  fp_position = ftell(fp);
+
+  for(i = 0; i < NUM_PARSERS; i++){
+    if((options & known_parsers[i].code) && (known_parsers[i].parser)){
+      /* go back to beginning of file */
+      if(!fseek(fp, fp_position, SEEK_SET)){
+        r = known_parsers[i].parser(fp, &names, &aln, NULL, NULL, -1);
+        free_msa_record(&names, &aln, NULL, NULL);
+        if(r > 0){
+          format = known_parsers[i].code;
+          break;
+        }
+      } else {
+        fprintf(stderr, "ERROR: Something unexpected happened while parsing the alignment file");
+      }
+    }
+  }
+
+  fclose(fp);
+
+  return format;
+}
+
 
 PUBLIC int
-vrna_file_alignment_read( const char *filename,
-                          char ***names,
-                          char ***aln,
-                          char  **id,
-                          char  **structure,
-                          unsigned int options){
+vrna_file_msa_read( const char *filename,
+                    char ***names,
+                    char ***aln,
+                    char  **id,
+                    char  **structure,
+                    unsigned int options){
 
   FILE  *fp;
   char  *line = NULL;
   int   i, n, seq_num;
-  parsable  known_parsers[NUM_PARSERS] =  {
-    /* option, parser */
-    { VRNA_FILE_FORMAT_ALN_STOCKHOLM, parse_aln_stockholm },
-    { VRNA_FILE_FORMAT_ALN_CLUSTAL,   parse_aln_clustal },
-    { VRNA_FILE_FORMAT_ALN_FASTA,     parse_aln_fasta }
-  };
-
   seq_num   = 0;
 
   if(!(fp = fopen(filename, "r"))){
@@ -117,7 +171,7 @@ vrna_file_alignment_read( const char *filename,
 
   /* if no alignment file format was specified, lets try to guess it */
   if(options == 0)
-    options = VRNA_FILE_FORMAT_ALN_DEFAULT;
+    options = VRNA_FILE_FORMAT_MSA_DEFAULT;
 
   int r = -1;
   long int fp_position = ftell(fp);
@@ -126,7 +180,7 @@ vrna_file_alignment_read( const char *filename,
     if((options & known_parsers[i].code) && (known_parsers[i].parser)){
       /* go back to beginning of file */
       if(!fseek(fp, fp_position, SEEK_SET)){
-        r = known_parsers[i].parser(fp, names, aln, id, structure);
+        r = known_parsers[i].parser(fp, names, aln, id, structure, 0);
         if(r > 0)
           break;
       } else {
@@ -142,26 +196,13 @@ vrna_file_alignment_read( const char *filename,
   } else {
     seq_num = r;
 
-    if((seq_num > 0) && (!(options & VRNA_FILE_FORMAT_ALN_NOCHECK))){
+    if((seq_num > 0) && (!(options & VRNA_FILE_FORMAT_MSA_NOCHECK))){
       if(!check_alignment((const char **)(*names), (const char **)(*aln), seq_num)){
         vrna_message_warning("Alignment did not pass sanity checks!");
 
         /* discard the data we've read! */
-        if(id)
-          *id = NULL;
+        free_msa_record(names, aln, id, structure);
 
-        if(structure)
-          *structure = NULL;
-
-        for(i = 0; i < seq_num; i++){
-          free((*aln)[i]);
-          free((*names)[i]);
-        }
-        free(*aln);
-        free(*names);
-
-        *aln    = NULL;
-        *names  = NULL;
         seq_num = 0;
       }
     }
@@ -171,12 +212,80 @@ vrna_file_alignment_read( const char *filename,
 }
 
 PUBLIC int
-vrna_file_stockholm_read_record(  FILE  *fp,
-                                  char  ***names,
-                                  char  ***aln,
-                                  char  **id,
-                                  char  **structure,
-                                  int   verbosity){
+vrna_file_msa_read_record(FILE *fp,
+                          char ***names,
+                          char ***aln,
+                          char  **id,
+                          char  **structure,
+                          unsigned int options){
+
+  const char          *parser_name;
+  int                 i, r, n, seq_num;
+  aln_parser_function *parser;
+
+  seq_num     = 0;
+  parser_name = NULL;
+  parser      = NULL;
+
+  if(!fp){
+    vrna_message_warning("Can't read alignment from file pointer!");
+    return seq_num;
+  }
+
+  if(names && aln){
+    *names  = NULL;
+    *aln    = NULL;
+  } else {
+    return seq_num;
+  }
+
+  if(id)
+    *id = NULL;
+
+  if(structure)
+    *structure = NULL;
+
+  for(r = i = 0; i < NUM_PARSERS; i++){
+    if((options & known_parsers[i].code) && (known_parsers[i].parser)){
+      if(!parser){
+        parser      = known_parsers[i].parser;
+        parser_name = known_parsers[i].name;
+      }
+      r++;
+    }
+  }
+
+  if(r == 0){
+    vrna_message_warning("Did not find parser for specified MSA format!");
+  } else if(r > 1) { 
+    vrna_message_warning("More than one parser specified!");
+    fprintf(stderr, "Using parser for %s\n", parser_name);
+  } else {
+    seq_num = parser(fp, names, aln, id, structure, 0);
+
+    if((seq_num > 0) && (!(options & VRNA_FILE_FORMAT_MSA_NOCHECK))){
+      if(!check_alignment((const char **)(*names), (const char **)(*aln), seq_num)){
+        vrna_message_warning("Alignment did not pass sanity checks!");
+
+        /* discard the data we've read! */
+        free_msa_record(names, aln, id, structure);
+
+        seq_num = 0;
+      }
+    }
+  }
+
+  return seq_num;
+}
+
+
+PUBLIC int
+vrna_file_msa_stockholm_read_record(FILE  *fp,
+                                    char  ***names,
+                                    char  ***aln,
+                                    char  **id,
+                                    char  **structure,
+                                    int   verbosity){
 
   char  *line = NULL;
   int   i, n, seq_num, seq_length;
@@ -235,23 +344,10 @@ vrna_file_stockholm_read_record(  FILE  *fp,
           if(strstr(line, "STOCKHOLM 1.0")){
             if(verbosity >= 0)
               vrna_message_warning("Malformatted Stockholm record, missing // ?");
+
             /* drop everything we've read so far and start new, blank record */
-            if(id != NULL){
-              free(*id);
-              *id = NULL;
-            }
-            if(structure != NULL){
-              free(*structure);
-              *structure = NULL;
-            }
-            for(i = 0; i < seq_num; i++){
-              free((*names)[i]);
-              free((*aln)[i]);
-            }
-            free(*names);
-            *names = NULL;
-            free(*aln);
-            *aln = NULL;
+            free_msa_record(names, aln, id, structure);
+
             seq_num = 0;
           } else if(strncmp(line, "#=GF", 4) == 0){
             /* found feature markup */
@@ -302,26 +398,7 @@ vrna_file_stockholm_read_record(  FILE  *fp,
                     vrna_message_warning("Discarding Stockholm record! Sequence lengths do not match.");
 
                   /* drop everything we've read so far and abort parsing */
-                  if(id != NULL){
-                    free(*id);
-                    *id = NULL;
-                  }
-
-                  if(structure != NULL){
-                    free(*structure);
-                    *structure = NULL;
-                  }
-
-                  for(i = 0; i < seq_num; i++){
-                    free((*names)[i]);
-                    free((*aln)[i]);
-                  }
-
-                  free(*names);
-                  *names = NULL;
-
-                  free(*aln);
-                  *aln = NULL;
+                  free_msa_record(names, aln, id, structure);
 
                   seq_num = 0;
 
@@ -380,15 +457,53 @@ stockholm_exit:
   return seq_num;
 }
 
+PRIVATE void
+free_msa_record(char ***names,
+                char ***aln,
+                char **id,
+                char **structure){
+
+  int s, i;
+
+  s = 0;
+  if(aln && (*aln))
+    for(; (*aln)[s]; s++);
+
+  if(id != NULL){
+    free(*id);
+    *id = NULL;
+  }
+
+  if(structure != NULL){
+    free(*structure);
+    *structure = NULL;
+  }
+
+  for(i = 0; i < s; i++){
+    free((*names)[i]);
+    free((*aln)[i]);
+  }
+
+  if(names && (*names)){
+    free(*names);
+    *names = NULL;
+  }
+
+  if(aln && (*aln)){
+    free(*aln);
+    *aln = NULL;
+  }
+}
 
 PRIVATE int
 parse_aln_stockholm(FILE *fp,
                     char ***names,
                     char ***aln,
                     char **id,
-                    char **structure){
+                    char **structure,
+                    int  verbosity){
 
-  return vrna_file_stockholm_read_record(fp, names, aln, id, structure, 0);
+  return vrna_file_msa_stockholm_read_record(fp, names, aln, id, structure, verbosity);
 }
 
 PRIVATE int
@@ -396,7 +511,8 @@ parse_aln_clustal(FILE *fp,
                   char ***names,
                   char ***aln,
                   char **id,
-                  char **structure){
+                  char **structure,
+                  int  verbosity){
 
   /* clustal format doesn't contain id's or structure information */
   if(id)
@@ -404,7 +520,7 @@ parse_aln_clustal(FILE *fp,
   if(structure)
     *structure = NULL;
 
-  return parse_clustal_alignment(fp, names, aln, 0);
+  return parse_clustal_alignment(fp, names, aln, verbosity);
 }
 
 PRIVATE int
@@ -412,7 +528,8 @@ parse_aln_fasta(FILE *fp,
                 char ***names,
                 char ***aln,
                 char **id,
-                char **structure){
+                char **structure,
+                int  verbosity){
 
   /* fasta alignments do not contain an id, or structure information */
   if(id)
@@ -420,7 +537,7 @@ parse_aln_fasta(FILE *fp,
   if(structure)
     *structure = NULL;
 
-  return parse_fasta_alignment(fp, names, aln, 0);
+  return parse_fasta_alignment(fp, names, aln, verbosity);
 }
 
 PRIVATE int

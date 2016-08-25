@@ -65,6 +65,18 @@ string
 typestr="prefix"
 optional
 
+option  "input-format"  f
+"File format of the input multiple sequence alignment (MSA).\n"
+details="If this parameter is set, the input is considered to be in a particular\
+ file format. Otherwise, the program tries to determine the file format automatically,\
+ if an input file was provided in the set of parameters. In case the input MSA is provided\
+ in interactive mode, or from a terminal (TTY), the programs default is to assume\
+ CLUSTALW format.\nCurrently, the following formats are available: ClustalW (C),\
+ Stockholm 1.0 (S), and FASTA/Pearson (F).\n\n"
+string
+typestr="C|S|F"
+optional
+
 
 # Options
 section "Structure Constraints"
