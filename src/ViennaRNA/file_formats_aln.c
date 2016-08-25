@@ -21,6 +21,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/file_formats_aln.h"
 
 #define MAX_NUM_NAMES    500
@@ -33,15 +34,42 @@
 
 /*
 #################################
-# PRIVATE FUNCTION DECLARATIONS #
+# STATIC DECLARATIONS           #
 #################################
 */
 
 typedef int (aln_parser_function)(FILE *fp, char ***names, char ***aln, char **id, char **structure);
 
+typedef struct {
+  unsigned int        code;
+  aln_parser_function *parser;
+} parsable;
+
+/* number of known alignment parsers */
+#define NUM_PARSERS 3
+
 PRIVATE aln_parser_function parse_aln_stockholm;
 
 PRIVATE aln_parser_function parse_aln_clustal;
+
+PRIVATE aln_parser_function parse_aln_fasta;
+
+PRIVATE int
+parse_fasta_alignment(FILE *fp,
+                      char ***names,
+                      char ***aln,
+                      int verbosity);
+
+PRIVATE int
+parse_clustal_alignment(FILE *clust,
+                        char ***names,
+                        char ***aln,
+                        int verbosity);
+
+PRIVATE int
+check_alignment(const char **names,
+                const char **aln,
+                int seq_num);
 
 /*
 #################################
@@ -60,6 +88,12 @@ vrna_file_alignment_read( const char *filename,
   FILE  *fp;
   char  *line = NULL;
   int   i, n, seq_num;
+  parsable  known_parsers[NUM_PARSERS] =  {
+    /* option, parser */
+    { VRNA_FILE_FORMAT_ALN_STOCKHOLM, parse_aln_stockholm },
+    { VRNA_FILE_FORMAT_ALN_CLUSTAL,   parse_aln_clustal },
+    { VRNA_FILE_FORMAT_ALN_FASTA,     parse_aln_fasta }
+  };
 
   seq_num   = 0;
 
@@ -85,26 +119,14 @@ vrna_file_alignment_read( const char *filename,
   if(options == 0)
     options = VRNA_FILE_FORMAT_ALN_DEFAULT;
 
-#define known_aln_formats_num   2
-
-  unsigned int known_formats[known_aln_formats_num] = {
-                                                        VRNA_FILE_FORMAT_ALN_STOCKHOLM,
-                                                        VRNA_FILE_FORMAT_ALN_CLUSTAL
-                                                      };
-
-  aln_parser_function *parsers[known_aln_formats_num] = {
-                                                          parse_aln_stockholm,
-                                                          parse_aln_clustal
-                                                        };
-
   int r = -1;
   long int fp_position = ftell(fp);
 
-  for(i = 0; i < known_aln_formats_num; i++){
-    if(options & known_formats[i]){
+  for(i = 0; i < NUM_PARSERS; i++){
+    if((options & known_parsers[i].code) && (known_parsers[i].parser)){
       /* go back to beginning of file */
       if(!fseek(fp, fp_position, SEEK_SET)){
-        r = parsers[i](fp, names, aln, id, structure);
+        r = known_parsers[i].parser(fp, names, aln, id, structure);
         if(r > 0)
           break;
       } else {
@@ -119,43 +141,33 @@ vrna_file_alignment_read( const char *filename,
     vrna_message_warning("Alignment file parser is unknown (or not specified?)");
   } else {
     seq_num = r;
+
+    if((seq_num > 0) && (!(options & VRNA_FILE_FORMAT_ALN_NOCHECK))){
+      if(!check_alignment((const char **)(*names), (const char **)(*aln), seq_num)){
+        vrna_message_warning("Alignment did not pass sanity checks!");
+
+        /* discard the data we've read! */
+        if(id)
+          *id = NULL;
+
+        if(structure)
+          *structure = NULL;
+
+        for(i = 0; i < seq_num; i++){
+          free((*aln)[i]);
+          free((*names)[i]);
+        }
+        free(*aln);
+        free(*names);
+
+        *aln    = NULL;
+        *names  = NULL;
+        seq_num = 0;
+      }
+    }
   }
 
   return seq_num;
-}
-
-PRIVATE int
-parse_aln_stockholm(FILE *fp,
-                    char ***names,
-                    char ***aln,
-                    char **id,
-                    char **structure){
-
-  return vrna_file_stockholm_read_record(fp, names, aln, id, structure, 0);
-}
-
-PRIVATE int
-parse_aln_clustal(FILE *fp,
-                  char ***names,
-                  char ***aln,
-                  char **id,
-                  char **structure){
-
-  int r;
-  *id         = NULL;
-  *structure  = NULL;
-
-  /* read_clustal is limited to MAX_NUM_NAMES sequences in the alignment */
-  *names  = (char **)vrna_alloc(sizeof(char *) * MAX_NUM_NAMES);
-  *aln    = (char **)vrna_alloc(sizeof(char *) * MAX_NUM_NAMES);
-
-  r = read_clustal(fp, *aln, *names);
-
-  /* resize according to actual sequence number */
-  *names  = (char **)vrna_realloc(*names, sizeof(char *) * (r + 1));
-  *aln    = (char **)vrna_realloc(*aln, sizeof(char *) * (r + 1));
-
-  return r;
 }
 
 PUBLIC int
@@ -195,8 +207,10 @@ vrna_file_stockholm_read_record(  FILE  *fp,
   while(line = get_line(fp)){
     if(strstr(line, "STOCKHOLM 1.0")){
       inrecord = 1;
+      free(line);
       break;
     }
+    free(line);
   }
 
   if(inrecord){
@@ -364,4 +378,238 @@ stockholm_exit:
   }
 
   return seq_num;
+}
+
+
+PRIVATE int
+parse_aln_stockholm(FILE *fp,
+                    char ***names,
+                    char ***aln,
+                    char **id,
+                    char **structure){
+
+  return vrna_file_stockholm_read_record(fp, names, aln, id, structure, 0);
+}
+
+PRIVATE int
+parse_aln_clustal(FILE *fp,
+                  char ***names,
+                  char ***aln,
+                  char **id,
+                  char **structure){
+
+  /* clustal format doesn't contain id's or structure information */
+  if(id)
+    *id = NULL;
+  if(structure)
+    *structure = NULL;
+
+  return parse_clustal_alignment(fp, names, aln, 0);
+}
+
+PRIVATE int
+parse_aln_fasta(FILE *fp,
+                char ***names,
+                char ***aln,
+                char **id,
+                char **structure){
+
+  /* fasta alignments do not contain an id, or structure information */
+  if(id)
+    *id = NULL;
+  if(structure)
+    *structure = NULL;
+
+  return parse_fasta_alignment(fp, names, aln, 0);
+}
+
+PRIVATE int
+parse_fasta_alignment(FILE *fp,
+                      char ***names,
+                      char ***aln,
+                      int verbosity){
+
+  unsigned int  read_opt, rec_type;
+  int           num_seq;
+  char          *rec_id, *rec_sequence, **rec_rest;
+
+  rec_id        = NULL;
+  rec_sequence  = NULL;
+  rec_rest      = NULL;
+  num_seq       = 0;
+  read_opt      = VRNA_INPUT_NO_REST; /* read sequence and header information only */
+
+  /* read until EOF or user abort */
+  while(
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, fp, read_opt))
+        & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
+
+    if(rec_id){ /* valid FASTA entry */
+      num_seq++;
+
+      char *id = (char *)vrna_alloc(sizeof(char) * strlen(rec_id));
+      (void) sscanf(rec_id, ">%s", id);
+
+      (*names) = (char **)vrna_realloc(*names, sizeof(char *) * num_seq);
+      (*names)[num_seq - 1] = id;
+
+      vrna_seq_toupper(rec_sequence);
+      (*aln) = (char **)vrna_realloc(*aln, sizeof(char *) * num_seq);
+      (*aln)[num_seq - 1] = strdup(rec_sequence);
+    }
+
+    free(rec_id);
+    free(rec_sequence);
+    free(rec_rest);
+  }
+
+  free(rec_id);
+  free(rec_sequence);
+  free(rec_rest);
+
+  /*
+    append additional entry in 'aln' and 'names' pointing to NULL (this may be
+    used as an indication for the end of the sequence list)
+  */
+  if(num_seq > 0){
+    (*aln)            = (char **)vrna_realloc(*aln, sizeof(char *) * (num_seq + 1));
+    (*names)          = (char **)vrna_realloc(*names, sizeof(char *) * (num_seq + 1));
+    (*aln)[num_seq]   = NULL;
+    (*names)[num_seq] = NULL;
+    if(verbosity >= 0)
+      fprintf(stderr, "%d sequences; length of alignment %d.\n", num_seq, strlen((*aln)[0]));
+  }
+
+  return num_seq;
+}
+
+
+PRIVATE int
+parse_clustal_alignment(FILE *clust,
+                        char ***names,
+                        char ***aln,
+                        int verbosity){
+
+  char *line, *name, *seq;
+  int  n, r, nn=0, num_seq = 0, i;
+
+  if((line=get_line(clust)) == NULL){
+    if(verbosity >= 0)
+      vrna_message_warning("Empty CLUSTALW file\n");
+    return 0;
+  }
+
+  if(strncmp(line,"CLUSTAL", 7) != 0){
+    if(verbosity > 0)
+      vrna_message_warning("This doesn't look like a CLUSTAL/STOCKHOLM file, sorry\n");
+
+    free(line);
+    return 0;
+  }
+
+  free(line);
+  line = get_line(clust);
+
+  while (line!=NULL) {
+    n = strlen(line);
+
+    if((n < 4) || isspace((int)line[0])) {
+      /* skip non-sequence line */
+      free(line);
+      line  = get_line(clust);
+      nn    = 0;  /* reset sequence number */
+      continue;
+    }
+
+    /* skip comments */
+    if(line[0] == '#'){
+      free(line);
+      line = get_line(clust);
+      continue;
+    }
+
+    seq   = (char *)vrna_alloc(sizeof(char) * (n + 1));
+    name  = (char *)vrna_alloc(sizeof(char) * (n + 1));
+    if(sscanf(line, "%s %s", name, seq) == 2){
+      /* realloc to actual sizes */
+      seq   = (char *)vrna_realloc(seq, sizeof(char) * (strlen(seq) + 1));
+      name  = (char *)vrna_realloc(name, sizeof(char) * (strlen(name) + 1));
+      for(i = 0; i < strlen(seq); i++){
+        if(seq[i] == '.')
+          seq[i] = '-'; /* replace '.' gaps with '-' */
+      }
+
+      /* convert sequence to uppercase letters */
+      vrna_seq_toupper(seq);
+
+      if(nn == num_seq){ /* first time */
+        (*names)      = (char **)vrna_realloc(*names, sizeof(char *) * (nn + 1));
+        (*names)[nn]  = strdup(name);
+        (*aln)        = (char **)vrna_realloc(*aln, sizeof(char *) * (nn + 1));
+        (*aln)[nn]    = strdup(seq);
+      } else {
+        if (strcmp(name, (*names)[nn]) != 0) {
+          /* name doesn't match */
+           fprintf(stderr,
+                   "Sorry, your file is messed up (inconsitent seq-names)\n");
+           free(line); free(seq);
+           return 0;
+        }
+        (*aln)[nn] = (char *)vrna_realloc((*aln)[nn], strlen(seq) + strlen((*aln)[nn])+1);
+        strcat((*aln)[nn], seq);
+      }
+      nn++;
+      if(nn > num_seq)
+        num_seq = nn;
+
+      free(seq);
+      free(name);
+    }
+    free(line);
+
+    line = get_line(clust);
+  }
+
+  /*
+    append additional entry in 'aln' and 'names' pointing to NULL (this may be
+    used as an indication for the end of the sequence list)
+  */
+  if(num_seq > 0){
+    (*aln)            = (char **)vrna_realloc(*aln, sizeof(char *) * (num_seq + 1));
+    (*names)          = (char **)vrna_realloc(*names, sizeof(char *) * (num_seq + 1));
+    (*aln)[num_seq]   = NULL;
+    (*names)[num_seq] = NULL;
+    if(verbosity >= 0)
+      fprintf(stderr, "%d sequences; length of alignment %d.\n", num_seq, strlen((*aln)[0]));
+  }
+
+  return num_seq;
+}
+
+PRIVATE int
+check_alignment(const char **names,
+                const char **aln,
+                int seq_num){
+
+  int i, j, l, pass = 1;
+
+  /* check for unique names */
+  for(i = 0; i < seq_num; i++){
+    for(j = i + 1; j < seq_num; j++){
+      if(!strcmp(names[i], names[j])){
+        vrna_message_warning("Sequence IDs in input alignment are not unique!");
+        pass = 0;
+      }
+    }
+  }
+
+  /* check for equal lengths of sequences */
+  l = (int)strlen(aln[0]);
+  for(i = 1; i < seq_num; i++)
+    if((int)strlen(aln[i]) != l){
+      vrna_message_warning("Sequence lengths in input alignment do not match!");
+      pass = 0;
+    }
+
+  return pass;
 }

@@ -646,6 +646,9 @@ int main(int argc, char *argv[]){
   free(AS);
   free(names);
 
+  free(tmp_id);
+  free(tmp_structure);
+
   return 0;
 }
 
