@@ -106,7 +106,7 @@ vrna_E_ml_stems_fast( vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     
+      case VRNA_VC_TYPE_SINGLE:
         e = E_ml_stems_fast(vc, i, j, fmi, dmli);
         break;
 
@@ -165,7 +165,7 @@ E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
   md                = &(P->model_details);
   scs               = vc->scs;
   dangle_model      = md->dangles;
-  ij                = indx[j] - i;
+  ij                = indx[j] + i;
   e                 = INF;
 
   /* multi-loop decomposition ------------------------*/
@@ -174,8 +174,8 @@ E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
 
     type  = (int *)vrna_alloc(n_seq * sizeof(int));
     S     = vc->S;
-    S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
-    S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+    S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+    S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
 
     for(s = 0; s < n_seq; s++){
       type[s] = md->pair[S[s][j]][S[s][i]];
@@ -1047,11 +1047,11 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t *vc,
 
     type  = (int *)vrna_alloc(n_seq * sizeof(int));
     S     = vc->S;
-    S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
-    S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+    S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+    S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
 
     for(s = 0; s < n_seq; s++){
-      type[s] = md->pair[S[s][j]][S[s][i]];
+      type[s] = md->pair[S[s][i]][S[s][j]];
       if(type[s] == 0)
         type[s] = 7;
     }
