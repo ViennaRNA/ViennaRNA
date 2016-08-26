@@ -44,6 +44,8 @@ PRIVATE aln_parser_function parse_aln_clustal;
 
 PRIVATE aln_parser_function parse_aln_fasta;
 
+PRIVATE aln_parser_function parse_aln_maf;
+
 PRIVATE int
 parse_fasta_alignment(FILE *fp,
                       char ***names,
@@ -65,6 +67,12 @@ parse_stockholm_alignment(FILE *fp,
                           int   verbosity);
 
 PRIVATE int
+parse_maf_alignment(FILE *fp,
+                    char ***aln,
+                    char ***names,
+                    int   verbosity);
+
+PRIVATE int
 check_alignment(const char **names,
                 const char **aln,
                 int seq_num);
@@ -74,6 +82,13 @@ free_msa_record(char ***names,
                 char ***aln,
                 char **id,
                 char **structure);
+
+PRIVATE void
+add_sequence( const char  *id,
+              const char  *seq,
+              char        ***names,
+              char        ***aln,
+              int         seq_num);
 
 PRIVATE void
 endmarker_msa_record( char ***names,
@@ -87,13 +102,14 @@ endmarker_msa_record( char ***names,
 */
 
 /* number of known alignment parsers */
-#define NUM_PARSERS 3
+#define NUM_PARSERS 4
 
 static parsable known_parsers[NUM_PARSERS] = {
   /* option, parser, name */
   { VRNA_FILE_FORMAT_MSA_STOCKHOLM, parse_aln_stockholm,  "Stockholm 1.0 format" },
   { VRNA_FILE_FORMAT_MSA_CLUSTAL,   parse_aln_clustal,    "ClustalW format" },
-  { VRNA_FILE_FORMAT_MSA_FASTA,     parse_aln_fasta,      "FASTA format" }
+  { VRNA_FILE_FORMAT_MSA_FASTA,     parse_aln_fasta,      "FASTA format" },
+  { VRNA_FILE_FORMAT_MSA_MAF,       parse_aln_maf,        "MAF format" }
 };
 
 /*
@@ -425,16 +441,9 @@ parse_stockholm_alignment(FILE  *fp,
                 }
               }
 
-              /* store sequence name */
-              (*names) = (char **)vrna_realloc(*names, sizeof(char *) * seq_num);
-              (*names)[seq_num - 1] = (char *)vrna_alloc(sizeof(char) * (strlen(tmp_name) + 1));
-              strcpy((*names)[seq_num - 1], tmp_name);
-
-              /* store aligned sequence */
-              (*aln) = (char **)vrna_realloc(*aln, sizeof(char *) * seq_num);
-              (*aln)[seq_num - 1] = (char *)vrna_alloc(sizeof(char) * (tmp_l + 1));
-              strcpy((*aln)[seq_num - 1], tmp_seq);
-
+              add_sequence( tmp_name, tmp_seq,
+                            names, aln,
+                            seq_num);
             }
             free(tmp_name);
             free(tmp_seq);
@@ -490,13 +499,13 @@ parse_fasta_alignment(FILE *fp,
 
       char *id = (char *)vrna_alloc(sizeof(char) * strlen(rec_id));
       (void) sscanf(rec_id, ">%s", id);
-
-      (*names) = (char **)vrna_realloc(*names, sizeof(char *) * seq_num);
-      (*names)[seq_num - 1] = id;
-
       vrna_seq_toupper(rec_sequence);
-      (*aln) = (char **)vrna_realloc(*aln, sizeof(char *) * seq_num);
-      (*aln)[seq_num - 1] = strdup(rec_sequence);
+
+      add_sequence( id, rec_sequence,
+                    names, aln,
+                    seq_num);
+
+      free(id);
     }
 
     free(rec_id);
@@ -576,10 +585,9 @@ parse_clustal_alignment(FILE *clust,
       vrna_seq_toupper(seq);
 
       if(nn == seq_num){ /* first time */
-        (*names)      = (char **)vrna_realloc(*names, sizeof(char *) * (nn + 1));
-        (*names)[nn]  = strdup(name);
-        (*aln)        = (char **)vrna_realloc(*aln, sizeof(char *) * (nn + 1));
-        (*aln)[nn]    = strdup(seq);
+            add_sequence( name, seq,
+                          names, aln,
+                          nn + 1);
       } else {
         if (strcmp(name, (*names)[nn]) != 0) {
           /* name doesn't match */
@@ -602,6 +610,103 @@ parse_clustal_alignment(FILE *clust,
 
     line = get_line(clust);
   }
+
+  endmarker_msa_record(names, aln, seq_num);
+
+  if((seq_num > 0) && (verbosity >= 0))
+    fprintf(stderr, "%d sequences; length of alignment %d.\n", seq_num, strlen((*aln)[0]));
+
+  return seq_num;
+}
+
+
+PRIVATE int
+parse_maf_alignment(FILE  *fp,
+                    char  ***names,
+                    char  ***aln,
+                    int   verbosity){
+
+  char  *line = NULL, *tmp_name, *tmp_sequence, strand;
+  int   i, n, seq_num, seq_length, start, length, src_length;
+
+  seq_num     = 0;
+  seq_length  = 0;
+
+  if(!fp){
+    if(verbosity >= 0)
+      vrna_message_warning("Can't read from filepointer while parsing MAF formatted sequence alignment!");
+    return seq_num;
+  }
+
+  if(names && aln){
+    *names  = NULL;
+    *aln    = NULL;
+  } else {
+    return seq_num;
+  }
+
+  int inrecord = 0;
+  while(line = get_line(fp)){
+    if(*line == 'a'){
+      if((line[1] == '\0') || isspace(line[1])){
+        inrecord = 1;
+        free(line);
+        break;
+      }
+    }
+    free(line);
+  }
+
+  if(inrecord){
+    while((line=get_line(fp))){
+      n = (int)strlen(line);
+
+      switch(*line){
+        case '#': /* comment */
+          break;
+
+        case 's': /* a sequence within the alignment block */
+          tmp_name      = (char *)vrna_alloc(sizeof(char) * n);
+          tmp_sequence  = (char *)vrna_alloc(sizeof(char) * n);
+          if(sscanf(line, "s %s %d %d %c %d %s",
+                tmp_name,
+                &start,
+                &length,
+                &strand,
+                &src_length,
+                tmp_sequence) == 6){
+
+            seq_num++;
+            tmp_name      = (char *)vrna_realloc(tmp_name, sizeof(char) * (strlen(tmp_name) + 1));
+            tmp_sequence  = (char *)vrna_realloc(tmp_sequence, sizeof(char) * (strlen(tmp_sequence) + 1));
+
+            vrna_seq_toupper(tmp_sequence);
+
+            add_sequence( tmp_name, tmp_sequence,
+                          names, aln,
+                          seq_num);
+
+            free(tmp_name);
+            free(tmp_sequence);
+            break;
+          }
+          free(tmp_name);
+          free(tmp_sequence);
+          /* all through */
+
+        default: /* something else that ends the block */
+          free(line);
+          goto maf_exit;
+      }
+
+      free(line);
+    }
+  } else {
+    if(verbosity > 0)
+      vrna_message_warning("Did not find any MAF formatted record\n");
+  }
+
+maf_exit:
 
   endmarker_msa_record(names, aln, seq_num);
 
@@ -696,6 +801,47 @@ parse_aln_fasta(FILE *fp,
     *structure = NULL;
 
   return parse_fasta_alignment(fp, names, aln, verbosity);
+}
+
+
+PRIVATE int
+parse_aln_maf(FILE *fp,
+              char ***names,
+              char ***aln,
+              char **id,
+              char **structure,
+              int  verbosity){
+
+  /* MAF alignments do not contain an id, or structure information */
+  if(id)
+    *id = NULL;
+  if(structure)
+    *structure = NULL;
+
+  return parse_maf_alignment(fp, names, aln, verbosity);
+}
+
+
+PRIVATE void
+add_sequence( const char  *id,
+              const char  *seq,
+              char        ***names,
+              char        ***aln,
+              int         seq_num){
+
+  (*names)              = (char **)vrna_realloc(*names, sizeof(char *) * (seq_num));
+  (*names)[seq_num - 1] = strdup(id);
+  (*aln)                = (char **)vrna_realloc(*aln, sizeof(char *) * (seq_num));
+  (*aln)[seq_num - 1]   = strdup(seq);
+}
+
+
+PRIVATE void
+append_sequence(char *seq,
+                char  **aln,
+                int   seq_num){
+
+
 }
 
 

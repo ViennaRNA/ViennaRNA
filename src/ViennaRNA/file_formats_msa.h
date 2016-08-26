@@ -32,12 +32,20 @@
 #define VRNA_FILE_FORMAT_MSA_FASTA        4U
 
 /**
+ *  @brief Option flag indicating MAF formatted files
+ *  @see vrna_file_msa_read(), vrna_file_msa_read_record(), vrna_file_msa_detect_format()
+ */
+#define VRNA_FILE_FORMAT_MSA_MAF          8U
+
+/**
  *  @brief Option flag indicating the set of default file formats
  *  @see vrna_file_msa_read(), vrna_file_msa_read_record(), vrna_file_msa_detect_format()
  */
-#define VRNA_FILE_FORMAT_MSA_DEFAULT      (   VRNA_FILE_FORMAT_MSA_CLUSTAL \
+#define VRNA_FILE_FORMAT_MSA_DEFAULT      ( \
+                                              VRNA_FILE_FORMAT_MSA_CLUSTAL \
                                             | VRNA_FILE_FORMAT_MSA_STOCKHOLM \
                                             | VRNA_FILE_FORMAT_MSA_FASTA \
+                                            | VRNA_FILE_FORMAT_MSA_MAF \
                                           )
 
 /**
@@ -71,6 +79,7 @@
  *  - @ref msa-formats-clustal
  *  - @ref msa-formats-stockholm
  *  - @ref msa-formats-fasta
+ *  - @ref msa-formats-maf
  *  .
  *
  *  @note After successfully reading an alignment, this function performs
@@ -81,7 +90,8 @@
  *
  *  @see  vrna_file_msa_read_record(), #VRNA_FILE_FORMAT_MSA_CLUSTAL,
  *        #VRNA_FILE_FORMAT_MSA_STOCKHOLM, #VRNA_FILE_FORMAT_MSA_FASTA,
- *        #VRNA_FILE_FORMAT_MSA_DEFAULT, #VRNA_FILE_FORMAT_MSA_NOCHECK
+ *        #VRNA_FILE_FORMAT_MSA_MAF, #VRNA_FILE_FORMAT_MSA_DEFAULT,
+ *        #VRNA_FILE_FORMAT_MSA_NOCHECK
  *
  *  @param  filename    The name of input file that contains the alignment
  *  @param  names       An address to the pointer where sequence identifiers
@@ -126,6 +136,7 @@ vrna_file_msa_read( const char *filename,
  *  - @ref msa-formats-clustal
  *  - @ref msa-formats-stockholm
  *  - @ref msa-formats-fasta
+ *  - @ref msa-formats-maf
  *  .
  *
  *  @note After successfully reading an alignment, this function performs
@@ -136,8 +147,8 @@ vrna_file_msa_read( const char *filename,
  *
  *  @see  vrna_file_msa_read(), vrna_file_msa_detect_format(),
  *        #VRNA_FILE_FORMAT_MSA_CLUSTAL, #VRNA_FILE_FORMAT_MSA_STOCKHOLM,
- *        #VRNA_FILE_FORMAT_MSA_FASTA, #VRNA_FILE_FORMAT_MSA_DEFAULT,
- *        #VRNA_FILE_FORMAT_MSA_NOCHECK
+ *        #VRNA_FILE_FORMAT_MSA_FASTA, #VRNA_FILE_FORMAT_MSA_MAF,
+ *        #VRNA_FILE_FORMAT_MSA_DEFAULT, #VRNA_FILE_FORMAT_MSA_NOCHECK
  *
  *  @param  fp          The file pointer the data will be retrieved from
  *  @param  names       An address to the pointer where sequence identifiers

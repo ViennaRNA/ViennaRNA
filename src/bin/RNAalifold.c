@@ -327,6 +327,10 @@ int main(int argc, char *argv[]){
         input_format_options  = VRNA_FILE_FORMAT_MSA_FASTA;
         break;
 
+      case 'M': /* MAF format */
+        input_format_options  = VRNA_FILE_FORMAT_MSA_MAF;
+        break;
+
       default:
         vrna_message_warning("Unknown input format specified");
         break;
@@ -393,17 +397,22 @@ int main(int argc, char *argv[]){
     switch(input_format_options){
       case VRNA_FILE_FORMAT_MSA_CLUSTAL:
         vrna_message_input_seq( "Input aligned sequences in ClustalW format\n"
-                                "enter a line starting with \"//\" to indicate the end of your input)");
+                                "press Ctrl+d when finished to indicate the end of your input)");
         break;
 
       case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
         vrna_message_input_seq( "Input aligned sequences in Stockholm format\n"
-                                "enter a line starting with \"//\" to indicate the end of your input)");
+                                "press Ctrl+d when finished to indicate the end of your input)");
         break;
 
       case VRNA_FILE_FORMAT_MSA_FASTA:
         vrna_message_input_seq( "Input aligned sequences in FASTA format\n"
-                                "enter a line starting with \"//\" to indicate the end of your input)");
+                                "press Ctrl+d when finished to indicate the end of your input)");
+        break;
+
+      case VRNA_FILE_FORMAT_MSA_MAF:
+        vrna_message_input_seq( "Input aligned sequences in MAF format\n"
+                                "press Ctrl+d when finished to indicate the end of your input)");
         break;
 
       default:
