@@ -488,7 +488,7 @@ PS_dot_common(char *seq,
 
   /* write PS header etc for all dot plot variants */
   FILE *wastl;
-  char name[31], *c;
+  char *name, *c;
   int i;
 
   wastl = fopen(wastlfile,"w");
@@ -496,8 +496,9 @@ PS_dot_common(char *seq,
     fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
     return NULL; /* return 0 for failure */
   }
-  strncpy(name, wastlfile, 30);
-  if ((c=strrchr(name, '_'))!=0) *c='\0';
+  name = strdup(wastlfile);
+  if (c=strrchr(name, '_'))
+    *c='\0';
 
   fprintf(wastl,
           "%%!PS-Adobe-3.0 EPSF-3.0\n"
@@ -553,6 +554,8 @@ PS_dot_common(char *seq,
             "%% draw diagonal\n"
             "0.04 setlinewidth\n"
             "0 len moveto len 0 lineto stroke\n\n");
+
+  free(name);
   return(wastl);
 }
 
