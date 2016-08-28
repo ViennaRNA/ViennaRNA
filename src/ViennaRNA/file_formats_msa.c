@@ -393,13 +393,12 @@ parse_stockholm_alignment(FILE  *fp,
           } else if(strncmp(line, "#=GC", 4) == 0){
             /* found per-column annotation */
             if((structure != NULL) && (strncmp(line, "#=GC SS_cons", 12) == 0)){
-              *structure = (char *)vrna_alloc(sizeof(char) * n);
-              if(sscanf(line, "#=GC SS_cons %s", *structure) == 1){
-                *structure = (char *)vrna_realloc(*structure, sizeof(char) * (strlen(*structure) + 1));
-              } else {
-                free(*structure);
-                *structure = NULL;
+              char *ss = (char *)vrna_alloc(sizeof(char) * n);
+              if(sscanf(line, "#=GC SS_cons %s", ss) == 1){
+                *structure = (char *)vrna_realloc(*structure, sizeof(char) * (strlen(ss) + 1));
+                strcpy(*structure, ss);
               }
+              free(ss);
             }
           } else if(strncmp(line, "#=GS", 4) == 0){
             /* found generic per-sequence annotation */
