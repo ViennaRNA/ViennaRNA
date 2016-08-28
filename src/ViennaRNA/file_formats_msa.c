@@ -288,7 +288,10 @@ vrna_file_msa_read_record(FILE *fp,
   } else {
     if(r > 1) { 
       vrna_message_warning("More than one MSA format parser specified!");
-      fprintf(stderr, "Using parser for %s\n", parser_name);
+      char *msg = NULL;
+      asprintf(&msg, "Using parser for %s", parser_name);
+      vrna_message_info(stderr, msg);
+      free(msg);
     }
 
     seq_num = parser(fp, names, aln, id, structure, 0);
@@ -302,6 +305,13 @@ vrna_file_msa_read_record(FILE *fp,
 
         seq_num = 0;
       }
+    } else {
+      char *msg = NULL;
+      asprintf( &msg,
+                "No sequences found in input while parsing %s",
+                parser_name);
+      vrna_message_warning(msg);
+      free(msg);
     }
   }
 
@@ -456,7 +466,7 @@ stockholm_next_line:
     }
   } else {
     if(verbosity > 0)
-      vrna_message_warning("Did not find any Stockholm formatted record\n");
+      vrna_message_warning("Did not find any Stockholm formatted record!");
   }
 
 stockholm_exit:
@@ -465,8 +475,12 @@ stockholm_exit:
 
   endmarker_msa_record(names, aln, seq_num);
 
-  if((seq_num > 0) && (verbosity >= 0))
-    fprintf(stderr, "%d sequences; length of alignment %d.\n", seq_num, strlen((*aln)[0]));
+  if((seq_num > 0) && (verbosity >= 0)){
+    char *msg = NULL;
+    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, strlen((*aln)[0]));
+    vrna_message_info(stderr, msg);
+    free(msg);
+  }
 
   return seq_num;
 }
@@ -518,8 +532,12 @@ parse_fasta_alignment(FILE *fp,
 
   endmarker_msa_record(names, aln, seq_num);
 
-  if((seq_num > 0) && (verbosity >= 0))
-    fprintf(stderr, "%d sequences; length of alignment %d.\n", seq_num, strlen((*aln)[0]));
+  if((seq_num > 0) && (verbosity >= 0)){
+    char *msg = NULL;
+    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, strlen((*aln)[0]));
+    vrna_message_info(stderr, msg);
+    free(msg);
+  }
 
   return seq_num;
 }
@@ -536,13 +554,13 @@ parse_clustal_alignment(FILE *clust,
 
   if((line=get_line(clust)) == NULL){
     if(verbosity >= 0)
-      vrna_message_warning("Empty CLUSTALW file\n");
+      vrna_message_warning("Empty CLUSTALW file");
     return 0;
   }
 
   if(strncmp(line,"CLUSTAL", 7) != 0){
     if(verbosity > 0)
-      vrna_message_warning("This doesn't look like a CLUSTALW file, sorry\n");
+      vrna_message_warning("This doesn't look like a CLUSTALW file, sorry");
 
     free(line);
     return 0;
@@ -590,8 +608,7 @@ parse_clustal_alignment(FILE *clust,
       } else {
         if (strcmp(name, (*names)[nn]) != 0) {
           /* name doesn't match */
-           fprintf(stderr,
-                   "Sorry, your file is messed up (inconsitent seq-names)\n");
+           vrna_message_warning("Sorry, your file is messed up (inconsitent seq-names)");
            free(line); free(seq);
            return 0;
         }
@@ -612,9 +629,12 @@ parse_clustal_alignment(FILE *clust,
 
   endmarker_msa_record(names, aln, seq_num);
 
-  if((seq_num > 0) && (verbosity >= 0))
-    fprintf(stderr, "%d sequences; length of alignment %d.\n", seq_num, strlen((*aln)[0]));
-
+  if((seq_num > 0) && (verbosity >= 0)){
+    char *msg = NULL;
+    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, strlen((*aln)[0]));
+    vrna_message_info(stderr, msg);
+    free(msg);
+  }
   return seq_num;
 }
 
@@ -702,15 +722,19 @@ parse_maf_alignment(FILE  *fp,
     }
   } else {
     if(verbosity > 0)
-      vrna_message_warning("Did not find any MAF formatted record\n");
+      vrna_message_warning("Did not find any MAF formatted record!");
   }
 
 maf_exit:
 
   endmarker_msa_record(names, aln, seq_num);
 
-  if((seq_num > 0) && (verbosity >= 0))
-    fprintf(stderr, "%d sequences; length of alignment %d.\n", seq_num, strlen((*aln)[0]));
+  if((seq_num > 0) && (verbosity >= 0)){
+    char *msg = NULL;
+    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, strlen((*aln)[0]));
+    vrna_message_info(stderr, msg);
+    free(msg);
+  }
 
   return seq_num;
 }
