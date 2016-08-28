@@ -170,6 +170,8 @@ void vrna_message_error(const char message[]);
  */
 void vrna_message_warning(const char message[]);
 
+void vrna_message_info(FILE *fp, const char message[]);
+
 /**
  *  @brief  Initialize seed for random number generator
  */

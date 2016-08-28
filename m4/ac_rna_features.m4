@@ -42,6 +42,10 @@ AC_DEFUN([RNA_GET_FEATURE],[
     AC_RNA_APPEND_VAR_COMMA($1, [C11/C++11])
     _features_active=1
   ])
+  AS_IF([test "x$enable_tty_colors" = "xyes"], [
+    AC_RNA_APPEND_VAR_COMMA($1, [Color])
+    _features_active=1
+  ])
   AS_IF([test "$_features_active" -eq "0"],[
     AC_RNA_APPEND_VAR_COMMA($1, [None])
   ])
@@ -272,4 +276,22 @@ AC_DEFUN([RNA_ENABLE_DEPRECATION_WARNINGS],[
   ])
   AC_SUBST(DEPRECATION_WARNING)
 ])
+
+
+#
+# Colored TTY output
+#
+
+AC_DEFUN([RNA_ENABLE_COLORED_TTY],[
+
+  RNA_ADD_FEATURE([tty_colors],
+                  [Colored TTY output],
+                  [yes])
+
+  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
+  RNA_FEATURE_IF_DISABLED([tty_colors],[
+    AC_DEFINE([WITHOUT_TTY_COLORS], [1], [Do not use colors for TTY output])
+  ])
+])
+
 
