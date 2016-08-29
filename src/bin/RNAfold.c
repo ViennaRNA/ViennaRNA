@@ -176,12 +176,14 @@ int main(int argc, char *argv[]){
   char            *constraints_file, *shape_file, *shape_method, *shape_conversion;
   char            fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
   char            *ns_bases, *c;
-  int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp, enforceConstraints, batch;
+  int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp, enforceConstraints,
+                  batch, ignore_ids, id_digits;
+  long int        seq_number;
   unsigned int    rec_type, read_opt;
   double          energy, min_en, kT, sfact;
   int             doMEA, circular, lucky, with_shapes, verbose, istty_in, istty_out;
   double          MEAgamma, bppmThreshold, betaScale;
-  char            *infile, *outfile, *ligandMotif;
+  char            *infile, *outfile, *ligandMotif, *id_prefix;
 
   vrna_md_t         md;
 
@@ -212,7 +214,10 @@ int main(int argc, char *argv[]){
   constraints_file = NULL;
   enforceConstraints  = 0;
   batch         = 0;
-
+  seq_number      = 1;
+  id_prefix       = "sequence";
+  ignore_ids      = 0;
+  id_digits       = 4;
   outfile       = NULL;
   infile        = NULL;
   input         = NULL;
@@ -323,6 +328,33 @@ int main(int argc, char *argv[]){
     ligandMotif = strdup(args_info.motif_arg);
   }
 
+  /* do not treat first alignment special */
+  if(args_info.ignore_ids_given){
+    ignore_ids = 1;
+  }
+
+  if(args_info.id_prefix_given){
+    id_prefix   = strdup(args_info.id_prefix_arg);
+    ignore_ids  = 1;
+  }
+
+  /* set width of alignment number in the output */
+  if(args_info.id_digits_given){
+    if((args_info.id_digits_arg > 0) && (args_info.id_digits_arg < 19))
+      id_digits = args_info.id_digits_arg;
+    else
+      vrna_message_warning("ID number digits out of allowed range! Using defaults...");
+  }
+
+  /* set first alignment number in the output */
+  if(args_info.id_start_given){
+    if((args_info.id_start_arg >= 0) && (args_info.id_start_arg <= LONG_MAX)){
+      seq_number  = args_info.id_start_arg;
+      ignore_ids  = 1;
+    } else
+      vrna_message_warning("ID number start out of allowed range! Using defaults...");
+  }
+
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
@@ -381,6 +413,8 @@ int main(int argc, char *argv[]){
 
     char *prefix      = NULL;
     char *v_file_name = NULL;
+    char *SEQ_ID      = NULL;
+
     /*
     ########################################################
     # init everything according to the data we've read
@@ -390,6 +424,24 @@ int main(int argc, char *argv[]){
       (void) sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
     else fname[0] = '\0';
+
+    /* construct the sequence ID */
+    if(outfile){
+      if((fname[0] != '\0') && (!ignore_ids)){ /* append ID as read from file to the user prefix */
+        asprintf( &SEQ_ID,
+                  "%s_%s",
+                  outfile,
+                  fname);
+      } else if(ignore_ids){
+        asprintf(&SEQ_ID, "%s_%s_%0*ld", outfile, id_prefix, id_digits, seq_number);
+      } else {
+        asprintf(&SEQ_ID, "%s_%0*ld", outfile, id_digits, seq_number);
+      }
+    } else if((fname[0] != '\0') && (!ignore_ids)){ /* we've read an ID from file, so we use it */
+      SEQ_ID = strdup(fname);
+    } else if(ignore_ids){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
+      asprintf(&SEQ_ID, "%s_%0*ld", id_prefix, id_digits, seq_number);
+    }
 
     if(outfile){
       /* prepare the file prefix */
@@ -480,9 +532,6 @@ int main(int argc, char *argv[]){
     # begin actual computations
     ########################################################
     */
-
-
-
     min_en = (double)vrna_mfe(vc, structure);
 
     /* check whether the constraint allows for any solution */
@@ -499,8 +548,7 @@ int main(int argc, char *argv[]){
     }
 
     if(output){
-      if(fname[0] != '\0')
-        print_fasta_header(output, fname);
+      print_fasta_header(output, SEQ_ID);
       fprintf(output, "%s\n", orig_sequence);
     }
 
@@ -516,7 +564,7 @@ int main(int argc, char *argv[]){
                     " (%6.2f)",
                     min_en);
         print_structure(output, structure, msg);
-
+        free(msg);
         (void) fflush(output);
 
       }
@@ -527,6 +575,14 @@ int main(int argc, char *argv[]){
       } else strcpy(ffname, "rna.ps");
 
       if(!noPS){
+        char *filename_plot = NULL;
+        if(SEQ_ID)
+          asprintf( &filename_plot,
+                    "%s_ss.ps",
+                    SEQ_ID);
+        else
+          filename_plot = strdup("rna.ps");
+
         if(ligandMotif){
           int a,b,c,d, cnt;
           char *annote;
@@ -562,11 +618,12 @@ int main(int argc, char *argv[]){
             strcat(annote, segment);
             annote = vrna_realloc(annote, sizeof(char) * ++cnt * 64);
           }
-          (void) vrna_file_PS_rnaplot_a(orig_sequence, structure, ffname, annote, NULL, &md);
+          (void) vrna_file_PS_rnaplot_a(orig_sequence, structure, filename_plot, annote, NULL, &md);
           free(annote);
         } else {
-          (void) vrna_file_PS_rnaplot_a(orig_sequence, structure, ffname, NULL, NULL, &md);
+          (void) vrna_file_PS_rnaplot_a(orig_sequence, structure, filename_plot, NULL, NULL, &md);
         }
+        free(filename_plot);
       }
     }
 
@@ -609,6 +666,7 @@ int main(int argc, char *argv[]){
       }
       if(lucky){
         vrna_init_rand();
+        char *filename_plot = NULL;
         char *s = vrna_pbacktrack(vc);
         min_en = vrna_eval_structure(vc, (const char *)s);
         if(output){
@@ -623,14 +681,18 @@ int main(int argc, char *argv[]){
           free(energy_string);
           (void) fflush(output);
         }
-        if(fname[0] != '\0'){
-          strcpy(ffname, fname);
-          strcat(ffname, "_ss.ps");
-        } else strcpy(ffname, "rna.ps");
+
+        if(SEQ_ID)
+          asprintf( &filename_plot,
+                    "%s_ss.ps",
+                    SEQ_ID);
+        else
+          filename_plot = strdup("rna.ps");
 
         if (!noPS)
-          (void) vrna_file_PS_rnaplot(orig_sequence, s, ffname, &md);
+          (void) vrna_file_PS_rnaplot(orig_sequence, s, filename_plot, &md);
         free(s);
+        free(filename_plot);
       }
       else{
         if (do_bpp) {
@@ -757,12 +819,17 @@ int main(int argc, char *argv[]){
             pl2[size + cnt].j = 0;
           }
 
-          if (fname[0]!='\0') {
-            strcpy(ffname, fname);
-            strcat(ffname, "_dp.ps");
-          } else strcpy(ffname, "dot.ps");
+          char *filename_dotplot = NULL;
+          if(SEQ_ID)
+            asprintf( &filename_dotplot,
+                      "%s_dp.ps",
+                      SEQ_ID);
+          else
+            filename_dotplot = strdup("dot.ps");
 
-          (void) PS_dot_plot_list(orig_sequence, ffname, pl1, pl2, "");
+          (void) PS_dot_plot_list(orig_sequence, filename_dotplot, pl1, pl2, "");
+          free(filename_dotplot);
+
           cent    = vrna_centroid(vc, &dist);
           cent_en = vrna_eval_structure(vc, (const char *)cent);
           if(output){
@@ -805,14 +872,20 @@ int main(int argc, char *argv[]){
 
           free(pl2);
           if (do_bpp==2) {
+            char *filename_stackplot = NULL;
+            if(SEQ_ID)
+              asprintf( &filename_stackplot,
+                        "%s_dp2.ps",
+                        SEQ_ID);
+            else
+              filename_stackplot = strdup("dot2.ps");
+
             pl2 = vrna_stack_prob(vc, 1e-5);
-            if (fname[0]!='\0') {
-              strcpy(ffname, fname);
-              strcat(ffname, "_dp2.ps");
-            } else strcpy(ffname, "dot2.ps");
-            PS_dot_plot_list(orig_sequence, ffname, pl1, pl2,
+
+            PS_dot_plot_list(orig_sequence, filename_stackplot, pl1, pl2,
                              "Probabilities for stacked pairs (i,j)(i+1,j-1)");
             free(pl2);
+            free(filename_stackplot);
           }
           free(pl1);
           free(pf_struc);
@@ -913,6 +986,14 @@ int main(int argc, char *argv[]){
     if(with_shapes || (constraints_file && (!batch)))
       break;
 
+    free(SEQ_ID);
+
+    if(seq_number == LONG_MAX){
+      vrna_message_warning("Sequence ID number overflow, beginning with 1 (again)!");
+      seq_number = 1;
+    } else
+      seq_number++;
+
     /* print user help for the next round if we get input from tty */
     if(istty){
       if(fold_constrained){
@@ -930,6 +1011,7 @@ int main(int argc, char *argv[]){
   free(ligandMotif);
   free(shape_method);
   free(shape_conversion);
+  free(id_prefix);
 
   return EXIT_SUCCESS;
 }
