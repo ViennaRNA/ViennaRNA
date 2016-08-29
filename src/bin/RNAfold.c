@@ -215,7 +215,7 @@ int main(int argc, char *argv[]){
   enforceConstraints  = 0;
   batch         = 0;
   seq_number      = 1;
-  id_prefix       = "sequence";
+  id_prefix       = NULL;
   ignore_ids      = 0;
   id_digits       = 4;
   outfile       = NULL;
@@ -336,6 +336,8 @@ int main(int argc, char *argv[]){
   if(args_info.id_prefix_given){
     id_prefix   = strdup(args_info.id_prefix_arg);
     ignore_ids  = 1;
+  } else {
+    id_prefix = strdup("sequence");
   }
 
   /* set width of alignment number in the output */
