@@ -2,6 +2,7 @@
 #ifndef WITHOUT_TTY_COLORS
 
 #define ANSI_COLOR_BRIGHT     "\x1b[1m"
+#define ANSI_COLOR_UNDERLINE  "\x1b[4m"
 #define ANSI_COLOR_RED        "\x1b[31m"
 #define ANSI_COLOR_GREEN      "\x1b[32m"
 #define ANSI_COLOR_YELLOW     "\x1b[33m"
@@ -55,6 +56,40 @@ print_structure(FILE *fp,
   }
 }
 
+static void
+print_table(FILE *fp,
+            const char *head,
+            const char *line){
+
+  if(head){
+    if(isatty(fileno(fp))){
+      fprintf(fp, ANSI_COLOR_UNDERLINE ANSI_COLOR_BRIGHT "%s" ANSI_COLOR_RESET "\n", head);
+    } else {
+      fprintf(fp, "%s\n", head);
+    }
+  }
+  if(line){
+    if(isatty(fileno(fp))){
+      fprintf(fp, ANSI_COLOR_GREEN "%s" ANSI_COLOR_RESET "\n", line);
+    } else {
+      fprintf(fp, "%s\n", line);
+    }
+  }
+}
+
+static void
+print_comment(FILE *fp,
+              const char *line){
+
+  if(line){
+    if(isatty(fileno(fp))){
+      fprintf(fp, ANSI_COLOR_CYAN "%s" ANSI_COLOR_RESET "\n", line);
+    } else {
+      fprintf(fp, "%s\n", line);
+    }
+  }
+}
+
 #else
 
 static void
@@ -81,6 +116,28 @@ print_structure(FILE *fp,
     if(data){
       fprintf(fp, "%s\n", data);
     }
+  }
+}
+
+static void
+print_table(FILE *fp,
+            const char *head,
+            const char *line){
+
+  if(head){
+    fprintf(fp, "%s\n", head);
+  }
+  if(line){
+    fprintf(fp, "%s\n", line);
+  }
+}
+
+static void
+print_comment(FILE *fp,
+              const char *line){
+
+  if(line){
+    fprintf(fp, "%s\n", line);
   }
 }
 
