@@ -481,6 +481,8 @@ int main(int argc, char *argv[]){
     }
   }
 
+  long int first_alignment_number = alignment_number;
+
   while(!feof(clust_file)){
     char *MSA_ID = NULL;
     fflush(stdout);
@@ -517,13 +519,7 @@ int main(int argc, char *argv[]){
     fflush(stdout);
     fflush(stderr);
 
-    if(alignment_number == LONG_MAX){
-      vrna_message_warning("Alignment ID number overflow, beginning with 1 (again)!");
-      alignment_number = 1;
-    } else
-      alignment_number++;
-
-    if(n_seq == 0){ /* skip empty alignments */
+    if(n_seq <= 0){ /* skip empty alignments */
       free(names);
       free(AS);
       free(tmp_id);
@@ -534,6 +530,12 @@ int main(int argc, char *argv[]){
       tmp_structure = NULL;
       continue;
     }
+
+    if(alignment_number == LONG_MAX){
+      vrna_message_warning("Alignment ID number overflow, beginning with 1 (again)!");
+      alignment_number = 1;
+    } else
+      alignment_number++;
 
     /* construct alignment ID */
     if(prefix){
@@ -876,6 +878,34 @@ int main(int argc, char *argv[]){
     if(with_shapes && (!batch))
       break;
   } /* end of input */
+
+  if(first_alignment_number == alignment_number){
+    char *format = NULL;
+    char *msg = NULL;
+    switch(input_format_options){
+      case VRNA_FILE_FORMAT_MSA_CLUSTAL:
+        asprintf(&format, "Clustal");
+        break;
+      case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
+        asprintf(&format, "Stockholm");
+        break;
+      case VRNA_FILE_FORMAT_MSA_FASTA:
+        asprintf(&format, "FASTA");
+        break;
+      case VRNA_FILE_FORMAT_MSA_MAF:
+        asprintf(&format, "MAF");
+        break;
+      default:
+        asprintf(&format, "Unknown");
+        break;
+    }
+    asprintf( &msg,
+              "Your input file is missing sequences! Either your file is empty, or not in %s format!",
+              format);
+    vrna_message_error(msg);
+    free(msg);
+    free(format);
+  }
 
   if(with_shapes){
     if(s != n_seq)
