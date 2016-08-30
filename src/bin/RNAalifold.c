@@ -268,7 +268,7 @@ int main(int argc, char *argv[]){
   /* SHAPE reactivity data */
   if(args_info.shape_given){
     if(verbose)
-      vrna_message_info(stderr, "SHAPE reactivity data correction activated\n");
+      vrna_message_info(stderr, "SHAPE reactivity data correction activated");
 
     with_shapes             = 1;
     shape_files             = (char **)vrna_alloc(sizeof(char*) * (args_info.shape_given + 1));
@@ -622,6 +622,16 @@ int main(int argc, char *argv[]){
         vrna_message_warning("Constraint missing");
     }
 
+    if(with_shapes){
+      for(s = 0; shape_file_association[s] != -1; s++);
+
+      if(s != n_seq)
+        vrna_message_warning("Number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
+
+      shape_files             = (char **)vrna_realloc(shape_files, (n_seq + 1) * sizeof(char *));
+      shape_file_association  = (int *)vrna_realloc(shape_file_association, (n_seq + 1) * sizeof(int));
+    }
+
     if(with_shapes)
       add_shape_constraints(vc, \
                             shape_method, \
@@ -629,7 +639,6 @@ int main(int argc, char *argv[]){
                             shape_file_association, \
                             verbose, \
                             VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
-
     min_en  = vrna_mfe(vc, structure);
     real_en = vrna_eval_structure(vc, structure);
 
@@ -723,30 +732,30 @@ int main(int argc, char *argv[]){
       if (n_back>0) {
         /*stochastic sampling*/
         for (i=0; i<n_back; i++) {
-          char *s;
+          char *s, *e_string = NULL;
+
 #if CHECK_PROBABILITIES
           double prob2, prob=1.;
           s = alipbacktrack(&prob);
           double e  = (double)vrna_eval_structure(vc, s);
           e -= (double)vrna_eval_covar_structure(vc, s);
           prob2 = exp((energy - e)/kT);
-          printf("%s ", s);
-          if (eval_energy ) printf("%6g (%6g) %.2f (%.2f) ",prob, prob2, -1*(kT*log(prob)-energy), e);
-          printf("\n");
+          if(eval_energy)
+            asprintf(&e_string, " %6g (%6g) %.2f (%.2f)", prob, prob2, -1*(kT*log(prob)-energy), e);
 #else
           double prob=1.;
           s = vrna_pbacktrack(vc);
 
-          printf("%s ", s);
           if (eval_energy ){
             double e  = (double)vrna_eval_structure(vc, s);
             e -= (double)vrna_eval_covar_structure(vc, s);
             prob = exp((energy - e)/kT);
-            printf("%6g %.2f  ",prob, -1*(kT*log(prob)-energy));
+            asprintf(&e_string, " %6g %.2f", prob, -1*(kT*log(prob)-energy));
           }
-          printf("\n");
 #endif
-           free(s);
+          print_structure(stdout, s, e_string);
+          free(s);
+          free(e_string);
         }
 
       }
@@ -873,9 +882,7 @@ int main(int argc, char *argv[]){
     free(MSA_ID);
 
     /* break after first record if fold_constrained and not explicitly instructed otherwise */
-    if(fold_constrained && (!(batch || consensus_constraint)))
-      break;
-    if(with_shapes && (!batch))
+    if(with_shapes || (fold_constrained && (!(batch || consensus_constraint))))
       break;
   } /* end of input */
 
@@ -905,15 +912,6 @@ int main(int argc, char *argv[]){
     vrna_message_error(msg);
     free(msg);
     free(format);
-  }
-
-  if(with_shapes){
-    if(s != n_seq)
-      vrna_message_warning("number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
-
-    shape_files             = (char **)vrna_realloc(shape_files, (n_seq + 1) * sizeof(char *));
-    shape_file_association  = (int *)vrna_realloc(shape_file_association, (n_seq + 1) * sizeof(int));
-
   }
 
   if (clust_file != stdin) fclose(clust_file);
