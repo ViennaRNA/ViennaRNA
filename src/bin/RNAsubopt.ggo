@@ -92,6 +92,12 @@ int
 typestr="number"
 optional
 
+option  "stochBT_en"      -
+"Same as \"--stochBT\" but also print out the energies and probabilities of the backtraced structures.\n\n"
+int
+typestr="number"
+optional
+
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows). Needed by stochastic backtracking\n"
