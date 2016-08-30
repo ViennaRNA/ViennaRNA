@@ -303,15 +303,8 @@ vrna_file_msa_read_record(FILE *fp,
         /* discard the data we've read! */
         free_msa_record(names, aln, id, structure);
 
-        seq_num = 0;
+        seq_num = -1;
       }
-    } else {
-      char *msg = NULL;
-      asprintf( &msg,
-                "No sequences found in input while parsing %s",
-                parser_name);
-      vrna_message_warning(msg);
-      free(msg);
     }
   }
 
@@ -328,7 +321,7 @@ parse_stockholm_alignment(FILE  *fp,
                           int   verbosity){
 
   char  *line = NULL;
-  int   i, n, seq_num, seq_length;
+  int   i, n, seq_num, seq_length, has_record;
 
   seq_num     = 0;
   seq_length  = 0;
@@ -336,14 +329,14 @@ parse_stockholm_alignment(FILE  *fp,
   if(!fp){
     if(verbosity >= 0)
       vrna_message_warning("Can't read from filepointer while parsing Stockholm formatted sequence alignment!");
-    return seq_num;
+    return -1;
   }
 
   if(names && aln){
     *names  = NULL;
     *aln    = NULL;
   } else {
-    return seq_num;
+    return -1;
   }
 
   if(id)
@@ -355,7 +348,8 @@ parse_stockholm_alignment(FILE  *fp,
   int inrecord = 0;
   while(line = get_line(fp)){
     if(strstr(line, "STOCKHOLM 1.0")){
-      inrecord = 1;
+      inrecord    = 1;
+      has_record  = 1;
       free(line);
       break;
     }
@@ -466,7 +460,8 @@ stockholm_next_line:
     }
   } else {
     if(verbosity > 0)
-      vrna_message_warning("Did not find any Stockholm formatted record!");
+      vrna_message_warning("Did not find any Stockholm 1.0 formatted record!");
+    return -1;
   }
 
 stockholm_exit:
@@ -537,6 +532,10 @@ parse_fasta_alignment(FILE *fp,
     asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, strlen((*aln)[0]));
     vrna_message_info(stderr, msg);
     free(msg);
+  } else {
+    if(verbosity > 0)
+      vrna_message_warning("Did not find any FASTA formatted record!");
+    return -1;
   }
 
   return seq_num;
@@ -553,9 +552,7 @@ parse_clustal_alignment(FILE *clust,
   int  n, r, nn=0, seq_num = 0, i;
 
   if((line=get_line(clust)) == NULL){
-    if(verbosity >= 0)
-      vrna_message_warning("Empty CLUSTALW file");
-    return 0;
+    return -1;
   }
 
   if(strncmp(line,"CLUSTAL", 7) != 0){
@@ -563,7 +560,7 @@ parse_clustal_alignment(FILE *clust,
       vrna_message_warning("This doesn't look like a CLUSTALW file, sorry");
 
     free(line);
-    return 0;
+    return -1;
   }
 
   free(line);
@@ -635,6 +632,7 @@ parse_clustal_alignment(FILE *clust,
     vrna_message_info(stderr, msg);
     free(msg);
   }
+
   return seq_num;
 }
 
@@ -654,14 +652,14 @@ parse_maf_alignment(FILE  *fp,
   if(!fp){
     if(verbosity >= 0)
       vrna_message_warning("Can't read from filepointer while parsing MAF formatted sequence alignment!");
-    return seq_num;
+    return -1;
   }
 
   if(names && aln){
     *names  = NULL;
     *aln    = NULL;
   } else {
-    return seq_num;
+    return -1;
   }
 
   int inrecord = 0;
@@ -723,6 +721,7 @@ parse_maf_alignment(FILE  *fp,
   } else {
     if(verbosity > 0)
       vrna_message_warning("Did not find any MAF formatted record!");
+    return -1;
   }
 
 maf_exit:

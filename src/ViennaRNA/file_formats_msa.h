@@ -103,7 +103,8 @@
  *  @param  structure   An address to the pointer where consensus structure
  *                      information should be written to (Maybe NULL)
  *  @param  options     Options to manipulate the behavior of this function
- *  @return             The number of sequences in the alignment
+ *  @return             The number of sequences in the alignment, or -1 if
+ *                      no alignment record could be found
  */
 int
 vrna_file_msa_read( const char *filename,
@@ -160,7 +161,8 @@ vrna_file_msa_read( const char *filename,
  *  @param  structure   An address to the pointer where consensus structure
  *                      information should be written to (Maybe NULL)
  *  @param  options     Options to manipulate the behavior of this function
- *  @return             The number of sequences in the alignment
+ *  @return             The number of sequences in the alignment, or -1 if
+ *                      no alignment record could be found
  */
 int
 vrna_file_msa_read_record(FILE *fp,
