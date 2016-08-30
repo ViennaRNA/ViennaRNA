@@ -328,7 +328,6 @@ int main(int argc, char *argv[]){
     ligandMotif = strdup(args_info.motif_arg);
   }
 
-  /* do not treat first alignment special */
   if(args_info.ignore_ids_given){
     ignore_ids = 1;
   }
