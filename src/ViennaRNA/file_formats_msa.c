@@ -346,7 +346,7 @@ parse_stockholm_alignment(FILE  *fp,
     *structure = NULL;
 
   int inrecord = 0;
-  while(line = get_line(fp)){
+  while((line = get_line(fp))){
     if(strstr(line, "STOCKHOLM 1.0")){
       inrecord    = 1;
       has_record  = 1;
@@ -472,7 +472,7 @@ stockholm_exit:
 
   if((seq_num > 0) && (verbosity >= 0)){
     char *msg = NULL;
-    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, strlen((*aln)[0]));
+    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
     vrna_message_info(stderr, msg);
     free(msg);
   }
@@ -529,7 +529,7 @@ parse_fasta_alignment(FILE *fp,
 
   if((seq_num > 0) && (verbosity >= 0)){
     char *msg = NULL;
-    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, strlen((*aln)[0]));
+    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
     vrna_message_info(stderr, msg);
     free(msg);
   } else {
@@ -628,7 +628,7 @@ parse_clustal_alignment(FILE *clust,
 
   if((seq_num > 0) && (verbosity >= 0)){
     char *msg = NULL;
-    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, strlen((*aln)[0]));
+    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
     vrna_message_info(stderr, msg);
     free(msg);
   }
@@ -663,7 +663,7 @@ parse_maf_alignment(FILE  *fp,
   }
 
   int inrecord = 0;
-  while(line = get_line(fp)){
+  while((line = get_line(fp))){
     if(*line == 'a'){
       if((line[1] == '\0') || isspace(line[1])){
         inrecord = 1;
@@ -730,7 +730,7 @@ maf_exit:
 
   if((seq_num > 0) && (verbosity >= 0)){
     char *msg = NULL;
-    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, strlen((*aln)[0]));
+    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
     vrna_message_info(stderr, msg);
     free(msg);
   }

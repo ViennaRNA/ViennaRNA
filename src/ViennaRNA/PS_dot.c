@@ -497,7 +497,7 @@ PS_dot_common(char *seq,
     return NULL; /* return 0 for failure */
   }
   name = strdup(wastlfile);
-  if (c=strrchr(name, '_'))
+  if((c=strrchr(name, '_')))
     *c='\0';
 
   fprintf(wastl,
