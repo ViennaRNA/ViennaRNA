@@ -39,7 +39,7 @@ AC_DEFUN([RNA_GET_FEATURE],[
     _features_active=1
   ])
   AS_IF([test "x$enable_c11" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [C11/C++11])
+    AC_RNA_APPEND_VAR_COMMA($1, [C11])
     _features_active=1
   ])
   AS_IF([test "x$enable_tty_colors" = "xyes"], [
@@ -200,13 +200,13 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
 
 
 #
-# C11/C++11 feature support
+# C11 feature support
 #
 
 AC_DEFUN([RNA_ENABLE_C11],[
 
   RNA_ADD_FEATURE([c11],
-                  [C11/C++11 feature support],
+                  [C11 feature support],
                   [yes])
 
   RNA_FEATURE_IF_ENABLED([c11],[
@@ -214,15 +214,7 @@ AC_DEFUN([RNA_ENABLE_C11],[
     AX_CHECK_COMPILE_FLAG([-std=c11],[],[enable_c11="no"])
     AC_LANG_POP([C])
 
-    if test "x$enable_c11" != "xno"
-    then
-      AC_LANG_PUSH([C++])
-      AX_CHECK_COMPILE_FLAG([-std=c++11],[],[enable_c11="no"])
-      AC_LANG_POP([C++])
-    fi
-
     AS_IF([test "x$enable_c11" != "xno"],[
-      AX_APPEND_FLAG(["-std=c++11"], [RNA_CXXFLAGS])
       AX_APPEND_FLAG(["-std=c11"], [RNA_CFLAGS])
     ])
   ])
