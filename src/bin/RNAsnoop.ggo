@@ -37,7 +37,7 @@ sectiondesc="Below are command line options which alter the general input behavi
 
 
 option "alignmentLength" L
-"Limit the extent of the interactions to L nucleotides"
+"Limit the extent of the interactions to L nucleotides\n\n"
 int
 default="25"
 optional
@@ -82,7 +82,7 @@ section "Algorithms"
 sectiondesc="Options which alter the computing behaviour of RNAplex.
 Please note that the options allowing to filter out snoRNA-RNA
 duplexes expect the energy to be given in decacal/mol instead of
-kcal/mol. A threshold of -2.8(kcal/mol) should be given as -280(decacal/mol)\n"
+kcal/mol. A threshold of -2.8(kcal/mol) should be given as -280(decacal/mol)\n\n"
 
 option "alignment-mode" A
 "Specify if RNAsnoop gets alignments or single sequences as input\n\n"
@@ -259,4 +259,4 @@ optional
 
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+ rna@tbi.univie.ac.at.\n\n"

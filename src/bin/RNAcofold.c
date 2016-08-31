@@ -27,7 +27,7 @@
 #include "ViennaRNA/read_epars.h"
 #include "RNAcofold_cmdl.h"
 
-#include "color_output.inc"
+#include "ViennaRNA/color_output.inc"
 
 PRIVATE vrna_dimer_pf_t do_partfunc(char *string, int length, int Switch, plist **tpr, plist **mf, vrna_exp_param_t *parameters);
 PRIVATE double *read_concentrations(FILE *fp);
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
   unsigned int    rec_type, read_opt;
   long int          seq_number;
   char              *id_prefix;
-  int               ignore_ids, id_digits, istty_in, istty_out;
+  int               auto_id, id_digits, istty_in, istty_out;
   vrna_md_t         md;
 
 
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
   enforceConstraints = 0;
   seq_number      = 1;
   id_prefix       = NULL;
-  ignore_ids      = 0;
+  auto_id      = 0;
   id_digits       = 4;
 
   set_model_details(&md);
@@ -193,13 +193,13 @@ int main(int argc, char *argv[])
       md.compute_bpp = do_backtrack = args_info.partfunc_arg;
   }
 
-  if(args_info.ignore_ids_given){
-    ignore_ids = 1;
+  if(args_info.auto_id_given){
+    auto_id = 1;
   }
 
   if(args_info.id_prefix_given){
     id_prefix   = strdup(args_info.id_prefix_arg);
-    ignore_ids  = 1;
+    auto_id  = 1;
   } else {
     id_prefix = strdup("sequence");
   }
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
   if(args_info.id_start_given){
     if((args_info.id_start_arg >= 0) && (args_info.id_start_arg <= LONG_MAX)){
       seq_number  = args_info.id_start_arg;
-      ignore_ids  = 1;
+      auto_id  = 1;
     } else
       vrna_message_warning("ID number start out of allowed range! Using defaults...");
   }
@@ -284,9 +284,9 @@ int main(int argc, char *argv[])
     else fname[0] = '\0';
 
     /* construct the sequence ID */
-    if((fname[0] != '\0') && (!ignore_ids)){ /* we've read an ID from file, so we use it */
+    if((fname[0] != '\0') && (!auto_id)){ /* we've read an ID from file, so we use it */
       SEQ_ID = strdup(fname);
-    } else if(ignore_ids){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
+    } else if(auto_id){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
       asprintf(&SEQ_ID, "%s_%0*ld", id_prefix, id_digits, seq_number);
     }
 

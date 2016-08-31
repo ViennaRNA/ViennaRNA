@@ -22,7 +22,7 @@ description "reads two RNA sequences from stdin or <filename> and computes optim
 
 # Options
 section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n"
+sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
 
 option  "sorted"  s
 "sort the printed output by free energy\n\n"
@@ -35,7 +35,7 @@ flag
 off
 
 section "Algorithms"
-sectiondesc="Select additional algorithms which should be included in the calculations.\n"
+sectiondesc="Select additional algorithms which should be included in the calculations.\n\n"
 
 option  "deltaEnergy" e
 "Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
@@ -107,4 +107,4 @@ optional
 hidden
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+ rna@tbi.univie.ac.at.\n\n"

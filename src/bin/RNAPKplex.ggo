@@ -80,7 +80,7 @@ typestr="paramfile"
 optional
 
 option "verbose" v
-"print verbose output\n"
+"print verbose output\n\n"
 flag
 off
 
@@ -97,5 +97,5 @@ default="0.0"
 optional
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+ rna@tbi.univie.ac.at.\n\n"
 

@@ -18,7 +18,7 @@ description "Reads RNA sequences from stdin and calculates their specific heat i
 
 # Options
 section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n"
+sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
 
 option  "Tmin"  -
 "Lowest temperature\n\n"
@@ -72,7 +72,7 @@ flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs\n"
+"Do not allow GU pairs\n\n"
 flag
 off
 
@@ -108,4 +108,4 @@ hidden
 
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+ rna@tbi.univie.ac.at.\n\n"

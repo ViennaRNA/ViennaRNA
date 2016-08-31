@@ -89,4 +89,11 @@ noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
                   intl22.h intl22dH.h list.h\
                   1.8.4_epars.h 1.8.4_intloops.h ${SVM_H} ${JSON_H}
 
-EXTRA_DIST = $(pkginclude_HEADERS) circfold.inc alicircfold.inc model_avg.inc model_sd.inc ${SVM_H} ${JSON_H}
+EXTRA_DIST =  $(pkginclude_HEADERS) \
+              circfold.inc \
+              alicircfold.inc \
+              model_avg.inc \
+              model_sd.inc \
+              ${SVM_H} \
+              ${JSON_H} \
+              color_output.inc

@@ -34,7 +34,7 @@ section "General Options"
 sectiondesc="Command line options which alter the general behavior of this program\n\n"
 
 option  "verbose" v
-"Be verbose\n"
+"Be verbose.\n\n"
 flag
 off
 
@@ -57,11 +57,6 @@ string
 typestr="<filename>"
 optional
 
-option  "noPS"  -
-"Do not produce postscript drawing of the mfe structure.\n\n"
-flag
-off
-
 option  "layout-type"  t
 "Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"
 int
@@ -69,16 +64,21 @@ default="1"
 optional
 hidden
 
-option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
+option  "noPS"  -
+"Do not produce postscript drawing of the mfe structure.\n\n"
 flag
 off
 
-option  "ignore-ids"  -
-"Do not use IDs retrieved from the input alignment.\n"
+option  "noconv"  -
+"Do not automatically substitute nucleotide \"T\" with \"U\"\n\n"
+flag
+off
+
+option  "auto-id"  -
+"Automatically generate an ID for each sequence.\n"
 details="The default mode of RNAfold is to automatically determine an ID from the input sequence\
  data if the input file format allows to do that. Sequence IDs are usually given in the FASTA\
- header of input sequences. If this flag is given, RNAfold ignores any IDs retrieved from the\
+ header of input sequences. If this flag is active, RNAfold ignores any IDs retrieved from the\
  input and automatically generates an ID for each sequence. This ID consists of a prefix and an\
  increasing number. This flag can also be used to add a FASTA header to the output even if\
  the input has none.\n\n"
@@ -91,7 +91,7 @@ details="If this parameter is set, each sequence will be prefixed with the\
  provided string. Hence, the output files will obey the following naming\
  scheme: \"prefix_xxxx_ss.ps\" (secondary structure plot), \"prefix_xxxx_dp.ps\"\
  (dot-plot), \"prefix_xxxx_dp2.ps\" (stack probabilities), etc. where xxxx\
- is the sequence number. Note: Setting this parameter implies --ignore-ids.\n\n"
+ is the sequence number. Note: Setting this parameter implies --auto-id.\n\n"
 string
 typestr="prefix"
 default="sequence"
@@ -102,7 +102,7 @@ option  "id-digits"  -
 details="When alignments IDs are automatically generated, they receive an increasing number, starting\
  with 1. This number will always be left-padded by leading zeros, such that the number takes up a\
  certain width. Using this parameter, the width can be specified to the users need. We allow\
- numbers in the range [1:18]. This option implies --ignore-ids.\n\n"
+ numbers in the range [1:18]. This option implies --auto-id.\n\n"
 int
 default="4"
 optional
@@ -113,7 +113,7 @@ option  "id-start"  -
 details="When sequence IDs are automatically generated, they receive an increasing number,\
  usually starting with 1. Using this parameter, the first number can be specified to the users\
  requirements. Note: negative numbers are not allowed.\nNote: Setting this parameter implies\
- to ignore any IDs retrieved from the input data, i.e. it activates the --ignore-ids flag.\n\n"
+ to ignore any IDs retrieved from the input data, i.e. it activates the --auto-id flag.\n\n"
 long
 default="1"
 optional
@@ -125,7 +125,7 @@ section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
 
 option  "maxBPspan" -
-"Set the maximum base pair span\n"
+"Set the maximum base pair span\n\n"
 int
 default="-1"
 optional
@@ -166,7 +166,7 @@ off
 dependon="constraint"
 
 option  "shape" -
-"Use SHAPE reactivity data to guide structure predictions\n"
+"Use SHAPE reactivity data to guide structure predictions\n\n"
 string
 typestr="<filename>"
 optional
@@ -190,7 +190,7 @@ The magnitude of the penalties can affected by adjusting the factor beta \
 (e.g. --shapeMethod=\"Zb0.8\").
 
 'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
-Perturbation vectors can be calculated by using RNApvmin.\n"
+Perturbation vectors can be calculated by using RNApvmin.\n\n"
 string
 typestr="[D/Z/W] + [optional parameters]"
 dependon="shape"
@@ -204,7 +204,7 @@ details="The following methods can be used to convert SHAPE reactivities into th
 'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
 'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
 'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
-'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n"
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
 string
 typestr="M/C/S/L/O  + [optional parameters]"
 default="O"
@@ -275,7 +275,7 @@ optional
 hidden
 
 option  "circ"    c
-"Assume a circular (instead of linear) RNA molecule.\n"
+"Assume a circular (instead of linear) RNA molecule.\n\n"
 flag
 off
 
@@ -300,7 +300,7 @@ default="1e-5"
 hidden
 
 option  "gquad" g
-"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n"
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm.\n\n"
 flag
 off
 
@@ -313,7 +313,8 @@ double
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
+details="Mostly for testing.\n\n"
 flag
 off
 

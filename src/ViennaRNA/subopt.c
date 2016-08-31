@@ -28,7 +28,7 @@
 #include "ViennaRNA/subopt.h"
 
 /* hack */
-#include "../bin/color_output.inc"
+#include "ViennaRNA/color_output.inc"
 
 #ifdef _OPENMP
 #include <omp.h>

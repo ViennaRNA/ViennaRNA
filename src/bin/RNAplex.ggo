@@ -68,7 +68,7 @@ typestr="paramfile"
 optional
 
 section "Algorithms"
-sectiondesc="Options which alter the computing behaviour of RNAplex.\n"
+sectiondesc="Options which alter the computing behaviour of RNAplex.\n\n"
 
 # Options
 option  "temp"  T
@@ -171,7 +171,7 @@ flag
 off
 
 section "Output"
-sectiondesc="Options that modify the output\n"
+sectiondesc="Options that modify the output\n\n"
 
 option "duplex-distance" z
 "Distance between target 3' ends of two consecutive duplexes\n"
@@ -207,4 +207,4 @@ optional
 
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+ rna@tbi.univie.ac.at.\n\n"

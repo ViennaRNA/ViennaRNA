@@ -38,7 +38,7 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAfold_cmdl.h"
 
-#include "color_output.inc"
+#include "ViennaRNA/color_output.inc"
 
 /*--------------------------------------------------------------------------*/
 
@@ -177,7 +177,7 @@ int main(int argc, char *argv[]){
   char            fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
   char            *ns_bases, *c;
   int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp, enforceConstraints,
-                  batch, ignore_ids, id_digits;
+                  batch, auto_id, id_digits;
   long int        seq_number;
   unsigned int    rec_type, read_opt;
   double          energy, min_en, kT, sfact;
@@ -213,11 +213,11 @@ int main(int argc, char *argv[]){
   max_bp_span   = -1;
   constraints_file = NULL;
   enforceConstraints  = 0;
-  batch         = 0;
-  seq_number      = 1;
-  id_prefix       = NULL;
-  ignore_ids      = 0;
-  id_digits       = 4;
+  batch               = 0;
+  seq_number          = 1;
+  id_prefix           = NULL;
+  auto_id             = 0;
+  id_digits           = 4;
   outfile       = NULL;
   infile        = NULL;
   input         = NULL;
@@ -328,13 +328,13 @@ int main(int argc, char *argv[]){
     ligandMotif = strdup(args_info.motif_arg);
   }
 
-  if(args_info.ignore_ids_given){
-    ignore_ids = 1;
+  if(args_info.auto_id_given){
+    auto_id = 1;
   }
 
   if(args_info.id_prefix_given){
     id_prefix   = strdup(args_info.id_prefix_arg);
-    ignore_ids  = 1;
+    auto_id  = 1;
   } else {
     id_prefix = strdup("sequence");
   }
@@ -351,7 +351,7 @@ int main(int argc, char *argv[]){
   if(args_info.id_start_given){
     if((args_info.id_start_arg >= 0) && (args_info.id_start_arg <= LONG_MAX)){
       seq_number  = args_info.id_start_arg;
-      ignore_ids  = 1;
+      auto_id  = 1;
     } else
       vrna_message_warning("ID number start out of allowed range! Using defaults...");
   }
@@ -428,19 +428,19 @@ int main(int argc, char *argv[]){
 
     /* construct the sequence ID */
     if(outfile){
-      if((fname[0] != '\0') && (!ignore_ids)){ /* append ID as read from file to the user prefix */
+      if((fname[0] != '\0') && (!auto_id)){ /* append ID as read from file to the user prefix */
         asprintf( &SEQ_ID,
                   "%s_%s",
                   outfile,
                   fname);
-      } else if(ignore_ids){
+      } else if(auto_id){
         asprintf(&SEQ_ID, "%s_%s_%0*ld", outfile, id_prefix, id_digits, seq_number);
       } else {
         asprintf(&SEQ_ID, "%s_%0*ld", outfile, id_digits, seq_number);
       }
-    } else if((fname[0] != '\0') && (!ignore_ids)){ /* we've read an ID from file, so we use it */
+    } else if((fname[0] != '\0') && (!auto_id)){ /* we've read an ID from file, so we use it */
       SEQ_ID = strdup(fname);
-    } else if(ignore_ids){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
+    } else if(auto_id){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
       asprintf(&SEQ_ID, "%s_%0*ld", id_prefix, id_digits, seq_number);
     }
 

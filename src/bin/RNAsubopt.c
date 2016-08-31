@@ -30,7 +30,7 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAsubopt_cmdl.h"
 
-#include "color_output.inc"
+#include "ViennaRNA/color_output.inc"
 
 static void
 add_shape_constraints(vrna_fold_compound_t *vc,

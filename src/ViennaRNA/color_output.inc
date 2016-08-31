@@ -1,4 +1,11 @@
 
+/* deactivate ANSI colors in TTY output if we compile for windows */
+#ifndef WITHOUT_TTY_COLORS
+# ifdef _WIN32
+#   define WITHOUT_TTY_COLORS
+# endif
+#endif
+
 #ifndef WITHOUT_TTY_COLORS
 
 #define ANSI_COLOR_BRIGHT     "\x1b[1m"
@@ -40,7 +47,7 @@ print_structure(FILE *fp,
       if(isatty(fileno(fp))){
         fprintf(fp, "%s" ANSI_COLOR_GREEN "%s" ANSI_COLOR_RESET "\n", structure, data);
       } else {
-        fprintf(fp, "%s %s\n", structure, data);
+        fprintf(fp, "%s%s\n", structure, data);
       }
     } else {
       fprintf(fp, "%s\n", structure);
@@ -108,7 +115,7 @@ print_structure(FILE *fp,
 
   if(structure){
     if(data){
-      fprintf(fp, "%s %s\n", structure, data);
+      fprintf(fp, "%s%s\n", structure, data);
     } else {
       fprintf(fp, "%s\n", structure);
     }

@@ -25,7 +25,7 @@ description "The program reads two alignments of RNA sequences in CLUSTAL format
 
 # Options
 section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n"
+sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
 
 option  "deltaEnergy" e
 "Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
@@ -105,4 +105,4 @@ typestr="paramfile"
 optional
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at\n"
+ rna@tbi.univie.ac.at\n\n"

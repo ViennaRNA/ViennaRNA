@@ -32,7 +32,7 @@
 #include "ViennaRNA/constraints_SHAPE.h"
 #include "RNAalifold_cmdl.h"
 
-#include "color_output.inc"
+#include "ViennaRNA/color_output.inc"
 
 PRIVATE char  **annote(const char *structure, const char *AS[]);
 PRIVATE void  print_pi(const vrna_pinfo_t pi, FILE *file);
@@ -88,12 +88,12 @@ int main(int argc, char *argv[]){
   char                        *input_string, *string, *structure, *cstruc, *ParamFile,
                               *ns_bases, *c, **AS, **names, *constraints_file, **shape_files,
                               *shape_method, *filename_plot, *filename_dot, *filename_aln,
-                              *filename_out, *prefix, *filename_in, *tmp_id, *tmp_structure,
-                              *tmp_string, **input_files;
+                              *filename_out, *filename_in, *tmp_id, *tmp_structure,
+                              *tmp_string, **input_files, *id_prefix;
   int                         s, n_seq, i, length, sym, noPS, with_shapes, verbose, with_sci,
                               endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
                               istty_in, eval_energy, pf, istty, *shape_file_association,
-                              tmp_number, batch, continuous_names, number_width, ignore_ids,
+                              tmp_number, batch, continuous_names, id_digits, auto_id,
                               input_file_num, consensus_constraint;
   long int                    alignment_number;
   double                      min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
@@ -118,7 +118,6 @@ int main(int argc, char *argv[]){
   with_sci                = 0;
   batch                   = 0;
   constraints_file        = NULL;
-  prefix                  = NULL;
   filename_plot           = NULL;
   filename_dot            = NULL;
   filename_aln            = NULL;
@@ -132,8 +131,9 @@ int main(int argc, char *argv[]){
   alignment_number        = 0;
   clust_file              = stdin;
   continuous_names        = 0;
-  number_width            = 4;
-  ignore_ids              = 0;
+  id_digits            = 4;
+  auto_id                 = 0;
+  id_prefix               = NULL;
   input_file_num          = 0;
   consensus_constraint    = 0;
   set_model_details(&md);
@@ -338,10 +338,6 @@ int main(int argc, char *argv[]){
     }
   }
 
-  if(args_info.outfile_prefix_given){
-    prefix = strdup(args_info.outfile_prefix_arg);
-  }
-
   /* sci computation */
   if(args_info.sci_given)
     with_sci = 1;
@@ -379,13 +375,19 @@ int main(int argc, char *argv[]){
     continuous_names = 1;
 
   /* do not use IDs from input file */
-  if(args_info.ignore_ids_given)
-    ignore_ids = 1;
+  if(args_info.auto_id_given)
+    auto_id = 1;
+
+  if(args_info.id_prefix_given){
+    id_prefix   = strdup(args_info.id_prefix_arg);
+  } else {
+    id_prefix = strdup("alignment");
+  }
 
   /* set width of alignment number in the output */
   if(args_info.id_digits_given){
     if((args_info.id_digits_arg > 0) && (args_info.id_digits_arg < 19))
-      number_width = args_info.id_digits_arg;
+      id_digits = args_info.id_digits_arg;
     else
       vrna_message_warning("ID number width out of allowed range! Using defaults...");
   }
@@ -538,25 +540,10 @@ int main(int argc, char *argv[]){
       alignment_number++;
 
     /* construct alignment ID */
-    if(prefix){
-      if(tmp_id && (!ignore_ids)){ /* append ID as read from file to the user prefix */
-        MSA_ID = strdup(prefix);
-        MSA_ID = (char *)vrna_realloc(MSA_ID, sizeof(char) * (strlen(MSA_ID) + strlen(tmp_id) + 2));
-        strcat(MSA_ID, "_");
-        strcat(MSA_ID, tmp_id);
-      } else {
-        if((alignment_number > 1) || continuous_names){
-          asprintf(&MSA_ID, "%s_%0*ld", prefix, number_width, alignment_number);
-        } else {
-          MSA_ID = strdup(prefix);
-        }
-      }
-    } else if(tmp_id && (!ignore_ids)){ /* we've read an ID from file, so we use it */
+    if(tmp_id && (!auto_id)){ /* we've read an ID from file, so we use it */
       MSA_ID = strdup(tmp_id);
-    } else { /* we have nuffin', Jon Snow */
-      if((alignment_number > 1) || continuous_names){
-        asprintf(&MSA_ID, "alignment_%0*ld", number_width, alignment_number);
-      }
+    } else if(auto_id || (alignment_number > 1) || continuous_names){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
+      asprintf(&MSA_ID, "%s_%0*ld", id_prefix, id_digits, alignment_number);
     }
 
     /* construct output file names */
