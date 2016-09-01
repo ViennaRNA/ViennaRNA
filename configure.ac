@@ -9,6 +9,8 @@ AC_SUBST(VERSION)
 
 AC_CONFIG_MACRO_DIR([m4])
 
+AC_USE_SYSTEM_EXTENSIONS
+
 dnl change the default installation prefix
 dnl AC_PREFIX_DEFAULT(/usr/local/RNA)
 
@@ -37,8 +39,6 @@ if test "$GCC" = yes; then
 else
    AC_DEFINE(UNUSED,, only for gcc)
 fi
-
-AC_USE_SYSTEM_EXTENSIONS
 
 AC_PROG_INSTALL
 AM_PROG_AR
