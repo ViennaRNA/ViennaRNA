@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2010-06-30 17:24:43 wolfgang> */
 /*
            compute potentially pseudoknotted structures of an RNA sequence
                              Ivo Hofacker
@@ -9,6 +8,10 @@
   library containing the function used in PKplex
   it generates pseudoknotted structures by letting the sequence form a duplex structure with itself
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

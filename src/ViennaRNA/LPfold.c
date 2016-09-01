@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2009-02-18 14:19:51 ivo> */
 /*
   local pair probabilities for RNA secondary structures
 
@@ -9,7 +8,11 @@
   todo: compute energy z-score for each window
 
 */
-#include <config.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,9 +33,6 @@
 #include <omp.h>
 #endif
 
-
-/*@unused@*/
-PRIVATE char rcsid[] UNUSED = "$Id: LPfold.c,v 1.8 2009/02/18 20:34:38 ivo Exp $";
 
 #define ISOLATED  256.0
 

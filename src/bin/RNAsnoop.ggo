@@ -37,7 +37,7 @@ sectiondesc="Below are command line options which alter the general input behavi
 
 
 option "alignmentLength" L
-"Limit the extent of the interactions to L nucleotides"
+"Limit the extent of the interactions to L nucleotides\n\n"
 int
 default="25"
 optional
@@ -82,7 +82,7 @@ section "Algorithms"
 sectiondesc="Options which alter the computing behaviour of RNAplex.
 Please note that the options allowing to filter out snoRNA-RNA
 duplexes expect the energy to be given in decacal/mol instead of
-kcal/mol. A threshold of -2.8(kcal/mol) should be given as -280(decacal/mol)\n"
+kcal/mol. A threshold of -2.8(kcal/mol) should be given as -280(decacal/mol)\n\n"
 
 option "alignment-mode" A
 "Specify if RNAsnoop gets alignments or single sequences as input\n\n"
@@ -91,7 +91,7 @@ off
 
 option "fast-folding" f
 "Speedup of the target search"
-details="This option allows to decide if the backtracking has to be
+details="This option allows one to decide if the backtracking has to be
 done (-f 1) or not (-f 0). For -f 1 the structure is computed based
 on the standard energy model. This is the slowest mode of RNAsnoop. -f
 0 is the fastest mode, as no structure are recomputed and only the
@@ -102,7 +102,7 @@ optional
 
 option "extension-cost" c
 "Cost to add to each nucleotide in a duplex"
-details="Cost of extending a duplex by one nucleotide. Allows to find
+details="Cost of extending a duplex by one nucleotide. Allows one to find
 compact duplexes, having few/small bulges or interior loops. Only
 useful when no accessibility profiles are available. This option is
 disabled if accessibility profiles are used (-P option)\n\n"
@@ -234,7 +234,7 @@ optional
 
 option "produce-ps" I
 "Draw annotated 2D structures for a list of dot-bracket structures\n"
-details="This option allows to produce interaction figures in PS-format with conservation/accessibility annotation, if available\n\n"
+details="This option allows one to produce interaction figures in PS-format with conservation/accessibility annotation, if available\n\n"
 flag
 off
 
@@ -259,4 +259,4 @@ optional
 
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+ rna@tbi.univie.ac.at.\n\n"

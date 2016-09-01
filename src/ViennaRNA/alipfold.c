@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2009-02-24 14:37:05 ivo> */
 /*
                   partiton function and base pair probabilities
                   for RNA secvondary structures
@@ -12,7 +11,10 @@
 *** \file alipfold.c
 **/
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -192,6 +194,7 @@ wrap_alipf_fold(const char **sequences,
   } else {
     free(exp_params);
   }
+  vc->exp_params->pf_scale = pf_scale;
 
   if(is_constrained && structure){
     unsigned int constraint_options = 0;

@@ -12,7 +12,10 @@
                   Vienna RNA package
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -465,7 +468,13 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
 }
 
 
+#ifndef VRNA_DISABLE_C11_FEATURES
+PUBLIC void
+vrna_C11_features(void){
 
+  __asm("nop");
+}
+#endif
 
 /*
 #####################################

@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2008-12-03 17:44:38 ivo> */
 /*
                   minimum free energy
                   RNA secondary structure prediction
@@ -10,7 +9,10 @@
                   Vienna RNA package
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -259,7 +261,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
           new_c   = MIN2(new_c, energy);
 
           /* check for multibranch loops */
-          energy  = E_mb_loop_fast(i, j, vc, DMLi1, DMLi2);
+          energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
           new_c   = MIN2(new_c, energy);
         }
 
@@ -292,7 +294,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
 
-      my_fML[ij] = E_ml_stems_fast(i, j, vc, Fmi, DMLi);
+      my_fML[ij] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
 
       if(uniq_ML){  /* compute fM1 for unique decomposition */
         my_fM1[ij] = E_ml_rightmost_stem(i, j, vc);
@@ -595,6 +597,10 @@ free_end( int *array,
     else     { ii = i; jj = j;} /* inc<0 */
     type = ptype[indx[jj]+ii];
     if(hard_constraints[indx[jj]+ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+
+      if(type == 0)
+        type = 7;
+
       si = (ii>1)       && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
       sj = (jj<length)  && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];
@@ -659,6 +665,10 @@ free_end( int *array,
         continue;
 
       type = ptype[indx[jj]+ii];
+
+      if(type == 0)
+        type = 7;
+
       si = (ii > left)  && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
       sj = (jj < right) && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
       energy = c[indx[jj]+ii];

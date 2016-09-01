@@ -1,3 +1,24 @@
+v 2.2.9
+  * Fix bug in partition function scaling for backward compatibility of ali_pf_fold()
+  * Stabilize v3.0 API when building RNAlib and third party program linking against it with compilers that use different C/C++ standards
+  * Add details on how to link against RNAlib to the reference manual
+  * Fix RNAlib2.pc
+  * Fix bug for temperature setting in RNAplfold
+  * Use -fflat-lto-objects for static RNAlib library to allow linking without LTO
+  * Fix interpretation of 'P' hard constraint for single nucleotides in constraint definition files
+  * Add 'A' command for hard constraints
+  * Fix several hard constraint corner-cases in MFE and partition function computation when nucleotides must not be unpaired
+  * Fix order of hard constraints when read from input file
+  * Allow for non-canonical base pairs in MFE and partition function computations if hard constraints demand it
+  * Fix behavior of --without-swig configure script option
+  * Fix bug in hard constraints usage of exterior loop MFE prediction with odd dangles
+  * Add parsers for Clustal, Stockholm, FASTA, and MAF formatted alignment files
+  * Enable RNAalifold to use Clustal, Stockholm, FASTA, or MAF alignments as input
+  * Lift restriction of sequence number in alignments for RNAalifold
+  * Enable ANSI colors for TTY output in RNAfold, RNAcofold, RNAalifold, RNAsubopt, and warnings/errors issued by RNAlib
+  * Add various new commandline options to manipulate sequence/alignment IDs in RNAfold, RNAcofold and RNAalifold
+
+
 v 2.2.8
   * Fix bad memory access in RNAalifold
   * Fix regression in RNAalifold to restore covariance contribution ratio determination for circular RNA alignments

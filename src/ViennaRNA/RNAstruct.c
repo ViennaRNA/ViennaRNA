@@ -3,8 +3,10 @@
 	   Walter Fontana, Ivo L Hofacker, Peter F Stadler
 			Vienna RNA Package
 */
-/* Last changed Time-stamp: <2005-07-23 10:12:19 ivo> */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,8 +19,6 @@
 #define PUBLIC
 
 #define MAXLEN    10000
-
-static char rcsid[] = "$Id: RNAstruct.c,v 1.8 2006/05/09 20:44:33 ivo Exp $";
 
 
 PRIVATE char *aux_struct(const char *structure);

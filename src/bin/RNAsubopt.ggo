@@ -20,7 +20,28 @@ description "reads RNA sequences from stdin and (in the default -e mode) calcula
 # Options
 
 section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n"
+sectiondesc="Command line options which alter the general behavior of this program\n\n"
+
+option  "verbose" v
+"Be verbose\n\n"
+flag
+off
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
+flag
+off
+
+
+# Options
+section "Structure Constraints"
+sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
+
+option  "maxBPspan" -
+"Set the maximum base pair span\n\n"
+int
+default="-1"
+optional
 
 option  "constraint"  C
 "Calculate structures subject to constraints.\n"
@@ -32,7 +53,7 @@ details="The program reads first the\
  sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
  folding ignores constraints of type \"|\".\n\n"
 string
-typestr="filename"
+typestr="<filename>"
 default = ""
 argoptional
 
@@ -48,19 +69,54 @@ flag
 off
 dependon="constraint"
 
-option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
-flag
-off
+option  "shape" -
+"Use SHAPE reactivity data in the folding recursions (does not work for Zuker suboptimals and stochastic backtracking yet)\n\n"
+string
+typestr="<filename>"
+optional
 
-option  "verbose" v
-"Be verbose\n"
-flag
-off
+option  "shapeMethod" -
+"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
+details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
+'D': Convert by using a linear equation according to Deigan et al 2009. \
+The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
+This method is recognized by a capital 'D' in the provided parameter, i.e.: \
+--shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
+non-default value if necessary, otherwise m=1.8 and b=-0.6. \
+To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
+parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
+parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
+
+'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
+SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
+Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
+The magnitude of the penalties can affected by adjusting the factor beta \
+(e.g. --shapeMethod=\"Zb0.8\").
+
+'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
+Perturbation vectors can be calculated by using RNApvmin.\n\n"
+string
+typestr="[D/Z/W] + [optional parameters]"
+dependon="shape"
+default="D"
+optional
+
+option  "shapeConversion" -
+"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al.\n"
+details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+'M': Use linear mapping according to Zarringhalam et al.
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
+string
+typestr="M/C/S/L/O  + [optional parameters]"
+default="O"
+optional
 
 
 section "Algorithms"
-sectiondesc="Select the algorithms which should be applied to the given RNA sequence.\n"
+sectiondesc="Select the algorithms which should be applied to the given RNA sequence.\n\n"
 
 option  "deltaEnergy" e
 "Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
@@ -92,6 +148,12 @@ int
 typestr="number"
 optional
 
+option  "stochBT_en"      -
+"Same as \"--stochBT\" but also print out the energies and probabilities of the backtraced structures.\n\n"
+int
+typestr="number"
+optional
+
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows). Needed by stochastic backtracking\n"
@@ -109,19 +171,19 @@ off
 
 option  "dos" D
 "Compute density of states instead of secondary structures\n"
-details="This option enables the evaluation of the number of secondary structures in certain energy bands arround\
- the MFE.\n"
+details="This option enables the evaluation of the number of secondary structures in certain energy bands around\
+ the MFE.\n\n"
 flag
 off
 
 option  "zuker" z
-"Compute Zuker suboptimals instead of all suboptimal structures within an engery band arround the MFE.\n\n"
+"Compute Zuker suboptimals instead of all suboptimal structures within an engery band around the MFE.\n\n"
 flag
 off
 
 option  "gquad" g
 "Incoorporate G-Quadruplex formation into the structure prediction algorithm\n(no support of G-quadruplex\
- prediction for stochastic backtracking and Zuker-style suboptimals yet)\n"
+ prediction for stochastic backtracking and Zuker-style suboptimals yet)\n\n"
 flag
 off
 
@@ -133,7 +195,8 @@ double
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
+details="Mostly for testing.\n\n"
 flag
 off
 
@@ -176,70 +239,6 @@ details="This option does not effect structure generation, only the energies tha
 flag
 off
 
-option  "betaScale" -
-"Set the scaling of the Boltzmann factors\n"
-details="The argument provided with this option enables to scale the thermodynamic temperature\
- used in the Boltzmann factors independently from the temperature used to scale the individual\
- energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
- where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
- absolute temperature.\n\n"
-double
-default="1."
-optional
-dependon="stochBT"
-hidden
-
-option  "shape" -
-"Use SHAPE reactivity data in the folding recursions (does not work for PF yet)\n"
-string
-typestr="SHAPE file"
-optional
-
-option  "shapeMethod" -
-"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
-details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
-'D': Convert by using a linear equation according to Deigan et al 2009. \
-The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
-This method is recognized by a capital 'D' in the provided parameter, i.e.: \
---shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
-non-default value if necessary, otherwise m=1.8 and b=-0.6. \
-To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
-parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
-parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
-
-'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
-SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
-Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
-The magnitude of the penalties can affected by adjusting the factor beta \
-(e.g. --shapeMethod=\"Zb0.8\").
-
-'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
-Perturbation vectors can be calculated by using RNApvmin.\n"
-string
-typestr="[D/Z/W] + [optional parameters]"
-dependon="shape"
-default="D"
-optional
-
-option  "shapeConversion" -
-"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al.\n"
-details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
-'M': Use linear mapping according to Zarringhalam et al.
-'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
-'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
-'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
-'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n"
-string
-typestr="M/C/S/L/O  + [optional parameters]"
-default="O"
-optional
-
-option  "maxBPspan" -
-"Set the maximum base pair span\n"
-int
-default="-1"
-optional
-
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
@@ -258,5 +257,18 @@ string
 optional
 hidden
 
+option  "betaScale" -
+"Set the scaling of the Boltzmann factors\n"
+details="The argument provided with this option enables to scale the thermodynamic temperature\
+ used in the Boltzmann factors independently from the temperature used to scale the individual\
+ energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
+ where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
+ absolute temperature.\n\n"
+double
+default="1."
+optional
+dependon="stochBT"
+hidden
+
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+ rna@tbi.univie.ac.at.\n\n"

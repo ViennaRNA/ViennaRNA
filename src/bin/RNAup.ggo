@@ -67,7 +67,7 @@ optional
 option "contributions"  c
 "Specify the contributions listed in the output\n"
 details="By default only the full probability of being unpaired is plotted.\
- The -c option allows to get the different contributions (c) to the probability\
+ The -c option allows one to get the different contributions (c) to the probability\
  of being unpaired: The full probability of being unpaired (\"S\" is the sum of\
  the probability of being unpaired in the exterior loop (\"E\"), within a\
  hairpin loop (\"H\"), within an interior loop (\"I\") and within a multiloop\
@@ -191,4 +191,4 @@ optional
 hidden
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+ rna@tbi.univie.ac.at.\n\n"

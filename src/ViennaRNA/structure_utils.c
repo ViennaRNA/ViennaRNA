@@ -7,6 +7,10 @@
                 Vienna RNA package
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,7 +66,7 @@ vrna_db_pack(const char *struc){
       case ')':
         p += 2;
         break;
-      default: vrna_message_error("pack_structure: illegal charcter in structure");
+      default: vrna_message_error("pack_structure: illegal character in structure");
       }
       if (i<l) i++;
     }

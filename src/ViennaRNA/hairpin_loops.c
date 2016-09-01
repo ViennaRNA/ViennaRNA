@@ -1,4 +1,8 @@
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -43,16 +47,19 @@ vrna_E_hp_loop( vrna_fold_compound_t *vc,
                 int i,
                 int j){
 
-  int                       p, q, u, *hc_up;
-  char                      eval_loop;
-  vrna_hc_t                 *hc;
-  int (*eval_f)(vrna_fold_compound_t *a, int b, int c);
+  char        eval_loop;
+  int         p, q, u, *hc_up;
+  vrna_hc_t   *hc;
+  int         (*eval_f)(vrna_fold_compound_t *a, int b, int c);
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *f;
+#endif
 
   hc    = vc->hc;
   hc_up = hc->up_hp;
 
 #ifdef WITH_GEN_HC
-  vrna_callback_hc_evaluate *f = hc->f;
+  f = hc->f;
 #endif
 
   if((i > 0) && (j > 0)){
@@ -111,14 +118,13 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
                       int i,
                       int j){
 
-  int             u, e, s, type, *types, n_seq, length;
-  short           *S, **SS, **S5, **S3;
-  char            **Ss;
+  char            **Ss, loopseq[10];
   unsigned short  **a2s;
+  short           *S, **SS, **S5, **S3;
+  int             u, e, s, type, *types, n_seq, length;
   vrna_param_t    *P;
   vrna_sc_t       *sc, **scs;
   vrna_md_t       *md;
-  char            loopseq[10];
 
   length  = vc->length;
   P       = vc->params;
@@ -219,10 +225,10 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
                   int i,
                   int j){
 
-  int             u, e, s, ij, cp, type, *types, *idx, n_seq;
-  short           *S, **SS, **S5, **S3;
   char            **Ss;
   unsigned short  **a2s;
+  short           *S, **SS, **S5, **S3;
+  int             u, e, s, ij, cp, type, *types, *idx, n_seq;
   vrna_param_t    *P;
   vrna_sc_t       *sc, **scs;
   vrna_md_t       *md;
@@ -385,12 +391,11 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
                   int i,
                   int j){
 
-  int               u, ij, type, n_seq, s, *types, cp, *idx, *iidx;
-  FLT_OR_DBL        q, qbt1;
-  FLT_OR_DBL        *scale;
-  short             *S, **SS, **S5, **S3;
   char              **Ss;
   unsigned short    **a2s;
+  short             *S, **SS, **S5, **S3;
+  int               u, ij, type, n_seq, s, *types, cp, *idx, *iidx;
+  FLT_OR_DBL        q, qbt1, *scale;
   vrna_exp_param_t  *P;
   vrna_sc_t         *sc, **scs;
   vrna_md_t         *md;
@@ -411,6 +416,9 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
                                   sc    = vc->sc;
                                   u     = j - i - 1;
                                   type  = vc->ptype[ij];
+
+                                  if(type == 0)
+                                    type = 7;
 
                                   if((cp < 0) || ON_SAME_STRAND(i, j, cp)){ /* regular hairpin loop */
                                     q = exp_E_Hairpin(u, type, S[i+1], S[j-1], vc->sequence+i-1, P);
@@ -490,19 +498,17 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
                       int i,
                       int j){
 
-  int               u, u1, ij, n, type, n_seq, s, *rtype, *types, *idx, *iidx, no_close, noGUclosure;
-  FLT_OR_DBL        q, qbt1;
-  FLT_OR_DBL        *scale;
-  short             *S, **SS, **S5, **S3;
   char              **Ss, *sequence;
   unsigned short    **a2s;
+  short             *S, **SS, **S5, **S3;
+  int               u, u1, ij, n, type, n_seq, s, *rtype, *types, *idx, noGUclosure;
+  FLT_OR_DBL        q, qbt1, *scale;
   vrna_exp_param_t  *P;
   vrna_sc_t         *sc, **scs;
   vrna_md_t         *md;
 
   n           = vc->length;
   idx         = vc->jindx;
-  iidx        = vc->iindx;
   P           = vc->exp_params;
   md          = &(P->model_details);
   noGUclosure = md->noGUclosure;
@@ -519,6 +525,9 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
                                   S         = vc->sequence_encoding;
                                   sc        = vc->sc;
                                   type      = rtype[vc->ptype[ij]];
+
+                                  if(type == 0)
+                                    type = 7;
 
                                   if(((type==3)||(type==4))&&noGUclosure)
                                     return q;

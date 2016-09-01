@@ -6,11 +6,12 @@ WIN_INSTALLER_LOG=win_installer.log
 export ac_cv_func_realloc_0_nonnull=yes
 export ac_cv_func_malloc_0_nonnull=yes
 
-CONFIGURE_OPTIONS=" --without-perl \
-                    --without-python \
+CONFIGURE_OPTIONS=" --without-swig \
+                    --without-doc \
                     --without-forester \
                     --with-cluster \
-                    --with-kinwalker"
+                    --with-kinwalker \
+                    --disable-tty-colors"
 
 case "$1" in
 

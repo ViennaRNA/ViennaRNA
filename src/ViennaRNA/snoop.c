@@ -1,6 +1,3 @@
-
-
-/* Last changed Time-stamp: <2007-08-26 11:59:45 ivo> */
 /*                
            compute the duplex structure of two RNA strands,
                 allowing only inter-strand base pairs.
@@ -11,7 +8,10 @@
                           Vienna RNA package
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -28,8 +28,7 @@
 /* #include "ViennaRNA/fold.h" */
 #include "ViennaRNA/duplex.h"
 #include "ViennaRNA/loop_energies.h"
-/*@unused@*/
-static char rcsid[] UNUSED = "$Id: duplex.c,v 1.8 2007/08/26 10:08:44 ivo Exp $";
+
 
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
 #define NEW_NINIO     1   /* new asymetry penalty */

@@ -52,7 +52,7 @@ if HAS_SWIG
 $(SWIG_wrapper): $(SWIG_src)
 	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
-                  @FLOAT_PF_FLAG@ \
+                  $(RNA_CPPFLAGS) \
                   -python -modern  -c++ \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)

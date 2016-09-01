@@ -4,7 +4,11 @@
 
                   Vienna RNA package
 */
-#include <config.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -213,15 +217,31 @@ PUBLIC void
 vrna_exp_params_rescale(vrna_fold_compound_t *vc,
                         double *mfe){
 
+  vrna_exp_param_t  *pf;
+  double            kT;
+  vrna_md_t         *md;
+
   if(vc){
-    vrna_exp_param_t *pf = vc->exp_params;
+    
+    if(!vc->exp_params){
+      switch(vc->type){
+        case VRNA_VC_TYPE_SINGLE:
+          vc->exp_params = vrna_exp_params(&(vc->params->model_details));
+          break;
+        case VRNA_VC_TYPE_ALIGNMENT:
+          vc->exp_params = vrna_exp_params_comparative(vc->n_seq, &(vc->params->model_details));
+          break;
+      }
+    }
+
+    pf = vc->exp_params;
     if(pf){
-      double kT = pf->kT;
+      kT = pf->kT;
+      md = &(pf->model_details);
 
       if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
         kT /= vc->n_seq;
 
-      vrna_md_t *md = &(pf->model_details);
       if(mfe){
         kT /= 1000.;
         pf->pf_scale = exp(-(md->sfact * *mfe)/ kT / vc->length);
@@ -716,13 +736,15 @@ rescale_params(vrna_fold_compound_t *vc){
   vrna_exp_param_t  *pf = vc->exp_params;
   vrna_mx_pf_t      *m  = vc->exp_matrices;
 
-  m->scale[0] = 1.;
-  m->scale[1] = (FLT_OR_DBL)(1./pf->pf_scale);
-  m->expMLbase[0] = 1;
-  m->expMLbase[1] = (FLT_OR_DBL)(pf->expMLbase / pf->pf_scale);
-  for (i=2; i<=vc->length; i++) {
-    m->scale[i] = m->scale[i/2]*m->scale[i-(i/2)];
-    m->expMLbase[i] = (FLT_OR_DBL)pow(pf->expMLbase, (double)i) * m->scale[i];
+  if(m && pf){
+    m->scale[0] = 1.;
+    m->scale[1] = (FLT_OR_DBL)(1./pf->pf_scale);
+    m->expMLbase[0] = 1;
+    m->expMLbase[1] = (FLT_OR_DBL)(pf->expMLbase / pf->pf_scale);
+    for (i=2; i<=vc->length; i++) {
+      m->scale[i] = m->scale[i/2]*m->scale[i-(i/2)];
+      m->expMLbase[i] = (FLT_OR_DBL)pow(pf->expMLbase, (double)i) * m->scale[i];
+    }
   }
 }
 

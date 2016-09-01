@@ -1,10 +1,14 @@
-/* Last changed Time-stamp: <95/07/12 19:49:53 ivo>*/
 /*
 	       Split Decomposition of Distance Matrices
 	     as described by H.J.Bandelt and A.W.M.Dress
 		       Adv Math, 92 (1992) p47
 		 c Peter Stadler and Ivo L. Hofacker
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

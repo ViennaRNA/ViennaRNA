@@ -5,7 +5,10 @@
                           Vienna RNA package
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -31,6 +34,8 @@
 
 #define PRIVATE  static
 #define PUBLIC
+
+#include "ViennaRNA/color_output.inc"
 
 /*@notnull@ @only@*/
 PUBLIC unsigned short xsubi[3];
@@ -91,13 +96,36 @@ vrna_realloc(void *p, unsigned size){
 PUBLIC void
 vrna_message_error(const char message[]){       /* output message upon error */
 
-  fprintf(stderr, "ERROR: %s\n", message);
+#ifndef WITHOUT_TTY_COLORS
+  if(isatty(fileno(stderr)))
+    fprintf(stderr, ANSI_COLOR_RED_B "ERROR: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT "%s" ANSI_COLOR_RESET "\n", message);
+  else
+#endif
+    fprintf(stderr, "ERROR: %s\n", message);
   exit(EXIT_FAILURE);
 }
 
 PUBLIC void
 vrna_message_warning(const char message[]){
-  fprintf(stderr, "WARNING: %s\n", message);
+#ifndef WITHOUT_TTY_COLORS
+  if(isatty(fileno(stderr)))
+    fprintf(stderr, ANSI_COLOR_MAGENTA_B "WARNING: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT "%s" ANSI_COLOR_RESET "\n", message);
+  else
+#endif
+    fprintf(stderr, "WARNING: %s\n", message);
+}
+
+PUBLIC void
+vrna_message_info(FILE *fp, const char message[]){
+  if(!fp)
+    fp = stdout;
+
+#ifndef WITHOUT_TTY_COLORS
+  if(isatty(fileno(fp)))
+    fprintf(fp, ANSI_COLOR_BLUE_B "%s" ANSI_COLOR_RESET "\n", message);
+  else
+#endif
+    fprintf(fp, "%s\n", message);
 }
 
 PRIVATE uint32_t
@@ -313,8 +341,17 @@ vrna_message_input_seq_simple(void){
 
 PUBLIC  void
 vrna_message_input_seq(const char *s){
-  printf("\n%s; @ to quit\n", s);
-  printf("%s%s\n", scale1, scale2);
+#ifndef WITHOUT_TTY_COLORS
+  if(isatty(fileno(stdout))){
+    printf("\n" ANSI_COLOR_CYAN "%s; @ to quit" ANSI_COLOR_RESET "\n", s);
+    printf(ANSI_COLOR_BRIGHT "%s%s" ANSI_COLOR_RESET "\n", scale1, scale2);
+  } else {
+#endif
+    printf("\n%s; @ to quit\n", s);
+    printf("%s%s\n", scale1, scale2);
+#ifndef WITHOUT_TTY_COLORS
+  }
+#endif
   (void) fflush(stdout);
 }
 

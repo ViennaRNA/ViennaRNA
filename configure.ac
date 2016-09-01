@@ -1,13 +1,15 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl Every other copy of the package version number gets its value from here
-AC_INIT([ViennaRNA],[2.2.8],[rna@tbi.univie.ac.at],[ViennaRNA], [http://www.tbi.univie.ac.at/RNA])
-AC_PREREQ([2.59])
+AC_INIT([ViennaRNA],[2.2.9],[rna@tbi.univie.ac.at],[ViennaRNA], [http://www.tbi.univie.ac.at/RNA])
+AC_PREREQ([2.60])
 AC_CONFIG_AUX_DIR(config)
 
 AC_SUBST(VERSION)
 
 AC_CONFIG_MACRO_DIR([m4])
+
+AC_USE_SYSTEM_EXTENSIONS
 
 dnl change the default installation prefix
 dnl AC_PREFIX_DEFAULT(/usr/local/RNA)

@@ -1,10 +1,13 @@
-/* Last changed Time-stamp: <2007-12-05 13:55:42 ronny> */
 /*
                   Ineractive Access to folding Routines
 
                   c Ivo L Hofacker
                   Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,8 +36,7 @@ static int ** read_plfold_i(char *fname, const int beg, const int end); /* read 
 static int ** read_rnaup(char *fname, const int beg, const int end);
 static int get_max_u(const char *s, char delim);
 extern int cut_point;
-/*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAfold.c,v 1.23 2007/12/05 13:04:08 ivo Exp $";
+
 
 #define PRIVATE static
 #define MAX_NUM_NAMES    500

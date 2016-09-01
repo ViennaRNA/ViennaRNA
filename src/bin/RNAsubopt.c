@@ -1,10 +1,14 @@
-/* Last changed Time-stamp: <2008-12-03 16:38:01 ivo> */
 /*
                 Ineractive access to suboptimal folding
 
                            c Ivo L Hofacker
                           Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <config.h>
 #include <assert.h>
 #include <stdio.h>
@@ -26,8 +30,7 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAsubopt_cmdl.h"
 
-/*@unused@*/
-static char UNUSED rcsid[] = "$Id: RNAsubopt.c,v 1.20 2008/12/03 16:55:44 ivo Exp $";
+#include "ViennaRNA/color_output.inc"
 
 static void
 add_shape_constraints(vrna_fold_compound_t *vc,
@@ -49,14 +52,19 @@ add_shape_constraints(vrna_fold_compound_t *vc,
   }
 
   if(verbose){
-    fprintf(stderr, "Using SHAPE method '%c'", method);
     if(method != 'W'){
+      char *msg = NULL;
       if(method == 'Z')
-        fprintf(stderr, " with parameter p1=%f", p1);
+        asprintf( &msg,
+                  "Using SHAPE method '%c' with parameter p1=%f",
+                  method, p1);
       else
-        fprintf(stderr, " with parameters p1=%f and p2=%f", p1, p2);
+        asprintf( &msg,
+                  "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
+                  method, p1, p2);
+      vrna_message_info(stderr, msg);
+      free(msg);
     }
-    fputc('\n', stderr);
   }
 
   sequence = vrna_alloc(sizeof(char) * (length + 1));
@@ -93,7 +101,8 @@ int main(int argc, char *argv[]){
   char            *constraints_file, *cstruc, *structure, *ParamFile, *ns_bases, *shape_file, *shape_method, *shape_conversion;
   int             i, length, l, cl, sym, istty;
   double          deltaf, deltap, betaScale;
-  int             delta, n_back, noconv, circular, dos, zuker, gquad, with_shapes, verbose, max_bp_span, enforceConstraints;
+  int             delta, n_back, noconv, circular, dos, zuker, gquad, with_shapes, verbose,
+                  max_bp_span, enforceConstraints, st_back_en;
   vrna_md_t       md;
 
   do_backtrack  = 1;
@@ -113,6 +122,7 @@ int main(int argc, char *argv[]){
   verbose       = 0;
   max_bp_span   = -1;
   enforceConstraints  = 0;
+  st_back_en          = 0;
 
   set_model_details(&md);
 
@@ -154,7 +164,7 @@ int main(int argc, char *argv[]){
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("Required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -187,6 +197,12 @@ int main(int argc, char *argv[]){
     n_back = args_info.stochBT_arg;
     vrna_init_rand();
     md.compute_bpp = 0;
+  }
+  if(args_info.stochBT_en_given){
+    n_back = args_info.stochBT_en_arg;
+    st_back_en      = 1;
+    md.compute_bpp  = 0;
+    vrna_init_rand();
   }
   if(args_info.betaScale_given)   md.betaScale = betaScale = args_info.betaScale_arg;
   /* density of states */
@@ -252,6 +268,23 @@ int main(int argc, char *argv[]){
       }
       c++;
     }
+    /* and again for md */
+    c=ns_bases;
+    i=sym=0;
+    if (*c=='-') {
+      sym=1; c++;
+    }
+    while (*c!='\0') {
+      if (*c!=',') {
+        md.nonstandards[i++]=*c++;
+        md.nonstandards[i++]=*c;
+        if ((sym)&&(*c!=*(c-1))) {
+          md.nonstandards[i++]=*c;
+          md.nonstandards[i++]=*(c-1);
+        }
+      }
+      c++;
+    }
   }
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
@@ -259,10 +292,10 @@ int main(int argc, char *argv[]){
   /* print user help if we get input from tty */
   if(istty){
     if(!zuker)
-      printf("Use '&' to connect 2 sequences that shall form a complex.\n");
+      print_comment(stdout, "Use '&' to connect 2 sequences that shall form a complex.");
     if(fold_constrained){
       vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK);
-      vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n");
+      vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint");
     }
     else vrna_message_input_seq_simple();
   }
@@ -314,14 +347,19 @@ int main(int argc, char *argv[]){
         cstruc = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc = vrna_cut_point_remove(cstruc, &cp);
         if(vc->cutpoint != cp){
-          fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
-          vrna_message_error("Sequence and Structure have different cut points.");
+          char *msg = NULL;
+          asprintf( &msg,
+                    "Sequence and Structure have different cut points.\n"
+                    "sequence: %d, structure: %d",
+                    vc->cutpoint, cp);
+          vrna_message_error(msg);
+          free(msg);
         }
         cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
-        if(cl == 0)           vrna_message_warning("structure constraint is missing");
-        else if(cl < length)  vrna_message_warning("structure constraint is shorter than sequence");
-        else if(cl > length)  vrna_message_error("structure constraint is too long");
+        if(cl == 0)           vrna_message_warning("Structure constraint is missing");
+        else if(cl < length)  vrna_message_warning("Structure constraint is shorter than sequence");
+        else if(cl > length)  vrna_message_error("Structure constraint is too long");
 
         if(cstruc){
           strncpy(structure, cstruc, sizeof(char)*(cl+1));
@@ -340,10 +378,13 @@ int main(int argc, char *argv[]){
       add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
 
     if(istty){
-      if (vc->cutpoint == -1)
-        printf("length = %d\n", length);
+      char *msg = NULL;
+      if (cut_point == -1)
+        asprintf(&msg, "length = %d", length);
       else
-        printf("length1 = %d\nlength2 = %d\n", vc->cutpoint - 1, length - vc->cutpoint + 1);
+        asprintf(&msg, "length1 = %d\nlength2 = %d", cut_point-1, length-cut_point+1);
+      vrna_message_info(stdout, msg);
+      free(msg);
     }
 
     /*
@@ -359,9 +400,15 @@ int main(int argc, char *argv[]){
 
     /* stochastic backtracking */
     if(n_back>0){
-      double mfe, kT;
+      double mfe, kT, ens_en;
       char *ss;
-      if (fname[0] != '\0') printf(">%s\n", fname);
+
+      if(vc->cutpoint != -1)
+        vrna_message_error("Boltzmann sampling for cofolded structures not implemented (yet)!");
+
+      if (fname[0] != '\0')
+        print_fasta_header(stdout, fname);
+      printf("%s\n", rec_sequence);
 
       ss = (char *) vrna_alloc(strlen(rec_sequence)+1);
       strncpy(ss, structure, length);
@@ -369,21 +416,34 @@ int main(int argc, char *argv[]){
       /* rescale Boltzmann factors according to predicted MFE */
       vrna_exp_params_rescale(vc, &mfe);
       /* ignore return value, we are not interested in the free energy */
-      (void)vrna_pf(vc, ss);
+      ens_en = vrna_pf(vc, ss);
+      kT = vc->exp_params->kT;
 
       free(ss);
+
       for (i=0; i<n_back; i++) {
-        char *s;
+        char *s, *e_string = NULL;
         s = vrna_pbacktrack(vc);
-        printf("%s\n", s);
+        if(st_back_en){
+          double e, prob;
+          e     = vrna_eval_structure(vc, s);
+          prob  = exp((ens_en - e)/kT);
+          asprintf(&e_string, " %6.2f %6g", e, prob);
+        }
+        print_structure(stdout, s, e_string);
         free(s);
+        free(e_string);
       }
     }
     /* normal subopt */
     else if(!zuker){
       /* first lines of output (suitable  for sort +1n) */
-      if (fname[0] != '\0')
-        printf("> %s [%d]\n", fname, delta);
+      if (fname[0] != '\0'){
+        char *head = NULL;
+        asprintf(&head, "%s [%d]", fname, delta);
+        print_fasta_header(stdout, head);
+        free(head);
+      }
 
       vrna_subopt(vc, delta, subopt_sorted, stdout);
 
@@ -399,11 +459,13 @@ int main(int argc, char *argv[]){
       vrna_subopt_solution_t *zr;
 
       if (vc->cutpoint != -1) {
-        vrna_message_error("Sorry, zuker subopts not yet implemented for cofold\n");
+        vrna_message_error("Sorry, zuker subopts not yet implemented for cofold");
       }
 
       int i;
-      if (fname[0] != '\0') printf(">%s\n%s\n", fname, rec_sequence);
+      if (fname[0] != '\0')
+        print_fasta_header(stdout, fname);
+      printf("%s\n", rec_sequence);
 
       zr = vrna_subopt_zuker(vc);
 
@@ -437,22 +499,29 @@ int main(int argc, char *argv[]){
     /* print user help for the next round if we get input from tty */
     if(istty){
       if(!zuker)
-        printf("Use '&' to connect 2 sequences that shall form a complex.\n");
+        print_comment(stdout, "Use '&' to connect 2 sequences that shall form a complex.");
       if(fold_constrained){
         vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK);
-        vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n");
+        vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint");
       }
       else vrna_message_input_seq_simple();
     }
   }
+
+  free(shape_method);
+  free(shape_conversion);
+
   return EXIT_SUCCESS;
 }
 
 PRIVATE void putoutzuker(vrna_subopt_solution_t* zukersolution) {
-  int i;
-  printf("%s [%.2f]\n",zukersolution[0].structure,zukersolution[0].energy/100.);
-  for(i=1; zukersolution[i].structure; i++) {
-    printf("%s [%.2f]\n", zukersolution[i].structure, zukersolution[i].energy/100.);
+  int   i;
+  char  *e_string = NULL;
+
+  for(i=0; zukersolution[i].structure; i++) {
+    asprintf(&e_string, " [%6.2f]", zukersolution[i].energy/100.);
+    print_structure(stdout, zukersolution[i].structure, e_string);
+    free(e_string);
   }
   return;
 }

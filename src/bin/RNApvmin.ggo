@@ -38,15 +38,16 @@ details="The following methods can be used to convert SHAPE reactivities into th
 'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
 'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
 'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
-'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n"
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
 string
 typestr="M/C/S/L/O  + [optional parameters]"
 default="O"
 optional
 
 option  "tauSigmaRatio"  -
-"Ratio of the weighting factors tau and sigma. A high ratio will lead to a solution as close as possible to the experimental data, \
-while a low ratio will lead to results close to the thermodynamic prediction without guiding pseudo energies."
+"Ratio of the weighting factors tau and sigma.\n"
+details="A high ratio will lead to a solution as close as possible to the experimental data, \
+while a low ratio will lead to results close to the thermodynamic prediction without guiding pseudo energies.\n\n"
 double
 default="1.0"
 optional
@@ -55,7 +56,7 @@ option "objectiveFunction"  -
 "The energies of the perturbation vector and the discripancies between predicted and observed pairing probabilities contribute to the objective \
 function. This parameter defines, which function is used to process the contributions before summing them up.
 0 square
-1 absolute"
+1 absolute\n\n"
 int
 default="0"
 optional
@@ -64,21 +65,21 @@ option  "sampleSize"  -
 "The iterative minimization process requires to evaluate the gradient of the objective function. \
 A sample size of 0 leads to an analytical evaluation which scales as O(N^4). \
 Choosing a sample size >0 estimates the gradient by sampling the given number of sequences from the ensemble, \
-which is much faster."
+which is much faster.\n\n"
 int
 default="1000"
 optional
 
 option  "intermediatePath"  -
 "Write an output file for each iteration of the minimization process. Each file contains the used perturbation vector and the score \
-of the objective function. The number of the iteration will be appended to the given path."
+of the objective function. The number of the iteration will be appended to the given path.\n\n"
 string
 optional
 
 option  "initialVector"  -
 "Defines the initial perturbation vector which will be used as starting vector for the minimization process. \
 The value 0 results in a null vector. Every other value x will be used to populate the initial vector with \
-random numbers from the interval [-x,x]."
+random numbers from the interval [-x,x].\n\n"
 double
 default="0"
 optional
@@ -87,35 +88,35 @@ option  "minimizer"  -
 "Set the minimizing algorithm used for finding an appropriate perturbation vector. \
 The default option uses a custom implementation of the gradient descent algorithms while all \
 other options represent various algorithms implemented in the GNU Scientific Library. \
-When the GNU Scientific Library can not be found, only the default minimizer is available."
+When the GNU Scientific Library can not be found, only the default minimizer is available.\n\n"
 enum
 values="conjugate_fr","conjugate_pr","vector_bfgs", "vector_bfgs2", "steepest_descent", "default"
 default="default"
 optional
 
 option  "initialStepSize" -
-"The initial stepsize for the minimizer methods\n"
+"The initial stepsize for the minimizer methods\n\n"
 double
 default="0.01"
 optional
 hidden
 
 option  "minStepSize" -
-"The minimal stepsize for the minizimer methods\n"
+"The minimal stepsize for the minizimer methods\n\n"
 double
 default="1e-15"
 optional
 hidden
 
 option  "minImprovement" -
-"The minimal improvement in the default minizimer method that has to be surpassed to considered a new result a better one\n"
+"The minimal improvement in the default minizimer method that has to be surpassed to considered a new result a better one\n\n"
 double
 default="1e-3"
 optional
 hidden
 
 option  "minimizerTolerance" -
-"The tolerance to be used in the GSL minimizer methods\n"
+"The tolerance to be used in the GSL minimizer methods\n\n"
 double
 default="1e-3"
 optional
@@ -126,9 +127,9 @@ section "Model Details"
 
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
- overflows)."
+ overflows).\n"
 details="Useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences."
+ for long sequences.\n\n"
 double
 typestr="scaling factor"
 default="1.07"
@@ -203,7 +204,7 @@ optional
 hidden
 
 option  "maxBPspan" -
-"Set the maximum base pair span\n"
+"Set the maximum base pair span\n\n"
 int
 default="-1"
 optional

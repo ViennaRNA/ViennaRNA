@@ -2,9 +2,10 @@
                                aln_util.c
                Helper functions frelated to alignments
 */
-/* Last changed Time-stamp: <2006-01-16 11:42:38 ivo> */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

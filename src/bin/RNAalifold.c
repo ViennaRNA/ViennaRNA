@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <2009-02-24 14:49:24 ivo> */
 /*
                   Access to alifold Routines
 
@@ -6,12 +5,17 @@
                   Vienna RNA package
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
+#include <limits.h>
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/fold_vars.h"
@@ -20,6 +24,7 @@
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params.h"
@@ -27,16 +32,14 @@
 #include "ViennaRNA/constraints_SHAPE.h"
 #include "RNAalifold_cmdl.h"
 
-/*@unused@*/
-static const char rcsid[] = "$Id: RNAalifold.c,v 1.23 2009/02/24 14:21:26 ivo Exp $";
-
-#define MAX_NUM_NAMES    500
+#include "ViennaRNA/color_output.inc"
 
 PRIVATE char  **annote(const char *structure, const char *AS[]);
 PRIVATE void  print_pi(const vrna_pinfo_t pi, FILE *file);
 PRIVATE void  print_aliout(vrna_fold_compound_t *vc, plist *pl, double threshold, char * mfe, FILE *aliout);
 PRIVATE void  mark_endgaps(char *seq, char egap);
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, int n_seq, plist *mfel);
+PRIVATE void  dot_bracketify(char *string);
 
 PRIVATE void
 add_shape_constraints(vrna_fold_compound_t *vc,
@@ -55,14 +58,19 @@ add_shape_constraints(vrna_fold_compound_t *vc,
   }
 
   if(verbose){
-    fprintf(stderr, "Using SHAPE method '%c'", method);
     if(method != 'W'){
-      if(method == 'C')
-        fprintf(stderr, " with parameter p1=%f", p1);
+      char *msg = NULL;
+      if(method == 'Z')
+        asprintf( &msg,
+                  "Using SHAPE method '%c' with parameter p1=%f",
+                  method, p1);
       else
-        fprintf(stderr, " with parameters p1=%f and p2=%f", p1, p2);
+        asprintf( &msg,
+                  "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
+                  method, p1, p2);
+      vrna_message_info(stderr, msg);
+      free(msg);
     }
-    fputc('\n', stderr);
   }
 
   if(method == 'D'){
@@ -73,25 +81,26 @@ add_shape_constraints(vrna_fold_compound_t *vc,
 
 /*--------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
-  struct        RNAalifold_args_info args_info;
-  unsigned int  input_type, options, constraint_options, longest_string;
-  char          *input_string, *string, *structure, *cstruc, *ParamFile, *ns_bases, *c;
-  int           s, n_seq, i, length, sym, noPS, with_shapes, verbose, with_sci;
-  int           endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, eval_energy, pf, istty;
-  double        min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
-  char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
-  char          *names[MAX_NUM_NAMES];       /* sequence names */
-  char          *constraints_file, **shape_files, *shape_method;
-  char          *filename_plot, *filename_dot, *filename_aln, *filename_out, *prefix;
-  int           *shape_file_association;
-  char          *tmp_string;
-  int           tmp_number;
-  FILE          *clust_file = stdin;
-  vrna_exp_param_t  *pf_parameters;
-  vrna_md_t     md;
+  struct RNAalifold_args_info args_info;
+  FILE                        *clust_file;
+  unsigned int                input_type, options, constraint_options, longest_string,
+                              input_format_options;
+  char                        *input_string, *string, *structure, *cstruc, *ParamFile,
+                              *ns_bases, *c, **AS, **names, *constraints_file, **shape_files,
+                              *shape_method, *filename_plot, *filename_dot, *filename_aln,
+                              *filename_out, *filename_in, *tmp_id, *tmp_structure,
+                              *tmp_string, **input_files, *id_prefix;
+  int                         s, n_seq, i, length, sym, noPS, with_shapes, verbose, with_sci,
+                              endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
+                              istty_in, eval_energy, pf, istty, *shape_file_association,
+                              tmp_number, batch, continuous_names, id_digits, auto_id,
+                              input_file_num, consensus_constraint;
+  long int                    alignment_number;
+  double                      min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
+  vrna_md_t                   md;
+  vrna_fold_compound_t        *vc;
 
   string = structure = cstruc = ParamFile = ns_bases = NULL;
-  pf_parameters = NULL;
   endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = noPS = 0;
   do_backtrack            = 1;
   dangles                 = 2;
@@ -107,13 +116,26 @@ int main(int argc, char *argv[]){
   max_bp_span             = -1;
   verbose                 = 0;
   with_sci                = 0;
+  batch                   = 0;
   constraints_file        = NULL;
-  prefix                  = NULL;
   filename_plot           = NULL;
   filename_dot            = NULL;
   filename_aln            = NULL;
   filename_out            = NULL;
-
+  filename_in             = NULL;
+  input_files             = NULL;
+  tmp_id                  = NULL;
+  tmp_structure           = NULL;
+  input_format_options    = VRNA_FILE_FORMAT_MSA_CLUSTAL; /* default to ClustalW format */
+  vc                      = NULL;
+  alignment_number        = 0;
+  clust_file              = stdin;
+  continuous_names        = 0;
+  id_digits            = 4;
+  auto_id                 = 0;
+  id_prefix               = NULL;
+  input_file_num          = 0;
+  consensus_constraint    = 0;
   set_model_details(&md);
 
   /*
@@ -131,13 +153,17 @@ int main(int argc, char *argv[]){
     if(args_info.constraint_arg[0] != '\0')
       constraints_file = strdup(args_info.constraint_arg);
   }
+  if(args_info.SS_cons_given){
+    fold_constrained      = 1;
+    consensus_constraint  = 1;
+  }
   /* do not take special tetra loop energies into account */
   if(args_info.noTetra_given)
     md.special_hp = tetra_loop = 0;
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning("Dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -165,7 +191,7 @@ int main(int argc, char *argv[]){
     ns_bases = strdup(args_info.nsp_arg);
   /* set pf scaling factor */
   if(args_info.pfScale_given)
-    sfact = args_info.pfScale_arg;
+    md.sfact = sfact = args_info.pfScale_arg;
   /* assume RNA sequence to be circular */
   if(args_info.circ_given)
     md.circ = circular = 1;
@@ -242,7 +268,7 @@ int main(int argc, char *argv[]){
   /* SHAPE reactivity data */
   if(args_info.shape_given){
     if(verbose)
-      fprintf(stderr, "SHAPE reactivity data correction activated\n");
+      vrna_message_info(stderr, "SHAPE reactivity data correction activated");
 
     with_shapes             = 1;
     shape_files             = (char **)vrna_alloc(sizeof(char*) * (args_info.shape_given + 1));
@@ -266,8 +292,15 @@ int main(int argc, char *argv[]){
         shape_files[s] = strdup(args_info.shape_arg[s]);
         shape_file_association[s] = s;
       }
-      if(verbose)
-        fprintf(stderr, "using SHAPE reactivity data provided in file %s for sequence %d\n", shape_files[s], shape_file_association[s]+1);
+      if(verbose){
+        char *msg = NULL;
+        asprintf( &msg,
+                  "Using SHAPE reactivity data provided in file %s for sequence %d",
+                  shape_files[s],
+                  shape_file_association[s]+1);
+        vrna_message_info(stderr, msg);
+        free(msg);
+      }
     }
     
     shape_file_association[s] = -1;
@@ -281,19 +314,92 @@ int main(int argc, char *argv[]){
 
   /* alignment file name given as unnamed option? */
   if(args_info.inputs_num == 1){
-    clust_file = fopen(args_info.inputs[0], "r");
+    filename_in = strdup(args_info.inputs[0]);
+    clust_file  = fopen(filename_in, "r");
     if (clust_file == NULL) {
-      fprintf(stderr, "can't open %s\n", args_info.inputs[0]);
+      fprintf(stderr, "unable to open %s\n", filename_in);
+      vrna_message_error("Input file can't be read!");
     }
+
+    /*
+        Use default alignment file formats.
+        This may be overridden when we parse the
+        --input-format parameter below
+    */
+    input_format_options  = VRNA_FILE_FORMAT_MSA_DEFAULT;
+
   }
-  
-  if(args_info.outfile_prefix_given){
-    prefix = strdup(args_info.outfile_prefix_arg);
+
+  /* get all input file name(s) */
+  if(args_info.inputs_num > 0){
+    input_files = (char **)vrna_realloc(input_files, sizeof(char *) * args_info.inputs_num);
+    for(i = 0; i < args_info.inputs_num; i++){
+      input_files[input_file_num++] = strdup(args_info.inputs[i]);
+    }
   }
 
   /* sci computation */
   if(args_info.sci_given)
     with_sci = 1;
+
+  if(args_info.input_format_given){
+    switch(args_info.input_format_arg[0]){
+      case 'C': /* ClustalW format */
+        input_format_options  = VRNA_FILE_FORMAT_MSA_CLUSTAL;
+        break;
+
+      case 'S': /* Stockholm 1.0 format */
+        input_format_options  = VRNA_FILE_FORMAT_MSA_STOCKHOLM;
+        break;
+
+      case 'F': /* FASTA format */
+        input_format_options  = VRNA_FILE_FORMAT_MSA_FASTA;
+        break;
+
+      case 'M': /* MAF format */
+        input_format_options  = VRNA_FILE_FORMAT_MSA_MAF;
+        break;
+
+      default:
+        vrna_message_warning("Unknown input format specified");
+        break;
+    }
+  }
+
+  /* do batch jobs despite constraints read from input file */
+  if(args_info.batch_given)
+    batch = 1;
+
+  /* do not treat first alignment special */
+  if(args_info.continuous_ids_given)
+    continuous_names = 1;
+
+  /* do not use IDs from input file */
+  if(args_info.auto_id_given)
+    auto_id = 1;
+
+  if(args_info.id_prefix_given){
+    id_prefix   = strdup(args_info.id_prefix_arg);
+  } else {
+    id_prefix = strdup("alignment");
+  }
+
+  /* set width of alignment number in the output */
+  if(args_info.id_digits_given){
+    if((args_info.id_digits_arg > 0) && (args_info.id_digits_arg < 19))
+      id_digits = args_info.id_digits_arg;
+    else
+      vrna_message_warning("ID number width out of allowed range! Using defaults...");
+  }
+
+  /* set first alignment number in the output */
+  if(args_info.id_start_given){
+    if((args_info.id_start_arg >= 0) && (args_info.id_start_arg <= LONG_MAX)){
+      alignment_number = args_info.id_start_arg - 1;
+      continuous_names = 1;
+    } else
+      vrna_message_warning("ID number start out of allowed range! Using defaults...");
+  }
 
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free (&args_info);
@@ -303,6 +409,10 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
+  istty     = isatty(fileno(stdout))&&isatty(fileno(stdin));
+  istty_out = isatty(fileno(stdout));
+  istty_in  = isatty(fileno(stdin)) && (!filename_in);
+
   if(circular && gquad){
     vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
   }
@@ -310,137 +420,221 @@ int main(int argc, char *argv[]){
   make_pair_matrix(); /* for make_color_pinfo */
 
   if (circular && noLonelyPairs)
-    vrna_message_warning("depending on the origin of the circular sequence, "
+    vrna_message_warning("Depending on the origin of the circular sequence, "
               "some structures may be missed when using --noLP\n"
               "Try rotating your sequence a few times\n");
 
-  if (ParamFile != NULL) read_parameter_file(ParamFile);
+  if (ParamFile != NULL)
+    read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = vrna_alloc(33);
-    c=ns_bases;
-    i=sym=0;
-    if (*c=='-') {
-      sym=1; c++;
-    }
-    while (*c!='\0') {
-      if (*c!=',') {
-        nonstandards[i++]=*c++;
-        nonstandards[i++]=*c;
-        if ((sym)&&(*c!=*(c-1))) {
-          nonstandards[i++]=*c;
-          nonstandards[i++]=*(c-1);
-        }
-      }
-      c++;
-    }
+    vrna_md_set_nonstandards(&md, ns_bases);
   }
-
-  istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
   /*
   ########################################################
   # handle user input from 'stdin' if necessary
   ########################################################
   */
-  if(fold_constrained && !constraints_file){
-    if(istty){
+  if(filename_in){
+    unsigned int format_guess = vrna_file_msa_detect_format(filename_in, input_format_options);
+    if(format_guess == VRNA_FILE_FORMAT_MSA_UNKNOWN){
+      char *format = NULL;
+      char *msg = NULL;
+      switch(input_format_options){
+        case VRNA_FILE_FORMAT_MSA_CLUSTAL:
+          asprintf(&format, "Clustal");
+          break;
+        case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
+          asprintf(&format, "Stockholm");
+          break;
+        case VRNA_FILE_FORMAT_MSA_FASTA:
+          asprintf(&format, "FASTA");
+          break;
+        case VRNA_FILE_FORMAT_MSA_MAF:
+          asprintf(&format, "MAF");
+          break;
+        default:
+          asprintf(&format, "Unknown");
+          break;
+      }
+      asprintf( &msg,
+                "Your input file is missing sequences! Either your file is empty, or not in %s format!",
+                format);
+      vrna_message_error(msg);
+      free(format);
+      free(msg);
+    }
+
+    input_format_options = format_guess;
+  }
+
+  if(fold_constrained && (!constraints_file) && (!consensus_constraint)){
+    if(isatty(fileno(stdin))){
       vrna_message_constraint_options_all();
       vrna_message_input_seq("");
     }
+    input_string = NULL;
     input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
     if(input_type & VRNA_INPUT_QUIT){ return 0;}
     else if((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)){
       cstruc = strdup(input_string);
       free(input_string);
     }
-    else vrna_message_warning("constraints missing");
   }
 
-  if (istty && (clust_file == stdin))
-    vrna_message_input_seq("Input aligned sequences in clustalw or stockholm format\n(enter a line starting with \"//\" to indicate the end of your input)");
+  long int first_alignment_number = alignment_number;
 
-  n_seq = read_clustal(clust_file, AS, names);
-  if (n_seq==0) vrna_message_error("no sequences found");
+  while(!feof(clust_file)){
+    char *MSA_ID = NULL;
+    fflush(stdout);
+    if (istty && (clust_file == stdin)){
+      switch(input_format_options){
+        case VRNA_FILE_FORMAT_MSA_CLUSTAL:
+          vrna_message_input_seq( "Input aligned sequences in ClustalW format\n"
+                                  "press Ctrl+d when finished to indicate the end of your input)");
+          break;
 
-  if(with_shapes){
-    
-    if(s != n_seq)
-      vrna_message_warning("number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
+        case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
+          vrna_message_input_seq( "Input aligned sequences in Stockholm format (Insert one alignment at a time!)\n"
+                                  "press Ctrl+d when finished to indicate the end of your input)");
+          break;
 
-    shape_files             = (char **)vrna_realloc(shape_files, (n_seq + 1) * sizeof(char *));
-    shape_file_association  = (int *)vrna_realloc(shape_file_association, (n_seq + 1) * sizeof(int));
+        case VRNA_FILE_FORMAT_MSA_FASTA:
+          vrna_message_input_seq( "Input aligned sequences in FASTA format\n"
+                                  "press Ctrl+d when finished to indicate the end of your input)");
+          break;
 
-  }
+        case VRNA_FILE_FORMAT_MSA_MAF:
+          vrna_message_input_seq( "Input aligned sequences in MAF format (Insert one alignment at a time!)\n"
+                                  "press Ctrl+d when finished to indicate the end of your input)");
+          break;
 
-  if (clust_file != stdin) fclose(clust_file);
-  /*
-  ########################################################
-  # done with 'stdin' handling, now init everything properly
-  ########################################################
-  */
+        default:
+          vrna_message_error("Which input format are you using?");
+          break;
+      }
+    }
 
-  length    = (int)   strlen(AS[0]);
-  structure = (char *)vrna_alloc((unsigned)length + 1);
+    /* read the first record from input file */
+    n_seq = vrna_file_msa_read_record(clust_file, &names, &AS, &tmp_id, &tmp_structure, input_format_options);
+    fflush(stdout);
+    fflush(stderr);
 
-  if(fold_constrained && cstruc != NULL)
-    strncpy(structure, cstruc, length);
+    if(n_seq <= 0){ /* skip empty alignments */
+      free(names);
+      free(AS);
+      free(tmp_id);
+      free(tmp_structure);
+      names         = NULL;
+      AS            = NULL;
+      tmp_id        = NULL;
+      tmp_structure = NULL;
+      continue;
+    }
 
-  if (endgaps)
-    for (i=0; i<n_seq; i++) mark_endgaps(AS[i], '~');
+    if(alignment_number == LONG_MAX){
+      vrna_message_warning("Alignment ID number overflow, beginning with 1 (again)!");
+      alignment_number = 1;
+    } else
+      alignment_number++;
 
-  /*
-  ########################################################
-  # begin actual calculations
-  ########################################################
-  */
-  options = VRNA_OPTION_MFE;
+    /* construct alignment ID */
+    if(tmp_id && (!auto_id)){ /* we've read an ID from file, so we use it */
+      MSA_ID = strdup(tmp_id);
+    } else if(auto_id || (alignment_number > 1) || continuous_names){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
+      asprintf(&MSA_ID, "%s_%0*ld", id_prefix, id_digits, alignment_number);
+    }
 
-  if(pf)
-    options |= VRNA_OPTION_PF;
-
-  vrna_fold_compound_t *vc = vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
-
-  if(fold_constrained){
-    if(constraints_file){
-      vrna_constraints_add(vc, constraints_file, 0);
+    /* construct output file names */
+    if(MSA_ID){ /* construct file names */
+      int l = strlen(MSA_ID);
+      filename_plot = (char *)vrna_alloc((l + 7) * sizeof(char));
+      filename_dot  = (char *)vrna_alloc((l + 7) * sizeof(char));
+      filename_aln  = (char *)vrna_alloc((l + 8) * sizeof(char));
+      filename_out  = (char *)vrna_alloc((l + 9) * sizeof(char));
+      strncpy(filename_plot, MSA_ID, l);
+      strncpy(filename_dot, MSA_ID, l);
+      strncpy(filename_aln, MSA_ID, l);
+      strncpy(filename_out, MSA_ID, l);
+      strcat(filename_plot, "_ss.ps");
+      strcat(filename_dot, "_dp.ps");
+      strcat(filename_aln, "_aln.ps");
+      strcat(filename_out, "_ali.out");
     } else {
-      constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
-
-      vrna_constraints_add(vc, (const char *)structure, constraint_options);
+      filename_plot = (char *)vrna_alloc((10) * sizeof(char));
+      filename_dot  = (char *)vrna_alloc((10) * sizeof(char));
+      filename_aln  = (char *)vrna_alloc((7) * sizeof(char));
+      filename_out  = (char *)vrna_alloc((12) * sizeof(char));
+      strcpy(filename_plot, "alirna.ps");
+      strcpy(filename_dot, "alidot.ps");
+      strcpy(filename_aln, "aln.ps");
+      strcpy(filename_out, "alifold.out");
     }
-  }
 
-  if(with_shapes)
-    add_shape_constraints(vc, \
-                          shape_method, \
-                          (const char **)shape_files, \
-                          shape_file_association, \
-                          verbose, \
-                          VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+    /*
+    ##############################################################
+    # done with retrieving alignment, now init everything properly
+    ##############################################################
+    */
 
-  min_en = vrna_mfe(vc, structure);
+    length    = (int)   strlen(AS[0]);
+    structure = (char *)vrna_alloc((unsigned)length + 1);
 
-  if(md.circ){
-    int     i;
-    double  s = 0;
-    for (i=0; AS[i]!=NULL; i++){
-      vrna_fold_compound_t *vc_tmp = vrna_fold_compound(AS[i], &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
-      s += vrna_eval_structure(vc_tmp, structure);
-      vrna_fold_compound_free(vc_tmp);
+    if(endgaps)
+      for (i=0; i<n_seq; i++) mark_endgaps(AS[i], '~');
+
+    /*
+    ########################################################
+    # begin actual calculations
+    ########################################################
+    */
+    options = VRNA_OPTION_MFE;
+
+    if(pf)
+      options |= VRNA_OPTION_PF;
+
+    vc = vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_DEFAULT);
+
+    if(fold_constrained){
+      if(cstruc){
+        strncpy(structure, cstruc, length);
+        vrna_constraints_add(vc, (const char *)structure, VRNA_CONSTRAINT_DB_DEFAULT);
+      } else if(constraints_file){
+        vrna_constraints_add(vc, constraints_file, 0);
+      } else if(tmp_structure){
+        dot_bracketify(tmp_structure);
+        vrna_constraints_add(vc, (const char *)tmp_structure, VRNA_CONSTRAINT_DB_DEFAULT);
+      } else
+        vrna_message_warning("Constraint missing");
     }
-    real_en   = s/i;
-  } else {
-    real_en       = vrna_eval_structure(vc, structure);
-  }
 
-  string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
-  printf("%s\n%s", string, structure);
+    if(with_shapes){
+      for(s = 0; shape_file_association[s] != -1; s++);
 
-  if(istty){
+      if(s != n_seq)
+        vrna_message_warning("Number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
+
+      shape_files             = (char **)vrna_realloc(shape_files, (n_seq + 1) * sizeof(char *));
+      shape_file_association  = (int *)vrna_realloc(shape_file_association, (n_seq + 1) * sizeof(int));
+    }
+
+    if(with_shapes)
+      add_shape_constraints(vc, \
+                            shape_method, \
+                            (const char **)shape_files, \
+                            shape_file_association, \
+                            verbose, \
+                            VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+    min_en  = vrna_mfe(vc, structure);
+    real_en = vrna_eval_structure(vc, structure);
+
+    string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
+
+    float sci = min_en;
+    float e_mean = 0;
+
     if(with_sci){
-      float sci = min_en;
-      float e_mean = 0;
       for (i=0; AS[i]!=NULL; i++){
         char *seq = get_ungapped_sequence(AS[i]);
         e_mean    += vrna_fold(seq, NULL);
@@ -448,202 +642,302 @@ int main(int argc, char *argv[]){
       }
       e_mean  /= i;
       sci     /= e_mean;
-
-      printf( "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)"
-              "\n SCI = %2.4f\n",
-              min_en, real_en, min_en-real_en, sci);
-    } else
-      printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n",
-             min_en, real_en, min_en - real_en);
-  } else {
-    if(with_sci){
-      float sci = min_en;
-      float e_mean = 0;
-      for (i=0; AS[i]!=NULL; i++){
-        char *seq = get_ungapped_sequence(AS[i]);
-        e_mean    += fold(seq, NULL);
-        free(seq);
-      }
-      e_mean  /= i;
-      sci     /= e_mean;
-
-      printf(" (%6.2f = %6.2f + %6.2f) [sci = %2.4f]\n", min_en, real_en, min_en-real_en, sci);
     }
-    else
-      printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
-  }
 
-  if(prefix){
-    int l = strlen(prefix);
-    filename_plot = (char *)vrna_alloc((l + 7) * sizeof(char));
-    filename_dot  = (char *)vrna_alloc((l + 7) * sizeof(char));
-    filename_aln  = (char *)vrna_alloc((l + 8) * sizeof(char));
-    filename_out  = (char *)vrna_alloc((l + 9) * sizeof(char));
-    strncpy(filename_plot, prefix, l);
-    strncpy(filename_dot, prefix, l);
-    strncpy(filename_aln, prefix, l);
-    strncpy(filename_out, prefix, l);
-    strcat(filename_plot, "_ss.ps");
-    strcat(filename_dot, "_dp.ps");
-    strcat(filename_aln, "_aln.ps");
-    strcat(filename_out, "_ali.out");
-  } else {
-    filename_plot = (char *)vrna_alloc((10) * sizeof(char));
-    filename_dot  = (char *)vrna_alloc((10) * sizeof(char));
-    filename_aln  = (char *)vrna_alloc((7) * sizeof(char));
-    filename_out  = (char *)vrna_alloc((12) * sizeof(char));
-    strcpy(filename_plot, "alirna.ps");
-    strcpy(filename_dot, "alidot.ps");
-    strcpy(filename_aln, "aln.ps");
-    strcpy(filename_out, "alifold.out");
-  }
+    print_fasta_header(stdout, MSA_ID);
+    fprintf(stdout, "%s\n", string);
+    char *energy_string = NULL;
+    if(istty_in){
+      if(with_sci){
+        asprintf( &energy_string,
+                  "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n SCI = %2.4f",
+                  min_en, real_en, min_en-real_en, sci);
+      } else {
+        asprintf( &energy_string,
+                  "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)",
+                  min_en, real_en, min_en - real_en);
+      }
+    } else {
+      if(with_sci){
+        asprintf( &energy_string,
+                  " (%6.2f = %6.2f + %6.2f) [sci = %2.4f]",
+                  min_en, real_en, min_en-real_en, sci);
+      } else {
+        asprintf( &energy_string,
+                  " (%6.2f = %6.2f + %6.2f)",
+                  min_en, real_en, min_en-real_en);
+      }
+    }
 
-  if (!noPS) {
-    char **A;
-    A = annote(structure, (const char**) AS);
+    print_structure(stdout, structure, energy_string);
 
-    if (doColor)
-      (void) vrna_file_PS_rnaplot_a(string, structure, filename_plot, A[0], A[1], &md);
-    else
-      (void) vrna_file_PS_rnaplot_a(string, structure, filename_plot, NULL, A[1], &md);
+    free(energy_string);
 
-    free(A[0]); free(A[1]); free(A);
-  }
-  if (doAlnPS)
-    PS_color_aln(structure, filename_aln, (const char **) AS, (const char **) names);
+    if (!noPS) {
+      char **A;
+      A = annote(structure, (const char**) AS);
 
-  /* free mfe arrays */
-  vrna_mx_mfe_free(vc);
+      if (doColor)
+        (void) vrna_file_PS_rnaplot_a(string, structure, filename_plot, A[0], A[1], &md);
+      else
+        (void) vrna_file_PS_rnaplot_a(string, structure, filename_plot, NULL, A[1], &md);
 
-  if (pf) {
-    float energy, kT;
-    char * mfe_struc;
+      free(A[0]); free(A[1]); free(A);
+    }
+    if (doAlnPS)
+      PS_color_aln(structure, filename_aln, (const char **) AS, (const char **) names);
 
-    mfe_struc = strdup(structure);
+    /* free mfe arrays */
+    vrna_mx_mfe_free(vc);
 
-    kT = (betaScale*((temperature+K0)*GASCONST))/1000.; /* in Kcal */
-    pf_scale = exp(-(sfact*min_en)/kT/length);
-    if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
-    fflush(stdout);
+    if (pf) {
+      float energy, kT;
+      char * mfe_struc;
 
-    if (cstruc!=NULL) strncpy(structure, cstruc, length+1);
+      mfe_struc = strdup(structure);
 
-    /* rescale energy parameters according to above calculated pf_scale */
-    pf_parameters = vrna_exp_params_comparative(n_seq, &md);
-    pf_parameters->pf_scale = pf_scale;
+      vrna_exp_params_rescale(vc, &min_en);
+      pf_scale = vc->exp_params->pf_scale;
 
-    /* change energy parameters in vc */
-    vrna_exp_params_subst(vc, pf_parameters);
 
-    energy = vrna_pf(vc, structure);
+      kT = vc->exp_params->kT/1000.;
 
-    if (n_back>0) {
-      /*stochastic sampling*/
-      for (i=0; i<n_back; i++) {
-        char *s;
+      if (length>2000){
+        char *msg = NULL;
+        asprintf(&msg, "scaling factor %f\n", vc->exp_params->pf_scale);
+        vrna_message_info(stderr, msg);
+        free(msg);
+      }
+
+      fflush(stdout);
+
+      if (cstruc!=NULL) strncpy(structure, cstruc, length+1);
+
+      energy = vrna_pf(vc, structure);
+
+
+      if (n_back>0) {
+        /*stochastic sampling*/
+        for (i=0; i<n_back; i++) {
+          char *s, *e_string = NULL;
+
 #if CHECK_PROBABILITIES
-        double prob2, prob=1.;
-        s = alipbacktrack(&prob);
-        double e  = (double)vrna_eval_structure(vc, s);
-        e -= (double)vrna_eval_covar_structure(vc, s);
-        prob2 = exp((energy - e)/kT);
-        printf("%s ", s);
-        if (eval_energy ) printf("%6g (%6g) %.2f (%.2f) ",prob, prob2, -1*(kT*log(prob)-energy), e);
-        printf("\n");
-#else
-        double prob=1.;
-        s = vrna_pbacktrack(vc);
-
-        printf("%s ", s);
-        if (eval_energy ){
+          double prob2, prob=1.;
+          s = alipbacktrack(&prob);
           double e  = (double)vrna_eval_structure(vc, s);
           e -= (double)vrna_eval_covar_structure(vc, s);
-          prob = exp((energy - e)/kT);
-          printf("%6g %.2f  ",prob, -1*(kT*log(prob)-energy));
-        }
-        printf("\n");
+          prob2 = exp((energy - e)/kT);
+          if(eval_energy)
+            asprintf(&e_string, " %6g (%6g) %.2f (%.2f)", prob, prob2, -1*(kT*log(prob)-energy), e);
+#else
+          double prob=1.;
+          s = vrna_pbacktrack(vc);
+
+          if (eval_energy ){
+            double e  = (double)vrna_eval_structure(vc, s);
+            e -= (double)vrna_eval_covar_structure(vc, s);
+            prob = exp((energy - e)/kT);
+            asprintf(&e_string, " %6g %.2f", prob, -1*(kT*log(prob)-energy));
+          }
 #endif
-         free(s);
+          print_structure(stdout, s, e_string);
+          free(s);
+          free(e_string);
+        }
+
       }
 
-    }
-    if (do_backtrack) {
-      printf("%s", structure);
-      if (!istty) printf(" [%6.2f]\n", energy);
-      else printf("\n");
-    }
-    if ((istty)||(!do_backtrack))
-      printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
-    printf(" frequency of mfe structure in ensemble %g\n",
-           exp((energy-min_en)/kT));
-
-    if (do_backtrack) {
-      FILE *aliout;
-      cpair *cp;
-      char *cent;
-      double dist;
-      plist *pl, *mfel;
-
-      pl    = vrna_plist_from_probs(vc, bppmThreshold);
-      mfel  = vrna_plist(mfe_struc, 0.95*0.95);
-
-      if (!circular){
-        float *ens;
-        cent = vrna_centroid(vc, &dist);
-        ens=(float *)vrna_alloc(2*sizeof(float));
-        ens[0] = vrna_eval_structure(vc, cent);
-        ens[1] = vrna_eval_covar_structure(vc, cent);
-
-        printf("%s %6.2f {%6.2f + %6.2f}\n",cent,ens[0]-ens[1],ens[0],(-1)*ens[1]);
-        free(cent);
-        free(ens);
-      }
-      if(doMEA){
-        float mea, *ens;
-        plist *pl2;
-        pl2 = vrna_plist_from_probs(vc, 1e-4/(1+MEAgamma));
-        mea = MEA(pl2, structure, MEAgamma);
-        ens = (float *)vrna_alloc(2*sizeof(float));
-        ens[0] = vrna_eval_structure(vc, structure);
-        ens[1] = vrna_eval_covar_structure(vc, structure);
-
-        printf("%s {%6.2f MEA=%.2f}\n", structure, ens[0], mea);
-        free(ens);
-        free(pl2);
-      }
-
-      aliout = fopen(filename_out, "w");
-      if (!aliout) {
-        fprintf(stderr, "can't open %s    skipping output\n", filename_out);
+      if(do_backtrack){
+        char *msg = NULL;
+        if(istty_in)
+          asprintf( &msg,
+                    "\n free energy of ensemble = %6.2f kcal/mol",
+                    energy);
+        else
+          asprintf(&msg, " [%6.2f]", energy);
+        print_structure(stdout, structure, msg);
+        free(msg);
       } else {
-        print_aliout(vc, pl, bppmThreshold, mfe_struc, aliout);
+        char *msg = NULL;
+        asprintf( &msg, " free energy of ensemble = %6.2f kcal/mol", energy);
+        print_structure(stdout, NULL, msg);
+        free(msg);
       }
-      fclose(aliout);
-      cp = make_color_pinfo(AS,pl, bppmThreshold, n_seq, mfel);
-      (void) PS_color_dot_plot(string, cp, filename_dot);
-      free(cp);
-      free(pl);
-      free(mfel);
+
+      if (do_backtrack) {
+        FILE *aliout;
+        cpair *cp;
+        char *cent;
+        double dist;
+        plist *pl, *mfel;
+
+        pl    = vrna_plist_from_probs(vc, bppmThreshold);
+        mfel  = vrna_plist(mfe_struc, 0.95*0.95);
+
+        if (!circular){
+          float *ens;
+          cent = vrna_centroid(vc, &dist);
+          ens=(float *)vrna_alloc(2*sizeof(float));
+          ens[0] = vrna_eval_structure(vc, cent);
+          ens[1] = vrna_eval_covar_structure(vc, cent);
+
+          char *energy_string = NULL;
+          asprintf( &energy_string,
+                    " {%6.2f = %6.2f + %6.2f d=%.2f}",
+                    ens[0]-ens[1],ens[0],(-1)*ens[1], dist);
+          print_structure(stdout, cent, energy_string);
+          free(energy_string);
+          free(cent);
+          free(ens);
+        }
+        if(doMEA){
+          float mea, *ens;
+          plist *pl2;
+          pl2 = vrna_plist_from_probs(vc, 1e-4/(1+MEAgamma));
+          mea = MEA(pl2, structure, MEAgamma);
+          ens = (float *)vrna_alloc(2*sizeof(float));
+          ens[0] = vrna_eval_structure(vc, structure);
+          ens[1] = vrna_eval_covar_structure(vc, structure);
+
+          char *energy_string = NULL;
+          asprintf( &energy_string,
+                    " {%6.2f = %6.2f + %6.2f MEA=%.2f}",
+                    ens[0]-ens[1],ens[0],(-1)*ens[1], mea);
+          print_structure(stdout, structure, energy_string);
+          free(energy_string);
+          free(ens);
+          free(pl2);
+        }
+
+        aliout = fopen(filename_out, "w");
+        if (!aliout) {
+          fprintf(stderr, "can't open %s    skipping output\n", filename_out);
+        } else {
+          print_aliout(vc, pl, bppmThreshold, mfe_struc, aliout);
+        }
+        fclose(aliout);
+        cp = make_color_pinfo(AS,pl, bppmThreshold, n_seq, mfel);
+        (void) PS_color_dot_plot(string, cp, filename_dot);
+        free(cp);
+        free(pl);
+        free(mfel);
+      }
+
+      {
+        char *msg = NULL;
+        if(do_backtrack){
+          asprintf( &msg,
+                    " frequency of mfe structure in ensemble %g"
+                    "; ensemble diversity %-6.2f",
+                    exp((energy-min_en)/kT),
+                    vrna_mean_bp_distance(vc));
+        } else {
+          asprintf( &msg,
+                    " frequency of mfe structure in ensemble %g;",
+                    exp((energy-min_en)/kT));
+        }
+        print_structure(stdout, NULL, msg);
+        free(msg);
+      }
+
+
+      free(mfe_struc);
+    } /* end partition function block */
+
+
+    (void) fflush(stdout);
+    if(shape_files)
+      free(shape_files);
+    free(string);
+    free(structure);
+    free(filename_plot);
+    free(filename_dot);
+    free(filename_aln);
+    free(filename_out);
+    vrna_fold_compound_free(vc);
+
+    for (i=0; AS[i]; i++) {
+      free(AS[i]);
+      free(names[i]);
     }
-    free(mfe_struc);
-    free(pf_parameters);
+    free(AS);
+    free(names);
+
+    free(tmp_id);
+    free(tmp_structure);
+
+    free(MSA_ID);
+
+    /* break after first record if fold_constrained and not explicitly instructed otherwise */
+    if(with_shapes || (fold_constrained && (!(batch || consensus_constraint))))
+      break;
+  } /* end of input */
+
+  if(first_alignment_number == alignment_number){
+    char *format = NULL;
+    char *msg = NULL;
+    switch(input_format_options){
+      case VRNA_FILE_FORMAT_MSA_CLUSTAL:
+        asprintf(&format, "Clustal");
+        break;
+      case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
+        asprintf(&format, "Stockholm");
+        break;
+      case VRNA_FILE_FORMAT_MSA_FASTA:
+        asprintf(&format, "FASTA");
+        break;
+      case VRNA_FILE_FORMAT_MSA_MAF:
+        asprintf(&format, "MAF");
+        break;
+      default:
+        asprintf(&format, "Unknown");
+        break;
+    }
+    asprintf( &msg,
+              "Your input file is missing sequences! Either your file is empty, or not in %s format!",
+              format);
+    vrna_message_error(msg);
+    free(msg);
+    free(format);
   }
+
+  if (clust_file != stdin) fclose(clust_file);
+
   if (cstruc!=NULL) free(cstruc);
   (void) fflush(stdout);
   if(shape_files)
     free(shape_files);
-  free(string);
-  free(structure);
-  free(filename_plot);
-  free(filename_dot);
-  free(filename_aln);
-  free(filename_out);
-  free(prefix);
-  vrna_fold_compound_free(vc);
-  for (i=0; AS[i]; i++) {
-    free(AS[i]); free(names[i]);
+
+  free(filename_in);
+
+  for(i = 0; i < input_file_num; i++){
+    free(input_files[i]);
   }
+  free(input_files);
+
   return 0;
+}
+
+PRIVATE void
+dot_bracketify(char *string){
+
+  int i;
+
+  if(string){
+    for(i = 0; string[i] != '\0'; i++){
+      switch(string[i]){
+        case '<': case '(':
+          string[i] = '(';
+          break;
+        case '>': case ')':
+          string[i] = ')';
+          break;
+        default:
+          string[i] = '.';
+          break;
+      }
+    }
+  }
 }
 
 PRIVATE void mark_endgaps(char *seq, char egap) {
@@ -711,8 +1005,8 @@ PRIVATE char **annote(const char *structure, const char *AS[]) {
 
     if ((maxl - strlen(ps) < 192) || ((maxl - strlen(colorps)) < 64)) {
       maxl *= 2;
-      ps = realloc(ps, maxl);
-      colorps = realloc(colorps, maxl);
+      ps = (char *)vrna_realloc(ps, sizeof(char) * maxl);
+      colorps = (char *)vrna_realloc(colorps, sizeof(char) * maxl);
       if ((ps==NULL) || (colorps == NULL))
           vrna_message_error("out of memory in realloc");
     }
@@ -803,22 +1097,32 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, i
   }
   for (t=0; mfel[t].i > 0; t++) {
     int nofound=1;
-      for (j=0; j<c; j++) {
-        if ((cp[j].i==mfel[t].i)&&(cp[j].j==mfel[t].j)) {
-          cp[j].mfe=1;
-          nofound=0;
-          break;
-        }
-      }
-      if(nofound) {
-        fprintf(stderr,"mfe base pair with very low prob in pf: %d %d\n",mfel[t].i,mfel[t].j);
-        cp = (cpair *) realloc(cp,sizeof(cpair)*(c+1));
-        cp[c].i = mfel[t].i;
-        cp[c].j = mfel[t].j;
-        cp[c].p = 0.;
-        cp[c].mfe=1;
-        c++;
+    for (j=0; j<c; j++) {
+      if ((cp[j].i==mfel[t].i)&&(cp[j].j==mfel[t].j)) {
+        cp[j].mfe=1;
+        nofound=0;
+        break;
       }
     }
+    if(nofound) {
+      char *msg = NULL;
+      asprintf( &msg,
+                "mfe base pair with very low prob in pf: %d %d",
+                mfel[t].i,
+                mfel[t].j);
+      vrna_message_warning(msg);
+      free(msg);
+
+      cp = (cpair *) vrna_realloc(cp, sizeof(cpair)*(c+2));
+      cp[c].i = mfel[t].i;
+      cp[c].j = mfel[t].j;
+      cp[c].p = 0.;
+      cp[c].hue = 0;
+      cp[c].sat = 0;
+      cp[c].mfe=1;
+      c++;
+      cp[c].i = cp[c].j = 0;
+    }
+  }
   return cp;
 }

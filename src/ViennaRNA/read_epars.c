@@ -5,6 +5,9 @@
                           Vienna RNA Package
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -94,7 +97,7 @@ PUBLIC void read_parameter_file(const char fname[]){
   }
 
   if (!(line = get_line(fp))) {
-    fprintf(stderr," File %s is inproper.\n", fname);
+    fprintf(stderr," File %s is improper.\n", fname);
     fclose(fp);
     return;
   }

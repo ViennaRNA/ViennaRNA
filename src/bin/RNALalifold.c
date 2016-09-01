@@ -1,10 +1,13 @@
-/* Last changed Time-stamp: <2006-03-02 22:48:15 ivo> */
 /*
                   Local version of RNAalifold
 
                   c Ivo L Hofacker, Stephan Bernhart
                   Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,8 +27,6 @@
 #include "ViennaRNA/read_epars.h"
 #include "RNALalifold_cmdl.h"
 
-/*@unused@*/
-static const char rcsid[] = "$Id: RNALalifold.c,v 1.1 2007/06/23 09:52:29 ivo Exp $";
 
 /*@exits@*/
 PRIVATE void  usage(void);
@@ -121,7 +122,7 @@ int main(int argc, char *argv[]){
   }
   if(args_info.ribosum_scoring_given){
     RibosumFile = NULL;
-    ribo = 1;
+    md.ribo = ribo = 1;
   }
 
   /* check unnamed options a.k.a. filename of input alignment */
@@ -151,43 +152,7 @@ int main(int argc, char *argv[]){
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    /* nonstandards = vrna_alloc(33); */
-    c=ns_bases;
-    i=sym=0;
-    if (*c=='-') {
-      sym=1; c++;
-    }
-    while (*c!='\0') {
-      if (*c!=',') {
-        md.nonstandards[i++]=*c++;
-        md.nonstandards[i++]=*c;
-        if ((sym)&&(*c!=*(c-1))) {
-          md.nonstandards[i++]=*c;
-          md.nonstandards[i++]=*(c-1);
-        }
-      }
-      c++;
-    }
-
-    /* BEGIN remove me! */
-    nonstandards = vrna_alloc(33);
-    c=ns_bases;
-    i=sym=0;
-    if (*c=='-') {
-      sym=1; c++;
-    }
-    while (*c!='\0') {
-      if (*c!=',') {
-        nonstandards[i++]=*c++;
-        nonstandards[i++]=*c;
-        if ((sym)&&(*c!=*(c-1))) {
-          nonstandards[i++]=*c;
-          nonstandards[i++]=*(c-1);
-        }
-      }
-      c++;
-    }
-    /* END remove me! */
+    vrna_md_set_nonstandards(&md, ns_bases);
   }
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));

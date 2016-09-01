@@ -3,7 +3,11 @@
                     c Ivo Hofacker, Peter Stadler
                           Vienna RNA Package
 */
-/* Last changed Time-stamp: <2000-09-28 14:58:05 ivo> */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -23,9 +27,6 @@
 #include  "/usr/local/include/dmalloc.h"
 #define vrna_alloc(X) calloc(1,(X))
 #endif
-
-/*@unused@*/
-static char rcsid[] = "$Id: RNAinverse.c,v 1.11 2000/09/28 12:59:21 ivo Rel $";
 
 #define  REPEAT_DEFAULT  100
 

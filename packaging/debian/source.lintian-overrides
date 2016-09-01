@@ -1,0 +1,6 @@
+# javascript files in doc/html are generated using doxygen, therefore the following error is invalid
+viennarna source: source-is-missing doc/html/jquery.js
+viennarna source: source-is-missing doc/html/jquery.js line length is * characters (>512)
+viennarna source: source-is-missing doc/html/svgpan.js line length is * characters (>256)
+viennarna source: source-is-missing doc/html/search/all_e.js line length is * characters (>256)
+viennarna source: source-is-missing doc/html/search/variables_b.js line length is * characters (>256)

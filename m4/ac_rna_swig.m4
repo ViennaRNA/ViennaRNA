@@ -29,7 +29,10 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
                   [${srcdir}/interfaces/Makefile.am])
 
   AS_IF([test "x$with_swig" != "xno"],[
+    wants_swig="yes"
     AX_PKG_SWIG(2.0.0, [has_swig="yes"], [has_swig="no"])
+  ],[
+    wants_swig="no"
   ])
 
   AM_CONDITIONAL(HAS_SWIG, test "x$has_swig" != "xno")
@@ -51,16 +54,20 @@ AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
 
   ## check for perl requirements
   AS_IF([test "x$with_perl" != "xno"],[
-    ## if swig is not available, check whether we already have swig generated sources
-    if test "x$has_swig" != "xyes"
-    then
-      AC_RNA_TEST_FILE([${srcdir}/interfaces/Perl/RNA_wrap.cpp],[],[
-        with_perl="no"
-      ])
-      AC_RNA_TEST_FILE([${srcdir}/interfaces/Perl/RNA.pm],[],[
-        with_perl="no"
-      ])
-    fi
+    AS_IF([test "x$wants_swig" = "xno"],[
+      with_perl="no"
+    ], [
+      ## if swig is not available, check whether we already have swig generated sources
+      if test "x$has_swig" != "xyes"
+      then
+        AC_RNA_TEST_FILE([${srcdir}/interfaces/Perl/RNA_wrap.cpp],[],[
+          with_perl="no"
+        ])
+        AC_RNA_TEST_FILE([${srcdir}/interfaces/Perl/RNA.pm],[],[
+          with_perl="no"
+        ])
+      fi
+    ])
   ])
 
   RNA_PACKAGE_IF_ENABLED([perl],[
@@ -116,16 +123,20 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
 
   ## check for python requirements
   AS_IF([test "x$with_python" != "xno"],[
-    ## if swig is not available, check whether we already have swig generated sources
-    if test "x$has_swig" != "xyes"
-    then
-      AC_RNA_TEST_FILE([${srcdir}/interfaces/Python/RNA_wrap.cpp],[],[
-        with_python="no"
-      ])
-      AC_RNA_TEST_FILE([${srcdir}/interfaces/Python/RNA.py],[],[
-        with_python="no"
-      ])
-    fi
+    AS_IF([test "x$wants_swig" = "xno"],[
+      with_python="no"
+    ],[
+      ## if swig is not available, check whether we already have swig generated sources
+      if test "x$has_swig" != "xyes"
+      then
+        AC_RNA_TEST_FILE([${srcdir}/interfaces/Python/RNA_wrap.cpp],[],[
+          with_python="no"
+        ])
+        AC_RNA_TEST_FILE([${srcdir}/interfaces/Python/RNA.py],[],[
+          with_python="no"
+        ])
+      fi
+    ])
   ])
 
   AS_IF([test "x$with_python" != "xno"],[
@@ -161,16 +172,20 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON3],[
 
   ## check for python requirements
   AS_IF([test "x$with_python3" != "xno"],[
-    ## if swig is not available, check whether we already have swig generated sources
-    if test "x$has_swig" != "xyes"
-    then
-      AC_RNA_TEST_FILE([${srcdir}/interfaces/Python3/RNA_wrap.cpp],[],[
-        with_python3="no"
-      ])
-      AC_RNA_TEST_FILE([${srcdir}/interfaces/Python3/RNA.py],[],[
-        with_python3="no"
-      ])
-    fi
+    AS_IF([test "x$wants_swig" = "xno"],[
+      with_python3="no"
+    ],[
+      ## if swig is not available, check whether we already have swig generated sources
+      if test "x$has_swig" != "xyes"
+      then
+        AC_RNA_TEST_FILE([${srcdir}/interfaces/Python3/RNA_wrap.cpp],[],[
+          with_python3="no"
+        ])
+        AC_RNA_TEST_FILE([${srcdir}/interfaces/Python3/RNA.py],[],[
+          with_python3="no"
+        ])
+      fi
+    ])
   ])
 
   AS_IF([test "x$with_python3" != "xno"],[

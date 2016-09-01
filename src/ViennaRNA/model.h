@@ -225,7 +225,7 @@ struct vrna_md_s {
   int     backtrack;                    /**<  @brief  Specifies whether or not secondary structures should be backtraced */
   char    backtrack_type;               /**<  @brief  Specifies in which matrix to backtrack */
   int     compute_bpp;                  /**<  @brief  Specifies whether or not backward recursions for base pair probability (bpp) computation will be performed */
-  char    nonstandards[33];             /**<  @brief  contains allowed non standard bases */
+  char    nonstandards[64];             /**<  @brief  contains allowed non standard bases */
   int     max_bp_span;                  /**<  @brief  maximum allowed base pair span */
 
   int     min_loop_size;                /**<  @brief  Minimum size of hairpin loops
@@ -279,7 +279,7 @@ char *
 vrna_md_option_string(vrna_md_t  *md);
 
 void
-vrna_md_set_nonstandards(vrna_md_t *md, const char *ns);
+vrna_md_set_nonstandards(vrna_md_t *md, const char *ns_bases);
 
 /**
  *  @brief  Reset the global default model details to a specific set of parameters, or their initial values

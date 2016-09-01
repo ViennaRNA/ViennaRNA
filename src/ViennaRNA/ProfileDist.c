@@ -3,7 +3,10 @@
 		      Peter F Stadler, Ivo L Hofacker
 			    Vienna RNA Package
 */
-/* Last changed Time-stamp: <2002-11-07 12:46:16 ivo> */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,9 +18,6 @@
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/profiledist.h"
-
-/*@unused@*/
-static char rcsid[] = "$Id: ProfileDist.c,v 1.6 2002/11/07 11:49:59 ivo Exp $";
 
 PRIVATE int *alignment[2];
 

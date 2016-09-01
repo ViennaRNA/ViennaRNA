@@ -470,7 +470,7 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j);
 
-PUBLIC FLT_OR_DBL
+FLT_OR_DBL
 vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j);
@@ -500,7 +500,7 @@ E_IntLoop(int n1,
           vrna_param_t *P);
 
 
-PUBLIC FLT_OR_DBL
+FLT_OR_DBL
 exp_E_IntLoop(int u1,
               int u2,
               int type,

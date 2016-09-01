@@ -20,7 +20,7 @@
  *  @{
  *
  *  @file file_formats.h
- *  @brief Functions dealing with file formats for RNA sequences, structures, and alignments
+ *  @brief Functions dealing with file formats for RNA sequences, and structures
  *
  *  @see @ref constraint-formats-file 
  */
@@ -28,6 +28,7 @@
 #include <stdio.h>
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/file_formats_msa.h>
 
 /**
  *  @brief Print a secondary structure as helix list
@@ -239,6 +240,7 @@ int vrna_file_SHAPE_read( const char *file_name,
 vrna_plist_t *vrna_file_constraints_read( const char *filename,
                                           unsigned int length,
                                           unsigned int options);
+
 
 #ifdef  VRNA_BACKWARD_COMPAT
 

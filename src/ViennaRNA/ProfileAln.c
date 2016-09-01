@@ -14,7 +14,10 @@
 
 	  C Ivo L Hofacker, Vienna RNA Package
 */
-/* Last changed Time-stamp: <2004-08-02 10:11:13 ivo> */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,9 +32,6 @@
 #include "ViennaRNA/profiledist.h"
 #include "ViennaRNA/ProfileAln.h"
 
-
-/*@unused@*/
-static char rcsid[] = "$Id: ProfileAln.c,v 1.5 2006/01/18 13:00:30 ivo Exp $";
 
 #define EQUAL(x,y)     (fabs((x)-(y)) <= fabs(x)*2*FLT_EPSILON)
 

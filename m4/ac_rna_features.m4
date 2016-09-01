@@ -38,6 +38,14 @@ AC_DEFUN([RNA_GET_FEATURE],[
     AC_RNA_APPEND_VAR_COMMA($1, [Deprecation Warnings])
     _features_active=1
   ])
+  AS_IF([test "x$enable_c11" = "xyes"], [
+    AC_RNA_APPEND_VAR_COMMA($1, [C11])
+    _features_active=1
+  ])
+  AS_IF([test "x$enable_tty_colors" = "xyes"], [
+    AC_RNA_APPEND_VAR_COMMA($1, [Color])
+    _features_active=1
+  ])
   AS_IF([test "$_features_active" -eq "0"],[
     AC_RNA_APPEND_VAR_COMMA($1, [None])
   ])
@@ -94,8 +102,7 @@ AC_DEFUN([RNA_ENABLE_GSL],[
 
   RNA_ADD_PACKAGE([gsl],
                   [GNU Scientific Library],
-                  [yes],[],[],
-                  [with_gsl=yes])
+                  [yes])
 
   # check prerequisties for gsl support
   RNA_PACKAGE_IF_ENABLED([gsl],[
@@ -110,9 +117,11 @@ AC_DEFUN([RNA_ENABLE_GSL],[
   ])
   RNA_PACKAGE_IF_ENABLED([gsl],[
     AC_DEFINE([WITH_GSL], [1], [Use GNU Scientific Library])
+    GSL_LIBS="-lgsl -lgslcblas"
   ])
 
-  AM_CONDITIONAL(WITH_GSL, test "$with_gsl" != "no")
+  AC_SUBST([GSL_LIBS])
+  AM_CONDITIONAL(WITH_GSL, test "x$with_gsl" = "xyes")
 ])
 
 
@@ -168,8 +177,7 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
     AX_OPENMP([],[enable_openmp="no"])
     AC_LANG_POP([C])
 
-    if test "x$enable_openmp" != "xno"
-    then
+    AS_IF([ test "x$enable_openmp" != "xno" ],[
       OMP_CFLAGS="$OPENMP_CFLAGS"
 
       AC_LANG_PUSH([C++])
@@ -178,12 +186,11 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
 
       if test "x$enable_openmp" != "xno"
       then
-        AX_APPEND_FLAG(["$OMP_CFLAGS"], [RNA_CFLAGS])
-        AX_APPEND_FLAG(["$OPENMP_CXXFLAGS"], [RNA_CXXFLAGS])
-        LIBGOMPFLAG=["$OPENMP_CXXFLAGS"]
+        RNA_CFLAGS="${RNA_CFLAGS} ${OMP_CFLAGS}"
+        RNA_CXXFLAGS="${RNA_CXXFLAGS} ${OPENMP_CXXFLAGS}"
+        LIBGOMPFLAG="$OPENMP_CXXFLAGS"
       fi
-    fi
-
+    ])
   ])
 
   AC_SUBST(LIBGOMPFLAG)
@@ -191,6 +198,63 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
   AC_SUBST(OPENMP_CXXFLAGS)
 ])
 
+
+#
+# C11 feature support
+#
+
+AC_DEFUN([RNA_ENABLE_C11],[
+
+  RNA_ADD_FEATURE([c11],
+                  [C11 feature support (unnamed unions of unnamed structs)],
+                  [yes])
+
+  RNA_FEATURE_IF_ENABLED([c11],[
+    AC_MSG_CHECKING([whether the C compiler allows unnamed unions of unnamed structs])
+    # save current global flags
+    AC_LANG_PUSH([C])
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <stdlib.h>
+                                    struct bla {
+                                      union {
+                                        struct { int a; char  b;};
+                                        struct { long c; double d;};
+                                      };
+                                    };
+                                    int main (void) { return 0;} ]])],
+                                    [use_unnamed_union_structs=yes],
+                                    [use_unnamed_union_structs=no])
+
+    AC_LANG_POP([C])
+    AC_MSG_RESULT([$use_unnamed_union_structs])
+
+    AS_IF([ test "x$use_unnamed_union_structs" != "xno" ],[
+      AC_MSG_CHECKING([whether the C++ compiler allows unnamed unions of unnamed structs])
+      AC_LANG_PUSH([C++])
+      AC_RUN_IFELSE([AC_LANG_SOURCE([[extern "C" {
+                                        #include <stdlib.h>
+                                        struct bla {
+                                          union {
+                                            struct { int a; char  b;};
+                                            struct { long c; double d;};
+                                          };
+                                        };
+                                      };
+                                      int main (void) { return 0;} ]])],
+                                      [use_unnamed_union_structs=yes],
+                                      [use_unnamed_union_structs=no])
+
+      AC_LANG_POP([C++])
+      AC_MSG_RESULT([$use_unnamed_union_structs])
+    ])
+  ])
+
+  AS_IF([ test "x$use_unnamed_union_structs" != "xyes" ],[
+    DISABLE_C11_FEATURES=-DVRNA_DISABLE_C11_FEATURES
+    AX_APPEND_FLAG(["-DVRNA_DISABLE_C11_FEATURES"], [RNA_CPPFLAGS])
+  ])
+
+  AC_SUBST(DISABLE_C11_FEATURES)
+])
 
 #
 #
@@ -233,4 +297,22 @@ AC_DEFUN([RNA_ENABLE_DEPRECATION_WARNINGS],[
   ])
   AC_SUBST(DEPRECATION_WARNING)
 ])
+
+
+#
+# Colored TTY output
+#
+
+AC_DEFUN([RNA_ENABLE_COLORED_TTY],[
+
+  RNA_ADD_FEATURE([tty_colors],
+                  [Colored TTY output],
+                  [yes])
+
+  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
+  RNA_FEATURE_IF_DISABLED([tty_colors],[
+    AC_DEFINE([WITHOUT_TTY_COLORS], [1], [Do not use colors for TTY output])
+  ])
+])
+
 

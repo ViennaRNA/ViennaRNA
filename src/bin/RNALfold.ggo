@@ -21,7 +21,7 @@ description "Compute locally stable RNA secondary structure with a maximal base 
 # Options
 
 section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n"
+sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
 
 option  "span"  L
 "Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
@@ -67,7 +67,7 @@ argoptional
 optional
 
 option  "gquad" g
-"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n"
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n\n"
 flag
 off
 
@@ -142,4 +142,4 @@ optional
 hidden
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+ rna@tbi.univie.ac.at.\n\n"

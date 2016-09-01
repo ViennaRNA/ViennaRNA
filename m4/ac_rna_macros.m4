@@ -198,7 +198,7 @@ AC_DEFUN([RNA_FEATURE_POST],[
   AC_SUBST([RNA_LDFLAGS])
 
   VRNA_LIBS=" ${RNA_LDFLAGS} -L\$(top_builddir)/../../src/ViennaRNA -lRNA ${LIBGOMPFLAG}"
-  VRNA_CFLAGS=" -I\$(top_srcdir)/../../src/ViennaRNA -I\$(top_srcdir)/../../src ${RNA_CPPFLAGS} ${RNA_CFLAGS}"
+  VRNA_CFLAGS=" -I\$(top_srcdir)/../../src/ViennaRNA -I\$(top_srcdir)/../../src ${RNA_CPPFLAGS}"
 
   AC_SUBST([VRNA_LIBS])
   AC_SUBST([VRNA_CFLAGS])

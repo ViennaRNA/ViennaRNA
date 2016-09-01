@@ -3,6 +3,11 @@
           Peter F Stadler, Ivo L Hofacker, Sebastian Bonhoeffer
                         Vienna RNA Package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -23,8 +28,7 @@
 
 #define MAXLENGTH  10000
 #define MAXSEQ      1000
-/*@unused@*/
-static char rcsid[] = "$Id: RNApaln.c,v 1.3 2005/07/24 08:35:15 ivo Exp $";
+
 
 static  double gapo=1.5, gape=0.666, seqw=0.5;
 static  int endgaps=0;

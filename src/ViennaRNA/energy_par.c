@@ -44,7 +44,9 @@
      Biochemistry 1991, 30, 6428--6435
 */
 
-
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "ViennaRNA/energy_const.h"
 

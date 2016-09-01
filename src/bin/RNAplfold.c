@@ -1,10 +1,13 @@
-/* Last changed Time-stamp: <2008-07-02 17:10:04 berni> */
 /*
                   Ineractive Access to folding Routines
 
                   c Ivo L Hofacker
                   Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,9 +26,6 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/file_formats.h"
 #include "RNAplfold_cmdl.h"
-
-/*@unused@*/
-static char rcsid[] = "$Id: RNAplfold.c,v 1.10 2008/07/02 15:34:24 ivo Exp $";
 
 int unpaired;
 PRIVATE void putout_pup(double *pup,int length, int winsize, char *name);
@@ -73,9 +73,11 @@ int main(int argc, char *argv[]){
   */
   if(RNAplfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
   /* temperature */
-  if(args_info.temp_given)              temperature = args_info.temp_arg;
+  if(args_info.temp_given)
+    md.temperature = temperature = args_info.temp_arg;
   /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)           md.special_hp = tetra_loop=0;
+  if(args_info.noTetra_given)
+    md.special_hp = tetra_loop=0;
   /* set dangle model */
   if(args_info.dangles_given){
     if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
@@ -92,7 +94,7 @@ int main(int argc, char *argv[]){
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)            noconv = 1;
   /* set energy model */
-  if(args_info.energyModel_given)       energy_set = args_info.energyModel_arg;
+  if(args_info.energyModel_given)       md.energy_set = energy_set = args_info.energyModel_arg;
   /* take another energy parameter set */
   if(args_info.paramFile_given)         ParamFile = strdup(args_info.paramFile_arg);
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
@@ -114,7 +116,7 @@ int main(int argc, char *argv[]){
   /* turn on binary output*/
   if(args_info.binaries_given)          binaries = 1;
 
-  if(args_info.betaScale_given)         betaScale = args_info.betaScale_arg;
+  if(args_info.betaScale_given)         md.betaScale = betaScale = args_info.betaScale_arg;
     
   /* check for errorneous parameter options */
   if((pairdist < 0) || (cutoff < 0.) || (unpaired < 0) || (winsize < 0)){
@@ -134,23 +136,7 @@ int main(int argc, char *argv[]){
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    nonstandards = vrna_alloc(33);
-    c=ns_bases;
-    i=sym=0;
-    if (*c=='-') {
-      sym=1; c++;
-    }
-    while (*c!='\0') {
-      if (*c!=',') {
-        nonstandards[i++]=*c++;
-        nonstandards[i++]=*c;
-        if ((sym)&&(*c!=*(c-1))) {
-          nonstandards[i++]=*c;
-          nonstandards[i++]=*(c-1);
-        }
-      }
-      c++;
-    }
+    vrna_md_set_nonstandards(&md, ns_bases);
   }
 
   /* check parameter options again and reset to reasonable values if needed */
@@ -163,7 +149,7 @@ int main(int argc, char *argv[]){
   }
   if(dangles % 2){
     vrna_message_warning("using default dangles = 2");
-    dangles = 2;
+    md.dangles = dangles = 2;
   }
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));

@@ -1,7 +1,10 @@
 /* constraints handling */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <assert.h>
-#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -296,17 +299,27 @@ vrna_hc_add_bp_nonspecific( vrna_fold_compound_t *vc,
         return;
       }
 
-      /* force position i to pair with some other nucleotide */
+      /* position i may pair in provided contexts */
       type  = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-      /* force direction */
+      /* acknowledge pairing direction */
       t1    = (d <= 0) ? type : (char)0;
       t2    = (d >= 0) ? type : (char)0;
-      for(p = 1; p < i; p++)
-        vc->hc->matrix[vc->jindx[i] + p] &= t1;
-      for(p = i+1; p <= vc->length; p++)
-        vc->hc->matrix[vc->jindx[p] + i] &= t2;
 
-      vc->hc->matrix[vc->jindx[i] + i] = (char)0;
+      if(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE){
+        /* only allow for possibly non-canonical pairs, do not enforce them */
+        for(p = 1; p < i; p++)
+          vc->hc->matrix[vc->jindx[i] + p] |= t1;
+        for(p = i+1; p <= vc->length; p++)
+          vc->hc->matrix[vc->jindx[p] + i] |= t2;
+      } else {
+        /* force pairing direction */
+        for(p = 1; p < i; p++)
+          vc->hc->matrix[vc->jindx[i] + p] &= t1;
+        for(p = i+1; p <= vc->length; p++)
+          vc->hc->matrix[vc->jindx[p] + i] &= t2;
+        /* nucleotide mustn't be unpaired */
+        vc->hc->matrix[vc->jindx[i] + i] = (char)0;
+      }
 
       hc_update_up(vc);
     }
@@ -552,7 +565,14 @@ apply_DB_constraint(const char *constraint,
 
       case '.':   break;
 
-      default:    vrna_message_warning("unrecognized character in pseudo dot-bracket notation constraint string\n");
+      default:    {
+                    char *msg = NULL;
+                    asprintf( &msg,
+                              "Unrecognized character '%c' in pseudo dot-bracket notation constraint string",
+                              constraint[j-1]);
+                    vrna_message_warning(msg);
+                    free(msg);
+                  }
                   break;
     }
   }

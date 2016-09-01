@@ -224,7 +224,7 @@ void vrna_sc_add_data(vrna_fold_compound_t *vc,
 /**
  *  @brief  Bind a function pointer for generic soft constraint feature (MFE version)
  *
- *  This function allows to easily bind a function pointer and corresponding data structure
+ *  This function allows one to easily bind a function pointer and corresponding data structure
  *  to the soft constraint part #vrna_sc_t of the #vrna_fold_compound_t.
  *  The function for evaluating the generic soft constraint feature has to return
  *  a pseudo free energy @f$ \hat{E} @f$ in @f$ dacal/mol @f$, where @f$ 1 dacal/mol = 10 cal/mol @f$.
@@ -242,7 +242,7 @@ void vrna_sc_add_f( vrna_fold_compound_t *vc,
 /**
  *  @brief  Bind a backtracking function pointer for generic soft constraint feature
  *
- *  This function allows to easily bind a function pointer to the soft constraint part
+ *  This function allows one to easily bind a function pointer to the soft constraint part
  *  #vrna_sc_t of the #vrna_fold_compound_t.
  *  The provided function should be used for backtracking purposes in loop regions
  *  that were altered via the generic soft constraint feature. It has to return
@@ -262,7 +262,7 @@ void vrna_sc_add_bt(vrna_fold_compound_t *vc,
 /**
  *  @brief  Bind a function pointer for generic soft constraint feature (PF version)
  *
- *  This function allows to easily bind a function pointer and corresponding data structure
+ *  This function allows one to easily bind a function pointer and corresponding data structure
  *  to the soft constraint part #vrna_sc_t of the #vrna_fold_compound_t.
  *  The function for evaluating the generic soft constraint feature has to return
  *  a pseudo free energy @f$ \hat{E} @f$ as Boltzmann factor, i.e. @f$ exp(- \hat{E} / kT) @f$.

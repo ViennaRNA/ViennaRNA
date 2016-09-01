@@ -2,7 +2,10 @@
                                MEA.c
                  c  Ivo L Hofacker, Vienna RNA package
 */
-/* Last changed Time-stamp: <2009-06-18 14:04:21 ivo> */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

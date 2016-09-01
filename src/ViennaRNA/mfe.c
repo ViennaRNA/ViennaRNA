@@ -13,7 +13,10 @@
                   Vienna RNA package
 */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -121,7 +124,7 @@ vrna_mfe( vrna_fold_compound_t *vc,
       switch(vc->type){
         case VRNA_VC_TYPE_ALIGNMENT:  backtrack_comparative(vc, bp, bt_stack, s);
                                       break;
-        
+
         case VRNA_VC_TYPE_SINGLE:     /* fall through */
 
         default:                      backtrack(vc, bp, bt_stack, s);
@@ -215,7 +218,7 @@ fill_arrays(vrna_fold_compound_t *vc){
 
 
   /* prefill helper arrays */
-  for(j = 1; j <= length; j++){
+  for(j = 0; j <= length; j++){
     Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
   }
 
@@ -261,7 +264,7 @@ fill_arrays(vrna_fold_compound_t *vc){
           new_c = MIN2(new_c, energy);
 
           /* check for multibranch loops */
-          energy  = E_mb_loop_fast(i, j, vc, DMLi1, DMLi2);
+          energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
           new_c   = MIN2(new_c, energy);
         }
 
@@ -289,7 +292,7 @@ fill_arrays(vrna_fold_compound_t *vc){
 
       /* done with c[i,j], now compute fML[i,j] and fM1[i,j] */
 
-      my_fML[ij] = E_ml_stems_fast(i, j, vc, Fmi, DMLi);
+      my_fML[ij] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
 
       if(uniq_ML){  /* compute fM1 for unique decomposition */
         my_fM1[ij] = E_ml_rightmost_stem(i, j, vc);
@@ -341,19 +344,19 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
 
   int             n_seq         = vc->n_seq;
   int             length        = vc->length;
-  short           **S           = vc->S;                                                                   
-  short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
-  short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  char            **Ss          = vc->Ss;                                                                   
-  unsigned short  **a2s         = vc->a2s;                                                                   
-  vrna_param_t    *P            = vc->params;                                                                
+  short           **S           = vc->S;
+  short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+  short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+  char            **Ss          = vc->Ss;
+  unsigned short  **a2s         = vc->a2s;
+  vrna_param_t    *P            = vc->params;
   vrna_md_t       *md           = &(P->model_details);
   int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
-  int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */                 
-  int             *f5           = vc->matrices->f5;     /* energy of 5' end */                                  
-  int             *fML          = vc->matrices->fML;     /* multi-loop auxiliary energy array */                 
+  int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */
+  int             *f5           = vc->matrices->f5;     /* energy of 5' end */
+  int             *fML          = vc->matrices->fML;     /* multi-loop auxiliary energy array */
   int             *ggg          = vc->matrices->ggg;
-  int             *pscore       = vc->pscore;     /* precomputed array of pair types */                      
+  int             *pscore       = vc->pscore;     /* precomputed array of pair types */
   short           *S_cons       = vc->S_cons;
   int             *rtype        = &(md->rtype[0]);
   int             dangle_model  = md->dangles;
@@ -370,7 +373,7 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
   DMLi  = (int *) vrna_alloc(sizeof(int)*(length+1));
   DMLi1 = (int *) vrna_alloc(sizeof(int)*(length+1));
   DMLi2 = (int *) vrna_alloc(sizeof(int)*(length+1));
-  
+
   /* init energies */
 
   int max_bpspan = (md->max_bp_span > 0) ? md->max_bp_span : length;
@@ -401,31 +404,9 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
         energy  = vrna_E_hp_loop(vc, i, j);
         new_c   = MIN2(new_c, energy);
 
-        /* multi-loop decomposition ------------------------*/
-        if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
-          decomp = DMLi1[j-1];
-          if(dangle_model){
-            for(s=0; s<n_seq; s++){
-              tt = rtype[type[s]];
-              decomp += E_MLstem(tt, S5[s][j], S3[s][i], P);
-            }
-          }
-          else{
-            for(s=0; s<n_seq; s++){
-              tt = rtype[type[s]];
-              decomp += E_MLstem(tt, -1, -1, P);
-            }
-          }
-          if(sc)
-            for(s=0; s<n_seq; s++){
-              if(sc[s]){
-                if(sc[s]->energy_bp)
-                  decomp += sc[s]->energy_bp[indx[j] + i];
-              }
-            }
-          MLenergy = decomp + n_seq*P->MLclosing;
-          new_c = MIN2(new_c, MLenergy);
-        }
+        /* check for multibranch loops */
+        energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
+        new_c   = MIN2(new_c, energy);
 
         /* check for interior loops */
         energy  = vrna_E_int_loop(vc, i, j);
@@ -443,65 +424,10 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
       } /* end >> if (pair) << */
 
       else c[ij] = INF;
+
       /* done with c[i,j], now compute fML[i,j] */
-      /* free ends ? -----------------------------------------*/
-      new_fML = INF;
+      fML[ij] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
 
-      if(hc->up_ml[i]){
-        energy = fML[ij+1] + n_seq * P->MLbase;
-        if(sc)
-          for(s=0; s < n_seq; s++){
-            if(sc[s]){
-              if(sc[s]->energy_up)
-                energy += sc[s]->energy_up[a2s[s][i]][1];
-            }
-          }
-        new_fML = MIN2(new_fML, energy);
-      }
-
-      if(hc->up_ml[j]){
-        energy = fML[indx[j-1]+i] + n_seq * P->MLbase;
-        if(sc)
-          for(s=0;s < n_seq; s++){
-            if(sc[s]){
-              if(sc[s]->energy_up)
-                energy += sc[s]->energy_up[a2s[s][j]][1];
-            }
-          }
-        new_fML = MIN2(new_fML, energy);
-      }
-
-      if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-        energy = c[ij];
-        if(dangle_model){
-          for (s=0; s<n_seq; s++) {
-            energy += E_MLstem(type[s], S5[s][i], S3[s][j], P);
-          }
-        }
-        else{
-          for (s=0; s<n_seq; s++) {
-            energy += E_MLstem(type[s], -1, -1, P);
-          }
-        }
-        new_fML = MIN2(energy, new_fML);
-
-        if(md->gquad){
-          decomp = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
-          new_fML = MIN2(new_fML, decomp);
-        }
-      }
-
-
-      /* modular decomposition -------------------------------*/
-      for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
-        decomp = MIN2(decomp, Fmi[k]+fML[indx[j]+k+1]);
-
-      DMLi[j] = decomp;               /* store for use in ML decompositon */
-      new_fML = MIN2(new_fML,decomp);
-
-      /* coaxial stacking deleted */
-
-      fML[ij] = Fmi[j] = new_fML;     /* substring energy */
     } /* END for j */
 
     {
@@ -513,6 +439,7 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
   } /* END for i */
   /* calculate energies of 5' and 3' fragments */
 
+  f5[0] = 0;
   for(j = 1; j <= TURN + 1; j++){
     if(hc->up_ext[j]){
       energy = f5[j-1];
@@ -655,7 +582,7 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
                               int s){
 
   backtrack(vc, bp_stack, bt_stack, s);
-} 
+}
 
 /**
 *** trace back through the "c", "f5" and "fML" arrays to get the
@@ -770,7 +697,7 @@ backtrack(vrna_fold_compound_t *vc,
 
       default:  vrna_message_error("Backtracking failed due to unrecognized DP matrix!");
                 break;
-    } 
+    }
 
   repeat1:
 
@@ -849,18 +776,18 @@ backtrack_comparative(vrna_fold_compound_t *vc,
 
   int             n_seq         = vc->n_seq;
   int             length        = vc->length;
-  short           **S           = vc->S;                                                                   
-  short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
-  short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  char            **Ss          = vc->Ss;                                                                   
-  unsigned short  **a2s         = vc->a2s;                                                                   
-  vrna_param_t    *P            = vc->params;                                                                
+  short           **S           = vc->S;
+  short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+  short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+  char            **Ss          = vc->Ss;
+  unsigned short  **a2s         = vc->a2s;
+  vrna_param_t    *P            = vc->params;
   vrna_md_t       *md           = &(P->model_details);
   int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
-  int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */                 
-  int             *f5           = vc->matrices->f5;     /* energy of 5' end */                                  
-  int             *fML          = vc->matrices->fML;     /* multi-loop auxiliary energy array */                 
-  int             *pscore       = vc->pscore;     /* precomputed array of pair types */                      
+  int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */
+  int             *f5           = vc->matrices->f5;     /* energy of 5' end */
+  int             *fML          = vc->matrices->fML;     /* multi-loop auxiliary energy array */
+  int             *pscore       = vc->pscore;     /* precomputed array of pair types */
   int             *ggg          = vc->matrices->ggg;
   short           *S_cons       = vc->S_cons;
   int             *rtype        = &(md->rtype[0]);
@@ -1332,7 +1259,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       vrna_message_error("backtracking failed in repeat_gquad_comparative");
     }
   repeat_gquad_comparative_exit:
-    asm("nop");
+    __asm("nop");
 
   }
 

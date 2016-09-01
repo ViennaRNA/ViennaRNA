@@ -20,7 +20,7 @@ AC_DEFUN([RNA_ENABLE_LTO],[
   RNA_FEATURE_IF_ENABLED([lto],[
 
     ac_lto_supported=no
-
+    ac_fat_lto_obj_supported=no
 
   # check whether the compiler accepts LTO option
     AC_LANG_PUSH([C])
@@ -33,18 +33,28 @@ AC_DEFUN([RNA_ENABLE_LTO],[
       AC_LANG_POP([C++])
     fi
 
+    AC_LANG_PUSH([C])
+    AX_CHECK_COMPILE_FLAG([-ffat-lto-objects], [ac_fat_lto_obj_supported=yes],[ac_fat_lto_obj_supported=no],[],[])
+    AC_LANG_POP([C])
+
+    if test "x$ac_fat_lto_obj_supported" != "xno" ; then
+      AC_LANG_PUSH([C++])
+      AX_CHECK_COMPILE_FLAG([-ffat-lto-objects], [ac_fat_lto_obj_supported=yes],[ac_fat_lto_obj_supported=no],[],[])
+      AC_LANG_POP([C++])
+    fi
+
     ## prepare compile settings
-    if test "x$ac_lto_supported" != "xno" ; then
+    AS_IF([ test "x$ac_lto_supported" != "xno" ], [
 
       ## set compile flags
-      LTO_CFLAGS="-flto"
-      LTO_CXXFLAGS="-flto"
-
-      AS_IF([ test "x$ax_cv_c_compiler_vendor" == "xgnu" ], [
-        LTO_CFLAGS="${LTO_CFLAGS} -ffat-lto-objects"
-        LTO_CXXFLAGS="${LTO_CXXFLAGS} -ffat-lto-objects"
-      ],[])
-    fi
+      AS_IF([ test "x$ac_fat_lto_obj_supported" != "xno" ],[
+        LTO_CFLAGS="-flto -ffat-lto-objects"
+        LTO_CXXFLAGS="-flto -ffat-lto-objects"
+      ],[
+        LTO_CFLAGS="-flto -ffat-lto-objects"
+        LTO_CXXFLAGS="-flto"
+      ])
+    ])
 
     ## prepare linker settings
     if test "x$ac_lto_supported" != "xno" ; then
@@ -143,21 +153,21 @@ We will disable LTO support now!
                           ;;
           esac
         ],
-      [
-        ac_lto_supported="no"
+        [
+          ac_lto_supported="no"
+        ])
       ])
-    ])
 
-    ## append -flto flag if all checks went fine
-    if test "x$ac_lto_supported" != "xno" ; then
-      AX_APPEND_FLAG(["$LTO_LDFLAGS"], [RNA_LDFLAGS])
-      AX_APPEND_FLAG(["$LTO_CFLAGS"], [RNA_CFLAGS])
-      AX_APPEND_FLAG(["$LTO_CXXFLAGS"], [RNA_CXXFLAGS])
-    else
-      AC_MSG_WARN([Your compiler/linker combination does not support link-time optimization (LTO)])
-      enable_lto="no"
-      enabled_but_failed_lto="unsupported"
-    fi
+      ## append -flto flag if all checks went fine
+      AS_IF([ test "x$ac_lto_supported" != "xno" ], [
+        RNA_LDFLAGS="${RNA_LDFLAGS} ${LTO_LDFLAGS}"
+        RNA_CFLAGS="${RNA_CFLAGS} ${LTO_CFLAGS}"
+        RNA_CXXFLAGS="${RNA_CXXFLAGS} ${LTO_CXXFLAGS}"
+      ],[
+        AC_MSG_WARN([Your compiler/linker combination does not support link-time optimization (LTO)])
+        enable_lto="no"
+        enabled_but_failed_lto="unsupported"
+      ])
     fi
   ])
 

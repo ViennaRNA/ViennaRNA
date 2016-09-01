@@ -4,7 +4,11 @@
                   Ivo L Hofacker + Ronny Lorenz
                   Vienna RNA package
 */
-#include <config.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -176,8 +180,12 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
         for (j=i+turn+1; j<=n; j++) {
           ij = my_iindx[i]-j;
-          if(hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+          if((hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) && (qb[ij] > 0.)){
             type      = (unsigned char)ptype[jindx[j] + i];
+
+            if(type == 0)
+              type = 7;
+
             probs[ij] = q1k[i-1]*qln[j+1]/q1k[n];
             probs[ij] *= exp_E_ExtLoop(type, (i>1) ? S1[i-1] : -1, (j<n) ? S1[j+1] : -1, pf_params);
             if(sc){
@@ -187,7 +195,6 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             }
           } else
             probs[ij] = 0.;
-          
         }
       }
     } /* end if(!circular)  */
@@ -199,6 +206,9 @@ pf_create_bppm( vrna_fold_compound_t *vc,
         kl      = my_iindx[k]-l;
         type_2  = (unsigned char)ptype[jindx[l] + k];
         type_2  = rtype[type_2];
+
+        if(type_2 == 0)
+          type_2 = 7;
 
         if (qb[kl]==0.) continue;
 
@@ -214,6 +224,10 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               ij = my_iindx[i] - j;
               if(hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
                 type = (unsigned char)ptype[jindx[j] + i];
+
+                if(type == 0)
+                  type = 7;
+
                 if(probs[ij] > 0){
                   tmp2 =  probs[ij]
                           * scale[u1 + u2 + 2]
@@ -346,13 +360,17 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           ii = my_iindx[i];     /* ii-j=[i,j]     */
           tt = (unsigned char)ptype[jindx[l+1] + i];
           tt = rtype[tt];
+
+          if(tt == 0)
+            tt = 7;
+
           if(hc_local[ii - (l + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
             prmt1 = probs[ii-(l+1)]
                     * expMLclosing
                     * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
 
             if(sc){
-              /* which decompositions are covered here? => (i, l+1) -> enclosing pair, (k,l) -> enclosed pair, */
+              /* which decompositions are covered here? => (k-1, l+1) -> enclosing pair */
               if(sc->exp_energy_bp)
                 prmt1 *= sc->exp_energy_bp[ii - (l+1)];
 
@@ -376,7 +394,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                 (i,j)       -> enclosing pair
                 (k, l)      -> enclosed pair
                 (l+1, j-1)  -> multiloop part with at least one stem
-                
+                a.k.a. (k,l) is left-most stem in multiloop closed by (k-1, j)
               */
               ppp = probs[ij]
                     * exp_E_MLstem(tt, S1[j-1], s3, pf_params)
@@ -412,8 +430,8 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 */
             }
             prm_l[i] = ppp + prmt1;
-          } else {
-            prm_l[i] = 0.;
+          } else { /* skip configuration where l+1 is unpaired */
+            prm_l[i] = prmt1;
           }
 
           /* i is unpaired */
@@ -433,10 +451,11 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             /* same as:    prm_MLb = 0;
                for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
-            prml[i] = prml[ i] + prm_l[i];
-          } else {
-            prm_MLb = 0.;
+          } else { /* skip all configurations where i is unpaired */
+            prm_MLb = prml[i];
           }
+
+          prml[i] = prml[i] + prm_l[i];
 
           if(with_gquad){
             if ((!tt) && (G[kl] == 0.)) continue;
@@ -457,6 +476,10 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               else
                 temp    *= G[kl] * expMLstem * scale[2];
             } else {
+
+              if(tt == 0)
+                tt = 7;
+
               temp    *= exp_E_MLstem(tt, (k>1) ? S1[k-1] : -1, (l<n) ? S1[l+1] : -1, pf_params) * scale[2];
             }
 

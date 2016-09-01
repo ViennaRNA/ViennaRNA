@@ -1,10 +1,13 @@
-/* Last changed Time-stamp: <2003-04-23 11:56:44 ivo> */
 /*
                   Ineractive Access to folding Routines
 
                   c Ivo L Hofacker
                   Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,8 +25,6 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNALfold_cmdl.h"
 
-/*@unused@*/
-static char rcsid[] = "$Id: RNALfold.c,v 1.2 2003/07/14 13:38:47 ivo Exp $";
 
 int main(int argc, char *argv[]){
   FILE                        *input, *output;
@@ -145,23 +146,7 @@ int main(int argc, char *argv[]){
     read_parameter_file(ParamFile);
 
   if (ns_bases != NULL) {
-    /* nonstandards = vrna_alloc(33); */
-    c=ns_bases;
-    i=sym=0;
-    if (*c=='-') {
-      sym=1; c++;
-    }
-    while (*c!='\0') {
-      if (*c!=',') {
-        md.nonstandards[i++]=*c++;
-        md.nonstandards[i++]=*c;
-        if ((sym)&&(*c!=*(c-1))) {
-          md.nonstandards[i++]=*c;
-          md.nonstandards[i++]=*(c-1);
-        }
-      }
-      c++;
-    }
+    vrna_md_set_nonstandards(&md, ns_bases);
   }
 
   istty = (!infile) && isatty(fileno(stdout)) && isatty(fileno(stdin));

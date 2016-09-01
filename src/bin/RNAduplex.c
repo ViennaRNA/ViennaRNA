@@ -1,10 +1,13 @@
-/* Last changed Time-stamp: <2005-07-23 16:50:24 ivo> */
 /*
              Compute duplex structure of two RNA strands
 
                            c Ivo L Hofacker
                           Vienna RNA package
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,8 +23,7 @@
 #include "RNAduplex_cmdl.h"
 
 PRIVATE void  print_struc(duplexT const *dup);
-/*@unused@*/
-static char rcsid[] = "$Id: RNAduplex.c,v 1.5 2007/08/26 09:41:12 ivo Exp $";
+
 
 /*--------------------------------------------------------------------------*/
 

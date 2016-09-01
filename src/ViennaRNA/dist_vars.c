@@ -1,4 +1,3 @@
-/* Last changed Time-stamp: <> */
 /*             Global variables for Distance-Package */
 
 int  edit_backtrack = 0;  /* calculate aligned representation */

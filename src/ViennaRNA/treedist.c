@@ -3,7 +3,10 @@
 		Walter Fontana, Ivo L Hofacker, Peter F Stadler
 			     Vienna RNA Package
 */
-/* Last changed Time-stamp: <97/10/27 15:23:48 ivo> */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -343,6 +343,40 @@ typedef struct dupVar{
 } dupVar;
 
 /**
+ *  @brief  Dummy symbol to check whether the library was build using C11/C++11 features
+ *
+ *  By default, several data structures of our new v3.0 API use C11/C++11 features, such
+ *  as unnamed unions, unnamed structs. However, these features can be deactivated at
+ *  compile time to allow building the library and executables with compilers that do not
+ *  support these features.
+ *
+ *  Now, the problem arises that once our static library is compiled and a third-party
+ *  application is supposed to link against it, it needs to know, at compile time, how to
+ *  correctly address particular data structures. This is usually implicitely taken care of
+ *  through the API exposed in our header files. Unfortunately, we had some preprocessor directives
+ *  in our header files that changed the API depending on the capabilities of the compiler
+ *  the third-party application is build with. This in turn prohibited the use of an RNAlib
+ *  compiled without C11/C++11 support in a program that compiles/links with enabled C11/C++11
+ *  support and vice-versa.
+ *
+ *  Therefore, we introduce this dummy symbol which can be used to check, whether the
+ *  static library was build with C11/C++11 features.
+ *
+ *  @note If the symbol is present, the library was build with enabled C11/C++11 features support
+ *  and no action is required. However, if the symbol is missing in RNAlib >= 2.2.9, programs
+ *  that link to RNAlib must define a pre-processor identifier @em VRNA_DISABLE_C11_FEATURES before
+ *  including any ViennaRNA Package header file, for instance by adding a @em CPPFLAG
+ *  @code
+CPPFLAGS+=-DVRNA_DISABLE_C11_FEATURES
+ *  @endcode
+ *
+ *  @since v2.2.9
+ */
+#ifndef VRNA_DISABLE_C11_FEATURES
+void vrna_C11_features(void);
+#endif
+
+/**
  * @}
  */
 
@@ -439,7 +473,7 @@ struct vrna_fc_s{
       @}
    */
 
-#if ( __STDC_VERSION__ >= 201112L ) || ( __cplusplus >= 201103L )
+#ifndef VRNA_DISABLE_C11_FEATURES
     /* C11 support for unnamed unions/structs */
   union {
     struct {
@@ -479,7 +513,7 @@ struct vrna_fc_s{
       @}
    */
 
-#if ( __STDC_VERSION__ >= 201112L ) || ( __cplusplus >= 201103L )
+#ifndef VRNA_DISABLE_C11_FEATURES
     /* C11 support for unnamed unions/structs */
     };
     struct {
@@ -528,7 +562,7 @@ struct vrna_fc_s{
   /**
       @}
    */
-#if ( __STDC_VERSION__ >= 201112L ) || ( __cplusplus >= 201103L )
+#ifndef VRNA_DISABLE_C11_FEATURES
     };
   };
 #endif
@@ -724,7 +758,7 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc);
 /**
  *  @brief  Add auxiliary data to the #vrna_fold_compound_t
  *
- *  This function allows to bind arbitrary data to a #vrna_fold_compound_t which may later on be used
+ *  This function allows one to bind arbitrary data to a #vrna_fold_compound_t which may later on be used
  *  by one of the callback functions, e.g. vrna_callback_recursion_status(). To allow for proper cleanup
  *  of the memory occupied by this auxiliary data, the user may also provide a pointer to a cleanup function
  *  that free's the corresponding memory. This function will be called automatically when the #vrna_fold_compound_t
@@ -745,7 +779,7 @@ void vrna_fold_compound_add_auxdata(vrna_fold_compound_t *vc,
 /**
  *  @brief  Add a recursion status callback to the #vrna_fold_compound_t
  *
- *  Binding a recursion status callback function to a #vrna_fold_compound_t allows to perform
+ *  Binding a recursion status callback function to a #vrna_fold_compound_t allows one to perform
  *  arbitrary operations just before, or after an actual recursive computations, e.g. MFE prediction,
  *  is performed by the RNAlib. The callback function will be provided with a pointer to its
  *  #vrna_fold_compound_t, and a status message. Hence, it has complete access to all variables that
@@ -759,6 +793,7 @@ void vrna_fold_compound_add_auxdata(vrna_fold_compound_t *vc,
  */
 void vrna_fold_compound_add_callback( vrna_fold_compound_t *vc,
                                       vrna_callback_recursion_status *f);
+
 
 /**
  *  @}
