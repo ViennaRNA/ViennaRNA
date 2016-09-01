@@ -1,7 +1,7 @@
 v 2.2.9
-  * Fix bug in partition function scaling for backwward compatibility of ali_pf_fold()
+  * Fix bug in partition function scaling for backward compatibility of ali_pf_fold()
   * Stabilize v3.0 API when building RNAlib and third party program linking against it with compilers that use different C/C++ standards
-  * Add details on how to link agains RNAlib to the reference manual
+  * Add details on how to link against RNAlib to the reference manual
   * Fix RNAlib2.pc
   * Fix bug for temperature setting in RNAplfold
   * Use -fflat-lto-objects for static RNAlib library to allow linking without LTO
@@ -16,7 +16,7 @@ v 2.2.9
   * Enable RNAalifold to use Clustal, Stockholm, FASTA, or MAF alignments as input
   * Lift restriction of sequence number in alignments for RNAalifold
   * Enable ANSI colors for TTY output in RNAfold, RNAcofold, RNAalifold, RNAsubopt, and warnings/errors issued by RNAlib
-  * Add various new commandline options to manipulate sequence/alignent IDs in RNAfold, RNAcofold and RNAalifold
+  * Add various new commandline options to manipulate sequence/alignment IDs in RNAfold, RNAcofold and RNAalifold
 
 
 v 2.2.8
