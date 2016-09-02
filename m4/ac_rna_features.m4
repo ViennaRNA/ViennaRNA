@@ -222,6 +222,7 @@ AC_DEFUN([RNA_ENABLE_C11],[
                                     };
                                     int main (void) { return 0;} ]])],
                                     [use_unnamed_union_structs=yes],
+                                    [use_unnamed_union_structs=no],
                                     [use_unnamed_union_structs=no])
 
     AC_LANG_POP([C])
@@ -241,6 +242,7 @@ AC_DEFUN([RNA_ENABLE_C11],[
                                       };
                                       int main (void) { return 0;} ]])],
                                       [use_unnamed_union_structs=yes],
+                                      [use_unnamed_union_structs=no],
                                       [use_unnamed_union_structs=no])
 
       AC_LANG_POP([C++])
