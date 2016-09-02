@@ -15,11 +15,14 @@
 #endif
 
 /**
- *  @addtogroup   string_utils
+ *  @file     string_utils.h
+ *  @ingroup  utils
+ *  @brief    General utility- and helper-functions for RNA sequence and structure strings used throughout the ViennaRNA Package
+ */
+
+/**
  *  @{
- *
- *  @file string_utils.h
- *  @brief General utility- and helper-functions for RNA sequence and structure strings used throughout the ViennaRNA Package
+ *  @ingroup   string_utils
  */
 
 #include <ViennaRNA/data_structures.h>

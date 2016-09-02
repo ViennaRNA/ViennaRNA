@@ -1,0 +1,35 @@
+/**
+
+@addtogroup eval
+@brief      Secondary structure and loop free energy evaluation
+
+This module covers the functions to evaluate the free energy of a secondary
+structure given its sequence.
+
+Each base pair in a secondary structure closes a loop, thereby directly
+enclosing unpaired nucleotides, and/or further base pairs. Our implementation
+distinguishes four basic types of loops:
+
+- hairpin loops
+- interior loops
+- multibranch loops
+- exterior loop
+
+While the exterior loop is a special case without a closing pair, the other
+loops are determined by the number of base pairs involved in the loop formation,
+i.e. hairpin loops are 1-loops, since only a single base pair delimits the loop.
+interior loops are 2-loops due to their enclosing, and enclosed base pair. All
+loops where more than two base pairs are involved, are termed multibranch loops.
+
+@image html loop_types.svg
+@image latex loop_types.eps
+
+Any secondary structure can be decomposed into its loops. Each of the loops then
+can be scored in terms of free energy, and the free energy of an entire secondary
+structure is simply the sum of free energies of its loops.
+
+@image html loop_decomposition.svg
+@image latex loop_decomposition.eps
+
+
+*/

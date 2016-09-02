@@ -245,8 +245,9 @@ vrna_time_stamp(void){
 
 /*-----------------------------------------------------------------*/
 
-PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
-{
+PUBLIC char *
+vrna_read_line(FILE *fp){ /* reads lines of arbitrary length from fp */
+
   char s[512], *line, *cp;
   int len=0, size=0, l;
   line=NULL;
@@ -266,6 +267,7 @@ PUBLIC char *get_line(FILE *fp) /* reads lines of arbitrary length from fp */
   return line;
 }
 
+
 PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
   char  *line;
   int   i, l, r;
@@ -274,12 +276,12 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
   * read lines until informative data appears or
   * report an error if anything goes wrong
   */
-  if((line = get_line(stdin))==NULL) return VRNA_INPUT_ERROR;
+  if((line = vrna_read_line(stdin))==NULL) return VRNA_INPUT_ERROR;
 
   if(!(option & VRNA_INPUT_NOSKIP_COMMENTS))
     while((*line=='*')||(*line=='\0')){
       free(line);
-      if((line = get_line(stdin))==NULL) return VRNA_INPUT_ERROR;
+      if((line = vrna_read_line(stdin))==NULL) return VRNA_INPUT_ERROR;
     }
 
   l = (int) strlen(line);
@@ -459,4 +461,9 @@ time_stamp(void){
   return vrna_time_stamp();
 }
 
+PUBLIC char *
+get_line(FILE *fp){ /* reads lines of arbitrary length from fp */
+
+  return vrna_read_line(fp);
+}
 #endif

@@ -349,3 +349,30 @@ of biological interest.}
   issn = {0006-3525},
   keywords = {rna secondary_structure suboptimal},
 }
+@Article{lorenz:2016b,
+author="Lorenz, Ronny and Hofacker, Ivo L. and Stadler, Peter F.",
+title="{RNA} folding with hard and soft constraints",
+journal="Algorithms for Molecular Biology",
+year="2016",
+volume="11",
+number="1",
+pages="1--13",
+abstract={BACKGROUND: A large class of RNA secondary structure prediction programs uses an elaborate energy model grounded in extensive thermodynamic measurements and exact dynamic programming algorithms. External experimental evidence can be in principle be incorporated by means of hard constraints that restrict the search space or by means of soft constraints that distort the energy model. In particular recent advances in coupling chemical and enzymatic probing with sequencing techniques but also comparative approaches provide an increasing amount of experimental data to be combined with secondary structure prediction.
+RESULTS: Responding to the increasing needs for a versatile and user-friendly inclusion of external evidence into diverse flavors of RNA secondary structure prediction tools we implemented a generic layer of constraint handling into the ViennaRNA Package. It makes explicit use of the conceptual separation of the â€œfolding grammarâ€ defining the search space and the actual energy evaluation, which allows constraints to be interleaved in a natural way between recursion steps and evaluation of the standard energy function.
+CONCLUSIONS: The extension of the ViennaRNA Package provides a generic way to include diverse types of constraints into RNA folding algorithms. The computational overhead incurred is negligible in practice. A wide variety of application scenarios can be accommodated by the new framework, including the incorporation of structure probing data, non-standard base pairs and chemical modifications, as well as structure-dependent ligand binding.},
+issn="1748-7188",
+doi="10.1186/s13015-016-0070-z"
+}
+@article{lorenz:2016a,
+author = {Lorenz, Ronny and Luntzer, Dominik and Hofacker, Ivo L. and Stadler, Peter F. and Wolfinger, Michael T.}, 
+title = {SHAPE directed RNA folding},
+volume = {32}, 
+number = {1}, 
+pages = {145-147}, 
+year = {2016}, 
+doi = {10.1093/bioinformatics/btv523}, 
+abstract ={Summary: Chemical mapping experiments allow for nucleotide resolution assessment of RNA structure. We demonstrate that different strategies of integrating probing data with thermodynamics-based RNA secondary structure prediction algorithms can be implemented by means of soft constraints. This amounts to incorporating suitable pseudo-energies into the standard energy model for RNA secondary structures. As a showcase application for this new feature of the ViennaRNA Package we compare three distinct, previously published strategies to utilize SHAPE reactivities for structure prediction. The new tool is benchmarked on a set of RNAs with known reference structure.Availability and implementation: The capability for SHAPE directed RNA folding is part of the upcoming release of the ViennaRNA Package 2.2, for which a preliminary release is already freely available at http://www.tbi.univie.ac.at/RNA.Contact: michael.wolfinger@univie.ac.atSupplementary information: Supplementary data are available at Bioinformatics online.}, 
+URL = {http://bioinformatics.oxfordjournals.org/content/32/1/145.abstract}, 
+eprint = {http://bioinformatics.oxfordjournals.org/content/32/1/145.full.pdf+html}, 
+journal = {Bioinformatics} 
+}

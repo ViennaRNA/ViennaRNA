@@ -15,12 +15,10 @@
 #endif
 
 /**
- *  \addtogroup local_pf_fold
- *  @{
- *    \file LPfold.h
- *    \brief Function declarations of partition function variants of the Lfold algorithm
+ *  @file     LPfold.h
+ *  @ingroup  local_fold
+ *  @brief    Partition function implementation for the Lfold algorithm
  *
- *  @}
  */
 
 

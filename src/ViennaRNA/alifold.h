@@ -23,32 +23,10 @@
 #endif
 
 /**
- *  @addtogroup consensus_fold
- *  @brief compute various properties (consensus MFE structures, partition function,
- *  Boltzmann distributed stochastic samples, ...) for RNA sequence alignments
- *
- *  Consensus structures can be predicted by a modified version of the
- *  fold() algorithm that takes a set of aligned sequences instead
- *  of a single sequence. The energy function consists of the mean energy
- *  averaged over the sequences, plus a covariance term that favors pairs
- *  with consistent and compensatory mutations and penalizes pairs that
- *  cannot be formed by all structures. For details see @cite hofacker:2002 and
- *  @cite bernhart:2008.
- *  @{
- *    @file alifold.h
- *    @brief compute various properties (consensus MFE structures, partition function, Boltzmann
- *    distributed stochastic samples, ...) for RNA sequence alignments
- *
- *  @}
- */
-
-
-/**
- *  @addtogroup consensus_mfe_fold
+ *  @file alifold.h
  *  @ingroup consensus_fold
- *  @{
+ *  @brief Functions for comparative structure prediction using RNA sequence alignments
  *
- *  @}
  */
 
 /*
@@ -119,15 +97,6 @@ vrna_circalifold( const char **sequences,
 # PARTITION FUNCTION VARIANTS OF THE ALIFOLD IMPLEMENTATION #
 #############################################################
 */
-
-
-/**
- *  @addtogroup consensus_pf_fold
- *  @ingroup consensus_fold
- *  @{
- *
- *  @}
- */
 
 /**
  *  @brief  Compute Partition function @f$Q@f$ (and base pair probabilities) for an RNA

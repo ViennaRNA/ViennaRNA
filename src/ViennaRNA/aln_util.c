@@ -25,7 +25,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    char *line, name[100]="", *seq;
    int  n, nn=0, num_seq = 0, i;
 
-   if ((line=get_line(clust)) == NULL) {
+   if ((line=vrna_read_line(clust)) == NULL) {
      fprintf(stderr, "Empty CLUSTAL file\n"); return 0;
    }
 
@@ -34,7 +34,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
      free(line); return 0;
    }
    free(line);
-   line = get_line(clust);
+   line = vrna_read_line(clust);
 
    while (line!=NULL) {
     if(strncmp(line, "//", 2) == 0){
@@ -44,14 +44,14 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
 
     if (((n=strlen(line))<4) || isspace((int)line[0])) {
       /* skip non-sequence line */
-      free(line); line = get_line(clust);
+      free(line); line = vrna_read_line(clust);
       nn=0; /* reset seqence number */
       continue;
     }
     /* skip comments */
     if(line[0] == '#'){
       free(line);
-      line = get_line(clust);
+      line = vrna_read_line(clust);
       continue;
     }
 
@@ -90,7 +90,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
        return 0;
      }
 
-     line = get_line(clust);
+     line = vrna_read_line(clust);
    }
 
    AlignedSeqs[num_seq] = NULL;

@@ -5,12 +5,15 @@
 #include <ViennaRNA/params.h>
 
 /**
- *  @addtogroup   loops
- *
+ *  @file     exterior_loops.h
+ *  @ingroup  loops
+ *  @brief    Energy evaluation of exterior loops for MFE and partition function calculations
+ */
+
+/**
  *  @{
+ *  @ingroup   loops
  *
- *  @file exterior_loops.h
- *  @brief Energy evaluation of exterior loops for MFE and partition function calculations
  */
 
 /**

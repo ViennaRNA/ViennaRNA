@@ -20,12 +20,14 @@
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /**
- *  @addtogroup   loops
- *
+ *  @file     interior_loops.h
+ *  @ingroup  loops
+ *  @brief    Energy evaluation of interior loops for MFE and partition function calculations
+ */
+
+/**
  *  @{
- *
- *  @file interior_loops.h
- *  @brief Energy evaluation of interior loops for MFE and partition function calculations
+ *  @ingroup   loops
  */
 
 /**
@@ -357,8 +359,9 @@ exp_E_IntLoop(int u1,
 
   int ul, us, no_close = 0;
   double z = 0.;
+  int noGUclosure = P->model_details.noGUclosure;
 
-  if ((no_closingGU) && ((type2==3)||(type2==4)||(type==3)||(type==4)))
+  if ((noGUclosure) && ((type2==3)||(type2==4)||(type==3)||(type==4)))
     no_close = 1;
 
   if (u1>u2) { ul=u1; us=u2;}

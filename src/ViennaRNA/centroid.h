@@ -18,6 +18,7 @@
 
 /**
  *  @file   centroid.h
+ *  @ingroup subopt_and_representatives
  *  @brief  Centroid structure computation
  */
 

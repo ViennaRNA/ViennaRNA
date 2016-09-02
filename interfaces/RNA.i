@@ -5,17 +5,25 @@
 %{
 
 extern "C" {
+#include  <ViennaRNA/model.h>
 #include  <ViennaRNA/data_structures.h>
 #include  <ViennaRNA/dp_matrices.h>
-#include  <ViennaRNA/model.h>
+#include  <ViennaRNA/alphabet.h>
+#include  <ViennaRNA/grammar.h>
+#include  <ViennaRNA/unstructured_domains.h>
+#include  <ViennaRNA/structured_domains.h>
+
 #include  <ViennaRNA/utils.h>
 #include  <ViennaRNA/structure_utils.h>
 #include  <ViennaRNA/string_utils.h>
 #include  <ViennaRNA/fold_vars.h>
+
 #include  <ViennaRNA/constraints.h>
 #include  <ViennaRNA/constraints_hard.h>
 #include  <ViennaRNA/constraints_soft.h>
 #include  <ViennaRNA/constraints_SHAPE.h>
+#include  <ViennaRNA/constraints_ligand.h>
+
 #undef fold
 #include  <ViennaRNA/mfe.h>
 #include  <ViennaRNA/fold.h>
@@ -47,7 +55,6 @@ extern "C" {
 #include  <ViennaRNA/Lfold.h>
 #include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
-#include  <ViennaRNA/ligand.h>
 #include  <ViennaRNA/hairpin_loops.h>
 #include  <ViennaRNA/interior_loops.h>
 #include  <ViennaRNA/file_formats.h>
@@ -164,6 +171,8 @@ namespace std {
 %include inverse.i
 %include compare.i
 %include file_formats.i
+%include grammar.i
+
 
 /**********************************************/
 /* BEGIN interface for data structures        */

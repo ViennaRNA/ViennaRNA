@@ -1,8 +1,9 @@
 #ifndef VIENNA_RNA_PACKAGE_OLD_EPARS__
 #define VIENNA_RNA_PACKAGE_OLD_EPARS__
 /**
-    \file 1.8.4_epars.h
-    \brief Free energy parameters for parameter file conversion
+    @file 1.8.4_epars.h
+    @ingroup energy_parameters_convert
+    @brief Free energy parameters for parameter file conversion
 
     This file contains the free energy parameters used in ViennaRNAPackage 1.8.4.
     They are summarized in:

@@ -1,0 +1,30 @@
+/**
+
+@addtogroup mfe_fold
+
+@brief Compute Minimum Free energy (MFE) and backtrace corresponding secondary
+structures from RNA sequence data.
+
+The library provides a fast dynamic programming minimum free energy
+folding algorithm as described in @cite zuker:1981.
+All relevant parts that directly implement the "Zuker & Stiegler" algorithm for single
+sequences are described in this section.
+
+Folding of circular RNA sequences is handled as a post-processing step of the forward
+recursions. See @cite hofacker:2006 for further details.
+
+Nevertheless, the RNAlib also
+provides interfaces for the prediction of consensus MFE structures of sequence alignments,
+MFE structure for two hybridized sequences, local optimal structures and many more. For
+those more specialized variants of MFE folding routines, please consult the appropriate
+subsections (Modules) as listed above.
+
+@file mfe.h
+@brief MFE calculations for single RNA sequences
+
+This file includes (almost) all function declarations within the RNAlib that are related to
+MFE folding...
+
+
+*/
+

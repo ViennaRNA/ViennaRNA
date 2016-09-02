@@ -284,7 +284,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
         for(i = 1; i <= vc->length; i++)
           reactivities[i] = -1.;
 
-        while((line=get_line(fp))){
+        while((line=vrna_read_line(fp))){
           r = sscanf(line, "%d %c %f", &position, &nucleotide, &reactivity);
           if(r){
             if((position <= 0) || (position > vc->length))

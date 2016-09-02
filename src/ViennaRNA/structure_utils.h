@@ -15,12 +15,14 @@
 #endif
 
 /**
- *  @addtogroup   struct_utils
- *
+ *  @file     structure_utils.h
+ *  @ingroup  utils
+ *  @brief    Various utility- and helper-functions for secondary structure parsing, converting, etc.
+ */
+
+/**
  *  @{
- *
- *  @file structure_utils.h
- *  @brief Various utility- and helper-functions for secondary structure parsing, converting, etc.
+ *  @ingroup   struct_utils
  */
 
 /**

@@ -818,7 +818,7 @@ PRIVATE double *read_concentrations(FILE *fp) {
 
   startc = (double *) vrna_alloc((2*n+1)*sizeof(double));
 
-  while ((line=get_line(fp))!=NULL) {
+  while ((line=vrna_read_line(fp))!=NULL) {
     int c;
     if (i+4>=2*n) {
       n*=2;

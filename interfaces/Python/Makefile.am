@@ -5,6 +5,7 @@ LANG_SPECIFIC_INTERFACE_FILES = \
   $(srcdir)/globals-md.i \
   $(srcdir)/callbacks-fc.i \
   $(srcdir)/callbacks-sc.i \
+  $(srcdir)/callbacks-ud.i \
   $(builddir)/version.i
 
 INTERFACE_FILES = $(SWIG_src) \

@@ -2,12 +2,14 @@
 #define VIENNA_RNA_PACKAGE_LOOP_ENERGIES_H
 
 /**
- *  @addtogroup   loops
- *
+ *  @file     loop_energies.h
+ *  @ingroup  loops
+ *  @brief    Energy evaluation for MFE and partition function calculations
+ */
+
+/**
  *  @{
- *
- *  @file loop_energies.h
- *  @brief Energy evaluation for MFE and partition function calculations
+ *  @ingroup   loops
  * 
  *  <P>
  *  This file contains functions for the calculation of the free energy @f$\Delta G@f$

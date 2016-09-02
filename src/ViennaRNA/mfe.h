@@ -5,33 +5,6 @@
 #include <ViennaRNA/data_structures.h>
 
 /**
- *  @addtogroup mfe_fold
- *  @ingroup folding_routines
- *  @brief This section covers all functions and variables related to the calculation
- *  of minimum free energy (MFE) structures.
- *
- *  The library provides a fast dynamic programming minimum free energy
- *  folding algorithm as described in @cite zuker:1981.
- *  All relevant parts that directly implement the "Zuker & Stiegler" algorithm for single
- *  sequences are described in this section.
- *
- *  Folding of circular RNA sequences is handled as a post-processing step of the forward
- *  recursions. See @cite hofacker:2006 for further details.
- *
- *  Nevertheless, the RNAlib also
- *  provides interfaces for the prediction of consensus MFE structures of sequence alignments,
- *  MFE structure for two hybridized sequences, local optimal structures and many more. For
- *  those more specialized variants of MFE folding routines, please consult the appropriate
- *  subsections (Modules) as listed above.
- *
- *  @file mfe.h
- *  @brief MFE calculations for single RNA sequences
- *
- *  This file includes (almost) all function declarations within the RNAlib that are related to
- *  MFE folding...
- */
-
-/**
  *  @brief Compute minimum free energy and an appropriate secondary
  *  structure of an RNA sequence, or RNA sequence alignment
  *

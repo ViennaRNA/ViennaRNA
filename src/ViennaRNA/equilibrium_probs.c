@@ -85,7 +85,7 @@ PRIVATE void
 pf_create_bppm( vrna_fold_compound_t *vc,
                 char *structure){
 
-  int n, i,j,k,l, ij, kl, ii, u1, u2, ov=0;
+  int n, i,j,k,l, ij, kl, ii, u, u1, u2, ov=0;
   unsigned char type, type_2, tt;
   FLT_OR_DBL  temp, Qmax=0, prm_MLb;
   FLT_OR_DBL  prmt, prmt1;
@@ -103,11 +103,13 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
   int               *my_iindx, *jindx;
-  int               circular, turn;
+  int               circular, turn, with_ud;
   vrna_exp_param_t  *pf_params;
   vrna_mx_pf_t      *matrices;
   vrna_md_t         *md;
+  vrna_ud_t         *domains_up;
 
+  n                 = vc->length;
   pf_params         = vc->exp_params;
   md                = &(pf_params->model_details);
   S                 = vc->sequence_encoding2;
@@ -123,6 +125,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   hc                = vc->hc;
   sc                = vc->sc;
 
+  domains_up        = vc->domains_up;
   matrices          = vc->exp_matrices;
 
   qb                = matrices->qb;
@@ -134,6 +137,8 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   scale             = matrices->scale;
   expMLbase         = matrices->expMLbase;
 
+  with_ud           = (domains_up && domains_up->exp_energy_cb);
+
   FLT_OR_DBL  expMLstem         = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
   char        *hard_constraints = hc->matrix;
   int         *hc_up_int        = hc->up_int;
@@ -144,13 +149,15 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
   max_real      = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
-
-  if((S != NULL) && (S1 != NULL)){
+  /*
+    the following is a crude check whether the partition function forward recursion
+    has already been taken place
+  */
+  if(qb && probs && ( circular ? matrices->qm2 != NULL : (q1k != NULL && qln != NULL))){
 
     expMLclosing  = pf_params->expMLclosing;
     with_gquad    = pf_params->model_details.gquad;
     rtype         = &(pf_params->model_details.rtype[0]);
-    n             = S[0];
 
     /*
       The hc_local array provides row-wise access to hc->matrix, i.e.
@@ -167,6 +174,24 @@ pf_create_bppm( vrna_fold_compound_t *vc,
     FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
     FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
     FLT_OR_DBL *prml   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+
+    int         ud_max_size = 0;
+    FLT_OR_DBL  **pmlu      = NULL;
+    FLT_OR_DBL  *prm_MLbu   = NULL;
+
+    if(with_ud){
+      /* find out maximum size of any unstructured domain */
+      for(u = 0; u < domains_up->uniq_motif_count; u++)
+        if(ud_max_size < domains_up->uniq_motif_size[u])
+          ud_max_size = domains_up->uniq_motif_size[u];
+
+      pmlu  = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *) * (ud_max_size + 1)); /* maximum motif size */
+
+      for(u = 0; u <= ud_max_size; u++)
+        pmlu[u] = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+
+      prm_MLbu = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * (ud_max_size + 1));
+    }
 
     Qmax=0;
 
@@ -232,6 +257,13 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                   tmp2 =  probs[ij]
                           * scale[u1 + u2 + 2]
                           * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
+
+                  if(with_ud){
+                    if(u1 > 0)
+                      tmp2 *= domains_up->exp_energy_cb(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+                    if(u2 > 0)
+                      tmp2 *= domains_up->exp_energy_cb(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+                  }
 
                   if(sc){
                     if(sc->exp_energy_up)
@@ -351,35 +383,18 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
       /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
       prm_MLb = 0.;
+
+      if(with_ud){
+        for(u = 0; u <= ud_max_size; u++)
+          prm_MLbu[u] = 0.;
+      }
+
       if (l<n)
         for (k = 2; k < l - turn; k++) {
           kl    = my_iindx[k] - l;
           i     = k - 1;
           prmt  = prmt1 = 0.0;
 
-          ii = my_iindx[i];     /* ii-j=[i,j]     */
-          tt = (unsigned char)ptype[jindx[l+1] + i];
-          tt = rtype[tt];
-
-          if(tt == 0)
-            tt = 7;
-
-          if(hc_local[ii - (l + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
-            prmt1 = probs[ii-(l+1)]
-                    * expMLclosing
-                    * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
-
-            if(sc){
-              /* which decompositions are covered here? => (k-1, l+1) -> enclosing pair */
-              if(sc->exp_energy_bp)
-                prmt1 *= sc->exp_energy_bp[ii - (l+1)];
-
-/*
-              if(sc->exp_f)
-                prmt1 *= sc->exp_f(i, l+1, k, l, , sc->data);
-*/
-            }
-          }
           int lj;
           short s3;
           FLT_OR_DBL ppp;
@@ -389,6 +404,10 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           for (j = l + 2; j<=n; j++, ij--, lj--){
             if(hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
               tt = (unsigned char)md->pair[S1[j]][S1[i]];
+
+              if(tt == 0)
+                tt = 7;
+
               /* which decomposition is covered here? =>
                 i + 1 = k < l < j:
                 (i,j)       -> enclosing pair
@@ -413,9 +432,32 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           }
           prmt *= expMLclosing;
 
-          tt        =   ptype[jindx[l] + k];
 
           prml[ i]  =   prmt;
+
+          ii = my_iindx[i];     /* ii-j=[i,j]     */
+          tt = (unsigned char)ptype[jindx[l+1] + i];
+          tt = rtype[tt];
+          if(hc_local[ii - (l + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+
+            if(tt == 0)
+              tt = 7;
+
+            prmt1 = probs[ii-(l+1)]
+                    * expMLclosing
+                    * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+
+            if(sc){
+              /* which decompositions are covered here? => (i, l+1) -> enclosing pair */
+              if(sc->exp_energy_bp)
+                prmt1 *= sc->exp_energy_bp[ii - (l+1)];
+
+/*
+              if(sc->exp_f)
+                prmt1 *= sc->exp_f(i, l+1, k, l, , sc->data);
+*/
+            }
+          }
 
           /* l+1 is unpaired */
           if(hc->up_ml[l+1]){
@@ -429,14 +471,41 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                 ppp *= sc->exp_f(, sc->data);
 */
             }
+
+            /* add contributions of MB loops where any unstructured domain starts at l+1 */
+            if(with_ud){
+              int cnt;
+              for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+                u = domains_up->uniq_motif_size[cnt];
+                if(hc->up_ml[l+1] >= u){
+                  if(l + u < n){
+                    temp =    domains_up->exp_energy_cb(vc, l+1, l+u, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data)
+                            * pmlu[u][i]
+                            * expMLbase[u];
+
+                    if(sc){
+                      if(sc->exp_energy_up)
+                        temp *= sc->exp_energy_up[l+1][u];
+                    }
+
+                    ppp += temp;
+                  }
+                }
+              }
+              pmlu[0][i] = ppp + prmt1;
+            }
+
             prm_l[i] = ppp + prmt1;
           } else { /* skip configuration where l+1 is unpaired */
             prm_l[i] = prmt1;
+
+            if(with_ud)
+              pmlu[0][i] = prmt1;
           }
 
           /* i is unpaired */
           if(hc->up_ml[i]){
-            ppp = prm_MLb*expMLbase[1];
+            ppp = prm_MLb * expMLbase[1];
             if(sc){
               if(sc->exp_energy_up)
                 ppp *= sc->exp_energy_up[i][1];
@@ -447,15 +516,39 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 */
             }
 
+            if(with_ud){
+              int cnt;
+              for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+                u = domains_up->uniq_motif_size[cnt];
+                if(hc->up_ml[i] >= u){
+                  temp =    prm_MLbu[u]
+                          * expMLbase[u]
+                          * domains_up->exp_energy_cb(vc, i, i+u, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+
+                  if(sc){
+                    if(sc->exp_energy_up)
+                      temp *= sc->exp_energy_up[i][u];
+                  }
+                  ppp += temp;
+                }
+              }
+              prm_MLbu[0] = ppp + prml[i];
+            }
+
             prm_MLb = ppp + prml[i];
             /* same as:    prm_MLb = 0;
                for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
           } else { /* skip all configurations where i is unpaired */
             prm_MLb = prml[i];
+
+            if(with_ud)
+              prm_MLbu[0] = prml[i];
           }
 
           prml[i] = prml[i] + prm_l[i];
+
+          tt = ptype[jindx[l] + k];
 
           if(with_gquad){
             if ((!tt) && (G[kl] == 0.)) continue;
@@ -489,16 +582,31 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               Qmax = probs[kl];
               if (Qmax>max_real/10.)
                 fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-                  i, j, probs[kl], qb[kl]);
+                  k, l, probs[kl], qb[kl]);
             }
             if (probs[kl]>=max_real) {
               ov++;
               probs[kl]=FLT_MAX;
             }
           }
+
+          /* rotate prm_MLbu entries required for unstructured domain feature */
+          if(with_ud){
+            for(u = ud_max_size; u > 0; u--)
+              prm_MLbu[u] = prm_MLbu[u - 1];
+          }
         } /* end for (k=..) */
+
+      /* rotate prm_l and prm_l1 arrays */
       tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
 
+      /* rotate pmlu entries required for unstructured domain feature */
+      if(with_ud){
+        tmp = pmlu[ud_max_size];
+        for(u = ud_max_size; u > 0; u--)
+          pmlu[u] = pmlu[u - 1];
+        pmlu[0] = tmp;
+      }
     }  /* end for (l=..)   */
 
     if(sc && sc->f && sc->bt){
@@ -570,8 +678,15 @@ pf_create_bppm( vrna_fold_compound_t *vc,
     free(prm_l1);
     free(prml);
 
+    if(with_ud){
+      for(u = 0; u <= ud_max_size; u++)
+        free(pmlu[u]);
+      free(pmlu);
+      free(prm_MLbu);
+    }
+
     free(hc_local);
-  } /* end if((S != NULL) && (S1 != NULL))  */
+  } /* end if 'check for forward recursion' */
   else
     vrna_message_error("bppm calculations have to be done after calling forward recursion\n");
 

@@ -1114,7 +1114,7 @@ PUBLIC float **readribosum(char *name){
     dm[i]=(float *)vrna_alloc(7*sizeof(float));
   }
   while(1) { /*bisma hoit fertisch san*/
-    line=get_line(fp);
+    line=vrna_read_line(fp);
     if (*line=='#') continue;
     i=0;
     i=sscanf(line,"%f %f %f %f %f %f",&a,&b,&c,&d,&e,&f);

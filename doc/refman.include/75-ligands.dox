@@ -1,0 +1,44 @@
+/**
+ *  @addtogroup ligand_binding
+ *
+ *  @brief  Simple extensions to model ligand binding to RNA structures
+ */
+
+/**
+ *  @addtogroup ligands_up
+ *
+ *  @brief  Add ligand binding to loop regions using the @ref domains_up feature
+ *
+ *  Sometime, certain ligands, like single strand binding (SSB) proteins, compete with intramolecular
+ *  base pairing of the RNA. In situations, where the dissociation constant of the ligand is known and
+ *  the ligand binds to a consecutive stretch of single-stranded nucleotides we can use the @ref domains_up
+ *  functionality to extend the RNA folding grammar. This module provides a convenience default implementation
+ *  that covers most of the application scenarios.
+ *
+ *  The function vrna_ud_add_motif() attaches a ligands sequence motif and corresponding binding free energy
+ *  to the list of known ligand motifs within a #vrna_fold_compound_t.domains_up attribute. The first call to
+ *  this function initializes the @ref domains_up feature with our default implementation. Subsequent calls of
+ *  secondary structure predciction algorithms with the modified #vrna_fold_compound_t then directly include
+ *  the competition of the ligand with regules base pairing. Since we utilize the unstructured domain extension,
+ *  The ligand binding model can be removed again using the vrna_ud_remove() function.
+ *
+ */
+
+/**
+ *  @addtogroup constraints_ligand
+ *
+ *  @brief  Ligand binding to specific hairpin/interior loop like motifs using the @ref soft_constraints feature
+ *
+ *  Here is an example that adds a theophylline binding motif. Free energy
+ *  contribution is derived from @f$k_d = 0.32 \mu mol / l @f$, taken from
+ *  Jenison et al. 1994
+ *
+ *  @image html   theo_aptamer.svg
+ *  @image latex  theo_aptamer.eps
+ *
+ *  @code{.c}
+vrna_sc_add_hi_motif( vc,
+                      "GAUACCAG&CCCUUGGCAGC",
+                      "(...((((&)...)))...)",
+                      -9.22, VRNA_OPTION_DEFAULT); @endcode
+ */

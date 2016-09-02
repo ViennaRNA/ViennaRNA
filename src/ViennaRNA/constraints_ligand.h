@@ -2,33 +2,18 @@
 #define VIENNA_RNA_PACKAGE_LIGAND_H
 
 /**
- *  @file     ligand.h
- *  @ingroup  ligands
- *  @brief    Functions for incorporation of ligands binding to haipirn and interior loop motifs
+ *  @file     constraints_ligand.h
+ *  @ingroup  ligand_binding
+ *  @brief    Functions for incorporation of ligands binding to hairpin and interior loop motifs using the soft constraints framework
  */
 
-/**
- *  @addtogroup ligands
- *
- *  @brief  This module covers functions that enable the incorporation of ligand binding
- *  free energies to specific hairpin/interior loop motifs by means of generic soft constraints.
- */
 #include <ViennaRNA/data_structures.h>
 
 
 /**
  *  @brief  Add soft constraints for hairpin or interior loop binding motif
  *
- *  @ingroup  ligands
- *
- *  Here is an example that adds a theophylline binding motif. Free energy
- *  contribution is derived from @f$k_d = 0.32 \mu mol / l @f$, taken from
- *  Jenison et al. 1994
- *  @code{.c}
-vrna_sc_add_hi_motif( vc,
-                      "GAUACCAG&CCCUUGGCAGC",
-                      "(...((((&)...)))...)",
-                      -9.22, VRNA_OPTION_DEFAULT); @endcode
+ *  @ingroup  constraints_ligand
  *
  *  @param  vc        The #vrna_fold_compound_t the motif is applied to
  *  @param  seq       The sequence motif (may be interspaced by '&' character

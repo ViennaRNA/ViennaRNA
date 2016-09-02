@@ -15,11 +15,14 @@
 #endif
 
 /**
+ *  @file     alphabet.h
+ *  @ingroup  utils
+ *  @brief    Functions to process, convert, and generally handle different nucleotide
+ *            and/or base pair alphabets
+ */
+
+/**
  *  @{
- *
- *  @file alphabet.h
- *  @brief  Functions to process, convert, and generally handle different nucleotide
- *          and/or base pair alphabets
  *  @ingroup utils
  */
 

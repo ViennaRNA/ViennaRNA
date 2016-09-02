@@ -15,14 +15,19 @@
 #define VRNA_BACKWARD_COMPAT
 
 /**
- *  @addtogroup   file_utils
- *
- *  @{
- *
- *  @file file_formats.h
- *  @brief Functions dealing with file formats for RNA sequences, and structures
+ *  @file     file_formats.h
+ *  @ingroup  file_utils
+ *  @brief    Read and write different file formats for RNA sequences, structures
+ */
+
+/**
+ *  @addtogroup file_utils
+ *  @brief      Functions dealing with file formats for RNA sequences, structures, and alignments
  *
  *  @see @ref constraint-formats-file 
+ *
+ *  @{
+ *  @ingroup  file_utils
  */
 
 #include <stdio.h>
@@ -33,7 +38,7 @@
 /**
  *  @brief Print a secondary structure as helix list
  *
- *  \param  seq     The RNA sequence
+ *  @param  seq     The RNA sequence
  *  @param  db      The structure in dot-bracket format
  *  @param  energy  Free energy of the structure in kcal/mol
  *  @param  file    The file handle used to print to (print defaults to 'stdout' if(file == NULL) )

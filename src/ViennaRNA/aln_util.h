@@ -12,12 +12,15 @@
 #endif
 
 /**
- *  @addtogroup   aln_utils
- *
- *  @{
- *
  *  @file aln_util.h
+ *  @ingroup utils
  *  @brief Various utility- and helper-functions for sequence alignments and comparative structure prediction
+ */
+
+/**
+ *  @{
+ *  @ingroup   aln_utils
+ *
  */
 
 /** @brief Typename for the base pair info repesenting data structure #vrna_pinfo_s */

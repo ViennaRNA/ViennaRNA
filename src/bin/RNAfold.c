@@ -34,8 +34,11 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/constraints_SHAPE.h"
-#include "ViennaRNA/ligand.h"
+#include "ViennaRNA/constraints_ligand.h"
+#include "ViennaRNA/structured_domains.h"
+#include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/commands.h"
 #include "RNAfold_cmdl.h"
 
 #include "ViennaRNA/color_output.inc"
@@ -176,16 +179,17 @@ add_ligand_motif( vrna_fold_compound_t *vc,
 int main(int argc, char *argv[]){
   FILE            *input, *output;
   struct          RNAfold_args_info args_info;
-  char            *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc,
-                  *orig_sequence, *constraints_file, *shape_file, *shape_method,
-                  *shape_conversion, fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH],
-                  *ParamFile, *ns_bases, *infile, *outfile, *ligandMotif, *id_prefix;
+  char            *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence,
+                  *constraints_file, *shape_file, *shape_method, *shape_conversion,
+                  fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile, *ns_bases,
+                  *infile, *outfile, *ligandMotif, *id_prefix, *command_file;
   unsigned int    rec_type, read_opt;
   int             i, length, l, cl, istty, pf, noPS, noconv, do_bpp, enforceConstraints,
                   batch, auto_id, id_digits, doMEA, circular, lucky, with_shapes,
                   verbose, istty_in, istty_out;
   long int        seq_number;
   double          energy, min_en, kT, sfact, MEAgamma, bppmThreshold, betaScale;
+  vrna_cmd_t      *commands;
   vrna_md_t       md;
 
   rec_type            = read_opt = 0;
@@ -224,6 +228,8 @@ int main(int argc, char *argv[]){
   input               = NULL;
   output              = NULL;
   ligandMotif         = NULL;
+  command_file        = NULL;
+  commands            = NULL;
 
   /* apply default model details */
   set_model_details(&md);
@@ -328,6 +334,9 @@ int main(int argc, char *argv[]){
   if(args_info.motif_given){
     ligandMotif = strdup(args_info.motif_arg);
   }
+  if(args_info.commands_given){
+    command_file = strdup(args_info.commands_arg);
+  }
 
   if(args_info.auto_id_given){
     auto_id = 1;
@@ -385,6 +394,10 @@ int main(int argc, char *argv[]){
 
   if (ns_bases != NULL) {
     vrna_md_set_nonstandards(&md, ns_bases);
+  }
+
+  if (command_file != NULL) {
+    commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_DEFAULTS);
   }
 
   istty_in  = isatty(fileno(stdin));
@@ -515,6 +528,13 @@ int main(int argc, char *argv[]){
         vrna_message_info(stdout, msg);
       free(msg);
     }
+
+    if(commands)
+      vrna_commands_apply(vc, commands);
+
+    /*
+    vrna_ud_add_motif(vc, "AAAA", -15., VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS);
+    */
 
     if(outfile){
       v_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
@@ -1058,6 +1078,8 @@ int main(int argc, char *argv[]){
   free(shape_method);
   free(shape_conversion);
   free(id_prefix);
+  free(command_file);
+  vrna_commands_free(commands);
 
   return EXIT_SUCCESS;
 }

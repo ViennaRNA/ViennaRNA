@@ -21,21 +21,12 @@
 #endif
 
 /**
- *  @addtogroup pf_fold
- *  @brief This section provides information about all functions and variables related to
- *  the calculation of the partition function and base pair probabilities.
- *
- *  Instead of the minimum free energy structure the partition function of all possible structures
- *  and from that the pairing probability for every possible pair can be calculated, using a dynamic
- *  programming algorithm as described in @cite mccaskill:1990. 
- *
- *  @{
- *    @file part_func.h
- *    @brief Partition function of single RNA sequences
+ *  @file     part_func.h
+ *  @ingroup  pf_fold
+ *  @brief    Partition function implementations
  * 
- *    This file includes (almost) all function declarations within the <b>RNAlib</b> that are related to
- *    Partion function folding...
- *  @}
+ *  This file includes (almost) all function declarations within the <b>RNAlib</b> that are related to
+ *  Partion function folding...
  */
 
 /*

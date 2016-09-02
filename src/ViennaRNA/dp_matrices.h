@@ -2,12 +2,18 @@
 #define VIENNA_RNA_PACKAGE_DP_MATRICES_H
 
 /**
- *  @file dp_matrices.h
+ *  @file     dp_matrices.h
+ *  @ingroup  data_structures
+ *  @brief    Functions to deal with standard dynamic programming (DP) matrices
+ */
+
+/**
  *  @addtogroup dp_matrices   The Dynamic Programming Matrices
- *  @{
- *
  *  @brief  This module provides interfaces that deal with creation and destruction of
  *          dynamic programming matrices used within the RNAlib.
+ *
+ *  @{
+ *  @ingroup  dp_matrices
  */
 
 /** @brief Typename for the Minimum Free Energy (MFE) DP matrices data structure #vrna_mx_mfe_s */
@@ -368,6 +374,10 @@ vrna_mx_mfe_add(vrna_fold_compound_t *vc,
 int
 vrna_mx_pf_add( vrna_fold_compound_t *vc,
                 vrna_mx_type_e mx_type,
+                unsigned int options);
+
+int
+vrna_mx_prepare(vrna_fold_compound_t *vc,
                 unsigned int options);
 
 /**

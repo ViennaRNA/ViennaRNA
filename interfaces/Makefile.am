@@ -7,6 +7,7 @@ SOURCES = RNA.i \
           constraints.i \
           eval.i \
           fold_compound.i \
+          grammar.i \
           inverse.i \
           mfe.i \
           model_details.i \
@@ -24,6 +25,7 @@ EXTRA_DIST =  RNA.i \
               constraints.i \
               eval.i \
               fold_compound.i \
+              grammar.i \
               inverse.i \
               mfe.i \
               model_details.i \

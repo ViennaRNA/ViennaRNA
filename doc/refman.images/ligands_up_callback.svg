@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Creator: fig2dev Version 3.2 Patchlevel 5e -->
+
+<!-- CreationDate: Mon Apr 25 22:41:36 2016 -->
+
+<!-- Magnification: 1.000 -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="3.2483554in"
+   height="0.61332941in"
+   viewBox="885 1760 3887.3216 741.39847"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="ligands_up_callback.svg"
+   inkscape:export-filename="/home/ronny/TeX/Papers/RNAconstraints/Crecursion.fig.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <metadata
+     id="metadata426">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs424" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1054"
+     id="namedview422"
+     showgrid="false"
+     inkscape:zoom="4.9597748"
+     inkscape:cx="146.17599"
+     inkscape:cy="27.599823"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0">
+    <sodipodi:guide
+       position="3078.6379,147.52788"
+       orientation="0,1"
+       id="guide5723" />
+  </sodipodi:namedview>
+  <rect
+     id="rect210"
+     style="fill:none;stroke:#000000;stroke-width:7;stroke-linecap:butt;stroke-linejoin:miter"
+     rx="105"
+     height="150"
+     width="1800"
+     y="2009.9609"
+     x="2988.4822" />
+  <rect
+     id="rect222"
+     style="fill:#ffffff;stroke:#000000;stroke-width:15;stroke-linecap:butt;stroke-linejoin:miter"
+     rx="0"
+     height="300"
+     width="675"
+     y="1934.8115"
+     x="1921.5055" />
+  <text
+     style="font-style:italic;font-weight:bold;font-size:192px;font-family:Times;text-anchor:start;fill:#000000;stroke-width:0.025in"
+     id="text350"
+     font-size="192"
+     font-weight="bold"
+     font-style="italic"
+     y="2459.8115"
+     x="1921.5055"
+     xml:space="preserve">i</text>
+  <text
+     style="font-style:italic;font-weight:bold;font-size:192px;font-family:Times;text-anchor:start;fill:#000000;stroke-width:0.025in"
+     id="text356"
+     font-size="192"
+     font-weight="bold"
+     font-style="italic"
+     y="2459.8115"
+     x="2502.6003"
+     xml:space="preserve">j</text>
+  <text
+     style="font-style:italic;font-weight:bold;font-size:240px;font-family:Times;text-anchor:start;fill:#000000;stroke-width:0.025in"
+     id="text394"
+     font-size="240"
+     font-weight="bold"
+     font-style="italic"
+     y="2084.9609"
+     x="1553.8077"
+     xml:space="preserve">=</text>
+  <text
+     style="font-style:italic;font-weight:bold;font-size:192px;font-family:Times;text-anchor:start;fill:#000000;stroke-width:0.025in"
+     id="text396"
+     font-size="192"
+     font-weight="bold"
+     font-style="italic"
+     y="2459.9609"
+     x="2988.4822"
+     xml:space="preserve">i</text>
+  <text
+     style="font-style:italic;font-weight:bold;font-size:192px;font-family:Times;text-anchor:start;fill:#000000;stroke-width:0.025in"
+     id="text398"
+     font-size="192"
+     font-weight="bold"
+     font-style="italic"
+     y="2459.9609"
+     x="4638.4727"
+     xml:space="preserve">j</text>
+  <text
+     style="font-style:italic;font-weight:bold;font-size:240px;font-family:Times;text-anchor:middle;fill:#000000;stroke-width:0.025in"
+     id="text416"
+     font-size="240"
+     font-weight="bold"
+     font-style="italic"
+     y="1934.9609"
+     x="3888.4778"
+     xml:space="preserve">B</text>
+  <text
+     style="font-style:italic;font-weight:bold;font-size:240px;font-family:Times;text-anchor:start;fill:#000000;stroke-width:0.025in"
+     id="text394-4"
+     font-size="240"
+     font-weight="bold"
+     font-style="italic"
+     y="2077.3823"
+     x="2745.4656"
+     xml:space="preserve">|</text>
+  <text
+     style="font-style:italic;font-weight:bold;font-size:240px;font-family:Times;text-anchor:start;fill:#000000;stroke-width:0.025in"
+     id="text394-0"
+     font-size="240"
+     font-weight="bold"
+     font-style="italic"
+     y="2086.6909"
+     x="853.38599"
+     xml:space="preserve">f(i,j)</text>
+</svg>

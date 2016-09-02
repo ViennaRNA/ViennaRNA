@@ -2,12 +2,17 @@
 #define VIENNA_RNA_PACKAGE_DATA_STRUCTURES_H
 
 /**
- *  @file data_structures.h
- *
+ *  @file     data_structures.h
+ *  @ingroup  data_structures
+ *  @brief    Various data structures and pre-processor macros
+ */
+
+/**
  *  @addtogroup   data_structures
- *  @{
+ *  @brief All datastructures and typedefs shared among the Vienna RNA Package can be found here
  *
- *  @brief Most datastructures and typedefs shared among the ViennaRNA Package can be found here
+ *  @{
+ *  @ingroup data_structures
  */
 
 /* below are several convenience typedef's we use throughout the ViennaRNA library */
@@ -60,7 +65,6 @@ typedef void (vrna_callback_free_auxdata)(void *data);
  *  @param status   The status indicator
  */
 typedef void (vrna_callback_recursion_status)(unsigned char status, void *data);
-
 
 /**
  *  @brief  Status message indicating that MFE computations are about to begin
@@ -142,6 +146,9 @@ typedef struct vrna_bp_stack_s  bondT;
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/dp_matrices.h>
 #include <ViennaRNA/constraints.h>
+#include <ViennaRNA/grammar.h>
+#include "ViennaRNA/structured_domains.h"
+#include "ViennaRNA/unstructured_domains.h"
 
 /*
 * ############################################################
@@ -468,6 +475,22 @@ struct vrna_fc_s{
   vrna_callback_free_auxdata *free_auxdata; /**<  @brief A callback to free auxiliary user data whenever the fold_compound itself is free'd
                                                   @see  #vrna_fold_compound_t.auxdata, vrna_callback_free_auxdata()
                                             */
+
+  /**
+      @}
+
+      @name Secondary Structure Decomposition (grammar) related data fields
+      @{
+   */
+
+  /* data structure to adjust additional structural domains, such as G-quadruplexes */
+  vrna_sd_t         *domains_struc;         /**<  @brief  Additional structured domains */
+
+  /* data structure to adjust additional contributions to unpaired stretches, e.g. due to protein binding */
+  vrna_ud_t         *domains_up;            /**<  @brief  Additional unstructured domains */
+
+  /* auxiliary (user-defined) extension to the folding grammar */
+  vrna_gr_aux_t     *aux_grammar;
 
   /**
       @}

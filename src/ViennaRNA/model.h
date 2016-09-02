@@ -16,11 +16,14 @@
 #define VRNA_BACKWARD_COMPAT
 
 /**
- *  @addtogroup   model_details
+ *  @file     model.h
+ *  @ingroup  model_details
+ *  @brief    The model details data structure and its corresponding modifiers
+ */
+
+/**
  *  @{
- *
- *  @file model.h
- *  @brief The model details data structure and its corresponding modifiers
+ *  @ingroup   model_details
  */
 
 #ifndef NBASES

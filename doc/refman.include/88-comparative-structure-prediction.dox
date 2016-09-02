@@ -1,0 +1,15 @@
+/**
+ *  @addtogroup consensus_fold
+ *  @brief compute various properties (consensus MFE structures, partition function,
+ *  Boltzmann distributed stochastic samples, ...) for RNA sequence alignments
+ *
+ *  Consensus structures can be predicted by a modified version of the
+ *  fold() algorithm that takes a set of aligned sequences instead
+ *  of a single sequence. The energy function consists of the mean energy
+ *  averaged over the sequences, plus a covariance term that favors pairs
+ *  with consistent and compensatory mutations and penalizes pairs that
+ *  cannot be formed by all structures. For details see @cite hofacker:2002 and
+ *  @cite bernhart:2008.
+ *
+ */
+

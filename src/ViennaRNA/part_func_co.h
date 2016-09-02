@@ -15,6 +15,12 @@
 #define VRNA_BACKWARD_COMPAT
 
 /**
+ *  @file     part_func_co.h
+ *  @ingroup  pf_fold cofold pf_cofold
+ *  @brief    Partition function for two RNA sequences
+ */
+
+/**
  *  @addtogroup pf_cofold
  *  @brief Partition Function Cofolding
  *
@@ -26,10 +32,6 @@
  *  corrected to include the dimerization penalty, and the pair probabilities
  *  can be divided into the conditional pair probabilities given that a re
  *  dimer is formed or not formed. See @cite bernhart:2006 for further details.
- *  @{
- *  @file part_func_co.h
- *
- *  @brief Partition function for two RNA sequences
  *
  *  As for folding one RNA molecule, this computes the partition function
  *  of all possible structures and the base pair probabilities. Uses the
@@ -52,6 +54,9 @@
  *  energies of the monomers A and B and dimers AB, AA, and BB one can compute
  *  the equilibrium concentrations, given input concentrations of A and B, see
  *  e.g. Dimitrov & Zuker (2004)
+ *
+ *  @{
+ *  @ingroup  pf_cofold
  */
 
 /** @brief Typename for the data structure that stores the dimer partition functions, #vrna_dimer_pf_s, as returned by vrna_pf_dimer() */

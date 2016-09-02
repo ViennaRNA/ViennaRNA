@@ -13,6 +13,7 @@ SWIG_misc_src = \
   $(srcdir)/../constraints_ligand.i \
   $(srcdir)/../eval.i \
   $(srcdir)/../fold_compound.i \
+  $(srcdir)/../grammar.i \
   $(srcdir)/../inverse.i \
   $(srcdir)/../mfe.i \
   $(srcdir)/../model_details.i \

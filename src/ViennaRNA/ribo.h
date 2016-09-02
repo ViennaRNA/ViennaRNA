@@ -2,12 +2,14 @@
 #define VIENNA_RNA_PACKAGE_RIBOSUM_H
 
 /**
- *  @addtogroup   file_utils
- *
- *  @{
- *
  *  @file ribo.h
+ *  @ingroup   file_utils
  *  @brief  Parse RiboSum Scoring Matrices for Covariance Scoring of Alignments
+ */
+
+/**
+ *  @{
+ *  @ingroup   file_utils
  */
 
 /**

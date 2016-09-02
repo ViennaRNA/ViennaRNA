@@ -4,13 +4,11 @@
 #include <ViennaRNA/data_structures.h>
 
 /**
- *  @addtogroup pf_fold
- *  @{
- *    @file boltzmann_sampling.h
- *    @brief Boltzmann Sampling of secondary structures from the ensemble
+ *  @file boltzmann_sampling.h
+ *  @ingroup subopt_and_representatives
+ *  @brief Boltzmann Sampling of secondary structures from the ensemble
  *
- *    A.k.a. Stochastic backtracking
- *  @}
+ *  A.k.a. Stochastic backtracking
  */
 
 /**
