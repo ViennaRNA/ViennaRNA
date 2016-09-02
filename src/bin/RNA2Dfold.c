@@ -34,29 +34,33 @@ typedef struct nbhoods{
 
 int main(int argc, char *argv[]){
   struct        RNA2Dfold_args_info args_info;
-  unsigned int  input_type;
-  char *string, *input_string, *orig_sequence;
-  char *mfe_structure=NULL, *structure1=NULL, *structure2=NULL, *reference_struc1=NULL, *reference_struc2=NULL;
-  char  *ParamFile=NULL;
-  int   i, j, length, l;
-  double min_en;
-  int   pf=0,istty;
-  int noconv=0;
-  int circ=0;
-  int maxDistance1 = -1;
-  int maxDistance2 = -1;
-  int do_backtrack = 1;
-  int stBT = 0;
-  int nstBT = 0;
-  string=NULL;
-  dangles = 2;
-  struct nbhoods *neighborhoods = NULL;
-  struct nbhoods *neighborhoods_cur = NULL;
-  vrna_md_t   md;
+  struct        nbhoods             *neighborhoods, *neighborhoods_cur;
+  unsigned int                      input_type;
+  char                              *string, *input_string, *orig_sequence;
+  char                              *mfe_structure, *structure1, *structure2, *reference_struc1,
+                                    *reference_struc2, *ParamFile;
+  int                               i, length, l, pf, istty, noconv, circ, maxDistance1, maxDistance2,
+                                    do_backtrack, stBT, nstBT;
+  double                            min_en;
+  vrna_md_t                         md;
+
+  string            = input_string = orig_sequence = ParamFile = NULL;
+  mfe_structure     = structure1 = structure2 = reference_struc1 = reference_struc2 = NULL;
+  dangles           = 2;
+  pf                = 0;
+  noconv            = 0;
+  circ              = 0;
+  maxDistance1      = -1;
+  maxDistance2      = -1;
+  do_backtrack      = 1;
+  stBT              = 0;
+  nstBT             = 0;
+  neighborhoods     = NULL;
+  neighborhoods_cur = NULL;
 
   vrna_md_set_default(&md);
 
-  string = input_string = orig_sequence = NULL;
+
   /*
   #############################################
   # check the command line prameters
@@ -303,7 +307,7 @@ int main(int argc, char *argv[]){
         vrna_init_rand();
         printf("k\tl\ten\tstructure\n");
         if(neighborhoods != NULL){
-          nbhoods *tmp, *tmp2;
+          nbhoods *tmp;
           for(tmp = neighborhoods; tmp != NULL; tmp = tmp->next){
             int k,l;
             k = tmp->k;

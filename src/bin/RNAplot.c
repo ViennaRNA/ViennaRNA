@@ -21,15 +21,12 @@
 #define PRIVATE static
 
 int main(int argc, char *argv[]){
-  struct        RNAplot_args_info args_info;
-  char          *structure, *pre, *post;
-  char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH];
-  char          *rec_sequence, *rec_id, **rec_rest;
-  int           i, length;
-  int           istty;
-  char          format[5]="ps";
-  unsigned int  rec_type, read_opt;
-  vrna_md_t     md;
+  struct RNAplot_args_info  args_info;
+  char                      *structure, *pre, *post, fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH],
+                            *rec_sequence, *rec_id, **rec_rest, format[5]="ps";
+  unsigned int              rec_type, read_opt;
+  int                       i, length, istty;
+  vrna_md_t                 md;
 
   structure = pre = post = NULL;
   length = 0;

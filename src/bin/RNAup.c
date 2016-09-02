@@ -56,19 +56,14 @@ PRIVATE double RT;
 int main(int argc, char *argv[]){
   struct RNAup_args_info  args_info;
   unsigned int            input_type, up_mode;
-  char                    temp_name[512], my_contrib[10], up_out[250], name[512];
-  char                    fname1[FILENAME_MAX_LENGTH], fname2[FILENAME_MAX_LENGTH], fname_target[FILENAME_MAX_LENGTH];
-  char                    *ParamFile, *ns_bases, *c, *structure;
-  char                    *head, *input_string, *s1, *s2, *s3, *s_target, *cstruc1, *cstruc2, *cstruc_target, *cstruc_combined;
-  char                    cmdl_tmp[2048], *cmdl_parameters, *orig_s1, *orig_s2, *orig_target;
-  int                     cmdl_parameters_length;
-  int                     i, j, length1, length2, l, length_target, sym, r, istty, rotated;
-  double                  energy, min_en;
-  double                  sfact=1.07;
-  int                     noconv=0;
-  int                     max_u = 0;
-  int                     **unpaired_values;    /* very new array that contains the different ulength values */
-  int                     ulength_num = 0;      /* number of ulength values given on commandline */
+  char                    temp_name[512], my_contrib[10], up_out[250], name[512], fname1[FILENAME_MAX_LENGTH],
+                          fname2[FILENAME_MAX_LENGTH], fname_target[FILENAME_MAX_LENGTH], *ParamFile,
+                          *ns_bases, *c, *structure, *head, *input_string, *s1, *s2, *s3, *s_target, *cstruc1,
+                          *cstruc2, *cstruc_target, *cstruc_combined, cmdl_tmp[2048], *cmdl_parameters,
+                          *orig_s1, *orig_s2, *orig_target;
+  int                     cmdl_parameters_length, i, j, length1, length2, length_target, sym, istty,
+                          rotated, noconv, max_u, **unpaired_values, ulength_num;
+  double                  energy, min_en, sfact;
 
   /* variables for output */
   pu_contrib              *unstr_out, *unstr_short, *unstr_target, *contrib1, *contrib2;
@@ -79,8 +74,6 @@ int main(int argc, char *argv[]){
   int w                 = 25; /* length of region of interaction */
   int incr3             = 0;  /* add x unpaired bases after 3'end of short RNA*/
   int incr5             = 0;  /* add x unpaired bases after 5'end of short RNA*/
-  int unstr;                  /* length of unpaired region for output*/
-  int longerSeqFirst    = 1;  /* rotate input seq. to ensure that first sequence is the longer one (RNA_UP_MODE_2) */
   int header            = 1;  /* print header in output file */
   int output            = 1;  /* create output  file */
 
@@ -90,9 +83,12 @@ int main(int argc, char *argv[]){
   my_contrib[1] = '\0';
 
   default_u = 4;
-  unstr=default_u;
 
   /* early initializing */
+  noconv          = 0;
+  max_u           = 0;
+  ulength_num     = 0;      /* number of ulength values given on commandline */
+  sfact           = 1.07;
   dangles         = 2;
   do_backtrack    = 1;
   rotated         = 0;
@@ -871,7 +867,6 @@ PRIVATE void appendCmdlParameter(char **param_dest, const char *parameter, int *
 void tokenize(char *line, char **seq1, char **seq2) {
   char *pos;
   int cut = -1;
-  int i;
   pos = strchr(line, '&');
   if (pos) {
     cut = (int) (pos-line)+1;
@@ -1019,8 +1014,8 @@ void seperate_bp(char **inter, int len1, char **intra_l, char **intra_s) {
 }
 
 PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_c, pu_contrib *p_c2, int w, int incr3, int incr5) {
-  char *i_long,*i_short;
-  int i,len, l_l, l_s, len1, end5, end3, i_min, j_min, l1, add_a, add_b,nix_up;
+  char    *i_long,*i_short;
+  int     i, l_l, l_s, len1, end5, end3, i_min, j_min, l1, add_a, add_b,nix_up;
   double p_c_S;
   double G_min,Gi_min,Gul, G_sum, Gus, diff;
   duplexT mfe;
@@ -1029,7 +1024,6 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
   G_min = Int->Gikjl;
   Gi_min = Int->Gikjl_wo;
   len1 = Int->length;
-  len=strlen(s1)+strlen(s2);
 
   /* use duplexfold() to fold the interaction site */
   l_l = (Int->i-Int->k+1);

@@ -73,22 +73,21 @@ static void init_perturbation_vector(double *epsilon, int length, double max_ene
 
 int main(int argc, char *argv[]){
   struct RNApvmin_args_info args_info;
-  vrna_md_t md;
-  int istty = 0;
-  unsigned int read_opt = 0;
-  unsigned int rec_type;
-  size_t length;
-  char *rec_id;
-  char *rec_sequence;
-  char **rec_rest;
-  char *shape_sequence;
-  double *shape_data;
-  int algorithm = VRNA_MINIMIZER_DEFAULT;
-  int i;
-  double initialStepSize    = 0.01;
-  double minStepSize        = 1e-15;
-  double minImprovement     = 1e-3;
-  double minimizerTolerance = 1e-3;
+  vrna_md_t                 md;
+  char                      *rec_id, *rec_sequence, **rec_rest, *shape_sequence;
+  size_t                    length;
+  unsigned int              read_opt, rec_type;
+  int                       istty, algorithm, i;
+  double                    *shape_data, initialStepSize, minStepSize, minImprovement,
+                            minimizerTolerance;
+
+  istty               = 0;
+  read_opt            = 0;
+  initialStepSize     = 0.01;
+  minStepSize         = 1e-15;
+  minImprovement      = 1e-3;
+  minimizerTolerance  = 1e-3;
+  algorithm           = VRNA_MINIMIZER_DEFAULT;
 
   if (RNApvmin_cmdline_parser(argc, argv, &args_info))
     return 1;

@@ -109,7 +109,7 @@ add_ligand_motif( vrna_fold_compound_t *vc,
                   int verbose,
                   unsigned int options){
 
-  int r, l, n, i, error;
+  int r, l, error;
   char *seq, *str, *ptr;
   float energy;
 
@@ -176,57 +176,54 @@ add_ligand_motif( vrna_fold_compound_t *vc,
 int main(int argc, char *argv[]){
   FILE            *input, *output;
   struct          RNAfold_args_info args_info;
-  char            *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence;
-  char            *constraints_file, *shape_file, *shape_method, *shape_conversion;
-  char            fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile;
-  char            *ns_bases, *c;
-  int             i, length, l, cl, sym, istty, pf, noPS, noconv, do_bpp, enforceConstraints,
-                  batch, auto_id, id_digits;
-  long int        seq_number;
+  char            *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc,
+                  *orig_sequence, *constraints_file, *shape_file, *shape_method,
+                  *shape_conversion, fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH],
+                  *ParamFile, *ns_bases, *infile, *outfile, *ligandMotif, *id_prefix;
   unsigned int    rec_type, read_opt;
-  double          energy, min_en, kT, sfact;
-  int             doMEA, circular, lucky, with_shapes, verbose, istty_in, istty_out;
-  double          MEAgamma, bppmThreshold, betaScale;
-  char            *infile, *outfile, *ligandMotif, *id_prefix;
+  int             i, length, l, cl, istty, pf, noPS, noconv, do_bpp, enforceConstraints,
+                  batch, auto_id, id_digits, doMEA, circular, lucky, with_shapes,
+                  verbose, istty_in, istty_out;
+  long int        seq_number;
+  double          energy, min_en, kT, sfact, MEAgamma, bppmThreshold, betaScale;
+  vrna_md_t       md;
 
-  vrna_md_t         md;
-
-  rec_type      = read_opt = 0;
-  rec_id        = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;
-  rec_rest      = NULL;
-  ParamFile     = NULL;
-  ns_bases      = NULL;
-  do_bpp        = do_backtrack  = 1;  /* set local (do_bpp) and global (do_backtrack) default for bpp computation */
-  pf            = 0;
-  sfact         = 1.07;
-  noPS          = 0;
-  noconv        = 0;
-  circular      = 0;
-  gquad         = 0;
-  cl            = l = length = 0;
-  dangles       = 2;
-  MEAgamma      = 1.;
-  bppmThreshold = 1e-5;
-  lucky         = 0;
-  doMEA         = 0;
-  betaScale     = 1.;
-  shape_file    = NULL;
-  shape_method  = NULL;
-  with_shapes   = 0;
-  verbose       = 0;
-  max_bp_span   = -1;
-  constraints_file = NULL;
+  rec_type            = read_opt = 0;
+  rec_id              = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;
+  rec_rest            = NULL;
+  ParamFile           = NULL;
+  ns_bases            = NULL;
+  do_bpp              = do_backtrack  = 1;  /* set local (do_bpp) and global (do_backtrack) default for bpp computation */
+  pf                  = 0;
+  sfact               = 1.07;
+  noPS                = 0;
+  noconv              = 0;
+  circular            = 0;
+  gquad               = 0;
+  cl                  = l = length = 0;
+  dangles             = 2;
+  MEAgamma            = 1.;
+  bppmThreshold       = 1e-5;
+  lucky               = 0;
+  doMEA               = 0;
+  betaScale           = 1.;
+  shape_file          = NULL;
+  shape_method        = NULL;
+  with_shapes         = 0;
+  verbose             = 0;
+  max_bp_span         = -1;
+  constraints_file    = NULL;
   enforceConstraints  = 0;
   batch               = 0;
   seq_number          = 1;
   id_prefix           = NULL;
   auto_id             = 0;
   id_digits           = 4;
-  outfile       = NULL;
-  infile        = NULL;
-  input         = NULL;
-  output        = NULL;
-  ligandMotif   = NULL;
+  outfile             = NULL;
+  infile              = NULL;
+  input               = NULL;
+  output              = NULL;
+  ligandMotif         = NULL;
 
   /* apply default model details */
   set_model_details(&md);
@@ -756,7 +753,7 @@ int main(int argc, char *argv[]){
 
           if(ligandMotif){
             /* append motif positions to the plists of base pair probabilities */
-            vrna_plist_t *motifs, *ptr;
+            vrna_plist_t *ptr;
             int a,b,c,d, cnt, size, add;
             cnt = 0;
             a   = 1;

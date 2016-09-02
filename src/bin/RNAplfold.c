@@ -28,28 +28,27 @@
 #include "RNAplfold_cmdl.h"
 
 int unpaired;
-PRIVATE void putout_pup(double *pup,int length, int winsize, char *name);
-PRIVATE void putoutpU_G(double **pU,int length, int ulength, FILE *fp);
 PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp);
 
 /*--------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
-  struct        RNAplfold_args_info args_info;
-  unsigned int  error = 0;
-  char          fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *c, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
-  unsigned int  input_type;
-  int           i, length, l, sym, r, istty, winsize, pairdist;
-  float         cutoff;
-  int           tempwin, temppair, tempunpaired;
-  FILE          *pUfp = NULL, *spup = NULL;
-  double        **pup = NULL; /*prob of being unpaired, lengthwise*/
-  int           noconv, plexoutput, simply_putout, openenergies, binaries;
-  plist         *pl, *dpp = NULL;
-  unsigned int  rec_type, read_opt;
-  double        betaScale;
-  vrna_exp_param_t  *pf_parameters;
-  vrna_md_t         md;
+  FILE                        *pUfp, *spup;
+  struct RNAplfold_args_info  args_info;
+  char                        fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *structure,
+                              *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
+  unsigned int                rec_type, read_opt;
+  int                         length, istty, winsize, pairdist, tempwin, temppair, tempunpaired, noconv,
+                              plexoutput, simply_putout, openenergies, binaries;
+  float                       cutoff;
+  double                      **pup, betaScale;
+  plist                       *pl, *dpp;
+  vrna_exp_param_t            *pf_parameters;
+  vrna_md_t                   md;
 
+  pUfp          = NULL;
+  spup          = NULL;
+  pup           = NULL; /*prob of being unpaired, lengthwise*/
+  dpp           = NULL;
   dangles       = 2;
   cutoff        = 0.01;
   winsize       = 70;
@@ -329,60 +328,6 @@ int main(int argc, char *argv[]){
   return EXIT_SUCCESS;
 }
 
-/* additional output functions */
-
-PRIVATE void putout_pup(double *pup,int length, int winsize, char *name) {
-  int i;
-  float factor;
-  float tfact;
-  FILE *FP;
-
-  FP=fopen(name,"w");
-  fprintf(FP,"&prob of being unpaired between i-%d and i\n",unpaired);
-  fflush(NULL);
-  for (i=unpaired; i<=length; i++) {
-    factor=0.;
-    if (i<winsize) {
-      factor=1./(i-unpaired+1);
-    }
-    if (i>length-winsize+unpaired-1) {
-      tfact=1./(length-i+1);
-      if (tfact>factor) {
-        factor=tfact;
-      }
-
-    }
-    else {
-      tfact=1./(winsize-unpaired+1);
-      if (tfact>factor) {
-        factor=tfact;
-      }
-    }
-    fprintf(FP,"%d %.6f\n",i,pup[i]*factor);
-  }
-  fclose(FP);
-
-}
-PRIVATE void putoutpU_G(double **pU,int length, int ulength, FILE *fp) {
-  /*put out unpaireds */
-  int i,k;
-  fprintf(fp,"#unpaired probabilities\n #i\tl=");
-  for (i=1; i<=ulength; i++) {
-    fprintf(fp,"%d\t", i);
-  }
-  fprintf(fp,"\n");
-  for (k=1; k<=length; k++){
-    fprintf(fp,"%d\t",k);
-    for (i=1; i<=ulength; i++) {
-      if (k+(i-1)<=length) fprintf(fp,"%.7g\t",pU[k+(i-1)][i]);
-    }
-    fprintf(fp,"\n");
-    free(pU[k]);
-  }
-  free(pU[0]);
-  free(pU);
-  fflush(fp);
-}
 PRIVATE void putoutphakim_u(double **pU,int length, int ulength, FILE *fp) {
   /*put out Fopen in dekacalories per mol, and F(cond,open) also in dekacal*/
   int k;

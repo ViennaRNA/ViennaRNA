@@ -85,14 +85,14 @@ add_shape_constraints(vrna_fold_compound_t *vc,
 int main(int argc, char *argv[]){
   struct RNAalifold_args_info args_info;
   FILE                        *clust_file;
-  unsigned int                input_type, options, constraint_options, longest_string,
+  unsigned int                input_type, options, longest_string,
                               input_format_options;
   char                        *input_string, *string, *structure, *cstruc, *ParamFile,
-                              *ns_bases, *c, **AS, **names, *constraints_file, **shape_files,
+                              *ns_bases, **AS, **names, *constraints_file, **shape_files,
                               *shape_method, *filename_plot, *filename_dot, *filename_aln,
                               *filename_out, *filename_in, *tmp_id, *tmp_structure,
                               *tmp_string, **input_files, *id_prefix;
-  int                         s, n_seq, i, length, sym, noPS, with_shapes, verbose, with_sci,
+  int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci,
                               endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
                               istty_in, eval_energy, pf, istty, *shape_file_association,
                               tmp_number, batch, continuous_names, id_digits, auto_id,
@@ -133,7 +133,7 @@ int main(int argc, char *argv[]){
   alignment_number        = 0;
   clust_file              = stdin;
   continuous_names        = 0;
-  id_digits            = 4;
+  id_digits               = 4;
   auto_id                 = 0;
   id_prefix               = NULL;
   input_file_num          = 0;

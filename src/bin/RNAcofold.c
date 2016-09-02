@@ -29,9 +29,20 @@
 
 #include "ViennaRNA/color_output.inc"
 
-PRIVATE vrna_dimer_pf_t do_partfunc(char *string, int length, int Switch, plist **tpr, plist **mf, vrna_exp_param_t *parameters);
-PRIVATE double *read_concentrations(FILE *fp);
-PRIVATE void do_concentrations(double FEAB, double FEAA, double FEBB, double FEA, double FEB, double *startconces, vrna_exp_param_t *parameters);
+PRIVATE vrna_dimer_pf_t do_partfunc(char *string,
+                                    int length,
+                                    int Switch,
+                                    plist **tpr,
+                                    plist **mf,
+                                    vrna_exp_param_t *parameters);
+PRIVATE double          *read_concentrations(FILE *fp);
+PRIVATE void            do_concentrations(double FEAB,
+                                          double FEAA,
+                                          double FEBB,
+                                          double FEA,
+                                          double FEB,
+                                          double *startconces,
+                                          vrna_exp_param_t *parameters);
 
 PRIVATE double bppmThreshold;
 
@@ -40,73 +51,48 @@ PRIVATE double bppmThreshold;
 int main(int argc, char *argv[])
 {
   struct        RNAcofold_args_info args_info;
-  unsigned int  input_type;
-  char          *string, *input_string;
-  char    *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence, *rec_id, **rec_rest;
-  char    fname[FILENAME_MAX_LENGTH];
-  char    *ParamFile;
-  char    *ns_bases, *c;
-  char    *Concfile;
-  int     i, length, l, sym, r, cl;
-  double  min_en;
-  double  kT, sfact, betaScale;
-  int     pf, istty;
-  int     noconv, noPS, enforceConstraints;
-  int     doT;    /*compute dimere free energies etc.*/
-  int     doC;    /*toggle to compute concentrations*/
-  int     doQ;    /*toggle to compute prob of base being paired*/
-  int     cofi;   /*toggle concentrations stdin / file*/
-  plist   *prAB;
-  plist   *prAA;   /*pair probabilities of AA dimer*/
-  plist   *prBB;
-  plist   *prA;
-  plist   *prB;
-  plist   *mfAB;
-  plist   *mfAA;   /*pair mfobabilities of AA dimer*/
-  plist   *mfBB;
-  plist   *mfA;
-  plist   *mfB;
-  double  *ConcAandB;
-  unsigned int    rec_type, read_opt;
-  long int          seq_number;
-  char              *id_prefix;
-  int               auto_id, id_digits, istty_in, istty_out;
-  vrna_md_t         md;
-
+  char          *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence,
+                *rec_id, **rec_rest, fname[FILENAME_MAX_LENGTH], *ParamFile,
+                *ns_bases, *Concfile, *id_prefix;
+  unsigned int  rec_type, read_opt;
+  int           i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
+                doT, doC, cofi, auto_id, id_digits, istty_in, istty_out;
+  long int      seq_number;
+  double        min_en, kT, sfact, betaScale, *ConcAandB;
+  plist         *prAB, *prAA, *prBB, *prA, *prB, *mfAB, *mfAA, *mfBB, *mfA, *mfB;
+  vrna_md_t     md;
 
   /*
   #############################################
   # init variables and parameter options
   #############################################
   */
-  dangles       = 2;
-  sfact         = 1.07;
-  bppmThreshold = 1e-5;
-  noconv        = 0;
-  noPS          = 0;
-  do_backtrack  = 1;
-  pf            = 0;
-  doT           = 0;
-  doC           = 0;
-  doQ           = 0;
-  cofi          = 0;
-  betaScale     = 1.;
-  gquad         = 0;
-  ParamFile     = NULL;
-  string        = NULL;
-  Concfile      = NULL;
-  structure     = NULL;
-  cstruc        = NULL;
-  ns_bases      = NULL;
-  rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = orig_sequence = NULL;
-  rec_rest      = NULL;
-  constraints_file = NULL;
-  enforceConstraints = 0;
-  seq_number      = 1;
-  id_prefix       = NULL;
-  auto_id      = 0;
-  id_digits       = 4;
+  dangles             = 2;
+  sfact               = 1.07;
+  bppmThreshold       = 1e-5;
+  noconv              = 0;
+  noPS                = 0;
+  do_backtrack        = 1;
+  pf                  = 0;
+  doT                 = 0;  /* compute dimer free energies etc. */
+  doC                 = 0;  /* toggle to compute concentrations */
+  cofi                = 0;  /* toggle concentrations stdin / file */
+  betaScale           = 1.;
+  gquad               = 0;
+  ParamFile           = NULL;
+  Concfile            = NULL;
+  structure           = NULL;
+  cstruc              = NULL;
+  ns_bases            = NULL;
+  rec_type            = read_opt = 0;
+  rec_id              = rec_sequence = orig_sequence = NULL;
+  rec_rest            = NULL;
+  constraints_file    = NULL;
+  enforceConstraints  = 0;
+  seq_number          = 1;
+  id_prefix           = NULL;
+  auto_id             = 0;
+  id_digits           = 4;
 
   set_model_details(&md);
   /*
@@ -512,7 +498,6 @@ int main(int argc, char *argv[])
         int Blength, Alength;
         char  *Astring, *Bstring, *orig_Astring, *orig_Bstring;
         char *Newstring;
-        char Newname[30];
         char comment[80];
         if (vc->cutpoint <= 0) {
           vrna_message_warning("Sorry, i cannot do that with only one molecule, please give me two or leave it");

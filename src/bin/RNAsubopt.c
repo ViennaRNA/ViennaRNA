@@ -97,14 +97,14 @@ PRIVATE void putoutzuker(vrna_subopt_solution_t* zukersolution);
 
 int main(int argc, char *argv[]){
   struct          RNAsubopt_args_info args_info;
-  unsigned int    input_type;
+  char            fname[FILENAME_MAX_LENGTH], *c, *rec_sequence, *rec_id,
+                  **rec_rest, *orig_sequence, *constraints_file, *cstruc, *structure,
+                  *ParamFile, *ns_bases, *shape_file, *shape_method, *shape_conversion;
   unsigned int    rec_type, read_opt;
-  char            fname[FILENAME_MAX_LENGTH], *c, *input_string, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
-  char            *constraints_file, *cstruc, *structure, *ParamFile, *ns_bases, *shape_file, *shape_method, *shape_conversion;
-  int             i, length, l, cl, sym, istty;
-  double          deltaf, deltap, betaScale;
-  int             delta, n_back, noconv, circular, dos, zuker, gquad, with_shapes, verbose,
-                  max_bp_span, enforceConstraints, st_back_en;
+  int             i, length, cl, sym, istty, delta, n_back, noconv, circular, dos,
+                  zuker, gquad, with_shapes, verbose, max_bp_span, enforceConstraints,
+                  st_back_en;
+  double          deltap, betaScale;
   vrna_md_t       md;
 
   do_backtrack  = 1;
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]){
   rec_type      = read_opt = 0;
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
-  input_string  = c = cstruc = structure = ParamFile = ns_bases = NULL;
+  c = cstruc = structure = ParamFile = ns_bases = NULL;
   constraints_file = NULL;
   shape_file    = NULL;
   shape_method  = NULL;
@@ -428,8 +428,8 @@ int main(int argc, char *argv[]){
       free(ss);
 
       for (i=0; i<n_back; i++) {
-        int r;
-        char *s, *e_string = NULL;
+        int   r = 0;
+        char  *s, *e_string = NULL;
         s = vrna_pbacktrack(vc);
         if(st_back_en){
           double e, prob;

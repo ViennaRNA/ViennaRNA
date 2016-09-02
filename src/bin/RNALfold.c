@@ -29,15 +29,14 @@
 int main(int argc, char *argv[]){
   FILE                        *input, *output;
   struct  RNALfold_args_info  args_info;
-  char                        *input_string, *c, *string, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
-  char                        fname[FILENAME_MAX_LENGTH], *infile, *outfile;
-  int                         i, length, l, sym, r, istty, noconv, maxdist, zsc;
-  double                      energy, min_en, min_z;
-  unsigned int                input_type;
+  char                        *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest,
+                              *orig_sequence, fname[FILENAME_MAX_LENGTH], *infile, *outfile;
   unsigned int                rec_type, read_opt;
+  int                         length, istty, noconv, maxdist, zsc;
+  double                      min_en, min_z;
   vrna_md_t                   md;
 
-  string        = structure = ParamFile = ns_bases = NULL;
+  ParamFile     = ns_bases = NULL;
   do_backtrack  = 1;
   noconv        = 0;
   dangles       = 2;

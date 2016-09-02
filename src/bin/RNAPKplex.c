@@ -33,33 +33,35 @@ int PlexHit_cmp_energy (const void *c1, const void *c2);
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[]) {
-  struct        PKplex_args_info args_info;
-  char          *id_s1, *s1, *orig_s1, *ParamFile, *ns_bases, *c, *plexstring, *constraint;
-  char          fname[FILENAME_MAX_LENGTH], *temp, *annotation, **rest;
-  int           istty, l, i, j, noconv, length, pairdist, current, unpaired;
-  int           winsize, openenergies, sym;
-  double        **pup = NULL; /*prob of being unpaired, lengthwise*/
-  FILE          *pUfp = NULL, *spup = NULL;
-  plist         *pl, *dpp = NULL;
-  float         cutoff, constrainedEnergy;
-  double        subopts;
-  double        pk_penalty;
-  unsigned int  options=0;
-  vrna_md_t     md;
-  vrna_param_t  *par;
+  FILE                    *pUfp, *spup;
+  struct PKplex_args_info args_info;
+  char                    *id_s1, *s1, *orig_s1, *ParamFile, *ns_bases, *plexstring,
+                          *constraint, fname[FILENAME_MAX_LENGTH], *temp, *annotation,
+                          **rest;
+  unsigned int            options;
+  int                     istty, i, j, noconv, length, pairdist, current, unpaired, winsize;
+  float                   cutoff, constrainedEnergy;
+  double                  **pup, subopts, pk_penalty;
+  plist                   *pl, *dpp;
+  vrna_md_t               md;
+  vrna_param_t            *par;
 
-  subopts       = 0.0;
-  dangles       = 2;
-  winsize       = 70;
-  cutoff        = 0.01;
-  pairdist      = 0;
-  unpaired      = 0;
-  noconv        = 0;
-  openenergies  = 1;
-  pk_penalty    = 8.10;
-  ParamFile = ns_bases = NULL;
-  s1 = id_s1 = orig_s1 = NULL;
-  par           = NULL;
+  options               = 0;
+  pup                   = NULL; /*prob of being unpaired, lengthwise*/
+  pUfp                  = NULL;
+  dpp                   = NULL;
+  spup                  = NULL;
+  subopts               = 0.0;
+  dangles               = 2;
+  winsize               = 70;
+  cutoff                = 0.01;
+  pairdist              = 0;
+  unpaired              = 0;
+  noconv                = 0;
+  pk_penalty            = 8.10;
+  ParamFile = ns_bases  = NULL;
+  s1 = id_s1 = orig_s1  = NULL;
+  par                   = NULL;
 
   set_model_details(&md);
 
@@ -487,6 +489,8 @@ int main(int argc, char *argv[]) {
     free(nonstandards);
     free(PlexHits);
     s1 = id_s1 = orig_s1 = NULL;
+
+    plexstring = NULL;
 
 /* print user help for the next round if we get input from tty */
     if(istty) vrna_message_input_seq_simple();
