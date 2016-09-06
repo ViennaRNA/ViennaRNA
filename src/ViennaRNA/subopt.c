@@ -607,7 +607,8 @@ vrna_subopt(vrna_fold_compound_t *vc,
 
     if(sorted){
       /* sort structures by energy */
-      qsort(data.SolutionList, data.n_sol, sizeof(SOLUTION), compare);
+      if(data.n_sol > 0)
+        qsort(data.SolutionList, data.n_sol - 1, sizeof(SOLUTION), compare);
       if(fp)
         make_output(data.SolutionList, vc->cutpoint, fp);
     }
