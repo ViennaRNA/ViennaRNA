@@ -32,7 +32,18 @@ a.add_callback(bla)
 a.sc_add_data(c, None)
 a.sc_add_f(blubb)
 (s, mfe) = a.mfe()
-print(s, " ", mfe)
+print(s, "[%6.2f]" % mfe)
+
+
+def print_subopt_result(structure, energy, data=None):
+    if not structure == None:
+        print(structure, "[%6.2f]" % energy)
+
+
+RNA.cvar.uniq_ML = 1
+a = RNA.fold_compound("GGGGAAAACCCC")
+a.subopt_cb(500, print_subopt_result);
+
 
 if __name__ == '__main__':
     unittest.main()
