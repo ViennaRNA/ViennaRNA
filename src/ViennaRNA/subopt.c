@@ -603,7 +603,7 @@ vrna_subopt(vrna_fold_compound_t *vc,
       free(energies);
     }
     /* call subopt() */
-    vrna_subopt_cb(vc, delta, (sorted) ? &old_subopt_store : &old_subopt_print, (void *)&data);
+    vrna_subopt_cb(vc, delta, (!sorted && fp) ? &old_subopt_print : &old_subopt_store, (void *)&data);
 
     if(sorted){
       /* sort structures by energy */
