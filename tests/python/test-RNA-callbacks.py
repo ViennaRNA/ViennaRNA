@@ -67,5 +67,17 @@ a.sc_add_bt(bt)
 (s, mfe) = a.mfe()
 print "%s %6.2f\n" %  (s, mfe)
 
+
+def print_subopt_result(structure, energy, data=None):
+    if not structure == None:
+        print "%s [%6.2f]" % (structure, energy)
+
+
+RNA.cvar.uniq_ML = 1
+a = RNA.fold_compound("GGGGAAAACCCC")
+a.subopt_cb(500, print_subopt_result);
+
+
+
 if __name__ == '__main__':
     unittest.main();
