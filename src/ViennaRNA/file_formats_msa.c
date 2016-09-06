@@ -248,7 +248,7 @@ vrna_file_msa_read_record(FILE *fp,
                           unsigned int options){
 
   const char          *parser_name;
-  int                 i, r, n, seq_num;
+  int                 i, r, rr, n, seq_num;
   aln_parser_function *parser;
 
   seq_num     = 0;
@@ -289,8 +289,9 @@ vrna_file_msa_read_record(FILE *fp,
     if(r > 1) { 
       vrna_message_warning("More than one MSA format parser specified!");
       char *msg = NULL;
-      asprintf(&msg, "Using parser for %s", parser_name);
-      vrna_message_info(stderr, msg);
+      rr = asprintf(&msg, "Using parser for %s", parser_name);
+      if(rr != -1)
+        vrna_message_info(stderr, msg);
       free(msg);
     }
 
@@ -471,9 +472,11 @@ stockholm_exit:
   endmarker_msa_record(names, aln, seq_num);
 
   if((seq_num > 0) && (verbosity >= 0)){
+    int r;
     char *msg = NULL;
-    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
-    vrna_message_info(stderr, msg);
+    r = asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+    if(r != -1)
+      vrna_message_info(stderr, msg);
     free(msg);
   }
 
@@ -528,9 +531,11 @@ parse_fasta_alignment(FILE *fp,
   endmarker_msa_record(names, aln, seq_num);
 
   if((seq_num > 0) && (verbosity >= 0)){
+    int r;
     char *msg = NULL;
-    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
-    vrna_message_info(stderr, msg);
+    r = asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+    if(r != -1)
+      vrna_message_info(stderr, msg);
     free(msg);
   } else {
     if(verbosity > 0)
@@ -627,9 +632,11 @@ parse_clustal_alignment(FILE *clust,
   endmarker_msa_record(names, aln, seq_num);
 
   if((seq_num > 0) && (verbosity >= 0)){
+    int r;
     char *msg = NULL;
-    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
-    vrna_message_info(stderr, msg);
+    r = asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+    if(r != -1)
+      vrna_message_info(stderr, msg);
     free(msg);
   }
 
@@ -729,9 +736,11 @@ maf_exit:
   endmarker_msa_record(names, aln, seq_num);
 
   if((seq_num > 0) && (verbosity >= 0)){
+    int r;
     char *msg = NULL;
-    asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
-    vrna_message_info(stderr, msg);
+    r = asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+    if(r != -1)
+      vrna_message_info(stderr, msg);
     free(msg);
   }
 

@@ -82,11 +82,6 @@ option  "noClosingGU" -
 flag
 off
 
-option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
-flag
-off
-
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\

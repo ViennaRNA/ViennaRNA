@@ -221,13 +221,14 @@ AC_DEFUN([RNA_ENABLE_C11],[
                                       };
                                     };
                                     int main (void) { return 0;} ]])],
-                                    [use_unnamed_union_structs=yes],
-                                    [use_unnamed_union_structs=no])
+                                    [enable_c11=yes],
+                                    [enable_c11=no],
+                                    [enable_c11=no])
 
     AC_LANG_POP([C])
-    AC_MSG_RESULT([$use_unnamed_union_structs])
+    AC_MSG_RESULT([$enable_c11])
 
-    AS_IF([ test "x$use_unnamed_union_structs" != "xno" ],[
+    AS_IF([ test "x$enable_c11" != "xno" ],[
       AC_MSG_CHECKING([whether the C++ compiler allows unnamed unions of unnamed structs])
       AC_LANG_PUSH([C++])
       AC_RUN_IFELSE([AC_LANG_SOURCE([[extern "C" {
@@ -240,15 +241,16 @@ AC_DEFUN([RNA_ENABLE_C11],[
                                         };
                                       };
                                       int main (void) { return 0;} ]])],
-                                      [use_unnamed_union_structs=yes],
-                                      [use_unnamed_union_structs=no])
+                                      [enable_c11=yes],
+                                      [enable_c11=no],
+                                      [enable_c11=no])
 
       AC_LANG_POP([C++])
-      AC_MSG_RESULT([$use_unnamed_union_structs])
+      AC_MSG_RESULT([$enable_c11])
     ])
   ])
 
-  AS_IF([ test "x$use_unnamed_union_structs" != "xyes" ],[
+  AS_IF([ test "x$enable_c11" != "xyes" ],[
     DISABLE_C11_FEATURES=-DVRNA_DISABLE_C11_FEATURES
     AX_APPEND_FLAG(["-DVRNA_DISABLE_C11_FEATURES"], [RNA_CPPFLAGS])
   ])

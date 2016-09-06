@@ -71,3 +71,19 @@ my ($s,$mfe) = $a->mfe();
 printf("%s %6.2f\n", $s, $mfe);
 
 $a->DESTROY();
+
+#
+# test subopt callback
+#
+sub print_result{
+  my $structure = shift;
+  my $energy    = shift;
+  printf("%s [%6.2f]\n", $structure, $energy) if defined($structure);
+}
+
+$RNA::uniq_ML = 1;  # for subopt calls
+$a = new RNA::fold_compound("GGGGAAAACCCC");
+$a->subopt_cb(500, \&print_result);
+
+
+$a->DESTROY();

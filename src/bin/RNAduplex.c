@@ -29,15 +29,17 @@ PRIVATE void  print_struc(duplexT const *dup);
 
 int main(int argc, char *argv[]){
   struct        RNAduplex_args_info args_info;
-  char          fname[FILENAME_MAX_LENGTH], *input_string, *s1, *s2, *orig_s1, *orig_s2, *c, *ParamFile=NULL, *ns_bases=NULL;
+  char          fname[FILENAME_MAX_LENGTH], *input_string, *s1, *s2, *orig_s1, *orig_s2,
+                *c, *ParamFile, *ns_bases;
   unsigned int  input_type;
-  int           i, l, sym, r;
-  int           istty, delta=-1;
-  int           noconv=0;
+  int           i, sym, istty, delta, noconv;
 
+  ParamFile = NULL;
+  ns_bases  = NULL;
   s1 = s2 = orig_s1 = orig_s2 = NULL;
-
-  dangles = 2;
+  dangles   = 2;
+  delta     = -1;
+  noconv    = 0;
 
   /*
   #############################################

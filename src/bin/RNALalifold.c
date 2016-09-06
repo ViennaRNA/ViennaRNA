@@ -20,7 +20,6 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/utils.h"
-#include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/Lfold.h"
 #include "ViennaRNA/aln_util.h"
@@ -28,35 +27,25 @@
 #include "RNALalifold_cmdl.h"
 
 
-/*@exits@*/
-PRIVATE void  usage(void);
-PRIVATE char  *annote(const char *structure, const char *AS[]);
-PRIVATE void  print_pi(const vrna_pinfo_t pi, FILE *file);
-PRIVATE cpair *make_color_pinfo(const vrna_pinfo_t *pi);
-PRIVATE cpair *make_color_pinfo2(char **sequences, plist *pl, int n_seq);
-
 #define MAX_NUM_NAMES    500
 
 int main(int argc, char *argv[]){
-  struct        RNALalifold_args_info args_info;
-  char          *string, *structure, *ParamFile, *ns_bases, *c;
-  char          ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH], fname[FILENAME_MAX_LENGTH];
-  int           n_seq, i, length, sym, r, maxdist, unchangednc, unchangedcv;
-  int           mis, pf, istty;
-  float         cutoff;
-  double        min_en, real_en, sfact;
-  char          *AS[MAX_NUM_NAMES];          /* aligned sequences */
-  char          *names[MAX_NUM_NAMES];       /* sequence names */
-  FILE          *clust_file = stdin;
-  vrna_md_t     md;
+  FILE                          *clust_file;
+  struct RNALalifold_args_info  args_info;
+  char                          *string, *structure, *ParamFile, *ns_bases,
+                                ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH],
+                                *AS[MAX_NUM_NAMES], *names[MAX_NUM_NAMES];
+  int                           n_seq, i, length, maxdist, unchangednc, unchangedcv,
+                                mis, pf, istty;
+  double                        min_en;
+  vrna_md_t                     md;
 
+  clust_file    = stdin;
   string = structure = ParamFile = ns_bases = NULL;
   mis = pf      = 0;
   maxdist       = 70;
   do_backtrack  = unchangednc = unchangedcv = 1;
   dangles       = 2;
-  sfact         = 1.07;
-  cutoff        = 0.0005;
   ribo          = 0;
 
   vrna_md_set_default(&md);
@@ -190,79 +179,9 @@ int main(int argc, char *argv[]){
   }
   string = (mis) ? consens_mis((const char **) AS) : consensus((const char **) AS);
   printf("%s\n%s\n", string, structure);
-  /*  if (istty)
-    printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n",
-           min_en, real_en, min_en - real_en);
-  else
-    printf(" (%6.2f = %6.2f + %6.2f) \n", min_en, real_en, min_en-real_en );
-  */
   strcpy(ffname, "alirna.ps");
   strcpy(gfname, "alirna.g");
 
-  /*  if (length<=2500) {
-    char *A;
-    A = annote(structure, (const char**) AS);
-    (void) vrna_file_PS_rnaplot_a(string, structure, ffname, NULL, A, &md);
-    free(A);
-  } else
-    fprintf(stderr,"INFO: structure too long, not doing xy_plot\n");
-  */
-  /* {*/ /* free mfe arrays but preserve base_pair for PS_dot_plot */
-  /*  struct bond  *bp;
-    bp = base_pair; base_pair = vrna_alloc(16);
-    free_alifold_arrays();  / * frees base_pair *  /
-    base_pair = bp;
-  }*/
-  if (pf) {
-    double energy, kT;
-    plist *pl;
-    char * mfe_struc;
-
-    mfe_struc = strdup(structure);
-
-    kT = (temperature+273.15)*1.98717/1000.; /* in Kcal */
-    pf_scale = -1;/*exp(-(sfact*min_en)/kT/length);*/
-    if (length>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
-    fflush(stdout);
-
-    /* init_alipf_fold(length); */
-
-    /* energy = alipfW_fold(AS, structure, &pl, maxdist, cutoff); */
-
-    if (do_backtrack) {
-      printf("%s", structure);
-      /*if (!istty) printf(" [%6.2f]\n", energy);
-        else */
-      printf("\n");
-    }
-    /*if ((istty)||(!do_backtrack))
-      printf(" free energy of ensemble = %6.2f kcal/mol\n", energy);
-    useless!!*/
-    /* printf(" frequency of mfe structure in ensemble %g\n",
-       exp((energy-min_en)/kT));*/
-
-    if (do_backtrack) {
-      FILE *aliout;
-      cpair *cp;
-      strcpy(ffname, "alifold.out");
-      aliout = fopen(ffname, "w");
-      if (!aliout) {
-        fprintf(stderr, "can't open %s    skipping output\n", ffname);
-      } else {
-        fprintf(aliout, "%d sequence; length of alignment %d\n",
-                n_seq, length);
-        fprintf(aliout, "alifold output\n");
-
-        fprintf(aliout, "%s\n", structure);
-      }
-      strcpy(ffname, "alidotL.ps");
-      cp = make_color_pinfo2(AS,pl,n_seq);
-      (void) PS_color_dot_plot_turn(string, cp, ffname, maxdist);
-      free(cp);
-    }
-    free(mfe_struc);
-    free(pl);
-  }
   free(base_pair);
   (void) fflush(stdout);
   free(string);
@@ -271,113 +190,4 @@ int main(int argc, char *argv[]){
     free(AS[i]); free(names[i]);
   }
   return 0;
-}
-
-PRIVATE void print_pi(const vrna_pinfo_t pi, FILE *file) {
-  const char *pname[8] = {"","CG","GC","GU","UG","AU","UA", "--"};
-  int i;
-
-  /* numbering starts with 1 in output */
-  fprintf(file, "%5d %5d %2d %5.1f%% %7.3f",
-          pi.i, pi.j, pi.bp[0], 100.*pi.p, pi.ent);
-  for (i=1; i<=7; i++)
-    if (pi.bp[i]) fprintf(file, " %s:%-4d", pname[i], pi.bp[i]);
-  /* if ((!pi.sym)&&(pi.j>=0)) printf(" *"); */
-  if (!pi.comp) fprintf(file, " +");
-  fprintf(file, "\n");
-}
-
-PRIVATE cpair *make_color_pinfo(const vrna_pinfo_t *pi) {
-  cpair *cp;
-  int i, n;
-  for (n=0; pi[n].i>0; n++);
-  cp = (cpair *) vrna_alloc(sizeof(cpair)*(n+1));
-  for (i=0; i<n; i++) {
-    int j, ncomp;
-    cp[i].i = pi[i].i;
-    cp[i].j = pi[i].j;
-    cp[i].p = pi[i].p;
-    for (ncomp=0, j=1; j<=6; j++) if (pi[i].bp[j]) ncomp++;
-    cp[i].hue = (ncomp-1.0)/6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
-    cp[i].sat = 1 - MIN2( 1.0, pi[i].bp[0]/2.5);
-    cp[i].mfe = pi[i].comp;
-  }
-  return cp;
-}
-
-
-#if 0
-PRIVATE char *annote(const char *structure, const char *AS[]) {
-  char *ps;
-  int i, n, s, maxl;
-  short *ptable;
-  make_pair_matrix();
-  n = strlen(AS[0]);
-  maxl = 1024;
-  ps = (char *) vrna_alloc(maxl);
-  ptable = vrna_ptable(structure);
-  for (i=1; i<=n; i++) {
-    char pps[64], ci='\0', cj='\0';
-    int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;
-    if ((j=ptable[i])<i) continue;
-    for (s=0; AS[s]!=NULL; s++) {
-      type = pair[encode_char(AS[s][i-1])][encode_char(AS[s][j-1])];
-      pfreq[type]++;
-      if (type) {
-        if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
-        if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
-      }
-    }
-    if (maxl - strlen(ps) < 128) {
-      maxl *= 2;
-      ps = realloc(ps, maxl);
-      if (ps==NULL) vrna_message_error("out of memory in realloc");
-    }
-    if (pfreq[0]>0) {
-      snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
-      strcat(ps, pps);
-    }
-    if (vi>1) {
-      snprintf(pps, 64, "%d cmark\n", i);
-      strcat(ps, pps);
-    }
-    if (vj>1) {
-      snprintf(pps, 64, "%d cmark\n", j);
-      strcat(ps, pps);
-    }
-  }
-  free(ptable);
-  return ps;
-}
-#endif
-/*-------------------------------------------------------------------------*/
-
-PRIVATE cpair *make_color_pinfo2(char **sequences, plist *pl, int n_seq) {
-  cpair *cp;
-  int i, n,s, a, b,z;
-  int franz[7];
-  for (n=0; pl[n].i>0; n++);
-  cp = (cpair *) vrna_alloc(sizeof(cpair)*(n+1));
-  for (i=0; i<n; i++) {
-    int ncomp=0;
-    cp[i].i = pl[i].i;
-    cp[i].j = pl[i].j;
-    cp[i].p = pl[i].p;
-    for (z=0; z<7; z++) franz[z]=0;
-    for (s=0; s<n_seq; s++) {
-      a=encode_char(toupper(sequences[s][cp[i].i-1]));
-      b=encode_char(toupper(sequences[s][cp[i].j-1]));
-      if ((sequences[s][cp[i].j-1]=='~')||(sequences[s][cp[i].i-1] == '~')) continue;
-      franz[BP_pair[a][b]]++;
-    }
-    for (z=1; z<7; z++) {
-      if (franz[z]>0) {
-        ncomp++;
-      }}
-    cp[i].hue = (ncomp-1.0)/6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
-    cp[i].sat = 1 - MIN2( 1.0, franz[0]/*pi[i].bp[0]*//2.5);
-    /*computation of entropy is sth for the ivo*/
-    /* cp[i].mfe = pi[i].comp;  don't have that .. yet*/
-  }
-  return cp;
 }

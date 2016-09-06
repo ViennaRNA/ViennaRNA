@@ -37,19 +37,18 @@ PRIVATE float ddiff(float f[], float h, int m);
 PRIVATE void heat_capacity(char *string, float T_min, float T_max, float h, int m);
 
 int main(int argc, char *argv[]){
-  struct  RNAheat_args_info args_info;
-  char                      *string, *input_string, *ns_bases, *c, *ParamFile, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
-  int                       i, length, l, sym;
-  float                     T_min, T_max, h;
-  int                       mpoints, istty, noconv = 0;
-  unsigned int              input_type;
+  struct RNAheat_args_info  args_info;
+  char                      *ns_bases, *c, *ParamFile, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
   unsigned int              rec_type, read_opt;
+  int                       i, length, sym, mpoints, istty, noconv;
+  float                     T_min, T_max, h;
 
-  string    = ParamFile = ns_bases = NULL;
+  ParamFile = ns_bases = NULL;
   T_min     = 0.;
   T_max     = 100.;
   h         = 1;
   mpoints   = 2;
+  noconv    = 0;
   dangles   = 2;   /* dangles can be 0 (no dangles) or 2, default is 2 */
   rec_type  = read_opt = 0;
   rec_id    = rec_sequence = orig_sequence = NULL;

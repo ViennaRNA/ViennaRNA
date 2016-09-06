@@ -92,24 +92,20 @@ add_shape_constraints(vrna_fold_compound_t *vc,
 
 int main(int argc, char *argv[]){
   struct RNAeval_args_info  args_info;
-  char                      *string, *structure, *orig_sequence, *tmp;
-  char                      *rec_sequence, *rec_id, **rec_rest;
-  char                      *shape_file, *shape_method, *shape_conversion;
-  char                      fname[FILENAME_MAX_LENGTH];
-  char                      *ParamFile;
-  int                       i, length1, length2, with_shapes;
-  float                     energy;
-  int                       istty;
-  int                       circular=0;
-  int                       noconv=0;
-  int                       verbose = 0;
+  char                      *string, *structure, *orig_sequence, *tmp, *rec_sequence,
+                            *rec_id, **rec_rest, *shape_file, *shape_method,
+                            *shape_conversion, fname[FILENAME_MAX_LENGTH], *ParamFile;
   unsigned int              rec_type, read_opt;
+  int                       i, length1, with_shapes, istty, circular, noconv, verbose;
+  float                     energy;
   vrna_md_t                 md;
-  vrna_param_t              *P;
 
   string  = orig_sequence = ParamFile = NULL;
-  gquad   = 0;
-  dangles = 2;
+  circular      = 0;
+  noconv        = 0;
+  verbose       = 0;
+  gquad         = 0;
+  dangles       = 2;
   shape_file    = NULL;
   shape_method  = NULL;
   with_shapes   = 0;
@@ -184,8 +180,6 @@ int main(int argc, char *argv[]){
   if(circular && gquad){
     vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
   }
-
-  P = vrna_params(&md);
 
   /* set options we wanna pass to vrna_file_fasta_read_record() */
 

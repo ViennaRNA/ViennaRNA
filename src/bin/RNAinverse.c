@@ -33,22 +33,22 @@
 extern int inv_verbose;
 
 int main(int argc, char *argv[]){
-  struct  RNAinverse_args_info args_info;
-  int     input_type;
-  char    *input_string, *start, *structure, *rstart, *str2, *line;
-  char    *ParamFile=NULL, *c, *ns_bases;
-  int     i,j, length, l, hd, sym;
-  double  energy=0., kT;
-  int     pf, mfe, istty;
-  int     repeat, found;
+  struct RNAinverse_args_info args_info;
+  char                        *input_string, *start, *structure, *rstart, *str2,
+                              *ParamFile, *c, *ns_bases;
+  int                         input_type, i, length, l, hd, sym, pf, mfe, istty, repeat,
+                              found;
+  double                      energy, kT;
 
-  dangles = 2;
-  do_backtrack = 0;
-  pf = 0;
-  mfe = 1;
-  repeat = 0;
-  input_type = 0;
-  input_string = ns_bases = NULL;
+  ParamFile     = NULL;
+  energy        = 0.;
+  dangles       = 2;
+  do_backtrack  = 0;
+  pf            = 0;
+  mfe           = 1;
+  repeat        = 0;
+  input_type    = 0;
+  input_string  = ns_bases = NULL;
   vrna_init_rand();
 
   /*

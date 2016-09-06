@@ -29,16 +29,19 @@ PRIVATE void  print_struc(duplexT const *dup);
 #define MAX_NUM_NAMES    500
 
 int main(int argc, char *argv[]){
-  struct        RNAaliduplex_args_info args_info;
-  char          *AS1[MAX_NUM_NAMES], *AS2[MAX_NUM_NAMES], *names1[MAX_NUM_NAMES], *names2[MAX_NUM_NAMES];
-  char          *ParamFile=NULL, *c, *ns_bases=NULL;
-  int           i, r, n_seq, n_seq2;
-  int           istty, delta=-1, sym;
-  int           noconv=0;
-  duplexT       mfe, *subopt;
-  FILE          *file1=NULL, *file2=NULL; /* input alignments */
+  FILE                          *file1, *file2;
+  struct RNAaliduplex_args_info args_info;
+  char                          *AS1[MAX_NUM_NAMES], *AS2[MAX_NUM_NAMES], *names1[MAX_NUM_NAMES],
+                                *names2[MAX_NUM_NAMES], *ParamFile, *c, *ns_bases;
+  int                           i, n_seq, n_seq2, delta, sym;
+  duplexT                       mfe, *subopt;
 
-  dangles = 2;
+  file1     = NULL;
+  file2     = NULL;
+  ParamFile = NULL;
+  ns_bases  = NULL;
+  dangles   = 2;
+  delta     = -1;
 
   /*
   #############################################
@@ -63,8 +66,6 @@ int main(int argc, char *argv[]){
   if(args_info.noGU_given)        noGU = 1;
   /* do not allow weak closing pairs (AU,GU) */
   if(args_info.noClosingGU_given) no_closingGU = 1;
-  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
-  if(args_info.noconv_given)      noconv = 1;
   /* take another energy parameter set */
   if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
@@ -135,8 +136,6 @@ int main(int argc, char *argv[]){
       c++;
     }
   }
-
-  istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
   /*
   #############################################

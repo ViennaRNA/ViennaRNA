@@ -1,3 +1,11 @@
+v 2.2.10
+  * Do not 'forget' subopt results when output is not written to file handle and sorting is switched off
+  * Fix bad memory access in vrna_subopt() with sorted output
+  * Add SWIG wrappers for vrna_subopt_cb()
+  * Correctly show if C11 features are activated in configure status
+  * Fix autoconf checks to allow for cross compilation again
+
+
 v 2.2.9
   * Fix bug in partition function scaling for backward compatibility of ali_pf_fold()
   * Stabilize v3.0 API when building RNAlib and third party program linking against it with compilers that use different C/C++ standards

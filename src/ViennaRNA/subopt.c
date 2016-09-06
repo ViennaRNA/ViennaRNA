@@ -425,12 +425,16 @@ compare(const void *solution1, const void *solution2)
 
 PRIVATE void make_output(SOLUTION *SL, int cp, FILE *fp)  /* prints stuff */
 {
+  int r;
   SOLUTION *sol;
 
   for (sol = SL; sol->structure!=NULL; sol++){
     char *e_string = NULL;
-    asprintf(&e_string, " %6.2f", sol->energy);
-    print_structure(fp, sol->structure, e_string);
+    r = asprintf(&e_string, " %6.2f", sol->energy);
+    if(r == -1)
+      vrna_message_error("Out of memory in subopt output");
+    else
+      print_structure(fp, sol->structure, e_string);
     free(e_string);
   }
 }
@@ -583,6 +587,7 @@ vrna_subopt(vrna_fold_compound_t *vc,
     /* end initialize ------------------------------------------------------- */
 
     if (fp) {
+      int r;
       float min_en;
       char  *SeQ, *energies = NULL;
       if(vc->cutpoint > 0)
@@ -591,17 +596,21 @@ vrna_subopt(vrna_fold_compound_t *vc,
         min_en = vrna_mfe(vc, NULL);
 
       SeQ = vrna_cut_point_insert(vc->sequence, vc->cutpoint);
-      asprintf(&energies, " %6.2f %6.2f", min_en, (float)delta/100.);
-      print_structure(fp, SeQ, energies);
+      r = asprintf(&energies, " %6.2f %6.2f", min_en, (float)delta/100.);
+      if(r != -1)
+        print_structure(fp, SeQ, energies);
       free(SeQ);
       free(energies);
+
+      vrna_mx_mfe_free(vc);
     }
     /* call subopt() */
-    vrna_subopt_cb(vc, delta, (sorted) ? &old_subopt_store : &old_subopt_print, (void *)&data);
+    vrna_subopt_cb(vc, delta, (!sorted && fp) ? &old_subopt_print : &old_subopt_store, (void *)&data);
 
     if(sorted){
       /* sort structures by energy */
-      qsort(data.SolutionList, data.n_sol, sizeof(SOLUTION), compare);
+      if(data.n_sol > 0)
+        qsort(data.SolutionList, data.n_sol - 1, sizeof(SOLUTION), compare);
       if(fp)
         make_output(data.SolutionList, vc->cutpoint, fp);
     }
@@ -1922,13 +1931,14 @@ old_subopt_print( const char *structure,
                   float energy,
                   void *data){
 
+  int r;
   char *e_string = NULL;
   struct old_subopt_dat *d = (struct old_subopt_dat *)data;
 
   if(structure){
-    asprintf(&e_string, " %6.2f", energy);
+    r = asprintf(&e_string, " %6.2f", energy);
 
-    if(d->fp)
+    if((d->fp) && (r != -1))
       print_structure(d->fp, structure, e_string);
 
     free(e_string);
