@@ -601,6 +601,8 @@ vrna_subopt(vrna_fold_compound_t *vc,
         print_structure(fp, SeQ, energies);
       free(SeQ);
       free(energies);
+
+      vrna_mx_mfe_free(vc);
     }
     /* call subopt() */
     vrna_subopt_cb(vc, delta, (!sorted && fp) ? &old_subopt_print : &old_subopt_store, (void *)&data);
