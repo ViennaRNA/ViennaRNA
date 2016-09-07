@@ -188,7 +188,7 @@ PUBLIC duplexT *duplex_subopt(const char *s1, const char *s2, int delta, int w) 
       if (!type) continue;
 
       struc = backtrack(i,j);
-      fprintf(stderr, "%d %d %d\n", i,j,E);
+      vrna_message_info_printf(stderr, "%d %d %d", i,j,E);
       if (n_subopt+1>=n_max) {
         n_max *= 2;
         subopt = (duplexT *) vrna_realloc(subopt, n_max*sizeof(duplexT));
@@ -432,7 +432,7 @@ PUBLIC duplexT *aliduplex_subopt(const char *s1[], const char *s2[], int delta, 
       }
       if (skip) continue;
       struc = alibacktrack(i,j,(const short **)S1, (const short **)S2);
-      fprintf(stderr, "%d %d %d\n", i,j,E);
+      vrna_message_info_printf(stderr, "%d %d %d", i,j,E);
       if (n_subopt+1>=n_max) {
         n_max *= 2;
         subopt = (duplexT *) vrna_realloc(subopt, n_max*sizeof(duplexT));

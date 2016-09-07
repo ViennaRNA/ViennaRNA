@@ -142,8 +142,9 @@ int main(int argc, char *argv[]){
   if(openenergies && !unpaired) unpaired  = 31;
   if(pairdist == 0)             pairdist  = winsize;
   if(pairdist > winsize){
-    fprintf(stderr, "pairdist (-L %d) should be <= winsize (-W %d);"
-            "Setting pairdist=winsize\n",pairdist, winsize);
+    vrna_message_warning_printf("pairdist (-L %d) should be <= winsize (-W %d);"
+                                "Setting pairdist=winsize",
+                                pairdist, winsize);
     pairdist = winsize;
   }
   if(dangles % 2){
@@ -225,7 +226,7 @@ int main(int argc, char *argv[]){
 
     /* adjust winsize, pairdist and ulength if necessary */
     if(length < winsize){
-      fprintf(stderr, "WARN: window size %d larger than sequence length %d\n", winsize, length);
+      vrna_message_warning_printf("window size %d larger than sequence length %d", winsize, length);
       tempwin = winsize;
       winsize = length;
       if (pairdist>winsize) {

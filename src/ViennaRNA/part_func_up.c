@@ -630,11 +630,11 @@ PUBLIC interact *pf_interact( const char *s1,
       if(pos) cj = (int) (pos-i_short)+1; /* j */
 
       if(ck > 0 && ci > 0 && ci-ck+1 > w) {
-        fprintf(stderr, "distance between constrains in longer seq, %d, larger than -w = %d",ci-ck+1,w);
+        vrna_message_warning_printf("distance between constrains in longer seq, %d, larger than -w = %d",ci-ck+1,w);
         vrna_message_error("pf_interact: could not satisfy all constraints");
       }
       if(cj > 0 && cl > 0 && cl-cj+1 > w) {
-        fprintf(stderr, "distance between constrains in shorter seq, %d, larger than -w = %d",cl-cj+1,w);
+        vrna_message_warning_printf("distance between constrains in shorter seq, %d, larger than -w = %d",cl-cj+1,w);
         vrna_message_error("pf_interact: could not satisfy all constraints");
       }
     }
@@ -1258,7 +1258,7 @@ PUBLIC int plot_free_pu_out(pu_out* res, interact *pint, char *ofile, char *head
   double  kT = Pf->kT;
   wastl = fopen(ofile,"a");
   if (wastl==NULL) {
-    fprintf(stderr, "p_cont: can't open %s for Up_plot\n", ofile);
+    vrna_message_warning_printf("p_cont: can't open %s for Up_plot", ofile);
     return(0);
   }
   sprintf(dg,"dG");
@@ -1420,8 +1420,7 @@ PRIVATE constrain *get_ptypes_up(char *Seq, const char *structure) {
         break;
       case ')':
         if (hx<=0) {
-          fprintf(stderr, "%s\n", structure);
-          vrna_message_error("1. unbalanced brackets in constraints");
+          vrna_message_error_printf("1. unbalanced brackets in constraints\n%s", structure);
         }
         i = stack[--hx];
         type = con->ptype[con->indx[i]-j];
@@ -1437,8 +1436,7 @@ PRIVATE constrain *get_ptypes_up(char *Seq, const char *structure) {
       }
     }
     if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      vrna_message_error("2. unbalanced brackets in constraint string");
+      vrna_message_error_printf("2. unbalanced brackets in constraint string\n%s", structure);
     }
     free(stack);
   }

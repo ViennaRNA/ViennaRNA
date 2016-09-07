@@ -426,8 +426,7 @@ backtrack_co( sect bt_stack[],
 
                   continue;
                 } else {
-                  fprintf(stderr, "%s\n", string);
-                  vrna_message_error("backtrack failed in f5");
+                  vrna_message_error_printf("backtrack failed in f5\n%s", string);
                 }
               }
               break;
@@ -449,8 +448,7 @@ backtrack_co( sect bt_stack[],
 
                   continue;
                 } else {
-                  fprintf(stderr, "%s\n", string);
-                  vrna_message_error("backtrack failed in fML");
+                  vrna_message_error_printf("backtrack failed in fML\n%s", string);
                 }
               }
               break;
@@ -479,8 +477,7 @@ backtrack_co( sect bt_stack[],
 
                   continue;
                 } else {
-                  fprintf(stderr, "%s\n", string);
-                  vrna_message_error("backtrack failed in fc");
+                  vrna_message_error_printf("backtrack failed in fc\n%s", string);
                 }
               }
               break;

@@ -154,7 +154,7 @@ vrna_file_msa_detect_format(const char *filename,
           break;
         }
       } else {
-        fprintf(stderr, "ERROR: Something unexpected happened while parsing the alignment file");
+        vrna_message_error("Something unexpected happened while parsing the alignment file");
       }
     }
   }
@@ -211,7 +211,7 @@ vrna_file_msa_read( const char *filename,
         if(r > 0)
           break;
       } else {
-        fprintf(stderr, "ERROR: Something unexpected happened while parsing the alignment file");
+        vrna_message_error("Something unexpected happened while parsing the alignment file");
       }
     }
   }

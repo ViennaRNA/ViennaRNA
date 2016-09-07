@@ -251,7 +251,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
   if(spup !=NULL) simply_putout = 1; /*can't have one without the other*/
   if(pUfp!=NULL)  pUoutput      = 1;
   else if((pUoutput)&&(ulength!=0)){
-    fprintf(stderr, "There was a problem with non existing File Pointer for unpaireds, terminating process\n");
+    vrna_message_warning("There was a problem with non existing File Pointer for unpaireds, terminating process\n");
     return pl;
   }
   dpp = *dpp2;
@@ -372,13 +372,11 @@ PUBLIC plist *pfl_fold_par( char *sequence,
         if (temp>Qmax) {
           Qmax = temp;
           if (Qmax>max_real/10.)
-            fprintf(stderr, "Q close to overflow: %d %d %g\n", i,j,temp);
+            vrna_message_warning_printf("Q close to overflow: %d %d %g\n", i,j,temp);
         }
         if (temp>=max_real) {
-          PRIVATE char msg[128];
-          snprintf(msg, 128, "overflow in pf_fold while calculating q[%d,%d]\n"
-                  "use larger pf_scale", i,j);
-          vrna_message_error(msg);
+          vrna_message_error_printf("overflow in pf_fold while calculating q[%d,%d]\n"
+                                    "use larger pf_scale", i,j);
         }
       } /*end for i*/
       tmp = qq1;  qq1 =qq;  qq =tmp;
@@ -499,8 +497,8 @@ PUBLIC plist *pfl_fold_par( char *sequence,
           if (pR[k][l]>Qmax) {
             Qmax = pR[k][l];
             if (Qmax>max_real/10.)
-              fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-                      i, m, pR[k][l], qb[k][l]);
+              vrna_message_warning_printf("P close to overflow: %d %d %g %g\n",
+                                          i, m, pR[k][l], qb[k][l]);
           }
           if (pR[k][l]>=max_real) {
             ov++;
@@ -588,9 +586,10 @@ PUBLIC plist *pfl_fold_par( char *sequence,
   free(S);
   free(S1);
   S = S1 = NULL;
-  if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
-                    "you might try a smaller pf_scale than %g\n",
-                    ov, pf_params->pf_scale);
+  if(ov > 0)
+    vrna_message_warning_printf("%d overflows occurred while backtracking;\n"
+                                "you might try a smaller pf_scale than %g\n",
+                                ov, pf_params->pf_scale);
   *dpp2=dpp;
 
   return pl;

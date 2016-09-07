@@ -259,7 +259,7 @@ vrna_pf( vrna_fold_compound_t *vc,
 
     /* ensemble free energy in Kcal/mol              */
     if (Q<=FLT_MIN)
-      fprintf(stderr, "pf_scale too large\n");
+      vrna_message_warning("pf_scale too large");
 
     switch(vc->type){
       case VRNA_VC_TYPE_ALIGNMENT:  free_energy = (-log(Q)-n*log(params->pf_scale))*params->kT/(1000.0 * vc->n_seq);
@@ -657,13 +657,11 @@ pf_linear(vrna_fold_compound_t *vc){
       if (temp>Qmax) {
         Qmax = temp;
         if (Qmax>max_real/10.)
-          fprintf(stderr, "Q close to overflow: %d %d %g\n", i,j,temp);
+          vrna_message_warning_printf("Q close to overflow: %d %d %g", i,j,temp);
       }
       if (temp>=max_real) {
-        PRIVATE char msg[128];
-        snprintf(msg, 127, "overflow in pf_fold while calculating q[%d,%d]\n"
-                     "use larger pf_scale", i,j);
-        vrna_message_error(msg);
+        vrna_message_error_printf("overflow in pf_fold while calculating q[%d,%d]\n"
+                                  "use larger pf_scale", i,j);
       }
     }
     tmp = qq1;  qq1 = qq;   qq  = tmp;
@@ -1010,13 +1008,11 @@ alipf_linear( vrna_fold_compound_t *vc){
       if (temp>Qmax) {
         Qmax = temp;
         if (Qmax>max_real/10.)
-          fprintf(stderr, "Q close to overflow: %d %d %g\n", i,j,temp);
+          vrna_message_warning_printf("Q close to overflow: %d %d %g", i,j,temp);
       }
       if (temp>=max_real) {
-        PRIVATE char msg[128];
-        snprintf(msg, 127, "overflow in pf_fold while calculating q[%d,%d]\n"
-                     "use larger pf_scale", i,j);
-        vrna_message_error(msg);
+        vrna_message_error_printf("overflow in pf_fold while calculating q[%d,%d]\n"
+                                  "use larger pf_scale", i,j);
       }
     }
     tmp = qq1;  qq1 =qq;  qq =tmp;

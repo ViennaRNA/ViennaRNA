@@ -676,8 +676,7 @@ backtrack(vrna_fold_compound_t *vc,
 
                     continue;
                   } else {
-                    fprintf(stderr, "%s\n", string);
-                    vrna_message_error("backtrack failed in f5");
+                    vrna_message_error_printf("%s\nbacktrack failed in f5", string);
                   }
                 }
                 break;
@@ -699,8 +698,7 @@ backtrack(vrna_fold_compound_t *vc,
 
                     continue;
                   } else {
-                    fprintf(stderr, "%s\n", string);
-                    vrna_message_error("backtrack failed in fML");
+                    vrna_message_error_printf("%s\nbacktrack failed in fML", string);
                   }
                 }
                 break;
@@ -1280,8 +1278,6 @@ backtrack_comparative(vrna_fold_compound_t *vc,
     __asm("nop");
 
   }
-
-  /* fprintf(stderr, "covariance energy %6.2f\n", cov_en/100.);  */
 
   bp_stack[0].i = b;    /* save the total number of base pairs */
   free(type);

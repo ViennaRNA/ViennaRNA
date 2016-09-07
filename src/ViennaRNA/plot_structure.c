@@ -324,7 +324,7 @@ vrna_file_PS_rnaplot_a( const char *seq,
 
   xyplot = fopen(ssfile, "w");
   if (xyplot == NULL) {
-    fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+    vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
     return 0;
   }
 
@@ -361,7 +361,8 @@ vrna_file_PS_rnaplot_a( const char *seq,
     default:                      i = naview_xy_coordinates(pair_table_g, X, Y);
                                   break;
   }
-  if(i!=length) fprintf(stderr,"strange things happening in PS_rna_plot...\n");
+  if(i!=length)
+    vrna_message_warning("strange things happening in PS_rna_plot...");
 
   xmin = xmax = X[0];
   ymin = ymax = Y[0];
@@ -494,7 +495,7 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
 
   gmlfile = fopen(ssfile, "w");
   if (gmlfile == NULL) {
-     fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+     vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
      return 0;
   }
 
@@ -513,7 +514,8 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
     else
       i = naview_xy_coordinates(pair_table, X, Y);
 
-    if(i!=length) fprintf(stderr,"strange things happening in gmlRNA ...\n");
+    if(i!=length)
+      vrna_message_warning("strange things happening in gmlRNA ...");
     break;
   default:
     /* No Graphics Information */
@@ -570,7 +572,7 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
 
   xyplot = fopen(ssfile, "w");
   if (xyplot == NULL) {
-    fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+    vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
     return 0;
   }
 
@@ -583,7 +585,8 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
     i = simple_xy_coordinates(pair_table, X, Y);
   else
     i = naview_xy_coordinates(pair_table, X, Y);
-  if(i!=length) fprintf(stderr,"strange things happening in PS_rna_plot...\n");
+  if(i!=length)
+    vrna_message_warning("strange things happening in PS_rna_plot...");
 /*   printf("cut_point %d\n", cut_point); */
 
 /*   for (i = 1; i < length; i++) { */
@@ -943,7 +946,7 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
 
   xyplot = fopen(ssfile, "w");
   if (xyplot == NULL) {
-    fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+    vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
     return 0;
   }
 
@@ -986,7 +989,8 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
                                   break;
   }
 
-  if(i!=length) fprintf(stderr,"strange things happening in PS_rna_plot...\n");
+  if(i!=length)
+    vrna_message_warning("strange things happening in PS_rna_plot...");
 
 
   xmin = xmax = X[0];
@@ -1083,7 +1087,7 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
 
   ssvfile = fopen(ssfile, "w");
   if (ssvfile == NULL) {
-     fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+     vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
      return 0;
   }
   length = strlen(string);
@@ -1098,7 +1102,7 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
   else
     i = naview_xy_coordinates(pair_table, X, Y);
   if (i!=length)
-    fprintf(stderr,"strange things happening in ssv_rna_plot...\n");
+    vrna_message_warning("strange things happening in ssv_rna_plot...");
 
   /* make coords nonegative */
   xmin = xmax = X[0];
@@ -1165,7 +1169,7 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
 
   ss_file = fopen(ssfile, "w");
   if (ss_file == NULL) {
-    fprintf(stderr, "can't open file %s - not doing xy_plot\n", ssfile);
+    vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
     return 0;
   }
 
@@ -1181,7 +1185,7 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
   else
     i = naview_xy_coordinates(pair_table, X, Y);
   if (i!=length)
-    fprintf(stderr,"strange things happening in xrna_plot...\n");
+    vrna_message_warning("strange things happening in xrna_plot...");
 
   fprintf(ss_file,
           "# Vienna RNA Package %s, XRNA output\n"

@@ -410,8 +410,8 @@ vrna_eval_move_pt(vrna_fold_compound_t *vc,
     if (pt[j]<k) break;   /* found it */
     if (pt[j]>j) j=pt[j]; /* skip substructure */
     else {
-      fprintf(stderr, "%d %d %d %d ", m1, m2, j, pt[j]);
-      vrna_message_error("illegal move or broken pair table in vrna_eval_move_pt()");
+      vrna_message_error_printf("illegal move or broken pair table in vrna_eval_move_pt()\n"
+                                "%d %d %d %d ", m1, m2, j, pt[j]);
     }
   }
   i = (j<=len) ? pt[j] : 0;
@@ -627,8 +627,10 @@ wrap_eval_loop_pt(vrna_fold_compound_t *vc,
   if (type==0) {
     type=7;
     if (verbosity > verbosity_quiet)
-      fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
-              vrna_nucleotide_decode(s[i], &(P->model_details)), vrna_nucleotide_decode(s[j], &(P->model_details)));
+      vrna_message_warning_printf("bases %d and %d (%c%c) can't pair!",
+                                  i, j,
+                                  vrna_nucleotide_decode(s[i], &(P->model_details)),
+                                  vrna_nucleotide_decode(s[j], &(P->model_details)));
   }
   p=i; q=j;
 
@@ -649,8 +651,10 @@ wrap_eval_loop_pt(vrna_fold_compound_t *vc,
     if (type_2==0) {
       type_2=7;
       if (verbosity > verbosity_quiet)
-        fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
-              vrna_nucleotide_decode(s[p], &(P->model_details)), vrna_nucleotide_decode(s[q], &(P->model_details)));
+        vrna_message_warning_printf("bases %d and %d (%c%c) can't pair!",
+                                    p, q,
+                                    vrna_nucleotide_decode(s[p], &(P->model_details)),
+                                    vrna_nucleotide_decode(s[q], &(P->model_details)));
     }
 
     energy = eval_int_loop(vc, i, j, p, q);
@@ -1006,10 +1010,10 @@ stack_energy( vrna_fold_compound_t *vc,
                                   if(type == 0){
                                     type = 7;
                                     if(verbosity_level > verbosity_quiet)
-                                      fprintf(stderr,
-                                              "WARNING: bases %d and %d (%c%c) can't pair!\n",
-                                              i, j,
-                                              string[i - 1], string[j - 1]);
+                                      vrna_message_warning_printf("bases %d and %d (%c%c) can't pair!",
+                                                                  i, j,
+                                                                  string[i - 1],
+                                                                  string[j - 1]);
                                   }
                                   break;
 
@@ -1049,10 +1053,10 @@ stack_energy( vrna_fold_compound_t *vc,
                                     if(type_2 == 0){
                                       type_2 = 7;
                                       if(verbosity_level > verbosity_quiet)
-                                        fprintf(stderr,
-                                                "WARNING: bases %d and %d (%c%c) can't pair!\n",
-                                                p, q,
-                                                string[p - 1], string[q - 1]);
+                                        vrna_message_warning_printf("bases %d and %d (%c%c) can't pair!",
+                                                                    p, q,
+                                                                    string[p - 1],
+                                                                    string[q - 1]);
                                     }
                                     ee = eval_int_loop(vc, i, j, p, q);
 
@@ -1736,7 +1740,6 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                   i1 = q; p=q+1;
                 } while (q!=i);
                 best_energy = MIN2(energy, best_energy); /* don't use cx_energy here */
-                /* fprintf(stderr, "%6.2d\t", energy); */
                 /* skip a helix and start again */
                 while (pt[p]==0) p++;
                 if (i == (unsigned int)pt[p]) break;

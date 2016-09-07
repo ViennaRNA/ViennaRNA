@@ -750,8 +750,10 @@ vrna_subopt_cb( vrna_fold_compound_t *vc,
 
         if (!logML)
           if ((double) (state->partial_energy / 100.) != structure_energy) {
-            fprintf(stderr, "%s %6.2f %6.2f\n", structure,
-                    state->partial_energy / 100., structure_energy );
+            vrna_message_error_printf("%s %6.2f %6.2f",
+                                      structure,
+                                      state->partial_energy / 100.,
+                                      structure_energy );
             exit(1);
           }
 #endif
@@ -1076,8 +1078,7 @@ scan_interval(vrna_fold_compound_t *vc,
 
     if (env->nopush){
       if (!noLP){
-        fprintf(stderr, "%d,%d", i, j);
-        fprintf(stderr, "Oops, no solution in repeat!\n");
+        vrna_message_warning_printf("%d,%d\nOops, no solution in repeat!", i, j);
       }
     }
     return;
@@ -1561,8 +1562,7 @@ scan_interval(vrna_fold_compound_t *vc,
   if (array_flag == 6) { /* we have a gquad */
     repeat_gquad(vc, i, j, state, 0, 0, best_energy, threshold, env);
     if (env->nopush){
-      fprintf(stderr, "%d,%d", i, j);
-      fprintf(stderr, "Oops, no solution in gquad-repeat!\n");
+      vrna_message_warning_printf("%d,%d\nOops, no solution in gquad-repeat!", i, j);
     }
     return;
   }

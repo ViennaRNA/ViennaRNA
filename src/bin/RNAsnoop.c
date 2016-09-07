@@ -734,7 +734,7 @@ static int ** read_rnaup(char *fname, const int beg, const int end)
     perror("Empty File");
   }
   if(strchr(tmp,'>')){
-    fprintf(stderr,"file %s is not in RNAup format\n",fname);
+    vrna_message_error_printf("file %s is not in RNAup format",fname);
     exit(EXIT_FAILURE);
   }
   
@@ -811,7 +811,7 @@ static int ** read_plfold_i(char *fname, const int beg, const int end)
     perror("Empty File");
   }
   if(strchr(tmp,'>')){
-    fprintf(stderr,"file %s is not in RNAplfold format",fname);
+    vrna_message_error_printf("file %s is not in RNAplfold format",fname);
     exit(EXIT_FAILURE);
   }
   if(fgets(tmp,sizeof(tmp),in)==0){

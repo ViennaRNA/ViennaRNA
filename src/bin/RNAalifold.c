@@ -311,7 +311,7 @@ int main(int argc, char *argv[]){
     filename_in = strdup(args_info.inputs[0]);
     clust_file  = fopen(filename_in, "r");
     if (clust_file == NULL) {
-      fprintf(stderr, "unable to open %s\n", filename_in);
+      vrna_message_warning_printf("unable to open %s", filename_in);
       vrna_message_error("Input file can't be read!");
     }
 
@@ -787,7 +787,7 @@ int main(int argc, char *argv[]){
 
         aliout = fopen(filename_out, "w");
         if (!aliout) {
-          fprintf(stderr, "can't open %s    skipping output\n", filename_out);
+          vrna_message_warning_printf("can't open %s    skipping output", filename_out);
         } else {
           print_aliout(vc, pl, bppmThreshold, mfe_struc, aliout);
         }

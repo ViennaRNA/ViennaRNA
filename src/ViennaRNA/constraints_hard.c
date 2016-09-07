@@ -524,8 +524,7 @@ apply_DB_constraint(const char *constraint,
       /* weak enforced pair 'close' */
       case ')':   if(options & VRNA_CONSTRAINT_DB_RND_BRACK){
                     if (hx<=0) {
-                      fprintf(stderr, "%s\n", constraint);
-                      vrna_message_error("unbalanced brackets in constraints");
+                      vrna_message_error_printf("%s\nunbalanced brackets in constraints", constraint);
                     }
                     i = stack[--hx];
                     if(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
@@ -572,8 +571,7 @@ apply_DB_constraint(const char *constraint,
   }
 
   if (hx!=0) {
-    fprintf(stderr, "%s\n", constraint);
-    vrna_message_error("unbalanced brackets in constraint string");
+    vrna_message_error_printf("%s\nunbalanced brackets in constraint string", constraint);
   }
   /* clean up */
   free(index);
@@ -988,8 +986,7 @@ constrain_ptypes( const char *constraint,
                       ptype[index[j]+l] = 0;
                     break;
         case ')':   if (hx<=0) {
-                      fprintf(stderr, "%s\n", constraint);
-                      vrna_message_error("unbalanced brackets in constraint");
+                      vrna_message_error_printf("%s\nunbalanced brackets in constraint", constraint);
                     }
                     i = stack[--hx];
                     type = ptype[index[j]+i];
@@ -1032,8 +1029,7 @@ constrain_ptypes( const char *constraint,
                       ptype[index[l]-j] = 0;
                     break;
         case ')':   if (hx<=0) {
-                      fprintf(stderr, "%s\n", constraint);
-                      vrna_message_error("unbalanced brackets in constraints");
+                      vrna_message_error_printf("%s\nunbalanced brackets in constraints", constraint);
                     }
                     i = stack[--hx];
                     type = ptype[index[i]-j];
@@ -1055,8 +1051,7 @@ constrain_ptypes( const char *constraint,
     }
   }
   if (hx!=0) {
-    fprintf(stderr, "%s\n", constraint);
-    vrna_message_error("unbalanced brackets in constraint string");
+    vrna_message_error_printf("%s\nunbalanced brackets in constraint string", constraint);
   }
   free(index);
   free(stack);

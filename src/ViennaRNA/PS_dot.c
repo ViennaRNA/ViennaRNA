@@ -493,7 +493,7 @@ PS_dot_common(char *seq,
 
   wastl = fopen(wastlfile,"w");
   if (wastl==NULL) {
-    fprintf(stderr, "can't open %s for dot plot\n", wastlfile);
+    vrna_message_warning_printf("can't open %s for dot plot", wastlfile);
     return NULL; /* return 0 for failure */
   }
   name = strdup(wastlfile);

@@ -208,10 +208,11 @@ vrna_pf_dimer(vrna_fold_compound_t *vc,
 
   /* ensemble free energy in Kcal/mol */
   if (Q<=FLT_MIN)
-    fprintf(stderr, "pf_scale too large\n");
+    vrna_message_warning("pf_scale too large");
   free_energy = (-log(Q)-n*log(params->pf_scale))*params->kT/1000.0;
   /* in case we abort because of floating point errors */
-  if (n>1600) fprintf(stderr, "free energy = %8.2f\n", free_energy);
+  if(n>1600)
+    vrna_message_info_printf(stderr, "free energy = %8.2f", free_energy);
   /*probability of molecules being bound together*/
 
   /*Computation of "real" Partition function*/
@@ -547,13 +548,11 @@ pf_co(vrna_fold_compound_t *vc){
       if (temp>Qmax) {
         Qmax = temp;
         if (Qmax>max_real/10.)
-          fprintf(stderr, "Q close to overflow: %d %d %g\n", i,j,temp);
+          vrna_message_warning_printf("Q close to overflow: %d %d %g", i,j,temp);
       }
       if (temp>=max_real) {
-        PRIVATE char msg[128];
-        snprintf(msg, 127, "overflow in co_pf_fold while calculating q[%d,%d]\n"
-                "use larger pf_scale", i,j);
-        vrna_message_error(msg);
+        vrna_message_error_printf("overflow in co_pf_fold while calculating q[%d,%d]\n"
+                                  "use larger pf_scale", i,j);
       }
     }
     tmp = qq1;  qq1 =qq;  qq =tmp;
@@ -877,8 +876,8 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
             if (probs[kl]>Qmax) {
               Qmax = probs[kl];
               if (Qmax>max_real/10.)
-                fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-                        i, j, probs[kl], qb[kl]);
+                vrna_message_warning_printf("P close to overflow: %d %d %g %g",
+                                            i, j, probs[kl], qb[kl]);
             }
             if (probs[kl]>=max_real) {
               ov++;
@@ -1000,9 +999,10 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
 
   }   /* end if (do_backtrack)*/
 
-  if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
-                    "you might try a smaller pf_scale than %g\n",
-                    ov, pf_params->pf_scale);
+  if(ov > 0)
+    vrna_message_warning_printf("%d overflows occurred while backtracking;\n"
+                                "you might try a smaller pf_scale than %g\n",
+                                ov, pf_params->pf_scale);
 }
 
 PUBLIC void
@@ -1091,7 +1091,7 @@ Newton_Conc(double KAB,
     cB += yn;
     i++;
     if (i>10000) {
-      fprintf(stderr, "Newton did not converge after %d steps!!\n",i);
+      vrna_message_warning_printf("Newton did not converge after %d steps!!",i);
       break;
     }
   } while(EPS>TOL);

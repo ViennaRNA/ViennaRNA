@@ -382,9 +382,10 @@ PRIVATE int decode(char *id)
       n++;
    }
 
-   fprintf(stderr,"Syntax error: node identifier \"%s\" not found "
-		  "in coding string \"%s\"\n", id, coding);
-   fprintf(stderr, "Exiting...");
+   vrna_message_error_printf( "Syntax error: node identifier \"%s\" not found "
+                              "in coding string \"%s\"\n"
+                              "Exiting...",
+                              id, coding);
    exit(0);
 }
 

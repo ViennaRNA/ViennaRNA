@@ -26,11 +26,11 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    int  n, nn=0, num_seq = 0, i;
 
    if ((line=vrna_read_line(clust)) == NULL) {
-     fprintf(stderr, "Empty CLUSTAL file\n"); return 0;
+     vrna_message_warning("Empty CLUSTAL file"); return 0;
    }
 
    if ((strncmp(line,"CLUSTAL", 7) !=0) && (!strstr(line,"STOCKHOLM"))) {
-     fprintf(stderr, "This doesn't look like a CLUSTAL/STOCKHOLM file, sorry\n");
+     vrna_message_warning("This doesn't look like a CLUSTAL/STOCKHOLM file, sorry");
      free(line); return 0;
    }
    free(line);
@@ -72,8 +72,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
      else {
        if (strcmp(name, names[nn])!=0) {
          /* name doesn't match */
-         fprintf(stderr,
-                 "Sorry, your file is messed up (inconsitent seq-names)\n");
+         vrna_message_warning("Sorry, your file is messed up (inconsitent seq-names)");
          free(line); free(seq);
          return 0;
        }
@@ -86,7 +85,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
      free(seq);
      free(line);
      if (num_seq>=MAX_NUM_NAMES) {
-       fprintf(stderr, "Too many sequences in CLUSTAL/STOCKHOLM file");
+       vrna_message_warning("Too many sequences in CLUSTAL/STOCKHOLM file");
        return 0;
      }
 
@@ -96,19 +95,19 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
    AlignedSeqs[num_seq] = NULL;
    names[num_seq] = NULL;
    if (num_seq == 0) {
-     fprintf(stderr, "No sequences found in CLUSTAL/STOCKHOLM file\n");
+     vrna_message_warning("No sequences found in CLUSTAL/STOCKHOLM file");
      return 0;
    }
    n = strlen(AlignedSeqs[0]);
    for (nn=1; nn<num_seq; nn++) {
      if (strlen(AlignedSeqs[nn])!=n) {
-       fprintf(stderr, "Sorry, your file is messed up.\n"
-               "Unequal lengths!\n\n");
+       vrna_message_warning("Sorry, your file is messed up.\n"
+                            "Unequal lengths!");
        return 0;
      }
    }
 
-   fprintf(stderr, "%d sequences; length of alignment %d.\n", nn, n);
+   vrna_message_info_printf(stderr, "%d sequences; length of alignment %d.", nn, n);
    return num_seq;
 }
 

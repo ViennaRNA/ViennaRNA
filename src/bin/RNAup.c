@@ -654,7 +654,8 @@ int main(int argc, char *argv[]){
     if(cstruc1 != NULL) strncpy(structure, cstruc1, length1+1);
     min_en    = fold(s1, structure);
     pf_scale  = exp(-(sfact*min_en)/RT/length1);
-    if (length1>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
+    if (length1>2000)
+      vrna_message_info_printf(stderr, "scaling factor %f", pf_scale);
     if (cstruc1 != NULL) strncpy(structure, cstruc1, length1+1);
     energy    = pf_fold(s1, structure);
     unstr_out = pf_unstru(s1, wplus);
@@ -697,7 +698,8 @@ int main(int argc, char *argv[]){
                                 strncpy(structure, cstruc_target, length_target + 1);
                               min_en = fold(s_target, structure);
                               pf_scale = exp(-(sfact*min_en)/RT/length_target);
-                              if (length_target>2000) fprintf(stderr, "scaling factor %f\n", pf_scale);
+                              if (length_target>2000)
+                                vrna_message_info_printf(stderr, "scaling factor %f", pf_scale);
                               if (cstruc_target != NULL)
                                 strncpy(structure, cstruc_target, length_target + 1);
                               energy        = pf_fold(s_target, structure);
@@ -1101,7 +1103,8 @@ PRIVATE void print_interaction(interact *Int, char *s1, char *s2, pu_contrib *p_
     diff = fabs((G_min)-(G_sum));
     printf("diff %.18f\n",diff);
   }
-  if(nix_up) fprintf(stderr,"RNAduplex structure doesn't match any structure of RNAup structure ensemble\n");
+  if(nix_up)
+    vrna_message_warning("RNAduplex structure doesn't match any structure of RNAup structure ensemble");
   free(i_long);
   free(i_short);
   free(mfe.structure);

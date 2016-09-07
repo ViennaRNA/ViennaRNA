@@ -79,11 +79,11 @@ int main(int argc, char *argv[]){
   if(args_info.inputs_num == 2){
     file1 = fopen(args_info.inputs[0], "r");
     if(file1 == NULL){
-      fprintf(stderr, "can't open %s\n", args_info.inputs[0]);
+      vrna_message_warning_printf("can't open %s", args_info.inputs[0]);
     }
     file2 = fopen(args_info.inputs[1], "r");
     if(file2 == NULL) {
-      fprintf(stderr, "can't open %s\n", args_info.inputs[1]);
+      vrna_message_warning_printf("can't open %s", args_info.inputs[1]);
     }
   }
   else{
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]){
   }
 
   if (!(file1 && file2)){
-    fprintf(stderr, "No input files");
+    vrna_message_warning("No input files");
     RNAaliduplex_cmdline_parser_print_help();
     exit(1);
   }

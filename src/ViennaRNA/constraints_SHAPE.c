@@ -274,7 +274,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
       /* read the shape file */
       FILE *fp;
       if(!(fp = fopen(shape_files[s], "r"))){
-        fprintf(stderr, "WARNING: SHAPE data file %d could not be opened. No shape data will be used.\n", s);
+        vrna_message_warning_printf("SHAPE data file %d could not be opened. No shape data will be used.", s);
       } else {
 
         reactivities  = (float *)vrna_alloc(sizeof(float) * (vc->length + 1));
@@ -309,7 +309,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
         /* double check information by comparing the sequence read from */
         char *tmp_seq = get_ungapped_sequence(vc->sequences[shape_file_association[s]]);
         if(strcmp(tmp_seq, sequence)){
-          fprintf(stderr, "WARNING: Input sequence %d differs from sequence provided via SHAPE file!\n", shape_file_association[s]);
+          vrna_message_warning_printf("Input sequence %d differs from sequence provided via SHAPE file!\n", shape_file_association[s]);
         }
         free(tmp_seq);
 

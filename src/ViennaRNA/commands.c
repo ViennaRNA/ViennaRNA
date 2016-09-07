@@ -73,13 +73,13 @@ typedef struct {
 /* set of known parsable commands */
 parsable known_commands[NUM_COMMANDS] = {
   /* cmd , type , parser */
-  { "UD", VRNA_CMD_UD, NULL },
-  { "SD", VRNA_CMD_SD, NULL },
-  { "P",  VRNA_CMD_HC, parse_constraint_prohibit },
-  { "F",  VRNA_CMD_HC, parse_constraint_force },
-  { "C",  VRNA_CMD_HC, parse_constraint_con },
-  { "A",  VRNA_CMD_HC, parse_constraint_allow },
-  { "E",  VRNA_CMD_SC, parse_constraint_energy }
+  { "UD", VRNA_CMD_UD, NULL },                      /* unstructured domain */
+  { "SD", VRNA_CMD_SD, NULL },                      /* structured domain */
+  { "P",  VRNA_CMD_HC, parse_constraint_prohibit }, /* prohibit base pairing */
+  { "F",  VRNA_CMD_HC, parse_constraint_force },    /* force base pairing */
+  { "C",  VRNA_CMD_HC, parse_constraint_con },      /* remove conflicting pairs/force nucleotide in loop context */
+  { "A",  VRNA_CMD_HC, parse_constraint_allow },    /* allow (non-canonical) pairs */
+  { "E",  VRNA_CMD_SC, parse_constraint_energy }    /* soft constraint */
 };
 
 typedef struct {
@@ -310,11 +310,11 @@ parse_command(const char *line, int line_number){
     if(cmd.data)
       cmd.type = known_commands[i].type;
     else {
-      fprintf(stderr, "command parser error (invalid command)\nline %d: %s\n", line_number, line);
+      vrna_message_warning_printf("Command parser error (invalid command)\nline %d: %s\n", line_number, line);
       cmd.type = VRNA_CMD_ERROR;
     }
   } else {
-    fprintf(stderr, "command parser error (unknown command)\nline %d: %s\n", line_number, line);
+    vrna_message_warning_printf("Command parser error (unknown command)\nline %d: %s\n", line_number, line);
     cmd.type = VRNA_CMD_ERROR;
     cmd.data = NULL;
   }

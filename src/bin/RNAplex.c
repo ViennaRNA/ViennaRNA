@@ -822,7 +822,7 @@ int main(int argc, char *argv[])
               free(cstruc);
             }
             else{
-              fprintf(stderr, "constraints missing\n");
+              vrna_message_warning("constraints missing");
             }
             int a = strchr(structure,'|') - structure;
             int b = strrchr(structure,'|') - structure;
@@ -982,7 +982,7 @@ int main(int argc, char *argv[])
               free(cstruc);
             }
             else{
-              fprintf(stderr, "constraints missing\n");
+              vrna_message_warning("constraints missing");
             }
             int a = strchr(structure,'|') - structure;
             int b = strrchr(structure,'|') - structure;
@@ -1096,7 +1096,7 @@ int main(int argc, char *argv[])
           free(cstruc);
         }
         else
-          fprintf(stderr, "constraints missing\n");
+          vrna_message_warning("constraints missing");
       }
       for (l = 0; l < n1 ; l++) {
         s1[l] = toupper(s1[l]);
@@ -1308,7 +1308,7 @@ static int ** read_plfold_i(char *fname, const int beg, const int end, double ve
   double begin = BeginTimer();
   FILE *in=fopen(fname,"r");
   if(in==NULL){
-    fprintf(stderr,"File ' %s ' open error\n",fname);
+    vrna_message_warning_printf("File ' %s ' open error", fname);
     return NULL;
   }
   int i,j;
@@ -1325,11 +1325,11 @@ static int ** read_plfold_i(char *fname, const int beg, const int end, double ve
     perror("Empty File");
   }
   if(strchr(tmp,'>')){
-    fprintf(stderr,"file %s is not in RNAplfold format\n",fname);
+    vrna_message_warning_printf("file %s is not in RNAplfold format",fname);
     return NULL;
   }
   if(fgets(tmp,sizeof(tmp),in)==0){
-    fprintf(stderr,"No accessibility data\n");
+    vrna_message_warning("No accessibility data");
     return NULL;
   }
   int dim_x;
@@ -1390,7 +1390,7 @@ static int convert_plfold_i(char *fname)
   int i;
   FILE *in=fopen(fname,"r");
   if(in==NULL){
-    fprintf(stderr,"File ' %s ' open error\n",fname);
+    vrna_message_warning_printf("File ' %s ' open error",fname);
     return -1;
   }
   char tmp[2048]={0x0};
@@ -1398,11 +1398,11 @@ static int convert_plfold_i(char *fname)
     perror("Empty File");
   }
   if(strchr(tmp,'>')){
-    fprintf(stderr,"file %s is not in RNAplfold format\n",fname);
+    vrna_message_warning_printf("file %s is not in RNAplfold format",fname);
     return -1;
   }
   if(fgets(tmp,sizeof(tmp),in)==0){
-    fprintf(stderr,"No accessibility data\n");
+    vrna_message_warning("No accessibility data");
     return -1;
   }
   int u_length;
@@ -1443,13 +1443,13 @@ static int ** read_plfold_i_bin(char *fname, const int beg, const int end, doubl
   FILE *fp=fopen(fname,"rb");
   int seqlength;
   if(fp==NULL){
-    fprintf(stderr,"File ' %s ' open error\n",fname);
+    vrna_message_warning_printf("File ' %s ' open error",fname);
     return NULL;
   }
   int *first_line;
   first_line =(int *) vrna_alloc(sizeof(int) * (end - beg+1)); /* check length of the line LOOK at read_plfold_i */
   if(!fread(first_line,sizeof(int),(end-beg)+1,fp)){
-    fprintf(stderr, "Problem reading size of profile from '%s'/n", fname);/* get the value of the u option */
+    vrna_message_warning_printf("Problem reading size of profile from '%s'", fname);/* get the value of the u option */
     return NULL;
   }
   int lim_x;                                                
@@ -1572,9 +1572,10 @@ static int **average_accessibility_target(char **names, char **ALN, int number, 
       
       end+=20; /* add 20 to the end, in order to take the N's into account */
       if(location_flag==0){
-        fprintf(stderr,"\n!! Line %d in your target alignment contains location information\n",i+1);
-        fprintf(stderr,"while line %d did not. PLEASE CHECK your alignments!!\n",i);
-        fprintf(stderr,"RNAplex will continue the target search.\n");
+        vrna_message_warning_printf("\n!! Line %d in your target alignment contains location information\n"
+                                    "while line %d did not. PLEASE CHECK your alignments!!\n"
+                                    "RNAplex will continue the target search.",
+                                    i+1, i);
       }
       location_flag=1;
       strcpy(file_s1, access);
@@ -1583,9 +1584,10 @@ static int **average_accessibility_target(char **names, char **ALN, int number, 
     }
     else{
       if(location_flag==1){
-        fprintf(stderr,"\n!! Line %d in your target alignment does not contain location information\n",i+1);
-        fprintf(stderr,"while line %d in your target alignment did. PLEASE CHECK your alignments!!\n",i);
-        fprintf(stderr,"RNAplex will continue the target search.\n");
+        vrna_message_warning_printf("\n!! Line %d in your target alignment does not contain location information\n"
+                                    "while line %d in your target alignment did. PLEASE CHECK your alignments!!\n"
+                                    "RNAplex will continue the target search.",
+                                    i+1, i);
       }
       location_flag=0;
       strcpy(file_s1, access);
