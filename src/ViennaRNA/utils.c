@@ -66,9 +66,6 @@ PRIVATE unsigned int typebuf2 = 0;
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void      print_error(const char message[]);
-PRIVATE void      print_warning(const char message[]);
-PRIVATE void      print_info(FILE *fp, const char message[]);
 PRIVATE uint32_t  rj_mix( uint32_t a, uint32_t b, uint32_t c);
 
 
@@ -135,9 +132,23 @@ vrna_message_error(const char *format, ...){
 PUBLIC void
 vrna_message_verror(const char *format, va_list args){
 
-  char *m = vrna_strdup_vprintf(format, args);
-  print_error(m);
-  free(m);
+#ifndef WITHOUT_TTY_COLORS
+  if(isatty(fileno(stderr))){
+    fprintf(stderr, ANSI_COLOR_RED_B "ERROR: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT);
+    vfprintf(stderr, format, args);
+    fprintf(stderr, ANSI_COLOR_RESET "\n");
+  } else {
+#endif
+    fprintf(stderr, "ERROR: ");
+    vfprintf(stderr, format, args);
+    fprintf(stderr, "\n");
+#ifndef WITHOUT_TTY_COLORS
+  }
+#endif
+
+#ifdef EXIT_ON_ERROR
+  exit(EXIT_FAILURE);
+#endif
 }
 
 
@@ -154,9 +165,19 @@ vrna_message_warning(const char *format, ...){
 PUBLIC void
 vrna_message_vwarning(const char *format, va_list args){
 
-  char *m = vrna_strdup_vprintf(format, args);
-  print_warning(m);
-  free(m);
+#ifndef WITHOUT_TTY_COLORS
+  if(isatty(fileno(stderr))){
+    fprintf(stderr, ANSI_COLOR_MAGENTA_B "WARNING: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT);
+    vfprintf(stderr, format, args);
+    fprintf(stderr, ANSI_COLOR_RESET "\n");
+  } else {
+#endif
+    fprintf(stderr, "WARNING: ");
+    vfprintf(stderr, format, args);
+    fprintf(stderr, "\n");
+#ifndef WITHOUT_TTY_COLORS
+  }
+#endif
 }
 
 
@@ -173,9 +194,20 @@ vrna_message_info(FILE *fp, const char *format, ...){
 PUBLIC void
 vrna_message_vinfo(FILE *fp, const char *format, va_list args){
 
-  char *m = vrna_strdup_vprintf(format, args);
-  print_info(fp, m);
-  free(m);
+  if(!fp)
+    fp = stdout;
+
+#ifndef WITHOUT_TTY_COLORS
+  if(isatty(fileno(fp))){
+    fprintf(fp, ANSI_COLOR_BLUE_B);
+    vfprintf(fp, format, args);
+    fprintf(fp, ANSI_COLOR_RESET "\n");
+  } else {
+#endif
+    vfprintf(fp, format, args);
+#ifndef WITHOUT_TTY_COLORS
+ }
+#endif
 }
 
 
@@ -374,47 +406,6 @@ vrna_idx_col_wise(unsigned int length){
 # STATIC helper functions below #
 #################################
 */
-PRIVATE void
-print_error(const char message[]){       /* output message upon error */
-
-#ifndef WITHOUT_TTY_COLORS
-  if(isatty(fileno(stderr)))
-    fprintf(stderr, ANSI_COLOR_RED_B "ERROR: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT "%s" ANSI_COLOR_RESET "\n", message);
-  else
-#endif
-    fprintf(stderr, "ERROR: %s\n", message);
-
-#ifdef EXIT_ON_ERROR
-  exit(EXIT_FAILURE);
-#endif
-}
-
-
-PRIVATE void
-print_warning(const char message[]){
-#ifndef WITHOUT_TTY_COLORS
-  if(isatty(fileno(stderr)))
-    fprintf(stderr, ANSI_COLOR_MAGENTA_B "WARNING: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT "%s" ANSI_COLOR_RESET "\n", message);
-  else
-#endif
-    fprintf(stderr, "WARNING: %s\n", message);
-}
-
-
-PRIVATE void
-print_info(FILE *fp, const char message[]){
-  if(!fp)
-    fp = stdout;
-
-#ifndef WITHOUT_TTY_COLORS
-  if(isatty(fileno(fp)))
-    fprintf(fp, ANSI_COLOR_BLUE_B "%s" ANSI_COLOR_RESET "\n", message);
-  else
-#endif
-    fprintf(fp, "%s\n", message);
-}
-
-
 PRIVATE uint32_t
 rj_mix( uint32_t a,
         uint32_t b,
