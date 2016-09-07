@@ -343,7 +343,7 @@ parse_stockholm_alignment(FILE  *fp,
     *structure = NULL;
 
   int inrecord = 0;
-  while((line = get_line(fp))){
+  while((line = vrna_read_line(fp))){
     if(strstr(line, "STOCKHOLM 1.0")){
       inrecord    = 1;
       has_record  = 1;
@@ -354,7 +354,7 @@ parse_stockholm_alignment(FILE  *fp,
   }
 
   if(inrecord){
-    while((line=get_line(fp))){
+    while((line = vrna_read_line(fp))){
 
       if(strncmp(line, "//", 2) == 0){
         /* end of alignment */
@@ -541,7 +541,7 @@ parse_clustal_alignment(FILE *clust,
   char *line, *name, *seq;
   int  n, r, nn=0, seq_num = 0, i;
 
-  if((line=get_line(clust)) == NULL){
+  if((line = vrna_read_line(clust)) == NULL){
     return -1;
   }
 
@@ -554,7 +554,7 @@ parse_clustal_alignment(FILE *clust,
   }
 
   free(line);
-  line = get_line(clust);
+  line = vrna_read_line(clust);
 
   while (line!=NULL) {
     n = strlen(line);
@@ -562,7 +562,7 @@ parse_clustal_alignment(FILE *clust,
     if((n < 4) || isspace((int)line[0])) {
       /* skip non-sequence line */
       free(line);
-      line  = get_line(clust);
+      line = vrna_read_line(clust);
       nn    = 0;  /* reset sequence number */
       continue;
     }
@@ -570,7 +570,7 @@ parse_clustal_alignment(FILE *clust,
     /* skip comments */
     if(line[0] == '#'){
       free(line);
-      line = get_line(clust);
+      line = vrna_read_line(clust);
       continue;
     }
 
@@ -611,7 +611,7 @@ parse_clustal_alignment(FILE *clust,
     }
     free(line);
 
-    line = get_line(clust);
+    line = vrna_read_line(clust);
   }
 
   endmarker_msa_record(names, aln, seq_num);
@@ -649,7 +649,7 @@ parse_maf_alignment(FILE  *fp,
   }
 
   int inrecord = 0;
-  while((line = get_line(fp))){
+  while((line = vrna_read_line(fp))){
     if(*line == 'a'){
       if((line[1] == '\0') || isspace(line[1])){
         inrecord = 1;
@@ -661,7 +661,7 @@ parse_maf_alignment(FILE  *fp,
   }
 
   if(inrecord){
-    while((line=get_line(fp))){
+    while((line = vrna_read_line(fp))){
       n = (int)strlen(line);
 
       switch(*line){
