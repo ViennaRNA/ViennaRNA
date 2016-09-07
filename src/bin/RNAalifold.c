@@ -59,15 +59,14 @@ add_shape_constraints(vrna_fold_compound_t *vc,
 
   if(verbose){
     if(method != 'W'){
-      char *msg = NULL;
       if(method == 'Z')
-        msg = vrna_strdup_printf( "Using SHAPE method '%c' with parameter p1=%f",
+        vrna_message_info_printf( stderr,
+                                  "Using SHAPE method '%c' with parameter p1=%f",
                                   method, p1);
       else
-        msg = vrna_strdup_printf( "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
+        vrna_message_info_printf( stderr,
+                                  "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
                                   method, p1, p2);
-      vrna_message_info(stderr, msg);
-      free(msg);
     }
   }
 
@@ -290,13 +289,12 @@ int main(int argc, char *argv[]){
         shape_files[s] = strdup(args_info.shape_arg[s]);
         shape_file_association[s] = s;
       }
-      if(verbose){
-        char *msg = vrna_strdup_printf( "Using SHAPE reactivity data provided in file %s for sequence %d",
-                                        shape_files[s],
-                                        shape_file_association[s]+1);
-        vrna_message_info(stderr, msg);
-        free(msg);
-      }
+
+      if(verbose)
+        vrna_message_info_printf( stderr,
+                                  "Using SHAPE reactivity data provided in file %s for sequence %d",
+                                  shape_files[s],
+                                  shape_file_association[s]+1);
     }
     
     shape_file_association[s] = -1;
@@ -435,8 +433,7 @@ int main(int argc, char *argv[]){
   if(filename_in){
     unsigned int format_guess = vrna_file_msa_detect_format(filename_in, input_format_options);
     if(format_guess == VRNA_FILE_FORMAT_MSA_UNKNOWN){
-      char *format = NULL;
-      char *msg = NULL;
+      char *format  = NULL;
       switch(input_format_options){
         case VRNA_FILE_FORMAT_MSA_CLUSTAL:
           format = strdup("Clustal");
@@ -454,11 +451,9 @@ int main(int argc, char *argv[]){
           format = strdup("Unknown");
           break;
       }
-      msg = vrna_strdup_printf( "Your input file is missing sequences! Either your file is empty, or not in %s format!",
+      vrna_message_error_printf("Your input file is missing sequences! Either your file is empty, or not in %s format!",
                                 format);
-      vrna_message_error(msg);
       free(format);
-      free(msg);
     }
 
     input_format_options = format_guess;
@@ -693,11 +688,8 @@ int main(int argc, char *argv[]){
 
       kT = vc->exp_params->kT/1000.;
 
-      if (length>2000){
-        char *msg = vrna_strdup_printf("scaling factor %f\n", vc->exp_params->pf_scale);
-        vrna_message_info(stderr, msg);
-        free(msg);
-      }
+      if (length>2000)
+        vrna_message_info_printf(stderr, "scaling factor %f\n", vc->exp_params->pf_scale);
 
       fflush(stdout);
 
@@ -857,7 +849,6 @@ int main(int argc, char *argv[]){
 
   if(first_alignment_number == alignment_number){
     char *format = NULL;
-    char *msg = NULL;
     switch(input_format_options){
       case VRNA_FILE_FORMAT_MSA_CLUSTAL:
         format = strdup("Clustal");
@@ -875,10 +866,8 @@ int main(int argc, char *argv[]){
         format = strdup("Unknown");
         break;
     }
-    msg = vrna_strdup_printf( "Your input file is missing sequences! Either your file is empty, or not in %s format!",
+    vrna_message_error_printf("Your input file is missing sequences! Either your file is empty, or not in %s format!",
                               format);
-    vrna_message_error(msg);
-    free(msg);
     free(format);
   }
 
@@ -1086,11 +1075,9 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, i
       }
     }
     if(nofound) {
-      char *msg = vrna_strdup_printf( "mfe base pair with very low prob in pf: %d %d",
-                                      mfel[t].i,
-                                      mfel[t].j);
-      vrna_message_warning(msg);
-      free(msg);
+      vrna_message_warning_printf("mfe base pair with very low prob in pf: %d %d",
+                                  mfel[t].i,
+                                  mfel[t].j);
 
       cp = (cpair *) vrna_realloc(cp, sizeof(cpair)*(c+2));
       cp[c].i = mfel[t].i;

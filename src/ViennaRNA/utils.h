@@ -162,6 +162,8 @@ void  *vrna_realloc(void *p, unsigned size);
  *  @param message The error message to be printed before exiting with 'FAILURE'
  */
 void vrna_message_error(const char message[]);
+void vrna_message_error_printf(const char *format, ...);
+void vrna_message_error_vprintf(const char *format, va_list args);
 
 /**
  *  @brief Print a warning message
@@ -171,8 +173,12 @@ void vrna_message_error(const char message[]);
  *  @param  message   The warning message
  */
 void vrna_message_warning(const char message[]);
+void vrna_message_warning_printf(const char *format, ...);
+void vrna_message_warning_vprintf(const char *format, va_list args);
 
 void vrna_message_info(FILE *fp, const char message[]);
+void vrna_message_info_printf(FILE *fp, const char *format, ...);
+void vrna_message_info_vprintf(FILE *fp, const char *format, va_list args);
 
 /**
  *  @brief  Initialize seed for random number generator

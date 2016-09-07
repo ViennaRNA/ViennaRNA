@@ -299,11 +299,9 @@ int main(int argc, char *argv[])
         cstruc = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc = vrna_cut_point_remove(cstruc, &cp);
         if(vc->cutpoint != cp){
-          char *msg = vrna_strdup_printf( "Sequence and Structure have different cut points.\n"
-                                          "sequence: %d, structure: %d",
-                                           vc->cutpoint, cp);
-          vrna_message_error(msg);
-          free(msg);
+          vrna_message_error_printf("Sequence and Structure have different cut points.\n"
+                                    "sequence: %d, structure: %d",
+                                    vc->cutpoint, cp);
         }
 
         cl = (cstruc) ? (int)strlen(cstruc) : 0;
@@ -324,26 +322,19 @@ int main(int argc, char *argv[])
     }
 
     if(istty){
-      char *msg = NULL;
-
       if (cut_point == -1)
-        msg = vrna_strdup_printf("length = %d", length);
+        vrna_message_info_printf(stdout, "length = %d", length);
       else
-        msg = vrna_strdup_printf("length1 = %d\nlength2 = %d", cut_point-1, length-cut_point+1);
-
-      vrna_message_info(stdout, msg);
-      free(msg);
+        vrna_message_info_printf(stdout, "length1 = %d\nlength2 = %d", cut_point-1, length-cut_point+1);
     }
 
     if (doC) {
       FILE *fp;
       if (cofi) { /* read from file */
         fp = fopen(Concfile, "r");
-        if (fp==NULL) {
-          char *msg = vrna_strdup_printf("could not open concentration file %s", Concfile);
-          vrna_message_error(msg);
-          free(msg);
-        }
+        if(fp == NULL)
+          vrna_message_error_printf("could not open concentration file %s", Concfile);
+
         ConcAandB = read_concentrations(fp);
         fclose(fp);
       } else {
@@ -364,10 +355,8 @@ int main(int argc, char *argv[])
     /* check whether the constraint allows for any solution */
     if(fold_constrained && constraints_file){
       if(min_en == (double)(INF/100.)){
-        char *msg = vrna_strdup_printf( "Supplied structure constraints create empty solution set for sequence:\n%s",
-                                        orig_sequence);
-        vrna_message_error(msg);
-        free(msg);
+        vrna_message_error_printf("Supplied structure constraints create empty solution set for sequence:\n%s",
+                                  orig_sequence);
         exit(EXIT_FAILURE);
       }
     }
@@ -421,11 +410,8 @@ int main(int argc, char *argv[])
       vrna_exp_params_rescale(vc, &min_en);
       kT = vc->exp_params->kT/1000.;
 
-      if (length>2000){
-        char *msg = vrna_strdup_printf("scaling factor %f", vc->exp_params->pf_scale);
-        vrna_message_info(stderr, msg);
-        free(msg);
-      }
+      if (length>2000)
+        vrna_message_info_printf(stderr, "scaling factor %f", vc->exp_params->pf_scale);
 
       /* do we need to add hard constraints? */
       if (cstruc!=NULL) strncpy(structure, cstruc, length+1);

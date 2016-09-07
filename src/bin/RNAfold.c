@@ -66,13 +66,10 @@ add_shape_constraints(vrna_fold_compound_t *vc,
 
   if(verbose){
     if(method != 'W'){
-      char *msg = NULL;
       if(method == 'Z')
-        msg = vrna_strdup_printf("Using SHAPE method '%c' with parameter p1=%f", method, p1);
+        vrna_message_info_printf(stderr, "Using SHAPE method '%c' with parameter p1=%f", method, p1);
       else
-        msg = vrna_strdup_printf("Using SHAPE method '%c' with parameters p1=%f and p2=%f", method, p1, p2);
-      vrna_message_info(stderr, msg);
-      free(msg);
+        vrna_message_info_printf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f", method, p1, p2);
     }
   }
 
@@ -151,10 +148,9 @@ add_ligand_motif( vrna_fold_compound_t *vc,
     }
 
     if(!error && verbose){
-      char *msg = vrna_strdup_printf( "Read ligand motif: %s, %s, %f\n",
-                                      seq, str, energy);
-      vrna_message_info(stderr, msg);
-      free(msg);
+      vrna_message_info_printf( stderr,
+                                "Read ligand motif: %s, %s, %f\n",
+                                seq, str, energy);
     }
   }
 
@@ -505,11 +501,8 @@ int main(int argc, char *argv[]){
     if(ligandMotif)
       add_ligand_motif(vc, ligandMotif, verbose, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
-    if(istty){
-      char *msg = vrna_strdup_printf("length = %d\n", length);
-      vrna_message_info(stdout, msg);
-      free(msg);
-    }
+    if(istty)
+      vrna_message_info_printf(stdout, "length = %d\n", length);
 
     if(commands)
       vrna_commands_apply(vc, commands);
@@ -543,10 +536,8 @@ int main(int argc, char *argv[]){
     /* check whether the constraint allows for any solution */
     if(fold_constrained && constraints_file){
       if(min_en == (double)(INF/100.)){
-        char *msg = vrna_strdup_printf( "Supplied structure constraints create empty solution set for sequence:\n%s",
-                                        orig_sequence);
-        vrna_message_error(msg);
-        free(msg);
+        vrna_message_error_printf("Supplied structure constraints create empty solution set for sequence:\n%s",
+                                  orig_sequence);
         exit(EXIT_FAILURE);
       }
     }
@@ -591,20 +582,18 @@ int main(int argc, char *argv[]){
             char segment[64];
             if(c != 0){
               if(verbose){
-                char *msg = vrna_strdup_printf( "specified motif detected in MFE structure: (%d,%d) (%d,%d)",
-                                                a, b, c, d);
-                vrna_message_info(stdout, msg);
-                free(msg);
+                vrna_message_info_printf( stdout,
+                                          "specified motif detected in MFE structure: (%d,%d) (%d,%d)",
+                                          a, b, c, d);
               }
               sprintf(segment, " %d %d %d %d 1. 0 0 BFmark", a, b, c, d);
               a = c;
             }
             else{
               if(verbose){
-                char *msg = vrna_strdup_printf( "specified motif detected in MFE structure: (%d,%d)",
-                                                a, b);
-                vrna_message_info(stdout, msg);
-                free(msg);
+                vrna_message_info_printf( stdout,
+                                          "specified motif detected in MFE structure: (%d,%d)",
+                                          a, b);
               }
               sprintf(segment, " %d %d 1. 0 0 Fomark", a, b);
               a = b;
@@ -636,11 +625,8 @@ int main(int argc, char *argv[]){
 
       kT = vc->exp_params->kT/1000.;
 
-      if (length>2000){
-        char *msg = vrna_strdup_printf("scaling factor %f", vc->exp_params->pf_scale);
-        vrna_message_info(stderr, msg);
-        free(msg);
-      }
+      if (length>2000)
+        vrna_message_info_printf(stderr, "scaling factor %f", vc->exp_params->pf_scale);
 
       fflush(stdout);
 
@@ -649,11 +635,9 @@ int main(int argc, char *argv[]){
       energy = (double)vrna_pf(vc, pf_struc);
 
       /* in case we abort because of floating point errors */
-      if (length>1600){
-        char *msg = vrna_strdup_printf("free energy = %8.2f", energy);
-        vrna_message_info(stderr, msg);
-        free(msg);
-      }
+      if (length>1600)
+        vrna_message_info_printf(stderr, "free energy = %8.2f", energy);
+
       if(lucky){
         vrna_init_rand();
         char *filename_plot = NULL;
@@ -826,21 +810,19 @@ int main(int argc, char *argv[]){
             a = 1;
             while(vrna_sc_detect_hi_motif(vc, structure, &a, &b, &c, &d)){
               if(c != 0){
-                if(verbose){
-                  char *msg = vrna_strdup_printf( "specified motif detected in centroid structure: (%d,%d) (%d,%d)",
-                                                  a, b, c, d);
-                  vrna_message_info(stdout, msg);
-                  free(msg);
-                }
+                if(verbose)
+                  vrna_message_info_printf( stdout,
+                                            "specified motif detected in centroid structure: (%d,%d) (%d,%d)",
+                                            a, b, c, d);
+
                 a = c;
               }
               else{
-                if(verbose){
-                  char *msg = vrna_strdup_printf( "specified motif detected in centroid structure: (%d,%d)",
-                                                  a, b);
-                  vrna_message_info(stdout, msg);
-                  free(msg);
-                }
+                if(verbose)
+                  vrna_message_info_printf( stdout,
+                                            "specified motif detected in centroid structure: (%d,%d)",
+                                            a, b);
+
                 a = b;
               }
             }
@@ -891,21 +873,19 @@ int main(int argc, char *argv[]){
               a = 1;
               while(vrna_sc_detect_hi_motif(vc, structure, &a, &b, &c, &d)){
                 if(c != 0){
-                  if(verbose){
-                    char *msg = vrna_strdup_printf( "specified motif detected in MEA structure: (%d,%d) (%d,%d)",
-                                                    a, b, c, d);
-                    vrna_message_info(stdout, msg);
-                    free(msg);
-                  }
+                  if(verbose)
+                    vrna_message_info_printf( stdout,
+                                              "specified motif detected in MEA structure: (%d,%d) (%d,%d)",
+                                              a, b, c, d);
+
                   a = c;
                 }
                 else{
-                  if(verbose){
-                    char *msg = vrna_strdup_printf( "specified motif detected in MEA structure: (%d,%d)",
-                                                    a, b);
-                    vrna_message_info(stdout, msg);
-                    free(msg);
-                  }
+                  if(verbose)
+                    vrna_message_info_printf( stdout,
+                                              "specified motif detected in MEA structure: (%d,%d)",
+                                              a, b);
+
                   a = b;
                 }
               }

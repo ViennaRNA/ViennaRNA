@@ -17,6 +17,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 /* for getpid() we need some distinction between UNIX and Win systems */
 #ifdef _WIN32
@@ -34,6 +35,8 @@
 
 #define PRIVATE  static
 #define PUBLIC
+
+#define EXIT_ON_ERROR
 
 #include "ViennaRNA/color_output.inc"
 
@@ -102,7 +105,27 @@ vrna_message_error(const char message[]){       /* output message upon error */
   else
 #endif
     fprintf(stderr, "ERROR: %s\n", message);
+
+#ifdef EXIT_ON_ERROR
   exit(EXIT_FAILURE);
+#endif
+}
+
+PUBLIC void
+vrna_message_error_printf(const char *format, ...){
+
+  va_list args;
+  va_start(args, format);
+  vrna_message_error_vprintf(format, args);
+  va_end(args);
+}
+
+PUBLIC void
+vrna_message_error_vprintf(const char *format, va_list args){
+
+  char *m = vrna_strdup_vprintf(format, args);
+  vrna_message_error(m);
+  free(m);
 }
 
 PUBLIC void
@@ -113,6 +136,23 @@ vrna_message_warning(const char message[]){
   else
 #endif
     fprintf(stderr, "WARNING: %s\n", message);
+}
+
+PUBLIC void
+vrna_message_warning_printf(const char *format, ...){
+
+  va_list args;
+  va_start(args, format);
+  vrna_message_warning_vprintf(format, args);
+  va_end(args);
+}
+
+PUBLIC void
+vrna_message_warning_vprintf(const char *format, va_list args){
+
+  char *m = vrna_strdup_vprintf(format, args);
+  vrna_message_warning(m);
+  free(m);
 }
 
 PUBLIC void
@@ -127,6 +167,24 @@ vrna_message_info(FILE *fp, const char message[]){
 #endif
     fprintf(fp, "%s\n", message);
 }
+
+PUBLIC void
+vrna_message_info_printf(FILE *fp, const char *format, ...){
+
+  va_list args;
+  va_start(args, format);
+  vrna_message_info_vprintf(fp, format, args);
+  va_end(args);
+}
+
+PUBLIC void
+vrna_message_info_vprintf(FILE *fp, const char *format, va_list args){
+
+  char *m = vrna_strdup_vprintf(format, args);
+  vrna_message_info(fp, m);
+  free(m);
+}
+
 
 PRIVATE uint32_t
 rj_mix( uint32_t a,
