@@ -59,18 +59,14 @@ add_shape_constraints(vrna_fold_compound_t *vc,
 
   if(verbose){
     if(method != 'W'){
-      int r;
       char *msg = NULL;
       if(method == 'Z')
-        r = asprintf( &msg,
-                      "Using SHAPE method '%c' with parameter p1=%f",
-                      method, p1);
+        msg = vrna_strdup_printf( "Using SHAPE method '%c' with parameter p1=%f",
+                                  method, p1);
       else
-        r = asprintf( &msg,
-                      "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
-                      method, p1, p2);
-      if(r != -1)
-        vrna_message_info(stderr, msg);
+        msg = vrna_strdup_printf( "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
+                                  method, p1, p2);
+      vrna_message_info(stderr, msg);
       free(msg);
     }
   }
@@ -295,14 +291,10 @@ int main(int argc, char *argv[]){
         shape_file_association[s] = s;
       }
       if(verbose){
-        int r;
-        char *msg = NULL;
-        r = asprintf( &msg,
-                      "Using SHAPE reactivity data provided in file %s for sequence %d",
-                      shape_files[s],
-                      shape_file_association[s]+1);
-        if(r != -1)
-          vrna_message_info(stderr, msg);
+        char *msg = vrna_strdup_printf( "Using SHAPE reactivity data provided in file %s for sequence %d",
+                                        shape_files[s],
+                                        shape_file_association[s]+1);
+        vrna_message_info(stderr, msg);
         free(msg);
       }
     }
@@ -443,7 +435,6 @@ int main(int argc, char *argv[]){
   if(filename_in){
     unsigned int format_guess = vrna_file_msa_detect_format(filename_in, input_format_options);
     if(format_guess == VRNA_FILE_FORMAT_MSA_UNKNOWN){
-      int r;
       char *format = NULL;
       char *msg = NULL;
       switch(input_format_options){
@@ -463,11 +454,9 @@ int main(int argc, char *argv[]){
           format = strdup("Unknown");
           break;
       }
-      r = asprintf( &msg,
-                    "Your input file is missing sequences! Either your file is empty, or not in %s format!",
-                    format);
-      if(r != -1)
-        vrna_message_error(msg);
+      msg = vrna_strdup_printf( "Your input file is missing sequences! Either your file is empty, or not in %s format!",
+                                format);
+      vrna_message_error(msg);
       free(format);
       free(msg);
     }
@@ -549,7 +538,7 @@ int main(int argc, char *argv[]){
     if(tmp_id && (!auto_id)){ /* we've read an ID from file, so we use it */
       MSA_ID = strdup(tmp_id);
     } else if(auto_id || (alignment_number > 1) || continuous_names){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
-      (void)asprintf(&MSA_ID, "%s_%0*ld", id_prefix, id_digits, alignment_number);
+      MSA_ID = vrna_strdup_printf("%s_%0*ld", id_prefix, id_digits, alignment_number);
     }
 
     /* construct output file names */
@@ -652,32 +641,26 @@ int main(int argc, char *argv[]){
 
     print_fasta_header(stdout, MSA_ID);
     fprintf(stdout, "%s\n", string);
-    int r;
     char *energy_string = NULL;
     if(istty_in){
       if(with_sci){
-        r = asprintf( &energy_string,
-                      "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n SCI = %2.4f",
-                      min_en, real_en, min_en-real_en, sci);
+        energy_string = vrna_strdup_printf( "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n SCI = %2.4f",
+                                            min_en, real_en, min_en-real_en, sci);
       } else {
-        r = asprintf( &energy_string,
-                      "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)",
-                      min_en, real_en, min_en - real_en);
+        energy_string = vrna_strdup_printf( "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)",
+                                            min_en, real_en, min_en - real_en);
       }
     } else {
       if(with_sci){
-        r = asprintf( &energy_string,
-                      " (%6.2f = %6.2f + %6.2f) [sci = %2.4f]",
-                      min_en, real_en, min_en-real_en, sci);
+        energy_string = vrna_strdup_printf( " (%6.2f = %6.2f + %6.2f) [sci = %2.4f]",
+                                            min_en, real_en, min_en-real_en, sci);
       } else {
-        r = asprintf( &energy_string,
-                      " (%6.2f = %6.2f + %6.2f)",
-                      min_en, real_en, min_en-real_en);
+        energy_string = vrna_strdup_printf( " (%6.2f = %6.2f + %6.2f)",
+                                            min_en, real_en, min_en-real_en);
       }
     }
 
-    if(r != -1)
-      print_structure(stdout, structure, energy_string);
+    print_structure(stdout, structure, energy_string);
 
     free(energy_string);
 
@@ -711,11 +694,8 @@ int main(int argc, char *argv[]){
       kT = vc->exp_params->kT/1000.;
 
       if (length>2000){
-        int r;
-        char *msg = NULL;
-        r = asprintf(&msg, "scaling factor %f\n", vc->exp_params->pf_scale);
-        if(r != -1)
-          vrna_message_info(stderr, msg);
+        char *msg = vrna_strdup_printf("scaling factor %f\n", vc->exp_params->pf_scale);
+        vrna_message_info(stderr, msg);
         free(msg);
       }
 
@@ -729,7 +709,6 @@ int main(int argc, char *argv[]){
       if (n_back>0) {
         /*stochastic sampling*/
         for (i=0; i<n_back; i++) {
-          int r;
           char *s, *e_string = NULL;
 
 #if CHECK_PROBABILITIES
@@ -739,7 +718,7 @@ int main(int argc, char *argv[]){
           e -= (double)vrna_eval_covar_structure(vc, s);
           prob2 = exp((energy - e)/kT);
           if(eval_energy)
-            r = asprintf(&e_string, " %6g (%6g) %.2f (%.2f)", prob, prob2, -1*(kT*log(prob)-energy), e);
+            e_string = vrna_strdup_printf(" %6g (%6g) %.2f (%.2f)", prob, prob2, -1*(kT*log(prob)-energy), e);
 #else
           double prob=1.;
           s = vrna_pbacktrack(vc);
@@ -748,9 +727,7 @@ int main(int argc, char *argv[]){
             double e  = (double)vrna_eval_structure(vc, s);
             e -= (double)vrna_eval_covar_structure(vc, s);
             prob = exp((energy - e)/kT);
-            r = asprintf(&e_string, " %6g %.2f", prob, -1*(kT*log(prob)-energy));
-            if(r == -1)
-              e_string = NULL;
+            e_string = vrna_strdup_printf(" %6g %.2f", prob, -1*(kT*log(prob)-energy));
           }
 #endif
           print_structure(stdout, s, e_string);
@@ -761,23 +738,17 @@ int main(int argc, char *argv[]){
       }
 
       if(do_backtrack){
-        int r;
         char *msg = NULL;
         if(istty_in)
-          r = asprintf( &msg,
-                        "\n free energy of ensemble = %6.2f kcal/mol",
-                        energy);
+          msg = vrna_strdup_printf("\n free energy of ensemble = %6.2f kcal/mol", energy);
         else
-          r = asprintf(&msg, " [%6.2f]", energy);
-        if(r != -1)
-          print_structure(stdout, structure, msg);
+          msg = vrna_strdup_printf(" [%6.2f]", energy);
+
+        print_structure(stdout, structure, msg);
         free(msg);
       } else {
-        int r;
-        char *msg = NULL;
-        r = asprintf( &msg, " free energy of ensemble = %6.2f kcal/mol", energy);
-        if(r != -1)
-          print_structure(stdout, NULL, msg);
+        char *msg = vrna_strdup_printf(" free energy of ensemble = %6.2f kcal/mol", energy);
+        print_structure(stdout, NULL, msg);
         free(msg);
       }
 
@@ -792,25 +763,20 @@ int main(int argc, char *argv[]){
         mfel  = vrna_plist(mfe_struc, 0.95*0.95);
 
         if (!circular){
-          int r;
           float *ens;
           cent = vrna_centroid(vc, &dist);
           ens=(float *)vrna_alloc(2*sizeof(float));
           ens[0] = vrna_eval_structure(vc, cent);
           ens[1] = vrna_eval_covar_structure(vc, cent);
 
-          char *energy_string = NULL;
-          r = asprintf( &energy_string,
-                        " {%6.2f = %6.2f + %6.2f d=%.2f}",
-                        ens[0]-ens[1],ens[0],(-1)*ens[1], dist);
-          if(r != -1)
-            print_structure(stdout, cent, energy_string);
+          char *energy_string = vrna_strdup_printf( " {%6.2f = %6.2f + %6.2f d=%.2f}",
+                                                    ens[0]-ens[1],ens[0],(-1)*ens[1], dist);
+          print_structure(stdout, cent, energy_string);
           free(energy_string);
           free(cent);
           free(ens);
         }
         if(doMEA){
-          int r;
           float mea, *ens;
           plist *pl2;
           pl2 = vrna_plist_from_probs(vc, 1e-4/(1+MEAgamma));
@@ -819,12 +785,9 @@ int main(int argc, char *argv[]){
           ens[0] = vrna_eval_structure(vc, structure);
           ens[1] = vrna_eval_covar_structure(vc, structure);
 
-          char *energy_string = NULL;
-          r = asprintf( &energy_string,
-                       " {%6.2f = %6.2f + %6.2f MEA=%.2f}",
-                        ens[0]-ens[1],ens[0],(-1)*ens[1], mea);
-          if(r != -1)
-            print_structure(stdout, structure, energy_string);
+          char *energy_string = vrna_strdup_printf( " {%6.2f = %6.2f + %6.2f MEA=%.2f}",
+                                                    ens[0]-ens[1],ens[0],(-1)*ens[1], mea);
+          print_structure(stdout, structure, energy_string);
           free(energy_string);
           free(ens);
           free(pl2);
@@ -845,21 +808,17 @@ int main(int argc, char *argv[]){
       }
 
       {
-        int r;
         char *msg = NULL;
         if(do_backtrack){
-          r = asprintf( &msg,
-                        " frequency of mfe structure in ensemble %g"
-                        "; ensemble diversity %-6.2f",
-                        exp((energy-min_en)/kT),
-                        vrna_mean_bp_distance(vc));
+          msg = vrna_strdup_printf( " frequency of mfe structure in ensemble %g"
+                                    "; ensemble diversity %-6.2f",
+                                    exp((energy-min_en)/kT),
+                                    vrna_mean_bp_distance(vc));
         } else {
-          r = asprintf( &msg,
-                        " frequency of mfe structure in ensemble %g;",
-                        exp((energy-min_en)/kT));
+          msg = vrna_strdup_printf( " frequency of mfe structure in ensemble %g;",
+                                    exp((energy-min_en)/kT));
         }
-        if(r != -1)
-          print_structure(stdout, NULL, msg);
+        print_structure(stdout, NULL, msg);
         free(msg);
       }
 
@@ -897,7 +856,6 @@ int main(int argc, char *argv[]){
   } /* end of input */
 
   if(first_alignment_number == alignment_number){
-    int r;
     char *format = NULL;
     char *msg = NULL;
     switch(input_format_options){
@@ -917,11 +875,9 @@ int main(int argc, char *argv[]){
         format = strdup("Unknown");
         break;
     }
-    r = asprintf( &msg,
-                  "Your input file is missing sequences! Either your file is empty, or not in %s format!",
-                  format);
-    if(r != -1)
-      vrna_message_error(msg);
+    msg = vrna_strdup_printf( "Your input file is missing sequences! Either your file is empty, or not in %s format!",
+                              format);
+    vrna_message_error(msg);
     free(msg);
     free(format);
   }
@@ -1130,14 +1086,10 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, i
       }
     }
     if(nofound) {
-      int r;
-      char *msg = NULL;
-      r = asprintf( &msg,
-                    "mfe base pair with very low prob in pf: %d %d",
-                    mfel[t].i,
-                    mfel[t].j);
-      if(r != -1)
-        vrna_message_warning(msg);
+      char *msg = vrna_strdup_printf( "mfe base pair with very low prob in pf: %d %d",
+                                      mfel[t].i,
+                                      mfel[t].j);
+      vrna_message_warning(msg);
       free(msg);
 
       cp = (cpair *) vrna_realloc(cp, sizeof(cpair)*(c+2));

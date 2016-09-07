@@ -17,9 +17,22 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/string_utils.h"
+
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
 
 #ifndef HAVE_STRDUP
 char *strdup(const char *s) {
@@ -31,6 +44,69 @@ char *strdup(const char *s) {
 }
 #endif
 
+PUBLIC char *
+vrna_strdup_printf(const char *format, ...){
+
+  char *result;
+  va_list argp;
+
+  va_start(argp, format);
+  result = vrna_strdup_vprintf(format, argp);
+  va_end(argp); /* Each va_start() or va_copy() needs a va_end() */
+
+  return result;
+}
+
+PUBLIC char *
+vrna_strdup_vprintf(const char *format, va_list argp){
+
+  char    *result;
+  int     r, count;
+
+  result = NULL;
+
+#ifndef HAVE_VASPRINTF
+  va_list copy;
+  va_copy(copy, argp);
+
+  r = -1;
+
+  /* retrieve the number of characters that the string requires */
+#ifdef _WIN32
+  /*
+    vsnprintf() in Windows is not ANSI compliant, although it's
+    "...included for compliance to the ANSI standard"
+    Thus, we use _vscprintf() that explicitly counts characters
+  */
+  count = _vscprintf(format, argp);
+#else
+  count = vsnprintf(NULL, 0, format, argp);
+#endif
+
+  if((count >= 0) && (count < INT_MAX)){
+    char *buf = (char *)vrna_alloc(sizeof(char) * (count + 1));
+    if(buf == NULL)
+      r = -1;
+    else if((r = vsnprintf(buf, count + 1, format, copy)) < 0)
+      free(buf);
+    else
+      result = buf;
+  }
+
+  va_end(copy);  /* Each va_start() or va_copy() needs a va_end() */
+#else
+  /* the default is to use vasprintf() if available */
+  r = vasprintf(&result, format, argp);
+#endif
+
+  /* check for any memory allocation error indicated by r == -1 */
+  if(r == -1){
+    vrna_message_warning("vrna_strdup_printf: memory allocation failure!");
+    result = NULL;
+  }
+
+  return result;
+}
 
 PUBLIC char *
 vrna_random_string(int l, const char symbols[]){

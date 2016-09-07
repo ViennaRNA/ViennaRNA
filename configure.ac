@@ -60,13 +60,13 @@ AC_CHECK_LIB([m], [exp])
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS([malloc.h float.h limits.h stdlib.h string.h strings.h unistd.h unistd.h math.h])
+AC_CHECK_HEADERS([malloc.h float.h limits.h stdlib.h string.h strings.h unistd.h math.h stdarg.h])
 
 dnl Checks for funtions
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([floor strdup strstr strchr strrchr strstr strtol strtoul pow rint sqrt erand48 memset memmove erand48])
+AC_CHECK_FUNCS([floor strdup strstr strchr strrchr strstr strtol strtoul pow rint sqrt erand48 memset memmove erand48 asprintf vasprintf])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

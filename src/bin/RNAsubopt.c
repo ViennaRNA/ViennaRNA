@@ -53,18 +53,12 @@ add_shape_constraints(vrna_fold_compound_t *vc,
 
   if(verbose){
     if(method != 'W'){
-      int r;
       char *msg = NULL;
       if(method == 'Z')
-        r = asprintf( &msg,
-                      "Using SHAPE method '%c' with parameter p1=%f",
-                      method, p1);
+        msg = vrna_strdup_printf("Using SHAPE method '%c' with parameter p1=%f", method, p1);
       else
-        r = asprintf( &msg,
-                      "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
-                      method, p1, p2);
-      if(r != -1)
-        vrna_message_info(stderr, msg);
+        msg = vrna_strdup_printf("Using SHAPE method '%c' with parameters p1=%f and p2=%f", method, p1, p2);
+      vrna_message_info(stderr, msg);
       free(msg);
     }
   }
@@ -349,14 +343,10 @@ int main(int argc, char *argv[]){
         cstruc = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc = vrna_cut_point_remove(cstruc, &cp);
         if(vc->cutpoint != cp){
-          int r;
-          char *msg = NULL;
-          r = asprintf( &msg,
-                        "Sequence and Structure have different cut points.\n"
-                        "sequence: %d, structure: %d",
-                        vc->cutpoint, cp);
-          if(r != -1)
-            vrna_message_error(msg);
+          char *msg = vrna_strdup_printf( "Sequence and Structure have different cut points.\n"
+                                          "sequence: %d, structure: %d",
+                                          vc->cutpoint, cp);
+          vrna_message_error(msg);
           free(msg);
         }
         cl = (cstruc) ? (int)strlen(cstruc) : 0;
@@ -382,14 +372,12 @@ int main(int argc, char *argv[]){
       add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
 
     if(istty){
-      int r;
       char *msg = NULL;
       if (cut_point == -1)
-        r = asprintf(&msg, "length = %d", length);
+        msg = vrna_strdup_printf("length = %d", length);
       else
-        r = asprintf(&msg, "length1 = %d\nlength2 = %d", cut_point-1, length-cut_point+1);
-      if(r != -1)
-        vrna_message_info(stdout, msg);
+        msg = vrna_strdup_printf("length1 = %d\nlength2 = %d", cut_point-1, length-cut_point+1);
+      vrna_message_info(stdout, msg);
       free(msg);
     }
 
@@ -428,17 +416,15 @@ int main(int argc, char *argv[]){
       free(ss);
 
       for (i=0; i<n_back; i++) {
-        int   r = 0;
         char  *s, *e_string = NULL;
         s = vrna_pbacktrack(vc);
         if(st_back_en){
           double e, prob;
           e     = vrna_eval_structure(vc, s);
           prob  = exp((ens_en - e)/kT);
-          r = asprintf(&e_string, " %6.2f %6g", e, prob);
+          e_string = vrna_strdup_printf(" %6.2f %6g", e, prob);
         }
-        if(r != -1)
-          print_structure(stdout, s, e_string);
+        print_structure(stdout, s, e_string);
         free(s);
         free(e_string);
       }
@@ -447,11 +433,8 @@ int main(int argc, char *argv[]){
     else if(!zuker){
       /* first lines of output (suitable  for sort +1n) */
       if (fname[0] != '\0'){
-        int r;
-        char *head = NULL;
-        r = asprintf(&head, "%s [%d]", fname, delta);
-        if(r != -1)
-          print_fasta_header(stdout, head);
+        char *head = vrna_strdup_printf("%s [%d]", fname, delta);
+        print_fasta_header(stdout, head);
         free(head);
       }
 
@@ -525,13 +508,12 @@ int main(int argc, char *argv[]){
 }
 
 PRIVATE void putoutzuker(vrna_subopt_solution_t* zukersolution) {
-  int   i, r;
-  char  *e_string = NULL;
+  int   i;
+  char  *e_string;
 
   for(i=0; zukersolution[i].structure; i++) {
-    r = asprintf(&e_string, " [%6.2f]", zukersolution[i].energy/100.);
-    if(r != -1)
-      print_structure(stdout, zukersolution[i].structure, e_string);
+    e_string = vrna_strdup_printf(" [%6.2f]", zukersolution[i].energy/100.);
+    print_structure(stdout, zukersolution[i].structure, e_string);
     free(e_string);
   }
   return;

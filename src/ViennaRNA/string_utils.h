@@ -65,6 +65,42 @@ char *strdup(const char *s);
 #endif
 
 /**
+ *  @brief Safely create a formatted string
+ *
+ *  This function is a safe implementation for creating a formatted character array,
+ *  similar to @em sprintf.
+ *  Internally, it uses the @em asprintf function if available to dynamically allocate
+ *  a large enough character array to store the supplied content. If @em asprintf is
+ *  not available, mimic it's behavior using @em vsnprintf.
+ *
+ *  @note The returned pointer of this function should always be passed to @em free() to
+ *  release the allocated memory
+ *
+ *  @see vrna_strdup_vprintf()
+ *
+ *  @param  format  The format string (See also asprintf)
+ *  @param  ...     The list of variables used to fill the format string
+ *  @return         The formatted, null-terminated string, or NULL if something has gone wrong
+ */
+char *vrna_strdup_printf(const char *format, ...);
+
+/**
+ *  @brief Safely create a formatted string
+ *
+ *  This function is the @em va_list version of vrna_strdup_printf()
+ *
+ *  @note The returned pointer of this function should always be passed to @em free() to
+ *  release the allocated memory
+ *
+ *  @see vrna_strdup_printf()
+ *
+ *  @param  format  The format string (See also asprintf)
+ *  @param  ...     The list of variables used to fill the format string
+ *  @return         The formatted, null-terminated string, or NULL if something has gone wrong
+ */
+char *vrna_strdup_vprintf(const char *format, va_list argp);
+
+/**
  *  @brief Create a random string using characters from a specified symbol set
  *
  *  @param l        The length of the sequence

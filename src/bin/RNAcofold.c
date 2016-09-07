@@ -273,7 +273,7 @@ int main(int argc, char *argv[])
     if((fname[0] != '\0') && (!auto_id)){ /* we've read an ID from file, so we use it */
       SEQ_ID = strdup(fname);
     } else if(auto_id){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
-      (void)asprintf(&SEQ_ID, "%s_%0*ld", id_prefix, id_digits, seq_number);
+      SEQ_ID = vrna_strdup_printf("%s_%0*ld", id_prefix, id_digits, seq_number);
     }
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
@@ -299,14 +299,10 @@ int main(int argc, char *argv[])
         cstruc = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc = vrna_cut_point_remove(cstruc, &cp);
         if(vc->cutpoint != cp){
-          int r;
-          char *msg = NULL;
-          r = asprintf( &msg,
-                        "Sequence and Structure have different cut points.\n"
-                        "sequence: %d, structure: %d",
-                        vc->cutpoint, cp);
-          if(r != -1)
-            vrna_message_error(msg);
+          char *msg = vrna_strdup_printf( "Sequence and Structure have different cut points.\n"
+                                          "sequence: %d, structure: %d",
+                                           vc->cutpoint, cp);
+          vrna_message_error(msg);
           free(msg);
         }
 
@@ -328,14 +324,14 @@ int main(int argc, char *argv[])
     }
 
     if(istty){
-      int r;
       char *msg = NULL;
+
       if (cut_point == -1)
-        r = asprintf(&msg, "length = %d", length);
+        msg = vrna_strdup_printf("length = %d", length);
       else
-        r = asprintf(&msg, "length1 = %d\nlength2 = %d", cut_point-1, length-cut_point+1);
-      if(r != -1)
-        vrna_message_info(stdout, msg);
+        msg = vrna_strdup_printf("length1 = %d\nlength2 = %d", cut_point-1, length-cut_point+1);
+
+      vrna_message_info(stdout, msg);
       free(msg);
     }
 
@@ -344,11 +340,8 @@ int main(int argc, char *argv[])
       if (cofi) { /* read from file */
         fp = fopen(Concfile, "r");
         if (fp==NULL) {
-          int r;
-          char *msg = NULL;
-          r = asprintf(&msg, "could not open concentration file %s", Concfile);
-          if(r != -1)
-            vrna_message_error(msg);
+          char *msg = vrna_strdup_printf("could not open concentration file %s", Concfile);
+          vrna_message_error(msg);
           free(msg);
         }
         ConcAandB = read_concentrations(fp);
@@ -371,20 +364,15 @@ int main(int argc, char *argv[])
     /* check whether the constraint allows for any solution */
     if(fold_constrained && constraints_file){
       if(min_en == (double)(INF/100.)){
-        int r;
-        char *msg = NULL;
-        r = asprintf( &msg,
-                      "Supplied structure constraints create empty solution set for sequence:\n%s",
-                      orig_sequence);
-        if(r != -1)
-          vrna_message_error(msg);
+        char *msg = vrna_strdup_printf( "Supplied structure constraints create empty solution set for sequence:\n%s",
+                                        orig_sequence);
+        vrna_message_error(msg);
         free(msg);
         exit(EXIT_FAILURE);
       }
     }
 
     {
-      int r;
       char *pstring, *pstruct, *msg = NULL;
       pstring = strdup(orig_sequence);
       pstruct = vrna_cut_point_insert(structure, vc->cutpoint);
@@ -393,29 +381,23 @@ int main(int argc, char *argv[])
       fprintf(stdout, "%s\n", orig_sequence);
 
       if(istty)
-        r = asprintf( &msg,
-                      "\n minimum free energy = %6.2f kcal/mol",
-                      min_en);
+        msg = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol", min_en);
       else
-        r = asprintf( &msg,
-                      " (%6.2f)",
-                      min_en);
-      if(r != -1)
-        print_structure(stdout, pstruct, msg);
+        msg = vrna_strdup_printf(" (%6.2f)", min_en);
+      print_structure(stdout, pstruct, msg);
       (void) fflush(stdout);
 
       if (!noPS) {
-        int r;
         char *filename_plot = NULL, annot[512] = "";
         if(SEQ_ID)
-          r = asprintf(&filename_plot, "%s_ss.ps", SEQ_ID);
+          filename_plot = vrna_strdup_printf("%s_ss.ps", SEQ_ID);
         else
-          r = asprintf(&filename_plot, "rna.ps");
+          filename_plot = strdup("rna.ps");
         if (vc->cutpoint >= 0)
           sprintf(annot,
                   "1 %d 9  0 0.9 0.2 omark\n%d %d 9  1 0.1 0.2 omark\n",
                   vc->cutpoint-1, vc->cutpoint+1, length+1);
-        if(r != -1)
+        if(filename_plot)
           (void)vrna_file_PS_rnaplot_a(pstring, pstruct, filename_plot, annot, NULL, &md);
         free(filename_plot);
       }
@@ -440,11 +422,8 @@ int main(int argc, char *argv[])
       kT = vc->exp_params->kT/1000.;
 
       if (length>2000){
-        int r;
-        char *msg = NULL;
-        r = asprintf(&msg, "scaling factor %f", vc->exp_params->pf_scale);
-        if(r != -1)
-          vrna_message_info(stderr, msg);
+        char *msg = vrna_strdup_printf("scaling factor %f", vc->exp_params->pf_scale);
+        vrna_message_info(stderr, msg);
         free(msg);
       }
 
@@ -455,40 +434,29 @@ int main(int argc, char *argv[])
       AB = vrna_pf_dimer(vc, structure);
 
       if (do_backtrack) {
-        int r;
         char *costruc, *msg = NULL;
         costruc = vrna_cut_point_insert(structure, vc->cutpoint);
         if(istty_in)
-          r = asprintf( &msg,
-                        "\n free energy of ensemble = %6.2f kcal/mol",
-                        AB.FAB);
+          msg = vrna_strdup_printf("\n free energy of ensemble = %6.2f kcal/mol", AB.FAB);
         else
-          r = asprintf( &msg, " [%6.2f]", AB.FAB);
+          msg = vrna_strdup_printf(" [%6.2f]", AB.FAB);
 
-        if(r != -1)
-          print_structure(stdout, costruc, msg);
+        print_structure(stdout, costruc, msg);
         free(msg);
         free(costruc);
         prAB = vrna_plist_from_probs(vc, bppmThreshold);
       } else {
-        int r;
-        char *msg = NULL;
-        r = asprintf(&msg, " free energy of ensemble = %6.2f kcal/mol", AB.FAB);
-        if(r != -1)
-          print_structure(stdout, NULL, msg);
+        char *msg = vrna_strdup_printf(" free energy of ensemble = %6.2f kcal/mol", AB.FAB);
+        print_structure(stdout, NULL, msg);
         free(msg);
       }
 
       {
-        int r;
-        char *msg = NULL;
-        r = asprintf( &msg,
-                      " frequency of mfe structure in ensemble %g"
-                      "; delta G binding=%6.2f",
-                      exp((AB.FAB-min_en)/kT),
-                      AB.FcAB - AB.FA - AB.FB);
-        if(r != -1)
-          print_structure(stdout, NULL, msg);
+        char *msg = vrna_strdup_printf( " frequency of mfe structure in ensemble %g"
+                                        "; delta G binding=%6.2f",
+                                        exp((AB.FAB-min_en)/kT),
+                                        AB.FcAB - AB.FA - AB.FB);
+        print_structure(stdout, NULL, msg);
         free(msg);
       }
 
@@ -537,14 +505,11 @@ int main(int argc, char *argv[])
           vrna_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, vc->exp_params);
         }
         print_comment(stdout, "Free Energies:");
-        int r;
         char *thead = NULL, *tline = NULL;
         thead = strdup("AB\t\tAA\t\tBB\t\tA\t\tB");
-        r = asprintf( &tline,
-                      "%.6f\t%6f\t%6f\t%6f\t%6f",
-                      AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB);
-        if(r != -1)
-          print_table(stdout, thead, tline);
+        tline = vrna_strdup_printf( "%.6f\t%6f\t%6f\t%6f\t%6f",
+                                    AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB);
+        print_table(stdout, thead, tline);
         free(thead);
         free(tline);
 
@@ -555,13 +520,13 @@ int main(int argc, char *argv[])
 
         char *filename_dot = NULL;
         if(SEQ_ID)
-          r = asprintf(&filename_dot, "%s_dp5.ps", SEQ_ID);
+          filename_dot = vrna_strdup_printf("%s_dp5.ps", SEQ_ID);
         else
-          r = asprintf(&filename_dot, "dot5.ps");
+          filename_dot = strdup("dot5.ps");
 
         /*output of the 5 dot plots*/
 
-        if((do_backtrack) && (r != -1)){
+        if((do_backtrack) && (filename_dot)){
           char *fname_dot = NULL;
           /*AB dot_plot*/
 
@@ -571,7 +536,7 @@ int main(int argc, char *argv[])
           cut_point=Alength+1;
 
           /*write New name*/
-          asprintf(&fname_dot, "AB%s", filename_dot);
+          fname_dot = vrna_strdup_printf("AB%s", filename_dot);
           int cp = -1;
           char *coseq = vrna_cut_point_remove(orig_sequence, &cp);
           (void)PS_dot_plot_list(coseq, fname_dot, prAB, mfAB, comment);
@@ -582,7 +547,7 @@ int main(int argc, char *argv[])
           /*AA dot_plot*/
           sprintf(comment,"\n%%Homodimer AA FreeEnergy= %.9f\n",AA.FcAB);
           /*write New name*/
-          asprintf(&fname_dot, "AA%s", filename_dot);
+          fname_dot = vrna_strdup_printf("AA%s", filename_dot);
           /*write AA sequence*/
           Newstring=(char*)vrna_alloc((2*Alength+1)*sizeof(char));
           strcpy(Newstring,orig_Astring);
@@ -595,7 +560,7 @@ int main(int argc, char *argv[])
           /*BB dot_plot*/
           sprintf(comment,"\n%%Homodimer BB FreeEnergy= %.9f\n",BB.FcAB);
           /*write New name*/
-          asprintf(&fname_dot, "BB%s", filename_dot);
+          fname_dot = vrna_strdup_printf("BB%s", filename_dot);
           /*write BB sequence*/
           Newstring=(char*)vrna_alloc((2*Blength+1)*sizeof(char));
           strcpy(Newstring,orig_Bstring);
@@ -612,7 +577,7 @@ int main(int argc, char *argv[])
           cut_point=-1;
           sprintf(comment,"\n%%Monomer A FreeEnergy= %.9f\n",AB.FA);
           /*write New name*/
-          asprintf(&fname_dot, "A%s", filename_dot);
+          fname_dot = vrna_strdup_printf("A%s", filename_dot);
           /*write BB sequence*/
           (void)PS_dot_plot_list(orig_Astring, fname_dot, prA, mfA, comment);
           free(fname_dot);
@@ -621,7 +586,7 @@ int main(int argc, char *argv[])
           /*B monomer dot plot*/
           sprintf(comment,"\n%%Monomer B FreeEnergy= %.9f\n",AB.FB);
           /*write New name*/
-          asprintf(&fname_dot, "B%s", filename_dot);
+          fname_dot = vrna_strdup_printf("B%s", filename_dot);
           /*write BB sequence*/
           (void)PS_dot_plot_list(orig_Bstring, fname_dot, prB, mfB, comment);
           free(fname_dot);
@@ -638,15 +603,15 @@ int main(int argc, char *argv[])
     if (do_backtrack) {
       if (!doT) {
         if (pf) {
-          int cp, r;
+          int cp;
           char *seq = vrna_cut_point_remove(rec_sequence, &cp);
           char *filename_dot = NULL;
           if(SEQ_ID)
-            r = asprintf(&filename_dot, "%s_dp.ps", SEQ_ID);
+            filename_dot = vrna_strdup_printf("%s_dp.ps", SEQ_ID);
           else
-            r = asprintf(&filename_dot, "dot.ps");
+            filename_dot = strdup("dot.ps");
 
-          if(r != -1)
+          if(filename_dot)
             (void) vrna_plot_dp_PS_list(seq, cp, filename_dot, prAB, mfAB, "doof");
           free(filename_dot);
           free(prAB);
@@ -783,7 +748,7 @@ do_concentrations(double FEAB,
 
   /* compute and print concentrations out of free energies, calls get_concentrations */
   vrna_dimer_conc_t *result;
-  int i, n, r;
+  int i, n;
 
   result=vrna_pf_dimer_concentrations(FEAB, FEAA, FEBB, FEA, FEB, startconc, parameters);
 
@@ -792,18 +757,15 @@ do_concentrations(double FEAB,
   for (n=0; (startconc[2*n]>0) || (startconc[2*n+1]>0); n++); /* count */
   for (i=0; i<n ;i++) {
     double tot = result[i].A0+result[i].B0;
-    char *tline = NULL;
-    r = asprintf( &tline,
-                  "%-10g\t%-10g\t%.5f \t%.5f \t%.5f \t%.5f \t%.5f",
-                  result[i].A0,
-                  result[i].B0,
-                  result[i].ABc/tot,
-                  result[i].AAc/tot,
-                  result[i].BBc/tot,
-                  result[i].Ac/tot,
-                  result[i].Bc/tot);
-    if(r != -1)
-      print_table(stdout, NULL, tline);
+    char *tline = vrna_strdup_printf( "%-10g\t%-10g\t%.5f \t%.5f \t%.5f \t%.5f \t%.5f",
+                                      result[i].A0,
+                                      result[i].B0,
+                                      result[i].ABc/tot,
+                                      result[i].AAc/tot,
+                                      result[i].BBc/tot,
+                                      result[i].Ac/tot,
+                                      result[i].Bc/tot);
+    print_table(stdout, NULL, tline);
     free(tline);
   }
   free(result);

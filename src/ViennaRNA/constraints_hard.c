@@ -566,13 +566,9 @@ apply_DB_constraint(const char *constraint,
       case '.':   break;
 
       default:    {
-                    int r;
-                    char *msg = NULL;
-                    r = asprintf( &msg,
-                                  "Unrecognized character '%c' in pseudo dot-bracket notation constraint string",
-                                  constraint[j-1]);
-                    if(r != -1)
-                      vrna_message_warning(msg);
+                    char *msg = vrna_strdup_printf("Unrecognized character '%c' in pseudo dot-bracket notation constraint string",
+                                                    constraint[j-1]);
+                    vrna_message_warning(msg);
                     free(msg);
                   }
                   break;

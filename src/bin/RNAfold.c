@@ -66,18 +66,12 @@ add_shape_constraints(vrna_fold_compound_t *vc,
 
   if(verbose){
     if(method != 'W'){
-      int r;
       char *msg = NULL;
       if(method == 'Z')
-        r = asprintf( &msg,
-                      "Using SHAPE method '%c' with parameter p1=%f",
-                      method, p1);
+        msg = vrna_strdup_printf("Using SHAPE method '%c' with parameter p1=%f", method, p1);
       else
-        r = asprintf( &msg,
-                      "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
-                      method, p1, p2);
-      if(r != -1)
-        vrna_message_info(stderr, msg);
+        msg = vrna_strdup_printf("Using SHAPE method '%c' with parameters p1=%f and p2=%f", method, p1, p2);
+      vrna_message_info(stderr, msg);
       free(msg);
     }
   }
@@ -157,13 +151,9 @@ add_ligand_motif( vrna_fold_compound_t *vc,
     }
 
     if(!error && verbose){
-      int r;
-      char *msg = NULL;
-      r = asprintf( &msg,
-                    "Read ligand motif: %s, %s, %f\n",
-                    seq, str, energy);
-      if(r != -1)
-        vrna_message_info(stderr, msg);
+      char *msg = vrna_strdup_printf( "Read ligand motif: %s, %s, %f\n",
+                                      seq, str, energy);
+      vrna_message_info(stderr, msg);
       free(msg);
     }
   }
@@ -443,19 +433,16 @@ int main(int argc, char *argv[]){
     /* construct the sequence ID */
     if(outfile){
       if((fname[0] != '\0') && (!auto_id)){ /* append ID as read from file to the user prefix */
-        (void)asprintf( &SEQ_ID,
-                  "%s_%s",
-                  outfile,
-                  fname);
+        SEQ_ID = vrna_strdup_printf("%s_%s", outfile, fname);
       } else if(auto_id){
-        (void)asprintf(&SEQ_ID, "%s_%s_%0*ld", outfile, id_prefix, id_digits, seq_number);
+        SEQ_ID = vrna_strdup_printf("%s_%s_%0*ld", outfile, id_prefix, id_digits, seq_number);
       } else {
-        (void)asprintf(&SEQ_ID, "%s_%0*ld", outfile, id_digits, seq_number);
+        SEQ_ID = vrna_strdup_printf("%s_%0*ld", outfile, id_digits, seq_number);
       }
     } else if((fname[0] != '\0') && (!auto_id)){ /* we've read an ID from file, so we use it */
       SEQ_ID = strdup(fname);
     } else if(auto_id){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
-      (void)asprintf(&SEQ_ID, "%s_%0*ld", id_prefix, id_digits, seq_number);
+      SEQ_ID = vrna_strdup_printf("%s_%0*ld", id_prefix, id_digits, seq_number);
     }
 
     if(outfile){
@@ -519,13 +506,8 @@ int main(int argc, char *argv[]){
       add_ligand_motif(vc, ligandMotif, verbose, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
     if(istty){
-      int r;
-      char *msg = NULL;
-      r = asprintf( &msg,
-                    "length = %d\n",
-                    length);
-      if(r != -1)
-        vrna_message_info(stdout, msg);
+      char *msg = vrna_strdup_printf("length = %d\n", length);
+      vrna_message_info(stdout, msg);
       free(msg);
     }
 
@@ -561,13 +543,9 @@ int main(int argc, char *argv[]){
     /* check whether the constraint allows for any solution */
     if(fold_constrained && constraints_file){
       if(min_en == (double)(INF/100.)){
-        int r;
-        char *msg = NULL;
-        r = asprintf( &msg,
-                      "Supplied structure constraints create empty solution set for sequence:\n%s",
-                      orig_sequence);
-        if(r != -1)
-          vrna_message_error(msg);
+        char *msg = vrna_strdup_printf( "Supplied structure constraints create empty solution set for sequence:\n%s",
+                                        orig_sequence);
+        vrna_message_error(msg);
         free(msg);
         exit(EXIT_FAILURE);
       }
@@ -580,18 +558,12 @@ int main(int argc, char *argv[]){
 
     if(!lucky){
       if(output){
-        int r;
         char *msg = NULL;
         if(istty)
-          r = asprintf( &msg,
-                        "\n minimum free energy = %6.2f kcal/mol",
-                        min_en);
+          msg = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol", min_en);
         else
-          r = asprintf( &msg,
-                        " (%6.2f)",
-                        min_en);
-        if(r != -1)
-          print_structure(output, structure, msg);
+          msg = vrna_strdup_printf(" (%6.2f)", min_en);
+        print_structure(output, structure, msg);
         free(msg);
         (void) fflush(output);
 
@@ -603,17 +575,11 @@ int main(int argc, char *argv[]){
       } else strcpy(ffname, "rna.ps");
 
       if(!noPS){
-        int r = 0;
         char *filename_plot = NULL;
         if(SEQ_ID)
-          r = asprintf( &filename_plot,
-                        "%s_ss.ps",
-                        SEQ_ID);
+          filename_plot = vrna_strdup_printf("%s_ss.ps", SEQ_ID);
         else
           filename_plot = strdup("rna.ps");
-
-        if(r == -1)
-          vrna_message_error("Memory allocation failure!");
 
         if(ligandMotif){
           int a,b,c,d, cnt;
@@ -625,13 +591,9 @@ int main(int argc, char *argv[]){
             char segment[64];
             if(c != 0){
               if(verbose){
-                int r;
-                char *msg = NULL;
-                r = asprintf( &msg,
-                              "specified motif detected in MFE structure: (%d,%d) (%d,%d)",
-                              a, b, c, d);
-                if(r != -1)
-                  vrna_message_info(stdout, msg);
+                char *msg = vrna_strdup_printf( "specified motif detected in MFE structure: (%d,%d) (%d,%d)",
+                                                a, b, c, d);
+                vrna_message_info(stdout, msg);
                 free(msg);
               }
               sprintf(segment, " %d %d %d %d 1. 0 0 BFmark", a, b, c, d);
@@ -639,13 +601,9 @@ int main(int argc, char *argv[]){
             }
             else{
               if(verbose){
-                int r;
-                char *msg = NULL;
-                r = asprintf( &msg,
-                              "specified motif detected in MFE structure: (%d,%d)",
-                              a, b);
-                if(r != -1)
-                  vrna_message_info(stdout, msg);
+                char *msg = vrna_strdup_printf( "specified motif detected in MFE structure: (%d,%d)",
+                                                a, b);
+                vrna_message_info(stdout, msg);
                 free(msg);
               }
               sprintf(segment, " %d %d 1. 0 0 Fomark", a, b);
@@ -679,11 +637,8 @@ int main(int argc, char *argv[]){
       kT = vc->exp_params->kT/1000.;
 
       if (length>2000){
-        int r;
-        char *msg = NULL;
-        r = asprintf(&msg, "scaling factor %f", vc->exp_params->pf_scale);
-        if(r != -1)
-          vrna_message_info(stderr, msg);
+        char *msg = vrna_strdup_printf("scaling factor %f", vc->exp_params->pf_scale);
+        vrna_message_info(stderr, msg);
         free(msg);
       }
 
@@ -695,17 +650,11 @@ int main(int argc, char *argv[]){
 
       /* in case we abort because of floating point errors */
       if (length>1600){
-        int r;
-        char *msg = NULL;
-        r = asprintf( &msg,
-                      "free energy = %8.2f",
-                      energy);
-        if(r != -1)
-          vrna_message_info(stderr, msg);
+        char *msg = vrna_strdup_printf("free energy = %8.2f", energy);
+        vrna_message_info(stderr, msg);
         free(msg);
       }
       if(lucky){
-        int r;
         vrna_init_rand();
         char *filename_plot = NULL;
         char *s = vrna_pbacktrack(vc);
@@ -713,27 +662,21 @@ int main(int argc, char *argv[]){
         if(output){
           char *energy_string = NULL;
           if(istty_in)
-            r = asprintf( &energy_string,
-                          "\n free energy = %6.2f kcal/mol",
-                          min_en);
+            energy_string = vrna_strdup_printf("\n free energy = %6.2f kcal/mol", min_en);
           else
-            r = asprintf(&energy_string, " (%6.2f)", min_en);
+            energy_string = vrna_strdup_printf(" (%6.2f)", min_en);
 
-          if(r != -1)
-            print_structure(output, s, energy_string);
+          print_structure(output, s, energy_string);
           free(energy_string);
           (void) fflush(output);
         }
 
-        r = 0;
         if(SEQ_ID)
-          r = asprintf( &filename_plot,
-                        "%s_ss.ps",
-                        SEQ_ID);
+          filename_plot = vrna_strdup_printf("%s_ss.ps", SEQ_ID);
         else
           filename_plot = strdup("rna.ps");
 
-        if (!noPS && (r != -1))
+        if (!noPS && (filename_plot))
           (void) vrna_file_PS_rnaplot(orig_sequence, s, filename_plot, &md);
         free(s);
         free(filename_plot);
@@ -741,25 +684,18 @@ int main(int argc, char *argv[]){
       else{
         if (do_bpp) {
           if(output){
-            int r;
             char *msg = NULL;
             if(istty_in)
-              r = asprintf( &msg,
-                            "\n free energy of ensemble = %6.2f kcal/mol",
-                            energy);
+              msg = vrna_strdup_printf("\n free energy of ensemble = %6.2f kcal/mol", energy);
             else
-              r = asprintf( &msg, " [%6.2f]", energy);
+              msg = vrna_strdup_printf(" [%6.2f]", energy);
 
-            if(r != -1)
-              print_structure(output, pf_struc, msg);
+            print_structure(output, pf_struc, msg);
             free(msg);
           }
         } else {
-          int r;
-          char *msg = NULL;
-          r = asprintf(&msg, " free energy of ensemble = %6.2f kcal/mol", energy);
-          if(r != -1)
-            print_structure(output, NULL, msg);
+          char *msg = vrna_strdup_printf(" free energy of ensemble = %6.2f kcal/mol", energy);
+          print_structure(output, NULL, msg);
           free(msg);
         }
 
@@ -867,26 +803,21 @@ int main(int argc, char *argv[]){
             pl2[size + cnt].j = 0;
           }
 
-          int r = 0;
           char *filename_dotplot = NULL;
           if(SEQ_ID)
-            r = asprintf( &filename_dotplot,
-                          "%s_dp.ps",
-                          SEQ_ID);
+            filename_dotplot = vrna_strdup_printf("%s_dp.ps", SEQ_ID);
           else
             filename_dotplot = strdup("dot.ps");
 
-          if(r != -1)
+          if(filename_dotplot)
             (void) PS_dot_plot_list(orig_sequence, filename_dotplot, pl1, pl2, "");
           free(filename_dotplot);
 
           cent    = vrna_centroid(vc, &dist);
           cent_en = vrna_eval_structure(vc, (const char *)cent);
           if(output){
-            char *msg = NULL;
-            r = asprintf( &msg, " {%6.2f d=%.2f}", cent_en, dist);
-            if(r != -1)
-              print_structure(output, cent, msg);
+            char *msg = vrna_strdup_printf(" {%6.2f d=%.2f}", cent_en, dist);
+            print_structure(output, cent, msg);
             free(msg);
           }
 
@@ -896,26 +827,18 @@ int main(int argc, char *argv[]){
             while(vrna_sc_detect_hi_motif(vc, structure, &a, &b, &c, &d)){
               if(c != 0){
                 if(verbose){
-                  int r;
-                  char *msg = NULL;
-                  r = asprintf( &msg,
-                                "specified motif detected in centroid structure: (%d,%d) (%d,%d)",
-                                a, b, c, d);
-                  if(r != -1)
-                    vrna_message_info(stdout, msg);
+                  char *msg = vrna_strdup_printf( "specified motif detected in centroid structure: (%d,%d) (%d,%d)",
+                                                  a, b, c, d);
+                  vrna_message_info(stdout, msg);
                   free(msg);
                 }
                 a = c;
               }
               else{
                 if(verbose){
-                  int r;
-                  char *msg = NULL;
-                  r = asprintf( &msg,
-                                "specified motif detected in centroid structure: (%d,%d)",
-                                a, b);
-                  if(r != -1)
-                    vrna_message_info(stdout, msg);
+                  char *msg = vrna_strdup_printf( "specified motif detected in centroid structure: (%d,%d)",
+                                                  a, b);
+                  vrna_message_info(stdout, msg);
                   free(msg);
                 }
                 a = b;
@@ -927,18 +850,15 @@ int main(int argc, char *argv[]){
 
           free(pl2);
           if (do_bpp==2) {
-            int r = 0;
             char *filename_stackplot = NULL;
             if(SEQ_ID)
-              r = asprintf( &filename_stackplot,
-                            "%s_dp2.ps",
-                            SEQ_ID);
+              filename_stackplot = vrna_strdup_printf("%s_dp2.ps", SEQ_ID);
             else
               filename_stackplot = strdup("dot2.ps");
 
             pl2 = vrna_stack_prob(vc, 1e-5);
 
-            if(r != -1)
+            if(filename_stackplot)
               PS_dot_plot_list(orig_sequence, filename_stackplot, pl1, pl2,
                                "Probabilities for stacked pairs (i,j)(i+1,j-1)");
             free(pl2);
@@ -962,11 +882,8 @@ int main(int argc, char *argv[]){
             }
             mea_en = vrna_eval_structure(vc, (const char *)structure);
             if(output){
-              int r;
-              char *msg = NULL;
-              r = asprintf( &msg, " {%6.2f MEA=%.2f}", mea_en, mea);
-              if(r != -1)
-                print_structure(output, structure, msg);
+              char *msg = vrna_strdup_printf(" {%6.2f MEA=%.2f}", mea_en, mea);
+              print_structure(output, structure, msg);
               free(msg);
             }
             if(ligandMotif){
@@ -975,26 +892,18 @@ int main(int argc, char *argv[]){
               while(vrna_sc_detect_hi_motif(vc, structure, &a, &b, &c, &d)){
                 if(c != 0){
                   if(verbose){
-                    int r;
-                    char *msg = NULL;
-                    r = asprintf( &msg,
-                                  "specified motif detected in MEA structure: (%d,%d) (%d,%d)",
-                                  a, b, c, d);
-                    if(r != -1)
-                      vrna_message_info(stdout, msg);
+                    char *msg = vrna_strdup_printf( "specified motif detected in MEA structure: (%d,%d) (%d,%d)",
+                                                    a, b, c, d);
+                    vrna_message_info(stdout, msg);
                     free(msg);
                   }
                   a = c;
                 }
                 else{
                   if(verbose){
-                    int r;
-                    char *msg = NULL;
-                    r = asprintf( &msg,
-                                  "specified motif detected in MEA structure: (%d,%d)",
-                                  a, b);
-                    if(r != -1)
-                      vrna_message_info(stdout, msg);
+                    char *msg = vrna_strdup_printf( "specified motif detected in MEA structure: (%d,%d)",
+                                                    a, b);
+                    vrna_message_info(stdout, msg);
                     free(msg);
                   }
                   a = b;
@@ -1006,22 +915,18 @@ int main(int argc, char *argv[]){
           }
         }
         if(output){
-          int r;
           char *msg = NULL;
           if(do_bpp){
-            r = asprintf( &msg,
-                          " frequency of mfe structure in ensemble %g"
-                          "; ensemble diversity %-6.2f",
-                          exp((energy-min_en)/kT),
-                          vrna_mean_bp_distance(vc));
+            msg = vrna_strdup_printf( " frequency of mfe structure in ensemble %g"
+                                      "; ensemble diversity %-6.2f",
+                                      exp((energy-min_en)/kT),
+                                      vrna_mean_bp_distance(vc));
           } else {
-            r = asprintf( &msg,
-                          " frequency of mfe structure in ensemble %g;",
-                          exp((energy-min_en)/kT));
+            msg = vrna_strdup_printf( " frequency of mfe structure in ensemble %g;",
+                                      exp((energy-min_en)/kT));
           }
 
-          if(r != -1)
-            print_structure(output, NULL, msg);
+          print_structure(output, NULL, msg);
           free(msg);
         }
       }
