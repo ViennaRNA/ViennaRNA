@@ -89,7 +89,7 @@ PUBLIC void read_parameter_file(const char fname[]){
   int         r;
 
   if (!(fp=fopen(fname,"r"))) {
-    vrna_message_warning_printf("\nread_parameter_file:\n"
+    vrna_message_warning("\nread_parameter_file:\n"
                                 "\t\tcan't open file %s\n"
                                 "\t\tusing default parameters instead.",
                                 fname);
@@ -97,7 +97,7 @@ PUBLIC void read_parameter_file(const char fname[]){
   }
 
   if (!(line = vrna_read_line(fp))) {
-    vrna_message_warning_printf(" File %s is improper.\n", fname);
+    vrna_message_warning(" File %s is improper.\n", fname);
     fclose(fp);
     return;
   }
@@ -251,7 +251,7 @@ PUBLIC void read_parameter_file(const char fname[]){
         case HEX:     rd_Hexaloop37();
                       break;
         default:      /* do nothing but complain */
-                      vrna_message_warning_printf("read_epars: Unknown field identifier in `%s'", line);
+                      vrna_message_warning("read_epars: Unknown field identifier in `%s'", line);
       }
     } /* else ignore line */
     free(line);
@@ -310,7 +310,7 @@ PRIVATE char *get_array1(int *arr, int size)
         r=sscanf(buf,"%d", &p);
         if (r!=1) {
           return line+pos;
-          vrna_message_error_printf("can't interpret `%s' in get_array1", buf);
+          vrna_message_error("can't interpret `%s' in get_array1", buf);
           exit(1);
         }
         last = i;
@@ -332,7 +332,7 @@ PRIVATE void rd_1dim_slice(int *array, int dim, int shift, int post){
   cp   = get_array1(array+shift, dim-shift-post);
 
   if (cp) {
-    vrna_message_error_printf("\nrd_1dim: %s", cp);
+    vrna_message_error("\nrd_1dim: %s", cp);
     exit(1);
   }
   return;
@@ -664,7 +664,7 @@ PUBLIC void write_parameter_file(const char fname[]){
   char bnames[] = "@ACGU";
   outfp = fopen(fname, "w");
   if (!outfp) {
-    vrna_message_error_printf("can't open file %s", fname);
+    vrna_message_error("can't open file %s", fname);
     exit(1);
   }
   fprintf(outfp,"## RNAfold parameter file v2.0\n");
@@ -925,7 +925,7 @@ PRIVATE void check_symmetry(void) {
       for (k=0; k<5; k++)
         for (l=0; l<5; l++)
           if (int11_37[i][j][k][l] != int11_37[j][i][l][k])
-            vrna_message_warning_printf("int11 energies not symmetric (%d,%d,%d,%d) (%d vs. %d)",
+            vrna_message_warning("int11 energies not symmetric (%d,%d,%d,%d) (%d vs. %d)",
                                         i, j, k, l, int11_37[i][j][k][l], int11_37[j][i][l][k]);
 
   for (i=0; i<=NBPAIRS; i++)
@@ -955,7 +955,7 @@ PRIVATE void check_symmetry(void) {
           for (m=0; m<5; m++)
             for (n=0; n<5; n++)
               if (int22_dH[i][j][k][l][m][n] != int22_dH[j][i][m][n][k][l])
-                vrna_message_warning_printf("int22 enthalpies not symmetric: %d %d %d %d %d %d",
+                vrna_message_warning("int22 enthalpies not symmetric: %d %d %d %d %d %d",
                                             i,j,k,l,m,n);
         }
 }

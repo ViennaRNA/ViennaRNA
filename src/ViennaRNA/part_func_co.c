@@ -212,7 +212,7 @@ vrna_pf_dimer(vrna_fold_compound_t *vc,
   free_energy = (-log(Q)-n*log(params->pf_scale))*params->kT/1000.0;
   /* in case we abort because of floating point errors */
   if(n>1600)
-    vrna_message_info_printf(stderr, "free energy = %8.2f", free_energy);
+    vrna_message_info(stderr, "free energy = %8.2f", free_energy);
   /*probability of molecules being bound together*/
 
   /*Computation of "real" Partition function*/
@@ -548,10 +548,10 @@ pf_co(vrna_fold_compound_t *vc){
       if (temp>Qmax) {
         Qmax = temp;
         if (Qmax>max_real/10.)
-          vrna_message_warning_printf("Q close to overflow: %d %d %g", i,j,temp);
+          vrna_message_warning("Q close to overflow: %d %d %g", i,j,temp);
       }
       if (temp>=max_real) {
-        vrna_message_error_printf("overflow in co_pf_fold while calculating q[%d,%d]\n"
+        vrna_message_error("overflow in co_pf_fold while calculating q[%d,%d]\n"
                                   "use larger pf_scale", i,j);
       }
     }
@@ -876,7 +876,7 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
             if (probs[kl]>Qmax) {
               Qmax = probs[kl];
               if (Qmax>max_real/10.)
-                vrna_message_warning_printf("P close to overflow: %d %d %g %g",
+                vrna_message_warning("P close to overflow: %d %d %g %g",
                                             i, j, probs[kl], qb[kl]);
             }
             if (probs[kl]>=max_real) {
@@ -1000,7 +1000,7 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
   }   /* end if (do_backtrack)*/
 
   if(ov > 0)
-    vrna_message_warning_printf("%d overflows occurred while backtracking;\n"
+    vrna_message_warning("%d overflows occurred while backtracking;\n"
                                 "you might try a smaller pf_scale than %g\n",
                                 ov, pf_params->pf_scale);
 }
@@ -1091,7 +1091,7 @@ Newton_Conc(double KAB,
     cB += yn;
     i++;
     if (i>10000) {
-      vrna_message_warning_printf("Newton did not converge after %d steps!!",i);
+      vrna_message_warning("Newton did not converge after %d steps!!",i);
       break;
     }
   } while(EPS>TOL);

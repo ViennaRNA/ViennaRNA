@@ -410,7 +410,7 @@ vrna_eval_move_pt(vrna_fold_compound_t *vc,
     if (pt[j]<k) break;   /* found it */
     if (pt[j]>j) j=pt[j]; /* skip substructure */
     else {
-      vrna_message_error_printf("illegal move or broken pair table in vrna_eval_move_pt()\n"
+      vrna_message_error("illegal move or broken pair table in vrna_eval_move_pt()\n"
                                 "%d %d %d %d ", m1, m2, j, pt[j]);
     }
   }
@@ -627,7 +627,7 @@ wrap_eval_loop_pt(vrna_fold_compound_t *vc,
   if (type==0) {
     type=7;
     if (verbosity > verbosity_quiet)
-      vrna_message_warning_printf("bases %d and %d (%c%c) can't pair!",
+      vrna_message_warning("bases %d and %d (%c%c) can't pair!",
                                   i, j,
                                   vrna_nucleotide_decode(s[i], &(P->model_details)),
                                   vrna_nucleotide_decode(s[j], &(P->model_details)));
@@ -651,7 +651,7 @@ wrap_eval_loop_pt(vrna_fold_compound_t *vc,
     if (type_2==0) {
       type_2=7;
       if (verbosity > verbosity_quiet)
-        vrna_message_warning_printf("bases %d and %d (%c%c) can't pair!",
+        vrna_message_warning("bases %d and %d (%c%c) can't pair!",
                                     p, q,
                                     vrna_nucleotide_decode(s[p], &(P->model_details)),
                                     vrna_nucleotide_decode(s[q], &(P->model_details)));
@@ -1010,7 +1010,7 @@ stack_energy( vrna_fold_compound_t *vc,
                                   if(type == 0){
                                     type = 7;
                                     if(verbosity_level > verbosity_quiet)
-                                      vrna_message_warning_printf("bases %d and %d (%c%c) can't pair!",
+                                      vrna_message_warning("bases %d and %d (%c%c) can't pair!",
                                                                   i, j,
                                                                   string[i - 1],
                                                                   string[j - 1]);
@@ -1053,7 +1053,7 @@ stack_energy( vrna_fold_compound_t *vc,
                                     if(type_2 == 0){
                                       type_2 = 7;
                                       if(verbosity_level > verbosity_quiet)
-                                        vrna_message_warning_printf("bases %d and %d (%c%c) can't pair!",
+                                        vrna_message_warning("bases %d and %d (%c%c) can't pair!",
                                                                     p, q,
                                                                     string[p - 1],
                                                                     string[q - 1]);

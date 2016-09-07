@@ -753,7 +753,7 @@ vrna_file_constraints_read( const char *filename,
 
     error = parse_constraints_line(line + 1, command, &i, &j, &k, &l, &looptype, &orientation, &e);
     if(error == 1){
-      vrna_message_warning_printf("Unrecognized constraint command line in input file %s, line %d", filename, line_number);
+      vrna_message_warning("Unrecognized constraint command line in input file %s, line %d", filename, line_number);
     } else if(error == 0){
       /* do something with the constraint we've just read */
       type  = (int)looptype;
@@ -870,7 +870,7 @@ vrna_file_constraints_read( const char *filename,
               }
         }
       } else {
-        vrna_message_warning_printf("Incorrect constraint command in input file %s, line %d", filename, line_number);
+        vrna_message_warning("Incorrect constraint command in input file %s, line %d", filename, line_number);
       }
     }
 

@@ -60,11 +60,11 @@ add_shape_constraints(vrna_fold_compound_t *vc,
   if(verbose){
     if(method != 'W'){
       if(method == 'Z')
-        vrna_message_info_printf( stderr,
+        vrna_message_info( stderr,
                                   "Using SHAPE method '%c' with parameter p1=%f",
                                   method, p1);
       else
-        vrna_message_info_printf( stderr,
+        vrna_message_info( stderr,
                                   "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
                                   method, p1, p2);
     }
@@ -291,7 +291,7 @@ int main(int argc, char *argv[]){
       }
 
       if(verbose)
-        vrna_message_info_printf( stderr,
+        vrna_message_info( stderr,
                                   "Using SHAPE reactivity data provided in file %s for sequence %d",
                                   shape_files[s],
                                   shape_file_association[s]+1);
@@ -311,7 +311,7 @@ int main(int argc, char *argv[]){
     filename_in = strdup(args_info.inputs[0]);
     clust_file  = fopen(filename_in, "r");
     if (clust_file == NULL) {
-      vrna_message_warning_printf("unable to open %s", filename_in);
+      vrna_message_warning("unable to open %s", filename_in);
       vrna_message_error("Input file can't be read!");
     }
 
@@ -451,7 +451,7 @@ int main(int argc, char *argv[]){
           format = strdup("Unknown");
           break;
       }
-      vrna_message_error_printf("Your input file is missing sequences! Either your file is empty, or not in %s format!",
+      vrna_message_error("Your input file is missing sequences! Either your file is empty, or not in %s format!",
                                 format);
       free(format);
     }
@@ -689,7 +689,7 @@ int main(int argc, char *argv[]){
       kT = vc->exp_params->kT/1000.;
 
       if (length>2000)
-        vrna_message_info_printf(stderr, "scaling factor %f\n", vc->exp_params->pf_scale);
+        vrna_message_info(stderr, "scaling factor %f\n", vc->exp_params->pf_scale);
 
       fflush(stdout);
 
@@ -787,7 +787,7 @@ int main(int argc, char *argv[]){
 
         aliout = fopen(filename_out, "w");
         if (!aliout) {
-          vrna_message_warning_printf("can't open %s    skipping output", filename_out);
+          vrna_message_warning("can't open %s    skipping output", filename_out);
         } else {
           print_aliout(vc, pl, bppmThreshold, mfe_struc, aliout);
         }
@@ -866,7 +866,7 @@ int main(int argc, char *argv[]){
         format = strdup("Unknown");
         break;
     }
-    vrna_message_error_printf("Your input file is missing sequences! Either your file is empty, or not in %s format!",
+    vrna_message_error("Your input file is missing sequences! Either your file is empty, or not in %s format!",
                               format);
     free(format);
   }
@@ -1075,7 +1075,7 @@ PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, i
       }
     }
     if(nofound) {
-      vrna_message_warning_printf("mfe base pair with very low prob in pf: %d %d",
+      vrna_message_warning("mfe base pair with very low prob in pf: %d %d",
                                   mfel[t].i,
                                   mfel[t].j);
 

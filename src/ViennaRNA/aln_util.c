@@ -107,7 +107,7 @@ int read_clustal(FILE *clust, char *AlignedSeqs[], char *names[]) {
      }
    }
 
-   vrna_message_info_printf(stderr, "%d sequences; length of alignment %d.", nn, n);
+   vrna_message_info(stderr, "%d sequences; length of alignment %d.", nn, n);
    return num_seq;
 }
 

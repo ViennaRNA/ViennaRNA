@@ -676,7 +676,7 @@ backtrack(vrna_fold_compound_t *vc,
 
                     continue;
                   } else {
-                    vrna_message_error_printf("%s\nbacktrack failed in f5", string);
+                    vrna_message_error("%s\nbacktrack failed in f5", string);
                   }
                 }
                 break;
@@ -698,7 +698,7 @@ backtrack(vrna_fold_compound_t *vc,
 
                     continue;
                   } else {
-                    vrna_message_error_printf("%s\nbacktrack failed in fML", string);
+                    vrna_message_error("%s\nbacktrack failed in fML", string);
                   }
                 }
                 break;

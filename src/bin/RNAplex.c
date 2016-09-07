@@ -1308,7 +1308,7 @@ static int ** read_plfold_i(char *fname, const int beg, const int end, double ve
   double begin = BeginTimer();
   FILE *in=fopen(fname,"r");
   if(in==NULL){
-    vrna_message_warning_printf("File ' %s ' open error", fname);
+    vrna_message_warning("File ' %s ' open error", fname);
     return NULL;
   }
   int i,j;
@@ -1325,7 +1325,7 @@ static int ** read_plfold_i(char *fname, const int beg, const int end, double ve
     perror("Empty File");
   }
   if(strchr(tmp,'>')){
-    vrna_message_warning_printf("file %s is not in RNAplfold format",fname);
+    vrna_message_warning("file %s is not in RNAplfold format",fname);
     return NULL;
   }
   if(fgets(tmp,sizeof(tmp),in)==0){
@@ -1390,7 +1390,7 @@ static int convert_plfold_i(char *fname)
   int i;
   FILE *in=fopen(fname,"r");
   if(in==NULL){
-    vrna_message_warning_printf("File ' %s ' open error",fname);
+    vrna_message_warning("File ' %s ' open error",fname);
     return -1;
   }
   char tmp[2048]={0x0};
@@ -1398,7 +1398,7 @@ static int convert_plfold_i(char *fname)
     perror("Empty File");
   }
   if(strchr(tmp,'>')){
-    vrna_message_warning_printf("file %s is not in RNAplfold format",fname);
+    vrna_message_warning("file %s is not in RNAplfold format",fname);
     return -1;
   }
   if(fgets(tmp,sizeof(tmp),in)==0){
@@ -1443,13 +1443,13 @@ static int ** read_plfold_i_bin(char *fname, const int beg, const int end, doubl
   FILE *fp=fopen(fname,"rb");
   int seqlength;
   if(fp==NULL){
-    vrna_message_warning_printf("File ' %s ' open error",fname);
+    vrna_message_warning("File ' %s ' open error",fname);
     return NULL;
   }
   int *first_line;
   first_line =(int *) vrna_alloc(sizeof(int) * (end - beg+1)); /* check length of the line LOOK at read_plfold_i */
   if(!fread(first_line,sizeof(int),(end-beg)+1,fp)){
-    vrna_message_warning_printf("Problem reading size of profile from '%s'", fname);/* get the value of the u option */
+    vrna_message_warning("Problem reading size of profile from '%s'", fname);/* get the value of the u option */
     return NULL;
   }
   int lim_x;                                                
@@ -1572,7 +1572,7 @@ static int **average_accessibility_target(char **names, char **ALN, int number, 
       
       end+=20; /* add 20 to the end, in order to take the N's into account */
       if(location_flag==0){
-        vrna_message_warning_printf("\n!! Line %d in your target alignment contains location information\n"
+        vrna_message_warning("\n!! Line %d in your target alignment contains location information\n"
                                     "while line %d did not. PLEASE CHECK your alignments!!\n"
                                     "RNAplex will continue the target search.",
                                     i+1, i);
@@ -1584,7 +1584,7 @@ static int **average_accessibility_target(char **names, char **ALN, int number, 
     }
     else{
       if(location_flag==1){
-        vrna_message_warning_printf("\n!! Line %d in your target alignment does not contain location information\n"
+        vrna_message_warning("\n!! Line %d in your target alignment does not contain location information\n"
                                     "while line %d in your target alignment did. PLEASE CHECK your alignments!!\n"
                                     "RNAplex will continue the target search.",
                                     i+1, i);

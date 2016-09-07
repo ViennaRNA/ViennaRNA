@@ -299,7 +299,7 @@ int main(int argc, char *argv[])
         cstruc = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc = vrna_cut_point_remove(cstruc, &cp);
         if(vc->cutpoint != cp){
-          vrna_message_error_printf("Sequence and Structure have different cut points.\n"
+          vrna_message_error("Sequence and Structure have different cut points.\n"
                                     "sequence: %d, structure: %d",
                                     vc->cutpoint, cp);
         }
@@ -323,9 +323,9 @@ int main(int argc, char *argv[])
 
     if(istty){
       if (cut_point == -1)
-        vrna_message_info_printf(stdout, "length = %d", length);
+        vrna_message_info(stdout, "length = %d", length);
       else
-        vrna_message_info_printf(stdout, "length1 = %d\nlength2 = %d", cut_point-1, length-cut_point+1);
+        vrna_message_info(stdout, "length1 = %d\nlength2 = %d", cut_point-1, length-cut_point+1);
     }
 
     if (doC) {
@@ -333,7 +333,7 @@ int main(int argc, char *argv[])
       if (cofi) { /* read from file */
         fp = fopen(Concfile, "r");
         if(fp == NULL)
-          vrna_message_error_printf("could not open concentration file %s", Concfile);
+          vrna_message_error("could not open concentration file %s", Concfile);
 
         ConcAandB = read_concentrations(fp);
         fclose(fp);
@@ -355,7 +355,7 @@ int main(int argc, char *argv[])
     /* check whether the constraint allows for any solution */
     if(fold_constrained && constraints_file){
       if(min_en == (double)(INF/100.)){
-        vrna_message_error_printf("Supplied structure constraints create empty solution set for sequence:\n%s",
+        vrna_message_error("Supplied structure constraints create empty solution set for sequence:\n%s",
                                   orig_sequence);
         exit(EXIT_FAILURE);
       }
@@ -411,7 +411,7 @@ int main(int argc, char *argv[])
       kT = vc->exp_params->kT/1000.;
 
       if (length>2000)
-        vrna_message_info_printf(stderr, "scaling factor %f", vc->exp_params->pf_scale);
+        vrna_message_info(stderr, "scaling factor %f", vc->exp_params->pf_scale);
 
       /* do we need to add hard constraints? */
       if (cstruc!=NULL) strncpy(structure, cstruc, length+1);

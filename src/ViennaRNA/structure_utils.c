@@ -131,7 +131,7 @@ vrna_ptable(const char *structure){
        case ')':
          j = stack[--hx];
          if (hx<0) {
-            vrna_message_error_printf("%s\nunbalanced brackets in make_pair_table", structure);
+            vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
          }
          table[i]=j;
          table[j]=i;
@@ -142,7 +142,7 @@ vrna_ptable(const char *structure){
       }
    }
    if (hx!=0) {
-      vrna_message_error_printf("%s\nunbalanced brackets in make_pair_table", structure);
+      vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
    }
    free(stack);
    return(table);
@@ -171,7 +171,7 @@ vrna_pt_pk_get(const char *structure){
        case ')':
          j = stack[--hx];
          if (hx<0) {
-            vrna_message_error_printf("%s\nunbalanced '()' brackets in make_pair_table_pk", structure);
+            vrna_message_error("%s\nunbalanced '()' brackets in make_pair_table_pk", structure);
          }
          table[i]=j;
          table[j]=i;
@@ -182,7 +182,7 @@ vrna_pt_pk_get(const char *structure){
        case ']':
          j = stack2[--hx2];
          if (hx2<0) {
-            vrna_message_error_printf("%s\nunbalanced '[]' brackets in make_pair_table_pk", structure);
+            vrna_message_error("%s\nunbalanced '[]' brackets in make_pair_table_pk", structure);
          }
          table[i]=j;
          table[j]=i;
@@ -193,9 +193,9 @@ vrna_pt_pk_get(const char *structure){
       }
    }
    if (hx!=0) {
-      vrna_message_error_printf("%s\nunbalanced '()' brackets in make_pair_table_pk", structure);
+      vrna_message_error("%s\nunbalanced '()' brackets in make_pair_table_pk", structure);
    } else if (hx2!=0) {
-      vrna_message_error_printf("%s\nunbalanced '[]' brackets in make_pair_table_pk", structure);
+      vrna_message_error("%s\nunbalanced '[]' brackets in make_pair_table_pk", structure);
    }
    free(stack);
    free(stack2);
@@ -226,7 +226,7 @@ vrna_pt_snoop_get(const char *structure){
      case '>':
        j = stack[--hx];
        if (hx<0) {
-         vrna_message_error_printf("%s\nunbalanced brackets in make_pair_table", structure);
+         vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
        }
        table[i]=j;
        table[j]=i;
@@ -237,7 +237,7 @@ vrna_pt_snoop_get(const char *structure){
      }
    }
    if (hx!=0) {
-     vrna_message_error_printf("%s\nunbalanced brackets in make_pair_table", structure);
+     vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
    }
    free(stack);
    return table ;
@@ -268,7 +268,7 @@ vrna_pt_ali_get(const char *structure){
        case ')':
          j = stack[--hx];
          if (hx<0) {
-            vrna_message_error_printf("%s\nunbalanced brackets in make_pair_table", structure);
+            vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
          }
          table[i]=j;
          table[j]=i;
@@ -286,7 +286,7 @@ vrna_pt_ali_get(const char *structure){
        case '>':
          j = stack[--hx];
          if (hx<0) {
-            vrna_message_error_printf("%s\nunbalanced brackets in make_pair_table", structure);
+            vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
          }
          table[i]=j;
          table[j]=i;
@@ -304,7 +304,7 @@ vrna_pt_ali_get(const char *structure){
      case ']':
        j = stack[--hx];
        if (hx<0) {
-         vrna_message_error_printf("%s\nunbalanced brackets in make_pair_table", structure);
+         vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
        }
        table[i]=j;
        table[j]=i;
@@ -314,7 +314,7 @@ vrna_pt_ali_get(const char *structure){
      }
    }
    if (hx!=0) {
-      vrna_message_error_printf("%s\nunbalanced brackets in make_pair_table", structure);
+      vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
    }
    free(stack);
    return(table);

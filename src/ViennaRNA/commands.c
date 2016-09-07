@@ -310,11 +310,11 @@ parse_command(const char *line, int line_number){
     if(cmd.data)
       cmd.type = known_commands[i].type;
     else {
-      vrna_message_warning_printf("Command parser error (invalid command)\nline %d: %s\n", line_number, line);
+      vrna_message_warning("Command parser error (invalid command)\nline %d: %s\n", line_number, line);
       cmd.type = VRNA_CMD_ERROR;
     }
   } else {
-    vrna_message_warning_printf("Command parser error (unknown command)\nline %d: %s\n", line_number, line);
+    vrna_message_warning("Command parser error (unknown command)\nline %d: %s\n", line_number, line);
     cmd.type = VRNA_CMD_ERROR;
     cmd.data = NULL;
   }

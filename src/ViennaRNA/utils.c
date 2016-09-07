@@ -40,17 +40,43 @@
 
 #include "ViennaRNA/color_output.inc"
 
+/*
+#################################
+# GLOBAL VARIABLES              #
+#################################
+*/
 /*@notnull@ @only@*/
 PUBLIC unsigned short xsubi[3];
 
+
+/*
+#################################
+# PRIVATE VARIABLES             #
+#################################
+*/
 PRIVATE char  scale1[] = "....,....1....,....2....,....3....,....4";
 PRIVATE char  scale2[] = "....,....5....,....6....,....7....,....8";
 PRIVATE char  *inbuf = NULL;
-
 PRIVATE char  *inbuf2 = NULL;
 PRIVATE unsigned int typebuf2 = 0;
 
-/*-------------------------------------------------------------------------*/
+
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+PRIVATE void      print_error(const char message[]);
+PRIVATE void      print_warning(const char message[]);
+PRIVATE void      print_info(FILE *fp, const char message[]);
+PRIVATE uint32_t  rj_mix( uint32_t a, uint32_t b, uint32_t c);
+
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
 
 #ifndef WITH_DMALLOC
 /* include the following two functions only if not including <dmalloc.h> */
@@ -97,150 +123,61 @@ vrna_realloc(void *p, unsigned size){
 /*------------------------------------------------------------------------*/
 
 PUBLIC void
-vrna_message_error(const char message[]){       /* output message upon error */
-
-#ifndef WITHOUT_TTY_COLORS
-  if(isatty(fileno(stderr)))
-    fprintf(stderr, ANSI_COLOR_RED_B "ERROR: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT "%s" ANSI_COLOR_RESET "\n", message);
-  else
-#endif
-    fprintf(stderr, "ERROR: %s\n", message);
-
-#ifdef EXIT_ON_ERROR
-  exit(EXIT_FAILURE);
-#endif
-}
-
-PUBLIC void
-vrna_message_error_printf(const char *format, ...){
+vrna_message_error(const char *format, ...){
 
   va_list args;
   va_start(args, format);
-  vrna_message_error_vprintf(format, args);
+  vrna_message_verror(format, args);
   va_end(args);
 }
 
+
 PUBLIC void
-vrna_message_error_vprintf(const char *format, va_list args){
+vrna_message_verror(const char *format, va_list args){
 
   char *m = vrna_strdup_vprintf(format, args);
-  vrna_message_error(m);
-  free(m);
-}
-
-PUBLIC void
-vrna_message_warning(const char message[]){
-#ifndef WITHOUT_TTY_COLORS
-  if(isatty(fileno(stderr)))
-    fprintf(stderr, ANSI_COLOR_MAGENTA_B "WARNING: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT "%s" ANSI_COLOR_RESET "\n", message);
-  else
-#endif
-    fprintf(stderr, "WARNING: %s\n", message);
-}
-
-PUBLIC void
-vrna_message_warning_printf(const char *format, ...){
-
-  va_list args;
-  va_start(args, format);
-  vrna_message_warning_vprintf(format, args);
-  va_end(args);
-}
-
-PUBLIC void
-vrna_message_warning_vprintf(const char *format, va_list args){
-
-  char *m = vrna_strdup_vprintf(format, args);
-  vrna_message_warning(m);
-  free(m);
-}
-
-PUBLIC void
-vrna_message_info(FILE *fp, const char message[]){
-  if(!fp)
-    fp = stdout;
-
-#ifndef WITHOUT_TTY_COLORS
-  if(isatty(fileno(fp)))
-    fprintf(fp, ANSI_COLOR_BLUE_B "%s" ANSI_COLOR_RESET "\n", message);
-  else
-#endif
-    fprintf(fp, "%s\n", message);
-}
-
-PUBLIC void
-vrna_message_info_printf(FILE *fp, const char *format, ...){
-
-  va_list args;
-  va_start(args, format);
-  vrna_message_info_vprintf(fp, format, args);
-  va_end(args);
-}
-
-PUBLIC void
-vrna_message_info_vprintf(FILE *fp, const char *format, va_list args){
-
-  char *m = vrna_strdup_vprintf(format, args);
-  vrna_message_info(fp, m);
+  print_error(m);
   free(m);
 }
 
 
-PRIVATE uint32_t
-rj_mix( uint32_t a,
-        uint32_t b,
-        uint32_t c){
+PUBLIC void
+vrna_message_warning(const char *format, ...){
 
-/*
-  This is Robert Jenkins' 96 bit Mix function
-
-  we use it to produce a more diverse seed for our random number
-  generators. E.g.:
-  
-  seed = rj_mix(clock(), time(NULL), getpid());
-
-  original comments on that function can be found below
-*/
-
-
-/*
---------------------------------------------------------------------
-mix -- mix 3 32-bit values reversibly.
-For every delta with one or two bits set, and the deltas of all three
-  high bits or all three low bits, whether the original value of a,b,c
-  is almost all zero or is uniformly distributed,
-* If mix() is run forward or backward, at least 32 bits in a,b,c
-  have at least 1/4 probability of changing.
-* If mix() is run forward, every bit of c will change between 1/3 and
-  2/3 of the time.  (Well, 22/100 and 78/100 for some 2-bit deltas.)
-mix() was built out of 36 single-cycle latency instructions in a 
-  structure that could supported 2x parallelism, like so:
-      a -= b; 
-      a -= c; x = (c>>13);
-      b -= c; a ^= x;
-      b -= a; x = (a<<8);
-      c -= a; b ^= x;
-      c -= b; x = (b>>13);
-      ...
-  Unfortunately, superscalar Pentiums and Sparcs can't take advantage 
-  of that parallelism.  They've also turned some of those single-cycle
-  latency instructions into multi-cycle latency instructions.  Still,
-  this is the fastest good hash I could find.  There were about 2^^68
-  to choose from.  I only looked at a billion or so.
---------------------------------------------------------------------
-*/
-
-  a=a-b;  a=a-c;  a=a^(c >> 13);
-  b=b-c;  b=b-a;  b=b^(a << 8); 
-  c=c-a;  c=c-b;  c=c^(b >> 13);
-  a=a-b;  a=a-c;  a=a^(c >> 12);
-  b=b-c;  b=b-a;  b=b^(a << 16);
-  c=c-a;  c=c-b;  c=c^(b >> 5);
-  a=a-b;  a=a-c;  a=a^(c >> 3);
-  b=b-c;  b=b-a;  b=b^(a << 10);
-  c=c-a;  c=c-b;  c=c^(b >> 15);
-  return c;
+  va_list args;
+  va_start(args, format);
+  vrna_message_vwarning(format, args);
+  va_end(args);
 }
+
+
+PUBLIC void
+vrna_message_vwarning(const char *format, va_list args){
+
+  char *m = vrna_strdup_vprintf(format, args);
+  print_warning(m);
+  free(m);
+}
+
+
+PUBLIC void
+vrna_message_info(FILE *fp, const char *format, ...){
+
+  va_list args;
+  va_start(args, format);
+  vrna_message_vinfo(fp, format, args);
+  va_end(args);
+}
+
+
+PUBLIC void
+vrna_message_vinfo(FILE *fp, const char *format, va_list args){
+
+  char *m = vrna_strdup_vprintf(format, args);
+  print_info(fp, m);
+  free(m);
+}
+
 
 /*------------------------------------------------------------------------*/
 PUBLIC void
@@ -388,10 +325,6 @@ PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
   return VRNA_INPUT_MISC;
 }
 
-/*-----------------------------------------------------------------*/
-
-/*--------------------------------------------------------------------------*/
-
 
 PUBLIC void
 vrna_message_input_seq_simple(void){
@@ -433,6 +366,109 @@ vrna_idx_col_wise(unsigned int length){
   for (i = 1; i <= length; i++)
     idx[i] = (i*(i-1)) / 2; 
   return idx;
+}
+
+
+/*
+#################################
+# STATIC helper functions below #
+#################################
+*/
+PRIVATE void
+print_error(const char message[]){       /* output message upon error */
+
+#ifndef WITHOUT_TTY_COLORS
+  if(isatty(fileno(stderr)))
+    fprintf(stderr, ANSI_COLOR_RED_B "ERROR: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT "%s" ANSI_COLOR_RESET "\n", message);
+  else
+#endif
+    fprintf(stderr, "ERROR: %s\n", message);
+
+#ifdef EXIT_ON_ERROR
+  exit(EXIT_FAILURE);
+#endif
+}
+
+
+PRIVATE void
+print_warning(const char message[]){
+#ifndef WITHOUT_TTY_COLORS
+  if(isatty(fileno(stderr)))
+    fprintf(stderr, ANSI_COLOR_MAGENTA_B "WARNING: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT "%s" ANSI_COLOR_RESET "\n", message);
+  else
+#endif
+    fprintf(stderr, "WARNING: %s\n", message);
+}
+
+
+PRIVATE void
+print_info(FILE *fp, const char message[]){
+  if(!fp)
+    fp = stdout;
+
+#ifndef WITHOUT_TTY_COLORS
+  if(isatty(fileno(fp)))
+    fprintf(fp, ANSI_COLOR_BLUE_B "%s" ANSI_COLOR_RESET "\n", message);
+  else
+#endif
+    fprintf(fp, "%s\n", message);
+}
+
+
+PRIVATE uint32_t
+rj_mix( uint32_t a,
+        uint32_t b,
+        uint32_t c){
+
+/*
+  This is Robert Jenkins' 96 bit Mix function
+
+  we use it to produce a more diverse seed for our random number
+  generators. E.g.:
+  
+  seed = rj_mix(clock(), time(NULL), getpid());
+
+  original comments on that function can be found below
+*/
+
+
+/*
+--------------------------------------------------------------------
+mix -- mix 3 32-bit values reversibly.
+For every delta with one or two bits set, and the deltas of all three
+  high bits or all three low bits, whether the original value of a,b,c
+  is almost all zero or is uniformly distributed,
+* If mix() is run forward or backward, at least 32 bits in a,b,c
+  have at least 1/4 probability of changing.
+* If mix() is run forward, every bit of c will change between 1/3 and
+  2/3 of the time.  (Well, 22/100 and 78/100 for some 2-bit deltas.)
+mix() was built out of 36 single-cycle latency instructions in a 
+  structure that could supported 2x parallelism, like so:
+      a -= b; 
+      a -= c; x = (c>>13);
+      b -= c; a ^= x;
+      b -= a; x = (a<<8);
+      c -= a; b ^= x;
+      c -= b; x = (b>>13);
+      ...
+  Unfortunately, superscalar Pentiums and Sparcs can't take advantage 
+  of that parallelism.  They've also turned some of those single-cycle
+  latency instructions into multi-cycle latency instructions.  Still,
+  this is the fastest good hash I could find.  There were about 2^^68
+  to choose from.  I only looked at a billion or so.
+--------------------------------------------------------------------
+*/
+
+  a=a-b;  a=a-c;  a=a^(c >> 13);
+  b=b-c;  b=b-a;  b=b^(a << 8); 
+  c=c-a;  c=c-b;  c=c^(b >> 13);
+  a=a-b;  a=a-c;  a=a^(c >> 12);
+  b=b-c;  b=b-a;  b=b^(a << 16);
+  c=c-a;  c=c-b;  c=c^(b >> 5);
+  a=a-b;  a=a-c;  a=a^(c >> 3);
+  b=b-c;  b=b-a;  b=b^(a << 10);
+  c=c-a;  c=c-b;  c=c^(b >> 15);
+  return c;
 }
 
 

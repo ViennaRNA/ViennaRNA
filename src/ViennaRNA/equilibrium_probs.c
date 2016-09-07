@@ -581,7 +581,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             if (probs[kl]>Qmax) {
               Qmax = probs[kl];
               if (Qmax>max_real/10.)
-                vrna_message_warning_printf("P close to overflow: %d %d %g %g\n",
+                vrna_message_warning("P close to overflow: %d %d %g %g\n",
                                             k, l, probs[kl], qb[kl]);
             }
             if (probs[kl]>=max_real) {
@@ -670,7 +670,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
       free(s);
     }
     if(ov > 0)
-      vrna_message_warning_printf("%d overflows occurred while backtracking;\n"
+      vrna_message_warning("%d overflows occurred while backtracking;\n"
                                   "you might try a smaller pf_scale than %g\n",
                                   ov, pf_params->pf_scale);
 
@@ -1473,7 +1473,7 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
       if (probs[kl]>Qmax) {
         Qmax = probs[kl];
         if (Qmax>FLT_MAX/10.)
-          vrna_message_warning_printf("%d %d %g %g\n", i,j,probs[kl],qb[kl]);
+          vrna_message_warning("%d %d %g %g\n", i,j,probs[kl],qb[kl]);
       }
       if (probs[kl]>FLT_MAX) {
         ov++;
@@ -1499,7 +1499,7 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
   }
 
   if(ov > 0)
-    vrna_message_warning_printf("%d overflows occurred while backtracking;\n"
+    vrna_message_warning("%d overflows occurred while backtracking;\n"
                                 "you might try a smaller pf_scale than %g\n",
                                 ov, pf_params->pf_scale);
 

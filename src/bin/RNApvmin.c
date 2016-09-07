@@ -50,7 +50,7 @@ static void print_progress(int iteration, double score, double *epsilon)
   sprintf(path, "%s_%04d", g_statpath, iteration);
   f = fopen(path, "w");
   if(!f) {
-    vrna_message_warning_printf("Couldn't open file '%s'", path);
+    vrna_message_warning("Couldn't open file '%s'", path);
     return;
   }
 

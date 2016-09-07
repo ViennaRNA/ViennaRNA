@@ -69,7 +69,7 @@ PUBLIC void convert_parameter_file(const char *iname, const char *oname, unsigne
       skip_input_header = 1;
     }
     else if(!(ifile=fopen(iname,"r"))){
-      vrna_message_warning_printf("convert_epars: can't open file %s", iname);
+      vrna_message_warning("convert_epars: can't open file %s", iname);
       return;
     }
     /* read old (1.8.4 format) parameter file */
@@ -83,7 +83,7 @@ PUBLIC void convert_parameter_file(const char *iname, const char *oname, unsigne
 
   if(oname == NULL) ofile = stdout;
   else if(!(ofile=fopen(oname,"a+"))){
-    vrna_message_warning_printf("convert_epars: can't open file %s for writing", oname);
+    vrna_message_warning("convert_epars: can't open file %s for writing", oname);
     return;
   }
   write_new_parameter_file(ofile, options);
@@ -212,7 +212,7 @@ PRIVATE unsigned int read_old_parameter_file(FILE *ifile, int skip_header){
                           read_successfully |= VRNA_CONVERT_OUTPUT_MISC;
                           break;
         default:          /* do nothing but complain */
-                          vrna_message_warning_printf("convert_parameter_file: Unknown field identifier in `%s'", line);
+                          vrna_message_warning("convert_parameter_file: Unknown field identifier in `%s'", line);
       }
     } /* else ignore line */
     free(line);
@@ -258,7 +258,7 @@ PRIVATE char *get_array1(int *arr, int size, FILE *fp){
         r=sscanf(buf,"%d", &p);
         if (r!=1) {
           return line+pos;
-          vrna_message_error_printf("convert_epars: can't interpret `%s' in get_array1", buf);
+          vrna_message_error("convert_epars: can't interpret `%s' in get_array1", buf);
           exit(1);
         }
         last = i;
@@ -279,7 +279,7 @@ PRIVATE void  rd_stacks(int stacks[NBPAIRS+1][NBPAIRS+1], FILE *fp)
   for (i=1; i<=NBPAIRS; i++) {
     cp = get_array1(stacks[i]+1,NBPAIRS, fp);
     if (cp) {
-      vrna_message_error_printf("convert_epars: \nrd_stacks: %s", cp);
+      vrna_message_error("convert_epars: \nrd_stacks: %s", cp);
       exit(1);
     }
   }
@@ -294,7 +294,7 @@ PRIVATE void rd_loop(int loop[31], FILE *fp)
   cp   = get_array1(loop, 31, fp);
 
   if (cp) {
-    vrna_message_error_printf("convert_epars: \nrd_loop: %s", cp);
+    vrna_message_error("convert_epars: \nrd_loop: %s", cp);
     exit(1);
   }
   return;
@@ -309,7 +309,7 @@ PRIVATE void rd_mismatch(int mismatch[NBPAIRS+1][5][5], FILE *fp)
   for (i=1; i<NBPAIRS+1; i++) {
     cp = get_array1(mismatch[i][0],5*5, fp);
     if (cp) {
-      vrna_message_error_printf("convert_epars: rd_mismatch: in field mismatch[%d]\n\t%s", i, cp);
+      vrna_message_error("convert_epars: rd_mismatch: in field mismatch[%d]\n\t%s", i, cp);
       exit(1);
     }
   }
@@ -326,7 +326,7 @@ PRIVATE void rd_int11(int int11[NBPAIRS+1][NBPAIRS+1][5][5], FILE *fp)
     for (j=1; j<NBPAIRS+1; j++) {
       cp = get_array1(int11[i][j][0],5*5, fp);
       if (cp) {
-        vrna_message_error_printf("convert_epars: rd_int11: in field int11[%d][%d]\n\t%s", i, j, cp);
+        vrna_message_error("convert_epars: rd_int11: in field int11[%d][%d]\n\t%s", i, j, cp);
         exit(1);
       }
     }
@@ -345,7 +345,7 @@ PRIVATE void rd_int21(int int21[NBPAIRS+1][NBPAIRS+1][5][5][5], FILE *fp)
       for (k=0; k<5; k++) {
         cp = get_array1(int21[i][j][k][0],5*5, fp);
         if (cp) {
-          vrna_message_error_printf("convert_epars: rd_int21: in field int21[%d][%d][%d]\n\t%s",
+          vrna_message_error("convert_epars: rd_int21: in field int21[%d][%d][%d]\n\t%s",
                                     i, j, k, cp);
           exit(1);
         }
@@ -368,7 +368,7 @@ PRIVATE void rd_int22(int int22[NBPAIRS+1][NBPAIRS+1][5][5][5][5], FILE *fp)
           for (m=1; m<5; m++) {
             cp = get_array1(int22[i][j][k][l][m]+1,4, fp);
             if (cp) {
-              vrna_message_error_printf("convert_epars: rd_int22: in field "
+              vrna_message_error("convert_epars: rd_int22: in field "
                                         "int22[%d][%d][%d][%d][%d]\n\t%s",
                                         i, j, k, l, m, cp);
               exit(1);
@@ -387,7 +387,7 @@ PRIVATE void  rd_dangle(int dangle[NBPAIRS+1][5], FILE *fp)
   for (i=0; i< NBPAIRS+1; i++) {
     cp = get_array1(dangle[i],5, fp);
     if (cp) {
-      vrna_message_error_printf("convert_epars: \nrd_dangle: %s", cp);
+      vrna_message_error("convert_epars: \nrd_dangle: %s", cp);
       exit(1);
     }
   }
@@ -402,7 +402,7 @@ PRIVATE void  rd_MLparams(FILE *fp)
 
   cp   = get_array1(values,4, fp);
   if (cp) {
-    vrna_message_error_printf("convert_epars: rd_MLparams: %s", cp);
+    vrna_message_error("convert_epars: rd_MLparams: %s", cp);
     exit(1);
   }
 
@@ -423,7 +423,7 @@ PRIVATE void  rd_misc(FILE *fp)
 
   cp   = get_array1(values,1, fp);
   if (cp) {
-    vrna_message_error_printf("convert_epars: rd_misc: %s", cp);
+    vrna_message_error("convert_epars: rd_misc: %s", cp);
     exit(1);
   }
 
@@ -442,7 +442,7 @@ PRIVATE void  rd_ninio(FILE *fp)
   cp = get_array1(temp, 2, fp);
 
   if (cp) {
-    vrna_message_error_printf("convert_epars: rd_F_ninio: %s", cp);
+    vrna_message_error("convert_epars: rd_F_ninio: %s", cp);
     exit(1);
   }
   F_ninio37_184[2] = temp[0];
@@ -949,6 +949,6 @@ PRIVATE void check_symmetry(void) {
           for (m=0; m<5; m++)
             for (n=0; n<5; n++)
               if (int22_H_184[i][j][k][l][m][n] != int22_H_184[j][i][m][n][k][l])
-                vrna_message_warning_printf("int22 enthalpies not symmetric: %d %d %d %d %d %d", i,j,k,l,m,n);
+                vrna_message_warning("int22 enthalpies not symmetric: %d %d %d %d %d %d", i,j,k,l,m,n);
         }
 }

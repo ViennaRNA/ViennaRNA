@@ -372,10 +372,10 @@ PUBLIC plist *pfl_fold_par( char *sequence,
         if (temp>Qmax) {
           Qmax = temp;
           if (Qmax>max_real/10.)
-            vrna_message_warning_printf("Q close to overflow: %d %d %g\n", i,j,temp);
+            vrna_message_warning("Q close to overflow: %d %d %g\n", i,j,temp);
         }
         if (temp>=max_real) {
-          vrna_message_error_printf("overflow in pf_fold while calculating q[%d,%d]\n"
+          vrna_message_error("overflow in pf_fold while calculating q[%d,%d]\n"
                                     "use larger pf_scale", i,j);
         }
       } /*end for i*/
@@ -497,7 +497,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
           if (pR[k][l]>Qmax) {
             Qmax = pR[k][l];
             if (Qmax>max_real/10.)
-              vrna_message_warning_printf("P close to overflow: %d %d %g %g\n",
+              vrna_message_warning("P close to overflow: %d %d %g %g\n",
                                           i, m, pR[k][l], qb[k][l]);
           }
           if (pR[k][l]>=max_real) {
@@ -587,7 +587,7 @@ PUBLIC plist *pfl_fold_par( char *sequence,
   free(S1);
   S = S1 = NULL;
   if(ov > 0)
-    vrna_message_warning_printf("%d overflows occurred while backtracking;\n"
+    vrna_message_warning("%d overflows occurred while backtracking;\n"
                                 "you might try a smaller pf_scale than %g\n",
                                 ov, pf_params->pf_scale);
   *dpp2=dpp;

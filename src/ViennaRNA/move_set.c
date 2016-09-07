@@ -328,7 +328,7 @@ deletions(Encoded *Enc, struct_en *str, struct_en *minim){
 
         /* check*/
         if (lone != -1 && (pt[lone]==0 || pt[pt[lone]]==0)) {
-          vrna_message_warning_printf("pt[%d(or %d)]!=\'.\'", lone, pt[lone]);
+          vrna_message_warning("pt[%d(or %d)]!=\'.\'", lone, pt[lone]);
         }
 
         if (lone != -1) {
@@ -457,7 +457,7 @@ shifts(Encoded *Enc, struct_en *str, struct_en *minim){
 
       /* outer switch left*/
       if (Enc->verbose_lvl>1)
-        vrna_message_info_printf(stderr, "%2d bracket %2d position, outer switch left", brack_num+1, i);
+        vrna_message_info(stderr, "%2d bracket %2d position, outer switch left", brack_num+1, i);
       for (k=i-1; k>0; k--) {
         if (pt[k]!=0 && pt[k]>k/*'('*/) break;
         if (pt[k]!=0 && pt[k]<k/*')'*/) {
@@ -466,7 +466,7 @@ shifts(Encoded *Enc, struct_en *str, struct_en *minim){
         }
         /* checks*/
         if (pt[k]!=0) {
-          vrna_message_warning_printf("\'%c\'should be \'.\' at pos %d!", pt[k], k);
+          vrna_message_warning("\'%c\'should be \'.\' at pos %d!", pt[k], k);
         }
 
         /* switch (i,j) to (k,j)*/
@@ -495,7 +495,7 @@ shifts(Encoded *Enc, struct_en *str, struct_en *minim){
 
       /* outer switch right*/
       if (Enc->verbose_lvl>1)
-        vrna_message_info_printf(stderr, "%2d bracket %2d position, outer switch right", brack_num+1, i);
+        vrna_message_info(stderr, "%2d bracket %2d position, outer switch right", brack_num+1, i);
       for (k=j+1; k<=len; k++) {
         if (pt[k]!=0 && pt[k]<k/*')'*/) break;
         if (pt[k]!=0 && pt[k]>k/*'('*/) {
@@ -505,7 +505,7 @@ shifts(Encoded *Enc, struct_en *str, struct_en *minim){
 
         /* check*/
         if (pt[k]!=0) {
-          vrna_message_warning_printf("\'%c\'should be \'.\' at pos %d!", pt[k], k);
+          vrna_message_warning("\'%c\'should be \'.\' at pos %d!", pt[k], k);
         }
         /* switch (i,j) to (i,k)*/
         if (k-i>MINGAP && compat(Enc->seq[i-1], Enc->seq[k-1])) {
@@ -530,7 +530,7 @@ shifts(Encoded *Enc, struct_en *str, struct_en *minim){
       }
 
       if (Enc->verbose_lvl>1)
-        vrna_message_info_printf(stderr, "%2d bracket %2d position, inner switch", brack_num+1, i);
+        vrna_message_info(stderr, "%2d bracket %2d position, inner switch", brack_num+1, i);
       /* inner switch*/
       for (k=i+1; k<j; k++) {
         /* jump to end of the sub-bracketing*/

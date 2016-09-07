@@ -135,7 +135,7 @@ vrna_pf_TwoD( vrna_fold_compound_t *vc,
 
   if(distance1 >= 0){
     if((unsigned int)distance1 > maxD1)
-      vrna_message_warning_printf("vrna_pf_TwoD@2Dpfold.c: limiting maximum basepair distance 1 to %u\n",
+      vrna_message_warning("vrna_pf_TwoD@2Dpfold.c: limiting maximum basepair distance 1 to %u\n",
                                   maxD1);
     else
       maxD1 = (unsigned int)distance1;
@@ -143,7 +143,7 @@ vrna_pf_TwoD( vrna_fold_compound_t *vc,
 
   if(distance2 >= 0){
     if((unsigned int)distance2 > maxD2)
-      vrna_message_warning_printf("vrna_pf_TwoD@2Dpfold.c: limiting maximum basepair distance 2 to %u\n",
+      vrna_message_warning("vrna_pf_TwoD@2Dpfold.c: limiting maximum basepair distance 2 to %u\n",
                                   maxD2);
     else
       maxD2 = (unsigned int)distance2;
@@ -1065,10 +1065,10 @@ pf2D_linear(vrna_fold_compound_t *vc){
           if(matrices->Q[ij][cnt1][cnt2/2] > Qmax) {
             Qmax = matrices->Q[ij][cnt1][cnt2/2];
             if (Qmax > max_real/10.)
-              vrna_message_warning_printf("Q close to overflow: %u %u %g\n", i,j,matrices->Q[ij][cnt1][cnt2/2]);
+              vrna_message_warning("Q close to overflow: %u %u %g\n", i,j,matrices->Q[ij][cnt1][cnt2/2]);
           }
           if(matrices->Q[ij][cnt1][cnt2/2] >= max_real) {
-            vrna_message_error_printf("overflow in pf_fold while calculating q[%u,%u]\n"
+            vrna_message_error("overflow in pf_fold while calculating q[%u,%u]\n"
                                       "use larger pf_scale", i,j);
           }
         }
@@ -1838,7 +1838,7 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t *vc,
     }
   }
   if(dumb){
-    vrna_message_error_printf("neighborhood %d:%d is not in scope of calculated partition function!\n"
+    vrna_message_error("neighborhood %d:%d is not in scope of calculated partition function!\n"
                               "pbacktrack@2Dpfold.c: exiting...",
                               d1, d2);
   }
@@ -2183,7 +2183,7 @@ pbacktrack_circ(vrna_fold_compound_t *vc,
     }
   }
   if(dumb){
-    vrna_message_error_printf("neighborhood %d:%d is not in scope of calculated partition function!\n"
+    vrna_message_error("neighborhood %d:%d is not in scope of calculated partition function!\n"
                               "pbacktrack_circ@2Dpfold.c: exiting cheerless...",
                               d1, d2);
   }

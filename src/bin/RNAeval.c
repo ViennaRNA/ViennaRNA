@@ -58,9 +58,9 @@ add_shape_constraints(vrna_fold_compound_t *vc,
   if(verbose){
     if(method != 'W'){
       if(method == 'Z')
-        vrna_message_info_printf(stderr, "Using SHAPE method '%c' with parameter p1=%f", method, p1);
+        vrna_message_info(stderr, "Using SHAPE method '%c' with parameter p1=%f", method, p1);
       else
-        vrna_message_info_printf(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f", method, p1, p2);
+        vrna_message_info(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f", method, p1, p2);
     }
   }
 
@@ -224,7 +224,7 @@ int main(int argc, char *argv[]){
     int cp = -1;
     structure = vrna_cut_point_remove(tmp, &cp);
     if(cp != vc->cutpoint){
-      vrna_message_warning_printf("cut_point = %d cut = %d", vc->cutpoint, cp);
+      vrna_message_warning("cut_point = %d cut = %d", vc->cutpoint, cp);
       vrna_message_error("Sequence and Structure have different cut points.");
     }
 

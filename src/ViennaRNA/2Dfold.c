@@ -180,7 +180,7 @@ vrna_mfe_TwoD(vrna_fold_compound_t *vars,
 
   if(distance1 >= 0){
     if((unsigned int)distance1 > maxD1)
-      vrna_message_warning_printf("vrna_mfe_TwoD@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
+      vrna_message_warning("vrna_mfe_TwoD@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
                                   maxD1);
     else
       maxD1 = (unsigned int)distance1;
@@ -188,7 +188,7 @@ vrna_mfe_TwoD(vrna_fold_compound_t *vars,
 
   if(distance2 >= 0){
     if((unsigned int)distance2 > maxD2)
-      vrna_message_warning_printf("vrna_mfe_TwoD@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
+      vrna_message_warning("vrna_mfe_TwoD@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
                                   maxD2);
     else
       maxD2 = (unsigned int)distance2;

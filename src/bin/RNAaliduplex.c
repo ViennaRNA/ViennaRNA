@@ -79,11 +79,11 @@ int main(int argc, char *argv[]){
   if(args_info.inputs_num == 2){
     file1 = fopen(args_info.inputs[0], "r");
     if(file1 == NULL){
-      vrna_message_warning_printf("can't open %s", args_info.inputs[0]);
+      vrna_message_warning("can't open %s", args_info.inputs[0]);
     }
     file2 = fopen(args_info.inputs[1], "r");
     if(file2 == NULL) {
-      vrna_message_warning_printf("can't open %s", args_info.inputs[1]);
+      vrna_message_warning("can't open %s", args_info.inputs[1]);
     }
   }
   else{

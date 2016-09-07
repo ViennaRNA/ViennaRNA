@@ -106,7 +106,7 @@ int PS_color_aln(const char *structure, const char *filename,
   outfile = fopen(filename, "w");
 
   if (outfile == NULL) {
-    vrna_message_warning_printf("can't open file %s - not doing alignment plot\n", filename);
+    vrna_message_warning("can't open file %s - not doing alignment plot\n", filename);
     return 0;
   }
 
@@ -372,7 +372,7 @@ int aliPS_color_aln(const char *structure, const char *filename,
 
   outfile = fopen(filename, "w");
   if (outfile == NULL) {
-    vrna_message_warning_printf("can't open file %s - not doing alignment plot\n", filename);
+    vrna_message_warning("can't open file %s - not doing alignment plot\n", filename);
     return 0;
   }
   

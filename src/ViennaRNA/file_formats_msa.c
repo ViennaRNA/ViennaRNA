@@ -287,7 +287,7 @@ vrna_file_msa_read_record(FILE *fp,
     vrna_message_warning("Did not find parser for specified MSA format!");
   } else {
     if(r > 1) { 
-      vrna_message_warning_printf("More than one MSA format parser specified!\n"
+      vrna_message_warning("More than one MSA format parser specified!\n"
                                   "Using parser for %s", parser_name);
     }
 
@@ -468,7 +468,7 @@ stockholm_exit:
   endmarker_msa_record(names, aln, seq_num);
 
   if((seq_num > 0) && (verbosity >= 0))
-    vrna_message_info_printf(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
 
   return seq_num;
 }
@@ -521,7 +521,7 @@ parse_fasta_alignment(FILE *fp,
   endmarker_msa_record(names, aln, seq_num);
 
   if((seq_num > 0) && (verbosity >= 0)){
-    vrna_message_info_printf(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
   } else {
     if(verbosity > 0)
       vrna_message_warning("Did not find any FASTA formatted record!");
@@ -617,7 +617,7 @@ parse_clustal_alignment(FILE *clust,
   endmarker_msa_record(names, aln, seq_num);
 
   if((seq_num > 0) && (verbosity >= 0))
-    vrna_message_info_printf(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
 
   return seq_num;
 }
@@ -715,7 +715,7 @@ maf_exit:
   endmarker_msa_record(names, aln, seq_num);
 
   if((seq_num > 0) && (verbosity >= 0))
-    vrna_message_info_printf(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
 
   return seq_num;
 }

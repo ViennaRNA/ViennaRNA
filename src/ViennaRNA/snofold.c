@@ -372,14 +372,14 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
         break;
       case ']':
         if (hx2<=0) {
-          vrna_message_error_printf("unbalanced brackets in constraints\n%s", structure);
+          vrna_message_error("unbalanced brackets in constraints\n%s", structure);
         }
         i = stack2[--hx2];
         pscore[indx[j]+i]=NONE;
         break;
       case ')':
         if (hx<=0) {
-          vrna_message_error_printf("unbalanced brackets in constraints\n%s", structure);
+          vrna_message_error("unbalanced brackets in constraints\n%s", structure);
         }
         i = stack[--hx];
         psij = pscore[indx[j]+i]; /* store for later */
@@ -399,7 +399,7 @@ PRIVATE void make_pscores(const short *const* S, const char *const* AS,
       }
     }
     if (hx!=0) {
-      vrna_message_error_printf("unbalanced brackets in constraint string\n%s", structure);
+      vrna_message_error("unbalanced brackets in constraint string\n%s", structure);
     }
     free(stack); free(stack2);
   }

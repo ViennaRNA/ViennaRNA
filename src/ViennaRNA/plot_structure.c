@@ -324,7 +324,7 @@ vrna_file_PS_rnaplot_a( const char *seq,
 
   xyplot = fopen(ssfile, "w");
   if (xyplot == NULL) {
-    vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
+    vrna_message_warning("can't open file %s - not doing xy_plot", ssfile);
     return 0;
   }
 
@@ -495,7 +495,7 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
 
   gmlfile = fopen(ssfile, "w");
   if (gmlfile == NULL) {
-     vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
+     vrna_message_warning("can't open file %s - not doing xy_plot", ssfile);
      return 0;
   }
 
@@ -572,7 +572,7 @@ int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relati
 
   xyplot = fopen(ssfile, "w");
   if (xyplot == NULL) {
-    vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
+    vrna_message_warning("can't open file %s - not doing xy_plot", ssfile);
     return 0;
   }
 
@@ -946,7 +946,7 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
 
   xyplot = fopen(ssfile, "w");
   if (xyplot == NULL) {
-    vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
+    vrna_message_warning("can't open file %s - not doing xy_plot", ssfile);
     return 0;
   }
 
@@ -1087,7 +1087,7 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
 
   ssvfile = fopen(ssfile, "w");
   if (ssvfile == NULL) {
-     vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
+     vrna_message_warning("can't open file %s - not doing xy_plot", ssfile);
      return 0;
   }
   length = strlen(string);
@@ -1169,7 +1169,7 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
 
   ss_file = fopen(ssfile, "w");
   if (ss_file == NULL) {
-    vrna_message_warning_printf("can't open file %s - not doing xy_plot", ssfile);
+    vrna_message_warning("can't open file %s - not doing xy_plot", ssfile);
     return 0;
   }
 
