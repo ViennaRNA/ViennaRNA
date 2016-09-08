@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
       vrna_message_warning("ID number digits out of allowed range! Using defaults...");
   }
 
-  /* set first alignment number in the output */
+  /* set first sequence number in the output */
   if(args_info.id_start_given){
     if((args_info.id_start_arg >= 0) && (args_info.id_start_arg <= LONG_MAX)){
       seq_number  = args_info.id_start_arg;
@@ -299,9 +299,9 @@ int main(int argc, char *argv[])
         cstruc = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc = vrna_cut_point_remove(cstruc, &cp);
         if(vc->cutpoint != cp){
-          vrna_message_error("Sequence and Structure have different cut points.\n"
-                                    "sequence: %d, structure: %d",
-                                    vc->cutpoint, cp);
+          vrna_message_error( "Sequence and Structure have different cut points.\n"
+                              "sequence: %d, structure: %d",
+                              vc->cutpoint, cp);
         }
 
         cl = (cstruc) ? (int)strlen(cstruc) : 0;
