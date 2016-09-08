@@ -63,6 +63,120 @@ print_structure(FILE *fp,
   }
 }
 
+
+static void
+print_eval_ext_loop(FILE  *fp,
+                    int   energy){
+
+  if(isatty(fileno(fp))){
+    fprintf(fp, ANSI_COLOR_CYAN "External loop" ANSI_COLOR_RESET
+                "                           : "
+                ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n", energy);
+  } else {
+    fprintf(fp, "External loop"
+                "                           : "
+                "%5d\n", energy);
+  }
+}
+
+static void
+print_eval_hp_loop( FILE  *fp,
+                    int   i,
+                    int   j,
+                    char  si,
+                    char  sj,
+                    int   energy){
+
+  if(isatty(fileno(fp))){
+    fprintf(fp, ANSI_COLOR_CYAN "Hairpin  loop" ANSI_COLOR_RESET
+                " (%3d,%3d) "
+                ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                "              : "
+                ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
+                i, j,
+                si, sj,
+                energy);
+  } else {
+    fprintf(fp, "Hairpin  loop"
+                " (%3d,%3d) %c%c              : "
+                "%5d\n",
+                i, j,
+                si, sj,
+                energy);
+  }
+}
+
+
+static void
+print_eval_int_loop(FILE  *fp,
+                    int   i,
+                    int   j,
+                    char  si,
+                    char  sj,
+                    int   k,
+                    int   l,
+                    char  sk,
+                    char  sl,
+                    int   energy){
+
+  if(isatty(fileno(fp))){
+    fprintf(fp, ANSI_COLOR_CYAN "Interior loop" ANSI_COLOR_RESET
+                " (%3d,%3d) "
+                ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                "; (%3d,%3d) "
+                ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                ": "
+                ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
+                i, j,
+                si, sj,
+                k, l,
+                sk, sl,
+                energy);
+  } else {
+    fprintf(fp, "Interior loop"
+                " (%3d,%3d) "
+                "%c%c"
+                "; (%3d,%3d) "
+                "%c%c"
+                ": "
+                "%5d\n",
+                i, j,
+                si, sj,
+                k, l,
+                sk, sl,
+                energy);
+  }
+}
+
+
+static void
+print_eval_mb_loop( FILE  *fp,
+                    int   i,
+                    int   j,
+                    char  si,
+                    char  sj,
+                    int   energy){
+
+  if(isatty(fileno(fp))){
+    fprintf(fp, ANSI_COLOR_CYAN "Multi    loop" ANSI_COLOR_RESET
+                " (%3d,%3d) "
+                ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                "              : "
+                ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
+                i, j,
+                si, sj,
+                energy);
+  } else {
+    fprintf(fp, "Multi    loop"
+                " (%3d,%3d) %c%c              : "
+                "%5d\n",
+                i, j,
+                si, sj,
+                energy);
+  }
+}
+
+
 static void
 print_table(FILE *fp,
             const char *head,
@@ -125,6 +239,78 @@ print_structure(FILE *fp,
     }
   }
 }
+
+
+static void
+print_eval_ext_loop(FILE  *fp,
+                    int   energy){
+
+  fprintf(fp, "External loop"
+              "                           : "
+              "%5d\n", energy);
+}
+
+
+static void
+print_eval_hp_loop( FILE  *fp,
+                    int   i,
+                    int   j,
+                    char  si,
+                    char  sj,
+                    int   energy){
+
+  fprintf(fp, "Hairpin  loop"
+              " (%3d,%3d) %c%c              : "
+              "%5d\n",
+              i, j,
+              si, sj,
+              energy);
+}
+
+
+static void
+print_eval_int_loop(FILE  *fp,
+                    int   i,
+                    int   j,
+                    char  si,
+                    char  sj,
+                    int   k,
+                    int   l,
+                    char  sk,
+                    char  sl,
+                    int   energy){
+
+  fprintf(fp, "Interior loop"
+              " (%3d,%3d) "
+              "%c%c"
+              "; (%3d,%3d) "
+              "%c%c"
+              ": "
+              "%5d\n",
+              i, j,
+              si, sj,
+              k, l,
+              sk, sl,
+              energy);
+}
+
+
+static void
+print_eval_mb_loop( FILE  *fp,
+                    int   i,
+                    int   j,
+                    char  si,
+                    char  sj,
+                    int   energy){
+
+  fprintf(fp, "Multi    loop"
+              " (%3d,%3d) %c%c              : "
+              "%5d\n",
+              i, j,
+              si, sj,
+              energy);
+}
+
 
 static void
 print_table(FILE *fp,

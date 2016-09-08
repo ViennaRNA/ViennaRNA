@@ -22,6 +22,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+#include <unistd.h>
 #include <limits.h>
 
 #include "ViennaRNA/utils.h"
@@ -35,6 +36,8 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/eval.h"
+
+#include "ViennaRNA/color_output.inc"
 
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
@@ -410,8 +413,8 @@ vrna_eval_move_pt(vrna_fold_compound_t *vc,
     if (pt[j]<k) break;   /* found it */
     if (pt[j]>j) j=pt[j]; /* skip substructure */
     else {
-      vrna_message_error("illegal move or broken pair table in vrna_eval_move_pt()\n"
-                                "%d %d %d %d ", m1, m2, j, pt[j]);
+      vrna_message_error( "illegal move or broken pair table in vrna_eval_move_pt()\n"
+                          "%d %d %d %d ", m1, m2, j, pt[j]);
     }
   }
   i = (j<=len) ? pt[j] : 0;
@@ -622,15 +625,16 @@ wrap_eval_loop_pt(vrna_fold_compound_t *vc,
     return energy;
   }
   j = pt[i];
-  if (j<i) vrna_message_error("i is unpaired in loop_energy()");
+  if(j < i)
+    vrna_message_error("i is unpaired in loop_energy()");
   type = P->model_details.pair[s[i]][s[j]];
   if (type==0) {
     type=7;
     if (verbosity > verbosity_quiet)
-      vrna_message_warning("bases %d and %d (%c%c) can't pair!",
-                                  i, j,
-                                  vrna_nucleotide_decode(s[i], &(P->model_details)),
-                                  vrna_nucleotide_decode(s[j], &(P->model_details)));
+      vrna_message_warning( "bases %d and %d (%c%c) can't pair!",
+                            i, j,
+                            vrna_nucleotide_decode(s[i], &(P->model_details)),
+                            vrna_nucleotide_decode(s[j], &(P->model_details)));
   }
   p=i; q=j;
 
@@ -651,10 +655,10 @@ wrap_eval_loop_pt(vrna_fold_compound_t *vc,
     if (type_2==0) {
       type_2=7;
       if (verbosity > verbosity_quiet)
-        vrna_message_warning("bases %d and %d (%c%c) can't pair!",
-                                    p, q,
-                                    vrna_nucleotide_decode(s[p], &(P->model_details)),
-                                    vrna_nucleotide_decode(s[q], &(P->model_details)));
+        vrna_message_warning( "bases %d and %d (%c%c) can't pair!",
+                              p, q,
+                              vrna_nucleotide_decode(s[p], &(P->model_details)),
+                              vrna_nucleotide_decode(s[q], &(P->model_details)));
     }
 
     energy = eval_int_loop(vc, i, j, p, q);
@@ -725,12 +729,14 @@ eval_pt(vrna_fold_compound_t *vc,
   cp      = vc->cutpoint;
 
   if(vc->params->model_details.gquad)
-    vrna_message_warning("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
+    vrna_message_warning( "vrna_eval_*_pt: No gquadruplex support!\n"
+                          "Ignoring potential gquads in structure!\n"
+                          "Use e.g. vrna_eval_structure() instead!");
 
   energy = vc->params->model_details.backtrack_type=='M' ? energy_of_ml_pt(vc, 0, pt) : energy_of_extLoop_pt(vc, 0, pt);
 
   if (verbosity_level>0)
-    fprintf(out, "External loop                           : %5d\n", energy);
+    print_eval_ext_loop(out, energy);
   for (i=1; i<=length; i++) {
     if (pt[i]==0) continue;
     energy += stack_energy(vc, i, pt, out, verbosity_level);
@@ -769,7 +775,9 @@ eval_circ_pt( vrna_fold_compound_t *vc,
   out           = (file) ? file : stdout;
 
   if(P->model_details.gquad)
-    vrna_message_warning("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
+    vrna_message_warning( "vrna_eval_*_pt: No gquadruplex support!\n"
+                          "Ignoring potential gquads in structure!\n"
+                          "Use e.g. vrna_eval_structure() instead!");
 
   /* evaluate all stems in exterior loop */
   for (i=1; i<=length; i++) {
@@ -827,7 +835,7 @@ eval_circ_pt( vrna_fold_compound_t *vc,
   }
 
   if (verbosity_level>0)
-    fprintf(out, "External loop                           : %5d\n", en0);
+    print_eval_ext_loop(out, en0);
 
   energy += en0;
 
@@ -888,7 +896,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for(r = p - 1; !pt[r] && (r >= i); r--);
-      if(r < i) vrna_message_error("this should not happen");
+      if(r < i)
+        vrna_message_error("this should not happen");
 
       if(r < pt[r]){ /* found the enclosing pair */
         s = pt[r];
@@ -899,7 +908,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
         r = pt[r]-1 ;
         /* seek for next pairing base 5' of r */
         for(; !pt[r] && (r >= i); r--);
-        if(r < i) vrna_message_error("so nich");
+        if(r < i)
+          vrna_message_error("so nich");
         if(r < pt[r]){ /* found the enclosing pair */
           s = pt[r];
         } else {
@@ -908,7 +918,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
             if(pt[r]){ r = pt[r]; num_elem++;}
             r--;
           }
-          if(r < i) vrna_message_error("so nich");
+          if(r < i)
+            vrna_message_error("so nich");
           s = pt[r]; /* found the enclosing pair */
         }
       }
@@ -927,13 +938,15 @@ en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
             num_g++;
           }
         } else { /* we must have found a stem */
-          if(!(u < pt[u])) vrna_message_error("wtf!");
+          if(!(u < pt[u]))
+            vrna_message_error("wtf!");
           num_elem++; elem_i = u; elem_j = pt[u];
           energy += en_corr_of_loop_gquad(vc, u, pt[u], structure, pt);
           u = pt[u] + 1;
         }
       }
-      if(u!=s) vrna_message_error("what the hell");
+      if(u!=s)
+        vrna_message_error("what the heck");
       else{ /* we are done since we've found no other 3' structure element */
         switch(num_elem){
           /* g-quad was misinterpreted as hairpin closed by (r,s) */
@@ -1010,10 +1023,10 @@ stack_energy( vrna_fold_compound_t *vc,
                                   if(type == 0){
                                     type = 7;
                                     if(verbosity_level > verbosity_quiet)
-                                      vrna_message_warning("bases %d and %d (%c%c) can't pair!",
-                                                                  i, j,
-                                                                  string[i - 1],
-                                                                  string[j - 1]);
+                                      vrna_message_warning( "bases %d and %d (%c%c) can't pair!",
+                                                            i, j,
+                                                            string[i - 1],
+                                                            string[j - 1]);
                                   }
                                   break;
 
@@ -1053,10 +1066,10 @@ stack_energy( vrna_fold_compound_t *vc,
                                     if(type_2 == 0){
                                       type_2 = 7;
                                       if(verbosity_level > verbosity_quiet)
-                                        vrna_message_warning("bases %d and %d (%c%c) can't pair!",
-                                                                    p, q,
-                                                                    string[p - 1],
-                                                                    string[q - 1]);
+                                        vrna_message_warning( "bases %d and %d (%c%c) can't pair!",
+                                                              p, q,
+                                                              string[p - 1],
+                                                              string[q - 1]);
                                     }
                                     ee = eval_int_loop(vc, i, j, p, q);
 
@@ -1090,13 +1103,9 @@ stack_energy( vrna_fold_compound_t *vc,
     }
 
     if(verbosity_level > 0)
-      fprintf(out,
-              "Interior loop (%3d,%3d) %c%c; (%3d,%3d) %c%c: %5d\n",
-              i, j,
-              string[i - 1], string[j - 1],
-              p, q,
-              string[p - 1], string[q - 1],
-              ee);
+      print_eval_int_loop(out, i, j, string[i - 1], string[j - 1],
+                               p, q, string[p - 1], string[q - 1],
+                               ee);
 
     energy += ee;
     i = p;
@@ -1110,11 +1119,7 @@ stack_energy( vrna_fold_compound_t *vc,
     energy  += ee;
 
     if(verbosity_level > 0)
-      fprintf(out,
-              "Hairpin  loop (%3d,%3d) %c%c              : %5d\n",
-              i, j,
-              string[i - 1], string[j - 1],
-              ee);
+      print_eval_hp_loop(out, i, j, string[i - 1], string[j - 1], ee);
 
     free(types);
 
@@ -1145,10 +1150,7 @@ stack_energy( vrna_fold_compound_t *vc,
 
   energy += ee;
   if(verbosity_level > 0)
-    fprintf(out, "Multi    loop (%3d,%3d) %c%c              : %5d\n",
-            i, j,
-            string[i - 1], string[j - 1],
-            ee);
+    print_eval_mb_loop(out, i, j, string[i - 1], string[j - 1], ee);
 
   free(types);
 
@@ -1933,7 +1935,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for(r = p - 1; !pt[r] && (r >= i); r--);
-      if(r < i) vrna_message_error("this should not happen");
+      if(r < i)
+        vrna_message_error("this should not happen");
 
       if(r < pt[r]){ /* found the enclosing pair */
         s = pt[r];
@@ -1944,7 +1947,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t *vc,
         r = pt[r]-1 ;
         /* seek for next pairing base 5' of r */
         for(; !pt[r] && (r >= i); r--);
-        if(r < i) vrna_message_error("so nich");
+        if(r < i)
+          vrna_message_error("so nich");
         if(r < pt[r]){ /* found the enclosing pair */
           s = pt[r];
         } else {
@@ -1953,7 +1957,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t *vc,
             if(pt[r]){ r = pt[r]; num_elem++;}
             r--;
           }
-          if(r < i) vrna_message_error("so nich");
+          if(r < i)
+            vrna_message_error("so nich");
           s = pt[r]; /* found the enclosing pair */
         }
       }
@@ -1973,7 +1978,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t *vc,
             num_g++;
           }
         } else { /* we must have found a stem */
-          if(!(u < pt[u])) vrna_message_error("wtf!");
+          if(!(u < pt[u]))
+            vrna_message_error("wtf!");
           num_elem++;
           elem_i = u;
           elem_j = pt[u];
@@ -1986,7 +1992,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t *vc,
           u = pt[u] + 1;
         }
       }
-      if(u!=s) vrna_message_error("what the ...");
+      if(u!=s)
+        vrna_message_error("what the ...");
       else{ /* we are done since we've found no other 3' structure element */
         switch(num_elem){
           /* g-quad was misinterpreted as hairpin closed by (r,s) */
@@ -2104,7 +2111,8 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for(r = p - 1; !pt[r] && (r >= i); r--);
-      if(r < i) vrna_message_error("this should not happen");
+      if(r < i)
+        vrna_message_error("this should not happen");
 
       if(r < pt[r]){ /* found the enclosing pair */
         s = pt[r];
@@ -2113,7 +2121,8 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
         r = pt[r]-1 ;
         /* seek for next pairing base 5' of r */
         for(; !pt[r] && (r >= i); r--);
-        if(r < i) vrna_message_error("so nich");
+        if(r < i)
+          vrna_message_error("so nich");
         if(r < pt[r]){ /* found the enclosing pair */
           s = pt[r];
         } else {
@@ -2122,7 +2131,8 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
             if(pt[r]){ r = pt[r]; num_elem++;}
             r--;
           }
-          if(r < i) vrna_message_error("so nich");
+          if(r < i)
+            vrna_message_error("so nich");
           s = pt[r]; /* found the enclosing pair */
         }
       }
@@ -2142,7 +2152,8 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
             num_g++;
           }
         } else { /* we must have found a stem */
-          if(!(u < pt[u])) vrna_message_error("wtf!");
+          if(!(u < pt[u]))
+            vrna_message_error("wtf!");
           num_elem++;
           en_covar += covar_en_corr_of_loop_gquad(vc,
                                 u,
@@ -2153,7 +2164,8 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
           u = pt[u] + 1;
         }
       }
-      if(u!=s) vrna_message_error("what the ...");
+      if(u!=s)
+        vrna_message_error("what the ...");
       else{
         /* we are done since we've found no other 3' structure element */
       }

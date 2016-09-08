@@ -15,6 +15,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <limits.h>
 #include <string.h>
 #include <sys/types.h>
 #include "ViennaRNA/fold_vars.h"
@@ -30,11 +31,7 @@
 #include "ViennaRNA/cofold.h"
 #include "RNAeval_cmdl.h"
 
-#ifdef __GNUC__
-#define UNUSED __attribute__ ((unused))
-#else
-#define UNUSED
-#endif
+#include "ViennaRNA/color_output.inc"
 
 static void
 add_shape_constraints(vrna_fold_compound_t *vc,
@@ -92,9 +89,12 @@ int main(int argc, char *argv[]){
   struct RNAeval_args_info  args_info;
   char                      *string, *structure, *orig_sequence, *tmp, *rec_sequence,
                             *rec_id, **rec_rest, *shape_file, *shape_method,
-                            *shape_conversion, fname[FILENAME_MAX_LENGTH], *ParamFile;
+                            *shape_conversion, fname[FILENAME_MAX_LENGTH], *ParamFile,
+                            *id_prefix;
   unsigned int              rec_type, read_opt;
-  int                       i, length1, with_shapes, istty, circular, noconv, verbose;
+  int                       i, length1, with_shapes, istty, circular, noconv, verbose,
+                            auto_id, id_digits;
+  long int                  seq_number;
   float                     energy;
   vrna_md_t                 md;
 
@@ -107,6 +107,10 @@ int main(int argc, char *argv[]){
   shape_file    = NULL;
   shape_method  = NULL;
   with_shapes   = 0;
+  seq_number    = 1;
+  id_prefix     = NULL;
+  auto_id       = 0;
+  id_digits     = 4;
 
   /* apply default model details */
   vrna_md_set_default(&md);
@@ -159,6 +163,34 @@ int main(int argc, char *argv[]){
   shape_method = strdup(args_info.shapeMethod_arg);
   shape_conversion = strdup(args_info.shapeConversion_arg);
 
+  if(args_info.auto_id_given){
+    auto_id = 1;
+  }
+
+  if(args_info.id_prefix_given){
+    id_prefix   = strdup(args_info.id_prefix_arg);
+    auto_id  = 1;
+  } else {
+    id_prefix = strdup("sequence");
+  }
+
+  /* set width of alignment number in the output */
+  if(args_info.id_digits_given){
+    if((args_info.id_digits_arg > 0) && (args_info.id_digits_arg < 19))
+      id_digits = args_info.id_digits_arg;
+    else
+      vrna_message_warning("ID number digits out of allowed range! Using defaults...");
+  }
+
+  /* set first sequence number in the output */
+  if(args_info.id_start_given){
+    if((args_info.id_start_arg >= 0) && (args_info.id_start_arg <= LONG_MAX)){
+      seq_number  = args_info.id_start_arg;
+      auto_id  = 1;
+    } else
+      vrna_message_warning("ID number start out of allowed range! Using defaults...");
+  }
+
   /* free allocated memory of command line data structure */
   RNAeval_cmdline_parser_free (&args_info);
 
@@ -201,11 +233,19 @@ int main(int argc, char *argv[]){
     # init everything according to the data we've read
     ########################################################
     */
+    char *SEQ_ID = NULL, *msg = NULL;
+
     if(rec_id){
-      if(!istty) printf("%s\n", rec_id);
       (void) sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
     else fname[0] = '\0';
+
+    /* construct the sequence ID */
+    if((fname[0] != '\0') && (!auto_id)){ /* we've read an ID from file, so we use it */
+      SEQ_ID = strdup(fname);
+    } else if(auto_id){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
+      SEQ_ID = vrna_strdup_printf("%s_%0*ld", id_prefix, id_digits, seq_number);
+    }
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if(!noconv) vrna_seq_toRNA(rec_sequence);
@@ -239,9 +279,9 @@ int main(int argc, char *argv[]){
 
     if(istty){
       if (vc->cutpoint == -1)
-        printf("length = %d\n", length1);
+        vrna_message_info(stdout, "length = %d", length1);
       else
-        printf("length1 = %d\nlength2 = %d\n", vc->cutpoint-1, length1-vc->cutpoint+1);
+        vrna_message_info(stdout, "length1 = %d\nlength2 = %d", vc->cutpoint-1, length1-vc->cutpoint+1);
     }
 
     /*
@@ -250,23 +290,30 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
+    print_fasta_header(stdout, SEQ_ID);
+
     energy = vrna_eval_structure_v(vc, structure, verbose, NULL);
 
-    if (vc->cutpoint == -1)
-      printf("%s\n%s", orig_sequence, structure);
+    fprintf(stdout, "%s\n", orig_sequence);
+
+    if(istty)
+      msg = vrna_strdup_printf("\n energy = %6.2f kcal/mol", energy);
+    else
+      msg = vrna_strdup_printf(" (%6.2f)", energy);
+
+    if(vc->cutpoint == -1)
+      print_structure(stdout, structure, msg);
     else {
       char *pstruct = vrna_cut_point_insert(structure, vc->cutpoint);
-      printf("%s\n%s", orig_sequence,  pstruct);
+      print_structure(stdout, pstruct, msg);
       free(pstruct);
     }
-    if (istty)
-      printf("\n energy = %6.2f\n", energy);
-    else
-      printf(" (%6.2f)\n", energy);
+    (void) fflush(stdout);
 
     /* clean up */
-    (void) fflush(stdout);
     if(rec_id) free(rec_id);
+    free(SEQ_ID);
+    free(msg);
     free(rec_sequence);
     free(structure);
     /* free the rest of current dataset */
@@ -285,6 +332,12 @@ int main(int argc, char *argv[]){
 
     if(with_shapes)
       break;
+
+    if(seq_number == LONG_MAX){
+      vrna_message_warning("Sequence ID number overflow, beginning with 1 (again)!");
+      seq_number = 1;
+    } else
+      seq_number++;
 
     /* print user help for the next round if we get input from tty */
     if(istty){
