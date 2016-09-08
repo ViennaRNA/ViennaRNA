@@ -49,6 +49,17 @@ sc_add_bp(vrna_fold_compound_t *vc,
           const FLT_OR_DBL **constraints);
 
 PRIVATE void
+sc_really_add_up( vrna_fold_compound_t *vc,
+                  int i,
+                  FLT_OR_DBL energy);
+
+PRIVATE void
+sc_really_add_bp( vrna_fold_compound_t *vc,
+                  int i,
+                  int j,
+                  FLT_OR_DBL energy);
+
+PRIVATE void
 prepare_Boltzmann_weights_up( vrna_fold_compound_t *vc);
 
 PRIVATE void
@@ -174,6 +185,21 @@ vrna_sc_add_bp( vrna_fold_compound_t *vc,
 }
 
 PUBLIC void
+vrna_sc_really_add_bp(vrna_fold_compound_t *vc,
+                      int i,
+                      int j,
+                      FLT_OR_DBL energy,
+                      unsigned int options){
+
+  if(vc && (vc->type == VRNA_VC_TYPE_SINGLE)){
+    sc_really_add_bp(vc, i, j, energy);
+
+    if(options & VRNA_OPTION_PF) /* prepare Boltzmann factors for the BP soft constraints */
+      prepare_Boltzmann_weights_bp(vc);
+  }
+}
+
+PUBLIC void
 vrna_sc_add_up( vrna_fold_compound_t *vc,
                 const FLT_OR_DBL *constraints,
                 unsigned int options){
@@ -186,6 +212,26 @@ vrna_sc_add_up( vrna_fold_compound_t *vc,
 
     if(options & VRNA_OPTION_PF)
       prepare_Boltzmann_weights_up(vc);
+  }
+}
+
+PUBLIC void
+vrna_sc_really_add_up(vrna_fold_compound_t *vc,
+                      int i,
+                      FLT_OR_DBL energy,
+                      unsigned int options){
+
+  if(vc && (vc->type == VRNA_VC_TYPE_SINGLE)){
+    if((i < 1) || (i > vc->length)){
+      vrna_message_warning( "vrna_sc_really_add_up(): Nucleotide position %d out of range!"
+                            " (Sequence length: %d)",
+                            i, vc->length);
+    } else {
+      sc_really_add_up(vc, i, energy);
+
+      if(options & VRNA_OPTION_PF)
+        prepare_Boltzmann_weights_up(vc);
+    }
   }
 }
 
@@ -275,6 +321,31 @@ sc_add_bp(vrna_fold_compound_t *vc,
 }
 
 PRIVATE void
+sc_really_add_bp( vrna_fold_compound_t *vc,
+                  int i,
+                  int j,
+                  FLT_OR_DBL energy){
+
+  unsigned int  n;
+  vrna_sc_t     *sc;
+  int           *idx;
+
+  n   = vc->length;
+
+  if(!vc->sc)
+    vrna_sc_init(vc);
+
+  sc              = vc->sc;
+
+  if(!sc->energy_bp)
+    sc->energy_bp = (int *)vrna_alloc(sizeof(int) * (((n + 1) * (n + 2)) / 2));
+
+  idx = vc->jindx;
+  sc->energy_bp[idx[j]+i] += (int)roundf(energy * 100.);
+}
+
+
+PRIVATE void
 sc_add_up(vrna_fold_compound_t *vc,
           const FLT_OR_DBL *constraints){
 
@@ -313,6 +384,52 @@ sc_add_up(vrna_fold_compound_t *vc,
     }
   }
 }
+
+PRIVATE void
+sc_really_add_up( vrna_fold_compound_t *vc,
+                  int i,
+                  FLT_OR_DBL energy){
+
+  unsigned int  j, u, n;
+  vrna_sc_t     *sc;
+
+  n   = vc->length;
+
+  if(!vc->sc)
+    vrna_sc_init(vc);
+
+  sc  = vc->sc;
+  /*
+      Prepare memory:
+      allocate memory such that we can access the soft constraint
+      energies of a subsequence of length j starting at position i
+      via sc->energy_up[i][j]
+  */
+  if(!(sc->energy_up)){
+    sc->energy_up = (int **)vrna_alloc(sizeof(int *) * (n + 2));
+  }
+
+  for(j = 0; j <= n; j++){
+    if(!(sc->energy_up[j]))
+      sc->energy_up[j] = (int *)vrna_alloc(sizeof(int) * (n - j + 2));
+  }
+
+  sc->energy_up[n+1] = NULL;
+
+  /* update soft constraints for subsequences starting at some position */
+  for(j = 1; j <= i; j++){
+    int u_max   = n - j + 1;
+    int u_start = i - j + 1;
+
+    sc->energy_up[j][u_start] += (int)roundf(energy * 100.); /* convert to 10kal/mol */
+
+    for(u = u_start + 1; u <= u_max; u++){
+      sc->energy_up[j][u] = sc->energy_up[j][u-1]
+                            + sc->energy_up[j + u - 1][1];
+    }
+  }
+}
+
 
 /* compute Boltzmann factors for BP soft constraints from stored free energies */
 PRIVATE void

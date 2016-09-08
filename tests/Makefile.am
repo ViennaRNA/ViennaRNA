@@ -100,6 +100,7 @@ if WITH_CHECK
 CHECKMK_FILES = \
               energy_evaluation.ts \
               constraints.ts \
+              constraints_soft.ts \
               fold.ts \
               utils.ts \
               eval_structure.ts
@@ -107,12 +108,14 @@ CHECKMK_FILES = \
 CHECK_CFILES = \
               energy_evaluation.c \
               constraints.c \
+              constraints_soft.c \
               fold.c \
               utils.c \
               eval_structure.c
 
 LIBRARY_TESTS = energy_evaluation \
                 constraints \
+                constraints_soft \
                 fold \
                 utils \
                 eval_structure
