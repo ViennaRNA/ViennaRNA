@@ -1,6 +1,8 @@
 /**
 
-@page  mp_example   Example - A Small Example Program
+@page  mp_example   Examples
+
+@section example_c  A small Example program
 
 The following program exercises most commonly used functions of the library.
 The program folds two sequences using both the mfe and partition function
@@ -28,5 +30,22 @@ support. Thus, when linking your own object files to the library you have to pas
 the compiler specific @e ${OPENMP_CFLAGS} (e.g. '-fopenmp' for @b gcc) even if your code does not
 use openmp specific code. However, in that case the @e OpenMP flags may be ommited when compiling
 example.c
+
+@section scripting_perl_examples  Perl Examples
+
+@subsection scripting_perl_examples_flat Using the Flat Interface
+
+Example 1: "Simple MFE prediction"
+@include example1.pl
+
+@subsection scripting_perl_examples_oo Using the Object Oriented (OO) Interface
+
+The 'fold_compound' class that serves as an object oriented interface for #vrna_fold_compound_t
+
+Example 1: "Simple MFE prediction"
+@include oo_example1.pl
+
+@section scripting_python_examples Python Examples
+
 
  */

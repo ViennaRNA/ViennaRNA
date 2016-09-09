@@ -1,0 +1,44 @@
+/**
+
+@fn void vrna_params_subst(vrna_fold_compound_t *vc, vrna_param_t *par)
+@scripting
+@parblock
+This function is attached to #vrna_fc_s objects as @b params_subst() method.
+@endparblock
+
+@fn void vrna_exp_params_rescale(vrna_fold_compound_t *vc, double *mfe)
+@scripting
+@parblock
+This function is attached to #vrna_fc_s objects as overloaded @b exp_params_rescale() method.
+
+When no parameter is passed to this method, the resulting action is the same as passing @em NULL as
+second parameter to vrna_exp_params_rescale(), i.e. default scaling of the partition function.
+Passing an energy in kcal/mol, e.g. as retrieved by a previous call to the @em mfe() method, instructs
+all subsequent calls to scale the partition function accordingly.
+@endparblock
+
+
+@fn void vrna_params_reset(vrna_fold_compound_t *vc, vrna_md_t *md_p)
+@scripting
+@parblock
+This function is attached to #vrna_fc_s objects as overloaded @b params_reset() method.
+
+When no parameter is passed to this method, the resulting action is the same as passing @em NULL as
+second parameter to vrna_params_reset(), i.e. global default model settings are used.
+Passing an object of type #vrna_md_s resets the fold compound according to the specifications stored
+within the #vrna_md_s object.
+@endparblock
+
+
+@fn vrna_exp_params_reset(vrna_fold_compound_t *vc, vrna_md_t *md_p)
+@scripting
+@parblock
+This function is attached to #vrna_fc_s objects as overloaded @b exp_params_reset() method.
+
+When no parameter is passed to this method, the resulting action is the same as passing @em NULL as
+second parameter to vrna_exp_params_reset(), i.e. global default model settings are used.
+Passing an object of type #vrna_md_s resets the fold compound according to the specifications stored
+within the #vrna_md_s object.
+@endparblock
+
+*/

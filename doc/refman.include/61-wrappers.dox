@@ -1,0 +1,8 @@
+/**
+
+@page wrappers  SWIG Wrapper Notes
+
+Below, you find an enumeration of special note on how functions, structures,
+enums, and macro definitions are wrapped.
+
+*/

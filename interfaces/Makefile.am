@@ -20,6 +20,11 @@ SOURCES = RNA.i \
           ptr2array.i \
           generic.mk
 
+DOXYGEN_DOCUMENTATION = constraints_soft.dox \
+                        fold_compound.dox \
+                        model_details.dox \
+                        params.dox
+
 EXTRA_DIST =  RNA.i \
               compare.i \
               constraints.i \
@@ -36,6 +41,6 @@ EXTRA_DIST =  RNA.i \
               utils.i \
               file_formats.i \
               ptr2array.i \
-              generic.mk
-
+              generic.mk \
+              $(DOXYGEN_DOCUMENTATION)
 
