@@ -12,6 +12,43 @@
     vrna_sc_init($self);
   }
   
+  void sc_add_up(int i, double energy, unsigned int options=VRNA_OPTION_DEFAULT){
+    vrna_sc_add_up($self, i, energy, options);
+  }
+
+  void sc_add_up( std::vector<double> constraints,
+                  unsigned int options=VRNA_OPTION_DEFAULT){
+
+    std::vector<double>::iterator it;
+    int i = 1;
+    it = constraints.begin();
+    for(it++; it != constraints.end(); it++, i++){
+      vrna_sc_add_up($self, i, *it, options);
+    }
+  }
+
+  void sc_add_bp(int i, int j, double energy, unsigned int options=VRNA_OPTION_DEFAULT){
+    vrna_sc_add_bp($self, i, j, energy, options);
+  }
+
+  void sc_add_bp( std::vector<std::vector<double> > constraints,
+                  unsigned int options=VRNA_OPTION_DEFAULT){
+
+    std::vector<std::vector<double> >::iterator it;
+    std::vector<double>::iterator it2;
+    int i, j;
+
+    i = 1;
+    it = constraints.begin();
+    for(it++; it != constraints.end(); it++, i++){
+      it2 = (*it).begin();
+      j   = 1;
+      for(it2++; it2 != (*it).end(); it2++, j++){
+        vrna_sc_add_bp($self, i, j, *it2, options);
+      }
+    }
+  }
+
   void sc_set_bp( std::vector<std::vector<double> > constraints,
                   unsigned int options=VRNA_OPTION_DEFAULT){
 
@@ -40,6 +77,8 @@
     transform(constraints.begin(), constraints.end(), std::back_inserter(v), convert_vecdbl2vecFLR_OR_DBL);
     vrna_sc_set_up($self, (const FLT_OR_DBL *)&v[0], options);
   }
+
+
 }
 
 %include  <ViennaRNA/constraints_soft.h>
