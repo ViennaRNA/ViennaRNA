@@ -169,7 +169,7 @@ vrna_sc_free(vrna_sc_t *sc){
 }
 
 PUBLIC void
-vrna_sc_add_bp( vrna_fold_compound_t *vc,
+vrna_sc_set_bp( vrna_fold_compound_t *vc,
                 const FLT_OR_DBL **constraints,
                 unsigned int options){
 
@@ -185,7 +185,7 @@ vrna_sc_add_bp( vrna_fold_compound_t *vc,
 }
 
 PUBLIC void
-vrna_sc_really_add_bp(vrna_fold_compound_t *vc,
+vrna_sc_add_bp(vrna_fold_compound_t *vc,
                       int i,
                       int j,
                       FLT_OR_DBL energy,
@@ -200,7 +200,7 @@ vrna_sc_really_add_bp(vrna_fold_compound_t *vc,
 }
 
 PUBLIC void
-vrna_sc_add_up( vrna_fold_compound_t *vc,
+vrna_sc_set_up( vrna_fold_compound_t *vc,
                 const FLT_OR_DBL *constraints,
                 unsigned int options){
 
@@ -216,14 +216,14 @@ vrna_sc_add_up( vrna_fold_compound_t *vc,
 }
 
 PUBLIC void
-vrna_sc_really_add_up(vrna_fold_compound_t *vc,
+vrna_sc_add_up(vrna_fold_compound_t *vc,
                       int i,
                       FLT_OR_DBL energy,
                       unsigned int options){
 
   if(vc && (vc->type == VRNA_VC_TYPE_SINGLE)){
     if((i < 1) || (i > vc->length)){
-      vrna_message_warning( "vrna_sc_really_add_up(): Nucleotide position %d out of range!"
+      vrna_message_warning( "vrna_sc_add_up(): Nucleotide position %d out of range!"
                             " (Sequence length: %d)",
                             i, vc->length);
     } else {

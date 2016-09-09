@@ -75,7 +75,7 @@ add_shape_constraints(vrna_fold_compound_t *vc,
     for(i = 0; i < length; i++)
       v[i] = values[i];
 
-    vrna_sc_add_up(vc, v, constraint_type);
+    vrna_sc_set_up(vc, v, constraint_type);
 
     free(v);
   }

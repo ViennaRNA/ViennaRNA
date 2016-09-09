@@ -191,8 +191,8 @@ vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *vc,
       }
 
       /* add the pseudo energies as soft constraints */
-      vrna_sc_add_up(vc, (const FLT_OR_DBL *)up, options);
-      vrna_sc_add_bp(vc, (const FLT_OR_DBL **)bp, options);
+      vrna_sc_set_up(vc, (const FLT_OR_DBL *)up, options);
+      vrna_sc_set_bp(vc, (const FLT_OR_DBL **)bp, options);
 
       /* clean up memory */
       for(i = 1; i <= n; ++i)

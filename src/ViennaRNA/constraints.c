@@ -140,9 +140,9 @@ vrna_constraints_add( vrna_fold_compound_t *vc,
         if(sc_up_present || sc_bp_present){
           vrna_sc_init(vc);
           if(sc_bp_present)
-            vrna_sc_add_bp(vc, (const FLT_OR_DBL **)sc_bp, options);
+            vrna_sc_set_bp(vc, (const FLT_OR_DBL **)sc_bp, options);
           if(sc_up_present)
-            vrna_sc_add_up(vc, (const FLT_OR_DBL *)sc_up, options);
+            vrna_sc_set_up(vc, (const FLT_OR_DBL *)sc_up, options);
         }
         /* clean up */
         for(i = 0; i <= vc->length; i++)

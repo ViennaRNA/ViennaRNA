@@ -143,7 +143,7 @@ struct vrna_sc_s {
  *
  *  @ingroup  soft_constraints
  *
- *  @see  vrna_sc_add_bp(), vrna_sc_add_up(), vrna_sc_add_SHAPE_deigan(),
+ *  @see  vrna_sc_set_bp(), vrna_sc_set_up(), vrna_sc_add_SHAPE_deigan(),
  *        vrna_sc_add_SHAPE_zarringhalam(), vrna_sc_remove(), vrna_sc_add_f(),
  *        vrna_sc_add_exp_f(), vrna_sc_add_pre(), vrna_sc_add_post()
  *  @param  vc  The #vrna_fold_compound_t where an empty soft constraint feature is to be added to
@@ -151,38 +151,73 @@ struct vrna_sc_s {
 void vrna_sc_init(vrna_fold_compound_t *vc);
 
 /**
- *  @brief  Add soft constraints for paired nucleotides
+ *  @brief  Set soft constraints for paired nucleotides
+ *
+ *  @note     This function replaces any pre-exisitng soft constraints with the ones supplied
+ *            in @p constraints.
  *
  *  @ingroup  soft_constraints
+ *
+ *  @see      vrna_sc_add_bp(), vrna_sc_set_up(), vrna_sc_add_up()
  *
  *  @param  vc          The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  constraints A two-dimensional array of pseudo free energies in @f$ kcal / mol @f$
  *  @param  options     The options flag indicating how/where to store the soft constraints
  */
-void vrna_sc_add_bp(vrna_fold_compound_t *vc,
+void vrna_sc_set_bp(vrna_fold_compound_t *vc,
                     const FLT_OR_DBL **constraints,
                     unsigned int options);
 
-void vrna_sc_really_add_bp( vrna_fold_compound_t *vc,
-                            int i,
-                            int j,
-                            FLT_OR_DBL energy,
-                            unsigned int options);
+/**
+ *  @brief  Add soft constraints for paired nucleotides
+ *
+ *  @ingroup  soft_constraints
+ *
+ *  @see      vrna_sc_set_bp(), vrna_sc_set_up(), vrna_sc_add_up()
+ *
+ *  @param  vc          The #vrna_fold_compound_t the soft constraints are associated with
+ *  @param  i           The 5' position of the base pair the soft constraint is added for
+ *  @param  j           The 3' position of the base pair the soft constraint is added for
+ *  @param  energy      The free energy (soft-constraint) in @f$ kcal / mol @f$
+ *  @param  options     The options flag indicating how/where to store the soft constraints
+ */
+void vrna_sc_add_bp(vrna_fold_compound_t *vc,
+                   int i,
+                   int j,
+                   FLT_OR_DBL energy,
+                   unsigned int options);
+
+/**
+ *  @brief  Set soft constraints for unpaired nucleotides
+ *
+ *  @note     This function replaces any pre-exisitng soft constraints with the ones supplied
+ *            in @p constraints.
+ *
+ *  @ingroup  soft_constraints
+ *
+ *  @see      vrna_sc_add_up(), vrna_sc_set_bp(), vrna_sc_add_bp()
+ *
+ *  @param  vc          The #vrna_fold_compound_t the soft constraints are associated with
+ *  @param  constraints A vector of pseudo free energies in @f$ kcal / mol @f$
+ *  @param  options     The options flag indicating how/where to store the soft constraints
+ */
+void vrna_sc_set_up(vrna_fold_compound_t *vc,
+                    const FLT_OR_DBL *constraints,
+                    unsigned int options);
 
 /**
  *  @brief  Add soft constraints for unpaired nucleotides
  *
  *  @ingroup  soft_constraints
  *
+ *  @see      vrna_sc_set_up(), vrna_sc_add_bp(), vrna_sc_set_bp()
+ *
  *  @param  vc          The #vrna_fold_compound_t the soft constraints are associated with
- *  @param  constraints A vector of pseudo free energies in @f$ kcal / mol @f$
+ *  @param  i           The nucleotide position the soft constraint is added for
+ *  @param  energy      The free energy (soft-constraint) in @f$ kcal / mol @f$
  *  @param  options     The options flag indicating how/where to store the soft constraints
  */
-void vrna_sc_add_up(vrna_fold_compound_t *vc,
-                    const FLT_OR_DBL *constraints,
-                    unsigned int options);
-
-void vrna_sc_really_add_up( vrna_fold_compound_t *vc,
+void vrna_sc_add_up( vrna_fold_compound_t *vc,
                             int i,
                             FLT_OR_DBL energy,
                             unsigned int options);

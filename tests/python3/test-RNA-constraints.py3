@@ -117,8 +117,8 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual(ss,str_con)
 
 
-    def test_sc_add_up(self):
-        print("test_sc_add_up")
+    def test_sc_set_up(self):
+        print("test_sc_set_up")
 
         #        "1234567890
         seq_sc  =      "CCCAAAAGGG"
@@ -131,13 +131,13 @@ class constraintsTest(unittest.TestCase):
 
         m= [0.0,-5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];  #E 1 0 1 -5 ,  position 1 gets -5 if unpaired , vector starts with 0 and not 1
 
-        fc.sc_add_up(m)
+        fc.sc_set_up(m)
         (ss,mfeNew) = fc.mfe()
         print(ss, "[ %6.2f" %mfeNew ,"]\n")
         self.assertEqual("%6.2f" %mfeNew,"%6.2f" % -5.70)
 
-    def test_sc_add_bp(self):
-        print("test_sc_add_bp")
+    def test_sc_set_bp(self):
+        print("test_sc_set_bp")
 
         #add energy of -5 to basepair 1-9 if formed, prefed structure should now be ((.....))., with a energy of -4.90, #matrix is also beginning with position 0
         m = [[0 for x in range(11)] for y in range(11)]
@@ -146,7 +146,7 @@ class constraintsTest(unittest.TestCase):
 
         seq_sc = "CCCAAAAGGG"
         fc = RNA.fold_compound(seq_sc)
-        fc.sc_add_bp(m)
+        fc.sc_set_bp(m)
         (ss,mfeNew) = fc.mfe()
         print(ss, "[ %6.4f" %mfeNew ,"]\n")
         self.assertEqual("%6.2f" %mfeNew,"%6.2f" % -4.90)

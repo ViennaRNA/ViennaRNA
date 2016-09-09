@@ -11,7 +11,7 @@
 
 #tcase  SoftConstraints
 
-#test test_vrna_sc_really_add_up_simple
+#test test_vrna_sc_add_up_simple
 
   int i, j;
 
@@ -20,7 +20,7 @@
   vrna_fold_compound_t *fc = vrna_fold_compound(seq, NULL, VRNA_OPTION_DEFAULT);
 
   for(i = 1; i <= fc->length; i++)
-    vrna_sc_really_add_up(fc, i, -1. * i, VRNA_OPTION_DEFAULT);
+    vrna_sc_add_up(fc, i, -1. * i, VRNA_OPTION_DEFAULT);
 
   vrna_sc_t *sc = fc->sc;
 
@@ -43,7 +43,7 @@
   free(seq);
 
 
-#test test_vrna_sc_really_add_up_addition
+#test test_vrna_sc_add_up_addition
 
   int i, e;
 
@@ -52,7 +52,7 @@
   vrna_fold_compound_t *fc = vrna_fold_compound(seq, NULL, VRNA_OPTION_DEFAULT);
 
   for(e = 0, i = 1; i <= fc->length; i++){
-    vrna_sc_really_add_up(fc, 1, -1. * i, VRNA_OPTION_DEFAULT);
+    vrna_sc_add_up(fc, 1, -1. * i, VRNA_OPTION_DEFAULT);
     e += -100 * i;
   }
   vrna_sc_t *sc = fc->sc;
@@ -72,7 +72,7 @@
   free(seq);
 
 
-#test test_vrna_sc_really_add_up_addition_extended
+#test test_vrna_sc_add_up_addition_extended
 
   int i, j, e;
 
@@ -83,7 +83,7 @@
   for(i = 1, e = 0; i <= fc->length; i++){
     e += -100 * i;
     for(j = 1; j <= fc->length; j++){
-      vrna_sc_really_add_up(fc, j, -1. * i, VRNA_OPTION_DEFAULT);
+      vrna_sc_add_up(fc, j, -1. * i, VRNA_OPTION_DEFAULT);
     }
   }
   vrna_sc_t *sc = fc->sc;
@@ -105,7 +105,7 @@
   free(seq);
 
 
-#test test_vrna_sc_really_add_bp
+#test test_vrna_sc_add_bp
 
   int i, j;
 
@@ -115,7 +115,7 @@
 
   for(i = 1; i < fc->length; i++)
     for(j = i + 1; j <= fc->length; j++)
-      vrna_sc_really_add_bp(fc, i, j, -1. * (i + j), VRNA_OPTION_DEFAULT);
+      vrna_sc_add_bp(fc, i, j, -1. * (i + j), VRNA_OPTION_DEFAULT);
 
   vrna_sc_t *sc = fc->sc;
 
@@ -136,7 +136,7 @@
   free(seq);
 
 
-#test test_vrna_sc_really_add_bp_addition
+#test test_vrna_sc_add_bp_addition
 
   int i, j, c, num;
 
@@ -149,7 +149,7 @@
   for(c = 0; c < num; c++)
     for(i = 1; i < fc->length; i++)
       for(j = i + 1; j <= fc->length; j++)
-        vrna_sc_really_add_bp(fc, i, j, -1. * (i + j), VRNA_OPTION_DEFAULT);
+        vrna_sc_add_bp(fc, i, j, -1. * (i + j), VRNA_OPTION_DEFAULT);
 
   vrna_sc_t *sc = fc->sc;
 
@@ -170,7 +170,7 @@
   free(seq);
 
 
-#test test_vrna_sc_really_add_bp_removal
+#test test_vrna_sc_add_bp_removal
 
   int i, j, c, num, num_r;
 
@@ -184,12 +184,12 @@
   for(c = 0; c < num; c++)
     for(i = 1; i < fc->length; i++)
       for(j = i + 1; j <= fc->length; j++)
-        vrna_sc_really_add_bp(fc, i, j, -1. * (i + j), VRNA_OPTION_DEFAULT);
+        vrna_sc_add_bp(fc, i, j, -1. * (i + j), VRNA_OPTION_DEFAULT);
 
   for(c = 0; c < num_r; c++)
     for(i = 1; i < fc->length; i++)
       for(j = i + 1; j <= fc->length; j++)
-        vrna_sc_really_add_bp(fc, i, j, 1. * (i + j), VRNA_OPTION_DEFAULT);
+        vrna_sc_add_bp(fc, i, j, 1. * (i + j), VRNA_OPTION_DEFAULT);
 
   vrna_sc_t *sc = fc->sc;
 

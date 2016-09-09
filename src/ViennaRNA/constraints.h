@@ -316,7 +316,7 @@
  *  constraints by passing the corresponding options via the third parameter.
  *
  *  @see      vrna_hc_init(), vrna_hc_add_up(), vrna_hc_add_up_batch(), vrna_hc_add_bp(),
- *            vrna_sc_init(), vrna_sc_add_up(), vrna_sc_add_bp(), 
+ *            vrna_sc_init(), vrna_sc_set_up(), vrna_sc_set_bp(), 
  *            vrna_sc_add_SHAPE_deigan(),  vrna_sc_add_SHAPE_zarringhalam(),
  *            vrna_hc_free(), vrna_sc_free(),
  *            #VRNA_CONSTRAINT_DB, #VRNA_CONSTRAINT_DB_DEFAULT, #VRNA_CONSTRAINT_DB_PIPE,
