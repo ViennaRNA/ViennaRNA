@@ -253,6 +253,9 @@ E_int_loop( vrna_fold_compound_t *vc,
                 if (no_close||(type_2==3)||(type_2==4))
                   if ((p>i+1)||(q<j-1)) continue;  /* continue unless stack */
 
+              if(type_2 == 0)
+                type_2 = 7;
+
               energy += ubf_eval_int_loop(i, j, p, q,
                                           i + 1, j - 1, p - 1, q + 1,
                                           S_i1, S_j1, *S_p1, *S_q1,
@@ -586,6 +589,11 @@ eval_interior_loop( vrna_fold_compound_t *vc,
   sp          = S[p1];
   sq          = S[q1];
   ij          = idx[j] + i;
+
+  if(type == 0)
+    type = 7;
+  if(type_2 == 0)
+    type_2 = 7;
 
   if((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))){ /* regular interior loop */
     energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
@@ -1333,6 +1341,9 @@ vrna_BT_int_loop( vrna_fold_compound_t *vc,
             continue;
 
           type_2 = rtype[type_2];
+
+          if(type_2 == 0)
+            type_2 = 7;
 
           if(noGUclosure)
             if(no_close||(type_2==3)||(type_2==4))

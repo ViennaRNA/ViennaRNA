@@ -255,11 +255,11 @@ ubf_eval_ext_int_loop(int i,
 
   /* add soft constraints */
   if(sc){
-    if(sc->energy_up)
+    if(sc->energy_up){
       energy += sc->energy_up[j1][u2]
-                + sc->energy_up[q1][u3]
-                + sc->energy_up[1][u1];
-
+                + ((u3 > 0) ? sc->energy_up[q1][u3] : 0)
+                + ((u1 > 0) ? sc->energy_up[1][u1] : 0);
+    }
     if(sc->energy_stack)
       if(u1 + u2 + u3 == 0)
         energy +=   sc->energy_stack[i]
