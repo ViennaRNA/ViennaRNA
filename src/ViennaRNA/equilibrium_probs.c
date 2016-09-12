@@ -85,12 +85,12 @@ PRIVATE void
 pf_create_bppm( vrna_fold_compound_t *vc,
                 char *structure){
 
-  int n, i,j,k,l, ij, kl, ii, u, u1, u2, ov=0;
+  int n, i,j,k,l, ij, kl, ii, u, u1, u2, cnt, ov=0;
   unsigned char type, type_2, tt;
   FLT_OR_DBL  temp, Qmax=0, prm_MLb;
   FLT_OR_DBL  prmt, prmt1;
   FLT_OR_DBL  *tmp;
-  FLT_OR_DBL  tmp2;
+  FLT_OR_DBL  tmp2, tmp_ud;
   FLT_OR_DBL  expMLclosing;
   FLT_OR_DBL  *qb, *qm, *G, *probs, *scale, *expMLbase;
   FLT_OR_DBL  *q1k, *qln;
@@ -103,7 +103,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
   int               *my_iindx, *jindx;
-  int               circular, turn, with_ud;
+  int               circular, turn, with_ud, with_ud_outside;
   vrna_exp_param_t  *pf_params;
   vrna_mx_pf_t      *matrices;
   vrna_md_t         *md;
@@ -138,6 +138,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   expMLbase         = matrices->expMLbase;
 
   with_ud           = (domains_up && domains_up->exp_energy_cb);
+  with_ud_outside   = (with_ud && domains_up->outside_add);
 
   FLT_OR_DBL  expMLstem         = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
   char        *hard_constraints = hc->matrix;
@@ -222,6 +223,29 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             probs[ij] = 0.;
         }
       }
+      if(with_ud_outside){
+        for(i = 1; i <= n - u; i++)
+          for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+            u = domains_up->uniq_motif_size[cnt];
+            j = i + u - 1;
+            if(j > n)
+              break;
+
+            if(hc->up_ml[i] >= u){
+              temp = q1k[i-1] * qln[j + 1]/q1k[n];
+              temp *= domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+
+              if(sc){
+                if(sc->exp_energy_up)
+                  temp *= sc->exp_energy_up[i][u];
+              }
+              temp *= scale[u];
+
+              if(temp > 0.)
+                domains_up->outside_add(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, temp, domains_up->data);
+            }
+        }
+      }
     } /* end if(!circular)  */
 
     for (l = n; l > turn + 1; l--) {
@@ -258,13 +282,6 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                           * scale[u1 + u2 + 2]
                           * exp_E_IntLoop(u1, u2, type, type_2, S1[i+1], S1[j-1], S1[k-1], S1[l+1], pf_params);
 
-                  if(with_ud){
-                    if(u1 > 0)
-                      tmp2 *= domains_up->exp_energy_cb(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
-                    if(u2 > 0)
-                      tmp2 *= domains_up->exp_energy_cb(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
-                  }
-
                   if(sc){
                     if(sc->exp_energy_up)
                       tmp2 *=   sc->exp_energy_up[i+1][u1]
@@ -298,7 +315,26 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                         }
                         free(aux_bps);
                       }
-                    
+                    }
+                  }
+
+                  if(with_ud){
+                    temp = tmp2; /* store contribution of non-ud-states */
+                    if(u1 > 0){
+                      tmp_ud = domains_up->exp_energy_cb(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+                      tmp2 *= tmp_ud;
+                    }
+                    if(u2 > 0){
+                      tmp_ud = domains_up->exp_energy_cb(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+                      tmp2 *= tmp_ud;
+                    }
+
+                    if(with_ud_outside){ /* add outside partition function for unstructured domains */
+                      tmp_ud = (tmp2 - temp) * qb[kl]; /* only pass contribution of segments with feature contribution != 0 */
+                      if(tmp_ud > 0.){
+                        domains_up->outside_add(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, tmp_ud, domains_up->data);
+                        domains_up->outside_add(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, tmp_ud, domains_up->data);
+                      }
                     }
                   }
 
