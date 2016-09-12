@@ -133,6 +133,16 @@ flag
 off
 dependon="constraint"
 
+option  "commands"   -
+"Read additional commands from file\n"
+details="Commands include hard and soft constraints, but also structure motifs in hairpin and interior\
+ loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
+ domains.\n\n"
+string
+typestr="<filename>"
+optional
+hidden
+
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\

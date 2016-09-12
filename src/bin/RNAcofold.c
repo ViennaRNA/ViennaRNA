@@ -16,6 +16,7 @@
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params.h"
+#include "ViennaRNA/commands.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/constraints_SHAPE.h"
 #include "ViennaRNA/file_formats.h"
@@ -54,7 +55,8 @@ int main(int argc, char *argv[])
 {
   struct        RNAcofold_args_info args_info;
   char          *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence,
-                *rec_id, **rec_rest, fname[FILENAME_MAX_LENGTH], *Concfile, *id_prefix;
+                *rec_id, **rec_rest, fname[FILENAME_MAX_LENGTH], *Concfile, *id_prefix,
+                *command_file;
   unsigned int  rec_type, read_opt;
   int           i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
                 doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch;
@@ -62,6 +64,7 @@ int main(int argc, char *argv[])
   double        min_en, kT, *ConcAandB;
   plist         *prAB, *prAA, *prBB, *prA, *prB, *mfAB, *mfAA, *mfBB, *mfA, *mfB;
   vrna_md_t     md;
+  vrna_cmd_t    *commands;
 
   /*
   #############################################
@@ -83,6 +86,8 @@ int main(int argc, char *argv[])
   rec_id              = rec_sequence = orig_sequence = NULL;
   rec_rest            = NULL;
   auto_id             = 0;
+  command_file        = NULL;
+  commands            = NULL;
 
   set_model_details(&md);
   /*
@@ -148,6 +153,10 @@ int main(int argc, char *argv[])
       md.compute_bpp = do_backtrack = args_info.partfunc_arg;
   }
 
+  if(args_info.commands_given){
+    command_file = strdup(args_info.commands_arg);
+  }
+
   /* free allocated memory of command line data structure */
   RNAcofold_cmdline_parser_free (&args_info);
 
@@ -158,6 +167,10 @@ int main(int argc, char *argv[])
   */
   if(pf && gquad){
     vrna_message_error("G-Quadruplex support is currently not available for partition function computations");
+  }
+
+  if (command_file != NULL) {
+    commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_DEFAULTS);
   }
 
   istty_in  = isatty(fileno(stdin));
@@ -247,6 +260,9 @@ int main(int argc, char *argv[])
         }
       }
     }
+
+    if(commands)
+      vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_DEFAULTS);
 
     if(istty){
       if (cut_point == -1)
@@ -570,6 +586,9 @@ int main(int argc, char *argv[])
       else vrna_message_input_seq_simple();
     }
   }
+
+  free(command_file);
+  vrna_commands_free(commands);
 
   free(id_prefix);
   free(Concfile);
