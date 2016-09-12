@@ -59,6 +59,95 @@ prepare_Boltzmann_weights_stack(vrna_fold_compound_t *vc);
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
+PUBLIC void
+vrna_constraints_add_SHAPE( vrna_fold_compound_t *vc,
+                            const char *shape_file,
+                            const char *shape_method,
+                            const char *shape_conversion,
+                            int verbose,
+                            unsigned int constraint_type){
+
+  float p1, p2;
+  char method;
+  char *sequence;
+  double *values;
+  int i, length = vc->length;
+
+  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
+    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
+    return;
+  }
+
+  if(verbose){
+    if(method != 'W'){
+      if(method == 'Z')
+        vrna_message_info(stderr, "Using SHAPE method '%c' with parameter p1=%f", method, p1);
+      else
+        vrna_message_info(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f", method, p1, p2);
+    }
+  }
+
+  sequence = vrna_alloc(sizeof(char) * (length + 1));
+  values = vrna_alloc(sizeof(double) * (length + 1));
+  vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
+
+  if(method == 'D'){
+    (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
+  }
+  else if(method == 'Z'){
+    (void)vrna_sc_add_SHAPE_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
+  } else {
+    assert(method == 'W');
+    FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
+    for(i = 0; i < length; i++)
+      v[i] = values[i];
+
+    vrna_sc_set_up(vc, v, constraint_type);
+
+    free(v);
+  }
+
+  free(values);
+  free(sequence);
+}
+
+
+PUBLIC void
+vrna_constraints_add_SHAPE_ali( vrna_fold_compound_t *vc,
+                      const char *shape_method,
+                      const char **shape_files,
+                      const int  *shape_file_association,
+                      int verbose,
+                      unsigned int constraint_type){
+
+  float p1, p2;
+  char method;
+
+  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
+    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
+    return;
+  }
+
+  if(verbose){
+    if(method != 'W'){
+      if(method == 'Z')
+        vrna_message_info( stderr,
+                                  "Using SHAPE method '%c' with parameter p1=%f",
+                                  method, p1);
+      else
+        vrna_message_info( stderr,
+                                  "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
+                                  method, p1, p2);
+    }
+  }
+
+  if(method == 'D'){
+    vrna_sc_add_SHAPE_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
+    return;
+  }
+}
+
+
 PUBLIC int
 vrna_sc_SHAPE_to_pr(const char *shape_conversion,
                     double *values,

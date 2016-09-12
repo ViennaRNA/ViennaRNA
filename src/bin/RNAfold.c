@@ -40,175 +40,52 @@
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/commands.h"
 #include "RNAfold_cmdl.h"
+#include "gengetopt_helper.h"
+#include "input_id_helper.h"
 
 #include "ViennaRNA/color_output.inc"
 
+static char *annotate_ligand_motif( vrna_fold_compound_t *vc,
+                                    const char *structure,
+                                    const char *structure_name,
+                                    int verbose);
+
+static void add_ligand_motif( vrna_fold_compound_t *vc,
+                              char *motifstring,
+                              int verbose,
+                              unsigned int options);
+
 /*--------------------------------------------------------------------------*/
-
-static void
-add_shape_constraints(vrna_fold_compound_t *vc,
-                      const char *shape_method,
-                      const char *shape_conversion,
-                      const char *shape_file,
-                      int verbose,
-                      unsigned int constraint_type){
-
-  float p1, p2;
-  char method;
-  char *sequence;
-  double *values;
-  int i, length = vc->length;
-
-  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
-    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
-    return;
-  }
-
-  if(verbose){
-    if(method != 'W'){
-      if(method == 'Z')
-        vrna_message_info(stderr, "Using SHAPE method '%c' with parameter p1=%f", method, p1);
-      else
-        vrna_message_info(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f", method, p1, p2);
-    }
-  }
-
-  sequence = vrna_alloc(sizeof(char) * (length + 1));
-  values = vrna_alloc(sizeof(double) * (length + 1));
-  vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
-
-  if(method == 'D'){
-    (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
-  }
-  else if(method == 'Z'){
-    (void)vrna_sc_add_SHAPE_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
-  } else {
-    assert(method == 'W');
-    FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
-    for(i = 0; i < length; i++)
-      v[i] = values[i];
-
-    vrna_sc_set_up(vc, v, constraint_type);
-
-    free(v);
-  }
-
-  free(values);
-  free(sequence);
-}
-
-static void
-add_ligand_motif( vrna_fold_compound_t *vc,
-                  char *motifstring,
-                  int verbose,
-                  unsigned int options){
-
-  int r, l, error;
-  char *seq, *str, *ptr;
-  float energy;
-
-  l = strlen(motifstring);
-  seq = vrna_alloc(sizeof(char) * (l + 1));
-  str = vrna_alloc(sizeof(char) * (l + 1));
-
-  error = 1;
-
-  if(motifstring){
-    error = 0;
-    /* parse sequence */
-    for(r = 0, ptr = motifstring; *ptr != '\0'; ptr++){
-      if(*ptr == ',')
-        break;
-      seq[r++] = *ptr;
-      toupper(seq[r-1]);
-    }
-    seq[r] = '\0';
-    seq = vrna_realloc(seq, sizeof(char) * (strlen(seq) + 1));
-
-    for(ptr++, r = 0; *ptr != '\0'; ptr++){
-      if(*ptr == ',')
-        break;
-      str[r++] = *ptr;
-    }
-    str[r] = '\0';
-    str = vrna_realloc(str, sizeof(char) * (strlen(seq) + 1));
-
-    ptr++;
-    if(!(sscanf(ptr, "%f", &energy) == 1)){
-      vrna_message_warning("Energy contribution in ligand motif missing!");
-      error = 1;
-    }
-    if(strlen(seq) != strlen(str)){
-      vrna_message_warning("Sequence and structure length in ligand motif have unequal lengths!");
-      error = 1;
-    }
-    if(strlen(seq) == 0){
-      vrna_message_warning("Sequence length in ligand motif is zero!");
-      error = 1;
-    }
-
-    if(!error && verbose){
-      vrna_message_info( stderr,
-                                "Read ligand motif: %s, %s, %f\n",
-                                seq, str, energy);
-    }
-  }
-
-  if(error || (!vrna_sc_add_hi_motif(vc, seq, str, energy, options))){
-    vrna_message_warning("Malformatted ligand motif! Skipping stabilizing motif.");
-  }
-
-  free(seq);
-  free(str);
-}
 
 int main(int argc, char *argv[]){
   FILE            *input, *output;
   struct          RNAfold_args_info args_info;
   char            *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence,
                   *constraints_file, *shape_file, *shape_method, *shape_conversion,
-                  fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *ParamFile, *ns_bases,
-                  *infile, *outfile, *ligandMotif, *id_prefix, *command_file;
+                  fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *infile, *outfile,
+                  *ligandMotif, *id_prefix, *command_file;
   unsigned int    rec_type, read_opt;
-  int             i, length, l, cl, istty, pf, noPS, noconv, do_bpp, enforceConstraints,
-                  batch, auto_id, id_digits, doMEA, circular, lucky, with_shapes,
+  int             i, length, l, cl, istty, pf, noPS, noconv, enforceConstraints,
+                  batch, auto_id, id_digits, doMEA, lucky, with_shapes,
                   verbose, istty_in, istty_out;
   long int        seq_number;
-  double          energy, min_en, kT, sfact, MEAgamma, bppmThreshold, betaScale;
+  double          energy, min_en, kT, MEAgamma, bppmThreshold;
   vrna_cmd_t      *commands;
   vrna_md_t       md;
 
   rec_type            = read_opt = 0;
   rec_id              = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;
   rec_rest            = NULL;
-  ParamFile           = NULL;
-  ns_bases            = NULL;
-  do_bpp              = do_backtrack  = 1;  /* set local (do_bpp) and global (do_backtrack) default for bpp computation */
   pf                  = 0;
-  sfact               = 1.07;
   noPS                = 0;
   noconv              = 0;
-  circular            = 0;
-  gquad               = 0;
   cl                  = l = length = 0;
-  dangles             = 2;
   MEAgamma            = 1.;
   bppmThreshold       = 1e-5;
   lucky               = 0;
   doMEA               = 0;
-  betaScale           = 1.;
-  shape_file          = NULL;
-  shape_method        = NULL;
-  with_shapes         = 0;
   verbose             = 0;
-  max_bp_span         = -1;
-  constraints_file    = NULL;
-  enforceConstraints  = 0;
-  batch               = 0;
-  seq_number          = 1;
-  id_prefix           = NULL;
   auto_id             = 0;
-  id_digits           = 4;
   outfile             = NULL;
   infile              = NULL;
   input               = NULL;
@@ -226,68 +103,64 @@ int main(int argc, char *argv[]){
   # check the command line parameters
   #############################################
   */
-  if(RNAfold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
-  /* temperature */
-  if(args_info.temp_given)
-    md.temperature = temperature = args_info.temp_arg;
-  /* structure constraint */
-  if(args_info.constraint_given){
-    fold_constrained=1;
-    if(args_info.constraint_arg[0] != '\0')
-      constraints_file = strdup(args_info.constraint_arg);
-  }
-  /* enforce base pairs given in constraint string rather than weak enforce */
-  if(args_info.enforceConstraint_given)
-    enforceConstraints = 1;
+  if(RNAfold_cmdline_parser (argc, argv, &args_info) != 0)
+    exit(1);
 
-  /* do batch jobs despite constraints read from input file */
-  if(args_info.batch_given)
-    batch = 1;
+  /* get basic set of model details */
+  ggo_get_md_eval(args_info, md);
+  ggo_get_md_fold(args_info, md);
+  ggo_get_md_part(args_info, md);
+  ggo_get_circ(args_info, md.circ);
 
-  /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)     md.special_hp = tetra_loop=0;
-  /* set dangle model */
-  if(args_info.dangles_given){
-    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
+  /* check dangle model */
+  if((md.dangles < 0) || (md.dangles > 3)){
       vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
-    else
-      md.dangles = dangles = args_info.dangles_arg;
+      md.dangles = dangles = 2;
   }
-  /* do not allow weak pairs */
-  if(args_info.noLP_given)        md.noLP = noLonelyPairs = 1;
-  /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)        md.noGU = noGU = 1;
-  /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
-  /* gquadruplex support */
-  if(args_info.gquad_given)       md.gquad = gquad = 1;
+
+  /* SHAPE reactivity data */
+  ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
+
+  /* parse options for ID manipulation */
+  ggo_get_ID_manipulation(args_info,
+                          auto_id,
+                          id_prefix, "sequence",
+                          id_digits, 4,
+                          seq_number, 1);
+
+  ggo_get_constraints_settings( args_info,
+                                fold_constrained,
+                                constraints_file,
+                                enforceConstraints,
+                                batch);
+
   /* enforce canonical base pairs in any case? */
-  if(args_info.canonicalBPonly_given)       md.canonicalBPonly = canonicalBPonly = 1;
+  if(args_info.canonicalBPonly_given)
+    md.canonicalBPonly = canonicalBPonly = 1;
+
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
-  if(args_info.noconv_given)      noconv = 1;
-  /* set energy model */
-  if(args_info.energyModel_given) md.energy_set = energy_set = args_info.energyModel_arg;
-  /* take another energy parameter set */
-  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
-  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
-  /* set pf scaling factor */
-  if(args_info.pfScale_given)     md.sfact = sfact = args_info.pfScale_arg;
-  /* assume RNA sequence to be circular */
-  if(args_info.circ_given)        md.circ = circular = 1;
+  if(args_info.noconv_given)
+    noconv = 1;
+
   /* always look on the bright side of life */
-  if(args_info.ImFeelingLucky_given)  md.uniq_ML = lucky = pf = st_back = 1;
+  if(args_info.ImFeelingLucky_given)
+    md.uniq_ML = lucky = pf = st_back = 1;
+
   /* set the bppm threshold for the dotplot */
   if(args_info.bppmThreshold_given)
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
-  if(args_info.betaScale_given)   md.betaScale = betaScale = args_info.betaScale_arg;
+
   /* do not produce postscript output */
-  if(args_info.noPS_given)        noPS=1;
+  if(args_info.noPS_given)
+    noPS=1;
+
   /* partition function settings */
   if(args_info.partfunc_given){
     pf = 1;
     if(args_info.partfunc_arg != 1)
-      do_bpp = md.compute_bpp = do_backtrack = args_info.partfunc_arg;
+      md.compute_bpp = do_backtrack = args_info.partfunc_arg;
+    else
+      md.compute_bpp = do_backtrack = 1;
   }
   /* MEA (maximum expected accuracy) settings */
   if(args_info.MEA_given){
@@ -295,63 +168,29 @@ int main(int argc, char *argv[]){
     if(args_info.MEA_arg != -1)
       MEAgamma = args_info.MEA_arg;
   }
+
   if(args_info.layout_type_given)
     rna_plot_type = args_info.layout_type_arg;
-  /* SHAPE reactivity data */
-  if(args_info.shape_given){
-    with_shapes = 1;
-    shape_file = strdup(args_info.shape_arg);
-  }
 
-  shape_method = strdup(args_info.shapeMethod_arg);
-  shape_conversion = strdup(args_info.shapeConversion_arg);
   if(args_info.verbose_given){
     verbose = 1;
   }
-  if(args_info.maxBPspan_given){
-    md.max_bp_span = max_bp_span = args_info.maxBPspan_arg;
-  }
+
   if(args_info.outfile_given){
     outfile = strdup(args_info.outfile_arg);
   }
+
   if(args_info.infile_given){
     infile = strdup(args_info.infile_arg);
   }
+
   if(args_info.motif_given){
     ligandMotif = strdup(args_info.motif_arg);
   }
+
   if(args_info.commands_given){
     command_file = strdup(args_info.commands_arg);
   }
-
-  if(args_info.auto_id_given){
-    auto_id = 1;
-  }
-
-  if(args_info.id_prefix_given){
-    id_prefix   = strdup(args_info.id_prefix_arg);
-    auto_id  = 1;
-  } else {
-    id_prefix = strdup("sequence");
-  }
-
-  /* set width of alignment number in the output */
-  if(args_info.id_digits_given){
-    if((args_info.id_digits_arg > 0) && (args_info.id_digits_arg < 19))
-      id_digits = args_info.id_digits_arg;
-    else
-      vrna_message_warning("ID number digits out of allowed range! Using defaults...");
-  }
-
-  /* set first alignment number in the output */
-  if(args_info.id_start_given){
-    if((args_info.id_start_arg >= 0) && (args_info.id_start_arg <= LONG_MAX)){
-      seq_number  = args_info.id_start_arg;
-      auto_id  = 1;
-    } else
-      vrna_message_warning("ID number start out of allowed range! Using defaults...");
-  }
-
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free (&args_info);
@@ -368,19 +207,13 @@ int main(int argc, char *argv[]){
       vrna_message_error("Could not read input file");
   }
 
-  if(circular && gquad){
+  if(md.circ && md.gquad){
     vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
+    exit(EXIT_FAILURE);
   }
 
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
-
-  if (circular && noLonelyPairs)
+  if (md.circ && md.noLP)
     vrna_message_warning("depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times");
-
-  if (ns_bases != NULL) {
-    vrna_md_set_nonstandards(&md, ns_bases);
-  }
 
   if (command_file != NULL) {
     commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_DEFAULTS);
@@ -427,18 +260,12 @@ int main(int argc, char *argv[]){
     else fname[0] = '\0';
 
     /* construct the sequence ID */
-    if(outfile){
-      if((fname[0] != '\0') && (!auto_id)){ /* append ID as read from file to the user prefix */
-        SEQ_ID = vrna_strdup_printf("%s_%s", outfile, fname);
-      } else if(auto_id){
-        SEQ_ID = vrna_strdup_printf("%s_%s_%0*ld", outfile, id_prefix, id_digits, seq_number);
-      } else {
-        SEQ_ID = vrna_strdup_printf("%s_%0*ld", outfile, id_digits, seq_number);
-      }
-    } else if((fname[0] != '\0') && (!auto_id)){ /* we've read an ID from file, so we use it */
-      SEQ_ID = strdup(fname);
-    } else if(auto_id){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
-      SEQ_ID = vrna_strdup_printf("%s_%0*ld", id_prefix, id_digits, seq_number);
+    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_digits, seq_number);
+
+    if(outfile && (SEQ_ID != NULL)){
+      char *tmp_id = SEQ_ID;
+      SEQ_ID = vrna_strdup_printf("%s_%s", outfile, tmp_id);
+      free(tmp_id);
     }
 
     if(outfile){
@@ -496,7 +323,7 @@ int main(int argc, char *argv[]){
     }
 
     if(with_shapes)
-      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+      vrna_constraints_add_SHAPE(vc, shape_file, shape_method, shape_conversion, verbose, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
     if(ligandMotif)
       add_ligand_motif(vc, ligandMotif, verbose, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
@@ -506,10 +333,6 @@ int main(int argc, char *argv[]){
 
     if(commands)
       vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_DEFAULTS);
-
-    /*
-    vrna_ud_add_motif(vc, "AAAA", -15., VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS);
-    */
 
     if(outfile){
       v_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
@@ -536,8 +359,8 @@ int main(int argc, char *argv[]){
     /* check whether the constraint allows for any solution */
     if(fold_constrained && constraints_file){
       if(min_en == (double)(INF/100.)){
-        vrna_message_error("Supplied structure constraints create empty solution set for sequence:\n%s",
-                                  orig_sequence);
+        vrna_message_error( "Supplied structure constraints create empty solution set for sequence:\n%s",
+                            orig_sequence);
         exit(EXIT_FAILURE);
       }
     }
@@ -573,34 +396,7 @@ int main(int argc, char *argv[]){
           filename_plot = strdup("rna.ps");
 
         if(ligandMotif){
-          int a,b,c,d, cnt;
-          char *annote;
-          cnt     = 1;
-          a       = 1;
-          annote  = vrna_alloc(sizeof(char) * cnt * 64);
-          while(vrna_sc_detect_hi_motif(vc, structure, &a, &b, &c, &d)){
-            char segment[64];
-            if(c != 0){
-              if(verbose){
-                vrna_message_info( stdout,
-                                          "specified motif detected in MFE structure: (%d,%d) (%d,%d)",
-                                          a, b, c, d);
-              }
-              sprintf(segment, " %d %d %d %d 1. 0 0 BFmark", a, b, c, d);
-              a = c;
-            }
-            else{
-              if(verbose){
-                vrna_message_info( stdout,
-                                          "specified motif detected in MFE structure: (%d,%d)",
-                                          a, b);
-              }
-              sprintf(segment, " %d %d 1. 0 0 Fomark", a, b);
-              a = b;
-            }
-            strcat(annote, segment);
-            annote = vrna_realloc(annote, sizeof(char) * ++cnt * 64);
-          }
+          char *annote = annotate_ligand_motif(vc, structure, "MFE", verbose);
           (void) vrna_file_PS_rnaplot_a(orig_sequence, structure, filename_plot, annote, NULL, &md);
           free(annote);
         } else {
@@ -666,7 +462,7 @@ int main(int argc, char *argv[]){
         free(filename_plot);
       }
       else{
-        if (do_bpp) {
+        if (md.compute_bpp) {
           if(output){
             char *msg = NULL;
             if(istty_in)
@@ -683,7 +479,7 @@ int main(int argc, char *argv[]){
           free(msg);
         }
 
-        if (do_bpp) {
+        if (md.compute_bpp) {
           plist *pl1,*pl2;
           char *cent;
           double dist, cent_en;
@@ -806,32 +602,14 @@ int main(int argc, char *argv[]){
           }
 
           if(ligandMotif){
-            int a,b,c,d;
-            a = 1;
-            while(vrna_sc_detect_hi_motif(vc, structure, &a, &b, &c, &d)){
-              if(c != 0){
-                if(verbose)
-                  vrna_message_info( stdout,
-                                            "specified motif detected in centroid structure: (%d,%d) (%d,%d)",
-                                            a, b, c, d);
-
-                a = c;
-              }
-              else{
-                if(verbose)
-                  vrna_message_info( stdout,
-                                            "specified motif detected in centroid structure: (%d,%d)",
-                                            a, b);
-
-                a = b;
-              }
-            }
+            char *a = annotate_ligand_motif(vc, structure, "centroid", verbose);
+            free(a);
           }
 
           free(cent);
 
           free(pl2);
-          if (do_bpp==2) {
+          if (md.compute_bpp==2) {
             char *filename_stackplot = NULL;
             if(SEQ_ID)
               filename_stackplot = vrna_strdup_printf("%s_dp2.ps", SEQ_ID);
@@ -857,7 +635,7 @@ int main(int argc, char *argv[]){
             plist *pl = vrna_plist_from_probs(vc, 1e-4/(1+MEAgamma));
             vc->exp_params->model_details.gquad = gq;
 
-            if(gquad){
+            if(gq){
               mea = MEA_seq(pl, rec_sequence, structure, MEAgamma, vc->exp_params);
             } else {
               mea = MEA(pl, structure, MEAgamma);
@@ -869,26 +647,8 @@ int main(int argc, char *argv[]){
               free(msg);
             }
             if(ligandMotif){
-              int a,b,c,d;
-              a = 1;
-              while(vrna_sc_detect_hi_motif(vc, structure, &a, &b, &c, &d)){
-                if(c != 0){
-                  if(verbose)
-                    vrna_message_info( stdout,
-                                              "specified motif detected in MEA structure: (%d,%d) (%d,%d)",
-                                              a, b, c, d);
-
-                  a = c;
-                }
-                else{
-                  if(verbose)
-                    vrna_message_info( stdout,
-                                              "specified motif detected in MEA structure: (%d,%d)",
-                                              a, b);
-
-                  a = b;
-                }
-              }
+              char *a = annotate_ligand_motif(vc, structure, "MEA", verbose);
+              free(a);
             }
 
             free(pl);
@@ -896,7 +656,7 @@ int main(int argc, char *argv[]){
         }
         if(output){
           char *msg = NULL;
-          if(do_bpp){
+          if(md.compute_bpp){
             msg = vrna_strdup_printf( " frequency of mfe structure in ensemble %g"
                                       "; ensemble diversity %-6.2f",
                                       exp((energy-min_en)/kT),
@@ -939,11 +699,7 @@ int main(int argc, char *argv[]){
 
     free(SEQ_ID);
 
-    if(seq_number == LONG_MAX){
-      vrna_message_warning("Sequence ID number overflow, beginning with 1 (again)!");
-      seq_number = 1;
-    } else
-      seq_number++;
+    ID_number_increase(seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if(istty){
@@ -967,4 +723,112 @@ int main(int argc, char *argv[]){
   vrna_commands_free(commands);
 
   return EXIT_SUCCESS;
+}
+
+
+static void
+add_ligand_motif( vrna_fold_compound_t *vc,
+                  char *motifstring,
+                  int verbose,
+                  unsigned int options){
+
+  int r, l, error;
+  char *seq, *str, *ptr;
+  float energy;
+
+  l = strlen(motifstring);
+  seq = vrna_alloc(sizeof(char) * (l + 1));
+  str = vrna_alloc(sizeof(char) * (l + 1));
+
+  error = 1;
+
+  if(motifstring){
+    error = 0;
+    /* parse sequence */
+    for(r = 0, ptr = motifstring; *ptr != '\0'; ptr++){
+      if(*ptr == ',')
+        break;
+      seq[r++] = *ptr;
+      toupper(seq[r-1]);
+    }
+    seq[r] = '\0';
+    seq = vrna_realloc(seq, sizeof(char) * (strlen(seq) + 1));
+
+    for(ptr++, r = 0; *ptr != '\0'; ptr++){
+      if(*ptr == ',')
+        break;
+      str[r++] = *ptr;
+    }
+    str[r] = '\0';
+    str = vrna_realloc(str, sizeof(char) * (strlen(seq) + 1));
+
+    ptr++;
+    if(!(sscanf(ptr, "%f", &energy) == 1)){
+      vrna_message_warning("Energy contribution in ligand motif missing!");
+      error = 1;
+    }
+    if(strlen(seq) != strlen(str)){
+      vrna_message_warning("Sequence and structure length in ligand motif have unequal lengths!");
+      error = 1;
+    }
+    if(strlen(seq) == 0){
+      vrna_message_warning("Sequence length in ligand motif is zero!");
+      error = 1;
+    }
+
+    if(!error && verbose){
+      vrna_message_info(stderr, "Read ligand motif: %s, %s, %f", seq, str, energy);
+    }
+  }
+
+  if(error || (!vrna_sc_add_hi_motif(vc, seq, str, energy, options))){
+    vrna_message_warning("Malformatted ligand motif! Skipping stabilizing motif.");
+  }
+
+  free(seq);
+  free(str);
+}
+
+
+static char *
+annotate_ligand_motif(vrna_fold_compound_t *vc,
+                      const char *structure,
+                      const char *structure_name,
+                      int verbose){
+
+  int   a, b, c, d;
+  char  *annote;
+
+  a       = 1;
+  annote  = NULL;
+
+  while(vrna_sc_detect_hi_motif(vc, structure, &a, &b, &c, &d)){
+    char *tmp_string, *annotation;
+    annotation = NULL;
+    tmp_string = annote;
+
+    if(c != 0){
+      if(verbose)
+        vrna_message_info(stdout, "specified motif detected in %s structure: (%d,%d) (%d,%d)", structure_name, a, b, c, d);
+
+      annotation = vrna_strdup_printf(" %d %d %d %d 1. 0 0 BFmark", a, b, c, d);
+      a = c;
+    } else{
+      if(verbose)
+        vrna_message_info(stdout, "specified motif detected in %s structure: (%d,%d)", structure_name, a, b);
+
+      annotation = vrna_strdup_printf(" %d %d 1. 0 0 Fomark", a, b);
+      a = b;
+    }
+
+    if(tmp_string)
+      annote = vrna_strdup_printf("%s %s", tmp_string, annotation);
+    else
+      annote = strdup(annotation);
+
+    free(tmp_string);
+    free(annotation);
+  }
+
+  return annote;
 }

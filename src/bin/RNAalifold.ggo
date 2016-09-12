@@ -161,6 +161,12 @@ flag
 off
 dependon="constraint"
 
+option  "enforceConstraint" -
+"Enforce base pairs given by round brackets ( ) in structure constraint\n\n"
+flag
+off
+dependon="constraint"
+
 option  "SS_cons"  -
 "Use consensus structures from Stockholm file (#=GF SS_cons) as constraint\n"
 details="Stockholm formatted alignment files have the possibility to store a\

@@ -114,6 +114,16 @@ string
 typestr="paramfile"
 optional
 
+option  "nsp" -
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+details="Its argument is a comma separated list of additionally allowed pairs. If the\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ energy.\n\n"
+string
+optional
+hidden
+
 option  "circ" c
 "Assume a circular (instead of linear) RNA molecule.\n\n"
 flag

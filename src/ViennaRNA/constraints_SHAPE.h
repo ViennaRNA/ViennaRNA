@@ -11,6 +11,19 @@
  *  @ingroup SHAPE_reactivities
  */
 
+void vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
+                                const char *shape_file,
+                                const char *shape_method,
+                                const char *shape_conversion,
+                                int verbose,
+                                unsigned int constraint_type);
+
+void vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *vc,
+                                    const char *shape_method,
+                                    const char **shape_files,
+                                    const int  *shape_file_association,
+                                    int verbose,
+                                    unsigned int constraint_type);
 /**
  *  @brief  Add SHAPE reactivity data as soft constraints (Deigan et al. method)
  *

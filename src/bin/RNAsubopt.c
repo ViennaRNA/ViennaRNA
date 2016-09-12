@@ -29,92 +29,32 @@
 #include "ViennaRNA/constraints_SHAPE.h"
 #include "ViennaRNA/file_formats.h"
 #include "RNAsubopt_cmdl.h"
+#include "gengetopt_helper.h"
+#include "input_id_helper.h"
 
 #include "ViennaRNA/color_output.inc"
-
-static void
-add_shape_constraints(vrna_fold_compound_t *vc,
-                      const char *shape_method,
-                      const char *shape_conversion,
-                      const char *shape_file,
-                      int verbose,
-                      unsigned int constraint_type){
-
-  float p1, p2;
-  char method;
-  char *sequence;
-  double *values;
-  int i, length = vc->length;
-
-  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
-    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
-    return;
-  }
-
-  if(verbose){
-    if(method != 'W'){
-      if(method == 'Z')
-        vrna_message_info(stderr, "Using SHAPE method '%c' with parameter p1=%f", method, p1);
-      else
-        vrna_message_info(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f", method, p1, p2);
-    }
-  }
-
-  sequence = vrna_alloc(sizeof(char) * (length + 1));
-  values = vrna_alloc(sizeof(double) * (length + 1));
-  vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
-
-  if(method == 'D'){
-    (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
-  }
-  else if(method == 'Z'){
-    (void)vrna_sc_add_SHAPE_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
-  } else {
-    assert(method == 'W');
-    FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
-    for(i = 0; i < length; i++)
-      v[i] = values[i];
-
-    vrna_sc_set_up(vc, v, constraint_type);
-
-    free(v);
-  }
-
-  free(values);
-  free(sequence);
-}
 
 PRIVATE void putoutzuker(vrna_subopt_solution_t* zukersolution);
 
 int main(int argc, char *argv[]){
   struct          RNAsubopt_args_info args_info;
-  char            fname[FILENAME_MAX_LENGTH], *c, *rec_sequence, *rec_id,
+  char            fname[FILENAME_MAX_LENGTH], *rec_sequence, *rec_id,
                   **rec_rest, *orig_sequence, *constraints_file, *cstruc, *structure,
-                  *ParamFile, *ns_bases, *shape_file, *shape_method, *shape_conversion;
+                  *shape_file, *shape_method, *shape_conversion;
   unsigned int    rec_type, read_opt;
-  int             i, length, cl, sym, istty, delta, n_back, noconv, circular, dos,
-                  zuker, gquad, with_shapes, verbose, max_bp_span, enforceConstraints,
-                  st_back_en;
-  double          deltap, betaScale;
+  int             i, length, cl, istty, delta, n_back, noconv, dos, zuker, with_shapes,
+                  verbose, enforceConstraints, st_back_en, batch;
+  double          deltap;
   vrna_md_t       md;
 
   do_backtrack  = 1;
-  dangles       = 2;
-  betaScale     = 1.;
-  gquad         = 0;
   delta         = 100;
-  deltap = n_back = noconv = circular = dos = zuker = 0;
+  deltap = n_back = noconv = dos = zuker = 0;
   rec_type      = read_opt = 0;
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
-  c = cstruc = structure = ParamFile = ns_bases = NULL;
-  constraints_file = NULL;
-  shape_file    = NULL;
-  shape_method  = NULL;
-  with_shapes   = 0;
+  cstruc = structure = NULL;
   verbose       = 0;
-  max_bp_span   = -1;
-  enforceConstraints  = 0;
   st_back_en          = 0;
 
   set_model_details(&md);
@@ -127,64 +67,46 @@ int main(int argc, char *argv[]){
   # check the command line parameters
   #############################################
   */
-  if(RNAsubopt_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
-  /* temperature */
-  if(args_info.temp_given)        md.temperature = temperature = args_info.temp_arg;
-  /* structure constraint */
-  if(args_info.constraint_given){
-    fold_constrained=1;
-    if(args_info.constraint_arg[0] != '\0')
-      constraints_file = strdup(args_info.constraint_arg);
-  }
-  /* enforce base pairs given in constraint string rather than weak enforce */
-  if(args_info.enforceConstraint_given)   enforceConstraints = 1;
-  /* SHAPE reactivity data */
-  if(args_info.shape_given){
-    with_shapes = 1;
-    shape_file = strdup(args_info.shape_arg);
+  if(RNAsubopt_cmdline_parser (argc, argv, &args_info) != 0)
+    exit(1);
+
+  /* get basic set of model details */
+  ggo_get_md_eval(args_info, md);
+  ggo_get_md_fold(args_info, md);
+  ggo_get_md_part(args_info, md);
+  ggo_get_circ(args_info, md.circ);
+
+  /* check dangle model */
+  if((md.dangles < 0) || (md.dangles > 3)){
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      md.dangles = dangles = 2;
   }
 
-  shape_method = strdup(args_info.shapeMethod_arg);
-  shape_conversion = strdup(args_info.shapeConversion_arg);
+  /* SHAPE reactivity data */
+  ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
+
+  ggo_get_constraints_settings( args_info,
+                                fold_constrained,
+                                constraints_file,
+                                enforceConstraints,
+                                batch);
+
   if(args_info.verbose_given){
     verbose = 1;
   }
-  if(args_info.maxBPspan_given){
-    md.max_bp_span = max_bp_span = args_info.maxBPspan_arg;
-  }
-  /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)     md.special_hp = tetra_loop = 0;
-  /* set dangle model */
-  if(args_info.dangles_given){
-    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning("Required dangle model not implemented, falling back to default dangles=2");
-    else
-      md.dangles = dangles = args_info.dangles_arg;
-  }
-  /* do not allow weak pairs */
-  if(args_info.noLP_given)        md.noLP = noLonelyPairs = 1;
-  /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)        md.noGU = noGU = 1;
-  /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given) md.noGUclosure = no_closingGU = 1;
-  /* gquadruplex support */
-  if(args_info.gquad_given)       md.gquad = gquad = 1;
+
   /* enforce canonical base pairs in any case? */
   if(args_info.canonicalBPonly_given) md.canonicalBPonly = canonicalBPonly = 1;
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
-  /* take another energy parameter set */
-  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
-  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if(args_info.nsp_given)         ns_bases = strdup(args_info.nsp_arg);
+
   /* energy range */
   if(args_info.deltaEnergy_given) delta = (int) (0.1+args_info.deltaEnergy_arg*100);
   /* energy range after post evaluation */
   if(args_info.deltaEnergyPost_given) deltap = args_info.deltaEnergyPost_arg;
   /* sorted output */
   if(args_info.sorted_given)      subopt_sorted = 1;
-  /* assume RNA sequence to be circular */
-  if(args_info.circ_given)        md.circ = circular = 1;
+
   /* stochastic backtracking */
   if(args_info.stochBT_given){
     n_back = args_info.stochBT_arg;
@@ -197,7 +119,7 @@ int main(int argc, char *argv[]){
     md.compute_bpp  = 0;
     vrna_init_rand();
   }
-  if(args_info.betaScale_given)   md.betaScale = betaScale = args_info.betaScale_arg;
+
   /* density of states */
   if(args_info.dos_given){
     dos = 1;
@@ -209,7 +131,7 @@ int main(int argc, char *argv[]){
   if(args_info.zuker_given) zuker = 1;
 
   if(zuker){
-    if(circular){
+    if(md.circ){
       vrna_message_warning("Sorry, zuker subopts not yet implemented for circfold");
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
@@ -219,14 +141,14 @@ int main(int argc, char *argv[]){
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
     }
-    else if(gquad){
+    else if(md.gquad){
       vrna_message_warning("G-quadruplex support for Zuker subopts not implemented yet");
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
     }
   }
 
-  if(gquad && (n_back > 0)){
+  if(md.gquad && (n_back > 0)){
     vrna_message_warning("G-quadruplex support for stochastic backtracking not implemented yet");
     RNAsubopt_cmdline_parser_print_help();
     exit(1);
@@ -240,45 +162,6 @@ int main(int argc, char *argv[]){
   # begin initializing
   #############################################
   */
-
-  if (ParamFile != NULL) read_parameter_file(ParamFile);
-
-  if (ns_bases != NULL) {
-    nonstandards = vrna_alloc(33);
-    c=ns_bases;
-    i=sym=0;
-    if (*c=='-') {
-      sym=1; c++;
-    }
-    while (*c!='\0') {
-      if (*c!=',') {
-        nonstandards[i++]=*c++;
-        nonstandards[i++]=*c;
-        if ((sym)&&(*c!=*(c-1))) {
-          nonstandards[i++]=*c;
-          nonstandards[i++]=*(c-1);
-        }
-      }
-      c++;
-    }
-    /* and again for md */
-    c=ns_bases;
-    i=sym=0;
-    if (*c=='-') {
-      sym=1; c++;
-    }
-    while (*c!='\0') {
-      if (*c!=',') {
-        md.nonstandards[i++]=*c++;
-        md.nonstandards[i++]=*c;
-        if ((sym)&&(*c!=*(c-1))) {
-          md.nonstandards[i++]=*c;
-          md.nonstandards[i++]=*(c-1);
-        }
-      }
-      c++;
-    }
-  }
 
   istty = isatty(fileno(stdout))&&isatty(fileno(stdin));
 
@@ -364,7 +247,7 @@ int main(int argc, char *argv[]){
     }
 
     if(with_shapes)
-      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
+      vrna_constraints_add_SHAPE(vc, shape_file, shape_method, shape_conversion, verbose, VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
 
     if(istty){
       if (cut_point == -1)
@@ -379,7 +262,7 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-    if((logML != 0 || dangles==1 || dangles==3) && dos == 0)
+    if((logML != 0 || md.dangles==1 || md.dangles==3) && dos == 0)
       if(deltap<=0) deltap = delta/100. + 0.001;
     if (deltap>0)
       print_energy = deltap;
@@ -480,6 +363,9 @@ int main(int argc, char *argv[]){
     }
     rec_id = rec_sequence = orig_sequence = structure = cstruc = NULL;
     rec_rest = NULL;
+
+    if(with_shapes || (constraints_file && (!batch)))
+      break;
 
     /* print user help for the next round if we get input from tty */
     if(istty){

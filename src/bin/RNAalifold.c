@@ -31,6 +31,8 @@
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/constraints_SHAPE.h"
 #include "RNAalifold_cmdl.h"
+#include "gengetopt_helper.h"
+#include "input_id_helper.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -41,80 +43,37 @@ PRIVATE void  mark_endgaps(char *seq, char egap);
 PRIVATE cpair *make_color_pinfo(char **sequences, plist *pl, double threshold, int n_seq, plist *mfel);
 PRIVATE void  dot_bracketify(char *string);
 
-PRIVATE void
-add_shape_constraints(vrna_fold_compound_t *vc,
-                      const char *shape_method,
-                      const char **shape_files,
-                      const int *shape_file_association,
-                      int verbose,
-                      unsigned int constraint_type){
-
-  float p1, p2;
-  char method;
-
-  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
-    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
-    return;
-  }
-
-  if(verbose){
-    if(method != 'W'){
-      if(method == 'Z')
-        vrna_message_info( stderr,
-                                  "Using SHAPE method '%c' with parameter p1=%f",
-                                  method, p1);
-      else
-        vrna_message_info( stderr,
-                                  "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
-                                  method, p1, p2);
-    }
-  }
-
-  if(method == 'D'){
-    vrna_sc_add_SHAPE_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
-    return;
-  }
-}
-
 /*--------------------------------------------------------------------------*/
 int main(int argc, char *argv[]){
   struct RNAalifold_args_info args_info;
   FILE                        *clust_file;
   unsigned int                input_type, options, longest_string,
                               input_format_options;
-  char                        *input_string, *string, *structure, *cstruc, *ParamFile,
-                              *ns_bases, **AS, **names, *constraints_file, **shape_files,
-                              *shape_method, *filename_plot, *filename_dot, *filename_aln,
-                              *filename_out, *filename_in, *tmp_id, *tmp_structure,
-                              *tmp_string, **input_files, *id_prefix;
+  char                        *input_string, *string, *structure, *cstruc, **AS, **names,
+                              *constraints_file, **shape_files, *shape_method, *filename_plot,
+                              *filename_dot, *filename_aln, *filename_out, *filename_in,
+                              *tmp_id, *tmp_structure, *tmp_string, **input_files, *id_prefix;
   int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci,
                               endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
                               istty_in, eval_energy, pf, istty, *shape_file_association,
                               tmp_number, batch, continuous_names, id_digits, auto_id,
-                              input_file_num, consensus_constraint;
+                              input_file_num, consensus_constraint, enforceConstraints;
   long int                    alignment_number;
-  double                      min_en, real_en, sfact, MEAgamma, bppmThreshold, betaScale;
+  double                      min_en, real_en, MEAgamma, bppmThreshold;
   vrna_md_t                   md;
   vrna_fold_compound_t        *vc;
 
-  string = structure = cstruc = ParamFile = ns_bases = NULL;
+  string = structure = cstruc = NULL;
   endgaps = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = noPS = 0;
   do_backtrack            = 1;
-  dangles                 = 2;
-  gquad                   = 0;
-  sfact                   = 1.07;
   bppmThreshold           = 1e-6;
   MEAgamma                = 1.0;
-  betaScale               = 1.;
   shape_files             = NULL;
   shape_file_association  = 0;
   shape_method            = NULL;
   with_shapes             = 0;
-  max_bp_span             = -1;
   verbose                 = 0;
   with_sci                = 0;
-  batch                   = 0;
-  constraints_file        = NULL;
   filename_plot           = NULL;
   filename_dot            = NULL;
   filename_aln            = NULL;
@@ -125,12 +84,9 @@ int main(int argc, char *argv[]){
   tmp_structure           = NULL;
   input_format_options    = VRNA_FILE_FORMAT_MSA_CLUSTAL; /* default to ClustalW format */
   vc                      = NULL;
-  alignment_number        = 0;
   clust_file              = stdin;
   continuous_names        = 0;
-  id_digits               = 4;
   auto_id                 = 0;
-  id_prefix               = NULL;
   input_file_num          = 0;
   consensus_constraint    = 0;
   set_model_details(&md);
@@ -140,58 +96,42 @@ int main(int argc, char *argv[]){
   # check the command line prameters
   #############################################
   */
-  if(RNAalifold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
-  /* temperature */
-  if(args_info.temp_given)
-    md.temperature = temperature = args_info.temp_arg;
-  /* structure constraint */
-  if(args_info.constraint_given){
-    fold_constrained=1;
-    if(args_info.constraint_arg[0] != '\0')
-      constraints_file = strdup(args_info.constraint_arg);
+  if(RNAalifold_cmdline_parser (argc, argv, &args_info) != 0)
+    exit(1);
+
+  /* get basic set of model details */
+  ggo_get_md_eval(args_info, md);
+  ggo_get_md_fold(args_info, md);
+  ggo_get_md_part(args_info, md);
+  ggo_get_circ(args_info, md.circ);
+
+  /* check dangle model */
+  if(!((md.dangles == 0) || (md.dangles == 2))){
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      md.dangles = dangles = 2;
   }
+
+  ggo_get_ID_manipulation(args_info,
+                          auto_id,
+                          id_prefix, "alignment",
+                          id_digits, 4,
+                          alignment_number, 1);
+
+  /* do not treat first alignment special */
+  if(args_info.continuous_ids_given || auto_id)
+    continuous_names = 1;
+
+  ggo_get_constraints_settings( args_info,
+                                fold_constrained,
+                                constraints_file,
+                                enforceConstraints,
+                                batch);
+
   if(args_info.SS_cons_given){
     fold_constrained      = 1;
     consensus_constraint  = 1;
   }
-  /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)
-    md.special_hp = tetra_loop = 0;
-  /* set dangle model */
-  if(args_info.dangles_given){
-    if((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      vrna_message_warning("Dangle model not implemented, falling back to default dangles=2");
-    else
-      md.dangles = dangles = args_info.dangles_arg;
-  }
-  /* do not allow weak pairs */
-  if(args_info.noLP_given)
-    md.noLP = noLonelyPairs = 1;
-  /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)
-    md.noGU = noGU = 1;
-  /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given)
-    md.noGUclosure = no_closingGU = 1;
-  /* gquadruplex support */
-  if(args_info.gquad_given)
-    md.gquad = gquad = 1;
-  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
-  /* set energy model */
-  if(args_info.energyModel_given)
-    md.energy_set = energy_set = args_info.energyModel_arg;
-  /* take another energy parameter set */
-  if(args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
-  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if(args_info.nsp_given)
-    ns_bases = strdup(args_info.nsp_arg);
-  /* set pf scaling factor */
-  if(args_info.pfScale_given)
-    md.sfact = sfact = args_info.pfScale_arg;
-  /* assume RNA sequence to be circular */
-  if(args_info.circ_given)
-    md.circ = circular = 1;
+
   /* do not produce postscript output */
   if(args_info.noPS_given)
     noPS = 1;
@@ -207,8 +147,6 @@ int main(int argc, char *argv[]){
     if(args_info.MEA_arg != -1)
       MEAgamma = args_info.MEA_arg;
   }
-  if(args_info.betaScale_given)
-    md.betaScale = betaScale = args_info.betaScale_arg;
   /* set the bppm threshold for the dotplot */
   if(args_info.bppmThreshold_given)
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
@@ -253,10 +191,6 @@ int main(int argc, char *argv[]){
   }
   if(args_info.layout_type_given)
     rna_plot_type = args_info.layout_type_arg;
-
-  if(args_info.maxBPspan_given){
-    md.max_bp_span = max_bp_span = args_info.maxBPspan_arg;
-  }
 
   if(args_info.verbose_given){
     verbose = 1;
@@ -360,41 +294,6 @@ int main(int argc, char *argv[]){
     }
   }
 
-  /* do batch jobs despite constraints read from input file */
-  if(args_info.batch_given)
-    batch = 1;
-
-  /* do not treat first alignment special */
-  if(args_info.continuous_ids_given)
-    continuous_names = 1;
-
-  /* do not use IDs from input file */
-  if(args_info.auto_id_given)
-    auto_id = 1;
-
-  if(args_info.id_prefix_given){
-    id_prefix   = strdup(args_info.id_prefix_arg);
-  } else {
-    id_prefix = strdup("alignment");
-  }
-
-  /* set width of alignment number in the output */
-  if(args_info.id_digits_given){
-    if((args_info.id_digits_arg > 0) && (args_info.id_digits_arg < 19))
-      id_digits = args_info.id_digits_arg;
-    else
-      vrna_message_warning("ID number width out of allowed range! Using defaults...");
-  }
-
-  /* set first alignment number in the output */
-  if(args_info.id_start_given){
-    if((args_info.id_start_arg >= 0) && (args_info.id_start_arg <= LONG_MAX)){
-      alignment_number = args_info.id_start_arg - 1;
-      continuous_names = 1;
-    } else
-      vrna_message_warning("ID number start out of allowed range! Using defaults...");
-  }
-
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free (&args_info);
 
@@ -417,13 +316,6 @@ int main(int argc, char *argv[]){
     vrna_message_warning("Depending on the origin of the circular sequence, "
               "some structures may be missed when using --noLP\n"
               "Try rotating your sequence a few times\n");
-
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
-
-  if (ns_bases != NULL) {
-    vrna_md_set_nonstandards(&md, ns_bases);
-  }
 
   /*
   ########################################################
@@ -523,18 +415,17 @@ int main(int argc, char *argv[]){
       continue;
     }
 
-    if(alignment_number == LONG_MAX){
-      vrna_message_warning("Alignment ID number overflow, beginning with 1 (again)!");
-      alignment_number = 1;
-    } else
-      alignment_number++;
-
     /* construct alignment ID */
     if(tmp_id && (!auto_id)){ /* we've read an ID from file, so we use it */
       MSA_ID = strdup(tmp_id);
     } else if(auto_id || (alignment_number > 1) || continuous_names){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
       MSA_ID = vrna_strdup_printf("%s_%0*ld", id_prefix, id_digits, alignment_number);
     }
+
+#if 0
+    /* construct the sequence ID */
+    ID_generate(MSA_ID, tmp_id, auto_id, id_prefix, id_digits, alignment_number);
+#endif
 
     /* construct output file names */
     if(MSA_ID){ /* construct file names */
@@ -589,12 +480,18 @@ int main(int argc, char *argv[]){
     if(fold_constrained){
       if(cstruc){
         strncpy(structure, cstruc, length);
-        vrna_constraints_add(vc, (const char *)structure, VRNA_CONSTRAINT_DB_DEFAULT);
+        if(enforceConstraints)
+          vrna_constraints_add(vc, (const char *)structure, VRNA_CONSTRAINT_DB_DEFAULT | VRNA_CONSTRAINT_DB_ENFORCE_BP);
+        else
+          vrna_constraints_add(vc, (const char *)structure, VRNA_CONSTRAINT_DB_DEFAULT);
       } else if(constraints_file){
         vrna_constraints_add(vc, constraints_file, 0);
       } else if(tmp_structure){
         dot_bracketify(tmp_structure);
-        vrna_constraints_add(vc, (const char *)tmp_structure, VRNA_CONSTRAINT_DB_DEFAULT);
+        if(enforceConstraints)
+          vrna_constraints_add(vc, (const char *)tmp_structure, VRNA_CONSTRAINT_DB_DEFAULT | VRNA_CONSTRAINT_DB_ENFORCE_BP);
+        else
+          vrna_constraints_add(vc, (const char *)tmp_structure, VRNA_CONSTRAINT_DB_DEFAULT);
       } else
         vrna_message_warning("Constraint missing");
     }
@@ -610,7 +507,7 @@ int main(int argc, char *argv[]){
     }
 
     if(with_shapes)
-      add_shape_constraints(vc, \
+      vrna_constraints_add_SHAPE_ali(vc, \
                             shape_method, \
                             (const char **)shape_files, \
                             shape_file_association, \
@@ -818,6 +715,7 @@ int main(int argc, char *argv[]){
       free(mfe_struc);
     } /* end partition function block */
 
+    ID_number_increase(alignment_number, "Alignment");
 
     (void) fflush(stdout);
     if(shape_files)

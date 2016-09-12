@@ -26,6 +26,8 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/read_epars.h"
 #include "RNAcofold_cmdl.h"
+#include "gengetopt_helper.h"
+#include "input_id_helper.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -52,13 +54,12 @@ int main(int argc, char *argv[])
 {
   struct        RNAcofold_args_info args_info;
   char          *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence,
-                *rec_id, **rec_rest, fname[FILENAME_MAX_LENGTH], *ParamFile,
-                *ns_bases, *Concfile, *id_prefix;
+                *rec_id, **rec_rest, fname[FILENAME_MAX_LENGTH], *Concfile, *id_prefix;
   unsigned int  rec_type, read_opt;
   int           i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
-                doT, doC, cofi, auto_id, id_digits, istty_in, istty_out;
+                doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch;
   long int      seq_number;
-  double        min_en, kT, sfact, betaScale, *ConcAandB;
+  double        min_en, kT, *ConcAandB;
   plist         *prAB, *prAA, *prBB, *prA, *prB, *mfAB, *mfAA, *mfBB, *mfA, *mfB;
   vrna_md_t     md;
 
@@ -67,8 +68,6 @@ int main(int argc, char *argv[])
   # init variables and parameter options
   #############################################
   */
-  dangles             = 2;
-  sfact               = 1.07;
   bppmThreshold       = 1e-5;
   noconv              = 0;
   noPS                = 0;
@@ -77,22 +76,13 @@ int main(int argc, char *argv[])
   doT                 = 0;  /* compute dimer free energies etc. */
   doC                 = 0;  /* toggle to compute concentrations */
   cofi                = 0;  /* toggle concentrations stdin / file */
-  betaScale           = 1.;
-  gquad               = 0;
-  ParamFile           = NULL;
   Concfile            = NULL;
   structure           = NULL;
   cstruc              = NULL;
-  ns_bases            = NULL;
   rec_type            = read_opt = 0;
   rec_id              = rec_sequence = orig_sequence = NULL;
   rec_rest            = NULL;
-  constraints_file    = NULL;
-  enforceConstraints  = 0;
-  seq_number          = 1;
-  id_prefix           = NULL;
   auto_id             = 0;
-  id_digits           = 4;
 
   set_model_details(&md);
   /*
@@ -100,62 +90,43 @@ int main(int argc, char *argv[])
   # check the command line prameters
   #############################################
   */
-  if(RNAcofold_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
-  /* temperature */
-  if(args_info.temp_given)
-    md.temperature = temperature = args_info.temp_arg;
-  /* structure constraint */
-  if(args_info.constraint_given){
-    fold_constrained=1;
-    if(args_info.constraint_arg[0] != '\0')
-      constraints_file = strdup(args_info.constraint_arg);
+  if(RNAcofold_cmdline_parser (argc, argv, &args_info) != 0)
+    exit(1);
+
+  /* get basic set of model details */
+  ggo_get_md_eval(args_info, md);
+  ggo_get_md_fold(args_info, md);
+  ggo_get_md_part(args_info, md);
+
+  /* check dangle model */
+  if((md.dangles < 0) || (md.dangles > 3)){
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      md.dangles = dangles = 2;
   }
-  /* enforce base pairs given in constraint string rather than weak enforce */
-  if(args_info.enforceConstraint_given)
-    enforceConstraints = 1;
-  /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)
-    md.special_hp = tetra_loop = 0;
-  /* set dangle model */
-  if(args_info.dangles_given){
-    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning("Required dangle model not implemented, falling back to default dangles=2");
-    else
-     md.dangles = dangles = args_info.dangles_arg;
-  }
-  /* do not allow weak pairs */
-  if(args_info.noLP_given)
-    md.noLP = noLonelyPairs = 1;
-  /* do not allow wobble pairs (GU) */
-  if(args_info.noGU_given)
-    md.noGU = noGU = 1;
-  /* do not allow weak closing pairs (AU,GU) */
-  if(args_info.noClosingGU_given)
-    md.noGUclosure = no_closingGU = 1;
-  /* gquadruplex support */
-  if(args_info.gquad_given)
-    md.gquad = gquad = 1;
+
+  ggo_get_ID_manipulation(args_info,
+                          auto_id,
+                          id_prefix, "sequence",
+                          id_digits, 4,
+                          seq_number, 1);
+
+  ggo_get_constraints_settings( args_info,
+                                fold_constrained,
+                                constraints_file,
+                                enforceConstraints,
+                                batch);
+
   /* enforce canonical base pairs in any case? */
   if(args_info.canonicalBPonly_given)
     md.canonicalBPonly = canonicalBPonly = 1;
+
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)
     noconv = 1;
-  /* set energy model */
-  if(args_info.energyModel_given)
-    md.energy_set = energy_set = args_info.energyModel_arg;
+
   /*  */
   if(args_info.noPS_given)
     noPS = 1;
-  /* take another energy parameter set */
-  if(args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
-  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if(args_info.nsp_given)
-    ns_bases = strdup(args_info.nsp_arg);
-  /* set pf scaling factor */
-  if(args_info.pfScale_given)
-    md.sfact = sfact = args_info.pfScale_arg;
 
   if(args_info.all_pf_given)
     doT = pf = 1;
@@ -166,8 +137,6 @@ int main(int argc, char *argv[])
   if(args_info.bppmThreshold_given)
     bppmThreshold = MIN2(1., MAX2(0.,args_info.bppmThreshold_arg));
   /* concentrations in file */
-  if(args_info.betaScale_given)
-    md.betaScale = betaScale = args_info.betaScale_arg;
   if(args_info.concfile_given){
     Concfile = strdup(args_info.concfile_arg);
     doC = cofi = doT = pf = 1;
@@ -179,37 +148,6 @@ int main(int argc, char *argv[])
       md.compute_bpp = do_backtrack = args_info.partfunc_arg;
   }
 
-  if(args_info.auto_id_given){
-    auto_id = 1;
-  }
-
-  if(args_info.id_prefix_given){
-    id_prefix   = strdup(args_info.id_prefix_arg);
-    auto_id  = 1;
-  } else {
-    id_prefix = strdup("sequence");
-  }
-
-  /* set width of alignment number in the output */
-  if(args_info.id_digits_given){
-    if((args_info.id_digits_arg > 0) && (args_info.id_digits_arg < 19))
-      id_digits = args_info.id_digits_arg;
-    else
-      vrna_message_warning("ID number digits out of allowed range! Using defaults...");
-  }
-
-  /* set first sequence number in the output */
-  if(args_info.id_start_given){
-    if((args_info.id_start_arg >= 0) && (args_info.id_start_arg <= LONG_MAX)){
-      seq_number  = args_info.id_start_arg;
-      auto_id  = 1;
-    } else
-      vrna_message_warning("ID number start out of allowed range! Using defaults...");
-  }
-
-
-
-
   /* free allocated memory of command line data structure */
   RNAcofold_cmdline_parser_free (&args_info);
 
@@ -220,13 +158,6 @@ int main(int argc, char *argv[])
   */
   if(pf && gquad){
     vrna_message_error("G-Quadruplex support is currently not available for partition function computations");
-  }
-
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
-
-  if (ns_bases != NULL) {
-    vrna_md_set_nonstandards(&md, ns_bases);
   }
 
   istty_in  = isatty(fileno(stdin));
@@ -270,11 +201,7 @@ int main(int argc, char *argv[])
     else fname[0] = '\0';
 
     /* construct the sequence ID */
-    if((fname[0] != '\0') && (!auto_id)){ /* we've read an ID from file, so we use it */
-      SEQ_ID = strdup(fname);
-    } else if(auto_id){ /* we have nuffin', Jon Snow (...so we simply generate an ID) */
-      SEQ_ID = vrna_strdup_printf("%s_%0*ld", id_prefix, id_digits, seq_number);
-    }
+    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_digits, seq_number);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if(!noconv) vrna_seq_toRNA(rec_sequence);
@@ -401,7 +328,7 @@ int main(int argc, char *argv[])
     /* compute partition function */
     if (pf) {
       vrna_dimer_pf_t AB, AA, BB;
-      if (dangles==1){
+      if (md.dangles==1){
         vc->params->model_details.dangles = dangles = 2;   /* recompute with dangles as in pf_fold() */
         min_en = vrna_eval_structure(vc, structure);
         vc->params->model_details.dangles = dangles = 1;
@@ -628,11 +555,10 @@ int main(int argc, char *argv[])
 
     free(SEQ_ID);
 
-    if(seq_number == LONG_MAX){
-      vrna_message_warning("Sequence ID number overflow, beginning with 1 (again)!");
-      seq_number = 1;
-    } else
-      seq_number++;
+    if(constraints_file && (!batch))
+      break;
+
+    ID_number_increase(seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if(istty){

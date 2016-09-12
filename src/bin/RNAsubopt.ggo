@@ -57,6 +57,15 @@ typestr="<filename>"
 default = ""
 argoptional
 
+option  "batch"   -
+"Use constraints for multiple sequences.\n"
+details="Usually, constraints provided from input file only apply to a single input sequence. Therefore,\
+ RNAfold will stop its computation and quit after the first input sequence was processed. Using this\
+ switch, RNAfold processes multiple input sequences and applies the same provided constraints to each of them.\n\n"
+flag
+off
+dependon="constraint"
+
 option  "canonicalBPonly" -
 "Remove non-canonical base pairs from the structure constraint\n\n"
 flag
@@ -256,6 +265,14 @@ details="Its argument is a comma separated list of additionally allowed pairs. I
 string
 optional
 hidden
+
+option  "energyModel" -
+"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
+int
+optional
+hidden
+
 
 option  "betaScale" -
 "Set the scaling of the Boltzmann factors\n"
