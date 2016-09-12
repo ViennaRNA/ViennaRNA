@@ -17,24 +17,16 @@ fill_arrays_comparative_circ( vrna_fold_compound_t *vc,
              (a pair (1,k) will form a 5' dangle with pos n)
   */
   int               Fc, FcH, FcI, FcM, Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi, FcMd3, FcMd5;
-  int               i, j, ij, p, q, u, length, energy, new_c, fm, n_seq, *rtype, s, rt, si1, sj1;
+  int               i, j, ij, u, length, new_c, fm, n_seq, s;
   int               *indx, *c, *fML, *fM2;
-  short             **S, **S5, **S3;
-  char              **Ss;
   char              *hard_constraints;
   unsigned short    **a2s;
   vrna_param_t      *P;
-  vrna_md_t         *md;
   vrna_hc_t         *hc;
   vrna_sc_t         **sc;
 
-  S                 = vc->S;
-  S5                = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
-  S3                = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
-  Ss                = vc->Ss;
   a2s               = vc->a2s;
   P                 = vc->params;
-  md                = &(P->model_details);
   indx              = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
   c                 = vc->matrices->c;     /* energy array, given that i-j pair */
   fML               = vc->matrices->fML;     /* multi-loop auxiliary energy array */
@@ -44,7 +36,6 @@ fill_arrays_comparative_circ( vrna_fold_compound_t *vc,
   hard_constraints  = hc->matrix;
   n_seq             = vc->n_seq;
   length            = vc->length;
-  rtype             = &(md->rtype[0]);
 
   /* extra arrays for circfold() */
   FcH = FcI= FcM = FcMd3= FcMd5= INF;

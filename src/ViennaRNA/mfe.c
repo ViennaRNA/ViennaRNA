@@ -77,9 +77,9 @@ PUBLIC float
 vrna_mfe( vrna_fold_compound_t *vc,
           char *structure){
 
+  char    *ss;
   int     length, energy, s;
   float   mfe;
-  char    *ss;
   sect    bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   vrna_bp_stack_t   *bp;
 
@@ -171,54 +171,42 @@ vrna_mfe( vrna_fold_compound_t *vc,
 PRIVATE int
 fill_arrays(vrna_fold_compound_t *vc){
 
-  int               i, j, ij, length, energy, new_c, stackEnergy, no_close, type_2, turn;
-  int               noGUclosure, noLP, uniq_ML, with_gquad, dangle_model, *rtype, *indx;
-  int               *my_f5, *my_c, *my_fML, *my_fM1, *my_ggg, hc_decompose, *hc_up_ml;
-  int               *cc, *cc1;  /* auxilary arrays for canonical structures     */
-  int               *Fmi;       /* holds row i of fML (avoids jumps in memory)  */
-  int               *DMLi;      /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
-  int               *DMLi1;     /*                MIN(fML[i+1,k]+fML[k+1,j])    */
-  int               *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
   unsigned char     type;
   char              *ptype, *hard_constraints;
-  short             *S1;
+  int               i, j, ij, length, energy, new_c, stackEnergy, no_close, turn,
+                    noGUclosure, noLP, uniq_ML, dangle_model, *indx, *my_f5,
+                    *my_c, *my_fML, *my_fM1, hc_decompose, *cc, *cc1, *Fmi, *DMLi,
+                    *DMLi1, *DMLi2;
   vrna_param_t      *P;
   vrna_mx_mfe_t     *matrices;
   vrna_hc_t         *hc;
-  vrna_sc_t         *sc;
   vrna_ud_t         *domains_up;
 
   length            = (int)vc->length;
   ptype             = vc->ptype;
   indx              = vc->jindx;
   P                 = vc->params;
-  S1                = vc->sequence_encoding;
   noGUclosure       = P->model_details.noGUclosure;
   noLP              = P->model_details.noLP;
   uniq_ML           = P->model_details.uniq_ML;
-  with_gquad        = P->model_details.gquad;
   dangle_model      = P->model_details.dangles;
   turn              = P->model_details.min_loop_size;
-  rtype             = &(P->model_details.rtype[0]);
   hc                = vc->hc;
   hard_constraints  = hc->matrix;
-  hc_up_ml          = hc->up_ml;
-  sc                = vc->sc;
   matrices          = vc->matrices;
   my_f5             = matrices->f5;
   my_c              = matrices->c;
   my_fML            = matrices->fML;
   my_fM1            = matrices->fM1;
-  my_ggg            = matrices->ggg;
   domains_up        = vc->domains_up;
 
   /* allocate memory for all helper arrays */
-  cc    = (int *) vrna_alloc(sizeof(int)*(length + 2));
-  cc1   = (int *) vrna_alloc(sizeof(int)*(length + 2));
-  Fmi   = (int *) vrna_alloc(sizeof(int)*(length + 1));
-  DMLi  = (int *) vrna_alloc(sizeof(int)*(length + 1));
-  DMLi1 = (int *) vrna_alloc(sizeof(int)*(length + 1));
-  DMLi2 = (int *) vrna_alloc(sizeof(int)*(length + 1));
+  cc    = (int *) vrna_alloc(sizeof(int)*(length + 2)); /* auxilary arrays for canonical structures     */
+  cc1   = (int *) vrna_alloc(sizeof(int)*(length + 2)); /* auxilary arrays for canonical structures     */
+  Fmi   = (int *) vrna_alloc(sizeof(int)*(length + 1)); /* holds row i of fML (avoids jumps in memory)  */
+  DMLi  = (int *) vrna_alloc(sizeof(int)*(length + 1)); /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
+  DMLi1 = (int *) vrna_alloc(sizeof(int)*(length + 1)); /*                MIN(fML[i+1,k]+fML[k+1,j])    */
+  DMLi2 = (int *) vrna_alloc(sizeof(int)*(length + 1)); /*                MIN(fML[i+2,k]+fML[k+1,j])    */
 
   if((turn < 0) || (turn > length))
     turn = length; /* does this make any sense? */
@@ -341,58 +329,51 @@ fill_arrays(vrna_fold_compound_t *vc){
 PRIVATE int
 fill_arrays_comparative(vrna_fold_compound_t *vc){
 
-  int   i, j, k, p, q, turn, energy, stackEnergy, new_c;
-  int   decomp, MLenergy, new_fML;
-  int   s, *type, type_2, tt;
-  int   *cc;        /* linear array for calculating canonical structures */
-  int   *cc1;       /*   "     "        */
-  int   *Fmi;       /* holds row i of fML (avoids jumps in memory) */
-  int   *DMLi;      /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-  int   *DMLi1;     /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-  int   *DMLi2;     /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+  char              *hard_constraints;
+  unsigned short    **a2s;
+  short             **S, **S5, **S3;
+  int               i, j, turn, energy, stackEnergy, new_c, s, *type, tt, *cc,
+                    *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2, n_seq, length, *indx,
+                    *c, *f5, *fML, *ggg, *pscore, dangle_model;
+  vrna_param_t      *P;
+  vrna_md_t         *md;
+  vrna_hc_t         *hc;
+  vrna_sc_t         **sc;
 
+  n_seq             = vc->n_seq;
+  length            = vc->length;
+  S                 = vc->S;
+  S5                = vc->S5;             /* S5[s][i] holds next base 5' of i in sequence s */
+  S3                = vc->S3;             /* Sl[s][i] holds next base 3' of i in sequence s */
+  a2s               = vc->a2s;
+  P                 = vc->params;
+  md                = &(P->model_details);
+  indx              = vc->jindx;          /* index for moving in the triangle matrices c[] and fMl[] */
+  c                 = vc->matrices->c;    /* energy array, given that i-j pair */
+  f5                = vc->matrices->f5;   /* energy of 5' end */
+  fML               = vc->matrices->fML;  /* multi-loop auxiliary energy array */
+  ggg               = vc->matrices->ggg;
+  pscore            = vc->pscore;         /* precomputed array of pair types */
+  dangle_model      = md->dangles;
+  turn              = md->min_loop_size;
+  hc                = vc->hc;
+  sc                = vc->scs;
+  hard_constraints  = hc->matrix;
 
-  int             n_seq         = vc->n_seq;
-  int             length        = vc->length;
-  short           **S           = vc->S;
-  short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
-  short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
-  char            **Ss          = vc->Ss;
-  unsigned short  **a2s         = vc->a2s;
-  vrna_param_t    *P            = vc->params;
-  vrna_md_t       *md           = &(P->model_details);
-  int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
-  int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */
-  int             *f5           = vc->matrices->f5;     /* energy of 5' end */
-  int             *fML          = vc->matrices->fML;     /* multi-loop auxiliary energy array */
-  int             *ggg          = vc->matrices->ggg;
-  int             *pscore       = vc->pscore;     /* precomputed array of pair types */
-  short           *S_cons       = vc->S_cons;
-  int             *rtype        = &(md->rtype[0]);
-  int             dangle_model  = md->dangles;
-
-  vrna_hc_t       *hc           = vc->hc;
-  vrna_sc_t       **sc          = vc->scs;
-
-  char              *hard_constraints = hc->matrix;
-
+  /* allocate some memory for helper arrays */
   type  = (int *) vrna_alloc(n_seq*sizeof(int));
-  cc    = (int *) vrna_alloc(sizeof(int)*(length+2));
-  cc1   = (int *) vrna_alloc(sizeof(int)*(length+2));
-  Fmi   = (int *) vrna_alloc(sizeof(int)*(length+1));
-  DMLi  = (int *) vrna_alloc(sizeof(int)*(length+1));
-  DMLi1 = (int *) vrna_alloc(sizeof(int)*(length+1));
-  DMLi2 = (int *) vrna_alloc(sizeof(int)*(length+1));
+  cc    = (int *) vrna_alloc(sizeof(int)*(length+2)); /* linear array for calculating canonical structures */
+  cc1   = (int *) vrna_alloc(sizeof(int)*(length+2)); /*   "     "        */
+  Fmi   = (int *) vrna_alloc(sizeof(int)*(length+1)); /* holds row i of fML (avoids jumps in memory) */
+  DMLi  = (int *) vrna_alloc(sizeof(int)*(length+1)); /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+  DMLi1 = (int *) vrna_alloc(sizeof(int)*(length+1)); /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+  DMLi2 = (int *) vrna_alloc(sizeof(int)*(length+1)); /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 
-  turn  = md->min_loop_size;
 
   if((turn < 0) || (turn > length))
     turn = length;
 
   /* init energies */
-
-  int max_bpspan = (md->max_bp_span > 0) ? md->max_bp_span : length;
-
   for (j=1; j<=length; j++){
     Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
     for (i=(j>turn?(j-turn):1); i<j; i++) {
@@ -403,7 +384,7 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
   /* begin recursions */
   for (i = length-turn-1; i >= 1; i--) { /* i,j in [1..length] */
     for (j = i+turn+1; j <= length; j++) {
-      int ij, psc, l1, maxq, minq, c0;
+      int ij, psc;
       ij = indx[j]+i;
 
       for (s=0; s<n_seq; s++) {
@@ -613,36 +594,21 @@ backtrack(vrna_fold_compound_t *vc,
           sect bt_stack[],
           int s){
 
-  int   i, j, ij, k, mm3, length, energy, en, new;
-  int   no_close, minq;
-  int   b=0;
-  unsigned char type, tt, type_2;
-  char  *string         = vc->sequence;
-  vrna_param_t  *P      = vc->params;
-  int     *indx         = vc->jindx;
-  char    *ptype        = vc->ptype;
+  unsigned char   type;
+  char            *string, *ptype, backtrack_type;
+  int             i, j, ij, k, length, no_close, b, *my_c, *indx, noLP, noGUclosure;
+  vrna_param_t    *P;
 
-  short *S1             = vc->sequence_encoding;
-  short *S              = vc->sequence_encoding2;
-  int   dangle_model    = P->model_details.dangles;
-  int   noLP            = P->model_details.noLP;
-  int   noGUclosure     = P->model_details.noGUclosure;
-  int   *rtype          = &(P->model_details.rtype[0]);
-  char  backtrack_type  = P->model_details.backtrack_type;
-  int   with_gquad      = P->model_details.gquad;
-
-  /* the folding matrices */
-  int   *my_f5, *my_c, *my_fML, *my_ggg;
-
-  length  = vc->length;
-  my_f5   = vc->matrices->f5;
-  my_c    = vc->matrices->c;
-  my_fML  = vc->matrices->fML;
-  my_ggg  = vc->matrices->ggg;
-
-  vrna_hc_t *hc               = vc->hc;
-  vrna_sc_t *sc               = vc->sc;
-  char      *hard_constraints = hc->matrix;
+  b               = 0;
+  length          = vc->length;
+  my_c            = vc->matrices->c;
+  indx            = vc->jindx;
+  P               = vc->params;
+  noLP            = P->model_details.noLP;
+  noGUclosure     = P->model_details.noGUclosure;
+  string          = vc->sequence;
+  ptype           = vc->ptype;
+  backtrack_type  = P->model_details.backtrack_type;
 
   if (s==0) {
     bt_stack[++s].i = 1;
@@ -650,7 +616,7 @@ backtrack(vrna_fold_compound_t *vc,
     bt_stack[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')? 2: 0);
   }
   while (s>0) {
-    int ml, fij, fi, cij, traced, i1, j1, p, q, jj=0, gq=0;
+    int ml, cij;
     int canonical = 1;     /* (i,j) closes a canonical structure */
 
     /* pop one element from stack */
@@ -720,7 +686,6 @@ backtrack(vrna_fold_compound_t *vc,
     if (canonical)
       cij = my_c[ij];
 
-
     type = (unsigned char)ptype[ij];
 
     if (noLP)
@@ -786,33 +751,42 @@ backtrack_comparative(vrna_fold_compound_t *vc,
    /* normally s=0.
      If s>0 then s items have been already pushed onto the sector stack */
 
-  int  i, j, k, p, q, turn, energy, en, c0, l1, minq, maxq, type_2, tt, mm, b=0, cov_en = 0, *type;
+  unsigned short  **a2s;
+  short           **S, **S5, **S3, *S_cons;
+  int             i, j, k, p, q, turn, energy, en, c0, l1, minq, maxq,
+                  type_2, tt, mm, b, cov_en, *type, n_seq, length, *indx,
+                  *c, *f5, *fML, *pscore, *ggg, *rtype, dangle_model, with_gquad;
+  vrna_param_t    *P;
+  vrna_md_t       *md;
+  vrna_hc_t       *hc;
+  vrna_sc_t       **sc;
 
-  int             n_seq         = vc->n_seq;
-  int             length        = vc->length;
-  short           **S           = vc->S;
-  short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
-  short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
-  char            **Ss          = vc->Ss;
-  unsigned short  **a2s         = vc->a2s;
-  vrna_param_t    *P            = vc->params;
-  vrna_md_t       *md           = &(P->model_details);
-  int             *indx         = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
-  int             *c            = vc->matrices->c;     /* energy array, given that i-j pair */
-  int             *f5           = vc->matrices->f5;     /* energy of 5' end */
-  int             *fML          = vc->matrices->fML;     /* multi-loop auxiliary energy array */
-  int             *pscore       = vc->pscore;     /* precomputed array of pair types */
-  int             *ggg          = vc->matrices->ggg;
-  short           *S_cons       = vc->S_cons;
-  int             *rtype        = &(md->rtype[0]);
-  int             dangle_model  = md->dangles;
-  int             with_gquad    = md->gquad;
-
-  vrna_hc_t       *hc           = vc->hc;
-  vrna_sc_t       **sc          = vc->scs;
+  n_seq         = vc->n_seq;
+  length        = vc->length;
+  S             = vc->S;
+  S5            = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
+  S3            = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+  a2s           = vc->a2s;
+  P             = vc->params;
+  md            = &(P->model_details);
+  indx          = vc->jindx;     /* index for moving in the triangle matrices c[] and fMl[]*/
+  c             = vc->matrices->c;     /* energy array, given that i-j pair */
+  f5            = vc->matrices->f5;     /* energy of 5' end */
+  fML           = vc->matrices->fML;     /* multi-loop auxiliary energy array */
+  pscore        = vc->pscore;     /* precomputed array of pair types */
+  ggg           = vc->matrices->ggg;
+  S_cons        = vc->S_cons;
+  rtype         = &(md->rtype[0]);
+  dangle_model  = md->dangles;
+  with_gquad    = md->gquad;
+  hc            = vc->hc;
+  sc            = vc->scs;
+  turn          = md->min_loop_size;
+  b             = 0;
+  cov_en        = 0;
 
   type  = (int *) vrna_alloc(n_seq*sizeof(int));
-  turn  = md->min_loop_size;
+
   if((turn < 0) || (turn > length))
     turn = length;
 
