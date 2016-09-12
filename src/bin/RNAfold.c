@@ -505,7 +505,7 @@ int main(int argc, char *argv[]){
       vrna_message_info(stdout, "length = %d\n", length);
 
     if(commands)
-      vrna_commands_apply(vc, commands);
+      vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_DEFAULTS);
 
     /*
     vrna_ud_add_motif(vc, "AAAA", -15., VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS);

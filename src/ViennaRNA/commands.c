@@ -103,10 +103,27 @@ typedef struct {
 #################################
 */
 
+PUBLIC int
+vrna_file_commands_apply( vrna_fold_compound_t *vc,
+                          const char *filename,
+                          unsigned int options){
+
+  /** [Applying commands from file] */
+  int         r;
+  vrna_cmd_t  *cmds;
+
+  cmds  = vrna_file_commands_read(filename, options);
+  r     = vrna_commands_apply(vc, cmds, options);
+
+  vrna_commands_free(cmds);
+
+  return r;
+  /** [Applying commands from file] */
+}
+
 PUBLIC vrna_cmd_t *
 vrna_file_commands_read(const char *filename,
                         unsigned int options){
-
   FILE        *fp;
   char        *line;
   int         num_commands, max_commands, line_number, valid;
@@ -185,22 +202,21 @@ vrna_file_commands_read(const char *filename,
 
 PUBLIC int
 vrna_commands_apply(vrna_fold_compound_t *vc,
-                    vrna_cmd_t *commands){
+                    vrna_cmd_t *commands,
+                    unsigned int options){
 
-  int i;
+  int         r = 0;
+  vrna_cmd_t  *ptr;
 
   if(vc && commands){
-    /* we'll collect soft constraint for unpaired positions */
-
-    /* we'll collect soft constraints for base pairs */
-
-    /* finally, parse the list */
-    for(i = 0; commands[i].type != VRNA_CMD_LAST; i++){
-      switch(commands[i].type){
-        case VRNA_CMD_HC:   apply_hard_constraint(vc, commands[i].data);
+    for(ptr = commands; ptr->type != VRNA_CMD_LAST; ptr++){
+      switch(ptr->type){
+        case VRNA_CMD_HC:   if(options & VRNA_CMD_PARSE_HC)
+                              r += apply_hard_constraint(vc, ptr->data);
                             break;
 
-        case VRNA_CMD_SC:   apply_soft_constraint(vc, commands[i].data);
+        case VRNA_CMD_SC:   if(options & VRNA_CMD_PARSE_SC)
+                              r += apply_soft_constraint(vc, ptr->data);
                             break;
 
         default:            /* do nothing */
@@ -209,17 +225,17 @@ vrna_commands_apply(vrna_fold_compound_t *vc,
     }
   }
   
-  return 1;
+  return r;
 }
 
 PUBLIC void
 vrna_commands_free( vrna_cmd_t *commands){
 
-  int i;
+  vrna_cmd_t *ptr;
 
   if(commands){
-    for(i = 0; commands[i].type != VRNA_CMD_LAST; i++)
-      free(commands[i].data);
+    for(ptr = commands; ptr->type != VRNA_CMD_LAST; ptr++)
+      free(ptr->data);
     free(commands);
   }
 }
