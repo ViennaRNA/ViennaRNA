@@ -31,7 +31,7 @@ typedef void *(command_parser_function)(const char *line);
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE vrna_cmd_t parse_command(const char *line, int line_number);
+PRIVATE vrna_cmd_t parse_command(const char *line, int line_number, const char *filename);
 
 PRIVATE void *parse_constraint_force(const char *line);
 PRIVATE void *parse_constraint_prohibit(const char *line);
@@ -41,17 +41,20 @@ PRIVATE void *parse_constraint_energy(const char *line);
 PRIVATE void *parse_constraint(const char *line, char command);
 
 PRIVATE int parse_constraints_line( const char *line,
-                        char command,
-                        int *i,
-                        int *j,
-                        int *k,
-                        int *l,
-                        char *loop,
-                        char *orientation,
-                        float *e);
+                                    char command,
+                                    int *i,
+                                    int *j,
+                                    int *k,
+                                    int *l,
+                                    char *loop,
+                                    char *orientation,
+                                    float *e);
 
 
 PRIVATE int apply_hard_constraint(vrna_fold_compound_t *vc,
+                                  void *constraint);
+
+PRIVATE int apply_soft_constraint(vrna_fold_compound_t *vc,
                                   void *constraint);
 
 /*
@@ -130,7 +133,7 @@ vrna_file_commands_read(const char *filename,
         free(line);
         continue;
       default:
-        cmd = parse_command((const char *)line, line_number);
+        cmd = parse_command((const char *)line, line_number, filename);
         break;
     }
 
@@ -193,11 +196,11 @@ vrna_commands_apply(vrna_fold_compound_t *vc,
 
     /* finally, parse the list */
     for(i = 0; commands[i].type != VRNA_CMD_LAST; i++){
-      switch(commands->type){
+      switch(commands[i].type){
         case VRNA_CMD_HC:   apply_hard_constraint(vc, commands[i].data);
                             break;
 
-        case VRNA_CMD_SC:   
+        case VRNA_CMD_SC:   apply_soft_constraint(vc, commands[i].data);
                             break;
 
         default:            /* do nothing */
@@ -286,8 +289,38 @@ apply_hard_constraint(vrna_fold_compound_t *vc,
   return 1;
 }
 
+
+PRIVATE int
+apply_soft_constraint(vrna_fold_compound_t *vc,
+                      void *data){
+
+  int               i, j, k, l, h, cnt1, cnt2, cnt3;
+  float             e;
+  constraint_struct *constraint = (constraint_struct *)data;
+
+  i           = constraint->i;
+  j           = constraint->j;
+  k           = constraint->k;
+  l           = constraint->l;
+  h           = constraint->size;
+  e           = constraint->e;
+
+  for(cnt1 = i; cnt1 <= j; cnt1++)
+    for(cnt2 = k; cnt2 <= l; cnt2++)
+      for(cnt3 = h; cnt3 != 0; cnt3--){
+        if((cnt2 == 0) || ((i == j) && (j == k) && (k == l))){  /* enforce nucleotide constraint */
+          vrna_sc_add_up(vc, cnt1 + (cnt3 - 1), e, VRNA_OPTION_DEFAULT);
+        } else {  /* enforce base pair constraint */
+          vrna_sc_add_bp(vc, cnt1 + (cnt3 - 1), cnt2 - (cnt3 - 1), e, VRNA_OPTION_DEFAULT);
+        }
+      }
+
+  return 1;
+}
+
+
 PRIVATE vrna_cmd_t
-parse_command(const char *line, int line_number){
+parse_command(const char *line, int line_number, const char *filename){
 
   vrna_cmd_t cmd;
   int i, r;
@@ -310,11 +343,11 @@ parse_command(const char *line, int line_number){
     if(cmd.data)
       cmd.type = known_commands[i].type;
     else {
-      vrna_message_warning("Command parser error (invalid command)\nline %d: %s\n", line_number, line);
+      vrna_message_warning("Ignoring invalid command in file \"%s\":\nline %d: %s", filename, line_number, line);
       cmd.type = VRNA_CMD_ERROR;
     }
   } else {
-    vrna_message_warning("Command parser error (unknown command)\nline %d: %s\n", line_number, line);
+    vrna_message_warning("Ignoring unknown command in file \"%s\":\nline %d: %s", filename, line_number, line);
     cmd.type = VRNA_CMD_ERROR;
     cmd.data = NULL;
   }

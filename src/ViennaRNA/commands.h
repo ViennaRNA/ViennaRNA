@@ -45,12 +45,22 @@ struct vrna_command_s {
   void *data;
 };
 
+/**
+ *  @brief Extract a list of commands from a command file
+ *
+ */
 vrna_cmd_t *vrna_file_commands_read(const char *filename,
                                     unsigned int options);
 
+/**
+ *  @brief Apply a list of commands to a #vrna_fold_compound_t
+ */
 int vrna_commands_apply(vrna_fold_compound_t *vc,
                         vrna_cmd_t *commands);
 
+/**
+ *  @brief Free memory occupied by a list of commands
+ */
 void vrna_commands_free( vrna_cmd_t *commands);
 
 /**
