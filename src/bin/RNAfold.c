@@ -213,7 +213,8 @@ int main(int argc, char *argv[]){
   }
 
   if (md.circ && md.noLP)
-    vrna_message_warning("depending on the origin of the circular sequence, some structures may be missed when using -noLP\nTry rotating your sequence a few times");
+    vrna_message_warning( "depending on the origin of the circular sequence, some structures may be missed when using --noLP\n"
+                          "Try rotating your sequence a few times");
 
   if (command_file != NULL) {
     commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_DEFAULTS);

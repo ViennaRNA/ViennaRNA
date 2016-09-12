@@ -676,7 +676,7 @@ backtrack(vrna_fold_compound_t *vc,
 
                     continue;
                   } else {
-                    vrna_message_error("%s\nbacktrack failed in f5", string);
+                    vrna_message_error("backtracking failed in f5 for sequence:\n%s\n", string);
                   }
                 }
                 break;
@@ -698,7 +698,7 @@ backtrack(vrna_fold_compound_t *vc,
 
                     continue;
                   } else {
-                    vrna_message_error("%s\nbacktrack failed in fML", string);
+                    vrna_message_error("backtracking failed in fML for sequence:\n%s\n", string);
                   }
                 }
                 break;
@@ -719,6 +719,7 @@ backtrack(vrna_fold_compound_t *vc,
 
     if (canonical)
       cij = my_c[ij];
+
 
     type = (unsigned char)ptype[ij];
 
@@ -757,7 +758,7 @@ backtrack(vrna_fold_compound_t *vc,
       bt_stack[s].j   = j;
       bt_stack[s].ml  = comp2;
     } else {
-      vrna_message_error("backtracking failed in repeat");
+      vrna_message_error("backtracking failed in repeat for sequence:\n%s\n", string);
     }
 
     /* end of repeat: --------------------------------------------------*/
