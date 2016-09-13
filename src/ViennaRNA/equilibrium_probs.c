@@ -224,7 +224,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
         }
       }
       if(with_ud_outside){
-        for(i = 1; i <= n - u; i++)
+        for(i = 1; i <= n; i++)
           for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
             u = domains_up->uniq_motif_size[cnt];
             j = i + u - 1;
@@ -645,6 +645,32 @@ pf_create_bppm( vrna_fold_compound_t *vc,
       }
     }  /* end for (l=..)   */
 
+    if(with_ud_outside){
+      /*
+          The above recursions only deal with base pairs, and how they might be
+          enclosed by other pairs. However, for unstructrued domains, we have
+          unpaired stretches, and require information about how these are enclosed
+          by base pairs. While such unpaired segments occur in all cases covered
+          before (interior loops and multiloops), one case is missing: Hairpin loops
+          with closing pair (k,l) enclosing a segment [k+1,l-1] with possibly
+          bound motif.
+      */
+      for(k = 1; k < n; k++)
+        for(l = k + turn + 1; l <= n; l++){
+          kl = my_iindx[k] - l;
+          if(probs[kl] > 0.){
+            FLT_OR_DBL ppp;
+            ppp   =   probs[kl]
+                    * vrna_exp_E_hp_loop(vc, k, l);
+            temp  = ppp;
+            temp /= domains_up->exp_energy_cb(vc, k+1, l-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
+            ppp   = (ppp - temp); /* this is the contribution of all states with unstructured domain(s) */
+            if(ppp > 0.)
+              domains_up->outside_add(vc, k+1, l-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, ppp, domains_up->data);
+          }
+        }
+    }
+
     if(sc && sc->f && sc->bt){
       for (i=1; i<=n; i++)
         for (j=i+turn+1; j<=n; j++) {
@@ -726,6 +752,30 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   } /* end if 'check for forward recursion' */
   else
     vrna_message_error("bppm calculations have to be done after calling forward recursion\n");
+
+  if(with_ud_outside){
+    for(i = 1; i <= n; i++)
+      for(j = i; j <= n; j++){
+        FLT_OR_DBL p, pp;
+        pp = p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, 0, domains_up->data);
+        if(p > 0.)
+          printf("p_ext[0][%d,%d] = %g\n", i, j, p);
+        p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, 0, domains_up->data);
+        pp += p;
+        if(p > 0.)
+          printf("p_hp[0][%d,%d] = %g\n", i, j, p);
+        p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, 0, domains_up->data);
+        pp += p;
+        if(p > 0.)
+          printf("p_int[0][%d,%d] = %g\n", i, j, p);
+        p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP, 0, domains_up->data);
+        pp += p;
+        if(p > 0.)
+          printf("p_ml[0][%d,%d] = %g\n", i, j, p);
+        if(pp > 0.)
+          printf("p[0][%d,%d] = %g\n", i, j, pp);
+      }
+  }
 
   return;
 }

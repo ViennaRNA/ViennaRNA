@@ -1201,9 +1201,10 @@ default_outside_add(vrna_fold_compound_t *vc,
                     FLT_OR_DBL exp_energy,
                     void *data){
 
-  int                             **motif_list, k, l, m, o, *size;
+  int                             **motif_list, k, l, m;
+  unsigned int                    *size, *cnt, o;
   struct ligands_up_data_default  *d;
-  struct default_outside          **storage;
+  struct default_outside          **storage, **st;
 
   d = (struct ligands_up_data_default  *)data;
 
@@ -1240,6 +1241,7 @@ default_outside_add(vrna_fold_compound_t *vc,
         for(o = 0; o < *size; o++)
           if((*storage)[o].motif_num == m){ /* found previously added motif constribution */
             (*storage)[o].exp_energy += exp_energy;
+            //printf("p[%d][%d,%d] += %g\n", m, i, i + d->len[m] - 1, exp_energy);
             break;
           }
 
@@ -1248,6 +1250,7 @@ default_outside_add(vrna_fold_compound_t *vc,
           *storage = (struct default_outside *)vrna_realloc(*storage, sizeof(struct default_outside) * (*size + 1));
           (*storage)[*size].motif_num   = m;
           (*storage)[*size].exp_energy  = exp_energy;
+          //printf("p[%d][%d,%d] = %g\n", m, i, i + d->len[m] - 1, exp_energy);
           (*size)++;
         }
       }
@@ -1263,20 +1266,20 @@ default_outside_add(vrna_fold_compound_t *vc,
 
     if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP){
       motif_list  = d->motif_list_ext;
-      storage     = &(d->outside_ext[i]);
-      size        = &(d->outside_ext_count[i]);
+      storage     = d->outside_ext;
+      size        = d->outside_ext_count;
     } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP) {
       motif_list = d->motif_list_hp;
-      storage     = &(d->outside_hp[i]);
-      size        = &(d->outside_hp_count[i]);
+      storage     = d->outside_hp;
+      size        = d->outside_hp_count;
     } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
       motif_list = d->motif_list_int;
-      storage     = &(d->outside_int[i]);
-      size        = &(d->outside_int_count[i]);
+      storage     = d->outside_int;
+      size        = d->outside_int_count;
     } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP){
       motif_list = d->motif_list_mb;
-      storage     = &(d->outside_mb[i]);
-      size        = &(d->outside_mb_count[i]);
+      storage     = d->outside_mb;
+      size        = d->outside_mb_count;
     } else{
       vrna_message_warning("Unknown unstructured domain loop type");
       return;
@@ -1284,7 +1287,9 @@ default_outside_add(vrna_fold_compound_t *vc,
 
     /* check for each motif starting at any k with i <= k <= j */
     for(k = i; k <= j; k++){
-      if(motif_list[k])
+      if(motif_list[k]){
+        st  = &(storage[k]);
+        cnt = &(size[k]);
         for(l = 0; motif_list[k][l] != -1; l++){
           m = motif_list[k][l];
 
@@ -1297,20 +1302,23 @@ default_outside_add(vrna_fold_compound_t *vc,
           /* add/insert contribution */
 
           /* check for addition first */
-          for(o = 0; o < *size; o++)
-            if((*storage)[o].motif_num == m){ /* found previously added motif constribution */
-              (*storage)[o].exp_energy += p * exp_energy;
+          for(o = 0; o < *cnt; o++)
+            if((*st)[o].motif_num == m){ /* found previously added motif constribution */
+              (*st)[o].exp_energy += p * exp_energy;
+              //printf("p[%d][%d,%d] += %g\n", m, k, k + d->len[m] - 1, p * exp_energy);
               break;
             }
 
           /* if we haven't added yet, create new list entry */
-          if(o == *size){
-            *storage = (struct default_outside *)vrna_realloc(*storage, sizeof(struct default_outside) * (*size + 1));
-            (*storage)[*size].motif_num   = m;
-            (*storage)[*size].exp_energy  = p * exp_energy;
-            (*size)++;
+          if(o == *cnt){
+            *st = (struct default_outside *)vrna_realloc(*st, sizeof(struct default_outside) * (*cnt + 1));
+            (*st)[*cnt].motif_num   = m;
+            (*st)[*cnt].exp_energy  = p * exp_energy;
+            //printf("p[%d][%d,%d] = %g\n", m, k, k + d->len[m] - 1, p * exp_energy);
+            (*cnt)++;
           }
         }
+      }
     }
   }
 
@@ -1324,7 +1332,41 @@ default_outside_get(vrna_fold_compound_t *vc,
                     int motif,
                     void *data){
 
-  FLT_OR_DBL outside = 0.;
+  FLT_OR_DBL                      outside = 0.;
+  unsigned int                    *size, k;
+  struct ligands_up_data_default  *d;
+  struct default_outside          **storage;
+
+  d = (struct ligands_up_data_default  *)data;
+
+  if(j < i)
+    return 0.;
+
+  if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP){
+    storage     = &(d->outside_ext[i]);
+    size        = &(d->outside_ext_count[i]);
+  } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP) {
+    storage     = &(d->outside_hp[i]);
+    size        = &(d->outside_hp_count[i]);
+  } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
+    storage     = &(d->outside_int[i]);
+    size        = &(d->outside_int_count[i]);
+  } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP){
+    storage     = &(d->outside_mb[i]);
+    size        = &(d->outside_mb_count[i]);
+  } else{
+    vrna_message_warning("Unknown unstructured domain loop type");
+    return 0.;
+  }
+
+  for(k = 0; k < *size; k++){
+    /* check for motif number match */
+    if((*storage)[k].motif_num == motif)
+      /* check for length match */
+      if(i + d->len[motif] - 1 == j){
+        outside += (*storage)[k].exp_energy;
+      }
+  }
 
   return outside;
 }
