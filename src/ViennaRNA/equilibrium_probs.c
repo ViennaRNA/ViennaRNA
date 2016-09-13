@@ -319,20 +319,25 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                   }
 
                   if(with_ud){
+                    FLT_OR_DBL q1,q2;
                     temp = tmp2; /* store contribution of non-ud-states */
+                    q1 = q2 = 1.;
                     if(u1 > 0){
-                      tmp_ud = domains_up->exp_energy_cb(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
-                      tmp2 *= tmp_ud;
+                      q1 = domains_up->exp_energy_cb(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+                      tmp2 *= q1;
                     }
                     if(u2 > 0){
-                      tmp_ud = domains_up->exp_energy_cb(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
-                      tmp2 *= tmp_ud;
+                      q2 = domains_up->exp_energy_cb(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+                      tmp2 *= q2;
                     }
 
                     if(with_ud_outside){ /* add outside partition function for unstructured domains */
-                      tmp_ud = (tmp2 - temp) * qb[kl]; /* only pass contribution of segments with feature contribution != 0 */
+                      tmp_ud = (tmp2 - (temp * q2)) * qb[kl];
                       if(tmp_ud > 0.){
                         domains_up->outside_add(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, tmp_ud, domains_up->data);
+                      }
+                      tmp_ud = (tmp2 - (temp * q1)) * qb[kl];
+                      if(tmp_ud > 0){
                         domains_up->outside_add(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, tmp_ud, domains_up->data);
                       }
                     }
@@ -624,6 +629,10 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               ov++;
               probs[kl]=FLT_MAX;
             }
+          }
+
+          if(with_ud_outside){
+            
           }
 
           /* rotate prm_MLbu entries required for unstructured domain feature */
