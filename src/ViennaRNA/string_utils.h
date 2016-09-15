@@ -76,13 +76,14 @@ char *strdup(const char *s);
  *  @note The returned pointer of this function should always be passed to @em free() to
  *  release the allocated memory
  *
- *  @see vrna_strdup_vprintf()
+ *  @see vrna_strdup_vprintf(), vrna_strcat_printf()
  *
  *  @param  format  The format string (See also asprintf)
  *  @param  ...     The list of variables used to fill the format string
  *  @return         The formatted, null-terminated string, or NULL if something has gone wrong
  */
 char *vrna_strdup_printf(const char *format, ...);
+
 
 /**
  *  @brief Safely create a formatted string
@@ -92,13 +93,50 @@ char *vrna_strdup_printf(const char *format, ...);
  *  @note The returned pointer of this function should always be passed to @em free() to
  *  release the allocated memory
  *
- *  @see vrna_strdup_printf()
+ *  @see vrna_strdup_printf(), vrna_strcat_printf(), vrna_strcat_vprintf()
  *
  *  @param  format  The format string (See also asprintf)
  *  @param  ...     The list of variables used to fill the format string
  *  @return         The formatted, null-terminated string, or NULL if something has gone wrong
  */
 char *vrna_strdup_vprintf(const char *format, va_list argp);
+
+
+/**
+ *  @brief Safely append a formatted string to another string
+ *
+ *  This function is a safe implementation for appending a formatted character array,
+ *  similar to a cobination of @em strcat and @em sprintf.
+ *  The function automatically allocates enough memory to store both, the previous
+ *  content stored at @p dest and the appended format string. If the @p dest pointer
+ *  is NULL, the function allocate memory only for the format string.
+ *  The function returns the number of characters in the resulting string or -1
+ *  in case of an error.
+ *
+ *  @see vrna_strcat_vprintf(), vrna_strdup_printf(), vrna_strdup_vprintf()
+ *
+ *  @param  dest    The address of a char *pointer where the formatted string is to be appended
+ *  @param  format  The format string (See also sprintf)
+ *  @param  ...     The list of variables used to fill the format string
+ *  @return         The number of characters in the final string, or -1 on error
+ */
+int vrna_strcat_printf(char **dest, const char *format, ...);
+
+
+/**
+ *  @brief Safely append a formatted string to another string
+ *
+ *  This function is the @em va_list version of vrna_strcat_printf()
+ *
+ *  @see vrna_strcat_printf(), vrna_strdup_printf(), vrna_strdup_vprintf()
+ *
+ *  @param  dest    The address of a char *pointer where the formatted string is to be appended
+ *  @param  format  The format string (See also sprintf)
+ *  @param  ...     The list of variables used to fill the format string
+ *  @return         The number of characters in the final string, or -1 on error
+ */
+int vrna_strcat_vprintf(char **dest, const char *format, va_list args);
+
 
 /**
  *  @brief Create a random string using characters from a specified symbol set
