@@ -199,7 +199,7 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
     }
   }
 
-  if(domains_up && domains_up->energy_cb){ /* do we include ligand binding? */
+  if(with_ud){ /* do we include ligand binding? */
     /*  construct all possible combinations of
         f[i-1] + L[i,j] with j <= turn + 1
     */
@@ -217,6 +217,12 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
             if(eval_loop){
               en =    f5[i-1]
                     + domains_up->energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, domains_up->data);
+              if(sc){
+                if(sc->energy_up)
+                  en += sc->energy_up[i][u];
+                if(sc->f)
+                  en += sc->f(1, j, 1, j - u, VRNA_DECOMP_EXT_EXT, sc->data);
+              }
               f5[j] = MIN2(f5[j], en);
             }
           }
@@ -939,7 +945,7 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
   char          *ptype;
   short         mm5, mm3, *S1;
   int           length, cp, fij, fi, jj, u, en, e, *my_f5, *my_c, *my_ggg, *idx,
-                dangle_model, turn, with_gquad, cnt, ii;
+                dangle_model, turn, with_gquad, cnt, ii, with_ud;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
@@ -962,55 +968,63 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
+  with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
 
   jj = *k;
 
   /* nibble off unpaired 3' stretches harboring bound ligands (interspersed with unpaired nucleotides) */
-  if(domains_up && domains_up->energy_cb){
+  if(with_ud){
     do{
-      do{
-        fij = my_f5[jj];
-        fi  = (hc->up_ext[jj]) ? my_f5[jj-1] : INF;
+      fij = my_f5[jj];
 
-        if(sc){
-          if(sc->energy_up)
-            fi += sc->energy_up[jj][1];
-          if(sc->f)
-            fi += sc->f(1, jj, 1, jj - 1, VRNA_DECOMP_EXT_EXT, sc->data);
-        }
+      /* try nibble off one unpaired nucleotide first */
+      fi = (hc->up_ext[jj]) ? my_f5[jj-1] : INF;
 
-        if(--jj == 0){ /* no more pairs */
-          *i = *j = -1;
-          *k = 0;
-          return 1;
-        }
-      } while (fij == fi);
-      jj++;
+      if(sc){
+        if(sc->energy_up)
+          fi += sc->energy_up[jj][1];
+        if(sc->f)
+          fi += sc->f(1, jj, 1, jj - 1, VRNA_DECOMP_EXT_EXT, sc->data);
+      }
 
-      do{
-        fij = my_f5[jj];
-        /* nibble off ligand */
-        for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
-          u = domains_up->uniq_motif_size[cnt];
-          ii = jj - u + 1;
-          if(ii > 0){
-            en = domains_up->energy_cb(vc, ii, jj, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
-            fi = (hc->up_ext[ii] >= u) ? my_f5[ii-1] : INF;
-            fi += en;
+      if(jj == 1){ /* no more pairs */
+        *i = *j = -1;
+        *k = 0;
+        return 1;
+      }
 
-            if(fij == fi){ /* skip remaining motifs after first hit */
-              jj = ii - 1;
-              break;
-            }
+      if(fij == fi){
+        jj--;
+        continue;
+      }
+
+      /* next, try nibble off a ligand */
+      for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+        u = domains_up->uniq_motif_size[cnt];
+        ii = jj - u + 1;
+        if(ii > 0){
+          en = domains_up->energy_cb(vc, ii, jj, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+          if(sc){
+            if(sc->energy_up)
+              en += sc->energy_up[ii][u];
+            if(sc->f)
+              en += sc->f(1, jj, 1, jj - u, VRNA_DECOMP_EXT_EXT, sc->data);
+          }
+          fi = (hc->up_ext[ii] >= u) ? my_f5[ii-1] : INF;
+          fi += en;
+
+          if(fij == fi){ /* skip remaining motifs after first hit */
+            jj = ii - 1;
+            break;
           }
         }
+      }
 
-        if(jj == 0){ /* no more pairs */
-          *i = *j = -1;
-          *k = 0;
-          return 1;
-        }
-      } while (fij == fi);
+      if(jj == 0){ /* no more pairs */
+        *i = *j = -1;
+        *k = 0;
+        return 1;
+      }
     } while (fij == fi);
   } else { /* nibble off unpaired 3' bases */
     do{

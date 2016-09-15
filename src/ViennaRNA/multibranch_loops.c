@@ -631,7 +631,7 @@ E_ml_rightmost_stem(int i,
   char              eval_loop, *hc;
   short             *S;
   int               en, length, *indx, *hc_up, *c, *fm, *ggg, ij, type, hc_decompose,
-                    dangle_model, with_gquad, cp, e, u, k, cnt;
+                    dangle_model, with_gquad, cp, e, u, k, cnt, with_ud;
   vrna_param_t      *P;
   vrna_sc_t         *sc;
   vrna_ud_t         *domains_up;
@@ -656,6 +656,7 @@ E_ml_rightmost_stem(int i,
   with_gquad    = P->model_details.gquad;
   cp            = vc->cutpoint;
   domains_up    = vc->domains_up;
+  with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   e             = INF;
 
 #ifdef WITH_GEN_HC
@@ -721,7 +722,7 @@ E_ml_rightmost_stem(int i,
       }
     }
 
-    if(domains_up && domains_up->energy_cb){
+    if(with_ud){
       for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
         u = domains_up->uniq_motif_size[cnt];
         k = j - u + 1;
@@ -767,7 +768,7 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
   short         *S;
   int           k, en, decomp, mm5, mm3, type_2, k1j, stop, length, *indx, *hc_up,
                 *c, *fm, ij, dangle_model, turn, type, *rtype, circular, cp, e, u,
-                cnt;
+                cnt, with_ud;
   vrna_sc_t     *sc;
   vrna_param_t  *P;
   vrna_ud_t     *domains_up;
@@ -793,6 +794,7 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
   circular      = P->model_details.circ;
   cp            = vc->cutpoint;
   domains_up    = vc->domains_up;
+  with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   e             = INF;
 
 #ifdef WITH_GEN_HC
@@ -834,7 +836,7 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
     }
 
     /* extension with bound ligand on 5'site */
-    if(domains_up && domains_up->energy_cb){
+    if(with_ud){
       for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
         u = domains_up->uniq_motif_size[cnt];
         k = i + u - 1;
@@ -1748,7 +1750,8 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
   char          *ptype;
   short         *S1;
   int           ij, ii, jj, fij, fi, u, en, *my_c, *my_fML, *my_ggg,
-                turn, *idx, with_gquad, dangle_model, *rtype, kk, cnt;
+                turn, *idx, with_gquad, dangle_model, *rtype, kk, cnt,
+                with_ud;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
@@ -1770,94 +1773,112 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
   my_ggg        = vc->matrices->ggg;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
+  with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   dangle_model  = md->dangles;
 
   ii = *i;
   jj = *j;
 
-  if(domains_up && domains_up->energy_cb){
+  if(with_ud){
     /* nibble off unpaired stretches at 3' site */
     do{
-      do{ /* process regular unpaired nucleotides (unbound by ligand) first */
-        fij = my_fML[idx[jj] + ii];
-        fi  = (hc->up_ml[jj]) ? my_fML[idx[jj - 1] + ii] + P->MLbase : INF;
+      fij = my_fML[idx[jj] + ii];
 
-        if(sc){
-          if(sc->energy_up)
-            fi += sc->energy_up[jj][1];
-          if(sc->f)
-            fi += sc->f(ii, jj, ii, jj-1, VRNA_DECOMP_ML_ML, sc->data);
-        }
+      /* process regular unpaired nucleotides (unbound by ligand) first */
+      fi  = (hc->up_ml[jj]) ? my_fML[idx[jj - 1] + ii] + P->MLbase : INF;
 
-        if(jj-- == ii)
-          return 0; /* no more pairs */
+      if(sc){
+        if(sc->energy_up)
+          fi += sc->energy_up[jj][1];
+        if(sc->f)
+          fi += sc->f(ii, jj, ii, jj-1, VRNA_DECOMP_ML_ML, sc->data);
+      }
 
-      } while (fij == fi);
-      jj++;
+      if(jj == ii)
+        return 0; /* no more pairs */
 
-      do{ /* next nibble off ligand */
-        fij = my_fML[idx[jj] + ii];
-        for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
-          u = domains_up->uniq_motif_size[cnt];
-          kk = jj - u + 1;
-          if(kk >= ii){
-            en = domains_up->energy_cb(vc, kk, jj, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
-            fi = (hc->up_ml[kk] >= u) ? my_fML[idx[kk-1] + ii] + u * P->MLbase: INF;
-            fi += en;
+      if(fij == fi){
+        jj--;
+        continue;
+      }
 
-            if(fij == fi){ /* skip remaining motifs after first hit */
-              jj = kk - 1;
-              break;
-            }
+      /* next try to nibble off ligand */
+      for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+        u = domains_up->uniq_motif_size[cnt];
+        kk = jj - u + 1;
+        if(kk >= ii){
+          en = domains_up->energy_cb(vc, kk, jj, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+
+          if(sc){
+            if(sc->energy_up)
+              en += sc->energy_up[kk][u];
+            if(sc->f)
+              en += sc->f(ii, jj, ii, jj-u, VRNA_DECOMP_ML_ML, sc->data);
+          }
+
+          fi = (hc->up_ml[kk] >= u) ? my_fML[idx[kk-1] + ii] + u * P->MLbase: INF;
+          fi += en;
+
+          if(fij == fi){ /* skip remaining motifs after first hit */
+            jj = kk - 1;
+            break;
           }
         }
+      }
 
-        if(jj < ii)
-          return 0; /* no more pairs */
+      if(jj < ii)
+        return 0; /* no more pairs */
 
-      } while (fij == fi);
     } while (fij == fi);
 
     /* nibble off unpaired stretches at 5' site */
     do{
-      do{ /* again, process regular unpaired nucleotides (unbound by ligand) first */
-        fij = my_fML[idx[jj] + ii];
-        fi  = (hc->up_ml[ii]) ? my_fML[idx[jj] + ii + 1] + P->MLbase : INF;
+      fij = my_fML[idx[jj] + ii];
+      /* again, process regular unpaired nucleotides (unbound by ligand) first */
+      fi  = (hc->up_ml[ii]) ? my_fML[idx[jj] + ii + 1] + P->MLbase : INF;
 
-        if(sc){
-          if(sc->energy_up)
-            fi += sc->energy_up[ii][1];
-          if(sc->f)
-            fi += sc->f(ii, jj, ii+1, jj, VRNA_DECOMP_ML_ML, sc->data);
-        }
+      if(sc){
+        if(sc->energy_up)
+          fi += sc->energy_up[ii][1];
+        if(sc->f)
+          fi += sc->f(ii, jj, ii+1, jj, VRNA_DECOMP_ML_ML, sc->data);
+      }
 
-        if(++ii == jj)
-          return 0; /* no more pairs */
+      if(ii + 1 == jj)
+        return 0; /* no more pairs */
 
-      } while (fij == fi);
-      ii--;
+      if(fij == fi){
+        ii++;
+        continue;
+      }
 
-      do{ /* next nibble off ligand */
-        fij = my_fML[idx[jj] + ii];
-        for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
-          u = domains_up->uniq_motif_size[cnt];
-          kk = ii + u - 1;
-          if(kk <= jj){
-            en = domains_up->energy_cb(vc, ii, kk, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
-            fi = (hc->up_ml[ii] >= u) ? my_fML[idx[jj] + kk + 1] + u * P->MLbase: INF;
-            fi += en;
+      /* next try to nibble off ligand again */
+      for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+        u = domains_up->uniq_motif_size[cnt];
+        kk = ii + u - 1;
+        if(kk <= jj){
+          en = domains_up->energy_cb(vc, ii, kk, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
 
-            if(fij == fi){ /* skip remaining motifs after first hit */
-              ii = kk + 1;
-              break;
-            }
+          if(sc){
+            if(sc->energy_up)
+              en += sc->energy_up[ii][u];
+            if(sc->f)
+              en += sc->f(ii, jj, ii+u, jj, VRNA_DECOMP_ML_ML, sc->data);
+          }
+
+          fi = (hc->up_ml[ii] >= u) ? my_fML[idx[jj] + kk + 1] + u * P->MLbase: INF;
+          fi += en;
+
+          if(fij == fi){ /* skip remaining motifs after first hit */
+            ii = kk + 1;
+            break;
           }
         }
+      }
 
-        if(ii > jj)
-          return 0; /* no more pairs */
+      if(ii > jj)
+        return 0; /* no more pairs */
 
-      } while (fij == fi);
     } while (fij == fi);
   } else {
     /* nibble off unpaired 3' bases */
