@@ -33,6 +33,8 @@ typedef void *(command_parser_function)(const char *line);
 */
 PRIVATE vrna_cmd_t parse_command(const char *line, int line_number, const char *filename);
 
+PRIVATE void *parse_ud_command( const char *line);
+
 PRIVATE void *parse_constraint_force(const char *line);
 PRIVATE void *parse_constraint_prohibit(const char *line);
 PRIVATE void *parse_constraint_con(const char *line);
@@ -57,6 +59,8 @@ PRIVATE int apply_hard_constraint(vrna_fold_compound_t *vc,
 PRIVATE int apply_soft_constraint(vrna_fold_compound_t *vc,
                                   void *constraint);
 
+PRIVATE int apply_ud(vrna_fold_compound_t *vc, void *data);
+
 /*
 #################################
 # PRIVATE VARIABLES             #
@@ -76,7 +80,7 @@ typedef struct {
 /* set of known parsable commands */
 parsable known_commands[NUM_COMMANDS] = {
   /* cmd , type , parser */
-  { "UD", VRNA_CMD_UD, NULL },                      /* unstructured domain */
+  { "UD", VRNA_CMD_UD, parse_ud_command },          /* unstructured domain */
   { "SD", VRNA_CMD_SD, NULL },                      /* structured domain */
   { "P",  VRNA_CMD_HC, parse_constraint_prohibit }, /* prohibit base pairing */
   { "F",  VRNA_CMD_HC, parse_constraint_force },    /* force base pairing */
@@ -96,6 +100,13 @@ typedef struct {
   float e;
   char  command;
 } constraint_struct;
+
+
+typedef struct {
+  char          *motif;
+  float         motif_en;
+  unsigned int  loop_type;
+} ud_struct;
 
 /*
 #################################
@@ -219,6 +230,10 @@ vrna_commands_apply(vrna_fold_compound_t *vc,
                               r += apply_soft_constraint(vc, ptr->data);
                             break;
 
+        case VRNA_CMD_UD:   if(options & VRNA_CMD_PARSE_UD)
+                              r += apply_ud(vc, ptr->data);
+                            break;
+
         default:            /* do nothing */
                             break;
       }
@@ -234,11 +249,34 @@ vrna_commands_free( vrna_cmd_t *commands){
   vrna_cmd_t *ptr;
 
   if(commands){
-    for(ptr = commands; ptr->type != VRNA_CMD_LAST; ptr++)
-      free(ptr->data);
+    for(ptr = commands; ptr->type != VRNA_CMD_LAST; ptr++){
+      switch(ptr->type){
+        case VRNA_CMD_UD: {
+                            ud_struct *d = (ud_struct *)ptr->data;
+                            free(d->motif);
+                            free(ptr->data);
+                          }
+                          break;
+
+        default:          free(ptr->data);
+                          break;
+      }
+    }
     free(commands);
   }
 }
+
+
+PRIVATE int
+apply_ud(vrna_fold_compound_t *vc, void *data){
+
+
+  ud_struct *d = (ud_struct *)data;
+  vrna_ud_add_motif(vc, d->motif, d->motif_en, d->loop_type);
+  
+  return 1;
+}
+
 
 PRIVATE int
 apply_hard_constraint(vrna_fold_compound_t *vc,
@@ -371,6 +409,80 @@ parse_command(const char *line, int line_number, const char *filename){
   return cmd;
 }
 
+
+PRIVATE void *
+parse_ud_command( const char *line){
+
+  int           ret, entries_seen, max_entries, pos, pp;
+  char          *ptr, *buffer;
+  float         e;
+  unsigned int  loop_type;
+  ud_struct     *data;
+
+  buffer        = (char *)vrna_alloc(sizeof(char) * (strlen(line) + 1));
+  data          = (ud_struct *)vrna_alloc(sizeof(ud_struct));
+  data->motif   = NULL;
+  ret           = 0;  /* error indicator */
+  entries_seen  = 0;  /* entries seen so far */
+  max_entries   = 3;  /* expected number of entries */
+  pos           = 2;  /* position relative to start of line */
+  pp            = 0;
+
+  while(!ret && (entries_seen < max_entries) && (sscanf(line+pos,"%s%n", buffer, &pp) == 1)){
+    pos += pp;
+    switch(entries_seen){
+      case 0:       /* motif in IUPAC format */
+                    data->motif = strdup(buffer);
+                    break;
+
+      case 1:       /* motif energy in kcal/mol */
+                    if(sscanf(buffer, "%g", &e) == 1){
+                      data->motif_en = e;
+                    } else {
+                      ret = 1;
+                    }
+                    break;
+
+      case 2:       /* motif loop type */
+                    loop_type = 0;
+                    for(ptr=buffer; *ptr != '\0'; ptr++){
+                      switch(*ptr){
+                        case 'A'  : loop_type |= VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS;
+                                    break;
+                        case 'E'  : loop_type |= VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP;
+                                    break;
+                        case 'H'  : loop_type |= VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP;
+                                    break;
+                        case 'I'  : loop_type |= VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP;
+                                    break;
+                        case 'M'  : loop_type |= VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP;
+                                    break;
+                        default:    ret = 1;
+                                    break;
+                      }
+                      if(ret)
+                        break;
+                    }
+                    data->loop_type = loop_type;
+                    break;
+    }
+    entries_seen++;
+  }
+
+  free(buffer);
+
+  if(ret){
+    free(data->motif);
+    free(data);
+    return NULL;
+  }
+
+  if(data->loop_type == 0){
+    data->loop_type = VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS;
+    vrna_message_warning("");
+  }
+  return (void *)data;
+}
 
 PRIVATE void *
 parse_constraint_force(const char *line){
