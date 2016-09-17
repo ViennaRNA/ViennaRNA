@@ -162,7 +162,7 @@ vrna_strcat_vprintf(char **dest, const char *format, va_list args){
     l2 = old_count;
   }
 
-  if((new_count > 0) && (l1 < INT_MAX) && ((INT_MAX - l1) > l2)){
+  if((new_count > 0) && (l1 < SIZE_MAX) && ((SIZE_MAX - l1) > l2)){
     buf = (char *)vrna_realloc(buf, sizeof(char) * (old_count + new_count + 1));
     if(buf == NULL)
       r = -1;
