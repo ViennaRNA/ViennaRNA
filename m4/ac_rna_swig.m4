@@ -77,6 +77,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
       [enable_perl_status="Perl is required to build."]
     fi
     AX_PERL_EXT_FLAGS([PERLXS_CFLAGS], [PERLXS_LDFLAGS])
+    AX_PERL_EXT_LINK_CHECK([with_perl])
     AC_SUBST([PERLXS_CFLAGS])
     AC_SUBST([PERLXS_LDFLAGS])
   ])

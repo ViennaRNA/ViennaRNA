@@ -114,3 +114,35 @@ AC_DEFUN([_AX_PERL_EXT_EMBED_CHECK],
  $1=`$PERL -MExtUtils::Embed -e $2 ${ax_c_perlxs_extras:+"-- $3"}`
  AC_MSG_RESULT($$1)
 ])
+
+AC_DEFUN([AX_PERL_EXT_LINK_CHECK],[
+#
+# final check to see if everything compiles alright
+#
+  AC_MSG_CHECKING([consistency of all components of perl development environment])
+  # save current global flags
+  ac_save_LIBS="$LIBS"
+  ac_save_CFLAGS="$CFLAGS"
+  ac_save_CPPFLAGS="$CPPFLAGS"
+  LIBS="$ac_save_LIBS $PERLXS_LDFLAGS"
+  CFLAGS="$ac_save_CFLAGS $PERLXS_CFLAGS"
+  CPPFLAGS="$ac_save_CPPFLAGS $PERLEXT__CPPFLAGS"
+
+  AC_LANG_PUSH([C])
+
+  AC_LINK_IFELSE([
+    AC_LANG_PROGRAM([[
+#include "EXTERN.h"
+#include "perl.h"]],[[
+PERL_SYS_TERM();
+    ]])
+  ],[$1=yes],[$1=no])
+
+  AC_LANG_POP([C])
+# turn back to default flags
+  CPPFLAGS="$ac_save_CPPFLAGS"
+  LIBS="$ac_save_LIBS"
+  CFLAGS="$ac_save_CFLAGS"
+
+  AC_MSG_RESULT([$$1])
+])
