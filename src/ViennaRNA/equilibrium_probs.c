@@ -137,8 +137,8 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   scale             = matrices->scale;
   expMLbase         = matrices->expMLbase;
 
-  with_ud           = (domains_up && domains_up->exp_energy_cb);
-  with_ud_outside   = (with_ud && domains_up->outside_add);
+  with_ud           = (domains_up && domains_up->exp_energy_cb) ? 1 : 0;
+  with_ud_outside   = (with_ud && domains_up->outside_add) ? 1 : 0;
 
   FLT_OR_DBL  expMLstem         = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
   char        *hard_constraints = hc->matrix;
@@ -221,29 +221,6 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             }
           } else
             probs[ij] = 0.;
-        }
-      }
-      if(with_ud_outside){
-        for(i = 1; i <= n; i++)
-          for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
-            u = domains_up->uniq_motif_size[cnt];
-            j = i + u - 1;
-            if(j > n)
-              break;
-
-            if(hc->up_ml[i] >= u){
-              temp = q1k[i-1] * qln[j + 1]/q1k[n];
-              temp *= domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
-
-              if(sc){
-                if(sc->exp_energy_up)
-                  temp *= sc->exp_energy_up[i][u];
-              }
-              temp *= scale[u];
-
-              if(temp > 0.)
-                domains_up->outside_add(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, temp, domains_up->data);
-            }
         }
       }
     } /* end if(!circular)  */
@@ -660,10 +637,36 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           enclosed by other pairs. However, for unstructrued domains, we have
           unpaired stretches, and require information about how these are enclosed
           by base pairs. While such unpaired segments occur in all cases covered
-          before (interior loops and multiloops), one case is missing: Hairpin loops
-          with closing pair (k,l) enclosing a segment [k+1,l-1] with possibly
+          before (interior loops and multiloops), two cases are missing:
+          - Exterior loops that contain segments [k,l] with possibly bound motif, and
+          - Hairpin loops with closing pair (k,l) enclosing a segment [k+1,l-1] with possibly
           bound motif.
       */
+
+      /* 1. Exterior loops */
+      for(i = 1; i <= n; i++)
+        for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+          u = domains_up->uniq_motif_size[cnt];
+          j = i + u - 1;
+          if(j > n)
+            break;
+
+          if(hc->up_ext[i] >= u){
+            temp = q1k[i-1] * qln[j + 1]/q1k[n];
+            temp *= domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+
+            if(sc){
+              if(sc->exp_energy_up)
+                temp *= sc->exp_energy_up[i][u];
+            }
+            temp *= scale[u];
+
+            if(temp > 0.)
+              domains_up->outside_add(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, temp, domains_up->data);
+          }
+      }
+
+      /* 2. Hairpin loops */
       for(k = 1; k < n; k++)
         for(l = k + turn + 1; l <= n; l++){
           kl = my_iindx[k] - l;
@@ -678,6 +681,33 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               domains_up->outside_add(vc, k+1, l-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, ppp, domains_up->data);
           }
         }
+
+      /* 3. Multi loops */
+      for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+        u = domains_up->uniq_motif_size[cnt];
+        for(i = 2; i <= n; i++){
+          j = i + u - 1;
+          if(j > n)
+            break;
+          if(hc->up_ml[i] >= u){
+            for(l = n; l > j + turn + 2; l--){
+              for(k = 1; k < i; k++){
+                kl = my_iindx[k] - l;
+                if(hc_local[kl] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+                  tt = ptype[jindx[l] + k];
+                  temp =    probs[kl]
+                          * exp_E_MLstem(tt, S1[l-1], S1[k+1], pf_params)
+                          * expMLclosing
+                          * scale[2];
+                  for(u = j + 1; u < l; u++){
+                    
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     if(sc && sc->f && sc->bt){
@@ -766,9 +796,11 @@ pf_create_bppm( vrna_fold_compound_t *vc,
     for(i = 1; i <= n; i++)
       for(j = i; j <= n; j++){
         FLT_OR_DBL p, pp;
-        pp = p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, 0, domains_up->data);
+        pp = 0.;
+        p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, 0, domains_up->data);
         if(p > 0.)
           printf("p_ext[0][%d,%d] = %g\n", i, j, p);
+        pp += p;
         p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, 0, domains_up->data);
         pp += p;
         if(p > 0.)
