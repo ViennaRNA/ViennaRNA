@@ -68,7 +68,7 @@ EXTRA_DIST = \
 if HAS_SWIG
 
 $(SWIG_wrapper) $(PERL_MODULE): $(INTERFACE_FILES)
-	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
+	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
                   $(RNA_CPPFLAGS) \
                   -perl5 -proxy -const -c++ \
@@ -82,11 +82,12 @@ endif
 ##
 
 auto/RNA/RNA$(PERL_SO): RNA.la
-	$(MKDIR_P) auto/RNA
-	$(LIBTOOL) --config > libtoolconfig.tmp
-## ksh requires a path on the sourced file.
-	. ./libtoolconfig.tmp; cp "$$objdir/RNA$(PERL_SO)" auto/RNA
-	rm -f libtoolconfig.tmp
+	$(AM_V_GEN)( $(MKDIR_P) auto/RNA ) && \
+  ( \
+    $(LIBTOOL) --config > libtoolconfig.tmp && \
+    ( . ./libtoolconfig.tmp; cp "$$objdir/RNA$(PERL_SO)" auto/RNA ) && \
+    rm -f libtoolconfig.tmp \
+  )
 
 clean-local:
 	-rm -rf auto

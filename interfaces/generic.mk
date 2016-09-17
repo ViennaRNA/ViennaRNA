@@ -1,3 +1,6 @@
+swig_verbose = $(swig_verbose_@AM_V@)
+swig_verbose_ = $(swig_verbose_@AM_DEFAULT_V@)
+swig_verbose_0 = @echo "  SWIG     $@";
 
 SWIG_main_src = $(srcdir)/../RNA.i
 

@@ -52,7 +52,7 @@ endif
 if HAS_SWIG
 
 $(SWIG_wrapper): $(SWIG_src)
-	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
+	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
                   $(RNA_CPPFLAGS) \
                   -python -modern  -c++ \
@@ -66,14 +66,13 @@ endif
 # We rename RNA.py to __init__.py so that it can be installed
 # in an "RNA" directory and be treated as a package.
 RNA/__init__.py: $(SWIG_module_name).py
-	-test -d RNA || $(MKDIR_P) RNA
-	cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/__init__.py
+	$(AM_V_GEN)( test -d RNA || $(MKDIR_P) RNA ) && \
+  cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/__init__.py
 
 _RNA$(PYTHON2_SO): _RNA.la
-	$(LIBTOOL) --config > libtoolconfig.tmp
-## ksh requires a path on the sourced file.
-	. ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON2_SO) .
-	rm -f libtoolconfig.tmp
+	$(AM_V_GEN)( $(LIBTOOL) --config > libtoolconfig.tmp ) && \
+  ( . ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON2_SO) . ) && \
+  rm -f libtoolconfig.tmp
 
 clean-local:
 	-rm -rf RNA _RNA$(PYTHON2_SO)
