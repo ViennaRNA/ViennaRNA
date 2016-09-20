@@ -125,6 +125,7 @@ pkginclude_HEADERS =  \
     structured_domains.h \
     unstructured_domains.h \
     file_formats_msa.h \
+    file_utils.h \
     commands.h \
     ${SVM_UTILS_H} \
     ${SVM_H} \
@@ -190,6 +191,7 @@ libRNA_utils_la_SOURCES = \
     aln_util.c \
     string_utils.c \
     structure_utils.c \
+    file_utils.c \
     file_formats.c \
     file_formats_msa.c \
     commands.c
@@ -217,10 +219,11 @@ libRNA_params_la_SOURCES = \
 BUILT_SOURCES = libRNA.a
 
 libRNA.a: libRNA.la
-	$(LIBTOOL) --config > libtoolconfig.tmp
-## ksh requires a path on the sourced file.
-	. ./libtoolconfig.tmp; cp "$$objdir/libRNA.a" ./
-	rm -f libtoolconfig.tmp
+	$(AM_V_GEN)( \
+    $(LIBTOOL) --config > libtoolconfig.tmp && \
+    ( \. ./libtoolconfig.tmp; cp "$$objdir/libRNA.a" ./ ) && \
+    rm -f libtoolconfig.tmp \
+  )
 
 clean-local:
 	-rm -f libRNA.a

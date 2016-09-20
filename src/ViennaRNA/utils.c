@@ -12,12 +12,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <errno.h>
 #include <time.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <err.h>
+#include <errno.h>
 
 /* for getpid() we need some distinction between UNIX and Win systems */
 #ifdef _WIN32
@@ -251,14 +253,6 @@ vrna_int_urn(int from, int to){
 
 /*------------------------------------------------------------------------*/
 
-PUBLIC void
-vrna_file_copy(FILE *from, FILE *to){
-
-  int c;
-
-  while ((c = getc(from)) != EOF) (void)putc(c, to);
-}
-
 /*-----------------------------------------------------------------*/
 
 PUBLIC char *
@@ -271,29 +265,6 @@ vrna_time_stamp(void){
 }
 
 /*-----------------------------------------------------------------*/
-
-PUBLIC char *
-vrna_read_line(FILE *fp){ /* reads lines of arbitrary length from fp */
-
-  char s[512], *line, *cp;
-  int len=0, size=0, l;
-  line=NULL;
-  do {
-    if (fgets(s, 512, fp)==NULL) break;
-    cp = strchr(s, '\n');
-    if (cp != NULL) *cp = '\0';
-    l = len + (int)strlen(s);
-    if (l+1>size) {
-      size = (int)((l+1)*1.2);
-      line = (char *) vrna_realloc(line, size*sizeof(char));
-    }
-    strcat(line+len, s);
-    len=l;
-  } while(cp==NULL);
-
-  return line;
-}
-
 
 PUBLIC  unsigned int get_input_line(char **string, unsigned int option){
   char  *line;
@@ -461,7 +432,6 @@ mix() was built out of 36 single-cycle latency instructions in a
   c=c-a;  c=c-b;  c=c^(b >> 15);
   return c;
 }
-
 
 #ifdef  VRNA_BACKWARD_COMPAT
 

@@ -21,6 +21,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/file_utils.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/file_formats_msa.h"
 

@@ -21,11 +21,6 @@
  */
 
 /**
- *  @addtogroup file_utils
- *  @brief      Functions dealing with file formats for RNA sequences, structures, and alignments
- *
- *  @see @ref constraint-formats-file 
- *
  *  @{
  *  @ingroup  file_utils
  */

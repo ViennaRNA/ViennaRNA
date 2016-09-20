@@ -28,6 +28,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/file_utils.h"
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/centroid.h"
 #include "ViennaRNA/MEA.h"

@@ -30,6 +30,7 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/string_utils.h>
 #include <ViennaRNA/structure_utils.h>
+#include <ViennaRNA/file_utils.h>
 #include <ViennaRNA/alphabet.h>
 
 /* two helper macros to indicate whether a function should be exported in
@@ -276,11 +277,6 @@ double vrna_urn(void);
 int vrna_int_urn(int from, int to);
 
 /**
- *  @brief Inefficient `cp'
- */
-void vrna_file_copy(FILE *from, FILE *to);
-
-/**
  *  @brief Get a timestamp
  *
  *  Returns a string containing the current date in the format
@@ -289,18 +285,6 @@ void vrna_file_copy(FILE *from, FILE *to);
  *  @return A string containing the timestamp
  */
 char  *vrna_time_stamp(void);
-
-/**
- *  @brief Read a line of arbitrary length from a stream
- *
- *  Returns a pointer to the resulting string. The necessary memory is
- *  allocated and should be released using @e free() when the string is
- *  no longer needed.
- *
- *  @param  fp  A file pointer to the stream where the function should read from
- *  @return     A pointer to the resulting string
- */
-char  *vrna_read_line(FILE *fp);
 
 /**
  *  Retrieve a line from 'stdin' savely while skipping comment characters and

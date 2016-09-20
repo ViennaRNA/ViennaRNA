@@ -20,6 +20,7 @@
 
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/file_utils.h"
 #include "ViennaRNA/constraints.h"
 #if WITH_JSON_SUPPORT
 # include <json/json.h>
