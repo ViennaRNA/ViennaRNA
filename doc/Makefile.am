@@ -94,10 +94,11 @@ if WITH_REFERENCE_MANUAL_HTML
 vrna_htmlrefman_inst: installdirs html
 	@$(NORMAL_INSTALL)
 	test -d $(builddir)/html || $(LN_S) $(srcdir)/html $(builddir)/html
-	cp -r $(builddir)/html/* "$(DESTDIR)$(htmldir)"
-	chmod 644 "$(DESTDIR)$(htmldir)"/*
+	{ for i in $(builddir)/html/*; do cp -r "$$i" "$(DESTDIR)$(htmldir)/"; done }
+	{ for i in "$(DESTDIR)$(htmldir)"/*; do test -f "$$i" && chmod 644 "$$i"; done }
+	chmod 755 "$(DESTDIR)$(htmldir)"
+	{ for i in "$(DESTDIR)$(htmldir)"/search/*; do test -f "$$i" && chmod 644 "$$i"; done }
 	chmod 755 "$(DESTDIR)$(htmldir)"/search
-	chmod 644 "$(DESTDIR)$(htmldir)"/search/*
 	{ test ! -h $(builddir)/html || rm -f $(builddir)/html; }
 
 vrna_htmlrefman_uninst:
