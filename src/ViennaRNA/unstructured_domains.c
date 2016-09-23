@@ -250,6 +250,46 @@ vrna_ud_add_motif(vrna_fold_compound_t*vc,
     add_ligand_motif(vc, motif, motif_en, loop_type);
   }
 }
+
+
+PUBLIC int *
+vrna_ud_get_motif_size_at(vrna_fold_compound_t *vc, int i, unsigned int loop_type){
+
+  if(vc && vc->domains_up){
+    int k, l, cnt, *ret, *ptr;
+
+    ret = NULL;
+    if((i > 0) && (i <= vc->length)){
+      ptr = get_motifs(vc, i, loop_type);
+      if(ptr){
+        for(k = 0; ptr[k] != -1; k++) /* replace motif number with its size */
+          ptr[k] = vc->domains_up->motif_size[ptr[k]];
+        /* make the list unique */
+        ret     = (int *)vrna_alloc(sizeof(int) * (k + 1));
+        ret[0]  = -1;
+        cnt     = 0;
+        for(k = 0; ptr[k] != -1; k++){
+          for(l = 0; l < cnt; l++){
+            if(ptr[k] == ret[l])
+              break; /* we've already seen this size */
+          }
+          if(l == cnt){ /* we've not seen this size before */
+            ret[cnt]      = ptr[k];
+            ret[cnt + 1]  = -1;
+            cnt++;
+          }
+        }
+        /* resize ret array */
+        ret = (int *)vrna_realloc(ret, sizeof(int) * (cnt + 1));
+      }
+      free(ptr);
+    }
+    return ret;
+  }
+  return NULL;
+}
+
+
 /*
 #####################################
 # BEGIN OF STATIC HELPER FUNCTIONS  #

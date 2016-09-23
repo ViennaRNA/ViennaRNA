@@ -196,6 +196,16 @@ void  vrna_ud_add_motif(vrna_fold_compound_t *vc,
                         double motif_en,
                         unsigned int loop_type);
 
+
+/**
+ *  @brief  Get a list of unique motif sizes that start at a certain position within the sequence
+ *
+ */
+int *vrna_ud_get_motif_size_at( vrna_fold_compound_t *vc,
+                                int i,
+                                unsigned int loop_type);
+
+
 /**
  *  @brief Remove ligand binding to unpaired stretches
  *
