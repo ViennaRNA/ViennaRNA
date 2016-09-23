@@ -273,7 +273,7 @@ int main(int argc, char *argv[]){
     if(outfile){
       /* prepare the file prefix */
       if(fname[0] != '\0'){
-        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
+        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(fname) + strlen(outfile) + 2));
         strcpy(prefix, outfile);
         strcat(prefix, "_");
         strcat(prefix, fname);
