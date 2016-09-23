@@ -52,6 +52,13 @@ eval_int_loop(vrna_fold_compound_t *vc,
               int k,
               int l);
 
+PRIVATE FLT_OR_DBL
+exp_E_interior_loop(vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    int k,
+                    int l);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -183,7 +190,7 @@ E_int_loop( vrna_fold_compound_t *vc,
   char              *ptype, *ptype_pq, *hc_pq, *hc, eval_loop;
   short             *S, S_i1, S_j1, *S_p1, *S_q1;
   int               q, p, j_q, p_i, pq, *c_pq, max_q, max_p, tmp,
-                    *rtype, noGUclosure, no_close, energy, cp,
+                    *rtype, noGUclosure, no_close, energy, cp, en,
                     *indx, *hc_up, ij, hc_decompose, e, *c, *ggg,
                     with_gquad, turn;
   vrna_sc_t         *sc;
@@ -633,7 +640,7 @@ eval_interior_loop( vrna_fold_compound_t *vc,
                     int p,
                     int q){
 
-  int               energy, en, u1, u2, i1, j1, p1, q1, *idx;
+  int               energy, en, e, e5, e3, u1, u2, i1, j1, p1, q1, *idx;
   short             *S, si, sj, sp, sq;
   unsigned char     type, type_2;
   int               *rtype, ij, cp, *bI;
@@ -686,14 +693,6 @@ eval_interior_loop( vrna_fold_compound_t *vc,
                             P);
   }
 
-  /* unstructured domains */
-  if(domains_up && domains_up->energy_cb){
-    if(u1 > 0)
-      energy += domains_up->energy_cb(vc, i+1, p-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
-    if(u2 > 0)
-      energy += domains_up->energy_cb(vc, q+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
-  }
-
   /* add soft constraints */
   if(sc){
     if(sc->energy_up)
@@ -715,7 +714,20 @@ eval_interior_loop( vrna_fold_compound_t *vc,
       energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
   }
 
-  return energy;
+  e   = energy;
+  e5  = e3 = 0;
+
+  if(u1 > 0)
+    e5 = domains_up->energy_cb(vc, i+1, p-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+  if(u2 > 0)
+    e3 = domains_up->energy_cb(vc, q+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+
+  e = MIN2(e, energy + e5);
+  e = MIN2(e, energy + e3);
+  e = MIN2(e, energy + e5 + e3);
+
+
+  return e;
 }
 
 PRIVATE FLT_OR_DBL
@@ -790,14 +802,6 @@ exp_E_int_loop( vrna_fold_compound_t *vc,
                   * scale[u1+u2+2]
                   * exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k-1], S1[l+1], pf_params);
 
-          /* unstructured domains */
-          if(domains_up && domains_up->exp_energy_cb){
-            if(u1 > 0)
-              q_temp *= domains_up->exp_energy_cb(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
-            if(u2 > 0)
-              q_temp *= domains_up->exp_energy_cb(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
-          }
-
           /* soft constraints */
           if(sc){
             if(sc->exp_energy_up)
@@ -817,6 +821,24 @@ exp_E_int_loop( vrna_fold_compound_t *vc,
           }
 
           qbt1 += q_temp;
+
+          /* unstructured domains */
+          if(domains_up && domains_up->exp_energy_cb){
+            FLT_OR_DBL qq5, qq3;
+
+            qq5 = qq3 = 0.;
+
+            if(u1 > 0)
+              qq5 = domains_up->exp_energy_cb(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+
+            if(u2 > 0)
+              qq3 = domains_up->exp_energy_cb(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+
+            qbt1 += q_temp * qq5;       /* only motifs in 5' part */
+            qbt1 += q_temp * qq3;       /* only motifs in 3' part */
+            qbt1 += q_temp * qq5 * qq3; /* motifs in both parts */
+          }
+
         }
       }
     }
@@ -833,6 +855,137 @@ exp_E_int_loop( vrna_fold_compound_t *vc,
       qbt1 *= sc->exp_energy_bp[my_iindx[i] - j];
     }
 
+
+  }
+  return qbt1;
+}
+
+PUBLIC FLT_OR_DBL
+vrna_exp_E_interior_loop( vrna_fold_compound_t *vc,
+                          int i,
+                          int j,
+                          int k,
+                          int l){
+
+  if(vc){
+    return exp_E_interior_loop(vc, i, j, k, l);
+  }
+  
+  return 0.;
+}
+
+PRIVATE FLT_OR_DBL
+exp_E_interior_loop(vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    int k,
+                    int l){
+
+  unsigned char     type, type_2;
+  char              *ptype, *hc;
+  short             *S1, S_i1, S_j1;
+  int               u1, u2, kl, maxk, minl, *rtype, noGUclosure,
+                    no_close, cp, *my_iindx, *jindx, *hc_up, ij,
+                    with_gquad, turn;
+  FLT_OR_DBL        qbt1, q_temp, *qb, *G, *scale;
+  vrna_sc_t         *sc; 
+  vrna_exp_param_t  *pf_params;
+  vrna_md_t         *md;
+  vrna_ud_t         *domains_up;
+
+  cp          = vc->cutpoint;
+  ptype       = vc->ptype;
+  S1          = vc->sequence_encoding;
+  S_i1        = S1[i+1];
+  S_j1        = S1[j-1];
+  my_iindx    = vc->iindx;
+  jindx       = vc->jindx;
+  hc          = vc->hc->matrix;
+  hc_up       = vc->hc->up_int;
+  sc          = vc->sc; 
+  pf_params   = vc->exp_params;
+  ij          = jindx[j] + i;
+  kl          = my_iindx[k] - l;
+  md          = &(pf_params->model_details);
+  with_gquad  = md->gquad;
+  turn        = md->min_loop_size;
+  qb          = vc->exp_matrices->qb;
+  G           = vc->exp_matrices->G;
+  scale       = vc->exp_matrices->scale;
+  domains_up  = vc->domains_up;
+  qbt1        = 0.;
+  u1          = k - i - 1;
+  u2          = j - l - 1;
+
+  if(!ON_SAME_STRAND(i, k, cp))
+    return qbt1;
+  if(!ON_SAME_STRAND(l, j, cp))
+    return qbt1;
+
+  if(hc_up[l + 1] < u2)
+    return qbt1;
+  if(hc_up[i + 1] < u1)
+    return qbt1;
+
+  /* CONSTRAINED INTERIOR LOOP start */
+  if((hc[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) && (hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)){
+
+    type        = (unsigned char)ptype[ij];
+    rtype       = &(md->rtype[0]);
+    noGUclosure = md->noGUclosure;
+    no_close    = (((type==3)||(type==4))&&noGUclosure);
+    type        = (unsigned char)ptype[ij];
+    type_2      = rtype[(unsigned char)ptype[jindx[l] + k]];
+
+    if(type == 0)
+      type = 7;
+
+    if(type_2 == 0)
+      type_2 = 7;
+
+    q_temp =    exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k-1], S1[l+1], pf_params)
+              * scale[u1 + u2 + 2];
+
+    /* soft constraints */
+    if(sc){
+      if(sc->exp_energy_up)
+        q_temp *= sc->exp_energy_up[i+1][u1]
+                  * sc->exp_energy_up[l+1][u2];
+
+      if(sc->exp_f)
+        q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+
+      if(sc->exp_energy_stack)
+        if((i+1 == k) && (j-1 == l)){
+          q_temp *=   sc->exp_energy_stack[i]
+                    * sc->exp_energy_stack[k]
+                    * sc->exp_energy_stack[l]
+                    * sc->exp_energy_stack[j];
+        }
+
+      if(sc->exp_energy_bp){
+        q_temp *= sc->exp_energy_bp[my_iindx[i] - j];
+      }
+    }
+
+    qbt1 += q_temp;
+
+    /* unstructured domains */
+    if(domains_up && domains_up->exp_energy_cb){
+      FLT_OR_DBL qq5, qq3;
+
+      qq5 = qq3 = 0.;
+
+      if(u1 > 0)
+        qq5 = domains_up->exp_energy_cb(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+
+      if(u2 > 0)
+        qq3 = domains_up->exp_energy_cb(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+
+      qbt1 += q_temp * qq5;       /* only motifs in 5' part */
+      qbt1 += q_temp * qq3;       /* only motigs in 3' part */
+      qbt1 += q_temp * qq5 * qq3; /* motifs in both parts */
+    }
 
   }
   return qbt1;

@@ -624,11 +624,12 @@ pf_linear(vrna_fold_compound_t *vc){
             q_temp *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_UP, sc->data);
         }
 
+        temp += q_temp;
+
         if(with_ud){
-          q_temp *= domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, domains_up->data);
+          temp += q_temp * domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, domains_up->data);
         }
 
-        temp += q_temp;
       }
 
       kl = my_iindx[i] - i;

@@ -808,20 +808,21 @@ default_prod_rule(vrna_fold_compound_t *vc,
         e_int = energies_int[idx[j]+i+1];
         e_mb  = energies_mb[idx[j]+i+1];
       } else {
-        e_ext = 0;
-        e_hp  = 0;
-        e_int = 0;
-        e_mb  = 0;
+        e_ext = INF;
+        e_hp  = INF;
+        e_int = INF;
+        e_mb  = INF;
       }
       if(list_ext){
         for(k = 0; -1 != (l = list_ext[k]); k++){
           u   = i + data->len[l] - 1;
           en  = data->dG[l];
-          if(u < j){
-            en2 = en + energies_ext[idx[j]+u+1];
-            e_ext = MIN2(e_ext, en2);
-          } else if(u == j){
+          if(u <= j){
             e_ext = MIN2(e_ext, en);
+            if(u < j){
+              en2 = en + energies_ext[idx[j]+u+1];
+              e_ext = MIN2(e_ext, en2);
+            }
           }
         }
       }
@@ -829,11 +830,12 @@ default_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_hp[k]); k++){
           u   = i + data->len[l] - 1;
           en  = data->dG[l];
-          if(u < j){
-            en2 = en + energies_hp[idx[j]+u+1];
-            e_hp = MIN2(e_hp, en2);
-          } else if(u == j){
+          if(u <= j){
             e_hp = MIN2(e_hp, en);
+            if(u < j){
+              en2 = en + energies_hp[idx[j]+u+1];
+              e_hp = MIN2(e_hp, en2);
+            }
           }
         }
       }
@@ -841,11 +843,12 @@ default_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_int[k]); k++){
           u   = i + data->len[l] - 1;
           en  = data->dG[l];
-          if(u < j){
-            en2 = en + energies_int[idx[j]+u+1];
-            e_int = MIN2(e_int, en2);
-          } else if(u == j){
+          if(u <= j){
             e_int = MIN2(e_int, en);
+            if(u < j){
+              en2 = en + energies_int[idx[j]+u+1];
+              e_int = MIN2(e_int, en2);
+            }
           }
         }
       }
@@ -853,11 +856,12 @@ default_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_mb[k]); k++){
           u   = i + data->len[l] - 1;
           en  = data->dG[l];
-          if(u < j){
-            en2 = en + energies_mb[idx[j]+u+1];
-            e_mb = MIN2(e_mb, en2);
-          } else if(u == j){
+          if(u <= j){
             e_mb = MIN2(e_mb, en);
+            if( u < j){
+              en2 = en + energies_mb[idx[j]+u+1];
+              e_mb = MIN2(e_mb, en2);
+            }
           }
         }
       }
@@ -921,20 +925,19 @@ default_exp_prod_rule(vrna_fold_compound_t *vc,
         q_int = exp_energies_int[idx[i + 1] - j];
         q_mb  = exp_energies_mb[idx[i + 1] - j];
       } else {
-        q_ext = 1.0;
-        q_hp  = 1.0;
-        q_int = 1.0;
-        q_mb  = 1.0;
+        q_ext = 0;
+        q_hp  = 0;
+        q_int = 0;
+        q_mb  = 0;
       }
       if(list_ext){
         for(k = 0; -1 != (l = list_ext[k]); k++){
           u = i + data->len[l] - 1;
           q = data->exp_dG[l];
-          if(u < j){
-            qq = q * exp_energies_ext[idx[u + 1] - j];
-            q_ext += qq;
-          } else if(u == j){
+          if(u <= j){
             q_ext += q;
+            if(u < j)
+              q_ext += q * exp_energies_ext[idx[u + 1] - j];
           }
         }
       }
@@ -942,11 +945,10 @@ default_exp_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_hp[k]); k++){
           u   = i + data->len[l] - 1;
           q  = data->exp_dG[l];
-          if(u < j){
-            qq = q * exp_energies_hp[idx[u + 1] - j];
-            q_hp += qq;
-          } else if(u == j){
+          if(u <= j){
             q_hp += q;
+            if(u < j)
+              q_hp += q * exp_energies_hp[idx[u + 1] - j];
           }
         }
       }
@@ -954,11 +956,10 @@ default_exp_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_int[k]); k++){
           u   = i + data->len[l] - 1;
           q  = data->exp_dG[l];
-          if(u < j){
-            qq = q * exp_energies_int[idx[u + 1] - j];
-            q_int += qq;
-          } else if(u == j){
+          if(u <= j){
             q_int += q;
+            if(u < j)
+              q_int += q * exp_energies_int[idx[u + 1] - j];
           }
         }
       }
@@ -966,11 +967,10 @@ default_exp_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_mb[k]); k++){
           u   = i + data->len[l] - 1;
           q  = data->exp_dG[l];
-          if(u < j){
-            qq = q * exp_energies_mb[idx[u + 1] - j];
-            q_mb += qq;
-          } else if(u == j){
+          if(u <= j){
             q_mb += q;
+            if(u < j)
+              q_mb += q * exp_energies_mb[idx[u + 1] - j];
           }
         }
       }
@@ -997,7 +997,7 @@ default_energy( vrna_fold_compound_t *vc,
   ij = idx[j] + i;
 
   if(j < i)
-    return 0;
+    return INF;
 
   if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MOTIF){
     if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP)
@@ -1041,9 +1041,10 @@ default_exp_energy( vrna_fold_compound_t *vc,
   q     = 0;
   data  = (struct ligands_up_data_default *)d;
 
+  if(j < i)
+    return 0.;
+
   if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MOTIF){
-    if(j < i)
-      return 0.;
 
     if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP)
       q = default_exp_energy_ext_motif(i, j, data);
@@ -1054,9 +1055,6 @@ default_exp_energy( vrna_fold_compound_t *vc,
     else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP)
       q = default_exp_energy_mb_motif(i, j, data);
   } else {
-    if(j < i)
-      return 1.;
-
     idx   = vc->iindx;
     ij    = idx[i] - j;
     if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP){

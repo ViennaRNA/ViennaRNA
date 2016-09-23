@@ -244,7 +244,7 @@ void  vrna_ud_set_data( vrna_fold_compound_t  *vc,
  *
  *  Use this function to supply a user-implemented production rule @p B. This callback will
  *  be executed as a pre-processing step right before the regular secondary structure rules.
- *  Usually one would use this callback to fill the dynamic processing matrices @p B and
+ *  Usually one would use this callback to fill the dynamic programming matrices @p B and
  *  preparations of the auxiliary data structure #vrna_unstructured_domain_s.data
  *
  *  @image html   B_prod_rule.svg
