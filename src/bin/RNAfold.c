@@ -359,7 +359,7 @@ int main(int argc, char *argv[]){
     min_en = (double)vrna_mfe(vc, structure);
 
     /* check whether the constraint allows for any solution */
-    if(fold_constrained && constraints_file){
+    if((fold_constrained && constraints_file) || (commands)){
       if(min_en == (double)(INF/100.)){
         vrna_message_error( "Supplied structure constraints create empty solution set for sequence:\n%s",
                             orig_sequence);
