@@ -94,16 +94,6 @@ exp_E_Hairpin(  int u,
                 vrna_exp_param_t *P);
 
 
-int
-vrna_eval_hp_loop(vrna_fold_compound_t *vc,
-                  int i,
-                  int j);
-
-int
-vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
-                      int i,
-                      int j);
-
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #

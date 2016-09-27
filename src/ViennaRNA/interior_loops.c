@@ -45,6 +45,13 @@ eval_interior_loop( vrna_fold_compound_t *vc,
                     int p,
                     int q);
 
+PRIVATE INLINE int
+eval_int_loop(vrna_fold_compound_t *vc,
+              int i,
+              int j,
+              int k,
+              int l);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -67,6 +74,26 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
 
       case VRNA_VC_TYPE_ALIGNMENT:
         e = E_int_loop_comparative(vc, i, j);
+        break;
+    }
+  }
+
+  return e;
+}
+
+PUBLIC int
+vrna_eval_int_loop( vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    int k,
+                    int l){
+
+  int e = INF;
+
+  if(vc){
+    switch(vc->type){
+      case VRNA_VC_TYPE_SINGLE:
+        e = eval_int_loop(vc, i, j, k, l);
         break;
     }
   }
@@ -97,6 +124,55 @@ vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
   return q;
 }
 
+PRIVATE INLINE int
+eval_int_loop(vrna_fold_compound_t *vc,
+              int i,
+              int j,
+              int k,
+              int l){
+
+  int         ij, kl, e, u1, u2, cp, *jindx, *hc_up, *rtype, type, type2;
+  short       *S;
+  vrna_sc_t     *sc;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+
+  cp        = vc->cutpoint;
+  jindx     = vc->jindx;
+  sc        = vc->sc;
+  P         = vc->params;
+  md        = &(P->model_details);
+  rtype     = &(md->rtype[0]);
+  ij        = jindx[j] + i;
+  kl        = jindx[l] + k;
+  S         = vc->sequence_encoding;
+
+  e   = INF;
+
+  u1          = k - i - 1;
+  u2          = j - l - 1;
+
+  if(!ON_SAME_STRAND(i, k, cp))
+    return e;
+  if(!ON_SAME_STRAND(l, j, cp))
+    return e;
+
+  type  = md->pair[S[i]][S[j]];
+  type2 = md->pair[S[l]][S[k]];
+  if(type == 0)
+    type = 7;
+  if(type2 == 0)
+    type2 = 7;
+
+  e = ubf_eval_int_loop(i, j, k, l,
+                        i + 1, j - 1, k - 1, l + 1,
+                        S[i + 1], S[j - 1], S[k - 1], S[l + 1],
+                        type, type2, rtype,
+                        ij, cp,
+                        P, sc);
+
+  return e;
+}
 
 PRIVATE int
 E_int_loop( vrna_fold_compound_t *vc,

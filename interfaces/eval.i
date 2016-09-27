@@ -68,3 +68,25 @@
 %ignore energy_of_struct_pt_par;
 
 %include  <ViennaRNA/eval.h>
+
+
+%extend vrna_fold_compound_t{
+
+  int E_ext_loop(int i, int j){
+    return E_ext_loop(i, j, $self);
+  }
+
+  int eval_hp_loop(int i, int j){
+    return vrna_eval_hp_loop($self, i, j);
+  }
+
+  int eval_int_loop(int i, int j, int k, int l){
+    return vrna_eval_int_loop($self, i, j, k, l);
+  }
+
+}
+
+%include  <ViennaRNA/exterior_loops.h>
+%include  <ViennaRNA/hairpin_loops.h>
+%include  <ViennaRNA/interior_loops.h>
+%include  <ViennaRNA/multibranch_loops.h>

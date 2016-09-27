@@ -129,11 +129,6 @@ PRIVATE INLINE int E_IntLoop_Co(int type,
                                 vrna_param_t *P);
 
 
-/**
- *  @brief Evaluate energy of a base pair stack closed by (i,j)
- */
-int E_stack(int i, int j, vrna_fold_compound_t *vc);
-
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -473,6 +468,13 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j);
 
+int
+vrna_eval_int_loop( vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    int k,
+                    int l);
+
 FLT_OR_DBL
 vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
@@ -489,45 +491,6 @@ int
 vrna_E_stack( vrna_fold_compound_t *vc,
               int i,
               int j);
-
-
-int
-E_IntLoop(int n1,
-          int n2,
-          int type,
-          int type_2,
-          int si1,
-          int sj1,
-          int sp1,
-          int sq1,
-          vrna_param_t *P);
-
-
-FLT_OR_DBL
-exp_E_IntLoop(int u1,
-              int u2,
-              int type,
-              int type2,
-              short si1,
-              short sj1,
-              short sp1,
-              short sq1,
-              vrna_exp_param_t *P);
-
-int
-E_IntLoop_Co( int type,
-              int type_2,
-              int i,
-              int j,
-              int p,
-              int q,
-              int cutpoint,
-              short si1,
-              short sj1,
-              short sp1,
-              short sq1,
-              int dangles,
-              vrna_param_t *P);
 
 
 /**

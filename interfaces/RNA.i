@@ -55,9 +55,12 @@ extern "C" {
 #include  <ViennaRNA/Lfold.h>
 #include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
+#include  <ViennaRNA/file_formats.h>
+
+#include  <ViennaRNA/exterior_loops.h>
 #include  <ViennaRNA/hairpin_loops.h>
 #include  <ViennaRNA/interior_loops.h>
-#include  <ViennaRNA/file_formats.h>
+#include  <ViennaRNA/multibranch_loops.h>
 }
 
 %}

@@ -14,6 +14,10 @@
 
 %nodefaultctor vrna_param_t;
 typedef struct {
+  int       MLbase;
+  int       MLintern[NBPAIRS+1];
+  int       MLclosing;
+  int       TerminalAU;
   vrna_md_t model_details;
 } vrna_param_t;
 
