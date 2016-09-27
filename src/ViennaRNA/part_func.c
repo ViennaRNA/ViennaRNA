@@ -448,7 +448,7 @@ pf_linear(vrna_fold_compound_t *vc){
             if(j - u >= i){
               if(hc_up_ml[j-u+1] >= u){
                 q_temp2 =   qqmu[u][i]
-                          * domains_up->exp_energy_cb(vc, j - u + 1, j, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data)
+                          * domains_up->exp_energy_cb(vc, j - u + 1, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data)
                           * expMLbase[u];
 
                 if(sc){
@@ -512,7 +512,7 @@ pf_linear(vrna_fold_compound_t *vc){
         if(sc){
           for (k=maxk; k>i; k--, ii--){
             q_temp =    expMLbase[ii]
-                      * domains_up->exp_energy_cb(vc, i, k-1,VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP, domains_up->data)
+                      * domains_up->exp_energy_cb(vc, i, k-1,VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, domains_up->data)
                       * qqm[k];
 
             if(sc->exp_energy_up)
@@ -526,7 +526,7 @@ pf_linear(vrna_fold_compound_t *vc){
         } else {
           for (k=maxk; k>i; k--, ii--){
             temp +=   expMLbase[ii]
-                    * domains_up->exp_energy_cb(vc, i, k-1,VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP, domains_up->data)
+                    * domains_up->exp_energy_cb(vc, i, k-1,VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, domains_up->data)
                     * qqm[k];
           }
         }

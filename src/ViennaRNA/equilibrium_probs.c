@@ -488,7 +488,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                 u = domains_up->uniq_motif_size[cnt];
                 if(hc->up_ml[l+1] >= u){
                   if(l + u < n){
-                    temp =    domains_up->exp_energy_cb(vc, l+1, l+u, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data)
+                    temp =    domains_up->exp_energy_cb(vc, l+1, l+u, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data)
                             * pmlu[u][i]
                             * expMLbase[u];
 
@@ -532,7 +532,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                 if(hc->up_ml[i] >= u){
                   temp =    prm_MLbu[u]
                           * expMLbase[u]
-                          * domains_up->exp_energy_cb(vc, i, i+u, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+                          * domains_up->exp_energy_cb(vc, i, i+u, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
 
                   if(sc){
                     if(sc->exp_energy_up)
@@ -646,7 +646,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
         motif_list_ext[i] = vrna_ud_get_motif_size_at(vc, i, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP);
         motif_list_hp[i] = vrna_ud_get_motif_size_at(vc, i, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP);
         motif_list_int[i] = vrna_ud_get_motif_size_at(vc, i, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP);
-        motif_list_mb[i] = vrna_ud_get_motif_size_at(vc, i, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP);
+        motif_list_mb[i] = vrna_ud_get_motif_size_at(vc, i, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP);
       }
 
       for(i = 1; i <= n; i++){
@@ -856,7 +856,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
           cnt = 0;
           outside       = 0.;
-          exp_motif_en  = domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+          exp_motif_en  = domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
 
           while(-1 != (u = motif_list_mb[i][cnt])){
             j = i + u - 1;
@@ -955,7 +955,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                         FLT_OR_DBL qqq =    qb[my_iindx[k] - u]
                                           * expMLbase[up];
                         /* add contributions of other motifs within [u+1:i-1] */
-                        qqq *= domains_up->exp_energy_cb(vc, u+1, i-1, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP, domains_up->data);
+                        qqq *= domains_up->exp_energy_cb(vc, u+1, i-1, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, domains_up->data);
                         /* add soft constraints */
                         if(sc){
                           if(sc->exp_energy_up)
@@ -985,7 +985,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                             * scale[2]
                             * expMLbase[up];
                       /* add contributions of other motifs within [j+1:l-1] */
-                      qqq *= domains_up->exp_energy_cb(vc, j+1, l-1, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP, domains_up->data);
+                      qqq *= domains_up->exp_energy_cb(vc, j+1, l-1, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, domains_up->data);
                       if(sc){
                         if(sc->exp_energy_up)
                           qqq *= sc->exp_energy_up[j+1][up];
@@ -1006,7 +1006,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
             /* add contribution */
             if(outside > 0.)
-              domains_up->outside_add(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, outside, domains_up->data);
+              domains_up->outside_add(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, outside, domains_up->data);
 
             cnt++;
           }
@@ -1127,7 +1127,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
         pp += p;
         if(p > 0.)
           printf("p_int[0][%d,%d] = %g\n", i, j, p);
-        p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP, 0, domains_up->data);
+        p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, 0, domains_up->data);
         pp += p;
         if(p > 0.)
           printf("p_ml[0][%d,%d] = %g\n", i, j, p);

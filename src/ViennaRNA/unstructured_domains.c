@@ -622,7 +622,7 @@ prepare_matrices( vrna_fold_compound_t *vc,
   unsigned int lt[4] = {  VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
                           VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
                           VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
-                          VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP };
+                          VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP };
   int **m[4], *mx;
   m[0] = &data->energies_ext;
   m[1] = &data->energies_hp;
@@ -676,7 +676,7 @@ prepare_exp_matrices( vrna_fold_compound_t *vc,
   unsigned int lt[4] = {  VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
                           VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
                           VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
-                          VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP };
+                          VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP };
   FLT_OR_DBL **m[4], *mx;
   m[0] = &data->exp_energies_ext;
   m[1] = &data->exp_energies_hp;
@@ -752,7 +752,7 @@ prepare_default_data( vrna_fold_compound_t *vc,
     data->motif_list_ext[i] = get_motifs(vc, i, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP);
     data->motif_list_hp[i]  = get_motifs(vc, i, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP);
     data->motif_list_int[i] = get_motifs(vc, i, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP);
-    data->motif_list_mb[i]  = get_motifs(vc, i, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP);
+    data->motif_list_mb[i]  = get_motifs(vc, i, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP);
   }
 
   /*  store length of motifs in 'data' */
@@ -1006,7 +1006,7 @@ default_energy( vrna_fold_compound_t *vc,
       en = default_energy_hp_motif(i, j, data);
     else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP)
       en = default_energy_int_motif(i, j, data);
-    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP)
+    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP)
       en = default_energy_mb_motif(i, j, data);
   } else {
     if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP){
@@ -1018,7 +1018,7 @@ default_energy( vrna_fold_compound_t *vc,
     } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
       if(data->energies_int)
         en = data->energies_int[ij];
-    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP){
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP){
       if(data->energies_mb)
         en = data->energies_mb[ij];
     }
@@ -1052,7 +1052,7 @@ default_exp_energy( vrna_fold_compound_t *vc,
       q = default_exp_energy_hp_motif(i, j, data);
     else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP)
       q = default_exp_energy_int_motif(i, j, data);
-    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP)
+    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP)
       q = default_exp_energy_mb_motif(i, j, data);
   } else {
     idx   = vc->iindx;
@@ -1066,7 +1066,7 @@ default_exp_energy( vrna_fold_compound_t *vc,
     } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
       if(data->exp_energies_int)
         q = data->exp_energies_int[ij];
-    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP){
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP){
       if(data->exp_energies_mb)
         q = data->exp_energies_mb[ij];
     }
@@ -1262,7 +1262,7 @@ default_outside_add(vrna_fold_compound_t *vc,
       motif_list = d->motif_list_int;
       storage     = &(d->outside_int[i]);
       size        = &(d->outside_int_count[i]);
-    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP){
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP){
       motif_list = d->motif_list_mb;
       storage     = &(d->outside_mb[i]);
       size        = &(d->outside_mb_count[i]);
@@ -1314,7 +1314,7 @@ default_outside_add(vrna_fold_compound_t *vc,
       motif_list = d->motif_list_int;
       storage     = d->outside_int;
       size        = d->outside_int_count;
-    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP){
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP){
       motif_list = d->motif_list_mb;
       storage     = d->outside_mb;
       size        = d->outside_mb_count;
@@ -1389,7 +1389,7 @@ default_outside_get(vrna_fold_compound_t *vc,
   } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
     storage     = &(d->outside_int[i]);
     size        = &(d->outside_int_count[i]);
-  } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP){
+  } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP){
     storage     = &(d->outside_mb[i]);
     size        = &(d->outside_mb_count[i]);
   } else{

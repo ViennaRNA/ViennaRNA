@@ -113,7 +113,7 @@ typedef FLT_OR_DBL (vrna_callback_ud_outside_get)(vrna_fold_compound_t *vc, int 
  *  @brief Flag to indicate ligand bound to unpiared stretch in a multibranch loop
  *  @ingroup domains_up
  */
-#define VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP     8U
+#define VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP     8U
 
 /**
  *  @brief Flag to indicate ligand binding without additional unbound nucleotides (motif-only)
@@ -125,7 +125,7 @@ typedef FLT_OR_DBL (vrna_callback_ud_outside_get)(vrna_fold_compound_t *vc, int 
  *  @brief Flag to indicate ligand bound to unpiared stretch in any loop (convenience macro)
  *  @ingroup domains_up
  */
-#define VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS   (VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP | VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP)
+#define VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS   (VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP | VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP)
 
 /**
  *  @brief  Data structure to store all functionality for ligand binding
@@ -180,7 +180,7 @@ struct vrna_unstructured_domain_s {
  *  such as the exterior loop, hairpin loops, interior loops, or multibranch loops.
  *
  *  @see  #VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
- *  #VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS,
+ *  #VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS,
  *  vrna_ud_remove()
  *
  *  @ingroup domains_up
@@ -289,7 +289,7 @@ void  vrna_ud_set_exp_prod_rule(vrna_fold_compound_t  *vc,
  *  binds from position @f$i@f$ to @f$j@f$ (the white box) is requested. Otherwise, the callback
  *  usually performs a lookup in the precomputed @p B matrices. Which @p B matrix is
  *  addressed will be indicated by the flags #VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP
- *  #VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, and #VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP. As their names already imply,
+ *  #VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, and #VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP. As their names already imply,
  *  they specify exterior loops (@p F production rule), hairpin loops and interior loops
  *  (@p C production rule), and multibranch loops (@p M and @p M1 production rule).
  *  

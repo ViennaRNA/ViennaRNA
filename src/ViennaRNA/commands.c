@@ -455,7 +455,7 @@ parse_ud_command( const char *line){
                                     break;
                         case 'I'  : loop_type |= VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP;
                                     break;
-                        case 'M'  : loop_type |= VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP;
+                        case 'M'  : loop_type |= VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP;
                                     break;
                         default:    ret = 1;
                                     break;
