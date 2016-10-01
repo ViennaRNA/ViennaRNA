@@ -35,6 +35,10 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
                 vrna_exp_param_t *pf_params,
                 double cut_off);
 
+PRIVATE vrna_plist_t *
+wrap_plist( vrna_fold_compound_t *vc,
+            double cut_off);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -649,12 +653,7 @@ vrna_plist_from_probs(vrna_fold_compound_t *vc,
     vrna_message_error("vrna_pl_get_from_pr: probs==NULL!");
   }
 
-  return wrap_get_plist(vc->exp_matrices,
-                        vc->length,
-                        vc->iindx,
-                        vc->sequence_encoding2,
-                        vc->exp_params,
-                        cut_off);
+  return wrap_plist(vc, cut_off);
 }
 
 PUBLIC  char *
@@ -752,6 +751,127 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
       }
     }
   }
+  /* mark the end of pl */
+  (pl)[count].i    = 0;
+  (pl)[count].j    = 0;
+  (pl)[count].type = 0;
+  (pl)[count++].p  = 0.;
+  /* shrink memory to actual size needed */
+  pl = (vrna_plist_t *)vrna_realloc(pl, count * sizeof(vrna_plist_t));
+
+  return pl;
+}
+
+PRIVATE vrna_plist_t *
+wrap_plist( vrna_fold_compound_t *vc,
+            double cut_off){
+
+  short             *S;
+  int               i, j, k, n, m, count, gquad, length, *index;
+  FLT_OR_DBL        *probs, *G, *scale;
+  vrna_plist_t      *pl;
+  vrna_mx_pf_t      *matrices;
+  vrna_exp_param_t  *pf_params;
+
+  S         = vc->sequence_encoding;
+  index     = vc->iindx;
+  length    = vc->length;
+  pf_params = vc->exp_params;
+  matrices  = vc->exp_matrices;
+  probs     = matrices->probs;
+  G         = matrices->G;
+  scale     = matrices->scale;
+  gquad     = pf_params->model_details.gquad;
+
+  count = 0;
+  n     = 2;
+
+  /* first guess of the size needed for pl */
+  pl = (vrna_plist_t *)vrna_alloc(n*length*sizeof(vrna_plist_t));
+
+  for (i=1; i<length; i++) {
+    for (j=i+1; j<=length; j++) {
+
+      /* skip all entries below the cutoff */
+      if(probs[index[i]-j] < (FLT_OR_DBL)cut_off)
+        continue;
+
+      /* do we need to allocate more memory? */
+      if (count == n * length - 1){
+        n *= 2;
+        pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
+      }
+
+      /* check for presence of gquadruplex */
+      if(gquad && (S[i] == 3) && (S[j] == 3)){
+        /* add probability of a gquadruplex at position (i,j)
+           for dot_plot
+        */
+        (pl)[count].i      = i;
+        (pl)[count].j      = j;
+        (pl)[count].p      = (float)probs[index[i] - j];
+        (pl)[count++].type = VRNA_PLIST_TYPE_GQUAD;
+        /* now add the probabilies of it's actual pairing patterns */
+        vrna_plist_t *inner, *ptr;
+        inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
+        for(ptr=inner; ptr->i != 0; ptr++){
+            if (count == n * length - 1){
+              n *= 2;
+              pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
+            }
+            /* check if we've already seen this pair */
+            for(k = 0; k < count; k++)
+              if(((pl)[k].i == ptr->i) && ((pl)[k].j == ptr->j))
+                break;
+            (pl)[k].i      = ptr->i;
+            (pl)[k].j      = ptr->j;
+            (pl)[k].type = VRNA_PLIST_TYPE_BASEPAIR;
+            if(k == count){
+              (pl)[k].p  = ptr->p;
+              count++;
+            } else
+              (pl)[k].p  += ptr->p;
+        }
+      } else {
+          (pl)[count].i      = i;
+          (pl)[count].j      = j;
+          (pl)[count].p      = (float)probs[index[i] - j];
+          (pl)[count++].type = VRNA_PLIST_TYPE_BASEPAIR;
+      }
+    }
+  }
+
+  /* check unstructured domains */
+  if(vc->domains_up){
+    vrna_ud_t *domains_up;
+    domains_up = vc->domains_up;
+
+    if(domains_up->outside_get)
+      for(i = 1; i <= length; i++)
+        for(m = 0; m < domains_up->motif_count; m++){
+          FLT_OR_DBL pp;
+          j = i + domains_up->motif_size[m] - 1;
+          pp = 0.;
+          pp += domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, m, domains_up->data);
+          pp += domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, m, domains_up->data);
+          pp += domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, m, domains_up->data);
+          pp += domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, m, domains_up->data);
+          if(pp >= (FLT_OR_DBL)cut_off){
+
+            /* do we need to allocate more memory? */
+            if (count == n * length - 1){
+              n *= 2;
+              pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
+            }
+
+            (pl)[count].i      = i;
+            (pl)[count].j      = j;
+            (pl)[count].p      = (float)pp;
+            (pl)[count++].type = VRNA_PLIST_TYPE_UD_MOTIF;
+          }
+        }
+  }
+
   /* mark the end of pl */
   (pl)[count].i    = 0;
   (pl)[count].j    = 0;

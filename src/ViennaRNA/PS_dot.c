@@ -126,6 +126,28 @@ static const char *RNAdp_gquad_triangle =
 "  moveto lineto lineto closepath fill\n"
 "  grestore\n"
 "} bind def\n"
+"/uUDmotif{ % i j uUDmotif\n"
+"  gsave\n"
+"  1 min 2 div\n"
+"  0.85 mul 0.15 add 0.95 0.6\n"
+"  3 1 roll % prepare hsb color\n"
+"  sethsbcolor\n"
+"  % now produce the coordinates for lines\n"
+"  exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub\n"
+"  moveto lineto lineto closepath fill\n"
+"  grestore\n"
+"} bind def\n"
+"/lUDmotif{ % i j lUDmotif\n"
+"  gsave\n"
+"  1 min 2 div\n"
+"  0.85 mul 0.15 add 0.95 0.6\n"
+"  3 1 roll % prepare hsb color\n"
+"  sethsbcolor\n"
+"  % now produce the coordinates for lines\n"
+"  dup len exch sub dup 4 -1 roll 1 sub dup 3 1 roll dup len exch sub\n"
+"  moveto lineto lineto closepath fill\n"
+"  grestore\n"
+"} bind def\n"
 "/uHmotif{ % i j uHmotif\n"
 "  gsave\n"
 "  1 min 2 div\n"
@@ -325,7 +347,7 @@ vrna_plot_dp_PS_list( char *seq,
 
   /* sort the plist to bring all gquad triangles to the front */
   for(gq_num = pl_size = 0, pl1 = pl; pl1->i > 0; pl1++, pl_size++)
-    if(pl1->type == 1) gq_num++;
+    if(pl1->type == VRNA_PLIST_TYPE_GQUAD) gq_num++;
   qsort(pl, pl_size, sizeof(plist), sort_plist_by_type_desc);
   /* sort all gquad triangles by probability to bring lower probs to the front */
   qsort(pl, gq_num, sizeof(plist), sort_plist_by_prob_asc);
@@ -333,7 +355,7 @@ vrna_plot_dp_PS_list( char *seq,
   /* print triangles for g-quadruplexes in upper half */
   fprintf(wastl,"\n%%start of quadruplex data\n");
   for (pl1=pl; pl1->i > 0; pl1++) {
-    if(pl1->type == 1){
+    if(pl1->type == VRNA_PLIST_TYPE_GQUAD){
       tmp = sqrt(pl1->p);
       fprintf(wastl, "%d %d %1.9f utri\n", pl1->i, pl1->j, tmp);
     }
@@ -342,25 +364,25 @@ vrna_plot_dp_PS_list( char *seq,
   /* print triangles for hairpin loop motifs in upper half */
   fprintf(wastl,"\n%%start of Hmotif data\n");
   for (pl1=pl; pl1->i > 0; pl1++) {
-    if(pl1->type == 2){
+    if(pl1->type == VRNA_PLIST_TYPE_H_MOTIF){
       tmp = sqrt(pl1->p);
       fprintf(wastl, "%d %d %1.9f uHmotif\n", pl1->i, pl1->j, tmp);
     }
   }
   for (pl1=mf; pl1->i > 0; pl1++) {
-    if(pl1->type == 2){
+    if(pl1->type == VRNA_PLIST_TYPE_H_MOTIF){
       tmp = sqrt(pl1->p);
       fprintf(wastl, "%d %d %1.9f lHmotif\n", pl1->i, pl1->j, tmp);
     }
   }
 
-  /* print triangles for hairpin loop motifs in upper half */
+  /* print triangles for interior loop motifs in upper half */
   fprintf(wastl,"\n%%start of Imotif data\n");
   int   a,b;
   float ppp;
   a = b = 0;
   for (pl1=pl; pl1->i > 0; pl1++) {
-    if(pl1->type == 3){
+    if(pl1->type == VRNA_PLIST_TYPE_I_MOTIF){
       if(a == 0){
         a = pl1->i;
         b = pl1->j;
@@ -372,7 +394,7 @@ vrna_plot_dp_PS_list( char *seq,
     }
   }
   for (a = b= 0, pl1=mf; pl1->i > 0; pl1++) {
-    if(pl1->type == 3){
+    if(pl1->type == VRNA_PLIST_TYPE_I_MOTIF){
       if(a == 0){
         a = pl1->i;
         b = pl1->j;
@@ -384,13 +406,28 @@ vrna_plot_dp_PS_list( char *seq,
     }
   }
 
+  /* print triangles for unstructured domain motifs in upper half */
+  fprintf(wastl,"\n%%start of unstructured domain motif data\n");
+  for (pl1=pl; pl1->i > 0; pl1++) {
+    if(pl1->type == VRNA_PLIST_TYPE_UD_MOTIF){
+      tmp = sqrt(pl1->p);
+      fprintf(wastl, "%d %d %1.9f uUDmotif\n", pl1->i, pl1->j, tmp);
+    }
+  }
+  for (pl1=mf; pl1->i > 0; pl1++) {
+    if(pl1->type == VRNA_PLIST_TYPE_UD_MOTIF){
+      tmp = sqrt(pl1->p);
+      fprintf(wastl, "%d %d %1.9f lUDmotif\n", pl1->i, pl1->j, tmp);
+    }
+  }
+
   fprintf(wastl, "\n%%draw the grid\ndrawgrid\n\n");
   fprintf(wastl,"%%start of base pair probability data\n");
 
   /* print boxes in upper right half*/
   for (pl1 = pl; pl1->i>0; pl1++) {
     tmp = sqrt(pl1->p);
-    if(pl1->type == 0)
+    if(pl1->type == VRNA_PLIST_TYPE_BASEPAIR)
         fprintf(wastl,"%d %d %1.9f ubox\n", pl1->i, pl1->j, tmp);
   }
 
@@ -398,7 +435,7 @@ vrna_plot_dp_PS_list( char *seq,
   /* print boxes in lower left half (mfe) */
   for (pl1=mf; pl1->i>0; pl1++) {
     tmp = sqrt(pl1->p);
-    if(pl1->type == 0)
+    if(pl1->type == VRNA_PLIST_TYPE_BASEPAIR)
       fprintf(wastl,"%d %d %1.7f lbox\n", pl1->i, pl1->j, tmp);
   }
 
