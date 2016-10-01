@@ -359,7 +359,7 @@ int main(int argc, char *argv[]){
     min_en = (double)vrna_mfe(vc, structure);
 
     /* check whether the constraint allows for any solution */
-    if(fold_constrained && constraints_file){
+    if((fold_constrained && constraints_file) || (commands)){
       if(min_en == (double)(INF/100.)){
         vrna_message_error( "Supplied structure constraints create empty solution set for sequence:\n%s",
                             orig_sequence);
@@ -507,7 +507,7 @@ int main(int argc, char *argv[]){
                 pl1[size + cnt].i = a;
                 pl1[size + cnt].j = b;
                 pl1[size + cnt].p = 0.95*0.95;
-                pl1[size + cnt].type = 2;
+                pl1[size + cnt].type = VRNA_PLIST_TYPE_H_MOTIF;
                 cnt++;
                 if(cnt == add){
                   add += 10;
@@ -518,12 +518,12 @@ int main(int argc, char *argv[]){
                 pl1[size + cnt].i = a;
                 pl1[size + cnt].j = b;
                 pl1[size + cnt].p = 0.95*0.95;
-                pl1[size + cnt].type = 3;
+                pl1[size + cnt].type = VRNA_PLIST_TYPE_I_MOTIF;
                 cnt++;
                 pl1[size + cnt].i = c;
                 pl1[size + cnt].j = d;
                 pl1[size + cnt].p = 0.95*0.95;
-                pl1[size + cnt].type = 3;
+                pl1[size + cnt].type = VRNA_PLIST_TYPE_I_MOTIF;
                 cnt++;
                 if(cnt == add){
                   add += 10;
@@ -553,7 +553,7 @@ int main(int argc, char *argv[]){
                 pl2[size + cnt].i = a;
                 pl2[size + cnt].j = b;
                 pl2[size + cnt].p = 0.95*0.95;
-                pl2[size + cnt].type = 2;
+                pl2[size + cnt].type = VRNA_PLIST_TYPE_H_MOTIF;
                 cnt++;
                 if(cnt == add){
                   add += 10;
@@ -564,12 +564,12 @@ int main(int argc, char *argv[]){
                 pl2[size + cnt].i = a;
                 pl2[size + cnt].j = b;
                 pl2[size + cnt].p = 0.95*0.95;
-                pl2[size + cnt].type = 3;
+                pl2[size + cnt].type = VRNA_PLIST_TYPE_I_MOTIF;
                 cnt++;
                 pl2[size + cnt].i = c;
                 pl2[size + cnt].j = d;
                 pl2[size + cnt].p = 0.95*0.95;
-                pl2[size + cnt].type = 3;
+                pl2[size + cnt].type = VRNA_PLIST_TYPE_I_MOTIF;
                 cnt++;
                 if(cnt == add){
                   add += 10;

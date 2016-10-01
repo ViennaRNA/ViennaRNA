@@ -266,16 +266,6 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
                                       e = E_ExtLoop(md->rtype[type], -1, -1, P);
                                   }
 
-                                  /* consider possible ligand binding */
-                                  if(domains_up && domains_up->energy_cb){
-                                    en = domains_up->energy_cb(vc, i+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
-                                    if(en != INF){
-                                      e += en;
-                                    } else {
-                                      e = INF;
-                                    }
-                                  }
-
                                   /* add soft constraints */
                                   if(sc){
                                     if(sc->energy_up)
@@ -286,6 +276,15 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
                                     }
                                     if(sc->f)
                                       e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
+                                  }
+
+                                  /* consider possible ligand binding */
+                                  if(domains_up && domains_up->energy_cb){
+                                    en = domains_up->energy_cb(vc, i+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
+                                    if(en != INF){
+                                      en += e;
+                                    }
+                                    e = MIN2(e, en);
                                   }
 
                                   break;
@@ -443,10 +442,6 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
                                     /* this is currently handle somewhere else */
                                   }
 
-                                  if(domains_up && domains_up->exp_energy_cb){
-                                    q *= domains_up->exp_energy_cb(vc, i+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
-                                  }
-
                                   /* add soft constraints */
                                   if(sc){
                                     if(sc->exp_energy_up)
@@ -460,6 +455,12 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
                                   }
 
                                   q *= scale[u+2];
+
+                                  if(domains_up && domains_up->exp_energy_cb){ /* we always consider both, bound and unbound state */
+                                    q += q * domains_up->exp_energy_cb(vc, i+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
+                                  }
+
+
                                   break;
 
     case VRNA_VC_TYPE_ALIGNMENT:  SS    = vc->S;                                                               
@@ -564,10 +565,6 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
 
                                   q = exp_E_Hairpin(u, type, S[j+1], S[i-1], loopseq, P);
 
-                                  if(domains_up && domains_up->exp_energy_cb){
-                                    q *= domains_up->exp_energy_cb(vc, j+1, i-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
-                                  }
-
                                   /* add soft constraints */
                                   if(sc){
                                     if(sc->exp_energy_up)
@@ -579,6 +576,12 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
                                   }
 
                                   q *= scale[u];
+
+                                  if(domains_up && domains_up->exp_energy_cb){ /* we always consider both, bound and unbound state */
+                                    q += q * domains_up->exp_energy_cb(vc, j+1, i-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
+                                  }
+
+
                                   break;
 
     case VRNA_VC_TYPE_ALIGNMENT:  SS    = vc->S;                                                               

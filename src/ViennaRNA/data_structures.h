@@ -101,6 +101,13 @@ typedef void (vrna_callback_recursion_status)(unsigned char status, void *data);
 #define VRNA_STATUS_PF_POST     (unsigned char)4
 
 
+#define VRNA_PLIST_TYPE_BASEPAIR      0
+#define VRNA_PLIST_TYPE_GQUAD         1
+#define VRNA_PLIST_TYPE_H_MOTIF       2
+#define VRNA_PLIST_TYPE_I_MOTIF       3
+#define VRNA_PLIST_TYPE_UD_MOTIF      4
+
+
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 

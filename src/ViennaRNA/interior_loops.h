@@ -480,6 +480,13 @@ vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j);
 
+FLT_OR_DBL
+vrna_exp_E_interior_loop( vrna_fold_compound_t *vc,
+                          int i,
+                          int j,
+                          int k,
+                          int l);
+
 int
 vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
                     int i,

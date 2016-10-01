@@ -42,6 +42,11 @@
 #################################
 */
 
+struct default_outside {
+  int         motif_num;
+  FLT_OR_DBL  exp_energy;
+};
+
 /*
  *  Default data structure for ligand binding to unpaired stretches
  */
@@ -78,6 +83,22 @@ struct ligands_up_data_default {
   FLT_OR_DBL    *exp_energies_int;
   FLT_OR_DBL    *exp_energies_mb;
 
+  /*
+  **********************************
+    below are lists to store the
+    outside partition function for
+    each motif starting at each
+    position
+  **********************************
+  */
+  unsigned int            *outside_ext_count;
+  struct default_outside  **outside_ext;
+  unsigned int            *outside_hp_count;
+  struct default_outside  **outside_hp;
+  unsigned int            *outside_int_count;
+  struct default_outside  **outside_int;
+  unsigned int            *outside_mb_count;
+  struct default_outside  **outside_mb;
 };
 
 /*
@@ -92,21 +113,23 @@ PRIVATE void        init_ligands_up(vrna_fold_compound_t *vc);
 PRIVATE void        add_ligand_motif(vrna_fold_compound_t *vc, const char *motif, double motif_en, unsigned int loop_type);
 PRIVATE void        remove_default_data(void *d);
 
+/* default implementations for unstructured domains feature */
 PRIVATE void        default_prod_rule(vrna_fold_compound_t *vc, void *d);
+PRIVATE void        default_exp_prod_rule(vrna_fold_compound_t *vc, void *d);
 PRIVATE int         default_energy(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, void *d);
+PRIVATE FLT_OR_DBL  default_exp_energy( vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, void *d);
+PRIVATE void        default_outside_add(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, FLT_OR_DBL exp_energy, void *data);
+PRIVATE FLT_OR_DBL  default_outside_get(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, int motif, void *data);
+
+/* helper functions for default implementatations of unstructured domains feature */
 PRIVATE int         default_energy_ext_motif(int i, int j, struct ligands_up_data_default *data);
 PRIVATE int         default_energy_hp_motif(int i, int j, struct ligands_up_data_default *data);
 PRIVATE int         default_energy_int_motif(int i, int j, struct ligands_up_data_default *data);
 PRIVATE int         default_energy_mb_motif(int i, int j, struct ligands_up_data_default *data);
-
-PRIVATE void        default_exp_prod_rule(vrna_fold_compound_t *vc, void *d);
-PRIVATE FLT_OR_DBL  default_exp_energy( vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, void *d);
 PRIVATE FLT_OR_DBL  default_exp_energy_ext_motif(int i, int j, struct ligands_up_data_default *data);
 PRIVATE FLT_OR_DBL  default_exp_energy_hp_motif(int i, int j, struct ligands_up_data_default *data);
 PRIVATE FLT_OR_DBL  default_exp_energy_int_motif(int i, int j, struct ligands_up_data_default *data);
 PRIVATE FLT_OR_DBL  default_exp_energy_mb_motif(int i, int j, struct ligands_up_data_default *data);
-
-PRIVATE int         *get_motifs(vrna_fold_compound_t *vc, int i, unsigned int loop_type);
 PRIVATE void        free_default_data_matrices(struct ligands_up_data_default *data);
 PRIVATE void        free_default_data_exp_matrices(struct ligands_up_data_default *data);
 PRIVATE void        prepare_matrices( vrna_fold_compound_t *vc, struct ligands_up_data_default *data);
@@ -114,6 +137,8 @@ PRIVATE void        prepare_exp_matrices( vrna_fold_compound_t *vc, struct ligan
 PRIVATE struct ligands_up_data_default *get_default_data(void);
 PRIVATE void        prepare_default_data(vrna_fold_compound_t *vc, struct ligands_up_data_default *data);
 PRIVATE void        free_default_data(struct ligands_up_data_default *data);
+PRIVATE int         *get_motifs(vrna_fold_compound_t *vc, int i, unsigned int loop_type);
+
 
 /*
 #################################
@@ -219,10 +244,52 @@ vrna_ud_add_motif(vrna_fold_compound_t*vc,
       vc->domains_up->exp_energy_cb = &default_exp_energy;
       vc->domains_up->data          = get_default_data();
       vc->domains_up->free_data     = &remove_default_data;
+      vc->domains_up->outside_add   = &default_outside_add;
+      vc->domains_up->outside_get   = &default_outside_get;
     }
     add_ligand_motif(vc, motif, motif_en, loop_type);
   }
 }
+
+
+PUBLIC int *
+vrna_ud_get_motif_size_at(vrna_fold_compound_t *vc, int i, unsigned int loop_type){
+
+  if(vc && vc->domains_up){
+    int k, l, cnt, *ret, *ptr;
+
+    ret = NULL;
+    if((i > 0) && (i <= vc->length)){
+      ptr = get_motifs(vc, i, loop_type);
+      if(ptr){
+        for(k = 0; ptr[k] != -1; k++) /* replace motif number with its size */
+          ptr[k] = vc->domains_up->motif_size[ptr[k]];
+        /* make the list unique */
+        ret     = (int *)vrna_alloc(sizeof(int) * (k + 1));
+        ret[0]  = -1;
+        cnt     = 0;
+        for(k = 0; ptr[k] != -1; k++){
+          for(l = 0; l < cnt; l++){
+            if(ptr[k] == ret[l])
+              break; /* we've already seen this size */
+          }
+          if(l == cnt){ /* we've not seen this size before */
+            ret[cnt]      = ptr[k];
+            ret[cnt + 1]  = -1;
+            cnt++;
+          }
+        }
+        /* resize ret array */
+        ret = (int *)vrna_realloc(ret, sizeof(int) * (cnt + 1));
+      }
+      free(ptr);
+    }
+    return ret;
+  }
+  return NULL;
+}
+
+
 /*
 #####################################
 # BEGIN OF STATIC HELPER FUNCTIONS  #
@@ -247,7 +314,14 @@ get_default_data(void){
   data->exp_energies_hp   = NULL;
   data->exp_energies_int  = NULL;
   data->exp_energies_mb   = NULL;
-
+  data->outside_ext       = NULL;
+  data->outside_hp        = NULL;
+  data->outside_int       = NULL;
+  data->outside_mb        = NULL;
+  data->outside_ext_count = NULL;
+  data->outside_hp_count  = NULL;
+  data->outside_int_count = NULL;
+  data->outside_mb_count  = NULL;
   return data;
 }
 
@@ -293,6 +367,8 @@ init_ligands_up(vrna_fold_compound_t *vc){
   vc->domains_up->exp_energy_cb     = NULL;
   vc->domains_up->data              = NULL;
   vc->domains_up->free_data         = NULL;
+  vc->domains_up->outside_add       = NULL;
+  vc->domains_up->outside_get       = NULL;
 }
 
 /*
@@ -424,6 +500,8 @@ free_default_data_matrices(struct ligands_up_data_default *data){
 PRIVATE void
 free_default_data_exp_matrices(struct ligands_up_data_default *data){
 
+  int i;
+
   /* the following four pointers may point to the same memory */
   if(data->exp_energies_ext){
     /* check whether one of the other b* points to the same memory location */
@@ -454,6 +532,34 @@ free_default_data_exp_matrices(struct ligands_up_data_default *data){
   }
   free(data->exp_energies_mb);
   data->exp_energies_mb = NULL;
+
+  if(data->outside_ext)
+    for(i = 0; i <= data->n; i++)
+      if(data->outside_ext[i])
+        free(data->outside_ext[i]);
+  free(data->outside_ext);
+  free(data->outside_ext_count);
+
+  if(data->outside_hp)
+    for(i = 0; i <= data->n; i++)
+      if(data->outside_hp[i])
+        free(data->outside_hp[i]);
+  free(data->outside_hp);
+  free(data->outside_hp_count);
+
+  if(data->outside_int)
+    for(i = 0; i <= data->n; i++)
+      if(data->outside_int[i])
+        free(data->outside_int[i]);
+  free(data->outside_int);
+  free(data->outside_int_count);
+
+  if(data->outside_mb)
+    for(i = 0; i <= data->n; i++)
+      if(data->outside_mb[i])
+        free(data->outside_mb[i]);
+  free(data->outside_mb);
+  free(data->outside_mb_count);
 }
 
 PRIVATE int *
@@ -516,7 +622,7 @@ prepare_matrices( vrna_fold_compound_t *vc,
   unsigned int lt[4] = {  VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
                           VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
                           VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
-                          VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP };
+                          VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP };
   int **m[4], *mx;
   m[0] = &data->energies_ext;
   m[1] = &data->energies_hp;
@@ -570,7 +676,7 @@ prepare_exp_matrices( vrna_fold_compound_t *vc,
   unsigned int lt[4] = {  VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
                           VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
                           VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
-                          VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP };
+                          VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP };
   FLT_OR_DBL **m[4], *mx;
   m[0] = &data->exp_energies_ext;
   m[1] = &data->exp_energies_hp;
@@ -605,6 +711,16 @@ prepare_exp_matrices( vrna_fold_compound_t *vc,
     free(col);
     free(col2);
   }
+
+  /* now prepate memory for outside partition function */
+  data->outside_ext = (struct default_outside **)vrna_alloc(sizeof(struct default_outside *) * (n + 2));
+  data->outside_hp  = (struct default_outside **)vrna_alloc(sizeof(struct default_outside *) * (n + 2));
+  data->outside_int = (struct default_outside **)vrna_alloc(sizeof(struct default_outside *) * (n + 2));
+  data->outside_mb  = (struct default_outside **)vrna_alloc(sizeof(struct default_outside *) * (n + 2));
+  data->outside_ext_count = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + 2));
+  data->outside_hp_count  = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + 2));
+  data->outside_int_count = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + 2));
+  data->outside_mb_count  = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + 2));
 }
 
 PRIVATE void
@@ -636,7 +752,7 @@ prepare_default_data( vrna_fold_compound_t *vc,
     data->motif_list_ext[i] = get_motifs(vc, i, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP);
     data->motif_list_hp[i]  = get_motifs(vc, i, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP);
     data->motif_list_int[i] = get_motifs(vc, i, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP);
-    data->motif_list_mb[i]  = get_motifs(vc, i, VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP);
+    data->motif_list_mb[i]  = get_motifs(vc, i, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP);
   }
 
   /*  store length of motifs in 'data' */
@@ -692,20 +808,21 @@ default_prod_rule(vrna_fold_compound_t *vc,
         e_int = energies_int[idx[j]+i+1];
         e_mb  = energies_mb[idx[j]+i+1];
       } else {
-        e_ext = 0;
-        e_hp  = 0;
-        e_int = 0;
-        e_mb  = 0;
+        e_ext = INF;
+        e_hp  = INF;
+        e_int = INF;
+        e_mb  = INF;
       }
       if(list_ext){
         for(k = 0; -1 != (l = list_ext[k]); k++){
           u   = i + data->len[l] - 1;
           en  = data->dG[l];
-          if(u < j){
-            en2 = en + energies_ext[idx[j]+u+1];
-            e_ext = MIN2(e_ext, en2);
-          } else if(u == j){
+          if(u <= j){
             e_ext = MIN2(e_ext, en);
+            if(u < j){
+              en2 = en + energies_ext[idx[j]+u+1];
+              e_ext = MIN2(e_ext, en2);
+            }
           }
         }
       }
@@ -713,11 +830,12 @@ default_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_hp[k]); k++){
           u   = i + data->len[l] - 1;
           en  = data->dG[l];
-          if(u < j){
-            en2 = en + energies_hp[idx[j]+u+1];
-            e_hp = MIN2(e_hp, en2);
-          } else if(u == j){
+          if(u <= j){
             e_hp = MIN2(e_hp, en);
+            if(u < j){
+              en2 = en + energies_hp[idx[j]+u+1];
+              e_hp = MIN2(e_hp, en2);
+            }
           }
         }
       }
@@ -725,11 +843,12 @@ default_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_int[k]); k++){
           u   = i + data->len[l] - 1;
           en  = data->dG[l];
-          if(u < j){
-            en2 = en + energies_int[idx[j]+u+1];
-            e_int = MIN2(e_int, en2);
-          } else if(u == j){
+          if(u <= j){
             e_int = MIN2(e_int, en);
+            if(u < j){
+              en2 = en + energies_int[idx[j]+u+1];
+              e_int = MIN2(e_int, en2);
+            }
           }
         }
       }
@@ -737,11 +856,12 @@ default_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_mb[k]); k++){
           u   = i + data->len[l] - 1;
           en  = data->dG[l];
-          if(u < j){
-            en2 = en + energies_mb[idx[j]+u+1];
-            e_mb = MIN2(e_mb, en2);
-          } else if(u == j){
+          if(u <= j){
             e_mb = MIN2(e_mb, en);
+            if( u < j){
+              en2 = en + energies_mb[idx[j]+u+1];
+              e_mb = MIN2(e_mb, en2);
+            }
           }
         }
       }
@@ -805,20 +925,19 @@ default_exp_prod_rule(vrna_fold_compound_t *vc,
         q_int = exp_energies_int[idx[i + 1] - j];
         q_mb  = exp_energies_mb[idx[i + 1] - j];
       } else {
-        q_ext = 1.0;
-        q_hp  = 1.0;
-        q_int = 1.0;
-        q_mb  = 1.0;
+        q_ext = 0;
+        q_hp  = 0;
+        q_int = 0;
+        q_mb  = 0;
       }
       if(list_ext){
         for(k = 0; -1 != (l = list_ext[k]); k++){
           u = i + data->len[l] - 1;
           q = data->exp_dG[l];
-          if(u < j){
-            qq = q * exp_energies_ext[idx[u + 1] - j];
-            q_ext += qq;
-          } else if(u == j){
+          if(u <= j){
             q_ext += q;
+            if(u < j)
+              q_ext += q * exp_energies_ext[idx[u + 1] - j];
           }
         }
       }
@@ -826,11 +945,10 @@ default_exp_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_hp[k]); k++){
           u   = i + data->len[l] - 1;
           q  = data->exp_dG[l];
-          if(u < j){
-            qq = q * exp_energies_hp[idx[u + 1] - j];
-            q_hp += qq;
-          } else if(u == j){
+          if(u <= j){
             q_hp += q;
+            if(u < j)
+              q_hp += q * exp_energies_hp[idx[u + 1] - j];
           }
         }
       }
@@ -838,11 +956,10 @@ default_exp_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_int[k]); k++){
           u   = i + data->len[l] - 1;
           q  = data->exp_dG[l];
-          if(u < j){
-            qq = q * exp_energies_int[idx[u + 1] - j];
-            q_int += qq;
-          } else if(u == j){
+          if(u <= j){
             q_int += q;
+            if(u < j)
+              q_int += q * exp_energies_int[idx[u + 1] - j];
           }
         }
       }
@@ -850,11 +967,10 @@ default_exp_prod_rule(vrna_fold_compound_t *vc,
         for(k = 0; -1 != (l = list_mb[k]); k++){
           u   = i + data->len[l] - 1;
           q  = data->exp_dG[l];
-          if(u < j){
-            qq = q * exp_energies_mb[idx[u + 1] - j];
-            q_mb += qq;
-          } else if(u == j){
+          if(u <= j){
             q_mb += q;
+            if(u < j)
+              q_mb += q * exp_energies_mb[idx[u + 1] - j];
           }
         }
       }
@@ -881,7 +997,7 @@ default_energy( vrna_fold_compound_t *vc,
   ij = idx[j] + i;
 
   if(j < i)
-    return 0;
+    return INF;
 
   if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MOTIF){
     if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP)
@@ -890,7 +1006,7 @@ default_energy( vrna_fold_compound_t *vc,
       en = default_energy_hp_motif(i, j, data);
     else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP)
       en = default_energy_int_motif(i, j, data);
-    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP)
+    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP)
       en = default_energy_mb_motif(i, j, data);
   } else {
     if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP){
@@ -902,7 +1018,7 @@ default_energy( vrna_fold_compound_t *vc,
     } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
       if(data->energies_int)
         en = data->energies_int[ij];
-    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP){
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP){
       if(data->energies_mb)
         en = data->energies_mb[ij];
     }
@@ -925,9 +1041,10 @@ default_exp_energy( vrna_fold_compound_t *vc,
   q     = 0;
   data  = (struct ligands_up_data_default *)d;
 
+  if(j < i)
+    return 0.;
+
   if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MOTIF){
-    if(j < i)
-      return 0.;
 
     if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP)
       q = default_exp_energy_ext_motif(i, j, data);
@@ -935,12 +1052,9 @@ default_exp_energy( vrna_fold_compound_t *vc,
       q = default_exp_energy_hp_motif(i, j, data);
     else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP)
       q = default_exp_energy_int_motif(i, j, data);
-    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP)
+    else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP)
       q = default_exp_energy_mb_motif(i, j, data);
   } else {
-    if(j < i)
-      return 1.;
-
     idx   = vc->iindx;
     ij    = idx[i] - j;
     if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP){
@@ -952,7 +1066,7 @@ default_exp_energy( vrna_fold_compound_t *vc,
     } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
       if(data->exp_energies_int)
         q = data->exp_energies_int[ij];
-    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_ML_LOOP){
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP){
       if(data->exp_energies_mb)
         q = data->exp_energies_mb[ij];
     }
@@ -1115,4 +1229,182 @@ default_exp_energy_mb_motif(int i,
   }
 
   return q;
+}
+
+PRIVATE void
+default_outside_add(vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    unsigned int loop_type,
+                    FLT_OR_DBL exp_energy,
+                    void *data){
+
+  int                             **motif_list, k, l, m;
+  unsigned int                    *size, *cnt, o;
+  struct ligands_up_data_default  *d;
+  struct default_outside          **storage, **st;
+
+  d = (struct ligands_up_data_default  *)data;
+
+  if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MOTIF){
+    if(j < i)
+      return;
+
+    if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP){
+      motif_list  = d->motif_list_ext;
+      storage     = &(d->outside_ext[i]);
+      size        = &(d->outside_ext_count[i]);
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP) {
+      motif_list = d->motif_list_hp;
+      storage     = &(d->outside_hp[i]);
+      size        = &(d->outside_hp_count[i]);
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
+      motif_list = d->motif_list_int;
+      storage     = &(d->outside_int[i]);
+      size        = &(d->outside_int_count[i]);
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP){
+      motif_list = d->motif_list_mb;
+      storage     = &(d->outside_mb[i]);
+      size        = &(d->outside_mb_count[i]);
+    } else{
+      vrna_message_warning("Unknown unstructured domain loop type");
+      return;
+    }
+
+    k = 0;
+    while(-1 != (m = motif_list[i][k])){
+      if((i + d->len[m] - 1) == j){
+
+        /* check for addition first */
+        for(o = 0; o < *size; o++)
+          if((*storage)[o].motif_num == m){ /* found previously added motif constribution */
+            (*storage)[o].exp_energy += exp_energy;
+            //printf("p[%d][%d,%d] += %g\n", m, i, i + d->len[m] - 1, exp_energy);
+            break;
+          }
+
+        /* if we haven't added yet, create new list entry */
+        if(o == *size){
+          *storage = (struct default_outside *)vrna_realloc(*storage, sizeof(struct default_outside) * (*size + 1));
+          (*storage)[*size].motif_num   = m;
+          (*storage)[*size].exp_energy  = exp_energy;
+          //printf("p[%d][%d,%d] = %g\n", m, i, i + d->len[m] - 1, exp_energy);
+          (*size)++;
+        }
+      }
+      k++;
+    }
+
+  } else {
+    if(j < i)
+      return;
+
+    FLT_OR_DBL pf, exp_e;
+    pf = default_exp_energy(vc, i, j, loop_type, data);
+
+    if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP){
+      motif_list  = d->motif_list_ext;
+      storage     = d->outside_ext;
+      size        = d->outside_ext_count;
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP) {
+      motif_list = d->motif_list_hp;
+      storage     = d->outside_hp;
+      size        = d->outside_hp_count;
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
+      motif_list = d->motif_list_int;
+      storage     = d->outside_int;
+      size        = d->outside_int_count;
+    } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP){
+      motif_list = d->motif_list_mb;
+      storage     = d->outside_mb;
+      size        = d->outside_mb_count;
+    } else{
+      vrna_message_warning("Unknown unstructured domain loop type");
+      return;
+    }
+
+    /* check for each motif starting at any k with i <= k <= j */
+    for(k = i; k <= j; k++){
+      if(motif_list[k]){
+        st  = &(storage[k]);
+        cnt = &(size[k]);
+        for(l = 0; motif_list[k][l] != -1; l++){
+          m = motif_list[k][l];
+
+          if(j < k + d->len[m] - 1) /* motifs must be sorted be length */
+            continue;
+
+          exp_e         = d->exp_dG[m];
+          FLT_OR_DBL p  = exp_e / pf;
+
+          /* add/insert contribution */
+
+          /* check for addition first */
+          for(o = 0; o < *cnt; o++)
+            if((*st)[o].motif_num == m){ /* found previously added motif constribution */
+              (*st)[o].exp_energy += p * exp_energy;
+              //printf("p[%d][%d,%d] += %g\n", m, k, k + d->len[m] - 1, p * exp_energy);
+              break;
+            }
+
+          /* if we haven't added yet, create new list entry */
+          if(o == *cnt){
+            *st = (struct default_outside *)vrna_realloc(*st, sizeof(struct default_outside) * (*cnt + 1));
+            (*st)[*cnt].motif_num   = m;
+            (*st)[*cnt].exp_energy  = p * exp_energy;
+            //printf("p[%d][%d,%d] = %g\n", m, k, k + d->len[m] - 1, p * exp_energy);
+            (*cnt)++;
+          }
+        }
+      }
+    }
+  }
+
+}
+
+PRIVATE FLT_OR_DBL
+default_outside_get(vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    unsigned int loop_type,
+                    int motif,
+                    void *data){
+
+  FLT_OR_DBL                      outside = 0.;
+  unsigned int                    *size, k;
+  struct ligands_up_data_default  *d;
+  struct default_outside          **storage;
+
+  d = (struct ligands_up_data_default  *)data;
+
+  if(j < i)
+    return 0.;
+
+  if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP){
+    storage     = &(d->outside_ext[i]);
+    size        = &(d->outside_ext_count[i]);
+  } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP) {
+    storage     = &(d->outside_hp[i]);
+    size        = &(d->outside_hp_count[i]);
+  } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP){
+    storage     = &(d->outside_int[i]);
+    size        = &(d->outside_int_count[i]);
+  } else if(loop_type & VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP){
+    storage     = &(d->outside_mb[i]);
+    size        = &(d->outside_mb_count[i]);
+  } else{
+    vrna_message_warning("Unknown unstructured domain loop type");
+    return 0.;
+  }
+
+  for(k = 0; k < *size; k++){
+    /* check for motif number match */
+    if((*storage)[k].motif_num == motif)
+      /* check for length match */
+      if(i + d->len[motif] - 1 == j){
+        outside += (*storage)[k].exp_energy;
+      }
+  }
+
+  return outside;
 }
