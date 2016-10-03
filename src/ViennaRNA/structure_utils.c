@@ -39,6 +39,8 @@ PRIVATE vrna_plist_t *
 wrap_plist( vrna_fold_compound_t *vc,
             double cut_off);
 
+PRIVATE void assign_elements_pair(short *pt, int i, int j, char *elements);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -599,7 +601,7 @@ vrna_db_from_bp_stack(vrna_bp_stack_t *bp,
 
 PUBLIC vrna_plist_t *
 vrna_plist( const char *struc,
-                        float pr){
+            float pr){
 
   /* convert bracket string to plist */
   short *pt;
@@ -678,6 +680,35 @@ vrna_db_from_plist(vrna_plist_t *pairs,
   }
   return structure;
 }
+
+
+PUBLIC int
+vrna_plist_append(vrna_plist_t        **target,
+                  const vrna_plist_t  *list){
+
+  int                 size1, size2;
+  const vrna_plist_t  *ptr;
+
+  if((target) && (list)){
+    size1 = size2 = 0;
+
+    if(*target)
+      for(ptr = *target; ptr->i; size1++, ptr++);
+
+    for(ptr = list; ptr->i; size2++, ptr++);
+
+    *target = (vrna_plist_t *)vrna_realloc(*target, sizeof(vrna_plist_t) * (size1 + size2 + 1));
+
+    if(*target){
+      memcpy(*target + size1, list, sizeof(vrna_plist_t) * size2);
+      (*target)[size1 + size2].i = (*target)[size1 + size2].j = 0;
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 
 PRIVATE vrna_plist_t *
 wrap_get_plist( vrna_mx_pf_t *matrices,
@@ -978,6 +1009,85 @@ vrna_hx_merge(const vrna_hx_t *list, int maxdist){
   merged_list = vrna_realloc(merged_list, sizeof(vrna_hx_t) * s);
 
   return merged_list;
+}
+
+
+PUBLIC char *
+vrna_db_to_element_string(const char *structure){
+
+  char    *elements;
+  int     n, i;
+  short   *pt;
+
+  elements = NULL;
+
+  if(structure){
+    n         = (int)strlen(structure);
+    pt        = vrna_ptable(structure);
+    elements  = (char *)vrna_alloc(sizeof(char) * (n + 1));
+
+    for(i = 1; i <= n; i++){
+      if(!pt[i])  /* mark nucleotides in exterior loop */
+        elements[i-1] = 'e';
+      else {
+        assign_elements_pair(pt, i, pt[i], elements);
+        i = pt[i];
+      }
+    }
+
+    elements[n] = '\0';
+    free(pt);
+  }
+
+  return elements;
+}
+
+PRIVATE void
+assign_elements_pair(short *pt, int i, int j, char *elements){
+
+  int p, k, num_pairs;
+
+  num_pairs = 0;
+  /* first, determine the number of pairs (i,j) is enclosing */
+  for(k = i + 1; k < j; k++){
+    if(k < pt[k]){
+      num_pairs++;
+      k = pt[k];
+    }
+  }
+
+  switch(num_pairs){
+    case 0:   /* hairpin loop */
+              elements[i - 1] = elements[j - 1] = 'H';
+              for(k = i + 1; k < j; k++)
+                elements[k-1] = 'h';
+              break;
+
+    case 1:   /* interior loop */
+              elements[i - 1] = elements[j - 1] = 'I';
+              for(k = i + 1; k < j; k++){
+                if(!pt[k])
+                  elements[k-1] = 'i';
+                else {
+                  p = k;
+                  k = pt[k];
+                }
+              }
+              assign_elements_pair(pt, p, pt[p], elements);
+              break;
+
+    default:  /* multibranch loop */
+              elements[i - 1] = elements[j - 1] = 'M';
+              for(k = i + 1; k < j; k++){
+                if(!pt[k])
+                  elements[k-1] = 'm';
+                else {
+                  assign_elements_pair(pt, k, pt[k], elements);
+                  k = pt[k];
+                }
+              }
+              break;
+  }
 }
 
 #ifdef  VRNA_BACKWARD_COMPAT
