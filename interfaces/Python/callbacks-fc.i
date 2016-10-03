@@ -52,8 +52,8 @@ fc_add_pycallback(vrna_fold_compound_t *vc,
     Py_XDECREF(cb->cb);
   } else {
     cb = (pycallback_t *)vrna_alloc(sizeof(pycallback_t));
-    cb->data = NULL;
-    cb->delete_data = NULL;
+    cb->data = Py_None;
+    cb->delete_data = Py_None;
   }
   cb->cb = PyFunc;    /* remember callback */
   Py_XINCREF(PyFunc); /* Increase referenc counter */
@@ -89,9 +89,9 @@ fc_add_pydata(vrna_fold_compound_t *vc,
     Py_XDECREF(cb->delete_data);
   } else {
     cb              = (pycallback_t *)vrna_alloc(sizeof(pycallback_t));
-    cb->cb          = NULL;
-    cb->data        = NULL;
-    cb->delete_data = NULL;
+    cb->cb          = Py_None;
+    cb->data        = Py_None;
+    cb->delete_data = Py_None;
   }
   cb->data        = data;   /* remember data */
   cb->delete_data = PyFunc; /* remember delete data function */

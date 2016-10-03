@@ -29,67 +29,6 @@ def bla(d, data=None):
     print data
 
 
-def blubb(i,j,k,l,d,data=None):
-    if d == RNA.DECOMP_PAIR_HP:
-        """
-        Add -10 kcal/mol to any hairpin
-        """
-        return -1000
-
-    return 0
-
-def MaximumMatching(i,j,k,l,d,data=None):
-    e = 0
-
-    if d == RNA.DECOMP_PAIR_HP:
-        e = e - data['fold_compound'].eval_hp_loop(i,j)
-        e = e - 100
-
-    elif d == RNA.DECOMP_PAIR_IL:
-        e = e - data['fold_compound'].eval_int_loop(i, j, k, l)
-        e = e - 100
-
-    elif d == RNA.DECOMP_PAIR_ML:
-        u = j - i - 1 - (k - l + 1)
-        e = e - data['params'].MLclosing
-        e = e - data['params'].MLintern[0]
-        e = e - u * data['params'].MLbase
-
-        e = e - 100
-
-    elif d == RNA.DECOMP_ML_ML_STEM:
-        u = j - i + 1 - (j - l + 1) - (k - i + 1)
-        e = e - data['params'].MLintern[0]
-        e = e - u * data['params'].MLbase
-
-    elif d == RNA.DECOMP_ML_STEM:
-        u = j - i + 1 - (k - l + 1)
-        e = e - data['params'].MLintern[0]
-        e = e - u * data['params'].MLbase
-
-    elif d == RNA.DECOMP_ML_ML:
-        u = j - i + 1 - (k - l + 1)
-        e = e - u * data['params'].MLbase
-
-    elif d == RNA.DECOMP_ML_UP:
-        u = j - i + 1
-        e = e - u * data['params'].MLbase
-
-    elif d == RNA.DECOMP_EXT_STEM:
-        e = e - data['fold_compound'].E_ext_loop(k, l)
-
-    elif d == RNA.DECOMP_EXT_STEM_EXT:
-        e = e - data['fold_compound'].E_ext_loop(i, k)
-
-    elif d == RNA.DECOMP_EXT_EXT_STEM:
-        e = e - data['fold_compound'].E_ext_loop(l, j)
-
-    elif d == RNA.DECOMP_EXT_EXT_STEM1:
-        e = e - data['fold_compound'].E_ext_loop(l, j-1)
-
-    return e
-
-
 def bt(i,j,k,l,d,data=None):
     """
     The backtracking callback must return a list of base pairs
@@ -122,20 +61,11 @@ def bt(i,j,k,l,d,data=None):
 
 a.add_auxdata(b, None)
 a.add_callback(bla)
-a.sc_add_data(c, None)
-a.sc_add_f(blubb)
-a.sc_add_bt(bt)
 (s, mfe) = a.mfe()
 print "%s %6.2f\n" %  (s, mfe)
 
 
 a.sc_remove()
-
-a.sc_add_data(mm_data, None)
-a.sc_add_f(MaximumMatching)
-(s, mfe) = a.mfe()
-print "MM"
-print "%s %6.2f\n" %  (s, mfe)
 
 def print_subopt_result(structure, energy, data=None):
     if not structure == None:

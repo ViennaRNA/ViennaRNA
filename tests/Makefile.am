@@ -63,6 +63,7 @@ AM_PY_LOG_FLAGS =
 
 # add test scripts here
 PYTHON2_TESTS = python/test-RNA-callbacks.py \
+                python/test-RNA-sc-callbacks.py \
                 python/test-RNA-mfe_eval.py \
                 python/test-RNA-constraints.py \
                 python/test-RNA-utils.py \

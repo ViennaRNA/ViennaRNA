@@ -70,12 +70,12 @@ ud_set_pydata(vrna_fold_compound_t *vc,
     Py_XDECREF(cb->delete_data);
   } else {
     cb                = (py_ud_callback_t *)vrna_alloc(sizeof(py_ud_callback_t));
-    cb->prod_rule     = NULL;
-    cb->exp_prod_rule = NULL;
-    cb->energy        = NULL;
-    cb->exp_energy    = NULL;
-    cb->data          = NULL;
-    cb->delete_data   = NULL;
+    cb->prod_rule     = Py_None;
+    cb->exp_prod_rule = Py_None;
+    cb->energy        = Py_None;
+    cb->exp_energy    = Py_None;
+    cb->data          = Py_None;
+    cb->delete_data   = Py_None;
     /* bind callback wrapper to fold compound */
     vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
   }
@@ -100,12 +100,12 @@ ud_set_prod_rule_cb(vrna_fold_compound_t *vc,
     Py_XDECREF(cb->prod_rule);
   } else {
     cb = (py_ud_callback_t *)vrna_alloc(sizeof(py_ud_callback_t));
-    cb->prod_rule     = NULL;
-    cb->exp_prod_rule = NULL;
-    cb->energy        = NULL;
-    cb->exp_energy    = NULL;
-    cb->data          = NULL;
-    cb->delete_data   = NULL;
+    cb->prod_rule     = Py_None;
+    cb->exp_prod_rule = Py_None;
+    cb->energy        = Py_None;
+    cb->exp_energy    = Py_None;
+    cb->data          = Py_None;
+    cb->delete_data   = Py_None;
     /* bind callback wrapper to fold compound */
     vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
   }
@@ -129,12 +129,12 @@ ud_set_exp_prod_rule_cb(vrna_fold_compound_t *vc,
     Py_XDECREF(cb->exp_prod_rule);
   } else {
     cb = (py_ud_callback_t *)vrna_alloc(sizeof(py_ud_callback_t));
-    cb->prod_rule     = NULL;
-    cb->exp_prod_rule = NULL;
-    cb->energy        = NULL;
-    cb->exp_energy    = NULL;
-    cb->data          = NULL;
-    cb->delete_data   = NULL;
+    cb->prod_rule     = Py_None;
+    cb->exp_prod_rule = Py_None;
+    cb->energy        = Py_None;
+    cb->exp_energy    = Py_None;
+    cb->data          = Py_None;
+    cb->delete_data   = Py_None;
     /* bind callback wrapper to fold compound */
     vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
   }
@@ -159,12 +159,12 @@ ud_set_energy_cb( vrna_fold_compound_t *vc,
     Py_XDECREF(cb->energy);
   } else {
     cb = (py_ud_callback_t *)vrna_alloc(sizeof(py_ud_callback_t));
-    cb->energy        = NULL;
-    cb->exp_energy    = NULL;
-    cb->prod_rule     = NULL;
-    cb->exp_prod_rule = NULL;
-    cb->data          = NULL;
-    cb->delete_data   = NULL;
+    cb->energy        = Py_None;
+    cb->exp_energy    = Py_None;
+    cb->prod_rule     = Py_None;
+    cb->exp_prod_rule = Py_None;
+    cb->data          = Py_None;
+    cb->delete_data   = Py_None;
     /* bind callback wrapper to fold compound */
     vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
   }
@@ -189,12 +189,12 @@ ud_set_exp_energy_cb( vrna_fold_compound_t *vc,
     Py_XDECREF(cb->exp_energy);
   } else {
     cb = (py_ud_callback_t *)vrna_alloc(sizeof(py_ud_callback_t));
-    cb->energy        = NULL;
-    cb->exp_energy    = NULL;
-    cb->prod_rule     = NULL;
-    cb->exp_prod_rule = NULL;
-    cb->data          = NULL;
-    cb->delete_data   = NULL;
+    cb->energy        = Py_None;
+    cb->exp_energy    = Py_None;
+    cb->prod_rule     = Py_None;
+    cb->exp_prod_rule = Py_None;
+    cb->data          = Py_None;
+    cb->delete_data   = Py_None;
     /* bind callback wrapper to fold compound */
     vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
   }
