@@ -168,4 +168,7 @@
  *
  *  @defgroup   plotting_utils            Functions for Creating RNA Secondary Structures Plots, Dot-Plots, and More
  *  @ingroup    utils
+ *
+ *  @defgroup   units                     Functions to convert between various units
+ *  @ingroup    utils
  */
