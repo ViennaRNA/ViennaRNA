@@ -190,13 +190,24 @@ vrna_dirname(const char *path){
 }
 
 
+#ifdef _WIN32
+PRIVATE int
+is_drive_char(const char c){
+
+  if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+    return 1;
+  return 0;
+}
+#endif
+
+
 PRIVATE int
 is_absolute_path(const char *p){
 
   if(*p == DIRSEPC)
     return 1;
 #ifdef _WIN32
-   if(*p == DRIVECHAR && (strlen(p) > 3))
+  if(is_drive_char((const char)*p) && (strlen(p) > 3))
     if((*(p + 1) == ':') && ((*(p + 2) == '\\') || (*(p + 2) == '/')))
       return 1;
 #endif
