@@ -896,7 +896,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
       backtrack_co(bt_stack, bp_list, 1,bp_list[0].i, vc);
       energy = pairlist[p].e;
       sz = vrna_db_from_bp_stack(bp_list, length);
-      zukresults[counter].energy      = energy;
+      zukresults[counter].energy      = energy/100.;
       zukresults[counter++].structure = sz;
       for (k = 1; k <= bp_list[0].i; k++) { /* mark all pairs in structure as done */
         int x,y;
@@ -1046,13 +1046,10 @@ PRIVATE SOLUTION *
 wrap_zukersubopt( const char *string,
                   vrna_param_t *parameters){
 
-  unsigned int        length;
-  char                *doubleseq;
   vrna_fold_compound_t  *vc;
   vrna_param_t        *P;
 
   vc      = NULL;
-  length  = (int)strlen(string);
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -1068,15 +1065,9 @@ wrap_zukersubopt( const char *string,
     md.temperature = temperature;
     P = vrna_params(&md);
   }
-  P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
-
-  doubleseq = (char *)vrna_alloc((2*length+2)*sizeof(char));
-  strcpy(doubleseq,string);
-  doubleseq[length] = '&';
-  strcat(doubleseq, string);
 
   /* get compound structure */
-  vc = vrna_fold_compound(doubleseq, &(P->model_details), 0);
+  vc = vrna_fold_compound(string, &(P->model_details), VRNA_OPTION_DEFAULT);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -1090,9 +1081,6 @@ wrap_zukersubopt( const char *string,
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
-
-  /* cleanup */
-  free(doubleseq);
 
   return vrna_subopt_zuker(vc);
 }

@@ -390,7 +390,7 @@ PRIVATE void putoutzuker(vrna_subopt_solution_t* zukersolution) {
   char  *e_string;
 
   for(i=0; zukersolution[i].structure; i++) {
-    e_string = vrna_strdup_printf(" [%6.2f]", zukersolution[i].energy/100.);
+    e_string = vrna_strdup_printf(" [%6.2f]", zukersolution[i].energy);
     print_structure(stdout, zukersolution[i].structure, e_string);
     free(e_string);
   }
