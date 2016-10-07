@@ -159,7 +159,6 @@ namespace std {
 /*############################################*/
 %include params.i
 %include model_details.i
-%include fold_compound.i
 %include utils.i
 %include plotting.i
 %include constraints.i
@@ -175,6 +174,7 @@ namespace std {
 %include compare.i
 %include file_formats.i
 %include grammar.i
+%include fold_compound.i
 
 
 /**********************************************/
