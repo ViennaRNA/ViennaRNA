@@ -66,6 +66,11 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t *vc,
                             int *fmi,
                             int *dmli);
 
+PRIVATE int
+extend_fm_3p( int i,
+              int j,
+              int *fm,
+              vrna_fold_compound_t *vc);
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -628,9 +633,28 @@ E_ml_rightmost_stem(int i,
                     int j,
                     vrna_fold_compound_t *vc){
 
+  if((vc) && (vc->matrices) && (vc->matrices->fM1)){
+    return extend_fm_3p(i, j, vc->matrices->fM1, vc);
+  }
+
+  return INF;
+}
+
+/*
+  compose a multibranch loop part fm[i:j]
+  by either c[i,j]/ggg[i,j] or fm[i:j-1]
+
+  This function can be used for fM and fM1
+*/
+PRIVATE int
+extend_fm_3p( int i,
+              int j,
+              int *fm,
+              vrna_fold_compound_t *vc){
+
   char              eval_loop, *hc;
   short             *S;
-  int               en, length, *indx, *hc_up, *c, *fm, *ggg, ij, type, hc_decompose,
+  int               en, length, *indx, *hc_up, *c, *ggg, ij, type, hc_decompose,
                     dangle_model, with_gquad, cp, e, u, k, cnt, with_ud;
   vrna_param_t      *P;
   vrna_sc_t         *sc;
@@ -647,7 +671,6 @@ E_ml_rightmost_stem(int i,
   hc_up         = vc->hc->up_ml;
   sc            = vc->sc;
   c             = vc->matrices->c;
-  fm            = (P->model_details.uniq_ML) ? vc->matrices->fM1 : vc->matrices->fML;
   ggg           = vc->matrices->ggg;
   ij            = indx[j] + i;
   type          = vc->ptype[ij];
@@ -804,7 +827,7 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
   /*  extension with one unpaired nucleotide at the right (3' site)
       or full branch of (i,j)
   */
-  e = E_ml_rightmost_stem(i,j,vc);
+  e = extend_fm_3p(i, j, fm, vc);
 
   /*  extension with one unpaired nucleotide at 5' site
       and all other variants which are needed for odd

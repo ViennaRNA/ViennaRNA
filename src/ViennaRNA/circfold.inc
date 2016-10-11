@@ -94,7 +94,6 @@ fill_arrays_circ( vrna_fold_compound_t *vc,
     } /* end of i,j loop */
   Fc = MIN2(Fc, FcH);
   Fc = MIN2(Fc, FcI);
-
   /* compute the fM2 array (multi loops with exactly 2 helices) */
   /* to get a unique ML decomposition, just use fM1 instead of fML
      below. However, that will not work with dangle_model==1  */
@@ -112,7 +111,7 @@ fill_arrays_circ( vrna_fold_compound_t *vc,
   }
   Fc = MIN2(Fc, FcM);
 
-  if (dangle_model==1) {
+  if ((dangle_model == 1) || (dangle_model == 3)){
     fM_d3 =  (int *) vrna_alloc(sizeof(int)*(length+2));
     fM_d5 =  (int *) vrna_alloc(sizeof(int)*(length+2));
 
