@@ -248,6 +248,19 @@ struct vrna_md_s {
 
 
 /**
+ * @brief Copy a #vrna_md_t model
+ *
+ * Use this function to clone a given model either inplace (target container \p md_to
+ * given) or newly allocated (\p md_to == NULL).
+ *
+ * @param md_to the model to be created (if NULL and \p md_from != NULL) or
+ *              overwritten (if non-NULL and != \p md_from)
+ * @param md_from the model to copy (if non-NULL)
+ */
+void
+vrna_md_copy(vrna_md_t * md_to, const vrna_md_t * const md_from);
+
+/**
  * @brief Apply default model details to a provided #vrna_md_t data structure
  *
  *  Use this function to initialize a #vrna_md_t data structure with

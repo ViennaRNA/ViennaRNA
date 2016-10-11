@@ -157,22 +157,39 @@ PRIVATE void copy_nonstandards(vrna_md_t *md, const char *ns);
 */
 
 PUBLIC void
+vrna_md_copy(vrna_md_t * md_to, const vrna_md_t * const md_from) {
+
+	// check if no target object provided
+	if ( md_from && ! md_to ) {
+		// create container to be filled
+		md_to = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
+	}
+
+	// check if both non-NULL && not the same object
+	if( md_to && md_from && (md_to != md_from) ) {
+		// copy simple members
+		memcpy( md_to, md_from, sizeof(vrna_md_t));
+		// copy arrays
+		memcpy( md_to->rtype, &(md_from->rtype[0]), 8 * sizeof(int));
+		memcpy( md_to->alias, &(md_from->alias[0]), (MAXALPHA + 1) * sizeof(short));
+		memcpy( md_to->nonstandards, &(md_from->nonstandards[0]), 64 * sizeof(char));
+		// copy matrices
+		for(int i = 0;i <= MAXALPHA; i++) {
+			memcpy( md_to->pair[i], (md_from->pair[i]), (MAXALPHA + 1) * sizeof(int));
+		}
+	}
+}
+
+PUBLIC void
 vrna_md_set_default(vrna_md_t *md){
 
   int i = 0;
 
   if(md){
-    /* copy over defaults */
-    memcpy(md, &defaults, sizeof(vrna_md_t));
-
-    /* set default values for the pair/rtype[pair] stuff */
-    memcpy(md->rtype, &(rtype[0]), 8 * sizeof(int));
-    memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
-    for(i = 0;i <= MAXALPHA; i++)
-      memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
-
-    vrna_md_update(md);
-
+	  // copy defaults
+	  vrna_md_copy( md, & defaults );
+	  // reinit base pair types : TODO seems to be obsolete to me (=Martin)
+	  vrna_md_update(md);
   }
 }
 
