@@ -156,28 +156,41 @@ PRIVATE void copy_nonstandards(vrna_md_t *md, const char *ns);
 #################################
 */
 
-PUBLIC void
-vrna_md_copy(vrna_md_t * md_to, const vrna_md_t * const md_from) {
+PUBLIC vrna_md_t *
+vrna_md_copy( vrna_md_t       *md_to,
+              const vrna_md_t *md_from){
 
-	// check if no target object provided
-	if ( md_from && ! md_to ) {
-		// create container to be filled
-		md_to = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
-	}
+  int i;
+  vrna_md_t *md;
 
-	// check if both non-NULL && not the same object
-	if( md_to && md_from && (md_to != md_from) ) {
-		// copy simple members
-		memcpy( md_to, md_from, sizeof(vrna_md_t));
-		// copy arrays
-		memcpy( md_to->rtype, &(md_from->rtype[0]), 8 * sizeof(int));
-		memcpy( md_to->alias, &(md_from->alias[0]), (MAXALPHA + 1) * sizeof(short));
-		memcpy( md_to->nonstandards, &(md_from->nonstandards[0]), 64 * sizeof(char));
-		// copy matrices
-		for(int i = 0;i <= MAXALPHA; i++) {
-			memcpy( md_to->pair[i], (md_from->pair[i]), (MAXALPHA + 1) * sizeof(int));
-		}
-	}
+  md = NULL;
+
+  /* only process if md_from is non-NULL */
+  if(md_from){
+    if(!md_to){
+      /* create container to be filled */
+      md = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
+    } else {
+      /* or directly write to target */
+      md = md_to;
+    }
+
+    /* check if not the same object */
+    if(md_to != md_from){
+      /* copy simple members */
+      memcpy(md, md_from, sizeof(vrna_md_t));
+      /* copy arrays */
+      memcpy(md->rtype, &(md_from->rtype[0]), 8 * sizeof(int));
+      memcpy(md->alias, &(md_from->alias[0]), (MAXALPHA + 1) * sizeof(short));
+      memcpy(md->nonstandards, &(md_from->nonstandards[0]), 64 * sizeof(char));
+      /* copy matrices */
+      for(i = 0; i <= MAXALPHA; i++){
+        memcpy(md->pair[i], (md_from->pair[i]), (MAXALPHA + 1) * sizeof(int));
+      }
+    }
+  }
+
+  return md;
 }
 
 PUBLIC void

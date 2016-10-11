@@ -248,19 +248,6 @@ struct vrna_md_s {
 
 
 /**
- * @brief Copy a #vrna_md_t model
- *
- * Use this function to clone a given model either inplace (target container \p md_to
- * given) or newly allocated (\p md_to == NULL).
- *
- * @param md_to the model to be created (if NULL and \p md_from != NULL) or
- *              overwritten (if non-NULL and != \p md_from)
- * @param md_from the model to copy (if non-NULL)
- */
-void
-vrna_md_copy(vrna_md_t * md_to, const vrna_md_t * const md_from);
-
-/**
  * @brief Apply default model details to a provided #vrna_md_t data structure
  *
  *  Use this function to initialize a #vrna_md_t data structure with
@@ -285,6 +272,20 @@ vrna_md_set_default(vrna_md_t *md);
  */
 void
 vrna_md_update(vrna_md_t *md);
+
+/**
+ *  @brief Copy/Clone a #vrna_md_t model
+ *
+ *  Use this function to clone a given model either inplace (target container @p md_to
+ *  given) or create a copy by cloning the source model and returning it (@p md_to == NULL).
+ *
+ *  @param md_to    The model to be overwritten (if non-NULL and @p md_to != @p md_from)
+ *  @param md_from  The model to copy (if non-NULL)
+ *  @return         A pointer to the copy model (or NULL if @p md_from == NULL)
+ */
+vrna_md_t *
+vrna_md_copy( vrna_md_t       *md_to,
+              const vrna_md_t *md_from);
 
 /**
  *  @brief  Get a corresponding commandline parameter string of the options in a #vrna_md_t
