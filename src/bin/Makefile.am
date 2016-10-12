@@ -10,6 +10,9 @@ bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
 
 LDADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la
 
+HELPER_FILES =  gengetopt_helper.h \
+                input_id_helper.h
+
 SUFFIXES = _cmdl.c _cmdl.h .ggo
 
 # Link agains stdc++ if we use SVM in RNALfold
@@ -51,7 +54,9 @@ GENGETOPT_FILES =  RNAfold.ggo RNAalifold.ggo RNAcofold.ggo \
               RNAPKplex.ggo RNAplex.ggo RNAsnoop.ggo RNAdistance.ggo \
               RNApdist.ggo RNApvmin.ggo
 
-EXTRA_DIST =  ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
+EXTRA_DIST =  ${GENGETOPT_FILES} \
+              ${GENGETOPT_CMDL} \
+              ${HELPER_FILES}
 
 
 ## Below are the rules how to create the test suite executables
