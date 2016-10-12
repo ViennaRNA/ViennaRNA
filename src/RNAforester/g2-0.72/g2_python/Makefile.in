@@ -1,0 +1,36 @@
+# -*- sh -*-
+
+.PHONY: all build install demo clean
+
+DEFS=@DEFS@
+LIBS=@LIBS@
+LDSHARED=@LD_SHARED@
+
+# either ../libg2.so or ../libg2.a must be there
+# to make libg2.so the default, uncomment the next line and the three lines below DEPENDENCY=
+#ifeq ("$(LDSHARED)","")
+DEPENDENCY= libg2.a
+#else
+#DEPENDENCY= libg2.so
+#endif
+
+all: build
+
+build: ../$(DEPENDENCY)
+	python setup.py "$(DEFS)" "$(LIBS)" build_ext
+
+../$(DEPENDENCY):
+	cd ..; make $(DEPENDENCY)
+
+# must be root
+install: build
+	python setup.py "$(DEFS)" "$(LIBS)" install
+
+demo:
+	ln -f -s $(shell find build -name g2.so) .
+	python g2_test.py
+
+clean:
+	-rm -fr build
+	-rm -f g2.so g2.map g2_test{_clip.eps,.{eps,ps,png,jpg,fig}} penguin.pyc
+

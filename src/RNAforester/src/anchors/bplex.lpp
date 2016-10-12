@@ -1,0 +1,31 @@
+%{
+
+#include <list>
+#include "basepair.h"
+class Pair;
+#include "shape.hpp"
+#include "anchors.h"
+
+#define YY_INPUT(buf,result,max_size)  {\
+    result = GetNextChar(buf, max_size); \
+    if (  result <= 0  ) \
+      result = YY_NULL; \
+    }
+
+
+%}
+
+%option nounput
+%option noyywrap
+
+%%
+
+\( { BeginToken(yytext);return LBRACE; }
+\) { BeginToken(yytext);return RBRACE; }
+\n { BeginToken(yytext);return yytext[0]; }
+\. { BeginToken(yytext);}
+. { yyerror((char *)"Wrong input character."); }
+
+
+%%
+/*. ECHO ;*/

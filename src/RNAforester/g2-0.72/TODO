@@ -1,0 +1,8 @@
+
+- native g2_image support
+- gd: setlinedash 
+- finish xfig support
+- test (and add) Fortran interface on more platforms
+- new devices (e.g. PNG, JPG, etc.)
+- documentation for developement of new devices
+

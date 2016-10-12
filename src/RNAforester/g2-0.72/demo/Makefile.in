@@ -1,0 +1,91 @@
+#
+#
+# Makefile for g2_library (demo)
+#
+#
+
+
+CC = @CC@
+CXX = @CXX@
+##Linux
+F77 = g77
+CPP = /lib/cpp
+
+##OSF
+#F77 = f77
+#F77_FLAGS=-i8
+
+##AIX
+#F77 = xlf
+#CPP = /usr/ccs/lib/cpp
+
+##IRIX
+#F77 = f77 -n32
+#CPP = /lib/cpp -P -DFORTRAN
+
+CFLAGS = -I../src -I../src/X11 -I../src/PS -I../src/Win32 -I../src/GD -I../src/FIG @CFLAGS@ @DEFS@
+CXXFLAGS = -I../src -I../src/X11 -I../src/PS -I../src/Win32 -I../src/GD/ -I../src/FIG @CXXFLAGS@ @DEFS@
+LIBS =  -L.. -lg2 @LIBS@
+
+@DO_PS@DEMO_PS = simple_PS
+@DO_FIG@DEMO_FIG = simple_FIG
+@DO_X11@DEMO_X11 = simple_X11 pointer handles g2_anim
+@DO_GD@DEMO_GD = simple_gd
+@DO_WIN32@DEMO_WIN32 = simple_win32 g2_anim
+
+
+DEMO = g2_test g2_arc g2_splines_demo demo_cpp $(DEMO_PS) $(DEMO_FIG) $(DEMO_X11) $(DEMO_GD) $(DEMO_WIN32)
+
+all:	$(DEMO)
+
+demo:	$(DEMO)
+
+
+g2_test:  g2_test.c
+	$(CC) $(CFLAGS) g2_test.c $(LIBS) $(LDFLAGS) -o $@
+
+g2_arc: g2_arc.c
+	$(CC) $(CFLAGS) g2_arc.c  $(LIBS) $(LDFLAGS) -o $@
+
+g2_splines_demo:  g2_splines_demo.c
+	$(CC) $(CFLAGS) g2_splines_demo.c $(LIBS) $(LDFLAGS) -o $@
+
+g2_anim:  g2_anim.c
+	$(CC) $(CFLAGS) g2_anim.c  $(LIBS) $(LDFLAGS) -o $@
+
+
+simple_PS:  simple_PS.c
+	$(CC) $(CFLAGS) simple_PS.c  $(LIBS) $(LDFLAGS) -o $@
+
+simple_FIG: simple_FIG.c
+	$(CC) $(CFLAGS) simple_FIG.c  $(LIBS) $(LDFLAGS) -o $@
+
+simple_X11:  simple_X11.c
+	$(CC) $(CFLAGS) simple_X11.c  $(LIBS) $(LDFLAGS) -o $@
+
+simple_win32:  simple_win32.c
+	$(CC) $(CFLAGS) simple_win32.c  $(LIBS) $(LDFLAGS) -lkernel32 -lgdi32 -luser32 -lcomdlg32 -o $@
+
+pointer:  pointer.c
+	$(CC) $(CFLAGS) pointer.c  $(LIBS) $(LDFLAGS) -o $@
+
+handles: handles.c
+	$(CC) $(CFLAGS) handles.c  $(LIBS) $(LDFLAGS) -o $@
+
+simple_gd:  simple_gd.c
+	$(CC) $(CFLAGS) simple_gd.c  $(LIBS) $(LDFLAGS) -o $@
+
+demo_cpp: demo_cpp.cpp
+	$(CXX) $(CXXFLAGS) demo_cpp.cpp  $(LIBS) $(LDFLAGS) -o $@	
+
+demo_f: demo_f.f
+	$(F77) $(F77_FLAGS) demo_f.f  $(LIBS) $(LDFLAGS) -o $@
+
+g2testf: g2_test.f
+	$(CPP) @DEFS@ -E g2_test.f > g2testf.f
+	$(F77) g2testf.f $(LDFLAGS) -o g2testf
+
+clean:
+	-rm $(DEMO) g2testf g2testf.f demo_f *~ core *.ps *.fig *.eps *.png *.jpg *.fig.bak
+
+

@@ -1,0 +1,34 @@
+Disclaimer and Copyright
+
+The programs and source code of RNAforester are free
+software. They are distributed in the hope that they will be useful
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+
+Permission is granted for research, educational, and commercial use
+and modification so long as 1) the package and any derived works are not
+redistributed for any fee, other than media costs, 2) proper credit is
+given to the authors.
+
+If you want to include this software in a commercial product, please contact 
+the authors. 
+
+The include files "fold_vars.h" and "part_func.h" "utils.h" are slightly modified to be compatible
+with the g++ compiler and distributed with this package. Note that these files have their own
+copyrights attached.
+
+The code for computing a maximum wheigted matching was written by Ed Rothberg
+and implements H. Gabow's N-cubed weighted matching algorithm, 
+as described in his Ph.D. thesis
+"Implementation of Algorithms for Maximum Matching on Nonbipartite Graphs" 
+Stanford University, 1973.  
+(refer to http://elib.zib.de/pub/Packages/mathprog/matching/weighted/)
+
+The prediction of structures utilizes functions from the Vienna 
+RNA library, originally described in:
+Fast Folding and Comparison of RNA Secondary Structures,
+Ivo L. Hofacker, Walter Fontana, Peter F. Stadler, L. Sebastian Bonhoeffer, Manfred Tacker, and Peter Schuster
+Appeared in: Monatsh.Chem. 125: 167-188 (1994).
+
+
+

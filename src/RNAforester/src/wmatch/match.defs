@@ -1,0 +1,40 @@
+#define	MAXWT  1000000
+
+/* define NULL 0 */
+
+
+/* the number of the blossom entered by edge e */
+#define BEND(e) (BASE[END[e]])
+
+/* the blossom matched with v's blossom */
+#define BMATE(v) (BASE[END[MATE[v]]])
+
+/* the blossom entered by the edge that links v's blossom */
+#define BLINK(v) (BASE[END[LINK[v]]])
+
+/* the edge e with it's direction reversed */
+#define OPPEDGE(e) (((e - U) % 2 == 0) ? (e - 1) : (e + 1))
+
+/* the slack of edge e */
+#define SLACK(e) (Y[END[e]] + Y[END[OPPEDGE(e)]] - WEIGHT[e])
+
+
+/* Global variables */
+static int *A,*END,*WEIGHT,*NEXTPAIR;
+static int *MATE,*LINK,*BASE,*NEXTVTX,*LASTVTX,*Y,*NEXT_D,*NEXTEDGE;
+
+static int LAST_D, DELTA;
+
+static int LASTEDGE[3];
+
+static int DUMMYVERTEX, DUMMYEDGE;
+static int U, V;
+
+static int newbase, oldbase, nextbase, stopscan, pairpoint;
+static int neighbor, nextpoint, newlast;
+static int newmate, oldmate, oldfirst, firstmate, secondmate;
+static int f, nextedge, nexte, nextu;
+
+static int v,i,e;
+
+
