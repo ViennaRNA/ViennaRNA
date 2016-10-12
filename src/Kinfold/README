@@ -1,0 +1,12 @@
+  Kinfold - Kinetic Folding Program for Nucleic Acids
+
+  Copyright (C) 2001 Christoph Flamm, Ivo L. Hofacker
+
+  for the energy evaluation Kinfold uses routines from
+  the Vienna-RNA-Package Version 1.4.
+  you can download the source code for Vienna-RNA-Package from
+  http://www.tbi.univie.ac.at/~ivo/RNA/
+
+Comments are welcome.
+
+        - Christoph Flamm, <xtof@tbi.univie.ac.at>

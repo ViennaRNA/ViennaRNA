@@ -1,0 +1,9 @@
+2010-06-24  Ivo Hofacker  <ivo@tbi.univie.ac.at>
+
+	* fix gengetopt option parsing (some options were ignored)
+	* allow cofolding 
+
+2001-08-01 Christoph Flamm, Ivo L. Hofacker <xtof@tbi.univie.ac.at>
+
+        *Kinfold: initial version
+
