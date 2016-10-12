@@ -1,0 +1,7 @@
+1.4.1	2004.06.29
+	- new option -s computes small-in-large similarity.
+	- bugfix: strcuture alignment was shown although option -p was used.
+
+ChangeLog is starting with version 1.4. All earlier versions were experimental.
+
+

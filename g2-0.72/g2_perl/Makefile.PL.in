@@ -1,0 +1,10 @@
+use ExtUtils::MakeMaker;
+# See lib/ExtUtils/MakeMaker.pm for details of how to influence
+# the contents of the Makefile that is written.
+WriteMakefile(
+    'NAME'	=> 'G2',
+    'VERSION_FROM' => 'G2.pm', # finds $VERSION
+    'LIBS'	=> ['-L./.. -lg2 @LIBS@'],  # e.g., '-lm' 
+    'DEFINE'	=> '@DEFS@',                   # e.g., '-DHAVE_SOMETHING' 
+    'INC'	=> '-I./../include',           # e.g., '-I/usr/local/include' 
+);

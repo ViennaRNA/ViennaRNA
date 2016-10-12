@@ -1,0 +1,16 @@
+# ignore autotools generated content
+Makefile
+Makefile.in
+configure
+aclocal.m4
+autom4te.cache
+config
+config.*
+.deps
+depcomp
+g2-0.72/autom4te.cache
+install-sh
+missing
+stamp-h1
+.dirstamp
+

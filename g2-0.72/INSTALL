@@ -1,0 +1,94 @@
+Installation
+============
+
+LINUX
+-----
+
+Either install RPM packet with binaries, or compile as described in the
+UNIX section 
+
+UNIX 
+----
+
+1. Extract package with gzip -dc g2-xxxx.tar.gz | tar xvf - 
+
+2. Run './configure'
+
+3. Run 'make depend'
+
+4. Optionally edit src/g2_config.h to fine-tune g2 behavior (only if
+   you know what are you doing)
+
+5. Run 'make' 
+
+6. Run 'make install' or copy libg2.a and g2.h, g2_X11.h, g2_gd.h, and
+   g2_PS.h to the default locations for library and include files. 
+
+7. cd to demo directory and  run 'make demo' to compile demo
+   applications
+
+8. To rebuild documentation run 'make doc' (html, PS and pdf manual
+   should be already included into documentation).
+
+
+WINDOWS NT
+----------
+
+1. Extract package: unzip 'g2-xxxx.zip' 
+
+2. For gd support, please download the binary gd version and place it in a
+   folder next to g2 using default folder name gdwin32, i.e. it is expected 
+   in ../gdwin32 from the folder this file is residing.
+   You also will need to create the bgd.lib file using makemsvcimport.bat
+   
+3. MS Visual C++ users can build both library and demos with the supplied
+   project file: g2.xxx 
+   users of gcc or other commandline based compilers with make support
+   continue as in Unix example 
+
+
+VMS
+---
+
+Note: VMS is not tested in latest builds. However descrip.mms is a
+good starting point.
+
+1. set default to root of distribution directory
+
+2. type mms to build g2.olb library
+
+3. to compile demo files, set defualt to [.demo] and type mms
+
+4. to install: copy g2.olb and g2.h, g2_X11.h and g2_PS.h to install
+   directories
+
+
+PNG-SUPPORT
+-----------
+
+g2 needs to be linked to the free available gd library written by
+Thomas Boutell in order to create PNG files.  g2 is tested with
+version 2.0.22 of gd. gd is available at http://www.boutell.com/gd/ and
+at numerous mirror sites.  Use a ftp search
+(e.g. http://ftpsearch.ntnu.no/) and search for "gd1.3.tar.gz" to find
+your nearest mirror site.
+
+
+PERL SUPPORT
+------------
+1. build g2 library
+2. cd to g2_perl and run
+	perl Makefile.PL
+	make
+	make test
+
+
+SHARED LIBRARIES
+----------------
+Support for shared libraries is tested on Linux and OSF
+(DigitalUnix). To build shared libraries type 'make shared'. If you
+want to run demo applications without installed shared libraries, you
+should add to LD_LIBRARY_PATH the path to the g2 shared library
+(e.g. 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/some/path/to/g2')
+
+

@@ -1,0 +1,266 @@
+.TH RNAForester 2.0 "January 2013"
+.SH NAME
+RNAforester \- compare RNA secondary structures via forest alignment
+.SH SYNOPSIS
+\fBRNAforester\fP [options]
+.br
+Options are:
+.br
+--help                    shows this help info
+.br
+--version                 shows version information
+.br
+-d                        calculate distance instead of similarity
+.br
+-r                        calculate relative score
+.br
+-l                        local similarity
+.br
+-so=int                   local suboptimal alignments within int%
+.br
+-s                        small-in-large similarity
+.br
+-m                        multiple alignment mode
+.br
+-mt=double                clustering threshold
+.br
+-mc=double                clustering cutoff
+.br
+-p                        predict structures from sequences
+.br
+-pmin=num                 minimum basepair frequency for prediction
+.br
+-pm=int                   basepair(bond) match score
+.br
+-pd=int                   basepair bond indel score
+.br
+-bm=int                   base match score
+.br
+-br=int                   base mismatch score
+.br
+-bd=int                   base indel score
+.br
+--RIBOSUM                 RIBOSUM85-60 scoring matrix
+.br
+-cmin=double              minimum basepair frequency for consensus structure
+.br
+-2d                       generate alignment 2D plots in postscript format
+.br
+--2d_hidebasenum          hide base numbers in 2D plot
+.br
+--2d_basenuminterval=n    show every n-th base number
+.br
+--2d_grey                 use only grey colors in 2D plots
+.br
+--2d_scale=double         scale factor for the 2d plots
+.br
+--score                   compute only scores, no alignment
+.br
+--fasta                   generate fasta output of alignments
+.br
+-f=file                   read input from file
+.br
+--noscale                 suppress output of scale
+
+.SH DESCRIPTION
+RNAforester calculates RNA secondary structure alignments, both pairwise and multiple.
+The comparison is based on the tree alignment model [1,2].
+
+.SS Model 
+The model for pairwise and multiple alignment differs slightly. The pairwise model
+is based on the following edit operations on sequence and structure: 
+
+.br
+\fIbasepair replacement/match:\fP A basepair, INCLUDING the paired bases, is substituted by another basepair. 
+The scoring contribution is p_m.
+.br
+\fIbasepair bond deletion:\fP A basepair bond WITHOUT the paired bases is removed. The scoring contribution is p_d.
+.br
+\fISequence edit operations:\fP Base match/mismatch and base deletion give the scoring contributions b_m and b_d, respectively.
+.br
+
+In the multiple alignment mode (-m), parameter p_m is the score for matching a basepair bond WITHOUT the paired bases.
+Thus, the score for a whole basepair replacement is p_m+2*b_m. For more information about multiple alignment refer to
+the description of parameter -m.
+
+.SS Input
+RNAforester reads  RNA  secondary structures from stdin by default.
+It accepts sequences and structures in Fasta format, where matching brackets symbolize base
+pairs and unpaired bases are represented by a dot. A line containing the primary sequence
+can precede the RNA secondary structure(s). An example is given below:
+.br
+
+  > test 
+  accaguuacccauucgggaaccggu   primary structure
+  .((..(((...)))..((..)))).   secondary structure
+.br
+
+All characters after a "blank" are ignored and all '-' characters are removed.
+The  program will continue to read new
+structures until a line consisting of the single character @ or an end of file
+is  encountered. Input lines starting with > can contain a structure name. 
+
+Option -f=filename let RNAforester read the input from file. Results files  
+are then written to files prefixed by filename.
+
+.SS Output
+Alignments in ASCII format are written to stdout. Option -2d generates postscript
+drawings of structure alignments.
+
+.SH Options
+
+.TP
+\fB-d\fP
+Calculate distance instead of similarity. In contrast to similarity, scoring contributions are minimized.
+The scoring parameters must not be negative and equal structures achieve a distance of zero. This 
+parameter can not be used in conjunction with multiple alignment, where relative similarity is computed.
+
+.TP
+\fB-r\fP
+Calculate relative score, defined by sr(a,b)=2*s(a,b)/(s(a,a)+s(b,b).
+Relative scores are upper bounded by 1 which is the score for equal structures.
+ 
+.TP
+\fB-l\fP
+Calculate local similar structures. The term local refers to subwords of
+the input sequences and structures. If parameter \fI-so\fP is used suboptimal 
+solutions are calculated. This does not mean suboptimal solutions of the
+same local structures, but different substructures which do not include each other.
+ 
+.TP
+\fB-so=int\fP
+Calculates suboptimal local alignments within int% of the optimum. This option requires
+option \fI-l\fP.
+
+.TP
+\fB-s\fP
+Calculates small-in-large similarity, i.e. the best alignment of the first structure against all 
+substructures of the second structure is computed.
+
+.TP
+\fP-m, -mc=double, -mt=double, -cmin=double\fP
+Multiple alignment mode. Multiple alignments of structures are calculated in a progressive
+fashion. First, an all-against-all comparison of structures is performed (relative scores) and afterwards
+structural alignments are joined along a guide tree (the guide tree is constructed dynamically).
+If the best score which a single structure or structure alignment can achieve by aligning to all others
+is below cutoff value \fI-mc\fP, it is not joined and put into the results list. Thus, a multiple 
+structure alignment can produce a list of alignments. The main purpose of parameter \fI-mc\fP is to
+identify alternative and wrong structures produced by structure predictions. The default value for
+\fI-mc\fP is zero, as this separates similar from dissimilar in a similarity scoring model.
+
+In each step in the multiple alignment calculation, the best scoring pair is joined and then the guide tree is
+adjusted. To speed up computation, parameter \fI-mt\fP defines a threshold whereas, if this is exceeded, 
+multiple pairs are joined and then the guide tree is adjusted.
+
+Besides sequence and structure alignment, a consensus sequence and structure is computed. The minimum pair 
+frequency probability for a basepair in the consensus sequence is controlled by parameter \fI-cmin\fP.
+
+The console output could look like (just a part):
+.br
+
+                    * *  ****                     
+                    * *  ****                     
+                   ** *  ****                     
+                   ** *  ****                  *  
+                   ** *  ****  ********     ****  
+                   ** *  ****  ********     ****  
+                   ** *  ****  ********     ****  
+  **************** ** * ****************    ******
+  **************** ** ****************************
+  **************** ** ****************************
+  ggggcuauagcucagcugggggagcuauagcucagcugggagcgggga
+  .((((....))))....((.(.(((((..((((........))))...
+  ************************************************
+  **************** ** ****************************
+  **************** ** ** *************************
+  **************** ** *  ***************   *******
+                   ** *  ****  ********    *****  
+                   ** *  ****  ********    *****  
+                   ** *  ****   *******    *** *  
+                   ** *  ****                  *  
+                    * *  ****                     
+                    * *  ****                     
+.br
+
+The number of * above the primary sequence shows the frequency of the base.
+Each * stands for 10% frequency. Accordingly, the number of * below the
+secondary structure show the frequency of the occurrence of a paired or unpaired
+base.
+
+The guide tree is written to a file "cluster.dot" in \fIdot\fP format. If a filename was 
+specified by parameter \fI-f\fP the filename is "filename_cluster.dot".  Refer to 
+\fIhttp://www.research.att.com/sw/tools/graphviz\fP  for more details about the dot format 
+and tools.
+
+.TP
+\fI-p, -pmin=double\fP
+Structures (in fact, a consensus of compatible structures) are predicted from the partition function 
+which is calculated using the Vienna RNA library [3]. Structure lines in the input are ignored.
+\fI-pmin\fP is the minimum frequency of a basepair which must be exceeded to be considered for the
+prediction of structures.
+
+.TP
+\fI-pm=int,-pd=int,-bm=int,-br=int,-bd=int\fP
+Scoring parameters. Refer to Section DESCRIPTION.
+
+.TP
+\fI--RIBOSUM\fP
+Uses the base and basepair substitution matrix RIBOSUM85-60 matrix as proposed in [4].
+Requires pairwise alignment model.
+
+.TP
+\fI-2d\fP
+RNAforester provides different types of visualizations for pairwise and multiple alignment.
+
+\fBpairwise alignment\fP
+Since bases paired in a structure S1 can be aligned to bases unpaired in a structure S2, the presentation of a common secondary structure leaves some choice. For an alignment of those structures, an RNA secondary structure "$S2-at-S1" is drawn that highlights the differences as deviations of S2 from S1, or vice versa, "S1-at-S2". Both are alternative visualizations of the same alignment. 
+Bases printed in black show structure elements that occur in both structures with the same sequence. Sequence variations are displayed by using red letters. Bases or base pairs that can only be found in S1 are printed in blue, while bases that only occur in S2 are printed in green.
+
+The drawings are written to files "x_n.ps" and "y_n.ps" where n is the number of the alignment. n enumerates the suboptimal solutions if option \fI-so\fP is used.
+The region of local similarity are highlighted in the original structures in the drawings "x_str.ps" and "y_str.ps".
+
+\fBmultiple alignment\fP
+Each cluster of the result list of a multiple alignment is visualized in two alternative drawings, written to the files "filename_cons_n.ps" and "filename_n_.ps"
+if option \fI-f\fP is used. In both plots, the consensus structure is shown. The lighter a basepair bond is drawn, the less frequent does it exist in the structures. Bases or basepair bonds that have a frequency of one hundred percent are drawn in red color. In "filename_cons_n.ps", the most frequent base at each residue is printed,
+with the base frequency indicated by grey-scale. In "filename_n.ps", the frequencies of the bases a,c,g,u are proportional to the radius of circles
+that are arranged clockwise on the corners of a square, starting at the upper left corner. Additionally, these circles are colored
+red, green, blue, magenta for the bases a,c,g,u, respectively. The frequency of a gap is proportional to a black circle growing at the center of the square.
+
+Parameters \fI--2d_hidebasenum,--2d_basenuminterval=n,--2d_grey,--2d_scale=double\fP  effect the drawings of alignments and consensus structures as implied by their names.
+
+.TP
+\fI--score\fP
+Only the optimal score of an alignment is printed. This option is useful when RNA-forester is called 
+by another program that only needs a similarity or distance value.
+
+.TP
+\fI--fasta\fP
+Alignments are printed in Fasta format
+
+.SH REFERENCES
+[1] Jiang T, Wang J T L and Zhang K, (1995)
+Alignment of Trees - An Alternative to Tree Edit,
+Theoretical Computer Science 143(1), 137-148
+
+[2] Hoechsmann M, Toeller T, Giegerich R and Kurtz S, (2003)
+Local Similarity of RNA Secondary Structures,
+Proc. of the IEEE Bioinformatics Conference (CSB 2003), 159-168
+
+[3] Ivo L. Hofacker, Walter Fontana, Peter F. Stadler, L. Sebastian Bonhoeffer, Manfred Tacker, and Peter Schuster, (1994)
+Fast Folding and Comparison of RNA Secondary Structures,
+Monatsh.Chem. 125: 167-188.
+
+[4] Klein R.J. and Eddy S.R., (2003)
+RSEARCH: finding homologs of single structured RNA sequences,
+BMC Bioinformatics. 2003 Sep 22;4(1):44 	
+  
+.SH VERSION
+This man page documents version 1.4 of RNAforester.
+
+.SH AUTHORS
+Matthias Hoechsmann
+.SH BUGS
+I hope you wouldn't find them.
+Comments should be sent to mhoechsm@techfak.uni-bielefeld.de
+.br
+
