@@ -1,0 +1,55 @@
+----------
+Folding Modes:
+
+(1) default mode:
+    start structure is open chain
+    stop structure is minimum free enegy structure
+    example: hairpin.log, traj
+     ../Kinfold --log hpin --num 10 <./hpin.in>& traj
+
+(2) multi-stop mode:
+    start structure is open chain
+    stop structure(s) are 2nd and following lines in hpin.in
+    example: hairpin.e.log, traj.e
+     ../Kinfold --stop --log hpin.e --num 10 <./hpin.in>& traj.e
+
+(3) refolding mode:
+    start structure is 2nd line in hpin.in
+    stop structure(s) are 3rd and following lines in hpin.in
+    example: hairpin.ae.log, traj.ae
+     ../Kinfold --start --stop --log hpin.ae --num 10 <./hpin.in>& traj.ae
+
+if you don't want to log the trajectories use option --silent
+(trajectory files can get petty huge)
+
+----------
+Output:
+
+(A) log files (on each line you find):
+    randon seed
+    stop-structure-label or O ( for didn't reach stop-structure(s) )
+    first passage time
+    stop-structure if stop-structure-label equals O
+
+(B) trajectory files (on each line you find):
+    structure
+    energy
+    time
+    number of neighbours of structure (only with --verbose)
+    code for the move                 (only with --verbose)
+     (i=base pair insert move,
+      d=base pair delete move,
+      s,S=base pair shift move,
+      I=base pair double insert move (only with --noLP)
+      D=base pair double delete move (only with --noLP)
+     )
+    code for type of structure        (only with --verbose)
+     (1=strict local minimum,
+      2=degenerate local minimum,
+      0=anything else
+     )
+    stop-structure-label or O ( for didn't reach stop-structure(s) )
+
+----------
+canonical example: hpin.nolp, traj.nolp
+ ../Kinfold --verbose --noLP --num 10 --log hpin.nolp < ./hpin.in > traj.nolp
