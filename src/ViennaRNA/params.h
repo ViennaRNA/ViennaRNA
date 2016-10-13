@@ -22,10 +22,10 @@
 
 /**
  *  @addtogroup energy_parameters
- *  @brief All relevant functions to retrieve and copy precalculated energy parameter sets as well as
+ *  @brief All relevant functions to retrieve and copy pre-calculated energy parameter sets as well as
  *  reading/writing the energy parameter set from/to file(s).
  *
- *  This module covers all relevant functions for precalculation of the energy parameters
+ *  This module covers all relevant functions for pre-calculation of the energy parameters
  *  necessary for the folding routines provided by RNAlib. Furthermore, the energy parameter set
  *  in the RNAlib can be easily exchanged by a user-defined one. It is also possible to write the
  *  current energy parameter set into a text file.
@@ -94,7 +94,7 @@ struct vrna_param_s {
 };
 
 /**
- *  @brief  The datastructure that contains temperature scaled Boltzmann weights of the energy parameters.
+ *  @brief  The data structure that contains temperature scaled Boltzmann weights of the energy parameters.
  */
 struct vrna_exp_param_s {
   int     id;   /**<  @brief  An identifier for the data structure
@@ -291,7 +291,7 @@ vrna_exp_params_subst(vrna_fold_compound_t *vc,
  *  the scaling factor is recomputed according to a mean free energy of `184.3*length` cal
  *  for random sequences.
  *  @note This recomputation only takes place if the `pf_scale` attribute of the
- *  `exp_params` datastructure contained in `vc` has a value below `1.0`.
+ *  `exp_params` data structure contained in `vc` has a value below `1.0`.
  *
  *  On the other hand, if the MFE for a sequence is known, it can be used to recompute
  *  a more robust scaling factor, since it represents the lowest free energy of the entire
@@ -299,10 +299,10 @@ vrna_exp_params_subst(vrna_fold_compound_t *vc,
  *  mode of _automatic adjustment according to MFE_, a pointer to the MFE value needs to
  *  be passed as second argument. This value is then taken to compute the scaling factor
  *  as @f$ s = exp((sfact * MFE) / kT / length )@f$, where sfact is an additional
- *  scaling weight located in the vrna_md_t datastructure of `exp_params` in `vc`.
+ *  scaling weight located in the vrna_md_t data structure of `exp_params` in `vc`.
  *
  *  The computed scaling factor @f$s@f$ will be stored as `pf_scale` attribute of the
- *  `exp_params` datastructure in `vc`.
+ *  `exp_params` data structure in `vc`.
  *
  *  @see vrna_exp_params_subst(), vrna_md_t, vrna_exp_param_t, #vrna_fold_compound_t
  *
@@ -334,7 +334,7 @@ void vrna_params_reset( vrna_fold_compound_t *vc,
  *          within a #vrna_fold_compound_t according to provided, or
  *          default model details
  *
- *  This function allows one to rescale Boltzmann factors for subsequent prartition
+ *  This function allows one to rescale Boltzmann factors for subsequent partition
  *  function computations according to a set of model details, e.g. temperature
  *  values. To do so, the caller provides either a pointer to a set of model details
  *  to be used for rescaling, or NULL if global default setting should be used.
@@ -363,13 +363,13 @@ typedef struct vrna_exp_param_s pf_paramT;
 DEPRECATED(vrna_param_t *get_parameter_copy(vrna_param_t *par));
 
 /**
- *  get a datastructure of type @ref vrna_exp_param_t which contains
+ *  get a data structure of type @ref vrna_exp_param_t which contains
  *  the Boltzmann weights of several energy parameters scaled
  *  according to the current temperature
  *
  *  @deprecated Use vrna_exp_params() instead!
  *
- *  @return The datastructure containing Boltzmann weights for use in partition function calculations
+ *  @return The data structure containing Boltzmann weights for use in partition function calculations
  */
 DEPRECATED(vrna_exp_param_t *get_scaled_pf_parameters(void));
 
@@ -408,7 +408,7 @@ DEPRECATED(vrna_exp_param_t *get_boltzmann_factors(double temperature, double be
  *  @see get_boltzmann_factors(), get_scaled_pf_parameters()
  *
  *  @param  parameters  The input data structure that shall be copied
- *  @return             A copy of the provided Boltzmann factor dataset
+ *  @return             A copy of the provided Boltzmann factor data set
  */
 DEPRECATED(vrna_exp_param_t *get_boltzmann_factor_copy(vrna_exp_param_t *parameters));
 
