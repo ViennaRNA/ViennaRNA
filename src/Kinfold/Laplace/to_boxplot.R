@@ -1,0 +1,6 @@
+seq1 <- read.table("seq1.data")
+attach(seq1)
+postscript(file="seq1.ps",width=7.5,height=6.5,horizontal=FALSE)
+boxplot(V2~V1)
+dev.off()
+quit()

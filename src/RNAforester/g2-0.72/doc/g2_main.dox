@@ -1,0 +1,424 @@
+
+/* this file is used mainly to hold some general g2 doxygen
+documentation in the doxygen format */
+
+
+/* define some main groups */
+
+/**
+ * \defgroup interface g2 User Interface
+ */
+
+/**
+ * \ingroup interface
+ * \defgroup physdev g2 Physical devices
+ *
+ * g2 physical devices are drivers for different output
+ * formats.
+ *
+ */
+
+
+
+/** \mainpage
+
+
+\section licence License Notice
+
+This library is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation; either version 2.1 of the
+License, or (at your option) any later version.  This library is
+distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+License for more details.  You should have received a copy of the GNU
+Lesser General Public License along with this library; if not, write
+to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+Boston, MA 02111-1307 USA *
+
+Copyright (C) 1998-2004 Ljubomir Milanovic & Horst Wagner.
+
+
+\section introduction Introduction
+
+\subsection what What is g2 ?
+
+\subsubsection short Short version (if you are in hurry)
+
+    - 2D graphics library
+    - Simple to use
+    - Supports several types of output devices (currently X11, PostScript,
+      devices supported by <a href="http://www.boutell.com/gd">gd</a> (PNG,
+      JPEG), <a href="http://www.xfig.org">FIG</a> and MS Windows windows)
+    - Concept allows easy implementation of new device types
+    - Virtual devices allow to send output simultaneously to several devices
+    - User definable coordinate system
+    - Written in ANSI-C
+    - Tested under Digital Unix, AIX, Linux, VMS and Windows NT
+    - Perl support
+    - Python support
+    - Fortran interface
+
+\subsubsection long Long version
+
+g2 is a simple to use graphics library for 2D graphical applications
+written in Ansi-C. It provides a comprehensive set of functions for
+simultaneous generation of graphical output on different types of devices.
+Currently, the following devices are supported by g2:
+X11, PostScript, <a href="http://www.boutell.com/gd">gd</a> (PNG and JPEG),
+<a href="http://www.xfig.org">FIG</a> and MS Windows.
+One major feature of the g2 library is the concept of virtual devices.
+An arbitrary number of physical devices (such as PostScript or X11) can
+be grouped to create a so-called virtual device. Commands sent to such a
+virtual device are automatically issued to all attached physical devices.
+This allows for example simultaneous output to a PNG file and a
+PostScript file. A virtual device in turn can be attached to another
+virtual device, allowing to construct trees of devices.
+Virtual devices can also be useful when using different user-coordinate
+systems. E.g. one X11 window showing an overview of a graphical output,
+and a second window showing a zoom of a more detailed area of the graphic.
+Drawing in both windows is performed by one single command to the
+virtual device.
+
+\code
+                                   /-------> PNG:   g2_attach(id_PNG,..
+            ----------------------- 
+g2_plot---> | Virtual device: id  |--------> X11:   g2_attach(id_X11,...
+            -----------------------
+                                   \-------> PS:    g2_attach(id_PS,...
+\endcode
+
+If you don't need or like the concept of virtual devices, simply ignore it.
+
+
+
+\section getting   Getting Started
+
+\subsection preinstallation Preinstallation tasks:
+
+    * PNG and JPEG support
+
+    g2 uses the gd library by Thomas Boutell to generate PNG and JPEG files.
+    This package is freeware (however, not GPL) and can be downloaded at
+    http://www.boutell.com/gd/.
+    Linux users might prefer to install a pre-compiled gd rpm package
+    which should be available at your local RedHat mirror site.
+    NT users should install the gd source package in a subdirectory
+    named "gd" which should be located in the same directory as the g2
+    subdirectory (but not in the g2 directory itself). Otherwise, file
+    locations for gd must be modified in the g2 project workspace.
+    Unix and VMS users will have to build and install gd according to
+    the instructions found in the gd distribution.
+
+
+\subsection installation Installation
+
+
+\subsubsection Linux
+
+    -# Either install RPM packet with binaries, or compile as described
+      in the \ref Unix section
+
+\subsubsection Unix
+
+    -# Extract package with <tt>gzip -dc g2-xxxx.tar.gz | tar xvf -</tt>
+    -# Run <tt>./configure</tt>
+    -# Optionally run <tt>make depend</tt>
+    -# Run \c make
+    -# Run <tt>make install</tt>, or copy libg2.a/so and g2.h,
+      g2_X11.h, g2_PS.h, g2_gd.h and g2_FIG.h to the default locations for
+      library and include files
+    -# Optionally \c cd to demo directory and run \c make
+
+\subsubsection Windows Windows NT
+
+    -# Extract package using either the .tar.gz or the .zip distribution
+    -# MS Visual C++ users can build both library and demos with the
+      supplied project file: g2.dsw (to obtain an icon and use menu
+      functions, you must also build the g2res project in g2.dsw)
+    -# Users of gcc or other commandline based compilers with make
+      support continue as in \ref Unix example
+    -# It is also possible to compile g2 on winNT/95 using the free
+      cygwin32 library and a X-windows library for Windows.
+      Theoretically it should be possible to support both X-windows and
+      native NT/95 windows at the same time.
+
+\subsubsection Perl Perl (old instructions)
+
+    -# Change to directory g2_perl
+    -# Perform following steps
+          - <tt>perl Makefile.PL
+          - make
+          - make test
+          - make install</tt>
+    -# See the \ref perl "Perl interface" section for more information
+
+\subsubsection Python
+
+    -# Make sure you have Python installed (note: SWIG is \b not needed)
+    -# Build g2 as described above (see \ref installation)
+    -# Change to directory g2_python
+    -# Type
+	- on Linux:    
+	  - <tt>make</tt> to build g2 Python module
+	  - <tt>make demo</tt> to test g2 Python module
+	  - <tt>make install</tt> to install g2 Python module (you must be \b root)
+	- on Windows (you need Visual Studio when using the standard Python release for Windows):
+	  - <tt>setup.py "compile options" "link options" install</tt>
+    -# If you link your g2 Python module against <tt>libg2.so</tt>, and you are
+       unwilling or unable to do an install, you need to tell the g2 Python module
+       where to look for it, either with <tt>ldconfig</tt>, or with the
+       <tt>LD_LIBRARY_PATH</tt> environment variable
+    -# See the \ref python "Python interface" section for more information
+
+\subsubsection VMS
+
+  -# Try to extract either the .tar.gz or the .zip distribution (whatever
+    is easier for you)
+  -# Type \c mms to compile library (descrip.mms file is supplied)
+  -# Run \c mms in demo directory to compile demo applications
+
+
+\subsection simple A simple example
+
+The following example is a minimal application. It draws a rectangle in
+a PostScript file.
+
+\code
+#include <g2.h>
+#include <g2_PS.h>
+
+main()
+{
+    int id;
+    id = g2_open_PS("rect.ps", g2_A4, g2_PS_land); 
+    g2_rectangle(id, 20, 20, 150, 150); 
+    g2_close(id);
+}
+\endcode
+
+- Always include <g2.h>. Additionally include header files for all
+types of devices you want to use.
+- Open devices using g2_open_XY functions.\n
+The open function returns a device id of type int, which you need to refer to
+the device.
+- Call g2_close() to close device.
+- Consider turning off auto flush (g2_set_auto_flush()) for improved performance.
+ 
+
+You want to draw a PNG file instead of a PostScript file ?
+Replace the PS header file with
+
+\code
+#include <g2_gd.h>
+\endcode
+
+and replace the  call to g2_open_PS() with
+
+\code
+id = g2_open_gd("rect.png", 300, 200, g2_gd_png);
+\endcode
+
+You want to draw to a PNG file and a PostScript file with one plot
+command ?
+
+Here we use the concept of virtual devices. Open a PNG and a PostScript
+device, then open a virtual device and attach both the PNG and
+PostScript device to the virtual device. Plot commands to the virtual
+device will be issued to both the PNG and the PostScript device. You can attach
+and detach further devices at any time.
+
+\code
+#include <g2.h>
+#include <g2_PS.h>
+#include <g2_gd.h>
+
+main()
+{
+    int id_PS,id_PNG,id;
+
+    id_PS  = g2_open_PS("rect.ps", g2_A4, g2_PS_land);
+    id_PNG = g2_open_gd("rect.png", 300, 200, g2_gd_png);
+    id     = g2_open_vd();
+
+    g2_attach(id, id_PS);
+    g2_attach(id, id_PNG);
+
+    g2_rectangle(id, 20, 20, 150, 150);
+    g2_circle(id, 50, 60, 100);
+
+    g2_close(id);
+}
+\endcode
+
+Note: closing a virtual device automatically closes all attached devices.
+
+
+\subsubsection more More examples
+
+More examples showing the usage of different user coordinate systems,
+multiple virtual devices, splines, etc. can be found in the distribution (demo
+directory).
+
+    
+\subsection fortran Fortran interface
+
+The Fortran interface for g2 has currently been tested on Linux and Digital
+Unix/OSF. Function names for Fortran are the same as in C, however
+the following differences exist:
+
+  - All variables, including device IDs, are of type \c REAL
+  - Void functions are implemented as subroutines and must be called
+   with \c CALL
+  - Constants defined by \c \#define in C (e.g. \ref g2_A4) do not work. Get
+    corresponding values from the appropriate header files.
+
+A short Fortran example:
+
+\code
+        program demo
+        real d,color
+        d=g2_open_PS('demo_f.ps', 4.0, 1.0)
+        call g2_plot(d, 50.0, 50.0)
+        call g2_string(d, 25.0, 75.0, 'TEST ')
+        color=g2_ink(d, 1.0, 0.0, 0.0)
+        write (6,*) color
+        call g2_pen(d, color)
+        call g2_circle(d, 20.0, 20.0, 10.0)
+        call g2_flush(d)
+        call g2_close(d)
+        stop
+        end
+\endcode
+
+\subsection perl Perl interface (old info)
+
+The Perl interface for g2 has currently been tested on Linux and Digital
+Unix/OSF. Function names in Perl are the same as in C, however the
+device itself is implemented object oriented, i.e. the device argument
+is omitted in all functions. Cf. the following simple Perl script:
+
+\code
+use G2;
+
+$d = newX11 G2::Device(100,100);
+$d->circle(10, 10, 20);
+$d->string(20, 40, "Hello World");
+
+print "\nDone.\n[Enter]\n";
+getc(STDIN);
+
+$d->close()
+\endcode
+
+The creator functions are \c newX11, \c newGIF, \c newPS, etc. and accept the
+same arguments as the open functions in the C version.
+See the Perl documentation (<tt>perldoc G2</tt>) for more details
+and the test.pl script for a more extensive example.
+
+\subsection python Python interface
+
+Function names in Python are the same as in C, however the
+device itself is implemented object oriented, i.e. the device argument
+is omitted in all methods.
+An object is instantiated with one of the \c g2_open_ functions.
+Here is a simple Python script:
+
+\code
+import sys
+from g2 import *
+X11 = g2_open_X11(822, 575)
+PS = g2_open_PS('foo.ps', g2_A4, g2_PS_land)
+graph = g2_open_vd()
+graph.g2_attach(X11)
+graph.g2_attach(PS)
+graph.g2_line(30, 30, 90, 90)
+graph.g2_circle(60, 60, 30)
+X11.g2_pen(X11.g2_ink(.75, .2, 0))
+graph.g2_polygon([60, 30, 30, 60, 60, 90, 90, 60])
+graph.g2_set_dash([20, 12])
+sqrts = [100, 100, 225, 150, 400, 200, 625, 250]
+graph.g2_poly_line(sqrts)
+graph.g2_image(640, 252, [[2, 4, 6],[3, 6, 9],[4, 8, 12]])
+graph.g2_flush()
+print 'Done.\n[Enter]'
+sys.stdin.read(1)
+graph.g2_close()
+\endcode
+
+In C, many functions expect a pointer to a buffer of <tt>double</tt>'s and an
+\c int stating the number of points in this buffer.
+In Python, these functions are passed just a list of <tt>float</tt>s.
+You need not specify the number of points: Python knows the length of the
+list.
+
+Full documentation, including sample code, is available from the interactive
+Python prompt:
+
+\code
+$ python
+>>> import g2
+>>> help(g2)
+\endcode
+
+Here functions with a Python specific form (e.g. g2_query_pointer()) are marked
+as such.
+
+\section Contact
+
+You can contact the authors and contributors by e-mail (/ is @ and - is .):
+
+- Ljubomir Milanovic: 		ljubo/users-sourceforge-net
+- Horst Wagner:       		wagner/users-sourceforge-net
+- Tijs Michels (\ref splines "spline" implementation and \ref python "Python"
+wrapper):			tijs/users-sourceforge-net
+
+or visit the g2 home page on: http://g2.sourceforge.net/
+
+*/
+
+
+
+/** \page paper  PS paper sizes
+
+
+\section paper PostScript paper sizes
+
+\code
+g2 Name                 Name                 Size(Pt)
+--------------------------------------------------------
+g2_A0                   A0                   2384 x 3370
+g2_A1                   A1                   1684 x 2384
+g2_A2                   A2                   1191 x 1684
+g2_A3                   A3                    842 x 1191
+g2_A4                   A4                    595 x 842
+g2_A5                   A5                    420 x 595
+g2_A6                   A6                    297 x 420
+g2_A7                   A7                    210 x 297
+g2_A8                   A8                    148 x 210
+g2_A9                   A9                    105 x 148
+g2_B0                   B0                   2920 x 4127
+g2_B1                   B1                   2064 x 2920
+g2_B2                   B2                   1460 x 2064
+g2_B3                   B3                   1032 x 1460
+g2_B4                   B4                    729 x 1032
+g2_B5                   B5                    516 x 729
+g2_B6                   B6                    363 x 516
+g2_B7                   B7                    258 x 363
+g2_B8                   B8                    181 x 258
+g2_B9                   B9                    127 x 181
+g2_B10                  B10                    91 x 127
+g2_Comm_10_Envelope     Comm #10 Envelope     297 x 684
+g2_C5_Envelope          C5 Envelope           461 x 648
+g2_DL_Envelope          DL Envelope           312 x 624
+g2_Folio                Folio                 595 x 935
+g2_Executive            Executive             522 x 756
+g2_Letter               Letter                612 x 792
+g2_Legal                Legal                 612 x 1008
+g2_Ledger               Ledger               1224 x 792
+g2_Tabloid              Tabloid               792 x 1224
+\endcode
+
+    
+*/

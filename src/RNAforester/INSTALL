@@ -1,0 +1,72 @@
+Installation:
+
+This package uses GNU autoconf generated configure scripts, see the
+file INSTALL.configure for generic configure documentation.
+
+Requirements: 
+----------
+
+You must have the g2 - graphic library V0.49a (C) 1999 Lj. Milanovic, H. Wagner
+installed on your system. If not the g2 graphics library
+is ditributed with RNAforester by the file g2-0.49a.tar.gz. 
+
+If g2 is installed usually you'll just have to type:
+        ./configure
+        make
+and (as root)
+        make install
+
+The Vienna RNA lib (libRNA) (C) I. Hofacker must be installed on your system.
+Refer to http://www.tbi.univie.ac.at/~ivo/RNA/ for download and further 
+instructions.
+
+Quickstart for users that do not have administrator rights
+----------------------------------------------------------
+
+Say your home directory is /home/user.
+If the g2 library is not installed on your system you'll have to type:
+
+tar xvzf g2-0.49a.tar.gz
+cd g2-0.49a
+./configure --prefix=/home/user
+make
+make install
+cd ..
+
+Make sure the Vienna RNA package is installed on your system.
+
+To install RNAforester type:
+
+./configure --prefix=/home/user
+make
+make install
+
+If the includes files of the g2 library cannot be found you can add
+the path including the headers as follows:
+CPPFLAGS=-I/home/user/include ./configure --prefix=/home/user
+(of course, your include path can differ)
+
+Installation Paths:
+-------------
+The main programs, library and man are
+installed in the usual places by default
+(i.e. /usr/local/{bin,lib,man}).
+
+All these locations can be changed by calling ./configure with
+appropriate options.
+
+
+Microsoft Visual C++
+-----------------------
+
+RNAforester uses the getline function of STL. There is a bug in some VC versions
+in this function. If you must hit the return key twice to confirm your input,
+ open file <string> and change the code as indicated by the comment:
+
+    else if (_Tr::eq(_C, _D))
+        {_Chg = true;
+        _I.rdbuf()->snextc();    // replace snextc with sbumpc
+        break; }
+
+
+

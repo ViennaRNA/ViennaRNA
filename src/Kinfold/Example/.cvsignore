@@ -1,0 +1,12 @@
+Makefile
+Makefile.in
+configure
+.deps
+stamp-h.in
+stamp-h
+stamp-h1
+aclocal.m4
+*.in
+config.*
+*.cache
+Kinfold

@@ -1,0 +1,170 @@
+#
+#
+# Makefile for g2 library
+#
+#
+
+G2_VERSION = 0.72
+
+#
+# g2 installation directories
+#
+LIBDIR = @prefix@/lib
+INCDIR = @prefix@/include
+
+
+#LIBDIR = $(HOME)/local/lib
+#INCDIR = $(HOME)/local/include
+
+#
+#------------------------ do not edit ------------------------
+#
+SHELL = /bin/sh
+
+CC           = @CC@
+CFLAGS       = -I./src @CFLAGS@ @DEFS@
+INSTALL      = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+FIND         = @FIND@
+MAKEDEPEND   = @MAKEDEPEND@
+AR           = @AR@
+ARFLAGS      = cr
+RANLIB       = @RANLIB@
+LD           = @CC@
+LDFLAGS      = @LDFLAGS@
+
+
+BASE_DIR = ./src
+BASE_SRC = $(BASE_DIR)/g2_device.c         $(BASE_DIR)/g2_ui_control.c \
+           $(BASE_DIR)/g2_util.c           $(BASE_DIR)/g2_fif.c \
+           $(BASE_DIR)/g2_virtual_device.c $(BASE_DIR)/g2_physical_device.c \
+           $(BASE_DIR)/g2_graphic_pd.c     $(BASE_DIR)/g2_control_pd.c \
+           $(BASE_DIR)/g2_ui_graphic.c     $(BASE_DIR)/g2_ui_virtual_device.c \
+           $(BASE_DIR)/g2_ui_device.c      $(BASE_DIR)/g2_splines.c
+BASE_INS = $(BASE_DIR)/g2.h
+
+
+@DO_PS@PS_DIR = ./src/PS
+@DO_PS@PS_SRC = $(PS_DIR)/g2_PS.c
+@DO_PS@PS_INS = $(PS_DIR)/g2_PS.h
+
+@DO_FIG@FIG_DIR = ./src/FIG
+@DO_FIG@FIG_SRC = $(FIG_DIR)/g2_FIG.c
+@DO_FIG@FIG_INS = $(FIG_DIR)/g2_FIG.h
+
+@DO_X11@X11_DIR = ./src/X11
+@DO_X11@X11_SRC = $(X11_DIR)/g2_X11.c
+@DO_X11@X11_INS = $(X11_DIR)/g2_X11.h
+
+@DO_WIN32@WIN32_DIR = ./src/WIN32
+@DO_WIN32@WIN32_SRC = $(WIN32_DIR)/g2_win32.c $(WIN32_DIR)/g2_win32_thread.c 
+@DO_WIN32@WIN32_INS = $(WIN32_DIR)/g2_win32.h
+
+@DO_GD@GD_DIR = ./src/GD
+@DO_GD@GD_SRC = $(GD_DIR)/g2_gd.c
+@DO_GD@GD_INS = $(GD_DIR)/g2_gd.h
+
+
+SRC = $(BASE_SRC) $(PS_SRC) $(FIG_SRC) $(X11_SRC) $(WIN32_SRC) $(GD_SRC)
+OBJ = $(SRC:.c=.o)
+
+INS =  $(BASE_INS) $(PS_INS) $(FIG_INS) $(X11_INS) $(WIN32_INS) $(GD_INS)
+
+#
+# define some phony targets
+#
+.PHONY: all shared clean doc release demo
+
+#
+# major rule
+#
+.c.o:  
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+
+all: libg2.a
+	test -d ./include || mkdir ./include
+	cp $(INS) ./include/
+
+shared: libg2.@LD_SHARED_EXT@
+	@echo
+
+
+libg2.a: $(OBJ)
+	$(AR) $(ARFLAGS) libg2.a $(OBJ)
+	test ! -n "$(RANLIB)" || $(RANLIB) $@
+
+libg2.@LD_SHARED_EXT@: $(OBJ)
+	@LD_SHARED@ @LD_SHARED_FLAGS@ -o $@ $(OBJ) @LD_SHARED_OPT@
+
+libg2.so: libg2.@LD_SHARED_EXT@
+	ln -f -s libg2.@LD_SHARED_EXT@ $@
+
+install: libg2.a
+	test -d $(DESTDIR)/$(LIBDIR) || mkdir -p $(DESTDIR)/$(LIBDIR)
+	test -d $(DESTDIR)/$(INCDIR) || mkdir -p $(DESTDIR)/$(INCDIR)
+	$(INSTALL_DATA) libg2.a $(DESTDIR)/$(LIBDIR)
+	for IFILE in $(INS); do \
+		$(INSTALL_DATA) $$IFILE  $(DESTDIR)/$(INCDIR); \
+	done
+
+uninstall:  uninstall-libg2 uninstall-inc
+
+uninstall-libg2:
+	test -n $(DESTDIR)/$(LIBDIR)/libg2.a || exit 0; \
+	rm -f $(DESTDIR)/$(LIBDIR)/libg2.a
+
+uninstall-inc:
+	test -d $(DESTDIR)/$(INCDIR) || exit 0; \
+	for IFILE in $(INS); do \
+		rm -f $(DESTDIR)/$(INCDIR)/`printf "%s" $$IFILE | sed 's/.*\///'`; \
+	done
+release: clean doc
+	cp ./doc/latex/refman.ps  ./doc/g2_refman.ps
+	cp ./doc/latex/refman.pdf ./doc/g2_refman.pdf
+	rm -r ./doc/latex
+
+doc:
+	(cd ./doc ; doxygen Doxyfile)
+	(cd ./doc/latex ; make ps ; make pdf)
+
+
+clean:
+	-(cd ./demo ; $(MAKE) clean)
+	-(cd ./g2_python ; make clean)
+	-rm -f $(OBJ)
+	-rm -f libg2.a config.cache config.log Makefile.bak config.status
+	-rm -f ./include/*.h
+	-$(FIND) . -name "*~" -exec rm -f {} \;
+	-(cd ./g2_perl ; $(MAKE) clean)
+	-rm -f ./g2_perl/test.ps
+	-rm -f ./g2_perl/test.png
+	-rm -f ./g2_perl/test.jpg
+	-rm -f ./g2_perl/test.fig
+	-rm -f ./g2_perl/Makefile.old
+	-rm -f ./libg2.@LD_SHARED_EXT@
+	-rm -f libg2.$(G2_VERSION).a
+	-rm -f a.out
+	-rm -fr doc/html/ doc/latex/ doc/g2_refman.ps doc/g2_refman.pdf
+
+distclean:  clean
+
+maintainer-clean:	clean
+
+
+demo:	libg2.a
+	(cd ./demo ; make)
+
+depend:
+	$(MAKEDEPEND) -- $(CFLAGS) $(INCLUDES) -- $(SRC)
+	@echo
+	@echo "Run 'make' to build g2 library."
+	@echo
+distdir: clean
+	cp -r * $(distdir)
+
+check:
+
+
+# DO NOT DELETE THIS LINE -- make  depend  depends  on it.
+

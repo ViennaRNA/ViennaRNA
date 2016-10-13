@@ -1,0 +1,53 @@
+%{
+
+#include "basepair.h"
+#include <iostream>
+#include <list>
+#include "anchors.h"
+int yylex(void);
+int yyerror (const char* s) { std::cerr << s << '\n'; return 0; }
+
+%}
+
+%debug    /* yacc -t */ /* FIXME */
+%verbose  /* yacc -v */
+%error-verbose /* FIXME needed? */
+
+%locations
+
+%token LBRACE
+%token RBRACE
+
+%union {
+  Pair *pair;
+  std::list<Pair*> *pairs;
+}
+
+%type <pair> pair;
+%type <pairs> pairs;
+
+%%
+
+
+
+axiom: pairs {
+
+     for (std::list<Pair*>::iterator i = $1->begin(); i != $1->end(); ++i)
+       (*i)->skipit(); 
+     for (std::list<Pair*>::iterator i = $1->begin(); i != $1->end(); ++i)
+       (*i)->put(anchorlist, std::cout);
+}
+
+pairs: pairs pair  { $1->push_back($2); $$ = $1; } |
+     { $$ = new std::list<Pair*>(); };
+
+pair: LBRACE pairs RBRACE { 
+     $$ = new Pair($2,@2.first_column); };
+
+%%
+
+extern
+void yyerror(char *s) {
+  PrintError(s);
+}
+  

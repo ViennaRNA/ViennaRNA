@@ -1,0 +1,13 @@
+# prerequisit: R, perl
+# yum install R on FC systems
+# assumes Kinfold to be in ../
+
+# run kinfold
+> sh laplace.sh seq1
+
+# view boxplot
+> gv seq1.ps
+
+# should in prinziple look like seq1_ref.ps
+# y-axis can be jolted due to extreme outliers
+# =;) xtof
