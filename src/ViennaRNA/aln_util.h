@@ -64,8 +64,10 @@ struct vrna_pinfo_s {
 int read_clustal( FILE *clust,
                   char *AlignedSeqs[],
                   char *names[]);
-/*@only@*/ /*@notnull@*/ char *consensus(const char *AS[]);
-/*@only@*/ /*@notnull@*/ char *consens_mis(const char *AS[]);
+
+char *consensus(const char *AS[]);
+
+char *consens_mis(const char *AS[]);
 
 char *
 get_ungapped_sequence(const char *seq);
@@ -75,16 +77,10 @@ get_ungapped_sequence(const char *seq);
  * 
  *  @ingroup consensus_fold
  * 
- *  @param Alseq
- *  @param n_seq  The number of sequences in the alignment
- *  @param length The length of the alignment
- *  @param mini
+ *  @param alignment  Aligned sequences
  *  @return       The mean pairwise identity
  */
-int vrna_aln_mpi( char *Alseq[],
-                  int n_seq,
-                  int length,
-                  int *mini);
+int vrna_aln_mpi( const char **alignment);
 
 /**
  *  \brief Retrieve an array of #vrna_pinfo_t structures from precomputed pair probabilities
@@ -102,6 +98,11 @@ int vrna_aln_mpi( char *Alseq[],
 vrna_pinfo_t *vrna_aln_pinfo(vrna_fold_compound_t *vc,
                                   const char *structure,
                                   double threshold);
+
+int *
+vrna_aln_pscore(const char  **alignment,
+                vrna_md_t   *md);
+
 
 /**
  *  @brief Get the mean pairwise identity in steps from ?to?(ident)
