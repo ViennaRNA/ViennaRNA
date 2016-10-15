@@ -51,6 +51,8 @@
  */
 typedef struct vrna_unstructured_domain_s  vrna_ud_t;
 
+typedef struct vrna_unstructured_domain_motif_s  vrna_ud_motif_t;
+
 #include <ViennaRNA/data_structures.h>
 
 /**
@@ -167,6 +169,12 @@ struct vrna_unstructured_domain_s {
 };
 
 
+struct vrna_unstructured_domain_motif_s {
+  int start;
+  int number;
+};
+
+
 /**
  *  @brief  Add an unstructured domain motif, e.g. for ligand binding
  *
@@ -204,6 +212,17 @@ void  vrna_ud_add_motif(vrna_fold_compound_t *vc,
 int *vrna_ud_get_motif_size_at( vrna_fold_compound_t *vc,
                                 int i,
                                 unsigned int loop_type);
+
+
+int *
+vrna_ud_get_motifs_at(vrna_fold_compound_t *vc,
+                      int i,
+                      unsigned int loop_type);
+
+
+vrna_ud_motif_t *
+vrna_ud_detect_motifs(vrna_fold_compound_t *vc,
+                      const char *structure);
 
 
 /**
