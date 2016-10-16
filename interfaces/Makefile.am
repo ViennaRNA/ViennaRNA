@@ -21,10 +21,19 @@ SOURCES = RNA.i \
           ptr2array.i \
           generic.mk
 
-DOXYGEN_DOCUMENTATION = constraints_soft.dox \
+DOXYGEN_DOCUMENTATION = commands.dox \
+                        constraints_hard.dox \
+                        constraints_ligand.dox \
+                        constraints_SHAPE.dox \
+                        constraints_soft.dox \
+                        eval.dox \
                         fold_compound.dox \
+                        grammar.dox \
+                        mfe.dox \
                         model_details.dox \
-                        params.dox
+                        params.dox \
+                        part_func.dox \
+                        subopt.dox
 
 EXTRA_DIST =  RNA.i \
               commands.i \

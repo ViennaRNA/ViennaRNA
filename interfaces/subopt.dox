@@ -1,0 +1,21 @@
+/**
+
+@fn vrna_subopt_solution_t *vrna_subopt(vrna_fold_compound_t *vc, int delta, int sorted, FILE *fp)
+@scripting
+@parblock
+This function is attached as method @b subopt() to objects of type @em fold_compound
+@endparblock
+
+@fn void vrna_subopt_cb( vrna_fold_compound_t *vc, int delta, vrna_subopt_callback *cb, void *data)
+@scripting
+@parblock
+This function is attached as method @b subopt_cb() to objects of type @em fold_compound
+@endparblock
+
+@fn vrna_subopt_solution_t *vrna_subopt_zuker(vrna_fold_compound_t *vc)
+@scripting
+@parblock
+This function is attached as method @b subopt_zuker() to objects of type @em fold_compound
+@endparblock
+
+*/

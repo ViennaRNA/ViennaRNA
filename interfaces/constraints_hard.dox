@@ -1,0 +1,33 @@
+/**
+
+@fn void vrna_hc_init(vrna_fold_compound_t *vc)
+@scripting
+@parblock
+This function is attached as method @b hc_init() to objects of type @em fold_compound
+@endparblock
+
+@fn void vrna_hc_add_up(vrna_fold_compound_t *vc, int i, char option)
+@scripting
+@parblock
+This function is attached as method @b hc_add_up() to objects of type @em fold_compound
+@endparblock
+
+@fn void vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc, int i, int d, char option)
+@scripting
+@parblock
+This function is attached as method @b hc_add_bp_nonspecific() to objects of type @em fold_compound
+@endparblock
+
+@fn void vrna_hc_add_bp(vrna_fold_compound_t *vc, int i, int j, char option)
+@scripting
+@parblock
+This function is attached as method @b hc_add_bp() to objects of type @em fold_compound
+@endparblock
+
+@fn int vrna_hc_add_from_db(vrna_fold_compound_t *vc, const char *constraint, unsigned int options)
+@scripting
+@parblock
+This function is attached as method @b hc_add_from_db() to objects of type @em fold_compound
+@endparblock
+
+*/
