@@ -409,7 +409,7 @@ vrna_hc_add_f(vrna_fold_compound_t *vc,
               vrna_callback_hc_evaluate *f){
 
   if(vc && f){
-    if(vc->type == VRNA_VC_TYPE_SINGLE){
+    if(vc->type == VRNA_FC_TYPE_SINGLE){
       if(!vc->hc)
         vrna_hc_init(vc);
 
@@ -424,7 +424,7 @@ vrna_hc_add_data( vrna_fold_compound_t *vc,
                   vrna_callback_free_auxdata *f){
 
   if(vc && data){
-    if(vc->type == VRNA_VC_TYPE_SINGLE){
+    if(vc->type == VRNA_FC_TYPE_SINGLE){
       if(!vc->hc)
         vrna_hc_init(vc);
 
@@ -784,7 +784,7 @@ hc_reset_to_default(vrna_fold_compound_t *vc){
 
   /* 2. all base pairs with pscore above threshold are allowed in all contexts */
   switch(vc->type){
-    case VRNA_VC_TYPE_ALIGNMENT:  for(j = n; j > min_loop_size + 1; j--){
+    case VRNA_FC_TYPE_COMPARATIVE:  for(j = n; j > min_loop_size + 1; j--){
                                     ij = idx[j]+1;
                                     for(i=1; i < j - min_loop_size; i++, ij++){
                                       char opt = (char)0;
@@ -797,7 +797,7 @@ hc_reset_to_default(vrna_fold_compound_t *vc){
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_SINGLE:     for(j = n; j > min_loop_size + 1; j--){
+    case VRNA_FC_TYPE_SINGLE:     for(j = n; j > min_loop_size + 1; j--){
                                     ij = idx[j]+1;
                                     for(i=1; i < j - min_loop_size; i++, ij++){
                                       char opt = (char)0;

@@ -97,14 +97,14 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc){
 
     /* now distinguish the vc type */
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     free(vc->sequence);
+      case VRNA_FC_TYPE_SINGLE:     free(vc->sequence);
                                     free(vc->sequence_encoding);
                                     free(vc->sequence_encoding2);
                                     free(vc->ptype);
                                     free(vc->ptype_pf_compat);
                                     vrna_sc_free(vc->sc);
                                     break;
-      case VRNA_VC_TYPE_ALIGNMENT:  for(s=0;s<vc->n_seq;s++){
+      case VRNA_FC_TYPE_COMPARATIVE:  for(s=0;s<vc->n_seq;s++){
                                       free(vc->sequences[s]);
                                       free(vc->S[s]);
                                       free(vc->S5[s]);
@@ -175,7 +175,7 @@ vrna_fold_compound( const char *sequence,
     vrna_message_error("vrna_fold_compound: sequence length must be greater 0");
 
   vc            = vrna_alloc(sizeof(vrna_fold_compound_t));
-  vc->type      = VRNA_VC_TYPE_SINGLE;
+  vc->type      = VRNA_FC_TYPE_SINGLE;
   vc->length    = length;
   vc->sequence  = strdup(sequence);
   aux_options   = 0L;
@@ -263,7 +263,7 @@ vrna_fold_compound_comparative( const char **sequences,
       vrna_message_error("vrna_fold_compound_comparative: uneqal sequence lengths in alignment");
 
   vc            = vrna_alloc(sizeof(vrna_fold_compound_t));
-  vc->type      = VRNA_VC_TYPE_ALIGNMENT;
+  vc->type      = VRNA_FC_TYPE_COMPARATIVE;
 
   vc->n_seq     = n_seq;
   vc->length    = length;
@@ -326,7 +326,7 @@ vrna_fold_compound_TwoD(const char *sequence,
     vrna_message_error("vrna_fold_compound_TwoD: sequence and s2 differ in length");
 
   vc                = vrna_alloc(sizeof(vrna_fold_compound_t));
-  vc->type          = VRNA_VC_TYPE_SINGLE;
+  vc->type          = VRNA_FC_TYPE_SINGLE;
   vc->length        = length;
   vc->sequence      = strdup(sequence);
 
@@ -398,12 +398,12 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
 
   if(options & VRNA_OPTION_MFE){   /* prepare for MFE computation */
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     if(!vc->ptype)
+      case VRNA_FC_TYPE_SINGLE:     if(!vc->ptype)
                                       if(!(options & VRNA_OPTION_WINDOW))
                                         vc->ptype = vrna_ptypes(vc->sequence_encoding2,
                                                                 &(vc->params->model_details));
                                     break;
-      case VRNA_VC_TYPE_ALIGNMENT:  break;
+      case VRNA_FC_TYPE_COMPARATIVE:  break;
       default:                      break;
     }
 
@@ -413,7 +413,7 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
   if(options & VRNA_OPTION_PF){   /* prepare for partition function computation */
 
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     /* get pre-computed Boltzmann factors if not present*/
+      case VRNA_FC_TYPE_SINGLE:     /* get pre-computed Boltzmann factors if not present*/
                                     if(!vc->exp_params)
                                       vc->exp_params      = vrna_exp_params(&(vc->params->model_details));
 
@@ -439,7 +439,7 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
 
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  /* get pre-computed Boltzmann factors if not present*/
+      case VRNA_FC_TYPE_COMPARATIVE:  /* get pre-computed Boltzmann factors if not present*/
                                     if(!vc->exp_params)
                                       vc->exp_params  = vrna_exp_params_comparative(vc->n_seq, &(vc->params->model_details));
                                     break;
@@ -478,7 +478,7 @@ add_params( vrna_fold_compound_t *vc,
   vc->params = vrna_params(md_p);
 
   if(options & VRNA_OPTION_PF){
-    vc->exp_params  = (vc->type == VRNA_VC_TYPE_SINGLE) ? \
+    vc->exp_params  = (vc->type == VRNA_FC_TYPE_SINGLE) ? \
                         vrna_exp_params(md_p) : \
                         vrna_exp_params_comparative(vc->n_seq, md_p);
   }
@@ -515,7 +515,7 @@ set_fold_compound(vrna_fold_compound_t *vc,
   vc->aux_grammar   = NULL;
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     sequence  = vc->sequence;
+    case VRNA_FC_TYPE_SINGLE:     sequence  = vc->sequence;
 
                                   seq2 = strdup(sequence);
                                   seq = vrna_cut_point_remove(seq2, &cp); /*  splice out the '&' if concatenated sequences and
@@ -543,7 +543,7 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   free(seq2);
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  sequences     = vc->sequences;
+    case VRNA_FC_TYPE_COMPARATIVE:  sequences     = vc->sequences;
 
                                   vc->length    = length = vc->length;
 

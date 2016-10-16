@@ -74,10 +74,10 @@ vrna_pairing_probs( vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     pf_create_bppm(vc, structure);
+      case VRNA_FC_TYPE_SINGLE:     pf_create_bppm(vc, structure);
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  alipf_create_bppm(vc, structure);
+      case VRNA_FC_TYPE_COMPARATIVE:  alipf_create_bppm(vc, structure);
                                     break;
 
       default:                      vrna_message_warning("vrna_pf@part_func.c: Unrecognized fold compound type");
@@ -1434,9 +1434,9 @@ bppm_circ(vrna_fold_compound_t *vc){
   n             = S[0];
 
   switch(vc->type){
-    case  VRNA_VC_TYPE_SINGLE:    numerator_f = numerator_single;
+    case  VRNA_FC_TYPE_SINGLE:    numerator_f = numerator_single;
                                   break;
-    case  VRNA_VC_TYPE_ALIGNMENT: numerator_f = numerator_comparative;
+    case  VRNA_FC_TYPE_COMPARATIVE: numerator_f = numerator_comparative;
                                   break;
     default:                      numerator_f = NULL;
                                   break;

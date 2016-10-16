@@ -88,11 +88,11 @@ vrna_E_mb_loop_fast(vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:
+      case VRNA_FC_TYPE_SINGLE:
         e = E_mb_loop_fast(vc, i, j, dmli1, dmli2);
         break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:
+      case VRNA_FC_TYPE_COMPARATIVE:
         e = E_mb_loop_fast_comparative(vc, i, j, dmli1, dmli2);
         break;
     }
@@ -113,11 +113,11 @@ vrna_E_ml_stems_fast( vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:
+      case VRNA_FC_TYPE_SINGLE:
         e = E_ml_stems_fast(vc, i, j, fmi, dmli);
         break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:
+      case VRNA_FC_TYPE_COMPARATIVE:
         e = E_ml_stems_fast_comparative(vc, i, j, fmi, dmli);
         break;
     }
@@ -137,11 +137,11 @@ vrna_exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:
+      case VRNA_FC_TYPE_SINGLE:
         q = exp_E_mb_loop_fast(vc, i, j, qqm1);
         break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:
+      case VRNA_FC_TYPE_COMPARATIVE:
         q = exp_E_mb_loop_fast_comparative(vc, i, j, qqm1);
         break;
     }

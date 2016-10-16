@@ -75,11 +75,11 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:
+      case VRNA_FC_TYPE_SINGLE:
         e = E_int_loop(vc, i, j);
         break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:
+      case VRNA_FC_TYPE_COMPARATIVE:
         e = E_int_loop_comparative(vc, i, j);
         break;
     }
@@ -99,7 +99,7 @@ vrna_eval_int_loop( vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:
+      case VRNA_FC_TYPE_SINGLE:
         e = eval_int_loop(vc, i, j, k, l);
         break;
     }
@@ -118,11 +118,11 @@ vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:
+      case VRNA_FC_TYPE_SINGLE:
         q = exp_E_int_loop(vc, i, j);
         break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:
+      case VRNA_FC_TYPE_COMPARATIVE:
         q = exp_E_int_loop_comparative(vc, i, j);
         break;
     }
@@ -1162,7 +1162,7 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
 
     /* prepare necessary variables */
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     type  = rtype[(unsigned char)ptype[ij]];
+      case VRNA_FC_TYPE_SINGLE:     type  = rtype[(unsigned char)ptype[ij]];
 
                                     if(type == 0)
                                       type = 7;
@@ -1172,7 +1172,7 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
 
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  SS    = vc->S;                                                               
+      case VRNA_FC_TYPE_COMPARATIVE:  SS    = vc->S;                                                               
                                     S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
                                     S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
                                     a2s   = vc->a2s;                                                      
@@ -1217,7 +1217,7 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
 
         if(eval_loop){
           switch(vc->type){
-            case VRNA_VC_TYPE_SINGLE:     type_2  = rtype[(unsigned char)ptype[indx[q]+p]];
+            case VRNA_FC_TYPE_SINGLE:     type_2  = rtype[(unsigned char)ptype[indx[q]+p]];
 
                                           if(type_2 == 0)
                                             type_2 = 7;
@@ -1230,7 +1230,7 @@ vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
                                                                           P, sc);
                                           break;
 
-            case VRNA_VC_TYPE_ALIGNMENT:  for (energy = s=0; s<n_seq; s++) {
+            case VRNA_FC_TYPE_COMPARATIVE:  for (energy = s=0; s<n_seq; s++) {
                                             type_2 = md->pair[SS[s][q]][SS[s][p]]; /* q,p not p,q! */
                                             if(type_2 == 0)
                                               type_2 = 7;
@@ -1314,7 +1314,7 @@ vrna_E_stack( vrna_fold_compound_t *vc,
 
   if(eval_loop){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     S       = vc->sequence_encoding;
+      case VRNA_FC_TYPE_SINGLE:     S       = vc->sequence_encoding;
                                     ptype   = vc->ptype;
                                     type    = (unsigned char)ptype[ij];
                                     type_2  = rtype[(unsigned char)ptype[pq]];
@@ -1356,7 +1356,7 @@ vrna_E_stack( vrna_fold_compound_t *vc,
                                     }
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  n_seq = vc->n_seq;
+      case VRNA_FC_TYPE_COMPARATIVE:  n_seq = vc->n_seq;
                                     SS    = vc->S;
                                     a2s   = vc->a2s;
                                     scs   = vc->scs;

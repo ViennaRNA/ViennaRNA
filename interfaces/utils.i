@@ -267,8 +267,6 @@ namespace std {
   %template(PlistVector) std::vector<vrna_plist_t>;
 };
 
-
-
 %rename (plist) my_plist;
 
 %{
@@ -297,6 +295,12 @@ namespace std {
 
 %newobject my_plist;
 std::vector<vrna_plist_t> my_plist(std::string structure, float pr);
+
+%constant int PLIST_TYPE_BASEPAIR = VRNA_PLIST_TYPE_BASEPAIR;
+%constant int PLIST_TYPE_GQUAD    = VRNA_PLIST_TYPE_GQUAD;
+%constant int PLIST_TYPE_H_MOTIF  = VRNA_PLIST_TYPE_H_MOTIF;
+%constant int PLIST_TYPE_I_MOTIF  = VRNA_PLIST_TYPE_I_MOTIF;
+%constant int PLIST_TYPE_UD_MOTIF = VRNA_PLIST_TYPE_UD_MOTIF;
 
 %include  <ViennaRNA/structure_utils.h>
 

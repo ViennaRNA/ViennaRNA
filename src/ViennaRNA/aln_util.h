@@ -90,7 +90,7 @@ int vrna_aln_mpi( const char **alignment);
  *
  *  \see #vrna_pinfo_t, and vrna_pf()
  *
- *  \param  vc          The #vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
+ *  \param  vc          The #vrna_fold_compound_t of type #VRNA_FC_TYPE_COMPARATIVE with precomputed partition function matrices
  *  \param  structure   An optional structure in dot-bracket notation (Maybe NULL)
  *  \param  threshold   Do not include results with pair probabilities below threshold
  *  \return             The #vrna_pinfo_t array

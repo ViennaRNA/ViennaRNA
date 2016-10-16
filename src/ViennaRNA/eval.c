@@ -310,7 +310,7 @@ vrna_eval_covar_structure(vrna_fold_compound_t *vc,
   gq                              = vc->params->model_details.gquad;
   vc->params->model_details.gquad = 0;
 
-  if(vc->type == VRNA_VC_TYPE_ALIGNMENT){
+  if(vc->type == VRNA_FC_TYPE_COMPARATIVE){
     res = (int)((float)covar_energy_of_struct_pt(vc, pt) / (float)vc->n_seq);
 
     vc->params->model_details.gquad = gq;
@@ -534,7 +534,7 @@ eval_ext_int_loop(vrna_fold_compound_t *vc,
   e       = INF;
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     si      = S[j+1];
+    case VRNA_FC_TYPE_SINGLE:     si      = S[j+1];
                                   sj      = S[i-1];
                                   sp      = S[p-1];
                                   sq      = S[q+1];
@@ -555,7 +555,7 @@ eval_ext_int_loop(vrna_fold_compound_t *vc,
                                                             P, sc);
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  n_seq = vc->n_seq;
+    case VRNA_FC_TYPE_COMPARATIVE:  n_seq = vc->n_seq;
                                   SS      = vc->S;
                                   S5      = vc->S5; /* S5[s][i] holds next base 5' of i in sequence s */
                                   S3      = vc->S3; /* Sl[s][i] holds next base 3' of i in sequence s */
@@ -683,7 +683,7 @@ wrap_eval_structure(vrna_fold_compound_t *vc,
   vc->params->model_details.gquad = 0;
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     if(vc->params->model_details.circ){
+    case VRNA_FC_TYPE_SINGLE:     if(vc->params->model_details.circ){
                                     res = eval_circ_pt(vc, pt, file, verbosity);
                                   } else {
                                     res = eval_pt(vc, pt, file, verbosity);
@@ -695,7 +695,7 @@ wrap_eval_structure(vrna_fold_compound_t *vc,
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  if(vc->params->model_details.circ){
+    case VRNA_FC_TYPE_COMPARATIVE:  if(vc->params->model_details.circ){
                                     res = (int)((float)eval_circ_pt(vc, pt, file, verbosity) / (float)vc->n_seq);
                                   } else {
                                     res = (int)((float)eval_pt(vc, pt, file, verbosity) / (float)vc->n_seq);
@@ -770,8 +770,8 @@ eval_circ_pt( vrna_fold_compound_t *vc,
   degree        = 0;
   length        = vc->length;
   P             = vc->params;
-  sc            = (vc->type == VRNA_VC_TYPE_SINGLE) ? vc->sc : NULL;
-  scs           = (vc->type == VRNA_VC_TYPE_ALIGNMENT) ? vc->scs : NULL;
+  sc            = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sc : NULL;
+  scs           = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->scs : NULL;
   out           = (file) ? file : stdout;
 
   if(P->model_details.gquad)
@@ -795,13 +795,13 @@ eval_circ_pt( vrna_fold_compound_t *vc,
   switch(degree){
     case 0:   /* unstructured */
               switch(vc->type){
-                case VRNA_VC_TYPE_SINGLE:     if(sc){
+                case VRNA_FC_TYPE_SINGLE:     if(sc){
                                                 if(sc->energy_up)
                                                   en0 += sc->energy_up[1][length];
                                               }
                                               break;
 
-                case VRNA_VC_TYPE_ALIGNMENT:  n_seq = vc->n_seq;
+                case VRNA_FC_TYPE_COMPARATIVE:  n_seq = vc->n_seq;
                                               a2s   = vc->a2s;
                                               if(scs)
                                                 for(s = 0; s < n_seq; s++){
@@ -829,7 +829,7 @@ eval_circ_pt( vrna_fold_compound_t *vc,
     default:  /* multibranch loop */
               en0 = energy_of_ml_pt(vc, 0, (const short *)pt);
 
-              if(vc->type == VRNA_VC_TYPE_SINGLE)
+              if(vc->type == VRNA_FC_TYPE_SINGLE)
                 en0 -= E_MLstem(0, -1, -1, P); /* remove virtual closing pair */
               break;
   }
@@ -1018,7 +1018,7 @@ stack_energy( vrna_fold_compound_t *vc,
   j = pt[i];
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     string  = vc->sequence;
+    case VRNA_FC_TYPE_SINGLE:     string  = vc->sequence;
                                   type    = md->pair[s[i]][s[j]];
                                   if(type == 0){
                                     type = 7;
@@ -1030,7 +1030,7 @@ stack_energy( vrna_fold_compound_t *vc,
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  string  = vc->cons_seq;
+    case VRNA_FC_TYPE_COMPARATIVE:  string  = vc->cons_seq;
                                   S       = vc->S;
                                   S5      = vc->S5; /* S5[s][i] holds next base 5' of i in sequence s */
                                   S3      = vc->S3; /* Sl[s][i] holds next base 3' of i in sequence s */
@@ -1062,7 +1062,7 @@ stack_energy( vrna_fold_compound_t *vc,
       break;
     ee = 0;
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     type_2 = md->pair[s[q]][s[p]];
+      case VRNA_FC_TYPE_SINGLE:     type_2 = md->pair[s[q]][s[p]];
                                     if(type_2 == 0){
                                       type_2 = 7;
                                       if(verbosity_level > verbosity_quiet)
@@ -1076,7 +1076,7 @@ stack_energy( vrna_fold_compound_t *vc,
                                     type = rtype[type_2];
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  for(ss = 0; ss < n_seq; ss++){
+      case VRNA_FC_TYPE_COMPARATIVE:  for(ss = 0; ss < n_seq; ss++){
                                       type_2 = md->pair[S[ss][q]][S[ss][p]];
                                       if(type_2 == 0){
                                         type_2 = 7;
@@ -1136,13 +1136,13 @@ stack_energy( vrna_fold_compound_t *vc,
   }
   
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     {
+    case VRNA_FC_TYPE_SINGLE:     {
                                     int ii = cut_in_loop(i, pt, cp);
                                     ee = (ii==0) ? energy_of_ml_pt(vc, i, pt) : energy_of_extLoop_pt(vc, ii, pt);
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  ee = energy_of_ml_pt(vc, i, pt);
+    case VRNA_FC_TYPE_COMPARATIVE:  ee = energy_of_ml_pt(vc, i, pt);
                                   break;
 
     default:                      break; /* this should never happen */
@@ -1206,7 +1206,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
   while(p <= length && !pt[p]) p++;
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     s  = vc->sequence_encoding2;
+    case VRNA_FC_TYPE_SINGLE:     s  = vc->sequence_encoding2;
                                   s1 = vc->sequence_encoding;
                                   sc = vc->sc;
 
@@ -1218,7 +1218,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  S     = vc->S;
+    case VRNA_FC_TYPE_COMPARATIVE:  S     = vc->S;
                                   S5    = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
                                   S3    = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
                                   a2s   = vc->a2s;
@@ -1249,7 +1249,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
     q  = (int)pt[p];
     
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     /* get type of base pair (p,q) */
+      case VRNA_FC_TYPE_SINGLE:     /* get type of base pair (p,q) */
                                     tt = md->pair[s[p]][s[q]];
                                     if(tt == 0)
                                       tt = 7;
@@ -1288,7 +1288,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
                                     } /* end switch dangle_model */
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  for(ss = 0; ss < n_seq; ss++){
+      case VRNA_FC_TYPE_COMPARATIVE:  for(ss = 0; ss < n_seq; ss++){
                                       /* get type of base pair (p,q) */
                                       tt = md->pair[S[ss][p]][S[ss][q]];
                                       if(tt == 0)
@@ -1317,7 +1317,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
     while (p <= length && !pt[p]) p++;
 
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     /* add soft constraints for unpaired region */
+      case VRNA_FC_TYPE_SINGLE:     /* add soft constraints for unpaired region */
                                     if(sc && (q_prev + 1 <= length)){
                                       if(sc->energy_up){
                                         bonus += sc->energy_up[q_prev + 1][p - q_prev - 1];
@@ -1326,7 +1326,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
                                     }
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  if(scs){
+      case VRNA_FC_TYPE_COMPARATIVE:  if(scs){
                                       for(ss = 0; ss < n_seq; ss++){
                                         if(scs[ss]){
                                           if(scs[ss]->energy_up){
@@ -1404,7 +1404,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
   j = (i == 0) ? n + 1 : (int)pt[i];
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     s   = vc->sequence_encoding2;
+    case VRNA_FC_TYPE_SINGLE:     s   = vc->sequence_encoding2;
                                   s1  = vc->sequence_encoding;
                                   sc  = vc->sc;
 
@@ -1416,7 +1416,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  S     = vc->S;
+    case VRNA_FC_TYPE_COMPARATIVE:  S     = vc->S;
                                   S5    = vc->S5;
                                   S3    = vc->S3;
                                   a2s   = vc->a2s;
@@ -1459,14 +1459,14 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
 
   /* add bonus energies for first stretch of unpaired nucleotides */
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     u += p - i - 1;
+    case VRNA_FC_TYPE_SINGLE:     u += p - i - 1;
                                   if(sc){
                                     if(sc->energy_up)
                                       bonus += sc->energy_up[i + 1][u];
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  if(scs){
+    case VRNA_FC_TYPE_COMPARATIVE:  if(scs){
                                     for(ss = 0; ss < n_seq; ss++){
                                       uu = a2s[ss][p] - a2s[ss][i + 1];
                                       if(scs[ss] && scs[ss]->energy_up){
@@ -1486,7 +1486,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
 
   switch(dangle_model){
     case 0:   switch(vc->type){
-                case VRNA_VC_TYPE_SINGLE:     while(p < j){
+                case VRNA_FC_TYPE_SINGLE:     while(p < j){
                                                 /* p must have a pairing partner */
                                                 q  = (int)pt[p];
                                                 /* get type of base pair (p,q) */
@@ -1518,7 +1518,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                                               }
                                               break;
 
-                case VRNA_VC_TYPE_ALIGNMENT:  while(p < j){
+                case VRNA_FC_TYPE_COMPARATIVE:  while(p < j){
                                                 /* p must have a pairing partner */
                                                 q  = (int)pt[p];
                                                 for(ss = 0; ss < n_seq; ss++){
@@ -1566,7 +1566,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
               break;
 
     case 2:   switch(vc->type){
-                case VRNA_VC_TYPE_SINGLE:     while(p < j){
+                case VRNA_FC_TYPE_SINGLE:     while(p < j){
                                                 /* p must have a pairing partner */
                                                 q  = (int)pt[p];
                                                 /* get type of base pair (p,q) */
@@ -1601,7 +1601,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                                               }
                                               break;
 
-                case VRNA_VC_TYPE_ALIGNMENT:  while(p < j){
+                case VRNA_FC_TYPE_COMPARATIVE:  while(p < j){
                                                 /* p must have a pairing partner */
                                                 q  = (int)pt[p];
                                                 
@@ -1837,10 +1837,10 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
   }/* end switch dangle_model */
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     energy += P->MLclosing;
+    case VRNA_FC_TYPE_SINGLE:     energy += P->MLclosing;
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  energy += P->MLclosing * n_seq;
+    case VRNA_FC_TYPE_COMPARATIVE:  energy += P->MLclosing * n_seq;
                                   break;
 
     default:                      break;

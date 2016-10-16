@@ -199,7 +199,7 @@ vrna_pf( vrna_fold_compound_t *vc,
       vc->stat_cb(VRNA_STATUS_PF_PRE, vc->auxdata);
 
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     /* do the linear pf fold and fill all matrices  */
+      case VRNA_FC_TYPE_SINGLE:     /* do the linear pf fold and fill all matrices  */
                                     pf_linear(vc);
 
                                     if(md->circ)
@@ -207,7 +207,7 @@ vrna_pf( vrna_fold_compound_t *vc,
 
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  /* do the linear pf fold and fill all matrices  */
+      case VRNA_FC_TYPE_COMPARATIVE:  /* do the linear pf fold and fill all matrices  */
                                     alipf_linear(vc);
 
                                     /* calculate post processing step for circular  */
@@ -262,10 +262,10 @@ vrna_pf( vrna_fold_compound_t *vc,
       vrna_message_warning("pf_scale too large");
 
     switch(vc->type){
-      case VRNA_VC_TYPE_ALIGNMENT:  free_energy = (-log(Q)-n*log(params->pf_scale))*params->kT/(1000.0 * vc->n_seq);
+      case VRNA_FC_TYPE_COMPARATIVE:  free_energy = (-log(Q)-n*log(params->pf_scale))*params->kT/(1000.0 * vc->n_seq);
                                     break;
 
-      case VRNA_VC_TYPE_SINGLE:     /* fall through */
+      case VRNA_FC_TYPE_SINGLE:     /* fall through */
 
       default:                      free_energy = (-log(Q)-n*log(params->pf_scale))*params->kT/1000.0;
                                     break;

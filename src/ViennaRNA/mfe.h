@@ -20,7 +20,7 @@
  *  @ingroup mfe_fold
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
- *        #VRNA_VC_TYPE_SINGLE, and #VRNA_VC_TYPE_ALIGNMENT.
+ *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
  *
  *  @see #vrna_fold_compound_t, vrna_fold_compound(), vrna_fold(), vrna_circfold(),
  *        vrna_fold_compound_comparative(), vrna_alifold(), vrna_circalifold()

@@ -9,12 +9,14 @@ SWIG_tmaps = \
 
 SWIG_misc_src = \
   $(srcdir)/../compare.i \
+  $(srcdir)/../commands.i \
   $(srcdir)/../constraints.i \
   $(srcdir)/../constraints_hard.i \
   $(srcdir)/../constraints_soft.i \
   $(srcdir)/../constraints_SHAPE.i \
   $(srcdir)/../constraints_ligand.i \
   $(srcdir)/../eval.i \
+  $(srcdir)/../file_formats.i \
   $(srcdir)/../fold_compound.i \
   $(srcdir)/../grammar.i \
   $(srcdir)/../inverse.i \
@@ -24,8 +26,7 @@ SWIG_misc_src = \
   $(srcdir)/../part_func.i \
   $(srcdir)/../plotting.i \
   $(srcdir)/../subopt.i \
-  $(srcdir)/../utils.i \
-  $(srcdir)/../file_formats.i
+  $(srcdir)/../utils.i
 
 SWIG_module_name = RNA
 

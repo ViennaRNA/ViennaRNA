@@ -55,7 +55,7 @@ PRIVATE void  backtrack_qm1_comparative(vrna_fold_compound_t *vc, char *pstruc, 
  *
  *  @see vrna_pf() for precomputing the partition function matrices, and
  *
- *  @param  vc    The #vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT with precomputed partition function matrices
+ *  @param  vc    The #vrna_fold_compound_t of type #VRNA_FC_TYPE_COMPARATIVE with precomputed partition function matrices
  *  @param  prob  to be described (berni)
  *  @return       A sampled consensus secondary structure in dot-bracket notation
  */
@@ -80,14 +80,14 @@ vrna_pbacktrack(vrna_fold_compound_t *vc){
 
   if(vc && vc->exp_params){
       switch(vc->type){
-        case VRNA_VC_TYPE_SINGLE:     if(vc->exp_params->model_details.circ){
+        case VRNA_FC_TYPE_SINGLE:     if(vc->exp_params->model_details.circ){
                                         return wrap_pbacktrack_circ(vc);
                                       } else {
                                         return vrna_pbacktrack5(vc, vc->length);
                                       }
                                       break;
 
-        case VRNA_VC_TYPE_ALIGNMENT:  return pbacktrack_comparative(vc, &prob);
+        case VRNA_FC_TYPE_COMPARATIVE:  return pbacktrack_comparative(vc, &prob);
                                       break;
 
         default:                      vrna_message_warning("unrecognized fold compound type");

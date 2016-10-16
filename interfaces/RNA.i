@@ -12,6 +12,7 @@ extern "C" {
 #include  <ViennaRNA/grammar.h>
 #include  <ViennaRNA/unstructured_domains.h>
 #include  <ViennaRNA/structured_domains.h>
+#include  <ViennaRNA/commands.h>
 
 #include  <ViennaRNA/utils.h>
 #include  <ViennaRNA/structure_utils.h>
@@ -56,6 +57,7 @@ extern "C" {
 #include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
 #include  <ViennaRNA/file_formats.h>
+#include  <ViennaRNA/file_formats_msa.h>
 
 #include  <ViennaRNA/exterior_loops.h>
 #include  <ViennaRNA/hairpin_loops.h>
@@ -174,6 +176,7 @@ namespace std {
 %include compare.i
 %include file_formats.i
 %include grammar.i
+%include commands.i
 %include fold_compound.i
 
 

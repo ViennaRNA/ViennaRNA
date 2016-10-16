@@ -3,9 +3,11 @@ AM_CPPFLAGS = -I$(top_srcdir)/src
 SUBDIRS = @PERL_INTERFACE@ @PYTHON2_INTERFACE@ @PYTHON3_INTERFACE@
 
 SOURCES = RNA.i \
+          commands.i \
           compare.i \
           constraints.i \
           eval.i \
+          file_formats.i \
           fold_compound.i \
           grammar.i \
           inverse.i \
@@ -16,7 +18,6 @@ SOURCES = RNA.i \
           plotting.i \
           subopt.i \
           utils.i \
-          file_formats.i \
           ptr2array.i \
           generic.mk
 
@@ -26,9 +27,11 @@ DOXYGEN_DOCUMENTATION = constraints_soft.dox \
                         params.dox
 
 EXTRA_DIST =  RNA.i \
+              commands.i \
               compare.i \
               constraints.i \
               eval.i \
+              file_formats.i \
               fold_compound.i \
               grammar.i \
               inverse.i \
@@ -39,7 +42,6 @@ EXTRA_DIST =  RNA.i \
               plotting.i \
               subopt.i \
               utils.i \
-              file_formats.i \
               ptr2array.i \
               generic.mk \
               $(DOXYGEN_DOCUMENTATION)
