@@ -156,24 +156,48 @@ PRIVATE void copy_nonstandards(vrna_md_t *md, const char *ns);
 #################################
 */
 
+PUBLIC vrna_md_t *
+vrna_md_copy( vrna_md_t       *md_to,
+              const vrna_md_t *md_from){
+
+  int i;
+  vrna_md_t *md;
+
+  md = NULL;
+
+  /* only process if md_from is non-NULL */
+  if(md_from){
+    if(!md_to){
+      /* create container to be filled */
+      md = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
+    } else {
+      /* or directly write to target */
+      md = md_to;
+    }
+
+    /* check if not the same object */
+    if(md_to != md_from){
+      /* copy simple members */
+      memcpy(md, md_from, sizeof(vrna_md_t));
+      /* copy arrays */
+      memcpy(md->rtype, &(md_from->rtype[0]), 8 * sizeof(int));
+      memcpy(md->alias, &(md_from->alias[0]), (MAXALPHA + 1) * sizeof(short));
+      memcpy(md->nonstandards, &(md_from->nonstandards[0]), 64 * sizeof(char));
+      /* copy matrices */
+      for(i = 0; i <= MAXALPHA; i++){
+        memcpy(md->pair[i], (md_from->pair[i]), (MAXALPHA + 1) * sizeof(int));
+      }
+    }
+  }
+
+  return md;
+}
+
 PUBLIC void
 vrna_md_set_default(vrna_md_t *md){
 
-  int i = 0;
-
-  if(md){
-    /* copy over defaults */
-    memcpy(md, &defaults, sizeof(vrna_md_t));
-
-    /* set default values for the pair/rtype[pair] stuff */
-    memcpy(md->rtype, &(rtype[0]), 8 * sizeof(int));
-    memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
-    for(i = 0;i <= MAXALPHA; i++)
-      memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
-
-    vrna_md_update(md);
-
-  }
+  if(md) /* copy defaults */
+    vrna_md_copy(md, &defaults);
 }
 
 PUBLIC char *
@@ -255,6 +279,9 @@ vrna_md_set_nonstandards(vrna_md_t *md, const char *ns_bases){
       nonstandards = (char)0;
 #endif
     }
+
+    /* update pair/rtype/alias arrays accordingly */
+    vrna_md_update(md);
   }
 }
 
@@ -291,6 +318,12 @@ vrna_md_defaults_reset(vrna_md_t *md_p){
   defaults.nonstandards[0]   = (char)0;
 
   if(md_p){ /* now try to apply user settings */
+    /*
+        Note that we use wrapper functions here instead of
+        faster direct memory copy because we want to ensure
+        that model settings always comply to the constraints
+        we set in the wrappers
+    */
     vrna_md_defaults_dangles(md_p->dangles);
     vrna_md_defaults_special_hp(md_p->special_hp);
     vrna_md_defaults_noLP(md_p->noLP);
@@ -318,12 +351,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p){
     copy_nonstandards(&defaults, &(md_p->nonstandards[0]));
   }
 
-  /* set default values for the pair/rtype[pair] stuff */
-  memcpy(defaults.rtype, &(rtype[0]), 8 * sizeof(int));
-  memset(defaults.alias, 0, (MAXALPHA + 1) * sizeof(short));
-  for(i = 0;i <= MAXALPHA; i++)
-    memset(defaults.pair[i], 0, (MAXALPHA + 1) * sizeof(int));
-
+  /* update pair/rtype/alias arrays accordingly */
   vrna_md_update(&defaults);
 
 #ifdef  VRNA_BACKWARD_COMPAT
@@ -437,6 +465,8 @@ vrna_md_defaults_noGU(int flag){
 #ifdef VRNA_BACKWARD_COMPAT
   noGU = defaults.noGU;
 #endif
+  /* update pair/rtype/alias arrays accordingly */
+  vrna_md_update(&defaults);
 }
 
 PUBLIC int
@@ -528,6 +558,8 @@ vrna_md_defaults_energy_set(int e){
 #ifdef VRNA_BACKWARD_COMPAT
     energy_set = e;
 #endif
+    /* update pair/rtype/alias arrays accordingly */
+    vrna_md_update(&defaults);
   } else
     vrna_message_warning("vrna_md_defaults_energy_set@model.c: Energy Set out of range, must be (0 <= e <= 3). Not changing anything!");
 }
@@ -708,6 +740,14 @@ vrna_md_update(vrna_md_t *md){
     fill_pair_matrices(md);
 }
 
+
+/*
+    This function updates the pair/alias/rtype arrays according to model settings.
+    It should be called whenever there is a change in the following model settings:
+    - energy_set
+    - noGU
+    - nonstandards
+*/
 PRIVATE void
 fill_pair_matrices(vrna_md_t *md){
 
@@ -846,11 +886,6 @@ set_model_details(vrna_md_t *md){
       md->nonstandards[0] = (char)0;
     }
     /* set default values for the pair/rtype[pair] stuff */
-    memcpy(md->rtype, &(rtype[0]), 8 * sizeof(int));
-    memset(md->alias, 0, (MAXALPHA + 1) * sizeof(short));
-    for(i = 0;i <= MAXALPHA; i++)
-      memset(md->pair[i], 0, (MAXALPHA + 1) * sizeof(int));
-
     vrna_md_update(md);
 
   }

@@ -139,9 +139,9 @@ vrna_params_subst( vrna_fold_compound_t *vc,
       vc->params = vrna_params_copy(parameters);
     } else {
       switch(vc->type){
-        case VRNA_VC_TYPE_SINGLE:     /* fall through */
+        case VRNA_FC_TYPE_SINGLE:     /* fall through */
 
-        case VRNA_VC_TYPE_ALIGNMENT:  vc->params = vrna_params(NULL);
+        case VRNA_FC_TYPE_COMPARATIVE:  vc->params = vrna_params(NULL);
                                       break;
 
         default:                      break;
@@ -156,9 +156,9 @@ vrna_params_reset(vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     /* fall through */
+      case VRNA_FC_TYPE_SINGLE:     /* fall through */
 
-      case VRNA_VC_TYPE_ALIGNMENT:  if(vc->params)
+      case VRNA_FC_TYPE_COMPARATIVE:  if(vc->params)
                                       free(vc->params);
                                     vc->params = vrna_params(md_p);
                                     break;
@@ -174,9 +174,9 @@ vrna_exp_params_reset(vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     /* fall through */
+      case VRNA_FC_TYPE_SINGLE:     /* fall through */
 
-      case VRNA_VC_TYPE_ALIGNMENT:  if(vc->exp_params)
+      case VRNA_FC_TYPE_COMPARATIVE:  if(vc->exp_params)
                                       free(vc->exp_params);
                                     vc->exp_params = vrna_exp_params(md_p);
                                     break;
@@ -197,12 +197,12 @@ vrna_exp_params_subst(vrna_fold_compound_t *vc,
       vc->exp_params = vrna_exp_params_copy(params);
     } else {
       switch(vc->type){
-        case VRNA_VC_TYPE_SINGLE:     vc->exp_params = vrna_exp_params(NULL);
+        case VRNA_FC_TYPE_SINGLE:     vc->exp_params = vrna_exp_params(NULL);
                                       if(vc->cutpoint > 0)
                                         vc->exp_params->model_details.min_loop_size = 0;
                                       break;
 
-        case VRNA_VC_TYPE_ALIGNMENT:  vc->exp_params = vrna_exp_params_comparative(vc->n_seq, NULL);
+        case VRNA_FC_TYPE_COMPARATIVE:  vc->exp_params = vrna_exp_params_comparative(vc->n_seq, NULL);
                                       break;
 
         default:                      break;
@@ -225,10 +225,10 @@ vrna_exp_params_rescale(vrna_fold_compound_t *vc,
     
     if(!vc->exp_params){
       switch(vc->type){
-        case VRNA_VC_TYPE_SINGLE:
+        case VRNA_FC_TYPE_SINGLE:
           vc->exp_params = vrna_exp_params(&(vc->params->model_details));
           break;
-        case VRNA_VC_TYPE_ALIGNMENT:
+        case VRNA_FC_TYPE_COMPARATIVE:
           vc->exp_params = vrna_exp_params_comparative(vc->n_seq, &(vc->params->model_details));
           break;
       }
@@ -239,7 +239,7 @@ vrna_exp_params_rescale(vrna_fold_compound_t *vc,
       kT = pf->kT;
       md = &(pf->model_details);
 
-      if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
+      if(vc->type == VRNA_FC_TYPE_COMPARATIVE)
         kT /= vc->n_seq;
 
       if(mfe){

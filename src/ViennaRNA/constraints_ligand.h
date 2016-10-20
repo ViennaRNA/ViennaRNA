@@ -6,8 +6,17 @@
  *  @ingroup  ligand_binding
  *  @brief    Functions for incorporation of ligands binding to hairpin and interior loop motifs using the soft constraints framework
  */
+typedef struct vrna_sc_motif_s  vrna_sc_motif_t;
 
 #include <ViennaRNA/data_structures.h>
+
+struct vrna_sc_motif_s {
+  int i;
+  int j;
+  int k;
+  int l;
+  int number;
+};
 
 
 /**
@@ -30,13 +39,9 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
                       FLT_OR_DBL energy,
                       unsigned int options);
 
-int
-vrna_sc_detect_hi_motif(vrna_fold_compound_t *vc,
-                        const char *structure,
-                        int *i,
-                        int *j,
-                        int *k,
-                        int *l);
+vrna_sc_motif_t *
+vrna_sc_ligand_detect_motifs( vrna_fold_compound_t *vc,
+                              const char *structure);
 
 int
 vrna_sc_get_hi_motif( vrna_fold_compound_t *vc,

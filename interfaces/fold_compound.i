@@ -25,7 +25,14 @@
 
 /* start constructing a sane interface to vrna_fold_compound_t */
 
-%rename(fc_type) vrna_fc_type_e;
+/* first we remap the fold_compound type enum entries */
+%rename(fc_type) my_fc_type_e;
+%inline %{
+  typedef enum {
+    FC_TYPE_SINGLE      = VRNA_FC_TYPE_SINGLE,
+    FC_TYPE_COMPARATIVE = VRNA_FC_TYPE_COMPARATIVE
+  } my_fc_type_e;
+%}
 
 /* scripting language access through 'fold_compound' instead of 'vrna_fold_compound_t' */
 %rename(fold_compound) vrna_fold_compound_t;
@@ -94,7 +101,6 @@ typedef struct {} vrna_fold_compound_t;
 }
 
 %newobject vrna_fold_compound_t::centroid;
-
 
 /*
  *  Rename all the preprocessor macros defined in data_structures.h

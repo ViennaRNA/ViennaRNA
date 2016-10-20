@@ -256,7 +256,7 @@ vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *vc,
 
   ret = 0; /* error */
 
-  if(vc && reactivities && (vc->type == VRNA_VC_TYPE_SINGLE)){
+  if(vc && reactivities && (vc->type == VRNA_FC_TYPE_SINGLE)){
     n   = vc->length;
     md  = &(vc->params->model_details);
 
@@ -310,7 +310,7 @@ vrna_sc_add_SHAPE_deigan( vrna_fold_compound_t *vc,
   int     i;
   FLT_OR_DBL  *values;
 
-  if(vc && (vc->type == VRNA_VC_TYPE_SINGLE)){
+  if(vc && (vc->type == VRNA_FC_TYPE_SINGLE)){
     if(reactivities){
 
       values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
@@ -346,7 +346,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
   int             s, i, p, r, position, *pseudo_energies, n_seq;
   unsigned short  **a2s;
 
-  if(vc && (vc->type == VRNA_VC_TYPE_ALIGNMENT)){
+  if(vc && (vc->type == VRNA_FC_TYPE_COMPARATIVE)){
     n_seq = vc->n_seq;
     a2s   = vc->a2s;
 

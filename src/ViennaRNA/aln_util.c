@@ -18,6 +18,8 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
+#include "ViennaRNA/model.h"
+#include "ViennaRNA/ribo.h"
 #include "ViennaRNA/aln_util.h"
 
 #define MAX_NUM_NAMES    500
@@ -115,16 +117,21 @@ char *consensus(const char *AS[]) {
   /* simple consensus sequence (most frequent character) */
   char *string;
   int i,n;
-  n = strlen(AS[0]);
-  string = (char *) vrna_alloc((n+1)*sizeof(char));
-  for (i=0; i<n; i++) {
-    int s,c,fm, freq[8] = {0,0,0,0,0,0,0,0};
-    for (s=0; AS[s]!=NULL; s++)
-      freq[encode_char(AS[s][i])]++;
-    for (s=c=fm=0; s<8; s++) /* find the most frequent char */
-      if (freq[s]>fm) {c=s, fm=freq[c];}
-    if (s>4) s++; /* skip T */
-    string[i]=Law_and_Order[c];
+
+  string = NULL;
+
+  if(AS){
+    n = strlen(AS[0]);
+    string = (char *) vrna_alloc((n+1)*sizeof(char));
+    for (i=0; i<n; i++) {
+      int s,c,fm, freq[8] = {0,0,0,0,0,0,0,0};
+      for (s=0; AS[s]!=NULL; s++)
+        freq[encode_char(AS[s][i])]++;
+      for (s=c=fm=0; s<8; s++) /* find the most frequent char */
+        if (freq[s]>fm) {c=s, fm=freq[c];}
+      if (s>4) s++; /* skip T */
+      string[i]=Law_and_Order[c];
+    }
   }
   return string;
 }
@@ -142,32 +149,36 @@ char *consens_mis(const char*AS[]) {
   int i, s, n, N, c;
   int bgfreq[8] = {0,0,0,0,0,0,0,0};
 
-  n = strlen(AS[0]);
-  for (N=0; AS[N]!=NULL; N++);
-  cons = (char *) vrna_alloc((n+1)*sizeof(char));
+  cons = NULL;
 
-  for (i=0; i<n; i++)
-    for (s=0; s<N; s++) {
-      c = encode_char(AS[s][i]);
-      if (c>4) c=5;
-      bgfreq[c]++;
-    }
+  if(AS){
+    n = strlen(AS[0]);
+    for (N=0; AS[N]!=NULL; N++);
+    cons = (char *) vrna_alloc((n+1)*sizeof(char));
 
-  for (i=0; i<n; i++) {
-    int freq[8] = {0,0,0,0,0,0,0,0};
-    int code = 0;
-    for (s=0; s<N; s++) {
-      c = encode_char(AS[s][i]);
-      if (c>4) c=5;
-      freq[c]++;
+    for (i=0; i<n; i++)
+      for (s=0; s<N; s++) {
+        c = encode_char(AS[s][i]);
+        if (c>4) c=5;
+        bgfreq[c]++;
+      }
+
+    for (i=0; i<n; i++) {
+      int freq[8] = {0,0,0,0,0,0,0,0};
+      int code = 0;
+      for (s=0; s<N; s++) {
+        c = encode_char(AS[s][i]);
+        if (c>4) c=5;
+        freq[c]++;
+      }
+      for (c=4; c>0; c--) {
+        code <<=1;
+        if (freq[c]*n>=bgfreq[c]) code++;
+      }
+      cons[i] = IUP[code];
+      if (freq[0]*n>bgfreq[0])
+        cons[i] = tolower(IUP[code]);
     }
-    for (c=4; c>0; c--) {
-      code <<=1;
-      if (freq[c]*n>=bgfreq[c]) code++;
-    }
-    cons[i] = IUP[code];
-    if (freq[0]*n>bgfreq[0])
-      cons[i] = tolower(IUP[code]);
   }
   return cons;
 }
@@ -195,28 +206,31 @@ get_ungapped_sequence(const char *seq){
 }
 
 PUBLIC int
-vrna_aln_mpi( char *Alseq[],
-              int n_seq,
-              int length,
-              int *mini){
+vrna_aln_mpi(const char **alignment){
 
-  int   i, j, k, pairnum = 0, sumident = 0;
-  float ident = 0, minimum = 1.;
+  int   i, j, k, s, n_seq, n, pairnum = 0, sumident = 0;
+  float ident = 0;
 
-  for(j=0; j<n_seq-1; j++)
-    for(k=j+1; k<n_seq; k++) {
-      ident=0;
-      for (i=1; i<=length; i++){
-        if (Alseq[k][i]==Alseq[j][i]) ident++;
-        pairnum++;
+  if(alignment){
+    n = (int)strlen(alignment[0]);
+    for(s = 0; alignment[s]; s++);
+    n_seq = s;
+
+    for(j = 0; j < n_seq - 1; j++)
+      for(k = j + 1; k < n_seq; k++) {
+        ident = 0;
+        for (i = 1; i <= n; i++){
+          if(alignment[k][i] == alignment[j][i])
+            ident++;
+          pairnum++;
+        }
+        sumident+=ident;
       }
-      if ((ident/length)<minimum) minimum=ident/(float)length;
-      sumident+=ident;
-    }
-  mini[0]=(int)(minimum*100.);
-  if (pairnum>0)   return (int) (sumident*100/pairnum);
-  else return 0;
 
+    if(pairnum > 0)
+      return (int) (sumident*100/pairnum);
+  }
+  return 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -299,6 +313,136 @@ vrna_aln_pinfo( vrna_fold_compound_t *vc,
   return pi;
 }
 
+
+PUBLIC int *
+vrna_aln_pscore(const char  **alignment,
+                vrna_md_t   *md){
+
+  /* calculate co-variance bonus for each pair depending on  */
+  /* compensatory/consistent mutations and incompatible seqs */
+  /* should be 0 for conserved pairs, >0 for good pairs      */
+
+#define NONE -10000 /* score for forbidden pairs */
+
+  int         i, j, k, l, s, n, n_seq, *indx, turn, max_span;
+  float       **dm;
+  vrna_md_t   md_default;
+  int         *pscore;
+  short       **S;
+
+  int olddm[7][7]={{0,0,0,0,0,0,0}, /* hamming distance between pairs */
+                  {0,0,2,2,1,2,2} /* CG */,
+                  {0,2,0,1,2,2,2} /* GC */,
+                  {0,2,1,0,2,1,2} /* GU */,
+                  {0,1,2,2,0,2,1} /* UG */,
+                  {0,2,2,1,2,0,2} /* AU */,
+                  {0,2,2,2,1,2,0} /* UA */};
+
+  pscore = NULL;
+
+  if(!md){
+    vrna_md_set_default(&md_default);
+    md = &md_default;
+  }
+
+  if(alignment){
+    /* length of alignment */
+    n = (int)strlen(alignment[0]);
+
+    /* count number of sequences */
+    for(s = 0; alignment[s]; s++);
+    n_seq = s;
+
+    /* make numeric encoding of sequences */
+    S = (short **)vrna_alloc(sizeof(short *) * (n_seq + 1));
+    for(s = 0; s < n_seq; s++){
+      S[s] = vrna_seq_encode_simple(alignment[s], md);
+    }
+
+    indx  = vrna_idx_col_wise(n);
+
+    turn    = md->min_loop_size;
+
+    pscore = (int *)vrna_alloc(sizeof(int) * ((n+1)*(n+2)/2 + 2));
+
+    if (md->ribo) {
+      if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
+      else dm=get_ribosum(alignment, n_seq, n);
+    }
+    else { /*use usual matrix*/
+      dm = vrna_alloc(7*sizeof(float*));
+      for (i=0; i<7;i++) {
+        dm[i] = vrna_alloc(7*sizeof(float));
+        for (j=0; j<7; j++)
+          dm[i][j] = (float) olddm[i][j];
+      }
+    }
+
+    max_span = md->max_bp_span;
+    if((max_span < turn+2) || (max_span > n))
+      max_span = n;
+    for (i=1; i<n; i++) {
+      for (j=i+1; (j<i+turn+1) && (j<=n); j++)
+        pscore[indx[j]+i] = NONE;
+      for (j=i+turn+1; j<=n; j++) {
+        int pfreq[8]={0,0,0,0,0,0,0,0};
+        double score;
+        for (s=0; s<n_seq; s++) {
+          int type;
+          if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
+          else {
+            if ((alignment[s][i] == '~')||(alignment[s][j] == '~')) type = 7;
+            else type = md->pair[S[s][i]][S[s][j]];
+          }
+          pfreq[type]++;
+        }
+        if (pfreq[0]*2+pfreq[7]>n_seq) { pscore[indx[j]+i] = NONE; continue;}
+        for (k=1,score=0; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
+          for (l=k; l<=6; l++)
+            score += pfreq[k]*pfreq[l]*dm[k][l];
+        /* counter examples score -1, gap-gap scores -0.25   */
+        pscore[indx[j]+i] = md->cv_fact *
+          ((UNIT*score)/n_seq - md->nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
+
+        if((j - i + 1) > max_span){
+          pscore[indx[j]+i] = NONE;
+        }
+      }
+    }
+
+    if (md->noLP) /* remove unwanted pairs */
+      for (k=1; k<n-turn-1; k++)
+        for (l=1; l<=2; l++) {
+          int type,ntype=0,otype=0;
+          i=k; j = i+turn+l;
+          type = pscore[indx[j]+i];
+          while ((i>=1)&&(j<=n)) {
+            if ((i>1)&&(j<n)) ntype = pscore[indx[j+1]+i-1];
+            if ((otype<md->cv_fact*MINPSCORE)&&(ntype<md->cv_fact*MINPSCORE))  /* too many counterexamples */
+              pscore[indx[j]+i] = NONE; /* i.j can only form isolated pairs */
+            otype =  type;
+            type  = ntype;
+            i--; j++;
+          }
+        }
+
+    /*free dm */
+    for (i=0; i<7;i++) {
+      free(dm[i]);
+    }
+    free(dm);
+
+    for(s = 0; s < n_seq; s++){
+      free(S[s]);
+    }
+    free(S);
+
+    free(indx);
+  }
+
+  return pscore;
+}
+
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
@@ -309,7 +453,22 @@ get_mpi(char *Alseq[],
         int length,
         int *mini){
 
-  return vrna_aln_mpi(Alseq, n_seq, length, mini);
+  int   i, j, k, pairnum = 0, sumident = 0;
+  float ident = 0, minimum = 1.;
+
+  for(j=0; j<n_seq-1; j++)
+    for(k=j+1; k<n_seq; k++) {
+      ident=0;
+      for (i=1; i<=length; i++){
+        if (Alseq[k][i]==Alseq[j][i]) ident++;
+        pairnum++;
+      }
+      if ((ident/length)<minimum) minimum=ident/(float)length;
+      sumident+=ident;
+    }
+  mini[0]=(int)(minimum*100.);
+  if (pairnum>0)   return (int) (sumident*100/pairnum);
+  else return 0;
 }
 
 PUBLIC void

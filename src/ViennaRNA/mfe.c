@@ -96,14 +96,14 @@ vrna_mfe( vrna_fold_compound_t *vc,
       vc->stat_cb(VRNA_STATUS_MFE_PRE, vc->auxdata);
 
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     energy = fill_arrays(vc);
+      case VRNA_FC_TYPE_SINGLE:     energy = fill_arrays(vc);
                                     if(vc->params->model_details.circ){
                                       fill_arrays_circ(vc, bt_stack, &s);
                                       energy = vc->matrices->Fc;
                                     }
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  energy = fill_arrays_comparative(vc);
+      case VRNA_FC_TYPE_COMPARATIVE:  energy = fill_arrays_comparative(vc);
                                     if(vc->params->model_details.circ){
                                       fill_arrays_comparative_circ(vc, bt_stack, &s);
                                       energy = vc->matrices->Fc;
@@ -124,10 +124,10 @@ vrna_mfe( vrna_fold_compound_t *vc,
       bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
       switch(vc->type){
-        case VRNA_VC_TYPE_ALIGNMENT:  backtrack_comparative(vc, bp, bt_stack, s);
+        case VRNA_FC_TYPE_COMPARATIVE:  backtrack_comparative(vc, bp, bt_stack, s);
                                       break;
 
-        case VRNA_VC_TYPE_SINGLE:     /* fall through */
+        case VRNA_FC_TYPE_SINGLE:     /* fall through */
 
         default:                      backtrack(vc, bp, bt_stack, s);
                                       break;
@@ -158,7 +158,7 @@ vrna_mfe( vrna_fold_compound_t *vc,
     else
       mfe = (float) energy/100.;
 
-    if(vc->type == VRNA_VC_TYPE_ALIGNMENT)
+    if(vc->type == VRNA_FC_TYPE_COMPARATIVE)
       mfe /= (float)vc->n_seq;
   }
 

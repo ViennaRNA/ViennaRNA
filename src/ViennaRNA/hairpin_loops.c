@@ -41,7 +41,7 @@ PRIVATE FLT_OR_DBL exp_eval_ext_hp_loop(vrna_fold_compound_t *vc, int i, int j);
  *          and consider possible hard constraints
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  */
 PUBLIC int
@@ -135,7 +135,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
 
   switch(vc->type){
     /* single sequences and cofolding hybrids */
-    case  VRNA_VC_TYPE_SINGLE:    S     = vc->sequence_encoding;
+    case  VRNA_FC_TYPE_SINGLE:    S     = vc->sequence_encoding;
                                   sc    = vc->sc;
                                   u     = vc->length - j + i - 1;
                                   type  = md->pair[S[j]][S[i]];
@@ -161,7 +161,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
                                   break;
 
     /* sequence alignments */
-    case  VRNA_VC_TYPE_ALIGNMENT: SS    = vc->S;                                                               
+    case  VRNA_FC_TYPE_COMPARATIVE: SS    = vc->S;                                                               
                                   S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
                                   S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
                                   Ss    = vc->Ss;                                                       
@@ -215,7 +215,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
  *  @ingroup eval
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  *  @param  vc  The #vrna_fold_compound_t for the particular energy evaluation
  *  @param  i   5'-position of the base pair
@@ -245,7 +245,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
 
   switch(vc->type){
     /* single sequences and cofolding hybrids */
-    case  VRNA_VC_TYPE_SINGLE:    S     = vc->sequence_encoding;
+    case  VRNA_FC_TYPE_SINGLE:    S     = vc->sequence_encoding;
                                   sc    = vc->sc;
                                   u     = j - i - 1;
                                   ij    = idx[j] + i;
@@ -289,7 +289,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
 
                                   break;
     /* sequence alignments */
-    case  VRNA_VC_TYPE_ALIGNMENT: SS    = vc->S;                                                               
+    case  VRNA_FC_TYPE_COMPARATIVE: SS    = vc->S;                                                               
                                   S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
                                   S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
                                   Ss    = vc->Ss;                                                       
@@ -428,7 +428,7 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
   ij    = idx[j] + i;
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     S     = vc->sequence_encoding;
+    case VRNA_FC_TYPE_SINGLE:     S     = vc->sequence_encoding;
                                   sc    = vc->sc;
                                   u     = j - i - 1;
                                   type  = vc->ptype[ij];
@@ -463,7 +463,7 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
 
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  SS    = vc->S;                                                               
+    case VRNA_FC_TYPE_COMPARATIVE:  SS    = vc->S;                                                               
                                   S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
                                   S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
                                   Ss    = vc->Ss;                                                       
@@ -545,7 +545,7 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
   ij    = idx[j] + i;
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     sequence  = vc->sequence;
+    case VRNA_FC_TYPE_SINGLE:     sequence  = vc->sequence;
                                   S         = vc->sequence_encoding;
                                   sc        = vc->sc;
                                   type      = rtype[vc->ptype[ij]];
@@ -584,7 +584,7 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
 
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  SS    = vc->S;                                                               
+    case VRNA_FC_TYPE_COMPARATIVE:  SS    = vc->S;                                                               
                                   S5    = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
                                   S3    = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
                                   Ss    = vc->Ss;                                                       
@@ -638,7 +638,7 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
  *  @brief Backtrack a hairpin loop closed by @f$ (i,j) @f$
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  */
 PUBLIC int
@@ -663,9 +663,9 @@ vrna_BT_hp_loop(vrna_fold_compound_t *vc,
 
   if(e == en){
     switch(vc->type){
-      case  VRNA_VC_TYPE_SINGLE:    sc  = vc->sc;
+      case  VRNA_FC_TYPE_SINGLE:    sc  = vc->sc;
                                     break;
-      case  VRNA_VC_TYPE_ALIGNMENT: if(vc->scs)
+      case  VRNA_FC_TYPE_COMPARATIVE: if(vc->scs)
                                       sc = vc->scs[0];
                                     break;
       default:                      break;

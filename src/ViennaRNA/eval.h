@@ -53,7 +53,7 @@ extern  int eos_debug;
  vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
- *  @note Accepts vrna_fold_compound_t of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
+ *  @note Accepts vrna_fold_compound_t of type #VRNA_FC_TYPE_SINGLE and #VRNA_FC_TYPE_COMPARATIVE
  *
  *  @see  vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
  *        vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_eval_covar_structure()
@@ -77,7 +77,7 @@ float vrna_eval_structure(vrna_fold_compound_t *vc,
  vc = vrna_fold_compound_comparative(alignment, NULL, VRNA_OPTION_EVAL_ONLY);
     @endcode
  *
- *  @note Accepts vrna_fold_compound_t of type #VRNA_VC_TYPE_ALIGNMENT only!
+ *  @note Accepts vrna_fold_compound_t of type #VRNA_FC_TYPE_COMPARATIVE only!
  *
  *  @see  vrna_fold_compound_comparative(), vrna_eval_structure()
  *

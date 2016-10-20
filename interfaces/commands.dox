@@ -1,0 +1,15 @@
+/**
+
+@fn int vrna_file_commands_apply( vrna_fold_compound_t *vc, const char *filename, unsigned int options)
+@scripting
+@parblock
+This function is attached as method @b file_commands_apply() to objects of type @em fold_compound
+@endparblock
+
+@fn int vrna_commands_apply(vrna_fold_compound_t *vc, vrna_cmd_t *commands, unsigned int options)
+@scripting
+@parblock
+This function is attached as method @b commands_apply() to objects of type @em fold_compound
+@endparblock
+
+*/

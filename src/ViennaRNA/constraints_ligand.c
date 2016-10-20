@@ -99,13 +99,71 @@ scanForPairs( const char  *motif5,
               const char  *motif3,
               int         *pair_count);
 
+static int
+vrna_sc_detect_hi_motif(vrna_fold_compound_t *vc,
+                        const char *structure,
+                        int *i,
+                        int *j,
+                        int *k,
+                        int *l);
+
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
 
-PUBLIC int
+PUBLIC vrna_sc_motif_t *
+vrna_sc_ligand_detect_motifs( vrna_fold_compound_t *vc,
+                              const char *structure){
+
+  int             a, b, c, d, motif_count, motif_list_size;
+  vrna_sc_motif_t *motif_list;
+  
+  motif_list = NULL;
+  
+  if(vc && structure){
+    a               = 1;
+    motif_count     = 0;
+    motif_list_size = 10;
+
+    motif_list = (vrna_sc_motif_t *)vrna_alloc(sizeof(vrna_sc_motif_t) * motif_list_size);
+
+    while(vrna_sc_detect_hi_motif(vc, structure, &a, &b, &c, &d)){
+      if(motif_count == motif_list_size){
+        motif_list_size *= 1.2;
+        motif_list = (vrna_sc_motif_t *)vrna_realloc(motif_list, sizeof(vrna_sc_motif_t) * motif_list_size);
+      }
+
+      motif_list[motif_count].number  = 0;
+
+      if(c != 0){ /* interior loop motif */
+        motif_list[motif_count].i = a;
+        motif_list[motif_count].j = b;
+        motif_list[motif_count].k = c;
+        motif_list[motif_count].l = d;
+        a = c;
+      } else { /* hairpin loop motif */
+        motif_list[motif_count].i = a;
+        motif_list[motif_count].j = b;
+        motif_list[motif_count].k = a;
+        motif_list[motif_count].l = b;
+        a = b;
+      }
+      motif_count++;
+    }
+
+    motif_list = (vrna_sc_motif_t *)vrna_realloc(motif_list, sizeof(vrna_sc_motif_t) * (motif_count + 1));
+    motif_list[motif_count].i       = 0;
+    motif_list[motif_count].j       = 0;
+    motif_list[motif_count].k       = 0;
+    motif_list[motif_count].l       = 0;
+  }
+
+  return motif_list;
+}
+
+PRIVATE int
 vrna_sc_detect_hi_motif(vrna_fold_compound_t *vc,
                         const char *structure,
                         int *i,

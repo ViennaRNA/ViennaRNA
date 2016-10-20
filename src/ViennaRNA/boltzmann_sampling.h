@@ -33,7 +33,7 @@ char    *vrna_pbacktrack5(vrna_fold_compound_t *vc, int length);
  *  @pre    vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
- *        #VRNA_VC_TYPE_SINGLE, and #VRNA_VC_TYPE_ALIGNMENT.
+ *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
  *
  *  @note The function will automagically detect cicular RNAs based on the model_details in exp_params as
  *        provided via the #vrna_fold_compound_t

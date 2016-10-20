@@ -17,6 +17,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <float.h>
 #include <math.h>
 
@@ -138,6 +139,7 @@ PRIVATE struct ligands_up_data_default *get_default_data(void);
 PRIVATE void        prepare_default_data(vrna_fold_compound_t *vc, struct ligands_up_data_default *data);
 PRIVATE void        free_default_data(struct ligands_up_data_default *data);
 PRIVATE int         *get_motifs(vrna_fold_compound_t *vc, int i, unsigned int loop_type);
+PRIVATE void        annotate_ud(vrna_fold_compound_t *vc, int start, int end, char l, vrna_ud_motif_t **list, int *list_size, int *list_pos);
 
 
 /*
@@ -289,6 +291,66 @@ vrna_ud_get_motif_size_at(vrna_fold_compound_t *vc, int i, unsigned int loop_typ
   return NULL;
 }
 
+PUBLIC int *
+vrna_ud_get_motifs_at(vrna_fold_compound_t *vc,
+                      int i,
+                      unsigned int loop_type){
+
+  if(vc && vc->domains_up){
+    if((i > 0) && (i <= vc->length)){
+      return get_motifs(vc, i, loop_type);
+    }
+  }
+  return NULL;
+}
+
+vrna_ud_motif_t *
+vrna_ud_detect_motifs(vrna_fold_compound_t *vc,
+                      const char *structure){
+
+  int list_size, list_pos;
+  vrna_ud_motif_t *motif_list;
+
+  motif_list = NULL;
+
+  if(structure && vc->domains_up){
+    int   l, start, end;
+    char  last, *loops;
+
+    l           = 0;
+    list_pos    = 0;
+    list_size   = 15;
+    motif_list  = (vrna_ud_motif_t *)vrna_alloc(sizeof(vrna_ud_motif_t) * list_size);
+    loops       = vrna_db_to_element_string(structure);
+
+    while(l < vc->length){
+      /* skip uppercase encodings */
+      while(l < vc->length){
+        if(islower(loops[l]))
+          break;
+        l++;
+      }
+
+      if(l < vc->length){
+        start = 1 + l;
+        last  = loops[l];
+        while(loops[l++] == last){
+          if(l == vc->length)
+            break;
+        }
+        end = l - 1;
+        annotate_ud(vc, start, end, last, &motif_list, &list_size, &list_pos);
+      }
+    }
+
+    motif_list = (vrna_ud_motif_t *)vrna_realloc(motif_list, sizeof(vrna_ud_motif_t) * (list_pos + 1));
+    motif_list[list_pos].start = 0;
+    motif_list[list_pos].number = -1;
+    free(loops);
+  }
+
+  return motif_list;
+}
 
 /*
 #####################################
@@ -604,6 +666,53 @@ get_motifs(vrna_fold_compound_t *vc, int i, unsigned int loop_type){
 
   return motif_list;
 }
+
+
+static void
+annotate_ud(vrna_fold_compound_t *vc,
+            int start,
+            int end,
+            char l,
+            vrna_ud_motif_t **list,
+            int *list_size,
+            int *list_pos){
+
+  int i,j;
+
+  /* get motifs in segment [start,end] */
+  for(i = start; i <= end; i++){
+    unsigned int type = 0;
+    switch(l){
+      case 'e': type = VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP;
+                break;
+      case 'h': type = VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP;
+                break;
+      case 'i': type = VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP;
+                break;
+      case 'm': type = VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP;
+                break;
+    }
+
+    int *m = vrna_ud_get_motifs_at(vc, i, type);
+    if(m){
+      for(j = 0; m[j] != -1; j++){
+        int size = vc->domains_up->motif_size[m[j]];
+
+        if(i + size - 1 <= end){
+          if(*list_pos == *list_size){
+            *list_size *= 1.2;
+            *list = (vrna_ud_motif_t *)vrna_realloc(*list, sizeof(vrna_ud_motif_t) * (*list_size));
+          }
+          (*list)[*list_pos].start = i;
+          (*list)[*list_pos].number = m[j];
+          (*list_pos)++;
+        }
+      }
+    }
+    free(m);
+  }
+}
+
 
 PRIVATE void
 prepare_matrices( vrna_fold_compound_t *vc,

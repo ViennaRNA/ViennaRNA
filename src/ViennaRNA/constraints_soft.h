@@ -139,7 +139,7 @@ struct vrna_sc_s {
  *  to the #vrna_fold_compound_t data structure.
  *  If soft constraints already exist within the fold compound, they are removed.
  *
- *  \note Accepts vrna_fold_compound_t of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
+ *  \note Accepts vrna_fold_compound_t of type #VRNA_FC_TYPE_SINGLE and #VRNA_FC_TYPE_COMPARATIVE
  *
  *  @ingroup  soft_constraints
  *
@@ -225,7 +225,7 @@ void vrna_sc_add_up( vrna_fold_compound_t *vc,
 /**
  *  @brief  Remove soft constraints from #vrna_fold_compound_t
  *
- *  \note Accepts vrna_fold_compound_t of type #VRNA_VC_TYPE_SINGLE and #VRNA_VC_TYPE_ALIGNMENT
+ *  \note Accepts vrna_fold_compound_t of type #VRNA_FC_TYPE_SINGLE and #VRNA_FC_TYPE_COMPARATIVE
  *
  *  @ingroup  soft_constraints
  *
