@@ -31,6 +31,13 @@
  *  @image html   GCrecursion.svg
  *  @image latex  GCrecursion.eps
  *
+ *  @bug  Although the additional production rule(s) for unstructured domains in the descriptions of this feature
+ *        are always treated as 'segments possibly bound to one or more ligands', the current implementation requires
+ *        that at least one ligand is bound. The default implementation already takes care of the required changes,
+ *        however, upon using callback functions other than the default ones, one has to take care of this fact.
+ *        Please also note, that this behavior might change in one of the next releases, such that the decomposition
+ *        schemes as shown above comply with the actual implementation.
+ *
  *  A default implementation allows one to readily use this feature by simply adding sequence motifs and corresponding
  *  binding free energies with the function vrna_ud_add_motif() (see also @ref ligands_up).
  *
@@ -44,6 +51,10 @@
  *  Both callbacks have a default implementation in @em RNAlib, but may be over-written by a
  *  user-implementation, making it fully user-customizable.
  *
+ *  For equilibrium probability computations, two additional callbacks exist. One to store/add and one to retrieve the
+ *  probability of unstructured domains at particular positions. Our implementation already takes care of computing
+ *  the probabilities, but users of the unstructured domain feature are required to provide a mechanism to efficiently
+ *  store/add the corresponding values into some external data structure.
  */
 
 /** @brief Typename for the ligand binding extension data structure #vrna_unstructured_domain_s
@@ -81,16 +92,16 @@ typedef void (vrna_callback_ud_exp_production)(vrna_fold_compound_t *vc, void *d
 
 
 /**
- *  @brief Callback to store/add outside partition function for a ligand bound to an unpaired sequence segment
+ *  @brief Callback to store/add equilibrium probability for a ligand bound to an unpaired sequence segment
  *  @ingroup domains_up
  */
-typedef void (vrna_callback_ud_outside_add)(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, FLT_OR_DBL exp_energy, void *data);
+typedef void (vrna_callback_ud_probs_add)(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, FLT_OR_DBL exp_energy, void *data);
 
 /**
- *  @brief Callback to retrieve outside partition function/probability for a ligand bound to an unpaired sequence segment
+ *  @brief Callback to retrieve equilibrium probability for a ligand bound to an unpaired sequence segment
  *  @ingroup domains_up
  */
-typedef FLT_OR_DBL (vrna_callback_ud_outside_get)(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, int motif, void *data);
+typedef FLT_OR_DBL (vrna_callback_ud_probs_get)(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, int motif, void *data);
 
 
 /**
@@ -156,16 +167,16 @@ struct vrna_unstructured_domain_s {
   **********************************
   */
   vrna_callback_ud_production     *prod_cb;       /**<  @brief Callback to ligand binding production rule, i.e. create/fill DP free energy matrices
-                                                           *    @details This callback will be executed right before the actual secondary structure decompositions,
-                                                           *    and, therefore, any implementation must not interleave with the regular DP matrices.
-                                                           */
+                                                   *    @details This callback will be executed right before the actual secondary structure decompositions,
+                                                   *    and, therefore, any implementation must not interleave with the regular DP matrices.
+                                                   */
   vrna_callback_ud_exp_production *exp_prod_cb;   /**<  @brief Callback to ligand binding production rule, i.e. create/fill DP partition function matrices */
   vrna_callback_ud_energy         *energy_cb;     /**<  @brief Callback to evaluate free energy of ligand binding to a particular unpaired stretch */
   vrna_callback_ud_exp_energy     *exp_energy_cb; /**<  @brief Callback to evaluate Boltzmann factor of ligand binding to a particular unpaired stretch */
   void                            *data;          /**<  @brief Auxiliary data structure passed to energy evaluation callbacks */
   vrna_callback_free_auxdata      *free_data;     /**<  @brief Callback to free auxiliary data structure */
-  vrna_callback_ud_outside_add    *outside_add;   /**<  @brief Callback to store/add outside partition function */
-  vrna_callback_ud_outside_get    *outside_get;   /**<  @brief Callback to retrieve outside partition function */
+  vrna_callback_ud_probs_add      *probs_add;     /**<  @brief Callback to store/add outside partition function */
+  vrna_callback_ud_probs_get      *probs_get;     /**<  @brief Callback to retrieve outside partition function */
 };
 
 
@@ -235,7 +246,7 @@ vrna_ud_detect_motifs(vrna_fold_compound_t *vc,
  *
  *  @param vc The #vrna_fold_compound_t data structure the ligand motif data should be removed from
  */
-void  vrna_ud_remove( vrna_fold_compound_t *vc);
+void  vrna_ud_remove(vrna_fold_compound_t *vc);
 
 /**
  *  @brief  Attach an auxiliary data structure
@@ -244,65 +255,27 @@ void  vrna_ud_remove( vrna_fold_compound_t *vc);
  *  The optional callback @p free will be passed the bound data structure whenever the #vrna_fold_compound_t
  *  is removed from memory to avoid memory leaks.
  *
- *  @see vrna_ud_set_prod_rule(), vrna_ud_set_energy(),
- *  vrna_ud_set_exp_prod_rule(), vrna_ud_set_exp_energy(),
+ *  @see vrna_ud_set_prod_rule_cb(), vrna_ud_set_exp_prod_rule_cb(),
  *  vrna_ud_remove()
  *
  *  @ingroup domains_up
  *
- *  @param  vc    The #vrna_fold_compound_t data structure the auxiliary data structure should be bound to
- *  @param  data  A pointer to the auxiliary data structure
- *  @param  free  A pointer to a callback function that free's memory occupied by @p data
+ *  @param  vc      The #vrna_fold_compound_t data structure the auxiliary data structure should be bound to
+ *  @param  data    A pointer to the auxiliary data structure
+ *  @param  free_cb A pointer to a callback function that free's memory occupied by @p data
  */
-void  vrna_ud_set_data( vrna_fold_compound_t  *vc,
-                        void *data,
-                        vrna_callback_free_auxdata  *free);
+void  vrna_ud_set_data( vrna_fold_compound_t        *vc,
+                        void                        *data,
+                        vrna_callback_free_auxdata  *free_cb);
 
 /**
- *  @brief Attach production rule for free energies
+ *  @brief Attach production rule callbacks for free energies computations
  *
- *  Use this function to supply a user-implemented production rule @p B. This callback will
- *  be executed as a pre-processing step right before the regular secondary structure rules.
- *  Usually one would use this callback to fill the dynamic programming matrices @p B and
- *  preparations of the auxiliary data structure #vrna_unstructured_domain_s.data
+ *  Use this function to bind a user-implemented grammar extension for unstructured
+ *  domains.
  *
- *  @image html   B_prod_rule.svg
- *  @image latex  B_prod_rule.eps
- *
- *  @ingroup domains_up
- *
- *  @param  vc    The #vrna_fold_compound_t data structure the callback should be bound to
- *  @param  rule  A pointer to a callback function for the @p B production rule
- */
-void  vrna_ud_set_prod_rule(vrna_fold_compound_t  *vc,
-                            vrna_callback_ud_production *rule);
-
-
-/**
- *  @brief Attach production rule for partition function
- *
- *  This function is the partition function companion of vrna_ud_set_prod_rule().
- *  Use it to bind a callback to fill the @p B production rule dynamic programming matrices
- *  and/or prepare the #vrna_unstructured_domain_s.data.
- *
- *  @image html   B_prod_rule.svg
- *  @image latex  B_prod_rule.eps
- *
- *  @ingroup domains_up
- *
- *  @param  vc    The #vrna_fold_compound_t data structure the callback should be bound to
- *  @param  rule  A pointer to a callback function for the @p B production rule
- */
-void  vrna_ud_set_exp_prod_rule(vrna_fold_compound_t  *vc,
-                                vrna_callback_ud_exp_production *rule);
-
-
-/**
- *  @brief Attach evaluation function for free energies
- *
- *  Use this function to bind a user-implemented binding free energy evaluation
- *  callback. The callback @f$f(i,j)@f$ has to evaluate the free energy contribution of
- *  the unpaired segment @f$[i,j]@f$ and is executed in each of the regular secondary
+ *  The callback @p e_cb needs to evaluate the free energy contribution @f$f(i,j)@f$ of
+ *  the unpaired segment @f$[i,j]@f$. It will be executed in each of the regular secondary
  *  structure production rules. Whenever the callback is passed the #VRNA_UNSTRUCTURED_DOMAIN_MOTIF
  *  flag via its @p loop_type parameter the contribution of any ligand that consecutively
  *  binds from position @f$i@f$ to @f$j@f$ (the white box) is requested. Otherwise, the callback
@@ -315,31 +288,56 @@ void  vrna_ud_set_exp_prod_rule(vrna_fold_compound_t  *vc,
  *  @image html   ligands_up_callback.svg
  *  @image latex  ligands_up_callback.eps
  *
+ *  The @p pre_cb callback will be executed as a pre-processing step right before the
+ *  regular secondary structure rules. Usually one would use this callback to fill the
+ *  dynamic programming matrices @p U and preparations of the auxiliary data structure
+ *  #vrna_unstructured_domain_s.data
+ *
+ *  @image html   B_prod_rule.svg
+ *  @image latex  B_prod_rule.eps
+ *
  *  @ingroup domains_up
  *
- *  @param  vc  The #vrna_fold_compound_t data structure the callback should be bound to
- *  @param  e   A pointer to a callback function for free energy evaluation
+ *  @param  vc      The #vrna_fold_compound_t data structure the callback will be bound to
+ *  @param  pre_cb  A pointer to a callback function for the @p B production rule
+ *  @param  e_cb    A pointer to a callback function for free energy evaluation
  */
-void  vrna_ud_set_energy( vrna_fold_compound_t *vc,
-                          vrna_callback_ud_energy *e);
+void vrna_ud_set_prod_rule_cb(vrna_fold_compound_t        *vc,
+                              vrna_callback_ud_production *pre_cb,
+                              vrna_callback_ud_energy     *e_cb);
+
 
 /**
- *  @brief Attach evaluation function for Boltzmann factors
+ *  @brief Attach production rule for partition function
  *
- *  This is the partition function variant of vrna_ud_set_energy().
+ *  This function is the partition function companion of vrna_ud_set_prod_rule_cb().
  *
- *  @see vrna_ud_set_energy()
+ *  Use it to bind callbacks to (i) fill the @p U production rule dynamic programming
+ *  matrices and/or prepare the #vrna_unstructured_domain_s.data, and (ii) provide a callback
+ *  to retrieve partition functions for subsegments @f$ [i,j] @f$.
+ *
+ *  @image html   B_prod_rule.svg
+ *  @image latex  B_prod_rule.eps
  *
  *  @image html   ligands_up_callback.svg
  *  @image latex  ligands_up_callback.eps
  *
  *  @ingroup domains_up
  *
- *  @param  vc  The #vrna_fold_compound_t data structure the callback should be bound to
- *  @param  e   A pointer to callback that compute the partition function for a segment
- *              @f$[i,j]@f$ that may be bound by one or more ligands.
+ *  @see vrna_ud_set_prod_rule_cb()
+ *
+ *  @param  vc        The #vrna_fold_compound_t data structure the callback will be bound to
+ *  @param  pre_cb    A pointer to a callback function for the @p B production rule
+ *  @param  exp_e_cb  A pointer to a callback function that retrieves the partition function
+ *                    for a segment @f$[i,j]@f$ that may be bound by one or more ligands.
  */
-void  vrna_ud_set_exp_energy( vrna_fold_compound_t *vc,
-                              vrna_callback_ud_exp_energy *exp_e);
+void  vrna_ud_set_exp_prod_rule_cb( vrna_fold_compound_t            *vc,
+                                    vrna_callback_ud_exp_production *pre_cb,
+                                    vrna_callback_ud_exp_energy     *exp_e_cb);
+
+
+void  vrna_ud_set_prob_cb(vrna_fold_compound_t        *vc,
+                          vrna_callback_ud_probs_add  *setter,
+                          vrna_callback_ud_probs_get  *getter);
 
 #endif

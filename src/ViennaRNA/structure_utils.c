@@ -877,16 +877,16 @@ wrap_plist( vrna_fold_compound_t *vc,
     vrna_ud_t *domains_up;
     domains_up = vc->domains_up;
 
-    if(domains_up->outside_get)
+    if(domains_up->probs_get)
       for(i = 1; i <= length; i++)
         for(m = 0; m < domains_up->motif_count; m++){
           FLT_OR_DBL pp;
           j = i + domains_up->motif_size[m] - 1;
           pp = 0.;
-          pp += domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, m, domains_up->data);
-          pp += domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, m, domains_up->data);
-          pp += domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, m, domains_up->data);
-          pp += domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, m, domains_up->data);
+          pp += domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, m, domains_up->data);
+          pp += domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, m, domains_up->data);
+          pp += domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, m, domains_up->data);
+          pp += domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, m, domains_up->data);
           if(pp >= (FLT_OR_DBL)cut_off){
 
             /* do we need to allocate more memory? */

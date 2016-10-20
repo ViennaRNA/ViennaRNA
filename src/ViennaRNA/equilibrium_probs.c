@@ -144,7 +144,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   expMLbase         = matrices->expMLbase;
 
   with_ud           = (domains_up && domains_up->exp_energy_cb) ? 1 : 0;
-  with_ud_outside   = (with_ud && domains_up->outside_add) ? 1 : 0;
+  with_ud_outside   = (with_ud && domains_up->probs_add) ? 1 : 0;
 
   FLT_OR_DBL  expMLstem         = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
   char        *hard_constraints = hc->matrix;
@@ -744,19 +744,19 @@ pf_create_bppm( vrna_fold_compound_t *vc,
       for(j = i; j <= n; j++){
         FLT_OR_DBL p, pp;
         pp = 0.;
-        p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, 0, domains_up->data);
+        p = domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, 0, domains_up->data);
         if(p > 0.)
           printf("p_ext[0][%d,%d] = %g\n", i, j, p);
         pp += p;
-        p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, 0, domains_up->data);
+        p = domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, 0, domains_up->data);
         pp += p;
         if(p > 0.)
           printf("p_hp[0][%d,%d] = %g\n", i, j, p);
-        p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, 0, domains_up->data);
+        p = domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, 0, domains_up->data);
         pp += p;
         if(p > 0.)
           printf("p_int[0][%d,%d] = %g\n", i, j, p);
-        p = domains_up->outside_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, 0, domains_up->data);
+        p = domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, 0, domains_up->data);
         pp += p;
         if(p > 0.)
           printf("p_ml[0][%d,%d] = %g\n", i, j, p);
@@ -809,11 +809,11 @@ ud_outside_ext_loops( vrna_fold_compound_t *vc){
             temp *= scale[u];
 
             if(temp > 0.)
-              domains_up->outside_add(vc,
-                                      i, j,
-                                      VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
-                                      temp,
-                                      domains_up->data);
+              domains_up->probs_add(vc,
+                                    i, j,
+                                    VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                    temp,
+                                    domains_up->data);
           }
         }
         cnt++;
@@ -900,11 +900,11 @@ ud_outside_hp_loops( vrna_fold_compound_t *vc){
         }
 
         if(outside > 0.)
-          domains_up->outside_add(vc,
-                                  i, j,
-                                  VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
-                                  outside,
-                                  domains_up->data);
+          domains_up->probs_add(vc,
+                                i, j,
+                                VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                outside,
+                                domains_up->data);
 
         cnt++;
       }
@@ -1065,11 +1065,11 @@ ud_outside_int_loops( vrna_fold_compound_t *vc){
         }
 
         if(outside > 0.)
-          domains_up->outside_add(vc,
-                                  i, j,
-                                  VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
-                                  outside,
-                                  domains_up->data);
+          domains_up->probs_add(vc,
+                                i, j,
+                                VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                outside,
+                                domains_up->data);
 
         cnt++;
       }
@@ -1357,11 +1357,11 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc){
         }
 
         if(outside > 0.)
-          domains_up->outside_add(vc,
-                                  i, j,
-                                  VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
-                                  outside,
-                                  domains_up->data);
+          domains_up->probs_add(vc,
+                                i, j,
+                                VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                outside,
+                                domains_up->data);
 
         cnt++;
       }

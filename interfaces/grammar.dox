@@ -18,28 +18,22 @@ This function is attached as method @b ud_remove() to objects of type @em fold_c
 This function is attached as method @b ud_set_data() to objects of type @em fold_compound
 @endparblock
 
-@fn void vrna_ud_set_prod_rule(vrna_fold_compound_t  *vc, vrna_callback_ud_production *rule)
+@fn void vrna_ud_set_prod_rule_cb(vrna_fold_compound_t *vc, vrna_callback_ud_production *pre_cb, vrna_callback_ud_energy *e_cb)
 @scripting
 @parblock
-This function is attached as method @b ud_set_prod_rule() to objects of type @em fold_compound
+This function is attached as method @b ud_set_prod_rule_cb() to objects of type @em fold_compound
 @endparblock
 
-@fn void vrna_ud_set_exp_prod_rule(vrna_fold_compound_t  *vc, vrna_callback_ud_exp_production *rule)
+@fn void vrna_ud_set_exp_prod_rule_cb(vrna_fold_compound_t *vc, vrna_callback_ud_exp_production *pre_cb, vrna_callback_ud_exp_energy *exp_e_cb)
 @scripting
 @parblock
-This function is attached as method @b ud_set_exp_prod_rule() to objects of type @em fold_compound
+This function is attached as method @b ud_set_exp_prod_rule_cb() to objects of type @em fold_compound
 @endparblock
 
-@fn void  vrna_ud_set_energy(vrna_fold_compound_t *vc, vrna_callback_ud_energy *e)
+@fn void vrna_ud_set_prob_cb(vrna_fold_compound_t *vc, vrna_callback_ud_probs_add  *setter, vrna_callback_ud_probs_get  *getter)
 @scripting
 @parblock
-This function is attached as method @b ud_set_energy() to objects of type @em fold_compound
-@endparblock
-
-@fn void  vrna_ud_set_exp_energy(vrna_fold_compound_t *vc, vrna_callback_ud_exp_energy *exp_e)
-@scripting
-@parblock
-This function is attached as method @b ud_set_exp_energy() to objects of type @em fold_compound
+This function is attached as method @b ud_set_prob_cb() to objects of type @em fold_compound
 @endparblock
 
 */

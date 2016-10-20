@@ -119,8 +119,8 @@ PRIVATE void        default_prod_rule(vrna_fold_compound_t *vc, void *d);
 PRIVATE void        default_exp_prod_rule(vrna_fold_compound_t *vc, void *d);
 PRIVATE int         default_energy(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, void *d);
 PRIVATE FLT_OR_DBL  default_exp_energy( vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, void *d);
-PRIVATE void        default_outside_add(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, FLT_OR_DBL exp_energy, void *data);
-PRIVATE FLT_OR_DBL  default_outside_get(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, int motif, void *data);
+PRIVATE void        default_probs_add(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, FLT_OR_DBL exp_energy, void *data);
+PRIVATE FLT_OR_DBL  default_probs_get(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, int motif, void *data);
 
 /* helper functions for default implementatations of unstructured domains feature */
 PRIVATE int         default_energy_ext_motif(int i, int j, struct ligands_up_data_default *data);
@@ -155,9 +155,9 @@ vrna_ud_remove( vrna_fold_compound_t *vc){
 }
 
 PUBLIC void
-vrna_ud_set_data( vrna_fold_compound_t  *vc,
-                          void *data,
-                          vrna_callback_free_auxdata  *free){
+vrna_ud_set_data( vrna_fold_compound_t                *vc,
+                          void                        *data,
+                          vrna_callback_free_auxdata  *free_cb){
 
   if(vc){
     /* init if not already present */
@@ -169,14 +169,15 @@ vrna_ud_set_data( vrna_fold_compound_t  *vc,
       vc->domains_up->free_data(vc->domains_up->data);
 
     /* set new data and free callback */
-    vc->domains_up->free_data = free;
+    vc->domains_up->free_data = free_cb;
     vc->domains_up->data      = data;
   }
 }
 
 PUBLIC void
-vrna_ud_set_prod_rule(vrna_fold_compound_t  *vc,
-                              vrna_callback_ud_production *rule){
+vrna_ud_set_prod_rule_cb( vrna_fold_compound_t        *vc,
+                          vrna_callback_ud_production *pre_cb,
+                          vrna_callback_ud_energy     *e_cb){
 
   if(vc){
     /* init if not already present */
@@ -184,13 +185,15 @@ vrna_ud_set_prod_rule(vrna_fold_compound_t  *vc,
       init_ligands_up(vc);
 
     /* set new callback */
-    vc->domains_up->prod_cb = rule;
+    vc->domains_up->prod_cb   = pre_cb;
+    vc->domains_up->energy_cb = e_cb;
   }
 }
 
 PUBLIC void
-vrna_ud_set_exp_prod_rule(vrna_fold_compound_t  *vc,
-                                  vrna_callback_ud_exp_production *rule){
+vrna_ud_set_exp_prod_rule_cb( vrna_fold_compound_t            *vc,
+                              vrna_callback_ud_exp_production *pre_cb,
+                              vrna_callback_ud_exp_energy     *exp_e_cb){
 
   if(vc){
     /* init if not already present */
@@ -198,13 +201,16 @@ vrna_ud_set_exp_prod_rule(vrna_fold_compound_t  *vc,
       init_ligands_up(vc);
 
     /* set new callback */
-    vc->domains_up->exp_prod_cb = rule;
+    vc->domains_up->exp_prod_cb   = pre_cb;
+    vc->domains_up->exp_energy_cb = exp_e_cb;
   }
 }
 
+
 PUBLIC void
-vrna_ud_set_energy( vrna_fold_compound_t *vc,
-                            vrna_callback_ud_energy *e){
+vrna_ud_set_prob_cb(vrna_fold_compound_t        *vc,
+                    vrna_callback_ud_probs_add  *setter,
+                    vrna_callback_ud_probs_get  *getter){
 
   if(vc){
     /* init if not already present */
@@ -212,42 +218,24 @@ vrna_ud_set_energy( vrna_fold_compound_t *vc,
       init_ligands_up(vc);
 
     /* set new callback */
-    vc->domains_up->energy_cb = e;
+    vc->domains_up->probs_add = setter;
+    vc->domains_up->probs_get = getter;
   }
 }
 
 PUBLIC void
-vrna_ud_set_exp_energy( vrna_fold_compound_t *vc,
-                                vrna_callback_ud_exp_energy *exp_e){
-
-  if(vc){
-    /* init if not already present */
-    if(!vc->domains_up)
-      init_ligands_up(vc);
-
-    /* set new callback */
-    vc->domains_up->exp_energy_cb = exp_e;
-  }
-}
-
-PUBLIC void
-vrna_ud_add_motif(vrna_fold_compound_t*vc,
-                  const char *motif,
-                  double motif_en,
-                  unsigned int loop_type){
+vrna_ud_add_motif(vrna_fold_compound_t  *vc,
+                  const char            *motif,
+                  double                motif_en,
+                  unsigned int          loop_type){
 
   if(vc){
     if(!vc->domains_up){
-      init_ligands_up(vc);
-      /* set all callbacks and stuff to default settings */
-      vc->domains_up->prod_cb       = &default_prod_rule;
-      vc->domains_up->exp_prod_cb   = &default_exp_prod_rule;
-      vc->domains_up->energy_cb     = &default_energy;
-      vc->domains_up->exp_energy_cb = &default_exp_energy;
-      vc->domains_up->data          = get_default_data();
-      vc->domains_up->free_data     = &remove_default_data;
-      vc->domains_up->outside_add   = &default_outside_add;
-      vc->domains_up->outside_get   = &default_outside_get;
+      /* set all default callbacks */
+      vrna_ud_set_prod_rule_cb(vc, &default_prod_rule, &default_energy);
+      vrna_ud_set_exp_prod_rule_cb(vc, &default_exp_prod_rule, &default_exp_energy);
+      vrna_ud_set_data(vc, get_default_data(), &remove_default_data);
+      vrna_ud_set_prob_cb(vc, &default_probs_add, &default_probs_get);
     }
     add_ligand_motif(vc, motif, motif_en, loop_type);
   }
@@ -255,7 +243,9 @@ vrna_ud_add_motif(vrna_fold_compound_t*vc,
 
 
 PUBLIC int *
-vrna_ud_get_motif_size_at(vrna_fold_compound_t *vc, int i, unsigned int loop_type){
+vrna_ud_get_motif_size_at(vrna_fold_compound_t  *vc,
+                          int                   i,
+                          unsigned int          loop_type){
 
   if(vc && vc->domains_up){
     int k, l, cnt, *ret, *ptr;
@@ -292,9 +282,9 @@ vrna_ud_get_motif_size_at(vrna_fold_compound_t *vc, int i, unsigned int loop_typ
 }
 
 PUBLIC int *
-vrna_ud_get_motifs_at(vrna_fold_compound_t *vc,
-                      int i,
-                      unsigned int loop_type){
+vrna_ud_get_motifs_at(vrna_fold_compound_t  *vc,
+                      int                   i,
+                      unsigned int          loop_type){
 
   if(vc && vc->domains_up){
     if((i > 0) && (i <= vc->length)){
@@ -305,8 +295,8 @@ vrna_ud_get_motifs_at(vrna_fold_compound_t *vc,
 }
 
 vrna_ud_motif_t *
-vrna_ud_detect_motifs(vrna_fold_compound_t *vc,
-                      const char *structure){
+vrna_ud_detect_motifs(vrna_fold_compound_t  *vc,
+                      const char            *structure){
 
   int list_size, list_pos;
   vrna_ud_motif_t *motif_list;
@@ -429,8 +419,8 @@ init_ligands_up(vrna_fold_compound_t *vc){
   vc->domains_up->exp_energy_cb     = NULL;
   vc->domains_up->data              = NULL;
   vc->domains_up->free_data         = NULL;
-  vc->domains_up->outside_add       = NULL;
-  vc->domains_up->outside_get       = NULL;
+  vc->domains_up->probs_add         = NULL;
+  vc->domains_up->probs_get         = NULL;
 }
 
 /*
@@ -1341,12 +1331,12 @@ default_exp_energy_mb_motif(int i,
 }
 
 PRIVATE void
-default_outside_add(vrna_fold_compound_t *vc,
-                    int i,
-                    int j,
-                    unsigned int loop_type,
-                    FLT_OR_DBL exp_energy,
-                    void *data){
+default_probs_add(vrna_fold_compound_t *vc,
+                  int i,
+                  int j,
+                  unsigned int loop_type,
+                  FLT_OR_DBL exp_energy,
+                  void *data){
 
   int                             **motif_list, k, l, m;
   unsigned int                    *size, *cnt, o;
@@ -1388,7 +1378,6 @@ default_outside_add(vrna_fold_compound_t *vc,
         for(o = 0; o < *size; o++)
           if((*storage)[o].motif_num == m){ /* found previously added motif constribution */
             (*storage)[o].exp_energy += exp_energy;
-            //printf("p[%d][%d,%d] += %g\n", m, i, i + d->len[m] - 1, exp_energy);
             break;
           }
 
@@ -1397,7 +1386,6 @@ default_outside_add(vrna_fold_compound_t *vc,
           *storage = (struct default_outside *)vrna_realloc(*storage, sizeof(struct default_outside) * (*size + 1));
           (*storage)[*size].motif_num   = m;
           (*storage)[*size].exp_energy  = exp_energy;
-          //printf("p[%d][%d,%d] = %g\n", m, i, i + d->len[m] - 1, exp_energy);
           (*size)++;
         }
       }
@@ -1452,7 +1440,6 @@ default_outside_add(vrna_fold_compound_t *vc,
           for(o = 0; o < *cnt; o++)
             if((*st)[o].motif_num == m){ /* found previously added motif constribution */
               (*st)[o].exp_energy += p * exp_energy;
-              //printf("p[%d][%d,%d] += %g\n", m, k, k + d->len[m] - 1, p * exp_energy);
               break;
             }
 
@@ -1461,7 +1448,6 @@ default_outside_add(vrna_fold_compound_t *vc,
             *st = (struct default_outside *)vrna_realloc(*st, sizeof(struct default_outside) * (*cnt + 1));
             (*st)[*cnt].motif_num   = m;
             (*st)[*cnt].exp_energy  = p * exp_energy;
-            //printf("p[%d][%d,%d] = %g\n", m, k, k + d->len[m] - 1, p * exp_energy);
             (*cnt)++;
           }
         }
@@ -1472,12 +1458,12 @@ default_outside_add(vrna_fold_compound_t *vc,
 }
 
 PRIVATE FLT_OR_DBL
-default_outside_get(vrna_fold_compound_t *vc,
-                    int i,
-                    int j,
-                    unsigned int loop_type,
-                    int motif,
-                    void *data){
+default_probs_get(vrna_fold_compound_t *vc,
+                  int i,
+                  int j,
+                  unsigned int loop_type,
+                  int motif,
+                  void *data){
 
   FLT_OR_DBL                      outside = 0.;
   unsigned int                    *size, k;
