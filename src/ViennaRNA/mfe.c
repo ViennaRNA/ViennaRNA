@@ -136,19 +136,7 @@ vrna_mfe( vrna_fold_compound_t *vc,
       ss = vrna_db_from_bp_stack(bp, length);
       strncpy(structure, ss, length + 1);
       free(ss);
-
-#ifdef  VRNA_BACKWARD_COMPAT
-      /*
-      *  Backward compatibility:
-      *  This block may be removed if deprecated functions
-      *  relying on the global variable "base_pair" vanish from within the package!
-      */
-      {
-        if(base_pair) free(base_pair);
-        base_pair = bp;
-      }
-#endif
-
+      free(bp);
     }
 
     if (vc->params->model_details.backtrack_type=='C')
@@ -577,7 +565,15 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
                               sect bt_stack[],
                               int s){
 
-  backtrack(vc, bp_stack, bt_stack, s);
+  if(vc){
+    switch(vc->type){
+      case VRNA_FC_TYPE_SINGLE:       backtrack(vc, bp_stack, bt_stack, s);
+                                      break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:  backtrack_comparative(vc, bp_stack, bt_stack, s);
+                                      break;
+    }
+  }
 }
 
 /**
@@ -1230,7 +1226,7 @@ backtrack_comparative(vrna_fold_compound_t *vc,
               /* check for contribution */
               if(ggg[indx[j]+i] == E_gquad_ali(i, L, l, (const short **)S, n_seq, P)){
                 int a;
-                /* fill the G's of the quadruplex into base_pair2 */
+                /* fill the G's of the quadruplex into base pair stack */
                 for(a=0;a<L;a++){
                   bp_stack[++b].i = i+a;
                   bp_stack[b].j   = i+a;

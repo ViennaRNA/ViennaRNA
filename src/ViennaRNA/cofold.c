@@ -119,8 +119,8 @@ vrna_cofold(const char *seq,
 }
 
 PUBLIC float
-vrna_mfe_dimer(vrna_fold_compound_t  *vc,
-            char                *structure){
+vrna_mfe_dimer( vrna_fold_compound_t  *vc,
+                char                  *structure){
 
   int     length, energy;
   char    *s;
@@ -151,21 +151,7 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
     s = vrna_db_from_bp_stack(bp, length);
     strncpy(structure, s, length + 1);
     free(s);
-
-#ifdef  VRNA_BACKWARD_COMPAT
-
-    /*
-    *  Backward compatibility:
-    *  This block may be removed if deprecated functions
-    *  relying on the global variable "base_pair" vanish from within the package!
-    */
-    {
-      if(base_pair) free(base_pair);
-      base_pair = bp;
-    }
-
-#endif
-
+    free(bp);
   }
 
   if (vc->params->model_details.backtrack_type=='C')
@@ -913,20 +899,6 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
     }
   }
 
-#ifdef  VRNA_BACKWARD_COMPAT
-
-  /*
-  *  Backward compatibility:
-  *  This block may be removed if deprecated functions
-  *  relying on the global variable "base_pair" vanish from within the package!
-  */
-  {
-    if(base_pair) free(base_pair);
-    base_pair = bp_list;
-  }
-
-#endif
-
   /* clean up */
   free(pairlist);
   for (i=1; i<length; i++)
@@ -934,6 +906,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   free(todo);
   free(structure);
   free(mfestructure);
+  free(bp_list);
 
   /* undo magic */
   halfseq(vc);
@@ -1039,7 +1012,29 @@ wrap_cofold(const char *string,
   /* cleanup */
   free(seq);
 
-  return vrna_mfe_dimer(vc, structure);
+  /* call mfe_dimer without backtracing */
+  mfe = vrna_mfe_dimer(vc, NULL);
+
+  /* now we backtrace in a backward compatible way */
+  if(structure && vc->params->model_details.backtrack){
+    char            *s;
+    sect            bt_stack[MAXSECTORS];
+    vrna_bp_stack_t *bp;
+
+    bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+
+    backtrack(bt_stack, bp, vc);
+
+    s = vrna_db_from_bp_stack(bp, length);
+    strncpy(structure, s, length + 1);
+    free(s);
+
+    if(base_pair)
+      free(base_pair);
+    base_pair = bp;
+  }
+
+  return mfe;
 }
 
 PRIVATE SOLUTION *
