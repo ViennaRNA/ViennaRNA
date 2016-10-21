@@ -16,8 +16,8 @@ int main(int argc, char *argv[]){
   char  *mfe_structure = vrna_alloc(sizeof(char) * (strlen(seq) + 1));
   char  *prob_string   = vrna_alloc(sizeof(char) * (strlen(seq) + 1));
 
-  /* get a vrna_fold_compound with MFE and PF DP matrices and default model details */
-  vrna_fold_compound_t *vc = vrna_fold_compound(seq, NULL, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+  /* get a vrna_fold_compound with default settings */
+  vrna_fold_compound_t *vc = vrna_fold_compound(seq, NULL, VRNA_OPTION_DEFAULT);
 
   /* call MFE function */
   double mfe = (double)vrna_mfe(vc, mfe_structure);
