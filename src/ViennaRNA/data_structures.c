@@ -67,9 +67,9 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void            set_fold_compound(vrna_fold_compound_t *vc, vrna_md_t *md_p, unsigned int options, unsigned int aux);
-PRIVATE void            make_pscores(vrna_fold_compound_t *vc);
-PRIVATE void            add_params(vrna_fold_compound_t *vc, vrna_md_t *md_p, unsigned int options);
+PRIVATE void  set_fold_compound(vrna_fold_compound_t *vc, vrna_md_t *md_p, unsigned int options, unsigned int aux);
+PRIVATE void  make_pscores(vrna_fold_compound_t *vc);
+PRIVATE void  add_params(vrna_fold_compound_t *vc, vrna_md_t *md_p, unsigned int options);
 
 
 /*
@@ -172,7 +172,10 @@ vrna_fold_compound( const char *sequence,
   /* sanity check */
   length = strlen(sequence);
   if(length == 0)
-    vrna_message_error("vrna_fold_compound: sequence length must be greater 0");
+    vrna_message_error("vrna_fold_compound@data_structures.c: sequence length must be greater 0");
+
+  if(length > vrna_sequence_length_max(options))
+    vrna_message_error("vrna_fold_compound@data_structures.c: sequence length of %d exceeds addressable range", length);
 
   vc            = vrna_alloc(sizeof(vrna_fold_compound_t));
   vc->type      = VRNA_FC_TYPE_SINGLE;
@@ -257,10 +260,13 @@ vrna_fold_compound_comparative( const char **sequences,
   length = strlen(sequences[0]);
   /* sanity check */
   if(length == 0)
-    vrna_message_error("vrna_fold_compound_comparative: sequence length must be greater 0");
+    vrna_message_error("vrna_fold_compound_comparative@data_structures.c: sequence length must be greater 0");
+  else if(length > vrna_sequence_length_max(options))
+    vrna_message_error("vrna_fold_compound_comparative@data_structures.c: sequence length of %d exceeds addressable range", length);
+
   for(s = 0; s < n_seq; s++)
     if(strlen(sequences[s]) != length)
-      vrna_message_error("vrna_fold_compound_comparative: uneqal sequence lengths in alignment");
+      vrna_message_error("vrna_fold_compound_comparative@data_structures.c: uneqal sequence lengths in alignment");
 
   vc            = vrna_alloc(sizeof(vrna_fold_compound_t));
   vc->type      = VRNA_FC_TYPE_COMPARATIVE;
@@ -316,6 +322,8 @@ vrna_fold_compound_TwoD(const char *sequence,
   length = strlen(sequence);
   if(length == 0)
     vrna_message_error("vrna_fold_compound_TwoD: sequence length must be greater 0");
+  else if(length > vrna_sequence_length_max(options))
+    vrna_message_error("vrna_fold_compound_TwoD@data_structures.c: sequence length of %d exceeds addressable range", length);
 
   l = strlen(s1);
   if(l != length)
@@ -395,6 +403,12 @@ PUBLIC int
 vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
                             unsigned int options){
   int ret = 1; /* success */
+
+  /* check maximum sequence length restrictions */
+  if(vc->length > vrna_sequence_length_max(options)){
+    vrna_message_warning("vrna_fold_compound_prepare@data_structures.c: sequence length of %d exceeds addressable range", vc->length);
+    return 0;
+  }
 
   if(options & VRNA_OPTION_MFE){   /* prepare for MFE computation */
     switch(vc->type){
@@ -584,8 +598,13 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   break;
   }
 
-  vc->iindx = vrna_idx_row_wise(vc->length);
-  vc->jindx = vrna_idx_col_wise(vc->length);
+  if(vc->length <= vrna_sequence_length_max(options)){
+    vc->iindx = vrna_idx_row_wise(vc->length);
+    vc->jindx = vrna_idx_col_wise(vc->length);
+  } else {
+    vc->iindx = NULL;
+    vc->jindx = NULL;
+  }
 
   /* now come the energy parameters */
   add_params(vc, md_p, options);

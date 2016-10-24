@@ -169,7 +169,11 @@ vrna_pf_dimer(vrna_fold_compound_t *vc,
   vrna_exp_param_t  *params;
   vrna_mx_pf_t      *matrices;
 
-  vrna_fold_compound_prepare(vc, VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+  if(!vrna_fold_compound_prepare(vc, VRNA_OPTION_PF | VRNA_OPTION_HYBRID)){
+    vrna_message_warning("vrna_pf_dimer@part_func_co.c: Failed to prepare vrna_fold_compound");
+    X.FA = X.FB = X.FAB = X.F0AB = X.FcAB  = 0;
+    return X;
+  }
 
   params    = vc->exp_params;
   n         = vc->length;

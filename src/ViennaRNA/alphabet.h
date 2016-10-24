@@ -28,6 +28,8 @@
 
 #include <ViennaRNA/model.h>
 
+unsigned int vrna_sequence_length_max(unsigned int options);
+
 int vrna_nucleotide_IUPAC_identity(char a, char b);
 
 /**

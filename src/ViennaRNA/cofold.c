@@ -131,7 +131,10 @@ vrna_mfe_dimer( vrna_fold_compound_t  *vc,
 
   vc->sequence_encoding[0] = vc->sequence_encoding2[0]; /* store length at pos. 0 in S1 too */
 
-  vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  if(!vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID)){
+    vrna_message_warning("vrna_mfe_dimer@cofold.c: Failed to prepare vrna_fold_compound");
+    return (float)(INF/100.);
+  }
 
   /* call user-defined recursion status callback function */
   if(vc->stat_cb)
@@ -819,7 +822,12 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   md->min_loop_size = 0;
   doubleseq(vc);
 
-  vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  if(!vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID)){
+    vrna_message_warning("vrna_subopt_zuker@cofold.c: Failed to prepare vrna_fold_compound");
+    return NULL;
+  }
+
+
 
   doublelength    = vc->length;
   length          = doublelength/2;

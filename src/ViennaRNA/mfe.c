@@ -89,7 +89,10 @@ vrna_mfe( vrna_fold_compound_t *vc,
   if(vc){
     length  = (int) vc->length;
 
-    vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE);
+    if(!vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE)){
+      vrna_message_warning("vrna_mfe@mfe.c: Failed to prepare vrna_fold_compound");
+      return mfe;
+    }
 
     /* call user-defined recursion status callback function */
     if(vc->stat_cb)

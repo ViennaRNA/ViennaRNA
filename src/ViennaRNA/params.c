@@ -247,9 +247,9 @@ vrna_exp_params_rescale(vrna_fold_compound_t *vc,
         pf->pf_scale = exp(-(md->sfact * *mfe)/ kT / vc->length);
       } else if(pf->pf_scale < 1.){  /* mean energy for random sequences: 184.3*length cal */
         pf->pf_scale = exp(-(-185+(pf->temperature-37.)*7.27)/kT);
-        if(pf->pf_scale < 1.)
-          pf->pf_scale = 1.;
       }
+      if(pf->pf_scale < 1.)
+        pf->pf_scale = 1.;
       rescale_params(vc);
     }
   }

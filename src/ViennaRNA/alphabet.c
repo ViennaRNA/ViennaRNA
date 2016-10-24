@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <limits.h>
 
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/alphabet.h"
@@ -64,6 +65,26 @@ PRIVATE char  *wrap_get_ptypes(const short *S, vrna_md_t *md);  /* provides back
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
+
+PUBLIC unsigned int
+vrna_sequence_length_max(unsigned int options){
+
+  if(options & VRNA_OPTION_WINDOW)
+    return (unsigned int)INT_MAX;
+
+/*
+  return (unsigned int)sqrt((double)INT_MAX);
+*/
+  /*
+      many functions in RNAlib still rely on the sequence length
+      at pos 0 in the integer encoded sequence array S. Since this
+      encoding is stored in a short * array, the maximum length
+      of any sequence is SHRT_MAX
+  */
+  return (unsigned int)SHRT_MAX;
+}
+
+
 PUBLIC int
 vrna_nucleotide_IUPAC_identity( char nt,
                                 char mask){
@@ -124,6 +145,12 @@ vrna_ptypes(const short *S,
   int min_loop_size = md->min_loop_size;
 
   n     = S[0];
+
+  if((unsigned int)n > vrna_sequence_length_max(VRNA_OPTION_DEFAULT)){
+    vrna_message_warning("vrna_ptypes@alphabet.c: sequence length of %d exceeds addressable range", n);
+    return NULL;
+  }
+
   ptype = (char *)vrna_alloc(sizeof(char)*((n*(n+1))/2+2));
   idx   = vrna_idx_col_wise(n);
 
@@ -353,10 +380,19 @@ get_ptypes( const short *S,
             vrna_md_t *md,
             unsigned int idx_type){
 
-  if(idx_type)
-    return wrap_get_ptypes(S, md);
-  else
-    return vrna_ptypes(S, md);
+  if(S){
+    if((unsigned int)S[0] > vrna_sequence_length_max(VRNA_OPTION_DEFAULT)){
+      vrna_message_warning("get_ptypes@alphabet.c: sequence length of %d exceeds addressable range", (int)S[0]);
+      return NULL;
+    }
+
+    if(idx_type)
+      return wrap_get_ptypes(S, md);
+    else
+      return vrna_ptypes(S, md);
+  } else {
+    return NULL;
+  }
 }
 
 #endif

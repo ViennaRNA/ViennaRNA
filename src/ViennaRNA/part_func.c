@@ -160,8 +160,8 @@ vrna_pf_circfold( const char *seq,
 }
 
 PUBLIC float
-vrna_pf( vrna_fold_compound_t *vc,
-              char *structure){
+vrna_pf(vrna_fold_compound_t  *vc,
+        char                  *structure){
 
   int               n;
   FLT_OR_DBL        Q;
@@ -174,7 +174,10 @@ vrna_pf( vrna_fold_compound_t *vc,
 
   if(vc){
     /* make sure, everything is set up properly to start partition function computations */
-    vrna_fold_compound_prepare(vc, VRNA_OPTION_PF);
+    if(!vrna_fold_compound_prepare(vc, VRNA_OPTION_PF)){
+      vrna_message_warning("vrna_pf@part_func.c: Failed to prepare vrna_fold_compound");
+      return free_energy;
+    }
 
     n         = vc->length;
     params    = vc->exp_params;
