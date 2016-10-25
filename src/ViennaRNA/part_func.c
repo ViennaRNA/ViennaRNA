@@ -392,7 +392,10 @@ pf_linear(vrna_fold_compound_t *vc){
         }
 
         if(with_ud){
-          q[ij] += q[ij] * domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, domains_up->data);
+          q[ij] += q[ij] * domains_up->exp_energy_cb( vc,
+                                                      i, j,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
+                                                      domains_up->data);
         }
       } else {
         q[ij] = 0.;
@@ -451,7 +454,10 @@ pf_linear(vrna_fold_compound_t *vc){
             if(j - u >= i){
               if(hc_up_ml[j-u+1] >= u){
                 q_temp2 =   qqmu[u][i]
-                          * domains_up->exp_energy_cb(vc, j - u + 1, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data)
+                          * domains_up->exp_energy_cb(vc,
+                                                      j - u + 1, j,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                      domains_up->data)
                           * expMLbase[u];
 
                 if(sc){
@@ -525,7 +531,10 @@ pf_linear(vrna_fold_compound_t *vc){
 
             temp += q_temp;
             temp +=   q_temp
-                    * domains_up->exp_energy_cb(vc, i, k-1,VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, domains_up->data);
+                    * domains_up->exp_energy_cb(vc,
+                                                i, k - 1,
+                                                VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP,
+                                                domains_up->data);
           }
         } else {
           for (k=maxk; k>i; k--, ii--){
@@ -534,7 +543,10 @@ pf_linear(vrna_fold_compound_t *vc){
 
             temp += q_temp;
             temp +=   q_temp
-                    * domains_up->exp_energy_cb(vc, i, k-1,VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, domains_up->data);
+                    * domains_up->exp_energy_cb(vc,
+                                                i, k - 1,
+                                                VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP,
+                                                domains_up->data);
           }
         }
       } else {
@@ -579,7 +591,10 @@ pf_linear(vrna_fold_compound_t *vc){
             if(j - u >= i){
               if(hc_up_ext[j-u+1] >= u){
                 q_temp2 =   qqu[u][i]
-                          * domains_up->exp_energy_cb(vc, j-u+1, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data)
+                          * domains_up->exp_energy_cb(vc,
+                                                      j - u + 1, j,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                      domains_up->data)
                           * scale[u];
 
                 if(sc){
@@ -634,7 +649,10 @@ pf_linear(vrna_fold_compound_t *vc){
         temp += q_temp;
 
         if(with_ud){
-          temp += q_temp * domains_up->exp_energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, domains_up->data);
+          temp += q_temp * domains_up->exp_energy_cb( vc,
+                                                      i, j,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
+                                                      domains_up->data);
         }
 
       }

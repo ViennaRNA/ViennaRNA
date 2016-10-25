@@ -718,9 +718,15 @@ eval_interior_loop( vrna_fold_compound_t *vc,
   e5  = e3 = 0;
 
   if(u1 > 0)
-    e5 = domains_up->energy_cb(vc, i+1, p-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+    e5 = domains_up->energy_cb( vc,
+                                i+1, p-1,
+                                VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                domains_up->data);
   if(u2 > 0)
-    e3 = domains_up->energy_cb(vc, q+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+    e3 = domains_up->energy_cb( vc,
+                                q+1, j-1,
+                                VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                domains_up->data);
 
   e = MIN2(e, energy + e5);
   e = MIN2(e, energy + e3);
@@ -829,10 +835,16 @@ exp_E_int_loop( vrna_fold_compound_t *vc,
             qq5 = qq3 = 0.;
 
             if(u1 > 0)
-              qq5 = domains_up->exp_energy_cb(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+              qq5 = domains_up->exp_energy_cb(vc,
+                                              i + 1, k - 1,
+                                              VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                              domains_up->data);
 
             if(u2 > 0)
-              qq3 = domains_up->exp_energy_cb(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+              qq3 = domains_up->exp_energy_cb(vc,
+                                              l + 1, j - 1,
+                                              VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                              domains_up->data);
 
             qbt1 += q_temp * qq5;       /* only motifs in 5' part */
             qbt1 += q_temp * qq3;       /* only motifs in 3' part */
@@ -977,10 +989,16 @@ exp_E_interior_loop(vrna_fold_compound_t *vc,
       qq5 = qq3 = 0.;
 
       if(u1 > 0)
-        qq5 = domains_up->exp_energy_cb(vc, i+1, k-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+        qq5 = domains_up->exp_energy_cb(vc,
+                                        i + 1, k - 1,
+                                        VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                        domains_up->data);
 
       if(u2 > 0)
-        qq3 = domains_up->exp_energy_cb(vc, l+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, domains_up->data);
+        qq3 = domains_up->exp_energy_cb(vc,
+                                        l + 1, j - 1,
+                                        VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                        domains_up->data);
 
       qbt1 += q_temp * qq5;       /* only motifs in 5' part */
       qbt1 += q_temp * qq3;       /* only motigs in 3' part */

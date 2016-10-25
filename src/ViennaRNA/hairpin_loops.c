@@ -280,7 +280,10 @@ vrna_eval_hp_loop(vrna_fold_compound_t *vc,
 
                                   /* consider possible ligand binding */
                                   if(domains_up && domains_up->energy_cb){
-                                    en = domains_up->energy_cb(vc, i+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
+                                    en = domains_up->energy_cb( vc,
+                                                                i + 1, j - 1,
+                                                                VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
+                                                                domains_up->data);
                                     if(en != INF){
                                       en += e;
                                     }
@@ -457,7 +460,10 @@ exp_eval_hp_loop( vrna_fold_compound_t *vc,
                                   q *= scale[u+2];
 
                                   if(domains_up && domains_up->exp_energy_cb){ /* we always consider both, bound and unbound state */
-                                    q += q * domains_up->exp_energy_cb(vc, i+1, j-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
+                                    q += q * domains_up->exp_energy_cb( vc,
+                                                                        i + 1, j - 1,
+                                                                        VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
+                                                                        domains_up->data);
                                   }
 
 
@@ -578,7 +584,10 @@ exp_eval_ext_hp_loop( vrna_fold_compound_t *vc,
                                   q *= scale[u];
 
                                   if(domains_up && domains_up->exp_energy_cb){ /* we always consider both, bound and unbound state */
-                                    q += q * domains_up->exp_energy_cb(vc, j+1, i-1, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, domains_up->data);
+                                    q += q * domains_up->exp_energy_cb( vc,
+                                                                        j + 1, i - 1,
+                                                                        VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
+                                                                        domains_up->data);
                                   }
 
 

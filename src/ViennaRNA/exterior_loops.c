@@ -216,7 +216,10 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
 #endif
             if(eval_loop){
               en =    f5[i-1]
-                    + domains_up->energy_cb(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, domains_up->data);
+                    + domains_up->energy_cb(vc,
+                                            i, j,
+                                            VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
+                                            domains_up->data);
               if(sc){
                 if(sc->energy_up)
                   en += sc->energy_up[i][u];
@@ -267,7 +270,10 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
 #endif
                       if(eval_loop){
                         en =    f5[j-u]
-                              + domains_up->energy_cb(vc, j - u + 1, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+                              + domains_up->energy_cb(vc,
+                                                      j - u + 1, j,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                      domains_up->data);
                         if(sc){
                           if(sc->energy_up)
                             en += sc->energy_up[j-u+1][u];
@@ -400,7 +406,10 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
 #endif
                       if(eval_loop){
                         en =    f5[j-u]
-                              + domains_up->energy_cb(vc, j - u + 1, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+                              + domains_up->energy_cb(vc,
+                                                      j - u + 1, j,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                      domains_up->data);
                         if(sc){
                           if(sc->energy_up)
                             en += sc->energy_up[j-u+1][u];
@@ -527,7 +536,10 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
 #endif
                     if(eval_loop){
                       en =    f5[length - u]
-                            + domains_up->energy_cb(vc, length - u + 1, length, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+                            + domains_up->energy_cb(vc,
+                                                    length - u + 1, length,
+                                                    VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                    domains_up->data);
                       if(sc){
                         if(sc->energy_up)
                           en += sc->energy_up[length - u + 1][u];
@@ -658,7 +670,10 @@ E_ext_loop_5( vrna_fold_compound_t *vc){
 #endif
                       if(eval_loop){
                         en =    f5[j-u]
-                              + domains_up->energy_cb(vc, j - u + 1, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+                              + domains_up->energy_cb(vc,
+                                                      j - u + 1, j,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                      domains_up->data);
                         if(sc){
                           if(sc->energy_up)
                             en += sc->energy_up[j-u+1][u];
@@ -1003,7 +1018,10 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
         u = domains_up->uniq_motif_size[cnt];
         ii = jj - u + 1;
         if(ii > 0){
-          en = domains_up->energy_cb(vc, ii, jj, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+          en = domains_up->energy_cb( vc,
+                                      ii, jj,
+                                      VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                      domains_up->data);
           if(sc){
             if(sc->energy_up)
               en += sc->energy_up[ii][u];
