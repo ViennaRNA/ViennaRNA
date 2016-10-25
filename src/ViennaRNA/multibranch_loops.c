@@ -749,7 +749,7 @@ extend_fm_3p( int i,
       for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
         u = domains_up->uniq_motif_size[cnt];
         k = j - u + 1;
-        if(ON_SAME_STRAND(j - u, j, cp)){
+        if((k > i) && ON_SAME_STRAND(j - u, j, cp)){
           eval_loop = (hc_up[k] >= u) ? (char)1 : (char)0;
 
 #ifdef WITH_GEN_HC
@@ -758,10 +758,13 @@ extend_fm_3p( int i,
 #endif
           if(eval_loop){
             if(fm[indx[k - 1] + i] != INF){
-              en = domains_up->energy_cb(vc, k, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+              en = domains_up->energy_cb( vc,
+                                          k, j,
+                                          VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                          domains_up->data);
               if(en != INF){
                 en +=   fm[indx[k - 1] + i]
-                      + P->MLbase;
+                      + u * P->MLbase;
 
                 if(sc){
                   if(sc->energy_up)
@@ -863,7 +866,7 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
       for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
         u = domains_up->uniq_motif_size[cnt];
         k = i + u - 1;
-        if(ON_SAME_STRAND(i, k + 1, cp)){
+        if((k < j) && ON_SAME_STRAND(i, k + 1, cp)){
           eval_loop = (hc_up[i] >= u) ? (char)1 : (char)0;
 
 #ifdef WITH_GEN_HC
@@ -873,10 +876,13 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
 
           if(eval_loop){
             if(fm[ij + u] != INF){
-              en = domains_up->energy_cb(vc, i, k, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+              en = domains_up->energy_cb( vc,
+                                          i, k,
+                                          VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                          domains_up->data);
               if(en != INF){
                 en +=   fm[ij + u]
-                      + P->MLbase;
+                      + u * P->MLbase;
 
                 if(sc){
                   if(sc->energy_up)
@@ -1830,7 +1836,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
         u = domains_up->uniq_motif_size[cnt];
         kk = jj - u + 1;
         if(kk >= ii){
-          en = domains_up->energy_cb(vc, kk, jj, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+          en = domains_up->energy_cb( vc,
+                                      kk, jj,
+                                      VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                      domains_up->data);
 
           if(sc){
             if(sc->energy_up)
@@ -1880,7 +1889,10 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
         u = domains_up->uniq_motif_size[cnt];
         kk = ii + u - 1;
         if(kk <= jj){
-          en = domains_up->energy_cb(vc, ii, kk, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF, domains_up->data);
+          en = domains_up->energy_cb( vc,
+                                      ii, kk,
+                                      VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                      domains_up->data);
 
           if(sc){
             if(sc->energy_up)

@@ -214,7 +214,7 @@ fill_arrays(vrna_fold_compound_t *vc){
 
   /* prefill matrices with init contributions */
   for(j = 1; j <= length; j++)
-    for(i = (j > turn ? (j - turn) : 1); i < j; i++){
+    for(i = (j > turn ? (j - turn) : 1); i <= j; i++){
       my_c[indx[j] + i] = my_fML[indx[j] + i] = INF;
       if(uniq_ML)
         my_fM1[indx[j] + i] = INF;
