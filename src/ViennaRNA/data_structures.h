@@ -37,6 +37,10 @@ typedef struct vrna_cpair_s  vrna_cpair_t;
 /** @brief Typename for stack of partial structures #vrna_sect_s */
 typedef struct vrna_sect_s  vrna_sect_t;
 
+typedef struct vrna_data_linear_s vrna_data_lin_t;
+
+typedef struct vrna_color_s vrna_color_t;
+
 /** @brief Typename for floating point number in partition function computations */
 #ifdef  USE_FLOAT_PF
 typedef float FLT_OR_DBL;
@@ -188,6 +192,18 @@ struct vrna_plist_s {
 struct vrna_cpair_s {
   int i,j,mfe;
   float p, hue, sat;
+};
+
+struct vrna_color_s {
+  float hue;
+  float sat;
+  float bri;
+};
+
+struct vrna_data_linear_s {
+  unsigned int  position;
+  float         value;
+  vrna_color_t  color;
 };
 
 

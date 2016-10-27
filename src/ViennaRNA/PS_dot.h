@@ -1,6 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_PS_DOT_H
 #define VIENNA_RNA_PACKAGE_PS_DOT_H
 
+
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/plot_structure.h>
 #include <ViennaRNA/plot_aln.h>
@@ -29,6 +30,48 @@
  *  @{
  *  @ingroup   plotting_utils
  */
+
+#define VRNA_PLOT_PROBABILITIES_BP        1U
+#define VRNA_PLOT_PROBABILITIES_ACC       2U
+
+#define VRNA_PLOT_PROBABILITIES_UD        4U
+#define VRNA_PLOT_PROBABILITIES_UD_LIN    8U
+
+#define VRNA_PLOT_PROBABILITIES_SD        16U
+
+#define VRNA_PLOT_PROBABILITIES_SC_MOTIF  32U
+#define VRNA_PLOT_PROBABILITIES_SC_UP     64U
+#define VRNA_PLOT_PROBABILITIES_SC_BP     128U
+
+#define VRNA_PLOT_PROBABILITIES_DEFAULT   (   VRNA_PLOT_PROBABILITIES_BP \
+                                            | VRNA_PLOT_PROBABILITIES_SD \
+                                            | VRNA_PLOT_PROBABILITIES_SC_MOTIF \
+                                            | VRNA_PLOT_PROBABILITIES_UD_LIN )
+typedef struct {
+  char            *comment;
+  char            *title;
+
+  vrna_data_lin_t **top;
+  char            **top_title;
+
+  vrna_data_lin_t **bottom;
+  char            **bottom_title;
+
+  vrna_data_lin_t **left;
+  char            **left_title;
+
+  vrna_data_lin_t **right;
+  char            **right_title;
+} vrna_dotplot_auxdata_t;
+
+
+int
+vrna_plot_dp_EPS( const char              *filename,
+                  const char              *sequence,
+                  vrna_plist_t            *upper,
+                  vrna_plist_t            *lower,
+                  vrna_dotplot_auxdata_t  *auxdata,
+                  unsigned int            options);
 
 int PS_color_dot_plot(char *string,
                       cpair *pi,
