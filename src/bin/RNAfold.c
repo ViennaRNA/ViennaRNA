@@ -611,8 +611,9 @@ int main(int argc, char *argv[]){
           else
             filename_dotplot = strdup("dot.ps");
 
-          if(filename_dotplot)
-            (void) PS_dot_plot_list(orig_sequence, filename_dotplot, pl1, pl2, "");
+          if(filename_dotplot){
+            vrna_plot_dp_EPS(filename_dotplot, orig_sequence, pl1, pl2, NULL, VRNA_PLOT_PROBABILITIES_DEFAULT);
+          }
           free(filename_dotplot);
 
           cent    = vrna_centroid(vc, &dist);
