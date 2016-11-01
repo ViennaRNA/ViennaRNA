@@ -962,6 +962,8 @@ ud_outside_int_loops( vrna_fold_compound_t *vc){
               for(p = j + 1; p < n; p++)
                 for(q = p + turn + 1; q < n; q++){
                   pq    = my_iindx[p] - q;
+                  if(qb[pq] == 0)
+                    continue;
                   lmax  =  k + MAXLOOP + q - p + 2;
                   lmax  = MIN2(lmax, n);
                   for(l = q + 1; l <= lmax; l++){
@@ -1014,6 +1016,8 @@ ud_outside_int_loops( vrna_fold_compound_t *vc){
                 qmin = MAX2(qmin, p + turn + 1);
                 for(q = i - 1; q >= qmin; q--){
                   pq    = my_iindx[p] - q;
+                  if(qb[pq] == 0.)
+                    continue;
                   lmax  = k + q - p + MAXLOOP + 2;
                   lmax  = MIN2(lmax, n);
                   for(l = j + 1; l < lmax; l++){
