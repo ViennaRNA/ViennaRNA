@@ -1,0 +1,157 @@
+0.72 (2006-10-17)
+=================
+- fixed Python module build process
+
+0.71 (2006-10-12)
+=================
+- Python support
+- GIF support returned (patent has expired)
+- fixed problem with configuration script (e.g. LIBS were not handled properly)
+- g2_anim demo now supports X11 too (although it does not seem to work well on X11)
+- various fixes
+
+
+0.70
+====
+- added support for access to the physical devices low level handles
+- added animation demo for Win32
+- improved cygwin compatibility
+- improved spline implementation
+- improved pixel compatibility between X11 and GD
+- fixed X11 window position problem occured with some window managers
+- fixed arc and filled arc functions
+- fixed memory bug (thanks to Kurihara Satoshi)
+- fixed problem with black bar if resource DLL was not compiled
+- fixed problem with flickering and background behind text
+- bug fix for background color in g2_win32_SetBackground
+
+0.62
+====
+- PS in place of X11 for demo_cpp
+
+0.61
+====
+- ANSI C streamlining
+
+0.60
+====
+- added FIG device
+- added win32 mouse support
+- added check for dashed lines to g2_test
+- bugfixes
+
+0.51
+====
+- g2_perl improvements (added GD device, added splines, removed GIF,
+  retested, added simple README)
+- added configurable logging
+- added some new configuration parameters and slightly changed
+  configuration naming convention (g2_config.h)
+- added doxygen comments for automatic docu generation
+- general documentation update
+
+0.50
+====
+- removed GIF code
+- improved fortran port
+
+0.49a
+=====
+- number of small fixes
+- number of changes :)
+
+0.42
+====
+-license change to LGPL
+
+0.41b
+=====
+-added new Tijs Michels spline implementation
+-small fixes in spline package
+-added g2_spline_demo.c
+-changed LINKDLL into G2L in g2.h
+-removed some non ansi parts (e.g. // comments)
+-added query pointer for X11 (mouse)
+
+0.41a
+=====
+-modified header files for usage with c++
+-modified header files for building Win32 DLL
+-added DLL version to Win32 workspace
+-added Tijs Michels spline implementation
+-small fixes in Makefile.in
+
+0.40
+====
+- added perl support
+- g2_draw_string replaced with g2_string
+- added g2_image function
+- added g2_control_pd.* files
+- g2_device_exist moved to user space (perl)
+- added g2_set_line_width support in GIF device 
+- added prefix to Makefile.in
+- updated descrip.mms
+
+0.30 (23.10.1998)
+================
+- finished Win32 implementation
+- fixed bug in virtual device section
+- minor changes in g2_X11.c (include string.h)
+- finished VMS port (descrip.mms files)
+
+0.23 (09.07.1998)
+=================
+- finished Fortran interface (tested on Linux and DU)
+- added arc and filled_arc emulation
+- minor bug fix in g2_ui_control.c (thanks to E.M. (Mark) Palandri)
+- finished GIF interface
+- added new demo files
+- some bug fixes
+
+0.22 (03.06.1998)
+=================
+- bugfix in g2_device.c
+- minor changes
+
+0.21 (03.06.1998)
+=================
+- added g2_ld (last device) concept
+- minor changes in make procedures
+- back to the normal 'numbering' :-)
+- added (very simple) demo0.c
+
+0.20a (02.06.1998)
+==================
+- added configure script
+- changed file/make structure of g2 project
+- changed version numbering (a-alpha, b-beta etc.)
+
+0.11 (30.04.1998)
+=================
+- fixed bug in Makefile
+- fixed bug with r rescaling (circle, ellipse and arc) in g2_graphic_pd.c
+- small fix in g2_X11
+- added g2_us2pds_xxxx in g2_util.c
+- minor changes in makefile.i386 and makefile.alpha
+
+0.10 (24.04.1998)
+=================
+- major kernel rewrite
+- small fixes in X11 part
+- removed funix: g2_AllocateBasicColors
+- added Fortran interface (alpha)
+
+0.02 (31.03.1998)
+=================
+- new funix: g2_Save
+- added contrib directory
+
+
+0.01 (19.03.1998)
+=================
+- created CHANGES file :-)
+- some small fixes
+- added g2_attach_X11X and changed g2_attach_X11 to be a wrapper to
+  the new function
+- added PostScript interface
+

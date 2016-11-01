@@ -1,3 +1,25 @@
+v2.3.0
+  * Add grammar extension with structured and unstructured domains
+  * Add default implementation for unstructured domains to allow for ligand/protein binding to unpaired structure segments (MFE and PF for single sequences)
+  * Introduced command files that subsume constraint definition files (currently used in RNAfold and RNAcofold)
+  * Replace explicit calls to asprintf() with portable equivalent functions in the library
+  * Fix configure script to deal with situations where Perl module can't be build
+  * Fix bug in doc/Makefile.am that prevented HTML installation due to long argument list
+  * Added utility functions that deal with conversion between different units
+  * Bugfix in SWIG wrapped generic soft constraint feature
+  * Add subopt() and subopt_zuker() methods to SWIG wrapped fold_compound objects
+  * Bugfix multiloop decomposition in MFE for circular RNAs
+  * Add separate function to compute pscore for alignments
+  * Renamed VRNA_VC_TYPE_* macros to VRNA_FC_TYPE_*
+  * Bugfix regression that prevented programs to fail on too long input sequences
+  * Extend EPS dot-plot in RNAfold to include motif/binding probabilities from unstructured domains
+  * Add variadic functions for error/warning/info message
+  * Add ID manipulation feature to RNAeval
+  * Extend API for soft constraint feature for more fine-grained control
+  * Add section on SWIG wrapped functions in reference manual
+  * Fix bug in interior loop computations when hard constraints result in non-canonical base pairs
+
+
 v 2.2.10
   * Do not 'forget' subopt results when output is not written to file handle and sorting is switched off
   * Fix bad memory access in vrna_subopt() with sorted output

@@ -1,0 +1,92 @@
+/**
+
+
+@addtogroup constraints
+
+@brief This module provides general functions that allow for an easy control of
+constrained secondary structure prediction and evaluation.
+
+Secondary Structure constraints can be subdivided into two groups:
+
+- @ref hard_constraints, and
+- @ref soft_constraints.
+
+While Hard-Constraints directly influence the production rules used in the folding
+recursions by allowing, disallowing, or enforcing certain decomposition steps,
+Soft-constraints on the other hand are used to change position specific contributions
+in the recursions by adding bonuses/penalties in form of pseudo free energies
+to certain loop configurations.
+
+Secondary structure constraints are always applied at decomposition level, i.e.
+in each step of the recursive structure decomposition, for instance during MFE
+prediction. Below is a visualization of the decomposition scheme
+
+@image html   recursions.svg
+@image latex  recursions.eps
+
+For @ref hard_constraints the following option flags may be used to constrain
+the pairing behavior of single, or pairs of nucleotides:
+
+- #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP - @copybrief #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+- #VRNA_CONSTRAINT_CONTEXT_HP_LOOP  - @copybrief #VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+- #VRNA_CONSTRAINT_CONTEXT_INT_LOOP  - @copybrief #VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+- #VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC - @copybrief #VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC
+- #VRNA_CONSTRAINT_CONTEXT_MB_LOOP - @copybrief #VRNA_CONSTRAINT_CONTEXT_MB_LOOP
+- #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC - @copybrief #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC
+- #VRNA_CONSTRAINT_CONTEXT_ENFORCE - @copybrief #VRNA_CONSTRAINT_CONTEXT_ENFORCE
+- #VRNA_CONSTRAINT_CONTEXT_NO_REMOVE - @copybrief #VRNA_CONSTRAINT_CONTEXT_NO_REMOVE
+- #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS - @copybrief #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
+
+However, for @ref soft_constraints we do not allow for simple loop type
+dependent constraining. But soft constraints are equipped with generic constraint
+support. This enables the user to pass arbitrary callback functions that
+return auxiliary energy contributions for evaluation the avaluation of any
+decomposition.
+
+The callback will then always be notified about the type of decomposition
+that is happening, and the corresponding delimiting sequence positions. The
+following decomposition steps are distinguished, and should be captured by
+the user's implementation of the callback:
+
+- #VRNA_DECOMP_PAIR_HP - @copybrief #VRNA_DECOMP_PAIR_HP
+- #VRNA_DECOMP_PAIR_IL - @copybrief #VRNA_DECOMP_PAIR_IL
+- #VRNA_DECOMP_PAIR_ML - @copybrief #VRNA_DECOMP_PAIR_ML
+- #VRNA_DECOMP_ML_ML_ML - @copybrief #VRNA_DECOMP_ML_ML_ML
+- #VRNA_DECOMP_ML_STEM - @copybrief #VRNA_DECOMP_ML_STEM
+- #VRNA_DECOMP_ML_ML - @copybrief #VRNA_DECOMP_ML_ML
+- #VRNA_DECOMP_ML_UP - @copybrief #VRNA_DECOMP_ML_UP
+- #VRNA_DECOMP_ML_ML_STEM - @copybrief #VRNA_DECOMP_ML_ML_STEM
+- #VRNA_DECOMP_ML_COAXIAL - @copybrief #VRNA_DECOMP_ML_COAXIAL
+- #VRNA_DECOMP_EXT_EXT - @copybrief #VRNA_DECOMP_EXT_EXT
+- #VRNA_DECOMP_EXT_UP - @copybrief #VRNA_DECOMP_EXT_UP
+- #VRNA_DECOMP_EXT_STEM - @copybrief #VRNA_DECOMP_EXT_STEM
+- #VRNA_DECOMP_EXT_EXT_EXT - @copybrief #VRNA_DECOMP_EXT_EXT_EXT
+- #VRNA_DECOMP_EXT_STEM_EXT - @copybrief #VRNA_DECOMP_EXT_STEM_EXT
+- #VRNA_DECOMP_EXT_STEM_OUTSIDE - @copybrief #VRNA_DECOMP_EXT_STEM_OUTSIDE
+- #VRNA_DECOMP_EXT_EXT_STEM - @copybrief #VRNA_DECOMP_EXT_EXT_STEM
+- #VRNA_DECOMP_EXT_EXT_STEM1 - @copybrief #VRNA_DECOMP_EXT_EXT_STEM1
+
+Simplified interfaces to the soft constraints framework can be obtained
+by the implementations in the submodules
+
+- @ref SHAPE_reactivities and
+- @ref ligands.
+
+An implementation that generates soft constraints for unpaired nucleotides
+by minimizing the discrepancy between their predicted and expected pairing
+probability is available in submodule @ref perturbation.
+
+*/
+
+/**
+
+@addtogroup soft_constraints
+@brief      Functions and data structures for secondary structure soft constraints
+
+Soft-constraints are used to change position specific contributions
+in the recursions by adding bonuses/penalties in form of pseudo free energies
+to certain loop configurations.
+
+*/
+
+

@@ -1,0 +1,11 @@
+
+To build g2 perl module:
+
+perl Makefile.PL
+make
+
+Inspect test.pl and comment out unsupported devices.
+
+make test
+make install
+

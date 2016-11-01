@@ -12,12 +12,15 @@
 #endif
 
 /**
- *  @addtogroup   loops
- *
+ *  @file     multibranch_loops.h
+ *  @ingroup  loops
+ *  @brief    Energy evaluation of multibranch loops for MFE and partition function calculations
+ */
+
+/**
  *  @{
+ *  @ingroup  loops
  *
- *  @file multibranch_loops.h
- *  @brief Energy evaluation of multibranch loops for MFE and partition function calculations
  */
 
 /**

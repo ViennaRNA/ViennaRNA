@@ -1,0 +1,20 @@
+#<
+#Date: Thu Aug  2 15:09:44 2001
+#EnergyModel: dangle=2 Temp=37.0 logML=logarithmic Par=VRNA-1.4
+#MoveSet: noShift=off noLP=off
+#Simulation: num=10 time=500.00 seed=clock fpt=on mc=Kawasaki
+#Output: log=hairpin.ae silent=on lmin=off cut=20.00
+#ACUGAUCGUAGUCAC
+#((((....))))... (  0.40)
+#..((((....)))). ( -0.60) X01
+(20760 15209  5246) X01       67.304
+(45270 55184 46987) X01       89.090
+(53914 48671  9491) X01        8.332
+(44432 62476 30554) X01       21.474
+(21206 16128  4429) X01       31.761
+( 5998 36361 17232) X01       33.787
+(35376 54746 29922) X01        4.436
+(51998 14938 13352) X01       38.070
+(17648 21853 64886) X01       51.808
+(16304  9322 17404) X01       30.137
+(46698 42323 39623)

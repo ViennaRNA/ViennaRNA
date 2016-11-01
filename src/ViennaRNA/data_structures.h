@@ -2,12 +2,17 @@
 #define VIENNA_RNA_PACKAGE_DATA_STRUCTURES_H
 
 /**
- *  @file data_structures.h
- *
+ *  @file     data_structures.h
+ *  @ingroup  data_structures
+ *  @brief    Various data structures and pre-processor macros
+ */
+
+/**
  *  @addtogroup   data_structures
- *  @{
+ *  @brief All datastructures and typedefs shared among the Vienna RNA Package can be found here
  *
- *  @brief Most datastructures and typedefs shared among the ViennaRNA Package can be found here
+ *  @{
+ *  @ingroup data_structures
  */
 
 /* below are several convenience typedef's we use throughout the ViennaRNA library */
@@ -31,6 +36,10 @@ typedef struct vrna_cpair_s  vrna_cpair_t;
 
 /** @brief Typename for stack of partial structures #vrna_sect_s */
 typedef struct vrna_sect_s  vrna_sect_t;
+
+typedef struct vrna_data_linear_s vrna_data_lin_t;
+
+typedef struct vrna_color_s vrna_color_t;
 
 /** @brief Typename for floating point number in partition function computations */
 #ifdef  USE_FLOAT_PF
@@ -60,7 +69,6 @@ typedef void (vrna_callback_free_auxdata)(void *data);
  *  @param status   The status indicator
  */
 typedef void (vrna_callback_recursion_status)(unsigned char status, void *data);
-
 
 /**
  *  @brief  Status message indicating that MFE computations are about to begin
@@ -95,6 +103,13 @@ typedef void (vrna_callback_recursion_status)(unsigned char status, void *data);
  *  @see  #vrna_fold_compound_t.stat_cb, vrna_callback_recursion_status(), vrna_pf()
  */
 #define VRNA_STATUS_PF_POST     (unsigned char)4
+
+
+#define VRNA_PLIST_TYPE_BASEPAIR      0
+#define VRNA_PLIST_TYPE_GQUAD         1
+#define VRNA_PLIST_TYPE_H_MOTIF       2
+#define VRNA_PLIST_TYPE_I_MOTIF       3
+#define VRNA_PLIST_TYPE_UD_MOTIF      4
 
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
@@ -142,6 +157,9 @@ typedef struct vrna_bp_stack_s  bondT;
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/dp_matrices.h>
 #include <ViennaRNA/constraints.h>
+#include <ViennaRNA/grammar.h>
+#include "ViennaRNA/structured_domains.h"
+#include "ViennaRNA/unstructured_domains.h"
 
 /*
 * ############################################################
@@ -174,6 +192,18 @@ struct vrna_plist_s {
 struct vrna_cpair_s {
   int i,j,mfe;
   float p, hue, sat;
+};
+
+struct vrna_color_s {
+  float hue;
+  float sat;
+  float bri;
+};
+
+struct vrna_data_linear_s {
+  unsigned int  position;
+  float         value;
+  vrna_color_t  color;
 };
 
 
@@ -404,8 +434,8 @@ void vrna_C11_features(void);
  *  @brief  An enumerator that is used to specify the type of a #vrna_fold_compound_t
  */
 typedef enum {
-  VRNA_VC_TYPE_SINGLE,    /**< Type is suitable for single, and hybridizing sequences */
-  VRNA_VC_TYPE_ALIGNMENT  /**< Type is suitable for sequence alignments (consensus structure prediction) */
+  VRNA_FC_TYPE_SINGLE,      /**< Type is suitable for single, and hybridizing sequences */
+  VRNA_FC_TYPE_COMPARATIVE  /**< Type is suitable for sequence alignments (consensus structure prediction) */
 } vrna_fc_type_e;
 
 
@@ -419,7 +449,7 @@ typedef enum {
  *  in undefined behavior!
  *
  *  @see  #vrna_fold_compound_t.type, vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_fold_compound_free(),
- *        #VRNA_VC_TYPE_SINGLE, #VRNA_VC_TYPE_ALIGNMENT
+ *        #VRNA_FC_TYPE_SINGLE, #VRNA_FC_TYPE_COMPARATIVE
  */
 struct vrna_fc_s{
 
@@ -428,7 +458,7 @@ struct vrna_fc_s{
       @{
    */
   vrna_fc_type_e    type;           /**<  @brief  The type of the #vrna_fold_compound_t.
-                                      @details Currently possible values are #VRNA_VC_TYPE_SINGLE, and #VRNA_VC_TYPE_ALIGNMENT
+                                      @details Currently possible values are #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE
                                       @warning Do not edit this attribute, it will be automagically set by
                                             the corresponding get() methods for the #vrna_fold_compound_t.
                                             The value specified in this attribute dictates the set of other
@@ -471,6 +501,22 @@ struct vrna_fc_s{
 
   /**
       @}
+
+      @name Secondary Structure Decomposition (grammar) related data fields
+      @{
+   */
+
+  /* data structure to adjust additional structural domains, such as G-quadruplexes */
+  vrna_sd_t         *domains_struc;         /**<  @brief  Additional structured domains */
+
+  /* data structure to adjust additional contributions to unpaired stretches, e.g. due to protein binding */
+  vrna_ud_t         *domains_up;            /**<  @brief  Additional unstructured domains */
+
+  /* auxiliary (user-defined) extension to the folding grammar */
+  vrna_gr_aux_t     *aux_grammar;
+
+  /**
+      @}
    */
 
 #ifndef VRNA_DISABLE_C11_FEATURES
@@ -484,11 +530,11 @@ struct vrna_fc_s{
       @{
    */
       char  *sequence;              /**<  @brief  The input sequence string
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
                                     */
       short *sequence_encoding;     /**<  @brief  Numerical encoding of the input sequence
                                           @see    vrna_sequence_encode()
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
                                     */
       short *sequence_encoding2;
       char  *ptype;                 /**<  @brief  Pair type array
@@ -497,16 +543,16 @@ struct vrna_fc_s{
                                           in MFE, Partition function and Evaluation computations.
                                           @note This array is always indexed via jindx, in contrast to previously
                                           different indexing between mfe and pf variants!
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
                                           @see    vrna_idx_col_wise(), vrna_ptypes()
                                     */
       char  *ptype_pf_compat;       /**<  @brief  ptype array indexed via iindx
                                           @deprecated  This attribute will vanish in the future!
                                           It's meant for backward compatibility only!
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
                                     */
       vrna_sc_t *sc;                /**<  @brief  The soft constraints for usage in structure prediction and evaluation
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_SINGLE @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
                                     */
 
   /**
@@ -525,37 +571,37 @@ struct vrna_fc_s{
    */
       char  **sequences;            /**<  @brief  The aligned sequences
                                           @note   The end of the alignment is indicated by a NULL pointer in the second dimension
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                     */
       unsigned int    n_seq;        /**<  @brief  The number of sequences in the alignment
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                     */
       char            *cons_seq;    /**<  @brief  The consensus sequence of the aligned sequences
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                     */
       short           *S_cons;      /**<  @brief  Numerical encoding of the consensus sequence
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                     */
       short           **S;          /**<  @brief  Numerical encoding of the sequences in the alignment
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                     */
       short           **S5;         /**<  @brief    S5[s][i] holds next base 5' of i in sequence s
-                                          @warning  Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
+                                          @warning  Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                     */
       short           **S3;         /**<  @brief    Sl[s][i] holds next base 3' of i in sequence s
-                                          @warning  Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
+                                          @warning  Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                     */
       char            **Ss;
       unsigned short  **a2s;
       int             *pscore;      /**<  @brief  Precomputed array of pair types expressed as pairing scores
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                     */
       short           *pscore_pf_compat;  /**<  @brief  Precomputed array of pair types expressed as pairing scores indexed via iindx
                                                 @deprecated  This attribute will vanish in the future!
-                                                @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
+                                                @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                     */
       vrna_sc_t       **scs;        /**<  @brief  A set of soft constraints (for each sequence in the alignment)
-                                          @warning   Only available if @verbatim type==VRNA_VC_TYPE_ALIGNMENT @endverbatim
+                                          @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                     */
       int             oldAliEn;
 

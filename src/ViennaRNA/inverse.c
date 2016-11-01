@@ -77,8 +77,7 @@ PRIVATE double adaptive_walk(char *start, const char *target)
 
    len = strlen(start);
    if (strlen(target)!=len) {
-      fprintf(stderr, "%s\n%s\n", start, target);
-      vrna_message_error("adaptive_walk: start and target have unequal length");
+      vrna_message_error("%s\n%s\nadaptive_walk: start and target have unequal length", start, target);
    }
    string    = (char *) vrna_alloc(sizeof(char)*(len+1));
    cstring   = (char *) vrna_alloc(sizeof(char)*(len+1));
@@ -262,8 +261,7 @@ PRIVATE void make_ptable(const char *structure, int *table)
        case ')':
 	 j = stack[--hx];
 	 if (hx<0) {
-	    fprintf(stderr, "%s\n", structure);
-	    vrna_message_error("unbalanced brackets in make_ptable");
+	    vrna_message_error("%s\nunbalanced brackets in make_ptable", structure);
 	 }
 	 table[i]=j;
 	 table[j]=i;
@@ -271,8 +269,7 @@ PRIVATE void make_ptable(const char *structure, int *table)
       }
    }
    if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      vrna_message_error("unbalanced brackets in make_ptable");
+      vrna_message_error("%s\nunbalanced brackets in make_ptable", structure);
    }
    free(stack);
 }
@@ -299,8 +296,7 @@ PUBLIC float inverse_fold(char *start, char *structure)
 
    len = strlen(structure);
    if (strlen(start)!=len) {
-      fprintf(stderr, "%s\n%s\n", start, structure);
-      vrna_message_error("inverse_fold: start and structure have unequal length");
+      vrna_message_error("%s\n%s\ninverse_fold: start and structure have unequal length", start, structure);
    }
    string = (char *) vrna_alloc(len+1);
    wstring = (char *) vrna_alloc(len+1);
@@ -456,8 +452,7 @@ PRIVATE double mfe_cost(const char *string, char *structure, const char *target)
    double energy, distance;
 
    if (strlen(string)!=strlen(target)) {
-      fprintf(stderr, "%s\n%s\n", string, target);
-      vrna_message_error("unequal length in mfe_cost");
+      vrna_message_error("%s\n%s\nunequal length in mfe_cost", string, target);
    }
    energy = fold(string, structure);
 #if TDIST

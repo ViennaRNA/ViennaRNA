@@ -21,15 +21,20 @@
 
 /**
  *  @file fold.h
+ *  @ingroup  mfe_fold
  *  @brief MFE calculations for single RNA sequences
- *  
+ */
+
+/**
  *  @addtogroup mfe_fold_single
- *  @{
- *    @brief This module contains all functions and variables related to the calculation
- *    of global minimum free energy structures for single sequences.
+ *  @brief This module contains all functions and variables related to the calculation
+ *  of global minimum free energy structures for single sequences.
  *
- *    The library provides a fast dynamic programming minimum free energy
- *    folding algorithm as described by "Zuker & Stiegler (1981)" @cite zuker:1981.
+ *  The library provides a fast dynamic programming minimum free energy
+ *  folding algorithm as described by "Zuker & Stiegler (1981)" @cite zuker:1981.
+ *
+ *  @{
+ *  @ingroup  mfe_fold_single
  */
 
 /**
@@ -119,10 +124,10 @@ vrna_circfold(const char *sequence,
  *  @param sequence       RNA sequence
  *  @param structure      A pointer to the character array where the
  *                        secondary structure in dot-bracket notation will be written to
- *  @param parameters     A data structure containing the prescaled energy contributions
+ *  @param parameters     A data structure containing the pre-scaled energy contributions
  *                        and the model details. (NULL may be passed, see OpenMP notes above)
- *  @param is_constrained Switch to indicate that a structure contraint is passed via the structure argument (0==off)
- *  @param is_circular    Switch to (de-)activate postprocessing steps in case RNA sequence is circular (0==off)
+ *  @param is_constrained Switch to indicate that a structure constraint is passed via the structure argument (0==off)
+ *  @param is_circular    Switch to (de-)activate post-processing steps in case RNA sequence is circular (0==off)
  *
  *  @return the minimum free energy (MFE) in kcal/mol
  */
@@ -266,7 +271,7 @@ export_circfold_arrays_par( int *Fc_p,
 /* BUT: The functions only exist for backward compatibility reasons!      */
 /* You better include "loop_energies.h" and call the functions:           */
 /* E_Hairpin() and E_IntLoop() which are (almost) threadsafe as they get  */
-/* a pointer to the energy parameter datastructure as additional argument */
+/* a pointer to the energy parameter data structure as additional argument */
 
 /**
  *  @deprecated {This function is deprecated and will be removed soon.

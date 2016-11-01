@@ -67,9 +67,9 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void            set_fold_compound(vrna_fold_compound_t *vc, vrna_md_t *md_p, unsigned int options, unsigned int aux);
-PRIVATE void            make_pscores(vrna_fold_compound_t *vc);
-PRIVATE void            add_params(vrna_fold_compound_t *vc, vrna_md_t *md_p, unsigned int options);
+PRIVATE void  set_fold_compound(vrna_fold_compound_t *vc, vrna_md_t *md_p, unsigned int options, unsigned int aux);
+PRIVATE void  make_pscores(vrna_fold_compound_t *vc);
+PRIVATE void  add_params(vrna_fold_compound_t *vc, vrna_md_t *md_p, unsigned int options);
 
 
 /*
@@ -93,17 +93,18 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc){
     free(vc->params);
     free(vc->exp_params);
     vrna_hc_free(vc->hc);
+    vrna_ud_remove(vc);
 
     /* now distinguish the vc type */
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     free(vc->sequence);
+      case VRNA_FC_TYPE_SINGLE:     free(vc->sequence);
                                     free(vc->sequence_encoding);
                                     free(vc->sequence_encoding2);
                                     free(vc->ptype);
                                     free(vc->ptype_pf_compat);
                                     vrna_sc_free(vc->sc);
                                     break;
-      case VRNA_VC_TYPE_ALIGNMENT:  for(s=0;s<vc->n_seq;s++){
+      case VRNA_FC_TYPE_COMPARATIVE:  for(s=0;s<vc->n_seq;s++){
                                       free(vc->sequences[s]);
                                       free(vc->S[s]);
                                       free(vc->S5[s]);
@@ -171,10 +172,13 @@ vrna_fold_compound( const char *sequence,
   /* sanity check */
   length = strlen(sequence);
   if(length == 0)
-    vrna_message_error("vrna_fold_compound: sequence length must be greater 0");
+    vrna_message_error("vrna_fold_compound@data_structures.c: sequence length must be greater 0");
+
+  if(length > vrna_sequence_length_max(options))
+    vrna_message_error("vrna_fold_compound@data_structures.c: sequence length of %d exceeds addressable range", length);
 
   vc            = vrna_alloc(sizeof(vrna_fold_compound_t));
-  vc->type      = VRNA_VC_TYPE_SINGLE;
+  vc->type      = VRNA_FC_TYPE_SINGLE;
   vc->length    = length;
   vc->sequence  = strdup(sequence);
   aux_options   = 0L;
@@ -245,7 +249,7 @@ vrna_fold_compound_comparative( const char **sequences,
   vrna_md_t           md;
   unsigned int        aux_options;
 
-  aux_options = 0L;
+  aux_options = 0U;
  
   if(sequences == NULL) return NULL;
 
@@ -256,13 +260,16 @@ vrna_fold_compound_comparative( const char **sequences,
   length = strlen(sequences[0]);
   /* sanity check */
   if(length == 0)
-    vrna_message_error("vrna_fold_compound_comparative: sequence length must be greater 0");
+    vrna_message_error("vrna_fold_compound_comparative@data_structures.c: sequence length must be greater 0");
+  else if(length > vrna_sequence_length_max(options))
+    vrna_message_error("vrna_fold_compound_comparative@data_structures.c: sequence length of %d exceeds addressable range", length);
+
   for(s = 0; s < n_seq; s++)
     if(strlen(sequences[s]) != length)
-      vrna_message_error("vrna_fold_compound_comparative: uneqal sequence lengths in alignment");
+      vrna_message_error("vrna_fold_compound_comparative@data_structures.c: uneqal sequence lengths in alignment");
 
   vc            = vrna_alloc(sizeof(vrna_fold_compound_t));
-  vc->type      = VRNA_VC_TYPE_ALIGNMENT;
+  vc->type      = VRNA_FC_TYPE_COMPARATIVE;
 
   vc->n_seq     = n_seq;
   vc->length    = length;
@@ -315,6 +322,8 @@ vrna_fold_compound_TwoD(const char *sequence,
   length = strlen(sequence);
   if(length == 0)
     vrna_message_error("vrna_fold_compound_TwoD: sequence length must be greater 0");
+  else if(length > vrna_sequence_length_max(options))
+    vrna_message_error("vrna_fold_compound_TwoD@data_structures.c: sequence length of %d exceeds addressable range", length);
 
   l = strlen(s1);
   if(l != length)
@@ -325,7 +334,7 @@ vrna_fold_compound_TwoD(const char *sequence,
     vrna_message_error("vrna_fold_compound_TwoD: sequence and s2 differ in length");
 
   vc                = vrna_alloc(sizeof(vrna_fold_compound_t));
-  vc->type          = VRNA_VC_TYPE_SINGLE;
+  vc->type          = VRNA_FC_TYPE_SINGLE;
   vc->length        = length;
   vc->sequence      = strdup(sequence);
 
@@ -395,39 +404,30 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
                             unsigned int options){
   int ret = 1; /* success */
 
+  /* check maximum sequence length restrictions */
+  if(vc->length > vrna_sequence_length_max(options)){
+    vrna_message_warning("vrna_fold_compound_prepare@data_structures.c: sequence length of %d exceeds addressable range", vc->length);
+    return 0;
+  }
+
   if(options & VRNA_OPTION_MFE){   /* prepare for MFE computation */
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     if(!vc->ptype)
+      case VRNA_FC_TYPE_SINGLE:     if(!vc->ptype)
                                       if(!(options & VRNA_OPTION_WINDOW))
                                         vc->ptype = vrna_ptypes(vc->sequence_encoding2,
                                                                 &(vc->params->model_details));
                                     break;
-      case VRNA_VC_TYPE_ALIGNMENT:  break;
+      case VRNA_FC_TYPE_COMPARATIVE:  break;
       default:                      break;
     }
 
-    if(options & VRNA_OPTION_WINDOW){ /* Windowing approach, a.k.a. locally optimal */
-      /*  check whether we have the correct DP matrices attached, and if there is
-          enough memory allocated
-      */
-      if(!vc->matrices || (vc->matrices->type != VRNA_MX_WINDOW) || (vc->matrices->length < vc->length)){
-        /* here we simply pass '0' as options, since we call mx_mfe_add() explicitely */
-        vrna_mx_mfe_add(vc, VRNA_MX_WINDOW, options);
-      }
-    } else { /* default is regular MFE */
-      /*  check whether we have the correct DP matrices attached, and if there is
-          enough memory allocated
-      */
-      if(!vc->matrices || (vc->matrices->type != VRNA_MX_DEFAULT) || (vc->matrices->length < vc->length)){
-        vrna_mx_mfe_add(vc, VRNA_MX_DEFAULT, options);
-      }
-    }
+
   }
 
   if(options & VRNA_OPTION_PF){   /* prepare for partition function computation */
 
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     /* get pre-computed Boltzmann factors if not present*/
+      case VRNA_FC_TYPE_SINGLE:     /* get pre-computed Boltzmann factors if not present*/
                                     if(!vc->exp_params)
                                       vc->exp_params      = vrna_exp_params(&(vc->params->model_details));
 
@@ -441,28 +441,29 @@ vrna_fold_compound_prepare( vrna_fold_compound_t *vc,
                                     /* get precomputed Boltzmann factors for soft-constraints (if any) */
                                     if(vc->sc){
                                       if(!vc->sc->exp_energy_up)
-                                        vrna_sc_add_up(vc, NULL, VRNA_OPTION_PF);
+                                        vrna_sc_set_up(vc, NULL, VRNA_OPTION_PF);
                                       if(!vc->sc->exp_energy_bp)
-                                        vrna_sc_add_bp(vc, NULL, VRNA_OPTION_PF);
+                                        vrna_sc_set_bp(vc, NULL, VRNA_OPTION_PF);
                                       if(!vc->sc->exp_energy_stack)
                                         vrna_sc_add_SHAPE_deigan(vc, NULL, 0, 0, VRNA_OPTION_PF);
                                     }
 
+                                    if(vc->domains_up) /* turn on unique ML decomposition with qm1 array */
+                                      vc->exp_params->model_details.uniq_ML = 1;
+
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  /* get pre-computed Boltzmann factors if not present*/
+      case VRNA_FC_TYPE_COMPARATIVE:  /* get pre-computed Boltzmann factors if not present*/
                                     if(!vc->exp_params)
                                       vc->exp_params  = vrna_exp_params_comparative(vc->n_seq, &(vc->params->model_details));
                                     break;
 
       default:                      break;
     }
-
-    /*  Add DP matrices, if not they are not present */
-    if(!vc->exp_matrices || (vc->exp_matrices->type != VRNA_MX_DEFAULT) || (vc->exp_matrices->length < vc->length)){
-      vrna_mx_pf_add(vc, VRNA_MX_DEFAULT, options);
-    }
   }
+
+  /* Add DP matrices, if not they are not present or do not fit current settings */
+  vrna_mx_prepare(vc, options);
 
   return ret;
 }
@@ -491,7 +492,7 @@ add_params( vrna_fold_compound_t *vc,
   vc->params = vrna_params(md_p);
 
   if(options & VRNA_OPTION_PF){
-    vc->exp_params  = (vc->type == VRNA_VC_TYPE_SINGLE) ? \
+    vc->exp_params  = (vc->type == VRNA_FC_TYPE_SINGLE) ? \
                         vrna_exp_params(md_p) : \
                         vrna_exp_params_comparative(vc->n_seq, md_p);
   }
@@ -523,8 +524,12 @@ set_fold_compound(vrna_fold_compound_t *vc,
   vc->auxdata       = NULL;
   vc->free_auxdata  = NULL;
 
+  vc->domains_struc = NULL;
+  vc->domains_up    = NULL;
+  vc->aux_grammar   = NULL;
+
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     sequence  = vc->sequence;
+    case VRNA_FC_TYPE_SINGLE:     sequence  = vc->sequence;
 
                                   seq2 = strdup(sequence);
                                   seq = vrna_cut_point_remove(seq2, &cp); /*  splice out the '&' if concatenated sequences and
@@ -552,7 +557,7 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   free(seq2);
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  sequences     = vc->sequences;
+    case VRNA_FC_TYPE_COMPARATIVE:  sequences     = vc->sequences;
 
                                   vc->length    = length = vc->length;
 
@@ -593,8 +598,13 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   break;
   }
 
-  vc->iindx = vrna_idx_row_wise(vc->length);
-  vc->jindx = vrna_idx_col_wise(vc->length);
+  if(vc->length <= vrna_sequence_length_max(options)){
+    vc->iindx = vrna_idx_row_wise(vc->length);
+    vc->jindx = vrna_idx_col_wise(vc->length);
+  } else {
+    vc->iindx = NULL;
+    vc->jindx = NULL;
+  }
 
   /* now come the energy parameters */
   add_params(vc, md_p, options);
@@ -716,16 +726,14 @@ make_pscores(vrna_fold_compound_t *vc){
         break;
       case ']':
         if (hx2<=0) {
-          fprintf(stderr, "%s\n", structure);
-          vrna_message_error("unbalanced brackets in constraints");
+          vrna_message_error("unbalanced brackets in constraints\n%s", structure);
         }
         i = stack2[--hx2];
         pscore[indx[j]+i]=NONE;
         break;
       case ')':
         if (hx<=0) {
-          fprintf(stderr, "%s\n", structure);
-          vrna_message_error("unbalanced brackets in constraints");
+          vrna_message_error("unbalanced brackets in constraints\n%s", structure);
         }
         i = stack[--hx];
         psij = pscore[indx[j]+i]; /* store for later */
@@ -745,8 +753,7 @@ make_pscores(vrna_fold_compound_t *vc){
       }
     }
     if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      vrna_message_error("unbalanced brackets in constraint string");
+      vrna_message_error("unbalanced brackets in constraint string\n%s", structure);
     }
     free(stack); free(stack2);
   }

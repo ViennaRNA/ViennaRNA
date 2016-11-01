@@ -56,11 +56,11 @@ sc_add_f_pycallback(vrna_fold_compound_t *vc,
     Py_XDECREF(cb->cb_f);
   } else {
     cb = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
-    cb->cb_f        = NULL;
-    cb->cb_bt       = NULL;
-    cb->cb_exp_f    = NULL;
-    cb->data        = NULL;
-    cb->delete_data = NULL;
+    cb->cb_f        = Py_None;
+    cb->cb_bt       = Py_None;
+    cb->cb_exp_f    = Py_None;
+    cb->data        = Py_None;
+    cb->delete_data = Py_None;
   }
   cb->cb_f = PyFunc;  /* remember callback */
   Py_XINCREF(PyFunc); /* Increase referenc counter */
@@ -87,11 +87,11 @@ sc_add_exp_f_pycallback(vrna_fold_compound_t *vc,
     Py_XDECREF(cb->cb_exp_f);
   } else {
     cb = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
-    cb->cb_f        = NULL;
-    cb->cb_bt       = NULL;
-    cb->cb_exp_f    = NULL;
-    cb->data        = NULL;
-    cb->delete_data = NULL;
+    cb->cb_f        = Py_None;
+    cb->cb_bt       = Py_None;
+    cb->cb_exp_f    = Py_None;
+    cb->data        = Py_None;
+    cb->delete_data = Py_None;
   }
   cb->cb_exp_f = PyFunc;  /* remember callback */
   Py_XINCREF(PyFunc); /* Increase referenc counter */
@@ -118,11 +118,11 @@ sc_add_bt_pycallback( vrna_fold_compound_t *vc,
     Py_XDECREF(cb->cb_bt);
   } else {
     cb = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
-    cb->cb_f        = NULL;
-    cb->cb_bt       = NULL;
-    cb->cb_exp_f    = NULL;
-    cb->data        = NULL;
-    cb->delete_data = NULL;
+    cb->cb_f        = Py_None;
+    cb->cb_bt       = Py_None;
+    cb->cb_exp_f    = Py_None;
+    cb->data        = Py_None;
+    cb->delete_data = Py_None;
   }
   cb->cb_bt = PyFunc;  /* remember callback */
   Py_XINCREF(PyFunc); /* Increase referenc counter */
@@ -162,11 +162,11 @@ sc_add_pydata(vrna_fold_compound_t *vc,
     Py_XDECREF(cb->delete_data);
   } else {
     cb              = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
-    cb->cb_f        = NULL;
-    cb->cb_bt       = NULL;
-    cb->cb_exp_f    = NULL;
-    cb->data        = NULL;
-    cb->delete_data = NULL;
+    cb->cb_f        = Py_None;
+    cb->cb_bt       = Py_None;
+    cb->cb_exp_f    = Py_None;
+    cb->data        = Py_None;
+    cb->delete_data = Py_None;
   }
   cb->data        = data;   /* remember data */
   cb->delete_data = PyFunc; /* remember delete data function */

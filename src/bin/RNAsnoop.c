@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
     mrna=fopen(tname, "r");
     if(mrna==NULL){printf("%s: Wrong target file name\n", tname);return 0;}
     do {                                /* main loop: continue until end of file */
-      if ((line_s = get_line(sno))==NULL) {
+      if ((line_s = vrna_read_line(sno))==NULL) {
         free(line_s);
         break;
       }
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
           name_s = (char *) vrna_alloc(strlen(line_s)+1);
         (void) sscanf(line_s,"%s",name_s);
         free(line_s);
-        if ((line_s = get_line(sno))==NULL) {
+        if ((line_s = vrna_read_line(sno))==NULL) {
           free(line_s);
           break;
         }
@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
       /* We declare the structure variable here as it will also contains the final stem structure */
       structure=(char *)vrna_alloc((unsigned) length_s+11);
       if(fold_constrained){
-	cstruc = get_line(sno);
+	cstruc = vrna_read_line(sno);
 	if(cstruc!=NULL){
 	  int dn3=strlen(cstruc)-(length_s-10);
 	  strcpy(structure,".....");
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
       fullStemEnergy = snofold(string_s, structure, max_asymm, threshloop, min_s2, max_s2, half_stem, max_half_stem);
       do{                                /* main loop for target continue until end of file */
         snoopT mfe;
-        if ((line_t = get_line(mrna))==NULL) {
+        if ((line_t = vrna_read_line(mrna))==NULL) {
           /* free(line_t); */
           break;
         }
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
             free(line_t);
             /*             free(string_t); */
               } 
-          if ((line_t = get_line(mrna))==NULL) {
+          if ((line_t = vrna_read_line(mrna))==NULL) {
             free(line_t);
             break;
           }
@@ -734,7 +734,7 @@ static int ** read_rnaup(char *fname, const int beg, const int end)
     perror("Empty File");
   }
   if(strchr(tmp,'>')){
-    fprintf(stderr,"file %s is not in RNAup format\n",fname);
+    vrna_message_error("file %s is not in RNAup format",fname);
     exit(EXIT_FAILURE);
   }
   
@@ -811,7 +811,7 @@ static int ** read_plfold_i(char *fname, const int beg, const int end)
     perror("Empty File");
   }
   if(strchr(tmp,'>')){
-    fprintf(stderr,"file %s is not in RNAplfold format",fname);
+    vrna_message_error("file %s is not in RNAplfold format",fname);
     exit(EXIT_FAILURE);
   }
   if(fgets(tmp,sizeof(tmp),in)==0){
@@ -877,7 +877,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
   }
   count=0;
   if(sname==NULL && tname==NULL){
-    while((line=get_line(stdin))!=NULL) {
+    while((line=vrna_read_line(stdin))!=NULL) {
       count++;
       if(two_seq==0 && *line =='>'){
         query=(char*) vrna_alloc(strlen(line)+1);
@@ -908,7 +908,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
           structure = (char *) vrna_alloc((length+1) * sizeof(char));
           sscanf(results,"%s",structure); /* parse structure */
           char *line2;
-          if((line2=get_line(stdin))!=NULL){
+          if((line2=vrna_read_line(stdin))!=NULL){
             sequence=(char *) vrna_alloc((length+1)* sizeof(char));
             sscanf(line2,"%s",sequence);
             if(line2!=NULL){
@@ -1032,7 +1032,7 @@ static void redraw_output(char *fname, char *output, int plfold_up_flag, char *s
     AS1[n_seq]=NULL;
     AS2[n_seq]=NULL;
     int count=0;
-    while((line=get_line(stdin))!=NULL) {
+    while((line=vrna_read_line(stdin))!=NULL) {
       results=line;
       if(strchr(line, '(') && strchr(line,'&') && strchr(line, '(')&& strchr(line, ',') && strchr(line,':') && strchr(line, '-')) {
         count++;

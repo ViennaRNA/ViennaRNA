@@ -52,6 +52,10 @@
 #################################
 */
 
+#ifdef  VRNA_BACKWARD_COMPAT
+
+#define MAXSECTORS        500     /* dimension for a backtrack array */
+
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 PRIVATE int                 backward_compat           = 0;
@@ -62,17 +66,21 @@ PRIVATE int                 backward_compat           = 0;
 
 #endif
 
+#endif
+
 /*
 #################################
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
 
+#ifdef  VRNA_BACKWARD_COMPAT
 PRIVATE float   wrap_alifold( const char **strings,
                               char *structure,
                               vrna_param_t *parameters,
                               int is_constrained,
                               int is_circular);
+#endif
 
 /*
 #################################
@@ -118,6 +126,13 @@ vrna_circalifold( const char **sequences,
 }
 
 
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+#ifdef  VRNA_BACKWARD_COMPAT
+
 PRIVATE float
 wrap_alifold( const char **strings,
               char *structure,
@@ -126,7 +141,8 @@ wrap_alifold( const char **strings,
               int is_circular){
 
   vrna_fold_compound_t  *vc;
-  vrna_param_t        *P;
+  vrna_param_t          *P;
+  float                 mfe;
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -163,15 +179,33 @@ wrap_alifold( const char **strings,
   backward_compat_compound  = vc;
   backward_compat           = 1;
 
-  return vrna_mfe(vc, structure);
+  /* call mfe() function without backtracking */
+  mfe = vrna_mfe(vc, NULL);
+
+  /* backtrack structure */
+  if(structure && vc->params->model_details.backtrack){
+    char            *ss;
+    int             length;
+    sect            bt_stack[MAXSECTORS];
+    vrna_bp_stack_t *bp;
+
+    length  = vc->length;
+    bp      = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+
+    vrna_backtrack_from_intervals(vc, bp, bt_stack, 0);
+
+    ss = vrna_db_from_bp_stack(bp, length);
+    strncpy(structure, ss, length + 1);
+    free(ss);
+
+    if(base_pair)
+      free(base_pair);
+    base_pair = bp;
+  }
+
+  return mfe;
 }
 
-
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
-
-#ifdef  VRNA_BACKWARD_COMPAT
 
 PUBLIC void
 free_alifold_arrays(void){

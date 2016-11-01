@@ -1,0 +1,21 @@
+/**
+
+@fn float vrna_pf(vrna_fold_compound_t *vc, char *structure)
+@scripting
+@parblock
+This function is attached as method @b pf() to objects of type @em fold_compound
+@endparblock
+
+@fn vrna_dimer_pf_t vrna_pf_dimer(vrna_fold_compound_t *vc, char *structure)
+@scripting
+@parblock
+This function is attached as method @b pf_dimer() to objects of type @em fold_compound
+@endparblock
+
+@fn double vrna_mean_bp_distance(vrna_fold_compound_t *vc)
+@scripting
+@parblock
+This function is attached as method @b mean_bp_distance() to objects of type @em fold_compound
+@endparblock
+
+*/

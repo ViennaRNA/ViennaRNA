@@ -2,6 +2,9 @@
 #define VIENNA_RNA_PACKAGE_LFOLD_H
 
 /**
+ *  @file Lfold.h
+ *  @ingroup  local_fold
+ *  @brief    Functions for locally optimal MFE structure prediction
  */
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
@@ -17,26 +20,7 @@
 # define DEPRECATED(func) func
 #endif
 
-/**
- *  @addtogroup local_fold
- *
- *  Local structures can be predicted by a modified version of the
- *  fold() algorithm that restricts the span of all base pairs.
- *  @{
- *    @file Lfold.h
- *    @brief Predicting local MFE structures of large sequences
- *
- *  @}
- */
-
 #include <ViennaRNA/mfe.h>
-
-/**
- *  @addtogroup local_mfe_fold
- *  @{
- *
- *  @}
- */
 
 /**
  *  @brief Local MFE prediction using a sliding window approach (simplified interface)

@@ -1,0 +1,3 @@
+include/
+*.a
+g2_perl/Makefile.PL

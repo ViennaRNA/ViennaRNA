@@ -4,8 +4,9 @@
 #include <ViennaRNA/data_structures.h>
 
 /**
- *  \file duplex.h
- *  \brief Duplex folding function declarations...
+ *  @file     duplex.h
+ *  @ingroup  cofold
+ *  @brief    Functions for simple RNA-RNA duplex interactions
  */
 
 

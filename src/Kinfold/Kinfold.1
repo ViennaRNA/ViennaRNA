@@ -1,0 +1,139 @@
+.TH "Kinfold" "1" "1.1" "Christoph Flamm, Ivo Hofacker" "RNA"
+.SH "NAME"
+.LP
+Kinfold \- Simulate kinetic folding of RNA secondary structures
+.SH "SYNTAX"
+.LP
+Kinfold [\fIOPTIONS\fP] < \fIinput\fP
+
+.SH "DESCRIPTION"
+.LP
+The program  Kinfold  simulates the stochastic folding kinetics of RNA sequences into secondary structures. Folding trajectories are simulated using a Monte Carlo procedure using the formation, and dissociation of individual base pairs, and (optionally) the shifting of individual base pairs. For the energy evaluation of RNA secondary structures  Kinfold  uses routines from the  Vienna RNA Package.
+.br
+Input is read from stdin and consists of an RNA sequence, optionally followed by the initial structure and one or more stop structures in dot\-bracket notation.
+.br
+Output consists of trajecotires (written to stdout) as well as a log file containing summary information for each trajectory.
+
+
+.SH "OPTIONS"
+.LP
+\fBMove set options\fR
+.TP
+\fB\-\-noShift\fR
+turn of shift moves.
+.TP
+\fB\-\-noLP\fR 
+forbid structures containing isolated base-pairs
+.TP
+\fBSimulation options\fR
+.TP
+\fB\-\-num\fR
+Number of trajectories to compute (default=1).
+.TP
+\fB\-\-time\fR<\fItmax\fP>
+Set maximum length of folding trajectory. The default (500) is very short and meant for testing purposes only.
+.TP
+\fB\-\-grow\fR <\fIrate\fP>
+Simulate folding during transcription with a chain growth event taking place every  \fIrate\fP timesteps.
+.TP
+\fB\-\-glen\fR <\fIlen\fP>
+Start a folding during transcription simulation with an inital chain length of \fIlen\fP.
+.TP
+\fB\-\-fpt\fR
+Toggles between first passage time calculations that end as soon a stop struicture is reached and open\-ended simulations. Since the default is "first passage time", i.e. using the \-\-fpt switches to open ended simulation.
+.TP
+\fB\-\-start\fR
+Read a start conformation from stdin, otherwise the open chain is used as start structures.
+.TP
+\fB\-\-stop\fR
+Read one or more stop structures from stdin, otherwise the MFE structure is used.
+.TP
+\fB\-\-met\fR
+Use the Metropolis rule for rate between two neighboring conformations, i.e. k=min{1,exp(\-dE/RT)}. By default Kinfold uses the symmetric Kawasaki rule k=exp(\-dE/2RT).
+.TP
+\fB\-\-seed\fR<\fIstring\fP>
+Specify the random number seed for the simulation. The seed \fIstring\fP consists of  three numbers separated by an equal sign, e.g. 123=456=789. If no seed is specified it is derived from the system clock at program start.
+.TP
+\fBOutput options\fR
+.TP
+\fB\-v\fR or \fB\-\-verbose\fR
+Print more information to stdout.
+.TP
+\fB\-q\fR or \fB\-\-silent\fR
+Do not write trajectories to stdout.
+.TP
+\fB\-\-lmin\fR
+Don't print complete trajectory, but only local minimas encountered.
+.TP
+\fB\-\-cut\fR<\fIenergy\fP>
+Print only those parts of the trajectory that stays below \fIenergy\fR.
+.TP
+\fB\-\-log\fR<\fIfile\fP>
+Set the log file to \fIfile.log\fR. Default "kinout".
+.TP
+\fBEnergy model\fR see e.g. the Vienna RNA documentation for details
+.TP
+\fB\-\-dangles\fR<\fIint\fP>
+Select dangling end model. Possible values "0" (none), "1" (normal), "2" (simplified)
+.TP
+\fB\-\-T, \-\-Temp\fR<\fItemp\fP>
+Set simulation temperature to \fItemp\fP degrees centigrade.
+.TP
+\fB\-P, \-\-Par\fR <\fIfilename\fP>
+read energy\-parameters from \fIfilename\fP.
+.TP
+\fB\-\-logML\fR
+use logarithmic multiloop energies instead of linear. Default is on, i.e. using \-\-logML switches log energies off.
+.TP
+\fBGeneric options\fR
+.TP
+\fB\-\-help\fR
+Output help information and exit.
+.TP
+\fB\-\-version\fR
+Output version information and exit.
+
+.SH "EXAMPLES"
+.LP
+default mode:
+Start structure is open chain, stop structure is MFE structure.
+The example output below is a possible trajectory for the sequence ACUGAUCGUAGUCAC.
+.LP
+.ft CR
+   Kinfold \-\-time 100000 < seq.in
+   ...............   0.00      2.660
+   ....(......)...   4.80      2.664
+   ...((......))..   0.70      2.760
+   ..(((......))).   0.20      3.407
+   ..((((....)))).  \-0.60      3.579 X1
+.ft
+
+The trajectory lists stucture, energy, and time for each simulation step. The X1 signifies that the trajectory terminated in the first stop structure.
+In addition the logfile kinout.log would contain information needed to reproduce the simulation results such as options and random seeds used.
+
+   #Date: Tue Oct  7 10:24:27 2008
+   #EnergyModel: dangle=2 Temp=37.0 logML=logarithmic Par=(null)
+   #MoveSet: noShift=off noLP=off
+   #Simulation: num=2 time=500.00 seed=clock fpt=on mc=Kawasaki
+   #Simulation: phi=1 pbounds=0.1 0.1 2
+   #Output: log=kinout silent=off lmin=off cut=20.00
+   #ACUGAUCGUAGUCAC
+   #............... (  0.00)
+   #..((((....)))). ( \-0.60) X01
+   (20773  2191 29311) X01        3.579
+   ( 7439 25635 52414)
+
+Note that all times are given in internal units that can be translated into real time only by copmparison with experiment. Very roughly one time step corresponds to about 1e\-7 seconds.
+.LP
+To run a folding during transcription simulation use the \-\-grow option. Assuming a transcription rate of 100 nt/sec and 1 sec about 1e7 time steps we could use
+.LP
+   Kinfold \-\-grow 100000 \-\-glen 10 < seq.in
+.LP
+.SH "AUTHORS"
+.LP
+Christoph Flamm <xtof@tbi.univie.ac.at>
+.br
+Ivo Hofacker <ivo@tbi.univie.ac.at>
+.SH "SEE ALSO"
+.LP
+The Vienna RNA package http://www.tbi.univie.ac.at/~ivo/RNA

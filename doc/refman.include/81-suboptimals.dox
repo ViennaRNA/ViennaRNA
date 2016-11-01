@@ -1,0 +1,7 @@
+/**
+
+@addtogroup subopt_and_representatives
+@brief Sample and enumerate suboptimal secondary structures from RNA sequence data.
+
+
+*/

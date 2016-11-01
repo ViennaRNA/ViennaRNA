@@ -119,8 +119,8 @@ vrna_cofold(const char *seq,
 }
 
 PUBLIC float
-vrna_mfe_dimer(vrna_fold_compound_t  *vc,
-            char                *structure){
+vrna_mfe_dimer( vrna_fold_compound_t  *vc,
+                char                  *structure){
 
   int     length, energy;
   char    *s;
@@ -131,7 +131,10 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
 
   vc->sequence_encoding[0] = vc->sequence_encoding2[0]; /* store length at pos. 0 in S1 too */
 
-  vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  if(!vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID)){
+    vrna_message_warning("vrna_mfe_dimer@cofold.c: Failed to prepare vrna_fold_compound");
+    return (float)(INF/100.);
+  }
 
   /* call user-defined recursion status callback function */
   if(vc->stat_cb)
@@ -151,21 +154,7 @@ vrna_mfe_dimer(vrna_fold_compound_t  *vc,
     s = vrna_db_from_bp_stack(bp, length);
     strncpy(structure, s, length + 1);
     free(s);
-
-#ifdef  VRNA_BACKWARD_COMPAT
-
-    /*
-    *  Backward compatibility:
-    *  This block may be removed if deprecated functions
-    *  relying on the global variable "base_pair" vanish from within the package!
-    */
-    {
-      if(base_pair) free(base_pair);
-      base_pair = bp;
-    }
-
-#endif
-
+    free(bp);
   }
 
   if (vc->params->model_details.backtrack_type=='C')
@@ -426,8 +415,7 @@ backtrack_co( sect bt_stack[],
 
                   continue;
                 } else {
-                  fprintf(stderr, "%s\n", string);
-                  vrna_message_error("backtrack failed in f5");
+                  vrna_message_error("backtrack failed in f5\n%s", string);
                 }
               }
               break;
@@ -449,8 +437,7 @@ backtrack_co( sect bt_stack[],
 
                   continue;
                 } else {
-                  fprintf(stderr, "%s\n", string);
-                  vrna_message_error("backtrack failed in fML");
+                  vrna_message_error("backtrack failed in fML\n%s", string);
                 }
               }
               break;
@@ -479,8 +466,7 @@ backtrack_co( sect bt_stack[],
 
                   continue;
                 } else {
-                  fprintf(stderr, "%s\n", string);
-                  vrna_message_error("backtrack failed in fc");
+                  vrna_message_error("backtrack failed in fc\n%s", string);
                 }
               }
               break;
@@ -836,7 +822,12 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   md->min_loop_size = 0;
   doubleseq(vc);
 
-  vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
+  if(!vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID)){
+    vrna_message_warning("vrna_subopt_zuker@cofold.c: Failed to prepare vrna_fold_compound");
+    return NULL;
+  }
+
+
 
   doublelength    = vc->length;
   length          = doublelength/2;
@@ -899,7 +890,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
       backtrack_co(bt_stack, bp_list, 1,bp_list[0].i, vc);
       energy = pairlist[p].e;
       sz = vrna_db_from_bp_stack(bp_list, length);
-      zukresults[counter].energy      = energy;
+      zukresults[counter].energy      = energy/100.;
       zukresults[counter++].structure = sz;
       for (k = 1; k <= bp_list[0].i; k++) { /* mark all pairs in structure as done */
         int x,y;
@@ -916,20 +907,6 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
     }
   }
 
-#ifdef  VRNA_BACKWARD_COMPAT
-
-  /*
-  *  Backward compatibility:
-  *  This block may be removed if deprecated functions
-  *  relying on the global variable "base_pair" vanish from within the package!
-  */
-  {
-    if(base_pair) free(base_pair);
-    base_pair = bp_list;
-  }
-
-#endif
-
   /* clean up */
   free(pairlist);
   for (i=1; i<length; i++)
@@ -937,6 +914,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc){
   free(todo);
   free(structure);
   free(mfestructure);
+  free(bp_list);
 
   /* undo magic */
   halfseq(vc);
@@ -1042,20 +1020,39 @@ wrap_cofold(const char *string,
   /* cleanup */
   free(seq);
 
-  return vrna_mfe_dimer(vc, structure);
+  /* call mfe_dimer without backtracing */
+  mfe = vrna_mfe_dimer(vc, NULL);
+
+  /* now we backtrace in a backward compatible way */
+  if(structure && vc->params->model_details.backtrack){
+    char            *s;
+    sect            bt_stack[MAXSECTORS];
+    vrna_bp_stack_t *bp;
+
+    bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+
+    backtrack(bt_stack, bp, vc);
+
+    s = vrna_db_from_bp_stack(bp, length);
+    strncpy(structure, s, length + 1);
+    free(s);
+
+    if(base_pair)
+      free(base_pair);
+    base_pair = bp;
+  }
+
+  return mfe;
 }
 
 PRIVATE SOLUTION *
 wrap_zukersubopt( const char *string,
                   vrna_param_t *parameters){
 
-  unsigned int        length;
-  char                *doubleseq;
   vrna_fold_compound_t  *vc;
   vrna_param_t        *P;
 
   vc      = NULL;
-  length  = (int)strlen(string);
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -1071,15 +1068,9 @@ wrap_zukersubopt( const char *string,
     md.temperature = temperature;
     P = vrna_params(&md);
   }
-  P->model_details.min_loop_size = 0;  /* set min loop length to 0 */
-
-  doubleseq = (char *)vrna_alloc((2*length+2)*sizeof(char));
-  strcpy(doubleseq,string);
-  doubleseq[length] = '&';
-  strcat(doubleseq, string);
 
   /* get compound structure */
-  vc = vrna_fold_compound(doubleseq, &(P->model_details), 0);
+  vc = vrna_fold_compound(string, &(P->model_details), VRNA_OPTION_DEFAULT);
 
   if(parameters){ /* replace params if necessary */
     free(vc->params);
@@ -1093,9 +1084,6 @@ wrap_zukersubopt( const char *string,
 
   backward_compat_compound  = vc;
   backward_compat           = 1;
-
-  /* cleanup */
-  free(doubleseq);
 
   return vrna_subopt_zuker(vc);
 }

@@ -15,6 +15,8 @@
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/exterior_loops.h"
 #include "ViennaRNA/gquad.h"
+#include "ViennaRNA/structured_domains.h"
+#include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/multibranch_loops.h"
 
 #ifdef ON_SAME_STRAND
@@ -64,6 +66,11 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t *vc,
                             int *fmi,
                             int *dmli);
 
+PRIVATE int
+extend_fm_3p( int i,
+              int j,
+              int *fm,
+              vrna_fold_compound_t *vc);
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -81,11 +88,11 @@ vrna_E_mb_loop_fast(vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:
+      case VRNA_FC_TYPE_SINGLE:
         e = E_mb_loop_fast(vc, i, j, dmli1, dmli2);
         break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:
+      case VRNA_FC_TYPE_COMPARATIVE:
         e = E_mb_loop_fast_comparative(vc, i, j, dmli1, dmli2);
         break;
     }
@@ -106,11 +113,11 @@ vrna_E_ml_stems_fast( vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:
+      case VRNA_FC_TYPE_SINGLE:
         e = E_ml_stems_fast(vc, i, j, fmi, dmli);
         break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:
+      case VRNA_FC_TYPE_COMPARATIVE:
         e = E_ml_stems_fast_comparative(vc, i, j, fmi, dmli);
         break;
     }
@@ -130,11 +137,11 @@ vrna_exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:
+      case VRNA_FC_TYPE_SINGLE:
         q = exp_E_mb_loop_fast(vc, i, j, qqm1);
         break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:
+      case VRNA_FC_TYPE_COMPARATIVE:
         q = exp_E_mb_loop_fast_comparative(vc, i, j, qqm1);
         break;
     }
@@ -224,6 +231,7 @@ E_mb_loop_fast( vrna_fold_compound_t *vc,
                 dangle_model, *rtype;
   vrna_sc_t     *sc;
   vrna_param_t  *P;
+  vrna_ud_t     *domains_up;
 #ifdef WITH_GEN_HC
   vrna_callback_hc_evaluate *f;
 #endif
@@ -242,6 +250,7 @@ E_mb_loop_fast( vrna_fold_compound_t *vc,
   dangle_model  = P->model_details.dangles;
   rtype         = &(P->model_details.rtype[0]);
   type          = (unsigned char)ptype[ij];
+  domains_up    = vc->domains_up;
   /* init values */
   e             = INF;
   decomp        = INF;
@@ -268,6 +277,7 @@ E_mb_loop_fast( vrna_fold_compound_t *vc,
       el = (f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_ML, vc->hc->data)) ? el : (char)0;
 #endif
 
+    /* new closing pair (i,j) with mb part [i+1,j-1] */
     if(el){
       decomp = dmli1[j-1];
       tt = rtype[type];
@@ -323,6 +333,7 @@ E_mb_loop_fast( vrna_fold_compound_t *vc,
         el = (f(i, j, i+2, j-1, VRNA_DECOMP_PAIR_ML, vc->hc->data)) ? el : (char)0;
 #endif
 
+      /* new closing pair (i,j) with mb part [i+2,j-1] */
       if(el){
         if(dmli2[j-1] != INF){
           tt = rtype[type];
@@ -353,6 +364,7 @@ E_mb_loop_fast( vrna_fold_compound_t *vc,
         el = (f(i, j, i+2, j-2, VRNA_DECOMP_PAIR_ML, vc->hc->data)) ? el : (char)0;
 #endif
 
+      /* new closing pair (i,j) with mb part [i+2.j-2] */
       if(el){
         if(dmli2[j-2] != INF){
           tt = rtype[type];
@@ -384,6 +396,7 @@ E_mb_loop_fast( vrna_fold_compound_t *vc,
         el = (f(i, j, i+1, j-2, VRNA_DECOMP_PAIR_ML, vc->hc->data)) ? el : (char)0;
 #endif
 
+      /* new closing pair (i,j) with mb part [i+1, j-2] */
       if(el){
         if(dmli1[j-2] != INF){
           tt = rtype[type];
@@ -620,12 +633,32 @@ E_ml_rightmost_stem(int i,
                     int j,
                     vrna_fold_compound_t *vc){
 
+  if((vc) && (vc->matrices) && (vc->matrices->fM1)){
+    return extend_fm_3p(i, j, vc->matrices->fM1, vc);
+  }
+
+  return INF;
+}
+
+/*
+  compose a multibranch loop part fm[i:j]
+  by either c[i,j]/ggg[i,j] or fm[i:j-1]
+
+  This function can be used for fM and fM1
+*/
+PRIVATE int
+extend_fm_3p( int i,
+              int j,
+              int *fm,
+              vrna_fold_compound_t *vc){
+
   char              eval_loop, *hc;
   short             *S;
-  int               en, length, *indx, *hc_up, *c, *fm, *ggg, ij, type, hc_decompose,
-                    dangle_model, with_gquad, cp, e;
+  int               en, length, *indx, *hc_up, *c, *ggg, ij, type, hc_decompose,
+                    dangle_model, with_gquad, cp, e, u, k, cnt, with_ud;
   vrna_param_t      *P;
   vrna_sc_t         *sc;
+  vrna_ud_t         *domains_up;
 #ifdef WITH_GEN_HC
   vrna_callback_hc_evaluate *f;
 #endif
@@ -638,7 +671,6 @@ E_ml_rightmost_stem(int i,
   hc_up         = vc->hc->up_ml;
   sc            = vc->sc;
   c             = vc->matrices->c;
-  fm            = (P->model_details.uniq_ML) ? vc->matrices->fM1 : vc->matrices->fML;
   ggg           = vc->matrices->ggg;
   ij            = indx[j] + i;
   type          = vc->ptype[ij];
@@ -646,6 +678,8 @@ E_ml_rightmost_stem(int i,
   dangle_model  = P->model_details.dangles;
   with_gquad    = P->model_details.gquad;
   cp            = vc->cutpoint;
+  domains_up    = vc->domains_up;
+  with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   e             = INF;
 
 #ifdef WITH_GEN_HC
@@ -710,6 +744,41 @@ E_ml_rightmost_stem(int i,
         }
       }
     }
+
+    if(with_ud){
+      for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+        u = domains_up->uniq_motif_size[cnt];
+        k = j - u + 1;
+        if((k > i) && ON_SAME_STRAND(j - u, j, cp)){
+          eval_loop = (hc_up[k] >= u) ? (char)1 : (char)0;
+
+#ifdef WITH_GEN_HC
+          if(f)
+            eval_loop = (f(i, j, i, k-1, VRNA_DECOMP_ML_ML, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+          if(eval_loop){
+            if(fm[indx[k - 1] + i] != INF){
+              en = domains_up->energy_cb( vc,
+                                          k, j,
+                                          VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                          domains_up->data);
+              if(en != INF){
+                en +=   fm[indx[k - 1] + i]
+                      + u * P->MLbase;
+
+                if(sc){
+                  if(sc->energy_up)
+                    en += sc->energy_up[k][u];
+                  if(sc->f)
+                    en += sc->f(i, j, i, k-1, VRNA_DECOMP_ML_ML, sc->data);
+                }
+                e = MIN2(e, en);
+              }
+            }
+          }
+        }
+      }
+    }
   }
   return e;
 }
@@ -724,9 +793,11 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
   char          *ptype, *hc, eval_loop;
   short         *S;
   int           k, en, decomp, mm5, mm3, type_2, k1j, stop, length, *indx, *hc_up,
-                *c, *fm, ij, dangle_model, turn, type, *rtype, circular, cp, e;
+                *c, *fm, ij, dangle_model, turn, type, *rtype, circular, cp, e, u,
+                cnt, with_ud;
   vrna_sc_t     *sc;
   vrna_param_t  *P;
+  vrna_ud_t     *domains_up;
 #ifdef WITH_GEN_HC
   vrna_callback_hc_evaluate *f;
 #endif
@@ -748,6 +819,8 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
   rtype         = &(P->model_details.rtype[0]);
   circular      = P->model_details.circ;
   cp            = vc->cutpoint;
+  domains_up    = vc->domains_up;
+  with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   e             = INF;
 
 #ifdef WITH_GEN_HC
@@ -757,7 +830,7 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
   /*  extension with one unpaired nucleotide at the right (3' site)
       or full branch of (i,j)
   */
-  e = E_ml_rightmost_stem(i,j,vc);
+  e = extend_fm_3p(i, j, fm, vc);
 
   /*  extension with one unpaired nucleotide at 5' site
       and all other variants which are needed for odd
@@ -785,6 +858,43 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
           e = MIN2(e, en);
         }
 
+      }
+    }
+
+    /* extension with bound ligand on 5'site */
+    if(with_ud){
+      for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+        u = domains_up->uniq_motif_size[cnt];
+        k = i + u - 1;
+        if((k < j) && ON_SAME_STRAND(i, k + 1, cp)){
+          eval_loop = (hc_up[i] >= u) ? (char)1 : (char)0;
+
+#ifdef WITH_GEN_HC
+          if(f)
+            eval_loop = (f(i, j, k + 1, j, VRNA_DECOMP_ML_ML, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+
+          if(eval_loop){
+            if(fm[ij + u] != INF){
+              en = domains_up->energy_cb( vc,
+                                          i, k,
+                                          VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                          domains_up->data);
+              if(en != INF){
+                en +=   fm[ij + u]
+                      + u * P->MLbase;
+
+                if(sc){
+                  if(sc->energy_up)
+                    en += sc->energy_up[i][u];
+                  if(sc->f)
+                    en += sc->f(i, j, k + 1, j, VRNA_DECOMP_ML_ML, sc->data);
+                }
+                e = MIN2(e, en);
+              }
+            }
+          }
+        }
       }
     }
 
@@ -1669,12 +1779,13 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
   char          *ptype;
   short         *S1;
   int           ij, ii, jj, fij, fi, u, en, *my_c, *my_fML, *my_ggg,
-                turn, *idx, with_gquad, dangle_model, *rtype;
+                turn, *idx, with_gquad, dangle_model, *rtype, kk, cnt,
+                with_ud;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
-
+  vrna_ud_t     *domains_up;
 
   P             = vc->params;
   md            = &(P->model_details);
@@ -1684,55 +1795,167 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
   ptype         = vc->ptype;
   rtype         = &(md->rtype[0]);
   S1            = vc->sequence_encoding;
+  domains_up    = vc->domains_up;
 
   my_c          = vc->matrices->c;
   my_fML        = vc->matrices->fML;
   my_ggg        = vc->matrices->ggg;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
+  with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   dangle_model  = md->dangles;
 
   ii = *i;
   jj = *j;
 
-  /* nibble off unpaired 3' bases */
-  do{
-    fij = my_fML[idx[jj] + ii];
-    fi  = (hc->up_ml[jj]) ? my_fML[idx[jj - 1] + ii] + P->MLbase : INF;
+  if(with_ud){
+    /* nibble off unpaired stretches at 3' site */
+    do{
+      fij = my_fML[idx[jj] + ii];
 
-    if(sc){
-      if(sc->energy_up)
-        fi += sc->energy_up[jj][1];
-      if(sc->f)
-        fi += sc->f(ii, jj, ii, jj-1, VRNA_DECOMP_ML_ML, sc->data);
+      /* process regular unpaired nucleotides (unbound by ligand) first */
+      fi  = (hc->up_ml[jj]) ? my_fML[idx[jj - 1] + ii] + P->MLbase : INF;
+
+      if(sc){
+        if(sc->energy_up)
+          fi += sc->energy_up[jj][1];
+        if(sc->f)
+          fi += sc->f(ii, jj, ii, jj-1, VRNA_DECOMP_ML_ML, sc->data);
+      }
+
+      if(jj == ii)
+        return 0; /* no more pairs */
+
+      if(fij == fi){
+        jj--;
+        continue;
+      }
+
+      /* next try to nibble off ligand */
+      for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+        u = domains_up->uniq_motif_size[cnt];
+        kk = jj - u + 1;
+        if(kk >= ii){
+          en = domains_up->energy_cb( vc,
+                                      kk, jj,
+                                      VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                      domains_up->data);
+
+          if(sc){
+            if(sc->energy_up)
+              en += sc->energy_up[kk][u];
+            if(sc->f)
+              en += sc->f(ii, jj, ii, jj-u, VRNA_DECOMP_ML_ML, sc->data);
+          }
+
+          fi = (hc->up_ml[kk] >= u) ? my_fML[idx[kk-1] + ii] + u * P->MLbase: INF;
+          fi += en;
+
+          if(fij == fi){ /* skip remaining motifs after first hit */
+            jj = kk - 1;
+            break;
+          }
+        }
+      }
+
+      if(jj < ii)
+        return 0; /* no more pairs */
+
+    } while (fij == fi);
+
+    /* nibble off unpaired stretches at 5' site */
+    do{
+      fij = my_fML[idx[jj] + ii];
+      /* again, process regular unpaired nucleotides (unbound by ligand) first */
+      fi  = (hc->up_ml[ii]) ? my_fML[idx[jj] + ii + 1] + P->MLbase : INF;
+
+      if(sc){
+        if(sc->energy_up)
+          fi += sc->energy_up[ii][1];
+        if(sc->f)
+          fi += sc->f(ii, jj, ii+1, jj, VRNA_DECOMP_ML_ML, sc->data);
+      }
+
+      if(ii + 1 == jj)
+        return 0; /* no more pairs */
+
+      if(fij == fi){
+        ii++;
+        continue;
+      }
+
+      /* next try to nibble off ligand again */
+      for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+        u = domains_up->uniq_motif_size[cnt];
+        kk = ii + u - 1;
+        if(kk <= jj){
+          en = domains_up->energy_cb( vc,
+                                      ii, kk,
+                                      VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                      domains_up->data);
+
+          if(sc){
+            if(sc->energy_up)
+              en += sc->energy_up[ii][u];
+            if(sc->f)
+              en += sc->f(ii, jj, ii+u, jj, VRNA_DECOMP_ML_ML, sc->data);
+          }
+
+          fi = (hc->up_ml[ii] >= u) ? my_fML[idx[jj] + kk + 1] + u * P->MLbase: INF;
+          fi += en;
+
+          if(fij == fi){ /* skip remaining motifs after first hit */
+            ii = kk + 1;
+            break;
+          }
+        }
+      }
+
+      if(ii > jj)
+        return 0; /* no more pairs */
+
+    } while (fij == fi);
+  } else {
+    /* nibble off unpaired 3' bases */
+    do{
+      fij = my_fML[idx[jj] + ii];
+      fi  = (hc->up_ml[jj]) ? my_fML[idx[jj - 1] + ii] + P->MLbase : INF;
+
+      if(sc){
+        if(sc->energy_up)
+          fi += sc->energy_up[jj][1];
+        if(sc->f)
+          fi += sc->f(ii, jj, ii, jj-1, VRNA_DECOMP_ML_ML, sc->data);
+      }
+
+      if(--jj == 0)
+        break;
+
+    } while (fij == fi);
+    jj++;
+
+    /* nibble off unpaired 5' bases */
+    do{
+      fij = my_fML[idx[jj] + ii];
+      fi  = (hc->up_ml[ii]) ? my_fML[idx[jj] + ii + 1] + P->MLbase : INF;
+
+      if(sc){
+        if(sc->energy_up)
+          fi += sc->energy_up[ii][1];
+        if(sc->f)
+          fi += sc->f(ii, jj, ii+1, jj, VRNA_DECOMP_ML_ML, sc->data);
+      }
+
+      if(++ii == jj)
+        break;
+
+    } while (fij == fi);
+    ii--;
+
+    if (jj < ii + turn + 1){ /* no more pairs */
+      return 0;
     }
 
-    if(--jj == 0)
-      break;
-
-  } while (fij == fi);
-  jj++;
-
-  /* nibble off unpaired 5' bases */
-  do{
-    fij = my_fML[idx[jj] + ii];
-    fi  = (hc->up_ml[ii]) ? my_fML[idx[jj] + ii + 1] + P->MLbase : INF;
-
-    if(sc){
-      if(sc->energy_up)
-        fi += sc->energy_up[ii][1];
-      if(sc->f)
-        fi += sc->f(ii, jj, ii+1, jj, VRNA_DECOMP_ML_ML, sc->data);
-    }
-
-    if(++ii == jj)
-      break;
-
-  } while (fij == fi);
-  ii--;
-
-  if (jj < ii + turn + 1){ /* no more pairs */
-    return 0;
   }
 
   ij = idx[jj] + ii;

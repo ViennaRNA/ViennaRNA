@@ -1,0 +1,96 @@
+/**
+
+@fn void vrna_sc_init(vrna_fold_compound_t *vc)
+@scripting
+@parblock
+This function is attached as method @b sc_init() to objects of type @em fold_compound
+@endparblock
+
+
+@fn void vrna_sc_remove(vrna_fold_compound_t *vc)
+@scripting
+@parblock
+This function is attached as method @b sc_remove() to objects of type @em fold_compound
+@endparblock
+
+
+@fn void vrna_sc_set_bp(vrna_fold_compound_t *vc, const FLT_OR_DBL **constraints, unsigned int options)
+@scripting
+@parblock
+This function is attached as method @b sc_set_bp() to objects of type @em fold_compound
+@endparblock
+
+
+@fn void vrna_sc_add_bp(vrna_fold_compound_t *vc, int i, int j, FLT_OR_DBL energy, unsigned int options)
+@scripting
+@parblock
+
+This function is attached as an overloaded method @b sc_add_bp() to objects of type
+@em fold_compound. The method either takes arguments for a single base pair (i,j)
+with the corresponding energy value:
+```
+fold_compound.sc_add_bp(i, j, energy, options)
+```
+or an entire 2-dimensional matrix with dimensions n x n that stores free energy
+contributions for any base pair (i,j) with @f$ 1 \leq i < j \leq n @f$:
+```
+fold_compound.sc_add_bp(matrix, options)
+```
+In both variants, the @p options argument is optional can may be omitted.
+@endparblock
+
+
+@fn void vrna_sc_set_up(vrna_fold_compound_t *vc, const FLT_OR_DBL *constraints, unsigned int options)
+@scripting
+@parblock
+This function is attached as method @b sc_set_up() to objects of type @em fold_compound
+@endparblock
+
+
+@fn void vrna_sc_add_up( vrna_fold_compound_t *vc, int i, FLT_OR_DBL energy, unsigned int options)
+@scripting
+@parblock
+This function is attached as an overloaded method @b sc_add_up() to objects of type
+@em fold_compound. The method either takes arguments for a single nucleotide @f$i @f$
+with the corresponding energy value:
+```
+fold_compound.sc_add_up(i, energy, options)
+```
+or an entire vector that stores free energy contributions for each nucleotide @f$i @f$
+with @f$ 1 \leq i \leq n @f$:
+```
+fold_compound.sc_add_bp(vector, options)
+```
+In both variants, the @p options argument is optional can may be omitted.
+@endparblock
+
+
+@fn void vrna_sc_add_data(vrna_fold_compound_t *vc, void *data, vrna_callback_free_auxdata *free_data)
+@scripting
+@parblock
+This function is attached as method @b sc_add_data() to objects of type @em fold_compound
+@endparblock
+
+
+@fn void vrna_sc_add_f( vrna_fold_compound_t *vc, vrna_callback_sc_energy *f)
+@scripting
+@parblock
+This function is attached as method @b sc_add_f() to objects of type @em fold_compound
+@endparblock
+
+
+@fn void vrna_sc_add_bt(vrna_fold_compound_t *vc, vrna_callback_sc_backtrack *f)
+@scripting
+@parblock
+This function is attached as method @b sc_add_bt() to objects of type @em fold_compound
+@endparblock
+
+
+@fn void vrna_sc_add_exp_f( vrna_fold_compound_t *vc, vrna_callback_sc_exp_energy *exp_f)
+@scripting
+@parblock
+This function is attached as method @b sc_add_exp_f() to objects of type @em fold_compound
+@endparblock
+
+
+*/

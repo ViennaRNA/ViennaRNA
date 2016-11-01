@@ -511,13 +511,13 @@ int main(int argc, char *argv[]) {
   }
 
   cut_point = -1;
-  line = get_line(stdin);
+  line = vrna_read_line(stdin);
   seq = vrna_cut_point_remove(line, &cut_point);
   free(line);   
-  line = get_line(stdin);
+  line = vrna_read_line(stdin);
   s1 = vrna_cut_point_remove(line, &cut_point);
   free(line);
-  line = get_line(stdin);
+  line = vrna_read_line(stdin);
   s2 = vrna_cut_point_remove(line, &cut_point);
   free(line);
 

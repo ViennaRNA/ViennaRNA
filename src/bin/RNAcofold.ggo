@@ -92,6 +92,12 @@ hidden
 section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
 
+option  "maxBPspan" -
+"Set the maximum base pair span\n\n"
+int
+default="-1"
+optional
+
 option  "constraint"  C
 "Calculate structures subject to constraints.\n"
 details="The program reads first the\
@@ -106,6 +112,15 @@ typestr="<filename>"
 default = ""
 argoptional
 
+option  "batch"   -
+"Use constraints for multiple sequences.\n"
+details="Usually, constraints provided from input file only apply to a single input sequence. Therefore,\
+ RNAfold will stop its computation and quit after the first input sequence was processed. Using this\
+ switch, RNAfold processes multiple input sequences and applies the same provided constraints to each of them.\n\n"
+flag
+off
+dependon="constraint"
+
 option  "canonicalBPonly" -
 "Remove non-canonical base pairs from the structure constraint\n\n"
 flag
@@ -117,6 +132,16 @@ option  "enforceConstraint" -
 flag
 off
 dependon="constraint"
+
+option  "commands"   -
+"Read additional commands from file\n"
+details="Commands include hard and soft constraints, but also structure motifs in hairpin and interior\
+ loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
+ domains.\n\n"
+string
+typestr="<filename>"
+optional
+hidden
 
 
 section "Algorithms"

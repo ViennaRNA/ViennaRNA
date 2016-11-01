@@ -89,28 +89,27 @@ PUBLIC void read_parameter_file(const char fname[]){
   int         r;
 
   if (!(fp=fopen(fname,"r"))) {
-    fprintf(stderr,
-            "\nread_parameter_file:\n"
-            "\t\tcan't open file %s\n"
-            "\t\tusing default parameters instead.\n", fname);
+    vrna_message_warning("\nread_parameter_file:\n"
+                                "\t\tcan't open file %s\n"
+                                "\t\tusing default parameters instead.",
+                                fname);
     return;
   }
 
-  if (!(line = get_line(fp))) {
-    fprintf(stderr," File %s is improper.\n", fname);
+  if (!(line = vrna_read_line(fp))) {
+    vrna_message_warning(" File %s is improper.\n", fname);
     fclose(fp);
     return;
   }
 
   if (strncmp(line,"## RNAfold parameter file v2.0",30)!=0) {
-    fprintf(stderr,
-            "Missing header line in file.\n"
-            "May be this file has not v2.0 format.\n"
-            "Use INTERRUPT-key to stop.\n");
+    vrna_message_warning( "Missing header line in file.\n"
+                          "May be this file has not v2.0 format.\n"
+                          "Use INTERRUPT-key to stop.");
   }
   free(line);
 
-  while((line=get_line(fp))) {
+  while((line=vrna_read_line(fp))) {
 
     r = sscanf(line, "# %255s", ident);
     if (r==1) {
@@ -252,7 +251,7 @@ PUBLIC void read_parameter_file(const char fname[]){
         case HEX:     rd_Hexaloop37();
                       break;
         default:      /* do nothing but complain */
-                      fprintf(stderr,"read_epars: Unknown field identifier in `%s'\n", line);
+                      vrna_message_warning("read_epars: Unknown field identifier in `%s'", line);
       }
     } /* else ignore line */
     free(line);
@@ -293,7 +292,7 @@ PRIVATE char *get_array1(int *arr, int size)
 
   i = last = 0;
   while( i<size ) {
-    line = get_line(fp);
+    line = vrna_read_line(fp);
     if (!line) vrna_message_error("unexpected end of file in get_array1");
     ignore_comment(line);
     pos=0;
@@ -311,7 +310,7 @@ PRIVATE char *get_array1(int *arr, int size)
         r=sscanf(buf,"%d", &p);
         if (r!=1) {
           return line+pos;
-          fprintf(stderr, "can't interpret `%s' in get_array1\n", buf);
+          vrna_message_error("can't interpret `%s' in get_array1", buf);
           exit(1);
         }
         last = i;
@@ -333,7 +332,7 @@ PRIVATE void rd_1dim_slice(int *array, int dim, int shift, int post){
   cp   = get_array1(array+shift, dim-shift-post);
 
   if (cp) {
-    fprintf(stderr,"\nrd_1dim: %s\n", cp);
+    vrna_message_error("\nrd_1dim: %s", cp);
     exit(1);
   }
   return;
@@ -493,7 +492,7 @@ PRIVATE void  rd_Tetraloop37(void)
   memset(&Tetraloop37, 0, sizeof(int)*40);
   memset(&TetraloopdH, 0, sizeof(int)*40);
   do {
-    buf = get_line(fp);
+    buf = vrna_read_line(fp);
     if (buf==NULL) break;
     r = sscanf(buf,"%6s %d %d", &Tetraloops[7*i], &Tetraloop37[i], &TetraloopdH[i]);
     strcat(Tetraloops, " ");
@@ -515,7 +514,7 @@ PRIVATE void  rd_Hexaloop37(void)
   memset(&Hexaloop37, 0, sizeof(int)*40);
   memset(&HexaloopdH, 0, sizeof(int)*40);
   do {
-    buf = get_line(fp);
+    buf = vrna_read_line(fp);
     if (buf==NULL) break;
     r = sscanf(buf,"%8s %d %d", &Hexaloops[9*i], &Hexaloop37[i], &HexaloopdH[i]);
     strcat(Hexaloops, " ");
@@ -537,7 +536,7 @@ PRIVATE void  rd_Triloop37(void)
   memset(&Triloop37,  0, sizeof(int)*40);
   memset(&TriloopdH,  0, sizeof(int)*40);
   do {
-    buf = get_line(fp);
+    buf = vrna_read_line(fp);
     if (buf==NULL) break;
     r = sscanf(buf,"%5s %d %d", &Triloops[6*i], &Triloop37[i], &TriloopdH[i]);
     strcat(Triloops, " ");
@@ -665,7 +664,7 @@ PUBLIC void write_parameter_file(const char fname[]){
   char bnames[] = "@ACGU";
   outfp = fopen(fname, "w");
   if (!outfp) {
-    fprintf(stderr, "can't open file %s\n", fname);
+    vrna_message_error("can't open file %s", fname);
     exit(1);
   }
   fprintf(outfp,"## RNAfold parameter file v2.0\n");
@@ -912,12 +911,12 @@ PRIVATE void check_symmetry(void) {
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       if (stack37[i][j] != stack37[j][i])
-        fprintf(stderr, "WARNING: stacking energies not symmetric\n");
+        vrna_message_warning("stacking energies not symmetric");
 
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       if (stackdH[i][j] != stackdH[j][i])
-        fprintf(stderr, "WARNING: stacking enthalpies not symmetric\n");
+        vrna_message_warning("stacking enthalpies not symmetric");
 
 
   /* interior 1x1 loops */
@@ -926,14 +925,15 @@ PRIVATE void check_symmetry(void) {
       for (k=0; k<5; k++)
         for (l=0; l<5; l++)
           if (int11_37[i][j][k][l] != int11_37[j][i][l][k])
-            fprintf(stderr, "WARNING: int11 energies not symmetric (%d,%d,%d,%d) (%d vs. %d)\n", i, j, k, l, int11_37[i][j][k][l], int11_37[j][i][l][k]);
+            vrna_message_warning("int11 energies not symmetric (%d,%d,%d,%d) (%d vs. %d)",
+                                        i, j, k, l, int11_37[i][j][k][l], int11_37[j][i][l][k]);
 
   for (i=0; i<=NBPAIRS; i++)
     for (j=0; j<=NBPAIRS; j++)
       for (k=0; k<5; k++)
         for (l=0; l<5; l++)
           if (int11_dH[i][j][k][l] != int11_dH[j][i][l][k])
-            fprintf(stderr, "WARNING: int11 enthalpies not symmetric\n");
+            vrna_message_warning("int11 enthalpies not symmetric");
 
   /* interior 2x2 loops */
   for (i=0; i<=NBPAIRS; i++)
@@ -944,7 +944,7 @@ PRIVATE void check_symmetry(void) {
           for (m=0; m<5; m++)
             for (n=0; n<5; n++)
               if (int22_37[i][j][k][l][m][n] != int22_37[j][i][m][n][k][l])
-                fprintf(stderr, "WARNING: int22 energies not symmetric\n");
+                vrna_message_warning("int22 energies not symmetric");
         }
 
   for (i=0; i<=NBPAIRS; i++)
@@ -955,7 +955,8 @@ PRIVATE void check_symmetry(void) {
           for (m=0; m<5; m++)
             for (n=0; n<5; n++)
               if (int22_dH[i][j][k][l][m][n] != int22_dH[j][i][m][n][k][l])
-                fprintf(stderr, "WARNING: int22 enthalpies not symmetric: %d %d %d %d %d %d\n", i,j,k,l,m,n);
+                vrna_message_warning("int22 enthalpies not symmetric: %d %d %d %d %d %d",
+                                            i,j,k,l,m,n);
         }
 }
 

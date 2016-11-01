@@ -6,6 +6,7 @@ LANG_SPECIFIC_INTERFACE_FILES = \
   $(srcdir)/globals-md.i \
   $(srcdir)/callbacks-fc.i \
   $(srcdir)/callbacks-sc.i \
+  $(srcdir)/callbacks-ud.i \
   $(srcdir)/callbacks-subopt.i \
   $(builddir)/version.i
 
@@ -52,7 +53,7 @@ endif
 if HAS_SWIG
 
 $(SWIG_wrapper): $(SWIG_src)
-	$(AM_V_GEN)$(SWIG) -I$(top_srcdir)/src \
+	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
                   -DPY3 \
                   $(RNA_CPPFLAGS) \
@@ -67,24 +68,23 @@ endif
 # We rename RNA.py to __init__.py so that it can be installed
 # in an "RNA" directory and be treated as a package.
 RNA/__init__.py: $(SWIG_module_name).py
-	-test -d RNA || $(MKDIR_P) RNA
-	cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/__init__.py
+	$(AM_V_GEN)( test -d RNA || $(MKDIR_P) RNA ) && \
+  cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/__init__.py
 
 # We "import _RNA" first so that if we fail to import the glue library
 # we don't generate a broken .pyc or .pyo.
 RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc: RNA/__init__.py _RNA$(PYTHON3_SO)
-	PYTHONPATH="RNA:$$PYTHONPATH" $(PYTHON3) -c "import _RNA"
-	PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -c "import RNA"
+	$(AM_V_GEN)( PYTHONPATH="RNA:$$PYTHONPATH" $(PYTHON3) -c "import _RNA" ; \
+  PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -c "import RNA" )
 
 RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@: RNA/__init__.py _RNA$(PYTHON3_SO)
-	PYTHONPATH="RNA:$$PYTHONPATH" $(PYTHON3) -O -c "import _RNA"
-	PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -O -c "import RNA"
+	$(AM_V_GEN)( PYTHONPATH="RNA:$$PYTHONPATH" $(PYTHON3) -O -c "import _RNA" ; \
+  PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -O -c "import RNA" )
 
 _RNA$(PYTHON3_SO): _RNA.la
-	$(LIBTOOL) --config > libtoolconfig.tmp
-## ksh requires a path on the sourced file.
-	. ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON3_SO) .
-	rm -f libtoolconfig.tmp
+	$(AM_V_GEN)( $(LIBTOOL) --config > libtoolconfig.tmp ) && \
+  ( . ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON3_SO) . ) && \
+  rm -f libtoolconfig.tmp
 
 CLEANFILES = \
     _RNA$(PYTHON3_SO) \

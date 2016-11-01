@@ -15,15 +15,20 @@
 #endif
 
 /**
+ *  @file     alphabet.h
+ *  @ingroup  utils
+ *  @brief    Functions to process, convert, and generally handle different nucleotide
+ *            and/or base pair alphabets
+ */
+
+/**
  *  @{
- *
- *  @file alphabet.h
- *  @brief  Functions to process, convert, and generally handle different nucleotide
- *          and/or base pair alphabets
  *  @ingroup utils
  */
 
 #include <ViennaRNA/model.h>
+
+unsigned int vrna_sequence_length_max(unsigned int options);
 
 int vrna_nucleotide_IUPAC_identity(char a, char b);
 

@@ -42,10 +42,7 @@ compatibility in one of our next releases of ViennaRNA Package 2.x.
 
 @section newAPI_examples  Some Examples using RNAlib API v3.0
 
-Below are some example programs and code fragments that show the usage
-of the new API that is introduced with ViennaRNA version 2.2.
-
-@include example1.c
-
+Examples on how to use the new v3.0 API can be found in the
+@ref examples_c_new_API section.
 
  */

@@ -1,3 +1,6 @@
+swig_verbose = $(swig_verbose_@AM_V@)
+swig_verbose_ = $(swig_verbose_@AM_DEFAULT_V@)
+swig_verbose_0 = @echo "  SWIG     $@";
 
 SWIG_main_src = $(srcdir)/../RNA.i
 
@@ -6,13 +9,16 @@ SWIG_tmaps = \
 
 SWIG_misc_src = \
   $(srcdir)/../compare.i \
+  $(srcdir)/../commands.i \
   $(srcdir)/../constraints.i \
   $(srcdir)/../constraints_hard.i \
   $(srcdir)/../constraints_soft.i \
   $(srcdir)/../constraints_SHAPE.i \
   $(srcdir)/../constraints_ligand.i \
   $(srcdir)/../eval.i \
+  $(srcdir)/../file_formats.i \
   $(srcdir)/../fold_compound.i \
+  $(srcdir)/../grammar.i \
   $(srcdir)/../inverse.i \
   $(srcdir)/../mfe.i \
   $(srcdir)/../model_details.i \
@@ -20,8 +26,7 @@ SWIG_misc_src = \
   $(srcdir)/../part_func.i \
   $(srcdir)/../plotting.i \
   $(srcdir)/../subopt.i \
-  $(srcdir)/../utils.i \
-  $(srcdir)/../file_formats.i
+  $(srcdir)/../utils.i
 
 SWIG_module_name = RNA
 

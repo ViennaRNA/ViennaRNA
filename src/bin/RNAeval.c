@@ -15,6 +15,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <limits.h>
 #include <string.h>
 #include <sys/types.h>
 #include "ViennaRNA/fold_vars.h"
@@ -29,86 +30,32 @@
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/cofold.h"
 #include "RNAeval_cmdl.h"
+#include "gengetopt_helper.h"
+#include "input_id_helper.h"
 
-#ifdef __GNUC__
-#define UNUSED __attribute__ ((unused))
-#else
-#define UNUSED
-#endif
-
-static void
-add_shape_constraints(vrna_fold_compound_t *vc,
-                      const char *shape_method,
-                      const char *shape_conversion,
-                      const char *shape_file,
-                      int verbose,
-                      unsigned int constraint_type){
-
-  float p1, p2;
-  char method;
-  char *sequence;
-  double *values;
-  int i, length = vc->length;
-
-  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
-    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
-    return;
-  }
-
-  if(verbose){
-    fprintf(stderr, "Using SHAPE method '%c'", method);
-    if(method != 'W'){
-      if(method == 'Z')
-        fprintf(stderr, " with parameter p1=%f", p1);
-      else
-        fprintf(stderr, " with parameters p1=%f and p2=%f", p1, p2);
-    }
-    fputc('\n', stderr);
-  }
-
-  sequence = vrna_alloc(sizeof(char) * (length + 1));
-  values = vrna_alloc(sizeof(double) * (length + 1));
-  vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
-
-  if(method == 'D'){
-    (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
-  }
-  else if(method == 'Z'){
-    (void)vrna_sc_add_SHAPE_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
-  } else {
-    assert(method == 'W');
-    FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
-    for(i = 0; i < length; i++)
-      v[i] = values[i];
-
-    vrna_sc_add_up(vc, v, constraint_type);
-
-    free(v);
-  }
-
-  free(values);
-  free(sequence);
-}
+#include "ViennaRNA/color_output.inc"
 
 int main(int argc, char *argv[]){
   struct RNAeval_args_info  args_info;
   char                      *string, *structure, *orig_sequence, *tmp, *rec_sequence,
                             *rec_id, **rec_rest, *shape_file, *shape_method,
-                            *shape_conversion, fname[FILENAME_MAX_LENGTH], *ParamFile;
+                            *shape_conversion, fname[FILENAME_MAX_LENGTH], *id_prefix;
   unsigned int              rec_type, read_opt;
-  int                       i, length1, with_shapes, istty, circular, noconv, verbose;
+  int                       i, length1, with_shapes, istty, noconv, verbose,
+                            auto_id, id_digits;
+  long int                  seq_number;
   float                     energy;
   vrna_md_t                 md;
 
-  string  = orig_sequence = ParamFile = NULL;
-  circular      = 0;
+  string  = orig_sequence = NULL;
   noconv        = 0;
   verbose       = 0;
   gquad         = 0;
   dangles       = 2;
-  shape_file    = NULL;
-  shape_method  = NULL;
-  with_shapes   = 0;
+  seq_number    = 1;
+  id_prefix     = NULL;
+  auto_id       = 0;
+  id_digits     = 4;
 
   /* apply default model details */
   vrna_md_set_default(&md);
@@ -118,48 +65,37 @@ int main(int argc, char *argv[]){
   # check the command line parameters
   #############################################
   */
-  if(RNAeval_cmdline_parser (argc, argv, &args_info) != 0) exit(1);
+  if(RNAeval_cmdline_parser (argc, argv, &args_info) != 0)
+    exit(1);
 
-  /* temperature */
-  if(args_info.temp_given)
-    md.temperature = temperature = args_info.temp_arg;
-  /* do not take special tetra loop energies into account */
-  if(args_info.noTetra_given)
-    md.special_hp = tetra_loop = 0;
-  /* set dangle model */
-  if(args_info.dangles_given){
-    if((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
+  /* get basic set of model details */
+  ggo_get_md_eval(args_info, md);
+  ggo_get_circ(args_info, md.circ);
+
+  /* check dangle model */
+  if((md.dangles < 0) || (md.dangles > 3)){
       vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
-    else
-      md.dangles = dangles = args_info.dangles_arg;
+      md.dangles = dangles = 2;
   }
+
+  /* SHAPE reactivity data */
+  ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
+
+  ggo_get_ID_manipulation(args_info,
+                          auto_id,
+                          id_prefix, "sequence",
+                          id_digits, 4,
+                          seq_number, 1);
+
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if(args_info.noconv_given)      noconv = 1;
-  /* set energy model */
-  if(args_info.energyModel_given)
-    md.energy_set = energy_set = args_info.energyModel_arg;
-  /* take another energy parameter set */
-  if(args_info.paramFile_given)   ParamFile = strdup(args_info.paramFile_arg);
-  /* assume RNA sequence to be circular */
-  if(args_info.circ_given)
-    md.circ = circular = 1;
+
   /* logarithmic multiloop energies */
   if(args_info.logML_given)
     md.logML = logML = 1;
   /* be verbose */
   if(args_info.verbose_given)
     verbose = 1;
-  /* gquadruplex support */
-  if(args_info.gquad_given)
-    md.gquad = gquad = 1;
-
-  if(args_info.shape_given){
-    with_shapes = 1;
-    shape_file = strdup(args_info.shape_arg);
-  }
-
-  shape_method = strdup(args_info.shapeMethod_arg);
-  shape_conversion = strdup(args_info.shapeConversion_arg);
 
   /* free allocated memory of command line data structure */
   RNAeval_cmdline_parser_free (&args_info);
@@ -170,14 +106,12 @@ int main(int argc, char *argv[]){
   #############################################
   */
 
-  if (ParamFile!=NULL) read_parameter_file(ParamFile);
-
   rec_type      = read_opt = 0;
   rec_id        = rec_sequence = NULL;
   rec_rest      = NULL;
   istty         = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
-  if(circular && gquad){
+  if(md.circ && md.gquad){
     vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
   }
 
@@ -203,11 +137,15 @@ int main(int argc, char *argv[]){
     # init everything according to the data we've read
     ########################################################
     */
+    char *SEQ_ID = NULL, *msg = NULL;
+
     if(rec_id){
-      if(!istty) printf("%s\n", rec_id);
       (void) sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
     }
     else fname[0] = '\0';
+
+    /* construct the sequence ID */
+    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_digits, seq_number);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if(!noconv) vrna_seq_toRNA(rec_sequence);
@@ -226,7 +164,7 @@ int main(int argc, char *argv[]){
     int cp = -1;
     structure = vrna_cut_point_remove(tmp, &cp);
     if(cp != vc->cutpoint){
-      fprintf(stderr,"cut_point = %d cut = %d\n", vc->cutpoint, cp);
+      vrna_message_warning("cut_point = %d cut = %d", vc->cutpoint, cp);
       vrna_message_error("Sequence and Structure have different cut points.");
     }
 
@@ -237,13 +175,13 @@ int main(int argc, char *argv[]){
     free(tmp);
 
     if(with_shapes)
-      add_shape_constraints(vc, shape_method, shape_conversion, shape_file, verbose, VRNA_OPTION_MFE);
+      vrna_constraints_add_SHAPE(vc, shape_file, shape_method, shape_conversion, verbose, VRNA_OPTION_MFE);
 
     if(istty){
       if (vc->cutpoint == -1)
-        printf("length = %d\n", length1);
+        vrna_message_info(stdout, "length = %d", length1);
       else
-        printf("length1 = %d\nlength2 = %d\n", vc->cutpoint-1, length1-vc->cutpoint+1);
+        vrna_message_info(stdout, "length1 = %d\nlength2 = %d", vc->cutpoint-1, length1-vc->cutpoint+1);
     }
 
     /*
@@ -252,23 +190,30 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
+    print_fasta_header(stdout, SEQ_ID);
+
     energy = vrna_eval_structure_v(vc, structure, verbose, NULL);
 
-    if (vc->cutpoint == -1)
-      printf("%s\n%s", orig_sequence, structure);
+    fprintf(stdout, "%s\n", orig_sequence);
+
+    if(istty)
+      msg = vrna_strdup_printf("\n energy = %6.2f kcal/mol", energy);
+    else
+      msg = vrna_strdup_printf(" (%6.2f)", energy);
+
+    if(vc->cutpoint == -1)
+      print_structure(stdout, structure, msg);
     else {
       char *pstruct = vrna_cut_point_insert(structure, vc->cutpoint);
-      printf("%s\n%s", orig_sequence,  pstruct);
+      print_structure(stdout, pstruct, msg);
       free(pstruct);
     }
-    if (istty)
-      printf("\n energy = %6.2f\n", energy);
-    else
-      printf(" (%6.2f)\n", energy);
+    (void) fflush(stdout);
 
     /* clean up */
-    (void) fflush(stdout);
     if(rec_id) free(rec_id);
+    free(SEQ_ID);
+    free(msg);
     free(rec_sequence);
     free(structure);
     /* free the rest of current dataset */
@@ -287,6 +232,8 @@ int main(int argc, char *argv[]){
 
     if(with_shapes)
       break;
+
+    ID_number_increase(seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if(istty){

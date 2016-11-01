@@ -8,12 +8,15 @@
 #define   RNA_UP_MODE_3   4U
 
 /**
- *  \addtogroup up_cofold
- *  \brief  Partition Function Cofolding as a stepwise process
+ *  @file     part_func_up.h
+ *  @ingroup  pf_fold cofold pf_cofold
+ *  @brief    Implementations for accessibility and RNA-RNA interaction as a stepwise process
+ */
+
+/**
+ *  @addtogroup up_cofold
+ *  @brief      RNA-RNA interaction as a stepwise process
  *
- *  @{
- *  \file part_func_up.h
- *  \brief Partition Function Cofolding as stepwise process
  * 
  *  In this approach to cofolding the interaction between two RNA molecules is
  *  seen as a stepwise process. In a first step, the target molecule has to
@@ -24,10 +27,12 @@
  *  that a region within the target is unpaired, or equivalently, the
  *  calculation of the free energy needed to expose a region. In the second step
  *  we compute the free energy of an interaction for every possible binding site.
+ *  @{
+ *  @ingroup  up_cofold
  */
 
 /**
- *  \brief Calculate the partition function over all unpaired regions
+ *  @brief Calculate the partition function over all unpaired regions
  *  of a maximal length.
  * 
  *  You have to call function pf_fold() providing the same sequence before calling
@@ -48,15 +53,15 @@
  *  This function frees everything allocated automatically. To
  *  free the output structure call free_pu_contrib().
  * 
- *  \param sequence
- *  \param max_w
- *  \return
+ *  @param sequence
+ *  @param max_w
+ *  @return
  */
 pu_contrib *pf_unstru(char *sequence,
                       int max_w);
 
 /**
- *  \brief Calculates the probability of a local interaction between two sequences.
+ *  @brief Calculates the probability of a local interaction between two sequences.
  * 
  *  The function considers the probability that the
  *  region of interaction is unpaired within 's1' and 's2'. The
@@ -87,15 +92,15 @@ pu_contrib *pf_unstru(char *sequence,
  *  Use free_interact() to free the returned structure, all
  *  other stuff is freed inside pf_interact().
  * 
- *  \param  s1
- *  \param  s2
- *  \param  p_c
- *  \param  p_c2
- *  \param  max_w
- *  \param  cstruc
- *  \param  incr3
- *  \param  incr5
- *  \return
+ *  @param  s1
+ *  @param  s2
+ *  @param  p_c
+ *  @param  p_c2
+ *  @param  max_w
+ *  @param  cstruc
+ *  @param  incr3
+ *  @param  incr5
+ *  @return
  */
 interact *pf_interact(const char *s1,
                       const char *s2,
@@ -107,12 +112,12 @@ interact *pf_interact(const char *s1,
                       int incr5);
 
 /**
- *  \brief Frees the output of function pf_interact().
+ *  @brief Frees the output of function pf_interact().
  */
 void free_interact(interact *pin);
 
 /**
- *  \brief
+ *  @brief
  */
 int Up_plot(pu_contrib *p_c,
             pu_contrib *p_c_sh,
@@ -124,13 +129,13 @@ int Up_plot(pu_contrib *p_c,
             unsigned int mode);
 
 /**
- *  \brief
+ *  @brief
  */
 pu_contrib  *get_pu_contrib_struct( unsigned int n,
                                     unsigned int w);
 
 /**
- *  \brief Frees the output of function pf_unstru().
+ *  @brief Frees the output of function pf_unstru().
  */
 void        free_pu_contrib_struct(pu_contrib *pu);
 

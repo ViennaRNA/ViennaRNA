@@ -1,0 +1,39 @@
+/**
+
+@fn void  vrna_ud_add_motif(vrna_fold_compound_t *vc, const char *motif, double motif_en, unsigned int loop_type)
+@scripting
+@parblock
+This function is attached as method @b ud_add_motif() to objects of type @em fold_compound
+@endparblock
+
+@fn void  vrna_ud_remove(vrna_fold_compound_t *vc)
+@scripting
+@parblock
+This function is attached as method @b ud_remove() to objects of type @em fold_compound
+@endparblock
+
+@fn void  vrna_ud_set_data(vrna_fold_compound_t  *vc, void *data, vrna_callback_free_auxdata  *free)
+@scripting
+@parblock
+This function is attached as method @b ud_set_data() to objects of type @em fold_compound
+@endparblock
+
+@fn void vrna_ud_set_prod_rule_cb(vrna_fold_compound_t *vc, vrna_callback_ud_production *pre_cb, vrna_callback_ud_energy *e_cb)
+@scripting
+@parblock
+This function is attached as method @b ud_set_prod_rule_cb() to objects of type @em fold_compound
+@endparblock
+
+@fn void vrna_ud_set_exp_prod_rule_cb(vrna_fold_compound_t *vc, vrna_callback_ud_exp_production *pre_cb, vrna_callback_ud_exp_energy *exp_e_cb)
+@scripting
+@parblock
+This function is attached as method @b ud_set_exp_prod_rule_cb() to objects of type @em fold_compound
+@endparblock
+
+@fn void vrna_ud_set_prob_cb(vrna_fold_compound_t *vc, vrna_callback_ud_probs_add  *setter, vrna_callback_ud_probs_get  *getter)
+@scripting
+@parblock
+This function is attached as method @b ud_set_prob_cb() to objects of type @em fold_compound
+@endparblock
+
+*/

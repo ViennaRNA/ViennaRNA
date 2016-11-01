@@ -20,11 +20,19 @@
 /* add callback binding methods for fold_compound */
 %include callbacks-fc.i
 %include callbacks-sc.i
+%include callbacks-ud.i
 %include callbacks-subopt.i
 
 /* start constructing a sane interface to vrna_fold_compound_t */
 
-%rename(fc_type) vrna_fc_type_e;
+/* first we remap the fold_compound type enum entries */
+%rename(fc_type) my_fc_type_e;
+%inline %{
+  typedef enum {
+    FC_TYPE_SINGLE      = VRNA_FC_TYPE_SINGLE,
+    FC_TYPE_COMPARATIVE = VRNA_FC_TYPE_COMPARATIVE
+  } my_fc_type_e;
+%}
 
 /* scripting language access through 'fold_compound' instead of 'vrna_fold_compound_t' */
 %rename(fold_compound) vrna_fold_compound_t;
@@ -90,79 +98,9 @@ typedef struct {} vrna_fold_compound_t;
     return vrna_centroid($self,OUTPUT);
   }
 
-  /*  ################
-      # from hairpin_loops.h
-      ################
-  */
-
-  int E_hp_loop(int i, int j){
-    return vrna_E_hp_loop($self,i,j);
-  }
-
-  int E_ext_hp_loop(int i, int j){
-    return vrna_E_ext_hp_loop($self, i,j);
-  }
-
-  FLT_OR_DBL exp_E_hp_loop(int i, int j){
-    return vrna_exp_E_hp_loop($self, i, j);
-  }
-
-  /*  ################
-      # from interior_loops.h
-      ################
-  */
-
-  int E_int_loop(int i, int j){
-    return vrna_E_int_loop($self,i,j);
-  }
-
-  FLT_OR_DBL exp_E_int_loop(int i, int j){
-    return vrna_exp_E_int_loop($self,i,j);
-  }
-
-/*int E_ext_int_loop(int i, int j, 
-
-int
-vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
-                    int i,
-                    int j,
-                    int *ip,
-                    int *iq);
-*/
-
-int E_stack(int i, int j)
-{
-  return vrna_E_stack($self,i,j);
-}
-
-
-/*int
-vrna_BT_stack(vrna_fold_compound_t *vc,
-              int *i,
-              int *j,
-              int *en,
-              vrna_bp_stack_t *bp_stack,
-              int *stack_count);
-
-int
-vrna_BT_int_loop( vrna_fold_compound_t *vc,
-                  int *i,
-                  int *j,
-                  int en,
-                  vrna_bp_stack_t *bp_stack,
-                  int *stack_count);
-*/
-
-/*##########
-   end interior_loops.h
-################*/
-
-
-
 }
 
 %newobject vrna_fold_compound_t::centroid;
-
 
 /*
  *  Rename all the preprocessor macros defined in data_structures.h

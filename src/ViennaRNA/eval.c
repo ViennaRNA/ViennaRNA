@@ -22,6 +22,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+#include <unistd.h>
 #include <limits.h>
 
 #include "ViennaRNA/utils.h"
@@ -35,6 +36,8 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/eval.h"
+
+#include "ViennaRNA/color_output.inc"
 
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
@@ -307,7 +310,7 @@ vrna_eval_covar_structure(vrna_fold_compound_t *vc,
   gq                              = vc->params->model_details.gquad;
   vc->params->model_details.gquad = 0;
 
-  if(vc->type == VRNA_VC_TYPE_ALIGNMENT){
+  if(vc->type == VRNA_FC_TYPE_COMPARATIVE){
     res = (int)((float)covar_energy_of_struct_pt(vc, pt) / (float)vc->n_seq);
 
     vc->params->model_details.gquad = gq;
@@ -410,8 +413,8 @@ vrna_eval_move_pt(vrna_fold_compound_t *vc,
     if (pt[j]<k) break;   /* found it */
     if (pt[j]>j) j=pt[j]; /* skip substructure */
     else {
-      fprintf(stderr, "%d %d %d %d ", m1, m2, j, pt[j]);
-      vrna_message_error("illegal move or broken pair table in vrna_eval_move_pt()");
+      vrna_message_error( "illegal move or broken pair table in vrna_eval_move_pt()\n"
+                          "%d %d %d %d ", m1, m2, j, pt[j]);
     }
   }
   i = (j<=len) ? pt[j] : 0;
@@ -531,7 +534,7 @@ eval_ext_int_loop(vrna_fold_compound_t *vc,
   e       = INF;
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     si      = S[j+1];
+    case VRNA_FC_TYPE_SINGLE:     si      = S[j+1];
                                   sj      = S[i-1];
                                   sp      = S[p-1];
                                   sq      = S[q+1];
@@ -552,7 +555,7 @@ eval_ext_int_loop(vrna_fold_compound_t *vc,
                                                             P, sc);
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  n_seq = vc->n_seq;
+    case VRNA_FC_TYPE_COMPARATIVE:  n_seq = vc->n_seq;
                                   SS      = vc->S;
                                   S5      = vc->S5; /* S5[s][i] holds next base 5' of i in sequence s */
                                   S3      = vc->S3; /* Sl[s][i] holds next base 3' of i in sequence s */
@@ -622,13 +625,16 @@ wrap_eval_loop_pt(vrna_fold_compound_t *vc,
     return energy;
   }
   j = pt[i];
-  if (j<i) vrna_message_error("i is unpaired in loop_energy()");
+  if(j < i)
+    vrna_message_error("i is unpaired in loop_energy()");
   type = P->model_details.pair[s[i]][s[j]];
   if (type==0) {
     type=7;
     if (verbosity > verbosity_quiet)
-      fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", i, j,
-              vrna_nucleotide_decode(s[i], &(P->model_details)), vrna_nucleotide_decode(s[j], &(P->model_details)));
+      vrna_message_warning( "bases %d and %d (%c%c) can't pair!",
+                            i, j,
+                            vrna_nucleotide_decode(s[i], &(P->model_details)),
+                            vrna_nucleotide_decode(s[j], &(P->model_details)));
   }
   p=i; q=j;
 
@@ -649,8 +655,10 @@ wrap_eval_loop_pt(vrna_fold_compound_t *vc,
     if (type_2==0) {
       type_2=7;
       if (verbosity > verbosity_quiet)
-        fprintf(stderr,"WARNING: bases %d and %d (%c%c) can't pair!\n", p, q,
-              vrna_nucleotide_decode(s[p], &(P->model_details)), vrna_nucleotide_decode(s[q], &(P->model_details)));
+        vrna_message_warning( "bases %d and %d (%c%c) can't pair!",
+                              p, q,
+                              vrna_nucleotide_decode(s[p], &(P->model_details)),
+                              vrna_nucleotide_decode(s[q], &(P->model_details)));
     }
 
     energy = eval_int_loop(vc, i, j, p, q);
@@ -675,7 +683,7 @@ wrap_eval_structure(vrna_fold_compound_t *vc,
   vc->params->model_details.gquad = 0;
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     if(vc->params->model_details.circ){
+    case VRNA_FC_TYPE_SINGLE:     if(vc->params->model_details.circ){
                                     res = eval_circ_pt(vc, pt, file, verbosity);
                                   } else {
                                     res = eval_pt(vc, pt, file, verbosity);
@@ -687,7 +695,7 @@ wrap_eval_structure(vrna_fold_compound_t *vc,
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  if(vc->params->model_details.circ){
+    case VRNA_FC_TYPE_COMPARATIVE:  if(vc->params->model_details.circ){
                                     res = (int)((float)eval_circ_pt(vc, pt, file, verbosity) / (float)vc->n_seq);
                                   } else {
                                     res = (int)((float)eval_pt(vc, pt, file, verbosity) / (float)vc->n_seq);
@@ -721,12 +729,14 @@ eval_pt(vrna_fold_compound_t *vc,
   cp      = vc->cutpoint;
 
   if(vc->params->model_details.gquad)
-    vrna_message_warning("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
+    vrna_message_warning( "vrna_eval_*_pt: No gquadruplex support!\n"
+                          "Ignoring potential gquads in structure!\n"
+                          "Use e.g. vrna_eval_structure() instead!");
 
   energy = vc->params->model_details.backtrack_type=='M' ? energy_of_ml_pt(vc, 0, pt) : energy_of_extLoop_pt(vc, 0, pt);
 
   if (verbosity_level>0)
-    fprintf(out, "External loop                           : %5d\n", energy);
+    print_eval_ext_loop(out, energy);
   for (i=1; i<=length; i++) {
     if (pt[i]==0) continue;
     energy += stack_energy(vc, i, pt, out, verbosity_level);
@@ -760,12 +770,14 @@ eval_circ_pt( vrna_fold_compound_t *vc,
   degree        = 0;
   length        = vc->length;
   P             = vc->params;
-  sc            = (vc->type == VRNA_VC_TYPE_SINGLE) ? vc->sc : NULL;
-  scs           = (vc->type == VRNA_VC_TYPE_ALIGNMENT) ? vc->scs : NULL;
+  sc            = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sc : NULL;
+  scs           = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->scs : NULL;
   out           = (file) ? file : stdout;
 
   if(P->model_details.gquad)
-    vrna_message_warning("vrna_eval_*_pt: No gquadruplex support!\nIgnoring potential gquads in structure!\nUse e.g. vrna_eval_structure() instead!");
+    vrna_message_warning( "vrna_eval_*_pt: No gquadruplex support!\n"
+                          "Ignoring potential gquads in structure!\n"
+                          "Use e.g. vrna_eval_structure() instead!");
 
   /* evaluate all stems in exterior loop */
   for (i=1; i<=length; i++) {
@@ -783,13 +795,13 @@ eval_circ_pt( vrna_fold_compound_t *vc,
   switch(degree){
     case 0:   /* unstructured */
               switch(vc->type){
-                case VRNA_VC_TYPE_SINGLE:     if(sc){
+                case VRNA_FC_TYPE_SINGLE:     if(sc){
                                                 if(sc->energy_up)
                                                   en0 += sc->energy_up[1][length];
                                               }
                                               break;
 
-                case VRNA_VC_TYPE_ALIGNMENT:  n_seq = vc->n_seq;
+                case VRNA_FC_TYPE_COMPARATIVE:  n_seq = vc->n_seq;
                                               a2s   = vc->a2s;
                                               if(scs)
                                                 for(s = 0; s < n_seq; s++){
@@ -817,13 +829,13 @@ eval_circ_pt( vrna_fold_compound_t *vc,
     default:  /* multibranch loop */
               en0 = energy_of_ml_pt(vc, 0, (const short *)pt);
 
-              if(vc->type == VRNA_VC_TYPE_SINGLE)
+              if(vc->type == VRNA_FC_TYPE_SINGLE)
                 en0 -= E_MLstem(0, -1, -1, P); /* remove virtual closing pair */
               break;
   }
 
   if (verbosity_level>0)
-    fprintf(out, "External loop                           : %5d\n", en0);
+    print_eval_ext_loop(out, en0);
 
   energy += en0;
 
@@ -884,7 +896,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for(r = p - 1; !pt[r] && (r >= i); r--);
-      if(r < i) vrna_message_error("this should not happen");
+      if(r < i)
+        vrna_message_error("this should not happen");
 
       if(r < pt[r]){ /* found the enclosing pair */
         s = pt[r];
@@ -895,7 +908,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
         r = pt[r]-1 ;
         /* seek for next pairing base 5' of r */
         for(; !pt[r] && (r >= i); r--);
-        if(r < i) vrna_message_error("so nich");
+        if(r < i)
+          vrna_message_error("so nich");
         if(r < pt[r]){ /* found the enclosing pair */
           s = pt[r];
         } else {
@@ -904,7 +918,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
             if(pt[r]){ r = pt[r]; num_elem++;}
             r--;
           }
-          if(r < i) vrna_message_error("so nich");
+          if(r < i)
+            vrna_message_error("so nich");
           s = pt[r]; /* found the enclosing pair */
         }
       }
@@ -923,13 +938,15 @@ en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
             num_g++;
           }
         } else { /* we must have found a stem */
-          if(!(u < pt[u])) vrna_message_error("wtf!");
+          if(!(u < pt[u]))
+            vrna_message_error("wtf!");
           num_elem++; elem_i = u; elem_j = pt[u];
           energy += en_corr_of_loop_gquad(vc, u, pt[u], structure, pt);
           u = pt[u] + 1;
         }
       }
-      if(u!=s) vrna_message_error("what the hell");
+      if(u!=s)
+        vrna_message_error("what the heck");
       else{ /* we are done since we've found no other 3' structure element */
         switch(num_elem){
           /* g-quad was misinterpreted as hairpin closed by (r,s) */
@@ -1001,19 +1018,19 @@ stack_energy( vrna_fold_compound_t *vc,
   j = pt[i];
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     string  = vc->sequence;
+    case VRNA_FC_TYPE_SINGLE:     string  = vc->sequence;
                                   type    = md->pair[s[i]][s[j]];
                                   if(type == 0){
                                     type = 7;
                                     if(verbosity_level > verbosity_quiet)
-                                      fprintf(stderr,
-                                              "WARNING: bases %d and %d (%c%c) can't pair!\n",
-                                              i, j,
-                                              string[i - 1], string[j - 1]);
+                                      vrna_message_warning( "bases %d and %d (%c%c) can't pair!",
+                                                            i, j,
+                                                            string[i - 1],
+                                                            string[j - 1]);
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  string  = vc->cons_seq;
+    case VRNA_FC_TYPE_COMPARATIVE:  string  = vc->cons_seq;
                                   S       = vc->S;
                                   S5      = vc->S5; /* S5[s][i] holds next base 5' of i in sequence s */
                                   S3      = vc->S3; /* Sl[s][i] holds next base 3' of i in sequence s */
@@ -1045,21 +1062,21 @@ stack_energy( vrna_fold_compound_t *vc,
       break;
     ee = 0;
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     type_2 = md->pair[s[q]][s[p]];
+      case VRNA_FC_TYPE_SINGLE:     type_2 = md->pair[s[q]][s[p]];
                                     if(type_2 == 0){
                                       type_2 = 7;
                                       if(verbosity_level > verbosity_quiet)
-                                        fprintf(stderr,
-                                                "WARNING: bases %d and %d (%c%c) can't pair!\n",
-                                                p, q,
-                                                string[p - 1], string[q - 1]);
+                                        vrna_message_warning( "bases %d and %d (%c%c) can't pair!",
+                                                              p, q,
+                                                              string[p - 1],
+                                                              string[q - 1]);
                                     }
                                     ee = eval_int_loop(vc, i, j, p, q);
 
                                     type = rtype[type_2];
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  for(ss = 0; ss < n_seq; ss++){
+      case VRNA_FC_TYPE_COMPARATIVE:  for(ss = 0; ss < n_seq; ss++){
                                       type_2 = md->pair[S[ss][q]][S[ss][p]];
                                       if(type_2 == 0){
                                         type_2 = 7;
@@ -1086,13 +1103,9 @@ stack_energy( vrna_fold_compound_t *vc,
     }
 
     if(verbosity_level > 0)
-      fprintf(out,
-              "Interior loop (%3d,%3d) %c%c; (%3d,%3d) %c%c: %5d\n",
-              i, j,
-              string[i - 1], string[j - 1],
-              p, q,
-              string[p - 1], string[q - 1],
-              ee);
+      print_eval_int_loop(out, i, j, string[i - 1], string[j - 1],
+                               p, q, string[p - 1], string[q - 1],
+                               ee);
 
     energy += ee;
     i = p;
@@ -1106,11 +1119,7 @@ stack_energy( vrna_fold_compound_t *vc,
     energy  += ee;
 
     if(verbosity_level > 0)
-      fprintf(out,
-              "Hairpin  loop (%3d,%3d) %c%c              : %5d\n",
-              i, j,
-              string[i - 1], string[j - 1],
-              ee);
+      print_eval_hp_loop(out, i, j, string[i - 1], string[j - 1], ee);
 
     free(types);
 
@@ -1127,13 +1136,13 @@ stack_energy( vrna_fold_compound_t *vc,
   }
   
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     {
+    case VRNA_FC_TYPE_SINGLE:     {
                                     int ii = cut_in_loop(i, pt, cp);
                                     ee = (ii==0) ? energy_of_ml_pt(vc, i, pt) : energy_of_extLoop_pt(vc, ii, pt);
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  ee = energy_of_ml_pt(vc, i, pt);
+    case VRNA_FC_TYPE_COMPARATIVE:  ee = energy_of_ml_pt(vc, i, pt);
                                   break;
 
     default:                      break; /* this should never happen */
@@ -1141,10 +1150,7 @@ stack_energy( vrna_fold_compound_t *vc,
 
   energy += ee;
   if(verbosity_level > 0)
-    fprintf(out, "Multi    loop (%3d,%3d) %c%c              : %5d\n",
-            i, j,
-            string[i - 1], string[j - 1],
-            ee);
+    print_eval_mb_loop(out, i, j, string[i - 1], string[j - 1], ee);
 
   free(types);
 
@@ -1200,7 +1206,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
   while(p <= length && !pt[p]) p++;
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     s  = vc->sequence_encoding2;
+    case VRNA_FC_TYPE_SINGLE:     s  = vc->sequence_encoding2;
                                   s1 = vc->sequence_encoding;
                                   sc = vc->sc;
 
@@ -1212,7 +1218,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  S     = vc->S;
+    case VRNA_FC_TYPE_COMPARATIVE:  S     = vc->S;
                                   S5    = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
                                   S3    = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
                                   a2s   = vc->a2s;
@@ -1243,7 +1249,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
     q  = (int)pt[p];
     
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     /* get type of base pair (p,q) */
+      case VRNA_FC_TYPE_SINGLE:     /* get type of base pair (p,q) */
                                     tt = md->pair[s[p]][s[q]];
                                     if(tt == 0)
                                       tt = 7;
@@ -1282,7 +1288,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
                                     } /* end switch dangle_model */
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  for(ss = 0; ss < n_seq; ss++){
+      case VRNA_FC_TYPE_COMPARATIVE:  for(ss = 0; ss < n_seq; ss++){
                                       /* get type of base pair (p,q) */
                                       tt = md->pair[S[ss][p]][S[ss][q]];
                                       if(tt == 0)
@@ -1311,7 +1317,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
     while (p <= length && !pt[p]) p++;
 
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     /* add soft constraints for unpaired region */
+      case VRNA_FC_TYPE_SINGLE:     /* add soft constraints for unpaired region */
                                     if(sc && (q_prev + 1 <= length)){
                                       if(sc->energy_up){
                                         bonus += sc->energy_up[q_prev + 1][p - q_prev - 1];
@@ -1320,7 +1326,7 @@ energy_of_extLoop_pt( vrna_fold_compound_t *vc,
                                     }
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  if(scs){
+      case VRNA_FC_TYPE_COMPARATIVE:  if(scs){
                                       for(ss = 0; ss < n_seq; ss++){
                                         if(scs[ss]){
                                           if(scs[ss]->energy_up){
@@ -1398,7 +1404,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
   j = (i == 0) ? n + 1 : (int)pt[i];
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     s   = vc->sequence_encoding2;
+    case VRNA_FC_TYPE_SINGLE:     s   = vc->sequence_encoding2;
                                   s1  = vc->sequence_encoding;
                                   sc  = vc->sc;
 
@@ -1410,7 +1416,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  S     = vc->S;
+    case VRNA_FC_TYPE_COMPARATIVE:  S     = vc->S;
                                   S5    = vc->S5;
                                   S3    = vc->S3;
                                   a2s   = vc->a2s;
@@ -1453,14 +1459,14 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
 
   /* add bonus energies for first stretch of unpaired nucleotides */
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     u += p - i - 1;
+    case VRNA_FC_TYPE_SINGLE:     u += p - i - 1;
                                   if(sc){
                                     if(sc->energy_up)
                                       bonus += sc->energy_up[i + 1][u];
                                   }
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  if(scs){
+    case VRNA_FC_TYPE_COMPARATIVE:  if(scs){
                                     for(ss = 0; ss < n_seq; ss++){
                                       uu = a2s[ss][p] - a2s[ss][i + 1];
                                       if(scs[ss] && scs[ss]->energy_up){
@@ -1480,7 +1486,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
 
   switch(dangle_model){
     case 0:   switch(vc->type){
-                case VRNA_VC_TYPE_SINGLE:     while(p < j){
+                case VRNA_FC_TYPE_SINGLE:     while(p < j){
                                                 /* p must have a pairing partner */
                                                 q  = (int)pt[p];
                                                 /* get type of base pair (p,q) */
@@ -1512,7 +1518,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                                               }
                                               break;
 
-                case VRNA_VC_TYPE_ALIGNMENT:  while(p < j){
+                case VRNA_FC_TYPE_COMPARATIVE:  while(p < j){
                                                 /* p must have a pairing partner */
                                                 q  = (int)pt[p];
                                                 for(ss = 0; ss < n_seq; ss++){
@@ -1560,7 +1566,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
               break;
 
     case 2:   switch(vc->type){
-                case VRNA_VC_TYPE_SINGLE:     while(p < j){
+                case VRNA_FC_TYPE_SINGLE:     while(p < j){
                                                 /* p must have a pairing partner */
                                                 q  = (int)pt[p];
                                                 /* get type of base pair (p,q) */
@@ -1595,7 +1601,7 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                                               }
                                               break;
 
-                case VRNA_VC_TYPE_ALIGNMENT:  while(p < j){
+                case VRNA_FC_TYPE_COMPARATIVE:  while(p < j){
                                                 /* p must have a pairing partner */
                                                 q  = (int)pt[p];
                                                 
@@ -1736,7 +1742,6 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
                   i1 = q; p=q+1;
                 } while (q!=i);
                 best_energy = MIN2(energy, best_energy); /* don't use cx_energy here */
-                /* fprintf(stderr, "%6.2d\t", energy); */
                 /* skip a helix and start again */
                 while (pt[p]==0) p++;
                 if (i == (unsigned int)pt[p]) break;
@@ -1832,10 +1837,10 @@ energy_of_ml_pt(vrna_fold_compound_t *vc,
   }/* end switch dangle_model */
 
   switch(vc->type){
-    case VRNA_VC_TYPE_SINGLE:     energy += P->MLclosing;
+    case VRNA_FC_TYPE_SINGLE:     energy += P->MLclosing;
                                   break;
 
-    case VRNA_VC_TYPE_ALIGNMENT:  energy += P->MLclosing * n_seq;
+    case VRNA_FC_TYPE_COMPARATIVE:  energy += P->MLclosing * n_seq;
                                   break;
 
     default:                      break;
@@ -1930,7 +1935,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for(r = p - 1; !pt[r] && (r >= i); r--);
-      if(r < i) vrna_message_error("this should not happen");
+      if(r < i)
+        vrna_message_error("this should not happen");
 
       if(r < pt[r]){ /* found the enclosing pair */
         s = pt[r];
@@ -1941,7 +1947,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t *vc,
         r = pt[r]-1 ;
         /* seek for next pairing base 5' of r */
         for(; !pt[r] && (r >= i); r--);
-        if(r < i) vrna_message_error("so nich");
+        if(r < i)
+          vrna_message_error("so nich");
         if(r < pt[r]){ /* found the enclosing pair */
           s = pt[r];
         } else {
@@ -1950,7 +1957,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t *vc,
             if(pt[r]){ r = pt[r]; num_elem++;}
             r--;
           }
-          if(r < i) vrna_message_error("so nich");
+          if(r < i)
+            vrna_message_error("so nich");
           s = pt[r]; /* found the enclosing pair */
         }
       }
@@ -1970,7 +1978,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t *vc,
             num_g++;
           }
         } else { /* we must have found a stem */
-          if(!(u < pt[u])) vrna_message_error("wtf!");
+          if(!(u < pt[u]))
+            vrna_message_error("wtf!");
           num_elem++;
           elem_i = u;
           elem_j = pt[u];
@@ -1983,7 +1992,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t *vc,
           u = pt[u] + 1;
         }
       }
-      if(u!=s) vrna_message_error("what the ...");
+      if(u!=s)
+        vrna_message_error("what the ...");
       else{ /* we are done since we've found no other 3' structure element */
         switch(num_elem){
           /* g-quad was misinterpreted as hairpin closed by (r,s) */
@@ -2101,7 +2111,8 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for(r = p - 1; !pt[r] && (r >= i); r--);
-      if(r < i) vrna_message_error("this should not happen");
+      if(r < i)
+        vrna_message_error("this should not happen");
 
       if(r < pt[r]){ /* found the enclosing pair */
         s = pt[r];
@@ -2110,7 +2121,8 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
         r = pt[r]-1 ;
         /* seek for next pairing base 5' of r */
         for(; !pt[r] && (r >= i); r--);
-        if(r < i) vrna_message_error("so nich");
+        if(r < i)
+          vrna_message_error("so nich");
         if(r < pt[r]){ /* found the enclosing pair */
           s = pt[r];
         } else {
@@ -2119,7 +2131,8 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
             if(pt[r]){ r = pt[r]; num_elem++;}
             r--;
           }
-          if(r < i) vrna_message_error("so nich");
+          if(r < i)
+            vrna_message_error("so nich");
           s = pt[r]; /* found the enclosing pair */
         }
       }
@@ -2139,7 +2152,8 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
             num_g++;
           }
         } else { /* we must have found a stem */
-          if(!(u < pt[u])) vrna_message_error("wtf!");
+          if(!(u < pt[u]))
+            vrna_message_error("wtf!");
           num_elem++;
           en_covar += covar_en_corr_of_loop_gquad(vc,
                                 u,
@@ -2150,7 +2164,8 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t *vc,
           u = pt[u] + 1;
         }
       }
-      if(u!=s) vrna_message_error("what the ...");
+      if(u!=s)
+        vrna_message_error("what the ...");
       else{
         /* we are done since we've found no other 3' structure element */
       }

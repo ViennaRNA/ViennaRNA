@@ -1,0 +1,16 @@
+To build the g2 Python module:
+	1. go to parent directory and build g2 library
+	2. type:
+		make
+
+To test the g2 Python module, type:
+
+	make demo
+
+To install the g2 Python module, type (you will need root privilege):
+
+	make install
+
+Help is available. In a Python shell, type:
+	>>> import g2
+	>>> help(g2)

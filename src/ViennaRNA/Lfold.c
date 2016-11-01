@@ -164,7 +164,11 @@ wrap_Lfold( vrna_fold_compound_t *vc,
   struct svm_model  *sd_model = NULL;
 #endif
 
-  vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+  if(!vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW)){
+    vrna_message_warning("vrna_mfe_window@Lfold.c: Failed to prepare vrna_fold_compound");
+    return (float)(INF/100.);
+  }
+
 
   n       = vc->length;
   maxdist = vc->window_size;

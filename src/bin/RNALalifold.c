@@ -118,7 +118,7 @@ int main(int argc, char *argv[]){
   if(args_info.inputs_num == 1){
     clust_file = fopen(args_info.inputs[0], "r");
     if(clust_file == NULL){
-      fprintf(stderr, "can't open %s\n", args_info.inputs[0]);
+      vrna_message_warning("can't open %s", args_info.inputs[0]);
     }
   }
   else{
@@ -157,7 +157,7 @@ int main(int argc, char *argv[]){
 
   length = (int) strlen(AS[0]);
   if (length<maxdist) {
-    fprintf(stderr, "Alignment length < window size: setting L=%d\n",length);
+    vrna_message_warning("Alignment length < window size: setting L=%d",length);
     maxdist=length;
   }
 

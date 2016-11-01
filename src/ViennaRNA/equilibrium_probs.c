@@ -46,6 +46,15 @@ PRIVATE void  pf_create_bppm(vrna_fold_compound_t *vc, char *structure);
 PRIVATE void  alipf_create_bppm(vrna_fold_compound_t *vc, char *structure);
 PRIVATE INLINE void bppm_circ(vrna_fold_compound_t *vc);
 
+PRIVATE INLINE void ud_outside_ext_loops(vrna_fold_compound_t *vc);
+PRIVATE INLINE void ud_outside_hp_loops(vrna_fold_compound_t *vc);
+PRIVATE INLINE void ud_outside_int_loops(vrna_fold_compound_t *vc);
+PRIVATE INLINE void ud_outside_mb_loops(vrna_fold_compound_t *vc);
+PRIVATE INLINE void ud_outside_hp_loops2(vrna_fold_compound_t *vc);
+PRIVATE INLINE void ud_outside_int_loops2(vrna_fold_compound_t *vc);
+PRIVATE INLINE void ud_outside_mb_loops2(vrna_fold_compound_t *vc);
+
+
 PRIVATE FLT_OR_DBL  numerator_single(vrna_fold_compound_t *vc, int i, int j);
 PRIVATE FLT_OR_DBL  numerator_comparative(vrna_fold_compound_t *vc, int i, int j);
 
@@ -68,10 +77,10 @@ vrna_pairing_probs( vrna_fold_compound_t *vc,
 
   if(vc){
     switch(vc->type){
-      case VRNA_VC_TYPE_SINGLE:     pf_create_bppm(vc, structure);
+      case VRNA_FC_TYPE_SINGLE:     pf_create_bppm(vc, structure);
                                     break;
 
-      case VRNA_VC_TYPE_ALIGNMENT:  alipf_create_bppm(vc, structure);
+      case VRNA_FC_TYPE_COMPARATIVE:  alipf_create_bppm(vc, structure);
                                     break;
 
       default:                      vrna_message_warning("vrna_pf@part_func.c: Unrecognized fold compound type");
@@ -85,12 +94,12 @@ PRIVATE void
 pf_create_bppm( vrna_fold_compound_t *vc,
                 char *structure){
 
-  int n, i,j,k,l, ij, kl, ii, u1, u2, ov=0;
+  int n, i,j,k,l, ij, kl, ii, u, u1, u2, cnt, ov=0;
   unsigned char type, type_2, tt;
   FLT_OR_DBL  temp, Qmax=0, prm_MLb;
   FLT_OR_DBL  prmt, prmt1;
   FLT_OR_DBL  *tmp;
-  FLT_OR_DBL  tmp2;
+  FLT_OR_DBL  tmp2, tmp_ud;
   FLT_OR_DBL  expMLclosing;
   FLT_OR_DBL  *qb, *qm, *G, *probs, *scale, *expMLbase;
   FLT_OR_DBL  *q1k, *qln;
@@ -103,11 +112,13 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
   int               *my_iindx, *jindx;
-  int               circular, turn;
+  int               circular, turn, with_ud, with_ud_outside;
   vrna_exp_param_t  *pf_params;
   vrna_mx_pf_t      *matrices;
   vrna_md_t         *md;
+  vrna_ud_t         *domains_up;
 
+  n                 = vc->length;
   pf_params         = vc->exp_params;
   md                = &(pf_params->model_details);
   S                 = vc->sequence_encoding2;
@@ -123,6 +134,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   hc                = vc->hc;
   sc                = vc->sc;
 
+  domains_up        = vc->domains_up;
   matrices          = vc->exp_matrices;
 
   qb                = matrices->qb;
@@ -134,6 +146,9 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   scale             = matrices->scale;
   expMLbase         = matrices->expMLbase;
 
+  with_ud           = (domains_up && domains_up->exp_energy_cb) ? 1 : 0;
+  with_ud_outside   = (with_ud && domains_up->probs_add) ? 1 : 0;
+
   FLT_OR_DBL  expMLstem         = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
   char        *hard_constraints = hc->matrix;
   int         *hc_up_int        = hc->up_int;
@@ -144,13 +159,15 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
   max_real      = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
-
-  if((S != NULL) && (S1 != NULL)){
+  /*
+    the following is a crude check whether the partition function forward recursion
+    has already been taken place
+  */
+  if(qb && probs && ( circular ? matrices->qm2 != NULL : (q1k != NULL && qln != NULL))){
 
     expMLclosing  = pf_params->expMLclosing;
     with_gquad    = pf_params->model_details.gquad;
     rtype         = &(pf_params->model_details.rtype[0]);
-    n             = S[0];
 
     /*
       The hc_local array provides row-wise access to hc->matrix, i.e.
@@ -167,6 +184,24 @@ pf_create_bppm( vrna_fold_compound_t *vc,
     FLT_OR_DBL *prm_l  = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
     FLT_OR_DBL *prm_l1 = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
     FLT_OR_DBL *prml   = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL)*(n+2));
+
+    int         ud_max_size = 0;
+    FLT_OR_DBL  **pmlu      = NULL;
+    FLT_OR_DBL  *prm_MLbu   = NULL;
+
+    if(with_ud){
+      /* find out maximum size of any unstructured domain */
+      for(u = 0; u < domains_up->uniq_motif_count; u++)
+        if(ud_max_size < domains_up->uniq_motif_size[u])
+          ud_max_size = domains_up->uniq_motif_size[u];
+
+      pmlu  = (FLT_OR_DBL **) vrna_alloc(sizeof(FLT_OR_DBL *) * (ud_max_size + 1)); /* maximum motif size */
+
+      for(u = 0; u <= ud_max_size; u++)
+        pmlu[u] = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+
+      prm_MLbu = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * (ud_max_size + 1));
+    }
 
     Qmax=0;
 
@@ -250,24 +285,44 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                       }
                     }
 
-                    if(sc->exp_f){
+                    if(sc->exp_f)
                       tmp2 *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
-                      if(sc->bt){ /* store probability correction for auxiliary pairs in interior loop motif */
-                        vrna_basepair_t *ptr, *aux_bps;
-                        aux_bps = sc->bt(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
-                        for(ptr = aux_bps; ptr && ptr->i != 0; ptr++){
-                          bp_correction[corr_cnt].i = ptr->i;
-                          bp_correction[corr_cnt].j = ptr->j;
-                          bp_correction[corr_cnt++].p = tmp2 * qb[kl];
-                          if(corr_cnt == corr_size){
-                            corr_size += 5;
-                            bp_correction = vrna_realloc(bp_correction, sizeof(vrna_plist_t) * corr_size);
-                          }
-                        }
-                        free(aux_bps);
+                  }
+
+                  if(with_ud){
+                    FLT_OR_DBL qql, qqr;
+
+                    qql = qqr = 0.;
+
+                    if(u1 > 0)
+                      qql = domains_up->exp_energy_cb(vc,
+                                                      i+1, k-1,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                                      domains_up->data);
+                    if(u2 > 0)
+                      qqr = domains_up->exp_energy_cb(vc,
+                                                      l+1, j-1,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                                      domains_up->data);
+                    temp  = tmp2;
+                    tmp2 += temp * qql;
+                    tmp2 += temp * qqr;
+                    tmp2 += temp * qql * qqr;
+                  }
+
+                  if(sc && sc->exp_f && sc->bt){ /* store probability correction for auxiliary pairs in interior loop motif */
+                    vrna_basepair_t *ptr, *aux_bps;
+                    aux_bps = sc->bt(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+                    for(ptr = aux_bps; ptr && ptr->i != 0; ptr++){
+                      bp_correction[corr_cnt].i = ptr->i;
+                      bp_correction[corr_cnt].j = ptr->j;
+                      bp_correction[corr_cnt++].p = tmp2 * qb[kl];
+                      if(corr_cnt == corr_size){
+                        corr_size += 5;
+                        bp_correction = vrna_realloc(bp_correction, sizeof(vrna_plist_t) * corr_size);
                       }
-                    
                     }
+                    free(aux_bps);
                   }
 
                   probs[kl] += tmp2;
@@ -351,35 +406,18 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
       /* 3. bonding k,l as substem of multi-loop enclosed by i,j */
       prm_MLb = 0.;
+
+      if(with_ud){
+        for(u = 0; u <= ud_max_size; u++)
+          prm_MLbu[u] = 0.;
+      }
+
       if (l<n)
         for (k = 2; k < l - turn; k++) {
           kl    = my_iindx[k] - l;
           i     = k - 1;
           prmt  = prmt1 = 0.0;
 
-          ii = my_iindx[i];     /* ii-j=[i,j]     */
-          tt = (unsigned char)ptype[jindx[l+1] + i];
-          tt = rtype[tt];
-
-          if(tt == 0)
-            tt = 7;
-
-          if(hc_local[ii - (l + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
-            prmt1 = probs[ii-(l+1)]
-                    * expMLclosing
-                    * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
-
-            if(sc){
-              /* which decompositions are covered here? => (k-1, l+1) -> enclosing pair */
-              if(sc->exp_energy_bp)
-                prmt1 *= sc->exp_energy_bp[ii - (l+1)];
-
-/*
-              if(sc->exp_f)
-                prmt1 *= sc->exp_f(i, l+1, k, l, , sc->data);
-*/
-            }
-          }
           int lj;
           short s3;
           FLT_OR_DBL ppp;
@@ -389,6 +427,10 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           for (j = l + 2; j<=n; j++, ij--, lj--){
             if(hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
               tt = (unsigned char)md->pair[S1[j]][S1[i]];
+
+              if(tt == 0)
+                tt = 7;
+
               /* which decomposition is covered here? =>
                 i + 1 = k < l < j:
                 (i,j)       -> enclosing pair
@@ -413,9 +455,32 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           }
           prmt *= expMLclosing;
 
-          tt        =   ptype[jindx[l] + k];
 
           prml[ i]  =   prmt;
+
+          ii = my_iindx[i];     /* ii-j=[i,j]     */
+          tt = (unsigned char)ptype[jindx[l+1] + i];
+          tt = rtype[tt];
+          if(hc_local[ii - (l + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+
+            if(tt == 0)
+              tt = 7;
+
+            prmt1 = probs[ii-(l+1)]
+                    * expMLclosing
+                    * exp_E_MLstem(tt, S1[l], S1[i+1], pf_params);
+
+            if(sc){
+              /* which decompositions are covered here? => (i, l+1) -> enclosing pair */
+              if(sc->exp_energy_bp)
+                prmt1 *= sc->exp_energy_bp[ii - (l+1)];
+
+/*
+              if(sc->exp_f)
+                prmt1 *= sc->exp_f(i, l+1, k, l, , sc->data);
+*/
+            }
+          }
 
           /* l+1 is unpaired */
           if(hc->up_ml[l+1]){
@@ -429,14 +494,44 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                 ppp *= sc->exp_f(, sc->data);
 */
             }
+
+            /* add contributions of MB loops where any unstructured domain starts at l+1 */
+            if(with_ud){
+              int cnt;
+              for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+                u = domains_up->uniq_motif_size[cnt];
+                if(hc->up_ml[l+1] >= u){
+                  if(l + u < n){
+                    temp =    domains_up->exp_energy_cb(vc,
+                                                        l+1, l+u,
+                                                        VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                        domains_up->data)
+                            * pmlu[u][i]
+                            * expMLbase[u];
+
+                    if(sc){
+                      if(sc->exp_energy_up)
+                        temp *= sc->exp_energy_up[l+1][u];
+                    }
+
+                    ppp += temp;
+                  }
+                }
+              }
+              pmlu[0][i] = ppp + prmt1;
+            }
+
             prm_l[i] = ppp + prmt1;
           } else { /* skip configuration where l+1 is unpaired */
             prm_l[i] = prmt1;
+
+            if(with_ud)
+              pmlu[0][i] = prmt1;
           }
 
           /* i is unpaired */
           if(hc->up_ml[i]){
-            ppp = prm_MLb*expMLbase[1];
+            ppp = prm_MLb * expMLbase[1];
             if(sc){
               if(sc->exp_energy_up)
                 ppp *= sc->exp_energy_up[i][1];
@@ -447,15 +542,42 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 */
             }
 
+            if(with_ud){
+              int cnt;
+              for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+                u = domains_up->uniq_motif_size[cnt];
+                if(hc->up_ml[i] >= u){
+                  temp =    prm_MLbu[u]
+                          * expMLbase[u]
+                          * domains_up->exp_energy_cb(vc,
+                                                      i, i+u,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                      domains_up->data);
+
+                  if(sc){
+                    if(sc->exp_energy_up)
+                      temp *= sc->exp_energy_up[i][u];
+                  }
+                  ppp += temp;
+                }
+              }
+              prm_MLbu[0] = ppp + prml[i];
+            }
+
             prm_MLb = ppp + prml[i];
             /* same as:    prm_MLb = 0;
                for (i=1; i<=k-1; i++) prm_MLb += prml[i]*expMLbase[k-i-1]; */
 
           } else { /* skip all configurations where i is unpaired */
             prm_MLb = prml[i];
+
+            if(with_ud)
+              prm_MLbu[0] = prml[i];
           }
 
           prml[i] = prml[i] + prm_l[i];
+
+          tt = ptype[jindx[l] + k];
 
           if(with_gquad){
             if ((!tt) && (G[kl] == 0.)) continue;
@@ -488,18 +610,54 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             if (probs[kl]>Qmax) {
               Qmax = probs[kl];
               if (Qmax>max_real/10.)
-                fprintf(stderr, "P close to overflow: %d %d %g %g\n",
-                  i, j, probs[kl], qb[kl]);
+                vrna_message_warning("P close to overflow: %d %d %g %g\n",
+                                            k, l, probs[kl], qb[kl]);
             }
             if (probs[kl]>=max_real) {
               ov++;
               probs[kl]=FLT_MAX;
             }
           }
+
+          /* rotate prm_MLbu entries required for unstructured domain feature */
+          if(with_ud){
+            for(u = ud_max_size; u > 0; u--)
+              prm_MLbu[u] = prm_MLbu[u - 1];
+          }
         } /* end for (k=..) */
+
+      /* rotate prm_l and prm_l1 arrays */
       tmp = prm_l1; prm_l1=prm_l; prm_l=tmp;
 
+      /* rotate pmlu entries required for unstructured domain feature */
+      if(with_ud){
+        tmp = pmlu[ud_max_size];
+        for(u = ud_max_size; u > 0; u--)
+          pmlu[u] = pmlu[u - 1];
+        pmlu[0] = tmp;
+      }
     }  /* end for (l=..)   */
+
+    if(with_ud_outside){
+      /*
+          The above recursions only deal with base pairs, and how they might be
+          enclosed by other pairs. However, for unstructrued domains, we have
+          unpaired stretches, and require information about how these are enclosed
+          by base pairs.
+      */
+
+      /* 1. Exterior loops */
+      ud_outside_ext_loops(vc);
+
+      /* 2. Hairpin loops */
+      ud_outside_hp_loops(vc);
+
+      /* 3. Interior loops */
+      ud_outside_int_loops(vc);
+
+      /* 4. Multi branch loops */
+      ud_outside_mb_loops(vc);
+    }
 
     if(sc && sc->f && sc->bt){
       for (i=1; i<=n; i++)
@@ -561,22 +719,1244 @@ pf_create_bppm( vrna_fold_compound_t *vc,
       structure[n] = '\0';
       free(s);
     }
-    if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
-        "you might try a smaller pf_scale than %g\n",
-        ov, pf_params->pf_scale);
+    if(ov > 0)
+      vrna_message_warning("%d overflows occurred while backtracking;\n"
+                                  "you might try a smaller pf_scale than %g\n",
+                                  ov, pf_params->pf_scale);
 
     /* clean up */
     free(prm_l);
     free(prm_l1);
     free(prml);
 
+    if(with_ud){
+      for(u = 0; u <= ud_max_size; u++)
+        free(pmlu[u]);
+      free(pmlu);
+      free(prm_MLbu);
+    }
+
     free(hc_local);
-  } /* end if((S != NULL) && (S1 != NULL))  */
+  } /* end if 'check for forward recursion' */
   else
     vrna_message_error("bppm calculations have to be done after calling forward recursion\n");
 
+#if 0
+  if(with_ud_outside){
+    for(i = 1; i <= n; i++)
+      for(j = i; j <= n; j++){
+        FLT_OR_DBL p, pp;
+        pp = 0.;
+        p = domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, 0, domains_up->data);
+        if(p > 0.)
+          printf("p_ext[0][%d,%d] = %g\n", i, j, p);
+        pp += p;
+        p = domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP, 0, domains_up->data);
+        pp += p;
+        if(p > 0.)
+          printf("p_hp[0][%d,%d] = %g\n", i, j, p);
+        p = domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, 0, domains_up->data);
+        pp += p;
+        if(p > 0.)
+          printf("p_int[0][%d,%d] = %g\n", i, j, p);
+        p = domains_up->probs_get(vc, i, j, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, 0, domains_up->data);
+        pp += p;
+        if(p > 0.)
+          printf("p_ml[0][%d,%d] = %g\n", i, j, p);
+        if(pp > 0.)
+          printf("p[0][%d,%d] = %g\n", i, j, pp);
+      }
+  }
+#endif
+
   return;
 }
+
+
+PRIVATE INLINE void
+ud_outside_ext_loops( vrna_fold_compound_t *vc){
+
+  int         i, j, u, n, cnt, *motif_list, *hc_up;
+  FLT_OR_DBL  *q1k, *qln, temp, *scale;
+  vrna_sc_t   *sc;
+  vrna_ud_t   *domains_up;
+
+  n           = vc->length;
+  q1k         = vc->exp_matrices->q1k;
+  qln         = vc->exp_matrices->qln;
+  scale       = vc->exp_matrices->scale;
+  hc_up       = vc->hc->up_ext;
+  domains_up  = vc->domains_up;
+  sc          = vc->sc;
+
+  for(i = 1; i <= n; i++){
+    motif_list = vrna_ud_get_motif_size_at(vc, i, VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP);
+
+    /* 1. Exterior loops */
+    if(motif_list){
+      cnt = 0;
+      while(-1 != (u = motif_list[cnt])){
+        j = i + u - 1;
+        if(j <= n){
+          if(hc_up[i] >= u){
+            temp = q1k[i-1] * qln[j + 1]/q1k[n];
+            temp *= domains_up->exp_energy_cb(vc,
+                                              i, j,
+                                              VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                              domains_up->data);
+
+            if(sc){
+              if(sc->exp_energy_up)
+                temp *= sc->exp_energy_up[i][u];
+            }
+            temp *= scale[u];
+
+            if(temp > 0.)
+              domains_up->probs_add(vc,
+                                    i, j,
+                                    VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                    temp,
+                                    domains_up->data);
+          }
+        }
+        cnt++;
+      }
+    }
+    free(motif_list);
+  }
+}
+
+PRIVATE INLINE void
+ud_outside_hp_loops( vrna_fold_compound_t *vc){
+
+
+  int         i, j, k, l, kl, *my_iindx, u, n, cnt, *motif_list, *hc_up;
+  FLT_OR_DBL  *q1k, *qln, temp, *scale, outside, exp_motif_en, *probs, q1, q2;
+
+  vrna_sc_t   *sc;
+  vrna_ud_t   *domains_up, *ud_bak;
+
+  n           = vc->length;
+  my_iindx    = vc->iindx;
+  q1k         = vc->exp_matrices->q1k;
+  qln         = vc->exp_matrices->qln;
+  probs       = vc->exp_matrices->probs;
+  scale       = vc->exp_matrices->scale;
+  hc_up       = vc->hc->up_hp;
+  domains_up  = vc->domains_up;
+  sc          = vc->sc;
+
+  for(i = 1; i <= n; i++){
+    motif_list = vrna_ud_get_motif_size_at(vc, i, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP);
+
+    /* 2. Hairpin loops */
+    if(motif_list){
+      cnt = 0;
+      while(-1 != (u = motif_list[cnt])){
+        outside = 0.;
+        j       = i + u - 1;
+        if(j < n){
+          if(hc_up[i] >= u){
+            exp_motif_en = domains_up->exp_energy_cb( vc,
+                                                      i, j,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                      domains_up->data);
+
+            /*
+              compute the contribution of all hairpins with
+              bound motif
+            */
+            for(k = 1; k < i; k++)
+              for(l = j + 1; l <= n; l++){
+                kl = my_iindx[k] - l;
+                if(probs[kl] > 0.){
+                  ud_bak          = vc->domains_up;
+                  vc->domains_up  = NULL;
+                  temp            = vrna_exp_E_hp_loop(vc, k, l);
+                  vc->domains_up  = ud_bak;
+
+                  /* add contribution of motif */
+                  if(temp > 0.){
+                    temp *= exp_motif_en * probs[kl];
+
+                    q1 = q2 = 0.;
+                    /* add contributions of other motifs in remaining unpaired segments */
+                    if((i - k - 1) > 0)
+                      q1 = domains_up->exp_energy_cb( vc,
+                                                      k + 1, i - 1,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
+                                                      domains_up->data);
+                    if((l - j - 1) > 0)
+                      q2 = domains_up->exp_energy_cb( vc,
+                                                      j + 1, l - 1,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
+                                                      domains_up->data);
+
+                    outside += temp;
+                    outside += temp * q1;
+                    outside += temp * q1 * q2;
+                    outside += temp * q2;
+                  }
+                }
+              }
+          }
+        }
+
+        if(outside > 0.)
+          domains_up->probs_add(vc,
+                                i, j,
+                                VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                outside,
+                                domains_up->data);
+
+        cnt++;
+      }
+    }
+    free(motif_list);
+  }
+
+}
+
+PRIVATE INLINE void
+ud_outside_hp_loops2( vrna_fold_compound_t *vc){
+
+
+  int         i, j, k, l, kl, *my_iindx, u, u1, u2, n, cnt, *motif_list, *hc_up, turn, m;
+  FLT_OR_DBL  *q1k, *qln, temp, *scale, outside, exp_motif_en, *probs, q1, q2, **qq_ud, **pp_ud;
+
+  vrna_sc_t   *sc;
+  vrna_ud_t   *domains_up, *ud_bak;
+
+  n           = vc->length;
+  my_iindx    = vc->iindx;
+  q1k         = vc->exp_matrices->q1k;
+  qln         = vc->exp_matrices->qln;
+  probs       = vc->exp_matrices->probs;
+  scale       = vc->exp_matrices->scale;
+  hc_up       = vc->hc->up_hp;
+  domains_up  = vc->domains_up;
+  sc          = vc->sc;
+  turn        = vc->exp_params->model_details.min_loop_size;
+
+  qq_ud = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
+  for(k = 0; k < domains_up->uniq_motif_count; k++){
+    qq_ud[k] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+    u = domains_up->uniq_motif_size[k];
+    for(i = 1; i <= n - u + 1; i++){
+      qq_ud[k][i] = domains_up->exp_energy_cb(vc,
+                                              i, i + u - 1,
+                                              VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                              domains_up->data);
+    }
+  }
+
+  pp_ud = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
+  for(k = 0; k < domains_up->uniq_motif_count; k++){
+    pp_ud[k] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+  }
+
+  for(k = 1; k < n; k++){
+    for(l = k + turn + 1; l <= n; l++){
+      kl = my_iindx[k] - l;
+      if(probs[kl] > 0.){
+        ud_bak          = vc->domains_up;
+        vc->domains_up  = NULL;
+        temp            = vrna_exp_E_hp_loop(vc, k, l);
+        vc->domains_up  = ud_bak;
+        temp           *= probs[kl];
+
+        if(temp > 0.){
+          for(m = 0; m < domains_up->uniq_motif_count; m++){
+            u = domains_up->uniq_motif_size[m];
+            for(u1 = 0, u2 = l - k - u - 1, i = k + 1, j = k + u; j < l; i++, j++, u1++, u2--){
+              exp_motif_en = qq_ud[m][i];
+              q1 = q2 = 1.;
+              if(u1 > 0)
+                q1 += domains_up->exp_energy_cb(vc,
+                                                k + 1, i - 1,
+                                                VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
+                                                domains_up->data);
+              if(u2 > 0)
+                q2 += domains_up->exp_energy_cb(vc,
+                                                j + 1, l - 1,
+                                                VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
+                                                domains_up->data);
+              outside = temp * q1 * q2 * exp_motif_en;
+              pp_ud[m][i] += outside;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for(k = 0; k < domains_up->uniq_motif_count; k++){
+    u = domains_up->uniq_motif_size[k];
+    /* actually store the results */
+    for(i = 1; i <= n - u + 1; i++){
+      if(pp_ud[k][i] > 0.)
+        domains_up->probs_add(vc,
+                              i, i + u - 1,
+                              VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                              pp_ud[k][i],
+                              domains_up->data);
+    }
+    free(qq_ud[k]);
+    free(pp_ud[k]);
+  }
+  free(qq_ud);
+  free(pp_ud);
+}
+
+
+PRIVATE INLINE void
+ud_outside_int_loops( vrna_fold_compound_t *vc){
+
+  int         i, j, k, l, p, q, pq, kl, u, n, cnt, *motif_list, *my_iindx,
+              *hc_up, kmin, pmax, qmin, lmax, turn;
+  FLT_OR_DBL  *q1k, *qln, temp, *scale, q1, q2, q3, exp_motif_en, outside,
+              *probs, *qb;
+  vrna_sc_t   *sc;
+  vrna_ud_t   *domains_up, *ud_bak;
+
+  n           = vc->length;
+  my_iindx    = vc->iindx;
+  q1k         = vc->exp_matrices->q1k;
+  qln         = vc->exp_matrices->qln;
+  qb          = vc->exp_matrices->qb;
+  probs       = vc->exp_matrices->probs;
+  scale       = vc->exp_matrices->scale;
+  hc_up       = vc->hc->up_int;
+  domains_up  = vc->domains_up;
+  sc          = vc->sc;
+  turn        = vc->exp_params->model_details.min_loop_size;
+
+  for(i = 2; i <= n; i++){
+    motif_list = vrna_ud_get_motif_size_at(vc, i, VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP);
+
+    /* 3. Interior loops */
+    if(motif_list){
+      cnt = 0;
+      while(-1 != (u = motif_list[cnt])){
+        outside = 0.;
+        j       = i + u - 1;
+
+        if(j < n){
+          if(hc_up[i] >= u){
+            exp_motif_en = domains_up->exp_energy_cb( vc,
+                                                      i, j,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                      domains_up->data);
+
+            /* 3.1 motif is within 5' loop */
+            kmin  = j - MAXLOOP - 1;
+            kmin  = MAX2(kmin, 1);
+            for(k = kmin; k < i; k++){
+              pmax = k + MAXLOOP + 1;
+              pmax = MIN2(pmax, n);
+              for(p = j + 1; p < n; p++)
+                for(q = p + turn + 1; q < n; q++){
+                  pq    = my_iindx[p] - q;
+                  if(qb[pq] == 0)
+                    continue;
+                  lmax  =  k + MAXLOOP + q - p + 2;
+                  lmax  = MIN2(lmax, n);
+                  for(l = q + 1; l <= lmax; l++){
+                    kl = my_iindx[k] - l;
+                    if(probs[kl] > 0.){
+                      ud_bak          = vc->domains_up;
+                      vc->domains_up  = NULL;
+                      temp            = vrna_exp_E_interior_loop(vc, k, l, p, q);
+                      vc->domains_up  = ud_bak;
+
+                      if(temp > 0.){
+                        temp *= probs[kl] * qb[pq] * exp_motif_en;
+
+                        q1 = q2 = q3 = 0.;
+                        if((l - q - 1) > 0)
+                          q1 = domains_up->exp_energy_cb( vc,
+                                                          q + 1, l - 1,
+                                                          VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                                          domains_up->data);
+                        if((i - k - 1) > 0)
+                          q2 = domains_up->exp_energy_cb( vc,
+                                                          k + 1, i - 1,
+                                                          VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                                          domains_up->data);
+                        if((p - j - 1) > 0)
+                          q3 = domains_up->exp_energy_cb( vc,
+                                                          j + 1, p - 1,
+                                                          VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                                          domains_up->data);
+
+                        outside += temp;
+                        outside += temp * q1;
+                        outside += temp * q1 * q2;
+                        outside += temp * q1 * q2 * q3;
+                        outside += temp * q2;
+                        outside += temp * q2 * q3;
+                        outside += temp * q3;
+                      }
+                    }
+                  }
+                }
+            }
+
+            /* 3.2 motif is within 3' loop */
+            for(k = 1; k < i - turn - 2; k++){
+              pmax = k + i + MAXLOOP - j;
+              pmax = MIN2(pmax, n);
+              for(p = k + 1; p <= pmax; p++){
+                qmin = p + j - k - MAXLOOP - 1;
+                qmin = MAX2(qmin, p + turn + 1);
+                for(q = i - 1; q >= qmin; q--){
+                  pq    = my_iindx[p] - q;
+                  if(qb[pq] == 0.)
+                    continue;
+                  lmax  = k + q - p + MAXLOOP + 2;
+                  lmax  = MIN2(lmax, n);
+                  for(l = j + 1; l < lmax; l++){
+                    kl = my_iindx[k] - l;
+                    if(probs[kl] > 0.){
+                      ud_bak          = vc->domains_up;
+                      vc->domains_up  = NULL;
+                      temp            = vrna_exp_E_interior_loop(vc, k, l, p, q);
+                      vc->domains_up  = ud_bak;
+
+                      if(temp > 0.){
+                        FLT_OR_DBL q1, q2, q3;
+                        temp *= probs[kl] * qb[pq] * exp_motif_en;
+
+                        q1 = q2 = q3 = 0.;
+                        if((l - j - 1) > 0)
+                          q1 = domains_up->exp_energy_cb( vc,
+                                                          j + 1, l - 1,
+                                                          VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                                          domains_up->data);
+                        if((i - q - 1) > 0)
+                          q2 = domains_up->exp_energy_cb( vc,
+                                                          q + 1,
+                                                          i - 1,
+                                                          VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                                          domains_up->data);
+                        if((p - k - 1) > 0)
+                          q3 = domains_up->exp_energy_cb( vc,
+                                                          k + 1,
+                                                          p - 1,
+                                                          VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                                          domains_up->data);
+
+                        outside += temp;
+                        outside += temp * q1;
+                        outside += temp * q1 * q2;
+                        outside += temp * q1 * q2 * q3;
+                        outside += temp * q2;
+                        outside += temp * q2 * q3;
+                        outside += temp * q3;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+          }
+        }
+
+        if(outside > 0.)
+          domains_up->probs_add(vc,
+                                i, j,
+                                VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                outside,
+                                domains_up->data);
+
+        cnt++;
+      }
+    }
+    free(motif_list);
+  }
+}
+
+PRIVATE INLINE void
+ud_outside_int_loops2( vrna_fold_compound_t *vc){
+
+  char        *hard_constraints, *hc_local;
+  int         i, j, k, l, p, q, pq, kl, u, n, cnt, *motif_list, *my_iindx,
+              *hc_up, kmin, pmax, qmin, lmax, turn, *jindx, u1, u2, uu1, uu2,
+              u2_max, m;
+  FLT_OR_DBL  *q1k, *qln, temp, *scale, q1, q2, q5, q3, exp_motif_en, outside,
+              *probs, *qb, qq1, qq2, *qqk, *qql, *qqp, **qq_ud, **pp_ud, temp5,
+              temp3;
+  vrna_sc_t   *sc;
+  vrna_ud_t   *domains_up, *ud_bak;
+
+  n           = vc->length;
+  my_iindx    = vc->iindx;
+  jindx       = vc->jindx;
+  q1k         = vc->exp_matrices->q1k;
+  qln         = vc->exp_matrices->qln;
+  qb          = vc->exp_matrices->qb;
+  probs       = vc->exp_matrices->probs;
+  scale       = vc->exp_matrices->scale;
+  hc_up       = vc->hc->up_int;
+  hard_constraints = vc->hc->matrix;
+  domains_up  = vc->domains_up;
+  sc          = vc->sc;
+  turn        = vc->exp_params->model_details.min_loop_size;
+
+  hc_local = (char *)vrna_alloc(sizeof(char) * (((n + 1) * (n + 2)) /2 + 2));
+  for(i = 1; i <= n; i++)
+    for(j = i; j <= n; j++)
+      hc_local[my_iindx[i] - j] = hard_constraints[jindx[j] + i];
+
+  qqk = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+  qql = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+  qqp = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+
+  qq_ud = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
+  for(k = 0; k < domains_up->uniq_motif_count; k++){
+    qq_ud[k] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+    u = domains_up->uniq_motif_size[k];
+    for(i = 1; i <= n - u + 1; i++){
+      qq_ud[k][i] = domains_up->exp_energy_cb(vc,
+                                              i, i + u - 1,
+                                              VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                              domains_up->data);
+    }
+  }
+
+  pp_ud = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
+  for(k = 0; k < domains_up->uniq_motif_count; k++){
+    pp_ud[k] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+  }
+
+  for(k = 1; k < n; k++){
+    for(l = k + 1; l <= MIN2(k + MAXLOOP, n); l++){
+      qqk[l] = domains_up->exp_energy_cb(vc,
+                                         k + 1, l,
+                                         VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                        domains_up->data);
+    }
+    for(l = k + turn + 1 + 3; l <= n; l++){
+      kl = my_iindx[k] - l;
+      if(probs[kl] == 0.)
+        continue;
+      if(hc_local[kl] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
+
+        for(i = l - 1; i > MAX2(k, l - MAXLOOP - 1); i--){
+          qql[i] = domains_up->exp_energy_cb( vc,
+                                              i, l - 1,
+                                              VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                              domains_up->data);
+        }
+
+        pmax = k + MAXLOOP + 1;
+        pmax = MIN2(pmax, l - turn);
+        for(p = k + 1; p < pmax; p++){
+          u1      = p - k - 1;
+          u2_max  = MAXLOOP - u1;
+          qmin    = l - 1 - u2_max;
+          qmin    = MAX2(qmin, p + turn + 1);
+          for(i = p - 1; i > k; i--){
+            qqp[i] = domains_up->exp_energy_cb( vc,
+                                                i, p - 1,
+                                                VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                                domains_up->data);
+          }
+
+          q5 = 1.;
+          if(u1 > 0)
+            q5 += qqk[p - 1];
+
+          for(q = qmin; q < l; q++){
+            pq = my_iindx[p] - q;
+
+            if(hc_local[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
+              u2 = l - q - 1;
+              ud_bak          = vc->domains_up;
+              vc->domains_up  = NULL;
+              temp            = vrna_exp_E_interior_loop(vc, k, l, p, q);
+              vc->domains_up  = ud_bak;
+              temp           *= probs[kl] * qb[pq];
+
+              q3 = 1.;
+              if(u2 > 0)
+                q3 += qql[q+1];
+
+              temp5           = temp * q3;
+              temp3           = temp * q5;
+
+              /* loop over all available motifs */
+              for(m = 0; m < domains_up->uniq_motif_count; m++){
+                u = domains_up->uniq_motif_size[m];
+                for(i = k + 1, j = k + u; j < p; i++, j++){ /* ud in 5' loop */
+                  exp_motif_en = qq_ud[m][i];
+                  uu1 = i - k - 1;
+                  uu2 = p - j - 1;
+                  qq1 = 1.;
+                  qq2 = 1.;
+                  if(uu1 > 0)
+                    qq1 += qqk[i - 1];
+                  if(uu2 > 0)
+                    qq2 += qqp[j + 1];
+
+                  outside = temp5 * qq1 * qq2 * exp_motif_en;
+                  pp_ud[m][i] += outside;
+                }
+
+                for(i = q + 1, j = q + u; j < l; i++, j++){ /* ud in 3' loop */
+                  exp_motif_en = qq_ud[m][i];
+                  uu1 = i - q - 1;
+                  uu2 = l - j - 1;
+                  qq1 = 1.;
+                  qq2 = 1.;
+                  if(uu1 > 0)
+                    qq1 += domains_up->exp_energy_cb( vc,
+                                                      q + 1, i - 1,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                                      domains_up->data);
+                  if(uu2 > 0)
+                    qq2 += qql[j + 1];
+
+                  outside = temp3 * qq1 * qq2 * exp_motif_en;
+                  pp_ud[m][i] += outside;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  free(hc_local);
+  free(qqk);
+  free(qql);
+  free(qqp);
+  for(k = 0; k < domains_up->uniq_motif_count; k++){
+    u = domains_up->uniq_motif_size[k];
+    /* actually store the results */
+    for(i = 1; i <= n - u + 1; i++){
+      if(pp_ud[k][i] > 0.)
+        domains_up->probs_add(vc,
+                              i, i + u - 1,
+                              VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                              pp_ud[k][i],
+                              domains_up->data);
+    }
+    free(qq_ud[k]);
+    free(pp_ud[k]);
+  }
+  free(qq_ud);
+  free(pp_ud);
+}
+
+PRIVATE INLINE void
+ud_outside_mb_loops(vrna_fold_compound_t *vc){
+
+
+  char              *hc, *ptype;
+  short             *S;
+  int               i, j, k, l, kl, jkl, *my_iindx, u, n, cnt, *motif_list,
+                    *hc_up, turn, tt, *jindx, *rtype, up, ud_max_size;
+  FLT_OR_DBL        *q1k, *qln, temp, *scale, outside, exp_motif_en, *probs,
+                    *qb, *qm, q1, q2, expMLclosing, *expMLbase, *qmli,
+                    exp_motif_ml_left, exp_motif_ml_right;
+  vrna_exp_param_t  *pf_params;
+  vrna_md_t         *md;
+  vrna_sc_t         *sc;
+  vrna_ud_t         *domains_up, *ud_bak;
+
+  n             = vc->length;
+  S             = vc->sequence_encoding;
+  my_iindx      = vc->iindx;
+  jindx         = vc->jindx;
+  ptype         = vc->ptype;
+  pf_params     = vc->exp_params;
+  md            = &(vc->exp_params->model_details);
+  q1k           = vc->exp_matrices->q1k;
+  qln           = vc->exp_matrices->qln;
+  qb            = vc->exp_matrices->qb;
+  qm            = vc->exp_matrices->qm;
+  probs         = vc->exp_matrices->probs;
+  scale         = vc->exp_matrices->scale;
+  hc_up         = vc->hc->up_ml;
+  hc            = vc->hc->matrix;
+  domains_up    = vc->domains_up;
+  sc            = vc->sc;
+  turn          = md->min_loop_size;
+  rtype         = &(md->rtype[0]);
+  expMLbase     = vc->exp_matrices->expMLbase;
+  expMLclosing  = pf_params->expMLclosing;
+
+  for(ud_max_size = u = 0; u < domains_up->uniq_motif_count; u++)
+    if(ud_max_size < domains_up->uniq_motif_size[u])
+      ud_max_size = domains_up->uniq_motif_size[u];
+
+  for(i = 1; i <= n; i++){
+    motif_list = vrna_ud_get_motif_size_at(vc, i, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP);
+
+    /* 4. Multibranch loops */
+    if(motif_list){
+      cnt = 0;
+      while(-1 != (u = motif_list[cnt])){
+        outside = 0.;
+        j       = i + u - 1;
+        if(j < n){
+          if(hc_up[i] >= u){
+            exp_motif_en = domains_up->exp_energy_cb( vc,
+                                                      i, j,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                      domains_up->data);
+
+            exp_motif_en *= expMLbase[u];
+
+            if(sc){
+              if(sc->exp_energy_up)
+                exp_motif_en *= sc->exp_energy_up[i][u];
+            }
+
+            temp = 0;
+
+            /* 4.1 Motif [i:j] is somewhere in between branching stems */
+            for(l = j + turn + 1; l <= n; l++){
+              for(k = i - turn - 1; k > 0; k--){
+                kl = my_iindx[k] - l;
+                if(probs[kl] > 0.){
+                  jkl = jindx[l] + k;
+                  if(hc[jkl] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){ /* respect hard constraints */
+                    FLT_OR_DBL qqq;
+                    tt = ptype[jkl];
+                    tt = rtype[tt];
+                    qqq =   probs[kl]
+                          * qm[my_iindx[k+1] - (i - 1)]
+                          * qm[my_iindx[j+1] - (l - 1)]
+                          * exp_E_MLstem(tt, S[l-1], S[k+1], pf_params)
+                          * expMLclosing
+                          * scale[2];
+
+                    if(sc){
+                      if(sc->exp_energy_bp)
+                        qqq *= sc->exp_energy_bp[kl];
+                    }
+
+                    temp += qqq;
+                  }
+                }
+              }
+            }
+
+            outside +=    temp
+                        * exp_motif_en;
+
+            /* 4.2 Motif is in left-most unpaired stretch of multiloop */
+            FLT_OR_DBL **qm1ui = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (ud_max_size + 1));
+
+            for(l = 0; l <= ud_max_size; l++)
+              qm1ui[l] = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+
+            exp_motif_ml_left = 0.;
+            for(l = j + turn + 1; l <= n; l++){
+              FLT_OR_DBL lqq = 0.;
+              FLT_OR_DBL rqq = 0.;
+              for(k = i - 1; k > 0; k--){
+                up = i - k - 1;
+                kl = my_iindx[k] - l;
+                if((hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) && (probs[kl] > 0.) && (hc_up[k+1] >= up)){
+                  tt = ptype[jindx[l] + k];
+                  tt = rtype[tt];
+                  temp =    probs[kl]
+                          * expMLbase[up]
+                          * exp_E_MLstem(tt, S[l-1], S[k+1], pf_params)
+                          * expMLclosing
+                          * scale[2];
+                  if(sc){
+                    if(sc->exp_energy_bp)
+                      temp *= sc->exp_energy_bp[kl];
+                    if(sc->exp_energy_up)
+                      temp *= sc->exp_energy_up[k+1][up];
+                  }
+
+                  lqq +=  temp;
+                  lqq +=    temp
+                          * domains_up->exp_energy_cb(vc,
+                                                      k + 1, i - 1,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP,
+                                                      domains_up->data);
+                }
+              }
+
+              for(u = j + turn + 1; u < l - turn; u++){
+
+                /* 1st, l-1 is unpaired */
+                if(hc_up[l - 1]){
+                  temp = qm1ui[1][u] * expMLbase[1];
+                  if(sc){
+                    if(sc->exp_energy_up)
+                      temp *= sc->exp_energy_up[l - 1][1];
+                  }
+                  qm1ui[0][u] = temp;
+                } else {
+                  qm1ui[0][u] = 0.;
+                }
+
+                /* 2nd, l-1 is the final position of another motif [p:l-1] */
+                for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+                  int size = domains_up->uniq_motif_size[cnt];
+                  if((u < l - size) && (hc_up[l - size] >= size)){
+                    temp  =   qm1ui[size][u]
+                            * expMLbase[size]
+                            * domains_up->exp_energy_cb(vc,
+                                                        l - size, l - 1,
+                                                        VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                        domains_up->data);
+                    if(sc){
+                      if(sc->exp_energy_up)
+                        temp *= sc->exp_energy_up[l - size][size];
+                    }
+                    qm1ui[0][u] += temp;
+                  }
+                }
+
+                /* 3rd, l - 1 pairs with u */
+                if(hc[jindx[l - 1] + u] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                  tt    = ptype[jindx[l - 1] + u];
+                  temp  =   qb[my_iindx[u] - (l - 1)]
+                          * exp_E_MLstem(tt, S[u - 1], S[l], pf_params);
+
+                  qm1ui[0][u] += temp;
+                }
+
+                rqq += qm[my_iindx[j+1] - (u - 1)] * qm1ui[0][u];
+              }
+
+              /* finally, compose contribution */
+              exp_motif_ml_left += lqq * rqq;
+
+              /* rotate auxiliary arrays */
+              FLT_OR_DBL *tmp = qm1ui[ud_max_size];
+              for(cnt = ud_max_size; cnt > 0; cnt--)
+                qm1ui[cnt] = qm1ui[cnt - 1];
+              qm1ui[0] = tmp;
+            }
+
+            /* cleanup memory */
+            for(l = 0; l <= ud_max_size; l++)
+              free(qm1ui[l]);
+            free(qm1ui);
+
+            outside +=    exp_motif_ml_left
+                        * exp_motif_en;
+
+            /* 4.3 Motif is in right-most unpaired stretch of multiloop */
+            qmli = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * n);
+            exp_motif_ml_right = 0.;
+            for(k = i - turn - 1; k > 0; k--){
+              FLT_OR_DBL lqq = 0.;
+              FLT_OR_DBL rqq = 0;
+
+              /* update qmli[k] = qm1[k,i-1] */
+              for(qmli[k] = 0., u = k + turn + 1; u < i; u++){
+                /* respect hard constraints */
+                if(hc[jindx[u] + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                  up = (i - 1) - (u + 1) + 1;
+                  if(hc_up[u+1] >= up){
+                    temp =    qb[my_iindx[k] - u]
+                            * expMLbase[up];
+
+                    /* add soft constraints */
+                    if(sc){
+                      if(sc->exp_energy_up)
+                        temp *= sc->exp_energy_up[u+1][up];
+                    }
+                    qmli[k] += temp;
+
+                    /* add contributions of other motifs within [u+1:i-1] */
+                    qmli[k] +=    temp
+                                * domains_up->exp_energy_cb(vc,
+                                                            u+1, i-1,
+                                                            VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP,
+                                                            domains_up->data);
+                  }
+                }
+              }
+
+              for(u = k + turn; u < i - turn; u++){
+                lqq +=    qm[my_iindx[k+1] - (u - 1)]
+                        * qmli[u];
+              }
+
+              for(l = j + 1; l <= n; l++){
+                kl = my_iindx[k] - l;
+                if(hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+                  int up;
+                  tt = ptype[jindx[l] + k];
+                  tt = rtype[tt];
+                  up = l - j - 1;
+                  if(hc_up[j + 1] >= up){
+                    temp =    probs[kl]
+                            * exp_E_MLstem(tt, S[l-1], S[k+1], pf_params)
+                            * expMLclosing
+                            * scale[2]
+                            * expMLbase[up];
+
+                    if(sc){
+                      if(sc->exp_energy_bp)
+                        temp *= sc->exp_energy_bp[kl];
+                      if(sc->exp_energy_up)
+                        temp *= sc->exp_energy_up[j+1][up];
+                    }
+
+                    rqq += temp;
+
+                    /* add contributions of other motifs within [j+1:l-1] */
+                    rqq  +=   temp
+                            * domains_up->exp_energy_cb(vc,
+                                                        j+1, l-1,
+                                                        VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP,
+                                                        domains_up->data);
+                  }
+                }
+              }
+              exp_motif_ml_right += rqq * lqq;
+            }
+            free(qmli);
+            qmli = NULL;
+
+            outside +=    exp_motif_ml_right
+                        * exp_motif_en;
+          }
+        }
+
+        if(outside > 0.)
+          domains_up->probs_add(vc,
+                                i, j,
+                                VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                outside,
+                                domains_up->data);
+
+        cnt++;
+      }
+    }
+    free(motif_list);
+  }
+
+}
+
+PRIVATE INLINE void
+ud_outside_mb_loops2(vrna_fold_compound_t *vc){
+
+
+  char              *hc, *ptype, *hc_local;
+  short             *S;
+  int               i, j, k, l, kl, jkl, *my_iindx, u, n, cnt, *motif_list,
+                    *hc_up, turn, tt, *jindx, *rtype, up, ud_max_size;
+  FLT_OR_DBL        *q1k, *qln, temp, *scale, outside, exp_motif_en, *probs,
+                    *qb, *qm, q1, q2, expMLclosing, *expMLbase, *qmli,
+                    exp_motif_ml_left, exp_motif_ml_right, *qqi, *qqj,
+                    *qqmi, *qqmj;
+  vrna_exp_param_t  *pf_params;
+  vrna_md_t         *md;
+  vrna_sc_t         *sc;
+  vrna_ud_t         *domains_up, *ud_bak;
+
+  n             = vc->length;
+  S             = vc->sequence_encoding;
+  my_iindx      = vc->iindx;
+  jindx         = vc->jindx;
+  ptype         = vc->ptype;
+  pf_params     = vc->exp_params;
+  md            = &(vc->exp_params->model_details);
+  q1k           = vc->exp_matrices->q1k;
+  qln           = vc->exp_matrices->qln;
+  qb            = vc->exp_matrices->qb;
+  qm            = vc->exp_matrices->qm;
+  probs         = vc->exp_matrices->probs;
+  scale         = vc->exp_matrices->scale;
+  hc_up         = vc->hc->up_ml;
+  hc            = vc->hc->matrix;
+  domains_up    = vc->domains_up;
+  sc            = vc->sc;
+  turn          = md->min_loop_size;
+  rtype         = &(md->rtype[0]);
+  expMLbase     = vc->exp_matrices->expMLbase;
+  expMLclosing  = pf_params->expMLclosing;
+
+  hc_local = (char *)vrna_alloc(sizeof(char) * (((n + 1) * (n + 2)) /2 + 2));
+  for(i = 1; i <= n; i++)
+    for(j = i; j <= n; j++)
+      hc_local[my_iindx[i] - j] = hc[jindx[j] + i];
+
+  for(ud_max_size = u = 0; u < domains_up->uniq_motif_count; u++)
+    if(ud_max_size < domains_up->uniq_motif_size[u])
+      ud_max_size = domains_up->uniq_motif_size[u];
+
+  qqi = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+  qqj = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+  qqmi = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+  qqmj = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+
+  for(i = 1; i <= n; i++){
+    motif_list = vrna_ud_get_motif_size_at(vc, i, VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP);
+
+    /* 4. Multibranch loops */
+    if(motif_list){
+      cnt = 0;
+      while(-1 != (u = motif_list[cnt])){
+        outside = 0.;
+        j       = i + u - 1;
+        if(j < n){
+          if(hc_up[i] >= u){
+            exp_motif_en = domains_up->exp_energy_cb( vc,
+                                                      i, j,
+                                                      VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                      domains_up->data);
+            for(k = 1; k < i; k++){
+              qqi[k] = domains_up->exp_energy_cb( vc,
+                                                  k, i - 1,
+                                                  VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP,
+                                                  domains_up->data);
+              qqmi[k] = qm[my_iindx[k] - (i - 1)];
+            }
+            for(l = j + 1; l <= n; l++){
+              qqj[l] = domains_up->exp_energy_cb( vc,
+                                                  j + 1, l,
+                                                  VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP,
+                                                  domains_up->data);
+              qqmj[k] = qm[my_iindx[j + 1] - l];
+            }
+            exp_motif_en *= expMLbase[u];
+
+            if(sc){
+              if(sc->exp_energy_up)
+                exp_motif_en *= sc->exp_energy_up[i][u];
+            }
+
+            temp = 0;
+
+            /* 4.1 Motif [i:j] is somewhere in between branching stems */
+            for(l = j + turn + 1; l <= n; l++){
+              for(k = i - turn - 1; k > 0; k--){
+                kl = my_iindx[k] - l;
+                if(probs[kl] > 0.){
+                  jkl = jindx[l] + k;
+                  if(hc_local[kl] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){ /* respect hard constraints */
+                    FLT_OR_DBL qqq;
+                    tt = ptype[jkl];
+                    tt = rtype[tt];
+                    qqq =   probs[kl]
+                          * qqmi[k + 1]
+                          * qqmj[l - 1]
+                          * exp_E_MLstem(tt, S[l-1], S[k+1], pf_params)
+                          * expMLclosing
+                          * scale[2];
+
+                    if(sc){
+                      if(sc->exp_energy_bp)
+                        qqq *= sc->exp_energy_bp[kl];
+                    }
+
+                    temp += qqq;
+                  }
+                }
+              }
+            }
+
+            outside +=    temp
+                        * exp_motif_en;
+
+            /* 4.2 Motif is in left-most unpaired stretch of multiloop */
+            FLT_OR_DBL **qm1ui = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (ud_max_size + 1));
+
+            for(l = 0; l <= ud_max_size; l++)
+              qm1ui[l] = (FLT_OR_DBL *) vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+
+            exp_motif_ml_left = 0.;
+            for(l = j + turn + 1; l <= n; l++){
+              FLT_OR_DBL lqq = 0.;
+              FLT_OR_DBL rqq = 0.;
+              for(k = i - 1; k > 0; k--){
+                up = i - k - 1;
+                kl = my_iindx[k] - l;
+                if((hc_local[kl] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) && (probs[kl] > 0.) && (hc_up[k+1] >= up)){
+                  tt = ptype[jindx[l] + k];
+                  tt = rtype[tt];
+                  temp =    probs[kl]
+                          * expMLbase[up]
+                          * exp_E_MLstem(tt, S[l-1], S[k+1], pf_params)
+                          * expMLclosing
+                          * scale[2];
+                  if(sc){
+                    if(sc->exp_energy_bp)
+                      temp *= sc->exp_energy_bp[kl];
+                    if(sc->exp_energy_up)
+                      temp *= sc->exp_energy_up[k+1][up];
+                  }
+
+                  lqq +=  temp;
+                  lqq +=    temp
+                          * qqi[k+1];
+                }
+              }
+
+              for(u = j + turn + 1; u < l - turn; u++){
+
+                /* 1st, l-1 is unpaired */
+                if(hc_up[l - 1]){
+                  temp = qm1ui[1][u] * expMLbase[1];
+                  if(sc){
+                    if(sc->exp_energy_up)
+                      temp *= sc->exp_energy_up[l - 1][1];
+                  }
+                  qm1ui[0][u] = temp;
+                } else {
+                  qm1ui[0][u] = 0.;
+                }
+
+                /* 2nd, l-1 is the final position of another motif [p:l-1] */
+                for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
+                  int size = domains_up->uniq_motif_size[cnt];
+                  if((u < l - size) && (hc_up[l - size] >= size)){
+                    temp  =   qm1ui[size][u]
+                            * expMLbase[size]
+                            * domains_up->exp_energy_cb(vc,
+                                                        l - size, l - 1,
+                                                        VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                        domains_up->data);
+                    if(sc){
+                      if(sc->exp_energy_up)
+                        temp *= sc->exp_energy_up[l - size][size];
+                    }
+                    qm1ui[0][u] += temp;
+                  }
+                }
+
+                /* 3rd, l - 1 pairs with u */
+                int ul = my_iindx[u] - (l - 1);
+                if(hc_local[ul] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                  tt    = ptype[jindx[l - 1] + u];
+                  temp  =   qb[ul]
+                          * exp_E_MLstem(tt, S[u - 1], S[l], pf_params);
+
+                  qm1ui[0][u] += temp;
+                }
+
+                rqq += qqmj[u - 1] * qm1ui[0][u];
+              }
+
+              /* finally, compose contribution */
+              exp_motif_ml_left += lqq * rqq;
+
+              /* rotate auxiliary arrays */
+              FLT_OR_DBL *tmp = qm1ui[ud_max_size];
+              for(cnt = ud_max_size; cnt > 0; cnt--)
+                qm1ui[cnt] = qm1ui[cnt - 1];
+              qm1ui[0] = tmp;
+            }
+
+            /* cleanup memory */
+            for(l = 0; l <= ud_max_size; l++)
+              free(qm1ui[l]);
+            free(qm1ui);
+
+            outside +=    exp_motif_ml_left
+                        * exp_motif_en;
+
+            /* 4.3 Motif is in right-most unpaired stretch of multiloop */
+            qmli = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * n);
+            exp_motif_ml_right = 0.;
+            for(k = i - turn - 1; k > 0; k--){
+              FLT_OR_DBL lqq = 0.;
+              FLT_OR_DBL rqq = 0;
+
+              /* update qmli[k] = qm1[k,i-1] */
+              for(qmli[k] = 0., u = k + turn + 1; u < i; u++){
+                int ku = my_iindx[k] - u;
+                /* respect hard constraints */
+                if(hc_local[ku] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+                  up = (i - 1) - (u + 1) + 1;
+                  if(hc_up[u+1] >= up){
+                    temp =    qb[ku]
+                            * expMLbase[up];
+
+                    /* add soft constraints */
+                    if(sc){
+                      if(sc->exp_energy_up)
+                        temp *= sc->exp_energy_up[u+1][up];
+                    }
+                    qmli[k] += temp;
+
+                    /* add contributions of other motifs within [u+1:i-1] */
+                    qmli[k] +=    temp
+                                * qqi[u + 1];
+                  }
+                }
+              }
+
+              for(u = k + turn; u < i - turn; u++){
+                lqq +=    qm[my_iindx[k+1] - (u - 1)]
+                        * qmli[u];
+              }
+
+              for(l = j + 1; l <= n; l++){
+                kl = my_iindx[k] - l;
+                if(hc_local[kl] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+                  int up;
+                  tt = ptype[jindx[l] + k];
+                  tt = rtype[tt];
+                  up = l - j - 1;
+                  if(hc_up[j + 1] >= up){
+                    temp =    probs[kl]
+                            * exp_E_MLstem(tt, S[l-1], S[k+1], pf_params)
+                            * expMLclosing
+                            * scale[2]
+                            * expMLbase[up];
+
+                    if(sc){
+                      if(sc->exp_energy_bp)
+                        temp *= sc->exp_energy_bp[kl];
+                      if(sc->exp_energy_up)
+                        temp *= sc->exp_energy_up[j+1][up];
+                    }
+
+                    rqq += temp;
+
+                    /* add contributions of other motifs within [j+1:l-1] */
+                    rqq  +=   temp
+                            * qqj[l - 1];
+                  }
+                }
+              }
+              exp_motif_ml_right += rqq * lqq;
+            }
+            free(qmli);
+            qmli = NULL;
+
+            outside +=    exp_motif_ml_right
+                        * exp_motif_en;
+          }
+        }
+
+        if(outside > 0.)
+          domains_up->probs_add(vc,
+                                i, j,
+                                VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                outside,
+                                domains_up->data);
+
+        cnt++;
+      }
+    }
+    free(motif_list);
+  }
+
+  free(qqi);
+  free(qqj);
+  free(qqmi);
+  free(qqmj);
+  free(hc_local);
+}
+
 
 PRIVATE FLT_OR_DBL
 numerator_single( vrna_fold_compound_t *vc,
@@ -640,9 +2020,9 @@ bppm_circ(vrna_fold_compound_t *vc){
   n             = S[0];
 
   switch(vc->type){
-    case  VRNA_VC_TYPE_SINGLE:    numerator_f = numerator_single;
+    case  VRNA_FC_TYPE_SINGLE:    numerator_f = numerator_single;
                                   break;
-    case  VRNA_VC_TYPE_ALIGNMENT: numerator_f = numerator_comparative;
+    case  VRNA_FC_TYPE_COMPARATIVE: numerator_f = numerator_comparative;
                                   break;
     default:                      numerator_f = NULL;
                                   break;
@@ -1357,7 +2737,7 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
       if (probs[kl]>Qmax) {
         Qmax = probs[kl];
         if (Qmax>FLT_MAX/10.)
-          fprintf(stderr, "%d %d %g %g\n", i,j,probs[kl],qb[kl]);
+          vrna_message_warning("%d %d %g %g\n", i,j,probs[kl],qb[kl]);
       }
       if (probs[kl]>FLT_MAX) {
         ov++;
@@ -1382,9 +2762,10 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
     free(s);
   }
 
-  if (ov>0) fprintf(stderr, "%d overflows occurred while backtracking;\n"
-        "you might try a smaller pf_scale than %g\n",
-        ov, pf_params->pf_scale);
+  if(ov > 0)
+    vrna_message_warning("%d overflows occurred while backtracking;\n"
+                                "you might try a smaller pf_scale than %g\n",
+                                ov, pf_params->pf_scale);
 
   free(type);
   free(prm_l);

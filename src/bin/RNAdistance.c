@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     }
     do {
       if (line!=NULL) free(line);
-      line=get_line(stdin);
+      line=vrna_read_line(stdin);
     } while ((type=parse_input(line))==0);
 
     if (((type==999)||(type==888))&&(task==2)) {  /* do matrices */

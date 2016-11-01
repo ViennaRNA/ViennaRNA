@@ -956,8 +956,7 @@ PRIVATE void make_pscores(const char ** AS,
       }
     }
     if (hx!=0) {
-      fprintf(stderr, "%s\n", structure);
-      vrna_message_error("unbalanced brackets in constraint string");
+      vrna_message_error("%s\nunbalanced brackets in constraint string", structure);
     }
     free(stack);
   }

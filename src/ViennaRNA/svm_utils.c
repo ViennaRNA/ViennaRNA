@@ -45,7 +45,7 @@ PUBLIC float get_z(char *sequence, double energy) {
     my_z              = difference / sd_free_energy;
   }
   else{
-    fprintf(stderr,"warning: sequence out of bounds\n");
+    vrna_message_warning("sequence out of bounds");
 #if 0
     my_z = shuffle_score(sequence, energy);
 #endif
@@ -198,7 +198,7 @@ PUBLIC struct svm_model  *svm_load_model_string(char *modelString){
                 }
           }
           if(svm_type_table[i] == NULL){
-                fprintf(stderr,"unknown svm type.\n");
+                vrna_message_warning("unknown svm type.");
                 free(model->rho);
                 free(model->label);
                 free(model->nSV);
@@ -216,7 +216,7 @@ PUBLIC struct svm_model  *svm_load_model_string(char *modelString){
                 }
           }
           if(kernel_type_table[i] == NULL){
-                fprintf(stderr,"unknown kernel type.\n");
+                vrna_message_warning("unknown kernel type.");
                 free(model->rho);
                 free(model->label);
                 free(model->nSV);

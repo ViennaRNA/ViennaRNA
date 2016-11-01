@@ -13,14 +13,11 @@
 #endif
 
 /**
- *  @addtogroup subopt_fold Enumerating Suboptimal Structures
- *  @ingroup folding_routines
- *  @{
- *    @file subopt.h
- *    @brief RNAsubopt and density of states declarations
- *
- *  @}
+ *  @file subopt.h
+ *  @ingroup subopt_and_representatives
+ *  @brief RNAsubopt and density of states declarations
  */
+
 #define VRNA_BACKWARD_COMPAT
 
 /**

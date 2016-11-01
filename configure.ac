@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl Every other copy of the package version number gets its value from here
-AC_INIT([ViennaRNA],[2.2.10],[rna@tbi.univie.ac.at],[ViennaRNA], [http://www.tbi.univie.ac.at/RNA])
+AC_INIT([ViennaRNA],[2.3.0],[rna@tbi.univie.ac.at],[ViennaRNA], [http://www.tbi.univie.ac.at/RNA])
 AC_PREREQ([2.60])
 AC_CONFIG_AUX_DIR(config)
 
@@ -48,6 +48,7 @@ AC_PROG_MKDIR_P
 AM_PROG_CC_C_O
 AC_PROG_SED
 AC_PROG_LN_S
+AC_PROG_CC_C99
 
 AC_PROG_LIBTOOL
 LT_INIT([pic-only, static])
@@ -60,13 +61,13 @@ AC_CHECK_LIB([m], [exp])
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS([malloc.h float.h limits.h stdlib.h string.h strings.h unistd.h unistd.h math.h])
+AC_CHECK_HEADERS([malloc.h float.h limits.h stdlib.h string.h strings.h unistd.h math.h stdarg.h])
 
 dnl Checks for funtions
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([floor strdup strstr strchr strrchr strstr strtol strtoul pow rint sqrt erand48 memset memmove erand48])
+AC_CHECK_FUNCS([floor strdup strstr strchr strrchr strstr strtol strtoul pow rint sqrt erand48 memset memmove erand48 asprintf vasprintf])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

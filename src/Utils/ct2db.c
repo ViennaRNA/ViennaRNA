@@ -47,11 +47,11 @@ int main(int argc, char *argv[]){
   ct2db_cmdline_parser_free (&args_info);
 
   do{
-    if ((line = get_line(stdin))==NULL) break;
+    if ((line = vrna_read_line(stdin))==NULL) break;
     /* skip comment lines */
     while ((*line=='*')||(*line=='\0')||(*line=='>')||(*line=='#')) {
       free(line);
-      if ((line = get_line(stdin))==NULL) break;
+      if ((line = vrna_read_line(stdin))==NULL) break;
     }
 
     if ((line ==NULL) || (strcmp(line, "@") == 0)) break;

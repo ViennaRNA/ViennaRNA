@@ -15,12 +15,14 @@
 #endif
 
 /**
- *  @addtogroup   utils
- *
+ *  @file     utils.h
+ *  @ingroup  utils
+ *  @brief    General utility- and helper-functions used throughout the @em ViennaRNA @em Package
+ */
+
+/**
  *  @{
- *
- *  @file utils.h
- *  @brief General utility- and helper-functions used throughout the @em ViennaRNA @em Package
+ *  @ingroup  utils
  */
 
 #include <stdio.h>
@@ -28,6 +30,7 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/string_utils.h>
 #include <ViennaRNA/structure_utils.h>
+#include <ViennaRNA/file_utils.h>
 #include <ViennaRNA/alphabet.h>
 
 /* two helper macros to indicate whether a function should be exported in
@@ -154,23 +157,90 @@ void  *vrna_realloc(void *p, unsigned size);
 #endif
 
 /**
- *  @brief Die with an error message
+ *  @brief Print an error message and die
  *
- *  @see vrna_message_warning()
- *  @param message The error message to be printed before exiting with 'FAILURE'
+ *  This function is a wrapper to @em fprintf(stderr, ...) that
+ *  puts a capital <b>ERROR:</b> in front of the message and then exits
+ *  the calling program.
+ *
+ *  @see vrna_message_verror(), vrna_message_warning(), vrna_message_info()
+ *
+ *  @param format The error message to be printed
+ *  @param ...    Optional arguments for the formatted message string
  */
-void vrna_message_error(const char message[]);
+void vrna_message_error(const char *format, ...);
+
+
+/**
+ *  @brief Print an error message and die
+ *
+ *  This function is a wrapper to @em vfprintf(stderr, ...) that
+ *  puts a capital <b>ERROR:</b> in front of the message and then exits
+ *  the calling program.
+ *
+ *  @see vrna_message_error(), vrna_message_warning(), vrna_message_info()
+ *
+ *  @param format The error message to be printed
+ *  @param args   The argument list for the formatted message string
+ */
+void vrna_message_verror(const char *format, va_list args);
+
 
 /**
  *  @brief Print a warning message
  *
- *  Print a warning message to @e stderr
+ *  This function is a wrapper to @em fprintf(stderr, ...) that
+ *  puts a capital <b>WARNING:</b> in front of the message.
  *
- *  @param  message   The warning message
+ *  @see vrna_message_vwarning(), vrna_message_error(), vrna_message_info()
+ *
+ *  @param format The warning message to be printed
+ *  @param ...    Optional arguments for the formatted message string
  */
-void vrna_message_warning(const char message[]);
+void vrna_message_warning(const char *format, ...);
 
-void vrna_message_info(FILE *fp, const char message[]);
+
+/**
+ *  @brief Print a warning message
+ *
+ *  This function is a wrapper to @em fprintf(stderr, ...) that
+ *  puts a capital <b>WARNING:</b> in front of the message.
+ *
+ *  @see vrna_message_vwarning(), vrna_message_error(), vrna_message_info()
+ *
+ *  @param format The warning message to be printed
+ *  @param args   The argument list for the formatted message string
+ */
+void vrna_message_vwarning(const char *format, va_list args);
+
+
+/**
+ *  @brief Print an info message
+ *
+ *  This function is a wrapper to @em fprintf(...).
+ *
+ *  @see vrna_message_vinfo(), vrna_message_error(), vrna_message_warning()
+ *
+ *  @param fp     The file pointer where the message is printed to
+ *  @param format The warning message to be printed
+ *  @param ...    Optional arguments for the formatted message string
+ */
+void vrna_message_info(FILE *fp, const char *format, ...);
+
+
+/**
+ *  @brief Print an info message
+ *
+ *  This function is a wrapper to @em fprintf(...).
+ *
+ *  @see vrna_message_vinfo(), vrna_message_error(), vrna_message_warning()
+ *
+ *  @param fp     The file pointer where the message is printed to
+ *  @param format The info message to be printed
+ *  @param args   The argument list for the formatted message string
+ */
+void vrna_message_vinfo(FILE *fp, const char *format, va_list args);
+
 
 /**
  *  @brief  Initialize seed for random number generator
@@ -207,11 +277,6 @@ double vrna_urn(void);
 int vrna_int_urn(int from, int to);
 
 /**
- *  @brief Inefficient `cp'
- */
-void vrna_file_copy(FILE *from, FILE *to);
-
-/**
  *  @brief Get a timestamp
  *
  *  Returns a string containing the current date in the format
@@ -220,19 +285,6 @@ void vrna_file_copy(FILE *from, FILE *to);
  *  @return A string containing the timestamp
  */
 char  *vrna_time_stamp(void);
-
-/**
- *  @brief Read a line of arbitrary length from a stream
- *
- *  Returns a pointer to the resulting string. The necessary memory is
- *  allocated and should be released using @e free() when the string is
- *  no longer needed.
- *
- *  @param  fp  A file pointer to the stream where the function should read from
- *  @return     A pointer to the resulting string
- */
-/*@only@*/ /*@null@*/
-char  *get_line(FILE *fp);
 
 /**
  *  Retrieve a line from 'stdin' savely while skipping comment characters and
@@ -316,6 +368,20 @@ int *vrna_idx_col_wise(unsigned int length);
 DEPRECATED(int   *get_indx(unsigned int length));
 
 DEPRECATED(int   *get_iindx(unsigned int length));
+
+/**
+ *  @brief Read a line of arbitrary length from a stream
+ *
+ *  Returns a pointer to the resulting string. The necessary memory is
+ *  allocated and should be released using @e free() when the string is
+ *  no longer needed.
+ *
+ *	@deprecated	Use vrna_read_line() as a substitute!
+ *
+ *  @param  fp  A file pointer to the stream where the function should read from
+ *  @return     A pointer to the resulting string
+ */
+DEPRECATED(char  *get_line(FILE *fp));
 
 /**
  *  @brief Print a line to @e stdout that asks for an input sequence

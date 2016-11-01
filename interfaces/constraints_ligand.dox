@@ -1,0 +1,9 @@
+/**
+
+@fn int vrna_sc_add_hi_motif( vrna_fold_compound_t *vc, const char *seq, const char *structure, FLT_OR_DBL energy, unsigned int options)
+@scripting
+@parblock
+This function is attached as method @b sc_add_hi_motif() to objects of type @em fold_compound
+@endparblock
+
+*/

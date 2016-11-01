@@ -20,12 +20,14 @@
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /**
- *  @addtogroup   loops
- *
+ *  @file     interior_loops.h
+ *  @ingroup  loops
+ *  @brief    Energy evaluation of interior loops for MFE and partition function calculations
+ */
+
+/**
  *  @{
- *
- *  @file interior_loops.h
- *  @brief Energy evaluation of interior loops for MFE and partition function calculations
+ *  @ingroup   loops
  */
 
 /**
@@ -126,11 +128,6 @@ PRIVATE INLINE int E_IntLoop_Co(int type,
                                 int dangles,
                                 vrna_param_t *P);
 
-
-/**
- *  @brief Evaluate energy of a base pair stack closed by (i,j)
- */
-int E_stack(int i, int j, vrna_fold_compound_t *vc);
 
 /*
 #################################
@@ -253,11 +250,11 @@ ubf_eval_ext_int_loop(int i,
 
   /* add soft constraints */
   if(sc){
-    if(sc->energy_up)
+    if(sc->energy_up){
       energy += sc->energy_up[j1][u2]
-                + sc->energy_up[q1][u3]
-                + sc->energy_up[1][u1];
-
+                + ((u3 > 0) ? sc->energy_up[q1][u3] : 0)
+                + ((u1 > 0) ? sc->energy_up[1][u1] : 0);
+    }
     if(sc->energy_stack)
       if(u1 + u2 + u3 == 0)
         energy +=   sc->energy_stack[i]
@@ -357,8 +354,9 @@ exp_E_IntLoop(int u1,
 
   int ul, us, no_close = 0;
   double z = 0.;
+  int noGUclosure = P->model_details.noGUclosure;
 
-  if ((no_closingGU) && ((type2==3)||(type2==4)||(type==3)||(type==4)))
+  if ((noGUclosure) && ((type2==3)||(type2==4)||(type==3)||(type==4)))
     no_close = 1;
 
   if (u1>u2) { ul=u1; us=u2;}
@@ -470,10 +468,24 @@ vrna_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j);
 
+int
+vrna_eval_int_loop( vrna_fold_compound_t *vc,
+                    int i,
+                    int j,
+                    int k,
+                    int l);
+
 FLT_OR_DBL
 vrna_exp_E_int_loop(vrna_fold_compound_t *vc,
                 int i,
                 int j);
+
+FLT_OR_DBL
+vrna_exp_E_interior_loop( vrna_fold_compound_t *vc,
+                          int i,
+                          int j,
+                          int k,
+                          int l);
 
 int
 vrna_E_ext_int_loop(vrna_fold_compound_t *vc,
@@ -486,45 +498,6 @@ int
 vrna_E_stack( vrna_fold_compound_t *vc,
               int i,
               int j);
-
-
-int
-E_IntLoop(int n1,
-          int n2,
-          int type,
-          int type_2,
-          int si1,
-          int sj1,
-          int sp1,
-          int sq1,
-          vrna_param_t *P);
-
-
-FLT_OR_DBL
-exp_E_IntLoop(int u1,
-              int u2,
-              int type,
-              int type2,
-              short si1,
-              short sj1,
-              short sp1,
-              short sq1,
-              vrna_exp_param_t *P);
-
-int
-E_IntLoop_Co( int type,
-              int type_2,
-              int i,
-              int j,
-              int p,
-              int q,
-              int cutpoint,
-              short si1,
-              short sj1,
-              short sp1,
-              short sq1,
-              int dangles,
-              vrna_param_t *P);
 
 
 /**

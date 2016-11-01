@@ -178,6 +178,7 @@ wrap_fold( const char *string,
 
   vrna_fold_compound_t  *vc;
   vrna_param_t          *P;
+  float                 mfe;
 
 #ifdef _OPENMP
 /* Explicitly turn off dynamic threads */
@@ -223,7 +224,31 @@ wrap_fold( const char *string,
   backward_compat_compound  = vc;
   backward_compat           = 1;
 
-  return vrna_mfe(vc, structure);
+  /* call mfe() function without backtracking */
+  mfe = vrna_mfe(vc, NULL);
+
+  /* backtrack structure */
+  if(structure && vc->params->model_details.backtrack){
+    char            *ss;
+    int             length;
+    sect            bt_stack[MAXSECTORS];
+    vrna_bp_stack_t *bp;
+
+    length  = vc->length;
+    bp      = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+
+    vrna_backtrack_from_intervals(vc, bp, bt_stack, 0);
+
+    ss = vrna_db_from_bp_stack(bp, length);
+    strncpy(structure, ss, length + 1);
+    free(ss);
+
+    if(base_pair)
+      free(base_pair);
+    base_pair = bp;
+  }
+
+  return mfe;
 }
 
 PUBLIC void

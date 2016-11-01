@@ -39,3 +39,19 @@ std::vector<double> my_file_SHAPE_read( const char *file_name,
 %clear std::string *shape_sequence;
 
 %include <ViennaRNA/file_formats.h>
+
+/**********************************************/
+/* BEGIN interface for reading/writing MSA    */
+/**********************************************/
+
+%rename (file_msa_detect_format) vrna_file_msa_detect_format;
+
+%constant unsigned int FILE_FORMAT_MSA_CLUSTAL   = VRNA_FILE_FORMAT_MSA_CLUSTAL;
+%constant unsigned int FILE_FORMAT_MSA_DEFAULT   = VRNA_FILE_FORMAT_MSA_DEFAULT;
+%constant unsigned int FILE_FORMAT_MSA_FASTA     = VRNA_FILE_FORMAT_MSA_FASTA;
+%constant unsigned int FILE_FORMAT_MSA_MAF       = VRNA_FILE_FORMAT_MSA_MAF;
+%constant unsigned int FILE_FORMAT_MSA_NOCHECK   = VRNA_FILE_FORMAT_MSA_NOCHECK;
+%constant unsigned int FILE_FORMAT_MSA_STOCKHOLM = VRNA_FILE_FORMAT_MSA_STOCKHOLM;
+%constant unsigned int FILE_FORMAT_MSA_UNKNOWN   = VRNA_FILE_FORMAT_MSA_UNKNOWN;
+
+%include <ViennaRNA/file_formats_msa.h>

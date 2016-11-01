@@ -17,9 +17,22 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/string_utils.h"
+
+/*
+#################################
+# PRIVATE FUNCTION DECLARATIONS #
+#################################
+*/
+
+/*
+#################################
+# BEGIN OF FUNCTION DEFINITIONS #
+#################################
+*/
 
 #ifndef HAVE_STRDUP
 char *strdup(const char *s) {
@@ -30,6 +43,150 @@ char *strdup(const char *s) {
   return(dup);
 }
 #endif
+
+PUBLIC char *
+vrna_strdup_printf(const char *format, ...){
+
+  char *result;
+  va_list argp;
+
+  va_start(argp, format);
+  result = vrna_strdup_vprintf(format, argp);
+  va_end(argp); /* Each va_start() or va_copy() needs a va_end() */
+
+  return result;
+}
+
+PUBLIC char *
+vrna_strdup_vprintf(const char *format, va_list argp){
+
+  char    *result;
+  int     r;
+
+  result  = NULL;
+
+#ifndef HAVE_VASPRINTF
+  int     count;
+  va_list copy;
+  va_copy(copy, argp);
+
+  r = -1;
+
+  /* retrieve the number of characters that the string requires */
+#ifdef _WIN32
+  /*
+    vsnprintf() in Windows is not ANSI compliant, although it's
+    "...included for compliance to the ANSI standard"
+    Thus, we use _vscprintf() that explicitly counts characters
+  */
+  count = _vscprintf(format, argp);
+#else
+  count = vsnprintf(NULL, 0, format, argp);
+#endif
+
+  if((count >= 0) && (count < INT_MAX)){
+    char *buf = (char *)vrna_alloc(sizeof(char) * (count + 1));
+    if(buf == NULL)
+      r = -1;
+    else if((r = vsnprintf(buf, count + 1, format, copy)) < 0)
+      free(buf);
+    else
+      result = buf;
+  }
+
+  va_end(copy);  /* Each va_start() or va_copy() needs a va_end() */
+#else
+  /* the default is to use vasprintf() if available */
+  r = vasprintf(&result, format, argp);
+#endif
+
+  /* check for any memory allocation error indicated by r == -1 */
+  if(r == -1){
+    vrna_message_warning("vrna_strdup_printf: memory allocation failure!");
+    result = NULL;
+  }
+
+  return result;
+}
+
+
+PUBLIC int
+vrna_strcat_printf(char **dest, const char *format, ...){
+
+  int r;
+  va_list argp;
+
+  va_start(argp, format);
+  r = vrna_strcat_vprintf(dest, format, argp);
+  va_end(argp); /* Each va_start() or va_copy() needs a va_end() */
+
+  return r;
+}
+
+
+PUBLIC int
+vrna_strcat_vprintf(char **dest, const char *format, va_list args){
+
+  char    *buf;
+  int     r, l1, l2;
+  size_t  old_count, new_count;
+
+  if((!dest) || (!format))
+    return -1;
+
+  va_list copy;
+  va_copy(copy, args);
+
+  r         = -1;
+  buf       = *dest;
+  old_count = (buf) ? strlen(buf) : 0;
+
+  /* retrieve the number of characters that the string requires */
+#ifdef _WIN32
+  /*
+    vsnprintf() in Windows is not ANSI compliant, although it's
+    "...included for compliance to the ANSI standard"
+    Thus, we use _vscprintf() that explicitly counts characters
+  */
+  new_count = _vscprintf(format, args);
+#else
+  new_count = vsnprintf(NULL, 0, format, args);
+#endif
+
+  /* determine longer and shorter part of new string for INT overflow protection */
+  if(old_count > new_count){
+    l1 = old_count;
+    l2 = new_count;
+  } else {
+    l1 = new_count;
+    l2 = old_count;
+  }
+
+  if((new_count > 0) && (l1 < SIZE_MAX) && ((SIZE_MAX - l1) > l2)){
+    buf = (char *)vrna_realloc(buf, sizeof(char) * (old_count + new_count + 1));
+    if(buf == NULL)
+      r = -1;
+    else if((r = vsnprintf(buf + old_count, new_count + 1, format, copy)) < 0)
+      free(buf);
+    else {
+      *dest = buf;
+      r = old_count + new_count;
+    }
+  } else if(new_count == 0){
+    /* we do not treat empty format string as error */
+    r = (int)old_count;
+  }
+
+  va_end(copy);  /* Each va_start() or va_copy() needs a va_end() */
+
+  /* check for any memory allocation error indicated by r == -1 */
+  if(r == -1){
+    vrna_message_warning("vrna_strcat_printf: memory allocation failure!");
+    *dest = NULL;
+  }
+
+  return r;
+}
 
 
 PUBLIC char *

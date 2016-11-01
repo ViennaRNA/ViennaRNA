@@ -139,8 +139,8 @@ $fc->hc_add_from_db("xxx.................");
 printf("%s [%6.2f] \n",$ss,$mfe);
 is($ss,$str_con);
 ##################################
-##test_sc_add_up
-print "test_sc_add_up";
+##test_sc_set_up
+print "test_sc_set_up";
 #        "1234567890
 my $seq_sc  =      "CCCAAAAGGG";
 $fc = new RNA::fold_compound($seq_sc);
@@ -152,14 +152,14 @@ $fc->sc_init();
 
 my @m= (0.0,-5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0);  #E 1 0 1 -5 ,  position 1 gets -5 if unpaired , vector starts with 0 and not 1
 
-$fc->sc_add_up(\@m);
+$fc->sc_set_up(\@m);
 ($ss,$mfeNew) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfeNew);
 is(sprintf ("%6.2f",$mfeNew), sprintf("%6.2f",-5.70));
 undef @m;
 ##################################   !!!geht noch nicht
-#test_sc_add_bp
-print "test_sc_add_bp";
+#test_sc_set_bp
+print "test_sc_set_bp";
 
 
 
@@ -183,7 +183,7 @@ print "test_sc_add_bp";
 #
 #$seq_sc  =      "CCCAAAAGGG";
 #$fc = new RNA::fold_compound($seq_sc);
-#$fc->sc_add_bp(\@mm);
+#$fc->sc_set_bp(\@mm);
 #($ss,$mfeNew) = $fc->mfe();
 #printf("%s [%6.2f] \n",$ss,$mfeNew);
 ## mfe unconstrained is -2.5

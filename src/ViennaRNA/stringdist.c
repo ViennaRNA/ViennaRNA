@@ -285,7 +285,7 @@ PRIVATE void DeCode(char *string, int k, int *tp, float *w)
          sscanf(label,"%d",&m);
          *w= (float) m;
          if(m==-1) {
-            fprintf(stderr, "Warning: Non-integer weight in DeCode ignored\n");
+            vrna_message_warning("Non-integer weight in DeCode ignored");
             *w=1.0;
          }
       }
@@ -320,9 +320,10 @@ PRIVATE int decode(char *id)
         n++;
     }
 
-    fprintf(stderr,"Syntax error: node identifier \"%s\" not found "
-		   "in coding string \"%s\"\n", id, coding);
-    fprintf(stderr,"Exiting...");
+    vrna_message_error("Syntax error: node identifier \"%s\" not found "
+                              "in coding string \"%s\"\n"
+                              "Exiting",
+                              id, coding);
     exit(0);
 }
 

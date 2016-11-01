@@ -15,12 +15,14 @@
 #endif
 
 /**
- *  @addtogroup   struct_utils
- *
+ *  @file     structure_utils.h
+ *  @ingroup  utils
+ *  @brief    Various utility- and helper-functions for secondary structure parsing, converting, etc.
+ */
+
+/**
  *  @{
- *
- *  @file structure_utils.h
- *  @brief Various utility- and helper-functions for secondary structure parsing, converting, etc.
+ *  @ingroup   struct_utils
  */
 
 /**
@@ -241,6 +243,7 @@ vrna_plist_t *vrna_plist_from_probs(vrna_fold_compound_t *vc, double cut_off);
  */
 char *vrna_db_from_plist(vrna_plist_t *pairs, unsigned int n);
 
+char *vrna_db_to_element_string(const char *structure);
 
 vrna_hx_t *vrna_hx_from_ptable(short *pt);
 vrna_hx_t *vrna_hx_merge(const vrna_hx_t *list, int maxdist);

@@ -15,12 +15,14 @@
 #define VRNA_BACKWARD_COMPAT
 
 /**
- *  @addtogroup   plotting_utils
- *
+ *  @file     plot_aln.h
+ *  @ingroup  plotting_utils
+ *  @brief    Various functions for plotting Sequence / Structure Alignments
+ */
+
+/**
  *  @{
- *
- *  @file plot_aln.h
- *  @brief Various functions for plotting Sequence / Structure Alignments
+ *  @ingroup  plotting_utils
  */
 
 /**

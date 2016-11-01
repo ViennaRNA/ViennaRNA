@@ -1,0 +1,58 @@
+/**
+
+@addtogroup grammar
+
+@brief  The RNA folding grammar as implemented in RNAlib
+
+This module is split into different aspects of how to modify and manipulate
+the underlying RNA folding grammar.
+
+@image html   recursions.svg
+@image latex  recursions.eps
+
+
+- @ref domains, and
+- @ref constraints
+
+
+*/
+
+/**
+
+@addtogroup domains
+
+@brief This module covers simple and straight-forward extensions to the RNA folding grammar.
+
+Some applications of RNA secondary structure prediction require an extension
+of the @em regular RNA folding grammar. For instance one would like to include
+proteins and other ligands binding to unpaired loop regions while competing
+with conventional base pairing. Another application could be that one may
+want to include the formation of self-emclosed structural modules, such as
+G-quadruplexes. For such applications, we provide a pair of additional domains
+that extend the regular RNA folding grammar, @ref domains_struc and
+@ref domains_up.
+
+@image html   GCrecursion.svg
+@image latex  GCrecursion.eps
+
+While unstructured domains are usually determined by a more or less precise
+sequence motif, e.g. the binding site for a protein, structured domains are
+considered self-enclosed modules with a more or less complex pairing pattern.
+Our extension with these two domains introduces two production rules to fill
+additional dynamic processing matrices @p S and @p U where we store the
+pre-computed constributions of structured domains (@p S), and unstructured
+domains (@p U).
+
+For the sake of flexibility, each of the domains is associated with a specific
+data structure serving as an abstract interface to the extension. The interface
+uses callback functions to (i) pre-compute arbitrary data, e.g. filling up
+additional dynamic programming matrices, and (ii) evaluate the contribution
+of a paired or unpaired structural feature of the RNA. Implementations of these
+callbacks are separate for regular free energy evaluation, e.g. MFE prediction,
+and partition function applications. A data structure holding arbitrary data
+required for the callback functions can be associated to the domain as well.
+While RNAlib comes with a default implementation for structured and unstructured
+domains, the system is entirely user-costomizable.
+
+*/
+

@@ -59,7 +59,7 @@ PUBLIC float **read_distance_matrix(char type[])
      type[0]= '\0';
      size   =    0;
      D      = NULL;
-     if ((line = get_line(stdin))==NULL) return NULL;
+     if ((line = vrna_read_line(stdin))==NULL) return NULL;
      if (*line =='@') return NULL;
      if (*line =='*') {
        N_of_infiles++;
@@ -119,7 +119,7 @@ PUBLIC char **read_sequence_list(int *n_of_seqs, char *mask)
    
    (*n_of_seqs) = 0;
    while(1) {
-      if ((line = get_line(stdin))==NULL) break;
+      if ((line = vrna_read_line(stdin))==NULL) break;
       
       if(line[0]=='\0') break;
       if(line[0]=='%')  break;
@@ -293,14 +293,14 @@ PRIVATE void read_taxa_list(void)
    int i,add_it;
 
    add_it=0;
-   if ((line = get_line(stdin))==NULL) return;
+   if ((line = vrna_read_line(stdin))==NULL) return;
    if(line[0]=='#') {
       i=0;
       sscanf(line,"#%d", &i);
       if(i<=1) N_of_named_taxa = 0;
       add_it = i*100000;
       free(line);
-      if ((line = get_line(stdin))==NULL) return;
+      if ((line = vrna_read_line(stdin))==NULL) return;
    } else N_of_named_taxa = 0;
    
    do {
@@ -316,7 +316,7 @@ PRIVATE void read_taxa_list(void)
 	 N_of_named_taxa++;
       }
       free(line);
-   } while ((line = get_line(stdin))!=NULL);
+   } while ((line = vrna_read_line(stdin))!=NULL);
    if (line!=NULL) free(line);
    return;
 }

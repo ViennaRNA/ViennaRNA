@@ -16,11 +16,14 @@
 #define VRNA_BACKWARD_COMPAT
 
 /**
- *  @addtogroup   model_details
+ *  @file     model.h
+ *  @ingroup  model_details
+ *  @brief    The model details data structure and its corresponding modifiers
+ */
+
+/**
  *  @{
- *
- *  @file model.h
- *  @brief The model details data structure and its corresponding modifiers
+ *  @ingroup   model_details
  */
 
 #ifndef NBASES
@@ -94,7 +97,7 @@ typedef struct vrna_md_s  vrna_md_t;
 #define VRNA_MODEL_DEFAULT_CANONICAL_BP   0
 
 /**
- *  @brief  Default behavior of the model regarding unique multibranch loop decomposition
+ *  @brief  Default behavior of the model regarding unique multi-branch loop decomposition
  *  @see    #vrna_md_t.uniq_ML, vrna_md_defaults_reset(), vrna_md_set_default()
  */
 #define VRNA_MODEL_DEFAULT_UNIQ_ML        0
@@ -136,7 +139,7 @@ typedef struct vrna_md_s  vrna_md_t;
 #define VRNA_MODEL_DEFAULT_WINDOW_SIZE    -1
 
 /**
- *  @brief  Default model behavior on how to evaluate the energy contribution of multibranch loops
+ *  @brief  Default model behavior on how to evaluate the energy contribution of multi-branch loops
  *  @see    #vrna_md_t.logML, vrna_md_defaults_reset(), vrna_md_set_default()
  */
 #define VRNA_MODEL_DEFAULT_LOG_ML         0
@@ -148,13 +151,13 @@ typedef struct vrna_md_s  vrna_md_t;
 #define VRNA_MODEL_DEFAULT_ALI_OLD_EN     0
 
 /**
- *  @brief  Default model behavior for consensus structure covariance contribution assessment
+ *  @brief  Default model behavior for consensus structure co-variance contribution assessment
  *  @see    #vrna_md_t.ribo, vrna_md_defaults_reset(), vrna_md_set_default()
  */
 #define VRNA_MODEL_DEFAULT_ALI_RIBO       0
 
 /**
- *  @brief  Default model behavior for weighting the covariance score in consensus structure prediction
+ *  @brief  Default model behavior for weighting the co-variance score in consensus structure prediction
  *  @see    #vrna_md_t.cv_fact, vrna_md_defaults_reset(), vrna_md_set_default()
  */
 #define VRNA_MODEL_DEFAULT_ALI_CV_FACT    1.
@@ -202,13 +205,13 @@ struct vrna_md_s {
                                               helices often do engage in stabilizing interactions through co-axial
                                               stacking.\n
                                               If set to 3 co-axial stacking is explicitly included for
-                                              adjacent helices in mutli-loops. The option affects only mfe folding
+                                              adjacent helices in multiloops. The option affects only mfe folding
                                               and energy evaluation (vrna_mfe() and vrna_eval_structure()), as
                                               well as suboptimal folding (vrna_subopt()) via re-evaluation of energies.
                                               Co-axial stacking with one intervening mismatch is not considered so far.
                                               @note   Some function do not implement all dangle model but only a subset of
                                                       (0,1,2,3). In particular, partition function algorithms can only handle
-                                                      0 and 2. Read the documentaion of the particular recurrences or
+                                                      0 and 2. Read the documentation of the particular recurrences or
                                                       energy evaluation function for information about the provided dangle
                                                       model.
                                         */
@@ -216,11 +219,11 @@ struct vrna_md_s {
   int     noLP;                         /**<  @brief  Only consider canonical structures, i.e. no 'lonely' base pairs */
   int     noGU;                         /**<  @brief  Do not allow GU pairs */
   int     noGUclosure;                  /**<  @brief  Do not allow loops to be closed by GU pair */
-  int     logML;                        /**<  @brief  Use logarithmic scaling for multi loops */
+  int     logML;                        /**<  @brief  Use logarithmic scaling for multiloops */
   int     circ;                         /**<  @brief  Assume RNA to be circular instead of linear */
   int     gquad;                        /**<  @brief  Include G-quadruplexes in structure prediction */
   int     canonicalBPonly;              /**<  @brief  remove non-canonical bp's from constraint structures  */
-  int     uniq_ML;                      /**<  @brief  Flag to ensure unique multibranch loop decomposition during folding */
+  int     uniq_ML;                      /**<  @brief  Flag to ensure unique multi-branch loop decomposition during folding */
   int     energy_set;                   /**<  @brief  Specifies the energy set that defines set of compatible base pairs */
   int     backtrack;                    /**<  @brief  Specifies whether or not secondary structures should be backtraced */
   char    backtrack_type;               /**<  @brief  Specifies in which matrix to backtrack */
@@ -232,11 +235,11 @@ struct vrna_md_s {
                                               @note The default value for this field is #TURN, however, it may
                                               be 0 in cofolding context.
                                         */
-  int     window_size;                  /**<  @brief  Size of the sliding window for locally optimal structure predition */
+  int     window_size;                  /**<  @brief  Size of the sliding window for locally optimal structure prediction */
   int     oldAliEn;                     /**<  @brief  Use old alifold energy model */
   int     ribo;                         /**<  @brief  Use ribosum scoring table in alifold energy model */
-  double  cv_fact;                      /**<  @brief  Covariance scaling factor for consensus structure prediction */
-  double  nc_fact;                      /**<  @brief  Scaling factor to weight covariance contributions of non-canonical pairs */
+  double  cv_fact;                      /**<  @brief  Co-variance scaling factor for consensus structure prediction */
+  double  nc_fact;                      /**<  @brief  Scaling factor to weight co-variance contributions of non-canonical pairs */
   double  sfact;                        /**<  @brief  Scaling factor for partition function scaling */
   int     rtype[8];                     /**<  @brief  Reverse base pair type array */
   short   alias[MAXALPHA+1];            /**<  @brief  alias of an integer nucleotide representation */
@@ -271,6 +274,20 @@ void
 vrna_md_update(vrna_md_t *md);
 
 /**
+ *  @brief Copy/Clone a #vrna_md_t model
+ *
+ *  Use this function to clone a given model either inplace (target container @p md_to
+ *  given) or create a copy by cloning the source model and returning it (@p md_to == NULL).
+ *
+ *  @param md_to    The model to be overwritten (if non-NULL and @p md_to != @p md_from)
+ *  @param md_from  The model to copy (if non-NULL)
+ *  @return         A pointer to the copy model (or NULL if @p md_from == NULL)
+ */
+vrna_md_t *
+vrna_md_copy( vrna_md_t       *md_to,
+              const vrna_md_t *md_from);
+
+/**
  *  @brief  Get a corresponding commandline parameter string of the options in a #vrna_md_t
  *
  *  @note This function is not threadsafe!
@@ -289,7 +306,7 @@ vrna_md_set_nonstandards(vrna_md_t *md, const char *ns_bases);
  *  Alternatively it resets them according to a set of provided parameters.
  *
  *  @note The global default parameters affect all function calls of RNAlib where
- *        model details are not explicitely provided. Hence, any change of them
+ *        model details are not explicitly provided. Hence, any change of them
  *        is not considered threadsafe
  *  @warning  This function first resets the global default settings to factory
  *            defaults, and only then applies user provided settings (if any).
@@ -417,7 +434,7 @@ int
 vrna_md_defaults_noGUclosure_get(void);
 
 /**
- *  @brief  Set default behavior recomputing free energies of multibranch loops using a logarithmic model
+ *  @brief  Set default behavior recomputing free energies of multi-branch loops using a logarithmic model
  *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_LOG_ML
  *  @param  flag  On/Off switch (0 = OFF, else = ON)
  */
@@ -425,9 +442,9 @@ void
 vrna_md_defaults_logML(int flag);
 
 /**
- *  @brief  Get default behavior recomputing free energies of multibranch loops using a logarithmic model
+ *  @brief  Get default behavior recomputing free energies of multi-branch loops using a logarithmic model
  *  @see vrna_md_defaults_logML(), vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_LOG_ML
- *  @return The global default settings for logarithmic model in multibranch loop free energy evaluation
+ *  @return The global default settings for logarithmic model in multi-branch loop free energy evaluation
  */
 int
 vrna_md_defaults_logML_get(void);
@@ -465,7 +482,7 @@ int
 vrna_md_defaults_gquad_get(void);
 
 /**
- *  @brief  Set default behavior for creating additional matrix for unique multibranch loop prediction
+ *  @brief  Set default behavior for creating additional matrix for unique multi-branch loop prediction
  *  @note   Activating this option usually results in higher memory consumption!
  *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_UNIQ_ML
  *  @param  flag  On/Off switch (0 = OFF, else = ON)
@@ -474,9 +491,9 @@ void
 vrna_md_defaults_uniq_ML(int flag);
 
 /**
- *  @brief  Get default behavior for creating additional matrix for unique multibranch loop prediction
+ *  @brief  Get default behavior for creating additional matrix for unique multi-branch loop prediction
  *  @see vrna_md_defaults_uniq_ML(), vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_UNIQ_ML
- *  @return The global default settings for creating additional matrices for unique multibranch loop prediction
+ *  @return The global default settings for creating additional matrices for unique multi-branch loop prediction
  */
 int
 vrna_md_defaults_uniq_ML_get(void);
@@ -628,17 +645,17 @@ int
 vrna_md_defaults_ribo_get(void);
 
 /**
- *  @brief  Set the default covariance scaling factor used in comparative structure prediction
+ *  @brief  Set the default co-variance scaling factor used in comparative structure prediction
  *  @see vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_ALI_CV_FACT
- *  @param  factor  The covariance factor
+ *  @param  factor  The co-variance factor
  */
 void
 vrna_md_defaults_cv_fact(double factor);
 
 /**
- *  @brief  Get the default covariance scaling factor used in comparative structure prediction
+ *  @brief  Get the default co-variance scaling factor used in comparative structure prediction
  *  @see vrna_md_defaults_cv_fact(), vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_ALI_CV_FACT
- *  @return The global default settings for the covariance factor
+ *  @return The global default settings for the co-variance factor
  */
 double
 vrna_md_defaults_cv_fact_get(void);
@@ -719,7 +736,7 @@ extern double pf_scale;
  *  helices often do engage in stabilizing interactions through co-axial
  *  stacking.\n
  *  If dangles = 3 co-axial stacking is explicitly included for
- *  adjacent helices in mutli-loops. The option affects only mfe folding
+ *  adjacent helices in multiloops. The option affects only mfe folding
  *  and energy evaluation (fold() and energy_of_structure()), as
  *  well as suboptimal folding (subopt()) via re-evaluation of energies.
  *  Co-axial stacking with one intervening mismatch is not considered so far.
@@ -775,7 +792,7 @@ extern int canonicalBPonly;
 extern  int uniq_ML;
 
 /**
- *  @brief 0 = BP; 1=any mit GC; 2=any mit AU-parameter
+ *  @brief 0 = BP; 1=any with GC; 2=any with AU-parameter
  * 
  *  If set to 1 or 2: fold sequences from an artificial alphabet ABCD..., where A
  *  pairs B, C pairs D, etc. using either GC (1) or AU parameters (2);
@@ -795,7 +812,7 @@ extern int    do_backtrack;
  *  @brief A backtrack array marker for inverse_fold()
  * 
  *  If set to 'C': force (1,N) to be paired,
- *  'M' fold as if the sequence were inside a multi-loop. Otherwise ('F') the
+ *  'M' fold as if the sequence were inside a multiloop. Otherwise ('F') the
  *  usual mfe structure is computed.
  */
 extern char backtrack_type;

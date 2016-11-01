@@ -281,7 +281,7 @@ static struct loop *construct_loop(int ibase)
 	  lp = construct_loop(rp->end2 < nbase ? rp->end2+1 : 0);
 	}
 	else {
-	  fprintf(stderr, "naview: Error detected in construct_loop. i = %d not found in region table.\n",i);
+	  vrna_message_error("naview: Error detected in construct_loop. i = %d not found in region table.",i);
 	  exit(FATAL_ERROR);
 	}
 	retloop->connections = (struct connection **)
@@ -768,8 +768,8 @@ static void traverse_loop(struct loop *lp, struct connection *anchor_connection)
     if (dcp <= 0.0) dcp += 2*pi;
     if (fabs(dan-dcp) > pi) {
       if (cp->extruded) {
-	fprintf(stderr, "Warning from traverse_loop. Loop %d has crossed regions\n",
-	       lp->number);
+        vrna_message_warning("...from traverse_loop. Loop %d has crossed regions",
+                                    lp->number);
       }
       else if ((cpnext->start - cp->end) != 1) {
 	cp->extruded = true;
@@ -1146,7 +1146,7 @@ static void find_center_for_arc(int n,double b,double *hp,double *thetap)
     /*  if (r<0.5) {r = 0.5; h = 0.5*sqrt(1-b*b);} */
     disc = 1.0 - 0.5/(r*r);
     if (fabs(disc) > 1.0) {
-      fprintf(stderr, "Unexpected large magnitude discriminant = %g %g\n", disc,r);
+      vrna_message_error("Unexpected large magnitude discriminant = %g %g", disc,r);
       exit(FATAL_ERROR);
     }
     theta = acos(disc);
@@ -1161,7 +1161,7 @@ static void find_center_for_arc(int n,double b,double *hp,double *thetap)
     }
   } while    (fabs(e) > 0.0001 && ++iter < maxiter);
   if (iter >= maxiter) {
-    fprintf(stderr, "Iteration failed in find_center_for_arc\n");
+    vrna_message_warning("Iteration failed in find_center_for_arc");
     h = 0.0;
     theta = 0.0;
   }

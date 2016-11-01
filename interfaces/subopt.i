@@ -127,10 +127,69 @@ std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *fp);
 std::vector<subopt_solution> my_subopt(char *seq, int delta);
 SOLUTION *my_subopt(char *seq, char *constraint, int delta);
 
+%extend vrna_fold_compound_t {
+
+  std::vector<subopt_solution> subopt(int delta, int sorted=1){
+    std::vector<subopt_solution> ret;
+    SOLUTION *sol = vrna_subopt($self, delta, sorted, NULL);
+    for(int i = 0; sol[i].structure != NULL; i++){
+      subopt_solution a;
+      a.energy = sol[i].energy;
+      a.structure = sol[i].structure;
+      ret.push_back(a);
+    }
+    free(sol);
+    /* The memory occupied by the individual structures will be free'd automatically
+       by swig, when the vector is destroyed
+    */
+    return ret;
+  }
+
+  std::vector<subopt_solution> subopt(int delta, int sorted, FILE *fp){
+    std::vector<subopt_solution> ret;
+    SOLUTION *sol = vrna_subopt($self, delta, sorted, fp);
+    for(int i = 0; sol[i].structure != NULL; i++){
+      subopt_solution a;
+      a.energy = sol[i].energy;
+      a.structure = sol[i].structure;
+      ret.push_back(a);
+    }
+    free(sol);
+    /* The memory occupied by the individual structures will be free'd automatically
+       by swig, when the vector is destroyed
+    */
+    return ret;
+  }
+
+  std::vector<subopt_solution> subopt_zuker(void){
+    std::vector<subopt_solution> ret;
+    SOLUTION *sol = vrna_subopt_zuker($self);
+    for(int i = 0; sol[i].structure != NULL; i++){
+      subopt_solution a;
+      a.energy = sol[i].energy;
+      a.structure = sol[i].structure;
+      ret.push_back(a);
+    }
+    free(sol);
+    /* The memory occupied by the individual structures will be free'd automatically
+       by swig, when the vector is destroyed
+    */
+    return ret;
+  }
+}
+
+%newobject vrna_subopt_solution_t::subopt(int delta);
+%newobject vrna_subopt_solution_t::subopt(int delta, int sorted);
+%newobject vrna_subopt_solution_t::subopt(int delta, int sorted, FILE *fp);
+%newobject vrna_subopt_solution_t::subopt_zuker(void);
+
+
 %ignore subopt;
 %ignore subopt_par;
 %ignore subopt_circ;
+/*
 %ignore zukersubopt;
+*/
 %ignore zukersubopt_par;
 
 %include  <ViennaRNA/subopt.h>

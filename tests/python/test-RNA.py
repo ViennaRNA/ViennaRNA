@@ -141,42 +141,38 @@ class GeneralTests(unittest.TestCase):
     def test_suboptimal(self):
         print("test_suboptimal\n")
 
-
-        RNA.free_pf_arrays()
-        RNA.free_arrays()
-        RNA.free_co_arrays()
-
         RNA.cvar.subopt_sorted = 1
         RNA.cvar.noLonelyPairs = 1
         solution = RNA.subopt(seq1, None, 500, None)
 
-        print("%d suboptimals\n" % solution.size());
+        print "%d suboptimals (pointer mode)" % solution.size();
         for x in range(0,solution.size()):
         # the last access should produce a "value out of range" warning
             if(solution.get(x).structure) :
-                print("%s,%6.2f\n" % (solution.get(x).structure,solution.get(x).energy))
+                print "%s %6.2f" % (solution.get(x).structure,solution.get(x).energy)
 
 
         ## test native array output of subopt()
         solution = RNA.subopt(seq1, 500)
-        print("%d suboptimals \n" % len(solution))
+        print "%d suboptimals (list mode)" % len(solution)
         for s in solution:
-            print("%s %6.2f\n" % (s.structure,s.energy))
+            print "%s %6.2f" % (s.structure,s.energy)
 
         solution = ""
         RNA.cvar.cut_point = 3
         e =  RNA.energy_of_struct("GCGC", "(())")
+        RNA.cvar.cut_point = -1
         self.assertEqual(int(e*100+0.5), 70)
+        RNA.cvar.noLonelyPairs = 0
 
+
+    def test_duplexfold(self):
+        print "testing duplexfold()"
         duplex = RNA.duplexfold(seq1, seq2)
-
         self.assertEqual(duplex.structure, ".(((.....(((.&)))))).")
-        duplex=None
 
-        align = ["GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC"]
-        (css, cen) = RNA.alifold(align)
-        self.assertEqual(css,"(((.(((...)))..))).")
-
+    def test_alifold(self):
+        print "testing alifold()"
         align = ["GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC"]
 
         (css, cen) = RNA.alifold(align)
@@ -184,6 +180,13 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(RNA.consens_mis(align), "SMBHBHYDRBGDVWmVKBB")
         RNA.free_alifold_arrays()
 
+    def test_zuker_subopt(self):
+        print "test Zuker subopt (pointer mode)"
+        solution = RNA.zukersubopt(seq1)
+        for x in range(0,solution.size()):
+        # the last access should produce a "value out of range" warning
+            if(solution.get(x).structure) :
+                print "%s %6.2f" % (solution.get(x).structure, solution.get(x).energy)
 
     def test_moveSets(self): # !!!not working, because struct1_move is apperently not passed as reference
         print("test_moveSets")
@@ -264,7 +267,7 @@ class FoldCompoundTest(unittest.TestCase):
         fc=RNA.fold_compound(align)
         fc.pf()
         (sc,dist) = fc.centroid()
-        print  sc,"\tDistance of :  %6.2f" %dist ,"\n"
+        print  sc,"\tDistance of :  %6.2f" % dist
         self.assertTrue(sc and dist)
 
 
@@ -273,10 +276,10 @@ class FoldCompoundTest(unittest.TestCase):
         print "test_pf"
         fc= RNA.fold_compound(seq1)
         (ss,gfe) = fc.pf()
-        print ss, "[ %6.2f" %gfe ,"]\n"
+        print "%s [ %6.2f ]" % (ss, gfe)
         self.assertTrue(ss)
         bp_dis = fc.mean_bp_distance()
-        print seq1 ,"\t meanBPDistance : ", bp_dis,"\n"
+        print seq1 ,"\t meanBPDistance : ", bp_dis
         self.assertTrue(bp_dis)
 
 
@@ -291,6 +294,13 @@ class FoldCompoundTest(unittest.TestCase):
         (x,ac,bc,fcab,cf) = fc.pf_dimer()
         self.assertTrue((cf < comfe) and (comfe - cf < 1.3))
 
+    def test_subopt_zuker(self):
+        print "testing subopt_zuker() method"
+        fc = RNA.fold_compound(seq1)
+        solution = fc.subopt_zuker()
+        print seq1
+        for s in solution:
+            print "%s [ %6.2f ]" % (s.structure, s.energy)
 
     # hairpin_loops.h from here
     #def test_eval_hp_loop(self):

@@ -14,12 +14,16 @@
 #endif
 
 /**
- *  @addtogroup   loops
+ *
+ *  @file     hairpin_loops.h
+ *  @ingroup  loops
+ *  @brief    Energy evaluation of hairpin loops for MFE and partition function calculations
+ */
+
+/**
  *
  *  @{
- *
- *  @file hairpin_loops.h
- *  @brief Energy evaluation of hairpin loops for MFE and partition function calculations
+ *  @ingroup   loops
  */
 
 
@@ -90,16 +94,6 @@ exp_E_Hairpin(  int u,
                 vrna_exp_param_t *P);
 
 
-int
-vrna_eval_hp_loop(vrna_fold_compound_t *vc,
-                  int i,
-                  int j);
-
-int
-vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
-                      int i,
-                      int j);
-
 /*
 #################################
 # BEGIN OF FUNCTION DEFINITIONS #
@@ -160,7 +154,7 @@ E_Hairpin(int size,
  *  conflict, this function returns #INF.
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  *  @param vc   The #vrna_fold_compound_t that stores all relevant model settings
  *  @param i    The 5' nucleotide of the base pair (3' to evaluate the pair as exterior hairpin loop)
@@ -177,7 +171,7 @@ vrna_E_hp_loop( vrna_fold_compound_t *vc,
  *          and consider possible hard constraints
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  */
 int
@@ -188,7 +182,7 @@ vrna_E_ext_hp_loop( vrna_fold_compound_t *vc,
 /**
  *  @brief Evaluate free energy of an exterior hairpin loop
  *
- *  @ingroup eval
+ *  @ingroup loops
  *
  */
 int
@@ -199,10 +193,10 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t *vc,
 /**
  *  @brief Evaluate free energy of a hairpin loop
  *
- *  @ingroup eval
+ *  @ingroup loops
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  *  @param  vc  The #vrna_fold_compound_t for the particular energy evaluation
  *  @param  i   5'-position of the base pair
@@ -278,7 +272,7 @@ exp_E_Hairpin(int u,
  *  @see vrna_E_hp_loop() for it's free energy counterpart
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
 */
 FLT_OR_DBL
@@ -290,7 +284,7 @@ vrna_exp_E_hp_loop( vrna_fold_compound_t *vc,
  *  @brief Backtrack a hairpin loop closed by @f$ (i,j) @f$
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_VC_TYPE_SINGLE or #VRNA_VC_TYPE_ALIGNMENT
+ *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  */
 int

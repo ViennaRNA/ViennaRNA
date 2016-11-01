@@ -59,6 +59,95 @@ prepare_Boltzmann_weights_stack(vrna_fold_compound_t *vc);
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
+PUBLIC void
+vrna_constraints_add_SHAPE( vrna_fold_compound_t *vc,
+                            const char *shape_file,
+                            const char *shape_method,
+                            const char *shape_conversion,
+                            int verbose,
+                            unsigned int constraint_type){
+
+  float p1, p2;
+  char method;
+  char *sequence;
+  double *values;
+  int i, length = vc->length;
+
+  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
+    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
+    return;
+  }
+
+  if(verbose){
+    if(method != 'W'){
+      if(method == 'Z')
+        vrna_message_info(stderr, "Using SHAPE method '%c' with parameter p1=%f", method, p1);
+      else
+        vrna_message_info(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f", method, p1, p2);
+    }
+  }
+
+  sequence = vrna_alloc(sizeof(char) * (length + 1));
+  values = vrna_alloc(sizeof(double) * (length + 1));
+  vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
+
+  if(method == 'D'){
+    (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
+  }
+  else if(method == 'Z'){
+    (void)vrna_sc_add_SHAPE_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
+  } else {
+    assert(method == 'W');
+    FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
+    for(i = 0; i < length; i++)
+      v[i] = values[i];
+
+    vrna_sc_set_up(vc, v, constraint_type);
+
+    free(v);
+  }
+
+  free(values);
+  free(sequence);
+}
+
+
+PUBLIC void
+vrna_constraints_add_SHAPE_ali( vrna_fold_compound_t *vc,
+                      const char *shape_method,
+                      const char **shape_files,
+                      const int  *shape_file_association,
+                      int verbose,
+                      unsigned int constraint_type){
+
+  float p1, p2;
+  char method;
+
+  if(!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)){
+    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
+    return;
+  }
+
+  if(verbose){
+    if(method != 'W'){
+      if(method == 'Z')
+        vrna_message_info( stderr,
+                                  "Using SHAPE method '%c' with parameter p1=%f",
+                                  method, p1);
+      else
+        vrna_message_info( stderr,
+                                  "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
+                                  method, p1, p2);
+    }
+  }
+
+  if(method == 'D'){
+    vrna_sc_add_SHAPE_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
+    return;
+  }
+}
+
+
 PUBLIC int
 vrna_sc_SHAPE_to_pr(const char *shape_conversion,
                     double *values,
@@ -167,7 +256,7 @@ vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *vc,
 
   ret = 0; /* error */
 
-  if(vc && reactivities && (vc->type == VRNA_VC_TYPE_SINGLE)){
+  if(vc && reactivities && (vc->type == VRNA_FC_TYPE_SINGLE)){
     n   = vc->length;
     md  = &(vc->params->model_details);
 
@@ -191,8 +280,8 @@ vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *vc,
       }
 
       /* add the pseudo energies as soft constraints */
-      vrna_sc_add_up(vc, (const FLT_OR_DBL *)up, options);
-      vrna_sc_add_bp(vc, (const FLT_OR_DBL **)bp, options);
+      vrna_sc_set_up(vc, (const FLT_OR_DBL *)up, options);
+      vrna_sc_set_bp(vc, (const FLT_OR_DBL **)bp, options);
 
       /* clean up memory */
       for(i = 1; i <= n; ++i)
@@ -221,7 +310,7 @@ vrna_sc_add_SHAPE_deigan( vrna_fold_compound_t *vc,
   int     i;
   FLT_OR_DBL  *values;
 
-  if(vc && (vc->type == VRNA_VC_TYPE_SINGLE)){
+  if(vc && (vc->type == VRNA_FC_TYPE_SINGLE)){
     if(reactivities){
 
       values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
@@ -257,7 +346,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
   int             s, i, p, r, position, *pseudo_energies, n_seq;
   unsigned short  **a2s;
 
-  if(vc && (vc->type == VRNA_VC_TYPE_ALIGNMENT)){
+  if(vc && (vc->type == VRNA_FC_TYPE_COMPARATIVE)){
     n_seq = vc->n_seq;
     a2s   = vc->a2s;
 
@@ -274,7 +363,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
       /* read the shape file */
       FILE *fp;
       if(!(fp = fopen(shape_files[s], "r"))){
-        fprintf(stderr, "WARNING: SHAPE data file %d could not be opened. No shape data will be used.\n", s);
+        vrna_message_warning("SHAPE data file %d could not be opened. No shape data will be used.", s);
       } else {
 
         reactivities  = (float *)vrna_alloc(sizeof(float) * (vc->length + 1));
@@ -284,7 +373,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
         for(i = 1; i <= vc->length; i++)
           reactivities[i] = -1.;
 
-        while((line=get_line(fp))){
+        while((line=vrna_read_line(fp))){
           r = sscanf(line, "%d %c %f", &position, &nucleotide, &reactivity);
           if(r){
             if((position <= 0) || (position > vc->length))
@@ -309,7 +398,7 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
         /* double check information by comparing the sequence read from */
         char *tmp_seq = get_ungapped_sequence(vc->sequences[shape_file_association[s]]);
         if(strcmp(tmp_seq, sequence)){
-          fprintf(stderr, "WARNING: Input sequence %d differs from sequence provided via SHAPE file!\n", shape_file_association[s]);
+          vrna_message_warning("Input sequence %d differs from sequence provided via SHAPE file!\n", shape_file_association[s]);
         }
         free(tmp_seq);
 

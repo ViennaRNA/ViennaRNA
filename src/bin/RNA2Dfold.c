@@ -22,6 +22,8 @@
 #include "ViennaRNA/2Dpfold.h"
 #include "RNA2Dfold_cmdl.h"
 
+#include "ViennaRNA/color_output.inc"
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -245,17 +247,26 @@ int main(int argc, char *argv[]){
 
     if(!pf){
 #ifdef COUNT_STATES
-      printf("k\tl\tn\tMFE\tMFE-structure\n");
+      print_table(stdout, "k\tl\tn\tMFE\tMFE-structure", NULL);
       for(i = 0; mfe_s[i].k != INF; i++){
-        printf("%d\t%d\t%lu\t%6.2f\t%s\n", mfe_s[i].k, mfe_s[i].l, vc->N_F5[length][mfe_s[i].k][mfe_s[i].l/2], mfe_s[i].en, mfe_s[i].s);
+        char *tline = vrna_strdup_printf("%d\t%d\t%lu\t%6.2f\t%s",
+                      mfe_s[i].k, mfe_s[i].l,
+                      vc->N_F5[length][mfe_s[i].k][mfe_s[i].l/2],
+                      mfe_s[i].en, mfe_s[i].s);
+        print_table(stdout, NULL, tline);
         if(mfe_s[i].s) free(mfe_s[i].s);
+        free(tline);
       }
       free(mfe_s);
 #else
-      printf("k\tl\tMFE\tMFE-structure\n");
+      print_table(stdout, "k\tl\tMFE\tMFE-structure", NULL);
       for(i = 0; mfe_s[i].k != INF; i++){
-        printf("%d\t%d\t%6.2f\t%s\n", mfe_s[i].k, mfe_s[i].l, mfe_s[i].en, mfe_s[i].s);
+        char *tline = vrna_strdup_printf( "%d\t%d\t%6.2f\t%s",
+                                          mfe_s[i].k, mfe_s[i].l,
+                                          mfe_s[i].en, mfe_s[i].s);
+        print_table(stdout, NULL, tline);
         if(mfe_s[i].s) free(mfe_s[i].s);
+        free(tline);
       }
       free(mfe_s);
 #endif
@@ -286,26 +297,27 @@ int main(int argc, char *argv[]){
 
       if(!stBT){
         printf("free energy of ensemble = %6.2f kcal/mol\n",fee);
-        printf("k\tl\tP(neighborhood)\tP(MFE in neighborhood)\tP(MFE in ensemble)\tMFE\tE_gibbs\tMFE-structure\n");
+        print_table(stdout, "k\tl\tP(neighborhood)\tP(MFE in neighborhood)\tP(MFE in ensemble)\tMFE\tE_gibbs\tMFE-structure", NULL);
         for(i=0; pf_s[i].k != INF;i++){
           float free_energy = (-log((float)pf_s[i].q)-length*log(vc->exp_params->pf_scale))*(vc->exp_params->kT/1000.);
           if((pf_s[i].k != mfe_s[i].k) || (pf_s[i].l != mfe_s[i].l))
             vrna_message_error("This should never happen!");
-          fprintf(stdout,
-                  "%d\t%d\t%2.8f\t%2.8f\t%2.8f\t%6.2f\t%6.2f\t%s\n",
-                  pf_s[i].k,
-                  pf_s[i].l,
-                  (float)(pf_s[i].q)/(float)Q,
-                  exp((free_energy-mfe_s[i].en)/(vc->exp_params->kT/1000.)),
-                  exp((fee-mfe_s[i].en)/(vc->exp_params->kT/1000.)),
-                  mfe_s[i].en,
-                  free_energy,
-                  mfe_s[i].s);
+          char *tline = vrna_strdup_printf( "%d\t%d\t%2.8f\t%2.8f\t%2.8f\t%6.2f\t%6.2f\t%s",
+                                            pf_s[i].k,
+                                            pf_s[i].l,
+                                            (float)(pf_s[i].q)/(float)Q,
+                                            exp((free_energy-mfe_s[i].en)/(vc->exp_params->kT/1000.)),
+                                            exp((fee-mfe_s[i].en)/(vc->exp_params->kT/1000.)),
+                                            mfe_s[i].en,
+                                            free_energy,
+                                            mfe_s[i].s);
+          print_table(stdout, NULL, tline);
+          free(tline);
         }
       }
       else{
         vrna_init_rand();
-        printf("k\tl\ten\tstructure\n");
+        print_table(stdout, "k\tl\ten\tstructure", NULL);
         if(neighborhoods != NULL){
           nbhoods *tmp;
           for(tmp = neighborhoods; tmp != NULL; tmp = tmp->next){
@@ -314,7 +326,10 @@ int main(int argc, char *argv[]){
             l = tmp->l;
             for(i = 0; i < nstBT; i++){
               char *s = vrna_pbacktrack_TwoD(vc, k, l);
-              printf("%d\t%d\t%6.2f\t%s\n", k, l, vrna_eval_structure(vc, s), s);
+              char *tline = vrna_strdup_printf("%d\t%d\t%6.2f\t%s", k, l, vrna_eval_structure(vc, s), s);
+              print_table(stdout, NULL, tline);
+              free(tline);
+              free(s);
             }
           }
         }
@@ -322,7 +337,10 @@ int main(int argc, char *argv[]){
           for(i=0; pf_s[i].k != INF;i++){
             for(l = 0; l < nstBT; l++){
               char *s = vrna_pbacktrack_TwoD(vc, pf_s[i].k, pf_s[i].l);
-              printf("%d\t%d\t%6.2f\t%s\n", pf_s[i].k, pf_s[i].l, vrna_eval_structure(vc, s), s);
+              char *tline = vrna_strdup_printf("%d\t%d\t%6.2f\t%s", pf_s[i].k, pf_s[i].l, vrna_eval_structure(vc, s), s);
+              print_table(stdout, NULL, tline);
+              free(tline);
+              free(s);
             }
           }
         }

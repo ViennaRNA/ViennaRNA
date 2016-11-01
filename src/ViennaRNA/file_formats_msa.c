@@ -21,6 +21,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/file_utils.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/file_formats_msa.h"
 
@@ -154,7 +155,7 @@ vrna_file_msa_detect_format(const char *filename,
           break;
         }
       } else {
-        fprintf(stderr, "ERROR: Something unexpected happened while parsing the alignment file");
+        vrna_message_error("Something unexpected happened while parsing the alignment file");
       }
     }
   }
@@ -211,7 +212,7 @@ vrna_file_msa_read( const char *filename,
         if(r > 0)
           break;
       } else {
-        fprintf(stderr, "ERROR: Something unexpected happened while parsing the alignment file");
+        vrna_message_error("Something unexpected happened while parsing the alignment file");
       }
     }
   }
@@ -248,7 +249,7 @@ vrna_file_msa_read_record(FILE *fp,
                           unsigned int options){
 
   const char          *parser_name;
-  int                 i, r, rr, n, seq_num;
+  int                 i, r, n, seq_num;
   aln_parser_function *parser;
 
   seq_num     = 0;
@@ -287,12 +288,8 @@ vrna_file_msa_read_record(FILE *fp,
     vrna_message_warning("Did not find parser for specified MSA format!");
   } else {
     if(r > 1) { 
-      vrna_message_warning("More than one MSA format parser specified!");
-      char *msg = NULL;
-      rr = asprintf(&msg, "Using parser for %s", parser_name);
-      if(rr != -1)
-        vrna_message_info(stderr, msg);
-      free(msg);
+      vrna_message_warning("More than one MSA format parser specified!\n"
+                                  "Using parser for %s", parser_name);
     }
 
     seq_num = parser(fp, names, aln, id, structure, 0);
@@ -347,7 +344,7 @@ parse_stockholm_alignment(FILE  *fp,
     *structure = NULL;
 
   int inrecord = 0;
-  while((line = get_line(fp))){
+  while((line = vrna_read_line(fp))){
     if(strstr(line, "STOCKHOLM 1.0")){
       inrecord    = 1;
       has_record  = 1;
@@ -358,7 +355,7 @@ parse_stockholm_alignment(FILE  *fp,
   }
 
   if(inrecord){
-    while((line=get_line(fp))){
+    while((line = vrna_read_line(fp))){
 
       if(strncmp(line, "//", 2) == 0){
         /* end of alignment */
@@ -471,14 +468,8 @@ stockholm_exit:
 
   endmarker_msa_record(names, aln, seq_num);
 
-  if((seq_num > 0) && (verbosity >= 0)){
-    int r;
-    char *msg = NULL;
-    r = asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
-    if(r != -1)
-      vrna_message_info(stderr, msg);
-    free(msg);
-  }
+  if((seq_num > 0) && (verbosity >= 0))
+    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
 
   return seq_num;
 }
@@ -531,12 +522,7 @@ parse_fasta_alignment(FILE *fp,
   endmarker_msa_record(names, aln, seq_num);
 
   if((seq_num > 0) && (verbosity >= 0)){
-    int r;
-    char *msg = NULL;
-    r = asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
-    if(r != -1)
-      vrna_message_info(stderr, msg);
-    free(msg);
+    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
   } else {
     if(verbosity > 0)
       vrna_message_warning("Did not find any FASTA formatted record!");
@@ -556,7 +542,7 @@ parse_clustal_alignment(FILE *clust,
   char *line, *name, *seq;
   int  n, r, nn=0, seq_num = 0, i;
 
-  if((line=get_line(clust)) == NULL){
+  if((line = vrna_read_line(clust)) == NULL){
     return -1;
   }
 
@@ -569,7 +555,7 @@ parse_clustal_alignment(FILE *clust,
   }
 
   free(line);
-  line = get_line(clust);
+  line = vrna_read_line(clust);
 
   while (line!=NULL) {
     n = strlen(line);
@@ -577,7 +563,7 @@ parse_clustal_alignment(FILE *clust,
     if((n < 4) || isspace((int)line[0])) {
       /* skip non-sequence line */
       free(line);
-      line  = get_line(clust);
+      line = vrna_read_line(clust);
       nn    = 0;  /* reset sequence number */
       continue;
     }
@@ -585,7 +571,7 @@ parse_clustal_alignment(FILE *clust,
     /* skip comments */
     if(line[0] == '#'){
       free(line);
-      line = get_line(clust);
+      line = vrna_read_line(clust);
       continue;
     }
 
@@ -626,19 +612,13 @@ parse_clustal_alignment(FILE *clust,
     }
     free(line);
 
-    line = get_line(clust);
+    line = vrna_read_line(clust);
   }
 
   endmarker_msa_record(names, aln, seq_num);
 
-  if((seq_num > 0) && (verbosity >= 0)){
-    int r;
-    char *msg = NULL;
-    r = asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
-    if(r != -1)
-      vrna_message_info(stderr, msg);
-    free(msg);
-  }
+  if((seq_num > 0) && (verbosity >= 0))
+    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
 
   return seq_num;
 }
@@ -670,7 +650,7 @@ parse_maf_alignment(FILE  *fp,
   }
 
   int inrecord = 0;
-  while((line = get_line(fp))){
+  while((line = vrna_read_line(fp))){
     if(*line == 'a'){
       if((line[1] == '\0') || isspace(line[1])){
         inrecord = 1;
@@ -682,7 +662,7 @@ parse_maf_alignment(FILE  *fp,
   }
 
   if(inrecord){
-    while((line=get_line(fp))){
+    while((line = vrna_read_line(fp))){
       n = (int)strlen(line);
 
       switch(*line){
@@ -735,14 +715,8 @@ maf_exit:
 
   endmarker_msa_record(names, aln, seq_num);
 
-  if((seq_num > 0) && (verbosity >= 0)){
-    int r;
-    char *msg = NULL;
-    r = asprintf(&msg, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
-    if(r != -1)
-      vrna_message_info(stderr, msg);
-    free(msg);
-  }
+  if((seq_num > 0) && (verbosity >= 0))
+    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
 
   return seq_num;
 }
