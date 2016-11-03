@@ -18,7 +18,6 @@
 #include <sys/stat.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include <err.h>
 #include <errno.h>
 
 /* for getpid() we need some distinction between UNIX and Win systems */

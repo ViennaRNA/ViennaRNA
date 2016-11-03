@@ -18,7 +18,6 @@
 #include <sys/stat.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include <err.h>
 #include <errno.h>
 #include <libgen.h>
 
@@ -41,6 +40,9 @@
 #################################
 */
 #ifdef _WIN32
+#ifdef __MINGW32__
+#include <direct.h>
+#endif
 #define DIRSEPC '\\'
 #define DIRSEPS "\\"
 #else
