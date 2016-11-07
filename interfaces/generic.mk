@@ -8,6 +8,7 @@ SWIG_tmaps = \
   $(srcdir)/../ptr2array.i
 
 SWIG_misc_src = \
+  $(srcdir)/../combinatorics.i \
   $(srcdir)/../compare.i \
   $(srcdir)/../commands.i \
   $(srcdir)/../constraints.i \

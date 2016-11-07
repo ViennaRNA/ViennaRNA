@@ -128,6 +128,7 @@ pkginclude_HEADERS =  \
     file_utils.h \
     commands.h \
     units.h \
+    combinatorics.h \
     ${SVM_UTILS_H} \
     ${SVM_H} \
     ${JSON_H}
@@ -196,7 +197,8 @@ libRNA_utils_la_SOURCES = \
     file_formats.c \
     file_formats_msa.c \
     commands.c \
-    units.c
+    units.c \
+    combinatorics.c
 
 libRNA_plotting_la_SOURCES = \
     plot_aln.c \
