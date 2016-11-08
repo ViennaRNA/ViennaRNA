@@ -3,6 +3,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/src
 SUBDIRS = @PERL_INTERFACE@ @PYTHON2_INTERFACE@ @PYTHON3_INTERFACE@
 
 SOURCES = RNA.i \
+          combinatorics.i \
           commands.i \
           compare.i \
           constraints.i \
@@ -22,6 +23,7 @@ SOURCES = RNA.i \
           generic.mk
 
 DOXYGEN_DOCUMENTATION = commands.dox \
+                        combinatorics.dox \
                         constraints_hard.dox \
                         constraints_ligand.dox \
                         constraints_SHAPE.dox \
@@ -36,6 +38,7 @@ DOXYGEN_DOCUMENTATION = commands.dox \
                         subopt.dox
 
 EXTRA_DIST =  RNA.i \
+              combinatorics.i \
               commands.i \
               compare.i \
               constraints.i \
