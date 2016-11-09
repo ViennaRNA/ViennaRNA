@@ -206,8 +206,9 @@ vrna_message_vinfo(FILE *fp, const char *format, va_list args){
   } else {
 #endif
     vfprintf(fp, format, args);
+    fprintf(fp, "\n");
 #ifndef WITHOUT_TTY_COLORS
- }
+  }
 #endif
 }
 
