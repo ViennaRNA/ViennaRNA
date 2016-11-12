@@ -78,8 +78,6 @@ vrna_bp_stack_t       *base_pair = NULL;
 FLT_OR_DBL  *pr = NULL;           /* base pairing prob. matrix */
 int         *iindx = NULL;        /* pr[i,j] -> pr[iindx[i]-j] */
 int         fold_constrained = 0; /* fold with constraints */
-int         *cut_points;
-int         *strand;
 
 #endif
 

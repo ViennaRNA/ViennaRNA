@@ -18,10 +18,6 @@ AC_DEFUN([RNA_GET_FEATURE],[
     AC_RNA_APPEND_VAR_COMMA($1, [Boustrophedon])
     _features_active=1
   ])
-  AS_IF([test "x$enable_gen_hard_constraints" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [Generic Hard Constraints])
-    _features_active=1
-  ])
   AS_IF([test "x$enable_openmp" != "xno"], [
     AC_RNA_APPEND_VAR_COMMA($1, [OpenMP])
     _features_active=1
@@ -139,26 +135,6 @@ AC_DEFUN([RNA_ENABLE_BOUSTROPHEDON],[
   RNA_FEATURE_IF_ENABLED([boustrophedon],[
     AC_DEFINE([WITH_BOUSTROPHEDON], [1], [Use Boustrophedon scheme for stochastic backtracking])
   ])
-])
-
-
-#
-# Generic Hard Constraints
-#
-
-AC_DEFUN([RNA_ENABLE_GEN_HC],[
-
-  RNA_ADD_FEATURE([gen_hard_constraints],
-                  [Generic hard constraints],
-                  [no])
-
-  ## Add preprocessor define statement for generlaized hard constraints feature
-  RNA_FEATURE_IF_ENABLED([gen_hard_constraints],[
-    AC_DEFINE([WITH_GEN_HC], [1], [Provide generic hard constraints])
-    GENERIC_HC_DEF=-DWITH_GEN_HC
-    AX_APPEND_FLAG(["${GENERIC_HC_DEF}"], [RNA_CPPFLAGS])
-  ])
-  AC_SUBST(GENERIC_HC_DEF)
 ])
 
 

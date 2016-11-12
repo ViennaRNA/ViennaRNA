@@ -469,6 +469,8 @@ struct vrna_fc_s{
                                       If there is no cutpoint, this field will be set to -1
                                     */
 
+  unsigned int      *strand_number; /**<  @brief  The strand number a particular nucleotide is associated with */
+
   vrna_hc_t         *hc;            /**<  @brief  The hard constraints data structure used for structure prediction */
 
   vrna_mx_mfe_t     *matrices;      /**<  @brief  The MFE DP matrices */

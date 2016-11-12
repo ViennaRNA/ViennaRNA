@@ -39,7 +39,6 @@
 #endif
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
-#define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
 
 /*
 #################################
@@ -171,6 +170,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
 
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
 
+  unsigned int  *sn;
   int   i, j, length, energy;
   int   cp, uniq_ML;
   int   no_close, type, maxj, *indx;
@@ -195,6 +195,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
   noGUclosure       = P->model_details.noGUclosure;
   noLP              = P->model_details.noLP;
   uniq_ML           = P->model_details.uniq_ML;
+  sn                = vc->strand_number;
   hc                = vc->hc;
   hard_constraints  = hc->matrix;
   matrices          = vc->matrices;
@@ -265,7 +266,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
 
         /* remember stack energy for --noLP option */
         if(noLP){
-          if (ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j,cp)){
+          if ((sn[i] == sn[i + 1]) && (sn[j - 1] == sn[j])) {
             int stackEnergy = vrna_E_stack(vc, i, j);
             new_c = MIN2(new_c, cc1[j-1]+stackEnergy);
             my_c[ij] = cc1[j-1]+stackEnergy;
@@ -532,6 +533,7 @@ free_end( int *array,
           int start,
           vrna_fold_compound_t *vc){
 
+  unsigned int  *sn;
   int inc, type, energy, en, length, j, left, right, cp, dangle_model, with_gquad, *indx, *c, *ggg, turn;
   vrna_param_t  *P;
   short         *S1;
@@ -550,6 +552,7 @@ free_end( int *array,
   S1            = vc->sequence_encoding;
   ptype         = vc->ptype;
   indx          = vc->jindx;
+  sn            = vc->strand_number;
   matrices      = vc->matrices;
   c             = matrices->c;
   ggg           = matrices->ggg;
@@ -587,8 +590,8 @@ free_end( int *array,
       if(type == 0)
         type = 7;
 
-      si = (ii>1)       && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
-      sj = (jj<length)  && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
+      si = ((ii > 1) && (sn[ii - 1] == sn[ii])) ? S1[ii - 1] : -1;
+      sj = ((jj < length) && (sn[jj] == sn[jj + 1])) ? S1[jj + 1] : -1;
       energy = c[indx[jj]+ii];
       if(energy != INF){
         switch(dangle_model){
@@ -637,7 +640,7 @@ free_end( int *array,
     }
 
     if(with_gquad){
-      if(ON_SAME_STRAND(ii, jj,cp))
+      if (sn[ii] == sn[jj])
         if(array[j-inc] != INF)
           array[i] = MIN2(array[i], array[j-inc] + ggg[indx[jj]+ii]);
     }
@@ -655,8 +658,8 @@ free_end( int *array,
       if(type == 0)
         type = 7;
 
-      si = (ii > left)  && ON_SAME_STRAND(ii-1,ii,cp) ? S1[ii-1] : -1;
-      sj = (jj < right) && ON_SAME_STRAND(jj,jj+1,cp) ? S1[jj+1] : -1;
+      si = (ii > left)  && (sn[ii - 1] == sn[ii]) ? S1[ii - 1] : -1;
+      sj = (jj < right) && (sn[jj] == sn[jj + 1]) ? S1[jj + 1] : -1;
       energy = c[indx[jj]+ii];
       if(energy != INF){
         if(inc>0){
@@ -711,7 +714,7 @@ backtrack(sect bt_stack[],
 PRIVATE void
 doubleseq(vrna_fold_compound_t *vc){
 
-  unsigned int  length;
+  unsigned int  length, i, s;
 
   length  = vc->length;
 
@@ -721,6 +724,14 @@ doubleseq(vrna_fold_compound_t *vc){
   vc->sequence[2*length] = '\0';
   vc->length    = (unsigned int)strlen(vc->sequence);
   vc->cutpoint  = length+1;
+
+  free(vc->strand_number);
+  vc->strand_number = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->length + 1));
+  for (s = i = 0; i <= vc->length; i++) {
+    if (i == length + 1)
+      s++;
+    vc->strand_number[i] = s;
+  }
 
   vc->sequence_encoding = vrna_realloc(vc->sequence_encoding, sizeof(short)*(vc->length + 2));
   memcpy(vc->sequence_encoding+length+1, vc->sequence_encoding+1, sizeof(short)*length);
@@ -756,6 +767,7 @@ halfseq(vrna_fold_compound_t *vc){
   vc->sequence[halflength] = '\0';
   vc->length = (unsigned int)strlen(vc->sequence);
   vc->cutpoint = -1;
+  vc->strand_number = (unsigned int *)vrna_realloc(vc->strand_number, sizeof(unsigned int) * (vc->length + 1));
 
   vc->sequence_encoding = vrna_realloc(vc->sequence_encoding, sizeof(short)*(vc->length + 2));
   vc->sequence_encoding[0] = vc->sequence_encoding[vc->length];
