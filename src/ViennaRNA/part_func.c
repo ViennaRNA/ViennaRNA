@@ -290,7 +290,7 @@ PRIVATE void
 pf_linear(vrna_fold_compound_t *vc){
 
   unsigned char     type;
-  char              *ptype, *hard_constraints;
+  char              *ptype, *hard_constraints, eval_loop;
   short             *S1;
   int               n, i,j, k, ij, kl, d, ii, maxk, u, *my_iindx, *jindx,
                     with_gquad, circular, turn, with_ud, ud_max_size,
@@ -305,6 +305,9 @@ pf_linear(vrna_fold_compound_t *vc){
   vrna_sc_t         *sc;
   vrna_mx_pf_t      *matrices;
   vrna_exp_param_t  *pf_params;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *hc_f;
+#endif
 
 
   n                 = vc->length;
@@ -337,6 +340,10 @@ pf_linear(vrna_fold_compound_t *vc){
   ud_max_size       = 0;
   expMLstem         = 0.;
   Qmax              = 0;
+#ifdef WITH_GEN_HC
+  hc_f              = vc->hc->f;
+#endif
+
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
@@ -381,7 +388,12 @@ pf_linear(vrna_fold_compound_t *vc){
     for (i=1; i<=n-d; i++) {
       j=i+d;
       ij = my_iindx[i]-j;
-      if(hc_up_ext[i] > d){
+      eval_loop = (hc_up_ext[i] > d) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if(hc_f)
+        eval_loop = (hc_f(i, j, i, j, VRNA_DECOMP_EXT_UP, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if(eval_loop){
         q[ij]=1.0*scale[d+1];
 
         if(sc){
@@ -436,7 +448,12 @@ pf_linear(vrna_fold_compound_t *vc){
         qqmu[0][i] = 0.;
       }
 
-      if(hc_up_ml[j]){
+      eval_loop = (hc_up_ml[j] > 0) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if(hc_f)
+        eval_loop = (hc_f(i, j, i, j - 1, VRNA_DECOMP_EXT_EXT, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if(eval_loop){
         q_temp  =  qqm1[i] * expMLbase[1];
 
         if(sc){
@@ -452,7 +469,12 @@ pf_linear(vrna_fold_compound_t *vc){
           for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
             u = domains_up->uniq_motif_size[cnt];
             if(j - u >= i){
-              if(hc_up_ml[j-u+1] >= u){
+              eval_loop = (hc_up_ml[j-u+1] >= u) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+              if(hc_f)
+                eval_loop = (hc_f(i, j, i, j - u, VRNA_DECOMP_ML_ML, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+              if(eval_loop){
                 q_temp2 =   qqmu[u][i]
                           * domains_up->exp_energy_cb(vc,
                                                       j - u + 1, j,
@@ -463,6 +485,8 @@ pf_linear(vrna_fold_compound_t *vc){
                 if(sc){
                   if(sc->exp_energy_up)
                     q_temp2 *= sc->exp_energy_up[j - u + 1][u];
+                  if(sc->exp_f)
+                    q_temp2 *= sc->exp_f(i, j, i, j - 1, VRNA_DECOMP_ML_ML, sc->data);
                 }
                 q_temp += q_temp2;
               }
@@ -475,7 +499,12 @@ pf_linear(vrna_fold_compound_t *vc){
 
       }
 
-      if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
+      eval_loop = (hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if(hc_f)
+        eval_loop = (hc_f(i, j, i, j, VRNA_DECOMP_ML_STEM, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if(eval_loop){
         qbt1 = qb[ij] * exp_E_MLstem(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
         if(sc){
 
@@ -573,7 +602,12 @@ pf_linear(vrna_fold_compound_t *vc){
       /*auxiliary matrix qq for cubic order q calculation below */
       qbt1 = 0.;
 
-      if(hc_up_ext[j]){ /* all exterior loop parts [i, j] with exactly one stem (i, u) i < u < j */
+      eval_loop = (hc_up_ext[j]) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if(hc_f)
+        eval_loop = (hc_f(i, j, i, j, VRNA_DECOMP_EXT_EXT, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if(eval_loop){/* all exterior loop parts [i, j] with exactly one stem (i, u) i < u < j */
         q_temp = qq1[i] * scale[1];
 
         if(sc){
@@ -589,7 +623,12 @@ pf_linear(vrna_fold_compound_t *vc){
           for(cnt = 0; cnt < domains_up->uniq_motif_count; cnt++){
             u = domains_up->uniq_motif_size[cnt];
             if(j - u >= i){
-              if(hc_up_ext[j-u+1] >= u){
+              eval_loop = (hc_up_ext[j-u+1] >= u) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+              if(hc_f)
+                eval_loop = (hc_f(i, j, i, j - u, VRNA_DECOMP_EXT_EXT, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+              if(eval_loop){
                 q_temp2 =   qqu[u][i]
                           * domains_up->exp_energy_cb(vc,
                                                       j - u + 1, j,
@@ -600,6 +639,8 @@ pf_linear(vrna_fold_compound_t *vc){
                 if(sc){
                   if(sc->exp_energy_up)
                     q_temp2 *= sc->exp_energy_up[j-u+1][u];
+                  if(sc->exp_f)
+                    q_temp2 *= sc->exp_f(i, j, i, j - u, VRNA_DECOMP_EXT_EXT, sc->data);
                 }
 
                 q_temp += q_temp2;
@@ -611,7 +652,12 @@ pf_linear(vrna_fold_compound_t *vc){
         qbt1 += q_temp;
       }
 
-      if(hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){ /* exterior loop part with stem (i, j) */
+      eval_loop = (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if(hc_f)
+        eval_loop = (hc_f(i, j, i, j, VRNA_DECOMP_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if(eval_loop){ /* exterior loop part with stem (i, j) */
         q_temp  = qb[ij]
                   * exp_E_ExtLoop(type, ((i>1) || circular) ? S1[i-1] : -1, ((j<n) || circular) ? S1[j+1] : -1, pf_params);
         if(sc){
@@ -635,7 +681,13 @@ pf_linear(vrna_fold_compound_t *vc){
 
       /* the entire stretch [i,j] is unpaired */
       u = j - i + 1;
-      if(hc_up_ext[i] >= u){
+
+      eval_loop = (hc_up_ext[i] >= u) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if(hc_f)
+        eval_loop = (hc_f(i, j, i, j, VRNA_DECOMP_EXT_UP, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if(eval_loop){
         q_temp = 1.0 * scale[u];
 
         if(sc){
@@ -654,7 +706,6 @@ pf_linear(vrna_fold_compound_t *vc){
                                                       VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
                                                       domains_up->data);
         }
-
       }
 
       kl = my_iindx[i] - i;

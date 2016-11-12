@@ -158,12 +158,15 @@ E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
                             int *dmli1,
                             int *dmli2){
 
-  char          *hard_constraints;
+  char          *hard_constraints, eval_loop;
   short         **S, **S5, **S3;
   int           ij, *indx, e, decomp, s, n_seq, dangle_model, *type;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_sc_t     **scs;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *hc_f;
+#endif
 
   n_seq             = vc->n_seq;
   indx              = vc->jindx;
@@ -174,9 +177,18 @@ E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
   dangle_model      = md->dangles;
   ij                = indx[j] + i;
   e                 = INF;
+#ifdef WITH_GEN_HC
+  hc_f              = vc->hc->f;
+#endif
+
+  eval_loop = (hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+  if(hc_f)
+    eval_loop = (hc_f(i, j, i+1, j-1, VRNA_DECOMP_PAIR_ML, vc->hc->data)) ? eval_loop : (char)0;
+#endif
 
   /* multi-loop decomposition ------------------------*/
-  if(hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+  if(eval_loop){
     decomp = dmli1[j-1];
 
     type  = (int *)vrna_alloc(n_seq * sizeof(int));
@@ -1026,7 +1038,6 @@ E_ml_stems_fast(vrna_fold_compound_t *vc,
     }
   }
 
-
   dmli[j] = decomp;               /* store for use in fast ML decompositon */
   e = MIN2(e, decomp);
 
@@ -1207,13 +1218,16 @@ exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
                     FLT_OR_DBL *qqm1){
 
   unsigned char     type, tt;
-  char              hc, *ptype;
+  char              hc, *ptype, eval_loop;
   short             *S1;
   int               ij, k, kl, *my_iindx, *jindx, *rtype, cp;
   FLT_OR_DBL        qbt1, temp, qqqmmm, *qm, *scale, expMLclosing;
   vrna_sc_t         *sc;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *hc_f;
+#endif
 
   cp            = vc->cutpoint;
   my_iindx      = vc->iindx;
@@ -1229,9 +1243,17 @@ exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
   hc            = vc->hc->matrix[ij];
   expMLclosing  = pf_params->expMLclosing;
   qbt1          = 0.;
+#ifdef WITH_GEN_HC
+  hc_f          = vc->hc->f;
+#endif
 
+  eval_loop = (hc & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+  if(hc_f)
+    eval_loop = (hc_f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, vc->hc->data)) ? eval_loop : (char)0;
+#endif
   /*multiple stem loop contribution*/
-  if((hc & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) && ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j,cp)) {
+  if(eval_loop && ON_SAME_STRAND(i,i+1,cp) && ON_SAME_STRAND(j-1,j,cp)) {
     type    = (unsigned char)ptype[ij];
     rtype   = &(md->rtype[0]);
     tt      = rtype[type];
@@ -1289,13 +1311,16 @@ exp_E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
                                 int j,
                                 FLT_OR_DBL *qqm1){
 
-  char              hc;
+  char              hc, eval_loop;
   short             **S, **S5, **S3;
   int               jij, k, kl, *my_iindx, *jindx, *types, n_seq, s;
   FLT_OR_DBL        qbt1, temp, qqqmmm, *qm, *scale, expMLclosing;
   vrna_sc_t         **scs;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *hc_f;
+#endif
 
   my_iindx      = vc->iindx;
   jindx         = vc->jindx;
@@ -1308,9 +1333,17 @@ exp_E_mb_loop_fast_comparative( vrna_fold_compound_t *vc,
   expMLclosing  = pf_params->expMLclosing;
   qbt1          = 0.;
   types         = NULL;
+#ifdef WITH_GEN_HC
+  hc_f          = vc->hc->f;
+#endif
 
+  eval_loop = (hc & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+  if(hc_f)
+    eval_loop = (hc_f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, vc->hc->data)) ? eval_loop : (char)0;
+#endif
   /*multiple stem loop contribution*/
-  if(hc & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+  if(eval_loop) {
 
     S       = vc->S;
     S5      = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
