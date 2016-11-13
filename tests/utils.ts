@@ -132,7 +132,7 @@
   ck_assert_int_eq(details.rtype[4], 3);
   ck_assert_int_eq(details.rtype[5], 6);
   ck_assert_int_eq(details.rtype[6], 5);
-  ck_assert_int_eq(details.rtype[7], 0);
+  ck_assert_int_eq(details.rtype[7], 7);
 
   //@TODO: details.noGU = 1
   //@TODO: details.nonstandards
