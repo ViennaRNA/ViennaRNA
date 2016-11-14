@@ -1,3 +1,13 @@
+v2.3.1
+  * Add description for how to use unstructured domains through command files to reference manual and RNAfold manpage
+  * Fix compilation issue for Windows platforms with MingW
+  * Add missing newline in non-TTY-color output of vrna_message_info()
+  * Fix regression in vrna_md_update() that resulted in incomplete init of reverse-basepair type array
+  * Extend coverage of generic hard constraints for partition function computations
+  * Fix scaling of secondary structure in EPS plot such that it always fits into bounding box
+  * Several fixes and improvements for SWIG generated scripting language interface(s)
+
+
 v2.3.0
   * Add grammar extension with structured and unstructured domains
   * Add default implementation for unstructured domains to allow for ligand/protein binding to unpaired structure segments (MFE and PF for single sequences)
