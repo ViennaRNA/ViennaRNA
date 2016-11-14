@@ -15,6 +15,7 @@ typedef struct {
   int     noGUclosure;
   int     special_hp;
   int     max_bp_span;
+  int     uniq_ML;
 } vrna_md_t;
 
 /* make a nice object oriented interface to vrna_md_t */

@@ -219,12 +219,6 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual(ret,1)
 
 
-    # wait with implementation
-    #def test_sc_detect_hi_motif(self):
-
-    # wait with implementation
-    #def test_sc_get_hi_motif(self):
-
     def test_theophylline_ligand_binding_interface(self):
         print("test_theophylline_ligand_binding_interface\n")
         RNA.noLonelyPairs = 0
@@ -241,7 +235,6 @@ class constraintsTest(unittest.TestCase):
         fc.sc_add_hi_motif("GAAAAAU", "(.....)", -19)
         (ss, mfe) = fc.mfe()
         print("%s [ %6.2f ]\n" %(ss, mfe))
-
 
 
 if __name__ == '__main__':

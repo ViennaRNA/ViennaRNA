@@ -654,6 +654,9 @@ vrna_subopt_cb( vrna_fold_compound_t *vc,
   logML       = md->logML;
   old_dangles = dangle_model = md->dangles;
 
+  if(md->uniq_ML != 1)  /* failsafe mechanism to enforce valid fM1 array */
+    md->uniq_ML = 1;
+
   /* temporarily set dangles to 2 if necessary */
   if((md->dangles != 0) && (md->dangles != 2))
     md->dangles = 2;

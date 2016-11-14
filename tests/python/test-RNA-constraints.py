@@ -223,12 +223,6 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual(ret,1)
 
 
-    # wait with implementation
-    #def test_sc_detect_hi_motif(self):
-
-    # wait with implementation
-    #def test_sc_get_hi_motif(self):
-
     def test_theophylline_ligand_binding_interface(self):
         print("test_theophylline_ligand_binding_interface\n")
         RNA.noLonelyPairs = 0
