@@ -25,6 +25,8 @@
         $1[i] = NULL;
 };
 
+// This tells SWIG to treat char *[], const char **, and const char *[] the same as char **
+%apply char ** { char *[], const char **, const char *[] };
 
 // Creates a new Perl array and places a NULL-terminated char ** into it
 %typemap(out) char ** {

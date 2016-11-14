@@ -1,6 +1,6 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
+RNApath.addSwigInterfacePath(3)
 
 
 import RNA
@@ -14,7 +14,7 @@ struct2       = "(..............)"
 
 class GeneralTests(unittest.TestCase):
     def test_pairtable(self):
-        print "test_pairtable\n"
+        print("test_pairtable\n")
         pairTable = RNA.ptable(struct1)
         correctPairTable = (16, 16, 15, 14, 0, 13, 12, 11, 0, 0, 0, 7, 6, 5, 3, 2, 1)
         self.assertEqual(pairTable,correctPairTable)
@@ -27,14 +27,14 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(struct1,RNA.db_from_ptable(pairTable))
 
     def test_basePairDistance(self):
-        print "test_basePairDistance\n"
+        print("test_basePairDistance\n")
         d = RNA.bp_distance("(((.(((...))))))","(((..........)))")
         self.assertEqual(d,3)
 
     def test_plists(self):
-        print "test_plists\n"
+        print("test_plists\n")
         plist = RNA.plist(struct1,0.6)
-        print plist
+        # print plist
 
 
 if __name__ == '__main__':

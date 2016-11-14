@@ -24,7 +24,7 @@ delete_pycallback(void * data){
       PyObject *func, *arglist, *result;
       func = cb->delete_data;
       arglist = Py_BuildValue("O", cb->data);
-      result  = PyEval_CallObject(func, arglist);
+      result  = PyObject_CallObject(func, arglist);
       Py_DECREF(arglist);
       Py_XDECREF(result);
       Py_XDECREF(cb->delete_data);
@@ -80,7 +80,7 @@ fc_add_pydata(vrna_fold_compound_t *vc,
         PyObject *func, *arglist, *result;
         func    = cb->delete_data;
         arglist = Py_BuildValue("O", cb->data);
-        result  = PyEval_CallObject(func, arglist);
+        result  = PyObject_CallObject(func, arglist);
         Py_DECREF(arglist);
         Py_XDECREF(result);
       }
@@ -115,7 +115,7 @@ py_wrap_fc_status_callback( unsigned char status,
   func = cb->cb;
   /* compose argument list */
   arglist = Py_BuildValue("(B,O)", status, (cb->data) ? cb->data : Py_None);
-  result =  PyEval_CallObject(func, arglist);
+  result =  PyObject_CallObject(func, arglist);
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return /*void*/;
@@ -128,12 +128,14 @@ static void fc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *Py
 
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
-  void add_auxdata(PyObject *data, PyObject *PyFuncOrNone=Py_None){
+  PyObject *add_auxdata(PyObject *data, PyObject *PyFuncOrNone=Py_None){
     fc_add_pydata($self, data, PyFuncOrNone);
+    Py_RETURN_NONE;
   }
 
-  void add_callback(PyObject *PyFunc){
+  PyObject *add_callback(PyObject *PyFunc){
     fc_add_pycallback($self, PyFunc);
+    Py_RETURN_NONE;
   }
 }
 
