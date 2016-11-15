@@ -9,13 +9,32 @@
 /* hide all attributes, except for some trivial ones */
 typedef struct {
   double  temperature;
+  double  betaScale;
   int     dangles;
+  int     special_hp;
   int     noLP;
   int     noGU;
   int     noGUclosure;
-  int     special_hp;
-  int     max_bp_span;
+  int     logML;
+  int     circ;
+  int     gquad;
+  int     canonicalBPonly;
   int     uniq_ML;
+  int     energy_set;
+  int     backtrack;
+  char    backtrack_type;
+  int     compute_bpp;
+  char    nonstandards[64];
+  int     max_bp_span;
+  int     min_loop_size;
+  int     window_size;
+  int     oldAliEn;
+  int     ribo;
+  double  cv_fact;
+  double  nc_fact;
+  double  sfact;
+  int     rtype[8];
+  short   alias[MAXALPHA+1];
 } vrna_md_t;
 
 /* make a nice object oriented interface to vrna_md_t */
