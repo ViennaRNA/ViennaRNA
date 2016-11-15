@@ -23,9 +23,13 @@ class GeneralTests(unittest.TestCase):
         print("test_hammingDistance \t calculate a hamming distance")
         self.assertEqual(RNA.hamming(seq1,seq2),16)
         self.assertEqual(RNA.bp_distance(struct1,struct2),6)
+
+
     def test_temperature(self):
         print("test_temperature\n")
         self.assertEqual(RNA.cvar.temperature,37) #!!!NOT WORKING !!! WHY
+
+
     def test_foldASequence(self):
         print("test_foldASequence\n")
         # new better interface
@@ -33,6 +37,8 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(struct,struct1)
         # check energy
         self.assertTrue(abs(RNA.energy_of_struct(seq1, struct1) - mfe) < 0.0001)
+
+
     def test_constrained_folding(self):
         print("test_constrained_folding\n")
         RNA.cvar.fold_constrained = 1
@@ -40,6 +46,8 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(struct,'(((..........)))')
         self.assertTrue(abs(RNA.energy_of_struct(seq1, struct) - cmfe) < 0.0001)
         RNA.cvar.fold_constrained = 0
+
+
     def test_tree_distance(self):
         print("test_tree_distance\n");
         xstruc = RNA.expand_Full(struct1)
@@ -101,15 +109,6 @@ class GeneralTests(unittest.TestCase):
              p2 = RNA.doubleP_getitem(RNA.cvar.pr, ii-15)
         self.assertTrue(p1 < 0.999 and abs(p1-p2) < 1.2e-7)
 
-        #bpf = RNA.Make_bp_profile(len(seq1));
-        #bpfArray = [];
-        #bpfArray = unpack('f*',RNA.cdata(bpf, len(seq1)*4*3)); !!!did not find f* operator in python
-
-
-        #ok (($bpf[2*3]+$bpf[2*3+1]>.99999)&&$bpf[2*3+2]==0 &&
-            #($bpf[2*3+1]>=$p1));
-        #my $pack = RNA::pack_structure($struc1);
-        #is (RNA::unpack_structure($pack), $struc1);
 
     def test_parse_structure(self):
         print("test_parse_structure\n")
@@ -118,6 +117,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(RNA.cvar.pairs,6)
         self.assertEqual(RNA.cvar.unpaired,4)
         self.assertEqual(RNA.intP_getitem(RNA.cvar.loop_degree,1),2)
+
 
     def test_rna_plots(self):
         print("test_rna_plots\n")
@@ -129,6 +129,7 @@ class GeneralTests(unittest.TestCase):
         print("please check the two postscript files test_ss.ps and test_dp.ps\n")
         RNA.write_parameter_file("test.par")
 
+
     def test_different_symbol_set(self):
         print("test_different_symbol_set\n")
         RNA.cvar.symbolset = "GC"
@@ -138,27 +139,9 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(ss, struct1)
 
 
-    def test_suboptimal(self):
-        print("test_suboptimal\n")
+    def test_eos_dimer(self):
+        print "test_eos_dimer\n"
 
-        RNA.cvar.subopt_sorted = 1
-        RNA.cvar.noLonelyPairs = 1
-        solution = RNA.subopt(seq1, None, 500, None)
-
-        print "%d suboptimals (pointer mode)" % solution.size();
-        for x in range(0,solution.size()):
-        # the last access should produce a "value out of range" warning
-            if(solution.get(x).structure) :
-                print "%s %6.2f" % (solution.get(x).structure,solution.get(x).energy)
-
-
-        ## test native array output of subopt()
-        solution = RNA.subopt(seq1, 500)
-        print "%d suboptimals (list mode)" % len(solution)
-        for s in solution:
-            print "%s %6.2f" % (s.structure,s.energy)
-
-        solution = ""
         RNA.cvar.cut_point = 3
         e =  RNA.energy_of_struct("GCGC", "(())")
         RNA.cvar.cut_point = -1
@@ -171,6 +154,7 @@ class GeneralTests(unittest.TestCase):
         duplex = RNA.duplexfold(seq1, seq2)
         self.assertEqual(duplex.structure, ".(((.....(((.&)))))).")
 
+
     def test_alifold(self):
         print "testing alifold()"
         align = ["GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC"]
@@ -180,13 +164,6 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(RNA.consens_mis(align), "SMBHBHYDRBGDVWmVKBB")
         RNA.free_alifold_arrays()
 
-    def test_zuker_subopt(self):
-        print "test Zuker subopt (pointer mode)"
-        solution = RNA.zukersubopt(seq1)
-        for x in range(0,solution.size()):
-        # the last access should produce a "value out of range" warning
-            if(solution.get(x).structure) :
-                print "%s %6.2f" % (solution.get(x).structure, solution.get(x).energy)
 
     def test_moveSets(self): # !!!not working, because struct1_move is apperently not passed as reference
         print("test_moveSets")
@@ -210,6 +187,7 @@ class GeneralTests(unittest.TestCase):
 
         for c in (coords):
             print(c.X, ",", c.Y, "\n")
+
 
     def test_model_details_structure(self):
         print("test_model_details_parameter_structure\n")
@@ -242,6 +220,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(pf_params.get_temperature(),40.1)
         md = None
 
+
 class FoldCompoundTest(unittest.TestCase):
 
     def test_create_fold_compound_Single(self):
@@ -250,10 +229,12 @@ class FoldCompoundTest(unittest.TestCase):
         fc = RNA.fold_compound(seq1)
         self.assertEqual(fc.type(),0)
 
+
     def test_create_fold_compound_Align(self):
         print "test_create_fold_compound_Align\n"
         fc= RNA.fold_compound(align)
         self.assertEqual(fc.type(),1)
+
 
     def test_create_fold_compound_2D(self):
         print "test_create_fold_compound_2D\n"
@@ -293,62 +274,6 @@ class FoldCompoundTest(unittest.TestCase):
 
         (x,ac,bc,fcab,cf) = fc.pf_dimer()
         self.assertTrue((cf < comfe) and (comfe - cf < 1.3))
-
-    def test_subopt_zuker(self):
-        print "testing subopt_zuker() method"
-        fc = RNA.fold_compound(seq1)
-        solution = fc.subopt_zuker()
-        print seq1
-        for s in solution:
-            print "%s [ %6.2f ]" % (s.structure, s.energy)
-
-    # hairpin_loops.h from here
-    #def test_eval_hp_loop(self):
-     #   print "test_eval_hp_loop"
-      #  seq1  =      "GCAAAAGG"
-       # struct1=    ".(....)."
-
-        #fc=RNA.fold_compound(seq1)
-        #ehair = fc.eval_hp_loop(2,7)
-        #ehair = fc.E_hp_loop(2,7)
-        #print seq1, " 2,7  = [ %6.2f" %ehair ,"] \n"
-        #self.assertEqual("%6.2f" %ehair,"%6.2f" % +410)
-
-        #Exterior loop evalution not working
-        #eExt = fc.E_ext_hp_loop(0,0)
-        #print seq1, " 2,6  = [ %6.2f" %eExt ,"] \n"
-        #self.assertEqual("%6.2f" %eExt,"%6.2f" % -140)
-
-        #length = 8
-        #External loop                           :  -140
-        #Hairpin  loop (  2,  7) CG              :   410
-        #GCAAAAGG
-        #.(....).
-        #energy =   2.70
-
-
-    #def test_exp_E_hp_loop(self):
-        #print "test_exp_E_hp_loop"
-        #seq1  =      "GCAAAAGG"
-        #struct1=    ".(....)."
-
-        #fc=RNA.fold_compound(seq1)
-        #fc.pf()
-        #ehair = fc.exp_E_hp_loop(2,7)
-        #print seq1, " 2,7  = [ %6.2f" %ehair ,"] \n"
-        #self.assertEqual("%6.2f" %ehair,"%6.2f" % +410)
-
-
-    #interior_loops.h from here
-    #def test_E_int_loop(self):
-     #   print "test_E_int_loop"
-      #  #    "123456789012"
-       # seq1 =  "AGACAAAAGACA"
-        #struct1=".(.(....).)."
-        #fc=RNA.fold_compound(seq1,None,RNA.OPTION_MFE)
-        #e = fc.E_int_loop(2,11)
-        #print seq1, " 2,7  = [ %6.2f" %e ,"] \n"
-        #self.assertEqual("%6.2f" %e,"%6.2f" % +80)
 
 
 if __name__ == '__main__':

@@ -26,10 +26,12 @@ class GeneralTests(unittest.TestCase):
         #convert pairtable back to struct1
         self.assertEqual(struct1,RNA.db_from_ptable(pairTable))
 
+
     def test_basePairDistance(self):
         print "test_basePairDistance\n"
         d = RNA.bp_distance("(((.(((...))))))","(((..........)))")
         self.assertEqual(d,3)
+
 
     def test_plists(self):
         print "test_plists\n"

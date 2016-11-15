@@ -23,7 +23,7 @@
         n += *it;
 
       SV **svs;
-      int i, j, len;
+      int i, len;
       /* Figure out how many elements we have */
       for(len = 0; r[len]; len++);
 
@@ -31,7 +31,7 @@
       for (i = 0; i < len ; i++) {
         /* create new array with current permutation */
         AV *perm = newAV();
-        for(j = 1; j <= n; j++)
+        for(unsigned int j = 1; j <= n; j++)
           av_push(perm, newSVuv((UV) r[i][j]));
 
         /* store reference to current permutation in array */

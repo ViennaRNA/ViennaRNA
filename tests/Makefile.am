@@ -63,11 +63,11 @@ PY_LOG_COMPILER = $(PYTHON2)
 AM_PY_LOG_FLAGS =
 
 # add test scripts here
-PYTHON2_TESTS = python/test-RNA-callbacks.py \
-                python/test-RNA-combinatorics.py \
-                python/test-RNA-sc-callbacks.py \
-                python/test-RNA-mfe_eval.py \
+PYTHON2_TESTS = python/test-RNA-combinatorics.py \
                 python/test-RNA-constraints.py \
+                python/test-RNA-mfe_eval.py \
+                python/test-RNA-sc-callbacks.py \
+                python/test-RNA-subopt.py \
                 python/test-RNA-utils.py \
                 python/test-RNA.py
 
@@ -85,11 +85,11 @@ PY3_LOG_COMPILER = $(PYTHON3)
 AM_PY3_LOG_FLAGS =
 
 # add test scripts here
-PYTHON3_TESTS = python3/test-RNA-callbacks.py3 \
-                python3/test-RNA-combinatorics.py3 \
-                python3/test-RNA-sc-callbacks.py3 \
-                python3/test-RNA-mfe_eval.py3 \
+PYTHON3_TESTS = python3/test-RNA-combinatorics.py3 \
                 python3/test-RNA-constraints.py3 \
+                python3/test-RNA-mfe_eval.py3 \
+                python3/test-RNA-sc-callbacks.py3 \
+                python3/test-RNA-subopt.py3 \
                 python3/test-RNA-utils.py3 \
                 python3/test-RNA.py3
 

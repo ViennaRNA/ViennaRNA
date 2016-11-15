@@ -133,16 +133,16 @@ class mfe_eval_functionTest(unittest.TestCase):
         self.assertEqual(s, struct1)
         self.assertTrue(-mm == 18)
 
-#        mm_data = { 'fc': RNA.fold_compound(seq2),
-#                    'params': RNA.param()
-#                  }
-#        fc = RNA.fold_compound(seq2)
-#        fc.sc_add_data(mm_data, None)
-#        fc.sc_add_f(MaximumMatching)
-#        (s, mm) = fc.mfe()
-#        print("%s\n%s (max BPs: %d)\n" %  (seq2, s, -mm))
-#        self.assertEqual(s, struct2)
-#        self.assertTrue(-mm == 4)
+        mm_data = { 'fc': RNA.fold_compound(seq2),
+                    'params': RNA.param()
+                  }
+        fc = RNA.fold_compound(seq2)
+        fc.sc_add_data(mm_data, None)
+        fc.sc_add_f(MaximumMatching)
+        (s, mm) = fc.mfe()
+        print("%s\n%s (max BPs: %d)\n" %  (seq2, s, -mm))
+        self.assertEqual(s, struct2)
+        self.assertTrue(-mm == 4)
 
     def test_backtrack_hp_dict(self):
         print("Hairpin backtracking (Dictionary)")

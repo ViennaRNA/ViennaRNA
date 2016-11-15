@@ -144,6 +144,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         self.assertEqual(s, struct2)
         self.assertTrue(-mm == 4)
 
+
     def test_backtrack_hp_dict(self):
         print "Hairpin backtracking (Dictionary)"
         fc = RNA.fold_compound(seq2)
@@ -152,6 +153,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         print "%s %6.2f\n" %  (s, mfe)
         self.assertEqual(s, struct3)
 
+
     def test_backtrack_hp_tuples(self):
         print "Hairpin backtracking (Tuples)"
         fc = RNA.fold_compound(seq2)
@@ -159,6 +161,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         (s, mfe) = fc.mfe()
         print "%s %6.2f\n" %  (s, mfe)
         self.assertEqual(s, struct3)
+
 
     def test_backtrack_hp_basepair(self):
         print "Hairpin backtracking (basepair)"
