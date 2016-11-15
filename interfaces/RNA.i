@@ -63,6 +63,8 @@ extern "C" {
 #include  <ViennaRNA/hairpin_loops.h>
 #include  <ViennaRNA/interior_loops.h>
 #include  <ViennaRNA/multibranch_loops.h>
+
+#include  <ViennaRNA/combinatorics.h>
 }
 
 %}
@@ -111,6 +113,7 @@ extern "C" {
 namespace std {
   %template(DoublePair) std::pair<double,double>;
   %template(IntVector) std::vector<int>;
+  %template(UIntVector) std::vector<unsigned int>;
   %template(DoubleVector) std::vector<double>;
   %template(StringVector) std::vector<string>;
   %template(ConstCharVector) std::vector<const char*>;
@@ -177,6 +180,7 @@ namespace std {
 %include file_formats.i
 %include grammar.i
 %include commands.i
+%include combinatorics.i
 %include fold_compound.i
 
 

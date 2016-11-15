@@ -363,13 +363,16 @@ vrna_exp_E_hp_loop( vrna_fold_compound_t *vc,
   vrna_hc_t   *hc;
   FLT_OR_DBL  (*eval_f)(vrna_fold_compound_t *a, int b, int c);
 #ifdef WITH_GEN_HC
-  vrna_callback_hc_evaluate *f = hc->f;
+  vrna_callback_hc_evaluate *f;
 #endif
 
   z = 0.;
 
   hc        = vc->hc;
   hc_up     = hc->up_hp;
+#ifdef WITH_GEN_HC
+  f         = hc->f;
+#endif
 
   if((i > 0) && (j > 0)){
     if(j >= i){ /* linear case */

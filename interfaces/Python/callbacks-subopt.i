@@ -33,7 +33,7 @@ python_wrap_subopt_cb(const char *structure, float energy, void *data){
   func = cb->cb;
   /* compose argument list */
   arglist = Py_BuildValue("(z,d,O)", structure, (double)energy, (cb->data) ? cb->data : Py_None);
-  result =  PyEval_CallObject(func, arglist);
+  result =  PyObject_CallObject(func, arglist);
   Py_DECREF(arglist);
   Py_XDECREF(result);
 
@@ -45,11 +45,12 @@ python_wrap_subopt_cb(const char *structure, float energy, void *data){
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
 
-  void subopt_cb(int delta, PyObject *PyFunc, PyObject *data = Py_None){
+  PyObject *subopt_cb(int delta, PyObject *PyFunc, PyObject *data = Py_None){
 
     python_subopt_callback_t *cb = bind_subopt_callback(PyFunc, data);
     vrna_subopt_cb($self, delta, &python_wrap_subopt_cb, (void *)cb);
     free(cb);
+    Py_RETURN_NONE;
   }
 
 }

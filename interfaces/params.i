@@ -14,17 +14,55 @@
 
 %nodefaultctor vrna_param_t;
 typedef struct {
+  int       hairpin[31];
+  int       bulge[MAXLOOP+1];
+  int       internal_loop[MAXLOOP+1];
+  int       ninio[5];
+  double    lxc;
   int       MLbase;
   int       MLintern[NBPAIRS+1];
   int       MLclosing;
   int       TerminalAU;
+  int       DuplexInit;
+  int       Tetraloop_E[200];
+  char      Tetraloops[1401];
+  int       Triloop_E[40];
+  char      Triloops[241];
+  int       Hexaloop_E[40];
+  char      Hexaloops[1801];
+  int       TripleC;
+  int       MultipleCA;
+  int       MultipleCB;
+  double    temperature;
   vrna_md_t model_details;
 } vrna_param_t;
 
 /* do not create default constructor and hide data fields of vrna_param_t from SWIG */
 %nodefaultctor vrna_exp_param_t;
 typedef struct {
-  double kT;
+  double  exphairpin[31];
+  double  expbulge[MAXLOOP+1];
+  double  expinternal[MAXLOOP+1];
+  double  lxc;
+  double  expMLbase;
+  double  expMLintern[NBPAIRS+1];
+  double  expMLclosing;
+  double  expTermAU;
+  double  expDuplexInit;
+  double  exptetra[40];
+  double  exptri[40];
+  double  exphex[40];
+  char    Tetraloops[1401];
+  double  expTriloop[40];
+  char    Triloops[241];
+  char    Hexaloops[1801];
+  double  expTripleC;
+  double  expMultipleCA;
+  double  expMultipleCB;
+  double  kT;
+  double  pf_scale;
+  double  temperature;
+  double  alpha;
   vrna_md_t model_details;
 } vrna_exp_param_t;
 

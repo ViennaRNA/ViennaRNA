@@ -1,0 +1,10 @@
+/**
+
+@fn unsigned int **vrna_enumerate_necklaces(const unsigned int *type_counts)
+@scripting
+@parblock
+This function is available as global function @b enumerate_necklaces() which accepts lists
+input, an produces list of lists output.
+@endparblock
+
+*/

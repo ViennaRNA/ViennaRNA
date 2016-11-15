@@ -172,7 +172,7 @@ typestr="<filename>"
 optional
 
 option  "shapeMethod" -
-"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
+"Select method to incorporate SHAPE reactivity data.\n"
 details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
 'D': Convert by using a linear equation according to Deigan et al 2009. \
 The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
@@ -198,8 +198,9 @@ default="D"
 optional
 
 option  "shapeConversion" -
-"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al.\n"
-details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+"Select method to convert SHAPE reactivities to pairing probabilities.\n"
+details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
+The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
 'M': Use linear mapping according to Zarringhalam et al.
 'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
 'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values

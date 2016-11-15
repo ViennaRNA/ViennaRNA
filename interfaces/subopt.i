@@ -178,12 +178,6 @@ SOLUTION *my_subopt(char *seq, char *constraint, int delta);
   }
 }
 
-%newobject vrna_subopt_solution_t::subopt(int delta);
-%newobject vrna_subopt_solution_t::subopt(int delta, int sorted);
-%newobject vrna_subopt_solution_t::subopt(int delta, int sorted, FILE *fp);
-%newobject vrna_subopt_solution_t::subopt_zuker(void);
-
-
 %ignore subopt;
 %ignore subopt_par;
 %ignore subopt_circ;

@@ -836,6 +836,10 @@ fill_pair_matrices(vrna_md_t *md){
     }
   }
 
+  /* handle special cases separately */
+  md->rtype[0] = 0;
+  md->rtype[7] = 7;
+
   /* was used for energy_set == 0
   for(i = 0; i < NBASES; i++)
       for(j = 0; j < NBASES; j++)

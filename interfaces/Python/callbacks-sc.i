@@ -27,7 +27,7 @@ delete_py_sc_callback(void * data){
     PyObject *func, *arglist, *result;
     func = cb->delete_data;
     arglist = Py_BuildValue("O", cb->data);
-    result  = PyEval_CallObject(func, arglist);
+    result  = PyObject_CallObject(func, arglist);
     Py_DECREF(arglist);
     Py_XDECREF(result);
   }
@@ -153,7 +153,7 @@ sc_add_pydata(vrna_fold_compound_t *vc,
         PyObject *func, *arglist, *result;
         func    = cb->delete_data;
         arglist = Py_BuildValue("O", cb->data);
-        result  = PyEval_CallObject(func, arglist);
+        result  = PyObject_CallObject(func, arglist);
         Py_DECREF(arglist);
         Py_XDECREF(result);
       }
@@ -195,7 +195,7 @@ py_wrap_sc_f_callback(int i,
   func = cb->cb_f;
   /* compose argument list */
   arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
-  result =  PyEval_CallObject(func, arglist);
+  result =  PyObject_CallObject(func, arglist);
   ret = (int)PyInt_AsLong(result);
   Py_DECREF(arglist);
   Py_XDECREF(result);
@@ -217,7 +217,7 @@ py_wrap_sc_bt_callback( int i,
   func = cb->cb_bt;
   /* compose argument list */
   arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
-  result =  PyEval_CallObject(func, arglist);
+  result =  PyObject_CallObject(func, arglist);
   if((result == NULL) || (result == Py_None))
     return NULL;
 
@@ -290,7 +290,7 @@ py_wrap_sc_exp_f_callback(int i,
   func = cb->cb_exp_f;
   /* compose argument list */
   arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
-  result =  PyEval_CallObject(func, arglist);
+  result =  PyObject_CallObject(func, arglist);
   ret = (FLT_OR_DBL)PyFloat_AsDouble(result);
   Py_DECREF(arglist);
   Py_XDECREF(result);
@@ -307,20 +307,24 @@ static void sc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *Py
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
 
-  void sc_add_data(PyObject *data, PyObject *PyFuncOrNone=Py_None){
+  PyObject *sc_add_data(PyObject *data, PyObject *PyFuncOrNone=Py_None){
     sc_add_pydata($self, data, PyFuncOrNone);
+    Py_RETURN_NONE;
   }
   
-  void sc_add_f(PyObject *PyFunc){
+  PyObject *sc_add_f(PyObject *PyFunc){
     sc_add_f_pycallback($self, PyFunc);
+    Py_RETURN_NONE;
   }
 
-  void sc_add_bt(PyObject *PyFunc){
+  PyObject *sc_add_bt(PyObject *PyFunc){
     sc_add_bt_pycallback($self, PyFunc);
+    Py_RETURN_NONE;
   }
 
-  void sc_add_exp_f(PyObject *PyFunc){
+  PyObject *sc_add_exp_f(PyObject *PyFunc){
     sc_add_exp_f_pycallback($self, PyFunc);
+    Py_RETURN_NONE;
   }
 }
 

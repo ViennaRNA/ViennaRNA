@@ -742,7 +742,7 @@ exp_E_int_loop( vrna_fold_compound_t *vc,
                 int j){
 
   unsigned char     type, type_2;
-  char              *ptype, *hc;
+  char              *ptype, *hc, eval_loop;
   short             *S1, S_i1, S_j1;
   int               k,l, u1, u2, kl, maxk, minl, *rtype, noGUclosure,
                     no_close, cp, *my_iindx, *jindx, *hc_up, ij,
@@ -752,6 +752,9 @@ exp_E_int_loop( vrna_fold_compound_t *vc,
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
   vrna_ud_t         *domains_up;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *hc_f;
+#endif
 
   cp          = vc->cutpoint;
   ptype       = vc->ptype;
@@ -773,6 +776,9 @@ exp_E_int_loop( vrna_fold_compound_t *vc,
   scale       = vc->exp_matrices->scale;
   domains_up  = vc->domains_up;
   qbt1        = 0.;
+#ifdef WITH_GEN_HC
+  hc_f        = vc->hc->f;
+#endif
 
   /* CONSTRAINED INTERIOR LOOP start */
   if(hc[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
@@ -797,7 +803,13 @@ exp_E_int_loop( vrna_fold_compound_t *vc,
 
       for (u2 = 0, l=j-1; l>=minl; l--, kl++, u2++){
         if(hc_up[l+1] < u2) break;
-        if(hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
+        eval_loop = (hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+        if(hc_f)
+          eval_loop = (hc_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+        /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
+        if(eval_loop){
           if(!ON_SAME_STRAND(l, j, cp)) break;
           type_2 = rtype[(unsigned char)ptype[jindx[l] + k]];
 
@@ -894,7 +906,7 @@ exp_E_interior_loop(vrna_fold_compound_t *vc,
                     int l){
 
   unsigned char     type, type_2;
-  char              *ptype, *hc;
+  char              *ptype, *hc, eval_loop;
   short             *S1, S_i1, S_j1;
   int               u1, u2, kl, maxk, minl, *rtype, noGUclosure,
                     no_close, cp, *my_iindx, *jindx, *hc_up, ij,
@@ -904,6 +916,9 @@ exp_E_interior_loop(vrna_fold_compound_t *vc,
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
   vrna_ud_t         *domains_up;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *hc_f;
+#endif
 
   cp          = vc->cutpoint;
   ptype       = vc->ptype;
@@ -928,6 +943,9 @@ exp_E_interior_loop(vrna_fold_compound_t *vc,
   qbt1        = 0.;
   u1          = k - i - 1;
   u2          = j - l - 1;
+#ifdef WITH_GEN_HC
+  hc_f        = vc->hc->f;
+#endif
 
   if(!ON_SAME_STRAND(i, k, cp))
     return qbt1;
@@ -940,8 +958,13 @@ exp_E_interior_loop(vrna_fold_compound_t *vc,
     return qbt1;
 
   /* CONSTRAINED INTERIOR LOOP start */
-  if((hc[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) && (hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)){
-
+  eval_loop = ((hc[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) && (hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+  if(hc_f)
+    eval_loop = (hc_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+  /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
+  if(eval_loop){
     type        = (unsigned char)ptype[ij];
     rtype       = &(md->rtype[0]);
     noGUclosure = md->noGUclosure;
@@ -1015,7 +1038,7 @@ exp_E_int_loop_comparative( vrna_fold_compound_t *vc,
                             int j){
 
   unsigned char     type_2;
-  char              *hc;
+  char              *hc, eval_loop;
   unsigned short    **a2s;
   short             **S, **S5, **S3;
   int               n_seq, s, ij, jij, k,l, u1, u2, kl, maxk, minl, *types,
@@ -1024,6 +1047,9 @@ exp_E_int_loop_comparative( vrna_fold_compound_t *vc,
   vrna_sc_t         **scs;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *hc_f;
+#endif
 
   types       = NULL;
   my_iindx    = vc->iindx;
@@ -1039,6 +1065,9 @@ exp_E_int_loop_comparative( vrna_fold_compound_t *vc,
   qbt1        = 0.;
   jij         = jindx[j] + i;
   ij          = my_iindx[i] -j;
+#ifdef WITH_GEN_HC
+  hc_f        = vc->hc->f;
+#endif
 
   /* CONSTRAINED INTERIOR LOOP start */
   if(hc[jij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
@@ -1072,7 +1101,13 @@ exp_E_int_loop_comparative( vrna_fold_compound_t *vc,
         if(hc_up[l+1] < j - l - 1)
           break;
 
-        if(hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC){
+        eval_loop = (hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) ? (char)1: (char)0;
+#ifdef WITH_GEN_HC
+        if(hc_f)
+          eval_loop = (hc_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+        /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
+        if(eval_loop){
           qloop = 1.;
 
           for(s = 0; s < n_seq; s++){

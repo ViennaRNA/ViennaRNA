@@ -50,7 +50,7 @@ delete_py_ud_callback(void * data){
     PyObject *func, *arglist, *result;
     func = cb->delete_data;
     arglist = Py_BuildValue("O", cb->data);
-    result  = PyEval_CallObject(func, arglist);
+    result  = PyObject_CallObject(func, arglist);
     Py_DECREF(arglist);
     Py_XDECREF(result);
   }
@@ -83,7 +83,7 @@ ud_set_pydata(vrna_fold_compound_t *vc,
         PyObject *func, *arglist, *result;
         func    = cb->delete_data;
         arglist = Py_BuildValue("O", cb->data);
-        result  = PyEval_CallObject(func, arglist);
+        result  = PyObject_CallObject(func, arglist);
         Py_DECREF(arglist);
         Py_XDECREF(result);
       }
@@ -198,7 +198,7 @@ py_wrap_ud_prod_rule( vrna_fold_compound_t *vc,
   func = cb->prod_rule;
   /* compose argument list */
   arglist = Py_BuildValue("(O,O)", vc, (cb->data) ? cb->data : Py_None);
-  result =  PyEval_CallObject(func, arglist);
+  result =  PyObject_CallObject(func, arglist);
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return /*void*/;
@@ -216,7 +216,7 @@ py_wrap_ud_exp_prod_rule( vrna_fold_compound_t *vc,
   func = cb->exp_prod_rule;
   /* compose argument list */
   arglist = Py_BuildValue("(O,O)", vc, (cb->data) ? cb->data : Py_None);
-  result =  PyEval_CallObject(func, arglist);
+  result =  PyObject_CallObject(func, arglist);
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return /*void*/;
@@ -237,8 +237,8 @@ py_wrap_ud_energy(vrna_fold_compound_t *vc,
   func = cb->energy;
   /* compose argument list */
   arglist = Py_BuildValue("(O,i,i,I,O)", vc, i, j, looptype, (cb->data) ? cb->data : Py_None);
-  result =  PyEval_CallObject(func, arglist);
-  ret = (int)PyInt_AsLong(result);
+  result =  PyObject_CallObject(func, arglist);
+  ret = (int)PyLong_AsLong(result);
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return ret;
@@ -259,7 +259,7 @@ py_wrap_ud_exp_energy(vrna_fold_compound_t *vc,
   func = cb->exp_energy;
   /* compose argument list */
   arglist = Py_BuildValue("(O,i,i,I,O)", vc, i, j, looptype, (cb->data) ? cb->data : Py_None);
-  result =  PyEval_CallObject(func, arglist);
+  result =  PyObject_CallObject(func, arglist);
   ret = (FLT_OR_DBL)PyFloat_AsDouble(result);
   Py_DECREF(arglist);
   Py_XDECREF(result);
@@ -281,7 +281,7 @@ py_wrap_ud_prob_add(vrna_fold_compound_t *vc,
   func = cb->prob_add;
   /* compose argument list */
   arglist = Py_BuildValue("(O,i,i,I,d,O)", vc, i, j, looptype, (double)prob, (cb->data) ? cb->data : Py_None);
-  result =  PyEval_CallObject(func, arglist);
+  result =  PyObject_CallObject(func, arglist);
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return;
@@ -303,8 +303,8 @@ py_wrap_ud_prob_get(vrna_fold_compound_t *vc,
   func = cb->prob_get;
   /* compose argument list */
   arglist = Py_BuildValue("(O,i,i,I,i,O)", vc, i, j, looptype, motif, (cb->data) ? cb->data : Py_None);
-  result  =  PyEval_CallObject(func, arglist);
-  ret     = (int)PyInt_AsLong(result);
+  result  =  PyObject_CallObject(func, arglist);
+  ret     = (int)PyLong_AsLong(result);
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return ret;
@@ -320,41 +320,45 @@ static void ud_set_prob_cb( vrna_fold_compound_t *vc, PyObject *setter, PyObject
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
 
-  void ud_set_data(PyObject *data, PyObject *PyFuncOrNone=Py_None){
+  PyObject *ud_set_data(PyObject *data, PyObject *PyFuncOrNone=Py_None){
     ud_set_pydata($self, data, PyFuncOrNone);
+    Py_RETURN_NONE;
   }
 
-  void ud_set_prod_rule_cb(PyObject *prod_cb, PyObject *eval_cb){
+  PyObject *ud_set_prod_rule_cb(PyObject *prod_cb, PyObject *eval_cb){
     if(!PyCallable_Check(prod_cb)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
-      return;
+      Py_RETURN_NONE;
     } else if(!PyCallable_Check(eval_cb)){
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
-      return;
+      Py_RETURN_NONE;
     }
     ud_set_prod_cb($self, prod_cb, eval_cb);
+    Py_RETURN_NONE;
   }
 
-  void ud_set_exp_prod_rule_cb(PyObject *prod_cb, PyObject *eval_cb){
+  PyObject *ud_set_exp_prod_rule_cb(PyObject *prod_cb, PyObject *eval_cb){
     if(!PyCallable_Check(prod_cb)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
-      return;
+      Py_RETURN_NONE;
     } else if(!PyCallable_Check(eval_cb)){
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
-      return;
+      Py_RETURN_NONE;
     }
     ud_set_exp_prod_cb($self, prod_cb, eval_cb);
+    Py_RETURN_NONE;
   }
 
-  void ud_set_prob_cb(PyObject *setter, PyObject *getter){
+  PyObject *ud_set_prob_cb(PyObject *setter, PyObject *getter){
     if(!PyCallable_Check(setter)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
-      return;
+      Py_RETURN_NONE;
     } else if(!PyCallable_Check(getter)){
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
-      return;
+      Py_RETURN_NONE;
     }
     ud_set_prob_cb($self, setter, getter);
+    Py_RETURN_NONE;
   }
 }
 

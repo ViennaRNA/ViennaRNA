@@ -18,7 +18,6 @@
 #include <sys/stat.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include <err.h>
 #include <errno.h>
 
 /* for getpid() we need some distinction between UNIX and Win systems */
@@ -207,8 +206,9 @@ vrna_message_vinfo(FILE *fp, const char *format, va_list args){
   } else {
 #endif
     vfprintf(fp, format, args);
+    fprintf(fp, "\n");
 #ifndef WITHOUT_TTY_COLORS
- }
+  }
 #endif
 }
 

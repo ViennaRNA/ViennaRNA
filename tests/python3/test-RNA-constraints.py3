@@ -159,7 +159,7 @@ class constraintsTest(unittest.TestCase):
         fc=RNA.fold_compound(seq)
         print(reactivities)
 
-        ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_MFE);
+        ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_DEFAULT);
         (ss,mfe) = fc.mfe()
         print(ss, "[ %6.4f" %mfe ,"]\n")
         self.assertEqual("%6.4f" %mfe,"%6.4f" % -121.55 )
@@ -172,7 +172,7 @@ class constraintsTest(unittest.TestCase):
         fc=RNA.fold_compound(seq_ribo)
         print(reactivities)
 
-        ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_MFE);  # these values were copied from ronnys Talk about constraints
+        ret = fc.sc_add_SHAPE_deigan(reactivities,1.9,-0.7,RNA.OPTION_DEFAULT);  # these values were copied from ronnys Talk about constraints
         (ss,mfe) = fc.mfe()
         print(ss, "[ %6.2f" %mfe ,"]\n")
         self.assertEqual("%6.2f" %mfe,"%6.2f" % -52.61 )
@@ -219,12 +219,6 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual(ret,1)
 
 
-    # wait with implementation
-    #def test_sc_detect_hi_motif(self):
-
-    # wait with implementation
-    #def test_sc_get_hi_motif(self):
-
     def test_theophylline_ligand_binding_interface(self):
         print("test_theophylline_ligand_binding_interface\n")
         RNA.noLonelyPairs = 0
@@ -241,7 +235,6 @@ class constraintsTest(unittest.TestCase):
         fc.sc_add_hi_motif("GAAAAAU", "(.....)", -19)
         (ss, mfe) = fc.mfe()
         print("%s [ %6.2f ]\n" %(ss, mfe))
-
 
 
 if __name__ == '__main__':

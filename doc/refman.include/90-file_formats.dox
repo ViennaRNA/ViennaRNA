@@ -164,19 +164,22 @@ s mm4.chr6     53310102 13 + 151104725 ACAGCTGAAAATA
   @endverbatim
 
 
-  @section     constraint-formats  File formats for Secondary Structure Constraints
-  @subsection  constraint-formats-file Constraints Definition File
+  @section     constraint-formats   File formats to manipulate the RNA folding grammar
+  @subsection  constraint-formats-file Command Files
 
-  The RNAlib can parse and apply data from constraint definition text files, where each constraint
-  is given as a line of whitespace delimited commands. The syntax we use extends the one used in
+  The RNAlib and many programs of the ViennaRNA Package can parse and apply data from
+  so-called command files. These commands may refer to structure constraints or even
+  extensions of the RNA folding grammar (such as @ref domains_up). Commands are given
+  as a line of whitespace delimited data fields. The syntax we use extends the constraint
+  definitions used in the 
   <a href="http://mfold.rna.albany.edu/?q=mfold">mfold</a> /
-  <a href="http://mfold.rna.albany.edu/?q=DINAMelt/software">UNAfold</a> where
+  <a href="http://mfold.rna.albany.edu/?q=DINAMelt/software">UNAfold</a> software, where
   each line begins with a command character followed by a set of positions.\n
-  Additionally, we introduce several new commands, and allow for an optional loop type context
+  However, we introduce several new commands, and allow for an optional loop type context
   specifier in form of a sequence of characters, and an orientation flag that enables one to force
   a nucleotide to pair upstream, or downstream.
 
-  @subsubsection  const_file_commands Constraint commands
+  @subsubsection  constraint_commands Constraint commands
   The following set of commands is recognized:
   -  @p F @f$ \ldots @f$ Force
   -  @p P @f$ \ldots @f$ Prohibit
@@ -184,17 +187,24 @@ s mm4.chr6     53310102 13 + 151104725 ACAGCTGAAAATA
   -  @p A @f$ \ldots @f$ Allow (for non-canonical pairs)
   -  @p E @f$ \ldots @f$ Soft constraints for unpaired position(s), or base pair(s)
 
-  @subsubsection  const_file_loop_types Specification of the loop type context
-  The optional loop type context specifier @p [WHERE] may be a combination of the following:
+  @subsubsection  domain_commands RNA folding grammar exensions
+  -  @p UD @f$ \ldots @f$ Add ligand binding using the @ref domains_up feature
+
+  @subsubsection  command_file_loop_types Specification of the loop type context
+  The optional loop type context specifier @p [LOOP] may be a combination of the following:
   -  @p E @f$ \ldots @f$ Exterior loop
   -  @p H @f$ \ldots @f$ Hairpin loop
-  -  @p I @f$ \ldots @f$ Interior loop (enclosing pair)
-  -  @p i @f$ \ldots @f$ Interior loop (enclosed pair)
-  -  @p M @f$ \ldots @f$ Multibranch loop (enclosing pair)
-  -  @p m @f$ \ldots @f$ Multibranch loop (enclosed pair)
+  -  @p I @f$ \ldots @f$ Interior loop
+  -  @p M @f$ \ldots @f$ Multibranch loop
   -  @p A @f$ \ldots @f$ All loops
 
-  If no @p [WHERE] flags are set, all contexts are considered (equivalent to @p A )
+  For structure constraints, we additionally allow one to address base pairs enclosed
+  by a particular kind of loop, which results in the specifier @p [WHERE] which consists
+  of @p [LOOP] plus the following character:
+  -  @p i @f$ \ldots @f$ enclosed pair of an Interior loop
+  -  @p m @f$ \ldots @f$ enclosed pair of a Multibranch loop
+
+  If no @p [LOOP] or @p [WHERE] flags are set, all contexts are considered (equivalent to @p A )
 
   @subsubsection const_file_orientation Controlling the orientation of base pairing
   For particular nucleotides that are forced to pair, the following @p [ORIENTATION] flags
@@ -283,5 +293,17 @@ s mm4.chr6     53310102 13 + 151104725 ACAGCTGAAAATA
       Use this command to apply a pseudo free energy of @f$ e @f$ to the set of base pairs
       @f$ (i,j), \ldots, (i+(k-1), j-(k-1)) @f$. Energies are expected to be given in
       @f$ kcal / mol @f$.
+
+  @subsubsection  domains_syntax  Valid domain extensions commands
+
+  -#  @b "Add ligand binding to unpaired motif (a.k.a. unstructured domains)":\n
+      Syntax: @code UD m e [LOOP] @endcode\n
+      Description:\n
+      Add ligand binding to unpaired sequence motif @f$ m @f$ (given in IUPAC format, capital letters)
+      with binding energy @f$ e @f$ in particular loop type(s).\n
+      Example:
+      @code UD  AAA   -5.0    A@endcode\n
+      The above example applies a binding free energy of @f$ -5 kcal/mol @f$ for a motif AAA
+      that may be present in all loop types.
 
  */

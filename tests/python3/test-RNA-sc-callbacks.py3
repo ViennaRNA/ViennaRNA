@@ -1,6 +1,6 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
+RNApath.addSwigInterfacePath(3)
 
 import RNA
 import unittest
@@ -121,15 +121,15 @@ def bt_hp_basepair(i,j,k,l,d,data=None):
 class mfe_eval_functionTest(unittest.TestCase):
 
     def test_maximum_matching(self):
-        print "Revert MFE to MaximumMatching"
+        print("Revert MFE to MaximumMatching")
         mm_data = { 'fc': RNA.fold_compound(seq1),
                     'params': RNA.param()
                   }
         fc = RNA.fold_compound(seq1)
-        fc.sc_add_data(mm_data, None)
         fc.sc_add_f(MaximumMatching)
+        fc.sc_add_data(mm_data, None)
         (s, mm) = fc.mfe()
-        print "%s\n%s (max BPs: %d)\n" %  (seq1, s, -mm)
+        print("%s\n%s (max BPs: %d)\n" % (seq1, s, -mm))
         self.assertEqual(s, struct1)
         self.assertTrue(-mm == 18)
 
@@ -140,35 +140,32 @@ class mfe_eval_functionTest(unittest.TestCase):
         fc.sc_add_data(mm_data, None)
         fc.sc_add_f(MaximumMatching)
         (s, mm) = fc.mfe()
-        print "%s\n%s (max BPs: %d)\n" %  (seq2, s, -mm)
+        print("%s\n%s (max BPs: %d)\n" %  (seq2, s, -mm))
         self.assertEqual(s, struct2)
         self.assertTrue(-mm == 4)
 
-
     def test_backtrack_hp_dict(self):
-        print "Hairpin backtracking (Dictionary)"
+        print("Hairpin backtracking (Dictionary)")
         fc = RNA.fold_compound(seq2)
         fc.sc_add_bt(bt_hp_dict)
         (s, mfe) = fc.mfe()
-        print "%s %6.2f\n" %  (s, mfe)
+        print("%s %6.2f\n" %  (s, mfe))
         self.assertEqual(s, struct3)
 
-
     def test_backtrack_hp_tuples(self):
-        print "Hairpin backtracking (Tuples)"
+        print("Hairpin backtracking (Tuples)")
         fc = RNA.fold_compound(seq2)
         fc.sc_add_bt(bt_hp_tuples)
         (s, mfe) = fc.mfe()
-        print "%s %6.2f\n" %  (s, mfe)
+        print("%s %6.2f\n" %  (s, mfe))
         self.assertEqual(s, struct3)
 
-
     def test_backtrack_hp_basepair(self):
-        print "Hairpin backtracking (basepair)"
+        print("Hairpin backtracking (basepair)")
         fc = RNA.fold_compound(seq2)
         fc.sc_add_bt(bt_hp_basepair)
         (s, mfe) = fc.mfe()
-        print "%s %6.2f\n" %  (s, mfe)
+        print("%s %6.2f\n" %  (s, mfe))
         self.assertEqual(s, struct3)
 
 

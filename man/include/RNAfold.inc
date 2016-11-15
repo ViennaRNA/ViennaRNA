@@ -159,28 +159,30 @@ or assigned a negative score:
 Note, that RNAfold will only process the first sequence in the input file, when provided
 with SHAPE reactivity data!
 
-.I More complex structure constraints
+.I Complex structure constraints and grammar extensions
 
 Structure constraints beyond those that can be expressed with a pseudo-dot bracket notation
-may be provided in a constraints definition file:
+may be provided in a so-called command file:
 
 .nf
 .ft CW
-  $ RNAfold --constraint=constraints.txt < sequence.fa
+  $ RNAfold --commands=constraints.txt < sequence.fa
 .ft
 .fi
 
-where the constraints definition file syntax is a generalization of those used in
-UNAfold/mfold. Each line starts with a single character command, followed by three
-or four numbers. In addition, optional auxiliary modifier characters may be used
-to limit the constraint to specific loop types. For base pair specific constraints,
+The command file syntax is a generalization of constraints as used in
+UNAfold/mfold. Each line starts with a one or two letter command followed
+by command parameters. For structure constraints, this amounts to a single
+command character followed by three or four numbers. In addition, optional
+auxiliary modifier characters may be used to limit the constraint to specific
+loop types. For base pair specific constraints,
 we currently distinguish pairs in exterior loops (E), closing pairs of hairpin
 loops (H), closing (I) and enclosed (i) pairs of interior loops, and closing (M)
 and enclosed (m) pairs of multibranch loops. Nucleotide-wise constraints may be
 limited to their loop context using the corresponding uppercase characters. The
 default is to apply a constraint to all (A) loop types. Furthermore, pairing
 constraints for single nucleotides may be limited to upstream (U), or downstream (D)
-orientation. The constraint definition file specification is as follows:
+orientation. The command file specification is as follows:
 
 .nf
 .ft CW
@@ -193,14 +195,17 @@ orientation. The constraint definition file specification is as follows:
   C i j k          # Remove pairs conflicting with (i,j),...,(i+k-1,j-k+1)
   E i 0 k e        # Add pseudo-energy e to nucleotides i...i+k-1
   E i j k e        # Add pseudo-energy e to pairs (i,j),...,(i+k-1,j-k+1)
+  UD m e    [LOOP] # Add ligand binding to unstructured domains with motif
+                   # m and binding free energy e
 
-                   # [TYPE]        = { E, H, I, i, M, m, A }
+                   # [LOOP]        = { E, H, I, M, A }
+                   # [TYPE]        = [LOOP] + { i, m }
                    # [ORIENTATION] = { U, D }
 .ft
 .fi
 
 Again, RNAfold by default only processes the first sequence in the input sequence
-when provided with a constraints definition file. To apply the exact same constraints
+when provided with constraints in a command file. To apply the exact same constraints
 to each of the input sequences in a multi FASTA file, use the batch mode commandline
 option:
 
@@ -241,6 +246,48 @@ provide the motif itself, and binding free energy:
 .ft
 .fi
 
+.I Ligand binding contributions to unpaired segments of the RNA structure
+
+The extension of the RNA folding grammar with unstructured domains allows for an easy
+incorporation of ligands that bind to unpaired stretches of an RNA structure. To
+model such interactions only two parameters are required: (i) a sequence motif in
+IUPAC notation that specifies where the ligand binds to, and (ii) a binding free
+energy that can be derived from the association/dissociation constant of the ligand.
+With these two parameters in hand, the modification of RNAfold to include the competition
+of regular intramolecular base pairing and ligand interaction is as easy as writing
+a simple command file of the form:
+
+.nf
+.ft CW
+  UD m e    [LOOP]
+.ft
+.fi
+
+where m is the motif string in upper-case IUPAC notation, and e the binding free energy
+in kcal/mol and optional loop type restriction [LOOP]. See also the command file specification as defined above.
+
+For instance, having a protein with a 4-nucleotide footprint binding 'AAAA', a
+binding free energy e = -5.0 kcal/mol, and a binding restriction to exterior- and
+multibranch loops results in a command file:
+
+.nf
+.ft CW
+  $ cat commands.txt
+  UD AAAA -5.0  ME
+.ft
+.fi
+
+and the corresponding call to RNAfold to compute MFE and equilibrium probabilities becomes:
+
+.nf
+.ft CW
+  $ RNAfold --commands=commands.txt -p < sequence.fa
+.ft
+.fi
+
+The resulting MFE plot will be annotated to display the binding site(s) of the ligand,
+and the base pair probability dot-plot is extended to include the probability that
+a particular nucleotide is bound by the ligand.
 
 
 [>REFERENCES]
