@@ -804,7 +804,7 @@ wrap_plist( vrna_fold_compound_t *vc,
   vrna_mx_pf_t      *matrices;
   vrna_exp_param_t  *pf_params;
 
-  S         = vc->sequence_encoding;
+  S         = vc->sequence_encoding2;
   index     = vc->iindx;
   length    = vc->length;
   pf_params = vc->exp_params;
