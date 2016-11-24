@@ -59,7 +59,7 @@ int     uniq_ML         = VRNA_MODEL_DEFAULT_UNIQ_ML;
 int     energy_set      = VRNA_MODEL_DEFAULT_ENERGY_SET;
 int     do_backtrack    = VRNA_MODEL_DEFAULT_COMPUTE_BPP;
 char    backtrack_type  = VRNA_MODEL_DEFAULT_BACKTRACK_TYPE;
-char    *nonstandards   = (char *)0;
+char    *nonstandards   = NULL;
 int     max_bp_span     = VRNA_MODEL_DEFAULT_MAX_BP_SPAN;
 int     oldAliEn        = VRNA_MODEL_DEFAULT_ALI_OLD_EN;
 int     ribo            = VRNA_MODEL_DEFAULT_ALI_RIBO;
@@ -262,7 +262,7 @@ vrna_md_set_nonstandards(vrna_md_t *md, const char *ns_bases){
           }
           c++;
         }
-        md->nonstandards[i] = (char)0;
+        md->nonstandards[i] = '\0';
 
 #ifdef  VRNA_BACKWARD_COMPAT
         free(nonstandards);
@@ -273,10 +273,10 @@ vrna_md_set_nonstandards(vrna_md_t *md, const char *ns_bases){
         vrna_message_warning("vrna_md_set_nonstandards: list too long, dropping nonstandards!");
       }
     } else { /* remove nonstandards */
-      md->nonstandards[0] = (char)0;
+      md->nonstandards[0] = '\0';
 #ifdef  VRNA_BACKWARD_COMPAT
       free(nonstandards);
-      nonstandards = (char)0;
+      nonstandards = NULL;
 #endif
     }
 
@@ -315,7 +315,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p){
   defaults.temperature       = VRNA_MODEL_DEFAULT_TEMPERATURE;
   defaults.betaScale         = VRNA_MODEL_DEFAULT_BETA_SCALE;
   defaults.sfact             = 1.07;
-  defaults.nonstandards[0]   = (char)0;
+  defaults.nonstandards[0]   = '\0';
 
   if(md_p){ /* now try to apply user settings */
     /*
@@ -856,9 +856,10 @@ fill_pair_matrices(vrna_md_t *md){
 PUBLIC void
 set_model_details(vrna_md_t *md){
 
-  int i = 0;
-
   if(md){
+    /* make sure there are no uninitialized data fields */
+    memset(md, 0, sizeof(vrna_md_t));
+
     md->dangles           = dangles;
     md->special_hp        = tetra_loop;
     md->noLP              = noLonelyPairs;
@@ -884,16 +885,15 @@ set_model_details(vrna_md_t *md){
     md->betaScale         = VRNA_MODEL_DEFAULT_BETA_SCALE;
     md->sfact             = 1.07;
 
-    if(nonstandards){
+    if (nonstandards)
       copy_nonstandards(md, nonstandards);
-    } else {
-      md->nonstandards[0] = (char)0;
-    }
+
     /* set default values for the pair/rtype[pair] stuff */
     vrna_md_update(md);
 
   }
 }
+
 
 PUBLIC char *
 option_string(void){
