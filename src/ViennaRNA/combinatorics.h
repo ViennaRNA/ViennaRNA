@@ -30,6 +30,7 @@
 unsigned int **
 vrna_enumerate_necklaces(const unsigned int *type_counts);
 
+
 /**
  *  @}
  */
