@@ -878,11 +878,11 @@ vrna_pf_float_precision(void){
 PRIVATE void
 alipf_linear( vrna_fold_compound_t *vc){
 
-  char              *hard_constraints;
+  char              *hard_constraints, eval_loop;
   unsigned short    **a2s;
   short             **S, **S5, **S3;
-  int               s, i,j,k, ij, jij, d, ii, *type, turn, n_seq, n, *my_iindx,
-                    *jindx, *pscore, circular;
+  int               s, i,j,k, ij, jij, kl, d, ii, *type, turn, n_seq, n, *my_iindx,
+                    *jindx, *pscore, circular, *hc_up_ext, *hc_up_ml, maxk, u;
   FLT_OR_DBL        temp, temp2, Qmax, qbt1, *tmp, *qqm, *qqm1, *qq, *qq1, *q,
                     *qb, *qm, *qm1, *scale, *expMLbase;
   double            kTn, max_real;
@@ -891,6 +891,9 @@ alipf_linear( vrna_fold_compound_t *vc){
   vrna_md_t         *md;
   vrna_hc_t         *hc;
   vrna_sc_t         **sc;
+#ifdef WITH_GEN_HC
+  vrna_callback_hc_evaluate *hc_f;
+#endif
 
   n_seq             = vc->n_seq;
   n                 = vc->length;
@@ -913,10 +916,15 @@ alipf_linear( vrna_fold_compound_t *vc){
   scale             = matrices->scale;
   expMLbase         = matrices->expMLbase;
   hard_constraints  = hc->matrix;
+  hc_up_ext         = hc->up_ext;
+  hc_up_ml          = hc->up_ml;
   circular          = md->circ;
   turn              = md->min_loop_size;
   kTn               = pf_params->kT/10.;   /* kT in cal/mol  */
   Qmax              = 0.;
+#ifdef WITH_GEN_HC
+  hc_f              = vc->hc->f;
+#endif
 
   type              = (int *)vrna_alloc(sizeof(int) * n_seq);
   max_real          = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
@@ -931,43 +939,49 @@ alipf_linear( vrna_fold_compound_t *vc){
   /* array initialization ; qb,qm,q
      qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
 
-  for (d=0; d<=turn; d++)
-    for (i=1; i<=n-d; i++) {
-      j=i+d;
-      ij = my_iindx[i]-j;
-      if(hc->up_ext[i] > d){
-        q[ij]=1.0*scale[d+1];
-        if(sc)
-          for(s = 0; s < n_seq; s++)
-            if(sc[s]){
+  for (d = 0; d <= turn; d++)
+    for (i = 1; i <= n - d; i++) {
+      j         = i + d;
+      ij        = my_iindx[i]-j;
+      eval_loop = (hc_up_ext[i] > d) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if (hc_f)
+        eval_loop = (hc_f(i, j, i, j, VRNA_DECOMP_EXT_UP, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if (eval_loop) {
+        q[ij] = 1.0 * scale[d + 1];
+        if (sc)
+          for (s = 0; s < n_seq; s++)
+            if (sc[s]) {
               int u = d + 1 /* a2s[s][j] - a2s[s][i] + 1 */;
-              if(sc[s]->exp_energy_up)
+              if (sc[s]->exp_energy_up)
                 q[ij] *= sc[s]->exp_energy_up[a2s[s][i]][u];
             }
+      } else {
+        q[ij] = 0.;
       }
-      qb[ij]=qm[ij]=0.0;
+
+      qb[ij] = qm[ij] = 0.0;
     }
 
-  for (i=1; i<=n; i++)
-    qq[i]=qq1[i]=qqm[i]=qqm1[i]=0;
-
-  for (j=turn+2;j<=n; j++) {
-    for (i=j-turn-1; i>=1; i--) {
+  for (j = turn + 2; j <= n; j++) {
+    for (i = j - turn - 1; i >= 1; i--) {
       int psc;
       /* construction of partition function for segment i,j */
       /* calculate pf given that i and j pair: qb(i,j)      */
       ij  = my_iindx[i] - j;
       jij = jindx[j] + i;
 
-      for (s=0; s<n_seq; s++) {
+      for (s = 0; s < n_seq; s++) {
         type[s] = md->pair[S[s][i]][S[s][j]];
-        if (type[s]==0) type[s]=7;
+        if (type[s] == 0)
+          type[s]=7;
       }
 
       psc   = pscore[jij];
       qbt1  = 0.;
 
-      if(hard_constraints[jij]){
+      if (hard_constraints[jij]) {
         /* process hairpin loop(s) */
         qbt1 += vrna_exp_E_hp_loop(vc, i, j);
         /* process interior loop(s) */
@@ -984,86 +998,130 @@ alipf_linear( vrna_fold_compound_t *vc){
          contributions to multiple loop partition function
          from segment i,j */
       qqm[i] = 0.;
-      if(hc->up_ml[i]){
+
+      eval_loop = (hc_up_ml[j] > 0) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if (hc_f)
+        eval_loop = (hc_f(i, j, i, j - 1, VRNA_DECOMP_EXT_EXT, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if (eval_loop) {
         temp = qqm1[i] * expMLbase[1]; /* expMLbase[1]^n_seq */
-        if(sc)
-          for(s = 0; s < n_seq; s++){
-            if(sc[s]){
-              if(sc[s]->exp_energy_up)
-                temp *= sc[s]->exp_energy_up[a2s[s][i]][1];
+        if (sc)
+          for (s = 0; s < n_seq; s++) {
+            if (sc[s]) {
+              if (sc[s]->exp_energy_up)
+                temp *= sc[s]->exp_energy_up[a2s[s][j]][1];
             }
           }
         qqm[i] += temp;
       }
-      if(hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC){
-        for (qbt1=1, s=0; s<n_seq; s++) {
-          qbt1 *= exp_E_MLstem(type[s], (i>1) || circular ? S5[s][i] : -1, (j<n) || circular ? S3[s][j] : -1, pf_params);
+
+      eval_loop = (hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if (hc_f)
+        eval_loop = (hc_f(i, j, i, j, VRNA_DECOMP_ML_STEM, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if (eval_loop) {
+        for (qbt1 = 1., s = 0; s < n_seq; s++) {
+          qbt1 *= exp_E_MLstem(type[s], ((i > 1) || circular) ? S5[s][i] : -1, ((j < n) || circular) ? S3[s][j] : -1, pf_params);
         }
-        qqm[i] += qb[ij]*qbt1;
+        qqm[i] += qb[ij] * qbt1;
       }
 
-      if(qm1)
+      if (qm1)
         qm1[jij] = qqm[i]; /* for circ folding and stochBT */
 
       /* construction of qm matrix containing multiple loop
          partition function contributions from segment i,j */
       temp = 0.0;
-      ii = my_iindx[i];  /* ii-k=[i,k-1] */
-      for (k=i+1; k<=j; k++)
-        temp += qm[ii-(k-1)] * qqm[k];
 
-      for (k=i+1; k<=j; k++){
-        if(hc->up_ml[i] < k - i)
-          break;
-        temp2 = expMLbase[k-i] * qqm[k];
-        if(sc)
-          for(s = 0; s < n_seq; s++){
-            if(sc[s]){
-              if(sc[s]->exp_energy_up)
+      kl = my_iindx[i] - j + 1; /* ii-k=[i,k-1] */
+      for (k = j; k > i; k--, kl++)
+        temp += qm[kl] * qqm[k];
+
+      maxk  = MIN2(i + hc_up_ml[i], j);
+      ii    = maxk - i; /* length of unpaired stretch */
+
+      if (sc) {
+        for (k = maxk; k > i; k--, ii--) {
+          temp2 = expMLbase[ii] * qqm[k];
+          for (s = 0; s < n_seq; s++) {
+            if (sc[s]) {
+              if (sc[s]->exp_energy_up)
                 temp2 *= sc[s]->exp_energy_up[a2s[s][i]][a2s[s][k] - a2s[s][i]];
             }
           }
-        temp += temp2;
+          temp += temp2;
+        }
+      } else {
+        for (k = maxk; k > i; k--, ii--) {
+          temp += expMLbase[ii] * qqm[k];
+        }
       }
+
       qm[ij] = (temp + qqm[i]);
 
       /* auxiliary matrix qq for cubic order q calculation below */
       qbt1 = 0.;
-      if((qb[ij] > 0) && (hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)){
-        qbt1 = qb[ij];
-        for (s=0; s<n_seq; s++) {
-          qbt1 *= exp_E_ExtLoop(type[s], (i>1) || circular ? S5[s][i] : -1, (j<n) || circular ? S3[s][j] : -1, pf_params);
-        }
-      }
-      if(hc->up_ext[i]){
-        temp = qq1[i]*scale[1];
-        if(sc)
-          for(s = 0; s < n_seq; s++){
-            if(sc[s]){
-              if(sc[s]->exp_energy_up)
-                temp *= sc[s]->exp_energy_up[a2s[s][i]][1];
+
+      eval_loop = (hc_up_ext[j]) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if (hc_f)
+        eval_loop = (hc_f(i, j, i, j, VRNA_DECOMP_EXT_EXT, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if (eval_loop) {/* all exterior loop parts [i, j] with exactly one stem (i, u) i < u < j */
+        temp = qq1[i] * scale[1];
+        if (sc)
+          for (s = 0; s < n_seq; s++) {
+            if (sc[s]) {
+              if (sc[s]->exp_energy_up)
+                temp *= sc[s]->exp_energy_up[a2s[s][j]][1];
             }
           }
         qbt1 += temp;
       }
+
+      eval_loop = (hard_constraints[jij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if (hc_f)
+        eval_loop = (hc_f(i, j, i, j, VRNA_DECOMP_EXT_STEM, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if (eval_loop) { /* exterior loop part with stem (i, j) */
+        temp = qb[ij];
+        for (s = 0; s < n_seq; s++) {
+          temp *= exp_E_ExtLoop(type[s], ((i>1) || circular) ? S5[s][i] : -1, ((j<n) || circular) ? S3[s][j] : -1, pf_params);
+        }
+        qbt1 += temp;
+      }
+
       qq[i] = qbt1;
 
       /* construction of partition function for segment i,j */
       temp = qq[i];
-      if(hc->up_ext[i] >= j - i + 1){
-        temp2 = 1.0 * scale[j - i + 1];
-        if(sc)
-          for(s = 0; s < n_seq; s++){
-            if(sc[s]){
-              if(sc[s]->exp_energy_up)
+
+      /* the entire stretch [i,j] is unpaired */
+      u = j - i + 1;
+
+      eval_loop = (hc_up_ext[i] >= u) ? (char)1 : (char)0;
+#ifdef WITH_GEN_HC
+      if (hc_f)
+        eval_loop = (hc_f(i, j, i, j, VRNA_DECOMP_EXT_UP, vc->hc->data)) ? eval_loop : (char)0;
+#endif
+      if (eval_loop) {
+        temp2 = 1.0 * scale[u];
+        if (sc)
+          for (s = 0; s < n_seq; s++) {
+            if (sc[s]) {
+              if (sc[s]->exp_energy_up)
                 temp2 *= sc[s]->exp_energy_up[a2s[s][i]][a2s[s][j] - a2s[s][i] + 1];
             }
           }
         temp += temp2;
       }
 
-      for(k = i; k <= j - 1; k++)
-        temp += q[ii - k] * qq[k + 1];
+      kl = my_iindx[i] - i;
+      for (k = i; k < j; k++, kl--)
+        temp += q[kl] * qq[k + 1];
 
       q[ij] = temp;
 
