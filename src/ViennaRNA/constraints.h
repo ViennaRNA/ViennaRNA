@@ -180,6 +180,22 @@
 #define VRNA_DECOMP_ML_COAXIAL  13
 
 /**
+ *  @brief  Indicator for decomposition of multibranch loop part
+ *
+ *  @ingroup  constraints
+ *
+ *  @details This flag notifies the soft or hard constraint callback function that the current
+ *  decomposition step evaluates a multibranch loop part in the interval @f$[i:j]@f$,
+ *  where two stems with enclosing pairs @f$(i,k)@f$ and @f$(l,j)@f$ are coaxially stacking
+ *  onto each other.
+ *
+ *  @image html   decomp_ml_coaxial.svg
+ *  @image latex  decomp_ml_coaxial.eps
+ *
+ */
+#define VRNA_DECOMP_ML_COAXIAL_ENC  22
+
+/**
  *  @brief  Indicator for decomposition of exterior loop part
  *
  *  @ingroup  constraints

@@ -24,6 +24,21 @@
  */
 
 /**
+ *  @brief  Auxiliary helper arrays for fast exterior loop computations
+ *
+ *  @see vrna_exp_E_ml_fast_init(), vrna_exp_E_ml_fast_rotate(),
+ *  vrna_exp_E_ml_fast_free(), vrna_exp_E_ml_fast()
+ */
+typedef struct {
+  FLT_OR_DBL  *qqm;
+  FLT_OR_DBL  *qqm1;
+
+  int         qqmu_size;
+  FLT_OR_DBL  **qqmu;
+} vrna_mx_pf_aux_ml_t;
+
+
+/**
  *  @def E_MLstem(A,B,C,D)
  *  <H2>Compute the Energy contribution of a Multiloop stem</H2>
  *  This definition is a wrapper for the E_Stem() funtion.
@@ -123,6 +138,25 @@ vrna_exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
                     FLT_OR_DBL *qqm1);
 
 
+vrna_mx_pf_aux_ml_t *
+vrna_exp_E_ml_fast_init(vrna_fold_compound_t *vc);
+
+
+void
+vrna_exp_E_ml_fast_rotate(vrna_fold_compound_t  *vc,
+                          vrna_mx_pf_aux_ml_t   *aux_mx);
+
+
+void
+vrna_exp_E_ml_fast_free(vrna_fold_compound_t  *vc,
+                          vrna_mx_pf_aux_ml_t *aux_mx);
+
+
+FLT_OR_DBL
+vrna_exp_E_ml_fast(vrna_fold_compound_t *vc,
+                   int                  i,
+                   int                  j,
+                   vrna_mx_pf_aux_ml_t  *aux_mx);
 
 /*
 #################################

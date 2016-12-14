@@ -9,4 +9,4 @@ Version: @PACKAGE_VERSION@
 URL: @PACKAGE_URL@
 Libs: -L${libdir} -lRNA @LIBGOMPFLAG@ @GSL_LIBS@
 Libs.private: -lm
-Cflags: -I${includedir} -I${includedir}/ViennaRNA @GENERIC_HC_DEF@ @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@ @DISABLE_C11_FEATURES@
+Cflags: -I${includedir} -I${includedir}/ViennaRNA @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@ @DISABLE_C11_FEATURES@

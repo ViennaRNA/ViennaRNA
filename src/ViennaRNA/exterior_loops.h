@@ -17,6 +17,21 @@
  */
 
 /**
+ *  @brief  Auxiliary helper arrays for fast exterior loop computations
+ *
+ *  @see vrna_exp_E_ext_fast_init(), vrna_exp_E_ext_fast_rotate(),
+ *  vrna_exp_E_ext_fast_free(), vrna_exp_E_ext_fast()
+ */
+typedef struct {
+  FLT_OR_DBL  *qq;
+  FLT_OR_DBL  *qq1;
+
+  int         qqu_size;
+  FLT_OR_DBL  **qqu;
+} vrna_mx_pf_aux_el_t;
+
+
+/**
  *  <H2>Compute the Energy contribution of an Exterior loop stem</H2>
  *  This definition is a wrapper for the E_Stem() function.
  *  It is substituted by an E_Stem() function call with argument
@@ -130,6 +145,27 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
                     int *j,
                     vrna_bp_stack_t *bp_stack,
                     int *stack_count);
+
+
+vrna_mx_pf_aux_el_t *
+vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc);
+
+
+void
+vrna_exp_E_ext_fast_rotate( vrna_fold_compound_t  *vc,
+                            vrna_mx_pf_aux_el_t   *aux_mx);
+
+
+void
+vrna_exp_E_ext_fast_free( vrna_fold_compound_t  *vc,
+                          vrna_mx_pf_aux_el_t   *aux_mx);
+
+
+FLT_OR_DBL
+vrna_exp_E_ext_fast(vrna_fold_compound_t  *vc,
+                    int                   i,
+                    int                   j,
+                    vrna_mx_pf_aux_el_t   *aux_mx);
 
 /**
  * @}

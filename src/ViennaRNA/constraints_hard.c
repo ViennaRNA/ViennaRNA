@@ -402,15 +402,14 @@ vrna_hc_free(vrna_hc_t *hc){
   }
 }
 
-#ifdef WITH_GEN_HC
 
 PUBLIC void
 vrna_hc_add_f(vrna_fold_compound_t *vc,
-              vrna_callback_hc_evaluate *f){
-
-  if(vc && f){
-    if(vc->type == VRNA_FC_TYPE_SINGLE){
-      if(!vc->hc)
+              vrna_callback_hc_evaluate *f)
+{
+  if (vc && f) {
+    if (vc->type == VRNA_FC_TYPE_SINGLE) {
+      if (!vc->hc)
         vrna_hc_init(vc);
 
       vc->hc->f = f;
@@ -418,14 +417,15 @@ vrna_hc_add_f(vrna_fold_compound_t *vc,
   }
 }
 
+
 PUBLIC void
 vrna_hc_add_data( vrna_fold_compound_t *vc,
                   void *data,
-                  vrna_callback_free_auxdata *f){
-
-  if(vc && data){
-    if(vc->type == VRNA_FC_TYPE_SINGLE){
-      if(!vc->hc)
+                  vrna_callback_free_auxdata *f)
+{
+  if (vc && data) {
+    if (vc->type == VRNA_FC_TYPE_SINGLE) {
+      if (!vc->hc)
         vrna_hc_init(vc);
 
       vc->hc->data        = data;
@@ -434,7 +434,6 @@ vrna_hc_add_data( vrna_fold_compound_t *vc,
   }
 }
 
-#endif
 
 PUBLIC  int
 vrna_hc_add_from_db(vrna_fold_compound_t *vc,
@@ -470,9 +469,6 @@ vrna_hc_add_from_db(vrna_fold_compound_t *vc,
 
   return ret;
 }
-
-
-
 
 
 PRIVATE void

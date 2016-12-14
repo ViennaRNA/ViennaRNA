@@ -156,18 +156,6 @@ can do that by adding the following switch to the configure script:
 @endverbatim
 
 
-@subsection config_generic_hc   Generic Hard Constraints
-
-The new constraints framework also implements first steps for generic hard constraints. However, this feature is deactivated by
-default due to performance reasons. Most users do not need this advanced feature since it is only accessible through the RNAlib
-C-library. If you want to develop third-party programs that link against RNAlib and make use of this feature, you need to enable
-it using by adding the following configure switch:
-
-@verbatim
-./configure --enable-gen-hard-constraints
-@endverbatim
-
-
 @subsection config_svm  SVM Z-score filter in RNALfold
 
 By default, RNALfold that comes with the ViennaRNA Package allows for z-score filtering of its predicted results using a support
@@ -278,10 +266,6 @@ whenever the header files have been installed into a non-standard directory.
 On the other hand, if you've compiled @em RNAlib with some non-default settings then you probably need to define
 some additional pre-processor macros:
 
-- @em WITH_GEN_HC @f$\ldots@f$ Enable the generic hard constraints API.
-                  @warning This directive should be added to your pre-processor/compile flags only if @em RNAlib was
-                  build with the @em --enable-gen-hard-constraints configure option.
-                  @see @ref config_generic_hc and @ref hard_constraints
 - @em VRNA_DISABLE_C11_FEATURES @f$\ldots@f$ Disable C11/C++11 features.
                   @warning Add this directive to your pre-processor/compile flags only if @em RNAlib was build with
                   the @em --disable-c11 configure option.
