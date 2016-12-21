@@ -245,7 +245,7 @@ int main(int argc, char *argv[]){
     ########################################################
     */
 
-    if (length >= 5){
+    if (length > 0) {
       /* construct output file names */
       char fname1[FILENAME_MAX_LENGTH], fname2[FILENAME_MAX_LENGTH], fname3[FILENAME_MAX_LENGTH], fname4[FILENAME_MAX_LENGTH], fname_t[FILENAME_MAX_LENGTH];
 

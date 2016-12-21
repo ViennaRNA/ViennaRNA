@@ -257,8 +257,40 @@ PUBLIC plist *pfl_fold_par( char *sequence,
   dpp = *dpp2;
   if(dpp !=NULL)  do_dpp=1;
 
+  /*here, I allocate memory for pU, if has to be saved, I allocate all in one go,
+    if pU is put out and freed, I only allocate what I really need*/
+
   n = (int) strlen(sequence);
-  if (n<TURN+2) return 0;
+
+  /* allocate memory and initialize unpaired probabilities */
+  if (ulength > 0) {
+    if (pUoutput) {
+      for (i = 1; i <= ulength; i++)
+        pU[i] = (double *)vrna_alloc((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+    }
+    else {
+      for (i = 1; i <= n; i++)
+        pU[i]=(double *)vrna_alloc((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
+    }
+  }
+
+  if (n < TURN + 2) {
+    if (ulength > 0) {
+      if (pUoutput) {
+        for (i = 1; i <= ulength; i++) {
+          for (j = 0; j < MAX2(MAXLOOP,ulength) + 1; j++)
+            pU[i][j] = 1.;
+        }
+      }
+      else {
+        for (i = 1; i <= n; i++) {
+          for (j = 0; j < MAX2(MAXLOOP,ulength) + 1; j++)
+            pU[i][j] = 1.;
+        }
+      }
+    }
+    return pl;
+  }
 
   /* always init everything since all global static variables are uninitialized when entering a thread */
   init_partfunc_L(n, parameters);
@@ -273,18 +305,6 @@ PUBLIC plist *pfl_fold_par( char *sequence,
   S1  = encode_sequence(sequence, 1);
 
   /*  make_ptypes(S, structure); das machmadochlieber lokal, ey!*/
-
-  /*here, I allocate memory for pU, if has to be saved, I allocate all in one go,
-    if pU is put out and freed, I only allocate what I really need*/
-
-  if (ulength>0){
-    if (pUoutput) {
-      for (i=1; i<=ulength; i++) pU[i]=(double *)vrna_alloc((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
-    }
-    else {
-      for (i=1; i<=n; i++) pU[i]=(double *)vrna_alloc((MAX2(MAXLOOP,ulength)+2)*sizeof(double));
-     }
-  }
 
   /*array initialization ; qb,qm,q
     qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
