@@ -2540,11 +2540,10 @@ vrna_exp_E_ml_fast_init(vrna_fold_compound_t *vc)
   vrna_mx_pf_aux_ml_t *aux_mx = NULL;
 
   if (vc) {
-    unsigned int  n, u;
-    int           i, j, d, turn, ij, *iidx;
-    FLT_OR_DBL    *qm;
+    int         i, j, d, n, u, turn, ij, *iidx;
+    FLT_OR_DBL  *qm;
 
-    n     = vc->length;
+    n     = (int)vc->length;
     iidx  = vc->iindx;
     turn  = vc->exp_params->model_details.min_loop_size;
     qm    = vc->exp_matrices->qm;
@@ -2576,9 +2575,13 @@ vrna_exp_E_ml_fast_init(vrna_fold_compound_t *vc)
 
     for (d = 0; d <= turn; d++)
       for (i = 1; i <= n - d; i++) {
-        j       = i + d;
-        ij      = iidx[i] - j;
-        qm[ij]  = 0.;
+        j   = i + d;
+        ij  = iidx[i] - j;
+
+        if (j > n)
+          continue;
+
+        qm[ij] = 0.;
       }
   }
 

@@ -1248,13 +1248,13 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
 
   if (vc) {
     char                      *hc;
-    unsigned int              n, u, s;
-    int                       i, j, d, turn, ij, *idx, *iidx, *hc_up;
+    unsigned int              u, s;
+    int                       i, j, d, n, turn, ij, *idx, *iidx, *hc_up;
     FLT_OR_DBL                *q, *scale;
     vrna_callback_hc_evaluate *evaluate;
     struct default_data       hc_dat_local;
 
-    n     = vc->length;
+    n     = (int)vc->length;
     idx   = vc->jindx;
     iidx  = vc->iindx;
     turn  = vc->exp_params->model_details.min_loop_size;
@@ -1307,6 +1307,10 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
         for (i = 1; i <= n - d; i++) {
           j   = i + d;
           ij  = iidx[i] - j;
+
+          if (j > n)
+            continue;
+
           if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_UP, &hc_dat_local)) {
             q[ij] = 1.0 * scale[d + 1];
 
