@@ -1,3 +1,6 @@
+#ifndef VIENNA_RNA_PACKAGE_PAIR_MAT_H
+#define VIENNA_RNA_PACKAGE_PAIR_MAT_H
+
 #include <ctype.h>
 #include <ViennaRNA/utils.h>
 #include <ViennaRNA/fold_vars.h>
@@ -146,3 +149,5 @@ static short *encode_sequence(const char *sequence, short how){
 
   return S;
 }
+
+#endif /* VIENNA_RNA_PACKAGE_PAIR_MAT_H */
