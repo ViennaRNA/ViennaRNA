@@ -570,8 +570,11 @@ main(int  argc,
         e_mean += vrna_fold(seq, NULL);
         free(seq);
       }
-      e_mean  /= i;
-      sci     /= e_mean;
+      e_mean /= i;
+      if (e_mean == 0.)
+        sci = 0.;
+      else
+        sci /= e_mean;
     }
 
     print_fasta_header(stdout, MSA_ID);
