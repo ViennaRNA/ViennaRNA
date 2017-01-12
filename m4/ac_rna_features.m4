@@ -294,3 +294,67 @@ AC_DEFUN([RNA_ENABLE_COLORED_TTY],[
 ])
 
 
+#
+# Statically linked executables
+#
+
+AC_DEFUN([RNA_ENABLE_STATIC_BIN],[
+
+  RNA_ADD_FEATURE([static_executables],
+                  [Produce statically linked executable binaries],
+                  [no])
+
+  ## Check whether necessary static libraries are present
+  RNA_FEATURE_IF_ENABLED([static_executables],[
+    SAVED_LDFLAGS=$LDFLAGS
+    LDFLAGS="$LDFLAGS -static"
+
+    AC_MSG_NOTICE([Checking possiblity to build statically linked executables using C compiler])
+    AC_LANG_PUSH([C])
+
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[ #include <math.h>
+                                      int main (void) { return (int)log(1.);} ]])],
+                                      [],
+                                      [ AC_MSG_ERROR([[
+############################################
+Failed to statically link C program
+
+Please make sure that static variants for
+all libraries that are about to be linked
+into the executables are present!
+############################################]]) ],
+                                      [enable_static_executables=no])
+
+    AC_LANG_POP([C])
+    AC_MSG_NOTICE([Building statically linked C executables seems to work fine])
+    LDFLAGS=$SAVED_LDFLAGS
+  ])
+
+  RNA_FEATURE_IF_ENABLED([static_executables],[
+    SAVED_LDFLAGS=$LDFLAGS
+    LDFLAGS="$LDFLAGS -static -lstdc++"
+
+    AC_MSG_NOTICE([Checking possiblity to build statically linked executables using C++ compiler])
+    AC_LANG_PUSH([C++])
+
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[ int main (void) { return 0;} ]])],
+                                      [],
+                                      [ AC_MSG_ERROR([[
+############################################
+Failed to statically link C++ program
+
+Please make sure that static variants for
+all libraries that are about to be linked
+into the executables are present!
+############################################]]) ],
+                                      [enable_static_executables=no])
+
+    AC_LANG_POP([C++])
+    AC_MSG_NOTICE([Building statically linked C++ executables seems to work fine])
+
+    LDFLAGS=$SAVED_LDFLAGS
+  ])
+
+  AM_CONDITIONAL(WITH_STATIC_EXECUTABLES, test "x$enable_static_executables" = "xyes")
+])
+

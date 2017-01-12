@@ -11,6 +11,10 @@ AM_CXXFLAGS = $(RNA_CXXFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src
 AM_LDFLAGS = $(RNA_LDFLAGS)
 
+if WITH_STATIC_EXECUTABLES
+AM_LDFLAGS += -all-static
+endif
+
 GENGETOPT_CMDL =  ct2db_cmdl.c ct2db_cmdl.h
 
 GENGETOPT_FILES =  ct2db.ggo
