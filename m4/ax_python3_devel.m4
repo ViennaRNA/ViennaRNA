@@ -5,10 +5,14 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
     if test -z "$PYTHON3" ; then
       AC_PATH_PROGS([PYTHON3], [python3 python35 python3.5 python34 python3.4 python33 python3.3], [no])
     fi
-    AC_ARG_VAR(PYTHON3, [Path to Python3 interpreter])
+    AC_ARG_VAR(PYTHON3, [Path to Python3 interpreter (e.g.: /usr/bin/python3)])
 
     if test "${PYTHON3}" != "no" ; then
-      AC_PATH_PROGS([PYTHON3_CONFIG], [python3-config python35-config python3.5-config python34-config python3.4-config python33-config python3.3-config], [no])
+      if test -z "${PYTHON3_CONFIG}" ; then
+        AC_PATH_PROGS([PYTHON3_CONFIG], [python3-config python35-config python3.5-config python34-config python3.4-config python33-config python3.3-config], [no])
+      fi
+      AC_ARG_VAR(PYTHON3_CONFIG, [Path to Python3 config tool (e.g.: /usr/bin/python3-config)])
+
       if test "$PYTHON3_CONFIG" = "no"
       then
         AC_MSG_WARN([

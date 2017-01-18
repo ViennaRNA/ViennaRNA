@@ -778,13 +778,15 @@ PS_dot_plot_turn( char *seq,
   fprintf(wastl,"%%start of base pair probability data\n");
   /* print boxes */
   i=0;
-  while (pl[i].j>0) {
-    fprintf(wastl,"%d %d %1.4f ubox\n",
-            pl[i].i, pl[i].j, sqrt(pl[i].p));
-    i++;
+  if (pl) {
+    while (pl[i].j>0) {
+      fprintf(wastl,"%d %d %1.4f ubox\n",
+              pl[i].i, pl[i].j, sqrt(pl[i].p));
+      i++;
+    }
   }
 
-   EPS_footer(wastl);
+  EPS_footer(wastl);
 
   fclose(wastl);
   return 1; /* success */

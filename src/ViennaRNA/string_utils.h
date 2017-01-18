@@ -25,6 +25,7 @@
  *  @ingroup   string_utils
  */
 
+#include <stdarg.h>
 #include <ViennaRNA/data_structures.h>
 
 /**

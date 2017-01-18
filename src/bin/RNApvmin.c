@@ -1,4 +1,3 @@
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -26,30 +25,37 @@
 #include <omp.h>
 #endif
 
-static size_t g_length = 0;
+static size_t     g_length    = 0;
 static const char *g_statpath = 0;
 static const char *g_sequence = 0;
 
-static void print_perturbation_vector(FILE *f, double *epsilon)
+static void
+print_perturbation_vector(FILE    *f,
+                          double  *epsilon)
 {
   size_t i;
-  for(i = 1; i <= g_length; ++i)
-    fprintf(f, "%zu %c %f\n", i, g_sequence[i-1], epsilon[i]);
+
+  for (i = 1; i <= g_length; ++i)
+    fprintf(f, "%zu %c %f\n", i, g_sequence[i - 1], epsilon[i]);
 }
 
-static void print_progress(int iteration, double score, double *epsilon)
+
+static void
+print_progress(int    iteration,
+               double score,
+               double *epsilon)
 {
-  FILE *f;
-  char path[256];
+  FILE  *f;
+  char  path[256];
 
   fprintf(stderr, "Iteration: %d\t Score: %f\n", iteration, score);
 
-  if(!g_statpath)
+  if (!g_statpath)
     return;
 
   sprintf(path, "%s_%04d", g_statpath, iteration);
   f = fopen(path, "w");
-  if(!f) {
+  if (!f) {
     vrna_message_warning("Couldn't open file '%s'", path);
     return;
   }
@@ -60,7 +66,11 @@ static void print_progress(int iteration, double score, double *epsilon)
   fclose(f);
 }
 
-static void init_perturbation_vector(double *epsilon, int length, double max_energy)
+
+static void
+init_perturbation_vector(double *epsilon,
+                         int    length,
+                         double max_energy)
 {
   int i;
 
@@ -71,7 +81,11 @@ static void init_perturbation_vector(double *epsilon, int length, double max_ene
     epsilon[i] = max_energy * (vrna_urn() * 2 - 1);
 }
 
-int main(int argc, char *argv[]){
+
+int
+main(int  argc,
+     char *argv[])
+{
   struct RNApvmin_args_info args_info;
   vrna_md_t                 md;
   char                      *rec_id, *rec_sequence, **rec_rest, *shape_sequence;
@@ -92,13 +106,12 @@ int main(int argc, char *argv[]){
   if (RNApvmin_cmdline_parser(argc, argv, &args_info))
     return 1;
 
-  if(args_info.inputs_num != 1){
+  if (args_info.inputs_num != 1) {
     RNApvmin_cmdline_parser_print_help();
     return 1;
   }
 
-  if(args_info.tauSigmaRatio_arg <= 0)
-  {
+  if (args_info.tauSigmaRatio_arg <= 0) {
     vrna_message_warning("invalid value for tauSigmaRatio");
     return 1;
   }
@@ -107,74 +120,84 @@ int main(int argc, char *argv[]){
   set_model_details(&md);
 
   /* set number of threads for parallel computation */
-  if(args_info.numThreads_given)
+  if (args_info.numThreads_given)
 #ifdef _OPENMP
-  omp_set_num_threads(args_info.numThreads_arg);
+    omp_set_num_threads(args_info.numThreads_arg);
+
 #else
-  vrna_message_error("\'j\' option is available only if compiled with OpenMP support!");
+    vrna_message_error("\'j\' option is available only if compiled with OpenMP support!");
 #endif
 
-  if(args_info.paramFile_given)
+  if (args_info.paramFile_given)
     read_parameter_file(args_info.paramFile_arg);
 
-  if(args_info.temp_given)
+  if (args_info.temp_given)
     md.temperature = args_info.temp_arg;
-  if(args_info.noTetra_given)
+
+  if (args_info.noTetra_given)
     md.special_hp = 0;
-  if(args_info.dangles_given){
-    if(args_info.dangles_given > 3)
+
+  if (args_info.dangles_given) {
+    if (args_info.dangles_given > 3)
       vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = args_info.dangles_arg;
   }
-  if(args_info.noLP_given)
-    md.noLP =  1;
-  if(args_info.noGU_given)
+
+  if (args_info.noLP_given)
+    md.noLP = 1;
+
+  if (args_info.noGU_given)
     md.noGU = 1;
-  if(args_info.noClosingGU_given)
+
+  if (args_info.noClosingGU_given)
     md.noGUclosure = 1;
-  if(args_info.energyModel_given)
+
+  if (args_info.energyModel_given)
     md.energy_set = args_info.energyModel_arg;
-  if(args_info.intermediatePath_given)
+
+  if (args_info.intermediatePath_given)
     g_statpath = args_info.intermediatePath_arg;
-  if(args_info.objectiveFunction_arg < 0 || args_info.objectiveFunction_arg > 1)
-  {
+
+  if (args_info.objectiveFunction_arg < 0 || args_info.objectiveFunction_arg > 1) {
     vrna_message_warning("required objective function mode not implemented, falling back to default");
     args_info.objectiveFunction_arg = 0;
   }
-  if(args_info.minimizer_given)
-  {
-    struct {int algorithm; int arg;} mapper[] = {{VRNA_MINIMIZER_CONJUGATE_FR, minimizer_arg_conjugate_fr},
-                                                 {VRNA_MINIMIZER_CONJUGATE_PR, minimizer_arg_conjugate_pr},
-                                                 {VRNA_MINIMIZER_VECTOR_BFGS, minimizer_arg_vector_bfgs},
-                                                 {VRNA_MINIMIZER_VECTOR_BFGS2, minimizer_arg_vector_bfgs2},
-                                                 {VRNA_MINIMIZER_STEEPEST_DESCENT, minimizer_arg_steepest_descent},
-                                                 {0, 0}};
-    for(i = 0; mapper[i].algorithm; ++i)
-      if(args_info.minimizer_arg == mapper[i].arg)
-      {
+
+  if (args_info.minimizer_given) {
+    struct {
+      int algorithm;
+      int arg;
+    } mapper[] = { { VRNA_MINIMIZER_CONJUGATE_FR,     minimizer_arg_conjugate_fr     },
+                   { VRNA_MINIMIZER_CONJUGATE_PR,     minimizer_arg_conjugate_pr     },
+                   { VRNA_MINIMIZER_VECTOR_BFGS,      minimizer_arg_vector_bfgs      },
+                   { VRNA_MINIMIZER_VECTOR_BFGS2,     minimizer_arg_vector_bfgs2     },
+                   { VRNA_MINIMIZER_STEEPEST_DESCENT, minimizer_arg_steepest_descent },
+                   { 0,                               0                              } };
+    for (i = 0; mapper[i].algorithm; ++i)
+      if (args_info.minimizer_arg == mapper[i].arg) {
         algorithm = mapper[i].algorithm;
         break;
       }
   }
 
-  if(args_info.initialStepSize_given)
+  if (args_info.initialStepSize_given)
     initialStepSize = args_info.initialStepSize_arg;
 
-  if(args_info.minStepSize_given)
+  if (args_info.minStepSize_given)
     minStepSize = args_info.minStepSize_arg;
 
-  if(args_info.minImprovement_given)
+  if (args_info.minImprovement_given)
     minImprovement = args_info.minImprovement_arg;
 
-  if(args_info.minimizerTolerance_given)
+  if (args_info.minimizerTolerance_given)
     minimizerTolerance = args_info.minimizerTolerance_arg;
-  if(args_info.pfScale_given)
+
+  if (args_info.pfScale_given)
     md.sfact = args_info.pfScale_arg;
 
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
-  if(istty)
-  {
+  if (istty) {
     vrna_message_input_seq_simple();
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   }
@@ -185,47 +208,49 @@ int main(int argc, char *argv[]){
 
   md.uniq_ML = 1;
 
-  g_sequence = rec_sequence;
-  g_length = length  = strlen(rec_sequence);
+  g_sequence  = rec_sequence;
+  g_length    = length = strlen(rec_sequence);
 
-  shape_sequence = vrna_alloc(sizeof(char) * (length + 1));
-  shape_data = vrna_alloc(sizeof(double) * (length + 1));
+  shape_sequence  = vrna_alloc(sizeof(char) * (length + 1));
+  shape_data      = vrna_alloc(sizeof(double) * (length + 1));
 
-  if(vrna_file_SHAPE_read(args_info.inputs[0], length, -1, shape_sequence, shape_data))
-  {
-    double *epsilon;
-    vrna_fold_compound_t *vc;
+  if (vrna_file_SHAPE_read(args_info.inputs[0], length, -1, shape_sequence, shape_data)) {
+    double                *epsilon;
+    vrna_fold_compound_t  *vc;
 
-    double mfe;
-    double tau = 0.01;
-    if(args_info.tauSigmaRatio_arg >= 10.)
+    double                mfe;
+    double                tau = 0.01;
+    if (args_info.tauSigmaRatio_arg >= 10.)
       tau *= 10;
-    if(args_info.tauSigmaRatio_arg >= 100.)
+
+    if (args_info.tauSigmaRatio_arg >= 100.)
       tau *= 10;
-    if(args_info.tauSigmaRatio_arg >= 1000.)
+
+    if (args_info.tauSigmaRatio_arg >= 1000.)
       tau *= 10;
+
     double sigma = tau / args_info.tauSigmaRatio_arg;
 
     vrna_sc_SHAPE_to_pr(args_info.shapeConversion_arg, shape_data, length, -1);
 
-    vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+    vc  = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
     mfe = (double)vrna_mfe(vc, NULL);
     vrna_exp_params_rescale(vc, &mfe);
 
     epsilon = vrna_alloc(sizeof(double) * (length + 1));
     init_perturbation_vector(epsilon, length, args_info.initialVector_arg);
     vrna_sc_minimize_pertubation(vc,
-                                  shape_data,
-                                  args_info.objectiveFunction_arg,
-                                  sigma, tau,
-                                  algorithm,
-                                  args_info.sampleSize_arg,
-                                  epsilon,
-                                  initialStepSize,
-                                  minStepSize,
-                                  minImprovement,
-                                  minimizerTolerance,
-                                  print_progress);
+                                 shape_data,
+                                 args_info.objectiveFunction_arg,
+                                 sigma, tau,
+                                 algorithm,
+                                 args_info.sampleSize_arg,
+                                 epsilon,
+                                 initialStepSize,
+                                 minStepSize,
+                                 minImprovement,
+                                 minimizerTolerance,
+                                 print_progress);
 
     vrna_fold_compound_free(vc);
 
@@ -239,11 +264,11 @@ int main(int argc, char *argv[]){
 
   free(rec_sequence);
   free(rec_id);
-  for(i = 0; rec_rest[i]; ++i)
+  for (i = 0; rec_rest[i]; ++i)
     free(rec_rest[i]);
   free(rec_rest);
 
-  RNApvmin_cmdline_parser_free (&args_info);
+  RNApvmin_cmdline_parser_free(&args_info);
 
   return 0;
 }

@@ -92,6 +92,7 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc){
     free(vc->jindx);
     free(vc->params);
     free(vc->exp_params);
+    free(vc->strand_number);
     vrna_hc_free(vc->hc);
     vrna_ud_remove(vc);
 
@@ -507,7 +508,7 @@ set_fold_compound(vrna_fold_compound_t *vc,
 
 
   char *sequence, **sequences;
-  unsigned int        length, s;
+  unsigned int        length, s, i;
   int                 cp;                     /* cut point for cofold */
   char                *seq, *seq2;
 
@@ -524,6 +525,7 @@ set_fold_compound(vrna_fold_compound_t *vc,
   vc->auxdata       = NULL;
   vc->free_auxdata  = NULL;
 
+  vc->strand_number = NULL;
   vc->domains_struc = NULL;
   vc->domains_up    = NULL;
   vc->aux_grammar   = NULL;
@@ -545,6 +547,15 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   vc->length              = length = strlen(seq);
                                   vc->sequence_encoding   = vrna_seq_encode(seq, md_p);
                                   vc->sequence_encoding2  = vrna_seq_encode_simple(seq, md_p);
+
+                                  vc->strand_number       = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->length + 1));
+                                  if (cp > 0)
+                                    for (s = i = 0; i <= vc->length; i++) {
+                                      if (i == vc->cutpoint)
+                                        s++;
+                                      vc->strand_number[i] = s;
+                                    }
+
                                   if(!(options & VRNA_OPTION_EVAL_ONLY)){
                                     vc->ptype               = (aux & WITH_PTYPE) ? vrna_ptypes(vc->sequence_encoding2, md_p) : NULL;
                                     /* backward compatibility ptypes */
@@ -560,6 +571,8 @@ set_fold_compound(vrna_fold_compound_t *vc,
     case VRNA_FC_TYPE_COMPARATIVE:  sequences     = vc->sequences;
 
                                   vc->length    = length = vc->length;
+
+                                  vc->strand_number       = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->length + 1));
 
                                   vc->cons_seq  = consensus((const char **)sequences);
                                   vc->S_cons    = vrna_seq_encode_simple(vc->cons_seq, md_p);

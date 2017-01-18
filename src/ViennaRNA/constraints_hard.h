@@ -489,7 +489,6 @@ void vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
  */
 void vrna_hc_free(vrna_hc_t *hc);
 
-#ifdef WITH_GEN_HC
 
 /**
  *  @brief  Add a function pointer pointer for the generic hard constraint
@@ -513,7 +512,6 @@ void vrna_hc_add_data(vrna_fold_compound_t *vc,
                       void *data,
                       vrna_callback_free_auxdata *f);
 
-#endif
 
 /**
  *  @brief Add hard constraints from pseudo dot-bracket notation

@@ -26,6 +26,7 @@
  */
 
 #include <stdio.h>
+#include <stdarg.h>
 
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/string_utils.h>

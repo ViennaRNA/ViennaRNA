@@ -1,7 +1,11 @@
 AM_CFLAGS = $(RNA_CFLAGS)
 AM_CXXFLAGS = $(RNA_CXXFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src
-AM_LDFLAGS = $(RNA_LDFLAGS)
+AM_LDFLAGS = $(RNA_LDFLAGS) 
+
+if WITH_STATIC_EXECUTABLES
+AM_LDFLAGS += -all-static
+endif
 
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
