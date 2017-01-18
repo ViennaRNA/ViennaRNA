@@ -1,3 +1,17 @@
+v2.3.2
+  * Fix pair probability plist creation with G-Quadruplexes
+  * Allow for specification of python2/3-config at configure time
+  * Fix init of vrna_md_t data structure after call to set_model_details()
+  * Fix bug in consensus partition function with hard constraints that force nucleotides to be paired
+  * Fix compilation of functions that use ellipsis/va_list
+  * Enable generic hard constraints by default
+  * Fix init of partition function DP matrices for unusually short RNAs
+  * Fix behavior of RNAplfold for unusually short RNAs
+  * Report SCI of 0 in RNAalifold when sum of single sequence MFEs is 0
+  * Avoid multiple includes of pair_mat.h
+  * Add configure flag to build entirely static executables
+  
+
 v2.3.1
   * Add description for how to use unstructured domains through command files to reference manual and RNAfold manpage
   * Fix compilation issue for Windows platforms with MingW
