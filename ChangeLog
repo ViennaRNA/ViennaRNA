@@ -1,3 +1,8 @@
+v2.3.3
+  * Fix multiloop contributions for comparative partition function
+  * Fix building python2 extension module for OSX
+
+
 v2.3.2
   * Fix pair probability plist creation with G-Quadruplexes
   * Allow for specification of python2/3-config at configure time

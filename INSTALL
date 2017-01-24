@@ -69,38 +69,33 @@ install readseq manually, following the instructions in the readseq
 directory.
 
 There are man pages for all executables, the library is documented in
-./doc/RNAlib-2.2.0.pdf as well as a set of HTML pages in
+./doc/RNAlib-2.3.3.pdf as well as a set of HTML pages in
 ./doc/html/index.html. Documentation in HTML can also be found at
-http://www.tbi.univie.ac.at/~ivo/RNA/
+http://www.tbi.univie.ac.at/RNA/
 
 
 System specific notes:
 
 MacOS X users:
 
-Depending on your version of gcc (< 4.4 ?) it might be necessary to deactivate
-OpenMP support by passing the option
+Although users will find /usr/bin/gcc and /usr/bin/g++ exectuables in
+their directory tree, these programs are not at all what they pretend
+to be. Instead of including the GNU programs, Apple decided to install
+clang/llvm in disguise. Unfortunately, the default version of clang/llvm
+does not support OpenMP (yet), but only complains at a late stage of the
+build process when this support is required. Therefore, it seems
+necessary to deactivate OpenMP support by passing the option
+--disable-openmp to the ./configure script.
 
---disable-openmp
+Additionally, since MacOS X 10.5 the perl and python installation
+distributed with MacOS X always include so called universal-binaries
+(a.k.a. fat-binaries), i.e. binaries for multiple architecture types.
+In order to compile and link the programs, library, and scripting
+language interfaces of the ViennaRNA Package for multiple architectures,
+we've added a new configure switch that sets up the required changes
+automatically:
 
-to the ./configure script, since the OpenMP support is only partial in earlier
-versions of gcc shipped for MacOS X.
-
-Additionally, since MacOS X 10.5 the perl installation distributed with MacOS X
-seems to always include so called fat-binaries, i.e. binaries for multiple
-architecture types. Although this may be a nice portability feature of MacOS X
-it will break compilation of the perl interface to the RNAlib using default options!
-
-To circumvent the above problems please execute the configure script with at least
-the following options and additional environment variables to turn on multi
-architecture compilation/linking:
-
-./configure --disable-openmp \
-            --disable-dependency-tracking \
-            CFLAGS="-arch i386 -arch x86_64 -O2" \
-            CXXFLAGS="-arch i386 -arch x86_64 -O2"
-
-We have tested and verified the above command under Mac OS X 10.8.4 using Xcode 4.6.2
+./configure --enable-universal-binary
 
 In case it doesn't work for your system, please file a bug report to rna@tbi.univie.ac.at
 
