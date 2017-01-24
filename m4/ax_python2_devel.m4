@@ -38,7 +38,17 @@ that it is installed and its directory is included in the search path.
         AC_MSG_RESULT([$PYTHON2_LIBS])
 
         AC_MSG_CHECKING([for Python2 ldflags])
-        PYTHON2_LDFLAGS=`${PYTHON2_CONFIG} --ldflags 2> /dev/null`
+        case "$host" in
+          # Handle OSX Python extensions differently
+          # see: http://blog.tim-smith.us/2015/09/python-extension-modules-os-x/
+          #
+          *-darwin* | *-macos10*)
+            PYTHON2_LDFLAGS="-bundle -undefined dynamic_lookup"
+            ;;
+          *)
+            PYTHON2_LDFLAGS=`${PYTHON2_CONFIG} --ldflags 2> /dev/null`
+            ;;
+        esac
         AC_SUBST(PYTHON2_LDFLAGS)
         AC_MSG_RESULT([$PYTHON2_LDFLAGS])
 
