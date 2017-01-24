@@ -2943,7 +2943,7 @@ exp_E_ml_fast_comparative(vrna_fold_compound_t  *vc,
       q_temp *= exp_E_MLstem(type, ((i > 1) || circular) ? S5[s][i] : -1, ((j < n) || circular) ? S3[s][j] : -1, pf_params);
     }
 
-    qqm[i] += qbt1;
+    qqm[i] += q_temp;
   }
 
 
