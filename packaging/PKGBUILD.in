@@ -17,7 +17,7 @@ makedepends=( 'perl'
 source=(http://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-${pkgver}.tar.gz)
 
 options=('staticlibs' '!strip')
-sha256sums=('dae281ca6143b4379cccc31aa68ddeecd79e577ecedb881e3d45d28d4ae71d60')
+sha256sums=('cf92c05e54dff32c2135433b6ebaa5330c05de02a1ae8b7c3b7a865d42eea514')
 
 build() {
   cd "${srcdir}/ViennaRNA-${pkgver}"
