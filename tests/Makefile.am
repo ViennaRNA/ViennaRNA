@@ -126,7 +126,9 @@ CHECKMK_FILES = \
               constraints_soft.ts \
               fold.ts \
               utils.ts \
-              eval_structure.ts
+              eval_structure.ts \
+              walk.ts \
+              neighbor.ts
 
 CHECK_CFILES = \
               energy_evaluation.c \
@@ -134,14 +136,18 @@ CHECK_CFILES = \
               constraints_soft.c \
               fold.c \
               utils.c \
-              eval_structure.c
+              eval_structure.c \
+              walk.c \
+              neighbor.c
 
 LIBRARY_TESTS = energy_evaluation \
                 constraints \
                 constraints_soft \
                 fold \
                 utils \
-                eval_structure
+                eval_structure \
+                walk \
+                neighbor
 
 check_PROGRAMS = ${LIBRARY_TESTS}
 

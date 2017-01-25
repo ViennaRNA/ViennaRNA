@@ -129,6 +129,8 @@ pkginclude_HEADERS =  \
     commands.h \
     units.h \
     combinatorics.h \
+    neighbor.h \
+    walk.h \
     ${SVM_UTILS_H} \
     ${SVM_H} \
     ${JSON_H}
@@ -176,6 +178,8 @@ libRNA_conv_la_SOURCES = \
     dp_matrices.c \
     boltzmann_sampling.c \
     equilibrium_probs.c \
+    neighbor.c \
+    walk.c \
     ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC} \
     alphabet.c \
     unstructured_domains.c
