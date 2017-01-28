@@ -905,8 +905,7 @@ exp_E_int_loop(vrna_fold_compound_t *vc,
     if (with_gquad) {
       /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
       if ((!no_close) && (sn[j] == sn[i]))
-        qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, my_iindx, pf_params)
-                * scale[2];
+        qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, scale, my_iindx, pf_params);
     }
 
     if (sc && sc->exp_energy_bp)

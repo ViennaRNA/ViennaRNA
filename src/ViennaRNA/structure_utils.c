@@ -852,7 +852,7 @@ wrap_plist( vrna_fold_compound_t *vc,
             }
             /* check if we've already seen this pair */
             for(k = 0; k < count; k++)
-              if(((pl)[k].i == ptr->i) && ((pl)[k].j == ptr->j))
+              if(((pl)[k].i == ptr->i) && ((pl)[k].j == ptr->j) && ((pl)[k].type == VRNA_PLIST_TYPE_BASEPAIR))
                 break;
             (pl)[k].i      = ptr->i;
             (pl)[k].j      = ptr->j;

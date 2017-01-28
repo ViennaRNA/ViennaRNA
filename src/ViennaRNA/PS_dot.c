@@ -533,7 +533,7 @@ vrna_plot_dp_PS_list( char *seq,
 
   /* sort the plist to bring all gquad triangles to the front */
   for(gq_num = pl_size = 0, pl1 = pl; pl1->i > 0; pl1++, pl_size++)
-    if(pl1->type == 1) gq_num++;
+    if (pl1->type == VRNA_PLIST_TYPE_GQUAD) gq_num++;
   qsort(pl, pl_size, sizeof(plist), sort_plist_by_type_desc);
   /* sort all gquad triangles by probability to bring lower probs to the front */
   qsort(pl, gq_num, sizeof(plist), sort_plist_by_prob_asc);
