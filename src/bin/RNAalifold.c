@@ -769,8 +769,6 @@ main(int  argc,
     ID_number_increase(alignment_number, "Alignment");
 
     (void)fflush(stdout);
-    if (shape_files)
-      free(shape_files);
 
     free(string);
     free(structure);
