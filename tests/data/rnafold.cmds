@@ -1,0 +1,14 @@
+# Add -2.0 kcal/mol per unpaired nucleotide at positions 10-20
+E 10 0 10 -2.0
+
+# Do not allow multibranch loops
+P 1 0 100 Mm
+
+# Force the first 3 nucleotides to be paired
+F 1 0 3
+
+# Ligand motif 'AAA' in all loop types
+UD  AAA   -5.0    A
+
+# Ligand motif 'CCC' in exterior loops
+UD  CCC   -3.0    E

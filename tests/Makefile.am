@@ -12,8 +12,22 @@ TEST_EXTENSIONS = .pl .t .py .py3
 
 if WITH_UNIT_TESTS
 
-AM_TESTS_ENVIRONMENT =  PYTHONPATH='.:${PYTHONPATH}'; \
-                        export PYTHONPATH;
+AM_TESTS_ENVIRONMENT =  \
+## Some environment initializations are kept in a separate shell
+## file 'tests-env.sh', which can make it easier to also run tests
+## from the command line.
+                        . $(builddir)/test-env.sh; \
+## On Solaris, prefer more POSIX-compliant versions of the standard
+## tools by default.
+                        if test -d /usr/xpg4/bin; then \
+                          PATH=/usr/xpg4/bin:$$PATH; export PATH; \
+                        fi;
+
+## With this, the test scripts will be able to print diagnostic
+## messages to the original standard error stream, even if the test
+## driver redirects the stderr of the test scripts to a log file
+## before executing them.
+AM_TESTS_FD_REDIRECT = 9>&2
 
 ######################################
 ## unit tests for Perl5 interface   ##
@@ -54,7 +68,7 @@ perl5/test-RNA-Design.t: $(top_srcdir)/interfaces/Perl/RNA/t/Design.t
 
 endif
 
-######################################
+######################################  
 ## unit tests for Python2 interface ##
 ######################################
 if WITH_PYTHON_TESTS
@@ -130,7 +144,25 @@ check_PROGRAMS = ${LIBRARY_TESTS}
 
 endif
 
-TESTS = ${LIBRARY_TESTS} ${PERL_TESTS} ${PYTHON2_TESTS} ${PYTHON3_TESTS}
+########################################
+## unit tests for executable programs ##
+########################################
+if WITH_EXECUTABLE_TESTS
+
+EXECUTABLE_TESTS  = \
+                  RNAfold/general.sh \
+                  RNAfold/partfunc.sh \
+                  RNAfold/special.sh \
+                  RNAfold/long.sh
+
+endif
+
+TESTS = \
+      ${EXECUTABLE_TESTS} \
+      ${LIBRARY_TESTS} \
+      ${PERL_TESTS} \
+      ${PYTHON2_TESTS} \
+      ${PYTHON3_TESTS}
 
 ## Below are the rules how to create the test suite executables
 ## See checkmk man page for details about *.ts files
@@ -140,10 +172,12 @@ TESTS = ${LIBRARY_TESTS} ${PERL_TESTS} ${PYTHON2_TESTS} ${PYTHON3_TESTS}
 endif
 
 EXTRA_DIST =  data \
+              RNAfold/results \
               ${CHECKMK_FILES} ${CHECK_CFILES} \
               ${PERL_TESTS} \
               ${PYTHON2_TESTS} \
-              ${PYTHON3_TESTS}
+              ${PYTHON3_TESTS} \
+              ${EXECUTABLE_TESTS}
 
 clean-local:
 	-rm -rf ${PERL_TEST_OUTPUT} \

@@ -1,0 +1,461 @@
+>rnafold_cmd_test_0001
+AGACGACAAGGUUGAAUCGCACCCACAGUCUAUGAGUCGGUGACAACAUUACGAAAGGCUGUAAAAUCAAUUAUUCACCACAGGGGGCCCCCGUGUCUAG
+((((.......................)))).......(((((......((((......))))...........)))))(((.(((...))).))).... (-42.80)
+((((.......................))))....,,.(((((....,.,,{.......})}............)))}}(((.(((...))).))).... [-44.63]
+((((.......................)))).......(((((...............................)))))(((.(((...))).))).... {-42.77 d=10.99}
+ud motif 0 detected in centroid structure: (54,56)
+ud motif 0 detected in centroid structure: (64,66)
+((((.......................)))).......(((((........(.(.)....)..(.)........)))))(((.(((...))).))).... {199969.41 MEA=80.65}
+ frequency of mfe structure in ensemble 0.0513778; ensemble diversity 17.52 
+>rnafold_cmd_test_0002
+CCACUCAUUAAGUCCAAAGCUACGAGCGACAUUUCGAUGGGUGCGUCGACUGCGCUUACAGCGGCGGGGUGUAGACGACCUGUGUGAUAAUCUUUAAUAU
+(((((((((.........(((...)))........)))))))).)(((.((((((((.........)))))))).)))...................... (-42.10)
+(((((((((.........(({...})}........)))))))).){((.(((((((,.,.,,,,,}})))}}}}.}}}...................... [-44.00]
+(((((((((.........(((...)))........)))))))).).((.(((((((...........))))))).))....................... {-35.00 d=15.08}
+ud motif 0 detected in centroid structure: (16,18)
+(((((((((......(.)(((...)))........)))))))).)(((.(((((((...........))))))).)))...................... {99969.20 MEA=76.39}
+ frequency of mfe structure in ensemble 0.0461976; ensemble diversity 22.80 
+>rnafold_cmd_test_0003
+UUAGGCAGUCGCCGCUCGUUCGCGUGUAUGCUCCUUUGUCAGUCAGCCUACUAUAGCACUGCUCCAACUGGAUUCGGCAGCGUUCGCAUAGCGUCCUUGC
+(((((((((............((..(((.(((.((.....))..))).)))....))))))).....)))).....((((.(..(((...)))..))))) (-31.80)
+((((((,(,............((..{,,,||,........,,.,})),)),.,.,||,||||{,,..,,)).....||||.|},{({...))}..,.}}} [-34.00]
+....................................................................................(((...)))....... {-21.10 d=23.09}
+((((((...............((......))..............)))))..)..((.((((.((....)).....)))).)).(((...)))....... {-28.20 MEA=65.14}
+ frequency of mfe structure in ensemble 0.0283504; ensemble diversity 30.58 
+>rnafold_cmd_test_0004
+UUUCGAAAGUAAGGCUGAUUUCCGGGGUUUGUCCAAGGUUCCGGUGGGCCCAGCUGGGAUCCUGAUAUUUUGGUUAAAUCGUCAAGAAUAGGAUGACCUA
+(((((.................))))).....(((((((..(((.(..(((....)))..))))..))))))).....(((((........))))).... (-47.20)
+(((((.................)))))...,,(((((((,,(((,{..{{{.,,,))),})))),.)}}}}||.....{((((........))))),,.. [-48.37]
+(((((.................))))).....(((((((..(......(((....))).....)..))))))).....(((((........))))).... {-36.60 d=16.86}
+ud motif 0 detected in centroid structure: (6,8)
+ud motif 0 detected in centroid structure: (76,78)
+((((((.)..............))))).....(((((((..(((.(..(((....)))..))))..)))))))..(.)(((((........))))).... {199963.00 MEA=75.16}
+ frequency of mfe structure in ensemble 0.149833; ensemble diversity 22.55 
+>rnafold_cmd_test_0005
+CAUGCACGCGUUACGACGUCAUAUCUUUGACCACAUUAGCGGUCUAAUAUAACAUGCUCUUAGCUGGAUAAUUCUUUGUCUUCUUGCAGACGGAGCAUAG
+((((................((((....((((.(....).))))..))))..)))).................((((((((......))))))))..... (-30.50)
+((((.................(((.,,.((((.{....}.)))).,).)),.)))).{{{.....}},..,,.((((((((......)))))))).,,.. [-33.16]
+((((........................((((.(....).))))........)))).................((((((((......))))))))..... {-30.94 d=10.11}
+((((.................(((....((((.(....).))))....))).)))).................((((((((......))))))))..... {-30.30 MEA=82.56}
+ frequency of mfe structure in ensemble 0.013462; ensemble diversity 15.22 
+>rnafold_cmd_test_0006
+CACGUAGCCUUUAAAACCUUCUUGCACGCUGCGGACUCCUAGCUAACUUGGCCGGUUCACUAGCCCCCACUACAUUUCCGGCACAGGUCGCCGCGCGUAC
+(((((.((...............))))).))..........((..((((((((((.....(((......))).....))))).))))).))......... (-42.90)
+(((((.((...............))))).)).,,.,.,...{{..((((((((((.....(((......))).....))))).))))).}}.,.,.}... [-44.84]
+(((((.((...............))))).))..............((((((((((.....(((......))).....))))).)))))............ {-41.70 d=5.34}
+ud motif 0 detected in centroid structure: (13,15)
+ud motif 0 detected in centroid structure: (14,16)
+(((((.((.....(.).......))))).))..........((..((((((((((.....(((......))).....))))).))))).))......... {99964.60 MEA=88.85}
+ frequency of mfe structure in ensemble 0.0426041; ensemble diversity 8.76  
+>rnafold_cmd_test_0007
+AACCGAUGCAAUCCUUAUCAGAGGGGGGGAGAUUUCGGUCGGCUAUGAUCCUGGCCGUUAACCAUAAGGUCGCCCCAGAGUCGAGCAAAUCUACGCUACG
+(((((((................((((.((..((..(((((((((......))))))...)))..))..)).))))...)))).)....).)........ (-40.50)
+(((((((................((((.((..((..(((((((((......))))))...)))..})..)).))))...)))).)....).)........ [-41.15]
+(((((((................((((.((..((..(((((((((......))))))...)))..))..)).))))...)))).)....).)........ {-35.50 d=6.28}
+ud motif 0 detected in centroid structure: (87,89)
+(((((((................((((.((..((..(((((((((......))))))...)))..))..)).))))...)))).).(.)).)........ {99965.70 MEA=90.84}
+ frequency of mfe structure in ensemble 0.347947; ensemble diversity 10.56 
+>rnafold_cmd_test_0008
+AUAUAGAUAGUUCCCGCAGCGAUGUCGCGUCCUCAUCCCUAAGGAGGGAAUUCCGGAAUGCCCCACCGCGCGCUGAGAAACAUGCCGGAGUUAGAAGAUA
+((((.................)))).((((((...(((((....))))).....)).))))....(((.(((.((.....))))))))............ (-41.70)
+((((.{.............}.)))).((((((...(((((....))))).....)),,)))....(((.(((.((.....))))))))............ [-43.08]
+((((.(.............).)))).(((.((...(((((....))))).....))..)))....(((.(((.((.....))))))))............ {-35.60 d=4.29}
+ud motif 1 detected in centroid structure: (62,64)
+ud motif 0 detected in centroid structure: (78,80)
+((((.(.............).)))).((((((...(((((....))))).....)).))))(.).(((.(((.((..(.)))))))))............ {199964.80 MEA=92.79}
+ frequency of mfe structure in ensemble 0.106109; ensemble diversity 6.71  
+>rnafold_cmd_test_0009
+AGUUGACUGUAAGAGUGGGACACAUGUUCCGGCUAUAGACUUCCUGACAUUGGGACGCGGCCGUGGUGCGUCGAAAGUCAGUACAUGUCUAAUUUUCUCA
+(((((........................))))).(((((...(((((.....((((((.(...).))))))....))))).....)))))......... (-45.80)
+((((({(,,.............,,.)}..))))).(((((...(((((.....((((((.(...).))))))....))))).....)))))......... [-47.18]
+(((((((..................))..))))).(((((...(((((.....((((((.(...).))))))....))))).....)))))......... {-40.60 d=3.26}
+ud motif 0 detected in centroid structure: (74,76)
+(((((((..................))..))))).(((((...(((((.....((((((.(...).)))))).(.)))))).....)))))......... {99960.60 MEA=93.97}
+ frequency of mfe structure in ensemble 0.106126; ensemble diversity 4.98  
+>rnafold_cmd_test_0010
+UAUUUGCCGCGACAGACUGCUAGGUAGGAGGAGGGAGAUUAACCGAAAAUCUCAAAUUCACUCUCGGGUAUUGGAAUCUCCUCCUGCCCCGGCGUCAAGU
+(((..((((.............((((((((((((..(((...((((.................))))..)))....)))))))))))).)))))).)... (-54.60)
+(((..((((.............((((((((((((..,{,...((((.................))))..),}....)))))))))))).)))))).)... [-55.51]
+(((..((((.............((((((((((((........((((.................)))).........)))))))))))).)))))).)... {-54.20 d=3.09}
+ud motif 0 detected in centroid structure: (47,49)
+ud motif 0 detected in centroid structure: (54,56)
+(((..((((.............((((((((((((........(((((.)....(.).......)))).........)))))))))))).)))))).)... {199955.09 MEA=94.00}
+ frequency of mfe structure in ensemble 0.229259; ensemble diversity 4.56  
+>rnafold_cmd_test_0011
+CCACUGCUCCUUCGUACACUACAUAUAGUUGGGUUCUGGAUGUCAAAGUCGUCAGUCCUCUAGAAGUGUGGUUGAAAGGCCCGAUCGGGGAUUGGUACGC
+(((..((((.....................))))..)))..........(((((((((((..((..((.((((....)))))).))))))))))..))). (-47.10)
+(((..((((.....................))))..)))........,.,{(((((((((..{,..((.((((....)))))}.}})))))))),.,},. [-49.27]
+(((..((((.....................))))..))).............((((((((......((.((((....))))))...))))))))...... {-41.80 d=8.62}
+ud motif 0 detected in centroid structure: (45,47)
+ud motif 0 detected in centroid structure: (75,77)
+(((..((((.....................))))..))).....(.)....(((((((((..(...((.((((.(.)))))))..))))))))))..... {199964.20 MEA=85.61}
+ frequency of mfe structure in ensemble 0.0294678; ensemble diversity 13.65 
+>rnafold_cmd_test_0012
+GUCGUGCAUUUAGUCAGAUCCCCAACGCGGCGCAUUCUUCAACAACACUGCUUGUUCGGCGAUAUGACUUGGAAGUCGUACUCAACCCGCUUUGGAAAAA
+((((((...................))))))..................(((.....)))(((((((((....))))))).))................. (-41.90)
+((((((...................))))))........,{{{{,....,.}))}}.}},({(((((((....))))))).}}................. [-44.39]
+((((((...................))))))...........((........))......(((((((((....))))))).))................. {-30.70 d=8.39}
+ud motif 1 detected in centroid structure: (86,88)
+ud motif 0 detected in centroid structure: (96,98)
+ud motif 0 detected in centroid structure: (97,99)
+((((((...................))))))..........(((........))).....(((((((((....))))))).))..(.)............ {99968.00 MEA=83.39}
+ud motif 0 detected in MEA structure: (96,98)
+ud motif 0 detected in MEA structure: (97,99)
+ frequency of mfe structure in ensemble 0.017669; ensemble diversity 12.90 
+>rnafold_cmd_test_0013
+GUCAGACUGCCAAGCAACCGACUUUGGGAUAACUCUGUGUUAUUCUGAUAUGGGUGAUAGAGGGGUCGAGCUUCAGUUCGACCAACAUUAAUUGAAAAGG
+(((................)))...........(((.((((((((......)))))))).)))((((((((....))))))))................. (-47.50)
+(((................)))..........{{((.((((((((......)))))))).))}((((((((....))))))))................. [-48.88]
+(((................)))............((.((((((((......)))))))).)).((((((((....))))))))................. {-42.00 d=7.53}
+ud motif 0 detected in centroid structure: (95,97)
+ud motif 0 detected in centroid structure: (96,98)
+(((................)))...........(((.((((((((......)))))))).)))((((((((....))))))))............(.).. {99957.50 MEA=86.41}
+ frequency of mfe structure in ensemble 0.106409; ensemble diversity 12.28 
+>rnafold_cmd_test_0014
+CAGAAGCCUCAACUACGCCGAUCGGGAAGAAUCCCCACGUUGCCAAUCCUGUUGAUAGAGCAGCGUUCCAGCCCUCGUAUCUGUAGCGCUUACACUGUGU
+(((((((((...............(((.........((((((((.(((.....))).).))))))))))...............)).))))...)))... (-35.50)
+(((({(({,..........{{..(((..,.......((((((((.(((.....))).).)))))))}}...}})}}),.}},,.,|,||}}...}}),,, [-37.31]
+(((((((................(((..........((((((((.(((.....))).).))))))).....))).............))))...)))... {-32.90 d=14.76}
+((((((((...........(...(((..........((((((((.(((.....))).).))))))).....))).).........).))))...)))... {-31.10 MEA=76.56}
+ frequency of mfe structure in ensemble 0.0528989; ensemble diversity 19.35 
+>rnafold_cmd_test_0015
+CCGUCUGCUUUAAUUAGAUGGCCAGAAGAUAACGCCGUCAUGCAAGCAGGUAGUGCAAAGCGUCCCAGAGGGCGGUCCGUCGAUCCGUGACGACCUAUUU
+(((((...........)))))............(((.((((((..(((.....)))...))))....)).)))((((.((((.....))))))))..... (-43.20)
+(((({{,.........}})))............(((.(({(((..(({.....}))...))))....)).)))(((,{((((.....})))))))..... [-44.78]
+(((((...........)))))............(((.((((((..(((.....)))...))))....)).)))(((.(((((.....))))))))..... {-38.20 d=13.71}
+ud motif 0 detected in centroid structure: (57,59)
+(((((...........)))))............(((.((((((..(((.....)))(.)))))....)).)))(((.(((((.....))))))))..... {99962.50 MEA=80.23}
+ frequency of mfe structure in ensemble 0.0766315; ensemble diversity 20.12 
+>rnafold_cmd_test_0016
+UUCUUCGACGUUCGUCAACGCAGUCACCACCAAUAUUCUAGCACUUUAGUUGGAACCGUUUCUAGCAUGUAUACGGGCCCUUAAUAGAUUUGGAAAGGGG
+(((..((((.......................................)))))))((((.............))))........................ (-31.32)
+(((...{{{..........|.,|.............,|{,,,......))}))))((((..{......}.,.)))).,||,...,,...,}},...}}}. [-33.89]
+(((....((.......................................))..)))((((..(......)...))))........................ {-19.42 d=13.81}
+ud motif 1 detected in centroid structure: (78,80)
+ud motif 0 detected in centroid structure: (94,96)
+(((...(((.......................................))).)))((((..(......)...)))).(.).............(.).... {199977.98 MEA=75.15}
+ frequency of mfe structure in ensemble 0.015496; ensemble diversity 21.15 
+>rnafold_cmd_test_0017
+AAUACUUCACCUUACUCUCUUACACGCAGCAACGCAUGCUUCGUUAAUUUAUGACUAAGAAGACCGCUGGUGCGCCUGUCUUCAUAUGUAGUAGAGUCAC
+(((....................(((.((((.....)))).)))..)))..(((((..(((((((((....)))...))))))...........))))). (-31.70)
+(((....................(((.((((.....)))).))),,)))..(((((..(((((((((....)))...))))))...........))))}. [-32.88]
+(((....................(((.((((.....)))).)))..)))..(((((..(((((((((....)))...))))))...........))))). {-31.70 d=5.94}
+(((....................(((.((((.....)))).)))..)))..(((((..(((((((((....)))...))))))...........))))). {-31.70 MEA=90.11}
+ frequency of mfe structure in ensemble 0.147985; ensemble diversity 9.38  
+>rnafold_cmd_test_0018
+AACAAACCGUCUAUCGUUAGCUCGCCGCCCGCUAGACUUGAGGUCGUAAGGCACCCUGCACUGAUCAGUUUGCAGAUGAUAAUCGGAAUCCGAUAGUUUG
+(((............)))............((.(((((...((((((.(((...)))..)).)))))))))))....(((.(((((...))))).))).. (-33.90)
+(((............)))............{{.,((({...|||}|,..||}...||||{||..,.})},}))},..{{{.(((((...))))).}}}.. [-36.79]
+(((............)))......................................(((............)))...(((.(((((...))))).))).. {-22.50 d=16.45}
+ud motif 0 detected in centroid structure: (4,6)
+ud motif 1 detected in centroid structure: (28,30)
+((((.).........))).........(.)....((((...))))....(.....)((((..........))))...(((.(((((...))))).))).. {199982.30 MEA=70.62}
+ frequency of mfe structure in ensemble 0.00924143; ensemble diversity 24.36 
+>rnafold_cmd_test_0019
+AAAGGUCUGGUGUCCCAGGGUUGAGCGUUUCCUGUCGUUGGCGUAUGCGCAAGUAAUCGGUAUCUCUCCUAUGCGAUUCCUUGCCGUAGAAAAUGACCCU
+(((.(.((...............))).)))....((((.....((((.(((((.(((((..............))))).)))))))))....)))).... (-42.00)
+(((.({(,..............})}).)))...,((({...,.((((.(((((.(((((,{{,.......}},))))).))))))))),...)))).... [-44.48]
+(((.(....................).)))....((((.....((((.(((((.(((((..............))))).)))))))))....)))).... {-31.60 d=7.37}
+ud motif 0 detected in centroid structure: (90,92)
+ud motif 1 detected in centroid structure: (97,99)
+(((.(((...............)).).)))....((((.....((((.(((((.(((((..............))))).))))))))).(.)))))(.). {199968.59 MEA=85.86}
+ frequency of mfe structure in ensemble 0.017858; ensemble diversity 10.71 
+>rnafold_cmd_test_0020
+AAACACGGAUGGCAUUGUAUCACACUAGCGCUGCAAGAUAAUCUUAAAAUCGGGCAUCUCUAGAUGGACAAUGGGAAUCCACAUGGUGAACUUUCAAAAG
+((((((((((.........((.((((((.(.(((..(((.........)))..))).).)))).))))........)))).....)))...)))...... (-39.20)
+((((((((({.........((.((((((.(.(((..(((.........)))..))).).)))).))))........}))).....)))...)))...... [-40.55]
+((((((((((.........((.((((((.(.(((..(((.........)))..))).).)))).))))........)))).....)))...)))...... {-34.20 d=2.54}
+ud motif 0 detected in centroid structure: (46,48)
+ud motif 0 detected in centroid structure: (96,98)
+ud motif 0 detected in centroid structure: (97,99)
+((((((((((.........((.((((((.(.(((..(((......(.))))..))).).)))).))))........)))).....)))...)))...... {99970.30 MEA=93.41}
+ud motif 0 detected in MEA structure: (96,98)
+ud motif 0 detected in MEA structure: (97,99)
+ frequency of mfe structure in ensemble 0.111987; ensemble diversity 4.08  
+>rnafold_cmd_test_0021
+CUGUUACCCACCCGUACUAUUCAUAUCAAGACGGCACGUUGCACUCAAUUUGCUUCAUUUACACAGACUUGAUCACUUGUACCCAGGCCCUUUCUGUCAU
+(((.(((.................((((((.(((((.((((....)))).))))...........).)))))).....)))..))).............. (-29.20)
+(((({,.....................{{{{.((((.((((....)))).)))),,.,,,..})))....,.......,,.................... [-30.98]
+((((............................((((.((((....)))).))))........)))).................................. {-24.21 d=10.40}
+ud motif 1 detected in centroid structure: (88,90)
+((((............................((((.((((....)))).))))........))))...............(.)...(.).......... {199975.88 MEA=82.13}
+ frequency of mfe structure in ensemble 0.0559034; ensemble diversity 16.87 
+>rnafold_cmd_test_0022
+GAAGUAUCAUCCUCGGUACUAAACCACAGCCGAAUAACCAGCCUCUCCUGAACAUCGCGAGAGGAACUAGUUGGGUUUUAGGUUAAUUUCGCUUUGUUCC
+(((((..................((..((((.(((......((((((.(((...))).)))))).....))).))))...))...))))).......... (-41.00)
+(((((..................{{..((((.(({..,...((((((.(((...))).)))))).....))).))))...)),..}}}}},,,,,..... [-42.76]
+(((((..................((..((((.(((......((((((.(((...))).)))))).....))).))))...))...))))).......... {-36.00 d=11.72}
+ud motif 0 detected in centroid structure: (21,23)
+(((((...............(.)((..((((.(((......((((((.(((...))).)))))).....))).))))...))...))))).......... {99962.00 MEA=82.17}
+ frequency of mfe structure in ensemble 0.05714; ensemble diversity 16.42 
+>rnafold_cmd_test_0023
+AGCGUGAUUCUCUAUAAGCGUUCUCGCUAGUAAAGCCAUUCAGCUUGAUCCUUAAGAGACUAUUAGUUCAACUGAUAUGCUAGCGGCUACAUCGCGAGUC
+((((.((..............)).))))......((...((((.((((...((((.......)))).))))))))...))..((((.....))))..... (-40.00)
+((((.((..............)).))))......,,...((((.((((..,,,{{.......},}}.))))))))...||{.((({.....}))).}},. [-42.35]
+((((.((..............)).))))...........((((.((((...................))))))))....(..((((.....))))..).. {-32.20 d=9.94}
+ud motif 0 detected in centroid structure: (32,34)
+((((.((..............)).))))...(.).....((((.((((...................))))))))...((..((((.....))))..)). {99966.10 MEA=82.69}
+ frequency of mfe structure in ensemble 0.0219338; ensemble diversity 15.62 
+>rnafold_cmd_test_0024
+GUCUAGAACCCCCCCGACCCAAAGAUCGAGUUAAAAUUUAUACUCGCACACAGUAGUAUCUAUAAAUACUAUCCCAUCUUGAAAAGCUUAUCGGGCCGAU
+(((....................)))(((((..........)))))......((((((........)))))).....(((((........)))))..... (-49.00)
+(((....................)))(((((..........)))))......((((((........)))))).....,,,,,...,{,..,,})),.... [-50.48]
+(((....................)))(((((..........)))))......((((((........))))))............................ {-39.30 d=5.10}
+ud motif 0 detected in centroid structure: (21,23)
+ud motif 0 detected in centroid structure: (33,35)
+ud motif 0 detected in centroid structure: (34,36)
+ud motif 0 detected in centroid structure: (64,66)
+ud motif 1 detected in centroid structure: (73,75)
+ud motif 0 detected in centroid structure: (83,85)
+(((.................(.))))(((((..(.).....)))))......((((((.....(.)))))))(.).......(.).((.....))..... {499976.19 MEA=87.61}
+ frequency of mfe structure in ensemble 0.0903579; ensemble diversity 7.24  
+>rnafold_cmd_test_0025
+GAACUUCGUAGCUAGCUCUAGUGCCGCGAUGGGAUCGUCUAAUAGAGAUACGAGGGAGUUUGCUCCAACACGUGGCCCGAUUACUCCGUACUCACAUCAC
+(((((((.(................(((((...)))))..............).)))))))...(((.....)))...((.(((...))).))....... (-31.50)
+(((((((.(................(((({...}))))....,.,,,.....).)))))))...{{{.....}))...{{.,,{...}}}.}}....... [-33.76]
+(((((((.(................(((((...)))))..............).)))))))...(((.....)))......................... {-28.40 d=13.94}
+ud motif 1 detected in centroid structure: (76,78)
+(((((((.(................(((((...)))))..............).)))))))...(((.....)))(.).....(...)............ {99975.60 MEA=75.77}
+ frequency of mfe structure in ensemble 0.0255624; ensemble diversity 21.76 
+>rnafold_cmd_test_0026
+AUCUCAGAUUGCCGAACUGUGCUUUAGCUGGGAUCGAUAACCAUUCAAGAAAAGAUUUAAUGUCACCACAAGGUCUGACCACCCGCCGAAUUCUUGAAGA
+(((((((....................))))))).........(((((((...........((((((....)))..)))............))))))).. (-39.10)
+(((((((....................))))))).........(((((((...........((((((....))}.,)))............))))))).. [-40.49]
+(((((((....................))))))).........(((((((...........(((.((....))...)))............))))))).. {-32.90 d=2.87}
+ud motif 0 detected in centroid structure: (51,53)
+(((((((....................))))))).........((((((((.)........((((((....)))..)))............))))))).. {99966.50 MEA=94.59}
+ frequency of mfe structure in ensemble 0.105395; ensemble diversity 4.42  
+>rnafold_cmd_test_0027
+UCCGGGCUUUGUCCAUCUCCGAAAGUCUCAGGAUUUGCCCUGACCCCAUACAGGCCGAGGGGUGGGAUCCUACCUAGACGACCUUGAGAUCAUGAAUUCA
+(((((((.................))))..)))..................(((.((..((((((....))))))...)).)))................ (-44.70)
+(((((((.................)))),.)))..................(((.((..((((((....))))))...)).))),}.,.........,,. [-46.74]
+(((.(((.................)))...)))..................(((.((..((((((....))))))...)).)))................ {-37.60 d=7.93}
+ud motif 0 detected in centroid structure: (22,24)
+ud motif 1 detected in centroid structure: (38,40)
+ud motif 1 detected in centroid structure: (44,46)
+ud motif 1 detected in centroid structure: (45,47)
+(((((((..............(.)))))..)))....(.)...(.).....(((.((..((((((....))))))...)).)))................ {299965.81 MEA=86.02}
+ frequency of mfe structure in ensemble 0.0365482; ensemble diversity 13.21 
+>rnafold_cmd_test_0028
+UCCCAUGAGUGAGAACGCACGAUACUCCCACGCGGGUGGCCCCGAGGUGUAAGAUAUCGACGGUGUCCACGGGUUCCUCCUGGGCCGGGCUCGCCCGCAC
+(((.....).))...................(((((((((((...(((.((.((......((.......))......)).)).))))))).))))))).. (-45.80)
+(((.....).)}...................(((((((((((,.{(({,{..((,{{{...||,}}},,}},...,,}),)}})}})))).))))))).. [-47.84]
+(((.....).))...................(((((((((((............................................)))).))))))).. {-33.79 d=15.19}
+ud motif 1 detected in centroid structure: (27,29)
+(((.....).))..............(.)..(((((((((((...((.....(.............)...........)......))))).))))))).. {99977.20 MEA=72.82}
+ frequency of mfe structure in ensemble 0.0364745; ensemble diversity 23.66 
+>rnafold_cmd_test_0029
+CUUACAGAGUUGGCCUUAAUAUAAGCCCGUGUUGAGGCAUUGAUCGCUACAGUCCGAGUGCCUCGCGGGCAGAACAUCGUAAUAUGGGUAGGUAACCUCG
+(((...)))...............((((((...(((((((...(((........))))))))))))))))...............((((.....)))).. (-43.70)
+(((...)))...............((((((...((((((((,..{......),.,.))))))))))))))...............{{||.....}}),.. [-45.79]
+(((...)))...............((((((...((((((((...............))))))))))))))................(((.....)))... {-42.00 d=8.82}
+(((...)))...............((((((...((((((((...(......)....))))))))))))))................(((.....)))... {-42.50 MEA=85.56}
+ frequency of mfe structure in ensemble 0.0335218; ensemble diversity 13.00 
+>rnafold_cmd_test_0030
+AAGCCCGCCUCGUCCCUAAAAUUUCAUGGGAUAUGCGCGCCUAAAACCUUCAUUGCGACAUAAAUGACGAGCGGACACUUUAUGAAGGUAUUCUCGAAAC
+(((.((((...............((.(.(...(((((((..............)))).)))...).).))))))...)))...(((....)))....... (-46.40)
+(((.((((...............((.{.{...(((((({..............}))).)))...}.}.))))))...)))...{{,....,,}....... [-48.91]
+(((.((((...............((...(...(((((((..............)))).)))...)...))))))...))).................... {-30.10 d=6.71}
+ud motif 0 detected in centroid structure: (18,20)
+ud motif 0 detected in centroid structure: (19,21)
+ud motif 0 detected in centroid structure: (43,45)
+ud motif 0 detected in centroid structure: (44,46)
+ud motif 0 detected in centroid structure: (62,64)
+ud motif 0 detected in centroid structure: (97,99)
+(((.((((.........(.)...((.(.(...(((((((....(.).......)))).)))(.)).).))))))...)))................(.). {399977.41 MEA=84.33}
+ frequency of mfe structure in ensemble 0.0170243; ensemble diversity 10.29 
+>rnafold_cmd_test_0031
+GGGCCUGGUACAAGAUUCAAUCUAACGCACGCGGCCCUCCCCCACCGGUAUAGUUGAAUCGGGCGGUAGCAAGAUUUUAUGAACACGCCGCCGGCGGCGU
+(((((..((...................))..)))))....((.(((((...((((((((..((....))..)))))....))).....))))).))... (-49.70)
+(((((,,((...................}),.)))))....,,.{{{((...{{.(((((..((....))..)))))..,..,,{{{{{|,,,,}))}}, [-51.70]
+(((((..(.....................)..)))))..................(((((..((....))..)))))........(((((....))))). {-43.10 d=12.11}
+ud motif 1 detected in centroid structure: (39,41)
+(((((..((...................))..))))).(.)..............(((((..((....))..))))).......((((((....)))))) {99954.50 MEA=77.50}
+ frequency of mfe structure in ensemble 0.0391331; ensemble diversity 17.34 
+>rnafold_cmd_test_0032
+CCCGGCAACCGGGCGCGUACGCAGAGCUGUAGCCUAAAAAUCAAAUUGUGCGCUAACGAACUCAGGGAGCGUCUGAACAAACCCACAUAAAGCUGGCGGA
+((((((.....(.........((((..(((..(((..........((((......))))....)))..)))))))..........).....))))).).. (-51.00)
+((((((....,|,........(((({{{,{.,({{..........,,{,,,|,,.,}}.....,)}.})),))))..........,.....))))).).. [-54.11]
+((((((...............((((..............................................))))................))))).).. {-37.01 d=14.22}
+ud motif 0 detected in centroid structure: (36,38)
+ud motif 0 detected in centroid structure: (37,39)
+ud motif 0 detected in centroid structure: (38,40)
+ud motif 0 detected in centroid structure: (43,45)
+ud motif 0 detected in centroid structure: (79,81)
+ud motif 0 detected in centroid structure: (89,91)
+((((((...............(((((((....((........(.)...................)).))).))))...(.).......(.)))))).).. {299969.59 MEA=73.05}
+ud motif 0 detected in MEA structure: (36,38)
+ud motif 0 detected in MEA structure: (37,39)
+ud motif 0 detected in MEA structure: (38,40)
+ frequency of mfe structure in ensemble 0.00639583; ensemble diversity 22.43 
+>rnafold_cmd_test_0033
+GAUAAGAGGCACUCACAUAGGUUUAGUACCUUCAGAUGUGCCCUUCGGCGGGGAACUUUCGGGCUUAUUACAUUUUCGUAUAUUACUUGAUUCCCUUACC
+((((..((((..........))))..))...))......(((....)))((((((...(((((.....(((......))).....))))))))))).... (-31.40)
+(((,.(((,...........||.,..,,|||}}..|,.|,{{....||,|{|{{{...{{{{{...,,{{{......})}.....)))))))}}}}.... [-33.69]
+.................................................((((((...(((((.....(((......))).....))))))))))).... {-31.30 d=19.11}
+(((................................)).).(.)......((((((...(((((.....(((......))).....))))))))))).... {99977.06 MEA=67.04}
+ frequency of mfe structure in ensemble 0.0243634; ensemble diversity 29.75 
+>rnafold_cmd_test_0034
+UAACGGUAUUAAGGGACGACCAGACUCUUGACUAGAUCCAAAUCCACGAGUAUGCAGUUUCUGAAUCCGGACCUGUCGACCGCGGAACCGGGUGGGCUAA
+(((.(((................))).))).....((((...(((.((.((..((((..((((....)))).))))..)))).)))...))))....... (-40.60)
+(((.(((................))).))).,{..((((...(((.((.((..((((..((((....)))).))))..)))).)))...)))).,..... [-41.84]
+(((.(((................))).))).....((((...(((.((.((..((((..((((....)))).))))..)))).)))...))))....... {-35.60 d=3.76}
+ud motif 0 detected in centroid structure: (40,42)
+(((.(((................))).))).....((((...(((.((.((..((((..((((....)))).))))..)))).)))...))))....... {-35.60 MEA=93.34}
+ud motif 0 detected in MEA structure: (40,42)
+ frequency of mfe structure in ensemble 0.134243; ensemble diversity 6.49  
+>rnafold_cmd_test_0035
+UUCACCAGUACCACACAAGCCUCCUGCGGAUCGGAAAAAGCUCCGUCAGUACUUGGGCUCAUGCGCAGUAAAUCUGUCCAAGCACCAUUCUUGUCUACCG
+(((..(((...............))).))).((((......))))........((((((..((.((((.....)))).))))).)))............. (-43.20)
+(((..(((...............))).))).((((......)))).,{{....((((((..((.((((.....)))).))))).)))...,,,....... [-44.95]
+(((..(((...............))).))).((((......))))........((((((..((.((((.....)))).))))).)))............. {-43.20 d=5.81}
+ud motif 0 detected in centroid structure: (36,38)
+ud motif 0 detected in centroid structure: (37,39)
+ud motif 0 detected in centroid structure: (70,72)
+(((..(((...............))).))).((((......))))........((((((..((.((((.(.).)))).))))).)))............. {99959.20 MEA=88.42}
+ud motif 0 detected in MEA structure: (36,38)
+ud motif 0 detected in MEA structure: (37,39)
+ frequency of mfe structure in ensemble 0.0581727; ensemble diversity 9.78  
+>rnafold_cmd_test_0036
+AAUUUUCACUUUGUGACGUUAAGAACAUCUCAGACUAAUGGAGUUAUUUCUGUAUUGAUGUCGUGCUACGGCGAAUCUUCGUCCGUUCCAUGUAAAGGUU
+(((..................((((...(((.........)))....))))..))).....((((..(((((((....))).))))..))))........ (-35.00)
+(((.,................,{{{..,{{{.......||})),,..,}})..}}},....((((..(((((((....))).))))..))))........ [-36.51]
+.............................................................((((..(((((((....))).))))..))))........ {-31.80 d=11.57}
+ud motif 0 detected in centroid structure: (94,96)
+(((...................((....((...........)).....))...))).....((((..(((((((....))).))))..)))).(.).... {99977.20 MEA=79.47}
+ frequency of mfe structure in ensemble 0.0867272; ensemble diversity 18.15 
+>rnafold_cmd_test_0037
+UAGCUAAUGCUAGUUGUUCGCUGCACAUGAGGGGGGUUGUUGGGUGGUUCUCCGGGAGGAAGCUGAUUGGGAAUCAGUUUGGGUCUCCCACGGCGGUGCC
+((((...............))))(((....((((((.....((.((((((.((((..((...))..)))))))))).)).....))))).)....))).. (-44.30)
+((((....}}}}.......||||({(.,,.((((((.,...((.((((((.((((.,({...))..)))))))))).))....,))))).,,,},))),. [-46.56]
+((((....))))...........(((.....(((((.....((.((((((.((((...........)))))))))).)).....)))))......))).. {-38.20 d=20.30}
+((((...............))))(((.....(((((.....((.((((((.((((..((...))..)))))))))).)).....)))))......))).. {-43.70 MEA=71.22}
+ frequency of mfe structure in ensemble 0.0255923; ensemble diversity 28.31 
+>rnafold_cmd_test_0038
+GAACCGACGGAGUACACGCUCUGGACUCCAUAGGCGGAGUAAUCAAGAGGCGGUAAAAGGUCGAUUUUGCUAUCUUUGCGUUCACAAUAACUGUCAUAUC
+((((((((..........((((..(((((......))))).....))))..........))))................))))................. (-39.70)
+(((.((((..........((((,,(((((......)))))..,}.))))..........)))).})).{{.......}}},,.................. [-41.76]
+(((.((((..........((((..(((((......))))).....))))..........)))).))).((.......))..................... {-34.50 d=6.88}
+ud motif 0 detected in centroid structure: (55,57)
+ud motif 0 detected in centroid structure: (56,58)
+(((.((((..........(((((.(((((......)))))...).))))......(.).)))).))).((.......))..................... {99969.00 MEA=86.08}
+ frequency of mfe structure in ensemble 0.0352808; ensemble diversity 9.88  
+>rnafold_cmd_test_0039
+UCCCUUAAGUUUAGCACGGAACUGGCCCCAGUUAGCACGAUCAUGGCUACCUGGAUUGCGCAUCUGGCUCCUUCUGAACUCCGUAAAACAGCAUCUUUGC
+(((..............)))...((..((((...((.(((((..((...))..))))).))..))))..))...................(((....))) (-39.60)
+(((..............)))...((..((((.,.((.(((((..((...))..))))).)),.))))..))...................(((....))) [-40.70]
+(((..............)))...((..((((...((.(((((..((...))..))))).))..))))..))...................(((....))) {-34.60 d=1.97}
+ud motif 0 detected in centroid structure: (85,87)
+ud motif 0 detected in centroid structure: (86,88)
+(((..............)))...((..((((...((.(((((..((...))..))))).))..))))..)).............(.)...(((....))) {99965.10 MEA=94.40}
+ frequency of mfe structure in ensemble 0.166722; ensemble diversity 3.35  
+>rnafold_cmd_test_0040
+AUCGCUCUGUCGUGAGGGAUAGAACCGCUUGCCAGAUUCUCAGUUAAGUAGUUUGACUCAGGCAAUACUCCCAUGGCUGUUUUAACCAGCGUGAAUACAC
+(((((.(((..........((((((.(((((((.((...((((.........)))).)).))))..........))).))))))..))).))).)).... (-33.30)
+(((((.(((..........((((((.((((({(,((.{{{.{{,,,{,...,)))),)).)))),.........})).))))))..))).))),,).... [-35.33]
+(.(((.(((..........((((((.(((((((.(.......................).))))..........))).))))))..))).)))..).... {-26.30 d=17.89}
+(((((.(((..........((((((.(((((((.((.......((((.....)))).)).))))..........))).))))))..))).))).)).... {-28.60 MEA=71.15}
+ frequency of mfe structure in ensemble 0.0369835; ensemble diversity 26.35 
+>rnafold_cmd_test_0041
+UCGUAGUACUCUGUAGCGCCGGCGCCUGGCAACUGUAUUUUAGACUUGUACUCGUCACCCCAGUGUCGAGACGGAUUUGUGCCGGGGAUUGUCCCCCCUU
+(((................)))..(((((((.........((((.((((.((((.(((....))).)))))))).))))))))))).............. (-46.00)
+(((................)))..(((((((.........((((.((((.((((.(((....))).)))))))).))))))))))).............. [-46.73]
+(((................)))..(((((((.........((((.((((.((((.(((....))).)))))))).))))))))))).............. {-40.00 d=2.73}
+ud motif 1 detected in centroid structure: (93,95)
+ud motif 1 detected in centroid structure: (94,96)
+ud motif 1 detected in centroid structure: (95,97)
+ud motif 1 detected in centroid structure: (96,98)
+(((................)))..(((((((.........((((.((((.((((.(((....))).)))))))).)))))))))))......(.)(.).. {199959.91 MEA=95.08}
+ frequency of mfe structure in ensemble 0.303719; ensemble diversity 4.56  
+>rnafold_cmd_test_0042
+AGCCACAUCAACGGUCCGUAGCACUAAGACUACAGAUAGGCCCAGACCGAUAAGAGGGCGGUCGGUUAACCGCUAAACUGGUAAUGCAGUUGGUUAAUAU
+(((((.................(((.......(((...(((...(((((((.........)))))))....)))...))).......))))))))..... (-39.70)
+(((((.................({{....,..(((...(((...(((((((.......}.)))))))....)))...))).,..,..})))))))..... [-40.91]
+(((((.................(((.......(((...(((...(((((((.........)))))))....)))...))).......))))))))..... {-34.70 d=11.03}
+ud motif 0 detected in centroid structure: (75,77)
+(((((.................(((.......(((...(((...(((((((.........)))))))....)))(.)))).......))))))))..... {99967.60 MEA=82.83}
+ frequency of mfe structure in ensemble 0.140941; ensemble diversity 17.60 
+>rnafold_cmd_test_0043
+UUGACCAGGGGACCAACACCAGGCCAGCGCCAACAUAAGCCAGGCGGCUGCGUAUUUACAACUUGCAAGUUCCCGCAGGGCGAGUUAAAGGGUGACUGGU
+(((................)))(((((((((.......(((..(((((((((...........))).))...))))..))).........)))).))))) (-49.70)
+(((................)))(((((((((....,..(((..(((({((((...........))),.)...))))..)))..,,.....)))).))))) [-51.33]
+(((................)))(((((((((.......(((..(((((.(((...........)))..)...))))..))).........)))).))))) {-42.00 d=4.79}
+ud motif 0 detected in centroid structure: (87,89)
+(((................)))(((((((((.......(((..(((((((((...........)))).)...))))..))).....(.).)))).))))) {99956.40 MEA=92.01}
+ frequency of mfe structure in ensemble 0.0704986; ensemble diversity 7.11  
+>rnafold_cmd_test_0044
+AUUGGGUCCUAUUGUGCGGAAGCGCAGACUCAAUUCUUACCGAACCCGAUGAGUACCAUGCGCGCACCGCGGUCGCUGUGAGGUAUAUAGCGUCAGACUG
+((((((((..................)))))))).............((((.(((((.((((((.((....))))).))).)))))....))))...... (-42.40)
+((((((((..................)))))))).............((((.(((((.((((((.((....))))).))).)))))....))))...... [-43.24]
+((((((((..................)))))))).............((((.(((((.((((((.((....))))).))).)))))....))))...... {-39.40 d=5.52}
+ud motif 1 detected in centroid structure: (45,47)
+((((((((..................))))))))..........(.)((((.(((((.((((((.((....))))).))).)))))....))))...... {99960.60 MEA=91.18}
+ frequency of mfe structure in ensemble 0.254721; ensemble diversity 9.73  
+>rnafold_cmd_test_0045
+CGCAUAGUAUCGGAACAAAAAAUAUGAAUUUACUAUGGCCCGGCCAUGUAGACCCCCUCUCCUUGAAGUACUGAUACUUUCGGGCGUAAGACUUGAACAG
+(((((((((.....................)))))))...))................(.(((.((((((....)))))).))).).............. (-44.00)
+(((((((((.....................)))))))...))...............,{.(((.((((((....)))))).))).}..}}.......... [-46.05]
+(((((((((.....................)))))))...))..................(((.((((((....)))))).)))................ {-40.80 d=6.30}
+ud motif 0 detected in centroid structure: (17,19)
+ud motif 0 detected in centroid structure: (18,20)
+ud motif 0 detected in centroid structure: (19,21)
+ud motif 0 detected in centroid structure: (20,22)
+ud motif 1 detected in centroid structure: (53,55)
+ud motif 1 detected in centroid structure: (54,56)
+ud motif 1 detected in centroid structure: (55,57)
+(((((((((.......(.)(.)........)))))))...))..................(((.((((((....)))))).)))................ {199973.00 MEA=88.30}
+ud motif 1 detected in MEA structure: (53,55)
+ud motif 1 detected in MEA structure: (54,56)
+ud motif 1 detected in MEA structure: (55,57)
+ frequency of mfe structure in ensemble 0.0361003; ensemble diversity 10.00 
+>rnafold_cmd_test_0046
+GCUCUGUGUAUUGCGUGGCACCCAAGAGUGCUACAAAGUAGAGGCUUGUGUACCUAACCCGUGAACUUCGUGUGCAAGAACACCGUUUACCCUACGGAAG
+(((((...................))))).((((...))))(((........))).....((((((...((((......)))).)))))).......... (-43.70)
+((((({,({..........}}...))))).((((...))))(((........))).....{(((((...((((......)))).)))))}.......... [-45.45]
+(((((...................))))).((((...))))(((........))).....((((((...((((......)))).)))))).......... {-40.70 d=5.46}
+ud motif 0 detected in centroid structure: (35,37)
+ud motif 1 detected in centroid structure: (58,60)
+(((((..(............)...))))).(((((.)))))(((........)))..(.)((((((...((((......)))).)))))).......... {199959.59 MEA=89.50}
+ frequency of mfe structure in ensemble 0.058795; ensemble diversity 8.70  
+>rnafold_cmd_test_0047
+CAGACUCCCUUGUAACCCCUUGCUACUCUUUCGCCGAGGGCUACCCGGCAAACUUGGCUCGGAAGCUUAUCGAAAAAACGAAAAUAAGCGUCUUUAGCCA
+(((................)))..........((((.((....)))))).....(((((.(((.((((((((......)))...))))).)))..))))) (-61.10)
+(((.....,,,}.......,,,..........((((.((....)))))).....{((((.(((.((((((((......)))...))))).)))..))))} [-62.39]
+(..........)....................((((.((....)))))).....(((((.(((.((((((((......)))...))))).)))..))))) {-48.10 d=4.43}
+ud motif 0 detected in centroid structure: (50,52)
+ud motif 0 detected in centroid structure: (73,75)
+ud motif 0 detected in centroid structure: (74,76)
+ud motif 0 detected in centroid structure: (75,77)
+ud motif 0 detected in centroid structure: (76,78)
+ud motif 0 detected in centroid structure: (82,84)
+(((.....).))....................((((.((....))))))(.)..(((((.(((.((((((((...(.))))(.)))))).)))..))))) {299963.91 MEA=90.69}
+ud motif 1 detected in MEA structure: (16,18)
+ud motif 1 detected in MEA structure: (17,19)
+ud motif 0 detected in MEA structure: (73,75)
+ frequency of mfe structure in ensemble 0.123861; ensemble diversity 6.07  
+>rnafold_cmd_test_0048
+GUACGUUCUAUCAGUCAGCUCUUGUCAAGUGACGCUUCACUCGCUAGAAACCCAAACCUACAACGUGCGAAUGACAUUACAUUCUCGUCGCACAACAGCC
+(((((((.............((.((..(((((....))))).)).))..............)))))))(((((......))))).....((......)). (-45.30)
+(((((((.............((.(,,.(((((....))))).)).))..............)))))))(((((......))))).....((......)). [-46.54]
+(((((((.............((.(...(((((....)))))..).))..............)))))))(((((......))))).....((......)). {-33.20 d=4.28}
+ud motif 0 detected in centroid structure: (48,50)
+ud motif 0 detected in centroid structure: (54,56)
+(((((((.............((.((..(((((....))))).)).))(.)...(.).....)))))))(((((......))))).....((......)). {199963.70 MEA=92.50}
+ frequency of mfe structure in ensemble 0.134352; ensemble diversity 6.30  
+>rnafold_cmd_test_0049
+CCUCGCACCUUUUGCGCCAGACACAUCAUACCGAACUUUAAAUUCCGAAGUGCAGCUCCAUCGAGGAAAGGCGGGCUGGUAUUGAUCGGGAUCAAUCCGC
+((((((((.........................................)))).........))))....(((((.((((..........)))).))))) (-42.47)
+(((((................,,,.,{...................},.))),........)))))....(((((.((((.,,.....,.)))).))))) [-44.37]
+(((((........................................................)))))....(((((.((((..........)))).))))) {-36.13 d=9.69}
+ud motif 0 detected in centroid structure: (40,42)
+ud motif 0 detected in centroid structure: (67,69)
+(((((................(((...............(.).......))).........)))))(.).(((((.((((..........)))).))))) {199969.41 MEA=82.68}
+ frequency of mfe structure in ensemble 0.0458472; ensemble diversity 15.48 
+>rnafold_cmd_test_0050
+CUCCGCCCAGCUCUUAGCUACGUGACUAUGUCGCAGUCUGAUUCUAUGGUUCACGCCCUCUCGAACAGGGGCACCACACCCACUUUAUUUCCUGAGGGUC
+((((................(((((((((((((.....))))...)))).)))))............))))...........(((((.....)))))... (-33.70)
+((((................(((((((((((({.....})),..,)))),,))))............))))...........{{{,.......)))),.. [-35.79]
+((((................((((.((((.((.......))....))))..))))............))))............................. {-23.60 d=9.23}
+ud motif 1 detected in centroid structure: (79,81)
+((((................(((((((((((((.....))))...))))).))))............)))).......(.)..(...........).... {99976.60 MEA=83.58}
+ frequency of mfe structure in ensemble 0.033561; ensemble diversity 13.82 
