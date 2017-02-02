@@ -270,7 +270,7 @@ some additional pre-processor macros:
                   @warning Add this directive to your pre-processor/compile flags only if @em RNAlib was build with
                   the @em --disable-c11 configure option.
                   @see @ref config_c11 and vrna_C11_features()
-- @em DEPRECATION_WARNINGS @f$\ldots@f$ Enable warnings for using deprecated symbols.
+- @em VRNA_WARN_DEPRECATED @f$\ldots@f$ Enable warnings for using deprecated symbols.
                   @note Adding this directive enables compiler warnings whenever you use symbols in @em RNAlib
                   that are marked @em deprecated.
                   @see @ref config_deprecated and @ref deprecated

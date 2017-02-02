@@ -62,11 +62,14 @@ AC_DEFUN([RNA_ENABLE_SVM],[
 
   RNA_PACKAGE_IF_ENABLED([svm],[
     AC_SUBST([LIBSVM_DIR], [libsvm-${SVM_VERSION}])
-    AC_SUBST([WITH_SVM], [USE_SVM])
-    AC_DEFINE([USE_SVM], [1], [Compute z-scores for RNALfold])
+    ## substitution for reference manual config
+    AC_SUBST([REFDOC_PREDEF_SVM], [VRNA_WITH_SVM])
+    AC_DEFINE([VRNA_WITH_SVM], [1], [Compute z-scores for RNALfold])
+    CONFIG_SVM="#define VRNA_WITH_SVM"
   ])
 
-  AM_CONDITIONAL(WITH_LIBSVM, test "$with_svm" != "no")
+  AC_SUBST(CONFIG_SVM)
+  AM_CONDITIONAL(VRNA_AM_SWITCH_SVM, test "$with_svm" != "no")
 ])
 
 
@@ -82,11 +85,14 @@ AC_DEFUN([RNA_ENABLE_JSON],[
                   [${srcdir}/src/json/json.c ${srcdir}/src/json/json.h])
 
   RNA_PACKAGE_IF_ENABLED([json],[
-    AC_SUBST([WITH_JSON], [WITH_JSON_SUPPORT])
-    AC_DEFINE([WITH_JSON_SUPPORT], [1], [Add JSON support for input and output functions])
+    ## substitution for reference manual config
+    AC_SUBST([REFDOC_PREDEF_JSON], [VRNA_WITH_JSON_SUPPORT])
+    AC_DEFINE([VRNA_WITH_JSON_SUPPORT], [1], [Add JSON support for input and output functions])
+    CONFIG_JSON="#define VRNA_WITH_JSON_SUPPORT"
   ])
 
-  AM_CONDITIONAL(WITH_JSON, test "$with_json" != "no")
+  AC_SUBST(CONFIG_JSON)
+  AM_CONDITIONAL(VRNA_AM_SWITCH_JSON, test "$with_json" != "no")
 ])
 
 
@@ -112,12 +118,14 @@ AC_DEFUN([RNA_ENABLE_GSL],[
     fi
   ])
   RNA_PACKAGE_IF_ENABLED([gsl],[
-    AC_DEFINE([WITH_GSL], [1], [Use GNU Scientific Library])
+    AC_DEFINE([VRNA_WITH_GSL], [1], [Use GNU Scientific Library])
     GSL_LIBS="-lgsl -lgslcblas"
+    CONFIG_GSL="#define VRNA_WITH_GSL"
   ])
 
   AC_SUBST([GSL_LIBS])
-  AM_CONDITIONAL(WITH_GSL, test "x$with_gsl" = "xyes")
+  AC_SUBST([CONFIG_GSL])
+  AM_CONDITIONAL(VRNA_AM_SWITCH_GSL, test "x$with_gsl" = "xyes")
 ])
 
 
@@ -133,8 +141,11 @@ AC_DEFUN([RNA_ENABLE_BOUSTROPHEDON],[
 
   ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
   RNA_FEATURE_IF_ENABLED([boustrophedon],[
-    AC_DEFINE([WITH_BOUSTROPHEDON], [1], [Use Boustrophedon scheme for stochastic backtracking])
+    AC_DEFINE([VRNA_WITH_BOUSTROPHEDON], [1], [Use Boustrophedon scheme for stochastic backtracking])
+    CONFIG_BOUSTROPHEDON="#define VRNA_WITH_BOUSTROPHEDON"
   ])
+
+  AC_SUBST(CONFIG_BOUSTROPHEDON)
 ])
 
 
@@ -165,10 +176,12 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
         RNA_CFLAGS="${RNA_CFLAGS} ${OMP_CFLAGS}"
         RNA_CXXFLAGS="${RNA_CXXFLAGS} ${OPENMP_CXXFLAGS}"
         LIBGOMPFLAG="$OPENMP_CXXFLAGS"
+        CONFIG_OPENMP="#define VRNA_WITH_OPENMP"
       fi
     ])
   ])
 
+  AC_SUBST(CONFIG_OPENMP)
   AC_SUBST(LIBGOMPFLAG)
   AC_SUBST(OPENMP_CFLAGS)
   AC_SUBST(OPENMP_CXXFLAGS)
@@ -228,10 +241,12 @@ AC_DEFUN([RNA_ENABLE_C11],[
 
   AS_IF([ test "x$enable_c11" != "xyes" ],[
     DISABLE_C11_FEATURES=-DVRNA_DISABLE_C11_FEATURES
-    AX_APPEND_FLAG(["-DVRNA_DISABLE_C11_FEATURES"], [RNA_CPPFLAGS])
+    CONFIG_DISABLE_C11_FEATURES="#define VRNA_DISABLE_C11_FEATURES"
+    AX_APPEND_FLAG(["-D${DISABLE_C11_FEATURES}"], [RNA_CPPFLAGS])
   ])
 
   AC_SUBST(DISABLE_C11_FEATURES)
+  AC_SUBST(CONFIG_DISABLE_C11_FEATURES)
 ])
 
 #
@@ -246,14 +261,16 @@ AC_DEFUN([RNA_ENABLE_FLOATPF],[
 
   # Handle floating point precision flag
   RNA_FEATURE_IF_ENABLED([floatpf],[
+
     AC_DEFINE([USE_FLOAT_PF], [1], [Use floating point precision in partition function computations])
-  
-    AC_SUBST([WITH_FLOAT_PF], [USE_FLOAT_PF])
+    CONFIG_FLOAT_PF="#define USE_FLOAT_PF"
+    ## substitution for reference manual config
+    AC_SUBST([REFDOC_PREDEF_FLOAT_PF], [USE_FLOAT_PF])
     AC_SUBST([FLOAT_PF_FLAG], [-DUSE_FLOAT_PF])
-    AX_APPEND_FLAG(["${FLOAT_PF_FLAG}"], [RNA_CPPFLAGS])
+    AX_APPEND_FLAG([USE_FLOAT_PF], [RNA_CPPFLAGS])
   ])
 
-
+  AC_SUBST(CONFIG_FLOAT_PF)
 ])
 
 
@@ -269,9 +286,9 @@ AC_DEFUN([RNA_ENABLE_DEPRECATION_WARNINGS],[
 
   ## Add preprocessor define statement for deprecation warnings
   RNA_FEATURE_IF_ENABLED([warn_deprecated],[
-    AC_DEFINE([WITH_DEPRECATION_WARNING], [1], [Warn upon usage of deprecated symbols])
-    DEPRECATION_WARNING=-DDEPRECATION_WARNINGS
-    AX_APPEND_FLAG(["${DEPRECATION_WARNING}"], [RNA_CPPFLAGS])
+    AC_DEFINE([VRNA_WARN_DEPRECATED], [1], [Warn upon usage of deprecated symbols])
+    DEPRECATION_WARNING=-DVRNA_WARN_DEPRECATED
+    AX_APPEND_FLAG([VRNA_WARN_DEPRECATED], [RNA_CPPFLAGS])
   ])
   AC_SUBST(DEPRECATION_WARNING)
 ])
@@ -289,8 +306,11 @@ AC_DEFUN([RNA_ENABLE_COLORED_TTY],[
 
   ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
   RNA_FEATURE_IF_DISABLED([tty_colors],[
-    AC_DEFINE([WITHOUT_TTY_COLORS], [1], [Do not use colors for TTY output])
+    AC_DEFINE([VRNA_WITHOUT_TTY_COLORS], [1], [Do not use colors for TTY output])
+    CONFIG_TTY_COLORS="#define VRNA_WITHOUT_TTY_COLORS"
   ])
+
+  AC_SUBST(CONFIG_TTY_COLORS)
 ])
 
 
@@ -355,6 +375,6 @@ into the executables are present!
     LDFLAGS=$SAVED_LDFLAGS
   ])
 
-  AM_CONDITIONAL(WITH_STATIC_EXECUTABLES, test "x$enable_static_executables" = "xyes")
+  AM_CONDITIONAL(VRNA_AM_SWITCH_STATIC_EXECUTABLES, test "x$enable_static_executables" = "xyes")
 ])
 

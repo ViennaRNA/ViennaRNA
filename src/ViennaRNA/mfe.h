@@ -78,7 +78,7 @@ float vrna_mfe_dimer( vrna_fold_compound_t *vc,
  */
 float vrna_mfe_window( vrna_fold_compound_t *vc, FILE *file);
 
-#ifdef USE_SVM
+#ifdef VRNA_WITH_SVM
 /**
  *  @brief Local MFE prediction using a sliding window approach (with z-score cut-off)
  *

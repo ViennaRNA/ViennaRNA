@@ -3,6 +3,7 @@
 # ViennaRNA Package 2011 Ronny Lorenz
 #
 
+
 ##----------------##
 ## Public macros. ##
 ##----------------##
@@ -93,6 +94,7 @@ RNA_ENABLE_UNIT_TESTS
 ## Prepare files    ##
 ##------------------##
 
+AC_CONFIG_FILES([src/ViennaRNA/vrna_config.h])
 AC_CONFIG_FILES([misc/Makefile])
 AC_CONFIG_FILES([interfaces/Makefile])
 AC_CONFIG_FILES([Makefile RNAlib2.pc src/Utils/Makefile src/bin/Makefile src/Makefile man/Makefile src/ViennaRNA/Makefile doc/Makefile])

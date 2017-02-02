@@ -10,7 +10,7 @@
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 
-#ifdef DEPRECATION_WARNINGS
+#ifdef VRNA_WARN_DEPRECATED
 # ifdef __GNUC__
 #  define DEPRECATED(func) func __attribute__ ((deprecated))
 # else
@@ -50,7 +50,7 @@ vrna_Lfold( const char *string,
             int window_size,
             FILE  *file);
 
-#ifdef USE_SVM
+#ifdef VRNA_WITH_SVM
 /**
  *  @brief Local MFE prediction using a sliding window approach with z-score cut-off (simplified interface)
  * 

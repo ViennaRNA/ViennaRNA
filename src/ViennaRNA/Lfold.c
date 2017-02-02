@@ -26,7 +26,7 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/Lfold.h"
 
-#ifdef USE_SVM
+#ifdef VRNA_WITH_SVM
 #include "svm.h"
 #include "svm_utils.h"
 #endif
@@ -64,7 +64,7 @@ PRIVATE char  *backtrack( vrna_fold_compound_t *vc,
 PRIVATE int   fill_arrays(vrna_fold_compound_t *vc,
                           int with_zsc,
                           double min_z,
-#ifdef USE_SVM
+#ifdef VRNA_WITH_SVM
                           struct svm_model *avg_model,
                           struct svm_model *sd_model,
 #endif
@@ -107,7 +107,7 @@ vrna_mfe_window( vrna_fold_compound_t *vc,
   return wrap_Lfold(vc, 0, 0.0, file);
 }
 
-#ifdef USE_SVM
+#ifdef VRNA_WITH_SVM
 
 PUBLIC float
 vrna_Lfoldz(const char *string,
@@ -159,7 +159,7 @@ wrap_Lfold( vrna_fold_compound_t *vc,
   float   mfe_local;
   FILE    *out;
 
-#ifdef USE_SVM
+#ifdef VRNA_WITH_SVM
   struct svm_model  *avg_model = NULL;
   struct svm_model  *sd_model = NULL;
 #endif
@@ -177,7 +177,7 @@ wrap_Lfold( vrna_fold_compound_t *vc,
   for(i = n; (i >= (int)n - (int)maxdist - 4) && (i > 0); i--)
     make_ptypes(vc, i);
 
-#ifdef USE_SVM  /*svm*/
+#ifdef VRNA_WITH_SVM  /*svm*/
   if(with_zsc){
     avg_model = svm_load_model_string(avg_model_string);
     sd_model  = svm_load_model_string(sd_model_string);
@@ -187,7 +187,7 @@ wrap_Lfold( vrna_fold_compound_t *vc,
   /* keep track of how many times we were close to an integer underflow */
   underflow = 0;
 
-#ifdef USE_SVM
+#ifdef VRNA_WITH_SVM
   energy = fill_arrays(vc, with_zsc, min_z, avg_model, sd_model, &underflow, out);
   if(with_zsc){
     svm_free_model_content(avg_model);
@@ -207,7 +207,7 @@ PRIVATE int
 fill_arrays(vrna_fold_compound_t *vc,
             int zsc,
             double min_z,
-#ifdef USE_SVM
+#ifdef VRNA_WITH_SVM
             struct svm_model *avg_model,
             struct svm_model *sd_model,
 #endif
@@ -621,7 +621,7 @@ fill_arrays(vrna_fold_compound_t *vc,
         }
         if (!traced2) vrna_message_error("backtrack failed in short backtrack 1");
         if (zsc){
-#ifdef USE_SVM
+#ifdef VRNA_WITH_SVM
           int info_avg;
           double average_free_energy;
           double sd_free_energy;
@@ -772,7 +772,7 @@ fill_arrays(vrna_fold_compound_t *vc,
           if (!traced2) vrna_message_error("backtrack failed in short backtrack 2");
 
           if(zsc){
-#ifdef USE_SVM
+#ifdef VRNA_WITH_SVM
             int *AUGC = get_seq_composition(S, lind-1, MIN2((pairpartner+1),length), length);
             average_free_energy = avg_regression(AUGC[0],AUGC[1],AUGC[2],AUGC[3],AUGC[4],avg_model,&info_avg);
             if (info_avg == 0)  {
@@ -1399,7 +1399,7 @@ Lfoldz( const char *string,
 
   vc  = vrna_fold_compound(string, &md, VRNA_OPTION_WINDOW);
 
-#ifndef USE_SVM
+#ifndef VRNA_WITH_SVM
   zsc = 0;  /* deactivate z-scoring if no compiled-in svm support is available */
 #endif
 

@@ -115,7 +115,7 @@ main(int  argc,
     maxdist = args_info.span_arg;
 
   if (args_info.zscore_given) {
-#ifdef USE_SVM
+#ifdef VRNA_WITH_SVM
     zsc = 1;
     if (args_info.zscore_arg != -2)
       min_z = args_info.zscore_arg;

@@ -8,7 +8,7 @@ AM_CXXFLAGS = $(RNA_CXXFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src -I$(top_srcdir) -I$(top_builddir)
 AM_LDFLAGS = $(RNA_LDFLAGS)
 
-if WITH_STATIC_EXECUTABLES
+if VRNA_AM_SWITCH_STATIC_EXECUTABLES
 AM_LDFLAGS += -all-static
 endif
 

@@ -166,7 +166,7 @@ vrna_pbacktrack5( vrna_fold_compound_t *vc,
   }
 
 
-#ifdef WITH_BOUSTROPHEDON
+#ifdef VRNA_WITH_BOUSTROPHEDON
   j = length;
   while (j > 1) {
   /* find i position of first pair */
@@ -322,7 +322,7 @@ backtrack_qm( int i,
     k = cnt  = i;
     if(qmt<r)
       for(span = j - i,cnt=i+1; cnt<=j; cnt++){
-#ifdef WITH_BOUSTROPHEDON
+#ifdef VRNA_WITH_BOUSTROPHEDON
         k = (int)(i + 1 + span * ((cnt - i - 1) % 2)) + (int)((1 - (2 * ((cnt - i - 1) % 2))) * ((cnt - i) / 2));
 #else
         k = cnt;
