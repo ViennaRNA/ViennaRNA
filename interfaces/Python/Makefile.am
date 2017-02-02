@@ -33,13 +33,13 @@ _RNA_la_CXXFLAGS = $(RNA_CXXFLAGS)
 _RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PYTHON2_INCLUDES)
 
 _RNA_la_LIBADD = $(LDADD) $(top_builddir)/src/ViennaRNA/libRNA_conv.la
-if WITH_LIBSVM
+if VRNA_AM_SWITCH_SVM
 _RNA_la_LIBADD += -lstdc++
 endif
 
 _RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -shrext $(PYTHON2_SO) $(PYTHON2_LDFLAGS)
 
-if WITH_LTO
+if VRNA_AM_SWITCH_LTO
 _RNA_la_CFLAGS += $(LTO_CFLAGS)
 _RNA_la_CXXFLAGS += $(LTO_CXXFLAGS)
 _RNA_la_LDFLAGS += $(LTO_LDFLAGS)

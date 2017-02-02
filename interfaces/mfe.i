@@ -221,7 +221,7 @@ char *my_alifold(std::vector<std::string> alignment, char *constraints, float *O
     return vrna_mfe_window($self,file);
   }
 
-  /* ONLY possible if USE_SVM is set
+  /* ONLY possible if VRNA_WITH_SVM is set
   float mfe_window_zscore(double min_z,FILE *file=NULL){
 
     return vrna_mfe_window_zscore($self,min_z,file);

@@ -22,7 +22,7 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/file_utils.h"
 #include "ViennaRNA/constraints.h"
-#if WITH_JSON_SUPPORT
+#if VRNA_WITH_JSON_SUPPORT
 # include <json/json.h>
 #endif
 #include "ViennaRNA/file_formats.h"
@@ -181,7 +181,7 @@ vrna_file_bpseq(const char *seq,
   fflush(out);
 }
 
-#if WITH_JSON_SUPPORT
+#if VRNA_WITH_JSON_SUPPORT
 
 PUBLIC void
 vrna_file_json( const char *seq,

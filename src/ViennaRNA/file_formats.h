@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_FILE_FORMATS_H
 #define VIENNA_RNA_PACKAGE_FILE_FORMATS_H
 
-#ifdef DEPRECATION_WARNINGS
+#ifdef VRNA_WARN_DEPRECATED
 # ifdef __GNUC__
 #  define DEPRECATED(func) func __attribute__ ((deprecated))
 # else
@@ -83,7 +83,7 @@ void vrna_file_bpseq( const char *seq,
                       const char *db,
                       FILE *file);
 
-#if WITH_JSON_SUPPORT
+#if VRNA_WITH_JSON_SUPPORT
 
 /**
  *  @brief Print a secondary structure in jsonformat

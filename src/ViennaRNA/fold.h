@@ -6,7 +6,7 @@
 #include <ViennaRNA/mfe.h>
 #include <ViennaRNA/eval.h>
 
-#ifdef DEPRECATION_WARNINGS
+#ifdef VRNA_WARN_DEPRECATED
 # ifdef __GNUC__
 #  define DEPRECATED(func) func __attribute__ ((deprecated))
 # else
