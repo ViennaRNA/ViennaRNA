@@ -78,8 +78,8 @@ main(int  argc,
                               *constraints_file, **shape_files, *shape_method, *filename_plot,
                               *filename_dot, *filename_aln, *filename_out, *filename_in,
                               *tmp_id, *tmp_structure, *tmp_string, **input_files, *id_prefix;
-  int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci,
-                              endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
+  int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci, endgaps,
+                              aln_columns, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
                               istty_in, eval_energy, pf, istty, *shape_file_association,
                               tmp_number, batch, continuous_names, id_digits, auto_id,
                               input_file_num, consensus_constraint, enforceConstraints;
@@ -90,6 +90,7 @@ main(int  argc,
 
   string                  = structure = cstruc = NULL;
   endgaps                 = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = noPS = 0;
+  aln_columns             = 60;
   do_backtrack            = 1;
   bppmThreshold           = 1e-6;
   MEAgamma                = 1.0;
@@ -198,6 +199,9 @@ main(int  argc,
 
   if (args_info.aln_given)
     doAlnPS = 1;
+
+  if (args_info.aln_cols_given)
+    aln_columns = args_info.aln_cols_arg;
 
   if (args_info.old_given)
     md.oldAliEn = oldAliEn = 1;
@@ -538,7 +542,7 @@ main(int  argc,
     }
 
     if (with_shapes) {
-      for (s = 0; shape_file_association[s] != -1; s++);
+      for (s = 0; shape_file_association[s] != -1; s++) ;
 
       if (s != n_seq)
         vrna_message_warning("Number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
@@ -615,7 +619,7 @@ main(int  argc,
     }
 
     if (doAlnPS)
-      PS_color_aln(structure, filename_aln, (const char **)AS, (const char **)names);
+      vrna_file_PS_aln(filename_aln, (const char **)AS, (const char **)names, structure, aln_columns);
 
     /* free mfe arrays */
     vrna_mx_mfe_free(vc);
@@ -1031,7 +1035,7 @@ make_color_pinfo(char   **sequences,
   int   i, n, s, a, b, z, t, j, c;
   int   pfreq[7];
 
-  for (n = 0; pl[n].i > 0; n++);
+  for (n = 0; pl[n].i > 0; n++) ;
   c   = 0;
   cp  = (cpair *)vrna_alloc(sizeof(cpair) * (n + 1));
   for (i = 0; i < n; i++) {
