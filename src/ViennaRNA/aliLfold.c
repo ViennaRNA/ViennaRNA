@@ -25,6 +25,10 @@
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/fold.h"
+#include "ViennaRNA/Lfold.h"
+#include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/plot_aln.h"
+#include "ViennaRNA/plot_structure.h"
 #include "ViennaRNA/loop_energies.h"
 
 #ifdef _OPENMP
@@ -99,8 +103,11 @@ PRIVATE void  free_aliL_arrays(int maxdist);
 PRIVATE void  get_arrays(unsigned int size, int maxdist);
 PRIVATE short *encode_seq(const char *sequence, short *s5, short *s3, char *ss, unsigned short *as);
 PRIVATE void  make_pscores(const char ** AS, const char *structure,int maxdist, int start);
-PRIVATE int   fill_arrays(const char **strings, int maxdist, char *structure);
-PRIVATE char  *backtrack(const char **strings, int start, int maxdist);
+PRIVATE int   fill_arrays(const char *strings[], int maxdist, char *structure, const char *names[], int columns);
+PRIVATE char  *backtrack(const char *strings[], int start, int maxdist);
+PRIVATE void  get_subalignment(const char *AS[], char *sub[], int i, int j);
+PRIVATE void  delete_alignment(char *AS[]);
+PRIVATE char  **annote(const char *structure, const char *AS[]);
 
 /*
 #################################
@@ -163,7 +170,17 @@ PRIVATE void free_aliL_arrays(int maxdist) {
 }
 
 /*--------------------------------------------------------------------------*/
-PUBLIC float aliLfold(const char **strings, char *structure, int maxdist) {
+PUBLIC float aliLfold(const char *strings[], char *structure, int maxdist) {
+  return aliLfold_aln(strings, structure, maxdist, NULL, 60); 
+}
+
+PUBLIC float
+aliLfold_aln( const char **strings,
+              char *structure,
+              int maxdist,
+              const char *names[],
+              int columns)
+{
   int length, energy, s, n_seq, i, j;
   length = (int) strlen(strings[0]);
   if (maxdist>length) maxdist = length;
@@ -202,13 +219,19 @@ PUBLIC float aliLfold(const char **strings, char *structure, int maxdist) {
   for (i=length; i>=(int)length-(int)maxdist-4 && i>0; i--)
     make_pscores((const char **) strings,structure,maxdist,i);
 
-  energy = fill_arrays(strings, maxdist, structure);
+  energy = fill_arrays(strings, maxdist, structure, names, columns);
 
   free_aliL_arrays(maxdist);
   return (float) energy/100.;
 }
 
-PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
+PRIVATE int
+fill_arrays(const char *strings[],
+            int maxdist,
+            char *structure,
+            const char *names[],
+            int columns)
+{
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
   int   i, j, k, length, energy;
@@ -218,6 +241,9 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
   lastf = lastf2 = INF;
 
   /* int   bonus=0;*/
+  int   subalignments = (names == NULL) ? 0 : 1;
+  vrna_md_t md;
+  set_model_details(&md);
 
   length = (int) strlen(strings[0]);
   for (s=0; strings[s]!=NULL; s++);
@@ -454,6 +480,25 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
             else {
               printf("%s (%6.2f) %4d - %4d\n",prev, energyprev/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
             }
+            if(subalignments){
+              char *sub[500];
+              char fname[1024];
+              int start, end;
+              char **A, *cons;
+
+              start = prev_i;
+              end   = prev_i + (int)strlen(prev)-1;
+              get_subalignment(strings, sub, start, end);
+              cons  = consensus((const char **)sub);
+              A     = annote(prev, (const char**)sub);
+              sprintf(fname, "ss_%d_%d.eps", start, end);
+              (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
+              free(A[0]); free(A[1]); free(A); free(cons);
+
+              sprintf(fname, "aln_%d_%d.eps", start, end);
+              vrna_file_PS_aln_sub( fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
+              delete_alignment(sub);
+            }
             free(outstr);
           }
           free(prev);
@@ -480,6 +525,25 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
           else{
             printf("%s (%6.2f) %4d - %4d\n", prev, (energyprev)/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
           }
+          if(subalignments){
+              char *sub[500];
+              char fname[1024];
+              int start, end;
+              char **A, *cons;
+
+              start = prev_i;
+              end   = prev_i + (int)strlen(prev)-1;
+              get_subalignment(strings, sub, start, end);
+              cons  = consensus((const char **)sub);
+              A     = annote(prev, (const char**)sub);
+              sprintf(fname, "ss_%d_%d.eps", start, end);
+              (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
+              free(A[0]); free(A[1]); free(A); free(cons);
+
+              sprintf(fname, "aln_%d_%d.eps", start, end);
+              vrna_file_PS_aln_sub(fname, (const char **)sub, names, (const char *)prev, start, -1, columns);
+              delete_alignment(sub);
+          }
         }
         if ((f3[prev_i] != f3[1]) || !prev){
           ss      =  backtrack(strings, i , maxdist);
@@ -492,6 +556,25 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
             printf("%s ,%6.2f ,%4d ,%4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, (int)strlen(ss)-1);
           else{
             printf("%s (%6.2f) %4d - %4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, (int)strlen(ss)-1);
+          }
+          if(subalignments){
+              char *sub[500];
+              char fname[1024];
+              int start, end;
+              char **A, *cons;
+
+              start = 1;
+              end   = (int)strlen(ss)-1;
+              get_subalignment(strings, sub, start, end);
+              cons  = consensus((const char **)sub);
+              A     = annote(prev, (const char**)sub);
+              sprintf(fname, "ss_%d_%d.eps", start, end);
+              (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
+              free(A[0]); free(A[1]); free(A); free(cons);
+
+              sprintf(fname, "aln_%d_%d.eps", start, end);
+              vrna_file_PS_aln_sub( fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
+              delete_alignment(sub);
           }
           free(ss);
         }
@@ -520,7 +603,7 @@ PRIVATE int fill_arrays(const char **strings, int maxdist, char *structure) {
   return f3[1];
 }
 
-PRIVATE char * backtrack(const char **strings, int start, int maxdist) {
+PRIVATE char * backtrack(const char *strings[], int start, int maxdist) {
   /*------------------------------------------------------------------
     trace back through the "c", "f3" and "fML" arrays to get the
     base pairing list. No search for equivalent structures is done.
@@ -961,3 +1044,104 @@ PRIVATE void make_pscores(const char ** AS,
     free(stack);
   }
 }
+
+PRIVATE void
+get_subalignment(const char *AS[], char *sub[], int i, int j){
+  
+  int n_seq, s;
+
+  /* get number of sequences in alignment */
+  for(n_seq=0; AS[n_seq]!=NULL; n_seq++);
+
+  for(s = 0; s < n_seq; s++){
+    sub[s] = vrna_alloc(sizeof(char) * (j - i + 2));
+  }
+  sub[s] = NULL;
+
+  /* copy subalignment */
+  for (s=0; s<n_seq; s++) {
+    sub[s] = memcpy(sub[s], AS[s] + i - 1, sizeof(char) * (j - i + 1));
+    sub[s][(j-i + 1)] = '\0';
+  }
+
+}
+
+PRIVATE void
+delete_alignment(char *AS[]){
+  int n_seq;
+
+  /* get number of sequences in alignment */
+  for(n_seq=0; AS[n_seq]!=NULL; n_seq++){
+    free(AS[n_seq]);
+  }
+}
+PRIVATE char **annote(const char *structure, const char *AS[]) {
+  /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
+  char *ps, *colorps, **A;
+  int i, n, s, pairings, maxl;
+  short *ptable;
+  char * colorMatrix[6][3] = {
+    {"0.0 1", "0.0 0.6",  "0.0 0.2"},  /* red    */
+    {"0.16 1","0.16 0.6", "0.16 0.2"}, /* ochre  */
+    {"0.32 1","0.32 0.6", "0.32 0.2"}, /* turquoise */
+    {"0.48 1","0.48 0.6", "0.48 0.2"}, /* green  */
+    {"0.65 1","0.65 0.6", "0.65 0.2"}, /* blue   */
+    {"0.81 1","0.81 0.6", "0.81 0.2"}  /* violet */
+  };
+
+  n = strlen(AS[0]);
+  maxl = 1024;
+
+  A = (char **) vrna_alloc(sizeof(char *)*2);
+  ps = (char *) vrna_alloc(maxl);
+  colorps = (char *) vrna_alloc(maxl);
+  ptable = vrna_ptable(structure);
+  for (i=1; i<=n; i++) {
+    char pps[64], ci='\0', cj='\0';
+    int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;
+    if ((j=ptable[i])<i) continue;
+    for (s=0; AS[s]!=NULL; s++) {
+      type = pair[encode_char(AS[s][i-1])][encode_char(AS[s][j-1])];
+      pfreq[type]++;
+      if (type) {
+        if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
+        if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
+      }
+    }
+    for (pairings=0,s=1; s<=7; s++) {
+      if (pfreq[s]) pairings++;
+    }
+
+    if ((maxl - strlen(ps) < 192) || ((maxl - strlen(colorps)) < 64)) {
+      maxl *= 2;
+      ps = realloc(ps, maxl);
+      colorps = realloc(colorps, maxl);
+      if ((ps==NULL) || (colorps == NULL))
+          vrna_message_error("out of memory in realloc");
+    }
+
+    if (pfreq[0]<=2 && pairings>0) {
+      snprintf(pps, 64, "%d %d %s colorpair\n",
+               i,j, colorMatrix[pairings-1][pfreq[0]]);
+      strcat(colorps, pps);
+    }
+
+    if (pfreq[0]>0) {
+      snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
+      strcat(ps, pps);
+    }
+    if (vi>1) {
+      snprintf(pps, 64, "%d cmark\n", i);
+      strcat(ps, pps);
+    }
+    if (vj>1) {
+      snprintf(pps, 64, "%d cmark\n", j);
+      strcat(ps, pps);
+    }
+  }
+  free(ptable);
+  A[0]=colorps;
+  A[1]=ps;
+  return A;
+}
+

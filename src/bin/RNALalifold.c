@@ -39,7 +39,7 @@ main(int  argc,
                                 ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH],
                                 *AS[MAX_NUM_NAMES], *names[MAX_NUM_NAMES];
   int                           n_seq, i, length, maxdist, unchangednc, unchangedcv,
-                                mis, pf, istty;
+                                mis, pf, istty, alnPS, aln_columns;
   double                        min_en;
   vrna_md_t                     md;
 
@@ -50,6 +50,7 @@ main(int  argc,
   do_backtrack  = unchangednc = unchangedcv = 1;
   dangles       = 2;
   ribo          = 0;
+  alnPS         = 0;
 
   vrna_md_set_default(&md);
 
@@ -134,6 +135,12 @@ main(int  argc,
     md.ribo     = ribo = 1;
   }
 
+  if (args_info.aln_given)
+    alnPS = 1;
+
+  if (args_info.aln_cols_given)
+    aln_columns = args_info.aln_cols_arg;
+
   /* check unnamed options a.k.a. filename of input alignment */
   if (args_info.inputs_num == 1) {
     clust_file = fopen(args_info.inputs[0], "r");
@@ -190,8 +197,13 @@ main(int  argc,
    #############################################
    */
   update_fold_params();
-  if (!pf)
-    min_en = aliLfold((const char **)AS, structure, maxdist);
+
+  if (!pf) {
+    if (alnPS)
+      min_en = aliLfold_aln((const char **)AS, structure, maxdist, (const char **)names, aln_columns);
+    else
+      min_en = aliLfold((const char **)AS, structure, maxdist);
+  }
 
   {
     eos_debug = -1; /* shut off warnings about nonstandard pairs */
