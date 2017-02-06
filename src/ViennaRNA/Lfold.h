@@ -108,6 +108,12 @@ float aliLfold( const char **strings,
                 char *structure,
                 int maxdist);
 
+float aliLfold_aln( const char *strings[],
+                    char *structure,
+                    int maxdist,
+                    const char *names[],
+                    int columns);
+
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /**
