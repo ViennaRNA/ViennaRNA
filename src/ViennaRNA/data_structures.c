@@ -548,9 +548,9 @@ set_fold_compound(vrna_fold_compound_t *vc,
                                   vc->sequence_encoding   = vrna_seq_encode(seq, md_p);
                                   vc->sequence_encoding2  = vrna_seq_encode_simple(seq, md_p);
 
-                                  vc->strand_number       = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->length + 1));
+                                  vc->strand_number       = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->length + 2));
                                   if (cp > 0)
-                                    for (s = i = 0; i <= vc->length; i++) {
+                                    for (s = i = 0; i <= vc->length + 1; i++) { /* this sets pos. 0 and n+1 as well */
                                       if (i == vc->cutpoint)
                                         s++;
                                       vc->strand_number[i] = s;
