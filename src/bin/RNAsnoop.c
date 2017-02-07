@@ -669,30 +669,18 @@ print_struc(snoopT      *dup,
     temp_seq[n2 + l1 - 10]    = '\0';
     temp_struc[n2 + l1 - 10]  = '\0';
     cut_point                 = l1 + 1;
-    char  str[16];
-    char  upos[16];
-    char  *temp;
-    int   length_name = strlen(name_t) + strlen(name_s);
-    temp = (char *)vrna_alloc(sizeof(char) * (length_name + 1));
-    strcpy(temp, name_t + 1);
-    strcat(temp, "_");
-    strcat(temp, name_s + 1);
-    temp[length_name] = '\0';
-    strcpy(psoutput, "sno_");
-    sprintf(str, "%d", count);
-    strcat(psoutput, str);
-    sprintf(upos, "%d", dup->u);
-    strcat(psoutput, "_u_");
-    strcat(psoutput, upos);
-    strcat(psoutput, "_");
-    strcat(psoutput, temp);
-    strcat(psoutput, ".ps\0");
+
+    psoutput = vrna_strdup_printf("sno_%d_u_%d_%s_%s.ps",
+                                  count,
+                                  dup->u,
+                                  name_t + 1,
+                                  name_s + 1);
+
     PS_rna_plot_snoop_a(temp_seq, temp_struc, psoutput, NULL, NULL);
     cut_point = -1;
     free(temp_seq);
     free(temp_struc);
     free(psoutput);
-    free(temp);
   }
 
   free(s4);

@@ -503,7 +503,7 @@ sc_parse_parameters( const char *string,
                         float *v1,
                         float *v2){
 
-  char fmt[8];
+  char *fmt;
   const char warning[] = "SHAPE method parameters not recognized! Using default parameters!";
   int r;
 
@@ -514,30 +514,36 @@ sc_parse_parameters( const char *string,
     return;
 
   if(c2 == 0 || v2 == NULL){
-    sprintf(fmt, "%c%%f", c1);
+    fmt = vrna_strdup_printf("%c%%f", c1);
     r = sscanf(string, fmt, v1);
 
     if(!r)
       vrna_message_warning(warning);
 
+    free(fmt);
+
     return;
   }
 
-  sprintf(fmt, "%c%%f%c%%f", c1, c2);
+  fmt = vrna_strdup_printf("%c%%f%c%%f", c1, c2);
   r = sscanf(string, fmt, v1, v2);
 
   if(r!=2){
-    sprintf(fmt, "%c%%f", c1);
+    free(fmt);
+    fmt = vrna_strdup_printf("%c%%f", c1);
     r = sscanf(string, fmt, v1);
 
     if(!r){
-      sprintf(fmt, "%c%%f", c2);
+      free(fmt);
+      fmt = vrna_strdup_printf("%c%%f", c2);
       r = sscanf(string, fmt, v2);
 
       if(!r)
         vrna_message_warning(warning);
     }
   }
+
+  free(fmt);
 }
 
 PRIVATE void

@@ -1105,7 +1105,7 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
       if(name){
         char *temp_seq;
         char *temp_struc;
-        char psoutput[100];
+        char *psoutput;
         temp_seq = (char*) vrna_alloc(sizeof(char)*(l1+n2-9));
         temp_struc = (char*) vrna_alloc(sizeof(char)*(l1+n2-9));
         strcpy(temp_seq, target);
@@ -1115,20 +1115,16 @@ PRIVATE void find_max_snoop(const char *s1, const char *s2,const int max,  const
         temp_seq[n2+l1-10]='\0';
         temp_struc[n2+l1-10]='\0';
         cut_point = l1+1;
-        char str[16];char upos[16];
-        strcpy(psoutput,"sno_");
-        sprintf(str,"%d",count);
-        strcat(psoutput,str);
-        sprintf(upos,"%d",begin + test.u - 6);
-        strcat(psoutput,"_u_");
-        strcat(psoutput,upos);
-        strcat(psoutput,"_");
-        strcat(psoutput,name);
-        strcat(psoutput,".ps\0");
+        psoutput = vrna_strdup_printf("sno_%d_u_%d_%s.ps",
+                                      count,
+                                      begin + test.u - 6,
+                                      name);
+
         PS_rna_plot_snoop_a(temp_seq, temp_struc, psoutput, NULL, NULL);
         cut_point = -1;
         free(temp_seq);
         free(temp_struc);
+        free(psoutput);
         count++;
         /* free(psoutput); */
       }
@@ -1627,7 +1623,7 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
              test.Duplex_Er, test.Loop_E, test.Loop_D,dE , test.fullStemEnergy, s5,s4);
       if(name){
         int begin_t, end_t, begin_q, end_q, and, pipe,k; 
-        char psoutput[100];
+        char *psoutput;
         begin_q=0;
         end_q=n4-10;
         begin_t=0;
@@ -1650,18 +1646,15 @@ PUBLIC void snoop_subopt_XS(const char *s1, const char *s2, const int **access_s
         for(k=1;k<(int)strlen(s5);k++){
           relative_access[k] =  access_s1[k+1][i - (n5  - test.i) + k + 5] -  access_s1[k][i - (n5  - test.i) + k + 4];
         }
-        char str[16];char upos[16];
-        strcpy(psoutput,"sno_XS_");
-        sprintf(str,"%d",count);
-        strcat(psoutput,str);
-        sprintf(upos,"%d",i - (n5 - test.u ));
-        strcat(psoutput,"_u_");
-        strcat(psoutput,upos);
-        strcat(psoutput,"_");
-        strcat(psoutput,name);
-        strcat(psoutput,".ps\0");
+
+        psoutput = vrna_strdup_printf("sno_XS_%d_u_%d_%s.ps",
+                                      count,
+                                      i - (n5 - test.u ),
+                                      name);
+
         PS_rna_plot_snoop_a(catseq, catstruct, psoutput,relative_access,NULL);
         free(catseq);free(catstruct);free(relative_access);
+        free(psoutput);
         count++;
       }
       free(s3);free(s4);free(s5);free(test.structure);
@@ -2130,7 +2123,7 @@ PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **acces
              test.Duplex_Er, test.Loop_E, test.Loop_D,dE ,test.fullStemEnergy, s5,s4);
       if(name){
         int begin_t, end_t, begin_q, end_q, and, pipe, i; 
-        char psoutput[100];
+        char *psoutput;
         begin_q=0;
         end_q=n4-10;
         begin_t=0;
@@ -2154,19 +2147,15 @@ PRIVATE void find_max_snoop_XS(const char *s1, const char *s2, const int **acces
         for(i=1;i<(int)strlen(s5);i++){
           relative_access[i] =  access_s1[i+1][pos - (n5  - test.i) + i + 5] -  access_s1[i][pos - (n5  - test.i) + i + 4];
         }
-        char str[16];
-        char upos[16];
-        strcpy(psoutput,"sno_XS_");
-        sprintf(str,"%d",count);
-        strcat(psoutput,str);
-        sprintf(upos,"%d",pos - (n5 - test.u ));
-        strcat(psoutput,"_u_");
-        strcat(psoutput,upos);
-        strcat(psoutput,"_");
-        strcat(psoutput,name);
-        strcat(psoutput,".ps\0");
+
+        psoutput = vrna_strdup_printf("sno_XS_%d_u_%d_%s.ps",
+                                      count,
+                                      pos - (n5 - test.u ),
+                                      name);
+
         PS_rna_plot_snoop_a(catseq, catstruct, psoutput,relative_access,NULL);
         free(catseq);free(catstruct);free(relative_access);
+        free(psoutput);
         count++;
       }
       free(s3);free(s4);free(s5);free(test.structure);

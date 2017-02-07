@@ -339,21 +339,25 @@ main(int  argc,
       (void)fflush(stdout);
 
       if (!noPS) {
-        char *filename_plot = NULL, annot[512] = "";
+        char *filename_plot = NULL, *annot = NULL;
         if (SEQ_ID)
           filename_plot = vrna_strdup_printf("%s_ss.ps", SEQ_ID);
         else
           filename_plot = strdup("rna.ps");
 
-        if (vc->cutpoint >= 0)
-          sprintf(annot,
-                  "1 %d 9  0 0.9 0.2 omark\n%d %d 9  1 0.1 0.2 omark\n",
-                  vc->cutpoint - 1, vc->cutpoint + 1, length + 1);
+        if (vc->cutpoint >= 0) {
+          annot = vrna_strdup_printf("1 %d 9  0 0.9 0.2 omark\n"
+                                     "%d %d 9  1 0.1 0.2 omark\n",
+                                     vc->cutpoint - 1,
+                                     vc->cutpoint + 1,
+                                     length + 1);
+        }
 
         if (filename_plot)
           (void)vrna_file_PS_rnaplot_a(pstring, pstruct, filename_plot, annot, NULL, &md);
 
         free(filename_plot);
+        free(annot);
       }
 
       free(pstring);
@@ -420,7 +424,6 @@ main(int  argc,
         int   Blength, Alength;
         char  *Astring, *Bstring, *orig_Astring, *orig_Bstring;
         char  *Newstring;
-        char  comment[80];
         if (vc->cutpoint <= 0) {
           vrna_message_warning("Sorry, i cannot do that with only one molecule, please give me two or leave it");
           free(mfAB);
@@ -485,11 +488,12 @@ main(int  argc,
         /*output of the 5 dot plots*/
 
         if ((do_backtrack) && (filename_dot)) {
-          char *fname_dot = NULL;
+          char  *comment    = NULL;
+          char  *fname_dot  = NULL;
           /*AB dot_plot*/
 
           /*write Free Energy into comment*/
-          sprintf(comment, "\n%%Heterodimer AB FreeEnergy= %.9f\n", AB.FcAB);
+          comment = vrna_strdup_printf("\n%%Heterodimer AB FreeEnergy= %.9f\n", AB.FcAB);
           /*reset cut_point*/
           cut_point = Alength + 1;
 
@@ -500,10 +504,12 @@ main(int  argc,
           (void)PS_dot_plot_list(coseq, fname_dot, prAB, mfAB, comment);
           free(coseq);
           free(fname_dot);
+          free(comment);
           fname_dot = NULL;
+          comment   = NULL;
 
           /*AA dot_plot*/
-          sprintf(comment, "\n%%Homodimer AA FreeEnergy= %.9f\n", AA.FcAB);
+          comment = vrna_strdup_printf("\n%%Homodimer AA FreeEnergy= %.9f\n", AA.FcAB);
           /*write New name*/
           fname_dot = vrna_strdup_printf("AA%s", filename_dot);
           /*write AA sequence*/
@@ -513,10 +519,12 @@ main(int  argc,
           (void)PS_dot_plot_list(Newstring, fname_dot, prAA, mfAA, comment);
           free(Newstring);
           free(fname_dot);
+          free(comment);
           fname_dot = NULL;
+          comment   = NULL;
 
           /*BB dot_plot*/
-          sprintf(comment, "\n%%Homodimer BB FreeEnergy= %.9f\n", BB.FcAB);
+          comment = vrna_strdup_printf("\n%%Homodimer BB FreeEnergy= %.9f\n", BB.FcAB);
           /*write New name*/
           fname_dot = vrna_strdup_printf("BB%s", filename_dot);
           /*write BB sequence*/
@@ -528,26 +536,31 @@ main(int  argc,
           (void)PS_dot_plot_list(Newstring, fname_dot, prBB, mfBB, comment);
           free(Newstring);
           free(fname_dot);
+          free(comment);
           fname_dot = NULL;
+          comment   = NULL;
 
           /*A dot plot*/
           /*reset cut_point*/
           cut_point = -1;
-          sprintf(comment, "\n%%Monomer A FreeEnergy= %.9f\n", AB.FA);
+          comment   = vrna_strdup_printf("\n%%Monomer A FreeEnergy= %.9f\n", AB.FA);
           /*write New name*/
           fname_dot = vrna_strdup_printf("A%s", filename_dot);
           /*write BB sequence*/
           (void)PS_dot_plot_list(orig_Astring, fname_dot, prA, mfA, comment);
           free(fname_dot);
+          free(comment);
           fname_dot = NULL;
+          comment   = NULL;
 
           /*B monomer dot plot*/
-          sprintf(comment, "\n%%Monomer B FreeEnergy= %.9f\n", AB.FB);
+          comment = vrna_strdup_printf("\n%%Monomer B FreeEnergy= %.9f\n", AB.FB);
           /*write New name*/
           fname_dot = vrna_strdup_printf("B%s", filename_dot);
           /*write BB sequence*/
           (void)PS_dot_plot_list(orig_Bstring, fname_dot, prB, mfB, comment);
           free(fname_dot);
+          free(comment);
         }
 
         free(filename_dot);

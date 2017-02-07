@@ -44,8 +44,7 @@ main(int  argc,
   FILE                    *pUfp, *spup;
   struct PKplex_args_info args_info;
   char                    *id_s1, *s1, *orig_s1, *ParamFile, *ns_bases, *plexstring,
-                          *constraint, fname[FILENAME_MAX_LENGTH], *temp, *annotation,
-                          **rest;
+                          *constraint, fname[FILENAME_MAX_LENGTH], *annotation, **rest;
   unsigned int            options;
   int                     istty, i, j, noconv, length, pairdist, current, unpaired, winsize;
   float                   cutoff, constrainedEnergy;
@@ -70,6 +69,7 @@ main(int  argc,
   ParamFile   = ns_bases = NULL;
   s1          = id_s1 = orig_s1 = NULL;
   par         = NULL;
+  annotation  = NULL;
 
   set_model_details(&md);
 
@@ -378,24 +378,26 @@ main(int  argc,
        ########################################################
        */
 
-      annotation  = (char *)vrna_alloc(sizeof(char) * 300);
-      temp        = (char *)vrna_alloc(sizeof(char) * 300);
-
       /* and print the results to stdout */
       for (i = 0; i < NumberOfHits; i++) {
         if (!PlexHits[i].inactive) {
           if (PlexHits[i].structure) {
-            annotation  = (char *)vrna_alloc(sizeof(char) * 300);
-            temp        = (char *)vrna_alloc(sizeof(char) * 300);
-            sprintf(temp, "%d %d 13 1 0 0 omark\n", (int)PlexHits[i].tb, PlexHits[i].te);
-            strcat(annotation, temp);
-            sprintf(temp, "%d %d 13 1 0 0 omark\n", (int)PlexHits[i].qb, PlexHits[i].qe);
-            strcat(annotation, temp);
-            sprintf(temp, "0 0 2 setrgbcolor\n2 setlinewidth\n%d cmark\n%d cmark\n1 setlinewidth", PlexHits[i].tb, PlexHits[i].qe);
-            strcat(annotation, temp);
+            annotation = vrna_strdup_printf("%d %d 13 1 0 0 omark\n"
+                                            "%d %d 13 1 0 0 omark\n"
+                                            "0 0 2 setrgbcolor\n"
+                                            "2 setlinewidth\n"
+                                            "%d cmark\n"
+                                            "%d cmark\n"
+                                            "1 setlinewidth",
+                                            (int)PlexHits[i].tb,
+                                            PlexHits[i].te,
+                                            (int)PlexHits[i].qb,
+                                            PlexHits[i].qe,
+                                            PlexHits[i].tb,
+                                            PlexHits[i].qe);
             vrna_file_PS_rnaplot_a(s1, PlexHits[i].structure, fname, annotation, "", &md);
             free(annotation);
-            free(temp);
+            annotation = NULL;
           } else {
             vrna_file_PS_rnaplot(s1, mfe_struct, fname, &md);
           }

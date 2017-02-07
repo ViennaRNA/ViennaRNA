@@ -482,7 +482,7 @@ fill_arrays(const char *strings[],
             }
             if(subalignments){
               char *sub[500];
-              char fname[1024];
+              char *fname;
               int start, end;
               char **A, *cons;
 
@@ -491,13 +491,18 @@ fill_arrays(const char *strings[],
               get_subalignment(strings, sub, start, end);
               cons  = consensus((const char **)sub);
               A     = annote(prev, (const char**)sub);
-              sprintf(fname, "ss_%d_%d.eps", start, end);
+              fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
               (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
-              free(A[0]); free(A[1]); free(A); free(cons);
+              free(A[0]);
+              free(A[1]);
+              free(A);
+              free(cons);
+              free(fname);
 
-              sprintf(fname, "aln_%d_%d.eps", start, end);
+              fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
               vrna_file_PS_aln_sub( fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
               delete_alignment(sub);
+              free(fname);
             }
             free(outstr);
           }
@@ -527,7 +532,7 @@ fill_arrays(const char *strings[],
           }
           if(subalignments){
               char *sub[500];
-              char fname[1024];
+              char *fname;
               int start, end;
               char **A, *cons;
 
@@ -536,13 +541,18 @@ fill_arrays(const char *strings[],
               get_subalignment(strings, sub, start, end);
               cons  = consensus((const char **)sub);
               A     = annote(prev, (const char**)sub);
-              sprintf(fname, "ss_%d_%d.eps", start, end);
+              fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
               (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
-              free(A[0]); free(A[1]); free(A); free(cons);
+              free(A[0]);
+              free(A[1]);
+              free(A);
+              free(cons);
+              free(fname);
 
-              sprintf(fname, "aln_%d_%d.eps", start, end);
+              fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
               vrna_file_PS_aln_sub(fname, (const char **)sub, names, (const char *)prev, start, -1, columns);
               delete_alignment(sub);
+              free(fname);
           }
         }
         if ((f3[prev_i] != f3[1]) || !prev){
@@ -559,7 +569,7 @@ fill_arrays(const char *strings[],
           }
           if(subalignments){
               char *sub[500];
-              char fname[1024];
+              char *fname;
               int start, end;
               char **A, *cons;
 
@@ -568,13 +578,18 @@ fill_arrays(const char *strings[],
               get_subalignment(strings, sub, start, end);
               cons  = consensus((const char **)sub);
               A     = annote(prev, (const char**)sub);
-              sprintf(fname, "ss_%d_%d.eps", start, end);
+              fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
               (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
-              free(A[0]); free(A[1]); free(A); free(cons);
+              free(A[0]);
+              free(A[1]);
+              free(A);
+              free(cons);
+              free(fname);
 
-              sprintf(fname, "aln_%d_%d.eps", start, end);
+              fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
               vrna_file_PS_aln_sub( fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
               delete_alignment(sub);
+              free(fname);
           }
           free(ss);
         }

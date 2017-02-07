@@ -46,15 +46,15 @@ print_progress(int    iteration,
                double *epsilon)
 {
   FILE  *f;
-  char  path[256];
+  char  *path;
 
   fprintf(stderr, "Iteration: %d\t Score: %f\n", iteration, score);
 
   if (!g_statpath)
     return;
 
-  sprintf(path, "%s_%04d", g_statpath, iteration);
-  f = fopen(path, "w");
+  path  = vrna_strdup_printf("%s_%04d", g_statpath, iteration);
+  f     = fopen(path, "w");
   if (!f) {
     vrna_message_warning("Couldn't open file '%s'", path);
     return;
@@ -64,6 +64,7 @@ print_progress(int    iteration,
   print_perturbation_vector(f, epsilon);
 
   fclose(f);
+  free(path);
 }
 
 
