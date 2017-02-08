@@ -275,5 +275,6 @@ main(int  argc,
     free(AS[i]);
     free(names[i]);
   }
-  return 0;
+
+  return EXIT_SUCCESS;
 }

@@ -1,12 +1,12 @@
 /*
-                  minimum free energy consensus
-                  RNA secondary structure prediction
-                  with maximum distance base pairs
-
-                  c Ivo Hofacker, Stephan Bernhart
-
-                  Vienna RNA package
-*/
+ *                minimum free energy consensus
+ *                RNA secondary structure prediction
+ *                with maximum distance base pairs
+ *
+ *                c Ivo Hofacker, Stephan Bernhart
+ *
+ *                Vienna RNA package
+ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -40,121 +40,174 @@
 
 #define PAREN
 
-#define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
-#define NEW_NINIO     1   /* new asymetry penalty */
-#define MAXSECTORS      500     /* dimension for a backtrack array */
-#define LOCALITY        0.      /* locality parameter for base-pairs */
+#define STACK_BULGE1  1     /* stacking energies for bulges of size 1 */
+#define NEW_NINIO     1     /* new asymetry penalty */
+#define MAXSECTORS      500 /* dimension for a backtrack array */
+#define LOCALITY        0.  /* locality parameter for base-pairs */
 #define UNIT 100
 #define MINPSCORE -2 * UNIT
 #define NONE -10000 /* score for forbidden pairs */
 
 /*
-#################################
-# GLOBAL VARIABLES              #
-#################################
-*/
+ #################################
+ # GLOBAL VARIABLES              #
+ #################################
+ */
 
 /*
-#################################
-# PRIVATE VARIABLES             #
-#################################
-*/
-PRIVATE vrna_param_t    *P = NULL;
-PRIVATE int             **c = NULL;       /* energy array, given that i-j pair */
-PRIVATE int             *cc = NULL;       /* linear array for calculating canonical structures */
-PRIVATE int             *cc1 = NULL;      /*   "     "        */
-PRIVATE int             *f3 = NULL;       /* energy of 5' end */
-PRIVATE int             **fML = NULL;     /* multi-loop auxiliary energy array */
-PRIVATE int             *Fmi = NULL;      /* holds row i of fML (avoids jumps in memory) */
-PRIVATE int             *DMLi = NULL;     /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-PRIVATE int             *DMLi1 = NULL;    /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-PRIVATE int             *DMLi2 = NULL;    /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-PRIVATE int             **pscore = NULL;  /* precomputed array of pair types */
+ #################################
+ # PRIVATE VARIABLES             #
+ #################################
+ */
+PRIVATE vrna_param_t    *P        = NULL;
+PRIVATE int             **c       = NULL; /* energy array, given that i-j pair */
+PRIVATE int             *f3       = NULL; /* energy of 5' end */
+PRIVATE int             **fML     = NULL; /* multi-loop auxiliary energy array */
+PRIVATE int             **pscore  = NULL; /* precomputed array of pair types */
 PRIVATE unsigned int    length;
-PRIVATE short           **S = NULL;
-PRIVATE short           **S5 = NULL;      /*S5[s][i] holds next base 5' of i in sequence s*/
-PRIVATE short           **S3 = NULL;      /*Sl[s][i] holds next base 3' of i in sequence s*/
-PRIVATE char            **Ss = NULL;
-PRIVATE unsigned short  **a2s = NULL;
-PRIVATE float           **dm = NULL;
-PRIVATE int             olddm[7][7]= {{0,0,0,0,0,0,0}, /* hamming distance between pairs PRIVATE needed??*/
-                                      {0,0,2,2,1,2,2} /* CG */,
-                                      {0,2,0,1,2,2,2} /* GC */,
-                                      {0,2,1,0,2,1,2} /* GU */,
-                                      {0,1,2,2,0,2,1} /* UG */,
-                                      {0,2,2,1,2,0,2} /* AU */,
-                                      {0,2,2,2,1,2,0} /* UA */};
+PRIVATE short           **S         = NULL;
+PRIVATE short           **S5        = NULL; /*S5[s][i] holds next base 5' of i in sequence s*/
+PRIVATE short           **S3        = NULL; /*Sl[s][i] holds next base 3' of i in sequence s*/
+PRIVATE char            **Ss        = NULL;
+PRIVATE unsigned short  **a2s       = NULL;
+PRIVATE float           **dm        = NULL;
+PRIVATE int             olddm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs PRIVATE needed??*/
+                                        { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
+                                        { 0, 2, 0, 1, 2, 2, 2 } /* GC */,
+                                        { 0, 2, 1, 0, 2, 1, 2 } /* GU */,
+                                        { 0, 1, 2, 2, 0, 2, 1 } /* UG */,
+                                        { 0, 2, 2, 1, 2, 0, 2 } /* AU */,
+                                        { 0, 2, 2, 2, 1, 2, 0 } /* UA */ };
 PRIVATE int             energyout;
 PRIVATE int             energyprev;
 
 #ifdef _OPENMP
 
 /* NOTE: all variables are assumed to be uninitialized if they are declared as threadprivate
-*/
-#pragma omp threadprivate(P, c, cc, cc1, f3, fML, Fmi, DMLi, DMLi1, DMLi2, pscore, length, S, dm, S5, S3, Ss, a2s, energyout, energyprev)
+ */
+#pragma omp threadprivate(P, c, f3, fML, pscore, length, S, dm, S5, S3, Ss, a2s, energyout, energyprev)
 
 #endif
 
 /*
-#################################
-# PRIVATE FUNCTION DECLARATIONS #
-#################################
-*/
-PRIVATE void  initialize_aliLfold(int length, int maxdist);
+ #################################
+ # PRIVATE FUNCTION DECLARATIONS #
+ #################################
+ */
+PRIVATE void  initialize_aliLfold(int length,
+                                  int maxdist);
+
+
 PRIVATE void  free_aliL_arrays(int maxdist);
-PRIVATE void  get_arrays(unsigned int size, int maxdist);
-PRIVATE short *encode_seq(const char *sequence, short *s5, short *s3, char *ss, unsigned short *as);
-PRIVATE void  make_pscores(const char ** AS, const char *structure,int maxdist, int start);
-PRIVATE int   fill_arrays(const char *strings[], int maxdist, char *structure, const char *names[], int columns, const char *prefix, unsigned int options);
-PRIVATE char  *backtrack(const char *strings[], int start, int maxdist);
-PRIVATE void  get_subalignment(const char *AS[], char *sub[], int i, int j);
+
+
+PRIVATE void  get_arrays(unsigned int size,
+                         int          maxdist);
+
+
+PRIVATE short *encode_seq(const char      *sequence,
+                          short           *s5,
+                          short           *s3,
+                          char            *ss,
+                          unsigned short  *as);
+
+
+PRIVATE void  make_pscores(const char **AS,
+                           const char *structure,
+                           int        maxdist,
+                           int        start);
+
+
+PRIVATE int   fill_arrays(const char    *strings[],
+                          int           maxdist,
+                          char          *structure,
+                          const char    *names[],
+                          int           columns,
+                          const char    *prefix,
+                          unsigned int  options);
+
+
+PRIVATE char *backtrack(const char  *strings[],
+                        int         start,
+                        int         maxdist);
+
+
+PRIVATE void  get_subalignment(const char *AS[],
+                               char       *sub[],
+                               int        i,
+                               int        j);
+
+
 PRIVATE void  delete_alignment(char *AS[]);
-PRIVATE char  **annote(const char *structure, const char *AS[]);
+
+
+PRIVATE char **annote(const char  *structure,
+                      const char  *AS[]);
+
+
+PRIVATE void
+write_hit(const char    **names,
+          const char    **strings,
+          int           start,
+          int           end,
+          const char    *structure,
+          const char    *prefix,
+          int           columns,
+          vrna_md_t     *md,
+          unsigned int  options);
+
 
 /*
-#################################
-# BEGIN OF FUNCTION DEFINITIONS #
-#################################
-*/
+ #################################
+ # BEGIN OF FUNCTION DEFINITIONS #
+ #################################
+ */
+PRIVATE void
+initialize_aliLfold(int length,
+                    int maxdist)
+{
+  if (length < 1)
+    vrna_message_error("initialize_fold: argument must be greater 0");
 
-PRIVATE void initialize_aliLfold(int length, int maxdist){
-  if (length<1) vrna_message_error("initialize_fold: argument must be greater 0");
-  get_arrays((unsigned) length, maxdist);
+  get_arrays((unsigned)length, maxdist);
   make_pair_matrix();
-  if(P) free(P);
-  vrna_md_t   md;
+  if (P)
+    free(P);
+
+  vrna_md_t md;
   set_model_details(&md);
   P = vrna_params(&md);
 }
 
+
 /*--------------------------------------------------------------------------*/
 
-PRIVATE void get_arrays(unsigned int size, int maxdist)
+PRIVATE void
+get_arrays(unsigned int size,
+           int          maxdist)
 {
   int i;
-  c       = (int **)vrna_alloc(sizeof(int *)*(size+1));
-  fML     = (int **)vrna_alloc(sizeof(int *)*(size+1));
-  pscore  = (int **)vrna_alloc(sizeof(int *)*(size+1));
-  f3      = (int *) vrna_alloc(sizeof(int)*(size+2));  /* has to be one longer */
-  cc      = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
-  cc1     = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
-  Fmi     = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
-  DMLi    = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
-  DMLi1   = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
-  DMLi2   = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
-  for (i=size; i>(int)size-maxdist-5 && i>=0; i--) {
-    c[i]      = (int *) vrna_alloc(sizeof(int) *(maxdist+5));
-    fML[i]    = (int *) vrna_alloc(sizeof(int) *(maxdist+5));
-    pscore[i] = (int *) vrna_alloc(sizeof(int )*(maxdist+5));
-  }
 
+  c       = (int **)vrna_alloc(sizeof(int *) * (size + 1));
+  fML     = (int **)vrna_alloc(sizeof(int *) * (size + 1));
+  pscore  = (int **)vrna_alloc(sizeof(int *) * (size + 1));
+  f3      = (int *)vrna_alloc(sizeof(int) * (size + 2)); /* has to be one longer */
+  for (i = size; i > (int)size - maxdist - 5 && i >= 0; i--) {
+    c[i]      = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+    fML[i]    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+    pscore[i] = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+  }
 }
+
 
 /*--------------------------------------------------------------------------*/
 
-PRIVATE void free_aliL_arrays(int maxdist) {
+PRIVATE void
+free_aliL_arrays(int maxdist)
+{
   int i;
-  for(i=0; i<maxdist+5 && i<=length; i++){
+
+  for (i = 0; i < maxdist + 5 && i <= length; i++) {
     free(c[i]);
     free(fML[i]);
     free(pscore[i]);
@@ -162,87 +215,101 @@ PRIVATE void free_aliL_arrays(int maxdist) {
   free(c);
   free(fML);
   free(f3);
-  free(cc);
-  free(cc1);
   free(pscore);
-  free(Fmi);
-  free(DMLi);
-  free(DMLi1);
-  free(DMLi2);
 }
+
 
 /*--------------------------------------------------------------------------*/
-PUBLIC float aliLfold(const char *strings[], char *structure, int maxdist) {
-  return aliLfold_aln(strings, structure, maxdist, NULL, 60, NULL, 0U); 
+PUBLIC float
+aliLfold(const char *strings[],
+         char       *structure,
+         int        maxdist)
+{
+  return aliLfold_aln(strings, structure, maxdist, NULL, 60, NULL, 0U);
 }
 
+
 PUBLIC float
-aliLfold_aln( const char **strings,
-              char *structure,
-              int maxdist,
-              const char *names[],
-              int columns,
-              const char *prefix,
-              unsigned int options)
+aliLfold_aln(const char   **strings,
+             char         *structure,
+             int          maxdist,
+             const char   *names[],
+             int          columns,
+             const char   *prefix,
+             unsigned int options)
 {
   int length, energy, s, n_seq, i, j;
-  length = (int) strlen(strings[0]);
-  if (maxdist>length) maxdist = length;
+
+  length = (int)strlen(strings[0]);
+  if (maxdist > length)
+    maxdist = length;
+
   initialize_aliLfold(length, maxdist);
 
-  for (s=0; strings[s]!=NULL; s++);
+  for (s = 0; strings[s] != NULL; s++) ;
   n_seq = s;
-  S   = (short **)          vrna_alloc(n_seq*sizeof(short *));
-  S5  = (short **)          vrna_alloc(n_seq*sizeof(short *));
-  S3  = (short **)          vrna_alloc(n_seq*sizeof(short *));
-  a2s = (unsigned short **) vrna_alloc(n_seq*sizeof(unsigned short *));
-  Ss  = (char **)           vrna_alloc(n_seq*sizeof(char *));
+  S     = (short **)vrna_alloc(n_seq * sizeof(short *));
+  S5    = (short **)vrna_alloc(n_seq * sizeof(short *));
+  S3    = (short **)vrna_alloc(n_seq * sizeof(short *));
+  a2s   = (unsigned short **)vrna_alloc(n_seq * sizeof(unsigned short *));
+  Ss    = (char **)vrna_alloc(n_seq * sizeof(char *));
 
-  for (s=0; s<n_seq; s++) {
-    if (strlen(strings[s]) != length) vrna_message_error("uneqal seqence lengths");
-    S5[s]   = (short *)           vrna_alloc((length+2)*sizeof(short));
-    S3[s]   = (short *)           vrna_alloc((length+2)*sizeof(short));
-    a2s[s]  = (unsigned short *)  vrna_alloc((length+2)*sizeof(unsigned short));
-    Ss[s]   = (char *)            vrna_alloc((length+2)*sizeof(char));
-    S[s]    = encode_seq(strings[s], S5[s],S3[s],Ss[s],a2s[s]);
+  for (s = 0; s < n_seq; s++) {
+    if (strlen(strings[s]) != length)
+      vrna_message_error("uneqal seqence lengths");
+
+    S5[s]   = (short *)vrna_alloc((length + 2) * sizeof(short));
+    S3[s]   = (short *)vrna_alloc((length + 2) * sizeof(short));
+    a2s[s]  = (unsigned short *)vrna_alloc((length + 2) * sizeof(unsigned short));
+    Ss[s]   = (char *)vrna_alloc((length + 2) * sizeof(char));
+    S[s]    = encode_seq(strings[s], S5[s], S3[s], Ss[s], a2s[s]);
   }
 
   if (ribo) {
-    if (RibosumFile !=NULL) dm=readribosum(RibosumFile);
-    else dm=get_ribosum(strings, n_seq, S[0][0]);
-  }
-  else { /*use usual matrix*/
-    dm=(float **)vrna_alloc(7*sizeof(float*));
-    for (i=0; i<7;i++) {
-      dm[i]=(float *)vrna_alloc(7*sizeof(float));
-      for (j=0; j<7; j++)
-        dm[i][j] = (float) olddm[i][j];
+    if (RibosumFile != NULL)
+      dm = readribosum(RibosumFile);
+    else
+      dm = get_ribosum(strings, n_seq, S[0][0]);
+  } else {
+    /*use usual matrix*/
+    dm = (float **)vrna_alloc(7 * sizeof(float *));
+    for (i = 0; i < 7; i++) {
+      dm[i] = (float *)vrna_alloc(7 * sizeof(float));
+      for (j = 0; j < 7; j++)
+        dm[i][j] = (float)olddm[i][j];
     }
   }
 
-  for (i=length; i>=(int)length-(int)maxdist-4 && i>0; i--)
-    make_pscores((const char **) strings,structure,maxdist,i);
+  for (i = length; i >= (int)length - (int)maxdist - 4 && i > 0; i--)
+    make_pscores((const char **)strings, structure, maxdist, i);
 
   energy = fill_arrays(strings, maxdist, structure, names, columns, prefix, options);
 
   free_aliL_arrays(maxdist);
-  return (float) energy/100.;
+  return (float)energy / 100.;
 }
 
+
 PRIVATE int
-fill_arrays(const char *strings[],
-            int maxdist,
-            char *structure,
-            const char *names[],
-            int columns,
-            const char *prefix,
-            unsigned int options)
+fill_arrays(const char    *strings[],
+            int           maxdist,
+            char          *structure,
+            const char    *names[],
+            int           columns,
+            const char    *prefix,
+            unsigned int  options)
 {
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
-  int   i, j, k, length, energy;
-  int   decomp, new_fML,MLenergy ;
-  int   *type, type_2, tt, s, n_seq, lastf, lastf2, thisj, lastj;
+  int       i, j, k, length, energy;
+  int       decomp, new_fML, MLenergy;
+  int       *type, type_2, tt, s, n_seq, lastf, lastf2, thisj, lastj;
+  int       *cc     = NULL; /* linear array for calculating canonical structures */
+  int       *cc1    = NULL; /*   "     "        */
+  int       *Fmi    = NULL; /* holds row i of fML (avoids jumps in memory) */
+  int       *DMLi   = NULL; /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
+  int       *DMLi1  = NULL; /*             MIN(fML[i+1,k]+fML[k+1,j])  */
+  int       *DMLi2  = NULL; /*             MIN(fML[i+2,k]+fML[k+1,j])  */
 
   lastf = lastf2 = INF;
 
@@ -250,54 +317,68 @@ fill_arrays(const char *strings[],
   vrna_md_t md;
   set_model_details(&md);
 
-  length = (int) strlen(strings[0]);
-  for (s=0; strings[s]!=NULL; s++);
-  n_seq = s;
-  type = (int *) vrna_alloc(n_seq*sizeof(int));
-  for (j=0; j<maxdist+5; j++)
-    Fmi[j]=DMLi[j]=DMLi1[j]=DMLi2[j]=INF;
-  for (j=length; j>length-maxdist-3; j--) {
-    for (i=(length-maxdist-2>0)?length-maxdist-2:1 ; i<j; i++)
-      c[i][j-i] = fML[i][j-i] = INF;
-  }
+  cc    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+  cc1   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+  Fmi   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+  DMLi  = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+  DMLi1 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+  DMLi2 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
 
-  for (i = length-TURN-1; i >= 1; i--) { /* i,j in [1..length] */
-    for (j = i+1; j<=length && j<=i+TURN; j++) {
-      c[i][j-i]=fML[i][j-i]=INF;
-    }
-   for (j = i+TURN+1; j <= length && j <= i+maxdist; j++) {
+  length = (int)strlen(strings[0]);
+  for (s = 0; strings[s] != NULL; s++) ;
+  n_seq = s;
+  type  = (int *)vrna_alloc(n_seq * sizeof(int));
+  for (j = 0; j < maxdist + 5; j++)
+    Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
+  for (j = length; j > length - maxdist - 3; j--)
+    for (i = (length - maxdist - 2 > 0) ? length - maxdist - 2 : 1; i < j; i++)
+      c[i][j - i] = fML[i][j - i] = INF;
+
+  for (i = length - TURN - 1; i >= 1; i--) {
+    /* i,j in [1..length] */
+    for (j = i + 1; j <= length && j <= i + TURN; j++)
+      c[i][j - i] = fML[i][j - i] = INF;
+    for (j = i + TURN + 1; j <= length && j <= i + maxdist; j++) {
       int p, q, psc;
       /* bonus = 0;*/
-      for (s=0; s<n_seq; s++) {
+      for (s = 0; s < n_seq; s++) {
         type[s] = pair[S[s][i]][S[s][j]];
-        if (type[s]==0) type[s]=7;
+        if (type[s] == 0)
+          type[s] = 7;
       }
 
-      psc = pscore[i][j-i];
+      psc = pscore[i][j - i];
 
-      if (psc>=cv_fact*MINPSCORE) {   /* we have a pair 2 consider */
-        int new_c=0, stackEnergy=INF;
+      if (psc >= cv_fact * MINPSCORE) {
+        /* we have a pair 2 consider */
+        int new_c = 0, stackEnergy = INF;
         /* hairpin ----------------------------------------------*/
-        for (new_c=s=0; s<n_seq; s++){
-          if((a2s[s][j-1] - a2s[s][i]) < 3) new_c += 600;
-          else new_c += E_Hairpin(a2s[s][j-1]-a2s[s][i],type[s],S3[s][i],S5[s][j],Ss[s]+(a2s[s][i-1]), P);
+        for (new_c = s = 0; s < n_seq; s++) {
+          if ((a2s[s][j - 1] - a2s[s][i]) < 3)
+            new_c += 600;
+          else
+            new_c += E_Hairpin(a2s[s][j - 1] - a2s[s][i], type[s], S3[s][i], S5[s][j], Ss[s] + (a2s[s][i - 1]), P);
         }
         /*--------------------------------------------------------
-          check for elementary structures involving more than one
-          closing pair.
-          --------------------------------------------------------*/
-        for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1) ; p++) {
-          int minq = j-i+p-MAXLOOP-2;
-          if (minq<p+1+TURN) minq = p+1+TURN;
+         *  check for elementary structures involving more than one
+         *  closing pair.
+         *  --------------------------------------------------------*/
+        for (p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1); p++) {
+          int minq = j - i + p - MAXLOOP - 2;
+          if (minq < p + 1 + TURN)
+            minq = p + 1 + TURN;
+
           for (q = minq; q < j; q++) {
-            if (pscore[p][q-p]<MINPSCORE) continue;
+            if (pscore[p][q - p] < MINPSCORE)
+              continue;
 
-
-            for (energy = s=0; s<n_seq; s++) {
+            for (energy = s = 0; s < n_seq; s++) {
               type_2 = pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
-              if (type_2 == 0) type_2 = 7;
-              energy += E_IntLoop(a2s[s][p-1]-a2s[s][i],
-                                  a2s[s][j-1]-a2s[s][q],
+              if (type_2 == 0)
+                type_2 = 7;
+
+              energy += E_IntLoop(a2s[s][p - 1] - a2s[s][i],
+                                  a2s[s][j - 1] - a2s[s][q],
                                   type[s],
                                   type_2,
                                   S3[s][i],
@@ -306,598 +387,526 @@ fill_arrays(const char *strings[],
                                   S3[s][q],
                                   P);
             }
-            new_c = MIN2(energy+c[p][q-p], new_c);
-            if ((p==i+1)&&(j==q+1)) stackEnergy = energy; /* remember stack energy */
-
+            new_c = MIN2(energy + c[p][q - p], new_c);
+            if ((p == i + 1) && (j == q + 1))
+              stackEnergy = energy;                       /* remember stack energy */
           } /* end q-loop */
         } /* end p-loop */
 
 
         /* multi-loop decomposition ------------------------*/
-        decomp = DMLi1[j-1-(i+1)];
+        decomp = DMLi1[j - 1 - (i + 1)];
         if (dangles) {
-          for (s=0; s<n_seq; s++) {
-            tt = rtype[type[s]];
-            decomp += E_MLstem(tt, S5[s][j], S3[s][i], P);
+          for (s = 0; s < n_seq; s++) {
+            tt      = rtype[type[s]];
+            decomp  += E_MLstem(tt, S5[s][j], S3[s][i], P);
+          }
+        } else {
+          for (s = 0; s < n_seq; s++) {
+            tt      = rtype[type[s]];
+            decomp  += E_MLstem(tt, -1, -1, P);
           }
         }
-        else{
-          for(s=0; s<n_seq; s++){
-            tt = rtype[type[s]];
-            decomp += E_MLstem(tt, -1, -1, P);
-          }
-        }
-        MLenergy = decomp + n_seq*P->MLclosing;
-        new_c = MIN2(new_c, MLenergy);
 
-        new_c = MIN2(new_c, cc1[j-1-(i+1)]+stackEnergy);
-        cc[j-i] = new_c - psc; /* add covariance bonnus/penalty */
+        MLenergy  = decomp + n_seq * P->MLclosing;
+        new_c     = MIN2(new_c, MLenergy);
+
+        new_c     = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
+        cc[j - i] = new_c - psc; /* add covariance bonnus/penalty */
         if (noLonelyPairs)
-          c[i][j-i] = cc1[j-1-(i+1)]+stackEnergy-psc;
+          c[i][j - i] = cc1[j - 1 - (i + 1)] + stackEnergy - psc;
         else
-          c[i][j-i] = cc[j-i];
-
+          c[i][j - i] = cc[j - i];
       } /* end >> if (pair) << */
-      else c[i][j-i] = INF;
-
+      else {
+        c[i][j - i] = INF;
+      }
 
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
 
-      new_fML = fML[i+1][j-i-1]+n_seq*P->MLbase;
-      new_fML = MIN2(fML[i][j-1-i]+n_seq*P->MLbase, new_fML);
-      energy = c[i][j-i]/*+P->MLintern[type]*/;
-      if(dangles){
-        for (s=0; s<n_seq; s++) {
+      new_fML = fML[i + 1][j - i - 1] + n_seq * P->MLbase;
+      new_fML = MIN2(fML[i][j - 1 - i] + n_seq * P->MLbase, new_fML);
+      energy  = c[i][j - i] /*+P->MLintern[type]*/;
+      if (dangles)
+        for (s = 0; s < n_seq; s++)
           energy += E_MLstem(type[s], (i > 1) ? S5[s][i] : -1, (j < length) ? S3[s][j] : -1, P);
-        }
-      }
-      else{
-        for (s=0; s<n_seq; s++) {
+      else
+        for (s = 0; s < n_seq; s++)
           energy += E_MLstem(type[s], -1, -1, P);
-        }
-      }
+
       new_fML = MIN2(energy, new_fML);
 
       /* modular decomposition -------------------------------*/
 
-      for (decomp = INF, k = i+1+TURN; k <= j-2-TURN; k++)
-        decomp = MIN2(decomp, Fmi[k-i]+fML[k+1][j-k-1]);
+      for (decomp = INF, k = i + 1 + TURN; k <= j - 2 - TURN; k++)
+        decomp = MIN2(decomp, Fmi[k - i] + fML[k + 1][j - k - 1]);
 
-      DMLi[j-i] = decomp;               /* store for use in ML decompositon */
-      new_fML = MIN2(new_fML,decomp);
+      DMLi[j - i] = decomp;               /* store for use in ML decompositon */
+      new_fML     = MIN2(new_fML, decomp);
 
 
-
-      fML[i][j-i] = Fmi[j-i] = new_fML;     /* substring energy */
-
+      fML[i][j - i] = Fmi[j - i] = new_fML;     /* substring energy */
     } /* for (j...) */
 
     /* calculate energies of 5' and 3' fragments */
     {
-      static int do_backtrack = 0, prev_i=0;
-      static char * prev=NULL;
-      char *ss;
-      int thisf=0;
-      f3[i] = f3[i+1];
-      for (j=i+TURN+1; j<length && j<=i+maxdist; j++) {
-        if(c[i][j-i]<INF) {
-        /*        if (c[j+1]<INF) {*/
-          energy = c[i][j-i];
-          if(dangles){
-            for(s = 0; s < n_seq; s++){
+      static int  do_backtrack = 0, prev_i = 0;
+      static char *prev = NULL;
+      char        *ss;
+      int         thisf = 0;
+      f3[i] = f3[i + 1];
+      for (j = i + TURN + 1; j < length && j <= i + maxdist; j++) {
+        if (c[i][j - i] < INF) {
+          /*        if (c[j+1]<INF) {*/
+          energy = c[i][j - i];
+          if (dangles) {
+            for (s = 0; s < n_seq; s++) {
               tt = pair[S[s][i]][S[s][j]];
-              if(tt==0) tt=7;
-              energy += E_ExtLoop(tt, (i>1) ? S5[s][i] : -1, S3[s][j], P);
+              if (tt == 0)
+                tt = 7;
+
+              energy += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, S3[s][j], P);
             }
-          }
-          else{
-            for(s = 0; s < n_seq; s++){
+          } else {
+            for (s = 0; s < n_seq; s++) {
               tt = pair[S[s][i]][S[s][j]];
-              if(tt==0) tt=7;
+              if (tt == 0)
+                tt = 7;
+
               energy += E_ExtLoop(tt, -1, -1, P);
             }
           }
-          if (energy/(j-i+1) < thisf){
-            thisf = energy/(j-i+1);
+
+          if (energy / (j - i + 1) < thisf) {
+            thisf = energy / (j - i + 1);
             thisj = j;
           }
-          energy += f3[j+1];
-          if(f3[i] > energy){
+
+          energy += f3[j + 1];
+          if (f3[i] > energy)
             f3[i] = energy;
-          }
         }
       }
-      if(length <= i+maxdist){
+      if (length <= i + maxdist) {
         j = length;
-        if(c[i][j-i]<INF) {
-          energy = c[i][j-i];
-          if(dangles){
-            for (s=0; s<n_seq; s++) {
+        if (c[i][j - i] < INF) {
+          energy = c[i][j - i];
+          if (dangles) {
+            for (s = 0; s < n_seq; s++) {
               tt = pair[S[s][i]][S[s][j]];
-              if(tt==0) tt=7;
-              energy += E_ExtLoop(tt, (i>1) ? S5[s][i] : -1, -1, P);
+              if (tt == 0)
+                tt = 7;
+
+              energy += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, -1, P);
             }
-          }
-          else{
-            for (s=0; s<n_seq; s++) {
+          } else {
+            for (s = 0; s < n_seq; s++) {
               tt = pair[S[s][i]][S[s][j]];
-              if(tt==0) tt=7;
+              if (tt == 0)
+                tt = 7;
+
               energy += E_ExtLoop(tt, -1, -1, P);
             }
           }
+
           /*  thisf=MIN2(energy/(j-i+1),thisf); ???*/
-          if (energy/(j-i+1) < thisf){
-            thisf = energy/(j-i+1);
+          if (energy / (j - i + 1) < thisf) {
+            thisf = energy / (j - i + 1);
             thisj = j;
           }
+
           f3[i] = MIN2(f3[i], energy);
         }
       }
+
       /* backtrack partial structure */
       /* if (i+maxdist<length) {*/
-      if (i<length-1){
-        if (f3[i] != f3[i+1]) {
+      if (i < length - 1) {
+        if (f3[i] != f3[i + 1]) {
           do_backtrack    = 1;
           backtrack_type  = 'F';
-          if (prev_i==0) {
-            prev          =  backtrack(strings, i , MIN2(maxdist,length-i));
+          if (prev_i == 0) {
+            prev          = backtrack(strings, i, MIN2(maxdist, length - i));
             prev_i        = i;
             do_backtrack  = 0;
             lastf2        = lastf;
             energyprev    = f3[i];
           }
-        }
-        else if((thisf < lastf) && (thisf < lastf2) && ((thisf/(n_seq*100)) < -0.01)){ /*?????????*/
+        } else if ((thisf < lastf) && (thisf < lastf2) && ((thisf / (n_seq * 100)) < -0.01)) {
+          /*?????????*/
           do_backtrack    = 2;
           backtrack_type  = 'C';
-        }
-        else if (do_backtrack){
-          if(do_backtrack == 1){
-            ss =  backtrack(strings, i+1 , MIN2(maxdist,length-i)/*+1*/);
-            energyout = f3[i] - f3[i+strlen(ss)-1];/*??*/
-          }
-          else {
-            ss =  backtrack(strings, i+1 , lastj-i-2);
-            energyout=c[i+1][lastj-(i+1)];
-            if(dangles){
-              for (s=0; s<n_seq; s++) {
+        } else if (do_backtrack) {
+          if (do_backtrack == 1) {
+            ss        = backtrack(strings, i + 1, MIN2(maxdist, length - i) /*+1*/);
+            energyout = f3[i] - f3[i + strlen(ss) - 1];/*??*/
+          } else {
+            ss        = backtrack(strings, i + 1, lastj - i - 2);
+            energyout = c[i + 1][lastj - (i + 1)];
+            if (dangles) {
+              for (s = 0; s < n_seq; s++) {
                 int type;
-                type = pair[S[s][i+1]][S[s][lastj-i]]; if (type==0) type=7;
-                energyout += E_ExtLoop(type, (i>1) ? S5[s][i+1] : -1, S3[s][lastj-i], P);
+                type = pair[S[s][i + 1]][S[s][lastj - i]];
+                if (type == 0)
+                  type = 7;
+
+                energyout += E_ExtLoop(type, (i > 1) ? S5[s][i + 1] : -1, S3[s][lastj - i], P);
               }
-            }
-            else{
-              for (s=0; s<n_seq; s++) {
+            } else {
+              for (s = 0; s < n_seq; s++) {
                 int type;
-                type = pair[S[s][i+1]][S[s][lastj-i]]; if (type==0) type=7;
+                type = pair[S[s][i + 1]][S[s][lastj - i]];
+                if (type == 0)
+                  type = 7;
+
                 energyout += E_ExtLoop(type, -1, -1, P);
               }
             }
           }
 
-          if((prev_i + strlen(prev) > i+1+strlen(ss)) || (do_backtrack==2)){
-            char *outstr = (char *)vrna_alloc(sizeof(char) * (strlen(prev)+1));
-            strncpy(outstr, strings[0]+prev_i-1, strlen(prev));
+          if ((prev_i + strlen(prev) > i + 1 + strlen(ss)) || (do_backtrack == 2)) {
+            char *outstr = (char *)vrna_alloc(sizeof(char) * (strlen(prev) + 1));
+            strncpy(outstr, strings[0] + prev_i - 1, strlen(prev));
             outstr[strlen(prev)] = '\0';
-            if (csv==1)  printf("%s , %6.2f, %4d, %4d\n",prev, energyprev/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
+            if (csv == 1)
+              printf("%s , %6.2f, %4d, %4d\n", prev, energyprev / (100. * n_seq), prev_i, prev_i + (int)strlen(prev) - 1);
             /* if(do_backtrack==1)*/
-            else {
-              printf("%s (%6.2f) %4d - %4d\n",prev, energyprev/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
-            }
-            if(options){
-              char *sub[500];
-              char *fname;
-              char *id;
-              int start, end;
-              char **A, *cons;
+            else
+              printf("%s (%6.2f) %4d - %4d\n", prev, energyprev / (100. * n_seq), prev_i, prev_i + (int)strlen(prev) - 1);
 
-              start = prev_i;
-              end   = prev_i + (int)strlen(prev)-1;
-              get_subalignment(strings, sub, start, end);
-              cons  = consensus((const char **)sub);
-              A     = annote(prev, (const char**)sub);
+            if (options)
+              write_hit(names, strings, prev_i, prev_i + (int)strlen(prev) - 1, prev, prefix, columns, &md, options);
 
-              if (options & VRNA_LOCAL_OUTPUT_SS_EPS) {
-                if (prefix)
-                  fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
-                else
-                  fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
-
-                (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
-                free(fname);
-              }
-
-              free(A[0]);
-              free(A[1]);
-              free(A);
-              free(cons);
-
-              if (options & VRNA_LOCAL_OUTPUT_MSA_EPS) {
-                if (prefix)
-                  fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
-                else
-                  fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
-
-                vrna_file_PS_aln_sub( fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
-                free(fname);
-              }
-
-              if (options & VRNA_LOCAL_OUTPUT_MSA) {
-                if (prefix) {
-                  id = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
-                  fname = vrna_strdup_printf("%s.stk", prefix);
-                  vrna_file_msa_write(fname, names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
-                  free(fname);
-                } else {
-                  id = vrna_strdup_printf("aln_%d_%d", start, end);
-                  vrna_file_msa_write("RNALalifold_results.stk", names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
-                }
-                free(id);
-              }
-
-              delete_alignment(sub);
-            }
             free(outstr);
           }
+
           free(prev);
-          prev = ss;
-          energyprev = energyout;
-          prev_i = i+1;
-          do_backtrack = 0;
-          backtrack_type='F';
+          prev            = ss;
+          energyprev      = energyout;
+          prev_i          = i + 1;
+          do_backtrack    = 0;
+          backtrack_type  = 'F';
         }
       }
-      lastf2 = lastf;
-      lastf  = thisf;
-      lastj  = thisj;
+
+      lastf2  = lastf;
+      lastf   = thisf;
+      lastj   = thisj;
 
 
-      if (i==1) {
+      if (i == 1) {
         char *outstr = NULL;
         if (prev) {
-          outstr = (char *)vrna_alloc(sizeof(char) *(strlen(prev) + 1));
-          strncpy(outstr, strings[0]+prev_i-1, strlen(prev));
+          outstr = (char *)vrna_alloc(sizeof(char) * (strlen(prev) + 1));
+          strncpy(outstr, strings[0] + prev_i - 1, strlen(prev));
           outstr[strlen(prev)] = '\0';
-          if(csv==1)
-            printf("%s ,%6.2f, %4d, %4d\n", prev, (energyprev)/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
-          else{
-            printf("%s (%6.2f) %4d - %4d\n", prev, (energyprev)/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
-          }
-          if(options){
-              char *sub[500];
-              char *fname;
-              char *id;
-              int start, end;
-              char **A, *cons;
+          if (csv == 1)
+            printf("%s ,%6.2f, %4d, %4d\n", prev, (energyprev) / (100. * n_seq), prev_i, prev_i + (int)strlen(prev) - 1);
+          else
+            printf("%s (%6.2f) %4d - %4d\n", prev, (energyprev) / (100. * n_seq), prev_i, prev_i + (int)strlen(prev) - 1);
 
-              start = prev_i;
-              end   = prev_i + (int)strlen(prev)-1;
-              get_subalignment(strings, sub, start, end);
-              cons  = consensus((const char **)sub);
-              A     = annote(prev, (const char**)sub);
-
-              if (options & VRNA_LOCAL_OUTPUT_SS_EPS) {
-                if (prefix)
-                  fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
-                else
-                  fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
-
-                (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
-                free(fname);
-              }
-
-              free(A[0]);
-              free(A[1]);
-              free(A);
-              free(cons);
-
-              if (options & VRNA_LOCAL_OUTPUT_MSA_EPS) {
-                if (prefix)
-                  fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
-                else
-                  fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
-
-                vrna_file_PS_aln_sub(fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
-                free(fname);
-              }
-
-              if (options & VRNA_LOCAL_OUTPUT_MSA) {
-                if (prefix) {
-                  id = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
-                  fname = vrna_strdup_printf("%s.stk", prefix);
-                  vrna_file_msa_write(fname, names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
-                  free(fname);
-                } else {
-                  id = vrna_strdup_printf("aln_%d_%d", start, end);
-                  vrna_file_msa_write("RNALalifold_results.stk", names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
-                }
-                free(id);
-              }
-
-              delete_alignment(sub);
-          }
+          if (options)
+            write_hit(names, strings, prev_i, prev_i + (int)strlen(prev) - 1, prev, prefix, columns, &md, options);
         }
-        if ((f3[prev_i] != f3[1]) || !prev){
-          ss      =  backtrack(strings, i , maxdist);
-          if(outstr) free(outstr);
-          outstr  = (char *)vrna_alloc(sizeof(char) * (strlen(ss) + 1));
+
+        if ((f3[prev_i] != f3[1]) || !prev) {
+          ss = backtrack(strings, i, maxdist);
+          if (outstr)
+            free(outstr);
+
+          outstr = (char *)vrna_alloc(sizeof(char) * (strlen(ss) + 1));
           strncpy(outstr, strings[0], strlen(ss));
           outstr[strlen(ss)] = '\0';
           printf("%s \n", outstr);
-          if(csv==1)
-            printf("%s ,%6.2f ,%4d ,%4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, (int)strlen(ss)-1);
-          else{
-            printf("%s (%6.2f) %4d - %4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, (int)strlen(ss)-1);
-          }
-          if(options){
-              char *sub[500];
-              char *fname;
-              char *id;
-              int start, end;
-              char **A, *cons;
+          if (csv == 1)
+            printf("%s ,%6.2f ,%4d ,%4d\n", ss, (f3[1] - f3[1 + strlen(ss) - 1]) / (100. * n_seq), 1, (int)strlen(ss) - 1);
+          else
+            printf("%s (%6.2f) %4d - %4d\n", ss, (f3[1] - f3[1 + strlen(ss) - 1]) / (100. * n_seq), 1, (int)strlen(ss) - 1);
 
-              start = 1;
-              end   = (int)strlen(ss)-1;
-              get_subalignment(strings, sub, start, end);
-              cons  = consensus((const char **)sub);
-              A     = annote(prev, (const char**)sub);
+          if (options)
+            write_hit(names, strings, 1, (int)strlen(ss) - 1, ss, prefix, columns, &md, options);
 
-              if (options & VRNA_LOCAL_OUTPUT_SS_EPS) {
-                if (prefix)
-                  fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
-                else
-                  fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
-
-                (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
-                free(fname);
-              }
-
-              free(A[0]);
-              free(A[1]);
-              free(A);
-              free(cons);
-
-              if (options & VRNA_LOCAL_OUTPUT_MSA_EPS) {
-                if (prefix)
-                  fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
-                else
-                  fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
-
-                vrna_file_PS_aln_sub( fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
-                free(fname);
-              }
-
-              if (options & VRNA_LOCAL_OUTPUT_MSA) {
-                if (prefix) {
-                  id = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
-                  fname = vrna_strdup_printf("%s.stk", prefix);
-                  vrna_file_msa_write(fname, names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
-                  free(fname);
-                } else {
-                  id = vrna_strdup_printf("aln_%d_%d", start, end);
-                  vrna_file_msa_write("RNALalifold_results.stk", names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
-                }
-                free(id);
-              }
-
-              delete_alignment(sub);
-          }
           free(ss);
         }
-        if(prev)    free(prev);
-        if(outstr)  free(outstr);
+
+        free(prev);
+        free(outstr);
       }
     }
     {
       int ii, *FF; /* rotate the auxilliary arrays */
-      FF = DMLi2; DMLi2 = DMLi1; DMLi1 = DMLi; DMLi = FF;
-      FF = cc1; cc1=cc; cc=FF;
-      for (j=0; j< maxdist+5; j++) {cc[j]=Fmi[j]=DMLi[j]=INF; }
-      if (i<=length-maxdist-4) {
-        c[i-1] = c[i+maxdist+4]; c[i+maxdist+4] = NULL;
-        fML[i-1] = fML[i+maxdist+4]; fML[i+maxdist+4]=NULL;
-        pscore[i-1] = pscore[i+maxdist+4]; pscore[i+maxdist+4] = NULL;
-        if(i > 1)
-          make_pscores((const char**) strings, structure, maxdist, i-1);
-        for(ii=0; ii<maxdist+5; ii++) {
-          c[i-1][ii] = fML[i-1][ii] = INF;
-        }
+      FF    = DMLi2;
+      DMLi2 = DMLi1;
+      DMLi1 = DMLi;
+      DMLi  = FF;
+      FF    = cc1;
+      cc1   = cc;
+      cc    = FF;
+      for (j = 0; j < maxdist + 5; j++)
+        cc[j] = Fmi[j] = DMLi[j] = INF;
+      if (i <= length - maxdist - 4) {
+        c[i - 1]                = c[i + maxdist + 4];
+        c[i + maxdist + 4]      = NULL;
+        fML[i - 1]              = fML[i + maxdist + 4];
+        fML[i + maxdist + 4]    = NULL;
+        pscore[i - 1]           = pscore[i + maxdist + 4];
+        pscore[i + maxdist + 4] = NULL;
+        if (i > 1)
+          make_pscores((const char **)strings, structure, maxdist, i - 1);
+
+        for (ii = 0; ii < maxdist + 5; ii++)
+          c[i - 1][ii] = fML[i - 1][ii] = INF;
       }
     }
   }
 
   free(type);
+  free(cc);
+  free(cc1);
+  free(Fmi);
+  free(DMLi);
+  free(DMLi1);
+  free(DMLi2);
+
   return f3[1];
 }
 
-PRIVATE char * backtrack(const char *strings[], int start, int maxdist) {
+
+PRIVATE char *
+backtrack(const char  *strings[],
+          int         start,
+          int         maxdist)
+{
   /*------------------------------------------------------------------
-    trace back through the "c", "f3" and "fML" arrays to get the
-    base pairing list. No search for equivalent structures is done.
-    This is fast, since only few structure elements are recalculated.
-    ------------------------------------------------------------------*/
+   *  trace back through the "c", "f3" and "fML" arrays to get the
+   *  base pairing list. No search for equivalent structures is done.
+   *  This is fast, since only few structure elements are recalculated.
+   *  ------------------------------------------------------------------*/
   sect  sector[MAXSECTORS];   /* backtracking sectors */
 
   int   i, j, k, energy;
   int   *type, type_2, tt, n_seq;
   /*int   bonus;*/
-  int   s=0, ss;
-  char *structure;
-  for (s=0; strings[s]!=NULL; s++);
-  n_seq = s;
-  type = (int *) vrna_alloc(n_seq*sizeof(int));
-  s=0;
-  length = strlen(strings[0]);
+  int   s = 0, ss;
+  char  *structure;
+
+  for (s = 0; strings[s] != NULL; s++) ;
+  n_seq         = s;
+  type          = (int *)vrna_alloc(n_seq * sizeof(int));
+  s             = 0;
+  length        = strlen(strings[0]);
   sector[++s].i = start;
-  sector[s].j = MIN2(length, start+maxdist+1);
-  sector[s].ml = (backtrack_type=='M') ? 1 : ((backtrack_type=='C')?2:0);
+  sector[s].j   = MIN2(length, start + maxdist + 1);
+  sector[s].ml  = (backtrack_type == 'M') ? 1 : ((backtrack_type == 'C') ? 2 : 0);
 
-  structure = (char *) vrna_alloc((MIN2(length-start, maxdist)+3)*sizeof(char));
-  for (i=0; i<=MIN2(length-start, maxdist); i++) structure[i] = '.';
+  structure = (char *)vrna_alloc((MIN2(length - start, maxdist) + 3) * sizeof(char));
+  for (i = 0; i <= MIN2(length - start, maxdist); i++)
+    structure[i] = '.';
 
-  while (s>0) {
-    int ml, fij, cij, traced, i1, j1, mm, p, q, jj=0;
+  while (s > 0) {
+    int ml, fij, cij, traced, i1, j1, mm, p, q, jj = 0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
-    i  = sector[s].i;
-    j  = sector[s].j;
-    ml = sector[s--].ml;   /* ml is a flag indicating if backtracking is to
-                              occur in the fML- (1) or in the f-array (0) */
-    if (ml==2) {
-      structure[i-start] = '(';
-      structure[j-start] = ')';
+    i   = sector[s].i;
+    j   = sector[s].j;
+    ml  = sector[s--].ml;  /* ml is a flag indicating if backtracking is to
+                           * occur in the fML- (1) or in the f-array (0) */
+    if (ml == 2) {
+      structure[i - start]  = '(';
+      structure[j - start]  = ')';
       goto repeat1;
     }
 
-    if (j < i+TURN+1) continue; /* no more pairs in this interval */
+    if (j < i + TURN + 1)
+      continue;                 /* no more pairs in this interval */
 
-    fij = (ml)? fML[i][j-i] : f3[i];
+    fij = (ml) ? fML[i][j - i] : f3[i];
 
-    if (ml == 0) { /* backtrack in f3 */
+    if (ml == 0) {
+      /* backtrack in f3 */
 
-      if (fij == f3[i+1]) {
-        sector[++s].i = i+1;
+      if (fij == f3[i + 1]) {
+        sector[++s].i = i + 1;
         sector[s].j   = j;
         sector[s].ml  = ml;
         continue;
       }
+
       /* i is paired. Find pairing partner */
-      for (k=i+TURN+1,traced=0; k<=j; k++) {
+      for (k = i + TURN + 1, traced = 0; k <= j; k++) {
         int cc;
-        jj = k+1;
-        cc = c[i][k-(i)];
-        if (cc<INF) {
-          if(dangles){
-            for (ss=0; ss<n_seq; ss++) {
+        jj  = k + 1;
+        cc  = c[i][k - (i)];
+        if (cc < INF) {
+          if (dangles) {
+            for (ss = 0; ss < n_seq; ss++) {
               type[ss] = pair[S[ss][i]][S[ss][k]];
-              if (type[ss]==0) type[ss]=7;
-              cc += E_ExtLoop(type[ss], (i>1) ? S5[ss][i] : -1, (k<length) ? S3[ss][k] : -1, P);
+              if (type[ss] == 0)
+                type[ss] = 7;
+
+              cc += E_ExtLoop(type[ss], (i > 1) ? S5[ss][i] : -1, (k < length) ? S3[ss][k] : -1, P);
             }
-          }
-          else{
-            for (ss=0; ss<n_seq; ss++) {
+          } else {
+            for (ss = 0; ss < n_seq; ss++) {
               type[ss] = pair[S[ss][i]][S[ss][k]];
-              if (type[ss]==0) type[ss]=7;
+              if (type[ss] == 0)
+                type[ss] = 7;
+
               cc += E_ExtLoop(type[ss], -1, -1, P);
             }
           }
-          if (fij == cc + f3[k+1]) traced=i;
+
+          if (fij == cc + f3[k + 1])
+            traced = i;
         }
-        if (traced) break;
+
+        if (traced)
+          break;
       }
 
-      if (!traced) vrna_message_error("backtrack failed in f3");
-      if (j==length) { /* backtrack only one component, unless j==length */
+      if (!traced)
+        vrna_message_error("backtrack failed in f3");
+
+      if (j == length) {
+        /* backtrack only one component, unless j==length */
         sector[++s].i = jj;
         sector[s].j   = j;
         sector[s].ml  = ml;
       }
-      i=traced; j=k;
-      structure[i-start] = '('; structure[j-start] = ')';
+
+      i                     = traced;
+      j                     = k;
+      structure[i - start]  = '(';
+      structure[j - start]  = ')';
       goto repeat1;
-    }
-    else { /* trace back in fML array */
-      if (fML[i][j-1-i]+n_seq*P->MLbase == fij) {  /* 3' end is unpaired */
+    } else {
+      /* trace back in fML array */
+      if (fML[i][j - 1 - i] + n_seq * P->MLbase == fij) {
+        /* 3' end is unpaired */
         sector[++s].i = i;
-        sector[s].j   = j-1;
+        sector[s].j   = j - 1;
         sector[s].ml  = ml;
         continue;
       }
-      if (fML[i+1][j-(i+1)]+n_seq*P->MLbase == fij) { /* 5' end is unpaired */
-        sector[++s].i = i+1;
+
+      if (fML[i + 1][j - (i + 1)] + n_seq * P->MLbase == fij) {
+        /* 5' end is unpaired */
+        sector[++s].i = i + 1;
         sector[s].j   = j;
         sector[s].ml  = ml;
         continue;
       }
 
-      cij = c[i][j-i] ;
-      if(dangles){
-        for (ss=0; ss<n_seq; ss++) {
-          tt  = pair[S[ss][i]][S[ss][j]];
-          if (tt==0) tt=7;
-          cij += E_MLstem(tt, (i>1) ? S5[ss][i] : -1, (j<length) ? S3[ss][j] : -1, P);
+      cij = c[i][j - i];
+      if (dangles) {
+        for (ss = 0; ss < n_seq; ss++) {
+          tt = pair[S[ss][i]][S[ss][j]];
+          if (tt == 0)
+            tt = 7;
+
+          cij += E_MLstem(tt, (i > 1) ? S5[ss][i] : -1, (j < length) ? S3[ss][j] : -1, P);
         }
-      }
-      else{
-        for (ss=0; ss<n_seq; ss++) {
-          tt  = pair[S[ss][i]][S[ss][j]];
-          if (tt==0) tt=7;
+      } else {
+        for (ss = 0; ss < n_seq; ss++) {
+          tt = pair[S[ss][i]][S[ss][j]];
+          if (tt == 0)
+            tt = 7;
+
           cij += E_MLstem(tt, -1, -1, P);
         }
       }
 
-      if(fij==cij){
+      if (fij == cij) {
         /* found a pair */
-        structure[i-start] = '('; structure[j-start] = ')';
+        structure[i - start]  = '(';
+        structure[j - start]  = ')';
         goto repeat1;
       }
 
-      for (k = i+1+TURN; k <= j-2-TURN; k++)
-        if (fij == (fML[i][k-i]+fML[k+1][j-(k+1)]))
+      for (k = i + 1 + TURN; k <= j - 2 - TURN; k++)
+        if (fij == (fML[i][k - i] + fML[k + 1][j - (k + 1)]))
           break;
 
       sector[++s].i = i;
       sector[s].j   = k;
       sector[s].ml  = ml;
-      sector[++s].i = k+1;
+      sector[++s].i = k + 1;
       sector[s].j   = j;
       sector[s].ml  = ml;
 
-      if (k>j-2-TURN) vrna_message_error("backtrack failed in fML");
+      if (k > j - 2 - TURN)
+        vrna_message_error("backtrack failed in fML");
+
       continue;
     }
 
-  repeat1:
+repeat1:
 
     /*----- begin of "repeat:" -----*/
-    if (canonical)  cij = c[i][j-i];
+    if (canonical)
+      cij = c[i][j - i];
 
-    for (ss=0; ss<n_seq; ss++) {
+    for (ss = 0; ss < n_seq; ss++) {
       type[ss] = pair[S[ss][i]][S[ss][j]];
-      if (type[ss]==0) type[ss] = 7;
+      if (type[ss] == 0)
+        type[ss] = 7;
     }
 
     /*    bonus = 0;*/
 
-    if (noLonelyPairs)
-      if (cij == c[i][j-i]) {
+    if (noLonelyPairs) {
+      if (cij == c[i][j - i]) {
         /* (i.j) closes canonical structures, thus
-           (i+1.j-1) must be a pair                */
-        for (ss=0; ss<n_seq; ss++) {
-          type_2 = pair[S[ss][j-1]][S[ss][i+1]];  /* j,i not i,j */
-          if (type_2==0) type_2 = 7;
+         *  (i+1.j-1) must be a pair                */
+        for (ss = 0; ss < n_seq; ss++) {
+          type_2 = pair[S[ss][j - 1]][S[ss][i + 1]];  /* j,i not i,j */
+          if (type_2 == 0)
+            type_2 = 7;
+
           cij -= P->stack[type[ss]][type_2];
         }
-        cij += pscore[i][j-i];
-        structure[i+1-start] = '('; structure[j-1-start] = ')';
-        i++; j--;
-        canonical=0;
+        cij                       += pscore[i][j - i];
+        structure[i + 1 - start]  = '(';
+        structure[j - 1 - start]  = ')';
+        i++;
+        j--;
+        canonical = 0;
         goto repeat1;
       }
+    }
+
     canonical = 1;
-    cij += pscore[i][j-i];
+    cij       += pscore[i][j - i];
 
     {
-      int cc=0;
-      for (ss=0; ss<n_seq; ss++){
-        if((a2s[ss][j-1] - a2s[ss][i]) < 3) cc += 600;
-        else cc += E_Hairpin(a2s[ss][j-1] - a2s[ss][i], type[ss], S3[ss][i], S5[ss][j], Ss[ss] + a2s[ss][i-1], P);
+      int cc = 0;
+      for (ss = 0; ss < n_seq; ss++) {
+        if ((a2s[ss][j - 1] - a2s[ss][i]) < 3)
+          cc += 600;
+        else
+          cc += E_Hairpin(a2s[ss][j - 1] - a2s[ss][i], type[ss], S3[ss][i], S5[ss][j], Ss[ss] + a2s[ss][i - 1], P);
       }
       if (cij == cc) /* found hairpin */
         continue;
     }
 
-    for (p = i+1; p <= MIN2(j-2-TURN,i+MAXLOOP+1); p++) {
+    for (p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1); p++) {
       int minq;
-      minq = j-i+p-MAXLOOP-2;
-      if (minq<p+1+TURN) minq = p+1+TURN;
-      for (q = j-1; q >= minq; q--) {
-        if (c[p][q-p]>=INF) continue;
-         for (ss=energy=0; ss<n_seq; ss++) {
+      minq = j - i + p - MAXLOOP - 2;
+      if (minq < p + 1 + TURN)
+        minq = p + 1 + TURN;
+
+      for (q = j - 1; q >= minq; q--) {
+        if (c[p][q - p] >= INF)
+          continue;
+
+        for (ss = energy = 0; ss < n_seq; ss++) {
           type_2 = pair[S[ss][q]][S[ss][p]];  /* q,p not p,q */
-          if (type_2==0) type_2 = 7;
-          energy += E_IntLoop(a2s[ss][p-1] - a2s[ss][i],
-                              a2s[ss][j-1] - a2s[ss][q],
+          if (type_2 == 0)
+            type_2 = 7;
+
+          energy += E_IntLoop(a2s[ss][p - 1] - a2s[ss][i],
+                              a2s[ss][j - 1] - a2s[ss][q],
                               type[ss],
                               type_2,
                               S3[ss][i],
@@ -906,11 +915,11 @@ PRIVATE char * backtrack(const char *strings[], int start, int maxdist) {
                               S3[ss][q],
                               P);
         }
-        traced = (cij == energy+c[p][q-p]);
+        traced = (cij == energy + c[p][q - p]);
         if (traced) {
-          structure[p-start] = '(';
-          structure[q-start] = ')';
-          i = p, j = q;
+          structure[p - start]  = '(';
+          structure[q - start]  = ')';
+          i                     = p, j = q;
           goto repeat1;
         }
       }
@@ -919,337 +928,466 @@ PRIVATE char * backtrack(const char *strings[], int start, int maxdist) {
     /* end of repeat: --------------------------------------------------*/
 
     /* (i.j) must close a multi-loop */
-    mm = n_seq*P->MLclosing;
-    if(dangles){
-      for (ss=0; ss<n_seq; ss++) {
-        tt = rtype[type[ss]];
-        mm += E_MLstem(tt, S5[ss][j],S3[ss][i], P);
+    mm = n_seq * P->MLclosing;
+    if (dangles) {
+      for (ss = 0; ss < n_seq; ss++) {
+        tt  = rtype[type[ss]];
+        mm  += E_MLstem(tt, S5[ss][j], S3[ss][i], P);
+      }
+    } else {
+      for (ss = 0; ss < n_seq; ss++) {
+        tt  = rtype[type[ss]];
+        mm  += E_MLstem(tt, -1, -1, P);
       }
     }
-    else{
-      for (ss=0; ss<n_seq; ss++) {
-        tt = rtype[type[ss]];
-        mm += E_MLstem(tt, -1, -1, P);
-      }
-    }
-    i1 = i+1; j1 = j-1;
-    sector[s+1].ml  = sector[s+2].ml = 1;
 
-    for (k = i+TURN+2; k < j-TURN-2; k++){
-      if(cij == fML[i+1][k-(i+1)] + fML[k+1][j-1-(k+1)] + mm) break;
-    }
-    if (k<=j-3-TURN){ /* found the decomposition */
+    i1                = i + 1;
+    j1                = j - 1;
+    sector[s + 1].ml  = sector[s + 2].ml = 1;
+
+    for (k = i + TURN + 2; k < j - TURN - 2; k++)
+      if (cij == fML[i + 1][k - (i + 1)] + fML[k + 1][j - 1 - (k + 1)] + mm)
+        break;
+
+    if (k <= j - 3 - TURN) {
+      /* found the decomposition */
       sector[++s].i = i1;
       sector[s].j   = k;
-      sector[++s].i = k+1;
+      sector[++s].i = k + 1;
       sector[s].j   = j1;
     } else {
-        vrna_message_error("backtracking failed in repeat");
+      vrna_message_error("backtracking failed in repeat");
     }
-
   }
-  if (start+maxdist<length) {
-    for (i=strlen(structure); i>0 && structure[i-1] == '.'; i--)
+  if (start + maxdist < length)
+    for (i = strlen(structure); i > 0 && structure[i - 1] == '.'; i--)
       structure[i] = '\0';
-  }
+
   return structure;
 }
 
+
+PRIVATE void
+write_hit(const char    **names,
+          const char    **strings,
+          int           start,
+          int           end,
+          const char    *structure,
+          const char    *prefix,
+          int           columns,
+          vrna_md_t     *md,
+          unsigned int  options)
+{
+  char  *sub[500];
+  char  *fname;
+  char  *id;
+  char  **A, *cons;
+
+  get_subalignment(strings, sub, start, end);
+  cons  = consensus((const char **)sub);
+  A     = annote(structure, (const char **)sub);
+
+  if (options & VRNA_LOCAL_OUTPUT_SS_EPS) {
+    if (prefix)
+      fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
+    else
+      fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
+
+    (void)vrna_file_PS_rnaplot_a(cons, structure, fname, A[0], A[1], md);
+    free(fname);
+  }
+
+  free(A[0]);
+  free(A[1]);
+  free(A);
+  free(cons);
+
+  if (options & VRNA_LOCAL_OUTPUT_MSA_EPS) {
+    if (prefix)
+      fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
+    else
+      fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
+
+    vrna_file_PS_aln_sub(fname, (const char **)sub, names, structure, start, -1, columns);
+    free(fname);
+  }
+
+  if (options & VRNA_LOCAL_OUTPUT_MSA) {
+    if (prefix) {
+      id    = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
+      fname = vrna_strdup_printf("%s.stk", prefix);
+      vrna_file_msa_write(fname, names, (const char **)sub, id, structure, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+      free(fname);
+    } else {
+      id = vrna_strdup_printf("aln_%d_%d", start, end);
+      vrna_file_msa_write("RNALalifold_results.stk", names, (const char **)sub, id, structure, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+    }
+
+    free(id);
+  }
+
+  delete_alignment(sub);
+}
+
+
 /*---------------------------------------------------------------------------*/
-PRIVATE short *encode_seq(const char *sequence, short *s5, short *s3, char *ss, unsigned short *as){
-  unsigned int    i,l;
+PRIVATE short *
+encode_seq(const char     *sequence,
+           short          *s5,
+           short          *s3,
+           char           *ss,
+           unsigned short *as)
+{
+  unsigned int    i, l;
   short           *S;
   unsigned short  p;
 
   l     = strlen(sequence);
-  S     = (short *) vrna_alloc(sizeof(short)*(l+2));
-  S[0]  = (short) l;
+  S     = (short *)vrna_alloc(sizeof(short) * (l + 2));
+  S[0]  = (short)l;
 
-  s5[0]=s5[1]=0;
+  s5[0] = s5[1] = 0;
   /* make numerical encoding of sequence */
-  for (i=1; i<=l; i++) {
-    short ctemp = (short)encode_char(toupper(sequence[i-1]));
-    S[i]  = ctemp ;
+  for (i = 1; i <= l; i++) {
+    short ctemp = (short)encode_char(toupper(sequence[i - 1]));
+    S[i] = ctemp;
   }
 
-   if (oldAliEn) {
-     /*use alignment sequences in all energy evaluations*/
-     ss[0]=sequence[0];
-     for (i=1; i<l; i++) {
-       s5[i]=S[i-1];
-       s3[i]=S[i+1];
-       ss[i]= sequence[i];
-       as[i]=i;
-     }
-     ss[l] = sequence[l];
-     as[l]=l;
-     s5[l]=S[l-1];
-     s3[l]=0;
-     S[l+1] = S[1];
-     s5[1]=0;
-     if (1) {
-       s5[1]=S[l];
-       s3[l]=S[1];
-       ss[l+1]=S[1];
-     }
-     return S;
-   }
-   else {
-     if (1) {
-       for (i=l; i>0; i--) {
-         char c5;
-         c5=sequence[i-1];
-         if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.')) continue;
-         s5[1] = S[i];
-         break;
-       }
-       for (i=1; i<=l; i++) {
-         char c3;
-         c3 = sequence[i-1];
-         if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.')) continue;
-         s3[l] = S[i];
-         break;
-       }
-     } else  s5[1]=s3[l]=0;
+  if (oldAliEn) {
+    /*use alignment sequences in all energy evaluations*/
+    ss[0] = sequence[0];
+    for (i = 1; i < l; i++) {
+      s5[i] = S[i - 1];
+      s3[i] = S[i + 1];
+      ss[i] = sequence[i];
+      as[i] = i;
+    }
+    ss[l]     = sequence[l];
+    as[l]     = l;
+    s5[l]     = S[l - 1];
+    s3[l]     = 0;
+    S[l + 1]  = S[1];
+    s5[1]     = 0;
+    if (1) {
+      s5[1]     = S[l];
+      s3[l]     = S[1];
+      ss[l + 1] = S[1];
+    }
 
-     for (i=1,p=0; i<=l; i++) {
-       char c5;
-       c5=sequence[i-1];
-       if ((c5=='-')||(c5=='_')||(c5=='~')||(c5=='.'))
-         s5[i+1]=s5[i];
-       else { /* no gap */
-         ss[p++]=sequence[i-1]; /*start at 0!!*/
-         s5[i+1]=S[i];
-       }
-       as[i]=p;
-     }
-     for (i=l; i>=1; i--) {
-       char c3;
-       c3=sequence[i-1];
-       if ((c3=='-')||(c3=='_')||(c3=='~')||(c3=='.'))
-         s3[i-1]=s3[i];
-       else
-         s3[i-1]=S[i];
-     }
-   }
+    return S;
+  } else {
+    if (1) {
+      for (i = l; i > 0; i--) {
+        char c5;
+        c5 = sequence[i - 1];
+        if ((c5 == '-') || (c5 == '_') || (c5 == '~') || (c5 == '.'))
+          continue;
 
-   return S;
+        s5[1] = S[i];
+        break;
+      }
+      for (i = 1; i <= l; i++) {
+        char c3;
+        c3 = sequence[i - 1];
+        if ((c3 == '-') || (c3 == '_') || (c3 == '~') || (c3 == '.'))
+          continue;
+
+        s3[l] = S[i];
+        break;
+      }
+    } else {
+      s5[1] = s3[l] = 0;
+    }
+
+    for (i = 1, p = 0; i <= l; i++) {
+      char c5;
+      c5 = sequence[i - 1];
+      if ((c5 == '-') || (c5 == '_') || (c5 == '~') || (c5 == '.')) {
+        s5[i + 1] = s5[i];
+      } else {
+        /* no gap */
+        ss[p++]   = sequence[i - 1]; /*start at 0!!*/
+        s5[i + 1] = S[i];
+      }
+
+      as[i] = p;
+    }
+    for (i = l; i >= 1; i--) {
+      char c3;
+      c3 = sequence[i - 1];
+      if ((c3 == '-') || (c3 == '_') || (c3 == '~') || (c3 == '.'))
+        s3[i - 1] = s3[i];
+      else
+        s3[i - 1] = S[i];
+    }
+  }
+
+  return S;
 }
 
-PRIVATE double cov_score(const char **AS, int i, int j) {
-  int n_seq,k,l,s;
-  double score;
-  int pfreq[8]={0,0,0,0,0,0,0,0};
-  for (n_seq=0; AS[n_seq]!=NULL; n_seq++);
-  for (s=0; s<n_seq; s++) {
+
+PRIVATE double
+cov_score(const char  **AS,
+          int         i,
+          int         j)
+{
+  int     n_seq, k, l, s;
+  double  score;
+  int     pfreq[8] = {
+    0, 0, 0, 0, 0, 0, 0, 0
+  };
+
+  for (n_seq = 0; AS[n_seq] != NULL; n_seq++) ;
+  for (s = 0; s < n_seq; s++) {
     int type;
-    if (S[s][i]==0 && S[s][j]==0) type = 7; /* gap-gap  */
-    else {
-      if ((AS[s][i] == '~')||(AS[s][j] == '~')) type = 7;
-      else type = pair[S[s][i]][S[s][j]];
+    if (S[s][i] == 0 && S[s][j] == 0) {
+      type = 7;                             /* gap-gap  */
+    } else {
+      if ((AS[s][i] == '~') || (AS[s][j] == '~'))
+        type = 7;
+      else
+        type = pair[S[s][i]][S[s][j]];
     }
 
     pfreq[type]++;
   }
-  if (pfreq[0]*2+pfreq[7]>n_seq)
+  if (pfreq[0] * 2 + pfreq[7] > n_seq) {
     return NONE;
-  else
-    for (k=1,score=0.; k<=6; k++) /* ignore pairtype 7 (gap-gap) */
-      for (l=k; l<=6; l++)
+  } else {
+    for (k = 1, score = 0.; k <= 6; k++) /* ignore pairtype 7 (gap-gap) */
+      for (l = k; l <= 6; l++)
         /* scores for replacements between pairtypes    */
         /* consistent or compensatory mutations score 1 or 2  */
-        score += pfreq[k]*pfreq[l]*dm[k][l];
+        score += pfreq[k] * pfreq[l] * dm[k][l];
+  }
 
   /* counter examples score -1, gap-gap scores -0.25   */
-  return cv_fact * ((UNIT*score)/n_seq - nc_fact*UNIT*(pfreq[0] + pfreq[7]*0.25));
+  return cv_fact * ((UNIT * score) / n_seq - nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
 }
 
-PRIVATE void make_pscores(const char ** AS,
-                          const char *structure, int maxd, int i) {
+
+PRIVATE void
+make_pscores(const char **AS,
+             const char *structure,
+             int        maxd,
+             int        i)
+{
   /* calculate co-variance bonus for each pair depending on  */
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
-  int n,j,l;
-  n=S[0][0];  /* length of seqs */
+  int n, j, l;
+
+  n = S[0][0];  /* length of seqs */
 
   /*first allocate space:*/
-  pscore[i]=(int *)vrna_alloc((maxd+5)*sizeof(int));
+  pscore[i] = (int *)vrna_alloc((maxd + 5) * sizeof(int));
   /*  pscore[start]-=start;*/
   /*fill pscore[start], too close*/
-  for (j=i+1; (j<i+TURN+1) && (j<=n); j++) {
-    pscore[i][j-i] = NONE;
-  }
-  for (j=i+TURN+1; ((j<=n) && (j<=i+maxd)); j++) {
-    pscore[i][j-i] = cov_score(AS, i, j);
-  }
+  for (j = i + 1; (j < i + TURN + 1) && (j <= n); j++)
+    pscore[i][j - i] = NONE;
+  for (j = i + TURN + 1; ((j <= n) && (j <= i + maxd)); j++)
+    pscore[i][j - i] = cov_score(AS, i, j);
 
-  if (noLonelyPairs) { /* remove unwanted lonely pairs */
-    int otype=0, ntype=0;
-    for (j=i+TURN; ((j<n)&&(j<i+maxd)); j++) {
-      if ((i>1) && (j<n)) otype = cov_score(AS, i-1, j+1);
-      if (i<n) ntype=pscore[i+1][j-1-(i+1)];
-      else ntype=NONE;
+  if (noLonelyPairs) {
+    /* remove unwanted lonely pairs */
+    int otype = 0, ntype = 0;
+    for (j = i + TURN; ((j < n) && (j < i + maxd)); j++) {
+      if ((i > 1) && (j < n))
+        otype = cov_score(AS, i - 1, j + 1);
 
-      if ((otype<-4*UNIT)&&(ntype<-4*UNIT))  /* worse than 2 counterex */
-        pscore[i][j-i] = NONE; /* i.j can only form isolated pairs */
+      if (i < n)
+        ntype = pscore[i + 1][j - 1 - (i + 1)];
+      else
+        ntype = NONE;
+
+      if ((otype < -4 * UNIT) && (ntype < -4 * UNIT)) /* worse than 2 counterex */
+        pscore[i][j - i] = NONE;                      /* i.j can only form isolated pairs */
     }
   }
 
-  if (fold_constrained&&(structure!=NULL)) {
+  if (fold_constrained && (structure != NULL)) {
     int psij, hx, *stack;
-    stack = (int *) vrna_alloc(sizeof(int)*(n+1));
-    hx=psij=0;
+    stack = (int *)vrna_alloc(sizeof(int) * (n + 1));
+    hx    = psij = 0;
     /* for(hx=0, j=i+TURN; ((j<=i+maxd)&&(j<=n)); j++) {*/
-    switch (structure[i-1]) {
-    case 'x': /* can't pair */
-      for (l=i+TURN+1; l<=i+maxd; l++) pscore[i][l-i] = NONE;
-      break;
-    case '(':
-        hx=1;
-        psij=1;
-        for (l=i+1; l<=i+maxd; l++) {
-          switch (structure[l-1]) {
-          case '(':
-            hx++;
-            pscore[i][l-i] = NONE;
-            break;
-          case ')':
-            hx--;
-            if (hx!=0) pscore[i][l-i] = NONE;
-            break;
-          default:
-            pscore[i][l-i] = NONE;
+    switch (structure[i - 1]) {
+      case 'x': /* can't pair */
+        for (l = i + TURN + 1; l <= i + maxd; l++)
+          pscore[i][l - i] = NONE;
+        break;
+      case '(':
+        hx    = 1;
+        psij  = 1;
+        for (l = i + 1; l <= i + maxd; l++) {
+          switch (structure[l - 1]) {
+            case '(':
+              hx++;
+              pscore[i][l - i] = NONE;
+              break;
+            case ')':
+              hx--;
+              if (hx != 0)
+                pscore[i][l - i] = NONE;
+
+              break;
+            default:
+              pscore[i][l - i] = NONE;
           }
           /* fallthrough */
-                }
-    case ')':
-      for (l=i+TURN+1; l<=i+maxd; l++) pscore[i][l-i] = NONE;
-      break;
-    case '>':
-      for (l=i+TURN+1; l<=i+maxd; l++) pscore[i][l-i] = NONE;
-      break;
-
-    }
-    if (!psij) for (l=i+1; l<=i+maxd; l++) { /*no '(' constraint on i*/
-      switch (structure[l-1]) {
-      case '(':
-        pscore[i][l-i] = NONE;
-        break;
-      case '<':
-        pscore[i][l-i] = NONE;
-        break;
-      case 'x':
-        pscore[i][l-i] = NONE;
-        break;
+        }
       case ')':
-         pscore[i][l-i] = NONE;
+        for (l = i + TURN + 1; l <= i + maxd; l++)
+          pscore[i][l - i] = NONE;
         break;
+      case '>':
+        for (l = i + TURN + 1; l <= i + maxd; l++)
+          pscore[i][l - i] = NONE;
+        break;
+    }
+    if (!psij) {
+      for (l = i + 1; l <= i + maxd; l++) {
+        /*no '(' constraint on i*/
+        switch (structure[l - 1]) {
+          case '(':
+            pscore[i][l - i] = NONE;
+            break;
+          case '<':
+            pscore[i][l - i] = NONE;
+            break;
+          case 'x':
+            pscore[i][l - i] = NONE;
+            break;
+          case ')':
+            pscore[i][l - i] = NONE;
+            break;
+        }
       }
     }
-    if (hx!=0) {
+
+    if (hx != 0)
       vrna_message_error("%s\nunbalanced brackets in constraint string", structure);
-    }
+
     free(stack);
   }
 }
 
+
 PRIVATE void
-get_subalignment(const char *AS[], char *sub[], int i, int j){
-  
+get_subalignment(const char *AS[],
+                 char       *sub[],
+                 int        i,
+                 int        j)
+{
   int n_seq, s;
 
   /* get number of sequences in alignment */
-  for(n_seq=0; AS[n_seq]!=NULL; n_seq++);
+  for (n_seq = 0; AS[n_seq] != NULL; n_seq++) ;
 
-  for(s = 0; s < n_seq; s++){
+  for (s = 0; s < n_seq; s++)
     sub[s] = vrna_alloc(sizeof(char) * (j - i + 2));
-  }
   sub[s] = NULL;
 
   /* copy subalignment */
-  for (s=0; s<n_seq; s++) {
-    sub[s] = memcpy(sub[s], AS[s] + i - 1, sizeof(char) * (j - i + 1));
-    sub[s][(j-i + 1)] = '\0';
+  for (s = 0; s < n_seq; s++) {
+    sub[s]              = memcpy(sub[s], AS[s] + i - 1, sizeof(char) * (j - i + 1));
+    sub[s][(j - i + 1)] = '\0';
   }
-
 }
 
+
 PRIVATE void
-delete_alignment(char *AS[]){
+delete_alignment(char *AS[])
+{
   int n_seq;
 
   /* get number of sequences in alignment */
-  for(n_seq=0; AS[n_seq]!=NULL; n_seq++){
+  for (n_seq = 0; AS[n_seq] != NULL; n_seq++)
     free(AS[n_seq]);
-  }
 }
-PRIVATE char **annote(const char *structure, const char *AS[]) {
+
+
+PRIVATE char **
+annote(const char *structure,
+       const char *AS[])
+{
   /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
-  char *ps, *colorps, **A;
-  int i, n, s, pairings, maxl;
+  char  *ps, *colorps, **A;
+  int   i, n, s, pairings, maxl;
   short *ptable;
-  char * colorMatrix[6][3] = {
-    {"0.0 1", "0.0 0.6",  "0.0 0.2"},  /* red    */
-    {"0.16 1","0.16 0.6", "0.16 0.2"}, /* ochre  */
-    {"0.32 1","0.32 0.6", "0.32 0.2"}, /* turquoise */
-    {"0.48 1","0.48 0.6", "0.48 0.2"}, /* green  */
-    {"0.65 1","0.65 0.6", "0.65 0.2"}, /* blue   */
-    {"0.81 1","0.81 0.6", "0.81 0.2"}  /* violet */
+  char  *colorMatrix[6][3] = {
+    { "0.0 1",  "0.0 0.6",  "0.0 0.2"  }, /* red    */
+    { "0.16 1", "0.16 0.6", "0.16 0.2" }, /* ochre  */
+    { "0.32 1", "0.32 0.6", "0.32 0.2" }, /* turquoise */
+    { "0.48 1", "0.48 0.6", "0.48 0.2" }, /* green  */
+    { "0.65 1", "0.65 0.6", "0.65 0.2" }, /* blue   */
+    { "0.81 1", "0.81 0.6", "0.81 0.2" }  /* violet */
   };
 
-  n = strlen(AS[0]);
-  maxl = 1024;
+  n     = strlen(AS[0]);
+  maxl  = 1024;
 
-  A = (char **) vrna_alloc(sizeof(char *)*2);
-  ps = (char *) vrna_alloc(maxl);
-  colorps = (char *) vrna_alloc(maxl);
-  ptable = vrna_ptable(structure);
-  for (i=1; i<=n; i++) {
-    char pps[64], ci='\0', cj='\0';
-    int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;
-    if ((j=ptable[i])<i) continue;
-    for (s=0; AS[s]!=NULL; s++) {
-      type = pair[encode_char(AS[s][i-1])][encode_char(AS[s][j-1])];
+  A       = (char **)vrna_alloc(sizeof(char *) * 2);
+  ps      = (char *)vrna_alloc(maxl);
+  colorps = (char *)vrna_alloc(maxl);
+  ptable  = vrna_ptable(structure);
+  for (i = 1; i <= n; i++) {
+    char  pps[64], ci = '\0', cj = '\0';
+    int   j, type, pfreq[8] = {
+      0, 0, 0, 0, 0, 0, 0, 0
+    }, vi = 0, vj = 0;
+    if ((j = ptable[i]) < i)
+      continue;
+
+    for (s = 0; AS[s] != NULL; s++) {
+      type = pair[encode_char(AS[s][i - 1])][encode_char(AS[s][j - 1])];
       pfreq[type]++;
       if (type) {
-        if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
-        if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
+        if (AS[s][i - 1] != ci) {
+          ci = AS[s][i - 1];
+          vi++;
+        }
+
+        if (AS[s][j - 1] != cj) {
+          cj = AS[s][j - 1];
+          vj++;
+        }
       }
     }
-    for (pairings=0,s=1; s<=7; s++) {
-      if (pfreq[s]) pairings++;
-    }
+    for (pairings = 0, s = 1; s <= 7; s++)
+      if (pfreq[s])
+        pairings++;
 
     if ((maxl - strlen(ps) < 192) || ((maxl - strlen(colorps)) < 64)) {
-      maxl *= 2;
-      ps = realloc(ps, maxl);
+      maxl    *= 2;
+      ps      = realloc(ps, maxl);
       colorps = realloc(colorps, maxl);
-      if ((ps==NULL) || (colorps == NULL))
-          vrna_message_error("out of memory in realloc");
+      if ((ps == NULL) || (colorps == NULL))
+        vrna_message_error("out of memory in realloc");
     }
 
-    if (pfreq[0]<=2 && pairings>0) {
+    if (pfreq[0] <= 2 && pairings > 0) {
       snprintf(pps, 64, "%d %d %s colorpair\n",
-               i,j, colorMatrix[pairings-1][pfreq[0]]);
+               i, j, colorMatrix[pairings - 1][pfreq[0]]);
       strcat(colorps, pps);
     }
 
-    if (pfreq[0]>0) {
+    if (pfreq[0] > 0) {
       snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
       strcat(ps, pps);
     }
-    if (vi>1) {
+
+    if (vi > 1) {
       snprintf(pps, 64, "%d cmark\n", i);
       strcat(ps, pps);
     }
-    if (vj>1) {
+
+    if (vj > 1) {
       snprintf(pps, 64, "%d cmark\n", j);
       strcat(ps, pps);
     }
   }
   free(ptable);
-  A[0]=colorps;
-  A[1]=ps;
+  A[0]  = colorps;
+  A[1]  = ps;
   return A;
 }
-
