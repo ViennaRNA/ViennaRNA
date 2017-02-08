@@ -108,11 +108,17 @@ float aliLfold( const char **strings,
                 char *structure,
                 int maxdist);
 
+#define VRNA_LOCAL_OUTPUT_SS_EPS  1
+#define VRNA_LOCAL_OUTPUT_MSA_EPS 2
+#define VRNA_LOCAL_OUTPUT_MSA     4
+
 float aliLfold_aln( const char *strings[],
                     char *structure,
                     int maxdist,
                     const char *names[],
-                    int columns);
+                    int columns,
+                    const char *prefix,
+                    unsigned int options);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 

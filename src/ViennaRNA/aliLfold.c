@@ -30,6 +30,8 @@
 #include "ViennaRNA/plot_aln.h"
 #include "ViennaRNA/plot_structure.h"
 #include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/file_formats_msa.h"
+
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -103,7 +105,7 @@ PRIVATE void  free_aliL_arrays(int maxdist);
 PRIVATE void  get_arrays(unsigned int size, int maxdist);
 PRIVATE short *encode_seq(const char *sequence, short *s5, short *s3, char *ss, unsigned short *as);
 PRIVATE void  make_pscores(const char ** AS, const char *structure,int maxdist, int start);
-PRIVATE int   fill_arrays(const char *strings[], int maxdist, char *structure, const char *names[], int columns);
+PRIVATE int   fill_arrays(const char *strings[], int maxdist, char *structure, const char *names[], int columns, const char *prefix, unsigned int options);
 PRIVATE char  *backtrack(const char *strings[], int start, int maxdist);
 PRIVATE void  get_subalignment(const char *AS[], char *sub[], int i, int j);
 PRIVATE void  delete_alignment(char *AS[]);
@@ -171,7 +173,7 @@ PRIVATE void free_aliL_arrays(int maxdist) {
 
 /*--------------------------------------------------------------------------*/
 PUBLIC float aliLfold(const char *strings[], char *structure, int maxdist) {
-  return aliLfold_aln(strings, structure, maxdist, NULL, 60); 
+  return aliLfold_aln(strings, structure, maxdist, NULL, 60, NULL, 0U); 
 }
 
 PUBLIC float
@@ -179,7 +181,9 @@ aliLfold_aln( const char **strings,
               char *structure,
               int maxdist,
               const char *names[],
-              int columns)
+              int columns,
+              const char *prefix,
+              unsigned int options)
 {
   int length, energy, s, n_seq, i, j;
   length = (int) strlen(strings[0]);
@@ -219,7 +223,7 @@ aliLfold_aln( const char **strings,
   for (i=length; i>=(int)length-(int)maxdist-4 && i>0; i--)
     make_pscores((const char **) strings,structure,maxdist,i);
 
-  energy = fill_arrays(strings, maxdist, structure, names, columns);
+  energy = fill_arrays(strings, maxdist, structure, names, columns, prefix, options);
 
   free_aliL_arrays(maxdist);
   return (float) energy/100.;
@@ -230,7 +234,9 @@ fill_arrays(const char *strings[],
             int maxdist,
             char *structure,
             const char *names[],
-            int columns)
+            int columns,
+            const char *prefix,
+            unsigned int options)
 {
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
@@ -241,7 +247,6 @@ fill_arrays(const char *strings[],
   lastf = lastf2 = INF;
 
   /* int   bonus=0;*/
-  int   subalignments = (names == NULL) ? 0 : 1;
   vrna_md_t md;
   set_model_details(&md);
 
@@ -480,9 +485,10 @@ fill_arrays(const char *strings[],
             else {
               printf("%s (%6.2f) %4d - %4d\n",prev, energyprev/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
             }
-            if(subalignments){
+            if(options){
               char *sub[500];
               char *fname;
+              char *id;
               int start, end;
               char **A, *cons;
 
@@ -491,18 +497,46 @@ fill_arrays(const char *strings[],
               get_subalignment(strings, sub, start, end);
               cons  = consensus((const char **)sub);
               A     = annote(prev, (const char**)sub);
-              fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
-              (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
+
+              if (options & VRNA_LOCAL_OUTPUT_SS_EPS) {
+                if (prefix)
+                  fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
+                else
+                  fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
+
+                (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
+                free(fname);
+              }
+
               free(A[0]);
               free(A[1]);
               free(A);
               free(cons);
-              free(fname);
 
-              fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
-              vrna_file_PS_aln_sub( fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
+              if (options & VRNA_LOCAL_OUTPUT_MSA_EPS) {
+                if (prefix)
+                  fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
+                else
+                  fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
+
+                vrna_file_PS_aln_sub( fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
+                free(fname);
+              }
+
+              if (options & VRNA_LOCAL_OUTPUT_MSA) {
+                if (prefix) {
+                  id = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
+                  fname = vrna_strdup_printf("%s.stk", prefix);
+                  vrna_file_msa_write(fname, names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+                  free(fname);
+                } else {
+                  id = vrna_strdup_printf("aln_%d_%d", start, end);
+                  vrna_file_msa_write("RNALalifold_results.stk", names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+                }
+                free(id);
+              }
+
               delete_alignment(sub);
-              free(fname);
             }
             free(outstr);
           }
@@ -530,9 +564,10 @@ fill_arrays(const char *strings[],
           else{
             printf("%s (%6.2f) %4d - %4d\n", prev, (energyprev)/(100.*n_seq), prev_i,prev_i + (int)strlen(prev)-1);
           }
-          if(subalignments){
+          if(options){
               char *sub[500];
               char *fname;
+              char *id;
               int start, end;
               char **A, *cons;
 
@@ -541,18 +576,46 @@ fill_arrays(const char *strings[],
               get_subalignment(strings, sub, start, end);
               cons  = consensus((const char **)sub);
               A     = annote(prev, (const char**)sub);
-              fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
-              (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
+
+              if (options & VRNA_LOCAL_OUTPUT_SS_EPS) {
+                if (prefix)
+                  fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
+                else
+                  fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
+
+                (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
+                free(fname);
+              }
+
               free(A[0]);
               free(A[1]);
               free(A);
               free(cons);
-              free(fname);
 
-              fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
-              vrna_file_PS_aln_sub(fname, (const char **)sub, names, (const char *)prev, start, -1, columns);
+              if (options & VRNA_LOCAL_OUTPUT_MSA_EPS) {
+                if (prefix)
+                  fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
+                else
+                  fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
+
+                vrna_file_PS_aln_sub(fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
+                free(fname);
+              }
+
+              if (options & VRNA_LOCAL_OUTPUT_MSA) {
+                if (prefix) {
+                  id = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
+                  fname = vrna_strdup_printf("%s.stk", prefix);
+                  vrna_file_msa_write(fname, names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+                  free(fname);
+                } else {
+                  id = vrna_strdup_printf("aln_%d_%d", start, end);
+                  vrna_file_msa_write("RNALalifold_results.stk", names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+                }
+                free(id);
+              }
+
               delete_alignment(sub);
-              free(fname);
           }
         }
         if ((f3[prev_i] != f3[1]) || !prev){
@@ -567,9 +630,10 @@ fill_arrays(const char *strings[],
           else{
             printf("%s (%6.2f) %4d - %4d\n", ss, (f3[1]-f3[1 + strlen(ss)-1])/(100.*n_seq), 1, (int)strlen(ss)-1);
           }
-          if(subalignments){
+          if(options){
               char *sub[500];
               char *fname;
+              char *id;
               int start, end;
               char **A, *cons;
 
@@ -578,18 +642,46 @@ fill_arrays(const char *strings[],
               get_subalignment(strings, sub, start, end);
               cons  = consensus((const char **)sub);
               A     = annote(prev, (const char**)sub);
-              fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
-              (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
+
+              if (options & VRNA_LOCAL_OUTPUT_SS_EPS) {
+                if (prefix)
+                  fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
+                else
+                  fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
+
+                (void) vrna_file_PS_rnaplot_a(cons, prev, fname, A[0], A[1], &md);
+                free(fname);
+              }
+
               free(A[0]);
               free(A[1]);
               free(A);
               free(cons);
-              free(fname);
 
-              fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
-              vrna_file_PS_aln_sub( fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
+              if (options & VRNA_LOCAL_OUTPUT_MSA_EPS) {
+                if (prefix)
+                  fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
+                else
+                  fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
+
+                vrna_file_PS_aln_sub( fname, (const char **)sub, names,(const char *)prev, start,-1,columns);
+                free(fname);
+              }
+
+              if (options & VRNA_LOCAL_OUTPUT_MSA) {
+                if (prefix) {
+                  id = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
+                  fname = vrna_strdup_printf("%s.stk", prefix);
+                  vrna_file_msa_write(fname, names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+                  free(fname);
+                } else {
+                  id = vrna_strdup_printf("aln_%d_%d", start, end);
+                  vrna_file_msa_write("RNALalifold_results.stk", names, (const char **)sub, id, (const char *)prev, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+                }
+                free(id);
+              }
+
               delete_alignment(sub);
-              free(fname);
           }
           free(ss);
         }
@@ -615,6 +707,7 @@ fill_arrays(const char *strings[],
     }
   }
 
+  free(type);
   return f3[1];
 }
 

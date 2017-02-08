@@ -33,19 +33,59 @@ flag
 off
 
 option  "aln"             -
-"Produce colored and structure annotated (sub)alignments and secondary structure\
- plots in PostScript format in the files \"aln_start_end.eps\" and \"ss_start_end.eps\"\
- in the current directory.\n\n"
-flag
-off
+"Produce output alignments and secondary structure plots for each hit found.\n"
+details="This option tells the program to produce, for each hit, a colored and structure\
+ annotated (sub)alignment and secondary structure plot in PostScript format. It also\
+ adds the subalignment hit into a multi-Stockholm formatted file \"RNALalifold_results.stk\".\
+ The postscript output file names are \"aln_start_end.eps\" and \"ss_start_end.eps\". All\
+ files will be created in the current directory. The optional argument string can be used\
+ to set a specific prefix that is used to name the output files. The file names then become\
+ \"prefix_aln_start_end.eps\", \"prefix_ss_start_end.eps\", and \"prefix.stk\".\n\n"
+string
+argoptional
+typestr="prefix"
+optional
 
-option  "aln-cols"        -
-"Number of columns in colored alignment output.\n\n"
+option  "aln-EPS"             -
+"Produce colored and structure annotated subalignment for each hit\n"
+details="The default file name used for the output is \"aln_start_end.eps\" where \"start\" and\
+ \"end\" denote the first and last column of the subalignment relative to the input (1-based).\
+ Users may change the filename to \"prefix_aln_start_end.eps\" by specifying the prefix as optional\
+ argument. Files will be create in the current directory.\n\n"
+string
+argoptional
+typestr="prefix"
+optional
+
+option  "aln-EPS-cols"        -
+"Number of columns in colored EPS alignment output.\n\n"
 int
 default="60"
-dependon="aln"
 optional
 hidden
+
+option  "aln-EPS-ss"             -
+"Produce colored consensus secondary structure plots in PostScript format\n"
+details="The default file name used for the output is \"ss_start_end.eps\" where \"start\" and\
+ \"end\" denote the first and last column of the subalignment relative to the input (1-based).\
+ Users may change the filename to \"prefix_ss_start_end.eps\" by specifying the prefix as optional\
+ argument. Files will be create in the current directory.\n\n"
+string
+argoptional
+typestr="prefix"
+optional
+
+option  "aln-stk"             -
+"Add hits to a multi-Stockholm formatted output file.\n"
+details="The default file name used for the output is \"RNALalifold_results.stk\". Users may\
+ change the filename to \"prefix.stk\" by specifying the prefix as optional argument. The file\
+ will be create in the current directory if it does not already exist. In case the file already\
+ exists, output will be appended to it.\n\n"
+string
+argoptional
+typestr="prefix"
+default="RNALalifold_results"
+optional
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\

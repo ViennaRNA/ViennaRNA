@@ -35,22 +35,25 @@ main(int  argc,
 {
   FILE                          *clust_file;
   struct RNALalifold_args_info  args_info;
-  char                          *string, *structure, *ParamFile, *ns_bases,
+  char                          *string, *structure, *ParamFile, *ns_bases, *prefix,
                                 ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH],
                                 *AS[MAX_NUM_NAMES], *names[MAX_NUM_NAMES];
   int                           n_seq, i, length, maxdist, unchangednc, unchangedcv,
-                                mis, pf, istty, alnPS, aln_columns;
+                                mis, pf, istty, alnPS, aln_columns, aln_out, ssPS;
   double                        min_en;
   vrna_md_t                     md;
 
   clust_file    = stdin;
-  string        = structure = ParamFile = ns_bases = NULL;
+  string        = structure = ParamFile = ns_bases = prefix = NULL;
   mis           = pf = 0;
   maxdist       = 70;
   do_backtrack  = unchangednc = unchangedcv = 1;
   dangles       = 2;
   ribo          = 0;
   alnPS         = 0;
+  ssPS          = 0;
+  aln_out       = 0;
+  aln_columns   = 60;
 
   vrna_md_set_default(&md);
 
@@ -135,11 +138,50 @@ main(int  argc,
     md.ribo     = ribo = 1;
   }
 
-  if (args_info.aln_given)
-    alnPS = 1;
+  if (args_info.aln_given) {
+    alnPS = aln_out = ssPS = 1;
+    if (args_info.aln_arg)
+      prefix = strdup(args_info.aln_arg);
+  }
 
-  if (args_info.aln_cols_given)
-    aln_columns = args_info.aln_cols_arg;
+  if (args_info.aln_stk_given) {
+    aln_out = 1;
+    if (args_info.aln_stk_arg) {
+      if (prefix) {
+        vrna_message_info(stdout, "multiple output prefixes detected, using \"%s\"", args_info.aln_stk_arg);
+        free(prefix);
+      }
+
+      prefix = strdup(args_info.aln_stk_arg);
+    }
+  }
+
+  if (args_info.aln_EPS_ss_given) {
+    ssPS = 1;
+    if (args_info.aln_EPS_ss_arg) {
+      if (prefix) {
+        vrna_message_info(stdout, "multiple output prefixes detected, using \"%s\"", args_info.aln_EPS_ss_arg);
+        free(prefix);
+      }
+
+      prefix = strdup(args_info.aln_EPS_ss_arg);
+    }
+  }
+
+  if (args_info.aln_EPS_given) {
+    alnPS = 1;
+    if (args_info.aln_EPS_arg) {
+      if (prefix) {
+        vrna_message_info(stdout, "multiple output prefixes detected, using \"%s\"", args_info.aln_EPS_arg);
+        free(prefix);
+      }
+
+      prefix = strdup(args_info.aln_EPS_arg);
+    }
+  }
+
+  if (args_info.aln_EPS_cols_given)
+    aln_columns = args_info.aln_EPS_cols_arg;
 
   /* check unnamed options a.k.a. filename of input alignment */
   if (args_info.inputs_num == 1) {
@@ -199,10 +241,17 @@ main(int  argc,
   update_fold_params();
 
   if (!pf) {
+    unsigned int opt = 0;
     if (alnPS)
-      min_en = aliLfold_aln((const char **)AS, structure, maxdist, (const char **)names, aln_columns);
-    else
-      min_en = aliLfold((const char **)AS, structure, maxdist);
+      opt |= VRNA_LOCAL_OUTPUT_MSA_EPS;
+
+    if (ssPS)
+      opt |= VRNA_LOCAL_OUTPUT_SS_EPS;
+
+    if (aln_out)
+      opt |= VRNA_LOCAL_OUTPUT_MSA;
+
+    min_en = aliLfold_aln((const char **)AS, structure, maxdist, (const char **)names, aln_columns, prefix, opt);
   }
 
   {
@@ -220,6 +269,8 @@ main(int  argc,
   (void)fflush(stdout);
   free(string);
   free(structure);
+  free(prefix);
+
   for (i = 0; AS[i]; i++) {
     free(AS[i]);
     free(names[i]);
