@@ -42,11 +42,11 @@
  *  @see vrna_file_msa_read(), vrna_file_msa_read_record(), vrna_file_msa_detect_format()
  */
 #define VRNA_FILE_FORMAT_MSA_DEFAULT      ( \
-                                              VRNA_FILE_FORMAT_MSA_CLUSTAL \
-                                            | VRNA_FILE_FORMAT_MSA_STOCKHOLM \
-                                            | VRNA_FILE_FORMAT_MSA_FASTA \
-                                            | VRNA_FILE_FORMAT_MSA_MAF \
-                                          )
+    VRNA_FILE_FORMAT_MSA_CLUSTAL \
+    | VRNA_FILE_FORMAT_MSA_STOCKHOLM \
+    | VRNA_FILE_FORMAT_MSA_FASTA \
+    | VRNA_FILE_FORMAT_MSA_MAF \
+    )
 
 /**
  *  @brief Option flag to disable validation of the alignment
@@ -59,6 +59,9 @@
  *  @see vrna_file_msa_detect_format()
  */
 #define VRNA_FILE_FORMAT_MSA_UNKNOWN      8192U
+
+#define VRNA_FILE_FORMAT_MSA_APPEND       16384U
+
 
 /**
  *  @brief Read a multiple sequence alignment from file
@@ -107,12 +110,13 @@
  *                      no alignment record could be found
  */
 int
-vrna_file_msa_read( const char *filename,
-                    char ***names,
-                    char ***aln,
-                    char  **id,
-                    char  **structure,
-                    unsigned int options);
+vrna_file_msa_read(const char   *filename,
+                   char         ***names,
+                   char         ***aln,
+                   char         **id,
+                   char         **structure,
+                   unsigned int options);
+
 
 /**
  *  @brief Read a multiple sequence alignment from file handle
@@ -165,12 +169,13 @@ vrna_file_msa_read( const char *filename,
  *                      no alignment record could be found
  */
 int
-vrna_file_msa_read_record(FILE *fp,
-                          char ***names,
-                          char ***aln,
-                          char  **id,
-                          char  **structure,
-                          unsigned int options);
+vrna_file_msa_read_record(FILE          *fp,
+                          char          ***names,
+                          char          ***aln,
+                          char          **id,
+                          char          **structure,
+                          unsigned int  options);
+
 
 /**
  *  @brief Detect the format of a multiple sequence alignment file
@@ -198,8 +203,19 @@ vrna_file_msa_read_record(FILE *fp,
  *  @return           The MSA file format, or #VRNA_FILE_FORMAT_MSA_UNKNOWN
  */
 unsigned int
-vrna_file_msa_detect_format(const char *filename,
-                            unsigned int options);
+vrna_file_msa_detect_format(const char    *filename,
+                            unsigned int  options);
+
+
+int
+vrna_file_msa_write(const char    *filename,
+                    const char    **names,
+                    const char    **aln,
+                    const char    *id,
+                    const char    *structure,
+                    const char    *source,
+                    unsigned int  options);
+
 
 /**
  * @}
