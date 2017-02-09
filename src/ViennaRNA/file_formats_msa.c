@@ -637,7 +637,7 @@ write_stockholm_alignment(FILE        *fp,
 
     if (seq_num > 0) {
       /* print header */
-      fprintf(fp, "STOCKHOLM 1.0\n");
+      fprintf(fp, "# STOCKHOLM 1.0\n");
 
       if (id)   /* print the ID if available */
         fprintf(fp, "#=GF ID %s\n", id);
@@ -659,11 +659,11 @@ write_stockholm_alignment(FILE        *fp,
 
       /* print actual alignment */
       for (s = 0; s < seq_num; s++)
-        fprintf(fp, "%-*s %s\n", longest_name, names[s], aln[s]);
+        fprintf(fp, "%-*s  %s\n", longest_name, names[s], aln[s]);
 
       /* print consensus structure */
       if (structure)
-        fprintf(fp, "%-*s %s\n", longest_name, "#=GC SS_cons", structure);
+        fprintf(fp, "%-*s  %s\n", longest_name, "#=GC SS_cons", structure);
 
       /* print record-end marker */
       fprintf(fp, "//\n");
