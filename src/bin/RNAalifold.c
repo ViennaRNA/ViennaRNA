@@ -77,11 +77,12 @@ main(int  argc,
   char                        *input_string, *string, *structure, *cstruc, **AS, **names,
                               *constraints_file, **shape_files, *shape_method, *filename_plot,
                               *filename_dot, *filename_aln, *filename_out, *filename_in,
-                              *tmp_id, *tmp_structure, *tmp_string, **input_files, *id_prefix;
+                              *tmp_id, *tmp_structure, *tmp_string, **input_files, *id_prefix,
+                              *aln_prefix;
   int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci, endgaps,
                               aln_columns, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
                               istty_in, eval_energy, pf, istty, *shape_file_association,
-                              tmp_number, batch, continuous_names, id_digits, auto_id,
+                              tmp_number, batch, continuous_names, id_digits, auto_id, aln_out,
                               input_file_num, consensus_constraint, enforceConstraints;
   long int                    alignment_number;
   double                      min_en, real_en, MEAgamma, bppmThreshold;
@@ -91,6 +92,8 @@ main(int  argc,
   string                  = structure = cstruc = NULL;
   endgaps                 = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = noPS = 0;
   aln_columns             = 60;
+  aln_out                 = 0;
+  aln_prefix              = NULL;
   do_backtrack            = 1;
   bppmThreshold           = 1e-6;
   MEAgamma                = 1.0;
@@ -202,6 +205,13 @@ main(int  argc,
 
   if (args_info.aln_cols_given)
     aln_columns = args_info.aln_cols_arg;
+
+  if (args_info.aln_stk_given) {
+    aln_out = 1;
+    if (args_info.aln_stk_arg) {
+      aln_prefix = strdup(args_info.aln_stk_arg);
+    }
+  }
 
   if (args_info.old_given)
     md.oldAliEn = oldAliEn = 1;
@@ -408,6 +418,16 @@ main(int  argc,
   }
 
   long int first_alignment_number = alignment_number;
+
+  if(aln_out) {
+    if (!aln_prefix)
+      aln_prefix = strdup("RNAalifold_results.stk");
+    else {
+      char *tmp = vrna_strdup_printf("%s.stk", aln_prefix);
+      free(aln_prefix);
+      aln_prefix = tmp;
+    }
+  }
 
   while (!feof(clust_file)) {
     char *MSA_ID = NULL;
@@ -620,6 +640,15 @@ main(int  argc,
 
     if (doAlnPS)
       vrna_file_PS_aln(filename_aln, (const char **)AS, (const char **)names, structure, aln_columns);
+
+    if(aln_out)
+      vrna_file_msa_write((const char *)aln_prefix,
+                          (const char **)names,
+                          (const char **)AS,
+                          MSA_ID,
+                          (const char *)structure,
+                          "RNAalifold prediction",
+                          VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
 
     /* free mfe arrays */
     vrna_mx_mfe_free(vc);

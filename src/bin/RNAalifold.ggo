@@ -54,6 +54,18 @@ dependon="aln"
 optional
 hidden
 
+option  "aln-stk"             -
+"Create a multi-Stockholm formatted output file.\n"
+details="The default file name used for the output is \"RNAalifold_results.stk\". Users may\
+ change the filename to \"prefix.stk\" by specifying the prefix as optional argument. The file\
+ will be create in the current directory if it does not already exist. In case the file already\
+ exists, output will be appended to it.\n\n"
+string
+argoptional
+typestr="prefix"
+default="RNAalifold_results"
+optional
+
 option  "layout-type"  t
 "Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"
 int
