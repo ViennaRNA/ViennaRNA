@@ -3,7 +3,7 @@
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
 use strict;
-use Test::More tests => 49;
+use Test::More tests => 53;
 use Data::Dumper;
 use FileHandle;
 
@@ -308,6 +308,27 @@ ok(abs($comfe-$cmfe) < 1e-5);
 ($x,$ac,$bc,$fcab,$cf) = $fc->pf_dimer();
 ok(($cf < $comfe) and ($comfe - $cf < 1.3));
 
+
+####################################################
+## test_filename_sanitize:
+
+print "test_filename_sanitize\n";
+
+my $fn = "bla/bla??_foo\\bar\"r<u>m:ble";
+my $fs = RNA::filename_sanitize($fn);
+is($fs, "blabla_foobarrumble");
+
+$fn = "bla/bla??_foo\\bar\"r<u>m:ble";
+$fs = RNA::filename_sanitize($fn, '-');
+is($fs, "bla-bla--_foo-bar-r-u-m-ble");
+
+$fn = "??";
+$fs = RNA::filename_sanitize($fn);
+is($fs, "");
+
+$fn = "??";
+$fs = RNA::filename_sanitize($fn, '.');
+is($fs, "");
 
 # $md = new RNA::md();
 # $md->{noGU} = 1;
