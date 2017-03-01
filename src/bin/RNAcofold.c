@@ -63,7 +63,7 @@ main(int  argc,
   struct        RNAcofold_args_info args_info;
   char                              *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence,
                                     *rec_id, **rec_rest, fname[FILENAME_MAX_LENGTH], *Concfile, *id_prefix,
-                                    *command_file;
+                                    *command_file, *id_delim;
   unsigned int                      rec_type, read_opt;
   int                               i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
                                     doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch;
@@ -119,6 +119,7 @@ main(int  argc,
   ggo_get_ID_manipulation(args_info,
                           auto_id,
                           id_prefix, "sequence",
+                          id_delim, "_",
                           id_digits, 4,
                           seq_number, 1);
 
@@ -224,7 +225,7 @@ main(int  argc,
       fname[0] = '\0';
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_digits, seq_number);
+    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_delim, id_digits, seq_number);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)
@@ -341,7 +342,7 @@ main(int  argc,
       if (!noPS) {
         char *filename_plot = NULL, *annot = NULL;
         if (SEQ_ID)
-          filename_plot = vrna_strdup_printf("%s_ss.ps", SEQ_ID);
+          filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
         else
           filename_plot = strdup("rna.ps");
 
@@ -481,7 +482,7 @@ main(int  argc,
 
         char *filename_dot = NULL;
         if (SEQ_ID)
-          filename_dot = vrna_strdup_printf("%s_dp5.ps", SEQ_ID);
+          filename_dot = vrna_strdup_printf("%s%sdp5.ps", SEQ_ID, id_delim);
         else
           filename_dot = strdup("dot5.ps");
 
@@ -588,7 +589,7 @@ main(int  argc,
           char  *seq          = vrna_cut_point_remove(rec_sequence, &cp);
           char  *filename_dot = NULL;
           if (SEQ_ID)
-            filename_dot = vrna_strdup_printf("%s_dp.ps", SEQ_ID);
+            filename_dot = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
           else
             filename_dot = strdup("dot.ps");
 
@@ -649,6 +650,7 @@ main(int  argc,
   vrna_commands_free(commands);
 
   free(id_prefix);
+  free(id_delim);
   free(Concfile);
 
   return EXIT_SUCCESS;

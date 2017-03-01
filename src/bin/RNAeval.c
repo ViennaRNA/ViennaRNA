@@ -41,7 +41,7 @@ main(int  argc,
 {
   struct RNAeval_args_info  args_info;
   char                      *string, *structure, *orig_sequence, *tmp, *rec_sequence,
-                            *rec_id, **rec_rest, *shape_file, *shape_method,
+                            *rec_id, **rec_rest, *shape_file, *shape_method, *id_delim,
                             *shape_conversion, fname[FILENAME_MAX_LENGTH], *id_prefix;
   unsigned int              rec_type, read_opt;
   int                       i, length1, with_shapes, istty, noconv, verbose,
@@ -87,6 +87,7 @@ main(int  argc,
   ggo_get_ID_manipulation(args_info,
                           auto_id,
                           id_prefix, "sequence",
+                          id_delim, "_",
                           id_digits, 4,
                           seq_number, 1);
 
@@ -148,7 +149,7 @@ main(int  argc,
       fname[0] = '\0';
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_digits, seq_number);
+    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_delim, id_digits, seq_number);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)
@@ -250,5 +251,9 @@ main(int  argc,
       vrna_message_input_seq("Use '&' to connect 2 sequences that shall form a complex.\n"
                              "Input sequence (upper or lower case) followed by structure");
   }
+
+  free(id_prefix);
+  free(id_delim);
+
   return EXIT_SUCCESS;
 }

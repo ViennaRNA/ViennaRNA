@@ -97,6 +97,15 @@ typestr="prefix"
 default="sequence"
 optional
 
+option  "id-delim" -
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)\n\n"
+details="This parameter can be used to change the default delimiter \"_\" between
+ the prefix string and the increasing number for automatically generated ID.\n\n"
+string
+typestr="delimiter"
+default="_"
+optional
+
 option  "id-digits"  -
 "Specify the number of digits of the counter in automatically generated alignment IDs.\n"
 details="When alignments IDs are automatically generated, they receive an increasing number, starting\

@@ -78,7 +78,7 @@ main(int  argc,
                               *constraints_file, **shape_files, *shape_method, *filename_plot,
                               *filename_dot, *filename_aln, *filename_out, *filename_in,
                               *tmp_id, *tmp_structure, *tmp_string, **input_files, *id_prefix,
-                              *aln_prefix;
+                              *aln_prefix, *id_delim;
   int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci, endgaps,
                               aln_columns, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
                               istty_in, eval_energy, pf, istty, *shape_file_association, quiet,
@@ -144,6 +144,7 @@ main(int  argc,
   ggo_get_ID_manipulation(args_info,
                           auto_id,
                           id_prefix, "alignment",
+                          id_delim, "_",
                           id_digits, 4,
                           alignment_number, 1);
 
@@ -251,9 +252,9 @@ main(int  argc,
     verbose = 1;
 
   if (args_info.quiet_given) {
-    if (verbose) {
+    if (verbose)
       vrna_message_warning("Can not be verbose and quiet at the same time! I keep on being chatty...");
-    } else
+    else
       quiet = 1;
   }
 
@@ -493,7 +494,7 @@ main(int  argc,
     if (tmp_id && (!auto_id))                                       /* we've read an ID from file, so we use it */
       MSA_ID = strdup(tmp_id);
     else if (auto_id || (alignment_number > 1) || continuous_names) /* we have nuffin', Jon Snow (...so we simply generate an ID) */
-      MSA_ID = vrna_strdup_printf("%s_%0*ld", id_prefix, id_digits, alignment_number);
+      MSA_ID = vrna_strdup_printf("%s%s%0*ld", id_prefix, id_delim, id_digits, alignment_number);
 
 #if 0
     /* construct the sequence ID */
@@ -503,28 +504,15 @@ main(int  argc,
     /* construct output file names */
     if (MSA_ID) {
       /* construct file names */
-      int l = strlen(MSA_ID);
-      filename_plot = (char *)vrna_alloc((l + 7) * sizeof(char));
-      filename_dot  = (char *)vrna_alloc((l + 7) * sizeof(char));
-      filename_aln  = (char *)vrna_alloc((l + 8) * sizeof(char));
-      filename_out  = (char *)vrna_alloc((l + 9) * sizeof(char));
-      strncpy(filename_plot, MSA_ID, l);
-      strncpy(filename_dot, MSA_ID, l);
-      strncpy(filename_aln, MSA_ID, l);
-      strncpy(filename_out, MSA_ID, l);
-      strcat(filename_plot, "_ss.ps");
-      strcat(filename_dot, "_dp.ps");
-      strcat(filename_aln, "_aln.ps");
-      strcat(filename_out, "_ali.out");
+      filename_plot = vrna_strdup_printf("%s%sss.ps", MSA_ID, id_delim);
+      filename_dot  = vrna_strdup_printf("%s%sdp.ps", MSA_ID, id_delim);
+      filename_aln  = vrna_strdup_printf("%s%saln.ps", MSA_ID, id_delim);
+      filename_out  = vrna_strdup_printf("%s%sali.out", MSA_ID, id_delim);
     } else {
-      filename_plot = (char *)vrna_alloc((10) * sizeof(char));
-      filename_dot  = (char *)vrna_alloc((10) * sizeof(char));
-      filename_aln  = (char *)vrna_alloc((7) * sizeof(char));
-      filename_out  = (char *)vrna_alloc((12) * sizeof(char));
-      strcpy(filename_plot, "alirna.ps");
-      strcpy(filename_dot, "alidot.ps");
-      strcpy(filename_aln, "aln.ps");
-      strcpy(filename_out, "alifold.out");
+      filename_plot = vrna_strdup_printf("alirna.ps");
+      filename_dot  = vrna_strdup_printf("alidot.ps");
+      filename_aln  = vrna_strdup_printf("aln.ps");
+      filename_out  = vrna_strdup_printf("alifold.out");
     }
 
     /*
@@ -573,7 +561,7 @@ main(int  argc,
     }
 
     if (with_shapes) {
-      for (s = 0; shape_file_association[s] != -1; s++) ;
+      for (s = 0; shape_file_association[s] != -1; s++);
 
       if ((s != n_seq) && (!quiet))
         vrna_message_warning("Number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
@@ -879,7 +867,10 @@ main(int  argc,
     free(input_files[i]);
   free(input_files);
 
-  return 0;
+  free(id_prefix);
+  free(id_delim);
+
+  return EXIT_SUCCESS;
 }
 
 
@@ -1075,7 +1066,7 @@ make_color_pinfo(char   **sequences,
   int   i, n, s, a, b, z, t, j, c;
   int   pfreq[7];
 
-  for (n = 0; pl[n].i > 0; n++) ;
+  for (n = 0; pl[n].i > 0; n++);
   c   = 0;
   cp  = (cpair *)vrna_alloc(sizeof(cpair) * (n + 1));
   for (i = 0; i < n; i++) {
