@@ -210,9 +210,8 @@ main(int  argc,
 
   if (args_info.aln_stk_given) {
     aln_out = 1;
-    if (args_info.aln_stk_arg) {
+    if (args_info.aln_stk_arg)
       aln_prefix = strdup(args_info.aln_stk_arg);
-    }
   }
 
   if (args_info.old_given)
@@ -428,13 +427,14 @@ main(int  argc,
 
   long int first_alignment_number = alignment_number;
 
-  if(aln_out) {
-    if (!aln_prefix)
+  if (aln_out) {
+    if (!aln_prefix) {
       aln_prefix = strdup("RNAalifold_results.stk");
-    else {
+    } else {
       char *tmp = vrna_strdup_printf("%s.stk", aln_prefix);
       free(aln_prefix);
-      aln_prefix = tmp;
+      aln_prefix = vrna_filename_sanitize(tmp, id_delim);
+      free(tmp);
     }
   }
 
@@ -508,6 +508,20 @@ main(int  argc,
       filename_dot  = vrna_strdup_printf("%s%sdp.ps", MSA_ID, id_delim);
       filename_aln  = vrna_strdup_printf("%s%saln.ps", MSA_ID, id_delim);
       filename_out  = vrna_strdup_printf("%s%sali.out", MSA_ID, id_delim);
+
+      /* sanitize file names */
+      tmp_string = vrna_filename_sanitize(filename_plot, id_delim);
+      free(filename_plot);
+      filename_plot = tmp_string;
+      tmp_string    = vrna_filename_sanitize(filename_dot, id_delim);
+      free(filename_dot);
+      filename_dot  = tmp_string;
+      tmp_string    = vrna_filename_sanitize(filename_aln, id_delim);
+      free(filename_aln);
+      filename_aln  = tmp_string;
+      tmp_string    = vrna_filename_sanitize(filename_out, id_delim);
+      free(filename_out);
+      filename_out = tmp_string;
     } else {
       filename_plot = vrna_strdup_printf("alirna.ps");
       filename_dot  = vrna_strdup_printf("alidot.ps");
@@ -640,7 +654,7 @@ main(int  argc,
     if (doAlnPS)
       vrna_file_PS_aln(filename_aln, (const char **)AS, (const char **)names, structure, aln_columns);
 
-    if(aln_out)
+    if (aln_out) {
       vrna_file_msa_write((const char *)aln_prefix,
                           (const char **)names,
                           (const char **)AS,
@@ -648,6 +662,7 @@ main(int  argc,
                           (const char *)structure,
                           "RNAalifold prediction",
                           VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+    }
 
     /* free mfe arrays */
     vrna_mx_mfe_free(vc);

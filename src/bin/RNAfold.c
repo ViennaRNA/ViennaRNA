@@ -75,7 +75,7 @@ main(int  argc,
   struct          RNAfold_args_info args_info;
   char                              *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence,
                                     *constraints_file, *shape_file, *shape_method, *shape_conversion,
-                                    fname[FILENAME_MAX_LENGTH], *infile, *outfile,
+                                    fname[FILENAME_MAX_LENGTH], *infile, *outfile, *tmp_string,
                                     *ligandMotif, *id_prefix, *command_file, *id_delim;
   unsigned int                      rec_type, read_opt;
   int                               i, length, l, cl, istty, pf, noPS, noconv, enforceConstraints,
@@ -351,6 +351,9 @@ main(int  argc,
 
     if (outfile) {
       v_file_name = vrna_strdup_printf("%s.fold", prefix);
+      tmp_string  = vrna_filename_sanitize(v_file_name, id_delim);
+      free(v_file_name);
+      v_file_name = tmp_string;
 
       if (infile && !strcmp(infile, v_file_name))
         vrna_message_error("Input and output file names are identical");
@@ -398,10 +401,14 @@ main(int  argc,
 
       if (!noPS) {
         char *filename_plot = NULL;
-        if (SEQ_ID)
+        if (SEQ_ID) {
           filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
-        else
+          tmp_string    = vrna_filename_sanitize(filename_plot, id_delim);
+          free(filename_plot);
+          filename_plot = tmp_string;
+        } else {
           filename_plot = strdup("rna.ps");
+        }
 
         char *annotation = NULL;
 
@@ -470,10 +477,14 @@ main(int  argc,
           (void)fflush(output);
         }
 
-        if (SEQ_ID)
+        if (SEQ_ID) {
           filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
-        else
+          tmp_string    = vrna_filename_sanitize(filename_plot, id_delim);
+          free(filename_plot);
+          filename_plot = tmp_string;
+        } else {
           filename_plot = strdup("rna.ps");
+        }
 
         if (!noPS && (filename_plot))
           (void)vrna_file_PS_rnaplot(orig_sequence, s, filename_plot, &md);
@@ -613,10 +624,14 @@ main(int  argc,
           }
 
           char *filename_dotplot = NULL;
-          if (SEQ_ID)
-            filename_dotplot = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
-          else
+          if (SEQ_ID) {
+            filename_dotplot  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
+            tmp_string        = vrna_filename_sanitize(filename_dotplot, id_delim);
+            free(filename_dotplot);
+            filename_dotplot = tmp_string;
+          } else {
             filename_dotplot = strdup("dot.ps");
+          }
 
           if (filename_dotplot)
             vrna_plot_dp_EPS(filename_dotplot, orig_sequence, pl1, pl2, NULL, VRNA_PLOT_PROBABILITIES_DEFAULT);
@@ -646,10 +661,14 @@ main(int  argc,
           free(pl2);
           if (md.compute_bpp == 2) {
             char *filename_stackplot = NULL;
-            if (SEQ_ID)
-              filename_stackplot = vrna_strdup_printf("%s%sdp2.ps", SEQ_ID, id_delim);
-            else
+            if (SEQ_ID) {
+              filename_stackplot  = vrna_strdup_printf("%s%sdp2.ps", SEQ_ID, id_delim);
+              tmp_string          = vrna_filename_sanitize(filename_stackplot, id_delim);
+              free(filename_stackplot);
+              filename_stackplot = tmp_string;
+            } else {
               filename_stackplot = strdup("dot2.ps");
+            }
 
             pl2 = vrna_stack_prob(vc, 1e-5);
 

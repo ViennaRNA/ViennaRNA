@@ -63,7 +63,7 @@ main(int  argc,
   struct        RNAcofold_args_info args_info;
   char                              *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence,
                                     *rec_id, **rec_rest, fname[FILENAME_MAX_LENGTH], *Concfile, *id_prefix,
-                                    *command_file, *id_delim;
+                                    *command_file, *id_delim, *tmp_string;
   unsigned int                      rec_type, read_opt;
   int                               i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
                                     doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch;
@@ -341,10 +341,14 @@ main(int  argc,
 
       if (!noPS) {
         char *filename_plot = NULL, *annot = NULL;
-        if (SEQ_ID)
+        if (SEQ_ID) {
           filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
-        else
+          tmp_string    = vrna_filename_sanitize(filename_plot, id_delim);
+          free(filename_plot);
+          filename_plot = tmp_string;
+        } else {
           filename_plot = strdup("rna.ps");
+        }
 
         if (vc->cutpoint >= 0) {
           annot = vrna_strdup_printf("1 %d 9  0 0.9 0.2 omark\n"
@@ -481,10 +485,14 @@ main(int  argc,
         }
 
         char *filename_dot = NULL;
-        if (SEQ_ID)
-          filename_dot = vrna_strdup_printf("%s%sdp5.ps", SEQ_ID, id_delim);
-        else
+        if (SEQ_ID) {
+          filename_dot  = vrna_strdup_printf("%s%sdp5.ps", SEQ_ID, id_delim);
+          tmp_string    = vrna_filename_sanitize(filename_dot, id_delim);
+          free(filename_dot);
+          filename_dot = tmp_string;
+        } else {
           filename_dot = strdup("dot5.ps");
+        }
 
         /*output of the 5 dot plots*/
 
@@ -588,10 +596,14 @@ main(int  argc,
           int   cp;
           char  *seq          = vrna_cut_point_remove(rec_sequence, &cp);
           char  *filename_dot = NULL;
-          if (SEQ_ID)
-            filename_dot = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
-          else
+          if (SEQ_ID) {
+            filename_dot  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
+            tmp_string    = vrna_filename_sanitize(filename_dot, id_delim);
+            free(filename_dot);
+            filename_dot = tmp_string;
+          } else {
             filename_dot = strdup("dot.ps");
+          }
 
           if (filename_dot)
             (void)vrna_plot_dp_PS_list(seq, cp, filename_dot, prAB, mfAB, "doof");
