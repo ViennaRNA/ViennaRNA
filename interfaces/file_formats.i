@@ -53,5 +53,7 @@ std::vector<double> my_file_SHAPE_read( const char *file_name,
 %constant unsigned int FILE_FORMAT_MSA_NOCHECK   = VRNA_FILE_FORMAT_MSA_NOCHECK;
 %constant unsigned int FILE_FORMAT_MSA_STOCKHOLM = VRNA_FILE_FORMAT_MSA_STOCKHOLM;
 %constant unsigned int FILE_FORMAT_MSA_UNKNOWN   = VRNA_FILE_FORMAT_MSA_UNKNOWN;
+%constant unsigned int FILE_FORMAT_MSA_QUIET     = VRNA_FILE_FORMAT_MSA_QUIET;
+%constant unsigned int FILE_FORMAT_MSA_SILENT    = VRNA_FILE_FORMAT_MSA_SILENT;
 
 %include <ViennaRNA/file_formats_msa.h>

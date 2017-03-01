@@ -81,7 +81,7 @@ main(int  argc,
                               *aln_prefix;
   int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci, endgaps,
                               aln_columns, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
-                              istty_in, eval_energy, pf, istty, *shape_file_association,
+                              istty_in, eval_energy, pf, istty, *shape_file_association, quiet,
                               tmp_number, batch, continuous_names, id_digits, auto_id, aln_out,
                               input_file_num, consensus_constraint, enforceConstraints;
   long int                    alignment_number;
@@ -102,6 +102,7 @@ main(int  argc,
   shape_method            = NULL;
   with_shapes             = 0;
   verbose                 = 0;
+  quiet                   = 0;
   with_sci                = 0;
   filename_plot           = NULL;
   filename_dot            = NULL;
@@ -248,6 +249,13 @@ main(int  argc,
 
   if (args_info.verbose_given)
     verbose = 1;
+
+  if (args_info.quiet_given) {
+    if (verbose) {
+      vrna_message_warning("Can not be verbose and quiet at the same time! I keep on being chatty...");
+    } else
+      quiet = 1;
+  }
 
   /* SHAPE reactivity data */
   if (args_info.shape_given) {
@@ -460,6 +468,9 @@ main(int  argc,
       }
     }
 
+    if (quiet)
+      input_format_options |= VRNA_FILE_FORMAT_MSA_QUIET;
+
     /* read the first record from input file */
     n_seq = vrna_file_msa_read_record(clust_file, &names, &AS, &tmp_id, &tmp_structure, input_format_options);
     fflush(stdout);
@@ -564,7 +575,7 @@ main(int  argc,
     if (with_shapes) {
       for (s = 0; shape_file_association[s] != -1; s++) ;
 
-      if (s != n_seq)
+      if ((s != n_seq) && (!quiet))
         vrna_message_warning("Number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
 
       shape_files             = (char **)vrna_realloc(shape_files, (n_seq + 1) * sizeof(char *));
@@ -665,7 +676,7 @@ main(int  argc,
 
       kT = vc->exp_params->kT / 1000.;
 
-      if (length > 2000)
+      if ((length > 2000) && (!quiet))
         vrna_message_info(stderr, "scaling factor %f\n", vc->exp_params->pf_scale);
 
       fflush(stdout);

@@ -35,6 +35,13 @@ option  "verbose" v
 flag
 off
 
+option  "quiet" q
+"Be quiet.\n"
+details="This option can be used to minimize the output of additional information\
+ and non-severe warnings which otherwise might spam stdout/stderr.\n\n"
+flag
+off
+
 option  "color"   -
 "Produce a colored version of the consensus strcture plot \"alirna.ps\" (default b&w only)\n\n"
 flag

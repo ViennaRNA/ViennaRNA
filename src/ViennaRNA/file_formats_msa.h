@@ -62,6 +62,9 @@
 
 #define VRNA_FILE_FORMAT_MSA_APPEND       16384U
 
+#define VRNA_FILE_FORMAT_MSA_QUIET        32768U
+
+#define VRNA_FILE_FORMAT_MSA_SILENT       65536U
 
 /**
  *  @brief Read a multiple sequence alignment from file
