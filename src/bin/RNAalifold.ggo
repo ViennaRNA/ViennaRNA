@@ -138,6 +138,7 @@ string
 typestr="delimiter"
 default="_"
 optional
+hidden
 
 option  "id-digits"  -
 "Specify the number of digits of the counter in automatically generated alignment IDs.\n"
@@ -158,6 +159,19 @@ details="When alignment IDs are automatically generated, they receive an increas
  continuous alignment IDs, i.e. it activates the --continuous-ids flag.\n\n"
 long
 default="1"
+optional
+hidden
+
+option  "sanitize-delim" -
+"Change the delimiting character that is used for sanitized filenames\n\n"
+details="This parameter can be used to change the delimiting character used while\
+ sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
+ delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
+ the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
+ characters will be simply removed rather than substituted.\n\n"
+string
+typestr="delimiter"
+default="ID-delimiter"
 optional
 hidden
 

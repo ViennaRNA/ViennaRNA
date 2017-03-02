@@ -78,7 +78,7 @@ main(int  argc,
                               *constraints_file, **shape_files, *shape_method, *filename_plot,
                               *filename_dot, *filename_aln, *filename_out, *filename_in,
                               *tmp_id, *tmp_structure, *tmp_string, **input_files, *id_prefix,
-                              *aln_prefix, *id_delim;
+                              *aln_prefix, *id_delim, *sanitize_delim;
   int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci, endgaps,
                               aln_columns, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
                               istty_in, eval_energy, pf, istty, *shape_file_association, quiet,
@@ -353,6 +353,17 @@ main(int  argc,
     }
   }
 
+  /* filename sanitize delimiter */
+  if (args_info.sanitize_delim_given)
+    sanitize_delim = strdup(args_info.sanitize_delim_arg);
+  else
+    sanitize_delim = strdup(id_delim);
+
+  if (isspace(*sanitize_delim)) {
+    free(sanitize_delim);
+    sanitize_delim = NULL;
+  }
+
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free(&args_info);
 
@@ -433,7 +444,7 @@ main(int  argc,
     } else {
       char *tmp = vrna_strdup_printf("%s.stk", aln_prefix);
       free(aln_prefix);
-      aln_prefix = vrna_filename_sanitize(tmp, id_delim);
+      aln_prefix = vrna_filename_sanitize(tmp, sanitize_delim);
       free(tmp);
     }
   }
@@ -510,16 +521,16 @@ main(int  argc,
       filename_out  = vrna_strdup_printf("%s%sali.out", MSA_ID, id_delim);
 
       /* sanitize file names */
-      tmp_string = vrna_filename_sanitize(filename_plot, id_delim);
+      tmp_string = vrna_filename_sanitize(filename_plot, sanitize_delim);
       free(filename_plot);
       filename_plot = tmp_string;
-      tmp_string    = vrna_filename_sanitize(filename_dot, id_delim);
+      tmp_string    = vrna_filename_sanitize(filename_dot, sanitize_delim);
       free(filename_dot);
       filename_dot  = tmp_string;
-      tmp_string    = vrna_filename_sanitize(filename_aln, id_delim);
+      tmp_string    = vrna_filename_sanitize(filename_aln, sanitize_delim);
       free(filename_aln);
       filename_aln  = tmp_string;
-      tmp_string    = vrna_filename_sanitize(filename_out, id_delim);
+      tmp_string    = vrna_filename_sanitize(filename_out, sanitize_delim);
       free(filename_out);
       filename_out = tmp_string;
     } else {
@@ -884,6 +895,7 @@ main(int  argc,
 
   free(id_prefix);
   free(id_delim);
+  free(sanitize_delim);
 
   return EXIT_SUCCESS;
 }

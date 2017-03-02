@@ -63,7 +63,7 @@ main(int  argc,
   struct        RNAcofold_args_info args_info;
   char                              *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence,
                                     *rec_id, **rec_rest, fname[FILENAME_MAX_LENGTH], *Concfile, *id_prefix,
-                                    *command_file, *id_delim, *tmp_string;
+                                    *command_file, *id_delim, *sanitize_delim, *tmp_string;
   unsigned int                      rec_type, read_opt;
   int                               i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
                                     doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch;
@@ -167,6 +167,17 @@ main(int  argc,
 
   if (args_info.commands_given)
     command_file = strdup(args_info.commands_arg);
+
+  /* filename sanitize delimiter */
+  if (args_info.sanitize_delim_given)
+    sanitize_delim = strdup(args_info.sanitize_delim_arg);
+  else
+    sanitize_delim = strdup(id_delim);
+
+  if (isspace(*sanitize_delim)) {
+    free(sanitize_delim);
+    sanitize_delim = NULL;
+  }
 
   /* free allocated memory of command line data structure */
   RNAcofold_cmdline_parser_free(&args_info);
@@ -343,7 +354,7 @@ main(int  argc,
         char *filename_plot = NULL, *annot = NULL;
         if (SEQ_ID) {
           filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
-          tmp_string    = vrna_filename_sanitize(filename_plot, id_delim);
+          tmp_string    = vrna_filename_sanitize(filename_plot, sanitize_delim);
           free(filename_plot);
           filename_plot = tmp_string;
         } else {
@@ -487,7 +498,7 @@ main(int  argc,
         char *filename_dot = NULL;
         if (SEQ_ID) {
           filename_dot  = vrna_strdup_printf("%s%sdp5.ps", SEQ_ID, id_delim);
-          tmp_string    = vrna_filename_sanitize(filename_dot, id_delim);
+          tmp_string    = vrna_filename_sanitize(filename_dot, sanitize_delim);
           free(filename_dot);
           filename_dot = tmp_string;
         } else {
@@ -598,7 +609,7 @@ main(int  argc,
           char  *filename_dot = NULL;
           if (SEQ_ID) {
             filename_dot  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
-            tmp_string    = vrna_filename_sanitize(filename_dot, id_delim);
+            tmp_string    = vrna_filename_sanitize(filename_dot, sanitize_delim);
             free(filename_dot);
             filename_dot = tmp_string;
           } else {
@@ -663,6 +674,7 @@ main(int  argc,
 
   free(id_prefix);
   free(id_delim);
+  free(sanitize_delim);
   free(Concfile);
 
   return EXIT_SUCCESS;

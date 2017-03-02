@@ -76,7 +76,7 @@ main(int  argc,
   char                              *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence,
                                     *constraints_file, *shape_file, *shape_method, *shape_conversion,
                                     fname[FILENAME_MAX_LENGTH], *infile, *outfile, *tmp_string,
-                                    *ligandMotif, *id_prefix, *command_file, *id_delim;
+                                    *ligandMotif, *id_prefix, *command_file, *id_delim, *sanitize_delim;
   unsigned int                      rec_type, read_opt;
   int                               i, length, l, cl, istty, pf, noPS, noconv, enforceConstraints,
                                     batch, auto_id, id_digits, doMEA, lucky, with_shapes,
@@ -201,6 +201,17 @@ main(int  argc,
 
   if (args_info.commands_given)
     command_file = strdup(args_info.commands_arg);
+
+  /* filename sanitize delimiter */
+  if (args_info.sanitize_delim_given)
+    sanitize_delim = strdup(args_info.sanitize_delim_arg);
+  else
+    sanitize_delim = strdup(id_delim);
+
+  if (isspace(*sanitize_delim)) {
+    free(sanitize_delim);
+    sanitize_delim = NULL;
+  }
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free(&args_info);
@@ -351,7 +362,7 @@ main(int  argc,
 
     if (outfile) {
       v_file_name = vrna_strdup_printf("%s.fold", prefix);
-      tmp_string  = vrna_filename_sanitize(v_file_name, id_delim);
+      tmp_string  = vrna_filename_sanitize(v_file_name, sanitize_delim);
       free(v_file_name);
       v_file_name = tmp_string;
 
@@ -403,7 +414,7 @@ main(int  argc,
         char *filename_plot = NULL;
         if (SEQ_ID) {
           filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
-          tmp_string    = vrna_filename_sanitize(filename_plot, id_delim);
+          tmp_string    = vrna_filename_sanitize(filename_plot, sanitize_delim);
           free(filename_plot);
           filename_plot = tmp_string;
         } else {
@@ -479,7 +490,7 @@ main(int  argc,
 
         if (SEQ_ID) {
           filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
-          tmp_string    = vrna_filename_sanitize(filename_plot, id_delim);
+          tmp_string    = vrna_filename_sanitize(filename_plot, sanitize_delim);
           free(filename_plot);
           filename_plot = tmp_string;
         } else {
@@ -626,7 +637,7 @@ main(int  argc,
           char *filename_dotplot = NULL;
           if (SEQ_ID) {
             filename_dotplot  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
-            tmp_string        = vrna_filename_sanitize(filename_dotplot, id_delim);
+            tmp_string        = vrna_filename_sanitize(filename_dotplot, sanitize_delim);
             free(filename_dotplot);
             filename_dotplot = tmp_string;
           } else {
@@ -663,7 +674,7 @@ main(int  argc,
             char *filename_stackplot = NULL;
             if (SEQ_ID) {
               filename_stackplot  = vrna_strdup_printf("%s%sdp2.ps", SEQ_ID, id_delim);
-              tmp_string          = vrna_filename_sanitize(filename_stackplot, id_delim);
+              tmp_string          = vrna_filename_sanitize(filename_stackplot, sanitize_delim);
               free(filename_stackplot);
               filename_stackplot = tmp_string;
             } else {
@@ -788,6 +799,7 @@ main(int  argc,
   free(shape_conversion);
   free(id_prefix);
   free(id_delim);
+  free(sanitize_delim);
   free(command_file);
   vrna_commands_free(commands);
 
