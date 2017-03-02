@@ -341,9 +341,10 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
                               double b,
                               unsigned int options){
 
-  float           reactivity, *reactivities, e1;
+  FILE            *fp;
+  float           reactivity, *reactivities, e1, weight;
   char            *line, nucleotide, *sequence;
-  int             s, i, p, r, position, *pseudo_energies, n_seq;
+  int             s, i, p, r, n_data, position, *pseudo_energies, n_seq;
   unsigned short  **a2s;
 
   if(vc && (vc->type == VRNA_FC_TYPE_COMPARATIVE)){
@@ -351,6 +352,20 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
     a2s   = vc->a2s;
 
     vrna_sc_init(vc);
+
+    /* count number of SHAPE data available for this alignment */
+    for(n_data = s = 0; shape_file_association[s] != -1; s++){
+      if(shape_file_association[s] >= n_seq)
+        continue;
+
+      /* try opening the shape data file */
+      if(fp = fopen(shape_files[s], "r")) {
+        fclose(fp);
+        n_data++;
+      }
+    }
+
+    weight = (n_data > 0) ? ((float)n_seq/(float)n_data) : 0.;
 
     for(s = 0; shape_file_association[s] != -1; s++){
       int ss = shape_file_association[s]; /* actual sequence number in alignment */
@@ -361,7 +376,6 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
       }
 
       /* read the shape file */
-      FILE *fp;
       if(!(fp = fopen(shape_files[s], "r"))){
         vrna_message_warning("SHAPE data file %d could not be opened. No shape data will be used.", s);
       } else {
@@ -408,6 +422,9 @@ vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
             reactivities[i] = 0.;
           else
             reactivities[i] = m * log(reactivities[i] + 1.) + b; /* this should be a value in kcal/mol */
+
+          /* weight SHAPE data derived pseudo energies for this alignment */
+          reactivities[i] *= weight;
         }
 
         /*  begin actual storage of the pseudo energies */
