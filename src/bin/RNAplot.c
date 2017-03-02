@@ -16,7 +16,10 @@
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/file_utils.h"
 #include "RNAplot_cmdl.h"
+#include "gengetopt_helper.h"
+#include "input_id_helper.h"
 
 #define PRIVATE static
 
@@ -25,14 +28,16 @@ main(int  argc,
      char *argv[])
 {
   struct RNAplot_args_info  args_info;
-  char                      *structure, *pre, *post, fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH],
+  char                      *structure, *pre, *post, *fname, *ffname, *tmp_string,
+                            *id_prefix, *id_delim, *sanitize_delim,
                             *rec_sequence, *rec_id, **rec_rest, format[5] = "ps";
   unsigned int              rec_type, read_opt;
-  int                       i, length, istty;
+  int                       i, istty, auto_id, id_digits;
+  long int                  seq_number;
   vrna_md_t                 md;
 
   structure = pre = post = NULL;
-  length    = 0;
+  auto_id   = 0;
   vrna_md_set_default(&md);
 
   /*
@@ -42,6 +47,14 @@ main(int  argc,
    */
   if (RNAplot_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  /* parse options for ID manipulation */
+  ggo_get_ID_manipulation(args_info,
+                          auto_id,
+                          id_prefix, "sequence",
+                          id_delim, "_",
+                          id_digits, 4,
+                          seq_number, 1);
 
   if (args_info.layout_type_given)
     rna_plot_type = args_info.layout_type_arg;
@@ -55,6 +68,17 @@ main(int  argc,
   if (args_info.output_format_given) {
     strncpy(format, args_info.output_format_arg, 4);
     format[4] = '\0';
+  }
+
+  /* filename sanitize delimiter */
+  if (args_info.sanitize_delim_given)
+    sanitize_delim = strdup(args_info.sanitize_delim_arg);
+  else
+    sanitize_delim = strdup(id_delim);
+
+  if (isspace(*sanitize_delim)) {
+    free(sanitize_delim);
+    sanitize_delim = NULL;
   }
 
   /* free allocated memory of command line data structure */
@@ -84,52 +108,61 @@ main(int  argc,
   while (
     !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
       & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
-    if (rec_id)
-      (void)sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-    else
-      fname[0] = '\0';
+    char *SEQ_ID = NULL;
 
-    length = (int)strlen(rec_sequence);
+    if (rec_id) {
+      fname = (char *)vrna_alloc(sizeof(char) * (strlen(rec_id) + 1));
+      (void)sscanf(rec_id, ">%s", fname);
+    }
+
+    /* construct the sequence ID */
+    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_delim, id_digits, seq_number);
 
     structure = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
 
     if (!structure)
       vrna_message_error("structure missing");
 
-    if ((int)strlen(structure) != length)
-      vrna_message_error("structure and sequence differ in length!");
-
-    if (fname[0] != '\0') {
-      strcpy(ffname, fname);
-      strcat(ffname, "_ss");
-    } else {
-      strcpy(ffname, "rna");
-    }
-
-    structure = NULL;
-    unsigned int struct_options = (rec_id) ? VRNA_OPTION_MULTILINE : 0;
-    structure = vrna_extract_record_rest_structure((const char **)rec_rest, 0, struct_options);
-
     if (strlen(rec_sequence) != strlen(structure))
       vrna_message_error("sequence and structure have unequal length");
 
+    if (SEQ_ID)
+      ffname = vrna_strdup_printf("%s%sss", SEQ_ID, id_delim);
+    else
+      ffname = vrna_strdup_printf("rna");
+
     switch (format[0]) {
       case 'p':
-        strcat(ffname, ".ps");
+        tmp_string = vrna_strdup_printf("%s.ps", ffname);
+        free(ffname);
+        ffname = vrna_filename_sanitize(tmp_string, sanitize_delim);
+        free(tmp_string);
 
         (void)vrna_file_PS_rnaplot_a(rec_sequence, structure, ffname, pre, post, &md);
 
         break;
       case 'g':
-        strcat(ffname, ".gml");
+        tmp_string = vrna_strdup_printf("%s.gml", ffname);
+        free(ffname);
+        ffname = vrna_filename_sanitize(tmp_string, sanitize_delim);
+        free(tmp_string);
+
         gmlRNA(rec_sequence, structure, ffname, 'x');
         break;
       case 'x':
-        strcat(ffname, ".ss");
+        tmp_string = vrna_strdup_printf("%s.ss", ffname);
+        free(ffname);
+        ffname = vrna_filename_sanitize(tmp_string, sanitize_delim);
+        free(tmp_string);
+
         xrna_plot(rec_sequence, structure, ffname);
         break;
       case 's':
-        strcat(ffname, ".svg");
+        tmp_string = vrna_strdup_printf("%s.svg", ffname);
+        free(ffname);
+        ffname = vrna_filename_sanitize(tmp_string, sanitize_delim);
+        free(tmp_string);
+
         svg_rna_plot(rec_sequence, structure, ffname);
         break;
       default:
@@ -140,11 +173,10 @@ main(int  argc,
     fflush(stdout);
 
     /* clean up */
-    if (rec_id)
-      free(rec_id);
-
+    free(rec_id);
     free(rec_sequence);
     free(structure);
+    structure = NULL;
     /* free the rest of current dataset */
     if (rec_rest) {
       for (i = 0; rec_rest[i]; i++)
@@ -155,10 +187,22 @@ main(int  argc,
     rec_id    = rec_sequence = structure = NULL;
     rec_rest  = NULL;
 
+    free(SEQ_ID);
+    free(fname);
+    fname = NULL;
+    free(ffname);
+    ffname = NULL;
+
+    ID_number_increase(seq_number, "Sequence");
+
     /* print user help for the next round if we get input from tty */
     if (istty)
       vrna_message_input_seq("Input sequence (upper or lower case) followed by structure");
   }
+
+  free(id_prefix);
+  free(id_delim);
+  free(sanitize_delim);
 
   return EXIT_SUCCESS;
 }
