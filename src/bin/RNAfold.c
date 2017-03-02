@@ -75,7 +75,7 @@ main(int  argc,
   struct          RNAfold_args_info args_info;
   char                              *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence,
                                     *constraints_file, *shape_file, *shape_method, *shape_conversion,
-                                    fname[FILENAME_MAX_LENGTH], *infile, *outfile, *tmp_string,
+                                    *fname, *infile, *outfile, *tmp_string,
                                     *ligandMotif, *id_prefix, *command_file, *id_delim, *sanitize_delim;
   unsigned int                      rec_type, read_opt;
   int                               i, length, l, cl, istty, pf, noPS, noconv, enforceConstraints,
@@ -106,6 +106,7 @@ main(int  argc,
   ligandMotif   = NULL;
   command_file  = NULL;
   commands      = NULL;
+  fname         = NULL;
 
   /* apply default model details */
   set_model_details(&md);
@@ -278,10 +279,10 @@ main(int  argc,
      # init everything according to the data we've read
      ########################################################
      */
-    if (rec_id)
-      (void)sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-    else
-      fname[0] = '\0';
+    if (rec_id) {
+      fname = (char *) vrna_alloc(sizeof(char) * (strlen(rec_id) + 1));
+      (void)sscanf(rec_id, ">%s", fname);
+    }
 
     /* construct the sequence ID */
     ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_delim, id_digits, seq_number);
@@ -294,8 +295,8 @@ main(int  argc,
 
     if (outfile) {
       /* prepare the file prefix */
-      if (fname[0] != '\0')
-        prefix = vrna_strdup_printf("%s%s%s", outfile, id_delim, fname);
+      if (SEQ_ID)
+        prefix = vrna_strdup_printf("%s%s%s", outfile, id_delim, SEQ_ID);
       else
         prefix = vrna_strdup_printf("%s", outfile);
     }
@@ -776,6 +777,8 @@ main(int  argc,
       break;
 
     free(SEQ_ID);
+    free(fname);
+    fname = NULL;
 
     ID_number_increase(seq_number, "Sequence");
 

@@ -62,7 +62,7 @@ main(int  argc,
 {
   struct        RNAcofold_args_info args_info;
   char                              *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence,
-                                    *rec_id, **rec_rest, fname[FILENAME_MAX_LENGTH], *Concfile, *id_prefix,
+                                    *rec_id, **rec_rest, *fname, *Concfile, *id_prefix,
                                     *command_file, *id_delim, *sanitize_delim, *tmp_string;
   unsigned int                      rec_type, read_opt;
   int                               i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
@@ -95,6 +95,7 @@ main(int  argc,
   auto_id       = 0;
   command_file  = NULL;
   commands      = NULL;
+  fname         = NULL;
 
   set_model_details(&md);
   /*
@@ -230,10 +231,10 @@ main(int  argc,
      */
     char *SEQ_ID = NULL;
 
-    if (rec_id)
-      (void)sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-    else
-      fname[0] = '\0';
+    if (rec_id) {
+      fname = (char *) vrna_alloc(sizeof(char) * (strlen(rec_id) + 1));
+      (void)sscanf(rec_id, ">%s", fname);
+    }
 
     /* construct the sequence ID */
     ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_delim, id_digits, seq_number);
@@ -651,6 +652,8 @@ main(int  argc,
     vrna_fold_compound_free(vc);
 
     free(SEQ_ID);
+    free(fname);
+    fname = NULL;
 
     if (constraints_file && (!batch))
       break;

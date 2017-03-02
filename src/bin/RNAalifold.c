@@ -507,11 +507,6 @@ main(int  argc,
     else if (auto_id || (alignment_number > 1) || continuous_names) /* we have nuffin', Jon Snow (...so we simply generate an ID) */
       MSA_ID = vrna_strdup_printf("%s%s%0*ld", id_prefix, id_delim, id_digits, alignment_number);
 
-#if 0
-    /* construct the sequence ID */
-    ID_generate(MSA_ID, tmp_id, auto_id, id_prefix, id_digits, alignment_number);
-#endif
-
     /* construct output file names */
     if (MSA_ID) {
       /* construct file names */

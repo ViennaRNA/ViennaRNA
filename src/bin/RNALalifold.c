@@ -36,7 +36,6 @@ main(int  argc,
   FILE                          *clust_file;
   struct RNALalifold_args_info  args_info;
   char                          *string, *structure, *ParamFile, *ns_bases, *prefix,
-                                ffname[FILENAME_MAX_LENGTH], gfname[FILENAME_MAX_LENGTH],
                                 *AS[MAX_NUM_NAMES], *names[MAX_NUM_NAMES];
   int                           n_seq, i, length, maxdist, unchangednc, unchangedcv,
                                 mis, pf, istty, alnPS, aln_columns, aln_out, ssPS;
@@ -262,8 +261,6 @@ main(int  argc,
   }
   string = (mis) ? consens_mis((const char **)AS) : consensus((const char **)AS);
   printf("%s\n%s\n", string, structure);
-  strcpy(ffname, "alirna.ps");
-  strcpy(gfname, "alirna.g");
 
   free(base_pair);
   (void)fflush(stdout);

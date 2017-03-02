@@ -42,7 +42,7 @@ main(int  argc,
   struct RNAeval_args_info  args_info;
   char                      *string, *structure, *orig_sequence, *tmp, *rec_sequence,
                             *rec_id, **rec_rest, *shape_file, *shape_method, *id_delim,
-                            *shape_conversion, fname[FILENAME_MAX_LENGTH], *id_prefix;
+                            *shape_conversion, *fname, *id_prefix;
   unsigned int              rec_type, read_opt;
   int                       i, length1, with_shapes, istty, noconv, verbose,
                             auto_id, id_digits;
@@ -59,6 +59,7 @@ main(int  argc,
   id_prefix   = NULL;
   auto_id     = 0;
   id_digits   = 4;
+  fname       = NULL;
 
   /* apply default model details */
   vrna_md_set_default(&md);
@@ -143,10 +144,10 @@ main(int  argc,
      */
     char *SEQ_ID = NULL, *msg = NULL;
 
-    if (rec_id)
-      (void)sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-    else
-      fname[0] = '\0';
+    if (rec_id) {
+      fname = (char *) vrna_alloc(sizeof(char) * (strlen(rec_id) + 1));
+      (void)sscanf(rec_id, ">%s", fname);
+    }
 
     /* construct the sequence ID */
     ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_delim, id_digits, seq_number);
@@ -222,6 +223,8 @@ main(int  argc,
       free(rec_id);
 
     free(SEQ_ID);
+    free(fname);
+    fname = NULL;
     free(msg);
     free(rec_sequence);
     free(structure);

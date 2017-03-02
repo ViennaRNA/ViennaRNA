@@ -32,7 +32,7 @@ main(int  argc,
      char *argv[])
 {
   struct        RNAduplex_args_info args_info;
-  char                              fname[FILENAME_MAX_LENGTH], *input_string, *s1, *s2, *orig_s1, *orig_s2,
+  char                              *input_string, *s1, *s2, *orig_s1, *orig_s2,
                                     *c, *ParamFile, *ns_bases;
   unsigned int                      input_type;
   int                               i, sym, istty, delta, noconv;
@@ -152,10 +152,8 @@ main(int  argc,
       vrna_message_input_seq("Input two sequences (one line each)");
 
     /* extract filename from fasta header if available */
-    fname[0] = '\0';
     while ((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER) {
       printf(">%s\n", input_string);
-      (void)sscanf(input_string, "%" XSTR(FILENAME_ID_LENGTH) "s", fname);
       free(input_string);
     }
 
