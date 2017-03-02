@@ -85,7 +85,7 @@ main(int  argc,
                               tmp_number, batch, continuous_names, id_digits, auto_id, aln_out,
                               input_file_num, consensus_constraint, enforceConstraints;
   long int                    alignment_number;
-  double                      min_en, real_en, MEAgamma, bppmThreshold;
+  double                      min_en, real_en, cov_en, MEAgamma, bppmThreshold;
   vrna_md_t                   md;
   vrna_fold_compound_t        *vc;
 
@@ -601,6 +601,7 @@ main(int  argc,
 
     min_en  = vrna_mfe(vc, structure);
     real_en = vrna_eval_structure(vc, structure);
+    cov_en  = vrna_eval_covar_structure(vc, structure);
 
     string = (mis) ? consens_mis((const char **)AS) : consensus((const char **)AS);
 
@@ -623,25 +624,33 @@ main(int  argc,
     print_fasta_header(stdout, MSA_ID);
     fprintf(stdout, "%s\n", string);
     char *energy_string = NULL;
+    char *e_individual  = NULL;
+
+    if (with_shapes)
+      e_individual = vrna_strdup_printf("%6.2f + %6.2f + %6.2f", real_en, -cov_en, min_en - real_en + cov_en);
+    else
+      e_individual = vrna_strdup_printf("%6.2f + %6.2f", real_en, min_en - real_en);
+
     if (istty_in) {
       if (with_sci)
-        energy_string = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n SCI = %2.4f",
-                                           min_en, real_en, min_en - real_en, sci);
+        energy_string = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol (%s)\n SCI = %2.4f",
+                                           min_en, e_individual, sci);
       else
-        energy_string = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)",
-                                           min_en, real_en, min_en - real_en);
+        energy_string = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol (%s)",
+                                           min_en, e_individual);
     } else {
       if (with_sci)
-        energy_string = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f) [sci = %2.4f]",
-                                           min_en, real_en, min_en - real_en, sci);
+        energy_string = vrna_strdup_printf(" (%6.2f = %s) [sci = %2.4f]",
+                                           min_en, e_individual, sci);
       else
-        energy_string = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f)",
-                                           min_en, real_en, min_en - real_en);
+        energy_string = vrna_strdup_printf(" (%6.2f = %s)",
+                                           min_en, e_individual);
     }
 
     print_structure(stdout, structure, energy_string);
 
     free(energy_string);
+    free(e_individual);
 
     if (!noPS) {
       char **A;
