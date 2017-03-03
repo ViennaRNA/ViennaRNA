@@ -27,10 +27,7 @@
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/Lfold.h"
 #include "ViennaRNA/aln_util.h"
-#include "ViennaRNA/plot_aln.h"
-#include "ViennaRNA/plot_structure.h"
 #include "ViennaRNA/loop_energies.h"
-#include "ViennaRNA/file_formats_msa.h"
 
 
 #ifdef _OPENMP
@@ -118,13 +115,10 @@ PRIVATE void  make_pscores(const char **AS,
                            int        start);
 
 
-PRIVATE int   fill_arrays(const char    *strings[],
-                          int           maxdist,
-                          char          *structure,
-                          const char    *names[],
-                          int           columns,
-                          const char    *prefix,
-                          unsigned int  options);
+PRIVATE int   fill_arrays(const char        **strings,
+                          int               maxdist,
+                          aliLfold_callback *cb,
+                          void              *data);
 
 
 PRIVATE char *backtrack(const char  *strings[],
@@ -132,29 +126,12 @@ PRIVATE char *backtrack(const char  *strings[],
                         int         maxdist);
 
 
-PRIVATE void  get_subalignment(const char *AS[],
-                               char       *sub[],
-                               int        i,
-                               int        j);
-
-
-PRIVATE void  delete_alignment(char *AS[]);
-
-
-PRIVATE char **annote(const char  *structure,
-                      const char  *AS[]);
-
-
 PRIVATE void
-write_hit(const char    **names,
-          const char    **strings,
-          int           start,
-          int           end,
-          const char    *structure,
-          const char    *prefix,
-          int           columns,
-          vrna_md_t     *md,
-          unsigned int  options);
+default_callback(int        start,
+                 int        end,
+                 const char *structure,
+                 float      en,
+                 void       *data);
 
 
 /*
@@ -225,28 +202,25 @@ aliLfold(const char *strings[],
          char       *structure,
          int        maxdist)
 {
-  return aliLfold_aln(strings, structure, maxdist, NULL, 60, NULL, 0U);
+  return aliLfold_cb(strings, maxdist, &default_callback, NULL);
 }
 
 
 PUBLIC float
-aliLfold_aln(const char   **strings,
-             char         *structure,
-             int          maxdist,
-             const char   *names[],
-             int          columns,
-             const char   *prefix,
-             unsigned int options)
+aliLfold_cb(const char        **AS,
+            int               maxdist,
+            aliLfold_callback *cb,
+            void              *data)
 {
   int length, energy, s, n_seq, i, j;
 
-  length = (int)strlen(strings[0]);
+  length = (int)strlen(AS[0]);
   if (maxdist > length)
     maxdist = length;
 
   initialize_aliLfold(length, maxdist);
 
-  for (s = 0; strings[s] != NULL; s++) ;
+  for (s = 0; AS[s] != NULL; s++) ;
   n_seq = s;
   S     = (short **)vrna_alloc(n_seq * sizeof(short *));
   S5    = (short **)vrna_alloc(n_seq * sizeof(short *));
@@ -255,21 +229,21 @@ aliLfold_aln(const char   **strings,
   Ss    = (char **)vrna_alloc(n_seq * sizeof(char *));
 
   for (s = 0; s < n_seq; s++) {
-    if (strlen(strings[s]) != length)
+    if (strlen(AS[s]) != length)
       vrna_message_error("uneqal seqence lengths");
 
     S5[s]   = (short *)vrna_alloc((length + 2) * sizeof(short));
     S3[s]   = (short *)vrna_alloc((length + 2) * sizeof(short));
     a2s[s]  = (unsigned short *)vrna_alloc((length + 2) * sizeof(unsigned short));
     Ss[s]   = (char *)vrna_alloc((length + 2) * sizeof(char));
-    S[s]    = encode_seq(strings[s], S5[s], S3[s], Ss[s], a2s[s]);
+    S[s]    = encode_seq(AS[s], S5[s], S3[s], Ss[s], a2s[s]);
   }
 
   if (ribo) {
     if (RibosumFile != NULL)
       dm = readribosum(RibosumFile);
     else
-      dm = get_ribosum(strings, n_seq, S[0][0]);
+      dm = get_ribosum(AS, n_seq, S[0][0]);
   } else {
     /*use usual matrix*/
     dm = (float **)vrna_alloc(7 * sizeof(float *));
@@ -281,9 +255,9 @@ aliLfold_aln(const char   **strings,
   }
 
   for (i = length; i >= (int)length - (int)maxdist - 4 && i > 0; i--)
-    make_pscores((const char **)strings, structure, maxdist, i);
+    make_pscores((const char **)AS, NULL, maxdist, i);
 
-  energy = fill_arrays(strings, maxdist, structure, names, columns, prefix, options);
+  energy = fill_arrays(AS, maxdist, cb, data);
 
   free_aliL_arrays(maxdist);
   return (float)energy / 100.;
@@ -291,13 +265,10 @@ aliLfold_aln(const char   **strings,
 
 
 PRIVATE int
-fill_arrays(const char    *strings[],
-            int           maxdist,
-            char          *structure,
-            const char    *names[],
-            int           columns,
-            const char    *prefix,
-            unsigned int  options)
+fill_arrays(const char        *strings[],
+            int               maxdist,
+            aliLfold_callback *cb,
+            void              *data)
 {
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
@@ -569,14 +540,9 @@ fill_arrays(const char    *strings[],
             char *outstr = (char *)vrna_alloc(sizeof(char) * (strlen(prev) + 1));
             strncpy(outstr, strings[0] + prev_i - 1, strlen(prev));
             outstr[strlen(prev)] = '\0';
-            if (csv == 1)
-              printf("%s , %6.2f, %4d, %4d\n", prev, energyprev / (100. * n_seq), prev_i, prev_i + (int)strlen(prev) - 1);
-            /* if(do_backtrack==1)*/
-            else
-              printf("%s (%6.2f) %4d - %4d\n", prev, energyprev / (100. * n_seq), prev_i, prev_i + (int)strlen(prev) - 1);
 
-            if (options)
-              write_hit(names, strings, prev_i, prev_i + (int)strlen(prev) - 1, prev, prefix, columns, &md, options);
+            /* execute callback */
+            cb(prev_i, prev_i + (int)strlen(prev) - 1, prev, energyprev / (100. * n_seq), data);
 
             free(outstr);
           }
@@ -601,13 +567,10 @@ fill_arrays(const char    *strings[],
           outstr = (char *)vrna_alloc(sizeof(char) * (strlen(prev) + 1));
           strncpy(outstr, strings[0] + prev_i - 1, strlen(prev));
           outstr[strlen(prev)] = '\0';
-          if (csv == 1)
-            printf("%s ,%6.2f, %4d, %4d\n", prev, (energyprev) / (100. * n_seq), prev_i, prev_i + (int)strlen(prev) - 1);
-          else
-            printf("%s (%6.2f) %4d - %4d\n", prev, (energyprev) / (100. * n_seq), prev_i, prev_i + (int)strlen(prev) - 1);
 
-          if (options)
-            write_hit(names, strings, prev_i, prev_i + (int)strlen(prev) - 1, prev, prefix, columns, &md, options);
+          /* execute callback */
+          cb(prev_i, prev_i + (int)strlen(prev) - 1, prev, (energyprev) / (100. * n_seq), data);
+          free(outstr);
         }
 
         if ((f3[prev_i] != f3[1]) || !prev) {
@@ -619,19 +582,15 @@ fill_arrays(const char    *strings[],
           strncpy(outstr, strings[0], strlen(ss));
           outstr[strlen(ss)] = '\0';
           printf("%s \n", outstr);
-          if (csv == 1)
-            printf("%s ,%6.2f ,%4d ,%4d\n", ss, (f3[1] - f3[1 + strlen(ss) - 1]) / (100. * n_seq), 1, (int)strlen(ss) - 1);
-          else
-            printf("%s (%6.2f) %4d - %4d\n", ss, (f3[1] - f3[1 + strlen(ss) - 1]) / (100. * n_seq), 1, (int)strlen(ss) - 1);
 
-          if (options)
-            write_hit(names, strings, 1, (int)strlen(ss) - 1, ss, prefix, columns, &md, options);
+          /* execute callback */
+          cb(1, (int)strlen(ss) - 1, ss, (f3[1] - f3[1 + strlen(ss) - 1]) / (100. * n_seq), data);
 
           free(ss);
+          free(outstr);
         }
 
         free(prev);
-        free(outstr);
       }
     }
     {
@@ -653,7 +612,7 @@ fill_arrays(const char    *strings[],
         pscore[i - 1]           = pscore[i + maxdist + 4];
         pscore[i + maxdist + 4] = NULL;
         if (i > 1)
-          make_pscores((const char **)strings, structure, maxdist, i - 1);
+          make_pscores((const char **)strings, NULL, maxdist, i - 1);
 
         for (ii = 0; ii < maxdist + 5; ii++)
           c[i - 1][ii] = fML[i - 1][ii] = INF;
@@ -968,65 +927,16 @@ repeat1:
 
 
 PRIVATE void
-write_hit(const char    **names,
-          const char    **strings,
-          int           start,
-          int           end,
-          const char    *structure,
-          const char    *prefix,
-          int           columns,
-          vrna_md_t     *md,
-          unsigned int  options)
+default_callback(int        start,
+                 int        end,
+                 const char *structure,
+                 float      en,
+                 void       *data)
 {
-  char  *sub[500];
-  char  *fname;
-  char  *id;
-  char  **A, *cons;
-
-  get_subalignment(strings, sub, start, end);
-  cons  = consensus((const char **)sub);
-  A     = annote(structure, (const char **)sub);
-
-  if (options & VRNA_LOCAL_OUTPUT_SS_EPS) {
-    if (prefix)
-      fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
-    else
-      fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
-
-    (void)vrna_file_PS_rnaplot_a(cons, structure, fname, A[0], A[1], md);
-    free(fname);
-  }
-
-  free(A[0]);
-  free(A[1]);
-  free(A);
-  free(cons);
-
-  if (options & VRNA_LOCAL_OUTPUT_MSA_EPS) {
-    if (prefix)
-      fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
-    else
-      fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
-
-    vrna_file_PS_aln_sub(fname, (const char **)sub, names, structure, start, -1, columns);
-    free(fname);
-  }
-
-  if (options & VRNA_LOCAL_OUTPUT_MSA) {
-    if (prefix) {
-      id    = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
-      fname = vrna_strdup_printf("%s.stk", prefix);
-      vrna_file_msa_write(fname, names, (const char **)sub, id, structure, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
-      free(fname);
-    } else {
-      id = vrna_strdup_printf("aln_%d_%d", start, end);
-      vrna_file_msa_write("RNALalifold_results.stk", names, (const char **)sub, id, structure, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
-    }
-
-    free(id);
-  }
-
-  delete_alignment(sub);
+  if (csv == 1)
+    printf("%s ,%6.2f, %4d, %4d\n", structure, en, start, end);
+  else
+    printf("%s (%6.2f) %4d - %4d\n", structure, en, start, end);
 }
 
 
@@ -1269,125 +1179,4 @@ make_pscores(const char **AS,
 
     free(stack);
   }
-}
-
-
-PRIVATE void
-get_subalignment(const char *AS[],
-                 char       *sub[],
-                 int        i,
-                 int        j)
-{
-  int n_seq, s;
-
-  /* get number of sequences in alignment */
-  for (n_seq = 0; AS[n_seq] != NULL; n_seq++) ;
-
-  for (s = 0; s < n_seq; s++)
-    sub[s] = vrna_alloc(sizeof(char) * (j - i + 2));
-  sub[s] = NULL;
-
-  /* copy subalignment */
-  for (s = 0; s < n_seq; s++) {
-    sub[s]              = memcpy(sub[s], AS[s] + i - 1, sizeof(char) * (j - i + 1));
-    sub[s][(j - i + 1)] = '\0';
-  }
-}
-
-
-PRIVATE void
-delete_alignment(char *AS[])
-{
-  int n_seq;
-
-  /* get number of sequences in alignment */
-  for (n_seq = 0; AS[n_seq] != NULL; n_seq++)
-    free(AS[n_seq]);
-}
-
-
-PRIVATE char **
-annote(const char *structure,
-       const char *AS[])
-{
-  /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
-  char  *ps, *colorps, **A;
-  int   i, n, s, pairings, maxl;
-  short *ptable;
-  char  *colorMatrix[6][3] = {
-    { "0.0 1",  "0.0 0.6",  "0.0 0.2"  }, /* red    */
-    { "0.16 1", "0.16 0.6", "0.16 0.2" }, /* ochre  */
-    { "0.32 1", "0.32 0.6", "0.32 0.2" }, /* turquoise */
-    { "0.48 1", "0.48 0.6", "0.48 0.2" }, /* green  */
-    { "0.65 1", "0.65 0.6", "0.65 0.2" }, /* blue   */
-    { "0.81 1", "0.81 0.6", "0.81 0.2" }  /* violet */
-  };
-
-  n     = strlen(AS[0]);
-  maxl  = 1024;
-
-  A       = (char **)vrna_alloc(sizeof(char *) * 2);
-  ps      = (char *)vrna_alloc(maxl);
-  colorps = (char *)vrna_alloc(maxl);
-  ptable  = vrna_ptable(structure);
-  for (i = 1; i <= n; i++) {
-    char  pps[64], ci = '\0', cj = '\0';
-    int   j, type, pfreq[8] = {
-      0, 0, 0, 0, 0, 0, 0, 0
-    }, vi = 0, vj = 0;
-    if ((j = ptable[i]) < i)
-      continue;
-
-    for (s = 0; AS[s] != NULL; s++) {
-      type = pair[encode_char(AS[s][i - 1])][encode_char(AS[s][j - 1])];
-      pfreq[type]++;
-      if (type) {
-        if (AS[s][i - 1] != ci) {
-          ci = AS[s][i - 1];
-          vi++;
-        }
-
-        if (AS[s][j - 1] != cj) {
-          cj = AS[s][j - 1];
-          vj++;
-        }
-      }
-    }
-    for (pairings = 0, s = 1; s <= 7; s++)
-      if (pfreq[s])
-        pairings++;
-
-    if ((maxl - strlen(ps) < 192) || ((maxl - strlen(colorps)) < 64)) {
-      maxl    *= 2;
-      ps      = realloc(ps, maxl);
-      colorps = realloc(colorps, maxl);
-      if ((ps == NULL) || (colorps == NULL))
-        vrna_message_error("out of memory in realloc");
-    }
-
-    if (pfreq[0] <= 2 && pairings > 0) {
-      snprintf(pps, 64, "%d %d %s colorpair\n",
-               i, j, colorMatrix[pairings - 1][pfreq[0]]);
-      strcat(colorps, pps);
-    }
-
-    if (pfreq[0] > 0) {
-      snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
-      strcat(ps, pps);
-    }
-
-    if (vi > 1) {
-      snprintf(pps, 64, "%d cmark\n", i);
-      strcat(ps, pps);
-    }
-
-    if (vj > 1) {
-      snprintf(pps, 64, "%d cmark\n", j);
-      strcat(ps, pps);
-    }
-  }
-  free(ptable);
-  A[0]  = colorps;
-  A[1]  = ps;
-  return A;
 }

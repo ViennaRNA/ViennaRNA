@@ -24,7 +24,7 @@
 
 /**
  *  @brief Local MFE prediction using a sliding window approach (simplified interface)
- * 
+ *
  *  This simplified interface to vrna_mfe_window() computes the MFE and locally
  *  optimal secondary structure using default options. Structures are predicted
  *  using a sliding window approach, where base pairs may not span outside the
@@ -46,14 +46,15 @@
  *  @param  file        The output file handle where predictions are written to (if NULL, output is written to stdout)
  */
 float
-vrna_Lfold( const char *string,
-            int window_size,
-            FILE  *file);
+vrna_Lfold(const char *string,
+           int        window_size,
+           FILE       *file);
+
 
 #ifdef VRNA_WITH_SVM
 /**
  *  @brief Local MFE prediction using a sliding window approach with z-score cut-off (simplified interface)
- * 
+ *
  *  This simplified interface to vrna_mfe_window_zscore() computes the MFE and locally
  *  optimal secondary structure using default options. Structures are predicted
  *  using a sliding window approach, where base pairs may not span outside the
@@ -79,10 +80,11 @@ vrna_Lfold( const char *string,
  *  @param  file        The output file handle where predictions are written to (if NULL, output is written to stdout)
  */
 float
-vrna_Lfoldz(const char *string,
-            int window_size,
-            double min_z,
-            FILE *file);
+vrna_Lfoldz(const char  *string,
+            int         window_size,
+            double      min_z,
+            FILE        *file);
+
 
 #endif
 
@@ -98,33 +100,34 @@ vrna_Lfoldz(const char *string,
  *  @brief
  *
  *  @ingroup local_consensus_fold
- * 
+ *
  *  @param strings
  *  @param structure
  *  @param maxdist
  *  @return
  */
-float aliLfold( const char **strings,
-                char *structure,
-                int maxdist);
+float aliLfold(const char **strings,
+               char       *structure,
+               int        maxdist);
 
-#define VRNA_LOCAL_OUTPUT_SS_EPS  1
-#define VRNA_LOCAL_OUTPUT_MSA_EPS 2
-#define VRNA_LOCAL_OUTPUT_MSA     4
 
-float aliLfold_aln( const char *strings[],
-                    char *structure,
-                    int maxdist,
-                    const char *names[],
-                    int columns,
-                    const char *prefix,
-                    unsigned int options);
+typedef void (aliLfold_callback)(int        start,
+                                 int        end,
+                                 const char *structure,
+                                 float      en,
+                                 void       *data);
+
+float aliLfold_cb(const char        **AS,
+                  int               maxdist,
+                  aliLfold_callback *cb,
+                  void              *data);
+
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /**
  *  @brief The local analog to fold().
- * 
+ *
  *  Computes the minimum free energy structure including only base pairs
  *  with a span smaller than 'maxdist'
  *
@@ -132,16 +135,22 @@ float aliLfold_aln( const char *strings[],
  *
  *  @deprecated Use vrna_mfe_window() instead!
  */
-DEPRECATED(float Lfold(const char *string, char *structure, int maxdist));
+DEPRECATED(float Lfold(const char *string,
+                       char       *structure,
+                       int        maxdist));
 
 /**
  *  @brief
- * 
+ *
  *  @ingroup local_mfe_fold
- * 
+ *
  *  @deprecated Use vrna_mfe_window_zscore() instead!
  */
-DEPRECATED(float Lfoldz(const char *string, char *structure, int maxdist, int zsc, double min_z));
+DEPRECATED(float Lfoldz(const char  *string,
+                        char        *structure,
+                        int         maxdist,
+                        int         zsc,
+                        double      min_z));
 
 #endif
 

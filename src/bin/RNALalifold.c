@@ -18,16 +18,49 @@
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/PS_dot.h"
+#include "ViennaRNA/plot_aln.h"
+#include "ViennaRNA/plot_structure.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/Lfold.h"
 #include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/file_formats_msa.h"
+#include "ViennaRNA/file_utils.h"
 #include "RNALalifold_cmdl.h"
 
 
 #define MAX_NUM_NAMES    500
+
+typedef struct {
+  char      **names;
+  char      **strings;
+  char      *prefix;
+  int        columns;
+  vrna_md_t  *md;
+  int        ss_eps;
+  int        msa_eps;
+  int        msa_stk;
+  int        csv;
+} hit_data;
+
+
+PRIVATE char **annote(const char  *structure,
+                      const char  *AS[],
+                      vrna_md_t *md);
+
+
+PRIVATE void  get_subalignment(const char *AS[],
+                               char       *sub[],
+                               int        i,
+                               int        j);
+
+PRIVATE void  delete_alignment(char *AS[]);
+
+PRIVATE void
+print_hit_cb(int start, int end, const char *structure, float en, void *data);
+
 
 int
 main(int  argc,
@@ -240,17 +273,19 @@ main(int  argc,
   update_fold_params();
 
   if (!pf) {
-    unsigned int opt = 0;
-    if (alnPS)
-      opt |= VRNA_LOCAL_OUTPUT_MSA_EPS;
+    hit_data  data;
 
-    if (ssPS)
-      opt |= VRNA_LOCAL_OUTPUT_SS_EPS;
+    data.names    = names;
+    data.strings  = AS;
+    data.prefix   = prefix;
+    data.columns  = aln_columns;
+    data.md       = &md;
+    data.ss_eps   = ssPS;
+    data.msa_eps  = alnPS;
+    data.msa_stk  = aln_out;
+    data.csv      = csv;
 
-    if (aln_out)
-      opt |= VRNA_LOCAL_OUTPUT_MSA;
-
-    min_en = aliLfold_aln((const char **)AS, structure, maxdist, (const char **)names, aln_columns, prefix, opt);
+    min_en = aliLfold_cb((const char **)AS, maxdist, &print_hit_cb, (void *)&data);
   }
 
   {
@@ -275,3 +310,215 @@ main(int  argc,
 
   return EXIT_SUCCESS;
 }
+
+
+PRIVATE void
+print_hit_cb(int start, int end, const char *structure, float en, void *data)
+{
+  char  *sub[500];
+  char  *fname, *tmp_string;
+  char  *id;
+  char  **A, *cons;
+  char  **names;
+  char  **strings;
+  char  *prefix;
+  int        columns;
+  vrna_md_t  *md;
+  int         with_ss, with_msa, with_stk, with_csv;
+
+  names   = ((hit_data *)data)->names;
+  strings = ((hit_data *)data)->strings;
+  prefix  = ((hit_data *)data)->prefix;
+  columns = ((hit_data *)data)->columns;
+  md      = ((hit_data *)data)->md;
+  with_ss   = ((hit_data *)data)->ss_eps;
+  with_msa  = ((hit_data *)data)->msa_eps;
+  with_stk  = ((hit_data *)data)->msa_stk;
+  with_csv  = ((hit_data *)data)->csv;
+
+  get_subalignment((const char **)strings, sub, start, end);
+  cons  = consensus((const char **)sub);
+  A     = annote(structure, (const char **)sub, md);
+
+  if (with_csv == 1)
+    printf("%s ,%6.2f, %4d, %4d\n", structure, en, start, end);
+  else
+    printf("%s (%6.2f) %4d - %4d\n", structure, en, start, end);
+
+  if (with_ss) {
+    if (prefix)
+      fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
+    else
+      fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
+
+    tmp_string = vrna_filename_sanitize(fname, "_");
+    free(fname);
+    fname = tmp_string;
+
+    (void)vrna_file_PS_rnaplot_a(cons, structure, fname, A[0], A[1], md);
+    free(fname);
+  }
+
+  free(A[0]);
+  free(A[1]);
+  free(A);
+  free(cons);
+
+  if (with_msa) {
+    if (prefix)
+      fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
+    else
+      fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
+
+    tmp_string = vrna_filename_sanitize(fname, "_");
+    free(fname);
+    fname = tmp_string;
+
+    vrna_file_PS_aln_sub(fname, (const char **)sub, (const char **)names, structure, start, -1, columns);
+    free(fname);
+  }
+
+  if (with_stk) {
+    if (prefix) {
+      id    = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
+      fname = vrna_strdup_printf("%s.stk", prefix);
+
+      tmp_string = vrna_filename_sanitize(fname, "_");
+      free(fname);
+      fname = tmp_string;
+
+      vrna_file_msa_write(fname, (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+      free(fname);
+    } else {
+      id = vrna_strdup_printf("aln_%d_%d", start, end);
+      vrna_file_msa_write("RNALalifold_results.stk", (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+    }
+
+    free(id);
+  }
+
+  delete_alignment(sub);
+}
+
+
+PRIVATE char **
+annote(const char *structure,
+       const char *AS[],
+       vrna_md_t *md)
+{
+  /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
+  char  *ps, *colorps, **A;
+  int   i, n, s, pairings, maxl;
+  short *ptable;
+  char  *colorMatrix[6][3] = {
+    { "0.0 1",  "0.0 0.6",  "0.0 0.2"  }, /* red    */
+    { "0.16 1", "0.16 0.6", "0.16 0.2" }, /* ochre  */
+    { "0.32 1", "0.32 0.6", "0.32 0.2" }, /* turquoise */
+    { "0.48 1", "0.48 0.6", "0.48 0.2" }, /* green  */
+    { "0.65 1", "0.65 0.6", "0.65 0.2" }, /* blue   */
+    { "0.81 1", "0.81 0.6", "0.81 0.2" }  /* violet */
+  };
+
+  n     = strlen(AS[0]);
+  maxl  = 1024;
+
+  A       = (char **)vrna_alloc(sizeof(char *) * 2);
+  ps      = (char *)vrna_alloc(maxl);
+  colorps = (char *)vrna_alloc(maxl);
+  ptable  = vrna_ptable(structure);
+  for (i = 1; i <= n; i++) {
+    char  pps[64], ci = '\0', cj = '\0';
+    int   j, type, pfreq[8] = {
+      0, 0, 0, 0, 0, 0, 0, 0
+    }, vi = 0, vj = 0;
+    if ((j = ptable[i]) < i)
+      continue;
+
+    for (s = 0; AS[s] != NULL; s++) {
+      type = md->pair[vrna_nucleotide_encode(AS[s][i - 1], md)][vrna_nucleotide_encode(AS[s][j - 1], md)];
+      pfreq[type]++;
+      if (type) {
+        if (AS[s][i - 1] != ci) {
+          ci = AS[s][i - 1];
+          vi++;
+        }
+
+        if (AS[s][j - 1] != cj) {
+          cj = AS[s][j - 1];
+          vj++;
+        }
+      }
+    }
+    for (pairings = 0, s = 1; s <= 7; s++)
+      if (pfreq[s])
+        pairings++;
+
+    if ((maxl - strlen(ps) < 192) || ((maxl - strlen(colorps)) < 64)) {
+      maxl    *= 2;
+      ps      = realloc(ps, maxl);
+      colorps = realloc(colorps, maxl);
+      if ((ps == NULL) || (colorps == NULL))
+        vrna_message_error("out of memory in realloc");
+    }
+
+    if (pfreq[0] <= 2 && pairings > 0) {
+      snprintf(pps, 64, "%d %d %s colorpair\n",
+               i, j, colorMatrix[pairings - 1][pfreq[0]]);
+      strcat(colorps, pps);
+    }
+
+    if (pfreq[0] > 0) {
+      snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
+      strcat(ps, pps);
+    }
+
+    if (vi > 1) {
+      snprintf(pps, 64, "%d cmark\n", i);
+      strcat(ps, pps);
+    }
+
+    if (vj > 1) {
+      snprintf(pps, 64, "%d cmark\n", j);
+      strcat(ps, pps);
+    }
+  }
+  free(ptable);
+  A[0]  = colorps;
+  A[1]  = ps;
+  return A;
+}
+
+PRIVATE void
+get_subalignment(const char *AS[],
+                 char       *sub[],
+                 int        i,
+                 int        j)
+{
+  int n_seq, s;
+
+  /* get number of sequences in alignment */
+  for (n_seq = 0; AS[n_seq] != NULL; n_seq++) ;
+
+  for (s = 0; s < n_seq; s++)
+    sub[s] = vrna_alloc(sizeof(char) * (j - i + 2));
+  sub[s] = NULL;
+
+  /* copy subalignment */
+  for (s = 0; s < n_seq; s++) {
+    sub[s]              = memcpy(sub[s], AS[s] + i - 1, sizeof(char) * (j - i + 1));
+    sub[s][(j - i + 1)] = '\0';
+  }
+}
+
+
+PRIVATE void
+delete_alignment(char *AS[])
+{
+  int n_seq;
+
+  /* get number of sequences in alignment */
+  for (n_seq = 0; AS[n_seq] != NULL; n_seq++)
+    free(AS[n_seq]);
+}
+
+
