@@ -59,8 +59,15 @@ char *vrna_dirname(const char *path);
  *  Returns a new file name where all invalid characters are
  *  substituted by a replacement character. If no replacement
  *  character is supplied, invalid characters are simply removed
- *  from the filename. File names may also never exeed a length
- *  of 255 characters. Longer file names will be truncated!
+ *  from the filename. File names may also never exceed a length
+ *  of 255 characters. Longer file names will undergo a 'smart'
+ *  truncation process, where the filenames` suffix, i.e. everything
+ *  after the last dot '.', is attempted to be kept intact. Hence,
+ *  only the filename part before the suffix is reduced in such a
+ *  way that the total filename complies to the length restriction
+ *  of 255 characters. If no suffix is present or the suffix itself
+ *  already exceeds the maximum length, the filename is simply
+ *  truncated from the back of the string.
  *
  *  For now we consider the following characters invalid:
  *  - backslash '\'
@@ -78,9 +85,10 @@ char *vrna_dirname(const char *path);
  *  - '.'
  *  - '..'
  *
- *  @note This function may return NULL if the input is pointing
- *        to NULL, or an empty string if the input only consists
- *        of invalid characters which are simply removed!
+ *  @note This function allocates a new block of memory for the
+ *        sanitized string. It also may return (a) NULL if the input
+ *        is pointing to NULL, or (b) an empty string if the input
+ *        only consists of invalid characters which are simply removed!
  *
  *  @param  name        The input file name
  *  @param  replacment  The replacement character, or NULL

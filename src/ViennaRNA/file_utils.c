@@ -209,7 +209,7 @@ vrna_filename_sanitize(const char *name,
   if (name) {
     const char    *ptr, *start, *illegal_chars;
     char          *sanitized_name;
-    unsigned int  i;
+    unsigned int  i, n;
 
     illegal_chars   = "\\/?%*:|\"<> ";
     sanitized_name  = (char *)vrna_alloc(sizeof(char) * (strlen(name) + 1));
@@ -242,7 +242,15 @@ vrna_filename_sanitize(const char *name,
     }
 
     /* check for length restrictions */
-    if (strlen(sanitized_name) > 255) {
+    n = strlen(sanitized_name);
+    if (n > 255) {
+      char *suff = NULL;
+      /* try to leave file suffix, i.e. everything after last dot '.', intact */
+      if ((suff = strrchr(sanitized_name, '.')) && (sanitized_name + n - suff < 255)) {
+        unsigned int n_suff = sanitized_name + n - suff;
+        memmove(sanitized_name + (255 - n_suff), sanitized_name + n - n_suff, sizeof(char) * n_suff);
+      }
+
       sanitized_name      = (char *)vrna_realloc(sanitized_name, sizeof(char) * 256);
       sanitized_name[255] = '\0';
     }

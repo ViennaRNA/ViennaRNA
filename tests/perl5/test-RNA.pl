@@ -3,7 +3,7 @@
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
 use strict;
-use Test::More tests => 53;
+use Test::More tests => 55;
 use Data::Dumper;
 use FileHandle;
 
@@ -312,23 +312,31 @@ ok(($cf < $comfe) and ($comfe - $cf < 1.3));
 ####################################################
 ## test_filename_sanitize:
 
-print "test_filename_sanitize\n";
+print "test_filename_sanitize_simple\n";
 
 my $fn = "bla/bla??_foo\\bar\"r<u>m:ble";
 my $fs = RNA::filename_sanitize($fn);
 is($fs, "blabla_foobarrumble");
 
-$fn = "bla/bla??_foo\\bar\"r<u>m:ble";
 $fs = RNA::filename_sanitize($fn, '-');
 is($fs, "bla-bla--_foo-bar-r-u-m-ble");
 
+print "test_filename_sanitize_special_names\n";
 $fn = "??";
 $fs = RNA::filename_sanitize($fn);
 is($fs, "");
 
-$fn = "??";
 $fs = RNA::filename_sanitize($fn, '.');
 is($fs, "");
+
+print "test_filename_sanitize_long_names\n";
+$fn = ("A" x 120).("B" x 120).("C" x 10)."DEFGHIJ.svg";
+$fs = RNA::filename_sanitize($fn);
+is($fs, ("A" x 120).("B" x 120).("C" x 10)."D.svg");
+
+$fn = "A.".("A" x 120).("B" x 120).("C" x 10)."DEFGHIsvg";
+$fs = RNA::filename_sanitize($fn);
+is($fs, "A.".("A" x 120).("B" x 120).("C" x 10)."DEF");
 
 # $md = new RNA::md();
 # $md->{noGU} = 1;
