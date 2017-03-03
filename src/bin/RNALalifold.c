@@ -37,18 +37,19 @@ typedef struct {
   char      **names;
   char      **strings;
   char      *prefix;
-  int        columns;
-  vrna_md_t  *md;
-  int        ss_eps;
-  int        msa_eps;
-  int        msa_stk;
-  int        csv;
+  int       columns;
+  vrna_md_t *md;
+  int       ss_eps;
+  int       msa_eps;
+  int       msa_stk;
+  int       csv;
+  int       mis;
 } hit_data;
 
 
 PRIVATE char **annote(const char  *structure,
                       const char  *AS[],
-                      vrna_md_t *md);
+                      vrna_md_t   *md);
 
 
 PRIVATE void  get_subalignment(const char *AS[],
@@ -56,10 +57,16 @@ PRIVATE void  get_subalignment(const char *AS[],
                                int        i,
                                int        j);
 
+
 PRIVATE void  delete_alignment(char *AS[]);
 
+
 PRIVATE void
-print_hit_cb(int start, int end, const char *structure, float en, void *data);
+print_hit_cb(int        start,
+             int        end,
+             const char *structure,
+             float      en,
+             void       *data);
 
 
 int
@@ -273,7 +280,7 @@ main(int  argc,
   update_fold_params();
 
   if (!pf) {
-    hit_data  data;
+    hit_data data;
 
     data.names    = names;
     data.strings  = AS;
@@ -284,6 +291,7 @@ main(int  argc,
     data.msa_eps  = alnPS;
     data.msa_stk  = aln_out;
     data.csv      = csv;
+    data.mis      = mis;
 
     min_en = aliLfold_cb((const char **)AS, maxdist, &print_hit_cb, (void *)&data);
   }
@@ -313,31 +321,36 @@ main(int  argc,
 
 
 PRIVATE void
-print_hit_cb(int start, int end, const char *structure, float en, void *data)
+print_hit_cb(int        start,
+             int        end,
+             const char *structure,
+             float      en,
+             void       *data)
 {
-  char  *sub[500];
-  char  *fname, *tmp_string;
-  char  *id;
-  char  **A, *cons;
-  char  **names;
-  char  **strings;
-  char  *prefix;
-  int        columns;
-  vrna_md_t  *md;
-  int         with_ss, with_msa, with_stk, with_csv;
+  char      *sub[500];
+  char      *fname, *tmp_string;
+  char      *id;
+  char      **A, *cons;
+  char      **names;
+  char      **strings;
+  char      *prefix;
+  int       columns;
+  vrna_md_t *md;
+  int       with_ss, with_msa, with_stk, with_csv, with_mis;
 
-  names   = ((hit_data *)data)->names;
-  strings = ((hit_data *)data)->strings;
-  prefix  = ((hit_data *)data)->prefix;
-  columns = ((hit_data *)data)->columns;
-  md      = ((hit_data *)data)->md;
+  names     = ((hit_data *)data)->names;
+  strings   = ((hit_data *)data)->strings;
+  prefix    = ((hit_data *)data)->prefix;
+  columns   = ((hit_data *)data)->columns;
+  md        = ((hit_data *)data)->md;
   with_ss   = ((hit_data *)data)->ss_eps;
   with_msa  = ((hit_data *)data)->msa_eps;
   with_stk  = ((hit_data *)data)->msa_stk;
   with_csv  = ((hit_data *)data)->csv;
+  with_mis  = ((hit_data *)data)->mis;
 
   get_subalignment((const char **)strings, sub, start, end);
-  cons  = consensus((const char **)sub);
+  cons  = (with_mis) ? consens_mis((const char **)sub) : consensus((const char **)sub);
   A     = annote(structure, (const char **)sub, md);
 
   if (with_csv == 1)
@@ -379,6 +392,11 @@ print_hit_cb(int start, int end, const char *structure, float en, void *data)
   }
 
   if (with_stk) {
+    unsigned int options = VRNA_FILE_FORMAT_MSA_STOCKHOLM
+                           | VRNA_FILE_FORMAT_MSA_APPEND;
+    if (with_mis)
+      options |= VRNA_FILE_FORMAT_MSA_MIS;
+
     if (prefix) {
       id    = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
       fname = vrna_strdup_printf("%s.stk", prefix);
@@ -387,11 +405,11 @@ print_hit_cb(int start, int end, const char *structure, float en, void *data)
       free(fname);
       fname = tmp_string;
 
-      vrna_file_msa_write(fname, (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+      vrna_file_msa_write(fname, (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", options);
       free(fname);
     } else {
       id = vrna_strdup_printf("aln_%d_%d", start, end);
-      vrna_file_msa_write("RNALalifold_results.stk", (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+      vrna_file_msa_write("RNALalifold_results.stk", (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", options);
     }
 
     free(id);
@@ -404,7 +422,7 @@ print_hit_cb(int start, int end, const char *structure, float en, void *data)
 PRIVATE char **
 annote(const char *structure,
        const char *AS[],
-       vrna_md_t *md)
+       vrna_md_t  *md)
 {
   /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
   char  *ps, *colorps, **A;
@@ -488,6 +506,7 @@ annote(const char *structure,
   return A;
 }
 
+
 PRIVATE void
 get_subalignment(const char *AS[],
                  char       *sub[],
@@ -520,5 +539,3 @@ delete_alignment(char *AS[])
   for (n_seq = 0; AS[n_seq] != NULL; n_seq++)
     free(AS[n_seq]);
 }
-
-

@@ -670,13 +670,18 @@ main(int  argc,
       vrna_file_PS_aln(filename_aln, (const char **)AS, (const char **)names, structure, aln_columns);
 
     if (aln_out) {
+      unsigned int options = VRNA_FILE_FORMAT_MSA_STOCKHOLM
+                             | VRNA_FILE_FORMAT_MSA_APPEND;
+      if (mis)
+        options |= VRNA_FILE_FORMAT_MSA_MIS;
+
       vrna_file_msa_write((const char *)aln_prefix,
                           (const char **)names,
                           (const char **)AS,
                           MSA_ID,
                           (const char *)structure,
                           "RNAalifold prediction",
-                          VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND);
+                          options);
     }
 
     /* free mfe arrays */
