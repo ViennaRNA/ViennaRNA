@@ -37,13 +37,14 @@ typedef int (aln_parser_function)(FILE  *fp,
                                   char  **id,
                                   char  **structure,
                                   int   verbosity);
-typedef int (aln_writer_function)(FILE        *fp,
-                                  const char  **names,
-                                  const char  **aln,
-                                  const char  *id,
-                                  const char  *structure,
-                                  const char  *source,
-                                  int         verbosity);
+typedef int (aln_writer_function)(FILE          *fp,
+                                  const char    **names,
+                                  const char    **aln,
+                                  const char    *id,
+                                  const char    *structure,
+                                  const char    *source,
+                                  unsigned int  options,
+                                  int           verbosity);
 
 typedef struct {
   unsigned int        code;
@@ -98,13 +99,14 @@ parse_maf_alignment(FILE  *fp,
 
 
 PRIVATE int
-write_stockholm_alignment(FILE        *fp,
-                          const char  **names,
-                          const char  **aln,
-                          const char  *id,
-                          const char  *structure,
-                          const char  *source,
-                          int         verbosity);
+write_stockholm_alignment(FILE          *fp,
+                          const char    **names,
+                          const char    **aln,
+                          const char    *id,
+                          const char    *structure,
+                          const char    *source,
+                          unsigned int  options,
+                          int           verbosity);
 
 
 PRIVATE int
@@ -413,7 +415,7 @@ vrna_file_msa_write(const char    *filename,
     writer      = NULL;
 
     /* find out the number of sequences in the alignment */
-    for (seq_num = 0; aln[seq_num]; seq_num++);
+    for (seq_num = 0; aln[seq_num]; seq_num++) ;
 
     if (seq_num == 0) {
       if (verb_level >= 0)
@@ -467,7 +469,7 @@ vrna_file_msa_write(const char    *filename,
       }
 
       /* write output alignment to file */
-      ret = writer(fp, names, aln, id, structure, source, verb_level);
+      ret = writer(fp, names, aln, id, structure, source, options, verb_level);
 
       /* close output stream */
       fclose(fp);
@@ -654,13 +656,14 @@ stockholm_exit:
 
 
 PRIVATE int
-write_stockholm_alignment(FILE        *fp,
-                          const char  **names,
-                          const char  **aln,
-                          const char  *id,
-                          const char  *structure,
-                          const char  *source,
-                          int         verbosity)
+write_stockholm_alignment(FILE          *fp,
+                          const char    **names,
+                          const char    **aln,
+                          const char    *id,
+                          const char    *structure,
+                          const char    *source,
+                          unsigned int  options,
+                          int           verbosity)
 {
   int ret;
 
@@ -701,6 +704,11 @@ write_stockholm_alignment(FILE        *fp,
       /* print actual alignment */
       for (s = 0; s < seq_num; s++)
         fprintf(fp, "%-*s  %s\n", longest_name, names[s], aln[s]);
+
+      /* output reference sequence */
+      char *cons = (options & VRNA_FILE_FORMAT_MSA_MIS) ? consens_mis(aln) : consensus(aln);
+      fprintf(fp, "%-*s  %s\n", longest_name, "#=GC RF", cons);
+      free(cons);
 
       /* print consensus structure */
       if (structure)
@@ -984,7 +992,7 @@ free_msa_record(char  ***names,
 
   s = 0;
   if (aln && (*aln))
-    for (; (*aln)[s]; s++);
+    for (; (*aln)[s]; s++) ;
 
   if (id != NULL) {
     free(*id);
@@ -1083,15 +1091,16 @@ parse_aln_maf(FILE  *fp,
 
 
 PRIVATE int
-write_aln_stockholm(FILE        *fp,
-                    const char  **names,
-                    const char  **aln,
-                    const char  *id,
-                    const char  *structure,
-                    const char  *source,
-                    int         verbosity)
+write_aln_stockholm(FILE          *fp,
+                    const char    **names,
+                    const char    **aln,
+                    const char    *id,
+                    const char    *structure,
+                    const char    *source,
+                    unsigned int  options,
+                    int           verbosity)
 {
-  return write_stockholm_alignment(fp, names, aln, id, structure, source, verbosity);
+  return write_stockholm_alignment(fp, names, aln, id, structure, source, options, verbosity);
 }
 
 

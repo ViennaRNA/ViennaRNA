@@ -38,6 +38,16 @@
 #define VRNA_FILE_FORMAT_MSA_MAF          8U
 
 /**
+ *  @brief Option flag indicating most informative sequence (MIS) output
+ *
+ *  The default reference sequence output for an alignment is simply a consensus sequence.
+ *  This flag allows to write the most informative equence (MIS) instead.
+ *
+ *  @see vrna_file_msa_write()
+ */
+#define VRNA_FILE_FORMAT_MSA_MIS          16U
+
+/**
  *  @brief Option flag indicating the set of default file formats
  *  @see vrna_file_msa_read(), vrna_file_msa_read_record(), vrna_file_msa_detect_format()
  */
@@ -210,6 +220,20 @@ vrna_file_msa_detect_format(const char    *filename,
                             unsigned int  options);
 
 
+/**
+ *  @brief Write multiple sequence alignment file
+ *
+ *  @note Currently, we only support Stockholm 1.0 formatted output
+ *
+ *  @param  filename  The output filename
+ *  @param  names     The array of sequence names / identifies
+ *  @param  aln       The array of aligned sequences
+ *  @param  id        An optional ID for the alignment
+ *  @param  structure An optional consensus structure
+ *  @param  source    A string describing the source of the alignment
+ *  @param  options   Options to manipulate the behavior of this function
+ *  @return           Non-null upon successful written alignment
+ */
 int
 vrna_file_msa_write(const char    *filename,
                     const char    **names,
