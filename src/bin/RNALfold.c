@@ -33,7 +33,7 @@ main(int  argc,
   FILE                        *input, *output;
   struct  RNALfold_args_info  args_info;
   char                        *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest,
-                              *orig_sequence, fname[FILENAME_MAX_LENGTH], *infile, *outfile;
+                              *orig_sequence, *fname, *infile, *outfile;
   unsigned int                rec_type, read_opt;
   int                         length, istty, noconv, maxdist, zsc;
   double                      min_en, min_z;
@@ -54,6 +54,7 @@ main(int  argc,
   infile        = NULL;
   input         = NULL;
   output        = NULL;
+  fname         = NULL;
 
   /* apply default model details */
   vrna_md_set_default(&md);
@@ -186,6 +187,7 @@ main(int  argc,
      */
     char  *prefix       = NULL;
     char  *v_file_name  = NULL;
+    char  *tmp_string   = NULL;
     /*
      ########################################################
      # init everything according to the data we've read
@@ -195,22 +197,16 @@ main(int  argc,
       if (!istty && !outfile)
         printf("%s\n", rec_id);
 
-      (void)sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-    } else {
-      fname[0] = '\0';
+      fname = (char *)vrna_alloc(sizeof(char) * (strlen(rec_id) + 1));
+      (void)sscanf(rec_id, ">%s", fname);
     }
 
     if (outfile) {
       /* prepare the file prefix */
-      if (fname[0] != '\0') {
-        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(fname) + strlen(outfile) + 1));
-        strcpy(prefix, outfile);
-        strcat(prefix, "_");
-        strcat(prefix, fname);
-      } else {
-        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(outfile) + 1));
-        strcpy(prefix, outfile);
-      }
+      if (fname)
+        prefix = vrna_strdup_printf("%s_%s", outfile, fname);
+      else
+        prefix = vrna_strdup_printf("%s", outfile);
     }
 
     length = (int)strlen(rec_sequence);
@@ -235,9 +231,10 @@ main(int  argc,
     vrna_fold_compound_t *vc = vrna_fold_compound((const char *)rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
     if (outfile) {
-      v_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
-      strcpy(v_file_name, prefix);
-      strcat(v_file_name, ".lfold");
+      v_file_name = vrna_strdup_printf("%s.lfold", prefix);
+      tmp_string  = vrna_filename_sanitize(v_file_name, "_");
+      free(v_file_name);
+      v_file_name = tmp_string;
 
       if (infile && !strcmp(infile, v_file_name))
         vrna_message_error("Input and output file names are identical");
@@ -280,6 +277,12 @@ main(int  argc,
     free(orig_sequence);
     rec_id    = rec_sequence = orig_sequence = NULL;
     rec_rest  = NULL;
+
+    free(v_file_name);
+    free(prefix);
+    free(fname);
+    fname = NULL;
+
     /* print user help for the next round if we get input from tty */
 
     if (istty)
