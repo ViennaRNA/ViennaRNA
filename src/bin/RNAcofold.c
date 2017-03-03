@@ -62,11 +62,12 @@ main(int  argc,
 {
   struct        RNAcofold_args_info args_info;
   char                              *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence,
-                                    *rec_id, **rec_rest, *fname, *Concfile, *id_prefix,
-                                    *command_file, *id_delim, *sanitize_delim, *tmp_string;
+                                    *rec_id, **rec_rest, *Concfile, *id_prefix,
+                                    *command_file, *id_delim, *filename_delim, *tmp_string;
   unsigned int                      rec_type, read_opt;
   int                               i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
-                                    doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch;
+                                    doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch,
+                                    filename_full;
   long int                          seq_number;
   double                            min_en, kT, *ConcAandB;
   plist                             *prAB, *prAA, *prBB, *prA, *prB, *mfAB, *mfAA, *mfBB, *mfA, *mfB;
@@ -95,7 +96,7 @@ main(int  argc,
   auto_id       = 0;
   command_file  = NULL;
   commands      = NULL;
-  fname         = NULL;
+  filename_full = 0;
 
   set_model_details(&md);
   /*
@@ -170,15 +171,19 @@ main(int  argc,
     command_file = strdup(args_info.commands_arg);
 
   /* filename sanitize delimiter */
-  if (args_info.sanitize_delim_given)
-    sanitize_delim = strdup(args_info.sanitize_delim_arg);
+  if (args_info.filename_delim_given)
+    filename_delim = strdup(args_info.filename_delim_arg);
   else
-    sanitize_delim = strdup(id_delim);
+    filename_delim = strdup(id_delim);
 
-  if (isspace(*sanitize_delim)) {
-    free(sanitize_delim);
-    sanitize_delim = NULL;
+  if (isspace(*filename_delim)) {
+    free(filename_delim);
+    filename_delim = NULL;
   }
+
+  /* full filename from FASTA header support */
+  if (args_info.filename_full_given)
+    filename_full = 1;
 
   /* free allocated memory of command line data structure */
   RNAcofold_cmdline_parser_free(&args_info);
@@ -229,15 +234,17 @@ main(int  argc,
      # init everything according to the data we've read
      ########################################################
      */
-    char *SEQ_ID = NULL;
+    char  *SEQ_ID         = NULL;
+    int   maybe_multiline = 0;
 
     if (rec_id) {
-      fname = (char *) vrna_alloc(sizeof(char) * (strlen(rec_id) + 1));
-      (void)sscanf(rec_id, ">%s", fname);
+      maybe_multiline = 1;
+      /* remove '>' from FASTA header */
+      rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
     }
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_delim, id_digits, seq_number);
+    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)
@@ -260,7 +267,7 @@ main(int  argc,
         cstruc  = NULL;
         cstruc  = NULL;
         int           cp        = -1;
-        unsigned int  coptions  = (rec_id) ? VRNA_OPTION_MULTILINE : 0;
+        unsigned int  coptions  = (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0;
         cstruc  = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc  = vrna_cut_point_remove(cstruc, &cp);
         if (vc->cutpoint != cp) {
@@ -340,7 +347,7 @@ main(int  argc,
       pstring = strdup(orig_sequence);
       pstruct = vrna_cut_point_insert(structure, vc->cutpoint);
 
-      print_fasta_header(stdout, SEQ_ID);
+      print_fasta_header(stdout, rec_id);
       fprintf(stdout, "%s\n", orig_sequence);
 
       if (istty)
@@ -355,7 +362,7 @@ main(int  argc,
         char *filename_plot = NULL, *annot = NULL;
         if (SEQ_ID) {
           filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
-          tmp_string    = vrna_filename_sanitize(filename_plot, sanitize_delim);
+          tmp_string    = vrna_filename_sanitize(filename_plot, filename_delim);
           free(filename_plot);
           filename_plot = tmp_string;
         } else {
@@ -499,7 +506,7 @@ main(int  argc,
         char *filename_dot = NULL;
         if (SEQ_ID) {
           filename_dot  = vrna_strdup_printf("%s%sdp5.ps", SEQ_ID, id_delim);
-          tmp_string    = vrna_filename_sanitize(filename_dot, sanitize_delim);
+          tmp_string    = vrna_filename_sanitize(filename_dot, filename_delim);
           free(filename_dot);
           filename_dot = tmp_string;
         } else {
@@ -610,7 +617,7 @@ main(int  argc,
           char  *filename_dot = NULL;
           if (SEQ_ID) {
             filename_dot  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
-            tmp_string    = vrna_filename_sanitize(filename_dot, sanitize_delim);
+            tmp_string    = vrna_filename_sanitize(filename_dot, filename_delim);
             free(filename_dot);
             filename_dot = tmp_string;
           } else {
@@ -652,8 +659,6 @@ main(int  argc,
     vrna_fold_compound_free(vc);
 
     free(SEQ_ID);
-    free(fname);
-    fname = NULL;
 
     if (constraints_file && (!batch))
       break;
@@ -677,7 +682,7 @@ main(int  argc,
 
   free(id_prefix);
   free(id_delim);
-  free(sanitize_delim);
+  free(filename_delim);
   free(Concfile);
 
   return EXIT_SUCCESS;

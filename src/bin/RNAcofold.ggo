@@ -97,7 +97,7 @@ default="1"
 optional
 hidden
 
-option  "sanitize-delim" -
+option  "filename-delim" -
 "Change the delimiting character that is used for sanitized filenames\n\n"
 details="This parameter can be used to change the delimiting character used while\
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
@@ -108,6 +108,21 @@ string
 typestr="delimiter"
 default="ID-delimiter"
 optional
+hidden
+
+option  "filename-full" -
+"Use full FASTA header to create filenames\n\n"
+details="This parameter can be used to deactivate the default behavior of limiting\
+ output filenames to the first word of the sequence ID. Consider the following example:\
+ An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
+ files with the prefix \"NM_0001\" without the additional data available in the FASTA\
+ header, e.g. \"NM_0001_ss.ps\" for secondary structure plots. With this flag set, no\
+ truncation of the output filenames is done, i.e. output filenames receive the full\
+ FASTA header data as prefixes. Note, however, that invalid characters (such as whitespace)\
+ will be substituted by a delimiting character or simply removed, (see also the parameter\
+ option --filename-delim).\n\n"
+flag
+off
 hidden
 
 

@@ -42,24 +42,24 @@ main(int  argc,
   struct RNAeval_args_info  args_info;
   char                      *string, *structure, *orig_sequence, *tmp, *rec_sequence,
                             *rec_id, **rec_rest, *shape_file, *shape_method, *id_delim,
-                            *shape_conversion, *fname, *id_prefix;
+                            *shape_conversion, *id_prefix;
   unsigned int              rec_type, read_opt;
   int                       i, length1, with_shapes, istty, noconv, verbose,
-                            auto_id, id_digits;
+                            auto_id, id_digits, filename_full;
   long int                  seq_number;
   float                     energy;
   vrna_md_t                 md;
 
-  string      = orig_sequence = NULL;
-  noconv      = 0;
-  verbose     = 0;
-  gquad       = 0;
-  dangles     = 2;
-  seq_number  = 1;
-  id_prefix   = NULL;
-  auto_id     = 0;
-  id_digits   = 4;
-  fname       = NULL;
+  string        = orig_sequence = NULL;
+  noconv        = 0;
+  verbose       = 0;
+  gquad         = 0;
+  dangles       = 2;
+  seq_number    = 1;
+  id_prefix     = NULL;
+  auto_id       = 0;
+  id_digits     = 4;
+  filename_full = 0;
 
   /* apply default model details */
   vrna_md_set_default(&md);
@@ -142,15 +142,17 @@ main(int  argc,
      # init everything according to the data we've read
      ########################################################
      */
-    char *SEQ_ID = NULL, *msg = NULL;
+    char  *SEQ_ID         = NULL, *msg = NULL;
+    int   maybe_multiline = 0;
 
     if (rec_id) {
-      fname = (char *) vrna_alloc(sizeof(char) * (strlen(rec_id) + 1));
-      (void)sscanf(rec_id, ">%s", fname);
+      maybe_multiline = 1;
+      /* remove '>' from FASTA header */
+      rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
     }
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_delim, id_digits, seq_number);
+    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)
@@ -163,7 +165,7 @@ main(int  argc,
 
     vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
-    tmp = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
+    tmp = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0);
 
     if (!tmp)
       vrna_message_error("structure missing");
@@ -197,7 +199,7 @@ main(int  argc,
      ########################################################
      */
 
-    print_fasta_header(stdout, SEQ_ID);
+    print_fasta_header(stdout, rec_id);
 
     energy = vrna_eval_structure_v(vc, structure, verbose, NULL);
 
@@ -219,12 +221,8 @@ main(int  argc,
     (void)fflush(stdout);
 
     /* clean up */
-    if (rec_id)
-      free(rec_id);
-
+    free(rec_id);
     free(SEQ_ID);
-    free(fname);
-    fname = NULL;
     free(msg);
     free(rec_sequence);
     free(structure);

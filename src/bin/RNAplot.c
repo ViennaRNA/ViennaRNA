@@ -28,16 +28,17 @@ main(int  argc,
      char *argv[])
 {
   struct RNAplot_args_info  args_info;
-  char                      *structure, *pre, *post, *fname, *ffname, *tmp_string,
-                            *id_prefix, *id_delim, *sanitize_delim,
+  char                      *structure, *pre, *post, *ffname, *tmp_string,
+                            *id_prefix, *id_delim, *filename_delim,
                             *rec_sequence, *rec_id, **rec_rest, format[5] = "ps";
   unsigned int              rec_type, read_opt;
-  int                       i, istty, auto_id, id_digits;
+  int                       i, istty, auto_id, id_digits, filename_full;
   long int                  seq_number;
   vrna_md_t                 md;
 
-  structure = pre = post = NULL;
-  auto_id   = 0;
+  structure     = pre = post = NULL;
+  auto_id       = 0;
+  filename_full = 0;
   vrna_md_set_default(&md);
 
   /*
@@ -71,15 +72,19 @@ main(int  argc,
   }
 
   /* filename sanitize delimiter */
-  if (args_info.sanitize_delim_given)
-    sanitize_delim = strdup(args_info.sanitize_delim_arg);
+  if (args_info.filename_delim_given)
+    filename_delim = strdup(args_info.filename_delim_arg);
   else
-    sanitize_delim = strdup(id_delim);
+    filename_delim = strdup(id_delim);
 
-  if (isspace(*sanitize_delim)) {
-    free(sanitize_delim);
-    sanitize_delim = NULL;
+  if (isspace(*filename_delim)) {
+    free(filename_delim);
+    filename_delim = NULL;
   }
+
+  /* full filename from FASTA header support */
+  if (args_info.filename_full_given)
+    filename_full = 1;
 
   /* free allocated memory of command line data structure */
   RNAplot_cmdline_parser_free(&args_info);
@@ -108,17 +113,19 @@ main(int  argc,
   while (
     !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
       & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
-    char *SEQ_ID = NULL;
+    char  *SEQ_ID         = NULL;
+    int   maybe_multiline = 0;
 
     if (rec_id) {
-      fname = (char *)vrna_alloc(sizeof(char) * (strlen(rec_id) + 1));
-      (void)sscanf(rec_id, ">%s", fname);
+      maybe_multiline = 1;
+      /* remove '>' from FASTA header */
+      rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
     }
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_delim, id_digits, seq_number);
+    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
 
-    structure = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (rec_id) ? VRNA_OPTION_MULTILINE : 0);
+    structure = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0);
 
     if (!structure)
       vrna_message_error("structure missing");
@@ -135,7 +142,7 @@ main(int  argc,
       case 'p':
         tmp_string = vrna_strdup_printf("%s.ps", ffname);
         free(ffname);
-        ffname = vrna_filename_sanitize(tmp_string, sanitize_delim);
+        ffname = vrna_filename_sanitize(tmp_string, filename_delim);
         free(tmp_string);
 
         (void)vrna_file_PS_rnaplot_a(rec_sequence, structure, ffname, pre, post, &md);
@@ -144,7 +151,7 @@ main(int  argc,
       case 'g':
         tmp_string = vrna_strdup_printf("%s.gml", ffname);
         free(ffname);
-        ffname = vrna_filename_sanitize(tmp_string, sanitize_delim);
+        ffname = vrna_filename_sanitize(tmp_string, filename_delim);
         free(tmp_string);
 
         gmlRNA(rec_sequence, structure, ffname, 'x');
@@ -152,7 +159,7 @@ main(int  argc,
       case 'x':
         tmp_string = vrna_strdup_printf("%s.ss", ffname);
         free(ffname);
-        ffname = vrna_filename_sanitize(tmp_string, sanitize_delim);
+        ffname = vrna_filename_sanitize(tmp_string, filename_delim);
         free(tmp_string);
 
         xrna_plot(rec_sequence, structure, ffname);
@@ -160,7 +167,7 @@ main(int  argc,
       case 's':
         tmp_string = vrna_strdup_printf("%s.svg", ffname);
         free(ffname);
-        ffname = vrna_filename_sanitize(tmp_string, sanitize_delim);
+        ffname = vrna_filename_sanitize(tmp_string, filename_delim);
         free(tmp_string);
 
         svg_rna_plot(rec_sequence, structure, ffname);
@@ -188,8 +195,6 @@ main(int  argc,
     rec_rest  = NULL;
 
     free(SEQ_ID);
-    free(fname);
-    fname = NULL;
     free(ffname);
     ffname = NULL;
 
@@ -202,7 +207,7 @@ main(int  argc,
 
   free(id_prefix);
   free(id_delim);
-  free(sanitize_delim);
+  free(filename_delim);
 
   return EXIT_SUCCESS;
 }
