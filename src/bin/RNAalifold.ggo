@@ -43,7 +43,7 @@ flag
 off
 
 option  "color"   -
-"Produce a colored version of the consensus strcture plot \"alirna.ps\" (default b&w only)\n\n"
+"Produce a colored version of the consensus structure plot \"alirna.ps\" (default b&w only)\n\n"
 flag
 off
 
@@ -53,11 +53,10 @@ option  "aln"             -
 flag
 off
 
-option  "aln-cols"        -
-"Number of columns in colored alignment output.\n\n"
+option  "aln-EPS-cols"        -
+"Number of columns in colored EPS alignment output.\n\n"
 int
 default="60"
-dependon="aln"
 optional
 hidden
 
@@ -162,7 +161,7 @@ default="1"
 optional
 hidden
 
-option  "sanitize-delim" -
+option  "filename-delim" -
 "Change the delimiting character that is used for sanitized filenames\n\n"
 details="This parameter can be used to change the delimiting character used while\
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
