@@ -27,6 +27,8 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAheat_cmdl.h"
 
+#include "ViennaRNA/color_output.inc"
+
 
 #define MAXWIDTH  201
 #define GASCONST  1.98717  /* in [cal/K] */
@@ -191,8 +193,11 @@ main(int  argc,
      # init everything according to the data we've read
      ########################################################
      */
-    if (rec_id && !istty)
-      printf("%s\n", rec_id);
+    if (rec_id && !istty) {
+      /* remove '>' from FASTA header */
+      rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
+      print_fasta_header(stdout, rec_id);
+    }
 
     length = (int)strlen(rec_sequence);
 
@@ -206,7 +211,7 @@ main(int  argc,
     vrna_seq_toupper(rec_sequence);
 
     if (istty)
-      printf("length = %d\n", length);
+      vrna_message_info(stdout, "length = %d", length);
 
     /*
      ########################################################
@@ -218,8 +223,7 @@ main(int  argc,
     (void)fflush(stdout);
 
     /* clean up */
-    if (rec_id)
-      free(rec_id);
+    free(rec_id);
 
     free(rec_sequence);
     free(orig_sequence);
@@ -275,7 +279,9 @@ heat_capacity(char  *string,
   }
   while (temperature <= (T_max + m * h + h)) {
     hc = -ddiff(F, h, m) * (temperature + K0 - m * h - h);
-    printf("%g   %g\n", (temperature - m * h - h), hc);
+    char *tline = vrna_strdup_printf("%g\t%g", (temperature - m * h - h), hc);
+    print_table(stdout, NULL, tline);
+    free(tline);
 
     for (i = 0; i < 2 * m; i++)
       F[i] = F[i + 1];

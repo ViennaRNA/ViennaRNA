@@ -181,10 +181,10 @@ main(int  argc,
     if (istty)
       vrna_message_input_seq("Input strings\n1st line: sequence (upper or lower case)\n2nd + 3rd line: reference structures (dot bracket notation)\n@ to quit\n");
 
-    while ((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER) {
-      printf(">%s\n", input_string); /* print fasta header if available */
-      free(input_string);
-    }
+    char *rec_id = NULL;
+
+    while ((input_type = get_input_line(&input_string, 0)) & VRNA_INPUT_FASTA_HEADER)
+      rec_id = input_string;
 
     /* break on any error, EOF or quit request */
     if (input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) {
@@ -245,15 +245,26 @@ main(int  argc,
 
     min_en = vrna_mfe(vc_global, mfe_structure);
 
-    printf("%s\n%s", orig_sequence, mfe_structure);
+    print_fasta_header(stdout, rec_id);
+    fprintf(stdout, "%s\n", orig_sequence);
 
+    char *msg = NULL;
     if (istty)
-      printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
+      msg = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol", min_en);
     else
-      printf(" (%6.2f)\n", min_en);
+      msg = vrna_strdup_printf(" (%6.2f)", min_en);
 
-    printf("%s (%6.2f) <ref 1>\n", structure1, vrna_eval_structure(vc_global, structure1));
-    printf("%s (%6.2f) <ref 2>\n", structure2, vrna_eval_structure(vc_global, structure2));
+    print_structure(stdout, mfe_structure, msg);
+    free(msg);
+    (void)fflush(stdout);
+
+    msg = vrna_strdup_printf(" (%6.2f) <ref 1>", vrna_eval_structure(vc_global, structure1));
+    print_structure(stdout, structure1, msg);
+    free(msg);
+
+    msg = vrna_strdup_printf(" (%6.2f) <ref 2>", vrna_eval_structure(vc_global, structure2));
+    print_structure(stdout, structure2, msg);
+    free(msg);
 
     vrna_fold_compound_free(vc_global);
 
@@ -316,7 +327,10 @@ main(int  argc,
       double fee = (-log(Q) - length * log(vc->exp_params->pf_scale)) * (vc->exp_params->kT / 1000.);
 
       if (!stBT) {
-        printf("free energy of ensemble = %6.2f kcal/mol\n", fee);
+        char *msg = NULL;
+        msg = vrna_strdup_printf("free energy of ensemble = %6.2f kcal/mol", fee);
+        print_structure(stdout, NULL, msg);
+        free(msg);
         print_table(stdout, "k\tl\tP(neighborhood)\tP(MFE in neighborhood)\tP(MFE in ensemble)\tMFE\tE_gibbs\tMFE-structure", NULL);
         for (i = 0; pf_s[i].k != INF; i++) {
           float free_energy = (-log((float)pf_s[i].q) - length * log(vc->exp_params->pf_scale)) * (vc->exp_params->kT / 1000.);
@@ -382,7 +396,8 @@ main(int  argc,
     free(structure2);
     free(reference_struc1);
     free(reference_struc2);
-    string = orig_sequence = mfe_structure = NULL;
+    free(rec_id);
+    string = orig_sequence = mfe_structure = rec_id = NULL;
   } while (1);
   return 0;
 }

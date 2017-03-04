@@ -25,6 +25,33 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNALfold_cmdl.h"
 
+#include "ViennaRNA/color_output.inc"
+
+typedef struct {
+  FILE  *output;
+  int   dangle_model;
+} hit_data;
+
+
+#ifdef VRNA_WITH_SVM
+PRIVATE void
+default_callback_z(int        start,
+                   int        end,
+                   const char *structure,
+                   float      en,
+                   float      zscore,
+                   void       *data);
+
+
+#endif
+
+PRIVATE void
+default_callback(int        start,
+                 int        end,
+                 const char *structure,
+                 float      en,
+                 void       *data);
+
 
 int
 main(int  argc,
@@ -194,11 +221,14 @@ main(int  argc,
      ########################################################
      */
     if (rec_id) {
+      /* remove '>' from FASTA header */
+      rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
+
       if (!istty && !outfile)
-        printf("%s\n", rec_id);
+        print_fasta_header(stdout, rec_id);
 
       fname = (char *)vrna_alloc(sizeof(char) * (strlen(rec_id) + 1));
-      (void)sscanf(rec_id, ">%s", fname);
+      (void)sscanf(rec_id, "%s", fname);
     }
 
     if (outfile) {
@@ -221,7 +251,7 @@ main(int  argc,
     vrna_seq_toupper(rec_sequence);
 
     if (!outfile && istty)
-      printf("length = %d\n", length);
+      vrna_message_info(stdout, "length = %d", length);
 
     /*
      ########################################################
@@ -252,13 +282,25 @@ main(int  argc,
      ########################################################
      */
 
-    min_en = (zsc) ? vrna_mfe_window_zscore(vc, min_z, output) : vrna_mfe_window(vc, output);
+    hit_data data;
+    data.output       = output;
+    data.dangle_model = md.dangles;
+
+#ifdef VRNA_WITH_SVM
+    min_en = (zsc) ? vrna_mfe_window_zscore_cb(vc, min_z, &default_callback_z, (void *)&data) : vrna_mfe_window_cb(vc, &default_callback, (void *)&data);
+#else
+    min_en = vrna_mfe_window_cb(vc, &default_callback, (void *)&data);
+#endif
     fprintf(output, "%s\n", orig_sequence);
 
+    char *msg = NULL;
     if (!outfile && istty)
-      printf("\n minimum free energy = %6.2f kcal/mol\n", min_en);
+      msg = vrna_strdup_printf(" minimum free energy = %6.2f kcal/mol", min_en);
     else
-      fprintf(output, " (%6.2f)\n", min_en);
+      msg = vrna_strdup_printf(" (%6.2f)", min_en);
+
+    print_structure(output, NULL, msg);
+    free(msg);
 
     if (output)
       (void)fflush(output);
@@ -294,3 +336,60 @@ main(int  argc,
 
   return EXIT_SUCCESS;
 }
+
+
+PRIVATE void
+default_callback(int        start,
+                 int        end,
+                 const char *structure,
+                 float      en,
+                 void       *data)
+{
+  FILE  *output       = ((hit_data *)data)->output;
+  int   dangle_model  = ((hit_data *)data)->dangle_model;
+  char  *struct_d2    = NULL;
+  char  *msg          = NULL;
+
+  if ((dangle_model == 2) && (start > 1)) {
+    msg       = vrna_strdup_printf(" (%6.2f) %4d", en, start - 1);
+    struct_d2 = vrna_strdup_printf(".%s", structure);
+    print_structure(output, struct_d2, msg);
+    free(struct_d2);
+  } else {
+    msg = vrna_strdup_printf(" (%6.2f) %4d", en, start);
+    print_structure(output, structure, msg);
+  }
+
+  free(msg);
+}
+
+
+#ifdef VRNA_WITH_SVM
+PRIVATE void
+default_callback_z(int        start,
+                   int        end,
+                   const char *structure,
+                   float      en,
+                   float      zscore,
+                   void       *data)
+{
+  FILE  *output       = ((hit_data *)data)->output;
+  int   dangle_model  = ((hit_data *)data)->dangle_model;
+  char  *struct_d2    = NULL;
+  char  *msg          = NULL;
+
+  if ((dangle_model == 2) && (start > 1)) {
+    msg       = vrna_strdup_printf(" (%6.2f) %4d z= %.3f", en, start - 1, zscore);
+    struct_d2 = vrna_strdup_printf(".%s", structure);
+    print_structure(output, struct_d2, msg);
+    free(struct_d2);
+  } else {
+    msg = vrna_strdup_printf(" (%6.2f) %4d z= %.3f", en, start, zscore);
+    print_structure(output, structure, msg);
+  }
+
+  free(msg);
+}
+
+
+#endif

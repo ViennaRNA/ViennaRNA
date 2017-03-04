@@ -27,6 +27,8 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAplfold_cmdl.h"
 
+#include "ViennaRNA/color_output.inc"
+
 int unpaired;
 PRIVATE void putoutphakim_u(double  **pU,
                             int     length,
@@ -41,8 +43,8 @@ main(int  argc,
 {
   FILE                        *pUfp, *spup;
   struct RNAplfold_args_info  args_info;
-  char                        fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *structure,
-                              *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
+  char                        *fname, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id,
+                              **rec_rest, *orig_sequence;
   unsigned int                rec_type, read_opt;
   int                         length, istty, winsize, pairdist, tempwin, temppair, tempunpaired, noconv,
                               plexoutput, simply_putout, openenergies, binaries;
@@ -70,6 +72,7 @@ main(int  argc,
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
   pf_parameters = NULL;
+  fname         = NULL;
 
   set_model_details(&md);
 
@@ -220,12 +223,14 @@ main(int  argc,
      ########################################################
      */
     if (rec_id) {
+      /* remove '>' from FASTA header */
+      rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
       if (!istty)
-        printf("%s\n", rec_id);
+        print_fasta_header(stdout, rec_id);
 
-      (void)sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-    } else {
-      fname[0] = '\0';
+      fname = strdup(rec_id);
+      (void)sscanf(rec_id, "%s", fname); /* truncate to first word */
+      fname = (char *)vrna_realloc(fname, sizeof(char) * (strlen(fname) + 1));
     }
 
     length    = (int)strlen(rec_sequence);
@@ -241,7 +246,7 @@ main(int  argc,
     vrna_seq_toupper(rec_sequence);
 
     if (istty)
-      printf("length = %d\n", length);
+      vrna_message_info(stdout, "length = %d", length);
 
     /*
      ########################################################
@@ -251,13 +256,13 @@ main(int  argc,
 
     if (length > 1000000) {
       if (!simply_putout && !unpaired) {
-        printf("Switched to simple output mode!!!\n");
+        vrna_message_warning("Switched to simple output mode!!!");
         simply_putout = 1;
       }
     }
 
     if (unpaired && simply_putout) {
-      printf("Output simplification not possible if unpaired is switched on\n");
+      vrna_message_warning("Output simplification not possible if unpaired is switched on");
       simply_putout = 0;
     }
 
@@ -303,25 +308,35 @@ main(int  argc,
 
     if (length > 0) {
       /* construct output file names */
-      char fname1[FILENAME_MAX_LENGTH], fname2[FILENAME_MAX_LENGTH], fname3[FILENAME_MAX_LENGTH], fname4[FILENAME_MAX_LENGTH], fname_t[FILENAME_MAX_LENGTH];
+      char *fname1, *fname2, *fname3, *fname4, *ffname, *tmp_string;
 
-      strcpy(fname_t, (fname[0] != '\0') ? fname : "plfold");
+      if ((!fname) || (fname[0] == '\0')) {
+        free(fname);
+        fname = strdup("plfold");
+      }
 
-      strcpy(fname1, fname_t);
-      strcpy(fname2, fname_t);
-      strcpy(fname3, fname_t);
-      strcpy(fname4, fname_t);
-      strcpy(ffname, fname_t);
+      fname1  = vrna_strdup_printf("%s_lunp", fname);
+      fname2  = vrna_strdup_printf("%s_basepairs", fname);
+      fname3  = vrna_strdup_printf("%s_uplex", fname);
+      fname4  = (binaries) ? vrna_strdup_printf("%s_openen_bin", fname) : vrna_strdup_printf("%s_openen", fname);
+      ffname  = vrna_strdup_printf("%s_dp.ps", fname);
 
-      strcat(fname1, "_lunp");
-      strcat(fname2, "_basepairs");
-      strcat(fname3, "_uplex");
-      if (binaries)
-        strcat(fname4, "_openen_bin");
-      else
-        strcat(fname4, "_openen");
-
-      strcat(ffname, "_dp.ps");
+      /* sanitize filenames */
+      tmp_string = vrna_filename_sanitize(fname1, "_");
+      free(fname1);
+      fname1      = tmp_string;
+      tmp_string  = vrna_filename_sanitize(fname2, "_");
+      free(fname2);
+      fname2      = tmp_string;
+      tmp_string  = vrna_filename_sanitize(fname3, "_");
+      free(fname3);
+      fname3      = tmp_string;
+      tmp_string  = vrna_filename_sanitize(fname4, "_");
+      free(fname4);
+      fname4      = tmp_string;
+      tmp_string  = vrna_filename_sanitize(ffname, "_");
+      free(ffname);
+      ffname = tmp_string;
 
       pf_parameters = vrna_exp_params(&md);
 
@@ -363,8 +378,7 @@ main(int  argc,
         }
       }
 
-      if (pl)
-        free(pl);
+      free(pl);
 
       if (unpaired > 0) {
         free(pup[0]);
@@ -372,17 +386,22 @@ main(int  argc,
       }
 
       free(pf_parameters);
+      free(fname1);
+      free(fname2);
+      free(fname3);
+      free(fname4);
+      free(ffname);
     }
 
     (void)fflush(stdout);
 
     /* clean up */
-    if (rec_id)
-      free(rec_id);
-
+    free(rec_id);
     free(rec_sequence);
     free(orig_sequence);
     free(structure);
+    free(fname);
+    fname     = NULL;
     rec_id    = rec_sequence = orig_sequence = NULL;
     rec_rest  = NULL;
     /* print user help for the next round if we get input from tty */

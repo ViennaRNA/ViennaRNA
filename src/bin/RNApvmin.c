@@ -48,7 +48,7 @@ print_progress(int    iteration,
   FILE  *f;
   char  *path;
 
-  fprintf(stderr, "Iteration: %d\t Score: %f\n", iteration, score);
+  vrna_message_info(stderr, "Iteration: %d\t Score: %f", iteration, score);
 
   if (!g_statpath)
     return;

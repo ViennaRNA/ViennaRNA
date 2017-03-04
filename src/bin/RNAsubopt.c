@@ -42,7 +42,7 @@ main(int  argc,
      char *argv[])
 {
   struct          RNAsubopt_args_info args_info;
-  char                                fname[FILENAME_MAX_LENGTH], *rec_sequence, *rec_id,
+  char                                *rec_sequence, *rec_id,
                                       **rec_rest, *orig_sequence, *constraints_file, *cstruc, *structure,
                                       *shape_file, *shape_method, *shape_conversion;
   unsigned int                        rec_type, read_opt;
@@ -207,16 +207,17 @@ main(int  argc,
   while (
     !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
       & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
+    int maybe_multiline = 0;
     /*
      ########################################################
      # init everything according to the data we've read
      ########################################################
      */
-    if (rec_id)
-      /* if(!istty) printf("%s\n", rec_id); */
-      (void)sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-    else
-      fname[0] = '\0';
+    if (rec_id) {
+      maybe_multiline = 1;
+      /* remove '>' from FASTA header */
+      rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
+    }
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)
@@ -239,7 +240,7 @@ main(int  argc,
       } else {
         cstruc = NULL;
         int           cp        = -1;
-        unsigned int  coptions  = (rec_id) ? VRNA_OPTION_MULTILINE : 0;
+        unsigned int  coptions  = (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0;
         cstruc  = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc  = vrna_cut_point_remove(cstruc, &cp);
         if (vc->cutpoint != cp) {
@@ -302,8 +303,7 @@ main(int  argc,
       if (vc->cutpoint != -1)
         vrna_message_error("Boltzmann sampling for cofolded structures not implemented (yet)!");
 
-      if (fname[0] != '\0')
-        print_fasta_header(stdout, fname);
+      print_fasta_header(stdout, rec_id);
 
       printf("%s\n", rec_sequence);
 
@@ -336,8 +336,8 @@ main(int  argc,
     /* normal subopt */
     else if (!zuker) {
       /* first lines of output (suitable  for sort +1n) */
-      if (fname[0] != '\0') {
-        char *head = vrna_strdup_printf("%s [%d]", fname, delta);
+      if (rec_id) {
+        char *head = vrna_strdup_printf("%s [%d]", rec_id, delta);
         print_fasta_header(stdout, head);
         free(head);
       }
@@ -346,8 +346,11 @@ main(int  argc,
 
       if (dos) {
         int i;
-        for (i = 0; i <= MAXDOS && i <= delta / 10; i++)
-          printf("%4d %6d\n", i, density_of_states[i]);
+        for (i = 0; i <= MAXDOS && i <= delta / 10; i++) {
+          char *tline = vrna_strdup_printf("%4d %6d", i, density_of_states[i]);
+          print_table(stdout, NULL, tline);
+          free(tline);
+        }
       }
     }
     /* Zuker suboptimals */
@@ -358,8 +361,7 @@ main(int  argc,
         vrna_message_error("Sorry, zuker subopts not yet implemented for cofold");
 
       int                     i;
-      if (fname[0] != '\0')
-        print_fasta_header(stdout, fname);
+      print_fasta_header(stdout, rec_id);
 
       printf("%s\n", rec_sequence);
 
@@ -377,11 +379,9 @@ main(int  argc,
     /* clean up */
     vrna_fold_compound_free(vc);
 
-    if (cstruc)
-      free(cstruc);
+    free(cstruc);
 
-    if (rec_id)
-      free(rec_id);
+    free(rec_id);
 
     free(rec_sequence);
     free(orig_sequence);

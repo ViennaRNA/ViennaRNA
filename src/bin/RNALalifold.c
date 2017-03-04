@@ -30,6 +30,7 @@
 #include "ViennaRNA/file_utils.h"
 #include "RNALalifold_cmdl.h"
 
+#include "ViennaRNA/color_output.inc"
 
 #define MAX_NUM_NAMES    500
 
@@ -270,8 +271,6 @@ main(int  argc,
     maxdist = length;
   }
 
-  structure = (char *)vrna_alloc((unsigned)length + 1);
-
   /*
    #############################################
    # begin calculations
@@ -303,7 +302,7 @@ main(int  argc,
      * real_en = s/i;*/
   }
   string = (mis) ? consens_mis((const char **)AS) : consensus((const char **)AS);
-  printf("%s\n%s\n", string, structure);
+  printf("%s\n", string);
 
   free(base_pair);
   (void)fflush(stdout);
@@ -334,6 +333,7 @@ print_hit_cb(int        start,
   char      **names;
   char      **strings;
   char      *prefix;
+  char      *msg;
   int       columns;
   vrna_md_t *md;
   int       with_ss, with_msa, with_stk, with_csv, with_mis;
@@ -354,9 +354,12 @@ print_hit_cb(int        start,
   A     = annote(structure, (const char **)sub, md);
 
   if (with_csv == 1)
-    printf("%s ,%6.2f, %4d, %4d\n", structure, en, start, end);
+    msg = vrna_strdup_printf(",%6.2f,%d,%d", en, start, end);
   else
-    printf("%s (%6.2f) %4d - %4d\n", structure, en, start, end);
+    msg = vrna_strdup_printf(" (%6.2f) %4d - %4d", en, start, end);
+
+  print_structure(stdout, structure, msg);
+  free(msg);
 
   if (with_ss) {
     if (prefix)
