@@ -51,6 +51,13 @@ vrna_Lfold(const char *string,
            FILE       *file);
 
 
+float
+vrna_Lfold_cb(const char                *string,
+              int                       window_size,
+              vrna_mfe_window_callback  *cb,
+              void                      *data);
+
+
 #ifdef VRNA_WITH_SVM
 /**
  *  @brief Local MFE prediction using a sliding window approach with z-score cut-off (simplified interface)
@@ -84,6 +91,14 @@ vrna_Lfoldz(const char  *string,
             int         window_size,
             double      min_z,
             FILE        *file);
+
+
+float
+vrna_Lfoldz_cb(const char                       *string,
+               int                              window_size,
+               double                           min_z,
+               vrna_mfe_window_zscore_callback  *cb,
+               void                             *data);
 
 
 #endif
