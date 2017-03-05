@@ -784,10 +784,10 @@ do_concentrations(double            FEAB,
   print_table(stdout, "A\t\tB\t\tAB\t\tAA\t\tBB\t\tA\t\tB", NULL);
   for (n = 0; (startconc[2 * n] > 0) || (startconc[2 * n + 1] > 0); n++); /* count */
   for (i = 0; i < n; i++) {
-    double  tot     = result[i].A0 + result[i].B0;
+    double  tot     = result[i].Ac_start + result[i].Bc_start;
     char    *tline  = vrna_strdup_printf("%-10g\t%-10g\t%.5f \t%.5f \t%.5f \t%.5f \t%.5f",
-                                         result[i].A0,
-                                         result[i].B0,
+                                         result[i].Ac_start,
+                                         result[i].Bc_start,
                                          result[i].ABc / tot,
                                          result[i].AAc / tot,
                                          result[i].BBc / tot,

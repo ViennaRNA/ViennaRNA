@@ -109,9 +109,9 @@ struct vrna_dimer_pf_s {
  *  @brief  Data structure for concentration dependency computations
  */
 struct vrna_dimer_conc_s {
-  double A0;    /**< @brief start concentration A */
-  double B0;    /**< @brief start concentration B */
-  double ABc;   /**< @brief End concentration AB */
+  double Ac_start;    /**< @brief start concentration A */
+  double Bc_start;    /**< @brief start concentration B */
+  double ABc;         /**< @brief End concentration AB */
   double AAc;
   double BBc;
   double Ac;

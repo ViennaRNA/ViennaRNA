@@ -161,12 +161,12 @@ char *my_co_pf_fold(char *string, char *constraints, float *OUTPUT, float *OUTPU
 
 %rename (get_concentrations) my_get_concentrations;
 %{
- void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA, double FEB, double A0, double B0, double *AB, double *AA, double *BB, double *A, double *B) {
+ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA, double FEB, double Ac_start, double Bc_start, double *AB, double *AA, double *BB, double *A, double *B) {
     vrna_dimer_conc_t *temp;
     double *concis;
     concis = (double *)calloc(4,sizeof(double));
-    concis[0]=A0;
-    concis[1]=B0;
+    concis[0]=Ac_start;
+    concis[1]=Bc_start;
     concis[2]=0;
     temp=get_concentrations(FcAB,FcAA,FcBB,FEA,FEB,concis);
     *AB=temp->ABc;
