@@ -37,6 +37,7 @@ RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWI
 
 RNA_la_LIBADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PERLXS_LIBS)
 if VRNA_AM_SWITCH_SVM
+RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
 RNA_la_LIBADD += -lstdc++
 endif
 
@@ -70,7 +71,7 @@ if HAS_SWIG
 $(SWIG_wrapper) $(PERL_MODULE): $(INTERFACE_FILES)
 	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
-                  $(RNA_CPPFLAGS) \
+                  $(RNA_la_CPPFLAGS) \
                   -perl5 -proxy -const -c++ \
                   -module RNA -o $(SWIG_wrapper) \
                   $(SWIG_main_src)

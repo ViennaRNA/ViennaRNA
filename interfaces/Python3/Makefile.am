@@ -38,6 +38,7 @@ _RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PYTHON3_INCLUDES)
 
 _RNA_la_LIBADD = $(LDADD) $(top_builddir)/src/ViennaRNA/libRNA_conv.la
 if VRNA_AM_SWITCH_SVM
+_RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
 _RNA_la_LIBADD += -lstdc++
 endif
 
@@ -56,7 +57,7 @@ $(SWIG_wrapper): $(SWIG_src)
 	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
                   -DPY3 \
-                  $(RNA_CPPFLAGS) \
+                  $(_RNA_la_CPPFLAGS) \
                   -python -modern -py3 -c++ \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)

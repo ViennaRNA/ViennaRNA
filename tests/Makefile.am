@@ -51,6 +51,7 @@ PERL_TESTS =  perl5/test-RNA.pl \
               perl5/test-RNA-combinatorics.pl \
               perl5/test-RNA-Design.t \
               perl5/test-RNA-mfe_eval.pl \
+              perl5/test-RNA-mfe_window.pl \
               perl5/test-RNA-constraints.pl
 
 
@@ -80,6 +81,7 @@ AM_PY_LOG_FLAGS =
 PYTHON2_TESTS = python/test-RNA-combinatorics.py \
                 python/test-RNA-constraints.py \
                 python/test-RNA-mfe_eval.py \
+                python/test-RNA-mfe_window.py \
                 python/test-RNA-sc-callbacks.py \
                 python/test-RNA-subopt.py \
                 python/test-RNA-utils.py \
@@ -102,6 +104,7 @@ AM_PY3_LOG_FLAGS =
 PYTHON3_TESTS = python3/test-RNA-combinatorics.py3 \
                 python3/test-RNA-constraints.py3 \
                 python3/test-RNA-mfe_eval.py3 \
+                python3/test-RNA-mfe_window.py3 \
                 python3/test-RNA-sc-callbacks.py3 \
                 python3/test-RNA-subopt.py3 \
                 python3/test-RNA-utils.py3 \
