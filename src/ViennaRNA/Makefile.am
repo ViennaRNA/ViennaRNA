@@ -158,7 +158,6 @@ libRNA_conv_la_SOURCES = \
     ribo.c \
     findpath.c \
     MEA.c \
-    aliLfold.c \
     mm.c \
     2Dfold.c \
     2Dpfold.c \

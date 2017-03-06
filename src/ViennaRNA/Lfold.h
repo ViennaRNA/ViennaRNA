@@ -111,31 +111,15 @@ vrna_Lfoldz_cb(const char                       *string,
  *  @}
  */
 
-/**
- *  @brief
- *
- *  @ingroup local_consensus_fold
- *
- *  @param strings
- *  @param structure
- *  @param maxdist
- *  @return
- */
-float aliLfold(const char **strings,
-               char       *structure,
-               int        maxdist);
+float vrna_aliLfold(const char  **AS,
+                    int         maxdist,
+                    FILE        *fp);
 
 
-typedef void (aliLfold_callback)(int        start,
-                                 int        end,
-                                 const char *structure,
-                                 float      en,
-                                 void       *data);
-
-float aliLfold_cb(const char        **AS,
-                  int               maxdist,
-                  aliLfold_callback *cb,
-                  void              *data);
+float vrna_aliLfold_cb(const char               **AS,
+                       int                      maxdist,
+                       vrna_mfe_window_callback *cb,
+                       void                     *data);
 
 
 #ifdef  VRNA_BACKWARD_COMPAT
@@ -166,6 +150,27 @@ DEPRECATED(float Lfoldz(const char  *string,
                         int         maxdist,
                         int         zsc,
                         double      min_z));
+
+/**
+ *  @brief
+ *
+ *  @ingroup local_consensus_fold
+ *
+ *  @param strings
+ *  @param structure
+ *  @param maxdist
+ *  @return
+ */
+float aliLfold(const char **AS,
+               char       *structure,
+               int        maxdist);
+
+
+float aliLfold_cb(const char                **AS,
+                  int                       maxdist,
+                  vrna_mfe_window_callback  *cb,
+                  void                      *data);
+
 
 #endif
 

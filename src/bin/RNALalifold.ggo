@@ -20,11 +20,30 @@ description "reads aligned RNA sequences from stdin or file.aln and calculates\
 section "General Options"
 sectiondesc="Below are command line options which alter the general behavior of this program\n"
 
+option  "quiet" q
+"Be quiet.\n"
+details="This option can be used to minimize the output of additional information\
+ and non-severe warnings which otherwise might spam stdout/stderr.\n\n"
+flag
+off
+
 option  "span"  L
 "Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
  j-i>span will be allowed.\n\n"
 int
 default="70"
+optional
+
+option  "input-format"  f
+"File format of the input multiple sequence alignment (MSA).\n"
+details="If this parameter is set, the input is considered to be in a particular\
+ file format. Otherwise, the program tries to determine the file format automatically,\
+ if an input file was provided in the set of parameters. In case the input MSA is provided\
+ in interactive mode, or from a terminal (TTY), the programs default is to assume\
+ CLUSTALW format.\nCurrently, the following formats are available: ClustalW (C),\
+ Stockholm 1.0 (S), FASTA/Pearson (F), and MAF (M).\n\n"
+string
+typestr="C|S|F|M"
 optional
 
 option  "csv"   -
@@ -86,6 +105,75 @@ argoptional
 typestr="prefix"
 default="RNALalifold_results"
 optional
+
+option  "auto-id"  -
+"Automatically generate an ID for each alignment.\n"
+details="The default mode of RNALalifold is to automatically determine an ID from the input alignment\
+ if the input file format allows to do that. Alignment IDs are, for instance, usually given in\
+ Stockholm 1.0 formatted input. If this flag is active, RNALalifold ignores any IDs retrieved from the\
+ input and automatically generates an ID for each alignment.\n\n"
+flag
+off
+
+option  "id-prefix" -
+"Prefix for automatically generated IDs (as used in output file names)\n\n"
+details="If this parameter is set, each alignment will be prefixed with the\
+ provided string. Hence, the output files will obey the following naming\
+ scheme: \"prefix_xxxx_ss.ps\" (secondary structure plot), \"prefix_xxxx_dp.ps\"\
+ (dot-plot), \"prefix_xxxx_aln.ps\" (annotated alignment), etc. where xxxx\
+ is the alignment number beginning with the second alignment in the input.\
+ Use this setting in conjunction with the --continuous-ids flag to assign\
+ IDs beginning with the first input alignment.\n\n"
+string
+typestr="prefix"
+default="alignment"
+optional
+
+option  "id-delim" -
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)\n\n"
+details="This parameter can be used to change the default delimiter \"_\" between
+ the prefix string and the increasing number for automatically generated ID.\n\n"
+string
+typestr="delimiter"
+default="_"
+optional
+hidden
+
+option  "id-digits"  -
+"Specify the number of digits of the counter in automatically generated alignment IDs.\n"
+details="When alignments IDs are automatically generated, they receive an increasing number, starting\
+ with 1. This number will always be left-padded by leading zeros, such that the number takes up a\
+ certain width. Using this parameter, the width can be specified to the users need. We allow\
+ numbers in the range [1:18].\n\n"
+int
+default="4"
+optional
+hidden
+
+option  "id-start"  -
+"Specify the first number in automatically generated alignment IDs.\n"
+details="When alignment IDs are automatically generated, they receive an increasing number,\
+ usually starting with 1. Using this parameter, the first number can be specified to the users\
+ requirements. Note: negative numbers are not allowed.\nNote: Setting this parameter implies\
+ continuous alignment IDs, i.e. it activates the --continuous-ids flag.\n\n"
+long
+default="1"
+optional
+hidden
+
+option  "filename-delim" -
+"Change the delimiting character that is used for sanitized filenames\n\n"
+details="This parameter can be used to change the delimiting character used while\
+ sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
+ delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
+ the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
+ characters will be simply removed rather than substituted.\n\n"
+string
+typestr="delimiter"
+default="ID-delimiter"
+optional
+hidden
+
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\

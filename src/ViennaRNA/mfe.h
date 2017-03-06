@@ -4,6 +4,23 @@
 #include <stdio.h>
 #include <ViennaRNA/data_structures.h>
 
+
+typedef void (vrna_mfe_window_callback)(int         start,
+                                        int         end,
+                                        const char  *structure,
+                                        float       en,
+                                        void        *data);
+
+
+#ifdef VRNA_WITH_SVM
+typedef void (vrna_mfe_window_zscore_callback)(int        start,
+                                               int        end,
+                                               const char *structure,
+                                               float      en,
+                                               float      zscore,
+                                               void       *data);
+#endif
+
 /**
  *  @brief Compute minimum free energy and an appropriate secondary
  *  structure of an RNA sequence, or RNA sequence alignment
@@ -82,22 +99,10 @@ float vrna_mfe_window(vrna_fold_compound_t  *vc,
                       FILE                  *file);
 
 
-typedef void (vrna_mfe_window_callback)(int         start,
-                                        int         end,
-                                        const char  *structure,
-                                        float       en,
-                                        void        *data);
+float vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
+                         vrna_mfe_window_callback *cb,
+                         void                     *data);
 
-#ifdef VRNA_WITH_SVM
-typedef void (vrna_mfe_window_zscore_callback)(int        start,
-                                               int        end,
-                                               const char *structure,
-                                               float      en,
-                                               float      zscore,
-                                               void       *data);
-#endif
-
-float vrna_mfe_window_cb(vrna_fold_compound_t *vc, vrna_mfe_window_callback, void *data);
 
 #ifdef VRNA_WITH_SVM
 /**
@@ -132,7 +137,11 @@ float vrna_mfe_window_zscore(vrna_fold_compound_t *vc,
                              FILE                 *file);
 
 
-float vrna_mfe_window_zscore_cb(vrna_fold_compound_t *vc, double min_z, vrna_mfe_window_zscore_callback, void *data);
+float vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
+                                double                          min_z,
+                                vrna_mfe_window_zscore_callback *cb,
+                                void                            *data);
+
 
 #endif
 

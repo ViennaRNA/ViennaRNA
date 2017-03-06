@@ -29,6 +29,8 @@
 #include "ViennaRNA/file_formats_msa.h"
 #include "ViennaRNA/file_utils.h"
 #include "RNALalifold_cmdl.h"
+#include "gengetopt_helper.h"
+#include "input_id_helper.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -53,10 +55,9 @@ PRIVATE char **annote(const char  *structure,
                       vrna_md_t   *md);
 
 
-PRIVATE void  get_subalignment(const char *AS[],
-                               char       *sub[],
-                               int        i,
-                               int        j);
+PRIVATE char **get_subalignment(const char  *AS[],
+                                int         i,
+                                int         j);
 
 
 PRIVATE void  delete_alignment(char *AS[]);
@@ -77,23 +78,32 @@ main(int  argc,
   FILE                          *clust_file;
   struct RNALalifold_args_info  args_info;
   char                          *string, *structure, *ParamFile, *ns_bases, *prefix,
-                                *AS[MAX_NUM_NAMES], *names[MAX_NUM_NAMES];
-  int                           n_seq, i, length, maxdist, unchangednc, unchangedcv,
-                                mis, pf, istty, alnPS, aln_columns, aln_out, ssPS;
-  double                        min_en;
+                                **AS, **names, *filename_in, *id_prefix, *id_delim, *filename_delim,
+                                **input_files, *tmp_id, *tmp_structure;
+  unsigned int                  input_format_options;
+  int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id,
+                                mis, istty, alnPS, aln_columns, aln_out, ssPS, input_file_num, id_digits;
+  long int                      alignment_number, first_alignment_number;
   vrna_md_t                     md;
+  vrna_fold_compound_t          *fc;
 
-  clust_file    = stdin;
-  string        = structure = ParamFile = ns_bases = prefix = NULL;
-  mis           = pf = 0;
-  maxdist       = 70;
-  do_backtrack  = unchangednc = unchangedcv = 1;
-  dangles       = 2;
-  ribo          = 0;
-  alnPS         = 0;
-  ssPS          = 0;
-  aln_out       = 0;
-  aln_columns   = 60;
+  clust_file            = stdin;
+  string                = structure = ParamFile = ns_bases = prefix = NULL;
+  mis                   = 0;
+  maxdist               = 70;
+  do_backtrack          = unchangednc = unchangedcv = 1;
+  dangles               = 2;
+  ribo                  = 0;
+  alnPS                 = 0;
+  ssPS                  = 0;
+  aln_out               = 0;
+  aln_columns           = 60;
+  input_format_options  = VRNA_FILE_FORMAT_MSA_CLUSTAL;   /* default to ClustalW format */
+  filename_in           = NULL;
+  input_files           = NULL;
+  input_file_num        = 0;
+  quiet                 = 0;
+  auto_id               = 0;
 
   vrna_md_set_default(&md);
 
@@ -104,6 +114,13 @@ main(int  argc,
    */
   if (RNALalifold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  ggo_get_ID_manipulation(args_info,
+                          auto_id,
+                          id_prefix, "alignment",
+                          id_delim, "_",
+                          id_digits, 4,
+                          alignment_number, 1);
 
   /* temperature */
   if (args_info.temp_given)
@@ -196,42 +213,76 @@ main(int  argc,
     }
   }
 
-  if (args_info.aln_EPS_ss_given) {
+  if (args_info.aln_EPS_ss_given)
     ssPS = 1;
-    if (args_info.aln_EPS_ss_arg) {
-      if (prefix) {
-        vrna_message_info(stdout, "multiple output prefixes detected, using \"%s\"", args_info.aln_EPS_ss_arg);
-        free(prefix);
-      }
 
-      prefix = strdup(args_info.aln_EPS_ss_arg);
-    }
-  }
-
-  if (args_info.aln_EPS_given) {
+  if (args_info.aln_EPS_given)
     alnPS = 1;
-    if (args_info.aln_EPS_arg) {
-      if (prefix) {
-        vrna_message_info(stdout, "multiple output prefixes detected, using \"%s\"", args_info.aln_EPS_arg);
-        free(prefix);
-      }
-
-      prefix = strdup(args_info.aln_EPS_arg);
-    }
-  }
 
   if (args_info.aln_EPS_cols_given)
     aln_columns = args_info.aln_EPS_cols_arg;
 
-  /* check unnamed options a.k.a. filename of input alignment */
+  /* alignment file name given as unnamed option? */
   if (args_info.inputs_num == 1) {
-    clust_file = fopen(args_info.inputs[0], "r");
-    if (clust_file == NULL)
-      vrna_message_warning("can't open %s", args_info.inputs[0]);
-  } else {
-    RNALalifold_cmdline_parser_print_help();
-    exit(1);
+    filename_in = strdup(args_info.inputs[0]);
+    clust_file  = fopen(filename_in, "r");
+    if (clust_file == NULL) {
+      vrna_message_warning("unable to open %s", filename_in);
+      vrna_message_error("Input file can't be read!");
+    }
+
+    /*
+     *  Use default alignment file formats.
+     *  This may be overridden when we parse the
+     *  --input-format parameter below
+     */
+    input_format_options = VRNA_FILE_FORMAT_MSA_DEFAULT;
   }
+
+  /* get all input file name(s) */
+  if (args_info.inputs_num > 0) {
+    input_files = (char **)vrna_realloc(input_files, sizeof(char *) * args_info.inputs_num);
+    for (i = 0; i < args_info.inputs_num; i++)
+      input_files[input_file_num++] = strdup(args_info.inputs[i]);
+  }
+
+  if (args_info.input_format_given) {
+    switch (args_info.input_format_arg[0]) {
+      case 'C': /* ClustalW format */
+        input_format_options = VRNA_FILE_FORMAT_MSA_CLUSTAL;
+        break;
+
+      case 'S': /* Stockholm 1.0 format */
+        input_format_options = VRNA_FILE_FORMAT_MSA_STOCKHOLM;
+        break;
+
+      case 'F': /* FASTA format */
+        input_format_options = VRNA_FILE_FORMAT_MSA_FASTA;
+        break;
+
+      case 'M': /* MAF format */
+        input_format_options = VRNA_FILE_FORMAT_MSA_MAF;
+        break;
+
+      default:
+        vrna_message_warning("Unknown input format specified");
+        break;
+    }
+  }
+
+  /* filename sanitize delimiter */
+  if (args_info.filename_delim_given)
+    filename_delim = strdup(args_info.filename_delim_arg);
+  else
+    filename_delim = strdup(id_delim);
+
+  if (isspace(*filename_delim)) {
+    free(filename_delim);
+    filename_delim = NULL;
+  }
+
+  if (args_info.quiet_given)
+    quiet = 1;
 
   /* free allocated memory of command line data structure */
   RNALalifold_cmdline_parser_free(&args_info);
@@ -258,32 +309,111 @@ main(int  argc,
   if (istty && (clust_file == stdin))
     vrna_message_input_seq("Input aligned sequences in clustalw format");
 
-  n_seq = read_clustal(clust_file, AS, names);
-  if (clust_file != stdin)
-    fclose(clust_file);
-
-  if (n_seq == 0)
-    vrna_message_error("no sequences found");
-
-  length = (int)strlen(AS[0]);
-  if (length < maxdist) {
-    vrna_message_warning("Alignment length < window size: setting L=%d", length);
-    maxdist = length;
-  }
+  md.max_bp_span = md.window_size = maxdist;
 
   /*
    #############################################
    # begin calculations
    #############################################
    */
-  update_fold_params();
+  if (filename_in) {
+    unsigned int format_guess = vrna_file_msa_detect_format(filename_in, input_format_options);
+    if (format_guess == VRNA_FILE_FORMAT_MSA_UNKNOWN) {
+      char *format = NULL;
+      switch (input_format_options) {
+        case VRNA_FILE_FORMAT_MSA_CLUSTAL:
+          format = strdup("Clustal");
+          break;
+        case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
+          format = strdup("Stockholm");
+          break;
+        case VRNA_FILE_FORMAT_MSA_FASTA:
+          format = strdup("FASTA");
+          break;
+        case VRNA_FILE_FORMAT_MSA_MAF:
+          format = strdup("MAF");
+          break;
+        default:
+          format = strdup("Unknown");
+          break;
+      }
+      vrna_message_error("Your input file is missing sequences! Either your file is empty, or not in %s format!",
+                         format);
+      free(format);
+    }
 
-  if (!pf) {
+    input_format_options = format_guess;
+  }
+
+  first_alignment_number = alignment_number;
+
+  while (!feof(clust_file)) {
+    char *MSA_ID = NULL;
+    fflush(stdout);
+    if (istty && (clust_file == stdin)) {
+      switch (input_format_options) {
+        case VRNA_FILE_FORMAT_MSA_CLUSTAL:
+          vrna_message_input_seq("Input aligned sequences in ClustalW format\n"
+                                 "press Ctrl+d when finished to indicate the end of your input)");
+          break;
+
+        case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
+          vrna_message_input_seq("Input aligned sequences in Stockholm format (Insert one alignment at a time!)\n"
+                                 "press Ctrl+d when finished to indicate the end of your input)");
+          break;
+
+        case VRNA_FILE_FORMAT_MSA_FASTA:
+          vrna_message_input_seq("Input aligned sequences in FASTA format\n"
+                                 "press Ctrl+d when finished to indicate the end of your input)");
+          break;
+
+        case VRNA_FILE_FORMAT_MSA_MAF:
+          vrna_message_input_seq("Input aligned sequences in MAF format (Insert one alignment at a time!)\n"
+                                 "press Ctrl+d when finished to indicate the end of your input)");
+          break;
+
+        default:
+          vrna_message_error("Which input format are you using?");
+          break;
+      }
+    }
+
+    if (quiet)
+      input_format_options |= VRNA_FILE_FORMAT_MSA_QUIET;
+
+    /* read the first record from input file */
+    n_seq = vrna_file_msa_read_record(clust_file, &names, &AS, &tmp_id, &tmp_structure, input_format_options);
+    fflush(stdout);
+    fflush(stderr);
+
+    if (n_seq <= 0) {
+      /* skip empty alignments */
+      free(names);
+      free(AS);
+      free(tmp_id);
+      free(tmp_structure);
+      names         = NULL;
+      AS            = NULL;
+      tmp_id        = NULL;
+      tmp_structure = NULL;
+      continue;
+    }
+
+    /* construct alignment ID */
+    if (tmp_id && (!auto_id)) /* we've read an ID from file, so we use it */
+      MSA_ID = strdup(tmp_id);
+    else if (auto_id)         /* we have nuffin', Jon Snow (...so we simply generate an ID) */
+      MSA_ID = vrna_strdup_printf("%s%s%0*ld", id_prefix, id_delim, id_digits, alignment_number);
+
+    print_fasta_header(stdout, MSA_ID);
+
+    fc = vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+
     hit_data data;
 
     data.names    = names;
     data.strings  = AS;
-    data.prefix   = prefix;
+    data.prefix   = MSA_ID;
     data.columns  = aln_columns;
     data.md       = &md;
     data.ss_eps   = ssPS;
@@ -292,28 +422,66 @@ main(int  argc,
     data.csv      = csv;
     data.mis      = mis;
 
-    min_en = aliLfold_cb((const char **)AS, maxdist, &print_hit_cb, (void *)&data);
+    (void)vrna_mfe_window_cb(fc, &print_hit_cb, (void *)&data);
+
+    string = (mis) ? consens_mis((const char **)AS) : consensus((const char **)AS);
+    printf("%s\n", string);
+
+    (void)fflush(stdout);
+    free(string);
+    free(structure);
+
+    for (i = 0; AS[i]; i++) {
+      free(AS[i]);
+      free(names[i]);
+    }
+    free(AS);
+    free(names);
+
+    vrna_fold_compound_free(fc);
+    free(MSA_ID);
+    free(tmp_id);
+    free(tmp_structure);
+
+    ID_number_increase(alignment_number, "Alignment");
   }
 
-  {
-    eos_debug = -1; /* shut off warnings about nonstandard pairs */
-    /*   for (i=0; AS[i]!=NULL; i++)
-     * s += energy_of_struct(AS[i], structure);
-     * real_en = s/i;*/
+  if (first_alignment_number == alignment_number) {
+    char *format = NULL;
+    switch (input_format_options) {
+      case VRNA_FILE_FORMAT_MSA_CLUSTAL:
+        format = strdup("Clustal");
+        break;
+      case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
+        format = strdup("Stockholm");
+        break;
+      case VRNA_FILE_FORMAT_MSA_FASTA:
+        format = strdup("FASTA");
+        break;
+      case VRNA_FILE_FORMAT_MSA_MAF:
+        format = strdup("MAF");
+        break;
+      default:
+        format = strdup("Unknown");
+        break;
+    }
+    vrna_message_error("Your input file is missing sequences! Either your file is empty, or not in %s format!",
+                       format);
+    free(format);
   }
-  string = (mis) ? consens_mis((const char **)AS) : consensus((const char **)AS);
-  printf("%s\n", string);
 
-  free(base_pair);
-  (void)fflush(stdout);
-  free(string);
-  free(structure);
-  free(prefix);
+  if (clust_file != stdin)
+    fclose(clust_file);
 
-  for (i = 0; AS[i]; i++) {
-    free(AS[i]);
-    free(names[i]);
-  }
+  free(filename_in);
+
+  for (i = 0; i < input_file_num; i++)
+    free(input_files[i]);
+  free(input_files);
+
+  free(id_prefix);
+  free(id_delim);
+  free(filename_delim);
 
   return EXIT_SUCCESS;
 }
@@ -326,7 +494,7 @@ print_hit_cb(int        start,
              float      en,
              void       *data)
 {
-  char      *sub[500];
+  char      **sub;
   char      *fname, *tmp_string;
   char      *id;
   char      **A, *cons;
@@ -349,7 +517,7 @@ print_hit_cb(int        start,
   with_csv  = ((hit_data *)data)->csv;
   with_mis  = ((hit_data *)data)->mis;
 
-  get_subalignment((const char **)strings, sub, start, end);
+  sub   = get_subalignment((const char **)strings, start, end);
   cons  = (with_mis) ? consens_mis((const char **)sub) : consensus((const char **)sub);
   A     = annote(structure, (const char **)sub, md);
 
@@ -510,17 +678,18 @@ annote(const char *structure,
 }
 
 
-PRIVATE void
-get_subalignment(const char *AS[],
-                 char       *sub[],
+PRIVATE char **
+get_subalignment(const char **AS,
                  int        i,
                  int        j)
 {
-  int n_seq, s;
+  char  **sub;
+  int   n_seq, s;
 
   /* get number of sequences in alignment */
-  for (n_seq = 0; AS[n_seq] != NULL; n_seq++) ;
+  for (n_seq = 0; AS[n_seq] != NULL; n_seq++);
 
+  sub = (char **)vrna_alloc(sizeof(char *) * (n_seq + 1));
   for (s = 0; s < n_seq; s++)
     sub[s] = vrna_alloc(sizeof(char) * (j - i + 2));
   sub[s] = NULL;
@@ -530,15 +699,18 @@ get_subalignment(const char *AS[],
     sub[s]              = memcpy(sub[s], AS[s] + i - 1, sizeof(char) * (j - i + 1));
     sub[s][(j - i + 1)] = '\0';
   }
+
+  return sub;
 }
 
 
 PRIVATE void
-delete_alignment(char *AS[])
+delete_alignment(char **AS)
 {
   int n_seq;
 
   /* get number of sequences in alignment */
   for (n_seq = 0; AS[n_seq] != NULL; n_seq++)
     free(AS[n_seq]);
+  free(AS);
 }

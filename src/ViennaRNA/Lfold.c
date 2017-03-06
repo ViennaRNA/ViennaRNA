@@ -24,7 +24,12 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/gquad.h"
+#include "ViennaRNA/ribo.h"
+#include "ViennaRNA/alifold.h"
+#include "ViennaRNA/fold.h"
 #include "ViennaRNA/Lfold.h"
+#include "ViennaRNA/aln_util.h"
+
 
 #ifdef VRNA_WITH_SVM
 #include "svm.h"
@@ -34,6 +39,12 @@
 #define MAXSECTORS                  500   /* dimension for a backtrack array */
 #define INT_CLOSE_TO_UNDERFLOW(i)   ((i) <= (INT_MIN / 16))
 #define UNDERFLOW_CORRECTION        (INT_MIN / 32)
+#define UNIT 100
+#define MINPSCORE -2 * UNIT
+
+
+#define NONE -10000 /* score for forbidden pairs */
+
 
 typedef struct {
   FILE  *output;
@@ -111,6 +122,36 @@ default_callback(int        start,
                  void       *data);
 
 
+PRIVATE double
+cov_score(vrna_fold_compound_t  *fc,
+          int                   i,
+          int                   j,
+          float                 **dm);
+
+
+PRIVATE void  make_pscores(vrna_fold_compound_t *fc,
+                           int                  start,
+                           float                **dm);
+
+
+PRIVATE int   fill_arrays_comparative(vrna_fold_compound_t      *fc,
+                                      vrna_mfe_window_callback  *cb,
+                                      void                      *data);
+
+
+PRIVATE char *backtrack_comparative(vrna_fold_compound_t  *fc,
+                                    int                   start,
+                                    int                   maxdist);
+
+
+PRIVATE void
+default_callback_comparative(int        start,
+                             int        end,
+                             const char *structure,
+                             float      en,
+                             void       *data);
+
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -171,8 +212,10 @@ vrna_mfe_window(vrna_fold_compound_t  *vc,
 
   data.output       = (file) ? file : stdout;
   data.dangle_model = vc->params->model_details.dangles;
-
-  return vrna_mfe_window_cb(vc, &default_callback, (void *)&data);
+  if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
+    return vrna_mfe_window_cb(vc, &default_callback_comparative, (void *)&data);
+  else
+    return vrna_mfe_window_cb(vc, &default_callback, (void *)&data);
 }
 
 
@@ -262,6 +305,48 @@ vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
 
 #endif
 
+
+PUBLIC float
+vrna_aliLfold(const char  **AS,
+              int         maxdist,
+              FILE        *fp)
+{
+  vrna_md_t md;
+  hit_data  data;
+
+  vrna_md_set_default(&md);
+
+  data.output       = (fp) ? fp : stdout;
+  data.dangle_model = md.dangles;
+
+  return vrna_aliLfold_cb(AS, maxdist, &default_callback_comparative, (void *)&data);
+}
+
+
+PUBLIC float
+vrna_aliLfold_cb(const char               **AS,
+                 int                      maxdist,
+                 vrna_mfe_window_callback *cb,
+                 void                     *data)
+{
+  float                 en;
+  vrna_fold_compound_t  *fc;
+  vrna_md_t             md;
+
+  vrna_md_set_default(&md);
+
+  md.max_bp_span = md.window_size = maxdist;
+
+  fc = vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+
+  en = (float)fill_arrays_comparative(fc, cb, data) / 100.;
+
+  vrna_fold_compound_free(fc);
+
+  return en;
+}
+
+
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #
@@ -284,6 +369,9 @@ wrap_Lfold(vrna_fold_compound_t             *vc,
   struct svm_model  *avg_model  = NULL;
   struct svm_model  *sd_model   = NULL;
 #endif
+
+  if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
+    return (float)fill_arrays_comparative(vc, cb, data) / 100.;
 
   if (!vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW)) {
     vrna_message_warning("vrna_mfe_window@Lfold.c: Failed to prepare vrna_fold_compound");
@@ -1542,6 +1630,743 @@ repeat_gquad_exit:
 }
 
 
+PRIVATE int
+fill_arrays_comparative(vrna_fold_compound_t      *fc,
+                        vrna_mfe_window_callback  *cb,
+                        void                      *data)
+{
+  /* fill "c", "fML" and "f3" arrays and return  optimal energy */
+
+  char            **strings, **Ss, *prev;
+  unsigned short  **a2s;
+  short           **S, **S5, **S3;
+  int             **pscore, i, j, k, length, energy, turn, *rtype, decomp, new_fML, MLenergy,
+                  *type, type_2, tt, s, n_seq, lastf, lastf2, thisj, lastj, **c, **fML, *f3,
+                  *cc, *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2, energyout, energyprev, maxdist, dangle_model,
+                  noLP, do_backtrack, prev_i;
+  float           **dm;
+  vrna_mx_mfe_t   *matrices;
+  vrna_param_t    *P;
+  vrna_md_t       *md;
+
+  int             olddm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs PRIVATE needed??*/
+                                  { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
+                                  { 0, 2, 0, 1, 2, 2, 2 } /* GC */,
+                                  { 0, 2, 1, 0, 2, 1, 2 } /* GU */,
+                                  { 0, 1, 2, 2, 0, 2, 1 } /* UG */,
+                                  { 0, 2, 2, 1, 2, 0, 2 } /* AU */,
+                                  { 0, 2, 2, 2, 1, 2, 0 } /* UA */ };
+
+  do_backtrack  = 0;
+  prev_i        = 0;
+
+  lastf = lastf2 = INF;
+  dm    = NULL;
+  prev  = NULL;
+
+  strings       = fc->sequences;
+  S             = fc->S;
+  n_seq         = fc->n_seq;
+  length        = fc->length;
+  maxdist       = fc->window_size;
+  matrices      = fc->matrices;
+  P             = fc->params;
+  md            = &(P->model_details);
+  turn          = md->min_loop_size;
+  dangle_model  = md->dangles;
+  noLP          = md->noLP;
+  c             = fc->matrices->c_local;    /* energy array, given that i-j pair */
+  fML           = fc->matrices->fML_local;  /* multi-loop auxiliary energy array */
+  f3            = fc->matrices->f3_local;   /* energy of 5' end */
+  if (md->ribo) {
+    if (RibosumFile != NULL)
+      dm = readribosum(RibosumFile);
+    else
+      dm = get_ribosum((const char **)strings, n_seq, S[0][0]);
+  } else {
+    /*use usual matrix*/
+    dm = (float **)vrna_alloc(7 * sizeof(float *));
+    for (i = 0; i < 7; i++) {
+      dm[i] = (float *)vrna_alloc(7 * sizeof(float));
+      for (j = 0; j < 7; j++)
+        dm[i][j] = (float)olddm[i][j];
+    }
+  }
+
+  for (i = length; (i >= (int)length - (int)maxdist - 4) && (i > 0); i--)
+    make_pscores(fc, i, dm);
+
+  pscore  = fc->pscore_local; /* precomputed array of pair types */
+  S       = fc->S;
+  S5      = fc->S5;           /*S5[s][i] holds next base 5' of i in sequence s*/
+  S3      = fc->S3;           /*Sl[s][i] holds next base 3' of i in sequence s*/
+  Ss      = fc->Ss;
+  a2s     = fc->a2s;
+  rtype   = &(md->rtype[0]);
+
+  cc    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+  cc1   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+  Fmi   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+  DMLi  = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+  DMLi1 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+  DMLi2 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+
+  type = (int *)vrna_alloc(n_seq * sizeof(int));
+  for (j = 0; j < maxdist + 5; j++)
+    Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
+  for (j = length; j > length - maxdist - 3; j--)
+    for (i = (length - maxdist - 2 > 0) ? length - maxdist - 2 : 1; i < j; i++)
+      c[i][j - i] = fML[i][j - i] = INF;
+
+  for (i = length - turn - 1; i >= 1; i--) {
+    /* i,j in [1..length] */
+    for (j = i + 1; j <= length && j <= i + turn; j++)
+      c[i][j - i] = fML[i][j - i] = INF;
+    for (j = i + turn + 1; j <= length && j <= i + maxdist; j++) {
+      int p, q, psc;
+      /* bonus = 0;*/
+      for (s = 0; s < n_seq; s++) {
+        type[s] = md->pair[S[s][i]][S[s][j]];
+        if (type[s] == 0)
+          type[s] = 7;
+      }
+
+      psc = pscore[i][j - i];
+      if (psc >= cv_fact * MINPSCORE) {
+        /* we have a pair 2 consider */
+        int new_c = 0, stackEnergy = INF;
+        /* hairpin ----------------------------------------------*/
+        for (new_c = s = 0; s < n_seq; s++) {
+          if ((a2s[s][j - 1] - a2s[s][i]) < 3)
+            new_c += 600;
+          else
+            new_c += E_Hairpin(a2s[s][j - 1] - a2s[s][i], type[s], S3[s][i], S5[s][j], Ss[s] + (a2s[s][i - 1]), P);
+        }
+        /*--------------------------------------------------------
+         *  check for elementary structures involving more than one
+         *  closing pair.
+         *  --------------------------------------------------------*/
+        for (p = i + 1; p <= MIN2(j - 2 - turn, i + MAXLOOP + 1); p++) {
+          int minq = j - i + p - MAXLOOP - 2;
+          if (minq < p + 1 + turn)
+            minq = p + 1 + turn;
+
+          for (q = minq; q < j; q++) {
+            if (pscore[p][q - p] < MINPSCORE)
+              continue;
+
+            for (energy = s = 0; s < n_seq; s++) {
+              type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
+              if (type_2 == 0)
+                type_2 = 7;
+
+              energy += E_IntLoop(a2s[s][p - 1] - a2s[s][i],
+                                  a2s[s][j - 1] - a2s[s][q],
+                                  type[s],
+                                  type_2,
+                                  S3[s][i],
+                                  S5[s][j],
+                                  S5[s][p],
+                                  S3[s][q],
+                                  P);
+            }
+            new_c = MIN2(energy + c[p][q - p], new_c);
+            if ((p == i + 1) && (j == q + 1))
+              stackEnergy = energy;                       /* remember stack energy */
+          } /* end q-loop */
+        } /* end p-loop */
+
+
+        /* multi-loop decomposition ------------------------*/
+        decomp = DMLi1[j - 1 - (i + 1)];
+        if (dangle_model) {
+          for (s = 0; s < n_seq; s++) {
+            tt      = rtype[type[s]];
+            decomp  += E_MLstem(tt, S5[s][j], S3[s][i], P);
+          }
+        } else {
+          for (s = 0; s < n_seq; s++) {
+            tt      = rtype[type[s]];
+            decomp  += E_MLstem(tt, -1, -1, P);
+          }
+        }
+
+        MLenergy  = decomp + n_seq * P->MLclosing;
+        new_c     = MIN2(new_c, MLenergy);
+
+        new_c     = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
+        cc[j - i] = new_c - psc; /* add covariance bonnus/penalty */
+        if (noLP)
+          c[i][j - i] = cc1[j - 1 - (i + 1)] + stackEnergy - psc;
+        else
+          c[i][j - i] = cc[j - i];
+      } /* end >> if (pair) << */
+      else {
+        c[i][j - i] = INF;
+      }
+
+      /* done with c[i,j], now compute fML[i,j] */
+      /* free ends ? -----------------------------------------*/
+
+      new_fML = fML[i + 1][j - i - 1] + n_seq * P->MLbase;
+      new_fML = MIN2(fML[i][j - 1 - i] + n_seq * P->MLbase, new_fML);
+      energy  = c[i][j - i] /*+P->MLintern[type]*/;
+      if (dangle_model)
+        for (s = 0; s < n_seq; s++)
+          energy += E_MLstem(type[s], (i > 1) ? S5[s][i] : -1, (j < length) ? S3[s][j] : -1, P);
+
+      else
+        for (s = 0; s < n_seq; s++)
+          energy += E_MLstem(type[s], -1, -1, P);
+
+      new_fML = MIN2(energy, new_fML);
+
+      /* modular decomposition -------------------------------*/
+
+      for (decomp = INF, k = i + 1 + turn; k <= j - 2 - turn; k++)
+        decomp = MIN2(decomp, Fmi[k - i] + fML[k + 1][j - k - 1]);
+
+      DMLi[j - i] = decomp;               /* store for use in ML decompositon */
+      new_fML     = MIN2(new_fML, decomp);
+
+
+      fML[i][j - i] = Fmi[j - i] = new_fML;     /* substring energy */
+    } /* for (j...) */
+
+    /* calculate energies of 5' and 3' fragments */
+    {
+      char  *ss;
+      int   thisf = 0;
+      f3[i] = f3[i + 1];
+      for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
+        if (c[i][j - i] < INF) {
+          /*        if (c[j+1]<INF) {*/
+          energy = c[i][j - i];
+          if (dangle_model) {
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
+
+              energy += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, S3[s][j], P);
+            }
+          } else {
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
+
+              energy += E_ExtLoop(tt, -1, -1, P);
+            }
+          }
+
+          if (energy / (j - i + 1) < thisf) {
+            thisf = energy / (j - i + 1);
+            thisj = j;
+          }
+
+          energy += f3[j + 1];
+          if (f3[i] > energy)
+            f3[i] = energy;
+        }
+      }
+      if (length <= i + maxdist) {
+        j = length;
+        if (c[i][j - i] < INF) {
+          energy = c[i][j - i];
+          if (dangle_model) {
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
+
+              energy += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, -1, P);
+            }
+          } else {
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
+
+              energy += E_ExtLoop(tt, -1, -1, P);
+            }
+          }
+
+          /*  thisf=MIN2(energy/(j-i+1),thisf); ???*/
+          if (energy / (j - i + 1) < thisf) {
+            thisf = energy / (j - i + 1);
+            thisj = j;
+          }
+
+          f3[i] = MIN2(f3[i], energy);
+        }
+      }
+
+      /* backtrack partial structure */
+      /* if (i+maxdist<length) {*/
+      if (i < length - 1) {
+        if (f3[i] != f3[i + 1]) {
+          do_backtrack    = 1;
+          backtrack_type  = 'F';
+          if (prev_i == 0) {
+            free(prev);
+            prev          = backtrack_comparative(fc, i, MIN2(maxdist, length - i));
+            prev_i        = i;
+            do_backtrack  = 0;
+            lastf2        = lastf;
+            energyprev    = f3[i];
+          }
+        } else if ((thisf < lastf) && (thisf < lastf2) && ((thisf / (n_seq * 100)) < -0.01)) {
+          /*?????????*/
+          do_backtrack    = 2;
+          backtrack_type  = 'C';
+        } else if (do_backtrack) {
+          if (do_backtrack == 1) {
+            ss        = backtrack_comparative(fc, i + 1, MIN2(maxdist, length - i) /*+1*/);
+            energyout = f3[i] - f3[i + strlen(ss) - 1];/*??*/
+          } else {
+            ss        = backtrack_comparative(fc, i + 1, lastj - i - 2);
+            energyout = c[i + 1][lastj - (i + 1)];
+            if (dangle_model) {
+              for (s = 0; s < n_seq; s++) {
+                int type;
+                type = md->pair[S[s][i + 1]][S[s][lastj - i]];
+                if (type == 0)
+                  type = 7;
+
+                energyout += E_ExtLoop(type, (i > 1) ? S5[s][i + 1] : -1, S3[s][lastj - i], P);
+              }
+            } else {
+              for (s = 0; s < n_seq; s++) {
+                int type;
+                type = md->pair[S[s][i + 1]][S[s][lastj - i]];
+                if (type == 0)
+                  type = 7;
+
+                energyout += E_ExtLoop(type, -1, -1, P);
+              }
+            }
+          }
+
+          if ((prev) && ((prev_i + strlen(prev) > i + 1 + strlen(ss)) || (do_backtrack == 2))) {
+            char *outstr = (char *)vrna_alloc(sizeof(char) * (strlen(prev) + 1));
+            strncpy(outstr, strings[0] + prev_i - 1, strlen(prev));
+            outstr[strlen(prev)] = '\0';
+
+            /* execute callback */
+            cb(prev_i, prev_i + (int)strlen(prev) - 1, prev, energyprev / (100. * n_seq), data);
+
+            free(outstr);
+          }
+
+          free(prev);
+          prev            = ss;
+          energyprev      = energyout;
+          prev_i          = i + 1;
+          do_backtrack    = 0;
+          backtrack_type  = 'F';
+        }
+      }
+
+      lastf2  = lastf;
+      lastf   = thisf;
+      lastj   = thisj;
+
+
+      if (i == 1) {
+        char *outstr = NULL;
+        if (prev) {
+          outstr = (char *)vrna_alloc(sizeof(char) * (strlen(prev) + 1));
+          strncpy(outstr, strings[0] + prev_i - 1, strlen(prev));
+          outstr[strlen(prev)] = '\0';
+
+          /* execute callback */
+          cb(prev_i, prev_i + (int)strlen(prev) - 1, prev, (energyprev) / (100. * n_seq), data);
+        }
+
+        if ((f3[prev_i] != f3[1]) || !prev) {
+          ss = backtrack_comparative(fc, i, maxdist);
+          free(outstr);
+
+          outstr = (char *)vrna_alloc(sizeof(char) * (strlen(ss) + 1));
+          strncpy(outstr, strings[0], strlen(ss));
+          outstr[strlen(ss)] = '\0';
+          printf("%s \n", outstr);
+
+          /* execute callback */
+          cb(1, (int)strlen(ss) - 1, ss, (f3[1] - f3[1 + strlen(ss) - 1]) / (100. * n_seq), data);
+
+          free(ss);
+          ss = NULL;
+        }
+
+        free(outstr);
+        free(prev);
+        prev = NULL;
+      }
+    }
+    {
+      int ii, *FF; /* rotate the auxilliary arrays */
+      FF    = DMLi2;
+      DMLi2 = DMLi1;
+      DMLi1 = DMLi;
+      DMLi  = FF;
+      FF    = cc1;
+      cc1   = cc;
+      cc    = FF;
+      for (j = 0; j < maxdist + 5; j++)
+        cc[j] = Fmi[j] = DMLi[j] = INF;
+      if (i <= length - maxdist - 4) {
+        matrices->c_local[i - 1]              = matrices->c_local[i + maxdist + 4];
+        matrices->c_local[i + maxdist + 4]    = NULL;
+        matrices->fML_local[i - 1]            = matrices->fML_local[i + maxdist + 4];
+        matrices->fML_local[i + maxdist + 4]  = NULL;
+        fc->pscore_local[i - 1]               = fc->pscore_local[i + maxdist + 4];
+        fc->pscore_local[i + maxdist + 4]     = NULL;
+        c                                     = matrices->c_local;
+        fML                                   = matrices->fML_local;
+
+        if (i > 1)
+          make_pscores(fc, i - 1, dm);
+
+        pscore = fc->pscore_local;  /* precomputed array of pair types */
+
+        for (ii = 0; ii < maxdist + 5; ii++)
+          c[i - 1][ii] = fML[i - 1][ii] = INF;
+      }
+    }
+  }
+
+  free(type);
+  free(cc);
+  free(cc1);
+  free(Fmi);
+  free(DMLi);
+  free(DMLi1);
+  free(DMLi2);
+
+  for (i = 0; i < 7; i++)
+    free(dm[i]);
+  free(dm);
+
+  return matrices->f3[1];
+}
+
+
+PRIVATE char *
+backtrack_comparative(vrna_fold_compound_t  *fc,
+                      int                   start,
+                      int                   maxdist)
+{
+  /*------------------------------------------------------------------
+   *  trace back through the "c", "f3" and "fML" arrays to get the
+   *  base pairing list. No search for equivalent structures is done.
+   *  This is fast, since only few structure elements are recalculated.
+   *  ------------------------------------------------------------------*/
+  sect            sector[MAXSECTORS]; /* backtracking sectors */
+
+  char            *structure, **Ss;
+  unsigned short  **a2s;
+  short           **S, **S5, **S3;
+  int             **pscore, i, j, k, energy, length, turn, dangle_model, noLP, *type, type_2, tt, n_seq,
+                  *rtype, s, ss, **c, **fML, *f3;
+  vrna_param_t    *P;
+  vrna_md_t       *md;
+
+  n_seq         = fc->n_seq;
+  length        = fc->length;
+  S             = fc->S;
+  S5            = fc->S5; /*S5[s][i] holds next base 5' of i in sequence s*/
+  S3            = fc->S3; /*Sl[s][i] holds next base 3' of i in sequence s*/
+  Ss            = fc->Ss;
+  a2s           = fc->a2s;
+  pscore        = fc->pscore_local; /* precomputed array of pair types */
+  P             = fc->params;
+  md            = &(P->model_details);
+  rtype         = &(md->rtype[0]);
+  dangle_model  = md->dangles;
+  noLP          = md->noLP;
+
+  c   = fc->matrices->c_local;    /* energy array, given that i-j pair */
+  fML = fc->matrices->fML_local;  /* multi-loop auxiliary energy array */
+  f3  = fc->matrices->f3_local;   /* energy of 5' end */
+
+  type          = (int *)vrna_alloc(n_seq * sizeof(int));
+  s             = 0;
+  turn          = md->min_loop_size;
+  sector[++s].i = start;
+  sector[s].j   = MIN2(length, start + maxdist + 1);
+  sector[s].ml  = (backtrack_type == 'M') ? 1 : ((backtrack_type == 'C') ? 2 : 0);
+
+  structure = (char *)vrna_alloc((MIN2(length - start, maxdist) + 3) * sizeof(char));
+  for (i = 0; i <= MIN2(length - start, maxdist); i++)
+    structure[i] = '.';
+
+  while (s > 0) {
+    int ml, fij, cij, traced, i1, j1, mm, p, q, jj = 0;
+    int canonical = 1;     /* (i,j) closes a canonical structure */
+    i   = sector[s].i;
+    j   = sector[s].j;
+    ml  = sector[s--].ml;  /* ml is a flag indicating if backtracking is to
+                           * occur in the fML- (1) or in the f-array (0) */
+    if (ml == 2) {
+      structure[i - start]  = '(';
+      structure[j - start]  = ')';
+      goto repeat1_comparative;
+    }
+
+    if (j < i + turn + 1)
+      continue;                 /* no more pairs in this interval */
+
+    fij = (ml) ? fML[i][j - i] : f3[i];
+
+    if (ml == 0) {
+      /* backtrack in f3 */
+
+      if (fij == f3[i + 1]) {
+        sector[++s].i = i + 1;
+        sector[s].j   = j;
+        sector[s].ml  = ml;
+        continue;
+      }
+
+      /* i is paired. Find pairing partner */
+      for (k = i + turn + 1, traced = 0; k <= j; k++) {
+        int cc;
+        jj  = k + 1;
+        cc  = c[i][k - (i)];
+        if (cc < INF) {
+          if (dangle_model) {
+            for (ss = 0; ss < n_seq; ss++) {
+              type[ss] = md->pair[S[ss][i]][S[ss][k]];
+              if (type[ss] == 0)
+                type[ss] = 7;
+
+              cc += E_ExtLoop(type[ss], (i > 1) ? S5[ss][i] : -1, (k < length) ? S3[ss][k] : -1, P);
+            }
+          } else {
+            for (ss = 0; ss < n_seq; ss++) {
+              type[ss] = md->pair[S[ss][i]][S[ss][k]];
+              if (type[ss] == 0)
+                type[ss] = 7;
+
+              cc += E_ExtLoop(type[ss], -1, -1, P);
+            }
+          }
+
+          if (fij == cc + f3[k + 1])
+            traced = i;
+        }
+
+        if (traced)
+          break;
+      }
+
+      if (!traced)
+        vrna_message_error("backtrack failed in f3");
+
+      if (j == length) {
+        /* backtrack only one component, unless j==length */
+        sector[++s].i = jj;
+        sector[s].j   = j;
+        sector[s].ml  = ml;
+      }
+
+      i                     = traced;
+      j                     = k;
+      structure[i - start]  = '(';
+      structure[j - start]  = ')';
+      goto repeat1_comparative;
+    } else {
+      /* trace back in fML array */
+      if (fML[i][j - 1 - i] + n_seq * P->MLbase == fij) {
+        /* 3' end is unpaired */
+        sector[++s].i = i;
+        sector[s].j   = j - 1;
+        sector[s].ml  = ml;
+        continue;
+      }
+
+      if (fML[i + 1][j - (i + 1)] + n_seq * P->MLbase == fij) {
+        /* 5' end is unpaired */
+        sector[++s].i = i + 1;
+        sector[s].j   = j;
+        sector[s].ml  = ml;
+        continue;
+      }
+
+      cij = c[i][j - i];
+      if (dangle_model) {
+        for (ss = 0; ss < n_seq; ss++) {
+          tt = md->pair[S[ss][i]][S[ss][j]];
+          if (tt == 0)
+            tt = 7;
+
+          cij += E_MLstem(tt, (i > 1) ? S5[ss][i] : -1, (j < length) ? S3[ss][j] : -1, P);
+        }
+      } else {
+        for (ss = 0; ss < n_seq; ss++) {
+          tt = md->pair[S[ss][i]][S[ss][j]];
+          if (tt == 0)
+            tt = 7;
+
+          cij += E_MLstem(tt, -1, -1, P);
+        }
+      }
+
+      if (fij == cij) {
+        /* found a pair */
+        structure[i - start]  = '(';
+        structure[j - start]  = ')';
+        goto repeat1_comparative;
+      }
+
+      for (k = i + 1 + turn; k <= j - 2 - turn; k++)
+        if (fij == (fML[i][k - i] + fML[k + 1][j - (k + 1)]))
+          break;
+
+      sector[++s].i = i;
+      sector[s].j   = k;
+      sector[s].ml  = ml;
+      sector[++s].i = k + 1;
+      sector[s].j   = j;
+      sector[s].ml  = ml;
+
+      if (k > j - 2 - turn)
+        vrna_message_error("backtrack failed in fML");
+
+      continue;
+    }
+
+repeat1_comparative:
+
+    /*----- begin of "repeat:" -----*/
+    if (canonical)
+      cij = c[i][j - i];
+
+    for (ss = 0; ss < n_seq; ss++) {
+      type[ss] = md->pair[S[ss][i]][S[ss][j]];
+      if (type[ss] == 0)
+        type[ss] = 7;
+    }
+
+    /*    bonus = 0;*/
+
+    if (noLP) {
+      if (cij == c[i][j - i]) {
+        /* (i.j) closes canonical structures, thus
+         *  (i+1.j-1) must be a pair                */
+        for (ss = 0; ss < n_seq; ss++) {
+          type_2 = md->pair[S[ss][j - 1]][S[ss][i + 1]];  /* j,i not i,j */
+          if (type_2 == 0)
+            type_2 = 7;
+
+          cij -= P->stack[type[ss]][type_2];
+        }
+        cij                       += pscore[i][j - i];
+        structure[i + 1 - start]  = '(';
+        structure[j - 1 - start]  = ')';
+        i++;
+        j--;
+        canonical = 0;
+        goto repeat1_comparative;
+      }
+    }
+
+    canonical = 1;
+    cij       += pscore[i][j - i];
+
+    {
+      int cc = 0;
+      for (ss = 0; ss < n_seq; ss++) {
+        if ((a2s[ss][j - 1] - a2s[ss][i]) < 3)
+          cc += 600;
+        else
+          cc += E_Hairpin(a2s[ss][j - 1] - a2s[ss][i], type[ss], S3[ss][i], S5[ss][j], Ss[ss] + a2s[ss][i - 1], P);
+      }
+      if (cij == cc) /* found hairpin */
+        continue;
+    }
+
+    for (p = i + 1; p <= MIN2(j - 2 - turn, i + MAXLOOP + 1); p++) {
+      int minq;
+      minq = j - i + p - MAXLOOP - 2;
+      if (minq < p + 1 + turn)
+        minq = p + 1 + turn;
+
+      for (q = j - 1; q >= minq; q--) {
+        if (c[p][q - p] >= INF)
+          continue;
+
+        for (ss = energy = 0; ss < n_seq; ss++) {
+          type_2 = md->pair[S[ss][q]][S[ss][p]];  /* q,p not p,q */
+          if (type_2 == 0)
+            type_2 = 7;
+
+          energy += E_IntLoop(a2s[ss][p - 1] - a2s[ss][i],
+                              a2s[ss][j - 1] - a2s[ss][q],
+                              type[ss],
+                              type_2,
+                              S3[ss][i],
+                              S5[ss][j],
+                              S5[ss][p],
+                              S3[ss][q],
+                              P);
+        }
+        traced = (cij == energy + c[p][q - p]);
+        if (traced) {
+          structure[p - start]  = '(';
+          structure[q - start]  = ')';
+          i                     = p, j = q;
+          goto repeat1_comparative;
+        }
+      }
+    }
+
+    /* end of repeat: --------------------------------------------------*/
+
+    /* (i.j) must close a multi-loop */
+    mm = n_seq * P->MLclosing;
+    if (dangle_model) {
+      for (ss = 0; ss < n_seq; ss++) {
+        tt  = rtype[type[ss]];
+        mm  += E_MLstem(tt, S5[ss][j], S3[ss][i], P);
+      }
+    } else {
+      for (ss = 0; ss < n_seq; ss++) {
+        tt  = rtype[type[ss]];
+        mm  += E_MLstem(tt, -1, -1, P);
+      }
+    }
+
+    i1                = i + 1;
+    j1                = j - 1;
+    sector[s + 1].ml  = sector[s + 2].ml = 1;
+
+    for (k = i + turn + 2; k < j - turn - 2; k++)
+      if (cij == fML[i + 1][k - (i + 1)] + fML[k + 1][j - 1 - (k + 1)] + mm)
+        break;
+
+    if (k <= j - 3 - turn) {
+      /* found the decomposition */
+      sector[++s].i = i1;
+      sector[s].j   = k;
+      sector[++s].i = k + 1;
+      sector[s].j   = j1;
+    } else {
+      vrna_message_error("backtracking failed in repeat");
+    }
+  }
+  if (start + maxdist < length)
+    for (i = strlen(structure); i > 0 && structure[i - 1] == '.'; i--)
+      structure[i] = '\0';
+
+  free(type);
+
+  return structure;
+}
+
+
 PRIVATE void
 make_ptypes(vrna_fold_compound_t  *vc,
             int                   i)
@@ -1574,6 +2399,100 @@ make_ptypes(vrna_fold_compound_t  *vc,
 
     ptype[i][j - i] = type;
   }
+}
+
+
+PRIVATE double
+cov_score(vrna_fold_compound_t  *fc,
+          int                   i,
+          int                   j,
+          float                 **dm)
+{
+  char      **AS;
+  short     **S;
+  int       n_seq, k, l, s, type;
+  double    score;
+  vrna_md_t *md;
+  int       pfreq[8] = {
+    0, 0, 0, 0, 0, 0, 0, 0
+  };
+
+  n_seq = fc->n_seq;
+  AS    = fc->sequences;
+  S     = fc->S;
+  md    = &(fc->params->model_details);
+
+  for (s = 0; s < n_seq; s++) {
+    if (S[s][i] == 0 && S[s][j] == 0) {
+      type = 7;                             /* gap-gap  */
+    } else {
+      if ((AS[s][i] == '~') || (AS[s][j] == '~'))
+        type = 7;
+      else
+        type = md->pair[S[s][i]][S[s][j]];
+    }
+
+    pfreq[type]++;
+  }
+
+  if (pfreq[0] * 2 + pfreq[7] > n_seq) {
+    return NONE;
+  } else {
+    for (k = 1, score = 0.; k <= 6; k++) /* ignore pairtype 7 (gap-gap) */
+      for (l = k; l <= 6; l++)
+        /* scores for replacements between pairtypes    */
+        /* consistent or compensatory mutations score 1 or 2  */
+        score += pfreq[k] * pfreq[l] * dm[k][l];
+  }
+
+  /* counter examples score -1, gap-gap scores -0.25   */
+  return md->cv_fact * ((UNIT * score) / n_seq - md->nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
+}
+
+
+PRIVATE void
+make_pscores(vrna_fold_compound_t *fc,
+             int                  i,
+             float                **dm)
+{
+  /* calculate co-variance bonus for each pair depending on  */
+  /* compensatory/consistent mutations and incompatible seqs */
+  /* should be 0 for conserved pairs, >0 for good pairs      */
+  int       n, j, **pscore, maxd, turn, noLP;
+  vrna_md_t *md;
+
+  n       = (int)fc->length;
+  maxd    = fc->window_size;
+  pscore  = fc->pscore_local;
+  md      = &(fc->params->model_details);
+  turn    = md->min_loop_size;
+  noLP    = md->noLP;
+
+  /*fill pscore[start], too close*/
+  for (j = i + 1; (j < i + turn + 1) && (j <= n); j++)
+    pscore[i][j - i] = NONE;
+  for (j = i + turn + 1; ((j <= n) && (j <= i + maxd)); j++)
+    pscore[i][j - i] = cov_score(fc, i, j, dm);
+
+  if (noLP) {
+    /* remove unwanted lonely pairs */
+    int otype = 0, ntype = 0;
+    for (j = i + turn; ((j < n) && (j < i + maxd)); j++) {
+      if ((i > 1) && (j < n))
+        otype = cov_score(fc, i - 1, j + 1, dm);
+
+      if (i < n)
+        ntype = pscore[i + 1][j - 1 - (i + 1)];
+      else
+        ntype = NONE;
+
+      if ((otype < -4 * UNIT) && (ntype < -4 * UNIT)) /* worse than 2 counterex */
+        pscore[i][j - i] = NONE;                      /* i.j can only form isolated pairs */
+    }
+  }
+
+  if ((j - i + 1) > maxd)
+    pscore[i][j - i] = NONE;
 }
 
 
@@ -1614,6 +2533,21 @@ default_callback_z(int        start,
 
 
 #endif
+
+
+PRIVATE void
+default_callback_comparative(int        start,
+                             int        end,
+                             const char *structure,
+                             float      en,
+                             void       *data)
+{
+  if (csv == 1)
+    printf("%s ,%6.2f, %4d, %4d\n", structure, en, start, end);
+  else
+    printf("%s (%6.2f) %4d - %4d\n", structure, en, start, end);
+}
+
 
 /*###########################################*/
 /*# deprecated functions below              #*/
@@ -1672,6 +2606,47 @@ Lfoldz(const char *string,
   vrna_fold_compound_free(vc);
 
   return energy;
+}
+
+
+PUBLIC float
+aliLfold(const char *strings[],
+         char       *structure,
+         int        maxdist)
+{
+  vrna_md_t md;
+  hit_data  data;
+
+  set_model_details(&md);
+
+  data.output       = stdout;
+  data.dangle_model = md.dangles;
+
+  return aliLfold_cb(strings, maxdist, &default_callback_comparative, (void *)&data);
+}
+
+
+PUBLIC float
+aliLfold_cb(const char                **AS,
+            int                       maxdist,
+            vrna_mfe_window_callback  *cb,
+            void                      *data)
+{
+  float                 en;
+  vrna_fold_compound_t  *fc;
+  vrna_md_t             md;
+
+  set_model_details(&md);
+
+  md.max_bp_span = md.window_size = maxdist;
+
+  fc = vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+
+  en = vrna_mfe_window_cb(fc, cb, data);
+
+  vrna_fold_compound_free(fc);
+
+  return en;
 }
 
 
