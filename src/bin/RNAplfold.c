@@ -26,6 +26,8 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/file_formats.h"
 #include "RNAplfold_cmdl.h"
+#include "gengetopt_helper.h"
+#include "input_id_helper.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -43,11 +45,12 @@ main(int  argc,
 {
   FILE                        *pUfp, *spup;
   struct RNAplfold_args_info  args_info;
-  char                        *fname, *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id,
-                              **rec_rest, *orig_sequence;
+  char                        *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id,
+                              **rec_rest, *orig_sequence, *id_prefix, *id_delim, *filename_delim;
   unsigned int                rec_type, read_opt;
   int                         length, istty, winsize, pairdist, tempwin, temppair, tempunpaired, noconv,
-                              plexoutput, simply_putout, openenergies, binaries;
+                              plexoutput, simply_putout, openenergies, binaries, auto_id, id_digits, filename_full;
+  long int                    seq_number;
   float                       cutoff;
   double                      **pup, betaScale;
   plist                       *pl, *dpp;
@@ -72,7 +75,8 @@ main(int  argc,
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
   pf_parameters = NULL;
-  fname         = NULL;
+  auto_id       = 0;
+  filename_full = 0;
 
   set_model_details(&md);
 
@@ -83,6 +87,14 @@ main(int  argc,
    */
   if (RNAplfold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  /* parse options for ID manipulation */
+  ggo_get_ID_manipulation(args_info,
+                          auto_id,
+                          id_prefix, "sequence",
+                          id_delim, "_",
+                          id_digits, 4,
+                          seq_number, 1);
 
   /* temperature */
   if (args_info.temp_given)
@@ -169,6 +181,21 @@ main(int  argc,
     exit(EXIT_FAILURE);
   }
 
+  /* filename sanitize delimiter */
+  if (args_info.filename_delim_given)
+    filename_delim = strdup(args_info.filename_delim_arg);
+  else
+    filename_delim = strdup(id_delim);
+
+  if (isspace(*filename_delim)) {
+    free(filename_delim);
+    filename_delim = NULL;
+  }
+
+  /* full filename from FASTA header support */
+  if (args_info.filename_full_given)
+    filename_full = 1;
+
   /* free allocated memory of command line data structure */
   RNAplfold_cmdline_parser_free(&args_info);
 
@@ -217,21 +244,17 @@ main(int  argc,
   while (
     !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
       & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
+    char *SEQ_ID = NULL;
     /*
      ########################################################
      # init everything according to the data we've read
      ########################################################
      */
-    if (rec_id) {
-      /* remove '>' from FASTA header */
+    if (rec_id) /* remove '>' from FASTA header */
       rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
-      if (!istty)
-        print_fasta_header(stdout, rec_id);
 
-      fname = strdup(rec_id);
-      (void)sscanf(rec_id, "%s", fname); /* truncate to first word */
-      fname = (char *)vrna_realloc(fname, sizeof(char) * (strlen(fname) + 1));
-    }
+    /* construct the sequence ID */
+    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
 
     length    = (int)strlen(rec_sequence);
     structure = (char *)vrna_alloc((unsigned)length + 1);
@@ -244,6 +267,12 @@ main(int  argc,
     orig_sequence = strdup(rec_sequence);
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
+
+#if 0
+    if (!istty)
+      print_fasta_header(stdout, rec_id);
+
+#endif
 
     if (istty)
       vrna_message_info(stdout, "length = %d", length);
@@ -310,31 +339,29 @@ main(int  argc,
       /* construct output file names */
       char *fname1, *fname2, *fname3, *fname4, *ffname, *tmp_string;
 
-      if ((!fname) || (fname[0] == '\0')) {
-        free(fname);
-        fname = strdup("plfold");
-      }
+      if (!SEQ_ID)
+        SEQ_ID = strdup("plfold");
 
-      fname1  = vrna_strdup_printf("%s_lunp", fname);
-      fname2  = vrna_strdup_printf("%s_basepairs", fname);
-      fname3  = vrna_strdup_printf("%s_uplex", fname);
-      fname4  = (binaries) ? vrna_strdup_printf("%s_openen_bin", fname) : vrna_strdup_printf("%s_openen", fname);
-      ffname  = vrna_strdup_printf("%s_dp.ps", fname);
+      fname1  = vrna_strdup_printf("%s%slunp", SEQ_ID, id_delim);
+      fname2  = vrna_strdup_printf("%s%sbasepairs", SEQ_ID, id_delim);
+      fname3  = vrna_strdup_printf("%s%suplex", SEQ_ID, id_delim);
+      fname4  = (binaries) ? vrna_strdup_printf("%s%sopenen%sbin", SEQ_ID, id_delim, id_delim) : vrna_strdup_printf("%s%sopenen", SEQ_ID, id_delim);
+      ffname  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
 
       /* sanitize filenames */
-      tmp_string = vrna_filename_sanitize(fname1, "_");
+      tmp_string = vrna_filename_sanitize(fname1, filename_delim);
       free(fname1);
       fname1      = tmp_string;
-      tmp_string  = vrna_filename_sanitize(fname2, "_");
+      tmp_string  = vrna_filename_sanitize(fname2, filename_delim);
       free(fname2);
       fname2      = tmp_string;
-      tmp_string  = vrna_filename_sanitize(fname3, "_");
+      tmp_string  = vrna_filename_sanitize(fname3, filename_delim);
       free(fname3);
       fname3      = tmp_string;
-      tmp_string  = vrna_filename_sanitize(fname4, "_");
+      tmp_string  = vrna_filename_sanitize(fname4, filename_delim);
       free(fname4);
       fname4      = tmp_string;
-      tmp_string  = vrna_filename_sanitize(ffname, "_");
+      tmp_string  = vrna_filename_sanitize(ffname, filename_delim);
       free(ffname);
       ffname = tmp_string;
 
@@ -400,15 +427,22 @@ main(int  argc,
     free(rec_sequence);
     free(orig_sequence);
     free(structure);
-    free(fname);
-    fname     = NULL;
+    free(SEQ_ID);
+
     rec_id    = rec_sequence = orig_sequence = NULL;
     rec_rest  = NULL;
-    /* print user help for the next round if we get input from tty */
 
+    ID_number_increase(seq_number, "Sequence");
+
+    /* print user help for the next round if we get input from tty */
     if (istty)
       vrna_message_input_seq_simple();
   }
+
+  free(id_prefix);
+  free(id_delim);
+  free(filename_delim);
+
   return EXIT_SUCCESS;
 }
 
