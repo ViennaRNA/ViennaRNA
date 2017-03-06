@@ -26,6 +26,8 @@
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/file_formats.h"
 #include "RNAheat_cmdl.h"
+#include "gengetopt_helper.h"
+#include "input_id_helper.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -52,21 +54,25 @@ main(int  argc,
      char *argv[])
 {
   struct RNAheat_args_info  args_info;
-  char                      *ns_bases, *c, *ParamFile, *rec_sequence, *rec_id, **rec_rest, *orig_sequence;
+  char                      *ns_bases, *c, *ParamFile, *rec_sequence, *rec_id, **rec_rest, *orig_sequence,
+                            *id_prefix, *id_delim;
   unsigned int              rec_type, read_opt;
-  int                       i, length, sym, mpoints, istty, noconv;
+  int                       i, length, sym, mpoints, istty, noconv, auto_id, id_digits, filename_full;
+  long int                  seq_number;
   float                     T_min, T_max, h;
 
-  ParamFile = ns_bases = NULL;
-  T_min     = 0.;
-  T_max     = 100.;
-  h         = 1;
-  mpoints   = 2;
-  noconv    = 0;
-  dangles   = 2;   /* dangles can be 0 (no dangles) or 2, default is 2 */
-  rec_type  = read_opt = 0;
-  rec_id    = rec_sequence = orig_sequence = NULL;
-  rec_rest  = NULL;
+  ParamFile     = ns_bases = NULL;
+  T_min         = 0.;
+  T_max         = 100.;
+  h             = 1;
+  mpoints       = 2;
+  noconv        = 0;
+  dangles       = 2; /* dangles can be 0 (no dangles) or 2, default is 2 */
+  rec_type      = read_opt = 0;
+  rec_id        = rec_sequence = orig_sequence = NULL;
+  rec_rest      = NULL;
+  auto_id       = 0;
+  filename_full = 0;
 
   /*
    #############################################
@@ -75,6 +81,14 @@ main(int  argc,
    */
   if (RNAheat_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  /* parse options for ID manipulation */
+  ggo_get_ID_manipulation(args_info,
+                          auto_id,
+                          id_prefix, "sequence",
+                          id_delim, "_",
+                          id_digits, 4,
+                          seq_number, 1);
 
   /* do not take special tetra loop energies into account */
   if (args_info.noTetra_given)
@@ -188,16 +202,17 @@ main(int  argc,
   while (
     !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
       & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
+    char *SEQ_ID = NULL;
     /*
      ########################################################
      # init everything according to the data we've read
      ########################################################
      */
-    if (rec_id && !istty) {
-      /* remove '>' from FASTA header */
+    if (rec_id) /* remove '>' from FASTA header */
       rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
-      print_fasta_header(stdout, rec_id);
-    }
+
+    /* construct the sequence ID */
+    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
 
     length = (int)strlen(rec_sequence);
 
@@ -209,6 +224,9 @@ main(int  argc,
     orig_sequence = strdup(rec_sequence);
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
+
+    if (!istty)
+      print_fasta_header(stdout, rec_id);
 
     if (istty)
       vrna_message_info(stdout, "length = %d", length);
@@ -224,16 +242,22 @@ main(int  argc,
 
     /* clean up */
     free(rec_id);
-
+    free(SEQ_ID);
     free(rec_sequence);
     free(orig_sequence);
     rec_id    = rec_sequence = orig_sequence = NULL;
     rec_rest  = NULL;
-    /* print user help for the next round if we get input from tty */
 
+    ID_number_increase(seq_number, "Sequence");
+
+    /* print user help for the next round if we get input from tty */
     if (istty)
       vrna_message_input_seq_simple();
   }
+
+  free(id_prefix);
+  free(id_delim);
+
   return EXIT_SUCCESS;
 }
 
