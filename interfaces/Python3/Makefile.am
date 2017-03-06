@@ -37,9 +37,11 @@ _RNA_la_CXXFLAGS = $(RNA_CXXFLAGS)
 _RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PYTHON3_INCLUDES)
 
 _RNA_la_LIBADD = $(LDADD) $(top_builddir)/src/ViennaRNA/libRNA_conv.la
+
 if VRNA_AM_SWITCH_SVM
-_RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
 _RNA_la_LIBADD += -lstdc++
+_RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
+RNA_CPPFLAGS += -DVRNA_WITH_SVM
 endif
 
 _RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -shrext $(PYTHON3_SO) $(PYTHON3_LDFLAGS)

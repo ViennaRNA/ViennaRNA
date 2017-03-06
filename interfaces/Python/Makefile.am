@@ -33,9 +33,11 @@ _RNA_la_CXXFLAGS = $(RNA_CXXFLAGS)
 _RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PYTHON2_INCLUDES)
 
 _RNA_la_LIBADD = $(LDADD) $(top_builddir)/src/ViennaRNA/libRNA_conv.la
+
 if VRNA_AM_SWITCH_SVM
-_RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
 _RNA_la_LIBADD += -lstdc++
+_RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
+RNA_CPPFLAGS += -DVRNA_WITH_SVM
 endif
 
 _RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -shrext $(PYTHON2_SO) $(PYTHON2_LDFLAGS)
@@ -55,7 +57,7 @@ if HAS_SWIG
 $(SWIG_wrapper): $(SWIG_src)
 	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
-                  $(_RNA_la_CPPFLAGS) \
+                  $(_RNA_CPPFLAGS) \
                   -python -modern  -c++ \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
