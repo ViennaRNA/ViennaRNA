@@ -18,6 +18,195 @@
 #define false 0
 #endif
 
+typedef enum {
+  INCREASED, DECREASED, SWITCHED
+} intervalType;
+
+typedef void (shiftsInInterval)(const vrna_fold_compound_t *,
+                                int,
+                                int,
+                                int,
+                                const short *,
+                                vrna_move_t *,
+                                int *);
+
+PRIVATE bool
+is_compatible(const vrna_fold_compound_t  *vc,
+              int                         i,
+              int                         j);
+
+
+PRIVATE bool
+is_crossing(size_t  i,
+            size_t  j,
+            size_t  k,
+            size_t  l);
+
+
+PRIVATE vrna_move_t *
+deletions(vrna_fold_compound_t  *vc,
+          const short           *pt,
+          int                   *length);
+
+
+PRIVATE vrna_move_t *
+insertions(vrna_fold_compound_t *vc,
+           const short          *pt,
+           int                  *length);
+
+
+PRIVATE void
+shift_bpins_to_right(const vrna_fold_compound_t *vc,
+                     int                        i,
+                     int                        start,
+                     int                        end,
+                     const short                *structure,
+                     vrna_move_t                *structures,
+                     int                        *count);
+
+
+PRIVATE void
+shift_bpins_to_left(const vrna_fold_compound_t  *vc,
+                    int                         i,
+                    int                         start,
+                    int                         end,
+                    const short                 *structure,
+                    vrna_move_t                 *structures,
+                    int                         *count);
+
+
+PRIVATE vrna_move_t *
+shifts(vrna_fold_compound_t *vc,
+       const short          *pt,
+       int                  *length);
+
+
+PRIVATE void
+shift_bpins_to_i_from_right(const vrna_fold_compound_t  *vc,
+                            int                         i,
+                            int                         start,
+                            int                         end,
+                            const short                 *structure,
+                            vrna_move_t                 *structures,
+                            int                         *count);
+
+
+PRIVATE void
+shift_bpins_to_i_from_left(const vrna_fold_compound_t *vc,
+                           int                        i,
+                           int                        start,
+                           int                        end,
+                           const short                *structure,
+                           vrna_move_t                *structures,
+                           int                        *count);
+
+
+PRIVATE void
+pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(
+  const vrna_fold_compound_t  *vc,
+  int                         i,
+  int                         start,
+  int                         end,
+  const short                 *structure,
+  vrna_move_t                 *structures,
+  int                         *count,
+  shiftsInInterval            *interval_func,
+  int                         includeBorder);
+
+
+PRIVATE void
+pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(
+  const vrna_fold_compound_t  *vc,
+  int                         i,
+  int                         start,
+  int                         end,
+  const short                 *structure,
+  vrna_move_t                 *structures,
+  int                         *count,
+  shiftsInInterval            *interval_func,
+  int                         includeBorder);
+
+
+PRIVATE void
+pairs_from_interval_into_shifts_to_interval(const vrna_fold_compound_t  *vc,
+                                            int                         i_start,
+                                            int                         i_end,
+                                            int                         start,
+                                            int                         end,
+                                            const short                 *structure,
+                                            vrna_move_t                 *structures,
+                                            int                         *count,
+                                            shiftsInInterval            *interval_func);
+
+
+PRIVATE vrna_move_t *
+generateInsertionsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compound_t *vc,
+                                                         const short                *structure,
+                                                         vrna_move_t                *freedInterval,
+                                                         intervalType               t,
+                                                         int                        positivePosition,
+                                                         int                        previousPairedPosition,
+                                                         int                        newPairedPosition,
+                                                         int                        *length);
+
+
+PRIVATE intervalType
+computeFreedInterval(const short        *structure,
+                     const vrna_move_t  *m,
+                     vrna_move_t        *freedInterval);
+
+
+PRIVATE vrna_move_t *
+generateShiftsAndInsertionsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compound_t  *vc,
+                                                                  const short                 *prev_pt,
+                                                                  const vrna_move_t           *curr_move,
+                                                                  int                         *length);
+
+
+PRIVATE vrna_move_t *
+generateCrossingShifts(const vrna_fold_compound_t *vc,
+                       const short                *structure,
+                       const vrna_move_t          *curr_move,
+                       int                        *length);
+
+
+PRIVATE vrna_move_t *
+generateCrossingInserts(const vrna_fold_compound_t  *vc,
+                        const short                 *structure,
+                        const vrna_move_t           *curr_move,
+                        int                         *length);
+
+
+PRIVATE vrna_move_t *
+buildNeighborsForDeletionMove(const vrna_fold_compound_t  *vc,
+                              const vrna_move_t           *curr_move,
+                              const short                 *prev_pt,
+                              const vrna_move_t           *prev_neighbors,
+                              int                         length,
+                              int                         *size_neighbors,
+                              unsigned int                options);
+
+
+PRIVATE vrna_move_t *
+buildNeighborsForInsertionMove(const vrna_fold_compound_t *vc,
+                               const vrna_move_t          *curr_move,
+                               const short                *prev_pt,
+                               const vrna_move_t          *prev_neighbors,
+                               int                        length,
+                               int                        *size_neighbors,
+                               unsigned int               options);
+
+
+PRIVATE vrna_move_t *
+buildNeighborsForShiftMove(const vrna_fold_compound_t *vc,
+                           const vrna_move_t          *curr_move,
+                           const short                *prev_pt,
+                           const vrna_move_t          *prev_neighbors,
+                           int                        length,
+                           int                        *size_neighbors,
+                           unsigned int               options);
+
+
 /**************************************/
 /* private helper methods             */
 /**************************************/
@@ -54,21 +243,22 @@ is_crossing(size_t  i,
 /**
  * delete all base pairs in a secondary RNA structure and return a list of single moves.
  */
-PRIVATE move *
+PRIVATE vrna_move_t *
 deletions(vrna_fold_compound_t  *vc,
           const short           *pt,
           int                   *length)
 {
-  int   len                       = vc->length;
-  int   maxStructures             = len / 2;
-  move  *listOfDeletionStructures = (move *)malloc(sizeof(move) * (maxStructures + 1));
-  int   count                     = 0;
+  int         len                       = vc->length;
+  int         maxStructures             = len / 2;
+  vrna_move_t *listOfDeletionStructures =
+    (vrna_move_t *)malloc(sizeof(vrna_move_t) * (maxStructures + 1));
+  int         count = 0;
 
   for (int i = 1; i <= len; i++) {
     if ((pt[i] != 0) & (pt[i] > i)) {
-      move *m = &listOfDeletionStructures[count];
-      m->bpLeft   = -i;
-      m->bpRight  = -pt[i];
+      vrna_move_t *m = &listOfDeletionStructures[count];
+      m->pos_5  = -i;
+      m->pos_3  = -pt[i];
       count++;
     }
   }
@@ -81,19 +271,20 @@ deletions(vrna_fold_compound_t  *vc,
 /**
  * insert all possible base pairs in an RNA secondary structure and return a list of single moves.
  */
-PRIVATE move *
+PRIVATE vrna_move_t *
 insertions(vrna_fold_compound_t *vc,
            const short          *pt,
            int                  *length)
 {
-  int   len = vc->length;
+  int         len = vc->length;
   /* estimate memory for structures. */
-  int   maxStructures = (len * len) / 2;
+  int         maxStructures = (len * len) / 2;
 
   /* generate structures */
-  move  *listOfInsertionStructures  = (move *)malloc(sizeof(move) * (maxStructures + 1));
-  int   count                       = 0;
-  int   mingap                      = vc->params->model_details.min_loop_size;
+  vrna_move_t *listOfInsertionStructures =
+    (vrna_move_t *)malloc(sizeof(vrna_move_t) * (maxStructures + 1));
+  int         count   = 0;
+  int         mingap  = vc->params->model_details.min_loop_size;
 
   for (int i = 1; i <= len; i++) {
     if (pt[i] == 0) {
@@ -110,9 +301,9 @@ insertions(vrna_fold_compound_t *vc,
           continue;
 
         if ((pt[j] == 0) && is_compatible(vc, i, j)) {
-          move *m = &listOfInsertionStructures[count];
-          m->bpLeft   = i;
-          m->bpRight  = j;
+          vrna_move_t *m = &listOfInsertionStructures[count];
+          m->pos_5  = i;
+          m->pos_3  = j;
           count++;
         }
       }
@@ -141,7 +332,7 @@ shift_bpins_to_right(const vrna_fold_compound_t *vc,
                      int                        start,
                      int                        end,
                      const short                *structure,
-                     move                       *structures,
+                     vrna_move_t                *structures,
                      int                        *count)
 {
   int length  = MIN2(vc->length + 1, end);
@@ -161,9 +352,9 @@ shift_bpins_to_right(const vrna_fold_compound_t *vc,
 
     /* test if it is a valid pair */
     if (((j - i) > mingap) && is_compatible(vc, i, j)) {
-      move *newMove = &structures[(*count)++];
-      newMove->bpLeft   = i;
-      newMove->bpRight  = -j;
+      vrna_move_t *newMove = &structures[(*count)++];
+      newMove->pos_5  = i;
+      newMove->pos_3  = -j;
     }
   }
 }
@@ -186,7 +377,7 @@ shift_bpins_to_left(const vrna_fold_compound_t  *vc,
                     int                         start,
                     int                         end,
                     const short                 *structure,
-                    move                        *structures,
+                    vrna_move_t                 *structures,
                     int                         *count)
 {
   int stop    = MAX2(0, end);
@@ -206,32 +397,32 @@ shift_bpins_to_left(const vrna_fold_compound_t  *vc,
 
     /* test if it is a valid pair */
     if (((i - j) > mingap) && is_compatible(vc, j, i)) {
-      move *newMove = &structures[(*count)++];
-      newMove->bpLeft   = -j;
-      newMove->bpRight  = i;
+      vrna_move_t *newMove = &structures[(*count)++];
+      newMove->pos_5  = -j;
+      newMove->pos_3  = i;
     }
   }
 }
-
 
 
 /**
  * Generate all possible shift moves.
  *
  */
-PRIVATE move *
+PRIVATE vrna_move_t *
 shifts(vrna_fold_compound_t *vc,
        const short          *pt,
        int                  *length)
 {
   /* Maximal n/2 base pairs per structure times maximal n shift moves --> (n^2)/2 memory */
-  int   len               = vc->length;
-  int   maxStructures     = (len * len) / 2;
-  move  *listOfShiftMoves = (move *)vrna_alloc(sizeof(move) * (maxStructures + 1));
+  int         len               = vc->length;
+  int         maxStructures     = (len * len) / 2;
+  vrna_move_t *listOfShiftMoves = (vrna_move_t *)vrna_alloc(
+    sizeof(vrna_move_t) * (maxStructures + 1));
 
-  int   count   = 0;
-  int   end = len +1;
-  int   pt_i;
+  int         count = 0;
+  int         end   = len + 1;
+  int         pt_i;
 
   for (int i = 1; i <= len; i++) {
     pt_i = pt[i];
@@ -239,14 +430,14 @@ shifts(vrna_fold_compound_t *vc,
     if (i < pt_i) {
       /* iterate over all positions with the same loopIndex to find possible pairs. */
       /* 1. first position is fix; search in left direction. */
-      shift_bpins_to_left(vc,i,i,0,pt,listOfShiftMoves,&count);
+      shift_bpins_to_left(vc, i, i, 0, pt, listOfShiftMoves, &count);
       /* first position is fix; search in right direction (skip the second position) */
-      shift_bpins_to_right(vc,i,i,pt_i,pt,listOfShiftMoves,&count);
-      shift_bpins_to_right(vc,i,pt_i,end,pt,listOfShiftMoves,&count);
+      shift_bpins_to_right(vc, i, i, pt_i, pt, listOfShiftMoves, &count);
+      shift_bpins_to_right(vc, i, pt_i, end, pt, listOfShiftMoves, &count);
       /* second position is fix */
-      shift_bpins_to_left(vc,pt_i,pt_i,i,pt,listOfShiftMoves,&count);
-      shift_bpins_to_left(vc,pt_i,i,0,pt,listOfShiftMoves,&count);
-      shift_bpins_to_right(vc,pt_i,pt_i,end,pt,listOfShiftMoves,&count);
+      shift_bpins_to_left(vc, pt_i, pt_i, i, pt, listOfShiftMoves, &count);
+      shift_bpins_to_left(vc, pt_i, i, 0, pt, listOfShiftMoves, &count);
+      shift_bpins_to_right(vc, pt_i, pt_i, end, pt, listOfShiftMoves, &count);
     }
   }
 
@@ -273,7 +464,7 @@ shift_bpins_to_i_from_right(const vrna_fold_compound_t  *vc,
                             int                         start,
                             int                         end,
                             const short                 *structure,
-                            move                        *structures,
+                            vrna_move_t                 *structures,
                             int                         *count)
 {
   int length  = MIN2(vc->length, end);
@@ -284,9 +475,9 @@ shift_bpins_to_i_from_right(const vrna_fold_compound_t  *vc,
     while (j < length && (structure[j] > j)) {
       /* test if it is a valid pair */
       if (((j - i) > mingap) && is_compatible(vc, i, j)) {
-        move *newMove = &structures[(*count)++];
-        newMove->bpLeft   = -i;
-        newMove->bpRight  = j;
+        vrna_move_t *newMove = &structures[(*count)++];
+        newMove->pos_5  = -i;
+        newMove->pos_3  = j;
       }
 
       j = structure[j];
@@ -295,9 +486,9 @@ shift_bpins_to_i_from_right(const vrna_fold_compound_t  *vc,
 
       /* test if it is a valid pair */
       if (((j - i) > mingap) && is_compatible(vc, i, j)) {
-        move *newMove = &structures[(*count)++];
-        newMove->bpLeft   = -i;
-        newMove->bpRight  = j;
+        vrna_move_t *newMove = &structures[(*count)++];
+        newMove->pos_5  = -i;
+        newMove->pos_3  = j;
       }
     }
 
@@ -328,7 +519,7 @@ shift_bpins_to_i_from_left(const vrna_fold_compound_t *vc,
                            int                        start,
                            int                        end,
                            const short                *structure,
-                           move                       *structures,
+                           vrna_move_t                *structures,
                            int                        *count)
 {
   int stop    = MAX2(0, end);
@@ -339,9 +530,9 @@ shift_bpins_to_i_from_left(const vrna_fold_compound_t *vc,
     while (j > stop && (structure[j] < j && structure[j] > 0)) {
       /* test if it is a valid pair */
       if (((i - j) > mingap) && is_compatible(vc, j, i)) {
-        move *newMove = &structures[(*count)++];
-        newMove->bpLeft   = j;
-        newMove->bpRight  = -i;
+        vrna_move_t *newMove = &structures[(*count)++];
+        newMove->pos_5  = j;
+        newMove->pos_3  = -i;
       }
 
       j = structure[j];
@@ -350,9 +541,9 @@ shift_bpins_to_i_from_left(const vrna_fold_compound_t *vc,
 
       /* test if it is a valid pair */
       if (((i - j) > mingap) && is_compatible(vc, j, i)) {
-        move *newMove = &structures[(*count)++];
-        newMove->bpLeft   = j;
-        newMove->bpRight  = -i;
+        vrna_move_t *newMove = &structures[(*count)++];
+        newMove->pos_5  = j;
+        newMove->pos_3  = -i;
       }
     }
 
@@ -371,31 +562,31 @@ shift_bpins_to_i_from_left(const vrna_fold_compound_t *vc,
  * shift moves with positions in the interval [start, end], which has also to be on the left side next to i.
  */
 PRIVATE void
-pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(const vrna_fold_compound_t *vc,
-                                                                         int i,
-                                                                         int start,
-                                                                         int end,
-                                                                         const short *structure,
-                                                                         move *structures,
-                                                                         int *count,
-                                                                         void
-                                                                         (*shiftsInInterval)(const vrna_fold_compound_t *, int, int, int, const short *, move *, int *),
-                                                                         int includeBorder)
+pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(
+  const vrna_fold_compound_t  *vc,
+  int                         i,
+  int                         start,
+  int                         end,
+  const short                 *structure,
+  vrna_move_t                 *structures,
+  int                         *count,
+  shiftsInInterval            *interval_func,
+  int                         includeBorder)
 {
   int j = i - 1;
 
   for (; j > 0; j--) {
     /* skip neighbored base pairs */
     while (j > 0 && (structure[j] < j && structure[j] > 0)) {
-      (*shiftsInInterval)(vc, j, start, end, structure, structures, count);
+      interval_func(vc, j, start, end, structure, structures, count);
       j = structure[j];
-      (*shiftsInInterval)(vc, j, start, end, structure, structures, count);
+      interval_func(vc, j, start, end, structure, structures, count);
       continue;
     }
     /* stop if other bases pairs would cross the loop at i */
     if (structure[j] > i) {
       if (includeBorder > 0)
-        (*shiftsInInterval)(vc, j, start, end, structure, structures, count);
+        interval_func(vc, j, start, end, structure, structures, count);
 
       break;
     }
@@ -408,16 +599,16 @@ pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(const v
  * shift moves with positions in the interval [start, end], which has also to be on the right side next to i.
  */
 PRIVATE void
-pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(const vrna_fold_compound_t *vc,
-                                                                          int i,
-                                                                          int start,
-                                                                          int end,
-                                                                          const short *structure,
-                                                                          move *structures,
-                                                                          int *count,
-                                                                          void
-                                                                          (*shiftsInInterval)(const vrna_fold_compound_t *, int, int, int, const short *, move *, int *),
-                                                                          int includeBorder)
+pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(
+  const vrna_fold_compound_t  *vc,
+  int                         i,
+  int                         start,
+  int                         end,
+  const short                 *structure,
+  vrna_move_t                 *structures,
+  int                         *count,
+  shiftsInInterval            *interval_func,
+  int                         includeBorder)
 {
   int length  = vc->length;
   int j       = i + 1;
@@ -425,18 +616,18 @@ pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(const 
   for (; j <= length; j++) {
     /* skip neighbored base pairs */
     while (j < length && (structure[j] > j)) {
-      (*shiftsInInterval)(vc, j, start, end, structure, structures, count);
+      interval_func(vc, j, start, end, structure, structures, count);
       j = structure[j];
       if (structure[j] < i && structure[j] > 0)
         break;
 
-      (*shiftsInInterval)(vc, j, start, end, structure, structures, count);
+      interval_func(vc, j, start, end, structure, structures, count);
       continue;
     }
     /* stop if other bases pairs would cross the loop at i */
     if (structure[j] < i && structure[j] > 0) {
       if (includeBorder > 0)
-        (*shiftsInInterval)(vc, j, start, end, structure, structures, count);
+        interval_func(vc, j, start, end, structure, structures, count);
 
       break;
     }
@@ -449,16 +640,15 @@ pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(const 
  * shift moves with positions in the interval [start, end], which has also to be on the right side next to i.
  */
 PRIVATE void
-pairs_from_interval_into_shifts_to_interval(const vrna_fold_compound_t *vc,
-                                            int i_start,
-                                            int i_end,
-                                            int start,
-                                            int end,
-                                            const short *structure,
-                                            move *structures,
-                                            int *count,
-                                            void
-                                            (*shiftsInInterval)(const vrna_fold_compound_t *, int, int, int, const short *, move *, int *))
+pairs_from_interval_into_shifts_to_interval(const vrna_fold_compound_t  *vc,
+                                            int                         i_start,
+                                            int                         i_end,
+                                            int                         start,
+                                            int                         end,
+                                            const short                 *structure,
+                                            vrna_move_t                 *structures,
+                                            int                         *count,
+                                            shiftsInInterval            *interval_func)
 {
   int length  = i_end;
   int j       = i_start + 1;
@@ -466,29 +656,25 @@ pairs_from_interval_into_shifts_to_interval(const vrna_fold_compound_t *vc,
   for (; j < length; j++) {
     /* skip neighbored base pairs */
     while (j < length && (structure[j] > j)) {
-      (*shiftsInInterval)(vc, j, start, end, structure, structures, count);
+      interval_func(vc, j, start, end, structure, structures, count);
       j = structure[j];
-      (*shiftsInInterval)(vc, j, start, end, structure, structures, count);
+      interval_func(vc, j, start, end, structure, structures, count);
       continue;
     }
     /* stop if other bases pairs would cross the loop at i */
     if ((structure[j] < i_start && structure[j] > 0) || (structure[j] > i_end)) {
-      printf("there was a crossing shift in a previously freed interval! This is wrong if non-crossing structures are considered.\n");
+      vrna_message_warning(
+        "there was a crossing shift in a previously freed interval! This is wrong if non-crossing structures are considered.\n");
       break;
     }
   }
 }
 
 
-typedef enum {
-  INCREASED, DECREASED, SWITCHED
-} intervalType;
-
-
-PRIVATE move *
+PRIVATE vrna_move_t *
 generateInsertionsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compound_t *vc,
                                                          const short                *structure,
-                                                         move                       *freedInterval,
+                                                         vrna_move_t                *freedInterval,
                                                          intervalType               t,
                                                          int                        positivePosition,
                                                          int                        previousPairedPosition,
@@ -496,43 +682,62 @@ generateInsertionsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compoun
                                                          int                        *length)
 {
   /* Maximum memory is interval size times structure length for base pairs between these intervals + structure length for bps with the prev. paired position */
-  int     intervalLength  = freedInterval->bpRight - freedInterval->bpLeft + 1;
-  size_t  resultSize      = intervalLength * vc->length + intervalLength;
-  move    *resultList     = vrna_alloc(sizeof(move) * (resultSize + 1));
+  int         intervalLength  = freedInterval->pos_3 - freedInterval->pos_5 + 1;
+  size_t      resultSize      = intervalLength * vc->length + intervalLength;
+  vrna_move_t *resultList     = vrna_alloc(sizeof(vrna_move_t) * (resultSize + 1));
 
   /* moves from all pairs inside the freed interval with previous paired position. */
-  int     count = 0;
+  int         count = 0;
 
   /* generate inserts between middle and left and right side */
-  for (int i = freedInterval->bpLeft; i <= freedInterval->bpRight; i++) {
+  for (int i = freedInterval->pos_5; i <= freedInterval->pos_3; i++) {
     /* skip inner neighbors */
     while (structure[i] > i)
       i = structure[i] + 1;
     /* end */
-    if (i > freedInterval->bpRight)
+    if (i > freedInterval->pos_3)
       break;
 
-    shift_bpins_to_right(vc, i, freedInterval->bpRight, vc->length + 1, structure, resultList, &count);
-    shift_bpins_to_left(vc, i, freedInterval->bpLeft, 0, structure, resultList, &count);
+    shift_bpins_to_right(vc,
+                         i,
+                         freedInterval->pos_3,
+                         vc->length + 1,
+                         structure,
+                         resultList,
+                         &count);
+    shift_bpins_to_left(vc, i, freedInterval->pos_5, 0, structure, resultList, &count);
   }
 
   /* inserts within interval to previousPairedPosition */
-  if (previousPairedPosition == freedInterval->bpLeft)
-    shift_bpins_to_right(vc, previousPairedPosition, previousPairedPosition - 1, freedInterval->bpRight + 1, structure, resultList, &count);
-  else
-    shift_bpins_to_left(vc, previousPairedPosition, previousPairedPosition + 1, freedInterval->bpLeft - 1, structure, resultList, &count);
+  if (previousPairedPosition == freedInterval->pos_5) {
+    shift_bpins_to_right(vc,
+                         previousPairedPosition,
+                         previousPairedPosition - 1,
+                         freedInterval->pos_3 + 1,
+                         structure,
+                         resultList,
+                         &count);
+  } else {
+    shift_bpins_to_left(vc,
+                        previousPairedPosition,
+                        previousPairedPosition + 1,
+                        freedInterval->pos_5 - 1,
+                        structure,
+                        resultList,
+                        &count);
+  }
 
   /* convert shifts to inserts */
   for (int i = 0; i < count; i++) {
-    move *m = &resultList[i];
-    m->bpLeft   = abs(m->bpLeft);
-    m->bpRight  = abs(m->bpRight);
+    vrna_move_t *m = &resultList[i];
+    m->pos_5  = abs(m->pos_5);
+    m->pos_3  = abs(m->pos_3);
   }
 
-  resultList[count].bpLeft  = 0;
-  resultList[count].bpRight = 0;
-  resultList                = vrna_realloc(resultList, sizeof(move) * (count + 1));
-  *length                   = count;
+  resultList[count].pos_5 = 0;
+  resultList[count].pos_3 = 0;
+  resultList              = vrna_realloc(resultList, sizeof(vrna_move_t) * (count + 1));
+  *length                 = count;
   return resultList;
 }
 
@@ -542,59 +747,59 @@ generateInsertionsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compoun
  *        generate base shifts and insertions that were not possible before a shift move.
  *
  * @structure - the structure as pair table
- * @move - the shift move that will be performed on this structure
+ * @m - the shift move that will be performed on this structure
  * @freedInterval - output of the left and right position of the freed interval [l,r]
  * @return the type of the freed interval
  */
 PRIVATE intervalType
-computeFreedInterval(const short  *structure,
-                     const move   *m,
-                     move         *freedInterval)
+computeFreedInterval(const short        *structure,
+                     const vrna_move_t  *m,
+                     vrna_move_t        *freedInterval)
 {
-  int           positivePosition        = MAX2(m->bpLeft, m->bpRight);
-  int           newPairedPosition       = abs(MIN2(m->bpLeft, m->bpRight));
+  int           positivePosition        = MAX2(m->pos_5, m->pos_3);
+  int           newPairedPosition       = abs(MIN2(m->pos_5, m->pos_3));
   int           previousPairedPosition  = structure[positivePosition];
   intervalType  t;
 
   /*    |  +)..-) //+ = newPairedPos; - = prevPaired; | = positivePosition (unchanged). */
   if (positivePosition < previousPairedPosition && positivePosition < newPairedPosition) {
     if (newPairedPosition < previousPairedPosition) {
-      freedInterval->bpLeft   = newPairedPosition + 1;
-      freedInterval->bpRight  = previousPairedPosition;
-      t                       = DECREASED;
+      freedInterval->pos_5  = newPairedPosition + 1;
+      freedInterval->pos_3  = previousPairedPosition;
+      t                     = DECREASED;
     } else {
       /*    |  -)..+) */
-      freedInterval->bpLeft   = previousPairedPosition;
-      freedInterval->bpRight  = newPairedPosition - 1;
-      t                       = INCREASED;
+      freedInterval->pos_5  = previousPairedPosition;
+      freedInterval->pos_3  = newPairedPosition - 1;
+      t                     = INCREASED;
     }
   }
 
   /*  (+  |..-) */
   if (positivePosition < previousPairedPosition && positivePosition > newPairedPosition) {
-    freedInterval->bpLeft   = positivePosition + 1;
-    freedInterval->bpRight  = previousPairedPosition;
-    t                       = SWITCHED;
+    freedInterval->pos_5  = positivePosition + 1;
+    freedInterval->pos_3  = previousPairedPosition;
+    t                     = SWITCHED;
   }
 
   /*  (-..|  +) */
   if (positivePosition > previousPairedPosition && positivePosition < newPairedPosition) {
-    freedInterval->bpLeft   = previousPairedPosition;
-    freedInterval->bpRight  = positivePosition - 1;
-    t                       = SWITCHED;
+    freedInterval->pos_5  = previousPairedPosition;
+    freedInterval->pos_3  = positivePosition - 1;
+    t                     = SWITCHED;
   }
 
   /*  -(..+(  | */
   if (positivePosition > previousPairedPosition && positivePosition > newPairedPosition) {
     if (newPairedPosition > previousPairedPosition) {
-      freedInterval->bpLeft   = previousPairedPosition;
-      freedInterval->bpRight  = newPairedPosition - 1;
-      t                       = DECREASED;
+      freedInterval->pos_5  = previousPairedPosition;
+      freedInterval->pos_3  = newPairedPosition - 1;
+      t                     = DECREASED;
     } else {
       /*  +(..-(  | */
-      freedInterval->bpLeft   = newPairedPosition + 1;
-      freedInterval->bpRight  = previousPairedPosition;
-      t                       = INCREASED;
+      freedInterval->pos_5  = newPairedPosition + 1;
+      freedInterval->pos_3  = previousPairedPosition;
+      t                     = INCREASED;
     }
   }
 
@@ -635,38 +840,51 @@ computeFreedInterval(const short  *structure,
  * ....[____________].............[__________].... // intervals that can pair with the freed interval
  *
  * @param vc - the fold compound with sequence and parameters
- * @param previousStructure - the structure as pair table
- * @param currentMove - the move that can be applied to the previous structure
+ * @param prev_pt - the structure as pair table
+ * @param curr_move - the move that can be applied to the previous structure
  * @param length - outputs the length of the output
  * @result a list with shift and insertion moves that are possible on the current structure and were not possible
  *         on the previous structure
  */
-PRIVATE move *
+PRIVATE vrna_move_t *
 generateShiftsAndInsertionsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compound_t  *vc,
-                                                                  const short                 *previousStructure,
-                                                                  const move                  *currentMove,
+                                                                  const short                 *prev_pt,
+                                                                  const vrna_move_t           *curr_move,
                                                                   int                         *length)
 {
-  short         *currentStructure = vrna_ptable_copy(previousStructure);
+  short         *currentStructure = vrna_ptable_copy(prev_pt);
 
-  vrna_perform_move(currentMove, currentStructure);
-  move          freedInterval = {
+  vrna_move_apply(currentStructure, curr_move);
+  vrna_move_t   freedInterval = {
     0, 0
   };
-  int           positivePosition        = MAX2(currentMove->bpLeft, currentMove->bpRight);
-  int           newPairedPosition       = abs(MIN2(currentMove->bpLeft, currentMove->bpRight));
-  int           previousPairedPosition  = previousStructure[positivePosition];
-  intervalType  t                       = computeFreedInterval(previousStructure, currentMove, &freedInterval);
+  int           positivePosition        = MAX2(curr_move->pos_5, curr_move->pos_3);
+  int           newPairedPosition       = abs(MIN2(curr_move->pos_5, curr_move->pos_3));
+  int           previousPairedPosition  = prev_pt[positivePosition];
+  intervalType  t                       = computeFreedInterval(prev_pt,
+                                                               curr_move,
+                                                               &freedInterval);
 
-  move          *allNewShifts = vrna_alloc(sizeof(move) * (vc->length * vc->length));
+  vrna_move_t   *allNewShifts = vrna_alloc(sizeof(vrna_move_t) * (vc->length * vc->length));
   int           count         = 0;
   /* moves from all pairs inside the freed interval with previous paired position. */
-  if (previousPairedPosition == freedInterval.bpLeft)
-    shift_bpins_to_i_from_right(vc, previousPairedPosition, freedInterval.bpLeft - 1, freedInterval.bpRight + 1, currentStructure, allNewShifts,
+  if (previousPairedPosition == freedInterval.pos_5) {
+    shift_bpins_to_i_from_right(vc,
+                                previousPairedPosition,
+                                freedInterval.pos_5 - 1,
+                                freedInterval.pos_3 + 1,
+                                currentStructure,
+                                allNewShifts,
                                 &count);
-  else
-    shift_bpins_to_i_from_left(vc, previousPairedPosition, freedInterval.bpRight + 1, freedInterval.bpLeft - 1, currentStructure, allNewShifts,
+  } else {
+    shift_bpins_to_i_from_left(vc,
+                               previousPairedPosition,
+                               freedInterval.pos_3 + 1,
+                               freedInterval.pos_5 - 1,
+                               currentStructure,
+                               allNewShifts,
                                &count);
+  }
 
   if (t == INCREASED) {
     /* compute only pairs to one interval instead of two */
@@ -676,23 +894,49 @@ generateShiftsAndInsertionsThatWereNotPossibleBeforeThisShiftMove(const vrna_fol
       /* [to pair][freed]   */
       i_left  = positivePosition;
       i_right = previousPairedPosition;
-      pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc, previousPairedPosition, freedInterval.bpLeft - 1,
-                                                                               freedInterval.bpRight + 1, currentStructure, allNewShifts, &count,
-                                                                               &shift_bpins_to_right, 0);
+      pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc,
+                                                                               previousPairedPosition,
+                                                                               freedInterval.pos_5 - 1,
+                                                                               freedInterval.pos_3 + 1,
+                                                                               currentStructure,
+                                                                               allNewShifts,
+                                                                               &count,
+                                                                               &shift_bpins_to_right,
+                                                                               0);
       /* and now from pairs of the freed interval to the environment */
-      pairs_from_interval_into_shifts_to_interval(vc, freedInterval.bpLeft, freedInterval.bpRight, freedInterval.bpLeft, 0, currentStructure,
-                                                  allNewShifts, &count, &shift_bpins_to_left);
+      pairs_from_interval_into_shifts_to_interval(vc,
+                                                  freedInterval.pos_5,
+                                                  freedInterval.pos_3,
+                                                  freedInterval.pos_5,
+                                                  0,
+                                                  currentStructure,
+                                                  allNewShifts,
+                                                  &count,
+                                                  &shift_bpins_to_left);
     } else {
       /* [freed][to pair] */
       i_left  = previousPairedPosition;
       i_right = positivePosition;
-      pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc, previousPairedPosition, freedInterval.bpRight + 1,
-                                                                                freedInterval.bpLeft - 1, currentStructure, allNewShifts, &count,
-                                                                                &shift_bpins_to_left, 0);
+      pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc,
+                                                                                previousPairedPosition,
+                                                                                freedInterval.pos_3 + 1,
+                                                                                freedInterval.pos_5 - 1,
+                                                                                currentStructure,
+                                                                                allNewShifts,
+                                                                                &count,
+                                                                                &shift_bpins_to_left,
+                                                                                0);
 
       /* and now from pairs of the freed interval to the environment */
-      pairs_from_interval_into_shifts_to_interval(vc, freedInterval.bpLeft - 1, freedInterval.bpRight, freedInterval.bpRight, vc->length + 1,
-                                                  currentStructure, allNewShifts, &count, &shift_bpins_to_right);
+      pairs_from_interval_into_shifts_to_interval(vc,
+                                                  freedInterval.pos_5 - 1,
+                                                  freedInterval.pos_3,
+                                                  freedInterval.pos_3,
+                                                  vc->length + 1,
+                                                  currentStructure,
+                                                  allNewShifts,
+                                                  &count,
+                                                  &shift_bpins_to_right);
     }
   } else {
     /* consider both sides [to pair][freed][to pair] */
@@ -719,55 +963,122 @@ generateShiftsAndInsertionsThatWereNotPossibleBeforeThisShiftMove(const vrna_fol
       }
     }
 
-    pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc, startLeftDirection + 1, freedInterval.bpLeft - 1,
-                                                                             freedInterval.bpRight + 1, currentStructure, allNewShifts, &count,
-                                                                             &shift_bpins_to_right, 1);
+    pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc,
+                                                                             startLeftDirection + 1,
+                                                                             freedInterval.pos_5 - 1,
+                                                                             freedInterval.pos_3 + 1,
+                                                                             currentStructure,
+                                                                             allNewShifts,
+                                                                             &count,
+                                                                             &shift_bpins_to_right,
+                                                                             1);
 
-    pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc, startRightDirection - 1, freedInterval.bpRight + 1,
-                                                                              freedInterval.bpLeft - 1, currentStructure, allNewShifts, &count,
-                                                                              &shift_bpins_to_left, 1);
+    pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc,
+                                                                              startRightDirection - 1,
+                                                                              freedInterval.pos_3 + 1,
+                                                                              freedInterval.pos_5 - 1,
+                                                                              currentStructure,
+                                                                              allNewShifts,
+                                                                              &count,
+                                                                              &shift_bpins_to_left,
+                                                                              1);
     /* and now from pairs of the freed interval to the environment */
-    pairs_from_interval_into_shifts_to_interval(vc, freedInterval.bpLeft - 1, freedInterval.bpRight + 1, freedInterval.bpLeft, 0, currentStructure,
-                                                allNewShifts, &count, &shift_bpins_to_left);
-    pairs_from_interval_into_shifts_to_interval(vc, freedInterval.bpLeft - 1, freedInterval.bpRight + 1, freedInterval.bpRight, vc->length + 1,
-                                                currentStructure, allNewShifts, &count, &shift_bpins_to_right);
+    pairs_from_interval_into_shifts_to_interval(vc,
+                                                freedInterval.pos_5 - 1,
+                                                freedInterval.pos_3 + 1,
+                                                freedInterval.pos_5,
+                                                0,
+                                                currentStructure,
+                                                allNewShifts,
+                                                &count,
+                                                &shift_bpins_to_left);
+    pairs_from_interval_into_shifts_to_interval(vc,
+                                                freedInterval.pos_5 - 1,
+                                                freedInterval.pos_3 + 1,
+                                                freedInterval.pos_3,
+                                                vc->length + 1,
+                                                currentStructure,
+                                                allNewShifts,
+                                                &count,
+                                                &shift_bpins_to_right);
   }
 
   /* and finally all shifts with the new paired position as stable position */
   if (positivePosition < newPairedPosition) {
     /* exclude previous base pair --> two calls */
-    shift_bpins_to_left(vc, newPairedPosition, newPairedPosition, positivePosition, currentStructure, allNewShifts, &count);
-    shift_bpins_to_left(vc, newPairedPosition, positivePosition, 0, currentStructure, allNewShifts, &count);
+    shift_bpins_to_left(vc,
+                        newPairedPosition,
+                        newPairedPosition,
+                        positivePosition,
+                        currentStructure,
+                        allNewShifts,
+                        &count);
+    shift_bpins_to_left(vc,
+                        newPairedPosition,
+                        positivePosition,
+                        0,
+                        currentStructure,
+                        allNewShifts,
+                        &count);
 
-    shift_bpins_to_right(vc, newPairedPosition, newPairedPosition, vc->length + 1, currentStructure, allNewShifts, &count);
+    shift_bpins_to_right(vc,
+                         newPairedPosition,
+                         newPairedPosition,
+                         vc->length + 1,
+                         currentStructure,
+                         allNewShifts,
+                         &count);
   } else {
-    shift_bpins_to_left(vc, newPairedPosition, newPairedPosition, 0, currentStructure, allNewShifts, &count);
+    shift_bpins_to_left(vc,
+                        newPairedPosition,
+                        newPairedPosition,
+                        0,
+                        currentStructure,
+                        allNewShifts,
+                        &count);
 
-    shift_bpins_to_right(vc, newPairedPosition, newPairedPosition, positivePosition, currentStructure, allNewShifts, &count);
-    shift_bpins_to_right(vc, newPairedPosition, positivePosition, vc->length + 1, currentStructure, allNewShifts, &count);
+    shift_bpins_to_right(vc,
+                         newPairedPosition,
+                         newPairedPosition,
+                         positivePosition,
+                         currentStructure,
+                         allNewShifts,
+                         &count);
+    shift_bpins_to_right(vc,
+                         newPairedPosition,
+                         positivePosition,
+                         vc->length + 1,
+                         currentStructure,
+                         allNewShifts,
+                         &count);
   }
 
   /* insertion moves */
-  int     length_insertionMoves = 0;
-  move    *insertionMoves       = generateInsertionsThatWereNotPossibleBeforeThisShiftMove(vc, currentStructure, &freedInterval, t,
-                                                                                           positivePosition, previousPairedPosition, newPairedPosition,
-                                                                                           &length_insertionMoves);
+  int         length_insertionMoves = 0;
+  vrna_move_t *insertionMoves       = generateInsertionsThatWereNotPossibleBeforeThisShiftMove(vc,
+                                                                                               currentStructure,
+                                                                                               &freedInterval,
+                                                                                               t,
+                                                                                               positivePosition,
+                                                                                               previousPairedPosition,
+                                                                                               newPairedPosition,
+                                                                                               &length_insertionMoves);
 
   /* join shift and insertion lists */
-  int     resultSize      = count + length_insertionMoves;
-  move    *resultList     = vrna_alloc(sizeof(move) * (resultSize + 1));
-  size_t  resultPosition  = 0;
-  memcpy(&resultList[resultPosition], allNewShifts, sizeof(move) * count);
+  int         resultSize      = count + length_insertionMoves;
+  vrna_move_t *resultList     = vrna_alloc(sizeof(vrna_move_t) * (resultSize + 1));
+  size_t      resultPosition  = 0;
+  memcpy(&resultList[resultPosition], allNewShifts, sizeof(vrna_move_t) * count);
   resultPosition += count;
-  memcpy(&resultList[resultPosition], insertionMoves, sizeof(move) * length_insertionMoves);
+  memcpy(&resultList[resultPosition], insertionMoves, sizeof(vrna_move_t) * length_insertionMoves);
   resultPosition += length_insertionMoves;
   free(allNewShifts);
   free(insertionMoves);
   free(currentStructure);
   /* add terminator */
-  resultList[resultPosition].bpLeft   = 0;
-  resultList[resultPosition].bpRight  = 0;
-  *length                             = resultSize;
+  resultList[resultPosition].pos_5  = 0;
+  resultList[resultPosition].pos_3  = 0;
+  *length                           = resultSize;
   return resultList;
 }
 
@@ -776,44 +1087,74 @@ generateShiftsAndInsertionsThatWereNotPossibleBeforeThisShiftMove(const vrna_fol
  * @brief generate all shifts on the given structure that cross the current move.
  *        The move should already be performed on the structure.
  */
-PRIVATE move *
+PRIVATE vrna_move_t *
 generateCrossingShifts(const vrna_fold_compound_t *vc,
                        const short                *structure,
-                       const move                 *currentMove,
+                       const vrna_move_t          *curr_move,
                        int                        *length)
 {
-  int     leftPosition    = MIN2(abs(currentMove->bpRight), abs(currentMove->bpLeft));
-  int     rightPosition   = MAX2(abs(currentMove->bpRight), abs(currentMove->bpLeft));
-  int     structureLength = vc->length;
+  int         leftPosition    = MIN2(abs(curr_move->pos_3), abs(curr_move->pos_5));
+  int         rightPosition   = MAX2(abs(curr_move->pos_3), abs(curr_move->pos_5));
+  int         structureLength = vc->length;
 
-  int     count = 0;
+  int         count = 0;
 
   /* Maximum memory */
-  size_t  maxCrossingPairs  = 2 * (rightPosition - leftPosition) * (structureLength - (rightPosition - leftPosition));
-  size_t  resultSize        = maxCrossingPairs * (structureLength - (rightPosition - leftPosition));
+  size_t      maxCrossingPairs = 2 * (rightPosition - leftPosition) *
+                                 (structureLength - (rightPosition - leftPosition));
+  size_t      resultSize = maxCrossingPairs *
+                           (structureLength - (rightPosition - leftPosition));
 
-  move    *resultList = vrna_alloc(sizeof(move) * (resultSize + 1));
+  vrna_move_t *resultList = vrna_alloc(sizeof(vrna_move_t) * (resultSize + 1));
 
   /* left to middle */
-  pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc, leftPosition, leftPosition - 1, rightPosition + 1, structure,
-                                                                           resultList, &count, &shift_bpins_to_right, 1);
+  pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc,
+                                                                           leftPosition,
+                                                                           leftPosition - 1,
+                                                                           rightPosition + 1,
+                                                                           structure,
+                                                                           resultList,
+                                                                           &count,
+                                                                           &shift_bpins_to_right,
+                                                                           1);
 
   /* right to middle */
-  pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc, rightPosition, rightPosition + 1, leftPosition - 1, structure,
-                                                                            resultList, &count, &shift_bpins_to_left, 1);
+  pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc,
+                                                                            rightPosition,
+                                                                            rightPosition + 1,
+                                                                            leftPosition - 1,
+                                                                            structure,
+                                                                            resultList,
+                                                                            &count,
+                                                                            &shift_bpins_to_left,
+                                                                            1);
 
   /* middle to left */
-  pairs_from_interval_into_shifts_to_interval(vc, leftPosition, rightPosition, leftPosition + 1, 0, structure, resultList, &count,
+  pairs_from_interval_into_shifts_to_interval(vc,
+                                              leftPosition,
+                                              rightPosition,
+                                              leftPosition + 1,
+                                              0,
+                                              structure,
+                                              resultList,
+                                              &count,
                                               &shift_bpins_to_left);
   /* middle to right */
-  pairs_from_interval_into_shifts_to_interval(vc, leftPosition, rightPosition, rightPosition - 1, structureLength + 1, structure, resultList, &count,
+  pairs_from_interval_into_shifts_to_interval(vc,
+                                              leftPosition,
+                                              rightPosition,
+                                              rightPosition - 1,
+                                              structureLength + 1,
+                                              structure,
+                                              resultList,
+                                              &count,
                                               &shift_bpins_to_right);
 
   resultSize = count;
 
-  resultList[resultSize].bpLeft   = 0;
-  resultList[resultSize].bpRight  = 0;
-  *length                         = resultSize;
+  resultList[resultSize].pos_5  = 0;
+  resultList[resultSize].pos_3  = 0;
+  *length                       = resultSize;
   return resultList;
 }
 
@@ -822,21 +1163,22 @@ generateCrossingShifts(const vrna_fold_compound_t *vc,
  * @brief generate all insertions on the given structure that cross the current deletion move.
  *        The move should already be performed on the structure.
  */
-PRIVATE move *
+PRIVATE vrna_move_t *
 generateCrossingInserts(const vrna_fold_compound_t  *vc,
                         const short                 *structure,
-                        const move                  *currentMove,
+                        const vrna_move_t           *curr_move,
                         int                         *length)
 {
-  int   leftPosition  = MIN2(abs(currentMove->bpRight), abs(currentMove->bpLeft));
-  int   rightPosition = MAX2(abs(currentMove->bpRight), abs(currentMove->bpLeft));
+  int         leftPosition  = MIN2(abs(curr_move->pos_3), abs(curr_move->pos_5));
+  int         rightPosition = MAX2(abs(curr_move->pos_3), abs(curr_move->pos_5));
 
-  int   len           = vc->length;
-  int   allocatedSize = 2 * (rightPosition - leftPosition) * (len - (rightPosition - leftPosition));
-  move  *resultList   = vrna_alloc(sizeof(move) * (allocatedSize));
-  int   count         = 0;
+  int         len           = vc->length;
+  int         allocatedSize = 2 * (rightPosition - leftPosition) *
+                              (len - (rightPosition - leftPosition));
+  vrna_move_t *resultList = vrna_alloc(sizeof(vrna_move_t) * (allocatedSize));
+  int         count       = 0;
 
-  int   startLeft = leftPosition + 1;
+  int         startLeft = leftPosition + 1;
 
   /* generate inserts between middle and left and right side */
   for (int i = leftPosition; i <= rightPosition; i++) {
@@ -854,130 +1196,140 @@ generateCrossingInserts(const vrna_fold_compound_t  *vc,
 
   /* convert shifts to inserts */
   for (int i = 0; i < count; i++) {
-    move *m = &resultList[i];
-    m->bpLeft   = abs(m->bpLeft);
-    m->bpRight  = abs(m->bpRight);
+    vrna_move_t *m = &resultList[i];
+    m->pos_5  = abs(m->pos_5);
+    m->pos_3  = abs(m->pos_3);
   }
 
-  resultList                = vrna_realloc(resultList, sizeof(move) * (count + 1));
-  resultList[count].bpLeft  = 0;
-  resultList[count].bpRight = 0;
-  *length                   = count;
+  resultList              = vrna_realloc(resultList, sizeof(vrna_move_t) * (count + 1));
+  resultList[count].pos_5 = 0;
+  resultList[count].pos_3 = 0;
+  *length                 = count;
   return resultList;
 }
 
 
-move *
+PRIVATE vrna_move_t *
 buildNeighborsForDeletionMove(const vrna_fold_compound_t  *vc,
-                              const move                  *currentMove,
-                              const short                 *previousStructure,
-                              const move                  *previousMoves,
+                              const vrna_move_t           *curr_move,
+                              const short                 *prev_pt,
+                              const vrna_move_t           *prev_neighbors,
                               int                         length,
-                              int                         *newLength,
-                              short                       shift)
+                              int                         *size_neighbors,
+                              unsigned int                options)
 {
   /* more moves */
-  move  *newMoves = (move *)vrna_alloc(sizeof(move) * (length));
-  int   newCount  = 0;
+  vrna_move_t *newMoves = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t) * (length));
+  int         newCount  = 0;
 
-  /* insert insertion moves and deletion moves and shift moves, except currentMove and except shifts that have a common position with the deletion. */
+  /* insert insertion moves and deletion moves and shift moves, except curr_move and except shifts that have a common position with the deletion. */
   for (int i = 0; i < length; i++) {
-    const move *pm = &previousMoves[i];
-    if (!(abs(pm->bpLeft) == abs(currentMove->bpLeft) || abs(pm->bpRight) == abs(currentMove->bpRight)
-          || abs(pm->bpLeft) == abs(currentMove->bpRight) || abs(pm->bpRight) == abs(currentMove->bpLeft))) {
+    const vrna_move_t *pm = &prev_neighbors[i];
+    if (!(abs(pm->pos_5) == abs(curr_move->pos_5) ||
+          abs(pm->pos_3) == abs(curr_move->pos_3)
+          || abs(pm->pos_5) == abs(curr_move->pos_3) ||
+          abs(pm->pos_3) == abs(curr_move->pos_5))) {
       newMoves[newCount] = *pm;
       newCount++;
     }
   }
-  short *currentStructure = vrna_ptable_copy(previousStructure);
-  int   leftPosition      = MIN2(abs(currentMove->bpRight), abs(currentMove->bpLeft));
-  int   rightPosition     = MAX2(abs(currentMove->bpRight), abs(currentMove->bpLeft));
+  short       *currentStructure = vrna_ptable_copy(prev_pt);
+  int         leftPosition      = MIN2(abs(curr_move->pos_3), abs(curr_move->pos_5));
+  int         rightPosition     = MAX2(abs(curr_move->pos_3), abs(curr_move->pos_5));
   currentStructure[leftPosition]  = 0;
   currentStructure[rightPosition] = 0;
 
   /* create crossing insert structures in within loopIndex with the deleted bp positions. */
-  int   lengthInserts     = 0;
-  move  *crossingInserts  = generateCrossingInserts(vc, currentStructure, currentMove, &lengthInserts);
+  int         lengthInserts     = 0;
+  vrna_move_t *crossingInserts  = generateCrossingInserts(vc,
+                                                          currentStructure,
+                                                          curr_move,
+                                                          &lengthInserts);
 
-  int   lengthCrossingShifts  = 0;
-  move  *crossingShiftMoves   = NULL;
+  int         lengthCrossingShifts  = 0;
+  vrna_move_t *crossingShiftMoves   = NULL;
 
-  if (shift)
+  if (options & VRNA_MOVESET_SHIFT) {
     /* generate shifts that cross the deleted base pair */
-    crossingShiftMoves = generateCrossingShifts(vc, currentStructure, currentMove, &lengthCrossingShifts);
+    crossingShiftMoves = generateCrossingShifts(vc,
+                                                currentStructure,
+                                                curr_move,
+                                                &lengthCrossingShifts);
+  }
 
   int totalSize = newCount + lengthCrossingShifts + lengthInserts;
-  newMoves = vrna_realloc(newMoves, sizeof(move) * (totalSize + 1));
-  memcpy(&newMoves[newCount], crossingInserts, sizeof(move) * (lengthInserts));
+  newMoves = vrna_realloc(newMoves, sizeof(vrna_move_t) * (totalSize + 1));
+  memcpy(&newMoves[newCount], crossingInserts, sizeof(vrna_move_t) * (lengthInserts));
   newCount += lengthInserts;
-  memcpy(&newMoves[newCount], crossingShiftMoves, sizeof(move) * (lengthCrossingShifts));
+  memcpy(&newMoves[newCount], crossingShiftMoves, sizeof(vrna_move_t) * (lengthCrossingShifts));
   newCount += lengthCrossingShifts;
 
-  if (shift)
+  if (options & VRNA_MOVESET_SHIFT)
     free(crossingShiftMoves);
 
   free(crossingInserts);
   free(currentStructure);
 
-  *newLength                  = newCount;
-  newMoves[newCount].bpLeft   = 0;
-  newMoves[newCount].bpRight  = 0;
+  *size_neighbors           = newCount;
+  newMoves[newCount].pos_5  = 0;
+  newMoves[newCount].pos_3  = 0;
   return newMoves;
 }
 
 
-move *
+PRIVATE vrna_move_t *
 buildNeighborsForInsertionMove(const vrna_fold_compound_t *vc,
-                               const move                 *currentMove,
-                               const short                *previousStructure,
-                               const move                 *previousMoves,
+                               const vrna_move_t          *curr_move,
+                               const short                *prev_pt,
+                               const vrna_move_t          *prev_neighbors,
                                int                        length,
-                               int                        *newLength,
-                               short                      shift)
+                               int                        *size_neighbors,
+                               unsigned int               options)
 {
-  int   allocatedSize = length;
-  move  *newMoves     = (move *)vrna_alloc(sizeof(move) * (length));
-  int   newCount      = 0;
+  int         allocatedSize = length;
+  vrna_move_t *newMoves     = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t) * (length));
+  int         newCount      = 0;
 
   /* insert current move as deletion */
-  move  nm = {
-    -abs(currentMove->bpLeft), -abs(currentMove->bpRight)
+  vrna_move_t nm = {
+    -abs(curr_move->pos_5), -abs(curr_move->pos_3)
   };
 
   newMoves[newCount++] = nm;
 
   /* copy filtered previous moves */
   for (int i = 0; i < length; i++) {
-    const move *pm = &previousMoves[i];
-    if (!is_crossing(abs(pm->bpLeft), abs(pm->bpRight), abs(currentMove->bpLeft), abs(currentMove->bpRight))) {
+    const vrna_move_t *pm = &prev_neighbors[i];
+    if (!is_crossing(abs(pm->pos_5), abs(pm->pos_3), abs(curr_move->pos_5),
+                     abs(curr_move->pos_3))) {
       /* insert all moves if they are not crossing with the current move. */
       newMoves[newCount++] = *pm;
       continue;
     } else {
-      if (shift) {
+      if (options & VRNA_MOVESET_SHIFT) {
         /* current is insertion and previous move is crossing and previous move is insertion
          * --> convert to shift if one position is equal */
-        if (pm->bpLeft > 0 && pm->bpRight > 0) {
-          move  insertionAsShift  = *pm;
-          bool  isConvertable     = false;
-          if ((pm->bpLeft == currentMove->bpLeft) || (pm->bpLeft == currentMove->bpRight)) {
-            insertionAsShift.bpRight  = -pm->bpRight;
-            isConvertable             = true;
-          }
-
-          if ((pm->bpRight == currentMove->bpLeft) || (pm->bpRight == currentMove->bpRight)) {
-            insertionAsShift.bpLeft = -pm->bpLeft;
+        if (pm->pos_5 > 0 && pm->pos_3 > 0) {
+          vrna_move_t insertionAsShift  = *pm;
+          bool        isConvertable     = false;
+          if ((pm->pos_5 == curr_move->pos_5) || (pm->pos_5 == curr_move->pos_3)) {
+            insertionAsShift.pos_3  = -pm->pos_3;
             isConvertable           = true;
           }
 
-          if ((pm->bpLeft == currentMove->bpLeft && pm->bpRight == currentMove->bpRight)
-              || (pm->bpRight == currentMove->bpLeft && pm->bpLeft == currentMove->bpRight))
+          if ((pm->pos_3 == curr_move->pos_5) || (pm->pos_3 == curr_move->pos_3)) {
+            insertionAsShift.pos_5  = -pm->pos_5;
+            isConvertable           = true;
+          }
+
+          if ((pm->pos_5 == curr_move->pos_5 && pm->pos_3 == curr_move->pos_3)
+              || (pm->pos_3 == curr_move->pos_5 && pm->pos_5 == curr_move->pos_3))
             continue;
 
           if (isConvertable) {
             if (newCount >= allocatedSize) {
               allocatedSize += vc->length;
-              newMoves      = vrna_realloc(newMoves, sizeof(move) * allocatedSize);
+              newMoves      = vrna_realloc(newMoves, sizeof(vrna_move_t) * allocatedSize);
             }
 
             newMoves[newCount++] = insertionAsShift;
@@ -987,44 +1339,47 @@ buildNeighborsForInsertionMove(const vrna_fold_compound_t *vc,
       }
     }
   }
-  *newLength                  = newCount;
-  newMoves                    = (move *)vrna_realloc(newMoves, sizeof(move) * (newCount + 1));
-  newMoves[newCount].bpLeft   = 0;
-  newMoves[newCount].bpRight  = 0;
+  *size_neighbors = newCount;
+  newMoves        =
+    (vrna_move_t *)vrna_realloc(newMoves, sizeof(vrna_move_t) * (newCount + 1));
+  newMoves[newCount].pos_5  = 0;
+  newMoves[newCount].pos_3  = 0;
   return newMoves;
 }
 
 
-move *
+PRIVATE vrna_move_t *
 buildNeighborsForShiftMove(const vrna_fold_compound_t *vc,
-                           const move                 *currentMove,
-                           const short                *previousStructure,
-                           const move                 *previousMoves,
+                           const vrna_move_t          *curr_move,
+                           const short                *prev_pt,
+                           const vrna_move_t          *prev_neighbors,
                            int                        length,
-                           int                        *newLength,
-                           short                      shift)
+                           int                        *size_neighbors,
+                           unsigned int               options)
 {
-  int   allocatedSize = length;
-  move  *newMoves     = (move *)vrna_alloc(sizeof(move) * (allocatedSize));
-  int   newCount      = 0;
+  int         allocatedSize = length;
+  vrna_move_t *newMoves     = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t) * (allocatedSize));
+  int         newCount      = 0;
 
-  int   currentPositivePosition = currentMove->bpLeft;
+  int         currentPositivePosition = curr_move->pos_5;
 
-  if (currentMove->bpRight > 0)
-    currentPositivePosition = currentMove->bpRight;
+  if (curr_move->pos_3 > 0)
+    currentPositivePosition = curr_move->pos_3;
 
   /* copy filtered previous moves */
-  int previousPairedPosition = previousStructure[currentPositivePosition];
+  int previousPairedPosition = prev_pt[currentPositivePosition];
   for (int i = 0; i < length; i++) {
-    const move  *pm     = &previousMoves[i];
-    bool        isShift = (pm->bpLeft > 0 && pm->bpRight < 0) || (pm->bpLeft < 0 && pm->bpRight > 0);
-    if (!is_crossing(abs(pm->bpLeft), abs(pm->bpRight), abs(currentMove->bpLeft), abs(currentMove->bpRight))) {
+    const vrna_move_t *pm     = &prev_neighbors[i];
+    bool              isShift = (pm->pos_5 > 0 && pm->pos_3 < 0) ||
+                                (pm->pos_5 < 0 && pm->pos_3 > 0);
+    if (!is_crossing(abs(pm->pos_5), abs(pm->pos_3), abs(curr_move->pos_5),
+                     abs(curr_move->pos_3))) {
       /* if current move is a shift and pm is a shift */
       if (isShift) {
         /*  current negative position cannot be pm.positive position --> allow only if current pos == shift pos. */
-        int positivePosition = pm->bpLeft;
-        if (pm->bpRight > 0)
-          positivePosition = pm->bpRight;
+        int positivePosition = pm->pos_5;
+        if (pm->pos_3 > 0)
+          positivePosition = pm->pos_3;
 
         if (positivePosition != previousPairedPosition) {
           /*  no conflict with this shift --> copy it */
@@ -1040,10 +1395,10 @@ buildNeighborsForShiftMove(const vrna_fold_compound_t *vc,
       /*  if current is shift and prev is crossing and prev is shift */
       if (isShift) {
         /*  if is shift */
-        int positivePosition = MAX2(pm->bpLeft, pm->bpRight);
-        if ((positivePosition == currentMove->bpLeft || positivePosition == currentMove->bpRight)
-            && !((pm->bpLeft == currentMove->bpLeft && pm->bpRight == currentMove->bpRight)
-                 || (pm->bpRight == currentMove->bpLeft && pm->bpLeft == currentMove->bpRight))) {
+        int positivePosition = MAX2(pm->pos_5, pm->pos_3);
+        if ((positivePosition == curr_move->pos_5 || positivePosition == curr_move->pos_3)
+            && !((pm->pos_5 == curr_move->pos_5 && pm->pos_3 == curr_move->pos_3)
+                 || (pm->pos_3 == curr_move->pos_5 && pm->pos_5 == curr_move->pos_3))) {
           /*  if one position in common, but not the same move */
           newMoves[newCount++] = *pm;
           continue;
@@ -1053,43 +1408,48 @@ buildNeighborsForShiftMove(const vrna_fold_compound_t *vc,
   }
 
   /* insert current move as deletion */
-  move  nm = {
-    -abs(currentMove->bpLeft), -abs(currentMove->bpRight)
+  vrna_move_t nm = {
+    -abs(curr_move->pos_5), -abs(curr_move->pos_3)
   };
   newMoves[newCount++] = nm;
 
   /* insert back shift */
-  int   left      = MIN2(currentPositivePosition, previousPairedPosition);
-  int   right     = MAX2(currentPositivePosition, previousPairedPosition);
-  move  backShift = {
+  int         left      = MIN2(currentPositivePosition, previousPairedPosition);
+  int         right     = MAX2(currentPositivePosition, previousPairedPosition);
+  vrna_move_t backShift = {
     left, right
   };
-  if (previousPairedPosition == backShift.bpLeft)
-    backShift.bpLeft = -backShift.bpLeft;
+  if (previousPairedPosition == backShift.pos_5)
+    backShift.pos_5 = -backShift.pos_5;
   else
-    backShift.bpRight = -backShift.bpRight;
+    backShift.pos_3 = -backShift.pos_3;
 
   newMoves[newCount++] = backShift;
 
   /*  compute all shift moves and insertion moves that end or start in the interval, that was freed by the current shift move. */
-  int   length_newFreedIntervalMoves  = 0;
-  move  *newFreedIntervalMoves        = generateShiftsAndInsertionsThatWereNotPossibleBeforeThisShiftMove(vc, previousStructure, currentMove,
-                                                                                                          &length_newFreedIntervalMoves);
+  int         length_newFreedIntervalMoves  = 0;
+  vrna_move_t *newFreedIntervalMoves        =
+    generateShiftsAndInsertionsThatWereNotPossibleBeforeThisShiftMove(vc,
+                                                                      prev_pt,
+                                                                      curr_move,
+                                                                      &length_newFreedIntervalMoves);
 
-  int   expectedSize = newCount + length_newFreedIntervalMoves;
+  int expectedSize = newCount + length_newFreedIntervalMoves;
   if (expectedSize >= allocatedSize) {
     allocatedSize = expectedSize + 1;
-    newMoves      = vrna_realloc(newMoves, sizeof(move) * (allocatedSize));
+    newMoves      = vrna_realloc(newMoves, sizeof(vrna_move_t) * (allocatedSize));
   }
 
-  memcpy(&newMoves[newCount], newFreedIntervalMoves, sizeof(move) * (length_newFreedIntervalMoves));
+  memcpy(&newMoves[newCount], newFreedIntervalMoves,
+         sizeof(vrna_move_t) * (length_newFreedIntervalMoves));
   newCount += length_newFreedIntervalMoves;
   free(newFreedIntervalMoves);
 
-  *newLength                  = newCount;
-  newMoves                    = (move *)vrna_realloc(newMoves, sizeof(move) * (newCount + 1));
-  newMoves[newCount].bpLeft   = 0;
-  newMoves[newCount].bpRight  = 0;
+  *size_neighbors = newCount;
+  newMoves        =
+    (vrna_move_t *)vrna_realloc(newMoves, sizeof(vrna_move_t) * (newCount + 1));
+  newMoves[newCount].pos_5  = 0;
+  newMoves[newCount].pos_3  = 0;
   return newMoves;
 }
 
@@ -1099,81 +1459,81 @@ buildNeighborsForShiftMove(const vrna_fold_compound_t *vc,
 /**************************************/
 
 void
-vrna_perform_move(const move  *m,
-                  short       *ptStructure)
+vrna_move_apply(short             *pt,
+                const vrna_move_t *m)
 {
   /* deletion */
-  if (m->bpLeft < 0 && m->bpRight < 0) {
-    ptStructure[-m->bpLeft]   = 0;
-    ptStructure[-m->bpRight]  = 0;
+  if (m->pos_5 < 0 && m->pos_3 < 0) {
+    pt[-m->pos_5] = 0;
+    pt[-m->pos_3] = 0;
     return;
   }
 
   /* insertion */
-  if (m->bpLeft > 0 && m->bpRight > 0) {
-    ptStructure[m->bpLeft]  = m->bpRight;
-    ptStructure[m->bpRight] = m->bpLeft;
+  if (m->pos_5 > 0 && m->pos_3 > 0) {
+    pt[m->pos_5]  = m->pos_3;
+    pt[m->pos_3]  = m->pos_5;
     return;
   }
 
   /* shift right */
-  if (m->bpLeft > 0 /*&& m->bpRight < 0*/) {
-    short previousPairedPosition = ptStructure[m->bpLeft];
-    ptStructure[previousPairedPosition] = 0;
-    short newPairedPosition = -m->bpRight;
-    ptStructure[m->bpLeft]          = newPairedPosition;
-    ptStructure[newPairedPosition]  = m->bpLeft;
+  if (m->pos_5 > 0 /*&& m->pos_3 < 0*/) {
+    short previousPairedPosition = pt[m->pos_5];
+    pt[previousPairedPosition] = 0;
+    short newPairedPosition = -m->pos_3;
+    pt[m->pos_5]          = newPairedPosition;
+    pt[newPairedPosition] = m->pos_5;
     return;
   }
 
   /* shift left */
-  if (m->bpLeft < 0 /*&& m->bpRight > 0*/) {
-    short previousPairedPosition = ptStructure[m->bpRight];
-    ptStructure[previousPairedPosition] = 0;
-    short newPairedPosition = -m->bpLeft;
-    ptStructure[m->bpRight]         = newPairedPosition;
-    ptStructure[newPairedPosition]  = m->bpRight;
+  if (m->pos_5 < 0 /*&& m->pos_3 > 0*/) {
+    short previousPairedPosition = pt[m->pos_3];
+    pt[previousPairedPosition] = 0;
+    short newPairedPosition = -m->pos_5;
+    pt[m->pos_3]          = newPairedPosition;
+    pt[newPairedPosition] = m->pos_3;
     return;
   }
 }
 
 
 void
-vrna_perform_move_str(const move  *m,
-                      const short *ptStructure,
-                      char        *structure)
+vrna_move_apply_db(char               *structure,
+                   const short        *pt,
+                   const vrna_move_t  *m)
 {
   /* deletion */
-  if (m->bpLeft < 0 && m->bpRight < 0) {
-    structure[-m->bpLeft - 1]   = '.';
-    structure[-m->bpRight - 1]  = '.';
+  if (m->pos_5 < 0 && m->pos_3 < 0) {
+    structure[-m->pos_5 - 1]  = '.';
+    structure[-m->pos_3 - 1]  = '.';
     return;
   }
 
   /* insertion */
-  if (m->bpLeft > 0 && m->bpRight > 0) {
-    structure[m->bpLeft - 1]  = '(';
-    structure[m->bpRight - 1] = ')';
+  if (m->pos_5 > 0 && m->pos_3 > 0) {
+    structure[m->pos_5 - 1] = '(';
+    structure[m->pos_3 - 1] = ')';
     return;
   }
 
   /* shift right */
-  if (m->bpLeft > 0) {
-    short previousPairedPosition = ptStructure[m->bpLeft];
+  if (m->pos_5 > 0) {
+    short previousPairedPosition = pt[m->pos_5];
     structure[previousPairedPosition - 1] = '.';
-    int   left  = m->bpLeft - 1;
-    int   right = -m->bpRight - 1;
+    int   left  = m->pos_5 - 1;
+    int   right = -m->pos_3 - 1;
     structure[left]   = '(';
     structure[right]  = ')';
     return;
   }
 
   /* shift left */
-  if (m->bpLeft < 0) {
-    short previousPairedPosition = ptStructure[m->bpRight];
+  if (m->pos_5 < 0) {
+    short previousPairedPosition = pt[m->pos_3];
     structure[previousPairedPosition - 1] = '.';
-    int   left  = -m->bpLeft - 1;
-    int   right = m->bpRight - 1;
+    int   left  = -m->pos_5 - 1;
+    int   right = m->pos_3 - 1;
     structure[left]   = '(';
     structure[right]  = ')';
     return;
@@ -1182,29 +1542,29 @@ vrna_perform_move_str(const move  *m,
 
 
 void
-vrna_update_loop_indices(int          length,
-                         int          *loopIndices,
-                         const move   *m,
-                         const short  *structure)
+vrna_loopidx_update(int               *loopIndices,
+                    const short       *pt,
+                    int               length,
+                    const vrna_move_t *m)
 {
-  int index   = loopIndices[abs(m->bpLeft)];
-  int bpLeft  = m->bpLeft;
-  int bpRight = m->bpRight;
+  int index = loopIndices[abs(m->pos_5)];
+  int pos_5 = m->pos_5;
+  int pos_3 = m->pos_3;
 
   /* left index has to be smaller for the next iterations */
-  if (abs(bpLeft) > abs(bpRight)) {
-    bpLeft  = m->bpRight;
-    bpRight = m->bpLeft;
+  if (abs(pos_5) > abs(pos_3)) {
+    pos_5 = m->pos_3;
+    pos_3 = m->pos_5;
   }
 
-  if (bpLeft < 0 && bpRight < 0) {
+  if (pos_5 < 0 && pos_3 < 0) {
     /* deletion -> decrease loopIndex. */
     /* search for next closing bracket or unpaired loopIndex to the right. */
     int currentIndex = 0;
-    for (int i = -bpRight + 1; i <= length; i++) {
+    for (int i = -pos_3 + 1; i <= length; i++) {
       if (loopIndices[i] < index) {
         /* if unpaired or closing. an loopIndex < current. */
-        if (structure[i] <= 0 || structure[i] < i) {
+        if (pt[i] <= 0 || pt[i] < i) {
           currentIndex = loopIndices[i];
           break;
         }
@@ -1212,7 +1572,7 @@ vrna_update_loop_indices(int          length,
     }
 
     int highestIndexInside = index;
-    for (int i = -bpLeft; i <= -bpRight; i++) {
+    for (int i = -pos_5; i <= -pos_3; i++) {
       if (loopIndices[i] > highestIndexInside)
         highestIndexInside = loopIndices[i];
 
@@ -1222,32 +1582,32 @@ vrna_update_loop_indices(int          length,
         loopIndices[i]--;
     }
     /*  decrease all following indices. */
-    for (int i = -bpRight + 1; i <= length; i++)
+    for (int i = -pos_3 + 1; i <= length; i++)
       if (loopIndices[i] > highestIndexInside)
         loopIndices[i]--;
 
     loopIndices[0]--;
     return;
-  } else if (bpLeft > 0 && bpRight > 0) {
+  } else if (pos_5 > 0 && pos_3 > 0) {
     /* insertion --> 1.Increase the index for all following loopIndices inside the interval. */
     /* 2.Then look at the index on the left side and increase it for the base pair interval (ignore bp in between). */
     /* 3.Increase the indices to the right side of the interval. */
     int currentIndex = 0;
-    for (int i = bpLeft; i > 0; i--) {
-      if (structure[i] > i) {
+    for (int i = pos_5; i > 0; i--) {
+      if (pt[i] > i) {
         /*  if bp opens */
         currentIndex = loopIndices[i];
         break;
       }
     }
     currentIndex++;
-    for (int i = bpLeft; i <= bpRight; i++) {
+    for (int i = pos_5; i <= pos_3; i++) {
       if (loopIndices[i] >= currentIndex)
         loopIndices[i]++;
       else
         loopIndices[i] = currentIndex;
     }
-    for (int i = bpRight + 1; i <= length; i++)
+    for (int i = pos_3 + 1; i <= length; i++)
       if (loopIndices[i] >= currentIndex)
         loopIndices[i]++;
 
@@ -1255,31 +1615,31 @@ vrna_update_loop_indices(int          length,
     return;
   } else {
     /* shift move: split it into one deletion and one insertion. */
-    move deletionMove;
-    if (bpLeft > 0) {
-      deletionMove.bpLeft   = -bpLeft;
-      deletionMove.bpRight  = -structure[bpLeft];
+    vrna_move_t deletionMove;
+    if (pos_5 > 0) {
+      deletionMove.pos_5  = -pos_5;
+      deletionMove.pos_3  = -pt[pos_5];
     } else {
-      deletionMove.bpRight  = -bpRight;
-      deletionMove.bpLeft   = -structure[bpRight];
+      deletionMove.pos_3  = -pos_3;
+      deletionMove.pos_5  = -pt[pos_3];
     }
 
     /* left index absolute value has to be smaller than the right one for the other methods */
-    if (deletionMove.bpLeft < deletionMove.bpRight) {
-      int tmp = deletionMove.bpLeft;
-      deletionMove.bpLeft   = deletionMove.bpRight;
-      deletionMove.bpRight  = tmp;
+    if (deletionMove.pos_5 < deletionMove.pos_3) {
+      int tmp = deletionMove.pos_5;
+      deletionMove.pos_5  = deletionMove.pos_3;
+      deletionMove.pos_3  = tmp;
     }
 
-    move  insertionMove = {
-      abs(bpLeft), abs(bpRight)
+    vrna_move_t insertionMove = {
+      abs(pos_5), abs(pos_3)
     };
 
-    vrna_update_loop_indices(length, loopIndices, &deletionMove, structure);
-    short *tmpStructure = vrna_ptable_copy(structure);
-    vrna_perform_move(&deletionMove, tmpStructure);
-    vrna_update_loop_indices(length, loopIndices, &insertionMove, tmpStructure);
-    free(tmpStructure);
+    vrna_loopidx_update(loopIndices, pt, length, &deletionMove);
+    short       *tmppt = vrna_ptable_copy(pt);
+    vrna_move_apply(tmppt, &deletionMove);
+    vrna_loopidx_update(loopIndices, tmppt, length, &insertionMove);
+    free(tmppt);
     return;
   }
 }
@@ -1289,38 +1649,39 @@ vrna_update_loop_indices(int          length,
 /* public neighbor methods            */
 /**************************************/
 
-move *
-vrna_build_neighbors(vrna_fold_compound_t *vc,
-                     const short          *pt,
-                     int                  shift)
+vrna_move_t *
+vrna_neighbors(vrna_fold_compound_t *vc,
+               const short          *pt,
+               unsigned int         options)
 {
-  int   lengthDeletions;
-  move  *deletionList = deletions(vc, pt, &lengthDeletions);
+  int         lengthDeletions;
+  vrna_move_t *deletionList = deletions(vc, pt, &lengthDeletions);
 
-  int   lengthInsertions;
-  move  *insertionList = insertions(vc, pt, &lengthInsertions);
+  int         lengthInsertions;
+  vrna_move_t *insertionList = insertions(vc, pt, &lengthInsertions);
 
-  int   totalLength = lengthDeletions + lengthInsertions;
+  int         totalLength = lengthDeletions + lengthInsertions;
   /* merge deletion list with insertion list. */
-  move  *moveSet        = (move *)vrna_realloc(insertionList, sizeof(move) * (totalLength + 1));
-  move  *ptInsertionEnd = moveSet + lengthInsertions;
+  vrna_move_t *moveSet =
+    (vrna_move_t *)vrna_realloc(insertionList, sizeof(vrna_move_t) * (totalLength + 1));
+  vrna_move_t *ptInsertionEnd = moveSet + lengthInsertions;
 
-  memcpy(ptInsertionEnd, deletionList, lengthDeletions * sizeof(move));
+  memcpy(ptInsertionEnd, deletionList, lengthDeletions * sizeof(vrna_move_t));
 
-  if (shift == 1) {
+  if (options & VRNA_MOVESET_SHIFT) {
     /*  append shift moves */
-    int   lengthShifts;
-    move  *shiftList = shifts(vc, pt, &lengthShifts);
+    int         lengthShifts;
+    vrna_move_t *shiftList = shifts(vc, pt, &lengthShifts);
     totalLength += lengthShifts;
-    moveSet     = (move *)vrna_realloc(moveSet, sizeof(move) * (totalLength + 1));
-    move  *ptMoveSetEnd = moveSet + lengthInsertions + lengthDeletions;
-    memcpy(ptMoveSetEnd, shiftList, lengthShifts * sizeof(move));
+    moveSet     = (vrna_move_t *)vrna_realloc(moveSet, sizeof(vrna_move_t) * (totalLength + 1));
+    vrna_move_t *ptMoveSetEnd = moveSet + lengthInsertions + lengthDeletions;
+    memcpy(ptMoveSetEnd, shiftList, lengthShifts * sizeof(vrna_move_t));
     free(shiftList);
   }
 
   /* terminate list */
-  moveSet[totalLength].bpLeft   = 0;
-  moveSet[totalLength].bpRight  = 0;
+  moveSet[totalLength].pos_5  = 0;
+  moveSet[totalLength].pos_3  = 0;
 
   free(deletionList);
 
@@ -1328,29 +1689,50 @@ vrna_build_neighbors(vrna_fold_compound_t *vc,
 }
 
 
-move *
-vrna_build_neighbors_iteratively(const vrna_fold_compound_t *vc,
-                                 const move                 *currentMove,
-                                 const short                *previousStructure,
-                                 const move                 *previousMoves,
-                                 int                        length,
-                                 int                        *newLength,
-                                 short                      shift)
+vrna_move_t *
+vrna_neighbors_successive(const vrna_fold_compound_t  *vc,
+                          const vrna_move_t           *curr_move,
+                          const short                 *prev_pt,
+                          const vrna_move_t           *prev_neighbors,
+                          int                         length,
+                          int                         *size_neighbors,
+                          unsigned int                options)
 {
-  bool  isDeletion  = currentMove->bpLeft < 0 && currentMove->bpRight < 0 ? true : false;
-  bool  isInsertion = currentMove->bpLeft > 0 && currentMove->bpRight > 0 ? true : false;
-  bool  isShift     = !isDeletion && !isInsertion;
+  bool        isDeletion  = curr_move->pos_5 < 0 && curr_move->pos_3 < 0 ? true : false;
+  bool        isInsertion = curr_move->pos_5 > 0 && curr_move->pos_3 > 0 ? true : false;
+  bool        isShift     = !isDeletion && !isInsertion;
 
-  move  *newMoves;
+  vrna_move_t *newMoves;
 
-  if (isDeletion)
-    newMoves = buildNeighborsForDeletionMove(vc, currentMove, previousStructure, previousMoves, length, newLength, shift);
+  if (isDeletion) {
+    newMoves = buildNeighborsForDeletionMove(vc,
+                                             curr_move,
+                                             prev_pt,
+                                             prev_neighbors,
+                                             length,
+                                             size_neighbors,
+                                             options);
+  }
 
-  if (isInsertion)
-    newMoves = buildNeighborsForInsertionMove(vc, currentMove, previousStructure, previousMoves, length, newLength, shift);
+  if (isInsertion) {
+    newMoves = buildNeighborsForInsertionMove(vc,
+                                              curr_move,
+                                              prev_pt,
+                                              prev_neighbors,
+                                              length,
+                                              size_neighbors,
+                                              options);
+  }
 
-  if (isShift)
-    newMoves = buildNeighborsForShiftMove(vc, currentMove, previousStructure, previousMoves, length, newLength, shift);
+  if (isShift) {
+    newMoves = buildNeighborsForShiftMove(vc,
+                                          curr_move,
+                                          prev_pt,
+                                          prev_neighbors,
+                                          length,
+                                          size_neighbors,
+                                          options);
+  }
 
   return newMoves;
 }

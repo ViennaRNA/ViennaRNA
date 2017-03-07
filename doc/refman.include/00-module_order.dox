@@ -36,6 +36,8 @@
  *  @defgroup   soft_constraints          Soft constraints
  *  @ingroup    constraints
  *
+ *  @defgroup   landscape                 The RNA secondary structure landscape
+ *
  *  @defgroup   mfe_fold                  Minimum Free Energy (MFE) algorithms
  *
  *  @defgroup   pf_fold                   Partition function and equilibrium properties
@@ -91,7 +93,11 @@
  *
  *  @defgroup   inverse_fold              Inverse Folding (Design)
  *
- *  @defgroup   paths                     Refolding paths between secondary structues
+ *  @defgroup   neighbors                 Neighborhood relation and move sets for secondary structures
+ *  @ingroup    landscape
+ *
+ *  @defgroup   paths                     Refolding paths of secondary structures
+ *  @ingroup    landscape
  *
  *  @defgroup   probing_data              Experimental structure probing data
  *
