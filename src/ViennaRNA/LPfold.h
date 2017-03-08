@@ -21,7 +21,11 @@
  *
  */
 
-
+#define VRNA_EXT_LOOP   1
+#define VRNA_HP_LOOP    2
+#define VRNA_INT_LOOP   4
+#define VRNA_MB_LOOP    8
+#define VRNA_ANY_LOOP   (VRNA_EXT_LOOP | VRNA_HP_LOOP | VRNA_INT_LOOP | VRNA_MB_LOOP)
 /**
  *  \brief
  *
