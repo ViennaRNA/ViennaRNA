@@ -21,7 +21,12 @@
  *
  */
 
-typedef void (vrna_probs_window_callback)(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int type, void *data);
+typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
+                                          int           pr_size,
+                                          int           i,
+                                          int           max,
+                                          unsigned int  type,
+                                          void          *data);
 
 #define VRNA_EXT_LOOP   1U
 #define VRNA_HP_LOOP    2U
