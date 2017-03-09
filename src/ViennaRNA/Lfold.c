@@ -381,6 +381,13 @@ wrap_Lfold(vrna_fold_compound_t             *vc,
   n       = vc->length;
   maxdist = vc->window_size;
 
+  /* reserve additional memory for j-dimension */
+  for (i = (int)vc->length; (i > (int)vc->length - vc->window_size - 5) && (i >= 0); i--) {
+    vc->ptype_local[i] = vrna_alloc(sizeof(char) * (vc->window_size + 5));
+    vc->matrices->c_local[i] = (int *)vrna_alloc(sizeof(int) * (vc->window_size + 5));
+    vc->matrices->fML_local[i] = (int *)vrna_alloc(sizeof(int) * (vc->window_size + 5));
+  }
+
   for (i = n; (i >= (int)n - (int)maxdist - 4) && (i > 0); i--)
     make_ptypes(vc, i);
 
@@ -408,6 +415,13 @@ wrap_Lfold(vrna_fold_compound_t             *vc,
 
   mfe_local = (underflow > 0) ? ((float)underflow * (float)(UNDERFLOW_CORRECTION)) / 100. : 0.;
   mfe_local += (float)energy / 100.;
+
+  /* free additional memory for j-dimension */
+  for (i = 0; (i < vc->window_size + 5) && (i <= (int)vc->length); i++) {
+    free(vc->ptype_local[i]);
+    free(vc->matrices->c_local[i]);
+    free(vc->matrices->fML_local[i]);
+  }
 
   return mfe_local;
 }

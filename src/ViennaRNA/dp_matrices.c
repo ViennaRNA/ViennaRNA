@@ -733,17 +733,11 @@ mfe_matrices_alloc_window(vrna_mx_mfe_t *vars,
   if (alloc_vector & ALLOC_F3)
     vars->f3_local = (int *)vrna_alloc(sizeof(int) * lin_size);
 
-  if (alloc_vector & ALLOC_C) {
+  if (alloc_vector & ALLOC_C)
     vars->c_local = (int **)vrna_alloc(sizeof(int *) * lin_size);
-    for (i = (int)n; (i > ((int)n - (int)m - 5)) && (i >= 0); i--)
-      vars->c_local[i] = (int *)vrna_alloc(sizeof(int) * (m + 5));
-  }
 
-  if (alloc_vector & ALLOC_FML) {
+  if (alloc_vector & ALLOC_FML)
     vars->fML_local = (int **)vrna_alloc(sizeof(int *) * lin_size);
-    for (i = (int)n; (i > ((int)n - (int)m - 5)) && (i >= 0); i--)
-      vars->fML_local[i] = (int *)vrna_alloc(sizeof(int) * (m + 5));
-  }
 }
 
 
@@ -752,26 +746,9 @@ mfe_matrices_free_window(vrna_mx_mfe_t  *self,
                          unsigned int   length,
                          unsigned int   window_size)
 {
-  unsigned int i;
-
-  if (self->c_local)
-    for (i = 0; (i < window_size + 5) && (i <= length); i++)
-      free(self->c_local[i]);
-
   free(self->c_local);
-
-  if (self->fML_local)
-    for (i = 0; (i < window_size + 5) && (i <= length); i++)
-      free(self->fML_local[i]);
-
   free(self->fML_local);
-
-  if (self->ggg_local)
-    for (i = 0; (i < window_size + 5) && (i <= length); i++)
-      free(self->ggg_local[i]);
-
   free(self->ggg_local);
-
   free(self->f3_local);
 }
 

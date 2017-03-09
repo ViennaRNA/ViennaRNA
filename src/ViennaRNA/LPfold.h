@@ -21,11 +21,20 @@
  *
  */
 
+typedef void (vrna_probs_window_callback)(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int type, void *data);
+
 #define VRNA_EXT_LOOP   1U
 #define VRNA_HP_LOOP    2U
 #define VRNA_INT_LOOP   4U
 #define VRNA_MB_LOOP    8U
 #define VRNA_ANY_LOOP   (VRNA_EXT_LOOP | VRNA_HP_LOOP | VRNA_INT_LOOP | VRNA_MB_LOOP)
+
+
+#define VRNA_PF_WINDOW_BPP  4096U
+#define VRNA_PF_WINDOW_UP   8192U
+#define VRNA_PF_WINDOW_STACKP   16384U
+#define VRNA_PF_WINDOW_UP_SPLIT   32768U
+
 /**
  *  \brief
  *
