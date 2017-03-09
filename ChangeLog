@@ -1,3 +1,31 @@
+v2.3.4
+  * Fix G-Quadruplex probability computation for single sequences
+  * Fix double-free when using SHAPE reactivity data in RNAalifold
+  * Fix out-of-bounds access in strand_number array
+  * Fix weighting of SHAPE reactivity data in consensus structure prediction when fewer data than sequences are present
+  * Fix z-score output in RNALfold
+  * Substitute field name 'A0'/'B0' in data structure vrna_dimer_conc_s by 'Ac_start'/'Bc_start' to avoid clashes with termios.h (Mac OSX Python wrapper bug)
+  * Minimize usage of 'unsafe' sprintf() calls
+  * Enhance auto-id feature in executable programs
+  * Always sanitize output file names to avoid problems due to strange FASTA headers
+  * Lift restrictions of FASTA header length in RNAfold, RNAcofold, and RNAeval
+  * Add ViennaRNA/config.h with pre-processor definitions of configure time choices
+  * Add test-suite for RNAfold
+  * Add functions to procude colored EPS structure alignments
+  * Add function to write Stockholm 1.0 formatted alignments
+  * Add function to sanitize file names
+  * Add callback based implementation for sliding-window MFE prediction (single sequences, comparative structure prediction)
+  * Add fast API 3.0 implementations to generate structural neighbors and perform steepest descent / random walks (Thanks to Gregor!)
+  * Add parameter option to RNALalifold for colored EPS structure alignment and structure plot output
+  * Add parameter option to RNALalifold to write hits into Stockholm file
+  * Add parameter option to RNAalifold to write Stockholm 1.0 formatted output
+  * Add parameter option to RNAalifold to suppress stderr spam
+  * Add auto-id feature to RNAplot, RNALfold, RNAsubopt, RNAplfold, RNAheat
+  * Add SHAPE reactivity derived pseudo-energies as separate output in RNAalifold
+  * Add colored output to RNA2Dfold, RNALalifold, RNALfold, RNAduplex, RNAheat, RNAinverse, RNAplfold, and RNAsubopt
+  * Add command line parameters to RNAsubopt to allow for specification of input/output files
+  
+
 v2.3.3
   * Fix multiloop contributions for comparative partition function
   * Fix building python2 extension module for OSX
