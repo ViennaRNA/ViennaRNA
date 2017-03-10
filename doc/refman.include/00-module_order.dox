@@ -136,13 +136,13 @@
  *  @defgroup   up_cofold                 Partition Function for two hybridized Sequences as a stepwise Process
  *  @ingroup    cofold pf_fold
  *
- *  @defgroup   local_mfe_fold            Local MFE structure Prediction and Z-scores
+ *  @defgroup   local_mfe_fold            Local MFE Structure Prediction and Z-scores
  *  @ingroup    local_fold mfe_fold
  *
- *  @defgroup   local_pf_fold             Partition functions for locally stable secondary structures
+ *  @defgroup   local_pf_fold             Partition Function and Equilibrium Probabilities for Locally Stable Secondary Structures
  *  @ingroup    local_fold pf_fold
  *
- *  @defgroup   local_consensus_fold      Local MFE consensus structures for Sequence Alignments
+ *  @defgroup   local_consensus_fold      Local MFE Consensus Structure Prediction for Sequence Alignments
  *  @ingroup    local_fold consensus_fold
  *
  *  @defgroup   energy_parameters_rw      Reading/Writing Energy Parameter Sets from/to File
