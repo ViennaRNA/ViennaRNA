@@ -48,7 +48,7 @@ done
 # Test maximum base pair span
 testline "MFE prediction (RNAfold --maxBPspan=30)"
 RNAfold --noPS --maxBPspan=30 -p0 < ${DATADIR}/rnafold.small.seq > tmp.fold
-diff=$(${DIFF} ${RNAFOLD_RESULTSDIR}/rnafold.small.span30.gold tmp.fold)
+diff=$(${DIFF} -I frequency ${RNAFOLD_RESULTSDIR}/rnafold.small.span30.gold tmp.fold)
 if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
 
 # Test automatic ID generation
