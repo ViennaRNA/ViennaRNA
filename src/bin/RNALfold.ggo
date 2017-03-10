@@ -37,13 +37,16 @@ off
 
 option  "outfile" o
 "Print output to file instead of stdout\n"
-details="Specifying a file name/prefix will print the output into a file instead of stdout.\
- If a FASTA header precedes the input sequence, the appropriate fasta ID is used as infix for\
- the file name. Each generated file will be suffixed with the file extension '.lfold'.\
- If a file with the same filename already exists, any output of the program will be appended\
- to it.\n\n"
+details="This option may be used to write all output to output files rather than printing\
+ to stdout. The default filename is \"RNALfold_output.lfold\" if no FASTA header precedes\
+ the input sequences and the --auto-id feature is inactive. Otherwise, output files with\
+ the scheme \"prefix.lfold\" are generated, where the \"prefix\" is taken from the sequence\
+ id. The user may specify a single output file name for all data generated from the input\
+ by supplying an optional string as argument to this parameter. In case a file with the same\
+ filename already exists, any output of the program will be appended to it.\n\n"
 string
 typestr="<filename>"
+argoptional
 optional
 
 option  "infile"  i
@@ -53,6 +56,87 @@ details="The default behavior of RNALfold is to read input from stdin. Using thi
 string
 typestr="<filename>"
 optional
+
+option  "auto-id"  -
+"Automatically generate an ID for each sequence.\n"
+details="The default mode of RNALfold is to automatically determine an ID from the input sequence\
+ data if the input file format allows to do that. Sequence IDs are usually given in the FASTA\
+ header of input sequences. If this flag is active, RNALfold ignores any IDs retrieved from the\
+ input and automatically generates an ID for each sequence. This ID consists of a prefix and an\
+ increasing number. This flag can also be used to add a FASTA header to the output even if\
+ the input has none.\n\n"
+flag
+off
+
+option  "id-prefix" -
+"Prefix for automatically generated IDs (as used in output file names)\n\n"
+details="If this parameter is set, each sequence will be prefixed with the\
+ provided string. Hence, the output files will obey the following naming\
+ scheme: \"prefix_xxxx.lfold\" where xxxx is the sequence number. Note:\
+ Setting this parameter implies --auto-id.\n\n"
+string
+typestr="prefix"
+default="sequence"
+optional
+
+option  "id-delim" -
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)\n\n"
+details="This parameter can be used to change the default delimiter \"_\" between
+ the prefix string and the increasing number for automatically generated ID.\n\n"
+string
+typestr="delimiter"
+default="_"
+optional
+hidden
+
+option  "id-digits"  -
+"Specify the number of digits of the counter in automatically generated alignment IDs.\n"
+details="When alignments IDs are automatically generated, they receive an increasing number, starting\
+ with 1. This number will always be left-padded by leading zeros, such that the number takes up a\
+ certain width. Using this parameter, the width can be specified to the users need. We allow\
+ numbers in the range [1:18]. This option implies --auto-id.\n\n"
+int
+default="4"
+optional
+hidden
+
+option  "id-start"  -
+"Specify the first number in automatically generated alignment IDs.\n"
+details="When sequence IDs are automatically generated, they receive an increasing number,\
+ usually starting with 1. Using this parameter, the first number can be specified to the users\
+ requirements. Note: negative numbers are not allowed.\nNote: Setting this parameter implies\
+ to ignore any IDs retrieved from the input data, i.e. it activates the --auto-id flag.\n\n"
+long
+default="1"
+optional
+hidden
+
+option  "filename-delim" -
+"Change the delimiting character that is used for sanitized filenames\n\n"
+details="This parameter can be used to change the delimiting character used while\
+ sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
+ delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
+ the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
+ characters will be simply removed rather than substituted.\n\n"
+string
+typestr="delimiter"
+default="ID-delimiter"
+optional
+hidden
+
+option  "filename-full" -
+"Use full FASTA header to create filenames\n\n"
+details="This parameter can be used to deactivate the default behavior of limiting\
+ output filenames to the first word of the sequence ID. Consider the following example:\
+ An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
+ files with the prefix \"NM_0001\" without the additional data available in the FASTA\
+ header, e.g. \"NM_0001.lfold\". With this flag set, no truncation of the output filenames\
+ is performed, i.e. output filenames receive the full FASTA header data as prefixes. Note,\
+ however, that invalid characters (such as whitespace) will be substituted by a delimiting\
+ character or simply removed, (see also the parameter option --filename-delim).\n\n"
+flag
+off
+hidden
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
@@ -128,7 +212,7 @@ option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ RNALfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional

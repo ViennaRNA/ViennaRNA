@@ -22,6 +22,8 @@
 #include "ViennaRNA/duplex.h"
 #include "RNAduplex_cmdl.h"
 
+#include "ViennaRNA/color_output.inc"
+
 PRIVATE void  print_struc(duplexT const *dup);
 
 
@@ -32,7 +34,7 @@ main(int  argc,
      char *argv[])
 {
   struct        RNAduplex_args_info args_info;
-  char                              fname[FILENAME_MAX_LENGTH], *input_string, *s1, *s2, *orig_s1, *orig_s2,
+  char                              *input_string, *s1, *s2, *orig_s1, *orig_s2,
                                     *c, *ParamFile, *ns_bases;
   unsigned int                      input_type;
   int                               i, sym, istty, delta, noconv;
@@ -152,10 +154,8 @@ main(int  argc,
       vrna_message_input_seq("Input two sequences (one line each)");
 
     /* extract filename from fasta header if available */
-    fname[0] = '\0';
     while ((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER) {
-      printf(">%s\n", input_string);
-      (void)sscanf(input_string, "%" XSTR(FILENAME_ID_LENGTH) "s", fname);
+      print_fasta_header(stdout, input_string);
       free(input_string);
     }
 
@@ -171,7 +171,7 @@ main(int  argc,
 
     /* get second sequence */
     while ((input_type = get_input_line(&input_string, 0)) == VRNA_INPUT_FASTA_HEADER) {
-      printf(">%s\n", input_string);
+      print_fasta_header(stdout, input_string);
       free(input_string);
     }
     /* break on any error, EOF or quit request */
@@ -198,7 +198,7 @@ main(int  argc,
     vrna_seq_toupper(s2);
 
     if (istty)
-      printf("lengths = %d,%d\n", (int)strlen(s1), (int)strlen(s2));
+      vrna_message_info(stdout, "lengths = %d,%d\n", (int)strlen(s1), (int)strlen(s2));
 
     /*
      ########################################################
@@ -240,9 +240,15 @@ main(int  argc,
 PRIVATE void
 print_struc(duplexT const *dup)
 {
-  int l1;
+  int   l1;
 
   l1 = strchr(dup->structure, '&') - dup->structure;
-  printf("%s %3d,%-3d : %3d,%-3d (%5.2f)\n", dup->structure, dup->i + 1 - l1,
-         dup->i, dup->j, dup->j + (int)strlen(dup->structure) - l1 - 2, dup->energy);
+  char  *msg = vrna_strdup_printf(" %3d,%-3d : %3d,%-3d (%5.2f)",
+                                  dup->i + 1 - l1,
+                                  dup->i,
+                                  dup->j,
+                                  dup->j + (int)strlen(dup->structure) - l1 - 2,
+                                  dup->energy);
+  print_structure(stdout, dup->structure, msg);
+  free(msg);
 }

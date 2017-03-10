@@ -34,20 +34,25 @@
 
 #include "ViennaRNA/color_output.inc"
 
-PRIVATE void putoutzuker(vrna_subopt_solution_t *zukersolution);
+PRIVATE void putoutzuker(FILE                   *output,
+                         vrna_subopt_solution_t *zukersolution);
 
 
 int
 main(int  argc,
      char *argv[])
 {
+  FILE                                *input, *output;
   struct          RNAsubopt_args_info args_info;
-  char                                fname[FILENAME_MAX_LENGTH], *rec_sequence, *rec_id,
+  char                                *rec_sequence, *rec_id,
                                       **rec_rest, *orig_sequence, *constraints_file, *cstruc, *structure,
-                                      *shape_file, *shape_method, *shape_conversion;
+                                      *shape_file, *shape_method, *shape_conversion, *id_prefix, *id_delim,
+                                      *infile, *outfile, *filename_delim;
   unsigned int                        rec_type, read_opt;
   int                                 i, length, cl, istty, delta, n_back, noconv, dos, zuker, with_shapes,
-                                      verbose, enforceConstraints, st_back_en, batch;
+                                      verbose, enforceConstraints, st_back_en, batch, auto_id, id_digits,
+                                      tofile, filename_full;
+  long int                            seq_number;
   double                              deltap;
   vrna_md_t                           md;
 
@@ -60,6 +65,12 @@ main(int  argc,
   cstruc        = structure = NULL;
   verbose       = 0;
   st_back_en    = 0;
+  auto_id       = 0;
+  infile        = NULL;
+  outfile       = NULL;
+  output        = NULL;
+  tofile        = 0;
+  filename_full = 0;
 
   set_model_details(&md);
 
@@ -73,6 +84,14 @@ main(int  argc,
    */
   if (RNAsubopt_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  /* parse options for ID manipulation */
+  ggo_get_ID_manipulation(args_info,
+                          auto_id,
+                          id_prefix, "sequence",
+                          id_delim, "_",
+                          id_digits, 4,
+                          seq_number, 1);
 
   /* get basic set of model details */
   ggo_get_md_eval(args_info, md);
@@ -168,6 +187,30 @@ main(int  argc,
     exit(1);
   }
 
+  if (args_info.infile_given)
+    infile = strdup(args_info.infile_arg);
+
+  if (args_info.outfile_given) {
+    tofile = 1;
+    if (args_info.outfile_arg)
+      outfile = strdup(args_info.outfile_arg);
+  }
+
+  /* filename sanitize delimiter */
+  if (args_info.filename_delim_given)
+    filename_delim = strdup(args_info.filename_delim_arg);
+  else
+    filename_delim = strdup(id_delim);
+
+  if (isspace(*filename_delim)) {
+    free(filename_delim);
+    filename_delim = NULL;
+  }
+
+  /* full filename from FASTA header support */
+  if (args_info.filename_full_given)
+    filename_full = 1;
+
   /* free allocated memory of command line data structure */
   RNAsubopt_cmdline_parser_free(&args_info);
 
@@ -177,7 +220,15 @@ main(int  argc,
    #############################################
    */
 
-  istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
+  if (infile) {
+    input = fopen((const char *)infile, "r");
+    if (!input)
+      vrna_message_error("Could not read input file");
+  } else {
+    input = stdin;
+  }
+
+  istty = (!infile) && isatty(fileno(stdout)) && isatty(fileno(stdin));
 
   /* print user help if we get input from tty */
   if (istty) {
@@ -205,18 +256,47 @@ main(int  argc,
    #############################################
    */
   while (
-    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
+    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, input, read_opt))
       & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
+    char  *SEQ_ID         = NULL;
+    char  *v_file_name    = NULL;
+    char  *tmp_string     = NULL;
+    int   maybe_multiline = 0;
+
     /*
      ########################################################
      # init everything according to the data we've read
      ########################################################
      */
-    if (rec_id)
-      /* if(!istty) printf("%s\n", rec_id); */
-      (void)sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-    else
-      fname[0] = '\0';
+    if (rec_id) {
+      maybe_multiline = 1;
+      /* remove '>' from FASTA header */
+      rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
+    }
+
+    /* construct the sequence ID */
+    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
+
+    if (tofile) {
+      /* prepare the file name */
+      if (outfile)
+        v_file_name = vrna_strdup_printf("%s", outfile);
+      else
+        v_file_name = (SEQ_ID) ? vrna_strdup_printf("%s.sub", SEQ_ID) : vrna_strdup_printf("RNAsubopt_output.sub");
+
+      tmp_string = vrna_filename_sanitize(v_file_name, filename_delim);
+      free(v_file_name);
+      v_file_name = tmp_string;
+
+      if (infile && !strcmp(infile, v_file_name))
+        vrna_message_error("Input and output file names are identical");
+
+      output = fopen((const char *)v_file_name, "a");
+      if (!output)
+        vrna_message_error("Failed to open file for writing");
+    } else {
+      output = stdout;
+    }
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)
@@ -239,7 +319,7 @@ main(int  argc,
       } else {
         cstruc = NULL;
         int           cp        = -1;
-        unsigned int  coptions  = (rec_id) ? VRNA_OPTION_MULTILINE : 0;
+        unsigned int  coptions  = (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0;
         cstruc  = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc  = vrna_cut_point_remove(cstruc, &cp);
         if (vc->cutpoint != cp) {
@@ -302,10 +382,9 @@ main(int  argc,
       if (vc->cutpoint != -1)
         vrna_message_error("Boltzmann sampling for cofolded structures not implemented (yet)!");
 
-      if (fname[0] != '\0')
-        print_fasta_header(stdout, fname);
+      print_fasta_header(output, rec_id);
 
-      printf("%s\n", rec_sequence);
+      fprintf(output, "%s\n", rec_sequence);
 
       ss = (char *)vrna_alloc(strlen(rec_sequence) + 1);
       strncpy(ss, structure, length);
@@ -328,7 +407,7 @@ main(int  argc,
           e_string  = vrna_strdup_printf(" %6.2f %6g", e, prob);
         }
 
-        print_structure(stdout, s, e_string);
+        print_structure(output, s, e_string);
         free(s);
         free(e_string);
       }
@@ -336,18 +415,21 @@ main(int  argc,
     /* normal subopt */
     else if (!zuker) {
       /* first lines of output (suitable  for sort +1n) */
-      if (fname[0] != '\0') {
-        char *head = vrna_strdup_printf("%s [%d]", fname, delta);
-        print_fasta_header(stdout, head);
+      if (rec_id) {
+        char *head = vrna_strdup_printf("%s [%d]", rec_id, delta);
+        print_fasta_header(output, head);
         free(head);
       }
 
-      vrna_subopt(vc, delta, subopt_sorted, stdout);
+      vrna_subopt(vc, delta, subopt_sorted, output);
 
       if (dos) {
         int i;
-        for (i = 0; i <= MAXDOS && i <= delta / 10; i++)
-          printf("%4d %6d\n", i, density_of_states[i]);
+        for (i = 0; i <= MAXDOS && i <= delta / 10; i++) {
+          char *tline = vrna_strdup_printf("%4d %6d", i, density_of_states[i]);
+          print_table(output, NULL, tline);
+          free(tline);
+        }
       }
     }
     /* Zuker suboptimals */
@@ -358,31 +440,28 @@ main(int  argc,
         vrna_message_error("Sorry, zuker subopts not yet implemented for cofold");
 
       int                     i;
-      if (fname[0] != '\0')
-        print_fasta_header(stdout, fname);
+      print_fasta_header(output, rec_id);
 
-      printf("%s\n", rec_sequence);
+      fprintf(output, "%s\n", rec_sequence);
 
       zr = vrna_subopt_zuker(vc);
 
-      putoutzuker(zr);
-      (void)fflush(stdout);
+      putoutzuker(output, zr);
+      (void)fflush(output);
       for (i = 0; zr[i].structure; i++)
         free(zr[i].structure);
       free(zr);
     }
 
-    (void)fflush(stdout);
+    (void)fflush(output);
 
     /* clean up */
     vrna_fold_compound_free(vc);
 
-    if (cstruc)
-      free(cstruc);
+    free(cstruc);
 
-    if (rec_id)
-      free(rec_id);
-
+    free(rec_id);
+    free(SEQ_ID);
     free(rec_sequence);
     free(orig_sequence);
     free(structure);
@@ -397,8 +476,17 @@ main(int  argc,
     rec_id    = rec_sequence = orig_sequence = structure = cstruc = NULL;
     rec_rest  = NULL;
 
+    if (tofile && output) {
+      fclose(output);
+      output = NULL;
+    }
+
+    free(v_file_name);
+
     if (with_shapes || (constraints_file && (!batch)))
       break;
+
+    ID_number_increase(seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if (istty) {
@@ -414,22 +502,29 @@ main(int  argc,
     }
   }
 
+  if (infile && input)
+    fclose(input);
+
   free(shape_method);
   free(shape_conversion);
+  free(id_prefix);
+  free(id_delim);
+  free(filename_delim);
 
   return EXIT_SUCCESS;
 }
 
 
 PRIVATE void
-putoutzuker(vrna_subopt_solution_t *zukersolution)
+putoutzuker(FILE                    *output,
+            vrna_subopt_solution_t  *zukersolution)
 {
   int   i;
   char  *e_string;
 
   for (i = 0; zukersolution[i].structure; i++) {
     e_string = vrna_strdup_printf(" [%6.2f]", zukersolution[i].energy);
-    print_structure(stdout, zukersolution[i].structure, e_string);
+    print_structure(output, zukersolution[i].structure, e_string);
     free(e_string);
   }
   return;

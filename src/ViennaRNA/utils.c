@@ -133,7 +133,7 @@ vrna_message_error(const char *format, ...){
 PUBLIC void
 vrna_message_verror(const char *format, va_list args){
 
-#ifndef WITHOUT_TTY_COLORS
+#ifndef VRNA_WITHOUT_TTY_COLORS
   if(isatty(fileno(stderr))){
     fprintf(stderr, ANSI_COLOR_RED_B "ERROR: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT);
     vfprintf(stderr, format, args);
@@ -143,7 +143,7 @@ vrna_message_verror(const char *format, va_list args){
     fprintf(stderr, "ERROR: ");
     vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
-#ifndef WITHOUT_TTY_COLORS
+#ifndef VRNA_WITHOUT_TTY_COLORS
   }
 #endif
 
@@ -166,7 +166,7 @@ vrna_message_warning(const char *format, ...){
 PUBLIC void
 vrna_message_vwarning(const char *format, va_list args){
 
-#ifndef WITHOUT_TTY_COLORS
+#ifndef VRNA_WITHOUT_TTY_COLORS
   if(isatty(fileno(stderr))){
     fprintf(stderr, ANSI_COLOR_MAGENTA_B "WARNING: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT);
     vfprintf(stderr, format, args);
@@ -176,7 +176,7 @@ vrna_message_vwarning(const char *format, va_list args){
     fprintf(stderr, "WARNING: ");
     vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
-#ifndef WITHOUT_TTY_COLORS
+#ifndef VRNA_WITHOUT_TTY_COLORS
   }
 #endif
 }
@@ -198,7 +198,7 @@ vrna_message_vinfo(FILE *fp, const char *format, va_list args){
   if(!fp)
     fp = stdout;
 
-#ifndef WITHOUT_TTY_COLORS
+#ifndef VRNA_WITHOUT_TTY_COLORS
   if(isatty(fileno(fp))){
     fprintf(fp, ANSI_COLOR_BLUE_B);
     vfprintf(fp, format, args);
@@ -207,7 +207,7 @@ vrna_message_vinfo(FILE *fp, const char *format, va_list args){
 #endif
     vfprintf(fp, format, args);
     fprintf(fp, "\n");
-#ifndef WITHOUT_TTY_COLORS
+#ifndef VRNA_WITHOUT_TTY_COLORS
   }
 #endif
 }
@@ -337,7 +337,7 @@ vrna_message_input_seq_simple(void){
 
 PUBLIC  void
 vrna_message_input_seq(const char *s){
-#ifndef WITHOUT_TTY_COLORS
+#ifndef VRNA_WITHOUT_TTY_COLORS
   if(isatty(fileno(stdout))){
     printf("\n" ANSI_COLOR_CYAN "%s; @ to quit" ANSI_COLOR_RESET "\n", s);
     printf(ANSI_COLOR_BRIGHT "%s%s" ANSI_COLOR_RESET "\n", scale1, scale2);
@@ -345,7 +345,7 @@ vrna_message_input_seq(const char *s){
 #endif
     printf("\n%s; @ to quit\n", s);
     printf("%s%s\n", scale1, scale2);
-#ifndef WITHOUT_TTY_COLORS
+#ifndef VRNA_WITHOUT_TTY_COLORS
   }
 #endif
   (void) fflush(stdout);

@@ -339,7 +339,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
         FLT_OR_DBL qe;
 
         if(l < n - 3){
-          for(k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE; k++){
+          for(k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++){
             kl = my_iindx[k]-l;
             if (G[kl]==0.) continue;
             tmp2 = 0.;
@@ -348,19 +348,20 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               ij = my_iindx[i] - j;
               type = (unsigned char)ptype[jindx[j] + i];
               if(!type) continue;
+              u1 = j - l - 1;
               qe = (type > 2) ? pf_params->expTermAU : 1.;
               tmp2 +=   probs[ij]
                       * qe
-                      * (FLT_OR_DBL)expintern[j-l-1]
+                      * (FLT_OR_DBL)expintern[u1]
                       * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]]
-                      * scale[2];
+                      * scale[u1 + 2];
             }
             probs[kl] += tmp2 * G[kl];
           }
         }
 
         if (l < n - 1){
-          for (k=3; k<=l-VRNA_GQUAD_MIN_BOX_SIZE; k++) {
+          for (k=3; k<=l-VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
             kl = my_iindx[k]-l;
             if (G[kl]==0.) continue;
             tmp2 = 0.;
@@ -370,12 +371,13 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                 ij = my_iindx[i] - j;
                 type = (unsigned char)ptype[jindx[j] + i];
                 if(!type) continue;
+                u2 = j - l - 1;
                 qe = (type > 2) ? pf_params->expTermAU : 1.;
                 tmp2 +=   probs[ij]
                         * qe
-                        * (FLT_OR_DBL)expintern[u1+j-l-1]
+                        * (FLT_OR_DBL)expintern[u1 + u2]
                         * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]]
-                        * scale[2];
+                        * scale[u1 + u2 + 2];
               }
             }
             probs[kl] += tmp2 * G[kl];
@@ -383,7 +385,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
         }
 
         if(l < n){
-          for(k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE; k++){
+          for(k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++){
             kl = my_iindx[k]-l;
             if (G[kl]==0.) continue;
             tmp2 = 0.;
@@ -392,12 +394,13 @@ pf_create_bppm( vrna_fold_compound_t *vc,
               ij = my_iindx[i] - j;
               type = (unsigned char)ptype[jindx[j] + i];
               if(!type) continue;
+              u2 = k - i - 1;
               qe = (type > 2) ? pf_params->expTermAU : 1.;
               tmp2 +=   probs[ij]
                       * qe
-                      * (FLT_OR_DBL)expintern[k - i - 1]
+                      * (FLT_OR_DBL)expintern[u2]
                       * pf_params->expmismatchI[type][S1[i+1]][S1[j-1]]
-                      * scale[2];
+                      * scale[u2 + 2];
             }
             probs[kl] += tmp2 * G[kl];
           }

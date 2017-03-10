@@ -13,6 +13,7 @@ struct11      = "(((.((.....)))))"
 ##         1234567890
 struct1_pt    = [len(struct1),16,15,14,0,13,12,11,0,0,0,7,6,5,3,2,1]
 
+
 class mfe_eval_functionTest(unittest.TestCase):
 
     def test_mfe(self):
@@ -29,14 +30,6 @@ class mfe_eval_functionTest(unittest.TestCase):
         (ss,mfe) = fc.mfe_dimer()
         print(ss, "[ %6.2f" %mfe ,"]\n")
         self.assertEqual(ss,struct1Dimer);
-
-
-    def test_mfe_window(self):
-        print("test_mfe_window\n")
-        fc= RNA.fold_compound(seq1)
-        (ss,mfe) = fc.mfe()
-        print(ss, "[ %6.2f" %mfe ,"]\n")
-        self.assertEqual(ss,struct1)
 
 
     def test_eval_structure(self):

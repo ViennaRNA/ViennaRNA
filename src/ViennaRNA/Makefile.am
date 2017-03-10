@@ -32,13 +32,13 @@ libRNA_conv_la_LIBADD = \
     libRNA_loops.la
 
 # Dummy C++ source to cause C++ linking.
-if WITH_LIBSVM
+if VRNA_AM_SWITCH_SVM
 nodist_EXTRA_libRNA_la_SOURCES = dummy.cxx
 else
 nodist_EXTRA_libRNA_la_SOURCES = 
 endif
 
-if WITH_LIBSVM
+if VRNA_AM_SWITCH_SVM
   SVM_SRC     = ../@LIBSVM_DIR@/svm.cpp
   SVM_INC     = -I$(top_srcdir)/src/@LIBSVM_DIR@
   SVM_H       = ../@LIBSVM_DIR@/svm.h
@@ -46,7 +46,7 @@ if WITH_LIBSVM
   SVM_UTILS_H = svm_utils.h
 endif
 
-if WITH_JSON
+if VRNA_AM_SWITCH_JSON
   JSON_SRC    = ../json/json.c
   JSON_H      = ../json/json.h
   JSON_INC    = -I$(top_srcdir)/src/json
@@ -129,6 +129,8 @@ pkginclude_HEADERS =  \
     commands.h \
     units.h \
     combinatorics.h \
+    neighbor.h \
+    walk.h \
     ${SVM_UTILS_H} \
     ${SVM_H} \
     ${JSON_H}
@@ -158,7 +160,6 @@ libRNA_conv_la_SOURCES = \
     ribo.c \
     findpath.c \
     MEA.c \
-    aliLfold.c \
     mm.c \
     2Dfold.c \
     2Dpfold.c \
@@ -177,6 +178,8 @@ libRNA_conv_la_SOURCES = \
     dp_matrices.c \
     boltzmann_sampling.c \
     equilibrium_probs.c \
+    neighbor.c \
+    walk.c \
     ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC} \
     alphabet.c \
     unstructured_domains.c
@@ -235,6 +238,8 @@ clean-local:
 noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
                   intl22.h intl22dH.h list.h\
                   1.8.4_epars.h 1.8.4_intloops.h ${SVM_H} ${JSON_H}
+
+nodist_pkginclude_HEADERS = vrna_config.h
 
 EXTRA_DIST =  $(pkginclude_HEADERS) \
               circfold.inc \

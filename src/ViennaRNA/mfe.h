@@ -4,6 +4,23 @@
 #include <stdio.h>
 #include <ViennaRNA/data_structures.h>
 
+
+typedef void (vrna_mfe_window_callback)(int         start,
+                                        int         end,
+                                        const char  *structure,
+                                        float       en,
+                                        void        *data);
+
+
+#ifdef VRNA_WITH_SVM
+typedef void (vrna_mfe_window_zscore_callback)(int        start,
+                                               int        end,
+                                               const char *structure,
+                                               float      en,
+                                               float      zscore,
+                                               void       *data);
+#endif
+
 /**
  *  @brief Compute minimum free energy and an appropriate secondary
  *  structure of an RNA sequence, or RNA sequence alignment
@@ -33,7 +50,8 @@
  */
 float
 vrna_mfe(vrna_fold_compound_t *vc,
-          char *structure);
+         char                 *structure);
+
 
 /**
  *  @brief Compute the minimum free energy of two interacting RNA molecules
@@ -46,8 +64,9 @@ vrna_mfe(vrna_fold_compound_t *vc,
  *  @param    structure Will hold the barcket dot structure of the dimer molecule
  *  @return   minimum free energy of the structure
  */
-float vrna_mfe_dimer( vrna_fold_compound_t *vc,
-                      char *structure);
+float vrna_mfe_dimer(vrna_fold_compound_t *vc,
+                     char                 *structure);
+
 
 /**
  *  @brief Local MFE prediction using a sliding window approach.
@@ -68,7 +87,7 @@ float vrna_mfe_dimer( vrna_fold_compound_t *vc,
  *  the corresponding filehandle.
  *
  *  @ingroup local_mfe_fold
- * 
+ *
  *  @see  vrna_fold_compound(), vrna_mfe_window_zscore(), vrna_mfe(),
  *        vrna_Lfold(), vrna_Lfoldz(),
  *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
@@ -76,9 +95,16 @@ float vrna_mfe_dimer( vrna_fold_compound_t *vc,
  *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
  *  @param  file      The output file handle where predictions are written to (maybe NULL)
  */
-float vrna_mfe_window( vrna_fold_compound_t *vc, FILE *file);
+float vrna_mfe_window(vrna_fold_compound_t  *vc,
+                      FILE                  *file);
 
-#ifdef USE_SVM
+
+float vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
+                         vrna_mfe_window_callback *cb,
+                         void                     *data);
+
+
+#ifdef VRNA_WITH_SVM
 /**
  *  @brief Local MFE prediction using a sliding window approach (with z-score cut-off)
  *
@@ -97,7 +123,7 @@ float vrna_mfe_window( vrna_fold_compound_t *vc, FILE *file);
  *  the corresponding filehandle.
  *
  *  @ingroup local_mfe_fold
- * 
+ *
  *  @see  vrna_fold_compound(), vrna_mfe_window_zscore(), vrna_mfe(),
  *        vrna_Lfold(), vrna_Lfoldz(),
  *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
@@ -106,14 +132,24 @@ float vrna_mfe_window( vrna_fold_compound_t *vc, FILE *file);
  *  @param  min_z     The minimal z-score for a predicted structure to appear in the output
  *  @param  file      The output file handle where predictions are written to (maybe NULL)
  */
-float vrna_mfe_window_zscore(vrna_fold_compound_t *vc, double min_z, FILE *file);
+float vrna_mfe_window_zscore(vrna_fold_compound_t *vc,
+                             double               min_z,
+                             FILE                 *file);
+
+
+float vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
+                                double                          min_z,
+                                vrna_mfe_window_zscore_callback *cb,
+                                void                            *data);
+
+
 #endif
 
 void
-vrna_backtrack_from_intervals(vrna_fold_compound_t *vc,
-                              vrna_bp_stack_t *bp_stack,
-                              sect bt_stack[],
-                              int s);
+vrna_backtrack_from_intervals(vrna_fold_compound_t  *vc,
+                              vrna_bp_stack_t       *bp_stack,
+                              sect                  bt_stack[],
+                              int                   s);
 
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_PART_FUNC_CO_H
 #define VIENNA_RNA_PACKAGE_PART_FUNC_CO_H
 
-#ifdef DEPRECATION_WARNINGS
+#ifdef VRNA_WARN_DEPRECATED
 # ifdef __GNUC__
 #  define DEPRECATED(func) func __attribute__ ((deprecated))
 # else
@@ -109,9 +109,9 @@ struct vrna_dimer_pf_s {
  *  @brief  Data structure for concentration dependency computations
  */
 struct vrna_dimer_conc_s {
-  double A0;    /**< @brief start concentration A */
-  double B0;    /**< @brief start concentration B */
-  double ABc;   /**< @brief End concentration AB */
+  double Ac_start;    /**< @brief start concentration A */
+  double Bc_start;    /**< @brief start concentration B */
+  double ABc;         /**< @brief End concentration AB */
   double AAc;
   double BBc;
   double Ac;

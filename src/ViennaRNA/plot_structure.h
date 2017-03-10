@@ -4,7 +4,7 @@
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/plot_layouts.h>
 
-#ifdef DEPRECATION_WARNINGS
+#ifdef VRNA_WARN_DEPRECATED
 # ifdef __GNUC__
 #  define DEPRECATED(func) func __attribute__ ((deprecated))
 # else

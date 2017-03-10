@@ -2177,26 +2177,13 @@ aliprint_struct(FILE      *Result,        /* result file */
       /**
        * now produce output name, based on the first two names of the alignment
        */
-      int   length_name = strlen(names1[0]) + strlen(names2[0]) + 1;
-      char  *psoutput   = (char *)vrna_alloc((length_name + 100) * sizeof(char));
-      char  str[16];
-      strcpy(psoutput, "annaln_");
-      strcat(psoutput, names1[0]);
-      strcat(psoutput, "_");
-      strcat(psoutput, names2[0]);
-      strcat(psoutput, "_");
-      sprintf(str, "%d", tbegin);
-      strcat(psoutput, str);
-      strcat(psoutput, "_");
-      sprintf(str, "%d", tend);
-      strcat(psoutput, str);
-      strcat(psoutput, "_");
-      sprintf(str, "%d", qbegin);
-      strcat(psoutput, str);
-      strcat(psoutput, "_");
-      sprintf(str, "%d", qend);
-      strcat(psoutput, str);
-      strcat(psoutput, ".ps");
+      char *psoutput = vrna_strdup_printf("annaln_%s_%s_%d_%d_%d_%d.ps",
+                                          names1[0],
+                                          names2[0],
+                                          tbegin,
+                                          tend,
+                                          qbegin,
+                                          qend);
       s = 0;
       while (psoutput[s] != '\0') {
         if (psoutput[s] == '\\' || psoutput[s] == '/')
@@ -2208,6 +2195,7 @@ aliprint_struct(FILE      *Result,        /* result file */
        * Produce a structure annotated, colorated alignment
        */
       aliPS_color_aln(joint_structure, psoutput, (const char **)join, (const char **)names1);
+      free(psoutput);
 #if 0
       /**
        * We also need the consensus structure annotated with conservation information

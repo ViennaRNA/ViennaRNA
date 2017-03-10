@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef WITH_GSL
+#ifdef VRNA_WITH_GSL
 #include <gsl/gsl_multimin.h>
 #endif
 
@@ -320,7 +320,7 @@ static void evaluate_perturbation_vector_gradient(vrna_fold_compound_t *vc, cons
   freeProbabilityArrays(p_prob_unpaired, p_conditional_prob_unpaired, length);
 }
 
-#ifdef WITH_GSL
+#ifdef VRNA_WITH_GSL
 typedef struct parameters_gsl {
   vrna_fold_compound_t *vc;
   const double *q_prob_unpaired;
@@ -350,7 +350,7 @@ static void fdf_gsl(const gsl_vector *x, void *params, double *f, gsl_vector *g)
   *f = f_gsl(x, params);
   df_gsl(x, params, g);
 }
-#endif /* WITH_GSL */
+#endif /* VRNA_WITH_GSL */
 
 PUBLIC void
 vrna_sc_minimize_pertubation(vrna_fold_compound_t *vc,
@@ -371,7 +371,7 @@ vrna_sc_minimize_pertubation(vrna_fold_compound_t *vc,
   const int max_iterations = 100;
   int length = vc->length;
 
-#ifdef WITH_GSL
+#ifdef VRNA_WITH_GSL
   const gsl_multimin_fdfminimizer_type *minimizer_type = 0;
 
   struct {int type; const gsl_multimin_fdfminimizer_type *gsl_type;} algorithms[] = {{VRNA_MINIMIZER_CONJUGATE_FR, gsl_multimin_fdfminimizer_conjugate_fr},
@@ -441,7 +441,7 @@ vrna_sc_minimize_pertubation(vrna_fold_compound_t *vc,
 
     return;
   }
-#endif /* WITH_GSL */
+#endif /* VRNA_WITH_GSL */
 
   double improvement;
   const double min_improvement = minImprovement;

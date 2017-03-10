@@ -13,6 +13,7 @@ LANG_SPECIFIC_INTERFACE_FILES = \
   $(srcdir)/callbacks-sc.i \
   $(srcdir)/callbacks-ud.i \
   $(srcdir)/callbacks-subopt.i \
+  $(srcdir)/callbacks-mfe-window.i \
   $(builddir)/version.i
 
 INTERFACE_FILES = $(SWIG_src) \
@@ -36,13 +37,16 @@ RNA_la_CXXFLAGS = $(RNA_CXXFLAGS)
 RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS)
 
 RNA_la_LIBADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PERLXS_LIBS)
-if WITH_LIBSVM
+
+if VRNA_AM_SWITCH_SVM
 RNA_la_LIBADD += -lstdc++
+RNA_CPPFLAGS += -DVRNA_WITH_SVM
+RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
 endif
 
 RNA_la_LDFLAGS =
 
-if WITH_LTO
+if VRNA_AM_SWITCH_LTO
 RNA_la_CFLAGS += $(LTO_CFLAGS)
 RNA_la_CXXFLAGS += $(LTO_CXXFLAGS)
 RNA_la_LDFLAGS += $(LTO_LDFLAGS)

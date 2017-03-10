@@ -831,6 +831,7 @@ exp_E_GQuad_IntLoop(int i,
                     int type,
                     short *S,
                     FLT_OR_DBL *G,
+                    FLT_OR_DBL *scale,
                     int *index,
                     vrna_exp_param_t *pf){
 
@@ -843,7 +844,7 @@ exp_E_GQuad_IntLoop(int i,
   si        = S[i + 1];
   sj        = S[j - 1];
   qe        = (FLT_OR_DBL)pf->expmismatchI[type][si][sj];
-  expintern = pf->expinternal;
+  expintern = &(pf->expinternal[0]);
 
   if(type > 2)
     qe *= (FLT_OR_DBL)pf->expTermAU;
@@ -851,7 +852,7 @@ exp_E_GQuad_IntLoop(int i,
   k = i + 1;
   if(S[k] == 3){
     if(k < j - VRNA_GQUAD_MIN_BOX_SIZE){
-      minl  = j - i + k - MAXLOOP - 2;
+      minl  = j - MAXLOOP - 1;
       u     = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
       minl  = MAX2(u, minl);
       u     = j - 3;
@@ -860,7 +861,10 @@ exp_E_GQuad_IntLoop(int i,
       for(l = minl; l < maxl; l++){
         if(S[l] != 3) continue;
         if(G[index[k]-l] == 0.) continue;
-        q += qe * G[index[k]-l] * (FLT_OR_DBL)expintern[j - l - 1];
+        q +=    qe
+              * G[index[k]-l]
+              * (FLT_OR_DBL)expintern[j - l - 1]
+              * scale[j - l + 1];
       }
     }
   }
@@ -881,18 +885,24 @@ exp_E_GQuad_IntLoop(int i,
     for(l = minl; l < maxl; l++){
       if(S[l] != 3) continue;
       if(G[index[k]-l] == 0.) continue;
-      q += qe * G[index[k]-l] * (FLT_OR_DBL)expintern[u + j - l - 1];
-    }
+      q +=    qe
+            * G[index[k]-l]
+            * (FLT_OR_DBL)expintern[u + j - l - 1]
+            * scale[u + j - l + 1];
+   }
   }
 
   l = j - 1;
   if(S[l] == 3)
-    for(k = i + 4; k < j - VRNA_GQUAD_MIN_BOX_SIZE; k++){
+    for(k = i + 4; k <= j - VRNA_GQUAD_MIN_BOX_SIZE; k++){
       u    = k - i - 1;
       if(u>MAXLOOP) break;
       if(S[k] != 3) continue;
       if(G[index[k]-l] == 0.) continue;
-      q += qe * G[index[k]-l] * (FLT_OR_DBL)expintern[u];
+      q +=    qe
+            * G[index[k]-l]
+            * (FLT_OR_DBL)expintern[u]
+            * scale[u + 2];
     }
 
   return q;

@@ -39,5 +39,33 @@ class GeneralTests(unittest.TestCase):
         print plist
 
 
+    def test_filename_sanitize_simple(self):
+        print "test_filename_sanitize_simple"
+        fn = "bla/bla??_foo\\bar\"r<u>m:ble"
+        fs = RNA.filename_sanitize(fn)
+        self.assertEqual(fs, "blabla_foobarrumble")
+        fs = RNA.filename_sanitize(fn, '-')
+        self.assertEqual(fs, "bla-bla--_foo-bar-r-u-m-ble")
+
+
+    def test_filename_sanitize_special(self):
+        print "test_filename_sanitize_special_names"
+        fn = "??"
+        fs = RNA.filename_sanitize(fn)
+        self.assertEqual(fs, "")
+        fs = RNA.filename_sanitize(fn, '.')
+        self.assertEqual(fs, "")
+
+
+    def test_filename_sanitize_long(self):
+        print "test_filename_sanitize_long_names"
+        fn = "%s%s%sDEFGHIJ.svg" % ("A" * 120, "B" * 120, "C" * 10)
+        fs = RNA.filename_sanitize(fn)
+        self.assertEqual(fs, "%s%s%sD.svg" % ("A" * 120, "B" * 120, "C" * 10))
+        fn = "A.%s%s%sDEFGHIsvg" % ("A" * 120, "B" * 120, "C" * 10)
+        fs = RNA.filename_sanitize(fn)
+        self.assertEqual(fs, "A.%s%s%sDEF" % ("A" * 120, "B" * 120, "C" * 10))
+
+
 if __name__ == '__main__':
     unittest.main()

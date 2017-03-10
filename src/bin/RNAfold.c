@@ -75,12 +75,12 @@ main(int  argc,
   struct          RNAfold_args_info args_info;
   char                              *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence,
                                     *constraints_file, *shape_file, *shape_method, *shape_conversion,
-                                    fname[FILENAME_MAX_LENGTH], ffname[FILENAME_MAX_LENGTH], *infile, *outfile,
-                                    *ligandMotif, *id_prefix, *command_file;
+                                    *infile, *outfile, *tmp_string,
+                                    *ligandMotif, *id_prefix, *command_file, *id_delim, *filename_delim;
   unsigned int                      rec_type, read_opt;
   int                               i, length, l, cl, istty, pf, noPS, noconv, enforceConstraints,
                                     batch, auto_id, id_digits, doMEA, lucky, with_shapes,
-                                    verbose, istty_in, istty_out;
+                                    verbose, istty_in, istty_out, filename_full;
   long int                          seq_number;
   double                            energy, min_en, kT, MEAgamma, bppmThreshold;
   vrna_cmd_t                        *commands;
@@ -106,6 +106,7 @@ main(int  argc,
   ligandMotif   = NULL;
   command_file  = NULL;
   commands      = NULL;
+  filename_full = 0;
 
   /* apply default model details */
   set_model_details(&md);
@@ -138,6 +139,7 @@ main(int  argc,
   ggo_get_ID_manipulation(args_info,
                           auto_id,
                           id_prefix, "sequence",
+                          id_delim, "_",
                           id_digits, 4,
                           seq_number, 1);
 
@@ -201,6 +203,21 @@ main(int  argc,
   if (args_info.commands_given)
     command_file = strdup(args_info.commands_arg);
 
+  /* filename sanitize delimiter */
+  if (args_info.filename_delim_given)
+    filename_delim = strdup(args_info.filename_delim_arg);
+  else
+    filename_delim = strdup(id_delim);
+
+  if (isspace(*filename_delim)) {
+    free(filename_delim);
+    filename_delim = NULL;
+  }
+
+  /* full filename from FASTA header support */
+  if (args_info.filename_full_given)
+    filename_full = 1;
+
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free(&args_info);
 
@@ -257,40 +274,37 @@ main(int  argc,
   while (
     !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, input, read_opt))
       & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
-    char  *prefix       = NULL;
-    char  *v_file_name  = NULL;
-    char  *SEQ_ID       = NULL;
+    char  *prefix         = NULL;
+    char  *v_file_name    = NULL;
+    char  *SEQ_ID         = NULL;
+    int   maybe_multiline = 0;
 
     /*
      ########################################################
      # init everything according to the data we've read
      ########################################################
      */
-    if (rec_id)
-      (void)sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-    else
-      fname[0] = '\0';
+    if (rec_id) {
+      maybe_multiline = 1;
+      /* remove '>' from FASTA header */
+      rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
+    }
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_digits, seq_number);
+    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
 
     if (outfile && (SEQ_ID != NULL)) {
       char *tmp_id = SEQ_ID;
-      SEQ_ID = vrna_strdup_printf("%s_%s", outfile, tmp_id);
+      SEQ_ID = vrna_strdup_printf("%s%s%s", outfile, id_delim, tmp_id);
       free(tmp_id);
     }
 
     if (outfile) {
       /* prepare the file prefix */
-      if (fname[0] != '\0') {
-        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(fname) + strlen(outfile) + 2));
-        strcpy(prefix, outfile);
-        strcat(prefix, "_");
-        strcat(prefix, fname);
-      } else {
-        prefix = (char *)vrna_alloc(sizeof(char) * (strlen(outfile) + 1));
-        strcpy(prefix, outfile);
-      }
+      if (SEQ_ID)
+        prefix = vrna_strdup_printf("%s%s%s", outfile, id_delim, SEQ_ID);
+      else
+        prefix = vrna_strdup_printf("%s", outfile);
     }
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
@@ -316,7 +330,7 @@ main(int  argc,
         /** [Adding hard constraints from file] */
       } else {
         cstruc = NULL;
-        unsigned int coptions = (rec_id) ? VRNA_OPTION_MULTILINE : 0;
+        unsigned int coptions = (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0;
         cstruc  = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cl      = (cstruc) ? (int)strlen(cstruc) : 0;
 
@@ -354,9 +368,10 @@ main(int  argc,
       vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_DEFAULTS);
 
     if (outfile) {
-      v_file_name = (char *)vrna_alloc(sizeof(char) * (strlen(prefix) + 8));
-      strcpy(v_file_name, prefix);
-      strcat(v_file_name, ".fold");
+      v_file_name = vrna_strdup_printf("%s.fold", prefix);
+      tmp_string  = vrna_filename_sanitize(v_file_name, filename_delim);
+      free(v_file_name);
+      v_file_name = tmp_string;
 
       if (infile && !strcmp(infile, v_file_name))
         vrna_message_error("Input and output file names are identical");
@@ -385,7 +400,7 @@ main(int  argc,
     }
 
     if (output) {
-      print_fasta_header(output, SEQ_ID);
+      print_fasta_header(output, rec_id);
       fprintf(output, "%s\n", orig_sequence);
     }
 
@@ -402,19 +417,16 @@ main(int  argc,
         (void)fflush(output);
       }
 
-      if (fname[0] != '\0') {
-        strcpy(ffname, fname);
-        strcat(ffname, "_ss.ps");
-      } else {
-        strcpy(ffname, "rna.ps");
-      }
-
       if (!noPS) {
         char *filename_plot = NULL;
-        if (SEQ_ID)
-          filename_plot = vrna_strdup_printf("%s_ss.ps", SEQ_ID);
-        else
+        if (SEQ_ID) {
+          filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
+          tmp_string    = vrna_filename_sanitize(filename_plot, filename_delim);
+          free(filename_plot);
+          filename_plot = tmp_string;
+        } else {
           filename_plot = strdup("rna.ps");
+        }
 
         char *annotation = NULL;
 
@@ -483,10 +495,14 @@ main(int  argc,
           (void)fflush(output);
         }
 
-        if (SEQ_ID)
-          filename_plot = vrna_strdup_printf("%s_ss.ps", SEQ_ID);
-        else
+        if (SEQ_ID) {
+          filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
+          tmp_string    = vrna_filename_sanitize(filename_plot, filename_delim);
+          free(filename_plot);
+          filename_plot = tmp_string;
+        } else {
           filename_plot = strdup("rna.ps");
+        }
 
         if (!noPS && (filename_plot))
           (void)vrna_file_PS_rnaplot(orig_sequence, s, filename_plot, &md);
@@ -626,10 +642,14 @@ main(int  argc,
           }
 
           char *filename_dotplot = NULL;
-          if (SEQ_ID)
-            filename_dotplot = vrna_strdup_printf("%s_dp.ps", SEQ_ID);
-          else
+          if (SEQ_ID) {
+            filename_dotplot  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
+            tmp_string        = vrna_filename_sanitize(filename_dotplot, filename_delim);
+            free(filename_dotplot);
+            filename_dotplot = tmp_string;
+          } else {
             filename_dotplot = strdup("dot.ps");
+          }
 
           if (filename_dotplot)
             vrna_plot_dp_EPS(filename_dotplot, orig_sequence, pl1, pl2, NULL, VRNA_PLOT_PROBABILITIES_DEFAULT);
@@ -659,10 +679,14 @@ main(int  argc,
           free(pl2);
           if (md.compute_bpp == 2) {
             char *filename_stackplot = NULL;
-            if (SEQ_ID)
-              filename_stackplot = vrna_strdup_printf("%s_dp2.ps", SEQ_ID);
-            else
+            if (SEQ_ID) {
+              filename_stackplot  = vrna_strdup_printf("%s%sdp2.ps", SEQ_ID, id_delim);
+              tmp_string          = vrna_filename_sanitize(filename_stackplot, filename_delim);
+              free(filename_stackplot);
+              filename_stackplot = tmp_string;
+            } else {
               filename_stackplot = strdup("dot2.ps");
+            }
 
             pl2 = vrna_stack_prob(vc, 1e-5);
 
@@ -781,6 +805,8 @@ main(int  argc,
   free(shape_method);
   free(shape_conversion);
   free(id_prefix);
+  free(id_delim);
+  free(filename_delim);
   free(command_file);
   vrna_commands_free(commands);
 

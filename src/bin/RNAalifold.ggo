@@ -35,8 +35,15 @@ option  "verbose" v
 flag
 off
 
+option  "quiet" q
+"Be quiet.\n"
+details="This option can be used to minimize the output of additional information\
+ and non-severe warnings which otherwise might spam stdout/stderr.\n\n"
+flag
+off
+
 option  "color"   -
-"Produce a colored version of the consensus strcture plot \"alirna.ps\" (default b&w only)\n\n"
+"Produce a colored version of the consensus structure plot \"alirna.ps\" (default b&w only)\n\n"
 flag
 off
 
@@ -45,6 +52,25 @@ option  "aln"             -
  current directory.\n\n"
 flag
 off
+
+option  "aln-EPS-cols"        -
+"Number of columns in colored EPS alignment output.\n\n"
+int
+default="60"
+optional
+hidden
+
+option  "aln-stk"             -
+"Create a multi-Stockholm formatted output file.\n"
+details="The default file name used for the output is \"RNAalifold_results.stk\". Users may\
+ change the filename to \"prefix.stk\" by specifying the prefix as optional argument. The file\
+ will be create in the current directory if it does not already exist. In case the file already\
+ exists, output will be appended to it.\n\n"
+string
+argoptional
+typestr="prefix"
+default="RNAalifold_results"
+optional
 
 option  "layout-type"  t
 "Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"
@@ -103,6 +129,16 @@ typestr="prefix"
 default="alignment"
 optional
 
+option  "id-delim" -
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)\n\n"
+details="This parameter can be used to change the default delimiter \"_\" between
+ the prefix string and the increasing number for automatically generated ID.\n\n"
+string
+typestr="delimiter"
+default="_"
+optional
+hidden
+
 option  "id-digits"  -
 "Specify the number of digits of the counter in automatically generated alignment IDs.\n"
 details="When alignments IDs are automatically generated, they receive an increasing number, starting\
@@ -122,6 +158,19 @@ details="When alignment IDs are automatically generated, they receive an increas
  continuous alignment IDs, i.e. it activates the --continuous-ids flag.\n\n"
 long
 default="1"
+optional
+hidden
+
+option  "filename-delim" -
+"Change the delimiting character that is used for sanitized filenames\n\n"
+details="This parameter can be used to change the delimiting character used while\
+ sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
+ delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
+ the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
+ characters will be simply removed rather than substituted.\n\n"
+string
+typestr="delimiter"
+default="ID-delimiter"
 optional
 hidden
 

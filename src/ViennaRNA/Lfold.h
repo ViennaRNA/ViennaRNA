@@ -10,7 +10,7 @@
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 
-#ifdef DEPRECATION_WARNINGS
+#ifdef VRNA_WARN_DEPRECATED
 # ifdef __GNUC__
 #  define DEPRECATED(func) func __attribute__ ((deprecated))
 # else
@@ -24,7 +24,7 @@
 
 /**
  *  @brief Local MFE prediction using a sliding window approach (simplified interface)
- * 
+ *
  *  This simplified interface to vrna_mfe_window() computes the MFE and locally
  *  optimal secondary structure using default options. Structures are predicted
  *  using a sliding window approach, where base pairs may not span outside the
@@ -46,14 +46,22 @@
  *  @param  file        The output file handle where predictions are written to (if NULL, output is written to stdout)
  */
 float
-vrna_Lfold( const char *string,
-            int window_size,
-            FILE  *file);
+vrna_Lfold(const char *string,
+           int        window_size,
+           FILE       *file);
 
-#ifdef USE_SVM
+
+float
+vrna_Lfold_cb(const char                *string,
+              int                       window_size,
+              vrna_mfe_window_callback  *cb,
+              void                      *data);
+
+
+#ifdef VRNA_WITH_SVM
 /**
  *  @brief Local MFE prediction using a sliding window approach with z-score cut-off (simplified interface)
- * 
+ *
  *  This simplified interface to vrna_mfe_window_zscore() computes the MFE and locally
  *  optimal secondary structure using default options. Structures are predicted
  *  using a sliding window approach, where base pairs may not span outside the
@@ -79,10 +87,19 @@ vrna_Lfold( const char *string,
  *  @param  file        The output file handle where predictions are written to (if NULL, output is written to stdout)
  */
 float
-vrna_Lfoldz(const char *string,
-            int window_size,
-            double min_z,
-            FILE *file);
+vrna_Lfoldz(const char  *string,
+            int         window_size,
+            double      min_z,
+            FILE        *file);
+
+
+float
+vrna_Lfoldz_cb(const char                       *string,
+               int                              window_size,
+               double                           min_z,
+               vrna_mfe_window_zscore_callback  *cb,
+               void                             *data);
+
 
 #endif
 
@@ -94,25 +111,22 @@ vrna_Lfoldz(const char *string,
  *  @}
  */
 
-/**
- *  @brief
- *
- *  @ingroup local_consensus_fold
- * 
- *  @param strings
- *  @param structure
- *  @param maxdist
- *  @return
- */
-float aliLfold( const char **strings,
-                char *structure,
-                int maxdist);
+float vrna_aliLfold(const char  **AS,
+                    int         maxdist,
+                    FILE        *fp);
+
+
+float vrna_aliLfold_cb(const char               **AS,
+                       int                      maxdist,
+                       vrna_mfe_window_callback *cb,
+                       void                     *data);
+
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /**
  *  @brief The local analog to fold().
- * 
+ *
  *  Computes the minimum free energy structure including only base pairs
  *  with a span smaller than 'maxdist'
  *
@@ -120,16 +134,43 @@ float aliLfold( const char **strings,
  *
  *  @deprecated Use vrna_mfe_window() instead!
  */
-DEPRECATED(float Lfold(const char *string, char *structure, int maxdist));
+DEPRECATED(float Lfold(const char *string,
+                       char       *structure,
+                       int        maxdist));
 
 /**
  *  @brief
- * 
+ *
  *  @ingroup local_mfe_fold
- * 
+ *
  *  @deprecated Use vrna_mfe_window_zscore() instead!
  */
-DEPRECATED(float Lfoldz(const char *string, char *structure, int maxdist, int zsc, double min_z));
+DEPRECATED(float Lfoldz(const char  *string,
+                        char        *structure,
+                        int         maxdist,
+                        int         zsc,
+                        double      min_z));
+
+/**
+ *  @brief
+ *
+ *  @ingroup local_consensus_fold
+ *
+ *  @param strings
+ *  @param structure
+ *  @param maxdist
+ *  @return
+ */
+float aliLfold(const char **AS,
+               char       *structure,
+               int        maxdist);
+
+
+float aliLfold_cb(const char                **AS,
+                  int                       maxdist,
+                  vrna_mfe_window_callback  *cb,
+                  void                      *data);
+
 
 #endif
 

@@ -77,19 +77,23 @@ main(int  argc,
   char                        *input_string, *string, *structure, *cstruc, **AS, **names,
                               *constraints_file, **shape_files, *shape_method, *filename_plot,
                               *filename_dot, *filename_aln, *filename_out, *filename_in,
-                              *tmp_id, *tmp_structure, *tmp_string, **input_files, *id_prefix;
-  int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci,
-                              endgaps, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
-                              istty_in, eval_energy, pf, istty, *shape_file_association,
-                              tmp_number, batch, continuous_names, id_digits, auto_id,
+                              *tmp_id, *tmp_structure, *tmp_string, **input_files, *id_prefix,
+                              *aln_prefix, *id_delim, *filename_delim;
+  int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci, endgaps,
+                              aln_columns, mis, circular, doAlnPS, doColor, doMEA, n_back, istty_out,
+                              istty_in, eval_energy, pf, istty, *shape_file_association, quiet,
+                              tmp_number, batch, continuous_names, id_digits, auto_id, aln_out,
                               input_file_num, consensus_constraint, enforceConstraints;
   long int                    alignment_number;
-  double                      min_en, real_en, MEAgamma, bppmThreshold;
+  double                      min_en, real_en, cov_en, MEAgamma, bppmThreshold;
   vrna_md_t                   md;
   vrna_fold_compound_t        *vc;
 
   string                  = structure = cstruc = NULL;
   endgaps                 = mis = pf = circular = doAlnPS = doColor = n_back = eval_energy = oldAliEn = doMEA = ribo = noPS = 0;
+  aln_columns             = 60;
+  aln_out                 = 0;
+  aln_prefix              = NULL;
   do_backtrack            = 1;
   bppmThreshold           = 1e-6;
   MEAgamma                = 1.0;
@@ -98,6 +102,7 @@ main(int  argc,
   shape_method            = NULL;
   with_shapes             = 0;
   verbose                 = 0;
+  quiet                   = 0;
   with_sci                = 0;
   filename_plot           = NULL;
   filename_dot            = NULL;
@@ -139,6 +144,7 @@ main(int  argc,
   ggo_get_ID_manipulation(args_info,
                           auto_id,
                           id_prefix, "alignment",
+                          id_delim, "_",
                           id_digits, 4,
                           alignment_number, 1);
 
@@ -199,6 +205,15 @@ main(int  argc,
   if (args_info.aln_given)
     doAlnPS = 1;
 
+  if (args_info.aln_EPS_cols_given)
+    aln_columns = args_info.aln_EPS_cols_arg;
+
+  if (args_info.aln_stk_given) {
+    aln_out = 1;
+    if (args_info.aln_stk_arg)
+      aln_prefix = strdup(args_info.aln_stk_arg);
+  }
+
   if (args_info.old_given)
     md.oldAliEn = oldAliEn = 1;
 
@@ -234,6 +249,13 @@ main(int  argc,
 
   if (args_info.verbose_given)
     verbose = 1;
+
+  if (args_info.quiet_given) {
+    if (verbose)
+      vrna_message_warning("Can not be verbose and quiet at the same time! I keep on being chatty...");
+    else
+      quiet = 1;
+  }
 
   /* SHAPE reactivity data */
   if (args_info.shape_given) {
@@ -331,6 +353,17 @@ main(int  argc,
     }
   }
 
+  /* filename sanitize delimiter */
+  if (args_info.filename_delim_given)
+    filename_delim = strdup(args_info.filename_delim_arg);
+  else
+    filename_delim = strdup(id_delim);
+
+  if (isspace(*filename_delim)) {
+    free(filename_delim);
+    filename_delim = NULL;
+  }
+
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free(&args_info);
 
@@ -405,6 +438,17 @@ main(int  argc,
 
   long int first_alignment_number = alignment_number;
 
+  if (aln_out) {
+    if (!aln_prefix) {
+      aln_prefix = strdup("RNAalifold_results.stk");
+    } else {
+      char *tmp = vrna_strdup_printf("%s.stk", aln_prefix);
+      free(aln_prefix);
+      aln_prefix = vrna_filename_sanitize(tmp, filename_delim);
+      free(tmp);
+    }
+  }
+
   while (!feof(clust_file)) {
     char *MSA_ID = NULL;
     fflush(stdout);
@@ -436,6 +480,9 @@ main(int  argc,
       }
     }
 
+    if (quiet)
+      input_format_options |= VRNA_FILE_FORMAT_MSA_QUIET;
+
     /* read the first record from input file */
     n_seq = vrna_file_msa_read_record(clust_file, &names, &AS, &tmp_id, &tmp_structure, input_format_options);
     fflush(stdout);
@@ -458,38 +505,34 @@ main(int  argc,
     if (tmp_id && (!auto_id))                                       /* we've read an ID from file, so we use it */
       MSA_ID = strdup(tmp_id);
     else if (auto_id || (alignment_number > 1) || continuous_names) /* we have nuffin', Jon Snow (...so we simply generate an ID) */
-      MSA_ID = vrna_strdup_printf("%s_%0*ld", id_prefix, id_digits, alignment_number);
-
-#if 0
-    /* construct the sequence ID */
-    ID_generate(MSA_ID, tmp_id, auto_id, id_prefix, id_digits, alignment_number);
-#endif
+      MSA_ID = vrna_strdup_printf("%s%s%0*ld", id_prefix, id_delim, id_digits, alignment_number);
 
     /* construct output file names */
     if (MSA_ID) {
       /* construct file names */
-      int l = strlen(MSA_ID);
-      filename_plot = (char *)vrna_alloc((l + 7) * sizeof(char));
-      filename_dot  = (char *)vrna_alloc((l + 7) * sizeof(char));
-      filename_aln  = (char *)vrna_alloc((l + 8) * sizeof(char));
-      filename_out  = (char *)vrna_alloc((l + 9) * sizeof(char));
-      strncpy(filename_plot, MSA_ID, l);
-      strncpy(filename_dot, MSA_ID, l);
-      strncpy(filename_aln, MSA_ID, l);
-      strncpy(filename_out, MSA_ID, l);
-      strcat(filename_plot, "_ss.ps");
-      strcat(filename_dot, "_dp.ps");
-      strcat(filename_aln, "_aln.ps");
-      strcat(filename_out, "_ali.out");
+      filename_plot = vrna_strdup_printf("%s%sss.ps", MSA_ID, id_delim);
+      filename_dot  = vrna_strdup_printf("%s%sdp.ps", MSA_ID, id_delim);
+      filename_aln  = vrna_strdup_printf("%s%saln.ps", MSA_ID, id_delim);
+      filename_out  = vrna_strdup_printf("%s%sali.out", MSA_ID, id_delim);
+
+      /* sanitize file names */
+      tmp_string = vrna_filename_sanitize(filename_plot, filename_delim);
+      free(filename_plot);
+      filename_plot = tmp_string;
+      tmp_string    = vrna_filename_sanitize(filename_dot, filename_delim);
+      free(filename_dot);
+      filename_dot  = tmp_string;
+      tmp_string    = vrna_filename_sanitize(filename_aln, filename_delim);
+      free(filename_aln);
+      filename_aln  = tmp_string;
+      tmp_string    = vrna_filename_sanitize(filename_out, filename_delim);
+      free(filename_out);
+      filename_out = tmp_string;
     } else {
-      filename_plot = (char *)vrna_alloc((10) * sizeof(char));
-      filename_dot  = (char *)vrna_alloc((10) * sizeof(char));
-      filename_aln  = (char *)vrna_alloc((7) * sizeof(char));
-      filename_out  = (char *)vrna_alloc((12) * sizeof(char));
-      strcpy(filename_plot, "alirna.ps");
-      strcpy(filename_dot, "alidot.ps");
-      strcpy(filename_aln, "aln.ps");
-      strcpy(filename_out, "alifold.out");
+      filename_plot = vrna_strdup_printf("alirna.ps");
+      filename_dot  = vrna_strdup_printf("alidot.ps");
+      filename_aln  = vrna_strdup_printf("aln.ps");
+      filename_out  = vrna_strdup_printf("alifold.out");
     }
 
     /*
@@ -540,7 +583,7 @@ main(int  argc,
     if (with_shapes) {
       for (s = 0; shape_file_association[s] != -1; s++);
 
-      if (s != n_seq)
+      if ((s != n_seq) && (!quiet))
         vrna_message_warning("Number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
 
       shape_files             = (char **)vrna_realloc(shape_files, (n_seq + 1) * sizeof(char *));
@@ -558,6 +601,7 @@ main(int  argc,
 
     min_en  = vrna_mfe(vc, structure);
     real_en = vrna_eval_structure(vc, structure);
+    cov_en  = vrna_eval_covar_structure(vc, structure);
 
     string = (mis) ? consens_mis((const char **)AS) : consensus((const char **)AS);
 
@@ -580,25 +624,33 @@ main(int  argc,
     print_fasta_header(stdout, MSA_ID);
     fprintf(stdout, "%s\n", string);
     char *energy_string = NULL;
+    char *e_individual  = NULL;
+
+    if (with_shapes)
+      e_individual = vrna_strdup_printf("%6.2f + %6.2f + %6.2f", real_en, -cov_en, min_en - real_en + cov_en);
+    else
+      e_individual = vrna_strdup_printf("%6.2f + %6.2f", real_en, min_en - real_en);
+
     if (istty_in) {
       if (with_sci)
-        energy_string = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n SCI = %2.4f",
-                                           min_en, real_en, min_en - real_en, sci);
+        energy_string = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol (%s)\n SCI = %2.4f",
+                                           min_en, e_individual, sci);
       else
-        energy_string = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)",
-                                           min_en, real_en, min_en - real_en);
+        energy_string = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol (%s)",
+                                           min_en, e_individual);
     } else {
       if (with_sci)
-        energy_string = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f) [sci = %2.4f]",
-                                           min_en, real_en, min_en - real_en, sci);
+        energy_string = vrna_strdup_printf(" (%6.2f = %s) [sci = %2.4f]",
+                                           min_en, e_individual, sci);
       else
-        energy_string = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f)",
-                                           min_en, real_en, min_en - real_en);
+        energy_string = vrna_strdup_printf(" (%6.2f = %s)",
+                                           min_en, e_individual);
     }
 
     print_structure(stdout, structure, energy_string);
 
     free(energy_string);
+    free(e_individual);
 
     if (!noPS) {
       char **A;
@@ -615,7 +667,22 @@ main(int  argc,
     }
 
     if (doAlnPS)
-      PS_color_aln(structure, filename_aln, (const char **)AS, (const char **)names);
+      vrna_file_PS_aln(filename_aln, (const char **)AS, (const char **)names, structure, aln_columns);
+
+    if (aln_out) {
+      unsigned int options = VRNA_FILE_FORMAT_MSA_STOCKHOLM
+                             | VRNA_FILE_FORMAT_MSA_APPEND;
+      if (mis)
+        options |= VRNA_FILE_FORMAT_MSA_MIS;
+
+      vrna_file_msa_write((const char *)aln_prefix,
+                          (const char **)names,
+                          (const char **)AS,
+                          MSA_ID,
+                          (const char *)structure,
+                          "RNAalifold prediction",
+                          options);
+    }
 
     /* free mfe arrays */
     vrna_mx_mfe_free(vc);
@@ -632,7 +699,7 @@ main(int  argc,
 
       kT = vc->exp_params->kT / 1000.;
 
-      if (length > 2000)
+      if ((length > 2000) && (!quiet))
         vrna_message_info(stderr, "scaling factor %f\n", vc->exp_params->pf_scale);
 
       fflush(stdout);
@@ -769,8 +836,6 @@ main(int  argc,
     ID_number_increase(alignment_number, "Alignment");
 
     (void)fflush(stdout);
-    if (shape_files)
-      free(shape_files);
 
     free(string);
     free(structure);
@@ -837,7 +902,11 @@ main(int  argc,
     free(input_files[i]);
   free(input_files);
 
-  return 0;
+  free(id_prefix);
+  free(id_delim);
+  free(filename_delim);
+
+  return EXIT_SUCCESS;
 }
 
 

@@ -12,8 +12,22 @@ TEST_EXTENSIONS = .pl .t .py .py3
 
 if WITH_UNIT_TESTS
 
-AM_TESTS_ENVIRONMENT =  PYTHONPATH='.:${PYTHONPATH}'; \
-                        export PYTHONPATH;
+AM_TESTS_ENVIRONMENT =  \
+## Some environment initializations are kept in a separate shell
+## file 'tests-env.sh', which can make it easier to also run tests
+## from the command line.
+                        . $(builddir)/test-env.sh; \
+## On Solaris, prefer more POSIX-compliant versions of the standard
+## tools by default.
+                        if test -d /usr/xpg4/bin; then \
+                          PATH=/usr/xpg4/bin:$$PATH; export PATH; \
+                        fi;
+
+## With this, the test scripts will be able to print diagnostic
+## messages to the original standard error stream, even if the test
+## driver redirects the stderr of the test scripts to a log file
+## before executing them.
+AM_TESTS_FD_REDIRECT = 9>&2
 
 ######################################
 ## unit tests for Perl5 interface   ##
@@ -37,6 +51,7 @@ PERL_TESTS =  perl5/test-RNA.pl \
               perl5/test-RNA-combinatorics.pl \
               perl5/test-RNA-Design.t \
               perl5/test-RNA-mfe_eval.pl \
+              perl5/test-RNA-mfe_window.pl \
               perl5/test-RNA-constraints.pl
 
 
@@ -54,7 +69,7 @@ perl5/test-RNA-Design.t: $(top_srcdir)/interfaces/Perl/RNA/t/Design.t
 
 endif
 
-######################################
+######################################  
 ## unit tests for Python2 interface ##
 ######################################
 if WITH_PYTHON_TESTS
@@ -66,6 +81,7 @@ AM_PY_LOG_FLAGS =
 PYTHON2_TESTS = python/test-RNA-combinatorics.py \
                 python/test-RNA-constraints.py \
                 python/test-RNA-mfe_eval.py \
+                python/test-RNA-mfe_window.py \
                 python/test-RNA-sc-callbacks.py \
                 python/test-RNA-subopt.py \
                 python/test-RNA-utils.py \
@@ -88,6 +104,7 @@ AM_PY3_LOG_FLAGS =
 PYTHON3_TESTS = python3/test-RNA-combinatorics.py3 \
                 python3/test-RNA-constraints.py3 \
                 python3/test-RNA-mfe_eval.py3 \
+                python3/test-RNA-mfe_window.py3 \
                 python3/test-RNA-sc-callbacks.py3 \
                 python3/test-RNA-subopt.py3 \
                 python3/test-RNA-utils.py3 \
@@ -109,7 +126,9 @@ CHECKMK_FILES = \
               constraints_soft.ts \
               fold.ts \
               utils.ts \
-              eval_structure.ts
+              eval_structure.ts \
+              walk.ts \
+              neighbor.ts
 
 CHECK_CFILES = \
               energy_evaluation.c \
@@ -117,20 +136,42 @@ CHECK_CFILES = \
               constraints_soft.c \
               fold.c \
               utils.c \
-              eval_structure.c
+              eval_structure.c \
+              walk.c \
+              neighbor.c
 
 LIBRARY_TESTS = energy_evaluation \
                 constraints \
                 constraints_soft \
                 fold \
                 utils \
-                eval_structure
+                eval_structure \
+                walk \
+                neighbor
 
 check_PROGRAMS = ${LIBRARY_TESTS}
 
 endif
 
-TESTS = ${LIBRARY_TESTS} ${PERL_TESTS} ${PYTHON2_TESTS} ${PYTHON3_TESTS}
+########################################
+## unit tests for executable programs ##
+########################################
+if WITH_EXECUTABLE_TESTS
+
+EXECUTABLE_TESTS  = \
+                  RNAfold/general.sh \
+                  RNAfold/partfunc.sh \
+                  RNAfold/special.sh \
+                  RNAfold/long.sh
+
+endif
+
+TESTS = \
+      ${EXECUTABLE_TESTS} \
+      ${LIBRARY_TESTS} \
+      ${PERL_TESTS} \
+      ${PYTHON2_TESTS} \
+      ${PYTHON3_TESTS}
 
 ## Below are the rules how to create the test suite executables
 ## See checkmk man page for details about *.ts files
@@ -140,10 +181,12 @@ TESTS = ${LIBRARY_TESTS} ${PERL_TESTS} ${PYTHON2_TESTS} ${PYTHON3_TESTS}
 endif
 
 EXTRA_DIST =  data \
+              RNAfold/results \
               ${CHECKMK_FILES} ${CHECK_CFILES} \
               ${PERL_TESTS} \
               ${PYTHON2_TESTS} \
-              ${PYTHON3_TESTS}
+              ${PYTHON3_TESTS} \
+              ${EXECUTABLE_TESTS}
 
 clean-local:
 	-rm -rf ${PERL_TEST_OUTPUT} \

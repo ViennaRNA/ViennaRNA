@@ -1,0 +1,27 @@
+## Here, we define several environment variables required by our unit tests
+##
+
+# include current directory into our Python path variable
+PYTHONPATH='.:${PYTHONPATH}'
+
+export PYTHONPATH
+
+# include path to the built executables to check their functionality later on
+PATH=@top_builddir@/src/bin:${PATH}
+
+export PATH
+
+# the path to various data files required to run our tests
+export DATADIR=@srcdir@/data
+
+# current ViennaRNA Package version
+export CURRENT_VERSION=@VERSION@
+
+# set DIFF variable
+export DIFF=@DIFF@
+
+# set results directories
+export RNAFOLD_RESULTSDIR=RNAfold/results
+
+# misc/ directory
+export MISC_DIR=@top_srcdir@/misc

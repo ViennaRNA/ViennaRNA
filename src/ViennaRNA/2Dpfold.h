@@ -4,7 +4,7 @@
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 
-#ifdef DEPRECATION_WARNINGS
+#ifdef VRNA_WARN_DEPRECATED
 # ifdef __GNUC__
 #  define DEPRECATED(func) func __attribute__ ((deprecated))
 # else
@@ -44,9 +44,9 @@
  *
  *  @see  vrna_pf_TwoD()
  */
-typedef struct vrna_sol_TwoD_pf_t{
-  int k;          /**<  @brief  Distance to first reference */
-  int l;          /**<  @brief  Distance to second reference */
+typedef struct vrna_sol_TwoD_pf_t {
+  int         k;  /**<  @brief  Distance to first reference */
+  int         l;  /**<  @brief  Distance to second reference */
   FLT_OR_DBL  q;  /**<  @brief  partition function */
 } vrna_sol_TwoD_pf_t;
 
@@ -72,10 +72,11 @@ typedef struct vrna_sol_TwoD_pf_t{
  * @param maxDistance2  The maximum basepair distance to reference2 (may be -1)
  * @returns             A list of partition funtions for the corresponding distance classes
  */
-vrna_sol_TwoD_pf_t  *
+vrna_sol_TwoD_pf_t *
 vrna_pf_TwoD(vrna_fold_compound_t *vc,
-                  int maxDistance1,
-                  int maxDistance2);
+             int                  maxDistance1,
+             int                  maxDistance2);
+
 
 /** @} */ /* End of group kl_neighborhood_pf */
 
@@ -86,7 +87,7 @@ vrna_pf_TwoD(vrna_fold_compound_t *vc,
  */
 
 /**
- *  @brief Sample secondary structure representatives from a set of distance classes according to their 
+ *  @brief Sample secondary structure representatives from a set of distance classes according to their
  *  Boltzmann probability
  *
  *  If the argument 'd1' is set to '-1', the structure will be backtracked in the distance class
@@ -103,12 +104,13 @@ vrna_pf_TwoD(vrna_fold_compound_t *vc,
  *  @returns    A sampled secondary structure in dot-bracket notation
  */
 char *
-vrna_pbacktrack_TwoD( vrna_fold_compound_t *vc,
-                      int d1,
-                      int d2);
+vrna_pbacktrack_TwoD(vrna_fold_compound_t *vc,
+                     int                  d1,
+                     int                  d2);
+
 
 /**
- * @brief Sample secondary structure representatives with a specified length from a set of distance classes according to their 
+ * @brief Sample secondary structure representatives with a specified length from a set of distance classes according to their
  *  Boltzmann probability
  *
  * This function does essentially the same as vrna_pbacktrack_TwoD() with the only difference that partial structures,
@@ -127,10 +129,11 @@ vrna_pbacktrack_TwoD( vrna_fold_compound_t *vc,
  *  @returns            A sampled secondary structure in dot-bracket notation
  */
 char *
-vrna_pbacktrack5_TwoD(vrna_fold_compound_t *vc,
-                      int d1,
-                      int d2,
-                      unsigned int length);
+vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
+                      int                   d1,
+                      int                   d2,
+                      unsigned int          length);
+
 
 /**
  *  @}
@@ -148,107 +151,106 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t *vc,
  *              Use #vrna_fold_compound_t and the corresponding functions vrna_fold_compound_TwoD(),
  *              vrna_pf_TwoD(), and vrna_fold_compound_free() instead!
  */
-typedef struct{
+typedef struct {
+  unsigned int          alloc;
+  char                  *ptype;       /**<  @brief  Precomputed array of pair types */
+  char                  *sequence;    /**<  @brief  The input sequence  */
+  short                 *S, *S1;      /**<  @brief  The input sequences in numeric form */
+  unsigned int          maxD1;        /**<  @brief  Maximum allowed base pair distance to first reference */
+  unsigned int          maxD2;        /**<  @brief  Maximum allowed base pair distance to second reference */
 
-  unsigned int    alloc;
-  char            *ptype;         /**<  @brief  Precomputed array of pair types */
-  char            *sequence;      /**<  @brief  The input sequence  */
-  short           *S, *S1;        /**<  @brief  The input sequences in numeric form */
-  unsigned int    maxD1;          /**<  @brief  Maximum allowed base pair distance to first reference */
-  unsigned int    maxD2;          /**<  @brief  Maximum allowed base pair distance to second reference */
+  double                temperature;  /* temperature in last call to scale_pf_params */
+  double                init_temp;    /* temperature in last call to scale_pf_params */
+  FLT_OR_DBL            *scale;
+  FLT_OR_DBL            pf_scale;
+  vrna_exp_param_t      *pf_params; /* holds all [unscaled] pf parameters */
 
-  double          temperature;    /* temperature in last call to scale_pf_params */
-  double          init_temp;      /* temperature in last call to scale_pf_params */
-  FLT_OR_DBL      *scale;
-  FLT_OR_DBL      pf_scale;
-  vrna_exp_param_t  *pf_params;     /* holds all [unscaled] pf parameters */
+  int                   *my_iindx;  /**<  @brief  Index for moving in quadratic distancy dimensions */
+  int                   *jindx;     /**<  @brief  Index for moving in the triangular matrix qm1 */
 
-  int             *my_iindx;      /**<  @brief  Index for moving in quadratic distancy dimensions */
-  int             *jindx;         /**<  @brief  Index for moving in the triangular matrix qm1 */
+  short                 *reference_pt1;
+  short                 *reference_pt2;
 
-  short           *reference_pt1;
-  short           *reference_pt2;
+  unsigned int          *referenceBPs1; /**<  @brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
+  unsigned int          *referenceBPs2; /**<  @brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
+  unsigned int          *bpdist;        /**<  @brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
 
-  unsigned int    *referenceBPs1; /**<  @brief  Matrix containing number of basepairs of reference structure1 in interval [i,j] */
-  unsigned int    *referenceBPs2; /**<  @brief  Matrix containing number of basepairs of reference structure2 in interval [i,j] */
-  unsigned int    *bpdist;        /**<  @brief  Matrix containing base pair distance of reference structure 1 and 2 on interval [i,j] */
+  unsigned int          *mm1;           /**<  @brief  Maximum matching matrix, reference struct 1 disallowed */
+  unsigned int          *mm2;           /**<  @brief  Maximum matching matrix, reference struct 2 disallowed */
 
-  unsigned int    *mm1;           /**<  @brief  Maximum matching matrix, reference struct 1 disallowed */
-  unsigned int    *mm2;           /**<  @brief  Maximum matching matrix, reference struct 2 disallowed */
+  int                   circ;
+  int                   dangles;
+  unsigned int          seq_length;
 
-  int             circ;
-  int             dangles;
-  unsigned int    seq_length;
+  FLT_OR_DBL            ***Q;
+  FLT_OR_DBL            ***Q_B;
+  FLT_OR_DBL            ***Q_M;
+  FLT_OR_DBL            ***Q_M1;
+  FLT_OR_DBL            ***Q_M2;
 
-  FLT_OR_DBL      ***Q;
-  FLT_OR_DBL      ***Q_B;
-  FLT_OR_DBL      ***Q_M;
-  FLT_OR_DBL      ***Q_M1;
-  FLT_OR_DBL      ***Q_M2;
+  FLT_OR_DBL            **Q_c;
+  FLT_OR_DBL            **Q_cH;
+  FLT_OR_DBL            **Q_cI;
+  FLT_OR_DBL            **Q_cM;
 
-  FLT_OR_DBL      **Q_c;
-  FLT_OR_DBL      **Q_cH;
-  FLT_OR_DBL      **Q_cI;
-  FLT_OR_DBL      **Q_cM;
+  int                   **l_min_values;
+  int                   **l_max_values;
+  int                   *k_min_values;
+  int                   *k_max_values;
 
-  int             **l_min_values;
-  int             **l_max_values;
-  int             *k_min_values;
-  int             *k_max_values;
+  int                   **l_min_values_b;
+  int                   **l_max_values_b;
+  int                   *k_min_values_b;
+  int                   *k_max_values_b;
 
-  int             **l_min_values_b;
-  int             **l_max_values_b;
-  int             *k_min_values_b;
-  int             *k_max_values_b;
+  int                   **l_min_values_m;
+  int                   **l_max_values_m;
+  int                   *k_min_values_m;
+  int                   *k_max_values_m;
 
-  int             **l_min_values_m;
-  int             **l_max_values_m;
-  int             *k_min_values_m;
-  int             *k_max_values_m;
+  int                   **l_min_values_m1;
+  int                   **l_max_values_m1;
+  int                   *k_min_values_m1;
+  int                   *k_max_values_m1;
 
-  int             **l_min_values_m1;
-  int             **l_max_values_m1;
-  int             *k_min_values_m1;
-  int             *k_max_values_m1;
+  int                   **l_min_values_m2;
+  int                   **l_max_values_m2;
+  int                   *k_min_values_m2;
+  int                   *k_max_values_m2;
 
-  int             **l_min_values_m2;
-  int             **l_max_values_m2;
-  int             *k_min_values_m2;
-  int             *k_max_values_m2;
+  int                   *l_min_values_qc;
+  int                   *l_max_values_qc;
+  int                   k_min_values_qc;
+  int                   k_max_values_qc;
 
-  int             *l_min_values_qc;
-  int             *l_max_values_qc;
-  int             k_min_values_qc;
-  int             k_max_values_qc;
+  int                   *l_min_values_qcH;
+  int                   *l_max_values_qcH;
+  int                   k_min_values_qcH;
+  int                   k_max_values_qcH;
 
-  int             *l_min_values_qcH;
-  int             *l_max_values_qcH;
-  int             k_min_values_qcH;
-  int             k_max_values_qcH;
+  int                   *l_min_values_qcI;
+  int                   *l_max_values_qcI;
+  int                   k_min_values_qcI;
+  int                   k_max_values_qcI;
 
-  int             *l_min_values_qcI;
-  int             *l_max_values_qcI;
-  int             k_min_values_qcI;
-  int             k_max_values_qcI;
-
-  int             *l_min_values_qcM;
-  int             *l_max_values_qcM;
-  int             k_min_values_qcM;
-  int             k_max_values_qcM;
+  int                   *l_min_values_qcM;
+  int                   *l_max_values_qcM;
+  int                   k_min_values_qcM;
+  int                   k_max_values_qcM;
 
   /* auxilary arrays for remaining set of coarse graining (k,l) > (k_max, l_max) */
-  FLT_OR_DBL      *Q_rem;
-  FLT_OR_DBL      *Q_B_rem;
-  FLT_OR_DBL      *Q_M_rem;
-  FLT_OR_DBL      *Q_M1_rem;
-  FLT_OR_DBL      *Q_M2_rem;
+  FLT_OR_DBL            *Q_rem;
+  FLT_OR_DBL            *Q_B_rem;
+  FLT_OR_DBL            *Q_M_rem;
+  FLT_OR_DBL            *Q_M1_rem;
+  FLT_OR_DBL            *Q_M2_rem;
 
-  FLT_OR_DBL      Q_c_rem;
-  FLT_OR_DBL      Q_cH_rem;
-  FLT_OR_DBL      Q_cI_rem;
-  FLT_OR_DBL      Q_cM_rem;
+  FLT_OR_DBL            Q_c_rem;
+  FLT_OR_DBL            Q_cH_rem;
+  FLT_OR_DBL            Q_cI_rem;
+  FLT_OR_DBL            Q_cM_rem;
 
-  vrna_fold_compound_t *compatibility;
+  vrna_fold_compound_t  *compatibility;
 } TwoDpfold_vars;
 
 /**
@@ -269,11 +271,11 @@ typedef struct{
  * @param circ        a switch indicating if the sequence is linear (0) or circular (1)
  * @returns           the datastructure containing all necessary partition function attributes
  */
-DEPRECATED(TwoDpfold_vars  *
-get_TwoDpfold_variables(const char *seq,
-                        const char *structure1,
-                        char *structure2,
-                        int circ));
+DEPRECATED(TwoDpfold_vars *
+           get_TwoDpfold_variables(const char *seq,
+                                   const char *structure1,
+                                   char       *structure2,
+                                   int        circ));
 
 /**
  * @brief Free all memory occupied by a TwoDpfold_vars datastructure
@@ -288,8 +290,8 @@ get_TwoDpfold_variables(const char *seq,
  *
  * @param vars   the datastructure to be free'd
  */
-DEPRECATED(void 
-destroy_TwoDpfold_variables(TwoDpfold_vars *vars));
+DEPRECATED(void
+           destroy_TwoDpfold_variables(TwoDpfold_vars *vars));
 
 /**
  * @brief Compute the partition function for all distance classes
@@ -315,13 +317,13 @@ destroy_TwoDpfold_variables(TwoDpfold_vars *vars));
  * @param maxDistance2  the maximum basepair distance to reference2 (may be -1)
  * @returns             a list of partition funtions for the appropriate distance classes
  */
-DEPRECATED(TwoDpfold_solution  *
-TwoDpfoldList(TwoDpfold_vars *vars,
-              int maxDistance1,
-              int maxDistance2));
+DEPRECATED(TwoDpfold_solution *
+           TwoDpfoldList(TwoDpfold_vars *vars,
+                         int            maxDistance1,
+                         int            maxDistance2));
 
 /**
- *  @brief Sample secondary structure representatives from a set of distance classes according to their 
+ *  @brief Sample secondary structure representatives from a set of distance classes according to their
  *  Boltzmann probability
  *
  *  If the argument 'd1' is set to '-1', the structure will be backtracked in the distance class
@@ -342,12 +344,12 @@ TwoDpfoldList(TwoDpfold_vars *vars,
  *  @returns    A sampled secondary structure in dot-bracket notation
  */
 DEPRECATED(char *
-TwoDpfold_pbacktrack( TwoDpfold_vars *vars,
-                      int d1,
-                      int d2));
+           TwoDpfold_pbacktrack(TwoDpfold_vars  *vars,
+                                int             d1,
+                                int             d2));
 
 /**
- * @brief Sample secondary structure representatives with a specified length from a set of distance classes according to their 
+ * @brief Sample secondary structure representatives with a specified length from a set of distance classes according to their
  *  Boltzmann probability
  *
  * This function does essentially the same as TwoDpfold_pbacktrack() with the only difference that partial structures,
@@ -370,29 +372,28 @@ TwoDpfold_pbacktrack( TwoDpfold_vars *vars,
  *  @returns    A sampled secondary structure in dot-bracket notation
  */
 DEPRECATED(char *
-TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
-                      int d1,
-                      int d2,
-                      unsigned int length));
+           TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
+                                 int            d1,
+                                 int            d2,
+                                 unsigned int   length));
 
 /**
  * @brief
  *
  *
  */
-DEPRECATED(FLT_OR_DBL          **TwoDpfold(TwoDpfold_vars *our_variables,
-                                int maxDistance1,
-                                int maxDistance2));
+DEPRECATED(FLT_OR_DBL **TwoDpfold(TwoDpfold_vars  *our_variables,
+                                  int             maxDistance1,
+                                  int             maxDistance2));
 
 /**
  * @brief
  *
  *
  */
-DEPRECATED(FLT_OR_DBL          **TwoDpfold_circ(
-                                TwoDpfold_vars *our_variables,
-                                int maxDistance1,
-                                int maxDistance2));
+DEPRECATED(FLT_OR_DBL **TwoDpfold_circ(TwoDpfold_vars *our_variables,
+                                       int            maxDistance1,
+                                       int            maxDistance2));
 
 #endif
 

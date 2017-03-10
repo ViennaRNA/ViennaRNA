@@ -12,7 +12,7 @@
 #include <ViennaRNA/aln_util.h>
 #include <ViennaRNA/boltzmann_sampling.h>
 
-#ifdef DEPRECATION_WARNINGS
+#ifdef VRNA_WARN_DEPRECATED
 # ifdef __GNUC__
 #  define DEPRECATED(func) func __attribute__ ((deprecated))
 # else

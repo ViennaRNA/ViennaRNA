@@ -3,7 +3,7 @@ AM_CXXFLAGS = $(RNA_CXXFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src
 AM_LDFLAGS = $(RNA_LDFLAGS) 
 
-if WITH_STATIC_EXECUTABLES
+if VRNA_AM_SWITCH_STATIC_EXECUTABLES
 AM_LDFLAGS += -all-static
 endif
 
@@ -19,10 +19,12 @@ HELPER_FILES =  gengetopt_helper.h \
 
 SUFFIXES = _cmdl.c _cmdl.h .ggo
 
-# Link agains stdc++ if we use SVM in RNALfold
+# Link against stdc++ if we use SVM in RNALfold
 RNALfold_LDADD = $(LDADD)
-if WITH_LIBSVM
+RNALalifold_LDADD = $(LDADD)
+if VRNA_AM_SWITCH_SVM
 RNALfold_LDADD += -lstdc++
+RNALalifold_LDADD += -lstdc++
 endif
 
 

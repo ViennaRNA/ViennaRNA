@@ -37,6 +37,10 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
                   [C-library Unit tests],
                   [yes])
 
+  RNA_ADD_FEATURE([check_executables],
+                  [Unit tests for executables],
+                  [yes])
+
   RNA_ADD_FEATURE([check_perl],
                   [Perl interface Unit tests],
                   [yes])
@@ -62,6 +66,16 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
 
     RNA_PACKAGE_IF_ENABLED([check],[
       AC_DEFINE([WITH_CHECK], [1], [Include C-library Unit tests])
+    ])
+
+    RNA_FEATURE_IF_ENABLED([check_executables],[
+      AC_ARG_VAR([DIFF],[the 'diff' program to use for test output comparison])
+      AC_PATH_PROG([DIFF],[diff],[])
+      if test "x$DIFF" = "x"; then
+        AC_MSG_WARN([diff not found -- deactivating check for executables!])
+        AC_MSG_NOTICE([==> Set DIFF environment variable if present in non-standard path!])
+        enable_check_executables="no"
+      fi
     ])
 
     RNA_FEATURE_IF_ENABLED([check_perl],[
@@ -96,10 +110,11 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
 
   AM_CONDITIONAL(WITH_UNIT_TESTS, test "x$enable_unittests" != "xno")
   AM_CONDITIONAL(WITH_CHECK, test "x$with_check" != "xno")
+  AM_CONDITIONAL(WITH_EXECUTABLE_TESTS, test "x$with_check_executables" != "xno")
   AM_CONDITIONAL(WITH_PERL_TESTS, test "x$enable_check_perl" != "xno")
   AM_CONDITIONAL(WITH_PYTHON_TESTS, test "x$enable_check_python" != "xno")
   AM_CONDITIONAL(WITH_PYTHON3_TESTS, test "x$enable_check_python3" != "xno")
 
-  AC_CONFIG_FILES([tests/Makefile tests/RNApath.py tests/RNApath.pm])
+  AC_CONFIG_FILES([tests/Makefile tests/RNApath.py tests/RNApath.pm tests/test-env.sh])
 ])
 

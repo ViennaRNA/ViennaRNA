@@ -1,12 +1,12 @@
 
 /* deactivate ANSI colors in TTY output if we compile for windows */
-#ifndef WITHOUT_TTY_COLORS
+#ifndef VRNA_WITHOUT_TTY_COLORS
 # ifdef _WIN32
-#   define WITHOUT_TTY_COLORS
+#   define VRNA_WITHOUT_TTY_COLORS
 # endif
 #endif
 
-#ifndef WITHOUT_TTY_COLORS
+#ifndef VRNA_WITHOUT_TTY_COLORS
 
 #define ANSI_COLOR_BRIGHT     "\x1b[1m"
 #define ANSI_COLOR_UNDERLINE  "\x1b[4m"

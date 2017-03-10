@@ -65,6 +65,16 @@ typestr="prefix"
 default="sequence"
 optional
 
+option  "id-delim" -
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)\n\n"
+details="This parameter can be used to change the default delimiter \"_\" between
+ the prefix string and the increasing number for automatically generated ID.\n\n"
+string
+typestr="delimiter"
+default="_"
+optional
+hidden
+
 option  "id-digits"  -
 "Specify the number of digits of the counter in automatically generated alignment IDs.\n"
 details="When alignments IDs are automatically generated, they receive an increasing number, starting\
@@ -85,6 +95,34 @@ details="When sequence IDs are automatically generated, they receive an increasi
 long
 default="1"
 optional
+hidden
+
+option  "filename-delim" -
+"Change the delimiting character that is used for sanitized filenames\n\n"
+details="This parameter can be used to change the delimiting character used while\
+ sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
+ delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
+ the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
+ characters will be simply removed rather than substituted.\n\n"
+string
+typestr="delimiter"
+default="ID-delimiter"
+optional
+hidden
+
+option  "filename-full" -
+"Use full FASTA header to create filenames\n\n"
+details="This parameter can be used to deactivate the default behavior of limiting\
+ output filenames to the first word of the sequence ID. Consider the following example:\
+ An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
+ files with the prefix \"NM_0001\" without the additional data available in the FASTA\
+ header, e.g. \"NM_0001_ss.ps\" for secondary structure plots. With this flag set, no\
+ truncation of the output filenames is done, i.e. output filenames receive the full\
+ FASTA header data as prefixes. Note, however, that invalid characters (such as whitespace)\
+ will be substituted by a delimiting character or simply removed, (see also the parameter\
+ option --filename-delim).\n\n"
+flag
+off
 hidden
 
 

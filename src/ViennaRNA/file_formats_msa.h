@@ -38,15 +38,25 @@
 #define VRNA_FILE_FORMAT_MSA_MAF          8U
 
 /**
+ *  @brief Option flag indicating most informative sequence (MIS) output
+ *
+ *  The default reference sequence output for an alignment is simply a consensus sequence.
+ *  This flag allows to write the most informative equence (MIS) instead.
+ *
+ *  @see vrna_file_msa_write()
+ */
+#define VRNA_FILE_FORMAT_MSA_MIS          16U
+
+/**
  *  @brief Option flag indicating the set of default file formats
  *  @see vrna_file_msa_read(), vrna_file_msa_read_record(), vrna_file_msa_detect_format()
  */
 #define VRNA_FILE_FORMAT_MSA_DEFAULT      ( \
-                                              VRNA_FILE_FORMAT_MSA_CLUSTAL \
-                                            | VRNA_FILE_FORMAT_MSA_STOCKHOLM \
-                                            | VRNA_FILE_FORMAT_MSA_FASTA \
-                                            | VRNA_FILE_FORMAT_MSA_MAF \
-                                          )
+    VRNA_FILE_FORMAT_MSA_CLUSTAL \
+    | VRNA_FILE_FORMAT_MSA_STOCKHOLM \
+    | VRNA_FILE_FORMAT_MSA_FASTA \
+    | VRNA_FILE_FORMAT_MSA_MAF \
+    )
 
 /**
  *  @brief Option flag to disable validation of the alignment
@@ -59,6 +69,12 @@
  *  @see vrna_file_msa_detect_format()
  */
 #define VRNA_FILE_FORMAT_MSA_UNKNOWN      8192U
+
+#define VRNA_FILE_FORMAT_MSA_APPEND       16384U
+
+#define VRNA_FILE_FORMAT_MSA_QUIET        32768U
+
+#define VRNA_FILE_FORMAT_MSA_SILENT       65536U
 
 /**
  *  @brief Read a multiple sequence alignment from file
@@ -107,12 +123,13 @@
  *                      no alignment record could be found
  */
 int
-vrna_file_msa_read( const char *filename,
-                    char ***names,
-                    char ***aln,
-                    char  **id,
-                    char  **structure,
-                    unsigned int options);
+vrna_file_msa_read(const char   *filename,
+                   char         ***names,
+                   char         ***aln,
+                   char         **id,
+                   char         **structure,
+                   unsigned int options);
+
 
 /**
  *  @brief Read a multiple sequence alignment from file handle
@@ -165,12 +182,13 @@ vrna_file_msa_read( const char *filename,
  *                      no alignment record could be found
  */
 int
-vrna_file_msa_read_record(FILE *fp,
-                          char ***names,
-                          char ***aln,
-                          char  **id,
-                          char  **structure,
-                          unsigned int options);
+vrna_file_msa_read_record(FILE          *fp,
+                          char          ***names,
+                          char          ***aln,
+                          char          **id,
+                          char          **structure,
+                          unsigned int  options);
+
 
 /**
  *  @brief Detect the format of a multiple sequence alignment file
@@ -198,8 +216,33 @@ vrna_file_msa_read_record(FILE *fp,
  *  @return           The MSA file format, or #VRNA_FILE_FORMAT_MSA_UNKNOWN
  */
 unsigned int
-vrna_file_msa_detect_format(const char *filename,
-                            unsigned int options);
+vrna_file_msa_detect_format(const char    *filename,
+                            unsigned int  options);
+
+
+/**
+ *  @brief Write multiple sequence alignment file
+ *
+ *  @note Currently, we only support Stockholm 1.0 formatted output
+ *
+ *  @param  filename  The output filename
+ *  @param  names     The array of sequence names / identifies
+ *  @param  aln       The array of aligned sequences
+ *  @param  id        An optional ID for the alignment
+ *  @param  structure An optional consensus structure
+ *  @param  source    A string describing the source of the alignment
+ *  @param  options   Options to manipulate the behavior of this function
+ *  @return           Non-null upon successful written alignment
+ */
+int
+vrna_file_msa_write(const char    *filename,
+                    const char    **names,
+                    const char    **aln,
+                    const char    *id,
+                    const char    *structure,
+                    const char    *source,
+                    unsigned int  options);
+
 
 /**
  * @}

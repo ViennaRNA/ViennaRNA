@@ -23,6 +23,8 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAinverse_cmdl.h"
 
+#include "ViennaRNA/color_output.inc"
+
 #ifdef dmalloc
 #include  "/usr/local/include/dmalloc.h"
 #define vrna_alloc(X) calloc(1, (X))
@@ -158,8 +160,11 @@ main(int  argc,
     input_type = get_multi_input_line(&input_string, 0);
     /* we are waiting for a structure (i.e. something like a constraint) so we skip all sequences, fasta-headers and misc lines */
     while (input_type & (VRNA_INPUT_SEQUENCE | VRNA_INPUT_MISC | VRNA_INPUT_FASTA_HEADER)) {
-      if (!istty && (input_type & VRNA_INPUT_FASTA_HEADER))
-        printf(">%s\n", input_string);
+      if (!istty && (input_type & VRNA_INPUT_FASTA_HEADER)) {
+        /* remove '>' from FASTA header */
+        input_string = memmove(input_string, input_string + 1, strlen(input_string));
+        print_fasta_header(stdout, input_string);
+      }
 
       free(input_string);
       input_string  = NULL;
@@ -224,7 +229,7 @@ main(int  argc,
 
     str2 = (char *)vrna_alloc((unsigned)length + 1);
     if (istty)
-      printf("length = %d\n", length);
+      vrna_message_info(stdout, "length = %d", length);
 
     if (repeat != 0)
       found = (repeat > 0) ? repeat : (-repeat);
@@ -254,17 +259,21 @@ main(int  argc,
         if ((repeat >= 0) || (energy <= 0.0)) {
           found--;
           hd = vrna_hamming_distance(rstart, string);
-          printf("%s  %3d", string, hd);
+          char *msg = NULL;
+
           if (energy > 0) {
             /* no solution found */
-            printf("   d= %g\n", energy);
+            msg = vrna_strdup_printf("  %3d   d= %g", hd, energy);
             if (istty) {
               energy = fold(string, str2);
               printf("%s\n", str2);
             }
           } else {
-            printf("\n");
+            msg = vrna_strdup_printf("  %3d", hd);
           }
+
+          print_structure(stdout, string, msg);
+          free(msg);
         }
       }
 
@@ -281,7 +290,9 @@ main(int  argc,
           energy  = inverse_pf_fold(string, structure);
           prob    = exp(-energy / kT);
           hd      = vrna_hamming_distance(rstart, string);
-          printf("%s  %3d  (%g)\n", string, hd, prob);
+          char *msg = vrna_strdup_printf("  %3d  (%g)", hd, prob);
+          print_structure(stdout, string, msg);
+          free(msg);
           free_pf_arrays();
         }
 

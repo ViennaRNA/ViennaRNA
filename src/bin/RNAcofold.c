@@ -62,11 +62,12 @@ main(int  argc,
 {
   struct        RNAcofold_args_info args_info;
   char                              *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence,
-                                    *rec_id, **rec_rest, fname[FILENAME_MAX_LENGTH], *Concfile, *id_prefix,
-                                    *command_file;
+                                    *rec_id, **rec_rest, *Concfile, *id_prefix,
+                                    *command_file, *id_delim, *filename_delim, *tmp_string;
   unsigned int                      rec_type, read_opt;
   int                               i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
-                                    doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch;
+                                    doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch,
+                                    filename_full;
   long int                          seq_number;
   double                            min_en, kT, *ConcAandB;
   plist                             *prAB, *prAA, *prBB, *prA, *prB, *mfAB, *mfAA, *mfBB, *mfA, *mfB;
@@ -95,6 +96,7 @@ main(int  argc,
   auto_id       = 0;
   command_file  = NULL;
   commands      = NULL;
+  filename_full = 0;
 
   set_model_details(&md);
   /*
@@ -119,6 +121,7 @@ main(int  argc,
   ggo_get_ID_manipulation(args_info,
                           auto_id,
                           id_prefix, "sequence",
+                          id_delim, "_",
                           id_digits, 4,
                           seq_number, 1);
 
@@ -166,6 +169,21 @@ main(int  argc,
 
   if (args_info.commands_given)
     command_file = strdup(args_info.commands_arg);
+
+  /* filename sanitize delimiter */
+  if (args_info.filename_delim_given)
+    filename_delim = strdup(args_info.filename_delim_arg);
+  else
+    filename_delim = strdup(id_delim);
+
+  if (isspace(*filename_delim)) {
+    free(filename_delim);
+    filename_delim = NULL;
+  }
+
+  /* full filename from FASTA header support */
+  if (args_info.filename_full_given)
+    filename_full = 1;
 
   /* free allocated memory of command line data structure */
   RNAcofold_cmdline_parser_free(&args_info);
@@ -216,15 +234,17 @@ main(int  argc,
      # init everything according to the data we've read
      ########################################################
      */
-    char *SEQ_ID = NULL;
+    char  *SEQ_ID         = NULL;
+    int   maybe_multiline = 0;
 
-    if (rec_id)
-      (void)sscanf(rec_id, ">%" XSTR(FILENAME_ID_LENGTH) "s", fname);
-    else
-      fname[0] = '\0';
+    if (rec_id) {
+      maybe_multiline = 1;
+      /* remove '>' from FASTA header */
+      rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
+    }
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, fname, auto_id, id_prefix, id_digits, seq_number);
+    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)
@@ -247,7 +267,7 @@ main(int  argc,
         cstruc  = NULL;
         cstruc  = NULL;
         int           cp        = -1;
-        unsigned int  coptions  = (rec_id) ? VRNA_OPTION_MULTILINE : 0;
+        unsigned int  coptions  = (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0;
         cstruc  = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc  = vrna_cut_point_remove(cstruc, &cp);
         if (vc->cutpoint != cp) {
@@ -327,7 +347,7 @@ main(int  argc,
       pstring = strdup(orig_sequence);
       pstruct = vrna_cut_point_insert(structure, vc->cutpoint);
 
-      print_fasta_header(stdout, SEQ_ID);
+      print_fasta_header(stdout, rec_id);
       fprintf(stdout, "%s\n", orig_sequence);
 
       if (istty)
@@ -339,21 +359,29 @@ main(int  argc,
       (void)fflush(stdout);
 
       if (!noPS) {
-        char *filename_plot = NULL, annot[512] = "";
-        if (SEQ_ID)
-          filename_plot = vrna_strdup_printf("%s_ss.ps", SEQ_ID);
-        else
+        char *filename_plot = NULL, *annot = NULL;
+        if (SEQ_ID) {
+          filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
+          tmp_string    = vrna_filename_sanitize(filename_plot, filename_delim);
+          free(filename_plot);
+          filename_plot = tmp_string;
+        } else {
           filename_plot = strdup("rna.ps");
+        }
 
-        if (vc->cutpoint >= 0)
-          sprintf(annot,
-                  "1 %d 9  0 0.9 0.2 omark\n%d %d 9  1 0.1 0.2 omark\n",
-                  vc->cutpoint - 1, vc->cutpoint + 1, length + 1);
+        if (vc->cutpoint >= 0) {
+          annot = vrna_strdup_printf("1 %d 9  0 0.9 0.2 omark\n"
+                                     "%d %d 9  1 0.1 0.2 omark\n",
+                                     vc->cutpoint - 1,
+                                     vc->cutpoint + 1,
+                                     length + 1);
+        }
 
         if (filename_plot)
           (void)vrna_file_PS_rnaplot_a(pstring, pstruct, filename_plot, annot, NULL, &md);
 
         free(filename_plot);
+        free(annot);
       }
 
       free(pstring);
@@ -420,7 +448,6 @@ main(int  argc,
         int   Blength, Alength;
         char  *Astring, *Bstring, *orig_Astring, *orig_Bstring;
         char  *Newstring;
-        char  comment[80];
         if (vc->cutpoint <= 0) {
           vrna_message_warning("Sorry, i cannot do that with only one molecule, please give me two or leave it");
           free(mfAB);
@@ -477,19 +504,24 @@ main(int  argc,
         }
 
         char *filename_dot = NULL;
-        if (SEQ_ID)
-          filename_dot = vrna_strdup_printf("%s_dp5.ps", SEQ_ID);
-        else
+        if (SEQ_ID) {
+          filename_dot  = vrna_strdup_printf("%s%sdp5.ps", SEQ_ID, id_delim);
+          tmp_string    = vrna_filename_sanitize(filename_dot, filename_delim);
+          free(filename_dot);
+          filename_dot = tmp_string;
+        } else {
           filename_dot = strdup("dot5.ps");
+        }
 
         /*output of the 5 dot plots*/
 
         if ((do_backtrack) && (filename_dot)) {
-          char *fname_dot = NULL;
+          char  *comment    = NULL;
+          char  *fname_dot  = NULL;
           /*AB dot_plot*/
 
           /*write Free Energy into comment*/
-          sprintf(comment, "\n%%Heterodimer AB FreeEnergy= %.9f\n", AB.FcAB);
+          comment = vrna_strdup_printf("\n%%Heterodimer AB FreeEnergy= %.9f\n", AB.FcAB);
           /*reset cut_point*/
           cut_point = Alength + 1;
 
@@ -500,10 +532,12 @@ main(int  argc,
           (void)PS_dot_plot_list(coseq, fname_dot, prAB, mfAB, comment);
           free(coseq);
           free(fname_dot);
+          free(comment);
           fname_dot = NULL;
+          comment   = NULL;
 
           /*AA dot_plot*/
-          sprintf(comment, "\n%%Homodimer AA FreeEnergy= %.9f\n", AA.FcAB);
+          comment = vrna_strdup_printf("\n%%Homodimer AA FreeEnergy= %.9f\n", AA.FcAB);
           /*write New name*/
           fname_dot = vrna_strdup_printf("AA%s", filename_dot);
           /*write AA sequence*/
@@ -513,10 +547,12 @@ main(int  argc,
           (void)PS_dot_plot_list(Newstring, fname_dot, prAA, mfAA, comment);
           free(Newstring);
           free(fname_dot);
+          free(comment);
           fname_dot = NULL;
+          comment   = NULL;
 
           /*BB dot_plot*/
-          sprintf(comment, "\n%%Homodimer BB FreeEnergy= %.9f\n", BB.FcAB);
+          comment = vrna_strdup_printf("\n%%Homodimer BB FreeEnergy= %.9f\n", BB.FcAB);
           /*write New name*/
           fname_dot = vrna_strdup_printf("BB%s", filename_dot);
           /*write BB sequence*/
@@ -528,26 +564,31 @@ main(int  argc,
           (void)PS_dot_plot_list(Newstring, fname_dot, prBB, mfBB, comment);
           free(Newstring);
           free(fname_dot);
+          free(comment);
           fname_dot = NULL;
+          comment   = NULL;
 
           /*A dot plot*/
           /*reset cut_point*/
           cut_point = -1;
-          sprintf(comment, "\n%%Monomer A FreeEnergy= %.9f\n", AB.FA);
+          comment   = vrna_strdup_printf("\n%%Monomer A FreeEnergy= %.9f\n", AB.FA);
           /*write New name*/
           fname_dot = vrna_strdup_printf("A%s", filename_dot);
           /*write BB sequence*/
           (void)PS_dot_plot_list(orig_Astring, fname_dot, prA, mfA, comment);
           free(fname_dot);
+          free(comment);
           fname_dot = NULL;
+          comment   = NULL;
 
           /*B monomer dot plot*/
-          sprintf(comment, "\n%%Monomer B FreeEnergy= %.9f\n", AB.FB);
+          comment = vrna_strdup_printf("\n%%Monomer B FreeEnergy= %.9f\n", AB.FB);
           /*write New name*/
           fname_dot = vrna_strdup_printf("B%s", filename_dot);
           /*write BB sequence*/
           (void)PS_dot_plot_list(orig_Bstring, fname_dot, prB, mfB, comment);
           free(fname_dot);
+          free(comment);
         }
 
         free(filename_dot);
@@ -574,10 +615,14 @@ main(int  argc,
           int   cp;
           char  *seq          = vrna_cut_point_remove(rec_sequence, &cp);
           char  *filename_dot = NULL;
-          if (SEQ_ID)
-            filename_dot = vrna_strdup_printf("%s_dp.ps", SEQ_ID);
-          else
+          if (SEQ_ID) {
+            filename_dot  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
+            tmp_string    = vrna_filename_sanitize(filename_dot, filename_delim);
+            free(filename_dot);
+            filename_dot = tmp_string;
+          } else {
             filename_dot = strdup("dot.ps");
+          }
 
           if (filename_dot)
             (void)vrna_plot_dp_PS_list(seq, cp, filename_dot, prAB, mfAB, "doof");
@@ -636,6 +681,8 @@ main(int  argc,
   vrna_commands_free(commands);
 
   free(id_prefix);
+  free(id_delim);
+  free(filename_delim);
   free(Concfile);
 
   return EXIT_SUCCESS;
@@ -737,10 +784,10 @@ do_concentrations(double            FEAB,
   print_table(stdout, "A\t\tB\t\tAB\t\tAA\t\tBB\t\tA\t\tB", NULL);
   for (n = 0; (startconc[2 * n] > 0) || (startconc[2 * n + 1] > 0); n++); /* count */
   for (i = 0; i < n; i++) {
-    double  tot     = result[i].A0 + result[i].B0;
+    double  tot     = result[i].Ac_start + result[i].Bc_start;
     char    *tline  = vrna_strdup_printf("%-10g\t%-10g\t%.5f \t%.5f \t%.5f \t%.5f \t%.5f",
-                                         result[i].A0,
-                                         result[i].B0,
+                                         result[i].Ac_start,
+                                         result[i].Bc_start,
                                          result[i].ABc / tot,
                                          result[i].AAc / tot,
                                          result[i].BBc / tot,

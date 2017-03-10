@@ -163,6 +163,7 @@ We will disable LTO support now!
         RNA_LDFLAGS="${RNA_LDFLAGS} ${LTO_LDFLAGS}"
         RNA_CFLAGS="${RNA_CFLAGS} ${LTO_CFLAGS}"
         RNA_CXXFLAGS="${RNA_CXXFLAGS} ${LTO_CXXFLAGS}"
+        CONFIG_LTO="#define VRNA_WITH_LTO"
       ],[
         AC_MSG_WARN([Your compiler/linker combination does not support link-time optimization (LTO)])
         enable_lto="no"
@@ -170,6 +171,8 @@ We will disable LTO support now!
       ])
     fi
   ])
+
+  AC_SUBST(CONFIG_LTO)
 
   # distribute additional compiler and linker flags
   # --> set these variables instead of CFLAGS, CXXFLAGS, or LDFLAGS
@@ -181,5 +184,5 @@ We will disable LTO support now!
   AC_SUBST([AR])
   AC_SUBST([RANLIB])
   AC_SUBST([NM])
-  AM_CONDITIONAL(WITH_LTO, test "$ac_lto_supported" != "no")
+  AM_CONDITIONAL(VRNA_AM_SWITCH_LTO, test "$ac_lto_supported" != "no")
 ])

@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_CONSTRAINTS_HARD_H
 #define VIENNA_RNA_PACKAGE_CONSTRAINTS_HARD_H
 
-#ifdef DEPRECATION_WARNINGS
+#ifdef VRNA_WARN_DEPRECATED
 # ifdef __GNUC__
 #  define DEPRECATED(func) func __attribute__ ((deprecated))
 # else

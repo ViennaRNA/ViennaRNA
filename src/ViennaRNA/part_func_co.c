@@ -1153,8 +1153,8 @@ vrna_pf_dimer_concentrations(double FcAB,
   /* printf("Kaa..%g %g %g\n", KAA, KBB, KAB); */
   for (i=0; ((startconc[i]!=0)||(startconc[i+1]!=0));i+=2) {
     ConcVec                 = Newton_Conc(KAB, KAA, KBB, startconc[i], startconc[i+1], ConcVec);
-    Concentration[i/2].A0   = startconc[i];
-    Concentration[i/2].B0   = startconc[i+1];
+    Concentration[i/2].Ac_start   = startconc[i];
+    Concentration[i/2].Bc_start   = startconc[i+1];
     Concentration[i/2].ABc  = ConcVec[0];
     Concentration[i/2].AAc  = ConcVec[1];
     Concentration[i/2].BBc  = ConcVec[2];

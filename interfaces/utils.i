@@ -452,8 +452,36 @@ char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,
 %include  <ViennaRNA/move_set.h>
 
 
+/**********************************************/
+/* BEGIN interface for File utilities         */
+/**********************************************/
 
+%rename (filename_sanitize) my_filename_sanitize;
 
+%{
+  std::string my_filename_sanitize(std::string name) {
+    std::string s;
+    char *name_sanitized = vrna_filename_sanitize(name.c_str(), NULL);
+    if (name_sanitized)
+      s = (const char *)name_sanitized;
+    free(name_sanitized);
+    return s;
+  }
+
+  std::string my_filename_sanitize(std::string name, char c) {
+    std::string s;
+    char *name_sanitized = vrna_filename_sanitize(name.c_str(), &c);
+    if (name_sanitized)
+      s = (const char *)name_sanitized;
+    free(name_sanitized);
+    return s;
+  }
+%}
+
+std::string my_filename_sanitize(std::string name);
+std::string my_filename_sanitize(std::string name, char c);
+
+%include  <ViennaRNA/file_utils.h>
 
 
 

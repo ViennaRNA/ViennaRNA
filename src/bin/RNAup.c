@@ -35,8 +35,6 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define EQUAL(A, B) (fabs((A)-(B)) < 1000 * DBL_EPSILON)
-#define ULENGTH_MAXIMUM   21
-#define COMMANDLINE_PARAMETERS_INIT_LENGTH      1024
 
 PRIVATE void    tokenize(char *line,
                          char **seq1,
@@ -74,11 +72,6 @@ PRIVATE int     move_useless_unpaired_values(const void *p1,
 PRIVATE void    adjustUnpairedValues(int ***unpaired_values); /* this function sorts and cleans up the unpaired values given at command line */
 
 
-PRIVATE void    appendCmdlParameter(char        **param_dest,
-                                    const char  *parameter,
-                                    int         *param_dest_length);
-
-
 /* defaults for -u and -w */
 PRIVATE int     default_u; /* -u options for plotting: plot pr_unpaired for 4 nucleotides */
 PRIVATE double  RT;
@@ -90,12 +83,12 @@ main(int  argc,
 {
   struct RNAup_args_info  args_info;
   unsigned int            input_type, up_mode;
-  char                    temp_name[512], my_contrib[10], up_out[250], name[512], fname1[FILENAME_MAX_LENGTH],
+  char                    my_contrib[10], *up_out, *name, fname1[FILENAME_MAX_LENGTH],
                           fname2[FILENAME_MAX_LENGTH], fname_target[FILENAME_MAX_LENGTH], *ParamFile,
                           *ns_bases, *c, *structure, *head, *input_string, *s1, *s2, *s3, *s_target, *cstruc1,
-                          *cstruc2, *cstruc_target, *cstruc_combined, cmdl_tmp[2048], *cmdl_parameters,
-                          *orig_s1, *orig_s2, *orig_target;
-  int                     cmdl_parameters_length, i, j, length1, length2, length_target, sym, istty,
+                          *cstruc2, *cstruc_target, *cstruc_combined, *cmdl_parameters, *orig_s1, *orig_s2,
+                          *orig_target;
+  int                     i, j, length1, length2, length_target, sym, istty,
                           rotated, noconv, max_u, **unpaired_values, ulength_num;
   double                  energy, min_en, sfact;
 
@@ -131,11 +124,12 @@ main(int  argc,
   inter_out       = NULL;
   unstr_out       = unstr_short = unstr_target = contrib1 = contrib2 = NULL;
   structure       = ParamFile = ns_bases = head = orig_s1 = orig_s2 = orig_target = NULL;
+  up_out          = NULL;
   fname_target[0] = '\0';
   /* allocate init length for commandline parameter string */
-  cmdl_parameters_length  = COMMANDLINE_PARAMETERS_INIT_LENGTH;
-  cmdl_parameters         = (char *)vrna_alloc(sizeof(char) * cmdl_parameters_length);
-  sprintf(cmdl_parameters, "RNAup ");
+
+  cmdl_parameters = NULL;
+  vrna_strcat_printf(&cmdl_parameters, "RNAup ");
 
   /*
    #############################################
@@ -153,10 +147,8 @@ main(int  argc,
   if (args_info.temp_given) {
     temperature = args_info.temp_arg;
     /* collect parameter if header is needed */
-    if (header) {
-      sprintf(cmdl_tmp, "-T %f ", temperature);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
-    }
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "-T %f ", temperature);
   }
 
   /* structure constraint */
@@ -164,14 +156,14 @@ main(int  argc,
     fold_constrained = 1;
     /* collect parameter if header is needed */
     if (header)
-      appendCmdlParameter(&cmdl_parameters, "-C ", &cmdl_parameters_length);
+      vrna_strcat_printf(&cmdl_parameters, "-C ");
   }
 
   /* do not take special tetra loop energies into account */
   if (args_info.noTetra_given) {
     tetra_loop = 0;
     if (header)
-      appendCmdlParameter(&cmdl_parameters, "-4 ", &cmdl_parameters_length);
+      vrna_strcat_printf(&cmdl_parameters, "-4 ");
   }
 
   /* set dangle model */
@@ -181,83 +173,71 @@ main(int  argc,
     else
       dangles = args_info.dangles_arg;
 
-    if (header) {
-      sprintf(cmdl_tmp, "-d %d ", dangles);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
-    }
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "-d %d ", dangles);
   }
 
   /* do not allow weak pairs */
   if (args_info.noLP_given) {
     noLonelyPairs = 1;
     if (header)
-      appendCmdlParameter(&cmdl_parameters, "--noLP ", &cmdl_parameters_length);
+      vrna_strcat_printf(&cmdl_parameters, "--noLP ");
   }
 
   /* do not allow wobble pairs (GU) */
   if (args_info.noGU_given) {
     noGU = 1;
     if (header)
-      appendCmdlParameter(&cmdl_parameters, "--noGU ", &cmdl_parameters_length);
+      vrna_strcat_printf(&cmdl_parameters, "--noGU ");
   }
 
   /* do not allow weak closing pairs (AU,GU) */
   if (args_info.noClosingGU_given) {
     no_closingGU = 1;
     if (header)
-      appendCmdlParameter(&cmdl_parameters, "--noClosingGU ", &cmdl_parameters_length);
+      vrna_strcat_printf(&cmdl_parameters, "--noClosingGU ");
   }
 
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given) {
     noconv = 1;
     if (header)
-      appendCmdlParameter(&cmdl_parameters, "--noconv ", &cmdl_parameters_length);
+      vrna_strcat_printf(&cmdl_parameters, "--noconv ");
   }
 
   /* set energy model */
   if (args_info.energyModel_given) {
     energy_set = args_info.energyModel_arg;
-    if (header) {
-      sprintf(cmdl_tmp, "-e %d ", energy_set);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
-    }
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "-e %d ", energy_set);
   }
 
   /* take another energy parameter set */
   if (args_info.paramFile_given) {
     ParamFile = strdup(args_info.paramFile_arg);
-    if (header) {
-      sprintf(cmdl_tmp, "-P %s ", ParamFile);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
-    }
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "-P %s ", ParamFile);
   }
 
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
   if (args_info.nsp_given) {
     ns_bases = strdup(args_info.nsp_arg);
-    if (header) {
-      sprintf(cmdl_tmp, "--nsp %s ", ns_bases);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
-    }
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "--nsp %s ", ns_bases);
   }
 
   /* set pf scaling factor */
   if (args_info.pfScale_given) {
     sfact = args_info.pfScale_arg;
-    if (header) {
-      sprintf(cmdl_tmp, "-S %f ", sfact);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
-    }
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "-S %f ", sfact);
   }
 
   /* set the maximal length of interaction region */
   if (args_info.window_given) {
     w = args_info.window_arg;
-    if (header) {
-      sprintf(cmdl_tmp, "-w %d ", w);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
-    }
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "-w %d ", w);
   }
 
   /* do not make an output file */
@@ -268,48 +248,42 @@ main(int  argc,
   if (args_info.include_both_given) {
     up_mode = RNA_UP_MODE_3;
     if (header)
-      appendCmdlParameter(&cmdl_parameters, "--include_both ", &cmdl_parameters_length);
+      vrna_strcat_printf(&cmdl_parameters, "--include_both ");
   }
 
   /* set interaction mode 1 (pairwise interaction) */
   if (args_info.interaction_pairwise_given) {
     up_mode = RNA_UP_MODE_2;
     if (header)
-      appendCmdlParameter(&cmdl_parameters, "--interaction_pairwise ", &cmdl_parameters_length);
+      vrna_strcat_printf(&cmdl_parameters, "--interaction_pairwise ");
   }
 
   /* set interaction mode 2 (first sequence interacts with all others) */
   if (args_info.interaction_first_given) {
     up_mode = RNA_UP_MODE_3;
     if (header)
-      appendCmdlParameter(&cmdl_parameters, "--interaction_first ", &cmdl_parameters_length);
+      vrna_strcat_printf(&cmdl_parameters, "--interaction_first ");
   }
 
   /* extend unpaired region 5' */
   if (args_info.extend5_given) {
     incr5 = args_info.extend5_arg;
-    if (header) {
-      sprintf(cmdl_tmp, "-5 %d ", incr5);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
-    }
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "-5 %d ", incr5);
   }
 
   /* extend unpaired region 3' */
   if (args_info.extend3_given) {
     incr3 = args_info.extend3_arg;
-    if (header) {
-      sprintf(cmdl_tmp, "-3 %d ", incr3);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
-    }
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "-3 %d ", incr3);
   }
 
   /* set contribution output */
   if (args_info.contributions_given) {
     strncpy(my_contrib, args_info.contributions_arg, 10);
-    if (header) {
-      sprintf(cmdl_tmp, "-c %s ", my_contrib);
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
-    }
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "-c %s ", my_contrib);
   }
 
   /* set length(s) of unpaired (unstructured) region(s) */
@@ -320,7 +294,7 @@ main(int  argc,
   unpaired_values = (int **)vrna_alloc(sizeof(int *) * (i + 1));
 
   if (header && args_info.ulength_given)
-    appendCmdlParameter(&cmdl_parameters, "-u ", &cmdl_parameters_length);
+    vrna_strcat_printf(&cmdl_parameters, "-u ");
 
   for (i = 0; i < args_info.ulength_given; i++) {
     unpaired_values[++ulength_num] = (int *)vrna_alloc(2 * sizeof(int));
@@ -349,11 +323,9 @@ main(int  argc,
 
     if (header) {
       if (i < args_info.ulength_given - 1)
-        sprintf(cmdl_tmp, "%s,", args_info.ulength_arg[i]);
+        vrna_strcat_printf(&cmdl_parameters, "%s,", args_info.ulength_arg[i]);
       else
-        sprintf(cmdl_tmp, "%s ", args_info.ulength_arg[i]);
-
-      appendCmdlParameter(&cmdl_parameters, cmdl_tmp, &cmdl_parameters_length);
+        vrna_strcat_printf(&cmdl_parameters, "%s ", args_info.ulength_arg[i]);
     }
   }
   if (i == 0) {
@@ -675,25 +647,19 @@ main(int  argc,
 
     /* first file name */
     if (fname1[0] != '\0') {
-      strcpy(up_out, fname1);
+      up_out = vrna_strdup_printf("%s", fname1);
       if (up_mode & (RNA_UP_MODE_2 | RNA_UP_MODE_3)) {
-        if (fname2[0] != '\0') {
-          strcat(up_out, "_");
-          strcat(up_out, fname2);
-        } else if (fname_target[0] != '\0') {
-          strcat(up_out, "_");
-          strcat(up_out, fname_target);
-        }
+        if (fname2[0] != '\0')
+          vrna_strcat_printf(&up_out, "_%s", fname2);
+        else if (fname_target[0] != '\0')
+          vrna_strcat_printf(&up_out, "_%s", fname_target);
       }
     } else {
-      strcpy(up_out, "RNA");
+      up_out = vrna_strdup_printf("RNA");
     }
 
-    /* now, up_out has a maximal length of 104, it should be safe to concatenate more chars */
-    if (!(up_mode & RNA_UP_MODE_1)) {
-      sprintf(temp_name, "_w%d", w);
-      strncat(up_out, temp_name, 10);
-    }
+    if (!(up_mode & RNA_UP_MODE_1))
+      vrna_strcat_printf(&up_out, "_w%d", w);
 
     structure = (char *)vrna_alloc(sizeof(char) * (MAX2(length_target, MAX2(length1, length2)) + 1));
 
@@ -756,20 +722,16 @@ main(int  argc,
             print_unstru(unstr_out, j);
           while (++j <= unpaired_values[i][1]);
         }
-        if (output && header) {
-          head = (char *)vrna_alloc(sizeof(char) * (length1 + strlen(cmdl_parameters) + 512));
-          sprintf(head, "# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, orig_s1);
-        }
+        if (output && header)
+          head = vrna_strdup_printf("# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, orig_s1);
 
         contrib1 = unstr_out;
         break;
       case RNA_UP_MODE_2:
         inter_out = pf_interact(s1, s2, unstr_out, NULL, w, cstruc_combined, incr3, incr5);
         print_interaction(inter_out, orig_s1, orig_s2, unstr_out, NULL, w, incr3, incr5);
-        if (output && header) {
-          head = (char *)vrna_alloc(sizeof(char) * (length1 + length2 + strlen(cmdl_parameters) + 1024));
-          sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, orig_s1, length2, fname2, orig_s2);
-        }
+        if (output && header)
+          head = vrna_strdup_printf("# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, orig_s1, length2, fname2, orig_s2);
 
         contrib1 = unstr_out;
         break;
@@ -811,10 +773,8 @@ main(int  argc,
           contrib2  = unstr_out;
         }
 
-        if (output && header) {
-          head = (char *)vrna_alloc(sizeof(char) * (length_target + length1 + strlen(cmdl_parameters) + 1024));
-          sprintf(head, "# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length_target, fname_target, orig_target, length1, fname1, orig_s1);
-        }
+        if (output && header)
+          head = vrna_strdup_printf("# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length_target, fname_target, orig_target, length1, fname1, orig_s1);
 
         break;
     }
@@ -823,13 +783,10 @@ main(int  argc,
     if (output) {
       /* how to best compose a reasonable filename */
       printf("RNAup output in file: ");
-      strcpy(name, up_out);
-      strcat(name, "_u");
       /* since we do not limit the amount of ulength values anymore we just put
        * the maximum length into the filename, the actual printed lengths
        * should be somewhere in the output itself */
-      sprintf(temp_name, "%d.out", unpaired_values[0][0]);
-      strcat(name, temp_name);
+      name = vrna_strdup_printf("%s_u%d.out", up_out, unpaired_values[0][0]);
       printf("%s\n", name);
 
       Up_plot(contrib1, contrib2, inter_out, name, unpaired_values, my_contrib, head, up_mode);
@@ -859,39 +816,26 @@ main(int  argc,
       free_interact(inter_out);
 
     /* free all unnecessary character arrays */
-    if (structure != NULL)
-      free(structure);
-
-    if (s1 != NULL)
-      free(s1);
-
-    if (s2 != NULL)
-      free(s2);
-
-    if (orig_s1)
-      free(orig_s1);
-
-    if (orig_s2)
-      free(orig_s2);
-
-    if (cstruc1 != NULL)
-      free(cstruc1);
-
-    if (cstruc2 != NULL)
-      free(cstruc2);
-
-    if (head != NULL)
-      free(head);
-
-    if (cstruc_combined != NULL)
-      free(cstruc_combined);
+    free(structure);
+    free(s1);
+    free(s2);
+    free(orig_s1);
+    free(orig_s2);
+    free(cstruc1);
+    free(cstruc2);
+    free(head);
+    free(cstruc_combined);
+    free(up_out);
+    free(name);
 
     structure = s1 = s2 = orig_s1 = orig_s2 = cstruc1 = cstruc2 = head = cstruc_combined = NULL;
+    up_out    = name = NULL;
 
     free_arrays(); /* for arrays for fold(...) */
   } while (1);
   free(cmdl_parameters);
-  return 0;
+
+  return EXIT_SUCCESS;
 }
 
 
@@ -979,30 +923,6 @@ adjustUnpairedValues(int ***unpaired_values)
   (*unpaired_values)[0][0] = real_count;
   /* sort the array again */
   qsort(&((*unpaired_values)[1]), (*unpaired_values)[0][0], sizeof(int **), compare_unpaired_values);
-}
-
-
-/**
-*** Append a parameter char string to a larger char string savely
-***
-*** \param param_dest         A pointer to the char array where the new parameter will be concatenated to
-*** \param parameter          The new parameter to be concatenated
-*** \param param_dest_length  A pointer to the size of the already allocated space of param_dest
-**/
-PRIVATE void
-appendCmdlParameter(char        **param_dest,
-                    const char  *parameter,
-                    int         *param_dest_length)
-{
-  int l = strlen(*param_dest) + strlen(parameter);
-
-  if (l + 1 > *param_dest_length) {
-    /* alloc more space */
-    *param_dest_length  = (int)(1.2 * l);
-    *param_dest         = vrna_realloc(*param_dest, *param_dest_length * sizeof(char));
-  }
-
-  strcat(*param_dest, parameter);
 }
 
 
