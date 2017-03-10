@@ -37,20 +37,20 @@
  */
 
 typedef struct {
-  int           bpp_print;  /* 1 if pairing probabilities should be written to file-handle, 0 if they are returned as plist */
+  int           bpp_print;  /* 1 if pairing probabilities should be written to file-handle, 0 if they are returned as vrna_plist_t */
   int           up_print;   /* 1 if unpaired probabilities should be written to file-handle, 0 if they are returned as array */
 
   FILE          *fp_pU;
   double        **pU;
   FLT_OR_DBL    bpp_cutoff;
   FILE          *fp_bpp;
-  plist         *bpp;
+  vrna_plist_t  *bpp;
   unsigned int  bpp_max_size;
   unsigned int  bpp_size;
-  plist         *stack_prob;
+  vrna_plist_t  *stack_prob;
   unsigned int  stack_prob_size;
   unsigned int  stack_prob_max_size;
-} putoutpU_data;
+} default_cb_data;
 
 /*
  #################################
@@ -100,9 +100,9 @@ PRIVATE void  printpbar(vrna_fold_compound_t  *vc,
 
 
 #if 0
-PRIVATE plist *get_deppp(vrna_fold_compound_t *vc,
-                         plist                *pl,
-                         int                  start);
+PRIVATE vrna_plist_t *get_deppp(vrna_fold_compound_t  *vc,
+                                vrna_plist_t          *pl,
+                                int                   start);
 
 
 #endif
@@ -176,6 +176,132 @@ backward_compat_callback(FLT_OR_DBL   *pr,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
+PUBLIC vrna_plist_t *
+vrna_pfl_fold(const char  *sequence,
+              int         window_size,
+              int         max_bp_span,
+              float       cutoff)
+{
+  default_cb_data data;
+
+  data.fp_pU                = NULL;
+  data.pU                   = NULL;
+  data.bpp_cutoff           = (FLT_OR_DBL)cutoff;
+  data.fp_bpp               = NULL;
+  data.bpp                  = NULL;
+  data.bpp_max_size         = 0;
+  data.bpp_size             = 0;
+  data.stack_prob           = NULL;
+  data.stack_prob_max_size  = 0;
+  data.stack_prob_size      = 0;
+  data.bpp_print            = 0;
+  data.up_print             = 0;
+
+  vrna_pfl_fold_cb(sequence, window_size, max_bp_span, &backward_compat_callback, (void *)&data);
+
+  /* resize pair probability list to actual size */
+  data.bpp =
+    (vrna_plist_t *)vrna_realloc(data.bpp, sizeof(vrna_plist_t) * (data.bpp_size + 1));
+  data.bpp[data.bpp_size].i = 0;
+  data.bpp[data.bpp_size].j = 0;
+  data.bpp[data.bpp_size].p = 0;
+
+  return data.bpp;
+}
+
+
+PUBLIC void
+vrna_pfl_fold_cb(const char                 *sequence,
+                 int                        window_size,
+                 int                        max_bp_span,
+                 vrna_probs_window_callback *cb,
+                 void                       *data)
+{
+  unsigned int          options;
+  vrna_fold_compound_t  *vc;
+  vrna_md_t             md;
+
+  vrna_md_set_default(&md);       /* get default parameters */
+
+  md.compute_bpp  = 1;            /* turn on base pair probability computations */
+  md.window_size  = window_size;  /* set size of sliding window */
+  md.max_bp_span  = max_bp_span;  /* set maximum base pair span */
+
+  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
+
+  options = VRNA_PROBS_WINDOW_BPP; /* always compute base pair probabilities */
+
+  vrna_probs_window(vc, 0, cb, data, options);
+
+  vrna_fold_compound_free(vc);
+}
+
+
+PUBLIC double **
+vrna_pfl_fold_up(const char *sequence,
+                 int        ulength,
+                 int        window_size,
+                 int        max_bp_span)
+{
+  unsigned int    i;
+  double          **pU;
+  default_cb_data data;
+
+  pU = NULL;
+
+  if (sequence) {
+    i   = strlen(sequence);
+    pU  = (double **)vrna_alloc(sizeof(double *) * (i + 2));
+
+    data.fp_pU                = NULL;
+    data.pU                   = pU;
+    data.bpp_cutoff           = 0.;
+    data.fp_bpp               = NULL;
+    data.bpp                  = NULL;
+    data.bpp_max_size         = 0;
+    data.bpp_size             = 0;
+    data.stack_prob           = NULL;
+    data.stack_prob_max_size  = 0;
+    data.stack_prob_size      = 0;
+    data.bpp_print            = 0;
+    data.up_print             = 0;
+
+    vrna_pfl_fold_up_cb(sequence, ulength, window_size, max_bp_span, &backward_compat_callback,
+                        (void *)&data);
+  }
+
+  return pU;
+}
+
+
+PUBLIC void
+vrna_pfl_fold_up_cb(const char                  *sequence,
+                    int                         ulength,
+                    int                         window_size,
+                    int                         max_bp_span,
+                    vrna_probs_window_callback  *cb,
+                    void                        *data)
+{
+  unsigned int          options;
+  vrna_fold_compound_t  *vc;
+  vrna_md_t             md;
+
+  vrna_md_set_default(&md);       /* get default parameters */
+
+  md.compute_bpp  = 1;            /* turn on base pair probability computations */
+  md.window_size  = window_size;  /* set size of sliding window */
+  md.max_bp_span  = max_bp_span;  /* set maximum base pair span */
+
+  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
+
+  options = VRNA_PROBS_WINDOW_UP; /* compute unpaired probabilties */
+
+  vrna_probs_window(vc, ulength, cb, data, options);
+
+  vrna_fold_compound_free(vc);
+}
+
+
 PUBLIC void
 vrna_probs_window(vrna_fold_compound_t        *vc,
                   int                         ulength,
@@ -186,7 +312,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   int               n, m, i, j, k, l, u, u1, type, type_2, tt, ov, noGUclosure;
   double            max_real;
   FLT_OR_DBL        temp, Qmax, prm_MLb, prmt, prmt1, qbt1, *tmp, expMLclosing;
-  FLT_OR_DBL        *qqm = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
+  FLT_OR_DBL        *qqm  = NULL, *qqm1 = NULL, *qq = NULL, *qq1 = NULL;
   FLT_OR_DBL        *prml = NULL, *prm_l = NULL, *prm_l1 = NULL;
   FLT_OR_DBL        *expMLbase, *scale;
 
@@ -252,9 +378,9 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
    */
 
   /* allocate memory and initialize unpaired probabilities */
-  if ((options & VRNA_PF_WINDOW_UP) && (ulength > 0)) {
+  if ((options & VRNA_PROBS_WINDOW_UP) && (ulength > 0)) {
     pU = (double **)vrna_alloc((n + 1) * sizeof(double *));
-    if (options & VRNA_PF_WINDOW_UP_SPLIT) {
+    if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
       pUO = (double **)vrna_alloc((n + 1) * sizeof(double *));
       pUI = (double **)vrna_alloc((n + 1) * sizeof(double *));
       pUM = (double **)vrna_alloc((n + 1) * sizeof(double *));
@@ -277,17 +403,17 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
         for (j = 0; j <= maxl; j++)
           pU[i][j] = 1.;
 
-        cb(pU[i], maxl, i, ulength, VRNA_PF_WINDOW_UP | VRNA_ANY_LOOP, data);
+        cb(pU[i], maxl, i, ulength, VRNA_PROBS_WINDOW_UP | VRNA_ANY_LOOP, data);
 
-        if (options & VRNA_PF_WINDOW_UP_SPLIT) {
-          cb(pU[i], maxl, i, ulength, VRNA_PF_WINDOW_UP | VRNA_EXT_LOOP, data);
+        if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
+          cb(pU[i], maxl, i, ulength, VRNA_PROBS_WINDOW_UP | VRNA_EXT_LOOP, data);
           /* reset all other loop types to 0% probability */
           for (j = 0; j <= maxl; j++)
             pU[i][j] = 0.;
 
-          cb(pU[i], maxl, i, ulength, VRNA_PF_WINDOW_UP | VRNA_HP_LOOP, data);
-          cb(pU[i], maxl, i, ulength, VRNA_PF_WINDOW_UP | VRNA_INT_LOOP, data);
-          cb(pU[i], maxl, i, ulength, VRNA_PF_WINDOW_UP | VRNA_MB_LOOP, data);
+          cb(pU[i], maxl, i, ulength, VRNA_PROBS_WINDOW_UP | VRNA_HP_LOOP, data);
+          cb(pU[i], maxl, i, ulength, VRNA_PROBS_WINDOW_UP | VRNA_INT_LOOP, data);
+          cb(pU[i], maxl, i, ulength, VRNA_PROBS_WINDOW_UP | VRNA_MB_LOOP, data);
           free(pUH[i]);
           free(pUI[i]);
           free(pUO[i]);
@@ -450,7 +576,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
      * just as a general service, I save here the free energy of the windows
      * no output is generated, however,...
      */
-    if ((j >= winSize) && (j <= n) && (options & VRNA_PF_WINDOW_UP)) {
+    if ((j >= winSize) && (j <= n) && (options & VRNA_PROBS_WINDOW_UP)) {
       FLT_OR_DBL Fwindow = 0.;
       Fwindow = (FLT_OR_DBL)(-log(q[j - winSize + 1][j]) - winSize * log(pf_params->pf_scale)) *
                 pf_params->kT / 1000.0;
@@ -515,7 +641,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
           }
         }
 
-        if (options & VRNA_PF_WINDOW_UP) {
+        if (options & VRNA_PROBS_WINDOW_UP) {
           /* NOT IF WITHIN INNER LOOP */
           for (i = MAX2(MAX2(l - winSize + 1, k - MAXLOOP - 1), 1); i <= k - 1; i++) {
             for (m = l + 1; m <= MIN2(MIN2(l + MAXLOOP - k + i + 2, i + winSize - 1), n); m++) {
@@ -576,7 +702,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
 
           temp = prm_MLb;
 
-          if (options & VRNA_PF_WINDOW_UP) {
+          if (options & VRNA_PROBS_WINDOW_UP) {
             double dang;
             /* coefficient for computations of unpairedarrays */
             dang = qb[k][l] * exp_E_MLstem(tt, S1[k - 1], S1[l + 1], pf_params) * scale[2];
@@ -614,32 +740,32 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
       prm_l   = tmp;
 
       /* end for (l=..)   */
-      if ((options & VRNA_PF_WINDOW_UP) && (k - MAXLOOP - 1 > 0)) {
+      if ((options & VRNA_PROBS_WINDOW_UP) && (k - MAXLOOP - 1 > 0)) {
         int start     = k - MAXLOOP - 1;
         int pU_length = MIN2(ulength, start);
         compute_pU(vc, start, ulength, pU, pUO, pUH, pUI, pUM, options);
-        cb(pU[start], pU_length, start, ulength, VRNA_PF_WINDOW_UP | VRNA_ANY_LOOP, data);
-        if (options & VRNA_PF_WINDOW_UP_SPLIT) {
-          cb(pUO[start], pU_length, start, ulength, VRNA_PF_WINDOW_UP | VRNA_EXT_LOOP, data);
-          cb(pUH[start], pU_length, start, ulength, VRNA_PF_WINDOW_UP | VRNA_HP_LOOP, data);
-          cb(pUI[start], pU_length, start, ulength, VRNA_PF_WINDOW_UP | VRNA_INT_LOOP, data);
-          cb(pUM[start], pU_length, start, ulength, VRNA_PF_WINDOW_UP | VRNA_MB_LOOP, data);
+        cb(pU[start], pU_length, start, ulength, VRNA_PROBS_WINDOW_UP | VRNA_ANY_LOOP, data);
+        if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
+          cb(pUO[start], pU_length, start, ulength, VRNA_PROBS_WINDOW_UP | VRNA_EXT_LOOP, data);
+          cb(pUH[start], pU_length, start, ulength, VRNA_PROBS_WINDOW_UP | VRNA_HP_LOOP, data);
+          cb(pUI[start], pU_length, start, ulength, VRNA_PROBS_WINDOW_UP | VRNA_INT_LOOP, data);
+          cb(pUM[start], pU_length, start, ulength, VRNA_PROBS_WINDOW_UP | VRNA_MB_LOOP, data);
         }
       }
 
       if (j - (2 * winSize + MAXLOOP + 1) > 0) {
         int start = j - (2 * winSize + MAXLOOP + 1);
         printpbar(vc, start);
-        if (options & VRNA_PF_WINDOW_BPP)
-          cb(pR[start], MIN2(start + winSize, n), start, winSize, VRNA_PF_WINDOW_BPP, data);
+        if (options & VRNA_PROBS_WINDOW_BPP)
+          cb(pR[start], MIN2(start + winSize, n), start, winSize, VRNA_PROBS_WINDOW_BPP, data);
 
-        if (options & VRNA_PF_WINDOW_STACKP) {
+        if (options & VRNA_PROBS_WINDOW_STACKP) {
           int start = j - (2 * winSize - MAXLOOP);
           if (start > 1) {
             FLT_OR_DBL *stack_probs = compute_stack_probabilities(vc, start);
             stack_probs -= start + 1;
             cb(stack_probs, MIN2(n - start + turn,
-                                 pairSize), start, winSize, VRNA_PF_WINDOW_STACKP, data);
+                                 pairSize), start, winSize, VRNA_PROBS_WINDOW_STACKP, data);
             stack_probs += start + 1;
             free(stack_probs);
           }
@@ -651,32 +777,32 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   }/* end for j */
 
   /* finish output and free */
-  if (options & VRNA_PF_WINDOW_UP) {
+  if (options & VRNA_PROBS_WINDOW_UP) {
     for (j = MAX2(1, n - MAXLOOP); j <= n; j++) {
       /* if (pUoutput) pU[j]=(double *)vrna_alloc((ulength+2)*sizeof(double)); */
       compute_pU(vc, j, ulength, pU, pUO, pUH, pUI, pUM, options);
-      cb(pU[j], ulength, j, ulength, VRNA_PF_WINDOW_UP | VRNA_ANY_LOOP, data);
-      if (options & VRNA_PF_WINDOW_UP_SPLIT) {
-        cb(pUO[j], ulength, j, ulength, VRNA_PF_WINDOW_UP | VRNA_EXT_LOOP, data);
-        cb(pUH[j], ulength, j, ulength, VRNA_PF_WINDOW_UP | VRNA_HP_LOOP, data);
-        cb(pUI[j], ulength, j, ulength, VRNA_PF_WINDOW_UP | VRNA_INT_LOOP, data);
-        cb(pUM[j], ulength, j, ulength, VRNA_PF_WINDOW_UP | VRNA_MB_LOOP, data);
+      cb(pU[j], ulength, j, ulength, VRNA_PROBS_WINDOW_UP | VRNA_ANY_LOOP, data);
+      if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
+        cb(pUO[j], ulength, j, ulength, VRNA_PROBS_WINDOW_UP | VRNA_EXT_LOOP, data);
+        cb(pUH[j], ulength, j, ulength, VRNA_PROBS_WINDOW_UP | VRNA_HP_LOOP, data);
+        cb(pUI[j], ulength, j, ulength, VRNA_PROBS_WINDOW_UP | VRNA_INT_LOOP, data);
+        cb(pUM[j], ulength, j, ulength, VRNA_PROBS_WINDOW_UP | VRNA_MB_LOOP, data);
       }
     }
   }
 
   for (j = MAX2(n - winSize - MAXLOOP, 1); j <= n; j++) {
     printpbar(vc, j);
-    if (options & VRNA_PF_WINDOW_BPP)
-      cb(pR[j], MIN2(j + winSize, n), j, winSize, VRNA_PF_WINDOW_BPP, data);
+    if (options & VRNA_PROBS_WINDOW_BPP)
+      cb(pR[j], MIN2(j + winSize, n), j, winSize, VRNA_PROBS_WINDOW_BPP, data);
 
-    if ((options & VRNA_PF_WINDOW_STACKP) && j < n) {
+    if ((options & VRNA_PROBS_WINDOW_STACKP) && j < n) {
       int start = j;
       if (start > 1) {
         FLT_OR_DBL *stack_probs = compute_stack_probabilities(vc, start);
         stack_probs -= start + 1;
         cb(stack_probs, MIN2(n - start + turn,
-                             pairSize), start, winSize, VRNA_PF_WINDOW_STACKP, data);
+                             pairSize), start, winSize, VRNA_PROBS_WINDOW_STACKP, data);
         stack_probs += start + 1;
         free(stack_probs);
       }
@@ -699,11 +825,11 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   free(prm_l1);
   free(prml);
 
-  if ((options & VRNA_PF_WINDOW_UP) && (ulength > 0)) {
+  if ((options & VRNA_PROBS_WINDOW_UP) && (ulength > 0)) {
     for (i = 1; i <= n; i++)
       free(pU[i]);
 
-    if (options & VRNA_PF_WINDOW_UP_SPLIT) {
+    if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
       for (i = 1; i <= n; i++) {
         free(pUH[i]);
         free(pUI[i]);
@@ -771,7 +897,7 @@ FreeOldArrays(vrna_fold_compound_t  *vc,
   free(q[i] + i);
   free(qb[i] + i);
   free(qm[i] + i);
-  if (options & VRNA_PF_WINDOW_UP) {
+  if (options & VRNA_PROBS_WINDOW_UP) {
     qm2 = mx->qm2_local;
     QI5 = mx->QI5;
     qmb = mx->qmb;
@@ -814,7 +940,7 @@ GetNewArrays(vrna_fold_compound_t *vc,
   qb[j] -= j;
   qm[j] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
   qm[j] -= j;
-  if (options & VRNA_PF_WINDOW_UP) {
+  if (options & VRNA_PROBS_WINDOW_UP) {
     qm2     = mx->qm2_local;
     QI5     = mx->QI5;
     qmb     = mx->qmb;
@@ -860,15 +986,15 @@ GetPtype(vrna_fold_compound_t *vc,
 
 
 #if 0
-PRIVATE plist *
+PRIVATE vrna_plist_t *
 get_deppp(vrna_fold_compound_t  *vc,
-          plist                 *pl,
+          vrna_plist_t          *pl,
           int                   start)
 {
   /* compute dependent pair probabilities */
   int               i, j, count = 0;
   double            tmp;
-  plist             *temp;
+  vrna_plist_t      *temp;
   char              **ptype;
   short             *S1;
   FLT_OR_DBL        **qb, *scale;
@@ -886,7 +1012,7 @@ get_deppp(vrna_fold_compound_t  *vc,
   pairsize  = pf_params->model_details.max_bp_span;
   length    = vc->length;
 
-  temp = (plist *)vrna_alloc(pairsize * sizeof(plist)); /* holds temporary deppp */
+  temp = (vrna_plist_t *)vrna_alloc(pairsize * sizeof(vrna_plist_t)); /* holds temporary deppp */
   for (j = start + turn; j < MIN2(start + pairsize, length); j++) {
     if ((qb[start][j] * qb[start - 1][(j + 1)]) > 10e-200) {
       int type    = ptype[start - 1][j + 1];
@@ -906,8 +1032,8 @@ get_deppp(vrna_fold_compound_t  *vc,
     }
   }
   /* write it to list of deppps */
-  for (i = 0; pl[i].i != 0; i++) ;
-  pl = (plist *)vrna_realloc(pl, (i + count + 1) * sizeof(plist));
+  for (i = 0; pl[i].i != 0; i++);
+  pl = (vrna_plist_t *)vrna_realloc(pl, (i + count + 1) * sizeof(vrna_plist_t));
   for (j = 0; j < count; j++) {
     pl[i + j].i = temp[j].i;
     pl[i + j].j = temp[j].j;
@@ -1154,7 +1280,7 @@ compute_pU(vrna_fold_compound_t *vc,
   for (len = 1; len < MIN2(MAX2(ulength, MAXLOOP), n - k); len++)
     pU[k + len][len] += pU[k + len][len + 1] + QBE[len];
 
-  if (options & VRNA_PF_WINDOW_UP_SPLIT) {
+  if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
     for (len = 1; len < MIN2(MAX2(ulength, MAXLOOP), n - k); len++) {
       pUH[k + len][len] += pUH[k + len][len + 1] + QBH[len];
       pUM[k + len][len] += pUM[k + len][len + 1] + QBM[len];
@@ -1194,7 +1320,7 @@ compute_pU(vrna_fold_compound_t *vc,
     pU[k][startu] += temp;
     pU[k][startu] /= (rightmost - leftmost + 1);
 
-    if (options & VRNA_PF_WINDOW_UP_SPLIT) {
+    if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
       pUO[k][startu] += temp;
 
       /* Do we want to make a distinction between those? */
@@ -1219,8 +1345,8 @@ print_bpp_callback(FLT_OR_DBL *pr,
                    void       *data)
 {
   int         j;
-  FILE        *fp     = ((putoutpU_data *)data)->fp_bpp;
-  FLT_OR_DBL  cutoff  = ((putoutpU_data *)data)->bpp_cutoff;
+  FILE        *fp     = ((default_cb_data *)data)->fp_bpp;
+  FLT_OR_DBL  cutoff  = ((default_cb_data *)data)->bpp_cutoff;
 
   for (j = k + 1; j <= size; j++) {
     if (pr[j] < cutoff)
@@ -1238,25 +1364,25 @@ store_bpp_callback(FLT_OR_DBL *pr,
                    void       *data)
 {
   int           j;
-  plist         *pl         = ((putoutpU_data *)data)->bpp;
-  unsigned int  pl_size     = ((putoutpU_data *)data)->bpp_size;
-  unsigned int  pl_max_size = ((putoutpU_data *)data)->bpp_max_size;
-  FLT_OR_DBL    cutoff      = ((putoutpU_data *)data)->bpp_cutoff;
+  vrna_plist_t  *pl         = ((default_cb_data *)data)->bpp;
+  unsigned int  pl_size     = ((default_cb_data *)data)->bpp_size;
+  unsigned int  pl_max_size = ((default_cb_data *)data)->bpp_max_size;
+  FLT_OR_DBL    cutoff      = ((default_cb_data *)data)->bpp_cutoff;
 
   if (pl_max_size == 0) {
     /* init if necessary */
     pl_max_size = 100;
-    pl          = (plist *)vrna_realloc(pl, sizeof(plist) * pl_max_size);
+    pl          = (vrna_plist_t *)vrna_realloc(pl, sizeof(vrna_plist_t) * pl_max_size);
   }
 
   for (j = k + 1; j <= size; j++) {
     if (pr[j] < cutoff)
       continue;
 
-    /* resize plist memory if necessary */
+    /* resize vrna_plist_t memory if necessary */
     if (pl_size >= pl_max_size - 1) {
       pl_max_size *= 1.5;
-      pl          = (plist *)vrna_realloc(pl, sizeof(plist) * pl_max_size);
+      pl          = (vrna_plist_t *)vrna_realloc(pl, sizeof(vrna_plist_t) * pl_max_size);
     }
 
     pl[pl_size].i   = k;
@@ -1264,15 +1390,15 @@ store_bpp_callback(FLT_OR_DBL *pr,
     pl[pl_size++].p = pr[j];
   }
 
-  /* mark end of plist */
+  /* mark end of vrna_plist_t */
   pl[pl_size].i = 0;
   pl[pl_size].j = 0;
   pl[pl_size].p = 0.;
 
   /* update data */
-  ((putoutpU_data *)data)->bpp          = pl;
-  ((putoutpU_data *)data)->bpp_size     = pl_size;
-  ((putoutpU_data *)data)->bpp_max_size = pl_max_size;
+  ((default_cb_data *)data)->bpp          = pl;
+  ((default_cb_data *)data)->bpp_size     = pl_size;
+  ((default_cb_data *)data)->bpp_max_size = pl_max_size;
 }
 
 
@@ -1283,25 +1409,25 @@ store_stack_prob_callback(FLT_OR_DBL  *pr,
                           void        *data)
 {
   int           j;
-  plist         *pl         = ((putoutpU_data *)data)->stack_prob;
-  unsigned int  pl_size     = ((putoutpU_data *)data)->stack_prob_size;
-  unsigned int  pl_max_size = ((putoutpU_data *)data)->stack_prob_max_size;
-  FLT_OR_DBL    cutoff      = ((putoutpU_data *)data)->bpp_cutoff;
+  vrna_plist_t  *pl         = ((default_cb_data *)data)->stack_prob;
+  unsigned int  pl_size     = ((default_cb_data *)data)->stack_prob_size;
+  unsigned int  pl_max_size = ((default_cb_data *)data)->stack_prob_max_size;
+  FLT_OR_DBL    cutoff      = ((default_cb_data *)data)->bpp_cutoff;
 
   if (pl_max_size == 0) {
     /* init if necessary */
     pl_max_size = 100;
-    pl          = (plist *)vrna_realloc(pl, sizeof(plist) * pl_max_size);
+    pl          = (vrna_plist_t *)vrna_realloc(pl, sizeof(vrna_plist_t) * pl_max_size);
   }
 
   for (j = k + 1; j <= size; j++) {
     if (pr[j] < cutoff)
       continue;
 
-    /* resize plist memory if necessary */
+    /* resize vrna_plist_t memory if necessary */
     if (pl_size >= pl_max_size - 1) {
       pl_max_size *= 1.5;
-      pl          = (plist *)vrna_realloc(pl, sizeof(plist) * pl_max_size);
+      pl          = (vrna_plist_t *)vrna_realloc(pl, sizeof(vrna_plist_t) * pl_max_size);
     }
 
     pl[pl_size].i   = k;
@@ -1309,15 +1435,15 @@ store_stack_prob_callback(FLT_OR_DBL  *pr,
     pl[pl_size++].p = pr[j];
   }
 
-  /* mark end of plist */
+  /* mark end of vrna_plist_t */
   pl[pl_size].i = 0;
   pl[pl_size].j = 0;
   pl[pl_size].p = 0.;
 
   /* update data */
-  ((putoutpU_data *)data)->stack_prob           = pl;
-  ((putoutpU_data *)data)->stack_prob_size      = pl_size;
-  ((putoutpU_data *)data)->stack_prob_max_size  = pl_max_size;
+  ((default_cb_data *)data)->stack_prob           = pl;
+  ((default_cb_data *)data)->stack_prob_size      = pl_size;
+  ((default_cb_data *)data)->stack_prob_max_size  = pl_max_size;
 }
 
 
@@ -1329,9 +1455,9 @@ print_pU_callback(double        *pU,
                   unsigned int  type,
                   void          *data)
 {
-  if (type & VRNA_PF_WINDOW_UP) {
+  if (type & VRNA_PROBS_WINDOW_UP) {
     int   i;
-    FILE  *fp = ((putoutpU_data *)data)->fp_pU;
+    FILE  *fp = ((default_cb_data *)data)->fp_pU;
 
     fprintf(fp, "%d\t", k);
 
@@ -1364,9 +1490,9 @@ store_pU_callback(double        *pU,
                   void          *data)
 {
   int     i;
-  double  **pU_storage = ((putoutpU_data *)data)->pU;
+  double  **pU_storage = ((default_cb_data *)data)->pU;
 
-  if ((type & VRNA_PF_WINDOW_UP) && ((type & VRNA_ANY_LOOP) == VRNA_ANY_LOOP)) {
+  if ((type & VRNA_PROBS_WINDOW_UP) && ((type & VRNA_ANY_LOOP) == VRNA_ANY_LOOP)) {
     pU_storage[k] = (double *)vrna_alloc(sizeof(double) * (ulength + 1));
     for (i = 1; i <= size; i++)
       pU_storage[k][i] = pU[i];
@@ -1382,14 +1508,14 @@ backward_compat_callback(FLT_OR_DBL   *pr,
                          unsigned int type,
                          void         *data)
 {
-  putoutpU_data *d = (putoutpU_data *)data;
+  default_cb_data *d = (default_cb_data *)data;
 
-  if (type & VRNA_PF_WINDOW_BPP) {
+  if (type & VRNA_PROBS_WINDOW_BPP) {
     if (d->bpp_print)
       print_bpp_callback(pr, pr_size, i, data);
     else
       store_bpp_callback(pr, pr_size, i, data);
-  } else if (type & VRNA_PF_WINDOW_UP) {
+  } else if (type & VRNA_PROBS_WINDOW_UP) {
     if (d->up_print)
       print_pU_callback(pr, pr_size, i, max, type, data);
     else
@@ -1402,13 +1528,13 @@ backward_compat_callback(FLT_OR_DBL   *pr,
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-PRIVATE plist *
+PRIVATE vrna_plist_t *
 wrap_pf_foldLP(char             *sequence,
                int              winSize,
                int              pairSize,
                float            cutoffb,
                double           **pU,
-               plist            **dpp2,
+               vrna_plist_t     **dpp2,
                FILE             *pUfp,
                FILE             *spup,
                vrna_exp_param_t *parameters)
@@ -1416,6 +1542,7 @@ wrap_pf_foldLP(char             *sequence,
   int                   ulength;
   vrna_fold_compound_t  *vc;
   vrna_md_t             md;
+  default_cb_data       data;
 
   vc      = NULL;
   ulength = 0;
@@ -1447,8 +1574,6 @@ wrap_pf_foldLP(char             *sequence,
   if (pU)
     ulength = (int)pU[0][0] + 0.49;
 
-  putoutpU_data data;
-
   data.fp_pU                = pUfp;
   data.pU                   = pU;
   data.bpp_cutoff           = (FLT_OR_DBL)cutoffb;
@@ -1463,20 +1588,20 @@ wrap_pf_foldLP(char             *sequence,
   data.bpp_print  = (spup) ? 1 : 0;
   data.up_print   = (pUfp) ? 1 : 0;
 
-  unsigned int options = VRNA_PF_WINDOW_BPP; /* always compute base pair probabilities */
+  unsigned int options = VRNA_PROBS_WINDOW_BPP; /* always compute base pair probabilities */
 
   if (dpp2 && (*dpp2))
-    options |= VRNA_PF_WINDOW_STACKP;
+    options |= VRNA_PROBS_WINDOW_STACKP;
 
   if (ulength > 0)
-    options |= VRNA_PF_WINDOW_UP;
+    options |= VRNA_PROBS_WINDOW_UP;
 
   vrna_probs_window(vc, ulength, &backward_compat_callback, (void *)&data, options);
 
   if (dpp2 && (*dpp2)) {
-    data.stack_prob = (plist *)vrna_realloc(data.stack_prob,
-                                            sizeof(plist) *
-                                            (data.stack_prob_size + 1));
+    data.stack_prob = (vrna_plist_t *)vrna_realloc(data.stack_prob,
+                                                   sizeof(vrna_plist_t) *
+                                                   (data.stack_prob_size + 1));
     data.stack_prob[data.stack_prob_size].i = 0;
     data.stack_prob[data.stack_prob_size].j = 0;
     data.stack_prob[data.stack_prob_size].p = 0;
@@ -1486,7 +1611,7 @@ wrap_pf_foldLP(char             *sequence,
 
   if (!spup) {
     data.bpp =
-      (plist *)vrna_realloc(data.bpp, sizeof(plist) * (data.bpp_size + 1));
+      (vrna_plist_t *)vrna_realloc(data.bpp, sizeof(vrna_plist_t) * (data.bpp_size + 1));
     data.bpp[data.bpp_size].i = 0;
     data.bpp[data.bpp_size].j = 0;
     data.bpp[data.bpp_size].p = 0;
@@ -1537,27 +1662,27 @@ update_pf_paramsLP_par(int              length,
 }
 
 
-PUBLIC plist *
-pfl_fold(char   *sequence,
-         int    winSize,
-         int    pairSize,
-         float  cutoffb,
-         double **pU,
-         plist  **dpp2,
-         FILE   *pUfp,
-         FILE   *spup)
+PUBLIC vrna_plist_t *
+pfl_fold(char         *sequence,
+         int          winSize,
+         int          pairSize,
+         float        cutoffb,
+         double       **pU,
+         vrna_plist_t **dpp2,
+         FILE         *pUfp,
+         FILE         *spup)
 {
   return wrap_pf_foldLP(sequence, winSize, pairSize, cutoffb, pU, dpp2, pUfp, spup, NULL);
 }
 
 
-PUBLIC plist *
+PUBLIC vrna_plist_t *
 pfl_fold_par(char             *sequence,
              int              winSize,
              int              pairSize,
              float            cutoffb,
              double           **pU,
-             plist            **dpp2,
+             vrna_plist_t     **dpp2,
              FILE             *pUfp,
              FILE             *spup,
              vrna_exp_param_t *parameters)
