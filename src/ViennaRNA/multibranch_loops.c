@@ -1162,13 +1162,14 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t  *vc,
         energy += E_MLstem(type[s], -1, -1, P);
     e = MIN2(e, energy);
 
-    if (md->gquad) {
-      decomp  = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
-      e       = MIN2(e, decomp);
-    }
-
     free(type);
   }
+
+  if (md->gquad) {
+    decomp  = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
+    e       = MIN2(e, decomp);
+  }
+
 
 
   /* modular decomposition -------------------------------*/
