@@ -526,7 +526,13 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
           }
           break;
         case VRNA_FC_TYPE_COMPARATIVE:
-          vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq, vc->params);
+          switch (mx_type) {
+            case VRNA_MX_WINDOW:                              /* do nothing, since we handle memory somewhere else */
+              break;
+            default:
+              vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq, vc->params);
+              break;
+          }
           break;
         default:                      /* do nothing */
           break;
