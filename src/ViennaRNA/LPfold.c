@@ -1605,7 +1605,7 @@ wrap_pf_foldLP(char             *sequence,
     data.stack_prob[data.stack_prob_size].i = 0;
     data.stack_prob[data.stack_prob_size].j = 0;
     data.stack_prob[data.stack_prob_size].p = 0;
-    free(dpp2); /* free already occupied memory */
+    free(*dpp2); /* free already occupied memory */
     *dpp2 = data.stack_prob;
   }
 
