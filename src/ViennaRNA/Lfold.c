@@ -553,16 +553,16 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
             /* continue unless stack */
 
-            energy  = E_IntLoop(p - i - 1,
-                                j - q - 1,
-                                type,
-                                type_2,
-                                S1[i + 1],
-                                S1[j - 1],
-                                S1[p - 1],
-                                S1[q + 1],
-                                P);
-            new_c   = MIN2(new_c, energy + c[p][q - p]);
+            energy = E_IntLoop(p - i - 1,
+                               j - q - 1,
+                               type,
+                               type_2,
+                               S1[i + 1],
+                               S1[j - 1],
+                               S1[p - 1],
+                               S1[q + 1],
+                               P);
+            new_c = MIN2(new_c, energy + c[p][q - p]);
             if ((p == i + 1) && (j == q + 1))
               stackEnergy = energy;                       /* remember stack energy */
           } /* end q-loop */
@@ -588,14 +588,14 @@ fill_arrays(vrna_fold_compound_t            *vc,
                                                                        -1,
                                                                        S1[i + 1],
                                                                        P) + P->MLbase);
-              decomp  = MIN2(decomp, DMLi2[j - 2 - (i + 2)] + E_MLstem(tt,
-                                                                       S1[j - 1],
-                                                                       S1[i + 1],
-                                                                       P) + 2 * P->MLbase);
-              decomp  = MIN2(decomp, DMLi1[j - 2 - (i + 1)] + E_MLstem(tt,
-                                                                       S1[j - 1],
-                                                                       -1,
-                                                                       P) + P->MLbase);
+              decomp = MIN2(decomp, DMLi2[j - 2 - (i + 2)] + E_MLstem(tt,
+                                                                      S1[j - 1],
+                                                                      S1[i + 1],
+                                                                      P) + 2 * P->MLbase);
+              decomp = MIN2(decomp, DMLi1[j - 2 - (i + 1)] + E_MLstem(tt,
+                                                                      S1[j - 1],
+                                                                      -1,
+                                                                      P) + P->MLbase);
               break;
           }
           new_c = MIN2(new_c, decomp + P->MLclosing);
@@ -683,11 +683,12 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
           /* i+1,j-1 */
           tt = ptype[i + 1][j - 1 - i - 1];
-          if (tt)
+          if (tt) {
             new_fML = MIN2(new_fML, c[i + 1][j - 1 - i - 1] + E_MLstem(tt,
                                                                        S1[i],
                                                                        S1[j],
                                                                        P) + 2 * P->MLbase);
+          }
 
           break;
       }
@@ -771,11 +772,12 @@ fill_arrays(vrna_fold_compound_t            *vc,
               if (ggg[i][j - i] != INF)
                 f3[i] = MIN2(f3[i], f3[j + 1] + ggg[i][j - i]);
 
-            if (type)
+            if (type) {
               f3[i] =
                 MIN2(f3[i],
                      f3[j + 1] + c[i][j - i] +
                      E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, S1[j + 1], P));
+            }
           }
           if (length <= i + maxdist) {
             j = length;
@@ -1102,13 +1104,13 @@ fill_arrays(vrna_fold_compound_t            *vc,
               double  min_sd = minimal_sd(AUGC[0], AUGC[1], AUGC[2], AUGC[3], AUGC[4]);
               difference = (fij - f3[pairpartner + 1]) / 100. - average_free_energy;
               if (difference - (min_z * min_sd) <= 0.0001) {
-                sd_free_energy  = sd_regression(AUGC[0],
-                                                AUGC[1],
-                                                AUGC[2],
-                                                AUGC[3],
-                                                AUGC[4],
-                                                sd_model);
-                my_z            = difference / sd_free_energy;
+                sd_free_energy = sd_regression(AUGC[0],
+                                               AUGC[1],
+                                               AUGC[2],
+                                               AUGC[3],
+                                               AUGC[4],
+                                               sd_model);
+                my_z = difference / sd_free_energy;
                 if (my_z <= min_z) {
                   ss = backtrack(vc, lind, pairpartner + 1);
                   cb_z(lind, lind + strlen(ss) - 1, ss, (f3[lind] - f3[lind + strlen(
@@ -1855,9 +1857,9 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
         int new_c = 0, stackEnergy = INF;
         /* hairpin ----------------------------------------------*/
         for (new_c = s = 0; s < n_seq; s++) {
-          if ((a2s[s][j - 1] - a2s[s][i]) < 3)
+          if ((a2s[s][j - 1] - a2s[s][i]) < 3) {
             new_c += 600;
-          else
+          } else {
             new_c +=
               E_Hairpin(a2s[s][j - 1] - a2s[s][i],
                         type[s],
@@ -1865,6 +1867,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
                         S5[s][j],
                         Ss[s] + (a2s[s][i - 1]),
                         P);
+          }
         }
         /*--------------------------------------------------------
          *  check for elementary structures involving more than one
@@ -2636,7 +2639,9 @@ repeat1_comparative:
         type[ss] = 7;
     }
 
-    /*    bonus = 0;*/
+    /* check for case when fill_arrays_comparative wants to backtrack in 'C' but only saw a G-quadruplex without enclosing base pairs */
+    if ((cij == INF) && (with_gquad) && (ggg[i][j - i] < INF))
+      goto repeat_gquad_comparative;
 
     if (noLP) {
       if (cij == c[i][j - i]) {
@@ -2661,7 +2666,6 @@ repeat1_comparative:
 
     canonical = 1;
     cij       += pscore[i][j - i];
-
     {
       int cc = 0;
       for (ss = 0; ss < n_seq; ss++) {
@@ -2712,6 +2716,8 @@ repeat1_comparative:
     }
 
     /* end of repeat: --------------------------------------------------*/
+    i1  = i + 1;
+    j1  = j - 1;
 
     if (with_gquad) {
       /*
@@ -2723,8 +2729,6 @@ repeat1_comparative:
       mm = 0;
       for (ss = 0; ss < n_seq; ss++) {
         tt = type[ss];
-        if (tt == 0)
-          tt = 7;
 
         if (dangle_model == 2)
           mm += P->mismatchI[tt][S3[ss][i]][S5[ss][j]];
@@ -2803,9 +2807,6 @@ repeat1_comparative:
     }
 
     /* (i.j) must close a multi-loop */
-    i1  = i + 1;
-    j1  = j - 1;
-
     mm = n_seq * P->MLclosing;
     if (dangle_model) {
       for (ss = 0; ss < n_seq; ss++) {
