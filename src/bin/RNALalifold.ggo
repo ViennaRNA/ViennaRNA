@@ -185,6 +185,11 @@ option  "mis" -
 flag
 off
 
+option  "gquad" g
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n\n"
+flag
+off
+
 section "Model Details"
 
 option  "temp"  T

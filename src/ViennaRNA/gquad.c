@@ -241,6 +241,16 @@ create_L_matrix(short *S,
                 int **g,
                 vrna_param_t *P);
 
+PRIVATE int **
+create_aliL_matrix( int start,
+                    int maxdist,
+                    int n,
+                    int **g,
+                    short *S_cons,
+                    short **S,
+                    int n_seq,
+                    vrna_param_t *P);
+
 /*
 #########################################
 # BEGIN OF PUBLIC FUNCTION DEFINITIONS  #
@@ -442,13 +452,25 @@ PUBLIC void
 vrna_gquad_mx_local_update( vrna_fold_compound_t *vc,
                             int start){
 
-  vc->matrices->ggg_local = create_L_matrix(
-                              vc->sequence_encoding,
-                              start,
-                              vc->window_size,
-                              vc->length,
-                              vc->matrices->ggg_local,
-                              vc->params);
+  if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
+    vc->matrices->ggg_local = create_aliL_matrix(
+                                start,
+                                vc->window_size,
+                                vc->length,
+                                vc->matrices->ggg_local,
+                                vc->S_cons,
+                                vc->S,
+                                vc->n_seq,
+                                vc->params);
+  } else {
+    vc->matrices->ggg_local = create_L_matrix(
+                                vc->sequence_encoding,
+                                start,
+                                vc->window_size,
+                                vc->length,
+                                vc->matrices->ggg_local,
+                                vc->params);
+  }
 }
 
 PRIVATE int **
@@ -460,9 +482,11 @@ create_L_matrix(short *S,
                 vrna_param_t *P){
 
   int **data;
-  int i, j, k, *gg;
+  int i, j, k, *gg, p, q;
 
-  gg  = get_g_islands_sub(S, start, MIN2(n, start + maxdist + 4));
+  p   = MAX2(1, start);
+  q   = MIN2(n, start + maxdist + 4);
+  gg  = get_g_islands_sub(S, p, q);
 
   if(g){ /* we just update the gquadruplex contribution for the current
             start and rotate the rest */
@@ -492,13 +516,13 @@ create_L_matrix(short *S,
 
     /* allocate memory and prefill with INF */
     data = (int **) vrna_alloc(sizeof(int *) * (n+1));
-    for(k = n; (k>n-maxdist-5) && (k>=0); k--){
+    for(k = n; (k > n-maxdist-5) && (k>=0); k--){
       data[k] = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
       for(i = 0; i < maxdist+5; i++) data[k][i] = INF;
     }
     
     /* compute all contributions for the gquads in this interval */
-    FOR_EACH_GQUAD(i, j, n - maxdist - 4, n){
+    FOR_EACH_GQUAD(i, j, MAX2(1, n - maxdist - 4), n){
       process_gquad_enumeration(gg, i, j,
                                 &gquad_mfe,
                                 (void *)(&(data[i][j-i])),
@@ -508,7 +532,74 @@ create_L_matrix(short *S,
     }
   }
 
-  gg += start - 1;
+  gg += p - 1;
+  free(gg);
+  return data;
+}
+
+
+PRIVATE int **
+create_aliL_matrix( int start,
+                    int maxdist,
+                    int n,
+                    int **g,
+                    short *S_cons,
+                    short **S,
+                    int n_seq,
+                    vrna_param_t *P){
+
+  int **data;
+  int i, j, k, *gg, p, q;
+
+  p   = MAX2(1, start);
+  q   = MIN2(n, start + maxdist + 4);
+  gg  = get_g_islands_sub(S_cons, p, q);
+
+  if(g){ /* we just update the gquadruplex contribution for the current
+            start and rotate the rest */
+    data = g;
+    /* we re-use the memory allocated previously */
+    data[start] = data[start + maxdist + 5];
+    data[start + maxdist + 5] = NULL;
+
+    /* prefill with INF */
+    for(i = 0; i < maxdist + 5; i++)
+      data[start][i] = INF;
+
+    /*  now we compute contributions for all gquads with 5' delimiter at
+        position 'start'
+    */
+    FOR_EACH_GQUAD_AT(start, j, start + maxdist + 4){
+      process_gquad_enumeration(gg, start, j,
+                                &gquad_mfe_ali,
+                                (void *)(&(data[start][j-start])),
+                                (void *)P,
+                                (void *)S,
+                                (void *)(&n_seq));
+    }
+
+  } else { /* create a new matrix from scratch since this is the first
+              call to this function */
+
+    /* allocate memory and prefill with INF */
+    data = (int **) vrna_alloc(sizeof(int *) * (n+1));
+    for(k = n; (k>n-maxdist-5) && (k>=0); k--){
+      data[k] = (int *) vrna_alloc(sizeof(int)*(maxdist+5));
+      for(i = 0; i < maxdist+5; i++) data[k][i] = INF;
+    }
+    
+    /* compute all contributions for the gquads in this interval */
+    FOR_EACH_GQUAD(i, j, MAX2(1, n - maxdist - 4), n){
+      process_gquad_enumeration(gg, i, j,
+                                &gquad_mfe_ali,
+                                (void *)(&(data[i][j-i])),
+                                (void *)P,
+                                (void *)S,
+                                (void *)(&n_seq));
+    }
+  }
+
+  gg += p - 1;
   free(gg);
   return data;
 }
