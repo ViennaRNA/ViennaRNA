@@ -196,6 +196,107 @@ vrna_hc_init(vrna_fold_compound_t *vc){
   hc_update_up(vc);
 }
 
+PUBLIC  void
+vrna_hc_init_window(vrna_fold_compound_t *vc){
+
+  unsigned int  n, window_size;
+  vrna_hc_t     *hc;
+
+  n           = vc->length;
+  window_size = vc->window_size;
+
+  /* free previous hard constraints */
+  vrna_hc_free(vc->hc);
+
+  /* allocate memory new hard constraints data structure */
+  hc          = (vrna_hc_t *)vrna_alloc(sizeof(vrna_hc_t));
+  hc->matrix        = NULL;
+  hc->matrix_local  = (char **)vrna_alloc(sizeof(char *) * (n + 2));
+  hc->up_ext        = (int *)vrna_alloc(sizeof(int)*(n+2));
+  hc->up_hp         = (int *)vrna_alloc(sizeof(int)*(n+2));
+  hc->up_int        = (int *)vrna_alloc(sizeof(int)*(n+2));
+  hc->up_ml         = (int *)vrna_alloc(sizeof(int)*(n+2));
+
+  /* set new hard constraints */
+  vc->hc = hc;
+
+  /* add null pointers for the generalized hard constraint feature */
+  hc->f           = NULL;
+  hc->data        = NULL;
+  hc->free_data   = NULL;
+}
+
+PUBLIC void
+vrna_hc_prepare(vrna_fold_compound_t  *vc,
+                int                   i)
+{
+  int       j, k, type, n, maxdist, turn, noLP;
+  short     *S;
+  char      **ptype;
+  vrna_md_t *md;
+  vrna_hc_t *hc;
+
+  n       = (int)vc->length;
+  S       = vc->sequence_encoding2;
+  hc      = vc->hc;
+  ptype   = vc->ptype_local;
+  maxdist = vc->window_size;
+  md      = &(vc->params->model_details);
+  turn    = md->min_loop_size;
+  noLP    = md->noLP;
+
+  /* ######################### */
+  /* fill with default values  */
+  /* ######################### */
+
+  /* 1. unpaired nucleotides are allowed in all contexts */
+  hc->matrix_local[i][0]  =   VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                            | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                            | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                            | VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
+
+  /* 2. add default base pairing rules */
+  switch(vc->type){
+    case VRNA_FC_TYPE_SINGLE:
+      for (k = turn + 1; k < maxdist; k++) {
+        j = i + k;
+        if (j > n)
+          break;
+
+        char opt = (char)0;
+        if ((j - i + 1) <= maxdist) {
+          type = md->pair[S[i]][S[j]];
+          switch (type) {
+            case 0:
+              break;
+            case 3:
+              /* fallthrough */
+            case 4:
+              if (md->noGU) {
+                break;
+              } else if (md->noGUclosure) {
+                opt = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+                opt &= ~(VRNA_CONSTRAINT_CONTEXT_HP_LOOP | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+                break;
+              }
+              /* else fallthrough */
+            default:
+              opt = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+              break;
+          }
+        }
+        hc->matrix_local[i][j - i] = opt;
+      }
+
+      /* here space for noLP option */
+      break;
+
+    default:
+      break;
+  }
+}
+
+
 PUBLIC void
 vrna_hc_add_up( vrna_fold_compound_t *vc,
                 int i,

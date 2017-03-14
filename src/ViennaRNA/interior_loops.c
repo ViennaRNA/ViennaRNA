@@ -36,6 +36,18 @@ E_int_loop(vrna_fold_compound_t *vc,
 
 
 PRIVATE int
+E_int_loop_window(vrna_fold_compound_t *vc,
+           int                  i,
+           int                  j);
+
+
+PRIVATE int
+E_stack_window(vrna_fold_compound_t *vc,
+             int                  i,
+             int                  j);
+
+
+PRIVATE int
 E_int_loop_comparative(vrna_fold_compound_t *vc,
                        int                  i,
                        int                  j);
@@ -110,7 +122,10 @@ vrna_E_int_loop(vrna_fold_compound_t  *vc,
   if (vc) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        e = E_int_loop(vc, i, j);
+        if (vc->hc->matrix_local)
+          e = E_int_loop_window(vc, i, j);
+        else
+          e = E_int_loop(vc, i, j);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
@@ -400,6 +415,106 @@ E_int_loop(vrna_fold_compound_t *vc,
         energy  = E_GQuad_IntLoop(i, j, type, S, ggg, indx, P);
         e       = MIN2(e, energy);
       }
+    }
+  }
+
+  return e;
+}
+
+
+PRIVATE int
+E_int_loop_window(vrna_fold_compound_t *vc,
+           int                  i,
+           int                  j)
+{
+  char  **ptype, hc_decompose;
+  short *S1;
+  int e, p, q, minq, turn, noGUclosure, type, type_2, no_close, energy, *rtype, **c, **ggg, with_gquad;
+  
+  vrna_param_t  *P;
+  vrna_md_t *md;
+  vrna_hc_t *hc;
+
+  e = INF;
+  S1  = vc->sequence_encoding;
+  P = vc->params;
+  md  = &(P->model_details);
+  c   = vc->matrices->c_local;
+  ggg = vc->matrices->ggg_local;
+  hc  = vc->hc;
+  ptype = vc->ptype_local;
+  type  = ptype[i][j - i];
+  turn  = md->min_loop_size;
+  with_gquad  = md->gquad;
+  noGUclosure = md->noGUclosure;
+  hc_decompose  = hc->matrix_local[i][j - i];
+  rtype = &(md->rtype[0]);
+
+  if (type == 0)
+    type = 7;
+
+  no_close  = (((type == 3) || (type == 4)) && noGUclosure);
+
+  if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
+    for (p = i + 1; p <= MIN2(j - 2 - turn, i + MAXLOOP + 1); p++) {
+      char  *hc_p, *ptype_p;
+      int   *c_p;
+      int   u1, u2;
+
+      u1 = p - i - 1;
+      ptype_p  = ptype[p];
+      ptype_p -= p;
+      hc_p = hc->matrix_local[p];
+      hc_p    -= p;
+      c_p = c[p];
+      c_p    -= p;
+
+      minq = j - i + p - MAXLOOP - 2;
+      if (minq < p + 1 + turn)
+        minq = p + 1 + turn;
+
+      hc_p    += j - 1;
+      ptype_p += j - 1;
+      c_p     += j - 1;
+      for (u2 = 0, q = j - 1; q >= minq; q--, hc_p--, ptype_p--, c_p--, u2++) {
+        if (*hc_p & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
+          energy = *c_p;
+
+          if (energy < INF) {
+            type_2 = *ptype_p;
+
+            if (type_2 == 0)
+              type_2 = 7;
+
+            type_2 = rtype[type_2];
+
+            if (noGUclosure)
+              if (no_close || (type_2 == 3) || (type_2 == 4))
+                if ((p > i + 1) || (q < j - 1))
+                  continue;
+
+            /* continue unless stack */
+
+            energy += E_IntLoop(u1,
+                               u2,
+                               type,
+                               type_2,
+                               S1[i + 1],
+                               S1[j - 1],
+                               S1[p - 1],
+                               S1[q + 1],
+                               P);
+            e = MIN2(e, energy);
+          }
+        }
+      } /* end q-loop */
+    } /* end p-loop */
+
+  if (with_gquad) {
+    /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
+    if (!no_close) {
+      energy  = E_GQuad_IntLoop_L(i, j, type, S1, ggg, vc->window_size, P);
+      e   = MIN2(e, energy);
     }
   }
 
@@ -1373,6 +1488,9 @@ vrna_E_stack(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
+  if (vc->hc->matrix_local)
+    return E_stack_window(vc, i, j);
+
   cp                = vc->cutpoint;
   P                 = vc->params;
   md                = &(P->model_details);
@@ -1488,6 +1606,57 @@ vrna_E_stack(vrna_fold_compound_t *vc,
       default:
         break;
     }
+  }
+
+  return e;
+}
+
+
+PRIVATE int
+E_stack_window(vrna_fold_compound_t *vc,
+             int                  i,
+             int                  j)
+{
+  char                      **ptype, **hard_constraints, eval_loop;
+  unsigned short            **a2s;
+  short                     *S, **SS;
+  unsigned int              *sn;
+  int                       e, ij, pq, p, q, s, n_seq, cp, *rtype, *indx, type, type_2;
+  vrna_sc_t                 *sc, **scs;
+  vrna_param_t              *P;
+  vrna_md_t                 *md;
+  vrna_callback_hc_evaluate *evaluate;
+  struct default_data       hc_dat_local;
+
+  cp                = vc->cutpoint;
+  P                 = vc->params;
+  md                = &(P->model_details);
+  sn                = vc->strand_number;
+  rtype             = &(md->rtype[0]);
+  hard_constraints  = vc->hc->matrix_local;
+
+
+  e         = INF;
+  p         = i + 1;
+  q         = j - 1;
+  eval_loop = (hard_constraints[p][q - p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) && (hard_constraints[i][j - i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP);
+
+  if ((j - i - 1) < 2)
+    return e;
+
+  if (eval_loop) {
+    S       = vc->sequence_encoding;
+    ptype   = vc->ptype_local;
+    type    = ptype[i][j - i];
+    type_2  = rtype[ptype[p][q - p]];
+
+    if (type == 0)
+      type = 7;
+    if (type_2 == 0)
+      type_2 = 7;
+
+    /* regular stack */
+    e = P->stack[type][type_2];
   }
 
   return e;

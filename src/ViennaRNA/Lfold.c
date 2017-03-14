@@ -381,16 +381,6 @@ wrap_Lfold(vrna_fold_compound_t             *vc,
   n       = vc->length;
   maxdist = vc->window_size;
 
-  /* reserve additional memory for j-dimension */
-  for (i = (int)vc->length; (i > (int)vc->length - vc->window_size - 5) && (i >= 0); i--) {
-    vc->ptype_local[i]          = vrna_alloc(sizeof(char) * (vc->window_size + 5));
-    vc->matrices->c_local[i]    = (int *)vrna_alloc(sizeof(int) * (vc->window_size + 5));
-    vc->matrices->fML_local[i]  = (int *)vrna_alloc(sizeof(int) * (vc->window_size + 5));
-  }
-
-  for (i = n; (i >= (int)n - (int)maxdist - 4) && (i > 0); i--)
-    make_ptypes(vc, i);
-
 #ifdef VRNA_WITH_SVM  /*svm*/
   if (with_zsc) {
     avg_model = svm_load_model_string(avg_model_string);
@@ -415,13 +405,6 @@ wrap_Lfold(vrna_fold_compound_t             *vc,
 
   mfe_local = (underflow > 0) ? ((float)underflow * (float)(UNDERFLOW_CORRECTION)) / 100. : 0.;
   mfe_local += (float)energy / 100.;
-
-  /* free additional memory for j-dimension */
-  for (i = 0; (i < vc->window_size + 5) && (i <= (int)vc->length); i++) {
-    free(vc->ptype_local[i]);
-    free(vc->matrices->c_local[i]);
-    free(vc->matrices->fML_local[i]);
-  }
 
   return mfe_local;
 }
@@ -465,7 +448,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
   int           do_backtrack  = 0, prev_i = 0;
   vrna_param_t  *P;
   vrna_md_t     *md;
-
+  vrna_hc_t     *hc;
 
   string        = vc->sequence;
   length        = vc->length;
@@ -481,6 +464,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
   noGUclosure   = md->noGUclosure;
   turn          = md->min_loop_size;
   rtype         = &(md->rtype[0]);
+  hc            = vc->hc;
 
   prev = NULL;
 
@@ -496,6 +480,18 @@ fill_arrays(vrna_fold_compound_t            *vc,
   DMLi1 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
   DMLi2 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
 
+  /* reserve additional memory for j-dimension */
+  for (i = length; (i > length - maxdist - 5) && (i >= 0); i--) {
+    ptype[i]  = vrna_alloc(sizeof(char) * (maxdist + 5));
+    c[i]      = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+    fML[i]    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+    hc->matrix_local[i] = (char *)vrna_alloc(sizeof(char) * (maxdist + 5));
+  }
+
+  for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
+    make_ptypes(vc, i);
+    vrna_hc_prepare(vc, i);
+  }
 
   for (j = 0; j < maxdist + 5; j++)
     Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
@@ -511,133 +507,48 @@ fill_arrays(vrna_fold_compound_t            *vc,
   for (i = length - turn - 1; i >= 1; i--) {
     /* i,j in [1..length] */
     for (j = i + turn + 1; j <= length && j <= i + maxdist; j++) {
-      int p, q;
+      int   p, q;
+      char  hc_decompose;
+
+      hc_decompose = hc->matrix_local[i][j - i];
       type = ptype[i][j - i];
 
       no_close = (((type == 3) || (type == 4)) && noGUclosure);
 
-      if (type) {
+      if (hc_decompose) {
         /* we have a pair */
         int new_c = 0, stackEnergy = INF;
         /* hairpin ----------------------------------------------*/
+        new_c = INF;
 
-        new_c = (no_close) ? FORBIDDEN : E_Hairpin(j - i - 1,
-                                                   type,
-                                                   S1[i + 1],
-                                                   S1[j - 1],
-                                                   string + i - 1,
-                                                   P);
+        if(!no_close){
+          /* check for hairpin loop */
+          energy = vrna_E_hp_loop(vc, i, j);
+          new_c = MIN2(new_c, energy);
 
-        /*--------------------------------------------------------
-         *  check for elementary structures involving more than one
-         *  closing pair.
-         *  --------------------------------------------------------*/
-
-        for (p = i + 1; p <= MIN2(j - 2 - turn, i + MAXLOOP + 1); p++) {
-          int minq = j - i + p - MAXLOOP - 2;
-          if (minq < p + 1 + turn)
-            minq = p + 1 + turn;
-
-          for (q = minq; q < j; q++) {
-            type_2 = ptype[p][q - p];
-
-            if (type_2 == 0)
-              continue;
-
-            type_2 = rtype[type_2];
-
-            if (noGUclosure)
-              if (no_close || (type_2 == 3) || (type_2 == 4))
-                if ((p > i + 1) || (q < j - 1))
-                  continue;
-
-            /* continue unless stack */
-
-            energy = E_IntLoop(p - i - 1,
-                               j - q - 1,
-                               type,
-                               type_2,
-                               S1[i + 1],
-                               S1[j - 1],
-                               S1[p - 1],
-                               S1[q + 1],
-                               P);
-            new_c = MIN2(new_c, energy + c[p][q - p]);
-            if ((p == i + 1) && (j == q + 1))
-              stackEnergy = energy;                       /* remember stack energy */
-          } /* end q-loop */
-        } /* end p-loop */
-
-        /* multi-loop decomposition ------------------------*/
-        if (!no_close) {
-          decomp  = DMLi1[j - 1 - (i + 1)];
-          tt      = rtype[type];
-          switch (dangle_model) {
-            /* no dangle_model */
-            case 0:
-              decomp += E_MLstem(tt, -1, -1, P);
-              break;
-            /* double dangle_model */
-            case 2:
-              decomp += E_MLstem(tt, S1[j - 1], S1[i + 1], P);
-              break;
-            /* normal dangle_model, aka dangle_model = 1 */
-            default:
-              decomp  += E_MLstem(tt, -1, -1, P);
-              decomp  = MIN2(decomp, DMLi2[j - 1 - (i + 2)] + E_MLstem(tt,
-                                                                       -1,
-                                                                       S1[i + 1],
-                                                                       P) + P->MLbase);
-              decomp = MIN2(decomp, DMLi2[j - 2 - (i + 2)] + E_MLstem(tt,
-                                                                      S1[j - 1],
-                                                                      S1[i + 1],
-                                                                      P) + 2 * P->MLbase);
-              decomp = MIN2(decomp, DMLi1[j - 2 - (i + 1)] + E_MLstem(tt,
-                                                                      S1[j - 1],
-                                                                      -1,
-                                                                      P) + P->MLbase);
-              break;
-          }
-          new_c = MIN2(new_c, decomp + P->MLclosing);
+          /* check for multibranch loops */
+          energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
+          new_c   = MIN2(new_c, energy);
         }
 
-        /* coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1) */
-
-        if (dangle_model == 3) {
-          decomp = INF;
-          for (k = i + 2 + turn; k < j - 2 - turn; k++) {
-            type_2  = ptype[i + 1][k - i - 1];
-            type_2  = rtype[type_2];
-            if (type_2)
-              decomp = MIN2(decomp, c[i + 1][k - i - 1] + P->stack[type][type_2] +
-                            fML[k + 1][j - 1 - k - 1]);
-
-            type_2  = ptype[k + 1][j - 1 - k - 1];
-            type_2  = rtype[type_2];
-            if (type_2)
-              decomp = MIN2(decomp, c[k + 1][j - 1 - k - 1] + P->stack[type][type_2] +
-                            fML[i + 1][k - i - 1]);
-          }
-          /* no TermAU penalty if coax stack */
-          decomp  += 2 * P->MLintern[1] + P->MLclosing;
-          new_c   = MIN2(new_c, decomp);
+        if(dangle_model == 3){ /* coaxial stacking */
+          energy  = E_mb_loop_stack(i, j, vc);
+          new_c   = MIN2(new_c, energy);
         }
 
-        if (with_gquad) {
-          /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-          if (!no_close) {
-            tt      = rtype[type];
-            energy  = E_GQuad_IntLoop_L(i, j, type, S1, ggg, maxdist, P);
-            new_c   = MIN2(new_c, energy);
-          }
-        }
+        /* check for interior loops */
+        energy = vrna_E_int_loop(vc, i, j);
+        new_c = MIN2(new_c, energy);
 
-        new_c     = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
-        cc[j - i] = new_c;
-        if (noLP)
-          c[i][j - i] = cc1[j - 1 - (i + 1)] + stackEnergy;
-        else
-          c[i][j - i] = cc[j - i];
+        /* remember stack energy for --noLP option */
+        if(noLP){
+          stackEnergy = vrna_E_stack(vc, i, j);
+          new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)]+stackEnergy);
+          cc[j - i]       = new_c;
+          c[i][j - i]    = cc1[j - 1 - (i + 1)]+stackEnergy;
+        } else {
+          c[i][j - i]    = new_c;
+        }
       } /* end >> if (pair) << */
       else {
         c[i][j - i] = INF;
@@ -645,90 +556,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
-      new_fML = INF;
-      switch (dangle_model) {
-        /* no dangle_model */
-        case 0:
-          new_fML = fML[i + 1][j - i - 1] + P->MLbase;
-          new_fML = MIN2(new_fML, fML[i][j - 1 - i] + P->MLbase);
-          new_fML = MIN2(new_fML, c[i][j - i] + E_MLstem(type, -1, -1, P));
-          break;
-        /* double dangle_model */
-        case 2:
-          new_fML = fML[i + 1][j - i - 1] + P->MLbase;
-          new_fML = MIN2(fML[i][j - 1 - i] + P->MLbase, new_fML);
-          new_fML =
-            MIN2(new_fML,
-                 c[i][j - i] +
-                 E_MLstem(type, (i > 1) ? S1[i - 1] : -1, (j < length) ? S1[j + 1] : -1, P));
-          break;
-        /* normal dangle_model, aka dangle_model = 1 */
-        default:  /* i unpaired */
-          new_fML = fML[i + 1][j - i - 1] + P->MLbase;
-          /* j unpaired */
-          new_fML = MIN2(new_fML, fML[i][j - 1 - i] + P->MLbase);
-          /* i,j */
-          if (type)
-            new_fML = MIN2(new_fML, c[i][j - i] + E_MLstem(type, -1, -1, P));
+      fML[i][j - i] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
 
-          /* i+1,j */
-          tt = ptype[i + 1][j - i - 1];
-          if (tt)
-            new_fML = MIN2(new_fML, c[i + 1][j - i - 1] + E_MLstem(tt, S1[i], -1, P) + P->MLbase);
-
-          /* i, j-1 */
-          tt = ptype[i][j - 1 - i];
-          if (tt)
-            new_fML = MIN2(new_fML, c[i][j - 1 - i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase);
-
-          /* i+1,j-1 */
-          tt = ptype[i + 1][j - 1 - i - 1];
-          if (tt) {
-            new_fML = MIN2(new_fML, c[i + 1][j - 1 - i - 1] + E_MLstem(tt,
-                                                                       S1[i],
-                                                                       S1[j],
-                                                                       P) + 2 * P->MLbase);
-          }
-
-          break;
-      }
-
-      if (with_gquad)
-        new_fML = MIN2(new_fML, ggg[i][j - i] + E_MLstem(0, -1, -1, P));
-
-      /* modular decomposition -------------------------------*/
-      for (decomp = INF, k = i + 1 + turn; k <= j - 2 - turn; k++)
-        decomp = MIN2(decomp, Fmi[k - i] + fML[k + 1][j - k - 1]);
-
-      DMLi[j - i] = decomp;               /* store for use in ML decompositon */
-      new_fML     = MIN2(new_fML, decomp);
-
-      /* coaxial stacking */
-      if (dangle_model == 3) {
-        /* additional ML decomposition as two coaxially stacked helices */
-        for (decomp = INF, k = i + 1 + turn; k <= j - 2 - turn; k++) {
-          type    = ptype[i][k - i];
-          type    = rtype[type];
-          type_2  = ptype[k + 1][j - k - 1];
-          type_2  = rtype[type_2];
-          if (type && type_2)
-            decomp = MIN2(decomp,
-                          c[i][k - i] + c[k + 1][j - k - 1] + P->stack[type][type_2]);
-        }
-
-        decomp += 2 * P->MLintern[1];          /* no TermAU penalty if coax stack */
-#if 0
-        /* This is needed for Y shaped ML loops with coax stacking of
-        * interior pairts, but backtracking will fail if activated */
-        DMLi[j - i] = MIN2(DMLi[j - i], decomp);
-        DMLi[j - i] = MIN2(DMLi[j - i], DMLi[j - 1 - i] + P->MLbase);
-        DMLi[j - i] = MIN2(DMLi[j - i], DMLi1[j - (i + 1)] + P->MLbase);
-        new_fML     = MIN2(new_fML, DMLi[j - i]);
-#endif
-        new_fML = MIN2(new_fML, decomp);
-      }
-
-      fML[i][j - i] = Fmi[j - i] = new_fML;     /* substring energy */
     } /* for (j...) */
 
     /* calculate energies of 5' and 3' fragments */
@@ -743,13 +572,15 @@ fill_arrays(vrna_fold_compound_t            *vc,
         /* dont use dangling end and mismatch contributions at all */
         case 0:
           for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
-            type = ptype[i][j - i];
-
             if (with_gquad)
               f3[i] = MIN2(f3[i], f3[j + 1] + ggg[i][j - i]);
 
-            if (type)
+            if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              type = ptype[i][j - i];
+              if (type == 0)
+                type = 7;
               f3[i] = MIN2(f3[i], f3[j + 1] + c[i][j - i] + E_ExtLoop(type, -1, -1, P));
+            }
           }
           if (length <= i + maxdist) {
             j = length;
@@ -757,22 +588,25 @@ fill_arrays(vrna_fold_compound_t            *vc,
             if (with_gquad)
               f3[i] = MIN2(f3[i], ggg[i][j - i]);
 
-            type = ptype[i][j - i];
-            if (type)
+            if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              type = ptype[i][j - i];
+              if (type == 0)
+                type = 7;
               f3[i] = MIN2(f3[i], c[i][j - i] + E_ExtLoop(type, -1, -1, P));
+            }
           }
 
           break;
         /* always use dangle_model on both sides */
         case 2:
           for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
-            type = ptype[i][j - i];
+            if ((with_gquad) && (ggg[i][j - i] != INF))
+              f3[i] = MIN2(f3[i], f3[j + 1] + ggg[i][j - i]);
 
-            if (with_gquad)
-              if (ggg[i][j - i] != INF)
-                f3[i] = MIN2(f3[i], f3[j + 1] + ggg[i][j - i]);
-
-            if (type) {
+            if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              type = ptype[i][j - i];
+              if (type == 0)
+                type = 7;
               f3[i] =
                 MIN2(f3[i],
                      f3[j + 1] + c[i][j - i] +
@@ -785,21 +619,26 @@ fill_arrays(vrna_fold_compound_t            *vc,
             if (with_gquad)
               f3[i] = MIN2(f3[i], ggg[i][j - i]);
 
-            type = ptype[i][j - i];
-            if (type)
+            if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              type = ptype[i][j - i];
+              if (type == 0)
+                type = 7;
               f3[i] = MIN2(f3[i], c[i][j - i] + E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, -1, P));
+            }
           }
 
           break;
         /* normal dangle_model, aka dangle_model = 1 */
         default:
           for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
-            type = ptype[i][j - i];
 
             if (with_gquad)
               f3[i] = MIN2(f3[i], f3[j + 1] + ggg[i][j - i]);
 
-            if (type) {
+            if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              type = ptype[i][j - i];
+              if (type == 0)
+                type = 7;
               f3[i] = MIN2(f3[i], f3[j + 1] + c[i][j - i] + E_ExtLoop(type, -1, -1, P));
               f3[i] =
                 MIN2(f3[i],
@@ -807,8 +646,10 @@ fill_arrays(vrna_fold_compound_t            *vc,
                        length) ? f3[j + 2] : 0) + c[i][j - i] + E_ExtLoop(type, -1, S1[j + 1], P));
             }
 
-            type = ptype[i + 1][j - i - 1];
-            if (type) {
+            if (hc->matrix_local[i + 1][j - i - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              type = ptype[i + 1][j - i - 1];
+              if (type == 0)
+                type = 7;
               f3[i] = MIN2(f3[i], f3[j + 1] + c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], -1, P));
               f3[i] = MIN2(f3[i],
                            ((j + 1 <
@@ -822,13 +663,19 @@ fill_arrays(vrna_fold_compound_t            *vc,
             if (with_gquad)
               f3[i] = MIN2(f3[i], ggg[i][j - i]);
 
-            type = ptype[i][j - i];
-            if (type)
+            if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              type = ptype[i][j - i];
+              if (type == 0)
+                type = 7;
               f3[i] = MIN2(f3[i], c[i][j - i] + E_ExtLoop(type, -1, -1, P));
+            }
 
-            type = ptype[i + 1][j - i - 1];
-            if (type)
+            if (hc->matrix_local[i + 1][j - i - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              type = ptype[i + 1][j - i - 1];
+              if (type == 0)
+                type = 7;
               f3[i] = MIN2(f3[i], c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], -1, P));
+            }
           }
 
           break;
@@ -1166,8 +1013,11 @@ fill_arrays(vrna_fold_compound_t            *vc,
         fML[i + maxdist + 4]    = NULL;
         ptype[i - 1]            = ptype[i + maxdist + 4];
         ptype[i + maxdist + 4]  = NULL;
+        hc->matrix_local[i - 1]            = hc->matrix_local[i + maxdist + 4];
+        hc->matrix_local[i + maxdist + 4]  = NULL;
         if (i > 1) {
           make_ptypes(vc, i - 1);
+          vrna_hc_prepare(vc, i - 1);
           if (with_gquad) {
             vrna_gquad_mx_local_update(vc, i - 1);
             ggg = vc->matrices->ggg_local;
@@ -1194,6 +1044,18 @@ fill_arrays(vrna_fold_compound_t            *vc,
       free(ggg[i]);
     free(ggg);
     vc->matrices->ggg_local = NULL;
+  }
+
+  /* free additional memory for j-dimension */
+  for (i = 0; (i < maxdist + 5) && (i <= length); i++) {
+    free(ptype[i]);
+    ptype[i] = NULL;
+    free(c[i]);
+    c[i] = NULL;
+    free(fML[i]);
+    fML[i] = NULL;
+    free(hc->matrix_local[i]);
+    hc->matrix_local[i] = NULL;
   }
 
   return f3[1];
@@ -1533,6 +1395,7 @@ repeat1:
 
 
     no_close = (((type == 3) || (type == 4)) && noGUclosure);
+
     if (no_close) {
       if (cij == FORBIDDEN)
         continue;

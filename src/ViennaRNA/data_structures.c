@@ -212,11 +212,9 @@ vrna_fold_compound(const char   *sequence,
 
     set_fold_compound(vc, &md, options, aux_options);
 
-    vc->ptype_local = vrna_alloc(sizeof(char *) * (vc->length + 1));
-
     if (!(options & VRNA_OPTION_EVAL_ONLY)) {
-      /* add default hard constraints */
-      /* vrna_hc_init(vc); */ /* no hard constraints in Lfold, yet! */
+      /* add minimal hard constraint data structure */
+      vrna_hc_init_window(vc);
 
       /* add DP matrices */
       vrna_mx_add(vc, VRNA_MX_WINDOW, options);
@@ -458,11 +456,21 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
     /* prepare for MFE computation */
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        if (!vc->ptype)
-          if (!(options & VRNA_OPTION_WINDOW))
+        if (options & VRNA_OPTION_WINDOW) {
+          /* handle minimal requirements for ptype */
+          if (vc->ptype_local)
+            free(vc->ptype_local);
+          vc->ptype_local = vrna_alloc(sizeof(char *) * (vc->length + 1));
+
+          /* check for minimal hard constraints structure */
+          if ((!vc->hc) || (!vc->hc->matrix_local))
+            vrna_hc_init_window(vc);
+
+        } else {
+          if (!vc->ptype)
             vc->ptype = vrna_ptypes(vc->sequence_encoding2,
                                     &(vc->params->model_details));
-
+        }
         break;
       case VRNA_FC_TYPE_COMPARATIVE:
         break;

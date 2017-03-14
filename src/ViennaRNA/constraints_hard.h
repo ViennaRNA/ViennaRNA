@@ -319,6 +319,8 @@ struct vrna_hc_s {
                                   unpaired nucleotides in a multi branched loop
                     */
 
+  char    **matrix_local;
+
   vrna_callback_hc_evaluate *f; /**<  @brief  A function pointer that returns whether or
                                               not a certain decomposition may be evaluated
                                 */
@@ -401,6 +403,12 @@ void vrna_message_constraint_options_all(void);
  *  @param  vc  The fold compound
  */
 void vrna_hc_init(vrna_fold_compound_t *vc);
+
+void vrna_hc_init_window(vrna_fold_compound_t *vc);
+
+void
+vrna_hc_prepare(vrna_fold_compound_t  *vc,
+                int                   i);
 
 /**
  *  @brief  Make a certain nucleotide unpaired

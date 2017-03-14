@@ -23,6 +23,7 @@ struct default_data {
   int                       n;
   int                       *idx;
   char                      *mx;
+  char                      **mx_window;
   int                       cp;
   int                       *hc_up;
   void                      *hc_dat;
@@ -50,6 +51,14 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
 
 PRIVATE char
 hc_default(int  i,
+           int  j,
+           int  k,
+           int  l,
+           char d,
+           void *data);
+
+PRIVATE char
+hc_default_window(int  i,
            int  j,
            int  k,
            int  l,
@@ -101,16 +110,21 @@ vrna_E_hp_loop(vrna_fold_compound_t *vc,
 
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = vc->hc->matrix;
+  hc_dat_local.mx_window  = vc->hc->matrix_local;
   hc_dat_local.hc_up  = vc->hc->up_hp;
   hc_dat_local.n      = vc->length;
   hc_dat_local.cp     = vc->cutpoint;
 
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
+  if (vc->hc->matrix_local) {
+    evaluate = &hc_default_window;
   } else {
-    evaluate = &hc_default;
+    if (vc->hc->f) {
+      evaluate            = &hc_default_user;
+      hc_dat_local.hc_f   = vc->hc->f;
+      hc_dat_local.hc_dat = vc->hc->data;
+    } else {
+      evaluate = &hc_default;
+    }
   }
 
   if ((i > 0) && (j > 0)) {
@@ -921,6 +935,32 @@ hc_default(int  i,
     eval = (char)1;
     if (dat->hc_up[i + 1] < u)
       eval = (char)0;
+  }
+
+  return eval;
+}
+
+
+PRIVATE char
+hc_default_window(int  i,
+           int  j,
+           int  k,
+           int  l,
+           char d,
+           void *data)
+{
+  int                 u;
+  char                eval;
+  struct default_data *dat = (struct default_data *)data;
+
+  eval = (char)0;
+
+  u = j - i - 1;
+
+  if (dat->mx_window[i][j - i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
+    eval = (char)1;
+//    if (dat->hc_up[i + 1] < u)
+//      eval = (char)0;
   }
 
   return eval;
