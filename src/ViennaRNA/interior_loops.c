@@ -122,7 +122,7 @@ vrna_E_int_loop(vrna_fold_compound_t  *vc,
   if (vc) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        if (vc->hc->matrix_local)
+        if (vc->hc->type == VRNA_HC_WINDOW)
           e = E_int_loop_window(vc, i, j);
         else
           e = E_int_loop(vc, i, j);
@@ -1488,7 +1488,7 @@ vrna_E_stack(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  if (vc->hc->matrix_local)
+  if (vc->hc->type == VRNA_HC_WINDOW)
     return E_stack_window(vc, i, j);
 
   cp                = vc->cutpoint;

@@ -115,7 +115,7 @@ vrna_E_hp_loop(vrna_fold_compound_t *vc,
   hc_dat_local.n      = vc->length;
   hc_dat_local.cp     = vc->cutpoint;
 
-  if (vc->hc->matrix_local) {
+  if (vc->hc->type == VRNA_HC_WINDOW) {
     evaluate = &hc_default_window;
   } else {
     if (vc->hc->f) {

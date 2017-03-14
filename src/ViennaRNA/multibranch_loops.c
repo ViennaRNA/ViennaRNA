@@ -178,7 +178,7 @@ vrna_E_ml_stems_fast(vrna_fold_compound_t *vc,
   if (vc) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        if (vc->hc->matrix_local)
+        if (vc->hc->type == VRNA_HC_WINDOW)
           e = E_ml_stems_fast_window(vc, i, j, fmi, dmli);
         else
           e = E_ml_stems_fast(vc, i, j, fmi, dmli);
@@ -332,7 +332,7 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
   hc_dat_local.hc_up  = hc->up_ml;
   hc_dat_local.cp     = vc->cutpoint;
 
-  if (hc->matrix_local) {
+  if (hc->type == VRNA_HC_WINDOW) {
     evaluate = &hc_default_window;
     S_i1  = S[i + 1];
     S_j1  = S[j - 1];
@@ -647,7 +647,7 @@ E_mb_loop_stack(int                   i,
   hc_dat_local.hc_up  = hc->up_ml;
   hc_dat_local.cp     = vc->cutpoint;
 
-  if (hc->matrix_local) {
+  if (hc->type == VRNA_HC_WINDOW) {
     char  **ptype;
     int   **c, **fML;
 

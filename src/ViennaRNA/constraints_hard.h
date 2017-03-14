@@ -278,6 +278,14 @@ typedef char (vrna_callback_hc_evaluate)(int i, int j, int k, int l, char d, voi
                                                       | VRNA_CONSTRAINT_CONTEXT_MB_LOOP \
                                                       | VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
 
+typedef enum {
+  VRNA_HC_DEFAULT,  /**<  @brief  Default Hard Constraints */
+  VRNA_HC_WINDOW    /**<  @brief  Hard Constraints suitable for local structure prediction using
+                     *    window approach.
+                     *    @see    vrna_mfe_window(), vrna_mfe_window_zscore(), pfl_fold()
+                     */
+} vrna_hc_type_e;
+
 /**
  *  @brief  The hard constraints data structure
  *
@@ -303,9 +311,28 @@ typedef char (vrna_callback_hc_evaluate)(int i, int j, int k, int l, char d, voi
  *  @ingroup hard_constraints
  */
 struct vrna_hc_s {
+  vrna_hc_type_e  type;
+
+#ifndef VRNA_DISABLE_C11_FEATURES
+  /* C11 support for unnamed unions/structs */
+  union {
+    struct {
+#endif
   char    *matrix;  /**<  @brief  Upper triangular matrix that encodes where a
                                   base pair or unpaired nucleotide is allowed
                     */
+#ifndef VRNA_DISABLE_C11_FEATURES
+      /* C11 support for unnamed unions/structs */
+    };
+    struct {
+#endif
+  char    **matrix_local;
+#ifndef VRNA_DISABLE_C11_FEATURES
+      /* C11 support for unnamed unions/structs */
+    };
+  };
+#endif
+
   int     *up_ext;  /**<  @brief  A linear array that holds the number of allowed
                                   unpaired nucleotides in an exterior loop
                     */
@@ -318,8 +345,6 @@ struct vrna_hc_s {
   int     *up_ml;   /**<  @brief  A linear array that holds the number of allowed
                                   unpaired nucleotides in a multi branched loop
                     */
-
-  char    **matrix_local;
 
   vrna_callback_hc_evaluate *f; /**<  @brief  A function pointer that returns whether or
                                               not a certain decomposition may be evaluated

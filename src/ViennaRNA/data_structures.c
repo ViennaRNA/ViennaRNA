@@ -463,7 +463,7 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
           vc->ptype_local = vrna_alloc(sizeof(char *) * (vc->length + 1));
 
           /* check for minimal hard constraints structure */
-          if ((!vc->hc) || (!vc->hc->matrix_local))
+          if ((!vc->hc) || (vc->hc->type != VRNA_HC_WINDOW) || (!vc->hc->matrix_local))
             vrna_hc_init_window(vc);
 
         } else {

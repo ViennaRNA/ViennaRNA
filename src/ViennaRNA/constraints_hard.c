@@ -175,6 +175,7 @@ vrna_hc_init(vrna_fold_compound_t *vc){
 
   /* allocate memory new hard constraints data structure */
   hc          = (vrna_hc_t *)vrna_alloc(sizeof(vrna_hc_t));
+  hc->type    = VRNA_HC_DEFAULT;
   hc->matrix  = (char *)vrna_alloc(sizeof(char)*((n*(n+1))/2+2));
   hc->up_ext  = (int *)vrna_alloc(sizeof(int)*(n+2));
   hc->up_hp   = (int *)vrna_alloc(sizeof(int)*(n+2));
@@ -210,7 +211,7 @@ vrna_hc_init_window(vrna_fold_compound_t *vc){
 
   /* allocate memory new hard constraints data structure */
   hc          = (vrna_hc_t *)vrna_alloc(sizeof(vrna_hc_t));
-  hc->matrix        = NULL;
+  hc->type          = VRNA_HC_WINDOW;
   hc->matrix_local  = (char **)vrna_alloc(sizeof(char *) * (n + 2));
   hc->up_ext        = (int *)vrna_alloc(sizeof(int)*(n+2));
   hc->up_hp         = (int *)vrna_alloc(sizeof(int)*(n+2));
@@ -490,7 +491,11 @@ PUBLIC void
 vrna_hc_free(vrna_hc_t *hc){
 
   if(hc){
-    free(hc->matrix);
+    if (hc->type == VRNA_HC_DEFAULT)
+      free(hc->matrix);
+    else if (hc->type == VRNA_HC_WINDOW)
+      free(hc->matrix_local);
+
     free(hc->up_ext);
     free(hc->up_hp);
     free(hc->up_int);
