@@ -455,8 +455,16 @@ E_int_loop_window(vrna_fold_compound_t *vc,
 
   no_close  = (((type == 3) || (type == 4)) && noGUclosure);
 
-  if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
-    for (p = i + 1; p <= MIN2(j - 2 - turn, i + MAXLOOP + 1); p++) {
+  if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
+    int tmp, maxp = j - 2 - turn;
+    tmp =  i + MAXLOOP + 1;
+    if (maxp > tmp)
+      maxp = tmp;
+    tmp = i + 1 + hc->up_int[i + 1];
+    if (maxp > tmp)
+      maxp = tmp;
+
+    for (p = i + 1; p <= maxp; p++) {
       char  *hc_p, *ptype_p;
       int   *c_p;
       int   u1, u2;
@@ -470,13 +478,17 @@ E_int_loop_window(vrna_fold_compound_t *vc,
       c_p    -= p;
 
       minq = j - i + p - MAXLOOP - 2;
-      if (minq < p + 1 + turn)
-        minq = p + 1 + turn;
+      tmp = p + 1 + turn;
+      if (minq < tmp)
+        minq = tmp;
 
       hc_p    += j - 1;
       ptype_p += j - 1;
       c_p     += j - 1;
       for (u2 = 0, q = j - 1; q >= minq; q--, hc_p--, ptype_p--, c_p--, u2++) {
+        if (hc->up_int[q + 1] < u2)
+          break;
+
         if (*hc_p & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
           energy = *c_p;
 
@@ -509,6 +521,7 @@ E_int_loop_window(vrna_fold_compound_t *vc,
         }
       } /* end q-loop */
     } /* end p-loop */
+  }
 
   if (with_gquad) {
     /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */

@@ -47,6 +47,22 @@
 #################################
 */
 PRIVATE void
+hc_init_up_storage(vrna_hc_t *hc);
+
+
+PRIVATE void
+hc_init_bp_storage(vrna_hc_t *hc);
+
+
+PRIVATE void
+hc_store_bp(vrna_hc_bp_storage_t **container,
+            int i,
+            int start,
+            int end,
+            char loop_type);
+
+
+PRIVATE void
 hc_add_up(vrna_fold_compound_t *vc,
           int i,
           char option);
@@ -176,6 +192,7 @@ vrna_hc_init(vrna_fold_compound_t *vc){
   /* allocate memory new hard constraints data structure */
   hc          = (vrna_hc_t *)vrna_alloc(sizeof(vrna_hc_t));
   hc->type    = VRNA_HC_DEFAULT;
+  hc->n       = n;
   hc->matrix  = (char *)vrna_alloc(sizeof(char)*((n*(n+1))/2+2));
   hc->up_ext  = (int *)vrna_alloc(sizeof(int)*(n+2));
   hc->up_hp   = (int *)vrna_alloc(sizeof(int)*(n+2));
@@ -200,7 +217,7 @@ vrna_hc_init(vrna_fold_compound_t *vc){
 PUBLIC  void
 vrna_hc_init_window(vrna_fold_compound_t *vc){
 
-  unsigned int  n, window_size;
+  unsigned int  i, n, window_size;
   vrna_hc_t     *hc;
 
   n           = vc->length;
@@ -212,11 +229,14 @@ vrna_hc_init_window(vrna_fold_compound_t *vc){
   /* allocate memory new hard constraints data structure */
   hc          = (vrna_hc_t *)vrna_alloc(sizeof(vrna_hc_t));
   hc->type          = VRNA_HC_WINDOW;
+  hc->n             = n;
   hc->matrix_local  = (char **)vrna_alloc(sizeof(char *) * (n + 2));
-  hc->up_ext        = (int *)vrna_alloc(sizeof(int)*(n+2));
-  hc->up_hp         = (int *)vrna_alloc(sizeof(int)*(n+2));
-  hc->up_int        = (int *)vrna_alloc(sizeof(int)*(n+2));
-  hc->up_ml         = (int *)vrna_alloc(sizeof(int)*(n+2));
+  hc->up_storage    = NULL;
+  hc->bp_storage    = NULL;
+  hc->up_ext        = NULL;
+  hc->up_hp         = NULL;
+  hc->up_int        = NULL;
+  hc->up_ml         = NULL;
 
   /* set new hard constraints */
   vc->hc = hc;
@@ -246,15 +266,30 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
   turn    = md->min_loop_size;
   noLP    = md->noLP;
 
+  /* init up_xx arrays if necessary */
+  if (!hc->up_ext) {
+    hc->up_ext  = (int *)vrna_alloc(sizeof(int)*(n+2));
+    hc->up_hp   = (int *)vrna_alloc(sizeof(int)*(n+2));
+    hc->up_int  = (int *)vrna_alloc(sizeof(int)*(n+2));
+    hc->up_ml   = (int *)vrna_alloc(sizeof(int)*(n+2));
+
+    hc_update_up(vc);
+  }
+
   /* ######################### */
   /* fill with default values  */
   /* ######################### */
 
-  /* 1. unpaired nucleotides are allowed in all contexts */
-  hc->matrix_local[i][0]  =   VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
-                            | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
-                            | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
-                            | VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
+  if (hc->up_storage) {
+    /* We use user-defined constraints for unpaired nucleotides */
+    hc->matrix_local[i][0]  = hc->up_storage[i];
+  } else {
+    /* ... or simply allow unpaired nucleotides in all contexts */
+    hc->matrix_local[i][0]  = VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                              | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
+  }
 
   /* 2. add default base pairing rules */
   switch(vc->type){
@@ -286,6 +321,27 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
               break;
           }
         }
+        /* check whether we have constraints on any pairing partner i or j */
+        if ((hc->bp_storage) && (hc->bp_storage[i])) {
+          char constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+          int cnt, set;
+          /* go through list of constraints on position i */
+          for (set = cnt = 0; hc->bp_storage[i][cnt].interval_start != 0; cnt++) {
+            if (hc->bp_storage[i][cnt].interval_start > j)
+              break; /* only constraints for pairs (i,q) with q > j left */
+            if (hc->bp_storage[i][cnt].interval_end < j)
+              continue; /* constraint for pairs (i,q) with q < j */
+            /* constraint has interval [p,q] with p <= j <= q */
+            constraint &= hc->bp_storage[i][cnt].loop_type;
+            set = 1;
+          }
+          if (set && (opt == (char)0))
+            /* overwrite if bp is non-canonical */
+            opt = constraint;
+          else
+            /* apply constraint to canonical bp */
+            opt &= constraint;
+        }
         hc->matrix_local[i][j - i] = opt;
       }
 
@@ -314,7 +370,8 @@ vrna_hc_add_up( vrna_fold_compound_t *vc,
 
       hc_add_up(vc, i, option);
 
-      hc_update_up(vc);
+      if (vc->hc->type != VRNA_HC_WINDOW)
+        hc_update_up(vc);
     }
 }
 
@@ -338,11 +395,80 @@ vrna_hc_add_up_batch( vrna_fold_compound_t *vc,
         hc_add_up(vc, pos, options);
       }
 
-      hc_update_up(vc);
+      if (vc->hc->type != VRNA_HC_WINDOW)
+        hc_update_up(vc);
       ret = 1; /* success */
     }
 
   return ret;
+}
+
+PRIVATE void
+hc_init_up_storage( vrna_hc_t  *hc)
+{
+  unsigned int i;
+
+  if (hc->up_storage == NULL) {
+    free(hc->up_storage);
+    hc->up_storage    = (char *)vrna_alloc(sizeof(char)*(hc->n+2));
+
+    for (i = 1; i <= hc->n; i++) {
+      /* by default unpaired nucleotides are allowed in all contexts */
+      hc->up_storage[i] = VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                          | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                          | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                          | VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
+    }
+  }
+}
+
+
+PRIVATE void
+hc_init_bp_storage(vrna_hc_t *hc)
+{
+  unsigned int i;
+
+  if (hc->bp_storage == NULL) {
+    hc->bp_storage    = (vrna_hc_bp_storage_t **)vrna_alloc(sizeof(vrna_hc_bp_storage_t *)*(hc->n+2));
+
+    for (i = 1; i <= hc->n; i++) {
+      /* by default we do not limit base pairs to any context */
+      hc->bp_storage[i] = NULL;
+    }
+  }
+}
+
+
+PRIVATE void
+hc_store_bp(vrna_hc_bp_storage_t **container,
+            int i,
+            int start,
+            int end,
+            char loop_type)
+{
+  int size, cnt = 0;
+
+  if (!container[i]) {
+    container[i] = (vrna_hc_bp_storage_t *)vrna_alloc(sizeof(vrna_hc_bp_storage_t) * 2);
+  } else {
+    /* find out total size of container */
+    for (size = 0; container[i][size].interval_start != 0; size++) ;
+
+    /* find position where we want to insert the new constraint */
+    for (cnt = 0; cnt < size; cnt++) {
+      if (container[i][cnt].interval_start > start)
+        break; /* want to insert before current constraint */
+      if (container[i][cnt].interval_end < end)
+        continue; /* want to insert after current constraint */
+    }
+    /* increase memory for bp constraints */
+    container[i] = (vrna_hc_bp_storage_t *)vrna_realloc(container[i], sizeof(vrna_hc_bp_storage_t) * (size + 2));
+    /* shift trailing constraints by 1 entry */
+    memmove(container[i] + cnt + 1, container[i] + cnt, sizeof(vrna_hc_bp_storage_t) * (size - cnt + 1));
+  }
+  container[i][cnt].interval_start = start;
+  container[i][cnt].interval_end = end;
+  container[i][cnt].loop_type = loop_type;
 }
 
 PRIVATE void
@@ -353,36 +479,74 @@ hc_add_up(vrna_fold_compound_t *vc,
   int   j;
   char  type = (char)0;
 
-  if(option & VRNA_CONSTRAINT_CONTEXT_ENFORCE){ /* force nucleotide to appear unpaired within a certain type of loop */
-    /* do not allow i to be paired with any other nucleotide */
-    if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
-      for(j = 1; j < i; j++)
-        vc->hc->matrix[vc->jindx[i] + j] = (char)0;
-      for(j = i+1; j <= vc->length; j++)
-        vc->hc->matrix[vc->jindx[j] + i] = (char)0;
+  if (vc->hc->type == VRNA_HC_WINDOW) {
+    if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
+      hc_init_up_storage(vc->hc);
+      type = option & (char)( VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                              | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+
+      vc->hc->up_storage[i] = type;
+
+      if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
+        hc_init_bp_storage(vc->hc);
+        /* add constraints for all pairs (j, i) with j < i */
+        for(j = 1; j < i; j++)
+          hc_store_bp(vc->hc->bp_storage, j, i, i, (char)0);
+
+        /* add constraints for all pairs (i, j) with i < j */
+        hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, (char)0);
+      }
+    } else {
+      hc_init_up_storage(vc->hc);
+      vc->hc->up_storage[i] = (char)( VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                                      | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                                      | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                                      | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+
+      if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
+        hc_init_bp_storage(vc->hc);
+        /* add constraints for all pairs (j, i) with j < i */
+        for(j = 1; j < i; j++)
+          hc_store_bp(vc->hc->bp_storage, j, i, i, ~type);
+
+        /* add constraints for all pairs (i, j) with i < j */
+        hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, ~type);
+      }
     }
-
-    type = option & (char)( VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
-                            | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
-                            | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
-                            | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
-
-    vc->hc->matrix[vc->jindx[i] + i] = type;
   } else {
-    type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+    if(option & VRNA_CONSTRAINT_CONTEXT_ENFORCE){ /* force nucleotide to appear unpaired within a certain type of loop */
+      /* do not allow i to be paired with any other nucleotide */
+      if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
+        for(j = 1; j < i; j++)
+          vc->hc->matrix[vc->jindx[i] + j] = (char)0;
+        for(j = i+1; j <= vc->length; j++)
+          vc->hc->matrix[vc->jindx[j] + i] = (char)0;
+      }
 
-    /* do not allow i to be paired with any other nucleotide (in context type) */
-    if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
-      for(j = 1; j < i; j++)
-        vc->hc->matrix[vc->jindx[i] + j] &= ~type;
-      for(j = i+1; j <= vc->length; j++)
-        vc->hc->matrix[vc->jindx[j] + i] &= ~type;
+      type = option & (char)( VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                              | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+
+      vc->hc->matrix[vc->jindx[i] + i] = type;
+    } else {
+      type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+
+      /* do not allow i to be paired with any other nucleotide (in context type) */
+      if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
+        for(j = 1; j < i; j++)
+          vc->hc->matrix[vc->jindx[i] + j] &= ~type;
+        for(j = i+1; j <= vc->length; j++)
+          vc->hc->matrix[vc->jindx[j] + i] &= ~type;
+      }
+
+      vc->hc->matrix[vc->jindx[i] + i] = (char)(  VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                                                | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                                                | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                                                | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
     }
-
-    vc->hc->matrix[vc->jindx[i] + i] = (char)(  VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
-                                              | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
-                                              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
-                                              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
   }
 }
 
@@ -407,25 +571,37 @@ vrna_hc_add_bp_nonspecific( vrna_fold_compound_t *vc,
       t1    = (d <= 0) ? type : (char)0;
       t2    = (d >= 0) ? type : (char)0;
 
-      if(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE){
-        /* only allow for possibly non-canonical pairs, do not enforce them */
-        for(p = 1; p < i; p++)
-          vc->hc->matrix[vc->jindx[i] + p] |= t1;
-        for(p = i+1; p <= vc->length; p++)
-          vc->hc->matrix[vc->jindx[p] + i] |= t2;
-      } else {
-        /* force pairing direction */
-        for(p = 1; p < i; p++)
-          vc->hc->matrix[vc->jindx[i] + p] &= t1;
-        for(p = i+1; p <= vc->length; p++)
-          vc->hc->matrix[vc->jindx[p] + i] &= t2;
+      if (vc->hc->type == VRNA_HC_WINDOW) {
         /* nucleotide mustn't be unpaired */
-        vc->hc->matrix[vc->jindx[i] + i] = (char)0;
+        hc_init_up_storage(vc->hc);
+        vc->hc->up_storage[i] = (char)0;
+
+        /* force pairing direction */
+        hc_init_bp_storage(vc->hc);
+        for(p = 1; p < i; p++)
+          hc_store_bp(vc->hc->bp_storage, p, i, i, t1);
+
+        hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, t2);
+      } else {
+        if(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE){
+          /* only allow for possibly non-canonical pairs, do not enforce them */
+          for(p = 1; p < i; p++)
+            vc->hc->matrix[vc->jindx[i] + p] |= t1;
+          for(p = i+1; p <= vc->length; p++)
+            vc->hc->matrix[vc->jindx[p] + i] |= t2;
+        } else {
+          /* force pairing direction */
+          for(p = 1; p < i; p++)
+            vc->hc->matrix[vc->jindx[i] + p] &= t1;
+          for(p = i+1; p <= vc->length; p++)
+            vc->hc->matrix[vc->jindx[p] + i] &= t2;
+          /* nucleotide mustn't be unpaired */
+          vc->hc->matrix[vc->jindx[i] + i] = (char)0;
+        }
+
+        hc_update_up(vc);
       }
-
-      hc_update_up(vc);
     }
-
 }
 
 PUBLIC void
@@ -444,45 +620,74 @@ vrna_hc_add_bp( vrna_fold_compound_t *vc,
         return;
       }
 
-      /* reset ptype in case (i,j) is a non-canonical pair */
-      if(option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
-        if(vc->hc->matrix[vc->jindx[j] + i])
-          if(vc->ptype[vc->jindx[j] + i] == 0)
-            vc->ptype[vc->jindx[j] + i] = 7;
-      }
+      if (vc->hc->type == VRNA_HC_WINDOW) {
+        hc_init_bp_storage(vc->hc);
+        hc_store_bp(vc->hc->bp_storage, i, j, j, option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
 
-      vc->hc->matrix[vc->jindx[j] + i] = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+        if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
+          /*
+            remove all conflicting base pairs, i.e. do not allow i or j to pair
+            with any other nucleotide k
+          */
+          for(k = 1; k < i; k++)
+            hc_store_bp(vc->hc->bp_storage, k, i, i, (char)0);
+          hc_store_bp(vc->hc->bp_storage, i, i + 1, j - 1, (char)0);
+          hc_store_bp(vc->hc->bp_storage, i, j + 1, vc->length, (char)0);
 
-      if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
-        /*
-          remove all conflicting base pairs, i.e. do not allow i,j to pair
-          with any other nucleotide k
-        */
-        for(k = 1; k < i; k++){
-          vc->hc->matrix[vc->jindx[i] + k] = (char)0;
-          vc->hc->matrix[vc->jindx[j] + k] = (char)0;
-          for(l = i+1; l < j; l++)
-            vc->hc->matrix[vc->jindx[l] + k] = (char)0;
+          for(k = 1; k < i; k++)
+            hc_store_bp(vc->hc->bp_storage, k, j, j, (char)0);
+          for(k = i + 1; k < j; k++)
+            hc_store_bp(vc->hc->bp_storage, k, j, j, (char)0);
+          hc_store_bp(vc->hc->bp_storage, j, j + 1, vc->length, (char)0);
         }
-        for(k = i+1; k < j; k++){
-          vc->hc->matrix[vc->jindx[k] + i] = (char)0;
-          vc->hc->matrix[vc->jindx[j] + k] = (char)0;
-          for(l = j + 1; l <= vc->length; l++)
-            vc->hc->matrix[vc->jindx[l] + k] = (char)0;
+
+        if(option & VRNA_CONSTRAINT_CONTEXT_ENFORCE){
+          /* do not allow i,j to be unpaired */
+          hc_init_up_storage(vc->hc);
+          vc->hc->up_storage[i] = (char)0;
+          vc->hc->up_storage[j] = (char)0;
         }
-        for(k = j+1; k <= vc->length; k++){
-          vc->hc->matrix[vc->jindx[k] + i] = (char)0;
-          vc->hc->matrix[vc->jindx[k] + j] = (char)0;
+      } else {
+        /* reset ptype in case (i,j) is a non-canonical pair */
+        if(option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
+          if(vc->hc->matrix[vc->jindx[j] + i])
+            if(vc->ptype[vc->jindx[j] + i] == 0)
+              vc->ptype[vc->jindx[j] + i] = 7;
         }
-      }
 
-      if(option & VRNA_CONSTRAINT_CONTEXT_ENFORCE){
+        vc->hc->matrix[vc->jindx[j] + i] = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
-        /* do not allow i,j to be unpaired */
-        vc->hc->matrix[vc->jindx[i] + i] = (char)0;
-        vc->hc->matrix[vc->jindx[j] + j] = (char)0;
+        if(!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)){
+          /*
+            remove all conflicting base pairs, i.e. do not allow i,j to pair
+            with any other nucleotide k
+          */
+          for(k = 1; k < i; k++){
+            vc->hc->matrix[vc->jindx[i] + k] = (char)0;
+            vc->hc->matrix[vc->jindx[j] + k] = (char)0;
+            for(l = i+1; l < j; l++)
+              vc->hc->matrix[vc->jindx[l] + k] = (char)0;
+          }
+          for(k = i+1; k < j; k++){
+            vc->hc->matrix[vc->jindx[k] + i] = (char)0;
+            vc->hc->matrix[vc->jindx[j] + k] = (char)0;
+            for(l = j + 1; l <= vc->length; l++)
+              vc->hc->matrix[vc->jindx[l] + k] = (char)0;
+          }
+          for(k = j+1; k <= vc->length; k++){
+            vc->hc->matrix[vc->jindx[k] + i] = (char)0;
+            vc->hc->matrix[vc->jindx[k] + j] = (char)0;
+          }
+        }
 
-        hc_update_up(vc);
+        if(option & VRNA_CONSTRAINT_CONTEXT_ENFORCE){
+
+          /* do not allow i,j to be unpaired */
+          vc->hc->matrix[vc->jindx[i] + i] = (char)0;
+          vc->hc->matrix[vc->jindx[j] + j] = (char)0;
+
+          hc_update_up(vc);
+        }
       }
     }
 }
@@ -491,11 +696,18 @@ PUBLIC void
 vrna_hc_free(vrna_hc_t *hc){
 
   if(hc){
-    if (hc->type == VRNA_HC_DEFAULT)
+    if (hc->type == VRNA_HC_DEFAULT) {
       free(hc->matrix);
-    else if (hc->type == VRNA_HC_WINDOW)
+    } else if (hc->type == VRNA_HC_WINDOW) {
+      unsigned int i;
       free(hc->matrix_local);
-
+      free(hc->up_storage);
+      if (hc->bp_storage) {
+        for (i = 1; i <= hc->n; i++)
+          free(hc->bp_storage[i]);
+        free(hc->bp_storage);
+      }
+    }
     free(hc->up_ext);
     free(hc->up_hp);
     free(hc->up_int);
@@ -964,7 +1176,7 @@ hc_reset_to_default(vrna_fold_compound_t *vc){
 PRIVATE void
 hc_update_up(vrna_fold_compound_t *vc){
 
-  unsigned int      i, n;
+  unsigned int      i, n, u;
   int               *idx;
   vrna_hc_t         *hc;
 
@@ -972,63 +1184,83 @@ hc_update_up(vrna_fold_compound_t *vc){
   idx = vc->jindx;
   hc  = vc->hc;
 
-  for(hc->up_ext[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in exterior loop */
-    hc->up_ext[i] = (hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ? 1 + hc->up_ext[i+1] : 0;
+  if (hc->type == VRNA_HC_WINDOW) {
+    /* do we actually have any constraints on unpaired positions? */
+    if (hc->up_storage) {
+      for(hc->up_ext[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in exterior loop */
+        hc->up_ext[i] = (hc->up_storage[i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ? 1 + hc->up_ext[i+1] : 0;
 
-  for(hc->up_hp[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in hairpin loop */
-    hc->up_hp[i] = (hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) ? 1 + hc->up_hp[i+1] : 0;
+      for(hc->up_hp[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in hairpin loop */
+        hc->up_hp[i] = (hc->up_storage[i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) ? 1 + hc->up_hp[i+1] : 0;
 
-  for(hc->up_int[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in interior loop */
-    hc->up_int[i] = (hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ? 1 + hc->up_int[i+1] : 0;
+      for(hc->up_int[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in interior loop */
+        hc->up_int[i] = (hc->up_storage[i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ? 1 + hc->up_int[i+1] : 0;
 
-  for(hc->up_ml[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in multibranch loop */
-    hc->up_ml[i] = (hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? 1 + hc->up_ml[i+1] : 0;
+      for(hc->up_ml[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in multibranch loop */
+        hc->up_ml[i] = (hc->up_storage[i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? 1 + hc->up_ml[i+1] : 0;
+    } else {
+      /* no constraints on unpaired positions */
+      for(u = n, i = 1; i <= n; i++, u--)
+        hc->up_ext[i] = hc->up_hp[i] = hc->up_int[i] = hc->up_ml[i] = u;
+    }
+  } else {
+    for(hc->up_ext[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in exterior loop */
+      hc->up_ext[i] = (hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ? 1 + hc->up_ext[i+1] : 0;
 
-  /*
-   *  loop arround once more until we find a nucleotide that mustn't
-   *  be unpaired (needed for circular folding)
-   */
+    for(hc->up_hp[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in hairpin loop */
+      hc->up_hp[i] = (hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) ? 1 + hc->up_hp[i+1] : 0;
 
-  if(hc->matrix[idx[1]+1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
-    hc->up_ext[n+1] = hc->up_ext[1];
-    for(i = n; i > 0; i--){
-      if(hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
-        hc->up_ext[i] = MIN2(n, 1 + hc->up_ext[i+1]);
-      } else
-        break;
+    for(hc->up_int[n+1] = 0, i = n; i > 0; i--) /* unpaired stretch in interior loop */
+      hc->up_int[i] = (hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ? 1 + hc->up_int[i+1] : 0;
+
+    for(hc->up_ml[n+1] = 0, i = n; i > 0; i--)  /* unpaired stretch in multibranch loop */
+      hc->up_ml[i] = (hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? 1 + hc->up_ml[i+1] : 0;
+
+    /*
+     *  loop arround once more until we find a nucleotide that mustn't
+     *  be unpaired (needed for circular folding)
+     */
+
+    if(hc->matrix[idx[1]+1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+      hc->up_ext[n+1] = hc->up_ext[1];
+      for(i = n; i > 0; i--){
+        if(hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP){
+          hc->up_ext[i] = MIN2(n, 1 + hc->up_ext[i+1]);
+        } else
+          break;
+      }
+    }
+
+    if(hc->matrix[idx[1]+1] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
+      hc->up_hp[n+1] = hc->up_hp[1];
+      for(i = n; i > 0; i--){
+        if(hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
+          hc->up_hp[i] = MIN2(n, 1 + hc->up_hp[i+1]);
+        } else
+          break;
+      }
+    }
+
+    if(hc->matrix[idx[1]+1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
+      hc->up_int[n+1] = hc->up_int[1];
+      for(i = n; i > 0; i--){
+        if(hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
+          hc->up_int[i] = MIN2(n, 1 + hc->up_int[i+1]);
+        } else
+          break;
+      }
+    }
+
+    if(hc->matrix[idx[1]+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+      hc->up_ml[n+1] = hc->up_ml[1];
+      for(i = n; i > 0; i--){
+        if(hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+          hc->up_ml[i] = MIN2(n, 1 + hc->up_ml[i+1]);
+        } else
+          break;
+      }
     }
   }
-
-  if(hc->matrix[idx[1]+1] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
-    hc->up_hp[n+1] = hc->up_hp[1];
-    for(i = n; i > 0; i--){
-      if(hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
-        hc->up_hp[i] = MIN2(n, 1 + hc->up_hp[i+1]);
-      } else
-        break;
-    }
-  }
-
-  if(hc->matrix[idx[1]+1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
-    hc->up_int[n+1] = hc->up_int[1];
-    for(i = n; i > 0; i--){
-      if(hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
-        hc->up_int[i] = MIN2(n, 1 + hc->up_int[i+1]);
-      } else
-        break;
-    }
-  }
-
-  if(hc->matrix[idx[1]+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
-    hc->up_ml[n+1] = hc->up_ml[1];
-    for(i = n; i > 0; i--){
-      if(hc->matrix[idx[i]+i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
-        hc->up_ml[i] = MIN2(n, 1 + hc->up_ml[i+1]);
-      } else
-        break;
-    }
-  }
-
 }
 
 #ifdef  VRNA_BACKWARD_COMPAT

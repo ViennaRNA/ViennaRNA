@@ -564,35 +564,44 @@ fill_arrays(vrna_fold_compound_t            *vc,
     {
       char *ss = NULL;
 
+      f3[i] = INF;
+
       /* first case: i stays unpaired */
-      f3[i] = f3[i + 1];
+      if (hc->up_ext[i] > 0)
+        f3[i] = f3[i + 1];
 
       /* next all cases where i is paired */
       switch (dangle_model) {
         /* dont use dangling end and mismatch contributions at all */
         case 0:
           for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
-            if (with_gquad)
-              f3[i] = MIN2(f3[i], f3[j + 1] + ggg[i][j - i]);
-
+            if ((with_gquad) && (f3[j + 1] != INF) && (ggg[i][j - i] != INF)) {
+                energy = f3[j + 1] + ggg[i][j - i];
+                f3[i] = MIN2(f3[i], energy);
+            }
             if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-              type = ptype[i][j - i];
-              if (type == 0)
-                type = 7;
-              f3[i] = MIN2(f3[i], f3[j + 1] + c[i][j - i] + E_ExtLoop(type, -1, -1, P));
+              if ((f3[j + 1] != INF) && (c[i][j - i] != INF)) {
+                type = ptype[i][j - i];
+                if (type == 0)
+                  type = 7;
+                energy = f3[j + 1] + c[i][j - i] + E_ExtLoop(type, -1, -1, P);
+                f3[i] = MIN2(f3[i], energy);
+              }
             }
           }
           if (length <= i + maxdist) {
             j = length;
 
-            if (with_gquad)
+            if (with_gquad && (ggg[i][j - i] != INF))
               f3[i] = MIN2(f3[i], ggg[i][j - i]);
 
             if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-              type = ptype[i][j - i];
-              if (type == 0)
-                type = 7;
-              f3[i] = MIN2(f3[i], c[i][j - i] + E_ExtLoop(type, -1, -1, P));
+              if (c[i][j - i] != INF) {
+                type = ptype[i][j - i];
+                if (type == 0)
+                  type = 7;
+                f3[i] = MIN2(f3[i], c[i][j - i] + E_ExtLoop(type, -1, -1, P));
+              }
             }
           }
 
@@ -600,30 +609,35 @@ fill_arrays(vrna_fold_compound_t            *vc,
         /* always use dangle_model on both sides */
         case 2:
           for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
-            if ((with_gquad) && (ggg[i][j - i] != INF))
-              f3[i] = MIN2(f3[i], f3[j + 1] + ggg[i][j - i]);
+            if ((with_gquad) && (ggg[i][j - i] != INF) && (f3[j + 1] != INF)) {
+              energy = f3[j + 1] + ggg[i][j - i];
+              f3[i] = MIN2(f3[i], energy);
+            }
 
             if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-              type = ptype[i][j - i];
-              if (type == 0)
-                type = 7;
-              f3[i] =
-                MIN2(f3[i],
-                     f3[j + 1] + c[i][j - i] +
-                     E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, S1[j + 1], P));
+              if ((f3[j + 1] != INF) && (c[i][j - i] != INF)) {
+                type = ptype[i][j - i];
+                if (type == 0)
+                  type = 7;
+                energy = f3[j + 1] + c[i][j - i] + E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, S1[j + 1], P);
+                f3[i] = MIN2(f3[i], energy);
+              }
             }
           }
           if (length <= i + maxdist) {
             j = length;
 
-            if (with_gquad)
+            if (with_gquad && (ggg[i][j - i] != INF))
               f3[i] = MIN2(f3[i], ggg[i][j - i]);
 
             if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-              type = ptype[i][j - i];
-              if (type == 0)
-                type = 7;
-              f3[i] = MIN2(f3[i], c[i][j - i] + E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, -1, P));
+              if (c[i][j - i] != INF) {
+                type = ptype[i][j - i];
+                if (type == 0)
+                  type = 7;
+                energy = c[i][j - i] + E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, -1, P);
+                f3[i] = MIN2(f3[i], energy);
+              }
             }
           }
 
@@ -632,55 +646,80 @@ fill_arrays(vrna_fold_compound_t            *vc,
         default:
           for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
 
-            if (with_gquad)
-              f3[i] = MIN2(f3[i], f3[j + 1] + ggg[i][j - i]);
+            if (with_gquad && (f3[j + 1] != INF) && (ggg[i][j - i] != INF)) {
+              energy = f3[j + 1] + ggg[i][j - i];
+              f3[i] = MIN2(f3[i], energy);
+            }
 
             if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
               type = ptype[i][j - i];
               if (type == 0)
                 type = 7;
-              f3[i] = MIN2(f3[i], f3[j + 1] + c[i][j - i] + E_ExtLoop(type, -1, -1, P));
-              f3[i] =
-                MIN2(f3[i],
-                     ((j + 2 <=
-                       length) ? f3[j + 2] : 0) + c[i][j - i] + E_ExtLoop(type, -1, S1[j + 1], P));
+              if ((f3[j + 1] != INF) && (c[i][j - i] != INF)) {
+                energy = f3[j + 1] + c[i][j - i] + E_ExtLoop(type, -1, -1, P);
+                f3[i] = MIN2(f3[i], energy);
+              }
+              if ((hc->up_ext[j + 1] > 0) && (c[i][j - i] != INF)) {
+                energy = c[i][j - i] + E_ExtLoop(type, -1, S1[j + 1], P);
+                if (j + 2 <= length) {
+                  if (f3[j + 2] != INF)
+                    energy += f3[j + 2];
+                  else
+                    energy = INF;
+                }
+                f3[i] = MIN2(f3[i], energy);
+              }
             }
 
             if (hc->matrix_local[i + 1][j - i - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
               type = ptype[i + 1][j - i - 1];
               if (type == 0)
                 type = 7;
-              f3[i] = MIN2(f3[i], f3[j + 1] + c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], -1, P));
-              f3[i] = MIN2(f3[i],
-                           ((j + 1 <
-                             length) ? f3[j + 2] : 0) + c[i + 1][j - i - 1] +
-                           E_ExtLoop(type, S1[i], S1[j + 1], P));
+              if ((hc->up_ext[i] > 0) && (c[i + 1][j - i - 1] != INF) && (f3[j + 1] != INF)) {
+                energy = f3[j + 1] + c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], -1, P);
+                f3[i] = MIN2(f3[i], energy);
+              }
+              if ((hc->up_ext[i] > 0) && (c[i + 1][j - i - 1] != INF)) {
+                energy = c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], S1[j + 1], P);
+                if (j + 1 < length) {
+                  if ((hc->up_ext[j + 1] > 0) && (f3[j + 2] != INF))
+                    energy += f3[j + 2];
+                  else
+                    energy = INF;
+                }
+                f3[i] = MIN2(f3[i], energy);
+              }
             }
           }
           if (length <= i + maxdist) {
             j = length;
 
-            if (with_gquad)
+            if (with_gquad && (ggg[i][j - i] != INF))
               f3[i] = MIN2(f3[i], ggg[i][j - i]);
 
             if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-              type = ptype[i][j - i];
-              if (type == 0)
-                type = 7;
-              f3[i] = MIN2(f3[i], c[i][j - i] + E_ExtLoop(type, -1, -1, P));
+              if (c[i][j - i] != INF) {
+                type = ptype[i][j - i];
+                if (type == 0)
+                  type = 7;
+                energy = c[i][j - i] + E_ExtLoop(type, -1, -1, P);
+                f3[i] = MIN2(f3[i], energy);
+              }
             }
 
             if (hc->matrix_local[i + 1][j - i - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-              type = ptype[i + 1][j - i - 1];
-              if (type == 0)
-                type = 7;
-              f3[i] = MIN2(f3[i], c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], -1, P));
+              if ((hc->up_ext[i] > 0) && (c[i + 1][j - i - 1] != INF)) {
+                type = ptype[i + 1][j - i - 1];
+                if (type == 0)
+                  type = 7;
+                energy = c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], -1, P);
+                f3[i] = MIN2(f3[i], energy);
+              }
             }
           }
 
           break;
       } /* switch(dangle_model)... */
-
       /* backtrack partial structure */
       if (f3[i] < f3[i + 1]) {
         do_backtrack = 1;
@@ -698,10 +737,12 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
         /*get pairpartner*/
         for (pairpartner = lind + turn; pairpartner <= lind + maxdist; pairpartner++) {
-          type = ptype[lind][pairpartner - lind];
           switch (dangle_model) {
             case 0:
-              if (type) {
+              if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+                type = ptype[lind][pairpartner - lind];
+                if (type == 0)
+                  type = 7;
                 cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
                 if (fij == cc + f3[pairpartner + 1])
                   traced2 = 1;
@@ -713,7 +754,10 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
               break;
             case 2:
-              if (type) {
+              if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+                type = ptype[lind][pairpartner - lind];
+                if (type == 0)
+                  type = 7;
                 cc = c[lind][pairpartner - lind] +
                      E_ExtLoop(type, (lind > 1) ? S1[lind - 1] : -1,
                                (pairpartner < length) ? S1[pairpartner + 1] : -1, P);
@@ -727,7 +771,10 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
               break;
             default:
-              if (type) {
+              if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+                type = ptype[lind][pairpartner - lind];
+                if (type == 0)
+                  type = 7;
                 cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
                 if (fij == cc + f3[pairpartner + 1]) {
                   traced2 = 1;
@@ -745,8 +792,10 @@ fill_arrays(vrna_fold_compound_t            *vc,
                   traced2 = 1;
               }
 
-              type = ptype[lind + 1][pairpartner - lind - 1];
-              if (type) {
+              if (hc->matrix_local[lind + 1][pairpartner - lind - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+                type = ptype[lind + 1][pairpartner - lind - 1];
+                if (type == 0)
+                  type = 7;
                 cc = c[lind + 1][pairpartner - (lind + 1)] + E_ExtLoop(type, S1[lind], -1, P);
                 if (fij == cc + f3[pairpartner + 1]) {
                   traced2 = 1;
@@ -865,10 +914,10 @@ fill_arrays(vrna_fold_compound_t            *vc,
             lind++;
           /*get pairpartner*/
           for (pairpartner = lind + turn; pairpartner <= lind + maxdist; pairpartner++) {
-            type = ptype[lind][pairpartner - lind];
             switch (dangle_model) {
               case 0:
-                if (type) {
+                if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+                  type = ptype[lind][pairpartner - lind];
                   cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
                   if (fij == cc + f3[pairpartner + 1])
                     traced2 = 1;
@@ -880,7 +929,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
                 break;
               case 2:
-                if (type) {
+                if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+                  type = ptype[lind][pairpartner - lind];
                   cc = c[lind][pairpartner - lind] + E_ExtLoop(type,
                                                                (lind > 1) ? S1[lind - 1] : -1,
                                                                (pairpartner <
@@ -896,7 +946,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
                 break;
               default:
-                if (type) {
+                if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+                  type = ptype[lind][pairpartner - lind];
                   cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
                   if (fij == cc + f3[pairpartner + 1]) {
                     traced2 = 1;
@@ -914,8 +965,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
                     traced2 = 1;
                 }
 
-                type = ptype[lind + 1][pairpartner - lind - 1];
-                if (type) {
+                if (hc->matrix_local[lind + 1][pairpartner - lind - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+                  type = ptype[lind + 1][pairpartner - lind - 1];
                   cc = c[lind + 1][pairpartner - (lind + 1)] + E_ExtLoop(type, S1[lind], -1, P);
                   if (fij == cc + f3[pairpartner + 1]) {
                     traced2 = 1;
@@ -1080,12 +1131,14 @@ backtrack(vrna_fold_compound_t  *vc,
   short         *S, *S1;
   vrna_param_t  *P;
   vrna_md_t     *md;
+  vrna_hc_t     *hc;
 
   string        = vc->sequence;
   length        = vc->length;
   S             = vc->sequence_encoding2;
   S1            = vc->sequence_encoding;
   ptype         = vc->ptype_local;
+  hc            = vc->hc;
   P             = vc->params;
   md            = &(P->model_details);
   dangle_model  = md->dangles;
@@ -1153,8 +1206,10 @@ backtrack(vrna_fold_compound_t  *vc,
             }
 
             jj    = k + 1;
-            type  = ptype[i][k - i];
-            if (type) {
+            if (hc->matrix_local[i][k - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              type  = ptype[i][k - i];
+              if (type == 0)
+                type = 7;
               if (fij == c[i][k - i] + E_ExtLoop(type, -1, -1, P) + f3[k + 1]) {
                 traced = i;
                 break;
@@ -1175,8 +1230,10 @@ backtrack(vrna_fold_compound_t  *vc,
             }
 
             jj    = k + 1;
-            type  = ptype[i][k - i];
-            if (type) {
+            if (hc->matrix_local[i][k - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              type  = ptype[i][k - i];
+              if (type == 0)
+                type = 7;
               if (fij ==
                   c[i][k - i] +
                   E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, (k < length) ? S1[k + 1] : -1,
@@ -1200,26 +1257,32 @@ backtrack(vrna_fold_compound_t  *vc,
             }
 
             jj    = k + 1;
-            type  = ptype[i + 1][k - (i + 1)];
-            if (type) {
-              if (fij == c[i + 1][k - (i + 1)] + E_ExtLoop(type, S1[i], -1, P) + f3[k + 1])
-                traced = i + 1;
+            if (hc->matrix_local[i + 1][k - i - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              if (hc->up_ext[i] > 0) {
+                type  = ptype[i + 1][k - (i + 1)];
+                if (type == 0)
+                  type = 7;
+                if (fij == c[i + 1][k - (i + 1)] + E_ExtLoop(type, S1[i], -1, P) + f3[k + 1])
+                  traced = i + 1;
 
-              if (k < length) {
-                if (fij ==
-                    c[i + 1][k - (i + 1)] + E_ExtLoop(type, S1[i], S1[k + 1], P) + f3[k + 2]) {
-                  traced  = i + 1;
-                  jj      = k + 2;
+                if ((k < length) && (hc->up_ext[k + 1] > 0)) {
+                  if (fij ==
+                      c[i + 1][k - (i + 1)] + E_ExtLoop(type, S1[i], S1[k + 1], P) + f3[k + 2]) {
+                    traced  = i + 1;
+                    jj      = k + 2;
+                  }
                 }
               }
             }
 
-            type = ptype[i][k - i];
-            if (type) {
+            if (hc->matrix_local[i][k - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              type = ptype[i][k - i];
+              if (type == 0)
+                type = 7;
               if (fij == c[i][k - i] + E_ExtLoop(type, -1, -1, P) + f3[k + 1])
                 traced = i;
 
-              if (k < length) {
+              if ((k < length) && (hc->up_ext[k + 1] > 0)) {
                 if (fij == c[i][k - i] + E_ExtLoop(type, -1, S1[k + 1], P) + f3[k + 2]) {
                   traced  = i;
                   jj      = k + 2;
@@ -1258,20 +1321,24 @@ backtrack(vrna_fold_compound_t  *vc,
       goto repeat1;
     } else {
       /* trace back in fML array */
-      if (fML[i][j - 1 - i] + P->MLbase == fij) {
-        /* 3' end is unpaired */
-        sector[++s].i = i;
-        sector[s].j   = j - 1;
-        sector[s].ml  = ml;
-        continue;
+      if (hc->up_ml[j] > 0) {
+        if (fML[i][j - 1 - i] + P->MLbase == fij) {
+          /* 3' end is unpaired */
+          sector[++s].i = i;
+          sector[s].j   = j - 1;
+          sector[s].ml  = ml;
+          continue;
+        }
       }
 
-      if (fML[i + 1][j - (i + 1)] + P->MLbase == fij) {
-        /* 5' end is unpaired */
-        sector[++s].i = i + 1;
-        sector[s].j   = j;
-        sector[s].ml  = ml;
-        continue;
+      if (hc->up_ml[i] > 0) {
+        if (fML[i + 1][j - (i + 1)] + P->MLbase == fij) {
+          /* 5' end is unpaired */
+          sector[++s].i = i + 1;
+          sector[s].j   = j;
+          sector[s].ml  = ml;
+          continue;
+        }
       }
 
       if (with_gquad) {
@@ -1282,54 +1349,83 @@ backtrack(vrna_fold_compound_t  *vc,
 
       switch (dangle_model) {
         case 0:
-          tt = ptype[i][j - i];
-          if (fij == c[i][j - i] + E_MLstem(tt, -1, -1, P)) {
-            structure[i - start]  = '(';
-            structure[j - start]  = ')';
-            goto repeat1;
+          if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+            tt = ptype[i][j - i];
+            if (tt == 0)
+              tt = 7;
+            if (fij == c[i][j - i] + E_MLstem(tt, -1, -1, P)) {
+              structure[i - start]  = '(';
+              structure[j - start]  = ')';
+              goto repeat1;
+            }
           }
-
           break;
+
         case 2:
-          tt = ptype[i][j - i];
-          if (fij ==
-              c[i][j - i] +
-              E_MLstem(tt, (i > 1) ? S1[i - 1] : -1, (j < length) ? S1[j + 1] : -1, P)) {
-            structure[i - start]  = '(';
-            structure[j - start]  = ')';
-            goto repeat1;
+          if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+            tt = ptype[i][j - i];
+            if (tt == 0)
+              tt = 7;
+            if (fij ==
+                c[i][j - i] +
+                E_MLstem(tt, (i > 1) ? S1[i - 1] : -1, (j < length) ? S1[j + 1] : -1, P)) {
+              structure[i - start]  = '(';
+              structure[j - start]  = ')';
+              goto repeat1;
+            }
           }
-
           break;
+
         default:
-          tt = ptype[i][j - i];
-          if (fij == c[i][j - i] + E_MLstem(tt, -1, -1, P)) {
-            structure[i - start]  = '(';
-            structure[j - start]  = ')';
-            goto repeat1;
+          if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+            tt = ptype[i][j - i];
+            if (tt == 0)
+              tt = 7;
+            if (fij == c[i][j - i] + E_MLstem(tt, -1, -1, P)) {
+              structure[i - start]  = '(';
+              structure[j - start]  = ')';
+              goto repeat1;
+            }
           }
 
-          tt = ptype[i + 1][j - (i + 1)];
-          if (fij == c[i + 1][j - (i + 1)] + E_MLstem(tt, S1[i], -1, P) + P->MLbase) {
-            structure[++i - start]  = '(';
-            structure[j - start]    = ')';
-            goto repeat1;
+          if (hc->matrix_local[i + 1][j - (i + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+            if (hc->up_ml[i] > 0) {
+              tt = ptype[i + 1][j - (i + 1)];
+              if (tt == 0)
+                tt = 7;
+              if (fij == c[i + 1][j - (i + 1)] + E_MLstem(tt, S1[i], -1, P) + P->MLbase) {
+                structure[++i - start]  = '(';
+                structure[j - start]    = ')';
+                goto repeat1;
+              }
+            }
           }
 
-          tt = ptype[i][j - 1 - i];
-          if (fij == c[i][j - 1 - i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase) {
-            structure[i - start]    = '(';
-            structure[--j - start]  = ')';
-            goto repeat1;
+          if (hc->matrix_local[i][j - 1 - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+            if (hc->up_ml[j] > 0) {
+              tt = ptype[i][j - 1 - i];
+              if (tt == 0)
+                tt = 7;
+              if (fij == c[i][j - 1 - i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase) {
+                structure[i - start]    = '(';
+                structure[--j - start]  = ')';
+                goto repeat1;
+              }
+            }
           }
 
-          tt = ptype[i + 1][j - 1 - (i + 1)];
-          if (fij == c[i + 1][j - 1 - (i + 1)] + E_MLstem(tt, S1[i], S1[j], P) + 2 * P->MLbase) {
-            structure[++i - start]  = '(';
-            structure[--j - start]  = ')';
-            goto repeat1;
+          if (hc->matrix_local[i + 1][j - 1 - (i + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+            if ((hc->up_ml[i]) && (hc->up_ml[j])) {
+              tt = ptype[i + 1][j - 1 - (i + 1)];
+              if (tt == 0)
+                tt = 7;
+              if (fij == c[i + 1][j - 1 - (i + 1)] + E_MLstem(tt, S1[i], S1[j], P) + 2 * P->MLbase) {
+                structure[++i - start]  = '(';
+                structure[--j - start]  = ')';
+                goto repeat1;
+              }
+            }
           }
-
           break;
       } /* switch(dangle_model)... */
 
@@ -1373,7 +1469,8 @@ repeat1:
       cij = c[i][j - i];
 
     type = ptype[i][j - i];
-
+    if (type == 0)
+      type = 7;
 
     if (noLP) {
       if (cij == c[i][j - i]) {
@@ -1411,30 +1508,31 @@ repeat1:
         minq = p + 1 + turn;
 
       for (q = j - 1; q >= minq; q--) {
-        type_2 = ptype[p][q - p];
-        if (type_2 == 0)
-          continue;
+        if (hc->matrix_local[p][q - p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
+          type_2 = ptype[p][q - p];
+          if (type_2 == 0)
+            type_2 = 7;
+          type_2 = rtype[type_2];
+          if (noGUclosure)
+            if (no_close || (type_2 == 3) || (type_2 == 4))
+              if ((p > i + 1) || (q < j - 1))
+                continue;
 
-        type_2 = rtype[type_2];
-        if (noGUclosure)
-          if (no_close || (type_2 == 3) || (type_2 == 4))
-            if ((p > i + 1) || (q < j - 1))
-              continue;
+          /* continue unless stack */
 
-        /* continue unless stack */
+          /* energy = oldLoopEnergy(i, j, p, q, type, type_2); */
+          energy =
+            E_IntLoop(p - i - 1, j - q - 1, type, type_2, S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1],
+                      P);
 
-        /* energy = oldLoopEnergy(i, j, p, q, type, type_2); */
-        energy =
-          E_IntLoop(p - i - 1, j - q - 1, type, type_2, S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1],
-                    P);
-
-        new     = energy + c[p][q - p];
-        traced  = (cij == new);
-        if (traced) {
-          structure[p - start]  = '(';
-          structure[q - start]  = ')';
-          i                     = p, j = q;
-          goto repeat1;
+          new     = energy + c[p][q - p];
+          traced  = (cij == new);
+          if (traced) {
+            structure[p - start]  = '(';
+            structure[q - start]  = ')';
+            i                     = p, j = q;
+            goto repeat1;
+          }
         }
       }
     }

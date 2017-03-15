@@ -286,6 +286,12 @@ typedef enum {
                      */
 } vrna_hc_type_e;
 
+typedef struct {
+  int   interval_start;
+  int   interval_end;
+  char  loop_type;
+} vrna_hc_bp_storage_t;
+
 /**
  *  @brief  The hard constraints data structure
  *
@@ -312,6 +318,7 @@ typedef enum {
  */
 struct vrna_hc_s {
   vrna_hc_type_e  type;
+  unsigned int    n;
 
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
@@ -326,7 +333,9 @@ struct vrna_hc_s {
     };
     struct {
 #endif
-  char    **matrix_local;
+  char                  **matrix_local;
+  char                  *up_storage;
+  vrna_hc_bp_storage_t  **bp_storage;
 #ifndef VRNA_DISABLE_C11_FEATURES
       /* C11 support for unnamed unions/structs */
     };

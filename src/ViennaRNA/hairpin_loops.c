@@ -959,8 +959,8 @@ hc_default_window(int  i,
 
   if (dat->mx_window[i][j - i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
     eval = (char)1;
-//    if (dat->hc_up[i + 1] < u)
-//      eval = (char)0;
+    if (dat->hc_up[i + 1] < u)
+      eval = (char)0;
   }
 
   return eval;
