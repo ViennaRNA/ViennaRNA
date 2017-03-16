@@ -515,7 +515,7 @@ main(int  argc,
 
         /*output of the 5 dot plots*/
 
-        if ((do_backtrack) && (filename_dot)) {
+        if ((!noPS) && (do_backtrack) && (filename_dot)) {
           char  *comment    = NULL;
           char  *fname_dot  = NULL;
           /*AB dot_plot*/
