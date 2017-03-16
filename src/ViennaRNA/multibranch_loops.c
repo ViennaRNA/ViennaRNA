@@ -104,7 +104,13 @@ extend_fm_3p_window(int                  i,
   hc_dat_local.hc_up      = hc->up_ml;
   hc_dat_local.cp         = vc->cutpoint;
 
-  evaluate = &hc_default_window;
+  if (hc->f) {
+    evaluate            = &hc_default_user_window;
+    hc_dat_local.hc_f   = hc->f;
+    hc_dat_local.hc_dat = hc->data;
+  } else {
+    evaluate = &hc_default_window;
+  }
 
   if (sn[i - 1] == sn[i]) {
     if (sn[j] == sn[j + 1]) {
@@ -241,6 +247,15 @@ hc_default_window(int  i,
 
 PRIVATE char
 hc_default_user(int   i,
+                int   j,
+                int   k,
+                int   l,
+                char  d,
+                void  *data);
+
+
+PRIVATE char
+hc_default_user_window(int   i,
                 int   j,
                 int   k,
                 int   l,
@@ -459,7 +474,13 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
   hc_dat_local.cp     = vc->cutpoint;
 
   if (hc->type == VRNA_HC_WINDOW) {
-    evaluate = &hc_default_window;
+    if (hc->f) {
+      evaluate            = &hc_default_user_window;
+      hc_dat_local.hc_f   = hc->f;
+      hc_dat_local.hc_dat = hc->data;
+    } else {
+      evaluate = &hc_default_window;
+    }
     S_i1  = S[i + 1];
     S_j1  = S[j - 1];
 
@@ -779,7 +800,13 @@ E_mb_loop_stack(int                   i,
 
     c     = vc->matrices->c_local;
     fML   = vc->matrices->fML_local;
-    evaluate = &hc_default_window;
+    if (hc->f) {
+      evaluate            = &hc_default_user_window;
+      hc_dat_local.hc_f   = hc->f;
+      hc_dat_local.hc_dat = hc->data;
+    } else {
+      evaluate = &hc_default_window;
+    }
 
     if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
       ptype = vc->ptype_local;
@@ -1439,7 +1466,14 @@ E_ml_stems_fast_window(vrna_fold_compound_t  *vc,
   hc_dat_local.hc_up      = hc->up_ml;
   hc_dat_local.cp         = vc->cutpoint;
 
-  evaluate = &hc_default_window;
+  if (hc->f) {
+    evaluate            = &hc_default_user_window;
+    hc_dat_local.hc_f   = hc->f;
+    hc_dat_local.hc_dat = hc->data;
+  } else {
+    evaluate = &hc_default_window;
+  }
+
 
   /*
    *  extension with one unpaired nucleotide at the right (3' site)
@@ -3598,6 +3632,24 @@ hc_default_user(int   i,
   struct default_data *dat = (struct default_data *)data;
 
   eval  = hc_default(i, j, k, l, d, data);
+  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (char)0;
+
+  return eval;
+}
+
+
+PRIVATE char
+hc_default_user_window(int   i,
+                int   j,
+                int   k,
+                int   l,
+                char  d,
+                void  *data)
+{
+  char                eval;
+  struct default_data *dat = (struct default_data *)data;
+
+  eval  = hc_default_window(i, j, k, l, d, data);
   eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (char)0;
 
   return eval;

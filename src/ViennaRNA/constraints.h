@@ -314,6 +314,7 @@
  */
 #define VRNA_DECOMP_EXT_EXT_STEM1 19
 
+#define VRNA_DECOMP_EXT_STEM_EXT1 22
 
 #define VRNA_DECOMP_EXT_L         20
 

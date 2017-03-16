@@ -427,13 +427,15 @@ E_int_loop_window(vrna_fold_compound_t *vc,
            int                  i,
            int                  j)
 {
-  char  **ptype, hc_decompose;
+  char  **ptype, hc_decompose, eval_loop;
   short *S1;
   int e, p, q, minq, turn, noGUclosure, type, type_2, no_close, energy, *rtype, **c, **ggg, with_gquad;
   
   vrna_param_t  *P;
   vrna_md_t *md;
   vrna_hc_t *hc;
+  vrna_callback_hc_evaluate *evaluate;
+  struct default_data       hc_dat_local;
 
   e = INF;
   S1  = vc->sequence_encoding;
@@ -449,6 +451,14 @@ E_int_loop_window(vrna_fold_compound_t *vc,
   noGUclosure = md->noGUclosure;
   hc_decompose  = hc->matrix_local[i][j - i];
   rtype = &(md->rtype[0]);
+
+  if (vc->hc->f) {
+    evaluate            = &hc_default_user;
+    hc_dat_local.hc_f   = vc->hc->f;
+    hc_dat_local.hc_dat = vc->hc->data;
+  } else {
+    evaluate = &hc_default;
+  }
 
   if (type == 0)
     type = 7;
@@ -466,7 +476,7 @@ E_int_loop_window(vrna_fold_compound_t *vc,
 
     for (p = i + 1; p <= maxp; p++) {
       char  *hc_p, *ptype_p;
-      int   *c_p;
+      int   *c_p, *up_int;
       int   u1, u2;
 
       u1 = p - i - 1;
@@ -476,6 +486,7 @@ E_int_loop_window(vrna_fold_compound_t *vc,
       hc_p    -= p;
       c_p = c[p];
       c_p    -= p;
+      up_int = hc->up_int;
 
       minq = j - i + p - MAXLOOP - 2;
       tmp = p + 1 + turn;
@@ -485,11 +496,16 @@ E_int_loop_window(vrna_fold_compound_t *vc,
       hc_p    += j - 1;
       ptype_p += j - 1;
       c_p     += j - 1;
-      for (u2 = 0, q = j - 1; q >= minq; q--, hc_p--, ptype_p--, c_p--, u2++) {
-        if (hc->up_int[q + 1] < u2)
+      up_int  += j;
+      for (u2 = 0, q = j - 1; q >= minq; q--, hc_p--, ptype_p--, c_p--, u2++, up_int--) {
+        if (*up_int < u2)
           break;
 
-        if (*hc_p & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
+        eval_loop = *hc_p & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
+        if (hc->f)
+          eval_loop = eval_loop && hc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, hc->data);
+        /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
+        if (eval_loop) {
           energy = *c_p;
 
           if (energy < INF) {
@@ -1648,6 +1664,13 @@ E_stack_window(vrna_fold_compound_t *vc,
   rtype             = &(md->rtype[0]);
   hard_constraints  = vc->hc->matrix_local;
 
+  if (vc->hc->f) {
+    evaluate            = &hc_default_user;
+    hc_dat_local.hc_f   = vc->hc->f;
+    hc_dat_local.hc_dat = vc->hc->data;
+  } else {
+    evaluate = &hc_default;
+  }
 
   e         = INF;
   p         = i + 1;
@@ -1657,7 +1680,7 @@ E_stack_window(vrna_fold_compound_t *vc,
   if ((j - i - 1) < 2)
     return e;
 
-  if (eval_loop) {
+  if (eval_loop && evaluate(i, j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
     S       = vc->sequence_encoding;
     ptype   = vc->ptype_local;
     type    = ptype[i][j - i];

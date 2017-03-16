@@ -75,6 +75,15 @@ hc_default_user(int   i,
                 void  *data);
 
 
+PRIVATE char
+hc_default_user_window(int   i,
+                int   j,
+                int   k,
+                int   l,
+                char  d,
+                void  *data);
+
+
 PRIVATE int
 eval_hp_loop_fake(vrna_fold_compound_t  *vc,
                   int                   i,
@@ -116,7 +125,13 @@ vrna_E_hp_loop(vrna_fold_compound_t *vc,
   hc_dat_local.cp     = vc->cutpoint;
 
   if (vc->hc->type == VRNA_HC_WINDOW) {
-    evaluate = &hc_default_window;
+    if (vc->hc->f) {
+      evaluate            = &hc_default_user_window;
+      hc_dat_local.hc_f   = vc->hc->f;
+      hc_dat_local.hc_dat = vc->hc->data;
+    } else {
+      evaluate = &hc_default_window;
+    }
   } else {
     if (vc->hc->f) {
       evaluate            = &hc_default_user;
@@ -979,6 +994,24 @@ hc_default_user(int   i,
   struct default_data *dat = (struct default_data *)data;
 
   eval  = hc_default(i, j, k, l, d, data);
+  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (char)0;
+
+  return eval;
+}
+
+
+PRIVATE char
+hc_default_user_window(int   i,
+                int   j,
+                int   k,
+                int   l,
+                char  d,
+                void  *data)
+{
+  char                eval;
+  struct default_data *dat = (struct default_data *)data;
+
+  eval  = hc_default_window(i, j, k, l, d, data);
   eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (char)0;
 
   return eval;
