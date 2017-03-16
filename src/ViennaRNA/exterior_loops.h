@@ -151,6 +151,15 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t *vc,
                     vrna_bp_stack_t *bp_stack,
                     int *stack_count);
 
+int
+vrna_BT_ext_loop_f3(vrna_fold_compound_t  *vc,
+                    int                   *k,
+                    int                   maxdist,
+                    int                   *i,
+                    int                   *j,
+                    vrna_bp_stack_t       *bp_stack,
+                    int                   *stack_count);
+
 
 vrna_mx_pf_aux_el_t *
 vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc);

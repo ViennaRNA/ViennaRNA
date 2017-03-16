@@ -958,7 +958,6 @@ fill_arrays(vrna_fold_compound_t            *vc,
   return f3[1];
 }
 
-
 PRIVATE char *
 backtrack(vrna_fold_compound_t  *vc,
           int                   start,
@@ -970,7 +969,7 @@ backtrack(vrna_fold_compound_t  *vc,
    *  This is fast, since only few structure elements are recalculated.
    *  ------------------------------------------------------------------*/
   sect          sector[MAXSECTORS];   /* backtracking sectors */
-  int           i, j, k, length, energy, new, no_close, type, type_2, tt, s = 0;
+  int           i, j, k, length, energy, new, no_close, type, type_2, tt, s, b;
   int           with_gquad, bt_type, turn, dangle_model, noLP, noGUclosure, *rtype;
   int           **c, **fML, *f3, **ggg;
   char          *string, *structure, **ptype;
@@ -978,6 +977,9 @@ backtrack(vrna_fold_compound_t  *vc,
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
+  vrna_bp_stack_t *bp_stack;
+  sect bt_stack[MAXSECTORS];
+
 
   string        = vc->sequence;
   length        = vc->length;
@@ -995,12 +997,15 @@ backtrack(vrna_fold_compound_t  *vc,
   turn          = md->min_loop_size;
   rtype         = &(md->rtype[0]);
 
+  s         = 0;  /* depth of backtracking stack */
+  b         = 0;  /* number of base pairs */
+  bp_stack  = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+
   c   = vc->matrices->c_local;
   fML = vc->matrices->fML_local;
   f3  = vc->matrices->f3_local;
   ggg = vc->matrices->ggg_local;
 
-  /* length = strlen(string); */
   sector[++s].i = start;
   sector[s].j   = MIN2(length, maxdist + 1);
   sector[s].ml  = (bt_type == 'M') ? 1 : ((bt_type == 'C') ? 2 : 0);
@@ -1012,302 +1017,195 @@ backtrack(vrna_fold_compound_t  *vc,
   while (s > 0) {
     int ml, fij, cij, traced, i1, j1, mm, mm5, mm3, mm53, p, q, jj = 0, gq = 0;
     int canonical = 1;     /* (i,j) closes a canonical structure */
+
+    /* pop one element from stack */
     i   = sector[s].i;
     j   = sector[s].j;
     ml  = sector[s--].ml;  /* ml is a flag indicating if backtracking is to
                            * occur in the fML- (1) or in the f-array (0) */
-    if (ml == 2) {
-      structure[i - start]  = '(';
-      structure[j - start]  = ')';
-      goto repeat1;
-    }
 
     if (j < i + turn + 1)
       continue;                     /* no more pairs in this interval */
 
-    fij = (ml) ? fML[i][j - i] : f3[i];
-
-    if (ml == 0) {
+    switch (ml) {
       /* backtrack in f3 */
-
-      if (fij == f3[i + 1]) {
-        sector[++s].i = i + 1;
-        sector[s].j   = j;
-        sector[s].ml  = ml;
-        continue;
-      }
-
-      /* i or i+1 is paired. Find pairing partner */
-      switch (dangle_model) {
-        case 0:
-          for (traced = 0, k = j; k > i + turn; k--) {
-            if (with_gquad) {
-              if (fij == ggg[i][k - i] + f3[k + 1]) {
-                /* found the decomposition */
-                traced  = i;
-                jj      = k + 1;
-                gq      = 1;
-                break;
-              }
+      case 0:
+        {
+          int p, q;
+          if(vrna_BT_ext_loop_f3(vc, &i, j, &p, &q, bp_stack, &b)){
+            if(i > 0){
+              sector[++s].i = i;
+              sector[s].j   = j;
+              sector[s].ml  = 0;
+            }
+            if(p > 0){
+              if (((i == q + 2) || (dangle_model == 2)) && (q < length))
+                structure[q + 1 - start] = '.';
+              i = p;
+              j = q;
+              goto repeat1;
             }
 
-            jj    = k + 1;
-            if (hc->matrix_local[i][k - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-              type  = ptype[i][k - i];
-              if (type == 0)
-                type = 7;
-              if (fij == c[i][k - i] + E_ExtLoop(type, -1, -1, P) + f3[k + 1]) {
-                traced = i;
-                break;
-              }
-            }
+            continue;
+          } else {
+            vrna_message_error("backtracking failed in f3 for sequence:\n%s\n", string);
           }
-          break;
-        case 2:
-          for (traced = 0, k = j; k > i + turn; k--) {
-            if (with_gquad) {
-              if (fij == ggg[i][k - i] + f3[k + 1]) {
-                /* found the decomposition */
-                traced  = i;
-                jj      = k + 1;
-                gq      = 1;
-                break;
+        }
+
+      /* backtrack in fML */
+      case 1:
+        fij = fML[i][j - i];
+        if (hc->up_ml[j] > 0) {
+          if (fML[i][j - 1 - i] + P->MLbase == fij) {
+            /* 3' end is unpaired */
+            sector[++s].i = i;
+            sector[s].j   = j - 1;
+            sector[s].ml  = ml;
+            continue;
+          }
+        }
+
+        if (hc->up_ml[i] > 0) {
+          if (fML[i + 1][j - (i + 1)] + P->MLbase == fij) {
+            /* 5' end is unpaired */
+            sector[++s].i = i + 1;
+            sector[s].j   = j;
+            sector[s].ml  = ml;
+            continue;
+          }
+        }
+
+        if (with_gquad) {
+          if (fij == ggg[i][j - i] + E_MLstem(0, -1, -1, P))
+            /* go to backtracing of quadruplex */
+            goto repeat_gquad;
+        }
+
+        switch (dangle_model) {
+          case 0:
+            if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+              tt = ptype[i][j - i];
+              if (tt == 0)
+                tt = 7;
+              if (fij == c[i][j - i] + E_MLstem(tt, -1, -1, P)) {
+                bp_stack[++b].i = i;
+                bp_stack[b].j   = j;
+                goto repeat1;
               }
             }
+            break;
 
-            jj    = k + 1;
-            if (hc->matrix_local[i][k - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-              type  = ptype[i][k - i];
-              if (type == 0)
-                type = 7;
+          case 2:
+            if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+              tt = ptype[i][j - i];
+              if (tt == 0)
+                tt = 7;
               if (fij ==
-                  c[i][k - i] +
-                  E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, (k < length) ? S1[k + 1] : -1,
-                            P) + f3[k + 1]) {
-                traced = i;
-                break;
+                  c[i][j - i] +
+                  E_MLstem(tt, (i > 1) ? S1[i - 1] : -1, (j < length) ? S1[j + 1] : -1, P)) {
+                bp_stack[++b].i = i;
+                bp_stack[b].j   = j;
+                goto repeat1;
               }
             }
-          }
-          break;
-        default:
-          for (traced = 0, k = j; k > i + turn; k--) {
-            if (with_gquad) {
-              if (fij == ggg[i][k - i] + f3[k + 1]) {
-                /* found the decomposition */
-                traced  = i;
-                jj      = k + 1;
-                gq      = 1;
-                break;
+            break;
+
+          default:
+            if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+              tt = ptype[i][j - i];
+              if (tt == 0)
+                tt = 7;
+              if (fij == c[i][j - i] + E_MLstem(tt, -1, -1, P)) {
+                bp_stack[++b].i = i;
+                bp_stack[b].j   = j;
+                goto repeat1;
               }
             }
 
-            jj    = k + 1;
-            if (hc->matrix_local[i + 1][k - i - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-              if (hc->up_ext[i] > 0) {
-                type  = ptype[i + 1][k - (i + 1)];
-                if (type == 0)
-                  type = 7;
-                if (fij == c[i + 1][k - (i + 1)] + E_ExtLoop(type, S1[i], -1, P) + f3[k + 1])
-                  traced = i + 1;
-
-                if ((k < length) && (hc->up_ext[k + 1] > 0)) {
-                  if (fij ==
-                      c[i + 1][k - (i + 1)] + E_ExtLoop(type, S1[i], S1[k + 1], P) + f3[k + 2]) {
-                    traced  = i + 1;
-                    jj      = k + 2;
-                  }
+            if (hc->matrix_local[i + 1][j - (i + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+              if (hc->up_ml[i] > 0) {
+                tt = ptype[i + 1][j - (i + 1)];
+                if (tt == 0)
+                  tt = 7;
+                if (fij == c[i + 1][j - (i + 1)] + E_MLstem(tt, S1[i], -1, P) + P->MLbase) {
+                  bp_stack[++b].i = ++i;
+                  bp_stack[b].j   = j;
+                  goto repeat1;
                 }
               }
             }
 
-            if (hc->matrix_local[i][k - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-              type = ptype[i][k - i];
-              if (type == 0)
-                type = 7;
-              if (fij == c[i][k - i] + E_ExtLoop(type, -1, -1, P) + f3[k + 1])
-                traced = i;
-
-              if ((k < length) && (hc->up_ext[k + 1] > 0)) {
-                if (fij == c[i][k - i] + E_ExtLoop(type, -1, S1[k + 1], P) + f3[k + 2]) {
-                  traced  = i;
-                  jj      = k + 2;
+            if (hc->matrix_local[i][j - 1 - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+              if (hc->up_ml[j] > 0) {
+                tt = ptype[i][j - 1 - i];
+                if (tt == 0)
+                  tt = 7;
+                if (fij == c[i][j - 1 - i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase) {
+                  bp_stack[++b].i = i;
+                  bp_stack[b].j   = --j;
+                  goto repeat1;
                 }
               }
             }
 
-            if (traced)
-              break;
+            if (hc->matrix_local[i + 1][j - 1 - (i + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+              if ((hc->up_ml[i]) && (hc->up_ml[j])) {
+                tt = ptype[i + 1][j - 1 - (i + 1)];
+                if (tt == 0)
+                  tt = 7;
+                if (fij == c[i + 1][j - 1 - (i + 1)] + E_MLstem(tt, S1[i], S1[j], P) + 2 * P->MLbase) {
+                  bp_stack[++b].i = ++i;
+                  bp_stack[b].j   = --j;
+                  goto repeat1;
+                }
+              }
+            }
+            break;
+        } /* switch(dangle_model)... */
+
+        /* modular decomposition */
+        for (k = i + 1 + turn; k <= j - 2 - turn; k++)
+          if (fij == (fML[i][k - i] + fML[k + 1][j - (k + 1)]))
+            break;
+
+        if ((dangle_model == 3) && (k > j - 2 - turn)) {
+          /* must be coax stack */
+          ml = 2;
+          for (k = i + 1 + turn; k <= j - 2 - turn; k++) {
+            type    = ptype[i][k - i];
+            type    = rtype[type];
+            type_2  = ptype[k + 1][j - (k + 1)];
+            type_2  = rtype[type_2];
+            if (type && type_2)
+              if (fij == c[i][k - i] + c[k + 1][j - (k + 1)] + P->stack[type][type_2] +
+                  2 * P->MLintern[1])
+                break;
           }
-          break;
-      } /* switch(dangle_model)...*/
+        }
 
-      if (!traced)
-        vrna_message_error("backtrack failed in f3");
-
-      if (j == length) {
-        /* backtrack only one component, unless j==length */
-        sector[++s].i = jj;
+        sector[++s].i = i;
+        sector[s].j   = k;
+        sector[s].ml  = ml;
+        sector[++s].i = k + 1;
         sector[s].j   = j;
         sector[s].ml  = ml;
-      }
 
-      i = traced;
-      j = k;
+        if (k > j - 2 - turn)
+          vrna_message_error("backtrack failed in fML");
 
-      if (with_gquad && gq)
-        /* goto backtrace of gquadruplex */
-        goto repeat_gquad;
+        continue;
 
-      structure[i - start]  = '(';
-      structure[j - start]  = ')';
-      if (((jj == j + 2) || (dangle_model == 2)) && (j < length))
-        structure[j + 1 - start] = '.';
+        /* backtrack in c */
+      case 2:
+        bp_stack[++b].i = i;
+        bp_stack[b].j   = j;
+        goto repeat1;
 
-      goto repeat1;
-    } else {
-      /* trace back in fML array */
-      if (hc->up_ml[j] > 0) {
-        if (fML[i][j - 1 - i] + P->MLbase == fij) {
-          /* 3' end is unpaired */
-          sector[++s].i = i;
-          sector[s].j   = j - 1;
-          sector[s].ml  = ml;
-          continue;
-        }
-      }
-
-      if (hc->up_ml[i] > 0) {
-        if (fML[i + 1][j - (i + 1)] + P->MLbase == fij) {
-          /* 5' end is unpaired */
-          sector[++s].i = i + 1;
-          sector[s].j   = j;
-          sector[s].ml  = ml;
-          continue;
-        }
-      }
-
-      if (with_gquad) {
-        if (fij == ggg[i][j - i] + E_MLstem(0, -1, -1, P))
-          /* go to backtracing of quadruplex */
-          goto repeat_gquad;
-      }
-
-      switch (dangle_model) {
-        case 0:
-          if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
-            tt = ptype[i][j - i];
-            if (tt == 0)
-              tt = 7;
-            if (fij == c[i][j - i] + E_MLstem(tt, -1, -1, P)) {
-              structure[i - start]  = '(';
-              structure[j - start]  = ')';
-              goto repeat1;
-            }
-          }
-          break;
-
-        case 2:
-          if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
-            tt = ptype[i][j - i];
-            if (tt == 0)
-              tt = 7;
-            if (fij ==
-                c[i][j - i] +
-                E_MLstem(tt, (i > 1) ? S1[i - 1] : -1, (j < length) ? S1[j + 1] : -1, P)) {
-              structure[i - start]  = '(';
-              structure[j - start]  = ')';
-              goto repeat1;
-            }
-          }
-          break;
-
-        default:
-          if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
-            tt = ptype[i][j - i];
-            if (tt == 0)
-              tt = 7;
-            if (fij == c[i][j - i] + E_MLstem(tt, -1, -1, P)) {
-              structure[i - start]  = '(';
-              structure[j - start]  = ')';
-              goto repeat1;
-            }
-          }
-
-          if (hc->matrix_local[i + 1][j - (i + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
-            if (hc->up_ml[i] > 0) {
-              tt = ptype[i + 1][j - (i + 1)];
-              if (tt == 0)
-                tt = 7;
-              if (fij == c[i + 1][j - (i + 1)] + E_MLstem(tt, S1[i], -1, P) + P->MLbase) {
-                structure[++i - start]  = '(';
-                structure[j - start]    = ')';
-                goto repeat1;
-              }
-            }
-          }
-
-          if (hc->matrix_local[i][j - 1 - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
-            if (hc->up_ml[j] > 0) {
-              tt = ptype[i][j - 1 - i];
-              if (tt == 0)
-                tt = 7;
-              if (fij == c[i][j - 1 - i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase) {
-                structure[i - start]    = '(';
-                structure[--j - start]  = ')';
-                goto repeat1;
-              }
-            }
-          }
-
-          if (hc->matrix_local[i + 1][j - 1 - (i + 1)] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
-            if ((hc->up_ml[i]) && (hc->up_ml[j])) {
-              tt = ptype[i + 1][j - 1 - (i + 1)];
-              if (tt == 0)
-                tt = 7;
-              if (fij == c[i + 1][j - 1 - (i + 1)] + E_MLstem(tt, S1[i], S1[j], P) + 2 * P->MLbase) {
-                structure[++i - start]  = '(';
-                structure[--j - start]  = ')';
-                goto repeat1;
-              }
-            }
-          }
-          break;
-      } /* switch(dangle_model)... */
-
-      /* modular decomposition */
-      for (k = i + 1 + turn; k <= j - 2 - turn; k++)
-        if (fij == (fML[i][k - i] + fML[k + 1][j - (k + 1)]))
-          break;
-
-      if ((dangle_model == 3) && (k > j - 2 - turn)) {
-        /* must be coax stack */
-        ml = 2;
-        for (k = i + 1 + turn; k <= j - 2 - turn; k++) {
-          type    = ptype[i][k - i];
-          type    = rtype[type];
-          type_2  = ptype[k + 1][j - (k + 1)];
-          type_2  = rtype[type_2];
-          if (type && type_2)
-            if (fij == c[i][k - i] + c[k + 1][j - (k + 1)] + P->stack[type][type_2] +
-                2 * P->MLintern[1])
-              break;
-        }
-      }
-
-      sector[++s].i = i;
-      sector[s].j   = k;
-      sector[s].ml  = ml;
-      sector[++s].i = k + 1;
-      sector[s].j   = j;
-      sector[s].ml  = ml;
-
-      if (k > j - 2 - turn)
-        vrna_message_error("backtrack failed in fML");
-
-      continue;
+      default:
+        vrna_message_error("Backtracking failed due to unrecognized DP matrix!");
+        break;
     }
-
+     
 repeat1:
 
     /*----- begin of "repeat:" -----*/
@@ -1325,8 +1223,8 @@ repeat1:
         type_2                    = ptype[i + 1][j - 1 - (i + 1)];
         type_2                    = rtype[type_2];
         cij                       -= P->stack[type][type_2];
-        structure[i + 1 - start]  = '(';
-        structure[j - 1 - start]  = ')';
+        bp_stack[++b].i = i + 1;
+        bp_stack[b].j   = j - 1;
         i++;
         j--;
         canonical = 0;
@@ -1374,9 +1272,10 @@ repeat1:
           new     = energy + c[p][q - p];
           traced  = (cij == new);
           if (traced) {
-            structure[p - start]  = '(';
-            structure[q - start]  = ')';
-            i                     = p, j = q;
+            bp_stack[++b].i = p;
+            bp_stack[b].j   = q;
+            i   = p;
+            j = q;
             goto repeat1;
           }
         }
@@ -1529,6 +1428,14 @@ repeat_gquad:
 repeat_gquad_exit:
     __asm("nop");
   }
+
+  bp_stack[0].i = b;
+  for (i = 1; i <= b; i++) {
+    structure[bp_stack[i].i - start] = '(';
+    structure[bp_stack[i].j - start] = ')';
+  }
+
+  free(bp_stack);
 
   for (i = strlen(structure) - 1; i > 0 && structure[i] == '-'; i--)
     structure[i] = '\0';
