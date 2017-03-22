@@ -482,9 +482,9 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
   /* reserve additional memory for j-dimension */
   for (i = length; (i > length - maxdist - 5) && (i >= 0); i--) {
-    ptype[i]  = vrna_alloc(sizeof(char) * (maxdist + 5));
-    c[i]      = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-    fML[i]    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+    ptype[i]            = vrna_alloc(sizeof(char) * (maxdist + 5));
+    c[i]                = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+    fML[i]              = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
     hc->matrix_local[i] = (char *)vrna_alloc(sizeof(char) * (maxdist + 5));
   }
 
@@ -510,8 +510,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
       int   p, q;
       char  hc_decompose;
 
-      hc_decompose = hc->matrix_local[i][j - i];
-      type = ptype[i][j - i];
+      hc_decompose  = hc->matrix_local[i][j - i];
+      type          = ptype[i][j - i];
 
       no_close = (((type == 3) || (type == 4)) && noGUclosure);
 
@@ -521,33 +521,34 @@ fill_arrays(vrna_fold_compound_t            *vc,
         /* hairpin ----------------------------------------------*/
         new_c = INF;
 
-        if(!no_close){
+        if (!no_close) {
           /* check for hairpin loop */
-          energy = vrna_E_hp_loop(vc, i, j);
-          new_c = MIN2(new_c, energy);
+          energy  = vrna_E_hp_loop(vc, i, j);
+          new_c   = MIN2(new_c, energy);
 
           /* check for multibranch loops */
           energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
           new_c   = MIN2(new_c, energy);
         }
 
-        if(dangle_model == 3){ /* coaxial stacking */
+        if (dangle_model == 3) {
+          /* coaxial stacking */
           energy  = E_mb_loop_stack(i, j, vc);
           new_c   = MIN2(new_c, energy);
         }
 
         /* check for interior loops */
-        energy = vrna_E_int_loop(vc, i, j);
-        new_c = MIN2(new_c, energy);
+        energy  = vrna_E_int_loop(vc, i, j);
+        new_c   = MIN2(new_c, energy);
 
         /* remember stack energy for --noLP option */
-        if(noLP){
+        if (noLP) {
           stackEnergy = vrna_E_stack(vc, i, j);
-          new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)]+stackEnergy);
-          cc[j - i]       = new_c;
-          c[i][j - i]    = cc1[j - 1 - (i + 1)]+stackEnergy;
+          new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
+          cc[j - i]   = new_c;
+          c[i][j - i] = cc1[j - 1 - (i + 1)] + stackEnergy;
         } else {
-          c[i][j - i]    = new_c;
+          c[i][j - i] = new_c;
         }
       } /* end >> if (pair) << */
       else {
@@ -557,7 +558,6 @@ fill_arrays(vrna_fold_compound_t            *vc,
       /* done with c[i,j], now compute fML[i,j] */
       /* free ends ? -----------------------------------------*/
       fML[i][j - i] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
-
     } /* for (j...) */
 
     /* calculate energies of 5' and 3' fragments */
@@ -589,6 +589,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
                 type = ptype[lind][pairpartner - lind];
                 if (type == 0)
                   type = 7;
+
                 cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
                 if (fij == cc + f3[pairpartner + 1])
                   traced2 = 1;
@@ -604,6 +605,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
                 type = ptype[lind][pairpartner - lind];
                 if (type == 0)
                   type = 7;
+
                 cc = c[lind][pairpartner - lind] +
                      E_ExtLoop(type, (lind > 1) ? S1[lind - 1] : -1,
                                (pairpartner < length) ? S1[pairpartner + 1] : -1, P);
@@ -621,6 +623,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
                 type = ptype[lind][pairpartner - lind];
                 if (type == 0)
                   type = 7;
+
                 cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
                 if (fij == cc + f3[pairpartner + 1]) {
                   traced2 = 1;
@@ -638,10 +641,12 @@ fill_arrays(vrna_fold_compound_t            *vc,
                   traced2 = 1;
               }
 
-              if (hc->matrix_local[lind + 1][pairpartner - lind - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+              if (hc->matrix_local[lind + 1][pairpartner - lind - 1] &
+                  VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
                 type = ptype[lind + 1][pairpartner - lind - 1];
                 if (type == 0)
                   type = 7;
+
                 cc = c[lind + 1][pairpartner - (lind + 1)] + E_ExtLoop(type, S1[lind], -1, P);
                 if (fij == cc + f3[pairpartner + 1]) {
                   traced2 = 1;
@@ -763,8 +768,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
             switch (dangle_model) {
               case 0:
                 if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                  type = ptype[lind][pairpartner - lind];
-                  cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
+                  type  = ptype[lind][pairpartner - lind];
+                  cc    = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
                   if (fij == cc + f3[pairpartner + 1])
                     traced2 = 1;
                 } else if (with_gquad) {
@@ -776,12 +781,12 @@ fill_arrays(vrna_fold_compound_t            *vc,
                 break;
               case 2:
                 if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                  type = ptype[lind][pairpartner - lind];
-                  cc = c[lind][pairpartner - lind] + E_ExtLoop(type,
-                                                               (lind > 1) ? S1[lind - 1] : -1,
-                                                               (pairpartner <
-                                                                length) ? S1[pairpartner + 1] : -1,
-                                                               P);
+                  type  = ptype[lind][pairpartner - lind];
+                  cc    = c[lind][pairpartner - lind] + E_ExtLoop(type,
+                                                                  (lind > 1) ? S1[lind - 1] : -1,
+                                                                  (pairpartner <
+                                                                   length) ? S1[pairpartner + 1] : -1,
+                                                                  P);
                   if (fij == cc + f3[pairpartner + 1])
                     traced2 = 1;
                 } else if (with_gquad) {
@@ -793,8 +798,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
                 break;
               default:
                 if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                  type = ptype[lind][pairpartner - lind];
-                  cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
+                  type  = ptype[lind][pairpartner - lind];
+                  cc    = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
                   if (fij == cc + f3[pairpartner + 1]) {
                     traced2 = 1;
                     break;
@@ -811,9 +816,10 @@ fill_arrays(vrna_fold_compound_t            *vc,
                     traced2 = 1;
                 }
 
-                if (hc->matrix_local[lind + 1][pairpartner - lind - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                  type = ptype[lind + 1][pairpartner - lind - 1];
-                  cc = c[lind + 1][pairpartner - (lind + 1)] + E_ExtLoop(type, S1[lind], -1, P);
+                if (hc->matrix_local[lind + 1][pairpartner - lind - 1] &
+                    VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+                  type  = ptype[lind + 1][pairpartner - lind - 1];
+                  cc    = c[lind + 1][pairpartner - (lind + 1)] + E_ExtLoop(type, S1[lind], -1, P);
                   if (fij == cc + f3[pairpartner + 1]) {
                     traced2 = 1;
                     break;
@@ -904,14 +910,14 @@ fill_arrays(vrna_fold_compound_t            *vc,
        * actual configuration within vc remains intact
        */
       if (i + maxdist + 4 <= length) {
-        c[i - 1]                = c[i + maxdist + 4];
-        c[i + maxdist + 4]      = NULL;
-        fML[i - 1]              = fML[i + maxdist + 4];
-        fML[i + maxdist + 4]    = NULL;
-        ptype[i - 1]            = ptype[i + maxdist + 4];
-        ptype[i + maxdist + 4]  = NULL;
-        hc->matrix_local[i - 1]            = hc->matrix_local[i + maxdist + 4];
-        hc->matrix_local[i + maxdist + 4]  = NULL;
+        c[i - 1]                          = c[i + maxdist + 4];
+        c[i + maxdist + 4]                = NULL;
+        fML[i - 1]                        = fML[i + maxdist + 4];
+        fML[i + maxdist + 4]              = NULL;
+        ptype[i - 1]                      = ptype[i + maxdist + 4];
+        ptype[i + maxdist + 4]            = NULL;
+        hc->matrix_local[i - 1]           = hc->matrix_local[i + maxdist + 4];
+        hc->matrix_local[i + maxdist + 4] = NULL;
         if (i > 1) {
           make_ptypes(vc, i - 1);
           vrna_hc_prepare(vc, i - 1);
@@ -958,6 +964,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
   return f3[1];
 }
 
+
 PRIVATE char *
 backtrack(vrna_fold_compound_t  *vc,
           int                   start,
@@ -968,17 +975,17 @@ backtrack(vrna_fold_compound_t  *vc,
    *  base pairing list. No search for equivalent structures is done.
    *  This is fast, since only few structure elements are recalculated.
    *  ------------------------------------------------------------------*/
-  sect          sector[MAXSECTORS];   /* backtracking sectors */
-  int           i, j, k, length, energy, new, no_close, type, type_2, tt, s, b;
-  int           with_gquad, bt_type, turn, dangle_model, noLP, noGUclosure, *rtype;
-  int           **c, **fML, *f3, **ggg;
-  char          *string, *structure, **ptype;
-  short         *S, *S1;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  vrna_hc_t     *hc;
+  sect            sector[MAXSECTORS]; /* backtracking sectors */
+  int             i, j, k, length, energy, new, no_close, type, type_2, tt, s, b;
+  int             with_gquad, bt_type, turn, dangle_model, noLP, noGUclosure, *rtype;
+  int             **c, **fML, *f3, **ggg;
+  char            *string, *structure, **ptype;
+  short           *S, *S1;
+  vrna_param_t    *P;
+  vrna_md_t       *md;
+  vrna_hc_t       *hc;
   vrna_bp_stack_t *bp_stack;
-  sect bt_stack[MAXSECTORS];
+  sect            bt_stack[MAXSECTORS];
 
 
   string        = vc->sequence;
@@ -997,9 +1004,9 @@ backtrack(vrna_fold_compound_t  *vc,
   turn          = md->min_loop_size;
   rtype         = &(md->rtype[0]);
 
-  s         = 0;  /* depth of backtracking stack */
-  b         = 0;  /* number of base pairs */
-  bp_stack  = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+  s         = 0;                                                                                /* depth of backtracking stack */
+  b         = 0;                                                                                /* number of base pairs */
+  bp_stack  = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));  /* add a guess of how many G's may be involved in a G quadruplex */
 
   c   = vc->matrices->c_local;
   fML = vc->matrices->fML_local;
@@ -1032,27 +1039,29 @@ backtrack(vrna_fold_compound_t  *vc,
     switch (ml) {
       /* backtrack in f3 */
       case 0:
-        {
-          int p, q;
-          if(vrna_BT_ext_loop_f3(vc, &i, j, &p, &q, bp_stack, &b)){
-            if(i > 0){
-              sector[++s].i = i;
-              sector[s].j   = j;
-              sector[s].ml  = 0;
-            }
-            if(p > 0){
-              if (((i == q + 2) || (dangle_model == 2)) && (q < length))
-                dangle3 = 1;
-              i = p;
-              j = q;
-              goto repeat1;
-            }
-
-            continue;
-          } else {
-            vrna_message_error("backtracking failed in f3 for sequence:\n%s\n", string);
+      {
+        int p, q;
+        if (vrna_BT_ext_loop_f3(vc, &i, j, &p, &q, bp_stack, &b)) {
+          if (i > 0) {
+            sector[++s].i = i;
+            sector[s].j   = j;
+            sector[s].ml  = 0;
           }
+
+          if (p > 0) {
+            if (((i == q + 2) || (dangle_model == 2)) && (q < length))
+              dangle3 = 1;
+
+            i = p;
+            j = q;
+            goto repeat1;
+          }
+
+          continue;
+        } else {
+          vrna_message_error("backtracking failed in f3 for sequence:\n%s\n", string);
         }
+      }
 
       /* backtrack in fML */
       case 1:
@@ -1089,12 +1098,14 @@ backtrack(vrna_fold_compound_t  *vc,
               tt = ptype[i][j - i];
               if (tt == 0)
                 tt = 7;
+
               if (fij == c[i][j - i] + E_MLstem(tt, -1, -1, P)) {
                 bp_stack[++b].i = i;
                 bp_stack[b].j   = j;
                 goto repeat1;
               }
             }
+
             break;
 
           case 2:
@@ -1102,6 +1113,7 @@ backtrack(vrna_fold_compound_t  *vc,
               tt = ptype[i][j - i];
               if (tt == 0)
                 tt = 7;
+
               if (fij ==
                   c[i][j - i] +
                   E_MLstem(tt, (i > 1) ? S1[i - 1] : -1, (j < length) ? S1[j + 1] : -1, P)) {
@@ -1110,6 +1122,7 @@ backtrack(vrna_fold_compound_t  *vc,
                 goto repeat1;
               }
             }
+
             break;
 
           default:
@@ -1117,6 +1130,7 @@ backtrack(vrna_fold_compound_t  *vc,
               tt = ptype[i][j - i];
               if (tt == 0)
                 tt = 7;
+
               if (fij == c[i][j - i] + E_MLstem(tt, -1, -1, P)) {
                 bp_stack[++b].i = i;
                 bp_stack[b].j   = j;
@@ -1129,6 +1143,7 @@ backtrack(vrna_fold_compound_t  *vc,
                 tt = ptype[i + 1][j - (i + 1)];
                 if (tt == 0)
                   tt = 7;
+
                 if (fij == c[i + 1][j - (i + 1)] + E_MLstem(tt, S1[i], -1, P) + P->MLbase) {
                   bp_stack[++b].i = ++i;
                   bp_stack[b].j   = j;
@@ -1142,6 +1157,7 @@ backtrack(vrna_fold_compound_t  *vc,
                 tt = ptype[i][j - 1 - i];
                 if (tt == 0)
                   tt = 7;
+
                 if (fij == c[i][j - 1 - i] + E_MLstem(tt, -1, S1[j], P) + P->MLbase) {
                   bp_stack[++b].i = i;
                   bp_stack[b].j   = --j;
@@ -1155,13 +1171,16 @@ backtrack(vrna_fold_compound_t  *vc,
                 tt = ptype[i + 1][j - 1 - (i + 1)];
                 if (tt == 0)
                   tt = 7;
-                if (fij == c[i + 1][j - 1 - (i + 1)] + E_MLstem(tt, S1[i], S1[j], P) + 2 * P->MLbase) {
+
+                if (fij ==
+                    c[i + 1][j - 1 - (i + 1)] + E_MLstem(tt, S1[i], S1[j], P) + 2 * P->MLbase) {
                   bp_stack[++b].i = ++i;
                   bp_stack[b].j   = --j;
                   goto repeat1;
                 }
               }
             }
+
             break;
         } /* switch(dangle_model)... */
 
@@ -1197,7 +1216,7 @@ backtrack(vrna_fold_compound_t  *vc,
 
         continue;
 
-        /* backtrack in c */
+      /* backtrack in c */
       case 2:
         bp_stack[++b].i = i;
         bp_stack[b].j   = j;
@@ -1207,7 +1226,7 @@ backtrack(vrna_fold_compound_t  *vc,
         vrna_message_error("Backtracking failed due to unrecognized DP matrix!");
         break;
     }
-     
+
 repeat1:
 
     /*----- begin of "repeat:" -----*/
@@ -1222,9 +1241,9 @@ repeat1:
       if (cij == c[i][j - i]) {
         /* (i.j) closes canonical structures, thus
          *  (i+1.j-1) must be a pair                */
-        type_2                    = ptype[i + 1][j - 1 - (i + 1)];
-        type_2                    = rtype[type_2];
-        cij                       -= P->stack[type][type_2];
+        type_2          = ptype[i + 1][j - 1 - (i + 1)];
+        type_2          = rtype[type_2];
+        cij             -= P->stack[type][type_2];
         bp_stack[++b].i = i + 1;
         bp_stack[b].j   = j - 1;
         i++;
@@ -1258,6 +1277,7 @@ repeat1:
           type_2 = ptype[p][q - p];
           if (type_2 == 0)
             type_2 = 7;
+
           type_2 = rtype[type_2];
           if (noGUclosure)
             if (no_close || (type_2 == 3) || (type_2 == 4))
@@ -1268,7 +1288,14 @@ repeat1:
 
           /* energy = oldLoopEnergy(i, j, p, q, type, type_2); */
           energy =
-            E_IntLoop(p - i - 1, j - q - 1, type, type_2, S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1],
+            E_IntLoop(p - i - 1,
+                      j - q - 1,
+                      type,
+                      type_2,
+                      S1[i + 1],
+                      S1[j - 1],
+                      S1[p - 1],
+                      S1[q + 1],
                       P);
 
           new     = energy + c[p][q - p];
@@ -1276,8 +1303,8 @@ repeat1:
           if (traced) {
             bp_stack[++b].i = p;
             bp_stack[b].j   = q;
-            i   = p;
-            j = q;
+            i               = p;
+            j               = q;
             goto repeat1;
           }
         }
@@ -1405,44 +1432,32 @@ repeat1:
     continue; /* this is a workarround to not accidentally proceed in the following block */
 
 repeat_gquad:
-    /*
-     * now we do some fancy stuff to backtrace the stacksize and linker lengths
-     * of the g-quadruplex that should reside within position i,j
-     */
-    {
-      int l[3], L, a;
-      L = -1;
+    if (vrna_BT_gquad_mfe(vc, i, j, bp_stack, &b))
+      continue;
 
-      get_gquad_pattern_mfe(S, i, j, P, &L, l);
-      if (L != -1) {
-        /* fill the G's of the quadruplex into the structure string */
-        for (a = 0; a < L; a++) {
-          structure[i + a - start]                                  = '+';
-          structure[i + L + l[0] + a - start]                       = '+';
-          structure[i + L + l[0] + L + l[1] + a - start]            = '+';
-          structure[i + L + l[0] + L + l[1] + L + l[2] + a - start] = '+';
-        }
-        goto repeat_gquad_exit;
-      }
-
-      vrna_message_error("backtracking failed in repeat_gquad");
-    }
-repeat_gquad_exit:
-    __asm("nop");
+    vrna_message_error("backtracking failed in repeat_gquad");
   }
 
   bp_stack[0].i = b;
   int max3 = 1;
   for (i = 1; i <= b; i++) {
-    structure[bp_stack[i].i - start] = '(';
-    structure[bp_stack[i].j - start] = ')';
+    if (bp_stack[i].i == bp_stack[i].j) {
+      /* Gquad bonds are marked as bp[i].i == bp[i].j */
+      structure[bp_stack[i].i - start] = '+';
+    } else {
+      /* the following ones are regular base pairs */
+      structure[bp_stack[i].i - start]  = '(';
+      structure[bp_stack[i].j - start]  = ')';
+    }
+
     if (max3 < bp_stack[i].j - start)
       max3 = bp_stack[i].j - start;
   }
 
   free(bp_stack);
 
-  structure = (char *)vrna_realloc(structure, sizeof(char) * (max3 + dangle3 + 2));
+  structure = (char *)vrna_realloc(structure,
+                                   sizeof(char) * (max3 + dangle3 + 2));
   structure[max3 + dangle3 + 1] = '\0';
 
   return structure;
