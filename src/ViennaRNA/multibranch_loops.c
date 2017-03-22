@@ -1437,7 +1437,7 @@ E_ml_stems_fast_window(vrna_fold_compound_t  *vc,
 {
   char    hc_decompose, **ptype, type, type_2, tt;
   short   *S1;
-  int  dangle_model, **c, **fML, **ggg, e, length, with_gquad, decomp, en, k, turn, *rtype;
+  int  dangle_model, **c, **fML, **ggg, e, length, with_gquad, decomp, en, en2, k, turn, *rtype;
   vrna_param_t   *P;
   vrna_md_t       *md;
   vrna_hc_t       *hc;
@@ -1529,11 +1529,13 @@ E_ml_stems_fast_window(vrna_fold_compound_t  *vc,
         decomp = MIN2(decomp, en);
       }
   } else {
-    for (decomp = INF, k = i + 1 + turn; k <= j - 2 - turn; k++)
-      if ((fmi[k - i] != INF) && (fML[k + 1][j - k - 1] != INF)) {
-        en = fmi[k - i] + fML[k + 1][j - k - 1];
-        decomp = MIN2(decomp, en);
+    for (decomp = INF, k = i + 1 + turn; k <= j - 2 - turn; k++) {
+      en = fmi[k - i];
+      en2 = fML[k + 1][j - k - 1];
+      if ((en != INF) && (en2 != INF)) {
+        decomp = MIN2(decomp, en + en2);
       }
+    }
   }
 
   dmli[j - i] = decomp;               /* store for use in ML decompositon */

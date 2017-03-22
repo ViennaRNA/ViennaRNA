@@ -1011,8 +1011,10 @@ backtrack(vrna_fold_compound_t  *vc,
   sector[s].ml  = (bt_type == 'M') ? 1 : ((bt_type == 'C') ? 2 : 0);
 
   structure = (char *)vrna_alloc((MIN2(length - start, maxdist) + 3) * sizeof(char));
-  for (i = 0; i <= MIN2(length - start, maxdist); i++)
-    structure[i] = '-';
+
+  memset(structure, '.', MIN2(length - start, maxdist) + 1);
+
+  int dangle3 = 0;
 
   while (s > 0) {
     int ml, fij, cij, traced, i1, j1, mm, mm5, mm3, mm53, p, q, jj = 0, gq = 0;
@@ -1040,7 +1042,7 @@ backtrack(vrna_fold_compound_t  *vc,
             }
             if(p > 0){
               if (((i == q + 2) || (dangle_model == 2)) && (q < length))
-                structure[q + 1 - start] = '.';
+                dangle3 = 1;
               i = p;
               j = q;
               goto repeat1;
@@ -1430,18 +1432,18 @@ repeat_gquad_exit:
   }
 
   bp_stack[0].i = b;
+  int max3 = 1;
   for (i = 1; i <= b; i++) {
     structure[bp_stack[i].i - start] = '(';
     structure[bp_stack[i].j - start] = ')';
+    if (max3 < bp_stack[i].j - start)
+      max3 = bp_stack[i].j - start;
   }
 
   free(bp_stack);
 
-  for (i = strlen(structure) - 1; i > 0 && structure[i] == '-'; i--)
-    structure[i] = '\0';
-  for (; i >= 0; i--)
-    if (structure[i] == '-')
-      structure[i] = '.';
+  structure = (char *)vrna_realloc(structure, sizeof(char) * (max3 + dangle3 + 2));
+  structure[max3 + dangle3 + 1] = '\0';
 
   return structure;
 }
