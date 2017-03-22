@@ -57,13 +57,14 @@ hc_default(int  i,
            char d,
            void *data);
 
+
 PRIVATE char
-hc_default_window(int  i,
-           int  j,
-           int  k,
-           int  l,
-           char d,
-           void *data);
+hc_default_window(int   i,
+                  int   j,
+                  int   k,
+                  int   l,
+                  char  d,
+                  void  *data);
 
 
 PRIVATE char
@@ -76,12 +77,12 @@ hc_default_user(int   i,
 
 
 PRIVATE char
-hc_default_user_window(int   i,
-                int   j,
-                int   k,
-                int   l,
-                char  d,
-                void  *data);
+hc_default_user_window(int  i,
+                       int  j,
+                       int  k,
+                       int  l,
+                       char d,
+                       void *data);
 
 
 PRIVATE int
@@ -94,6 +95,7 @@ PRIVATE FLT_OR_DBL
 exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
                       int                   i,
                       int                   j);
+
 
 /*
  #################################
@@ -117,12 +119,12 @@ vrna_E_hp_loop(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  hc_dat_local.idx    = vc->jindx;
-  hc_dat_local.mx     = vc->hc->matrix;
+  hc_dat_local.idx        = vc->jindx;
+  hc_dat_local.mx         = vc->hc->matrix;
   hc_dat_local.mx_window  = vc->hc->matrix_local;
-  hc_dat_local.hc_up  = vc->hc->up_hp;
-  hc_dat_local.n      = vc->length;
-  hc_dat_local.cp     = vc->cutpoint;
+  hc_dat_local.hc_up      = vc->hc->up_hp;
+  hc_dat_local.n          = vc->length;
+  hc_dat_local.cp         = vc->cutpoint;
 
   if (vc->hc->type == VRNA_HC_WINDOW) {
     if (vc->hc->f) {
@@ -259,6 +261,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
         if (sc->f)
           e += sc->f(j, i, j, i, VRNA_DECOMP_PAIR_HP, sc->data);
       }
+
       break;
 
     /* sequence alignments */
@@ -275,7 +278,8 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
 
       for (s = 0; s < n_seq; s++) {
         types[s] = md->pair[SS[s][j]][SS[s][i]];
-        if (types[s] == 0) types[s] = 7;
+        if (types[s] == 0)
+          types[s] = 7;
       }
 
       for (s = 0; s < n_seq; s++) {
@@ -286,17 +290,28 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
           strcpy(loopseq, Ss[s] + a2s[s][j] - 1);
           strncat(loopseq, Ss[s], a2s[s][i]);
         }
-        if (u < 3) e += 600;
-        else e += E_Hairpin(u, types[s], S3[s][j], S5[s][i], loopseq, P);
+
+        if (u < 3)
+          e += 600;
+        else
+          e += E_Hairpin(u, types[s], S3[s][j], S5[s][i], loopseq, P);
       }
       if (scs) {
         for (s = 0; s < n_seq; s++) {
           if (scs[s]) {
             if (scs[s]->energy_up)
               e += ((i > 1) ? scs[s]->energy_up[1][a2s[s][i - 1]] : 0)
-                   + ((j < length) ? scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]] : 0);
-            if (scs[s]->f)
-              e += scs[s]->f(a2s[s][j], a2s[s][i], a2s[s][j], a2s[s][i], VRNA_DECOMP_PAIR_HP, scs[s]->data);
+                   + ((j <
+                       length) ? scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]] : 0);
+
+            if (scs[s]->f) {
+              e += scs[s]->f(a2s[s][j],
+                             a2s[s][i],
+                             a2s[s][j],
+                             a2s[s][i],
+                             VRNA_DECOMP_PAIR_HP,
+                             scs[s]->data);
+            }
           }
         }
       }
@@ -373,6 +388,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
 
         if (sc->energy_bp)
           e += sc->energy_bp[ij];
+
         if (sc->f)
           e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
       }
@@ -385,6 +401,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
                                    domains_up->data);
         if (en != INF)
           en += e;
+
         e = MIN2(e, en);
       }
 
@@ -404,7 +421,8 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
 
       for (s = 0; s < n_seq; s++) {
         types[s] = md->pair[SS[s][i]][SS[s][j]];
-        if (types[s] == 0) types[s] = 7;
+        if (types[s] == 0)
+          types[s] = 7;
       }
 
       for (e = s = 0; s < n_seq; s++) {
@@ -423,8 +441,14 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
             if (scs[s]->energy_bp)
               e += scs[s]->energy_bp[ij];
 
-            if (scs[s]->f)
-              e += scs[s]->f(a2s[s][i], a2s[s][j], a2s[s][i], a2s[s][j], VRNA_DECOMP_PAIR_HP, scs[s]->data);
+            if (scs[s]->f) {
+              e += scs[s]->f(a2s[s][i],
+                             a2s[s][j],
+                             a2s[s][i],
+                             a2s[s][j],
+                             VRNA_DECOMP_PAIR_HP,
+                             scs[s]->data);
+            }
           }
         }
       }
@@ -491,6 +515,7 @@ eval_hp_loop_fake(vrna_fold_compound_t  *vc,
 
         if (sc->energy_bp)
           e += sc->energy_bp[ij];
+
         if (sc->f)
           e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
       }
@@ -503,8 +528,10 @@ eval_hp_loop_fake(vrna_fold_compound_t  *vc,
                                    domains_up->data);
         if (en != INF)
           en += e;
+
         e = MIN2(e, en);
       }
+
       break;
 
     /* nothing */
@@ -559,8 +586,10 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
         temp = q[iidx[cp] - (j - 1)] * scale[1];
       else if (j == cp)
         temp = q[iidx[i + 1] - (cp - 1)] * scale[1];
+
       if (j > cp)
         temp *= scale[1];
+
       if (i < cp - 1)
         temp *= scale[1];
 
@@ -590,6 +619,7 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
                                              VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
                                              domains_up->data);
       }
+
       break;
 
     /* nothing */
@@ -676,6 +706,7 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
                                            VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
                                            domains_up->data);
       }
+
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
@@ -691,15 +722,19 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
 
       for (s = 0; s < n_seq; s++) {
         types[s] = md->pair[SS[s][i]][SS[s][j]];
-        if (types[s] == 0) types[s] = 7;
+        if (types[s] == 0)
+          types[s] = 7;
       }
 
       for (s = 0; s < n_seq; s++) {
         u = a2s[s][j - 1] - a2s[s][i];
-        if (a2s[s][i] < 1) continue;
+        if (a2s[s][i] < 1)
+          continue;
+
         char loopseq[10];
         if (u < 9)
           strncpy(loopseq, Ss[s] + a2s[s][i] - 1, 10);
+
         qbt1 *= exp_E_Hairpin(u, types[s], S3[s][i], S5[s][j], loopseq, P);
       }
 
@@ -715,8 +750,14 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
             if (scs[s]->exp_energy_up)
               qbt1 *= scs[s]->exp_energy_up[a2s[s][i + 1]][u];
 
-            if (scs[s]->exp_f)
-              qbt1 *= scs[s]->exp_f(a2s[s][i], a2s[s][j], a2s[s][i], a2s[s][j], VRNA_DECOMP_PAIR_HP, scs[s]->data);
+            if (scs[s]->exp_f) {
+              qbt1 *= scs[s]->exp_f(a2s[s][i],
+                                    a2s[s][j],
+                                    a2s[s][i],
+                                    a2s[s][j],
+                                    VRNA_DECOMP_PAIR_HP,
+                                    scs[s]->data);
+            }
           }
         }
       }
@@ -803,6 +844,7 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
                                            VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
                                            domains_up->data);
       }
+
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
@@ -818,7 +860,8 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
 
       for (s = 0; s < n_seq; s++) {
         types[s] = md->pair[SS[s][j]][SS[s][i]];
-        if (types[s] == 0) types[s] = 7;
+        if (types[s] == 0)
+          types[s] = 7;
       }
 
       for (s = 0; s < n_seq; s++) {
@@ -828,6 +871,7 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
           strcpy(loopseq, Ss[s] + a2s[s][j] - 1);
           strncat(loopseq, Ss[s], a2s[s][i]);
         }
+
         qbt1 *= exp_E_Hairpin(u1, types[s], S3[s][j], S5[s][i], loopseq, P);
       }
 
@@ -837,10 +881,17 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
           if (scs[s]) {
             if (scs[s]->exp_energy_up)
               qbt1 *= ((i > 1) ? scs[s]->exp_energy_up[a2s[s][1]][a2s[s][i] - a2s[s][1]] : 1.)
-                      * ((j < n) ? scs[s]->exp_energy_up[a2s[s][j] + 1][a2s[s][n] - a2s[s][j]] : 1.);
+                      * ((j <
+                          n) ? scs[s]->exp_energy_up[a2s[s][j] + 1][a2s[s][n] - a2s[s][j]] : 1.);
 
-            if (scs[s]->exp_f)
-              qbt1 *= scs[s]->exp_f(a2s[s][j], a2s[s][i], a2s[s][j], a2s[s][i], VRNA_DECOMP_PAIR_HP, scs[s]->data);
+            if (scs[s]->exp_f) {
+              qbt1 *= scs[s]->exp_f(a2s[s][j],
+                                    a2s[s][i],
+                                    a2s[s][j],
+                                    a2s[s][i],
+                                    VRNA_DECOMP_PAIR_HP,
+                                    scs[s]->data);
+            }
           }
         }
       }
@@ -894,6 +945,7 @@ vrna_BT_hp_loop(vrna_fold_compound_t  *vc,
       case  VRNA_FC_TYPE_COMPARATIVE:
         if (vc->scs)
           sc = vc->scs[0];
+
         break;
 
       default:
@@ -957,12 +1009,12 @@ hc_default(int  i,
 
 
 PRIVATE char
-hc_default_window(int  i,
-           int  j,
-           int  k,
-           int  l,
-           char d,
-           void *data)
+hc_default_window(int   i,
+                  int   j,
+                  int   k,
+                  int   l,
+                  char  d,
+                  void  *data)
 {
   int                 u;
   char                eval;
@@ -1001,12 +1053,12 @@ hc_default_user(int   i,
 
 
 PRIVATE char
-hc_default_user_window(int   i,
-                int   j,
-                int   k,
-                int   l,
-                char  d,
-                void  *data)
+hc_default_user_window(int  i,
+                       int  j,
+                       int  k,
+                       int  l,
+                       char d,
+                       void *data)
 {
   char                eval;
   struct default_data *dat = (struct default_data *)data;
