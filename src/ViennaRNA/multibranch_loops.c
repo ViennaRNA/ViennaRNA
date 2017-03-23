@@ -763,6 +763,44 @@ extend_fm_3p(int                  i,
   }
   return e;
 }
+/* SSE modular decomposition -------------------------------*/
+#include <smmintrin.h>
+
+//http://stackoverflow.com/questions/9877700/getting-max-value-in-a-m128i-vector-with-sse
+int horizontal_min_Vec4i(__m128i x) {
+    __m128i min1 = _mm_shuffle_epi32(x, _MM_SHUFFLE(0,0,3,2));
+    __m128i min2 = _mm_min_epi32(x,min1);
+    __m128i min3 = _mm_shuffle_epi32(min2, _MM_SHUFFLE(0,0,0,1));
+    __m128i min4 = _mm_min_epi32(min2,min3);
+    return _mm_cvtsi128_si32(min4);
+}
+
+PRIVATE int
+modular_decomposition(const int i, const int ij, const int j, const int turn, const int* fmi, const int* fm) {
+  int k   =  i + turn + 1;
+  int k1j = ij + turn + 2; //indx[j] + i + 1; //indx[j] + i + turn + 2;
+  const int stop = j - 2 - turn;
+  int decomp = INF;
+  {
+  const int end = 1 + stop - k;
+  int i;
+
+  for(i=0;i<end;i+=4)  { //pop.147.modular_decomposition.c by hand  for(i=0;i<end-3;i+=4) {
+    //if((a[i] != INF ) && (b[i] != INF)){
+    __m128i a = _mm_loadu_si128((__m128i*)&fmi[k +i]);
+    __m128i b = _mm_loadu_si128((__m128i*)&fm[k1j+i]);
+    __m128i c = _mm_add_epi32(a,b);
+    const int en = horizontal_min_Vec4i(c);
+    decomp = MIN2(decomp, en);
+  }
+  /*pop.147.modular_decomposition.c by hand for(;i<end;i++) {
+    const int en = fmi[k +i]+fm[k1j+i];
+    decomp = MIN2(decomp, en);
+  }*/
+  }
+  return decomp;
+}
+/* End SSE modular decomposition -------------------------------*/
 
 
 PRIVATE int
@@ -945,75 +983,9 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
   }
 
   /* modular decomposition -------------------------------*/
-  k1j   = indx[j] + i + turn + 2;
-  stop  = (cp > 0) ? (cp - 1) : (j - 2 - turn);
 
-  /* duplicated code is faster than conditions in loop */
-  if (hc->f) {
-    if (sc && sc->f) {
-      for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++) {
-        if ((fmi[k] != INF) && (fm[k1j] != INF) && hc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
-          en      = fmi[k] + fm[k1j];
-          en      += sc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-          decomp  = MIN2(decomp, en);
-        }
-      }
-      k++; k1j++;
-      for (; k <= j - 2 - turn; k++, k1j++) {
-        if ((fmi[k] != INF) && (fm[k1j] != INF) && hc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
-          en      = fmi[k] + fm[k1j];
-          en      += sc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-          decomp  = MIN2(decomp, en);
-        }
-      }
-    } else {
-      for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++) {
-        if ((fmi[k] != INF) && (fm[k1j] != INF) && hc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
-          en      = fmi[k] + fm[k1j];
-          decomp  = MIN2(decomp, en);
-        }
-      }
-      k++; k1j++;
-      for (; k <= j - 2 - turn; k++, k1j++) {
-        if ((fmi[k] != INF) && (fm[k1j] != INF) && hc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
-          en      = fmi[k] + fm[k1j];
-          decomp  = MIN2(decomp, en);
-        }
-      }
-    }
-  } else {
-    if (sc && sc->f) {
-      for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++) {
-        if ((fmi[k] != INF) && (fm[k1j] != INF)) {
-          en      = fmi[k] + fm[k1j];
-          en      += sc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-          decomp  = MIN2(decomp, en);
-        }
-      }
-      k++; k1j++;
-      for (; k <= j - 2 - turn; k++, k1j++) {
-        if ((fmi[k] != INF) && (fm[k1j] != INF)) {
-          en      = fmi[k] + fm[k1j];
-          en      += sc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-          decomp  = MIN2(decomp, en);
-        }
-      }
-    } else {
-      for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++) {
-        if ((fmi[k] != INF) && (fm[k1j] != INF)) {
-          en      = fmi[k] + fm[k1j];
-          decomp  = MIN2(decomp, en);
-        }
-      }
-      k++; k1j++;
-      for (; k <= j - 2 - turn; k++, k1j++) {
-        if ((fmi[k] != INF) && (fm[k1j] != INF)) {
-          en      = fmi[k] + fm[k1j];
-          decomp  = MIN2(decomp, en);
-        }
-      }
-    }
-  }
+  decomp = modular_decomposition(i,ij,j,turn,fmi,vc->matrices->fML);
+  /* end modular decomposition -------------------------------*/
 
   dmli[j] = decomp;               /* store for use in fast ML decompositon */
   e       = MIN2(e, decomp);
