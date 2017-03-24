@@ -42,6 +42,10 @@ AC_DEFUN([RNA_GET_FEATURE],[
     AC_RNA_APPEND_VAR_COMMA($1, [Color])
     _features_active=1
   ])
+  AS_IF([test "x$enable_sse" = "xyes"], [
+    AC_RNA_APPEND_VAR_COMMA($1, [SSE4.1])
+    _features_active=1
+  ])
   AS_IF([test "$_features_active" -eq "0"],[
     AC_RNA_APPEND_VAR_COMMA($1, [None])
   ])
@@ -377,4 +381,70 @@ into the executables are present!
 
   AM_CONDITIONAL(VRNA_AM_SWITCH_STATIC_EXECUTABLES, test "x$enable_static_executables" = "xyes")
 ])
+
+
+#
+# SSE implementations
+#
+
+AC_DEFUN([RNA_ENABLE_SSE],[
+
+  RNA_ADD_FEATURE([sse],
+                  [SSE4.1 implementations],
+                  [yes])
+
+  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
+  RNA_FEATURE_IF_ENABLED([sse],[
+    if test "x$SIND_CFLAGS" = x; then
+      case $ax_cv_c_compiler_vendor in
+        gnu)
+          AC_LANG_PUSH([C])
+          AX_CHECK_COMPILE_FLAG([-msse4.1], [ac_sse41_supported=yes],[ac_sse41_supported=no],[],[])
+          AC_LANG_POP([C])
+          ;;
+        intel)
+          ;;
+        *)
+          ;;
+      esac
+    fi
+
+    if test $ac_sse41_supported = no; then
+      enable_sse=no;
+    fi
+  ])
+
+  RNA_FEATURE_IF_ENABLED([sse],[
+    AC_MSG_CHECKING([compiler support for SSE4.1 min function])
+    ac_save_CFLAGS="$CFLAGS"
+    CFLAGS="$ac_save_CFLAGS -msse4.1"
+    AC_LANG(C)
+    AC_COMPILE_IFELSE(
+    [
+      AC_LANG_PROGRAM([[
+                        #include <smmintrin.h>
+                        #include <limits.h>
+                      ]],
+                        [[__m128i a = _mm_set1_epi32(INT_MAX);
+                          __m128i b = _mm_set1_epi32(INT_MIN);
+                          b = _mm_min_epi32(a, b);
+                      ]])
+    ],
+    [
+      AC_MSG_RESULT([yes])
+      SIMD_CFLAGS="${SIMD_CFLAGS} -msse4.1"
+      AC_DEFINE([VRNA_WITH_SSE_IMPLEMENTATION], [1], [use SSE implementations])
+      CONFIG_SSE_IMPLEMENTATION="#define VRNA_WITH_SSE_IMPLEMENTATION"
+    ],
+    [
+      enable_sse=no
+      AC_MSG_RESULT([no; using default implementation])
+    ])
+    CFLAGS="$ac_save_CFLAGS"
+  ])
+
+  AC_SUBST(SIMD_CFLAGS)
+  AC_SUBST(CONFIG_SSE_IMPLEMENTATION)
+])
+
 
