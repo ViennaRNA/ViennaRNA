@@ -1969,6 +1969,130 @@ vrna_BT_ext_loop_f3(vrna_fold_compound_t  *vc,
 }
 
 
+PUBLIC int
+vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
+                       int                  i,
+                       int                  fij)
+{
+  int j;
+
+  j = -1;
+
+  if (fc) {
+    char          **ptype;
+    short         *S1;
+    int           traced2, length, turn, dangle_model, with_gquad, maxdist, type, cc, **c, **ggg,
+                  *f3;
+    vrna_param_t  *P;
+    vrna_md_t     *md;
+    vrna_hc_t     *hc;
+
+    length        = fc->length;
+    S1            = fc->sequence_encoding;
+    ptype         = fc->ptype_local;
+    f3            = fc->matrices->f3_local;
+    c             = fc->matrices->c_local;
+    ggg           = fc->matrices->ggg_local;
+    hc            = fc->hc;
+    P             = fc->params;
+    md            = &(P->model_details);
+    turn          = md->min_loop_size;
+    dangle_model  = md->dangles;
+    with_gquad    = md->gquad;
+    maxdist       = fc->window_size;
+    traced2       = 0;
+
+    /* get pairing partner j */
+    for (j = i + turn; j <= i + maxdist; j++) {
+      switch (dangle_model) {
+        case 0:
+          if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+            type = ptype[i][j - i];
+            if (type == 0)
+              type = 7;
+
+            cc = c[i][j - i] + E_ExtLoop(type, -1, -1, P);
+            if (fij == cc + f3[j + 1])
+              traced2 = 1;
+          } else if (with_gquad) {
+            cc = ggg[i][j - i];
+            if (fij == cc + f3[j + 1])
+              traced2 = 1;
+          }
+
+          break;
+        case 2:
+          if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+            type = ptype[i][j - i];
+            if (type == 0)
+              type = 7;
+
+            cc = c[i][j - i] +
+                 E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1,
+                           (j < length) ? S1[j + 1] : -1, P);
+            if (fij == cc + f3[j + 1])
+              traced2 = 1;
+          } else if (with_gquad) {
+            cc = ggg[i][j - i];
+            if (fij == cc + f3[j + 1])
+              traced2 = 1;
+          }
+
+          break;
+        default:
+          if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+            type = ptype[i][j - i];
+            if (type == 0)
+              type = 7;
+
+            cc = c[i][j - i] + E_ExtLoop(type, -1, -1, P);
+            if (fij == cc + f3[j + 1]) {
+              traced2 = 1;
+              break;
+            } else if (j < length) {
+              cc = c[i][j - i] + E_ExtLoop(type, -1, S1[j + 1], P);
+              if (fij == cc + f3[j + 2]) {
+                traced2 = 1;
+                break;
+              }
+            }
+          } else if (with_gquad) {
+            cc = ggg[i][j - i];
+            if (fij == cc + f3[j + 1])
+              traced2 = 1;
+          }
+
+          if (hc->matrix_local[i + 1][j - i - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+            type = ptype[i + 1][j - i - 1];
+            if (type == 0)
+              type = 7;
+
+            cc = c[i + 1][j - (i + 1)] + E_ExtLoop(type, S1[i], -1, P);
+            if (fij == cc + f3[j + 1]) {
+              traced2 = 1;
+              break;
+            } else if (j < length) {
+              cc = c[i + 1][j - (i + 1)] +
+                   E_ExtLoop(type, S1[i], S1[j + 1], P);
+              if (fij == cc + f3[j + 2])
+                traced2 = 1;
+            }
+          }
+
+          break;
+      }
+      if (traced2)
+        break;
+    }
+
+    if (!traced2)
+      j = -1;
+  }
+
+  return j;
+}
+
+
 PUBLIC vrna_mx_pf_aux_el_t *
 vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
 {

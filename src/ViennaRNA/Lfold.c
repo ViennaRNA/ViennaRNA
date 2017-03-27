@@ -581,90 +581,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
         while (fij == f3[lind + 1])
           lind++;
 
-        /*get pairpartner*/
-        for (pairpartner = lind + turn; pairpartner <= lind + maxdist; pairpartner++) {
-          switch (dangle_model) {
-            case 0:
-              if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                type = ptype[lind][pairpartner - lind];
-                if (type == 0)
-                  type = 7;
-
-                cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
-                if (fij == cc + f3[pairpartner + 1])
-                  traced2 = 1;
-              } else if (with_gquad) {
-                cc = ggg[lind][pairpartner - lind];
-                if (fij == cc + f3[pairpartner + 1])
-                  traced2 = 1;
-              }
-
-              break;
-            case 2:
-              if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                type = ptype[lind][pairpartner - lind];
-                if (type == 0)
-                  type = 7;
-
-                cc = c[lind][pairpartner - lind] +
-                     E_ExtLoop(type, (lind > 1) ? S1[lind - 1] : -1,
-                               (pairpartner < length) ? S1[pairpartner + 1] : -1, P);
-                if (fij == cc + f3[pairpartner + 1])
-                  traced2 = 1;
-              } else if (with_gquad) {
-                cc = ggg[lind][pairpartner - lind];
-                if (fij == cc + f3[pairpartner + 1])
-                  traced2 = 1;
-              }
-
-              break;
-            default:
-              if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                type = ptype[lind][pairpartner - lind];
-                if (type == 0)
-                  type = 7;
-
-                cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
-                if (fij == cc + f3[pairpartner + 1]) {
-                  traced2 = 1;
-                  break;
-                } else if (pairpartner < length) {
-                  cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, S1[pairpartner + 1], P);
-                  if (fij == cc + f3[pairpartner + 2]) {
-                    traced2 = 1;
-                    break;
-                  }
-                }
-              } else if (with_gquad) {
-                cc = ggg[lind][pairpartner - lind];
-                if (fij == cc + f3[pairpartner + 1])
-                  traced2 = 1;
-              }
-
-              if (hc->matrix_local[lind + 1][pairpartner - lind - 1] &
-                  VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                type = ptype[lind + 1][pairpartner - lind - 1];
-                if (type == 0)
-                  type = 7;
-
-                cc = c[lind + 1][pairpartner - (lind + 1)] + E_ExtLoop(type, S1[lind], -1, P);
-                if (fij == cc + f3[pairpartner + 1]) {
-                  traced2 = 1;
-                  break;
-                } else if (pairpartner < length) {
-                  cc = c[lind + 1][pairpartner - (lind + 1)] +
-                       E_ExtLoop(type, S1[lind], S1[pairpartner + 1], P);
-                  if (fij == cc + f3[pairpartner + 2])
-                    traced2 = 1;
-                }
-              }
-
-              break;
-          }
-          if (traced2)
-            break;
-        }
-        if (!traced2)
+        pairpartner = vrna_BT_ext_loop_f3_pp(vc, lind, fij);
+        if (pairpartner == -1)
           vrna_message_error("backtrack failed in short backtrack 1");
 
         if (zsc) {
@@ -763,80 +681,9 @@ fill_arrays(vrna_fold_compound_t            *vc,
           lind  = i;
           while (fij == f3[lind + 1])
             lind++;
-          /*get pairpartner*/
-          for (pairpartner = lind + turn; pairpartner <= lind + maxdist; pairpartner++) {
-            switch (dangle_model) {
-              case 0:
-                if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                  type  = ptype[lind][pairpartner - lind];
-                  cc    = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
-                  if (fij == cc + f3[pairpartner + 1])
-                    traced2 = 1;
-                } else if (with_gquad) {
-                  cc = ggg[lind][pairpartner - lind];
-                  if (fij == cc + f3[pairpartner + 1])
-                    traced2 = 1;
-                }
 
-                break;
-              case 2:
-                if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                  type  = ptype[lind][pairpartner - lind];
-                  cc    = c[lind][pairpartner - lind] + E_ExtLoop(type,
-                                                                  (lind > 1) ? S1[lind - 1] : -1,
-                                                                  (pairpartner <
-                                                                   length) ? S1[pairpartner + 1] : -1,
-                                                                  P);
-                  if (fij == cc + f3[pairpartner + 1])
-                    traced2 = 1;
-                } else if (with_gquad) {
-                  cc = ggg[lind][pairpartner - lind];
-                  if (fij == cc + f3[pairpartner + 1])
-                    traced2 = 1;
-                }
-
-                break;
-              default:
-                if (hc->matrix_local[lind][pairpartner - lind] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                  type  = ptype[lind][pairpartner - lind];
-                  cc    = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, -1, P);
-                  if (fij == cc + f3[pairpartner + 1]) {
-                    traced2 = 1;
-                    break;
-                  } else if (pairpartner < length) {
-                    cc = c[lind][pairpartner - lind] + E_ExtLoop(type, -1, S1[pairpartner + 1], P);
-                    if (fij == cc + f3[pairpartner + 1]) {
-                      traced2 = 1;
-                      break;
-                    }
-                  }
-                } else if (with_gquad) {
-                  cc = ggg[lind][pairpartner - lind];
-                  if (fij == cc + f3[pairpartner + 1])
-                    traced2 = 1;
-                }
-
-                if (hc->matrix_local[lind + 1][pairpartner - lind - 1] &
-                    VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-                  type  = ptype[lind + 1][pairpartner - lind - 1];
-                  cc    = c[lind + 1][pairpartner - (lind + 1)] + E_ExtLoop(type, S1[lind], -1, P);
-                  if (fij == cc + f3[pairpartner + 1]) {
-                    traced2 = 1;
-                    break;
-                  } else if (pairpartner < length) {
-                    cc = c[lind + 1][pairpartner - (lind + 1)] +
-                         E_ExtLoop(type, S1[lind], S1[pairpartner + 1], P);
-                    if (fij == cc + f3[pairpartner + 2]) {
-                      traced2 = 1;
-                      break;
-                    }
-                  }
-                }
-            }
-            if (traced2)
-              break;
-          }
-          if (!traced2)
+          pairpartner = vrna_BT_ext_loop_f3_pp(vc, lind, fij);
+          if (pairpartner == -1)
             vrna_message_error("backtrack failed in short backtrack 2");
 
           if (zsc) {
