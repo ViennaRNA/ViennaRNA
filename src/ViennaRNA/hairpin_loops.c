@@ -373,7 +373,6 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
       S     = vc->sequence_encoding;
       sc    = vc->sc;
       u     = j - i - 1;
-      ij    = idx[j] + i;
       type  = md->pair[S[i]][S[j]];
 
       if (type == 0)
@@ -386,8 +385,10 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
         if (sc->energy_up)
           e += sc->energy_up[i + 1][u];
 
-        if (sc->energy_bp)
-          e += sc->energy_bp[ij];
+        if (sc->energy_bp) {
+          ij  = idx[j] + i;
+          e   += sc->energy_bp[ij];
+        }
 
         if (sc->f)
           e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
@@ -416,7 +417,6 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
       a2s   = vc->a2s;
       scs   = vc->scs;
       n_seq = vc->n_seq;
-      ij    = idx[j] + i;
       types = (int *)vrna_alloc(sizeof(int) * n_seq);
 
       for (s = 0; s < n_seq; s++) {
@@ -438,8 +438,10 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
             if (scs[s]->energy_up)
               e += scs[s]->energy_up[a2s[s][i + 1]][u];
 
-            if (scs[s]->energy_bp)
+            if (scs[s]->energy_bp) {
+              ij    = idx[j] + i;
               e += scs[s]->energy_bp[ij];
+            }
 
             if (scs[s]->f) {
               e += scs[s]->f(a2s[s][i],

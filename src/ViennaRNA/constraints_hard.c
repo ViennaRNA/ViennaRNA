@@ -348,6 +348,42 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
       /* here space for noLP option */
       break;
 
+    case VRNA_FC_TYPE_COMPARATIVE:
+      for (k = turn + 1; k <= maxdist; k++) {
+        j = i + k;
+        if (j > n)
+          break;
+
+        char opt = (char)0;
+        if ((j - i) <= maxdist) {
+          if(vc->pscore_local[i][j - i] >= md->cv_fact * MINPSCORE)
+            opt = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+        }
+        /* check whether we have constraints on any pairing partner i or j */
+        if ((hc->bp_storage) && (hc->bp_storage[i])) {
+          char constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+          int cnt, set;
+          /* go through list of constraints on position i */
+          for (set = cnt = 0; hc->bp_storage[i][cnt].interval_start != 0; cnt++) {
+            if (hc->bp_storage[i][cnt].interval_start > j)
+              break; /* only constraints for pairs (i,q) with q > j left */
+            if (hc->bp_storage[i][cnt].interval_end < j)
+              continue; /* constraint for pairs (i,q) with q < j */
+            /* constraint has interval [p,q] with p <= j <= q */
+            constraint &= hc->bp_storage[i][cnt].loop_type;
+            set = 1;
+          }
+          if (set && (opt == (char)0))
+            /* overwrite if bp is non-canonical */
+            opt = constraint;
+          else
+            /* apply constraint to canonical bp */
+            opt &= constraint;
+        }
+        hc->matrix_local[i][j - i] = opt;
+      }
+      break;
+
     default:
       break;
   }

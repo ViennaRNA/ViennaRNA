@@ -82,6 +82,14 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t  *vc,
 
 
 PRIVATE int
+E_ml_stems_fast_comparative_window(vrna_fold_compound_t  *vc,
+                            int                   i,
+                            int                   j,
+                            int                   *fmi,
+                            int                   *dmli);
+
+
+PRIVATE int
 E_ml_stems_fast_window(vrna_fold_compound_t *vc,
                        int                  i,
                        int                  j,
@@ -247,7 +255,10 @@ vrna_E_ml_stems_fast(vrna_fold_compound_t *vc,
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        e = E_ml_stems_fast_comparative(vc, i, j, fmi, dmli);
+        if (vc->hc->type == VRNA_HC_WINDOW)
+          e = E_ml_stems_fast_comparative_window(vc, i, j, fmi, dmli);
+        else
+          e = E_ml_stems_fast_comparative(vc, i, j, fmi, dmli);
         break;
     }
   }
@@ -307,50 +318,99 @@ E_mb_loop_fast_comparative(vrna_fold_compound_t *vc,
 
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = hc->matrix;
+  hc_dat_local.mx_window  = hc->matrix_local;
   hc_dat_local.hc_up  = hc->up_ml;
   hc_dat_local.cp     = vc->cutpoint;
 
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  if (hc->type == VRNA_HC_WINDOW) {
+    char **ptype;
 
-  /* multi-loop decomposition ------------------------*/
-  if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-    decomp = dmli1[j - 1];
-
-    type  = (int *)vrna_alloc(n_seq * sizeof(int));
-    S     = vc->S;
-    S5    = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
-    S3    = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
-
-    for (s = 0; s < n_seq; s++) {
-      type[s] = md->pair[S[s][j]][S[s][i]];
-      if (type[s] == 0)
-        type[s] = 7;
+    if (hc->f) {
+      evaluate            = &hc_default_user_window;
+      hc_dat_local.hc_f   = hc->f;
+      hc_dat_local.hc_dat = hc->data;
+    } else {
+      evaluate = &hc_default_window;
     }
+    /* multi-loop decomposition ------------------------*/
+    if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
+      decomp = dmli1[j - 1 - (i + 1)];
 
-    if (dangle_model)
-      for (s = 0; s < n_seq; s++)
-        decomp += E_MLstem(type[s], S5[s][j], S3[s][i], P);
-    else
-      for (s = 0; s < n_seq; s++)
-        decomp += E_MLstem(type[s], -1, -1, P);
+      type  = (int *)vrna_alloc(n_seq * sizeof(int));
+      S     = vc->S;
+      S5    = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
+      S3    = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
 
-    if (scs) {
       for (s = 0; s < n_seq; s++) {
-        if (scs[s])
-          if (scs[s]->energy_bp)
-            decomp += scs[s]->energy_bp[indx[j] + i];
+        type[s] = md->pair[S[s][j]][S[s][i]];
+        if (type[s] == 0)
+          type[s] = 7;
       }
+
+      if (dangle_model) {
+          for (s = 0; s < n_seq; s++) {
+            decomp  += E_MLstem(type[s], S5[s][j], S3[s][i], P);
+          }
+        } else {
+          for (s = 0; s < n_seq; s++) {
+            decomp  += E_MLstem(type[s], -1, -1, P);
+          }
+        }
+      if (scs) {
+        for (s = 0; s < n_seq; s++) {
+          if (scs[s]) {
+            if (scs[s]->f)
+              decomp += scs[s]->f(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, scs[s]->data);
+          }
+        }
+      }
+      free(type);
+
+      e = decomp + n_seq * P->MLclosing;
+    }
+  } else {
+    if (hc->f) {
+      evaluate            = &hc_default_user;
+      hc_dat_local.hc_f   = hc->f;
+      hc_dat_local.hc_dat = hc->data;
+    } else {
+      evaluate = &hc_default;
     }
 
-    free(type);
+    /* multi-loop decomposition ------------------------*/
+    if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
+      decomp = dmli1[j - 1];
 
-    e = decomp + n_seq * P->MLclosing;
+      type  = (int *)vrna_alloc(n_seq * sizeof(int));
+      S     = vc->S;
+      S5    = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
+      S3    = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
+
+      for (s = 0; s < n_seq; s++) {
+        type[s] = md->pair[S[s][j]][S[s][i]];
+        if (type[s] == 0)
+          type[s] = 7;
+      }
+
+      if (dangle_model)
+        for (s = 0; s < n_seq; s++)
+          decomp += E_MLstem(type[s], S5[s][j], S3[s][i], P);
+      else
+        for (s = 0; s < n_seq; s++)
+          decomp += E_MLstem(type[s], -1, -1, P);
+
+      if (scs) {
+        for (s = 0; s < n_seq; s++) {
+          if (scs[s])
+            if (scs[s]->energy_bp)
+              decomp += scs[s]->energy_bp[indx[j] + i];
+        }
+      }
+
+      free(type);
+
+      e = decomp + n_seq * P->MLclosing;
+    }
   }
 
   return e;
@@ -435,6 +495,10 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
             decomp += E_MLstem(tt, -1, -1, P);
             break;
         }
+        if (sc) {
+          if (sc->f)
+            decomp += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, sc->data);
+        }
       }
     }
 
@@ -444,6 +508,10 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
       if (evaluate(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
         if (dmli2[j - 1 - (i + 2)] != INF) {
           en      = dmli2[j - 1 - (i + 2)] + E_MLstem(tt, -1, S_i1, P) + P->MLbase;
+          if (sc) {
+            if (sc->f)
+              en += sc->f(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, sc->data);
+          }
           decomp  = MIN2(decomp, en);
         }
       }
@@ -452,6 +520,10 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
       if (evaluate(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
         if (dmli2[j - 2 - (i + 2)] != INF) {
           en      = dmli2[j - 2 - (i + 2)] + E_MLstem(tt, S_j1, S_i1, P) + 2 * P->MLbase;
+          if (sc) {
+            if (sc->f)
+              en += sc->f(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, sc->data);
+          }
           decomp  = MIN2(decomp, en);
         }
       }
@@ -460,6 +532,10 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
       if (evaluate(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
         if (dmli1[j - 2 - (i + 1)] != INF) {
           en      = dmli1[j - 2 - (i + 1)] + E_MLstem(tt, S_j1, -1, P) + P->MLbase;
+          if (sc) {
+            if (sc->f)
+              en += sc->f(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, sc->data);
+          }
           decomp  = MIN2(decomp, en);
         }
       }
@@ -1778,6 +1854,112 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t  *vc,
   e = MIN2(e, decomp);
 
   fmi[j] = e; /* store for later use in ML decompositon */
+
+  return e;
+}
+
+
+PRIVATE int
+E_ml_stems_fast_comparative_window(vrna_fold_compound_t  *vc,
+                            int                   i,
+                            int                   j,
+                            int                   *fmi,
+                            int                   *dmli)
+{
+  char            **hard_constraints;
+  short           **S, **S5, **S3;
+  unsigned short  **a2s;
+  int             e, energy, **c, **fML, **ggg, s, n_seq, k,
+                  dangle_model, decomp, turn, *type;
+  vrna_param_t    *P;
+  vrna_md_t       *md;
+  vrna_mx_mfe_t   *matrices;
+  vrna_hc_t       *hc;
+  vrna_sc_t       **scs;
+
+  n_seq             = vc->n_seq;
+  matrices          = vc->matrices;
+  P                 = vc->params;
+  md                = &(P->model_details);
+  c                 = matrices->c_local;
+  fML               = matrices->fML_local;
+  ggg               = matrices->ggg_local;
+  hc                = vc->hc;
+  scs               = vc->scs;
+  hard_constraints  = hc->matrix_local;
+  dangle_model      = md->dangles;
+  turn              = md->min_loop_size;
+  a2s               = vc->a2s;
+  e                 = INF;
+
+  if (hc->up_ml[i]) {
+    energy = fML[i + 1][j - (i + 1)] + n_seq * P->MLbase;
+    if (scs) {
+      for (s = 0; s < n_seq; s++) {
+        if (scs[s])
+          if (scs[s]->energy_up)
+            energy += scs[s]->energy_up[a2s[s][i]][1];
+      }
+    }
+
+    e = MIN2(e, energy);
+  }
+
+  if (hc->up_ml[j]) {
+    energy = fML[i][j - 1 - i] + n_seq * P->MLbase;
+    if (scs) {
+      for (s = 0; s < n_seq; s++) {
+        if (scs[s])
+          if (scs[s]->energy_up)
+            energy += scs[s]->energy_up[a2s[s][j]][1];
+      }
+    }
+
+    e = MIN2(e, energy);
+  }
+
+  if (hard_constraints[i][j - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+    energy = c[i][j - i];
+
+    type  = (int *)vrna_alloc(n_seq * sizeof(int));
+    S     = vc->S;
+    S5    = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
+    S3    = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
+
+    for (s = 0; s < n_seq; s++) {
+      type[s] = md->pair[S[s][i]][S[s][j]];
+      if (type[s] == 0)
+        type[s] = 7;
+    }
+
+    if (dangle_model)
+      for (s = 0; s < n_seq; s++)
+        energy += E_MLstem(type[s], S5[s][i], S3[s][j], P);
+    else
+      for (s = 0; s < n_seq; s++)
+        energy += E_MLstem(type[s], -1, -1, P);
+
+    e = MIN2(e, energy);
+
+    free(type);
+  }
+
+  if (md->gquad) {
+    decomp  = ggg[i][j - i] + n_seq * E_MLstem(0, -1, -1, P);
+    e       = MIN2(e, decomp);
+  }
+
+  /* modular decomposition -------------------------------*/
+  for (decomp = INF, k = i + 1 + turn; k <= j - 2 - turn; k++) {
+    energy = fmi[k - i] + fML[k + 1][j - (k + 1)];
+    decomp = (decomp > energy) ? energy : decomp;
+  }
+
+  dmli[j - i] = decomp; /* store for later use in ML decompositon */
+
+  e = MIN2(e, decomp);
+
+  fmi[j - i] = e; /* store for later use in ML decompositon */
 
   return e;
 }

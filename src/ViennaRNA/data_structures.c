@@ -312,8 +312,8 @@ vrna_fold_compound_comparative(const char   **sequences,
 #endif
 
     if (!(options & VRNA_OPTION_EVAL_ONLY)) {
-      /* add default hard constraints */
-      /* vrna_hc_init(vc); */ /* no hard constraints in aliLfold, yet! */
+      /* add minimal hard constraint data structure */
+      vrna_hc_init_window(vc);
 
       /* add DP matrices */
       vrna_mx_add(vc, VRNA_MX_WINDOW, options);

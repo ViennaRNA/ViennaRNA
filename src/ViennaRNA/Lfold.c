@@ -20,6 +20,7 @@
 #include <limits.h>
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/energy_const.h" /* defines MINPSCORE */
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/loop_energies.h"
@@ -39,8 +40,6 @@
 #define MAXSECTORS                  500   /* dimension for a backtrack array */
 #define INT_CLOSE_TO_UNDERFLOW(i)   ((i) <= (INT_MIN / 16))
 #define UNDERFLOW_CORRECTION        (INT_MIN / 32)
-#define UNIT 100
-#define MINPSCORE -2 * UNIT
 
 
 #define NONE -10000 /* score for forbidden pairs */
@@ -1044,6 +1043,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
   vrna_mx_mfe_t   *matrices;
   vrna_param_t    *P;
   vrna_md_t       *md;
+  vrna_hc_t       *hc;
 
   int             olddm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs PRIVATE needed??*/
                                   { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
@@ -1067,6 +1067,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
   length        = fc->length;
   maxdist       = fc->window_size;
   matrices      = fc->matrices;
+  hc            = fc->hc;
   P             = fc->params;
   md            = &(P->model_details);
   turn          = md->min_loop_size;
@@ -1093,10 +1094,13 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     fc->pscore_local[i]         = vrna_alloc(sizeof(int) * (maxdist + 5));
     fc->matrices->c_local[i]    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
     fc->matrices->fML_local[i]  = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+    hc->matrix_local[i] = (char *)vrna_alloc(sizeof(char) * (maxdist + 5));
   }
 
-  for (i = length; (i >= length - maxdist - 4) && (i > 0); i--)
+  for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
     make_pscores(fc, i, dm);
+    vrna_hc_prepare(fc, i);
+  }
 
   pscore  = fc->pscore_local; /* precomputed array of pair types */
   S       = fc->S;
@@ -1136,7 +1140,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
       c[i][j - i] = fML[i][j - i] = INF;
     for (j = i + turn + 1; j <= length && j <= i + maxdist; j++) {
       int p, q, psc;
-      /* bonus = 0;*/
+
       for (s = 0; s < n_seq; s++) {
         type[s] = md->pair[S[s][i]][S[s][j]];
         if (type[s] == 0)
@@ -1144,202 +1148,40 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
       }
 
       psc = pscore[i][j - i];
-      if (psc >= cv_fact * MINPSCORE) {
-        /* we have a pair 2 consider */
-        int new_c = 0, stackEnergy = INF;
+
+      if (hc->matrix_local[i][j - i]) {   /* we evaluate this pair */
+        int new_c = INF;
+        int stackEnergy = INF;
+
         /* hairpin ----------------------------------------------*/
-        for (new_c = s = 0; s < n_seq; s++) {
-          if ((a2s[s][j - 1] - a2s[s][i]) < 3) {
-            new_c += 600;
-          } else {
-            new_c +=
-              E_Hairpin(a2s[s][j - 1] - a2s[s][i],
-                        type[s],
-                        S3[s][i],
-                        S5[s][j],
-                        Ss[s] + (a2s[s][i - 1]),
-                        P);
-          }
-        }
-        /*--------------------------------------------------------
-         *  check for elementary structures involving more than one
-         *  closing pair.
-         *  --------------------------------------------------------*/
-        for (p = i + 1; p <= MIN2(j - 2 - turn, i + MAXLOOP + 1); p++) {
-          int minq = j - i + p - MAXLOOP - 2;
-          if (minq < p + 1 + turn)
-            minq = p + 1 + turn;
+        energy  = vrna_E_hp_loop(fc, i, j);
+        new_c   = MIN2(new_c, energy);
 
-          for (q = minq; q < j; q++) {
-            if (pscore[p][q - p] < MINPSCORE)
-              continue;
+        /* check for multibranch loops */
+        energy  = vrna_E_mb_loop_fast(fc, i, j, DMLi1, NULL);
+        new_c   = MIN2(new_c, energy);
 
-            for (energy = s = 0; s < n_seq; s++) {
-              type_2 = md->pair[S[s][q]][S[s][p]]; /* q,p not p,q! */
-              if (type_2 == 0)
-                type_2 = 7;
+        /* check for interior loops */
+        energy  = vrna_E_int_loop(fc, i, j);
+        new_c   = MIN2(new_c, energy);
 
-              energy += E_IntLoop(a2s[s][p - 1] - a2s[s][i],
-                                  a2s[s][j - 1] - a2s[s][q],
-                                  type[s],
-                                  type_2,
-                                  S3[s][i],
-                                  S5[s][j],
-                                  S5[s][p],
-                                  S3[s][q],
-                                  P);
-            }
-            new_c = MIN2(energy + c[p][q - p], new_c);
-            if ((p == i + 1) && (j == q + 1))
-              stackEnergy = energy;                       /* remember stack energy */
-          } /* end q-loop */
-        } /* end p-loop */
-
-
-        /* multi-loop decomposition ------------------------*/
-        decomp = DMLi1[j - 1 - (i + 1)];
-        if (dangle_model) {
-          for (s = 0; s < n_seq; s++) {
-            tt      = rtype[type[s]];
-            decomp  += E_MLstem(tt, S5[s][j], S3[s][i], P);
-          }
-        } else {
-          for (s = 0; s < n_seq; s++) {
-            tt      = rtype[type[s]];
-            decomp  += E_MLstem(tt, -1, -1, P);
-          }
-        }
-
-        MLenergy  = decomp + n_seq * P->MLclosing;
-        new_c     = MIN2(new_c, MLenergy);
-
-        if (with_gquad) {
-          /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-          energy = 0;
-          for (s = 0; s < n_seq; s++) {
-            tt = type[s];
-            if (dangle_model == 2)
-              energy += P->mismatchI[tt][S3[s][i]][S5[s][j]];
-
-            if (tt > 2)
-              energy += P->TerminalAU;
-          }
-          for (p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++) {
-            u = p - i - 1;
-            if (u > MAXLOOP)
-              break;
-
-            if (S_cons[p] != 3)
-              continue;
-
-            min_q = j - i + p - MAXLOOP - 2;
-            c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-            min_q = MAX2(c0, min_q);
-            c0    = j - 1;
-            max_q = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-            max_q = MIN2(c0, max_q);
-            for (q = min_q; q < max_q; q++) {
-              if (S_cons[q] != 3)
-                continue;
-
-              c0    = energy + ggg[p][q - p] + n_seq * P->internal_loop[u + j - q - 1];
-              new_c = MIN2(new_c, c0);
-            }
-          }
-
-          p = i + 1;
-          if (S_cons[p] == 3) {
-            if (p < j - VRNA_GQUAD_MIN_BOX_SIZE) {
-              min_q = j - i + p - MAXLOOP - 2;
-              c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-              min_q = MAX2(c0, min_q);
-              c0    = j - 3;
-              max_q = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-              max_q = MIN2(c0, max_q);
-              for (q = min_q; q < max_q; q++) {
-                if (S_cons[q] != 3)
-                  continue;
-
-                c0    = energy + ggg[p][q - p] + n_seq * P->internal_loop[j - q - 1];
-                new_c = MIN2(new_c, c0);
-              }
-            }
-          }
-
-          q = j - 1;
-          if (S_cons[q] == 3) {
-            for (p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++) {
-              u = p - i - 1;
-              if (u > MAXLOOP)
-                break;
-
-              if (S_cons[p] != 3)
-                continue;
-
-              c0    = energy + ggg[p][q - p] + n_seq * P->internal_loop[u];
-              new_c = MIN2(new_c, c0);
-            }
-          }
-        }
-
-        new_c     = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
-        cc[j - i] = new_c - psc; /* add covariance bonnus/penalty */
-        if (noLP)
+        /* remember stack energy for --noLP option */
+        if(md->noLP){
+          stackEnergy = vrna_E_stack(fc, i, j);
+          new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
+          cc[j - i]   = new_c - psc; /* add covariance bonnus/penalty */
           c[i][j - i] = cc1[j - 1 - (i + 1)] + stackEnergy - psc;
-        else
-          c[i][j - i] = cc[j - i];
+        } else {
+          c[i][j - i] = new_c - psc; /* add covariance bonnus/penalty */
+        }
       } /* end >> if (pair) << */
       else {
         c[i][j - i] = INF;
       }
 
       /* done with c[i,j], now compute fML[i,j] */
-      /* free ends ? -----------------------------------------*/
-      new_fML = INF;
-      switch (dangle_model) {
-        /* no dangling end contributions */
-        case 0:
-          new_fML = fML[i + 1][j - i - 1] + n_seq * P->MLbase;
-          new_fML = MIN2(fML[i][j - 1 - i] + n_seq * P->MLbase, new_fML);
-          energy  = c[i][j - i] /*+P->MLintern[type]*/;
-          if (energy < INF)
-            for (s = 0; s < n_seq; s++)
-              energy += E_MLstem(type[s], -1, -1, P);
+      fML[i][j - i] = vrna_E_ml_stems_fast(fc, i, j, Fmi, DMLi);
 
-          new_fML = MIN2(energy, new_fML);
-          break;
-
-        /* double dangles */
-        case 2:
-          new_fML = fML[i + 1][j - i - 1] + n_seq * P->MLbase;
-          new_fML = MIN2(fML[i][j - 1 - i] + n_seq * P->MLbase, new_fML);
-          energy  = c[i][j - i] /*+P->MLintern[type]*/;
-          if (energy < INF)
-            for (s = 0; s < n_seq; s++)
-              energy += E_MLstem(type[s], (i > 1) ? S5[s][i] : -1, (j < length) ? S3[s][j] : -1, P);
-
-          new_fML = MIN2(energy, new_fML);
-          break;
-
-        default:
-          vrna_message_warning("dangle model %d not implemented in comparative Lfold!",
-                               dangle_model);
-          break;
-      }
-
-      if (with_gquad)
-        new_fML = MIN2(new_fML, ggg[i][j - i] + n_seq * E_MLstem(0, -1, -1, P));
-
-      /* modular decomposition -------------------------------*/
-
-      for (decomp = INF, k = i + 1 + turn; k <= j - 2 - turn; k++)
-        decomp = MIN2(decomp, Fmi[k - i] + fML[k + 1][j - k - 1]);
-
-      DMLi[j - i] = decomp;               /* store for use in ML decompositon */
-      new_fML     = MIN2(new_fML, decomp);
-
-
-      fML[i][j - i] = Fmi[j - i] = new_fML;     /* substring energy */
     } /* for (j...) */
 
     /* calculate energies of 5' and 3' fragments */
@@ -1634,9 +1476,12 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
         fc->pscore_local[i + maxdist + 4]     = NULL;
         c                                     = matrices->c_local;
         fML                                   = matrices->fML_local;
+        hc->matrix_local[i - 1]           = hc->matrix_local[i + maxdist + 4];
+        hc->matrix_local[i + maxdist + 4] = NULL;
 
         if (i > 1) {
           make_pscores(fc, i - 1, dm);
+          vrna_hc_prepare(fc, i - 1);
           if (with_gquad) {
             vrna_gquad_mx_local_update(fc, i - 1);
             ggg = fc->matrices->ggg_local;
@@ -1663,18 +1508,23 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     free(dm[i]);
   free(dm);
 
-  /* free additional memory for j-dimension */
-  for (i = 0; (i < maxdist + 5) && (i <= length); i++) {
-    free(fc->pscore_local[i]);
-    free(fc->matrices->c_local[i]);
-    free(fc->matrices->fML_local[i]);
-  }
-
   if (with_gquad) {
     for (i = 0; (i <= maxdist + 5) && (i <= length); i++)
       free(ggg[i]);
     free(ggg);
     fc->matrices->ggg_local = NULL;
+  }
+
+  /* free additional memory for j-dimension */
+  for (i = 0; (i < maxdist + 5) && (i <= length); i++) {
+    free(pscore[i]);
+    pscore[i] = NULL;
+    free(c[i]);
+    c[i] = NULL;
+    free(fML[i]);
+    fML[i] = NULL;
+    free(hc->matrix_local[i]);
+    hc->matrix_local[i] = NULL;
   }
 
   return matrices->f3[1];
