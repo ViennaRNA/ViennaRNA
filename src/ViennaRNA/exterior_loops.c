@@ -63,6 +63,18 @@ PRIVATE int
 E_ext_loop_3_comparative(vrna_fold_compound_t  *fc,
                   int                   i);
 
+PRIVATE int
+BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
+                       int                  i,
+                       int                  maxj,
+                       int                  fij);
+
+PRIVATE int
+BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t *fc,
+                       int                  i,
+                       int                  maxj,
+                       int                  fij);
+
 PRIVATE char
 hc_default(int  i,
            int  j,
@@ -2226,6 +2238,29 @@ vrna_BT_ext_loop_f3(vrna_fold_compound_t  *vc,
 PUBLIC int
 vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
                        int                  i,
+                       int                  maxj,
+                       int                  fij)
+{
+
+  if (fc) {
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        return BT_ext_loop_f3_pp(fc, i, maxj, fij);
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        return BT_ext_loop_f3_pp_comparative(fc, i, maxj, fij);
+        break;
+    }
+  }
+
+  return -1;
+}
+
+PRIVATE int
+BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
+                       int                  i,
+                       int                  maxj,
                        int                  fij)
 {
   int j;
@@ -2253,7 +2288,7 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
     turn          = md->min_loop_size;
     dangle_model  = md->dangles;
     with_gquad    = md->gquad;
-    maxdist       = fc->window_size;
+    maxdist       = MIN2(fc->window_size, maxj);
     traced2       = 0;
 
     /* get pairing partner j */
@@ -2337,6 +2372,129 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
       }
       if (traced2)
         break;
+    }
+
+    if (!traced2)
+      j = -1;
+  }
+
+  return j;
+}
+
+
+PRIVATE int
+BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t *fc,
+                       int                  i,
+                       int                  maxj,
+                       int                  fij)
+{
+  int j;
+
+  j = -1;
+
+  if (fc) {
+    short           **S, **S5, **S3;
+    int           traced2, length, turn, dangle_model, with_gquad, maxdist, type, cc, **c, **ggg,
+                  *f3, s, tt, n_seq;
+    vrna_param_t  *P;
+    vrna_md_t     *md;
+    vrna_hc_t     *hc;
+
+    length        = fc->length;
+    n_seq         = fc->n_seq;
+    S             = fc->S;
+    S5      = fc->S5;           /*S5[s][i] holds next base 5' of i in sequence s*/
+    S3      = fc->S3;           /*Sl[s][i] holds next base 3' of i in sequence s*/
+    f3            = fc->matrices->f3_local;
+    c             = fc->matrices->c_local;
+    ggg           = fc->matrices->ggg_local;
+    hc            = fc->hc;
+    P             = fc->params;
+    md            = &(P->model_details);
+    turn          = md->min_loop_size;
+    dangle_model  = md->dangles;
+    with_gquad    = md->gquad;
+    maxdist       = MIN2(fc->window_size, maxj);
+    traced2       = 0;
+
+    /* get pairing partner j */
+    for (j = i + turn; j <= MIN2(i + maxdist, length - 1); j++) {
+      switch (dangle_model) {
+        case 0:
+          if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+            cc = c[i][j - i];
+          
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
+
+              cc += E_ExtLoop(tt, -1, -1, P);
+            }
+
+            if (fij == cc + f3[j + 1])
+              traced2 = 1;
+          } else if (with_gquad) {
+            cc = ggg[i][j - i];
+            if (fij == cc + f3[j + 1])
+              traced2 = 1;
+          }
+
+          break;
+        case 2:
+          if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+            cc = c[i][j - i ];
+
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
+
+              cc += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, S3[s][j], P);
+            }
+
+            if (fij == cc + f3[j + 1])
+              traced2 = 1;
+          } else if (with_gquad) {
+            cc = ggg[i][j - i];
+            if (fij == cc + f3[j + 1])
+              traced2 = 1;
+          }
+
+          break;
+      }
+      if (traced2)
+        break;
+    }
+
+    if ((!traced2) && (length <= i + maxdist)) {
+      j = length;
+      cc = c[i][j - i];
+      switch (dangle_model) {
+        case 0:
+          for (s = 0; s < n_seq; s++) {
+            tt = md->pair[S[s][i]][S[s][j]];
+            if (tt == 0)
+              tt = 7;
+
+              cc += E_ExtLoop(tt, -1, -1, P);
+          }
+          if (fij == cc)
+            traced2 = 1;
+          break;
+
+        case 2:
+          for (s = 0; s < n_seq; s++) {
+            tt = md->pair[S[s][i]][S[s][j]];
+            if (tt == 0)
+              tt = 7;
+
+              cc += E_ExtLoop(tt, (i > 1) ? S5[s][i] :  -1, -1, P);
+          }
+          if (fij == cc)
+            traced2 = 1;
+          break;
+      }
     }
 
     if (!traced2)

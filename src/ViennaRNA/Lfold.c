@@ -41,6 +41,8 @@
 #define INT_CLOSE_TO_UNDERFLOW(i)   ((i) <= (INT_MIN / 16))
 #define UNDERFLOW_CORRECTION        (INT_MIN / 32)
 
+#define MAX_E_THRESHOLD   -0.01 /* kcal/mol per nucleotide */
+#define OLD_LALIFOLD  0
 
 #define NONE -10000 /* score for forbidden pairs */
 
@@ -580,7 +582,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
         while (fij == f3[lind + 1])
           lind++;
 
-        pairpartner = vrna_BT_ext_loop_f3_pp(vc, lind, fij);
+        pairpartner = vrna_BT_ext_loop_f3_pp(vc, lind, maxdist - (lind - (i + 1)), fij);
         if (pairpartner == -1)
           vrna_message_error("backtrack failed in short backtrack 1");
 
@@ -681,7 +683,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
           while (fij == f3[lind + 1])
             lind++;
 
-          pairpartner = vrna_BT_ext_loop_f3_pp(vc, lind, fij);
+          pairpartner = vrna_BT_ext_loop_f3_pp(vc, lind, maxdist - (lind - i), fij);
           if (pairpartner == -1)
             vrna_message_error("backtrack failed in short backtrack 2");
 
@@ -1023,7 +1025,6 @@ repeat1:
   return structure;
 }
 
-
 PRIVATE int
 fill_arrays_comparative(vrna_fold_compound_t      *fc,
                         vrna_mfe_window_callback  *cb,
@@ -1031,14 +1032,14 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
 {
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
-  char            **strings, **Ss, *prev;
+  char            **strings, **Ss, *prev, *prev2;
   unsigned short  **a2s;
   short           **S, **S5, **S3, *S_cons;
   int             **pscore, u, i, j, k, length, energy, turn, *rtype, decomp, new_fML, MLenergy,
                   *type, type_2, tt, s, n_seq, lastf, lastf2, thisj, lastj, **c, **fML, *f3, **ggg,
                   *cc, *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2, energyout, energyprev, maxdist,
-                  dangle_model,
-                  noLP, do_backtrack, prev_i, with_gquad, min_q, max_q, c0;
+                  dangle_model, leee, leee2, leee3, prev2_i, prev2_j, prev2_en,
+                  noLP, do_backtrack, do_backtrack2, prev_i, with_gquad, min_q, max_q, c0;
   float           **dm;
   vrna_mx_mfe_t   *matrices;
   vrna_param_t    *P;
@@ -1054,11 +1055,16 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
                                   { 0, 2, 2, 2, 1, 2, 0 } /* UA */ };
 
   do_backtrack  = 0;
+  do_backtrack2 = 0;
   prev_i        = 0;
+  prev2_i        = 0;
+  prev2_j        = 0;
+  prev2_en        = INF;
 
-  lastf = lastf2 = INF;
+  lastf = lastf2 = leee = leee2 = leee3 = INF;
   dm    = NULL;
   prev  = NULL;
+  prev2 = NULL;
 
   strings       = fc->sequences;
   S             = fc->S;
@@ -1201,11 +1207,12 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
               if (with_gquad) {
                 energy = ggg[i][j - i];
 
+#if OLD_LALIFOLD
                 if (energy / (j - i + 1) < thisf) {
                   thisf = energy / (j - i + 1);
                   thisj = j;
                 }
-
+#endif
                 energy  += f3[j + 1];
                 f3[i]   = MIN2(f3[i], energy);
               }
@@ -1220,11 +1227,12 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
                   energy += E_ExtLoop(tt, -1, -1, P);
                 }
 
+#if OLD_LALIFOLD
                 if (energy / (j - i + 1) < thisf) {
                   thisf = energy / (j - i + 1);
                   thisj = j;
                 }
-
+#endif
                 energy  += f3[j + 1];
                 f3[i]   = MIN2(f3[i], energy);
               }
@@ -1236,10 +1244,12 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
             if (with_gquad) {
               energy = ggg[i][j - i];
 
+#if OLD_LALIFOLD
               if (energy / (j - i + 1) < thisf) {
                 thisf = energy / (j - i + 1);
                 thisj = j;
               }
+#endif
 
               f3[i] = MIN2(f3[i], energy);
             }
@@ -1254,12 +1264,13 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
                 energy += E_ExtLoop(tt, -1, -1, P);
               }
 
+#if OLD_LALIFOLD
               /*  thisf=MIN2(energy/(j-i+1),thisf); ???*/
               if (energy / (j - i + 1) < thisf) {
                 thisf = energy / (j - i + 1);
                 thisj = j;
               }
-
+#endif
               f3[i] = MIN2(f3[i], energy);
             }
           }
@@ -1273,11 +1284,12 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
               if (with_gquad) {
                 energy = ggg[i][j - i];
 
+#if OLD_LALIFOLD
                 if (energy / (j - i + 1) < thisf) {
                   thisf = energy / (j - i + 1);
                   thisj = j;
                 }
-
+#endif
                 energy  += f3[j + 1];
                 f3[i]   = MIN2(f3[i], energy);
               }
@@ -1292,11 +1304,12 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
                   energy += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, S3[s][j], P);
                 }
 
+#if OLD_LALIFOLD
                 if (energy / (j - i + 1) < thisf) {
                   thisf = energy / (j - i + 1);
                   thisj = j;
                 }
-
+#endif
                 energy  += f3[j + 1];
                 f3[i]   = MIN2(f3[i], energy);
               }
@@ -1308,11 +1321,12 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
             if (with_gquad) {
               energy = ggg[i][j - i];
 
+#if OLD_LALIFOLD
               if (energy / (j - i + 1) < thisf) {
                 thisf = energy / (j - i + 1);
                 thisj = j;
               }
-
+#endif
               f3[i] = MIN2(f3[i], energy);
             }
 
@@ -1326,11 +1340,13 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
                 energy += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, -1, P);
               }
 
+#if OLD_LALIFOLD
               /*  thisf=MIN2(energy/(j-i+1),thisf); ???*/
               if (energy / (j - i + 1) < thisf) {
                 thisf = energy / (j - i + 1);
                 thisj = j;
               }
+#endif
 
               f3[i] = MIN2(f3[i], energy);
             }
@@ -1344,10 +1360,48 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
           break;
       }
 
+#if !(OLD_LALIFOLD)
+      if (f3[i] < f3[i + 1]) {
+        do_backtrack2 = 1;
+      } else if (do_backtrack2) {
+        int jjj, iii, eee, f, traced3;
+        eee = f3[i + 1];
+        iii = i + 1;
+        
+        while (eee == f3[iii + 1])
+          iii++;
 
+        jjj = vrna_BT_ext_loop_f3_pp(fc, iii, maxdist - (iii - (i + 1)), eee);
+        if (jjj == -1)
+          vrna_message_error("backtrack failed in short backtrack 1");
+
+        energy = f3[iii] - f3[jjj + 1];
+        leee3 = leee2;
+        leee2 = leee;
+        leee = energy / (jjj - iii + 1);
+
+        /* do not spam output with relatively unstable structures */
+        if ((leee / (n_seq * 100.)) < MAX_E_THRESHOLD) {
+          //printf("wtf: %d, %d vs. %d\n", leee, leee * (jjj - iii + 1), f3[iii] - f3[jjj]);
+          char *sss = backtrack_comparative(fc, iii, jjj - iii + 1);
+          if (prev2) {
+            if ((iii + strlen(sss) < prev2_i + strlen(prev2)) ||
+                strncmp(sss + prev2_i - iii, prev2, strlen(prev2) - 1)) { /* -1 because of 3' dangle unpaired position */
+              cb(prev2_i, prev2_j + 1, prev2, (prev2_en) / (100. * n_seq), data);
+              //printf("threshold: %d / (%d * 100) = %g\n", leee2, n_seq, leee2 / (n_seq * 100.));
+            }
+            free(prev2);
+          }
+          prev2 = sss;
+          prev2_i = iii;
+          prev2_j = jjj;
+          prev2_en = f3[iii] - f3[jjj];
+        }
+        do_backtrack2 = 0;
+      }
+#else
       /* backtrack partial structure */
       /* if (i+maxdist<length) {*/
-      if (i < length - 1) {
         if (f3[i] != f3[i + 1]) {
           do_backtrack    = 1;
           backtrack_type  = 'F';
@@ -1363,11 +1417,13 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
           /*?????????*/
           do_backtrack    = 2;
           backtrack_type  = 'C';
+          printf("bt2: thisf=%d, lastf=%d, lastf2=%d, (%g)\n", thisf, lastf, lastf2, thisf / (n_seq * 100));
         } else if (do_backtrack) {
           if (do_backtrack == 1) {
             ss        = backtrack_comparative(fc, i + 1, MIN2(maxdist, length - i) /*+1*/);
             energyout = f3[i] - f3[i + strlen(ss) - 1];/*??*/
           } else {
+            printf("bt2: 2 %d - %d\n", i + 1, MIN2(maxdist, length - i));
             ss        = backtrack_comparative(fc, i + 1, lastj - i - 2);
             energyout = c[i + 1][lastj - (i + 1)];
             switch (dangle_model) {
@@ -1401,14 +1457,8 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
           }
 
           if ((prev) && ((prev_i + strlen(prev) > i + 1 + strlen(ss)) || (do_backtrack == 2))) {
-            char *outstr = (char *)vrna_alloc(sizeof(char) * (strlen(prev) + 1));
-            strncpy(outstr, strings[0] + prev_i - 1, strlen(prev));
-            outstr[strlen(prev)] = '\0';
-
             /* execute callback */
             cb(prev_i, prev_i + (int)strlen(prev) - 1, prev, energyprev / (100. * n_seq), data);
-
-            free(outstr);
           }
 
           free(prev);
@@ -1418,31 +1468,74 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
           do_backtrack    = 0;
           backtrack_type  = 'F';
         }
-      }
+#endif
 
       lastf2  = lastf;
       lastf   = thisf;
       lastj   = thisj;
 
 
+#if !(OLD_LALIFOLD)
       if (i == 1) {
-        char *outstr = NULL;
-        if (prev) {
-          outstr = (char *)vrna_alloc(sizeof(char) * (strlen(prev) + 1));
-          strncpy(outstr, strings[0] + prev_i - 1, strlen(prev));
-          outstr[strlen(prev)] = '\0';
 
+        if (f3[1] != f3[prev_i]) {
+          /* find pairing partner, if any */
+          int jjj, iii, eee, f, traced3;
+          eee = f3[1];
+          iii = 1;
+        
+          while (eee == f3[iii + 1]) {
+            iii++;
+            if (iii > maxdist)
+              break;
+          }
+
+          if (iii < maxdist) { /* otherwise, c-array columns don't exist anymore */
+            jjj = vrna_BT_ext_loop_f3_pp(fc, iii, maxdist - (iii - 1), eee);
+            if (jjj != -1) {
+
+              energy = f3[iii] - f3[jjj + 1];
+              leee3 = leee2;
+              leee2 = leee;
+              leee = energy / (jjj - iii + 1);
+
+              if ((leee / (n_seq * 100.)) < MAX_E_THRESHOLD) {
+                ss = backtrack_comparative(fc, iii, jjj - iii + 1);
+
+                if (prev2) {
+                  if((iii + strlen(ss) < prev2_i + strlen(prev2)) ||
+                      strncmp(ss + prev2_i - iii, prev2, strlen(prev2) - 1)) { /* -1 because of 3' dangle unpaired position */
+                    cb(prev2_i, prev2_j + 1, prev2, (prev2_en) / (100. * n_seq), data);
+                  }
+                }
+
+                /* execute callback */
+                cb(iii, jjj + 1, ss, energy / (100. * n_seq), data);
+
+                free(prev2);
+                prev2 = NULL;
+                free(ss);
+                ss = NULL;
+              }
+            }
+          }
+        }
+
+        if (prev2) {
+          cb(prev2_i, prev2_j + 1, prev2, (prev2_en) / (100. * n_seq), data);
+          free(prev2);
+          prev2 = NULL;
+        }
+      }
+#else
+      if (i == 1) {
+        if (prev) {
           /* execute callback */
           cb(prev_i, prev_i + (int)strlen(prev) - 1, prev, (energyprev) / (100. * n_seq), data);
         }
 
         if ((f3[prev_i] != f3[1]) || !prev) {
           ss = backtrack_comparative(fc, i, maxdist);
-          free(outstr);
-
-          outstr = (char *)vrna_alloc(sizeof(char) * (strlen(ss) + 1));
-          strncpy(outstr, strings[0], strlen(ss));
-          outstr[strlen(ss)] = '\0';
 
           /* execute callback */
           cb(1, (int)strlen(ss) - 1, ss, (f3[1] - f3[1 + strlen(ss) - 1]) / (100. * n_seq), data);
@@ -1451,10 +1544,10 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
           ss = NULL;
         }
 
-        free(outstr);
         free(prev);
         prev = NULL;
       }
+#endif
     }
     {
       int ii, *FF; /* rotate the auxilliary arrays */
