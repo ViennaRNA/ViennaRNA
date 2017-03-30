@@ -47,6 +47,8 @@ typedef struct {
   int       msa_stk;
   int       csv;
   int       mis;
+  float     threshold;
+  int       n_seq;
 } hit_data;
 
 
@@ -84,6 +86,7 @@ main(int  argc,
   int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id, gquad,
                                 mis, istty, alnPS, aln_columns, aln_out, ssPS, input_file_num, id_digits;
   long int                      alignment_number, first_alignment_number;
+  float                         e_max;
   vrna_md_t                     md;
   vrna_fold_compound_t          *fc;
 
@@ -105,6 +108,7 @@ main(int  argc,
   quiet                 = 0;
   auto_id               = 0;
   gquad                 = 0;
+  e_max                 = -0.1;  /* threshold in kcal/mol per nucleotide in a hit */
 
   vrna_md_set_default(&md);
 
@@ -289,6 +293,9 @@ main(int  argc,
   if (args_info.quiet_given)
     quiet = 1;
 
+  if (args_info.threshold_given)
+    e_max = (float)args_info.threshold_arg;
+
   /* free allocated memory of command line data structure */
   RNALalifold_cmdline_parser_free(&args_info);
 
@@ -310,9 +317,6 @@ main(int  argc,
     vrna_md_set_nonstandards(&md, ns_bases);
 
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
-
-  if (istty && (clust_file == stdin))
-    vrna_message_input_seq("Input aligned sequences in clustalw format");
 
   md.max_bp_span = md.window_size = maxdist;
 
@@ -426,6 +430,8 @@ main(int  argc,
     data.msa_stk  = aln_out;
     data.csv      = csv;
     data.mis      = mis;
+    data.threshold  = e_max;
+    data.n_seq      = n_seq;
 
     (void)vrna_mfe_window_cb(fc, &print_hit_cb, (void *)&data);
 
@@ -507,9 +513,10 @@ print_hit_cb(int        start,
   char      **strings;
   char      *prefix;
   char      *msg;
-  int       columns;
+  int       columns, n_seq;
   vrna_md_t *md;
   int       with_ss, with_msa, with_stk, with_csv, with_mis;
+  float     threshold;
 
   names     = ((hit_data *)data)->names;
   strings   = ((hit_data *)data)->strings;
@@ -521,77 +528,80 @@ print_hit_cb(int        start,
   with_stk  = ((hit_data *)data)->msa_stk;
   with_csv  = ((hit_data *)data)->csv;
   with_mis  = ((hit_data *)data)->mis;
+  threshold = ((hit_data *)data)->threshold;
 
-  sub   = get_subalignment((const char **)strings, start, end);
-  cons  = (with_mis) ? consens_mis((const char **)sub) : consensus((const char **)sub);
-  A     = annote(structure, (const char **)sub, md);
+  if ((en / (float)(end - start + 1)) <= threshold) {
+    sub   = get_subalignment((const char **)strings, start, end);
+    cons  = (with_mis) ? consens_mis((const char **)sub) : consensus((const char **)sub);
+    A     = annote(structure, (const char **)sub, md);
 
-  if (with_csv == 1)
-    msg = vrna_strdup_printf(",%6.2f,%d,%d", en, start, end);
-  else
-    msg = vrna_strdup_printf(" (%6.2f) %4d - %4d", en, start, end);
-
-  print_structure(stdout, structure, msg);
-  free(msg);
-
-  if (with_ss) {
-    if (prefix)
-      fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
+    if (with_csv == 1)
+      msg = vrna_strdup_printf(",%6.2f,%d,%d", en, start, end);
     else
-      fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
+      msg = vrna_strdup_printf(" (%6.2f) %4d - %4d", en, start, end);
 
-    tmp_string = vrna_filename_sanitize(fname, "_");
-    free(fname);
-    fname = tmp_string;
+    print_structure(stdout, structure, msg);
+    free(msg);
 
-    (void)vrna_file_PS_rnaplot_a(cons, structure, fname, A[0], A[1], md);
-    free(fname);
-  }
-
-  free(A[0]);
-  free(A[1]);
-  free(A);
-  free(cons);
-
-  if (with_msa) {
-    if (prefix)
-      fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
-    else
-      fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
-
-    tmp_string = vrna_filename_sanitize(fname, "_");
-    free(fname);
-    fname = tmp_string;
-
-    vrna_file_PS_aln_sub(fname, (const char **)sub, (const char **)names, structure, start, -1, columns);
-    free(fname);
-  }
-
-  if (with_stk) {
-    unsigned int options = VRNA_FILE_FORMAT_MSA_STOCKHOLM
-                           | VRNA_FILE_FORMAT_MSA_APPEND;
-    if (with_mis)
-      options |= VRNA_FILE_FORMAT_MSA_MIS;
-
-    if (prefix) {
-      id    = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
-      fname = vrna_strdup_printf("%s.stk", prefix);
+    if (with_ss) {
+      if (prefix)
+        fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
+      else
+        fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
 
       tmp_string = vrna_filename_sanitize(fname, "_");
       free(fname);
       fname = tmp_string;
 
-      vrna_file_msa_write(fname, (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", options);
+      (void)vrna_file_PS_rnaplot_a(cons, structure, fname, A[0], A[1], md);
       free(fname);
-    } else {
-      id = vrna_strdup_printf("aln_%d_%d", start, end);
-      vrna_file_msa_write("RNALalifold_results.stk", (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", options);
     }
 
-    free(id);
-  }
+    free(A[0]);
+    free(A[1]);
+    free(A);
+    free(cons);
 
-  delete_alignment(sub);
+    if (with_msa) {
+      if (prefix)
+        fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
+      else
+        fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
+
+      tmp_string = vrna_filename_sanitize(fname, "_");
+      free(fname);
+      fname = tmp_string;
+
+      vrna_file_PS_aln_sub(fname, (const char **)sub, (const char **)names, structure, start, -1, columns);
+      free(fname);
+    }
+
+    if (with_stk) {
+      unsigned int options = VRNA_FILE_FORMAT_MSA_STOCKHOLM
+                             | VRNA_FILE_FORMAT_MSA_APPEND;
+      if (with_mis)
+        options |= VRNA_FILE_FORMAT_MSA_MIS;
+
+      if (prefix) {
+        id    = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
+        fname = vrna_strdup_printf("%s.stk", prefix);
+
+        tmp_string = vrna_filename_sanitize(fname, "_");
+        free(fname);
+        fname = tmp_string;
+
+        vrna_file_msa_write(fname, (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", options);
+        free(fname);
+      } else {
+        id = vrna_strdup_printf("aln_%d_%d", start, end);
+        vrna_file_msa_write("RNALalifold_results.stk", (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", options);
+      }
+
+      free(id);
+    }
+
+    delete_alignment(sub);
+  }
 }
 
 

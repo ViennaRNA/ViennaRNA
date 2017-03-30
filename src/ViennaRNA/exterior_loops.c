@@ -1074,10 +1074,9 @@ PRIVATE int
 E_ext_loop_3_comparative(vrna_fold_compound_t  *fc,
                   int                   i)
 {
-  char                      **ptype;
-  short                     *S1;
+  short           **S, **S5, **S3;
   int                       e, dangle_model, *f3, j, turn, length, maxdist, with_gquad, **ggg,
-                            energy, type, **c;
+                            energy, **c, n_seq, s, tt;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
@@ -1087,9 +1086,11 @@ E_ext_loop_3_comparative(vrna_fold_compound_t  *fc,
   e = INF;
 
   length        = fc->length;
+  n_seq         = fc->n_seq;
+  S       = fc->S;
+  S5      = fc->S5;           /*S5[s][i] holds next base 5' of i in sequence s*/
+  S3      = fc->S3;           /*Sl[s][i] holds next base 3' of i in sequence s*/
   maxdist       = fc->window_size;
-  S1            = fc->sequence_encoding;
-  ptype         = fc->ptype_local;
   P             = fc->params;
   md            = &(P->model_details);
   hc            = fc->hc;
@@ -1128,11 +1129,15 @@ E_ext_loop_3_comparative(vrna_fold_compound_t  *fc,
 
         if (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
           if ((f3[j + 1] != INF) && (c[i][j - i] != INF)) {
-            type = ptype[i][j - i];
-            if (type == 0)
-              type = 7;
+            energy = f3[j + 1] + c[i][j - i];
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
 
-            energy  = f3[j + 1] + c[i][j - i] + E_ExtLoop(type, -1, -1, P);
+              energy += E_ExtLoop(tt, -1, -1, P);
+            }
+
             e       = MIN2(e, energy);
           }
         }
@@ -1145,11 +1150,14 @@ E_ext_loop_3_comparative(vrna_fold_compound_t  *fc,
 
         if (evaluate(i, length, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
           if (c[i][j - i] != INF) {
-            type = ptype[i][j - i];
-            if (type == 0)
-              type = 7;
+            energy = c[i][j - i];
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
 
-            energy  = c[i][j - i] + E_ExtLoop(type, -1, -1, P);
+              energy += E_ExtLoop(tt, -1, -1, P);
+            }
             e       = MIN2(e, energy);
           }
         }
@@ -1166,14 +1174,14 @@ E_ext_loop_3_comparative(vrna_fold_compound_t  *fc,
 
         if (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
           if ((f3[j + 1] != INF) && (c[i][j - i] != INF)) {
-            type = ptype[i][j - i];
-            if (type == 0)
-              type = 7;
+            energy = f3[j + 1] + c[i][j - i];
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
 
-            energy = f3[j + 1] + c[i][j - i] + E_ExtLoop(type,
-                                                         (i > 1) ? S1[i - 1] : -1,
-                                                         S1[j + 1],
-                                                         P);
+              energy += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, S3[s][j], P);
+            }
             e = MIN2(e, energy);
           }
         }
@@ -1186,109 +1194,18 @@ E_ext_loop_3_comparative(vrna_fold_compound_t  *fc,
 
         if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
           if (c[i][j - i] != INF) {
-            type = ptype[i][j - i];
-            if (type == 0)
-              type = 7;
+            energy = c[i][j - i];
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
 
-            energy  = c[i][j - i] + E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, -1, P);
+              energy += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, -1, P);
+            }
             e       = MIN2(e, energy);
           }
         }
       }
-
-      break;
-    /* normal dangle_model, aka dangle_model = 1 */
-    default:
-      for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
-        if (with_gquad && (f3[j + 1] != INF) && (ggg[i][j - i] != INF)) {
-          energy  = f3[j + 1] + ggg[i][j - i];
-          e       = MIN2(e, energy);
-        }
-
-        type = ptype[i][j - i];
-        if (type == 0)
-          type = 7;
-
-        if (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
-          if ((f3[j + 1] != INF) && (c[i][j - i] != INF)) {
-            energy  = f3[j + 1] + c[i][j - i] + E_ExtLoop(type, -1, -1, P);
-            e       = MIN2(e, energy);
-          }
-        }
-
-        if (j + 2 <= length) {
-          if (evaluate(i, length, j, j + 2, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
-            if ((c[i][j - i] != INF) && (f3[j + 2] != INF)) {
-              energy  = c[i][j - i] + f3[j + 2] + E_ExtLoop(type, -1, S1[j + 1], P);
-              e       = MIN2(e, energy);
-            }
-          }
-        } else {
-          if (evaluate(i, length, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
-            if (c[i][j - i] != INF) {
-              energy  = c[i][j - i] + E_ExtLoop(type, -1, S1[j + 1], P);
-              e       = MIN2(e, energy);
-            }
-          }
-        }
-
-        if (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, &hc_dat_local)) {
-          type = ptype[i + 1][j - i - 1];
-          if (type == 0)
-            type = 7;
-
-          if ((c[i + 1][j - i - 1] != INF) && (f3[j + 1] != INF)) {
-            energy  = f3[j + 1] + c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], -1, P);
-            e       = MIN2(e, energy);
-          }
-        }
-
-        if (j + 2 <= length) {
-          if (evaluate(i, length, j, j + 2, VRNA_DECOMP_EXT_STEM_EXT1, &hc_dat_local)) {
-            if ((c[i + 1][j - i - 1] != INF) && (f3[j + 2] != INF)) {
-              energy  = c[i + 1][j - i - 1] + f3[j + 2] + E_ExtLoop(type, S1[i], S1[j + 1], P);
-              e       = MIN2(e, energy);
-            }
-          }
-        } else {
-          if (evaluate(i, length, i + 1, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
-            if (c[i + 1][j - i - 1] != INF) {
-              energy  = c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], S1[j + 1], P);
-              e       = MIN2(e, energy);
-            }
-          }
-        }
-      }
-
-      if (length <= i + maxdist) {
-        j = length;
-
-        if (with_gquad && (ggg[i][j - i] != INF))
-          e = MIN2(e, ggg[i][j - i]);
-
-        if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
-          if (c[i][j - i] != INF) {
-            type = ptype[i][j - i];
-            if (type == 0)
-              type = 7;
-
-            energy  = c[i][j - i] + E_ExtLoop(type, -1, -1, P);
-            e       = MIN2(e, energy);
-          }
-        }
-
-        if (evaluate(i, j, i + 1, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
-          if (c[i + 1][j - i - 1] != INF) {
-            type = ptype[i + 1][j - i - 1];
-            if (type == 0)
-              type = 7;
-
-            energy  = c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], -1, P);
-            e       = MIN2(e, energy);
-          }
-        }
-      }
-
       break;
   } /* switch(dangle_model)... */
 
@@ -2394,7 +2311,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t *fc,
 
   if (fc) {
     short           **S, **S5, **S3;
-    int           traced2, length, turn, dangle_model, with_gquad, maxdist, type, cc, **c, **ggg,
+    int           traced2, length, turn, dangle_model, with_gquad, maxdist, cc, **c, **ggg,
                   *f3, s, tt, n_seq;
     vrna_param_t  *P;
     vrna_md_t     *md;
@@ -2477,7 +2394,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t *fc,
             if (tt == 0)
               tt = 7;
 
-              cc += E_ExtLoop(tt, -1, -1, P);
+            cc += E_ExtLoop(tt, -1, -1, P);
           }
           if (fij == cc)
             traced2 = 1;
@@ -2489,7 +2406,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t *fc,
             if (tt == 0)
               tt = 7;
 
-              cc += E_ExtLoop(tt, (i > 1) ? S5[s][i] :  -1, -1, P);
+            cc += E_ExtLoop(tt, (i > 1) ? S5[s][i] :  -1, -1, P);
           }
           if (fij == cc)
             traced2 = 1;

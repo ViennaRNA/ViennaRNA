@@ -41,9 +41,6 @@
 #define INT_CLOSE_TO_UNDERFLOW(i)   ((i) <= (INT_MIN / 16))
 #define UNDERFLOW_CORRECTION        (INT_MIN / 32)
 
-#define MAX_E_THRESHOLD   -0.01 /* kcal/mol per nucleotide */
-#define OLD_LALIFOLD  0
-
 #define NONE -10000 /* score for forbidden pairs */
 
 
@@ -1031,15 +1028,12 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
                         void                      *data)
 {
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
-
-  char            **strings, **Ss, *prev, *prev2;
-  unsigned short  **a2s;
-  short           **S, **S5, **S3, *S_cons;
-  int             **pscore, u, i, j, k, length, energy, turn, *rtype, decomp, new_fML, MLenergy,
-                  *type, type_2, tt, s, n_seq, lastf, lastf2, thisj, lastj, **c, **fML, *f3, **ggg,
-                  *cc, *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2, energyout, energyprev, maxdist,
-                  dangle_model, leee, leee2, leee3, prev2_i, prev2_j, prev2_en,
-                  noLP, do_backtrack, do_backtrack2, prev_i, with_gquad, min_q, max_q, c0;
+  short           **S;
+  char            **strings, *prev;
+  int             **pscore, i, j, length, energy, turn,
+                  n_seq, **c, **fML, *f3, **ggg, *cc, *cc1, *Fmi,
+                  *DMLi, *DMLi1, *DMLi2, maxdist, prev_i, prev_j,
+                  prev_en, do_backtrack, with_gquad;
   float           **dm;
   vrna_mx_mfe_t   *matrices;
   vrna_param_t    *P;
@@ -1054,21 +1048,16 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
                                   { 0, 2, 2, 1, 2, 0, 2 } /* AU */,
                                   { 0, 2, 2, 2, 1, 2, 0 } /* UA */ };
 
-  do_backtrack  = 0;
-  do_backtrack2 = 0;
+  do_backtrack = 0;
   prev_i        = 0;
-  prev2_i        = 0;
-  prev2_j        = 0;
-  prev2_en        = INF;
+  prev_j        = 0;
+  prev_en        = INF;
 
-  lastf = lastf2 = leee = leee2 = leee3 = INF;
   dm    = NULL;
-  prev  = NULL;
-  prev2 = NULL;
+  prev = NULL;
 
   strings       = fc->sequences;
   S             = fc->S;
-  S_cons        = fc->S_cons;
   n_seq         = fc->n_seq;
   length        = fc->length;
   maxdist       = fc->window_size;
@@ -1077,9 +1066,8 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
   P             = fc->params;
   md            = &(P->model_details);
   turn          = md->min_loop_size;
-  dangle_model  = md->dangles;
   with_gquad    = md->gquad;
-  noLP          = md->noLP;
+
   if (md->ribo) {
     if (RibosumFile != NULL)
       dm = readribosum(RibosumFile);
@@ -1109,12 +1097,6 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
   }
 
   pscore  = fc->pscore_local; /* precomputed array of pair types */
-  S       = fc->S;
-  S5      = fc->S5;           /*S5[s][i] holds next base 5' of i in sequence s*/
-  S3      = fc->S3;           /*Sl[s][i] holds next base 3' of i in sequence s*/
-  Ss      = fc->Ss;
-  a2s     = fc->a2s;
-  rtype   = &(md->rtype[0]);
 
   c   = fc->matrices->c_local;              /* energy array, given that i-j pair */
   fML = fc->matrices->fML_local;            /* multi-loop auxiliary energy array */
@@ -1128,7 +1110,6 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
   DMLi1 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
   DMLi2 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
 
-  type = (int *)vrna_alloc(n_seq * sizeof(int));
   for (j = 0; j < maxdist + 5; j++)
     Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
   for (j = length; j > length - maxdist - 3; j--)
@@ -1145,13 +1126,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     for (j = i + 1; j <= length && j <= i + turn; j++)
       c[i][j - i] = fML[i][j - i] = INF;
     for (j = i + turn + 1; j <= length && j <= i + maxdist; j++) {
-      int p, q, psc;
-
-      for (s = 0; s < n_seq; s++) {
-        type[s] = md->pair[S[s][i]][S[s][j]];
-        if (type[s] == 0)
-          type[s] = 7;
-      }
+      int psc;
 
       psc = pscore[i][j - i];
 
@@ -1191,364 +1166,86 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     } /* for (j...) */
 
     /* calculate energies of 5' and 3' fragments */
-    {
-      char  *ss;
-      int   thisf = 0;
+    f3[i] = vrna_E_ext_loop_3(fc, i);
 
-      /* first case: i stays unpaired */
-      f3[i] = f3[i + 1];
+    if (f3[i] < f3[i + 1]) {
+      do_backtrack = 1;
+    } else if (do_backtrack) {
+      int jjj, iii, eee;
+      eee = f3[i + 1];
+      iii = i + 1;
+      
+      while (eee == f3[iii + 1])
+        iii++;
 
-      /* next all cases where i is paired */
-      switch (dangle_model) {
-        /* no dangling end contributions */
-        case 0:
-          for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
-            if (f3[j + 1] < INF) {
-              if (with_gquad) {
-                energy = ggg[i][j - i];
+      jjj = vrna_BT_ext_loop_f3_pp(fc, iii, maxdist - (iii - (i + 1)), eee);
+      if (jjj == -1)
+        vrna_message_error("backtrack failed in short backtrack 1");
 
-#if OLD_LALIFOLD
-                if (energy / (j - i + 1) < thisf) {
-                  thisf = energy / (j - i + 1);
-                  thisj = j;
-                }
-#endif
-                energy  += f3[j + 1];
-                f3[i]   = MIN2(f3[i], energy);
-              }
+      energy = f3[iii] - f3[jjj];
 
-              if (c[i][j - i] < INF) {
-                energy = c[i][j - i];
-                for (s = 0; s < n_seq; s++) {
-                  tt = md->pair[S[s][i]][S[s][j]];
-                  if (tt == 0)
-                    tt = 7;
-
-                  energy += E_ExtLoop(tt, -1, -1, P);
-                }
-
-#if OLD_LALIFOLD
-                if (energy / (j - i + 1) < thisf) {
-                  thisf = energy / (j - i + 1);
-                  thisj = j;
-                }
-#endif
-                energy  += f3[j + 1];
-                f3[i]   = MIN2(f3[i], energy);
-              }
-            }
-          }
-          if (length <= i + maxdist) {
-            j = length;
-
-            if (with_gquad) {
-              energy = ggg[i][j - i];
-
-#if OLD_LALIFOLD
-              if (energy / (j - i + 1) < thisf) {
-                thisf = energy / (j - i + 1);
-                thisj = j;
-              }
-#endif
-
-              f3[i] = MIN2(f3[i], energy);
-            }
-
-            if (c[i][j - i] < INF) {
-              energy = c[i][j - i];
-              for (s = 0; s < n_seq; s++) {
-                tt = md->pair[S[s][i]][S[s][j]];
-                if (tt == 0)
-                  tt = 7;
-
-                energy += E_ExtLoop(tt, -1, -1, P);
-              }
-
-#if OLD_LALIFOLD
-              /*  thisf=MIN2(energy/(j-i+1),thisf); ???*/
-              if (energy / (j - i + 1) < thisf) {
-                thisf = energy / (j - i + 1);
-                thisj = j;
-              }
-#endif
-              f3[i] = MIN2(f3[i], energy);
-            }
-          }
-
-          break;
-
-        /* double dangles */
-        case 2:
-          for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
-            if (f3[j + 1] < INF) {
-              if (with_gquad) {
-                energy = ggg[i][j - i];
-
-#if OLD_LALIFOLD
-                if (energy / (j - i + 1) < thisf) {
-                  thisf = energy / (j - i + 1);
-                  thisj = j;
-                }
-#endif
-                energy  += f3[j + 1];
-                f3[i]   = MIN2(f3[i], energy);
-              }
-
-              if (c[i][j - i] < INF) {
-                energy = c[i][j - i];
-                for (s = 0; s < n_seq; s++) {
-                  tt = md->pair[S[s][i]][S[s][j]];
-                  if (tt == 0)
-                    tt = 7;
-
-                  energy += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, S3[s][j], P);
-                }
-
-#if OLD_LALIFOLD
-                if (energy / (j - i + 1) < thisf) {
-                  thisf = energy / (j - i + 1);
-                  thisj = j;
-                }
-#endif
-                energy  += f3[j + 1];
-                f3[i]   = MIN2(f3[i], energy);
-              }
-            }
-          }
-          if (length <= i + maxdist) {
-            j = length;
-
-            if (with_gquad) {
-              energy = ggg[i][j - i];
-
-#if OLD_LALIFOLD
-              if (energy / (j - i + 1) < thisf) {
-                thisf = energy / (j - i + 1);
-                thisj = j;
-              }
-#endif
-              f3[i] = MIN2(f3[i], energy);
-            }
-
-            if (c[i][j - i] < INF) {
-              energy = c[i][j - i];
-              for (s = 0; s < n_seq; s++) {
-                tt = md->pair[S[s][i]][S[s][j]];
-                if (tt == 0)
-                  tt = 7;
-
-                energy += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, -1, P);
-              }
-
-#if OLD_LALIFOLD
-              /*  thisf=MIN2(energy/(j-i+1),thisf); ???*/
-              if (energy / (j - i + 1) < thisf) {
-                thisf = energy / (j - i + 1);
-                thisj = j;
-              }
-#endif
-
-              f3[i] = MIN2(f3[i], energy);
-            }
-          }
-
-          break;
-
-        default:
-          vrna_message_warning("dangle model %d not implemented in comparative Lfold!",
-                               dangle_model);
-          break;
+      /* do not spam output with relatively unstable structures */
+      char *sss = backtrack_comparative(fc, iii, jjj - iii + 1);
+      if (prev) {
+        if ((jjj < prev_j) || strncmp(sss + prev_i - iii, prev, prev_j + 1 - prev_i + 1 - 1)) { /* -1 because of 3' dangle unpaired position */
+          cb(prev_i, prev_j + 1, prev, (prev_en) / (100. * n_seq), data);
+        }
+        free(prev);
       }
+      prev = sss;
+      prev_i = iii;
+      prev_j = jjj;
+      prev_en = energy;
 
-#if !(OLD_LALIFOLD)
-      if (f3[i] < f3[i + 1]) {
-        do_backtrack2 = 1;
-      } else if (do_backtrack2) {
-        int jjj, iii, eee, f, traced3;
-        eee = f3[i + 1];
-        iii = i + 1;
-        
-        while (eee == f3[iii + 1])
+      do_backtrack = 0;
+    }
+
+    if (i == 1) {
+
+      if (f3[1] != f3[prev_i]) {
+        /* find pairing partner, if any */
+        int jjj, iii, eee;
+        eee = f3[1];
+        iii = 1;
+      
+        while (eee == f3[iii + 1]) {
           iii++;
-
-        jjj = vrna_BT_ext_loop_f3_pp(fc, iii, maxdist - (iii - (i + 1)), eee);
-        if (jjj == -1)
-          vrna_message_error("backtrack failed in short backtrack 1");
-
-        energy = f3[iii] - f3[jjj + 1];
-        leee3 = leee2;
-        leee2 = leee;
-        leee = energy / (jjj - iii + 1);
-
-        /* do not spam output with relatively unstable structures */
-        if ((leee / (n_seq * 100.)) < MAX_E_THRESHOLD) {
-          //printf("wtf: %d, %d vs. %d\n", leee, leee * (jjj - iii + 1), f3[iii] - f3[jjj]);
-          char *sss = backtrack_comparative(fc, iii, jjj - iii + 1);
-          if (prev2) {
-            if ((iii + strlen(sss) < prev2_i + strlen(prev2)) ||
-                strncmp(sss + prev2_i - iii, prev2, strlen(prev2) - 1)) { /* -1 because of 3' dangle unpaired position */
-              cb(prev2_i, prev2_j + 1, prev2, (prev2_en) / (100. * n_seq), data);
-              //printf("threshold: %d / (%d * 100) = %g\n", leee2, n_seq, leee2 / (n_seq * 100.));
-            }
-            free(prev2);
-          }
-          prev2 = sss;
-          prev2_i = iii;
-          prev2_j = jjj;
-          prev2_en = f3[iii] - f3[jjj];
+          if (iii > maxdist)
+            break;
         }
-        do_backtrack2 = 0;
-      }
-#else
-      /* backtrack partial structure */
-      /* if (i+maxdist<length) {*/
-        if (f3[i] != f3[i + 1]) {
-          do_backtrack    = 1;
-          backtrack_type  = 'F';
-          if (prev_i == 0) {
-            free(prev);
-            prev          = backtrack_comparative(fc, i, MIN2(maxdist, length - i));
-            prev_i        = i;
-            do_backtrack  = 0;
-            lastf2        = lastf;
-            energyprev    = f3[i];
-          }
-        } else if ((thisf < lastf) && (thisf < lastf2) && ((thisf / (n_seq * 100)) < -0.01)) {
-          /*?????????*/
-          do_backtrack    = 2;
-          backtrack_type  = 'C';
-          printf("bt2: thisf=%d, lastf=%d, lastf2=%d, (%g)\n", thisf, lastf, lastf2, thisf / (n_seq * 100));
-        } else if (do_backtrack) {
-          if (do_backtrack == 1) {
-            ss        = backtrack_comparative(fc, i + 1, MIN2(maxdist, length - i) /*+1*/);
-            energyout = f3[i] - f3[i + strlen(ss) - 1];/*??*/
-          } else {
-            printf("bt2: 2 %d - %d\n", i + 1, MIN2(maxdist, length - i));
-            ss        = backtrack_comparative(fc, i + 1, lastj - i - 2);
-            energyout = c[i + 1][lastj - (i + 1)];
-            switch (dangle_model) {
-              case 0:
-                for (s = 0; s < n_seq; s++) {
-                  int type;
-                  type = md->pair[S[s][i + 1]][S[s][lastj - i]];
-                  if (type == 0)
-                    type = 7;
 
-                  energyout += E_ExtLoop(type, -1, -1, P);
-                }
-                break;
+        if (iii < maxdist) { /* otherwise, c-array columns don't exist anymore */
+          jjj = vrna_BT_ext_loop_f3_pp(fc, iii, maxdist - (iii - 1), eee);
+          if (jjj != -1) {
 
-              case 2:
-                for (s = 0; s < n_seq; s++) {
-                  int type;
-                  type = md->pair[S[s][i + 1]][S[s][lastj - i]];
-                  if (type == 0)
-                    type = 7;
+            energy = f3[iii] - f3[jjj];
 
-                  energyout += E_ExtLoop(type, (i > 1) ? S5[s][i + 1] : -1, S3[s][lastj - i], P);
-                }
-                break;
+            char *ss = backtrack_comparative(fc, iii, jjj - iii + 1);
 
-              default:
-                vrna_message_warning("dangle model %d not implemented in comparative Lfold!",
-                                     dangle_model);
-                break;
-            }
-          }
-
-          if ((prev) && ((prev_i + strlen(prev) > i + 1 + strlen(ss)) || (do_backtrack == 2))) {
-            /* execute callback */
-            cb(prev_i, prev_i + (int)strlen(prev) - 1, prev, energyprev / (100. * n_seq), data);
-          }
-
-          free(prev);
-          prev            = ss;
-          energyprev      = energyout;
-          prev_i          = i + 1;
-          do_backtrack    = 0;
-          backtrack_type  = 'F';
-        }
-#endif
-
-      lastf2  = lastf;
-      lastf   = thisf;
-      lastj   = thisj;
-
-
-#if !(OLD_LALIFOLD)
-      if (i == 1) {
-
-        if (f3[1] != f3[prev_i]) {
-          /* find pairing partner, if any */
-          int jjj, iii, eee, f, traced3;
-          eee = f3[1];
-          iii = 1;
-        
-          while (eee == f3[iii + 1]) {
-            iii++;
-            if (iii > maxdist)
-              break;
-          }
-
-          if (iii < maxdist) { /* otherwise, c-array columns don't exist anymore */
-            jjj = vrna_BT_ext_loop_f3_pp(fc, iii, maxdist - (iii - 1), eee);
-            if (jjj != -1) {
-
-              energy = f3[iii] - f3[jjj + 1];
-              leee3 = leee2;
-              leee2 = leee;
-              leee = energy / (jjj - iii + 1);
-
-              if ((leee / (n_seq * 100.)) < MAX_E_THRESHOLD) {
-                ss = backtrack_comparative(fc, iii, jjj - iii + 1);
-
-                if (prev2) {
-                  if((iii + strlen(ss) < prev2_i + strlen(prev2)) ||
-                      strncmp(ss + prev2_i - iii, prev2, strlen(prev2) - 1)) { /* -1 because of 3' dangle unpaired position */
-                    cb(prev2_i, prev2_j + 1, prev2, (prev2_en) / (100. * n_seq), data);
-                  }
-                }
-
-                /* execute callback */
-                cb(iii, jjj + 1, ss, energy / (100. * n_seq), data);
-
-                free(prev2);
-                prev2 = NULL;
-                free(ss);
-                ss = NULL;
+            if (prev) {
+              if((jjj < prev_j) || strncmp(ss + prev_i - iii, prev, prev_j + 1 - prev_i + 1 - 1)) { /* -1 because of 3' dangle unpaired position */
+                cb(prev_i, prev_j + 1, prev, (prev_en) / (100. * n_seq), data);
               }
             }
+
+            /* execute callback */
+            cb(iii, jjj + 1, ss, energy / (100. * n_seq), data);
+
+            free(prev);
+            prev = NULL;
+            free(ss);
+
           }
         }
-
-        if (prev2) {
-          cb(prev2_i, prev2_j + 1, prev2, (prev2_en) / (100. * n_seq), data);
-          free(prev2);
-          prev2 = NULL;
-        }
       }
-#else
-      if (i == 1) {
-        if (prev) {
-          /* execute callback */
-          cb(prev_i, prev_i + (int)strlen(prev) - 1, prev, (energyprev) / (100. * n_seq), data);
-        }
 
-        if ((f3[prev_i] != f3[1]) || !prev) {
-          ss = backtrack_comparative(fc, i, maxdist);
-
-          /* execute callback */
-          cb(1, (int)strlen(ss) - 1, ss, (f3[1] - f3[1 + strlen(ss) - 1]) / (100. * n_seq), data);
-
-          free(ss);
-          ss = NULL;
-        }
-
+      if (prev) {
+        cb(prev_i, prev_j + 1, prev, (prev_en) / (100. * n_seq), data);
         free(prev);
         prev = NULL;
       }
-#endif
     }
+
     {
       int ii, *FF; /* rotate the auxilliary arrays */
       FF    = DMLi2;
@@ -1589,7 +1286,6 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     }
   }
 
-  free(type);
   free(cc);
   free(cc1);
   free(Fmi);
