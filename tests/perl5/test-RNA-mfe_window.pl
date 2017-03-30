@@ -4,7 +4,7 @@
 # (It may become useful if the test is moved to ./t subdirectory.)
 
 use strict;
-use Test::More tests => 21;
+use Test::More tests => 17;
 use Data::Dumper;
 use FileHandle;
 
@@ -66,20 +66,16 @@ undef $fc;
 print "test_aliLfold_cb\n";
 @data = ();
 $mfe = RNA::aliLfold_cb(\@ali, 150, \&mfe_window_callback, \@data);
-ok(scalar(@data) == 2);
-is($data[0]->{'structure'}, "(((.....)))");
-is(sprintf("%6.2f", $data[0]->{'energy'}), sprintf("%6.2f", -1.30));
-is($data[1]->{'structure'}, "(((......)))");
-is(sprintf("%6.2f", $data[1]->{'energy'}), sprintf("%6.2f", -2.70));
+ok(scalar(@data) == 1);
+is($data[0]->{'structure'}, "(((......)))");
+is(sprintf("%6.2f", $data[0]->{'energy'}), sprintf("%6.2f", -2.70));
 
 
 print "test_mfe_window_cb (comparative)\n";
 $fc= new RNA::fold_compound(\@ali, undef, RNA::OPTION_MFE | RNA::OPTION_WINDOW);
 @data = ();
 $mfe = $fc->mfe_window_cb(\&mfe_window_callback, \@data);
-ok(scalar(@data) == 2);
-is($data[0]->{'structure'}, "(((.....)))");
-is(sprintf("%6.2f", $data[0]->{'energy'}), sprintf("%6.2f", -1.30));
-is($data[1]->{'structure'}, "(((......)))");
-is(sprintf("%6.2f", $data[1]->{'energy'}), sprintf("%6.2f", -2.70));
+ok(scalar(@data) == 1);
+is($data[0]->{'structure'}, "(((......)))");
+is(sprintf("%6.2f", $data[0]->{'energy'}), sprintf("%6.2f", -2.70));
 undef $fc;
