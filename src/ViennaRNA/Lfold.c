@@ -37,6 +37,12 @@
 #include "svm_utils.h"
 #endif
 
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
+
 #define MAXSECTORS                  500   /* dimension for a backtrack array */
 #define INT_CLOSE_TO_UNDERFLOW(i)   ((i) <= (INT_MIN / 16))
 #define UNDERFLOW_CORRECTION        (INT_MIN / 32)
@@ -148,6 +154,13 @@ default_callback_comparative(int        start,
                              const char *structure,
                              float      en,
                              void       *data);
+
+
+PRIVATE INLINE void allocate_dp_matrices(vrna_fold_compound_t *fc);
+PRIVATE INLINE void free_dp_matrices(vrna_fold_compound_t *fc);
+PRIVATE INLINE void rotate_dp_matrices(vrna_fold_compound_t *fc, int i);
+PRIVATE INLINE void init_constraints(vrna_fold_compound_t *fc, float **dm);
+PRIVATE INLINE void rotate_constraints(vrna_fold_compound_t *fc, float **dm, int i);
 
 
 /*
@@ -408,6 +421,175 @@ wrap_Lfold(vrna_fold_compound_t             *vc,
 }
 
 
+PRIVATE INLINE void
+allocate_dp_matrices(vrna_fold_compound_t *fc)
+{
+  int i, j, length, maxdist, **c, **fML;
+  vrna_hc_t   *hc;
+
+  length = fc->length;
+  maxdist = MIN2(fc->window_size, length);
+  hc      = fc->hc;
+  c       = fc->matrices->c_local;
+  fML     = fc->matrices->fML_local;
+
+  /* reserve additional memory for j-dimension */
+  for (i = length; (i > length - maxdist - 5) && (i >= 0); i--) {
+    c[i]                = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+    fML[i]              = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+    hc->matrix_local[i] = (char *)vrna_alloc(sizeof(char) * (maxdist + 5));
+    if (fc->type == VRNA_FC_TYPE_SINGLE)
+      fc->ptype_local[i]            = vrna_alloc(sizeof(char) * (maxdist + 5));
+    else if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+      fc->pscore_local[i]            = vrna_alloc(sizeof(int) * (maxdist + 5));
+  }
+
+  if (fc->type == VRNA_FC_TYPE_SINGLE)
+    for (j = length; j > length - maxdist - 4; j--)
+      for (i = (length - maxdist - 4 > 0) ? length - maxdist - 4 : 1; i < j; i++)
+        c[i][j - i] = fML[i][j - i] = INF;
+  else if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+    for (j = length; j > length - maxdist - 3; j--)
+      for (i = (length - maxdist - 2 > 0) ? length - maxdist - 2 : 1; i < j; i++)
+        c[i][j - i] = fML[i][j - i] = INF;
+
+}
+
+
+PRIVATE INLINE void
+free_dp_matrices(vrna_fold_compound_t *fc)
+{
+  int i, j, length, maxdist, **c, **fML, **ggg, with_gquad;
+  vrna_hc_t   *hc;
+
+  length = fc->length;
+  maxdist = MIN2(fc->window_size, length);
+  hc      = fc->hc;
+  c       = fc->matrices->c_local;
+  fML     = fc->matrices->fML_local;
+  ggg     = fc->matrices->ggg_local;
+  with_gquad = fc->params->model_details.gquad;
+
+
+  /* free additional memory for j-dimension */
+  for (i = 0; (i < maxdist + 5) && (i <= length); i++) {
+    if (fc->type == VRNA_FC_TYPE_SINGLE) {
+      free(fc->ptype_local[i]);
+      fc->ptype_local[i] = NULL;
+    } else if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
+      free(fc->pscore_local[i]);
+      fc->pscore_local[i] = NULL;
+    }
+    free(c[i]);
+    c[i] = NULL;
+    free(fML[i]);
+    fML[i] = NULL;
+    free(hc->matrix_local[i]);
+    hc->matrix_local[i] = NULL;
+  }
+
+  if (with_gquad) {
+    for (i = 0; (i <= maxdist + 5) && (i <= length); i++)
+      free(ggg[i]);
+    free(ggg);
+    fc->matrices->ggg_local = NULL;
+  }
+}
+
+
+PRIVATE INLINE void
+rotate_dp_matrices(vrna_fold_compound_t *fc,
+                int i)
+{
+  int ii, maxdist, length, **c, **fML;
+  vrna_hc_t   *hc;
+
+  length = fc->length;
+  maxdist = fc->window_size;
+  c       = fc->matrices->c_local;
+  fML     = fc->matrices->fML_local;
+  hc      = fc->hc;
+
+  if (i + maxdist + 4 <= length) {
+    c[i - 1]                          = c[i + maxdist + 4];
+    c[i + maxdist + 4]                = NULL;
+    fML[i - 1]                        = fML[i + maxdist + 4];
+    fML[i + maxdist + 4]              = NULL;
+    hc->matrix_local[i - 1]           = hc->matrix_local[i + maxdist + 4];
+    hc->matrix_local[i + maxdist + 4] = NULL;
+
+    if ((fc->params->model_details.gquad) && (i > 1))
+      vrna_gquad_mx_local_update(fc, i - 1);
+
+    for (ii = 0; ii < maxdist + 5; ii++) {
+      c[i - 1][ii]    = INF;
+      fML[i - 1][ii]  = INF;
+    }
+  }
+
+}
+
+
+PRIVATE INLINE void
+init_constraints(vrna_fold_compound_t *fc, float **dm)
+{
+  int i, length, maxdist;
+
+  length = fc->length;
+  maxdist = fc->window_size;
+
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
+        make_ptypes(fc, i);
+        vrna_hc_prepare(fc, i);
+      }
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
+        make_pscores(fc, i, dm);
+        vrna_hc_prepare(fc, i);
+      }
+      break;
+  }
+}
+
+
+PRIVATE INLINE void
+rotate_constraints(vrna_fold_compound_t *fc, float **dm, int i)
+{
+  int length, maxdist;
+
+  length = fc->length;
+  maxdist = fc->window_size;
+
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      if (i + maxdist + 4 <= length) {
+        fc->ptype_local[i - 1]            = fc->ptype_local[i + maxdist + 4];
+        fc->ptype_local[i + maxdist + 4]  = NULL;
+        if (i > 1) {
+          make_ptypes(fc, i - 1);
+          vrna_hc_prepare(fc, i - 1);
+        }
+      }
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      if (i + maxdist + 4 <= length) {
+        fc->pscore_local[i - 1]           = fc->pscore_local[i + maxdist + 4];
+        fc->pscore_local[i + maxdist + 4] = NULL;
+        if (i > 1) {
+          make_pscores(fc, i - 1, dm);
+          vrna_hc_prepare(fc, i - 1);
+        }
+      }
+      break;
+  }
+}
+
+
 PRIVATE int
 fill_arrays(vrna_fold_compound_t            *vc,
             int                             zsc,
@@ -479,23 +661,13 @@ fill_arrays(vrna_fold_compound_t            *vc,
   DMLi2 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
 
   /* reserve additional memory for j-dimension */
-  for (i = length; (i > length - maxdist - 5) && (i >= 0); i--) {
-    ptype[i]            = vrna_alloc(sizeof(char) * (maxdist + 5));
-    c[i]                = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-    fML[i]              = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-    hc->matrix_local[i] = (char *)vrna_alloc(sizeof(char) * (maxdist + 5));
-  }
+  allocate_dp_matrices(vc);
 
-  for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
-    make_ptypes(vc, i);
-    vrna_hc_prepare(vc, i);
-  }
+  init_constraints(vc, NULL);
 
   for (j = 0; j < maxdist + 5; j++)
     Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
-  for (j = length; j > length - maxdist - 4; j--)
-    for (i = (length - maxdist - 4 > 0) ? length - maxdist - 4 : 1; i < j; i++)
-      c[i][j - i] = fML[i][j - i] = INF;
+
 
   if (with_gquad) {
     vrna_gquad_mx_local_update(vc, length - maxdist - 4);
@@ -749,34 +921,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
       for (j = 0; j < maxdist + 5; j++)
         cc[j] = Fmi[j] = DMLi[j] = INF;
 
-      /*
-       * rotate the DP matrices
-       * NOTE: here we rotate them only locally, i.e. their
-       * actual configuration within vc remains intact
-       */
-      if (i + maxdist + 4 <= length) {
-        c[i - 1]                          = c[i + maxdist + 4];
-        c[i + maxdist + 4]                = NULL;
-        fML[i - 1]                        = fML[i + maxdist + 4];
-        fML[i + maxdist + 4]              = NULL;
-        ptype[i - 1]                      = ptype[i + maxdist + 4];
-        ptype[i + maxdist + 4]            = NULL;
-        hc->matrix_local[i - 1]           = hc->matrix_local[i + maxdist + 4];
-        hc->matrix_local[i + maxdist + 4] = NULL;
-        if (i > 1) {
-          make_ptypes(vc, i - 1);
-          vrna_hc_prepare(vc, i - 1);
-          if (with_gquad) {
-            vrna_gquad_mx_local_update(vc, i - 1);
-            ggg = vc->matrices->ggg_local;
-          }
-        }
-
-        for (ii = 0; ii < maxdist + 5; ii++) {
-          c[i - 1][ii]    = INF;
-          fML[i - 1][ii]  = INF;
-        }
-      }
+      rotate_dp_matrices(vc, i);
+      rotate_constraints(vc, NULL, i);
     }
   }
 
@@ -787,28 +933,10 @@ fill_arrays(vrna_fold_compound_t            *vc,
   free(DMLi1);
   free(DMLi2);
 
-  if (with_gquad) {
-    for (i = 0; (i <= maxdist + 5) && (i <= length); i++)
-      free(ggg[i]);
-    free(ggg);
-    vc->matrices->ggg_local = NULL;
-  }
-
-  /* free additional memory for j-dimension */
-  for (i = 0; (i < maxdist + 5) && (i <= length); i++) {
-    free(ptype[i]);
-    ptype[i] = NULL;
-    free(c[i]);
-    c[i] = NULL;
-    free(fML[i]);
-    fML[i] = NULL;
-    free(hc->matrix_local[i]);
-    hc->matrix_local[i] = NULL;
-  }
+  free_dp_matrices(vc);
 
   return f3[1];
 }
-
 
 PRIVATE char *
 backtrack(vrna_fold_compound_t  *vc,
@@ -1083,19 +1211,6 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     }
   }
 
-  /* reserve additional memory for j-dimension */
-  for (i = length; (i > length - maxdist - 5) && (i >= 0); i--) {
-    fc->pscore_local[i]         = vrna_alloc(sizeof(int) * (maxdist + 5));
-    fc->matrices->c_local[i]    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-    fc->matrices->fML_local[i]  = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-    hc->matrix_local[i] = (char *)vrna_alloc(sizeof(char) * (maxdist + 5));
-  }
-
-  for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
-    make_pscores(fc, i, dm);
-    vrna_hc_prepare(fc, i);
-  }
-
   pscore  = fc->pscore_local; /* precomputed array of pair types */
 
   c   = fc->matrices->c_local;              /* energy array, given that i-j pair */
@@ -1110,11 +1225,13 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
   DMLi1 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
   DMLi2 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
 
+  /* reserve additional memory for j-dimension */
+  allocate_dp_matrices(fc);
+
+  init_constraints(fc, dm);
+
   for (j = 0; j < maxdist + 5; j++)
     Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
-  for (j = length; j > length - maxdist - 3; j--)
-    for (i = (length - maxdist - 2 > 0) ? length - maxdist - 2 : 1; i < j; i++)
-      c[i][j - i] = fML[i][j - i] = INF;
 
   if (with_gquad) {
     vrna_gquad_mx_local_update(fc, length - maxdist - 4);
@@ -1257,32 +1374,9 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
       cc    = FF;
       for (j = 0; j < maxdist + 5; j++)
         cc[j] = Fmi[j] = DMLi[j] = INF;
-      if (i <= length - maxdist - 4) {
-        matrices->c_local[i - 1]              = matrices->c_local[i + maxdist + 4];
-        matrices->c_local[i + maxdist + 4]    = NULL;
-        matrices->fML_local[i - 1]            = matrices->fML_local[i + maxdist + 4];
-        matrices->fML_local[i + maxdist + 4]  = NULL;
-        fc->pscore_local[i - 1]               = fc->pscore_local[i + maxdist + 4];
-        fc->pscore_local[i + maxdist + 4]     = NULL;
-        c                                     = matrices->c_local;
-        fML                                   = matrices->fML_local;
-        hc->matrix_local[i - 1]           = hc->matrix_local[i + maxdist + 4];
-        hc->matrix_local[i + maxdist + 4] = NULL;
 
-        if (i > 1) {
-          make_pscores(fc, i - 1, dm);
-          vrna_hc_prepare(fc, i - 1);
-          if (with_gquad) {
-            vrna_gquad_mx_local_update(fc, i - 1);
-            ggg = fc->matrices->ggg_local;
-          }
-        }
-
-        pscore = fc->pscore_local;  /* precomputed array of pair types */
-
-        for (ii = 0; ii < maxdist + 5; ii++)
-          c[i - 1][ii] = fML[i - 1][ii] = INF;
-      }
+      rotate_dp_matrices(fc, i);
+      rotate_constraints(fc, dm, i);
     }
   }
 
@@ -1297,24 +1391,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     free(dm[i]);
   free(dm);
 
-  if (with_gquad) {
-    for (i = 0; (i <= maxdist + 5) && (i <= length); i++)
-      free(ggg[i]);
-    free(ggg);
-    fc->matrices->ggg_local = NULL;
-  }
-
-  /* free additional memory for j-dimension */
-  for (i = 0; (i < maxdist + 5) && (i <= length); i++) {
-    free(pscore[i]);
-    pscore[i] = NULL;
-    free(c[i]);
-    c[i] = NULL;
-    free(fML[i]);
-    fML[i] = NULL;
-    free(hc->matrix_local[i]);
-    hc->matrix_local[i] = NULL;
-  }
+  free_dp_matrices(fc);
 
   return matrices->f3[1];
 }
