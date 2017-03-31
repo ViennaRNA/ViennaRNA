@@ -132,6 +132,16 @@ BT_mb_loop_window(vrna_fold_compound_t  *vc,
 
 
 PRIVATE int
+BT_mb_loop_window_comparative(vrna_fold_compound_t  *vc,
+                  int                   *i,
+                  int                   *j,
+                  int                   *k,
+                  int                   en,
+                  int                   *component1,
+                  int                   *component2);
+
+
+PRIVATE int
 BT_mb_loop_split(vrna_fold_compound_t *vc,
                  int                  *i,
                  int                  *j,
@@ -145,6 +155,18 @@ BT_mb_loop_split(vrna_fold_compound_t *vc,
 
 PRIVATE int
 BT_mb_loop_split_window(vrna_fold_compound_t  *vc,
+                        int                   *i,
+                        int                   *j,
+                        int                   *k,
+                        int                   *l,
+                        int                   *component1,
+                        int                   *component2,
+                        vrna_bp_stack_t       *bp_stack,
+                        int                   *stack_count);
+
+
+PRIVATE int
+BT_mb_loop_split_window_comparative(vrna_fold_compound_t  *vc,
                         int                   *i,
                         int                   *j,
                         int                   *k,
@@ -2598,6 +2620,17 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t  *vc,
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
+        if (vc->hc->type == VRNA_HC_WINDOW) {
+          return BT_mb_loop_split_window_comparative(vc,
+                                         i,
+                                         j,
+                                         k,
+                                         l,
+                                         component1,
+                                         component2,
+                                         bp_stack,
+                                         stack_count);
+        }
         break;
     }
   }
@@ -3328,6 +3361,204 @@ BT_mb_loop_split_window(vrna_fold_compound_t  *vc,
 }
 
 
+PRIVATE int
+BT_mb_loop_split_window_comparative(vrna_fold_compound_t  *vc,
+                        int                   *i,
+                        int                   *j,
+                        int                   *k,
+                        int                   *l,
+                        int                   *component1,
+                        int                   *component2,
+                        vrna_bp_stack_t       *bp_stack,
+                        int                   *stack_count)
+{
+  unsigned char             type;
+  short                     **S, **S5, **S3;
+  int                       ii, jj, fij, fi, u, en, **c, **fML, **ggg, n_seq,
+                            turn, with_gquad, dangle_model, cc, ss, length;
+  vrna_param_t              *P;
+  vrna_md_t                 *md;
+  vrna_hc_t                 *hc;
+  vrna_sc_t                 **scs;
+  vrna_callback_hc_evaluate *evaluate;
+  struct default_data       hc_dat_local;
+
+  length  = vc->length;
+  n_seq = vc->n_seq;
+  S             = vc->S;
+  S5            = vc->S5; /*S5[s][i] holds next base 5' of i in sequence s*/
+  S3            = vc->S3; /*Sl[s][i] holds next base 3' of i in sequence s*/
+  P     = vc->params;
+  md    = &(P->model_details);
+  hc    = vc->hc;
+  scs    = vc->scs;
+
+  c             = vc->matrices->c_local;
+  fML           = vc->matrices->fML_local;
+  ggg           = vc->matrices->ggg_local;
+  turn          = md->min_loop_size;
+  with_gquad    = md->gquad;
+  dangle_model  = md->dangles;
+
+  hc_dat_local.mx         = hc->matrix;
+  hc_dat_local.mx_window  = hc->matrix_local;
+  hc_dat_local.hc_up      = hc->up_ml;
+  hc_dat_local.cp         = vc->cutpoint;
+
+  if (hc->f) {
+    evaluate            = &hc_default_user_window;
+    hc_dat_local.hc_f   = hc->f;
+    hc_dat_local.hc_dat = hc->data;
+  } else {
+    evaluate = &hc_default_window;
+  }
+
+  ii  = *i;
+  jj  = *j;
+
+  /* nibble off unpaired 3' bases */
+  do {
+    fij = fML[ii][jj - ii];
+    fi  = INF;
+
+    if (evaluate(ii, jj, ii, jj - 1, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
+      fi = fML[ii][jj - 1 - ii] + n_seq * P->MLbase;
+
+      if (scs)
+        for (ss = 0; ss < n_seq; ss++)
+          if (scs[ss]) {
+            if (scs[ss]->energy_up)
+              fi += scs[ss]->energy_up[jj][1];
+
+            if (scs[ss]->f)
+              fi += scs[ss]->f(ii, jj, ii, jj - 1, VRNA_DECOMP_ML_ML, scs[ss]->data);
+          }
+    }
+
+    if (--jj == 0)
+      break;
+  } while (fij == fi);
+  jj++;
+
+  /* nibble off unpaired 5' bases */
+  do {
+    fij = fML[ii][jj - ii];
+    fi  = INF;
+
+    if (evaluate(ii, jj, ii + 1, jj, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
+      fi = fML[ii + 1][jj - (ii + 1)] + n_seq * P->MLbase;
+
+      if (scs)
+        for (ss = 0; ss < n_seq; ss++)
+          if (scs[ss]) {
+            if (scs[ss]->energy_up)
+              fi += scs[ss]->energy_up[ii][1];
+
+            if (scs[ss]->f)
+              fi += scs[ss]->f(ii, jj, ii + 1, jj, VRNA_DECOMP_ML_ML, scs[ss]->data);
+          }
+    }
+
+    if (++ii == jj)
+      break;
+  } while (fij == fi);
+  ii--;
+
+  if (jj < ii + turn + 1) /* no more pairs */
+    return 0;
+
+  *component1 = *component2 = 1; /* split into two multi loop parts by default */
+
+  /* 1. test for single component */
+
+  if (with_gquad) {
+    if (fij == ggg[ii][jj - ii] + n_seq * E_MLstem(0, -1, -1, P)) {
+      *i  = *j = -1;
+      *k  = *l = -1;
+      vrna_BT_gquad_mfe(vc, ii, jj, bp_stack, stack_count);
+      return 1;
+    }
+  }
+
+  en    = c[ii][jj - ii];
+
+  if (scs)
+    for (ss = 0; ss < n_seq; ss++)
+      if (scs[ss]) {
+        if (scs[ss]->f)
+          en += scs[ss]->f(ii, jj, ii, jj, VRNA_DECOMP_ML_STEM, scs[ss]->data);
+      }
+
+  switch (dangle_model) {
+    case 0:
+      if (evaluate(ii, jj, ii, jj, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+        cc = 0;
+        for (ss = 0; ss < n_seq; ss++) {
+          type = md->pair[S[ss][ii]][S[ss][jj]];
+          if (type == 0)
+            type = 7;
+
+          cc += E_MLstem(type, -1, -1, P);
+        }
+
+        if (fij == en + cc) {
+          *i          = *j = -1;
+          *k          = ii;
+          *l          = jj;
+          *component2 = 2;          /* 2nd part is structure enclosed by base pair */
+          return 1;
+        }
+      }
+
+      break;
+
+    case 2:
+      if (evaluate(ii, jj, ii, jj, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+        cc = 0;
+        for (ss = 0; ss < n_seq; ss++) {
+          type = md->pair[S[ss][ii]][S[ss][jj]];
+          if (type == 0)
+            type = 7;
+
+          cc += E_MLstem(type, (ii > 1) ? S5[ss][ii] : -1, (jj < length) ? S3[ss][jj] : -1, P);
+        }
+
+        if (fij == en + cc) {
+          *i          = *j = -1;
+          *k          = ii;
+          *l          = jj;
+          *component2 = 2;
+          return 1;
+        }
+      }
+
+      break;
+
+  }
+
+  /* 2. Test for possible split point */
+  for (u = ii + 1 + turn; u <= jj - 2 - turn; u++) {
+    en = fML[ii][u - ii] + fML[u + 1][jj - (u + 1)];
+    if (scs)
+      for (ss = 0; ss < n_seq; ss++)
+        if (scs[ss]) {
+          if (scs[ss]->f)
+            en += scs[ss]->f(ii, jj, u, u + 1, VRNA_DECOMP_ML_ML_ML, scs[ss]->data);
+        }
+
+    if (fij == en) {
+      *i  = ii;
+      *j  = u;
+      *k  = u + 1;
+      *l  = jj;
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+
 PUBLIC int
 vrna_BT_mb_loop(vrna_fold_compound_t  *vc,
                 int                   *i,
@@ -3348,6 +3579,8 @@ vrna_BT_mb_loop(vrna_fold_compound_t  *vc,
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
+        if (vc->hc->type == VRNA_HC_WINDOW)
+          return BT_mb_loop_window_comparative(vc, i, j, k, en, component1, component2);
         break;
     }
   }
@@ -4017,6 +4250,146 @@ BT_mb_loop_window(vrna_fold_compound_t  *vc,
     }
 
 #endif
+  }
+
+  return 0;
+}
+
+
+PRIVATE int
+BT_mb_loop_window_comparative(vrna_fold_compound_t  *vc,
+                  int                   *i,
+                  int                   *j,
+                  int                   *k,
+                  int                   en,
+                  int                   *component1,
+                  int                   *component2)
+{
+  short                     **S, **S5, **S3;
+  int                       *type, tt;
+  int                       p, q, r, e, tmp_en, turn, dangle_model,
+                            **fML, mm, *rtype, n_seq, ss;
+  vrna_param_t              *P;
+  vrna_md_t                 *md;
+  vrna_hc_t                 *hc;
+  vrna_sc_t                 **scs;
+  vrna_callback_hc_evaluate *evaluate;
+  struct default_data       hc_dat_local;
+
+  n_seq         = vc->n_seq;
+  S             = vc->S;
+  S5            = vc->S5; /*S5[s][i] holds next base 5' of i in sequence s*/
+  S3            = vc->S3; /*Sl[s][i] holds next base 3' of i in sequence s*/
+  P             = vc->params;
+  md            = &(P->model_details);
+  hc            = vc->hc;
+  scs            = vc->scs;
+  fML           = vc->matrices->fML_local;
+  turn          = md->min_loop_size;
+  rtype         = &(md->rtype[0]);
+  dangle_model  = md->dangles;
+
+  hc_dat_local.idx        = vc->jindx;
+  hc_dat_local.mx         = hc->matrix;
+  hc_dat_local.mx_window  = hc->matrix_local;
+  hc_dat_local.hc_up      = hc->up_ml;
+  hc_dat_local.cp         = vc->cutpoint;
+
+  if (hc->f) {
+    evaluate            = &hc_default_user_window;
+    hc_dat_local.hc_f   = hc->f;
+    hc_dat_local.hc_dat = hc->data;
+  } else {
+    evaluate = &hc_default_window;
+  }
+
+  p = *i + 1;
+  q = *j - 1;
+
+  r = q - turn - 1;
+
+  if (evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
+    mm = n_seq * P->MLclosing;
+
+    *component1 = *component2 = 1;  /* both components are MB loop parts by default */
+
+    type          = (int *)vrna_alloc(n_seq * sizeof(int));
+    for (ss = 0; ss < n_seq; ss++) {
+      type[ss] = md->pair[S[ss][*i]][S[ss][*j]];
+      if (type[ss] == 0)
+        type[ss] = 7;
+    }
+
+    switch (dangle_model) {
+      case 0:
+        for (ss = 0; ss < n_seq; ss++) {
+          tt  = rtype[type[ss]];
+          mm  += E_MLstem(tt, -1, -1, P);
+        }
+
+        e = en - mm;
+        if (scs)
+          for (ss = 0; ss < n_seq; ss++)
+            if (scs[ss]) {
+              if (scs[ss]->f)
+                e -= scs[ss]->f(*i, *j, p, q, VRNA_DECOMP_PAIR_ML, scs[ss]->data);
+            }
+
+        for (r = *i + 2 + turn; r < *j - 2 - turn; ++r) {
+          if (evaluate(p, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+            tmp_en = fML[p][r - p] + fML[r + 1][q - (r + 1)];
+            if (scs)
+              for (ss = 0; ss < n_seq; ss++)
+                if (scs[ss]) {
+                  if (scs[ss]->f)
+                    tmp_en += scs[ss]->f(p, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, scs[ss]->data);
+                }
+
+            if (e == tmp_en)
+              break;
+          }
+        }
+        break;
+
+      case 2:
+        for (ss = 0; ss < n_seq; ss++) {
+          tt  = rtype[type[ss]];
+          mm  += E_MLstem(tt, S5[ss][*j], S3[ss][*i], P);
+        }
+
+        e = en - mm;
+        if (scs)
+          for (ss = 0; ss < n_seq; ss++)
+            if (scs[ss]) {
+              if (scs[ss]->f)
+                e -= scs[ss]->f(*i, *j, p, q, VRNA_DECOMP_PAIR_ML, scs[ss]->data);
+            }
+
+        for (r = p + turn + 1; r < q - turn - 1; ++r) {
+          if (evaluate(p, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+            tmp_en = fML[p][r - p] + fML[r + 1][q - (r + 1)];
+            if (scs)
+              for (ss = 0; ss < n_seq; ss++)
+                if (scs[ss]) {
+                  if (scs[ss]->f)
+                    tmp_en += scs[ss]->f(p, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, scs[ss]->data);
+                }
+
+            if (e == tmp_en)
+              break;
+          }
+        }
+        break;
+    }
+
+    free(type);
+  }
+
+  if (r <= *j - turn - 3) {
+    *i  = p;
+    *k  = r;
+    *j  = q;
+    return 1;
   }
 
   return 0;

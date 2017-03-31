@@ -203,28 +203,39 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t *vc,
   int           l[3], L, a;
   vrna_param_t  *P;
 
-  P = vc->params;
-  S = vc->sequence_encoding2;
-  L = -1;
+  if (vc) {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        P = vc->params;
+        S = vc->sequence_encoding2;
+        L = -1;
 
-  get_gquad_pattern_mfe(S, i, j, P, &L, l);
+        get_gquad_pattern_mfe(S, i, j, P, &L, l);
 
-  if(L != -1){
-    /* fill the G's of the quadruplex into base_pair2 */
-    for(a=0;a<L;a++){
-      bp_stack[++(*stack_count)].i = i+a;
-      bp_stack[(*stack_count)].j   = i+a;
-      bp_stack[++(*stack_count)].i = i+L+l[0]+a;
-      bp_stack[(*stack_count)].j   = i+L+l[0]+a;
-      bp_stack[++(*stack_count)].i = i+L+l[0]+L+l[1]+a;
-      bp_stack[(*stack_count)].j   = i+L+l[0]+L+l[1]+a;
-      bp_stack[++(*stack_count)].i = i+L+l[0]+L+l[1]+L+l[2]+a;
-      bp_stack[(*stack_count)].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
+        if(L != -1){
+          /* fill the G's of the quadruplex into base_pair2 */
+          for(a = 0; a < L; a++){
+            bp_stack[++(*stack_count)].i = i+a;
+            bp_stack[(*stack_count)].j   = i+a;
+            bp_stack[++(*stack_count)].i = i+L+l[0]+a;
+            bp_stack[(*stack_count)].j   = i+L+l[0]+a;
+            bp_stack[++(*stack_count)].i = i+L+l[0]+L+l[1]+a;
+            bp_stack[(*stack_count)].j   = i+L+l[0]+L+l[1]+a;
+            bp_stack[++(*stack_count)].i = i+L+l[0]+L+l[1]+L+l[2]+a;
+            bp_stack[(*stack_count)].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
+          }
+          return 1;
+        } else {
+          return 0;
+        }
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        break;
     }
-    return 1;
-  } else {
-    return 0;
   }
+
+  return 0;
+
 }
 
 PRIVATE INLINE int
@@ -514,6 +525,113 @@ INLINE  PRIVATE int backtrack_GQuad_IntLoop_L(int c,
 
   return 0;
 }
+
+INLINE  PRIVATE int
+backtrack_GQuad_IntLoop_L_comparative(int c,
+                                              int i,
+                                              int j,
+                                              int *type,
+                                              short *S_cons,
+                                              short **S5,
+                                              short **S3,
+                                              int **ggg,
+                                              int *p,
+                                              int *q,
+                                              int n_seq,
+                                              vrna_param_t *P)
+{
+  /*
+   * The case that is handled here actually resembles something like
+   * an interior loop where the enclosing base pair is of regular
+   * kind and the enclosed pair is not a canonical one but a g-quadruplex
+   * that should then be decomposed further...
+   */
+  int mm, dangle_model, k, l, maxl, minl, c0, l1, ss, tt;
+
+  dangle_model = P->model_details.dangles;
+
+  mm = 0;
+  for (ss = 0; ss < n_seq; ss++) {
+    tt = type[ss];
+
+    if (dangle_model == 2)
+      mm += P->mismatchI[tt][S3[ss][i]][S5[ss][j]];
+
+    if (tt > 2)
+      mm += P->TerminalAU;
+  }
+
+  for (k = i + 2;
+       k < j - VRNA_GQUAD_MIN_BOX_SIZE;
+       k++) {
+    if (S_cons[k] != 3)
+      continue;
+
+    l1 = k - i - 1;
+    if (l1 > MAXLOOP)
+      break;
+
+    minl  = j - i + k - MAXLOOP - 2;
+    c0    = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+    minl  = MAX2(c0, minl);
+    c0    = j - 1;
+    maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+    maxl  = MIN2(c0, maxl);
+    for (l = minl; l < maxl; l++) {
+      if (S_cons[l] != 3)
+        continue;
+
+      c0 = mm + ggg[k][l - k] + n_seq * P->internal_loop[l1 + j - l - 1];
+      if (c == c0) {
+        *p = k;
+        *q = l;
+        return 1;
+      }
+    }
+  }
+  k = i + 1;
+  if (S_cons[k] == 3) {
+    if (k < j - VRNA_GQUAD_MIN_BOX_SIZE) {
+      minl  = j - i + k - MAXLOOP - 2;
+      c0    = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      minl  = MAX2(c0, minl);
+      c0    = j - 3;
+      maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+      maxl  = MIN2(c0, maxl);
+      for (l = minl; l < maxl; l++) {
+        if (S_cons[l] != 3)
+          continue;
+
+        if (c == mm + ggg[k][l - k] + n_seq * P->internal_loop[j - l - 1]) {
+          *p = k;
+          *q = l;
+          return 1;
+        }
+      }
+    }
+  }
+
+  l = j - 1;
+  if (S_cons[l] == 3) {
+    for (k = i + 4; k < j - VRNA_GQUAD_MIN_BOX_SIZE; k++) {
+      l1 = k - i - 1;
+      if (l1 > MAXLOOP)
+        break;
+
+      if (S_cons[k] != 3)
+        continue;
+
+      if (c == mm + ggg[k][l - k] + n_seq * P->internal_loop[l1]) {
+        *p = k;
+        *q = l;
+        return 1;
+      }
+    }
+  }
+  
+  return 0;
+}
+
 
 PRIVATE INLINE
 int

@@ -126,6 +126,14 @@ gquad_mfe_pos(int i,
               void *Lmfe,
               void *lmfe);
 
+PRIVATE void gquad_mfe_ali_pos( int i,
+                            int L,
+                            int *l,
+                            void *data,
+                            void *P,
+                            void *Lmfe,
+                            void *lmfe);
+
 PRIVATE
 void
 gquad_pos_exhaustive( int i,
@@ -672,6 +680,38 @@ PUBLIC void get_gquad_pattern_mfe(short *S,
   free(gg);
 }
 
+typedef struct {
+  short *S;
+  int   n_seq;
+  int   mfe;
+} ali_mfe_struct;
+
+PUBLIC void get_gquad_pattern_mfe_ali(short *S_cons,
+                                      int n_seq,
+                                  int i,
+                                  int j,
+                                  vrna_param_t *P,
+                                  int *L,
+                                  int l[3]){
+
+  int *gg = get_g_islands_sub(S_cons, i, j);
+
+  ali_mfe_struct c;
+  c.S     = S_cons;
+  c.n_seq = n_seq;
+  c.mfe   = INF;
+
+  process_gquad_enumeration(gg, i, j,
+                            &gquad_mfe_ali_pos,
+                            (void *)(&c),
+                            (void *)P,
+                            (void *)L,
+                            (void *)l);
+
+  gg += i - 1;
+  free(gg);
+}
+
 PUBLIC void
 get_gquad_pattern_exhaustive( short *S,
                               int i,
@@ -943,6 +983,26 @@ PRIVATE void gquad_mfe_pos( int i,
   int cc = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]];
   if(cc < *((int *)data)){
     *((int *)data)        = cc;
+    *((int *)Lmfe)        = L;
+    *((int *)lmfe)        = l[0];
+    *(((int *)lmfe) + 1)  = l[1];
+    *(((int *)lmfe) + 2)  = l[2];
+  }
+}
+
+PRIVATE void gquad_mfe_ali_pos( int i,
+                            int L,
+                            int *l,
+                            void *data,
+                            void *P,
+                            void *Lmfe,
+                            void *lmfe){
+
+  int cc = INF;
+  gquad_mfe_ali(i, L, l, (void *)&cc, P, ((ali_mfe_struct *)data)->S, ((ali_mfe_struct *)data)->n_seq);
+
+  if(cc < ((ali_mfe_struct *)data)->mfe){
+    ((ali_mfe_struct *)data)->mfe         = cc;
     *((int *)Lmfe)        = L;
     *((int *)lmfe)        = l[0];
     *(((int *)lmfe) + 1)  = l[1];
