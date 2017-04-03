@@ -390,8 +390,8 @@ into the executables are present!
 AC_DEFUN([RNA_ENABLE_SSE],[
 
   RNA_ADD_FEATURE([sse],
-                  [SSE4.1 implementations],
-                  [yes])
+                  [Speed-up MFE computations using SSE 4.1 implementations],
+                  [no])
 
   ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
   RNA_FEATURE_IF_ENABLED([sse],[

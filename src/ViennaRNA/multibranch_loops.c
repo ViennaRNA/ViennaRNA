@@ -793,6 +793,7 @@ modular_decomposition(const int i, const int ij, const int j, const int turn, co
       __m128i a = _mm_loadu_si128((__m128i*)&fmi[k +i]);
       __m128i b = _mm_loadu_si128((__m128i*)&fm[k1j+i]);
       __m128i c = _mm_add_epi32(a,b);
+/* deactivate this part if you are sure to not use any hard constraints */
 #if 1
       __m128i mask1 = _mm_cmplt_epi32(a, inf);
       __m128i mask2 = _mm_cmplt_epi32(b, inf);
