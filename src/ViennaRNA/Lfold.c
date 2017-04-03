@@ -143,11 +143,6 @@ PRIVATE int   fill_arrays_comparative(vrna_fold_compound_t      *fc,
                                       void                      *data);
 
 
-PRIVATE char *backtrack_comparative(vrna_fold_compound_t  *fc,
-                                    int                   start,
-                                    int                   maxdist);
-
-
 PRIVATE void
 default_callback_comparative(int        start,
                              int        end,
@@ -941,7 +936,7 @@ backtrack(vrna_fold_compound_t  *vc,
   char            *string, *structure, **ptype;
   int             i, j, k, length, no_close, type, s, b, bt_type, turn,
                   dangle_model, noLP, noGUclosure, **c, dangle3, ml, cij,
-                  canonical, p, q, comp1, comp2, max3;
+                  **pscore, canonical, p, q, comp1, comp2, max3;
   vrna_param_t    *P;
   vrna_md_t       *md;
   vrna_bp_stack_t *bp_stack;
@@ -949,6 +944,7 @@ backtrack(vrna_fold_compound_t  *vc,
   string        = vc->sequence;
   length        = vc->length;
   ptype         = vc->ptype_local;
+  pscore        = vc->pscore_local;
   P             = vc->params;
   md            = &(P->model_details);
   dangle_model  = md->dangles;
@@ -956,12 +952,11 @@ backtrack(vrna_fold_compound_t  *vc,
   noGUclosure   = md->noGUclosure;
   bt_type       = md->backtrack_type;
   turn          = md->min_loop_size;
+  c             = vc->matrices->c_local;
 
   s         = 0;                                                                                /* depth of backtracking stack */
   b         = 0;                                                                                /* number of base pairs */
   bp_stack  = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));  /* add a guess of how many G's may be involved in a G quadruplex */
-
-  c = vc->matrices->c_local;
 
   sector[++s].i = start;
   sector[s].j   = MIN2(length, maxdist + 1);
@@ -1006,8 +1001,10 @@ backtrack(vrna_fold_compound_t  *vc,
 
           continue;
         } else {
-          vrna_message_error("backtracking failed in f3 for sequence:\n%s\n", string);
+          vrna_message_error("backtracking failed in f3, segment [%d,%d]\n", i, j);
         }
+
+        break;
 
       /* trace back in fML array */
       case 1:
@@ -1026,7 +1023,7 @@ backtrack(vrna_fold_compound_t  *vc,
 
           continue;
         } else {
-          vrna_message_error("backtracking failed in fML for sequence:\n%s\n", string);
+          vrna_message_error("backtracking failed in fML, segment [%d,%d]\n", i, j);
         }
 
         break;
@@ -1036,6 +1033,7 @@ backtrack(vrna_fold_compound_t  *vc,
         bp_stack[++b].i = i;
         bp_stack[b].j   = j;
         goto repeat1;
+        break;
 
       default:
         vrna_message_error("Backtracking failed due to unrecognized DP matrix!");
@@ -1048,10 +1046,6 @@ repeat1:
     if (canonical)
       cij = c[i][j - i];
 
-    type = ptype[i][j - i];
-    if (type == 0)
-      type = 7;
-
     if (noLP) {
       if (vrna_BT_stack(vc, &i, &j, &cij, bp_stack, &b)) {
         canonical = 0;
@@ -1061,14 +1055,30 @@ repeat1:
 
     canonical = 1;
 
-    no_close = (((type == 3) || (type == 4)) && noGUclosure);
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        type = ptype[i][j - i];
+        if (type == 0)
+          type = 7;
 
-    if (no_close) {
-      if (cij == FORBIDDEN)
-        continue;
-    } else {
-      if (vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &b))
-        continue;
+        no_close = (((type == 3) || (type == 4)) && noGUclosure);
+
+        if (no_close) {
+          if (cij == FORBIDDEN)
+            continue;
+        } else {
+          if (vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &b))
+            continue;
+        }
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        cij += pscore[i][j - i];
+        if (vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &b))
+          continue;
+
+        break;
     }
 
     if (vrna_BT_int_loop(vc, &i, &j, cij, bp_stack, &b)) {
@@ -1087,7 +1097,7 @@ repeat1:
       sector[s].j   = j;
       sector[s].ml  = comp2;
     } else {
-      vrna_message_error("backtracking failed in repeat for sequence:\n%s\n", string);
+      vrna_message_error("backtracking failed in repeat, segment [%d,%d]\n", i, j);
     }
 
     /* end of repeat: --------------------------------------------------*/
@@ -1269,7 +1279,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
       energy = f3[iii] - f3[jjj];
 
       /* do not spam output with relatively unstable structures */
-      char *sss = backtrack_comparative(fc, iii, jjj - iii + 1);
+      char *sss = backtrack(fc, iii, jjj + 1);
       if (prev) {
         if ((jjj < prev_j) || strncmp(sss + prev_i - iii, prev, prev_j + 1 - prev_i + 1 - 1))   /* -1 because of 3' dangle unpaired position */
           cb(prev_i, prev_j + 1, prev, (prev_en) / (100. * n_seq), data);
@@ -1303,7 +1313,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
           if (jjj != -1) {
             energy = f3[iii] - f3[jjj];
 
-            char *ss = backtrack_comparative(fc, iii, jjj - iii + 1);
+            char *ss = backtrack(fc, iii, jjj + 1);
 
             if (prev)
               if ((jjj < prev_j) || strncmp(ss + prev_i - iii, prev, prev_j + 1 - prev_i + 1 - 1))  /* -1 because of 3' dangle unpaired position */
@@ -1357,190 +1367,6 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
   free_dp_matrices(fc);
 
   return matrices->f3[1];
-}
-
-
-PRIVATE char *
-backtrack_comparative(vrna_fold_compound_t  *fc,
-                      int                   start,
-                      int                   maxdist)
-{
-  /*------------------------------------------------------------------
-   *  trace back through the "c", "f3" and "fML" arrays to get the
-   *  base pairing list. No search for equivalent structures is done.
-   *  This is fast, since only few structure elements are recalculated.
-   *  ------------------------------------------------------------------*/
-  sect            sector[MAXSECTORS]; /* backtracking sectors */
-
-  char            *structure;
-  int             **pscore, i, j, k, length, turn, dangle_model, noLP,
-                  s, **c, ml, cij, p, q, canonical, b, dangle3, max3,
-                  comp1, comp2;
-  vrna_param_t    *P;
-  vrna_md_t       *md;
-  vrna_bp_stack_t *bp_stack;
-
-  length        = fc->length;
-  pscore        = fc->pscore_local; /* precomputed array of pair types */
-  P             = fc->params;
-  md            = &(P->model_details);
-  dangle_model  = md->dangles;
-  noLP          = md->noLP;
-
-  c = fc->matrices->c_local;      /* energy array, given that i-j pair */
-
-  turn = md->min_loop_size;
-
-  s         = 0;                                                                                /* depth of backtracking stack */
-  b         = 0;                                                                                /* number of base pairs */
-  bp_stack  = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));  /* add a guess of how many G's may be involved in a G quadruplex */
-
-  sector[++s].i = start;
-  sector[s].j   = MIN2(length, start + maxdist + 1);
-  sector[s].ml  = (backtrack_type == 'M') ? 1 : ((backtrack_type == 'C') ? 2 : 0);
-
-  structure = (char *)vrna_alloc((MIN2(length - start, maxdist) + 3) * sizeof(char));
-
-  memset(structure, '.', MIN2(length - start, maxdist) + 1);
-
-  dangle3 = 0;
-
-  while (s > 0) {
-    canonical = 1;     /* (i,j) closes a canonical structure */
-
-    i   = sector[s].i;
-    j   = sector[s].j;
-    ml  = sector[s--].ml;   /* ml is a flag indicating if backtracking is to
-                            * occur in the fML- (1) or in the f-array (0) */
-    if (j < i + turn + 1)
-      continue;             /* no more pairs in this interval */
-
-    switch (ml) {
-      /* backtrack in f3 */
-      case 0:
-        if (vrna_BT_ext_loop_f3(fc, &i, j, &p, &q, bp_stack, &b)) {
-          if (i > 0) {
-            sector[++s].i = i;
-            sector[s].j   = j;
-            sector[s].ml  = 0;
-          }
-
-          if (p > 0) {
-            if (((i == q + 2) || (dangle_model == 2)) && (q < length))
-              dangle3 = 1;
-
-            i = p;
-            j = q;
-            goto repeat1_comparative;
-          }
-
-          continue;
-        } else {
-          vrna_message_error("backtracking failed in f3\n");
-        }
-
-        break;
-
-      /* trace back in fML array */
-      case 1:
-        if (vrna_BT_mb_loop_split(fc, &i, &j, &p, &q, &comp1, &comp2, bp_stack, &b)) {
-          if (i > 0) {
-            sector[++s].i = i;
-            sector[s].j   = j;
-            sector[s].ml  = comp1;
-          }
-
-          if (p > 0) {
-            sector[++s].i = p;
-            sector[s].j   = q;
-            sector[s].ml  = comp2;
-          }
-
-          continue;
-        } else {
-          vrna_message_error("backtracking failed in fML\n");
-        }
-
-        break;
-
-      /* backtrack in c */
-      case 2:
-        bp_stack[++b].i = i;
-        bp_stack[b].j   = j;
-        goto repeat1_comparative;
-        break;
-
-      default:
-        vrna_message_error("Backtracking failed due to unrecognized DP matrix!");
-        break;
-    }
-
-repeat1_comparative:
-
-    /*----- begin of "repeat:" -----*/
-    if (canonical)
-      cij = c[i][j - i];
-
-    if (noLP) {
-      if (vrna_BT_stack(fc, &i, &j, &cij, bp_stack, &b)) {
-        canonical = 0;
-        goto repeat1_comparative;
-      }
-    }
-
-    canonical = 1;
-    cij       += pscore[i][j - i];
-
-    if (vrna_BT_hp_loop(fc, i, j, cij, bp_stack, &b))
-      continue;
-
-    if (vrna_BT_int_loop(fc, &i, &j, cij, bp_stack, &b)) {
-      if (i < 0)
-        continue;
-      else
-        goto repeat1_comparative;
-    }
-
-    /* (i.j) must close a multi-loop */
-    if (vrna_BT_mb_loop(fc, &i, &j, &k, cij, &comp1, &comp2)) {
-      sector[++s].i = i;
-      sector[s].j   = k;
-      sector[s].ml  = comp1;
-      sector[++s].i = k + 1;
-      sector[s].j   = j;
-      sector[s].ml  = comp2;
-    } else {
-      vrna_message_error("backtracking failed in repeat\n");
-    }
-
-    /* end of repeat: --------------------------------------------------*/
-  }
-
-  bp_stack[0].i = b;
-
-  /* and now create a dot-brakcet string from the base pair stack... */
-  max3 = 1;
-  for (i = 1; i <= b; i++) {
-    if (bp_stack[i].i == bp_stack[i].j) {
-      /* Gquad bonds are marked as bp[i].i == bp[i].j */
-      structure[bp_stack[i].i - start] = '+';
-    } else {
-      /* the following ones are regular base pairs */
-      structure[bp_stack[i].i - start]  = '(';
-      structure[bp_stack[i].j - start]  = ')';
-    }
-
-    if (max3 < bp_stack[i].j - start)
-      max3 = bp_stack[i].j - start;
-  }
-
-  free(bp_stack);
-
-  structure = (char *)vrna_realloc(structure,
-                                   sizeof(char) * (max3 + dangle3 + 2));
-  structure[max3 + dangle3 + 1] = '\0';
-
-  return structure;
 }
 
 
