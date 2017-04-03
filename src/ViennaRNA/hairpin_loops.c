@@ -439,8 +439,8 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
               e += scs[s]->energy_up[a2s[s][i + 1]][u];
 
             if (scs[s]->energy_bp) {
-              ij    = idx[j] + i;
-              e += scs[s]->energy_bp[ij];
+              ij  = idx[j] + i;
+              e   += scs[s]->energy_bp[ij];
             }
 
             if (scs[s]->f) {

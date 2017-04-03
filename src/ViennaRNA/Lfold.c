@@ -157,10 +157,22 @@ default_callback_comparative(int        start,
 
 
 PRIVATE INLINE void allocate_dp_matrices(vrna_fold_compound_t *fc);
+
+
 PRIVATE INLINE void free_dp_matrices(vrna_fold_compound_t *fc);
-PRIVATE INLINE void rotate_dp_matrices(vrna_fold_compound_t *fc, int i);
-PRIVATE INLINE void init_constraints(vrna_fold_compound_t *fc, float **dm);
-PRIVATE INLINE void rotate_constraints(vrna_fold_compound_t *fc, float **dm, int i);
+
+
+PRIVATE INLINE void rotate_dp_matrices(vrna_fold_compound_t *fc,
+                                       int                  i);
+
+
+PRIVATE INLINE void init_constraints(vrna_fold_compound_t *fc,
+                                     float                **dm);
+
+
+PRIVATE INLINE void rotate_constraints(vrna_fold_compound_t *fc,
+                                       float                **dm,
+                                       int                  i);
 
 
 /*
@@ -421,10 +433,10 @@ wrap_Lfold(vrna_fold_compound_t             *vc,
 PRIVATE INLINE void
 allocate_dp_matrices(vrna_fold_compound_t *fc)
 {
-  int i, j, length, maxdist, **c, **fML;
-  vrna_hc_t   *hc;
+  int       i, j, length, maxdist, **c, **fML;
+  vrna_hc_t *hc;
 
-  length = fc->length;
+  length  = fc->length;
   maxdist = MIN2(fc->window_size, length);
   hc      = fc->hc;
   c       = fc->matrices->c_local;
@@ -436,9 +448,9 @@ allocate_dp_matrices(vrna_fold_compound_t *fc)
     fML[i]              = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
     hc->matrix_local[i] = (char *)vrna_alloc(sizeof(char) * (maxdist + 5));
     if (fc->type == VRNA_FC_TYPE_SINGLE)
-      fc->ptype_local[i]            = vrna_alloc(sizeof(char) * (maxdist + 5));
+      fc->ptype_local[i] = vrna_alloc(sizeof(char) * (maxdist + 5));
     else if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
-      fc->pscore_local[i]            = vrna_alloc(sizeof(int) * (maxdist + 5));
+      fc->pscore_local[i] = vrna_alloc(sizeof(int) * (maxdist + 5));
   }
 
   if (fc->type == VRNA_FC_TYPE_SINGLE)
@@ -449,23 +461,22 @@ allocate_dp_matrices(vrna_fold_compound_t *fc)
     for (j = length; j > length - maxdist - 3; j--)
       for (i = (length - maxdist - 2 > 0) ? length - maxdist - 2 : 1; i < j; i++)
         c[i][j - i] = fML[i][j - i] = INF;
-
 }
 
 
 PRIVATE INLINE void
 free_dp_matrices(vrna_fold_compound_t *fc)
 {
-  int i, length, maxdist, **c, **fML, **ggg, with_gquad;
-  vrna_hc_t   *hc;
+  int       i, length, maxdist, **c, **fML, **ggg, with_gquad;
+  vrna_hc_t *hc;
 
-  length = fc->length;
-  maxdist = MIN2(fc->window_size, length);
-  hc      = fc->hc;
-  c       = fc->matrices->c_local;
-  fML     = fc->matrices->fML_local;
-  ggg     = fc->matrices->ggg_local;
-  with_gquad = fc->params->model_details.gquad;
+  length      = fc->length;
+  maxdist     = MIN2(fc->window_size, length);
+  hc          = fc->hc;
+  c           = fc->matrices->c_local;
+  fML         = fc->matrices->fML_local;
+  ggg         = fc->matrices->ggg_local;
+  with_gquad  = fc->params->model_details.gquad;
 
 
   /* free additional memory for j-dimension */
@@ -477,6 +488,7 @@ free_dp_matrices(vrna_fold_compound_t *fc)
       free(fc->pscore_local[i]);
       fc->pscore_local[i] = NULL;
     }
+
     free(c[i]);
     c[i] = NULL;
     free(fML[i]);
@@ -496,12 +508,12 @@ free_dp_matrices(vrna_fold_compound_t *fc)
 
 PRIVATE INLINE void
 rotate_dp_matrices(vrna_fold_compound_t *fc,
-                int i)
+                   int                  i)
 {
-  int ii, maxdist, length, **c, **fML;
-  vrna_hc_t   *hc;
+  int       ii, maxdist, length, **c, **fML;
+  vrna_hc_t *hc;
 
-  length = fc->length;
+  length  = fc->length;
   maxdist = fc->window_size;
   c       = fc->matrices->c_local;
   fML     = fc->matrices->fML_local;
@@ -523,16 +535,16 @@ rotate_dp_matrices(vrna_fold_compound_t *fc,
       fML[i - 1][ii]  = INF;
     }
   }
-
 }
 
 
 PRIVATE INLINE void
-init_constraints(vrna_fold_compound_t *fc, float **dm)
+init_constraints(vrna_fold_compound_t *fc,
+                 float                **dm)
 {
   int i, length, maxdist;
 
-  length = fc->length;
+  length  = fc->length;
   maxdist = fc->window_size;
 
   switch (fc->type) {
@@ -554,11 +566,13 @@ init_constraints(vrna_fold_compound_t *fc, float **dm)
 
 
 PRIVATE INLINE void
-rotate_constraints(vrna_fold_compound_t *fc, float **dm, int i)
+rotate_constraints(vrna_fold_compound_t *fc,
+                   float                **dm,
+                   int                  i)
 {
   int length, maxdist;
 
-  length = fc->length;
+  length  = fc->length;
   maxdist = fc->window_size;
 
   switch (fc->type) {
@@ -571,6 +585,7 @@ rotate_constraints(vrna_fold_compound_t *fc, float **dm, int i)
           vrna_hc_prepare(fc, i - 1);
         }
       }
+
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
@@ -582,6 +597,7 @@ rotate_constraints(vrna_fold_compound_t *fc, float **dm, int i)
           vrna_hc_prepare(fc, i - 1);
         }
       }
+
       break;
   }
 }
@@ -606,7 +622,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
   char          **ptype, *prev, hc_decompose;
   short         *S;
-  int           i, j,  length, energy, maxdist, **c, **fML, *f3, no_close,
+  int           i, j, length, energy, maxdist, **c, **fML, *f3, no_close,
                 type, with_gquad, dangle_model, noLP, noGUclosure, turn, fij,
                 lind, *cc, *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2, do_backtrack,
                 prev_i, new_c, stackEnergy;
@@ -664,7 +680,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
       if (hc_decompose) {
         /* we have a pair */
-        new_c = INF;
+        new_c       = INF;
         stackEnergy = INF;
 
         if (!no_close) {
@@ -910,6 +926,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
   return f3[1];
 }
 
+
 PRIVATE char *
 backtrack(vrna_fold_compound_t  *vc,
           int                   start,
@@ -944,7 +961,7 @@ backtrack(vrna_fold_compound_t  *vc,
   b         = 0;                                                                                /* number of base pairs */
   bp_stack  = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));  /* add a guess of how many G's may be involved in a G quadruplex */
 
-  c   = vc->matrices->c_local;
+  c = vc->matrices->c_local;
 
   sector[++s].i = start;
   sector[s].j   = MIN2(length, maxdist + 1);
@@ -1011,6 +1028,7 @@ backtrack(vrna_fold_compound_t  *vc,
         } else {
           vrna_message_error("backtracking failed in fML for sequence:\n%s\n", string);
         }
+
         break;
 
       /* backtrack in c */
@@ -1103,52 +1121,53 @@ repeat1:
   return structure;
 }
 
+
 PRIVATE int
 fill_arrays_comparative(vrna_fold_compound_t      *fc,
                         vrna_mfe_window_callback  *cb,
                         void                      *data)
 {
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
-  short           **S;
-  char            **strings, *prev;
-  int             **pscore, i, j, length, energy, turn,
-                  n_seq, **c, **fML, *f3, *cc, *cc1, *Fmi,
-                  *DMLi, *DMLi1, *DMLi2, maxdist, prev_i, prev_j,
-                  prev_en, do_backtrack, with_gquad, new_c, psc,
-                  stackEnergy, jjj, iii, eee;
-  float           **dm;
-  vrna_mx_mfe_t   *matrices;
-  vrna_param_t    *P;
-  vrna_md_t       *md;
-  vrna_hc_t       *hc;
+  short         **S;
+  char          **strings, *prev;
+  int           **pscore, i, j, length, energy, turn,
+                n_seq, **c, **fML, *f3, *cc, *cc1, *Fmi,
+                *DMLi, *DMLi1, *DMLi2, maxdist, prev_i, prev_j,
+                prev_en, do_backtrack, with_gquad, new_c, psc,
+                stackEnergy, jjj, iii, eee;
+  float         **dm;
+  vrna_mx_mfe_t *matrices;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_hc_t     *hc;
 
-  int             olddm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs PRIVATE needed??*/
-                                  { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
-                                  { 0, 2, 0, 1, 2, 2, 2 } /* GC */,
-                                  { 0, 2, 1, 0, 2, 1, 2 } /* GU */,
-                                  { 0, 1, 2, 2, 0, 2, 1 } /* UG */,
-                                  { 0, 2, 2, 1, 2, 0, 2 } /* AU */,
-                                  { 0, 2, 2, 2, 1, 2, 0 } /* UA */ };
+  int           olddm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 },   /* hamming distance between pairs PRIVATE needed??*/
+                                { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
+                                { 0, 2, 0, 1, 2, 2, 2 } /* GC */,
+                                { 0, 2, 1, 0, 2, 1, 2 } /* GU */,
+                                { 0, 1, 2, 2, 0, 2, 1 } /* UG */,
+                                { 0, 2, 2, 1, 2, 0, 2 } /* AU */,
+                                { 0, 2, 2, 2, 1, 2, 0 } /* UA */ };
 
-  do_backtrack = 0;
+  do_backtrack  = 0;
   prev_i        = 0;
   prev_j        = 0;
-  prev_en        = INF;
+  prev_en       = INF;
 
   dm    = NULL;
-  prev = NULL;
+  prev  = NULL;
 
-  strings       = fc->sequences;
-  S             = fc->S;
-  n_seq         = fc->n_seq;
-  length        = fc->length;
-  maxdist       = fc->window_size;
-  matrices      = fc->matrices;
-  hc            = fc->hc;
-  P             = fc->params;
-  md            = &(P->model_details);
-  turn          = md->min_loop_size;
-  with_gquad    = md->gquad;
+  strings     = fc->sequences;
+  S           = fc->S;
+  n_seq       = fc->n_seq;
+  length      = fc->length;
+  maxdist     = fc->window_size;
+  matrices    = fc->matrices;
+  hc          = fc->hc;
+  P           = fc->params;
+  md          = &(P->model_details);
+  turn        = md->min_loop_size;
+  with_gquad  = md->gquad;
 
   if (md->ribo) {
     if (RibosumFile != NULL)
@@ -1165,11 +1184,11 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     }
   }
 
-  pscore  = fc->pscore_local; /* precomputed array of pair types */
+  pscore = fc->pscore_local;      /* precomputed array of pair types */
 
-  c   = fc->matrices->c_local;              /* energy array, given that i-j pair */
-  fML = fc->matrices->fML_local;            /* multi-loop auxiliary energy array */
-  f3  = fc->matrices->f3_local;             /* energy of 5' end */
+  c   = fc->matrices->c_local;    /* energy array, given that i-j pair */
+  fML = fc->matrices->fML_local;  /* multi-loop auxiliary energy array */
+  f3  = fc->matrices->f3_local;   /* energy of 5' end */
 
   cc    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
   cc1   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
@@ -1196,8 +1215,9 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     for (j = i + turn + 1; j <= length && j <= i + maxdist; j++) {
       psc = pscore[i][j - i];
 
-      if (hc->matrix_local[i][j - i]) {   /* we evaluate this pair */
-        new_c = INF;
+      if (hc->matrix_local[i][j - i]) {
+        /* we evaluate this pair */
+        new_c       = INF;
         stackEnergy = INF;
 
         /* hairpin ----------------------------------------------*/
@@ -1213,7 +1233,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
         new_c   = MIN2(new_c, energy);
 
         /* remember stack energy for --noLP option */
-        if(md->noLP){
+        if (md->noLP) {
           stackEnergy = vrna_E_stack(fc, i, j);
           new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
           cc[j - i]   = new_c - psc; /* add covariance bonnus/penalty */
@@ -1228,7 +1248,6 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
 
       /* done with c[i,j], now compute fML[i,j] */
       fML[i][j - i] = vrna_E_ml_stems_fast(fc, i, j, Fmi, DMLi);
-
     } /* for (j...) */
 
     /* calculate energies of 5' and 3' fragments */
@@ -1252,45 +1271,43 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
       /* do not spam output with relatively unstable structures */
       char *sss = backtrack_comparative(fc, iii, jjj - iii + 1);
       if (prev) {
-        if ((jjj < prev_j) || strncmp(sss + prev_i - iii, prev, prev_j + 1 - prev_i + 1 - 1)) { /* -1 because of 3' dangle unpaired position */
+        if ((jjj < prev_j) || strncmp(sss + prev_i - iii, prev, prev_j + 1 - prev_i + 1 - 1))   /* -1 because of 3' dangle unpaired position */
           cb(prev_i, prev_j + 1, prev, (prev_en) / (100. * n_seq), data);
-        }
+
         free(prev);
       }
-      prev = sss;
-      prev_i = iii;
-      prev_j = jjj;
+
+      prev    = sss;
+      prev_i  = iii;
+      prev_j  = jjj;
       prev_en = energy;
 
       do_backtrack = 0;
     }
 
     if (i == 1) {
-
       if (f3[1] != f3[prev_i]) {
         /* find pairing partner, if any */
         eee = f3[1];
         iii = 1;
-      
+
         while (eee == f3[iii + 1]) {
           iii++;
           if (iii > maxdist)
             break;
         }
 
-        if (iii < maxdist) { /* otherwise, c-array columns don't exist anymore */
+        if (iii < maxdist) {
+          /* otherwise, c-array columns don't exist anymore */
           jjj = vrna_BT_ext_loop_f3_pp(fc, iii, maxdist - (iii - 1), eee);
           if (jjj != -1) {
-
             energy = f3[iii] - f3[jjj];
 
             char *ss = backtrack_comparative(fc, iii, jjj - iii + 1);
 
-            if (prev) {
-              if((jjj < prev_j) || strncmp(ss + prev_i - iii, prev, prev_j + 1 - prev_i + 1 - 1)) { /* -1 because of 3' dangle unpaired position */
+            if (prev)
+              if ((jjj < prev_j) || strncmp(ss + prev_i - iii, prev, prev_j + 1 - prev_i + 1 - 1))  /* -1 because of 3' dangle unpaired position */
                 cb(prev_i, prev_j + 1, prev, (prev_en) / (100. * n_seq), data);
-              }
-            }
 
             /* execute callback */
             cb(iii, jjj + 1, ss, energy / (100. * n_seq), data);
@@ -1298,7 +1315,6 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
             free(prev);
             prev = NULL;
             free(ss);
-
           }
         }
       }
@@ -1371,9 +1387,9 @@ backtrack_comparative(vrna_fold_compound_t  *fc,
   dangle_model  = md->dangles;
   noLP          = md->noLP;
 
-  c   = fc->matrices->c_local;    /* energy array, given that i-j pair */
+  c = fc->matrices->c_local;      /* energy array, given that i-j pair */
 
-  turn          = md->min_loop_size;
+  turn = md->min_loop_size;
 
   s         = 0;                                                                                /* depth of backtracking stack */
   b         = 0;                                                                                /* number of base pairs */
@@ -1394,10 +1410,10 @@ backtrack_comparative(vrna_fold_compound_t  *fc,
 
     i   = sector[s].i;
     j   = sector[s].j;
-    ml  = sector[s--].ml;  /* ml is a flag indicating if backtracking is to
-                           * occur in the fML- (1) or in the f-array (0) */
+    ml  = sector[s--].ml;   /* ml is a flag indicating if backtracking is to
+                            * occur in the fML- (1) or in the f-array (0) */
     if (j < i + turn + 1)
-      continue;                 /* no more pairs in this interval */
+      continue;             /* no more pairs in this interval */
 
     switch (ml) {
       /* backtrack in f3 */
@@ -1422,6 +1438,7 @@ backtrack_comparative(vrna_fold_compound_t  *fc,
         } else {
           vrna_message_error("backtracking failed in f3\n");
         }
+
         break;
 
       /* trace back in fML array */
@@ -1443,6 +1460,7 @@ backtrack_comparative(vrna_fold_compound_t  *fc,
         } else {
           vrna_message_error("backtracking failed in fML\n");
         }
+
         break;
 
       /* backtrack in c */
@@ -1479,7 +1497,7 @@ repeat1_comparative:
     if (vrna_BT_int_loop(fc, &i, &j, cij, bp_stack, &b)) {
       if (i < 0)
         continue;
-      else 
+      else
         goto repeat1_comparative;
     }
 

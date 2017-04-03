@@ -52,10 +52,12 @@ E_int_loop_comparative(vrna_fold_compound_t *vc,
                        int                  i,
                        int                  j);
 
+
 PRIVATE int
-E_int_loop_comparative_window(vrna_fold_compound_t *vc,
-                       int                  i,
-                       int                  j);
+E_int_loop_comparative_window(vrna_fold_compound_t  *vc,
+                              int                   i,
+                              int                   j);
+
 
 PRIVATE FLT_OR_DBL
 exp_E_int_loop(vrna_fold_compound_t *vc,
@@ -113,11 +115,11 @@ BT_int_loop_window(vrna_fold_compound_t *vc,
 
 PRIVATE int
 BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
-                   int                  *i,
-                   int                  *j,
-                   int                  en,
-                   vrna_bp_stack_t      *bp_stack,
-                   int                  *stack_count);
+                               int                  *i,
+                               int                  *j,
+                               int                  en,
+                               vrna_bp_stack_t      *bp_stack,
+                               int                  *stack_count);
 
 
 PRIVATE int
@@ -140,11 +142,11 @@ BT_stack_window(vrna_fold_compound_t  *vc,
 
 PRIVATE int
 BT_stack_window_comparative(vrna_fold_compound_t  *vc,
-                int                   *i,
-                int                   *j,
-                int                   *en,
-                vrna_bp_stack_t       *bp_stack,
-                int                   *stack_count);
+                            int                   *i,
+                            int                   *j,
+                            int                   *en,
+                            vrna_bp_stack_t       *bp_stack,
+                            int                   *stack_count);
 
 
 PRIVATE char
@@ -192,6 +194,7 @@ vrna_E_int_loop(vrna_fold_compound_t  *vc,
           e = E_int_loop_comparative_window(vc, i, j);
         else
           e = E_int_loop_comparative(vc, i, j);
+
         break;
     }
   }
@@ -920,9 +923,9 @@ E_int_loop_comparative(vrna_fold_compound_t *vc,
 
 
 PRIVATE int
-E_int_loop_comparative_window(vrna_fold_compound_t *vc,
-                       int                  i,
-                       int                  j)
+E_int_loop_comparative_window(vrna_fold_compound_t  *vc,
+                              int                   i,
+                              int                   j)
 {
   unsigned char             type, type_2;
   char                      eval_loop;
@@ -982,7 +985,7 @@ E_int_loop_comparative_window(vrna_fold_compound_t *vc,
     rtype = &(md->rtype[0]);
 
     int tmp;
-    max_p  = j - 2 - turn;
+    max_p = j - 2 - turn;
     tmp   = i + MAXLOOP + 1;
     if (max_p > tmp)
       max_p = tmp;
@@ -993,7 +996,7 @@ E_int_loop_comparative_window(vrna_fold_compound_t *vc,
 
     if (scs) {
       for (p = i + 1; p <= max_p; p++) {
-        min_q  = j - i + p - MAXLOOP - 2;
+        min_q = j - i + p - MAXLOOP - 2;
         tmp   = p + 1 + turn;
         if (min_q < tmp)
           min_q = tmp;
@@ -1036,12 +1039,13 @@ E_int_loop_comparative_window(vrna_fold_compound_t *vc,
               e = MIN2(e, energy);
             }
           }
+
           j_q--;
         } /* end q-loop */
       }
     } else {
       for (p = i + 1; p <= max_p; p++) {
-        min_q  = j - i + p - MAXLOOP - 2;
+        min_q = j - i + p - MAXLOOP - 2;
         tmp   = p + 1 + turn;
         if (min_q < tmp)
           min_q = tmp;
@@ -1086,6 +1090,7 @@ E_int_loop_comparative_window(vrna_fold_compound_t *vc,
               e = MIN2(e, energy);
             }
           }
+
           j_q--;
         } /* end q-loop */
       }
@@ -1120,8 +1125,8 @@ E_int_loop_comparative_window(vrna_fold_compound_t *vc,
           if (S_cons[q] != 3)
             continue;
 
-          c0    = energy + ggg[p][q - p] + n_seq * P->internal_loop[u + j - q - 1];
-          e = MIN2(e, c0);
+          c0  = energy + ggg[p][q - p] + n_seq * P->internal_loop[u + j - q - 1];
+          e   = MIN2(e, c0);
         }
       }
 
@@ -1138,8 +1143,8 @@ E_int_loop_comparative_window(vrna_fold_compound_t *vc,
             if (S_cons[q] != 3)
               continue;
 
-            c0    = energy + ggg[p][q - p] + n_seq * P->internal_loop[j - q - 1];
-            e = MIN2(e, c0);
+            c0  = energy + ggg[p][q - p] + n_seq * P->internal_loop[j - q - 1];
+            e   = MIN2(e, c0);
           }
         }
       }
@@ -1154,8 +1159,8 @@ E_int_loop_comparative_window(vrna_fold_compound_t *vc,
           if (S_cons[p] != 3)
             continue;
 
-          c0    = energy + ggg[p][q - p] + n_seq * P->internal_loop[u];
-          e = MIN2(e, c0);
+          c0  = energy + ggg[p][q - p] + n_seq * P->internal_loop[u];
+          e   = MIN2(e, c0);
         }
       }
     }
@@ -1163,7 +1168,6 @@ E_int_loop_comparative_window(vrna_fold_compound_t *vc,
 
   free(types);
   return e;
-
 }
 
 
@@ -2156,6 +2160,7 @@ E_stack_window(vrna_fold_compound_t *vc,
             }
           }
         }
+
         break;
     }
   }
@@ -2184,6 +2189,7 @@ vrna_BT_stack(vrna_fold_compound_t  *vc,
       case VRNA_FC_TYPE_COMPARATIVE:
         if (vc->hc->type == VRNA_HC_WINDOW)
           return BT_stack_window_comparative(vc, i, j, en, bp_stack, stack_count);
+
         break;
     }
   }
@@ -2381,13 +2387,13 @@ BT_stack_window(vrna_fold_compound_t  *vc,
 
 PRIVATE int
 BT_stack_window_comparative(vrna_fold_compound_t  *vc,
-                int                   *i,
-                int                   *j,
-                int                   *en,
-                vrna_bp_stack_t       *bp_stack,
-                int                   *stack_count)
+                            int                   *i,
+                            int                   *j,
+                            int                   *en,
+                            vrna_bp_stack_t       *bp_stack,
+                            int                   *stack_count)
 {
-  int             *type, type_2;
+  int                       *type, type_2;
   char                      eval_loop;
   short                     **S;
   int                       p, q, **c, n_seq, ss;
@@ -2398,12 +2404,12 @@ BT_stack_window_comparative(vrna_fold_compound_t  *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  n_seq         = vc->n_seq;
-  S             = vc->S;
+  n_seq = vc->n_seq;
+  S     = vc->S;
   P     = vc->params;
   md    = &(P->model_details);
   hc    = vc->hc;
-  scs    = vc->scs;
+  scs   = vc->scs;
   c     = vc->matrices->c_local;
   p     = *i + 1;
   q     = *j - 1;
@@ -2424,8 +2430,7 @@ BT_stack_window_comparative(vrna_fold_compound_t  *vc,
                 && (hc->matrix_local[p][q - p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
 
     if (eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
-    
-      type          = (int *)vrna_alloc(n_seq * sizeof(int));
+      type = (int *)vrna_alloc(n_seq * sizeof(int));
       for (ss = 0; ss < n_seq; ss++) {
         type[ss] = md->pair[S[ss][*i]][S[ss][*j]];
         if (type[ss] == 0)
@@ -2491,6 +2496,7 @@ vrna_BT_int_loop(vrna_fold_compound_t *vc,
       case VRNA_FC_TYPE_COMPARATIVE:
         if (vc->hc->type == VRNA_HC_WINDOW)
           return BT_int_loop_window_comparative(vc, i, j, en, bp_stack, stack_count);
+
         break;
     }
   }
@@ -2816,38 +2822,37 @@ BT_int_loop_window(vrna_fold_compound_t *vc,
 
 PRIVATE int
 BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
-                   int                  *i,
-                   int                  *j,
-                   int                  en,
-                   vrna_bp_stack_t      *bp_stack,
-                   int                  *stack_count)
+                               int                  *i,
+                               int                  *j,
+                               int                  en,
+                               vrna_bp_stack_t      *bp_stack,
+                               int                  *stack_count)
 {
   unsigned short  **a2s;
-  short         **S, **S5, **S3, *S_cons;
-  int           *type, type_2;
-  int           p, q, minq, turn, energy, new, **c, **ggg, n_seq, ss;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  vrna_hc_t     *hc;
-  vrna_sc_t     **scs;
+  short           **S, **S5, **S3, *S_cons;
+  int             *type, type_2;
+  int             p, q, minq, turn, energy, new, **c, **ggg, n_seq, ss;
+  vrna_param_t    *P;
+  vrna_md_t       *md;
+  vrna_hc_t       *hc;
+  vrna_sc_t       **scs;
 
-  n_seq       = vc->n_seq;
-  S_cons        = vc->S_cons;
-  S             = vc->S;
-  S5            = vc->S5; /*S5[s][i] holds next base 5' of i in sequence s*/
-  S3            = vc->S3; /*Sl[s][i] holds next base 3' of i in sequence s*/
-  a2s           = vc->a2s;
-  P           = vc->params;
-  md          = &(P->model_details);
-  hc          = vc->hc;
-  scs          = vc->scs;
-  c           = vc->matrices->c_local;
-  ggg         = vc->matrices->ggg_local;
-  turn        = md->min_loop_size;
+  n_seq   = vc->n_seq;
+  S_cons  = vc->S_cons;
+  S       = vc->S;
+  S5      = vc->S5;       /*S5[s][i] holds next base 5' of i in sequence s*/
+  S3      = vc->S3;       /*Sl[s][i] holds next base 3' of i in sequence s*/
+  a2s     = vc->a2s;
+  P       = vc->params;
+  md      = &(P->model_details);
+  hc      = vc->hc;
+  scs     = vc->scs;
+  c       = vc->matrices->c_local;
+  ggg     = vc->matrices->ggg_local;
+  turn    = md->min_loop_size;
 
   if (hc->matrix_local[*i][*j - *i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-
-    type          = (int *)vrna_alloc(n_seq * sizeof(int));
+    type = (int *)vrna_alloc(n_seq * sizeof(int));
     for (ss = 0; ss < n_seq; ss++) {
       type[ss] = md->pair[S[ss][*i]][S[ss][*j]];
       if (type[ss] == 0)
@@ -2873,14 +2878,14 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
               type_2 = 7;
 
             energy += E_IntLoop(a2s[ss][p - 1] - a2s[ss][*i],
-                              a2s[ss][*j - 1] - a2s[ss][q],
-                              type[ss],
-                              type_2,
-                              S3[ss][*i],
-                              S5[ss][*j],
-                              S5[ss][p],
-                              S3[ss][q],
-                              P);
+                                a2s[ss][*j - 1] - a2s[ss][q],
+                                type[ss],
+                                type_2,
+                                S3[ss][*i],
+                                S5[ss][*j],
+                                S5[ss][p],
+                                S3[ss][q],
+                                P);
           }
 
           new = energy + c[p][q - p];
@@ -2899,6 +2904,7 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
                 free(aux_bps);
               }
             }
+
             free(type);
             *i = p, *j = q;
             return 1; /* success */
@@ -2918,22 +2924,23 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
      * kind and the enclosed pair is not a canonical one but a g-quadruplex
      * that should then be decomposed further...
      */
-    type          = (int *)vrna_alloc(n_seq * sizeof(int));
+    type = (int *)vrna_alloc(n_seq * sizeof(int));
     for (ss = 0; ss < n_seq; ss++) {
       type[ss] = md->pair[S[ss][*i]][S[ss][*j]];
       if (type[ss] == 0)
         type[ss] = 7;
     }
 
-    if (backtrack_GQuad_IntLoop_L_comparative(en, *i, *j, type, S_cons, S5, S3, ggg, &p, &q, n_seq, P)) {
+    if (backtrack_GQuad_IntLoop_L_comparative(en, *i, *j, type, S_cons, S5, S3, ggg, &p, &q, n_seq,
+                                              P)) {
       if (vrna_BT_gquad_mfe(vc, p, q, bp_stack, stack_count)) {
         *i = *j = -1; /* tell the calling block to continue backtracking with next block */
         return 1;
       }
     }
+
     free(type);
   }
-
 
   return 0; /* unsuccessful */
 }
