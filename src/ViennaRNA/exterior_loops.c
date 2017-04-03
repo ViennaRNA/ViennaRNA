@@ -2360,7 +2360,9 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t *fc,
 
             if (fij == cc + f3[j + 1])
               traced2 = 1;
-          } else if (with_gquad) {
+          }
+
+          if ((with_gquad) && (!traced2)) {
             cc = ggg[i][j - i];
             if (fij == cc + f3[j + 1])
               traced2 = 1;
@@ -2381,7 +2383,8 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t *fc,
 
             if (fij == cc + f3[j + 1])
               traced2 = 1;
-          } else if (with_gquad) {
+          }
+          if ((with_gquad) && (!traced2)) {
             cc = ggg[i][j - i];
             if (fij == cc + f3[j + 1])
               traced2 = 1;
@@ -2395,31 +2398,39 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t *fc,
 
     if ((!traced2) && (length <= i + maxdist)) {
       j = length;
-      cc = c[i][j - i];
-      switch (dangle_model) {
-        case 0:
-          for (s = 0; s < n_seq; s++) {
-            tt = md->pair[S[s][i]][S[s][j]];
-            if (tt == 0)
-              tt = 7;
+      if (hc->matrix_local[i][j - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+        cc = c[i][j - i];
+        switch (dangle_model) {
+          case 0:
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
 
-            cc += E_ExtLoop(tt, -1, -1, P);
-          }
-          if (fij == cc)
-            traced2 = 1;
-          break;
+              cc += E_ExtLoop(tt, -1, -1, P);
+            }
+            if (fij == cc)
+              traced2 = 1;
+            break;
 
-        case 2:
-          for (s = 0; s < n_seq; s++) {
-            tt = md->pair[S[s][i]][S[s][j]];
-            if (tt == 0)
-              tt = 7;
+          case 2:
+            for (s = 0; s < n_seq; s++) {
+              tt = md->pair[S[s][i]][S[s][j]];
+              if (tt == 0)
+                tt = 7;
 
-            cc += E_ExtLoop(tt, (i > 1) ? S5[s][i] :  -1, -1, P);
-          }
-          if (fij == cc)
-            traced2 = 1;
-          break;
+              cc += E_ExtLoop(tt, (i > 1) ? S5[s][i] :  -1, -1, P);
+            }
+            if (fij == cc)
+              traced2 = 1;
+            break;
+        }
+      }
+
+      if ((with_gquad) && (!traced2)) {
+        cc = ggg[i][j - i];
+        if (fij == cc)
+          traced2 = 1;
       }
     }
 

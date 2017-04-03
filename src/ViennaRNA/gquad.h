@@ -139,6 +139,15 @@ int         get_gquad_layer_count(short *S,
                             int j);
 
 
+void get_gquad_pattern_mfe_ali(short **S,
+                                short *S_cons,
+                                  int n_seq,
+                                  int i,
+                                  int j,
+                                  vrna_param_t *P,
+                                  int *L,
+                                  int l[3]);
+
 /**
  *  given a dot-bracket structure (possibly) containing gquads encoded
  *  by '+' signs, find first gquad, return end position or 0 if none found
@@ -174,13 +183,6 @@ INLINE  PRIVATE int backtrack_GQuad_IntLoop_L(int c,
                                               vrna_param_t *P);
 
 PRIVATE INLINE int
-vrna_BT_gquad_mfe(vrna_fold_compound_t *vc,
-                  int i,
-                  int j,
-                  vrna_bp_stack_t *bp_stack,
-                  int *stack_count);
-
-PRIVATE INLINE int
 vrna_BT_gquad_int(vrna_fold_compound_t *vc,
                   int i,
                   int j,
@@ -199,38 +201,41 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t *vc,
     here we do some fancy stuff to backtrace the stacksize and linker lengths
     of the g-quadruplex that should reside within position i,j
   */
-  short         *S;
-  int           l[3], L, a;
+  short         *S, *S_cons;
+  int           l[3], L, a, n_seq;
   vrna_param_t  *P;
 
   if (vc) {
+    P = vc->params;
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        P = vc->params;
         S = vc->sequence_encoding2;
         L = -1;
 
         get_gquad_pattern_mfe(S, i, j, P, &L, l);
-
-        if(L != -1){
-          /* fill the G's of the quadruplex into base_pair2 */
-          for(a = 0; a < L; a++){
-            bp_stack[++(*stack_count)].i = i+a;
-            bp_stack[(*stack_count)].j   = i+a;
-            bp_stack[++(*stack_count)].i = i+L+l[0]+a;
-            bp_stack[(*stack_count)].j   = i+L+l[0]+a;
-            bp_stack[++(*stack_count)].i = i+L+l[0]+L+l[1]+a;
-            bp_stack[(*stack_count)].j   = i+L+l[0]+L+l[1]+a;
-            bp_stack[++(*stack_count)].i = i+L+l[0]+L+l[1]+L+l[2]+a;
-            bp_stack[(*stack_count)].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
-          }
-          return 1;
-        } else {
-          return 0;
-        }
+        break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
+        n_seq   = vc->n_seq;
+        get_gquad_pattern_mfe_ali(vc->S, vc->S_cons, n_seq, i, j, P, &L, l);
         break;
+    }
+
+    if(L != -1){
+      /* fill the G's of the quadruplex into base_pair2 */
+      for(a = 0; a < L; a++){
+        bp_stack[++(*stack_count)].i = i+a;
+        bp_stack[(*stack_count)].j   = i+a;
+        bp_stack[++(*stack_count)].i = i+L+l[0]+a;
+        bp_stack[(*stack_count)].j   = i+L+l[0]+a;
+        bp_stack[++(*stack_count)].i = i+L+l[0]+L+l[1]+a;
+        bp_stack[(*stack_count)].j   = i+L+l[0]+L+l[1]+a;
+        bp_stack[++(*stack_count)].i = i+L+l[0]+L+l[1]+L+l[2]+a;
+        bp_stack[(*stack_count)].j   = i+L+l[0]+L+l[1]+L+l[2]+a;
+      }
+      return 1;
+    } else {
+      return 0;
     }
   }
 

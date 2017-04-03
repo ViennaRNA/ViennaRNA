@@ -259,6 +259,14 @@ create_aliL_matrix( int start,
                     int n_seq,
                     vrna_param_t *P);
 
+PRIVATE void gquad_mfe_ali_pos( int i,
+                            int L,
+                            int *l,
+                            void *data,
+                            void *P,
+                            void *Lmfe,
+                            void *lmfe);
+
 /*
 #########################################
 # BEGIN OF PUBLIC FUNCTION DEFINITIONS  #
@@ -681,12 +689,13 @@ PUBLIC void get_gquad_pattern_mfe(short *S,
 }
 
 typedef struct {
-  short *S;
+  short **S;
   int   n_seq;
   int   mfe;
 } ali_mfe_struct;
 
-PUBLIC void get_gquad_pattern_mfe_ali(short *S_cons,
+PUBLIC void get_gquad_pattern_mfe_ali(short **S,
+                                      short *S_cons,
                                       int n_seq,
                                   int i,
                                   int j,
@@ -697,7 +706,7 @@ PUBLIC void get_gquad_pattern_mfe_ali(short *S_cons,
   int *gg = get_g_islands_sub(S_cons, i, j);
 
   ali_mfe_struct c;
-  c.S     = S_cons;
+  c.S     = S;
   c.n_seq = n_seq;
   c.mfe   = INF;
 
@@ -999,7 +1008,7 @@ PRIVATE void gquad_mfe_ali_pos( int i,
                             void *lmfe){
 
   int cc = INF;
-  gquad_mfe_ali(i, L, l, (void *)&cc, P, ((ali_mfe_struct *)data)->S, ((ali_mfe_struct *)data)->n_seq);
+  gquad_mfe_ali(i, L, l, (void *)&cc, P, (void *)((ali_mfe_struct *)data)->S, (void *)&((ali_mfe_struct *)data)->n_seq);
 
   if(cc < ((ali_mfe_struct *)data)->mfe){
     ((ali_mfe_struct *)data)->mfe         = cc;

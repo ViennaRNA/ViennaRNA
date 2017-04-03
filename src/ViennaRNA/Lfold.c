@@ -1239,13 +1239,13 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     } else if (do_backtrack) {
       eee = f3[i + 1];
       iii = i + 1;
-      
+
       while (eee == f3[iii + 1])
         iii++;
 
       jjj = vrna_BT_ext_loop_f3_pp(fc, iii, maxdist - (iii - (i + 1)), eee);
       if (jjj == -1)
-        vrna_message_error("backtrack failed in short backtrack 1");
+        vrna_message_error("backtrack failed in short backtrack 1 for columns %d to %d", iii, jjj);
 
       energy = f3[iii] - f3[jjj];
 
@@ -1356,38 +1356,22 @@ backtrack_comparative(vrna_fold_compound_t  *fc,
    *  ------------------------------------------------------------------*/
   sect            sector[MAXSECTORS]; /* backtracking sectors */
 
-  char            *structure, **Ss;
-  unsigned short  **a2s;
-  short           **S, **S5, **S3, *S_cons;
-  int             **pscore, i, j, k, energy, length, turn, dangle_model, noLP,
-                  *type, type_2, tt, n_seq, with_gquad, *rtype, s, ss, **c,
-                  **fML, *f3, **ggg, l1, minq, maxq, c0, ml, fij, cij, traced,
-                  i1, j1, mm, p, q, jj, gq, canonical, cc, b, dangle3, max3,
+  char            *structure;
+  int             **pscore, i, j, k, length, turn, dangle_model, noLP,
+                  s, **c, ml, cij, p, q, canonical, b, dangle3, max3,
                   comp1, comp2;
   vrna_param_t    *P;
   vrna_md_t       *md;
   vrna_bp_stack_t *bp_stack;
 
-  n_seq         = fc->n_seq;
   length        = fc->length;
-  S             = fc->S;
-  S_cons        = fc->S_cons;
-  S5            = fc->S5; /*S5[s][i] holds next base 5' of i in sequence s*/
-  S3            = fc->S3; /*Sl[s][i] holds next base 3' of i in sequence s*/
-  Ss            = fc->Ss;
-  a2s           = fc->a2s;
   pscore        = fc->pscore_local; /* precomputed array of pair types */
   P             = fc->params;
   md            = &(P->model_details);
-  rtype         = &(md->rtype[0]);
-  with_gquad    = md->gquad;
   dangle_model  = md->dangles;
   noLP          = md->noLP;
 
   c   = fc->matrices->c_local;    /* energy array, given that i-j pair */
-  fML = fc->matrices->fML_local;  /* multi-loop auxiliary energy array */
-  f3  = fc->matrices->f3_local;   /* energy of 5' end */
-  ggg = fc->matrices->ggg_local;
 
   turn          = md->min_loop_size;
 
@@ -1406,8 +1390,6 @@ backtrack_comparative(vrna_fold_compound_t  *fc,
   dangle3 = 0;
 
   while (s > 0) {
-    jj = 0;
-    gq = 0;
     canonical = 1;     /* (i,j) closes a canonical structure */
 
     i   = sector[s].i;
@@ -1416,8 +1398,6 @@ backtrack_comparative(vrna_fold_compound_t  *fc,
                            * occur in the fML- (1) or in the f-array (0) */
     if (j < i + turn + 1)
       continue;                 /* no more pairs in this interval */
-
-    fij = (ml) ? fML[i][j - i] : f3[i];
 
     switch (ml) {
       /* backtrack in f3 */
@@ -1514,86 +1494,8 @@ repeat1_comparative:
     } else {
       vrna_message_error("backtracking failed in repeat\n");
     }
+
     /* end of repeat: --------------------------------------------------*/
-
-    continue; /* this is a workarround to not accidentally proceed in the following block */
-
-repeat_gquad_comparative:
-    /*
-     * now we do some fancy stuff to backtrace the stacksize and linker lengths
-     * of the g-quadruplex that should reside within position i,j
-     */
-    {
-      int cnt1, l[3], L, size;
-      size = j - i + 1;
-
-      for (L = 0; L < VRNA_GQUAD_MIN_STACK_SIZE; L++) {
-        if (S_cons[i + L] != 3)
-          break;
-
-        if (S_cons[j - L] != 3)
-          break;
-      }
-
-      if (L == VRNA_GQUAD_MIN_STACK_SIZE) {
-        /* continue only if minimum stack size starting from i is possible */
-        for (; L <= VRNA_GQUAD_MAX_STACK_SIZE; L++) {
-          if (S_cons[i + L - 1] != 3)
-            break;                      /* break if no more consecutive G's 5' */
-
-          if (S_cons[j - L + 1] != 3)
-            break;                      /* break if no more consecutive G'1 3' */
-
-          for (l[0] = VRNA_GQUAD_MIN_LINKER_LENGTH;
-               (l[0] <= VRNA_GQUAD_MAX_LINKER_LENGTH)
-               && (size - 4 * L - 2 * VRNA_GQUAD_MIN_LINKER_LENGTH - l[0] >= 0);
-               l[0]++) {
-            /* check whether we find the second stretch of consecutive G's */
-            for (cnt1 = 0; (cnt1 < L) && (S_cons[i + L + l[0] + cnt1] == 3); cnt1++);
-            if (cnt1 < L)
-              continue;
-
-            for (l[1] = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                 (l[1] <= VRNA_GQUAD_MAX_LINKER_LENGTH)
-                 && (size - 4 * L - VRNA_GQUAD_MIN_LINKER_LENGTH - l[0] - l[1] >= 0);
-                 l[1]++) {
-              /* check whether we find the third stretch of consectutive G's */
-              for (cnt1 = 0; (cnt1 < L) && (S_cons[i + 2 * L + l[0] + l[1] + cnt1] == 3); cnt1++);
-              if (cnt1 < L)
-                continue;
-
-              /*
-               * the length of the third linker now depends on position j as well
-               * as the other linker lengths... so we do not have to loop too much
-               */
-              l[2] = size - 4 * L - l[0] - l[1];
-              if (l[2] < VRNA_GQUAD_MIN_LINKER_LENGTH)
-                break;
-
-              if (l[2] > VRNA_GQUAD_MAX_LINKER_LENGTH)
-                continue;
-
-              /* check for contribution */
-              if (ggg[i][j - i] == E_gquad_ali(i, L, l, (const short **)S, n_seq, P)) {
-                int a;
-                /* fill the G's of the quadruplex into base pair stack */
-                for (a = 0; a < L; a++) {
-                  structure[i + a - start]                                  = '+';
-                  structure[i + L + l[0] + a - start]                       = '+';
-                  structure[i + L + l[0] + L + l[1] + a - start]            = '+';
-                  structure[i + L + l[0] + L + l[1] + L + l[2] + a - start] = '+';
-                }
-                goto repeat_gquad_comparative_exit;
-              }
-            }
-          }
-        }
-      }
-
-      vrna_message_error("backtracking failed in repeat_gquad_comparative");
-    }
-repeat_gquad_comparative_exit:
-    __asm("nop");
   }
 
   bp_stack[0].i = b;
