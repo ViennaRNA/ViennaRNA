@@ -1,0 +1,64 @@
+sudo: false
+dist: trusty
+
+compiler:
+  - gcc
+  - clang
+
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc
+    - g++
+    - clang
+    - gengetopt
+    - flex
+    - help2man
+    - libgsl0-dev
+    - doxygen
+    - doxygen-latex
+    - swig
+    - libperl-dev
+    - python-dev
+    - python3-dev
+    - graphviz
+    - texlive-latex-base
+    - check
+    - texinfo
+    - diffutils
+
+before_script:
+- autoreconf -i
+
+
+script: 
+- ./configure --with-cluster --with-kinwalker --disable-lto
+- make -j${CPU_COUNT}
+- make check
+
+
+before_deploy:
+  - make dist-gzip
+  - make dist-zip
+  - export DIST_GZIP=$(ls ViennaRNA-*.tar.gz)
+  - export DIST_ZIP=$(ls ViennaRNA-*.zip)
+  - echo "Deploying Changelog and autoconf's dists (${DIST_GZIP} and ${DIST_ZIP}) to GitHub releases"
+
+
+deploy:
+  provider: releases
+  api_key:
+    secure: "ftHHNq/Tn/67l4hGpyzyMQ3XPhm3fzBIEels4YrPmrNIbPRuyHVxxvcjFmRohMUyJ0hPcX3Lzpn0rP6wAJ2U4dFi2l8PzpEwMuP3erBT/MJOPLEA4+s9wEYXTe9PO+xbUPb/NvMuuBfJsPC2pWTjLESOaMSvTbhJY813/psC4xJ4mtTlu5/dnLOfNdksVk3/5bakW+6pCQVru0dUm8zlfYydu6idzC57ewleZW1NW3m+qm+pSJF49iv4LZa9xmjWFGjYd5b9HXEkdN1qoB1FNI9BgYr7NhUzWxnoKjpo32/zHR1kkNDhIMBkqgK2OtY+TuYcR5N6uwzmqpsLDBfij3pesfSjmttOuEz9K1r67jqXWNsFJyrgy+Xn0C/szaB3stztemkNySyDWkG3guLQvC9O98guqOfo+YXI5eoOo5TEw3nYx2+MpuNsQb88td9G+SqW0vh3tQr9sgoxPzyMs9MfQ8Srw5drJnzUiKHQXHwlEm3/XZ+IhOWuWSRB+cVX52alnuDZs3r2JUxVTP4Qs3u9MRiB87LFSU4pDzSNxQ+TAFEcgdAMLXjZrXSlJx43hYZyer7o4fN8/Sg7/dcGky9ZKDGCU1bDfV6GUqpNzCv5yXgMrr9PDBZhbWLJUeaeQ+hLY1YJDoskeiCSgeeiW73At4BrC9WHQpGE46tBmMU="
+  skip_cleanup: true
+  file_glob: true
+  overwrite: true
+  file:
+    - ${DIST_GZIP}
+    - ${DIST_ZIP}
+    - ChangeLog
+  on:
+    repo: ViennaRNA/ViennaRNA
+    tags: true
