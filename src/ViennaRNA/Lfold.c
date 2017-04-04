@@ -53,6 +53,7 @@
 typedef struct {
   FILE  *output;
   int   dangle_model;
+  int   csv;
 } hit_data;
 
 /*
@@ -230,6 +231,8 @@ vrna_mfe_window(vrna_fold_compound_t  *vc,
 
   data.output       = (file) ? file : stdout;
   data.dangle_model = vc->params->model_details.dangles;
+  data.csv          = 0; /* csv output is for backward-compatibility only */
+
   if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
     return vrna_mfe_window_cb(vc, &default_callback_comparative, (void *)&data);
   else
@@ -336,6 +339,7 @@ vrna_aliLfold(const char  **AS,
 
   data.output       = (fp) ? fp : stdout;
   data.dangle_model = md.dangles;
+  data.csv          = 0; /* csv output is for backward-compatibility only */
 
   return vrna_aliLfold_cb(AS, maxdist, &default_callback_comparative, (void *)&data);
 }
@@ -1276,13 +1280,15 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
       if (jjj == -1)
         vrna_message_error("backtrack failed in short backtrack 1 for columns %d to %d", iii, jjj);
 
-      energy = f3[iii] - f3[jjj];
+      jjj     = MIN2(jjj + 1, length);
+      energy  = f3[iii] - f3[jjj];
 
       /* do not spam output with relatively unstable structures */
-      char *sss = backtrack(fc, iii, jjj + 1);
+      char *sss = backtrack(fc, iii, jjj);
+
       if (prev) {
-        if ((jjj < prev_j) || strncmp(sss + prev_i - iii, prev, prev_j + 1 - prev_i + 1 - 1))   /* -1 because of 3' dangle unpaired position */
-          cb(prev_i, prev_j + 1, prev, (prev_en) / (100. * n_seq), data);
+        if ((jjj < prev_j) || strncmp(sss + prev_i - iii, prev, prev_j - prev_i + 1 - 1))   /* -1 because of potential 3' dangle unpaired position */
+          cb(prev_i, prev_j, prev, (prev_en) / (100. * n_seq), data);
 
         free(prev);
       }
@@ -1311,16 +1317,17 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
           /* otherwise, c-array columns don't exist anymore */
           jjj = vrna_BT_ext_loop_f3_pp(fc, iii, maxdist - (iii - 1), eee);
           if (jjj != -1) {
-            energy = f3[iii] - f3[jjj];
+            jjj     = MIN2(jjj + 1, length);
+            energy  = f3[iii] - f3[jjj];
 
-            char *ss = backtrack(fc, iii, jjj + 1);
+            char *ss = backtrack(fc, iii, jjj);
 
             if (prev)
-              if ((jjj < prev_j) || strncmp(ss + prev_i - iii, prev, prev_j + 1 - prev_i + 1 - 1))  /* -1 because of 3' dangle unpaired position */
-                cb(prev_i, prev_j + 1, prev, (prev_en) / (100. * n_seq), data);
+              if ((jjj < prev_j) || strncmp(ss + prev_i - iii, prev, prev_j - prev_i + 1 - 1))  /* -1 because of potential 3' dangle unpaired position */
+                cb(prev_i, prev_j, prev, (prev_en) / (100. * n_seq), data);
 
             /* execute callback */
-            cb(iii, jjj + 1, ss, energy / (100. * n_seq), data);
+            cb(iii, jjj, ss, energy / (100. * n_seq), data);
 
             free(prev);
             prev = NULL;
@@ -1330,7 +1337,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
       }
 
       if (prev) {
-        cb(prev_i, prev_j + 1, prev, (prev_en) / (100. * n_seq), data);
+        cb(prev_i, prev_j, prev, (prev_en) / (100. * n_seq), data);
         free(prev);
         prev = NULL;
       }
@@ -1545,10 +1552,21 @@ default_callback_comparative(int        start,
                              float      en,
                              void       *data)
 {
-  if (csv == 1)
-    printf("%s ,%6.2f, %4d, %4d\n", structure, en, start, end);
-  else
-    printf("%s (%6.2f) %4d - %4d\n", structure, en, start, end);
+  FILE  *output       = ((hit_data *)data)->output;
+  int   dangle_model  = ((hit_data *)data)->dangle_model;
+  int   csv           = ((hit_data *)data)->csv;
+
+  if (csv == 1) {
+    if ((dangle_model == 2) && (start > 1))
+      fprintf(output, ".%s ,%6.2f, %4d, %4d\n", structure, en, start - 1, end);
+    else
+      fprintf(output, "%s ,%6.2f, %4d, %4d\n", structure, en, start, end);
+  } else {
+    if ((dangle_model == 2) && (start > 1))
+      fprintf(output, ".%s (%6.2f) %4d - %4d\n", structure, en, start - 1, end);
+    else
+      fprintf(output, "%s (%6.2f) %4d - %4d\n", structure, en, start, end);
+  }
 }
 
 
@@ -1624,6 +1642,7 @@ aliLfold(const char *strings[],
 
   data.output       = stdout;
   data.dangle_model = md.dangles;
+  data.csv          = csv; /* this is a global variable! */
 
   return aliLfold_cb(strings, maxdist, &default_callback_comparative, (void *)&data);
 }

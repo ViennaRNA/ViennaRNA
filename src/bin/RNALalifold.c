@@ -49,6 +49,7 @@ typedef struct {
   int       mis;
   float     threshold;
   int       n_seq;
+  int       dangle_model;
 } hit_data;
 
 
@@ -84,7 +85,8 @@ main(int  argc,
                                 **input_files, *tmp_id, *tmp_structure;
   unsigned int                  input_format_options;
   int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id, gquad,
-                                mis, istty, alnPS, aln_columns, aln_out, ssPS, input_file_num, id_digits;
+                                mis, istty, alnPS, aln_columns, aln_out, ssPS, input_file_num,
+                                id_digits;
   long int                      alignment_number, first_alignment_number;
   float                         e_max;
   vrna_md_t                     md;
@@ -138,7 +140,8 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning(
+        "required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -214,7 +217,9 @@ main(int  argc,
     aln_out = 1;
     if (args_info.aln_stk_arg) {
       if (prefix) {
-        vrna_message_info(stdout, "multiple output prefixes detected, using \"%s\"", args_info.aln_stk_arg);
+        vrna_message_info(stdout,
+                          "multiple output prefixes detected, using \"%s\"",
+                          args_info.aln_stk_arg);
         free(prefix);
       }
 
@@ -346,8 +351,9 @@ main(int  argc,
           format = strdup("Unknown");
           break;
       }
-      vrna_message_error("Your input file is missing sequences! Either your file is empty, or not in %s format!",
-                         format);
+      vrna_message_error(
+        "Your input file is missing sequences! Either your file is empty, or not in %s format!",
+        format);
       free(format);
     }
 
@@ -391,7 +397,12 @@ main(int  argc,
       input_format_options |= VRNA_FILE_FORMAT_MSA_QUIET;
 
     /* read the first record from input file */
-    n_seq = vrna_file_msa_read_record(clust_file, &names, &AS, &tmp_id, &tmp_structure, input_format_options);
+    n_seq = vrna_file_msa_read_record(clust_file,
+                                      &names,
+                                      &AS,
+                                      &tmp_id,
+                                      &tmp_structure,
+                                      input_format_options);
     fflush(stdout);
     fflush(stderr);
 
@@ -416,22 +427,24 @@ main(int  argc,
 
     print_fasta_header(stdout, MSA_ID);
 
-    fc = vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+    fc =
+      vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
     hit_data data;
 
-    data.names    = names;
-    data.strings  = AS;
-    data.prefix   = MSA_ID;
-    data.columns  = aln_columns;
-    data.md       = &md;
-    data.ss_eps   = ssPS;
-    data.msa_eps  = alnPS;
-    data.msa_stk  = aln_out;
-    data.csv      = csv;
-    data.mis      = mis;
-    data.threshold  = e_max;
-    data.n_seq      = n_seq;
+    data.names        = names;
+    data.strings      = AS;
+    data.prefix       = MSA_ID;
+    data.columns      = aln_columns;
+    data.md           = &md;
+    data.ss_eps       = ssPS;
+    data.msa_eps      = alnPS;
+    data.msa_stk      = aln_out;
+    data.csv          = csv;
+    data.mis          = mis;
+    data.threshold    = e_max;
+    data.n_seq        = n_seq;
+    data.dangle_model = md.dangles;
 
     (void)vrna_mfe_window_cb(fc, &print_hit_cb, (void *)&data);
 
@@ -476,8 +489,9 @@ main(int  argc,
         format = strdup("Unknown");
         break;
     }
-    vrna_message_error("Your input file is missing sequences! Either your file is empty, or not in %s format!",
-                       format);
+    vrna_message_error(
+      "Your input file is missing sequences! Either your file is empty, or not in %s format!",
+      format);
     free(format);
   }
 
@@ -512,35 +526,44 @@ print_hit_cb(int        start,
   char      **names;
   char      **strings;
   char      *prefix;
-  char      *msg;
-  int       columns, n_seq;
+  char      *msg, *ss;
+  int       columns, n_seq, dangle_model;
   vrna_md_t *md;
   int       with_ss, with_msa, with_stk, with_csv, with_mis;
   float     threshold;
 
-  names     = ((hit_data *)data)->names;
-  strings   = ((hit_data *)data)->strings;
-  prefix    = ((hit_data *)data)->prefix;
-  columns   = ((hit_data *)data)->columns;
-  md        = ((hit_data *)data)->md;
-  with_ss   = ((hit_data *)data)->ss_eps;
-  with_msa  = ((hit_data *)data)->msa_eps;
-  with_stk  = ((hit_data *)data)->msa_stk;
-  with_csv  = ((hit_data *)data)->csv;
-  with_mis  = ((hit_data *)data)->mis;
-  threshold = ((hit_data *)data)->threshold;
+  names         = ((hit_data *)data)->names;
+  strings       = ((hit_data *)data)->strings;
+  prefix        = ((hit_data *)data)->prefix;
+  columns       = ((hit_data *)data)->columns;
+  md            = ((hit_data *)data)->md;
+  with_ss       = ((hit_data *)data)->ss_eps;
+  with_msa      = ((hit_data *)data)->msa_eps;
+  with_stk      = ((hit_data *)data)->msa_stk;
+  with_csv      = ((hit_data *)data)->csv;
+  with_mis      = ((hit_data *)data)->mis;
+  threshold     = ((hit_data *)data)->threshold;
+  dangle_model  = ((hit_data *)data)->dangle_model;
+
+  if ((dangle_model == 2) && (start > 1)) {
+    ss = vrna_strdup_printf(".%s", structure);
+    start--;
+  } else {
+    ss = vrna_strdup_printf("%s", structure);
+  }
 
   if ((en / (float)(end - start + 1)) <= threshold) {
     sub   = get_subalignment((const char **)strings, start, end);
     cons  = (with_mis) ? consens_mis((const char **)sub) : consensus((const char **)sub);
     A     = annote(structure, (const char **)sub, md);
 
+
     if (with_csv == 1)
       msg = vrna_strdup_printf(",%6.2f,%d,%d", en, start, end);
     else
       msg = vrna_strdup_printf(" (%6.2f) %4d - %4d", en, start, end);
 
-    print_structure(stdout, structure, msg);
+    print_structure(stdout, ss, msg);
     free(msg);
 
     if (with_ss) {
@@ -553,7 +576,7 @@ print_hit_cb(int        start,
       free(fname);
       fname = tmp_string;
 
-      (void)vrna_file_PS_rnaplot_a(cons, structure, fname, A[0], A[1], md);
+      (void)vrna_file_PS_rnaplot_a(cons, ss, fname, A[0], A[1], md);
       free(fname);
     }
 
@@ -572,7 +595,7 @@ print_hit_cb(int        start,
       free(fname);
       fname = tmp_string;
 
-      vrna_file_PS_aln_sub(fname, (const char **)sub, (const char **)names, structure, start, -1, columns);
+      vrna_file_PS_aln_sub(fname, (const char **)sub, (const char **)names, ss, start, -1, columns);
       free(fname);
     }
 
@@ -590,11 +613,23 @@ print_hit_cb(int        start,
         free(fname);
         fname = tmp_string;
 
-        vrna_file_msa_write(fname, (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", options);
+        vrna_file_msa_write(fname,
+                            (const char **)names,
+                            (const char **)sub,
+                            id,
+                            ss,
+                            "RNALalifold prediction",
+                            options);
         free(fname);
       } else {
         id = vrna_strdup_printf("aln_%d_%d", start, end);
-        vrna_file_msa_write("RNALalifold_results.stk", (const char **)names, (const char **)sub, id, structure, "RNALalifold prediction", options);
+        vrna_file_msa_write("RNALalifold_results.stk",
+                            (const char **)names,
+                            (const char **)sub,
+                            id,
+                            ss,
+                            "RNALalifold prediction",
+                            options);
       }
 
       free(id);
@@ -602,6 +637,8 @@ print_hit_cb(int        start,
 
     delete_alignment(sub);
   }
+
+  free(ss);
 }
 
 
@@ -615,12 +652,12 @@ annote(const char *structure,
   int   i, n, s, pairings, maxl;
   short *ptable;
   char  *colorMatrix[6][3] = {
-    { "0.0 1",  "0.0 0.6",  "0.0 0.2"  }, /* red    */
-    { "0.16 1", "0.16 0.6", "0.16 0.2" }, /* ochre  */
-    { "0.32 1", "0.32 0.6", "0.32 0.2" }, /* turquoise */
-    { "0.48 1", "0.48 0.6", "0.48 0.2" }, /* green  */
-    { "0.65 1", "0.65 0.6", "0.65 0.2" }, /* blue   */
-    { "0.81 1", "0.81 0.6", "0.81 0.2" }  /* violet */
+    { "0.0 1",  "0.0 0.6",  "0.0 0.2"  },   /* red    */
+    { "0.16 1", "0.16 0.6", "0.16 0.2" },   /* ochre  */
+    { "0.32 1", "0.32 0.6", "0.32 0.2" },   /* turquoise */
+    { "0.48 1", "0.48 0.6", "0.48 0.2" },   /* green  */
+    { "0.65 1", "0.65 0.6", "0.65 0.2" },   /* blue   */
+    { "0.81 1", "0.81 0.6", "0.81 0.2" }    /* violet */
   };
 
   n     = strlen(AS[0]);
@@ -639,7 +676,9 @@ annote(const char *structure,
       continue;
 
     for (s = 0; AS[s] != NULL; s++) {
-      type = md->pair[vrna_nucleotide_encode(AS[s][i - 1], md)][vrna_nucleotide_encode(AS[s][j - 1], md)];
+      type =
+        md->pair[vrna_nucleotide_encode(AS[s][i - 1], md)][vrna_nucleotide_encode(AS[s][j - 1],
+                                                                                  md)];
       pfreq[type]++;
       if (type) {
         if (AS[s][i - 1] != ci) {
