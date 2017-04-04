@@ -183,6 +183,21 @@ INLINE PRIVATE int backtrack_GQuad_IntLoop(int          c,
                                            vrna_param_t *P);
 
 
+INLINE PRIVATE int backtrack_GQuad_IntLoop_comparative(int          c,
+                                                       int          i,
+                                                       int          j,
+                                                       int          *type,
+                                                       short        *S_cons,
+                                                       short        **S5,
+                                                       short        **S3,
+                                                       int          *ggg,
+                                                       int          *index,
+                                                       int          *p,
+                                                       int          *q,
+                                                       int          n_seq,
+                                                       vrna_param_t *P);
+
+
 INLINE PRIVATE int backtrack_GQuad_IntLoop_L(int          c,
                                              int          i,
                                              int          j,
@@ -231,6 +246,7 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *vc,
 
       case VRNA_FC_TYPE_COMPARATIVE:
         n_seq = vc->n_seq;
+        L     = -1;
         get_gquad_pattern_mfe_ali(vc->S, vc->S_cons, n_seq, i, j, P, &L, l);
         break;
     }
@@ -464,6 +480,111 @@ backtrack_GQuad_IntLoop(int           c,
         continue;
 
       if (c == energy + ggg[index[l] + k] + P->internal_loop[l1]) {
+        *p  = k;
+        *q  = l;
+        return 1;
+      }
+    }
+
+  return 0;
+}
+
+
+INLINE PRIVATE int
+backtrack_GQuad_IntLoop_comparative(int           c,
+                                    int           i,
+                                    int           j,
+                                    int           *type,
+                                    short         *S_cons,
+                                    short         **S5,
+                                    short         **S3,
+                                    int           *ggg,
+                                    int           *index,
+                                    int           *p,
+                                    int           *q,
+                                    int           n_seq,
+                                    vrna_param_t  *P)
+{
+  int energy, dangles, k, l, maxl, minl, c0, l1, ss, tt;
+
+  dangles = P->model_details.dangles;
+  energy  = 0;
+
+  for (ss = 0; ss < n_seq; ss++) {
+    tt = type[ss];
+    if (tt == 0)
+      tt = 7;
+
+    if (dangles == 2)
+      energy += P->mismatchI[tt][S3[ss][i]][S5[ss][j]];
+
+    if (tt > 2)
+      energy += P->TerminalAU;
+  }
+
+  k = i + 1;
+  if (S_cons[k] == 3) {
+    if (k < j - VRNA_GQUAD_MIN_BOX_SIZE) {
+      minl  = j - i + k - MAXLOOP - 2;
+      c0    = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      minl  = MAX2(c0, minl);
+      c0    = j - 3;
+      maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+      maxl  = MIN2(c0, maxl);
+      for (l = minl; l < maxl; l++) {
+        if (S_cons[l] != 3)
+          continue;
+
+        if (c == energy + ggg[index[l] + k] + n_seq * P->internal_loop[j - l - 1]) {
+          *p  = k;
+          *q  = l;
+          return 1;
+        }
+      }
+    }
+  }
+
+  for (k = i + 2;
+       k < j - VRNA_GQUAD_MIN_BOX_SIZE;
+       k++) {
+    l1 = k - i - 1;
+    if (l1 > MAXLOOP)
+      break;
+
+    if (S_cons[k] != 3)
+      continue;
+
+    minl  = j - i + k - MAXLOOP - 2;
+    c0    = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+    minl  = MAX2(c0, minl);
+    c0    = j - 1;
+    maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+    maxl  = MIN2(c0, maxl);
+    for (l = minl; l < maxl; l++) {
+      if (S_cons[l] != 3)
+        continue;
+
+      if (c == energy + ggg[index[l] + k] + n_seq * P->internal_loop[l1 + j - l - 1]) {
+        *p  = k;
+        *q  = l;
+        return 1;
+      }
+    }
+  }
+
+  l = j - 1;
+  if (S_cons[l] == 3)
+    for (k = i + 4;
+         k < j - VRNA_GQUAD_MIN_BOX_SIZE;
+         k++) {
+      l1 = k - i - 1;
+      if (l1 > MAXLOOP)
+        break;
+
+      if (S_cons[k] != 3)
+        continue;
+
+      if (c == energy + ggg[index[l] + k] + n_seq * P->internal_loop[l1]) {
         *p  = k;
         *q  = l;
         return 1;

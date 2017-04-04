@@ -139,8 +139,8 @@ E_ext_loop(int                  i,
            vrna_fold_compound_t *vc);
 
 
-void
-E_ext_loop_5(vrna_fold_compound_t *vc);
+int
+vrna_E_ext_loop_5(vrna_fold_compound_t *vc);
 
 
 int
