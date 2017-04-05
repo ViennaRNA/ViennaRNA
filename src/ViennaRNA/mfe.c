@@ -271,7 +271,7 @@ fill_arrays(vrna_fold_compound_t *vc)
 
         if (dangle_model == 3) {
           /* coaxial stacking */
-          energy  = E_mb_loop_stack(i, j, vc);
+          energy  = vrna_E_mb_loop_stack(vc, i, j);
           new_c   = MIN2(new_c, energy);
         }
 

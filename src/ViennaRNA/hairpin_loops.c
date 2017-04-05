@@ -19,6 +19,12 @@
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/hairpin_loops.h"
 
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
+
 struct default_data {
   int                       n;
   int                       *idx;
@@ -95,6 +101,11 @@ PRIVATE FLT_OR_DBL
 exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
                       int                   i,
                       int                   j);
+
+
+PRIVATE INLINE int get_pair_type(int        i,
+                                 int        j,
+                                 vrna_md_t  *md);
 
 
 /*
@@ -225,7 +236,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
   char            **Ss, loopseq[10];
   unsigned short  **a2s;
   short           *S, **SS, **S5, **S3;
-  int             u, e, s, type, *types, n_seq, length;
+  int             u, e, s, type, n_seq, length;
   vrna_param_t    *P;
   vrna_sc_t       *sc, **scs;
   vrna_md_t       *md;
@@ -241,12 +252,9 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
       S     = vc->sequence_encoding;
       sc    = vc->sc;
       u     = vc->length - j + i - 1;
-      type  = md->pair[S[j]][S[i]];
+      type  = get_pair_type(S[j], S[i], md);
 
-      if (type == 0)
-        type = 7;
-
-      if (u < 7) {
+      if (u < 9) {
         strcpy(loopseq, vc->sequence + j - 1);
         strncat(loopseq, vc->sequence, i);
       }
@@ -274,13 +282,6 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
       scs   = vc->scs;
       n_seq = vc->n_seq;
       e     = 0;
-      types = (int *)vrna_alloc(sizeof(int) * n_seq);
-
-      for (s = 0; s < n_seq; s++) {
-        types[s] = md->pair[SS[s][j]][SS[s][i]];
-        if (types[s] == 0)
-          types[s] = 7;
-      }
 
       for (s = 0; s < n_seq; s++) {
         char loopseq[10];
@@ -291,10 +292,12 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
           strncat(loopseq, Ss[s], a2s[s][i]);
         }
 
-        if (u < 3)
+        if (u < 3) {
           e += 600;
-        else
-          e += E_Hairpin(u, types[s], S3[s][j], S5[s][i], loopseq, P);
+        } else {
+          type  = get_pair_type(SS[s][j], SS[s][i], md);
+          e     += E_Hairpin(u, type, S3[s][j], S5[s][i], loopseq, P);
+        }
       }
       if (scs) {
         for (s = 0; s < n_seq; s++) {
@@ -316,7 +319,6 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
         }
       }
 
-      free(types);
       break;
 
     /* nothing */
@@ -350,7 +352,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
   unsigned short  **a2s;
   short           *S, **SS, **S5, **S3;
   unsigned int    *sn;
-  int             u, e, s, ij, type, *types, *idx, n_seq, en;
+  int             u, e, s, ij, type, *idx, n_seq, en;
   vrna_param_t    *P;
   vrna_sc_t       *sc, **scs;
   vrna_md_t       *md;
@@ -373,10 +375,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
       S     = vc->sequence_encoding;
       sc    = vc->sc;
       u     = j - i - 1;
-      type  = md->pair[S[i]][S[j]];
-
-      if (type == 0)
-        type = 7;
+      type  = get_pair_type(S[i], S[j], md);
 
       e = E_Hairpin(u, type, S[i + 1], S[j - 1], vc->sequence + i - 1, P);
 
@@ -417,17 +416,15 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
       a2s   = vc->a2s;
       scs   = vc->scs;
       n_seq = vc->n_seq;
-      types = (int *)vrna_alloc(sizeof(int) * n_seq);
-
-      for (s = 0; s < n_seq; s++) {
-        types[s] = md->pair[SS[s][i]][SS[s][j]];
-        if (types[s] == 0)
-          types[s] = 7;
-      }
 
       for (e = s = 0; s < n_seq; s++) {
         u = a2s[s][j - 1] - a2s[s][i];
-        e += (u < 3) ? 600 : E_Hairpin(u, types[s], S3[s][i], S5[s][j], Ss[s] + (a2s[s][i - 1]), P);                          /* ??? really 600 ??? */
+        if (u < 3) {
+          e += 600;                          /* ??? really 600 ??? */
+        } else {
+          type  = get_pair_type(SS[s][i], SS[s][j], md);
+          e     += E_Hairpin(u, type, S3[s][i], S5[s][j], Ss[s] + (a2s[s][i - 1]), P);
+        }
       }
 
       if (scs) {
@@ -455,7 +452,6 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
         }
       }
 
-      free(types);
       break;
 
     /* nothing */
@@ -464,6 +460,17 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
   }
 
   return e;
+}
+
+
+PRIVATE INLINE int
+get_pair_type(int       i,
+              int       j,
+              vrna_md_t *md)
+{
+  int tt = md->pair[i][j];
+
+  return (tt == 0) ? 7 : tt;
 }
 
 
@@ -494,10 +501,7 @@ eval_hp_loop_fake(vrna_fold_compound_t  *vc,
       sc    = vc->sc;
       u     = j - i - 1;
       ij    = idx[j] + i;
-      type  = md->pair[S[i]][S[j]];
-
-      if (type == 0)
-        type = 7;
+      type  = get_pair_type(S[j], S[i], md);
 
       /* hairpin-like exterior loop (for cofolding) */
       short si, sj;
@@ -506,9 +510,9 @@ eval_hp_loop_fake(vrna_fold_compound_t  *vc,
       sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
 
       if (md->dangles)
-        e = E_ExtLoop(md->rtype[type], sj, si, P);
+        e = E_ExtLoop(type, sj, si, P);
       else
-        e = E_ExtLoop(md->rtype[type], -1, -1, P);
+        e = E_ExtLoop(type, -1, -1, P);
 
       /* add soft constraints */
       if (sc) {
@@ -576,10 +580,7 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
       S     = vc->sequence_encoding;
       sc    = vc->sc;
       u     = j - i - 1;
-      type  = md->pair[S[j]][S[i]];
-
-      if (type == 0)
-        type = 7;
+      type  = get_pair_type(S[j], S[i], md);
 
       temp = q[iidx[i + 1] - (cp - 1)] * q[iidx[cp] - (j - 1)];
       if ((j == cp) && (i == cp - 1))
@@ -647,7 +648,7 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
   unsigned short    **a2s;
   short             *S, **SS, **S5, **S3;
   unsigned int      *sn;
-  int               u, ij, type, n_seq, s, *types, *idx, *iidx;
+  int               u, ij, type, n_seq, s, *idx, *iidx;
   FLT_OR_DBL        q, qbt1, *scale;
   vrna_exp_param_t  *P;
   vrna_sc_t         *sc, **scs;
@@ -660,7 +661,6 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
   md          = &(P->model_details);
   sn          = vc->strand_number;
   scale       = vc->exp_matrices->scale;
-  types       = NULL;
   domains_up  = vc->domains_up;
 
   q   = 0.;
@@ -720,13 +720,6 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
       scs   = vc->scs;
       n_seq = vc->n_seq;
       qbt1  = 1.;
-      types = (int *)vrna_alloc(sizeof(int) * n_seq);
-
-      for (s = 0; s < n_seq; s++) {
-        types[s] = md->pair[SS[s][i]][SS[s][j]];
-        if (types[s] == 0)
-          types[s] = 7;
-      }
 
       for (s = 0; s < n_seq; s++) {
         u = a2s[s][j - 1] - a2s[s][i];
@@ -737,7 +730,9 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
         if (u < 9)
           strncpy(loopseq, Ss[s] + a2s[s][i] - 1, 10);
 
-        qbt1 *= exp_E_Hairpin(u, types[s], S3[s][i], S5[s][j], loopseq, P);
+        type = get_pair_type(SS[s][i], SS[s][j], md);
+
+        qbt1 *= exp_E_Hairpin(u, type, S3[s][i], S5[s][j], loopseq, P);
       }
 
       /* add soft constraints */
@@ -771,7 +766,6 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
       break;
   }
 
-  free(types);
   return q;
 }
 
@@ -784,7 +778,7 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
   char              **Ss, *sequence;
   unsigned short    **a2s;
   short             *S, **SS, **S5, **S3;
-  int               u, u1, ij, n, type, n_seq, s, *rtype, *types, *idx, noGUclosure;
+  int               u, u1, ij, n, type, n_seq, s, *rtype, *idx, noGUclosure;
   FLT_OR_DBL        q, qbt1, *scale;
   vrna_exp_param_t  *P;
   vrna_sc_t         *sc, **scs;
@@ -797,7 +791,6 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
   md          = &(P->model_details);
   noGUclosure = md->noGUclosure;
   scale       = vc->exp_matrices->scale;
-  types       = NULL;
   domains_up  = vc->domains_up;
   rtype       = &(md->rtype[0]);
 
@@ -858,13 +851,6 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
       scs   = vc->scs;
       n_seq = vc->n_seq;
       qbt1  = 1.;
-      types = (int *)vrna_alloc(sizeof(int) * n_seq);
-
-      for (s = 0; s < n_seq; s++) {
-        types[s] = md->pair[SS[s][j]][SS[s][i]];
-        if (types[s] == 0)
-          types[s] = 7;
-      }
 
       for (s = 0; s < n_seq; s++) {
         u1 = a2s[s][i] - 1 + a2s[s][n] - a2s[s][j];
@@ -874,7 +860,8 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
           strncat(loopseq, Ss[s], a2s[s][i]);
         }
 
-        qbt1 *= exp_E_Hairpin(u1, types[s], S3[s][j], S5[s][i], loopseq, P);
+        type  = get_pair_type(SS[s][j], SS[s][i], md);
+        qbt1  *= exp_E_Hairpin(u1, type, S3[s][j], S5[s][i], loopseq, P);
       }
 
       /* add soft constraints */
@@ -900,7 +887,6 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
 
       q = qbt1 * scale[u];
 
-      free(types);
       break;
 
     default:
