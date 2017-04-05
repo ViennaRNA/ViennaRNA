@@ -149,6 +149,7 @@ libRNA_conv_la_SOURCES = \
     stringdist.c \
     subopt.c \
     list.c \
+    mfe_window.c \
     Lfold.c \
     cofold.c \
     part_func_co.c \
