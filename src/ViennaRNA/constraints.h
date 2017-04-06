@@ -99,7 +99,7 @@
  *  @image latex  decomp_ml_ml_ml.eps
  *
  */
-#define VRNA_DECOMP_ML_ML_ML    5
+#define VRNA_DECOMP_ML_ML_ML    4
 
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
@@ -114,7 +114,7 @@
  *  @image latex  decomp_ml_stem.eps
  *
  */
-#define VRNA_DECOMP_ML_STEM     4
+#define VRNA_DECOMP_ML_STEM     5
 
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
@@ -145,7 +145,7 @@
  *  @image latex  decomp_ml_up.eps
  *
  */
-#define VRNA_DECOMP_ML_UP       11
+#define VRNA_DECOMP_ML_UP       7
 
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
@@ -161,7 +161,7 @@
  *  @image latex  decomp_ml_ml_stem.eps
  *
  */
-#define VRNA_DECOMP_ML_ML_STEM 20
+#define VRNA_DECOMP_ML_ML_STEM 8
 
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
@@ -177,7 +177,7 @@
  *  @image latex  decomp_ml_coaxial.eps
  *
  */
-#define VRNA_DECOMP_ML_COAXIAL  13
+#define VRNA_DECOMP_ML_COAXIAL  9
 
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
@@ -193,7 +193,7 @@
  *  @image latex  decomp_ml_coaxial.eps
  *
  */
-#define VRNA_DECOMP_ML_COAXIAL_ENC  22
+#define VRNA_DECOMP_ML_COAXIAL_ENC  10
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -209,7 +209,7 @@
  *  @image latex  decomp_ext_ext.eps
  *
  */
-#define VRNA_DECOMP_EXT_EXT     9
+#define VRNA_DECOMP_EXT_EXT     11
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -225,7 +225,7 @@
  *  @image latex  decomp_ext_up.eps
  *
  */
-#define VRNA_DECOMP_EXT_UP      8
+#define VRNA_DECOMP_EXT_UP      12
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -240,7 +240,7 @@
  *  @image latex  decomp_ext_stem.eps
  *
  */
-#define VRNA_DECOMP_EXT_STEM 14
+#define VRNA_DECOMP_EXT_STEM 13
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -255,7 +255,7 @@
  *  @image latex  decomp_ext_ext_ext.eps
  *
  */
-#define VRNA_DECOMP_EXT_EXT_EXT 15
+#define VRNA_DECOMP_EXT_EXT_EXT 14
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -271,7 +271,7 @@
  *  @image latex  decomp_ext_stem_ext.eps
  *
  */
-#define VRNA_DECOMP_EXT_STEM_EXT 16
+#define VRNA_DECOMP_EXT_STEM_EXT 15
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -279,7 +279,7 @@
  *  @ingroup  constraints
  *
  */
-#define VRNA_DECOMP_EXT_STEM_OUTSIDE 17
+#define VRNA_DECOMP_EXT_STEM_OUTSIDE 16
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -295,7 +295,7 @@
  *  @image latex  decomp_ext_ext_stem.eps
  *
  */
-#define VRNA_DECOMP_EXT_EXT_STEM 18
+#define VRNA_DECOMP_EXT_EXT_STEM 17
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -310,15 +310,13 @@
  *
  *  @image html   decomp_ext_ext_stem1.svg
  *  @image latex  decomp_ext_ext_stem1.eps
-
+ *
  */
-#define VRNA_DECOMP_EXT_EXT_STEM1 19
+#define VRNA_DECOMP_EXT_EXT_STEM1 18
 
-#define VRNA_DECOMP_EXT_STEM_EXT1 22
+#define VRNA_DECOMP_EXT_STEM_EXT1 19
 
 #define VRNA_DECOMP_EXT_L         20
-
-
 #define VRNA_DECOMP_EXT_EXT_L     21
 
 /**
@@ -333,7 +331,7 @@
  *  constraints by passing the corresponding options via the third parameter.
  *
  *  @see      vrna_hc_init(), vrna_hc_add_up(), vrna_hc_add_up_batch(), vrna_hc_add_bp(),
- *            vrna_sc_init(), vrna_sc_set_up(), vrna_sc_set_bp(), 
+ *            vrna_sc_init(), vrna_sc_set_up(), vrna_sc_set_bp(),
  *            vrna_sc_add_SHAPE_deigan(),  vrna_sc_add_SHAPE_zarringhalam(),
  *            vrna_hc_free(), vrna_sc_free(),
  *            #VRNA_CONSTRAINT_DB, #VRNA_CONSTRAINT_DB_DEFAULT, #VRNA_CONSTRAINT_DB_PIPE,
@@ -364,8 +362,9 @@
  *                        or a pseudo dot-bracket notation of the hard constraint. May be NULL.
  *  @param  options       The option flags
  */
-void vrna_constraints_add(vrna_fold_compound_t *vc,
-                          const char *constraint,
-                          unsigned int options);
+void vrna_constraints_add(vrna_fold_compound_t  *vc,
+                          const char            *constraint,
+                          unsigned int          options);
+
 
 #endif
