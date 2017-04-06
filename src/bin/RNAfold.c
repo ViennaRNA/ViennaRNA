@@ -293,18 +293,13 @@ main(int  argc,
     /* construct the sequence ID */
     ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
 
-    if (outfile && (SEQ_ID != NULL)) {
-      char *tmp_id = SEQ_ID;
-      SEQ_ID = vrna_strdup_printf("%s%s%s", outfile, id_delim, tmp_id);
-      free(tmp_id);
-    }
-
+    /* prepare the file prefix */
     if (outfile) {
-      /* prepare the file prefix */
-      if (SEQ_ID)
-        prefix = vrna_strdup_printf("%s%s%s", outfile, id_delim, SEQ_ID);
-      else
+      if (SEQ_ID) {
+        prefix = vrna_strdup_printf("%s%s%s", outfile, filename_delim, SEQ_ID);
+      } else {
         prefix = vrna_strdup_printf("%s", outfile);
+      }
     }
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
