@@ -36,7 +36,10 @@
 
 #define true              1
 #define false             0
+
+#ifndef ON_SAME_STRAND
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
+#endif
 
 /**
  *  @brief  Sequence interval stack element used in subopt.c
