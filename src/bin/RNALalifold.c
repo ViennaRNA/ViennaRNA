@@ -555,7 +555,7 @@ print_hit_cb(int        start,
   if ((en / (float)(end - start + 1)) <= threshold) {
     sub   = get_subalignment((const char **)strings, start, end);
     cons  = (with_mis) ? consens_mis((const char **)sub) : consensus((const char **)sub);
-    A     = annote(structure, (const char **)sub, md);
+    A     = annote(ss, (const char **)sub, md);
 
 
     if (with_csv == 1)
