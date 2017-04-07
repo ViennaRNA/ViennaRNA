@@ -535,6 +535,7 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
     if (f5[i - 1] != INF) {
       if (evaluate(1, i, 1, i - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
         f5[i] = f5[i - 1];
+
         if (sc) {
           if (sc->energy_up)
             f5[i] += sc->energy_up[i][1];
@@ -562,11 +563,12 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
           j = i + u - 1;
           if (j <= turn + 1) {
             if (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
-              en = f5[i - 1]
-                   + domains_up->energy_cb(vc,
-                                           i, j,
-                                           VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
-                                           domains_up->data);
+              en = f5[i - 1] +
+                   domains_up->energy_cb(vc,
+                                         i, j,
+                                         VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
+                                         domains_up->data);
+
               if (sc) {
                 if (sc->energy_up)
                   en += sc->energy_up[i][u];
@@ -595,6 +597,7 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
         if (f5[j - 1] != INF) {
           if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
             f5[j] = f5[j - 1];
+
             if (sc) {
               if (sc->energy_up)
                 f5[j] += sc->energy_up[j][1];
@@ -610,12 +613,13 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
             u = domains_up->uniq_motif_size[k];
             if ((j - u >= 0) && (f5[j - u] != INF)) {
               if (evaluate(1, j, 1, j - u, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
-                en = f5[j - u]
-                     + domains_up->energy_cb(vc,
-                                             j - u + 1,
-                                             j,
-                                             VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
-                                             domains_up->data);
+                en = f5[j - u] +
+                     domains_up->energy_cb(vc,
+                                           j - u + 1,
+                                           j,
+                                           VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                           domains_up->data);
+
                 if (sc) {
                   if (sc->energy_up)
                     en += sc->energy_up[j - u + 1][u];
@@ -646,8 +650,11 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
                   if (type == 0)
                     type = 7;
 
-                  en    = f5[i - 1] + c[ij] + E_ExtLoop(type, -1, -1, P);
-                  en    += sc->f(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
+                  en = f5[i - 1] +
+                       c[ij] +
+                       E_ExtLoop(type, -1, -1, P) +
+                       sc->f(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
+
                   f5[j] = MIN2(f5[j], en);
                 }
               }
@@ -668,7 +675,10 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
                   if (type == 0)
                     type = 7;
 
-                  en    = f5[i - 1] + c[ij] + E_ExtLoop(type, -1, -1, P);
+                  en = f5[i - 1] +
+                       c[ij] +
+                       E_ExtLoop(type, -1, -1, P);
+
                   f5[j] = MIN2(f5[j], en);
                 }
               }
@@ -688,7 +698,9 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
             if (type == 0)
               type = 7;
 
-            en = c[ij] + E_ExtLoop(type, -1, -1, P);
+            en = c[ij] +
+                 E_ExtLoop(type, -1, -1, P);
+
             if (sc)
               if (sc->f)
                 en += sc->f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
@@ -707,6 +719,7 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
         if (f5[j - 1] != INF) {
           if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
             f5[j] = f5[j - 1];
+
             if (sc) {
               if (sc->energy_up)
                 f5[j] += sc->energy_up[j][1];
@@ -722,12 +735,13 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
             u = domains_up->uniq_motif_size[k];
             if ((j - u >= 0) && (f5[j - u] != INF)) {
               if (evaluate(1, j, 1, j - u, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
-                en = f5[j - u]
-                     + domains_up->energy_cb(vc,
-                                             j - u + 1,
-                                             j,
-                                             VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
-                                             domains_up->data);
+                en = f5[j - u] +
+                     domains_up->energy_cb(vc,
+                                           j - u + 1,
+                                           j,
+                                           VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                           domains_up->data);
+
                 if (sc) {
                   if (sc->energy_up)
                     en += sc->energy_up[j - u + 1][u];
@@ -757,8 +771,11 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
                   if (type == 0)
                     type = 7;
 
-                  en    = f5[i - 1] + c[ij] + E_ExtLoop(type, S[i - 1], S[j + 1], P);
-                  en    += sc->f(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
+                  en = f5[i - 1] +
+                       c[ij] +
+                       E_ExtLoop(type, S[i - 1], S[j + 1], P) +
+                       sc->f(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
+
                   f5[j] = MIN2(f5[j], en);
                 }
               }
@@ -779,7 +796,10 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
                   if (type == 0)
                     type = 7;
 
-                  en    = f5[i - 1] + c[ij] + E_ExtLoop(type, S[i - 1], S[j + 1], P);
+                  en = f5[i - 1] +
+                       c[ij] +
+                       E_ExtLoop(type, S[i - 1], S[j + 1], P);
+
                   f5[j] = MIN2(f5[j], en);
                 }
               }
@@ -799,7 +819,9 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
             if (type == 0)
               type = 7;
 
-            en = c[ij] + E_ExtLoop(type, -1, S[j + 1], P);
+            en = c[ij] +
+                 E_ExtLoop(type, -1, S[j + 1], P);
+
             if (sc)
               if (sc->f)
                 en += sc->f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
@@ -828,12 +850,13 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
           u = domains_up->uniq_motif_size[k];
           if ((length - u >= 0) && (f5[length - u] != INF)) {
             if (evaluate(1, length, 1, length - u, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
-              en = f5[length - u]
-                   + domains_up->energy_cb(vc,
-                                           length - u + 1,
-                                           length,
-                                           VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
-                                           domains_up->data);
+              en = f5[length - u] +
+                   domains_up->energy_cb(vc,
+                                         length - u + 1,
+                                         length,
+                                         VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                         domains_up->data);
+
               if (sc) {
                 if (sc->energy_up)
                   en += sc->energy_up[length - u + 1][u];
@@ -863,9 +886,12 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
                 if (type == 0)
                   type = 7;
 
-                en          = f5[i - 1] + c[ij] + E_ExtLoop(type, S[i - 1], -1, P);
-                en          += sc->f(1, length, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
-                f5[length]  = MIN2(f5[length], en);
+                en = f5[i - 1] +
+                     c[ij] +
+                     E_ExtLoop(type, S[i - 1], -1, P) +
+                     sc->f(1, length, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
+
+                f5[length] = MIN2(f5[length], en);
               }
             }
           }
@@ -885,8 +911,11 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
                 if (type == 0)
                   type = 7;
 
-                en          = f5[i - 1] + c[ij] + E_ExtLoop(type, S[i - 1], -1, P);
-                f5[length]  = MIN2(f5[length], en);
+                en = f5[i - 1] +
+                     c[ij] +
+                     E_ExtLoop(type, S[i - 1], -1, P);
+
+                f5[length] = MIN2(f5[length], en);
               }
             }
           }
@@ -905,7 +934,9 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
           if (type == 0)
             type = 7;
 
-          en = c[ij] + E_ExtLoop(type, -1, -1, P);
+          en = c[ij] +
+               E_ExtLoop(type, -1, -1, P);
+
           if (sc)
             if (sc->f)
               en += sc->f(1, length, 1, length, VRNA_DECOMP_EXT_STEM, sc->data);
@@ -923,6 +954,7 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
         if (f5[j - 1] != INF) {
           if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
             f5[j] = f5[j - 1];
+
             if (sc) {
               if (sc->energy_up)
                 f5[j] += sc->energy_up[j][1];
@@ -938,12 +970,13 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
             u = domains_up->uniq_motif_size[k];
             if ((j - u >= 0) && (f5[j - u] != INF)) {
               if (evaluate(1, j, 1, j - u, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
-                en = f5[j - u]
-                     + domains_up->energy_cb(vc,
-                                             j - u + 1,
-                                             j,
-                                             VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
-                                             domains_up->data);
+                en = f5[j - u] +
+                     domains_up->energy_cb(vc,
+                                           j - u + 1,
+                                           j,
+                                           VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                           domains_up->data);
+
                 if (sc) {
                   if (sc->energy_up)
                     en += sc->energy_up[j - u + 1][u];
@@ -971,7 +1004,10 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
                 if (type == 0)
                   type = 7;
 
-                en = f5[i - 1] + c[ij] + E_ExtLoop(type, -1, -1, P);
+                en = f5[i - 1] +
+                     c[ij] +
+                     E_ExtLoop(type, -1, -1, P);
+
                 if (sc)
                   if (sc->f)
                     en += sc->f(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
@@ -988,7 +1024,8 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
               if (type == 0)
                 type = 7;
 
-              en = f5[i - 2] + c[ij] + E_ExtLoop(type, S[i - 1], -1, P);
+              en = f5[i - 2] + c[ij] +
+                   E_ExtLoop(type, S[i - 1], -1, P);
 
               if (sc) {
                 if (sc->energy_up)
@@ -1011,7 +1048,9 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
                 if (type == 0)
                   type = 7;
 
-                en = f5[i - 1] + c[ij] + E_ExtLoop(type, -1, S[j], P);
+                en = f5[i - 1] +
+                     c[ij] +
+                     E_ExtLoop(type, -1, S[j], P);
 
                 if (sc) {
                   if (sc->energy_up)
@@ -1032,11 +1071,14 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
                 if (type == 0)
                   type = 7;
 
-                en = f5[i - 2] + c[ij] + E_ExtLoop(type, S[i - 1], S[j], P);
+                en = f5[i - 2] +
+                     c[ij] +
+                     E_ExtLoop(type, S[i - 1], S[j], P);
 
                 if (sc) {
                   if (sc->energy_up)
-                    en += sc->energy_up[i - 1][1] + sc->energy_up[j][1];
+                    en += sc->energy_up[i - 1][1] +
+                          sc->energy_up[j][1];
 
                   if (sc->f)
                     en += sc->f(1, j, i - 2, i, VRNA_DECOMP_EXT_EXT_STEM1, sc->data);
@@ -1060,7 +1102,9 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
             if (type == 0)
               type = 7;
 
-            en = c[ij] + E_ExtLoop(type, -1, -1, P);
+            en = c[ij] +
+                 E_ExtLoop(type, -1, -1, P);
+
             if (sc)
               if (sc->f)
                 en += sc->f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
@@ -1077,7 +1121,8 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
             if (type == 0)
               type = 7;
 
-            en = c[ij] + E_ExtLoop(type, -1, S[j], P);
+            en = c[ij] +
+                 E_ExtLoop(type, -1, S[j], P);
 
             if (sc) {
               if (sc->energy_up)
@@ -1149,6 +1194,7 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
     if (f5[i - 1] != INF) {
       if (evaluate(1, i, 1, i - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
         f5[i] = f5[i - 1];
+
         if (scs) {
           for (s = 0; s < n_seq; s++) {
             if (scs[s]) {
@@ -1180,6 +1226,7 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
         if (f5[j - 1] != INF) {
           if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
             f5[j] = f5[j - 1];
+
             if (scs) {
               for (s = 0; s < n_seq; s++) {
                 if (scs[s]) {
@@ -1228,11 +1275,14 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
 
               if (c[ij] != INF) {
                 if (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
-                  en = f5[i - 1] + c[ij];
+                  en = f5[i - 1] +
+                       c[ij];
+
                   for (s = 0; s < n_seq; s++) {
                     tt  = get_pair_type(S[s][i], S[s][j], md);
                     en  += E_ExtLoop(tt, -1, -1, P);
                   }
+
                   f5[j] = MIN2(f5[j], en);
                 }
               }
@@ -1277,6 +1327,7 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
         if (f5[j - 1] != INF) {
           if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
             f5[j] = f5[j - 1];
+
             if (scs) {
               for (s = 0; s < n_seq; s++) {
                 if (scs[s]) {
@@ -1301,7 +1352,9 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
 
               if (c[ij] != INF) {
                 if (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
-                  en = f5[i - 1] + c[ij];
+                  en = f5[i - 1] +
+                       c[ij];
+
                   for (s = 0; s < n_seq; s++) {
                     tt  = get_pair_type(S[s][i], S[s][j], md);
                     en  += E_ExtLoop(tt, S5[s][i], S3[s][j], P);
@@ -1324,7 +1377,9 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
 
               if (c[ij] != INF) {
                 if (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
-                  en = f5[i - 1] + c[ij];
+                  en = f5[i - 1] +
+                       c[ij];
+
                   for (s = 0; s < n_seq; s++) {
                     tt  = get_pair_type(S[s][i], S[s][j], md);
                     en  += E_ExtLoop(tt, S5[s][i], S3[s][j], P);
@@ -1344,6 +1399,7 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
         if (c[ij] != INF) {
           if (evaluate(1, j, 1, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
             en = c[ij];
+
             if (scs) {
               for (s = 0; s < n_seq; s++) {
                 tt  = get_pair_type(S[s][i], S[s][j], md);
@@ -1398,7 +1454,9 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
 
             if (c[ij] != INF) {
               if (evaluate(1, length, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
-                en = f5[i - 1] + c[ij];
+                en = f5[i - 1] +
+                     c[ij];
+
                 for (s = 0; s < n_seq; s++) {
                   tt  = get_pair_type(S[s][i], S[s][j], md);
                   en  += E_ExtLoop(tt, S5[s][i], -1, P);
@@ -1406,6 +1464,7 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
                   if (scs[s] && scs[s]->f)
                     en += scs[s]->f(1, length, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, scs[s]->data);
                 }
+
                 f5[length] = MIN2(f5[length], en);
               }
             }
@@ -1421,11 +1480,14 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
 
             if (c[ij] != INF) {
               if (evaluate(1, length, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
-                en = f5[i - 1] + c[ij];
+                en = f5[i - 1] +
+                     c[ij];
+
                 for (s = 0; s < n_seq; s++) {
                   tt  = get_pair_type(S[s][i], S[s][j], md);
                   en  += E_ExtLoop(tt, S5[s][i], -1, P);
                 }
+
                 f5[length] = MIN2(f5[length], en);
               }
             }
@@ -1479,6 +1541,7 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
+  vrna_sc_t                 *sc;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
@@ -1491,6 +1554,7 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
   P             = fc->params;
   md            = &(P->model_details);
   hc            = fc->hc;
+  sc            = fc->sc;
   f3            = fc->matrices->f3_local;
   c             = fc->matrices->c_local;
   ggg           = fc->matrices->ggg_local;
@@ -1511,8 +1575,16 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
   }
 
   /* first case: i stays unpaired */
-  if (evaluate(i, length, i + 1, length, VRNA_DECOMP_EXT_EXT, &hc_dat_local))
+  if (evaluate(i, length, i + 1, length, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
     e = f3[i + 1];
+    if (sc) {
+      if (sc->energy_up)
+        e += sc->energy_up[i][1];
+
+      if (sc->f)
+        e += sc->f(i, length, i + 1, length, VRNA_DECOMP_EXT_EXT, sc->data);
+    }
+  }
 
   /* next all cases where i is paired */
   switch (dangle_model) {
@@ -1520,8 +1592,10 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
     case 0:
       for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
         if ((with_gquad) && (f3[j + 1] != INF) && (ggg[i][j - i] != INF)) {
-          energy  = f3[j + 1] + ggg[i][j - i];
-          e       = MIN2(e, energy);
+          energy = f3[j + 1] +
+                   ggg[i][j - i];
+
+          e = MIN2(e, energy);
         }
 
         if (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
@@ -1530,8 +1604,14 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
             if (type == 0)
               type = 7;
 
-            energy  = f3[j + 1] + c[i][j - i] + E_ExtLoop(type, -1, -1, P);
-            e       = MIN2(e, energy);
+            energy = f3[j + 1] +
+                     c[i][j - i] +
+                     E_ExtLoop(type, -1, -1, P);
+
+            if ((sc) && (sc->f))
+              energy += sc->f(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+
+            e = MIN2(e, energy);
           }
         }
       }
@@ -1547,8 +1627,13 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
             if (type == 0)
               type = 7;
 
-            energy  = c[i][j - i] + E_ExtLoop(type, -1, -1, P);
-            e       = MIN2(e, energy);
+            energy = c[i][j - i] +
+                     E_ExtLoop(type, -1, -1, P);
+
+            if ((sc) && (sc->f))
+              energy += sc->f(i, length, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
+
+            e = MIN2(e, energy);
           }
         }
       }
@@ -1558,8 +1643,10 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
     case 2:
       for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
         if ((with_gquad) && (ggg[i][j - i] != INF) && (f3[j + 1] != INF)) {
-          energy  = f3[j + 1] + ggg[i][j - i];
-          e       = MIN2(e, energy);
+          energy = f3[j + 1] +
+                   ggg[i][j - i];
+
+          e = MIN2(e, energy);
         }
 
         if (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
@@ -1568,10 +1655,16 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
             if (type == 0)
               type = 7;
 
-            energy = f3[j + 1] + c[i][j - i] + E_ExtLoop(type,
-                                                         (i > 1) ? S1[i - 1] : -1,
-                                                         S1[j + 1],
-                                                         P);
+            energy = f3[j + 1] +
+                     c[i][j - i] +
+                     E_ExtLoop(type,
+                               (i > 1) ? S1[i - 1] : -1,
+                               S1[j + 1],
+                               P);
+
+            if ((sc) && (sc->f))
+              energy += sc->f(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+
             e = MIN2(e, energy);
           }
         }
@@ -1588,8 +1681,13 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
             if (type == 0)
               type = 7;
 
-            energy  = c[i][j - i] + E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, -1, P);
-            e       = MIN2(e, energy);
+            energy = c[i][j - i] +
+                     E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, -1, P);
+
+            if ((sc) && (sc->f))
+              energy += sc->f(i, length, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
+
+            e = MIN2(e, energy);
           }
         }
       }
@@ -1599,8 +1697,10 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
     default:
       for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
         if (with_gquad && (f3[j + 1] != INF) && (ggg[i][j - i] != INF)) {
-          energy  = f3[j + 1] + ggg[i][j - i];
-          e       = MIN2(e, energy);
+          energy = f3[j + 1] +
+                   ggg[i][j - i];
+
+          e = MIN2(e, energy);
         }
 
         type = ptype[i][j - i];
@@ -1609,23 +1709,45 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
 
         if (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
           if ((f3[j + 1] != INF) && (c[i][j - i] != INF)) {
-            energy  = f3[j + 1] + c[i][j - i] + E_ExtLoop(type, -1, -1, P);
-            e       = MIN2(e, energy);
+            energy = f3[j + 1] +
+                     c[i][j - i] +
+                     E_ExtLoop(type, -1, -1, P);
+
+            if ((sc) && (sc->f))
+              energy += sc->f(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+
+            e = MIN2(e, energy);
           }
         }
 
         if (j + 2 <= length) {
           if (evaluate(i, length, j, j + 2, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
             if ((c[i][j - i] != INF) && (f3[j + 2] != INF)) {
-              energy  = c[i][j - i] + f3[j + 2] + E_ExtLoop(type, -1, S1[j + 1], P);
-              e       = MIN2(e, energy);
+              energy = c[i][j - i] +
+                       f3[j + 2] +
+                       E_ExtLoop(type, -1, S1[j + 1], P);
+
+              if (sc) {
+                if (sc->energy_up)
+                  energy += sc->energy_up[j + 1][1];
+
+                if (sc->f)
+                  energy += sc->f(i, length, j, j + 2, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+              }
+
+              e = MIN2(e, energy);
             }
           }
         } else {
           if (evaluate(i, length, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
             if (c[i][j - i] != INF) {
-              energy  = c[i][j - i] + E_ExtLoop(type, -1, S1[j + 1], P);
-              e       = MIN2(e, energy);
+              energy = c[i][j - i] +
+                       E_ExtLoop(type, -1, S1[j + 1], P);
+
+              if ((sc) && (sc->f))
+                energy += sc->f(i, length, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
+
+              e = MIN2(e, energy);
             }
           }
         }
@@ -1636,23 +1758,56 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
             type = 7;
 
           if ((c[i + 1][j - i - 1] != INF) && (f3[j + 1] != INF)) {
-            energy  = f3[j + 1] + c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], -1, P);
-            e       = MIN2(e, energy);
+            energy = f3[j + 1] +
+                     c[i + 1][j - i - 1] +
+                     E_ExtLoop(type, S1[i], -1, P);
+
+            if (sc) {
+              if (sc->energy_up)
+                energy += sc->energy_up[i][1];
+
+              if (sc->f)
+                energy += sc->f(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, sc->data);
+            }
+
+            e = MIN2(e, energy);
           }
         }
 
         if (j + 2 <= length) {
           if (evaluate(i, length, j, j + 2, VRNA_DECOMP_EXT_STEM_EXT1, &hc_dat_local)) {
             if ((c[i + 1][j - i - 1] != INF) && (f3[j + 2] != INF)) {
-              energy  = c[i + 1][j - i - 1] + f3[j + 2] + E_ExtLoop(type, S1[i], S1[j + 1], P);
-              e       = MIN2(e, energy);
+              energy = c[i + 1][j - i - 1] +
+                       f3[j + 2] +
+                       E_ExtLoop(type, S1[i], S1[j + 1], P);
+
+              if (sc) {
+                if (sc->energy_up)
+                  energy += sc->energy_up[i][1] +
+                            sc->energy_up[j + 1][1];
+
+                if (sc->f)
+                  energy += sc->f(i, length, j, j + 2, VRNA_DECOMP_EXT_STEM_EXT1, sc->data);
+              }
+
+              e = MIN2(e, energy);
             }
           }
         } else {
           if (evaluate(i, length, i + 1, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
             if (c[i + 1][j - i - 1] != INF) {
-              energy  = c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], S1[j + 1], P);
-              e       = MIN2(e, energy);
+              energy = c[i + 1][j - i - 1] +
+                       E_ExtLoop(type, S1[i], S1[j + 1], P);
+
+              if (sc) {
+                if (sc->energy_up)
+                  energy += sc->energy_up[i][1];
+
+                if (sc->f)
+                  energy += sc->f(i, length, i + 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
+              }
+
+              e = MIN2(e, energy);
             }
           }
         }
@@ -1670,8 +1825,13 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
             if (type == 0)
               type = 7;
 
-            energy  = c[i][j - i] + E_ExtLoop(type, -1, -1, P);
-            e       = MIN2(e, energy);
+            energy = c[i][j - i] +
+                     E_ExtLoop(type, -1, -1, P);
+
+            if ((sc) && (sc->f))
+              energy += sc->f(i, j, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
+
+            e = MIN2(e, energy);
           }
         }
 
@@ -1681,8 +1841,18 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
             if (type == 0)
               type = 7;
 
-            energy  = c[i + 1][j - i - 1] + E_ExtLoop(type, S1[i], -1, P);
-            e       = MIN2(e, energy);
+            energy = c[i + 1][j - i - 1] +
+                     E_ExtLoop(type, S1[i], -1, P);
+
+            if (sc) {
+              if (sc->energy_up)
+                energy += sc->energy_up[i][1];
+
+              if (sc->f)
+                energy += sc->f(i, j, i + 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
+            }
+
+            e = MIN2(e, energy);
           }
         }
       }
@@ -1712,8 +1882,8 @@ E_ext_loop_3_comparative(vrna_fold_compound_t *fc,
   length        = fc->length;
   n_seq         = fc->n_seq;
   S             = fc->S;
-  S5            = fc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
-  S3            = fc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+  S5            = fc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
+  S3            = fc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
   maxdist       = fc->window_size;
   P             = fc->params;
   md            = &(P->model_details);
@@ -1747,13 +1917,17 @@ E_ext_loop_3_comparative(vrna_fold_compound_t *fc,
     case 0:
       for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
         if ((with_gquad) && (f3[j + 1] != INF) && (ggg[i][j - i] != INF)) {
-          energy  = f3[j + 1] + ggg[i][j - i];
-          e       = MIN2(e, energy);
+          energy = f3[j + 1] +
+                   ggg[i][j - i];
+
+          e = MIN2(e, energy);
         }
 
         if (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
           if ((f3[j + 1] != INF) && (c[i][j - i] != INF)) {
-            energy = f3[j + 1] + c[i][j - i];
+            energy = f3[j + 1] +
+                     c[i][j - i];
+
             for (s = 0; s < n_seq; s++) {
               tt      = get_pair_type(S[s][i], S[s][j], md);
               energy  += E_ExtLoop(tt, -1, -1, P);
@@ -1786,13 +1960,17 @@ E_ext_loop_3_comparative(vrna_fold_compound_t *fc,
     case 2:
       for (j = i + turn + 1; j < length && j <= i + maxdist; j++) {
         if ((with_gquad) && (ggg[i][j - i] != INF) && (f3[j + 1] != INF)) {
-          energy  = f3[j + 1] + ggg[i][j - i];
-          e       = MIN2(e, energy);
+          energy = f3[j + 1] +
+                   ggg[i][j - i];
+
+          e = MIN2(e, energy);
         }
 
         if (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
           if ((f3[j + 1] != INF) && (c[i][j - i] != INF)) {
-            energy = f3[j + 1] + c[i][j - i];
+            energy = f3[j + 1] +
+                     c[i][j - i];
+
             for (s = 0; s < n_seq; s++) {
               tt      = get_pair_type(S[s][i], S[s][j], md);
               energy  += E_ExtLoop(tt, (i > 1) ? S5[s][i] : -1, S3[s][j], P);
@@ -2141,7 +2319,10 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
           en += P->DuplexInit;
 
         if (evaluate(1, jj, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
-          e = my_f5[u - 1] + en + E_ExtLoop(type, -1, -1, P);
+          e = my_f5[u - 1] +
+              en +
+              E_ExtLoop(type, -1, -1, P);
+
           if (sc)
             if (sc->f)
               e += sc->f(1, jj, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
@@ -2159,7 +2340,10 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
         if (evaluate(1, jj, u - 2, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
           if (sn[u] == sn[u - 1]) {
             mm5 = S1[u - 1];
-            e   = my_f5[u - 2] + en + E_ExtLoop(type, mm5, -1, P);
+            e   = my_f5[u - 2] +
+                  en +
+                  E_ExtLoop(type, mm5, -1, P);
+
             if (sc) {
               if (sc->energy_up)
                 e += sc->energy_up[u - 1][1];
@@ -2191,7 +2375,9 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
         mm3 = (sn[jj] == sn[jj - 1]) ? S1[jj] : -1;
 
         if (evaluate(1, jj, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM1, &hc_dat_local)) {
-          e = my_f5[u - 1] + en + E_ExtLoop(type, -1, mm3, P);
+          e = my_f5[u - 1] +
+              en +
+              E_ExtLoop(type, -1, mm3, P);
 
           if (sc) {
             if (sc->energy_up)
@@ -2215,8 +2401,8 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
           e = my_f5[u - 2] + en + E_ExtLoop(type, mm5, mm3, P);
           if (sc) {
             if (sc->energy_up)
-              e += sc->energy_up[jj][1]
-                   + sc->energy_up[u - 1][1];
+              e += sc->energy_up[jj][1] +
+                   sc->energy_up[u - 1][1];
 
             if (sc->f)
               e += sc->f(1, jj, u - 2, u, VRNA_DECOMP_EXT_EXT_STEM1, sc->data);
@@ -2338,7 +2524,9 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
         }
 
         if (evaluate(1, jj, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
-          en = my_c[idx[jj] + u] + my_f5[u - 1];
+          en = my_c[idx[jj] + u] +
+               my_f5[u - 1];
+
           for (ss = 0; ss < n_seq; ss++) {
             tt  = get_pair_type(S[ss][u], S[ss][jj], md);
             en  += E_ExtLoop(tt, -1, -1, P);
@@ -2374,7 +2562,8 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
         }
 
         if (evaluate(1, jj, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
-          en = my_c[idx[jj] + u] + my_f5[u - 1];
+          en = my_c[idx[jj] + u] +
+               my_f5[u - 1];
 
           for (ss = 0; ss < n_seq; ss++) {
             tt  = get_pair_type(S[ss][u], S[ss][jj], md);
@@ -2417,10 +2606,11 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
   char                      **ptype;
   short                     mm5, mm3, *S1;
   int                       length, fij, fj, ii, u, *f3, **c, **ggg, *idx,
-                            dangle_model, turn, with_gquad;
+                            dangle_model, turn, with_gquad, en;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
+  vrna_sc_t                 *sc;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
@@ -2428,6 +2618,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
   P             = vc->params;
   md            = &(P->model_details);
   hc            = vc->hc;
+  sc            = vc->sc;
   f3            = vc->matrices->f3_local;
   c             = vc->matrices->c_local;
   ggg           = vc->matrices->ggg_local;
@@ -2458,8 +2649,16 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
     fij = f3[ii];
     fj  = INF;
 
-    if (evaluate(ii, maxdist, ii + 1, maxdist, VRNA_DECOMP_EXT_EXT, &hc_dat_local))
+    if (evaluate(ii, length, ii + 1, length, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
       fj = f3[ii + 1];
+      if (sc) {
+        if (sc->energy_up)
+          fj += sc->energy_up[ii][1];
+
+        if (sc->f)
+          fj += sc->f(ii, length, ii + 1, length, VRNA_DECOMP_EXT_EXT, sc->data);
+      }
+    }
 
     if (++ii > maxdist)
       break;
@@ -2490,12 +2689,19 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
           }
         }
 
-        if (evaluate(ii, maxdist, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
+        if (evaluate(ii, length, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
           type = ptype[ii][u - ii];
           if (type == 0)
             type = 7;
 
-          if (fij == c[ii][u - ii] + E_ExtLoop(type, -1, -1, P) + f3[u + 1]) {
+          en = c[ii][u - ii] +
+               E_ExtLoop(type, -1, -1, P) +
+               f3[u + 1];
+
+          if ((sc) && (sc->f))
+            en += sc->f(ii, length, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+
+          if (fij == en) {
             *i                            = ii;
             *j                            = u;
             *k                            = u + 1;
@@ -2520,13 +2726,20 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
           }
         }
 
-        if (evaluate(ii, maxdist, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
+        if (evaluate(ii, length, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
           mm3   = (u < length) ? S1[u + 1] : -1;
           type  = ptype[ii][u - ii];
           if (type == 0)
             type = 7;
 
-          if (fij == c[ii][u - ii] + E_ExtLoop(type, mm5, mm3, P) + f3[u + 1]) {
+          en = c[ii][u - ii] +
+               E_ExtLoop(type, mm5, mm3, P) +
+               f3[u + 1];
+
+          if ((sc) && (sc->f))
+            en += sc->f(ii, length, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+
+          if (fij == en) {
             *i                            = ii;
             *j                            = u;
             *k                            = u + 1;
@@ -2551,13 +2764,24 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
         }
 
         if (u + 2 <= length) {
-          if (evaluate(ii, maxdist, u, u + 2, VRNA_DECOMP_EXT_STEM_EXT1, &hc_dat_local)) {
+          if (evaluate(ii, length, u, u + 2, VRNA_DECOMP_EXT_STEM_EXT1, &hc_dat_local)) {
             mm3   = S1[u + 1];
             type  = ptype[ii + 1][u - ii - 1];
             if (type == 0)
               type = 7;
 
-            if (fij == c[ii + 1][u - ii - 1] + E_ExtLoop(type, mm5, mm3, P) + f3[u + 2]) {
+            en = c[ii + 1][u - ii - 1] + E_ExtLoop(type, mm5, mm3, P) + f3[u + 2];
+
+            if (sc) {
+              if (sc->energy_up)
+                en += sc->energy_up[u + 1][1] +
+                      sc->energy_up[ii][1];
+
+              if (sc->f)
+                en += sc->f(ii, length, u, u + 2, VRNA_DECOMP_EXT_STEM_EXT1, sc->data);
+            }
+
+            if (fij == en) {
               *i                            = ii + 1;
               *j                            = u;
               *k                            = u + 2;
@@ -2567,13 +2791,27 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
             }
           }
         } else {
-          if (evaluate(ii, maxdist, ii + 1, u, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
+          if (evaluate(ii, length, ii + 1, u, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
             mm3   = (u < length) ? S1[u + 1] : -1;
             type  = ptype[ii + 1][u - ii - 1];
             if (type == 0)
               type = 7;
 
-            if (fij == c[ii + 1][u - ii - 1] + E_ExtLoop(type, mm5, mm3, P)) {
+            en = c[ii + 1][u - ii - 1] +
+                 E_ExtLoop(type, mm5, mm3, P);
+
+            if (sc) {
+              if (sc->energy_up) {
+                en += sc->energy_up[ii][1];
+                if (u < length)
+                  en += sc->energy_up[u + 1][1];
+              }
+
+              if (sc->f)
+                en += sc->f(ii, length, ii + 1, u, VRNA_DECOMP_EXT_STEM, sc->data);
+            }
+
+            if (fij == en) {
               *i                            = ii + 1;
               *j                            = u;
               *k                            = u + 2;
@@ -2584,12 +2822,24 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
           }
         }
 
-        if (evaluate(ii, maxdist, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT1, &hc_dat_local)) {
+        if (evaluate(ii, length, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT1, &hc_dat_local)) {
           type = ptype[ii + 1][u - ii - 1];
           if (type == 0)
             type = 7;
 
-          if (fij == c[ii + 1][u - ii - 1] + E_ExtLoop(type, mm5, -1, P) + f3[u + 1]) {
+          en = c[ii + 1][u - ii - 1] +
+               E_ExtLoop(type, mm5, -1, P) +
+               f3[u + 1];
+
+          if (sc) {
+            if (sc->energy_up)
+              en += sc->energy_up[ii][1];
+
+            if (sc->f)
+              en += sc->f(ii, length, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT1, sc->data);
+          }
+
+          if (fij == en) {
             *i                            = ii + 1;
             *j                            = u;
             *k                            = u + 1;
@@ -2600,13 +2850,25 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
         }
 
         if (u + 2 <= length) {
-          if (evaluate(ii, maxdist, u, u + 2, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
+          if (evaluate(ii, length, u, u + 2, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
             mm3   = S1[u + 1];
             type  = ptype[ii][u - ii];
             if (type == 0)
               type = 7;
 
-            if (fij == c[ii][u - ii] + E_ExtLoop(type, -1, mm3, P) + f3[u + 2]) {
+            en = c[ii][u - ii] +
+                 E_ExtLoop(type, -1, mm3, P) +
+                 f3[u + 2];
+
+            if (sc) {
+              if (sc->energy_up)
+                en += sc->energy_up[u + 1][1];
+
+              if (sc->f)
+                en += sc->f(ii, length, u, u + 2, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+            }
+
+            if (fij == en) {
               *i                            = ii;
               *j                            = u;
               *k                            = u + 2;
@@ -2616,13 +2878,24 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
             }
           }
         } else {
-          if (evaluate(ii, maxdist, ii, u, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
+          if (evaluate(ii, length, ii, u, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
             mm3   = (u < length) ? S1[u + 1] : -1;
             type  = ptype[ii][u - ii];
             if (type == 0)
               type = 7;
 
-            if (fij == c[ii][u - ii] + E_ExtLoop(type, -1, mm3, P)) {
+            en = c[ii][u - ii] +
+                 E_ExtLoop(type, -1, mm3, P);
+
+            if (sc) {
+              if ((sc->energy_up) && (u < length))
+                en += sc->energy_up[u + 1][1];
+
+              if (sc->f)
+                en += sc->f(ii, length, ii, u, VRNA_DECOMP_EXT_STEM, sc->data);
+            }
+
+            if (fij == en) {
               *i                            = ii;
               *j                            = u;
               *k                            = u + 2;
@@ -2633,12 +2906,19 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
           }
         }
 
-        if (evaluate(ii, maxdist, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
+        if (evaluate(ii, length, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
           type = ptype[ii][u - ii];
           if (type == 0)
             type = 7;
 
-          if (fij == c[ii][u - ii] + E_ExtLoop(type, -1, -1, P) + f3[u + 1]) {
+          en = c[ii][u - ii] +
+               E_ExtLoop(type, -1, -1, P) + f3[u + 1];
+
+          if (sc)
+            if (sc->f)
+              en += sc->f(ii, length, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+
+          if (fij == en) {
             *i                            = ii;
             *j                            = u;
             *k                            = u + 1;
@@ -2678,8 +2958,8 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
   length        = vc->length;
   n_seq         = vc->n_seq;
   S             = vc->S;
-  S5            = vc->S5; /*S5[s][i] holds next base 5' of i in sequence s*/
-  S3            = vc->S3; /*Sl[s][i] holds next base 3' of i in sequence s*/
+  S5            = vc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
+  S3            = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
   P             = vc->params;
   md            = &(P->model_details);
   hc            = vc->hc;
@@ -2814,6 +3094,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     vrna_param_t              *P;
     vrna_md_t                 *md;
     vrna_hc_t                 *hc;
+    vrna_sc_t                 *sc;
     vrna_callback_hc_evaluate *evaluate;
     struct default_data       hc_dat_local;
 
@@ -2824,6 +3105,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     c             = fc->matrices->c_local;
     ggg           = fc->matrices->ggg_local;
     hc            = fc->hc;
+    sc            = fc->sc;
     P             = fc->params;
     md            = &(P->model_details);
     turn          = md->min_loop_size;
@@ -2853,17 +3135,21 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
             if (type == 0)
               type = 7;
 
-            cc = c[i][j - i] + E_ExtLoop(type, -1, -1, P);
+            cc = c[i][j - i] +
+                 E_ExtLoop(type, -1, -1, P) + f3[j + 1];
 
-            if (fij == cc + f3[j + 1]) {
+            if ((sc) && (sc->f))
+              cc += sc->f(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+
+            if (fij == cc) {
               traced2 = 1;
               break;
             }
           }
 
           if (with_gquad) {
-            cc = ggg[i][j - i];
-            if (fij == cc + f3[j + 1]) {
+            cc = ggg[i][j - i] + f3[j + 1];
+            if (fij == cc) {
               traced2 = 1;
               break;
             }
@@ -2880,18 +3166,23 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
 
             cc = c[i][j - i] +
                  E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1,
-                           (j < length) ? S1[j + 1] : -1, P);
+                           (j < length) ? S1[j + 1] : -1, P) +
+                 f3[j + 1];
 
-            if (fij == cc + f3[j + 1]) {
+            if ((sc) && (sc->f))
+              cc += sc->f(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+
+            if (fij == cc) {
               traced2 = 1;
               break;
             }
           }
 
           if (with_gquad) {
-            cc = ggg[i][j - i];
+            cc = ggg[i][j - i] +
+                 f3[j + 1];
 
-            if (fij == cc + f3[j + 1]) {
+            if (fij == cc) {
               traced2 = 1;
               break;
             }
@@ -2906,9 +3197,14 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
             if (type == 0)
               type = 7;
 
-            cc = c[i][j - i] + E_ExtLoop(type, -1, -1, P);
+            cc = c[i][j - i] +
+                 E_ExtLoop(type, -1, -1, P) +
+                 f3[j + 1];
 
-            if (fij == cc + f3[j + 1]) {
+            if ((sc) && (sc->f))
+              cc += sc->f(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+
+            if (fij == cc) {
               traced2 = 1;
               break;
             }
@@ -2916,9 +3212,19 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
 
           if (j < length) {
             if (evaluate(i, length, j, j + 2, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
-              cc = c[i][j - i] + E_ExtLoop(type, -1, S1[j + 1], P);
+              cc = c[i][j - i] +
+                   E_ExtLoop(type, -1, S1[j + 1], P) +
+                   f3[j + 2];
 
-              if (fij == cc + f3[j + 2]) {
+              if (sc) {
+                if (sc->energy_up)
+                  cc += sc->energy_up[j + 1][1];
+
+                if (sc->f)
+                  cc += sc->f(i, length, j, j + 2, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
+              }
+
+              if (fij == cc) {
                 traced2 = 1;
                 break;
               }
@@ -2926,9 +3232,10 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
           }
 
           if (with_gquad) {
-            cc = ggg[i][j - i];
+            cc = ggg[i][j - i] +
+                 f3[j + 1];
 
-            if (fij == cc + f3[j + 1]) {
+            if (fij == cc) {
               traced2 = 1;
               break;
             }
@@ -2939,9 +3246,19 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
             if (type == 0)
               type = 7;
 
-            cc = c[i + 1][j - (i + 1)] + E_ExtLoop(type, S1[i], -1, P);
+            cc = c[i + 1][j - (i + 1)] +
+                 E_ExtLoop(type, S1[i], -1, P) +
+                 f3[j + 1];
 
-            if (fij == cc + f3[j + 1]) {
+            if (sc) {
+              if (sc->energy_up)
+                cc += sc->energy_up[i][1];
+
+              if (sc->f)
+                cc += sc->f(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, sc->data);
+            }
+
+            if (fij == cc) {
               traced2 = 1;
               break;
             }
@@ -2949,9 +3266,20 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
 
           if (j < length) {
             if (evaluate(i, length, j, j + 2, VRNA_DECOMP_EXT_STEM_EXT1, &hc_dat_local)) {
-              cc = c[i + 1][j - (i + 1)] + E_ExtLoop(type, S1[i], S1[j + 1], P);
+              cc = c[i + 1][j - (i + 1)] +
+                   E_ExtLoop(type, S1[i], S1[j + 1], P) +
+                   f3[j + 2];
 
-              if (fij == cc + f3[j + 2]) {
+              if (sc) {
+                if (sc->energy_up)
+                  cc += sc->energy_up[i][1] +
+                        sc->energy_up[j + 1][1];
+
+                if (sc->f)
+                  cc += sc->f(i, length, j, j + 2, VRNA_DECOMP_EXT_STEM_EXT1, sc->data);
+              }
+
+              if (fij == cc) {
                 traced2 = 1;
                 break;
               }
@@ -2992,8 +3320,8 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
     length        = fc->length;
     n_seq         = fc->n_seq;
     S             = fc->S;
-    S5            = fc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
-    S3            = fc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+    S5            = fc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
+    S3            = fc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
     f3            = fc->matrices->f3_local;
     c             = fc->matrices->c_local;
     ggg           = fc->matrices->ggg_local;
@@ -3188,7 +3516,7 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
             continue;
 
           if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_UP, &hc_dat_local)) {
-            q[ij] = 1.0 * scale[d + 1];
+            q[ij] = scale[d + 1];
 
             if (sc) {
               if (sc->exp_energy_up)
@@ -3216,7 +3544,7 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
           j   = i + d;
           ij  = iidx[i] - j;
           if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_UP, &hc_dat_local)) {
-            q[ij] = 1.0 * scale[d + 1];
+            q[ij] = scale[d + 1];
 
             if (scs) {
               for (s = 0; s < vc->n_seq; s++)
@@ -3378,13 +3706,13 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
         u = domains_up->uniq_motif_size[cnt];
         if (j - u >= i) {
           if (evaluate(i, j, i, j - u, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
-            q_temp2 = qqu[u][i]
-                      * domains_up->exp_energy_cb(vc,
-                                                  j - u + 1,
-                                                  j,
-                                                  VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
-                                                  domains_up->data)
-                      * scale[u];
+            q_temp2 = qqu[u][i] *
+                      domains_up->exp_energy_cb(vc,
+                                                j - u + 1,
+                                                j,
+                                                VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                domains_up->data) *
+                      scale[u];
 
             if (sc) {
               if (sc->exp_energy_up)
@@ -3407,11 +3735,11 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
   if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
     S1      = vc->sequence_encoding;
     type    = get_pair_type(S1[i], S1[j], md);
-    q_temp  = qb[ij]
-              * exp_E_ExtLoop(type,
-                              ((i > 1) || circular) ? S1[i - 1] : -1,
-                              ((j < n) || circular) ? S1[j + 1] : -1,
-                              pf_params);
+    q_temp  = qb[ij] *
+              exp_E_ExtLoop(type,
+                            ((i > 1) || circular) ? S1[i - 1] : -1,
+                            ((j < n) || circular) ? S1[j + 1] : -1,
+                            pf_params);
 
     if (sc)
       if (sc->exp_f)
@@ -3431,7 +3759,7 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
   /* the entire stretch [i,j] is unpaired */
   if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_UP, &hc_dat_local)) {
     u       = j - i + 1;
-    q_temp  = 1.0 * scale[u];
+    q_temp  = scale[u];
 
     if (sc) {
       if (sc->exp_energy_up)
@@ -3444,23 +3772,27 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
     qbt1 += q_temp;
 
     if (with_ud) {
-      qbt1 += q_temp * domains_up->exp_energy_cb(vc,
-                                                 i, j,
-                                                 VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
-                                                 domains_up->data);
+      qbt1 += q_temp *
+              domains_up->exp_energy_cb(vc,
+                                        i, j,
+                                        VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP,
+                                        domains_up->data);
     }
   }
 
   kl = iidx[i] - j + 1;
   if (sc && sc->exp_f) {
     for (k = j; k > i; k--, kl++) {
-      q_temp  = q[kl] * qq[k];
-      q_temp  *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_EXT_EXT_EXT, sc->data);
-      qbt1    += q_temp;
+      q_temp = q[kl] *
+               qq[k] *
+               sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_EXT_EXT_EXT, sc->data);
+
+      qbt1 += q_temp;
     }
   } else {
     for (k = j; k > i; k--, kl++)
-      qbt1 += q[kl] * qq[k];
+      qbt1 += q[kl] *
+              qq[k];
   }
 
   return qbt1;
@@ -3519,7 +3851,8 @@ exp_E_ext_fast_comparative(vrna_fold_compound_t *vc,
 
   /* all exterior loop parts [i, j] with exactly one stem (i, u) i < u < j */
   if (evaluate(i, j, i, j - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
-    q_temp = qq1[i] * scale[1];
+    q_temp = qq1[i] *
+             scale[1];
 
     if (scs) {
       for (s = 0; s < n_seq; s++) {
@@ -3552,7 +3885,7 @@ exp_E_ext_fast_comparative(vrna_fold_compound_t *vc,
   /* the entire stretch [i,j] is unpaired */
   if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_UP, &hc_dat_local)) {
     u       = j - i + 1;
-    q_temp  = 1.0 * scale[u];
+    q_temp  = scale[u];
 
     if (scs) {
       for (s = 0; s < n_seq; s++) {
@@ -3567,7 +3900,8 @@ exp_E_ext_fast_comparative(vrna_fold_compound_t *vc,
 
   kl = iidx[i] - j + 1;
   for (k = j; k > i; k--, kl++)
-    qbt1 += q[kl] * qq[k];
+    qbt1 += q[kl] *
+            qq[k];
 
   return qbt1;
 }

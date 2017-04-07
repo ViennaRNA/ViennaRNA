@@ -289,8 +289,9 @@ vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
 PRIVATE INLINE void
 allocate_dp_matrices(vrna_fold_compound_t *fc)
 {
-  int       i, j, length, maxdist, **c, **fML;
+  int       i, j, length, maxdist, **c, **fML, n_seq;
   vrna_hc_t *hc;
+  vrna_sc_t *sc;
 
   length  = fc->length;
   maxdist = MIN2(fc->window_size, length);
@@ -309,6 +310,28 @@ allocate_dp_matrices(vrna_fold_compound_t *fc)
       fc->pscore_local[i] = vrna_alloc(sizeof(int) * (maxdist + 5));
   }
 
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      sc = fc->sc;
+      if (sc) {
+        if (sc->energy_bp_local)
+          for (i = length; (i > length - maxdist - 5) && (i >= 0); i--)
+            sc->energy_bp_local[i] = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+
+        if (sc->energy_up)
+          for (i = length; (i > length - maxdist - 5) && (i >= 0); i--)
+            sc->energy_up[i] = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
+
+        for (i = length; (i > length - maxdist - 5) && (i >= 0); i--)
+          vrna_sc_prepare(fc, i, VRNA_OPTION_MFE);
+      }
+
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      break;
+  }
+
   if (fc->type == VRNA_FC_TYPE_SINGLE)
     for (j = length; j > length - maxdist - 4; j--)
       for (i = (length - maxdist - 4 > 0) ? length - maxdist - 4 : 1; i < j; i++)
@@ -325,6 +348,7 @@ free_dp_matrices(vrna_fold_compound_t *fc)
 {
   int       i, length, maxdist, **c, **fML, **ggg, with_gquad;
   vrna_hc_t *hc;
+  vrna_sc_t *sc;
 
   length      = fc->length;
   maxdist     = MIN2(fc->window_size, length);
@@ -353,6 +377,31 @@ free_dp_matrices(vrna_fold_compound_t *fc)
     hc->matrix_local[i] = NULL;
   }
 
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      sc = fc->sc;
+      if (sc) {
+        if (sc->energy_up) {
+          for (i = 0; (i < maxdist + 5) && (i <= length); i++) {
+            free(sc->energy_up[i]);
+            sc->energy_up[i] = NULL;
+          }
+        }
+
+        if (sc->energy_bp_local) {
+          for (i = 0; (i < maxdist + 5) && (i <= length); i++) {
+            free(sc->energy_bp_local[i]);
+            sc->energy_bp_local[i] = NULL;
+          }
+        }
+      }
+
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      break;
+  }
+
   if (with_gquad) {
     for (i = 0; (i <= maxdist + 5) && (i <= length); i++)
       free(ggg[i]);
@@ -368,6 +417,7 @@ rotate_dp_matrices(vrna_fold_compound_t *fc,
 {
   int       ii, maxdist, length, **c, **fML;
   vrna_hc_t *hc;
+  vrna_sc_t *sc;
 
   length  = fc->length;
   maxdist = fc->window_size;
@@ -382,6 +432,28 @@ rotate_dp_matrices(vrna_fold_compound_t *fc,
     fML[i + maxdist + 4]              = NULL;
     hc->matrix_local[i - 1]           = hc->matrix_local[i + maxdist + 4];
     hc->matrix_local[i + maxdist + 4] = NULL;
+
+    /* rotate base pair soft constraints */
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        sc = fc->sc;
+        if (sc) {
+          if (sc->energy_bp_local) {
+            sc->energy_bp_local[i - 1]            = sc->energy_bp_local[i + maxdist + 4];
+            sc->energy_bp_local[i + maxdist + 4]  = NULL;
+          }
+
+          if (sc->energy_up) {
+            sc->energy_up[i - 1]            = sc->energy_up[i + maxdist + 4];
+            sc->energy_up[i + maxdist + 4]  = NULL;
+          }
+        }
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        break;
+    }
 
     if ((fc->params->model_details.gquad) && (i > 1))
       vrna_gquad_mx_local_update(fc, i - 1);
@@ -408,6 +480,7 @@ init_constraints(vrna_fold_compound_t *fc,
       for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
         make_ptypes(fc, i);
         vrna_hc_prepare(fc, i);
+        vrna_sc_prepare(fc, i, VRNA_OPTION_MFE);
       }
       break;
 
@@ -439,6 +512,7 @@ rotate_constraints(vrna_fold_compound_t *fc,
         if (i > 1) {
           make_ptypes(fc, i - 1);
           vrna_hc_prepare(fc, i - 1);
+          vrna_sc_prepare(fc, i - 1, VRNA_OPTION_MFE);
         }
       }
 
@@ -481,7 +555,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
   int           i, j, length, energy, maxdist, **c, **fML, *f3, no_close,
                 type, with_gquad, dangle_model, noLP, noGUclosure, turn, fij,
                 lind, *cc, *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2, do_backtrack,
-                prev_i, new_c, stackEnergy;
+                prev_i, new_c, stackEnergy, **sc_energy_bp;
   double        prevz;
   vrna_param_t  *P;
   vrna_md_t     *md;

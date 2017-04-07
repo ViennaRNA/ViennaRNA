@@ -540,6 +540,7 @@ E_int_loop_window(vrna_fold_compound_t  *vc,
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   e             = INF;
   S1            = vc->sequence_encoding;
@@ -548,6 +549,7 @@ E_int_loop_window(vrna_fold_compound_t  *vc,
   c             = vc->matrices->c_local;
   ggg           = vc->matrices->ggg_local;
   hc            = vc->hc;
+  sc            = vc->sc;
   ptype         = vc->ptype_local;
   type          = ptype[i][j - i];
   turn          = md->min_loop_size;
@@ -633,6 +635,28 @@ E_int_loop_window(vrna_fold_compound_t  *vc,
                                   S1[q + 1],
                                   P);
 
+              /* add soft constraints */
+              if (sc) {
+                if (sc->energy_up)
+                  energy += sc->energy_up[i + 1][u1] +
+                            sc->energy_up[q + 1][u2];
+
+                if (sc->energy_bp_local)
+                  energy += sc->energy_bp_local[i][j - i];
+
+                if (sc->energy_stack) {
+                  if (u1 + u2 == 0) {
+                    energy += sc->energy_stack[i] +
+                              sc->energy_stack[p] +
+                              sc->energy_stack[q] +
+                              sc->energy_stack[j];
+                  }
+                }
+
+                if (sc->f)
+                  energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+              }
+
               e = MIN2(e, energy);
             }
           }
@@ -669,6 +693,27 @@ E_int_loop_window_next_q_hc:
                                   sp1,
                                   S1[q + 1],
                                   P);
+
+              if (sc) {
+                if (sc->energy_up)
+                  energy += sc->energy_up[i + 1][u1] +
+                            sc->energy_up[q + 1][u2];
+
+                if (sc->energy_bp_local)
+                  energy += sc->energy_bp_local[i][j - i];
+
+                if (sc->energy_stack) {
+                  if (u1 + u2 == 0) {
+                    energy += sc->energy_stack[i] +
+                              sc->energy_stack[p] +
+                              sc->energy_stack[q] +
+                              sc->energy_stack[j];
+                  }
+                }
+
+                if (sc->f)
+                  energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+              }
 
               e = MIN2(e, energy);
             }
@@ -746,11 +791,10 @@ ubf_eval_int_loop_comparative(int             col_i,
       if (u1 + u2 == 0) {
         if (SS[col_i] && SS[col_j] && SS[col_p] && SS[col_q]) {
           /* no gap allowed */
-          int a = sc->energy_stack[i]
-                  + sc->energy_stack[p]
-                  + sc->energy_stack[q]
-                  + sc->energy_stack[j];
-          energy += a;
+          energy += sc->energy_stack[i] +
+                    sc->energy_stack[p] +
+                    sc->energy_stack[q] +
+                    sc->energy_stack[j];
         }
       }
     }
@@ -1302,19 +1346,18 @@ eval_interior_loop(vrna_fold_compound_t *vc,
   /* add soft constraints */
   if (sc) {
     if (sc->energy_up)
-      energy += sc->energy_up[i1][u1]
-                + sc->energy_up[q1][u2];
+      energy += sc->energy_up[i1][u1] +
+                sc->energy_up[q1][u2];
 
     if (sc->energy_bp)
       energy += sc->energy_bp[ij];
 
     if (sc->energy_stack) {
       if (u1 + u2 == 0) {
-        int a = sc->energy_stack[i]
-                + sc->energy_stack[p]
-                + sc->energy_stack[q]
-                + sc->energy_stack[j];
-        energy += a;
+        energy += sc->energy_stack[i] +
+                  sc->energy_stack[p] +
+                  sc->energy_stack[q] +
+                  sc->energy_stack[j];
       }
     }
 
@@ -1435,26 +1478,25 @@ exp_E_int_loop(vrna_fold_compound_t *vc,
           if (type_2 == 0)
             type_2 = 7;
 
-          q_temp = qb[kl]
-                   * scale[u1 + u2 + 2]
-                   * exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k - 1], S1[l + 1],
-                                   pf_params);
+          q_temp = qb[kl] *
+                   scale[u1 + u2 + 2] *
+                   exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k - 1], S1[l + 1], pf_params);
 
           /* soft constraints */
           if (sc) {
             if (sc->exp_energy_up)
-              q_temp *= sc->exp_energy_up[i + 1][u1]
-                        * sc->exp_energy_up[l + 1][u2];
+              q_temp *= sc->exp_energy_up[i + 1][u1] *
+                        sc->exp_energy_up[l + 1][u2];
 
             if (sc->exp_f)
               q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
 
             if (sc->exp_energy_stack) {
               if ((i + 1 == k) && (j - 1 == l)) {
-                q_temp *= sc->exp_energy_stack[i]
-                          * sc->exp_energy_stack[k]
-                          * sc->exp_energy_stack[l]
-                          * sc->exp_energy_stack[j];
+                q_temp *= sc->exp_energy_stack[i] *
+                          sc->exp_energy_stack[k] *
+                          sc->exp_energy_stack[l] *
+                          sc->exp_energy_stack[j];
               }
             }
           }
@@ -1591,24 +1633,24 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
     if (type_2 == 0)
       type_2 = 7;
 
-    q_temp = exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k - 1], S1[l + 1], pf_params)
-             * scale[u1 + u2 + 2];
+    q_temp = exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k - 1], S1[l + 1], pf_params) *
+             scale[u1 + u2 + 2];
 
     /* soft constraints */
     if (sc) {
       if (sc->exp_energy_up)
-        q_temp *= sc->exp_energy_up[i + 1][u1]
-                  * sc->exp_energy_up[l + 1][u2];
+        q_temp *= sc->exp_energy_up[i + 1][u1] *
+                  sc->exp_energy_up[l + 1][u2];
 
       if (sc->exp_f)
         q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
 
       if (sc->exp_energy_stack) {
         if ((i + 1 == k) && (j - 1 == l)) {
-          q_temp *= sc->exp_energy_stack[i]
-                    * sc->exp_energy_stack[k]
-                    * sc->exp_energy_stack[l]
-                    * sc->exp_energy_stack[j];
+          q_temp *= sc->exp_energy_stack[i] *
+                    sc->exp_energy_stack[k] *
+                    sc->exp_energy_stack[l] *
+                    sc->exp_energy_stack[j];
         }
       }
 
@@ -1742,17 +1784,17 @@ exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
                 u2  = a2s[s][j - 1] - a2s[s][l];
 
                 if (scs[s]->exp_energy_up)
-                  qloop *= scs[s]->exp_energy_up[a2s[s][i] + 1][u1]
-                           * scs[s]->exp_energy_up[a2s[s][l] + 1][u2];
+                  qloop *= scs[s]->exp_energy_up[a2s[s][i] + 1][u1] *
+                           scs[s]->exp_energy_up[a2s[s][l] + 1][u2];
 
                 if (scs[s]->exp_energy_stack) {
                   if (u1 + u2 == 0) {
                     if (S[s][i] && S[s][j] && S[s][k] && S[s][l]) {
                       /* don't allow gaps in stack */
-                      qloop *= scs[s]->exp_energy_stack[i]
-                               * scs[s]->exp_energy_stack[k]
-                               * scs[s]->exp_energy_stack[l]
-                               * scs[s]->exp_energy_stack[j];
+                      qloop *= scs[s]->exp_energy_stack[i] *
+                               scs[s]->exp_energy_stack[k] *
+                               scs[s]->exp_energy_stack[l] *
+                               scs[s]->exp_energy_stack[j];
                     }
                   }
                 }
@@ -1760,7 +1802,9 @@ exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
             }
           }
 
-          qbt1 += qb[my_iindx[k] - l] * qloop * scale[k - i + j - l];
+          qbt1 += qb[my_iindx[k] - l] *
+                  qloop *
+                  scale[k - i + j - l];
         }
       }
     }
@@ -1841,8 +1885,8 @@ vrna_E_ext_int_loop(vrna_fold_compound_t  *vc,
 
       case VRNA_FC_TYPE_COMPARATIVE:
         SS    = vc->S;
-        S5    = vc->S5;                                 /*S5[s][i] holds next base 5' of i in sequence s*/
-        S3    = vc->S3;                                 /*Sl[s][i] holds next base 3' of i in sequence s*/
+        S5    = vc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
+        S3    = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
         a2s   = vc->a2s;
         scs   = vc->scs;
         n_seq = vc->n_seq;
@@ -2029,10 +2073,10 @@ vrna_E_stack(vrna_fold_compound_t *vc,
             e += sc->energy_bp[ij];
 
           if (sc->energy_stack) {
-            e += sc->energy_stack[i]
-                 + sc->energy_stack[p]
-                 + sc->energy_stack[q]
-                 + sc->energy_stack[j];
+            e += sc->energy_stack[i] +
+                 sc->energy_stack[p] +
+                 sc->energy_stack[q] +
+                 sc->energy_stack[j];
           }
 
           if (sc->f)
@@ -2062,10 +2106,10 @@ vrna_E_stack(vrna_fold_compound_t *vc,
               if (scs[s]->energy_stack) {
                 if (SS[s][i] && SS[s][j] && SS[s][p] && SS[s][q]) {
                   /* don't allow gaps in stack */
-                  e += scs[s]->energy_stack[a2s[s][i]]
-                       + scs[s]->energy_stack[a2s[s][p]]
-                       + scs[s]->energy_stack[a2s[s][q]]
-                       + scs[s]->energy_stack[a2s[s][j]];
+                  e += scs[s]->energy_stack[a2s[s][i]] +
+                       scs[s]->energy_stack[a2s[s][p]] +
+                       scs[s]->energy_stack[a2s[s][q]] +
+                       scs[s]->energy_stack[a2s[s][j]];
                 }
               }
 
@@ -2150,10 +2194,10 @@ E_stack_window(vrna_fold_compound_t *vc,
         /* add soft constraints */
         if (sc) {
           if (sc->energy_stack) {
-            e += sc->energy_stack[i]
-                 + sc->energy_stack[p]
-                 + sc->energy_stack[q]
-                 + sc->energy_stack[j];
+            e += sc->energy_stack[i] +
+                 sc->energy_stack[p] +
+                 sc->energy_stack[q] +
+                 sc->energy_stack[j];
           }
 
           if (sc->f)
@@ -2181,10 +2225,10 @@ E_stack_window(vrna_fold_compound_t *vc,
               if (scs[s]->energy_stack) {
                 if (SS[s][i] && SS[s][j] && SS[s][p] && SS[s][q]) {
                   /* don't allow gaps in stack */
-                  e += scs[s]->energy_stack[a2s[s][i]]
-                       + scs[s]->energy_stack[a2s[s][p]]
-                       + scs[s]->energy_stack[a2s[s][q]]
-                       + scs[s]->energy_stack[a2s[s][j]];
+                  e += scs[s]->energy_stack[a2s[s][i]] +
+                       scs[s]->energy_stack[a2s[s][p]] +
+                       scs[s]->energy_stack[a2s[s][q]] +
+                       scs[s]->energy_stack[a2s[s][j]];
                 }
               }
 
@@ -2323,10 +2367,10 @@ BT_stack(vrna_fold_compound_t *vc,
           *en -= sc->energy_bp[ij];
 
         if (sc->energy_stack) {
-          *en -= sc->energy_stack[*i]
-                 + sc->energy_stack[p]
-                 + sc->energy_stack[q]
-                 + sc->energy_stack[*j];
+          *en -= sc->energy_stack[*i] +
+                 sc->energy_stack[p] +
+                 sc->energy_stack[q] +
+                 sc->energy_stack[*j];
         }
 
         if (sc->f)
@@ -2402,10 +2446,10 @@ BT_stack_comparative(vrna_fold_compound_t *vc,
         for (ss = 0; ss < n_seq; ss++)
           if (scs[ss]) {
             if (scs[ss]->energy_stack) {
-              *en -= scs[ss]->energy_stack[*i]
-                     + scs[ss]->energy_stack[p]
-                     + scs[ss]->energy_stack[q]
-                     + scs[ss]->energy_stack[*j];
+              *en -= scs[ss]->energy_stack[*i] +
+                     scs[ss]->energy_stack[p] +
+                     scs[ss]->energy_stack[q] +
+                     scs[ss]->energy_stack[*j];
             }
 
             if (scs[ss]->f)
@@ -2485,10 +2529,10 @@ BT_stack_window(vrna_fold_compound_t  *vc,
 
       if (sc) {
         if (sc->energy_stack) {
-          *en -= sc->energy_stack[*i]
-                 + sc->energy_stack[p]
-                 + sc->energy_stack[q]
-                 + sc->energy_stack[*j];
+          *en -= sc->energy_stack[*i] +
+                 sc->energy_stack[p] +
+                 sc->energy_stack[q] +
+                 sc->energy_stack[*j];
         }
 
         if (sc->f)
@@ -2562,10 +2606,10 @@ BT_stack_window_comparative(vrna_fold_compound_t  *vc,
         for (ss = 0; ss < n_seq; ss++)
           if (scs[ss]) {
             if (scs[ss]->energy_stack) {
-              *en -= scs[ss]->energy_stack[*i]
-                     + scs[ss]->energy_stack[p]
-                     + scs[ss]->energy_stack[q]
-                     + scs[ss]->energy_stack[*j];
+              *en -= scs[ss]->energy_stack[*i] +
+                     scs[ss]->energy_stack[p] +
+                     scs[ss]->energy_stack[q] +
+                     scs[ss]->energy_stack[*j];
             }
 
             if (scs[ss]->f)
@@ -2904,10 +2948,10 @@ BT_int_loop_comparative(vrna_fold_compound_t  *vc,
                 if (scs[ss]->energy_stack) {
                   if (S[ss][*i] && S[ss][*j] && S[ss][p] && S[ss][q]) {
                     /* don't allow gaps in stack */
-                    energy += scs[ss]->energy_stack[a2s[ss][*i]]
-                              + scs[ss]->energy_stack[a2s[ss][p]]
-                              + scs[ss]->energy_stack[a2s[ss][q]]
-                              + scs[ss]->energy_stack[a2s[ss][*j]];
+                    energy += scs[ss]->energy_stack[a2s[ss][*i]] +
+                              scs[ss]->energy_stack[a2s[ss][p]] +
+                              scs[ss]->energy_stack[a2s[ss][q]] +
+                              scs[ss]->energy_stack[a2s[ss][*j]];
                   }
                 }
               }
@@ -2916,8 +2960,8 @@ BT_int_loop_comparative(vrna_fold_compound_t  *vc,
                 energy += scs[ss]->energy_bp[ij];
 
               if (scs[ss]->energy_up)
-                energy += scs[ss]->energy_up[a2s[ss][*i] + 1][u1]
-                          + scs[ss]->energy_up[a2s[ss][q] + 1][u2];
+                energy += scs[ss]->energy_up[a2s[ss][*i] + 1][u1] +
+                          scs[ss]->energy_up[a2s[ss][q] + 1][u2];
             }
           }
         }
@@ -2990,7 +3034,7 @@ BT_int_loop_window(vrna_fold_compound_t *vc,
   short                     *S, *S1;
   unsigned int              *sn;
   int                       p, q, minq, turn, maxdist, noGUclosure, no_close,
-                            energy, new, **c, **ggg, *rtype;
+                            energy, new, **c, **ggg, *rtype, u1, u2;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
@@ -3028,15 +3072,19 @@ BT_int_loop_window(vrna_fold_compound_t *vc,
       type = 7;
 
     for (p = *i + 1; p <= MIN2(*j - 2 - turn, *i + MAXLOOP + 1); p++) {
+      u1 = p - (*i) - 1;
+
       minq = *j - *i + p - MAXLOOP - 2;
       if (minq < p + 1 + turn)
         minq = p + 1 + turn;
 
-      if (hc->up_int[*i + 1] < (p - *i - 1))
+      if (hc->up_int[*i + 1] < u1)
         break;
 
       for (q = *j - 1; q >= minq; q--) {
-        if (hc->up_int[q + 1] < (*j - q - 1))
+        u2 = *j - q - 1;
+
+        if (hc->up_int[q + 1] < u2)
           break;
 
         eval_loop = hc->matrix_local[p][q - p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
@@ -3057,8 +3105,8 @@ BT_int_loop_window(vrna_fold_compound_t *vc,
 
         /* continue unless stack */
 
-        energy = E_IntLoop(p - (*i) - 1,
-                           (*j) - q - 1,
+        energy = E_IntLoop(u1,
+                           u2,
                            type,
                            type_2,
                            S1[*i + 1],
@@ -3066,6 +3114,27 @@ BT_int_loop_window(vrna_fold_compound_t *vc,
                            S1[p - 1],
                            S1[q + 1],
                            P);
+
+        if (sc) {
+          if (sc->energy_up)
+            energy += sc->energy_up[*i + 1][u1] +
+                      sc->energy_up[q + 1][u2];
+
+          if (sc->energy_bp_local)
+            energy += sc->energy_bp_local[*i][*j - *i];
+
+          if (sc->energy_stack) {
+            if (u1 + u2 == 0) {
+              energy += sc->energy_stack[*i] +
+                        sc->energy_stack[p] +
+                        sc->energy_stack[q] +
+                        sc->energy_stack[*j];
+            }
+          }
+
+          if (sc->f)
+            energy += sc->f(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+        }
 
         new = energy + c[p][q - p];
 

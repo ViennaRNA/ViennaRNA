@@ -263,8 +263,8 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
 
       if (sc) {
         if (sc->energy_up)
-          e += sc->energy_up[j + 1][vc->length - j]
-               + sc->energy_up[1][i - 1];
+          e += sc->energy_up[j + 1][vc->length - j] +
+               sc->energy_up[1][i - 1];
 
         if (sc->f)
           e += sc->f(j, i, j, i, VRNA_DECOMP_PAIR_HP, sc->data);
@@ -275,8 +275,8 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
     /* sequence alignments */
     case  VRNA_FC_TYPE_COMPARATIVE:
       SS    = vc->S;
-      S5    = vc->S5;                                 /*S5[s][i] holds next base 5' of i in sequence s*/
-      S3    = vc->S3;                                 /*Sl[s][i] holds next base 3' of i in sequence s*/
+      S5    = vc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
+      S3    = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
       Ss    = vc->Ss;
       a2s   = vc->a2s;
       scs   = vc->scs;
@@ -303,9 +303,9 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
         for (s = 0; s < n_seq; s++) {
           if (scs[s]) {
             if (scs[s]->energy_up)
-              e += ((i > 1) ? scs[s]->energy_up[1][a2s[s][i - 1]] : 0)
-                   + ((j <
-                       length) ? scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]] : 0);
+              e += ((i > 1) ? scs[s]->energy_up[1][a2s[s][i - 1]] : 0) +
+                   ((j <
+                     length) ? scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]] : 0);
 
             if (scs[s]->f) {
               e += scs[s]->f(a2s[s][j],
@@ -384,9 +384,20 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
         if (sc->energy_up)
           e += sc->energy_up[i + 1][u];
 
-        if (sc->energy_bp) {
-          ij  = idx[j] + i;
-          e   += sc->energy_bp[ij];
+        switch (sc->type) {
+          case VRNA_SC_DEFAULT:
+            if (sc->energy_bp) {
+              ij  = idx[j] + i;
+              e   += sc->energy_bp[ij];
+            }
+
+            break;
+
+          case VRNA_SC_WINDOW:
+            if (sc->energy_bp_local)
+              e += sc->energy_bp_local[i][j - i];
+
+            break;
         }
 
         if (sc->f)
@@ -410,8 +421,8 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
     /* sequence alignments */
     case  VRNA_FC_TYPE_COMPARATIVE:
       SS    = vc->S;
-      S5    = vc->S5;                                 /*S5[s][i] holds next base 5' of i in sequence s*/
-      S3    = vc->S3;                                 /*Sl[s][i] holds next base 3' of i in sequence s*/
+      S5    = vc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
+      S3    = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
       Ss    = vc->Ss;
       a2s   = vc->a2s;
       scs   = vc->scs;
@@ -435,9 +446,20 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
             if (scs[s]->energy_up)
               e += scs[s]->energy_up[a2s[s][i + 1]][u];
 
-            if (scs[s]->energy_bp) {
-              ij  = idx[j] + i;
-              e   += scs[s]->energy_bp[ij];
+            switch (scs[s]->type) {
+              case VRNA_SC_DEFAULT:
+                if (scs[s]->energy_bp) {
+                  ij  = idx[j] + i;
+                  e   += scs[s]->energy_bp[ij];
+                }
+
+                break;
+
+              case VRNA_SC_WINDOW:
+                if (scs[s]->energy_bp_local)
+                  e += scs[s]->energy_bp_local[i][j - i];
+
+                break;
             }
 
             if (scs[s]->f) {
@@ -713,8 +735,8 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
 
     case VRNA_FC_TYPE_COMPARATIVE:
       SS    = vc->S;
-      S5    = vc->S5;                                 /*S5[s][i] holds next base 5' of i in sequence s*/
-      S3    = vc->S3;                                 /*Sl[s][i] holds next base 3' of i in sequence s*/
+      S5    = vc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
+      S3    = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
       Ss    = vc->Ss;
       a2s   = vc->a2s;
       scs   = vc->scs;
@@ -823,8 +845,8 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
       /* add soft constraints */
       if (sc) {
         if (sc->exp_energy_up)
-          q *= ((i > 1) ? sc->exp_energy_up[1][i - 1] : 1.)
-               * ((j < n) ? sc->exp_energy_up[j + 1][n - j] : 1.);
+          q *= ((i > 1) ? sc->exp_energy_up[1][i - 1] : 1.) *
+               ((j < n) ? sc->exp_energy_up[j + 1][n - j] : 1.);
 
         if (sc->exp_f)
           q *= sc->exp_f(j, i, j, i, VRNA_DECOMP_PAIR_HP, sc->data);
@@ -844,8 +866,8 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
 
     case VRNA_FC_TYPE_COMPARATIVE:
       SS    = vc->S;
-      S5    = vc->S5;                                 /*S5[s][i] holds next base 5' of i in sequence s*/
-      S3    = vc->S3;                                 /*Sl[s][i] holds next base 3' of i in sequence s*/
+      S5    = vc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
+      S3    = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
       Ss    = vc->Ss;
       a2s   = vc->a2s;
       scs   = vc->scs;
@@ -869,9 +891,8 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
         for (s = 0; s < n_seq; s++) {
           if (scs[s]) {
             if (scs[s]->exp_energy_up)
-              qbt1 *= ((i > 1) ? scs[s]->exp_energy_up[a2s[s][1]][a2s[s][i] - a2s[s][1]] : 1.)
-                      * ((j <
-                          n) ? scs[s]->exp_energy_up[a2s[s][j] + 1][a2s[s][n] - a2s[s][j]] : 1.);
+              qbt1 *= ((i > 1) ? scs[s]->exp_energy_up[a2s[s][1]][a2s[s][i] - a2s[s][1]] : 1.) *
+                      ((j < n) ? scs[s]->exp_energy_up[a2s[s][j] + 1][a2s[s][n] - a2s[s][j]] : 1.);
 
             if (scs[s]->exp_f) {
               qbt1 *= scs[s]->exp_f(a2s[s][j],
