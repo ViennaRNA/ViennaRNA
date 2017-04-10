@@ -165,6 +165,11 @@ PRIVATE void
 hc_update_up(vrna_fold_compound_t *vc);
 
 
+PRIVATE void
+hc_update_up_window(vrna_fold_compound_t  *vc,
+                    int                   i);
+
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -421,6 +426,8 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
     default:
       break;
   }
+
+  hc_update_up_window(vc, i);
 }
 
 
@@ -717,15 +724,15 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
            * with any other nucleotide k
            */
           for (k = 1; k < i; k++)
-            hc_store_bp(vc->hc->bp_storage, k, i, i, (char)0);
-          hc_store_bp(vc->hc->bp_storage, i, i + 1, j - 1, (char)0);
-          hc_store_bp(vc->hc->bp_storage, i, j + 1, vc->length, (char)0);
+            hc_store_bp(vc->hc->bp_storage, k, i, j, (char)0);            /* (k, i), (k, i + 1), ..., (k, j) with 1 <= k < i */
 
-          for (k = 1; k < i; k++)
-            hc_store_bp(vc->hc->bp_storage, k, j, j, (char)0);
+          hc_store_bp(vc->hc->bp_storage, i, i + 1, j - 1, (char)0);      /* (i, k), i < k < j */
+
           for (k = i + 1; k < j; k++)
-            hc_store_bp(vc->hc->bp_storage, k, j, j, (char)0);
-          hc_store_bp(vc->hc->bp_storage, j, j + 1, vc->length, (char)0);
+            hc_store_bp(vc->hc->bp_storage, k, j, vc->length, (char)0);   /* (i + 1, k), (i + 1, k), ..., (j - 1, k) with (j < k <= n */
+
+          hc_store_bp(vc->hc->bp_storage, i, j + 1, vc->length, (char)0); /* (i, k), j < k <= n */
+          hc_store_bp(vc->hc->bp_storage, j, j + 1, vc->length, (char)0); /* (j, k), j < k <= n */
         }
 
         if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
@@ -1392,6 +1399,29 @@ hc_update_up(vrna_fold_compound_t *vc)
       }
     }
   }
+}
+
+
+PRIVATE void
+hc_update_up_window(vrna_fold_compound_t  *vc,
+                    int                   i)
+{
+  vrna_hc_t *hc;
+
+  hc = vc->hc;
+
+  hc->up_ext[i] = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ?
+                  1 + hc->up_ext[i + 1] :
+                  0;
+  hc->up_hp[i] = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) ?
+                 1 + hc->up_hp[i + 1] :
+                 0;
+  hc->up_int[i] = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ?
+                  1 + hc->up_int[i + 1] :
+                  0;
+  hc->up_ml[i] = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ?
+                 1 + hc->up_ml[i + 1] :
+                 0;
 }
 
 
