@@ -48,13 +48,16 @@ optional
 
 option  "outfile" o
 "Print output to file instead of stdout\n"
-details="Specifying a file name/prefix will print the output into a file instead of stdout.\
+details="Specifying a file name prefix will print the output into a file instead of stdout.\
  If a FASTA header precedes the input sequence, the appropriate fasta ID is used as infix for\
  the file name. Each generated file will be suffixed with the file extension '.fold'.\
  If a file with the same filename already exists, any output of the program will be appended\
- to it.\n\n"
+ to it.\
+ Note: Any special characters in the prefix will be replaced by the filename delimiter,\
+ hence there is no way to pass an entire directory path through this option yet.\
+ (See also the \"--filename-delim\" parameter)\n\n"
 string
-typestr="<filename>"
+typestr="<prefix>"
 optional
 
 option  "layout-type"  t
@@ -135,7 +138,10 @@ details="This parameter can be used to change the delimiting character used whil
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
  delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
  the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
- characters will be simply removed rather than substituted.\n\n"
+ characters will be simply removed rather than substituted.\
+ Currently, we regard the following characters as illegal for use in filenames:\
+ backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
+ pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n\n"
 string
 typestr="delimiter"
 default="ID-delimiter"

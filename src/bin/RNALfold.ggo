@@ -43,7 +43,10 @@ details="This option may be used to write all output to output files rather than
  the scheme \"prefix.lfold\" are generated, where the \"prefix\" is taken from the sequence\
  id. The user may specify a single output file name for all data generated from the input\
  by supplying an optional string as argument to this parameter. In case a file with the same\
- filename already exists, any output of the program will be appended to it.\n\n"
+ filename already exists, any output of the program will be appended to it.\
+ Note: Any special characters in the filename will be replaced by the filename delimiter,\
+ hence there is no way to pass an entire directory path through this option yet.\
+ (See also the \"--filename-delim\" parameter)\n\n"
 string
 typestr="<filename>"
 argoptional
@@ -117,7 +120,10 @@ details="This parameter can be used to change the delimiting character used whil
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
  delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
  the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
- characters will be simply removed rather than substituted.\n\n"
+ characters will be simply removed rather than substituted.\
+ Currently, we regard the following characters as illegal for use in filenames:\
+ backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
+ pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n\n"
 string
 typestr="delimiter"
 default="ID-delimiter"
