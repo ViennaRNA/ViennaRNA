@@ -143,9 +143,6 @@ main(int  argc,
   if (args_info.noPS_given)
     noPS = 1;
 
-  if (args_info.all_pf_given)
-    doT = pf = 1;
-
   /* concentrations from stdin */
   if (args_info.concentrations_given)
     doC = doT = pf = 1;
@@ -165,6 +162,14 @@ main(int  argc,
     pf = 1;
     if (args_info.partfunc_arg != -1)
       md.compute_bpp = do_backtrack = args_info.partfunc_arg;
+  }
+
+  if (args_info.all_pf_given) {
+    doT = pf = 1;
+    if (args_info.all_pf_arg != 1)
+      md.compute_bpp = do_backtrack = args_info.all_pf_arg;
+    else
+      md.compute_bpp = do_backtrack = 1;
   }
 
   if (args_info.commands_given)
@@ -395,6 +400,13 @@ main(int  argc,
     /* compute partition function */
     if (pf) {
       vrna_dimer_pf_t AB, AA, BB;
+
+      prAB = NULL;
+      prAA = NULL;
+      prBB = NULL;
+      prA  = NULL;
+      prB  = NULL;
+
       if (md.dangles == 1) {
         vc->params->model_details.dangles = dangles = 2;   /* recompute with dangles as in pf_fold() */
         min_en                            = vrna_eval_structure(vc, structure);
@@ -472,16 +484,16 @@ main(int  argc,
         strncat(orig_Bstring, orig_sequence + Alength + 1, Blength);
 
         /* compute AA dimer */
-        AA = do_partfunc(Astring, Alength, 2, &prAA, &mfAA, vc->exp_params);
+        AA = do_partfunc(Astring, Alength, 2, (do_backtrack) ? &prAA : NULL, &mfAA, vc->exp_params);
         /* compute BB dimer */
-        BB = do_partfunc(Bstring, Blength, 2, &prBB, &mfBB, vc->exp_params);
+        BB = do_partfunc(Bstring, Blength, 2, (do_backtrack) ? &prBB : NULL, &mfBB, vc->exp_params);
         /*free_co_pf_arrays();*/
 
         /* compute A monomer */
-        do_partfunc(Astring, Alength, 1, &prA, &mfA, vc->exp_params);
+        do_partfunc(Astring, Alength, 1, (do_backtrack) ? &prA : NULL, &mfA, vc->exp_params);
 
         /* compute B monomer */
-        do_partfunc(Bstring, Blength, 1, &prB, &mfB, vc->exp_params);
+        do_partfunc(Bstring, Blength, 1, (do_backtrack) ? &prB : NULL, &mfB, vc->exp_params);
 
         if (do_backtrack) {
           vrna_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, vc->exp_params);
@@ -503,21 +515,22 @@ main(int  argc,
           free(ConcAandB);/*freeen*/
         }
 
-        char *filename_dot = NULL;
-        if (SEQ_ID) {
-          filename_dot  = vrna_strdup_printf("%s%sdp5.ps", SEQ_ID, id_delim);
-          tmp_string    = vrna_filename_sanitize(filename_dot, filename_delim);
-          free(filename_dot);
-          filename_dot = tmp_string;
-        } else {
-          filename_dot = strdup("dot5.ps");
-        }
-
         /*output of the 5 dot plots*/
 
-        if ((do_backtrack) && (filename_dot)) {
+        if (do_backtrack) {
           char  *comment    = NULL;
           char  *fname_dot  = NULL;
+          char *filename_dot = NULL;
+
+          if (SEQ_ID) {
+            filename_dot  = vrna_strdup_printf("%s%sdp5.ps", SEQ_ID, id_delim);
+            tmp_string    = vrna_filename_sanitize(filename_dot, filename_delim);
+            free(filename_dot);
+            filename_dot = tmp_string;
+          } else {
+            filename_dot = strdup("dot5.ps");
+          }
+
           /*AB dot_plot*/
 
           /*write Free Energy into comment*/
@@ -589,9 +602,9 @@ main(int  argc,
           (void)PS_dot_plot_list(orig_Bstring, fname_dot, prB, mfB, comment);
           free(fname_dot);
           free(comment);
+          free(filename_dot);
         }
 
-        free(filename_dot);
         free(Astring);
         free(Bstring);
         free(orig_Astring);
