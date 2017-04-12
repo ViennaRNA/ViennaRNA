@@ -15,6 +15,9 @@ config.*
 stamp-h1
 .dirstamp
 ylwrap
+tests/test-env.sh
+src/ViennaRNA/vrna_config.h
+libtool
 
 # ignore libtoolize generated files
 m4/libtool.m4
@@ -39,3 +42,4 @@ RNAlib2.pc
 
 # ignore all postscript files that might be generated
 *.ps
+
