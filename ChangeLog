@@ -1,3 +1,14 @@
+v2.3.5
+  * Fix duplication of output filename prefix in RNAfold
+  * Add V3.0 API for sliding window partition function (a.k.a. RNAPLfold)
+  * Add G-Quadruplex prediction to RNALalifold
+  * Add SWIG wrappers for callback-based sliding window comparative MFE prediction
+  * Add SSE4.1 multiloop decomposition for single sequence MFE prediction
+  * Enable RNAfold unit tests to run in paralllel
+  * Enable users to turn-off base pair probability computations in RNAcofold with -a option
+  * Split move set in neighbor.c
+
+
 v2.3.4
   * Fix G-Quadruplex probability computation for single sequences
   * Fix double-free when using SHAPE reactivity data in RNAalifold
@@ -24,7 +35,7 @@ v2.3.4
   * Add SHAPE reactivity derived pseudo-energies as separate output in RNAalifold
   * Add colored output to RNA2Dfold, RNALalifold, RNALfold, RNAduplex, RNAheat, RNAinverse, RNAplfold, and RNAsubopt
   * Add command line parameters to RNAsubopt to allow for specification of input/output files
-  
+
 
 v2.3.3
   * Fix multiloop contributions for comparative partition function
