@@ -19,7 +19,6 @@ vrna_md_set_default (&md);
 vrna_fold_compound_t *vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_EVAL_ONLY);
 short *pt = vrna_ptable(structure);
 
-int *loopIndices = vrna_loopidx_from_ptable(pt);
 vrna_move_t * neighbors = vrna_neighbors(vc, pt, VRNA_MOVESET_DEFAULT);
 
 //check if all neighbors are in the set.
@@ -37,7 +36,6 @@ ck_assert_int_eq(neighborsFound, expectedLength);
 
 vrna_fold_compound_free (vc);
 free (pt);
-free (loopIndices);
 free (neighbors);
 
 
@@ -58,8 +56,6 @@ vrna_md_set_default (&md);
 vrna_fold_compound_t *vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_EVAL_ONLY);
 short *pt = vrna_ptable(structure);
 
-int *loopIndices = vrna_loopidx_from_ptable(pt);
-
 vrna_move_t * neighbors = vrna_neighbors(vc, pt, VRNA_MOVESET_DEFAULT | VRNA_MOVESET_SHIFT);
 
 //check if all neighbors are in the set.
@@ -77,7 +73,6 @@ ck_assert_int_eq(neighborsFound, expectedLength);
 
 vrna_fold_compound_free (vc);
 free (pt);
-free (loopIndices);
 free (neighbors);
 
 
@@ -236,6 +231,94 @@ free(previousMoves);
 free (neighbors);
 
 
+#test test_vrna_neighbors_successive_deletions_only
+
+char *sequence =  "GGGAAACCCAACCUUU";
+char *structure = ".(.....)........";
+//                ".(.....).(.....)" after vrna_move_t
+vrna_move_t currentMove = {10,16}; // for the second neighbor generation.
+int expectedLength = 2;
+vrna_move_t expectedNeighbors[2] =
+    { { -2, -8 }, { -10, -16 }};
+vrna_md_t md;
+vrna_md_set_default (&md);
+vrna_fold_compound_t *vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_EVAL_ONLY);
+short *previousStructure = vrna_ptable(structure);
+
+vrna_move_t * previousMoves = vrna_neighbors(vc, previousStructure, VRNA_MOVESET_DELETION);
+int length = 0;
+for(vrna_move_t *m = previousMoves; m->pos_5 != 0; m++){
+  length++;
+}
+int newLength;
+
+vrna_move_t * neighbors = vrna_neighbors_successive(vc, &currentMove, previousStructure, previousMoves, length,
+    &newLength, VRNA_MOVESET_DELETION);
+
+
+//check if all neighbors are in the set.
+int neighborsFound = 0;
+for(int i = 0; i < expectedLength;i++){
+  for(vrna_move_t *m = neighbors; m->pos_5 != 0; m++){
+    if(expectedNeighbors[i].pos_5 == m->pos_5 && expectedNeighbors[i].pos_3 == m->pos_3){
+      neighborsFound++;
+      break;
+    }
+  }
+}
+
+ck_assert_int_eq(neighborsFound, expectedLength);
+
+vrna_fold_compound_free (vc);
+free (previousStructure);
+free(previousMoves);
+free (neighbors);
+
+
+#test test_vrna_neighbors_successive_insertions_only
+
+char *sequence =  "GGGAAACCCAACCUUU";
+char *structure = ".(.....)........";
+//                ".(.....).(.....)" after vrna_move_t
+vrna_move_t currentMove = {10,16}; // for the second neighbor generation.
+int expectedLength = 3;
+vrna_move_t expectedNeighbors[3] =
+    { { 1, 9 }, { 3, 7 }, { 11, 15 } };
+vrna_md_t md;
+vrna_md_set_default (&md);
+vrna_fold_compound_t *vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_EVAL_ONLY);
+short *previousStructure = vrna_ptable(structure);
+
+vrna_move_t * previousMoves = vrna_neighbors(vc, previousStructure, VRNA_MOVESET_DEFAULT);
+int length = 0;
+for(vrna_move_t *m = previousMoves; m->pos_5 != 0; m++){
+  length++;
+}
+int newLength;
+
+vrna_move_t * neighbors = vrna_neighbors_successive(vc, &currentMove, previousStructure, previousMoves, length,
+    &newLength, VRNA_MOVESET_DEFAULT);
+
+
+//check if all neighbors are in the set.
+int neighborsFound = 0;
+for(int i = 0; i < expectedLength;i++){
+  for(vrna_move_t *m = neighbors; m->pos_5 != 0; m++){
+    if(expectedNeighbors[i].pos_5 == m->pos_5 && expectedNeighbors[i].pos_3 == m->pos_3){
+      neighborsFound++;
+      break;
+    }
+  }
+}
+
+ck_assert_int_eq(neighborsFound, expectedLength);
+
+vrna_fold_compound_free (vc);
+free (previousStructure);
+free(previousMoves);
+free (neighbors);
+
+
 //TODO: test more shift combinations
 
 #test test_vrna_neighbors_successive_with_shifts
@@ -255,8 +338,6 @@ vrna_md_t md;
 vrna_md_set_default (&md);
 vrna_fold_compound_t *vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_EVAL_ONLY);
 short *previousStructure = vrna_ptable(structure);
-
-int *loopIndices = vrna_loopidx_from_ptable(previousStructure);
 
 vrna_move_t * previousMoves = vrna_neighbors(vc, previousStructure, VRNA_MOVESET_DEFAULT | VRNA_MOVESET_SHIFT);
 int length = 0;
@@ -284,7 +365,6 @@ ck_assert_int_eq(neighborsFound, expectedLength);
 
 vrna_fold_compound_free (vc);
 free (previousStructure);
-free (loopIndices);
 free(previousMoves);
 free (neighbors);
 

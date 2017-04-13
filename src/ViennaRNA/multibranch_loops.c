@@ -764,6 +764,61 @@ extend_fm_3p(int                  i,
   return e;
 }
 
+#ifdef VRNA_WITH_SSE_IMPLEMENTATION
+/* SSE modular decomposition -------------------------------*/
+#include <emmintrin.h>
+#include <smmintrin.h>
+
+//http://stackoverflow.com/questions/9877700/getting-max-value-in-a-m128i-vector-with-sse
+int horizontal_min_Vec4i(__m128i x) {
+    __m128i min1 = _mm_shuffle_epi32(x, _MM_SHUFFLE(0,0,3,2));
+    __m128i min2 = _mm_min_epi32(x,min1);
+    __m128i min3 = _mm_shuffle_epi32(min2, _MM_SHUFFLE(0,0,0,1));
+    __m128i min4 = _mm_min_epi32(min2,min3);
+    return _mm_cvtsi128_si32(min4);
+}
+
+PRIVATE int
+modular_decomposition(const int i, const int ij, const int j, const int turn, const int* fmi, const int* fm) {
+  int k   =  i + turn + 1;
+  int k1j = ij + turn + 2; //indx[j] + i + 1; //indx[j] + i + turn + 2;
+  const int stop = j - 2 - turn;
+  int decomp = INF;
+  {
+    const int end = 1 + stop - k;
+    int i;
+    __m128i inf = _mm_set1_epi32(INF);
+
+    for(i=0;i<end-3;i+=4) {
+      __m128i a = _mm_loadu_si128((__m128i*)&fmi[k +i]);
+      __m128i b = _mm_loadu_si128((__m128i*)&fm[k1j+i]);
+      __m128i c = _mm_add_epi32(a,b);
+/* deactivate this part if you are sure to not use any hard constraints */
+#if 1
+      __m128i mask1 = _mm_cmplt_epi32(a, inf);
+      __m128i mask2 = _mm_cmplt_epi32(b, inf);
+      __m128i res = _mm_or_si128(_mm_and_si128(mask1, c),
+                             _mm_andnot_si128(mask1, a));
+
+      res = _mm_or_si128( _mm_and_si128(mask2, res),
+                                  _mm_andnot_si128(mask2, b));
+      const int en = horizontal_min_Vec4i(res);
+#else
+      const int en = horizontal_min_Vec4i(c);
+#endif
+      decomp = MIN2(decomp, en);
+    }
+    for(;i<end;i++) {
+      if((fmi[k +i] != INF ) && (fm[k1j+i] != INF)){
+        const int en = fmi[k +i]+fm[k1j+i];
+        decomp = MIN2(decomp, en);
+      }
+    }
+  }
+  return decomp;
+}
+/* End SSE modular decomposition -------------------------------*/
+#endif
 
 PRIVATE int
 E_ml_stems_fast(vrna_fold_compound_t  *vc,
@@ -999,6 +1054,14 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
         }
       }
     } else {
+#ifdef VRNA_WITH_SSE_IMPLEMENTATION
+
+  /* modular decomposition -------------------------------*/
+
+  decomp = modular_decomposition(i,ij,j,turn,fmi,vc->matrices->fML);
+  /* end modular decomposition -------------------------------*/
+
+#else
       for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++) {
         if ((fmi[k] != INF) && (fm[k1j] != INF)) {
           en      = fmi[k] + fm[k1j];
@@ -1012,6 +1075,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
           decomp  = MIN2(decomp, en);
         }
       }
+#endif
     }
   }
 
@@ -1162,13 +1226,14 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t  *vc,
         energy += E_MLstem(type[s], -1, -1, P);
     e = MIN2(e, energy);
 
-    if (md->gquad) {
-      decomp  = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
-      e       = MIN2(e, decomp);
-    }
-
     free(type);
   }
+
+  if (md->gquad) {
+    decomp  = ggg[indx[j] + i] + n_seq * E_MLstem(0, -1, -1, P);
+    e       = MIN2(e, decomp);
+  }
+
 
 
   /* modular decomposition -------------------------------*/

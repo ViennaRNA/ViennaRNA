@@ -81,7 +81,7 @@ main(int  argc,
                                 **AS, **names, *filename_in, *id_prefix, *id_delim, *filename_delim,
                                 **input_files, *tmp_id, *tmp_structure;
   unsigned int                  input_format_options;
-  int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id,
+  int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id, gquad,
                                 mis, istty, alnPS, aln_columns, aln_out, ssPS, input_file_num, id_digits;
   long int                      alignment_number, first_alignment_number;
   vrna_md_t                     md;
@@ -104,6 +104,7 @@ main(int  argc,
   input_file_num        = 0;
   quiet                 = 0;
   auto_id               = 0;
+  gquad                 = 0;
 
   vrna_md_set_default(&md);
 
@@ -194,6 +195,10 @@ main(int  argc,
     RibosumFile = NULL;
     md.ribo     = ribo = 1;
   }
+
+  /* gquadruplex support */
+  if (args_info.gquad_given)
+    md.gquad = gquad = 1;
 
   if (args_info.aln_given) {
     alnPS = aln_out = ssPS = 1;

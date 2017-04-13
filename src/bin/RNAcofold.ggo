@@ -103,7 +103,10 @@ details="This parameter can be used to change the delimiting character used whil
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
  delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
  the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
- characters will be simply removed rather than substituted.\n\n"
+ characters will be simply removed rather than substituted.\
+ Currently, we regard the following characters as illegal for use in filenames:\
+ backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
+ pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n\n"
 string
 typestr="delimiter"
 default="ID-delimiter"
@@ -210,11 +213,16 @@ option "all_pf" a
  of the two input sequences (the \"AB dimer\"), but also of the homo-dimers AA and BB as\
  well as A and B monomers.\n"
 details="The output will contain the free energies for each of these species, as well as\
- 5 dot plots containing the conditional pair probabilities, called ABname5.ps, AAname5.ps\
+ 5 dot plots containing the conditional pair probabilities, called \"ABname5.ps\", \"AAname5.ps\"\
  and so on. For later use, these dot plot files also contain the free energy of the\
- ensemble as a comment. Using -a automatically toggles the -p option.\n\n"
-flag
-off
+ ensemble as a comment. Using -a automatically switches on the -p option.\
+ Base pair probability computations may be turned off altogether by providing \"0\" as\
+ an argument to this parameter. In that case, no dot plot files will be generated.\n\n"
+int
+default="1"
+argoptional
+optional
+
 
 option  "concentrations"  c
 "In addition to everything listed under the -a option, read in initial monomer concentrations\

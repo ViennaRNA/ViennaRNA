@@ -65,7 +65,10 @@ option  "aln-stk"             -
 details="The default file name used for the output is \"RNAalifold_results.stk\". Users may\
  change the filename to \"prefix.stk\" by specifying the prefix as optional argument. The file\
  will be create in the current directory if it does not already exist. In case the file already\
- exists, output will be appended to it.\n\n"
+ exists, output will be appended to it.\
+ Note: Any special characters in the filename will be replaced by the filename delimiter,\
+ hence there is no way to pass an entire directory path through this option yet.\
+ (See also the \"--filename-delim\" parameter)\n\n"
 string
 argoptional
 typestr="prefix"
@@ -167,7 +170,10 @@ details="This parameter can be used to change the delimiting character used whil
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
  delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
  the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
- characters will be simply removed rather than substituted.\n\n"
+ characters will be simply removed rather than substituted.\
+ Currently, we regard the following characters as illegal for use in filenames:\
+ backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
+ pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n\n"
 string
 typestr="delimiter"
 default="ID-delimiter"

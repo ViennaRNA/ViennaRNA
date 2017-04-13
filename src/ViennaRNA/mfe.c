@@ -469,11 +469,10 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
                     }
                     f5[j] = MIN2(f5[j], energy);
                   }
-
-                  if(md->gquad){
-                    if(ggg[indx[j]+1] < INF)
-                      f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
-                  }
+                }
+                if(md->gquad){
+                  if(ggg[indx[j]+1] < INF)
+                    f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                 }
 
                 for(i = j - turn - 1; i > 1; i--){
@@ -487,11 +486,10 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
                       }
                       f5[j] = MIN2(f5[j], energy);
                     }
-
-                    if(md->gquad){
-                      if(ggg[indx[j]+i] < INF)
-                        f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
-                    }
+                  }
+                  if(md->gquad){
+                    if(ggg[indx[j]+i] < INF)
+                      f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
                   }
                 }
               }
@@ -522,11 +520,10 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
                     }
                     f5[j] = MIN2(f5[j], energy);
                   }
-
-                  if(md->gquad){
-                    if(ggg[indx[j]+1] < INF)
-                      f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
-                  }
+                }
+                if(md->gquad){
+                  if(ggg[indx[j]+1] < INF)
+                    f5[j] = MIN2(f5[j], ggg[indx[j]+1]);
                 }
 
                 for(i = j - turn - 1; i > 1; i--){
@@ -540,11 +537,10 @@ fill_arrays_comparative(vrna_fold_compound_t *vc){
                       }
                       f5[j] = MIN2(f5[j], energy);
                     }
-
-                    if(md->gquad){
-                      if(ggg[indx[j]+i] < INF)
-                        f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
-                    }
+                  }
+                  if(md->gquad){
+                    if(ggg[indx[j]+i] < INF)
+                      f5[j] = MIN2(f5[j], f5[i-1] + ggg[indx[j]+i]);
                   }
                 }
               }
@@ -1006,7 +1002,6 @@ backtrack_comparative(vrna_fold_compound_t *vc,
       }
     canonical = 1;
     cij += pscore[indx[j]+i];
-
     /* does (i,j) close a hairpin loop ? */
     if(vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &b))
       continue;

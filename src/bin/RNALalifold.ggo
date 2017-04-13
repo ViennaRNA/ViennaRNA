@@ -59,7 +59,10 @@ details="This option tells the program to produce, for each hit, a colored and s
  The postscript output file names are \"aln_start_end.eps\" and \"ss_start_end.eps\". All\
  files will be created in the current directory. The optional argument string can be used\
  to set a specific prefix that is used to name the output files. The file names then become\
- \"prefix_aln_start_end.eps\", \"prefix_ss_start_end.eps\", and \"prefix.stk\".\n\n"
+ \"prefix_aln_start_end.eps\", \"prefix_ss_start_end.eps\", and \"prefix.stk\".\
+ Note: Any special characters in the prefix will be replaced by the filename delimiter,\
+ hence there is no way to pass an entire directory path through this option yet.\
+ (See also the \"--filename-delim\" parameter)\n\n"
 string
 argoptional
 typestr="prefix"
@@ -70,7 +73,10 @@ option  "aln-EPS"             -
 details="The default file name used for the output is \"aln_start_end.eps\" where \"start\" and\
  \"end\" denote the first and last column of the subalignment relative to the input (1-based).\
  Users may change the filename to \"prefix_aln_start_end.eps\" by specifying the prefix as optional\
- argument. Files will be create in the current directory.\n\n"
+ argument. Files will be create in the current directory.\
+ Note: Any special characters in the prefix will be replaced by the filename delimiter,\
+ hence there is no way to pass an entire directory path through this option yet.\
+ (See also the \"--filename-delim\" parameter)\n\n"
 string
 argoptional
 typestr="prefix"
@@ -88,7 +94,10 @@ option  "aln-EPS-ss"             -
 details="The default file name used for the output is \"ss_start_end.eps\" where \"start\" and\
  \"end\" denote the first and last column of the subalignment relative to the input (1-based).\
  Users may change the filename to \"prefix_ss_start_end.eps\" by specifying the prefix as optional\
- argument. Files will be create in the current directory.\n\n"
+ argument. Files will be create in the current directory.\
+ Note: Any special characters in the prefix will be replaced by the filename delimiter,\
+ hence there is no way to pass an entire directory path through this option yet.\
+ (See also the \"--filename-delim\" parameter)\n\n"
 string
 argoptional
 typestr="prefix"
@@ -99,7 +108,10 @@ option  "aln-stk"             -
 details="The default file name used for the output is \"RNALalifold_results.stk\". Users may\
  change the filename to \"prefix.stk\" by specifying the prefix as optional argument. The file\
  will be create in the current directory if it does not already exist. In case the file already\
- exists, output will be appended to it.\n\n"
+ exists, output will be appended to it.\
+ Note: Any special characters in the prefix will be replaced by the filename delimiter,\
+ hence there is no way to pass an entire directory path through this option yet.\
+ (See also the \"--filename-delim\" parameter)\n\n"
 string
 argoptional
 typestr="prefix"
@@ -167,7 +179,10 @@ details="This parameter can be used to change the delimiting character used whil
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
  delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
  the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
- characters will be simply removed rather than substituted.\n\n"
+ characters will be simply removed rather than substituted.\
+ Currently, we regard the following characters as illegal for use in filenames:\
+ backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
+ pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n\n"
 string
 typestr="delimiter"
 default="ID-delimiter"
@@ -182,6 +197,11 @@ sectiondesc="Select additional algorithms which should be included in the calcul
 option  "mis" -
 "Output \"most informative sequence\" instead of simple consensus: For each column of the alignment\
  output the set of nucleotides with frequence greater than average in IUPAC notation.\n\n"
+flag
+off
+
+option  "gquad" g
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n\n"
 flag
 off
 

@@ -153,17 +153,8 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc)
     free(vc->mm2);
 
     /* free local folding related stuff (should be NULL if not used) */
-    if (vc->ptype_local) {
-      for (s = 0; (s < vc->window_size + 5) && (s <= vc->length); s++)
-        free(vc->ptype_local[s]);
-      free(vc->ptype_local);
-    }
-
-    if (vc->pscore_local) {
-      for (s = 0; (s < vc->window_size + 5) && (s <= vc->length); s++)
-        free(vc->pscore_local[s]);
-      free(vc->pscore_local);
-    }
+    free(vc->ptype_local);
+    free(vc->pscore_local);
 
     if (vc->free_auxdata)
       vc->free_auxdata(vc->auxdata);
@@ -222,8 +213,6 @@ vrna_fold_compound(const char   *sequence,
     set_fold_compound(vc, &md, options, aux_options);
 
     vc->ptype_local = vrna_alloc(sizeof(char *) * (vc->length + 1));
-    for (i = (int)vc->length; (i > (int)vc->length - vc->window_size - 5) && (i >= 0); i--)
-      vc->ptype_local[i] = vrna_alloc(sizeof(char) * (vc->window_size + 5));
 
     if (!(options & VRNA_OPTION_EVAL_ONLY)) {
       /* add default hard constraints */
@@ -318,8 +307,11 @@ vrna_fold_compound_comparative(const char   **sequences,
     set_fold_compound(vc, &md, options, aux_options);
 
     vc->pscore_local = vrna_alloc(sizeof(int *) * (vc->length + 1));
+
+#if 0
     for (i = (int)vc->length; (i > (int)vc->length - vc->window_size - 5) && (i >= 0); i--)
       vc->pscore_local[i] = vrna_alloc(sizeof(int) * (vc->window_size + 5));
+#endif
 
     if (!(options & VRNA_OPTION_EVAL_ONLY)) {
       /* add default hard constraints */

@@ -1,4 +1,6 @@
-This is Version 2.3.4 of the ViennaRNA Package.
+[![Build Status](https://travis-ci.org/ViennaRNA/ViennaRNA.svg?branch=master)](https://travis-ci.org/ViennaRNA/ViennaRNA)
+
+This is Version 2.3.5 of the ViennaRNA Package.
 ------------------------------------------------
 See the NEWS and Changelog files for differences to previous versions.
 

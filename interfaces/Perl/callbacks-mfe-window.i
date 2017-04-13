@@ -148,6 +148,7 @@ perl_wrap_mfe_window_zscore_cb(int start, int end, const char *stucture, float e
 
 %rename (Lfold_cb) my_Lfold_cb;
 %rename (Lfoldz_cb) my_Lfoldz_cb;
+%rename (aliLfold_cb) my_aliLfold_cb;
 
 %{
   float my_Lfold_cb(char *string, int window_size, SV *PerlFunc, SV *PerlData = NULL) {
@@ -168,6 +169,17 @@ perl_wrap_mfe_window_zscore_cb(int start, int end, const char *stucture, float e
   }
 #endif
 
+  float my_aliLfold_cb(std::vector<std::string> alignment, int window_size, SV *PerlFunc, SV *PerlData = NULL) {
+    float en;
+    perl_mfe_window_callback_t *cb = bind_mfe_window_callback(PerlFunc, PerlData);
+    std::vector<const char*>  vc;
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
+    vc.push_back(NULL); /* mark end of sequences */
+    en = vrna_aliLfold_cb((const char **)&vc[0], window_size, &perl_wrap_mfe_window_cb, (void *)cb);
+    free(cb);
+    return en;
+  }
+
 %}
 
 float my_Lfold_cb(char *string, int window_size, SV *PerlFunc, SV *PerlData = NULL);
@@ -177,5 +189,10 @@ float my_Lfold_cb(char *string, int window_size, SV *PerlFunc, SV *PerlData = NU
 float my_Lfoldz_cb(char *string, int window_size, double min_z, SV *PerlFunc, SV *PerlData = NULL);
 %ignore vrna_Lfoldz_cb;
 #endif
+
+float my_aliLfold_cb(std::vector<std::string> alignment, int window_size, SV *PerlFunc, SV *PerlData = NULL);
+%ignore vrna_aliLfold_cb;
+%ignore aliLfold_cb;
+
 
 #endif

@@ -89,6 +89,7 @@ python_wrap_mfe_window_zscore_cb(int start, int end, const char *structure, floa
 
 %rename (Lfold_cb) my_Lfold_cb;
 %rename (Lfoldz_cb) my_Lfoldz_cb;
+%rename (aliLfold_cb) my_aliLfold_cb;
 
 %{
   float my_Lfold_cb(char *string, int window_size, PyObject *PyFunc, PyObject *data = Py_None) {
@@ -109,6 +110,17 @@ python_wrap_mfe_window_zscore_cb(int start, int end, const char *structure, floa
   }
 #endif
 
+  float my_aliLfold_cb(std::vector<std::string> alignment, int window_size, PyObject *PyFunc, PyObject *data = Py_None) {
+    float en;
+    python_mfe_window_callback_t *cb = bind_mfe_window_callback(PyFunc, data);
+    std::vector<const char*>  vc;
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
+    vc.push_back(NULL); /* mark end of sequences */
+    en = vrna_aliLfold_cb((const char **)&vc[0], window_size, &python_wrap_mfe_window_cb, (void *)cb);
+    free(cb);
+    return en;
+  }
+
 %}
 
 float my_Lfold_cb(char *string, int window_size, PyObject *PyFunc, PyObject *data);
@@ -118,6 +130,11 @@ float my_Lfold_cb(char *string, int window_size, PyObject *PyFunc, PyObject *dat
 float my_Lfoldz_cb(char *string, int window_size, double min_z, PyObject *PyFunc, PyObject *data);
 %ignore vrna_Lfoldz_cb;
 #endif
+
+float my_aliLfold_cb(std::vector<std::string> alignment, int window_size, PyObject *PyFunc, PyObject *data);
+%ignore vrna_aliLfold_cb;
+%ignore aliLfold_cb;
+
 
 
 #endif
