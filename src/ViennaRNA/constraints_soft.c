@@ -53,7 +53,8 @@ sc_add_bp(vrna_fold_compound_t  *vc,
 PRIVATE void
 sc_really_add_up(vrna_fold_compound_t *vc,
                  int                  i,
-                 FLT_OR_DBL           energy);
+                 FLT_OR_DBL           energy,
+                 unsigned int         options);
 
 
 PRIVATE void
@@ -193,7 +194,15 @@ vrna_sc_prepare(vrna_fold_compound_t  *vc,
 
   if (sc) {
     if (sc->up_storage) {
+      maxdist = MIN2(vc->window_size, vc->length - i + 1);
+
       /* additional energy contributions per unpaired nucleotide */
+      sc->energy_up[i][0] = 0;
+      for (k = 1; k <= maxdist; k++) {
+        sc->energy_up[i][k] = sc->energy_up[i][k - 1] +
+                              sc->up_storage[i + k - 1];
+        printf("sc_up[%d][%d] = %d\n", i, k, sc->energy_up[i][k]);
+      }
     }
 
     if (sc->bp_storage) {
@@ -373,10 +382,80 @@ vrna_sc_add_up(vrna_fold_compound_t *vc,
                            " (Sequence length: %d)",
                            i, vc->length);
     } else {
-      sc_really_add_up(vc, i, energy);
+      sc_really_add_up(vc, i, energy, options);
 
       if (options & VRNA_OPTION_PF)
         prepare_Boltzmann_weights_up(vc);
+    }
+  }
+}
+
+
+PUBLIC void
+vrna_sc_set_stack(vrna_fold_compound_t  *vc,
+                  const FLT_OR_DBL      *constraints,
+                  unsigned int          options)
+{
+  int i;
+
+  if ((vc) && (constraints)) {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if (options & VRNA_OPTION_WINDOW) {
+          if (!vc->sc)
+            vrna_sc_init_window(vc);
+        } else {
+          if (!vc->sc)
+            vrna_sc_init(vc);
+        }
+
+        free(vc->sc->energy_stack);
+        vc->sc->energy_stack = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
+
+        for (i = 1; i <= vc->length; ++i)
+          vc->sc->energy_stack[i] = (int)roundf(constraints[i] * 100.);
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        break;
+    }
+  }
+}
+
+
+PUBLIC void
+vrna_sc_add_stack(vrna_fold_compound_t  *vc,
+                  int                   i,
+                  FLT_OR_DBL            energy,
+                  unsigned int          options)
+{
+  if (vc) {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if ((i < 1) || (i > vc->length)) {
+          vrna_message_warning("vrna_sc_add_stack(): Nucleotide position %d out of range!"
+                               " (Sequence length: %d)",
+                               i, vc->length);
+        } else {
+          if (options & VRNA_OPTION_WINDOW) {
+            if (!vc->sc)
+              vrna_sc_init_window(vc);
+          } else {
+            if (!vc->sc)
+              vrna_sc_init(vc);
+          }
+
+          if (!vc->sc->energy_stack)
+            vc->sc->energy_stack = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
+
+          vc->sc->energy_stack[i] += (int)roundf(energy * 100.);
+        }
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        break;
     }
   }
 }
@@ -440,6 +519,22 @@ vrna_sc_add_exp_f(vrna_fold_compound_t        *vc,
 
       vc->sc->exp_f = exp_f;
     }
+  }
+}
+
+
+PRIVATE void
+sc_init_up_storage(vrna_sc_t *sc)
+{
+  int i;
+
+  if (!sc->up_storage) {
+    sc->up_storage = (int *)vrna_alloc(sizeof(int) * (sc->n + 2));
+
+    free(sc->energy_up);
+    sc->energy_up = (int **)vrna_alloc(sizeof(int *) * (sc->n + 2));
+    for (i = sc->n + 1; i >= 0; i--)
+      sc->energy_up[i] = NULL;
   }
 }
 
@@ -607,42 +702,52 @@ sc_add_up(vrna_fold_compound_t  *vc,
 PRIVATE void
 sc_really_add_up(vrna_fold_compound_t *vc,
                  int                  i,
-                 FLT_OR_DBL           energy)
+                 FLT_OR_DBL           energy,
+                 unsigned int         options)
 {
   unsigned int  j, u, n;
   vrna_sc_t     *sc;
 
   n = vc->length;
 
-  if (!vc->sc)
-    vrna_sc_init(vc);
+  if (options & VRNA_OPTION_WINDOW) {
+    if (!vc->sc)
+      vrna_sc_init_window(vc);
 
-  sc = vc->sc;
-  /*
-   *  Prepare memory:
-   *  allocate memory such that we can access the soft constraint
-   *  energies of a subsequence of length j starting at position i
-   *  via sc->energy_up[i][j]
-   */
-  if (!(sc->energy_up))
-    sc->energy_up = (int **)vrna_alloc(sizeof(int *) * (n + 2));
+    sc = vc->sc;
+    sc_init_up_storage(sc);
+    sc->up_storage[i] += (int)(energy * 100.);
+  } else {
+    if (!vc->sc)
+      vrna_sc_init(vc);
 
-  for (j = 0; j <= n; j++)
-    if (!(sc->energy_up[j]))
-      sc->energy_up[j] = (int *)vrna_alloc(sizeof(int) * (n - j + 2));
+    sc = vc->sc;
+    /*
+     *  Prepare memory:
+     *  allocate memory such that we can access the soft constraint
+     *  energies of a subsequence of length j starting at position i
+     *  via sc->energy_up[i][j]
+     */
+    if (!(sc->energy_up))
+      sc->energy_up = (int **)vrna_alloc(sizeof(int *) * (n + 2));
 
-  sc->energy_up[n + 1] = NULL;
+    for (j = 0; j <= n; j++)
+      if (!(sc->energy_up[j]))
+        sc->energy_up[j] = (int *)vrna_alloc(sizeof(int) * (n - j + 2));
 
-  /* update soft constraints for subsequences starting at some position */
-  for (j = 1; j <= i; j++) {
-    int u_max   = n - j + 1;
-    int u_start = i - j + 1;
+    sc->energy_up[n + 1] = NULL;
 
-    sc->energy_up[j][u_start] += (int)roundf(energy * 100.); /* convert to 10kal/mol */
+    /* update soft constraints for subsequences starting at some position */
+    for (j = 1; j <= i; j++) {
+      int u_max   = n - j + 1;
+      int u_start = i - j + 1;
 
-    for (u = u_start + 1; u <= u_max; u++)
-      sc->energy_up[j][u] = sc->energy_up[j][u - 1]
-                            + sc->energy_up[j + u - 1][1];
+      sc->energy_up[j][u_start] += (int)roundf(energy * 100.); /* convert to 10kal/mol */
+
+      for (u = u_start + 1; u <= u_max; u++)
+        sc->energy_up[j][u] = sc->energy_up[j][u - 1]
+                              + sc->energy_up[j + u - 1][1];
+    }
   }
 }
 

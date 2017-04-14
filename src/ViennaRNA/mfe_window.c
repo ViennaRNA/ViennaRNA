@@ -560,6 +560,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   length        = vc->length;
   S             = vc->sequence_encoding2;
@@ -573,6 +574,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
   noGUclosure   = md->noGUclosure;
   turn          = md->min_loop_size;
   hc            = vc->hc;
+  sc            = vc->sc;
   do_backtrack  = 0;
   prev_i        = 0;
   prev_j        = 0;
@@ -669,8 +671,15 @@ fill_arrays(vrna_fold_compound_t            *vc,
         /*start "short" backtrack*/
 
         /*get paired base*/
-        while (fij == f3[lind + 1])
-          lind++;
+        if ((sc) && (sc->energy_up)) {
+          while (fij == f3[lind + 1] + sc->energy_up[lind][1]) {
+            lind++;
+            fij -= sc->energy_up[lind][1];
+          }
+        } else {
+          while (fij == f3[lind + 1])
+            lind++;
+        }
 
         pairpartner = vrna_BT_ext_loop_f3_pp(vc, lind, maxdist - (lind - (i + 1)), fij);
 
