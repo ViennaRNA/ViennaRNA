@@ -54,24 +54,28 @@ endif WITH_REFERENCE_MANUAL_HTML
 ## In case the PDF manual should be created, here   ##
 ## is the rule how to do so                         ##
 ##--------------------------------------------------##
+if ! WITH_REFERENCE_MANUAL_PDFLATEX
+  CONVERT_TO_PDF = $(DOXYGEN_CMD_DVIPDF) refman.dvi;
+endif ! WITH_REFERENCE_MANUAL_PDFLATEX
+
 if WITH_REFERENCE_MANUAL_PDF
 
 $(REFERENCE_MANUAL_FILES_PDF): dox
 	$(doxygen_verbose)$(clean_latex); \
-  cd latex; pdflatex refman >>doxyref.log 2>&1; \
-  /usr/bin/makeindex refman.idx >>doxyref.log 2>&1; \
-  bibtex refman >>doxyref.log 2>&1; \
-  pdflatex refman >>doxyref.log 2>&1; \
-  pdflatex refman >>doxyref.log 2>&1; \
+  cd latex; $(DOXYGEN_CMD_LATEX) refman >>doxyref.log 2>&1; \
+  $(DOXYGEN_CMD_MAKEINDEX) refman.idx >>doxyref.log 2>&1; \
+  $(DOXYGEN_CMD_BIBTEX) refman >>doxyref.log 2>&1; \
+  $(DOXYGEN_CMD_LATEX) refman >>doxyref.log 2>&1; \
+  $(DOXYGEN_CMD_LATEX) refman >>doxyref.log 2>&1; \
   latex_count=8 ; \
   while egrep -s 'Rerun (LaTeX|to get cross-references right)' refman.log && [ $$latex_count -gt 0 ] ;\
       do \
         echo "Rerunning latex...." ;\
-        pdflatex refman >>doxyref.log 2>&1;\
+        $(DOXYGEN_CMD_LATEX) refman >>doxyref.log 2>&1;\
         latex_count=`expr $$latex_count - 1` ;\
       done; \
-  /usr/bin/makeindex refman.idx >>doxyref.log 2>&1; \
-  pdflatex refman >>doxyref.log 2>&1; \
+  $(DOXYGEN_CMD_MAKEINDEX) refman.idx >>doxyref.log 2>&1; $(CONVERT_TO_PDF) \
+  $(DOXYGEN_CMD_LATEX) refman >>doxyref.log 2>&1; \
   mv refman.pdf "../$(REFERENCE_MANUAL_FILES_PDF)"
 
 endif WITH_REFERENCE_MANUAL_PDF
