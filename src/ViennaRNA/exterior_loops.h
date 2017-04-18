@@ -169,9 +169,8 @@ vrna_BT_ext_loop_f3(vrna_fold_compound_t  *vc,
 
 int
 vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
-                       int                  i,
-                       int                  maxdist,
-                       int                  fij);
+                       int                  *i,
+                       int                  maxdist);
 
 
 vrna_mx_pf_aux_el_t *

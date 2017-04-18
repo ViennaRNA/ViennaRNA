@@ -201,7 +201,7 @@ vrna_sc_prepare(vrna_fold_compound_t  *vc,
       for (k = 1; k <= maxdist; k++) {
         sc->energy_up[i][k] = sc->energy_up[i][k - 1] +
                               sc->up_storage[i + k - 1];
-        printf("sc_up[%d][%d] = %d\n", i, k, sc->energy_up[i][k]);
+//        printf("sc_up[%d][%d] = %d\n", i, k, sc->energy_up[i][k]);
       }
     }
 
