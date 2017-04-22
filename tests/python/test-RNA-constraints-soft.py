@@ -107,8 +107,13 @@ class constraintsTest(unittest.TestCase):
         mfe = fc.mfe_window_cb(mfe_window_callback, data)
 
         for hit in data:
-            print hit
             if (hit['start'] <= 55) and (hit['end'] >= 60):
+                # count number of unpiared nucleotides with bonus
+                c = 0
+                for i in range(50, 61):
+                    if hit['structure'][i - hit['start']] == '.':
+                        c = c + 1
+
                 # compose actual dot bracket string (including potential 5' dangle nucleotide
                 if hit['start'] > 1:
                     d = 1
@@ -123,8 +128,8 @@ class constraintsTest(unittest.TestCase):
                 # re-evaluate free energy of subsequence/hit
                 e = RNA.energy_of_struct(s, ss)
 
-                # energy difference between both must be -20.0 kcal/mol (if the constrained base pair is present)
-                self.assertEqual("%6.2f" % hit['energy'], "%6.2f" % (e - 20.0))
+                # energy difference between both must be c * -5.0 kcal/mol
+                self.assertEqual("%6.2f" % hit['energy'], "%6.2f" % (e + (c * -5.0)))
 
 
 
