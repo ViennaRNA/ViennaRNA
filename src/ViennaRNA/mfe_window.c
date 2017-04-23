@@ -326,7 +326,7 @@ allocate_dp_matrices(vrna_fold_compound_t *fc)
   for (i = length; (i > length - maxdist - 5) && (i >= 0); i--) {
     c[i]                = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
     fML[i]              = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-    hc->matrix_local[i] = (char *)vrna_alloc(sizeof(char) * (maxdist + 5));
+    hc->matrix_local[i] = (unsigned char *)vrna_alloc(sizeof(unsigned char) * (maxdist + 5));
     if (fc->type == VRNA_FC_TYPE_SINGLE)
       fc->ptype_local[i] = vrna_alloc(sizeof(char) * (maxdist + 5));
     else if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
@@ -568,7 +568,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
 {
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
-  char          **ptype, *prev, hc_decompose;
+  char          **ptype, *prev;
+  unsigned char hc_decompose;
   int           i, j, length, energy, maxdist, **c, **fML, *f3, no_close,
                 type, with_gquad, dangle_model, noLP, noGUclosure, turn,
                 *cc, *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2, prev_i, prev_j,

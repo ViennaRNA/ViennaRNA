@@ -41,12 +41,12 @@ typedef struct  vrna_sc_s vrna_sc_t;
  * @param data      Auxiliary data
  * @return          Pseudo energy contribution in deka-kalories per mol
  */
-typedef int (vrna_callback_sc_energy)(int   i,
-                                      int   j,
-                                      int   k,
-                                      int   l,
-                                      char  d,
-                                      void  *data);
+typedef int (vrna_callback_sc_energy)(int           i,
+                                      int           j,
+                                      int           k,
+                                      int           l,
+                                      unsigned char d,
+                                      void          *data);
 
 /**
  * @brief Callback to retrieve pseudo energy contribution as Boltzmann Factors for soft constraint feature
@@ -74,12 +74,12 @@ typedef int (vrna_callback_sc_energy)(int   i,
  * @param data      Auxiliary data
  * @return          Pseudo energy contribution in deka-kalories per mol
  */
-typedef FLT_OR_DBL (vrna_callback_sc_exp_energy)(int  i,
-                                                 int  j,
-                                                 int  k,
-                                                 int  l,
-                                                 char d,
-                                                 void *data);
+typedef FLT_OR_DBL (vrna_callback_sc_exp_energy)(int            i,
+                                                 int            j,
+                                                 int            k,
+                                                 int            l,
+                                                 unsigned char  d,
+                                                 void           *data);
 
 /**
  * @brief Callback to retrieve auxiliary base pairs for soft constraint feature
@@ -101,12 +101,12 @@ typedef FLT_OR_DBL (vrna_callback_sc_exp_energy)(int  i,
  * @param data      Auxiliary data
  * @return          List of additional base pairs
  */
-typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int   i,
-                                                      int   j,
-                                                      int   k,
-                                                      int   l,
-                                                      char  d,
-                                                      void  *data);
+typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int           i,
+                                                      int           j,
+                                                      int           k,
+                                                      int           l,
+                                                      unsigned char d,
+                                                      void          *data);
 
 
 typedef enum {

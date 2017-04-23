@@ -9,18 +9,18 @@
   }
 
   /* Make a certain nucleotide unpaired */
-  void hc_add_up(int i, int option=(unsigned char)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
-    vrna_hc_add_up($self,i, (char)option);
+  void hc_add_up(int i, unsigned int option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
+    vrna_hc_add_up($self,i, (unsigned char)option);
   }
 
   /* Enforce a nucleotide to be paired (upstream/downstream) */
-  void hc_add_bp_nonspecific(int i, int d, int option=(unsigned char)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
-    vrna_hc_add_bp_nonspecific($self,i,d, (char)option);
+  void hc_add_bp_nonspecific(int i, int d, unsigned int option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
+    vrna_hc_add_bp_nonspecific($self,i,d, (unsigned char)option);
   }
   
   /* Favorize/Enforce  a certain base pair (i,j) */
-  void hc_add_bp(int i, int j, int option=(unsigned char)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
-    vrna_hc_add_bp($self,i,j,(char)option);
+  void hc_add_bp(int i, int j, unsigned int option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
+    vrna_hc_add_bp($self,i,j,(unsigned char)option);
   } 
   
   int hc_add_from_db(const char *constraint, unsigned int options=VRNA_CONSTRAINT_DB_DEFAULT){
@@ -40,14 +40,14 @@
 %constant unsigned int CONSTRAINT_DB_GQUAD      = VRNA_CONSTRAINT_DB_GQUAD;
 %constant unsigned int CONSTRAINT_DB_DEFAULT    = VRNA_CONSTRAINT_DB_DEFAULT;
 
-%constant int CONSTRAINT_CONTEXT_EXT_LOOP     = (unsigned char)VRNA_CONSTRAINT_CONTEXT_EXT_LOOP;
-%constant int CONSTRAINT_CONTEXT_HP_LOOP      = (unsigned char)VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
-%constant int CONSTRAINT_CONTEXT_INT_LOOP     = (unsigned char)VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
-%constant int CONSTRAINT_CONTEXT_INT_LOOP_ENC = (unsigned char)VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
-%constant int CONSTRAINT_CONTEXT_MB_LOOP      = (unsigned char)VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
-%constant int CONSTRAINT_CONTEXT_MB_LOOP_ENC  = (unsigned char)VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
-%constant int CONSTRAINT_CONTEXT_ENFORCE      = (unsigned char)VRNA_CONSTRAINT_CONTEXT_ENFORCE;
-%constant int CONSTRAINT_CONTEXT_NO_REMOVE    = (unsigned char)VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
-%constant int CONSTRAINT_CONTEXT_ALL_LOOPS    = (unsigned char)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+%constant unsigned int CONSTRAINT_CONTEXT_EXT_LOOP     = VRNA_CONSTRAINT_CONTEXT_EXT_LOOP;
+%constant unsigned int CONSTRAINT_CONTEXT_HP_LOOP      = VRNA_CONSTRAINT_CONTEXT_HP_LOOP;
+%constant unsigned int CONSTRAINT_CONTEXT_INT_LOOP     = VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
+%constant unsigned int CONSTRAINT_CONTEXT_INT_LOOP_ENC = VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
+%constant unsigned int CONSTRAINT_CONTEXT_MB_LOOP      = VRNA_CONSTRAINT_CONTEXT_MB_LOOP;
+%constant unsigned int CONSTRAINT_CONTEXT_MB_LOOP_ENC  = VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
+%constant unsigned int CONSTRAINT_CONTEXT_ENFORCE      = VRNA_CONSTRAINT_CONTEXT_ENFORCE;
+%constant unsigned int CONSTRAINT_CONTEXT_NO_REMOVE    = VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
+%constant unsigned int CONSTRAINT_CONTEXT_ALL_LOOPS    = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
 %include  <ViennaRNA/constraints_hard.h>

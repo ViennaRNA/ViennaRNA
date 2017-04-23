@@ -149,9 +149,9 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   with_ud           = (domains_up && domains_up->exp_energy_cb) ? 1 : 0;
   with_ud_outside   = (with_ud && domains_up->probs_add) ? 1 : 0;
 
-  FLT_OR_DBL  expMLstem         = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
-  char        *hard_constraints = hc->matrix;
-  int         *hc_up_int        = hc->up_int;
+  FLT_OR_DBL    expMLstem         = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
+  unsigned char *hard_constraints = hc->matrix;
+  int           *hc_up_int        = hc->up_int;
 
   int           corr_size       = 5;
   int           corr_cnt        = 0;
@@ -176,7 +176,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
       it introduces only little memory overhead, e.g. ~450MB for
       sequences of length 30,000
     */
-    char *hc_local = (char *)vrna_alloc(sizeof(char) * (((n + 1) * (n + 2)) /2 + 2));
+    unsigned char *hc_local = (unsigned char *)vrna_alloc(sizeof(unsigned char) * (((n + 1) * (n + 2)) /2 + 2));
     for(i = 1; i <= n; i++)
       for(j = i; j <= n; j++)
         hc_local[my_iindx[i] - j] = hard_constraints[jindx[j] + i];
@@ -1183,15 +1183,15 @@ ud_outside_int_loops( vrna_fold_compound_t *vc){
 PRIVATE INLINE void
 ud_outside_int_loops2( vrna_fold_compound_t *vc){
 
-  char        *hard_constraints, *hc_local;
-  int         i, j, k, l, p, q, pq, kl, u, n, cnt, *motif_list, *my_iindx,
-              *hc_up, kmin, pmax, qmin, lmax, turn, *jindx, u1, u2, uu1, uu2,
-              u2_max, m;
-  FLT_OR_DBL  *q1k, *qln, temp, *scale, q1, q2, q5, q3, exp_motif_en, outside,
-              *probs, *qb, qq1, qq2, *qqk, *qql, *qqp, **qq_ud, **pp_ud, temp5,
-              temp3;
-  vrna_sc_t   *sc;
-  vrna_ud_t   *domains_up, *ud_bak;
+  unsigned char *hard_constraints, *hc_local;
+  int           i, j, k, l, p, q, pq, kl, u, n, cnt, *motif_list, *my_iindx,
+                *hc_up, kmin, pmax, qmin, lmax, turn, *jindx, u1, u2, uu1, uu2,
+                u2_max, m;
+  FLT_OR_DBL    *q1k, *qln, temp, *scale, q1, q2, q5, q3, exp_motif_en, outside,
+                *probs, *qb, qq1, qq2, *qqk, *qql, *qqp, **qq_ud, **pp_ud, temp5,
+                temp3;
+  vrna_sc_t     *sc;
+  vrna_ud_t     *domains_up, *ud_bak;
 
   n           = vc->length;
   my_iindx    = vc->iindx;
@@ -1207,7 +1207,7 @@ ud_outside_int_loops2( vrna_fold_compound_t *vc){
   sc          = vc->sc;
   turn        = vc->exp_params->model_details.min_loop_size;
 
-  hc_local = (char *)vrna_alloc(sizeof(char) * (((n + 1) * (n + 2)) /2 + 2));
+  hc_local = (unsigned char *)vrna_alloc(sizeof(unsigned char) * (((n + 1) * (n + 2)) /2 + 2));
   for(i = 1; i <= n; i++)
     for(j = i; j <= n; j++)
       hc_local[my_iindx[i] - j] = hard_constraints[jindx[j] + i];
@@ -1358,7 +1358,8 @@ PRIVATE INLINE void
 ud_outside_mb_loops(vrna_fold_compound_t *vc){
 
 
-  char              *hc, *ptype;
+  unsigned char     *hc;
+  char              *ptype;
   short             *S;
   int               i, j, k, l, kl, jkl, *my_iindx, u, n, cnt, *motif_list,
                     *hc_up, turn, tt, *jindx, *rtype, up, ud_max_size;
@@ -1650,7 +1651,8 @@ PRIVATE INLINE void
 ud_outside_mb_loops2(vrna_fold_compound_t *vc){
 
 
-  char              *hc, *ptype, *hc_local;
+  unsigned char     *hc, *hc_local;
+  char              *ptype;
   short             *S;
   int               i, j, k, l, kl, jkl, *my_iindx, u, n, cnt, *motif_list,
                     *hc_up, turn, tt, *jindx, *rtype, up, ud_max_size;
@@ -1685,7 +1687,7 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc){
   expMLbase     = vc->exp_matrices->expMLbase;
   expMLclosing  = pf_params->expMLclosing;
 
-  hc_local = (char *)vrna_alloc(sizeof(char) * (((n + 1) * (n + 2)) /2 + 2));
+  hc_local = (unsigned char *)vrna_alloc(sizeof(unsigned char) * (((n + 1) * (n + 2)) /2 + 2));
   for(i = 1; i <= n; i++)
     for(j = i; j <= n; j++)
       hc_local[my_iindx[i] - j] = hc[jindx[j] + i];
@@ -1987,7 +1989,7 @@ bppm_circ(vrna_fold_compound_t *vc){
 
   unsigned char     type;
   char              *ptype, *sequence;
-  char              *hard_constraints;
+  unsigned char     *hard_constraints;
   short             *S, *S1;
   int               n, i,j,k,l, ij, *rtype, *my_iindx, *jindx, turn;
   FLT_OR_DBL        tmp2, expMLclosing, *qb, *qm, *qm1, *probs, *scale, *expMLbase, qo;
@@ -2038,7 +2040,7 @@ bppm_circ(vrna_fold_compound_t *vc){
     it introduces only little memory overhead, e.g. ~450MB for
     sequences of length 30,000
   */
-  char *hc_local = (char *)vrna_alloc(sizeof(char) * (((n + 1) * (n + 2)) /2 + 2));
+  unsigned char *hc_local = (unsigned char *)vrna_alloc(sizeof(unsigned char) * (((n + 1) * (n + 2)) /2 + 2));
   for(i = 1; i <= n; i++)
     for(j = i; j <= n; j++)
       hc_local[my_iindx[i] - j] = hard_constraints[jindx[j] + i];
@@ -2274,31 +2276,31 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
   int             n             = vc->length;
 
 
-  short             **S           = vc->S;                                                                   
-  short             **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
-  short             **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  char              **Ss          = vc->Ss;
-  unsigned short    **a2s         = vc->a2s;                                                                   
-  vrna_exp_param_t  *pf_params    = vc->exp_params;
-  vrna_mx_pf_t      *matrices     = vc->exp_matrices;
-  vrna_md_t         *md           = &(pf_params->model_details);
-  vrna_hc_t         *hc           = vc->hc;
-  vrna_sc_t         **sc          = vc->scs;
-  int               *my_iindx     = vc->iindx;
-  int               *jindx        = vc->jindx;
-  FLT_OR_DBL        *q            = matrices->q;
-  FLT_OR_DBL        *qb           = matrices->qb;
-  FLT_OR_DBL        *qm           = matrices->qm;
-  FLT_OR_DBL        *qm1          = matrices->qm1;
-  FLT_OR_DBL        qo            = matrices->qo;
-  int               *pscore       = vc->pscore;     /* precomputed array of pair types */                      
-  int               *rtype        = &(md->rtype[0]);
-  int               circular      = md->circ;
-  FLT_OR_DBL        *scale        = matrices->scale;
-  FLT_OR_DBL        *expMLbase    = matrices->expMLbase;
-  FLT_OR_DBL        expMLclosing  = pf_params->expMLclosing;
-  FLT_OR_DBL        *probs        = matrices->probs;
-  char              *hard_constraints = hc->matrix;
+  short             **S               = vc->S;                                                                   
+  short             **S5              = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
+  short             **S3              = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
+  char              **Ss              = vc->Ss;
+  unsigned short    **a2s             = vc->a2s;                                                                   
+  vrna_exp_param_t  *pf_params        = vc->exp_params;
+  vrna_mx_pf_t      *matrices         = vc->exp_matrices;
+  vrna_md_t         *md               = &(pf_params->model_details);
+  vrna_hc_t         *hc               = vc->hc;
+  vrna_sc_t         **sc              = vc->scs;
+  int               *my_iindx         = vc->iindx;
+  int               *jindx            = vc->jindx;
+  FLT_OR_DBL        *q                = matrices->q;
+  FLT_OR_DBL        *qb               = matrices->qb;
+  FLT_OR_DBL        *qm               = matrices->qm;
+  FLT_OR_DBL        *qm1              = matrices->qm1;
+  FLT_OR_DBL        qo                = matrices->qo;
+  int               *pscore           = vc->pscore;     /* precomputed array of pair types */                      
+  int               *rtype            = &(md->rtype[0]);
+  int               circular          = md->circ;
+  FLT_OR_DBL        *scale            = matrices->scale;
+  FLT_OR_DBL        *expMLbase        = matrices->expMLbase;
+  FLT_OR_DBL        expMLclosing      = pf_params->expMLclosing;
+  FLT_OR_DBL        *probs            = matrices->probs;
+  unsigned char     *hard_constraints = hc->matrix;
 
   double kTn;
   FLT_OR_DBL pp;

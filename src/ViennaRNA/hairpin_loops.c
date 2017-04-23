@@ -28,8 +28,8 @@
 struct default_data {
   int                       n;
   int                       *idx;
-  char                      *mx;
-  char                      **mx_window;
+  unsigned char             *mx;
+  unsigned char             **mx_window;
   int                       cp;
   int                       *hc_up;
   void                      *hc_dat;
@@ -55,40 +55,40 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
                      int                  j);
 
 
-PRIVATE char
-hc_default(int  i,
-           int  j,
-           int  k,
-           int  l,
-           char d,
-           void *data);
+PRIVATE unsigned char
+hc_default(int            i,
+           int            j,
+           int            k,
+           int            l,
+           unsigned char  d,
+           void           *data);
 
 
-PRIVATE char
-hc_default_window(int   i,
-                  int   j,
-                  int   k,
-                  int   l,
-                  char  d,
-                  void  *data);
+PRIVATE unsigned char
+hc_default_window(int           i,
+                  int           j,
+                  int           k,
+                  int           l,
+                  unsigned char d,
+                  void          *data);
 
 
-PRIVATE char
-hc_default_user(int   i,
-                int   j,
-                int   k,
-                int   l,
-                char  d,
-                void  *data);
+PRIVATE unsigned char
+hc_default_user(int           i,
+                int           j,
+                int           k,
+                int           l,
+                unsigned char d,
+                void          *data);
 
 
-PRIVATE char
-hc_default_user_window(int  i,
-                       int  j,
-                       int  k,
-                       int  l,
-                       char d,
-                       void *data);
+PRIVATE unsigned char
+hc_default_user_window(int            i,
+                       int            j,
+                       int            k,
+                       int            l,
+                       unsigned char  d,
+                       void           *data);
 
 
 PRIVATE int
@@ -980,16 +980,16 @@ vrna_BT_hp_loop(vrna_fold_compound_t  *vc,
 }
 
 
-PRIVATE char
-hc_default(int  i,
-           int  j,
-           int  k,
-           int  l,
-           char d,
-           void *data)
+PRIVATE unsigned char
+hc_default(int            i,
+           int            j,
+           int            k,
+           int            l,
+           unsigned char  d,
+           void           *data)
 {
   int                 ij, u, p, q;
-  char                eval;
+  unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
 
   eval = (char)0;
@@ -1008,72 +1008,72 @@ hc_default(int  i,
 
   ij = dat->idx[q] + p;
   if (dat->mx[ij] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
-    eval = (char)1;
+    eval = (unsigned char)1;
     if (dat->hc_up[i + 1] < u)
-      eval = (char)0;
+      eval = (unsigned char)0;
   }
 
   return eval;
 }
 
 
-PRIVATE char
-hc_default_window(int   i,
-                  int   j,
-                  int   k,
-                  int   l,
-                  char  d,
-                  void  *data)
+PRIVATE unsigned char
+hc_default_window(int           i,
+                  int           j,
+                  int           k,
+                  int           l,
+                  unsigned char d,
+                  void          *data)
 {
   int                 u;
-  char                eval;
+  unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
 
-  eval = (char)0;
+  eval = (unsigned char)0;
 
   u = j - i - 1;
 
   if (dat->mx_window[i][j - i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
-    eval = (char)1;
+    eval = (unsigned char)1;
     if (dat->hc_up[i + 1] < u)
-      eval = (char)0;
+      eval = (unsigned char)0;
   }
 
   return eval;
 }
 
 
-PRIVATE char
-hc_default_user(int   i,
-                int   j,
-                int   k,
-                int   l,
-                char  d,
-                void  *data)
+PRIVATE unsigned char
+hc_default_user(int           i,
+                int           j,
+                int           k,
+                int           l,
+                unsigned char d,
+                void          *data)
 {
-  char                eval;
+  unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
 
   eval  = hc_default(i, j, k, l, d, data);
-  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (char)0;
+  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
 }
 
 
-PRIVATE char
-hc_default_user_window(int  i,
-                       int  j,
-                       int  k,
-                       int  l,
-                       char d,
-                       void *data)
+PRIVATE unsigned char
+hc_default_user_window(int            i,
+                       int            j,
+                       int            k,
+                       int            l,
+                       unsigned char  d,
+                       void           *data)
 {
-  char                eval;
+  unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
 
   eval  = hc_default_window(i, j, k, l, d, data);
-  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (char)0;
+  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
 }

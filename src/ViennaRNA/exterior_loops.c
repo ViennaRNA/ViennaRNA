@@ -26,8 +26,8 @@
 
 struct default_data {
   int                       *idx;
-  char                      *mx;
-  char                      **mx_window;
+  unsigned char             *mx;
+  unsigned char             **mx_window;
   int                       cp;
   int                       *hc_up;
   void                      *hc_dat;
@@ -123,40 +123,40 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
                               int                   maxj);
 
 
-PRIVATE char
-hc_default(int  i,
-           int  j,
-           int  k,
-           int  l,
-           char d,
-           void *data);
+PRIVATE unsigned char
+hc_default(int            i,
+           int            j,
+           int            k,
+           int            l,
+           unsigned char  d,
+           void           *data);
 
 
-PRIVATE char
-hc_default_window(int   i,
-                  int   j,
-                  int   k,
-                  int   l,
-                  char  d,
-                  void  *data);
+PRIVATE unsigned char
+hc_default_window(int           i,
+                  int           j,
+                  int           k,
+                  int           l,
+                  unsigned char d,
+                  void          *data);
 
 
-PRIVATE char
-hc_default_user(int   i,
-                int   j,
-                int   k,
-                int   l,
-                char  d,
-                void  *data);
+PRIVATE unsigned char
+hc_default_user(int           i,
+                int           j,
+                int           k,
+                int           l,
+                unsigned char d,
+                void          *data);
 
 
-PRIVATE char
-hc_default_user_window(int  i,
-                       int  j,
-                       int  k,
-                       int  l,
-                       char d,
-                       void *data);
+PRIVATE unsigned char
+hc_default_user_window(int            i,
+                       int            j,
+                       int            k,
+                       int            l,
+                       unsigned char  d,
+                       void           *data);
 
 
 PRIVATE INLINE int get_pair_type_md(int       i,
@@ -390,7 +390,8 @@ E_ext_loop(int                  i,
            int                  j,
            vrna_fold_compound_t *vc)
 {
-  char                      *ptype, *hard_constraints;
+  char                      *ptype;
+  unsigned char             *hard_constraints;
   short                     *S;
   int                       ij, en, e, type, cp, *idx;
   vrna_param_t              *P;
@@ -512,7 +513,8 @@ get_pair_type_window(int  i,
 PRIVATE int
 E_ext_loop_5(vrna_fold_compound_t *vc)
 {
-  char                      *ptype, *hc;
+  char                      *ptype;
+  unsigned char             *hc;
   short                     *S;
   int                       en, i, j, ij, type, length, *indx, *hc_up, *f5, *c, dangle_model,
                             *ggg, with_gquad, turn, k, u, with_ud;
@@ -1123,7 +1125,7 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
 PRIVATE int
 E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
 {
-  char                      *hc;
+  unsigned char             *hc;
   unsigned short            **a2s;
   short                     **S, **S5, **S3;
   int                       en, i, j, ij, tt, length, *indx, *hc_up, *f5, *c, dangle_model,
@@ -3425,7 +3427,7 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
   vrna_mx_pf_aux_el_t *aux_mx = NULL;
 
   if (vc) {
-    char                      *hc;
+    unsigned char             *hc;
     unsigned int              u, s;
     int                       i, j, d, n, turn, ij, *idx, *iidx, *hc_up;
     FLT_OR_DBL                *q, *scale;
@@ -3879,31 +3881,31 @@ exp_E_ext_fast_comparative(vrna_fold_compound_t *vc,
 }
 
 
-PRIVATE char
-hc_default(int  i,
-           int  j,
-           int  k,
-           int  l,
-           char d,
-           void *data)
+PRIVATE unsigned char
+hc_default(int            i,
+           int            j,
+           int            k,
+           int            l,
+           unsigned char  d,
+           void           *data)
 {
   int                 kl, di, dj;
-  char                eval;
+  unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
 
-  eval  = (char)0;
+  eval  = (unsigned char)0;
   di    = k - i;
   dj    = j - l;
   switch (d) {
     case VRNA_DECOMP_EXT_EXT_STEM:
       kl = dat->idx[j] + l;
       if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (char)1;
+        eval = (unsigned char)1;
         if (i != l) {
           /* otherwise, stem spans from i to j */
           di = l - k - 1;
           if ((di != 0) && (dat->hc_up[k + 1] < di))
-            eval = (char)0;
+            eval = (unsigned char)0;
         }
       }
 
@@ -3912,15 +3914,15 @@ hc_default(int  i,
     case VRNA_DECOMP_EXT_EXT_STEM1:
       kl = dat->idx[j - 1] + l;
       if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (char)1;
+        eval = (unsigned char)1;
         if (i != l) {
           /* otherwise, stem spans from i to j - 1 */
           di = l - k - 1;
           if (dat->hc_up[j] == 0)
-            eval = (char)0;
+            eval = (unsigned char)0;
 
           if ((di != 0) && (dat->hc_up[k + 1] < di))
-            eval = (char)0;
+            eval = (unsigned char)0;
         }
       }
 
@@ -3929,29 +3931,29 @@ hc_default(int  i,
     case VRNA_DECOMP_EXT_STEM:
       kl = dat->idx[l] + k;
       if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (char)1;
+        eval = (unsigned char)1;
         if ((di != 0) && (dat->hc_up[i] < di))
-          eval = (char)0;
+          eval = (unsigned char)0;
 
         if ((dj != 0) && (dat->hc_up[l + 1] < dj))
-          eval = (char)0;
+          eval = (unsigned char)0;
       }
 
       break;
 
     case VRNA_DECOMP_EXT_EXT:
-      eval = (char)1;
+      eval = (unsigned char)1;
       if ((di != 0) && (dat->hc_up[i] < di))
-        eval = (char)0;
+        eval = (unsigned char)0;
 
       if ((dj != 0) && (dat->hc_up[l + 1] < dj))
-        eval = (char)0;
+        eval = (unsigned char)0;
 
       break;
 
     case VRNA_DECOMP_EXT_UP:
       di    = j - i + 1;
-      eval  = (dat->hc_up[i] >= di) ? (char)1 : (char)0;
+      eval  = (dat->hc_up[i] >= di) ? (unsigned char)1 : (unsigned char)0;
       break;
 
     default:
@@ -3961,31 +3963,31 @@ hc_default(int  i,
 }
 
 
-PRIVATE char
-hc_default_window(int   i,
-                  int   j,
-                  int   k,
-                  int   l,
-                  char  d,
-                  void  *data)
+PRIVATE unsigned char
+hc_default_window(int           i,
+                  int           j,
+                  int           k,
+                  int           l,
+                  unsigned char d,
+                  void          *data)
 {
   int                 di, dj;
-  char                eval;
+  unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
 
-  eval  = (char)0;
+  eval  = (unsigned char)0;
   di    = k - i;
   dj    = j - l;
 
   switch (d) {
     case VRNA_DECOMP_EXT_EXT_STEM:
       if (dat->mx_window[l][j - l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (char)1;
+        eval = (unsigned char)1;
         if (i != l) {
           /* otherwise, stem spans from i to j */
           di = l - k - 1;
           if ((di != 0) && (dat->hc_up[k + 1] < di))
-            eval = (char)0;
+            eval = (unsigned char)0;
         }
       }
 
@@ -3993,12 +3995,12 @@ hc_default_window(int   i,
 
     case VRNA_DECOMP_EXT_STEM_EXT:
       if (dat->mx_window[i][k - i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (char)1;
+        eval = (unsigned char)1;
         if (j != k) {
           /* otherwise, stem spans from i to j */
           dj = l - k - 1;
           if ((dj != 0) && (dat->hc_up[k + 1] < dj))
-            eval = (char)0;
+            eval = (unsigned char)0;
         }
       }
 
@@ -4006,17 +4008,17 @@ hc_default_window(int   i,
 
     case VRNA_DECOMP_EXT_EXT_STEM1:
       if (dat->mx_window[l][j - 1 - l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (char)1;
+        eval = (unsigned char)1;
 
         if (dat->hc_up[j] == 0)
-          eval = (char)0;
+          eval = (unsigned char)0;
 
         if (i != l) {
           /* otherwise, stem spans from i to j - 1 */
           di = l - k - 1;
 
           if ((di != 0) && (dat->hc_up[k + 1] < di))
-            eval = (char)0;
+            eval = (unsigned char)0;
         }
       }
 
@@ -4024,17 +4026,17 @@ hc_default_window(int   i,
 
     case VRNA_DECOMP_EXT_STEM_EXT1:
       if (dat->mx_window[i + 1][k - (i + 1)] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (char)1;
+        eval = (unsigned char)1;
 
         if (dat->hc_up[i] == 0)
-          eval = (char)0;
+          eval = (unsigned char)0;
 
         if (j != k) {
           /* otherwise, stem spans from i + 1 to j */
           dj = l - k - 1;
 
           if ((dj != 0) && (dat->hc_up[k + 1] < dj))
-            eval = (char)0;
+            eval = (unsigned char)0;
         }
       }
 
@@ -4042,29 +4044,29 @@ hc_default_window(int   i,
 
     case VRNA_DECOMP_EXT_STEM:
       if (dat->mx_window[k][l - k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (char)1;
+        eval = (unsigned char)1;
         if ((di != 0) && (dat->hc_up[i] < di))
-          eval = (char)0;
+          eval = (unsigned char)0;
 
         if ((dj != 0) && (dat->hc_up[l + 1] < dj))
-          eval = (char)0;
+          eval = (unsigned char)0;
       }
 
       break;
 
     case VRNA_DECOMP_EXT_EXT:
-      eval = (char)1;
+      eval = (unsigned char)1;
       if ((di != 0) && (dat->hc_up[i] < di))
-        eval = (char)0;
+        eval = (unsigned char)0;
 
       if ((dj != 0) && (dat->hc_up[l + 1] < dj))
-        eval = (char)0;
+        eval = (unsigned char)0;
 
       break;
 
     case VRNA_DECOMP_EXT_UP:
       di    = j - i + 1;
-      eval  = (dat->hc_up[i] >= di) ? (char)1 : (char)0;
+      eval  = (dat->hc_up[i] >= di) ? (unsigned char)1 : (unsigned char)0;
       break;
 
     default:
@@ -4074,37 +4076,37 @@ hc_default_window(int   i,
 }
 
 
-PRIVATE char
-hc_default_user(int   i,
-                int   j,
-                int   k,
-                int   l,
-                char  d,
-                void  *data)
+PRIVATE unsigned char
+hc_default_user(int           i,
+                int           j,
+                int           k,
+                int           l,
+                unsigned char d,
+                void          *data)
 {
-  char                eval;
+  unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
 
   eval  = hc_default(i, j, k, l, d, data);
-  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (char)0;
+  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
 }
 
 
-PRIVATE char
-hc_default_user_window(int  i,
-                       int  j,
-                       int  k,
-                       int  l,
-                       char d,
-                       void *data)
+PRIVATE unsigned char
+hc_default_user_window(int            i,
+                       int            j,
+                       int            k,
+                       int            l,
+                       unsigned char  d,
+                       void           *data)
 {
-  char                eval;
+  unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
 
   eval  = hc_default_window(i, j, k, l, d, data);
-  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (char)0;
+  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
 }

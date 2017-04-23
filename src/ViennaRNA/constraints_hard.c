@@ -59,43 +59,43 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
             int                   i,
             int                   start,
             int                   end,
-            char                  loop_type);
+            unsigned char         loop_type);
 
 
 PRIVATE void
 hc_add_up(vrna_fold_compound_t  *vc,
           int                   i,
-          char                  option);
+          unsigned char         option);
 
 
 PRIVATE INLINE void
-hc_cant_pair(unsigned int i,
-             char         c_option,
-             char         *hc,
-             unsigned int length,
-             unsigned int min_loop_size,
-             int          *index);
+hc_cant_pair(unsigned int   i,
+             unsigned char  c_option,
+             unsigned char  *hc,
+             unsigned int   length,
+             unsigned int   min_loop_size,
+             int            *index);
 
 
 PRIVATE INLINE void
-hc_must_pair(unsigned int i,
-             char         c_option,
-             char         *hc,
-             int          *index);
+hc_must_pair(unsigned int   i,
+             unsigned char  c_option,
+             unsigned char  *hc,
+             int            *index);
 
 
 PRIVATE INLINE void
 hc_pairs_upstream(unsigned int  i,
-                  char          c_option,
-                  char          *hc,
+                  unsigned char c_option,
+                  unsigned char *hc,
                   unsigned int  length,
                   int           *index);
 
 
 PRIVATE INLINE void
 hc_pairs_downstream(unsigned int  i,
-                    char          c_option,
-                    char          *hc,
+                    unsigned char c_option,
+                    unsigned char *hc,
                     unsigned int  length,
                     int           *index);
 
@@ -103,54 +103,54 @@ hc_pairs_downstream(unsigned int  i,
 PRIVATE INLINE void
 hc_allow_pair(unsigned int  i,
               unsigned int  j,
-              char          c_option,
-              char          *hc,
+              unsigned char c_option,
+              unsigned char *hc,
               int           *index);
 
 
 PRIVATE INLINE void
-hc_weak_enforce_pair(unsigned int i,
-                     unsigned int j,
-                     char         c_option,
-                     char         *hc,
-                     unsigned int length,
-                     unsigned int min_loop_size,
-                     int          *index);
+hc_weak_enforce_pair(unsigned int   i,
+                     unsigned int   j,
+                     unsigned char  c_option,
+                     unsigned char  *hc,
+                     unsigned int   length,
+                     unsigned int   min_loop_size,
+                     int            *index);
 
 
 PRIVATE INLINE void
 hc_enforce_pair(unsigned int  i,
                 unsigned int  j,
-                char          c_option,
-                char          *hc,
+                unsigned char c_option,
+                unsigned char *hc,
                 unsigned int  length,
                 unsigned int  min_loop_size,
                 int           *index);
 
 
 PRIVATE INLINE void
-hc_intramolecular_only(unsigned int i,
-                       char         c_option,
-                       char         *hc,
-                       unsigned int length,
-                       unsigned int min_loop_size,
-                       int          cut,
-                       int          *index);
+hc_intramolecular_only(unsigned int   i,
+                       unsigned char  c_option,
+                       unsigned char  *hc,
+                       unsigned int   length,
+                       unsigned int   min_loop_size,
+                       int            cut,
+                       int            *index);
 
 
 PRIVATE INLINE void
-hc_intermolecular_only(unsigned int i,
-                       char         c_option,
-                       char         *hc,
-                       unsigned int length,
-                       unsigned int min_loop_size,
-                       int          cut,
-                       int          *index);
+hc_intermolecular_only(unsigned int   i,
+                       unsigned char  c_option,
+                       unsigned char  *hc,
+                       unsigned int   length,
+                       unsigned int   min_loop_size,
+                       int            cut,
+                       int            *index);
 
 
 PRIVATE void
 apply_DB_constraint(const char    *constraint,
-                    char          *ptype,
+                    unsigned char *hc,
                     unsigned int  length,
                     unsigned int  min_loop_size,
                     int           cut,
@@ -222,7 +222,7 @@ vrna_hc_init(vrna_fold_compound_t *vc)
   hc          = (vrna_hc_t *)vrna_alloc(sizeof(vrna_hc_t));
   hc->type    = VRNA_HC_DEFAULT;
   hc->n       = n;
-  hc->matrix  = (char *)vrna_alloc(sizeof(char) * ((n * (n + 1)) / 2 + 2));
+  hc->matrix  = (unsigned char *)vrna_alloc(sizeof(unsigned char) * ((n * (n + 1)) / 2 + 2));
   hc->up_ext  = (int *)vrna_alloc(sizeof(int) * (n + 2));
   hc->up_hp   = (int *)vrna_alloc(sizeof(int) * (n + 2));
   hc->up_int  = (int *)vrna_alloc(sizeof(int) * (n + 2));
@@ -260,7 +260,7 @@ vrna_hc_init_window(vrna_fold_compound_t *vc)
   hc                = (vrna_hc_t *)vrna_alloc(sizeof(vrna_hc_t));
   hc->type          = VRNA_HC_WINDOW;
   hc->n             = n;
-  hc->matrix_local  = (char **)vrna_alloc(sizeof(char *) * (n + 2));
+  hc->matrix_local  = (unsigned char **)vrna_alloc(sizeof(unsigned char *) * (n + 2));
   hc->up_storage    = NULL;
   hc->bp_storage    = NULL;
   hc->up_ext        = NULL;
@@ -330,7 +330,7 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
         if (j > n)
           break;
 
-        char opt = (char)0;
+        unsigned char opt = (unsigned char)0;
         if ((j - i + 1) <= maxdist) {
           type = md->pair[S[i]][S[j]];
           switch (type) {
@@ -356,8 +356,8 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
 
         /* check whether we have constraints on any pairing partner i or j */
         if ((hc->bp_storage) && (hc->bp_storage[i])) {
-          char  constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-          int   cnt, set;
+          unsigned char constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+          int           cnt, set;
           /* go through list of constraints on position i */
           for (set = cnt = 0; hc->bp_storage[i][cnt].interval_start != 0; cnt++) {
             if (hc->bp_storage[i][cnt].interval_start > j)
@@ -370,7 +370,7 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
             constraint  &= hc->bp_storage[i][cnt].loop_type;
             set         = 1;
           }
-          if (set && (opt == (char)0))
+          if (set && (opt == (unsigned char)0))
             /* overwrite if bp is non-canonical */
             opt = constraint;
           else
@@ -390,15 +390,15 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
         if (j > n)
           break;
 
-        char opt = (char)0;
+        unsigned char opt = (unsigned char)0;
         if ((j - i) <= maxdist)
           if (vc->pscore_local[i][j - i] >= md->cv_fact * MINPSCORE)
             opt = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
         /* check whether we have constraints on any pairing partner i or j */
         if ((hc->bp_storage) && (hc->bp_storage[i])) {
-          char  constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-          int   cnt, set;
+          unsigned char constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+          int           cnt, set;
           /* go through list of constraints on position i */
           for (set = cnt = 0; hc->bp_storage[i][cnt].interval_start != 0; cnt++) {
             if (hc->bp_storage[i][cnt].interval_start > j)
@@ -411,7 +411,7 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
             constraint  &= hc->bp_storage[i][cnt].loop_type;
             set         = 1;
           }
-          if (set && (opt == (char)0))
+          if (set && (opt == (unsigned char)0))
             /* overwrite if bp is non-canonical */
             opt = constraint;
           else
@@ -434,7 +434,7 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
 PUBLIC void
 vrna_hc_add_up(vrna_fold_compound_t *vc,
                int                  i,
-               char                 option)
+               unsigned char        option)
 {
   int j;
 
@@ -465,8 +465,8 @@ vrna_hc_add_up_batch(vrna_fold_compound_t *vc,
   if (vc) {
     if (vc->hc && constraints) {
       for (i = 0; constraints[i].position != 0; i++) {
-        int   pos     = constraints[i].position;
-        char  options = constraints[i].options;
+        int           pos     = constraints[i].position;
+        unsigned char options = constraints[i].options;
         if ((pos <= 0) || (pos > vc->length)) {
           vrna_message_warning(
             "vrna_hc_add_up_batch: position out of range, application of hard constraints stops here!");
@@ -494,7 +494,7 @@ hc_init_up_storage(vrna_hc_t *hc)
 
   if (hc->up_storage == NULL) {
     free(hc->up_storage);
-    hc->up_storage = (char *)vrna_alloc(sizeof(char) * (hc->n + 2));
+    hc->up_storage = (unsigned char *)vrna_alloc(sizeof(unsigned char) * (hc->n + 2));
 
     for (i = 1; i <= hc->n; i++) {
       /* by default unpaired nucleotides are allowed in all contexts */
@@ -528,7 +528,7 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
             int                   i,
             int                   start,
             int                   end,
-            char                  loop_type)
+            unsigned char         loop_type)
 {
   int size, cnt = 0;
 
@@ -536,7 +536,7 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
     container[i] = (vrna_hc_bp_storage_t *)vrna_alloc(sizeof(vrna_hc_bp_storage_t) * 2);
   } else {
     /* find out total size of container */
-    for (size = 0; container[i][size].interval_start != 0; size++);
+    for (size = 0; container[i][size].interval_start != 0; size++) ;
 
     /* find position where we want to insert the new constraint */
     for (cnt = 0; cnt < size; cnt++) {
@@ -563,18 +563,18 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
 PRIVATE void
 hc_add_up(vrna_fold_compound_t  *vc,
           int                   i,
-          char                  option)
+          unsigned char         option)
 {
-  int   j;
-  char  type = (char)0;
+  int           j;
+  unsigned char type = (unsigned char)0;
 
   if (vc->hc->type == VRNA_HC_WINDOW) {
     if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
       hc_init_up_storage(vc->hc);
-      type = option & (char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
-                             | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
-                             | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
-                             | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+      type = option & (unsigned char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                                      | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                                      | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                                      | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
 
       vc->hc->up_storage[i] = type;
 
@@ -582,17 +582,17 @@ hc_add_up(vrna_fold_compound_t  *vc,
         hc_init_bp_storage(vc->hc);
         /* add constraints for all pairs (j, i) with j < i */
         for (j = 1; j < i; j++)
-          hc_store_bp(vc->hc->bp_storage, j, i, i, (char)0);
+          hc_store_bp(vc->hc->bp_storage, j, i, i, (unsigned char)0);
 
         /* add constraints for all pairs (i, j) with i < j */
-        hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, (char)0);
+        hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, (unsigned char)0);
       }
     } else {
       hc_init_up_storage(vc->hc);
-      vc->hc->up_storage[i] = (char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
-                                     | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
-                                     | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
-                                     | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+      vc->hc->up_storage[i] = (unsigned char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                                              | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                                              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                                              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
 
       if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
         hc_init_bp_storage(vc->hc);
@@ -610,15 +610,15 @@ hc_add_up(vrna_fold_compound_t  *vc,
       /* do not allow i to be paired with any other nucleotide */
       if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
         for (j = 1; j < i; j++)
-          vc->hc->matrix[vc->jindx[i] + j] = (char)0;
+          vc->hc->matrix[vc->jindx[i] + j] = (unsigned char)0;
         for (j = i + 1; j <= vc->length; j++)
-          vc->hc->matrix[vc->jindx[j] + i] = (char)0;
+          vc->hc->matrix[vc->jindx[j] + i] = (unsigned char)0;
       }
 
-      type = option & (char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
-                             | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
-                             | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
-                             | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+      type = option & (unsigned char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                                      | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                                      | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                                      | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
 
       vc->hc->matrix[vc->jindx[i] + i] = type;
     } else {
@@ -632,10 +632,10 @@ hc_add_up(vrna_fold_compound_t  *vc,
           vc->hc->matrix[vc->jindx[j] + i] &= ~type;
       }
 
-      vc->hc->matrix[vc->jindx[i] + i] = (char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
-                                                | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
-                                                | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
-                                                | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+      vc->hc->matrix[vc->jindx[i] + i] = (unsigned char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                                                         | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                                                         | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                                                         | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
     }
   }
 }
@@ -645,10 +645,10 @@ PUBLIC void
 vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
                            int                  i,
                            int                  d,
-                           char                 option)
+                           unsigned char        option)
 {
-  int   p;
-  char  type, t1, t2;
+  int           p;
+  unsigned char type, t1, t2;
 
   if (vc) {
     if (vc->hc) {
@@ -660,13 +660,13 @@ vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
       /* position i may pair in provided contexts */
       type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
       /* acknowledge pairing direction */
-      t1  = (d <= 0) ? type : (char)0;
-      t2  = (d >= 0) ? type : (char)0;
+      t1  = (d <= 0) ? type : (unsigned char)0;
+      t2  = (d >= 0) ? type : (unsigned char)0;
 
       if (vc->hc->type == VRNA_HC_WINDOW) {
         /* nucleotide mustn't be unpaired */
         hc_init_up_storage(vc->hc);
-        vc->hc->up_storage[i] = (char)0;
+        vc->hc->up_storage[i] = (unsigned char)0;
 
         /* force pairing direction */
         hc_init_bp_storage(vc->hc);
@@ -688,7 +688,7 @@ vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
           for (p = i + 1; p <= vc->length; p++)
             vc->hc->matrix[vc->jindx[p] + i] &= t2;
           /* nucleotide mustn't be unpaired */
-          vc->hc->matrix[vc->jindx[i] + i] = (char)0;
+          vc->hc->matrix[vc->jindx[i] + i] = (unsigned char)0;
         }
 
         hc_update_up(vc);
@@ -702,10 +702,10 @@ PUBLIC void
 vrna_hc_add_bp(vrna_fold_compound_t *vc,
                int                  i,
                int                  j,
-               char                 option)
+               unsigned char        option)
 {
-  int   k, l;
-  char  type;
+  int           k, l;
+  unsigned char type;
 
   if (vc) {
     if (vc->hc) {
@@ -724,22 +724,22 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
            * with any other nucleotide k
            */
           for (k = 1; k < i; k++)
-            hc_store_bp(vc->hc->bp_storage, k, i, j, (char)0);            /* (k, i), (k, i + 1), ..., (k, j) with 1 <= k < i */
+            hc_store_bp(vc->hc->bp_storage, k, i, j, (unsigned char)0);             /* (k, i), (k, i + 1), ..., (k, j) with 1 <= k < i */
 
-          hc_store_bp(vc->hc->bp_storage, i, i + 1, j - 1, (char)0);      /* (i, k), i < k < j */
+          hc_store_bp(vc->hc->bp_storage, i, i + 1, j - 1, (unsigned char)0);       /* (i, k), i < k < j */
 
           for (k = i + 1; k < j; k++)
-            hc_store_bp(vc->hc->bp_storage, k, j, vc->length, (char)0);   /* (i + 1, k), (i + 1, k), ..., (j - 1, k) with (j < k <= n */
+            hc_store_bp(vc->hc->bp_storage, k, j, vc->length, (unsigned char)0);    /* (i + 1, k), (i + 1, k), ..., (j - 1, k) with (j < k <= n */
 
-          hc_store_bp(vc->hc->bp_storage, i, j + 1, vc->length, (char)0); /* (i, k), j < k <= n */
-          hc_store_bp(vc->hc->bp_storage, j, j + 1, vc->length, (char)0); /* (j, k), j < k <= n */
+          hc_store_bp(vc->hc->bp_storage, i, j + 1, vc->length, (unsigned char)0);  /* (i, k), j < k <= n */
+          hc_store_bp(vc->hc->bp_storage, j, j + 1, vc->length, (unsigned char)0);  /* (j, k), j < k <= n */
         }
 
         if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
           /* do not allow i,j to be unpaired */
           hc_init_up_storage(vc->hc);
-          vc->hc->up_storage[i] = (char)0;
-          vc->hc->up_storage[j] = (char)0;
+          vc->hc->up_storage[i] = (unsigned char)0;
+          vc->hc->up_storage[j] = (unsigned char)0;
         }
       } else {
         /* reset ptype in case (i,j) is a non-canonical pair */
@@ -757,27 +757,27 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
            * with any other nucleotide k
            */
           for (k = 1; k < i; k++) {
-            vc->hc->matrix[vc->jindx[i] + k]  = (char)0;
-            vc->hc->matrix[vc->jindx[j] + k]  = (char)0;
+            vc->hc->matrix[vc->jindx[i] + k]  = (unsigned char)0;
+            vc->hc->matrix[vc->jindx[j] + k]  = (unsigned char)0;
             for (l = i + 1; l < j; l++)
-              vc->hc->matrix[vc->jindx[l] + k] = (char)0;
+              vc->hc->matrix[vc->jindx[l] + k] = (unsigned char)0;
           }
           for (k = i + 1; k < j; k++) {
-            vc->hc->matrix[vc->jindx[k] + i]  = (char)0;
-            vc->hc->matrix[vc->jindx[j] + k]  = (char)0;
+            vc->hc->matrix[vc->jindx[k] + i]  = (unsigned char)0;
+            vc->hc->matrix[vc->jindx[j] + k]  = (unsigned char)0;
             for (l = j + 1; l <= vc->length; l++)
-              vc->hc->matrix[vc->jindx[l] + k] = (char)0;
+              vc->hc->matrix[vc->jindx[l] + k] = (unsigned char)0;
           }
           for (k = j + 1; k <= vc->length; k++) {
-            vc->hc->matrix[vc->jindx[k] + i]  = (char)0;
-            vc->hc->matrix[vc->jindx[k] + j]  = (char)0;
+            vc->hc->matrix[vc->jindx[k] + i]  = (unsigned char)0;
+            vc->hc->matrix[vc->jindx[k] + j]  = (unsigned char)0;
           }
         }
 
         if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
           /* do not allow i,j to be unpaired */
-          vc->hc->matrix[vc->jindx[i] + i]  = (char)0;
-          vc->hc->matrix[vc->jindx[j] + j]  = (char)0;
+          vc->hc->matrix[vc->jindx[i] + i]  = (unsigned char)0;
+          vc->hc->matrix[vc->jindx[j] + j]  = (unsigned char)0;
 
           hc_update_up(vc);
         }
@@ -887,16 +887,16 @@ vrna_hc_add_from_db(vrna_fold_compound_t  *vc,
 
 PRIVATE void
 apply_DB_constraint(const char    *constraint,
-                    char          *hc,
+                    unsigned char *hc,
                     unsigned int  length,
                     unsigned int  min_loop_size,
                     int           cut,
                     unsigned int  options)
 {
-  int   n, i, j;
-  int   hx, *stack;
-  int   *index;
-  char  c_option;
+  int           n, i, j;
+  int           hx, *stack;
+  int           *index;
+  unsigned char c_option;
 
   if (constraint == NULL)
     return;
@@ -1005,13 +1005,13 @@ apply_DB_constraint(const char    *constraint,
 
 
 PRIVATE INLINE void
-hc_intramolecular_only(unsigned int i,
-                       char         c_option,
-                       char         *hc,
-                       unsigned int length,
-                       unsigned int min_loop_size,
-                       int          cut,
-                       int          *index)
+hc_intramolecular_only(unsigned int   i,
+                       unsigned char  c_option,
+                       unsigned char  *hc,
+                       unsigned int   length,
+                       unsigned int   min_loop_size,
+                       int            cut,
+                       int            *index)
 {
   unsigned int l;
 
@@ -1027,13 +1027,13 @@ hc_intramolecular_only(unsigned int i,
 
 
 PRIVATE INLINE void
-hc_intermolecular_only(unsigned int i,
-                       char         c_option,
-                       char         *hc,
-                       unsigned int length,
-                       unsigned int min_loop_size,
-                       int          cut,
-                       int          *index)
+hc_intermolecular_only(unsigned int   i,
+                       unsigned char  c_option,
+                       unsigned char  *hc,
+                       unsigned int   length,
+                       unsigned int   min_loop_size,
+                       int            cut,
+                       int            *index)
 {
   unsigned int l;
 
@@ -1054,12 +1054,12 @@ hc_intermolecular_only(unsigned int i,
 
 
 PRIVATE INLINE void
-hc_cant_pair(unsigned int i,
-             char         c_option,
-             char         *hc,
-             unsigned int length,
-             unsigned int min_loop_size,
-             int          *index)
+hc_cant_pair(unsigned int   i,
+             unsigned char  c_option,
+             unsigned char  *hc,
+             unsigned int   length,
+             unsigned int   min_loop_size,
+             int            *index)
 {
   hc_pairs_upstream(i, c_option, hc, length, index);
   hc_pairs_downstream(i, c_option, hc, length, index);
@@ -1067,10 +1067,10 @@ hc_cant_pair(unsigned int i,
 
 
 PRIVATE INLINE void
-hc_must_pair(unsigned int i,
-             char         c_option,
-             char         *hc,
-             int          *index)
+hc_must_pair(unsigned int   i,
+             unsigned char  c_option,
+             unsigned char  *hc,
+             int            *index)
 {
   hc[index[i] + i] &= ~c_option;
 }
@@ -1078,8 +1078,8 @@ hc_must_pair(unsigned int i,
 
 PRIVATE INLINE void
 hc_pairs_upstream(unsigned int  i,
-                  char          c_option,
-                  char          *hc,
+                  unsigned char c_option,
+                  unsigned char *hc,
                   unsigned int  length,
                   int           *index)
 {
@@ -1087,7 +1087,7 @@ hc_pairs_upstream(unsigned int  i,
 
   /* prohibit downstream pairs */
   for (l = length; l > i; l--)
-    hc[index[l] + i] = (char)0;
+    hc[index[l] + i] = (unsigned char)0;
   /* allow upstream pairs of given type */
   for (l = i - 1; l >= 1; l--)
     hc[index[i] + l] &= c_option;
@@ -1096,8 +1096,8 @@ hc_pairs_upstream(unsigned int  i,
 
 PRIVATE INLINE void
 hc_pairs_downstream(unsigned int  i,
-                    char          c_option,
-                    char          *hc,
+                    unsigned char c_option,
+                    unsigned char *hc,
                     unsigned int  length,
                     int           *index)
 {
@@ -1108,15 +1108,15 @@ hc_pairs_downstream(unsigned int  i,
     hc[index[l] + i] &= c_option;
   /* forbid upstream pairs */
   for (l = i - 1; l >= 1; l--)
-    hc[index[i] + l] = (char)0;
+    hc[index[i] + l] = (unsigned char)0;
 }
 
 
 PRIVATE INLINE void
 hc_allow_pair(unsigned int  i,
               unsigned int  j,
-              char          c_option,
-              char          *hc,
+              unsigned char c_option,
+              unsigned char *hc,
               int           *index)
 {
   hc[index[j] + i] |= c_option;
@@ -1124,22 +1124,22 @@ hc_allow_pair(unsigned int  i,
 
 
 PRIVATE INLINE void
-hc_weak_enforce_pair(unsigned int i,
-                     unsigned int j,
-                     char         c_option,
-                     char         *hc,
-                     unsigned int length,
-                     unsigned int min_loop_size,
-                     int          *index)
+hc_weak_enforce_pair(unsigned int   i,
+                     unsigned int   j,
+                     unsigned char  c_option,
+                     unsigned char  *hc,
+                     unsigned int   length,
+                     unsigned int   min_loop_size,
+                     int            *index)
 {
   unsigned int k, l;
 
   /* don't allow pairs (k,i) 1 <= k < i */
   /* don't allow pairs (i,k) i < k <= n */
-  hc_pairs_upstream(i, (char)0, hc, length, index);
+  hc_pairs_upstream(i, (unsigned char)0, hc, length, index);
   /* don't allow pairs (k,j) 1 <= k < j */
   /* don't allow pairs (j,k) j < k <= n */
-  hc_pairs_upstream(j, (char)0, hc, length, index);
+  hc_pairs_upstream(j, (unsigned char)0, hc, length, index);
 
   /* don't allow pairs i < k < j < l */
   for (k = i + 1; k < j; k++)
@@ -1159,8 +1159,8 @@ hc_weak_enforce_pair(unsigned int i,
 PRIVATE INLINE void
 hc_enforce_pair(unsigned int  i,
                 unsigned int  j,
-                char          c_option,
-                char          *hc,
+                unsigned char c_option,
+                unsigned char *hc,
                 unsigned int  length,
                 unsigned int  min_loop_size,
                 int           *index)
@@ -1224,7 +1224,7 @@ hc_reset_to_default(vrna_fold_compound_t *vc)
       for (j = n; j > min_loop_size + 1; j--) {
         ij = idx[j] + 1;
         for (i = 1; i < j - min_loop_size; i++, ij++) {
-          char opt = (char)0;
+          unsigned char opt = (unsigned char)0;
           if ((j - i + 1) <= max_span)
             if (vc->pscore[idx[j] + i] >= md->cv_fact * MINPSCORE)
               opt = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
@@ -1238,7 +1238,7 @@ hc_reset_to_default(vrna_fold_compound_t *vc)
       for (j = n; j > min_loop_size + 1; j--) {
         ij = idx[j] + 1;
         for (i = 1; i < j - min_loop_size; i++, ij++) {
-          char opt = (char)0;
+          unsigned char opt = (unsigned char)0;
           if ((j - i + 1) <= max_span) {
             int t = md->pair[S[i]][S[j]];
             switch (t) {
@@ -1281,7 +1281,7 @@ hc_reset_to_default(vrna_fold_compound_t *vc)
           for (j = i + min_loop_size + 1; j <= n; j++) {
             if (hc->matrix[idx[j] + i])
               if (!vc->ptype[idx[j] + i])
-                hc->matrix[idx[j] + i] = (char)0;
+                hc->matrix[idx[j] + i] = (unsigned char)0;
           }
       }
 

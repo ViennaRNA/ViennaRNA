@@ -213,7 +213,8 @@ fill_arrays(vrna_fold_compound_t  *vc,
   int           *DMLi2;     /*                MIN(fML[i+2,k]+fML[k+1,j])    */
 
   int           dangle_model, noGUclosure, noLP, hc_decompose, turn;
-  char          *ptype, *hard_constraints;
+  char          *ptype;
+  unsigned char *hard_constraints;
   vrna_param_t  *P;
   vrna_mx_mfe_t *matrices;
   vrna_hc_t     *hc;
@@ -410,7 +411,7 @@ backtrack_co(sect                 bt_stack[],
   int           cp                = vc->cutpoint;
   vrna_hc_t     *hc               = vc->hc;
   vrna_sc_t     *sc               = vc->sc;
-  char          *hard_constraints = hc->matrix;
+  unsigned char *hard_constraints = hc->matrix;
 
   /* the folding matrices */
   int           *my_f5, *my_c, *my_fML, *my_fc, *my_ggg;
@@ -591,7 +592,8 @@ free_end(int                  *array,
                 *c, *ggg, turn;
   vrna_param_t  *P;
   short         *S1;
-  char          *ptype, *hard_constraints;
+  char          *ptype;
+  unsigned char *hard_constraints;
   vrna_mx_mfe_t *matrices;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;

@@ -289,7 +289,7 @@ vrna_pf(vrna_fold_compound_t  *vc,
 PRIVATE void
 pf_linear(vrna_fold_compound_t *vc){
 
-  char                *hard_constraints;
+  unsigned char       *hard_constraints;
   int                 n, i,j, k, ij, d, *my_iindx, *jindx, with_gquad, turn,
                       with_ud, hc_decompose;
   FLT_OR_DBL          temp, Qmax, qbt1, *q, *qb, *qm, *qm1, *q1k, *qln;
@@ -508,7 +508,7 @@ vrna_pf_float_precision(void){
 PRIVATE void
 alipf_linear( vrna_fold_compound_t *vc){
 
-  char                *hard_constraints;
+  unsigned char       *hard_constraints;
   int                 i,j, ij, jij, d, turn, n, *my_iindx, *jindx, *pscore;
   FLT_OR_DBL          temp, Qmax, qbt1, *q, *qb, *qm, *qm1;
   double              kTn, max_real;
@@ -615,7 +615,8 @@ PRIVATE void
 wrap_alipf_circ(vrna_fold_compound_t *vc,
                 char *structure){
 
-  char              **Ss, *hard_constraints;
+  char              **Ss;
+  unsigned char     *hard_constraints;
   unsigned short    **a2s;
   short             **S, **S5, **S3;
   int               u, p, q, pq, k, l, s, *type, n_seq, n, *my_iindx, *jindx, *rtype;

@@ -174,7 +174,8 @@ PRIVATE int
 fill_arrays(vrna_fold_compound_t *vc)
 {
   unsigned char type;
-  char          *ptype, *hard_constraints;
+  char          *ptype;
+  unsigned char *hard_constraints;
   int           i, j, ij, length, energy, new_c, stackEnergy, no_close, turn,
                 noGUclosure, noLP, uniq_ML, dangle_model, *indx, *f5,
                 *c, *fML, *fM1, hc_decompose, *cc, *cc1, *Fmi, *DMLi,
@@ -339,7 +340,7 @@ fill_arrays(vrna_fold_compound_t *vc)
 PRIVATE int
 fill_arrays_comparative(vrna_fold_compound_t *vc)
 {
-  char          *hard_constraints;
+  unsigned char *hard_constraints;
   short         **S;
   int           i, j, turn, energy, stackEnergy, new_c, s, *cc,
                 *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2, n_seq, length, *indx,

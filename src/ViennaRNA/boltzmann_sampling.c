@@ -108,7 +108,8 @@ vrna_pbacktrack5( vrna_fold_compound_t *vc,
   char              *pstruc;
   int               *my_iindx, *jindx, hc_decompose, *hc_up_ext;
   FLT_OR_DBL        *q, *qb, *q1k, *qln, *scale;
-  char              *ptype, *hard_constraints;
+  char              *ptype;
+  unsigned char     *hard_constraints;
   short             *S1;
   vrna_mx_pf_t      *matrices;
   vrna_hc_t         *hc;
@@ -394,7 +395,8 @@ backtrack_qm1(int i,
   FLT_OR_DBL    *qm1, *qb, *expMLbase;
   vrna_mx_pf_t  *matrices;
   int           u, *my_iindx, *jindx, *hc_up_ml;
-  char          *ptype, *hard_constraints;
+  char          *ptype;
+  unsigned char *hard_constraints;
   short         *S1;
   vrna_sc_t     *sc;
   vrna_hc_t     *hc;
@@ -490,7 +492,8 @@ backtrack(int i,
           char *pstruc,
           vrna_fold_compound_t *vc){
 
-  char              *ptype, *sequence, *hard_constraints, hc_decompose;
+  char              *ptype, *sequence;
+  unsigned char     *hard_constraints, hc_decompose;
   vrna_exp_param_t  *pf_params;
   FLT_OR_DBL        *qb, *qm, *qm1, *scale, tmp;
   FLT_OR_DBL        r, qbt1, qt, q_temp;

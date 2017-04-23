@@ -48,7 +48,7 @@ PRIVATE int parse_constraints_line( const char *line,
                                     int *j,
                                     int *k,
                                     int *l,
-                                    char *loop,
+                                    unsigned char *loop,
                                     char *orientation,
                                     float *e);
 
@@ -90,15 +90,15 @@ parsable known_commands[NUM_COMMANDS] = {
 };
 
 typedef struct {
-  int   i;
-  int   j;
-  int   k;
-  int   l;
-  int   size;
-  char  loop;
-  char  orientation;
-  float e;
-  char  command;
+  int           i;
+  int           j;
+  int           k;
+  int           l;
+  int           size;
+  unsigned char loop;
+  char          orientation;
+  float         e;
+  char          command;
 } constraint_struct;
 
 
@@ -285,7 +285,8 @@ apply_hard_constraint(vrna_fold_compound_t *vc,
   int               i, j, k, l, h, cnt1, cnt2, cnt3;
   int               num_hc_up, max_hc_up;
   vrna_hc_up_t      *hc_up;
-  char              t, orientation;
+  unsigned char     t;
+  char              orientation;
   constraint_struct *constraint = (constraint_struct *)data;
 
   i           = constraint->i;
@@ -520,7 +521,8 @@ parse_constraint( const char *line,
                   char command){
 
   int               ret, i, j, k, l, h, valid;
-  char              loop, orientation;
+  unsigned char     loop;
+  char              orientation;
   float             e;
   constraint_struct *output;
 
@@ -629,7 +631,7 @@ parse_constraints_line( const char *line,
                         int *j,
                         int *k,
                         int *l,
-                        char *loop,
+                        unsigned char *loop,
                         char *orientation,
                         float *e){
 
@@ -641,7 +643,8 @@ parse_constraints_line( const char *line,
   int entries_seen = 0;
   int pp;
   float energy;
-  char buf[256], buf2[10], *c, tmp_loop;
+  char buf[256], buf2[10], *c;
+  unsigned char tmp_loop;
 
   switch(command){
     case 'A':   /* fall through */
@@ -657,7 +660,7 @@ parse_constraints_line( const char *line,
 
   /* default to all loop types */
   *loop     = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-  tmp_loop  = (char)0;
+  tmp_loop  = (unsigned char)0;
 
   /* now lets scan the entire line for content */
   while(!ret && (entries_seen < max_entries) && (sscanf(line+pos,"%15s%n", &buf[0], &pp) == 1)){

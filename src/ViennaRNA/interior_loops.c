@@ -173,22 +173,22 @@ BT_stack_window_comparative(vrna_fold_compound_t  *vc,
                             int                   *stack_count);
 
 
-PRIVATE char
-hc_default(int  i,
-           int  j,
-           int  k,
-           int  l,
-           char d,
-           void *data);
+PRIVATE unsigned char
+hc_default(int            i,
+           int            j,
+           int            k,
+           int            l,
+           unsigned char  d,
+           void           *data);
 
 
-PRIVATE char
-hc_default_user(int   i,
-                int   j,
-                int   k,
-                int   l,
-                char  d,
-                void  *data);
+PRIVATE unsigned char
+hc_default_user(int           i,
+                int           j,
+                int           k,
+                int           l,
+                unsigned char d,
+                void          *data);
 
 
 PRIVATE INLINE int get_pair_type(int        i,
@@ -336,7 +336,8 @@ E_int_loop(vrna_fold_compound_t *vc,
            int                  j)
 {
   unsigned char             type, type_2;
-  char                      *ptype, *ptype_pq, *hc_pq, *hc, eval_loop;
+  char                      *ptype, *ptype_pq;
+  unsigned char             *hc_pq, *hc, eval_loop;
   short                     *S, S_i1, S_j1, *S_p1, *S_q1;
   unsigned int              *sn;
   int                       q, p, j_q, p_i, pq, *c_pq, max_q, max_p, tmp,
@@ -532,7 +533,8 @@ E_int_loop_window(vrna_fold_compound_t  *vc,
                   int                   i,
                   int                   j)
 {
-  char          **ptype, hc_decompose, eval_loop;
+  char          **ptype;
+  unsigned char hc_decompose, eval_loop;
   short         *S1, si1, sj1, *sp, sp1;
   int           e, p, q, minq, turn, noGUclosure, type, type_2, no_close, energy, *rtype, **c,
                 **ggg, with_gquad;
@@ -587,11 +589,11 @@ E_int_loop_window(vrna_fold_compound_t  *vc,
       if (minq < tmp)
         minq = tmp;
 
-      char  *ptype_p = ptype[p];
+      char          *ptype_p = ptype[p];
       ptype_p -= p;
-      int   *c_p = c[p];
+      int           *c_p = c[p];
       c_p -= p;
-      char  *hc_p = hc->matrix_local[p];
+      unsigned char *hc_p = hc->matrix_local[p];
       hc_p -= p;
 
       u2 = j - minq - 1;
@@ -813,7 +815,7 @@ E_int_loop_comparative(vrna_fold_compound_t *vc,
                        int                  j)
 {
   unsigned char             type, type_2;
-  char                      *hc_pq, *hc, eval_loop;
+  unsigned char             *hc_pq, *hc, eval_loop;
   unsigned short            **a2s;
   short                     **SS, **S5, **S3, *S_cons;
   int                       q, p, j_q, p_i, u, pq, *c_pq, min_q, max_q, max_p, tmp,
@@ -1002,7 +1004,7 @@ E_int_loop_comparative_window(vrna_fold_compound_t  *vc,
                               int                   j)
 {
   unsigned char   type, type_2;
-  char            eval_loop;
+  unsigned char   eval_loop;
   unsigned short  **a2s;
   short           **SS, **S5, **S3, *S_cons;
   int             q, p, j_q, p_i, u, min_q, max_q, max_p, tmp,
@@ -1062,9 +1064,9 @@ E_int_loop_comparative_window(vrna_fold_compound_t  *vc,
         if (min_q < tmp)
           min_q = tmp;
 
-        int   *c_p = c[p];
+        int           *c_p = c[p];
         c_p -= p;
-        char  *hc_p = hc->matrix_local[p];
+        unsigned char *hc_p = hc->matrix_local[p];
         hc_p -= p;
 
         j_q = j - min_q - 1;
@@ -1138,9 +1140,9 @@ E_int_loop_comparative_window(vrna_fold_compound_t  *vc,
         if (min_q < tmp)
           min_q = tmp;
 
-        int   *c_p = c[p];
+        int           *c_p = c[p];
         c_p -= p;
-        char  *hc_p = hc->matrix_local[p];
+        unsigned char *hc_p = hc->matrix_local[p];
         hc_p -= p;
 
         j_q = j - min_q - 1;
@@ -1397,7 +1399,8 @@ exp_E_int_loop(vrna_fold_compound_t *vc,
                int                  j)
 {
   unsigned char             type, type_2;
-  char                      *ptype, *hc, eval_loop;
+  char                      *ptype;
+  unsigned char             *hc, eval_loop;
   short                     *S1, S_i1, S_j1;
   unsigned int              *sn;
   int                       k, l, u1, u2, kl, maxk, minl, *rtype, noGUclosure,
@@ -1466,7 +1469,9 @@ exp_E_int_loop(vrna_fold_compound_t *vc,
         if (hc_up[l + 1] < u2)
           break;
 
-        eval_loop = (hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) ? (char)1 : (char)0;
+        eval_loop =
+          (hc[jindx[l] + k] &
+           VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) ? (unsigned char)1 : (unsigned char)0;
 
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
         if (eval_loop && evaluate(i, j, k, l, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
@@ -1567,7 +1572,8 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
                     int                   l)
 {
   unsigned char             type, type_2;
-  char                      *ptype, *hc, eval_loop;
+  char                      *ptype;
+  unsigned char             *hc, eval_loop;
   short                     *S1, S_i1, S_j1;
   unsigned int              *sn;
   int                       u1, u2, *rtype, *my_iindx, *jindx, *hc_up, ij;
@@ -1618,7 +1624,8 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
   /* CONSTRAINED INTERIOR LOOP start */
   eval_loop =
     ((hc[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
-     (hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) ? (char)1 : (char)0;
+     (hc[jindx[l] + k] &
+      VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) ? (unsigned char)1 : (unsigned char)0;
 
   /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
   if (eval_loop && evaluate(i, j, k, l, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
@@ -1696,7 +1703,7 @@ exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
                            int                  j)
 {
   unsigned char             type_2;
-  char                      *hc, eval_loop;
+  unsigned char             *hc, eval_loop;
   unsigned short            **a2s;
   short                     **S, **S5, **S3;
   int                       n_seq, s, ij, jij, k, l, u1, u2, kl, maxk, minl, *types,
@@ -1759,7 +1766,9 @@ exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
         if (hc_up[l + 1] < j - l - 1)
           break;
 
-        eval_loop = (hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) ? (char)1 : (char)0;
+        eval_loop =
+          (hc[jindx[l] + k] &
+           VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) ? (unsigned char)1 : (unsigned char)0;
 
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
         if (eval_loop && evaluate(i, j, k, l, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
@@ -1838,7 +1847,8 @@ vrna_E_ext_int_loop(vrna_fold_compound_t  *vc,
   unsigned char             type, type_2;
   int                       ij, q, p, e, s, u1, u2, qmin, energy, *rtype, *types,
                             length, *indx, *hc_up, *c, turn, n_seq;
-  char                      *ptype, *hc, eval_loop;
+  char                      *ptype;
+  unsigned char             *hc, eval_loop;
   unsigned short            **a2s;
   short                     *S, **SS, **S5, **S3;
   vrna_md_t                 *md;
@@ -1994,7 +2004,8 @@ vrna_E_stack(vrna_fold_compound_t *vc,
              int                  j)
 {
   unsigned char             type, type_2;
-  char                      *ptype, *hard_constraints, eval_loop;
+  char                      *ptype;
+  unsigned char             *hard_constraints, eval_loop;
   unsigned short            **a2s;
   short                     *S, **SS;
   unsigned int              *sn;
@@ -2142,7 +2153,8 @@ E_stack_window(vrna_fold_compound_t *vc,
                int                  i,
                int                  j)
 {
-  char                      **ptype, **hard_constraints, eval_loop;
+  char                      **ptype;
+  unsigned char             **hard_constraints, eval_loop;
   unsigned short            **a2s;
   short                     **SS;
   int                       e, p, q, *rtype, type, type_2, s, n_seq;
@@ -2294,7 +2306,8 @@ BT_stack(vrna_fold_compound_t *vc,
          int                  *stack_count)
 {
   unsigned char             type, type_2;
-  char                      *ptype, eval_loop;
+  char                      *ptype;
+  unsigned char             eval_loop;
   unsigned int              *sn;
   int                       ij, p, q, *idx, *my_c, *rtype, cp;
   vrna_param_t              *P;
@@ -2399,7 +2412,7 @@ BT_stack_comparative(vrna_fold_compound_t *vc,
 {
   short                     **S;
   int                       type, type_2;
-  char                      eval_loop;
+  unsigned char             eval_loop;
   int                       p, q, *c, n_seq, ss, ij, *idx;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -2480,7 +2493,8 @@ BT_stack_window(vrna_fold_compound_t  *vc,
                 int                   *stack_count)
 {
   unsigned char             type, type_2;
-  char                      **ptype, eval_loop;
+  char                      **ptype;
+  unsigned char             eval_loop;
   int                       p, q, **c, *rtype;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -2560,7 +2574,7 @@ BT_stack_window_comparative(vrna_fold_compound_t  *vc,
                             int                   *stack_count)
 {
   int                       type, type_2;
-  char                      eval_loop;
+  unsigned char             eval_loop;
   short                     **S;
   int                       p, q, **c, n_seq, ss;
   vrna_param_t              *P;
@@ -2672,7 +2686,8 @@ BT_int_loop(vrna_fold_compound_t  *vc,
             int                   *stack_count)
 {
   unsigned char             type, type_2;
-  char                      *ptype, eval_loop;
+  char                      *ptype;
+  unsigned char             eval_loop;
   short                     *S1;
   unsigned int              *sn;
   int                       ij, p, q, minq, turn, *idx, noGUclosure, no_close,
@@ -2862,7 +2877,7 @@ BT_int_loop_comparative(vrna_fold_compound_t  *vc,
                         vrna_bp_stack_t       *bp_stack,
                         int                   *stack_count)
 {
-  char                      eval_loop;
+  unsigned char             eval_loop;
   unsigned short            **a2s;
   short                     **S, **S5, **S3, *S_cons;
   int                       ij, p, q, minq, turn, *idx,
@@ -3030,7 +3045,8 @@ BT_int_loop_window(vrna_fold_compound_t *vc,
                    int                  *stack_count)
 {
   int                       type, type_2;
-  char                      **ptype, eval_loop;
+  char                      **ptype;
+  unsigned char             eval_loop;
   short                     *S, *S1;
   unsigned int              *sn;
   int                       p, q, minq, turn, maxdist, noGUclosure, no_close,
@@ -3190,7 +3206,7 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
                                vrna_bp_stack_t      *bp_stack,
                                int                  *stack_count)
 {
-  char                      eval_loop;
+  unsigned char             eval_loop;
   unsigned short            **a2s;
   short                     **S, **S5, **S3, *S_cons;
   int                       *type, type_2;
@@ -3313,25 +3329,25 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
 }
 
 
-PRIVATE char
-hc_default(int  i,
-           int  j,
-           int  k,
-           int  l,
-           char d,
-           void *data)
+PRIVATE unsigned char
+hc_default(int            i,
+           int            j,
+           int            k,
+           int            l,
+           unsigned char  d,
+           void           *data)
 {
-  return (char)1;
+  return (unsigned char)1;
 }
 
 
-PRIVATE char
-hc_default_user(int   i,
-                int   j,
-                int   k,
-                int   l,
-                char  d,
-                void  *data)
+PRIVATE unsigned char
+hc_default_user(int           i,
+                int           j,
+                int           k,
+                int           l,
+                unsigned char d,
+                void          *data)
 {
   struct default_data *dat = (struct default_data *)data;
 

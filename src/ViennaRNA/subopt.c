@@ -824,7 +824,7 @@ scan_interval(vrna_fold_compound_t *vc,
   int             length, *indx, *rtype, circular, with_gquad, turn, cp;
   char            *ptype;
   short           *S1;
-  char            *hard_constraints, hc_decompose;
+  unsigned char   *hard_constraints, hc_decompose;
   vrna_hc_t       *hc;
   vrna_sc_t       *sc;
 

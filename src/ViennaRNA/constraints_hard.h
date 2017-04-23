@@ -66,12 +66,12 @@ typedef struct vrna_hc_up_s vrna_hc_up_t;
  * @param data      Auxiliary data
  * @return          Pseudo energy contribution in deka-kalories per mol
  */
-typedef char (vrna_callback_hc_evaluate)(int  i,
-                                         int  j,
-                                         int  k,
-                                         int  l,
-                                         char d,
-                                         void *data);
+typedef unsigned char (vrna_callback_hc_evaluate)(int           i,
+                                                  int           j,
+                                                  int           k,
+                                                  int           l,
+                                                  unsigned char d,
+                                                  void          *data);
 
 /**
  *  @brief  do not print the header information line
@@ -218,7 +218,7 @@ typedef char (vrna_callback_hc_evaluate)(int  i,
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_CONSTRAINT_CONTEXT_EXT_LOOP      (char)0x01
+#define VRNA_CONSTRAINT_CONTEXT_EXT_LOOP      (unsigned char)0x01
 
 /**
  *  @brief  Hard constraints flag, base pair encloses hairpin loop
@@ -226,7 +226,7 @@ typedef char (vrna_callback_hc_evaluate)(int  i,
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_CONSTRAINT_CONTEXT_HP_LOOP       (char)0x02
+#define VRNA_CONSTRAINT_CONTEXT_HP_LOOP       (unsigned char)0x02
 
 /**
  *  @brief  Hard constraints flag, base pair encloses an interior loop
@@ -234,7 +234,7 @@ typedef char (vrna_callback_hc_evaluate)(int  i,
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_CONSTRAINT_CONTEXT_INT_LOOP      (char)0x04
+#define VRNA_CONSTRAINT_CONTEXT_INT_LOOP      (unsigned char)0x04
 
 /**
  *  @brief  Hard constraints flag, base pair encloses a multi branch loop
@@ -242,7 +242,7 @@ typedef char (vrna_callback_hc_evaluate)(int  i,
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC  (char)0x08
+#define VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC  (unsigned char)0x08
 
 /**
  *  @brief  Hard constraints flag, base pair is enclosed in an interior loop
@@ -250,7 +250,7 @@ typedef char (vrna_callback_hc_evaluate)(int  i,
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_CONSTRAINT_CONTEXT_MB_LOOP       (char)0x10
+#define VRNA_CONSTRAINT_CONTEXT_MB_LOOP       (unsigned char)0x10
 
 /**
  *  @brief  Hard constraints flag, base pair is enclosed in a multi branch loop
@@ -258,17 +258,17 @@ typedef char (vrna_callback_hc_evaluate)(int  i,
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC   (char)0x20
+#define VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC   (unsigned char)0x20
 
 /**
  *  @brief  Hard constraint flag to indicate enforcement of constraints
  */
-#define VRNA_CONSTRAINT_CONTEXT_ENFORCE       (char)0x40
+#define VRNA_CONSTRAINT_CONTEXT_ENFORCE       (unsigned char)0x40
 
 /**
  *  @brief  Hard constraint flag to indicate not to remove base pairs that conflict with a given constraint
  */
-#define VRNA_CONSTRAINT_CONTEXT_NO_REMOVE     (char)0x80
+#define VRNA_CONSTRAINT_CONTEXT_NO_REMOVE     (unsigned char)0x80
 
 /**
  * @brief  Hard constraints flag, shortcut for all base pairs
@@ -276,12 +276,12 @@ typedef char (vrna_callback_hc_evaluate)(int  i,
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS     (char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP \
-                                                     | VRNA_CONSTRAINT_CONTEXT_HP_LOOP \
-                                                     | VRNA_CONSTRAINT_CONTEXT_INT_LOOP \
-                                                     | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC \
-                                                     | VRNA_CONSTRAINT_CONTEXT_MB_LOOP \
-                                                     | VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
+#define VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS     (unsigned char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP \
+                                                              | VRNA_CONSTRAINT_CONTEXT_HP_LOOP \
+                                                              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP \
+                                                              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC \
+                                                              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP \
+                                                              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
 
 /**
  *  @brief  The hard constraints type
@@ -302,9 +302,9 @@ typedef enum {
  *  @brief  A base pair hard constraint
  */
 typedef struct {
-  int   interval_start;
-  int   interval_end;
-  char  loop_type;
+  int           interval_start;
+  int           interval_end;
+  unsigned char loop_type;
 } vrna_hc_bp_storage_t;
 
 /**
@@ -340,16 +340,16 @@ struct vrna_hc_s {
   union {
     struct {
 #endif
-  char *matrix;     /**<  @brief  Upper triangular matrix that encodes where a
-                     *            base pair or unpaired nucleotide is allowed
-                     */
+  unsigned char *matrix;     /**<  @brief  Upper triangular matrix that encodes where a
+                              *            base pair or unpaired nucleotide is allowed
+                              */
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
 };
 struct {
 #endif
-  char                  **matrix_local;
-  char                  *up_storage;
+  unsigned char         **matrix_local;
+  unsigned char         *up_storage;
   vrna_hc_bp_storage_t  **bp_storage;
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
@@ -397,8 +397,8 @@ struct {
  *  @ingroup hard_constraints
  */
 struct vrna_hc_up_s {
-  int position;   /**<  @brief The sequence position (1-based)  */
-  char options;   /**<  @brief The hard constraint option       */
+  int position;           /**<  @brief The sequence position (1-based)  */
+  unsigned char options;  /**<  @brief The hard constraint option       */
 };
 
 /**
@@ -480,7 +480,7 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
  */
 void vrna_hc_add_up(vrna_fold_compound_t  *vc,
                     int                   i,
-                    char                  option);
+                    unsigned char         option);
 
 
 /**
@@ -516,7 +516,7 @@ vrna_hc_add_up_batch(vrna_fold_compound_t *vc,
 void vrna_hc_add_bp(vrna_fold_compound_t  *vc,
                     int                   i,
                     int                   j,
-                    char                  option);
+                    unsigned char         option);
 
 
 /**
@@ -539,7 +539,7 @@ void vrna_hc_add_bp(vrna_fold_compound_t  *vc,
 void vrna_hc_add_bp_nonspecific(vrna_fold_compound_t  *vc,
                                 int                   i,
                                 int                   d,
-                                char                  option);
+                                unsigned char         option);
 
 
 /**

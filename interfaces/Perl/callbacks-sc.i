@@ -18,9 +18,9 @@ typedef struct {
   SV  *delete_data;
 } perl_sc_callback_t;
 
-static int              perl_wrap_sc_f_callback(int i, int j, int k, int l, char d, void *data);
-static vrna_basepair_t  *perl_wrap_sc_bt_callback(int i, int j, int k, int l, char d, void *data);
-static FLT_OR_DBL       perl_wrap_sc_exp_f_callback(int i, int j, int k, int l, char d, void *data);
+static int              perl_wrap_sc_f_callback(int i, int j, int k, int l, unsigned char d, void *data);
+static vrna_basepair_t  *perl_wrap_sc_bt_callback(int i, int j, int k, int l, unsigned char d, void *data);
+static FLT_OR_DBL       perl_wrap_sc_exp_f_callback(int i, int j, int k, int l, unsigned char d, void *data);
 
 static void
 delete_perl_sc_callback(void * data){
@@ -238,7 +238,7 @@ perl_wrap_sc_f_callback(int i,
                         int j,
                         int k,
                         int l,
-                        char d,
+                        unsigned char d,
                         void *data){
 
   int ret, count;
@@ -295,7 +295,7 @@ perl_wrap_sc_exp_f_callback(int i,
                             int j,
                             int k,
                             int l,
-                            char d,
+                            unsigned char d,
                             void *data){
 
   int count;
@@ -353,7 +353,7 @@ perl_wrap_sc_bt_callback( int i,
                           int j,
                           int k,
                           int l,
-                          char d,
+                          unsigned char d,
                           void *data){
 
   int c, count, len, num_pairs;
