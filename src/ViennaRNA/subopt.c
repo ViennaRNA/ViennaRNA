@@ -36,7 +36,10 @@
 
 #define true              1
 #define false             0
+
+#ifndef ON_SAME_STRAND
 #define ON_SAME_STRAND(I,J,C)  (((I)>=(C))||((J)<(C)))
+#endif
 
 /**
  *  @brief  Sequence interval stack element used in subopt.c
@@ -821,7 +824,7 @@ scan_interval(vrna_fold_compound_t *vc,
   int             length, *indx, *rtype, circular, with_gquad, turn, cp;
   char            *ptype;
   short           *S1;
-  char            *hard_constraints, hc_decompose;
+  unsigned char   *hard_constraints, hc_decompose;
   vrna_hc_t       *hc;
   vrna_sc_t       *sc;
 

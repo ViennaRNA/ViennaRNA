@@ -22,7 +22,8 @@ fill_arrays_circ( vrna_fold_compound_t *vc,
   int               i,j, ij, u, length, new_c, fm, type;
   int               *my_c, *my_fML, *indx, dangle_model, turn;
   vrna_param_t      *P;
-  char              *ptype, *hard_constraints;
+  char              *ptype;
+  unsigned char     *hard_constraints;
   short             *S1;
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;

@@ -297,7 +297,7 @@ pf_co(vrna_fold_compound_t *vc){
   vrna_exp_param_t  *pf_params;
   vrna_mx_pf_t      *matrices;
   int               hc_decompose;
-  char              *hard_constraints;
+  unsigned char     *hard_constraints;
   int               *hc_up_ext;
   int               *hc_up_hp;
   int               *hc_up_int;
@@ -600,7 +600,7 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
   vrna_sc_t         *sc;
   vrna_mx_pf_t      *matrices;
   char              *sequence;
-  char              *hard_constraints;
+  unsigned char     *hard_constraints;
   int               *hc_up_ext;
   int               *hc_up_hp;
   int               *hc_up_int;

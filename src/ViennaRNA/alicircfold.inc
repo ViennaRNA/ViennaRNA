@@ -19,7 +19,7 @@ fill_arrays_comparative_circ( vrna_fold_compound_t *vc,
   int               Fc, FcH, FcI, FcM, Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi, FcMd3, FcMd5;
   int               i, j, ij, u, length, new_c, fm, n_seq, s;
   int               *indx, *c, *fML, *fM2;
-  char              *hard_constraints;
+  unsigned char     *hard_constraints;
   unsigned short    **a2s;
   vrna_param_t      *P;
   vrna_hc_t         *hc;

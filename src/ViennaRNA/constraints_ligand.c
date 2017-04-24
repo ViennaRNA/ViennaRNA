@@ -72,22 +72,22 @@ static void
 delete_ligand_data(void *data);
 
 static int
-AptamerContrib(int i, int j, int k, int l, char d, void *data);
+AptamerContrib(int i, int j, int k, int l, unsigned char d, void *data);
 
 static int
-AptamerContribHairpin(int i, int j, int k, int l, char d, void *data);
+AptamerContribHairpin(int i, int j, int k, int l, unsigned char d, void *data);
 
 static FLT_OR_DBL
-expAptamerContrib(int i, int j, int k, int l, char d, void *data);
+expAptamerContrib(int i, int j, int k, int l, unsigned char d, void *data);
 
 static FLT_OR_DBL
-expAptamerContribHairpin(int i, int j, int k, int l, char d, void *data);
+expAptamerContribHairpin(int i, int j, int k, int l, unsigned char d, void *data);
 
 static vrna_basepair_t *
-backtrack_int_motif(int i, int j, int k, int l, char d, void *data);
+backtrack_int_motif(int i, int j, int k, int l, unsigned char d, void *data);
 
 static vrna_basepair_t *
-backtrack_hp_motif(int i, int j, int k, int l, char d, void *data);
+backtrack_hp_motif(int i, int j, int k, int l, unsigned char d, void *data);
 
 static quadruple_position *
 scanForMotif( const char *seq,
@@ -434,7 +434,7 @@ delete_ligand_data(void *data){
 }
 
 static int
-AptamerContrib(int i, int j, int k, int l, char d, void *data){
+AptamerContrib(int i, int j, int k, int l, unsigned char d, void *data){
 
   quadruple_position  *pos;
   ligand_data         *ldata;
@@ -452,7 +452,7 @@ AptamerContrib(int i, int j, int k, int l, char d, void *data){
 }
 
 static int
-AptamerContribHairpin(int i, int j, int k, int l, char d, void *data){
+AptamerContribHairpin(int i, int j, int k, int l, unsigned char d, void *data){
 
   quadruple_position  *pos;
   ligand_data         *ldata;
@@ -470,7 +470,7 @@ AptamerContribHairpin(int i, int j, int k, int l, char d, void *data){
 }
 
 static FLT_OR_DBL
-expAptamerContrib(int i, int j, int k, int l, char d, void *data){
+expAptamerContrib(int i, int j, int k, int l, unsigned char d, void *data){
 
   quadruple_position  *pos;
   ligand_data         *ldata;
@@ -496,7 +496,7 @@ expAptamerContrib(int i, int j, int k, int l, char d, void *data){
 }
 
 static FLT_OR_DBL
-expAptamerContribHairpin(int i, int j, int k, int l, char d, void *data){
+expAptamerContribHairpin(int i, int j, int k, int l, unsigned char d, void *data){
 
   quadruple_position  *pos;
   ligand_data         *ldata;
@@ -522,7 +522,7 @@ expAptamerContribHairpin(int i, int j, int k, int l, char d, void *data){
 }
 
 static vrna_basepair_t *
-backtrack_int_motif(int i, int j, int k, int l, char d, void *data){
+backtrack_int_motif(int i, int j, int k, int l, unsigned char d, void *data){
 
   int                 bp_size = 15;
   vrna_basepair_t     *pairs = NULL;
@@ -581,7 +581,7 @@ backtrack_int_motif(int i, int j, int k, int l, char d, void *data){
 }
 
 static vrna_basepair_t *
-backtrack_hp_motif(int i, int j, int k, int l, char d, void *data){
+backtrack_hp_motif(int i, int j, int k, int l, unsigned char d, void *data){
 
   int                 count;
   vrna_basepair_t     *pairs = NULL;

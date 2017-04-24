@@ -15,6 +15,7 @@ ali = [s1,s2,s3]
 def mfe_window_callback(start, end, structure, energy, data=None):
     data.append({ 'structure': structure, 'start': start, 'end' : end, 'energy' : energy})
 
+
 class mfe_eval_functionTest(unittest.TestCase):
 
     def test_mfe_window(self):
@@ -30,8 +31,8 @@ class mfe_eval_functionTest(unittest.TestCase):
         data = []
         mfe = RNA.Lfold_cb(seq1, 150, mfe_window_callback, data)
         self.assertTrue(len(data) == 2)
-        self.assertEqual(data[0]['structure'], "(((...))).")
-        self.assertEqual("%6.2f" % data[0]['energy'], "%6.2f" % -2.60)
+        self.assertEqual(data[0]['structure'], "((....)).")
+        self.assertEqual("%6.2f" % data[0]['energy'], "%6.2f" % -0.80)
         self.assertEqual(data[1]['structure'], "(((.(((...))))))")
         self.assertEqual("%6.2f" % data[1]['energy'], "%6.2f" % -5.60)
 
@@ -42,8 +43,8 @@ class mfe_eval_functionTest(unittest.TestCase):
         data = []
         mfe = fc.mfe_window_cb(mfe_window_callback, data)
         self.assertTrue(len(data) == 2)
-        self.assertEqual(data[0]['structure'], "(((...))).")
-        self.assertEqual("%6.2f" % data[0]['energy'], "%6.2f" % -2.60)
+        self.assertEqual(data[0]['structure'], "((....)).")
+        self.assertEqual("%6.2f" % data[0]['energy'], "%6.2f" % -0.80)
         self.assertEqual(data[1]['structure'], "(((.(((...))))))")
         self.assertEqual("%6.2f" % data[1]['energy'], "%6.2f" % -5.60)
 

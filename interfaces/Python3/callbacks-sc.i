@@ -14,9 +14,9 @@ typedef struct {
   PyObject  *delete_data;
 } py_sc_callback_t;
 
-static int              py_wrap_sc_f_callback(int i, int j, int k, int l, char d, void *data);
-static vrna_basepair_t  *py_wrap_sc_bt_callback( int i, int j, int k, int l, char d, void *data);
-static FLT_OR_DBL       py_wrap_sc_exp_f_callback(int i, int j, int k, int l, char d, void *data);
+static int              py_wrap_sc_f_callback(int i, int j, int k, int l, unsigned char d, void *data);
+static vrna_basepair_t  *py_wrap_sc_bt_callback( int i, int j, int k, int l, unsigned char d, void *data);
+static FLT_OR_DBL       py_wrap_sc_exp_f_callback(int i, int j, int k, int l, unsigned char d, void *data);
 
 static void
 delete_py_sc_callback(void * data){
@@ -185,7 +185,7 @@ py_wrap_sc_f_callback(int i,
                       int j,
                       int k,
                       int l,
-                      char d,
+                      unsigned char d,
                       void *data){
 
   int ret;
@@ -207,7 +207,7 @@ py_wrap_sc_bt_callback( int i,
                         int j,
                         int k,
                         int l,
-                        char d,
+                        unsigned char d,
                         void *data){
 
   int c, len, num_pairs;
@@ -280,7 +280,7 @@ py_wrap_sc_exp_f_callback(int i,
                           int j,
                           int k,
                           int l,
-                          char d,
+                          unsigned char d,
                           void *data){
 
   FLT_OR_DBL ret;

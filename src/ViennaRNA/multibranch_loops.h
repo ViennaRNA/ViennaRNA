@@ -49,7 +49,7 @@ typedef struct {
  *  E_Stem() function, you can inhibit to take 5'-, 3'-dangles
  *  or mismatch contributions to be taken into account by passing
  *  -1 to these parameters.
- * 
+ *
  *  @see    E_Stem()
  *  @param  A The pair type of the stem-closing pair
  *  @param  B The 5'-mismatching nucleotide
@@ -57,10 +57,11 @@ typedef struct {
  *  @param  D The datastructure containing scaled energy parameters
  *  @return   The energy contribution of the introduced multiloop stem
  */
-PRIVATE INLINE int E_MLstem( int type,
-                              int si1,
-                              int sj1,
-                              vrna_param_t *P);
+PRIVATE INLINE int E_MLstem(int           type,
+                            int           si1,
+                            int           sj1,
+                            vrna_param_t  *P);
+
 
 /**
  *  @def exp_E_MLstem(A,B,C,D)
@@ -68,11 +69,10 @@ PRIVATE INLINE int E_MLstem( int type,
  *  @see E_MLstem()
  *  @return The Boltzmann weighted energy contribution of the introduced multiloop stem
  */
-PRIVATE INLINE FLT_OR_DBL exp_E_MLstem(int type,
-                                    int si1,
-                                    int sj1,
-                                    vrna_exp_param_t *P);
-
+PRIVATE INLINE FLT_OR_DBL exp_E_MLstem(int              type,
+                                       int              si1,
+                                       int              sj1,
+                                       vrna_exp_param_t *P);
 
 
 /**
@@ -80,7 +80,10 @@ PRIVATE INLINE FLT_OR_DBL exp_E_MLstem(int type,
  *
  *  Computes total free energy for coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1)
  */
-int E_mb_loop_stack(int i, int j, vrna_fold_compound_t *vc);
+int vrna_E_mb_loop_stack(vrna_fold_compound_t *vc,
+                         int                  i,
+                         int                  j);
+
 
 /**
  *  @brief  Backtrack the decomposition of a multi branch loop closed by @f$ (i,j) @f$
@@ -98,44 +101,48 @@ int E_mb_loop_stack(int i, int j, vrna_fold_compound_t *vc);
  *  @returns              1, if backtracking succeeded, 0 otherwise.
  */
 int
-vrna_BT_mb_loop(vrna_fold_compound_t *vc,
-                int *i,
-                int *j,
-                int *k,
-                int en,
-                int *component1,
-                int *component2);
+vrna_BT_mb_loop(vrna_fold_compound_t  *vc,
+                int                   *i,
+                int                   *j,
+                int                   *k,
+                int                   en,
+                int                   *component1,
+                int                   *component2);
+
 
 int
-vrna_E_mb_loop_fast(vrna_fold_compound_t *vc,
-                    int i,
-                    int j,
-                    int *dmli1,
-                    int *dmli2);
+vrna_E_mb_loop_fast(vrna_fold_compound_t  *vc,
+                    int                   i,
+                    int                   j,
+                    int                   *dmli1,
+                    int                   *dmli2);
+
 
 int
-E_mb_loop_stack(int i,
-                int j,
-                vrna_fold_compound_t *vc);
+vrna_E_mb_loop_stack(vrna_fold_compound_t *vc,
+                     int                  i,
+                     int                  j);
+
 
 int
-E_ml_rightmost_stem(int i,
-                    int j,
-                    vrna_fold_compound_t *vc);
+E_ml_rightmost_stem(int                   i,
+                    int                   j,
+                    vrna_fold_compound_t  *vc);
+
 
 int
-vrna_E_ml_stems_fast( vrna_fold_compound_t *vc,
-                      int i,
-                      int j,
-                      int *fmi,
-                      int *dmli);
+vrna_E_ml_stems_fast(vrna_fold_compound_t *vc,
+                     int                  i,
+                     int                  j,
+                     int                  *fmi,
+                     int                  *dmli);
 
 
 FLT_OR_DBL
-vrna_exp_E_mb_loop_fast( vrna_fold_compound_t *vc,
-                    int i,
-                    int j,
-                    FLT_OR_DBL *qqm1);
+vrna_exp_E_mb_loop_fast(vrna_fold_compound_t  *vc,
+                        int                   i,
+                        int                   j,
+                        FLT_OR_DBL            *qqm1);
 
 
 vrna_mx_pf_aux_ml_t *
@@ -149,7 +156,7 @@ vrna_exp_E_ml_fast_rotate(vrna_fold_compound_t  *vc,
 
 void
 vrna_exp_E_ml_fast_free(vrna_fold_compound_t  *vc,
-                          vrna_mx_pf_aux_ml_t *aux_mx);
+                        vrna_mx_pf_aux_ml_t   *aux_mx);
 
 
 FLT_OR_DBL
@@ -158,60 +165,65 @@ vrna_exp_E_ml_fast(vrna_fold_compound_t *vc,
                    int                  j,
                    vrna_mx_pf_aux_ml_t  *aux_mx);
 
-/*
-#################################
-# Backtracking functions below  #
-#################################
-*/
-
-int
-vrna_BT_mb_loop_fake( vrna_fold_compound_t *vc,
-                      int *u,
-                      int *i,
-                      int *j,
-                      vrna_bp_stack_t *bp_stack,
-                      int *stack_count);
-
-int
-vrna_BT_mb_loop_split(vrna_fold_compound_t *vc,
-                      int *i,
-                      int *j,
-                      int *k,
-                      int *l,
-                      int *component1,
-                      int *component2,
-                      vrna_bp_stack_t *bp_stack,
-                      int *stack_count);
-
-int
-vrna_BT_mb_loop(vrna_fold_compound_t *vc,
-                int *i,
-                int *j,
-                int *k,
-                int en,
-                int *component1,
-                int *component2);
 
 /*
-########################################
-# BEGIN OF INLINE FUNCTION DEFINITIONS #
-########################################
-*/
+ #################################
+ # Backtracking functions below  #
+ #################################
+ */
+
+int
+vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
+                     int                  *u,
+                     int                  *i,
+                     int                  *j,
+                     vrna_bp_stack_t      *bp_stack,
+                     int                  *stack_count);
 
 
-PRIVATE INLINE int E_MLstem(int type, int si1, int sj1, vrna_param_t *P){
+int
+vrna_BT_mb_loop_split(vrna_fold_compound_t  *vc,
+                      int                   *i,
+                      int                   *j,
+                      int                   *k,
+                      int                   *l,
+                      int                   *component1,
+                      int                   *component2,
+                      vrna_bp_stack_t       *bp_stack,
+                      int                   *stack_count);
+
+
+int
+vrna_BT_mb_loop(vrna_fold_compound_t  *vc,
+                int                   *i,
+                int                   *j,
+                int                   *k,
+                int                   en,
+                int                   *component1,
+                int                   *component2);
+
+
+/*
+ ########################################
+ # BEGIN OF INLINE FUNCTION DEFINITIONS #
+ ########################################
+ */
+PRIVATE INLINE int
+E_MLstem(int          type,
+         int          si1,
+         int          sj1,
+         vrna_param_t *P)
+{
   int energy = 0;
-  if(si1 >= 0 && sj1 >= 0){
-    energy += P->mismatchM[type][si1][sj1];
-  }
-  else if (si1 >= 0){
-    energy += P->dangle5[type][si1];
-  }
-  else if (sj1 >= 0){
-    energy += P->dangle3[type][sj1];
-  }
 
-  if(type > 2)
+  if (si1 >= 0 && sj1 >= 0)
+    energy += P->mismatchM[type][si1][sj1];
+  else if (si1 >= 0)
+    energy += P->dangle5[type][si1];
+  else if (sj1 >= 0)
+    energy += P->dangle3[type][sj1];
+
+  if (type > 2)
     energy += P->TerminalAU;
 
   energy += P->MLintern[type];
@@ -220,30 +232,28 @@ PRIVATE INLINE int E_MLstem(int type, int si1, int sj1, vrna_param_t *P){
 }
 
 
-
 PRIVATE INLINE FLT_OR_DBL
-exp_E_MLstem( int type,
-              int si1,
-              int sj1,
-              vrna_exp_param_t *P){
-
+exp_E_MLstem(int              type,
+             int              si1,
+             int              sj1,
+             vrna_exp_param_t *P)
+{
   double energy = 1.0;
-  if(si1 >= 0 && sj1 >= 0){
-    energy = P->expmismatchM[type][si1][sj1];
-  }
-  else if(si1 >= 0){
-    energy = P->expdangle5[type][si1];
-  }
-  else if(sj1 >= 0){
-    energy = P->expdangle3[type][sj1];
-  }
 
-  if(type > 2)
+  if (si1 >= 0 && sj1 >= 0)
+    energy = P->expmismatchM[type][si1][sj1];
+  else if (si1 >= 0)
+    energy = P->expdangle5[type][si1];
+  else if (sj1 >= 0)
+    energy = P->expdangle3[type][sj1];
+
+  if (type > 2)
     energy *= P->expTermAU;
 
   energy *= P->expMLintern[type];
   return (FLT_OR_DBL)energy;
 }
+
 
 /**
  * @}
