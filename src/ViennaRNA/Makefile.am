@@ -14,7 +14,8 @@ noinst_LTLIBRARIES =  libRNA_conv.la \
                       libRNA_utils.la \
                       libRNA_plotting.la \
                       libRNA_params.la \
-                      libRNA_loops.la
+                      libRNA_loops.la \
+                      libRNA_special_const.la
 
 # where to install the headers on the system
 libRNA_ladir = $(includedir)/ViennaRNA
@@ -222,6 +223,9 @@ libRNA_params_la_SOURCES = \
     params.c \
     convert_epars.c
 
+libRNA_special_const_la_SOURCES = \
+    special_const.c
+
 # static library for subpackages
 BUILT_SOURCES = libRNA.a
 
@@ -237,7 +241,8 @@ clean-local:
 
 noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
                   intl22.h intl22dH.h list.h\
-                  1.8.4_epars.h 1.8.4_intloops.h ${SVM_H} ${JSON_H}
+                  1.8.4_epars.h 1.8.4_intloops.h ${SVM_H} ${JSON_H}\
+                  special_const.h
 
 nodist_pkginclude_HEADERS = vrna_config.h
 
@@ -248,4 +253,5 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               model_sd.inc \
               ${SVM_H} \
               ${JSON_H} \
-              color_output.inc
+              color_output.inc \
+              special_const.h
