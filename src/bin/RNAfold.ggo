@@ -3,17 +3,19 @@ package "RNAfold" # don't use package if you're using automake
 
 purpose "Calculate minimum free energy secondary structures and partition function of RNAs"
 
-#usage "RNAfold [options]\n"
+usage "RNAfold [OPTIONS] [<input.fa>]"
+
 #version "2.0"   # don't use version if you're using automake
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAfold_cmdl --include-getopt --default-optional --func-name=RNAfold_cmdline_parser --arg-struct-name=RNAfold_args_info"
+args "--file-name=RNAfold_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAfold_cmdline_parser --arg-struct-name=RNAfold_args_info"
 
 
 description "The program reads RNA sequences, calculates their minimum free energy (mfe) structure\
  and prints the mfe structure in bracket notation and its free energy. If not specified differently\
- using commandline arguments, input is accepted from stdin, and output printed to stdout. If the -p option\
+ using commandline arguments, input is accepted from stdin or read from an input file, and output\
+ printed to stdout. If the -p option\
  was given it also computes the partition function (pf) and base pairing probability matrix, and\
  prints the free energy of the thermodynamic ensemble, the frequency of the mfe structure in the ensemble,\
  and the ensemble diversity to stdout.\n\nIt also produces PostScript files with plots of the resulting\
@@ -23,11 +25,15 @@ description "The program reads RNA sequences, calculates their minimum free ener
  p>10E-6 there is a line of the form\n\ni  j  sqrt(p)  ubox\n\nin the PostScript file, so that the pair\
  probabilities can be easily extracted.\n\nSequences may be provided in a simple text format where each sequence\
  occupies a single line. Output files are named \"rna.ps\" and \"dot.ps\". Existing files of the same name\
- will be overwritten.\nIt is also possible to provide sequence data in FASTA format. In this case, the first\
- word (max. 42 char) of the FASTA header will be used for output file names. PostScript files \"name_ss.ps\"\
- and \"name_dp.ps\" are produced for the structure and dot plot, respectively.\nOnce FASTA input was provided\
- all following sequences must be in FASTA format too.\nThe program will continue to read new sequences until a\
- line consisting of the single character @ or an end of file condition is encountered.\n\n"
+ will be overwritten.\n\nIt is also possible to provide sequence data in FASTA format. In this case, the\
+ first word of the FASTA header will be used as prefix for output file names. PostScript files \"prefix_ss.ps\"\
+ and \"prefix_dp.ps\" are produced for the structure and dot plot, respectively. Note, however, that once\
+ FASTA input was provided all following sequences must be in FASTA format too.\n\nTo avoid problems with\
+ certain operating systems and/or file systems the prefix will ALWAYS be sanitized!\
+ This step substitutes any special character in the prefix by a filename delimiter. See the --filename-delim\
+ option to change the delimiting character according to your requirements.\n\nThe program will continue to\
+ read new sequences until a line consisting of the single character @ or an end of file (EOF) condition is\
+ encountered.\n\n"
 
 # Options
 section "General Options"
@@ -40,8 +46,10 @@ off
 
 option  "infile"  i
 "Read a file instead of reading from stdin\n"
-details="The default behavior of RNAfold is to read input from stdin. Using this parameter\
- the user can specify an input file name where data is read from.\n\n"
+details="The default behavior of RNAfold is to read input from stdin or the file that follows\
+ the RNAfold command. Using this parameter the user can specify an input file name where data\
+ is read from. Note, that the input file specified with this option takes priority over any\
+ other supplied input filename.\n\n"
 string
 typestr="<filename>"
 optional

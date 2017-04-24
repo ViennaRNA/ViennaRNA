@@ -73,14 +73,14 @@ main(int  argc,
 {
   FILE                              *input, *output;
   struct          RNAfold_args_info args_info;
-  char                              *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc, *orig_sequence,
-                                    *constraints_file, *shape_file, *shape_method, *shape_conversion,
-                                    *infile, *outfile, *tmp_string,
-                                    *ligandMotif, *id_prefix, *command_file, *id_delim, *filename_delim;
+  char                              *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc,
+                                    *orig_sequence, *constraints_file, *shape_file, *shape_method,
+                                    *shape_conversion, *infile, *outfile, *tmp_string, *ligandMotif,
+                                    *id_prefix, *command_file, *id_delim, *filename_delim;
   unsigned int                      rec_type, read_opt;
   int                               i, length, l, cl, istty, pf, noPS, noconv, enforceConstraints,
                                     batch, auto_id, id_digits, doMEA, lucky, with_shapes,
-                                    verbose, istty_in, istty_out, filename_full;
+                                    verbose, istty_in, istty_out, filename_full, num_input;
   long int                          seq_number;
   double                            energy, min_en, kT, MEAgamma, bppmThreshold;
   vrna_cmd_t                        *commands;
@@ -107,6 +107,7 @@ main(int  argc,
   command_file  = NULL;
   commands      = NULL;
   filename_full = 0;
+  num_input     = 0;
 
   /* apply default model details */
   set_model_details(&md);
@@ -194,8 +195,10 @@ main(int  argc,
   if (args_info.outfile_given)
     outfile = strdup(args_info.outfile_arg);
 
-  if (args_info.infile_given)
+  if (args_info.infile_given) {
     infile = strdup(args_info.infile_arg);
+    num_input++;
+  }
 
   if (args_info.motif_given)
     ligandMotif = strdup(args_info.motif_arg);
@@ -217,6 +220,17 @@ main(int  argc,
   /* full filename from FASTA header support */
   if (args_info.filename_full_given)
     filename_full = 1;
+
+  if (args_info.inputs_num > 0) {
+    num_input++;
+
+    if (!infile)
+      infile = strdup(args_info.inputs[0]);
+
+    if ((num_input > 1) || (args_info.inputs_num > 1))
+      vrna_message_warning("More than one input filename given, using \"%s\" and ignoring the rest",
+                           infile);
+  }
 
   /* free allocated memory of command line data structure */
   RNAfold_cmdline_parser_free(&args_info);
@@ -295,11 +309,10 @@ main(int  argc,
 
     /* prepare the file prefix */
     if (outfile) {
-      if (SEQ_ID) {
+      if (SEQ_ID)
         prefix = vrna_strdup_printf("%s%s%s", outfile, filename_delim, SEQ_ID);
-      } else {
+      else
         prefix = vrna_strdup_printf("%s", outfile);
-      }
     }
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
@@ -311,7 +324,8 @@ main(int  argc,
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
-    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+    vrna_fold_compound_t *vc =
+      vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
 
     length = vc->length;
 
@@ -350,8 +364,14 @@ main(int  argc,
       }
     }
 
-    if (with_shapes)
-      vrna_constraints_add_SHAPE(vc, shape_file, shape_method, shape_conversion, verbose, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+    if (with_shapes) {
+      vrna_constraints_add_SHAPE(vc,
+                                 shape_file,
+                                 shape_method,
+                                 shape_conversion,
+                                 verbose,
+                                 VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+    }
 
     if (ligandMotif)
       add_ligand_motif(vc, ligandMotif, verbose, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
@@ -388,8 +408,9 @@ main(int  argc,
     /* check whether the constraint allows for any solution */
     if ((fold_constrained && constraints_file) || (commands)) {
       if (min_en == (double)(INF / 100.)) {
-        vrna_message_error("Supplied structure constraints create empty solution set for sequence:\n%s",
-                           orig_sequence);
+        vrna_message_error(
+          "Supplied structure constraints create empty solution set for sequence:\n%s",
+          orig_sequence);
         exit(EXIT_FAILURE);
       }
     }
@@ -437,7 +458,8 @@ main(int  argc,
           free(a);
         }
 
-        (void)vrna_file_PS_rnaplot_a(orig_sequence, structure, filename_plot, annotation, NULL, &md);
+        (void)vrna_file_PS_rnaplot_a(orig_sequence, structure, filename_plot, annotation, NULL,
+                                     &md);
 
         free(annotation);
         free(filename_plot);
@@ -646,8 +668,14 @@ main(int  argc,
             filename_dotplot = strdup("dot.ps");
           }
 
-          if (filename_dotplot)
-            vrna_plot_dp_EPS(filename_dotplot, orig_sequence, pl1, pl2, NULL, VRNA_PLOT_PROBABILITIES_DEFAULT);
+          if (filename_dotplot) {
+            vrna_plot_dp_EPS(filename_dotplot,
+                             orig_sequence,
+                             pl1,
+                             pl2,
+                             NULL,
+                             VRNA_PLOT_PROBABILITIES_DEFAULT);
+          }
 
           free(filename_dotplot);
 
@@ -785,7 +813,8 @@ main(int  argc,
     if (istty) {
       if (fold_constrained) {
         vrna_message_constraint_options_all();
-        vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint");
+        vrna_message_input_seq(
+          "Input sequence (upper or lower case) followed by structure constraint");
       } else {
         vrna_message_input_seq_simple();
       }
@@ -963,8 +992,14 @@ annotate_ud_motif(vrna_fold_compound_t  *vc,
         size  = vc->domains_up->motif_size[motifs[m].number];
         char  *annotation;
 
-        if (verbose)
-          vrna_message_info(stdout, "ud motif %d detected in %s structure: (%d,%d)", motifs[m].number, structure_name, i, i + size - 1);
+        if (verbose) {
+          vrna_message_info(stdout,
+                            "ud motif %d detected in %s structure: (%d,%d)",
+                            motifs[m].number,
+                            structure_name,
+                            i,
+                            i + size - 1);
+        }
 
         annotation = vrna_strdup_printf(" %d %d 12 0.4 0.65 0.95 omark", i, i + size - 1);
 
