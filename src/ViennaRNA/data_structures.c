@@ -487,14 +487,25 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
         if (!vc->exp_params)
           vc->exp_params = vrna_exp_params(&(vc->params->model_details));
 
-        if (!vc->ptype)
-          vc->ptype = vrna_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details));
+        if (options & VRNA_OPTION_WINDOW) {
+          /* handle minimal requirements for ptype */
+          if (vc->ptype_local)
+            free(vc->ptype_local);
+          vc->ptype_local = vrna_alloc(sizeof(char *) * (vc->length + 1));
+
+          /* check for minimal hard constraints structure */
+          if ((!vc->hc) || (vc->hc->type != VRNA_HC_WINDOW) || (!vc->hc->matrix_local))
+            vrna_hc_init_window(vc);
+
+        } else {
+          if (!vc->ptype)
+            vc->ptype = vrna_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details));
 
 #ifdef VRNA_BACKWARD_COMPAT
-        /* backward compatibility ptypes */
-        if (!vc->ptype_pf_compat)
-          vc->ptype_pf_compat = get_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details), 1);
-
+          /* backward compatibility ptypes */
+          if (!vc->ptype_pf_compat)
+            vc->ptype_pf_compat = get_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details), 1);
+        }
 #endif
         /* get precomputed Boltzmann factors for soft-constraints (if any) */
         if (vc->sc) {
