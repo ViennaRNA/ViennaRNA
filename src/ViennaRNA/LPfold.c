@@ -117,22 +117,14 @@ compute_probs(vrna_fold_compound_t        *vc,
               int                         *ov);
 
 
-PRIVATE void  GetPtype(vrna_fold_compound_t *vc,
-                       int                  j);
+PRIVATE void
+make_ptypes(vrna_fold_compound_t  *vc,
+            int                   j);
 
 
-PRIVATE void  FreeOldArrays(vrna_fold_compound_t  *vc,
-                            int                   i,
-                            unsigned int          options);
-
-
-PRIVATE void  GetNewArrays(vrna_fold_compound_t *vc,
-                           int                  j,
-                           unsigned int         options);
-
-
-PRIVATE void  printpbar(vrna_fold_compound_t  *vc,
-                        int                   i);
+PRIVATE void
+probability_correction(vrna_fold_compound_t *vc,
+                       int                  i);
 
 
 #if 0
@@ -143,16 +135,29 @@ PRIVATE vrna_plist_t *get_deppp(vrna_fold_compound_t  *vc,
 
 #endif
 
-PRIVATE void compute_pU(vrna_fold_compound_t  *vc,
-                        int                   k,
-                        int                   ulength,
-                        helper_arrays         *aux_arrays,
-                        unsigned int          options);
+PRIVATE void
+compute_pU(vrna_fold_compound_t       *vc,
+           int                        k,
+           int                        ulength,
+           helper_arrays              *aux_arrays,
+           vrna_probs_window_callback *cb,
+           void                       *data,
+           unsigned int               options);
 
 
 PRIVATE FLT_OR_DBL *
 compute_stack_probabilities(vrna_fold_compound_t  *vc,
                             int                   start);
+
+
+PRIVATE void
+return_pU(int                         size,
+          int                         i,
+          int                         max_size,
+          helper_arrays               *aux_arrays,
+          vrna_probs_window_callback  *cb,
+          void                        *data,
+          unsigned int                options);
 
 
 PRIVATE void
@@ -414,6 +419,216 @@ free_helper_arrays(vrna_fold_compound_t *vc,
 }
 
 
+PRIVATE void
+return_pU(int                         size,
+          int                         i,
+          int                         max_size,
+          helper_arrays               *aux_arrays,
+          vrna_probs_window_callback  *cb,
+          void                        *data,
+          unsigned int                options)
+{
+  if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
+    cb(aux_arrays->pUO[i], size, i, max_size, VRNA_PROBS_WINDOW_UP | VRNA_EXT_LOOP, data);
+    cb(aux_arrays->pUH[i], size, i, max_size, VRNA_PROBS_WINDOW_UP | VRNA_HP_LOOP, data);
+    cb(aux_arrays->pUI[i], size, i, max_size, VRNA_PROBS_WINDOW_UP | VRNA_INT_LOOP, data);
+    cb(aux_arrays->pUM[i], size, i, max_size, VRNA_PROBS_WINDOW_UP | VRNA_MB_LOOP, data);
+  } else {
+    cb(aux_arrays->pU[i], size, i, max_size, VRNA_PROBS_WINDOW_UP | VRNA_ANY_LOOP, data);
+  }
+}
+
+
+PRIVATE INLINE void
+allocate_dp_matrices(vrna_fold_compound_t *vc,
+                     int                  i,
+                     unsigned int         options)
+{
+  char          **ptype;
+  int           winSize;
+  FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
+  vrna_mx_pf_t  *mx;
+
+  mx      = vc->exp_matrices;
+  pR      = mx->pR;
+  q       = mx->q_local;
+  qb      = mx->qb_local;
+  qm      = mx->qm_local;
+  qm2     = mx->qm2_local;
+  QI5     = mx->QI5;
+  qmb     = mx->qmb;
+  q2l     = mx->q2l;
+  ptype   = vc->ptype_local;
+  winSize = vc->window_size;
+
+  /* allocate new part of arrays */
+  pR[i] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
+  pR[i] -= i;
+  q[i]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
+  q[i]  -= i;
+  qb[i] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
+  qb[i] -= i;
+  qm[i] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
+  qm[i] -= i;
+
+  if (options & VRNA_PROBS_WINDOW_UP) {
+    qm2[i]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
+    qm2[i]  -= i;
+    QI5[i]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
+    qmb[i]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
+    q2l[i]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
+  }
+
+  ptype[i]  = (char *)vrna_alloc((winSize + 1) * sizeof(char));
+  ptype[i]  -= i;
+}
+
+
+PRIVATE INLINE void
+free_dp_matrices(vrna_fold_compound_t *vc,
+                 unsigned int         options)
+{
+  char          **ptype;
+  int           i, n, winSize;
+  FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
+  vrna_mx_pf_t  *mx;
+
+  n       = (int)vc->length;
+  winSize = vc->window_size;
+  mx      = vc->exp_matrices;
+  pR      = mx->pR;
+  q       = mx->q_local;
+  qb      = mx->qb_local;
+  qm      = mx->qm_local;
+  ptype   = vc->ptype_local;
+
+  for (i = MAX2(1, n - (winSize + MAXLOOP)); i <= n; i++) {
+    free(pR[i] + i);
+    free(q[i] + i);
+    free(qb[i] + i);
+    free(qm[i] + i);
+    pR[i] = NULL;
+    q[i]  = NULL;
+    qb[i] = NULL;
+    qm[i] = NULL;
+    if (options & VRNA_PROBS_WINDOW_UP) {
+      qm2 = mx->qm2_local;
+      QI5 = mx->QI5;
+      qmb = mx->qmb;
+      q2l = mx->q2l;
+      free(qm2[i] + i);
+      free(QI5[i]);
+      free(qmb[i]);
+      free(q2l[i]);
+      qm2[i]  = NULL;
+      QI5[i]  = NULL;
+      qmb[i]  = NULL;
+      q2l[i]  = NULL;
+    }
+
+    free(ptype[i] + i);
+    ptype[i] = NULL;
+  }
+}
+
+
+PRIVATE INLINE void
+init_dp_matrices(vrna_fold_compound_t *vc,
+                 unsigned int         options)
+{
+  int         i, j, max_j, winSize;
+  FLT_OR_DBL  **q, *scale;
+
+  winSize = vc->window_size;
+  q       = vc->exp_matrices->q_local;
+  scale   = vc->exp_matrices->scale;
+  max_j   = MIN2((int)vc->length, 2 * winSize + MAXLOOP + 2);
+
+  for (j = 1; j <= max_j; j++)
+    allocate_dp_matrices(vc, j, options);
+}
+
+
+PRIVATE INLINE void
+rotate_dp_matrices(vrna_fold_compound_t *vc,
+                   int                  j,
+                   unsigned int         options)
+{
+  char          **ptype;
+  int           i, winSize, length;
+  FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
+  vrna_mx_pf_t  *mx;
+
+  length  = vc->length;
+  winSize = vc->window_size;
+  mx      = vc->exp_matrices;
+  pR      = mx->pR;
+  q       = mx->q_local;
+  qb      = mx->qb_local;
+  qm      = mx->qm_local;
+  ptype   = vc->ptype_local;
+
+  if (j > 2 * winSize + MAXLOOP + 1) {
+    i = j - (2 * winSize + MAXLOOP + 1);
+    /* free arrays may be faster than pointer rotation and reset to 0 values */
+    free(pR[i] + i);
+    free(q[i] + i);
+    free(qb[i] + i);
+    free(qm[i] + i);
+    pR[i] = NULL;
+    q[i]  = NULL;
+    qb[i] = NULL;
+    qm[i] = NULL;
+    if (options & VRNA_PROBS_WINDOW_UP) {
+      qm2 = mx->qm2_local;
+      QI5 = mx->QI5;
+      qmb = mx->qmb;
+      q2l = mx->q2l;
+      free(qm2[i] + i);
+      free(QI5[i]);
+      free(qmb[i]);
+      free(q2l[i]);
+      qm2[i]  = NULL;
+      QI5[i]  = NULL;
+      qmb[i]  = NULL;
+      q2l[i]  = NULL;
+    }
+
+    free(ptype[i] + i);
+    ptype[i] = NULL;
+
+    if (j + 1 <= length) {
+      /* get arrays for next round */
+      allocate_dp_matrices(vc, j + 1, options);
+      make_ptypes(vc, j + 1);
+    }
+  }
+}
+
+
+PRIVATE INLINE void
+init_constraints(vrna_fold_compound_t *vc,
+                 unsigned int         options)
+{
+  int j, max_j, winSize;
+
+  winSize = vc->window_size;
+  max_j   = MIN2((int)vc->length, 2 * winSize + MAXLOOP + 2);
+
+  for (j = 1; j <= max_j; j++)
+    make_ptypes(vc, j);
+}
+
+
+PRIVATE INLINE void
+rotate_constraints(vrna_fold_compound_t *vc,
+                   int                  i,
+                   unsigned int         options)
+{
+  make_ptypes(vc, i);
+}
+
+
 PUBLIC void
 vrna_probs_window(vrna_fold_compound_t        *vc,
                   int                         ulength,
@@ -431,6 +646,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
   vrna_mx_pf_t      *matrices;
+  vrna_hc_t         *hc;
   helper_arrays     aux_arrays;
 
   ov    = 0;
@@ -467,41 +683,34 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   expMLclosing  = pf_params->expMLclosing;
   noGUclosure   = md->noGUclosure;
 
-
   q   = matrices->q_local;
   qb  = matrices->qb_local;
   qm  = matrices->qm_local;
   qm2 = matrices->qm2_local;
   pR  = matrices->pR;
 
+  hc = vc->hc;
+
   alloc_helper_arrays(vc, ulength, &aux_arrays, options);
-
-  /*
-   * here, I allocate memory for pU, if has to be saved, I allocate all in one go,
-   * if pU is put out and freed, I only allocate what I really need
-   */
-
 
   /* very short molecule ? */
   if (n < turn + 2) {
     if ((options & VRNA_PROBS_WINDOW_UP) && (ulength > 0)) {
       for (i = 1; i <= n; i++) {
-        maxl = MAX2(MAXLOOP, ulength);
-        for (j = 0; j <= maxl; j++)
-          aux_arrays.pU[i][j] = 1.;
-
-        cb(aux_arrays.pU[i], maxl, i, ulength, VRNA_PROBS_WINDOW_UP | VRNA_ANY_LOOP, data);
-
+        maxl = MIN2(MAX2(MAXLOOP, ulength), n);
         if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
-          cb(aux_arrays.pU[i], maxl, i, ulength, VRNA_PROBS_WINDOW_UP | VRNA_EXT_LOOP, data);
-          /* reset all other loop types to 0% probability */
+          for (j = 0; j <= maxl; j++) {
+            aux_arrays.pUO[i][j]  = 1.;
+            aux_arrays.pUH[i][j]  = 0.;
+            aux_arrays.pUI[i][j]  = 0.;
+            aux_arrays.pUM[i][j]  = 0.;
+          }
+        } else {
           for (j = 0; j <= maxl; j++)
-            aux_arrays.pU[i][j] = 0.;
-
-          cb(aux_arrays.pU[i], maxl, i, ulength, VRNA_PROBS_WINDOW_UP | VRNA_HP_LOOP, data);
-          cb(aux_arrays.pU[i], maxl, i, ulength, VRNA_PROBS_WINDOW_UP | VRNA_INT_LOOP, data);
-          cb(aux_arrays.pU[i], maxl, i, ulength, VRNA_PROBS_WINDOW_UP | VRNA_MB_LOOP, data);
+            aux_arrays.pU[i][j] = 1.;
         }
+
+        return_pU(maxl, i, ulength, &aux_arrays, cb, data, options);
       }
     }
 
@@ -525,19 +734,17 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
    * qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j
    */
 
-  for (j = 1; j < MIN2(turn + 2, n); j++) {
-    /* allocate start */
-    GetNewArrays(vc, j, options);
-    GetPtype(vc, j);
+  init_dp_matrices(vc, options);
+  init_constraints(vc, options);
+
+  /* init exterior loop contributions */
+  for (j = 1; j < MIN2(turn + 2, n); j++)
     for (i = 1; i <= j; i++)
       q[i][j] = scale[(j - i + 1)];
-  }
 
+  /* start recursions */
   for (j = turn + 2; j <= n + winSize; j++) {
     if (j <= n) {
-      GetNewArrays(vc, j, options);
-      GetPtype(vc, j);
-
       for (i = MAX2(1, j - winSize); i <= j /* -turn */; i++)
         q[i][j] = scale[(j - i + 1)];
 
@@ -668,29 +875,43 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
       qqm   = tmp;
     }
 
-    if (j > winSize)
+    if (j > winSize) {
       compute_probs(vc, j, &aux_arrays, ulength, cb, data, options, &ov);
 
-    /* end if (do_backtrack) */
-  }/* end for j */
+      if ((options & VRNA_PROBS_WINDOW_UP) && (j > winSize + MAXLOOP + 1))
+        compute_pU(vc, j - winSize - MAXLOOP - 1, ulength, &aux_arrays, cb, data, options);
 
-  /* finish output and free */
-  if (options & VRNA_PROBS_WINDOW_UP) {
-    for (j = MAX2(1, n - MAXLOOP); j <= n; j++) {
-      /* if (pUoutput) pU[j]=(double *)vrna_alloc((ulength+2)*sizeof(double)); */
-      compute_pU(vc, j, ulength, &aux_arrays, options);
-      cb(aux_arrays.pU[j], ulength, j, ulength, VRNA_PROBS_WINDOW_UP | VRNA_ANY_LOOP, data);
-      if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
-        cb(aux_arrays.pUO[j], ulength, j, ulength, VRNA_PROBS_WINDOW_UP | VRNA_EXT_LOOP, data);
-        cb(aux_arrays.pUH[j], ulength, j, ulength, VRNA_PROBS_WINDOW_UP | VRNA_HP_LOOP, data);
-        cb(aux_arrays.pUI[j], ulength, j, ulength, VRNA_PROBS_WINDOW_UP | VRNA_INT_LOOP, data);
-        cb(aux_arrays.pUM[j], ulength, j, ulength, VRNA_PROBS_WINDOW_UP | VRNA_MB_LOOP, data);
+      if (j > 2 * winSize + MAXLOOP + 1) {
+        int start = j - (2 * winSize + MAXLOOP + 1);
+        probability_correction(vc, start);
+        if (options & VRNA_PROBS_WINDOW_BPP)
+          cb(pR[start], MIN2(start + winSize, n), start, winSize, VRNA_PROBS_WINDOW_BPP, data);
+
+        if (options & VRNA_PROBS_WINDOW_STACKP) {
+          int start = j - (2 * winSize - MAXLOOP);
+          if (start > 1) {
+            FLT_OR_DBL *stack_probs = compute_stack_probabilities(vc, start);
+            stack_probs -= start + 1;
+            cb(stack_probs, MIN2(n - start + turn,
+                                 pairSize), start, winSize, VRNA_PROBS_WINDOW_STACKP, data);
+            stack_probs += start + 1;
+            free(stack_probs);
+          }
+        }
+
+        rotate_dp_matrices(vc, j, options);
+        rotate_constraints(vc, j, options);
       }
-    }
-  }
+    } /* end if (do_backtrack) */
+  }   /* end for j */
+
+  /* finish output */
+  if (options & VRNA_PROBS_WINDOW_UP)
+    for (j = MAX2(1, n - MAXLOOP); j <= n; j++)
+      compute_pU(vc, j, ulength, &aux_arrays, cb, data, options);
 
   for (j = MAX2(n - winSize - MAXLOOP, 1); j <= n; j++) {
-    printpbar(vc, j);
+    probability_correction(vc, j);
     if (options & VRNA_PROBS_WINDOW_BPP)
       cb(pR[j], MIN2(j + winSize, n), j, winSize, VRNA_PROBS_WINDOW_BPP, data);
 
@@ -705,10 +926,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
         free(stack_probs);
       }
     }
-
-    FreeOldArrays(vc, j, options);
   }
-  /* free_pf_arrays_L(); */
 
   if (ov > 0)
     vrna_message_warning("%d overflows occurred while backtracking;\n"
@@ -719,7 +937,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   free(qq1);
   free(qqm);
   free(qqm1);
-
+  free_dp_matrices(vc, options);
   free_helper_arrays(vc, ulength, &aux_arrays, options);
 }
 
@@ -736,11 +954,11 @@ compute_probs(vrna_fold_compound_t        *vc,
 {
   char              **ptype;
   short             *S1;
-  int               i, k, l, n, m, winSize, turn, type, type_2, tt, *rtype, pairSize;
+  int               i, k, l, n, m, winSize, turn, type, type_2, tt, *rtype;
   FLT_OR_DBL        *prml, *prm_l, *prm_l1, **pR, **QI5, **qmb, **q2l, **qb, **q, **qm,
                     *scale, *expMLbase, expMLclosing, temp, prm_MLb, prmt1, prmt, *tmp,
                     Qmax;
-  double            max_real, **pU, **pUO, **pUI, **pUM, **pUH;
+  double            max_real;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
 
@@ -749,11 +967,6 @@ compute_probs(vrna_fold_compound_t        *vc,
   prml    = aux_arrays->prml;
   prm_l   = aux_arrays->prm_l;
   prm_l1  = aux_arrays->prm_l1;
-  pU      = aux_arrays->pU;
-  pUO     = aux_arrays->pUO;
-  pUH     = aux_arrays->pUH;
-  pUI     = aux_arrays->pUI;
-  pUM     = aux_arrays->pUM;
 
   n             = vc->length;
   winSize       = vc->window_size;
@@ -762,7 +975,6 @@ compute_probs(vrna_fold_compound_t        *vc,
   pf_params     = vc->exp_params;
   md            = &(pf_params->model_details);
   turn          = md->min_loop_size;
-  pairSize      = md->max_bp_span;
   rtype         = &(md->rtype[0]);
   expMLclosing  = pf_params->expMLclosing;
   scale         = vc->exp_matrices->scale;
@@ -785,8 +997,8 @@ compute_probs(vrna_fold_compound_t        *vc,
     prm_l[k]  = 0;
     /*        prm_l1[k]=0;  others stay */
   }
-  prm_l1[j - winSize] = 0;
-  k                   = j - winSize;
+  k         = j - winSize;
+  prm_l1[k] = 0;
   for (l = k + turn + 1; l <= MIN2(n, k + winSize - 1); l++) {
     int a;
     pR[k][l]  = 0; /* set zero at start */
@@ -944,50 +1156,15 @@ compute_probs(vrna_fold_compound_t        *vc,
   tmp                 = prm_l1;
   aux_arrays->prm_l1  = prm_l;
   aux_arrays->prm_l   = tmp;
-
-  /* end for (l=..)   */
-  if ((options & VRNA_PROBS_WINDOW_UP) && (k > MAXLOOP + 1)) {
-    int start     = k - MAXLOOP - 1;
-    int pU_length = MIN2(ulength, start);
-    compute_pU(vc, start, ulength, aux_arrays, options);
-    cb(pU[start], pU_length, start, ulength, VRNA_PROBS_WINDOW_UP | VRNA_ANY_LOOP, data);
-    if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
-      cb(pUO[start], pU_length, start, ulength, VRNA_PROBS_WINDOW_UP | VRNA_EXT_LOOP, data);
-      cb(pUH[start], pU_length, start, ulength, VRNA_PROBS_WINDOW_UP | VRNA_HP_LOOP, data);
-      cb(pUI[start], pU_length, start, ulength, VRNA_PROBS_WINDOW_UP | VRNA_INT_LOOP, data);
-      cb(pUM[start], pU_length, start, ulength, VRNA_PROBS_WINDOW_UP | VRNA_MB_LOOP, data);
-    }
-  }
-
-  if (j > 2 * winSize + MAXLOOP + 1) {
-    int start = j - (2 * winSize + MAXLOOP + 1);
-    printpbar(vc, start);
-    if (options & VRNA_PROBS_WINDOW_BPP)
-      cb(pR[start], MIN2(start + winSize, n), start, winSize, VRNA_PROBS_WINDOW_BPP, data);
-
-    if (options & VRNA_PROBS_WINDOW_STACKP) {
-      int start = j - (2 * winSize - MAXLOOP);
-      if (start > 1) {
-        FLT_OR_DBL *stack_probs = compute_stack_probabilities(vc, start);
-        stack_probs -= start + 1;
-        cb(stack_probs, MIN2(n - start + turn,
-                             pairSize), start, winSize, VRNA_PROBS_WINDOW_STACKP, data);
-        stack_probs += start + 1;
-        free(stack_probs);
-      }
-    }
-
-    FreeOldArrays(vc, start, options);
-  }
 }
 
 
 PRIVATE void
-printpbar(vrna_fold_compound_t  *vc,
-          int                   i)
+probability_correction(vrna_fold_compound_t *vc,
+                       int                  i)
 {
   int         j, howoften, pairdist, turn, n, winSize;
-  FLT_OR_DBL  **qb, **prb;
+  FLT_OR_DBL  **qb, **pR;
 
   n         = vc->length;
   winSize   = vc->window_size;
@@ -995,7 +1172,7 @@ printpbar(vrna_fold_compound_t  *vc,
   howoften  = 0; /* how many samples do we have for this pair */
 
   qb  = vc->exp_matrices->qb_local;
-  prb = vc->exp_matrices->pR;
+  pR  = vc->exp_matrices->pR;
 
   for (j = i + turn; j < MIN2(i + winSize, n + 1); j++) {
     pairdist = (j - i + 1);
@@ -1003,97 +1180,15 @@ printpbar(vrna_fold_compound_t  *vc,
     howoften  = MIN2(winSize - pairdist + 1, i);  /* pairdist,start */
     howoften  = MIN2(howoften, n - j + 1);        /* end */
     howoften  = MIN2(howoften, n - winSize + 1);  /* windowsize */
-    prb[i][j] *= qb[i][j] / howoften;
+    pR[i][j]  *= qb[i][j] / howoften;
   }
   return;
 }
 
 
 PRIVATE void
-FreeOldArrays(vrna_fold_compound_t  *vc,
-              int                   i,
-              unsigned int          options)
-{
-  char          **ptype;
-  FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
-  vrna_mx_pf_t  *mx;
-
-  mx    = vc->exp_matrices;
-  pR    = mx->pR;
-  q     = mx->q_local;
-  qb    = mx->qb_local;
-  qm    = mx->qm_local;
-  ptype = vc->ptype_local;
-
-  /* free arrays no longer needed */
-  free(pR[i] + i);
-  free(q[i] + i);
-  free(qb[i] + i);
-  free(qm[i] + i);
-  if (options & VRNA_PROBS_WINDOW_UP) {
-    qm2 = mx->qm2_local;
-    QI5 = mx->QI5;
-    qmb = mx->qmb;
-    q2l = mx->q2l;
-    free(qm2[i] + i);
-    free(QI5[i]);
-    free(qmb[i]);
-    free(q2l[i]);
-  }
-
-  free(ptype[i] + i);
-  return;
-}
-
-
-PRIVATE void
-GetNewArrays(vrna_fold_compound_t *vc,
-             int                  j,
-             unsigned int         options)
-{
-  char          **ptype;
-  int           winSize;
-  FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
-  vrna_mx_pf_t  *mx;
-
-  mx      = vc->exp_matrices;
-  pR      = mx->pR;
-  q       = mx->q_local;
-  qb      = mx->qb_local;
-  qm      = mx->qm_local;
-  ptype   = vc->ptype_local;
-  winSize = vc->window_size;
-
-  /* allocate new part of arrays */
-  pR[j] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
-  pR[j] -= j;
-  q[j]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
-  q[j]  -= j;
-  qb[j] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
-  qb[j] -= j;
-  qm[j] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
-  qm[j] -= j;
-  if (options & VRNA_PROBS_WINDOW_UP) {
-    qm2     = mx->qm2_local;
-    QI5     = mx->QI5;
-    qmb     = mx->qmb;
-    q2l     = mx->q2l;
-    qm2[j]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
-    qm2[j]  -= j;
-    QI5[j]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
-    qmb[j]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
-    q2l[j]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
-  }
-
-  ptype[j]  = (char *)vrna_alloc((winSize + 1) * sizeof(char));
-  ptype[j]  -= j;
-  return;
-}
-
-
-PRIVATE void
-GetPtype(vrna_fold_compound_t *vc,
-         int                  i)
+make_ptypes(vrna_fold_compound_t  *vc,
+            int                   i)
 {
   /* make new entries in ptype array */
   char        **ptype;
@@ -1232,11 +1327,13 @@ compute_stack_probabilities(vrna_fold_compound_t  *vc,
  * Here: Space for questions...
  */
 PRIVATE void
-compute_pU(vrna_fold_compound_t *vc,
-           int                  k,
-           int                  ulength,
-           helper_arrays        *aux_arrays,
-           unsigned int         options)
+compute_pU(vrna_fold_compound_t       *vc,
+           int                        k,
+           int                        ulength,
+           helper_arrays              *aux_arrays,
+           vrna_probs_window_callback *cb,
+           void                       *data,
+           unsigned int               options)
 {
   /*
    *  here, we try to add a function computing all unpaired probabilities starting at some i,
@@ -1485,6 +1582,10 @@ compute_pU(vrna_fold_compound_t *vc,
   free(QBI);
   free(QBH);
   free(QBM);
+
+  /* call return callback */
+  return_pU(MIN2(ulength, k), k, ulength, aux_arrays, cb, data, options);
+
   return;
 }
 
