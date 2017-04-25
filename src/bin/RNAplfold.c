@@ -48,8 +48,10 @@ main(int  argc,
   char                        *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id,
                               **rec_rest, *orig_sequence, *id_prefix, *id_delim, *filename_delim;
   unsigned int                rec_type, read_opt;
-  int                         length, istty, winsize, pairdist, tempwin, temppair, tempunpaired, noconv,
-                              plexoutput, simply_putout, openenergies, binaries, auto_id, id_digits, filename_full;
+  int                         length, istty, winsize, pairdist, tempwin, temppair, tempunpaired,
+                              noconv,
+                              plexoutput, simply_putout, openenergies, binaries, auto_id, id_digits,
+                              filename_full;
   long int                    seq_number;
   float                       cutoff;
   double                      **pup, betaScale;
@@ -107,7 +109,8 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning(
+        "required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -345,8 +348,12 @@ main(int  argc,
       fname1  = vrna_strdup_printf("%s%slunp", SEQ_ID, id_delim);
       fname2  = vrna_strdup_printf("%s%sbasepairs", SEQ_ID, id_delim);
       fname3  = vrna_strdup_printf("%s%suplex", SEQ_ID, id_delim);
-      fname4  = (binaries) ? vrna_strdup_printf("%s%sopenen%sbin", SEQ_ID, id_delim, id_delim) : vrna_strdup_printf("%s%sopenen", SEQ_ID, id_delim);
-      ffname  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
+      fname4  =
+        (binaries) ? vrna_strdup_printf("%s%sopenen%sbin", SEQ_ID, id_delim,
+                                        id_delim) : vrna_strdup_printf("%s%sopenen",
+                                                                       SEQ_ID,
+                                                                       id_delim);
+      ffname = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
 
       /* sanitize filenames */
       tmp_string = vrna_filename_sanitize(fname1, filename_delim);
@@ -368,7 +375,7 @@ main(int  argc,
       pf_parameters = vrna_exp_params(&md);
 
       if (unpaired > 0) {
-        pup       = (double **)vrna_alloc((length + 1) * sizeof(double *));
+        pup       = (double **)vrna_alloc(MAX2(unpaired, length + 1) * sizeof(double *));
         pup[0]    = (double *)vrna_alloc(sizeof(double));   /*I only need entry 0*/
         pup[0][0] = unpaired;
       }
@@ -378,7 +385,15 @@ main(int  argc,
         spup  = fopen(fname2, "w");
         pUfp  = (unpaired > 0) ? fopen(fname1, "w") : NULL;
 
-        pl = pfl_fold_par(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup, pf_parameters);
+        pl = pfl_fold_par(rec_sequence,
+                          winsize,
+                          pairdist,
+                          cutoff,
+                          pup,
+                          &dpp,
+                          pUfp,
+                          spup,
+                          pf_parameters);
 
         if (pUfp != NULL)
           fclose(pUfp);
@@ -386,7 +401,15 @@ main(int  argc,
         if (spup != NULL)
           fclose(spup);
       } else {
-        pl = pfl_fold_par(rec_sequence, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup, pf_parameters);
+        pl = pfl_fold_par(rec_sequence,
+                          winsize,
+                          pairdist,
+                          cutoff,
+                          pup,
+                          &dpp,
+                          pUfp,
+                          spup,
+                          pf_parameters);
         PS_dot_plot_turn(orig_sequence, pl, ffname, pairdist);
         if (unpaired > 0) {
           if (plexoutput) {
@@ -462,7 +485,8 @@ putoutphakim_u(double **pU,
   int   f0;
   int   fdep;
 
-  fprintf(fp, "#energy necessary to unpair as well as to unpair if i-1 is unpaired also, if i+1 is unpaired also in dekacal/mol\n");
+  fprintf(fp,
+          "#energy necessary to unpair as well as to unpair if i-1 is unpaired also, if i+1 is unpaired also in dekacal/mol\n");
   for (k = 1; k <= length; k++) {
     fprintf(fp, "%d\t", k);
     p0  = pU[k][1];
