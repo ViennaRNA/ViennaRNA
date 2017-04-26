@@ -448,6 +448,7 @@ allocate_dp_matrices(vrna_fold_compound_t *vc,
   int           winSize;
   FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
   vrna_mx_pf_t  *mx;
+  vrna_hc_t     *hc;
 
   mx      = vc->exp_matrices;
   pR      = mx->pR;
@@ -460,6 +461,7 @@ allocate_dp_matrices(vrna_fold_compound_t *vc,
   q2l     = mx->q2l;
   ptype   = vc->ptype_local;
   winSize = vc->window_size;
+  hc      = vc->hc;
 
   /* allocate new part of arrays */
   pR[i] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
@@ -470,7 +472,6 @@ allocate_dp_matrices(vrna_fold_compound_t *vc,
   qb[i] -= i;
   qm[i] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
   qm[i] -= i;
-
   if (options & VRNA_PROBS_WINDOW_UP) {
     qm2[i]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
     qm2[i]  -= i;
@@ -479,8 +480,9 @@ allocate_dp_matrices(vrna_fold_compound_t *vc,
     q2l[i]  = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
   }
 
-  ptype[i]  = (char *)vrna_alloc((winSize + 1) * sizeof(char));
-  ptype[i]  -= i;
+  hc->matrix_local[i] = (unsigned char *)vrna_alloc((winSize + 1) * sizeof(unsigned char));
+  ptype[i]            = (char *)vrna_alloc((winSize + 1) * sizeof(char));
+  ptype[i]            -= i;
 }
 
 
@@ -492,6 +494,7 @@ free_dp_matrices(vrna_fold_compound_t *vc,
   int           i, n, winSize;
   FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
   vrna_mx_pf_t  *mx;
+  vrna_hc_t     *hc;
 
   n       = (int)vc->length;
   winSize = vc->window_size;
@@ -501,6 +504,7 @@ free_dp_matrices(vrna_fold_compound_t *vc,
   qb      = mx->qb_local;
   qm      = mx->qm_local;
   ptype   = vc->ptype_local;
+  hc      = vc->hc;
 
   for (i = MAX2(1, n - (winSize + MAXLOOP)); i <= n; i++) {
     free(pR[i] + i);
@@ -526,6 +530,8 @@ free_dp_matrices(vrna_fold_compound_t *vc,
       q2l[i]  = NULL;
     }
 
+    free(hc->matrix_local[i]);
+    hc->matrix_local[i] = NULL;
     free(ptype[i] + i);
     ptype[i] = NULL;
   }
@@ -536,12 +542,9 @@ PRIVATE INLINE void
 init_dp_matrices(vrna_fold_compound_t *vc,
                  unsigned int         options)
 {
-  int         i, j, max_j, winSize;
-  FLT_OR_DBL  **q, *scale;
+  int j, max_j, winSize;
 
   winSize = vc->window_size;
-  q       = vc->exp_matrices->q_local;
-  scale   = vc->exp_matrices->scale;
   max_j   = MIN2((int)vc->length, 2 * winSize + MAXLOOP + 2);
 
   for (j = 1; j <= max_j; j++)
@@ -558,6 +561,7 @@ rotate_dp_matrices(vrna_fold_compound_t *vc,
   int           i, winSize, length;
   FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
   vrna_mx_pf_t  *mx;
+  vrna_hc_t     *hc;
 
   length  = vc->length;
   winSize = vc->window_size;
@@ -567,6 +571,7 @@ rotate_dp_matrices(vrna_fold_compound_t *vc,
   qb      = mx->qb_local;
   qm      = mx->qm_local;
   ptype   = vc->ptype_local;
+  hc      = vc->hc;
 
   if (j > 2 * winSize + MAXLOOP + 1) {
     i = j - (2 * winSize + MAXLOOP + 1);
@@ -594,38 +599,43 @@ rotate_dp_matrices(vrna_fold_compound_t *vc,
       q2l[i]  = NULL;
     }
 
+    free(hc->matrix_local[i]);
+    hc->matrix_local[i] = NULL;
     free(ptype[i] + i);
     ptype[i] = NULL;
 
-    if (j + 1 <= length) {
+    if (j + 1 <= length)
       /* get arrays for next round */
       allocate_dp_matrices(vc, j + 1, options);
-      make_ptypes(vc, j + 1);
-    }
   }
 }
 
 
 PRIVATE INLINE void
-init_constraints(vrna_fold_compound_t *vc,
+init_constraints(vrna_fold_compound_t *fc,
                  unsigned int         options)
 {
   int j, max_j, winSize;
 
-  winSize = vc->window_size;
-  max_j   = MIN2((int)vc->length, 2 * winSize + MAXLOOP + 2);
+  winSize = fc->window_size;
+  max_j   = MIN2((int)fc->length, 2 * winSize + MAXLOOP + 2);
 
-  for (j = 1; j <= max_j; j++)
-    make_ptypes(vc, j);
+  for (j = 1; j <= max_j; j++) {
+    make_ptypes(fc, j);
+    vrna_hc_prepare(fc, j);
+  }
 }
 
 
 PRIVATE INLINE void
-rotate_constraints(vrna_fold_compound_t *vc,
-                   int                  i,
+rotate_constraints(vrna_fold_compound_t *fc,
+                   int                  j,
                    unsigned int         options)
 {
-  make_ptypes(vc, i);
+  if (j + 1 <= fc->length) {
+    make_ptypes(fc, j + 1);
+    vrna_hc_prepare(fc, j + 1);
+  }
 }
 
 
@@ -636,26 +646,20 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
                   void                        *data,
                   unsigned int                options)
 {
-  char              *sequence, **ptype;
-  short             *S1;
-  int               n, i, j, k, l, maxl, u, u1, type, type_2, tt, ov, noGUclosure,
-                    winSize, pairSize, *rtype, turn;
-  FLT_OR_DBL        temp, Qmax, qbt1, *tmp, expMLclosing, *qqm, *qqm1, *qq,
-                    *qq1, **q, **qb, **qm, **qm2, **pR, *expMLbase, *scale;
-  double            max_real;
-  vrna_exp_param_t  *pf_params;
-  vrna_md_t         *md;
-  vrna_mx_pf_t      *matrices;
-  vrna_hc_t         *hc;
-  helper_arrays     aux_arrays;
+  unsigned char       hc_decompose;
+  int                 n, i, j, k, maxl, ov, winSize, pairSize, turn;
+  FLT_OR_DBL          temp, Qmax, qbt1, **q, **qb, **qm, **qm2, **pR;
+  double              max_real;
+  vrna_exp_param_t    *pf_params;
+  vrna_md_t           *md;
+  vrna_mx_pf_t        *matrices;
+  vrna_hc_t           *hc;
+  helper_arrays       aux_arrays;
+  vrna_mx_pf_aux_el_t *aux_mx_el;
+  vrna_mx_pf_aux_ml_t *aux_mx_ml;
 
   ov    = 0;
   Qmax  = 0;
-
-  qqm   = NULL;
-  qqm1  = NULL;
-  qq    = NULL;
-  qq1   = NULL;
 
   if ((!vc) || (!cb))
     return;
@@ -667,21 +671,13 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
 
   /* here space for initializing everything */
 
-  n             = vc->length;
-  sequence      = vc->sequence;
-  pf_params     = vc->exp_params;
-  md            = &(pf_params->model_details);
-  S1            = vc->sequence_encoding;
-  matrices      = vc->exp_matrices;
-  expMLbase     = matrices->expMLbase;
-  scale         = matrices->scale;
-  winSize       = vc->window_size;
-  pairSize      = md->max_bp_span;
-  turn          = md->min_loop_size;
-  ptype         = vc->ptype_local;
-  rtype         = &(md->rtype[0]);
-  expMLclosing  = pf_params->expMLclosing;
-  noGUclosure   = md->noGUclosure;
+  n         = vc->length;
+  pf_params = vc->exp_params;
+  md        = &(pf_params->model_details);
+  matrices  = vc->exp_matrices;
+  winSize   = vc->window_size;
+  pairSize  = md->max_bp_span;
+  turn      = md->min_loop_size;
 
   q   = matrices->q_local;
   qb  = matrices->qb_local;
@@ -719,129 +715,49 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
     return;
   }
 
-  qq    = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
-  qq1   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
-  qqm   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
-  qqm1  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
-
-
-  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
-
-  /*  make_ptypes(S, structure); das machmadochlieber lokal, ey! */
-
-  /*
-   * array initialization ; qb,qm,q
-   * qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j
-   */
-
   init_dp_matrices(vc, options);
   init_constraints(vc, options);
 
-  /* init exterior loop contributions */
-  for (j = 1; j < MIN2(turn + 2, n); j++)
-    for (i = 1; i <= j; i++)
-      q[i][j] = scale[(j - i + 1)];
+  /* init auxiliary arrays for fast exterior/multibranch loops */
+  aux_mx_el = vrna_exp_E_ext_fast_init(vc);
+  aux_mx_ml = vrna_exp_E_ml_fast_init(vc);
+
+  max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   /* start recursions */
   for (j = turn + 2; j <= n + winSize; j++) {
     if (j <= n) {
-      for (i = MAX2(1, j - winSize); i <= j /* -turn */; i++)
-        q[i][j] = scale[(j - i + 1)];
-
       for (i = j - turn - 1; i >= MAX2(1, (j - winSize + 1)); i--) {
+        hc_decompose  = hc->matrix_local[i][j - i];
+        qbt1          = 0.;
+
         /* construction of partition function of segment i,j */
         /* firstly that given i bound to j : qb(i,j) */
-        u     = j - i - 1;
-        type  = ptype[i][j];
-        if (type != 0) {
-          /* hairpin contribution */
-          if (((type == 3) || (type == 4)) && noGUclosure)
-            qbt1 = 0;
-          else
-            qbt1 = exp_E_Hairpin(u, type, S1[i + 1], S1[j - 1], sequence + i - 1, pf_params) *
-                   scale[u + 2];
+        if (hc_decompose) {
+          /* process hairpin loop(s) */
+          qbt1 += vrna_exp_E_hp_loop(vc, i, j);
+          /* process interior loop(s) */
+          qbt1 += vrna_exp_E_int_loop(vc, i, j);
+          /* process multibranch loop(s) */
+          qbt1 += vrna_exp_E_mb_loop_fast(vc, i, j, aux_mx_ml->qqm1);
+        }
 
-          /* interior loops with interior pair k,l */
-          for (k = i + 1; k <= MIN2(i + MAXLOOP + 1, j - turn - 2); k++) {
-            u1 = k - i - 1;
-            for (l = MAX2(k + turn + 1, j - 1 - MAXLOOP + u1); l < j; l++) {
-              type_2 = ptype[k][l];
-              if (type_2) {
-                type_2  = rtype[type_2];
-                qbt1    += qb[k][l] *
-                           exp_E_IntLoop(u1, j - l - 1, type, type_2,
-                                         S1[i + 1], S1[j - 1], S1[k - 1], S1[l + 1],
-                                         pf_params) *
-                           scale[k - i + j - l];
-              }
-            }
-          }
-          /* multiple stem loop contribution */
+        qb[i][j] = qbt1;
+
+        /* Multibranch loop */
+        qm[i][j] = vrna_exp_E_ml_fast(vc, i, j, aux_mx_ml);
+
+        if ((options & VRNA_PROBS_WINDOW_UP) && (ulength > 0)) {
+          /* new qm2 computation done here */
           temp = 0.0;
-          for (k = i + 2; k <= j - 1; k++)
-            temp += qm[i + 1][k - 1] *
-                    qqm1[k];
-          tt    = rtype[type];
-          qbt1  += temp *
-                   expMLclosing *
-                   exp_E_MLstem(tt, S1[j - 1], S1[i + 1], pf_params) * scale[2];
-
-          qb[i][j] = qbt1;
-        } /* end if (type!=0) */
-        else {
-          qb[i][j] = 0.0;
+          for (k = i + 1; k <= j; k++)
+            temp += qm[i][k - 1] *
+                    aux_mx_ml->qqm[k];
+          qm2[i][j] = temp;
         }
 
-        /*
-         * construction of qqm matrix containing final stem
-         * contributions to multiple loop partition function
-         * from segment i,j
-         */
-        qqm[i] = qqm1[i] *
-                 expMLbase[1];
-        if (type) {
-          qbt1 = qb[i][j] *
-                 exp_E_MLstem(type, (i > 1) ? S1[i - 1] : -1, (j < n) ? S1[j + 1] : -1, pf_params);
-          qqm[i] += qbt1;
-        }
-
-        /*
-         * construction of qm matrix containing multiple loop
-         * partition function contributions from segment i,j
-         */
-        temp = 0.0;
-        /* ii = my_iindx[i];   ii-k=[i,k-1] */
-        /* new qm2 computation done here */
-        for (k = i + 1; k <= j; k++)
-          temp += qm[i][k - 1] *
-                  qqm[k];
-
-        if (ulength > 0)
-          qm2[i][j] = temp;           /* new qm2 computation done here */
-
-        for (k = i + 1; k <= j; k++)
-          temp += expMLbase[k - i] *
-                  qqm[k];
-
-        qm[i][j] = (temp + qqm[i]);
-
-        /* auxiliary matrix qq for cubic order q calculation below */
-        qbt1 = qb[i][j];
-        if (type)
-          qbt1 *=
-            exp_E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, (j < n) ? S1[j + 1] : -1, pf_params);
-
-        qq[i] = qq1[i] *
-                scale[1] +
-                qbt1;
-
-        /* construction of partition function for segment i,j */
-        temp = 1.0 * scale[1 + j - i] + qq[i];
-        for (k = i; k <= j - 1; k++)
-          temp += q[i][k] *
-                  qq[k + 1];
-
-        q[i][j] = temp;
+        /* Exterior loop */
+        q[i][j] = temp = vrna_exp_E_ext_fast(vc, i, j, aux_mx_el);
 
         if (temp > Qmax) {
           Qmax = temp;
@@ -867,12 +783,9 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
         aux_arrays.pU[j][0] = Fwindow;
       }
 
-      tmp   = qq1;
-      qq1   = qq;
-      qq    = tmp;
-      tmp   = qqm1;
-      qqm1  = qqm;
-      qqm   = tmp;
+      /* rotate auxiliary arrays */
+      vrna_exp_E_ext_fast_rotate(vc, aux_mx_el);
+      vrna_exp_E_ml_fast_rotate(vc, aux_mx_ml);
     }
 
     if (j > winSize) {
@@ -933,12 +846,12 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
                          "you might try a smaller pf_scale than %g\n",
                          ov, pf_params->pf_scale);
 
-  free(qq);
-  free(qq1);
-  free(qqm);
-  free(qqm1);
   free_dp_matrices(vc, options);
   free_helper_arrays(vc, ulength, &aux_arrays, options);
+
+  /* free memory occupied by auxiliary arrays for fast exterior/multibranch loops */
+  vrna_exp_E_ml_fast_free(vc, aux_mx_ml);
+  vrna_exp_E_ext_fast_free(vc, aux_mx_el);
 }
 
 

@@ -1333,6 +1333,7 @@ pf_matrices_alloc_window(vrna_mx_pf_t *vars,
   vars->QI5       = NULL;
   vars->q2l       = NULL;
   vars->qmb       = NULL;
+  vars->G_local   = NULL;
 
   if (alloc_vector & ALLOC_F)
     vars->q_local = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
@@ -1367,6 +1368,7 @@ pf_matrices_free_window(vrna_mx_pf_t  *self,
   free(self->QI5);
   free(self->q2l);
   free(self->qmb);
+  free(self->G_local);
 }
 
 
