@@ -1453,11 +1453,13 @@ compute_pU(vrna_fold_compound_t       *vc,
   char              *sequence, **ptype;
   short             *S1;
   int               startu, i5, j3, len, obp, *rtype, turn, winSize, n, leftmost,
-                    rightmost;
+                    rightmost, tt;
   FLT_OR_DBL        expMLclosing, *expMLbase, **q, **qm, **qm2, *scale, **pR, **QI5,
                     **q2l, **qmb;
-  double            temp, *QBE, *QBI, *QBM, *QBH, **pU, **pUO, **pUH, **pUI, **pUM;
+  double            qqq, temp, *QBE, *QBI, *QBM, *QBH, **pU, **pUO, **pUH, **pUI, **pUM;
   vrna_exp_param_t  *pf_params;
+  vrna_hc_t         *hc;
+  vrna_sc_t         *sc;
 
   sequence      = vc->sequence;
   n             = vc->length;
@@ -1477,6 +1479,8 @@ compute_pU(vrna_fold_compound_t       *vc,
   q2l           = vc->exp_matrices->q2l;
   qmb           = vc->exp_matrices->qmb;
   turn          = pf_params->model_details.min_loop_size;
+  hc            = vc->hc;
+  sc            = vc->sc;
 
   pU  = aux_arrays->pU;
   pUO = aux_arrays->pUO;
@@ -1495,51 +1499,87 @@ compute_pU(vrna_fold_compound_t       *vc,
   /* compute pu[k+ulength][ulength] */
   for (i5 = MAX2(k + ulength - winSize + 1, 1); i5 <= k; i5++) {
     for (j3 = k + ulength + 1; j3 <= MIN2(n, i5 + winSize - 1); j3++) {
-      /*
-       *  if (k>400) {
-       * printf("i%d j%d  ",i5,j3);
-       * fflush(stdout);
-       * }
-       */
-      if (ptype[i5][j3] != 0) {
+      /* Multiloops */
+      if (hc->matrix_local[i5][j3 - i5] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+        tt  = ptype[i5][j3];
+        tt  = rtype[tt];
+        if (tt == 0)
+          tt = 7;
+
+        temp = 0.;
         /*
          * (.. >-----|..........)
          * i5  j     j+ulength  j3
          */
-        /* Multiloops */
         /* (..{}{}-----|......) */
-        temp = (i5 < k) ? qm2[i5 + 1][k] * expMLbase[j3 - k - 1] : 0.;
+        if ((hc->up_ml[k + 1] >= j3 - k - 1) && (i5 < k)) {
+          qqq = qm2[i5 + 1][k] * expMLbase[j3 - k - 1];
+
+          if (sc) {
+            if (sc->exp_energy_up)
+              qqq *= sc->exp_energy_up[k + 1][j3 - k - 1];
+
+            if (sc->f)
+              qqq *= sc->f(i5, j3, i5 + 1, k, VRNA_DECOMP_PAIR_ML, sc->data);
+          }
+
+          temp += qqq;
+        }
 
         /* (..|-----|{}{}) */
-        if (j3 - 1 > k + ulength)
-          temp += qm2[k + ulength + 1][j3 - 1] *
-                  expMLbase[k + ulength - i5];
+        if ((hc->up_ml[i5 + 1] >= k + ulength - i5) && (j3 - 1 > k + ulength)) {
+          qqq = qm2[k + ulength + 1][j3 - 1] *
+                expMLbase[k + ulength - i5];
+
+          if (sc) {
+            if (sc->exp_energy_up)
+              qqq *= sc->exp_energy_up[i5 + 1][k + ulength - i5];
+
+            if (sc->f)
+              qqq *= sc->f(i5, j3, k + ulength + 1, j3, VRNA_DECOMP_PAIR_ML, sc->data);
+          }
+
+          temp += qqq;
+        }
 
         /* ({}|-----|{}) */
-        if ((i5 < k) && (j3 - 1 > k + ulength))
-          temp += qm[i5 + 1][k] *
-                  qm[k + ulength + 1][j3 - 1] *
-                  expMLbase[ulength];
+        if ((hc->up_ml[k + 1] >= ulength) && (i5 < k) && (j3 - 1 > k + ulength)) {
+          qqq = qm[i5 + 1][k] *
+                qm[k + ulength + 1][j3 - 1] *
+                expMLbase[ulength];
+
+          if (sc) {
+            if (sc->exp_energy_up)
+              qqq *= sc->exp_energy_up[k + 1][ulength];
+
+            if (sc->f)
+              qqq *= sc->f(i5, j3, k, k + ulength + 1, VRNA_DECOMP_PAIR_ML_OUTSIDE, sc->data);
+          }
+
+          temp += qqq;
+        }
 
         /* add dangles, multloopclosing etc. */
-        temp *= exp_E_MLstem(rtype[(unsigned char)ptype[i5][j3]],
-                             S1[j3 - 1],
-                             S1[i5 + 1],
-                             pf_params) *
-                scale[2] *
-                expMLclosing;
+        qqq = exp_E_MLstem(tt,
+                           S1[j3 - 1],
+                           S1[i5 + 1],
+                           pf_params) *
+              scale[2] *
+              expMLclosing;
 
-        /* add hairpins */
-        temp += exp_E_Hairpin(j3 - i5 - 1,
-                              ptype[i5][j3],
-                              S1[i5 + 1],
-                              S1[j3 - 1],
-                              sequence + i5 - 1,
-                              pf_params) *
-                scale[j3 - i5 + 1];
-        /* add outer probability */
-        temp                      *= pR[i5][j3];
-        pU[k + ulength][ulength]  += temp;
+        if (sc)
+          if (sc->exp_energy_bp_local)
+            qqq *= sc->exp_energy_bp_local[i5][j3 - i5];
+
+        temp *= qqq;
+
+        pU[k + ulength][ulength] += temp * pR[i5][j3];
+      }
+
+      /* add hairpins */
+      if (hc->matrix_local[i5][j3 - i5] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
+        temp                      = vrna_exp_E_hp_loop(vc, i5, j3);
+        pU[k + ulength][ulength]  += temp * pR[i5][j3];
       }
     }
   }
@@ -1555,28 +1595,12 @@ compute_pU(vrna_fold_compound_t       *vc,
   /* Add Hairpinenergy to QBE */
   temp = 0.;
   for (obp = MIN2(n, k + winSize - 1); obp > k + ulength; obp--)
-    if (ptype[k][obp]) {
-      temp += pR[k][obp] *
-              exp_E_Hairpin(obp - k - 1,
-                            ptype[k][obp],
-                            S1[k + 1],
-                            S1[obp - 1],
-                            sequence + k - 1,
-                            pf_params) *
-              scale[obp - k + 1];
-    }
+    temp += pR[k][obp] *
+            vrna_exp_E_hp_loop(vc, k, obp);
 
   for (obp = MIN2(n, MIN2(k + winSize - 1, k + ulength)); obp > k + 1; obp--) {
-    if (ptype[k][obp]) {
-      temp += pR[k][obp] *
-              exp_E_Hairpin(obp - k - 1,
-                            ptype[k][obp],
-                            S1[k + 1],
-                            S1[obp - 1],
-                            sequence + k - 1,
-                            pf_params) *
-              scale[obp - k + 1];
-    }
+    temp += pR[k][obp] *
+            vrna_exp_E_hp_loop(vc, k, obp);
 
     QBH[obp - k - 1]  += temp;
     QBE[obp - k - 1]  += temp; /* add hairpins to QBE (all in one array) */
@@ -1599,33 +1623,34 @@ compute_pU(vrna_fold_compound_t       *vc,
   for (len = 1; len < ulength; len++) {
     for (obp = k + len + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
       /* add (()___()) */
-      QBM[len] += qmb[k][obp - k - 1] *
-                  qm[k + len + 1 /*2*/][obp - 1] *
-                  expMLbase[len];
-      QBE[len] += qmb[k][obp - k - 1] *
-                  qm[k + len + 1 /*2*/][obp - 1] *
-                  expMLbase[len];
+      temp = qmb[k][obp - k - 1] *
+             qm[k + len + 1 /*2*/][obp - 1] *
+             expMLbase[len];
+
+      QBM[len]  += temp;
+      QBE[len]  += temp;
     }
   }
   for (len = 1; len < ulength; len++) {
     for (obp = k + len + turn + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
       if (ptype[k][obp]) {
+        /* add (___()()) */
         temp = exp_E_MLstem(rtype[(unsigned char)ptype[k][obp]],
                             S1[obp - 1],
                             S1[k + 1],
                             pf_params) *
                scale[2] *
                expMLbase[len] *
-               expMLclosing;                      /* k:obp */
-        QBE[len] += pR[k][obp] *
-                    temp *
-                    qm2[k + len + 1][obp - 1];    /* add (___()()) */
-        QBM[len] += pR[k][obp] *
-                    temp *
-                    qm2[k + len + 1][obp - 1];    /* add (___()()) */
+               expMLclosing *
+               pR[k][obp] *
+               qm2[k + len + 1][obp - 1]; /* k:obp */
+
+        QBM[len]  += temp;
+        QBE[len]  += temp;
       }
     }
   }
+
   /*
    * After computing all these contributions in QBE[len], that k is paired
    * and the unpaired stretch is AT LEAST len long, we start to add that to
