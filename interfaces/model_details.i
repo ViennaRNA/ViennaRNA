@@ -18,7 +18,6 @@ typedef struct {
   int     logML;
   int     circ;
   int     gquad;
-  int     canonicalBPonly;
   int     uniq_ML;
   int     energy_set;
   int     backtrack;

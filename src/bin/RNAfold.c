@@ -80,34 +80,36 @@ main(int  argc,
   unsigned int                      rec_type, read_opt;
   int                               i, length, l, cl, istty, pf, noPS, noconv, enforceConstraints,
                                     batch, auto_id, id_digits, doMEA, lucky, with_shapes,
-                                    verbose, istty_in, istty_out, filename_full, num_input;
+                                    verbose, istty_in, istty_out, filename_full, num_input,
+                                    canonicalBPonly;
   long int                          seq_number;
   double                            energy, min_en, kT, MEAgamma, bppmThreshold;
   vrna_cmd_t                        *commands;
   vrna_md_t                         md;
 
-  rec_type      = read_opt = 0;
-  rec_id        = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;
-  rec_rest      = NULL;
-  pf            = 0;
-  noPS          = 0;
-  noconv        = 0;
-  cl            = l = length = 0;
-  MEAgamma      = 1.;
-  bppmThreshold = 1e-5;
-  lucky         = 0;
-  doMEA         = 0;
-  verbose       = 0;
-  auto_id       = 0;
-  outfile       = NULL;
-  infile        = NULL;
-  input         = NULL;
-  output        = NULL;
-  ligandMotif   = NULL;
-  command_file  = NULL;
-  commands      = NULL;
-  filename_full = 0;
-  num_input     = 0;
+  rec_type        = read_opt = 0;
+  rec_id          = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;
+  rec_rest        = NULL;
+  pf              = 0;
+  noPS            = 0;
+  noconv          = 0;
+  cl              = l = length = 0;
+  MEAgamma        = 1.;
+  bppmThreshold   = 1e-5;
+  lucky           = 0;
+  doMEA           = 0;
+  verbose         = 0;
+  auto_id         = 0;
+  outfile         = NULL;
+  infile          = NULL;
+  input           = NULL;
+  output          = NULL;
+  ligandMotif     = NULL;
+  command_file    = NULL;
+  commands        = NULL;
+  filename_full   = 0;
+  num_input       = 0;
+  canonicalBPonly = 0;
 
   /* apply default model details */
   set_model_details(&md);
@@ -152,7 +154,7 @@ main(int  argc,
 
   /* enforce canonical base pairs in any case? */
   if (args_info.canonicalBPonly_given)
-    md.canonicalBPonly = canonicalBPonly = 1;
+    canonicalBPonly = 1;
 
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given)
@@ -355,8 +357,12 @@ main(int  argc,
 
           /** [Adding hard constraints from pseudo dot-bracket] */
           unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
+
           if (enforceConstraints)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
+
+          if (canonicalBPonly)
+            constraint_options |= VRNA_CONSTRAINT_DB_CANONICAL_BP;
 
           vrna_constraints_add(vc, (const char *)structure, constraint_options);
           /** [Adding hard constraints from pseudo dot-bracket] */

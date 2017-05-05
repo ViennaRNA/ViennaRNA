@@ -149,12 +149,9 @@ hc_intermolecular_only(unsigned int   i,
 
 
 PRIVATE void
-apply_DB_constraint(const char    *constraint,
-                    unsigned char *hc,
-                    unsigned int  length,
-                    unsigned int  min_loop_size,
-                    int           cut,
-                    unsigned int  options);
+apply_DB_constraint(vrna_fold_compound_t  *vc,
+                    const char            *constraint,
+                    unsigned int          options);
 
 
 PRIVATE void
@@ -536,7 +533,7 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
     container[i] = (vrna_hc_bp_storage_t *)vrna_alloc(sizeof(vrna_hc_bp_storage_t) * 2);
   } else {
     /* find out total size of container */
-    for (size = 0; container[i][size].interval_start != 0; size++) ;
+    for (size = 0; container[i][size].interval_start != 0; size++);
 
     /* find position where we want to insert the new constraint */
     for (cnt = 0; cnt < size; cnt++) {
@@ -871,12 +868,7 @@ vrna_hc_add_from_db(vrna_fold_compound_t  *vc,
       vrna_hc_init(vc);
 
     /* apply hard constraints from dot-bracket notation */
-    apply_DB_constraint(constraint,
-                        vc->hc->matrix,
-                        vc->length,
-                        md->min_loop_size,
-                        -1,
-                        options);
+    apply_DB_constraint(vc, constraint, options);
     hc_update_up(vc);
     ret = 1; /* Success */
   }
@@ -886,30 +878,35 @@ vrna_hc_add_from_db(vrna_fold_compound_t  *vc,
 
 
 PRIVATE void
-apply_DB_constraint(const char    *constraint,
-                    unsigned char *hc,
-                    unsigned int  length,
-                    unsigned int  min_loop_size,
-                    int           cut,
-                    unsigned int  options)
+apply_DB_constraint(vrna_fold_compound_t  *vc,
+                    const char            *constraint,
+                    unsigned int          options)
 {
-  int           n, i, j;
-  int           hx, *stack;
-  int           *index;
-  unsigned char c_option;
+  char          c_option, *hc, *sequence;
+  short         *S;
+  unsigned int  length, min_loop_size;
+  int           n, i, j, hx, *stack, *index, cut;
+  vrna_md_t     *md;
 
   if (constraint == NULL)
     return;
 
-  n         = (int)strlen(constraint);
-  stack     = (int *)vrna_alloc(sizeof(int) * (n + 1));
-  index     = vrna_idx_col_wise(length);
-  c_option  = VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
-              | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
-              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
-              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC
-              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP
-              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
+  sequence      = vc->sequence;
+  length        = (int)vc->length;
+  S             = vc->sequence_encoding;
+  hc            = vc->hc->matrix;
+  md            = &(vc->params->model_details);
+  min_loop_size = md->min_loop_size;
+  cut           = vc->cutpoint;
+  n             = (int)strlen(constraint);
+  stack         = (int *)vrna_alloc(sizeof(int) * (n + 1));
+  index         = vrna_idx_col_wise(length);
+  c_option      = VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
+                  | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
+                  | VRNA_CONSTRAINT_CONTEXT_INT_LOOP
+                  | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC
+                  | VRNA_CONSTRAINT_CONTEXT_MB_LOOP
+                  | VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC;
 
   for (hx = 0, j = 1; j <= n; j++) {
     switch (constraint[j - 1]) {
@@ -942,6 +939,17 @@ apply_DB_constraint(const char    *constraint,
             vrna_message_error("%s\nunbalanced brackets in constraints", constraint);
 
           i = stack[--hx];
+
+          if (options & VRNA_CONSTRAINT_DB_CANONICAL_BP) {
+            /* check whether this pair forms a non-canoncial base pair */
+            if (md->pair[S[i]][S[j]] == 0) {
+              vrna_message_warning("Removing non-canonical base pair %c%c (%d,%d) from constraint",
+                                   sequence[i - 1], sequence[j - 1],
+                                   i, j);
+              break;
+            }
+          }
+
           if (options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
             hc_enforce_pair(i, j, c_option, hc, length, min_loop_size, index);
           else

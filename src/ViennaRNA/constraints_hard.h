@@ -189,6 +189,7 @@ typedef unsigned char (vrna_callback_hc_evaluate)(int           i,
  */
 #define VRNA_CONSTRAINT_DB_GQUAD                8388608U
 
+#define VRNA_CONSTRAINT_DB_CANONICAL_BP         16777216U
 /**
  *  @brief Switch for dot-bracket structure constraint with default symbols
  *
