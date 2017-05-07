@@ -213,8 +213,10 @@ vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
 {
   int           energy, underflow, n_seq;
   float         mfe_local;
-  zscoring_dat  z_dat;
 
+#ifdef VRNA_WITH_SVM
+  zscoring_dat  z_dat;
+#endif
   /* keep track of how many times we were close to an integer underflow */
   underflow = 0;
 
@@ -574,7 +576,10 @@ fill_arrays(vrna_fold_compound_t            *vc,
                 type, with_gquad, dangle_model, noLP, noGUclosure, turn,
                 *cc, *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2, prev_i, prev_j,
                 prev_end, prev_en, new_c, stackEnergy;
+
+#ifdef VRNA_WITH_SVM
   double        prevz;
+#endif
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
@@ -596,7 +601,9 @@ fill_arrays(vrna_fold_compound_t            *vc,
   prev_end      = 0;
   prev          = NULL;
   prev_en       = 0;
-  prevz         = 0.;
+#ifdef VRNA_WITH_SVM
+  prevz = 0.;
+#endif
 
   c   = vc->matrices->c_local;
   fML = vc->matrices->fML_local;
@@ -707,13 +714,13 @@ fill_arrays(vrna_fold_compound_t            *vc,
             free(prev);
           }
 
-          prevz     = thisz;
           prev      = ss;
           prev_i    = ii;
           prev_j    = jj;
           prev_end  = MIN2(jj + ((dangle_model) ? 1 : 0), length);
           prev_en   = f3[ii] - f3[jj + 1];
 #ifdef VRNA_WITH_SVM
+          prevz = thisz;
         }
 
 #endif
@@ -734,7 +741,11 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
           free(prev);
           prev = NULL;
+#ifdef VRNA_WITH_SVM
         } else if ((f3[i] < 0) && (!zsc_data->with_zsc)) {
+#else
+        } else if (f3[i] < 0) {
+#endif
           /* why !zsc? */
           int ii, jj;
           ii  = i;
