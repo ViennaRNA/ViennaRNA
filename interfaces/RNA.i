@@ -254,6 +254,7 @@ typedef struct {
 
 %newobject get_path;
 
+%include findpath.i
 %include <ViennaRNA/findpath.h>
 
 %include  <ViennaRNA/move_set.h>

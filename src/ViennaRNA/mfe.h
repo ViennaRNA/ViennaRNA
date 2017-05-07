@@ -5,6 +5,23 @@
 #include <ViennaRNA/data_structures.h>
 
 
+/**
+ *  @brief  The default callback for sliding window MFE structure predictions
+ *
+ *  @ingroup mfe_fold
+ *
+ *  @callback
+ *  @parblock
+ *  This function will be called for each hit in a sliding window MFE prediction.
+ *  @endparblock
+ *  @see vrna_mfe_window()
+ *
+ *  @param start provides the first position of the hit (1-based, relative to entire sequence/alignment)
+ *  @param end provides the last position of the hit (1-based, relative to the entire sequence/alignment)
+ *  @param structure provides the (sub)structure in dot-bracket notation
+ *  @param en is the free energy of the structure hit in kcal/mol
+ *  @param data is some arbitrary data pointer passed through by the function executing the callback
+ */
 typedef void (vrna_mfe_window_callback)(int         start,
                                         int         end,
                                         const char  *structure,

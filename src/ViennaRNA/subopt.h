@@ -28,6 +28,17 @@ typedef struct vrna_subopt_sol_s   vrna_subopt_solution_t;
 /**
  *  @brief  Callback for vrna_subopt_cb()
  *  @ingroup subopt_wuchty
+ *
+ * @callback
+ * @parblock
+ * This function will be called for each suboptimal secondary structure that is successfully backtraced.
+ * @endparblock
+ *
+ * @see vrna_subopt_cb()
+ *
+ * @param structure The suboptimal secondary structure in dot-bracket notation
+ * @param energy    The free energy of the secondary structure in kcal/mol
+ * @param data      Some arbitrary, auxiliary data address as passed to vrna_subopt_cb()
  */
 typedef void (vrna_subopt_callback)(const char *stucture, float energy, void *data);
 

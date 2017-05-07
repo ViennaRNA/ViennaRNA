@@ -52,6 +52,12 @@ typedef struct vrna_hc_up_s vrna_hc_up_t;
  * @p data is the auxiliary data structure associated to the hard constraints via vrna_hc_add_data(),
  * or NULL if no auxiliary data was added.
  *
+ * @callback
+ * @parblock
+ * This callback enables one to over-rule default hard constraints in secondary structure
+ * decompositions.
+ * @endparblock
+ *
  * @see #VRNA_DECOMP_PAIR_HP, #VRNA_DECOMP_PAIR_IL, #VRNA_DECOMP_PAIR_ML, #VRNA_DECOMP_ML_ML_ML,
  *      #VRNA_DECOMP_ML_STEM, #VRNA_DECOMP_ML_ML, #VRNA_DECOMP_ML_UP, #VRNA_DECOMP_ML_ML_STEM,
  *      #VRNA_DECOMP_ML_COAXIAL, #VRNA_DECOMP_EXT_EXT, #VRNA_DECOMP_EXT_UP, #VRNA_DECOMP_EXT_STEM,
@@ -64,7 +70,7 @@ typedef struct vrna_hc_up_s vrna_hc_up_t;
  * @param l         Right delimiter of decomposition
  * @param d         Decomposition step indicator
  * @param data      Auxiliary data
- * @return          Pseudo energy contribution in deka-kalories per mol
+ * @return          A non-zero value if the decomposition is valid, 0 otherwise
  */
 typedef unsigned char (vrna_callback_hc_evaluate)(int           i,
                                                   int           j,

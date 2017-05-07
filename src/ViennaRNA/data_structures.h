@@ -51,9 +51,20 @@ typedef double FLT_OR_DBL;
 /**
  *  @brief Callback to free memory allocated for auxiliary user-provided data
  *
- *  @ingroup fold_compound
  *  This type of user-implemented function usually deletes auxiliary data structures.
  *  The user must take care to free all the memory occupied by the data structure passed.
+ *
+ *  @ingroup fold_compound
+ *
+ *  @callback
+ *  @parblock
+ *  This callback is supposed to free memory occupied by an auxiliary data structure.
+ *  It will be called when the #vrna_fold_compound_t is erased from memory through a
+ *  call to vrna_fold_compound_free() and will be passed the address of memory previously
+ *  bound to the #vrna_fold_compound_t via vrna_fold_compound_add_auxdata(). 
+ *  @endparblock
+ *
+ *  @see vrna_fold_compound_add_auxdata(), vrna_fold_compound_free(), vrna_fold_compound_add_callback()
  *
  *  @param data    The data that needs to be free'd
  */
@@ -63,7 +74,19 @@ typedef void (vrna_callback_free_auxdata)(void *data);
  *  @brief Callback to perform specific user-defined actions before, or after recursive computations
  *
  *  @ingroup fold_compound
- *  @see #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
+ *
+ *  @callback
+ *  @parblock
+ *  This function will be called to notify a third-party implementation about the status of
+ *  a currently ongoing recursion. The purpose of this callback mechanism is to provide users
+ *  with a simple way to ensure pre- and post conditions for auxiliary mechanisms attached to
+ *  our implementations.
+ *  @endparblock
+ *
+ *  @see vrna_fold_compound_add_auxdata(), vrna_fold_compound_add_callback(), vrna_mfe(),
+ *       vrna_pf(),
+ *       #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
+ *
  *  @param status   The status indicator
  *  @param data     The data structure that was assigned with vrna_fold_compound_add_auxdata()
  *  @param status   The status indicator

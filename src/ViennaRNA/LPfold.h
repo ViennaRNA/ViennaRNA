@@ -8,6 +8,29 @@
  *
  */
 
+
+/**
+ * @brief Sliding window probability computation callback
+ *
+ * @callback
+ * @parblock
+ * This function will be called for each probability data set in the sliding
+ * window probability computation implementation of vrna_probs_window().
+ * The argument @a type specifies the type of probability that is passed to
+ * this function.
+ * @endparblock
+ *
+ * @see vrna_probs_window(), vrna_pfl_fold_up_cb()
+ *      #VRNA_PROBS_WINDOW_BPP, #VRNA_PROBS_WINDOW_UP, #VRNA_PROBS_WINDOW_STACKP,
+ *      #VRNA_EXT_LOOP, #VRNA_HP_LOOP, #VRNA_INT_LOOP, #VRNA_MB_LOOP, #VRNA_ANY_LOOP
+ *
+ * @param pr      An array of probabilities
+ * @param pr_size The length of the probability array
+ * @param i       The i-position (5') of the probabilities
+ * @param max     The (theoretical) maximum length of the probability array
+ * @param data    Auxiliary data
+ */
+
 typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
                                           int           pr_size,
                                           int           i,

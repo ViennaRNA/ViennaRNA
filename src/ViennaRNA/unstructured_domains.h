@@ -68,25 +68,65 @@ typedef struct vrna_unstructured_domain_motif_s  vrna_ud_motif_t;
 
 /**
  *  @brief Callback to retrieve binding free energy of a ligand bound to an unpaired sequence segment
+ *
  *  @ingroup domains_up
+ *
+ *  @callback
+ *  @parblock
+ *  This function will be called to determine the additional energy contribution of a specific unstructured
+ *  domain, e.g. the binding free energy of some ligand.
+ *  @endparblock
+ *
+ *  @param  vc        The current #vrna_fold_compound_t
+ *  @param  i         The start of the unstructured domain (5' end)
+ *  @param  j         The end of the unstructured domain (3' end)
+ *  @param  loop_type The loop context of the unstructured domain
+ *  @param  data      Auxiliary data
+ *  @return           The auxiliary energy contribution in deka-cal/mol
  */
 typedef int (vrna_callback_ud_energy)(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, void *data);
 
 /**
  *  @brief Callback to retrieve Boltzmann factor of the binding free energy of a ligand bound to an unpaired sequence segment
  *  @ingroup domains_up
+ *
+ *  @callback
+ *  @parblock
+ *  This function will be called to determine the additional energy contribution of a specific unstructured
+ *  domain, e.g. the binding free energy of some ligand (Partition function variant, i.e. the Boltzmann factors
+ *  instead of actual free energies).
+ *  @endparblock
+ *
+ *  @param  vc        The current #vrna_fold_compound_t
+ *  @param  i         The start of the unstructured domain (5' end)
+ *  @param  j         The end of the unstructured domain (3' end)
+ *  @param  loop_type The loop context of the unstructured domain
+ *  @param  data      Auxiliary data
+ *  @return           The auxiliary energy contribution as Boltzmann factor
  */
 typedef FLT_OR_DBL (vrna_callback_ud_exp_energy)(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, void *data);
 
 /**
  *  @brief Callback for pre-processing the production rule of the ligand binding to unpaired stretches feature
+ *
  *  @ingroup domains_up
+ *
+ *  @callback
+ *  @parblock
+ *  The production rule for the unstructured domain grammar extension
+ *  @endparblock
  */
 typedef void (vrna_callback_ud_production)(vrna_fold_compound_t *vc, void *data);
 
 /**
  *  @brief Callback for pre-processing the production rule of the ligand binding to unpaired stretches feature (partition function variant)
+ *
  *  @ingroup domains_up
+ *
+ *  @callback
+ *  @parblock
+ *  The production rule for the unstructured domain grammar extension (Partition function variant)
+ *  @endparblock
  */
 typedef void (vrna_callback_ud_exp_production)(vrna_fold_compound_t *vc, void *data);
 
@@ -94,12 +134,22 @@ typedef void (vrna_callback_ud_exp_production)(vrna_fold_compound_t *vc, void *d
 /**
  *  @brief Callback to store/add equilibrium probability for a ligand bound to an unpaired sequence segment
  *  @ingroup domains_up
+ *
+ *  @callback
+ *  @parblock
+ *  A callback function to store equilibrium probabilities for the unstructured domain feature
+ *  @endparblock
  */
 typedef void (vrna_callback_ud_probs_add)(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, FLT_OR_DBL exp_energy, void *data);
 
 /**
  *  @brief Callback to retrieve equilibrium probability for a ligand bound to an unpaired sequence segment
  *  @ingroup domains_up
+ *
+ *  @callback
+ *  @parblock
+ *  A callback function to retrieve equilibrium probabilities for the unstructured domain feature
+ *  @endparblock
  */
 typedef FLT_OR_DBL (vrna_callback_ud_probs_get)(vrna_fold_compound_t *vc, int i, int j, unsigned int loop_type, int motif, void *data);
 

@@ -44,9 +44,9 @@
 \li @ref mp_utils
 \li @ref file_formats
 \li @ref newAPI
+\li @ref callbacks
 \li @ref scripting
 \li @ref mp_example
-
 <hr>
 
 @section  mp_intro     Introduction

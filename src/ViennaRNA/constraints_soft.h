@@ -26,6 +26,12 @@ typedef struct  vrna_sc_s vrna_sc_t;
  * @p data is the auxiliary data structure associated to the hard constraints via vrna_sc_add_data(),
  * or NULL if no auxiliary data was added.
  *
+ * @callback
+ * @parblock
+ * This callback enables one to add (pseudo-)energy contributions to individual decompositions
+ * of the secondary structure.
+ * @endparblock
+ *
  * @see #VRNA_DECOMP_PAIR_HP, #VRNA_DECOMP_PAIR_IL, #VRNA_DECOMP_PAIR_ML, #VRNA_DECOMP_ML_ML_ML,
  *      #VRNA_DECOMP_ML_STEM, #VRNA_DECOMP_ML_ML, #VRNA_DECOMP_ML_UP, #VRNA_DECOMP_ML_ML_STEM,
  *      #VRNA_DECOMP_ML_COAXIAL, #VRNA_DECOMP_EXT_EXT, #VRNA_DECOMP_EXT_UP, #VRNA_DECOMP_EXT_STEM,
@@ -59,6 +65,12 @@ typedef int (vrna_callback_sc_energy)(int           i,
  * @p data is the auxiliary data structure associated to the hard constraints via vrna_sc_add_data(),
  * or NULL if no auxiliary data was added.
  *
+ * @callback
+ * @parblock
+ * This callback enables one to add (pseudo-)energy contributions to individual decompositions
+ * of the secondary structure (Partition function variant, i.e. contributions must be returned as Boltzmann factors).
+ * @endparblock
+ *
  * @see #VRNA_DECOMP_PAIR_HP, #VRNA_DECOMP_PAIR_IL, #VRNA_DECOMP_PAIR_ML, #VRNA_DECOMP_ML_ML_ML,
  *      #VRNA_DECOMP_ML_STEM, #VRNA_DECOMP_ML_ML, #VRNA_DECOMP_ML_UP, #VRNA_DECOMP_ML_ML_STEM,
  *      #VRNA_DECOMP_ML_COAXIAL, #VRNA_DECOMP_EXT_EXT, #VRNA_DECOMP_EXT_UP, #VRNA_DECOMP_EXT_STEM,
@@ -85,6 +97,12 @@ typedef FLT_OR_DBL (vrna_callback_sc_exp_energy)(int            i,
  * @brief Callback to retrieve auxiliary base pairs for soft constraint feature
  *
  * @ingroup soft_constraints
+ *
+ * @callback
+ * @parblock
+ * This callback enables one to add auxiliary base pairs in the backtracking steps
+ * of hairpin- and interior loops.
+ * @endparblock
  *
  * @see #VRNA_DECOMP_PAIR_HP, #VRNA_DECOMP_PAIR_IL, #VRNA_DECOMP_PAIR_ML, #VRNA_DECOMP_ML_ML_ML,
  *      #VRNA_DECOMP_ML_STEM, #VRNA_DECOMP_ML_ML, #VRNA_DECOMP_ML_UP, #VRNA_DECOMP_ML_ML_STEM,
