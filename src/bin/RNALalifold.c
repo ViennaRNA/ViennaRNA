@@ -753,7 +753,6 @@ get_subalignment(const char **AS,
     sub[s]              = memcpy(sub[s], AS[s] + i - 1, sizeof(char) * (j - i + 1));
     sub[s][(j - i + 1)] = '\0';
   }
-
   return sub;
 }
 
