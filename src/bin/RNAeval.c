@@ -31,7 +31,7 @@
 #include "ViennaRNA/cofold.h"
 #include "RNAeval_cmdl.h"
 #include "gengetopt_helper.h"
-#include "input_id_helper.h"
+#include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -163,9 +163,13 @@ main(int  argc,
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
-    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
+    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence,
+                                                  &md,
+                                                  VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
-    tmp = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0);
+    tmp = vrna_extract_record_rest_structure((const char **)rec_rest,
+                                             0,
+                                             (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0);
 
     if (!tmp)
       vrna_message_error("structure missing");
@@ -184,13 +188,21 @@ main(int  argc,
     free(tmp);
 
     if (with_shapes)
-      vrna_constraints_add_SHAPE(vc, shape_file, shape_method, shape_conversion, verbose, VRNA_OPTION_MFE);
+      vrna_constraints_add_SHAPE(vc,
+                                 shape_file,
+                                 shape_method,
+                                 shape_conversion,
+                                 verbose,
+                                 VRNA_OPTION_MFE);
 
     if (istty) {
       if (vc->cutpoint == -1)
         vrna_message_info(stdout, "length = %d", length1);
       else
-        vrna_message_info(stdout, "length1 = %d\nlength2 = %d", vc->cutpoint - 1, length1 - vc->cutpoint + 1);
+        vrna_message_info(stdout,
+                          "length1 = %d\nlength2 = %d",
+                          vc->cutpoint - 1,
+                          length1 - vc->cutpoint + 1);
     }
 
     /*
@@ -245,7 +257,7 @@ main(int  argc,
     if (with_shapes)
       break;
 
-    ID_number_increase(seq_number, "Sequence");
+    ID_number_increase(&seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if (istty)

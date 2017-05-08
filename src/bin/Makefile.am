@@ -7,15 +7,24 @@ if VRNA_AM_SWITCH_STATIC_EXECUTABLES
 AM_LDFLAGS += -all-static
 endif
 
+noinst_LTLIBRARIES =  libhelpers_ids.la
+
+libhelpers_ids_la_SOURCES = \
+    input_id_helpers.c
+
+libhelpers_ids_la_LDFLAGS = -avoid-version -static $(LTO_LDFLAGS)
+
 bin_PROGRAMS = RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
     RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
     RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
     RNAparconv RNAPKplex RNAplex RNAsnoop RNApvmin
 
-LDADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la
+LDADD = \
+  $(top_builddir)/src/ViennaRNA/libRNA_conv.la \
+  libhelpers_ids.la
 
-HELPER_FILES =  gengetopt_helper.h \
-                input_id_helper.h
+noinst_HEADERS  = gengetopt_helper.h \
+                  input_id_helpers.h
 
 SUFFIXES = _cmdl.c _cmdl.h .ggo
 

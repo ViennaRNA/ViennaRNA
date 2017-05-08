@@ -26,7 +26,7 @@
 #include "ViennaRNA/commands.h"
 #include "RNALfold_cmdl.h"
 #include "gengetopt_helper.h"
-#include "input_id_helper.h"
+#include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -62,10 +62,12 @@ main(int  argc,
 {
   FILE                        *input, *output;
   struct  RNALfold_args_info  args_info;
-  char                        *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest, *command_file,
-                              *orig_sequence, *infile, *outfile, *id_prefix, *id_delim, *filename_delim;
+  char                        *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest,
+                              *command_file, *orig_sequence, *infile, *outfile, *id_prefix,
+                              *id_delim, *filename_delim;
   unsigned int                rec_type, read_opt;
-  int                         length, istty, noconv, maxdist, zsc, tofile, auto_id, id_digits, filename_full;
+  int                         length, istty, noconv, maxdist, zsc, tofile, auto_id, id_digits,
+                              filename_full;
   long int                    seq_number;
   double                      min_en, min_z;
   vrna_md_t                   md;
@@ -121,7 +123,8 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning(
+        "required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -273,7 +276,9 @@ main(int  argc,
       if (outfile)
         v_file_name = vrna_strdup_printf("%s", outfile);
       else
-        v_file_name = (SEQ_ID) ? vrna_strdup_printf("%s.lfold", SEQ_ID) : vrna_strdup_printf("RNALfold_output.lfold");
+        v_file_name = (SEQ_ID) ?
+                      vrna_strdup_printf("%s.lfold", SEQ_ID) :
+                      vrna_strdup_printf("RNALfold_output.lfold");
 
       tmp_string = vrna_filename_sanitize(v_file_name, filename_delim);
       free(v_file_name);
@@ -313,17 +318,22 @@ main(int  argc,
      ########################################################
      */
 
-    vrna_fold_compound_t  *vc = vrna_fold_compound((const char *)rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+    vrna_fold_compound_t *vc = vrna_fold_compound((const char *)rec_sequence,
+                                                  &md,
+                                                  VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
     if (commands)
       vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
-    hit_data              data;
+    hit_data data;
     data.output       = output;
     data.dangle_model = md.dangles;
 
 #ifdef VRNA_WITH_SVM
-    min_en = (zsc) ? vrna_mfe_window_zscore_cb(vc, min_z, &default_callback_z, (void *)&data) : vrna_mfe_window_cb(vc, &default_callback, (void *)&data);
+    min_en =
+      (zsc) ? vrna_mfe_window_zscore_cb(vc, min_z, &default_callback_z,
+                                        (void *)&data) : vrna_mfe_window_cb(vc, &default_callback,
+                                                                            (void *)&data);
 #else
     min_en = vrna_mfe_window_cb(vc, &default_callback, (void *)&data);
 #endif
@@ -357,7 +367,7 @@ main(int  argc,
 
     free(v_file_name);
 
-    ID_number_increase(seq_number, "Sequence");
+    ID_number_increase(&seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
 

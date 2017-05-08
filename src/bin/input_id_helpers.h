@@ -1,9 +1,5 @@
-#define ID_number_increase(num, name) ({ \
-    if (num == LONG_MAX) { \
-      vrna_message_warning(name " ID number overflow, beginning with 1 (again)!"); \
-      num = 1; \
-    } else { num++; } \
-  })
+void ID_number_increase(long int    *num,
+                        const char  *name);
 
 
 #define ID_generate(ID, \
