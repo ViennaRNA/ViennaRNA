@@ -1,4 +1,4 @@
-/* gcc -fopenmp -g3 -DTEST_FINDPATH findpath.c -o FINDpath -lRNA -lm -I ../H/ -L ./ */
+/* gcc -fopenmp -g3 -DTEST_FINDPATH findpath.c -o FINDpath -lRNA -lm -I../ -L./ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -501,10 +501,8 @@ int main(int argc, char *argv[]) {
                 break;
       case 'v': verbose = !strcmp(argv[i],"-v");
                 break;
-      case 'd': if (strcmp(argv[i],"-d")==0){
+      case 'd': if (strcmp(argv[i],"-d")==0)
                   sscanf(argv[++i], "%d", &dangles);
-                  md.dangles = dangles;
-                }
                 break;
       default: usage();
     }
