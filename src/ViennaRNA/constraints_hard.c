@@ -893,7 +893,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
 
   sequence      = vc->sequence;
   length        = (int)vc->length;
-  S             = vc->sequence_encoding;
+  S             = vc->sequence_encoding2;
   hc            = vc->hc->matrix;
   md            = &(vc->params->model_details);
   min_loop_size = md->min_loop_size;
@@ -1200,7 +1200,7 @@ hc_reset_to_default(vrna_fold_compound_t *vc)
   n   = vc->length;
   hc  = vc->hc;
   idx = vc->jindx;
-  S   = vc->sequence_encoding;
+  S   = vc->sequence_encoding2;
 
   if (vc->params)
     md = &(vc->params->model_details);

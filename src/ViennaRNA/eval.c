@@ -547,7 +547,7 @@ eval_int_loop(vrna_fold_compound_t  *vc,
 {
   int           ij, u1, u2, cp, *rtype, *indx;
   unsigned char type, type_2;
-  short         *S, si, sj, sp, sq;
+  short         *S, *S2, si, sj, sp, sq;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_sc_t     *sc;
@@ -557,14 +557,15 @@ eval_int_loop(vrna_fold_compound_t  *vc,
   P       = vc->params;
   md      = &(P->model_details);
   S       = vc->sequence_encoding;
+  S2      = vc->sequence_encoding2;
   si      = S[i + 1];
   sj      = S[j - 1];
   sp      = S[p - 1];
   sq      = S[q + 1];
   ij      = indx[j] + i;
   rtype   = &(md->rtype[0]);
-  type    = (unsigned char)md->pair[S[i]][S[j]];
-  type_2  = rtype[(unsigned char)md->pair[S[p]][S[q]]];
+  type    = (unsigned char)md->pair[S2[i]][S2[j]];
+  type_2  = rtype[(unsigned char)md->pair[S2[p]][S2[q]]];
   u1      = p - i - 1;
   u2      = j - q - 1;
   sc      = vc->sc;
@@ -973,12 +974,13 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
 {
   int           pos, energy, p, q, r, s, u, type, type2, L, l[3], *rtype, *loop_idx;
   int           num_elem, num_g, elem_i, elem_j, up_mis;
-  short         *s1;
+  short         *s1, *s2;
   vrna_param_t  *P;
   vrna_md_t     *md;
 
   loop_idx  = vrna_loopidx_from_ptable(pt);
   s1        = vc->sequence_encoding;
+  s2        = vc->sequence_encoding2;
   P         = vc->params;
   md        = &(P->model_details);
   rtype     = &(md->rtype[0]);
@@ -1085,7 +1087,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
                      * if((p-r-1 == 0) || (s-q-1 == 0))
                      *  vrna_message_error("too few unpaired bases");
                      */
-            type = md->pair[s1[r]][s1[s]];
+            type = md->pair[s2[r]][s2[s]];
             if (dangles == 2)
               energy += P->mismatchI[type][s1[r + 1]][s1[s - 1]];
 
@@ -1099,8 +1101,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
             break;
           /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
           case 1:
-            type    = md->pair[s1[r]][s1[s]];
-            type2   = md->pair[s1[elem_i]][s1[elem_j]];
+            type    = md->pair[s2[r]][s2[s]];
+            type2   = md->pair[s2[elem_i]][s2[elem_j]];
             energy  += P->MLclosing
                        + E_MLstem(rtype[type], s1[s - 1], s1[r + 1], P)
                        + (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase

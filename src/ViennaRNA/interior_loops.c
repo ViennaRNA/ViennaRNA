@@ -296,7 +296,7 @@ eval_int_loop(vrna_fold_compound_t  *vc,
 {
   unsigned int  *sn;
   int           ij, e, cp, *jindx, *rtype, type, type2;
-  short         *S;
+  short         *S, *S2;
   vrna_sc_t     *sc;
   vrna_param_t  *P;
   vrna_md_t     *md;
@@ -310,14 +310,15 @@ eval_int_loop(vrna_fold_compound_t  *vc,
   rtype = &(md->rtype[0]);
   ij    = jindx[j] + i;
   S     = vc->sequence_encoding;
+  S2    = vc->sequence_encoding2;
 
   e = INF;
 
   if ((sn[k] != sn[i]) || (sn[j] != sn[l]))
     return e;
 
-  type  = get_pair_type(S[i], S[j], md);
-  type2 = get_pair_type(S[l], S[k], md);
+  type  = get_pair_type(S2[i], S2[j], md);
+  type2 = get_pair_type(S2[l], S2[k], md);
 
   e = ubf_eval_int_loop(i, j, k, l,
                         i + 1, j - 1, k - 1, l + 1,
@@ -1294,7 +1295,7 @@ eval_interior_loop(vrna_fold_compound_t *vc,
                    int                  q)
 {
   int           energy, e, e5, e3, u1, u2, i1, j1, p1, q1, *idx;
-  short         *S, si, sj, sp, sq;
+  short         *S, *S2, si, sj, sp, sq;
   unsigned char type, type_2;
   unsigned int  *sn;
   int           *rtype, ij, cp;
@@ -1304,6 +1305,7 @@ eval_interior_loop(vrna_fold_compound_t *vc,
   vrna_ud_t     *domains_up;
 
   S           = vc->sequence_encoding;
+  S2          = vc->sequence_encoding2;
   cp          = vc->cutpoint;
   P           = vc->params;
   sc          = vc->sc;
@@ -1312,8 +1314,8 @@ eval_interior_loop(vrna_fold_compound_t *vc,
   sn          = vc->strand_number;
   rtype       = &(md->rtype[0]);
   idx         = vc->jindx;
-  type        = get_pair_type(S[i], S[j], md);
-  type_2      = get_pair_type(S[q], S[p], md);
+  type        = get_pair_type(S2[i], S2[j], md);
+  type_2      = get_pair_type(S2[q], S2[p], md);
 
   i1  = i + 1;
   j1  = j - 1;

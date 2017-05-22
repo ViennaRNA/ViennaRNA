@@ -235,7 +235,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
 {
   char            **Ss, loopseq[10];
   unsigned short  **a2s;
-  short           *S, **SS, **S5, **S3;
+  short           *S, *S2, **SS, **S5, **S3;
   int             u, e, s, type, n_seq, length;
   vrna_param_t    *P;
   vrna_sc_t       *sc, **scs;
@@ -250,9 +250,10 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
     /* single sequences and cofolding hybrids */
     case  VRNA_FC_TYPE_SINGLE:
       S     = vc->sequence_encoding;
+      S2    = vc->sequence_encoding2;
       sc    = vc->sc;
       u     = vc->length - j + i - 1;
-      type  = get_pair_type(S[j], S[i], md);
+      type  = get_pair_type(S2[j], S2[i], md);
 
       if (u < 9) {
         strcpy(loopseq, vc->sequence + j - 1);
@@ -350,7 +351,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
 {
   char            **Ss;
   unsigned short  **a2s;
-  short           *S, **SS, **S5, **S3;
+  short           *S, *S2, **SS, **S5, **S3;
   unsigned int    *sn;
   int             u, e, s, ij, type, *idx, n_seq, en;
   vrna_param_t    *P;
@@ -373,9 +374,10 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
     /* single sequences and cofolding hybrids */
     case  VRNA_FC_TYPE_SINGLE:
       S     = vc->sequence_encoding;
+      S2    = vc->sequence_encoding2;
       sc    = vc->sc;
       u     = j - i - 1;
-      type  = get_pair_type(S[i], S[j], md);
+      type  = get_pair_type(S2[i], S2[j], md);
 
       e = E_Hairpin(u, type, S[i + 1], S[j - 1], vc->sequence + i - 1, P);
 
@@ -501,7 +503,7 @@ eval_hp_loop_fake(vrna_fold_compound_t  *vc,
                   int                   i,
                   int                   j)
 {
-  short         *S;
+  short         *S, *S2;
   unsigned int  *sn;
   int           u, e, ij, type, *idx, en;
   vrna_param_t  *P;
@@ -520,10 +522,11 @@ eval_hp_loop_fake(vrna_fold_compound_t  *vc,
     /* single sequences and cofolding hybrids */
     case  VRNA_FC_TYPE_SINGLE:
       S     = vc->sequence_encoding;
+      S2    = vc->sequence_encoding2;
       sc    = vc->sc;
       u     = j - i - 1;
       ij    = idx[j] + i;
-      type  = get_pair_type(S[j], S[i], md);
+      type  = get_pair_type(S2[j], S2[i], md);
 
       /* hairpin-like exterior loop (for cofolding) */
       short si, sj;
@@ -576,7 +579,7 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
                       int                   i,
                       int                   j)
 {
-  short             *S, s5, s3;
+  short             *S, *S2, s5, s3;
   unsigned int      *sn;
   int               u, cp, type, *iidx;
   FLT_OR_DBL        qq, temp, *q, *scale;
@@ -600,9 +603,10 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
     /* single sequences and cofolding hybrids */
     case  VRNA_FC_TYPE_SINGLE:
       S     = vc->sequence_encoding;
+      S2    = vc->sequence_encoding2;
       sc    = vc->sc;
       u     = j - i - 1;
-      type  = get_pair_type(S[j], S[i], md);
+      type  = get_pair_type(S2[j], S2[i], md);
 
       temp = q[iidx[i + 1] - (cp - 1)] * q[iidx[cp] - (j - 1)];
       if ((j == cp) && (i == cp - 1))

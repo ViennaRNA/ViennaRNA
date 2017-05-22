@@ -223,7 +223,7 @@ is_compatible(const vrna_fold_compound_t  *vc,
               int                         i,
               int                         j)
 {
-  return vc->params->model_details.pair[vc->sequence_encoding[i]][vc->sequence_encoding[j]] != 0; /* see pair_mat.h */
+  return vc->params->model_details.pair[vc->sequence_encoding2[i]][vc->sequence_encoding2[j]] != 0; /* see pair_mat.h */
 }
 
 

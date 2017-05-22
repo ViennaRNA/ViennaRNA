@@ -429,7 +429,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
           s3 = S1[i+1];
           for (j = l + 2; j<=n; j++, ij--, lj--){
             if(hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
-              tt = (unsigned char)md->pair[S1[j]][S1[i]];
+              tt = (unsigned char)md->pair[S[j]][S[i]];
 
               if(tt == 0)
                 tt = 7;

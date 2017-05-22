@@ -691,7 +691,7 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
                int                  *dmli1,
                int                  *dmli2)
 {
-  short                     S_i1, S_j1, *S;
+  short                     S_i1, S_j1, *S, *S2;
   unsigned int              *sn;
   int                       decomp, en, e, cp, *indx, *fc, ij, dangle_model, tt;
   vrna_hc_t                 *hc;
@@ -703,6 +703,7 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
 
   cp            = vc->cutpoint;
   S             = vc->sequence_encoding;
+  S2            = vc->sequence_encoding2;
   indx          = vc->jindx;
   sn            = vc->strand_number;
   hc            = vc->hc;
@@ -723,7 +724,7 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
   hc_dat_local.cp         = vc->cutpoint;
 
   ij  = indx[j] + i;
-  tt  = get_pair_type_md(S[j], S[i], md);
+  tt  = get_pair_type_md(S2[j], S2[i], md);
 
   if (hc->f) {
     evaluate            = &hc_default_user;
@@ -930,7 +931,7 @@ E_mb_loop_fast_window(vrna_fold_compound_t  *vc,
                       int                   *dmli1,
                       int                   *dmli2)
 {
-  short                     S_i1, S_j1, *S;
+  short                     S_i1, S_j1, *S, *S2;
   int                       decomp, en, e, dangle_model, tt;
   vrna_hc_t                 *hc;
   vrna_sc_t                 *sc;
@@ -940,6 +941,7 @@ E_mb_loop_fast_window(vrna_fold_compound_t  *vc,
   struct default_data       hc_dat_local;
 
   S             = vc->sequence_encoding;
+  S2            = vc->sequence_encoding2;
   hc            = vc->hc;
   sc            = vc->sc;
   P             = vc->params;
@@ -967,7 +969,7 @@ E_mb_loop_fast_window(vrna_fold_compound_t  *vc,
   S_i1  = S[i + 1];
   S_j1  = S[j - 1];
 
-  tt = get_pair_type_md(S[j], S[i], md);
+  tt = get_pair_type_md(S2[j], S2[i], md);
 
   /* new closing pair (i,j) with mb part [i+1,j-1] */
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
@@ -5323,7 +5325,7 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
               int                   j,
               vrna_mx_pf_aux_ml_t   *aux_mx)
 {
-  short                     *S1;
+  short                     *S1, *S2;
   int                       n, *iidx, k, ij, kl, maxk, ii, with_ud, u, circular, with_gquad,
                             *hc_up_ml, type;
   FLT_OR_DBL                qbt1, temp, *qm, *qb, *qqm, *qqm1, **qqmu, q_temp, q_temp2, *G,
@@ -5426,7 +5428,8 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
 
   if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
     S1    = vc->sequence_encoding;
-    type  = get_pair_type_md(S1[i], S1[j], md);
+    S2    = vc->sequence_encoding2;
+    type  = get_pair_type_md(S2[i], S2[j], md);
 
     qbt1 = qb[ij] * exp_E_MLstem(type,
                                  ((i > 1) || circular) ? S1[i - 1] : -1,
