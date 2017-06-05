@@ -65,6 +65,17 @@ print_structure(FILE *fp,
 
 
 static void
+print_eval_sd_corr(FILE *fp){
+
+  if(isatty(fileno(fp))){
+    fprintf(fp, ANSI_COLOR_BRIGHT "Correcting for presence of structured domains" ANSI_COLOR_RESET "\n");
+  } else {
+    fprintf(fp, "Correcting for presence of structured domains\n");
+  }
+}
+
+
+static void
 print_eval_ext_loop(FILE  *fp,
                     int   energy){
 
@@ -103,6 +114,34 @@ print_eval_hp_loop( FILE  *fp,
                 i, j,
                 si, sj,
                 energy);
+  }
+}
+
+
+static void
+print_eval_hp_loop_revert(FILE  *fp,
+                          int   i,
+                          int   j,
+                          char  si,
+                          char  sj,
+                          int   energy){
+
+  if(isatty(fileno(fp))){
+    fprintf(fp, ANSI_COLOR_MAGENTA "Hairpin  loop" ANSI_COLOR_RESET
+                " (%3d,%3d) "
+                ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                "              : "
+                ANSI_COLOR_RED "%5d" ANSI_COLOR_RESET "\n",
+                i, j,
+                si, sj,
+                -energy);
+  } else {
+    fprintf(fp, "Hairpin  loop"
+                " (%3d,%3d) %c%c              : "
+                "%5d\n",
+                i, j,
+                si, sj,
+                -energy);
   }
 }
 
@@ -150,6 +189,48 @@ print_eval_int_loop(FILE  *fp,
 
 
 static void
+print_eval_int_loop_revert(FILE  *fp,
+                          int   i,
+                          int   j,
+                          char  si,
+                          char  sj,
+                          int   k,
+                          int   l,
+                          char  sk,
+                          char  sl,
+                          int   energy){
+
+  if(isatty(fileno(fp))){
+    fprintf(fp, ANSI_COLOR_MAGENTA "Interior loop" ANSI_COLOR_RESET
+                " (%3d,%3d) "
+                ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                "; (%3d,%3d) "
+                ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                ": "
+                ANSI_COLOR_RED "%5d" ANSI_COLOR_RESET "\n",
+                i, j,
+                si, sj,
+                k, l,
+                sk, sl,
+                -energy);
+  } else {
+    fprintf(fp, "Interior loop"
+                " (%3d,%3d) "
+                "%c%c"
+                "; (%3d,%3d) "
+                "%c%c"
+                ": "
+                "%5d\n",
+                i, j,
+                si, sj,
+                k, l,
+                sk, sl,
+                -energy);
+  }
+}
+
+
+static void
 print_eval_mb_loop( FILE  *fp,
                     int   i,
                     int   j,
@@ -173,6 +254,63 @@ print_eval_mb_loop( FILE  *fp,
                 i, j,
                 si, sj,
                 energy);
+  }
+}
+
+
+static void
+print_eval_mb_loop_revert(FILE  *fp,
+                          int   i,
+                          int   j,
+                          char  si,
+                          char  sj,
+                          int   energy){
+
+  if(isatty(fileno(fp))){
+    fprintf(fp, ANSI_COLOR_MAGENTA "Multi    loop" ANSI_COLOR_RESET
+                " (%3d,%3d) "
+                ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                "              : "
+                ANSI_COLOR_RED "%5d" ANSI_COLOR_RESET "\n",
+                i, j,
+                si, sj,
+                -energy);
+  } else {
+    fprintf(fp, "Multi    loop"
+                " (%3d,%3d) %c%c              : "
+                "%5d\n",
+                i, j,
+                si, sj,
+                -energy);
+  }
+}
+
+
+static void
+print_eval_gquad(FILE  *fp,
+                 int   i,
+                 int   L,
+                 int   l[3],
+                 int   energy){
+
+  if(isatty(fileno(fp))){
+    fprintf(fp, ANSI_COLOR_CYAN "G-Quadruplex " ANSI_COLOR_RESET
+              " (%3d,%3d) "
+              ANSI_COLOR_BRIGHT "L%d  " ANSI_COLOR_RESET
+              "(%2d,%2d,%2d)  : "
+              ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
+              i, i + 4*L + l[0] + l[1] + l[2] - 1,
+              L, l[0], l[1], l[2],
+              energy);
+  } else {
+    fprintf(fp, "G-Quadruplex "
+              " (%3d,%3d) "
+              "L%d  "
+              "(%2d,%2d,%2d)  : "
+              "%5d\n",
+              i, i + 4*L + l[0] + l[1] + l[2] - 1,
+              L, l[0], l[1], l[2],
+              energy);
   }
 }
 
@@ -242,6 +380,13 @@ print_structure(FILE *fp,
 
 
 static void
+print_eval_sd_corr(FILE *fp){
+
+  fprintf(fp, "Correcting for presence of structured domains\n");
+}
+
+
+static void
 print_eval_ext_loop(FILE  *fp,
                     int   energy){
 
@@ -265,6 +410,18 @@ print_eval_hp_loop( FILE  *fp,
               i, j,
               si, sj,
               energy);
+}
+
+
+static void
+print_eval_hp_loop_revert( FILE  *fp,
+                    int   i,
+                    int   j,
+                    char  si,
+                    char  sj,
+                    int   energy){
+
+  print_eval_hp_loop(fp, i, j, si, sj, -energy);
 }
 
 
@@ -296,6 +453,22 @@ print_eval_int_loop(FILE  *fp,
 
 
 static void
+print_eval_int_loop_revert(FILE  *fp,
+                    int   i,
+                    int   j,
+                    char  si,
+                    char  sj,
+                    int   k,
+                    int   l,
+                    char  sk,
+                    char  sl,
+                    int   energy){
+
+  print_eval_int_loop(fp, i, j, si, sj, k, l, sk, sl, -energy);
+}
+
+
+static void
 print_eval_mb_loop( FILE  *fp,
                     int   i,
                     int   j,
@@ -308,6 +481,36 @@ print_eval_mb_loop( FILE  *fp,
               "%5d\n",
               i, j,
               si, sj,
+              energy);
+}
+
+
+static void
+print_eval_mb_loop_revert( FILE  *fp,
+                    int   i,
+                    int   j,
+                    char  si,
+                    char  sj,
+                    int   energy){
+
+  print_eval_mb_loop(fp, i, j, si, sj, -energy);
+}
+
+
+static void
+print_eval_gquad(FILE  *fp,
+                 int   i,
+                 int   L,
+                 int   l[3],
+                 int   energy){
+
+  fprintf(fp, "G-Quadruplex "
+              " (%3d,%3d) "
+              "L%d  "
+              "(%2d,%2d,%2d)  : "
+              "%5d\n",
+              i, i + 4*L + l[0] + l[1] + l[2] - 1,
+              L, l[0], l[1], l[2],
               energy);
 }
 
