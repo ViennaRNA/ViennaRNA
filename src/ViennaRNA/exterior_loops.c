@@ -3364,6 +3364,15 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
               break;
             }
           }
+
+          if (with_gquad) {
+            cc = ggg[start][j - start];
+
+            if (fij == cc) {
+              traced2 = 1;
+              break;
+            }
+          }
         }
 
         break;
@@ -3402,6 +3411,15 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
               tt  = get_pair_type_md(S[s][start], S[s][j], md);
               cc  += E_ExtLoop(tt, (start > 1) ? S5[s][start] :  -1, -1, P);
             }
+
+            if (fij == cc) {
+              traced2 = 1;
+              break;
+            }
+          }
+
+          if (with_gquad) {
+            cc = ggg[start][j - start];
 
             if (fij == cc) {
               traced2 = 1;
