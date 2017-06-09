@@ -948,6 +948,11 @@ parse_maf_alignment(FILE  *fp,
         case '#': /* comment */
           break;
 
+        case 'e': /* ignore and fall through */
+        case 'i': /* ignore and fall through */
+        case 'q': /* ignore */
+          break;
+
         case 's': /* a sequence within the alignment block */
           tmp_name      = (char *)vrna_alloc(sizeof(char) * n);
           tmp_sequence  = (char *)vrna_alloc(sizeof(char) * n);
