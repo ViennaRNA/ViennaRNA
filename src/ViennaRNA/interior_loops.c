@@ -755,7 +755,7 @@ ubf_eval_int_loop_comparative(int             col_i,
                               short           *SS,
                               short           *S5,
                               short           *S3,
-                              unsigned short  *a2s,
+                              unsigned int    *a2s,
                               vrna_sc_t       *sc)
 {
   short si, sj, sp, sq;
@@ -817,7 +817,7 @@ E_int_loop_comparative(vrna_fold_compound_t *vc,
 {
   unsigned char             type, type_2;
   unsigned char             *hc_pq, *hc, eval_loop;
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     **SS, **S5, **S3, *S_cons;
   int                       q, p, j_q, p_i, u, pq, *c_pq, min_q, max_q, max_p, tmp,
                             *rtype, *types, dangle_model, energy, c0, s, n_seq, cp,
@@ -1006,7 +1006,7 @@ E_int_loop_comparative_window(vrna_fold_compound_t  *vc,
 {
   unsigned char   type, type_2;
   unsigned char   eval_loop;
-  unsigned short  **a2s;
+  unsigned int    **a2s;
   short           **SS, **S5, **S3, *S_cons;
   int             q, p, j_q, p_i, u, min_q, max_q, max_p, tmp,
                   *rtype, *types, dangle_model, energy, c0, s, n_seq, cp,
@@ -1706,7 +1706,7 @@ exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
 {
   unsigned char             type_2;
   unsigned char             *hc, eval_loop;
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     **S, **S5, **S3;
   int                       n_seq, s, ij, jij, k, l, u1, u2, kl, maxk, minl, *types,
                             turn, with_gquad, *hc_up, *jindx, *my_iindx;
@@ -1851,7 +1851,7 @@ vrna_E_ext_int_loop(vrna_fold_compound_t  *vc,
                             length, *indx, *hc_up, *c, turn, n_seq;
   char                      *ptype;
   unsigned char             *hc, eval_loop;
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     *S, **SS, **S5, **S3;
   vrna_md_t                 *md;
   vrna_param_t              *P;
@@ -2008,7 +2008,7 @@ vrna_E_stack(vrna_fold_compound_t *vc,
   unsigned char             type, type_2;
   char                      *ptype;
   unsigned char             *hard_constraints, eval_loop;
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     *S, **SS;
   unsigned int              *sn;
   int                       e, ij, pq, p, q, s, n_seq, cp, *rtype, *indx;
@@ -2157,7 +2157,7 @@ E_stack_window(vrna_fold_compound_t *vc,
 {
   char                      **ptype;
   unsigned char             **hard_constraints, eval_loop;
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     **SS;
   int                       e, p, q, *rtype, type, type_2, s, n_seq;
   vrna_param_t              *P;
@@ -2880,7 +2880,7 @@ BT_int_loop_comparative(vrna_fold_compound_t  *vc,
                         int                   *stack_count)
 {
   unsigned char             eval_loop;
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     **S, **S5, **S3, *S_cons;
   int                       ij, p, q, minq, turn, *idx,
                             energy, new, *my_c, *ggg, n_seq, ss, *type, type_2;
@@ -3209,7 +3209,7 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
                                int                  *stack_count)
 {
   unsigned char             eval_loop;
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     **S, **S5, **S3, *S_cons;
   int                       *type, type_2;
   int                       p, q, minq, turn, energy, new, **c, **ggg, n_seq, ss;

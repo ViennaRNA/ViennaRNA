@@ -91,7 +91,7 @@ void vrna_aln_encode( const char *sequence,
                       short **s5_p,
                       short **s3_p,
                       char **ss_p,
-                      unsigned short **as_p,
+                      unsigned int **as_p,
                       vrna_md_t *md);
 
 /**

@@ -258,17 +258,16 @@ vrna_aln_encode(const char *sequence,
                     short **s5_p,
                     short **s3_p,
                     char **ss_p,
-                    unsigned short **as_p,
+                    unsigned int **as_p,
                     vrna_md_t *md){
 
-  unsigned  int   i,l;
-  unsigned  short p;
+  unsigned int i,l, p;
 
   l     = strlen(sequence);
 
   (*s5_p)   = (short *)         vrna_alloc((l + 2) * sizeof(short));
   (*s3_p)   = (short *)         vrna_alloc((l + 2) * sizeof(short));
-  (*as_p)  = (unsigned short *)vrna_alloc((l + 2) * sizeof(unsigned short));
+  (*as_p)   = (unsigned int *)  vrna_alloc((l + 2) * sizeof(unsigned int));
   (*ss_p)   = (char *)          vrna_alloc((l + 2) * sizeof(char));
 
   /* make numerical encoding of sequence */

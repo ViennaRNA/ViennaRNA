@@ -653,7 +653,7 @@ set_fold_compound(vrna_fold_compound_t  *vc,
       vc->S   = vrna_alloc((vc->n_seq + 1) * sizeof(short *));
       vc->S5  = vrna_alloc((vc->n_seq + 1) * sizeof(short *));
       vc->S3  = vrna_alloc((vc->n_seq + 1) * sizeof(short *));
-      vc->a2s = vrna_alloc((vc->n_seq + 1) * sizeof(unsigned short *));
+      vc->a2s = vrna_alloc((vc->n_seq + 1) * sizeof(unsigned int *));
       vc->Ss  = vrna_alloc((vc->n_seq + 1) * sizeof(char *));
 
       for (s = 0; s < vc->n_seq; s++) {

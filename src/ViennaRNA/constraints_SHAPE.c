@@ -348,7 +348,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
   float           reactivity, *reactivities, e1, weight;
   char            *line, nucleotide, *sequence;
   int             s, i, p, r, n_data, position, *pseudo_energies, n_seq;
-  unsigned short  **a2s;
+  unsigned int    **a2s;
 
   if (vc && (vc->type == VRNA_FC_TYPE_COMPARATIVE)) {
     n_seq = vc->n_seq;

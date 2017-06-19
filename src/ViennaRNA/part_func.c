@@ -617,7 +617,7 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
 
   char              **Ss;
   unsigned char     *hard_constraints;
-  unsigned short    **a2s;
+  unsigned int      **a2s;
   short             **S, **S5, **S3;
   int               u, p, q, pq, k, l, s, *type, n_seq, n, *my_iindx, *jindx, *rtype;
   FLT_OR_DBL        qbt1, qot, qo, qho, qio, qmo, *qb, *qm, *qm1, *qm2, *scale,

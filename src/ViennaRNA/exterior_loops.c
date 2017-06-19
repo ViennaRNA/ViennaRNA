@@ -1126,7 +1126,7 @@ PRIVATE int
 E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
 {
   unsigned char             *hc;
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     **S, **S5, **S3;
   int                       en, i, j, ij, tt, length, *indx, *hc_up, *f5, *c, dangle_model,
                             *ggg, with_gquad, turn, n_seq, s;
@@ -2379,7 +2379,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
                            vrna_bp_stack_t      *bp_stack,
                            int                  *stack_count)
 {
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     **S, **S5, **S3;
   int                       length, fij, fi, jj, u, en, *my_f5, *my_c, *my_ggg, *idx,
                             dangle_model, turn, with_gquad, n_seq, ss, tt;
@@ -3531,7 +3531,7 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
         }
     } else if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
       vrna_sc_t       **scs = vc->scs;
-      unsigned short  **a2s = vc->a2s;
+      unsigned int    **a2s = vc->a2s;
       for (d = 0; d <= turn; d++)
         for (i = 1; i <= n - d; i++) {
           j   = i + d;
@@ -3799,7 +3799,7 @@ exp_E_ext_fast_comparative(vrna_fold_compound_t *vc,
                            vrna_mx_pf_aux_el_t  *aux_mx)
 {
   int                       n, s, n_seq, *iidx, k, ij, kl, u, circular, type;
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     **S, **S5, **S3;
   FLT_OR_DBL                qbt1, *q, *qb, *qq, *qq1, q_temp, *scale;
   vrna_md_t                 *md;

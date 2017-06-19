@@ -234,7 +234,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
                       int                   j)
 {
   char            **Ss, loopseq[10];
-  unsigned short  **a2s;
+  unsigned int    **a2s;
   short           *S, *S2, **SS, **S5, **S3;
   int             u, e, s, type, n_seq, length;
   vrna_param_t    *P;
@@ -350,7 +350,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
                   int                   j)
 {
   char            **Ss;
-  unsigned short  **a2s;
+  unsigned int    **a2s;
   short           *S, *S2, **SS, **S5, **S3;
   unsigned int    *sn;
   int             u, e, s, ij, type, *idx, n_seq, en;
@@ -671,7 +671,7 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
                  int                  j)
 {
   char              **Ss;
-  unsigned short    **a2s;
+  unsigned int      **a2s;
   short             *S, **SS, **S5, **S3;
   unsigned int      *sn;
   int               u, ij, type, n_seq, s, *idx, *iidx;
@@ -802,7 +802,7 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
                      int                  j)
 {
   char              **Ss, *sequence;
-  unsigned short    **a2s;
+  unsigned int      **a2s;
   short             *S, **SS, **S5, **S3;
   int               u, u1, ij, n, type, n_seq, s, *rtype, *idx, noGUclosure;
   FLT_OR_DBL        q, qbt1, *scale;

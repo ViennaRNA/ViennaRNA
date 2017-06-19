@@ -2176,7 +2176,7 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t  *vc,
 {
   unsigned char             *hard_constraints;
   short                     **S, **S5, **S3;
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   int                       e, energy, *c, *fML, *ggg, ij, *indx, s, n_seq, k,
                             dangle_model, decomp, turn, tt;
   vrna_param_t              *P;
@@ -2305,7 +2305,7 @@ E_ml_stems_fast_comparative_window(vrna_fold_compound_t *vc,
 {
   unsigned char             **hard_constraints;
   short                     **S, **S5, **S3;
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   int                       e, energy, **c, **fML, **ggg, s, n_seq, k,
                             dangle_model, decomp, turn, tt;
   vrna_param_t              *P;
@@ -3524,7 +3524,7 @@ BT_mb_loop_split_comparative(vrna_fold_compound_t *vc,
                              vrna_bp_stack_t      *bp_stack,
                              int                  *stack_count)
 {
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     **S, **S5, **S3;
   int                       ij, ii, jj, fij, fi, u, en, *my_c, *my_fML, *my_ggg,
                             turn, *idx, with_gquad, dangle_model, ss, n_seq, tt;
@@ -5613,7 +5613,7 @@ exp_E_ml_fast_comparative(vrna_fold_compound_t  *vc,
                           int                   j,
                           vrna_mx_pf_aux_ml_t   *aux_mx)
 {
-  unsigned short            **a2s;
+  unsigned int              **a2s;
   short                     **S, **S5, **S3;
   int                       n, s, n_seq, *iidx, k, ij, kl, maxk, ii, circular, *hc_up_ml, type;
   FLT_OR_DBL                temp, *qm, *qb, *qqm, *qqm1, q_temp, *expMLbase;

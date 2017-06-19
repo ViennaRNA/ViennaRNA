@@ -376,7 +376,7 @@ DEPRECATED(char  *alipbacktrack(double *prob));
  *  @param S_p      A pointer to the 'S' array (integer representation of nucleotides)
  *  @param S5_p     A pointer to the 'S5' array
  *  @param S3_p     A pointer to the 'S3' array
- *  @param a2s_p    A pointer to the pair type matrix
+ *  @param a2s_p    A pointer to the alignment-column to sequence position mapping array
  *  @param Ss_p     A pointer to the 'Ss' array
  *  @param qb_p     A pointer to the Q<sup>B</sup> matrix
  *  @param qm_p     A pointer to the Q<sup>M</sup> matrix

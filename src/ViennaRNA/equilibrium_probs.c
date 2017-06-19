@@ -2280,7 +2280,7 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
   short             **S5              = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3              = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
   char              **Ss              = vc->Ss;
-  unsigned short    **a2s             = vc->a2s;                                                                   
+  unsigned int      **a2s             = vc->a2s;                                                                   
   vrna_exp_param_t  *pf_params        = vc->exp_params;
   vrna_mx_pf_t      *matrices         = vc->exp_matrices;
   vrna_md_t         *md               = &(pf_params->model_details);

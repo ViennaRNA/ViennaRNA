@@ -597,7 +597,7 @@ eval_ext_int_loop(vrna_fold_compound_t  *vc,
   int             e, u1, u2, length;
   unsigned int    s, n_seq;
   short           **SS, **S5, **S3;
-  unsigned short  **a2s;
+  unsigned int    **a2s;
   unsigned char   type, type_2;
   short           *S, si, sj, sp, sq;
   vrna_param_t    *P;
@@ -871,7 +871,7 @@ eval_circ_pt(vrna_fold_compound_t *vc,
 {
   unsigned int    s, n_seq;
   int             i, j, length, energy, en0, degree;
-  unsigned short  **a2s;
+  unsigned int    **a2s;
   vrna_param_t    *P;
   vrna_sc_t       *sc, **scs;
   FILE            *out;
@@ -1197,7 +1197,7 @@ stack_energy(vrna_fold_compound_t *vc,
   int             ee, energy, j, p, q, type, *rtype, *types, cp, ss, n_seq;
   char            *string, **Ss;
   short           *s, **S, **S5, **S3;
-  unsigned short  **a2s;
+  unsigned int    **a2s;
   FILE            *out;
   vrna_param_t    *P;
   vrna_md_t       *md;
@@ -1386,7 +1386,7 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
   int             energy, mm5, mm3, bonus, p, q, q_prev, length, dangle_model, n_seq, cp, ss, u,
                   start;
   short           *s, *s1, **S, **S5, **S3;
-  unsigned short  **a2s;
+  unsigned int    **a2s;
   vrna_param_t    *P;
   vrna_md_t       *md;
   vrna_sc_t       *sc, **scs;
@@ -1608,7 +1608,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
   int             e_stem, e_stem5, e_stem3, e_stem53;
   int             mlintern[NBPAIRS + 1];
   short           *s, *s1, **S, **S5, **S3;
-  unsigned short  **a2s;
+  unsigned int    **a2s;
   vrna_param_t    *P;
   vrna_md_t       *md;
   vrna_sc_t       *sc, **scs;
@@ -2220,7 +2220,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
   short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
   short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   char            **Ss          = vc->Ss;
-  unsigned short  **a2s         = vc->a2s;
+  unsigned int    **a2s         = vc->a2s;
   vrna_param_t    *P            = vc->params;
   vrna_md_t       *md           = &(P->model_details);
   int             n_seq         = vc->n_seq;

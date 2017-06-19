@@ -596,7 +596,7 @@ struct {
                                      *    @warning  Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                      */
   char            **Ss;
-  unsigned short  **a2s;
+  unsigned int    **a2s;
   int             *pscore;            /**<  @brief  Precomputed array of pair types expressed as pairing scores
                                        *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                        */

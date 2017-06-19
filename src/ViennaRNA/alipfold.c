@@ -54,10 +54,11 @@
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 PRIVATE int                   backward_compat           = 0;
+PRIVATE unsigned short        **backward_compat_a2s      = NULL;
 
 #ifdef _OPENMP
 
-#pragma omp threadprivate(backward_compat_compound, backward_compat)
+#pragma omp threadprivate(backward_compat_compound, backward_compat, backward_compat_a2s)
 
 #endif
 
@@ -164,7 +165,7 @@ wrap_alipf_fold(const char **sequences,
                 int is_constrained,
                 int is_circular){
 
-  int                 n_seq;
+  int                 i, n_seq;
   float               free_energy;
   vrna_fold_compound_t  *vc;
   vrna_exp_param_t    *exp_params;
@@ -208,11 +209,24 @@ wrap_alipf_fold(const char **sequences,
     vrna_constraints_add(vc, (const char *)structure, constraint_options);
   }
 
-  if(backward_compat_compound && backward_compat_compound)
+  if(backward_compat && backward_compat_compound) {
+    for (n_seq = 0; n_seq < backward_compat_compound->n_seq; n_seq++)
+      free(backward_compat_a2s[n_seq]);
+    free(backward_compat_a2s);
     vrna_fold_compound_free(backward_compat_compound);
+  }
 
   backward_compat_compound  = vc;
   iindx                     = backward_compat_compound->iindx;
+
+  /* create alignment-column to sequence position mapping compatibility array */
+  backward_compat_a2s       = (unsigned short **)vrna_alloc(sizeof(unsigned short *) * (vc->n_seq + 1));
+  for (n_seq = 0; n_seq < vc->n_seq; n_seq++) {
+    backward_compat_a2s[n_seq] = (unsigned short *)vrna_alloc(sizeof(unsigned short) * (vc->length + 2));
+    for (i = 1; i <= vc->length; i++)
+      backward_compat_a2s[n_seq][i] = (unsigned short) vc->a2s[n_seq][i];
+  }
+
   backward_compat           = 1;
 
   free_energy = vrna_pf(vc, structure);
@@ -320,13 +334,13 @@ get_alipf_arrays( short ***S_p,
         *S_p      = backward_compat_compound->S;
         *S5_p     = backward_compat_compound->S5;
         *S3_p     = backward_compat_compound->S3;
-        *a2s_p    = backward_compat_compound->a2s;
         *Ss_p     = backward_compat_compound->Ss;
         *qb_p     = backward_compat_compound->exp_matrices->qb;
         *qm_p     = backward_compat_compound->exp_matrices->qm;
         *q1k_p    = backward_compat_compound->exp_matrices->q1k;
         *qln_p    = backward_compat_compound->exp_matrices->qln;
         *pscore_p = backward_compat_compound->pscore_pf_compat;
+        *a2s_p    = backward_compat_a2s;
         return 1;
       }
   }
