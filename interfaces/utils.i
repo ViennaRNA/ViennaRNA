@@ -17,9 +17,11 @@
 %ignore nrerror;
 %ignore space;
 %ignore xrealloc;
+/*
 %ignore init_rand;
 %ignore urn;
 %ignore int_urn;
+*/
 %ignore filecopy;
 %ignore time_stamp;
 
