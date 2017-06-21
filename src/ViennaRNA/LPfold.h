@@ -87,6 +87,9 @@ typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
  */
 #define VRNA_PROBS_WINDOW_UP_SPLIT   32768U
 
+
+#define VRNA_PROBS_WINDOW_PF        65536U
+
 /**
  *  @brief  Compute base pair probabilities using a sliding-window approach
  *

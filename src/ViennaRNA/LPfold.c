@@ -269,9 +269,10 @@ vrna_pfl_fold(const char  *sequence,
   /* resize pair probability list to actual size */
   data.bpp =
     (vrna_plist_t *)vrna_realloc(data.bpp, sizeof(vrna_plist_t) * (data.bpp_size + 1));
-  data.bpp[data.bpp_size].i = 0;
-  data.bpp[data.bpp_size].j = 0;
-  data.bpp[data.bpp_size].p = 0;
+  data.bpp[data.bpp_size].i     = 0;
+  data.bpp[data.bpp_size].j     = 0;
+  data.bpp[data.bpp_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
+  data.bpp[data.bpp_size].p     = 0;
 
   return data.bpp;
 }
@@ -679,7 +680,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   unsigned char       hc_decompose;
   int                 n, i, j, k, maxl, ov, winSize, pairSize, turn;
   FLT_OR_DBL          temp, Qmax, qbt1, **q, **qb, **qm, **qm2, **pR;
-  double              max_real;
+  double              max_real, *Fwindow;
   vrna_exp_param_t    *pf_params;
   vrna_md_t           *md;
   vrna_mx_pf_t        *matrices;
@@ -718,6 +719,8 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   hc = vc->hc;
 
   alloc_helper_arrays(vc, ulength, &aux_arrays, options);
+
+  Fwindow   = (options & VRNA_PROBS_WINDOW_PF) ? (double *)vrna_alloc(sizeof(double) * (winSize + 1)) : NULL;
 
   /* very short molecule ? */
   if (n < turn + 2) {
@@ -801,16 +804,32 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
       } /* end for i */
 
       /*
+        here we return the partition function for subsegments [i...j] in terms
+        of ensemble free energies G_ij = -RT * ln(Q_ij) in kcal/mol
+      */
+      if (options & VRNA_PROBS_WINDOW_PF) {
+        int start = MAX2(1, j - winSize + 1);
+        Fwindow -= start;
+        for (i = start; i <= j; i++)
+          Fwindow[i] = (double)(-log(q[i][j]) - (j - i + 1) * log(pf_params->pf_scale)) *
+                       pf_params->kT / 1000.0;
+
+        cb(Fwindow, j, start, winSize, VRNA_PROBS_WINDOW_PF, data);
+        Fwindow += start;
+      }
+
+      /*
        * just as a general service, I save here the free energy of the windows
        * no output is generated, however,...
        */
       if ((j >= winSize) && (options & VRNA_PROBS_WINDOW_UP)) {
-        FLT_OR_DBL Fwindow = 0.;
-        Fwindow = (FLT_OR_DBL)(-log(q[j - winSize + 1][j]) - winSize * log(pf_params->pf_scale)) *
+        FLT_OR_DBL eee = 0.;
+        eee = (FLT_OR_DBL)(-log(q[j - winSize + 1][j]) - winSize * log(pf_params->pf_scale)) *
                   pf_params->kT / 1000.0;
+
         /* we could return this to the user via callback cb() if we were nice */
 
-        aux_arrays.pU[j][0] = Fwindow;
+        aux_arrays.pU[j][0] = eee;
       }
 
       /* rotate auxiliary arrays */
@@ -882,6 +901,8 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   /* free memory occupied by auxiliary arrays for fast exterior/multibranch loops */
   vrna_exp_E_ml_fast_free(vc, aux_mx_ml);
   vrna_exp_E_ext_fast_free(vc, aux_mx_el);
+
+  free(Fwindow);
 }
 
 
@@ -1772,15 +1793,18 @@ store_bpp_callback(FLT_OR_DBL *pr,
       pl          = (vrna_plist_t *)vrna_realloc(pl, sizeof(vrna_plist_t) * pl_max_size);
     }
 
-    pl[pl_size].i   = k;
-    pl[pl_size].j   = j;
-    pl[pl_size++].p = pr[j];
+    pl[pl_size].i     = k;
+    pl[pl_size].j     = j;
+    pl[pl_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
+    pl[pl_size++].p   = pr[j];
+
   }
 
   /* mark end of vrna_plist_t */
-  pl[pl_size].i = 0;
-  pl[pl_size].j = 0;
-  pl[pl_size].p = 0.;
+  pl[pl_size].i     = 0;
+  pl[pl_size].j     = 0;
+  pl[pl_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
+  pl[pl_size].p     = 0.;
 
   /* update data */
   ((default_cb_data *)data)->bpp          = pl;
@@ -1817,15 +1841,17 @@ store_stack_prob_callback(FLT_OR_DBL  *pr,
       pl          = (vrna_plist_t *)vrna_realloc(pl, sizeof(vrna_plist_t) * pl_max_size);
     }
 
-    pl[pl_size].i   = k;
-    pl[pl_size].j   = j;
-    pl[pl_size++].p = pr[j];
+    pl[pl_size].i     = k;
+    pl[pl_size].j     = j;
+    pl[pl_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
+    pl[pl_size++].p   = pr[j];
   }
 
   /* mark end of vrna_plist_t */
-  pl[pl_size].i = 0;
-  pl[pl_size].j = 0;
-  pl[pl_size].p = 0.;
+  pl[pl_size].i     = 0;
+  pl[pl_size].j     = 0;
+  pl[pl_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
+  pl[pl_size].p     = 0.;
 
   /* update data */
   ((default_cb_data *)data)->stack_prob           = pl;
@@ -1991,9 +2017,10 @@ wrap_pf_foldLP(char             *sequence,
     data.stack_prob = (vrna_plist_t *)vrna_realloc(data.stack_prob,
                                                    sizeof(vrna_plist_t) *
                                                    (data.stack_prob_size + 1));
-    data.stack_prob[data.stack_prob_size].i = 0;
-    data.stack_prob[data.stack_prob_size].j = 0;
-    data.stack_prob[data.stack_prob_size].p = 0;
+    data.stack_prob[data.stack_prob_size].i     = 0;
+    data.stack_prob[data.stack_prob_size].j     = 0;
+    data.stack_prob[data.stack_prob_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
+    data.stack_prob[data.stack_prob_size].p     = 0;
     free(*dpp2); /* free already occupied memory */
     *dpp2 = data.stack_prob;
   }
@@ -2001,9 +2028,10 @@ wrap_pf_foldLP(char             *sequence,
   if (!spup) {
     data.bpp =
       (vrna_plist_t *)vrna_realloc(data.bpp, sizeof(vrna_plist_t) * (data.bpp_size + 1));
-    data.bpp[data.bpp_size].i = 0;
-    data.bpp[data.bpp_size].j = 0;
-    data.bpp[data.bpp_size].p = 0;
+    data.bpp[data.bpp_size].i     = 0;
+    data.bpp[data.bpp_size].j     = 0;
+    data.bpp[data.bpp_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
+    data.bpp[data.bpp_size].p     = 0;
     return data.bpp;
   } else {
     return NULL;
