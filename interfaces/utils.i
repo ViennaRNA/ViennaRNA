@@ -303,6 +303,7 @@ std::vector<vrna_plist_t> my_plist(std::string structure, float pr);
 %constant int PLIST_TYPE_H_MOTIF  = VRNA_PLIST_TYPE_H_MOTIF;
 %constant int PLIST_TYPE_I_MOTIF  = VRNA_PLIST_TYPE_I_MOTIF;
 %constant int PLIST_TYPE_UD_MOTIF = VRNA_PLIST_TYPE_UD_MOTIF;
+%constant int PLIST_TYPE_STACK    = VRNA_PLIST_TYPE_STACK;
 
 %include  <ViennaRNA/structure_utils.h>
 
