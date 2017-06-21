@@ -7,6 +7,7 @@ import RNA
 import unittest
 
 seq1 = "CGCAGGGAUACCCGCG"
+longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU"
 s1="CCCCAAAACGGG"
 s2="CCCGAAAAGGGG"
 s3="CCCCAAAAGGGG"
@@ -17,7 +18,7 @@ def mfe_window_callback(start, end, structure, energy, data=None):
     data.append({ 'structure': structure, 'start': start, 'end' : end, 'energy' : energy})
 
 
-class mfe_eval_functionTest(unittest.TestCase):
+class mfe_window_functionTest(unittest.TestCase):
 
     def test_mfe_window(self):
         print "test_mfe_window\n"
@@ -72,6 +73,13 @@ class mfe_eval_functionTest(unittest.TestCase):
         self.assertEqual(data[1]['structure'], "(((......)))")
         self.assertEqual("%6.2f" % data[1]['energy'], "%6.2f" % -2.70)
 
+
+class pf_window_functionTest(unittest.TestCase):
+
+    def test_bpp_window(self):
+        print "test_bpp_window\n"
+        bpp = RNA.pfl_fold(longseq, 200, 150, 1e-4)
+        print bpp
 
 
 if __name__ == '__main__':

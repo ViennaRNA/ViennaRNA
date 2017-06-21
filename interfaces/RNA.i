@@ -54,6 +54,7 @@ extern "C" {
 #include  <ViennaRNA/aln_util.h>
 #include  <ViennaRNA/findpath.h>
 #include  <ViennaRNA/Lfold.h>
+#include  <ViennaRNA/LPfold.h>
 #include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
 #include  <ViennaRNA/file_formats.h>

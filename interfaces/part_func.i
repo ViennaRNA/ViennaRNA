@@ -244,3 +244,64 @@ double get_pr(int i, int j) {
 %}
 double get_pr(int i, int j);
 /* Get probability of pair i.j from the pr array */
+
+
+/**********************************************/
+/* BEGIN interface for sliding-window         */
+/* partition function                         */
+/**********************************************/
+
+%ignore update_pf_paramsLP;
+%ignore update_pf_paramsLP_par;
+%ignore pfl_fold;
+%ignore pfl_fold_par;
+%ignore putoutpU_prob_par;
+%ignore putoutpU_prob;
+%ignore putoutpU_prob_bin_par;
+%ignore putoutpU_prob_bin;
+%ignore init_pf_foldLP;
+
+%rename (pfl_fold) my_pfl_fold;
+
+%{
+#include <vector>
+
+  std::vector<vrna_plist_t> my_pfl_fold(std::string sequence, int w, int L, double cutoff)
+  {
+    std::vector<vrna_plist_t > vplist;
+    vrna_plist_t *ptr, *plist;
+
+    plist = vrna_pfl_fold(sequence.c_str(), w, L, (float)cutoff);
+
+    for (ptr = plist; ptr->i && ptr->j; ptr++) {
+      vrna_plist_t pl;
+      pl.i    = ptr->i;
+      pl.j    = ptr->j;
+      pl.p    = ptr->p;
+      pl.type = ptr->type;
+      vplist.push_back(pl);
+    }
+    free(plist);
+
+    return vplist;
+  }
+
+%}
+
+/* %newobject my_pfl_fold; */
+std::vector<vrna_plist_t> my_pfl_fold(std::string sequence, int w, int L, double cutoff);
+
+
+%constant unsigned int EXT_LOOP = VRNA_EXT_LOOP;
+%constant unsigned int HP_LOOP  = VRNA_HP_LOOP;
+%constant unsigned int INT_LOOP = VRNA_INT_LOOP;
+%constant unsigned int MB_LOOP  = VRNA_MB_LOOP;
+%constant unsigned int ANY_LOOP = VRNA_ANY_LOOP;
+
+%constant unsigned int PROBS_WINDOW_BPP       = VRNA_PROBS_WINDOW_BPP;
+%constant unsigned int PROBS_WINDOW_UP        = VRNA_PROBS_WINDOW_UP;
+%constant unsigned int PROBS_WINDOW_STACKP    = VRNA_PROBS_WINDOW_STACKP;
+%constant unsigned int PROBS_WINDOW_UP_SPLIT  = VRNA_PROBS_WINDOW_UP_SPLIT;
+%constant unsigned int PROBS_WINDOW_PF        = VRNA_PROBS_WINDOW_PF;
+
+%include  <ViennaRNA/LPfold.h>
