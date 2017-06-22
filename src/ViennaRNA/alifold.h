@@ -118,10 +118,10 @@ vrna_circalifold( const char **sequences,
  *  @param sequences  RNA sequence alignment
  *  @param structure  A pointer to the character array where position-wise pairing propensity
  *                    will be stored. (Maybe NULL)
- *  @param pl         A pointer to a list of #vrna_plist_t to store pairing probabilities (Maybe NULL)
+ *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
  *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
-float vrna_pf_alifold(const char **sequences, char *structure, vrna_plist_t **pl);
+float vrna_pf_alifold(const char **sequences, char *structure, vrna_ep_t **pl);
 
 /**
  *  @brief  Compute Partition function @f$Q@f$ (and base pair probabilities) for an alignment
@@ -146,10 +146,10 @@ float vrna_pf_alifold(const char **sequences, char *structure, vrna_plist_t **pl
  *  @param sequences  Sequence alignment of circular RNAs
  *  @param structure  A pointer to the character array where position-wise pairing propensity
  *                    will be stored. (Maybe NULL)
- *  @param pl         A pointer to a list of #vrna_plist_t to store pairing probabilities (Maybe NULL)
+ *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
  *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
-float vrna_pf_circalifold(const char **sequences, char *structure, vrna_plist_t **pl);
+float vrna_pf_circalifold(const char **sequences, char *structure, vrna_ep_t **pl);
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -272,7 +272,7 @@ DEPRECATED(extern  double  nc_fact);
  */
 DEPRECATED(float alipf_fold_par( const char **sequences,
                       char *structure,
-                      vrna_plist_t **pl,
+                      vrna_ep_t **pl,
                       vrna_exp_param_t *parameters,
                       int calculate_bppm,
                       int is_constrained,
@@ -296,7 +296,7 @@ DEPRECATED(float alipf_fold_par( const char **sequences,
  *  @param pl
  *  @return
  */
-DEPRECATED(float alipf_fold( const char **sequences, char *structure, vrna_plist_t **pl));
+DEPRECATED(float alipf_fold( const char **sequences, char *structure, vrna_ep_t **pl));
 
 /**
  *  @brief
@@ -310,7 +310,7 @@ DEPRECATED(float alipf_fold( const char **sequences, char *structure, vrna_plist
  *  @param pl
  *  @return
  */
-DEPRECATED(float alipf_circ_fold(const char **sequences, char *structure, vrna_plist_t **pl));
+DEPRECATED(float alipf_circ_fold(const char **sequences, char *structure, vrna_ep_t **pl));
 
 
 /**

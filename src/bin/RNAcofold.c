@@ -25,6 +25,7 @@
 #include "ViennaRNA/part_func_co.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/structure_utils.h"
 #include "ViennaRNA/read_epars.h"
 #include "RNAcofold_cmdl.h"
 #include "gengetopt_helper.h"

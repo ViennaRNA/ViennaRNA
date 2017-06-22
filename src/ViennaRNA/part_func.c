@@ -93,7 +93,7 @@ wrap_mean_bp_distance(FLT_OR_DBL *p,
 PUBLIC float
 vrna_pf_fold( const char *seq,
               char *structure,
-              vrna_plist_t **pl){
+              vrna_ep_t **pl){
 
   float                 free_energy;
   double                mfe;
@@ -127,7 +127,7 @@ vrna_pf_fold( const char *seq,
 PUBLIC float
 vrna_pf_circfold( const char *seq,
                   char *structure,
-                  vrna_plist_t **pl){
+                  vrna_ep_t **pl){
 
   float                 free_energy;
   double                mfe;
@@ -862,7 +862,7 @@ wrap_pf_fold( const char *sequence,
   return vrna_pf(vc, structure);
 }
 
-PUBLIC vrna_plist_t *
+PUBLIC vrna_ep_t *
 stackProb(double cutoff){
 
   if(!(backward_compat_compound && backward_compat)){
@@ -1198,7 +1198,7 @@ get_centroid_struct_gquad_pr( int length,
 }
 
 PUBLIC void
-assign_plist_gquad_from_pr( vrna_plist_t **pl,
+assign_plist_gquad_from_pr( vrna_ep_t **pl,
                             int length, /* ignored */
                             double cut_off){
 

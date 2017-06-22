@@ -25,8 +25,8 @@ typedef struct vrna_fc_s vrna_fold_compound_t;
 /** @brief Typename for the base pair repesenting data structure #vrna_basepair_s */
 typedef struct vrna_basepair_s vrna_basepair_t;
 
-/** @brief Typename for the base pair list repesenting data structure #vrna_plist_s */
-typedef struct vrna_plist_s vrna_plist_t;
+/** @brief Typename for the base pair list repesenting data structure #vrna_elem_prob_s */
+typedef struct vrna_elem_prob_s vrna_plist_t;
 
 /** @brief Typename for the base pair stack repesenting data structure #vrna_bp_stack_s */
 typedef struct vrna_bp_stack_s vrna_bp_stack_t;
@@ -129,14 +129,6 @@ typedef void (vrna_callback_recursion_status)(unsigned char status,
 #define VRNA_STATUS_PF_POST     (unsigned char)4
 
 
-#define VRNA_PLIST_TYPE_BASEPAIR      0
-#define VRNA_PLIST_TYPE_GQUAD         1
-#define VRNA_PLIST_TYPE_H_MOTIF       2
-#define VRNA_PLIST_TYPE_I_MOTIF       3
-#define VRNA_PLIST_TYPE_UD_MOTIF      4
-#define VRNA_PLIST_TYPE_STACK         5
-
-
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 
@@ -152,11 +144,10 @@ typedef void (vrna_callback_recursion_status)(unsigned char status,
 typedef struct vrna_basepair_s PAIR;
 
 /**
- *  @brief Old typename of #vrna_plist_s
- *  @deprecated Use #vrna_plist_t instead!
+ *  @brief Old typename of #vrna_elem_prob_s
+ *  @deprecated Use #vrna_ep_t or #vrna_elem_prob_s instead!
  */
-typedef struct vrna_plist_s plist;
-
+typedef struct vrna_elem_prob_s plist;
 /**
  *  @brief Old typename of #vrna_cpair_s
  *  @deprecated Use #vrna_cpair_t instead!
@@ -185,6 +176,7 @@ typedef struct vrna_bp_stack_s bondT;
 #include <ViennaRNA/grammar.h>
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
+#include "ViennaRNA/structure_utils.h"
 
 /*
  * ############################################################
@@ -199,16 +191,6 @@ typedef struct vrna_bp_stack_s bondT;
 struct vrna_basepair_s {
   int i;
   int j;
-};
-
-/**
- *  @brief this datastructure is used as input parameter in functions of PS_dot.h and others
- */
-struct vrna_plist_s {
-  int   i;
-  int   j;
-  float p;
-  int   type;
 };
 
 /**

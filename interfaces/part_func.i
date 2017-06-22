@@ -266,15 +266,15 @@ double get_pr(int i, int j);
 %{
 #include <vector>
 
-  std::vector<vrna_plist_t> my_pfl_fold(std::string sequence, int w, int L, double cutoff)
+  std::vector<vrna_ep_t> my_pfl_fold(std::string sequence, int w, int L, double cutoff)
   {
-    std::vector<vrna_plist_t > vplist;
-    vrna_plist_t *ptr, *plist;
+    std::vector<vrna_ep_t > vplist;
+    vrna_ep_t *ptr, *plist;
 
     plist = vrna_pfl_fold(sequence.c_str(), w, L, (float)cutoff);
 
     for (ptr = plist; ptr->i && ptr->j; ptr++) {
-      vrna_plist_t pl;
+      vrna_ep_t pl;
       pl.i    = ptr->i;
       pl.j    = ptr->j;
       pl.p    = ptr->p;
@@ -289,7 +289,13 @@ double get_pr(int i, int j);
 %}
 
 /* %newobject my_pfl_fold; */
-std::vector<vrna_plist_t> my_pfl_fold(std::string sequence, int w, int L, double cutoff);
+std::vector<vrna_ep_t> my_pfl_fold(std::string sequence, int w, int L, double cutoff);
+
+%extend vrna_fold_compound_t {
+
+  
+
+}
 
 
 %constant unsigned int EXT_LOOP = VRNA_EXT_LOOP;

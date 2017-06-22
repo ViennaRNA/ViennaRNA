@@ -21,6 +21,7 @@ SOURCES = RNA.i \
           plotting.i \
           subopt.i \
           utils.i \
+          structure_utils.i \
           ptr2array.i \
           generic.mk
 
@@ -58,6 +59,7 @@ EXTRA_DIST =  RNA.i \
               plotting.i \
               subopt.i \
               utils.i \
+              structure_utils.i \
               ptr2array.i \
               generic.mk \
               $(DOXYGEN_DOCUMENTATION)

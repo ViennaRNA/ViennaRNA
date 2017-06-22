@@ -46,7 +46,7 @@
 PUBLIC char *
 vrna_centroid_from_plist( int length,
                           double *dist,
-                          vrna_plist_t *pl){
+                          vrna_ep_t *pl){
 
   /* compute the centroid structure of the ensemble, i.e. the strutcure
      with the minimal average distance to all other structures
@@ -188,7 +188,7 @@ vrna_centroid(vrna_fold_compound_t *vc,
 PUBLIC char *
 get_centroid_struct_pl( int length,
                         double *dist,
-                        vrna_plist_t *pl){
+                        vrna_ep_t *pl){
 
   return vrna_centroid_from_plist(length, dist, pl);
 }

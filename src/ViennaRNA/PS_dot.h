@@ -3,6 +3,7 @@
 
 
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/structure_utils.h>
 #include <ViennaRNA/plot_structure.h>
 #include <ViennaRNA/plot_aln.h>
 
@@ -68,8 +69,8 @@ typedef struct {
 int
 vrna_plot_dp_EPS( const char              *filename,
                   const char              *sequence,
-                  vrna_plist_t            *upper,
-                  vrna_plist_t            *lower,
+                  vrna_ep_t               *upper,
+                  vrna_ep_t               *lower,
                   vrna_dotplot_auxdata_t  *auxdata,
                   unsigned int            options);
 

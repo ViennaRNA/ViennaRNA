@@ -76,6 +76,6 @@ double vrna_mean_bp_distance(vrna_fold_compound_t *vc);
  *  @param  cutoff  A cutoff value that limits the output to stacks with @f$ p > \textrm{cutoff} @f$.
  *  @return         A list of stacks with enclosing base pair @f$(i,j)@f$ and probabiltiy @f$ p @f$
  */
-vrna_plist_t *vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff);
+vrna_ep_t *vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff);
 
 #endif

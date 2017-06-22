@@ -111,6 +111,7 @@ namespace std {
   %template(CoordinateVector) std::vector<COORDINATE>;
   %template(DoubleDoubleVector) std::vector< std::vector<double> > ;
   %template(IntIntVector) std::vector<std::vector<int> > ;
+  %template(ElemProbVector) std::vector<vrna_ep_t>;
 };
 
 %{

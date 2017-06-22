@@ -37,17 +37,17 @@
  */
 
 typedef struct {
-  int           bpp_print;  /* 1 if pairing probabilities should be written to file-handle, 0 if they are returned as vrna_plist_t */
+  int           bpp_print;  /* 1 if pairing probabilities should be written to file-handle, 0 if they are returned as vrna_ep_t */
   int           up_print;   /* 1 if unpaired probabilities should be written to file-handle, 0 if they are returned as array */
 
   FILE          *fp_pU;
   double        **pU;
   FLT_OR_DBL    bpp_cutoff;
   FILE          *fp_bpp;
-  vrna_plist_t  *bpp;
+  vrna_ep_t  *bpp;
   unsigned int  bpp_max_size;
   unsigned int  bpp_size;
-  vrna_plist_t  *stack_prob;
+  vrna_ep_t  *stack_prob;
   unsigned int  stack_prob_size;
   unsigned int  stack_prob_max_size;
 } default_cb_data;
@@ -142,8 +142,8 @@ probability_correction(vrna_fold_compound_t *vc,
 
 
 #if 0
-PRIVATE vrna_plist_t *get_deppp(vrna_fold_compound_t  *vc,
-                                vrna_plist_t          *pl,
+PRIVATE vrna_ep_t *get_deppp(vrna_fold_compound_t  *vc,
+                                vrna_ep_t          *pl,
                                 int                   start);
 
 
@@ -243,7 +243,7 @@ sc_dummy(vrna_fold_compound_t *vc,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC vrna_plist_t *
+PUBLIC vrna_ep_t *
 vrna_pfl_fold(const char  *sequence,
               int         window_size,
               int         max_bp_span,
@@ -268,7 +268,7 @@ vrna_pfl_fold(const char  *sequence,
 
   /* resize pair probability list to actual size */
   data.bpp =
-    (vrna_plist_t *)vrna_realloc(data.bpp, sizeof(vrna_plist_t) * (data.bpp_size + 1));
+    (vrna_ep_t *)vrna_realloc(data.bpp, sizeof(vrna_ep_t) * (data.bpp_size + 1));
   data.bpp[data.bpp_size].i     = 0;
   data.bpp[data.bpp_size].j     = 0;
   data.bpp[data.bpp_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
@@ -1342,15 +1342,15 @@ make_ptypes(vrna_fold_compound_t  *vc,
 
 
 #if 0
-PRIVATE vrna_plist_t *
+PRIVATE vrna_ep_t *
 get_deppp(vrna_fold_compound_t  *vc,
-          vrna_plist_t          *pl,
+          vrna_ep_t          *pl,
           int                   start)
 {
   /* compute dependent pair probabilities */
   int               i, j, count = 0;
   double            tmp;
-  vrna_plist_t      *temp;
+  vrna_ep_t      *temp;
   char              **ptype;
   short             *S1;
   FLT_OR_DBL        **qb, *scale;
@@ -1368,7 +1368,7 @@ get_deppp(vrna_fold_compound_t  *vc,
   pairsize  = pf_params->model_details.max_bp_span;
   length    = vc->length;
 
-  temp = (vrna_plist_t *)vrna_alloc(pairsize * sizeof(vrna_plist_t)); /* holds temporary deppp */
+  temp = (vrna_ep_t *)vrna_alloc(pairsize * sizeof(vrna_ep_t)); /* holds temporary deppp */
   for (j = start + turn; j < MIN2(start + pairsize, length); j++) {
     if ((qb[start][j] * qb[start - 1][(j + 1)]) > 10e-200) {
       int type    = ptype[start - 1][j + 1];
@@ -1389,7 +1389,7 @@ get_deppp(vrna_fold_compound_t  *vc,
   }
   /* write it to list of deppps */
   for (i = 0; pl[i].i != 0; i++);
-  pl = (vrna_plist_t *)vrna_realloc(pl, (i + count + 1) * sizeof(vrna_plist_t));
+  pl = (vrna_ep_t *)vrna_realloc(pl, (i + count + 1) * sizeof(vrna_ep_t));
   for (j = 0; j < count; j++) {
     pl[i + j].i = temp[j].i;
     pl[i + j].j = temp[j].j;
@@ -1772,7 +1772,7 @@ store_bpp_callback(FLT_OR_DBL *pr,
                    void       *data)
 {
   int           j;
-  vrna_plist_t  *pl         = ((default_cb_data *)data)->bpp;
+  vrna_ep_t  *pl         = ((default_cb_data *)data)->bpp;
   unsigned int  pl_size     = ((default_cb_data *)data)->bpp_size;
   unsigned int  pl_max_size = ((default_cb_data *)data)->bpp_max_size;
   FLT_OR_DBL    cutoff      = ((default_cb_data *)data)->bpp_cutoff;
@@ -1780,17 +1780,17 @@ store_bpp_callback(FLT_OR_DBL *pr,
   if (pl_max_size == 0) {
     /* init if necessary */
     pl_max_size = 100;
-    pl          = (vrna_plist_t *)vrna_realloc(pl, sizeof(vrna_plist_t) * pl_max_size);
+    pl          = (vrna_ep_t *)vrna_realloc(pl, sizeof(vrna_ep_t) * pl_max_size);
   }
 
   for (j = k + 1; j <= size; j++) {
     if (pr[j] < cutoff)
       continue;
 
-    /* resize vrna_plist_t memory if necessary */
+    /* resize vrna_ep_t memory if necessary */
     if (pl_size >= pl_max_size - 1) {
       pl_max_size *= 1.5;
-      pl          = (vrna_plist_t *)vrna_realloc(pl, sizeof(vrna_plist_t) * pl_max_size);
+      pl          = (vrna_ep_t *)vrna_realloc(pl, sizeof(vrna_ep_t) * pl_max_size);
     }
 
     pl[pl_size].i     = k;
@@ -1800,7 +1800,7 @@ store_bpp_callback(FLT_OR_DBL *pr,
 
   }
 
-  /* mark end of vrna_plist_t */
+  /* mark end of vrna_ep_t */
   pl[pl_size].i     = 0;
   pl[pl_size].j     = 0;
   pl[pl_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
@@ -1820,7 +1820,7 @@ store_stack_prob_callback(FLT_OR_DBL  *pr,
                           void        *data)
 {
   int           j;
-  vrna_plist_t  *pl         = ((default_cb_data *)data)->stack_prob;
+  vrna_ep_t  *pl         = ((default_cb_data *)data)->stack_prob;
   unsigned int  pl_size     = ((default_cb_data *)data)->stack_prob_size;
   unsigned int  pl_max_size = ((default_cb_data *)data)->stack_prob_max_size;
   FLT_OR_DBL    cutoff      = ((default_cb_data *)data)->bpp_cutoff;
@@ -1828,17 +1828,17 @@ store_stack_prob_callback(FLT_OR_DBL  *pr,
   if (pl_max_size == 0) {
     /* init if necessary */
     pl_max_size = 100;
-    pl          = (vrna_plist_t *)vrna_realloc(pl, sizeof(vrna_plist_t) * pl_max_size);
+    pl          = (vrna_ep_t *)vrna_realloc(pl, sizeof(vrna_ep_t) * pl_max_size);
   }
 
   for (j = k + 1; j <= size; j++) {
     if (pr[j] < cutoff)
       continue;
 
-    /* resize vrna_plist_t memory if necessary */
+    /* resize vrna_ep_t memory if necessary */
     if (pl_size >= pl_max_size - 1) {
       pl_max_size *= 1.5;
-      pl          = (vrna_plist_t *)vrna_realloc(pl, sizeof(vrna_plist_t) * pl_max_size);
+      pl          = (vrna_ep_t *)vrna_realloc(pl, sizeof(vrna_ep_t) * pl_max_size);
     }
 
     pl[pl_size].i     = k;
@@ -1847,7 +1847,7 @@ store_stack_prob_callback(FLT_OR_DBL  *pr,
     pl[pl_size++].p   = pr[j];
   }
 
-  /* mark end of vrna_plist_t */
+  /* mark end of vrna_ep_t */
   pl[pl_size].i     = 0;
   pl[pl_size].j     = 0;
   pl[pl_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
@@ -1943,13 +1943,13 @@ backward_compat_callback(FLT_OR_DBL   *pr,
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-PRIVATE vrna_plist_t *
+PRIVATE vrna_ep_t *
 wrap_pf_foldLP(char             *sequence,
                int              winSize,
                int              pairSize,
                float            cutoffb,
                double           **pU,
-               vrna_plist_t     **dpp2,
+               vrna_ep_t     **dpp2,
                FILE             *pUfp,
                FILE             *spup,
                vrna_exp_param_t *parameters)
@@ -2014,8 +2014,8 @@ wrap_pf_foldLP(char             *sequence,
   vrna_probs_window(vc, ulength, &backward_compat_callback, (void *)&data, options);
 
   if (dpp2 && (*dpp2)) {
-    data.stack_prob = (vrna_plist_t *)vrna_realloc(data.stack_prob,
-                                                   sizeof(vrna_plist_t) *
+    data.stack_prob = (vrna_ep_t *)vrna_realloc(data.stack_prob,
+                                                   sizeof(vrna_ep_t) *
                                                    (data.stack_prob_size + 1));
     data.stack_prob[data.stack_prob_size].i     = 0;
     data.stack_prob[data.stack_prob_size].j     = 0;
@@ -2027,7 +2027,7 @@ wrap_pf_foldLP(char             *sequence,
 
   if (!spup) {
     data.bpp =
-      (vrna_plist_t *)vrna_realloc(data.bpp, sizeof(vrna_plist_t) * (data.bpp_size + 1));
+      (vrna_ep_t *)vrna_realloc(data.bpp, sizeof(vrna_ep_t) * (data.bpp_size + 1));
     data.bpp[data.bpp_size].i     = 0;
     data.bpp[data.bpp_size].j     = 0;
     data.bpp[data.bpp_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
@@ -2079,13 +2079,13 @@ update_pf_paramsLP_par(int              length,
 }
 
 
-PUBLIC vrna_plist_t *
+PUBLIC vrna_ep_t *
 pfl_fold(char         *sequence,
          int          winSize,
          int          pairSize,
          float        cutoffb,
          double       **pU,
-         vrna_plist_t **dpp2,
+         vrna_ep_t **dpp2,
          FILE         *pUfp,
          FILE         *spup)
 {
@@ -2093,13 +2093,13 @@ pfl_fold(char         *sequence,
 }
 
 
-PUBLIC vrna_plist_t *
+PUBLIC vrna_ep_t *
 pfl_fold_par(char             *sequence,
              int              winSize,
              int              pairSize,
              float            cutoffb,
              double           **pU,
-             vrna_plist_t     **dpp2,
+             vrna_ep_t     **dpp2,
              FILE             *pUfp,
              FILE             *spup,
              vrna_exp_param_t *parameters)
