@@ -60,7 +60,7 @@ $(SWIG_wrapper): $(SWIG_src)
 	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
                   -DPY3 \
-                  $(_RNA_la_CPPFLAGS) \
+                  $(RNA_CPPFLAGS) \
                   -python -modern -py3 -c++ \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)

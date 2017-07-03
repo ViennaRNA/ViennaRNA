@@ -58,7 +58,7 @@ if HAS_SWIG
 $(SWIG_wrapper): $(SWIG_src)
 	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
-                  $(_RNA_CPPFLAGS) \
+                  $(RNA_CPPFLAGS) \
                   -python -modern  -c++ \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
