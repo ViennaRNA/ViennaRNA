@@ -201,7 +201,6 @@ vrna_sc_prepare(vrna_fold_compound_t  *vc,
       for (k = 1; k <= maxdist; k++) {
         sc->energy_up[i][k] = sc->energy_up[i][k - 1] +
                               sc->up_storage[i + k - 1];
-//        printf("sc_up[%d][%d] = %d\n", i, k, sc->energy_up[i][k]);
       }
     }
 
@@ -346,10 +345,16 @@ vrna_sc_add_bp(vrna_fold_compound_t *vc,
                unsigned int         options)
 {
   if (vc && (vc->type == VRNA_FC_TYPE_SINGLE)) {
-    sc_really_add_bp(vc, i, j, energy, options);
+    if ((i < 1) || (i > vc->length) || (j < i) || (j > vc->length)) {
+      vrna_message_warning("vrna_sc_add_bp(): Base pair (%d, %d) out of range!"
+                           " (Sequence length: %d)",
+                           i, j, vc->length);
+    } else {
+      sc_really_add_bp(vc, i, j, energy, options);
 
-    if (options & VRNA_OPTION_PF) /* prepare Boltzmann factors for the BP soft constraints */
-      prepare_Boltzmann_weights_bp(vc);
+      if (options & VRNA_OPTION_PF) /* prepare Boltzmann factors for the BP soft constraints */
+        prepare_Boltzmann_weights_bp(vc);
+    }
   }
 }
 
