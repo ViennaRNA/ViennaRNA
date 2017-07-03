@@ -20,12 +20,11 @@
  */
 
 
-typedef struct vrna_structured_domains_s  vrna_sd_t;
+typedef struct vrna_structured_domains_s vrna_sd_t;
 
 
 struct vrna_structured_domains_s {
-
-
+  char __placeholder; /* dummy placeholder to not leave this struct empty */
 };
 
 #endif
