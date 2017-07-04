@@ -98,6 +98,19 @@ typedef struct {
   }
 }
 
+%extend vrna_fold_compound_t {
+
+  void exp_params_rescale(void) {
+    vrna_exp_params_rescale($self, NULL);
+  }
+
+  void exp_params_rescale(double fe) {
+    vrna_exp_params_rescale($self, &fe);
+  }
+}
+
+
+
 %ignore get_parameter_copy;
 %ignore get_scaled_pf_parameters;
 %ignore get_boltzmann_factors;
