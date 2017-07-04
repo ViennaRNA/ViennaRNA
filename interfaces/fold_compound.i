@@ -12,7 +12,6 @@
 %ignore interact;
 %ignore pu_out;
 %ignore constrain;
-//%ignore duplexT;
 %ignore folden;
 %ignore snoopT;
 %ignore dupVar;

@@ -181,6 +181,7 @@ namespace std {
 %include grammar.i
 %include commands.i
 %include combinatorics.i
+%include duplex.i
 %include fold_compound.i
 
 
@@ -214,17 +215,6 @@ namespace std {
 }
 
 
-typedef struct {
-  int i;
-  int j;
-  char *structure;
-  float energy;
-} duplexT;
-
-// problem: wrapper will not free the the structure hidden in duplexT
-// even more problem for duplex_subopt()
-
-%include <ViennaRNA/duplex.h>
 %include <ViennaRNA/Lfold.h>
 
 /**********************************************/
