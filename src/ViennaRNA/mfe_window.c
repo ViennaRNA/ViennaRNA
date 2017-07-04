@@ -699,7 +699,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
           double thisz = 0;
           if (want_backtrack(vc, ii, jj, zsc_data, &thisz)) {
 #endif
-          ss = backtrack(vc, ii, jj + 1);
+          ss = backtrack(vc, ii, jj);
           if (prev) {
             if ((jj < prev_j) || (strncmp(ss + prev_i - ii, prev, prev_j - prev_i + 1))) {
               /* ss does not contain prev */
@@ -755,7 +755,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
             double thisz = 0;
             if (want_backtrack(vc, ii, jj, zsc_data, &thisz)) {
 #endif
-            ss = backtrack(vc, ii, jj + 1);
+            ss = backtrack(vc, ii, jj);
 #ifdef VRNA_WITH_SVM
             if (zsc_data->with_zsc)
               cb_z(ii, MIN2(jj + ((dangle_model) ? 1 : 0),
@@ -880,7 +880,7 @@ want_backtrack(vrna_fold_compound_t *vc,
 PRIVATE char *
 backtrack(vrna_fold_compound_t  *vc,
           int                   start,
-          int                   maxdist)
+          int                   end)
 {
   /*------------------------------------------------------------------
    *  trace back through the "c", "f3" and "fML" arrays to get the
@@ -913,12 +913,12 @@ backtrack(vrna_fold_compound_t  *vc,
   bp_stack  = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));  /* add a guess of how many G's may be involved in a G quadruplex */
 
   sector[++s].i = start;
-  sector[s].j   = MIN2(length, maxdist + 1);
+  sector[s].j   = MIN2(length, end + 1);
   sector[s].ml  = (bt_type == 'M') ? 1 : ((bt_type == 'C') ? 2 : 0);
 
-  structure = (char *)vrna_alloc((MIN2(length - start, maxdist) + 3) * sizeof(char));
+  structure = (char *)vrna_alloc((MIN2(length - start, end) + 3) * sizeof(char));
 
-  memset(structure, '.', MIN2(length - start, maxdist) + 1);
+  memset(structure, '.', MIN2(length - start, end) + 1);
 
   dangle3 = 0;
 
@@ -1232,7 +1232,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
       ii  = i;
       jj  = vrna_BT_ext_loop_f3_pp(fc, &ii, maxdist);
       if (jj > 0) {
-        ss = backtrack(fc, ii, jj + 1);
+        ss = backtrack(fc, ii, jj);
         if (prev) {
           if ((jj < prev_j) || (strncmp(ss + prev_i - ii, prev, prev_j - prev_i + 1)))
             /* ss does not contain prev */
@@ -1263,7 +1263,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
         ii  = i;
         jj  = vrna_BT_ext_loop_f3_pp(fc, &ii, maxdist);
         if (jj > 0) {
-          ss = backtrack(fc, ii, jj + 1);
+          ss = backtrack(fc, ii, jj);
           cb(ii, MIN2(jj + ((dangle_model) ? 1 : 0),
                       length), ss, (f3[1] - f3[jj + 1]) / (100. * n_seq), data);
 
