@@ -29,9 +29,9 @@
  */
 
 /* write PostScript drawing of structure to file with annotation */
-int PS_rna_plot_snoop_a(char *string,
-                        char *structure,
-                        char *ssfile,
+int PS_rna_plot_snoop_a(const char *string,
+                        const char *structure,
+                        const char *ssfile,
                         int *relative_access,
                         const char *seqs[]);
 
