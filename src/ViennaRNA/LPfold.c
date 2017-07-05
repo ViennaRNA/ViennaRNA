@@ -299,7 +299,7 @@ vrna_pfl_fold_cb(const char                 *sequence,
 
   options = VRNA_PROBS_WINDOW_BPP; /* always compute base pair probabilities */
 
-  vrna_probs_window(vc, 0, cb, data, options);
+  vrna_probs_window(vc, 0, options, cb, data);
 
   vrna_fold_compound_free(vc);
 }
@@ -368,7 +368,7 @@ vrna_pfl_fold_up_cb(const char                  *sequence,
 
   options = VRNA_PROBS_WINDOW_UP; /* compute unpaired probabilties */
 
-  vrna_probs_window(vc, ulength, cb, data, options);
+  vrna_probs_window(vc, ulength, options, cb, data);
 
   vrna_fold_compound_free(vc);
 }
@@ -673,9 +673,9 @@ rotate_constraints(vrna_fold_compound_t *fc,
 PUBLIC void
 vrna_probs_window(vrna_fold_compound_t        *vc,
                   int                         ulength,
+                  unsigned int                options,
                   vrna_probs_window_callback  *cb,
-                  void                        *data,
-                  unsigned int                options)
+                  void                        *data)
 {
   unsigned char       hc_decompose;
   int                 n, i, j, k, maxl, ov, winSize, pairSize, turn;
@@ -2011,7 +2011,7 @@ wrap_pf_foldLP(char             *sequence,
   if (ulength > 0)
     options |= VRNA_PROBS_WINDOW_UP;
 
-  vrna_probs_window(vc, ulength, &backward_compat_callback, (void *)&data, options);
+  vrna_probs_window(vc, ulength, options, &backward_compat_callback, (void *)&data);
 
   if (dpp2 && (*dpp2)) {
     data.stack_prob = (vrna_ep_t *)vrna_realloc(data.stack_prob,

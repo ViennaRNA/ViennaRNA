@@ -226,9 +226,9 @@ vrna_pfl_fold_up_cb(const char                  *sequence,
 void
 vrna_probs_window(vrna_fold_compound_t        *fc,
                   int                         ulength,
+                  unsigned int                options,
                   vrna_probs_window_callback  *cb,
-                  void                        *data,
-                  unsigned int                options);
+                  void                        *data);
 
 
 #ifdef  VRNA_BACKWARD_COMPAT
