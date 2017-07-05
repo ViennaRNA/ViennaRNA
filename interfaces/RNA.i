@@ -206,8 +206,19 @@ namespace std {
 
 //%subsection "Global Variables to Modify Folding"
 //extern double *pr;  /*  base pairing prob. matrix */
+%immutable;
+extern bondT      *base_pair;
+extern FLT_OR_DBL *pr;
+extern int        *iindx;
+%mutable;
 
 %include  <ViennaRNA/fold_vars.h>
+
+struct bondT {
+  unsigned int  i;
+  unsigned int  j;
+};
+
 %extend bondT {
 
   bondT *get(int i) {
@@ -215,8 +226,6 @@ namespace std {
     return self+i;
   }
 }
-
-
 %include <ViennaRNA/Lfold.h>
 
 %include  <ViennaRNA/move_set.h>
