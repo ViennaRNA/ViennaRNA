@@ -22,6 +22,7 @@
 %include callbacks-ud.i
 %include callbacks-subopt.i
 %include callbacks-mfe-window.i
+%include callbacks-pf-window.i
 
 /* start constructing a sane interface to vrna_fold_compound_t */
 

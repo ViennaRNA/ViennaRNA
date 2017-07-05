@@ -19,6 +19,7 @@ SOURCES = RNA.i \
           model_details.i \
           params.i \
           part_func.i \
+          pf_window.i \
           plotting.i \
           subopt.i \
           utils.i \
@@ -58,6 +59,7 @@ EXTRA_DIST =  RNA.i \
               model_details.i \
               params.i \
               part_func.i \
+              pf_window.i \
               plotting.i \
               subopt.i \
               utils.i \

@@ -74,13 +74,5 @@ class mfe_window_functionTest(unittest.TestCase):
         self.assertEqual("%6.2f" % data[1]['energy'], "%6.2f" % -2.70)
 
 
-class pf_window_functionTest(unittest.TestCase):
-
-    def test_bpp_window(self):
-        print "test_bpp_window\n"
-        bpp = RNA.pfl_fold(longseq, 200, 150, 1e-4)
-        print bpp
-
-
 if __name__ == '__main__':
     unittest.main()

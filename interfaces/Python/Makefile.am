@@ -8,6 +8,7 @@ LANG_SPECIFIC_INTERFACE_FILES = \
   $(srcdir)/callbacks-ud.i \
   $(srcdir)/callbacks-subopt.i \
   $(srcdir)/callbacks-mfe-window.i \
+  $(srcdir)/callbacks-pf-window.i \
   $(builddir)/version.i
 
 INTERFACE_FILES = $(SWIG_src) \
