@@ -176,6 +176,7 @@ namespace std {
 %include constraints_ligand.i
 %include eval.i
 %include mfe.i
+%include mfe_window.i
 %include part_func.i
 %include subopt.i
 %include inverse.i
@@ -228,7 +229,6 @@ struct bondT {
     return self+i;
   }
 }
-%include <ViennaRNA/Lfold.h>
 
 %include  <ViennaRNA/move_set.h>
 

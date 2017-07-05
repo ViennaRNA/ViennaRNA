@@ -15,6 +15,7 @@ SOURCES = RNA.i \
           grammar.i \
           inverse.i \
           mfe.i \
+          mfe_window.i \
           model_details.i \
           params.i \
           part_func.i \
@@ -53,6 +54,7 @@ EXTRA_DIST =  RNA.i \
               grammar.i \
               inverse.i \
               mfe.i \
+              mfe_window.i \
               model_details.i \
               params.i \
               part_func.i \

@@ -24,6 +24,7 @@ SWIG_misc_src = \
   $(srcdir)/../grammar.i \
   $(srcdir)/../inverse.i \
   $(srcdir)/../mfe.i \
+  $(srcdir)/../mfe_window.i \
   $(srcdir)/../model_details.i \
   $(srcdir)/../params.i \
   $(srcdir)/../part_func.i \
