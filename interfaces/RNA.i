@@ -80,19 +80,8 @@ extern "C" {
 %array_functions(short, shortP);
 %include cdata.i
 
-/* %constant double VERSION = 0.3; */
 %include version.i
 %include typemaps.i
-
-// Typemaps that are independent of scripting language
-
-// This cleans up the char ** array after the function call
-%typemap(freearg) char ** {
-         free($1);
-}
-
-// Additional target language specific typemaps
-%include tmaps.i
 
 /* handle exceptions */
 %include "exception.i"
@@ -158,6 +147,18 @@ namespace std {
 %rename("$ignore",  %$isenum, regextarget=1) "^vrna_";
 %rename("$ignore",  %$isconstant, regextarget=1) "^VRNA_";
 %rename("$ignore",  %$isconstant, regextarget=1) "^vrna_";
+
+
+// Typemaps that are independent of scripting language
+
+// This cleans up the char ** array after the function call
+%typemap(freearg) char ** {
+         free($1);
+}
+
+
+// Additional target language specific typemaps
+%include "tmaps.i"
 
 /*############################################*/
 /* Include all relevant interface definitions */
