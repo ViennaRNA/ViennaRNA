@@ -6,6 +6,8 @@
 %rename (md) vrna_md_t;
 
 %nodefaultctor vrna_md_t;
+%nodefaultdtor vrna_md_t;
+
 /* hide all attributes, except for some trivial ones */
 typedef struct {
   double  temperature;
@@ -53,6 +55,10 @@ typedef struct {
     else
       vrna_md_set_default(md);
     return md;
+  }
+
+  ~vrna_md_t(){
+    free($self);
   }
 
   void reset(){
