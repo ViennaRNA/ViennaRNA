@@ -206,22 +206,35 @@ is high. High entropy implies many structural alternatives. While
 these alternatives may be functionally important, they make structure
 prediction more difficult and thus less reliable.
 
-If the -p switch is given, the script colors base pairs by their pair
-probability, unpaired bases use the probability of being unpaired.
-
-If the -a switch is given, the script colors base pairs by their accessibility, i.e. the probability of being unpaired.
-
-Entropy (repsectively probability) is encoded as color hue, ranging
+Entropy (respectively probability) is encoded as color hue, ranging
 from red for low entropy, well-defined regions, (high probability
 pairs) via yellow and green to blue and violet for regions with very
 high entropy (low probability).
 
-If the -s switch is given, the second given file will be interpreted as SHAPE file
-and reactivity values defined in the file will be used to annotate the secondary structure plot.
 
 You may have to manually move the color legend to a convenient
 position. Just edit the postscript file and change the two numbers in the
 line reading C<0.1 0.1 colobar>. Or delete the line to remove the legend.
+
+=head1  OPTIONS
+
+=over 4
+
+=item B<-p>
+
+Color base pairs by their pair probability, unpaired bases use the
+probability of being unpaired.
+
+=item B<-a>
+
+Color base pairs by their accessibility, i.e. the probability of being unpaired.
+
+=item B<-s>
+
+Interpret the second file as SHAPE reactivity file and use this data to annotate
+the secondary structure plot instead of using probabilities.
+
+=back
 
 =head1 AUTHOR
 
