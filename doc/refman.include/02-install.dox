@@ -63,6 +63,20 @@ include several features in our C-library that may be activated by default, or h
 Below we list a selection of the available configure options that affect the features included in all executable programs,
 the RNAlib C-library, and the corresponding scripting language interface(s).
 
+@subsection config_sse Streaming SIMD Extension (SSE) support
+
+Since version 2.3.5 our sources contain code that implements a faster multibranch loop decomposition in global MFE
+predictions, as used e.g. in RNAfold. This implementation makes use of modern processors capability to execute particular
+instructions on multiple data simultaneously (SIMD - single instruction multiple data, thanks to W. B. Langdon for
+providing the modified code). Consequently, the time required to assess the minimum of all multibranch loop decompositions
+is reduced up to about one half compared to the runtime of the original implementation. To make use of this piece of code
+you need a CPU capable to handle SSE4.1 instructions and enable the feature at compile-time using the following configure
+flag:
+
+@verbatim
+./configure --enable-sse
+@endverbatim
+
 @subsection config_swig   Scripting Interfaces
 
 The ViennaRNA Package comes with scripting language interfaces for Perl 5, Python 2, and Python 3 (provided by swig),
@@ -133,6 +147,10 @@ reason detects that your compiler supports this feature although it doesn't, you
 @verbatim
 ./configure --disable-lto
 @endverbatim
+
+Note, that GCC before version 5 is known to produce unreliable LTO code, especially in combination with SSE (see @ref config_sse).
+We therefore recommend using a more recent compiler (GCC 5 or above) or to turn off one of the two features, LTO or SSE
+optimized code.
 
 @subsection config_openmp  OpenMP support
 
