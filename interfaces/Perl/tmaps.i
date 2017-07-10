@@ -56,9 +56,9 @@ namespace std {
     SV **svs;
     SV *ret   = &PL_sv_undef;
     svs = (SV **) vrna_alloc($1.size() * sizeof(SV *));
-    for(int i = 0; i < $1.size(); i++) {
+    for(unsigned int i = 0; i < $1.size(); i++) {
        AV *vec = newAV();
-       for(int j = 0; j < $1[i].size(); j++)
+       for(unsigned int j = 0; j < $1[i].size(); j++)
          av_push(vec, newSVnv($1[i][j]));
 
        /* store reference to array */
@@ -77,9 +77,9 @@ namespace std {
     SV **svs;
     SV *ret   = &PL_sv_undef;
     svs = (SV **) vrna_alloc($1.size() * sizeof(SV *));
-    for(int i = 0; i < $1.size(); i++) {
+    for(unsigned int i = 0; i < $1.size(); i++) {
        AV *vec = newAV();
-       for(int j = 0; j < $1[i].size(); j++)
+       for(unsigned int j = 0; j < $1[i].size(); j++)
          av_push(vec, newSViv($1[i][j]));
 
        /* store reference to array */
