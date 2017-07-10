@@ -6,6 +6,14 @@
 # endif
 #endif
 
+#ifndef INLINE
+# ifdef __GNUC__
+#   define INLINE inline
+# else
+#   define INLINE
+# endif
+#endif
+
 #ifndef VRNA_WITHOUT_TTY_COLORS
 
 #define ANSI_COLOR_BRIGHT     "\x1b[1m"
@@ -24,7 +32,7 @@
 #define ANSI_COLOR_CYAN_B     "\x1b[1;36m"
 #define ANSI_COLOR_RESET      "\x1b[0m"
 
-static void
+static INLINE void
 print_fasta_header( FILE *fp,
                     const char *head){
 
@@ -37,7 +45,7 @@ print_fasta_header( FILE *fp,
   }
 }
 
-static void
+static INLINE void
 print_structure(FILE *fp,
                 const char *structure,
                 const char *data){
@@ -64,7 +72,7 @@ print_structure(FILE *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_sd_corr(FILE *fp){
 
   if(isatty(fileno(fp))){
@@ -75,7 +83,7 @@ print_eval_sd_corr(FILE *fp){
 }
 
 
-static void
+static INLINE void
 print_eval_ext_loop(FILE  *fp,
                     int   energy){
 
@@ -90,7 +98,7 @@ print_eval_ext_loop(FILE  *fp,
   }
 }
 
-static void
+static INLINE void
 print_eval_hp_loop( FILE  *fp,
                     int   i,
                     int   j,
@@ -118,7 +126,7 @@ print_eval_hp_loop( FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_hp_loop_revert(FILE  *fp,
                           int   i,
                           int   j,
@@ -146,7 +154,7 @@ print_eval_hp_loop_revert(FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_int_loop(FILE  *fp,
                     int   i,
                     int   j,
@@ -188,7 +196,7 @@ print_eval_int_loop(FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_int_loop_revert(FILE  *fp,
                           int   i,
                           int   j,
@@ -230,7 +238,7 @@ print_eval_int_loop_revert(FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_mb_loop( FILE  *fp,
                     int   i,
                     int   j,
@@ -258,7 +266,7 @@ print_eval_mb_loop( FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_mb_loop_revert(FILE  *fp,
                           int   i,
                           int   j,
@@ -286,7 +294,7 @@ print_eval_mb_loop_revert(FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_gquad(FILE  *fp,
                  int   i,
                  int   L,
@@ -315,7 +323,7 @@ print_eval_gquad(FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_table(FILE *fp,
             const char *head,
             const char *line){
@@ -336,7 +344,7 @@ print_table(FILE *fp,
   }
 }
 
-static void
+static INLINE void
 print_comment(FILE *fp,
               const char *line){
 
@@ -351,7 +359,7 @@ print_comment(FILE *fp,
 
 #else
 
-static void
+static INLINE void
 print_fasta_header( FILE *fp,
                     const char *head){
 
@@ -360,7 +368,7 @@ print_fasta_header( FILE *fp,
   }
 }
 
-static void
+static INLINE void
 print_structure(FILE *fp,
                 const char *structure,
                 const char *data){
@@ -379,14 +387,14 @@ print_structure(FILE *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_sd_corr(FILE *fp){
 
   fprintf(fp, "Correcting for presence of structured domains\n");
 }
 
 
-static void
+static INLINE void
 print_eval_ext_loop(FILE  *fp,
                     int   energy){
 
@@ -396,7 +404,7 @@ print_eval_ext_loop(FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_hp_loop( FILE  *fp,
                     int   i,
                     int   j,
@@ -413,7 +421,7 @@ print_eval_hp_loop( FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_hp_loop_revert( FILE  *fp,
                     int   i,
                     int   j,
@@ -425,7 +433,7 @@ print_eval_hp_loop_revert( FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_int_loop(FILE  *fp,
                     int   i,
                     int   j,
@@ -452,7 +460,7 @@ print_eval_int_loop(FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_int_loop_revert(FILE  *fp,
                     int   i,
                     int   j,
@@ -468,7 +476,7 @@ print_eval_int_loop_revert(FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_mb_loop( FILE  *fp,
                     int   i,
                     int   j,
@@ -485,7 +493,7 @@ print_eval_mb_loop( FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_mb_loop_revert( FILE  *fp,
                     int   i,
                     int   j,
@@ -497,7 +505,7 @@ print_eval_mb_loop_revert( FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_eval_gquad(FILE  *fp,
                  int   i,
                  int   L,
@@ -515,7 +523,7 @@ print_eval_gquad(FILE  *fp,
 }
 
 
-static void
+static INLINE void
 print_table(FILE *fp,
             const char *head,
             const char *line){
@@ -528,7 +536,7 @@ print_table(FILE *fp,
   }
 }
 
-static void
+static INLINE void
 print_comment(FILE *fp,
               const char *line){
 
