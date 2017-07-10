@@ -913,7 +913,7 @@ backtrack(vrna_fold_compound_t  *vc,
   bp_stack  = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));  /* add a guess of how many G's may be involved in a G quadruplex */
 
   sector[++s].i = start;
-  sector[s].j   = MIN2(length, end + 1);
+  sector[s].j   = MIN2(length, end);
   sector[s].ml  = (bt_type == 'M') ? 1 : ((bt_type == 'C') ? 2 : 0);
 
   structure = (char *)vrna_alloc((MIN2(length - start, end) + 3) * sizeof(char));
