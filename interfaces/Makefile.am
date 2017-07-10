@@ -10,6 +10,7 @@ SOURCES = RNA.i \
           duplex.i \
           eval.i \
           file_formats.i \
+          findpath.i \
           fold_compound.i \
           grammar.i \
           inverse.i \
@@ -46,6 +47,7 @@ EXTRA_DIST =  RNA.i \
               duplex.i \
               eval.i \
               file_formats.i \
+              findpath.i \
               fold_compound.i \
               grammar.i \
               inverse.i \

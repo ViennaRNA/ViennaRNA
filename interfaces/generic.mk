@@ -19,6 +19,7 @@ SWIG_misc_src = \
   $(srcdir)/../duplex.i \
   $(srcdir)/../eval.i \
   $(srcdir)/../file_formats.i \
+  $(srcdir)/../findpath.i \
   $(srcdir)/../fold_compound.i \
   $(srcdir)/../grammar.i \
   $(srcdir)/../inverse.i \
