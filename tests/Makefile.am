@@ -40,10 +40,12 @@ PL_LOG_COMPILER = $(PERL)
 T_LOG_COMPILER = $(PERL)
 AM_PL_LOG_FLAGS = -Mstrict -w \
                   -I$(top_builddir)/interfaces/Perl \
-                  -I$(top_srcdir)/interfaces/Perl
+                  -I$(top_srcdir)/interfaces/Perl \
+                  -I$(top_builddir)/tests
 AM_T_LOG_FLAGS = -Mstrict -w \
                   -I$(top_builddir)/interfaces/Perl \
-                  -I$(top_srcdir)/interfaces/Perl
+                  -I$(top_srcdir)/interfaces/Perl \
+                  -I$(top_builddir)/tests
 
 # add test scripts here
 PERL_TESTS =  perl5/test-RNA.pl \
