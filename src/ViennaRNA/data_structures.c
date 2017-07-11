@@ -453,6 +453,7 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
   }
 
   if (options & VRNA_OPTION_MFE) {
+
     /* prepare for MFE computation */
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
@@ -477,6 +478,9 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
       default:
         break;
     }
+
+    if (vc->sc)
+      vrna_sc_prepare(vc, 0, options);
   }
 
   if (options & VRNA_OPTION_PF) {
@@ -509,11 +513,7 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
 #endif
         /* get precomputed Boltzmann factors for soft-constraints (if any) */
         if (vc->sc) {
-          if (!vc->sc->exp_energy_up)
-            vrna_sc_set_up(vc, NULL, VRNA_OPTION_PF);
-
-          if (!vc->sc->exp_energy_bp)
-            vrna_sc_set_bp(vc, NULL, VRNA_OPTION_PF);
+          vrna_sc_prepare(vc, 0, options);
 
           if (!vc->sc->exp_energy_stack)
             vrna_sc_add_SHAPE_deigan(vc, NULL, 0, 0, VRNA_OPTION_PF);
