@@ -22,7 +22,7 @@
   for(i = 1; i <= fc->length; i++)
     vrna_sc_add_up(fc, i, -1. * i, VRNA_OPTION_DEFAULT);
 
-  vrna_sc_prepare(fc, 0, VRNA_OPTION_MFE);
+  vrna_sc_prepare(fc, VRNA_OPTION_MFE);
 
   vrna_sc_t *sc = fc->sc;
 
@@ -58,7 +58,7 @@
     e += -100 * i;
   }
 
-  vrna_sc_prepare(fc, 0, VRNA_OPTION_MFE);
+  vrna_sc_prepare(fc, VRNA_OPTION_MFE);
 
   vrna_sc_t *sc = fc->sc;
 
@@ -92,7 +92,7 @@
     }
   }
 
-  vrna_sc_prepare(fc, 0, VRNA_OPTION_MFE);
+  vrna_sc_prepare(fc, VRNA_OPTION_MFE);
 
   vrna_sc_t *sc = fc->sc;
 
@@ -126,7 +126,7 @@
     for(j = i + turn + 1; j <= fc->length; j++)
       vrna_sc_add_bp(fc, i, j, -1. * (i + j), VRNA_OPTION_DEFAULT);
 
-  vrna_sc_prepare(fc, 0, VRNA_OPTION_MFE);
+  vrna_sc_prepare(fc, VRNA_OPTION_MFE);
 
   vrna_sc_t *sc = fc->sc;
 
@@ -163,7 +163,7 @@
       for(j = i + turn + 1; j <= fc->length; j++)
         vrna_sc_add_bp(fc, i, j, -1. * (i + j), VRNA_OPTION_DEFAULT);
 
-  vrna_sc_prepare(fc, 0, VRNA_OPTION_MFE);
+  vrna_sc_prepare(fc, VRNA_OPTION_MFE);
 
   vrna_sc_t *sc = fc->sc;
 
@@ -206,7 +206,7 @@
       for(j = i + turn + 1; j <= fc->length; j++)
         vrna_sc_add_bp(fc, i, j, 1. * (i + j), VRNA_OPTION_DEFAULT);
 
-  vrna_sc_prepare(fc, 0, VRNA_OPTION_MFE);
+  vrna_sc_prepare(fc, VRNA_OPTION_MFE);
 
   vrna_sc_t *sc = fc->sc;
 

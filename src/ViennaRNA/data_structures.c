@@ -479,8 +479,6 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
         break;
     }
 
-    if (vc->sc)
-      vrna_sc_prepare(vc, 0, options);
   }
 
   if (options & VRNA_OPTION_PF) {
@@ -511,13 +509,6 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
             vc->ptype_pf_compat = get_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details), 1);
         }
 #endif
-        /* get precomputed Boltzmann factors for soft-constraints (if any) */
-        if (vc->sc) {
-          vrna_sc_prepare(vc, 0, options);
-
-          if (!vc->sc->exp_energy_stack)
-            vrna_sc_add_SHAPE_deigan(vc, NULL, 0, 0, VRNA_OPTION_PF);
-        }
 
         if (vc->domains_up)                            /* turn on unique ML decomposition with qm1 array */
           vc->exp_params->model_details.uniq_ML = 1;
@@ -534,6 +525,9 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
         break;
     }
   }
+
+  /* prepare soft constraints data structure, if required */
+  vrna_sc_prepare(vc, options);
 
   /* Add DP matrices, if not they are not present or do not fit current settings */
   vrna_mx_prepare(vc, options);

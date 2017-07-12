@@ -74,26 +74,34 @@ sc_add_bp(vrna_fold_compound_t  *vc,
 
 
 PRIVATE void
-prepare_sc_up_mfe(vrna_fold_compound_t *vc);
+prepare_sc_up_mfe(vrna_fold_compound_t  *vc,
+                  unsigned int          options);
 
 
 PRIVATE void
-prepare_sc_bp_mfe(vrna_fold_compound_t *vc);
+prepare_sc_bp_mfe(vrna_fold_compound_t  *vc,
+                  unsigned int          options);
 
 
 PRIVATE void
-prepare_sc_up_pf(vrna_fold_compound_t *vc);
+prepare_sc_up_pf(vrna_fold_compound_t *vc,
+                 unsigned int         options);
 
 
 PRIVATE void
-prepare_sc_bp_pf(vrna_fold_compound_t *vc);
+prepare_sc_bp_pf(vrna_fold_compound_t *vc,
+                 unsigned int         options);
 
 
-PRIVATE void
+PRIVATE INLINE void
+sc_init_up_storage(vrna_sc_t *sc);
+
+
+PRIVATE INLINE void
 sc_init_bp_storage(vrna_sc_t *sc);
 
 
-PRIVATE void
+PRIVATE INLINE void
 sc_store_bp(vrna_sc_bp_storage_t  **container,
             int                   i,
             int                   start,
@@ -212,8 +220,28 @@ vrna_sc_init_window(vrna_fold_compound_t *vc)
 
 PUBLIC void
 vrna_sc_prepare(vrna_fold_compound_t  *vc,
-                int                   i,
                 unsigned int          options)
+{
+  if (vc) {
+    if (options & VRNA_OPTION_MFE) {
+      prepare_sc_up_mfe(vc, options);
+      prepare_sc_bp_mfe(vc, options);
+    }
+
+    if (options & VRNA_OPTION_PF) {
+      prepare_sc_up_pf(vc, options);
+      prepare_sc_bp_pf(vc, options);
+      if ((vc->sc) && (!vc->sc->exp_energy_stack))
+        vrna_sc_add_SHAPE_deigan(vc, NULL, 0, 0, VRNA_OPTION_PF);
+    }
+  }
+}
+
+
+PUBLIC void
+vrna_sc_update(vrna_fold_compound_t *vc,
+               int                  i,
+               unsigned int         options)
 {
   int       j, k, n, maxdist, turn, cnt, e;
   vrna_sc_t *sc;
@@ -271,23 +299,7 @@ vrna_sc_prepare(vrna_fold_compound_t  *vc,
         }
       }
     } else {
-      /* regular mode, i.e. 'global' structure prediction */
-      if (sc) {
-        switch (vc->type) {
-          case  VRNA_FC_TYPE_SINGLE:
-            if (options & VRNA_OPTION_MFE) {
-              prepare_sc_up_mfe(vc);
-              prepare_sc_bp_mfe(vc);
-            }
-
-            if (options & VRNA_OPTION_PF) {
-              prepare_sc_up_pf(vc);
-              prepare_sc_bp_pf(vc);
-            }
-
-            break;
-        }
-      }
+      /* do nothing here, until we know what a reasonable action for global folding would be */
     }
   }
 }
@@ -350,10 +362,10 @@ vrna_sc_set_bp(vrna_fold_compound_t *vc,
     sc_reset_bp(vc, constraints);
 
     if (options & VRNA_OPTION_MFE)
-      prepare_sc_bp_mfe(vc);
+      prepare_sc_bp_mfe(vc, options);
 
     if (options & VRNA_OPTION_PF) /* prepare Boltzmann factors for the BP soft constraints */
-      prepare_sc_bp_pf(vc);
+      prepare_sc_bp_pf(vc, options);
   }
 }
 
@@ -374,10 +386,10 @@ vrna_sc_add_bp(vrna_fold_compound_t *vc,
       sc_add_bp(vc, i, j, energy, options);
 
       if (options & VRNA_OPTION_MFE)
-        prepare_sc_bp_mfe(vc);
+        prepare_sc_bp_mfe(vc, options);
 
       if (options & VRNA_OPTION_PF) /* prepare Boltzmann factors for the BP soft constraints */
-        prepare_sc_bp_pf(vc);
+        prepare_sc_bp_pf(vc, options);
     }
   }
 }
@@ -392,10 +404,10 @@ vrna_sc_set_up(vrna_fold_compound_t *vc,
     sc_reset_up(vc, constraints);
 
     if (options & VRNA_OPTION_MFE)
-      prepare_sc_up_mfe(vc);
+      prepare_sc_up_mfe(vc, options);
 
     if (options & VRNA_OPTION_PF)
-      prepare_sc_up_pf(vc);
+      prepare_sc_up_pf(vc, options);
   }
 }
 
@@ -415,10 +427,10 @@ vrna_sc_add_up(vrna_fold_compound_t *vc,
       sc_add_up(vc, i, energy, options);
 
       if (options & VRNA_OPTION_MFE)
-        prepare_sc_up_mfe(vc);
+        prepare_sc_up_mfe(vc, options);
 
       if (options & VRNA_OPTION_PF)
-        prepare_sc_up_pf(vc);
+        prepare_sc_up_pf(vc, options);
     }
   }
 }
@@ -556,23 +568,20 @@ vrna_sc_add_exp_f(vrna_fold_compound_t        *vc,
 }
 
 
-PRIVATE void
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
+PRIVATE INLINE void
 sc_init_up_storage(vrna_sc_t *sc)
 {
-  int i;
-
-  if (!sc->up_storage) {
+  if (!sc->up_storage)
     sc->up_storage = (int *)vrna_alloc(sizeof(int) * (sc->n + 2));
-
-    free(sc->energy_up);
-    sc->energy_up = (int **)vrna_alloc(sizeof(int *) * (sc->n + 2));
-    for (i = sc->n + 1; i >= 0; i--)
-      sc->energy_up[i] = NULL;
-  }
 }
 
 
-PRIVATE void
+PRIVATE INLINE void
 sc_init_bp_storage(vrna_sc_t *sc)
 {
   unsigned int i;
@@ -588,7 +597,7 @@ sc_init_bp_storage(vrna_sc_t *sc)
 }
 
 
-PRIVATE void
+PRIVATE INLINE void
 sc_store_bp(vrna_sc_bp_storage_t  **container,
             int                   i,
             int                   start,
@@ -646,10 +655,6 @@ sc_add_bp(vrna_fold_compound_t  *vc,
   sc = vc->sc;
   sc_init_bp_storage(sc);
   sc_store_bp(sc->bp_storage, i, j, j, (int)roundf(energy * 100.));
-
-  /* */
-  if ((options & VRNA_OPTION_WINDOW) && (!sc->energy_bp_local))
-    sc->energy_bp_local = (int **)vrna_alloc(sizeof(int *) * (n + 2));
 }
 
 
@@ -797,51 +802,70 @@ sc_add_up(vrna_fold_compound_t  *vc,
 
 /* populate sc->energy_up arrays for usage in MFE computations */
 PRIVATE void
-prepare_sc_up_mfe(vrna_fold_compound_t *vc)
+prepare_sc_up_mfe(vrna_fold_compound_t  *vc,
+                  unsigned int          options)
 {
   unsigned int  i, j, n;
   vrna_sc_t     *sc;
 
-  n   = vc->length;
-  sc  = vc->sc;
+  n = vc->length;
+  switch (vc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      sc = vc->sc;
+      if (sc) {
+        /* prepare sc for unpaired nucleotides only if we actually have some to apply */
+        if (sc->up_storage) {
+          /*  allocate memory such that we can access the soft constraint
+           *  energies of a subsequence of length j starting at position i
+           *  via sc->energy_up[i][j]
+           */
+          sc->energy_up = (int **)vrna_realloc(sc->energy_up, sizeof(int *) * (n + 2));
 
-  /* prepare sc for unpaired nucleotides only if we actually have some to apply */
-  if (sc->up_storage) {
-    /*  allocate memory such that we can access the soft constraint
-     *  energies of a subsequence of length j starting at position i
-     *  via sc->energy_up[i][j]
-     */
-    sc->energy_up = (int **)vrna_realloc(sc->energy_up, sizeof(int *) * (n + 2));
+          if (options & VRNA_OPTION_WINDOW) {
+            /*
+             *  simply init with NULL pointers, since the sliding-window implementation should take
+             *  care of allocating the required memory and filling in appropriate energy contributions
+             */
+            for (i = 0; i <= n + 1; i++)
+              sc->energy_up[i] = NULL;
+          } else {
+            for (i = 1; i <= n; i++)
+              sc->energy_up[i] = (int *)vrna_realloc(sc->energy_up[i], sizeof(int) * (n - i + 2));
 
-    for (i = 1; i <= n; i++)
-      sc->energy_up[i] = (int *)vrna_realloc(sc->energy_up[i], sizeof(int) * (n - i + 2));
+            sc->energy_up[0]      = NULL;
+            sc->energy_up[n + 1]  = NULL;
 
-    sc->energy_up[0]      = NULL;
-    sc->energy_up[n + 1]  = NULL;
+            /* now add soft constraints as stored in container for unpaired sc */
+            for (i = 1; i <= n; i++) {
+              sc->energy_up[i][0] = 0;
+              for (j = 1; j <= (n - i + 1); j++)
+                sc->energy_up[i][j] = sc->energy_up[i][j - 1]
+                                      + sc->up_storage[i + j - 1];
+            }
+          }
+        } else if (sc->energy_up) {
+          /* remove any unpaired sc if storage container is empty */
+          free_sc_up(sc);
+        }
+      }
 
-    /* now add soft constraints as stored in container for unpaired sc */
-    for (i = 1; i <= n; i++) {
-      sc->energy_up[i][0] = 0;
-      for (j = 1; j <= (n - i + 1); j++)
-        sc->energy_up[i][j] = sc->energy_up[i][j - 1]
-                              + sc->up_storage[i + j - 1];
-    }
-  } else if (sc->energy_up) {
-    /* remove any unpaired sc if storage container is empty */
-    free_sc_up(sc);
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      break; /* do nothing for now */
   }
 }
 
 
 /* populate sc->exp_energy_up arrays for usage in partition function computations */
 PRIVATE void
-prepare_sc_up_pf(vrna_fold_compound_t *vc)
+prepare_sc_up_pf(vrna_fold_compound_t *vc,
+                 unsigned int         options)
 {
   unsigned int      i, j, n;
   vrna_sc_t         *sc;
 
-  n   = vc->length;
-  sc  = vc->sc;
+  n = vc->length;
 
   vrna_exp_param_t  *exp_params = vc->exp_params;
   double            GT          = 0.;
@@ -849,100 +873,131 @@ prepare_sc_up_pf(vrna_fold_compound_t *vc)
   double            kT          = exp_params->kT;
   double            TT          = (temperature + K0) / (Tmeasure);
 
-  /* #################################### */
-  /* # single nucleotide contributions  # */
-  /* #################################### */
-  if (sc->up_storage) {
-    /*  allocate memory such that we can access the soft constraint
-     *  energies of a subsequence of length j starting at position i
-     *  via sc->exp_energy_up[i][j]
-     */
-    sc->exp_energy_up = (FLT_OR_DBL **)vrna_realloc(sc->exp_energy_up,
-                                                    sizeof(FLT_OR_DBL *) * (n + 2));
+  switch (vc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      sc = vc->sc;
+      if (sc) {
+        /* prepare sc for unpaired nucleotides only if we actually have some to apply */
+        if (sc->up_storage) {
+          /*  allocate memory such that we can access the soft constraint
+           *  energies of a subsequence of length j starting at position i
+           *  via sc->exp_energy_up[i][j]
+           */
+          sc->exp_energy_up = (FLT_OR_DBL **)vrna_realloc(sc->exp_energy_up,
+                                                          sizeof(FLT_OR_DBL *) * (n + 2));
 
-    for (i = 1; i <= n; i++)
-      sc->exp_energy_up[i] =
-        (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[i], sizeof(FLT_OR_DBL) * (n - i + 2));
+          if (options & VRNA_OPTION_WINDOW) {
+            /*
+             *  simply init with NULL pointers, since the sliding-window implementation should take
+             *  care of allocating the required memory and filling in appropriate Boltzmann factors
+             */
+            for (i = 0; i <= n + 1; i++)
+              sc->exp_energy_up[i] = NULL;
+          } else {
+            for (i = 1; i <= n; i++)
+              sc->exp_energy_up[i] =
+                (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[i], sizeof(FLT_OR_DBL) * (n - i + 2));
 
-    sc->exp_energy_up[0]      = NULL;
-    sc->exp_energy_up[n + 1]  = NULL;
+            sc->exp_energy_up[0]      = NULL;
+            sc->exp_energy_up[n + 1]  = NULL;
 
-    for (i = 1; i <= n; i++) {
-      sc->exp_energy_up[i][0] = 1.;
+            for (i = 1; i <= n; i++) {
+              sc->exp_energy_up[i][0] = 1.;
 
-      for (j = 1; j <= (n - i + 1); j++) {
-        GT                      = (double)sc->up_storage[i + j - 1] * 10.; /* convert deka-kal/mol to cal/mol */
-        sc->exp_energy_up[i][j] = sc->exp_energy_up[i][j - 1]
-                                  * (FLT_OR_DBL)exp(-GT / kT);
+              for (j = 1; j <= (n - i + 1); j++) {
+                GT                      = (double)sc->up_storage[i + j - 1] * 10.; /* convert deka-cal/mol to cal/mol */
+                sc->exp_energy_up[i][j] = sc->exp_energy_up[i][j - 1]
+                                          * (FLT_OR_DBL)exp(-GT / kT);
+              }
+            }
+          }
+        }
       }
-    }
+
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      break; /* do nothing for now */
   }
 }
 
 
 /* populate sc->energy_bp arrays for usage in MFE computations */
 PRIVATE void
-prepare_sc_bp_mfe(vrna_fold_compound_t *vc)
+prepare_sc_bp_mfe(vrna_fold_compound_t  *vc,
+                  unsigned int          options)
 {
   unsigned int  i, j, k, n, cnt;
   int           *idx, turn, e;
   vrna_sc_t     *sc;
 
   n     = vc->length;
-  sc    = vc->sc;
   turn  = vc->params->model_details.min_loop_size;
   idx   = vc->jindx;
 
-  /* prepare sc for base paired positions only if we actually have some to apply */
-  if (sc->bp_storage) {
-    sc->energy_bp = (int *)vrna_realloc(sc->energy_bp, sizeof(int) * (((n + 1) * (n + 2)) / 2));
+  switch (vc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      sc = vc->sc;
+      if (sc) {
+        /* prepare sc for base paired positions only if we actually have some to apply */
+        if (sc->bp_storage) {
+          if (options & VRNA_OPTION_WINDOW) {
+            sc->energy_bp_local =
+              (int **)vrna_realloc(sc->energy_bp_local, sizeof(int *) * (n + 2));
+          } else {
+            sc->energy_bp =
+              (int *)vrna_realloc(sc->energy_bp, sizeof(int) * (((n + 1) * (n + 2)) / 2));
 
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        for (i = 1; i < n; i++) {
-          /* check whether we have constraints on any pairing partner i or j */
-          if (!(sc->bp_storage[i]))
-            continue;
+            for (i = 1; i < n; i++) {
+              /* check whether we have constraints on any pairing partner i or j */
+              if (!(sc->bp_storage[i]))
+                continue;
 
-          for (k = turn + 1; k < n; k++) {
-            j = i + k;
-            e = 0;
-            if (j > n)
-              break;
+              for (k = turn + 1; k < n; k++) {
+                j = i + k;
+                e = 0;
+                if (j > n)
+                  break;
 
-            /* go through list of constraints on position i */
-            for (cnt = 0; sc->bp_storage[i][cnt].interval_start != 0; cnt++) {
-              if (sc->bp_storage[i][cnt].interval_start > j)
-                break; /* only constraints for pairs (i,q) with q > j left */
+                /* go through list of constraints on position i */
+                for (cnt = 0; sc->bp_storage[i][cnt].interval_start != 0; cnt++) {
+                  if (sc->bp_storage[i][cnt].interval_start > j)
+                    break; /* only constraints for pairs (i,q) with q > j left */
 
-              if (sc->bp_storage[i][cnt].interval_end < j)
-                continue; /* constraint for pairs (i,q) with q < j */
+                  if (sc->bp_storage[i][cnt].interval_end < j)
+                    continue; /* constraint for pairs (i,q) with q < j */
 
-              /* constraint has interval [p,q] with p <= j <= q */
-              e += sc->bp_storage[i][cnt].e;
+                  /* constraint has interval [p,q] with p <= j <= q */
+                  e += sc->bp_storage[i][cnt].e;
+                }
+
+                sc->energy_bp[idx[j] + i] = e;
+              }
             }
-
-            sc->energy_bp[idx[j] + i] = e;
           }
+        } else {
+          free_sc_bp(sc);
         }
-        break;
-    }
-  } else {
-    free_sc_bp(sc);
+      }
+
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      break; /* do nothing for now */
   }
 }
 
 
 /* populate sc->exp_energy_bp arrays for usage in partition function computations */
 PRIVATE void
-prepare_sc_bp_pf(vrna_fold_compound_t *vc)
+prepare_sc_bp_pf(vrna_fold_compound_t *vc,
+                 unsigned int         options)
 {
   unsigned int      i, j, k, n, cnt;
   vrna_sc_t         *sc;
   int               *idx, *jidx, turn, e;
 
-  n   = vc->length;
-  sc  = vc->sc;
+  n = vc->length;
 
   vrna_exp_param_t  *exp_params = vc->exp_params;
   double            GT          = 0.;
@@ -953,41 +1008,54 @@ prepare_sc_bp_pf(vrna_fold_compound_t *vc)
   idx   = vc->iindx;
   jidx  = vc->jindx;
 
-  /* prepare sc for base paired positions only if we actually have some to apply */
-  if (sc->bp_storage) {
-    sc->exp_energy_bp =
-      (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_bp, sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
+  switch (vc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      sc = vc->sc;
+      if (sc) {
+        /* prepare sc for base paired positions only if we actually have some to apply */
+        if (sc->bp_storage) {
+          if (options & VRNA_OPTION_WINDOW) {
+            sc->exp_energy_bp_local =
+              (FLT_OR_DBL **)vrna_realloc(sc->exp_energy_bp_local, sizeof(FLT_OR_DBL *) * (n + 2));
+          } else {
+            sc->exp_energy_bp =
+              (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_bp,
+                                         sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
 
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        for (i = 1; i < n; i++) {
-          /* check whether we have constraints on any pairing partner i or j */
-          if (!(sc->bp_storage[i]))
-            continue;
+            for (i = 1; i < n; i++) {
+              /* check whether we have constraints on any pairing partner i or j */
+              if (!(sc->bp_storage[i]))
+                continue;
 
-          for (k = turn + 1; k < n; k++) {
-            j = i + k;
-            e = 0;
-            if (j > n)
-              break;
+              for (k = turn + 1; k < n; k++) {
+                j = i + k;
+                e = 0;
+                if (j > n)
+                  break;
 
-            /* go through list of constraints on position i */
-            for (cnt = 0; sc->bp_storage[i][cnt].interval_start != 0; cnt++) {
-              if (sc->bp_storage[i][cnt].interval_start > j)
-                break; /* only constraints for pairs (i,q) with q > j left */
+                /* go through list of constraints on position i */
+                for (cnt = 0; sc->bp_storage[i][cnt].interval_start != 0; cnt++) {
+                  if (sc->bp_storage[i][cnt].interval_start > j)
+                    break; /* only constraints for pairs (i,q) with q > j left */
 
-              if (sc->bp_storage[i][cnt].interval_end < j)
-                continue; /* constraint for pairs (i,q) with q < j */
+                  if (sc->bp_storage[i][cnt].interval_end < j)
+                    continue; /* constraint for pairs (i,q) with q < j */
 
-              /* constraint has interval [p,q] with p <= j <= q */
-              e += sc->bp_storage[i][cnt].e;
+                  /* constraint has interval [p,q] with p <= j <= q */
+                  e += sc->bp_storage[i][cnt].e;
+                }
+
+                GT                            = e * 10.;
+                sc->exp_energy_bp[idx[i] - j] = (FLT_OR_DBL)exp(-GT / kT);
+              }
             }
-
-            GT                            = e * 10.;
-            sc->exp_energy_bp[idx[i] - j] = (FLT_OR_DBL)exp(-GT / kT);
           }
         }
-        break;
-    }
+      }
+
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      break; /* do nothing for now */
   }
 }
