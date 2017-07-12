@@ -67,18 +67,25 @@
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE void  set_fold_compound(vrna_fold_compound_t  *vc,
-                                vrna_md_t             *md_p,
-                                unsigned int          options,
-                                unsigned int          aux);
+PRIVATE void
+set_fold_compound(vrna_fold_compound_t  *vc,
+                  unsigned int          options,
+                  unsigned int          aux);
 
 
-PRIVATE void  make_pscores(vrna_fold_compound_t *vc);
+PRIVATE void
+make_pscores(vrna_fold_compound_t *vc);
 
 
-PRIVATE void  add_params(vrna_fold_compound_t *vc,
-                         vrna_md_t            *md_p,
-                         unsigned int         options);
+PRIVATE void
+sanitize_bp_span(vrna_fold_compound_t *fc,
+                 unsigned int options);
+
+
+PRIVATE void
+add_params(vrna_fold_compound_t *vc,
+           vrna_md_t            *md_p,
+           unsigned int         options);
 
 
 /*
@@ -189,6 +196,8 @@ vrna_fold_compound(const char   *sequence,
   vc->type      = VRNA_FC_TYPE_SINGLE;
   vc->length    = length;
   vc->sequence  = strdup(sequence);
+  vc->params      = NULL;
+  vc->exp_params  = NULL;
   aux_options   = 0L;
 
 
@@ -198,19 +207,13 @@ vrna_fold_compound(const char   *sequence,
   else
     vrna_md_set_default(&md);
 
+  /* now for the energy parameters */
+  add_params(vc, &md, options);
+
+  sanitize_bp_span(vc, options);
+
   if (options & VRNA_OPTION_WINDOW) {
-    /* sliding window structure prediction */
-    if (md.window_size <= 0)
-      md.window_size = (int)vc->length;
-    else if (md.window_size > (int)vc->length)
-      md.window_size = (int)vc->length;
-
-    vc->window_size = md.window_size;
-
-    if ((md.max_bp_span <= 0) || (md.max_bp_span > md.window_size))
-      md.max_bp_span = md.window_size;
-
-    set_fold_compound(vc, &md, options, aux_options);
+    set_fold_compound(vc, options, aux_options);
 
     if (!(options & VRNA_OPTION_EVAL_ONLY)) {
       /* add minimal hard constraint data structure */
@@ -221,16 +224,12 @@ vrna_fold_compound(const char   *sequence,
     }
   } else {
     /* regular global structure prediction */
-
-    /* set window size to entire sequence */
-    md.window_size = (int)vc->length;
-
     aux_options |= WITH_PTYPE;
 
     if (options & VRNA_OPTION_PF)
       aux_options |= WITH_PTYPE_COMPAT;
 
-    set_fold_compound(vc, &md, options, aux_options);
+    set_fold_compound(vc, options, aux_options);
 
     if (!(options & VRNA_OPTION_EVAL_ONLY)) {
       /* add default hard constraints */
@@ -283,6 +282,8 @@ vrna_fold_compound_comparative(const char   **sequences,
   vc->sequences = vrna_alloc(sizeof(char *) * (vc->n_seq + 1));
   for (s = 0; sequences[s]; s++)
     vc->sequences[s] = strdup(sequences[s]);
+  vc->params        = NULL;
+  vc->exp_params    = NULL;
 
   /* get a copy of the model details */
   if (md_p)
@@ -290,19 +291,13 @@ vrna_fold_compound_comparative(const char   **sequences,
   else /* this fallback relies on global parameters and thus is not threadsafe */
     vrna_md_set_default(&md);
 
+  /* now for the energy parameters */
+  add_params(vc, &md, options);
+
+  sanitize_bp_span(vc, options);
+
   if (options & VRNA_OPTION_WINDOW) {
-    /* sliding window structure prediction */
-    if (md.window_size <= 0)
-      md.window_size = (int)vc->length;
-    else if (md.window_size > (int)vc->length)
-      md.window_size = (int)vc->length;
-
-    vc->window_size = md.window_size;
-
-    if ((md.max_bp_span <= 0) || (md.max_bp_span > md.window_size))
-      md.max_bp_span = md.window_size;
-
-    set_fold_compound(vc, &md, options, aux_options);
+    set_fold_compound(vc, options, aux_options);
 
     vc->pscore_local = vrna_alloc(sizeof(int *) * (vc->length + 1));
 
@@ -326,7 +321,7 @@ vrna_fold_compound_comparative(const char   **sequences,
     if (options & VRNA_OPTION_PF)
       aux_options |= WITH_PTYPE_COMPAT;
 
-    set_fold_compound(vc, &md, options, aux_options);
+    set_fold_compound(vc, options, aux_options);
 
     make_pscores(vc);
 
@@ -377,6 +372,8 @@ vrna_fold_compound_TwoD(const char    *sequence,
   vc->type      = VRNA_FC_TYPE_SINGLE;
   vc->length    = length;
   vc->sequence  = strdup(sequence);
+  vc->params      = NULL;
+  vc->exp_params  = NULL;
 
   /* get a copy of the model details */
   if (md_p)
@@ -388,7 +385,10 @@ vrna_fold_compound_TwoD(const char    *sequence,
   md.uniq_ML      = 1;
   md.compute_bpp  = 0;
 
-  set_fold_compound(vc, &md, options, WITH_PTYPE | WITH_PTYPE_COMPAT);
+  /* now for the energy parameters */
+  add_params(vc, &md, options);
+
+  set_fold_compound(vc, options, WITH_PTYPE | WITH_PTYPE_COMPAT);
 
   if (!(options & VRNA_OPTION_EVAL_ONLY)) {
     vrna_hc_init(vc); /* add default hard constraints */
@@ -519,24 +519,55 @@ vrna_C11_features(void)
  #####################################
  */
 PRIVATE void
+sanitize_bp_span(vrna_fold_compound_t *fc,
+                 unsigned int options)
+{
+  vrna_md_t *md;
+
+  md = &(fc->params->model_details);
+
+  /* make sure that min_loop_size, max_bp_span, and window_size are sane */
+  if (options & VRNA_OPTION_WINDOW) {
+    if (md->window_size <= 0)
+      md->window_size = (int)fc->length;
+    else if (md->window_size > (int)fc->length)
+      md->window_size = (int)fc->length;
+
+    fc->window_size = md->window_size;
+  } else { /* non-local fold mode */
+    md->window_size = (int)fc->length;
+  }
+
+  if ((md->max_bp_span <= 0) || (md->max_bp_span > md->window_size))
+    md->max_bp_span = md->window_size;
+}
+
+
+
+
+PRIVATE void
 add_params(vrna_fold_compound_t *vc,
            vrna_md_t            *md_p,
            unsigned int         options)
 {
-  /* ALWAYS add regular energy parameters */
-  vc->params = vrna_params(md_p);
-
-  if (options & VRNA_OPTION_PF) {
-    vc->exp_params = (vc->type == VRNA_FC_TYPE_SINGLE) ? \
-                     vrna_exp_params(md_p) : \
-                     vrna_exp_params_comparative(vc->n_seq, md_p);
+  /* ALWAYS provide regular energy parameters */
+  /* remove previous parameters if present and they differ from current model */
+  if (vc->params) {
+    if (memcmp(md_p, &(vc->params->model_details), sizeof(vrna_md_t)) != 0) {
+      free(vc->params);
+      vc->params = NULL;
+    }
   }
+
+  if (!vc->params)
+    vc->params = vrna_params(md_p);
+
+  vrna_params_prepare(vc, options);
 }
 
 
 PRIVATE void
 set_fold_compound(vrna_fold_compound_t  *vc,
-                  vrna_md_t             *md_p,
                   unsigned int          options,
                   unsigned int          aux)
 {
@@ -544,14 +575,15 @@ set_fold_compound(vrna_fold_compound_t  *vc,
   unsigned int  length, s, i;
   int           cp;                           /* cut point for cofold */
   char          *seq, *seq2;
+  vrna_md_t           *md_p;
 
   sequence  = NULL;
   sequences = NULL;
   cp        = -1;
 
+  md_p              = &(vc->params->model_details);
+
   /* some default init values */
-  vc->params        = NULL;
-  vc->exp_params    = NULL;
   vc->matrices      = NULL;
   vc->exp_matrices  = NULL;
   vc->hc            = NULL;
@@ -650,16 +682,13 @@ set_fold_compound(vrna_fold_compound_t  *vc,
       break;
   }
 
-  if (vc->length <= vrna_sequence_length_max(options)) {
+  if (!(options & VRNA_OPTION_WINDOW) && (vc->length <= vrna_sequence_length_max(options))) {
     vc->iindx = vrna_idx_row_wise(vc->length);
     vc->jindx = vrna_idx_col_wise(vc->length);
   } else {
     vc->iindx = NULL;
     vc->jindx = NULL;
   }
-
-  /* now come the energy parameters */
-  add_params(vc, md_p, options);
 }
 
 
