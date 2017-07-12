@@ -31,6 +31,12 @@
 # endif
 #endif
 
+#define STATE_CLEAN         (unsigned char)0
+#define STATE_DIRTY_UP_MFE  (unsigned char)1
+#define STATE_DIRTY_UP_PF   (unsigned char)2
+#define STATE_DIRTY_BP_MFE  (unsigned char)4
+#define STATE_DIRTY_BP_PF   (unsigned char)8
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -136,6 +142,7 @@ vrna_sc_init(vrna_fold_compound_t *vc)
         sc                    = (vrna_sc_t *)vrna_alloc(sizeof(vrna_sc_t));
         sc->type              = VRNA_SC_DEFAULT;
         sc->n                 = vc->length;
+        sc->state             = STATE_CLEAN;
         sc->up_storage        = NULL;
         sc->bp_storage        = NULL;
         sc->energy_up         = NULL;
@@ -158,6 +165,7 @@ vrna_sc_init(vrna_fold_compound_t *vc)
           sc                    = (vrna_sc_t *)vrna_alloc(sizeof(vrna_sc_t));
           sc->type              = VRNA_SC_DEFAULT;
           sc->n                 = vc->length;
+          sc->state             = STATE_CLEAN;
           sc->up_storage        = NULL;
           sc->bp_storage        = NULL;
           sc->energy_up         = NULL;
@@ -195,6 +203,7 @@ vrna_sc_init_window(vrna_fold_compound_t *vc)
         sc                      = (vrna_sc_t *)vrna_alloc(sizeof(vrna_sc_t));
         sc->type                = VRNA_SC_WINDOW;
         sc->n                   = vc->length;
+        sc->state               = STATE_CLEAN;
         sc->up_storage          = NULL;
         sc->bp_storage          = NULL;
         sc->energy_up           = NULL;
@@ -655,6 +664,7 @@ sc_add_bp(vrna_fold_compound_t  *vc,
   sc = vc->sc;
   sc_init_bp_storage(sc);
   sc_store_bp(sc->bp_storage, i, j, j, (int)roundf(energy * 100.));
+  sc->state |= STATE_DIRTY_BP_MFE | STATE_DIRTY_BP_PF;
 }
 
 
@@ -681,6 +691,8 @@ free_sc_up(vrna_sc_t *sc)
     free(sc->exp_energy_up);
     sc->exp_energy_up = NULL;
   }
+
+  sc->state &= ~(STATE_DIRTY_UP_MFE | STATE_DIRTY_UP_PF);
 }
 
 
@@ -715,6 +727,7 @@ free_sc_bp(vrna_sc_t *sc)
 
       break;
   }
+  sc->state &= ~(STATE_DIRTY_BP_MFE | STATE_DIRTY_BP_PF);
 }
 
 
@@ -741,6 +754,8 @@ sc_reset_up(vrna_fold_compound_t  *vc,
     /* add contributions to storage container */
     for (i = 1; i <= n; i++)
       sc->up_storage[i] = (int)roundf(constraints[i] * 100.); /* convert to 10kal/mol */
+
+    sc->state |= STATE_DIRTY_UP_MFE | STATE_DIRTY_UP_PF;
   } else {
     free_sc_up(sc);
   }
@@ -772,6 +787,8 @@ sc_reset_bp(vrna_fold_compound_t  *vc,
     for (i = 1; i < n; i++)
       for (j = i + 1; j <= n; j++)
         sc_store_bp(sc->bp_storage, i, j, j, (int)roundf(constraints[i][j] * 100.));
+
+    sc->state |= STATE_DIRTY_BP_MFE | STATE_DIRTY_BP_PF;
   } else {
     free_sc_bp(sc);
   }
@@ -797,6 +814,7 @@ sc_add_up(vrna_fold_compound_t  *vc,
   sc = vc->sc;
   sc_init_up_storage(sc);
   sc->up_storage[i] += (int)roundf(energy * 100.);
+  sc->state         |= STATE_DIRTY_UP_MFE | STATE_DIRTY_UP_PF;
 }
 
 
@@ -815,33 +833,37 @@ prepare_sc_up_mfe(vrna_fold_compound_t  *vc,
       if (sc) {
         /* prepare sc for unpaired nucleotides only if we actually have some to apply */
         if (sc->up_storage) {
-          /*  allocate memory such that we can access the soft constraint
-           *  energies of a subsequence of length j starting at position i
-           *  via sc->energy_up[i][j]
-           */
-          sc->energy_up = (int **)vrna_realloc(sc->energy_up, sizeof(int *) * (n + 2));
-
-          if (options & VRNA_OPTION_WINDOW) {
-            /*
-             *  simply init with NULL pointers, since the sliding-window implementation should take
-             *  care of allocating the required memory and filling in appropriate energy contributions
+          if (sc->state & STATE_DIRTY_UP_MFE) {
+            /*  allocate memory such that we can access the soft constraint
+             *  energies of a subsequence of length j starting at position i
+             *  via sc->energy_up[i][j]
              */
-            for (i = 0; i <= n + 1; i++)
-              sc->energy_up[i] = NULL;
-          } else {
-            for (i = 1; i <= n; i++)
-              sc->energy_up[i] = (int *)vrna_realloc(sc->energy_up[i], sizeof(int) * (n - i + 2));
+            sc->energy_up = (int **)vrna_realloc(sc->energy_up, sizeof(int *) * (n + 2));
 
-            sc->energy_up[0]      = NULL;
-            sc->energy_up[n + 1]  = NULL;
+            if (options & VRNA_OPTION_WINDOW) {
+              /*
+               *  simply init with NULL pointers, since the sliding-window implementation should take
+               *  care of allocating the required memory and filling in appropriate energy contributions
+               */
+              for (i = 0; i <= n + 1; i++)
+                sc->energy_up[i] = NULL;
+            } else {
+              for (i = 1; i <= n; i++)
+                sc->energy_up[i] = (int *)vrna_realloc(sc->energy_up[i], sizeof(int) * (n - i + 2));
 
-            /* now add soft constraints as stored in container for unpaired sc */
-            for (i = 1; i <= n; i++) {
-              sc->energy_up[i][0] = 0;
-              for (j = 1; j <= (n - i + 1); j++)
-                sc->energy_up[i][j] = sc->energy_up[i][j - 1]
-                                      + sc->up_storage[i + j - 1];
+              sc->energy_up[0]      = NULL;
+              sc->energy_up[n + 1]  = NULL;
+
+              /* now add soft constraints as stored in container for unpaired sc */
+              for (i = 1; i <= n; i++) {
+                sc->energy_up[i][0] = 0;
+                for (j = 1; j <= (n - i + 1); j++)
+                  sc->energy_up[i][j] = sc->energy_up[i][j - 1]
+                                        + sc->up_storage[i + j - 1];
+              }
             }
+
+            sc->state &= ~STATE_DIRTY_UP_MFE;
           }
         } else if (sc->energy_up) {
           /* remove any unpaired sc if storage container is empty */
@@ -879,37 +901,42 @@ prepare_sc_up_pf(vrna_fold_compound_t *vc,
       if (sc) {
         /* prepare sc for unpaired nucleotides only if we actually have some to apply */
         if (sc->up_storage) {
-          /*  allocate memory such that we can access the soft constraint
-           *  energies of a subsequence of length j starting at position i
-           *  via sc->exp_energy_up[i][j]
-           */
-          sc->exp_energy_up = (FLT_OR_DBL **)vrna_realloc(sc->exp_energy_up,
-                                                          sizeof(FLT_OR_DBL *) * (n + 2));
-
-          if (options & VRNA_OPTION_WINDOW) {
-            /*
-             *  simply init with NULL pointers, since the sliding-window implementation should take
-             *  care of allocating the required memory and filling in appropriate Boltzmann factors
+          if (sc->state & STATE_DIRTY_UP_PF) {
+            /*  allocate memory such that we can access the soft constraint
+             *  energies of a subsequence of length j starting at position i
+             *  via sc->exp_energy_up[i][j]
              */
-            for (i = 0; i <= n + 1; i++)
-              sc->exp_energy_up[i] = NULL;
-          } else {
-            for (i = 1; i <= n; i++)
-              sc->exp_energy_up[i] =
-                (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[i], sizeof(FLT_OR_DBL) * (n - i + 2));
+            sc->exp_energy_up = (FLT_OR_DBL **)vrna_realloc(sc->exp_energy_up,
+                                                            sizeof(FLT_OR_DBL *) * (n + 2));
 
-            sc->exp_energy_up[0]      = NULL;
-            sc->exp_energy_up[n + 1]  = NULL;
+            if (options & VRNA_OPTION_WINDOW) {
+              /*
+               *  simply init with NULL pointers, since the sliding-window implementation should take
+               *  care of allocating the required memory and filling in appropriate Boltzmann factors
+               */
+              for (i = 0; i <= n + 1; i++)
+                sc->exp_energy_up[i] = NULL;
+            } else {
+              for (i = 1; i <= n; i++)
+                sc->exp_energy_up[i] =
+                  (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[i],
+                                             sizeof(FLT_OR_DBL) * (n - i + 2));
 
-            for (i = 1; i <= n; i++) {
-              sc->exp_energy_up[i][0] = 1.;
+              sc->exp_energy_up[0]      = NULL;
+              sc->exp_energy_up[n + 1]  = NULL;
 
-              for (j = 1; j <= (n - i + 1); j++) {
-                GT                      = (double)sc->up_storage[i + j - 1] * 10.; /* convert deka-cal/mol to cal/mol */
-                sc->exp_energy_up[i][j] = sc->exp_energy_up[i][j - 1]
-                                          * (FLT_OR_DBL)exp(-GT / kT);
+              for (i = 1; i <= n; i++) {
+                sc->exp_energy_up[i][0] = 1.;
+
+                for (j = 1; j <= (n - i + 1); j++) {
+                  GT                      = (double)sc->up_storage[i + j - 1] * 10.; /* convert deka-cal/mol to cal/mol */
+                  sc->exp_energy_up[i][j] = sc->exp_energy_up[i][j - 1]
+                                            * (FLT_OR_DBL)exp(-GT / kT);
+                }
               }
             }
+
+            sc->state &= ~STATE_DIRTY_UP_PF;
           }
         }
       }
@@ -941,39 +968,43 @@ prepare_sc_bp_mfe(vrna_fold_compound_t  *vc,
       if (sc) {
         /* prepare sc for base paired positions only if we actually have some to apply */
         if (sc->bp_storage) {
-          if (options & VRNA_OPTION_WINDOW) {
-            sc->energy_bp_local =
-              (int **)vrna_realloc(sc->energy_bp_local, sizeof(int *) * (n + 2));
-          } else {
-            sc->energy_bp =
-              (int *)vrna_realloc(sc->energy_bp, sizeof(int) * (((n + 1) * (n + 2)) / 2));
+          if (sc->state & STATE_DIRTY_BP_MFE) {
+            if (options & VRNA_OPTION_WINDOW) {
+              sc->energy_bp_local =
+                (int **)vrna_realloc(sc->energy_bp_local, sizeof(int *) * (n + 2));
+            } else {
+              sc->energy_bp =
+                (int *)vrna_realloc(sc->energy_bp, sizeof(int) * (((n + 1) * (n + 2)) / 2));
 
-            for (i = 1; i < n; i++) {
-              /* check whether we have constraints on any pairing partner i or j */
-              if (!(sc->bp_storage[i]))
-                continue;
+              for (i = 1; i < n; i++) {
+                /* check whether we have constraints on any pairing partner i or j */
+                if (!(sc->bp_storage[i]))
+                  continue;
 
-              for (k = turn + 1; k < n; k++) {
-                j = i + k;
-                e = 0;
-                if (j > n)
-                  break;
+                for (k = turn + 1; k < n; k++) {
+                  j = i + k;
+                  e = 0;
+                  if (j > n)
+                    break;
 
-                /* go through list of constraints on position i */
-                for (cnt = 0; sc->bp_storage[i][cnt].interval_start != 0; cnt++) {
-                  if (sc->bp_storage[i][cnt].interval_start > j)
-                    break; /* only constraints for pairs (i,q) with q > j left */
+                  /* go through list of constraints on position i */
+                  for (cnt = 0; sc->bp_storage[i][cnt].interval_start != 0; cnt++) {
+                    if (sc->bp_storage[i][cnt].interval_start > j)
+                      break; /* only constraints for pairs (i,q) with q > j left */
 
-                  if (sc->bp_storage[i][cnt].interval_end < j)
-                    continue; /* constraint for pairs (i,q) with q < j */
+                    if (sc->bp_storage[i][cnt].interval_end < j)
+                      continue; /* constraint for pairs (i,q) with q < j */
 
-                  /* constraint has interval [p,q] with p <= j <= q */
-                  e += sc->bp_storage[i][cnt].e;
+                    /* constraint has interval [p,q] with p <= j <= q */
+                    e += sc->bp_storage[i][cnt].e;
+                  }
+
+                  sc->energy_bp[idx[j] + i] = e;
                 }
-
-                sc->energy_bp[idx[j] + i] = e;
               }
             }
+
+            sc->state &= ~STATE_DIRTY_BP_MFE;
           }
         } else {
           free_sc_bp(sc);
@@ -1014,41 +1045,46 @@ prepare_sc_bp_pf(vrna_fold_compound_t *vc,
       if (sc) {
         /* prepare sc for base paired positions only if we actually have some to apply */
         if (sc->bp_storage) {
-          if (options & VRNA_OPTION_WINDOW) {
-            sc->exp_energy_bp_local =
-              (FLT_OR_DBL **)vrna_realloc(sc->exp_energy_bp_local, sizeof(FLT_OR_DBL *) * (n + 2));
-          } else {
-            sc->exp_energy_bp =
-              (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_bp,
-                                         sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
+          if (sc->state & STATE_DIRTY_BP_PF) {
+            if (options & VRNA_OPTION_WINDOW) {
+              sc->exp_energy_bp_local =
+                (FLT_OR_DBL **)vrna_realloc(sc->exp_energy_bp_local,
+                                            sizeof(FLT_OR_DBL *) * (n + 2));
+            } else {
+              sc->exp_energy_bp =
+                (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_bp,
+                                           sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
 
-            for (i = 1; i < n; i++) {
-              /* check whether we have constraints on any pairing partner i or j */
-              if (!(sc->bp_storage[i]))
-                continue;
+              for (i = 1; i < n; i++) {
+                /* check whether we have constraints on any pairing partner i or j */
+                if (!(sc->bp_storage[i]))
+                  continue;
 
-              for (k = turn + 1; k < n; k++) {
-                j = i + k;
-                e = 0;
-                if (j > n)
-                  break;
+                for (k = turn + 1; k < n; k++) {
+                  j = i + k;
+                  e = 0;
+                  if (j > n)
+                    break;
 
-                /* go through list of constraints on position i */
-                for (cnt = 0; sc->bp_storage[i][cnt].interval_start != 0; cnt++) {
-                  if (sc->bp_storage[i][cnt].interval_start > j)
-                    break; /* only constraints for pairs (i,q) with q > j left */
+                  /* go through list of constraints on position i */
+                  for (cnt = 0; sc->bp_storage[i][cnt].interval_start != 0; cnt++) {
+                    if (sc->bp_storage[i][cnt].interval_start > j)
+                      break; /* only constraints for pairs (i,q) with q > j left */
 
-                  if (sc->bp_storage[i][cnt].interval_end < j)
-                    continue; /* constraint for pairs (i,q) with q < j */
+                    if (sc->bp_storage[i][cnt].interval_end < j)
+                      continue; /* constraint for pairs (i,q) with q < j */
 
-                  /* constraint has interval [p,q] with p <= j <= q */
-                  e += sc->bp_storage[i][cnt].e;
+                    /* constraint has interval [p,q] with p <= j <= q */
+                    e += sc->bp_storage[i][cnt].e;
+                  }
+
+                  GT                            = e * 10.;
+                  sc->exp_energy_bp[idx[i] - j] = (FLT_OR_DBL)exp(-GT / kT);
                 }
-
-                GT                            = e * 10.;
-                sc->exp_energy_bp[idx[i] - j] = (FLT_OR_DBL)exp(-GT / kT);
               }
             }
+
+            sc->state &= ~STATE_DIRTY_BP_PF;
           }
         }
       }

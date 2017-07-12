@@ -594,15 +594,15 @@ eval_ext_int_loop(vrna_fold_compound_t  *vc,
                   int                   p,
                   int                   q)
 {
-  int             e, u1, u2, length;
-  unsigned int    s, n_seq;
-  short           **SS, **S5, **S3;
-  unsigned int    **a2s;
-  unsigned char   type, type_2;
-  short           *S, si, sj, sp, sq;
-  vrna_param_t    *P;
-  vrna_md_t       *md;
-  vrna_sc_t       *sc, **scs;
+  int           e, u1, u2, length;
+  unsigned int  s, n_seq;
+  short         **SS, **S5, **S3;
+  unsigned int  **a2s;
+  unsigned char type, type_2;
+  short         *S, si, sj, sp, sq;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_sc_t     *sc, **scs;
 
   length  = vc->length;
   P       = vc->params;
@@ -708,6 +708,8 @@ wrap_eval_loop_pt(vrna_fold_compound_t  *vc,
   cp  = vc->cutpoint;
   s   = vc->sequence_encoding2;
 
+  vrna_sc_prepare(vc, VRNA_OPTION_MFE);
+
   if (i == 0) {
     /* evaluate exterior loop */
     energy = energy_of_extLoop_pt(vc, 0, pt);
@@ -791,6 +793,7 @@ wrap_eval_structure(vrna_fold_compound_t  *vc,
       if (gq && (parse_gquad(structure, &L, l) > 0)) {
         if (verbosity > 0)
           print_eval_sd_corr(file == NULL ? stdout : file);
+
         res += en_corr_of_loop_gquad(vc, 1, vc->length, structure, pt, file, verbosity);
       }
 
@@ -839,6 +842,8 @@ eval_pt(vrna_fold_compound_t  *vc,
                          "Ignoring potential gquads in structure!\n"
                          "Use e.g. vrna_eval_structure() instead!");
 
+  vrna_sc_prepare(vc, VRNA_OPTION_MFE);
+
   energy = vc->params->model_details.backtrack_type ==
            'M' ? energy_of_ml_pt(vc, 0, pt) : energy_of_extLoop_pt(vc, 0, pt);
 
@@ -869,12 +874,12 @@ eval_circ_pt(vrna_fold_compound_t *vc,
              FILE                 *file,
              int                  verbosity_level)
 {
-  unsigned int    s, n_seq;
-  int             i, j, length, energy, en0, degree;
-  unsigned int    **a2s;
-  vrna_param_t    *P;
-  vrna_sc_t       *sc, **scs;
-  FILE            *out;
+  unsigned int  s, n_seq;
+  int           i, j, length, energy, en0, degree;
+  unsigned int  **a2s;
+  vrna_param_t  *P;
+  vrna_sc_t     *sc, **scs;
+  FILE          *out;
 
   energy  = 0;
   en0     = 0;
@@ -889,6 +894,8 @@ eval_circ_pt(vrna_fold_compound_t *vc,
     vrna_message_warning("vrna_eval_*_pt: No gquadruplex support!\n"
                          "Ignoring potential gquads in structure!\n"
                          "Use e.g. vrna_eval_structure() instead!");
+
+  vrna_sc_prepare(vc, VRNA_OPTION_MFE);
 
   /* evaluate all stems in exterior loop */
   for (i = 1; i <= length; i++) {
@@ -1006,8 +1013,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
       break;
 
     /* we've found the first g-quadruplex at position [p,q] */
-    tmp_e = E_gquad(L, l, P);
-    energy += tmp_e;
+    tmp_e   = E_gquad(L, l, P);
+    energy  += tmp_e;
     if (verbosity_level > 0)
       print_eval_gquad(out, p, L, l, tmp_e);
 
@@ -1125,7 +1132,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
 
               e_plus += P->internal_loop[s - r - 1 - up_mis];
               if (verbosity_level > 0)
-                print_eval_int_loop(out, r, s, sequence[r - 1], sequence[s - 1], p, q, sequence[p - 1], sequence[q - 1], e_plus);
+                print_eval_int_loop(out, r, s, sequence[r - 1], sequence[s - 1], p, q,
+                                    sequence[p - 1], sequence[q - 1], e_plus);
             } else {
               /* or b) a multibranch loop like structure */
               e_plus = P->MLclosing
@@ -1136,7 +1144,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
               if (verbosity_level > 0)
                 print_eval_mb_loop(out, r, s, sequence[r - 1], sequence[s - 1], e_plus);
             }
-            energy  += e_plus - e_minus;
+
+            energy += e_plus - e_minus;
             break;
 
           /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
@@ -1144,18 +1153,27 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
             type    = md->pair[s2[r]][s2[s]];
             type2   = md->pair[s2[elem_i]][s2[elem_j]];
             e_plus  = P->MLclosing
-                       + E_MLstem(rtype[type], s1[s - 1], s1[r + 1], P)
-                       + (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase
-                       + E_MLstem(type2, s1[elem_i - 1], s1[elem_j + 1], P);
+                      + E_MLstem(rtype[type], s1[s - 1], s1[r + 1], P)
+                      + (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase
+                      + E_MLstem(type2, s1[elem_i - 1], s1[elem_j + 1], P);
 
-            e_plus  += num_g * E_MLstem(0, -1, -1, P);
+            e_plus += num_g * E_MLstem(0, -1, -1, P);
 
             e_minus = eval_int_loop(vc, r, s, elem_i, elem_j);
 
             energy += e_plus - e_minus;
 
             if (verbosity_level > 0) {
-              print_eval_int_loop_revert(out, r, s, sequence[r - 1], sequence[j - 1], elem_i, elem_j, sequence[elem_i - 1], sequence[elem_j - 1], e_minus);
+              print_eval_int_loop_revert(out,
+                                         r,
+                                         s,
+                                         sequence[r - 1],
+                                         sequence[j - 1],
+                                         elem_i,
+                                         elem_j,
+                                         sequence[elem_i - 1],
+                                         sequence[elem_j - 1],
+                                         e_minus);
               print_eval_mb_loop(out, r, s, sequence[r - 1], sequence[s - 1], e_plus);
             }
 
@@ -1165,7 +1183,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
           default:
             e_minus = (up_mis) * P->MLbase;
             e_plus  = num_g * E_MLstem(0, -1, -1, P);
-            energy += e_plus - e_minus;
+            energy  += e_plus - e_minus;
 
             if (verbosity_level > 0) {
               print_eval_mb_loop_revert(out, r, s, sequence[r - 1], sequence[s - 1], e_minus);
@@ -1194,13 +1212,13 @@ stack_energy(vrna_fold_compound_t *vc,
 {
   /* recursively calculate energy of substructure enclosed by (i,j) */
 
-  int             ee, energy, j, p, q, type, *rtype, *types, cp, ss, n_seq;
-  char            *string, **Ss;
-  short           *s, **S, **S5, **S3;
-  unsigned int    **a2s;
-  FILE            *out;
-  vrna_param_t    *P;
-  vrna_md_t       *md;
+  int           ee, energy, j, p, q, type, *rtype, *types, cp, ss, n_seq;
+  char          *string, **Ss;
+  short         *s, **S, **S5, **S3;
+  unsigned int  **a2s;
+  FILE          *out;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
 
   cp      = vc->cutpoint;
   s       = vc->sequence_encoding2;
@@ -1383,18 +1401,18 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
                      int                  i,
                      const short          *pt)
 {
-  int             energy, mm5, mm3, bonus, p, q, q_prev, length, dangle_model, n_seq, cp, ss, u,
-                  start;
-  short           *s, *s1, **S, **S5, **S3;
-  unsigned int    **a2s;
-  vrna_param_t    *P;
-  vrna_md_t       *md;
-  vrna_sc_t       *sc, **scs;
+  int           energy, mm5, mm3, bonus, p, q, q_prev, length, dangle_model, n_seq, cp, ss, u,
+                start;
+  short         *s, *s1, **S, **S5, **S3;
+  unsigned int  **a2s;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_sc_t     *sc, **scs;
 
 
   /* helper variables for dangles == 1 case */
-  int             E3_available; /* energy of 5' part where 5' mismatch is available for current stem */
-  int             E3_occupied;  /* energy of 5' part where 5' mismatch is unavailable for current stem */
+  int           E3_available;   /* energy of 5' part where 5' mismatch is available for current stem */
+  int           E3_occupied;    /* energy of 5' part where 5' mismatch is unavailable for current stem */
 
 
   /* initialize vars */
@@ -1601,23 +1619,23 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
                 int                   i,
                 const short           *pt)
 {
-  int             energy, cx_energy, tmp, tmp2, best_energy = INF, bonus, *idx, cp, dangle_model,
-                  logML, circular, *rtype, ss, n, n_seq;
-  int             i1, j, p, q, q_prev, q_prev2, u, uu, x, type, count, mm5, mm3, tt, ld5, new_cx,
-                  dang5, dang3, dang;
-  int             e_stem, e_stem5, e_stem3, e_stem53;
-  int             mlintern[NBPAIRS + 1];
-  short           *s, *s1, **S, **S5, **S3;
-  unsigned int    **a2s;
-  vrna_param_t    *P;
-  vrna_md_t       *md;
-  vrna_sc_t       *sc, **scs;
+  int           energy, cx_energy, tmp, tmp2, best_energy = INF, bonus, *idx, cp, dangle_model,
+                logML, circular, *rtype, ss, n, n_seq;
+  int           i1, j, p, q, q_prev, q_prev2, u, uu, x, type, count, mm5, mm3, tt, ld5, new_cx,
+                dang5, dang3, dang;
+  int           e_stem, e_stem5, e_stem3, e_stem53;
+  int           mlintern[NBPAIRS + 1];
+  short         *s, *s1, **S, **S5, **S3;
+  unsigned int  **a2s;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_sc_t     *sc, **scs;
 
   /* helper variables for dangles == 1|5 case */
-  int             E_mm5_available;  /* energy of 5' part where 5' mismatch of current stem is available */
-  int             E_mm5_occupied;   /* energy of 5' part where 5' mismatch of current stem is unavailable */
-  int             E2_mm5_available; /* energy of 5' part where 5' mismatch of current stem is available with possible 3' dangle for enclosing pair (i,j) */
-  int             E2_mm5_occupied;  /* energy of 5' part where 5' mismatch of current stem is unavailable with possible 3' dangle for enclosing pair (i,j) */
+  int           E_mm5_available;    /* energy of 5' part where 5' mismatch of current stem is available */
+  int           E_mm5_occupied;     /* energy of 5' part where 5' mismatch of current stem is unavailable */
+  int           E2_mm5_available;   /* energy of 5' part where 5' mismatch of current stem is available with possible 3' dangle for enclosing pair (i,j) */
+  int           E2_mm5_occupied;    /* energy of 5' part where 5' mismatch of current stem is unavailable with possible 3' dangle for enclosing pair (i,j) */
 
   n   = vc->length;
   cp  = vc->cutpoint;
@@ -2212,19 +2230,19 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
                           const short           *pt,
                           const int             *loop_idx)
 {
-  int             pos, energy, p, q, r, s, u, type, type2, gq_en[2];
-  int             num_elem, num_g, elem_i, elem_j, up_mis;
-  int             L, l[3];
+  int           pos, energy, p, q, r, s, u, type, type2, gq_en[2];
+  int           num_elem, num_g, elem_i, elem_j, up_mis;
+  int           L, l[3];
 
-  short           **S           = vc->S;
-  short           **S5          = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
-  short           **S3          = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
-  char            **Ss          = vc->Ss;
-  unsigned int    **a2s         = vc->a2s;
-  vrna_param_t    *P            = vc->params;
-  vrna_md_t       *md           = &(P->model_details);
-  int             n_seq         = vc->n_seq;
-  int             dangle_model  = md->dangles;
+  short         **S           = vc->S;
+  short         **S5          = vc->S5;       /*S5[s][i] holds next base 5' of i in sequence s*/
+  short         **S3          = vc->S3;       /*Sl[s][i] holds next base 3' of i in sequence s*/
+  char          **Ss          = vc->Ss;
+  unsigned int  **a2s         = vc->a2s;
+  vrna_param_t  *P            = vc->params;
+  vrna_md_t     *md           = &(P->model_details);
+  int           n_seq         = vc->n_seq;
+  int           dangle_model  = md->dangles;
 
   energy  = 0;
   q       = i;

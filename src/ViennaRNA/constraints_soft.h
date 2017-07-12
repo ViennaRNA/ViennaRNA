@@ -155,6 +155,8 @@ struct vrna_sc_s {
   vrna_sc_type_e        type;
   unsigned int          n;
 
+  unsigned char         state;
+
   int                   **energy_up;      /**<  @brief Energy contribution for stretches of unpaired nucleotides */
   FLT_OR_DBL            **exp_energy_up;  /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
 
