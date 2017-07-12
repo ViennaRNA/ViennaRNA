@@ -452,30 +452,23 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
     return 0;
   }
 
+  /* prepare Boltzmann factors if required */
+  vrna_params_prepare(vc, options);
+
+  /* prepare ptype array(s) */
+  vrna_ptypes_prepare(vc, options);
+
   if (options & VRNA_OPTION_MFE) {
 
     /* prepare for MFE computation */
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
         if (options & VRNA_OPTION_WINDOW) {
-          /* handle minimal requirements for ptype */
-          if (vc->ptype_local)
-            free(vc->ptype_local);
-          vc->ptype_local = vrna_alloc(sizeof(char *) * (vc->length + 1));
-
           /* check for minimal hard constraints structure */
           if ((!vc->hc) || (vc->hc->type != VRNA_HC_WINDOW) || (!vc->hc->matrix_local))
             vrna_hc_init_window(vc);
 
-        } else {
-          if (!vc->ptype)
-            vc->ptype = vrna_ptypes(vc->sequence_encoding2,
-                                    &(vc->params->model_details));
         }
-        break;
-      case VRNA_FC_TYPE_COMPARATIVE:
-        break;
-      default:
         break;
     }
 
@@ -486,42 +479,16 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
 
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:     /* get pre-computed Boltzmann factors if not present*/
-        if (!vc->exp_params)
-          vc->exp_params = vrna_exp_params(&(vc->params->model_details));
-
         if (options & VRNA_OPTION_WINDOW) {
-          /* handle minimal requirements for ptype */
-          if (vc->ptype_local)
-            free(vc->ptype_local);
-          vc->ptype_local = vrna_alloc(sizeof(char *) * (vc->length + 1));
-
           /* check for minimal hard constraints structure */
           if ((!vc->hc) || (vc->hc->type != VRNA_HC_WINDOW) || (!vc->hc->matrix_local))
             vrna_hc_init_window(vc);
 
-        } else {
-          if (!vc->ptype)
-            vc->ptype = vrna_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details));
-
-#ifdef VRNA_BACKWARD_COMPAT
-          /* backward compatibility ptypes */
-          if (!vc->ptype_pf_compat)
-            vc->ptype_pf_compat = get_ptypes(vc->sequence_encoding2, &(vc->exp_params->model_details), 1);
         }
-#endif
 
         if (vc->domains_up)                            /* turn on unique ML decomposition with qm1 array */
           vc->exp_params->model_details.uniq_ML = 1;
 
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:  /* get pre-computed Boltzmann factors if not present*/
-        if (!vc->exp_params)
-          vc->exp_params = vrna_exp_params_comparative(vc->n_seq, &(vc->params->model_details));
-
-        break;
-
-      default:
         break;
     }
   }
