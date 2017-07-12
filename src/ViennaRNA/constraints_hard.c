@@ -276,8 +276,8 @@ vrna_hc_init_window(vrna_fold_compound_t *vc)
 
 
 PUBLIC void
-vrna_hc_prepare(vrna_fold_compound_t  *vc,
-                int                   i)
+vrna_hc_update(vrna_fold_compound_t *vc,
+               int                  i)
 {
   int       j, k, type, n, maxdist, pairSize, turn, noLP;
   short     *S;

@@ -44,10 +44,10 @@ typedef struct {
   double        **pU;
   FLT_OR_DBL    bpp_cutoff;
   FILE          *fp_bpp;
-  vrna_ep_t  *bpp;
+  vrna_ep_t     *bpp;
   unsigned int  bpp_max_size;
   unsigned int  bpp_size;
-  vrna_ep_t  *stack_prob;
+  vrna_ep_t     *stack_prob;
   unsigned int  stack_prob_size;
   unsigned int  stack_prob_max_size;
 } default_cb_data;
@@ -142,9 +142,9 @@ probability_correction(vrna_fold_compound_t *vc,
 
 
 #if 0
-PRIVATE vrna_ep_t *get_deppp(vrna_fold_compound_t  *vc,
-                                vrna_ep_t          *pl,
-                                int                   start);
+PRIVATE vrna_ep_t *get_deppp(vrna_fold_compound_t *vc,
+                             vrna_ep_t            *pl,
+                             int                  start);
 
 
 #endif
@@ -653,7 +653,7 @@ init_constraints(vrna_fold_compound_t *fc,
 
   for (j = 1; j <= max_j; j++) {
     make_ptypes(fc, j);
-    vrna_hc_prepare(fc, j);
+    vrna_hc_update(fc, j);
   }
 }
 
@@ -665,7 +665,7 @@ rotate_constraints(vrna_fold_compound_t *fc,
 {
   if (j + 1 <= fc->length) {
     make_ptypes(fc, j + 1);
-    vrna_hc_prepare(fc, j + 1);
+    vrna_hc_update(fc, j + 1);
   }
 }
 
@@ -720,7 +720,8 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
 
   alloc_helper_arrays(vc, ulength, &aux_arrays, options);
 
-  Fwindow   = (options & VRNA_PROBS_WINDOW_PF) ? (double *)vrna_alloc(sizeof(double) * (winSize + 1)) : NULL;
+  Fwindow =
+    (options & VRNA_PROBS_WINDOW_PF) ? (double *)vrna_alloc(sizeof(double) * (winSize + 1)) : NULL;
 
   /* very short molecule ? */
   if (n < turn + 2) {
@@ -804,9 +805,9 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
       } /* end for i */
 
       /*
-        here we return the partition function for subsegments [i...j] in terms
-        of ensemble free energies G_ij = -RT * ln(Q_ij) in kcal/mol
-      */
+       * here we return the partition function for subsegments [i...j] in terms
+       * of ensemble free energies G_ij = -RT * ln(Q_ij) in kcal/mol
+       */
       if (options & VRNA_PROBS_WINDOW_PF) {
         int start = MAX2(1, j - winSize + 1);
         Fwindow -= start;
@@ -825,7 +826,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
       if ((j >= winSize) && (options & VRNA_PROBS_WINDOW_UP)) {
         FLT_OR_DBL eee = 0.;
         eee = (FLT_OR_DBL)(-log(q[j - winSize + 1][j]) - winSize * log(pf_params->pf_scale)) *
-                  pf_params->kT / 1000.0;
+              pf_params->kT / 1000.0;
 
         /* we could return this to the user via callback cb() if we were nice */
 
@@ -1344,13 +1345,13 @@ make_ptypes(vrna_fold_compound_t  *vc,
 #if 0
 PRIVATE vrna_ep_t *
 get_deppp(vrna_fold_compound_t  *vc,
-          vrna_ep_t          *pl,
+          vrna_ep_t             *pl,
           int                   start)
 {
   /* compute dependent pair probabilities */
   int               i, j, count = 0;
   double            tmp;
-  vrna_ep_t      *temp;
+  vrna_ep_t         *temp;
   char              **ptype;
   short             *S1;
   FLT_OR_DBL        **qb, *scale;
@@ -1772,7 +1773,7 @@ store_bpp_callback(FLT_OR_DBL *pr,
                    void       *data)
 {
   int           j;
-  vrna_ep_t  *pl         = ((default_cb_data *)data)->bpp;
+  vrna_ep_t     *pl         = ((default_cb_data *)data)->bpp;
   unsigned int  pl_size     = ((default_cb_data *)data)->bpp_size;
   unsigned int  pl_max_size = ((default_cb_data *)data)->bpp_max_size;
   FLT_OR_DBL    cutoff      = ((default_cb_data *)data)->bpp_cutoff;
@@ -1797,7 +1798,6 @@ store_bpp_callback(FLT_OR_DBL *pr,
     pl[pl_size].j     = j;
     pl[pl_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
     pl[pl_size++].p   = pr[j];
-
   }
 
   /* mark end of vrna_ep_t */
@@ -1820,7 +1820,7 @@ store_stack_prob_callback(FLT_OR_DBL  *pr,
                           void        *data)
 {
   int           j;
-  vrna_ep_t  *pl         = ((default_cb_data *)data)->stack_prob;
+  vrna_ep_t     *pl         = ((default_cb_data *)data)->stack_prob;
   unsigned int  pl_size     = ((default_cb_data *)data)->stack_prob_size;
   unsigned int  pl_max_size = ((default_cb_data *)data)->stack_prob_max_size;
   FLT_OR_DBL    cutoff      = ((default_cb_data *)data)->bpp_cutoff;
@@ -1949,7 +1949,7 @@ wrap_pf_foldLP(char             *sequence,
                int              pairSize,
                float            cutoffb,
                double           **pU,
-               vrna_ep_t     **dpp2,
+               vrna_ep_t        **dpp2,
                FILE             *pUfp,
                FILE             *spup,
                vrna_exp_param_t *parameters)
@@ -2015,8 +2015,8 @@ wrap_pf_foldLP(char             *sequence,
 
   if (dpp2 && (*dpp2)) {
     data.stack_prob = (vrna_ep_t *)vrna_realloc(data.stack_prob,
-                                                   sizeof(vrna_ep_t) *
-                                                   (data.stack_prob_size + 1));
+                                                sizeof(vrna_ep_t) *
+                                                (data.stack_prob_size + 1));
     data.stack_prob[data.stack_prob_size].i     = 0;
     data.stack_prob[data.stack_prob_size].j     = 0;
     data.stack_prob[data.stack_prob_size].type  = VRNA_PLIST_TYPE_BASEPAIR;
@@ -2080,14 +2080,14 @@ update_pf_paramsLP_par(int              length,
 
 
 PUBLIC vrna_ep_t *
-pfl_fold(char         *sequence,
-         int          winSize,
-         int          pairSize,
-         float        cutoffb,
-         double       **pU,
-         vrna_ep_t **dpp2,
-         FILE         *pUfp,
-         FILE         *spup)
+pfl_fold(char       *sequence,
+         int        winSize,
+         int        pairSize,
+         float      cutoffb,
+         double     **pU,
+         vrna_ep_t  **dpp2,
+         FILE       *pUfp,
+         FILE       *spup)
 {
   return wrap_pf_foldLP(sequence, winSize, pairSize, cutoffb, pU, dpp2, pUfp, spup, NULL);
 }
@@ -2099,7 +2099,7 @@ pfl_fold_par(char             *sequence,
              int              pairSize,
              float            cutoffb,
              double           **pU,
-             vrna_ep_t     **dpp2,
+             vrna_ep_t        **dpp2,
              FILE             *pUfp,
              FILE             *spup,
              vrna_exp_param_t *parameters)
