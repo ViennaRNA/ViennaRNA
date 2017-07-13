@@ -16,7 +16,7 @@ def getShapeDataFromFile(filepath):
     retVec.append(-999.0);  # data list is 1-based, so we add smth. at pos 0
     count=1
     with open(filepath, 'r') as f:
-        lines = f.readlines()
+        lines = f.read().splitlines()
 
         for line in lines:
             pos = int(line.split(' ')[0])
@@ -36,7 +36,7 @@ def getShapeDataFromFile(filepath):
 def getShapeSequenceFromFile(filepath):
     retSeq=""
     with open(filepath,'r') as f:
-        lines = f.readlines()
+        lines = f.read().splitlines()
 
     return lines[0]
 

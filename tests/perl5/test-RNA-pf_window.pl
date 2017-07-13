@@ -4,18 +4,23 @@
 # (It may become useful if the test is moved to ./t subdirectory.)
 
 use strict;
-use Test::More tests => 18;
+use warnings;
+use Test::More tests => 22;
 use Data::Dumper;
 use FileHandle;
 
 use RNA;
-use warnings;
+use RNApath;
 
 
+my $datadir = RNApath::getDataDirPath();
+my $shortseq = "UGGGAAUAGUCUCUUCCGAGUCUCGCGGGCGACGGGCGAUCUUCGAAAGUGGAAUCCGUA";
 my $longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU";
 my $md;
 my $fc;
+my $fc2;
 my %data;
+my @data;
 my $bpp;
 my $up;
 my $max_pos;
@@ -25,8 +30,51 @@ my $min_entries;
 my $max_entries;
 
 
-sub pf_window_callback {
+sub getShapeDataFromFile {
+    my $filepath = shift(@_);
+    my @retVec;
+    push(@retVec,-999.0);# data list is 1-based, so we add smth. at pos 0
+    my $count=1;
+    open(my $fh, "<", $filepath) || die "Couldn't open '".$filepath."' for reading because: ".$!;
 
+    foreach my $line (<$fh>)
+    {
+
+        my @sp= split(/ /,$line);
+        my $pos = $sp[0];
+        my $value = $sp[1];
+
+        if($pos == $count)
+        {
+            push(@retVec,$value +0.00); # make float from string
+        } else {
+            for(my $i=$pos;$i<=$count;$i++)
+            {
+                push(@retVec,-999.0);
+            }
+            push(@retVec,$value);
+            $count=$pos;
+        }
+        $count+=1;
+
+    }
+    return @retVec;
+}
+
+
+sub getShapeSequenceFromFile {
+    my $f = shift(@_);
+    my $retSeq ="";
+    open(my $fh, "<", $f) || die "Couldn't open '".$f."' for reading because: ".$!;
+    foreach my $line (<$fh>)
+    {
+        chomp $line;
+        return $line; #return the first line
+    }
+}
+
+
+sub pf_window_callback {
   my ($v, $v_size, $i, $maxsize, $what, $data) = @_;
 
   if ($what & RNA::PROBS_WINDOW_UP) {
@@ -38,6 +86,20 @@ sub pf_window_callback {
       next if $v->[$j] < 0.01;
       my %d_bpp = ('i' => $i, 'j' => $j, 'p' => $v->[$j]);
       push @{$data->{'pair_probs'}}, \%d_bpp;
+    }
+  }
+}
+
+
+sub bpp_callback {
+  my ($v, $v_size, $i, $maxsize, $what, $data) = @_;
+
+  if ($what & RNA::PROBS_WINDOW_BPP) {
+    for (my $j = 0; $j <= $#$v; $j++) {
+      next if !defined($v->[$j]);
+      next if $v->[$j] < 0.01;
+      my %d_bpp = ('i' => $i, 'j' => $j, 'p' => $v->[$j]);
+      push @{$data}, \%d_bpp;
     }
   }
 }
@@ -130,3 +192,111 @@ ok($min_entries == 11); # 10 + 0th (undef) entry
 ok($max_entries == 11); # 10 + 0th (undef) entry
 ok($min_v >= 0);
 ok($max_v <= 1.0);
+
+
+print "test_pfl_SHAPE\n";
+my @benchmark_set = ( "Lysine_riboswitch_T._martima", "TPP_riboswitch_E.coli" );
+
+for my $b (@benchmark_set) {
+  my $seq           = getShapeSequenceFromFile($datadir . $b . ".db");
+  my @reactivities  = getShapeDataFromFile($datadir . $b . ".shape_2rows");
+  %data = ( 'pair_probs' => [], 'unpaired_probs' => [] );
+
+  $md = new RNA::md();
+  $md->{'max_bp_span'} = length($seq);
+  $md->{'window_size'} = length($seq);
+
+  # compute pairing probabilities using local partition function implementation
+  # with L = W = len(seq)
+  $fc = new RNA::fold_compound($seq, $md, RNA::OPTION_WINDOW);
+  $fc->sc_add_SHAPE_deigan(\@reactivities, 1.9, -0.7, RNA::OPTION_WINDOW);
+  $fc->probs_window(0, RNA::PROBS_WINDOW_BPP, \&pf_window_callback, \%data);
+
+  # compute pairing probabilities using global parition function
+  my $fc2 = new RNA::fold_compound($seq);
+  $fc2->sc_add_SHAPE_deigan(\@reactivities, 1.9, -0.7, RNA::OPTION_DEFAULT);
+  $fc2->pf();
+  my $bpp = $fc2->bpp();
+
+  # check for differences in pairing probabilities between local and global implementation
+  # Hint: There must not be any!
+  my $equal_probabilities = 1;
+  foreach my $prob (@{$data{'pair_probs'}}) {
+      my $p = $prob->{'p'};
+      my $i = $prob->{'i'};
+      my $j = $prob->{'j'};
+      my $p2 = $bpp->[$i][$j];
+      ($equal_probabilities = 0, last) if ! (sprintf("%g", $p) eq sprintf("%g", $p2));
+  }
+  ok($equal_probabilities == 1);
+}
+
+
+# Compute partition function and base pair probabilities both, using the implementation
+# for local structure prediction and global structure prediction.
+# When comparing both results, equilibrium probabilities must not have changed!
+print "test_probs_window_full\n";
+@data = ();
+$md = new RNA::md();
+$md->{'max_bp_span'} = length($shortseq);
+$md->{'window_size'} = length($shortseq);
+
+# compute pairing probabilities using local partition function implementation
+# with L = W = length(seq)
+$fc = new RNA::fold_compound($shortseq, $md, RNA::OPTION_WINDOW);
+$fc->probs_window(0, RNA::PROBS_WINDOW_BPP, \&bpp_callback, \@data);
+
+# compute pairing probabilities using global parition function
+$fc2 = new RNA::fold_compound($shortseq);
+$fc2->pf();
+$bpp = $fc2->bpp();
+
+# check for differences in pairing probabilities between local and global implementation
+# Hint: There must not be any!
+my $equal_probabilities = 1;
+foreach my $prob (@data) {
+  my $p = $prob->{'p'};
+  my $i = $prob->{'i'};
+  my $j = $prob->{'j'};
+  my $p2 = $bpp->[$i][$j];
+  ($equal_probabilities = 0, last) if ! (sprintf("%g", $p) eq sprintf("%g", $p2));
+}
+ok($equal_probabilities == 1);
+
+
+# Compute partition function and base pair probabilities both, constrained
+# and unconstrained, where the constraint simply shifts the free energy base
+# line by -1 kcal/mol per nucleotide.
+# When comparing both results, equilibrium probabilities must not have changed,
+# except for free energy of the ensemble!
+print "test_pfl_sc\n";
+$fc = new RNA::fold_compound($longseq, undef, RNA::OPTION_WINDOW);
+
+@data = ();
+# unconstrained partition function
+$fc->probs_window(0, RNA::PROBS_WINDOW_BPP, \&bpp_callback, \@data);
+
+# add constraints
+foreach my $i (1..length($longseq)) {
+  $fc->sc_add_up($i, -1.0, RNA::OPTION_WINDOW);
+}
+
+foreach my $i (1..length($longseq)) {
+  foreach my $j (($i + 1)..length($longseq)) {
+    $fc->sc_add_bp($i, $j, -2, RNA::OPTION_WINDOW);
+  }
+}
+
+my @data2 = ();
+# constrained partition function
+$fc->probs_window(0, RNA::PROBS_WINDOW_BPP, \&bpp_callback, \@data2);
+
+$equal_probabilities = 1;
+foreach my $d (@data) {
+  my ($item) = grep {
+    ($_->{'i'} == $d->{'i'}) && ($_->{'j'} == $d->{'j'})
+  } @data2;
+  ($equal_probabilities = 0, last) if ! defined($item);
+  ($equal_probabilities = 0, last) if ! (sprintf("%g", $d->{'p'}) eq sprintf("%g", $item->{'p'}));
+}
+ok($equal_probabilities == 1);
