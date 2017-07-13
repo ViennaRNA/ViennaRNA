@@ -727,8 +727,17 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
         if (sc->exp_energy_up)
           q *= sc->exp_energy_up[i + 1][u];
 
-        if (sc->exp_energy_bp)
-          q *= sc->exp_energy_bp[iidx[i] - j];
+        switch (sc->type) {
+          case VRNA_SC_DEFAULT:
+            if (sc->exp_energy_bp)
+              q *= sc->exp_energy_bp[iidx[i] - j];
+            break;
+
+          case VRNA_SC_WINDOW:
+            if (sc->exp_energy_bp_local)
+              q *= sc->exp_energy_bp_local[i][j - i];
+            break;
+        }
 
         if (sc->exp_f)
           q *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);

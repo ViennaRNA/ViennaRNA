@@ -480,6 +480,7 @@ allocate_dp_matrices(vrna_fold_compound_t *vc,
   FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
   vrna_mx_pf_t  *mx;
   vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   mx      = vc->exp_matrices;
   pR      = mx->pR;
@@ -514,6 +515,25 @@ allocate_dp_matrices(vrna_fold_compound_t *vc,
   hc->matrix_local[i] = (unsigned char *)vrna_alloc((winSize + 1) * sizeof(unsigned char));
   ptype[i]            = (char *)vrna_alloc((winSize + 1) * sizeof(char));
   ptype[i]            -= i;
+
+  switch (vc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      sc = vc->sc;
+      if (sc) {
+        if (sc->exp_energy_bp_local)
+          sc->exp_energy_bp_local[i] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
+
+        if (sc->exp_energy_up)
+          sc->exp_energy_up[i] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
+
+        vrna_sc_update(vc, i, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
+      }
+
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      break;
+  }
 }
 
 
@@ -526,6 +546,7 @@ free_dp_matrices(vrna_fold_compound_t *vc,
   FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
   vrna_mx_pf_t  *mx;
   vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   n       = (int)vc->length;
   winSize = vc->window_size;
@@ -536,6 +557,7 @@ free_dp_matrices(vrna_fold_compound_t *vc,
   qm      = mx->qm_local;
   ptype   = vc->ptype_local;
   hc      = vc->hc;
+  sc      = vc->sc;
 
   for (i = MAX2(1, n - (winSize + MAXLOOP)); i <= n; i++) {
     free(pR[i] + i);
@@ -565,6 +587,14 @@ free_dp_matrices(vrna_fold_compound_t *vc,
     hc->matrix_local[i] = NULL;
     free(ptype[i] + i);
     ptype[i] = NULL;
+
+    if (sc) {
+      if (sc->exp_energy_up)
+        free(sc->exp_energy_up[i]);
+
+      if (sc->exp_energy_bp_local)
+        free(sc->exp_energy_bp_local[i]);
+    }
   }
 }
 
@@ -593,6 +623,7 @@ rotate_dp_matrices(vrna_fold_compound_t *vc,
   FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
   vrna_mx_pf_t  *mx;
   vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   length  = vc->length;
   winSize = vc->window_size;
@@ -603,6 +634,7 @@ rotate_dp_matrices(vrna_fold_compound_t *vc,
   qm      = mx->qm_local;
   ptype   = vc->ptype_local;
   hc      = vc->hc;
+  sc      = vc->sc;
 
   if (j > 2 * winSize + MAXLOOP + 1) {
     i = j - (2 * winSize + MAXLOOP + 1);
@@ -635,6 +667,18 @@ rotate_dp_matrices(vrna_fold_compound_t *vc,
     free(ptype[i] + i);
     ptype[i] = NULL;
 
+    if (sc) {
+      if (sc->exp_energy_up) {
+        free(sc->exp_energy_up[i]);
+        sc->exp_energy_up[i] = NULL;
+      }
+
+      if (sc->exp_energy_bp_local) {
+        free(sc->exp_energy_bp_local[i]);
+        sc->exp_energy_bp_local[i] = NULL;
+      }
+    }
+
     if (j + 1 <= length)
       /* get arrays for next round */
       allocate_dp_matrices(vc, j + 1, options);
@@ -654,6 +698,7 @@ init_constraints(vrna_fold_compound_t *fc,
   for (j = 1; j <= max_j; j++) {
     make_ptypes(fc, j);
     vrna_hc_update(fc, j);
+    vrna_sc_update(fc, j, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
   }
 }
 
@@ -666,6 +711,7 @@ rotate_constraints(vrna_fold_compound_t *fc,
   if (j + 1 <= fc->length) {
     make_ptypes(fc, j + 1);
     vrna_hc_update(fc, j + 1);
+    vrna_sc_update(fc, j + 1, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
   }
 }
 
@@ -780,7 +826,6 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
 
         /* Multibranch loop */
         qm[i][j] = vrna_exp_E_ml_fast(vc, i, j, aux_mx_ml);
-
         if ((options & VRNA_PROBS_WINDOW_UP) && (ulength > 0)) {
           /* new qm2 computation done here */
           temp = 0.0;
@@ -1201,7 +1246,7 @@ compute_probs(vrna_fold_compound_t        *vc,
 
         if (sc)
           if (sc->exp_energy_bp_local)
-            prmt1 *= sc->exp_energy_bp_local[k - 1][m];
+            prmt1 *= sc->exp_energy_bp_local[k - 1][m - k + 1];
       }
 
       /* l+1 is unpaired */
@@ -1219,12 +1264,12 @@ compute_probs(vrna_fold_compound_t        *vc,
       }
 
       /* m is unpaired */
-      if (hc->up_ml[i]) {
+      if (hc->up_ml[m]) {
         ppp = prm_MLb * expMLbase[1];
 
         if (sc)
           if (sc->exp_energy_up)
-            ppp *= sc->exp_energy_up[i][1];
+            ppp *= sc->exp_energy_up[m][1];
 
         prm_MLb = ppp + prml[m];
       } else {
@@ -1241,6 +1286,8 @@ compute_probs(vrna_fold_compound_t        *vc,
         continue;
 
       tt = ptype[k][l];
+      if (tt == 0)
+        tt = 7;
 
       if (options & VRNA_PROBS_WINDOW_UP) {
         double dang;
@@ -1261,8 +1308,6 @@ compute_probs(vrna_fold_compound_t        *vc,
         for (m = MIN2(k + winSize - 2, n); m >= l + 2; m--)
           temp += prml[m] * qm[l + 1][m - 1];
 
-        if (tt == 0)
-          tt = 7;
 
         temp *= exp_E_MLstem(tt,
                              (k > 1) ? S1[k - 1] : -1,

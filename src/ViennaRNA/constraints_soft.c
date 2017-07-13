@@ -302,11 +302,21 @@ vrna_sc_update(vrna_fold_compound_t *vc,
           if (options & VRNA_OPTION_WINDOW) {
             /* sliding-window mode, i.e. local structure prediction */
             if (sc && (i > 0)) {
-              if (sc->up_storage)
-                populate_sc_up_mfe(vc, i, maxdist);
+              if (sc->up_storage) {
+                if (options & VRNA_OPTION_MFE)
+                  populate_sc_up_mfe(vc, i, maxdist);
 
-              if (sc->bp_storage)
-                populate_sc_bp_mfe(vc, i, maxdist);
+                if (options & VRNA_OPTION_PF)
+                  populate_sc_up_pf(vc, i, maxdist);
+              }
+
+              if (sc->bp_storage) {
+                if (options & VRNA_OPTION_MFE)
+                  populate_sc_bp_mfe(vc, i, maxdist);
+
+                if (options & VRNA_OPTION_PF)
+                  populate_sc_bp_pf(vc, i, maxdist);
+              }
             }
           } else {
             /* do nothing here, until we know what a reasonable action for global folding would be */
@@ -858,20 +868,23 @@ free_sc_up(vrna_sc_t *sc)
 
   sc->up_storage = NULL;
 
-  if (sc->energy_up) {
-    for (i = 0; i <= sc->n; i++)
-      free(sc->energy_up[i]);
+  if (sc->type == VRNA_SC_DEFAULT) {
+    if (sc->energy_up) {
+      for (i = 0; i <= sc->n; i++)
+        free(sc->energy_up[i]);
+    }
 
-    free(sc->energy_up);
-    sc->energy_up = NULL;
+    if (sc->exp_energy_up) {
+      for (i = 0; i <= sc->n; i++)
+        free(sc->exp_energy_up[i]);
+    }
   }
 
-  if (sc->exp_energy_up) {
-    for (i = 0; i <= sc->n; i++)
-      free(sc->exp_energy_up[i]);
-    free(sc->exp_energy_up);
-    sc->exp_energy_up = NULL;
-  }
+  free(sc->energy_up);
+  sc->energy_up = NULL;
+
+  free(sc->exp_energy_up);
+  sc->exp_energy_up = NULL;
 
   sc->state &= ~(STATE_DIRTY_UP_MFE | STATE_DIRTY_UP_PF);
 }

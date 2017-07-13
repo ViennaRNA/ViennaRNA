@@ -1713,9 +1713,6 @@ exp_E_int_loop_window(vrna_fold_compound_t  *vc,
         qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, scale, my_iindx, pf_params);
     }
 #endif
-
-    if (sc && sc->exp_energy_bp)
-      qbt1 *= sc->exp_energy_bp[my_iindx[i] - j];
   }
 
   return qbt1;
