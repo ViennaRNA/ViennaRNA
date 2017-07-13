@@ -140,9 +140,9 @@ typedef enum {
  *  @brief  A base pair constraint
  */
 typedef struct {
-  int interval_start;
-  int interval_end;
-  int e;
+  unsigned int interval_start;
+  unsigned int interval_end;
+  int          e;
 } vrna_sc_bp_storage_t;
 
 
@@ -237,7 +237,7 @@ vrna_sc_prepare(vrna_fold_compound_t  *vc,
 
 void
 vrna_sc_update(vrna_fold_compound_t *vc,
-               int                  i,
+               unsigned int         i,
                unsigned int         options);
 
 
