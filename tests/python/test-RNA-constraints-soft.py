@@ -26,16 +26,16 @@ class constraintsTest(unittest.TestCase):
         seq_sc  =      "CCCAAAAGGG"
         fc = RNA.fold_compound(seq_sc)
         (ss,mfe) = fc.mfe()
-        print ss, "[ %6.2f" %mfe ,"]\n"
+        print ss, "[ %6.2f" %mfe ,"]"
         self.assertEqual(ss,"(((....)))")
 
         #fc.sc_init()
 
-        m= [0.0,-5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];  #E 1 0 1 -1 ,  position 1 gets -5 if unpaired ,".((....))." structure should be prefered!!Attention vector starts with position 0
+        m= [0.0,-5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];  #E 1 0 1 -5 ,  position 1 gets -5 if unpaired ,".((....))." structure should be prefered!!Attention vector starts with position 0
 
         fc.sc_set_up(m)
         (ss,mfeNew) = fc.mfe()
-        print ss, "[ %6.2f" %mfeNew ,"]\n"
+        print ss, "[ %6.2f" %mfeNew ,"]"
         self.assertEqual("%6.2f" %mfeNew,"%6.2f" % -5.70)
 
 
@@ -52,7 +52,7 @@ class constraintsTest(unittest.TestCase):
         fc = RNA.fold_compound(seq_sc)
         fc.sc_set_bp(m)
         (ss,mfeNew) = fc.mfe()
-        print ss, "[ %6.2f" %mfeNew ,"]\n"
+        print ss, "[ %6.2f" %mfeNew ,"]"
         self.assertEqual("%6.2f" %mfeNew,"%6.2f" % -4.90)
 
 
@@ -64,7 +64,7 @@ class constraintsTest(unittest.TestCase):
     except for free energy of the ensemble!
     """
     def test_sc_shift(self):
-        print "test_sc_shift\n"
+        print "test_sc_shift"
         fc = RNA.fold_compound(short_seq)
         # unconstrained partition function
         ss, dG = fc.pf()

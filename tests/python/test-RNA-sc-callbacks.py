@@ -129,7 +129,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         fc.sc_add_data(mm_data, None)
         fc.sc_add_f(MaximumMatching)
         (s, mm) = fc.mfe()
-        print "%s\n%s (max BPs: %d)\n" %  (seq1, s, -mm)
+        print "%s\n%s (max BPs: %d)" %  (seq1, s, -mm)
         self.assertEqual(s, struct1)
         self.assertTrue(-mm == 18)
 
@@ -140,7 +140,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         fc.sc_add_data(mm_data, None)
         fc.sc_add_f(MaximumMatching)
         (s, mm) = fc.mfe()
-        print "%s\n%s (max BPs: %d)\n" %  (seq2, s, -mm)
+        print "%s\n%s (max BPs: %d)" %  (seq2, s, -mm)
         self.assertEqual(s, struct2)
         self.assertTrue(-mm == 4)
 
@@ -150,7 +150,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         fc = RNA.fold_compound(seq2)
         fc.sc_add_bt(bt_hp_dict)
         (s, mfe) = fc.mfe()
-        print "%s %6.2f\n" %  (s, mfe)
+        print "%s %6.2f" %  (s, mfe)
         self.assertEqual(s, struct3)
 
 
@@ -159,7 +159,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         fc = RNA.fold_compound(seq2)
         fc.sc_add_bt(bt_hp_tuples)
         (s, mfe) = fc.mfe()
-        print "%s %6.2f\n" %  (s, mfe)
+        print "%s %6.2f" %  (s, mfe)
         self.assertEqual(s, struct3)
 
 
@@ -168,7 +168,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         fc = RNA.fold_compound(seq2)
         fc.sc_add_bt(bt_hp_basepair)
         (s, mfe) = fc.mfe()
-        print "%s %6.2f\n" %  (s, mfe)
+        print "%s %6.2f" %  (s, mfe)
         self.assertEqual(s, struct3)
 
 

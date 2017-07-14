@@ -14,7 +14,7 @@ struct2       = "(..............)"
 
 class GeneralTests(unittest.TestCase):
     def test_pairtable(self):
-        print "test_pairtable\n"
+        print "test_pairtable"
         pairTable = RNA.ptable(struct1)
         correctPairTable = (16, 16, 15, 14, 0, 13, 12, 11, 0, 0, 0, 7, 6, 5, 3, 2, 1)
         self.assertEqual(pairTable,correctPairTable)
@@ -28,13 +28,13 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_basePairDistance(self):
-        print "test_basePairDistance\n"
+        print "test_basePairDistance"
         d = RNA.bp_distance("(((.(((...))))))","(((..........)))")
         self.assertEqual(d,3)
 
 
     def test_plists(self):
-        print "test_plists\n"
+        print "test_plists"
         plist = RNA.plist(struct1,0.6)
         print plist
 
@@ -65,6 +65,7 @@ class GeneralTests(unittest.TestCase):
         fn = "A.%s%s%sDEFGHIsvg" % ("A" * 120, "B" * 120, "C" * 10)
         fs = RNA.filename_sanitize(fn)
         self.assertEqual(fs, "A.%s%s%sDEF" % ("A" * 120, "B" * 120, "C" * 10))
+
 
 
 if __name__ == '__main__':
