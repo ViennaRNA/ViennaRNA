@@ -87,7 +87,7 @@ PRIVATE float     wrap_alipf_fold(const char **sequences,
 PUBLIC float
 vrna_pf_alifold(const char **strings,
                 char *structure,
-                vrna_plist_t **pl){
+                vrna_ep_t **pl){
 
   float                 free_energy;
   double                mfe;
@@ -121,7 +121,7 @@ vrna_pf_alifold(const char **strings,
 PUBLIC float
 vrna_pf_circalifold(const char **sequences,
                     char *structure,
-                    vrna_plist_t **pl){
+                    vrna_ep_t **pl){
 
   float                 free_energy;
   double                mfe;

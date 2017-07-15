@@ -54,6 +54,7 @@ extern "C" {
 #include  <ViennaRNA/aln_util.h>
 #include  <ViennaRNA/findpath.h>
 #include  <ViennaRNA/Lfold.h>
+#include  <ViennaRNA/LPfold.h>
 #include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
 #include  <ViennaRNA/file_formats.h>
@@ -110,6 +111,7 @@ namespace std {
   %template(CoordinateVector) std::vector<COORDINATE>;
   %template(DoubleDoubleVector) std::vector< std::vector<double> > ;
   %template(IntIntVector) std::vector<std::vector<int> > ;
+  %template(ElemProbVector) std::vector<vrna_ep_t>;
 };
 
 %{
@@ -174,7 +176,9 @@ namespace std {
 %include constraints_ligand.i
 %include eval.i
 %include mfe.i
+%include mfe_window.i
 %include part_func.i
+%include pf_window.i
 %include subopt.i
 %include inverse.i
 %include compare.i
@@ -226,7 +230,6 @@ struct bondT {
     return self+i;
   }
 }
-%include <ViennaRNA/Lfold.h>
 
 %include  <ViennaRNA/move_set.h>
 

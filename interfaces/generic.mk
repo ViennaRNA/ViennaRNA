@@ -24,12 +24,15 @@ SWIG_misc_src = \
   $(srcdir)/../grammar.i \
   $(srcdir)/../inverse.i \
   $(srcdir)/../mfe.i \
+  $(srcdir)/../mfe_window.i \
   $(srcdir)/../model_details.i \
   $(srcdir)/../params.i \
   $(srcdir)/../part_func.i \
+  $(srcdir)/../pf_window.i \
   $(srcdir)/../plotting.i \
   $(srcdir)/../subopt.i \
-  $(srcdir)/../utils.i
+  $(srcdir)/../utils.i \
+  $(srcdir)/../structure_utils.i
 
 SWIG_module_name = RNA
 

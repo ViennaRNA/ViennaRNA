@@ -137,12 +137,12 @@ typedef enum {
 
 
 /**
- *  @brief  A base pair hard constraint
+ *  @brief  A base pair constraint
  */
 typedef struct {
-  int interval_start;
-  int interval_end;
-  int e;
+  unsigned int interval_start;
+  unsigned int interval_end;
+  int          e;
 } vrna_sc_bp_storage_t;
 
 
@@ -152,33 +152,35 @@ typedef struct {
  *  @ingroup soft_constraints
  */
 struct vrna_sc_s {
-  vrna_sc_type_e  type;
-  unsigned int    n;
+  vrna_sc_type_e        type;
+  unsigned int          n;
 
-  int             **energy_up;        /**<  @brief Energy contribution for stretches of unpaired nucleotides */
-  FLT_OR_DBL      **exp_energy_up;    /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
+  unsigned char         state;
+
+  int                   **energy_up;      /**<  @brief Energy contribution for stretches of unpaired nucleotides */
+  FLT_OR_DBL            **exp_energy_up;  /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
+
+  int                   *up_storage;      /**<  @brief  Storage container for energy contributions per unpaired nucleotide */
+  vrna_sc_bp_storage_t  **bp_storage;     /**<  @brief  Storage container for energy contributions per base pair */
 
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
   union {
     struct {
 #endif
-  int *energy_bp;                     /**<  @brief Energy contribution for base pairs */
-  FLT_OR_DBL *exp_energy_bp;          /**<  @brief Boltzmann Factors of the energy contribution for base pairs */
+      int *energy_bp;                           /**<  @brief Energy contribution for base pairs */
+      FLT_OR_DBL *exp_energy_bp;                /**<  @brief Boltzmann Factors of the energy contribution for base pairs */
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
-};
-struct {
+    };
+    struct {
 #endif
-  int                   *up_storage;        /**<  @brief  Energy contributions per unpaired nucleotide */
-  vrna_sc_bp_storage_t  **bp_storage;
-
-  int                   **energy_bp_local;      /**<  @brief Energy contribution for base pairs (sliding window approach) */
-  FLT_OR_DBL            **exp_energy_bp_local;  /**<  @brief Boltzmann Factors of the energy contribution for base pairs (sliding window approach) */
+      int         **energy_bp_local;                    /**<  @brief Energy contribution for base pairs (sliding window approach) */
+      FLT_OR_DBL  **exp_energy_bp_local;                /**<  @brief Boltzmann Factors of the energy contribution for base pairs (sliding window approach) */
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
-};
-};
+    };
+  };
 #endif
 
   int                         *energy_stack;      /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
@@ -230,8 +232,13 @@ void vrna_sc_init(vrna_fold_compound_t *vc);
 
 void
 vrna_sc_prepare(vrna_fold_compound_t  *vc,
-                int                   i,
                 unsigned int          options);
+
+
+void
+vrna_sc_update(vrna_fold_compound_t *vc,
+               unsigned int         i,
+               unsigned int         options);
 
 
 /**

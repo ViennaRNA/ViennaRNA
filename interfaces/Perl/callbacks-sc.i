@@ -69,7 +69,7 @@ sc_add_f_perl_callback( vrna_fold_compound_t *vc,
   perl_sc_callback_t * cb;
   vrna_sc_add_f(vc, &perl_wrap_sc_f_callback); /* this also creates the soft constraint data structure inside vc */
 
-  /* now bind the python function to the wrapper structure */
+  /* now bind the Perl function to the wrapper structure */
   if(vc->sc->data){
     cb = (perl_sc_callback_t *)vc->sc->data;
     /* release previous callback */
@@ -145,7 +145,7 @@ sc_add_bt_perl_callback(vrna_fold_compound_t *vc,
   perl_sc_callback_t * cb;
   vrna_sc_add_bt(vc, &perl_wrap_sc_bt_callback); /* this also creates the soft constraint data structure inside vc */
 
-  /* now bind the python function to the wrapper structure */
+  /* now bind the Perl function to the wrapper structure */
   if(vc->sc->data){
     cb = (perl_sc_callback_t *)vc->sc->data;
     /* release previous callback */

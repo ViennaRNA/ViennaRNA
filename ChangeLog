@@ -1,3 +1,7 @@
+v2.4.0
+  * Use same definition for maximum base pair distance (L) in sliding-window partition function and MFE computations
+    
+
 v2.3.5
   * Fix duplication of output filename prefix in RNAfold
   * Add V3.0 API for sliding window partition function (a.k.a. RNAPLfold)

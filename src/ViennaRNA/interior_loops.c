@@ -72,6 +72,12 @@ exp_E_int_loop(vrna_fold_compound_t *vc,
 
 
 PRIVATE FLT_OR_DBL
+exp_E_int_loop_window(vrna_fold_compound_t  *vc,
+                      int                   i,
+                      int                   j);
+
+
+PRIVATE FLT_OR_DBL
 exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
                            int                  i,
                            int                  j);
@@ -242,7 +248,11 @@ vrna_exp_E_int_loop(vrna_fold_compound_t  *vc,
   if (vc) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        q = exp_E_int_loop(vc, i, j);
+        if (vc->hc->type == VRNA_HC_WINDOW)
+          q = exp_E_int_loop_window(vc, i, j);
+        else
+          q = exp_E_int_loop(vc, i, j);
+
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
@@ -1546,6 +1556,163 @@ exp_E_int_loop(vrna_fold_compound_t *vc,
 
     if (sc && sc->exp_energy_bp)
       qbt1 *= sc->exp_energy_bp[my_iindx[i] - j];
+  }
+
+  return qbt1;
+}
+
+
+PRIVATE FLT_OR_DBL
+exp_E_int_loop_window(vrna_fold_compound_t  *vc,
+                      int                   i,
+                      int                   j)
+{
+  unsigned char             type, type_2;
+  char                      **ptype;
+  unsigned char             **hc, eval_loop;
+  short                     *S1, S_i1, S_j1;
+  unsigned int              *sn;
+  int                       k, l, u1, u2, maxk, minl, *rtype, noGUclosure,
+                            no_close, *my_iindx, *jindx, *hc_up,
+                            with_gquad, turn;
+  FLT_OR_DBL                qbt1, q_temp, **qb, **G, *scale;
+  vrna_sc_t                 *sc;
+  vrna_exp_param_t          *pf_params;
+  vrna_md_t                 *md;
+  vrna_ud_t                 *domains_up;
+  vrna_callback_hc_evaluate *evaluate;
+  struct  default_data      hc_dat_local;
+
+  ptype       = vc->ptype_local;
+  S1          = vc->sequence_encoding;
+  S_i1        = S1[i + 1];
+  S_j1        = S1[j - 1];
+  jindx       = vc->jindx;
+  hc          = vc->hc->matrix_local;
+  hc_up       = vc->hc->up_int;
+  sc          = vc->sc;
+  sn          = vc->strand_number;
+  pf_params   = vc->exp_params;
+  md          = &(pf_params->model_details);
+  with_gquad  = md->gquad;
+  turn        = md->min_loop_size;
+  qb          = vc->exp_matrices->qb_local;
+  G           = vc->exp_matrices->G_local;
+  scale       = vc->exp_matrices->scale;
+  domains_up  = vc->domains_up;
+  qbt1        = 0.;
+
+  if (vc->hc->f) {
+    evaluate            = &hc_default_user;
+    hc_dat_local.hc_f   = vc->hc->f;
+    hc_dat_local.hc_dat = vc->hc->data;
+  } else {
+    evaluate = &hc_default;
+  }
+
+  /* CONSTRAINED INTERIOR LOOP start */
+  if (hc[i][j - i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
+    type        = ptype[i][j];
+    rtype       = &(md->rtype[0]);
+    noGUclosure = md->noGUclosure;
+    no_close    = (((type == 3) || (type == 4)) && noGUclosure);
+    maxk        = i + MAXLOOP + 1;
+    maxk        = MIN2(maxk, j - turn - 2);
+    maxk        = MIN2(maxk, i + 1 + hc_up[i + 1]);
+
+    if (type == 0)
+      type = 7;
+
+    for (k = i + 1; k <= maxk; k++) {
+      if (sn[k] != sn[i])
+        break;
+
+      u1 = k - i - 1;
+
+      minl = MAX2(k + turn + 1, j - 1 - MAXLOOP + u1);
+
+      for (u2 = 0, l = j - 1; l >= minl; l--, u2++) {
+        if (hc_up[l + 1] < u2)
+          break;
+
+        eval_loop =
+          (hc[k][l - k] &
+           VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) ? (unsigned char)1 : (unsigned char)0;
+
+        /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
+        if (eval_loop && evaluate(i, j, k, l, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
+          if (sn[j] != sn[l])
+            break;
+
+          type_2 = rtype[(unsigned char)ptype[k][l]];
+
+          if (type_2 == 0)
+            type_2 = 7;
+
+          q_temp = qb[k][l] *
+                   scale[u1 + u2 + 2] *
+                   exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k - 1], S1[l + 1], pf_params);
+
+          /* soft constraints */
+          if (sc) {
+            if (sc->exp_energy_up)
+              q_temp *= sc->exp_energy_up[i + 1][u1] *
+                        sc->exp_energy_up[l + 1][u2];
+
+            if (sc->exp_energy_bp_local)
+              q_temp *= sc->exp_energy_bp_local[i][j - i];
+
+            if (sc->exp_f)
+              q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+
+            if (sc->exp_energy_stack) {
+              if ((u1 == 0) && (u2 == 0)) {
+                q_temp *= sc->exp_energy_stack[i] *
+                          sc->exp_energy_stack[k] *
+                          sc->exp_energy_stack[l] *
+                          sc->exp_energy_stack[j];
+              }
+            }
+          }
+
+          qbt1 += q_temp;
+
+          /* unstructured domains */
+          if (domains_up && domains_up->exp_energy_cb) {
+            FLT_OR_DBL qq5, qq3;
+
+            qq5 = qq3 = 0.;
+
+            if (u1 > 0) {
+              qq5 = domains_up->exp_energy_cb(vc,
+                                              i + 1, k - 1,
+                                              VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                              domains_up->data);
+            }
+
+            if (u2 > 0) {
+              qq3 = domains_up->exp_energy_cb(vc,
+                                              l + 1, j - 1,
+                                              VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                              domains_up->data);
+            }
+
+            qbt1  += q_temp * qq5;        /* only motifs in 5' part */
+            qbt1  += q_temp * qq3;        /* only motifs in 3' part */
+            qbt1  += q_temp * qq5 * qq3;  /* motifs in both parts */
+          }
+        }
+      }
+    }
+
+#if 0
+  /* no G-Quadruplexes for sliding-window partition function yet! */
+    if (with_gquad) {
+      /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
+      if ((!no_close) && (sn[j] == sn[i]))
+        qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, scale, my_iindx, pf_params);
+    }
+#endif
   }
 
   return qbt1;

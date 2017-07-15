@@ -182,18 +182,29 @@ vrna_exp_E_hp_loop(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  hc_dat_local.idx    = vc->jindx;
-  hc_dat_local.mx     = vc->hc->matrix;
-  hc_dat_local.hc_up  = vc->hc->up_hp;
-  hc_dat_local.n      = vc->length;
-  hc_dat_local.cp     = vc->cutpoint;
+  hc_dat_local.idx        = vc->jindx;
+  hc_dat_local.mx         = vc->hc->matrix;
+  hc_dat_local.mx_window  = vc->hc->matrix_local;
+  hc_dat_local.hc_up      = vc->hc->up_hp;
+  hc_dat_local.n          = vc->length;
+  hc_dat_local.cp         = vc->cutpoint;
 
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
+  if (vc->hc->type == VRNA_HC_WINDOW) {
+    if (vc->hc->f) {
+      evaluate            = &hc_default_user_window;
+      hc_dat_local.hc_f   = vc->hc->f;
+      hc_dat_local.hc_dat = vc->hc->data;
+    } else {
+      evaluate = &hc_default_window;
+    }
   } else {
-    evaluate = &hc_default;
+    if (vc->hc->f) {
+      evaluate            = &hc_default_user;
+      hc_dat_local.hc_f   = vc->hc->f;
+      hc_dat_local.hc_dat = vc->hc->data;
+    } else {
+      evaluate = &hc_default;
+    }
   }
 
   if ((i > 0) && (j > 0)) {
@@ -674,14 +685,13 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
   unsigned int      **a2s;
   short             *S, **SS, **S5, **S3;
   unsigned int      *sn;
-  int               u, ij, type, n_seq, s, *idx, *iidx;
+  int               u, type, n_seq, s, *iidx;
   FLT_OR_DBL        q, qbt1, *scale;
   vrna_exp_param_t  *P;
   vrna_sc_t         *sc, **scs;
   vrna_md_t         *md;
   vrna_ud_t         *domains_up;
 
-  idx         = vc->jindx;
   iidx        = vc->iindx;
   P           = vc->exp_params;
   md          = &(P->model_details);
@@ -689,8 +699,7 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
   scale       = vc->exp_matrices->scale;
   domains_up  = vc->domains_up;
 
-  q   = 0.;
-  ij  = idx[j] + i;
+  q = 0.;
 
   if (sn[j] != sn[i])
     return exp_eval_hp_loop_fake(vc, i, j);
@@ -700,7 +709,7 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
       S     = vc->sequence_encoding;
       sc    = vc->sc;
       u     = j - i - 1;
-      type  = vc->ptype[ij];
+      type  = get_pair_type(S[i], S[j], md);
 
       if (type == 0)
         type = 7;
@@ -718,8 +727,17 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
         if (sc->exp_energy_up)
           q *= sc->exp_energy_up[i + 1][u];
 
-        if (sc->exp_energy_bp)
-          q *= sc->exp_energy_bp[iidx[i] - j];
+        switch (sc->type) {
+          case VRNA_SC_DEFAULT:
+            if (sc->exp_energy_bp)
+              q *= sc->exp_energy_bp[iidx[i] - j];
+            break;
+
+          case VRNA_SC_WINDOW:
+            if (sc->exp_energy_bp_local)
+              q *= sc->exp_energy_bp_local[i][j - i];
+            break;
+        }
 
         if (sc->exp_f)
           q *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);

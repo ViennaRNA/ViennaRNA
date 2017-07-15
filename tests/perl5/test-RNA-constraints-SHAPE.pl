@@ -64,6 +64,7 @@ sub getShapeSequenceFromFile
     open(my $fh, "<", $f) || die "Couldn't open '".$f."' for reading because: ".$!;
     foreach my $line (<$fh>)
     {
+        chomp $line;
         return $line; #return the first line
     }
 }

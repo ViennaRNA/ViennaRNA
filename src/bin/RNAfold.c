@@ -560,7 +560,7 @@ main(int  argc,
 
           if (ligandMotif) {
             /* append motif positions to the plists of base pair probabilities */
-            vrna_plist_t  *ptr;
+            vrna_ep_t  *ptr;
             int           a, b, c, d, cnt, size, add;
             cnt = 0;
             a   = 1;
@@ -569,7 +569,7 @@ main(int  argc,
             for (size = 0, ptr = pl1; ptr->i; size++, ptr++);
 
             /* increase length of pl1 */
-            pl1 = vrna_realloc(pl1, sizeof(vrna_plist_t) * (size + add + 1));
+            pl1 = vrna_realloc(pl1, sizeof(vrna_ep_t) * (size + add + 1));
 
             while (vrna_sc_get_hi_motif(vc, &a, &b, &c, &d)) {
               if (c == 0) {
@@ -582,7 +582,7 @@ main(int  argc,
                 if (cnt == add) {
                   add += 10;
                   /* increase length of pl1 */
-                  pl1 = vrna_realloc(pl1, sizeof(vrna_plist_t) * (size + add + 1));
+                  pl1 = vrna_realloc(pl1, sizeof(vrna_ep_t) * (size + add + 1));
                 }
               } else {
                 /* interior loop motif */
@@ -599,14 +599,14 @@ main(int  argc,
                 if (cnt == add) {
                   add += 10;
                   /* increase length of pl1 */
-                  pl1 = vrna_realloc(pl1, sizeof(vrna_plist_t) * (size + add + 1));
+                  pl1 = vrna_realloc(pl1, sizeof(vrna_ep_t) * (size + add + 1));
                 }
               }
 
               a = b;
             }
             /* resize pl1 to actual needs */
-            pl1               = vrna_realloc(pl1, sizeof(vrna_plist_t) * (size + cnt + 1));
+            pl1               = vrna_realloc(pl1, sizeof(vrna_ep_t) * (size + cnt + 1));
             pl1[size + cnt].i = 0;
             pl1[size + cnt].j = 0;
 
@@ -618,7 +618,7 @@ main(int  argc,
             for (size = 0, ptr = pl2; ptr->i; size++, ptr++);
 
             /* increase length of pl2 */
-            pl2 = vrna_realloc(pl2, sizeof(vrna_plist_t) * (size + add + 1));
+            pl2 = vrna_realloc(pl2, sizeof(vrna_ep_t) * (size + add + 1));
 
             vrna_sc_motif_t *motifs = vrna_sc_ligand_detect_motifs(vc, structure);
             if (motifs) {
@@ -633,7 +633,7 @@ main(int  argc,
                   if (cnt == add) {
                     add += 10;
                     /* increase length of pl1 */
-                    pl2 = vrna_realloc(pl2, sizeof(vrna_plist_t) * (size + add + 1));
+                    pl2 = vrna_realloc(pl2, sizeof(vrna_ep_t) * (size + add + 1));
                   }
                 } else {
                   /* interior loop motif */
@@ -650,7 +650,7 @@ main(int  argc,
                   if (cnt == add) {
                     add += 10;
                     /* increase length of pl1 */
-                    pl2 = vrna_realloc(pl2, sizeof(vrna_plist_t) * (size + add + 1));
+                    pl2 = vrna_realloc(pl2, sizeof(vrna_ep_t) * (size + add + 1));
                   }
                 }
               }
@@ -659,7 +659,7 @@ main(int  argc,
             free(motifs);
 
             /* resize pl1 to actual needs */
-            pl2               = vrna_realloc(pl2, sizeof(vrna_plist_t) * (size + cnt + 1));
+            pl2               = vrna_realloc(pl2, sizeof(vrna_ep_t) * (size + cnt + 1));
             pl2[size + cnt].i = 0;
             pl2[size + cnt].j = 0;
           }

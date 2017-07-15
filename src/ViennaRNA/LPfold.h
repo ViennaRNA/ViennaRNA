@@ -87,6 +87,9 @@ typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
  */
 #define VRNA_PROBS_WINDOW_UP_SPLIT   32768U
 
+
+#define VRNA_PROBS_WINDOW_PF        65536U
+
 /**
  *  @brief  Compute base pair probabilities using a sliding-window approach
  *
@@ -105,9 +108,9 @@ typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
  *  @param  window_size   The size of the sliding window
  *  @param  max_bp_span   The maximum distance along the backbone between two nucleotides that form a base pairs
  *  @param  cutoff        A cutoff value that omits all pairs with lower probability
- *  @return               A list of base pair probabilities, terminated by an entry with #vrna_plist_t.i and #vrna_plist_t.j set to 0
+ *  @return               A list of base pair probabilities, terminated by an entry with #vrna_ep_t.i and #vrna_ep_t.j set to 0
  */
-vrna_plist_t *
+vrna_ep_t *
 vrna_pfl_fold(const char  *sequence,
               int         window_size,
               int         max_bp_span,
@@ -223,9 +226,9 @@ vrna_pfl_fold_up_cb(const char                  *sequence,
 void
 vrna_probs_window(vrna_fold_compound_t        *fc,
                   int                         ulength,
+                  unsigned int                options,
                   vrna_probs_window_callback  *cb,
-                  void                        *data,
-                  unsigned int                options);
+                  void                        *data);
 
 
 #ifdef  VRNA_BACKWARD_COMPAT
@@ -287,12 +290,12 @@ DEPRECATED(void update_pf_paramsLP_par(int              length,
  *  \param  spup     file pointer for pair probabilities
  *  \return list of pair probabilities
  */
-DEPRECATED(vrna_plist_t *pfl_fold(char          *sequence,
+DEPRECATED(vrna_ep_t *pfl_fold(char          *sequence,
                                   int           winSize,
                                   int           pairSize,
                                   float         cutoffb,
                                   double        **pU,
-                                  vrna_plist_t  **dpp2,
+                                  vrna_ep_t  **dpp2,
                                   FILE          *pUfp,
                                   FILE          *spup));
 
@@ -303,12 +306,12 @@ DEPRECATED(vrna_plist_t *pfl_fold(char          *sequence,
  *  \ingroup local_pf_fold
  *
  */
-DEPRECATED(vrna_plist_t *pfl_fold_par(char              *sequence,
+DEPRECATED(vrna_ep_t *pfl_fold_par(char              *sequence,
                                       int               winSize,
                                       int               pairSize,
                                       float             cutoffb,
                                       double            **pU,
-                                      vrna_plist_t      **dpp2,
+                                      vrna_ep_t      **dpp2,
                                       FILE              *pUfp,
                                       FILE              *spup,
                                       vrna_exp_param_t  *parameters));

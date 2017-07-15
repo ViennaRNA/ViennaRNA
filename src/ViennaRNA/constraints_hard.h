@@ -347,21 +347,19 @@ struct vrna_hc_s {
   union {
     struct {
 #endif
-  unsigned char *matrix;     /**<  @brief  Upper triangular matrix that encodes where a
-                              *            base pair or unpaired nucleotide is allowed
-                              */
+      unsigned char *matrix;     /**<  @brief  Upper triangular matrix that encodes where a
+                                  *            base pair or unpaired nucleotide is allowed
+                                  */
 #ifndef VRNA_DISABLE_C11_FEATURES
-  /* C11 support for unnamed unions/structs */
-};
-struct {
+    };
+    struct {
 #endif
-  unsigned char         **matrix_local;
-  unsigned char         *up_storage;
-  vrna_hc_bp_storage_t  **bp_storage;
+      unsigned char         **matrix_local;
+      unsigned char         *up_storage;
+      vrna_hc_bp_storage_t  **bp_storage;
 #ifndef VRNA_DISABLE_C11_FEATURES
-  /* C11 support for unnamed unions/structs */
-};
-};
+    };
+  };
 #endif
 
   int                         *up_ext;    /**<  @brief  A linear array that holds the number of allowed
@@ -467,8 +465,8 @@ void vrna_hc_init_window(vrna_fold_compound_t *vc);
 
 
 void
-vrna_hc_prepare(vrna_fold_compound_t  *vc,
-                int                   i);
+vrna_hc_update(vrna_fold_compound_t *vc,
+               int                  i);
 
 
 /**

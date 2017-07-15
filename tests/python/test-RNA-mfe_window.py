@@ -2,11 +2,11 @@ import RNApath
 
 RNApath.addSwigInterfacePath()
 
-
 import RNA
 import unittest
 
 seq1 = "CGCAGGGAUACCCGCG"
+longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU"
 s1="CCCCAAAACGGG"
 s2="CCCGAAAAGGGG"
 s3="CCCCAAAAGGGG"
@@ -17,18 +17,18 @@ def mfe_window_callback(start, end, structure, energy, data=None):
     data.append({ 'structure': structure, 'start': start, 'end' : end, 'energy' : energy})
 
 
-class mfe_eval_functionTest(unittest.TestCase):
+class mfe_window_functionTest(unittest.TestCase):
 
     def test_mfe_window(self):
-        print "test_mfe_window\n"
+        print "test_mfe_window"
         fc= RNA.fold_compound(seq1, None, RNA.OPTION_MFE | RNA.OPTION_WINDOW)
         (mfe) = fc.mfe_window()
-        print "[ %6.2f" %mfe ,"]\n"
+        print "[ %6.2f" %mfe ,"]"
         self.assertEqual("%6.2f" % mfe, "%6.2f" % -5.60)
 
 
     def test_Lfold_cb(self):
-        print "test_Lfold_cb\n"
+        print "test_Lfold_cb"
         data = []
         mfe = RNA.Lfold_cb(seq1, 150, mfe_window_callback, data)
         self.assertTrue(len(data) == 2)
@@ -39,7 +39,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_mfe_window_cb(self):
-        print "test_mfe_window_cb\n"
+        print "test_mfe_window_cb"
         fc= RNA.fold_compound(seq1, None, RNA.OPTION_MFE | RNA.OPTION_WINDOW)
         data = []
         mfe = fc.mfe_window_cb(mfe_window_callback, data)
@@ -51,7 +51,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_aliLfold_cb(self):
-        print "test_aliLfold_cb\n"
+        print "test_aliLfold_cb"
         data = []
         mfe = RNA.aliLfold_cb(ali, 150, mfe_window_callback, data)
         self.assertTrue(len(data) == 2)
@@ -62,7 +62,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_mfe_window_cb(self):
-        print "test_mfe_window_cb (comparative)\n"
+        print "test_mfe_window_cb (comparative)"
         fc= RNA.fold_compound(ali, None, RNA.OPTION_MFE | RNA.OPTION_WINDOW)
         data = []
         mfe = fc.mfe_window_cb(mfe_window_callback, data)

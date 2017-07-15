@@ -155,7 +155,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
   int           corr_size       = 5;
   int           corr_cnt        = 0;
-  vrna_plist_t  *bp_correction  = vrna_alloc(sizeof(vrna_plist_t) * corr_size);
+  vrna_ep_t  *bp_correction  = vrna_alloc(sizeof(vrna_ep_t) * corr_size);
 
   max_real      = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
@@ -319,7 +319,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                       bp_correction[corr_cnt++].p = tmp2 * qb[kl];
                       if(corr_cnt == corr_size){
                         corr_size += 5;
-                        bp_correction = vrna_realloc(bp_correction, sizeof(vrna_plist_t) * corr_size);
+                        bp_correction = vrna_realloc(bp_correction, sizeof(vrna_ep_t) * corr_size);
                       }
                     }
                     free(aux_bps);
@@ -680,7 +680,7 @@ pf_create_bppm( vrna_fold_compound_t *vc,
                 bp_correction[corr_cnt++].p = probs[ij] * qhp;
                 if(corr_cnt == corr_size){
                   corr_size += 5;
-                  bp_correction = vrna_realloc(bp_correction, sizeof(vrna_plist_t) * corr_size);
+                  bp_correction = vrna_realloc(bp_correction, sizeof(vrna_ep_t) * corr_size);
                 }
               }
             }
@@ -2205,10 +2205,10 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc){
                                 vc->exp_params->model_details.min_loop_size);
 }
 
-PUBLIC vrna_plist_t *
+PUBLIC vrna_ep_t *
 vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff){
 
-  vrna_plist_t             *pl;
+  vrna_ep_t             *pl;
   int               i, j, plsize, turn, length, *index, *jindx, *rtype, num;
   char              *ptype;
   FLT_OR_DBL        *qb, *probs, *scale, p;
@@ -2232,7 +2232,7 @@ vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff){
     scale     = matrices->scale;
     turn      = pf_params->model_details.min_loop_size;
 
-    pl        = (vrna_plist_t *) vrna_alloc(plsize*sizeof(vrna_plist_t));
+    pl        = (vrna_ep_t *) vrna_alloc(plsize*sizeof(vrna_ep_t));
 
     for (i=1; i<length; i++)
       for (j=i+turn+3; j<=length; j++) {
@@ -2248,7 +2248,7 @@ vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff){
           pl[num++].p   = p;
           if (num>=plsize) {
             plsize *= 2;
-            pl = vrna_realloc(pl, plsize*sizeof(vrna_plist_t));
+            pl = vrna_realloc(pl, plsize*sizeof(vrna_ep_t));
           }
         }
       }

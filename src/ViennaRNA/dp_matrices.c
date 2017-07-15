@@ -261,7 +261,9 @@ vrna_mx_mfe_add(vrna_fold_compound_t  *vc,
     if (vc->cutpoint > 0)
       options |= VRNA_OPTION_HYBRID;
 
-    mx_alloc_vector = get_mx_alloc_vector(&(vc->params->model_details), mx_type, options);
+    mx_alloc_vector = get_mx_alloc_vector(&(vc->params->model_details),
+                                          mx_type,
+                                          options);
     vrna_mx_mfe_free(vc);
     add_mfe_matrices(vc, mx_type, mx_alloc_vector);
   } else {
@@ -477,7 +479,8 @@ add_pf_matrices(vrna_fold_compound_t  *vc,
           get_pf_matrices_alloc(vc->length, vc->window_size, mx_type, alloc_vector);
         break;
       default:
-        vc->exp_matrices = get_pf_matrices_alloc(vc->length, vc->length, mx_type, alloc_vector);
+        vc->exp_matrices =
+          get_pf_matrices_alloc(vc->length, vc->length, mx_type, alloc_vector);
         break;
     }
 
@@ -1330,6 +1333,7 @@ pf_matrices_alloc_window(vrna_mx_pf_t *vars,
   vars->QI5       = NULL;
   vars->q2l       = NULL;
   vars->qmb       = NULL;
+  vars->G_local   = NULL;
 
   if (alloc_vector & ALLOC_F)
     vars->q_local = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
@@ -1364,6 +1368,7 @@ pf_matrices_free_window(vrna_mx_pf_t  *self,
   free(self->QI5);
   free(self->q2l);
   free(self->qmb);
+  free(self->G_local);
 }
 
 

@@ -276,23 +276,24 @@ vrna_hc_init_window(vrna_fold_compound_t *vc)
 
 
 PUBLIC void
-vrna_hc_prepare(vrna_fold_compound_t  *vc,
-                int                   i)
+vrna_hc_update(vrna_fold_compound_t *vc,
+               int                  i)
 {
-  int       j, k, type, n, maxdist, turn, noLP;
+  int       j, k, type, n, maxdist, pairSize, turn, noLP;
   short     *S;
   char      **ptype;
   vrna_md_t *md;
   vrna_hc_t *hc;
 
-  n       = (int)vc->length;
-  S       = vc->sequence_encoding2;
-  hc      = vc->hc;
-  ptype   = vc->ptype_local;
-  maxdist = vc->window_size;
-  md      = &(vc->params->model_details);
-  turn    = md->min_loop_size;
-  noLP    = md->noLP;
+  n         = (int)vc->length;
+  S         = vc->sequence_encoding2;
+  hc        = vc->hc;
+  ptype     = vc->ptype_local;
+  maxdist   = vc->window_size;
+  md        = &(vc->params->model_details);
+  turn      = md->min_loop_size;
+  noLP      = md->noLP;
+  pairSize  = md->max_bp_span;
 
   /* init up_xx arrays if necessary */
   if (!hc->up_ext) {
@@ -328,7 +329,7 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
           break;
 
         unsigned char opt = (unsigned char)0;
-        if ((j - i + 1) <= maxdist) {
+        if ((j - i + 1) <= pairSize) {
           type = md->pair[S[i]][S[j]];
           switch (type) {
             case 0:
@@ -388,7 +389,7 @@ vrna_hc_prepare(vrna_fold_compound_t  *vc,
           break;
 
         unsigned char opt = (unsigned char)0;
-        if ((j - i) <= maxdist)
+        if ((j - i + 1) <= pairSize)
           if (vc->pscore_local[i][j - i] >= md->cv_fact * MINPSCORE)
             opt = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 

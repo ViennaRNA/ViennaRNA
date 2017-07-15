@@ -22,6 +22,7 @@
 %include callbacks-ud.i
 %include callbacks-subopt.i
 %include callbacks-mfe-window.i
+%include callbacks-pf-window.i
 
 /* start constructing a sane interface to vrna_fold_compound_t */
 
@@ -124,5 +125,6 @@ typedef struct {
   int i;
   int j;
 } vrna_basepair_t;
+
 
 %include <ViennaRNA/data_structures.h>

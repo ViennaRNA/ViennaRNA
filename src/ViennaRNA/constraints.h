@@ -86,6 +86,7 @@
  */
 #define VRNA_DECOMP_PAIR_ML     (unsigned char)3
 
+#define VRNA_DECOMP_PAIR_ML_OUTSIDE     (unsigned char)4
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
  *
@@ -99,7 +100,7 @@
  *  @image latex  decomp_ml_ml_ml.eps
  *
  */
-#define VRNA_DECOMP_ML_ML_ML    (unsigned char)4
+#define VRNA_DECOMP_ML_ML_ML    (unsigned char)5
 
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
@@ -114,7 +115,7 @@
  *  @image latex  decomp_ml_stem.eps
  *
  */
-#define VRNA_DECOMP_ML_STEM     (unsigned char)5
+#define VRNA_DECOMP_ML_STEM     (unsigned char)6
 
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
@@ -129,7 +130,7 @@
  *  @image latex  decomp_ml_ml.eps
  *
  */
-#define VRNA_DECOMP_ML_ML       (unsigned char)6
+#define VRNA_DECOMP_ML_ML       (unsigned char)7
 
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
@@ -145,7 +146,7 @@
  *  @image latex  decomp_ml_up.eps
  *
  */
-#define VRNA_DECOMP_ML_UP       (unsigned char)7
+#define VRNA_DECOMP_ML_UP       (unsigned char)8
 
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
@@ -161,7 +162,7 @@
  *  @image latex  decomp_ml_ml_stem.eps
  *
  */
-#define VRNA_DECOMP_ML_ML_STEM (unsigned char)8
+#define VRNA_DECOMP_ML_ML_STEM (unsigned char)9
 
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
@@ -177,7 +178,7 @@
  *  @image latex  decomp_ml_coaxial.eps
  *
  */
-#define VRNA_DECOMP_ML_COAXIAL  (unsigned char)9
+#define VRNA_DECOMP_ML_COAXIAL  (unsigned char)10
 
 /**
  *  @brief  Indicator for decomposition of multibranch loop part
@@ -193,7 +194,7 @@
  *  @image latex  decomp_ml_coaxial.eps
  *
  */
-#define VRNA_DECOMP_ML_COAXIAL_ENC  (unsigned char)10
+#define VRNA_DECOMP_ML_COAXIAL_ENC  (unsigned char)11
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -209,7 +210,7 @@
  *  @image latex  decomp_ext_ext.eps
  *
  */
-#define VRNA_DECOMP_EXT_EXT     (unsigned char)11
+#define VRNA_DECOMP_EXT_EXT     (unsigned char)12
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -225,7 +226,7 @@
  *  @image latex  decomp_ext_up.eps
  *
  */
-#define VRNA_DECOMP_EXT_UP      (unsigned char)12
+#define VRNA_DECOMP_EXT_UP      (unsigned char)13
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -240,7 +241,7 @@
  *  @image latex  decomp_ext_stem.eps
  *
  */
-#define VRNA_DECOMP_EXT_STEM (unsigned char)13
+#define VRNA_DECOMP_EXT_STEM (unsigned char)14
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -255,7 +256,7 @@
  *  @image latex  decomp_ext_ext_ext.eps
  *
  */
-#define VRNA_DECOMP_EXT_EXT_EXT (unsigned char)14
+#define VRNA_DECOMP_EXT_EXT_EXT (unsigned char)15
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -271,7 +272,7 @@
  *  @image latex  decomp_ext_stem_ext.eps
  *
  */
-#define VRNA_DECOMP_EXT_STEM_EXT (unsigned char)15
+#define VRNA_DECOMP_EXT_STEM_EXT (unsigned char)16
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -279,7 +280,7 @@
  *  @ingroup  constraints
  *
  */
-#define VRNA_DECOMP_EXT_STEM_OUTSIDE (unsigned char)16
+#define VRNA_DECOMP_EXT_STEM_OUTSIDE (unsigned char)17
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -295,7 +296,7 @@
  *  @image latex  decomp_ext_ext_stem.eps
  *
  */
-#define VRNA_DECOMP_EXT_EXT_STEM (unsigned char)17
+#define VRNA_DECOMP_EXT_EXT_STEM (unsigned char)18
 
 /**
  *  @brief  Indicator for decomposition of exterior loop part
@@ -312,12 +313,12 @@
  *  @image latex  decomp_ext_ext_stem1.eps
  *
  */
-#define VRNA_DECOMP_EXT_EXT_STEM1 (unsigned char)18
+#define VRNA_DECOMP_EXT_EXT_STEM1 (unsigned char)19
 
-#define VRNA_DECOMP_EXT_STEM_EXT1 (unsigned char)19
+#define VRNA_DECOMP_EXT_STEM_EXT1 (unsigned char)20
 
-#define VRNA_DECOMP_EXT_L         (unsigned char)20
-#define VRNA_DECOMP_EXT_EXT_L     (unsigned char)21
+#define VRNA_DECOMP_EXT_L         (unsigned char)21
+#define VRNA_DECOMP_EXT_EXT_L     (unsigned char)22
 
 /**
  *  @brief  Add constraints to a #vrna_fold_compound_t data structure

@@ -14,7 +14,7 @@ def print_subopt_result(structure, energy, data=None):
 
 class GeneralTests(unittest.TestCase):
     def test_subopt0(self):
-        print "test_subopt (pointer mode)\n"
+        print "test_subopt (pointer mode)"
 
         RNA.cvar.subopt_sorted = 1
         RNA.cvar.noLonelyPairs = 1
@@ -30,7 +30,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_subopt1(self):
-        print "test_subopt (list mode)\n"
+        print "test_subopt (list mode)"
         ## test native array output of subopt()
         RNA.cvar.subopt_sorted = 1
         RNA.cvar.noLonelyPairs = 1
@@ -42,7 +42,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_subopt2(self):
-        print "test_subopt (as fold_compound method)\n"
+        print "test_subopt (as fold_compound method)"
 
         a = RNA.fold_compound(sequence)
         solution = a.subopt(500)
@@ -52,7 +52,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_subopt3(self):
-        print "test_subopt_cb (as fold_compound method)\n"
+        print "test_subopt_cb (as fold_compound method)"
         a = RNA.fold_compound(sequence)
         a.subopt_cb(500, print_subopt_result);
 
