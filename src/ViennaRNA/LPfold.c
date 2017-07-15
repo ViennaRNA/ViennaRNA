@@ -1434,7 +1434,7 @@ get_deppp(vrna_fold_compound_t  *vc,
     }
   }
   /* write it to list of deppps */
-  for (i = 0; pl[i].i != 0; i++);
+  for (i = 0; pl[i].i != 0; i++) ;
   pl = (vrna_ep_t *)vrna_realloc(pl, (i + count + 1) * sizeof(vrna_ep_t));
   for (j = 0; j < count; j++) {
     pl[i + j].i = temp[j].i;
@@ -1680,13 +1680,30 @@ compute_pU(vrna_fold_compound_t       *vc,
    */
 
   temp = 0.;
-  for (len = winSize; len >= ulength; len--)
-    temp += q2l[k][len] * expMLbase[len];
-  for (; len > 0; len--) {
-    temp      += q2l[k][len] * expMLbase[len];
-    QBM[len]  += temp;
-    QBE[len]  += temp; /* add (()()____) type cont. to I3 */
+  if (sc && sc->exp_energy_up) {
+    for (len = winSize; len >= ulength; len--)
+      temp += q2l[k][len]
+              * expMLbase[len]
+              * sc->exp_energy_up[k][len];
+    for (; len > 0; len--) {
+      temp += q2l[k][len]
+              * expMLbase[len]
+              * sc->exp_energy_up[k][len];
+      QBM[len]  += temp;
+      QBE[len]  += temp; /* add (()()____) type cont. to I3 */
+    }
+  } else {
+    for (len = winSize; len >= ulength; len--)
+      temp += q2l[k][len]
+              * expMLbase[len];
+    for (; len > 0; len--) {
+      temp += q2l[k][len]
+              * expMLbase[len];
+      QBM[len]  += temp;
+      QBE[len]  += temp; /* add (()()____) type cont. to I3 */
+    }
   }
+
   for (len = 1; len < ulength; len++) {
     for (obp = k + len + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
       /* add (()___()) */
@@ -1694,10 +1711,15 @@ compute_pU(vrna_fold_compound_t       *vc,
              qm[k + len + 1 /*2*/][obp - 1] *
              expMLbase[len];
 
+      if (sc)
+        if (sc->exp_energy_up)
+          temp *= sc->exp_energy_up[k][len];
+
       QBM[len]  += temp;
       QBE[len]  += temp;
     }
   }
+
   for (len = 1; len < ulength; len++) {
     for (obp = k + len + turn + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
       if (ptype[k][obp]) {
@@ -1711,6 +1733,14 @@ compute_pU(vrna_fold_compound_t       *vc,
                expMLclosing *
                pR[k][obp] *
                qm2[k + len + 1][obp - 1]; /* k:obp */
+
+        if (sc) {
+          if (sc->exp_energy_up)
+            temp *= sc->exp_energy_up[k + 1][len];
+
+          if (sc->exp_energy_bp)
+            temp *= sc->exp_energy_bp_local[k][obp - k];
+        }
 
         QBM[len]  += temp;
         QBE[len]  += temp;
@@ -1738,8 +1768,15 @@ compute_pU(vrna_fold_compound_t       *vc,
   }
 
   /* open chain */
-  if ((ulength >= winSize) && (k >= ulength))
-    pU[k][winSize] = scale[winSize] / q[k - winSize + 1][k];
+  if ((ulength >= winSize) && (k >= ulength)) {
+    if (sc) {
+      pU[k][winSize] = scale[winSize] *
+                       sc->exp_energy_up[k][winSize] /
+                       q[k - winSize + 1][k];
+    } else {
+      pU[k][winSize] = scale[winSize] / q[k - winSize + 1][k];
+    }
+  }
 
   /*
    * now the not enclosed by any base pair terms for whatever it is we do not need anymore...
@@ -1747,21 +1784,46 @@ compute_pU(vrna_fold_compound_t       *vc,
    */
   for (startu = MIN2(ulength, k); startu > 0; startu--) {
     temp = 0.;
-    for (i5 = MAX2(1, k - winSize + 2); i5 <= MIN2(k - startu, n - winSize + 1); i5++)
-      temp += q[i5][k - startu] *
-              q[k + 1][i5 + winSize - 1] *
-              scale[startu] /
-              q[i5][i5 + winSize - 1];
-    /* the 2 Cases where the borders are on the edge of the interval */
-    if ((k >= winSize) && (startu + 1 <= winSize))
-      temp += q[k - winSize + 1][k - startu] *
-              scale[startu] /
-              q[k - winSize + 1][k];
+    if (sc) {
+      for (i5 = MAX2(1, k - winSize + 2); i5 <= MIN2(k - startu, n - winSize + 1); i5++)
+        temp += q[i5][k - startu] *
+                q[k + 1][i5 + winSize - 1] *
+                scale[startu] *
+                sc->exp_energy_up[k - startu + 1][startu] /
+                q[i5][i5 + winSize - 1];
 
-    if ((k <= n - winSize + startu) && (k - startu >= 0) && (k < n) && (startu + 1 <= winSize))
-      temp += q[k + 1][k - startu + winSize] *
-              scale[startu] /
-              q[k - startu + 1][k - startu + winSize];
+      /* the 2 Cases where the borders are on the edge of the interval */
+      if ((k >= winSize) && (startu + 1 <= winSize)) {
+        temp += q[k - winSize + 1][k - startu] *
+                scale[startu] *
+                sc->exp_energy_up[k - startu + 1][startu] /
+                q[k - winSize + 1][k];
+      }
+
+      if ((k <= n - winSize + startu) && (k - startu >= 0) && (k < n) && (startu + 1 <= winSize)) {
+        temp += q[k + 1][k - startu + winSize] *
+                scale[startu] *
+                sc->exp_energy_up[k - startu + 1][startu] /
+                q[k - startu + 1][k - startu + winSize];
+      }
+    } else {
+      for (i5 = MAX2(1, k - winSize + 2); i5 <= MIN2(k - startu, n - winSize + 1); i5++)
+        temp += q[i5][k - startu] *
+                q[k + 1][i5 + winSize - 1] *
+                scale[startu] /
+                q[i5][i5 + winSize - 1];
+
+      /* the 2 Cases where the borders are on the edge of the interval */
+      if ((k >= winSize) && (startu + 1 <= winSize))
+        temp += q[k - winSize + 1][k - startu] *
+                scale[startu] /
+                q[k - winSize + 1][k];
+
+      if ((k <= n - winSize + startu) && (k - startu >= 0) && (k < n) && (startu + 1 <= winSize))
+        temp += q[k + 1][k - startu + winSize] *
+                scale[startu] /
+                q[k - startu + 1][k - startu + winSize];
+    }
 
     /* Divide by number of possible windows */
     leftmost  = MAX2(1, k - winSize + 1);
