@@ -5,7 +5,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 22;
+use Test::More tests => 23;
 use Data::Dumper;
 use FileHandle;
 
@@ -101,6 +101,16 @@ sub bpp_callback {
       my %d_bpp = ('i' => $i, 'j' => $j, 'p' => $v->[$j]);
       push @{$data}, \%d_bpp;
     }
+  }
+}
+
+
+sub up_callback {
+  my ($v, $v_size, $i, $maxsize, $what, $data) = @_;
+
+  if ($what & RNA::PROBS_WINDOW_UP) {
+    my %d_up = ('i' => $i, 'up' => $v);
+    push @{$data}, \%d_up;
   }
 }
 
@@ -298,5 +308,49 @@ foreach my $d (@data) {
   } @data2;
   ($equal_probabilities = 0, last) if ! defined($item);
   ($equal_probabilities = 0, last) if ! (sprintf("%g", $d->{'p'}) eq sprintf("%g", $item->{'p'}));
+}
+ok($equal_probabilities == 1);
+
+
+# Compute unpaired probabilities both, constrained and unconstrained, where the
+# constraint simply shifts the free energy base line by -1 kcal/mol per nucleotide.
+# When comparing both results, equilibrium probabilities must not have changed!
+print "test_probs_window_up\n";
+
+my $ulength = 45;
+
+$md = new RNA::md();
+$md->{'max_bp_span'} = 150;
+$md->{'window_size'} = 200;
+
+$fc = new RNA::fold_compound($longseq, $md, RNA::OPTION_WINDOW);
+
+@data = ();
+
+# unconstrained unpaired probabilities
+$fc->probs_window($ulength, RNA::PROBS_WINDOW_UP, \&up_callback, \@data);
+
+# add constraints
+foreach my $i (1..length($longseq)) {
+  $fc->sc_add_up($i, -1.0, RNA::OPTION_WINDOW);
+}
+
+foreach my $i (1..length($longseq)) {
+  foreach my $j (($i + 1)..length($longseq)) {
+    $fc->sc_add_bp($i, $j, -2, RNA::OPTION_WINDOW);
+  }
+}
+
+@data2 = ();
+
+# constrained unpaired probabilities
+$fc->probs_window($ulength, RNA::PROBS_WINDOW_UP, \&up_callback, \@data2);
+
+$equal_probabilities = 1;
+foreach my $i (1..length($longseq)) {
+  foreach my $u (1..$ulength) {
+    last if $i - $u + 1 <= 0;
+    ($equal_probabilities = 0, last) if ! (sprintf("%g", $data[$i - 1]->{'up'}[$u]) eq sprintf("%g", $data2[$i - 1]->{'up'}[$u]));
+  }
 }
 ok($equal_probabilities == 1);

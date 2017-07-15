@@ -53,6 +53,11 @@ def bpp_callback(v, v_size, i, maxsize, what, data=None):
         data.extend([{'i': i, 'j': j, 'p': p} for j, p in enumerate(v) if (p is not None) and (p >= 0.01)])
 
 
+def up_callback(v, v_size, i, maxsize, what, data):
+    if what & RNA.PROBS_WINDOW_UP:
+        data.append({ 'i': i, 'up': v})
+
+
 class pf_window_functionTest(unittest.TestCase):
 
     def test_pfl_fold(self):
@@ -201,6 +206,45 @@ class pf_window_functionTest(unittest.TestCase):
             dc = (i for i in data2 if (i['i'] == du['i'] and i['j'] == du['j'])).next()
             self.assertTrue(dc != None)
             self.assertEqual("%g" % du['p'], "%g" % dc['p'])
+
+
+    """
+    Compute unpaired probabilities both, constrained and unconstrained, where the
+    constraint simply shifts the free energy base line by -1 kcal/mol per nucleotide.
+    When comparing both results, equilibrium probabilities must not have changed!
+    """
+    def test_probs_window(self):
+        print "test_probs_window_up"
+
+        ulength = 45
+        data = []
+        data2 = []
+
+        md = RNA.md()
+        md.max_bp_span = 150
+        md.window_size = 200
+
+        fc = RNA.fold_compound(longseq, md, RNA.OPTION_WINDOW)
+
+        # unconstrained unpaired probabilities
+        fc.probs_window(ulength, RNA.PROBS_WINDOW_UP, up_callback, data)
+
+        # add constraints
+        for i in range(1, len(longseq) + 1):
+          fc.sc_add_up(i, -1.0, RNA.OPTION_WINDOW)
+
+        for i in range(1, len(longseq)):
+            for j in range(i + 1, len(longseq) + 1):
+                fc.sc_add_bp(i, j, -2, RNA.OPTION_WINDOW)
+
+        # constrained unpaired probabilities
+        fc.probs_window(ulength, RNA.PROBS_WINDOW_UP, up_callback, data2)
+
+        for i in range(1, len(longseq) + 1):
+            for u in range (1, ulength + 1):
+                if i - u + 1 <= 0:
+                    break
+                self.assertEqual("%g" % data[i - 1]['up'][u], "%g" % data2[i - 1]['up'][u])
 
 
 
