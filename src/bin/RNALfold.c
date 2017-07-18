@@ -23,6 +23,7 @@
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/Lfold.h"
 #include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/commands.h"
 #include "RNALfold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helper.h"
@@ -61,13 +62,14 @@ main(int  argc,
 {
   FILE                        *input, *output;
   struct  RNALfold_args_info  args_info;
-  char                        *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest,
+  char                        *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest, *command_file,
                               *orig_sequence, *infile, *outfile, *id_prefix, *id_delim, *filename_delim;
   unsigned int                rec_type, read_opt;
   int                         length, istty, noconv, maxdist, zsc, tofile, auto_id, id_digits, filename_full;
   long int                    seq_number;
   double                      min_en, min_z;
   vrna_md_t                   md;
+  vrna_cmd_t                  *commands;
 
   ParamFile     = ns_bases = NULL;
   do_backtrack  = 1;
@@ -87,6 +89,8 @@ main(int  argc,
   tofile        = 0;
   filename_full = 0;
   auto_id       = 0;
+  command_file  = NULL;
+  commands      = NULL;
 
   /* apply default model details */
   vrna_md_set_default(&md);
@@ -193,6 +197,9 @@ main(int  argc,
   if (args_info.filename_full_given)
     filename_full = 1;
 
+  if (args_info.commands_given)
+    command_file = strdup(args_info.commands_arg);
+
   /* check for errorneous parameter options */
   if (maxdist <= 0) {
     RNALfold_cmdline_parser_print_help();
@@ -220,6 +227,9 @@ main(int  argc,
 
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
+
+  if (command_file != NULL)
+    commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
   if (ns_bases != NULL)
     vrna_md_set_nonstandards(&md, ns_bases);
@@ -305,6 +315,8 @@ main(int  argc,
 
     vrna_fold_compound_t  *vc = vrna_fold_compound((const char *)rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
+    if (commands)
+      vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
     hit_data              data;
     data.output       = output;
@@ -359,6 +371,8 @@ main(int  argc,
   free(id_delim);
   free(id_prefix);
   free(filename_delim);
+  free(command_file);
+  vrna_commands_free(commands);
 
   return EXIT_SUCCESS;
 }
