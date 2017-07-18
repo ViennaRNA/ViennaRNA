@@ -291,13 +291,13 @@ DEPRECATED(void update_pf_paramsLP_par(int              length,
  *  \return list of pair probabilities
  */
 DEPRECATED(vrna_ep_t *pfl_fold(char          *sequence,
-                                  int           winSize,
-                                  int           pairSize,
-                                  float         cutoffb,
-                                  double        **pU,
-                                  vrna_ep_t  **dpp2,
-                                  FILE          *pUfp,
-                                  FILE          *spup));
+                               int           winSize,
+                               int           pairSize,
+                               float         cutoffb,
+                               double        **pU,
+                               vrna_ep_t     **dpp2,
+                               FILE          *pUfp,
+                               FILE          *spup));
 
 
 /**
@@ -311,7 +311,7 @@ DEPRECATED(vrna_ep_t *pfl_fold_par(char              *sequence,
                                       int               pairSize,
                                       float             cutoffb,
                                       double            **pU,
-                                      vrna_ep_t      **dpp2,
+                                      vrna_ep_t         **dpp2,
                                       FILE              *pUfp,
                                       FILE              *spup,
                                       vrna_exp_param_t  *parameters));
