@@ -22,7 +22,9 @@
  *  @param  length  The length of the subsequence to consider (starting with 5' end)
  *  @return         A sampled secondary structure in dot-bracket notation
  */
-char    *vrna_pbacktrack5(vrna_fold_compound_t *vc, int length);
+char *vrna_pbacktrack5(vrna_fold_compound_t *vc,
+                       int                  length);
+
 
 /**
  *  @brief Sample a secondary structure (consensus structure) from the Boltzmann ensemble according its probability
@@ -41,6 +43,7 @@ char    *vrna_pbacktrack5(vrna_fold_compound_t *vc, int length);
  *  @param  vc      The fold compound data structure
  *  @return         A sampled secondary structure in dot-bracket notation
  */
-char    *vrna_pbacktrack(vrna_fold_compound_t *vc);
+char *vrna_pbacktrack(vrna_fold_compound_t *vc);
+
 
 #endif
