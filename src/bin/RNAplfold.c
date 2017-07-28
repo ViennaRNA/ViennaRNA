@@ -500,7 +500,7 @@ main(int  argc,
             prepare_up_file(&data);
             if (openenergies) {
               for (i = 1; i <= length; i++)
-                 print_up_open(data.pUfp, i, data.pup[i], (i > unpaired) ? unpaired : i, unpaired, data.kT);
+                 print_up_open(data.pUfp, i, data.pup[i], (i > unpaired) ? unpaired : i, unpaired, data.kT / 1000.);
             } else {
               for (i = 1; i <= length; i++)
                  print_up(data.pUfp, i, data.pup[i], (i > unpaired) ? unpaired : i, unpaired);
@@ -695,7 +695,7 @@ plfold_callback(FLT_OR_DBL    *pr,
     } else {
       /* print unpaired probabilities to output file handle */
       if (d->openenergies)
-        print_up_open(d->pUfp, i, pr, pr_size, max, d->kT);
+        print_up_open(d->pUfp, i, pr, pr_size, max, d->kT / 1000.);
       else
         print_up(d->pUfp, i, pr, pr_size, max);
     }
