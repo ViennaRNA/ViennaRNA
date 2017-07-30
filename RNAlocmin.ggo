@@ -1,0 +1,62 @@
+# Name of your program
+package "RNAlocmin" # don't use package if you're using automake
+purpose "Calculate local minima from structures via gradient walks. Example usage: \n\
+    RNAsubopt -p 10000 < \"sequence.txt\" > \"suboptp.txt\"\n\
+    RNAlocmin -s \"sequence.txt\" [OPTIONS] < \"suboptp.txt\""
+
+# Version of your program
+version "2.1"   # don't use version if you're using automake
+
+# command line options passed to gengetopt
+args "--file-name=RNAlocmin_cmdline --include-getopt --default-optional --unamed-opts"
+
+# Options
+section "General options"
+option "seq"                s "Sequence file in FASTA format. If the sequence is the first line of the input file, this is not needed" string default="seq.txt"
+option "previous"           p "Previously found LM (output from RNAlocmin or barriers), if specified does not need --seq option" string no
+option "move"               m "Move set:\nI ==> insertion & deletion of base pairs\nS ==> I&D& switch of base pairs" values="I","S" default="I" no
+option "min-num"            n "Maximal number of local minima returned\n(0 == unlimited)" int default="100000" no
+option "find-num"           - "Maximal number of local minima found\n(default = unlimited - crawl through whole input file)" int no
+option "verbose-lvl"        v "Level of verbosity (0 = nothing, 4 = full)\nWARNING: higher verbose levels increase the computation time" int default="0" no
+option "depth"              - "Depth of findpath search (higher value increases running time linearly)" int default="10" no
+option "minh"               - "Print only minima with energy barrier greater than this" double default="0.0" no
+option "minh-lite"          - "When flooding with --minh option, search for only saddle (do not search for a LM that is lower). Increases efficiency a tiny bit, but when turned on, the results may omit some non-shallow minima, especially with higher --minh value." flag off hidden
+option "walk"               w "Walking method used\nD ==> gradient descent\nF ==> use first found lower energy structure\nR ==> use random lower energy structure (does not work with --noLP and -m S options)" values="D","F","R" default="D" no
+option "noLP"               - "Work only with canonical RNA structures (w/o isolated base pairs, cannot be combined with ranodm walk (-w R option) and shift move set (-m S))" flag off
+option "useEOS"             e "Use energy_of_structure_pt calculation instead of energy_of_move (slower, it should not affect results)" flag off hidden
+option "paramFile"          P "Read energy parameters from paramfile, instead of using the default parameter set" string no
+option "dangles"            d "How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith -d1 only unpaired bases can participate in at most one dangling end, this is the\
+ default for mfe folding but unsupported for the partition function folding.\n\nWith -d2 this check is ignored,\
+ dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
+ default for partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly for\
+ debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
+ moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
+ and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
+ treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
+ energy model.\n\n" int default="2" optional
+option "fix-barriers"       - "Fix barrier file for interior loops (just recompute if all LM in barrier output are LM), if specified, does not need neither --previous nor --seq option" string no hidden
+option "pseudoknots"        k "Allow for pseudoknots according to \"gfold\" model - H, K, L, and M types (genus one) of pseudoknots are allowed (increases computation time greatly), cannot be combined with shift move set (-m S)" flag off
+option "just-read"          - "Do not expect input from stdin, just do postprocessing." flag off
+option "neighborhood"       N "Use the Neighborhood routines to perform gradient descend. Cannot be combined with shift move set (-m S) and pseudoknots (-k). Test option." flag off
+option "degeneracy-off"     - "Do not deal with degeneracy, select the lexicographically first from the same energy neighbors." flag off
+option "just-output"        - "Do not store the minima and optimize, just compute directly minima and output them. Output file can contain duplicates." flag off
+
+section "Barrier tree"
+option "bartree"            b "Generate an approximate barrier tree." flag off
+option "barr-name"          - "Name of barrier tree output file, switches on -b flag." string default="treeRNAloc.ps"
+
+section "Kinetics (rates for treekin program)"
+option "barrier-file"       - "File for saddle heights between LM (simulates the output format of barriers program)" string no
+option "rates"              r "Create rates for treekin" flag off
+option "rates-file"         f "File where to write rates, switches on -r flag" string default="rates.out" no
+option "temp"               T "Temperature in Celsius (only for rates)" double default="37.0" no
+
+section "Flooding parameters (flooding occurs only with -r, -b, or --minh option)"
+option "floodPortion"       - "Fraction of minima to flood (floods first minima with low number of inwalking sample structures)\n(0.0 -> no flood; 1.0 -> try to flood all) Usable only with -r or -b options." double default="0.95" no
+option "floodMax"           - "Flood cap - how many structures to flood in one basin" int default="1000" no
+
+section "Miscelaneous"
+option "numIntervals"       - "Number of intervals for Jing's visualisation" int default="0" no hidden
+option "eRange"             - "Report only LM, which energy is in range <MFE (or lowest found LM), MFE+eRange> in kcal/mol." float no
+option "allegiance"         - "Filename where to output the allegiance of structures. Works properly only with RNAsubopt -e list." string hidden no
