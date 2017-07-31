@@ -1,5 +1,5 @@
 AM_CPPFLAGS = $(VRNA_CFLAGS) -Wno-write-strings
-AM_CXX_FLAGS = -std=c++0x -fexceptions
+AM_CXX_FLAGS = -fexceptions
 AM_CFLAGS =  -fexceptions
 
 bin_PROGRAMS = RNAlocmin
