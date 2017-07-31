@@ -7,11 +7,18 @@
 %if 0%{?centos_version} >= 700 || %{defined el7}
 %global with_python3 1
 %global with_epel7 1
+%global with_rnalocmin 1
 %else
 %if 0%{?fedora} || 0%{?is_opensuse}
 %global with_python3 1
+%if 0%{?fedora} && 0%{?fedora_version} < 22
+%global with_rnalocmin 0
+%else
+%global with_rnalocmin 1
+%endif
 %else
 %global with_python3 0
+%global with_rnalocmin 0
 %endif
 %endif
 
@@ -166,9 +173,13 @@ Python 3 bindings for ViennaRNA RNAlib.
 
 %build
 %if 0%{?fedora} && 0%{?fedora_version} < 22
-%configure --with-cluster --without-forester --disable-lto --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
+%configure --with-cluster --without-forester --without-rnalocmin --disable-lto --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
 %else
+%if 0%{?with_rnalocmin}
 %configure --with-cluster --without-forester --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
+%else
+%configure --with-cluster --without-forester --without-rnalocmin --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
+%endif
 %endif
 make %{?_smp_mflags}
 
@@ -252,6 +263,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/RNAdistance.1.gz
 %{_mandir}/man1/RNAplex.1.gz
 %{_mandir}/man1/ct2db.1.gz
+%if 0%{?with_rnalocmin}
+%{_mandir}/man1/RNAlocmin.1.gz
+%endif
 
 %files devel
 %defattr(-,root,root,-)
