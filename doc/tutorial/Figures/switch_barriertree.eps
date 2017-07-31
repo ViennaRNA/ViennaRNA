@@ -1,0 +1,176 @@
+%!PS-Adobe-2.0 EPSF-1.2
+%%Title: TreePlot
+%%Creator: treeplot.c
+%%CreationDate: Wed Jul  8 16:17:44 2015
+%%BoundingBox: 72 144 522 700
+%%EndComments
+%%BeginProlog
+/treedict 100 dict def
+treedict begin
+% x y  => min(x,y)
+  /min { 2 copy gt { exch } if pop } bind def
+  /max { 2 copy lt { exch } if pop } bind def
+  /cmtx matrix currentmatrix def
+  /STR 128 string def
+  /NumH 1 def
+% - => -
+  /Init {
+    /LX [
+      LEAF {0 get} forall
+    ] def
+
+    /Helvetica findfont fsize scalefont setfont
+    /Lo [
+      (X) stringwidth pop % width
+      newpath 0 0 moveto
+      (X) true charpath
+      flattenpath pathbbox
+      pop exch pop exch sub neg 2 div % height
+     ] def
+  } def
+% - => -
+  /DrawScale {
+  gsave 
+    maxy miny sub 30 div dup maxy add /maxy exch def miny sub /miny def
+    maxy miny sub log 0.9 sub floor 10 exch exp /tick exch def
+    newpath
+    LEAF length 0.5 sub 0 translate 0 miny moveto 0 maxy miny sub rlineto
+    miny tick div ceiling tick mul dup 0 exch moveto 
+    maxy exch sub tick div cvi 1 add dup { % draw minor ticks
+      0.15 0 rlineto
+      -0.15 tick rmoveto
+    } repeat
+    % calculate major tick spacing (10, 5, or 2 minor ticks)
+    dup 69 gt { pop 10
+    } {
+      32 gt { 5 }
+      {2} ifelse
+    } ifelse
+    tick mul /mtick exch def
+    miny mtick div ceiling mtick mul dup 0 exch moveto
+    maxy exch sub mtick div cvi 1 add {
+      0.3 0 rlineto 
+      gsave currentpoint 10 mul round 10 div cmtx setmatrix
+      STR cvs dup stringwidth pop
+      Lo aload pop 3 1 roll add neg exch rmoveto show pop
+      grestore
+      -0.3 mtick rmoveto
+    } repeat
+    cmtx setmatrix stroke    
+  grestore
+  } def
+% - => -
+  /SetBarFont {
+    matrix currentmatrix cmtx setmatrix
+    /Helvetica findfont fbsize scalefont setfont
+    setmatrix
+  } bind def
+% - => -
+  /SetLabelFont {
+    matrix currentmatrix cmtx setmatrix
+    /Courier findfont fsize scalefont setfont
+    setmatrix
+  } bind def
+% str => -
+  /Rotshow {
+    gsave
+      cmtx setmatrix -90 rotate
+      Lo aload pop
+      rmoveto show
+    grestore
+  } def
+% dy => - 
+  /Rlineto {
+    dup abs MinHeight ge { % draw height at middle of line
+      dup gsave
+	dup 2 div 0 exch rmoveto
+	cmtx setmatrix -90 rotate
+	abs STR cvs dup stringwidth pop 2 div neg
+	//NumH rmoveto
+	show
+      grestore
+    } if
+    0 exch rlineto
+  } def
+% - => -
+  /Drawlabels {
+   0 LEAF {
+      aload pop moveto
+      dup LABEL exch get STR cvs Rotshow
+      1 add
+    } forall pop
+  } def
+% n => n'    Detect whether a minimum is connected
+  /MRX {
+     /murxi { true } def
+     dup 0 lt { pop 0 /murxi { false } def } if
+  } def
+% - => -
+  /Connectlmins {
+    newpath
+    SADDEL {
+      /forest {false} def  %  draw as tree or forest node
+      aload pop exch dup 0 lt { pop 0 /forest {true} def} if   % => c h f
+      dup LX exch get [ exch LX 5 index get add 2 div % => c h f [ nx
+      3 index ]				         % => c h f [ nx h ]
+      3 -1 roll dup LEAF 6 -1 roll get aload pop % => f [nx h] h h cx cy
+      dup 3 1 roll moveto		         % => f [] h h cy
+      sub Rlineto                                % => f [] h
+      LEAF 3 index get aload pop exch		 % => f [] h fy fx
+      2 index forest {moveto} {lineto} ifelse 
+      sub neg Rlineto			         % => f [] h fy
+      LEAF 3 1 roll put
+    } forall
+    gsave
+      cmtx setmatrix stroke
+    grestore
+  } def
+% data starts here!!!
+  /LABEL [
+     1   2   3   4   5   6   7   8   9  10 
+    11  12  13  14  15  16  17  18  19  20 
+    21  22  23  24  25  26  27  28  29  30 
+  ] def
+% leaf node coordinates
+  /LEAF [
+   [0   -17.800] [19  -17.700] [20  -13.100] [2   -12.800] [3   -11.400] 
+   [1   -11.000] [4    -9.700] [5    -9.000] [6    -8.900] [7    -8.700] 
+   [21   -8.600] [8    -8.100] [22   -7.900] [9    -7.600] [23   -7.300] 
+   [10   -7.100] [11   -5.000] [24   -4.700] [12   -4.600] [15   -3.900] 
+   [13   -3.600] [25   -3.400] [16   -3.200] [14   -3.200] [27   -3.100] 
+   [17   -3.100] [28   -2.900] [26   -2.600] [18   -2.500] [29   -2.400]   
+] def
+% internal nodes (saddle) coordinates, sorted by height
+  /SADDEL [
+   [  2   1 -10.500] [  4   3  -9.300] [  5   0  -7.600] [  3   0  -7.500] 
+   [  6   0  -7.100] [  7   0  -6.700] [  8   0  -6.700] [  9   0  -6.300] 
+   [ 10   1  -6.300] [ 11   0  -5.800] [ 12   1  -5.700] [ 13   0  -5.200] 
+   [ 14   1  -4.800] [ 15   0  -4.500] [ 16   0  -3.000] [ 18   0  -2.600] 
+   [ 17   1  -2.300] [ 20   0  -1.200] [ 21   1  -1.200] [ 23   0  -1.200] 
+   [ 19   0  -0.800] [ 22   0  -0.800] [ 25   0  -0.800] [ 28   0  -0.400] 
+   [ 27   1  -0.300] [  1   0   0.100] [ 24   0   0.400] [ 26   0   1.200] 
+   [ 29   0   1.800] [  0  -1   7.201]   
+] def
+end
+%%EndProlog
+treedict begin
+  /fsize 10 def
+  /fbsize 7 def
+  Init
+  521 144 fsize 1.5 mul add translate
+  72 521 sub LEAF length div % x-scale
+  699 144 fsize dup add add sub
+  SADDEL dup length 1 sub get 2 get /maxy exch def % max height
+  9999999 LEAF { aload pop exch pop min } forall
+  /miny exch def % min height
+  maxy miny sub dup 20 div /MinHeight exch def
+  div scale
+  .5 LEAF 0 get 1 get neg translate
+  SetLabelFont
+  Drawlabels
+  DrawScale
+  SetBarFont
+  Connectlmins
+  showpage
+end
+%%EOF

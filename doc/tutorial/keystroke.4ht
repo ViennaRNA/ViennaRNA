@@ -1,0 +1,9 @@
+\typeout{[keystroke for tex4ht]}
+
+\NewConfigure{keystroke}{2}
+
+\renewcommand\keystroke[1]{\a:keystroke#1\b:keystroke}
+
+\Configure{keystroke}
+  {\HCode{<kbd>}}
+  {\HCode{</kbd>}}
