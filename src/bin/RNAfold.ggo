@@ -54,19 +54,26 @@ string
 typestr="<filename>"
 optional
 
+
 option  "outfile" o
 "Print output to file instead of stdout\n"
-details="Specifying a file name prefix will print the output into a file instead of stdout.\
- If a FASTA header precedes the input sequence, the appropriate fasta ID is used as infix for\
- the file name. Each generated file will be suffixed with the file extension '.fold'.\
- If a file with the same filename already exists, any output of the program will be appended\
- to it.\
- Note: Any special characters in the prefix will be replaced by the filename delimiter,\
- hence there is no way to pass an entire directory path through this option yet.\
+details="This option may be used to write all output to output files rather than printing\
+ to stdout. The default filename is \"RNAfold_output.fold\" if no FASTA header precedes\
+ the input sequences and the --auto-id feature is inactive. Otherwise, output files with\
+ the scheme \"prefix.fold\" are generated, where the \"prefix\" is taken from the sequence\
+ id, e.g. the FASTA header. The user may specify a single output file name for all data\
+ generated from the input by supplying a filename as argument following immediately\
+ after this parameter.\nIn case a file with the same filename already exists, any output of\
+ the program will be appended to it.\
+ Note: Any special characters in the filename will be replaced by the filename delimiter,\
+ hence there is no way to pass an entire directory path through this option (yet).\
  (See also the \"--filename-delim\" parameter)\n\n"
 string
-typestr="<prefix>"
+typestr="<filename>"
+argoptional
 optional
+
+
 
 option  "layout-type"  t
 "Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"

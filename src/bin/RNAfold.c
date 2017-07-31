@@ -81,7 +81,7 @@ main(int  argc,
   int                               i, length, l, cl, istty, pf, noPS, noconv, enforceConstraints,
                                     batch, auto_id, id_digits, doMEA, lucky, with_shapes,
                                     verbose, istty_in, istty_out, filename_full, num_input,
-                                    canonicalBPonly;
+                                    canonicalBPonly, tofile;
   long int                          seq_number;
   double                            energy, min_en, kT, MEAgamma, bppmThreshold;
   vrna_cmd_t                        *commands;
@@ -100,6 +100,7 @@ main(int  argc,
   doMEA           = 0;
   verbose         = 0;
   auto_id         = 0;
+  tofile          = 0;
   outfile         = NULL;
   infile          = NULL;
   input           = NULL;
@@ -194,8 +195,11 @@ main(int  argc,
   if (args_info.verbose_given)
     verbose = 1;
 
-  if (args_info.outfile_given)
-    outfile = strdup(args_info.outfile_arg);
+  if (args_info.outfile_given) {
+    tofile = 1;
+    if (args_info.outfile_arg)
+      outfile = strdup(args_info.outfile_arg);
+  }
 
   if (args_info.infile_given) {
     infile = strdup(args_info.infile_arg);
@@ -262,7 +266,7 @@ main(int  argc,
     commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_DEFAULTS);
 
   istty_in  = isatty(fileno(stdin));
-  istty_out = isatty(fileno(stdout)) && (!outfile);
+  istty_out = isatty(fileno(stdout)) && (!tofile);
   istty     = (!infile) && isatty(fileno(stdout)) && isatty(fileno(stdin));
 
   /* print user help if we get input from tty */
@@ -290,9 +294,8 @@ main(int  argc,
   while (
     !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, input, read_opt))
       & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
-    char  *prefix         = NULL;
-    char  *v_file_name    = NULL;
     char  *SEQ_ID         = NULL;
+    char  *v_file_name    = NULL;
     int   maybe_multiline = 0;
 
     /*
@@ -309,12 +312,27 @@ main(int  argc,
     /* construct the sequence ID */
     ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
 
-    /* prepare the file prefix */
-    if (outfile) {
-      if (SEQ_ID)
-        prefix = vrna_strdup_printf("%s%s%s", outfile, filename_delim, SEQ_ID);
+    if (tofile) {
+      /* prepare the file name */
+      if (outfile)
+        v_file_name = vrna_strdup_printf("%s", outfile);
       else
-        prefix = vrna_strdup_printf("%s", outfile);
+        v_file_name = (SEQ_ID) ?
+                      vrna_strdup_printf("%s.fold", SEQ_ID) :
+                      vrna_strdup_printf("RNAfold_output.fold");
+
+      tmp_string = vrna_filename_sanitize(v_file_name, filename_delim);
+      free(v_file_name);
+      v_file_name = tmp_string;
+
+      if (infile && !strcmp(infile, v_file_name))
+        vrna_message_error("Input and output file names are identical");
+
+      output = fopen((const char *)v_file_name, "a");
+      if (!output)
+        vrna_message_error("Failed to open file for writing");
+    } else {
+      output = stdout;
     }
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
@@ -387,22 +405,6 @@ main(int  argc,
 
     if (commands)
       vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_DEFAULTS);
-
-    if (outfile) {
-      v_file_name = vrna_strdup_printf("%s.fold", prefix);
-      tmp_string  = vrna_filename_sanitize(v_file_name, filename_delim);
-      free(v_file_name);
-      v_file_name = tmp_string;
-
-      if (infile && !strcmp(infile, v_file_name))
-        vrna_message_error("Input and output file names are identical");
-
-      output = fopen((const char *)v_file_name, "a");
-      if (!output)
-        vrna_message_error("Failed to open file for writing");
-    } else {
-      output = stdout;
-    }
 
     /*
      ########################################################
@@ -490,7 +492,7 @@ main(int  argc,
       if (length > 2000)
         vrna_message_info(stderr, "scaling factor %f", vc->exp_params->pf_scale);
 
-      fflush(stdout);
+      (void)fflush(output);
 
       if (cstruc != NULL)
         strncpy(pf_struc, cstruc, length + 1);
@@ -560,8 +562,8 @@ main(int  argc,
 
           if (ligandMotif) {
             /* append motif positions to the plists of base pair probabilities */
-            vrna_ep_t  *ptr;
-            int           a, b, c, d, cnt, size, add;
+            vrna_ep_t *ptr;
+            int       a, b, c, d, cnt, size, add;
             cnt = 0;
             a   = 1;
             add = 10;
@@ -785,10 +787,12 @@ main(int  argc,
     if (output)
       (void)fflush(output);
 
-    if (outfile && output) {
+    if (tofile && output) {
       fclose(output);
       output = NULL;
     }
+
+    free(v_file_name);
 
     /* clean up */
     vrna_fold_compound_free(vc);
