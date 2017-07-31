@@ -24,6 +24,7 @@
 #include "ViennaRNA/Lfold.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/commands.h"
+#include "ViennaRNA/constraints_SHAPE.h"
 #include "RNALfold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
@@ -64,10 +65,11 @@ main(int  argc,
   struct  RNALfold_args_info  args_info;
   char                        *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest,
                               *command_file, *orig_sequence, *infile, *outfile, *id_prefix,
-                              *id_delim, *filename_delim;
+                              *id_delim, *filename_delim, *shape_file, *shape_method,
+                              *shape_conversion;
   unsigned int                rec_type, read_opt;
   int                         length, istty, noconv, maxdist, zsc, tofile, auto_id, id_digits,
-                              filename_full;
+                              filename_full, with_shapes, verbose;
   long int                    seq_number;
   double                      min_en, min_z;
   vrna_md_t                   md;
@@ -175,6 +177,12 @@ main(int  argc,
   /* gquadruplex support */
   if (args_info.gquad_given)
     md.gquad = gquad = 1;
+
+  if (args_info.verbose_given)
+    verbose = 1;
+
+  /* SHAPE reactivity data */
+  ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
 
   if (args_info.outfile_given) {
     tofile = 1;
@@ -309,7 +317,7 @@ main(int  argc,
     vrna_seq_toupper(rec_sequence);
 
     if (!tofile && istty)
-      vrna_message_info(stdout, "length = %d", length);
+      vrna_message_info(output, "length = %d", length);
 
     /*
      ########################################################
@@ -324,6 +332,15 @@ main(int  argc,
 
     if (commands)
       vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
+
+    if (with_shapes) {
+      vrna_constraints_add_SHAPE(vc,
+                                 shape_file,
+                                 shape_method,
+                                 shape_conversion,
+                                 verbose,
+                                 VRNA_OPTION_WINDOW);
+    }
 
     hit_data data;
     data.output       = output;
@@ -366,6 +383,9 @@ main(int  argc,
     rec_rest  = NULL;
 
     free(v_file_name);
+
+    if (with_shapes)
+      break;
 
     ID_number_increase(&seq_number, "Sequence");
 
