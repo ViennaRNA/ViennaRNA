@@ -1,0 +1,666 @@
+%!PS-Adobe-3.1 EPSF-3.0
+%%BoundingBox: 0 0 540 37
+
+%% Common postScript header.
+
+/boxHere {
+% Draw a box at current position.
+% Usage width height boxAt
+dup 0 exch   %stack width height 0 height
+rlineto      %stack width height
+exch dup 0   %stack height width width 0
+rlineto      %stack height width
+exch         %stack width height
+0 exch       %stack width 0 height
+neg          %stack width 0 -height
+rlineto      %stack width
+neg 0        %stack -width 0
+rlineto
+} def
+
+/boxAt {
+% Draw a box at a position.  Usage:
+% width height x y boxAt
+moveto
+boxHere
+} def
+
+/fillBox {
+% Draw filled box at a position. Usage:
+% width height x y fillBox
+newpath
+boxAt
+fill
+} def
+
+/strokeBox {
+% Draw stroked box at a position. Usage:
+% width height x y strokeBox
+newpath
+boxAt
+stroke
+} def
+
+/smallFont {
+/Times-Roman findfont
+10 scalefont
+setfont
+} def
+
+/showBefore {
+% Draw text immediately before rather
+% than immediately after current position.
+% Usage (some text) showBefore
+dup
+stringwidth
+neg
+exch
+neg
+exch
+rmoveto
+show
+} def
+
+/showMiddle {
+% Draw text centered at current position.
+% Usage (some text) showMiddle
+dup stringwidth
+2 div neg
+exch
+2 div neg
+exch
+rmoveto
+show
+} def
+
+smallFont
+
+0.540000 setlinewidth
+gsave 0 0 540 36.7200 rectclip
+1 0.7059 0.7059 setrgbcolor
+0.5400 36.7200 61.0200 0 fillBox
+0 setgray
+/Helvetica findfont 4.536000 scalefont setfont
+60.4800 32.2380 moveto
+(chr11:) showBefore
+gsave 0.5400 15.6600 60.4800 15.6600 rectclip
+grestore %unclip
+gsave 0.5400 0 60.4800 15.6600 rectclip
+grestore %unclip
+gsave 62.1000 0.5400 477.3600 35.6400 rectclip
+0.8627 0.8627 1 setrgbcolor
+0.5400 35.6400 68.0400 0.5400 fillBox
+0.5400 35.6400 74.5200 0.5400 fillBox
+0.5400 35.6400 81 0.5400 fillBox
+0.5400 35.6400 87.4800 0.5400 fillBox
+0.5400 35.6400 93.9600 0.5400 fillBox
+0.5400 35.6400 100.4400 0.5400 fillBox
+0.5400 35.6400 106.9200 0.5400 fillBox
+0.5400 35.6400 113.4000 0.5400 fillBox
+0.5400 35.6400 119.8800 0.5400 fillBox
+0.5400 35.6400 126.3600 0.5400 fillBox
+0.5400 35.6400 132.8400 0.5400 fillBox
+0.5400 35.6400 139.3200 0.5400 fillBox
+0.5400 35.6400 145.8000 0.5400 fillBox
+0.5400 35.6400 152.2800 0.5400 fillBox
+0.5400 35.6400 158.7600 0.5400 fillBox
+0.5400 35.6400 165.2400 0.5400 fillBox
+0.5400 35.6400 171.7200 0.5400 fillBox
+0.5400 35.6400 178.2000 0.5400 fillBox
+0.5400 35.6400 184.6800 0.5400 fillBox
+0.5400 35.6400 191.1600 0.5400 fillBox
+0.5400 35.6400 197.6400 0.5400 fillBox
+0.5400 35.6400 204.1200 0.5400 fillBox
+0.5400 35.6400 210.6000 0.5400 fillBox
+0.5400 35.6400 217.0800 0.5400 fillBox
+0.5400 35.6400 223.5600 0.5400 fillBox
+0.5400 35.6400 230.0400 0.5400 fillBox
+0.5400 35.6400 236.5200 0.5400 fillBox
+0.5400 35.6400 243.0000 0.5400 fillBox
+0.5400 35.6400 249.4800 0.5400 fillBox
+0.5400 35.6400 255.9600 0.5400 fillBox
+0.5400 35.6400 262.4400 0.5400 fillBox
+0.5400 35.6400 268.9200 0.5400 fillBox
+0.5400 35.6400 275.4000 0.5400 fillBox
+0.5400 35.6400 281.8800 0.5400 fillBox
+0.5400 35.6400 288.3600 0.5400 fillBox
+0.5400 35.6400 294.8400 0.5400 fillBox
+0.5400 35.6400 301.3200 0.5400 fillBox
+0.5400 35.6400 307.8000 0.5400 fillBox
+0.5400 35.6400 314.2800 0.5400 fillBox
+0.5400 35.6400 320.7600 0.5400 fillBox
+0.5400 35.6400 327.2400 0.5400 fillBox
+0.5400 35.6400 333.7200 0.5400 fillBox
+0.5400 35.6400 340.2000 0.5400 fillBox
+0.5400 35.6400 346.6800 0.5400 fillBox
+0.5400 35.6400 353.1600 0.5400 fillBox
+0.5400 35.6400 359.6400 0.5400 fillBox
+0.5400 35.6400 366.1200 0.5400 fillBox
+0.5400 35.6400 372.6000 0.5400 fillBox
+0.5400 35.6400 379.0800 0.5400 fillBox
+0.5400 35.6400 385.5600 0.5400 fillBox
+0.5400 35.6400 392.0400 0.5400 fillBox
+0.5400 35.6400 398.5200 0.5400 fillBox
+0.5400 35.6400 405 0.5400 fillBox
+0.5400 35.6400 411.4800 0.5400 fillBox
+0.5400 35.6400 417.9600 0.5400 fillBox
+0.5400 35.6400 424.4400 0.5400 fillBox
+0.5400 35.6400 430.9200 0.5400 fillBox
+0.5400 35.6400 437.4000 0.5400 fillBox
+0.5400 35.6400 443.8800 0.5400 fillBox
+0.5400 35.6400 450.3600 0.5400 fillBox
+0.5400 35.6400 456.8400 0.5400 fillBox
+0.5400 35.6400 463.3200 0.5400 fillBox
+0.5400 35.6400 469.8000 0.5400 fillBox
+0.5400 35.6400 476.2800 0.5400 fillBox
+0.5400 35.6400 482.7600 0.5400 fillBox
+0.5400 35.6400 489.2400 0.5400 fillBox
+0.5400 35.6400 495.7200 0.5400 fillBox
+0.5400 35.6400 502.2000 0.5400 fillBox
+0.5400 35.6400 508.6800 0.5400 fillBox
+0.5400 35.6400 515.1600 0.5400 fillBox
+0.5400 35.6400 521.6400 0.5400 fillBox
+0.5400 35.6400 528.1200 0.5400 fillBox
+0.5400 35.6400 534.6000 0.5400 fillBox
+grestore %unclip
+gsave 62.1000 30.7800 477.3600 5.9400 rectclip
+0 setgray
+0.5400 4.8600 72.3600 31.8600 fillBox
+0.5400 4.8600 105.3000 31.8600 fillBox
+/Helvetica findfont 4.536000 scalefont setfont
+91.2600 32.2380 moveto
+(93103000) showMiddle
+0.5400 4.8600 137.7000 31.8600 fillBox
+123.6600 32.2380 moveto
+(93103500) showMiddle
+0.5400 4.8600 170.6400 31.8600 fillBox
+156.6000 32.2380 moveto
+(93104000) showMiddle
+0.5400 4.8600 203.0400 31.8600 fillBox
+189 32.2380 moveto
+(93104500) showMiddle
+0.5400 4.8600 235.9800 31.8600 fillBox
+221.9400 32.2380 moveto
+(93105000) showMiddle
+0.5400 4.8600 268.9200 31.8600 fillBox
+254.8800 32.2380 moveto
+(93105500) showMiddle
+0.5400 4.8600 301.3200 31.8600 fillBox
+287.2800 32.2380 moveto
+(93106000) showMiddle
+0.5400 4.8600 334.2600 31.8600 fillBox
+320.2200 32.2380 moveto
+(93106500) showMiddle
+0.5400 4.8600 366.6600 31.8600 fillBox
+352.6200 32.2380 moveto
+(93107000) showMiddle
+0.5400 4.8600 399.6000 31.8600 fillBox
+385.5600 32.2380 moveto
+(93107500) showMiddle
+0.5400 4.8600 432 31.8600 fillBox
+417.9600 32.2380 moveto
+(93108000) showMiddle
+0.5400 4.8600 464.9400 31.8600 fillBox
+450.9000 32.2380 moveto
+(93108500) showMiddle
+0.5400 4.8600 497.3400 31.8600 fillBox
+483.3000 32.2380 moveto
+(93109000) showMiddle
+0.5400 4.8600 530.2800 31.8600 fillBox
+516.2400 32.2380 moveto
+(93109500) showMiddle
+grestore %unclip
+gsave 62.1000 0.5400 477.3600 35.6400 rectclip
+0 setgray
+/Helvetica findfont 4.536000 scalefont setfont
+300.7800 27.1080 moveto
+(User Supplied Track) showMiddle
+0.7843 0.3137 0 setrgbcolor
+300.7800 11.4480 moveto
+(C/D and H/ACA snoRNAs, scaRNAs and microRNAs from snoRNABase and miRBase) showMiddle
+grestore %unclip
+gsave 7.0200 15.6600 532.4400 10.8000 rectclip
+gsave 62.1000 15.6600 477.3600 10.8000 rectclip
+0 setgray
+4.8600 4.8600 119.3400 21.6000 fillBox
+/Helvetica findfont 4.536000 scalefont setfont
+117.7200 22.5180 moveto
+(locus1) showBefore
+9.1800 4.8600 128.5200 16.2000 fillBox
+126.9000 17.1180 moveto
+(locus2) showBefore
+8.1000 4.8600 157.1400 21.6000 fillBox
+155.5200 22.5180 moveto
+(locus3) showBefore
+5.9400 4.8600 190.0800 16.2000 fillBox
+188.4600 17.1180 moveto
+(locus4) showBefore
+7.5600 4.8600 249.4800 21.6000 fillBox
+247.8600 22.5180 moveto
+(locus5) showBefore
+10.8000 4.8600 318.0600 21.6000 fillBox
+316.4400 22.5180 moveto
+(locus6) showBefore
+4.8600 4.8600 427.6800 21.6000 fillBox
+426.0600 22.5180 moveto
+(locus7) showBefore
+grestore %unclip
+grestore %unclip
+gsave 7.0200 0 532.4400 10.8000 rectclip
+gsave 62.1000 0 477.3600 10.8000 rectclip
+0 0.5020 0 setrgbcolor
+newpath
+127.7100 8.3700 moveto
+135.2700 8.3700 lineto
+stroke
+0.8902 0.6549 0.4980 setrgbcolor
+newpath
+128.2500 8.3700 moveto
+129.3300 7.2900 lineto
+stroke
+newpath
+128.2500 8.3700 moveto
+129.3300 9.4500 lineto
+stroke
+newpath
+130.9500 8.3700 moveto
+132.0300 7.2900 lineto
+stroke
+newpath
+130.9500 8.3700 moveto
+132.0300 9.4500 lineto
+stroke
+newpath
+133.6500 8.3700 moveto
+134.7300 7.2900 lineto
+stroke
+newpath
+133.6500 8.3700 moveto
+134.7300 9.4500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+8.6400 4.8600 126.9000 5.9400 fillBox
+1 setgray
+newpath
+128.2500 8.3700 moveto
+129.3300 7.2900 lineto
+stroke
+newpath
+128.2500 8.3700 moveto
+129.3300 9.4500 lineto
+stroke
+newpath
+130.9500 8.3700 moveto
+132.0300 7.2900 lineto
+stroke
+newpath
+130.9500 8.3700 moveto
+132.0300 9.4500 lineto
+stroke
+newpath
+133.6500 8.3700 moveto
+134.7300 7.2900 lineto
+stroke
+newpath
+133.6500 8.3700 moveto
+134.7300 9.4500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+/Helvetica findfont 4.536000 scalefont setfont
+125.2800 6.8580 moveto
+(ACA25) showBefore
+newpath
+157.9500 2.9700 moveto
+164.9700 2.9700 lineto
+stroke
+0.8902 0.6549 0.4980 setrgbcolor
+newpath
+157.9500 2.9700 moveto
+159.0300 1.8900 lineto
+stroke
+newpath
+157.9500 2.9700 moveto
+159.0300 4.0500 lineto
+stroke
+newpath
+160.6500 2.9700 moveto
+161.7300 1.8900 lineto
+stroke
+newpath
+160.6500 2.9700 moveto
+161.7300 4.0500 lineto
+stroke
+newpath
+163.3500 2.9700 moveto
+164.4300 1.8900 lineto
+stroke
+newpath
+163.3500 2.9700 moveto
+164.4300 4.0500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+8.1000 4.8600 157.1400 0.5400 fillBox
+1 setgray
+newpath
+157.9500 2.9700 moveto
+159.0300 1.8900 lineto
+stroke
+newpath
+157.9500 2.9700 moveto
+159.0300 4.0500 lineto
+stroke
+newpath
+160.6500 2.9700 moveto
+161.7300 1.8900 lineto
+stroke
+newpath
+160.6500 2.9700 moveto
+161.7300 4.0500 lineto
+stroke
+newpath
+163.3500 2.9700 moveto
+164.4300 1.8900 lineto
+stroke
+newpath
+163.3500 2.9700 moveto
+164.4300 4.0500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+155.5200 1.4580 moveto
+(ACA32) showBefore
+0 0 1 setrgbcolor
+newpath
+192.5100 8.3700 moveto
+195.7500 8.3700 lineto
+stroke
+0.8902 0.6549 0.4980 setrgbcolor
+newpath
+193.0500 8.3700 moveto
+194.1300 7.2900 lineto
+stroke
+newpath
+193.0500 8.3700 moveto
+194.1300 9.4500 lineto
+stroke
+0 0 1 setrgbcolor
+4.3200 4.8600 191.7000 5.9400 fillBox
+1 setgray
+newpath
+193.0500 8.3700 moveto
+194.1300 7.2900 lineto
+stroke
+newpath
+193.0500 8.3700 moveto
+194.1300 9.4500 lineto
+stroke
+0 0 1 setrgbcolor
+190.0800 6.8580 moveto
+(mgh28S-2411) showBefore
+0 0.5020 0 setrgbcolor
+newpath
+224.9100 8.3700 moveto
+232.4700 8.3700 lineto
+stroke
+0.8902 0.6549 0.4980 setrgbcolor
+newpath
+225.4500 8.3700 moveto
+226.5300 7.2900 lineto
+stroke
+newpath
+225.4500 8.3700 moveto
+226.5300 9.4500 lineto
+stroke
+newpath
+228.1500 8.3700 moveto
+229.2300 7.2900 lineto
+stroke
+newpath
+228.1500 8.3700 moveto
+229.2300 9.4500 lineto
+stroke
+newpath
+230.8500 8.3700 moveto
+231.9300 7.2900 lineto
+stroke
+newpath
+230.8500 8.3700 moveto
+231.9300 9.4500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+8.6400 4.8600 224.1000 5.9400 fillBox
+1 setgray
+newpath
+225.4500 8.3700 moveto
+226.5300 7.2900 lineto
+stroke
+newpath
+225.4500 8.3700 moveto
+226.5300 9.4500 lineto
+stroke
+newpath
+228.1500 8.3700 moveto
+229.2300 7.2900 lineto
+stroke
+newpath
+228.1500 8.3700 moveto
+229.2300 9.4500 lineto
+stroke
+newpath
+230.8500 8.3700 moveto
+231.9300 7.2900 lineto
+stroke
+newpath
+230.8500 8.3700 moveto
+231.9300 9.4500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+222.4800 6.8580 moveto
+(ACA1) showBefore
+newpath
+248.6700 2.9700 moveto
+256.2300 2.9700 lineto
+stroke
+0.8902 0.6549 0.4980 setrgbcolor
+newpath
+248.1300 2.9700 moveto
+249.2100 1.8900 lineto
+stroke
+newpath
+248.1300 2.9700 moveto
+249.2100 4.0500 lineto
+stroke
+newpath
+250.8300 2.9700 moveto
+251.9100 1.8900 lineto
+stroke
+newpath
+250.8300 2.9700 moveto
+251.9100 4.0500 lineto
+stroke
+newpath
+253.5300 2.9700 moveto
+254.6100 1.8900 lineto
+stroke
+newpath
+253.5300 2.9700 moveto
+254.6100 4.0500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+8.6400 4.8600 247.8600 0.5400 fillBox
+1 setgray
+newpath
+249.7500 2.9700 moveto
+250.8300 1.8900 lineto
+stroke
+newpath
+249.7500 2.9700 moveto
+250.8300 4.0500 lineto
+stroke
+newpath
+252.4500 2.9700 moveto
+253.5300 1.8900 lineto
+stroke
+newpath
+252.4500 2.9700 moveto
+253.5300 4.0500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+246.2400 1.4580 moveto
+(ACA8) showBefore
+0 0 1 setrgbcolor
+newpath
+305.3700 8.3700 moveto
+308.6100 8.3700 lineto
+stroke
+0.8902 0.6549 0.4980 setrgbcolor
+newpath
+304.8300 8.3700 moveto
+305.9100 7.2900 lineto
+stroke
+newpath
+304.8300 8.3700 moveto
+305.9100 9.4500 lineto
+stroke
+newpath
+307.5300 8.3700 moveto
+308.6100 7.2900 lineto
+stroke
+newpath
+307.5300 8.3700 moveto
+308.6100 9.4500 lineto
+stroke
+0 0 1 setrgbcolor
+4.3200 4.8600 304.5600 5.9400 fillBox
+1 setgray
+newpath
+306.4500 8.3700 moveto
+307.5300 7.2900 lineto
+stroke
+newpath
+306.4500 8.3700 moveto
+307.5300 9.4500 lineto
+stroke
+0 0 1 setrgbcolor
+302.9400 6.8580 moveto
+(mgh28S-2409) showBefore
+0 0.5020 0 setrgbcolor
+newpath
+320.4900 2.9700 moveto
+328.0500 2.9700 lineto
+stroke
+0.8902 0.6549 0.4980 setrgbcolor
+newpath
+319.9500 2.9700 moveto
+321.0300 1.8900 lineto
+stroke
+newpath
+319.9500 2.9700 moveto
+321.0300 4.0500 lineto
+stroke
+newpath
+322.6500 2.9700 moveto
+323.7300 1.8900 lineto
+stroke
+newpath
+322.6500 2.9700 moveto
+323.7300 4.0500 lineto
+stroke
+newpath
+325.3500 2.9700 moveto
+326.4300 1.8900 lineto
+stroke
+newpath
+325.3500 2.9700 moveto
+326.4300 4.0500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+8.6400 4.8600 319.6800 0.5400 fillBox
+1 setgray
+newpath
+320.4900 2.9700 moveto
+321.5700 1.8900 lineto
+stroke
+newpath
+320.4900 2.9700 moveto
+321.5700 4.0500 lineto
+stroke
+newpath
+323.1900 2.9700 moveto
+324.2700 1.8900 lineto
+stroke
+newpath
+323.1900 2.9700 moveto
+324.2700 4.0500 lineto
+stroke
+newpath
+325.8900 2.9700 moveto
+326.9700 1.8900 lineto
+stroke
+newpath
+325.8900 2.9700 moveto
+326.9700 4.0500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+318.0600 1.4580 moveto
+(ACA18) showBefore
+newpath
+427.9500 8.3700 moveto
+435.5100 8.3700 lineto
+stroke
+0.8902 0.6549 0.4980 setrgbcolor
+newpath
+427.9500 8.3700 moveto
+429.0300 7.2900 lineto
+stroke
+newpath
+427.9500 8.3700 moveto
+429.0300 9.4500 lineto
+stroke
+newpath
+430.6500 8.3700 moveto
+431.7300 7.2900 lineto
+stroke
+newpath
+430.6500 8.3700 moveto
+431.7300 9.4500 lineto
+stroke
+newpath
+433.3500 8.3700 moveto
+434.4300 7.2900 lineto
+stroke
+newpath
+433.3500 8.3700 moveto
+434.4300 9.4500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+8.6400 4.8600 427.1400 5.9400 fillBox
+1 setgray
+newpath
+427.9500 8.3700 moveto
+429.0300 7.2900 lineto
+stroke
+newpath
+427.9500 8.3700 moveto
+429.0300 9.4500 lineto
+stroke
+newpath
+430.6500 8.3700 moveto
+431.7300 7.2900 lineto
+stroke
+newpath
+430.6500 8.3700 moveto
+431.7300 9.4500 lineto
+stroke
+newpath
+433.3500 8.3700 moveto
+434.4300 7.2900 lineto
+stroke
+newpath
+433.3500 8.3700 moveto
+434.4300 9.4500 lineto
+stroke
+0 0.5020 0 setrgbcolor
+425.5200 6.8580 moveto
+(ACA40) showBefore
+grestore %unclip
+grestore %unclip
