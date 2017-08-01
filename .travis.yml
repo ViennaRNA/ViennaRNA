@@ -26,6 +26,9 @@ addons:
     - python3-dev
     - graphviz
     - texlive-latex-base
+    - texlive-latex-recommended
+    - texlive-latex-extra
+    - latex-beamer
     - check
     - texinfo
     - diffutils
