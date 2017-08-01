@@ -137,12 +137,10 @@ Section "Utilities" sec_utils
   CreateDirectory "$INSTDIR\Utils"
   File /oname=Utils\dpzoom.pl ../src/Utils/dpzoom.pl
   File /oname=Utils\ct2db.exe ../src/Utils/.libs/ct2db.exe
-  File /oname=Utils\ct2b.pl ../src/Utils/ct2b.pl
   File /oname=Utils\b2mt.pl ../src/Utils/b2mt.pl
   File /oname=Utils\relplot.pl ../src/Utils/relplot.pl
   File /oname=Utils\mountain.pl ../src/Utils/mountain.pl
   File /oname=Utils\rotate_ss.pl ../src/Utils/rotate_ss.pl
-  File /oname=Utils\colorrna.pl ../src/Utils/colorrna.pl
   File /oname=Utils\cmount.pl ../src/Utils/cmount.pl
   File /oname=Utils\coloraln.pl ../src/Utils/coloraln.pl
   File /oname=Utils\switch.pl ../src/Utils/switch.pl
@@ -163,6 +161,10 @@ SectionEnd
 
 Section "Kinwalker" sec_kinwalker
   File "../src/Kinwalker/kinwalker.exe"
+SectionEnd
+
+Section "RNAlocmin" sec_rnalocmin
+  File "../src/RNAlocmin/RNAlocmin.exe"
 SectionEnd
 
 # create a section to define what the uninstaller does.
@@ -199,6 +201,7 @@ section "Uninstall"
   delete $INSTDIR\RNAplex.exe
   delete $INSTDIR\RNAsnoop.exe
   delete $INSTDIR\Kinfold.exe
+  delete $INSTDIR\RNAlocmin.exe
   delete $INSTDIR\kinwalker.exe
   delete $INSTDIR\AnalyseDists.exe
   delete $INSTDIR\AnalyseSeqs.exe
@@ -206,12 +209,10 @@ section "Uninstall"
   delete $INSTDIR\Utils\dpzoom.pl
   delete $INSTDIR\Utils\dpzoom.pl
   delete $INSTDIR\Utils\ct2db.exe
-  delete $INSTDIR\Utils\ct2b.pl
   delete $INSTDIR\Utils\b2mt.pl
   delete $INSTDIR\Utils\relplot.pl
   delete $INSTDIR\Utils\mountain.pl
   delete $INSTDIR\Utils\rotate_ss.pl
-  delete $INSTDIR\Utils\colorrna.pl
   delete $INSTDIR\Utils\cmount.pl
   delete $INSTDIR\Utils\coloraln.pl
   delete $INSTDIR\Utils\switch.pl
@@ -247,6 +248,7 @@ LangString DESC_utils ${LANG_ENGLISH} "Various utility programs and perl scripts
 LangString DESC_kinfold ${LANG_ENGLISH} "Simulate kinetic folding of RNA secondary structures"
 LangString DESC_cluster ${LANG_ENGLISH} "The Sequence and Distance data cluster analysis tools AnalyseDists and AnalyseSeqs"
 LangString DESC_kinwalker ${LANG_ENGLISH} "Predict (co-transcriptional) RNA folding trajectories"
+LangString DESC_rnalocmin ${LANG_ENGLISH} "Calculate local minima from structures via gradient walks"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${sec_core} $(DESC_core)
@@ -254,6 +256,7 @@ LangString DESC_kinwalker ${LANG_ENGLISH} "Predict (co-transcriptional) RNA fold
   !insertmacro MUI_DESCRIPTION_TEXT ${sec_cluster} $(DESC_cluster)
   !insertmacro MUI_DESCRIPTION_TEXT ${sec_kinfold} $(DESC_kinfold)
   !insertmacro MUI_DESCRIPTION_TEXT ${sec_kinwalker} $(DESC_kinwalker)
+  !insertmacro MUI_DESCRIPTION_TEXT ${sec_rnalocmin} $(DESC_rnalocmin)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 Function .onInit
@@ -277,6 +280,10 @@ Function .onInit
   SectionGetFlags ${sec_kinwalker} $0
   IntOp $0 $0 & ${SECTION_OFF}
   SectionSetFlags ${sec_kinwalker} $0
+
+  SectionGetFlags ${sec_rnalocmin} $0
+  IntOp $0 $0 & ${SECTION_ON}
+  SectionSetFlags ${sec_rnalocmin} $0
 
   Pop $0
 

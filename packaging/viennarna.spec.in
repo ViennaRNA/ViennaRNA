@@ -1,6 +1,6 @@
 # ViennaRNA.spec
 #
-# Copyright (c) 1994-2016 Ivo Hofacker, Peter Stadler, ivo@tbi.univie.ac.at
+# Copyright (c) 1994-2017 Ivo Hofacker, Peter Stadler, Ronny Lorenz rna@tbi.univie.ac.at
 #
 
 
@@ -50,6 +50,7 @@ BuildRequires:  libstdc++-devel
 BuildRequires:  gcc gcc-c++ glibc-devel info
 BuildRequires:  gsl-devel 
 BuildRequires:  perl(ExtUtils::Embed)
+BuildRequires:  perl-Test-Simple
 
 Requires:       perl glibc info gsl
 Provides:       Kinfold
@@ -182,6 +183,17 @@ Python 3 bindings for ViennaRNA RNAlib.
 %endif
 %endif
 make %{?_smp_mflags}
+
+
+########################################
+# Perl5 test-RNA-Design.t fails on
+# RedHat/CentOS/Scientific Linux < 7 due
+# to old perl-Test-Simple package
+########################################
+%if 0%{?centos_version} >= 700 || %{defined el7} || 0%{?fedora} || 0%{?is_opensuse}
+%check
+make check
+%endif
 
 
 %install
