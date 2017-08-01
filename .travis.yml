@@ -35,7 +35,7 @@ before_script:
 
 
 script:
-- cd src && tar xzf libsvm-3.20.tar.gz && cd ..
+- cd src && tar xzf libsvm-3.22.tar.gz && cd ..
 - ./configure --with-cluster --with-kinwalker --disable-lto
 - make -j${CPU_COUNT}
 - make check
