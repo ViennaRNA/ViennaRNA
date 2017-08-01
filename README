@@ -1,13 +1,20 @@
 [![Build Status](https://travis-ci.org/ViennaRNA/ViennaRNA.svg?branch=master)](https://travis-ci.org/ViennaRNA/ViennaRNA)
 
-This is Version 2.3.5 of the ViennaRNA Package.
+This is Version 2.4.0 of the ViennaRNA Package.
 ------------------------------------------------
 See the NEWS and Changelog files for differences to previous versions.
 
 The ViennaRNA Package consists of a few stand alone programs and a 
 library that you can link your own programs with. 
-Together with this version we distribute the Kinfold and RNAforester
-programs. See the README files in the respective sub-directories.
+
+Together with this version we distribute the programs
+
+- Kinfold,
+- RNAforester,
+- RNAlocmin, and
+- Kinwalker
+
+See the README files in the respective sub-directories.
 
 The package allows you to
 
@@ -21,8 +28,9 @@ The package allows you to
 - compare two secondary structures 
 - predict hybridization structures of two RNA molecules
 
-The package includes a Perl5 module that gives access to almost all
-functions of the C library from Perl.
+The package includes Perl5, Python 2, and Python 3 modules that give
+access to almost all functions of the C library from within the respective
+scripting languages.
 
 There is also a set of programs for analyzing sequence and distance
 data using split decomposition, statistical geometry, and cluster methods.
@@ -65,7 +73,7 @@ RNAup           Calculate the thermodynamics of RNA-RNA interactions
 AnalyseSeqs     Analyse sequence data
 AnalyseDists    Analyse distance matrices
 
-A couple of useful utilities can be found in the Utils directory.
+A couple of useful utilities can be found in the src/Utils directory.
 
 All executables read from stdin and write to stdout and use command line
 switches rather than menus to be easily usable in pipes.

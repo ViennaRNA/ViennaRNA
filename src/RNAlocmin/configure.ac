@@ -1,5 +1,7 @@
 AC_INIT(RNAlocmin,2.1.0)
 
+AC_CONFIG_MACRO_DIR([.])
+
 #Output this variables to the makefiles
 
 AC_SUBST(VERSION)
@@ -21,6 +23,8 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_CC
 AC_PROG_CPP
+
+AX_CXX_COMPILE_STDCXX([11])
 
 AC_CHECK_FUNCS([strchr strdup strtol])
 AC_CHECK_HEADERS([limits.h])

@@ -30,7 +30,7 @@
 #include "ViennaRNA/file_utils.h"
 #include "RNALalifold_cmdl.h"
 #include "gengetopt_helper.h"
-#include "input_id_helper.h"
+#include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -467,7 +467,7 @@ main(int  argc,
     free(tmp_id);
     free(tmp_structure);
 
-    ID_number_increase(alignment_number, "Alignment");
+    ID_number_increase(&alignment_number, "Alignment");
   }
 
   if (first_alignment_number == alignment_number) {

@@ -56,7 +56,7 @@ RNA_PACKAGE_IF_ENABLED([doc],[
           AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
           doxygen=no
         else
-          if test "x$dvipdf" = no;
+          if test "x$dvipdf" = xno;
           then
             AC_MSG_WARN([dvipdf command is missing on your system!])
             AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])

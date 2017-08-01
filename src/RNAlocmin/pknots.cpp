@@ -7,6 +7,7 @@
 #include <stack>
 #include <algorithm>
 #include <vector>
+#include <ctime>
 
 extern "C" {
   #include "pair_mat.h"

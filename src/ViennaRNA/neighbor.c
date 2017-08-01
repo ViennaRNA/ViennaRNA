@@ -1276,7 +1276,7 @@ buildNeighborsForInsertionMove(const vrna_fold_compound_t *vc,
                                unsigned int               options)
 {
   int         allocatedSize = length;
-  vrna_move_t *newMoves     = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t) * (length));
+  vrna_move_t *newMoves     = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t) * (length + 1));
   int         newCount      = 0;
 
   /* insert current move as deletion */

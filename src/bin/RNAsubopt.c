@@ -30,7 +30,7 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAsubopt_cmdl.h"
 #include "gengetopt_helper.h"
-#include "input_id_helper.h"
+#include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -46,19 +46,15 @@ main(int  argc,
   struct          RNAsubopt_args_info args_info;
   char                                *rec_sequence, *rec_id,
                                       **rec_rest, *orig_sequence, *constraints_file, *cstruc,
-                                      *structure,
-                                      *shape_file, *shape_method, *shape_conversion, *id_prefix,
-                                      *id_delim,
-                                      *infile, *outfile, *filename_delim;
-  unsigned int  rec_type, read_opt;
-  int           i, length, cl, istty, delta, n_back, noconv, dos, zuker,
-                with_shapes,
-                verbose, enforceConstraints, st_back_en, batch, auto_id,
-                id_digits,
-                tofile, filename_full, canonicalBPonly;
-  long int      seq_number;
-  double        deltap;
-  vrna_md_t     md;
+                                      *structure, *shape_file, *shape_method, *shape_conversion,
+                                      *id_prefix, *id_delim, *infile, *outfile, *filename_delim;
+  unsigned int                        rec_type, read_opt;
+  int                                 i, length, cl, istty, delta, n_back, noconv, dos, zuker,
+                                      with_shapes, verbose, enforceConstraints, st_back_en, batch,
+                                      auto_id, id_digits, tofile, filename_full, canonicalBPonly;
+  long int                            seq_number;
+  double                              deltap;
+  vrna_md_t                           md;
 
   do_backtrack    = 1;
   delta           = 100;
@@ -289,8 +285,9 @@ main(int  argc,
       if (outfile)
         v_file_name = vrna_strdup_printf("%s", outfile);
       else
-        v_file_name = (SEQ_ID) ? vrna_strdup_printf("%s.sub", SEQ_ID) : vrna_strdup_printf(
-          "RNAsubopt_output.sub");
+        v_file_name = (SEQ_ID) ?
+                      vrna_strdup_printf("%s.sub", SEQ_ID) :
+                      vrna_strdup_printf("RNAsubopt_output.sub");
 
       tmp_string = vrna_filename_sanitize(v_file_name, filename_delim);
       free(v_file_name);
@@ -511,7 +508,7 @@ main(int  argc,
     if (with_shapes || (constraints_file && (!batch)))
       break;
 
-    ID_number_increase(seq_number, "Sequence");
+    ID_number_increase(&seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if (istty) {

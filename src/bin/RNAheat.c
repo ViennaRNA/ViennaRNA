@@ -27,7 +27,7 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAheat_cmdl.h"
 #include "gengetopt_helper.h"
-#include "input_id_helper.h"
+#include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -54,10 +54,12 @@ main(int  argc,
      char *argv[])
 {
   struct RNAheat_args_info  args_info;
-  char                      *ns_bases, *c, *ParamFile, *rec_sequence, *rec_id, **rec_rest, *orig_sequence,
+  char                      *ns_bases, *c, *ParamFile, *rec_sequence, *rec_id, **rec_rest,
+                            *orig_sequence,
                             *id_prefix, *id_delim;
   unsigned int              rec_type, read_opt;
-  int                       i, length, sym, mpoints, istty, noconv, auto_id, id_digits, filename_full;
+  int                       i, length, sym, mpoints, istty, noconv, auto_id, id_digits,
+                            filename_full;
   long int                  seq_number;
   float                     T_min, T_max, h;
 
@@ -97,7 +99,8 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning(
+        "required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
   }
@@ -248,7 +251,7 @@ main(int  argc,
     rec_id    = rec_sequence = orig_sequence = NULL;
     rec_rest  = NULL;
 
-    ID_number_increase(seq_number, "Sequence");
+    ID_number_increase(&seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if (istty)

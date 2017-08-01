@@ -1,6 +1,61 @@
 v2.4.0
-  * Use same definition for maximum base pair distance (L) in sliding-window partition function and MFE computations
-    
+  * Bump libsvm to version 3.22
+  * Print G-Quadruplex corrections in verbose mode of RNAeval
+  * Change behavior of RNAfold --outfile option to something more predictable
+  * Unify max_bp_span usage among sliding window prediction algorithms: RNAplfold, RNALfold, and RNALalifold now consider any base pair (i,j) with (j - i + 1) <= max_bp_span
+  * Add SHAPE reactivity data support to RNALfold
+  * Add commands-file support for RNALfold, RNAplfold (hard/soft constraints)
+  * Add RNAlocmin - Calculate local minima from structures via gradient walks
+  * Add RNA Bioinformatics tutorial (PDF version)
+  * Add hard constraints to sliding-window MFE implementations (RNALfold, RNALalifold)
+  * Add hard constraints to sliding-window PF implementations (RNAplfold)
+  * Add soft constraints to sliding-window MFE implementation for single sequences (RNALfold)
+  * Add soft constraints to sliding-window PF implementations (RNAplfold)
+  * Add SWIG interfaces for sliding-window MFE/PF implementations
+  * Add proper SWIG interface for alignment and structure plotting functions
+  * Add proper SWIG interface for duplexfold, duplex_subopt, and its comparative variants
+  * Add SWIG wrapper for vrna_exp_params_rescale()
+  * Add explicit destructor for SWIG generated vrna_md_t objects
+  * Add SWIG perl5 typemap for simple nested STL vectors
+  * Add dummy field in vrna_structured_domains_s
+  * Add note about SSE optimized code in reference manual
+  * Add SWIG interface for findpath implementation
+  * Add prepare() functions for ptypes-arrays and vrna_(exp_)param_t
+  * Add warnings for ignored commands in function vrna_commands_apply()
+  * Add callback featured functions for sliding window MFE and PF implementations
+  * Change default behavior of adding soft constraints to a vrna_fold_compound_t (store only)
+  * Several fixes with respect to G-Quadruplex prediction in sliding-window MFE recursions (single sequence and comparative implementation)
+  * Replace comparative sliding-window MFE recursions (All hits are reported to callback and can be filtered in a post-processing step)
+  * API: Remove E_mb_loop_stack() and introduce new function vrna_E_mb_loop_stack() as a replacement
+  * API: change data type of all constraint bit-flags from `char` to `unsigned char`
+  * API: change data type of a2s array in comparative structure prediction from `unsigned short` to `unsigned int`
+  * API: Change function parameter order in vrna_probs_window() to follow the style of other callback-aware functions in RNAlib
+  * Move sliding-window MFE implementations to new file mfe_window.c
+  * Fix building PDF Reference manual with non-standard executable paths
+  * Fix redefinition of macro ON_SAME_STRAND() in subopt.c
+  * Fix dangling end issues in sliding-window MFE implementations
+  * Fix regression for --canonicalBPonly switch in RNAfold/RNAcofold/RNAsubopt
+  * Fix building sliding-window MFE implementation without SVM support
+  * Fix parsing of STOCKHOLM 1.0 MSA files that contain MSA spanning multiple blocks
+  * Fix Alidot link in RNAalifold manpage
+  * Fix wrong pre-processor flags when enabling single-precision PF computations
+  * Fix unit testing perl5 interface by including builddir/tests in PERL5LIB path
+  * Fix buffer overflow in hairpin loop sequence motif extraction for circular RNAs
+  * Fix out-of-bounds memory access in neighbor.c
+  * Restore capability to compile stand-alone findpath utility
+  * Restore capability to use non-standard alphabets for structure prediction
+  * Restore old-API random number functions in SWIG interface
+  * Allow additional control characters in MAF MSA input that do not end a block
+  * Improve reference manual
+  * Make functions in pair_mat.h static inline
+  * Prevent users from adding out-of-range base pair soft constraints
+  * Inline print functions in color_output.inc
+  * Start documenting callback features in reference manual
+  * Re-write large portions of sliding-window PF implementation
+  * Introduce soft-constraint state flag
+  * Clean-up SWIG unit test framework
+  * Remove obsolete scripts ct2b.pl and colorrna.pl from src/Utils directory
+  * Remove old RNAfold tutorial
 
 v2.3.5
   * Fix duplication of output filename prefix in RNAfold

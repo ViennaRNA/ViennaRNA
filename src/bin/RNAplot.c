@@ -19,7 +19,7 @@
 #include "ViennaRNA/file_utils.h"
 #include "RNAplot_cmdl.h"
 #include "gengetopt_helper.h"
-#include "input_id_helper.h"
+#include "input_id_helpers.h"
 
 #define PRIVATE static
 
@@ -125,7 +125,9 @@ main(int  argc,
     /* construct the sequence ID */
     ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
 
-    structure = vrna_extract_record_rest_structure((const char **)rec_rest, 0, (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0);
+    structure = vrna_extract_record_rest_structure((const char **)rec_rest,
+                                                   0,
+                                                   (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0);
 
     if (!structure)
       vrna_message_error("structure missing");
@@ -198,7 +200,7 @@ main(int  argc,
     free(ffname);
     ffname = NULL;
 
-    ID_number_increase(seq_number, "Sequence");
+    ID_number_increase(&seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if (istty)

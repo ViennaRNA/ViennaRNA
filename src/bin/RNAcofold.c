@@ -29,7 +29,7 @@
 #include "ViennaRNA/read_epars.h"
 #include "RNAcofold_cmdl.h"
 #include "gengetopt_helper.h"
-#include "input_id_helper.h"
+#include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -696,7 +696,7 @@ main(int  argc,
     if (constraints_file && (!batch))
       break;
 
-    ID_number_increase(seq_number, "Sequence");
+    ID_number_increase(&seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if (istty) {

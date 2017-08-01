@@ -56,12 +56,14 @@
  */
 PRIVATE void
 sc_reset_up(vrna_fold_compound_t  *vc,
-            const FLT_OR_DBL      *constraints);
+            const FLT_OR_DBL      *constraints,
+            unsigned int          options);
 
 
 PRIVATE void
 sc_reset_bp(vrna_fold_compound_t  *vc,
-            const FLT_OR_DBL      **constraints);
+            const FLT_OR_DBL      **constraints,
+            unsigned int          options);
 
 
 PRIVATE void
@@ -383,7 +385,7 @@ vrna_sc_set_bp(vrna_fold_compound_t *vc,
                unsigned int         options)
 {
   if (vc && (vc->type == VRNA_FC_TYPE_SINGLE)) {
-    sc_reset_bp(vc, constraints);
+    sc_reset_bp(vc, constraints, options);
 
     if (options & VRNA_OPTION_MFE)
       prepare_sc_bp_mfe(vc, options);
@@ -425,7 +427,7 @@ vrna_sc_set_up(vrna_fold_compound_t *vc,
                unsigned int         options)
 {
   if (vc && (vc->type == VRNA_FC_TYPE_SINGLE)) {
-    sc_reset_up(vc, constraints);
+    sc_reset_up(vc, constraints, options);
 
     if (options & VRNA_OPTION_MFE)
       prepare_sc_up_mfe(vc, options);
@@ -869,15 +871,13 @@ free_sc_up(vrna_sc_t *sc)
   sc->up_storage = NULL;
 
   if (sc->type == VRNA_SC_DEFAULT) {
-    if (sc->energy_up) {
+    if (sc->energy_up)
       for (i = 0; i <= sc->n; i++)
         free(sc->energy_up[i]);
-    }
 
-    if (sc->exp_energy_up) {
+    if (sc->exp_energy_up)
       for (i = 0; i <= sc->n; i++)
         free(sc->exp_energy_up[i]);
-    }
   }
 
   free(sc->energy_up);
@@ -927,15 +927,20 @@ free_sc_bp(vrna_sc_t *sc)
 
 PRIVATE void
 sc_reset_up(vrna_fold_compound_t  *vc,
-            const FLT_OR_DBL      *constraints)
+            const FLT_OR_DBL      *constraints,
+            unsigned int          options)
 {
   unsigned int  i, n;
   vrna_sc_t     *sc;
 
   n = vc->length;
 
-  if (!vc->sc)
-    vrna_sc_init(vc);
+  if (!vc->sc) {
+    if (options & VRNA_OPTION_WINDOW)
+      vrna_sc_init_window(vc);
+    else
+      vrna_sc_init(vc);
+  }
 
   sc = vc->sc;
 
@@ -958,7 +963,8 @@ sc_reset_up(vrna_fold_compound_t  *vc,
 
 PRIVATE void
 sc_reset_bp(vrna_fold_compound_t  *vc,
-            const FLT_OR_DBL      **constraints)
+            const FLT_OR_DBL      **constraints,
+            unsigned int          options)
 {
   unsigned int  i, j, n;
   vrna_sc_t     *sc;
@@ -966,8 +972,12 @@ sc_reset_bp(vrna_fold_compound_t  *vc,
 
   n = vc->length;
 
-  if (!vc->sc)
-    vrna_sc_init(vc);
+  if (!vc->sc) {
+    if (options & VRNA_OPTION_WINDOW)
+      vrna_sc_init_window(vc);
+    else
+      vrna_sc_init(vc);
+  }
 
   sc = vc->sc;
 

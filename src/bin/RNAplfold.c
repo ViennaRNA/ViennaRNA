@@ -28,7 +28,7 @@
 #include "ViennaRNA/commands.h"
 #include "RNAplfold_cmdl.h"
 #include "gengetopt_helper.h"
-#include "input_id_helper.h"
+#include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -549,7 +549,7 @@ main(int  argc,
     rec_id    = rec_sequence = orig_sequence = NULL;
     rec_rest  = NULL;
 
-    ID_number_increase(seq_number, "Sequence");
+    ID_number_increase(&seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if (istty)

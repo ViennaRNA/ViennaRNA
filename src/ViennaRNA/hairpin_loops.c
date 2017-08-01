@@ -244,13 +244,13 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
                       int                   i,
                       int                   j)
 {
-  char            **Ss, loopseq[10];
-  unsigned int    **a2s;
-  short           *S, *S2, **SS, **S5, **S3;
-  int             u, e, s, type, n_seq, length;
-  vrna_param_t    *P;
-  vrna_sc_t       *sc, **scs;
-  vrna_md_t       *md;
+  char          **Ss, loopseq[10];
+  unsigned int  **a2s;
+  short         *S, *S2, **SS, **S5, **S3;
+  int           u, e, s, type, n_seq, length;
+  vrna_param_t  *P;
+  vrna_sc_t     *sc, **scs;
+  vrna_md_t     *md;
 
   length  = vc->length;
   P       = vc->params;
@@ -266,7 +266,8 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
       u     = vc->length - j + i - 1;
       type  = get_pair_type(S2[j], S2[i], md);
 
-      if (u < 9) {
+      /* maximum special hp loop size: 6 */
+      if (u < 7) {
         strcpy(loopseq, vc->sequence + j - 1);
         strncat(loopseq, vc->sequence, i);
       }
@@ -299,7 +300,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
         char loopseq[10];
         u = a2s[s][length] - a2s[s][j] + a2s[s][i - 1];
 
-        if (u < 9) {
+        if (u < 7) {
           strcpy(loopseq, Ss[s] + a2s[s][j] - 1);
           strncat(loopseq, Ss[s], a2s[s][i]);
         }
@@ -360,15 +361,15 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
                   int                   i,
                   int                   j)
 {
-  char            **Ss;
-  unsigned int    **a2s;
-  short           *S, *S2, **SS, **S5, **S3;
-  unsigned int    *sn;
-  int             u, e, s, ij, type, *idx, n_seq, en;
-  vrna_param_t    *P;
-  vrna_sc_t       *sc, **scs;
-  vrna_md_t       *md;
-  vrna_ud_t       *domains_up;
+  char          **Ss;
+  unsigned int  **a2s;
+  short         *S, *S2, **SS, **S5, **S3;
+  unsigned int  *sn;
+  int           u, e, s, ij, type, *idx, n_seq, en;
+  vrna_param_t  *P;
+  vrna_sc_t     *sc, **scs;
+  vrna_md_t     *md;
+  vrna_ud_t     *domains_up;
 
   idx         = vc->jindx;
   P           = vc->params;
@@ -731,11 +732,13 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
           case VRNA_SC_DEFAULT:
             if (sc->exp_energy_bp)
               q *= sc->exp_energy_bp[iidx[i] - j];
+
             break;
 
           case VRNA_SC_WINDOW:
             if (sc->exp_energy_bp_local)
               q *= sc->exp_energy_bp_local[i][j - i];
+
             break;
         }
 

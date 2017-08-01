@@ -1,0 +1,137 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 440 160
+%%EndComments
+
+/string { % (Text) x y red green blue
+  gsave
+	setrgbcolor
+	18 add
+	moveto
+	show
+  grestore
+} def
+
+
+0 160 translate
+1 -1 scale
+/Helvetica findfont
+[12 0 0 -12 0 0] makefont setfont
+
+%/Font /Helvetica findfont def
+%/FontSize 12 def
+
+  /rightarrow { % X Y length width red green blue
+  gsave
+	setrgbcolor
+	newpath
+
+	% X,Y
+	3 index
+	3 index
+	moveto
+
+	% X+length, Y
+	3 index
+	2 index
+	add
+	10 sub
+	3 index
+	lineto
+
+	% Draw arrow
+	3 index
+	2 index
+	add
+	1 index
+	2 div
+	4 index
+	add
+	lineto
+
+	% X+length, Y+width
+	3 index
+	2 index
+	add
+	10 sub
+	3 index
+	2 index
+	add
+	lineto
+
+	% X, Y+width
+	3 index
+	3 index
+	2 index
+	add
+	lineto
+	
+	clear
+	closepath
+	fill
+  grestore
+} def
+
+/leftarrow { % X Y length width red green blue
+  gsave
+	setrgbcolor
+	newpath
+
+	% X,Y
+	3 index
+	10 add
+	3 index
+	moveto
+
+	% X+length, Y
+	3 index
+	2 index
+	add
+	3 index
+	lineto
+
+	% X+length, Y+width
+	3 index
+	2 index
+	add
+	3 index
+	2 index
+	add
+	lineto
+
+	% X, Y+width
+	3 index
+	10 add
+	3 index
+	2 index
+	add
+	lineto
+	
+	% Draw arrow, 1/20 of head
+	3 index
+	1 index
+	2 div
+	4 index
+	add
+	lineto
+
+	clear
+	closepath
+	fill
+  grestore
+} def
+  
+
+
+0 0 0 setrgbcolor
+
+%100 100 200 7 0 1 0 rightarrow
+%(This is a string) 100 100 1 0 0 string
+
+  20 20 364.227642276423 6 0 0 1 leftarrow
+(Window 5 (0.91)) 20 20 0 0 0 string
+94.7967479674797 60 325.20325203252 6 0.8 0.8 1 leftarrow
+(Window 6 (0.66)) 94.7967479674797 60 0 0 0 string
+20 100  400 3 0 0 0 rightarrow(hg18.chr11: 93103792 - 93103915) 20 100 0 0 0 string
+
+
+showpage
