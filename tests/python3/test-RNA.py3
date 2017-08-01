@@ -8,7 +8,7 @@ import unittest
 from struct import *
 import locale
 
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+locale.setlocale(locale.LC_ALL, 'C')
 
 seq1      = "CGCAGGGAUACCCGCG"
 struct1   = "(((.(((...))))))"
