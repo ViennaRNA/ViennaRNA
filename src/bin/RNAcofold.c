@@ -25,10 +25,11 @@
 #include "ViennaRNA/part_func_co.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/structure_utils.h"
 #include "ViennaRNA/read_epars.h"
 #include "RNAcofold_cmdl.h"
 #include "gengetopt_helper.h"
-#include "input_id_helper.h"
+#include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -61,16 +62,18 @@ main(int  argc,
      char *argv[])
 {
   struct        RNAcofold_args_info args_info;
-  char                              *constraints_file, *structure, *cstruc, *rec_sequence, *orig_sequence,
+  char                              *constraints_file, *structure, *cstruc, *rec_sequence,
+                                    *orig_sequence,
                                     *rec_id, **rec_rest, *Concfile, *id_prefix,
                                     *command_file, *id_delim, *filename_delim, *tmp_string;
   unsigned int                      rec_type, read_opt;
   int                               i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
                                     doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch,
-                                    filename_full;
+                                    filename_full, canonicalBPonly;
   long int                          seq_number;
   double                            min_en, kT, *ConcAandB;
-  plist                             *prAB, *prAA, *prBB, *prA, *prB, *mfAB, *mfAA, *mfBB, *mfA, *mfB;
+  plist                             *prAB, *prAA, *prBB, *prA, *prB, *mfAB, *mfAA, *mfBB, *mfA,
+                                    *mfB;
   vrna_md_t                         md;
   vrna_cmd_t                        *commands;
 
@@ -79,24 +82,25 @@ main(int  argc,
    # init variables and parameter options
    #############################################
    */
-  bppmThreshold = 1e-5;
-  noconv        = 0;
-  noPS          = 0;
-  do_backtrack  = 1;
-  pf            = 0;
-  doT           = 0;        /* compute dimer free energies etc. */
-  doC           = 0;        /* toggle to compute concentrations */
-  cofi          = 0;        /* toggle concentrations stdin / file */
-  Concfile      = NULL;
-  structure     = NULL;
-  cstruc        = NULL;
-  rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = orig_sequence = NULL;
-  rec_rest      = NULL;
-  auto_id       = 0;
-  command_file  = NULL;
-  commands      = NULL;
-  filename_full = 0;
+  bppmThreshold   = 1e-5;
+  noconv          = 0;
+  noPS            = 0;
+  do_backtrack    = 1;
+  pf              = 0;
+  doT             = 0;      /* compute dimer free energies etc. */
+  doC             = 0;      /* toggle to compute concentrations */
+  cofi            = 0;      /* toggle concentrations stdin / file */
+  Concfile        = NULL;
+  structure       = NULL;
+  cstruc          = NULL;
+  rec_type        = read_opt = 0;
+  rec_id          = rec_sequence = orig_sequence = NULL;
+  rec_rest        = NULL;
+  auto_id         = 0;
+  command_file    = NULL;
+  commands        = NULL;
+  filename_full   = 0;
+  canonicalBPonly = 0;
 
   set_model_details(&md);
   /*
@@ -133,7 +137,7 @@ main(int  argc,
 
   /* enforce canonical base pairs in any case? */
   if (args_info.canonicalBPonly_given)
-    md.canonicalBPonly = canonicalBPonly = 1;
+    canonicalBPonly = 1;
 
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given)
@@ -199,7 +203,8 @@ main(int  argc,
    #############################################
    */
   if (pf && gquad)
-    vrna_message_error("G-Quadruplex support is currently not available for partition function computations");
+    vrna_message_error(
+      "G-Quadruplex support is currently not available for partition function computations");
 
   if (command_file != NULL)
     commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_DEFAULTS);
@@ -211,7 +216,9 @@ main(int  argc,
   /* print user help if we get input from tty */
   if (istty) {
     if (fold_constrained) {
-      vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK);
+      vrna_message_constraint_options(
+        VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK |
+        VRNA_CONSTRAINT_DB_RND_BRACK);
       vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n"
                              "Use '&' to connect 2 sequences that shall form a complex.");
     } else {
@@ -260,7 +267,10 @@ main(int  argc,
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
-    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID | ((pf) ? VRNA_OPTION_PF : 0));
+    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence,
+                                                  &md,
+                                                  VRNA_OPTION_MFE | VRNA_OPTION_HYBRID |
+                                                  ((pf) ? VRNA_OPTION_PF : 0));
     length    = vc->length;
     structure = (char *)vrna_alloc((unsigned)length + 1);
 
@@ -294,8 +304,12 @@ main(int  argc,
           strncpy(structure, cstruc, sizeof(char) * (cl + 1));
 
           unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
+
           if (enforceConstraints)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
+
+          if (canonicalBPonly)
+            constraint_options |= VRNA_CONSTRAINT_DB_CANONICAL_BP;
 
           vrna_constraints_add(vc, (const char *)structure, constraint_options);
         }
@@ -306,10 +320,14 @@ main(int  argc,
       vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_DEFAULTS);
 
     if (istty) {
-      if (cut_point == -1)
+      if (cut_point == -1) {
         vrna_message_info(stdout, "length = %d", length);
-      else
-        vrna_message_info(stdout, "length1 = %d\nlength2 = %d", cut_point - 1, length - cut_point + 1);
+      } else {
+        vrna_message_info(stdout,
+                          "length1 = %d\nlength2 = %d",
+                          cut_point - 1,
+                          length - cut_point + 1);
+      }
     }
 
     if (doC) {
@@ -341,8 +359,9 @@ main(int  argc,
     /* check whether the constraint allows for any solution */
     if (fold_constrained && constraints_file) {
       if (min_en == (double)(INF / 100.)) {
-        vrna_message_error("Supplied structure constraints create empty solution set for sequence:\n%s",
-                           orig_sequence);
+        vrna_message_error(
+          "Supplied structure constraints create empty solution set for sequence:\n%s",
+          orig_sequence);
         exit(EXIT_FAILURE);
       }
     }
@@ -401,11 +420,11 @@ main(int  argc,
     if (pf) {
       vrna_dimer_pf_t AB, AA, BB;
 
-      prAB = NULL;
-      prAA = NULL;
-      prBB = NULL;
-      prA  = NULL;
-      prB  = NULL;
+      prAB  = NULL;
+      prAA  = NULL;
+      prBB  = NULL;
+      prA   = NULL;
+      prB   = NULL;
 
       if (md.dangles == 1) {
         vc->params->model_details.dangles = dangles = 2;   /* recompute with dangles as in pf_fold() */
@@ -461,7 +480,8 @@ main(int  argc,
         char  *Astring, *Bstring, *orig_Astring, *orig_Bstring;
         char  *Newstring;
         if (vc->cutpoint <= 0) {
-          vrna_message_warning("Sorry, i cannot do that with only one molecule, please give me two or leave it");
+          vrna_message_warning(
+            "Sorry, i cannot do that with only one molecule, please give me two or leave it");
           free(mfAB);
           free(prAB);
           continue;
@@ -518,9 +538,9 @@ main(int  argc,
         /*output of the 5 dot plots*/
 
         if (do_backtrack) {
-          char  *comment    = NULL;
-          char  *fname_dot  = NULL;
-          char *filename_dot = NULL;
+          char  *comment      = NULL;
+          char  *fname_dot    = NULL;
+          char  *filename_dot = NULL;
 
           if (SEQ_ID) {
             filename_dot  = vrna_strdup_printf("%s%sdp5.ps", SEQ_ID, id_delim);
@@ -676,14 +696,17 @@ main(int  argc,
     if (constraints_file && (!batch))
       break;
 
-    ID_number_increase(seq_number, "Sequence");
+    ID_number_increase(&seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if (istty) {
       printf("Use '&' to connect 2 sequences that shall form a complex.\n");
       if (fold_constrained) {
-        vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK);
-        vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n");
+        vrna_message_constraint_options(
+          VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK |
+          VRNA_CONSTRAINT_DB_RND_BRACK);
+        vrna_message_input_seq(
+          "Input sequence (upper or lower case) followed by structure constraint\n");
       } else {
         vrna_message_input_seq_simple();
       }
@@ -725,7 +748,9 @@ do_partfunc(char              *string,
     case 1:   /* monomer */
       tempstruc = (char *)vrna_alloc((unsigned)length + 1);
       //parameters->model_details.min_loop_size = TURN; /* we need min_loop_size of 0 to correct for Q_AB */
-      vc      = vrna_fold_compound(string, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF);
+      vc = vrna_fold_compound(string,
+                              &(parameters->model_details),
+                              VRNA_OPTION_MFE | VRNA_OPTION_PF);
       min_en  = vrna_mfe(vc, tempstruc);
       *mfpl   = vrna_plist(tempstruc, 0.95);
       vrna_mx_mfe_free(vc);
@@ -750,9 +775,12 @@ do_partfunc(char              *string,
       strcat(Newstring, "&");
       strcat(Newstring, string);
       parameters->model_details.min_loop_size = 0;
-      vc                                      = vrna_fold_compound(Newstring, &(parameters->model_details), VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
-      min_en                                  = vrna_mfe_dimer(vc, tempstruc);
-      *mfpl                                   = vrna_plist(tempstruc, 0.95);
+      vc                                      =
+        vrna_fold_compound(Newstring,
+                           &(parameters->model_details),
+                           VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+      min_en  = vrna_mfe_dimer(vc, tempstruc);
+      *mfpl   = vrna_plist(tempstruc, 0.95);
       vrna_mx_mfe_free(vc);
 
       par           = vrna_exp_params_copy(parameters);

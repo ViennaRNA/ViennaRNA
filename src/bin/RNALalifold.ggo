@@ -27,13 +27,6 @@ details="This option can be used to minimize the output of additional informatio
 flag
 off
 
-option  "span"  L
-"Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
- j-i>span will be allowed.\n\n"
-int
-default="70"
-optional
-
 option  "input-format"  f
 "File format of the input multiple sequence alignment (MSA).\n"
 details="If this parameter is set, the input is considered to be in a particular\
@@ -193,6 +186,20 @@ hidden
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"
+
+option  "span"  L
+"Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
+ j-i>span will be allowed.\n\n"
+int
+default="70"
+optional
+
+option  "threshold"   -
+"Energy threshold in kcal/mol per nucleotide above which secondary structure hits are omitted\
+ in the output.\n\n"
+double
+default="-0.1"
+optional
 
 option  "mis" -
 "Output \"most informative sequence\" instead of simple consensus: For each column of the alignment\

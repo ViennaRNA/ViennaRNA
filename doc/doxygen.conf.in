@@ -229,6 +229,7 @@ TAB_SIZE               = 2
 
 ALIASES                =
 ALIASES               += "scripting=\xrefitem wrappers \"SWIG Wrapper Notes\" \"SWIG Wrapper Notes\""
+ALIASES               += "callback=\xrefitem callbacks \"Notes on Callback Functions\" \"Notes on Callback Functions\""
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"

@@ -7,18 +7,23 @@ SOURCES = RNA.i \
           commands.i \
           compare.i \
           constraints.i \
+          duplex.i \
           eval.i \
           file_formats.i \
+          findpath.i \
           fold_compound.i \
           grammar.i \
           inverse.i \
           mfe.i \
+          mfe_window.i \
           model_details.i \
           params.i \
           part_func.i \
+          pf_window.i \
           plotting.i \
           subopt.i \
           utils.i \
+          structure_utils.i \
           ptr2array.i \
           generic.mk
 
@@ -42,18 +47,23 @@ EXTRA_DIST =  RNA.i \
               commands.i \
               compare.i \
               constraints.i \
+              duplex.i \
               eval.i \
               file_formats.i \
+              findpath.i \
               fold_compound.i \
               grammar.i \
               inverse.i \
               mfe.i \
+              mfe_window.i \
               model_details.i \
               params.i \
               part_func.i \
+              pf_window.i \
               plotting.i \
               subopt.i \
               utils.i \
+              structure_utils.i \
               ptr2array.i \
               generic.mk \
               $(DOXYGEN_DOCUMENTATION)

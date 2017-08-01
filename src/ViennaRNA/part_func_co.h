@@ -156,9 +156,9 @@ vrna_pf_dimer(vrna_fold_compound_t *vc,
 void  vrna_pf_dimer_probs(double FAB,
                           double FA,
                           double FB,
-                          vrna_plist_t *prAB,
-                          const vrna_plist_t *prA,
-                          const vrna_plist_t *prB,
+                          vrna_ep_t *prAB,
+                          const vrna_ep_t *prA,
+                          const vrna_ep_t *prB,
                           int Alength,
                           const vrna_exp_param_t *exp_params);
 
@@ -245,7 +245,7 @@ DEPRECATED(vrna_dimer_pf_t co_pf_fold_par(char *sequence, char *structure, vrna_
  *  @deprecated{ This function is deprecated and will be removed soon!}
  *  use assign_plist_from_pr() instead!
  */
-DEPRECATED(vrna_plist_t  *get_plist( vrna_plist_t *pl,
+DEPRECATED(vrna_ep_t  *get_plist( vrna_ep_t *pl,
                               int length,
                               double cut_off));
 
@@ -268,7 +268,7 @@ DEPRECATED(vrna_plist_t  *get_plist( vrna_plist_t *pl,
  *  @param prB      pair probabilities monomer
  *  @param Alength  Length of molecule A
  */
-DEPRECATED(void compute_probabilities(double FAB, double FEA, double FEB, vrna_plist_t  *prAB, vrna_plist_t  *prA, vrna_plist_t  *prB, int Alength));
+DEPRECATED(void compute_probabilities(double FAB, double FEA, double FEB, vrna_ep_t  *prAB, vrna_ep_t  *prA, vrna_ep_t  *prB, int Alength));
 
 /**
  *  @brief Given two start monomer concentrations a and b, compute the

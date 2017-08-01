@@ -6,7 +6,11 @@ PERLARCHLIB := $(shell perl -MConfig -e 'print substr($$Config{vendorarch}, 1);'
 BUILDOPTS= --with-cluster --without-forester --with-python3 --disable-silent-rules
 
 ifeq ($(shell lsb_release --short --codename),wheezy)
-BUILDOPTS+= --disable-lto
+BUILDOPTS+= --disable-lto --without-rnalocmin
+endif
+
+ifeq ($(shell lsb_release --short --codename),precise)
+BUILDOPTS+= --disable-lto --without-rnalocmin
 endif
 
 %:

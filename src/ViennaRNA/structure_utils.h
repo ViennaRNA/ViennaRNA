@@ -25,10 +25,23 @@
  *  @ingroup   struct_utils
  */
 
+#define VRNA_PLIST_TYPE_BASEPAIR      0
+#define VRNA_PLIST_TYPE_GQUAD         1
+#define VRNA_PLIST_TYPE_H_MOTIF       2
+#define VRNA_PLIST_TYPE_I_MOTIF       3
+#define VRNA_PLIST_TYPE_UD_MOTIF      4
+#define VRNA_PLIST_TYPE_STACK         5
+
+
 /**
  *  @brief Convenience typedef for data structure #vrna_hx_s
  */
 typedef struct vrna_hx_s  vrna_hx_t;
+
+/**
+ *  @brief Convenience typedef for data structure #vrna_pp_s
+ */
+typedef struct vrna_elem_prob_s vrna_ep_t;
 
 #include <stdio.h>
 
@@ -43,6 +56,21 @@ struct vrna_hx_s {
   unsigned int length;
   unsigned int up5;
   unsigned int up3;
+};
+
+/**
+ *  @brief  Data structure representing a single entry of an element probability list
+ *          (e.g. list of pair probabilities)
+ *
+ *  @see vrna_plist(), vrna_plist_from_probs(), vrna_db_from_plist(),
+ *  #VRNA_PLIST_TYPE_BASEPAIR, #VRNA_PLIST_TYPE_GQUAD, #VRNA_PLIST_TYPE_H_MOTIF, #VRNA_PLIST_TYPE_I_MOTIF,
+ *  #VRNA_PLIST_TYPE_UD_MOTIF, #VRNA_PLIST_TYPE_STACK
+ */
+struct vrna_elem_prob_s {
+  int i;
+  int j;
+  float p;
+  int type;
 };
 
 /**
@@ -198,7 +226,7 @@ void vrna_letter_structure( char *structure,
                             unsigned int length);
 
 /**
- *  @brief Create a #vrna_plist_t from a dot-bracket string
+ *  @brief Create a #vrna_ep_t from a dot-bracket string
  * 
  *  The dot-bracket string is parsed and for each base pair an
  *  entry in the plist is created. The probability of each pair in
@@ -212,10 +240,10 @@ void vrna_letter_structure( char *structure,
  *  @param pr     The probability for each base pair used in the plist
  *  @return       The plist array
  */
-vrna_plist_t *vrna_plist(const char *struc, float pr);
+vrna_ep_t *vrna_plist(const char *struc, float pr);
 
 /**
- *  @brief Create a #vrna_plist_t from base pair probability matrix
+ *  @brief Create a #vrna_ep_t from base pair probability matrix
  * 
  *  The probability matrix provided via the #vrna_fold_compound_t is parsed
  *  and all pair probabilities above the given threshold are used to create
@@ -230,18 +258,18 @@ vrna_plist_t *vrna_plist(const char *struc, float pr);
  *  @param[in]  cut_off   The cutoff value
  *  @return               A pointer to the plist that is to be created
  */
-vrna_plist_t *vrna_plist_from_probs(vrna_fold_compound_t *vc, double cut_off);
+vrna_ep_t *vrna_plist_from_probs(vrna_fold_compound_t *vc, double cut_off);
 
 /**
  *  @brief  Convert a list of base pairs into dot-bracket notation
  *
  *  @see vrna_plist()
- *  @param  pairs   A #vrna_plist_t containing the pairs to be included in
+ *  @param  pairs   A #vrna_ep_t containing the pairs to be included in
  *                  the dot-bracket string
  *  @param  n       The length of the structure (number of nucleotides)
  *  @return         The dot-bracket string containing the provided base pairs
  */
-char *vrna_db_from_plist(vrna_plist_t *pairs, unsigned int n);
+char *vrna_db_from_plist(vrna_ep_t *pairs, unsigned int n);
 
 char *vrna_db_to_element_string(const char *structure);
 
@@ -255,7 +283,7 @@ vrna_hx_t *vrna_hx_merge(const vrna_hx_t *list, int maxdist);
 /*###########################################*/
 
 /**
- *  @brief Create a #vrna_plist_t from a dot-bracket string
+ *  @brief Create a #vrna_ep_t from a dot-bracket string
  * 
  *  The dot-bracket string is parsed and for each base pair an
  *  entry in the plist is created. The probability of each pair in
@@ -267,11 +295,11 @@ vrna_hx_t *vrna_hx_merge(const vrna_hx_t *list, int maxdist);
  * 
  *  @deprecated   Use vrna_plist() instead
  * 
- *  @param pl     A pointer to the #vrna_plist_t that is to be created
+ *  @param pl     A pointer to the #vrna_ep_t that is to be created
  *  @param struc  The secondary structure in dot-bracket notation
  *  @param pr     The probability for each base pair
  */
-DEPRECATED(void assign_plist_from_db(vrna_plist_t **pl, const char *struc, float pr));
+DEPRECATED(void assign_plist_from_db(vrna_ep_t **pl, const char *struc, float pr));
 
 /**
  *  @brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
@@ -378,7 +406,7 @@ DEPRECATED(unsigned int  *compute_BPdifferences( short *pt1,
                                       unsigned int turn));
 
 /**
- *  @brief Create a vrna_plist_t from a probability matrix
+ *  @brief Create a vrna_ep_t from a probability matrix
  * 
  *  The probability matrix given is parsed and all pair probabilities above
  *  the given threshold are used to create an entry in the plist
@@ -391,12 +419,12 @@ DEPRECATED(unsigned int  *compute_BPdifferences( short *pt1,
  *  @deprecated Use vrna_plist_from_probs() instead!
  *
  *  @ingroup            pf_fold
- *  @param[out] pl      A pointer to the vrna_plist_t that is to be created
+ *  @param[out] pl      A pointer to the vrna_ep_t that is to be created
  *  @param[in]  probs   The probability matrix used for creating the plist
  *  @param[in]  length  The length of the RNA sequence
  *  @param[in]  cutoff  The cutoff value
  */
-DEPRECATED(void  assign_plist_from_pr( vrna_plist_t **pl,
+DEPRECATED(void  assign_plist_from_pr( vrna_ep_t **pl,
                             FLT_OR_DBL *probs,
                             int length,
                             double cutoff));

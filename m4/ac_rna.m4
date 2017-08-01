@@ -70,6 +70,7 @@ RNA_ENABLE_PKG_KINFOLD
 RNA_ENABLE_PKG_FORESTER
 RNA_ENABLE_PKG_CLUSTER
 RNA_ENABLE_PKG_KINWALKER
+RNA_ENABLE_PKG_RNALOCMIN
 
 ##--------------------##
 ## Enable scripting   ##
@@ -86,10 +87,14 @@ RNA_ENABLE_SWIG_INTERFACES
 RNA_ENABLE_DOXYGEN_REFMAN([RNAlib])
 
 ##--------------------##
+## Enable Tutorial    ##
+##--------------------##
+RNA_ENABLE_TUTORIAL([tutorial])
+
+##--------------------##
 ## Enable Unit tests  ##
 ##--------------------##
 RNA_ENABLE_UNIT_TESTS
-
 
 ##------------------##
 ## Prepare files    ##
@@ -158,6 +163,11 @@ AS_IF([test "x$with_doc" != "xno"],[
   _docdir="Not to be installed"
 ])
 
+AS_IF([test "x$with_tutorial" != "xno"],[
+  eval _pdfdir=$(eval printf "%s" $pdfdir)],[
+  _pdfdir=""
+])
+
 ## collect enabled swig interfaces
 RNA_GET_SWIG_INTERFACES(_swig_languages_enabled)
 
@@ -172,6 +182,9 @@ RNA_GET_FEATURE(_features_enabled)
 
 ## collect doxygen reference manual settings
 RNA_GET_DOXYGEN_REFMAN(_refman_enabled)
+
+## collect doxygen reference manual settings
+RNA_GET_TUTORIAL(_tutorial_enabled)
 
 ## collect MacOSX config (if any)
 RNA_GET_MACOSX_CONFIG(_macosx_enabled)
@@ -206,6 +219,10 @@ AC_MSG_NOTICE([
   * RNAlib Documentation:
 
     ( ${_refman_enabled} )
+
+  * Tutorial:
+  
+    ( ${_tutorial_enabled} )
 
   * Unit Tests will be performed for:
 

@@ -18,9 +18,9 @@ typedef struct {
   SV  *delete_data;
 } perl_sc_callback_t;
 
-static int              perl_wrap_sc_f_callback(int i, int j, int k, int l, char d, void *data);
-static vrna_basepair_t  *perl_wrap_sc_bt_callback(int i, int j, int k, int l, char d, void *data);
-static FLT_OR_DBL       perl_wrap_sc_exp_f_callback(int i, int j, int k, int l, char d, void *data);
+static int              perl_wrap_sc_f_callback(int i, int j, int k, int l, unsigned char d, void *data);
+static vrna_basepair_t  *perl_wrap_sc_bt_callback(int i, int j, int k, int l, unsigned char d, void *data);
+static FLT_OR_DBL       perl_wrap_sc_exp_f_callback(int i, int j, int k, int l, unsigned char d, void *data);
 
 static void
 delete_perl_sc_callback(void * data){
@@ -69,7 +69,7 @@ sc_add_f_perl_callback( vrna_fold_compound_t *vc,
   perl_sc_callback_t * cb;
   vrna_sc_add_f(vc, &perl_wrap_sc_f_callback); /* this also creates the soft constraint data structure inside vc */
 
-  /* now bind the python function to the wrapper structure */
+  /* now bind the Perl function to the wrapper structure */
   if(vc->sc->data){
     cb = (perl_sc_callback_t *)vc->sc->data;
     /* release previous callback */
@@ -145,7 +145,7 @@ sc_add_bt_perl_callback(vrna_fold_compound_t *vc,
   perl_sc_callback_t * cb;
   vrna_sc_add_bt(vc, &perl_wrap_sc_bt_callback); /* this also creates the soft constraint data structure inside vc */
 
-  /* now bind the python function to the wrapper structure */
+  /* now bind the Perl function to the wrapper structure */
   if(vc->sc->data){
     cb = (perl_sc_callback_t *)vc->sc->data;
     /* release previous callback */
@@ -238,7 +238,7 @@ perl_wrap_sc_f_callback(int i,
                         int j,
                         int k,
                         int l,
-                        char d,
+                        unsigned char d,
                         void *data){
 
   int ret, count;
@@ -295,7 +295,7 @@ perl_wrap_sc_exp_f_callback(int i,
                             int j,
                             int k,
                             int l,
-                            char d,
+                            unsigned char d,
                             void *data){
 
   int count;
@@ -353,7 +353,7 @@ perl_wrap_sc_bt_callback( int i,
                           int j,
                           int k,
                           int l,
-                          char d,
+                          unsigned char d,
                           void *data){
 
   int c, count, len, num_pairs;

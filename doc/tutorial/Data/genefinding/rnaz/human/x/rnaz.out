@@ -1,0 +1,533 @@
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 75
+ Reading direction: reverse
+ Mean pairwise identity:  59.81
+ Mean single sequence MFE: -14.44
+ Consensus MFE:  -5.69
+ Energy contribution:  -5.92
+ Covariance contribution:   0.22
+ Combinations/Pair:   1.29
+ Mean z-score:  -1.70
+ Structure conservation index:   0.39
+ SVM decision value:   0.68
+ SVM RNA-class probability: 0.819693
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93103215 72 - 134452384
+GGUUAAUCAAAAU-UUCUCUU--CUUCAGGGCAAACUUGAAGAUAAAUCUUUUGACUCCAGCUCUUUAGAGGAUC
+((....((((((.-......(--(((((((.....))))))))......))))))..))..(((....))).... ( -16.72)
+>panTro1.chr9 95004955 72 - 136640551
+GGUUAAUCAAAAU-UUCUCUU--CUUCAGGGCAAACUUGAAGAUAAAUCUUUUGACUCCAGCUCUUUAGAGGAUC
+((....((((((.-......(--(((((((.....))))))))......))))))..))..(((....))).... ( -16.72)
+>rheMac2.chr14 92292658 68 - 133002572
+GGUUAAUCAAAAU-UUCUCUU--CUUCAGGGCAAACUUGAAGAU----CUUUUGACUCCAGCUUUUUAGGGGAUC
+......((((((.-......(--(((((((.....)))))))).----.))))))((((.........))))... ( -14.90)
+>bosTau2.chr29 546812 59 - 45822729
+AUUUAACCAGUAUCUACUCUC--CUUCAGGGCUACCUUGAAGAUGACAACCCUGGA--------------GGAGC
+..................(((--((((((((....(........)....)))))))--------------)))). ( -18.10)
+>canFam2.chr21 44002892 67 + 54024781
+AUUUAACCAGUGUCUGCUUUCGUCCUCAGUGCUAUUUUGAAGAUCAUCACUCUGGC--------UUUGGUGGAAC
+.(((.(((((.(((.......(((.((((.......)))).))).........)))--------.))))).))). ( -10.89)
+>dasNov1.scaffold_2894 16535 55 - 85457
+---------AAUU-UUUUUCU--UUUCUAGGCUAUCUUGAAGAUCUUGUUUCAAGC--------UUCAGAGGAAU
+---------....-......(--((((((((((....(((((......))))))))--------)).)))))).. (  -9.30)
+>consensus
+GGUUAAUCAAAAU_UUCUCUU__CUUCAGGGCAAACUUGAAGAUAAAUCUUCUGAC________UUUAGAGGAUC
+.......................(((((((.....)))))))................................. ( -5.69 =  -5.92 +   0.22) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 117
+ Reading direction: reverse
+ Mean pairwise identity:  75.22
+ Mean single sequence MFE: -30.47
+ Consensus MFE: -19.76
+ Energy contribution: -19.68
+ Covariance contribution:  -0.08
+ Combinations/Pair:   1.29
+ Mean z-score:  -1.52
+ Structure conservation index:   0.65
+ SVM decision value:   0.85
+ SVM RNA-class probability: 0.865715
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93103350 112 - 134452384
+--AUGGGUCAUUUCAAAGAGGGCUUAUGAGGCUGUGAAACCCAGAGCUCUUAACGCUGUGACCAAAGAUGGAAGUUCUCUAUAGGAAGCCAUA-GCACUCCUAAUGUU--UGGUGCU
+--...((((((......((((((((.((.((........))))))))))))......))))))....((((...((((....))))..))))(-(((((.........--.)))))) ( -31.40)
+>dasNov1.scaffold_192792 1455 99 - 5195
+--AUAGGUCAUUUCAAAGAGGGCUUGUGGGACUG--AAACCAGGAGCUCUUAACGCUGUGACCAAAGAUUAAGGUUCUCCACAGGACGACAGA--CACU------------AGUGCU
+--...((((((......((((((((.(((.....--...))).))))))))......))))))..........(((.(((...))).)))...--....------------...... ( -29.80)
+>canFam2.chr21 44003034 107 + 54024781
+CAGUAGGUCAUUUCAAAGAGGGCUUGUGGGACUA--AAACCAAGAGCUCUUAACGCUGUGACCAAAUAUUGGAGUUCUCCAUAGGAUGUAAUAGUUACU--------CAAUAGUGCU
+.((((((((((......((((((((.(((.....--...))).))))))))......))))))......((((....))))...((.(((.....))))--------).....)))) ( -29.40)
+>bosTau2.chr29 546947 104 - 45822729
+--GUAGGUCAUUUCAAAGAGGGCUGAUGGGACCA--AAUCCUGGAGCCCUUAACGCUGUGACCAAAGACUGAA-UUCUCCAUUGGAUAUAAUAGUCACU--------UGAUAGUGCU
+--(((((((((......(((((((..(((((...--..))))).)))))))......))))))...(((((..-...(((...))).....)))))...--------......))). ( -31.40)
+>oryCun1.scaffold_215179 58588 110 - 62759
+--AAAGGUCAUUUCAAAGAGGGCUUGUGGAGCCAUGAGACCAAGAGCUCUUAACGCUGUGACCAAAGACUGAUGUUCUCCACAGGAUGCCAUAAUCACU-----CAGUAGUAGUGCU
+--...((((((......((((((((.(((..........))).))))))))......))))))....((((((((.....))).(((......)))..)-----))))......... ( -27.60)
+>rn4.chr8 116924828 109 + 129041809
+--GAAGGUCAUUUCAAAGAGGGCUUGGUGG-CUGUAAAACCAAAAGCUCUUAACGCUGUGACCAAAGAUUGAUGUUCUUCACAGAGCAGACCAUGCACU-----UUGUGAUAGUGCU
+--...((((........((((((((..(((-........))).))))))))....((((((....(((.......)))))))))....))))..(((((-----.......))))). ( -33.20)
+>consensus
+__AUAGGUCAUUUCAAAGAGGGCUUGUGGGACUA__AAACCAAGAGCUCUUAACGCUGUGACCAAAGAUUGAAGUUCUCCACAGGAUGCAAUA_UCACU________U_AUAGUGCU
+.....((((((......((((((((...((.........))..))))))))......))))))..........((((......))))........((((............)))).. (-19.76 = -19.68 +  -0.08) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 105
+ Reading direction: reverse
+ Mean pairwise identity:  74.47
+ Mean single sequence MFE: -25.92
+ Consensus MFE: -18.47
+ Energy contribution: -18.72
+ Covariance contribution:   0.25
+ Combinations/Pair:   1.12
+ Mean z-score:  -1.47
+ Structure conservation index:   0.71
+ SVM decision value:   1.26
+ SVM RNA-class probability: 0.937427
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93103387 103 - 134452384
+GUAUGUAUGCAUUAGAAAAGACAUUUGU--AUGGGUCAUUUCAAAGAGGGCUUAUGAGGCUGUGAAACCCAGAGCUCUUAACGCUGUGACCAAAGAUGGAAGUUC
+..............(((....(((((..--...((((((......((((((((.((.((........))))))))))))......))))))..)))))....))) ( -24.60)
+>dasNov1.scaffold_192792 1481 94 - 5195
+------AGACAAUGGGAAAGACAUUU-U--AUAGGUCAUUUCAAAGAGGGCUUGUGGGACUG--AAACCAGGAGCUCUUAACGCUGUGACCAAAGAUUAAGGUUC
+------.(((((((.......)))).-.--...((((((......((((((((.(((.....--...))).))))))))......))))))..........))). ( -27.30)
+>canFam2.chr21 44003066 103 + 54024781
+GUAUGUGCACAUUUGAAAAAAUACCUUGCAGUAGGUCAUUUCAAAGAGGGCUUGUGGGACUA--AAACCAAGAGCUCUUAACGCUGUGACCAAAUAUUGGAGUUC
+.....((((.((((....))))....))))...((((((......((((((((.(((.....--...))).))))))))......)))))).............. ( -27.80)
+>bosTau2.chr29 546979 100 - 45822729
+GUAUGUACACAUUAGAGAAAUAGUUUUU--GUAGGUCAUUUCAAAGAGGGCUGAUGGGACCA--AAUCCUGGAGCCCUUAACGCUGUGACCAAAGACUGAA-UUC
+....................((((((((--...((((((......(((((((..(((((...--..))))).)))))))......))))))))))))))..-... ( -29.10)
+>oryCun1.scaffold_215179 58623 101 - 62759
+GUACGUACACA--UGAGAAAAAAAUAAU--AAAGGUCAUUUCAAAGAGGGCUUGUGGAGCCAUGAGACCAAGAGCUCUUAACGCUGUGACCAAAGACUGAUGUUC
+........(((--(.(((......)...--...((((((......((((((((.(((..........))).))))))))......)))))).....)).)))).. ( -22.30)
+>rn4.chr8 116924863 98 + 129041809
+GUAUGUGUA----UGGGAAGCGGGUAGC--GAAGGUCAUUUCAAAGAGGGCUUGGUGG-CUGUAAAACCAAAAGCUCUUAACGCUGUGACCAAAGAUUGAUGUUC
+.(((.(((.----......))).)))..--...((((((......((((((((..(((-........))).))))))))......)))))).............. ( -24.40)
+>consensus
+GUAUGUACACAUUUGAAAAAAAAUUUGU__AUAGGUCAUUUCAAAGAGGGCUUGUGGGACUA__AAACCAAGAGCUCUUAACGCUGUGACCAAAGAUUGAAGUUC
+.................................((((((......((((((((...((.........))..))))))))......)))))).............. (-18.47 = -18.72 +   0.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 105
+ Reading direction: reverse
+ Mean pairwise identity:  76.77
+ Mean single sequence MFE: -26.56
+ Consensus MFE: -18.38
+ Energy contribution: -18.85
+ Covariance contribution:   0.47
+ Combinations/Pair:   1.33
+ Mean z-score:  -2.04
+ Structure conservation index:   0.69
+ SVM decision value:   1.63
+ SVM RNA-class probability: 0.968411
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93103391 102 - 134452384
+AA-GGUAUGUAUGCAUUAGAAAAGACAUUUGU--AUGGGUCAUUUCAAAGAGGGCUUAUGAGGCUGUGAAACCCAGAGCUCUUAACGCUGUGACCAAAGAUGGAA
+..-......................(((((..--...((((((......((((((((.((.((........))))))))))))......))))))..)))))... ( -23.70)
+>canFam2.chr21 44003070 102 + 54024781
+AA-GGUAUGUGCACAUUUGAAAAAAUACCUUGCAGUAGGUCAUUUCAAAGAGGGCUUGUGGGACUA--AAACCAAGAGCUCUUAACGCUGUGACCAAAUAUUGGA
+((-(((((...((....)).....))))))).(((((((((((......((((((((.(((.....--...))).))))))))......))))))...))))).. ( -31.50)
+>bosTau2.chr29 546982 100 - 45822729
+AA-GGUAUGUACACAUUAGAGAAAUAGUUUUU--GUAGGUCAUUUCAAAGAGGGCUGAUGGGACCA--AAUCCUGGAGCCCUUAACGCUGUGACCAAAGACUGAA
+..-.....................((((((((--...((((((......(((((((..(((((...--..))))).)))))))......)))))))))))))).. ( -29.10)
+>oryCun1.scaffold_215179 58627 100 - 62759
+AA-GGUACGUACACA--UGAGAAAAAAAUAAU--AAAGGUCAUUUCAAAGAGGGCUUGUGGAGCCAUGAGACCAAGAGCUCUUAACGCUGUGACCAAAGACUGAU
+..-............--...............--...((((((......((((((((.(((..........))).))))))))......)))))).......... ( -22.00)
+>rn4.chr8 116924867 98 + 129041809
+AAAGGUAUGUGUA----UGGGAAGCGGGUAGC--GAAGGUCAUUUCAAAGAGGGCUUGGUGG-CUGUAAAACCAAAAGCUCUUAACGCUGUGACCAAAGAUUGAU
+...(.(((.(((.----......))).))).)--...((((((......((((((((..(((-........))).))))))))......)))))).......... ( -26.80)
+>rheMac2.chr14 92292829 102 - 133002572
+AA-GGUAUGUAUGCAUUAGAAAAGACAUUUGU--AUAGGUCAUUUCAAAGAGGGCUCAUGAGGCUGUGAAACCCAGAGCUCUUAACGCUGUGACCAAAGAUGGAA
+..-......((((((..............)))--)))((((((......((((((((.((.((........))))))))))))......)))))).......... ( -26.24)
+>consensus
+AA_GGUAUGUACACAUUAGAAAAAAAAUUUGU__AUAGGUCAUUUCAAAGAGGGCUUAUGGGGCUAUGAAACCAAGAGCUCUUAACGCUGUGACCAAAGAUUGAA
+.....................................((((((......((((((((.((((.........))))))))))))......)))))).......... (-18.38 = -18.85 +   0.47) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 117
+ Reading direction: reverse
+ Mean pairwise identity:  80.70
+ Mean single sequence MFE: -30.59
+ Consensus MFE: -21.31
+ Energy contribution: -21.37
+ Covariance contribution:   0.06
+ Combinations/Pair:   1.27
+ Mean z-score:  -2.40
+ Structure conservation index:   0.70
+ SVM decision value:   1.10
+ SVM RNA-class probability: 0.914876
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93103792 112 - 134452384
+CCAAGGCUUUUAGAAUGCAGUUUCUCAUUUGCUGUGGACAUGACCAUAAAAA-AAUUUC--CCAGUAGGUUUU-C-UAUCUGCUACUUUGCUAGCAAUCAGCUUAUUGGGAACAGUU
+(((.(((....((((......)))).....))).)))...............-...(((--((((((((((..-.-....(((((......)))))...)))))))))))))..... ( -27.60)
+>rn4.chr8 116925096 113 + 129041809
+CCAAGGCUUUUAGAAUGCAGUUUCUCAUUUGCUGUGGACAUGACCAUAAAGAAAAAUUC--CCAUUAGGUUUU-C-CAUAUGCUACUUGAGUAGCACUUAACCUGUUGGGAACAUUU
+(((.(((....((((......)))).....))).)))...................(((--(((.((((((..-.-....((((((....))))))...)))))).))))))..... ( -30.60)
+>bosTau2.chr29 547350 114 - 45822729
+CCAAGGCUUUUAGAACGCAGUUUCUAAUUUGCUGUGGACAUGACCGUAAAACAAAAUCC--CAACUAGGUUUUUC-UUCCUGCUACUUUGUUAGCAUACAGCCUGUUGGGAACAUUU
+(((.(((..((((((......))))))...))).)))...................(((--((((.(((((....-....(((((......)))))...))))))))))))...... ( -29.90)
+>dasNov1.scaffold_2894 17074 112 - 85457
+CCAAGGCUUUUAGAAUGCAGUUUCUGAUUUGCUGUGGAGUUGACCAUAAAAAAAACUCU--CCACUGGGCUUU-C-U-UUUGCUACCUUGCUAGCCUUCAGCCUGUUGGGAACAUUC
+.....((.........)).(((((..((..(((((((((..................))--)))).(((((..-.-.-...((......)).)))))..)))..))..))))).... ( -27.37)
+>echTel1.scaffold_316886 80434 112 + 105239
+CCAAGGCUUUUAGAAUGUGGUUUCUGAUUUGCUGUGGACAUGACCAUAG--ACAAUUUC--CCAGGAGGUUUU-UGUUUUUGCUACCUUGCUAGCAUAUAACCGAUUGGGGACAUUG
+(((.(((..((((((......))))))...))).)))............--.(((((((--((((..((((..-((((...((......)).))))...))))..))))))).)))) ( -33.40)
+>monDom4.chr4 174693365 113 + 430141050
+CCAAGGCUUUUAGAAUGCAGUUUCUGAUU-GCUGUGGACAUGACCAUAAAAAAAAUUAUAUCCAACAGGUUU--A-UAUUUGCUAUCUUACUAGCAUCUAACCUGUUGGGAACAGUU
+(((.(((..((((((......))))))..-))).))).......................(((((((((((.--.-....(((((......)))))...)))))))))))....... ( -34.70)
+>consensus
+CCAAGGCUUUUAGAAUGCAGUUUCUGAUUUGCUGUGGACAUGACCAUAAAAAAAAUUUC__CCACUAGGUUUU_C_UAUUUGCUACCUUGCUAGCAUUCAACCUGUUGGGAACAUUU
+(((.(((..((((((......))))))...))).)))........................(((.((((((.........(((((......)))))...)))))).)))........ (-21.31 = -21.37 +   0.06) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 106
+ Reading direction: reverse
+ Mean pairwise identity:  82.27
+ Mean single sequence MFE: -25.55
+ Consensus MFE: -17.72
+ Energy contribution: -18.97
+ Covariance contribution:   1.25
+ Combinations/Pair:   1.10
+ Mean z-score:  -1.77
+ Structure conservation index:   0.69
+ SVM decision value:   0.26
+ SVM RNA-class probability: 0.657153
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93103815 100 - 134452384
+AAUGGUCAUUACCAAGGCUUUUAGAAUGCAGUUUCUCAUUUGCUGUGGACAUGACCAUAAAAA-AAUUUCCCAGUAGGUUUU----C-UAUCUGCUACUUUGCUAG
+.((((((((..(((.(((....((((......)))).....))).)))..)))))))).....-........(((((((...----.-.))))))).......... ( -25.80)
+>rn4.chr8 116925119 98 + 129041809
+---GGUCAUUACCAAGGCUUUUAGAAUGCAGUUUCUCAUUUGCUGUGGACAUGACCAUAAAGAAAAAUUCCCAUUAGGUUUU----C-CAUAUGCUACUUGAGUAG
+---((((((..(((.(((....((((......)))).....))).)))..)))))).....(((((....((....))))))----)-......((((....)))) ( -20.60)
+>canFam2.chr21 44003445 105 + 54024781
+AAUGGUCAUUACCAAGGCUUUGAGAAUGCAGUUUCUCAUUUGCUGUGGACAUGACCAUAAAAAAAUUUUCCCGUUAGGUUUUCUUCC-UUUUUGCUAGUUUGCUAG
+.((((((((..(((.(((..((((((......))))))...))).)))..))))))))............((....)).........-......((((....)))) ( -28.40)
+>dasNov1.scaffold_2894 17097 100 - 85457
+GCUGGUCAUUACCAAGGCUUUUAGAAUGCAGUUUCUGAUUUGCUGUGGAGUUGACCAUAAAAAAAACUCUCCACUGGGCUUU----C-U-UUUGCUACCUUGCUAG
+((((((((...(((.(((..((((((......))))))...))).)))...))))))(((((.((((((......))).)))----.-)-)))).......))... ( -25.20)
+>loxAfr1.scaffold_17974 29100 99 - 49915
+AAAGGUCAUUACCAAGGCUUUUAGAAUGCAGUUU--GAUUUGCUGUGGACUUGACGGUAAUAAAAACCUCCCACUAGGUUUU----C-UCUUUGCGACCUUGCUAG
+.((((((....(((.(((..(((((......)))--))...))).)))........((((..(((((((......)))))))----.-...))))))))))..... ( -24.40)
+>echTel1.scaffold_316886 80457 100 + 105239
+AGUGGUCAUUACCAAGGCUUUUAGAAUGUGGUUUCUGAUUUGCUGUGGACAUGACCAUAG--ACAAUUUCCCAGGAGGUUUU----UGUUUUUGCUACCUUGCUAG
+.((((((((..(((.(((..((((((......))))))...))).)))..))))))))((--((((...((.....))...)----)))))..((......))... ( -28.90)
+>consensus
+AAUGGUCAUUACCAAGGCUUUUAGAAUGCAGUUUCUCAUUUGCUGUGGACAUGACCAUAAAAAAAAUUUCCCACUAGGUUUU____C_UAUUUGCUACCUUGCUAG
+.(((((((...(((.(((..((((((......))))))...))).)))...)))))))............((....))............................ (-17.72 = -18.97 +   1.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 107
+ Reading direction: reverse
+ Mean pairwise identity:  76.15
+ Mean single sequence MFE: -20.73
+ Consensus MFE: -17.72
+ Energy contribution: -18.00
+ Covariance contribution:   0.28
+ Combinations/Pair:   1.05
+ Mean z-score:  -0.90
+ Structure conservation index:   0.85
+ SVM decision value:   0.53
+ SVM RNA-class probability: 0.771915
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93104298 91 - 134452384
+ACGAUGUUAUGAUGAUGGGCGAAAUGUUCAACUGCUCUGAAGGGGCUGAAUGAAAAUGGCCUUUCUGAACAUCCAUUU--------ACAUUAAAUAU--------UG
+.(((((((.(((((((((.....(((((((........((((((.(...........).)))))))))))))))))..--------.))))))))))--------)) ( -20.90)
+>oryCun1.scaffold_215179 59410 93 - 62759
+GUGAUGUCAUGAUGAUGGGCCAAAUGUUCAACUGCUCUGAAUGGGCUGAAUGAAAAUAGCCUUUCUGAACAUCC------------ACAUUGAAUGUAUGC--UAUG
+(((((((((.((....((((......((((...((((.....))))....))))....)))).)))).)))).)------------)).............--.... ( -19.90)
+>canFam2.chr21 44003873 97 + 54024781
+GUGAUGUUAUGAUGACAGGCAAAAUGUUCAACUGCUCUGAAUGGGCUGAAUGAAAGUAGCCUUUCUGAACAUCCAUCUAAAUGUAAAAGUUAACCAU----------
+(.((((((.....((.((((......((((...((((.....))))....))))....)))).))..))))))).......................---------- ( -19.80)
+>dasNov1.scaffold_2894 17567 95 - 85457
+AUGAUGUUAUGAUGAUGGGCAAAAUGUUCAACUGCUCUGAAUGGGCUGAAUGAAAGCAGCCUUUCUGAACAUCCAUCC--------ACAUUAAAUUAGGCUGU----
+.((((((...((((.(((((.....)))))..((.((.(((.((((((........))))))))).)).))..)))).--------))))))...........---- ( -22.70)
+>rn4.chr8 116925422 78 + 129041809
+AUGAUGUUGUGAUGAUGGGCAAAAUGUUCAACUGCUCUGAAUGGGCUGAAUGAAAGUAGCCUUUCUGAACAUCUGUGU-----------------------------
+..((((((..((....((((......((((...((((.....))))....))))....)))).))..)))))).....----------------------------- ( -19.30)
+>echTel1.scaffold_316886 81342 91 + 105239
+GGGAUGUUAUGAUGACAGGCAAAUUGUUCAACUGCUCUGAAUAGGAUGAGUGAAAAUGGCCUUUCUGAACAUCCAUGU--------ACAUUAAAGAUUG--------
+.(((((((.....((.((((......((((.((..(((.....)))..))))))....)))).))..)))))))....--------.............-------- ( -21.80)
+>consensus
+AUGAUGUUAUGAUGAUGGGCAAAAUGUUCAACUGCUCUGAAUGGGCUGAAUGAAAAUAGCCUUUCUGAACAUCCAUCU________ACAUUAAAUAU__________
+..((((((.....((.((((......((((...((((.....))))....))))....)))).))..)))))).................................. (-17.72 = -18.00 +   0.28) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  82.77
+ Mean single sequence MFE: -32.70
+ Consensus MFE: -24.86
+ Energy contribution: -24.17
+ Covariance contribution:  -0.69
+ Combinations/Pair:   1.27
+ Mean z-score:  -1.47
+ Structure conservation index:   0.76
+ SVM decision value:   0.07
+ SVM RNA-class probability: 0.569349
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93105204 116 - 134452384
+UCAUAAUUGCACUGCAUGGUAUCUGCACUCAGCAGUUU-ACACCUGCUAGGGUGUUCAAAGGUCAGUGCUAUAGAAAUUCAGUAUCUGGCAUCGUUGGUUUU---CUUGGCUUUGUGCUU
+........((((......(((.((((.....))))..)-))....(((((((...((((..(((((((((..(....)..)))).)))))....))))...)---))))))...)))).. ( -32.90)
+>rn4.chr8 116926073 107 + 129041809
+-------UGCACUGCAUGGUAUCUGCACUCAGCAGUUC-UUUCCUGUUGGG-UGUUCAAAAGACAGUGCGAUAGAAAUUCAUUAUCUGGCAUCGUUGGUUU----CUUGGCUUUGUGCAU
+-------(((((.((.........(((((((((((...-....))))))))-))).(((.((((...((((((((.........)))...)))))..))))----.)))))...))))). ( -32.00)
+>mm8.chr9 108935325 111 + 124000669
+AUUU---UGCACUGCAUGGUAUCUGCACUCAGCAGUUC-UUUCCUGUUGGG-UGUUCAAAAGACAGUGCUAUAGAAACUCACUAUCUGGCAUCGUUGGUUU----CUUGGCUUUGUGCAU
+....---(((((.((((((((.(((((((((((((...-....))))))))-)).((....)))))))))))(((((((.((...........)).)))))----))..))...))))). ( -33.80)
+>canFam2.chr21 44004670 116 + 54024781
+UCAGGAUUGCACUGCAUGGUAUCUGCACUUAGCAGCUCAGGUCCUGCUGGG-UGUUCAAAAGACAGUGCAAUAGAAAUUCAGUAUCUGGCAUCGUUGGUUUU---CUUGGCUUCGUGCAU
+.(((((((((((((..(.......(((((((((((........))))))))-))).....)..))))))))).(.....)....))))(((.((..((((..---...)))).))))).. ( -35.70)
+>loxAfr1.scaffold_28145 17317 113 + 37299
+UCGC---UGCACUGCAUGGUAUCUGCAUUCAGCAGUUC-ACUCCUGCUGGGAUGUUCCAAGGACAGUGCGACAGAAAUUCAGUAGCUGGCAUCGUUGGUUUU---CUUGGCUUUGUGCAU
+..((---((((((((.(((.....(((((((((((...-....))))).)))))).)))..).)))))))(((((...((((.(((..((...))..)))..---.)))).))))))).. ( -33.50)
+>monDom4.chr4 174695190 114 + 430141050
+UCAAGACUGCACUGUAUGGUAUCUGCAUCCAGCAAU---AUUAUUGUUGGGGUGUUCAAAAGACAGUGCUAUAGAAAUUCAGUAUCUGGCAUCGUUGGUUUCAUGCUUG---UCAUGCAU
+....(((......((((((.(((.((..((((((((---...))))))))(((((((....))(((((((..(....)..)))).)))))))))).))).))))))..)---))...... ( -28.30)
+>consensus
+UCAU___UGCACUGCAUGGUAUCUGCACUCAGCAGUUC_AUUCCUGCUGGG_UGUUCAAAAGACAGUGCUAUAGAAAUUCAGUAUCUGGCAUCGUUGGUUUU___CUUGGCUUUGUGCAU
+........((((((..(.......(((((((((((........)))))))).))).....)..))))))...................((((....((((........))))..)))).. (-24.86 = -24.17 +  -0.69) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 116
+ Reading direction: reverse
+ Mean pairwise identity:  75.39
+ Mean single sequence MFE: -25.73
+ Consensus MFE: -17.57
+ Energy contribution: -16.77
+ Covariance contribution:  -0.80
+ Combinations/Pair:   1.33
+ Mean z-score:  -2.41
+ Structure conservation index:   0.68
+ SVM decision value:   2.19
+ SVM RNA-class probability: 0.989898
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93106254 108 - 134452384
+AAACGCCUCAUAGAGUAACUCUGUGGUUUUACUUUACUCACAGGACU-AUUGUUAGAUCUGUGGGAAGGAAUUACAAGACA--GUUGC-----UAAAAGUUUGAAAAAGACGGUUG
+....(((......(((((((.(((((((...((((.((((((((.((-(....))).)))))))))))))))))))....)--)))))-----)....((((.....))))))).. ( -29.10)
+>rheMac2.chr14 92295789 97 - 133002572
+AAACGCCUCAUAGAGUAACUCUGUGGUUUUACUUUACUCACAGGACU-AUUGUUAGGUCUGUGGGAAGGAACUACAAGACA--GUUGC-----UAAAAGUUUUAA-----------
+.............(((((((.(((((((...((((.(((((((..((-(....)))..))))))))))))))))))....)--)))))-----)...........----------- ( -28.20)
+>mm8.chr9 108936337 90 + 124000669
+AAACGCCUCAUACAGUAACU-UGUGGUUUUACUUGACUCACAGGACUGACUGUUAGGUCUGUGGGAAGGAACUACAAGACA--GCUAA-----CAAAG------------------
+............((((..((-(((((((......))).))))))))))..((((((((((((((.......)))).)))).--.))))-----))...------------------ ( -25.20)
+>oryCun1.scaffold_215179 61181 96 - 62759
+AAACGCCUCAUAGAGCAACUCUGUGGUUUUGCUUUGCUCACAGGACUUAUUCUUGGGUCUGUGGGAAGGAACUACAAGACA--GUUCAUUAAUCAAAG------------------
+............((((...(((((((((((......(((((((.(((((....))))))))))))..)))))))).)))..--))))...........------------------ ( -26.60)
+>bosTau2.chr29 549575 95 - 45822729
+AAACGCCUCAUAGAGUAACUAUGUAGUUUC-CUUUACUCAUAGAACUACCUGUUAGAUCUGUGGGAAAAAACUACAAGACAAAGCUGC-CAAUUAAA-------------------
+....(((((...)))...((.((((((((.-.(((.((((((((.(((.....))).))))))))))))))))))))).....))...-........------------------- ( -19.60)
+>canFam2.chr21 44005684 94 + 54024781
+AAACGCCUCAUAGAGUAUAUGUGUGGUUUC-CUUUAUUCACAGAACUAUAUGUUAGAUCUGUGGGAAAGAACUACAAGACA--UCUAU-CUGCUAAAA------------------
+....((...(((((((.....(((((((..-((((.((((((((.(((.....))).)))))))))))))))))))..)).--)))))-..)).....------------------ ( -25.70)
+>consensus
+AAACGCCUCAUAGAGUAACUCUGUGGUUUUACUUUACUCACAGGACU_AUUGUUAGAUCUGUGGGAAGGAACUACAAGACA__GCUGC_____UAAAA__________________
+.....................(((((((...((((.((((((((.((.......)).)))))))))))))))))))........................................ (-17.57 = -16.77 +  -0.80) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 119
+ Reading direction: reverse
+ Mean pairwise identity:  82.78
+ Mean single sequence MFE: -37.33
+ Consensus MFE: -25.38
+ Energy contribution: -24.50
+ Covariance contribution:  -0.88
+ Combinations/Pair:   1.33
+ Mean z-score:  -2.94
+ Structure conservation index:   0.68
+ SVM decision value:   0.81
+ SVM RNA-class probability: 0.857395
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93106287 115 - 134452384
+UAUCCCGAUGGGGCUUUUCCUGUAGCCUGCACAUCGUUGGAAACGCCUCAUAGAGUAACUCUGUGGUUUUACUUUACUCACAGGACU----AUUGUUAGAUCUGUGGGAAGGAAUUACA
+..(((((((((((((........)))))...)))))..))).......(((((((...)))))))((..(.((((.((((((((.((----(....))).)))))))))))).)..)). ( -36.30)
+>oryCun1.scaffold_215179 61201 115 - 62759
+UAUCCCGAUGGGGCUUUCCCUAUAGCC-AUUCAUCGUUGGAAACGCCUCAUAGAGCAACUCUGUGGUUUUGCUUUGCUCACAGGACU---UAUUCUUGGGUCUGUGGGAAGGAACUACA
+..((((((((.((((........))))-...)))))..))).......(((((((...)))))))((....((((.(((((((.(((---((....))))))))))))))))....)). ( -37.60)
+>bosTau2.chr29 549595 114 - 45822729
+UAUCCCGAUGGGGCUUUUUCUAUAAAC-CUACAUCGUUGGAAACGCCUCAUAGAGUAACUAUGUAGUUUC-CUUUACUCAUAGAACU---ACCUGUUAGAUCUGUGGGAAAAAACUACA
+.....((((((((.(((......))))-)).)))))..((((((....(((((.....)))))..)))))-)....((((((((.((---(.....))).))))))))........... ( -30.50)
+>canFam2.chr21 44005703 114 + 54024781
+UAUCCCGAUGGGGCUUUUUCUGUAGAC-CUACAUCGUUGGAAACGCCUCAUAGAGUAUAUGUGUGGUUUC-CUUUAUUCACAGAACU---AUAUGUUAGAUCUGUGGGAAAGAACUACA
+..((...(((((((.(((((((((...-.)))).....))))).))))))).)).......(((((((..-((((.((((((((.((---(.....))).))))))))))))))))))) ( -33.40)
+>dasNov1.scaffold_2894 19621 112 - 85457
+UAUCCCGAUGGGG---UCUCUGUAGAC-CCACAUCGUUGGAAACGCCUCACAGAGGAAUGUUGUGGUUCAGCUUUACUCACAGAACU---AUUUAUUAGAUCUGUGAGAAGGAACUACA
+..(((((((((((---(((....))))-)).)))))..)))(((.((((...))))...)))(((((((..(((..((((((((.((---(.....))).)))))))))))))))))). ( -45.40)
+>echTel1.scaffold_316886 83259 117 + 105239
+UAUCCCGAUGGGGCCUUGUCUGUAGAC-CCACAUCGUUGGAAACGCCUCACAGAGUAACUCUGUGGUUUG-CUUUACUCGCAGAACUGCUAUUGGUUGGAUCUGUGAGGAAGAACUACA
+..(((((((((((.((.......)).)-)).)))))..)))....(((((((((.(((((..(..(((((-(.......)))).))..)....)))))..))))))))).......... ( -40.80)
+>consensus
+UAUCCCGAUGGGGCUUUUUCUGUAGAC_CCACAUCGUUGGAAACGCCUCAUAGAGUAACUCUGUGGUUUC_CUUUACUCACAGAACU___AUUUGUUAGAUCUGUGGGAAAGAACUACA
+.....(.(((((((..........(((........)))(....)))))))).)........(((((((...((((.((((((((.((..........)).))))))))))))))))))) (-25.38 = -24.50 +  -0.88) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 116
+ Reading direction: reverse
+ Mean pairwise identity:  80.45
+ Mean single sequence MFE: -33.17
+ Consensus MFE: -17.77
+ Energy contribution: -17.25
+ Covariance contribution:  -0.52
+ Combinations/Pair:   1.27
+ Mean z-score:  -2.33
+ Structure conservation index:   0.54
+ SVM decision value:   0.48
+ SVM RNA-class probability: 0.753410
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93106303 113 - 134452384
+UAGUG-G-UUGAGGUCUAUCCCGAUGGGGCUUUUCCUGUAGCCUGCACAUCGUUGGAAACGCCUCAUAGAGUAACUCUGUGGUUUUACUUUACUCACAGGACU-AUUGUUAGAUCU
+(((((-(-(((((((.(.(((((((((((((........)))))...)))))..))).).)))))...........(((((((........)).)))))))))-))))........ ( -34.40)
+>rn4.chr8 116927323 106 + 129041809
+--------UUGAGGUCUAUCCCGAUGGGGCUUCGUUAGUAGCC-ACACAUCGUUGGAAACGCCUCAUAUAGUAACU-UGUGGUUUUGCUUGACUCGCAGGACUGUUUGUUAGGUCU
+--------.((((((.(.((((((((.((((.(....).))))-...)))))..))).).)))))).....((((.-.(..(((((((.......)))))))..)..))))..... ( -37.30)
+>oryCun1.scaffold_215179 61217 108 - 62759
+-------GUUGAGGUCUAUCCCGAUGGGGCUUUCCCUAUAGCC-AUUCAUCGUUGGAAACGCCUCAUAGAGCAACUCUGUGGUUUUGCUUUGCUCACAGGACUUAUUCUUGGGUCU
+-------..((((((.(.((((((((.((((........))))-...)))))..))).).))))))..((((((....((......)).))))))...(((((((....))))))) ( -35.50)
+>bosTau2.chr29 549611 106 - 45822729
+--------UUGAGGUCUAUCCCGAUGGGGCUUUUUCUAUAAAC-CUACAUCGUUGGAAACGCCUCAUAGAGUAACUAUGUAGUUUC-CUUUACUCAUAGAACUACCUGUUAGAUCU
+--------.((((((.(.(((((((((((.(((......))))-)).)))))..))).).)))))).(((.((((...(((((((.-...........)))))))..))))..))) ( -27.10)
+>canFam2.chr21 44005719 106 + 54024781
+--------UUGAGGUCUAUCCCGAUGGGGCUUUUUCUGUAGAC-CUACAUCGUUGGAAACGCCUCAUAGAGUAUAUGUGUGGUUUC-CUUUAUUCACAGAACUAUAUGUUAGAUCU
+--------.((((((.(.(((((((((((((........)).)-)).)))))..))).).)))))).(((....(((((((((((.-...........)))))))))))....))) ( -28.40)
+>dasNov1.scaffold_2894 19637 107 - 85457
+---UGG--CUGAGGUCUAUCCCGAUGGGG---UCUCUGUAGAC-CCACAUCGUUGGAAACGCCUCACAGAGGAAUGUUGUGGUUCAGCUUUACUCACAGAACUAUUUAUUAGAUCU
+---...--.((((((.(.(((((((((((---(((....))))-)).)))))..))).).))))))..(((....((((.....))))....)))..(((.(((.....))).))) ( -36.30)
+>consensus
+________UUGAGGUCUAUCCCGAUGGGGCUUUUUCUGUAGAC_CCACAUCGUUGGAAACGCCUCAUAGAGUAACUCUGUGGUUUUGCUUUACUCACAGAACUAUUUGUUAGAUCU
+.........((((((.(.((((((((.....................)))))..))).).))))))...........((((((........)).))))((.(((.....))).)). (-17.77 = -17.25 +  -0.52) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 76
+ Reading direction: forward
+ Mean pairwise identity:  86.01
+ Mean single sequence MFE: -18.02
+ Consensus MFE: -13.71
+ Energy contribution: -13.74
+ Covariance contribution:   0.03
+ Combinations/Pair:   1.06
+ Mean z-score:  -2.12
+ Structure conservation index:   0.76
+ SVM decision value:   0.01
+ SVM RNA-class probability: 0.538812
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93107925 75 + 134452384
+AUAUCCCUUCUUAUAUGUAUCAAAACUCAUACUGAACAAUGAGUUCUGGGUUGCAAAAGAGGAUUUAU-UUUUUGC
+......((((((...(((((((.(((((((........))))))).)))..)))).))))))......-....... ( -14.80)
+>mm8.chr9 108937603 74 - 124000669
+AUAUUCCUUCUUGUAUAUAUCAAAACUCAUACUGAGCAAUGAGUUCUGGGUUGC--AAGAGGAUUUAUAUUUUUGC
+....((((.((((((....(((.(((((((........))))))).)))..)))--)))))))............. ( -20.30)
+>oryCun1.scaffold_94908 1068 74 + 5219
+-UGUUCCUGCUUGUAUGUAUCAAAACUCAUACUGAGCCAUGAGUUCUGGGUUGCAAAAGAGGAUUUAU-UUUUUGC
+-...((((.(((...(((((((.(((((((........))))))).)))..)))).))))))).....-....... ( -15.90)
+>bosTau2.chr29 551396 74 + 45822729
+AUGUUCCUUCUUAUCUGUAUCAAAACUCAUACUGAACAAUGAGUUGUGGGUUGCAAAAGAGGAUUUA--CUUUCGC
+....((((.(((...((((((..(((((((........)))))))...)).)))).)))))))....--....... ( -15.20)
+>echTel1.scaffold_316886 84615 74 - 105239
+AUGUCCCUUCUUAUCUGUAUCAAAACUCAUACUGCACAAUGAGUUUUGGGUUGCAAAAGAGGAUUUA--UUCUUGC
+......((((((...(((((((((((((((........)))))))))))..)))).)))))).....--....... ( -18.30)
+>monDom4.chr4 174696894 75 - 430141050
+UUGUCCCUUCUUGUAUGUAUCACAACUCAUACAAAACCAUGGGUUGUGGGUUGCAAAAGAGGGUUUGU-UCUUUGC
+.....(((((((...(((((((((((((((........)))))))))))..)))).))))))).....-....... ( -23.60)
+>consensus
+AUGUCCCUUCUUAUAUGUAUCAAAACUCAUACUGAACAAUGAGUUCUGGGUUGCAAAAGAGGAUUUAU_UUUUUGC
+......((((((.......(((.(((((((........))))))).))).......)))))).............. (-13.71 = -13.74 +   0.03) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 6
+ Columns: 76
+ Reading direction: reverse
+ Mean pairwise identity:  86.01
+ Mean single sequence MFE: -16.99
+ Consensus MFE: -16.25
+ Energy contribution: -15.89
+ Covariance contribution:  -0.36
+ Combinations/Pair:   1.24
+ Mean z-score:  -2.58
+ Structure conservation index:   0.96
+ SVM decision value:   2.73
+ SVM RNA-class probability: 0.996688
+ Prediction: RNA
+
+######################################################################
+
+>hg18.chr11 93107925 75 - 134452384
+GCAAAAA-AUAAAUCCUCUUUUGCAACCCAGAACUCAUUGUUCAGUAUGAGUUUUGAUACAUAUAAGAAGGGAUAU
+.......-....((((.(((((......((((((((((........)))))))))).........))))))))).. ( -17.66)
+>mm8.chr9 108937603 74 + 124000669
+GCAAAAAUAUAAAUCCUCUU--GCAACCCAGAACUCAUUGCUCAGUAUGAGUUUUGAUAUAUACAAGAAGGAAUAU
+.............(((((((--(.....((((((((((........)))))))))).......)))).)))).... ( -18.40)
+>oryCun1.scaffold_94908 1068 74 - 5219
+GCAAAAA-AUAAAUCCUCUUUUGCAACCCAGAACUCAUGGCUCAGUAUGAGUUUUGAUACAUACAAGCAGGAACA-
+.......-.....(((((((........(((((((((((......)))))))))))........))).))))...- ( -16.99)
+>bosTau2.chr29 551396 74 - 45822729
+GCGAAAG--UAAAUCCUCUUUUGCAACCCACAACUCAUUGUUCAGUAUGAGUUUUGAUACAGAUAAGAAGGAACAU
+((....)--)...(((((((........((.(((((((........))))))).))........))).)))).... ( -15.69)
+>echTel1.scaffold_316886 84615 74 + 105239
+GCAAGAA--UAAAUCCUCUUUUGCAACCCAAAACUCAUUGUGCAGUAUGAGUUUUGAUACAGAUAAGAAGGGACAU
+.......--....(((..((((((....((((((((((........)))))))))).....).)))))..)))... ( -16.30)
+>monDom4.chr4 174696894 75 + 430141050
+GCAAAGA-ACAAACCCUCUUUUGCAACCCACAACCCAUGGUUUUGUAUGAGUUGUGAUACAUACAAGAAGGGACAA
+.......-.....((((.(((((.....((((((.((((......)))).)))))).......))))))))).... ( -16.90)
+>consensus
+GCAAAAA_AUAAAUCCUCUUUUGCAACCCAGAACUCAUUGUUCAGUAUGAGUUUUGAUACAUACAAGAAGGAACAU
+.............(((((((........((((((((((........))))))))))........))).)))).... (-16.25 = -15.89 +  -0.36) 

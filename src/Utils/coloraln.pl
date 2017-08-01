@@ -535,7 +535,7 @@ __DATA__
 %%BoundingBox: !BB!
 %%EndComments
 
-% draws Vienna RNA like colored boxes
+% draws ViennaRNA like colored boxes
 /box { % x1 y1 x2 y2 hue saturation
   gsave
   dup 0.3 mul 1 exch sub sethsbcolor

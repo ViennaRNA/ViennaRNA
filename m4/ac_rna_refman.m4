@@ -28,12 +28,14 @@ RNA_ADD_PACKAGE([doc],
 AC_PATH_PROG(doxygen, [doxygen],no)
 AC_PATH_PROG(pdflatex,[pdflatex],no)
 AC_PATH_PROG(latex,[latex],no)
+AC_PATH_PROG(dvipdf,[dvipdf],no)
+AC_PATH_PROG(bibtex,[bibtex],no)
 AC_PATH_PROG(makeindex,[makeindex],no)
 AC_PATH_PROG(dot,[dot],no)
 AC_PATH_PROG(egrep,[egrep],no)
 AC_PATH_PROG(perl,[perl],no)
 
-DOXYGEN_PDFLATEX_WORKARROUND=yes
+DOXYGEN_PDFLATEX_WORKARROUND=no
 
 # check whether we are able to generate the doxygen documentation
 RNA_PACKAGE_IF_ENABLED([doc],[
@@ -54,7 +56,13 @@ RNA_PACKAGE_IF_ENABLED([doc],[
           AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
           doxygen=no
         else
-          _latex_cmd=$latex
+          if test "x$dvipdf" = xno;
+          then
+            AC_MSG_WARN([dvipdf command is missing on your system!])
+            AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
+          else
+            _latex_cmd=$latex
+          fi
         fi
       else
         _latex_cmd=$pdflatex
@@ -72,10 +80,18 @@ RNA_PACKAGE_IF_ENABLED([doc],[
         pdflatex=no
       fi
     fi
+    AC_SUBST(_latex_cmd)
 
     if test "x$makeindex" = xno;
     then
       AC_MSG_WARN([makeindex command not found on your system!])
+      AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
+      doxygen=no
+    fi
+
+    if test "x$bibtex" = xno;
+    then
+      AC_MSG_WARN([bibtex command not found on your system!])
       AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
       doxygen=no
     fi
@@ -119,6 +135,8 @@ RNA_PACKAGE_IF_ENABLED([doc],[
   then
 
     AC_SUBST([DOXYGEN_CMD_LATEX], [$_latex_cmd])
+    AC_SUBST([DOXYGEN_CMD_BIBTEX], [$bibtex])
+    AC_SUBST([DOXYGEN_CMD_DVIPDF], [$dvipdf])
     AC_SUBST([DOXYGEN_CMD_MAKEINDEX], [$makeindex])
     AC_SUBST([DOXYGEN_HAVE_DOT],[ifelse([$dot], [no], [NO], [YES])])
     AC_SUBST([DOXYGEN_WITH_PDFLATEX], [ifelse([$pdflatex],[no],[NO],[YES])])
@@ -189,6 +207,6 @@ AM_CONDITIONAL(WITH_REFERENCE_MANUAL, test "x$with_doc" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_BUILD, test "x$doxygen" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_PDF, test "x$with_doc_pdf" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_HTML, test "x$with_doc_html" != xno)
-
+AM_CONDITIONAL(WITH_REFERENCE_MANUAL_PDFLATEX, test "x$pdflatex" != xno)
 ])
 

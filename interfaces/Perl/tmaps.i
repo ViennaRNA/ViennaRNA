@@ -1,7 +1,7 @@
 // convert between perl and C file handle
 %typemap(in) FILE * {
   if (SvOK($input)) /* check for undef */
-	$1 = PerlIO_findFILE(IoIFP(sv_2io($input)));
+    $1 = PerlIO_findFILE(IoIFP(sv_2io($input)));
   else  $1 = NULL;
 }
 
@@ -47,6 +47,53 @@
         sv_2mortal($result);
         argvi++;
 }
+
+namespace std {
+  class vector;
+
+  %typemap(out) vector<vector<double> > {
+    AV *myav  = NULL;
+    SV **svs;
+    SV *ret   = &PL_sv_undef;
+    svs = (SV **) vrna_alloc($1.size() * sizeof(SV *));
+    for(unsigned int i = 0; i < $1.size(); i++) {
+       AV *vec = newAV();
+       for(unsigned int j = 0; j < $1[i].size(); j++)
+         av_push(vec, newSVnv($1[i][j]));
+
+       /* store reference to array */
+       svs[i] = sv_2mortal(newRV_inc((SV*) vec));
+    }
+    myav = av_make($1.size(), svs);
+    free(svs);
+
+    ret = sv_2mortal(newRV_inc((SV*) myav));
+    $result = ret;
+    argvi++;
+  }
+
+  %typemap(out) vector<vector<int> > {
+    AV *myav  = NULL;
+    SV **svs;
+    SV *ret   = &PL_sv_undef;
+    svs = (SV **) vrna_alloc($1.size() * sizeof(SV *));
+    for(unsigned int i = 0; i < $1.size(); i++) {
+       AV *vec = newAV();
+       for(unsigned int j = 0; j < $1[i].size(); j++)
+         av_push(vec, newSViv($1[i][j]));
+
+       /* store reference to array */
+       svs[i] = sv_2mortal(newRV_inc((SV*) vec));
+    }
+    myav = av_make($1.size(), svs);
+    free(svs);
+
+    ret = sv_2mortal(newRV_inc((SV*) myav));
+    $result = ret;
+    argvi++;
+  }
+}
+
 
 %typemap(in) SV *PerlFunc {
   $1 = $input;

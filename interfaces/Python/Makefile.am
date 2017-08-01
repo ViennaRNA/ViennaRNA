@@ -8,6 +8,7 @@ LANG_SPECIFIC_INTERFACE_FILES = \
   $(srcdir)/callbacks-ud.i \
   $(srcdir)/callbacks-subopt.i \
   $(srcdir)/callbacks-mfe-window.i \
+  $(srcdir)/callbacks-pf-window.i \
   $(builddir)/version.i
 
 INTERFACE_FILES = $(SWIG_src) \
@@ -58,7 +59,7 @@ if HAS_SWIG
 $(SWIG_wrapper): $(SWIG_src)
 	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
-                  $(_RNA_CPPFLAGS) \
+                  $(RNA_CPPFLAGS) \
                   -python -modern  -c++ \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)

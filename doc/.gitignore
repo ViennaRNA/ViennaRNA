@@ -7,4 +7,5 @@ latex
 doxygen.warnings
 *.tag
 *.pdf
-dox
+refman-html
+tutorial-html

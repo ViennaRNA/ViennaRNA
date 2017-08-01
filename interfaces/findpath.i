@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 
+%ignore path;
+
 /* scripting language access through 'fold_compound' instead of 'vrna_fold_compound_t' */
 %rename(path) vrna_path_t;
 
@@ -48,7 +50,7 @@ typedef struct {
       vrna_path_t *path_t, *ptr;
       path_t = ptr = vrna_path_findpath($self,s1.c_str(),s2.c_str(),maxkeep);
       
-      while(ptr->s != NULL)
+      while (ptr->s != NULL)
       {
           vrna_path_t p;
           p.en = ptr->en;
@@ -62,6 +64,8 @@ typedef struct {
   }
 
 }
+
+%newobject get_path;
 
 %include <ViennaRNA/findpath.h>;
 

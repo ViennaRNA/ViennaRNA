@@ -563,7 +563,12 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
 
 
 
-int PS_rna_plot_snoop_a(char *string, char *structure, char *ssfile, int *relative_access, const char *seqs[])
+PUBLIC int
+PS_rna_plot_snoop_a(const char *string,
+                    const char *structure,
+                    const char *ssfile,
+                    int *relative_access,
+                    const char *seqs[])
 {
   int    i, length;
   float *X, *Y;

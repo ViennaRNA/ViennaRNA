@@ -297,7 +297,7 @@ pf_co(vrna_fold_compound_t *vc){
   vrna_exp_param_t  *pf_params;
   vrna_mx_pf_t      *matrices;
   int               hc_decompose;
-  char              *hard_constraints;
+  unsigned char     *hard_constraints;
   int               *hc_up_ext;
   int               *hc_up_hp;
   int               *hc_up_int;
@@ -600,7 +600,7 @@ pf_co_bppm(vrna_fold_compound_t *vc, char *structure){
   vrna_sc_t         *sc;
   vrna_mx_pf_t      *matrices;
   char              *sequence;
-  char              *hard_constraints;
+  unsigned char     *hard_constraints;
   int               *hc_up_ext;
   int               *hc_up_hp;
   int               *hc_up_int;
@@ -1031,9 +1031,9 @@ PUBLIC void
 vrna_pf_dimer_probs(double FAB,
                     double FA,
                     double FB,
-                    vrna_plist_t *prAB,
-                    const vrna_plist_t *prA,
-                    const vrna_plist_t *prB,
+                    vrna_ep_t *prAB,
+                    const vrna_ep_t *prA,
+                    const vrna_ep_t *prB,
                     int Alength,
                     const vrna_exp_param_t *exp_params) {
 
@@ -1041,8 +1041,8 @@ vrna_pf_dimer_probs(double FAB,
   int         i, j;
   double      pAB;
   double      mykT;
-  const vrna_plist_t *lp2;
-  vrna_plist_t       *lp1;
+  const vrna_ep_t *lp2;
+  vrna_ep_t       *lp1;
   int         offset;
 
   mykT = exp_params->kT/1000.;
@@ -1358,8 +1358,8 @@ co_pf_fold_par( char *sequence,
 }
 
 
-PUBLIC vrna_plist_t *
-get_plist(vrna_plist_t *pl,
+PUBLIC vrna_ep_t *
+get_plist(vrna_ep_t *pl,
           int length,
           double cut_off){
 
@@ -1374,7 +1374,7 @@ get_plist(vrna_plist_t *pl,
       if (pr[my_iindx[i]-j]<cut_off) continue;
       if (count==n*length-1) {
         n*=2;
-        pl=(vrna_plist_t *)vrna_realloc(pl,n*length*sizeof(vrna_plist_t));
+        pl=(vrna_ep_t *)vrna_realloc(pl,n*length*sizeof(vrna_ep_t));
       }
       pl[count].i=i;
       pl[count].j=j;
@@ -1385,7 +1385,7 @@ get_plist(vrna_plist_t *pl,
   pl[count].i=0;
   pl[count].j=0; /*->??*/
   pl[count++].p=0.;
-  pl=(vrna_plist_t *)vrna_realloc(pl,(count)*sizeof(vrna_plist_t));
+  pl=(vrna_ep_t *)vrna_realloc(pl,(count)*sizeof(vrna_ep_t));
   return pl;
 }
 
@@ -1393,13 +1393,13 @@ PUBLIC void
 compute_probabilities(double FAB,
                       double FA,
                       double FB,
-                      vrna_plist_t *prAB,
-                      vrna_plist_t *prA,
-                      vrna_plist_t *prB,
+                      vrna_ep_t *prAB,
+                      vrna_ep_t *prA,
+                      vrna_ep_t *prB,
                       int Alength) {
 
   if(backward_compat_compound && backward_compat){
-    vrna_pf_dimer_probs(FAB, FA, FB, prAB, (const vrna_plist_t *)prA, (const vrna_plist_t *)prB, Alength, (const vrna_exp_param_t *)backward_compat_compound->exp_params);
+    vrna_pf_dimer_probs(FAB, FA, FB, prAB, (const vrna_ep_t *)prA, (const vrna_ep_t *)prB, Alength, (const vrna_exp_param_t *)backward_compat_compound->exp_params);
   }
 }
 

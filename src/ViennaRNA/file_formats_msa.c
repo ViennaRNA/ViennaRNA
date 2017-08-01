@@ -415,7 +415,7 @@ vrna_file_msa_write(const char    *filename,
     writer      = NULL;
 
     /* find out the number of sequences in the alignment */
-    for (seq_num = 0; aln[seq_num]; seq_num++) ;
+    for (seq_num = 0; aln[seq_num]; seq_num++);
 
     if (seq_num == 0) {
       if (verb_level >= 0)
@@ -491,14 +491,16 @@ parse_stockholm_alignment(FILE  *fp,
                           int   verbosity)
 {
   char  *line = NULL;
-  int   i, n, seq_num, seq_length, has_record;
+  int   i, n, seq_num, seq_length, has_record, seq_current;
 
   seq_num     = 0;
   seq_length  = 0;
+  seq_current = 0;
 
   if (!fp) {
     if (verbosity >= 0)
-      vrna_message_warning("Can't read from filepointer while parsing Stockholm formatted sequence alignment!");
+      vrna_message_warning(
+        "Can't read from filepointer while parsing Stockholm formatted sequence alignment!");
 
     return -1;
   }
@@ -543,6 +545,7 @@ parse_stockholm_alignment(FILE  *fp,
         /* we skip lines that start with whitespace */
         case ' ':
         case '\0':
+          seq_current = 0; /* reset number of current sequence */
           goto stockholm_next_line;
 
         /* Stockholm markup, or comment */
@@ -571,8 +574,11 @@ parse_stockholm_alignment(FILE  *fp,
             if ((structure != NULL) && (strncmp(line, "#=GC SS_cons", 12) == 0)) {
               char *ss = (char *)vrna_alloc(sizeof(char) * n);
               if (sscanf(line, "#=GC SS_cons %s", ss) == 1) {
-                *structure = (char *)vrna_realloc(*structure, sizeof(char) * (strlen(ss) + 1));
-                strcpy(*structure, ss);
+                /* always append consensus structure */
+                int prev_len = (*structure) ? strlen(*structure) : 0;
+                *structure =
+                  (char *)vrna_realloc(*structure, sizeof(char) * (prev_len + strlen(ss) + 1));
+                strcpy(*structure + prev_len, ss);
               }
 
               free(ss);
@@ -594,35 +600,42 @@ parse_stockholm_alignment(FILE  *fp,
           char  *tmp_name = (char *)vrna_alloc(sizeof(char) * (n + 1));
           char  *tmp_seq  = (char *)vrna_alloc(sizeof(char) * (n + 1));
           if (sscanf(line, "%s %s", tmp_name, tmp_seq) == 2) {
-            seq_num++;
-            tmp_l = (int)strlen(tmp_seq);
+            for (i = 0; i < strlen(tmp_seq); i++)
+              if (tmp_seq[i] == '.') /* replace '.' gaps with '-' */
+                tmp_seq[i] = '-';
 
-            if (seq_num == 1) {
-              seq_length = tmp_l;
+            /* convert sequence to uppercase letters */
+            vrna_seq_toupper(tmp_seq);
+
+            if (seq_current == seq_num) {
+              /* first time */
+              add_sequence(tmp_name, tmp_seq,
+                           names, aln,
+                           seq_current + 1);
             } else {
-              /* check sequence length against first */
-              if (seq_length != tmp_l) {
+              if (strcmp(tmp_name, (*names)[seq_current]) != 0) {
+                /* name doesn't match */
                 if (verbosity >= 0)
-                  vrna_message_warning("Discarding Stockholm record! Sequence lengths do not match.");
+                  vrna_message_warning(
+                    "Sorry, your file is messed up! Inconsistent (order of) sequence identifiers.");
 
-                /* drop everything we've read so far and abort parsing */
-                free_msa_record(names, aln, id, structure);
-
-                seq_num = 0;
-
+                free(line);
                 free(tmp_name);
                 free(tmp_seq);
-                free(line);
-                line = NULL;
-
-                goto stockholm_exit;
+                return 0;
               }
-            }
 
-            add_sequence(tmp_name, tmp_seq,
-                         names, aln,
-                         seq_num);
+              (*aln)[seq_current] = (char *)vrna_realloc((*aln)[seq_current],
+                                                         strlen(tmp_seq) +
+                                                         strlen((*aln)[seq_current]) +
+                                                         1);
+              strcat((*aln)[seq_current], tmp_seq);
+            }
           }
+
+          seq_current++;
+          if (seq_current > seq_num)
+            seq_num = seq_current;
 
           free(tmp_name);
           free(tmp_seq);
@@ -649,7 +662,8 @@ stockholm_exit:
   endmarker_msa_record(names, aln, seq_num);
 
   if ((seq_num > 0) && (verbosity > 0))
-    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num,
+                      (int)strlen((*aln)[0]));
 
   return seq_num;
 }
@@ -771,7 +785,8 @@ parse_fasta_alignment(FILE  *fp,
 
   if (seq_num > 0) {
     if (verbosity > 0)
-      vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+      vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num,
+                        (int)strlen((*aln)[0]));
   } else {
     /*
      *  if (verbosity >= 0)
@@ -847,14 +862,18 @@ parse_clustal_alignment(FILE  *clust,
         if (strcmp(name, (*names)[nn]) != 0) {
           /* name doesn't match */
           if (verbosity >= 0)
-            vrna_message_warning("Sorry, your file is messed up (inconsitent seq-names)");
+            vrna_message_warning(
+              "Sorry, your file is messed up! Inconsistent (order of) sequence identifiers.");
 
           free(line);
           free(seq);
           return 0;
         }
 
-        (*aln)[nn] = (char *)vrna_realloc((*aln)[nn], strlen(seq) + strlen((*aln)[nn]) + 1);
+        (*aln)[nn] = (char *)vrna_realloc((*aln)[nn],
+                                          strlen(seq) +
+                                          strlen((*aln)[nn]) +
+                                          1);
         strcat((*aln)[nn], seq);
       }
 
@@ -874,7 +893,8 @@ parse_clustal_alignment(FILE  *clust,
   endmarker_msa_record(names, aln, seq_num);
 
   if ((seq_num > 0) && (verbosity > 0))
-    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num,
+                      (int)strlen((*aln)[0]));
 
   return seq_num;
 }
@@ -894,7 +914,8 @@ parse_maf_alignment(FILE  *fp,
 
   if (!fp) {
     if (verbosity >= 0)
-      vrna_message_warning("Can't read from filepointer while parsing MAF formatted sequence alignment!");
+      vrna_message_warning(
+        "Can't read from filepointer while parsing MAF formatted sequence alignment!");
 
     return -1;
   }
@@ -927,6 +948,11 @@ parse_maf_alignment(FILE  *fp,
         case '#': /* comment */
           break;
 
+        case 'e': /* ignore and fall through */
+        case 'i': /* ignore and fall through */
+        case 'q': /* ignore */
+          break;
+
         case 's': /* a sequence within the alignment block */
           tmp_name      = (char *)vrna_alloc(sizeof(char) * n);
           tmp_sequence  = (char *)vrna_alloc(sizeof(char) * n);
@@ -939,7 +965,8 @@ parse_maf_alignment(FILE  *fp,
                      tmp_sequence) == 6) {
             seq_num++;
             tmp_name      = (char *)vrna_realloc(tmp_name, sizeof(char) * (strlen(tmp_name) + 1));
-            tmp_sequence  = (char *)vrna_realloc(tmp_sequence, sizeof(char) * (strlen(tmp_sequence) + 1));
+            tmp_sequence  =
+              (char *)vrna_realloc(tmp_sequence, sizeof(char) * (strlen(tmp_sequence) + 1));
 
             vrna_seq_toupper(tmp_sequence);
 
@@ -976,7 +1003,8 @@ maf_exit:
   endmarker_msa_record(names, aln, seq_num);
 
   if ((seq_num > 0) && (verbosity > 0))
-    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num, (int)strlen((*aln)[0]));
+    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num,
+                      (int)strlen((*aln)[0]));
 
   return seq_num;
 }
@@ -992,7 +1020,7 @@ free_msa_record(char  ***names,
 
   s = 0;
   if (aln && (*aln))
-    for (; (*aln)[s]; s++) ;
+    for (; (*aln)[s]; s++);
 
   if (id != NULL) {
     free(*id);

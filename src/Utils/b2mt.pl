@@ -32,8 +32,11 @@ b2mt - produce coordinates for a mountain plot from bracket notation
 
 =head1 DESCRIPTION
 
-read a secondary structures in bracket notation as output by RNAfold,
+Read secondary structures in bracket notation as output by RNAfold,
 and compute coordinates for a mountain plot as introduced by Pauline Hogeweg.
+
+=head1 EXAMPLES
+
 The output is suitable for graphing  with xmgrace, e.g.:
 C< RNAfold < foo.seq | b2mt.pl | xmgrace -pipe>
 

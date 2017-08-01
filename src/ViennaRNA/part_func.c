@@ -93,7 +93,7 @@ wrap_mean_bp_distance(FLT_OR_DBL *p,
 PUBLIC float
 vrna_pf_fold( const char *seq,
               char *structure,
-              vrna_plist_t **pl){
+              vrna_ep_t **pl){
 
   float                 free_energy;
   double                mfe;
@@ -127,7 +127,7 @@ vrna_pf_fold( const char *seq,
 PUBLIC float
 vrna_pf_circfold( const char *seq,
                   char *structure,
-                  vrna_plist_t **pl){
+                  vrna_ep_t **pl){
 
   float                 free_energy;
   double                mfe;
@@ -289,7 +289,7 @@ vrna_pf(vrna_fold_compound_t  *vc,
 PRIVATE void
 pf_linear(vrna_fold_compound_t *vc){
 
-  char                *hard_constraints;
+  unsigned char       *hard_constraints;
   int                 n, i,j, k, ij, d, *my_iindx, *jindx, with_gquad, turn,
                       with_ud, hc_decompose;
   FLT_OR_DBL          temp, Qmax, qbt1, *q, *qb, *qm, *qm1, *q1k, *qln;
@@ -508,7 +508,7 @@ vrna_pf_float_precision(void){
 PRIVATE void
 alipf_linear( vrna_fold_compound_t *vc){
 
-  char                *hard_constraints;
+  unsigned char       *hard_constraints;
   int                 i,j, ij, jij, d, turn, n, *my_iindx, *jindx, *pscore;
   FLT_OR_DBL          temp, Qmax, qbt1, *q, *qb, *qm, *qm1;
   double              kTn, max_real;
@@ -615,8 +615,9 @@ PRIVATE void
 wrap_alipf_circ(vrna_fold_compound_t *vc,
                 char *structure){
 
-  char              **Ss, *hard_constraints;
-  unsigned short    **a2s;
+  char              **Ss;
+  unsigned char     *hard_constraints;
+  unsigned int      **a2s;
   short             **S, **S5, **S3;
   int               u, p, q, pq, k, l, s, *type, n_seq, n, *my_iindx, *jindx, *rtype;
   FLT_OR_DBL        qbt1, qot, qo, qho, qio, qmo, *qb, *qm, *qm1, *qm2, *scale,
@@ -861,7 +862,7 @@ wrap_pf_fold( const char *sequence,
   return vrna_pf(vc, structure);
 }
 
-PUBLIC vrna_plist_t *
+PUBLIC vrna_ep_t *
 stackProb(double cutoff){
 
   if(!(backward_compat_compound && backward_compat)){
@@ -1197,7 +1198,7 @@ get_centroid_struct_gquad_pr( int length,
 }
 
 PUBLIC void
-assign_plist_gquad_from_pr( vrna_plist_t **pl,
+assign_plist_gquad_from_pr( vrna_ep_t **pl,
                             int length, /* ignored */
                             double cut_off){
 

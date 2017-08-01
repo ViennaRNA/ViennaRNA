@@ -83,10 +83,10 @@ float vrna_pf(vrna_fold_compound_t *vc, char *structure);
  *  @param sequence   RNA sequence
  *  @param structure  A pointer to the character array where position-wise pairing propensity
  *                    will be stored. (Maybe NULL)
- *  @param pl         A pointer to a list of #vrna_plist_t to store pairing probabilities (Maybe NULL)
+ *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
  *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
-float vrna_pf_fold(const char *sequence, char *structure, vrna_plist_t **pl);
+float vrna_pf_fold(const char *sequence, char *structure, vrna_ep_t **pl);
 
 /**
  *  @brief  Compute Partition function @f$Q@f$ (and base pair probabilities) for a circular
@@ -111,10 +111,10 @@ float vrna_pf_fold(const char *sequence, char *structure, vrna_plist_t **pl);
  *  @param sequence  A circular RNA sequence
  *  @param structure  A pointer to the character array where position-wise pairing propensity
  *                    will be stored. (Maybe NULL)
- *  @param pl         A pointer to a list of #vrna_plist_t to store pairing probabilities (Maybe NULL)
+ *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
  *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
-float vrna_pf_circfold(const char *sequence, char *structure, vrna_plist_t **pl);
+float vrna_pf_circfold(const char *sequence, char *structure, vrna_ep_t **pl);
 
 /*
 #################################################
@@ -428,7 +428,7 @@ DEPRECATED(double mean_bp_distance_pr(int length, FLT_OR_DBL *pr));
  *
  *  @deprecated   Use vrna_stack_prob() instead!
  */
-DEPRECATED(vrna_plist_t *stackProb(double cutoff));
+DEPRECATED(vrna_ep_t *stackProb(double cutoff));
 
 
 /**
@@ -480,7 +480,7 @@ DEPRECATED(double expHairpinEnergy( int u,
                                     const char *string));
 
 /* this doesn't work if free_pf_arrays() is called before */
-DEPRECATED(void assign_plist_gquad_from_pr(vrna_plist_t **pl,
+DEPRECATED(void assign_plist_gquad_from_pr(vrna_ep_t **pl,
                                 int length,
                                 double cut_off));
 

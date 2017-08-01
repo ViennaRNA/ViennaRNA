@@ -23,9 +23,11 @@
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/Lfold.h"
 #include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/commands.h"
+#include "ViennaRNA/constraints_SHAPE.h"
 #include "RNALfold_cmdl.h"
 #include "gengetopt_helper.h"
-#include "input_id_helper.h"
+#include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -62,12 +64,16 @@ main(int  argc,
   FILE                        *input, *output;
   struct  RNALfold_args_info  args_info;
   char                        *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest,
-                              *orig_sequence, *infile, *outfile, *id_prefix, *id_delim, *filename_delim;
+                              *command_file, *orig_sequence, *infile, *outfile, *id_prefix,
+                              *id_delim, *filename_delim, *shape_file, *shape_method,
+                              *shape_conversion;
   unsigned int                rec_type, read_opt;
-  int                         length, istty, noconv, maxdist, zsc, tofile, auto_id, id_digits, filename_full;
+  int                         length, istty, noconv, maxdist, zsc, tofile, auto_id, id_digits,
+                              filename_full, with_shapes, verbose;
   long int                    seq_number;
   double                      min_en, min_z;
   vrna_md_t                   md;
+  vrna_cmd_t                  *commands;
 
   ParamFile     = ns_bases = NULL;
   do_backtrack  = 1;
@@ -87,6 +93,8 @@ main(int  argc,
   tofile        = 0;
   filename_full = 0;
   auto_id       = 0;
+  command_file  = NULL;
+  commands      = NULL;
 
   /* apply default model details */
   vrna_md_set_default(&md);
@@ -117,7 +125,8 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning(
+        "required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -169,6 +178,12 @@ main(int  argc,
   if (args_info.gquad_given)
     md.gquad = gquad = 1;
 
+  if (args_info.verbose_given)
+    verbose = 1;
+
+  /* SHAPE reactivity data */
+  ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
+
   if (args_info.outfile_given) {
     tofile = 1;
     if (args_info.outfile_arg)
@@ -192,6 +207,9 @@ main(int  argc,
   /* full filename from FASTA header support */
   if (args_info.filename_full_given)
     filename_full = 1;
+
+  if (args_info.commands_given)
+    command_file = strdup(args_info.commands_arg);
 
   /* check for errorneous parameter options */
   if (maxdist <= 0) {
@@ -220,6 +238,9 @@ main(int  argc,
 
   if (ParamFile != NULL)
     read_parameter_file(ParamFile);
+
+  if (command_file != NULL)
+    commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
   if (ns_bases != NULL)
     vrna_md_set_nonstandards(&md, ns_bases);
@@ -263,7 +284,9 @@ main(int  argc,
       if (outfile)
         v_file_name = vrna_strdup_printf("%s", outfile);
       else
-        v_file_name = (SEQ_ID) ? vrna_strdup_printf("%s.lfold", SEQ_ID) : vrna_strdup_printf("RNALfold_output.lfold");
+        v_file_name = (SEQ_ID) ?
+                      vrna_strdup_printf("%s.lfold", SEQ_ID) :
+                      vrna_strdup_printf("RNALfold_output.lfold");
 
       tmp_string = vrna_filename_sanitize(v_file_name, filename_delim);
       free(v_file_name);
@@ -294,7 +317,7 @@ main(int  argc,
     vrna_seq_toupper(rec_sequence);
 
     if (!tofile && istty)
-      vrna_message_info(stdout, "length = %d", length);
+      vrna_message_info(output, "length = %d", length);
 
     /*
      ########################################################
@@ -303,15 +326,31 @@ main(int  argc,
      ########################################################
      */
 
-    vrna_fold_compound_t  *vc = vrna_fold_compound((const char *)rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+    vrna_fold_compound_t *vc = vrna_fold_compound((const char *)rec_sequence,
+                                                  &md,
+                                                  VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
+    if (commands)
+      vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
-    hit_data              data;
+    if (with_shapes) {
+      vrna_constraints_add_SHAPE(vc,
+                                 shape_file,
+                                 shape_method,
+                                 shape_conversion,
+                                 verbose,
+                                 VRNA_OPTION_WINDOW);
+    }
+
+    hit_data data;
     data.output       = output;
     data.dangle_model = md.dangles;
 
 #ifdef VRNA_WITH_SVM
-    min_en = (zsc) ? vrna_mfe_window_zscore_cb(vc, min_z, &default_callback_z, (void *)&data) : vrna_mfe_window_cb(vc, &default_callback, (void *)&data);
+    min_en =
+      (zsc) ? vrna_mfe_window_zscore_cb(vc, min_z, &default_callback_z,
+                                        (void *)&data) : vrna_mfe_window_cb(vc, &default_callback,
+                                                                            (void *)&data);
 #else
     min_en = vrna_mfe_window_cb(vc, &default_callback, (void *)&data);
 #endif
@@ -345,7 +384,10 @@ main(int  argc,
 
     free(v_file_name);
 
-    ID_number_increase(seq_number, "Sequence");
+    if (with_shapes)
+      break;
+
+    ID_number_increase(&seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
 
@@ -359,6 +401,8 @@ main(int  argc,
   free(id_delim);
   free(id_prefix);
   free(filename_delim);
+  free(command_file);
+  vrna_commands_free(commands);
 
   return EXIT_SUCCESS;
 }

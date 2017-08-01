@@ -44,3 +44,45 @@ while (<>) {
   }
   else {print}
 }
+
+=head1 NAME
+
+dpzoom - zoom into a PostScript dot plot produced by RNAfold, RNAalifold or alidot
+
+=head1 SYNOPSIS
+
+  dpzoom [OPTIONS] dot.ps > new_dot.ps
+
+=head1 DESCRIPTION
+
+Read a PostScript dot plot as produced by RNAfold and zoom in to a particular
+region. Output is again a PostScript dot plot where only a region for the given
+subsequence is shown. The user must provide the index of the first and last
+position for the subsequence to be zoomed in.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-f> <int>
+
+First nucleotide
+
+=item B<-l> <int>
+
+Last nucleotide
+
+=back
+
+=head1 EXAMPLE
+
+Produce PostScript dot plot for subsequence from position 10 to 50:
+C<dzoom.pl -f 10 -l 50 dot.ps>
+
+=head1 AUTHOR
+
+Ivo L. Hofacker <ivo@tbi.univie.ac.at>
+
+=cut
+
+

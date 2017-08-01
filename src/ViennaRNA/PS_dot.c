@@ -454,7 +454,7 @@ PRIVATE void  EPS_print_linear_data_right(FILE *eps, const char **data_title, vr
 PRIVATE void  EPS_print_linear_data(FILE *eps, const char *varname, const char **data_title, vrna_data_lin_t **data);
 PRIVATE vrna_data_lin_t *plist_to_accessibility(plist *pl, unsigned int length);
 PRIVATE vrna_data_lin_t *plist_to_ud_motif_prob(plist *pl, unsigned int length);
-PRIVATE void  EPS_print_sd_data(FILE *eps, vrna_plist_t *pl, vrna_plist_t *mf);
+PRIVATE void  EPS_print_sd_data(FILE *eps, vrna_ep_t *pl, vrna_ep_t *mf);
 
 /*
 #################################
@@ -556,8 +556,8 @@ vrna_plot_dp_PS_list( char *seq,
 PUBLIC int
 vrna_plot_dp_EPS( const char              *filename,
                   const char              *sequence,
-                  vrna_plist_t            *upper,
-                  vrna_plist_t            *lower,
+                  vrna_ep_t            *upper,
+                  vrna_ep_t            *lower,
                   vrna_dotplot_auxdata_t  *auxdata,
                   unsigned int            options){
 
@@ -878,8 +878,8 @@ EPS_print_header( FILE          *eps,
 
 PRIVATE void
 EPS_print_sd_data(FILE          *eps,
-                  vrna_plist_t  *pl,
-                  vrna_plist_t  *mf){
+                  vrna_ep_t  *pl,
+                  vrna_ep_t  *mf){
 
   int     pl_size, gq_num;
   double  tmp;
@@ -908,8 +908,8 @@ EPS_print_sd_data(FILE          *eps,
 
 PRIVATE void
 EPS_print_sc_motif_data(FILE          *eps,
-                        vrna_plist_t  *pl,
-                        vrna_plist_t  *mf){
+                        vrna_ep_t  *pl,
+                        vrna_ep_t  *mf){
 
   int     pl_size;
   double  tmp;
@@ -964,8 +964,8 @@ EPS_print_sc_motif_data(FILE          *eps,
 
 PRIVATE void
 EPS_print_bpp_data( FILE          *eps,
-                    vrna_plist_t  *pl,
-                    vrna_plist_t  *mf){
+                    vrna_ep_t  *pl,
+                    vrna_ep_t  *mf){
 
   int     pl_size;
   double  tmp;
@@ -992,8 +992,8 @@ EPS_print_bpp_data( FILE          *eps,
 
 PRIVATE void
 EPS_print_ud_data(FILE          *eps,
-                  vrna_plist_t  *pl,
-                  vrna_plist_t  *mf){
+                  vrna_ep_t  *pl,
+                  vrna_ep_t  *mf){
 
   int     pl_size;
   double  tmp;

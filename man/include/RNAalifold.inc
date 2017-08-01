@@ -17,4 +17,4 @@ BMC Bioinformatics: 9, pp 474
 
 [SEE ALSO]
 
-The ALIDOT package http://www.tbi.univie.ac.at/RNA/ALIDOT/
+The ALIDOT package http://www.tbi.univie.ac.at/RNA/Alidot/

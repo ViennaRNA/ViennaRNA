@@ -263,6 +263,7 @@ struct {
   FLT_OR_DBL **QI5;
   FLT_OR_DBL **q2l;
   FLT_OR_DBL **qmb;
+  FLT_OR_DBL **G_local;
   /**
    *  @}
    */

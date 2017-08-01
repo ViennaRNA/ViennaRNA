@@ -27,7 +27,7 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE vrna_plist_t *
+PRIVATE vrna_ep_t *
 wrap_get_plist( vrna_mx_pf_t *matrices,
                 int length,
                 int *index,
@@ -35,7 +35,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
                 vrna_exp_param_t *pf_params,
                 double cut_off);
 
-PRIVATE vrna_plist_t *
+PRIVATE vrna_ep_t *
 wrap_plist( vrna_fold_compound_t *vc,
             double cut_off);
 
@@ -599,20 +599,20 @@ vrna_db_from_bp_stack(vrna_bp_stack_t *bp,
   return structure;
 }
 
-PUBLIC vrna_plist_t *
+PUBLIC vrna_ep_t *
 vrna_plist( const char *struc,
             float pr){
 
   /* convert bracket string to plist */
   short *pt;
   int i, k = 0, size, n;
-  vrna_plist_t *gpl, *ptr, *pl;
+  vrna_ep_t *gpl, *ptr, *pl;
 
   size  = strlen(struc);
   n     = 2;
 
   pt  = vrna_ptable(struc);
-  pl = (vrna_plist_t *)vrna_alloc(n*size*sizeof(vrna_plist_t));
+  pl = (vrna_ep_t *)vrna_alloc(n*size*sizeof(vrna_ep_t));
   for(i = 1; i < size; i++){
     if(pt[i]>i){
       (pl)[k].i      = i;
@@ -626,7 +626,7 @@ vrna_plist( const char *struc,
   for(ptr = gpl; ptr->i != 0; ptr++){
     if (k == n * size - 1){
       n *= 2;
-      pl = (vrna_plist_t *)vrna_realloc(pl, n * size * sizeof(vrna_plist_t));
+      pl = (vrna_ep_t *)vrna_realloc(pl, n * size * sizeof(vrna_ep_t));
     }
     (pl)[k].i      = ptr->i;
     (pl)[k].j      = ptr->j;
@@ -640,12 +640,12 @@ vrna_plist( const char *struc,
   (pl)[k].p      = 0.;
   (pl)[k++].type = 0.;
   free(pt);
-  pl = (vrna_plist_t *)vrna_realloc(pl, k * sizeof(vrna_plist_t));
+  pl = (vrna_ep_t *)vrna_realloc(pl, k * sizeof(vrna_ep_t));
 
   return pl;
 }
 
-PUBLIC vrna_plist_t *
+PUBLIC vrna_ep_t *
 vrna_plist_from_probs(vrna_fold_compound_t *vc,
                     double cut_off){
 
@@ -659,10 +659,10 @@ vrna_plist_from_probs(vrna_fold_compound_t *vc,
 }
 
 PUBLIC  char *
-vrna_db_from_plist(vrna_plist_t *pairs,
+vrna_db_from_plist(vrna_ep_t *pairs,
               unsigned int n){
 
-  vrna_plist_t *ptr;
+  vrna_ep_t *ptr;
   char  *structure = NULL;
   int   i;
 
@@ -683,11 +683,11 @@ vrna_db_from_plist(vrna_plist_t *pairs,
 
 
 PUBLIC int
-vrna_plist_append(vrna_plist_t        **target,
-                  const vrna_plist_t  *list){
+vrna_plist_append(vrna_ep_t        **target,
+                  const vrna_ep_t  *list){
 
   int                 size1, size2;
-  const vrna_plist_t  *ptr;
+  const vrna_ep_t  *ptr;
 
   if((target) && (list)){
     size1 = size2 = 0;
@@ -697,10 +697,10 @@ vrna_plist_append(vrna_plist_t        **target,
 
     for(ptr = list; ptr->i; size2++, ptr++);
 
-    *target = (vrna_plist_t *)vrna_realloc(*target, sizeof(vrna_plist_t) * (size1 + size2 + 1));
+    *target = (vrna_ep_t *)vrna_realloc(*target, sizeof(vrna_ep_t) * (size1 + size2 + 1));
 
     if(*target){
-      memcpy(*target + size1, list, sizeof(vrna_plist_t) * size2);
+      memcpy(*target + size1, list, sizeof(vrna_ep_t) * size2);
       (*target)[size1 + size2].i = (*target)[size1 + size2].j = 0;
       return 1;
     }
@@ -710,7 +710,7 @@ vrna_plist_append(vrna_plist_t        **target,
 }
 
 
-PRIVATE vrna_plist_t *
+PRIVATE vrna_ep_t *
 wrap_get_plist( vrna_mx_pf_t *matrices,
                 int length,
                 int *index,
@@ -720,7 +720,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
 
   int i, j, k, n, count, gquad;
   FLT_OR_DBL  *probs, *G, *scale;
-  vrna_plist_t         *pl;
+  vrna_ep_t         *pl;
 
   probs     = matrices->probs;
   G         = matrices->G;
@@ -731,7 +731,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
   n     = 2;
 
   /* first guess of the size needed for pl */
-  pl = (vrna_plist_t *)vrna_alloc(n*length*sizeof(vrna_plist_t));
+  pl = (vrna_ep_t *)vrna_alloc(n*length*sizeof(vrna_ep_t));
 
   for (i=1; i<length; i++) {
     for (j=i+1; j<=length; j++) {
@@ -741,7 +741,7 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
       /* do we need to allocate more memory? */
       if (count == n * length - 1){
         n *= 2;
-        pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
+        pl = (vrna_ep_t *)vrna_realloc(pl, n * length * sizeof(vrna_ep_t));
       }
 
       /* check for presence of gquadruplex */
@@ -754,12 +754,12 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
         (pl)[count].p      = (float)probs[index[i] - j];
         (pl)[count++].type = 1;
         /* now add the probabilies of it's actual pairing patterns */
-        vrna_plist_t *inner, *ptr;
+        vrna_ep_t *inner, *ptr;
         inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
         for(ptr=inner; ptr->i != 0; ptr++){
             if (count == n * length - 1){
               n *= 2;
-              pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
+              pl = (vrna_ep_t *)vrna_realloc(pl, n * length * sizeof(vrna_ep_t));
             }
             /* check if we've already seen this pair */
             for(k = 0; k < count; k++)
@@ -788,19 +788,19 @@ wrap_get_plist( vrna_mx_pf_t *matrices,
   (pl)[count].type = 0;
   (pl)[count++].p  = 0.;
   /* shrink memory to actual size needed */
-  pl = (vrna_plist_t *)vrna_realloc(pl, count * sizeof(vrna_plist_t));
+  pl = (vrna_ep_t *)vrna_realloc(pl, count * sizeof(vrna_ep_t));
 
   return pl;
 }
 
-PRIVATE vrna_plist_t *
+PRIVATE vrna_ep_t *
 wrap_plist( vrna_fold_compound_t *vc,
             double cut_off){
 
   short             *S;
   int               i, j, k, n, m, count, gquad, length, *index;
   FLT_OR_DBL        *probs, *G, *scale;
-  vrna_plist_t      *pl;
+  vrna_ep_t      *pl;
   vrna_mx_pf_t      *matrices;
   vrna_exp_param_t  *pf_params;
 
@@ -818,7 +818,7 @@ wrap_plist( vrna_fold_compound_t *vc,
   n     = 2;
 
   /* first guess of the size needed for pl */
-  pl = (vrna_plist_t *)vrna_alloc(n*length*sizeof(vrna_plist_t));
+  pl = (vrna_ep_t *)vrna_alloc(n*length*sizeof(vrna_ep_t));
 
   for (i=1; i<length; i++) {
     for (j=i+1; j<=length; j++) {
@@ -830,7 +830,7 @@ wrap_plist( vrna_fold_compound_t *vc,
       /* do we need to allocate more memory? */
       if (count == n * length - 1){
         n *= 2;
-        pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
+        pl = (vrna_ep_t *)vrna_realloc(pl, n * length * sizeof(vrna_ep_t));
       }
 
       /* check for presence of gquadruplex */
@@ -843,12 +843,12 @@ wrap_plist( vrna_fold_compound_t *vc,
         (pl)[count].p      = (float)probs[index[i] - j];
         (pl)[count++].type = VRNA_PLIST_TYPE_GQUAD;
         /* now add the probabilies of it's actual pairing patterns */
-        vrna_plist_t *inner, *ptr;
+        vrna_ep_t *inner, *ptr;
         inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
         for(ptr=inner; ptr->i != 0; ptr++){
             if (count == n * length - 1){
               n *= 2;
-              pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
+              pl = (vrna_ep_t *)vrna_realloc(pl, n * length * sizeof(vrna_ep_t));
             }
             /* check if we've already seen this pair */
             for(k = 0; k < count; k++)
@@ -892,7 +892,7 @@ wrap_plist( vrna_fold_compound_t *vc,
             /* do we need to allocate more memory? */
             if (count == n * length - 1){
               n *= 2;
-              pl = (vrna_plist_t *)vrna_realloc(pl, n * length * sizeof(vrna_plist_t));
+              pl = (vrna_ep_t *)vrna_realloc(pl, n * length * sizeof(vrna_ep_t));
             }
 
             (pl)[count].i      = i;
@@ -909,7 +909,7 @@ wrap_plist( vrna_fold_compound_t *vc,
   (pl)[count].type = 0;
   (pl)[count++].p  = 0.;
   /* shrink memory to actual size needed */
-  pl = (vrna_plist_t *)vrna_realloc(pl, count * sizeof(vrna_plist_t));
+  pl = (vrna_ep_t *)vrna_realloc(pl, count * sizeof(vrna_ep_t));
 
   return pl;
 }
@@ -1138,7 +1138,7 @@ parenthesis_zuker(char *structure,
 }
 
 PUBLIC void
-assign_plist_from_pr( vrna_plist_t **pl,
+assign_plist_from_pr( vrna_ep_t **pl,
                       FLT_OR_DBL *probs,
                       int length,
                       double cut_off){
@@ -1169,7 +1169,7 @@ assign_plist_from_pr( vrna_plist_t **pl,
 }
 
 PUBLIC void
-assign_plist_from_db( vrna_plist_t **pl,
+assign_plist_from_db( vrna_ep_t **pl,
                       const char *struc,
                       float pr){
 

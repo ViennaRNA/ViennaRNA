@@ -30,7 +30,7 @@
 #include "ViennaRNA/file_formats.h"
 #include "RNAsubopt_cmdl.h"
 #include "gengetopt_helper.h"
-#include "input_id_helper.h"
+#include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -45,32 +45,33 @@ main(int  argc,
   FILE                                *input, *output;
   struct          RNAsubopt_args_info args_info;
   char                                *rec_sequence, *rec_id,
-                                      **rec_rest, *orig_sequence, *constraints_file, *cstruc, *structure,
-                                      *shape_file, *shape_method, *shape_conversion, *id_prefix, *id_delim,
-                                      *infile, *outfile, *filename_delim;
+                                      **rec_rest, *orig_sequence, *constraints_file, *cstruc,
+                                      *structure, *shape_file, *shape_method, *shape_conversion,
+                                      *id_prefix, *id_delim, *infile, *outfile, *filename_delim;
   unsigned int                        rec_type, read_opt;
-  int                                 i, length, cl, istty, delta, n_back, noconv, dos, zuker, with_shapes,
-                                      verbose, enforceConstraints, st_back_en, batch, auto_id, id_digits,
-                                      tofile, filename_full;
+  int                                 i, length, cl, istty, delta, n_back, noconv, dos, zuker,
+                                      with_shapes, verbose, enforceConstraints, st_back_en, batch,
+                                      auto_id, id_digits, tofile, filename_full, canonicalBPonly;
   long int                            seq_number;
   double                              deltap;
   vrna_md_t                           md;
 
-  do_backtrack  = 1;
-  delta         = 100;
-  deltap        = n_back = noconv = dos = zuker = 0;
-  rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = orig_sequence = NULL;
-  rec_rest      = NULL;
-  cstruc        = structure = NULL;
-  verbose       = 0;
-  st_back_en    = 0;
-  auto_id       = 0;
-  infile        = NULL;
-  outfile       = NULL;
-  output        = NULL;
-  tofile        = 0;
-  filename_full = 0;
+  do_backtrack    = 1;
+  delta           = 100;
+  deltap          = n_back = noconv = dos = zuker = 0;
+  rec_type        = read_opt = 0;
+  rec_id          = rec_sequence = orig_sequence = NULL;
+  rec_rest        = NULL;
+  cstruc          = structure = NULL;
+  verbose         = 0;
+  st_back_en      = 0;
+  auto_id         = 0;
+  infile          = NULL;
+  outfile         = NULL;
+  output          = NULL;
+  tofile          = 0;
+  filename_full   = 0;
+  canonicalBPonly = 0;
 
   set_model_details(&md);
 
@@ -119,7 +120,7 @@ main(int  argc,
 
   /* enforce canonical base pairs in any case? */
   if (args_info.canonicalBPonly_given)
-    md.canonicalBPonly = canonicalBPonly = 1;
+    canonicalBPonly = 1;
 
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given)
@@ -236,7 +237,9 @@ main(int  argc,
       print_comment(stdout, "Use '&' to connect 2 sequences that shall form a complex.");
 
     if (fold_constrained) {
-      vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK);
+      vrna_message_constraint_options(
+        VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK |
+        VRNA_CONSTRAINT_DB_RND_BRACK);
       vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint");
     } else {
       vrna_message_input_seq_simple();
@@ -282,7 +285,9 @@ main(int  argc,
       if (outfile)
         v_file_name = vrna_strdup_printf("%s", outfile);
       else
-        v_file_name = (SEQ_ID) ? vrna_strdup_printf("%s.sub", SEQ_ID) : vrna_strdup_printf("RNAsubopt_output.sub");
+        v_file_name = (SEQ_ID) ?
+                      vrna_strdup_printf("%s.sub", SEQ_ID) :
+                      vrna_strdup_printf("RNAsubopt_output.sub");
 
       tmp_string = vrna_filename_sanitize(v_file_name, filename_delim);
       free(v_file_name);
@@ -307,7 +312,10 @@ main(int  argc,
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
-    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | (circ ? 0 : VRNA_OPTION_HYBRID) | ((n_back > 0) ? VRNA_OPTION_PF : 0));
+    vrna_fold_compound_t *vc =
+      vrna_fold_compound(rec_sequence, &md,
+                         VRNA_OPTION_MFE | (circ ? 0 : VRNA_OPTION_HYBRID) |
+                         ((n_back > 0) ? VRNA_OPTION_PF : 0));
     length = vc->length;
 
     structure = (char *)vrna_alloc((char)length + 1);
@@ -315,7 +323,8 @@ main(int  argc,
     /* parse the rest of the current dataset to obtain a structure constraint */
     if (fold_constrained) {
       if (constraints_file) {
-        vrna_constraints_add(vc, constraints_file, VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
+        vrna_constraints_add(vc, constraints_file,
+                             VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
       } else {
         cstruc = NULL;
         int           cp        = -1;
@@ -346,19 +355,32 @@ main(int  argc,
           if (enforceConstraints)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
 
+          if (canonicalBPonly)
+            constraint_options |= VRNA_CONSTRAINT_DB_CANONICAL_BP;
+
           vrna_constraints_add(vc, (const char *)structure, constraint_options);
         }
       }
     }
 
-    if (with_shapes)
-      vrna_constraints_add_SHAPE(vc, shape_file, shape_method, shape_conversion, verbose, VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
+    if (with_shapes) {
+      vrna_constraints_add_SHAPE(vc,
+                                 shape_file,
+                                 shape_method,
+                                 shape_conversion,
+                                 verbose,
+                                 VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
+    }
 
     if (istty) {
-      if (cut_point == -1)
+      if (cut_point == -1) {
         vrna_message_info(stdout, "length = %d", length);
-      else
-        vrna_message_info(stdout, "length1 = %d\nlength2 = %d", cut_point - 1, length - cut_point + 1);
+      } else {
+        vrna_message_info(stdout,
+                          "length1 = %d\nlength2 = %d",
+                          cut_point - 1,
+                          length - cut_point + 1);
+      }
     }
 
     /*
@@ -486,7 +508,7 @@ main(int  argc,
     if (with_shapes || (constraints_file && (!batch)))
       break;
 
-    ID_number_increase(seq_number, "Sequence");
+    ID_number_increase(&seq_number, "Sequence");
 
     /* print user help for the next round if we get input from tty */
     if (istty) {
@@ -494,8 +516,11 @@ main(int  argc,
         print_comment(stdout, "Use '&' to connect 2 sequences that shall form a complex.");
 
       if (fold_constrained) {
-        vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK | VRNA_CONSTRAINT_DB_RND_BRACK);
-        vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint");
+        vrna_message_constraint_options(
+          VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK |
+          VRNA_CONSTRAINT_DB_RND_BRACK);
+        vrna_message_input_seq(
+          "Input sequence (upper or lower case) followed by structure constraint");
       } else {
         vrna_message_input_seq_simple();
       }

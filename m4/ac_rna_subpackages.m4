@@ -18,6 +18,10 @@ AC_DEFUN([RNA_GET_SUBPACKAGES],[
     AC_RNA_APPEND_VAR_COMMA($1, [Kinwalker])
     _sub_packages=1
   ])
+  AS_IF([test "x$with_rnalocmin" = "xyes"],[
+    AC_RNA_APPEND_VAR_COMMA($1, [RNAlocmin])
+    _sub_packages=1
+  ])
   AS_IF([test "$_sub_packages" -eq 0],[
     AC_RNA_APPEND_VAR_COMMA($1, [None])
   ])
@@ -93,3 +97,22 @@ AC_DEFUN([RNA_ENABLE_PKG_KINWALKER],[
 
   AM_CONDITIONAL(MAKE_KINFOLD, test "x$with_kinwalker" != "xyes")
 ])
+
+
+#
+# RNAlocmin subpackage
+#
+AC_DEFUN([RNA_ENABLE_PKG_RNALOCMIN],[
+  RNA_ADD_PACKAGE([rnalocmin],
+                  [RNAlocmin program],
+                  [yes],[],[],
+                  [${srcdir}/src/RNAlocmin/Makefile.am])
+
+  RNA_PACKAGE_IF_ENABLED([rnalocmin],[
+    AC_CONFIG_SUBDIRS([src/RNAlocmin])
+  ])
+
+  AM_CONDITIONAL(MAKE_RNALOCMIN, test "x$with_rnalocmin" != "xno")
+])
+
+

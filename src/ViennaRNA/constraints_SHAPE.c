@@ -48,12 +48,6 @@ sc_parse_parameters(const char  *string,
 
 
 PRIVATE void
-sc_add_stack_en_mfe(vrna_fold_compound_t  *vc,
-                    const FLT_OR_DBL      *constraints,
-                    unsigned int          options);
-
-
-PRIVATE void
 prepare_Boltzmann_weights_stack(vrna_fold_compound_t *vc);
 
 
@@ -83,10 +77,15 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
 
   if (verbose) {
     if (method != 'W') {
-      if (method == 'Z')
+      if (method == 'Z') {
         vrna_message_info(stderr, "Using SHAPE method '%c' with parameter p1=%f", method, p1);
-      else
-        vrna_message_info(stderr, "Using SHAPE method '%c' with parameters p1=%f and p2=%f", method, p1, p2);
+      } else {
+        vrna_message_info(stderr,
+                          "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
+                          method,
+                          p1,
+                          p2);
+      }
     }
   }
 
@@ -97,7 +96,12 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
   if (method == 'D') {
     (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
   } else if (method == 'Z') {
-    (void)vrna_sc_add_SHAPE_zarringhalam(vc, (const double *)values, p1, 0.5, shape_conversion, constraint_type);
+    (void)vrna_sc_add_SHAPE_zarringhalam(vc,
+                                         (const double *)values,
+                                         p1,
+                                         0.5,
+                                         shape_conversion,
+                                         constraint_type);
   } else {
     assert(method == 'W');
     FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
@@ -318,7 +322,7 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
         values[i] = reactivities[i] < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivities[i] + 1) + b);
 
       /* always store soft constraints in plain format */
-      sc_add_stack_en_mfe(vc, (const FLT_OR_DBL *)values, options);
+      vrna_sc_set_stack(vc, (const FLT_OR_DBL *)values, options);
       free(values);
     }
 
@@ -344,7 +348,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
   float           reactivity, *reactivities, e1, weight;
   char            *line, nucleotide, *sequence;
   int             s, i, p, r, n_data, position, *pseudo_energies, n_seq;
-  unsigned short  **a2s;
+  unsigned int    **a2s;
 
   if (vc && (vc->type == VRNA_FC_TYPE_COMPARATIVE)) {
     n_seq = vc->n_seq;
@@ -376,7 +380,8 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
 
       /* read the shape file */
       if (!(fp = fopen(shape_files[s], "r"))) {
-        vrna_message_warning("SHAPE data file %d could not be opened. No shape data will be used.", s);
+        vrna_message_warning("SHAPE data file %d could not be opened. No shape data will be used.",
+                             s);
       } else {
         reactivities  = (float *)vrna_alloc(sizeof(float) * (vc->length + 1));
         sequence      = (char *)vrna_alloc(sizeof(char) * (vc->length + 1));
@@ -414,7 +419,8 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
         /* double check information by comparing the sequence read from */
         char *tmp_seq = get_ungapped_sequence(vc->sequences[shape_file_association[s]]);
         if (strcmp(tmp_seq, sequence))
-          vrna_message_warning("Input sequence %d differs from sequence provided via SHAPE file!\n", shape_file_association[s]);
+          vrna_message_warning("Input sequence %d differs from sequence provided via SHAPE file!\n",
+                               shape_file_association[s]);
 
         free(tmp_seq);
 
@@ -572,24 +578,6 @@ sc_parse_parameters(const char  *string,
   }
 
   free(fmt);
-}
-
-
-PRIVATE void
-sc_add_stack_en_mfe(vrna_fold_compound_t  *vc,
-                    const FLT_OR_DBL      *constraints,
-                    unsigned int          options)
-{
-  int i;
-
-  if (!vc->sc)
-    vrna_sc_init(vc);
-
-  if (!vc->sc->energy_stack)
-    vc->sc->energy_stack = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
-
-  for (i = 1; i <= vc->length; ++i)
-    vc->sc->energy_stack[i] = (int)roundf(constraints[i] * 100.);
 }
 
 

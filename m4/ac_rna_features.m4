@@ -57,7 +57,7 @@ AC_DEFUN([RNA_GET_FEATURE],[
 
 AC_DEFUN([RNA_ENABLE_SVM],[
 
-  SVM_VERSION=3.20
+  SVM_VERSION=3.22
 
   RNA_ADD_PACKAGE([svm],
                   [svm classifiers],
@@ -271,7 +271,7 @@ AC_DEFUN([RNA_ENABLE_FLOATPF],[
     ## substitution for reference manual config
     AC_SUBST([REFDOC_PREDEF_FLOAT_PF], [USE_FLOAT_PF])
     AC_SUBST([FLOAT_PF_FLAG], [-DUSE_FLOAT_PF])
-    AX_APPEND_FLAG([USE_FLOAT_PF], [RNA_CPPFLAGS])
+    AX_APPEND_FLAG([-DUSE_FLOAT_PF], [RNA_CPPFLAGS])
   ])
 
   AC_SUBST(CONFIG_FLOAT_PF)

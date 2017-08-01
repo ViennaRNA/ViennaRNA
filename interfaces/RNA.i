@@ -54,6 +54,7 @@ extern "C" {
 #include  <ViennaRNA/aln_util.h>
 #include  <ViennaRNA/findpath.h>
 #include  <ViennaRNA/Lfold.h>
+#include  <ViennaRNA/LPfold.h>
 #include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
 #include  <ViennaRNA/file_formats.h>
@@ -80,19 +81,8 @@ extern "C" {
 %array_functions(short, shortP);
 %include cdata.i
 
-/* %constant double VERSION = 0.3; */
 %include version.i
 %include typemaps.i
-
-// Typemaps that are independent of scripting language
-
-// This cleans up the char ** array after the function call
-%typemap(freearg) char ** {
-         free($1);
-}
-
-// Additional target language specific typemaps
-%include tmaps.i
 
 /* handle exceptions */
 %include "exception.i"
@@ -121,6 +111,7 @@ namespace std {
   %template(CoordinateVector) std::vector<COORDINATE>;
   %template(DoubleDoubleVector) std::vector< std::vector<double> > ;
   %template(IntIntVector) std::vector<std::vector<int> > ;
+  %template(ElemProbVector) std::vector<vrna_ep_t>;
 };
 
 %{
@@ -159,6 +150,18 @@ namespace std {
 %rename("$ignore",  %$isconstant, regextarget=1) "^VRNA_";
 %rename("$ignore",  %$isconstant, regextarget=1) "^vrna_";
 
+
+// Typemaps that are independent of scripting language
+
+// This cleans up the char ** array after the function call
+%typemap(freearg) char ** {
+         free($1);
+}
+
+
+// Additional target language specific typemaps
+%include "tmaps.i"
+
 /*############################################*/
 /* Include all relevant interface definitions */
 /*############################################*/
@@ -173,7 +176,9 @@ namespace std {
 %include constraints_ligand.i
 %include eval.i
 %include mfe.i
+%include mfe_window.i
 %include part_func.i
+%include pf_window.i
 %include subopt.i
 %include inverse.i
 %include compare.i
@@ -181,6 +186,8 @@ namespace std {
 %include grammar.i
 %include commands.i
 %include combinatorics.i
+%include duplex.i
+%include findpath.i
 %include fold_compound.i
 
 
@@ -203,8 +210,19 @@ namespace std {
 
 //%subsection "Global Variables to Modify Folding"
 //extern double *pr;  /*  base pairing prob. matrix */
+%immutable;
+extern bondT      *base_pair;
+extern FLT_OR_DBL *pr;
+extern int        *iindx;
+%mutable;
 
 %include  <ViennaRNA/fold_vars.h>
+
+struct bondT {
+  unsigned int  i;
+  unsigned int  j;
+};
+
 %extend bondT {
 
   bondT *get(int i) {
@@ -212,58 +230,6 @@ namespace std {
     return self+i;
   }
 }
-
-
-typedef struct {
-  int i;
-  int j;
-  char *structure;
-  float energy;
-} duplexT;
-
-// problem: wrapper will not free the the structure hidden in duplexT
-// even more problem for duplex_subopt()
-
-%include <ViennaRNA/duplex.h>
-%include <ViennaRNA/Lfold.h>
-
-/**********************************************/
-/* BEGIN interface for findpath heursitic     */
-/**********************************************/
-
-/* scripting language access through 'fold_compound' instead of 'vrna_fold_compound_t' */
-%rename(path) vrna_path_t;
-
-/* no default constructor / destructor */
-%nodefaultdtor vrna_path_t;
-
-typedef struct {
-  double en;  /**<  @brief  Free energy of current structure */
-  char *s;    /**<  @brief  Secondary structure in dot-bracket notation */
-} vrna_path_t;
-
-%extend vrna_path_t {
-  vrna_path_t *get(int i) {
-    return $self+i;
-  }
-
-  int size() {
-    path_t *st;
-    for (st=$self; st->s; st++);
-    return (int)(st-$self);
-  }
-
-  ~vrna_path_t() {
-    vrna_path_t *st;
-    for (st=$self; st->s; st++)
-      free(st->s);
-    free($self);
-  }
-}
-
-%newobject get_path;
-
-%include <ViennaRNA/findpath.h>
 
 %include  <ViennaRNA/move_set.h>
 

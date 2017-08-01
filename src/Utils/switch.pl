@@ -592,7 +592,7 @@ Specify an energy difference between the two optimized structures
 
 =item ViennaRNA standard options
 
-the -noLP, -P <paramfile>, -d, -d2, -4, -noGU, -noClosingGU, -circ,
+the -noLP, -P <paramfile>, -d, -d2, -4, --noGU, --noClosingGU, --circ,
 should work as usual. See the RNAfold man page for details.
 
 =back

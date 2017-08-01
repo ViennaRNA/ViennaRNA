@@ -25,8 +25,8 @@ typedef struct vrna_fc_s vrna_fold_compound_t;
 /** @brief Typename for the base pair repesenting data structure #vrna_basepair_s */
 typedef struct vrna_basepair_s vrna_basepair_t;
 
-/** @brief Typename for the base pair list repesenting data structure #vrna_plist_s */
-typedef struct vrna_plist_s vrna_plist_t;
+/** @brief Typename for the base pair list repesenting data structure #vrna_elem_prob_s */
+typedef struct vrna_elem_prob_s vrna_plist_t;
 
 /** @brief Typename for the base pair stack repesenting data structure #vrna_bp_stack_s */
 typedef struct vrna_bp_stack_s vrna_bp_stack_t;
@@ -51,9 +51,20 @@ typedef double FLT_OR_DBL;
 /**
  *  @brief Callback to free memory allocated for auxiliary user-provided data
  *
- *  @ingroup fold_compound
  *  This type of user-implemented function usually deletes auxiliary data structures.
  *  The user must take care to free all the memory occupied by the data structure passed.
+ *
+ *  @ingroup fold_compound
+ *
+ *  @callback
+ *  @parblock
+ *  This callback is supposed to free memory occupied by an auxiliary data structure.
+ *  It will be called when the #vrna_fold_compound_t is erased from memory through a
+ *  call to vrna_fold_compound_free() and will be passed the address of memory previously
+ *  bound to the #vrna_fold_compound_t via vrna_fold_compound_add_auxdata(). 
+ *  @endparblock
+ *
+ *  @see vrna_fold_compound_add_auxdata(), vrna_fold_compound_free(), vrna_fold_compound_add_callback()
  *
  *  @param data    The data that needs to be free'd
  */
@@ -63,7 +74,19 @@ typedef void (vrna_callback_free_auxdata)(void *data);
  *  @brief Callback to perform specific user-defined actions before, or after recursive computations
  *
  *  @ingroup fold_compound
- *  @see #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
+ *
+ *  @callback
+ *  @parblock
+ *  This function will be called to notify a third-party implementation about the status of
+ *  a currently ongoing recursion. The purpose of this callback mechanism is to provide users
+ *  with a simple way to ensure pre- and post conditions for auxiliary mechanisms attached to
+ *  our implementations.
+ *  @endparblock
+ *
+ *  @see vrna_fold_compound_add_auxdata(), vrna_fold_compound_add_callback(), vrna_mfe(),
+ *       vrna_pf(),
+ *       #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
+ *
  *  @param status   The status indicator
  *  @param data     The data structure that was assigned with vrna_fold_compound_add_auxdata()
  *  @param status   The status indicator
@@ -106,13 +129,6 @@ typedef void (vrna_callback_recursion_status)(unsigned char status,
 #define VRNA_STATUS_PF_POST     (unsigned char)4
 
 
-#define VRNA_PLIST_TYPE_BASEPAIR      0
-#define VRNA_PLIST_TYPE_GQUAD         1
-#define VRNA_PLIST_TYPE_H_MOTIF       2
-#define VRNA_PLIST_TYPE_I_MOTIF       3
-#define VRNA_PLIST_TYPE_UD_MOTIF      4
-
-
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 
@@ -128,11 +144,10 @@ typedef void (vrna_callback_recursion_status)(unsigned char status,
 typedef struct vrna_basepair_s PAIR;
 
 /**
- *  @brief Old typename of #vrna_plist_s
- *  @deprecated Use #vrna_plist_t instead!
+ *  @brief Old typename of #vrna_elem_prob_s
+ *  @deprecated Use #vrna_ep_t or #vrna_elem_prob_s instead!
  */
-typedef struct vrna_plist_s plist;
-
+typedef struct vrna_elem_prob_s plist;
 /**
  *  @brief Old typename of #vrna_cpair_s
  *  @deprecated Use #vrna_cpair_t instead!
@@ -161,6 +176,7 @@ typedef struct vrna_bp_stack_s bondT;
 #include <ViennaRNA/grammar.h>
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
+#include "ViennaRNA/structure_utils.h"
 
 /*
  * ############################################################
@@ -175,16 +191,6 @@ typedef struct vrna_bp_stack_s bondT;
 struct vrna_basepair_s {
   int i;
   int j;
-};
-
-/**
- *  @brief this datastructure is used as input parameter in functions of PS_dot.h and others
- */
-struct vrna_plist_s {
-  int   i;
-  int   j;
-  float p;
-  int   type;
 };
 
 /**
@@ -596,7 +602,7 @@ struct {
                                      *    @warning  Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                      */
   char            **Ss;
-  unsigned short  **a2s;
+  unsigned int    **a2s;
   int             *pscore;            /**<  @brief  Precomputed array of pair types expressed as pairing scores
                                        *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                        */
