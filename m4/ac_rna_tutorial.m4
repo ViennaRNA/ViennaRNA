@@ -37,7 +37,7 @@ RNA_PACKAGE_IF_ENABLED([tutorial],[
 
   AC_SUBST([TUTORIAL_PROJECT_NAME], [RNA-tutorial-$PACKAGE_VERSION])
   AC_SUBST([TUTORIAL_SRCDIR], [$srcdir])
-  AC_SUBST([TUTORIAL_DOCDIR], [ifelse([$2], [], [doc], [$2])])
+  AC_SUBST([TUTORIAL_DOCDIR], [ifelse([$2], [], [RNA-Tutorial], [$2])])
 
   RNA_PACKAGE_IF_ENABLED([tutorial_pdf], [
     # check whether pdflatex or latex and dvipdf are available
