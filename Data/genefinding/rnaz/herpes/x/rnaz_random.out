@@ -1,0 +1,2296 @@
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  55.83
+ Mean single sequence MFE: -31.05
+ Consensus MFE: -20.15
+ Energy contribution: -18.40
+ Covariance contribution:  -1.75
+ Combinations/Pair:   1.28
+ Mean z-score:  -1.69
+ Structure conservation index:   0.65
+ SVM decision value:   1.62
+ SVM RNA-class probability: 0.968068
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 7308 115 - 171823
+AAAAUUUGAGAGAGCAGCUAUCUGCUUCGCAUCGCUCAAGUCAGUGACUCUUACAGAACCUGUACUAGUUUCAUGACAGGGGCUUUCUAAGGAUCCUGUGCAUAGGUUACUGUUU-----
+...(((((((.(((((((.....)))..)).)).)))))))((((((((..(((((..(((.....(((..(......)..))).....)))...)))))....))))))))...----- ( -34.10)
+>NC_006146.genome 7419 96 - 171096
+GAA--UUUAGUGCGCAGUUAAAUG------------------AGUGGCGUCUACAGAACCUGGACUAGUAUGUUGGCAGGAGUUUUC----GAUCUUGUACAUAGGUUCCUGCGCCUUUU
+...--...((.((((((.......------------------.((((...)))).((((((((((......))).((((((......----..))))))...)))))))))))))))... ( -28.00)
+>consensus
+AAA__UUGAGAGAGCAGCUAAAUG__________________AGUGACGCCUACAGAACCUGGACUAGUAUCAUGACAGGAGCUUUC____GAUCCUGUACAUAGGUUACUGCGC_____
+...........((((((..........................((((...)))).(((((((...........((((((((............)))))).)))))))))))))))..... (-20.15 = -18.40 +  -1.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  87.50
+ Mean single sequence MFE: -60.30
+ Consensus MFE: -51.40
+ Energy contribution: -53.40
+ Covariance contribution:   2.00
+ Combinations/Pair:   1.00
+ Mean z-score:  -1.54
+ Structure conservation index:   0.85
+ SVM decision value:   0.10
+ SVM RNA-class probability: 0.583219
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 12959 117 - 171823
+GGACCGGCUCCGCGAAGC-AGGGCGCCGGGUUAGACCGGGCGCCCUGCGUUUAUAGGCGUGGCUCGUUGCUGGCUCGGAUGGCGGCGUUCCACCC--CUGGAAUGCCACUACGACUCUCG
+(..(((((.((((...((-((((((((.((.....)).))))))))))(((....)))))))......)))))..)...(((.(((((((((...--.))))))))).)))......... ( -60.20)
+>NC_006146.genome 13397 120 - 171096
+GGCGCGGCUUCGCGAGAUUAGGGCGCCGGGUUGGACCGGGCGCCCUGCGUUUAUAGGCGUGGCUCGUUGCUGGCUCGGAUGGCGGCGUUCCUCCCCCCCGGAAUGCCACGUCGAAUCUCG
+...(((....)))((((((((((((((.((.....)).)))))))).........((((((((.....((((.(......).))))(((((........))))))))))))).)))))). ( -60.40)
+>consensus
+GGACCGGCUCCGCGAAAC_AGGGCGCCGGGUUAGACCGGGCGCCCUGCGUUUAUAGGCGUGGCUCGUUGCUGGCUCGGAUGGCGGCGUUCCACCC__CCGGAAUGCCACGACGAAUCUCG
+((.(((((...(((((...((((((((.((.....)).))))))))(((((....)))))..))))).))))).)).((((..((((((((........)))))))).))))........ (-51.40 = -53.40 +   2.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  88.33
+ Mean single sequence MFE: -47.30
+ Consensus MFE: -40.95
+ Energy contribution: -40.95
+ Covariance contribution:  -0.00
+ Combinations/Pair:   1.00
+ Mean z-score:  -1.81
+ Structure conservation index:   0.87
+ SVM decision value:   0.69
+ SVM RNA-class probability: 0.822758
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 12997 119 + 171823
+AUCCGAGCCAGCAACGAGCCACGCCUAUAAACGCAGGGCGCCCGGUCUAACCCGGCGCCCU-GCUUCGCGGAGCCGGUCCCCCUCGUGCAGGCGCAGGCCGCCCCCCUCCUGCCCACCUC
+......(((.(((.((((....(((.......((((((((((.((.....)).))))))))-)).....(....))))....))))))).)))(((((..........)))))....... ( -50.70)
+>NC_006146.genome 13437 119 + 171096
+AUCCGAGCCAGCAACGAGCCACGCCUAUAAACGCAGGGCGCCCGGUCCAACCCGGCGCCCUAAUCUCGCGAAGCCGCGCCUCCUCGUGCAGGCGCAGACGGC-CCCAUCCUGCCCACCCC
+......(((.(((.((((....((........))((((((((.((.....)).)))))))).....((((....))))....))))))).)))((((..(..-..)...))))....... ( -43.90)
+>consensus
+AUCCGAGCCAGCAACGAGCCACGCCUAUAAACGCAGGGCGCCCGGUCCAACCCGGCGCCCU_ACCUCGCGAAGCCGCGCCCCCUCGUGCAGGCGCAGACCGC_CCCAUCCUGCCCACCCC
+......(((.(((.((((...((.((.....(((((((((((.((.....)).))))))))......))).)).))......))))))).)))((((............))))....... (-40.95 = -40.95 +  -0.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  88.33
+ Mean single sequence MFE: -64.30
+ Consensus MFE: -53.30
+ Energy contribution: -52.80
+ Covariance contribution:  -0.50
+ Combinations/Pair:   1.14
+ Mean z-score:  -2.13
+ Structure conservation index:   0.83
+ SVM decision value:   1.18
+ SVM RNA-class probability: 0.927591
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 12997 119 - 171823
+GAGGUGGGCAGGAGGGGGGCGGCCUGCGCCUGCACGAGGGGGACCGGCUCCGCGAAGC-AGGGCGCCGGGUUAGACCGGGCGCCCUGCGUUUAUAGGCGUGGCUCGUUGCUGGCUCGGAU
+(((.((((((((.(.(((....))).).)))))((((((....)).((..((((((((-((((((((.((.....)).)))))))))).)))....)))..))))))..))).))).... ( -64.60)
+>NC_006146.genome 13437 119 - 171096
+GGGGUGGGCAGGAUGGG-GCCGUCUGCGCCUGCACGAGGAGGCGCGGCUUCGCGAGAUUAGGGCGCCGGGUUGGACCGGGCGCCCUGCGUUUAUAGGCGUGGCUCGUUGCUGGCUCGGAU
+.((((.((((....(((-(((....((((((.(....).))))))))))))(((((...((((((((.((.....)).))))))))(((((....)))))..))))))))).)))).... ( -64.00)
+>consensus
+GAGGUGGGCAGGAGGGG_GCCGCCUGCGCCUGCACGAGGAGGACCGGCUCCGCGAAAC_AGGGCGCCGGGUUAGACCGGGCGCCCUGCGUUUAUAGGCGUGGCUCGUUGCUGGCUCGGAU
+.((((.(((((((........(((.(((((((..((.((((......)))).))(((((((((((((.((.....)).))))))))).)))).)))))))))))).))))).)))).... (-53.30 = -52.80 +  -0.50) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  87.50
+ Mean single sequence MFE: -57.47
+ Consensus MFE: -50.16
+ Energy contribution: -52.41
+ Covariance contribution:   2.25
+ Combinations/Pair:   1.03
+ Mean z-score:  -1.54
+ Structure conservation index:   0.87
+ SVM decision value:   0.20
+ SVM RNA-class probability: 0.629170
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 16031 117 + 171823
+ACCGCGGGGUACCAGGCUCGGAG--GCCCACUGACUGCGGGCGCUAGCACACCGCCCGAAAGAGCGGACAGCACGCCUGCCGGCCUGCCCGAGCCAGCCCU-UCUUCCCGCUAGCAGCGC
+...((((((.....(((((((((--(((........(((((((...((...((((.(....).))))...)).))))))).)))))..)))))))......-...))))))......... ( -53.94)
+>NC_006146.genome 16478 120 + 171096
+ACCGCAGGGAGCCAGGCUCGGGGGGGCCGACUGACUGCGGGCGCUAGCACACCGCCCGAAAGAGCGGACAGCACGCCUGCCGGCCUGUCCGAGCCAGCCCUAGAGUCCCGGUAGCAAAGC
+(((((.(((.((..((((((((.((((((.......(((((((...((...((((.(....).))))...)).))))))))))))).)))))))).))))).).....))))........ ( -61.01)
+>consensus
+ACCGCAGGGAACCAGGCUCGGAG__GCCCACUGACUGCGGGCGCUAGCACACCGCCCGAAAGAGCGGACAGCACGCCUGCCGGCCUGCCCGAGCCAGCCCU_GAGUCCCGCUAGCAAAGC
+.....(((((....((((((((.((((((.......(((((((...((...((((.(....).))))...)).))))))))))))).)))))))).)))))................... (-50.16 = -52.41 +   2.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  82.50
+ Mean single sequence MFE: -56.45
+ Consensus MFE: -41.60
+ Energy contribution: -42.85
+ Covariance contribution:   1.25
+ Combinations/Pair:   1.03
+ Mean z-score:  -1.67
+ Structure conservation index:   0.74
+ SVM decision value:   0.24
+ SVM RNA-class probability: 0.650057
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 17989 120 - 171823
+UAGUAGGUUGAAGGCCAGGGACUACGGGCUGCAAAUGAGGCCGCAGGGCGGGACGAUCAUACCCGCUCACACGAGAAGAGGCUCAUACACGCGGCCCGGGUGGCCCUAGGGGAGUCGGCG
+......(((((...((.....(((.((((..(...((.((((((.(((((((.........)))))))....(((......)))......)))))))).)..))))))).))..))))). ( -53.20)
+>NC_006146.genome 18458 120 - 171096
+UAGUCGGUUGAGGACCAGGGACUACGGGCUGCGGAGGAGGCCGCUGGGCUGGAUGCUCAUGCCCGCUCGCACGGGAAGAGGCGCAAACAUGCCGCCCGUGGAGCCCUGGGGGAGUCGGCG
+..((((..(.....((((((....(((((.((((......))))(((((.....))))).)))))(((.((((((....((((......)))).)))))))))))))))...)..)))). ( -59.70)
+>consensus
+UAGUAGGUUGAAGACCAGGGACUACGGGCUGCAAAGGAGGCCGCAGGGCGGGACGAUCAUACCCGCUCACACGAGAAGAGGCGCAAACACGCCGCCCGGGGAGCCCUAGGGGAGUCGGCG
+......(((((...((((((.((.(((((((((.....((((...(((((((.........)))))))...(.....).))).).....)))))))))...)))))).))....))))). (-41.60 = -42.85 +   1.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  70.00
+ Mean single sequence MFE: -53.40
+ Consensus MFE: -45.40
+ Energy contribution: -43.15
+ Covariance contribution:  -2.25
+ Combinations/Pair:   1.28
+ Mean z-score:  -1.02
+ Structure conservation index:   0.85
+ SVM decision value:   0.94
+ SVM RNA-class probability: 0.886454
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 18269 120 - 171823
+GAACCUGUCAGCGCCCGGCGGUGGGCGAGCCGGCUGUUCAGGAAGAGUGCGAGGGAGCCGGGCGAGCGGGCAGCGCUGAGGGCUACGGAGGCAGUCAGACGGCGCGCAGGGGGGGGUCAU
+((.(((.((..(((((((((((.((....)).))).(((.....))).........)))))))).(((.((....((((..(((.....)))..))))...)).))).)).)))..)).. ( -52.00)
+>NC_006146.genome 18726 120 - 171096
+GAACCCGUUUGCGCCCGUCGGUGGGCGAGCCGGCUGUUCAGGAGGAGGGCUAUGGAGAUGGGCGUGUGGGGAGCGCCCGAAGCUAGGGCAACACUUGAUGGGUGCAUGGGGGGGGGCGGC
+(..(((.((((((((((((((((.....(((((((.(((....))).)))).(((...(((((((.......)))))))...))).)))..))).)))))))))))..)).)))..)... ( -54.80)
+>consensus
+GAACCCGUCAGCGCCCGGCGGUGGGCGAGCCGGCUGUUCAGGAAGAGGGCGAGGGAGACGGGCGAGCGGGCAGCGCCCAAAGCUACGGAAACACUCAAACGGCGCACAGGGGGGGGCCAC
+...(((((...(((((((((((.((....)).)))((((.......))))......))))))))........((((((..((((........))))...))))))))))).......... (-45.40 = -43.15 +  -2.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  86.67
+ Mean single sequence MFE: -51.00
+ Consensus MFE: -45.80
+ Energy contribution: -46.55
+ Covariance contribution:   0.75
+ Combinations/Pair:   1.03
+ Mean z-score:  -1.93
+ Structure conservation index:   0.90
+ SVM decision value:   1.26
+ SVM RNA-class probability: 0.937325
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 18941 119 + 171823
+UUCGUGGCCUCCCAGGGAUGACCCGGGGCCCGUCCUU-GACCCCGCCGGUACCUCGCCUCCACCGACCCGUCGGUAGUUGGUCCCUGCUCUCCGGGCCCCUGGGCCCUAUCAGACCCCCC
+...(.(((((....(((....)))((((((((((...-)))...((.((.(((..((....(((((....))))).)).))).)).)).....))))))).))))))............. ( -45.50)
+>NC_006146.genome 19400 116 + 171096
+UUCGC--CCCCCCGGGGAUGACCCGGGGCCCGUCUUUGGGCCCCGCCGGUGUCC--CCUACACCGACCCGUCGGUAGCUGGUCCCUGCUCUUCGGGCCCCUGGGCCCUAUCAGACCCCCC
+...((--......((((((.((((((((((((....)))))))))..)))))))--))...(((((....))))).)).((((..((......(((((....)))))...)))))).... ( -56.50)
+>consensus
+UUCGC__CCCCCCAGGGAUGACCCGGGGCCCGUCCUU_GACCCCGCCGGUACCC__CCUACACCGACCCGUCGGUAGCUGGUCCCUGCUCUCCGGGCCCCUGGGCCCUAUCAGACCCCCC
+............(((((((.((((((((((((....)))))))))..)))...........(((((....))))).....)))))))......(((((....)))))............. (-45.80 = -46.55 +   0.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  86.67
+ Mean single sequence MFE: -62.15
+ Consensus MFE: -54.50
+ Energy contribution: -54.75
+ Covariance contribution:   0.25
+ Combinations/Pair:   1.09
+ Mean z-score:  -2.56
+ Structure conservation index:   0.88
+ SVM decision value:   2.40
+ SVM RNA-class probability: 0.993423
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 18941 119 - 171823
+GGGGGGUCUGAUAGGGCCCAGGGGCCCGGAGAGCAGGGACCAACUACCGACGGGUCGGUGGAGGCGAGGUACCGGCGGGGUC-AAGGACGGGCCCCGGGUCAUCCCUGGGAGGCCACGAA
+....(((((..((((((((.((((((((.....(...((((..(((((((....))))))).(.((......)).)..))))-...).)))))))))))....)))))..)))))..... ( -60.60)
+>NC_006146.genome 19400 116 - 171096
+GGGGGGUCUGAUAGGGCCCAGGGGCCCGAAGAGCAGGGACCAGCUACCGACGGGUCGGUGUAGG--GGACACCGGCGGGGCCCAAAGACGGGCCCCGGGUCAUCCCCGGGGGG--GCGAA
+..((..((((...(((((....)))))......))))..)).((..((..(((((((((((...--..)))))))((((((((......)))))))).......)))).))..--))... ( -63.70)
+>consensus
+GGGGGGUCUGAUAGGGCCCAGGGGCCCGAAGAGCAGGGACCAACUACCGACGGGUCGGUGGAGG__AGACACCGGCGGGGCC_AAAGACGGGCCCCGGGUCAUCCCCGGGAGG__ACGAA
+.(((((((((...(((((....)))))......))).((((............((((((((.......))))))))(((((((......))))))).))))))))))............. (-54.50 = -54.75 +   0.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  91.67
+ Mean single sequence MFE: -57.70
+ Consensus MFE: -52.95
+ Energy contribution: -53.45
+ Covariance contribution:   0.50
+ Combinations/Pair:   1.00
+ Mean z-score:  -1.43
+ Structure conservation index:   0.92
+ SVM decision value:  -0.06
+ SVM RNA-class probability: 0.500000
+ Prediction: OTHER
+
+######################################################################
+
+>NC_007605.genome 19060 118 + 171823
+AGCCGACCCGGCGCAGCCCGUUCCGACCGUGGGACGCAUGUCCCCGAACCGAUAACGACAGCUAGA--GAGACGACAGGUCCGGGCGGCCGCCGCCCGCAAUGUUGGCUGCGCCGGAGCA
+....(..(((((((((((((((.((..((.(((((....)))))))...))..))))...((....--(.(((.....))))((((((...))))))))......)))))))))))..). ( -56.30)
+>NC_006146.genome 19516 120 + 171096
+AGCCGGCCCGGCGCAGCCCGUACCGACCGUGGAACGCAUGUCCCCGAAGCGAAGACGACAGCUAUAGGGAGCCGACAGGUCCGGGCGGCCGCCGCCCGCAAUGUUGGCUGCGCCGGAGCA
+.....(((((((((((((......(((((((...))).(((((((..(((..........)))...)))....))))))))(((((((...))))))).......))))))))))).)). ( -59.10)
+>consensus
+AGCCGACCCGGCGCAGCCCGUACCGACCGUGGAACGCAUGUCCCCGAACCGAAAACGACAGCUAGA__GAGACGACAGGUCCGGGCGGCCGCCGCCCGCAAUGUUGGCUGCGCCGGAGCA
+.((....((((((((((((((..((..((.(((((....)))))))...))...)))................((((....(((((((...)))))))...))))))))))))))).)). (-52.95 = -53.45 +   0.50) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  91.67
+ Mean single sequence MFE: -62.50
+ Consensus MFE: -59.95
+ Energy contribution: -59.95
+ Covariance contribution:  -0.00
+ Combinations/Pair:   1.06
+ Mean z-score:  -1.52
+ Structure conservation index:   0.96
+ SVM decision value:   0.57
+ SVM RNA-class probability: 0.785462
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 19060 118 - 171823
+UGCUCCGGCGCAGCCAACAUUGCGGGCGGCGGCCGCCCGGACCUGUCGUCUC--UCUAGCUGUCGUUAUCGGUUCGGGGACAUGCGUCCCACGGUCGGAACGGGCUGCGCCGGGUCGGCU
+.((((((((((((((.......(((((((...)))))))((((...((..((--..((((....))))..))..))(((((....)))))..))))......)))))))))))...))). ( -61.30)
+>NC_006146.genome 19516 120 - 171096
+UGCUCCGGCGCAGCCAACAUUGCGGGCGGCGGCCGCCCGGACCUGUCGGCUCCCUAUAGCUGUCGUCUUCGCUUCGGGGACAUGCGUUCCACGGUCGGUACGGGCUGCGCCGGGCCGGCU
+.((.(((((((((((.......(((((((...)))))))((((.(.(((((......))))).)(((((((...)))))))...........))))......)))))))))))))..... ( -63.70)
+>consensus
+UGCUCCGGCGCAGCCAACAUUGCGGGCGGCGGCCGCCCGGACCUGUCGGCUC__UAUAGCUGUCGUCAUCGCUUCGGGGACAUGCGUCCCACGGUCGGAACGGGCUGCGCCGGGCCGGCU
+.((.(((((((((((.......(((((((...)))))))((((.(.(((((......))))).)............(((((....)))))..))))......)))))))))))))..... (-59.95 = -59.95 +  -0.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  87.50
+ Mean single sequence MFE: -44.70
+ Consensus MFE: -35.55
+ Energy contribution: -36.55
+ Covariance contribution:   1.00
+ Combinations/Pair:   1.06
+ Mean z-score:  -1.87
+ Structure conservation index:   0.80
+ SVM decision value:   0.59
+ SVM RNA-class probability: 0.792190
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 19794 120 + 171823
+UCAUUCGUCCCCGGCCUCCACCACCGUCAGGGCCGGUUACCGGUUCGCACGGUAGGGGUACCACUCGGACCACCCGAUCCCACCGCCCACACAGCCGAUCUGUCAGAACCCGGCUCGCUC
+......(((.(((((((..((....))..))))))).....((((((..((((.((((......((((.....))))))))))))..)..((((.....))))..))))).)))...... ( -38.20)
+>NC_006146.genome 20268 119 + 171096
+ACCGCCAUCCCCGGCCCCCACCACCGUCAGGGCCGGUGACCGGUUCCCACGGUAGGGCGACCACUCGGACCACCCGAUCCCACCGCCCACACAGCCGUACCGUCAGAAGCCGG-UCGCUC
+...((.....(((((((..((....))..))))))).(((((((((..(((((.(((((.....((((.....))))......)))))((......)))))))..).))))))-)))).. ( -51.20)
+>consensus
+ACAGCCAUCCCCGGCCCCCACCACCGUCAGGGCCGGUGACCGGUUCCCACGGUAGGGCGACCACUCGGACCACCCGAUCCCACCGCCCACACAGCCGAACCGUCAGAACCCGG_UCGCUC
+...........((((((..((....))..))))))(((((((((((..((((..(((((.....((((.....))))......))))).(......)..))))..))).)))).)))).. (-35.55 = -36.55 +   1.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  78.33
+ Mean single sequence MFE: -39.00
+ Consensus MFE: -33.35
+ Energy contribution: -32.60
+ Covariance contribution:  -0.75
+ Combinations/Pair:   1.18
+ Mean z-score:  -1.35
+ Structure conservation index:   0.86
+ SVM decision value:   0.28
+ SVM RNA-class probability: 0.667006
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 20194 119 - 171823
+AGUCUGCGGGCUGGACCAGCGAGCACAGUGUGCAGCGUAUGGUUGCAGUCAUCUGUGAAGCAGAUGAUUCGCCCUAGAUCAUAUGGGACA-UCCGUUCUGCCCAGUUCAUUGACCAUCUA
+.(((...(((((((....((..((((...)))).))(((((((((((((((((((.....))))))))).))....))))))))(((((.-...)))))..)))))))...)))...... ( -41.40)
+>NC_006146.genome 20667 111 - 171096
+AACCCACGGGCUGGACCAGCGAGCACAAUGUGCAGC---------UAAUCAGCUGUGAAGCAGAUGGUUUGCUCUAGAUCAUAUGGGACCAUCCGUUCCGCCCAGUCCAUUGACGCUCUA
+.......(((((((...(((((((....((((((((---------(....))))))...)))....)))))))...........(((((.....)))))..)))))))............ ( -36.60)
+>consensus
+AACCCACGGGCUGGACCAGCGAGCACAAUGUGCAGC_________CAAUCAGCUGUGAAGCAGAUGAUUCGCCCUAGAUCAUAUGGGACA_UCCGUUCCGCCCAGUCCAUUGACCAUCUA
+.......(((((((....((((((((...))))..............((((((((.....))))))))))))............(((((.....)))))..)))))))............ (-33.35 = -32.60 +  -0.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  88.33
+ Mean single sequence MFE: -44.82
+ Consensus MFE: -40.45
+ Energy contribution: -39.95
+ Covariance contribution:  -0.50
+ Combinations/Pair:   1.11
+ Mean z-score:  -1.88
+ Structure conservation index:   0.90
+ SVM decision value:   1.10
+ SVM RNA-class probability: 0.915321
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 20471 118 + 171823
+CGGGCCUGCCUCUACUG-UUUCAAGCCUCGCCCCUCGGUCGCGAGAAGAAAUAUAGUAAAGCAUGGAAUUGAGUCGGUCUACCCGGCUCA-CCGUCAAACGAGGUGGUCGUUGCCGGCCA
+..((((.((((((((((-(.......(((((.(....)..))))).......))))))..(.((((...((((((((.....))))))))-)))))....)))))(((....))))))). ( -43.94)
+>NC_006146.genome 20938 120 + 171096
+CGGGCCUGCCUCUACUGCUUUCAAGCCUCGCCCCUGGGCCGCAAGAAGAAAUAAGGUAAAGCAUGGAAUUAAGCCGGUCAAUCCGGCUCACACGUCAAACGAGGUGGCCAUUGCCGGCCA
+..((((.(((((...((((((...((((.(((....)))(....)........))))))))))(((.....((((((.....))))))......)))...)))))(((....))))))). ( -45.70)
+>consensus
+CGGGCCUGCCUCUACUG_UUUCAAGCCUCGCCCCUCGGCCGCAAGAAGAAAUAAAGUAAAGCAUGGAAUUAAGCCGGUCAACCCGGCUCA_ACGUCAAACGAGGUGGCCAUUGCCGGCCA
+..((((.(((((((((..((((.......(((....)))(....)..))))...)))).....(((...((((((((.....))))))))....)))...)))))(((....))))))). (-40.45 = -39.95 +  -0.50) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  86.67
+ Mean single sequence MFE: -53.60
+ Consensus MFE: -43.25
+ Energy contribution: -44.50
+ Covariance contribution:   1.25
+ Combinations/Pair:   1.03
+ Mean z-score:  -1.59
+ Structure conservation index:   0.81
+ SVM decision value:   0.10
+ SVM RNA-class probability: 0.585076
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 20701 120 - 171823
+GAUCUGAUGCGCGCCGGCGCUAGGUCUGACUUUUUAGAUCUGGAGCGCCUGCGUACUGAGGCUGGUCGAUCCUAUCGGUCAGUCAGCUCAGAGCGGGCGGACGCCUUUCGACGGGCUAGU
+..((((.(((((((.((((((((((((((....))))))))..)))))).)))).(((((((((..((((...))))..))))...))))).)))..)))).((((......)))).... ( -54.80)
+>NC_006146.genome 21178 120 - 171096
+GAUCUGAUGCGCGCCGGCGCUAGGGCUGACUGUUUGGAUGUGGAUCGCCUGCGUACUGAGGCUGGUCGAACCUGUCGGUCAGUCAGCGCAUUGCGGGGGUAUGCCUAUCGGCGGGCUAGG
+........((.((((((((((..(((((((((...((...(.((((((((........)))).)))).).))...)))))))))))))).......(((....)))..))))).)).... ( -52.40)
+>consensus
+GAUCUGAUGCGCGCCGGCGCUAGGGCUGACUGUUUAGAUCUGGAGCGCCUGCGUACUGAGGCUGGUCGAACCUAUCGGUCAGUCAGCGCAGAGCGGGCGGACGCCUAUCGACGGGCUAGG
+..((((.(((((((.((((((((((((((....))))))))))..)))).)).......(((((..(((.....)))..))))).)))))...)))).....((((......)))).... (-43.25 = -44.50 +   1.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  89.17
+ Mean single sequence MFE: -63.20
+ Consensus MFE: -53.25
+ Energy contribution: -54.75
+ Covariance contribution:   1.50
+ Combinations/Pair:   1.05
+ Mean z-score:  -1.81
+ Structure conservation index:   0.84
+ SVM decision value:   0.50
+ SVM RNA-class probability: 0.758676
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 21773 118 + 171823
+GAAGCUCAGUGGGCUGGCUUCUCGCGCCAGCCCCGAGCCGCGGCCUCACUCCGCCGGGAUGGGCGCGGCACCGACAGGAGGACCU--CCUGUCGCCACUCCGGUAGGCAGGAGGCUCCUG
+........(.((((((((.......)))))))))..((((((.((....(((....))).)).)))))).....((((((..(((--(((((((((.....))).))))))))))))))) ( -66.70)
+>NC_006146.genome 22241 117 + 171096
+GAAGCUCAGUGGGCUGG-UUCUCGCGCCAGCCCCGAGCCGCGGCCCCACUCCGCCGAGGUGGGCGCGGUACCG--AGGAGGACCUCAUCCGUCACCACUCCGGCAGGCAGGAGGCUCCUG
+...((((.(.(((((((-(......))))))))))))).(.((((((...((((((..((((..((((....(--(((....))))..))))..))))..)))).))..)).)))).).. ( -59.70)
+>consensus
+GAAGCUCAGUGGGCUGG_UUCUCGCGCCAGCCCCGAGCCGCGGCCCCACUCCGCCGAGAUGGGCGCGGCACCG__AGGAGGACCU__CCCGUCACCACUCCGGCAGGCAGGAGGCUCCUG
+...((((.(.((((((((.......))))))))))))).(.((((((.((((((((((((((..((((.......(((....)))...))))..)))))))))).)).)))))))).).. (-53.25 = -54.75 +   1.50) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  89.17
+ Mean single sequence MFE: -66.30
+ Consensus MFE: -52.75
+ Energy contribution: -52.50
+ Covariance contribution:  -0.25
+ Combinations/Pair:   1.13
+ Mean z-score:  -2.10
+ Structure conservation index:   0.80
+ SVM decision value:   0.94
+ SVM RNA-class probability: 0.885153
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 21773 118 - 171823
+CAGGAGCCUCCUGCCUACCGGAGUGGCGACAGG--AGGUCCUCCUGUCGGUGCCGCGCCCAUCCCGGCGGAGUGAGGCCGCGGCUCGGGGCUGGCGCGAGAAGCCAGCCCACUGAGCUUC
+((((((((((((((((((....)))).).))))--)))..))))))((((((((((((((((((....))).)).)).))))))...((((((((.......)))))))))))))..... ( -67.20)
+>NC_006146.genome 22241 117 - 171096
+CAGGAGCCUCCUGCCUGCCGGAGUGGUGACGGAUGAGGUCCUCCU--CGGUACCGCGCCCACCUCGGCGGAGUGGGGCCGCGGCUCGGGGCUGGCGCGAGAA-CCAGCCCACUGAGCUUC
+(((((((((((..(((((((..((((((.(((.(((((....)))--))...))))).))))..)))))).)..)))....))))).((((((((....)..-))))))).)))...... ( -65.40)
+>consensus
+CAGGAGCCUCCUGCCUACCGGAGUGGCGACAGA__AGGUCCUCCU__CGGUACCGCGCCCACCCCGGCGGAGUGAGGCCGCGGCUCGGGGCUGGCGCGAGAA_CCAGCCCACUGAGCUUC
+...(.(((((..(((((((((.((((((........(((((.......)).))).)).)))).))))))).))))))))..(((((.((((((((.......))))))))...))))).. (-52.75 = -52.50 +  -0.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  78.33
+ Mean single sequence MFE: -59.00
+ Consensus MFE: -49.90
+ Energy contribution: -49.15
+ Covariance contribution:  -0.75
+ Combinations/Pair:   1.12
+ Mean z-score:  -1.28
+ Structure conservation index:   0.85
+ SVM decision value:   0.07
+ SVM RNA-class probability: 0.567053
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 21931 119 + 171823
+CACCGUCGCCUGAGAGGGCGGGGUCCGCACGAGCGGGCCCAUCACCA-GACCCCGCAUAUAGCUUGGGCGCCAGUGGGAGUCCCUAUACGGGUACCCUAGGGUUGCCGCGCCCCUCGUCG
+......(((((....)))))((((((((....)))))))).......-(((...((.....))..((((((..(((((....)))))...((((((....)).))))))))))...))). ( -56.20)
+>NC_006146.genome 22398 118 + 171096
+CACCGACGCCGGCGUGGCCGGGGCCCGUUCAAUCGGGCUCAUUCCCAUGGCCCCGCCUAUGGCCUGGGCGCCAGUGGGGAUCCCUAUG--GGCACCUUAGGGUUGCCGCGCCCCUCGCCG
+...((.((..((((((((..(((((((......)))))))(((((((((((((((((...)))..))).)))).)))))))(((((.(--(...)).)))))..))))))))...)).)) ( -61.80)
+>consensus
+CACCGACGCCGGAGAGGCCGGGGCCCGCACAAGCGGGCCCAUCACCA_GACCCCGCAUAUAGCCUGGGCGCCAGUGGGAAUCCCUAUA__GGCACCCUAGGGUUGCCGCGCCCCUCGCCG
+......((((......))))(((((((......)))))))........(((...((.....))..((((((..(((((....)))))...((((((....)).))))))))))...))). (-49.90 = -49.15 +  -0.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  86.67
+ Mean single sequence MFE: -36.19
+ Consensus MFE: -32.89
+ Energy contribution: -32.14
+ Covariance contribution:  -0.75
+ Combinations/Pair:   1.15
+ Mean z-score:  -1.53
+ Structure conservation index:   0.91
+ SVM decision value:   0.50
+ SVM RNA-class probability: 0.760683
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 23183 119 + 171823
+GAAAAUGCCUUUACUAUAAAUGUGUCUACCUUGAUUGAGAGGUUGGUACCGUCUCGGGCGACCUGAGGUAAGUGUCAGCCAUGACCGAAAGGUAGGUACAAAUAACACAAUA-AAGACGC
+.....................(((((((((((......)))))..(((((......((((((((......)).))).)))...(((....))).))))).............-.)))))) ( -33.50)
+>NC_006146.genome 23665 120 + 171096
+GAACACGCCUUCGCUAGAGAUGUCUUUACCUUGAUUGAGAGGUUGGUAUCGUCUCGGGCGACCUGAGAUAAGUGUCAGCCAUGACCGUUAGGUAGGGACAAAUAGCACAAUAUGAGACGC
+............((((....(((((((((((.........(((((..((.((((((((...))))))))..))..))))).........)))))))))))..)))).............. ( -38.87)
+>consensus
+GAAAACGCCUUCACUAGAAAUGUCUCUACCUUGAUUGAGAGGUUGGUACCGUCUCGGGCGACCUGAGAUAAGUGUCAGCCAUGACCGAAAGGUAGGGACAAAUAACACAAUA_AAGACGC
+....................((((((((((((........(((((..((..(((((((...)))))))...))..)))))........)))))))))))).................... (-32.89 = -32.14 +  -0.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  86.67
+ Mean single sequence MFE: -33.70
+ Consensus MFE: -25.85
+ Energy contribution: -27.60
+ Covariance contribution:   1.75
+ Combinations/Pair:   1.08
+ Mean z-score:  -2.07
+ Structure conservation index:   0.77
+ SVM decision value:   0.98
+ SVM RNA-class probability: 0.893972
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 23183 119 - 171823
+GCGUCUU-UAUUGUGUUAUUUGUACCUACCUUUCGGUCAUGGCUGACACUUACCUCAGGUCGCCCGAGACGGUACCAACCUCUCAAUCAAGGUAGACACAUUUAUAGUAAAGGCAUUUUC
+..(((((-(((((((.....(((..(((((((........(((.(((.((......)))))))).((((.(((....)))))))....)))))))..)))..))))))))))))...... ( -37.20)
+>NC_006146.genome 23665 120 - 171096
+GCGUCUCAUAUUGUGCUAUUUGUCCCUACCUAACGGUCAUGGCUGACACUUAUCUCAGGUCGCCCGAGACGAUACCAACCUCUCAAUCAAGGUAAAGACAUCUCUAGCGAAGGCGUGUUC
+((((((.......(((((..((((..(((((....(((.(((.((((.((......)))))).))).)))(((............))).)))))..))))....))))).)))))).... ( -30.20)
+>consensus
+GCGUCUC_UAUUGUGCUAUUUGUACCUACCUAACGGUCAUGGCUGACACUUACCUCAGGUCGCCCGAGACGAUACCAACCUCUCAAUCAAGGUAAACACAUCUAUAGCAAAGGCAUGUUC
+..(((((......((((((.((((.((((((.........(((.(((.((......)))))))).((((.(((....))))))).....)))))).))))...)))))))))))...... (-25.85 = -27.60 +   1.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  90.83
+ Mean single sequence MFE: -42.00
+ Consensus MFE: -38.20
+ Energy contribution: -37.95
+ Covariance contribution:  -0.25
+ Combinations/Pair:   1.10
+ Mean z-score:  -1.47
+ Structure conservation index:   0.91
+ SVM decision value:   0.04
+ SVM RNA-class probability: 0.553960
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 23500 119 - 171823
+GAUGUAAGAGUUGAAACACCGCAUGUCCUCAAUCCUUGACGCUCGGUGGCAACUCCGAU-CACCUGCGUGAUGUAGUCCACGCUCCAGGGACGCAGUCGAAAGGCCCAAUCUUGGAUCCA
+(((....((((((...(((((..((((..........))))..))))).))))))..))-)....(((((........)))))(((((((.....(((....)))....))))))).... ( -38.70)
+>NC_006146.genome 23976 120 - 171096
+GAUCUAGGAGUUGAAACACCGCUCGUCCUCAAUCUUUGGCGUUCGGUGGCAACUCCGAUGCACCUGCGUGAUGUAGUCCACGCUACAGGGACGCAGUCGAGAGGCCCAAUCUUGGACCCA
+..(((.(((((((...(((((..((.((.........))))..))))).))))))).......((((((..((((((....))))))...))))))...)))((.(((....))).)).. ( -45.30)
+>consensus
+GAUCUAAGAGUUGAAACACCGCACGUCCUCAAUCCUUGACGCUCGGUGGCAACUCCGAU_CACCUGCGUGAUGUAGUCCACGCUACAGGGACGCAGUCGAAAGGCCCAAUCUUGGACCCA
+......(((((((...(((((..((((..........))))..))))).))))))).........(((((........)))))....(((.....(((....)))(((....))).))). (-38.20 = -37.95 +  -0.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  76.67
+ Mean single sequence MFE: -27.60
+ Consensus MFE: -19.00
+ Energy contribution: -17.75
+ Covariance contribution:  -1.25
+ Combinations/Pair:   1.20
+ Mean z-score:  -1.51
+ Structure conservation index:   0.69
+ SVM decision value:  -0.01
+ SVM RNA-class probability: 0.529995
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 23658 112 + 171823
+UCAUUCCCGCUCGCCUUAUACCCCCCGGAUUCCCUCUUU-CCCUCGCCUACGGC-------GCCAGUGCUCACGCCGACCUCUUCCGCGGCCACCCAGCUGCUCUUCACUCAGGGCCCUA
+............(((((.........(((.........)-))........((((-------(..........))))).........(((((......))))).........))))).... ( -22.60)
+>NC_006146.genome 24136 120 + 171096
+UCACCGCCGCUCACCUCACAUCCCCGGAGUUCCCUCUCUCCCCUCGCCUCCGGCGCCUAGCGCCGGUGCUCACGCCGACCUCUUCCGCGACCGCUUAACUGCCCCUCACUCAGGGCCCUA
+........((...............((((........))))....((..(((((((...))))))).))...(((.((.....)).)))...))......((((........)))).... ( -32.60)
+>consensus
+UCACCCCCGCUCACCUCACACCCCCCGAAUUCCCUCUCU_CCCUCGCCUACGGC_______GCCAGUGCUCACGCCGACCUCUUCCGCGACCACCCAACUGCCCCUCACUCAGGGCCCUA
+.((((...............((....)).......................(((((...)))))))))....(((.((.....)).)))...........((((........)))).... (-19.00 = -17.75 +  -1.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  76.67
+ Mean single sequence MFE: -41.00
+ Consensus MFE: -31.75
+ Energy contribution: -30.75
+ Covariance contribution:  -1.00
+ Combinations/Pair:   1.26
+ Mean z-score:  -1.64
+ Structure conservation index:   0.77
+ SVM decision value:   0.59
+ SVM RNA-class probability: 0.791933
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 23658 112 - 171823
+UAGGGCCCUGAGUGAAGAGCAGCUGGGUGGCCGCGGAAGAGGUCGGCGUGAGCACUGGC-------GCCGUAGGCGAGGG-AAAGAGGGAAUCCGGGGGGUAUAAGGCGAGCGGGAAUGA
+....(((((..((.....))..((((((((((.(....).)))).((....)).((..(-------(((...))))..))-.........)))))))))))................... ( -34.50)
+>NC_006146.genome 24136 120 - 171096
+UAGGGCCCUGAGUGAGGGGCAGUUAAGCGGUCGCGGAAGAGGUCGGCGUGAGCACCGGCGCUAGGCGCCGGAGGCGAGGGGAGAGAGGGAACUCCGGGGAUGUGAGGUGAGCGGCGGUGA
+....(((((......)))))......((.(((((.......(((.((....)).(((((((...))))))).)))....((((........))))...............))))).)).. ( -47.50)
+>consensus
+UAGGGCCCUGAGUGAAGAGCAGCUAAGCGGCCGCGGAAGAGGUCGGCGUGAGCACCGGC_______GCCGGAGGCGAGGG_AAAGAGGGAACCCCGGGGAUAUAAGGCGAGCGGCAAUGA
+(((.(((((......)))))..))).((.(((((.......(((.((....)).(((((((...))))))).)))...............((((....)).)).......))))).)).. (-31.75 = -30.75 +  -1.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  79.17
+ Mean single sequence MFE: -37.77
+ Consensus MFE: -27.74
+ Energy contribution: -28.49
+ Covariance contribution:   0.75
+ Combinations/Pair:   1.10
+ Mean z-score:  -1.78
+ Structure conservation index:   0.73
+ SVM decision value:   0.54
+ SVM RNA-class probability: 0.776446
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 23697 113 + 171823
+CCCUCGCCUACGGC-------GCCAGUGCUCACGCCGACCUCUUCCGCGGCCACCCAGCUGCUCUUCACUCAGGGCCCUACCAUGCCUCGCUACAGAGGGUCCGAACAGGCACCCGAACC
+.....((((.((((-------(..........))))).....(((.(((((......)))))..........(((((((.....((...)).....)))))))))).))))......... ( -35.90)
+>NC_006146.genome 24176 120 + 171096
+CCCUCGCCUCCGGCGCCUAGCGCCGGUGCUCACGCCGACCUCUUCCGCGACCGCUUAACUGCCCCUCACUCAGGGCCCUACCACGCCUCGCUCCAGUGGGUACCACCAGGCCACCAAACC
+.....((((..(((((...)))))(((((((((...((.....)).((((.((.......((((........)))).......))..))))....)))))))))...))))......... ( -39.64)
+>consensus
+CCCUCGCCUACGGC_______GCCAGUGCUCACGCCGACCUCUUCCGCGACCACCCAACUGCCCCUCACUCAGGGCCCUACCACGCCUCGCUACAGAGGGUACCAACAGGCAACCAAACC
+.....((((..(((((...)))))(((((((((...((.....)).((((.((.......((((........)))).......))..))))....)))))))))...))))......... (-27.74 = -28.49 +   0.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  75.00
+ Mean single sequence MFE: -55.10
+ Consensus MFE: -44.41
+ Energy contribution: -44.41
+ Covariance contribution:   0.00
+ Combinations/Pair:   1.21
+ Mean z-score:  -1.59
+ Structure conservation index:   0.81
+ SVM decision value:   0.89
+ SVM RNA-class probability: 0.875203
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 23890 117 - 171823
+GCGUAGACGGAGAAUCUGUACGCACCCUGGGGUG---CUGCGGUGGCGCGUUUUGGCUUAGGACGCGUCCUGUCUGUUCCUGGCGGGGAACGUGGCCCUUCUAAGCAUCCUCGGGGGGUU
+((((..((((.....)))))))).((((((((((---((((((.(((((((((((...)))))))))))))))..((((((....))))))............))))))).))))).... ( -53.40)
+>NC_006146.genome 24376 120 - 171096
+UCGCAGACGGGGAGUCUGUUCGCGCCCUGAGGUGUGGCCGGGGGGUCGCCUUCUGGGGCGUGAGGUGUCCUGUGUGUUCUUAGCGGGUAACCUGGCCCUUUUAAGCACCCUCGGGGGGUU
+..((((((.....))))))..((.((((((((.(((...((((((((((((....))))...((((..(((((.........)))))..))))))))))))....))))))))))).)). ( -56.80)
+>consensus
+GCGCAGACGGAGAAUCUGUACGCACCCUGAGGUG___CCGCGGGGGCGCCUUCUGGCGCAGGACGCGUCCUGUCUGUUCCUAGCGGGGAACCUGGCCCUUCUAAGCACCCUCGGGGGGUU
+..((..((((.....))))..)).((((((((((((((((((....(((((((((...))))))))).((((((.......))))))...))))))).......))).)))))))).... (-44.41 = -44.41 +   0.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  88.33
+ Mean single sequence MFE: -59.95
+ Consensus MFE: -57.10
+ Energy contribution: -57.60
+ Covariance contribution:   0.50
+ Combinations/Pair:   1.05
+ Mean z-score:  -1.30
+ Structure conservation index:   0.95
+ SVM decision value:   0.31
+ SVM RNA-class probability: 0.684766
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 25119 119 - 171823
+GUGCGCGCUGCCAGGCGCCCGUGUCGUCCCUCCAGUCGACACUUAAGCGGAGGACGGAGGGAUAUGCGGGCGCCGUAAGAACGGCCCACGGGCCGCGGCCAAAUCUGGGUCCGAAU-CGU
+....(.(((((..(((((((((((.((((((((..((..(.(....).)..))..)))))))))))))))))))........((((....))))))))))................-... ( -58.60)
+>NC_006146.genome 25594 118 - 171096
+GGGCGCGCUGCCUGGCGCCCGUGUCGUCACUCCAGUCGACACUUAAGCGGAGGACGGAGGGACAUGCGGGCGCCGUGAGAACGGCCCACGGGCCACGG--GAGCCUGGGUCCGAGUCCGC
+((((.....(((.(((((((((((.(((.((((..((..(.(....).)..))..)))).))))))))))))))((....)))))...((((((.(((--....))))))))).)))).. ( -61.30)
+>consensus
+GGGCGCGCUGCCAGGCGCCCGUGUCGUCACUCCAGUCGACACUUAAGCGGAGGACGGAGGGACAUGCGGGCGCCGUAAGAACGGCCCACGGGCCACGG__AAACCUGGGUCCGAAU_CGC
+..(((.((((((.(((((((((((.((((((((..((..(.(....).)..))..)))))))))))))))))))((....)))))...((((((.(((......)))))))))))).))) (-57.10 = -57.60 +   0.50) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  90.00
+ Mean single sequence MFE: -54.80
+ Consensus MFE: -52.45
+ Energy contribution: -54.20
+ Covariance contribution:   1.75
+ Combinations/Pair:   1.03
+ Mean z-score:  -1.88
+ Structure conservation index:   0.96
+ SVM decision value:   1.53
+ SVM RNA-class probability: 0.961825
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 25158 118 + 171823
+UCUUACGGCGCCCGCAUAUCCCUCCGUCCUCCGCUUAAGUGUCGACUGGAGGGACGACACGGGCGCCUGGCAGCGCGCACUGAGGGCAGCAAUGAUGGAUCAUCACCCUCCA--GCGGCC
+......((((((((....((((((((((...(((....)))..))).))))))).....)))))))).....((.(((...(((((......(((((...))))))))))..--))))). ( -52.70)
+>NC_006146.genome 25632 120 + 171096
+UCUCACGGCGCCCGCAUGUCCCUCCGUCCUCCGCUUAAGUGUCGACUGGAGUGACGACACGGGCGCCAGGCAGCGCGCCCUGAGGGCAGCAAUGGUGGGACAUCACCCUCGAGGGCGACC
+((((((((((((((..((((.(((((((...(((....)))..))).)))).))))...)))))))).....((..((((...)))).))....))))))..((.(((....))).)).. ( -56.90)
+>consensus
+UCUCACGGCGCCCGCAUAUCCCUCCGUCCUCCGCUUAAGUGUCGACUGGAGGGACGACACGGGCGCCAGGCAGCGCGCACUGAGGGCAGCAAUGAUGGAACAUCACCCUCCA__GCGACC
+......((((((((..((((((((((((...(((....)))..))).)))))))))...))))))))........(((((((((((......(((((...)))))))))).))))))... (-52.45 = -54.20 +   1.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  90.00
+ Mean single sequence MFE: -61.70
+ Consensus MFE: -59.90
+ Energy contribution: -60.90
+ Covariance contribution:   1.00
+ Combinations/Pair:   1.05
+ Mean z-score:  -2.58
+ Structure conservation index:   0.97
+ SVM decision value:   3.10
+ SVM RNA-class probability: 0.998418
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 25158 118 - 171823
+GGCCGC--UGGAGGGUGAUGAUCCAUCAUUGCUGCCCUCAGUGCGCGCUGCCAGGCGCCCGUGUCGUCCCUCCAGUCGACACUUAAGCGGAGGACGGAGGGAUAUGCGGGCGCCGUAAGA
+((((((--..(((((((((((....)))))...))))))...))).)))....(((((((((((.((((((((..((..(.(....).)..))..)))))))))))))))))))...... ( -62.50)
+>NC_006146.genome 25632 120 - 171096
+GGUCGCCCUCGAGGGUGAUGUCCCACCAUUGCUGCCCUCAGGGCGCGCUGCCUGGCGCCCGUGUCGUCACUCCAGUCGACACUUAAGCGGAGGACGGAGGGACAUGCGGGCGCCGUGAGA
+(((((((((.((((((((((......))))...))))))))))))....))).(((((((((((.(((.((((..((..(.(....).)..))..)))).))))))))))))))...... ( -60.90)
+>consensus
+GGCCGC__UCGAGGGUGAUGACCCACCAUUGCUGCCCUCAGGGCGCGCUGCCAGGCGCCCGUGUCGUCACUCCAGUCGACACUUAAGCGGAGGACGGAGGGACAUGCGGGCGCCGUAAGA
+(((((((((.((((((((((......))))...)))))))))))).)))....(((((((((((.((((((((..((..(.(....).)..))..)))))))))))))))))))...... (-59.90 = -60.90 +   1.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  90.83
+ Mean single sequence MFE: -41.25
+ Consensus MFE: -35.50
+ Energy contribution: -35.25
+ Covariance contribution:  -0.25
+ Combinations/Pair:   1.11
+ Mean z-score:  -1.79
+ Structure conservation index:   0.86
+ SVM decision value:   0.38
+ SVM RNA-class probability: 0.714913
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 26879 120 + 171823
+GACACCGCUCAGCUUCUCAGCGGCCCCAAACGGACCAUCCCAGCCCUCGCCCGCCAGGCGAUAAAUAGCUACGGUUUGCGCCCCUCGACGGGGGCCAAACAUCCCCAAGGACCCUUUGAU
+....(((((.((...)).)))))...((((.((.((.....(((..(((((.....)))))......)))...(((((.((((((....)))))))))))........)).)).)))).. ( -39.20)
+>NC_006146.genome 27374 120 + 171096
+GACACCGCUCAGAUUCCCAGCGGCCCCAAACGGACCAUCCCCGCCCCCGCACGCAAGGCGACAAAUAGCUACGGUUUGCGCCCCUCGACGGGGGCGAAACAUACCCAAGGAGCCUCUGAU
+.................(((.(((.((....((.....)).((((((((..((...((((.(((((.......)))))))))...)).))))))))............)).))).))).. ( -43.30)
+>consensus
+GACACCGCUCAGAUUCCCAGCGGCCCCAAACGGACCAUCCCAGCCCCCGCACGCAAGGCGACAAAUAGCUACGGUUUGCGCCCCUCGACGGGGGCCAAACAUACCCAAGGACCCUCUGAU
+.................(((.(((.((....((......)).(((((((..((...((((.(((((.......)))))))))...)).))))))).............)).))).))).. (-35.50 = -35.25 +  -0.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  90.83
+ Mean single sequence MFE: -55.50
+ Consensus MFE: -47.25
+ Energy contribution: -48.00
+ Covariance contribution:   0.75
+ Combinations/Pair:   1.05
+ Mean z-score:  -1.76
+ Structure conservation index:   0.85
+ SVM decision value:   0.27
+ SVM RNA-class probability: 0.661087
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 26879 120 - 171823
+AUCAAAGGGUCCUUGGGGAUGUUUGGCCCCCGUCGAGGGGCGCAAACCGUAGCUAUUUAUCGCCUGGCGGGCGAGGGCUGGGAUGGUCCGUUUGGGGCCGCUGAGAAGCUGAGCGGUGUC
+.(((((.((.((........((((((((((......))))).)))))(.(((((.....(((((.....))))).))))).)..)).)).))))).((((((.((...)).))))))... ( -52.80)
+>NC_006146.genome 27374 120 - 171096
+AUCAGAGGCUCCUUGGGUAUGUUUCGCCCCCGUCGAGGGGCGCAAACCGUAGCUAUUUGUCGCCUUGCGUGCGGGGGCGGGGAUGGUCCGUUUGGGGCCGCUGGGAAUCUGAGCGGUGUC
+(((...((((((.(((((...(..(((((((((((..(((((((((.........)))).)))))..)).)))))))))..)...)))))...))))))(((.((...)).))))))... ( -58.20)
+>consensus
+AUCAAAGGCUCCUUGGGGAUGUUUCGCCCCCGUCGAGGGGCGCAAACCGUAGCUAUUUAUCGCCUGGCGGGCGAGGGCGGGGAUGGUCCGUUUGGGGCCGCUGAGAAGCUGAGCGGUGUC
+(((...((((((.((((....(..(((((((((((..(((((((((.........)))).)))))..)).)))))))))..)....))))...))))))(((.((...)).))))))... (-47.25 = -48.00 +   0.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  51.67
+ Mean single sequence MFE: -50.65
+ Consensus MFE: -29.15
+ Energy contribution: -30.90
+ Covariance contribution:   1.75
+ Combinations/Pair:   1.31
+ Mean z-score:  -1.71
+ Structure conservation index:   0.58
+ SVM decision value:   1.28
+ SVM RNA-class probability: 0.939788
+ Prediction: RNA
+ WARNING: Mean pairwise identity too low.
+
+######################################################################
+
+>NC_007605.genome 37096 116 - 171823
+-UGGCUUGCUGGUGCGUGGCGGCUUGGGGAGGAUGUCUGCCCUUUGAUGUAGGAACUGAUGGUGUUGUUUGCGCUUAGGCGUAGGCGGAGCCAGCGGUUCAAGAGUCCGGCGAGGGG---
+-...((((((((.((...(((.(..((((.((....)).))))..).)))..((((((.((((.((((((((((....)))))))))).)))).))))))....))))))))))...--- ( -50.10)
+>NC_006146.genome 31798 113 - 171096
+UAGGCGAAUUGGU----AGGUGCGUGGGGAGGACCCCUGCCUUCCGACCCGAGGUCCUGUCAGGGCAGUCACGGCUGAGCCUAGGUGGAGC---CUGGUCGGGACUCCGGUGAGGCGUCG
+..((((.(((((.----((..(((.((((....))))))).((((((((..(((..(..(((((.((((....))))..))).))..)..)---)))))))))))))))))....)))). ( -51.20)
+>consensus
+_AGGCGAACUGGU____AGCGGCGUGGGGAGGACCCCUGCCCUCCGACCCAAGAACCGAUCAGGGCAGUCACGCCUAAGCCUAGGCGGAGC___CGGGUCAAGACUCCGGCGAGGCG___
+....((((((((......((..(..(((.(((...))).)))...)..))..(((((((.(.((((((((.((((((....)))))).)))))))).).)))))))))))))))...... (-29.15 = -30.90 +   1.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  69.17
+ Mean single sequence MFE: -32.20
+ Consensus MFE: -25.45
+ Energy contribution: -26.70
+ Covariance contribution:   1.25
+ Combinations/Pair:   1.18
+ Mean z-score:  -1.11
+ Structure conservation index:   0.79
+ SVM decision value:   0.43
+ SVM RNA-class probability: 0.733573
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 37634 117 - 171823
+GCUCGUGAGGAAUCAAUUGGGUGAUGUUUAAACAUGAGUAGAUAAAGGAUCUACUUAUGUUGCGAUGUGCUUCGGUAGAGGGGGGGACGGGAAAGUUACCUCUUACGACUUGUGUA---C
+..((((.....((((......)))).....(((((((((((((.....))))))))))))))))).((((...(((..((((((..((......))..))))))...)))...)))---) ( -35.60)
+>NC_006146.genome 32381 119 - 171096
+GAUCAUGGAGAAUCGAUGUGGUGGUGCGUGAACAUGAGCAGAUAAAGUAUCGUCAUUUCUUAUUGUAC-UUUCGGUAGACGGGGGGACGGGAAAGUAACCUCUUAUGAUCUUCGUAUUUA
+((((((((((....((.(((..(((((...................)))))..))).))...((((.(-(..((.....))..)).)))).........))).))))))).......... ( -28.81)
+>consensus
+GAUCAUGAAGAAUCAAUGGGGUGAUGCGUAAACAUGAGCAGAUAAAGGAUCGACAUAUCUUACGAUAC_CUUCGGUAGACGGGGGGACGGGAAAGUAACCUCUUACGACCUGCGUA___A
+((((((((....((.((((((..(((((..(((((((((((((.....)))))))))))))..)))))..)))))).)).((((..((......))..)))))))))))).......... (-25.45 = -26.70 +   1.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  97.50
+ Mean single sequence MFE: -36.75
+ Consensus MFE: -35.60
+ Energy contribution: -35.60
+ Covariance contribution:   0.00
+ Combinations/Pair:   1.00
+ Mean z-score:  -1.78
+ Structure conservation index:   0.97
+ SVM decision value:   0.66
+ SVM RNA-class probability: 0.814190
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 40832 120 + 171823
+CCCUUUUGGCAAAUCCAAUAUAUGUGUCAAUUCGCAGACGUGCGGGUGUAGUAGGGUGGGAUAAAUGUUUGCUCUUGCGACCCGCCCUCUUGCCCGCUCCAACAUUUAGUACAAUUUUUA
+.....((((.....))))((.(((((((........)))(.(((((((.((.((((((((........((((....))))))))))))))))))))).)..)))).))............ ( -36.10)
+>NC_006146.genome 34667 120 + 171096
+CCCUUUUGGCAAAUCCAAUAUAUGUGUCAAUUCGCAGACGUGCGGGUGUAGUAGGGUGGGAUAAAUGAUUGCUCUUGCGACCCGCCCUCUUGCCCGCUCCAACGUUCAGUACAAUUUUUA
+.....((((.....))))....((((......))))((((((((((((.((.((((((((........((((....)))))))))))))))))))))....))))).............. ( -37.40)
+>consensus
+CCCUUUUGGCAAAUCCAAUAUAUGUGUCAAUUCGCAGACGUGCGGGUGUAGUAGGGUGGGAUAAAUGAUUGCUCUUGCGACCCGCCCUCUUGCCCGCUCCAACAUUCAGUACAAUUUUUA
+.....((((.............((((......)))).....(((((((.((.((((((((........((((....))))))))))))))))))))).)))).................. (-35.60 = -35.60 +   0.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 116
+ Reading direction: reverse
+ Mean pairwise identity:  81.03
+ Mean single sequence MFE: -45.30
+ Consensus MFE: -33.30
+ Energy contribution: -33.80
+ Covariance contribution:   0.50
+ Combinations/Pair:   1.12
+ Mean z-score:  -1.52
+ Structure conservation index:   0.74
+ SVM decision value:  -0.03
+ SVM RNA-class probability: 0.519971
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 48640 116 - 171823
+ACGAUCUAAAAGGAUCCAUUCCCGCUGCGCCUUCGAAAGCUCAGCUACAUUGACGAUGGUAACCGGAGUUAAUGUUCCCGCGGUAGCAGGGGAAGAGGAAUCCGAAUUGGGCCCAA
+..(..((((..((((((.(((((.(((((((..(....)....((.((((((((..(((...)))..))))))))....))))).)))))))))..)).))))...))))..)... ( -41.10)
+>NC_006146.genome 42511 116 - 171096
+ACCACCUCAAAGGGUCCCCCCCGGCACCGCCGUCGGGAGCUCAGCUACAUUGACGAUGGUAGCCGGAGUCAAUGUUCACGCGGUGGCAGGGGAGGAGGAAUCCCGAGUGGGCCCAG
+...........((((((((((.(.((((((.((.((.(((...)))((((((((..(((...)))..)))))))))))))))))).).)))).(((....))).....)))))).. ( -49.50)
+>consensus
+ACCACCUAAAAGGAUCCACCCCCGCACCGCCGUCGAAAGCUCAGCUACAUUGACGAUGGUAACCGGAGUCAAUGUUCACGCGGUAGCAGGGGAAGAGGAAUCCCAAGUGGGCCCAA
+...........((((((.((((.((..((((...((....)).((.((((((((..(((...)))..))))))))....)))))))).)))).(((....))).....)))))).. (-33.30 = -33.80 +   0.50) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  81.67
+ Mean single sequence MFE: -60.00
+ Consensus MFE: -46.50
+ Energy contribution: -47.25
+ Covariance contribution:   0.75
+ Combinations/Pair:   1.15
+ Mean z-score:  -1.53
+ Structure conservation index:   0.78
+ SVM decision value:   0.04
+ SVM RNA-class probability: 0.553066
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 50265 120 + 171823
+GUUCAGCGAUGUUGCUCAACGGCUGAGGUCGCAGGCAGAUACUGAUGCUGCGAGUUCUGGGCCGGAGUCGGGCGCCGGGGCUUUGGGUGCCGGUGCCGGCCGGGUGGGGGGCGGGGGACG
+((((.((..(.(..(((..(((((.(((((((((.((........))))))))..))).)))))(.(((((.((((((.((.....)).)))))))))))))))..).).))...)))). ( -59.20)
+>NC_006146.genome 44121 120 + 171096
+GUUCAGCGCUGUUGCGCGAACCCUGAGGUCGCAGGCAGACGCUGGUGCUCCGGGCUCUGGGCCGAAUUCGGGCGCUGGGUCUCUAGGUGCCGGUGUCGGCUUGGUGGGGGGCGGUGGACG
+(((((.((((.(..(((((.((....))))))((((.((((((((..((..((((((.(.(((.......))).).))))))...))..)))))))).)))).)..).).))).))))). ( -60.80)
+>consensus
+GUUCAGCGAUGUUGCGCAAACCCUGAGGUCGCAGGCAGACACUGAUGCUCCGAGCUCUGGGCCGAAGUCGGGCGCCGGGGCUCUAGGUGCCGGUGCCGGCCGGGUGGGGGGCGGGGGACG
+(((((.((((.(..(((.......(((.((((((.((........)))))))).)))..((((((...(.((((((.((...)).)))))).)..)))))))))..).).))).))))). (-46.50 = -47.25 +   0.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  66.94
+ Mean single sequence MFE: -39.80
+ Consensus MFE: -21.88
+ Energy contribution: -23.33
+ Covariance contribution:   1.46
+ Combinations/Pair:   1.32
+ Mean z-score:  -1.40
+ Structure conservation index:   0.55
+ SVM decision value:   0.03
+ SVM RNA-class probability: 0.549778
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 53615 120 + 171823
+CACGCCUGGGCUGCCGCUAAGGUCUACUCUUCCUCAUCUACCCGGUGCUGCGAGCGUCUCCCGACCUUCAAGCACCGUAGCUCUAGGGGAUGUGUUUCCCAGCUCCGCUCGAUGCUAUCA
+...(((((((((((.....(((.........))).........((((((..(((.(((....))).))).))))))))))).))))((((......)))).))...((.....))..... ( -37.20)
+>NC_006146.genome 47429 120 + 171096
+CACGCCUGGGCUGCCGCUAAGGCGUGCUCCUCCUCCUCUACCCGGUGUUGCGAGCGUCUCCCGACGCUCAAGCGCCGCAGCUCCAGGGUAUGUGUUUCCCCUUUCCGCCGUGCUCUGUCG
+(((((((.(((....))).)))))))................(((((((..(((((((....))))))).)))))))......(((((((((.((...........)))))))))))... ( -48.70)
+>NC_004367.genome 45964 120 - 149696
+CAAGCUUUCGCUGCAUCUUAUGUGUUAUCCUUCUAGUCUAUAAGUUGCUGUGAUCGUCUUCCGACGCCCAAACGUCGUAACUGUAGUGUUGGUGUGUCUUCUUCGCGAUCACAGCCGUUA
+..(((....)))....((((((..(((......)))..))))))..(((((((((((.....(((((((((((............)).)))).)))))......)))))))))))..... ( -33.50)
+>consensus
+CACGCCUGGGCUGCCGCUAAGGUGUACUCCUCCUCAUCUACCCGGUGCUGCGAGCGUCUCCCGACGCUCAAGCGCCGUAGCUCUAGGGUAUGUGUUUCCCCUUUCCGCUCAAAGCUGUCA
+....((((((((((.((....))....................((((((..(((((((....))))))).))))))))))).)))))................................. (-21.88 = -23.33 +   1.46) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  76.67
+ Mean single sequence MFE: -54.50
+ Consensus MFE: -38.41
+ Energy contribution: -38.16
+ Covariance contribution:  -0.25
+ Combinations/Pair:   1.21
+ Mean z-score:  -2.01
+ Structure conservation index:   0.70
+ SVM decision value:   1.11
+ SVM RNA-class probability: 0.916050
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 59869 120 + 171823
+UGCGUGUAGGGUGUGAGGCUCUUCGUGCGUUCGGAGUUUGCGGUCCCCGGUAUACGCUCGUUGACCAGGGGACGGCAGGUGUCCUGUCUUAGGACGCCAUCACGAGGGGCCGUAUUGGUG
+................(((((((((((...........(((.(((((((((..((....))..))).)))))).)))(((((((((...)))))))))..)))))))))))......... ( -55.70)
+>NC_006146.genome 53638 114 + 171096
+UGCGCGUAGGGUAUGAGGCCCUGCGUGCGUUCGGAGUUUGCGGUCCGCGUGAUACGCUCG------AGCGGCGAGCGUCUGUUCUGCUCUAGGGCGCCAUCACCAGCGGACGUAUUGGUG
+.(((((((((((.....)))))))))))..........((((.((((((((((.((((((------((((..((((....)))))))))..)))))..)))))..)))))))))...... ( -53.30)
+>consensus
+UGCGCGUAGGGUAUGAGGCCCUGCGUGCGUUCGGAGUUUGCGGUCCCCGGGAUACGCUCG______AGCGGACAGCAGCUGUCCUGCCCUAGGACGCCAUCACCAGCGGACGUAUUGGUG
+.(((((((((((.....)))))))))))....((((..(((.((((((...................)))))).)))..).))).(((....)))((((..(((......)))..)))). (-38.41 = -38.16 +  -0.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  51.67
+ Mean single sequence MFE: -48.90
+ Consensus MFE: -30.55
+ Energy contribution: -31.55
+ Covariance contribution:   1.00
+ Combinations/Pair:   1.38
+ Mean z-score:  -1.07
+ Structure conservation index:   0.62
+ SVM decision value:   0.40
+ SVM RNA-class probability: 0.719934
+ Prediction: RNA
+ WARNING: Mean pairwise identity too low.
+
+######################################################################
+
+>NC_007605.genome 61707 120 + 171823
+AAGCCCGUCGGAGUCGGCAAGAACUGUGCCCAGUCCGCCAGAAGCAAGCGCCGCCUGGGGGGGCUCGUGCUGUCCCCCCCGGGCUCAGCGGGCGGCGGCUGGAAGCACAGCGCGCUAAGC
+.(((..((((....))))..(..((((((((((.(((((....((..((...((((((((((((.......).)))))))))))...))..)))))))))))..))))))..)))).... ( -65.80)
+>NC_004367.genome 52868 120 - 149696
+AAGCUUUCCGGCGCGUGUAAGAAAGGUGCACGCUCGGUGCUGAUCAAGGUUCAUCUUUGUUAGCUAGUACGCUCAGAUCCAGGUUAAGCCAAACACAACAUGAAACAAAGGGCGGUUAGU
+..(((..((((.(((((((.......))))))))))).(((((.(((((.....)))))))))).))).(((((.......((.....))...((.....)).......)))))...... ( -32.00)
+>consensus
+AAGCCCGCCGGAGCCGGCAAGAAAGGUGCACACUCCGCCAGAAGCAAGCGCCACCUGGGGGAGCUAGUACGCUCACACCCAGGCUAAGCCAAACACAACAGGAAACAAAGCGCGCUAAGC
+........(((((((((((.......))))))))))).(((((((...(((((((((((((((..........)))))))))))......))))...((((......))))..))))))) (-30.55 = -31.55 +   1.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  74.17
+ Mean single sequence MFE: -47.83
+ Consensus MFE: -32.49
+ Energy contribution: -28.97
+ Covariance contribution:  -3.53
+ Combinations/Pair:   1.48
+ Mean z-score:  -1.63
+ Structure conservation index:   0.68
+ SVM decision value:   1.22
+ SVM RNA-class probability: 0.931816
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 62709 120 - 171823
+UCUCGGCGGGAUUCGCGGCCCCUACGCUUCCCGCUACGGGAGUCCCGAAAUUCAUAAAUGUGUCUUGCGCGGGUGGACUGUGGGUUACUCCGCCCUACGGGUUGCGCGGGCUUCUACGCG
+....(((((((...(((.......))).)))))))..((((((((((.(((((......(((.....)))(((((((.((.....)).)))))))...))))).)).))))))))..... ( -49.00)
+>NC_006146.genome 56460 120 - 171096
+CCUCGGCGGUAUUAGCAGCCCCUACGCUUCCCGCUACGGGAGUCCCGAAAUGCAUAAGUGUGUCUUGCGCGGGUGGACCGUGGGCUAAUCCGCCCUACGGGUUGCGCGGGCUGCUACGCG
+.....(((....(((((((((...(((..((((..((((....((((.((.((((....)))).))...))))....))))((((......))))..))))..))).)))))))))))). ( -55.10)
+>NC_004367.genome 53807 120 + 149696
+UCUCGACAGAAUUAGUAGUCCUUAAUCUUCCCGAUAAGGAGGACCGCACAUUCAUAACUGCGUGCUUAGCAAGCAACUUGUAGGCUAAUCUGCCCUACGGGUUGCGAAUCUUAUUACGCG
+........((((..(..((((((.(((.....)))...))))))..)..))))......(((((...((...(((((((((((((......).))))))))))))....))...))))). ( -39.40)
+>consensus
+UCUCGGCGGAAUUAGCAGCCCCUACGCUUCCCGCUACGGGAGUCCCGAAAUUCAUAAAUGUGUCUUGCGCGGGUGGACUGUGGGCUAAUCCGCCCUACGGGUUGCGCGGGCUACUACGCG
+....(((.(......).))).....((((((......))))))................(((((((((((((.....((((((((......).))))))).))))))))).....)))). (-32.49 = -28.97 +  -3.53) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  66.38
+ Mean single sequence MFE: -43.74
+ Consensus MFE: -23.20
+ Energy contribution: -23.66
+ Covariance contribution:   0.46
+ Combinations/Pair:   1.38
+ Mean z-score:  -2.90
+ Structure conservation index:   0.53
+ SVM decision value:   4.73
+ SVM RNA-class probability: 0.999944
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 63199 114 + 171823
+GGGGGGGGGC------AUGAAUCGUUCCGGGCUCGCCCUGUUUAAUGGGCAUACAUUCCGAGUACGUCCCUAAAUACAGACACCCUUAGCCCCUCAGGACGGGCCUAUGCCCCAGCCCCC
+((((((((((------(((..((((((.(((((.((((........))))...............(((..........)))......)))))....))))))...))))))))..))))) ( -47.70)
+>NC_006146.genome 56932 114 + 171096
+GGGCUGGGGC------AGGCAUGGUUCCGGGCUCGCCCUGCUUAAUGGGCAUACAUUCCGAGUACGUCCCUCACUACAGCCACCCCUAGCCCCUCAGGACGGGUCUAUGCCCCAGCCCCC
+((((((((((------((((.((((...((((..((((........)))).(((.......))).))))...))))..)))((((....((.....))..))))...))))))))))).. ( -52.20)
+>NC_004367.genome 54405 120 - 149696
+CAGCUGAGGCAUUAAGAUGGAUUGACUCAGGCUCACCAUGAUUUAUACUGAUUCAAUCCGAAUAUGUUAGACUUUAUAAUCAACCAUAACAUCUUAGCACGGCGCUUUGUCUUAGUCAUC
+..(((((((((.(((((((((((((.((((.................)))).)))))))((.((((........)))).)).........))))))((.....))..))))))))).... ( -31.33)
+>consensus
+GGGCUGGGGC______AUGAAUCGUUCCGGGCUCGCCCUGAUUAAUGGGCAUACAUUCCGAGUACGUCCCUCAAUACAGACACCCAUAGCCCCUCAGGACGGGCCUAUGCCCCAGCCCCC
+((((((((((..................(((....)))......((((((..............(((((...........................))))).)))))))))))))))).. (-23.20 = -23.66 +   0.46) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  66.38
+ Mean single sequence MFE: -46.37
+ Consensus MFE: -25.96
+ Energy contribution: -24.53
+ Covariance contribution:  -1.43
+ Combinations/Pair:   1.44
+ Mean z-score:  -2.11
+ Structure conservation index:   0.56
+ SVM decision value:   3.06
+ SVM RNA-class probability: 0.998282
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 63199 114 - 171823
+GGGGGCUGGGGCAUAGGCCCGUCCUGAGGGGCUAAGGGUGUCUGUAUUUAGGGACGUACUCGGAAUGUAUGCCCAUUAAACAGGGCGAGCCCGGAACGAUUCAU------GCCCCCCCCC
+(((((..(((((((.(((.((((((((((.((.....)).))).......(((.(((((.......))))))))......))))))).))).(((....)))))------)))))))))) ( -54.40)
+>NC_006146.genome 56932 114 - 171096
+GGGGGCUGGGGCAUAGACCCGUCCUGAGGGGCUAGGGGUGGCUGUAGUGAGGGACGUACUCGGAAUGUAUGCCCAUUAAGCAGGGCGAGCCCGGAACCAUGCCU------GCCCCAGCCC
+..((((((((((((((.(((.(....).))))))((.((((.(((..((((((.(((((.......)))))))).))).)))(((....)))....)))).)))------)))))))))) ( -57.20)
+>NC_004367.genome 54405 120 + 149696
+GAUGACUAAGACAAAGCGCCGUGCUAAGAUGUUAUGGUUGAUUAUAAAGUCUAACAUAUUCGGAUUGAAUCAGUAUAAAUCAUGGUGAGCCUGAGUCAAUCCAUCUUAAUGCCUCAGCUG
+..............(((...((..((((((..((((...((((....))))...))))...(((((((.((((.....((....))....)))).)))))))))))))..))....))). ( -27.50)
+>consensus
+GGGGGCUGGGGCAUAGACCCGUCCUGAGGGGCUAAGGGUGACUGUAAUGAGGGACGUACUCGGAAUGUAUGCCCAUUAAACAGGGCGAGCCCGGAACAAUCCAU______GCCCCAGCCC
+..((((((((((....((((((((....))))...))))...............((..((((...(((...........)))...))))..)).................)))))))))) (-25.96 = -24.53 +  -1.43) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  69.17
+ Mean single sequence MFE: -48.07
+ Consensus MFE: -27.84
+ Energy contribution: -27.73
+ Covariance contribution:  -0.10
+ Combinations/Pair:   1.19
+ Mean z-score:  -1.80
+ Structure conservation index:   0.58
+ SVM decision value:   1.71
+ SVM RNA-class probability: 0.973269
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 66057 120 - 171823
+UCGACACGUGCUCGGCCGGUGCCGAGCGAAGUGCUGCAAACCCUAACAUUUGUAGCCUGUCCAGUCGCCCGGUGACCCACUCUACGGAGGGGUUGUCGAGGCGAACUCGGCAUGCAAAGC
+........((((((((....)))))))).((.((((((((........))))))))))(((.((((((((((..((((.(((....)))))))..))).)))).))).)))......... ( -57.60)
+>NC_006146.genome 59784 120 - 171096
+UCGACACGUGCUCGGCCGGCGCCGAGCGGAGCGCUGCAAACCCUCACAUCUGUAGGCUGUCCAGUCGAUCCGUGACCCAUCCUACGGAUGGGUUGUCGAGGCGGGCUUGACAUGCAAAUC
+(((((....(((((((....)))))))(((((.(((((............)))))))..))).)))))...(((((((((((...)))))))))((((((.....))))))..))..... ( -50.50)
+>NC_004367.genome 57219 116 + 149696
+UCGAGACUUGCUGGGCCGUGGCCGAGUGUAGUGCAGCAAAUCCUCCCAUCUGUAGCCUGUCAACUCGUCAGACGACAAACGGUCUAGACUUGUUAUC----CACAGCUAUCUGGAGGAUC
+.....(((((((.(((....))).)))).))).......(((((((.....(((((.(((.(((..(((((((........)))).)))..)))...----.))))))))..))))))). ( -36.10)
+>consensus
+UCGACACGUGCUCGGCCGGCGCCGAGCGAAGUGCUGCAAACCCUCACAUCUGUAGCCUGUCCAGUCGACCGGUGACCCACCCUACGGACGGGUUGUCGAGGCGAACUUGACAUGCAAAUC
+.((((....(((((((....)))))))..((.((((((............)))))))).....))))..(((..((((...........))))..)))...................... (-27.84 = -27.73 +  -0.10) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  70.83
+ Mean single sequence MFE: -51.35
+ Consensus MFE: -38.85
+ Energy contribution: -38.60
+ Covariance contribution:  -0.25
+ Combinations/Pair:   1.19
+ Mean z-score:  -1.88
+ Structure conservation index:   0.76
+ SVM decision value:   1.93
+ SVM RNA-class probability: 0.983076
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 71620 104 + 171823
+CUGCAGUCGAGGGGCAGGUCUGGAACCGCUUUGAGCAGGAUGCUCAGGUGUCCUGCUCUGCUUGCAU----------GAUCGCCUUU-----CAAGCAGGGCGUGCUUGAGUGCCACUU-
+..(((.(((((((((.((((((.((..((...(((((((((((....))))))))))).)))).)).----------))))))))))-----)(((((.....))))))).))).....- ( -46.70)
+>NC_006146.genome 65489 120 + 171096
+CUGCGGUCGAGGGGCAGGUAUGGAAGCGCUCAGGGCCUGGUGCUCAGGUGUUCUGCCCUGCCUGCGCCUGUGACGCGGAUCGCCUGUUAGUUCAGGCGGGACGUGCUUGAGUGCCACUGG
+..(((.((((((((((((((.((.((((((..((((.....)))).))))))...)).))))))).)).....((((..(((((((......)))))))..))))))))).)))...... ( -56.00)
+>consensus
+CUGCAGUCGAGGGGCAGGUAUGGAACCGCUCAGAGCAGGAUGCUCAGGUGUCCUGCCCUGCCUGCAC__________GAUCGCCUGU_____CAAGCAGGACGUGCUUGAGUGCCACUG_
+..(((.(((((.(((((((..(....).....((((((((..(....)..)))))))).))))))...............(((((((........))))).))).))))).)))...... (-38.85 = -38.60 +  -0.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  62.78
+ Mean single sequence MFE: -45.63
+ Consensus MFE: -26.61
+ Energy contribution: -26.63
+ Covariance contribution:   0.03
+ Combinations/Pair:   1.46
+ Mean z-score:  -1.66
+ Structure conservation index:   0.58
+ SVM decision value:   2.33
+ SVM RNA-class probability: 0.992422
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 72677 120 - 171823
+CCCGCACUGCUCAGGAGGCGGGGUGGUCGUUAGUGUCCUGGAAGGCUUCCUCGGAACAGACCGACGGCCCGUGCCCUGCCACCCAGCAUGGUGCAGGGUACCUGAUCCCUUGUAGACGAA
+..((..(((((((((.((((((((((((((..((.(((.(((.....)))..)))....))..))))))...))))))))((((.((.....)).)))).)))))......)))).)).. ( -50.40)
+>NC_006146.genome 66563 120 - 171096
+CCCUCACUGCUCCCGAGGCGGGGUAGUCGUUAGUGUUCUGCAAGGUUUCCUCGGAACAGCCCGACGGCCCGUCCCCUGCCACCCAGCAUGGUGCAGGGGACCCGAUCCCUUGCAGACGAA
+...(((((((.((((...))))))))).........(((((((((..((.((((......)))).((...(((((((((.(((......))))))))))))))))..))))))))).)). ( -56.10)
+>NC_004367.genome 63602 117 + 149696
+AACAUGUUGUUCUCGUAGAGGAAUAAUAAUUGGUGUUACUAAAUUGUUACUUCG---AAAGCCCUCGCGAAUAACAUGCCAGAAGGCAGGCUGUGAGAUCCCGGACCCCUUCCAUACAAA
+..((((((((((.((.((.((..((((((((((.....)).))))))))...(.---...))))))).))))))))))...(((((..(((((.(....).))).)))))))........ ( -30.40)
+>consensus
+CCCACACUGCUCACGAGGCGGGGUAGUCGUUAGUGUUCUGAAAGGCUUCCUCGGAACAGACCGACGGCCCGUACCCUGCCACCCAGCAUGGUGCAGGGUACCCGAUCCCUUGCAGACGAA
+.....((((((((......))))))))......(((.(((.((((.....((((......))))(((...(((((((((.(((......)))))))))))))))...)))).)))))).. (-26.61 = -26.63 +   0.03) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  64.41
+ Mean single sequence MFE: -52.70
+ Consensus MFE: -24.89
+ Energy contribution: -27.47
+ Covariance contribution:   2.57
+ Combinations/Pair:   1.34
+ Mean z-score:  -2.47
+ Structure conservation index:   0.47
+ SVM decision value:   2.54
+ SVM RNA-class probability: 0.995108
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 73540 114 + 171823
+AAUGCCCGGAUGGCUUAGUCCGAA-----UGUGGCGC-GUAGUAGCAGUGCCCCCUGCCGCCGUACGGCGGGGCACUGCGCACGCCUGACAGACGGUGUACUAUAAGUCACCGUGCGCCG
+...((.(((.(((((((..(((..-----(((.(.((-((.((.((((((((((..((((.....)))))))))))))))))))).).)))..))).......)))))))))).)).... ( -57.10)
+>NC_006146.genome 67426 114 + 171096
+GGUGCCCGGCUAGCUUAGCCCGAA-----GGUGGGGC-UUGGUAGGGGUGCCCCCUGCCGCCGUACGGCCGGGCACUGCGCGCGCCUGACGGACGGCGCACUAUAAGUCACAGUGCGCCG
+(((((((((((((((..(((....-----)))..)))-).((((((((...)))))))).......)))))))))))((....))........(((((((((.........))))))))) ( -62.70)
+>NC_004367.genome 64459 114 - 149696
+UGCUCCCGGGUGACUUAGUCAGAAAACCCUGUGGAUCAGUAGUAU------CCAUUGACGUAAUAAGGUUUACCAAUGGGUUUAUCUGACGCAUGAGACAGUCUAAGUUACCGAGCGCCA
+.((((...(((((((((((((((((((((.(((((((....).))------))))...........((....))...)))))).))))))((........)).))))))))))))).... ( -38.30)
+>consensus
+AGUGCCCGGAUGGCUUAGUCCGAA_____UGUGGAGC_GUAGUAG__GUGCCCCCUGCCGCCGUACGGCCGGGCACUGCGCACGCCUGACGGACGGCGCACUAUAAGUCACCGUGCGCCG
+.((((.(((.(((((((...........................(.((((((((..((((.....)))))))))))).)..(((((........)))))....)))))))))).)))).. (-24.89 = -27.47 +   2.57) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  64.41
+ Mean single sequence MFE: -52.00
+ Consensus MFE: -17.87
+ Energy contribution: -20.67
+ Covariance contribution:   2.80
+ Combinations/Pair:   1.32
+ Mean z-score:  -2.93
+ Structure conservation index:   0.34
+ SVM decision value:   0.26
+ SVM RNA-class probability: 0.659650
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 73540 114 - 171823
+CGGCGCACGGUGACUUAUAGUACACCGUCUGUCAGGCGUGCGCAGUGCCCCGCCGUACGGCGGCAGGGGGCACUGCUACUAC-GCGCCACA-----UUCGGACUAAGCCAUCCGGGCAUU
+.((((.((((((((.....)).)))))).)))).((((((.((((((((((((((.....))))..)))))))))).....)-)))))...-----((((((........)))))).... ( -58.70)
+>NC_006146.genome 67426 114 - 171096
+CGGCGCACUGUGACUUAUAGUGCGCCGUCCGUCAGGCGCGCGCAGUGCCCGGCCGUACGGCGGCAGGGGGCACCCCUACCAA-GCCCCACC-----UUCGGGCUAAGCUAGCCGGGCACC
+..((((((((((...))))))(((((........))))))))).(((((((((.....(((((.(((((...))))).)).(-((((....-----...)))))..))).))))))))). ( -61.70)
+>NC_004367.genome 64459 114 + 149696
+UGGCGCUCGGUAACUUAGACUGUCUCAUGCGUCAGAUAAACCCAUUGGUAAACCUUAUUACGUCAAUGG------AUACUACUGAUCCACAGGGUUUUCUGACUAAGUCACCCGGGAGCA
+..((.(((((..(((((((.....))....((((((.((((((....((((......)))).....(((------((.(....))))))..)))))))))))))))))...))))).)). ( -35.60)
+>consensus
+CGGCGCACGGUGACUUAUAGUGCACCGUCCGUCAGGCGAGCGCAGUGCCCAGCCGUACGGCGGCAGGGGGCAC__CUACUAC_GCCCCACA_____UUCGGACUAAGCCACCCGGGCACA
+.((.((..((((.......((((((.(((.....))))))))).(((((((((((.....))))..)))))))...))))...)).))..................(((.....)))... (-17.87 = -20.67 +   2.80) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  61.90
+ Mean single sequence MFE: -49.10
+ Consensus MFE: -22.34
+ Energy contribution: -23.37
+ Covariance contribution:   1.03
+ Combinations/Pair:   1.46
+ Mean z-score:  -1.71
+ Structure conservation index:   0.45
+ SVM decision value:   0.13
+ SVM RNA-class probability: 0.597867
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 73574 117 - 171823
+GACGAGGA---CGGCGCCCCCCUAGUGCUGUUCCGUGUUCCGGCGCACGGUGACUUAUAGUACACCGUCUGUCAGGCGUGCGCAGUGCCCCGCCGUACGGCGGCAGGGGGCACUGCUACU
+.(((.(((---((((((.......))))))))))))...((((((.((((((((.....)).)))))).)))).)).(((.((((((((((((((.....))))..))))))))))))). ( -61.90)
+>NC_006146.genome 67460 117 - 171096
+GACGAGGA---CGGCGCCCUCCUAGAGCCGUUCCGUGUUCCGGCGCACUGUGACUUAUAGUGCGCCGUCCGUCAGGCGCGCGCAGUGCCCGGCCGUACGGCGGCAGGGGGCACCCCUACC
+....(((.---.((.((((.(((...((((..(((((..((((.((((((((((.....))(((((........))))).))))))))))))...)))))))))))))))).)))))... ( -61.00)
+>NC_004367.genome 64499 114 + 149696
+AAAGAGCAUAUCGUGAGCUUCUUAAGCACAAUCACAAUUUUGGCGCUCGGUAACUUAGACUGUCUCAUGCGUCAGAUAAACCCAUUGGUAAACCUUAUUACGUCAAUGG------AUACU
+........(((((((((((.....)))....)))).....((((((.((((.......))))......))))))))))...((((((((((......))))..))))))------..... ( -24.40)
+>consensus
+GACGAGGA___CGGCGCCCUCCUAGAGCCGUUCCGUGUUCCGGCGCACGGUGACUUAUAGUGCACCGUCCGUCAGGCGAGCGCAGUGCCCAGCCGUACGGCGGCAGGGGGCAC__CUACU
+............((.((((.(((...((((..(((((....((((.((((((((.....)).)))))).)))).(((((.....)))))......)))))))))))))))).))...... (-22.34 = -23.37 +   1.03) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  59.94
+ Mean single sequence MFE: -45.17
+ Consensus MFE: -24.02
+ Energy contribution: -24.93
+ Covariance contribution:   0.92
+ Combinations/Pair:   1.47
+ Mean z-score:  -1.52
+ Structure conservation index:   0.53
+ SVM decision value:   1.28
+ SVM RNA-class probability: 0.939418
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 73614 117 + 171823
+CACGCCUGACAGACGGUGUACUAUAAGUCACCGUGCGCCGGAACACGGAACAGCACUAGGGGGGCGCCG---UCCUCGUCCGGUCCCUAAACUCCGGGGUCCCACAAGACCGGGCGCUUA
+..((((((...(((((((.((.....))))))((((.(((.....)))....))))...((((((...)---)))))))).((.((((.......)))).))........)))))).... ( -45.10)
+>NC_006146.genome 67500 117 + 171096
+CGCGCCUGACGGACGGCGCACUAUAAGUCACAGUGCGCCGGAACACGGAACGGCUCUAGGAGGGCGCCG---UCCUCGUCCGGCCCCUAACGUCCGGGGGCCCUCAGGACCGGGCGCUUA
+.(((((((..((((((((((((.........))))).(((.....)))....((((.....))))))))---)))..(((((((((((.......)))))))....)))))))))))... ( -62.60)
+>NC_004367.genome 64533 117 - 149696
+UUUAUCUGACGCAUGAGACAGUCUAAGUUACCGAGCGCCAAAAUUGUGAUUGUGCUUAAGAAGCUCACGAUAUGCUCUUUAUCUCCCUAGAUUUUCUCGAC---CGUGGAUAUUUGCUUA
+..(((((.(((..(((((.((((((((.((..(((((.....(((((((....(((.....)))))))))).)))))..)).))...)))))).)))))..---))))))))........ ( -27.80)
+>consensus
+CACGCCUGACGGACGGCGCACUAUAAGUCACCGUGCGCCGGAACACGGAACGGCACUAGGAGGGCGCCG___UCCUCGUCCGGUCCCUAAACUCCGGGGACCC_CAAGACCGGGCGCUUA
+..((((((..(((((((((((...........))))))))..........((((.((.....)).))))...)))..(((((((((((.......)))))))....)))))))))).... (-24.02 = -24.93 +   0.92) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  77.22
+ Mean single sequence MFE: -45.83
+ Consensus MFE: -24.75
+ Energy contribution: -30.53
+ Covariance contribution:   5.79
+ Combinations/Pair:   1.10
+ Mean z-score:  -2.24
+ Structure conservation index:   0.54
+ SVM decision value:   0.34
+ SVM RNA-class probability: 0.694478
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 74734 120 - 171823
+AACCCCCUGUCUUCGUGCCCUAAAAGCCCACAUACCGUGGGUCAUGGGUGGCUCAUAUAUCGGCACUUUCCGAGAGGAGAGUGCCGGUGACUCCCGGGAGUCUACGACAACGUUUAAGAC
+.......((((...(.(((((....((((((.....))))))....)).))).)....(((((((((((((....)))))))))))))(((((....)))))...))))........... ( -53.50)
+>NC_006146.genome 68620 120 - 171096
+AACCCCCUGUCUUCGCGCCCUAAGAGCCCACAUGCCGUGGGUCAUGGGGGGCUCGUACAUCGGCACUUUCCGGGAGGAGAGCGCCGGUGACUCCCGGGAGUCUACGACAACGUUUAAGAC
+........(((((.((.(((((.((.(((((.....))))))).))))).))(((((.((((((.((((((....)))))).))))))(((((....))))))))))........))))) ( -57.80)
+>NC_004367.genome 65648 120 + 149696
+UACUCCCUUUCUUCGCGCUCCGAAGGUCGCCAUAUCGUGCGGAAUCGUAGGGUUGUAAAUGGACACUUUACGAGAAGAUAAUGCAGGCGAUUCACGUGAUUCUACCACAACUUUUAAGAC
+..........(((((.....)))))((((((......((((...(((((((((.((......)))))))))))........))))))))))....(((.......)))............ ( -26.20)
+>consensus
+AACCCCCUGUCUUCGCGCCCUAAAAGCCCACAUACCGUGGGUCAUGGGAGGCUCGUAAAUCGGCACUUUCCGAGAGGAGAGUGCCGGUGACUCCCGGGAGUCUACGACAACGUUUAAGAC
+........(((((.((.((((....((((((.....))))))....))))))(((((.(((((((((((((....)))))))))))))(((((....))))))))))........))))) (-24.75 = -30.53 +   5.79) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  76.39
+ Mean single sequence MFE: -42.77
+ Consensus MFE: -25.14
+ Energy contribution: -25.27
+ Covariance contribution:   0.13
+ Combinations/Pair:   1.33
+ Mean z-score:  -1.95
+ Structure conservation index:   0.59
+ SVM decision value:   0.66
+ SVM RNA-class probability: 0.814557
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 74894 120 - 171823
+GGGCGUGGUACCUUUCGAUCGGGGUUCGGAUCGAGCGACUACACACACUCCGAAGGCUCCGGGCCAAGGGUACCCCGCCCUCCAAUAGCGUAGGACAACCCAUAGCCUACCCAGCUGCUC
+(((((.(((((((((.(..(((((((((((..(.(.(....).).)..)))))..))))))..).))))))))).))))).....(((((((((.(........))))))...))))... ( -48.70)
+>NC_006146.genome 68780 120 - 171096
+GGGCGUGGUACCUUUCGAUCGGGGUUCGGAUCGAGCGACUACACACGCUCCGAAGCCUCCGGGCCAAGGGAACCCCGCCCUCCAACAGCGUGGGACAGCCCAUGGCGUACCCAGCUGCUC
+(((((.(((.(((((.(..(((((((((((....(((........))))))).)))).)))..).))))).))).))))).....((((.((((((.(((...))))).))))))))... ( -55.60)
+>NC_004367.genome 65808 120 + 149696
+CAUCCUAAUAGCUGUCCAUCGAAGUUCGGAUAAAACGACUUCAUACGCUUCAAAGACUCCUUGCCAAAGCAAUUCCUCCGUUCAACAGCGUCUCACAACCCAUCGCGUACCUCGCGGCCC
+..........(((((.....(((((.((.......)))))))....((((..(((....)))....))))..............))))).............(((((.....)))))... ( -24.00)
+>consensus
+GGGCGUGGUACCUUUCGAUCGGGGUUCGGAUCGAGCGACUACACACGCUCCGAAGACUCCGGGCCAAGGGAACCCCGCCCUCCAACAGCGUAGGACAACCCAUAGCGUACCCAGCUGCUC
+(((((.(((.(((((...((((((((......(((((........)))))....))))))))...))))).))).))))).......((((......))....(((.......))))).. (-25.14 = -25.27 +   0.13) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  65.83
+ Mean single sequence MFE: -40.65
+ Consensus MFE: -27.92
+ Energy contribution: -28.05
+ Covariance contribution:   0.13
+ Combinations/Pair:   1.25
+ Mean z-score:  -1.43
+ Structure conservation index:   0.69
+ SVM decision value:   0.29
+ SVM RNA-class probability: 0.671794
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 77481 120 + 171823
+UCAGUUCCCCUUAUCUGUGGUUCGGAUUUUCCGAGGCGCAAUCCGCGGGCGACAUUAUCUGUUCCGUGGGCUUGUACUCAGGGAACCUUGUGUUUCUUGUCGCUCAGCAGGGUGUUGGCG
+((((..(((......((((.(((((.....))))).))))....((((((((((.(((..(((((.((((......)))).)))))...))).....)))))))).)).)))..)))).. ( -46.00)
+>NC_006146.genome 71383 102 + 171096
+GUGGGUUUCCUUUUC------------------GGGCGCAAUUUGCGGGCGACAUUAUCUGGUCUGUGGACGUGUACUCAGGAAACCUGCUGCUCUUUGUAGCUCGACAGGGUGUUGGCG
+..(((((((((....------------------(((..((.((..(((((.(.......).)))))..))..))..))))))))))))(((((.....)))))(((((.....))))).. ( -35.30)
+>consensus
+GCAGGUCCCCUUAUC__________________AGGCGCAAUCCGCGGGCGACAUUAUCUGGUCCGUGGACGUGUACUCAGGAAACCUGCUGCUCCUUGUAGCUCAACAGGGUGUUGGCG
+(((((((((((...........(((.....)))(((..(((((((((((((........)).)))))))).)))..))))))))))))))...........((.((((.....)))))). (-27.92 = -28.05 +   0.13) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  68.33
+ Mean single sequence MFE: -44.15
+ Consensus MFE: -25.95
+ Energy contribution: -25.45
+ Covariance contribution:  -0.50
+ Combinations/Pair:   1.24
+ Mean z-score:  -1.97
+ Structure conservation index:   0.59
+ SVM decision value:   0.40
+ SVM RNA-class probability: 0.719301
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 79984 117 + 171823
+GCCGAUCCCAAAGCGCGCGAU---AUUCGAUGGAUUAAUAUACUCAGAAUCAAUGGAUGUCCCGGGGUGCCGGAGGAAAGGGGGGGCCAUAAGGCUCUCACAGUCGGCACAAGGAGAGGA
+.((..(((.....(.((.(((---(((((...((((...........))))..)))))))).)).)(((((((..(.....(((((((....))))))).)..)))))))..)))..)). ( -42.30)
+>NC_006146.genome 73521 120 + 171096
+GUCGAUCCCAAAGCGCGCGAUAGGAUCCGCUGGAUCAAUAUUCACAGCAUAACUGGAUCCCCGGAUACUCCGAGGGAGACGGGGAGCCAUCGCUGGCUAACGGUAGGCACGAACGGAGGA
+(((...((...(((..(((((.((.(((((((((.......)).))))....(((..(((((((.....))).))))..)))))).)))))))..)))...))..)))............ ( -46.00)
+>consensus
+GCCGAUCCCAAAGCGCGCGAU___AUCCGAUGGAUCAAUAUACACAGAAUAAAUGGAUCCCCCGAGACGCCGAAGGAAACGGGGAGCCAUAACGCGCUAACAGUAGGCACAAACAGAGGA
+((((((((...((((............))))))))).........(((....((((.((((((....((((...)))).)))))).)))).....))).......)))............ (-25.95 = -25.45 +  -0.50) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  70.00
+ Mean single sequence MFE: -37.80
+ Consensus MFE: -23.95
+ Energy contribution: -23.20
+ Covariance contribution:  -0.75
+ Combinations/Pair:   1.29
+ Mean z-score:  -1.83
+ Structure conservation index:   0.63
+ SVM decision value:   0.66
+ SVM RNA-class probability: 0.814395
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 83536 120 - 171823
+GUUCGUUUUUUACGUCGUAAAUGACAGGAAGAGUUGCUUAACAGACUGACUGGCCAUGUGCUACUGCAUGGGUCGCUGUCAAUUAUGUACAAAUAUAGCAUGUCGCAUAUAAGCGACGAA
+.((((((......(((((((.((((((....((((........))))....((((.(((((....))))))))).)))))).))))).))......)))..(((((......)))))))) ( -34.60)
+>NC_006146.genome 77111 120 - 171096
+AGUCGUGCUCUCCGUCCUAGAUCACUGGGCGAGUGGCCCAACAGAGUGGUUUGCGCUACUCCACUGCUUGGGUCGCCGUCAAUUACGAACAAAUAUAACAUGUCUCGGAUAAACGACUGA
+((((((....((((.(((((....)))))((.((((((((((((((((((....)))))))...)).)))))))))))...........................))))...)))))).. ( -41.00)
+>consensus
+AGUCGUGCUCUACGUCCUAAAUCACAGGAAGAGUGGCCCAACAGACUGACUGGCCAUACGCCACUGCAUGGGUCGCCGUCAAUUACGAACAAAUAUAACAUGUCGCAGAUAAACGACGAA
+.............(((((..(((....((((.((((((((((((.(.(((.......))).).))).))))))))))))).....((((((.........))).))))))..)))))... (-23.95 = -23.20 +  -0.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  71.67
+ Mean single sequence MFE: -37.85
+ Consensus MFE: -29.30
+ Energy contribution: -28.55
+ Covariance contribution:  -0.75
+ Combinations/Pair:   1.23
+ Mean z-score:  -1.26
+ Structure conservation index:   0.77
+ SVM decision value:   0.34
+ SVM RNA-class probability: 0.697679
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 90777 117 + 171823
+UGCAUAAUAGUGGAAAACGCUAUAGACCUCAAGCCCCGUUCA---UCUGAUUAGGGGUUAUCGCACAGUGGCAGAGGUUUGGAGGACUCCGCUAGCGUACAUCUUAACGUACGGCAUCCG
+(((....(((((((...(.((.((((((((.((((((..((.---...))...))))))...((......)).)))))))).)))..))))))).(((((........)))))))).... ( -41.20)
+>NC_006146.genome 85003 120 + 171096
+CGCAUAGCGUUGGAAGACUCUACCAACUUCAAGCCCCGUUCAAUGUCUGAGUAGGCGUUAACGCACAGUGGGAGUGAUUGGUAGGACUCCGGCGAGUAACACCUUAACAUACGACAGCCU
+.((....(((((((....((((((((..(((..(((((((.(((((((....)))))))))))......)))..)))))))))))..))))))).(((...........)))....)).. ( -34.50)
+>consensus
+CGCAUAACAGUGGAAAACGCUACAAACCUCAAGCCCCGUUCA___UCUGAGUAGGCGUUAACGCACAGUGGCAGAGAUUGGGAGGACUCCGCCAACGAACACCUUAACAUACGACAGCCG
+.......(((((((...(.(((((((((((.((((((..(((.....)))...))))))..(((...)))...))))))))))))..))))))).......................... (-29.30 = -28.55 +  -0.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  61.67
+ Mean single sequence MFE: -61.35
+ Consensus MFE: -34.70
+ Energy contribution: -37.70
+ Covariance contribution:   3.00
+ Combinations/Pair:   1.13
+ Mean z-score:  -2.17
+ Structure conservation index:   0.57
+ SVM decision value:   0.80
+ SVM RNA-class probability: 0.853560
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 91397 118 + 171823
+GCCGUCAGACAGGACCC-UCGCUGGGGUGUGG-GACCAUAUAAGCGCAGCCGAAAGGCCUAGCGGCGUUUCCGAGUUGUGCUGCUGGUACGGCGGAUAAACGGAGCCCGGAGGCGGGGAG
+((((((((.(.((.(((-.(((....))).))-).)).....(((((((((((((.(((....))).))).)).))))))))))))..)))))............((((....))))... ( -49.20)
+>NC_006146.genome 85620 118 + 171096
+GACGCCACGCCCGCCCCCCGGGUGGGGGACGGUGUCCAUAUAGUCGCCGCCGUCGGGCUUGGCGUCGUGGCCACAGGGGGCCACCG--ACGCUAAAAAAACAGAGCCCGGGGGCGGGGGG
+((((((.(.(((((((...))))))).)..)))))).......((.(((((.((((((((((((((((((((......))))).))--))))).........)))))))).))))).)). ( -73.50)
+>consensus
+GACGCCACACACGACCC_CCGCUGGGGGACGG_GACCAUAUAAGCGCAGCCGAAAGGCCUAGCGGCGUGGCCAAAGGGGGCCACCG__ACGCCAAAAAAACAGAGCCCGGAGGCGGGGAG
+((((((((((((.(((((.....))))).))))...............(((....)))))))))))((((((......)))))).....................((((....))))... (-34.70 = -37.70 +   3.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  70.00
+ Mean single sequence MFE: -38.20
+ Consensus MFE: -28.99
+ Energy contribution: -27.74
+ Covariance contribution:  -1.25
+ Combinations/Pair:   1.29
+ Mean z-score:  -1.10
+ Structure conservation index:   0.76
+ SVM decision value:  -0.03
+ SVM RNA-class probability: 0.515789
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 95320 120 - 171823
+AAUGGGUAUUCUCAAUUGCUCGAUGGCCGCCGUUCCGGUUCACCCAGUAUGGGUCACCAGCUUUAGGCUCGAGUACGUCUCUCGCCGUUUCAAGCCCUAAUCCUGGCAUAGGUGCCCCCC
+...(((((((.......(((....))).(((.....(((..((((.....)))).)))((..(((((((.(((.(((........)))))).)).)))))..)))))...)))))))... ( -34.20)
+>NC_006146.genome 89421 120 - 171096
+AACGGCUACUCACAAUUACGCGAUGGCCGCCGAUCCGGCAUACCCGCCACGGGUCAUCAGCUUUAACCUCGCGUGGAUCUCACGUCAGUGUAAGCUCUCUCCCUGGCGACGGCACCCCCC
+...(((((.((.(......).)))))))((((....((....))(((((.(((.....(((((..((((.(((((.....))))).)).)))))))....)))))))).))))....... ( -42.20)
+>consensus
+AACGGCUACUCACAAUUACGCGAUGGCCGCCGAUCCGGCACACCCACCACGGGUCACCAGCUUUAACCUCGAGUACAUCUCACGCCAGUGCAAGCCCUAACCCUGGCAAAGGCACCCCCC
+...(((((((......(((((((.(((.((((...))))..(((((...))))).....)))......)))))))........(((((..............)))))...)))))))... (-28.99 = -27.74 +  -1.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  75.00
+ Mean single sequence MFE: -33.45
+ Consensus MFE: -22.66
+ Energy contribution: -21.91
+ Covariance contribution:  -0.75
+ Combinations/Pair:   1.15
+ Mean z-score:  -1.50
+ Structure conservation index:   0.68
+ SVM decision value:  -0.02
+ SVM RNA-class probability: 0.523583
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 98930 108 - 171823
+UCGCGAUUCCUUCGACAUCACGGCCAUCCGUUGGUACCGCGCAAUCACUACUGUUGCCAACU------------ACAGGCAGGAACGAAUUGUCGCGGUGCUCUCAACCUGAUGCCAUUU
+..((((.....))).).....(((.(((.((((((((((((((((......(.(((((....------------...))))).)....)))).))))))))...))))..)))))).... ( -33.60)
+>NC_006146.genome 92640 120 - 171096
+UCGCAAUUCCUUCGACUUCUCGCCCAUUCGUCGGUACCGCCCAGUCCCUGCUGUAGCCGACUUCCUACCUUUCAACAGGCGGAAACGAGUUGUUGCGGUGCUCUCAUCCUGAUGGCAUUU
+.((((((..((.((...............((((((((.((.........)).)).))))))((((..(((......))).)))).))))..))))))(((((.((.....)).))))).. ( -33.30)
+>consensus
+UCGCAAUUCCUUCGACAUCACGCCCAUCCGUCGGUACCGCCCAAUCACUACUGUAGCCAACU____________ACAGGCAGAAACGAAUUGUCGCGGUGCUCUCAACCUGAUGCCAUUU
+.....................(((.(((.(..((((((((((((((....((...(((...................)))))....)).))).)))))))))..).....)))))).... (-22.66 = -21.91 +  -0.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  61.67
+ Mean single sequence MFE: -54.55
+ Consensus MFE: -42.15
+ Energy contribution: -40.65
+ Covariance contribution:  -1.50
+ Combinations/Pair:   1.39
+ Mean z-score:  -1.10
+ Structure conservation index:   0.77
+ SVM decision value:   0.61
+ SVM RNA-class probability: 0.797913
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 99232 115 - 171823
+-----UCGCACUGACGGGGUGCUGGCUCGGUGCUCUGGGUCCAGCUGUGCGUGUGGGAGGGGUACAGGCGCCCUUGCGCGGAGGUAUGGCUGCGGGGUAGCGGGGUGAGCAACGCGUACA
+-----........(((.(.((((.((((.((((((((....(((((((((.(.(((.((((((......)))))).).)).).)))))))))))))))).).)))).)))).).)))... ( -51.00)
+>NC_006146.genome 92960 118 - 171096
+CAAGGCCGCGUUGGCUGUG--CUGAGUUGGCGCCCUGGGUCCGGCUGUGCGCGGUAGGGCUAGGCAGUUGGCCCUGCGAGAGGGCAUGGCCGAGGGGCAGUGGGUGGAGCAGCGGGUUCA
+.....((((((..(((...--...)))..))(((((.....(((((((((.(.((((((((((....))))))))))....).))))))))).))))).))))...((((.....)))). ( -58.10)
+>consensus
+_____CCGCACUGACGGGG__CUGACUCGGCGCCCUGGGUCCAGCUGUGCGCGGGAGAGCGAGACAGGCGCCCCUGCGAGAAGGCAUGGCCGAGGGGCAGCGGGGGGAGCAACGCGUACA
+.....(((((((((((........)))))))((((((....(((((((((.(.((((((((((....))))))))))....).))))))))))))))).))))...((((.....)))). (-42.15 = -40.65 +  -1.50) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  79.17
+ Mean single sequence MFE: -48.70
+ Consensus MFE: -38.40
+ Energy contribution: -38.65
+ Covariance contribution:   0.25
+ Combinations/Pair:   1.17
+ Mean z-score:  -1.41
+ Structure conservation index:   0.79
+ SVM decision value:  -0.05
+ SVM RNA-class probability: 0.506508
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 105488 120 + 171823
+CUGGGCAAGCAGCGCGUCCCGGUGCUUCCGGGCGGAUCUGUAACAAUUCCGCCCUGCGCACACGGACGCGGAGCUCACUGCAUCUAUGAUUAGCCGUGCACGCCCUGUUCCUCCAUCUAG
+..((((.(((..(((((((..((((..(.(((((((..((...))..))))))).).))))..)))))))..)))...((((((((....)))..))))).))))............... ( -50.40)
+>NC_006146.genome 99269 117 + 171096
+CCGAGCAAGCGUCGCGUCCCGGUGCUCCCGGGUGGGUCUGUCACACAUCCACGCUGCGCCCACGGACGCGGAGCUCAC---AUCCGUGGUCCGCUGUGCACGCCCUGUUCCUCCGCCUAA
+..(((((.(((((((((((.(((((....(.((((((.((...)).)))))).).)))))...))))(((((.(.(((---....))))))))).))).))))..))))).......... ( -47.00)
+>consensus
+CCGAGCAAGCAGCGCGUCCCGGUGCUCCCGGGCGGAUCUGUAACAAAUCCACCCUGCGCACACGGACGCGGAGCUCAC___AUCCAUGAUCAGCCGUGCACGCCCUGUUCCUCCACCUAA
+.((((..(((((.((((.((((((((((.((((((((.((...)).)))))))).((((.....).))))))))((((.......))))...)))).).)))).)))))..))))..... (-38.40 = -38.65 +   0.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  79.17
+ Mean single sequence MFE: -54.25
+ Consensus MFE: -41.50
+ Energy contribution: -42.75
+ Covariance contribution:   1.25
+ Combinations/Pair:   1.11
+ Mean z-score:  -1.44
+ Structure conservation index:   0.76
+ SVM decision value:  -0.07
+ SVM RNA-class probability: 0.500000
+ Prediction: OTHER
+
+######################################################################
+
+>NC_007605.genome 105488 120 - 171823
+CUAGAUGGAGGAACAGGGCGUGCACGGCUAAUCAUAGAUGCAGUGAGCUCCGCGUCCGUGUGCGCAGGGCGGAAUUGUUACAGAUCCGCCCGGAAGCACCGGGACGCGCUGCUUGCCCAG
+...............((((.((((...(((....))).))))..((((..(((((((..((((...(((((((.(((...))).)))))))....))))..)))))))..)))))))).. ( -54.80)
+>NC_006146.genome 99269 117 - 171096
+UUAGGCGGAGGAACAGGGCGUGCACAGCGGACCACGGAU---GUGAGCUCCGCGUCCGUGGGCGCAGCGUGGAUGUGUGACAGACCCACCCGGGAGCACCGGGACGCGACGCUUGCUCGG
+.((((((..(.....(((..(((((.(((..((((((((---(((.....))))))))))).))).(((....)))))).))..))).(((((.....)))))...)..))))))..... ( -53.70)
+>consensus
+CUAGACGGAGGAACAGGGCGUGCACAGCGAACCACAGAU___GUGAGCUCCGCGUCCGUGGGCGCAGCGCGGAAGUGUGACAGACCCACCCGGAAGCACCGGGACGCGACGCUUGCCCAG
+...............(((((.((..(((....(((.......))).))).(((((((..((((...(((((((((((...)))))))))))....))))..)))))))..)).))))).. (-41.50 = -42.75 +   1.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  74.17
+ Mean single sequence MFE: -46.25
+ Consensus MFE: -40.05
+ Energy contribution: -42.30
+ Covariance contribution:   2.25
+ Combinations/Pair:   1.14
+ Mean z-score:  -1.29
+ Structure conservation index:   0.87
+ SVM decision value:   0.98
+ SVM RNA-class probability: 0.893299
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 106285 117 - 171823
+GAUCAGAAAGCCGCAUGGCGAGAUCUAUACUGCCUGGAACUAGUAAAGGAGCACGGGGGCCGUGGAGCGGCCG---GUCUCGUUAUGCGUGCGCUUGCAGAUUGGAAGGCUUUCCUCUGU
+.....((((((((((((((((((((.......(((((..((......))..).))))(((((.....))))))---)))))))))))).(((....)))........)))))))...... ( -50.10)
+>NC_006146.genome 100087 120 - 171096
+GCUUAGAAAGCCGCCUGACGGGAUCUAUACUGCCUGGAUCUAGUGAAUGAUCACGGGGGUCGAGGGACGGCCGCUCGUCUCGUCAUGCGUGCAACGGCGGAUUCAAAGGCCCCAUCUUGU
+((((.(((..((((((((((((((........((((((((........)))).))))(((((.....)))))....)))))))))((....))..))))).)))..)))).......... ( -42.40)
+>consensus
+GAUCAGAAAGCCGCAUGACGAGAUCUAUACUGCCUGGAACUAGUAAAGGAGCACGGGGGCCGAGGAACGGCCG___GUCUCGUCAUGCGUGCAACGGCAGAUUCAAAGGCCCCACCCUGU
+.....(((((((((((((((((((........((((((((........)))).))))(((((.....)))))....)))))))))))).(((....)))........)))))))...... (-40.05 = -42.30 +   2.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  70.83
+ Mean single sequence MFE: -41.70
+ Consensus MFE: -30.65
+ Energy contribution: -29.40
+ Covariance contribution:  -1.25
+ Combinations/Pair:   1.37
+ Mean z-score:  -1.40
+ Structure conservation index:   0.74
+ SVM decision value:   0.46
+ SVM RNA-class probability: 0.745573
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 119451 120 - 171823
+CUAUGUUCGUCGUGUCGAGAGAAGAGUUGAGCUCAUCCAGAUCUGUGCGGCUUUUUUCUUUUCCCGUGGCUCAUGGGGGUCUUCUAUUGACGUGCCGCGCUGUUUGCCUCUCGGUAGGAG
+.........((.(..((((((..(((.....)))...(((((..(((((((..........(((((((...)))))))(((.......)))..))))))).))))).))))))..).)). ( -44.50)
+>NC_006146.genome 113425 120 - 171096
+CUACAUACGUCGCGUGGAGAGCAGGGUUAAGCUCAUUCACAUCUGUGCAGCUUGCCUCUUCUCCUGUCGAUCAUAAGGCCCUCUUAUCGAGGUUCCGCGGUGAUUAACCCUCGACAGGGG
+........((((.(.((((((.(((..(((((((((........))).))))))))).)))))).((..(((((..((.((((.....))))..))...)))))..)).).))))..... ( -38.90)
+>consensus
+CUACAUACGUCGCGUCGAGAGAAGAGUUAAGCUCAUCCACAUCUGUGCAGCUUGCCUCUUCUCCCGUCGAUCAUAAGGCCCUCCUAUCGACGUGCCGCGCUGAUUAACCCUCGACAGGAG
+...........(.((((.((((((((..((((((((........))).)))))..))))))))...)))).)........((((((((((((.((..........)).)))))))))))) (-30.65 = -29.40 +  -1.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  79.17
+ Mean single sequence MFE: -39.80
+ Consensus MFE: -32.43
+ Energy contribution: -32.22
+ Covariance contribution:  -0.21
+ Combinations/Pair:   1.19
+ Mean z-score:  -1.34
+ Structure conservation index:   0.81
+ SVM decision value:   0.39
+ SVM RNA-class probability: 0.716857
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 121234 120 - 171823
+UAUUAGCAUGAUCCACACCGAAUUGAACACGGCAGAGGCCUAACAGGUCGGGCGAUUGACCAAAUUACGCCCCGUUGGAAAAUCUGCCGUGUAUUGCUGGGGUAGGGGGCAGCUCCCUCA
+..........((((.((.(((.....((((((((((((((.....))))((((((((.....)))..)))))..........)))))))))).))).)))))).(((((.....))))). ( -43.10)
+>NC_006146.genome 115156 120 - 171096
+UAUUAGCAUGAUCUAUACUGGCCUGAACACGGCAGAGGCCUACCAGGUCGGGCGAUUGACCAAAUUACGCCCUGUGGGUAAGUCCGCCGUGUAUUGCUGGGGCAGGGGGCACCUACCUCA
+....((((.(..(......)..)...(((((((.(.(((.((((.....((((((((.....)))..)))))....)))).)))))))))))..))))((((.(((.....))).)))). ( -41.80)
+>NC_004367.genome 107577 120 + 149696
+CAUUAGCAUAAUCCAAACCUGACUGAACACAGCGGAAGCUUAACAGGUUGCACGAUUAACGAAAUUGCGACCCAUGAUAAAUUCCGCGGUGUAUUGUUGAAGCAGGGGGCAACUCCCUCA
+..((((((.....((....)).....((((.((((((..(((.(((((((((((.....))....)))))))..)).))).)))))).))))..)))))).(.(((((....).))))). ( -34.50)
+>consensus
+UAUUAGCAUGAUCCAAACCGGACUGAACACGGCAGAGGCCUAACAGGUCGGGCGAUUGACCAAAUUACGCCCCGUGGGAAAAUCCGCCGUGUAUUGCUGGGGCAGGGGGCAACUCCCUCA
+..((((((.....((........)).((((((((((((((.....))))(((((.............)))))..........))))))))))..))))))....((((.......)))). (-32.43 = -32.22 +  -0.21) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  70.00
+ Mean single sequence MFE: -49.50
+ Consensus MFE: -34.39
+ Energy contribution: -36.40
+ Covariance contribution:   2.01
+ Combinations/Pair:   1.21
+ Mean z-score:  -1.40
+ Structure conservation index:   0.69
+ SVM decision value:   1.48
+ SVM RNA-class probability: 0.957314
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 122394 120 + 171823
+GAUAGCUGUAUUCCCUGGCAGCGCUUUAAAGUAGACGCCCUCGAGGGCUCACCUUGGUGGGCCCCGGCCAGCGGCCGCGCACCUGAUGGGAACUCCUAUCGCGGACGGAUUACAGCAGUA
+....((((((.((((((((.(((((.......)).)))...((.((((((((....))))))))))))))).(.((((......((((((....)))))))))).)))).)))))).... ( -57.30)
+>NC_006146.genome 116316 120 + 171096
+GAUAGCUGUAUUCCUGGGCAGCGCUUUGGAGUAGACGCCCUCGAGGGCUCACCUUGGUGGGCCACGGCCAGCGGCCGCGCAGCUGAUGGGAGCCCCUGUCGCAGUCCGAUUACAGCAGUA
+....((((((.((..((((.((((............((((((((((.....)))))).))))...((((...)))))))).((.((((((....)))))))).)))))).)))))).... ( -54.80)
+>NC_004367.genome 108737 120 - 149696
+UAAGGCCGUCUUGCCGGGUAGCGCGUUAAAAUAGGAAUCUUGCAGACCUCUGCCCGGUGGACCUCGACUCGCUUUUGCGCAUUGGAUAGGAGCCCCGGUCGCAUUAGAUUUGCAGCAAUC
+...(((((..(..((((((((.(.(((.....((....))....)))).))))))))..).((((((..(((....)))..)))...))).....)))))(((.......)))....... ( -36.40)
+>consensus
+GAUAGCUGUAUUCCCGGGCAGCGCUUUAAAGUAGACGCCCUCGAGGGCUCACCUUGGUGGGCCACGGCCAGCGGCCGCGCACCUGAUGGGAGCCCCUGUCGCAGUCGGAUUACAGCAGUA
+....((((((.(((...((.((((............((((((((((.....)))))).))))...(((.....)))))))....((((((....))))))))....))).)))))).... (-34.39 = -36.40 +   2.01) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 106
+ Reading direction: reverse
+ Mean pairwise identity:  86.79
+ Mean single sequence MFE: -45.40
+ Consensus MFE: -38.00
+ Energy contribution: -38.00
+ Covariance contribution:   0.00
+ Combinations/Pair:   1.13
+ Mean z-score:  -1.83
+ Structure conservation index:   0.84
+ SVM decision value:   0.67
+ SVM RNA-class probability: 0.818830
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 131510 106 - 171823
+AAGUCGGAAUGAGAUGGUCUCAUUGUACUAGGGCCAAGCCGUCCACGUCUGGCAAUCUCAGGCUGCGGCGGAUUGUGAUGGGCUUCGUCGCCAUUCGCCAGGCCCU
+.(((.(.((((((.....)))))).))))((((((...........((((((.....))))))...(((((((.((((((.....)))))).))))))).)))))) ( -44.30)
+>NC_006146.genome 125455 106 - 171096
+AAGCCGGAAUGAGAUCGUCUCAUUGUACAAGGGCCAGGCGGUCCACGUCUGGCAAUCGAAGGCCGCGGCCGAUUGUGAUGGGGUUCGCCGUCACUCGCCAGGCCCC
+..(((((((((((.....))))).......(((((....)))))...)))))).......((((..(((.((..(((((((......)))))))))))).)))).. ( -46.50)
+>consensus
+AAGCCGGAAUGAGAUCGUCUCAUUGUACAAGGGCCAAGCCGUCCACGUCUGGCAAUCGAAGGCCGCGGCCGAUUGUGAUGGGCUUCGCCGCCACUCGCCAGGCCCC
+..(((((((((((.....))))).......((((......))))...)))))).......((((..(((((...(((((((......)))))))))))).)))).. (-38.00 = -38.00 +   0.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  72.50
+ Mean single sequence MFE: -26.90
+ Consensus MFE: -21.00
+ Energy contribution: -21.00
+ Covariance contribution:   0.00
+ Combinations/Pair:   1.12
+ Mean z-score:  -1.10
+ Structure conservation index:   0.78
+ SVM decision value:  -0.05
+ SVM RNA-class probability: 0.507813
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 137749 105 - 171823
+AUUUCUUCGGGCAUUAGACUGCCGAAUUGGCUUACGGUGACCAAAGCCGCCACCUACCAAUACUUCCUCACAAACGCCGUUCGGCCCAUAUCCUGGGCGC---------------AACCA
+.....(((((.((......)))))))..(((((..(....)..)))))((........................((.....))(((((.....)))))))---------------..... ( -23.70)
+>NC_006146.genome 131746 120 - 171096
+AUUUCUUCGGGCAUAAUACCGUCGACUUCGCCUAUGGUGACCAAAGACGCCACCUACCCAUGGCUACGCACAAACGUCGCUCGGCCCAAAUCCUGGGCGCCAAAUCCCCCACCCCAACCA
+........(((........((((....(((((...))))).....))))...........((((...((((....)).))...(((((.....))))))))).....))).......... ( -30.10)
+>consensus
+AUUUCUUCGGGCAUAAGACCGCCGAAUUCGCCUACGGUGACCAAAGACGCCACCUACCAAUACCUACGCACAAACGCCGCUCGGCCCAAAUCCUGGGCGC_______________AACCA
+.......(((((........(((.....)))....((((........))))...........................)))))(((((.....)))))...................... (-21.00 = -21.00 +   0.00) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  58.33
+ Mean single sequence MFE: -44.91
+ Consensus MFE: -26.60
+ Energy contribution: -30.35
+ Covariance contribution:   3.75
+ Combinations/Pair:   1.22
+ Mean z-score:  -2.19
+ Structure conservation index:   0.59
+ SVM decision value:   1.77
+ SVM RNA-class probability: 0.976486
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 140457 118 - 171823
+GGGCAUAUGGACCGUCUUACACUCCGGGCCAUUAGUAGCCGGAUGGC--AUCGGCCCUGAAUAAUGGGCGGACGGUGUGAACGCCAGAGAGAGUCCGAAAUCGAGUAAGGCGUGUGCCUA
+(((((((.....(((((((((((((..((((((........))))))--.((.((((........)))).)).((((....))))...).)))).((....)).))))))))))))))). ( -47.90)
+>NC_006146.genome 134898 109 - 171096
+GGGCAUAUGGACCAUCUGACA--UCGCACCGUGAGUAGUCGGUUAGCGGAGCGGUGAUCUGUGCUAGAAUGAGGG----ACCGCCAUAAAGGUUCC-----CGUGUAGUACGGAUGUCGA
+.(((...............((--((((.((((.............)))).))))))((((((((((..(((.(((----(((........))))))-----))).))))))))))))).. ( -41.92)
+>consensus
+GGGCAUAUGGACCAUCUGACA__CCGCACCAUGAGUAGCCGGAUAGC__AGCGGCCAUCAAUAAUAGAAGGACGG____AACGCCAGAAAGAGUCC_____CGAGUAAGACGGAUGCCGA
+.((((((((..(((((((.((.((.(((((((.....((......))...))))))).)).)).)))))))..((((....)))).........................)))))))).. (-26.60 = -30.35 +   3.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  70.83
+ Mean single sequence MFE: -35.28
+ Consensus MFE: -21.76
+ Energy contribution: -21.01
+ Covariance contribution:  -0.75
+ Combinations/Pair:   1.21
+ Mean z-score:  -1.87
+ Structure conservation index:   0.62
+ SVM decision value:   0.49
+ SVM RNA-class probability: 0.757226
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 146422 104 - 171823
+----------------UACGGUACCGAAUGGGAACAAAGCACUCUCCCCCAUUCGCAAGAACGGCGGGUGUAUUGAUACGCGCUAGUUUGUUACUGUACCAACUUCGUAAUAUGUCUUUC
+----------------...(((((((((((((...............))))))))...((((((((.((((....)))).)))).))))......))))).................... ( -29.66)
+>NC_006146.genome 141817 118 - 171096
+CAGAUGAACGAAGACGCACGGUGCUGAAUCGGAACCCAGCACUGUCCCCCAUUCGCAAG-ACGGCGGUUGCAUCGA-ACGCACUAGUUUGUUGCAGCAACAACUUCGUGAUAUGCCUUUC
+.......((((((.((((((((((((..........))))))))).......((....)-)..)))((((((.(((-((......))))).)))))).....))))))............ ( -40.90)
+>consensus
+________________CACGGUACCGAAUCGGAACAAAGCACUCUCCCCCAUUCGCAAG_ACGGCGGGUGCAUCGA_ACGCACUAGUUUGUUACAGCAACAACUUCGUAAUAUGCCUUUC
+................(((((...((((((((...............)))))))).......((..((((((.(((((.((....)).))))).))))))..)))))))........... (-21.76 = -21.01 +  -0.75) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  60.00
+ Mean single sequence MFE: -34.70
+ Consensus MFE: -24.00
+ Energy contribution: -22.50
+ Covariance contribution:  -1.50
+ Combinations/Pair:   1.37
+ Mean z-score:  -1.74
+ Structure conservation index:   0.69
+ SVM decision value:   1.86
+ SVM RNA-class probability: 0.980224
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 146937 119 + 171823
+AUUGUUGCUUCGGUCGAAGCUGAUCGCCUACUAAACUGUGCAAUGGAAUCGUUCUAUUGUAAAGCAUGA-AAUAGUUAGGCGCAACAGCAUUGGUAGUAAGGACCUGUGGUGGUUGUAGG
+......(((((....))))).....((((((((..((.(((((((((.....))))))))).)).....-..))).)))))((((((.(((.(((.......))).))).).)))))... ( -33.00)
+>NC_006146.genome 142313 115 + 171096
+ACUGUGACCCCGGUUGAGGAUGGUCUCCUACUGAACUGUGCAAUAGAAAAAAUCUAUUGUCAAGUAUUAAAAUAGUAGGGCGCGUCAUUGCCGGG-----AGAUUCGCAAUGAUGUUUAU
+..((((((((((((....((((((..(((((((.(((..((((((((.....))))))))..))).......))))))))).))))...))))))-----.)..)))))........... ( -36.40)
+>consensus
+ACUGUGACCCCGGUCGAAGAUGAUCGCCUACUAAACUGUGCAAUAGAAAAAAUCUAUUGUAAAGCAUGA_AAUAGUAAGGCGCAACAGCACCGGG_____AGACCCGCAAUGAUGGUAAG
+.((.....((((((....(((((((((((((((.(((.(((((((((.....))))))))).))).......)))).))))).)))))))))))).....))(((......)))...... (-24.00 = -22.50 +  -1.50) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  60.00
+ Mean single sequence MFE: -26.60
+ Consensus MFE: -16.20
+ Energy contribution: -18.45
+ Covariance contribution:   2.25
+ Combinations/Pair:   1.19
+ Mean z-score:  -1.84
+ Structure conservation index:   0.61
+ SVM decision value:   0.83
+ SVM RNA-class probability: 0.862155
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 146937 119 - 171823
+CCUACAACCACCACAGGUCCUUACUACCAAUGCUGUUGCGCCUAACUAUU-UCAUGCUUUACAAUAGAACGAUUCCAUUGCACAGUUUAGUAGGCGAUCAGCUUCGACCGAAGCAACAAU
+...............(((((((((((.....(((((.((......(((((-...........)))))...(....)...))))))).))))))).)))).(((((....)))))...... ( -24.80)
+>NC_006146.genome 142313 115 - 171096
+AUAAACAUCAUUGCGAAUCU-----CCCGGCAAUGACGCGCCCUACUAUUUUAAUACUUGACAAUAGAUUUUUUCUAUUGCACAGUUCAGUAGGAGACCAUCCUCAACCGGGGUCACAGU
+.......(((((((......-----....))))))).....((((((........(((((.(((((((.....))))))))).)))..)))))).((((..((......))))))..... ( -28.40)
+>consensus
+ACAAAAACCACCACAAAUCC_____ACCAACAAUGACGCGCCCAACUAUU_UAAUACUUGACAAUAGAACGAUUCCAUUGCACAGUUCAGUAGGAGACCAGCCUCAACCGAAGCAACAAU
+........((((((.(((.......))).))))))......(((((((.......(((...(((((((.....)))))))...))).)))))))......(((((....)))))...... (-16.20 = -18.45 +   2.25) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  76.11
+ Mean single sequence MFE: -36.30
+ Consensus MFE: -23.11
+ Energy contribution: -23.23
+ Covariance contribution:   0.13
+ Combinations/Pair:   1.28
+ Mean z-score:  -2.09
+ Structure conservation index:   0.64
+ SVM decision value:   1.69
+ SVM RNA-class probability: 0.972287
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 149335 120 - 171823
+CACUGCCCAACGUGGCACCCCUAUUGCCUCGAGUGUGUGAUGCACGCUGCAGACCAGGACCAUUGAGAGCACUAUCCUCCAACAUGGGCCCUCCUCCGUCCUUCACACAAUGGGACCCUG
+.....((((.((.((((.......)))).))..((((((((((.....)))....(((((....(((.((.((((........)))))).)))....)))))))))))).))))...... ( -38.40)
+>NC_006146.genome 145393 120 - 171096
+UACUGCCCAACGCGGCACCCCUAUCGCCUCAAGCGUGUGAUGCACCCCGCAAACCAGGACCAUUGAGAGCACCAUCCUCCAUCAUGGGCCCUCCUCGGUCCUGCACACAAUGGGACCCUG
+...((((......)))).(((....((.....))(((((.(((.....)))...(((((((...(((.((.((((........)))))).)))...))))))))))))...)))...... ( -41.30)
+>NC_004367.genome 129212 120 + 149696
+UACCGCACAACGCGGUACUCCUAUCGCUUCGAGAGUAUGAUGAACCGCUUAUACUAGAACCAUUGAAAGAACCCUACUUCAGCAUAGCCCCUCUUCGGUUUUCAAUGCAAUGGGAACUAU
+((((((.....)))))).((((((.(((((...(((((((........))))))).)))..(((((..(((((........((...))........)))))))))))).))))))..... ( -29.19)
+>consensus
+UACUGCCCAACGCGGCACCCCUAUCGCCUCGAGAGUGUGAUGCACCCCGCAAACCAGGACCAUUGAGAGCACCAUCCUCCAACAUGGGCCCUCCUCGGUCCUCCACACAAUGGGACCCUG
+.....((((.((.(((.........))).))...(((((.(((.....)))....((((((...(((.((.((((........)))))).)))...)))))).)))))..))))...... (-23.11 = -23.23 +   0.13) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 2
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  50.83
+ Mean single sequence MFE: -37.85
+ Consensus MFE: -22.50
+ Energy contribution: -23.00
+ Covariance contribution:   0.50
+ Combinations/Pair:   1.26
+ Mean z-score:  -1.04
+ Structure conservation index:   0.59
+ SVM decision value:   0.14
+ SVM RNA-class probability: 0.603136
+ Prediction: RNA
+ WARNING: Mean pairwise identity too low.
+
+######################################################################
+
+>NC_007605.genome 152777 92 - 171823
+GCCGUAGGGA-UAUGGCUGC-----ACGGCCC------------------GCUGCUAUC----GGUGGCAGUGGCCUUGUACCACAUAACUCACGUAAAGCGCACACAAUAGGCGGACCG
+(((...(((.-(((((.(((-----(.((((.------------------(((((((..----..))))))))))).)))).).)))).))).((.....)).........)))...... ( -33.20)
+>NC_006146.genome 148836 119 - 171096
+GCCGUAGCAGUUAUGGCCGCCGGUCCUGGCCCACCUUCCAGCAUGUUAGCGCCGCCCUCUCUCGACUGCUGCGAGCCAGGAUCACAUAACUUCCGUAGUGUGC-CGCCAUAGACGGACAA
+.((((.....(((((((.((.(((((((((.(........((......))((.((..((....))..)).))).)))))))))((((.((....)).))))))-.))))))))))).... ( -42.50)
+>consensus
+GCCGUAGCAA_UAUGGCCGC_____ACGGCCC__________________GCCGCCAUC____GACGGCAGCGACCCAGGACCACAUAACUCACGUAAAGCGC_CACAAUAGACGGACAA
+.((((.((......(((((.......)))))...................(((((((((....)))))))))..))......(((((.((....)).)))))..........)))).... (-22.50 = -23.00 +   0.50) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  76.82
+ Mean single sequence MFE: -50.37
+ Consensus MFE: -32.45
+ Energy contribution: -34.12
+ Covariance contribution:   1.67
+ Combinations/Pair:   1.18
+ Mean z-score:  -1.46
+ Structure conservation index:   0.64
+ SVM decision value:  -0.01
+ SVM RNA-class probability: 0.527430
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 155612 118 + 171823
+ACUGCGGUGUUUGACGGGCAUCGGGGCUCUCGAACGGGGAGAGGUUCCUACGAUUGGCCCUGUCCAUCAUCCCGUAGGGCGGUCUA--GAUUAGGCCGCCCGUCGCUUACCCGCCGGCAG
+.((((((((..(((((((...(((((((.(((...(((((....))))).)))..)))))))........))))).((((((((((--...))))))))))......))..)))).)))) ( -52.50)
+>NC_006146.genome 151654 118 + 171096
+AUUGCGGUGUUUGGCGGGCAUCGGGGCUCCCAAAUCGGGGGAGGUUCCUACGAUUGGCUCUGUCCAUCAUCCCGAAGGGCGGCCUA--GAUUAGGCCGCCCGUCGCUUGCCUGCCGGCAG
+..(((.(.((..(((((((.(((((((((((.......)))))........(((.(((...))).))).)))))).((((((((((--...))))))))))...))))))).))).))). ( -60.40)
+>NC_004367.genome 136440 118 - 149696
+AUUGCGUUGUUUGGCAUGCUUUGGGGCUAUCGAAUGGCGACAGGUUUCUGCGUUUCGCUCUUUCGAUCAUGCC--AAAGGGGGCCAUAGACUAUGCUGCCCGCCGCUUUCCUGCCUACAG
+.......(((..((((.(((((((.(..((((((.(((((.(.((....)).).)))))..))))))..).))--)))((((((((((...))))..)))).)))).....)))).))). ( -38.20)
+>consensus
+AUUGCGGUGUUUGGCGGGCAUCGGGGCUCUCGAAUGGGGAGAGGUUCCUACGAUUGGCUCUGUCCAUCAUCCCG_AGGGCGGCCUA__GAUUAGGCCGCCCGUCGCUUACCUGCCGGCAG
+...((((((..((((((((...(((((((((.......)))).))))).......((((..(((.......(((.....)))......)))..))))))))))))..)))).))...... (-32.45 = -34.12 +   1.67) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  76.82
+ Mean single sequence MFE: -46.63
+ Consensus MFE: -30.83
+ Energy contribution: -30.73
+ Covariance contribution:  -0.09
+ Combinations/Pair:   1.33
+ Mean z-score:  -1.92
+ Structure conservation index:   0.66
+ SVM decision value:   1.29
+ SVM RNA-class probability: 0.938525
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 155612 118 - 171823
+CUGCCGGCGGGUAAGCGACGGGCGGCCUAAUC--UAGACCGCCCUACGGGAUGAUGGACAGGGCCAAUCGUAGGAACCUCUCCCCGUUCGAGAGCCCCGAUGCCCGUCAAACACCGCAGU
+((((.(((......))((((((((((((..((--((...((.((....)).)).))))..))))).((((..((...(((((.......))))).))))))))))))).....).)))). ( -48.30)
+>NC_006146.genome 151654 118 - 171096
+CUGCCGGCAGGCAAGCGACGGGCGGCCUAAUC--UAGGCCGCCCUUCGGGAUGAUGGACAGAGCCAAUCGUAGGAACCUCCCCCGAUUUGGGAGCCCCGAUGCCCGCCAAACACCGCAAU
+.....(((.((((......((((((((((...--)))))))))).((((((((((((......)).)))))......(((((.......))))).))))))))).)))............ ( -53.80)
+>NC_004367.genome 136440 118 + 149696
+CUGUAGGCAGGAAAGCGGCGGGCAGCAUAGUCUAUGGCCCCCUUU--GGCAUGAUCGAAAGAGCGAAACGCAGAAACCUGUCGCCAUUCGAUAGCCCCAAAGCAUGCCAAACAACGCAAU
+(((....)))....((((.((((..((((...))))))))))(((--(((((.((((((.(.(((....((((....)))))))).)))))).((......))))))))))....))... ( -37.80)
+>consensus
+CUGCCGGCAGGAAAGCGACGGGCGGCCUAAUC__UAGACCGCCCU_CGGGAUGAUGGACAGAGCCAAUCGUAGGAACCUCUCCCCAUUCGAGAGCCCCGAUGCCCGCCAAACACCGCAAU
+.....((((((((.(((..((((((.(((.....))).))))))..........(((......)))..))).((...(((((.......)))))..))..))))))))............ (-30.83 = -30.73 +  -0.09) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: reverse
+ Mean pairwise identity:  82.78
+ Mean single sequence MFE: -44.40
+ Consensus MFE: -31.31
+ Energy contribution: -32.10
+ Covariance contribution:   0.79
+ Combinations/Pair:   1.21
+ Mean z-score:  -1.67
+ Structure conservation index:   0.71
+ SVM decision value:   0.01
+ SVM RNA-class probability: 0.536598
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 155850 120 - 171823
+AACUGGCGUCCGAGUCGGGCGUAGAUCAAAUGGAAGAGUCACUGCUAGCGCGCAGUAUAGUGCCUUGUCGCGUGCGGGUGGGGGCACUGGGGCGGGGGCAUAGUACUCAGCUGCGCAGAA
+..((((((((((...)))))((.((((........)).)))).))))).(((((((..(((((..((((.(((.(.((((....)))).).)).).))))..)))))..))))))).... ( -47.50)
+>NC_006146.genome 151892 120 - 171096
+AACUGGCGCCCGAAUCGGGCGUAAAUCAAAUGGAAGAGCCACUGCUAACGCGCGGUAUAGUGCCUCGUCGCGUGCGGGUGGGGGCAAUGGGGCGGGGGAAUAGUACUCAGCUGCGCAGAA
+...(((((((((...)))))..........(((.....)))..))))..(((((((..(((((((((((.(((((........)).))).)))))))......))))..))))))).... ( -44.10)
+>NC_004367.genome 136678 120 + 149696
+AAUUUGCGCCCAAGUCGGGCGUAUAUCAAAUGGAAGAGCAAUUGCUAGCGCGCAGUAUAAUGACUUGUAGCGUGGAGGUGGAAACUUUGAGGUGGGGGAAUGGUCGUUAGAUGCGCAGAA
+....(((((((.....)))))))..((.....(...(((....)))..)(((((...((((((((....((.(.(((((....))))).).))........))))))))..))))).)). ( -41.60)
+>consensus
+AACUGGCGCCCGAGUCGGGCGUAAAUCAAAUGGAAGAGCCACUGCUAGCGCGCAGUAUAGUGCCUUGUCGCGUGCGGGUGGGGGCAAUGGGGCGGGGGAAUAGUACUCAGCUGCGCAGAA
+.....((((((.....))))))...((.........(((....)))...(((((((.(((((((((..(((......)))))))))))).....(((........))).))))))).)). (-31.31 = -32.10 +   0.79) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  72.78
+ Mean single sequence MFE: -51.00
+ Consensus MFE: -25.08
+ Energy contribution: -27.77
+ Covariance contribution:   2.68
+ Combinations/Pair:   1.24
+ Mean z-score:  -2.08
+ Structure conservation index:   0.49
+ SVM decision value:  -0.02
+ SVM RNA-class probability: 0.522808
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 158258 120 + 171823
+CCGCCCAGGUCAGUCAGGUAUGCGGUACUUCACCGAGUUUGGUGUUGAGUACCGGGAUGGCCCGUAGACUAGGCUUGUACAGCUUGGCUGCACGCGUAUCGCGAGGAUGUCGGGUGGCCU
+(((((((.(((..((.(((((((((((((((((((....)))))..)))))))(((....)))((((.(((((((.....)))))))))))..)))))))..)).))).).))))))... ( -56.40)
+>NC_006146.genome 154321 120 + 171096
+CCGGCCAGCUCAGUCGGGUAUACCGUGCUUCACAGAGUUUGGUGCUGUGUGCCGGGAUGGCCCGUACACGAGGCUGGUGUAACUUGACUGUGGGCUUAUCGCCAGGAUGUCGGGUGGCCU
+..(((((.(((((((((((((((((.(((((....(((.....)))((((((.(((....)))))))))))))))))))).)))))))))..(((.....)))........)).))))). ( -55.90)
+>NC_004367.genome 139112 120 - 149696
+GCGCCAUCCCCAGUCGGGUAUUCUCUACUUUACGGAUGUUGGGGUGGUAUACCUCGAGGGCUUGUAUACUAGUCUCGUGCAUCAGGACUGAAACCUUAUCACGAGGAUAUCGGGUGGCCU
+..(((((((((..((((((((...((((((((.......)))))))).))))).))).))............(((((((.((.(((.......))).))))))))).....))))))).. ( -40.70)
+>consensus
+CCGCCCAGCUCAGUCGGGUAUACCGUACUUCACAGAGUUUGGUGUUGUGUACCGGGAUGGCCCGUACACUAGGCUCGUGCAACUUGACUGAAAGCUUAUCGCGAGGAUGUCGGGUGGCCU
+((((((....(((((((((...((((.....)))).....(((.((((((((.(((....))))))))))).)))......)))))))))......((((.....))))..))))))... (-25.08 = -27.77 +   2.68) 
+
+############################  RNAz 1.0  ##############################
+
+ Sequences: 3
+ Columns: 120
+ Reading direction: forward
+ Mean pairwise identity:  52.49
+ Mean single sequence MFE: -46.33
+ Consensus MFE: -20.53
+ Energy contribution: -20.99
+ Covariance contribution:   0.46
+ Combinations/Pair:   1.36
+ Mean z-score:  -1.92
+ Structure conservation index:   0.44
+ SVM decision value:   1.74
+ SVM RNA-class probability: 0.975031
+ Prediction: RNA
+
+######################################################################
+
+>NC_007605.genome 159607 101 + 171823
+GCGUUGGCUAUACGAAUAGGUGCCGCGAGGA---CCGAGUUCAGGAC-------------CGGGGGGGCCCGUCUCCCCGUCCGCCCGGCGCGCCUGCCACUGCA---CCUCAGGUCUCG
+((((((((.....((((.(((.((....)))---))..)))).((((-------------.(((((((....)))))))))))).)))))))(((((........---...))))).... ( -46.20)
+>NC_006146.genome 155673 101 + 171096
+GCGUUGGCUAUACGAAUAGGUGCCGCGAGGA---CCGAGUUCAUGAC----------------GGGGGCCCGGCUUCGCGUCCGCCUGCCGGGCCCCCCCCUGCACGGCCUCGGGCACCG
+.(((.......)))....((((((.(((((.---(((.((.......----------------(((((((((((...((....))..)))))))))))....)).)))))))))))))). ( -60.50)
+>NC_004367.genome 140470 110 - 149696
+GCGUUUGCAAUAAGGAUAGGCAUCGCGAGAAACCCUGCUCUCGUGACCCACUUUAUUUAUUGAUAUAGCGCUACUUUUUACUU-------GCGUUUUGCGCGAAA---UCUAGGUAUUUG
+(((((..(((((((...(((..((((((((........))))))))..).))...)))))))....)))))(((((.....((-------(((.....)))))..---...))))).... ( -32.30)
+>consensus
+GCGUUGGCUAUACGAAUAGGUGCCGCGAGGA___CCGAGUUCAUGAC______________G_GGGGGCCCGACUUCCCGUCCGCC_G_CGCGCCUCCCACUGCA___CCUCGGGAAUCG
+(((.((.((((....)))).)).)))((((......(....).....................(((((((((((.............)))))))))))..........))))........ (-20.53 = -20.99 +   0.46) 

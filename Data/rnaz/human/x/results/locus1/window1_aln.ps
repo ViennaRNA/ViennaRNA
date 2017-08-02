@@ -1,0 +1,200 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 606 57
+%%EndComments
+
+% draws Vienna RNA like colored boxes
+/box { % x1 y1 x2 y2 hue saturation
+  gsave
+  dup 0.3 mul 1 exch sub sethsbcolor
+  exch 3 index sub exch 2 index sub rectfill
+  grestore
+} def
+
+% draws a box in current color
+/box2 { % x1 y1 x2 y2
+  exch 3 index sub exch 2 index sub rectfill
+} def
+
+/string { % (Text) x y
+  6 add
+  moveto
+  show
+} def
+
+0 57 translate
+1 -1 scale
+/Courier findfont
+[10 0 0 -10 0 0] makefont setfont
+
+%100 100 106 110 0.5 0.5 1 box
+%(A) 100 100 string
+%(This is a string) 200 200 string
+288 11.5 294 20 0.16 1 box
+288 20 294 28.5 0.16 1 box
+288 28.5 294 37 0.16 1 box
+288 37 294 45.5 0.16 1 box
+288 45.5 294 54 0.16 1 box
+288 54 294 62.5 0.16 1 box
+396 11.5 402 20 0.16 1 box
+396 20 402 28.5 0.16 1 box
+396 28.5 402 37 0.16 1 box
+396 37 402 45.5 0.16 1 box
+396 45.5 402 54 0.16 1 box
+396 54 402 62.5 0.16 1 box
+294 11.5 300 20 0.0 0.6 box
+294 20 300 28.5 0.0 0.6 box
+294 28.5 300 37 0.0 0.6 box
+294 37 300 45.5 0.0 0.6 box
+294 54 300 62.5 0.0 0.6 box
+390 11.5 396 20 0.0 0.6 box
+390 20 396 28.5 0.0 0.6 box
+390 28.5 396 37 0.0 0.6 box
+390 37 396 45.5 0.0 0.6 box
+390 54 396 62.5 0.0 0.6 box
+300 11.5 306 20 0.0 1 box
+300 20 306 28.5 0.0 1 box
+300 28.5 306 37 0.0 1 box
+300 37 306 45.5 0.0 1 box
+300 45.5 306 54 0.0 1 box
+300 54 306 62.5 0.0 1 box
+384 11.5 390 20 0.0 1 box
+384 20 390 28.5 0.0 1 box
+384 28.5 390 37 0.0 1 box
+384 37 390 45.5 0.0 1 box
+384 45.5 390 54 0.0 1 box
+384 54 390 62.5 0.0 1 box
+306 11.5 312 20 0.0 1 box
+306 20 312 28.5 0.0 1 box
+306 28.5 312 37 0.0 1 box
+306 37 312 45.5 0.0 1 box
+306 45.5 312 54 0.0 1 box
+306 54 312 62.5 0.0 1 box
+378 11.5 384 20 0.0 1 box
+378 20 384 28.5 0.0 1 box
+378 28.5 384 37 0.0 1 box
+378 37 384 45.5 0.0 1 box
+378 45.5 384 54 0.0 1 box
+378 54 384 62.5 0.0 1 box
+312 11.5 318 20 0.0 0.6 box
+312 20 318 28.5 0.0 0.6 box
+312 28.5 318 37 0.0 0.6 box
+312 37 318 45.5 0.0 0.6 box
+312 45.5 318 54 0.0 0.6 box
+372 11.5 378 20 0.0 0.6 box
+372 20 378 28.5 0.0 0.6 box
+372 28.5 378 37 0.0 0.6 box
+372 37 378 45.5 0.0 0.6 box
+372 45.5 378 54 0.0 0.6 box
+318 11.5 324 20 0.16 1 box
+318 20 324 28.5 0.16 1 box
+318 28.5 324 37 0.16 1 box
+318 37 324 45.5 0.16 1 box
+318 45.5 324 54 0.16 1 box
+318 54 324 62.5 0.16 1 box
+366 11.5 372 20 0.16 1 box
+366 20 372 28.5 0.16 1 box
+366 28.5 372 37 0.16 1 box
+366 37 372 45.5 0.16 1 box
+366 45.5 372 54 0.16 1 box
+366 54 372 62.5 0.16 1 box
+324 11.5 330 20 0.0 0.6 box
+324 20 330 28.5 0.0 0.6 box
+324 28.5 330 37 0.0 0.6 box
+324 37 330 45.5 0.0 0.6 box
+324 54 330 62.5 0.0 0.6 box
+360 11.5 366 20 0.0 0.6 box
+360 20 366 28.5 0.0 0.6 box
+360 28.5 366 37 0.0 0.6 box
+360 37 366 45.5 0.0 0.6 box
+360 54 366 62.5 0.0 0.6 box
+0 setgray
+(.......................\(\(\(\(\(\(\(.....\)\)\)\)\)\)\).................................) 150 2 string
+(hg18.chr11) 6 12.5 string
+(GGUUAAUCAAAAU-UUCUCUU--CUUCAGGGCAAACUUGAAGAUAAAUCUUUUGACUCCAGCUCUUUAGAGGAUC) 150 12.5 string
+(panTro1.chr9) 6 21 string
+(GGUUAAUCAAAAU-UUCUCUU--CUUCAGGGCAAACUUGAAGAUAAAUCUUUUGACUCCAGCUCUUUAGAGGAUC) 150 21 string
+(rheMac2.chr14) 6 29.5 string
+(GGUUAAUCAAAAU-UUCUCUU--CUUCAGGGCAAACUUGAAGAU----CUUUUGACUCCAGCUUUUUAGGGGAUC) 150 29.5 string
+(bosTau2.chr29) 6 38 string
+(AUUUAACCAGUAUCUACUCUC--CUUCAGGGCUACCUUGAAGAUGACAACCCUGGA--------------GGAGC) 150 38 string
+(canFam2.chr21) 6 46.5 string
+(AUUUAACCAGUGUCUGCUUUCGUCCUCAGUGCUAUUUUGAAGAUCAUCACUCUGGC--------UUUGGUGGAAC) 150 46.5 string
+(dasNov1.scaffold_2894) 6 55 string
+(---------AAUU-UUUUUCU--UUUCUAGGCUAUCUUGAAGAUCUUGUUUCAAGC--------UUCAGAGGAAU) 150 55 string
+0.6 setgray
+150 76.5 156 83 box2
+156 76.5 162 83 box2
+162 70 168 83 box2
+168 70 174 83 box2
+174 70 180 83 box2
+180 70 186 83 box2
+186 76.5 192 83 box2
+192 70 198 83 box2
+198 70 204 83 box2
+204 73.25 210 83 box2
+210 73.25 216 83 box2
+216 73.25 222 83 box2
+222 66.75 228 83 box2
+228 82 234 83 box2
+234 66.75 240 83 box2
+240 73.25 246 83 box2
+246 70 252 83 box2
+252 66.75 258 83 box2
+258 73.25 264 83 box2
+264 70 270 83 box2
+270 73.25 276 83 box2
+276 82 282 83 box2
+282 82 288 83 box2
+288 70 294 83 box2
+294 70 300 83 box2
+300 66.75 306 83 box2
+306 66.75 312 83 box2
+312 70 318 83 box2
+318 70 324 83 box2
+324 70 330 83 box2
+330 66.75 336 83 box2
+336 66.75 342 83 box2
+342 76.5 348 83 box2
+348 66.75 354 83 box2
+354 76.5 360 83 box2
+360 70 366 83 box2
+366 66.75 372 83 box2
+372 66.75 378 83 box2
+378 66.75 384 83 box2
+384 66.75 390 83 box2
+390 66.75 396 83 box2
+396 66.75 402 83 box2
+402 66.75 408 83 box2
+408 66.75 414 83 box2
+414 79.75 420 83 box2
+420 73.25 426 83 box2
+426 79.75 432 83 box2
+432 79.75 438 83 box2
+438 76.5 444 83 box2
+444 73.25 450 83 box2
+450 70 456 83 box2
+456 76.5 462 83 box2
+462 70 468 83 box2
+468 70 474 83 box2
+474 76.5 480 83 box2
+480 70 486 83 box2
+486 82 492 83 box2
+492 82 498 83 box2
+498 82 504 83 box2
+504 82 510 83 box2
+510 82 516 83 box2
+516 82 522 83 box2
+522 82 528 83 box2
+528 82 534 83 box2
+534 70 540 83 box2
+540 70 546 83 box2
+546 73.25 552 83 box2
+552 73.25 558 83 box2
+558 70 564 83 box2
+564 76.5 570 83 box2
+570 66.75 576 83 box2
+576 66.75 582 83 box2
+582 66.75 588 83 box2
+588 76.5 594 83 box2
+594 70 600 83 box2
+showpage
