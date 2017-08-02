@@ -10,7 +10,8 @@ dmg_verbose_0 = @echo DMG-GEN $@;
 
 EXTRA_DIST =  resources/welcome.txt \
               resources/conclusion.html \
-              resources/ohm.png
+              resources/ohm.png \
+              uninstall-ViennaRNA-Package.sh
 
 srcdir  = @srcdir@
 thisdir = packaging/macosx
@@ -24,12 +25,14 @@ staging_kinfold_dir = staging_kinfold
 staging_kinwalker_dir = staging_kinwalker
 staging_forester_dir = staging_forester
 staging_cluster_dir = staging_cluster
+staging_rnalocmin_dir = staging_rnalocmin
 
 CORE_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Core".pkg
 CLUSTER_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Cluster\ Analysis".pkg
 KINFOLD_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Kinfold".pkg
 KINWALKER_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Kinwalker".pkg
 FORESTER_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ RNAforester".pkg
+RNALOCMIN_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ RNAlocmin".pkg
 DEV_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Development".pkg
 PERL_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Perl".pkg
 PYTHON_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Python".pkg
@@ -66,6 +69,11 @@ remove_staging_forester_dir = \
   { test ! -d $(staging_forester_dir) \
     || { find $(staging_forester_dir) -type d ! -perm -200 -exec chmod u+w {} ';' \
          && rm -fr $(staging_forester_dir); }; }
+
+remove_staging_rnalocmin_dir = \
+  { test ! -d $(staging_rnalocmin_dir) \
+    || { find $(staging_rnalocmin_dir) -type d ! -perm -200 -exec chmod u+w {} ';' \
+         && rm -fr $(staging_rnalocmin_dir); }; }
 
 remove_staging_perl_dir = \
   { test ! -d $(staging_perl_dir) \
@@ -143,6 +151,14 @@ staging-kinwalker:
       && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_kinwalker_dir)
 
 ##
+## prepare RNAlocmin staging directory
+##
+staging-rnalocmin:
+	$(prepare_verbose)$(remove_staging_rnalocmin_dir)
+	$(AM_V_at)cd $(top_srcdir)/src/RNAlocmin \
+      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_rnalocmin_dir)
+
+##
 ## prepare Development staging directory
 ##
 staging-libRNA:
@@ -197,6 +213,10 @@ staging-python:
 	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.rnaforester --version @PACKAGE_VERSION@ \
       --root ${staging_forester_dir} "${FORESTER_PKG_FILE}"
 
+"${RNALOCMIN_PKG_FILE}": staging-rnalocmin
+	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.rnalocmin --version @PACKAGE_VERSION@ \
+      --root ${staging_rnalocmin_dir} "${RNALOCMIN_PKG_FILE}"
+
 "${PERL_PKG_FILE}": staging-perl
 	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.perl --version @PACKAGE_VERSION@ \
       --root ${staging_perl_dir} "${PERL_PKG_FILE}"
@@ -212,6 +232,7 @@ staging-python:
                 "${KINFOLD_PKG_FILE}" \
                 "${FORESTER_PKG_FILE}" \
                 "${KINWALKER_PKG_FILE}" \
+                "${RNALOCMIN_PKG_FILE}" \
                 "${PERL_PKG_FILE}" \
                 "${PYTHON_PKG_FILE}"
 	$(pkg_verbose)$(PRODUCTBUILD)  --distribution ./Distribution.xml \
@@ -238,6 +259,7 @@ clean-local:
 	$(remove_staging_cluster_dir)
 	$(remove_staging_kinwalker_dir)
 	$(remove_staging_forester_dir)
+	$(remove_staging_rnalocmin_dir)
 	$(remove_staging_perl_dir)
 	$(remove_staging_python_dir)
 	-rm -rf disk_image
@@ -248,6 +270,7 @@ clean-local:
           "${KINWALKER_PKG_FILE}" \
           "${KINFOLD_PKG_FILE}" \
           "${CLUSTER_PKG_FILE}" \
+          "${RNALOCMIN_PKG_FILE}" \
           "${DEV_PKG_FILE}" \
           "${CORE_PKG_FILE}"
 
@@ -259,6 +282,7 @@ PHONY:  resources \
         staging-kinfold \
         staging-forester \
         staging-kinwalker \
+        staging-rnalocmin \
         staging-perl \
         staging-python \
         disk_image

@@ -5,6 +5,7 @@
     <pkg-ref id="org.TBI.ViennaRNA.kinfold"/>
     <pkg-ref id="org.TBI.ViennaRNA.rnaforester"/>
     <pkg-ref id="org.TBI.ViennaRNA.kinwalker"/>
+    <pkg-ref id="org.TBI.ViennaRNA.rnalocmin"/>
     <pkg-ref id="org.TBI.ViennaRNA.libRNA"/>
     <pkg-ref id="org.TBI.ViennaRNA.perl"/>
     <pkg-ref id="org.TBI.ViennaRNA.python"/>
@@ -22,6 +23,7 @@
         <line choice="org.TBI.ViennaRNA.kinfold"/>
         <line choice="org.TBI.ViennaRNA.rnaforester"/>
         <line choice="org.TBI.ViennaRNA.kinwalker"/>
+        <line choice="org.TBI.ViennaRNA.rnalocmin"/>
         <line choice="org.TBI.ViennaRNA.libRNA"/>
         <line choice="org.TBI.ViennaRNA.perl"/>
         <line choice="org.TBI.ViennaRNA.python"/>
@@ -46,6 +48,10 @@
         description="Predict (co-transcriptional) RNA folding trajectories">
         <pkg-ref id="org.TBI.ViennaRNA.kinwalker">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Kinwalker.pkg</pkg-ref>
     </choice>
+    <choice id="org.TBI.ViennaRNA.rnalocmin" title="RNAlocmin"
+        description="Calculate local minima from structures via gradient walks">
+        <pkg-ref id="org.TBI.ViennaRNA.rnalocmin">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20RNAlocmin.pkg</pkg-ref>
+    </choice>
     <choice id="org.TBI.ViennaRNA.libRNA" title="Development Files"
         description="C-library, header files, and reference documentation">
         <pkg-ref id="org.TBI.ViennaRNA.libRNA">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Development.pkg</pkg-ref>
@@ -58,12 +64,13 @@
         description="Python 2 bindings for the C-library">
         <pkg-ref id="org.TBI.ViennaRNA.python">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@Python.pkg</pkg-ref>
     </choice>
-    <pkg-ref id="org.TBI.ViennaRNA.core" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Core.pkg</pkg-ref>
-    <pkg-ref id="org.TBI.ViennaRNA.cluster" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Cluster%20Analysis.pkg</pkg-ref>
-    <pkg-ref id="org.TBI.ViennaRNA.kinfold" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Kinfold.pkg</pkg-ref>
-    <pkg-ref id="org.TBI.ViennaRNA.rnaforester" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20RNAforester.pkg</pkg-ref>
-    <pkg-ref id="org.TBI.ViennaRNA.kinwalker" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Kinwalker.pkg</pkg-ref>
-    <pkg-ref id="org.TBI.ViennaRNA.libRNA" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Development.pkg</pkg-ref>
-    <pkg-ref id="org.TBI.ViennaRNA.perl" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Perl.pkg</pkg-ref>
-    <pkg-ref id="org.TBI.ViennaRNA.python" version="2.2.4" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Python.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.core" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Core.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.cluster" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Cluster%20Analysis.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.kinfold" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Kinfold.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.rnaforester" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20RNAforester.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.kinwalker" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Kinwalker.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.rnalocmin" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20RNAlocmin.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.libRNA" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Development.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.perl" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Perl.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.python" version="2@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Python.pkg</pkg-ref>
 </installer-gui-script>
