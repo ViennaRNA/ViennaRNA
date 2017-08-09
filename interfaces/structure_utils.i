@@ -155,6 +155,8 @@ int my_bp_distance(const char *str1, const char *str2);
  */
 %rename (ep) vrna_ep_t;
 
+%newobject vrna_ep_t::__str__;
+
 typedef struct {
   int i;
   int j;
@@ -168,7 +170,6 @@ typedef struct {
   }
 } vrna_ep_t;
 
-%newobject vrna_ep_t::__str__;
 char *vrna_ep_t::__str__();
 
 

@@ -198,6 +198,9 @@ char *my_alifold(std::vector<std::string> alignment, char *constraints, float *O
 %ignore get_alipf_arrays;
 %ignore update_alifold_params;
 
+/* tell swig that these functions return objects that require memory management */
+%newobject vrna_fold_compound_t::mfe;
+%newobject vrna_fold_compound_t::mfe_dimer;
 
 %extend vrna_fold_compound_t {
 
@@ -216,9 +219,5 @@ char *my_alifold(std::vector<std::string> alignment, char *constraints, float *O
     return structure;
   }
 }
-
-/* tell swig that these functions return objects that require memory management */
-%newobject vrna_fold_compound_t::mfe;
-%newobject vrna_fold_compound_t::mfe_dimer;
 
 %include <ViennaRNA/alifold.h>
