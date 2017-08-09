@@ -62,6 +62,8 @@
 #include <config.h>
 #ifndef HAVE_STRDUP
 char *strdup(const char *s);
+
+
 #endif
 #endif
 
@@ -83,7 +85,8 @@ char *strdup(const char *s);
  *  @param  ...     The list of variables used to fill the format string
  *  @return         The formatted, null-terminated string, or NULL if something has gone wrong
  */
-char *vrna_strdup_printf(const char *format, ...);
+char *vrna_strdup_printf(const char *format,
+                         ...);
 
 
 /**
@@ -100,7 +103,8 @@ char *vrna_strdup_printf(const char *format, ...);
  *  @param  ...     The list of variables used to fill the format string
  *  @return         The formatted, null-terminated string, or NULL if something has gone wrong
  */
-char *vrna_strdup_vprintf(const char *format, va_list argp);
+char *vrna_strdup_vprintf(const char  *format,
+                          va_list     argp);
 
 
 /**
@@ -121,7 +125,9 @@ char *vrna_strdup_vprintf(const char *format, va_list argp);
  *  @param  ...     The list of variables used to fill the format string
  *  @return         The number of characters in the final string, or -1 on error
  */
-int vrna_strcat_printf(char **dest, const char *format, ...);
+int vrna_strcat_printf(char       **dest,
+                       const char *format,
+                       ...);
 
 
 /**
@@ -136,7 +142,9 @@ int vrna_strcat_printf(char **dest, const char *format, ...);
  *  @param  ...     The list of variables used to fill the format string
  *  @return         The number of characters in the final string, or -1 on error
  */
-int vrna_strcat_vprintf(char **dest, const char *format, va_list args);
+int vrna_strcat_vprintf(char        **dest,
+                        const char  *format,
+                        va_list     args);
 
 
 /**
@@ -151,16 +159,17 @@ int vrna_strcat_vprintf(char **dest, const char *format, va_list args);
  *
  *  For instance, the following code:
  *
-@code{.c}
-char **tok = vrna_strsplit("GGGG&CCCC&AAAAA", NULL);
-
-for (char **ptr = tok; *ptr; ptr++) {
-    printf("%s\n", *ptr);
-    free(*ptr);
-}
-free(tok);
-@endcode
+ * @code{.c}
+ * char **tok = vrna_strsplit("GGGG&CCCC&AAAAA", NULL);
+ *
+ * for (char **ptr = tok; *ptr; ptr++) {
+ *  printf("%s\n", *ptr);
+ *  free(*ptr);
+ * }
+ * free(tok);
+ * @endcode
  *  produces this output:
+ *
 @verbatim
 GGGG
 CCCC
@@ -176,7 +185,9 @@ AAAAA
  *  @param  delimiter The delimiting character. If @c NULL, the delimiter is @c "&"
  *  @return           A @c NULL terminated list of the elements in the string
  */
-char **vrna_strsplit(const char *string, const char *delimiter);
+char **vrna_strsplit(const char *string,
+                     const char *delimiter);
+
 
 /**
  *  @brief Create a random string using characters from a specified symbol set
@@ -185,7 +196,9 @@ char **vrna_strsplit(const char *string, const char *delimiter);
  *  @param symbols  The symbol set
  *  @return         A random string of length 'l' containing characters from the symbolset
  */
-char  *vrna_random_string(int l, const char symbols[]);
+char *vrna_random_string(int        l,
+                         const char symbols[]);
+
 
 /**
  *  @brief Calculate hamming distance between two sequences
@@ -194,7 +207,9 @@ char  *vrna_random_string(int l, const char symbols[]);
  *  @param s2   The second sequence
  *  @return     The hamming distance between s1 and s2
  */
-int vrna_hamming_distance(const char *s1, const char *s2);
+int vrna_hamming_distance(const char  *s1,
+                          const char  *s2);
+
 
 /**
  *  @brief Calculate hamming distance between two sequences up to a specified length
@@ -206,23 +221,28 @@ int vrna_hamming_distance(const char *s1, const char *s2);
  *  @param  n   The length of the subsequences to consider (starting from the 5' end)
  *  @return     The hamming distance between s1 and s2
  */
-int vrna_hamming_distance_bound(const char *s1, const char *s2, int n);
+int vrna_hamming_distance_bound(const char  *s1,
+                                const char  *s2,
+                                int         n);
+
 
 /**
  *  @brief Convert an input sequence (possibly containing DNA alphabet characters) to RNA alphabet
  *
  *  This function substitudes <i>T</i> and <i>t</i> with <i>U</i> and <i>u</i>, respectively
- * 
+ *
  *  @param sequence The sequence to be converted
  */
 void vrna_seq_toRNA(char *sequence);
 
+
 /**
  *  @brief Convert an input sequence to uppercase
- * 
+ *
  *  @param sequence The sequence to be converted
  */
 void vrna_seq_toupper(char *sequence);
+
 
 /**
  *  @brief Add a separating '&' character into a string according to cut-point position
@@ -235,8 +255,9 @@ void vrna_seq_toupper(char *sequence);
  *  @param  cp        The cut-point position
  *  @return           A copy of the provided string including the cut-point character
  */
-char *vrna_cut_point_insert(const char *string,
-                            int cp);
+char *vrna_cut_point_insert(const char  *string,
+                            int         cp);
+
 
 /**
  *  @brief  Remove a separating '&' character from a string
@@ -250,8 +271,9 @@ char *vrna_cut_point_insert(const char *string,
  *  @param  cp      The cut-point position
  *  @return         A copy of the input string with the '&' being sliced out
  */
-char *vrna_cut_point_remove(const char *string,
-                            int *cp);
+char *vrna_cut_point_remove(const char  *string,
+                            int         *cp);
+
 
 /**
  *  @}
@@ -277,21 +299,25 @@ DEPRECATED(void str_DNA2RNA(char *sequence));
  *
  *  @deprecated Use vrna_random_string() instead!
  */
-DEPRECATED(char *random_string(int l, const char symbols[]));
+DEPRECATED(char *random_string(int        l,
+                               const char symbols[]));
 
 /**
  *  @brief Calculate hamming distance between two sequences
  *
  *  @deprecated Use vrna_hamming_distance() instead!
  */
-DEPRECATED(int hamming(const char *s1, const char *s2));
+DEPRECATED(int hamming(const char *s1,
+                       const char *s2));
 
 /**
  *  @brief Calculate hamming distance between two sequences up to a specified length
  *
  *  @deprecated Use vrna_hamming_distance_bound() instead!
  */
-DEPRECATED(int hamming_bound(const char *s1, const char *s2, int n));
+DEPRECATED(int hamming_bound(const char *s1,
+                             const char *s2,
+                             int        n));
 
 #endif
 

@@ -1,9 +1,9 @@
 /*
-                               string_utils.c
-
-                 c  Ivo L Hofacker and Walter Fontana
-                          Vienna RNA package
-*/
+ *                             string_utils.c
+ *
+ *               c  Ivo L Hofacker and Walter Fontana
+ *                        Vienna RNA package
+ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -23,31 +23,36 @@
 #include "ViennaRNA/string_utils.h"
 
 /*
-#################################
-# PRIVATE FUNCTION DECLARATIONS #
-#################################
-*/
+ #################################
+ # PRIVATE FUNCTION DECLARATIONS #
+ #################################
+ */
 
 /*
-#################################
-# BEGIN OF FUNCTION DEFINITIONS #
-#################################
-*/
+ #################################
+ # BEGIN OF FUNCTION DEFINITIONS #
+ #################################
+ */
 
 #ifndef HAVE_STRDUP
-char *strdup(const char *s) {
+char *
+strdup(const char *s)
+{
   char *dup;
 
-  dup = vrna_alloc(strlen(s)+1);
+  dup = vrna_alloc(strlen(s) + 1);
   strcpy(dup, s);
-  return(dup);
+  return dup;
 }
+
+
 #endif
 
 PUBLIC char *
-vrna_strdup_printf(const char *format, ...){
-
-  char *result;
+vrna_strdup_printf(const char *format,
+                   ...)
+{
+  char    *result;
   va_list argp;
 
   va_start(argp, format);
@@ -57,13 +62,15 @@ vrna_strdup_printf(const char *format, ...){
   return result;
 }
 
-PUBLIC char *
-vrna_strdup_vprintf(const char *format, va_list argp){
 
+PUBLIC char *
+vrna_strdup_vprintf(const char  *format,
+                    va_list     argp)
+{
   char    *result;
   int     r;
 
-  result  = NULL;
+  result = NULL;
 
 #ifndef HAVE_VASPRINTF
   int     count;
@@ -75,20 +82,20 @@ vrna_strdup_vprintf(const char *format, va_list argp){
   /* retrieve the number of characters that the string requires */
 #ifdef _WIN32
   /*
-    vsnprintf() in Windows is not ANSI compliant, although it's
-    "...included for compliance to the ANSI standard"
-    Thus, we use _vscprintf() that explicitly counts characters
-  */
+   * vsnprintf() in Windows is not ANSI compliant, although it's
+   * "...included for compliance to the ANSI standard"
+   * Thus, we use _vscprintf() that explicitly counts characters
+   */
   count = _vscprintf(format, argp);
 #else
   count = vsnprintf(NULL, 0, format, argp);
 #endif
 
-  if((count >= 0) && (count < INT_MAX)){
+  if ((count >= 0) && (count < INT_MAX)) {
     char *buf = (char *)vrna_alloc(sizeof(char) * (count + 1));
-    if(buf == NULL)
+    if (buf == NULL)
       r = -1;
-    else if((r = vsnprintf(buf, count + 1, format, copy)) < 0)
+    else if ((r = vsnprintf(buf, count + 1, format, copy)) < 0)
       free(buf);
     else
       result = buf;
@@ -101,7 +108,7 @@ vrna_strdup_vprintf(const char *format, va_list argp){
 #endif
 
   /* check for any memory allocation error indicated by r == -1 */
-  if(r == -1){
+  if (r == -1) {
     vrna_message_warning("vrna_strdup_printf: memory allocation failure!");
     result = NULL;
   }
@@ -111,9 +118,11 @@ vrna_strdup_vprintf(const char *format, va_list argp){
 
 
 PUBLIC int
-vrna_strcat_printf(char **dest, const char *format, ...){
-
-  int r;
+vrna_strcat_printf(char       **dest,
+                   const char *format,
+                   ...)
+{
+  int     r;
   va_list argp;
 
   va_start(argp, format);
@@ -125,13 +134,15 @@ vrna_strcat_printf(char **dest, const char *format, ...){
 
 
 PUBLIC int
-vrna_strcat_vprintf(char **dest, const char *format, va_list args){
-
+vrna_strcat_vprintf(char        **dest,
+                    const char  *format,
+                    va_list     args)
+{
   char    *buf;
   int     r, l1, l2;
   size_t  old_count, new_count;
 
-  if((!dest) || (!format))
+  if ((!dest) || (!format))
     return -1;
 
   va_list copy;
@@ -144,35 +155,35 @@ vrna_strcat_vprintf(char **dest, const char *format, va_list args){
   /* retrieve the number of characters that the string requires */
 #ifdef _WIN32
   /*
-    vsnprintf() in Windows is not ANSI compliant, although it's
-    "...included for compliance to the ANSI standard"
-    Thus, we use _vscprintf() that explicitly counts characters
-  */
+   * vsnprintf() in Windows is not ANSI compliant, although it's
+   * "...included for compliance to the ANSI standard"
+   * Thus, we use _vscprintf() that explicitly counts characters
+   */
   new_count = _vscprintf(format, args);
 #else
   new_count = vsnprintf(NULL, 0, format, args);
 #endif
 
   /* determine longer and shorter part of new string for INT overflow protection */
-  if(old_count > new_count){
-    l1 = old_count;
-    l2 = new_count;
+  if (old_count > new_count) {
+    l1  = old_count;
+    l2  = new_count;
   } else {
-    l1 = new_count;
-    l2 = old_count;
+    l1  = new_count;
+    l2  = old_count;
   }
 
-  if((new_count > 0) && (l1 < SIZE_MAX) && ((SIZE_MAX - l1) > l2)){
+  if ((new_count > 0) && (l1 < SIZE_MAX) && ((SIZE_MAX - l1) > l2)) {
     buf = (char *)vrna_realloc(buf, sizeof(char) * (old_count + new_count + 1));
-    if(buf == NULL)
+    if (buf == NULL) {
       r = -1;
-    else if((r = vsnprintf(buf + old_count, new_count + 1, format, copy)) < 0)
+    } else if ((r = vsnprintf(buf + old_count, new_count + 1, format, copy)) < 0) {
       free(buf);
-    else {
+    } else {
       *dest = buf;
-      r = old_count + new_count;
+      r     = old_count + new_count;
     }
-  } else if(new_count == 0){
+  } else if (new_count == 0) {
     /* we do not treat empty format string as error */
     r = (int)old_count;
   }
@@ -180,7 +191,7 @@ vrna_strcat_vprintf(char **dest, const char *format, va_list args){
   va_end(copy);  /* Each va_start() or va_copy() needs a va_end() */
 
   /* check for any memory allocation error indicated by r == -1 */
-  if(r == -1){
+  if (r == -1) {
     vrna_message_warning("vrna_strcat_printf: memory allocation failure!");
     *dest = NULL;
   }
@@ -190,108 +201,129 @@ vrna_strcat_vprintf(char **dest, const char *format, va_list args){
 
 
 PUBLIC char *
-vrna_random_string(int l, const char symbols[]){
-
-  char *r;
+vrna_random_string(int        l,
+                   const char symbols[])
+{
+  char  *r;
   int   i, rn, base;
 
-  base = (int) strlen(symbols);
-  r = (char *) vrna_alloc(sizeof(char)*(l+1));
+  base  = (int)strlen(symbols);
+  r     = (char *)vrna_alloc(sizeof(char) * (l + 1));
 
   for (i = 0; i < l; i++) {
-    rn = (int) (vrna_urn()*base);  /* [0, base-1] */
-    r[i] = symbols[rn];
+    rn    = (int)(vrna_urn() * base); /* [0, base-1] */
+    r[i]  = symbols[rn];
   }
   r[l] = '\0';
   return r;
 }
 
+
 /*-----------------------------------------------------------------*/
 
 PUBLIC int
-vrna_hamming_distance(const char *s1,
-                      const char *s2){
-
-  int h=0;
+vrna_hamming_distance(const char  *s1,
+                      const char  *s2)
+{
+  int h = 0;
 
   for (; *s1 && *s2; s1++, s2++)
-    if (*s1 != *s2) h++;
+    if (*s1 != *s2)
+      h++;
+
   return h;
 }
+
 
 PUBLIC int
-vrna_hamming_distance_bound(const char *s1,
-                            const char *s2,
-                            int boundary){
-
-  int h=0;
+vrna_hamming_distance_bound(const char  *s1,
+                            const char  *s2,
+                            int         boundary)
+{
+  int h = 0;
 
   for (; *s1 && *s2 && boundary; s1++, s2++, boundary--)
-    if (*s1 != *s2) h++;
+    if (*s1 != *s2)
+      h++;
+
   return h;
 }
 
-PUBLIC  void
-vrna_seq_toRNA(char *sequence){
 
+PUBLIC void
+vrna_seq_toRNA(char *sequence)
+{
   unsigned int i;
-  if(sequence){
-    for(i = 0; sequence[i]; i++){
-      if(sequence[i] == 'T') sequence[i] = 'U';
-      if(sequence[i] == 't') sequence[i] = 'u';
+
+  if (sequence) {
+    for (i = 0; sequence[i]; i++) {
+      if (sequence[i] == 'T')
+        sequence[i] = 'U';
+
+      if (sequence[i] == 't')
+        sequence[i] = 'u';
     }
   }
 }
 
-PUBLIC void
-vrna_seq_toupper(char *sequence){
 
+PUBLIC void
+vrna_seq_toupper(char *sequence)
+{
   unsigned int i;
-  if(sequence){
-    for(i=0;sequence[i];i++)
+
+  if (sequence)
+    for (i = 0; sequence[i]; i++)
       sequence[i] = toupper(sequence[i]);
-  }
 }
 
+
 PUBLIC char *
-vrna_cut_point_insert(const char *string,
-                      int cp){
+vrna_cut_point_insert(const char  *string,
+                      int         cp)
+{
+  char  *ctmp;
+  int   len;
 
-  char *ctmp;
-  int len;
-
-  if(cp > 0){
-    len = strlen(string);
-    ctmp = (char *)vrna_alloc((len+2) * sizeof(char));
+  if (cp > 0) {
+    len   = strlen(string);
+    ctmp  = (char *)vrna_alloc((len + 2) * sizeof(char));
     /* first sequence */
-    (void) strncpy(ctmp, string, cp-1);
+    (void)strncpy(ctmp, string, cp - 1);
     /* spacer */
-    ctmp[cp-1] = '&';
+    ctmp[cp - 1] = '&';
     /* second sequence */
-    (void) strcat(ctmp, string+cp-1);
+    (void)strcat(ctmp, string + cp - 1);
   } else {
     ctmp = strdup(string);
   }
+
   return ctmp;
 }
 
-PUBLIC char *
-vrna_cut_point_remove(const char *string,
-                      int *cp){
 
+PUBLIC char *
+vrna_cut_point_remove(const char  *string,
+                      int         *cp)
+{
   char *pos, *copy = NULL;
 
   *cp = -1;
 
-  if(string){
-    copy = (char *) vrna_alloc(strlen(string)+1);
-    (void) sscanf(string, "%s", copy);
+  if (string) {
+    copy = (char *)vrna_alloc(strlen(string) + 1);
+    (void)sscanf(string, "%s", copy);
     pos = strchr(copy, '&');
     if (pos) {
       *cp = (int)(pos - copy) + 1;
-      if (*cp >= strlen(copy)) *cp = -1;
-      if (strchr(pos+1, '&')) vrna_message_error("more than one cut-point in input");
-      for (;*pos;pos++) *pos = *(pos+1); /* splice out the & */
+      if (*cp >= strlen(copy))
+        *cp = -1;
+
+      if (strchr(pos + 1, '&'))
+        vrna_message_error("more than one cut-point in input");
+
+      for (; *pos; pos++)
+        *pos = *(pos + 1);               /* splice out the & */
     }
   }
 
@@ -300,14 +332,14 @@ vrna_cut_point_remove(const char *string,
 
 
 PUBLIC char **
-vrna_strsplit(const char *string,
-              const char *delimiter)
+vrna_strsplit(const char  *string,
+              const char  *delimiter)
 {
-  char delim[2], *ptr, *ptr2, *token, *save, **split;
-  unsigned int n;
+  char          delim[2], *ptr, *ptr2, *token, *save, **split;
+  unsigned int  n;
 
   split = NULL;
-  n = 0;
+  n     = 0;
 
   if (string) {
     if ((delimiter) && (*delimiter))
@@ -323,24 +355,23 @@ vrna_strsplit(const char *string,
     /* count how many elements we'll extract */
     ptr = ptr2;
 
-    while(*ptr++) {
+    while (*ptr++)
       if (*ptr == *delim)
         n++;
-    }
 
     /*
-      allocate (n + 1) + 1 elements in split list
-      n + 1 elements plus 1 additional element to indicate
-      the last element in split
-    */
+     * allocate (n + 1) + 1 elements in split list
+     * n + 1 elements plus 1 additional element to indicate
+     * the last element in split
+     */
     split = (char **)vrna_alloc(sizeof(char *) * (n + 2));
 
-    n   = 0;
+    n     = 0;
     token = strtok_r(ptr2, delim, &save);
 
     while (token != NULL) {
-      split[n++] = vrna_strdup_printf("%s", token);
-      token = strtok_r(NULL, delim, &save);
+      split[n++]  = vrna_strdup_printf("%s", token);
+      token       = strtok_r(NULL, delim, &save);
     }
 
     split[n] = NULL;
@@ -359,36 +390,42 @@ vrna_strsplit(const char *string,
 /*###########################################*/
 
 PUBLIC void
-str_uppercase(char *sequence){
-
+str_uppercase(char *sequence)
+{
   vrna_seq_toupper(sequence);
 }
 
-PUBLIC void
-str_DNA2RNA(char *sequence){
 
+PUBLIC void
+str_DNA2RNA(char *sequence)
+{
   vrna_seq_toRNA(sequence);
 }
 
-PUBLIC char *
-random_string(int l, const char symbols[]){
 
+PUBLIC char *
+random_string(int         l,
+              const char  symbols[])
+{
   return vrna_random_string(l, symbols);
 }
 
-PUBLIC int
-hamming(const char *s1,
-        const char *s2){
 
+PUBLIC int
+hamming(const char  *s1,
+        const char  *s2)
+{
   return vrna_hamming_distance(s1, s2);
 }
 
-PUBLIC int
-hamming_bound(const char *s1,
-              const char *s2,
-              int boundary){
 
+PUBLIC int
+hamming_bound(const char  *s1,
+              const char  *s2,
+              int         boundary)
+{
   return vrna_hamming_distance_bound(s1, s2, boundary);
 }
+
 
 #endif
