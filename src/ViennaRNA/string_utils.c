@@ -298,6 +298,60 @@ vrna_cut_point_remove(const char *string,
   return copy;
 }
 
+
+PUBLIC char **
+vrna_strsplit(const char *string,
+              const char *delimiter)
+{
+  char delim[2], *ptr, *ptr2, *token, *save, **split;
+  unsigned int n;
+
+  split = NULL;
+  n = 0;
+
+  if (string) {
+    if ((delimiter) && (*delimiter))
+      delim[0] = *delimiter;
+    else
+      delim[0] = '&';
+
+    delim[1] = '\0';
+
+    /* copy string such that we can alter it via strtok() */
+    ptr2 = strdup(string);
+
+    /* count how many elements we'll extract */
+    ptr = ptr2;
+
+    while(*ptr++) {
+      if (*ptr == *delim)
+        n++;
+    }
+
+    /*
+      allocate (n + 1) + 1 elements in split list
+      n + 1 elements plus 1 additional element to indicate
+      the last element in split
+    */
+    split = (char **)vrna_alloc(sizeof(char *) * (n + 2));
+
+    n   = 0;
+    token = strtok_r(ptr2, delim, &save);
+
+    while (token != NULL) {
+      split[n++] = vrna_strdup_printf("%s", token);
+      token = strtok_r(NULL, delim, &save);
+    }
+
+    split[n] = NULL;
+
+    free(ptr2);
+  }
+
+  return split;
+}
+
+
 #ifdef  VRNA_BACKWARD_COMPAT
 
 /*###########################################*/

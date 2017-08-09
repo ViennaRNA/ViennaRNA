@@ -140,6 +140,45 @@ int vrna_strcat_vprintf(char **dest, const char *format, va_list args);
 
 
 /**
+ *  @brief Split a string into tokens using a delimiting character
+ *
+ *  This function splits a string into an array of strings using a single
+ *  character that delimits the elements within the string. The default
+ *  delimiter is the ampersand @c '&' and will be used when @c NULL is
+ *  passed as a second argument. The returned list is NULL terminated, i.e.
+ *  the last element is @c NULL. If the delimiter is not found, the returned
+ *  list contains exactly one element: the input string.
+ *
+ *  For instance, the following code:
+ *
+@code{.c}
+char **tok = vrna_strsplit("GGGG&CCCC&AAAAA", NULL);
+
+for (char **ptr = tok; *ptr; ptr++) {
+    printf("%s\n", *ptr);
+    free(*ptr);
+}
+free(tok);
+@endcode
+ *  produces this output:
+@verbatim
+GGGG
+CCCC
+AAAAA
+@endverbatim
+ *  and properly free's the memory occupied by the returned element array.
+ *
+ *  @note This function internally uses @em strtok_r() and is therefore
+ *  considered to be thread-safe. Also note, that it is the users responsibility
+ *  to free the memory of the array and that of the individual element strings!
+ *
+ *  @param  string    The input string that should be split into elements
+ *  @param  delimiter The delimiting character. If @c NULL, the delimiter is @c "&"
+ *  @return           A @c NULL terminated list of the elements in the string
+ */
+char **vrna_strsplit(const char *string, const char *delimiter);
+
+/**
  *  @brief Create a random string using characters from a specified symbol set
  *
  *  @param l        The length of the sequence
