@@ -168,7 +168,7 @@ E_ext_loop(int                  i,
 
   hc_dat_local.idx  = idx;
   hc_dat_local.mx   = hard_constraints;
-  hc_dat_local.cp   = cp;
+  hc_dat_local.sn   = vc->strand_number;
 
   if (vc->hc->f) {
     evaluate            = &hc_default_user;
@@ -269,7 +269,7 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
   hc_dat_local.idx    = indx;
   hc_dat_local.mx     = hc;
   hc_dat_local.hc_up  = hc_up;
-  hc_dat_local.cp     = vc->cutpoint;
+  hc_dat_local.sn     = vc->strand_number;
 
   if (vc->hc->f) {
     evaluate            = &hc_default_user;
@@ -883,7 +883,7 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
   hc_dat_local.idx    = indx;
   hc_dat_local.mx     = hc;
   hc_dat_local.hc_up  = hc_up;
-  hc_dat_local.cp     = vc->cutpoint;
+  hc_dat_local.sn     = vc->strand_number;
 
   if (vc->hc->f) {
     evaluate            = &hc_default_user;
@@ -1276,7 +1276,7 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
 
   hc_dat_local.mx_window  = hc->matrix_local;
   hc_dat_local.hc_up      = hc->up_ext;
-  hc_dat_local.cp         = fc->cutpoint;
+  hc_dat_local.sn         = fc->strand_number;
 
   if (fc->hc->f) {
     evaluate            = &hc_default_user_window;
@@ -1593,7 +1593,7 @@ E_ext_loop_3_comparative(vrna_fold_compound_t *fc,
 
   hc_dat_local.mx_window  = hc->matrix_local;
   hc_dat_local.hc_up      = hc->up_ext;
-  hc_dat_local.cp         = fc->cutpoint;
+  hc_dat_local.sn         = fc->strand_number;
 
   if (fc->hc->f) {
     evaluate            = &hc_default_user_window;

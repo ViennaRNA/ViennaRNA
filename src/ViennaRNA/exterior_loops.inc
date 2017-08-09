@@ -7,7 +7,7 @@ struct default_data {
   int                       *idx;
   unsigned char             *mx;
   unsigned char             **mx_window;
-  int                       cp;
+  unsigned int              *sn;
   int                       *hc_up;
   void                      *hc_dat;
   vrna_callback_hc_evaluate *hc_f;

@@ -233,7 +233,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = hc->matrix;
   hc_dat_local.hc_up  = hc->up_ext;
-  hc_dat_local.cp     = vc->cutpoint;
+  hc_dat_local.sn     = vc->strand_number;
 
   if (hc->f) {
     evaluate            = &hc_default_user_ext;
@@ -650,7 +650,7 @@ BT_mb_loop_split(vrna_fold_compound_t *vc,
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = hc->matrix;
   hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.cp     = vc->cutpoint;
+  hc_dat_local.sn     = vc->strand_number;
 
   if (hc->f) {
     evaluate            = &hc_default_user;
@@ -1077,7 +1077,7 @@ BT_mb_loop_split_comparative(vrna_fold_compound_t *vc,
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = hc->matrix;
   hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.cp     = vc->cutpoint;
+  hc_dat_local.sn     = vc->strand_number;
 
   if (hc->f) {
     evaluate            = &hc_default_user;
@@ -1289,7 +1289,7 @@ BT_mb_loop_split_window(vrna_fold_compound_t  *vc,
   hc_dat_local.mx         = hc->matrix;
   hc_dat_local.mx_window  = hc->matrix_local;
   hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.cp         = vc->cutpoint;
+  hc_dat_local.sn         = vc->strand_number;
 
   if (hc->f) {
     evaluate            = &hc_default_user_window;
@@ -1584,7 +1584,7 @@ BT_mb_loop_split_window_comparative(vrna_fold_compound_t  *vc,
   hc_dat_local.mx         = hc->matrix;
   hc_dat_local.mx_window  = hc->matrix_local;
   hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.cp         = vc->cutpoint;
+  hc_dat_local.sn         = vc->strand_number;
 
   if (hc->f) {
     evaluate            = &hc_default_user_window;
@@ -1804,7 +1804,7 @@ BT_mb_loop(vrna_fold_compound_t *vc,
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = hc->matrix;
   hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.cp     = vc->cutpoint;
+  hc_dat_local.sn     = vc->strand_number;
 
   if (hc->f) {
     evaluate            = &hc_default_user;
@@ -1817,7 +1817,7 @@ BT_mb_loop(vrna_fold_compound_t *vc,
   hc_dat_local_ext.idx    = vc->jindx;
   hc_dat_local_ext.mx     = hc->matrix;
   hc_dat_local_ext.hc_up  = hc->up_ext;
-  hc_dat_local_ext.cp     = vc->cutpoint;
+  hc_dat_local_ext.sn     = vc->strand_number;
 
   if (hc->f) {
     evaluate_ext            = &hc_default_user_ext;
@@ -2191,7 +2191,7 @@ BT_mb_loop_comparative(vrna_fold_compound_t *vc,
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = hc->matrix;
   hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.cp     = vc->cutpoint;
+  hc_dat_local.sn     = vc->strand_number;
 
   if (hc->f) {
     evaluate            = &hc_default_user;
@@ -2308,7 +2308,7 @@ BT_mb_loop_window(vrna_fold_compound_t  *vc,
   hc_dat_local.mx         = hc->matrix;
   hc_dat_local.mx_window  = hc->matrix_local;
   hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.cp         = vc->cutpoint;
+  hc_dat_local.sn         = vc->strand_number;
 
   if (hc->f) {
     evaluate            = &hc_default_user_window;
@@ -2612,7 +2612,7 @@ BT_mb_loop_window_comparative(vrna_fold_compound_t  *vc,
   hc_dat_local.mx         = hc->matrix;
   hc_dat_local.mx_window  = hc->matrix_local;
   hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.cp         = vc->cutpoint;
+  hc_dat_local.sn         = vc->strand_number;
 
   if (hc->f) {
     evaluate            = &hc_default_user_window;
