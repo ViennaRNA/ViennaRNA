@@ -84,6 +84,7 @@ pkginclude_HEADERS =  \
     ribo.h \
     findpath.h \
     data_structures.h \
+    fold_compound.h \
     MEA.h \
     mm.h \
     loop_energies.h \
@@ -137,6 +138,7 @@ pkginclude_HEADERS =  \
     ${JSON_H}
 
 libRNA_conv_la_SOURCES = \
+    fold_compound.c \
     dist_vars.c \
     data_structures.c \
     part_func.c \
