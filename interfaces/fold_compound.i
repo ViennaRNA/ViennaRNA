@@ -45,6 +45,8 @@
 /* hide all attributes in vrna_fold_compound_t */
 typedef struct {} vrna_fold_compound_t;
 
+%newobject vrna_fold_compound_t::centroid;
+
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
 
@@ -101,7 +103,6 @@ typedef struct {} vrna_fold_compound_t;
 
 }
 
-%newobject vrna_fold_compound_t::centroid;
 
 /*
  *  Rename all the preprocessor macros defined in data_structures.h
