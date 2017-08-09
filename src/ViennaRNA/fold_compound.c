@@ -199,7 +199,7 @@ vrna_fold_compound(const char   *sequence,
   vc->nucleotides = NULL;
   vc->strands     = 0;
 
-  aux_options     = 0L;
+  aux_options = 0L;
 
 
   /* get a copy of the model details */
@@ -578,7 +578,7 @@ set_fold_compound(vrna_fold_compound_t  *vc,
                   unsigned int          options,
                   unsigned int          aux)
 {
-  char          *sequence, **sequences;
+  char          *sequence, **sequences, **ptr;
   unsigned int  length, s, i;
   int           cp;                           /* cut point for cofold */
   char          *seq, *seq2;
@@ -605,6 +605,17 @@ set_fold_compound(vrna_fold_compound_t  *vc,
   switch (vc->type) {
     case VRNA_FC_TYPE_SINGLE:
       sequence = vc->sequence;
+
+      /* split input sequences at default delimiter '&' */
+      sequences = vrna_strsplit(sequence, NULL);
+
+      /* add individual sequences to fold compound */
+      for (ptr = sequences; *ptr; ptr++) {
+        vrna_sequence_add(vc, *ptr, VRNA_SEQUENCE_RNA);
+        free(*ptr);
+      }
+
+      free(sequences);
 
       seq2          = strdup(sequence);
       seq           = vrna_cut_point_remove(seq2, &cp);                   /*  splice out the '&' if concatenated sequences and
