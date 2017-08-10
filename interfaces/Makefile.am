@@ -7,6 +7,7 @@ SOURCES = RNA.i \
           commands.i \
           compare.i \
           constraints.i \
+          data_structures.i \
           duplex.i \
           eval.i \
           file_formats.i \
@@ -47,6 +48,7 @@ EXTRA_DIST =  RNA.i \
               commands.i \
               compare.i \
               constraints.i \
+              data_structures.i \
               duplex.i \
               eval.i \
               file_formats.i \

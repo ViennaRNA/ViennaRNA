@@ -16,6 +16,7 @@ SWIG_misc_src = \
   $(srcdir)/../constraints_soft.i \
   $(srcdir)/../constraints_SHAPE.i \
   $(srcdir)/../constraints_ligand.i \
+  $(srcdir)/../data_structures.i \
   $(srcdir)/../duplex.i \
   $(srcdir)/../eval.i \
   $(srcdir)/../file_formats.i \

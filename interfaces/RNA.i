@@ -7,6 +7,7 @@
 extern "C" {
 #include  <ViennaRNA/model.h>
 #include  <ViennaRNA/data_structures.h>
+#include  <ViennaRNA/fold_compound.h>
 #include  <ViennaRNA/dp_matrices.h>
 #include  <ViennaRNA/alphabet.h>
 #include  <ViennaRNA/grammar.h>
@@ -188,23 +189,13 @@ namespace std {
 %include combinatorics.i
 %include duplex.i
 %include findpath.i
+%include data_structures.i
 %include fold_compound.i
 
 
 /**********************************************/
 /* BEGIN interface for data structures        */
 /**********************************************/
-
-%ignore folden;
-%ignore node;
-%ignore snoopT;
-%ignore dupVar;
-
-%ignore plist;
-%ignore cpair;
-
-
-%include <ViennaRNA/data_structures.h>
 
 %include <ViennaRNA/dp_matrices.h>
 
