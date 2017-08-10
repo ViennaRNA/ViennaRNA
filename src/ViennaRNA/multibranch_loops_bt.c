@@ -203,8 +203,8 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
 {
   char                      *ptype;
   short                     mm5, mm3, *S1;
-  unsigned int              *sn;
-  int                       length, ii, jj, k, en, cp, fij, fi, *my_c, *my_fc, *my_ggg,
+  unsigned int              strands, *sn, *so, *ss, *se;
+  int                       length, ii, jj, k, en, fij, fi, *my_c, *my_fc, *my_ggg,
                             *idx, with_gquad, dangle_model, turn, type;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -213,11 +213,14 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  cp            = vc->cutpoint;
   length        = vc->length;
   P             = vc->params;
   md            = &(P->model_details);
+  strands       = vc->strands;
   sn            = vc->strand_number;
+  so            = vc->strand_order;
+  ss            = vc->strand_start;
+  se            = vc->strand_end;
   hc            = vc->hc;
   sc            = vc->sc;
   S1            = vc->sequence_encoding;
@@ -233,7 +236,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = hc->matrix;
   hc_dat_local.hc_up  = hc->up_ext;
-  hc_dat_local.sn     = vc->strand_number;
+  hc_dat_local.sn     = sn;
 
   if (hc->f) {
     evaluate            = &hc_default_user_ext;
@@ -246,7 +249,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
   ii  = *i;
   jj  = *j;
 
-  if (ii < cp) {
+  if (ii <= se[0]) {
     /* 'lower' part (fc[i<cut,j=cut-1]) */
 
     /* nibble off unpaired 5' bases */
@@ -1769,8 +1772,8 @@ BT_mb_loop(vrna_fold_compound_t *vc,
 {
   char                      *ptype;
   short                     s5, s3, *S1;
-  unsigned int              *sn;
-  int                       ij, p, q, r, e, tmp_en, cp, *idx, turn, dangle_model,
+  unsigned int              strands, *sn, *so, *ss, *se;
+  int                       ij, p, q, r, e, tmp_en, *idx, turn, dangle_model,
                             *my_c, *my_fML, *my_fc, *rtype, type, type_2, tt;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -1781,13 +1784,16 @@ BT_mb_loop(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate_ext;
   struct default_data       hc_dat_local_ext;
 
-  cp            = vc->cutpoint;
   idx           = vc->jindx;
   ij            = idx[*j] + *i;
   S1            = vc->sequence_encoding;
   P             = vc->params;
   md            = &(P->model_details);
+  strands       = vc->strands;
   sn            = vc->strand_number;
+  so            = vc->strand_order;
+  ss            = vc->strand_start;
+  se            = vc->strand_end;
   hc            = vc->hc;
   sc            = vc->sc;
   my_c          = vc->matrices->c;
@@ -1817,7 +1823,7 @@ BT_mb_loop(vrna_fold_compound_t *vc,
   hc_dat_local_ext.idx    = vc->jindx;
   hc_dat_local_ext.mx     = hc->matrix;
   hc_dat_local_ext.hc_up  = hc->up_ext;
-  hc_dat_local_ext.sn     = vc->strand_number;
+  hc_dat_local_ext.sn     = sn;
 
   if (hc->f) {
     evaluate_ext            = &hc_default_user_ext;
@@ -1923,7 +1929,7 @@ BT_mb_loop(vrna_fold_compound_t *vc,
         /* found a decomposition */
         *component1 = 3;
         *i          = ii;
-        *k          = cp - 1;
+        *k          = se[0];
         *j          = jj;
         *component2 = 4;
         return 1;
@@ -2191,7 +2197,7 @@ BT_mb_loop_comparative(vrna_fold_compound_t *vc,
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = hc->matrix;
   hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.sn     = vc->strand_number;
+  hc_dat_local.sn     = sn;
 
   if (hc->f) {
     evaluate            = &hc_default_user;

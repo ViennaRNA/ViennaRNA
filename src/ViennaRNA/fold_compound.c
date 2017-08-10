@@ -102,7 +102,12 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc)
     free(vc->jindx);
     free(vc->params);
     free(vc->exp_params);
+
     free(vc->strand_number);
+    free(vc->strand_order);
+    free(vc->strand_start);
+    free(vc->strand_end);
+
     vrna_hc_free(vc->hc);
     vrna_ud_remove(vc);
     vrna_sequence_remove_all(vc);
@@ -580,7 +585,7 @@ set_fold_compound(vrna_fold_compound_t  *vc,
 {
   char          *sequence, **sequences, **ptr;
   unsigned int  length, s, i;
-  int           cp;                           /* cut point for cofold */
+  int           cp, cnt;
   char          *seq, *seq2;
   vrna_md_t     *md_p;
 
@@ -598,6 +603,10 @@ set_fold_compound(vrna_fold_compound_t  *vc,
   vc->free_auxdata  = NULL;
 
   vc->strand_number = NULL;
+  vc->strand_order  = NULL;
+  vc->strand_start  = NULL;
+  vc->strand_end    = NULL;
+
   vc->domains_struc = NULL;
   vc->domains_up    = NULL;
   vc->aux_grammar   = NULL;
@@ -616,6 +625,27 @@ set_fold_compound(vrna_fold_compound_t  *vc,
       }
 
       free(sequences);
+
+      /* BEGIN prepare sequence stuff */
+
+      /* 1. store initial strand order */
+      vc->strand_order = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->strands + 1));
+      for (cnt = 0; cnt < vc->strands; cnt++)
+        vc->strand_order[cnt] = cnt;
+
+      /* 2. mark start and end positions of sequences */
+      vc->strand_start  = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->strands + 1));
+      vc->strand_end    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->strands + 1));
+
+      vc->strand_start[0] = 1;
+      vc->strand_end[0]   = vc->strand_start[0] + vc->nucleotides[0].length - 1;
+
+      for (cnt = 1; cnt < vc->strands; cnt++) {
+        vc->strand_start[cnt] = vc->strand_end[cnt - 1] + 1;
+        vc->strand_end[cnt]   = vc->strand_start[cnt] + vc->nucleotides[cnt].length - 1;
+      }
+
+      /* END prepare sequence stuff */
 
       seq2          = strdup(sequence);
       seq           = vrna_cut_point_remove(seq2, &cp);                   /*  splice out the '&' if concatenated sequences and

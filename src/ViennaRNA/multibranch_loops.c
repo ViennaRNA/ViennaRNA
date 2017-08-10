@@ -372,8 +372,8 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
                int                  *dmli2)
 {
   short                     S_i1, S_j1, *S, *S2;
-  unsigned int              *sn;
-  int                       decomp, en, e, cp, *indx, *fc, ij, dangle_model, tt;
+  unsigned int              strands, *sn, *so, *ss, *se;
+  int                       decomp, en, e, *indx, *fc, ij, dangle_model, tt;
   vrna_hc_t                 *hc;
   vrna_sc_t                 *sc;
   vrna_param_t              *P;
@@ -381,11 +381,14 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  cp            = vc->cutpoint;
   S             = vc->sequence_encoding;
   S2            = vc->sequence_encoding2;
   indx          = vc->jindx;
+  strands       = vc->strands;
   sn            = vc->strand_number;
+  so            = vc->strand_order;
+  ss            = vc->strand_start;
+  se            = vc->strand_end;
   hc            = vc->hc;
   sc            = vc->sc;
   fc            = vc->matrices->fc;
@@ -414,7 +417,7 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
     evaluate = &hc_default;
   }
 
-  if (cp < 0) {
+  if (strands == 1) {
     S_i1  = S[i + 1];
     S_j1  = S[j - 1];
   } else {
@@ -1302,9 +1305,9 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
 {
   char                      *ptype;
   short                     *S;
-  unsigned int              *sn;
+  unsigned int              strands, *sn, *so, *ss, *se;
   int                       k, en, decomp, mm5, mm3, type_2, k1j, stop, length, *indx,
-                            *c, *fm, ij, dangle_model, turn, type, *rtype, circular, cp, e, u,
+                            *c, *fm, ij, dangle_model, turn, type, *rtype, circular, e, u,
                             cnt, with_ud;
   vrna_hc_t                 *hc;
   vrna_sc_t                 *sc;
@@ -1317,7 +1320,11 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
   ptype         = vc->ptype;
   S             = vc->sequence_encoding;
   indx          = vc->jindx;
+  strands       = vc->strands;
   sn            = vc->strand_number;
+  so            = vc->strand_order;
+  ss            = vc->strand_start;
+  se            = vc->strand_end;
   hc            = vc->hc;
   sc            = vc->sc;
   c             = vc->matrices->c;
@@ -1329,7 +1336,6 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
   type          = get_pair_type(ij, ptype);
   rtype         = &(P->model_details.rtype[0]);
   circular      = P->model_details.circ;
-  cp            = vc->cutpoint;
   domains_up    = vc->domains_up;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   e             = INF;
@@ -1487,7 +1493,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
 
   /* modular decomposition -------------------------------*/
   k1j   = indx[j] + i + turn + 2;
-  stop  = (cp > 0) ? (cp - 1) : (j - 2 - turn);
+  stop  = (strands > 1) ? (se[0]) : (j - 2 - turn);
 
   /* duplicated code is faster than conditions in loop */
   if (hc->f) {
@@ -1887,7 +1893,7 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t  *vc,
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = hc->matrix;
   hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.sn     = vc->strand_number;
+  hc_dat_local.sn     = sn;
 
   if (hc->f) {
     evaluate            = &hc_default_user;

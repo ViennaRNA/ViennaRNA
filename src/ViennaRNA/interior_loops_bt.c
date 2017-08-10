@@ -152,7 +152,8 @@ BT_stack(vrna_fold_compound_t *vc,
   char                      *ptype;
   unsigned char             eval_loop;
   unsigned int              *sn;
-  int                       ij, p, q, *idx, *my_c, *rtype, cp;
+  unsigned int              *ss;
+  int                       ij, p, q, *idx, *my_c, *rtype;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
@@ -160,13 +161,13 @@ BT_stack(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  cp    = vc->cutpoint;
   idx   = vc->jindx;
   P     = vc->params;
   md    = &(P->model_details);
   hc    = vc->hc;
   sc    = vc->sc;
   sn    = vc->strand_number;
+  ss    = vc->strand_start;
   my_c  = vc->matrices->c;
   ij    = idx[*j] + *i;
   ptype = vc->ptype;
@@ -211,7 +212,7 @@ BT_stack(vrna_fold_compound_t *vc,
         sj  = (sn[*j] == sn[q]) ? S[q] : -1;
         *en -= E_IntLoop_Co(rtype[type], rtype[type_2],
                             *i, *j, p, q,
-                            cp,
+                            ss[1],
                             si, sj,
                             S[p - 1], S[q + 1],
                             md->dangles,
@@ -1113,7 +1114,7 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
                                                    type[ss],
                                                    type_2,
                                                    rtype,
-                                                   0, -1,
+                                                   0,
                                                    P,
                                                    S[ss],
                                                    S5[ss],

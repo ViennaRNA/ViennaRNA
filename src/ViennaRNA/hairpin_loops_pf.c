@@ -114,21 +114,24 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
                       int                   j)
 {
   short             *S, *S2, s5, s3;
-  unsigned int      *sn;
-  int               u, cp, type, *iidx;
+  unsigned int      strands, *sn, *so, *ss, *se;
+  int               u, type, *iidx;
   FLT_OR_DBL        qq, temp, *q, *scale;
   vrna_exp_param_t  *pf_params;
   vrna_sc_t         *sc;
   vrna_md_t         *md;
   vrna_ud_t         *domains_up;
 
-  cp          = vc->cutpoint;
   iidx        = vc->iindx;
   pf_params   = vc->exp_params;
   md          = &(pf_params->model_details);
   q           = vc->exp_matrices->q;
   scale       = vc->exp_matrices->scale;
+  strands     = vc->strands;
   sn          = vc->strand_number;
+  so          = vc->strand_order;
+  ss          = vc->strand_start;
+  se          = vc->strand_end;
   domains_up  = vc->domains_up;
 
   qq = 0;
@@ -142,19 +145,17 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
       u     = j - i - 1;
       type  = get_pair_type(S2[j], S2[i], md);
 
-      temp = q[iidx[i + 1] - (cp - 1)] * q[iidx[cp] - (j - 1)];
-      if ((j == cp) && (i == cp - 1))
-        temp = scale[2];
-      else if (i == cp - 1)
-        temp = q[iidx[cp] - (j - 1)] * scale[1];
-      else if (j == cp)
-        temp = q[iidx[i + 1] - (cp - 1)] * scale[1];
+      temp = scale[2];
 
-      if (j > cp)
-        temp *= scale[1];
+      if (u > 0) {
+        /* add contribution for [i + 1, end(strand(i))] */
+        if (sn[i] == sn[i + 1])
+          temp *= q[iidx[i + 1] - se[sn[i]]];
 
-      if (i < cp - 1)
-        temp *= scale[1];
+        /* add contribution for [start(strand(j)), j - 1] */
+        if (sn[j - 1] == sn[j])
+          temp *= q[iidx[ss[sn[j]]] - (j - 1)];
+      }
 
       s5  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
       s3  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;

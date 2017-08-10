@@ -42,7 +42,6 @@ ubf_eval_int_loop_comparative(int           col_i,
                               unsigned char type_2,
                               int           *rtype,
                               int           ij,
-                              int           cp,
                               vrna_param_t  *P,
                               short         *SS,
                               short         *S5,
@@ -111,7 +110,6 @@ ubf_eval_int_loop_comparative(int           col_i,
                               unsigned char type_2,
                               int           *rtype,
                               int           ij,
-                              int           cp,
                               vrna_param_t  *P,
                               short         *SS,
                               short         *S5,
@@ -181,8 +179,8 @@ eval_interior_loop(vrna_fold_compound_t *vc,
   int           energy, e, e5, e3, u1, u2, i1, j1, p1, q1, *idx;
   short         *S, *S2, si, sj, sp, sq;
   unsigned char type, type_2;
-  unsigned int  *sn;
-  int           *rtype, ij, cp;
+  unsigned int  *sn, *so, *ss, *se;
+  int           *rtype, ij;
   vrna_param_t  *P;
   vrna_sc_t     *sc;
   vrna_md_t     *md;
@@ -190,12 +188,14 @@ eval_interior_loop(vrna_fold_compound_t *vc,
 
   S           = vc->sequence_encoding;
   S2          = vc->sequence_encoding2;
-  cp          = vc->cutpoint;
   P           = vc->params;
   sc          = vc->sc;
   domains_up  = vc->domains_up;
   md          = &(P->model_details);
   sn          = vc->strand_number;
+  so          = vc->strand_order;
+  ss          = vc->strand_start;
+  se          = vc->strand_end;
   rtype       = &(md->rtype[0]);
   idx         = vc->jindx;
   type        = get_pair_type(S2[i], S2[j], md);
@@ -224,7 +224,7 @@ eval_interior_loop(vrna_fold_compound_t *vc,
     Sj      = (sn[j] == sn[j1]) ? sj : -1;
     energy  = E_IntLoop_Co(rtype[type], rtype[type_2],
                            i, j, p, q,
-                           cp,
+                           ss[1],
                            Si, Sj,
                            sp, sq,
                            P->model_details.dangles,

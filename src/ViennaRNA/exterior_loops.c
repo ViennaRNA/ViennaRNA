@@ -150,14 +150,16 @@ E_ext_loop(int                  i,
   char                      *ptype;
   unsigned char             *hard_constraints;
   short                     *S;
-  int                       ij, en, e, type, cp, *idx;
+  unsigned int              strands, *sn;
+  int                       ij, en, e, type, *idx;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  cp                = vc->cutpoint;
+  strands           = vc->strands;
+  sn                = vc->strand_number;
   S                 = vc->sequence_encoding;
   idx               = vc->jindx;
   ptype             = vc->ptype;
@@ -182,7 +184,7 @@ E_ext_loop(int                  i,
   ij    = idx[j] + i;
   type  = get_pair_type(ij, ptype);
 
-  if ((cp < 0) || (((i) >= cp) || ((j) < cp))) {
+  if ((strands == 1) || (sn[i] == sn[j])) {
     /* regular exterior loop */
     if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
       switch (md->dangles) {
