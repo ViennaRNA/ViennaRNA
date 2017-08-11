@@ -64,13 +64,13 @@ main(int  argc,
 {
   struct        RNAcofold_args_info args_info;
   char                              *constraints_file, *structure, *cstruc, *rec_sequence,
-                                    *orig_sequence,
+                                    *orig_sequence, *shape_file, *shape_method, *shape_conversion,
                                     *rec_id, **rec_rest, *Concfile, *id_prefix,
                                     *command_file, *id_delim, *filename_delim, *tmp_string;
   unsigned int                      rec_type, read_opt;
   int                               i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
                                     doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch,
-                                    filename_full, canonicalBPonly;
+                                    filename_full, canonicalBPonly, with_shapes, verbose;
   long int                          seq_number;
   double                            min_en, kT, *ConcAandB;
   plist                             *prAB, *prAA, *prBB, *prA, *prB, *mfAB, *mfAA, *mfBB, *mfA,
@@ -102,6 +102,7 @@ main(int  argc,
   commands        = NULL;
   filename_full   = 0;
   canonicalBPonly = 0;
+  verbose         = 0;
 
   set_model_details(&md);
   /*
@@ -122,6 +123,9 @@ main(int  argc,
     vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
     md.dangles = dangles = 2;
   }
+
+  /* SHAPE reactivity data */
+  ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
 
   ggo_get_ID_manipulation(args_info,
                           auto_id,
@@ -176,6 +180,9 @@ main(int  argc,
     else
       md.compute_bpp = do_backtrack = 1;
   }
+
+  if (args_info.verbose_given)
+    verbose = 1;
 
   if (args_info.commands_given)
     command_file = strdup(args_info.commands_arg);
@@ -315,6 +322,15 @@ main(int  argc,
           vrna_constraints_add(vc, (const char *)structure, constraint_options);
         }
       }
+    }
+
+    if (with_shapes) {
+      vrna_constraints_add_SHAPE(vc,
+                                 shape_file,
+                                 shape_method,
+                                 shape_conversion,
+                                 verbose,
+                                 VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
     }
 
     if (commands)
