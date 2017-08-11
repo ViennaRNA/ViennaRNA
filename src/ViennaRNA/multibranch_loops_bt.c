@@ -1840,7 +1840,7 @@ BT_mb_loop(vrna_fold_compound_t *vc,
 
   if (evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
     /* is it a fake multi-loop? */
-    /* NOTE: do we really want to evaluate it hard-constraint-wise as a multibranch loop? */
+    /* The following block actually has to reside outside evaluate() function! */
     if (sn[*i] != sn[*j]) {
       int ii, jj;
       ii  = jj = 0;

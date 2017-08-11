@@ -350,7 +350,8 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
                int                  j,
                vrna_mx_pf_aux_el_t  *aux_mx)
 {
-  short                     *S1, *S2;
+  short                     *S1, *S2, s5, s3;
+  unsigned int              strands, *sn, *so, *ss, *se;
   int                       n, *iidx, k, ij, kl, with_ud, u, circular, with_gquad, type;
   FLT_OR_DBL                qbt1, *q, *qb, *qq, *qq1, **qqu, q_temp, *scale, q_temp2, *G;
   vrna_md_t                 *md;
@@ -362,6 +363,11 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
   struct default_data       hc_dat_local;
 
   n                   = (int)vc->length;
+  strands             = vc->strands;
+  sn                  = vc->strand_number;
+  so                  = vc->strand_order;
+  ss                  = vc->strand_start;
+  se                  = vc->strand_end;
   iidx                = vc->iindx;
   ij                  = iidx[i] - j;
   qq                  = aux_mx->qq;
@@ -442,11 +448,10 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
     S1      = vc->sequence_encoding;
     S2      = vc->sequence_encoding2;
     type    = get_pair_type_md(S2[i], S2[j], md);
+    s5      = (((i > 1) || circular) && (sn[i] == sn[i - 1])) ? S1[i - 1] : -1;
+    s3      = (((j < n) || circular) && (sn[j + 1] == sn[j])) ? S1[j + 1] : -1;
     q_temp  = qb[ij] *
-              exp_E_ExtLoop(type,
-                            ((i > 1) || circular) ? S1[i - 1] : -1,
-                            ((j < n) || circular) ? S1[j + 1] : -1,
-                            pf_params);
+              exp_E_ExtLoop(type, s5, s3, pf_params);
 
     if (sc)
       if (sc->exp_f)
@@ -734,7 +739,7 @@ exp_E_ext_fast_comparative(vrna_fold_compound_t *vc,
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = hc->matrix;
   hc_dat_local.hc_up  = hc->up_ext;
-  hc_dat_local.sn     = vc->strand_number;
+  hc_dat_local.sn     = sn;
 
   if (hc->f) {
     evaluate            = &hc_default_user;

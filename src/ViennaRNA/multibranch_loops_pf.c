@@ -173,54 +173,25 @@ exp_E_mb_loop_fast(vrna_fold_compound_t *vc,
       if (sc->exp_f) {
         qqqmmm *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_ML, sc->data);
 
-        if (hc->f) {
-          for (k = i + 2; k <= j - 1; k++, kl--) {
-            if ((sn[k - 1] == sn[k]) &&
-                (hc->f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data))) {
-              temp += qm[kl] *
-                      qqm1[k] *
-                      sc->exp_f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
-            }
-          }
-        } else {
-          for (k = i + 2; k <= j - 1; k++, kl--) {
-            if (sn[k - 1] == sn[k]) {
-              temp += qm[kl] *
-                      qqm1[k] *
-                      sc->exp_f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
-            }
+        for (k = i + 2; k <= j - 1; k++, kl--) {
+          if (evaluate(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+            temp += qm[kl] *
+                    qqm1[k] *
+                    sc->exp_f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
           }
         }
       } else {
-        if (hc->f) {
-          for (k = i + 2; k <= j - 1; k++, kl--) {
-            if ((sn[k - 1] == sn[k]) &&
-                (hc->f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data)))
-              temp += qm[kl] *
-                      qqm1[k];
-          }
-        } else {
-          for (k = i + 2; k <= j - 1; k++, kl--) {
-            if (sn[k - 1] == sn[k])
-              temp += qm[kl] *
-                      qqm1[k];
-          }
+        for (k = i + 2; k <= j - 1; k++, kl--) {
+          if (evaluate(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, &hc_dat_local))
+            temp += qm[kl] *
+                    qqm1[k];
         }
       }
     } else {
-      if (hc->f) {
-        for (k = i + 2; k <= j - 1; k++, kl--) {
-          if ((sn[k - 1] == sn[k]) &&
-              (hc->f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data)))
-            temp += qm[kl] *
-                    qqm1[k];
-        }
-      } else {
-        for (k = i + 2; k <= j - 1; k++, kl--) {
-          if (sn[k - 1] == sn[k])
-            temp += qm[kl] *
-                    qqm1[k];
-        }
+      for (k = i + 2; k <= j - 1; k++, kl--) {
+        if (evaluate(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, &hc_dat_local))
+          temp += qm[kl] *
+                  qqm1[k];
       }
     }
 
@@ -293,54 +264,25 @@ exp_E_mb_loop_fast_window(vrna_fold_compound_t  *vc,
       if (sc->exp_f) {
         qqqmmm *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_ML, sc->data);
 
-        if (hc->f) {
-          for (k = i + 2; k <= j - 1; k++) {
-            if ((sn[k - 1] == sn[k]) &&
-                (hc->f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data))) {
-              temp += qm[i + 1][k - 1] *
-                      qqm1[k] *
-                      sc->exp_f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
-            }
-          }
-        } else {
-          for (k = i + 2; k <= j - 1; k++) {
-            if (sn[k - 1] == sn[k]) {
-              temp += qm[i + 1][k - 1] *
-                      qqm1[k] *
-                      sc->exp_f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
-            }
+        for (k = i + 2; k <= j - 1; k++) {
+          if (evaluate(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+            temp += qm[i + 1][k - 1] *
+                    qqm1[k] *
+                    sc->exp_f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
           }
         }
       } else {
-        if (hc->f) {
-          for (k = i + 2; k <= j - 1; k++) {
-            if ((sn[k - 1] == sn[k]) &&
-                (hc->f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data)))
-              temp += qm[i + 1][k - 1] *
-                      qqm1[k];
-          }
-        } else {
-          for (k = i + 2; k <= j - 1; k++) {
-            if (sn[k - 1] == sn[k])
-              temp += qm[i + 1][k - 1] *
-                      qqm1[k];
-          }
+        for (k = i + 2; k <= j - 1; k++) {
+          if (evaluate(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, &hc_dat_local))
+            temp += qm[i + 1][k - 1] *
+                    qqm1[k];
         }
       }
     } else {
-      if (hc->f) {
-        for (k = i + 2; k <= j - 1; k++) {
-          if ((sn[k - 1] == sn[k]) &&
-              (hc->f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data)))
-            temp += qm[i + 1][k - 1] *
-                    qqm1[k];
-        }
-      } else {
-        for (k = i + 2; k <= j - 1; k++) {
-          if (sn[k - 1] == sn[k])
-            temp += qm[i + 1][k - 1] *
-                    qqm1[k];
-        }
+      for (k = i + 2; k <= j - 1; k++) {
+        if (evaluate(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, &hc_dat_local))
+          temp += qm[i + 1][k - 1] *
+                  qqm1[k];
       }
     }
 
@@ -604,6 +546,7 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
               vrna_mx_pf_aux_ml_t   *aux_mx)
 {
   short                     *S1, *S2;
+  unsigned int              strands, *sn, *so, *ss, *se;
   int                       n, *iidx, k, ij, kl, maxk, ii, with_ud, u, circular, with_gquad,
                             *hc_up_ml, type;
   FLT_OR_DBL                qbt1, temp, *qm, *qb, *qqm, *qqm1, **qqmu, q_temp, q_temp2, *G,
@@ -618,6 +561,11 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
   struct default_data       hc_dat_local;
 
   n                   = (int)vc->length;
+  strands             = vc->strands;
+  sn                  = vc->strand_number;
+  so                  = vc->strand_order;
+  ss                  = vc->strand_start;
+  se                  = vc->strand_end;
   iidx                = vc->iindx;
   ij                  = iidx[i] - j;
   qqm                 = aux_mx->qqm;
@@ -739,38 +687,88 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
   kl    = iidx[i] - j + 1; /* ii-k=[i,k-1] */
   if (hc->f) {
     if (sc && sc->exp_f) {
-      for (k = j; k > i; k--, kl++) {
-        if (hc->f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+      if (sn[i] == sn[j]) {
+        for (k = j; k > i; k--, kl++) {
+          if (hc->f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+            q_temp  = qm[kl] * qqm[k];
+            q_temp  *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+            temp    += q_temp;
+          }
+        }
+      } else {
+        for (k = j; k > MAX2(i, ss[sn[j]]); k--, kl++) {
+          if (hc->f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+            q_temp  = qm[kl] * qqm[k];
+            q_temp  *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+            temp    += q_temp;
+          }
+        }
+        for (k--, kl++; k > i; k--, kl++) {
+          if (hc->f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+            q_temp  = qm[kl] * qqm[k];
+            q_temp  *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+            temp    += q_temp;
+          }
+        }
+      }
+    } else {
+      if (sn[i] == sn[j]) {
+        for (k = j; k > i; k--, kl++)
+          if (hc->f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data))
+            temp += qm[kl] * qqm[k];
+      } else {
+        for (k = j; k > MAX2(i, ss[sn[j]]); k--, kl++)
+          if (hc->f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data))
+            temp += qm[kl] * qqm[k];
+        for (k--, kl++; k > i; k--, kl++)
+          if (hc->f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data))
+            temp += qm[kl] * qqm[k];
+      }
+    }
+  } else {
+    if (sc && sc->exp_f) {
+      if (sn[i] == sn[j]) {
+        for (k = j; k > i; k--, kl++) {
+          q_temp  = qm[kl] * qqm[k];
+          q_temp  *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+          temp    += q_temp;
+        }
+      } else {
+        for (k = j; k > MAX2(i, ss[sn[j]]); k--, kl++) {
+          q_temp  = qm[kl] * qqm[k];
+          q_temp  *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+          temp    += q_temp;
+        }
+        for (k--, kl++; k > i; k--, kl++) {
           q_temp  = qm[kl] * qqm[k];
           q_temp  *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
           temp    += q_temp;
         }
       }
     } else {
-      for (k = j; k > i; k--, kl++)
-        if (hc->f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data))
+      if (sn[i] == sn[j]) {
+        for (k = j; k > i; k--, kl++)
           temp += qm[kl] * qqm[k];
-    }
-  } else {
-    if (sc && sc->exp_f) {
-      for (k = j; k > i; k--, kl++) {
-        q_temp  = qm[kl] * qqm[k];
-        q_temp  *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
-        temp    += q_temp;
+      } else {
+        for (k = j; k > MAX2(i, ss[sn[j]]); k--, kl++)
+          temp += qm[kl] * qqm[k];
+        for (k--, kl++; k > i; k--, kl++)
+          temp += qm[kl] * qqm[k];
       }
-    } else {
-      for (k = j; k > i; k--, kl++)
-        temp += qm[kl] * qqm[k];
     }
   }
 
   maxk  = MIN2(i + hc_up_ml[i], j);
+
+  if (sn[i] != sn[j]) /* we must not have the strand border within the unpaired segment */
+    maxk = MIN2(maxk, se[sn[i]]);
+
   ii    = maxk - i; /* length of unpaired stretch */
   if (with_ud) {
     if (hc->f) {
       if (sc) {
         for (k = maxk; k > i; k--, ii--) {
-          if (evaluate(i, j, k, j, VRNA_DECOMP_ML_ML, hc->data)) {
+          if (evaluate(i, j, k, j, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
             q_temp = expMLbase[ii] *
                      qqm[k];
 
@@ -790,7 +788,7 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
         }
       } else {
         for (k = maxk; k > i; k--, ii--) {
-          if (evaluate(i, j, k, j, VRNA_DECOMP_ML_ML, hc->data)) {
+          if (evaluate(i, j, k, j, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
             q_temp = expMLbase[ii] *
                      qqm[k];
 
@@ -1056,7 +1054,7 @@ exp_E_ml_fast_window(vrna_fold_compound_t *vc,
     if (hc->f) {
       if (sc) {
         for (k = maxk; k > i; k--, ii--) {
-          if (evaluate(i, j, k, j, VRNA_DECOMP_ML_ML, hc->data)) {
+          if (evaluate(i, j, k, j, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
             q_temp = expMLbase[ii] *
                      qqm[k];
 
@@ -1076,7 +1074,7 @@ exp_E_ml_fast_window(vrna_fold_compound_t *vc,
         }
       } else {
         for (k = maxk; k > i; k--, ii--) {
-          if (evaluate(i, j, k, j, VRNA_DECOMP_ML_ML, hc->data)) {
+          if (evaluate(i, j, k, j, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
             q_temp = expMLbase[ii] *
                      qqm[k];
 
@@ -1211,7 +1209,7 @@ exp_E_ml_fast_comparative(vrna_fold_compound_t  *vc,
   hc_dat_local.idx    = vc->jindx;
   hc_dat_local.mx     = hc->matrix;
   hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.sn     = vc->strand_number;
+  hc_dat_local.sn     = sn;
 
   if (hc->f) {
     evaluate            = &hc_default_user;

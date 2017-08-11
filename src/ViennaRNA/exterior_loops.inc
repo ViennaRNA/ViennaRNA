@@ -137,11 +137,11 @@ hc_default(int            i,
       kl = dat->idx[j - 1] + l;
       if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         eval = (unsigned char)1;
+        if (dat->hc_up[j] == 0)
+          eval = (unsigned char)0;
         if (i != l) {
           /* otherwise, stem spans from i to j - 1 */
           di = l - k - 1;
-          if (dat->hc_up[j] == 0)
-            eval = (unsigned char)0;
 
           if ((di != 0) && (dat->hc_up[k + 1] < di))
             eval = (unsigned char)0;

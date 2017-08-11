@@ -133,7 +133,7 @@ hc_default(int            i,
   unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
 
-  eval  = (char)0;
+  eval  = (unsigned char)0;
   di    = k - i;
   dj    = j - l;
 
@@ -144,14 +144,17 @@ hc_default(int            i,
       if ((u != 0) && (dat->hc_up[k + 1] < u))
         eval = (unsigned char)0;
 
+      if (dat->sn[k] != dat->sn[l])
+        eval = (unsigned char)0;
+
       break;
 
     case VRNA_DECOMP_ML_ML:
       eval = (unsigned char)1;
-      if ((di != 0) && (dat->hc_up[i] < di))
+      if ((di != 0) && ((dat->hc_up[i] < di) || (dat->sn[i] != dat->sn[k])))
         eval = (unsigned char)0;
 
-      if ((dj != 0) && (dat->hc_up[l + 1] < dj))
+      if ((dj != 0) && ((dat->hc_up[l + 1] < dj) || (dat->sn[l] != dat->sn[j])))
         eval = (unsigned char)0;
 
       break;
