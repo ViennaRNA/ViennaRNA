@@ -95,6 +95,22 @@ namespace std {
 }
 
 
+%typemap(out) int [ANY] 
+{ 
+  AV* av = newAV();
+  int i = 0,len = 0;
+  len = $1_dim0;
+
+  for (i = 0; i < len ; i++) {
+      SV* perlval = newSV(0);
+      sv_setiv(perlval, (IV)$1[i]);
+      av_push(av, perlval);
+  }
+  $result = newRV_noinc((SV*) av );
+  sv_2mortal( $result );
+  argvi++;
+}
+
 %typemap(in) SV *PerlFunc {
   $1 = $input;
 }
