@@ -271,6 +271,12 @@ vrna_exp_params_rescale(vrna_fold_compound_t  *vc,
           vc->exp_params = vrna_exp_params_comparative(vc->n_seq, &(vc->params->model_details));
           break;
       }
+    } else if (memcmp(&(vc->params->model_details),
+                      &(vc->exp_params->model_details),
+                      sizeof(vrna_md_t)) != 0) {
+      /* make sure that model details are matching */
+      (void)vrna_md_copy(&(vc->exp_params->model_details), &(vc->params->model_details));
+      /* we probably need some mechanism to check whether DP matrices still match the new model settings! */
     }
 
     pf = vc->exp_params;
