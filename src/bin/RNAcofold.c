@@ -33,12 +33,13 @@
 
 #include "ViennaRNA/color_output.inc"
 
-PRIVATE vrna_dimer_pf_t do_partfunc(char              *string,
-                                    int               length,
-                                    int               Switch,
-                                    plist             **tpr,
-                                    plist             **mf,
-                                    vrna_exp_param_t  *parameters);
+PRIVATE vrna_dimer_pf_t do_partfunc(char      *string,
+                                    int       length,
+                                    int       Switch,
+                                    plist     **tpr,
+                                    plist     **mf,
+                                    vrna_md_t *md,
+                                    double    kT);
 
 
 PRIVATE double *read_concentrations(FILE *fp);
@@ -476,9 +477,11 @@ main(int  argc,
       /* free_co_arrays(); */
       if (doT) {
         /* cofold of all dimers, monomers */
-        int   Blength, Alength;
-        char  *Astring, *Bstring, *orig_Astring, *orig_Bstring;
-        char  *Newstring;
+        int     Blength, Alength;
+        char    *Astring, *Bstring, *orig_Astring, *orig_Bstring;
+        char    *Newstring;
+        double  kT;
+
         if (vc->cutpoint <= 0) {
           vrna_message_warning(
             "Sorry, i cannot do that with only one molecule, please give me two or leave it");
@@ -489,6 +492,8 @@ main(int  argc,
 
         if (dangles == 1)
           dangles = 2;
+
+        kT = vc->exp_params->kT / 1000.;
 
         Alength = vc->cutpoint - 1;                                 /* length of first molecule */
         Blength = length - vc->cutpoint + 1;                        /* length of 2nd molecule   */
@@ -504,16 +509,16 @@ main(int  argc,
         strncat(orig_Bstring, orig_sequence + Alength + 1, Blength);
 
         /* compute AA dimer */
-        AA = do_partfunc(Astring, Alength, 2, (do_backtrack) ? &prAA : NULL, &mfAA, vc->exp_params);
+        AA = do_partfunc(Astring, Alength, 2, (do_backtrack) ? &prAA : NULL, &mfAA, &md, kT);
         /* compute BB dimer */
-        BB = do_partfunc(Bstring, Blength, 2, (do_backtrack) ? &prBB : NULL, &mfBB, vc->exp_params);
+        BB = do_partfunc(Bstring, Blength, 2, (do_backtrack) ? &prBB : NULL, &mfBB, &md, kT);
         /*free_co_pf_arrays();*/
 
         /* compute A monomer */
-        do_partfunc(Astring, Alength, 1, (do_backtrack) ? &prA : NULL, &mfA, vc->exp_params);
+        do_partfunc(Astring, Alength, 1, (do_backtrack) ? &prA : NULL, &mfA, &md, kT);
 
         /* compute B monomer */
-        do_partfunc(Bstring, Blength, 1, (do_backtrack) ? &prB : NULL, &mfB, vc->exp_params);
+        do_partfunc(Bstring, Blength, 1, (do_backtrack) ? &prB : NULL, &mfB, &md, kT);
 
         if (do_backtrack) {
           vrna_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, vc->exp_params);
@@ -726,46 +731,39 @@ main(int  argc,
 
 
 PRIVATE vrna_dimer_pf_t
-do_partfunc(char              *string,
-            int               length,
-            int               Switch,
-            plist             **tpr,
-            plist             **mfpl,
-            vrna_exp_param_t  *parameters)
+do_partfunc(char      *string,
+            int       length,
+            int       Switch,
+            plist     **tpr,
+            plist     **mfpl,
+            vrna_md_t *md,
+            double    kT)
 {
   /*compute mfe and partition function of dimer or monomer*/
   char                  *Newstring;
   char                  *tempstruc;
   double                min_en;
-  double                sfact = 1.07;
-  double                kT;
-  vrna_exp_param_t      *par;
   vrna_dimer_pf_t       X;
   vrna_fold_compound_t  *vc;
 
-  kT = parameters->kT / 1000.;
   switch (Switch) {
     case 1:   /* monomer */
       tempstruc = (char *)vrna_alloc((unsigned)length + 1);
-      //parameters->model_details.min_loop_size = TURN; /* we need min_loop_size of 0 to correct for Q_AB */
-      vc = vrna_fold_compound(string,
-                              &(parameters->model_details),
-                              VRNA_OPTION_MFE | VRNA_OPTION_PF);
+      vc        = vrna_fold_compound(string,
+                                     md,
+                                     VRNA_OPTION_MFE | VRNA_OPTION_PF);
       min_en  = vrna_mfe(vc, tempstruc);
       *mfpl   = vrna_plist(tempstruc, 0.95);
       vrna_mx_mfe_free(vc);
 
-      par           = vrna_exp_params_copy(parameters);
-      par->pf_scale = exp(-(sfact * min_en) / kT / (length));
-      vrna_exp_params_subst(vc, par);
-      X = vrna_pf_dimer(vc, tempstruc);
+      vrna_exp_params_rescale(vc, &min_en);
+
+      X = vrna_pf_dimer(vc, NULL);
       if (tpr)
         *tpr = vrna_plist_from_probs(vc, bppmThreshold);
 
       vrna_fold_compound_free(vc);
       free(tempstruc);
-      free(par);
-      parameters->model_details.min_loop_size = 0;
       break;
 
     case 2:   /* dimer */
@@ -774,19 +772,18 @@ do_partfunc(char              *string,
       strcat(Newstring, string);
       strcat(Newstring, "&");
       strcat(Newstring, string);
-      parameters->model_details.min_loop_size = 0;
-      vc                                      =
-        vrna_fold_compound(Newstring,
-                           &(parameters->model_details),
-                           VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+
+      vc = vrna_fold_compound(Newstring,
+                              md,
+                              VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+
       min_en  = vrna_mfe_dimer(vc, tempstruc);
       *mfpl   = vrna_plist(tempstruc, 0.95);
       vrna_mx_mfe_free(vc);
 
-      par           = vrna_exp_params_copy(parameters);
-      par->pf_scale = exp(-(sfact * min_en) / kT / (2 * length));
-      vrna_exp_params_subst(vc, par);
-      X = vrna_pf_dimer(vc, tempstruc);
+      vrna_exp_params_rescale(vc, &min_en);
+
+      X = vrna_pf_dimer(vc, NULL);
       if (tpr)
         *tpr = vrna_plist_from_probs(vc, bppmThreshold);
 
@@ -794,7 +791,6 @@ do_partfunc(char              *string,
 
       free(Newstring);
       free(tempstruc);
-      free(par);
       break;
 
     default:
