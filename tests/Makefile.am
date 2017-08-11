@@ -176,7 +176,9 @@ EXECUTABLE_TESTS  = \
                   RNAfold/general.sh \
                   RNAfold/partfunc.sh \
                   RNAfold/special.sh \
-                  RNAfold/long.sh
+                  RNAfold/long.sh \
+                  RNAcofold/general.sh \
+                  RNAcofold/partfunc.sh
 
 endif
 
