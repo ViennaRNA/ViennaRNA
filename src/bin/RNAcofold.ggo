@@ -156,8 +156,8 @@ argoptional
 option  "batch"   -
 "Use constraints for multiple sequences.\n"
 details="Usually, constraints provided from input file only apply to a single input sequence. Therefore,\
- RNAfold will stop its computation and quit after the first input sequence was processed. Using this\
- switch, RNAfold processes multiple input sequences and applies the same provided constraints to each of them.\n\n"
+ RNAcofold will stop its computation and quit after the first input sequence was processed. Using this\
+ switch, RNAcofold processes multiple input sequences and applies the same provided constraints to each of them.\n\n"
 flag
 off
 dependon="constraint"
@@ -324,7 +324,7 @@ option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ RNAcofold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional
