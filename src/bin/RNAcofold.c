@@ -714,7 +714,7 @@ main(int  argc,
 
     free(SEQ_ID);
 
-    if (constraints_file && (!batch))
+    if (with_shapes || (constraints_file && (!batch)))
       break;
 
     ID_number_increase(&seq_number, "Sequence");
