@@ -110,7 +110,7 @@ vrna_pf_fold( const char *seq,
   }
 
   vc  = vrna_fold_compound(seq, &md, 0);
-  mfe = (double)vrna_pf(vc, NULL);
+  mfe = (double)vrna_mfe(vc, NULL);
   vrna_exp_params_rescale(vc, &mfe);
   free_energy = vrna_pf(vc, structure);
 
