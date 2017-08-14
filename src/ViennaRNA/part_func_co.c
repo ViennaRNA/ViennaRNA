@@ -25,6 +25,7 @@
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/mfe.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/part_func_co.h"
 
@@ -105,6 +106,43 @@ PRIVATE vrna_dimer_pf_t wrap_co_pf_fold(char              *sequence,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
+PUBLIC vrna_dimer_pf_t
+vrna_pf_co_fold(const char  *seq,
+                char        *structure,
+                vrna_ep_t   **pl)
+{
+  vrna_dimer_pf_t       X;
+
+  float                 free_energy;
+  double                mfe;
+  vrna_fold_compound_t  *vc;
+  vrna_md_t             md;
+
+  vrna_md_set_default(&md);
+
+  /* no need to backtrack MFE structure */
+  md.backtrack = 0;
+  if (pl)
+    md.compute_bpp = 1;
+  else
+    md.compute_bpp = 0;
+
+  vc = vrna_fold_compound(seq, &md, VRNA_OPTION_DEFAULT);
+
+  mfe = (double)vrna_mfe_dimer(vc, NULL);
+  vrna_exp_params_rescale(vc, &mfe);
+
+  X = vrna_pf_dimer(vc, structure);
+
+  if (pl)
+    *pl = vrna_plist_from_probs(vc, /*cut_off:*/ 1e-6);
+
+  vrna_fold_compound_free(vc);
+
+  return X;
+}
+
+
 PUBLIC vrna_dimer_pf_t
 vrna_pf_dimer(vrna_fold_compound_t  *vc,
               char                  *structure)

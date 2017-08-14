@@ -118,6 +118,13 @@ struct vrna_dimer_conc_s {
   double  Bc;
 };
 
+
+vrna_dimer_pf_t
+vrna_pf_co_fold(const char  *seq,
+                char        *structure,
+                vrna_ep_t   **pl);
+
+
 /**
  *  @brief  Calculate partition function and base pair probabilities of
  *          nucleic acid/nucleic acid dimers
