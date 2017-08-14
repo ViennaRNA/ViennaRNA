@@ -35,6 +35,7 @@ typedef struct {
   int       MultipleCB;
   double    temperature;
   vrna_md_t model_details;
+  char      param_file[256];
 } vrna_param_t;
 
 /* do not create default constructor and hide data fields of vrna_param_t from SWIG */
@@ -64,6 +65,7 @@ typedef struct {
   double  temperature;
   double  alpha;
   vrna_md_t model_details;
+  char      param_file[256];
 } vrna_exp_param_t;
 
 /* make a nice object oriented interface to vrna_param_t */

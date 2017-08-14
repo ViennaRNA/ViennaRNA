@@ -93,6 +93,7 @@ struct vrna_param_s {
   double    temperature;      /**<  @brief  Temperature used for loop contribution scaling */
 
   vrna_md_t model_details;    /**<  @brief  Model details to be used in the recursions */
+  char      param_file[256];  /**<  @brief  The filename the parameters were derived from, or empty string if they represent the default */
 };
 
 /**
@@ -149,6 +150,7 @@ struct vrna_exp_param_s {
                              */
 
   vrna_md_t model_details;  /**<  @brief  Model details to be used in the recursions */
+  char      param_file[256];  /**<  @brief  The filename the parameters were derived from, or empty string if they represent the default */
 };
 
 
