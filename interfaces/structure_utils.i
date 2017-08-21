@@ -162,15 +162,14 @@ typedef struct {
   int j;
   float p;
   int type;
-  %extend {
+} vrna_ep_t;
+
+%extend vrna_ep_t {
     char *__str__() {
       char *tmp = vrna_strdup_printf("[ i: %d, j: %d, p: %.10g, t: %2d ]", $self->i, $self->j, $self->p, $self->type);
       return tmp;
     }
-  }
-} vrna_ep_t;
-
-char *vrna_ep_t::__str__();
+}
 
 
 /*
