@@ -752,21 +752,21 @@ E_int_loop_window_next_q:
 
 
 PRIVATE INLINE int
-ubf_eval_int_loop_comparative(int             col_i,
-                              int             col_j,
-                              int             col_p,
-                              int             col_q,
-                              unsigned char   type,
-                              unsigned char   type_2,
-                              int             *rtype,
-                              int             ij,
-                              int             cp,
-                              vrna_param_t    *P,
-                              short           *SS,
-                              short           *S5,
-                              short           *S3,
-                              unsigned int    *a2s,
-                              vrna_sc_t       *sc)
+ubf_eval_int_loop_comparative(int           col_i,
+                              int           col_j,
+                              int           col_p,
+                              int           col_q,
+                              unsigned char type,
+                              unsigned char type_2,
+                              int           *rtype,
+                              int           ij,
+                              int           cp,
+                              vrna_param_t  *P,
+                              short         *SS,
+                              short         *S5,
+                              short         *S3,
+                              unsigned int  *a2s,
+                              vrna_sc_t     *sc)
 {
   short si, sj, sp, sq;
   int   energy, u1, u2;
@@ -1014,18 +1014,18 @@ E_int_loop_comparative_window(vrna_fold_compound_t  *vc,
                               int                   i,
                               int                   j)
 {
-  unsigned char   type, type_2;
-  unsigned char   eval_loop;
-  unsigned int    **a2s;
-  short           **SS, **S5, **S3, *S_cons;
-  int             q, p, j_q, p_i, u, min_q, max_q, max_p, tmp,
-                  *rtype, *types, dangle_model, energy, c0, s, n_seq, cp,
-                  *hc_up, hc_decompose, e, **c, **ggg, with_gquad,
-                  turn;
-  vrna_sc_t       **scs;
-  vrna_param_t    *P;
-  vrna_md_t       *md;
-  vrna_hc_t       *hc;
+  unsigned char type, type_2;
+  unsigned char eval_loop;
+  unsigned int  **a2s;
+  short         **SS, **S5, **S3, *S_cons;
+  int           q, p, j_q, p_i, u, min_q, max_q, max_p, tmp,
+                *rtype, *types, dangle_model, energy, c0, s, n_seq, cp,
+                *hc_up, hc_decompose, e, **c, **ggg, with_gquad,
+                turn;
+  vrna_sc_t     **scs;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_hc_t     *hc;
 
   cp            = vc->cutpoint;
   P             = vc->params;
@@ -1706,12 +1706,13 @@ exp_E_int_loop_window(vrna_fold_compound_t  *vc,
     }
 
 #if 0
-  /* no G-Quadruplexes for sliding-window partition function yet! */
+    /* no G-Quadruplexes for sliding-window partition function yet! */
     if (with_gquad) {
       /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
       if ((!no_close) && (sn[j] == sn[i]))
         qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, scale, my_iindx, pf_params);
     }
+
 #endif
   }
 
@@ -3377,13 +3378,13 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
 {
   unsigned char             eval_loop;
   unsigned int              **a2s;
-  short                     **S, **S5, **S3, *S_cons;
-  int                       *type, type_2;
+  short                     **S, **SS, **S5, **S3, *S_cons;
+  int                       *type, type_2, *rtype;
   int                       p, q, minq, turn, energy, new, **c, **ggg, n_seq, ss;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
-  vrna_sc_t                 **scs;
+  vrna_sc_t                 **scs, *sc;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
@@ -3400,6 +3401,7 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
   c       = vc->matrices->c_local;
   ggg     = vc->matrices->ggg_local;
   turn    = md->min_loop_size;
+  rtype   = &(md->rtype[0]);
 
   if (hc->f) {
     evaluate            = &hc_default_user;
@@ -3432,16 +3434,19 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
           continue;
 
         for (ss = energy = 0; ss < n_seq; ss++) {
-          type_2  = get_pair_type(S[ss][q], S[ss][p], md); /* q,p not p,q */
-          energy  += E_IntLoop(a2s[ss][p - 1] - a2s[ss][*i],
-                               a2s[ss][*j - 1] - a2s[ss][q],
-                               type[ss],
-                               type_2,
-                               S3[ss][*i],
-                               S5[ss][*j],
-                               S5[ss][p],
-                               S3[ss][q],
-                               P);
+          type_2  = get_pair_type(S[ss][q], S[ss][p], md); /* q,p not p,q! */
+          sc      = (scs && scs[ss]) ? scs[ss] : NULL;
+          energy  += ubf_eval_int_loop_comparative(*i, *j, p, q,
+                                                   type[ss],
+                                                   type_2,
+                                                   rtype,
+                                                   0, -1,
+                                                   P,
+                                                   S[ss],
+                                                   S5[ss],
+                                                   S3[ss],
+                                                   a2s[ss],
+                                                   sc);
         }
 
         new = energy + c[p][q - p];
