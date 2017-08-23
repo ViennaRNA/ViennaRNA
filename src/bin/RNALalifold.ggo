@@ -18,7 +18,12 @@ description "reads aligned RNA sequences from stdin or file.aln and calculates\
 
 # Options
 section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n"
+sectiondesc="Command line options which alter the general behavior of this program\n\n"
+
+option  "verbose" v
+"Be verbose.\n\n"
+flag
+off
 
 option  "quiet" q
 "Be quiet.\n"
@@ -182,6 +187,39 @@ default="ID-delimiter"
 optional
 hidden
 
+
+# Options
+section "Structure Constraints"
+sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
+
+option  "shape" -
+"Use SHAPE reactivity data to guide structure predictions\n"
+details="Multiple shapefiles for the individual sequences in the alignment may be specified \
+ as a comma separated list. An optional association of particular shape files to a specific \
+ sequence in the alignment can be expressed by prepending the sequence number to the filename, \
+ e.g. \"5=seq5.shape,3=seq3.shape\" will assign the reactivity values from file seq5.shape to \
+ the fifth sequence in the alignment, and the values from file seq3.shape to sequence 3. If \
+ no assignment is specified, the reactivity values are assigned to corresponding sequences in \
+ the order they are given.\n\n"
+string
+typestr="file1,file2"
+multiple(1-)
+optional
+
+option  "shapeMethod" -
+"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
+details="Currently, the only data conversion method available is that of to Deigan et al 2009. \
+ This method is the default and is recognized by a capital 'D' in the provided parameter, i.e.: \
+ --shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
+ non-default value if necessary. Otherwise m=1.8 and b=-0.6 as stated in the paper mentionen before. \
+ To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
+ parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
+ parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".\n\n"
+string
+typestr="D[mX][bY]"
+dependon="shape"
+default="D"
+optional
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
