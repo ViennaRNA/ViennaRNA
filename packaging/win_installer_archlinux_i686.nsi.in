@@ -118,7 +118,7 @@ section "Core" sec_core
   File "/usr/i686-w64-mingw32/bin/libgomp-1.dll"
   File "/usr/i686-w64-mingw32/bin/libwinpthread-1.dll"
   File "/usr/i686-w64-mingw32/bin/libgcc_s_sjlj-1.dll"
-  File "/usr/i686-w64-mingw32/bin/libgsl-19.dll"
+  File "/usr/i686-w64-mingw32/bin/libgsl-23.dll"
   File "/usr/i686-w64-mingw32/bin/libgslcblas-0.dll"
   
   File ".local"
@@ -234,7 +234,7 @@ section "Uninstall"
   delete $INSTDIR\libgomp-1.dll
   delete $INSTDIR\libwinpthread-1.dll
   delete $INSTDIR\libgcc_s_sjlj-1.dll
-  delete $INSTDIR\libgsl-19.dll
+  delete $INSTDIR\libgsl-23.dll
   delete $INSTDIR\libgslcblas-0.dll
   delete $INSTDIR\.local
 
