@@ -30,7 +30,6 @@
 
 // Creates a new Perl array and places a NULL-terminated char ** into it
 %typemap(out) char ** {
-        AV *myav;
         SV **svs;
         int i = 0,len = 0;
         /* Figure out how many elements we have */
@@ -39,12 +38,11 @@
         svs = (SV **) malloc(len*sizeof(SV *));
         for (i = 0; i < len ; i++) {
             svs[i] = sv_newmortal();
-            sv_setpv((SV*)svs[i],$1[i]);
+            sv_setpv((SV*)svs[i], $1[i]);
         };
-        myav =  av_make(len,svs);
+        $result = newRV_noinc((SV*)av_make(len,svs));
+        sv_2mortal( $result );
         free(svs);
-        $result = newRV((SV*)myav);
-        sv_2mortal($result);
         argvi++;
 }
 
@@ -52,48 +50,58 @@ namespace std {
   class vector;
 
   %typemap(out) vector<vector<double> > {
-    AV *myav  = NULL;
-    SV **svs;
-    SV *ret   = &PL_sv_undef;
-    svs = (SV **) vrna_alloc($1.size() * sizeof(SV *));
+    AV *arr = newAV();
     for(unsigned int i = 0; i < $1.size(); i++) {
-       AV *vec = newAV();
-       for(unsigned int j = 0; j < $1[i].size(); j++)
-         av_push(vec, newSVnv($1[i][j]));
-
-       /* store reference to array */
-       svs[i] = sv_2mortal(newRV_inc((SV*) vec));
+      AV *vec = newAV();
+      for(unsigned int j = 0; j < $1[i].size(); j++) {
+        SV *v = newSVnv($1[i][j]);
+        if (!av_store(vec, j, v))
+          SvREFCNT_dec(v);
+      }
+      /* store reference to array */
+      av_store(arr, i, newRV_noinc((SV*) vec));
     }
-    myav = av_make($1.size(), svs);
-    free(svs);
 
-    ret = sv_2mortal(newRV_inc((SV*) myav));
-    $result = ret;
+    $result = newRV_noinc((SV*) arr);
+    sv_2mortal( $result );
     argvi++;
   }
 
   %typemap(out) vector<vector<int> > {
-    AV *myav  = NULL;
-    SV **svs;
-    SV *ret   = &PL_sv_undef;
-    svs = (SV **) vrna_alloc($1.size() * sizeof(SV *));
+    AV *arr = newAV();
     for(unsigned int i = 0; i < $1.size(); i++) {
-       AV *vec = newAV();
-       for(unsigned int j = 0; j < $1[i].size(); j++)
-         av_push(vec, newSViv($1[i][j]));
-
-       /* store reference to array */
-       svs[i] = sv_2mortal(newRV_inc((SV*) vec));
+      AV *vec = newAV();
+      for(unsigned int j = 0; j < $1[i].size(); j++) {
+        SV *v = newSViv($1[i][j]);
+        if (!av_store(vec, j, v))
+          SvREFCNT_dec(v);
+      }
+      /* store reference to array */
+      av_store(arr, i, newRV_noinc((SV*) vec));
     }
-    myav = av_make($1.size(), svs);
-    free(svs);
 
-    ret = sv_2mortal(newRV_inc((SV*) myav));
-    $result = ret;
+    $result = newRV_noinc((SV*) arr);
+    sv_2mortal( $result );
     argvi++;
   }
 }
 
+
+%typemap(out) int [ANY] 
+{ 
+  AV* av = newAV();
+  int i = 0,len = 0;
+  len = $1_dim0;
+
+  for (i = 0; i < len ; i++) {
+      SV* perlval = newSV(0);
+      sv_setiv(perlval, (IV)$1[i]);
+      av_push(av, perlval);
+  }
+  $result = newRV_noinc((SV*) av );
+  sv_2mortal( $result );
+  argvi++;
+}
 
 %typemap(in) SV *PerlFunc {
   $1 = $input;

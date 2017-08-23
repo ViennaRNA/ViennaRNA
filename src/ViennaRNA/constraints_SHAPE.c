@@ -134,20 +134,20 @@ vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *vc,
     return;
   }
 
-  if (verbose) {
-    if (method != 'W') {
-      if (method == 'Z')
-        vrna_message_info(stderr,
-                          "Using SHAPE method '%c' with parameter p1=%f",
-                          method, p1);
-      else
-        vrna_message_info(stderr,
-                          "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
-                          method, p1, p2);
+  if (method != 'D') {
+    vrna_message_warning("SHAPE method %c not implemented for comparative prediction!",
+                         method);
+    vrna_message_warning("Ignoring SHAPE reactivity data!");
+    return;
+  } else {
+    if (verbose) {
+      vrna_message_info(stderr,
+                        "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
+                        method,
+                        p1,
+                        p2);
     }
-  }
 
-  if (method == 'D') {
     vrna_sc_add_SHAPE_deigan_ali(vc, shape_files, shape_file_association, p1, p2, constraint_type);
     return;
   }
@@ -344,11 +344,11 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
                              double               b,
                              unsigned int         options)
 {
-  FILE            *fp;
-  float           reactivity, *reactivities, e1, weight;
-  char            *line, nucleotide, *sequence;
-  int             s, i, p, r, n_data, position, *pseudo_energies, n_seq;
-  unsigned int    **a2s;
+  FILE          *fp;
+  float         reactivity, *reactivities, e1, weight;
+  char          *line, nucleotide, *sequence;
+  int           s, i, p, r, n_data, position, *pseudo_energies, n_seq;
+  unsigned int  **a2s;
 
   if (vc && (vc->type == VRNA_FC_TYPE_COMPARATIVE)) {
     n_seq = vc->n_seq;

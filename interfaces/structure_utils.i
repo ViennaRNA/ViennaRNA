@@ -155,21 +155,21 @@ int my_bp_distance(const char *str1, const char *str2);
  */
 %rename (ep) vrna_ep_t;
 
+%newobject vrna_ep_t::__str__;
+
 typedef struct {
   int i;
   int j;
   float p;
   int type;
-  %extend {
+} vrna_ep_t;
+
+%extend vrna_ep_t {
     char *__str__() {
       char *tmp = vrna_strdup_printf("[ i: %d, j: %d, p: %.10g, t: %2d ]", $self->i, $self->j, $self->p, $self->type);
       return tmp;
     }
-  }
-} vrna_ep_t;
-
-%newobject vrna_ep_t::__str__;
-char *vrna_ep_t::__str__();
+}
 
 
 /*

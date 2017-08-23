@@ -39,8 +39,7 @@ bind_pf_window_callback(SV *PerlFunc, SV *PerlData){
 static void
 perl_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int type, void *data){
 
-  int array_len;
-  SV  *func, **pr_listSVS, *pr_sizeSV, *iSV, *maxSV, *typeSV, *prRV;
+  SV  *func, *pr_sizeSV, *iSV, *maxSV, *typeSV;
   AV  *prAV;
 
   perl_pf_window_callback_t *cb = (perl_pf_window_callback_t *)data;
@@ -59,49 +58,32 @@ perl_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int
     maxSV     = sv_newmortal();
     typeSV    = sv_newmortal();
 
+    prAV = newAV();
+
     if (type & VRNA_PROBS_WINDOW_UP) { /* We distinguish output for unpaired probabilities */
 
-      array_len = max + 1;
-
-      /* create Perl array for unpaired probabilities */
-      pr_listSVS = (SV **)vrna_alloc(sizeof(SV*) * array_len);
-
       /* 0th element */
-      pr_listSVS[0] = newSV(0);
+      av_push(prAV, newSV(0));
 
       /* actual values in range [1, MIN(i, max)] */
-      for (int cnt = 1; cnt <= pr_size; cnt++) {
-        pr_listSVS[cnt] = sv_newmortal();
-        sv_setnv(pr_listSVS[cnt], (double)pr[cnt]);
-      }
+      for (int cnt = 1; cnt <= pr_size; cnt++)
+        av_push(prAV, newSVnv((double)pr[cnt]));
 
       /* empty values in range [0,i - 1] */
       for (int cnt = pr_size + 1; cnt <= max; cnt++)
-        pr_listSVS[cnt] = newSV(0);
+        av_push(prAV, newSV(0));
 
     } else { /* and pairing/stacking probabilities for pair (i, j) or ensemble free energies for subsegment [i, j] */
 
-      array_len = pr_size + 1;
-
-      /* create Perl array for pr values */
-      pr_listSVS = (SV **)vrna_alloc(sizeof(SV*) * array_len);
-
       /* empty values in range [0, i] */
       for (int cnt = 0; cnt <= i; cnt++)
-        pr_listSVS[cnt] = newSV(0);
+        av_push(prAV, newSV(0));
 
       /* actual values in range [i + 1, pr_size] */
       for (int cnt = i + 1; cnt <= pr_size; cnt++) {
-        pr_listSVS[cnt] = sv_newmortal();
-        sv_setnv(pr_listSVS[cnt], (double)pr[cnt]);
+        av_push(prAV, newSVnv((double)pr[cnt]));
       }
     }
-
-    prAV = av_make(array_len, pr_listSVS);
-
-    free(pr_listSVS);
-
-    prRV = newRV_inc((SV*) prAV);
 
     /* add pr_size, i, max, and type to perl stack */
     sv_setiv(pr_sizeSV, (IV)pr_size);
@@ -109,7 +91,7 @@ perl_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int
     sv_setiv(maxSV, (IV)max);
     sv_setuv(typeSV, (UV)type);
 
-    XPUSHs(prRV);
+    XPUSHs(sv_2mortal(newRV_noinc((SV*) prAV)));
     XPUSHs(pr_sizeSV);
     XPUSHs(iSV);
     XPUSHs(maxSV);
@@ -117,6 +99,7 @@ perl_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int
 
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
+
     PUTBACK;
 
     perl_call_sv(func, G_VOID);

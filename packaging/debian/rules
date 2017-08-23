@@ -23,9 +23,6 @@ override_dh_auto_configure:
 override_dh_strip:
 	dh_strip --exclude=libRNA.a
 
-override_dh_auto_test:
-	dh_auto_test --max-parallel=1 --
-
 override_dh_auto_clean:
 	dh_auto_clean
 	rm -rf build .*egg-info

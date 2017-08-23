@@ -1,0 +1,1912 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%Title: RNA Dot Plot
+%%Creator: ViennaRNA-2.3.5
+%%CreationDate: Fri Aug 11 13:54:06 2017
+%%BoundingBox: 66 211 518 662
+%%DocumentFonts: Helvetica
+%%Pages: 1
+%%EndComments
+
+%Options: 
+% 
+%Homodimer BB FreeEnergy= -40.606595380
+
+%This file contains the square roots of the base pair probabilities in the form
+% i  j  sqrt(p(i,j)) ubox
+
+%%BeginProlog
+/DPdict 100 dict def
+DPdict begin
+/logscale false def
+/lpmin 1e-05 log def
+
+/DataVisible  [ true true true true] def
+/DataTitles   [ false false false false ] def
+
+/min { 2 copy gt { exch } if pop } bind def
+
+/max { 2 copy lt { exch } if pop } bind def
+
+/box { %size x y box - draws box centered on x,y
+   2 index 0.5 mul sub            % x -= 0.5
+   exch 2 index 0.5 mul sub exch  % y -= 0.5
+   3 -1 roll dup rectfill
+} bind def
+
+/ubox {
+   logscale {
+      log dup add lpmin div 1 exch sub dup 0 lt { pop 0 } if
+   } if
+   3 1 roll
+   exch len exch sub 1 add box
+} bind def
+
+/lbox {
+   3 1 roll
+   len exch sub 1 add box
+} bind def
+
+/drawseq {
+% print sequence along all 4 sides
+[ [0.7 -0.3 0 ]
+  [0.7 0.7 len add 0]
+  [-0.3 len sub -0.4 -90]
+  [-0.3 len sub 0.7 len add -90]
+] {
+   gsave
+    aload pop rotate translate
+    0 1 len 1 sub {
+     dup 0 moveto
+     sequence exch 1 getinterval
+     show
+    } for
+   grestore
+  } forall
+} bind def
+
+/drawgrid{
+  gsave
+  0.5 dup translate  0.01 setlinewidth
+  len log 0.9 sub cvi 10 exch exp  % grid spacing
+  dup 1 gt {
+     dup dup 20 div dup 2 array astore exch 40 div setdash
+  } { [0.3 0.7] 0.1 setdash } ifelse
+  0 exch len {
+     dup dup
+     0 moveto
+     len lineto
+     dup
+     len exch sub 0 exch moveto
+     len exch len exch sub lineto
+     stroke
+  } for
+  [] 0 setdash
+  0.04 setlinewidth
+  currentdict /cutpoint known {
+    cutpoint 1 sub
+    dup dup -1 moveto len 1 add lineto
+    len exch sub dup
+    -1 exch moveto len 1 add exch lineto
+    stroke
+  } if
+  %% draw diagonal
+  0 len moveto len 0 lineto stroke
+  grestore
+} bind def
+
+/drawTitle {
+  currentdict /DPtitle known {
+    % center title text
+    /Helvetica findfont 10 scalefont setfont
+    360 705 moveto DPtitle dup stringwidth pop 2 div neg 0 rmoveto show
+  } if
+} bind def
+
+/prepareCoords {
+  0 1 3 {
+    % check whether we want to display current data
+    dup DataVisible exch get
+    {
+      % check whether we've actually got some data
+      DataSource exch get dup currentdict exch known {
+        % data source s_j is present, so find length of array
+        currentdict exch get length 
+      } { pop 0 } ifelse
+    } if
+  } for
+  exch dup 5 -1 roll add 4 -1 roll dup 5 1 roll 4 -1 roll add max
+  len add 3 add 700 exch div dup scale
+  exch 1 add exch 1 add translate
+} bind def
+
+/utri{ % i j prob utri
+  gsave
+  0.5 dup translate
+  1 min 2 div
+  0.85 mul 0.15 add 0.95  0.33
+  3 1 roll % prepare hsb color
+  sethsbcolor
+  % now produce the coordinates for lines
+  exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub
+  moveto lineto lineto closepath fill
+  grestore
+} bind def
+
+/uUDmotif{ % i j uUDmotif
+  gsave
+  0.5 dup translate
+  1 min 2 div
+  0.85 mul 0.15 add 0.95 0.6
+  3 1 roll % prepare hsb color
+  sethsbcolor
+  % now produce the coordinates for lines
+  exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub
+  moveto lineto lineto closepath fill
+  grestore
+} bind def
+/lUDmotif{ % i j lUDmotif
+  gsave
+  0.5 dup translate
+  1 min 2 div
+  0.85 mul 0.15 add 0.95 0.6
+  3 1 roll % prepare hsb color
+  sethsbcolor
+  % now produce the coordinates for lines
+  dup len exch sub dup 4 -1 roll 1 sub dup 3 1 roll dup len exch sub
+  moveto lineto lineto closepath fill
+  grestore
+} bind def
+
+/uHmotif{ % i j uHmotif
+  gsave
+  0.5 dup translate
+  1 min 2 div
+  0.85 mul 0.15 add 0.95  0.99
+  3 1 roll % prepare hsb color
+  sethsbcolor
+  % now produce the coordinates for lines
+  exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub
+  moveto lineto lineto closepath fill
+  grestore
+} bind def
+/lHmotif{ % i j lHmotif
+  gsave
+  0.5 dup translate
+  1 min 2 div
+  0.85 mul 0.15 add 0.95  0.99
+  3 1 roll % prepare hsb color
+  sethsbcolor
+  % now produce the coordinates for lines
+  dup len exch sub dup 4 -1 roll 1 sub dup 3 1 roll dup len exch sub
+  moveto lineto lineto closepath fill
+  grestore
+} bind def
+/uImotif{ % i j k l uImotif
+  gsave
+  0.5 dup translate
+  1 min 2 div
+  0.85 mul 0.15 add 0.95  0.99
+  3 1 roll % prepare hsb color
+  sethsbcolor
+  % now produce the coordinates for lines
+  1 sub dup 5 1 roll exch len exch sub dup 5 1 roll 3 -1 roll dup
+  5 1 roll exch 4 1 roll 3 1 roll exch 1 sub len exch sub dup 3 1 roll
+  moveto lineto lineto lineto closepath fill
+  grestore
+} bind def
+/lImotif{ % i j k l lImotif
+  gsave
+  0.5 dup translate
+  1 min 2 div
+  0.85 mul 0.15 add 0.95  0.99
+  3 1 roll % prepare hsb color
+  sethsbcolor
+  % now produce the coordinates for lines
+  4 -1 roll 1 sub dup 5 1 roll exch 1 sub len exch sub dup 3 -1 roll exch
+  5 -1 roll len exch sub dup 6 -1 roll dup 3 1 roll 7 4 roll
+  moveto lineto lineto lineto closepath fill
+  grestore
+} bind def
+/drawDataSquareBottom { % x v n dataSquareBottom draw box
+  len add 2 add exch lbox
+} bind def
+
+/drawDataSquareTop { % x v n dataSquareBottom draw box
+  neg 1 sub exch lbox
+} bind def
+
+/drawDataSquareLeft { % y v n dataSquareBottom draw box
+  neg 1 sub 3 1 roll lbox
+} bind def
+
+/drawDataSquareRight { % y v n dataSquareBottom draw box
+  % use size x y box to draw box
+  2 add len add 3 1 roll lbox
+} bind def
+
+/drawDataSquareBottomHSB { % x v h s b n dataSquareBottomHSB draw box
+  % use size x y box to draw box
+  len add 2 add 5 1 roll sethsbcolor lbox
+} bind def
+
+/drawDataSquareTopHSB { % x v h s b n dataSquareBottomHSB draw box
+  % use size x y box to draw box
+  neg 1 sub 5 1 roll sethsbcolor lbox
+} bind def
+
+/drawDataSquareLeftHSB { % x v h s b n dataSquareLeftHSB draw box
+  % use size x y box to draw box
+  neg 1 sub 6 1 roll sethsbcolor lbox
+} bind def
+
+/drawDataSquareRightHSB { % x v h s b n dataSquareLeftHSB draw box
+  % use size x y box to draw box
+  2 add len add 6 1 roll sethsbcolor lbox
+} bind def
+
+/drawDataTitleBottom {
+  /Helvetica findfont 0.95 scalefont setfont
+  0 -1.4 3 -1 roll sub moveto 
+  dup stringwidth pop neg 0 rmoveto   
+  show
+} bind def
+
+/drawDataTitleTop {
+  /Helvetica findfont 0.95 scalefont setfont
+  0 len 1.6 add 3 -1 roll add moveto 
+  dup stringwidth pop neg 0 rmoveto   
+  show
+} bind def
+
+/drawDataTitleLeft {
+  /Helvetica findfont 0.95 scalefont setfont
+  neg 1.4 sub len 1 add moveto 
+  dup stringwidth pop 0 exch rmoveto -90 rotate
+  show 90 rotate
+} bind def
+
+/drawDataTitleRight {
+  /Helvetica findfont 0.95 scalefont setfont
+  1.6 add len add len 1 add moveto 
+  dup stringwidth pop 0 exch rmoveto -90 rotate
+  show 90 rotate
+} bind def
+
+% do not modify the arrays below unless you know what you're doing!
+/DataSource     [ /topData /leftData /bottomData /rightData ] def
+/DataDrawBox    [ /drawDataSquareTop  /drawDataSquareLeft /drawDataSquareBottom /drawDataSquareRight] def
+/DataDrawBoxHSB [ /drawDataSquareTopHSB /drawDataSquareLeftHSB /drawDataSquareBottomHSB /drawDataSquareRightHSB ] def
+/DataDrawTitle  [ /drawDataTitleTop /drawDataTitleLeft /drawDataTitleBottom /drawDataTitleRight ] def
+
+% this is the logic to parse the auxiliary linear data
+% given in arrays topData, leftData, bottomData, and rightData
+% See also the Boolean arrays DataVisible and DataTitles that
+% are used to control which part of data will be visible
+/drawData {
+  0 1 3 {
+    % check whether we want to display current data
+    dup DataVisible exch get
+    {
+      % check whether we've actually got some data
+      dup DataSource exch get dup currentdict exch known {
+        % data source s_j is present, so we load the
+        % corresponding data array a and loop over all data sets a[i]
+        currentdict exch get dup length 1 sub 0 1 3 -1 roll {
+          dup dup
+          % now on stack: j a i i i
+
+          % load data set, i.e. a[i]
+          4 -1 roll         % j i i i a
+          dup 3 -1 roll get dup % j i i a a[i] a[i]
+
+          % 1. check whether we need to process data set title
+          6 -1 roll dup 7 1 roll DataTitles exch get {
+            % get current title drawing function key
+            6 -1 roll dup 7 1 roll DataDrawTitle exch get
+            % now on stack: ... j i i a a[i] a[i] title_draw_key
+
+            % get current title and execute drawing function
+            exch 0 get exch currentdict exch get 5 -1 roll exch exec
+          } { % remove unused variables
+              pop 3 -1 roll pop
+          } ifelse
+          % now on stack: ... j i a a[i]
+
+          % 2. process actual data a[k] for 1 <= k < n
+          dup length 1 sub 1 exch getinterval { 
+            % on stack: j i a a[i][k]
+            gsave
+            dup length 2 eq { % print black box if two-valued
+              % get box drawing function
+              4 -1 roll dup 5 1 roll DataDrawBox exch get currentdict exch get exch
+              aload pop 5 -1 roll dup 6 1 roll 4 -1 roll exec
+            } {
+              dup length 5 eq { % print box with hsb color
+                % get box drawing function
+                4 -1 roll dup 5 1 roll DataDrawBoxHSB exch get currentdict exch get exch
+                % on stack: j i a f a[i]
+                % load data array and prepare for drawing
+                aload pop 8 -1 roll dup 9 1 roll 7 -1 roll exec
+              } { pop } ifelse
+            } ifelse
+            grestore
+          } forall
+          exch pop 
+          % left on stack: j a
+        } for
+        
+      } if
+    } if
+  } for
+} bind def
+
+end
+%EndProlog
+
+DPdict begin
+
+/DPtitle {
+  (BBrnacofold_pf_test_0026)
+} def
+
+/sequence { (\
+AGCGGUAAAUAAACGUAGUGGAUGUGAUUCUACCAUACGGCAUAGAUUGGGCAGGAUGGGUAUAUCUAGGCUGAUAGGCGAGCGGUAAAUAAACGUAGUGGAUGUGAUUCUACCAUACGGCAUAGAUUGGGCAGGAUGGGUAUAUCUAGGCUGAUAGGCG\
+) } def
+
+/len { sequence length } bind def
+
+/cutpoint 81 def
+
+72 216 translate
+72 6 mul len 1 add div dup scale
+/Helvetica findfont 0.95 scalefont setfont
+
+drawseq
+%data starts here
+
+%start of quadruplex data
+
+%start of Hmotif data
+
+%start of Imotif data
+
+%draw the grid
+drawgrid
+
+%start of base pair probability data
+%start of base pair probability data
+1 6 0.016328479 ubox
+1 10 0.018818529 ubox
+1 16 0.004753199 ubox
+1 36 0.006975695 ubox
+1 43 0.021409207 ubox
+1 48 0.004616056 ubox
+1 86 0.029882495 ubox
+1 123 0.006580920 ubox
+1 152 0.029466281 ubox
+1 155 0.009035292 ubox
+2 6 0.006691982 ubox
+2 10 0.006554967 ubox
+2 14 0.003301013 ubox
+2 16 0.165304208 ubox
+2 36 0.027387625 ubox
+2 38 0.011944514 ubox
+2 41 0.242919408 ubox
+2 43 0.004019085 ubox
+2 47 0.004481979 ubox
+2 52 0.221443092 ubox
+2 83 0.039232145 ubox
+2 86 0.098562390 ubox
+2 96 0.018401731 ubox
+2 116 0.004820924 ubox
+2 121 0.077032443 ubox
+2 132 0.010068313 ubox
+2 151 0.031206860 ubox
+2 155 0.009676646 ubox
+2 159 0.370807698 ubox
+3 15 0.169297221 ubox
+3 20 0.006266206 ubox
+3 39 0.012276066 ubox
+3 40 0.243044889 ubox
+3 45 0.012859144 ubox
+3 49 0.588110696 ubox
+3 50 0.154281350 ubox
+3 51 0.225886463 ubox
+3 54 0.014680110 ubox
+3 55 0.008153605 ubox
+3 82 0.039232145 ubox
+3 84 0.039351793 ubox
+3 85 0.100719266 ubox
+3 95 0.018844069 ubox
+3 119 0.008570759 ubox
+3 120 0.077071486 ubox
+3 129 0.009579895 ubox
+3 131 0.010033209 ubox
+3 149 0.005643753 ubox
+3 150 0.031142917 ubox
+3 153 0.045610762 ubox
+3 157 0.026356677 ubox
+3 158 0.369975121 ubox
+3 160 0.088041185 ubox
+4 10 0.025248575 ubox
+4 14 0.169493228 ubox
+4 16 0.004101890 ubox
+4 19 0.006744625 ubox
+4 30 0.005332405 ubox
+4 31 0.005026218 ubox
+4 34 0.131365658 ubox
+4 38 0.012034608 ubox
+4 41 0.005981594 ubox
+4 43 0.006000799 ubox
+4 47 0.013046678 ubox
+4 48 0.596567596 ubox
+4 52 0.022449099 ubox
+4 83 0.039351793 ubox
+4 94 0.018706501 ubox
+4 114 0.021873042 ubox
+4 118 0.008376594 ubox
+4 128 0.009781661 ubox
+4 152 0.046359446 ubox
+4 155 0.006896722 ubox
+4 159 0.093600994 ubox
+5 10 0.017111280 ubox
+5 14 0.073974153 ubox
+5 29 0.005146825 ubox
+5 30 0.005284189 ubox
+5 33 0.131523893 ubox
+5 38 0.222651381 ubox
+5 41 0.042152382 ubox
+5 43 0.010476319 ubox
+5 47 0.601366061 ubox
+5 48 0.133599788 ubox
+5 52 0.026782617 ubox
+5 83 0.100719266 ubox
+5 94 0.003739939 ubox
+5 113 0.021840908 ubox
+5 118 0.073553539 ubox
+5 121 0.004584369 ubox
+5 127 0.009993592 ubox
+5 151 0.046407958 ubox
+5 155 0.090638414 ubox
+5 159 0.086494895 ubox
+6 11 0.019437606 ubox
+6 12 0.027916439 ubox
+6 13 0.076732292 ubox
+6 17 0.009129493 ubox
+6 32 0.131262294 ubox
+6 37 0.222000327 ubox
+6 40 0.042031338 ubox
+6 42 0.010465269 ubox
+6 44 0.021478049 ubox
+6 45 0.010424189 ubox
+6 46 0.596689702 ubox
+6 49 0.083211453 ubox
+6 50 0.022747727 ubox
+6 51 0.027089931 ubox
+6 81 0.029882495 ubox
+6 82 0.098562390 ubox
+6 91 0.004210310 ubox
+6 93 0.003983376 ubox
+6 112 0.021732338 ubox
+6 117 0.073198105 ubox
+6 120 0.004514138 ubox
+6 126 0.009920474 ubox
+6 150 0.045477097 ubox
+6 153 0.005188163 ubox
+6 154 0.090173092 ubox
+6 156 0.068907364 ubox
+6 157 0.075343960 ubox
+6 158 0.085288783 ubox
+7 16 0.009611336 ubox
+7 29 0.003217299 ubox
+7 31 0.126803787 ubox
+7 36 0.185772257 ubox
+7 43 0.022215987 ubox
+7 47 0.056469241 ubox
+7 48 0.086934473 ubox
+7 90 0.004215642 ubox
+7 111 0.020810493 ubox
+7 116 0.068601571 ubox
+7 152 0.004004667 ubox
+7 155 0.066191452 ubox
+8 16 0.006100163 ubox
+8 28 0.004343593 ubox
+8 29 0.065428424 ubox
+8 31 0.004337931 ubox
+8 36 0.009461675 ubox
+8 43 0.032541930 ubox
+8 47 0.082194223 ubox
+8 48 0.095880301 ubox
+8 109 0.010159993 ubox
+8 116 0.003206850 ubox
+8 155 0.018536319 ubox
+9 16 0.027064825 ubox
+9 25 0.009514906 ubox
+9 28 0.067030073 ubox
+9 29 0.051840296 ubox
+9 36 0.010791709 ubox
+9 43 0.347926057 ubox
+9 47 0.099762752 ubox
+9 48 0.007605315 ubox
+9 90 0.003891171 ubox
+9 108 0.010396691 ubox
+9 109 0.007872768 ubox
+9 123 0.006212757 ubox
+9 127 0.003210025 ubox
+9 155 0.027914522 ubox
+10 15 0.026506192 ubox
+10 17 0.021916249 ubox
+10 24 0.009724965 ubox
+10 27 0.064136657 ubox
+10 35 0.015659198 ubox
+10 37 0.004311440 ubox
+10 40 0.010090794 ubox
+10 42 0.339423885 ubox
+10 44 0.194781000 ubox
+10 45 0.020904260 ubox
+10 46 0.098315380 ubox
+10 49 0.007271797 ubox
+10 87 0.004215642 ubox
+10 89 0.003891171 ubox
+10 107 0.009954276 ubox
+10 115 0.004388639 ubox
+10 122 0.006081942 ubox
+10 124 0.005694463 ubox
+10 154 0.029569602 ubox
+10 156 0.015118166 ubox
+10 157 0.004429451 ubox
+10 158 0.003208383 ubox
+10 160 0.003198511 ubox
+11 16 0.021469504 ubox
+11 23 0.009683451 ubox
+11 28 0.007557891 ubox
+11 29 0.007116104 ubox
+11 36 0.005829165 ubox
+11 43 0.192740838 ubox
+11 48 0.008034973 ubox
+11 86 0.004210310 ubox
+11 123 0.005620207 ubox
+11 155 0.014798781 ubox
+12 16 0.005151350 ubox
+12 25 0.007069179 ubox
+12 28 0.006795787 ubox
+12 36 0.005751659 ubox
+12 43 0.023166034 ubox
+12 47 0.006990148 ubox
+12 48 0.008169462 ubox
+12 155 0.003926060 ubox
+13 19 0.005889647 ubox
+13 25 0.132116535 ubox
+13 36 0.007471111 ubox
+13 43 0.016823830 ubox
+13 47 0.008581913 ubox
+13 86 0.003983376 ubox
+13 96 0.016721657 ubox
+13 105 0.019625365 ubox
+14 18 0.006224382 ubox
+14 20 0.010322415 ubox
+14 21 0.006719656 ubox
+14 24 0.133289127 ubox
+14 26 0.006258754 ubox
+14 39 0.935550921 ubox
+14 40 0.023007956 ubox
+14 45 0.008386450 ubox
+14 50 0.003422504 ubox
+14 51 0.019315478 ubox
+14 80 0.007941341 ubox
+14 84 0.018706501 ubox
+14 85 0.003739939 ubox
+14 95 0.017379897 ubox
+14 104 0.019786215 ubox
+14 119 0.053958038 ubox
+14 157 0.004162671 ubox
+14 158 0.006961215 ubox
+14 160 0.030821827 ubox
+15 19 0.006396285 ubox
+15 23 0.132113222 ubox
+15 25 0.005850068 ubox
+15 33 0.026103549 ubox
+15 34 0.026183014 ubox
+15 36 0.117571044 ubox
+15 38 0.941817356 ubox
+15 41 0.010450539 ubox
+15 43 0.006858164 ubox
+15 71 0.003826870 ubox
+15 79 0.008330477 ubox
+15 83 0.018844069 ubox
+15 94 0.017379897 ubox
+15 103 0.019617834 ubox
+15 116 0.005245924 ubox
+15 118 0.054543107 ubox
+15 151 0.003438407 ubox
+15 159 0.032491899 ubox
+16 22 0.130072792 ubox
+16 24 0.006067899 ubox
+16 32 0.026381276 ubox
+16 35 0.154989150 ubox
+16 37 0.939871205 ubox
+16 40 0.010171071 ubox
+16 42 0.007153620 ubox
+16 44 0.009546049 ubox
+16 49 0.019795062 ubox
+16 70 0.003798882 ubox
+16 73 0.003760825 ubox
+16 78 0.008124691 ubox
+16 82 0.018401731 ubox
+16 93 0.016721657 ubox
+16 102 0.019372103 ubox
+16 115 0.006144799 ubox
+16 117 0.054379869 ubox
+16 150 0.003413086 ubox
+16 153 0.003854293 ubox
+16 156 0.006469781 ubox
+16 158 0.031811227 ubox
+17 23 0.006495087 ubox
+17 29 0.004412212 ubox
+17 31 0.026234579 ubox
+17 36 0.855383847 ubox
+17 43 0.010748448 ubox
+17 48 0.020320383 ubox
+17 72 0.004825686 ubox
+17 116 0.047334043 ubox
+17 152 0.005637184 ubox
+17 155 0.006300616 ubox
+18 28 0.005396292 ubox
+18 30 0.025828062 ubox
+18 33 0.946466356 ubox
+18 34 0.141960800 ubox
+18 36 0.136492781 ubox
+18 38 0.009526670 ubox
+18 41 0.053859976 ubox
+18 43 0.008680994 ubox
+18 47 0.020330800 ubox
+18 71 0.004912212 ubox
+18 113 0.048251143 ubox
+18 114 0.007133282 ubox
+18 116 0.022172602 ubox
+18 151 0.005769954 ubox
+18 155 0.004239879 ubox
+18 159 0.008261040 ubox
+19 27 0.006018744 ubox
+19 32 0.963241235 ubox
+19 35 0.190636908 ubox
+19 37 0.009263478 ubox
+19 39 0.004100683 ubox
+19 40 0.053784223 ubox
+19 42 0.008929550 ubox
+19 46 0.020135526 ubox
+19 68 0.018193627 ubox
+19 70 0.004423969 ubox
+19 112 0.049218789 ubox
+19 115 0.029730385 ubox
+19 148 0.027374203 ubox
+19 150 0.005212450 ubox
+19 154 0.004056248 ubox
+19 158 0.007551621 ubox
+20 28 0.011975879 ubox
+20 29 0.004549281 ubox
+20 30 0.027323782 ubox
+20 31 0.964843040 ubox
+20 33 0.011455434 ubox
+20 34 0.196018431 ubox
+20 36 0.008522143 ubox
+20 38 0.005382971 ubox
+20 41 0.008982187 ubox
+20 67 0.020322195 ubox
+20 110 0.004176058 ubox
+20 111 0.049289127 ubox
+20 114 0.030531343 ubox
+20 147 0.030313295 ubox
+20 159 0.003175995 ubox
+21 25 0.003387514 ubox
+21 28 0.003817466 ubox
+21 29 0.028121861 ubox
+21 30 0.965502865 ubox
+21 33 0.195006082 ubox
+21 38 0.053764741 ubox
+21 66 0.020572077 ubox
+21 109 0.004272080 ubox
+21 110 0.049321805 ubox
+21 113 0.030167820 ubox
+21 146 0.030632910 ubox
+22 28 0.041818743 ubox
+22 29 0.951833444 ubox
+22 31 0.054200890 ubox
+22 36 0.022424630 ubox
+22 43 0.020356351 ubox
+22 65 0.020569374 ubox
+22 96 0.019372103 ubox
+22 108 0.005967339 ubox
+22 109 0.047897920 ubox
+22 111 0.004831428 ubox
+22 145 0.030625193 ubox
+23 27 0.045874501 ubox
+23 32 0.103335701 ubox
+23 35 0.023024719 ubox
+23 37 0.049360713 ubox
+23 39 0.003650853 ubox
+23 42 0.020831535 ubox
+23 44 0.003599668 ubox
+23 51 0.005779187 ubox
+23 53 0.009688788 ubox
+23 64 0.020541696 ubox
+23 95 0.019617834 ubox
+23 107 0.007120303 ubox
+23 112 0.022320984 ubox
+23 144 0.030587320 ubox
+23 156 0.003288838 ubox
+24 28 0.019662608 ubox
+24 29 0.023085179 ubox
+24 30 0.113727492 ubox
+24 31 0.094228873 ubox
+24 33 0.017890571 ubox
+24 34 0.021320080 ubox
+24 36 0.050098969 ubox
+24 38 0.003967695 ubox
+24 41 0.020876107 ubox
+24 43 0.003954574 ubox
+24 52 0.010937989 ubox
+24 63 0.020507466 ubox
+24 94 0.019786215 ubox
+24 108 0.034126061 ubox
+24 110 0.006258555 ubox
+24 111 0.021695052 ubox
+24 143 0.030541156 ubox
+24 155 0.003391089 ubox
+24 159 0.004204578 ubox
+25 32 0.026954173 ubox
+25 35 0.050197244 ubox
+25 37 0.003898914 ubox
+25 39 0.003895535 ubox
+25 40 0.020254974 ubox
+25 42 0.003981420 ubox
+25 49 0.006877630 ubox
+25 50 0.007484512 ubox
+25 51 0.010670836 ubox
+25 59 0.005092090 ubox
+25 62 0.019837043 ubox
+25 93 0.019625365 ubox
+25 106 0.018039276 ubox
+25 107 0.036105590 ubox
+25 139 0.006062896 ubox
+25 142 0.029694660 ubox
+25 154 0.003326863 ubox
+25 158 0.004051450 ubox
+26 30 0.023997796 ubox
+26 31 0.024960527 ubox
+26 33 0.016791434 ubox
+26 34 0.050114354 ubox
+26 36 0.003217789 ubox
+26 38 0.005476366 ubox
+26 41 0.003980250 ubox
+26 48 0.009598918 ubox
+26 61 0.019023613 ubox
+26 105 0.018039276 ubox
+26 109 0.015159000 ubox
+26 110 0.022894720 ubox
+26 141 0.027456463 ubox
+27 31 0.003204389 ubox
+27 36 0.004676402 ubox
+27 47 0.009741797 ubox
+27 48 0.010604713 ubox
+27 57 0.023805835 ubox
+27 90 0.009954276 ubox
+27 103 0.007120303 ubox
+27 105 0.036105590 ubox
+27 108 0.015902154 ubox
+27 109 0.022331178 ubox
+27 137 0.023809447 ubox
+27 141 0.008351004 ubox
+28 32 0.006387015 ubox
+28 35 0.004696451 ubox
+28 37 0.013823982 ubox
+28 46 0.007314476 ubox
+28 56 0.025589243 ubox
+28 89 0.010396691 ubox
+28 102 0.005967339 ubox
+28 104 0.034126061 ubox
+28 107 0.015902154 ubox
+28 136 0.024216083 ubox
+28 140 0.008169255 ubox
+29 45 0.003307790 ubox
+29 46 0.022027860 ubox
+29 55 0.026015903 ubox
+29 56 0.005723159 ubox
+29 60 0.003267424 ubox
+29 88 0.010159993 ubox
+29 89 0.007872768 ubox
+29 101 0.004272080 ubox
+29 102 0.047897920 ubox
+29 106 0.015159000 ubox
+29 107 0.022331178 ubox
+29 135 0.024359298 ubox
+29 136 0.007255930 ubox
+29 139 0.007623464 ubox
+29 140 0.011588624 ubox
+29 158 0.004674419 ubox
+30 39 0.003209444 ubox
+30 45 0.023919939 ubox
+30 54 0.026214900 ubox
+30 55 0.005857118 ubox
+30 59 0.003593652 ubox
+30 100 0.004176058 ubox
+30 101 0.049321805 ubox
+30 104 0.006258555 ubox
+30 106 0.022894720 ubox
+30 134 0.024408635 ubox
+30 135 0.007300192 ubox
+30 138 0.007598831 ubox
+30 139 0.013133216 ubox
+30 157 0.006478098 ubox
+31 44 0.023883945 ubox
+31 53 0.025347112 ubox
+31 54 0.005506593 ubox
+31 58 0.003577583 ubox
+31 87 0.020810493 ubox
+31 100 0.049289127 ubox
+31 102 0.004831428 ubox
+31 104 0.021695052 ubox
+31 133 0.023639685 ubox
+31 134 0.006901263 ubox
+31 138 0.013102502 ubox
+31 156 0.006441151 ubox
+32 43 0.021869687 ubox
+32 57 0.003550698 ubox
+32 86 0.021732338 ubox
+32 99 0.049218789 ubox
+32 103 0.022320984 ubox
+32 137 0.012913351 ubox
+32 155 0.005944484 ubox
+33 40 0.028085746 ubox
+33 50 0.062233272 ubox
+33 51 0.012820501 ubox
+33 55 0.004075618 ubox
+33 59 0.010893934 ubox
+33 78 0.012043753 ubox
+33 85 0.021840908 ubox
+33 98 0.048251143 ubox
+33 101 0.030167820 ubox
+33 130 0.017332710 ubox
+33 131 0.016627734 ubox
+33 135 0.014130755 ubox
+33 139 0.006354756 ubox
+33 158 0.009869123 ubox
+34 39 0.033421275 ubox
+34 40 0.006188357 ubox
+34 45 0.006282454 ubox
+34 49 0.072083120 ubox
+34 50 0.014831132 ubox
+34 54 0.004319751 ubox
+34 55 0.003304472 ubox
+34 58 0.017096368 ubox
+34 77 0.019544646 ubox
+34 78 0.005335901 ubox
+34 84 0.021873042 ubox
+34 98 0.007133282 ubox
+34 100 0.030531343 ubox
+34 129 0.017402045 ubox
+34 130 0.016567210 ubox
+34 134 0.014123937 ubox
+34 138 0.006800981 ubox
+34 157 0.014152928 ubox
+34 158 0.005615994 ubox
+34 160 0.003261460 ubox
+35 43 0.005967224 ubox
+35 47 0.012511166 ubox
+35 48 0.070917372 ubox
+35 57 0.017463077 ubox
+35 75 0.022268438 ubox
+35 90 0.004388639 ubox
+35 96 0.006144799 ubox
+35 99 0.029730385 ubox
+35 128 0.015718600 ubox
+35 137 0.006840458 ubox
+35 155 0.013387392 ubox
+36 42 0.006086522 ubox
+36 44 0.006790767 ubox
+36 46 0.015623930 ubox
+36 49 0.003722993 ubox
+36 51 0.004015085 ubox
+36 56 0.014897348 ubox
+36 74 0.023225774 ubox
+36 76 0.022695982 ubox
+36 82 0.004820924 ubox
+36 87 0.068601571 ubox
+36 88 0.003206850 ubox
+36 95 0.005245924 ubox
+36 97 0.047334043 ubox
+36 98 0.022172602 ubox
+36 136 0.005866132 ubox
+36 154 0.013869105 ubox
+36 156 0.013872599 ubox
+37 43 0.006776811 ubox
+37 47 0.011624967 ubox
+37 48 0.003692606 ubox
+37 75 0.023764281 ubox
+37 86 0.073198105 ubox
+37 96 0.054379869 ubox
+37 155 0.014436218 ubox
+38 45 0.071028763 ubox
+38 49 0.037727260 ubox
+38 50 0.019710026 ubox
+38 51 0.018305554 ubox
+38 54 0.017110956 ubox
+38 55 0.006221081 ubox
+38 73 0.062606642 ubox
+38 80 0.009765990 ubox
+38 84 0.008376594 ubox
+38 85 0.073553539 ubox
+38 95 0.054543107 ubox
+38 125 0.004100479 ubox
+38 134 0.004540318 ubox
+38 153 0.034644288 ubox
+38 157 0.004355004 ubox
+38 160 0.056637651 ubox
+39 47 0.003812226 ubox
+39 48 0.037299121 ubox
+39 52 0.018460900 ubox
+39 72 0.063724562 ubox
+39 79 0.009989839 ubox
+39 83 0.008570759 ubox
+39 94 0.053958038 ubox
+39 152 0.035106271 ubox
+39 159 0.057865175 ubox
+40 47 0.030825960 ubox
+40 48 0.013819692 ubox
+40 52 0.081643531 ubox
+40 71 0.065775789 ubox
+40 79 0.138888412 ubox
+40 83 0.077071486 ubox
+40 86 0.004514138 ubox
+40 121 0.011244671 ubox
+40 132 0.007651759 ubox
+40 151 0.035673078 ubox
+40 159 0.401719767 ubox
+41 45 0.025670776 ubox
+41 49 0.255446530 ubox
+41 50 0.066703621 ubox
+41 51 0.085584090 ubox
+41 58 0.003246504 ubox
+41 69 0.004834714 ubox
+41 70 0.065465515 ubox
+41 77 0.009971210 ubox
+41 78 0.138926662 ubox
+41 80 0.003725670 ubox
+41 82 0.077032443 ubox
+41 85 0.004584369 ubox
+41 120 0.011244671 ubox
+41 131 0.007659827 ubox
+41 150 0.035496724 ubox
+41 157 0.054696861 ubox
+41 158 0.401987622 ubox
+41 160 0.011896315 ubox
+42 47 0.010768341 ubox
+42 48 0.252570483 ubox
+42 57 0.003313172 ubox
+42 90 0.006081942 ubox
+42 155 0.022128490 ubox
+43 49 0.040438861 ubox
+43 50 0.025687412 ubox
+43 51 0.008386125 ubox
+43 56 0.003243454 ubox
+43 68 0.062876850 ubox
+43 76 0.045370415 ubox
+43 77 0.025659379 ubox
+43 78 0.008882277 ubox
+43 81 0.006580920 ubox
+43 89 0.006212757 ubox
+43 91 0.005620207 ubox
+43 148 0.031903678 ubox
+43 153 0.003786244 ubox
+43 154 0.022561678 ubox
+43 156 0.113228938 ubox
+43 157 0.067397137 ubox
+43 158 0.012971339 ubox
+43 160 0.011461569 ubox
+44 48 0.037899046 ubox
+44 67 0.067794279 ubox
+44 75 0.045710600 ubox
+44 90 0.005694463 ubox
+44 147 0.034393979 ubox
+44 152 0.004430432 ubox
+44 155 0.109808497 ubox
+45 52 0.011969449 ubox
+45 66 0.067939744 ubox
+45 75 0.008792089 ubox
+45 79 0.017264774 ubox
+45 118 0.004100479 ubox
+45 128 0.006197532 ubox
+45 146 0.034431731 ubox
+45 151 0.004459424 ubox
+45 155 0.019543494 ubox
+45 159 0.184296511 ubox
+46 57 0.012735715 ubox
+46 65 0.067774014 ubox
+46 75 0.140820844 ubox
+46 86 0.009920474 ubox
+46 127 0.006374806 ubox
+46 145 0.034213923 ubox
+46 155 0.327307375 ubox
+47 51 0.005960558 ubox
+47 56 0.014728116 ubox
+47 64 0.064405742 ubox
+47 73 0.003605981 ubox
+47 74 0.144066954 ubox
+47 76 0.005815062 ubox
+47 77 0.007391908 ubox
+47 78 0.003619075 ubox
+47 85 0.009993592 ubox
+47 89 0.003210025 ubox
+47 126 0.006374806 ubox
+47 144 0.032538698 ubox
+47 153 0.007918911 ubox
+47 154 0.334577146 ubox
+47 156 0.029081484 ubox
+47 157 0.174256686 ubox
+47 158 0.124437228 ubox
+47 160 0.006823774 ubox
+48 54 0.003221955 ubox
+48 55 0.014995027 ubox
+48 59 0.003659528 ubox
+48 62 0.009563296 ubox
+48 64 0.010024853 ubox
+48 73 0.142516665 ubox
+48 74 0.070371338 ubox
+48 76 0.009431328 ubox
+48 77 0.003912534 ubox
+48 84 0.009781661 ubox
+48 115 0.015718600 ubox
+48 125 0.006197532 ubox
+48 142 0.006907026 ubox
+48 144 0.004868774 ubox
+48 153 0.324022257 ubox
+48 154 0.113649366 ubox
+48 156 0.224731984 ubox
+48 157 0.162864398 ubox
+48 158 0.036385415 ubox
+48 160 0.049375209 ubox
+49 61 0.008978348 ubox
+49 63 0.013808160 ubox
+49 72 0.142102946 ubox
+49 75 0.008929438 ubox
+49 83 0.009579895 ubox
+49 114 0.017402045 ubox
+49 141 0.006454586 ubox
+49 143 0.006738965 ubox
+49 151 0.004020663 ubox
+49 152 0.322758500 ubox
+49 155 0.226675170 ubox
+49 159 0.086328519 ubox
+50 57 0.004433730 ubox
+50 61 0.044604862 ubox
+50 71 0.141600425 ubox
+50 72 0.091384010 ubox
+50 113 0.017332710 ubox
+50 114 0.016567210 ubox
+50 141 0.014882767 ubox
+50 151 0.322477075 ubox
+50 152 0.154372299 ubox
+50 155 0.133082270 ubox
+50 159 0.047082380 ubox
+51 61 0.032523372 ubox
+51 71 0.094416519 ubox
+51 79 0.006616728 ubox
+51 83 0.010033209 ubox
+51 113 0.016627734 ubox
+51 121 0.007659827 ubox
+51 141 0.013564426 ubox
+51 151 0.159935287 ubox
+51 155 0.155462929 ubox
+51 159 0.075919801 ubox
+52 58 0.023555033 ubox
+52 59 0.051746682 ubox
+52 60 0.033066472 ubox
+52 69 0.137392035 ubox
+52 70 0.096035162 ubox
+52 73 0.013600382 ubox
+52 78 0.006607817 ubox
+52 82 0.010068313 ubox
+52 120 0.007651759 ubox
+52 138 0.024059628 ubox
+52 139 0.016304842 ubox
+52 140 0.013786951 ubox
+52 149 0.310326624 ubox
+52 150 0.162354904 ubox
+52 153 0.864766289 ubox
+52 157 0.038192760 ubox
+52 158 0.068180091 ubox
+53 57 0.019390752 ubox
+53 67 0.014701776 ubox
+53 72 0.013719338 ubox
+53 111 0.023639685 ubox
+53 137 0.024196878 ubox
+53 147 0.014780737 ubox
+53 152 0.876607372 ubox
+53 155 0.007694141 ubox
+54 66 0.011912186 ubox
+54 67 0.160633603 ubox
+54 71 0.013705070 ubox
+54 110 0.024408635 ubox
+54 111 0.006901263 ubox
+54 114 0.014123937 ubox
+54 118 0.004540318 ubox
+54 137 0.007028194 ubox
+54 146 0.012772759 ubox
+54 147 0.112713926 ubox
+54 151 0.877024251 ubox
+54 152 0.038816109 ubox
+54 155 0.005902863 ubox
+55 65 0.007093897 ubox
+55 66 0.171038614 ubox
+55 109 0.024359298 ubox
+55 110 0.007300192 ubox
+55 113 0.014130755 ubox
+55 137 0.003163152 ubox
+55 145 0.008120849 ubox
+55 146 0.120146081 ubox
+55 147 0.009572679 ubox
+55 151 0.043306414 ubox
+55 152 0.004176330 ubox
+56 63 0.003680524 ubox
+56 65 0.171219024 ubox
+56 75 0.006585629 ubox
+56 108 0.024216083 ubox
+56 109 0.007255930 ubox
+56 116 0.005866132 ubox
+56 143 0.004747598 ubox
+56 145 0.119970236 ubox
+56 147 0.006125251 ubox
+56 152 0.004017723 ubox
+57 62 0.003539561 ubox
+57 64 0.170520173 ubox
+57 68 0.014106919 ubox
+57 74 0.006920227 ubox
+57 107 0.023809447 ubox
+57 112 0.012913351 ubox
+57 115 0.006840458 ubox
+57 133 0.024196878 ubox
+57 134 0.007028194 ubox
+57 135 0.003163152 ubox
+57 142 0.004910996 ubox
+57 144 0.119001550 ubox
+57 148 0.949698778 ubox
+57 149 0.009002514 ubox
+58 63 0.163612105 ubox
+58 67 0.014374351 ubox
+58 110 0.007598831 ubox
+58 111 0.013102502 ubox
+58 114 0.006800981 ubox
+58 132 0.024059628 ubox
+58 141 0.004988988 ubox
+58 143 0.116482458 ubox
+58 146 0.006963186 ubox
+58 147 0.971528928 ubox
+59 66 0.014374726 ubox
+59 72 0.007144534 ubox
+59 105 0.006062896 ubox
+59 109 0.007623464 ubox
+59 110 0.013133216 ubox
+59 113 0.006354756 ubox
+59 132 0.016304842 ubox
+59 141 0.009282908 ubox
+59 143 0.004437681 ubox
+59 145 0.005081450 ubox
+59 146 0.973697090 ubox
+59 147 0.006457699 ubox
+60 65 0.009746166 ubox
+60 71 0.007170220 ubox
+60 79 0.008170573 ubox
+60 108 0.008169255 ubox
+60 109 0.011588624 ubox
+60 132 0.013786951 ubox
+60 141 0.014244528 ubox
+60 143 0.008222415 ubox
+60 145 0.973232206 ubox
+60 146 0.006651964 ubox
+60 159 0.003986163 ubox
+61 70 0.007126037 ubox
+61 78 0.007663518 ubox
+61 106 0.027456463 ubox
+61 107 0.008351004 ubox
+61 129 0.006454586 ubox
+61 130 0.014882767 ubox
+61 131 0.013564426 ubox
+61 138 0.004988988 ubox
+61 139 0.009282908 ubox
+61 140 0.014244528 ubox
+61 142 0.010137976 ubox
+61 144 0.973712302 ubox
+61 158 0.003747103 ubox
+62 105 0.029694660 ubox
+62 128 0.006907026 ubox
+62 137 0.004910996 ubox
+62 141 0.010137976 ubox
+62 143 0.973620691 ubox
+63 76 0.008892466 ubox
+63 104 0.030541156 ubox
+63 129 0.006738965 ubox
+63 136 0.004747598 ubox
+63 138 0.116482458 ubox
+63 139 0.004437681 ubox
+63 140 0.008222415 ubox
+63 142 0.973620691 ubox
+63 156 0.004058790 ubox
+64 75 0.009034342 ubox
+64 103 0.030587320 ubox
+64 127 0.032538698 ubox
+64 128 0.004868774 ubox
+64 137 0.119001550 ubox
+64 141 0.973712302 ubox
+64 155 0.004100023 ubox
+65 74 0.009070806 ubox
+65 102 0.030625193 ubox
+65 126 0.034213923 ubox
+65 135 0.008120849 ubox
+65 136 0.119970236 ubox
+65 139 0.005081450 ubox
+65 140 0.973232206 ubox
+65 154 0.004108256 ubox
+66 73 0.009078921 ubox
+66 101 0.030632910 ubox
+66 125 0.034431731 ubox
+66 134 0.012772759 ubox
+66 135 0.120146081 ubox
+66 138 0.006963186 ubox
+66 139 0.973697090 ubox
+66 140 0.006651964 ubox
+66 153 0.004056844 ubox
+67 76 0.003269321 ubox
+67 100 0.030313295 ubox
+67 124 0.034393979 ubox
+67 133 0.014780737 ubox
+67 134 0.112713926 ubox
+67 135 0.009572679 ubox
+67 136 0.006125251 ubox
+67 138 0.971528928 ubox
+67 139 0.006457699 ubox
+68 75 0.003364930 ubox
+68 99 0.027374203 ubox
+68 123 0.031903678 ubox
+68 137 0.949698778 ubox
+68 152 0.003816597 ubox
+69 79 0.035142904 ubox
+69 83 0.005643753 ubox
+69 132 0.310326624 ubox
+69 137 0.009002514 ubox
+69 151 0.003902159 ubox
+69 159 0.006542412 ubox
+70 79 0.237553282 ubox
+70 83 0.031142917 ubox
+70 86 0.045477097 ubox
+70 96 0.003413086 ubox
+70 99 0.005212450 ubox
+70 121 0.035496724 ubox
+70 132 0.162354904 ubox
+70 159 0.012886039 ubox
+71 77 0.034839237 ubox
+71 78 0.237880941 ubox
+71 82 0.031206860 ubox
+71 85 0.046407958 ubox
+71 95 0.003438407 ubox
+71 98 0.005769954 ubox
+71 120 0.035673078 ubox
+71 125 0.004459424 ubox
+71 129 0.004020663 ubox
+71 130 0.322477075 ubox
+71 131 0.159935287 ubox
+71 134 0.877024251 ubox
+71 135 0.043306414 ubox
+71 149 0.003902159 ubox
+71 157 0.006687655 ubox
+71 158 0.012877730 ubox
+72 76 0.031665447 ubox
+72 77 0.231703321 ubox
+72 80 0.003476345 ubox
+72 81 0.029466281 ubox
+72 84 0.046359446 ubox
+72 87 0.004004667 ubox
+72 97 0.005637184 ubox
+72 119 0.035106271 ubox
+72 124 0.004430432 ubox
+72 129 0.322758500 ubox
+72 130 0.154372299 ubox
+72 133 0.876607372 ubox
+72 134 0.038816109 ubox
+72 135 0.004176330 ubox
+72 136 0.004017723 ubox
+72 148 0.003816597 ubox
+72 156 0.006719896 ubox
+72 157 0.012545881 ubox
+73 79 0.013621895 ubox
+73 83 0.045610762 ubox
+73 86 0.005188163 ubox
+73 96 0.003854293 ubox
+73 118 0.034644288 ubox
+73 123 0.003786244 ubox
+73 127 0.007918911 ubox
+73 128 0.324022257 ubox
+73 132 0.864766289 ubox
+73 146 0.004056844 ubox
+73 155 0.006365644 ubox
+74 86 0.090173092 ubox
+74 90 0.029569602 ubox
+74 99 0.004056248 ubox
+74 105 0.003326863 ubox
+74 116 0.013869105 ubox
+74 123 0.022561678 ubox
+74 127 0.334577146 ubox
+74 128 0.113649366 ubox
+74 145 0.004108256 ubox
+74 155 0.006784871 ubox
+75 80 0.007984067 ubox
+75 81 0.009035292 ubox
+75 82 0.009676646 ubox
+75 84 0.006896722 ubox
+75 85 0.090638414 ubox
+75 87 0.066191452 ubox
+75 88 0.018536319 ubox
+75 89 0.027914522 ubox
+75 91 0.014798781 ubox
+75 92 0.003926060 ubox
+75 97 0.006300616 ubox
+75 98 0.004239879 ubox
+75 104 0.003391089 ubox
+75 112 0.005944484 ubox
+75 115 0.013387392 ubox
+75 117 0.014436218 ubox
+75 122 0.022128490 ubox
+75 124 0.109808497 ubox
+75 125 0.019543494 ubox
+75 126 0.327307375 ubox
+75 129 0.226675170 ubox
+75 130 0.133082270 ubox
+75 131 0.155462929 ubox
+75 133 0.007694141 ubox
+75 134 0.005902863 ubox
+75 144 0.004100023 ubox
+75 153 0.006365644 ubox
+75 154 0.006784871 ubox
+76 86 0.068907364 ubox
+76 90 0.015118166 ubox
+76 96 0.006469781 ubox
+76 103 0.003288838 ubox
+76 111 0.006441151 ubox
+76 116 0.013872599 ubox
+76 123 0.113228938 ubox
+76 127 0.029081484 ubox
+76 128 0.224731984 ubox
+76 143 0.004058790 ubox
+76 152 0.006719896 ubox
+77 83 0.026356677 ubox
+77 86 0.075343960 ubox
+77 90 0.004429451 ubox
+77 94 0.004162671 ubox
+77 110 0.006478098 ubox
+77 114 0.014152928 ubox
+77 118 0.004355004 ubox
+77 121 0.054696861 ubox
+77 123 0.067397137 ubox
+77 127 0.174256686 ubox
+77 128 0.162864398 ubox
+77 132 0.038192760 ubox
+77 151 0.006687655 ubox
+77 152 0.012545881 ubox
+77 159 0.003874249 ubox
+78 83 0.369975121 ubox
+78 86 0.085288783 ubox
+78 90 0.003208383 ubox
+78 94 0.006961215 ubox
+78 96 0.031811227 ubox
+78 99 0.007551621 ubox
+78 105 0.004051450 ubox
+78 109 0.004674419 ubox
+78 113 0.009869123 ubox
+78 114 0.005615994 ubox
+78 121 0.401987622 ubox
+78 123 0.012971339 ubox
+78 127 0.124437228 ubox
+78 128 0.036385415 ubox
+78 132 0.068180091 ubox
+78 141 0.003747103 ubox
+78 151 0.012877730 ubox
+78 159 0.013386746 ubox
+79 82 0.370807698 ubox
+79 84 0.093600994 ubox
+79 85 0.086494895 ubox
+79 95 0.032491899 ubox
+79 98 0.008261040 ubox
+79 100 0.003175995 ubox
+79 104 0.004204578 ubox
+79 119 0.057865175 ubox
+79 120 0.401719767 ubox
+79 125 0.184296511 ubox
+79 129 0.086328519 ubox
+79 130 0.047082380 ubox
+79 131 0.075919801 ubox
+79 140 0.003986163 ubox
+79 149 0.006542412 ubox
+79 150 0.012886039 ubox
+79 157 0.003874249 ubox
+79 158 0.013386746 ubox
+80 83 0.088041185 ubox
+80 90 0.003198511 ubox
+80 94 0.030821827 ubox
+80 114 0.003261460 ubox
+80 118 0.056637651 ubox
+80 121 0.011896315 ubox
+80 123 0.011461569 ubox
+80 127 0.006823774 ubox
+80 128 0.049375209 ubox
+81 86 0.016328681 ubox
+81 90 0.018818763 ubox
+81 96 0.004753264 ubox
+81 116 0.006975699 ubox
+81 123 0.021409206 ubox
+81 128 0.004616056 ubox
+82 86 0.006692065 ubox
+82 90 0.006555049 ubox
+82 94 0.003301054 ubox
+82 96 0.165306456 ubox
+82 116 0.027387642 ubox
+82 118 0.011944519 ubox
+82 121 0.242919408 ubox
+82 123 0.004019085 ubox
+82 127 0.004481979 ubox
+82 132 0.221443084 ubox
+83 95 0.169299532 ubox
+83 100 0.006266251 ubox
+83 119 0.012276070 ubox
+83 120 0.243044889 ubox
+83 125 0.012859144 ubox
+83 129 0.588110696 ubox
+83 130 0.154281350 ubox
+83 131 0.225886454 ubox
+83 134 0.014680110 ubox
+83 135 0.008153605 ubox
+84 90 0.025248683 ubox
+84 94 0.169495503 ubox
+84 96 0.004101903 ubox
+84 99 0.006744669 ubox
+84 110 0.005332418 ubox
+84 111 0.005026230 ubox
+84 114 0.131365686 ubox
+84 118 0.012034611 ubox
+84 121 0.005981595 ubox
+84 123 0.006000799 ubox
+84 127 0.013046678 ubox
+84 128 0.596567571 ubox
+84 132 0.022449099 ubox
+85 90 0.017111355 ubox
+85 94 0.073974471 ubox
+85 109 0.005146837 ubox
+85 110 0.005284202 ubox
+85 113 0.131523929 ubox
+85 118 0.222651373 ubox
+85 121 0.042152382 ubox
+85 123 0.010476319 ubox
+85 127 0.601366036 ubox
+85 128 0.133599788 ubox
+85 132 0.026782615 ubox
+86 91 0.019437749 ubox
+86 92 0.027916716 ubox
+86 93 0.076732668 ubox
+86 97 0.009129536 ubox
+86 112 0.131262330 ubox
+86 117 0.222000319 ubox
+86 120 0.042031338 ubox
+86 122 0.010465269 ubox
+86 124 0.021478049 ubox
+86 125 0.010424188 ubox
+86 126 0.596689677 ubox
+86 129 0.083211453 ubox
+86 130 0.022747728 ubox
+86 131 0.027089930 ubox
+87 96 0.009611376 ubox
+87 109 0.003217303 ubox
+87 111 0.126803824 ubox
+87 116 0.185772267 ubox
+87 123 0.022215987 ubox
+87 127 0.056469239 ubox
+87 128 0.086934473 ubox
+88 96 0.006100165 ubox
+88 108 0.004343596 ubox
+88 109 0.065428442 ubox
+88 111 0.004337932 ubox
+88 116 0.009461675 ubox
+88 123 0.032541930 ubox
+88 127 0.082194223 ubox
+88 128 0.095880301 ubox
+89 96 0.027064831 ubox
+89 105 0.009514922 ubox
+89 108 0.067030091 ubox
+89 109 0.051840309 ubox
+89 116 0.010791709 ubox
+89 123 0.347926057 ubox
+89 127 0.099762752 ubox
+89 128 0.007605315 ubox
+90 95 0.026506197 ubox
+90 97 0.021916253 ubox
+90 104 0.009724981 ubox
+90 107 0.064136675 ubox
+90 115 0.015659198 ubox
+90 117 0.004311441 ubox
+90 120 0.010090797 ubox
+90 122 0.339423885 ubox
+90 124 0.194781009 ubox
+90 125 0.020904260 ubox
+90 126 0.098315380 ubox
+90 129 0.007271797 ubox
+91 96 0.021469509 ubox
+91 103 0.009683466 ubox
+91 108 0.007557893 ubox
+91 109 0.007116106 ubox
+91 116 0.005829165 ubox
+91 123 0.192740838 ubox
+91 128 0.008034973 ubox
+92 96 0.005151351 ubox
+92 105 0.007069181 ubox
+92 108 0.006795788 ubox
+92 116 0.005751659 ubox
+92 123 0.023166034 ubox
+92 127 0.006990148 ubox
+92 128 0.008169462 ubox
+93 99 0.005889656 ubox
+93 105 0.132116570 ubox
+93 116 0.007471111 ubox
+93 123 0.016823830 ubox
+93 127 0.008581913 ubox
+94 98 0.006224391 ubox
+94 100 0.010322431 ubox
+94 101 0.006719661 ubox
+94 104 0.133289169 ubox
+94 106 0.006258757 ubox
+94 119 0.935551016 ubox
+94 120 0.023007962 ubox
+94 125 0.008386450 ubox
+94 130 0.003422504 ubox
+94 131 0.019315478 ubox
+94 160 0.007941322 ubox
+95 99 0.006396295 ubox
+95 103 0.132113257 ubox
+95 105 0.005850070 ubox
+95 113 0.026103551 ubox
+95 114 0.026183015 ubox
+95 116 0.117571048 ubox
+95 118 0.941817451 ubox
+95 121 0.010450539 ubox
+95 123 0.006858164 ubox
+95 151 0.003826862 ubox
+95 159 0.008330456 ubox
+96 102 0.130072828 ubox
+96 104 0.006067902 ubox
+96 112 0.026381276 ubox
+96 115 0.154989156 ubox
+96 117 0.939871300 ubox
+96 120 0.010171071 ubox
+96 122 0.007153620 ubox
+96 124 0.009546048 ubox
+96 129 0.019795062 ubox
+96 150 0.003798875 ubox
+96 153 0.003760815 ubox
+96 158 0.008124671 ubox
+97 103 0.006495090 ubox
+97 109 0.004412213 ubox
+97 111 0.026234579 ubox
+97 116 0.855383917 ubox
+97 123 0.010748448 ubox
+97 128 0.020320383 ubox
+97 152 0.004825670 ubox
+98 108 0.005396293 ubox
+98 110 0.025828063 ubox
+98 113 0.946466451 ubox
+98 114 0.141960813 ubox
+98 116 0.136492795 ubox
+98 118 0.009526670 ubox
+98 121 0.053859974 ubox
+98 123 0.008680994 ubox
+98 127 0.020330800 ubox
+98 151 0.004912194 ubox
+99 107 0.006018745 ubox
+99 112 0.963241328 ubox
+99 115 0.190636938 ubox
+99 117 0.009263478 ubox
+99 119 0.004100682 ubox
+99 120 0.053784223 ubox
+99 122 0.008929550 ubox
+99 126 0.020135526 ubox
+99 148 0.018193518 ubox
+99 150 0.004423954 ubox
+100 108 0.011975880 ubox
+100 109 0.004549281 ubox
+100 110 0.027323785 ubox
+100 111 0.964843132 ubox
+100 113 0.011455435 ubox
+100 114 0.196018450 ubox
+100 116 0.008522143 ubox
+100 118 0.005382971 ubox
+100 121 0.008982187 ubox
+100 147 0.020322075 ubox
+101 105 0.003387515 ubox
+101 108 0.003817466 ubox
+101 109 0.028121864 ubox
+101 110 0.965502958 ubox
+101 113 0.195006111 ubox
+101 118 0.053764739 ubox
+101 146 0.020571956 ubox
+102 108 0.041818747 ubox
+102 109 0.951833507 ubox
+102 111 0.054200894 ubox
+102 116 0.022424630 ubox
+102 123 0.020356351 ubox
+102 145 0.020569253 ubox
+103 107 0.045874506 ubox
+103 112 0.103335715 ubox
+103 115 0.023024720 ubox
+103 117 0.049360713 ubox
+103 119 0.003650853 ubox
+103 122 0.020831535 ubox
+103 124 0.003599668 ubox
+103 131 0.005779187 ubox
+103 133 0.009688788 ubox
+103 144 0.020541575 ubox
+104 108 0.019662609 ubox
+104 109 0.023085181 ubox
+104 110 0.113727505 ubox
+104 111 0.094228882 ubox
+104 113 0.017890571 ubox
+104 114 0.021320079 ubox
+104 116 0.050098969 ubox
+104 118 0.003967695 ubox
+104 121 0.020876107 ubox
+104 123 0.003954574 ubox
+104 132 0.010937988 ubox
+104 143 0.020507345 ubox
+105 112 0.026954174 ubox
+105 115 0.050197244 ubox
+105 117 0.003898914 ubox
+105 119 0.003895535 ubox
+105 120 0.020254974 ubox
+105 122 0.003981420 ubox
+105 129 0.006877630 ubox
+105 130 0.007484512 ubox
+105 131 0.010670836 ubox
+105 139 0.005092064 ubox
+105 142 0.019836926 ubox
+106 110 0.023997798 ubox
+106 111 0.024960529 ubox
+106 113 0.016791434 ubox
+106 114 0.050114354 ubox
+106 116 0.003217789 ubox
+106 118 0.005476366 ubox
+106 121 0.003980250 ubox
+106 128 0.009598918 ubox
+106 141 0.019023501 ubox
+107 111 0.003204389 ubox
+107 116 0.004676402 ubox
+107 127 0.009741797 ubox
+107 128 0.010604713 ubox
+107 137 0.023805751 ubox
+108 112 0.006387015 ubox
+108 115 0.004696451 ubox
+108 117 0.013823982 ubox
+108 126 0.007314476 ubox
+108 136 0.025589162 ubox
+109 125 0.003307790 ubox
+109 126 0.022027860 ubox
+109 135 0.026015824 ubox
+109 136 0.005723135 ubox
+109 140 0.003267405 ubox
+110 119 0.003209444 ubox
+110 125 0.023919939 ubox
+110 134 0.026214821 ubox
+110 135 0.005857095 ubox
+110 139 0.003593631 ubox
+111 124 0.023883945 ubox
+111 133 0.025347035 ubox
+111 134 0.005506571 ubox
+111 138 0.003577562 ubox
+112 123 0.021869687 ubox
+112 137 0.003550677 ubox
+113 120 0.028085745 ubox
+113 130 0.062233240 ubox
+113 131 0.012820479 ubox
+113 135 0.004075597 ubox
+113 139 0.010893914 ubox
+113 158 0.012043696 ubox
+114 119 0.033421273 ubox
+114 120 0.006188357 ubox
+114 125 0.006282454 ubox
+114 129 0.072083094 ubox
+114 130 0.014831113 ubox
+114 134 0.004319732 ubox
+114 135 0.003304471 ubox
+114 138 0.017096353 ubox
+114 157 0.019544572 ubox
+114 158 0.005335859 ubox
+115 123 0.005967224 ubox
+115 127 0.012511163 ubox
+115 128 0.070917346 ubox
+115 137 0.017463062 ubox
+115 155 0.022268376 ubox
+116 122 0.006086522 ubox
+116 124 0.006790766 ubox
+116 126 0.015623926 ubox
+116 129 0.003722991 ubox
+116 131 0.004015085 ubox
+116 136 0.014897336 ubox
+116 154 0.023225709 ubox
+116 156 0.022695915 ubox
+117 123 0.006776810 ubox
+117 127 0.011624957 ubox
+117 128 0.003692604 ubox
+117 155 0.023764212 ubox
+118 125 0.071028740 ubox
+118 129 0.037727258 ubox
+118 130 0.019710024 ubox
+118 131 0.018305554 ubox
+118 134 0.017110949 ubox
+118 135 0.006221079 ubox
+118 153 0.062606490 ubox
+118 160 0.009765932 ubox
+119 127 0.003812226 ubox
+119 128 0.037299120 ubox
+119 132 0.018460899 ubox
+119 152 0.063724408 ubox
+119 159 0.009989782 ubox
+120 127 0.030825959 ubox
+120 128 0.013819691 ubox
+120 132 0.081643525 ubox
+120 151 0.065775633 ubox
+120 159 0.138888110 ubox
+121 125 0.025670776 ubox
+121 129 0.255446530 ubox
+121 130 0.066703621 ubox
+121 131 0.085584087 ubox
+121 138 0.003246504 ubox
+121 149 0.004834706 ubox
+121 150 0.065465362 ubox
+121 157 0.009971162 ubox
+121 158 0.138926360 ubox
+121 160 0.003725662 ubox
+122 127 0.010768341 ubox
+122 128 0.252570483 ubox
+122 137 0.003313171 ubox
+123 129 0.040438860 ubox
+123 130 0.025687412 ubox
+123 131 0.008386125 ubox
+123 136 0.003243454 ubox
+123 148 0.062876710 ubox
+123 156 0.045370315 ubox
+123 157 0.025659326 ubox
+123 158 0.008882272 ubox
+124 128 0.037899045 ubox
+124 147 0.067794128 ubox
+124 155 0.045710501 ubox
+125 132 0.011969449 ubox
+125 146 0.067939593 ubox
+125 155 0.008792075 ubox
+125 159 0.017264767 ubox
+126 137 0.012735715 ubox
+126 145 0.067773863 ubox
+126 155 0.140820599 ubox
+127 131 0.005960558 ubox
+127 136 0.014728116 ubox
+127 144 0.064405597 ubox
+127 153 0.003605973 ubox
+127 154 0.144066702 ubox
+127 156 0.005815058 ubox
+127 157 0.007391903 ubox
+127 158 0.003619074 ubox
+128 134 0.003221955 ubox
+128 135 0.014995026 ubox
+128 139 0.003659522 ubox
+128 142 0.009563274 ubox
+128 144 0.010024830 ubox
+128 153 0.142516417 ubox
+128 154 0.070371246 ubox
+128 156 0.009431323 ubox
+128 157 0.003912532 ubox
+129 141 0.008978328 ubox
+129 143 0.013808129 ubox
+129 152 0.142102696 ubox
+129 155 0.008929433 ubox
+130 137 0.004433724 ubox
+130 141 0.044604763 ubox
+130 151 0.141600181 ubox
+130 152 0.091383872 ubox
+131 141 0.032523301 ubox
+131 151 0.094416376 ubox
+131 159 0.006616716 ubox
+132 138 0.023554981 ubox
+132 139 0.051746567 ubox
+132 140 0.033066398 ubox
+132 149 0.137391797 ubox
+132 150 0.096035017 ubox
+132 153 0.013600367 ubox
+132 158 0.006607805 ubox
+133 137 0.019390709 ubox
+133 147 0.014701750 ubox
+133 152 0.013719323 ubox
+134 146 0.011912165 ubox
+134 147 0.160633330 ubox
+134 151 0.013705054 ubox
+135 145 0.007093885 ubox
+135 146 0.171038325 ubox
+136 143 0.003680517 ubox
+136 145 0.171218735 ubox
+136 155 0.006585617 ubox
+137 142 0.003539555 ubox
+137 144 0.170519884 ubox
+137 148 0.014106901 ubox
+137 154 0.006920214 ubox
+138 143 0.163611826 ubox
+138 147 0.014374333 ubox
+139 146 0.014374709 ubox
+139 152 0.007144520 ubox
+140 145 0.009746153 ubox
+140 151 0.007170207 ubox
+140 159 0.008170548 ubox
+141 150 0.007126024 ubox
+141 158 0.007663494 ubox
+143 156 0.008892441 ubox
+144 155 0.009034317 ubox
+145 154 0.009070781 ubox
+146 153 0.009078895 ubox
+147 156 0.003269320 ubox
+148 155 0.003364928 ubox
+149 159 0.035142903 ubox
+150 159 0.237553266 ubox
+151 157 0.034839236 ubox
+151 158 0.237880926 ubox
+152 156 0.031665445 ubox
+152 157 0.231703305 ubox
+152 160 0.003476345 ubox
+153 159 0.013621893 ubox
+155 160 0.007984067 ubox
+3 49 0.9746794 lbox
+4 48 0.9746794 lbox
+5 47 0.9746794 lbox
+6 46 0.9746794 lbox
+14 39 0.9746794 lbox
+15 38 0.9746794 lbox
+16 37 0.9746794 lbox
+17 36 0.9746794 lbox
+18 33 0.9746794 lbox
+19 32 0.9746794 lbox
+20 31 0.9746794 lbox
+21 30 0.9746794 lbox
+22 29 0.9746794 lbox
+52 153 0.9746794 lbox
+53 152 0.9746794 lbox
+54 151 0.9746794 lbox
+57 148 0.9746794 lbox
+58 147 0.9746794 lbox
+59 146 0.9746794 lbox
+60 145 0.9746794 lbox
+61 144 0.9746794 lbox
+62 143 0.9746794 lbox
+63 142 0.9746794 lbox
+64 141 0.9746794 lbox
+65 140 0.9746794 lbox
+66 139 0.9746794 lbox
+67 138 0.9746794 lbox
+68 137 0.9746794 lbox
+71 134 0.9746794 lbox
+72 133 0.9746794 lbox
+73 132 0.9746794 lbox
+83 129 0.9746794 lbox
+84 128 0.9746794 lbox
+85 127 0.9746794 lbox
+86 126 0.9746794 lbox
+94 119 0.9746794 lbox
+95 118 0.9746794 lbox
+96 117 0.9746794 lbox
+97 116 0.9746794 lbox
+98 113 0.9746794 lbox
+99 112 0.9746794 lbox
+100 111 0.9746794 lbox
+101 110 0.9746794 lbox
+102 109 0.9746794 lbox
+showpage
+end
+%%EOF

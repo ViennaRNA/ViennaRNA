@@ -314,7 +314,7 @@ main(int  argc,
     free(tmp_string);
   }
 
-  if (args_info.shapeMethod_given)
+  if (with_shapes)
     shape_method = strdup(args_info.shapeMethod_arg);
 
   /* alignment file name given as unnamed option? */

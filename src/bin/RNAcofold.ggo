@@ -32,6 +32,11 @@ description "The program works much like RNAfold, but allows one to specify two 
 section "General Options"
 sectiondesc="Command line options which alter the general behavior of this program\n\n"
 
+option  "verbose" v
+"Be verbose.\n\n"
+flag
+off
+
 option  "noPS"  -
 "Do not produce postscript drawing of the mfe structure.\n\n"
 flag
@@ -156,8 +161,8 @@ argoptional
 option  "batch"   -
 "Use constraints for multiple sequences.\n"
 details="Usually, constraints provided from input file only apply to a single input sequence. Therefore,\
- RNAfold will stop its computation and quit after the first input sequence was processed. Using this\
- switch, RNAfold processes multiple input sequences and applies the same provided constraints to each of them.\n\n"
+ RNAcofold will stop its computation and quit after the first input sequence was processed. Using this\
+ switch, RNAcofold processes multiple input sequences and applies the same provided constraints to each of them.\n\n"
 flag
 off
 dependon="constraint"
@@ -173,6 +178,52 @@ option  "enforceConstraint" -
 flag
 off
 dependon="constraint"
+
+option  "shape" -
+"Use SHAPE reactivity data to guide structure predictions\n\n"
+string
+typestr="<filename>"
+optional
+
+option  "shapeMethod" -
+"Select method to incorporate SHAPE reactivity data.\n"
+details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
+'D': Convert by using a linear equation according to Deigan et al 2009. \
+The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
+This method is recognized by a capital 'D' in the provided parameter, i.e.: \
+--shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
+non-default value if necessary, otherwise m=1.8 and b=-0.6. \
+To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
+parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
+parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
+
+'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
+SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
+Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
+The magnitude of the penalties can affected by adjusting the factor beta \
+(e.g. --shapeMethod=\"Zb0.8\").
+
+'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
+Perturbation vectors can be calculated by using RNApvmin.\n\n"
+string
+typestr="[D/Z/W] + [optional parameters]"
+dependon="shape"
+default="D"
+optional
+
+option  "shapeConversion" -
+"Select method to convert SHAPE reactivities to pairing probabilities.\n"
+details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
+The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+'M': Use linear mapping according to Zarringhalam et al.
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
+string
+typestr="M/C/S/L/O  + [optional parameters]"
+default="O"
+optional
 
 option  "commands"   -
 "Read additional commands from file\n"
@@ -324,7 +375,7 @@ option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ RNAcofold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional

@@ -10,7 +10,8 @@ dmg_verbose_0 = @echo DMG-GEN $@;
 
 EXTRA_DIST =  resources/welcome.txt \
               resources/conclusion.html \
-              resources/ohm.png
+              resources/ohm.png \
+              uninstall-ViennaRNA-Package.sh
 
 srcdir  = @srcdir@
 thisdir = packaging/macosx
