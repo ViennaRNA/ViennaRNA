@@ -262,6 +262,7 @@ details="Currently, the only data conversion method available is that of to Deig
 string
 typestr="D[mX][bY]"
 dependon="shape"
+default="D"
 optional
 
 section "Algorithms"

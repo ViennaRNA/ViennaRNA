@@ -1,3 +1,14 @@
+v2.4.1
+  * Fix memory leak in fold_compound methods of SWIG interface
+  * Fix memory leaks in double ** returning functions of SWIG Perl5 interface
+  * Fix memory leak in vrna_ep_t to-string() function of SWIG interface
+  * Regression: Fix reverting pf_scale to defaults after vrna_exp_params_rescale()
+  * Regression: Fix homo-dimer partition function computation in RNAcofold
+  * Add unit tests for RNAcofold executable
+  * Add SHAPE reactivity support to RNAcofold
+  * Add SHAPE reactivity support to RNALalifold
+
+
 v2.4.0
   * Bump libsvm to version 3.22
   * Print G-Quadruplex corrections in verbose mode of RNAeval

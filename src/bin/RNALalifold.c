@@ -15,6 +15,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
+#include <limits.h>
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/fold_vars.h"
@@ -28,13 +29,13 @@
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/file_formats_msa.h"
 #include "ViennaRNA/file_utils.h"
+#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints_SHAPE.h"
 #include "RNALalifold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
-
-#define MAX_NUM_NAMES    500
 
 typedef struct {
   char      **names;
@@ -80,37 +81,44 @@ main(int  argc,
 {
   FILE                          *clust_file;
   struct RNALalifold_args_info  args_info;
-  char                          *string, *structure, *ParamFile, *ns_bases, *prefix,
+  char                          *string, *structure, *ParamFile, *ns_bases, *prefix, *tmp_string,
                                 **AS, **names, *filename_in, *id_prefix, *id_delim, *filename_delim,
-                                **input_files, *tmp_id, *tmp_structure;
-  unsigned int                  input_format_options;
+                                **input_files, *tmp_id, *tmp_structure, **shape_files,
+                                *shape_method;
+  unsigned int                  input_format_options, longest_string;
   int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id, gquad,
                                 mis, istty, alnPS, aln_columns, aln_out, ssPS, input_file_num,
-                                id_digits;
+                                id_digits, with_shapes, *shape_file_association, verbose, s,
+                                tmp_number;
   long int                      alignment_number, first_alignment_number;
   float                         e_max;
   vrna_md_t                     md;
   vrna_fold_compound_t          *fc;
 
-  clust_file            = stdin;
-  string                = structure = ParamFile = ns_bases = prefix = NULL;
-  mis                   = 0;
-  maxdist               = 70;
-  do_backtrack          = unchangednc = unchangedcv = 1;
-  dangles               = 2;
-  ribo                  = 0;
-  alnPS                 = 0;
-  ssPS                  = 0;
-  aln_out               = 0;
-  aln_columns           = 60;
-  input_format_options  = VRNA_FILE_FORMAT_MSA_CLUSTAL;   /* default to ClustalW format */
-  filename_in           = NULL;
-  input_files           = NULL;
-  input_file_num        = 0;
-  quiet                 = 0;
-  auto_id               = 0;
-  gquad                 = 0;
-  e_max                 = -0.1;  /* threshold in kcal/mol per nucleotide in a hit */
+  clust_file              = stdin;
+  string                  = structure = ParamFile = ns_bases = prefix = NULL;
+  mis                     = 0;
+  maxdist                 = 70;
+  do_backtrack            = unchangednc = unchangedcv = 1;
+  dangles                 = 2;
+  ribo                    = 0;
+  alnPS                   = 0;
+  ssPS                    = 0;
+  aln_out                 = 0;
+  aln_columns             = 60;
+  input_format_options    = VRNA_FILE_FORMAT_MSA_CLUSTAL; /* default to ClustalW format */
+  filename_in             = NULL;
+  input_files             = NULL;
+  input_file_num          = 0;
+  shape_files             = NULL;
+  shape_file_association  = 0;
+  shape_method            = NULL;
+  with_shapes             = 0;
+  verbose                 = 0;
+  quiet                   = 0;
+  auto_id                 = 0;
+  gquad                   = 0;
+  e_max                   = -0.1; /* threshold in kcal/mol per nucleotide in a hit */
 
   vrna_md_set_default(&md);
 
@@ -295,11 +303,63 @@ main(int  argc,
     filename_delim = NULL;
   }
 
-  if (args_info.quiet_given)
-    quiet = 1;
+  if (args_info.verbose_given)
+    verbose = 1;
+
+  if (args_info.quiet_given) {
+    if (verbose)
+      vrna_message_warning(
+        "Can not be verbose and quiet at the same time! I keep on being chatty...");
+    else
+      quiet = 1;
+  }
 
   if (args_info.threshold_given)
     e_max = (float)args_info.threshold_arg;
+
+  /* SHAPE reactivity data */
+  if (args_info.shape_given) {
+    if (verbose)
+      vrna_message_info(stderr, "SHAPE reactivity data correction activated");
+
+    with_shapes             = 1;
+    shape_files             = (char **)vrna_alloc(sizeof(char *) * (args_info.shape_given + 1));
+    shape_file_association  = (int *)vrna_alloc(sizeof(int *) * (args_info.shape_given + 1));
+
+    /* find longest string in argument list */
+    longest_string = 0;
+    for (s = 0; s < args_info.shape_given; s++)
+      if (strlen(args_info.shape_arg[s]) > longest_string)
+        longest_string = strlen(args_info.shape_arg[s]);
+
+    tmp_string  = (char *)vrna_alloc(sizeof(char) * (longest_string + 1));
+    tmp_number  = 0;
+
+    for (s = 0; s < args_info.shape_given; s++) {
+      /* check whether we have int=string style that specifies a SHAPE file for a certain sequence number in the alignment */
+      if (sscanf(args_info.shape_arg[s], "%d=%s", &tmp_number, tmp_string) == 2) {
+        shape_files[s]            = strdup(tmp_string);
+        shape_file_association[s] = tmp_number - 1;
+      } else {
+        shape_files[s]            = strdup(args_info.shape_arg[s]);
+        shape_file_association[s] = s;
+      }
+
+      if (verbose) {
+        vrna_message_info(stderr,
+                          "Using SHAPE reactivity data provided in file %s for sequence %d",
+                          shape_files[s],
+                          shape_file_association[s] + 1);
+      }
+    }
+
+    shape_file_association[s] = -1;
+
+    free(tmp_string);
+  }
+
+  if (with_shapes)
+    shape_method = strdup(args_info.shapeMethod_arg);
 
   /* free allocated memory of command line data structure */
   RNALalifold_cmdline_parser_free(&args_info);
@@ -446,6 +506,27 @@ main(int  argc,
     data.n_seq        = n_seq;
     data.dangle_model = md.dangles;
 
+    if (with_shapes) {
+      for (s = 0; shape_file_association[s] != -1; s++);
+
+      if ((s != n_seq) && (!quiet))
+        vrna_message_warning(
+          "Number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
+
+      shape_files             = (char **)vrna_realloc(shape_files, (n_seq + 1) * sizeof(char *));
+      shape_file_association  = (int *)vrna_realloc(shape_file_association,
+                                                    (n_seq + 1) * sizeof(int));
+    }
+
+    if (with_shapes) {
+      vrna_constraints_add_SHAPE_ali(fc, \
+                                     shape_method, \
+                                     (const char **)shape_files, \
+                                     shape_file_association, \
+                                     verbose, \
+                                     VRNA_OPTION_MFE);
+    }
+
     (void)vrna_mfe_window_cb(fc, &print_hit_cb, (void *)&data);
 
     string = (mis) ? consens_mis((const char **)AS) : consensus((const char **)AS);
@@ -468,7 +549,11 @@ main(int  argc,
     free(tmp_structure);
 
     ID_number_increase(&alignment_number, "Alignment");
-  }
+
+    /* break after first record if constraint folding and not explicitly instructed otherwise */
+    if (with_shapes)
+      break;
+  } /* end of input */
 
   if (first_alignment_number == alignment_number) {
     char *format = NULL;
@@ -497,6 +582,8 @@ main(int  argc,
 
   if (clust_file != stdin)
     fclose(clust_file);
+
+  free(shape_files);
 
   free(filename_in);
 
@@ -652,12 +739,12 @@ annote(const char *structure,
   int   i, n, s, pairings, maxl;
   short *ptable;
   char  *colorMatrix[6][3] = {
-    { "0.0 1",  "0.0 0.6",  "0.0 0.2"  },   /* red    */
-    { "0.16 1", "0.16 0.6", "0.16 0.2" },   /* ochre  */
-    { "0.32 1", "0.32 0.6", "0.32 0.2" },   /* turquoise */
-    { "0.48 1", "0.48 0.6", "0.48 0.2" },   /* green  */
-    { "0.65 1", "0.65 0.6", "0.65 0.2" },   /* blue   */
-    { "0.81 1", "0.81 0.6", "0.81 0.2" }    /* violet */
+    { "0.0 1",  "0.0 0.6",  "0.0 0.2"   },  /* red    */
+    { "0.16 1", "0.16 0.6", "0.16 0.2"  },  /* ochre  */
+    { "0.32 1", "0.32 0.6", "0.32 0.2"  },  /* turquoise */
+    { "0.48 1", "0.48 0.6", "0.48 0.2"  },  /* green  */
+    { "0.65 1", "0.65 0.6", "0.65 0.2"  },  /* blue   */
+    { "0.81 1", "0.81 0.6", "0.81 0.2"  }   /* violet */
   };
 
   n     = strlen(AS[0]);
