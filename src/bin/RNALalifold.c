@@ -37,6 +37,8 @@
 
 #include "ViennaRNA/color_output.inc"
 
+#define DEFAULT_SPAN  70;
+
 typedef struct {
   char      **names;
   char      **strings;
@@ -81,12 +83,12 @@ main(int  argc,
 {
   FILE                          *clust_file;
   struct RNALalifold_args_info  args_info;
-  char                          *string, *structure, *ParamFile, *ns_bases, *prefix, *tmp_string,
+  char                          *string, *structure, *prefix, *tmp_string,
                                 **AS, **names, *filename_in, *id_prefix, *id_delim, *filename_delim,
                                 **input_files, *tmp_id, *tmp_structure, **shape_files,
                                 *shape_method;
   unsigned int                  input_format_options, longest_string;
-  int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id, gquad,
+  int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id,
                                 mis, istty, alnPS, aln_columns, aln_out, ssPS, input_file_num,
                                 id_digits, with_shapes, *shape_file_association, verbose, s,
                                 tmp_number;
@@ -96,11 +98,10 @@ main(int  argc,
   vrna_fold_compound_t          *fc;
 
   clust_file              = stdin;
-  string                  = structure = ParamFile = ns_bases = prefix = NULL;
+  string                  = structure = prefix = NULL;
   mis                     = 0;
-  maxdist                 = 70;
+  maxdist                 = DEFAULT_SPAN;
   do_backtrack            = unchangednc = unchangedcv = 1;
-  dangles                 = 2;
   ribo                    = 0;
   alnPS                   = 0;
   ssPS                    = 0;
@@ -117,7 +118,6 @@ main(int  argc,
   verbose                 = 0;
   quiet                   = 0;
   auto_id                 = 0;
-  gquad                   = 0;
   e_max                   = -0.1; /* threshold in kcal/mol per nucleotide in a hit */
 
   vrna_md_set_default(&md);
@@ -130,53 +130,22 @@ main(int  argc,
   if (RNALalifold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* get basic set of model details */
+  ggo_get_md_eval(args_info, md);
+  ggo_get_md_fold(args_info, md);
+
+  /* check dangle model */
+  if ((md.dangles < 0) || (md.dangles > 3)) {
+    vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+    md.dangles = 2;
+  }
+
   ggo_get_ID_manipulation(args_info,
                           auto_id,
                           id_prefix, "alignment",
                           id_delim, "_",
                           id_digits, 4,
                           alignment_number, 1);
-
-  /* temperature */
-  if (args_info.temp_given)
-    md.temperature = temperature = args_info.temp_arg;
-
-  /* structure constraint */
-  if (args_info.noTetra_given)
-    md.special_hp = tetra_loop = 0;
-
-  /* set dangle model */
-  if (args_info.dangles_given) {
-    if ((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning(
-        "required dangle model not implemented, falling back to default dangles=2");
-    else
-      md.dangles = dangles = args_info.dangles_arg;
-  }
-
-  /* do not allow weak pairs */
-  if (args_info.noLP_given)
-    md.noLP = noLonelyPairs = 1;
-
-  /* do not allow wobble pairs (GU) */
-  if (args_info.noGU_given)
-    md.noGU = noGU = 1;
-
-  /* do not allow weak closing pairs (AU,GU) */
-  if (args_info.noClosingGU_given)
-    md.noGUclosure = no_closingGU = 1;
-
-  /* set energy model */
-  if (args_info.energyModel_given)
-    md.energy_set = energy_set = args_info.energyModel_arg;
-
-  /* take another energy parameter set */
-  if (args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
-
-  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if (args_info.nsp_given)
-    ns_bases = strdup(args_info.nsp_arg);
 
   /* set cfactor */
   if (args_info.cfactor_given) {
@@ -190,10 +159,6 @@ main(int  argc,
     unchangednc = 0;
   }
 
-  /* set the maximum base pair span */
-  if (args_info.span_given)
-    md.max_bp_span = maxdist = args_info.span_arg;
-
   /* calculate most informative sequence */
   if (args_info.mis_given)
     mis = 1;
@@ -201,25 +166,20 @@ main(int  argc,
   if (args_info.csv_given)
     csv = 1;
 
-  if (args_info.ribosum_file_given) {
-    md.ribo     = ribo = 1;
-    RibosumFile = strdup(args_info.ribosum_file_arg);
-  }
-
-  if (args_info.ribosum_scoring_given) {
-    RibosumFile = NULL;
-    md.ribo     = ribo = 1;
-  }
-
-  /* gquadruplex support */
-  if (args_info.gquad_given)
-    md.gquad = gquad = 1;
-
   if (args_info.aln_given) {
     alnPS = aln_out = ssPS = 1;
     if (args_info.aln_arg)
       prefix = strdup(args_info.aln_arg);
   }
+
+  if (args_info.aln_EPS_ss_given)
+    ssPS = 1;
+
+  if (args_info.aln_EPS_given)
+    alnPS = 1;
+
+  if (args_info.aln_EPS_cols_given)
+    aln_columns = args_info.aln_EPS_cols_arg;
 
   if (args_info.aln_stk_given) {
     aln_out = 1;
@@ -235,14 +195,70 @@ main(int  argc,
     }
   }
 
-  if (args_info.aln_EPS_ss_given)
-    ssPS = 1;
+  if (args_info.ribosum_file_given) {
+    RibosumFile = strdup(args_info.ribosum_file_arg);
+    md.ribo     = ribo = 1;
+  }
 
-  if (args_info.aln_EPS_given)
-    alnPS = 1;
+  if (args_info.ribosum_scoring_given) {
+    RibosumFile = NULL;
+    md.ribo     = ribo = 1;
+  }
 
-  if (args_info.aln_EPS_cols_given)
-    aln_columns = args_info.aln_EPS_cols_arg;
+  if (args_info.verbose_given)
+    verbose = 1;
+
+  if (args_info.quiet_given) {
+    if (verbose)
+      vrna_message_warning(
+        "Can not be verbose and quiet at the same time! I keep on being chatty...");
+    else
+      quiet = 1;
+  }
+
+  /* SHAPE reactivity data */
+  if (args_info.shape_given) {
+    if (verbose)
+      vrna_message_info(stderr, "SHAPE reactivity data correction activated");
+
+    with_shapes             = 1;
+    shape_files             = (char **)vrna_alloc(sizeof(char *) * (args_info.shape_given + 1));
+    shape_file_association  = (int *)vrna_alloc(sizeof(int *) * (args_info.shape_given + 1));
+
+    /* find longest string in argument list */
+    longest_string = 0;
+    for (s = 0; s < args_info.shape_given; s++)
+      if (strlen(args_info.shape_arg[s]) > longest_string)
+        longest_string = strlen(args_info.shape_arg[s]);
+
+    tmp_string  = (char *)vrna_alloc(sizeof(char) * (longest_string + 1));
+    tmp_number  = 0;
+
+    for (s = 0; s < args_info.shape_given; s++) {
+      /* check whether we have int=string style that specifies a SHAPE file for a certain sequence number in the alignment */
+      if (sscanf(args_info.shape_arg[s], "%d=%s", &tmp_number, tmp_string) == 2) {
+        shape_files[s]            = strdup(tmp_string);
+        shape_file_association[s] = tmp_number - 1;
+      } else {
+        shape_files[s]            = strdup(args_info.shape_arg[s]);
+        shape_file_association[s] = s;
+      }
+
+      if (verbose) {
+        vrna_message_info(stderr,
+                          "Using SHAPE reactivity data provided in file %s for sequence %d",
+                          shape_files[s],
+                          shape_file_association[s] + 1);
+      }
+    }
+
+    shape_file_association[s] = -1;
+
+    free(tmp_string);
+  }
+
+  if (with_shapes)
+    shape_method = strdup(args_info.shapeMethod_arg);
 
   /* alignment file name given as unnamed option? */
   if (args_info.inputs_num == 1) {
@@ -303,63 +319,8 @@ main(int  argc,
     filename_delim = NULL;
   }
 
-  if (args_info.verbose_given)
-    verbose = 1;
-
-  if (args_info.quiet_given) {
-    if (verbose)
-      vrna_message_warning(
-        "Can not be verbose and quiet at the same time! I keep on being chatty...");
-    else
-      quiet = 1;
-  }
-
   if (args_info.threshold_given)
     e_max = (float)args_info.threshold_arg;
-
-  /* SHAPE reactivity data */
-  if (args_info.shape_given) {
-    if (verbose)
-      vrna_message_info(stderr, "SHAPE reactivity data correction activated");
-
-    with_shapes             = 1;
-    shape_files             = (char **)vrna_alloc(sizeof(char *) * (args_info.shape_given + 1));
-    shape_file_association  = (int *)vrna_alloc(sizeof(int *) * (args_info.shape_given + 1));
-
-    /* find longest string in argument list */
-    longest_string = 0;
-    for (s = 0; s < args_info.shape_given; s++)
-      if (strlen(args_info.shape_arg[s]) > longest_string)
-        longest_string = strlen(args_info.shape_arg[s]);
-
-    tmp_string  = (char *)vrna_alloc(sizeof(char) * (longest_string + 1));
-    tmp_number  = 0;
-
-    for (s = 0; s < args_info.shape_given; s++) {
-      /* check whether we have int=string style that specifies a SHAPE file for a certain sequence number in the alignment */
-      if (sscanf(args_info.shape_arg[s], "%d=%s", &tmp_number, tmp_string) == 2) {
-        shape_files[s]            = strdup(tmp_string);
-        shape_file_association[s] = tmp_number - 1;
-      } else {
-        shape_files[s]            = strdup(args_info.shape_arg[s]);
-        shape_file_association[s] = s;
-      }
-
-      if (verbose) {
-        vrna_message_info(stderr,
-                          "Using SHAPE reactivity data provided in file %s for sequence %d",
-                          shape_files[s],
-                          shape_file_association[s] + 1);
-      }
-    }
-
-    shape_file_association[s] = -1;
-
-    free(tmp_string);
-  }
-
-  if (with_shapes)
-    shape_method = strdup(args_info.shapeMethod_arg);
 
   /* free allocated memory of command line data structure */
   RNALalifold_cmdline_parser_free(&args_info);
@@ -375,15 +336,13 @@ main(int  argc,
   if ((ribo == 1) && (unchangedcv))
     md.cv_fact = cv_fact = 0.6;
 
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
-
-  if (ns_bases != NULL)
-    vrna_md_set_nonstandards(&md, ns_bases);
-
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
-  md.max_bp_span = md.window_size = maxdist;
+  /* check whether the user wants a non-default base pair span */
+  if (md.max_bp_span != -1)
+    maxdist = md.window_size = md.max_bp_span;
+  else
+    md.max_bp_span = md.window_size = maxdist;
 
   /*
    #############################################
@@ -614,7 +573,7 @@ print_hit_cb(int        start,
   char      **strings;
   char      *prefix;
   char      *msg, *ss;
-  int       columns, n_seq, dangle_model;
+  int       columns, dangle_model;
   vrna_md_t *md;
   int       with_ss, with_msa, with_stk, with_csv, with_mis;
   float     threshold;

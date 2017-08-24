@@ -225,7 +225,7 @@ section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"
 
-option  "span"  L
+option  "maxBPspan"  L
 "Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
  j-i>span will be allowed.\n\n"
 int
