@@ -32,6 +32,48 @@
 #define VRNA_PLIST_TYPE_UD_MOTIF      4
 #define VRNA_PLIST_TYPE_STACK         5
 
+/**
+ *  @brief  Bitflag to indicate secondary structure notations using uppercase/lowercase letters from the latin alphabet
+ *
+ *  @see  vrna_ptable_from_string()
+ */
+#define VRNA_BRACKETS_ALPHA    4U
+
+/**
+ *  @brief  Bitflag to indicate secondary structure notations using round brackets (parenthesis), <tt>()</tt>
+ *
+ *  @see  vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to()
+ */
+#define VRNA_BRACKETS_RND      8U
+
+/**
+ *  @brief  Bitflag to indicate secondary structure notations using curly brackets, <tt>{}</tt>
+ *
+ *  @see  vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to()
+ */
+#define VRNA_BRACKETS_CLY      16U
+
+/**
+ *  @brief  Bitflag to indicate secondary structure notations using angular brackets, <tt><></tt>
+ *
+ *  @see  vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to()
+ */
+#define VRNA_BRACKETS_ANG      32U
+
+/**
+ *  @brief  Bitflag to indicate secondary structure notations using square brackets, <tt>[]</tt>
+ *
+ *  @see  vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to()
+ */
+#define VRNA_BRACKETS_SQR      64U
+
+/**
+ *  @brief  Default bitmask to indicate secondary structure notation using any pair of brackets
+ *
+ *  @see  vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to()
+ */
+#define VRNA_BRACKETS_DEFAULT  (VRNA_BRACKETS_RND | VRNA_BRACKETS_CLY | VRNA_BRACKETS_ANG | VRNA_BRACKETS_SQR)
+
 
 /**
  *  @brief Convenience typedef for data structure #vrna_hx_s
@@ -105,10 +147,32 @@ char *vrna_db_unpack(const char *packed);
  *  Returns a newly allocated table, such that table[i]=j if (i.j) pair
  *  or 0 if i is unpaired, table[0] contains the length of the structure.
  *
+ *  @see  vrna_ptable_from_string(), vrna_db_from_ptable()
+ *
  *  @param  structure The secondary structure in dot-bracket notation
  *  @return           A pointer to the created pair_table
  */
 short *vrna_ptable(const char *structure);
+
+
+/**
+ *  @brief  Create a pair table for a secondary structure string
+ *
+ *  This function takes an input string of a secondary structure annotation
+ *  in @ref dot-bracket-notation or @ref dot-bracket-ext-notation, and converts
+ *  it into a pair table representation.
+ *
+ *  @see vrna_ptable(), vrna_db_from_ptable(), vrna_db_flatten_to(),
+ *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
+ *       #VRNA_BRACKETS_DEFAULT
+ *
+ *  @param  string    Secondary structure in @ref dot-bracket-ext-notation
+ *  @param  options   A bitmask to specify which brackets are recognized during conversion to pair table
+ *  @return           A pointer to a new pair table of the provided secondary structure
+ */
+short *
+vrna_ptable_from_string(const char   *string,
+                        unsigned int options);
 
 
 /**
@@ -153,6 +217,52 @@ short *vrna_pt_snoop_get(const char *structure);
  */
 int *vrna_loopidx_from_ptable(const short *pt);
 
+
+/**
+ *  @brief Substitute pairs of brackets in a string with parenthesis
+ *
+ *  This function can be used to replace brackets of unusual types,
+ *  such as angular brackets @verb <> @endverb , to dot-bracket format.
+ *  The @p options parameter is used tpo specify which types of brackets
+ *  will be replaced by round parenthesis @verb () @endverb.
+ *
+ *  @see vrna_db_flatten_to(),
+ *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
+ *       #VRNA_BRACKETS_DEFAULT
+ *
+ *  @param  structure   The structure string where brackets are flattened in-place
+ *  @param  options     A bitmask to specify which types of brackets should be flattened out
+ */
+void
+vrna_db_flatten(char *structure,
+                unsigned int options);
+
+
+/**
+ *  @brief Substitute pairs of brackets in a string with another type of pair characters
+ *
+ *  This function can be used to replace brackets in a structure annotation string,
+ *  such as square brackets @verb [] @endverb , to another type of pair characters,
+ *  e.g. angular brackets @verb <> @endverb.
+ *
+ *  The @p target array must contain a character for the 'pair open' annotation at
+ *  position 0, and one for 'pair close' at position 1. T@p options parameter is used
+ *  to specify which types of brackets will be replaced by the new pairs.
+ *
+ *  @see vrna_db_flatten(),
+ *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
+ *       #VRNA_BRACKETS_DEFAULT
+ *
+ *  @param  structure   The structure string where brackets are flattened in-place
+ *  @param  target      The new pair characters the string will be flattened to
+ *  @param  options     A bitmask to specify which types of brackets should be flattened out
+ */
+void 
+vrna_db_flatten_to(char         *string,
+                   const char   target[3],
+                   unsigned int options);
+
+
 /**
  *  @brief Convert a pair table into dot-parenthesis notation
  *
@@ -161,6 +271,19 @@ int *vrna_loopidx_from_ptable(const short *pt);
  */
 char *vrna_db_from_ptable(short *pt);
 
+
+/**
+ *  @brief  Convert a WUSS annotation string to dot-bracket format
+ *
+ *  @note This function flattens all brackets, and treats pseudo-knots annotated
+ *        by matching pairs of upper/lowercase letters as unpaired nucleotides
+ *
+ *  @see @ref wuss-notation
+ *
+ *  @param  wuss  The input string in WUSS notation
+ *  @return       A dot-bracket notation of the input secondary structure
+ */
+char *vrna_db_from_WUSS(const char *wuss);
 
 /**
  *  @brief Compute the "base pair" distance between two secondary structures s1 and s2.

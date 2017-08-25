@@ -86,6 +86,9 @@ AAWR02037329.1/29294-29150 ---CUCGACACCACU---GCCUCGGUUACCCAUCGGUGCAGUGCGGGUAGUAG
 //
   @endverbatim
 
+  @see @ref wuss-notation on legal characters for the consensus secondary structure line @em SS_cons
+  and their interpretation
+
   @subsection   msa-formats-fasta     FASTA (Pearson) format
 
   @note Sequence names must not contain whitespace characters. Otherwise, the parts after

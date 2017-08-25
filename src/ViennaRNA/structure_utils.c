@@ -15,12 +15,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/structure_utils.h"
+
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
 
 /*
 #################################
@@ -39,7 +46,23 @@ PRIVATE vrna_ep_t *
 wrap_plist( vrna_fold_compound_t *vc,
             double cut_off);
 
-PRIVATE void assign_elements_pair(short *pt, int i, int j, char *elements);
+PRIVATE void
+assign_elements_pair(short *pt,
+                     int i,
+                     int j,
+                     char *elements);
+
+PRIVATE INLINE void
+flatten_brackets(char *string,
+                 const char pair[3],
+                 const char target[3]);
+
+
+PRIVATE INLINE void
+extract_pairs(short         *pt,
+              const char    *structure,
+              const char    *pair);
+
 
 /*
 #################################
@@ -117,213 +140,27 @@ vrna_db_unpack(const char *packed){
 PUBLIC short *
 vrna_ptable(const char *structure){
 
-    /* returns array representation of structure.
-       table[i] is 0 if unpaired or j if (i.j) pair.  */
-   short i,j,hx;
-   short length;
-   short *stack;
-   short *table;
-
-   length = (short) strlen(structure);
-   stack = (short *) vrna_alloc(sizeof(short)*(length+1));
-   table = (short *) vrna_alloc(sizeof(short)*(length+2));
-   table[0] = length;
-
-   for (hx=0, i=1; i<=length; i++) {
-      switch (structure[i-1]) {
-       case '(':
-         stack[hx++]=i;
-         break;
-       case ')':
-         j = stack[--hx];
-         if (hx<0) {
-            vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
-         }
-         table[i]=j;
-         table[j]=i;
-         break;
-       default:   /* unpaired base, usually '.' */
-         table[i]= 0;
-         break;
-      }
-   }
-   if (hx!=0) {
-      vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
-   }
-   free(stack);
-   return(table);
+  return vrna_ptable_from_string(structure, VRNA_BRACKETS_RND);
 }
 
 PUBLIC short *
 vrna_pt_pk_get(const char *structure){
 
-   short i,j,hx, hx2;
-   short length;
-   short *stack;
-   short *stack2;
-   short *table;
-
-   length = (short) strlen(structure);
-   stack  = (short *) vrna_alloc(sizeof(short)*(length+1));
-   stack2 = (short *) vrna_alloc(sizeof(short)*(length+1));
-   table  = (short *) vrna_alloc(sizeof(short)*(length+2));
-   table[0] = length;
-
-   for (hx=0, hx2=0, i=1; i<=length; i++) {
-      switch (structure[i-1]) {
-       case '(':
-         stack[hx++]=i;
-         break;
-       case ')':
-         j = stack[--hx];
-         if (hx<0) {
-            vrna_message_error("%s\nunbalanced '()' brackets in make_pair_table_pk", structure);
-         }
-         table[i]=j;
-         table[j]=i;
-         break;
-       case '[':
-         stack2[hx2++]=i;
-         break;
-       case ']':
-         j = stack2[--hx2];
-         if (hx2<0) {
-            vrna_message_error("%s\nunbalanced '[]' brackets in make_pair_table_pk", structure);
-         }
-         table[i]=j;
-         table[j]=i;
-         break;
-       default:   /* unpaired base, usually '.' */
-         table[i]= 0;
-         break;
-      }
-   }
-   if (hx!=0) {
-      vrna_message_error("%s\nunbalanced '()' brackets in make_pair_table_pk", structure);
-   } else if (hx2!=0) {
-      vrna_message_error("%s\nunbalanced '[]' brackets in make_pair_table_pk", structure);
-   }
-   free(stack);
-   free(stack2);
-   return(table);
+  return vrna_ptable_from_string(structure, VRNA_BRACKETS_RND | VRNA_BRACKETS_SQR);
 }
 
 
 PUBLIC short *
 vrna_pt_snoop_get(const char *structure){
 
-    /* returns array representation of structure.
-       table[i] is 0 if unpaired or j if (i.j) pair.  */
-   short i,j,hx;
-   short length;
-   short *stack;
-   short *table;
-
-   length = (short) strlen(structure);
-   stack = (short *) vrna_alloc(sizeof(short)*(length+1));
-   table = (short *) vrna_alloc(sizeof(short)*(length+2));
-   table[0] = length;
-
-   for (hx=0, i=1; i<=length; i++) {
-     switch (structure[i-1]) {
-     case '<':
-       stack[hx++]=i;
-       break;
-     case '>':
-       j = stack[--hx];
-       if (hx<0) {
-         vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
-       }
-       table[i]=j;
-       table[j]=i;
-       break;
-     default:   /* unpaired base, usually '.' */
-       table[i]= table[i];
-       break;
-     }
-   }
-   if (hx!=0) {
-     vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
-   }
-   free(stack);
-   return table ;
+  return vrna_ptable_from_string(structure, VRNA_BRACKETS_ANG);
 }
-
 
 
 PUBLIC short *
 vrna_pt_ali_get(const char *structure){
 
-    /* returns array representation of structure.
-       table[i] is 0 if unpaired or j if (i.j) pair.  */
-   short i,j,hx;
-   short length;
-   short *stack;
-   short *table;
-
-   length = (short) strlen(structure);
-   stack = (short *) vrna_alloc(sizeof(short)*(length+1));
-   table = (short *) vrna_alloc(sizeof(short)*(length+2));
-   table[0] = length;
-
-   for (hx=0, i=1; i<=length; i++) {
-      switch (structure[i-1]) {
-       case '(':
-         stack[hx++]=i;
-         break;
-       case ')':
-         j = stack[--hx];
-         if (hx<0) {
-            vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
-         }
-         table[i]=j;
-         table[j]=i;
-         break;
-       default:   /* unpaired base, usually '.' */
-         table[i]= 0;
-         break;
-      }
-   }
-   for (hx=0, i=1; i<=length; i++) {
-      switch (structure[i-1]) {
-       case '<':
-         stack[hx++]=i;
-         break;
-       case '>':
-         j = stack[--hx];
-         if (hx<0) {
-            vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
-         }
-         table[i]=j;
-         table[j]=i;
-         break;
-       default:   /* unpaired base, usually '.' */
-         table[i]= table[i];
-         break;
-      }
-   }
-   for (hx=0, i=1; i<=length; i++) {
-     switch (structure[i-1]) {
-     case '[':
-       stack[hx++]=i;
-       break;
-     case ']':
-       j = stack[--hx];
-       if (hx<0) {
-         vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
-       }
-       table[i]=j;
-       table[j]=i;
-       break;
-     default:   /* unpaired base, usually '.' */
-       break;
-     }
-   }
-   if (hx!=0) {
-      vrna_message_error("%s\nunbalanced brackets in make_pair_table", structure);
-   }
-   free(stack);
-   return(table);
+  return vrna_ptable_from_string(structure, VRNA_BRACKETS_RND | VRNA_BRACKETS_ANG | VRNA_BRACKETS_SQR);
 }
 
 PUBLIC short *
@@ -390,6 +227,117 @@ vrna_db_from_ptable(short *pt){
   }
   return dotbracket;
 }
+
+
+PUBLIC void
+vrna_db_flatten(char *string,
+                unsigned int options)
+{
+  vrna_db_flatten_to(string, "()", options);
+}
+
+
+PUBLIC void
+vrna_db_flatten_to(char         *string,
+                   const char   target[3],
+                   unsigned int options)
+{
+  if (string) {
+    if (options & VRNA_BRACKETS_RND)
+      flatten_brackets(string, "()", target);
+
+    if (options & VRNA_BRACKETS_ANG)
+      flatten_brackets(string, "<>", target);
+
+    if (options & VRNA_BRACKETS_CLY)
+      flatten_brackets(string, "{}", target);
+
+    if (options & VRNA_BRACKETS_SQR)
+      flatten_brackets(string, "<>", target);
+  }
+}
+
+
+PUBLIC short *
+vrna_ptable_from_string(const char   *string,
+                        unsigned int options)
+{
+  char          pairs[3];
+  short         *pt;
+  unsigned int  i, n;
+
+  n = strlen(string);
+
+  if (n > SHRT_MAX) {
+    vrna_message_error("Structure too long to be converted to pair table (n=%d, max=%d)",
+                       n,
+                       SHRT_MAX);
+    return NULL;
+  }
+
+  pt    = (short *)vrna_alloc(sizeof(short) * (n + 1));
+  pt[0] = (short)n;
+
+
+  if (options & VRNA_BRACKETS_RND)
+    extract_pairs(pt, string, "()");
+
+  if (options & VRNA_BRACKETS_ANG)
+    extract_pairs(pt, string, "<>");
+
+  if (options & VRNA_BRACKETS_CLY)
+    extract_pairs(pt, string, "{}");
+
+  if (options & VRNA_BRACKETS_SQR)
+    extract_pairs(pt, string, "[]");
+
+  if (options & VRNA_BRACKETS_ALPHA) {
+    for (i = 65; i < 91; i++) {
+      pairs[0] = (char)i;
+      pairs[1] = (char)(i + 7);
+      pairs[2] = '\0';
+      extract_pairs(pt, string, pairs);
+    }
+  }
+
+  return pt;
+}
+
+PUBLIC char *
+vrna_db_from_WUSS(const char *wuss)
+{
+  char  *db, *tmp;
+  short *pt;
+  unsigned int i, n;
+
+  db = NULL;
+
+  if (wuss) {
+    n = strlen(wuss);
+
+    /*
+        Note, in WUSS notation, matching pairs of (), <>, {}, [] are allowed but must not
+        cross! Thus, we can simply flatten all brackets to ().
+    */
+    tmp = (char *)vrna_alloc(sizeof(char) * (n + 1));
+    tmp = (char *)memcpy(tmp, wuss, n + 1);
+
+    vrna_db_flatten(tmp, VRNA_BRACKETS_DEFAULT);
+
+    /* now convert flattened structure string to pair-table (removes pseudo-knots) */
+    pt = vrna_ptable_from_string(tmp, VRNA_BRACKETS_RND);
+
+    /* convert back to dot-bracket (replaces all special characters for unpaired positions) */
+    db = vrna_db_from_ptable(pt);
+
+    free(pt);
+    free(tmp);
+  }
+
+  return db;
+}
+
+
 
 /*---------------------------------------------------------------------------*/
 
@@ -487,6 +435,7 @@ vrna_refBPdist_matrix(const short *pt1,
   return array;
 }
 
+
 PUBLIC char
 vrna_bpp_symbol(const float *x){
 
@@ -502,6 +451,7 @@ vrna_bpp_symbol(const float *x){
   if( x[0] > (x[1]+x[2]) ) return ',';
   return ':';
 }
+
 
 PUBLIC char *
 vrna_db_from_probs(const FLT_OR_DBL *p,
@@ -565,7 +515,6 @@ vrna_letter_structure(char *structure,
   }
 }
 
-/*---------------------------------------------------------------------------*/
 
 PUBLIC char *
 vrna_db_from_bp_stack(vrna_bp_stack_t *bp,
@@ -707,6 +656,65 @@ vrna_plist_append(vrna_ep_t        **target,
   }
 
   return 0;
+}
+
+
+PRIVATE INLINE void
+flatten_brackets(char *string,
+                 const char pair[3],
+                 const char target[3])
+{
+  unsigned int i;
+
+  for (i = 0; string[i] != '\0'; i++) {
+    if (string[i] == pair[0])
+      string[i] = target[0];
+    else if (string[i] == pair[1])
+      string[i] = target[1];
+  }
+}
+
+
+/* requires that pt[0] already contains the length of the string! */
+PRIVATE INLINE void
+extract_pairs(short         *pt,
+              const char    *structure,
+              const char    *pair)
+{
+  const char    *ptr;
+  char          open, close;
+  short         *stack;
+  unsigned int  i, j, n;
+  int           hx;
+
+  n     = (unsigned int)pt[0];
+  stack = (short *)vrna_alloc(sizeof(short) * (n + 1));
+
+  open  = pair[0];
+  close = pair[1];
+
+  for (hx = 0, i = 1, ptr = structure; (i <= n) && (*ptr != '\0'); ptr++, i++) {
+    if (*ptr == open) {
+      stack[hx++] = i;
+    } else if (*ptr == close) {
+      j = stack[--hx];
+
+      if (hx < 0)
+        vrna_message_error("%s\nunbalanced brackets '%2s' found while extracting base pairs",
+                           structure,
+                           pair);
+
+      pt[i] = j;
+      pt[j] = i;
+    }
+  }
+
+  if (hx != 0)
+    vrna_message_error("%s\nunbalanced brackets '%2s' found while extracting base pairs",
+                       structure,
+                       pair);
+
+  free(stack);
 }
 
 
