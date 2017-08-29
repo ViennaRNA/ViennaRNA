@@ -374,7 +374,7 @@ vrna_eval_covar_structure(vrna_fold_compound_t  *vc,
     res = (int)((float)covar_energy_of_struct_pt(vc, pt) / (float)vc->n_seq);
 
     vc->params->model_details.gquad = gq;
-
+#if 0
     if (gq) {
       loop_idx  = vrna_loopidx_from_ptable(pt);
       res       +=
@@ -382,6 +382,8 @@ vrna_eval_covar_structure(vrna_fold_compound_t  *vc,
                                                  (const int *)loop_idx) / (float)vc->n_seq);
       free(loop_idx);
     }
+
+#endif
   }
 
   free(pt);
@@ -2230,7 +2232,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
                           const short           *pt,
                           const int             *loop_idx)
 {
-  int           pos, energy, p, q, r, s, u, type, type2, gq_en[2];
+  int           pos, cnt, tmp_e, energy, p, q, r, s, u, type, type2, gq_en[2];
   int           num_elem, num_g, elem_i, elem_j, up_mis;
   int           L, l[3];
 
@@ -2254,13 +2256,14 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
 
     /* we've found the first g-quadruplex at position [p,q] */
     E_gquad_ali_en(p, L, l, (const short **)S, n_seq, gq_en, P);
-    energy += gq_en[0];
+    tmp_e   = gq_en[0];
+    energy  += tmp_e;
+
     /* check if it's enclosed in a base pair */
     if (loop_idx[p] == 0) {
       q++;
       continue;                          /* g-quad in exterior loop */
     } else {
-      energy += E_MLstem(0, -1, -1, P) * n_seq;
       /*  find its enclosing pair */
       num_elem  = 0;
       num_g     = 1;
@@ -2317,7 +2320,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
           pos = parse_gquad(structure + u - 1, &L, l);
           if (pos > 0) {
             E_gquad_ali_en(u, L, l, (const short **)S, n_seq, gq_en, P);
-            energy  += gq_en[0] + E_MLstem(0, -1, -1, P) * n_seq;
+            tmp_e   = gq_en[0];
+            energy  += tmp_e;
             up_mis  += pos;
             u       += pos;
             num_g++;
@@ -2342,95 +2346,88 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
       if (u != s) {
         vrna_message_error("what the ...");
       } else {
+        int e_minus, e_plus, e_temp;
+
+        e_plus = e_minus = 0;
+
         /* we are done since we've found no other 3' structure element */
         switch (num_elem) {
           /* g-quad was misinterpreted as hairpin closed by (r,s) */
-          case 0:   /*if(num_g == 1)
+          case 0:   /* if(num_g == 1)
                      * if((p-r-1 == 0) || (s-q-1 == 0))
                      *  vrna_message_error("too few unpaired bases");
                      */
-          {
-            int ee = 0;
-            int cnt;
-            for (cnt = 0; cnt < n_seq; cnt++) {
-              type = md->pair[S[cnt][r]][S[cnt][s]];
-              if (type == 0)
-                type = 7;
+            e_minus = vrna_eval_hp_loop(vc, r, s);
 
-              if ((a2s[cnt][s - 1] - a2s[cnt][r]) < 3) {
-                ee += 600;
-              } else {
-                ee += E_Hairpin(a2s[cnt][s - 1] - a2s[cnt][r],
-                                type,
-                                S3[cnt][r],
-                                S5[cnt][s],
-                                Ss[cnt] + a2s[cnt][r - 1],
-                                P);
+            /* if we consider the G-Quadruplex, we have */
+            if (num_g == 1) {
+              /* a) an interior loop like structure */
+              for (cnt = 0; cnt < n_seq; cnt++) {
+                type = md->pair[S[cnt][r]][S[cnt][s]];
+                if (type == 0)
+                  type = 7;
+
+                if (dangle_model == 2)
+                  e_plus += P->mismatchI[type][S3[cnt][r]][S5[cnt][s]];
+
+                if (type > 2)
+                  e_plus += P->TerminalAU;
               }
-            }
-            energy  -= ee;
-            ee      = 0;
-            for (cnt = 0; cnt < n_seq; cnt++) {
-              type = md->pair[S[cnt][r]][S[cnt][s]];
-              if (type == 0)
-                type = 7;
 
-              if (dangle_model == 2)
-                ee += P->mismatchI[type][S3[cnt][r]][S5[cnt][s]];
+              e_plus += n_seq * P->internal_loop[s - r - 1 - up_mis];
+            } else {
+              /* or b) a multibranch loop like structure */
+              for (cnt = 0; cnt < n_seq; cnt++) {
+                type = md->pair[S[cnt][s]][S[cnt][r]];
+                if (type == 0)
+                  type = 7;
 
-              if (type > 2)
-                ee += P->TerminalAU;
+                e_plus += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
+              }
+
+              e_temp = num_g * E_MLstem(0, -1, -1, P) +
+                       P->MLclosing +
+                       (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase;
+
+              e_plus += n_seq * e_temp;
             }
-            energy += ee;
-          }
-            energy += n_seq * P->internal_loop[s - r - 1 - up_mis];
+
+            energy += e_plus - e_minus;
             break;
+
           /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
           case 1:
-          {
-            int ee = 0;
-            int cnt;
-            for (cnt = 0; cnt < n_seq; cnt++) {
-              type = md->pair[S[cnt][r]][S[cnt][s]];
-              if (type == 0)
-                type = 7;
+            e_minus = eval_int_loop(vc, r, s, elem_i, elem_j);
 
-              type2 = md->pair[S[cnt][elem_j]][S[cnt][elem_i]];
-              if (type2 == 0)
-                type2 = 7;
-
-              ee += E_IntLoop(a2s[cnt][elem_i - 1] - a2s[cnt][r],
-                              a2s[cnt][s - 1] - a2s[cnt][elem_j],
-                              type,
-                              type2,
-                              S3[cnt][r],
-                              S5[cnt][s],
-                              S5[cnt][elem_i],
-                              S3[cnt][elem_j],
-                              P);
-            }
-            energy  -= ee;
-            ee      = 0;
             for (cnt = 0; cnt < n_seq; cnt++) {
               type = md->pair[S[cnt][s]][S[cnt][r]];
               if (type == 0)
                 type = 7;
 
-              ee    += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
-              type  = md->pair[S[cnt][elem_i]][S[cnt][elem_j]];
+              e_plus += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
+
+              type = md->pair[S[cnt][elem_i]][S[cnt][elem_j]];
               if (type == 0)
                 type = 7;
 
-              ee += E_MLstem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
+              e_plus += E_MLstem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
             }
-            energy += ee;
-          }
-            energy += (P->MLclosing + (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase) *
-                      n_seq;
+
+            e_temp = num_g * E_MLstem(0, -1, -1, P) +
+                     P->MLclosing +
+                     (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase;
+
+            e_plus += n_seq * e_temp;
+
+            energy += e_plus - e_minus;
+
             break;
           /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
           default:
-            energy -= (up_mis) * P->MLbase * n_seq;
+            e_minus = (up_mis) * P->MLbase * n_seq;
+            e_plus  = num_g * E_MLstem(0, -1, -1, P) * n_seq;
+            energy  += e_plus - e_minus;
+
             break;
         }
       }
