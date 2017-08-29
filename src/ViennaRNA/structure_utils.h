@@ -72,13 +72,17 @@
  *
  *  @see  vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to()
  */
-#define VRNA_BRACKETS_DEFAULT  (VRNA_BRACKETS_RND | VRNA_BRACKETS_CLY | VRNA_BRACKETS_ANG | VRNA_BRACKETS_SQR)
+#define VRNA_BRACKETS_DEFAULT  \
+  (VRNA_BRACKETS_RND | \
+   VRNA_BRACKETS_CLY | \
+   VRNA_BRACKETS_ANG | \
+   VRNA_BRACKETS_SQR)
 
 
 /**
  *  @brief Convenience typedef for data structure #vrna_hx_s
  */
-typedef struct vrna_hx_s  vrna_hx_t;
+typedef struct vrna_hx_s vrna_hx_t;
 
 /**
  *  @brief Convenience typedef for data structure #vrna_pp_s
@@ -93,11 +97,11 @@ typedef struct vrna_elem_prob_s vrna_ep_t;
  *  @brief  Data structure representing an entry of a helix list
  */
 struct vrna_hx_s {
-  unsigned int start;
-  unsigned int end;
-  unsigned int length;
-  unsigned int up5;
-  unsigned int up3;
+  unsigned int  start;
+  unsigned int  end;
+  unsigned int  length;
+  unsigned int  up5;
+  unsigned int  up3;
 };
 
 /**
@@ -109,10 +113,10 @@ struct vrna_hx_s {
  *  #VRNA_PLIST_TYPE_UD_MOTIF, #VRNA_PLIST_TYPE_STACK
  */
 struct vrna_elem_prob_s {
-  int i;
-  int j;
+  int   i;
+  int   j;
   float p;
-  int type;
+  int   type;
 };
 
 /**
@@ -129,6 +133,7 @@ struct vrna_elem_prob_s {
  */
 char *vrna_db_pack(const char *struc);
 
+
 /**
  *  @brief Unpack secondary structure previously packed with vrna_db_pack()
  *
@@ -140,6 +145,7 @@ char *vrna_db_pack(const char *struc);
  *  @return         The unpacked secondary structure in dot-bracket notation
  */
 char *vrna_db_unpack(const char *packed);
+
 
 /**
  *  @brief Create a pair table of a secondary structure
@@ -171,8 +177,8 @@ short *vrna_ptable(const char *structure);
  *  @return           A pointer to a new pair table of the provided secondary structure
  */
 short *
-vrna_ptable_from_string(const char   *string,
-                        unsigned int options);
+vrna_ptable_from_string(const char    *string,
+                        unsigned int  options);
 
 
 /**
@@ -189,19 +195,22 @@ vrna_ptable_from_string(const char   *string,
  */
 short *vrna_pt_pk_get(const char *structure);
 
+
 /**
  *  @brief Get an exact copy of a pair table
  *
  *  @param pt The pair table to be copied
- *  @return   A pointer to the copy of 'pt' 
+ *  @return   A pointer to the copy of 'pt'
  */
 short *vrna_ptable_copy(const short *pt);
+
 
 /**
  * @brief Create a pair table of a secondary structure (snoop align version)
  *
  */
 short *vrna_pt_ali_get(const char *structure);
+
 
 /**
  * @brief Create a pair table of a secondary structure (snoop version)
@@ -211,6 +220,7 @@ short *vrna_pt_ali_get(const char *structure);
  *  The special pseudoknotted H/ACA-mRNA structure is taken into account.
  */
 short *vrna_pt_snoop_get(const char *structure);
+
 
 /**
  *  @brief Get a loop index representation of a structure
@@ -234,8 +244,8 @@ int *vrna_loopidx_from_ptable(const short *pt);
  *  @param  options     A bitmask to specify which types of brackets should be flattened out
  */
 void
-vrna_db_flatten(char *structure,
-                unsigned int options);
+vrna_db_flatten(char          *structure,
+                unsigned int  options);
 
 
 /**
@@ -257,7 +267,7 @@ vrna_db_flatten(char *structure,
  *  @param  target      The new pair characters the string will be flattened to
  *  @param  options     A bitmask to specify which types of brackets should be flattened out
  */
-void 
+void
 vrna_db_flatten_to(char         *string,
                    const char   target[3],
                    unsigned int options);
@@ -285,19 +295,21 @@ char *vrna_db_from_ptable(short *pt);
  */
 char *vrna_db_from_WUSS(const char *wuss);
 
+
 /**
  *  @brief Compute the "base pair" distance between two secondary structures s1 and s2.
- * 
+ *
  *  The sequences should have the same length.
  *  dist = number of base pairs in one structure but not in the other
  *  same as edit distance with open-pair close-pair as move-set
- * 
+ *
  *  @param str1   First structure in dot-bracket notation
  *  @param str2   Second structure in dot-bracket notation
  *  @return       The base pair distance between str1 and str2
  */
-int vrna_bp_distance( const char *str1,
-                      const char *str2);
+int vrna_bp_distance(const char *str1,
+                     const char *str2);
+
 
 /**
  *  @brief Make a reference base pair count matrix
@@ -305,8 +317,9 @@ int vrna_bp_distance( const char *str1,
  *  Get an upper triangular matrix containing the number of basepairs of a reference
  *  structure for each interval [i,j] with i<j. Access it via iindx!!!
  */
-unsigned int  *vrna_refBPcnt_matrix(const short *reference_pt,
-                                    unsigned int turn);
+unsigned int *vrna_refBPcnt_matrix(const short  *reference_pt,
+                                   unsigned int turn);
+
 
 /**
  *  @brief Make a reference base pair distance matrix
@@ -315,20 +328,23 @@ unsigned int  *vrna_refBPcnt_matrix(const short *reference_pt,
  *  reference structures for each interval [i,j] with i<j. Access it via iindx!!!
  *
  */
-unsigned int  *vrna_refBPdist_matrix( const short *pt1,
-                                      const short *pt2,
-                                      unsigned int turn);
+unsigned int *vrna_refBPdist_matrix(const short   *pt1,
+                                    const short   *pt2,
+                                    unsigned int  turn);
+
 
 /**
  *  @brief Create a dot-bracket like structure string from base pair probability matrix
  */
-char *vrna_db_from_probs( const FLT_OR_DBL *pr,
-                          unsigned int length);
+char *vrna_db_from_probs(const FLT_OR_DBL *pr,
+                         unsigned int     length);
+
 
 /**
  *  @brief Get a pseudo dot bracket notation for a given probability information
  */
 char vrna_bpp_symbol(const float *x);
+
 
 /**
  *  @brief Create a dot-backet/parenthesis structure from backtracking stack
@@ -342,46 +358,52 @@ char vrna_bpp_symbol(const float *x);
  *                provided in the input
  */
 char *vrna_db_from_bp_stack(vrna_bp_stack_t *bp,
-                            unsigned int length);
+                            unsigned int    length);
 
-void vrna_letter_structure( char *structure,
-                            vrna_bp_stack_t *bp,
-                            unsigned int length);
+
+void vrna_letter_structure(char             *structure,
+                           vrna_bp_stack_t  *bp,
+                           unsigned int     length);
+
 
 /**
  *  @brief Create a #vrna_ep_t from a dot-bracket string
- * 
+ *
  *  The dot-bracket string is parsed and for each base pair an
  *  entry in the plist is created. The probability of each pair in
  *  the list is set by a function parameter.
- * 
+ *
  *  The end of the plist is marked by sequence positions i as well as j
  *  equal to 0. This condition should be used to stop looping over its
  *  entries
- * 
+ *
  *  @param struc  The secondary structure in dot-bracket notation
  *  @param pr     The probability for each base pair used in the plist
  *  @return       The plist array
  */
-vrna_ep_t *vrna_plist(const char *struc, float pr);
+vrna_ep_t *vrna_plist(const char  *struc,
+                      float       pr);
+
 
 /**
  *  @brief Create a #vrna_ep_t from base pair probability matrix
- * 
+ *
  *  The probability matrix provided via the #vrna_fold_compound_t is parsed
  *  and all pair probabilities above the given threshold are used to create
  *  an entry in the plist
- * 
+ *
  *  The end of the plist is marked by sequence positions i as well as j
  *  equal to 0. This condition should be used to stop looping over its
  *  entries
- * 
+ *
  *  @ingroup            pf_fold
  *  @param[in]  vc        The fold compound
  *  @param[in]  cut_off   The cutoff value
  *  @return               A pointer to the plist that is to be created
  */
-vrna_ep_t *vrna_plist_from_probs(vrna_fold_compound_t *vc, double cut_off);
+vrna_ep_t *vrna_plist_from_probs(vrna_fold_compound_t *vc,
+                                 double               cut_off);
+
 
 /**
  *  @brief  Convert a list of base pairs into dot-bracket notation
@@ -392,12 +414,19 @@ vrna_ep_t *vrna_plist_from_probs(vrna_fold_compound_t *vc, double cut_off);
  *  @param  n       The length of the structure (number of nucleotides)
  *  @return         The dot-bracket string containing the provided base pairs
  */
-char *vrna_db_from_plist(vrna_ep_t *pairs, unsigned int n);
+char *vrna_db_from_plist(vrna_ep_t    *pairs,
+                         unsigned int n);
+
 
 char *vrna_db_to_element_string(const char *structure);
 
+
 vrna_hx_t *vrna_hx_from_ptable(short *pt);
-vrna_hx_t *vrna_hx_merge(const vrna_hx_t *list, int maxdist);
+
+
+vrna_hx_t *vrna_hx_merge(const vrna_hx_t  *list,
+                         int              maxdist);
+
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -407,22 +436,24 @@ vrna_hx_t *vrna_hx_merge(const vrna_hx_t *list, int maxdist);
 
 /**
  *  @brief Create a #vrna_ep_t from a dot-bracket string
- * 
+ *
  *  The dot-bracket string is parsed and for each base pair an
  *  entry in the plist is created. The probability of each pair in
  *  the list is set by a function parameter.
- * 
+ *
  *  The end of the plist is marked by sequence positions i as well as j
  *  equal to 0. This condition should be used to stop looping over its
  *  entries
- * 
+ *
  *  @deprecated   Use vrna_plist() instead
- * 
+ *
  *  @param pl     A pointer to the #vrna_ep_t that is to be created
  *  @param struc  The secondary structure in dot-bracket notation
  *  @param pr     The probability for each base pair
  */
-DEPRECATED(void assign_plist_from_db(vrna_ep_t **pl, const char *struc, float pr));
+DEPRECATED(void assign_plist_from_db(vrna_ep_t  **pl,
+                                     const char *struc,
+                                     float      pr));
 
 /**
  *  @brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
@@ -471,7 +502,7 @@ DEPRECATED(short *make_pair_table_pk(const char *structure));
  *  @deprecated Use vrna_ptable_copy() instead
  *
  *  @param pt The pair table to be copied
- *  @return   A pointer to the copy of 'pt' 
+ *  @return   A pointer to the copy of 'pt'
  */
 DEPRECATED(short *copy_pair_table(const short *pt));
 
@@ -494,7 +525,7 @@ DEPRECATED(int *make_loop_index_pt(short *pt));
 
 /**
  *  @brief Compute the "base pair" distance between two secondary structures s1 and s2.
- * 
+ *
  *  The sequences should have the same length.
  *  dist = number of base pairs in one structure but not in the other
  *  same as edit distance with open-pair close-pair as move-set
@@ -504,7 +535,8 @@ DEPRECATED(int *make_loop_index_pt(short *pt));
  *  @param str2   Second structure in dot-bracket notation
  *  @return       The base pair distance between str1 and str2
  */
-DEPRECATED(int bp_distance(const char *str1, const char *str2));
+DEPRECATED(int bp_distance(const char *str1,
+                           const char *str2));
 
 /**
  *  @brief Make a reference base pair count matrix
@@ -514,8 +546,8 @@ DEPRECATED(int bp_distance(const char *str1, const char *str2));
  *
  *  @deprecated Use vrna_refBPcnt_matrix() instead
  */
-DEPRECATED(unsigned int  *make_referenceBP_array(short *reference_pt,
-                                      unsigned int turn));
+DEPRECATED(unsigned int *make_referenceBP_array(short         *reference_pt,
+                                                unsigned int  turn));
 /**
  *  @brief Make a reference base pair distance matrix
  *
@@ -524,20 +556,20 @@ DEPRECATED(unsigned int  *make_referenceBP_array(short *reference_pt,
  *
  *  @deprecated Use vrna_refBPdist_matrix() instead
  */
-DEPRECATED(unsigned int  *compute_BPdifferences( short *pt1,
-                                      short *pt2,
-                                      unsigned int turn));
+DEPRECATED(unsigned int *compute_BPdifferences(short        *pt1,
+                                               short        *pt2,
+                                               unsigned int turn));
 
 /**
  *  @brief Create a vrna_ep_t from a probability matrix
- * 
+ *
  *  The probability matrix given is parsed and all pair probabilities above
  *  the given threshold are used to create an entry in the plist
- * 
+ *
  *  The end of the plist is marked by sequence positions i as well as j
  *  equal to 0. This condition should be used to stop looping over its
  *  entries
- * 
+ *
  *  @note This function is threadsafe
  *  @deprecated Use vrna_plist_from_probs() instead!
  *
@@ -547,43 +579,45 @@ DEPRECATED(unsigned int  *compute_BPdifferences( short *pt1,
  *  @param[in]  length  The length of the RNA sequence
  *  @param[in]  cutoff  The cutoff value
  */
-DEPRECATED(void  assign_plist_from_pr( vrna_ep_t **pl,
-                            FLT_OR_DBL *probs,
-                            int length,
-                            double cutoff));
+DEPRECATED(void  assign_plist_from_pr(vrna_ep_t   **pl,
+                                      FLT_OR_DBL  *probs,
+                                      int         length,
+                                      double      cutoff));
 
 /**
  *  @brief Create a dot-backet/parenthesis structure from backtracking stack
  *
  *  @deprecated use vrna_parenthesis_structure() instead
- * 
+ *
  *  @note This function is threadsafe
  */
-DEPRECATED(void parenthesis_structure(char *structure,
+DEPRECATED(void parenthesis_structure(char            *structure,
                                       vrna_bp_stack_t *bp,
-                                      int length));
+                                      int             length));
 
 /**
  *  @brief Create a dot-backet/parenthesis structure from backtracking stack
  *  obtained by zuker suboptimal calculation in cofold.c
- * 
+ *
  *  @deprecated use vrna_parenthesis_zuker instead
- * 
+ *
  *  @note This function is threadsafe
  */
-DEPRECATED(void parenthesis_zuker(char *structure,
+DEPRECATED(void parenthesis_zuker(char            *structure,
                                   vrna_bp_stack_t *bp,
-                                  int length));
+                                  int             length));
 
-DEPRECATED(void letter_structure( char *structure,
-                                  vrna_bp_stack_t *bp,
-                                  int length));
+DEPRECATED(void letter_structure(char             *structure,
+                                 vrna_bp_stack_t  *bp,
+                                 int              length));
 
 /**
  *  @brief Create a dot-bracket like structure string from base pair probability matrix
  *  @deprecated Use vrna_db_from_probs() instead!
  */
-DEPRECATED(void  bppm_to_structure(char *structure, FLT_OR_DBL *pr, unsigned int length));
+DEPRECATED(void  bppm_to_structure(char         *structure,
+                                   FLT_OR_DBL   *pr,
+                                   unsigned int length));
 
 /**
  *  @brief Get a pseudo dot bracket notation for a given probability information
