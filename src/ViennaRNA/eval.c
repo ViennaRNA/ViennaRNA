@@ -350,6 +350,9 @@ vrna_eval_structure_v(vrna_fold_compound_t  *vc,
                       int                   verbosity_level,
                       FILE                  *file)
 {
+  if (strlen(structure) != vc->length)
+    vrna_message_error("vrna_eval_structure_*: string and structure have unequal length");
+
   short *pt = vrna_ptable(structure);
   float en  = wrap_eval_structure(vc, structure, pt, file, verbosity_level);
 
