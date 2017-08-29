@@ -639,7 +639,12 @@ main(int  argc,
     if (with_sci) {
       for (i = 0; AS[i] != NULL; i++) {
         char *seq = get_ungapped_sequence(AS[i]);
-        e_mean += vrna_fold(seq, NULL);
+        if (strlen(seq) > 0) {
+          vrna_fold_compound_t *fc = vrna_fold_compound(seq, &md, VRNA_OPTION_DEFAULT);
+          e_mean += vrna_mfe(fc, NULL);
+          vrna_fold_compound_free(fc);
+        }
+
         free(seq);
       }
       e_mean /= i;
