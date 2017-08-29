@@ -583,24 +583,22 @@ main(int  argc,
     vc = vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_DEFAULT);
 
     if (fold_constrained) {
+      unsigned int constraint_options;
       if (cstruc) {
+        constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
         strncpy(structure, cstruc, length);
         if (enforceConstraints)
-          vrna_constraints_add(vc,
-                               (const char *)structure,
-                               VRNA_CONSTRAINT_DB_DEFAULT | VRNA_CONSTRAINT_DB_ENFORCE_BP);
-        else
-          vrna_constraints_add(vc, (const char *)structure, VRNA_CONSTRAINT_DB_DEFAULT);
+          constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
+
+        vrna_constraints_add(vc, (const char *)structure, constraint_options);
       } else if (constraints_file) {
         vrna_constraints_add(vc, constraints_file, 0);
-      } else if (tmp_structure) {
-        dot_bracketify(tmp_structure);
+      } else if ((consensus_constraint) && (tmp_structure != NULL)) {
+        constraint_options = VRNA_CONSTRAINT_DB_DEFAULT | VRNA_CONSTRAINT_DB_WUSS;
         if (enforceConstraints)
-          vrna_constraints_add(vc,
-                               (const char *)tmp_structure,
-                               VRNA_CONSTRAINT_DB_DEFAULT | VRNA_CONSTRAINT_DB_ENFORCE_BP);
-        else
-          vrna_constraints_add(vc, (const char *)tmp_structure, VRNA_CONSTRAINT_DB_DEFAULT);
+          constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
+
+        vrna_constraints_add(vc, (const char *)tmp_structure, constraint_options);
       } else {
         vrna_message_warning("Constraint missing");
       }

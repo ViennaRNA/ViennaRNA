@@ -852,12 +852,15 @@ vrna_hc_add_from_db(vrna_fold_compound_t  *vc,
                     const char            *constraint,
                     unsigned int          options)
 {
-  int       i, d, ret;
-  vrna_md_t *md;
+  const char  *structure_constraint;
+  char        *tmp;
+  int         i, d, ret;
+  vrna_md_t   *md;
 
   ret = 0; /* Failure */
 
   if (vc) {
+    tmp = NULL;
     if (vc->params)
       md = &(vc->params->model_details);
     else if (vc->exp_params)
@@ -868,10 +871,20 @@ vrna_hc_add_from_db(vrna_fold_compound_t  *vc,
     if (!vc->hc)
       vrna_hc_init(vc);
 
+    if (options & VRNA_CONSTRAINT_DB_WUSS) {
+      tmp                   = vrna_db_from_WUSS(constraint);
+      structure_constraint  = (const char *)tmp;
+    } else {
+      structure_constraint = constraint;
+    }
+
     /* apply hard constraints from dot-bracket notation */
-    apply_DB_constraint(vc, constraint, options);
+    apply_DB_constraint(vc, structure_constraint, options);
     hc_update_up(vc);
+
     ret = 1; /* Success */
+
+    free(tmp);
   }
 
   return ret;

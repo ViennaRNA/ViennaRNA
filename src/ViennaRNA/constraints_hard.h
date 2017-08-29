@@ -196,6 +196,20 @@ typedef unsigned char (vrna_callback_hc_evaluate)(int           i,
 #define VRNA_CONSTRAINT_DB_GQUAD                8388608U
 
 #define VRNA_CONSTRAINT_DB_CANONICAL_BP         16777216U
+
+/**
+ *  @brief  Flag to indicate Washington University Secondary Structure (WUSS) notation of the hard constraint string
+ *
+ *  This secondary structure notation for RNAs is usually used as consensus secondary structure (SS_cons) entry
+ *  in Stockholm formatted files
+ *
+ *  @note See @ref
+ *
+ *  @ingroup  hard_constraints
+ */
+#define VRNA_CONSTRAINT_DB_WUSS                 33554432U
+
+
 /**
  *  @brief Switch for dot-bracket structure constraint with default symbols
  *
