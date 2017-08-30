@@ -1,8 +1,0 @@
-package RNApath;
-
-sub getDataDirPath
-{
-    return "@top_srcdir@/tests/data/";
-}
-
-1;

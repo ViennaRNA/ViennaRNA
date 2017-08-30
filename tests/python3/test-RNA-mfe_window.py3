@@ -23,7 +23,7 @@ class mfe_window_functionTest(unittest.TestCase):
         print("test_mfe_window")
         fc= RNA.fold_compound(seq1, None, RNA.OPTION_MFE | RNA.OPTION_WINDOW)
         (mfe) = fc.mfe_window()
-        print("[ %6.2f", mfe , "]")
+        print("[ %6.2f ]" % mfe)
         self.assertEqual("%6.2f" % mfe, "%6.2f" % -5.60)
 
 

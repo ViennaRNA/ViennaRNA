@@ -101,23 +101,52 @@ dispose_file(FILE **fp) {
   $1 = NULL;
 }
 
-/*
-   Changes ViennaRNA Package 04/2016
-   Commented out the below 'check' typemap such that we are able to pass 'None'
-   for FILE * arguments. This special case should be covered everywhere within
-   our code
-*/
-#if 0
-%typemap(check, noblock = 1) FILE* {
+/* typemap for FILE * arguments that may be NULL */
+%typemap(check, noblock = 1) FILE * nullfile {
+  /* pass, even if $1 == NULL */
+}
+
+/* typemap for all other FILE * arguments */
+%typemap(check, noblock = 1) FILE * {
   if ($1 == NULL) {
     /* The generated wrapper function raises TypeError on mismatching types. */
     SWIG_exception_fail(SWIG_TypeError, "in method '" "$symname" "', argument "
                         "$argnum"" of type '" "$type""'");
   }
 }
-#endif
 
-%typemap(in, noblock = 1, fragment = "obj_to_file") FILE* {
+/* typemap for FILE * arguments that may be NULL */
+%typemap(typecheck, noblock = 1) FILE * nullfile {
+  int fd, fdfl;
+  if (($input == Py_None) ||
+      (!PyLong_Check($input) &&                                /* is not an integer */
+      PyObject_HasAttrString($input, "fileno") &&             /* has fileno method */
+      (PyObject_CallMethod($input, "flush", NULL) != NULL) && /* flush() succeeded */
+      ((fd = PyObject_AsFileDescriptor($input)) != -1) &&     /* got file descriptor */
+      ((fdfl = fcntl(fd, F_GETFL)) != -1)                  /* got descriptor flags */
+    )) {
+    $1 = 1;
+  } else {
+    $1 = 0;
+  }
+}
+
+/* typemap for all other FILE * arguments */
+%typemap(typecheck, noblock = 1) FILE * {
+  int fd, fdfl;
+  if (!PyLong_Check($input) &&                                /* is not an integer */
+      PyObject_HasAttrString($input, "fileno") &&             /* has fileno method */
+      (PyObject_CallMethod($input, "flush", NULL) != NULL) && /* flush() succeeded */
+      ((fd = PyObject_AsFileDescriptor($input)) != -1) &&     /* got file descriptor */
+      ((fdfl = fcntl(fd, F_GETFL)) != -1)                  /* got descriptor flags */
+    ) {
+    $1 = 1;
+  } else {
+    $1 = 0;
+  }
+}
+
+%typemap(in, noblock = 1, fragment = "obj_to_file") FILE * {
   if($input == Py_None){
     $1 = NULL;
   } else {

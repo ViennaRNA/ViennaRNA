@@ -70,10 +70,22 @@
  */
 #define VRNA_FILE_FORMAT_MSA_UNKNOWN      8192U
 
+/**
+ *  @brief Option flag indicating to append data to a multiple sequence alignment file rather than overwriting it
+ *  @see vrna_file_msa_write()
+ */
 #define VRNA_FILE_FORMAT_MSA_APPEND       16384U
 
+/**
+ *  @brief Option flag to suppress unnecessary spam messages on <tt>stderr</tt>
+ *  @see vrna_file_msa_read(), vrna_file_msa_read_record()
+ */
 #define VRNA_FILE_FORMAT_MSA_QUIET        32768U
 
+/**
+ *  @brief Option flag to completely silence any warnings on <tt>stderr</tt>
+ *  @see vrna_file_msa_read(), vrna_file_msa_read_record()
+ */
 #define VRNA_FILE_FORMAT_MSA_SILENT       65536U
 
 /**
@@ -103,6 +115,12 @@
  *        identifiers, and equal sequence lengths. This check can be
  *        deactivated by passing #VRNA_FILE_FORMAT_MSA_NOCHECK in the
  *        @p options parameter.
+ *
+ *  @note It is the users responsibility to free any memory occupied by
+ *        the output arguments @p names, @p aln, @p id, and @p structure
+ *        after calling this function. The function automatically sets the
+ *        latter two arguments to <tt>NULL</tt> in case no corresponding
+ *        data could be retrieved from the input alignment.
  *
  *  @see  vrna_file_msa_read_record(), #VRNA_FILE_FORMAT_MSA_CLUSTAL,
  *        #VRNA_FILE_FORMAT_MSA_STOCKHOLM, #VRNA_FILE_FORMAT_MSA_FASTA,
@@ -162,6 +180,12 @@ vrna_file_msa_read(const char   *filename,
  *        identifiers, and equal sequence lengths. This check can be
  *        deactivated by passing #VRNA_FILE_FORMAT_MSA_NOCHECK in the
  *        @p options parameter.
+ *
+ *  @note It is the users responsibility to free any memory occupied by
+ *        the output arguments @p names, @p aln, @p id, and @p structure
+ *        after calling this function. The function automatically sets the
+ *        latter two arguments to <tt>NULL</tt> in case no corresponding
+ *        data could be retrieved from the input alignment.
  *
  *  @see  vrna_file_msa_read(), vrna_file_msa_detect_format(),
  *        #VRNA_FILE_FORMAT_MSA_CLUSTAL, #VRNA_FILE_FORMAT_MSA_STOCKHOLM,
@@ -223,7 +247,10 @@ vrna_file_msa_detect_format(const char    *filename,
 /**
  *  @brief Write multiple sequence alignment file
  *
- *  @note Currently, we only support Stockholm 1.0 formatted output
+ *  @note Currently, we only support @ref msa-formats-stockholm output
+ *
+ *  @see  #VRNA_FILE_FORMAT_MSA_STOCKHOLM, #VRNA_FILE_FORMAT_MSA_APPEND,
+ *        #VRNA_FILE_FORMAT_MSA_MIS
  *
  *  @param  filename  The output filename
  *  @param  names     The array of sequence names / identifies
@@ -232,7 +259,7 @@ vrna_file_msa_detect_format(const char    *filename,
  *  @param  structure An optional consensus structure
  *  @param  source    A string describing the source of the alignment
  *  @param  options   Options to manipulate the behavior of this function
- *  @return           Non-null upon successful written alignment
+ *  @return           Non-null upon successfully writing the alignment to file
  */
 int
 vrna_file_msa_write(const char    *filename,

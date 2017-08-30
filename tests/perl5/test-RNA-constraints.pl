@@ -7,10 +7,10 @@ use Test::More tests => 8;
 
 use RNA;
 use warnings;
-use RNApath;
+use RNAHelpers qw(:Paths);
 
 
-my $datadir = RNApath::getDataDirPath();
+my $datadir = getDataDirPath();
 
 my $seq_con     = "CCCAAAAGGGCCCAAAAGGG";
 my $str_con     = "..........(((....)))";

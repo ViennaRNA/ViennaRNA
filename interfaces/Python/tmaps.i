@@ -5,6 +5,11 @@
   else  $1 = NULL;
 }
 
+%typemap(typecheck) FILE * {
+  if (PyFile_Check($input)) /* check for undef */
+    $1 = PyFile_AsFile($input) ? 1 : 0;
+}
+
 %typemap(out) float [ANY] {
   int i;
   $result = PyList_New($1_dim0);
