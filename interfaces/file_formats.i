@@ -205,5 +205,6 @@ int my_file_msa_read_record(FILE                      *filehandle,
 %constant unsigned int FILE_FORMAT_MSA_UNKNOWN   = VRNA_FILE_FORMAT_MSA_UNKNOWN;
 %constant unsigned int FILE_FORMAT_MSA_QUIET     = VRNA_FILE_FORMAT_MSA_QUIET;
 %constant unsigned int FILE_FORMAT_MSA_SILENT    = VRNA_FILE_FORMAT_MSA_SILENT;
+%constant unsigned int FILE_FORMAT_MSA_APPEND    = VRNA_FILE_FORMAT_MSA_APPEND;
 
 %include <ViennaRNA/file_formats_msa.h>
