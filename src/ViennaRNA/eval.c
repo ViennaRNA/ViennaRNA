@@ -144,14 +144,6 @@ wrap_eval_loop_pt(vrna_fold_compound_t  *vc,
                   int                   verbosity);
 
 
-PRIVATE INLINE int
-eval_int_loop(vrna_fold_compound_t  *vc,
-              int                   i,
-              int                   j,
-              int                   p,
-              int                   q);
-
-
 /* consensus structure variants below */
 PRIVATE int
 covar_energy_of_struct_pt(vrna_fold_compound_t  *vc,
@@ -377,16 +369,13 @@ vrna_eval_covar_structure(vrna_fold_compound_t  *vc,
     res = (int)((float)covar_energy_of_struct_pt(vc, pt) / (float)vc->n_seq);
 
     vc->params->model_details.gquad = gq;
-#if 0
     if (gq) {
       loop_idx  = vrna_loopidx_from_ptable(pt);
-      res       +=
+      res       -=
         (int)((float)covar_en_corr_of_loop_gquad(vc, 1, vc->length, structure, pt,
                                                  (const int *)loop_idx) / (float)vc->n_seq);
       free(loop_idx);
     }
-
-#endif
   }
 
   free(pt);
@@ -545,53 +534,6 @@ vrna_eval_move_pt(vrna_fold_compound_t  *vc,
  # STATIC helper functions below #
  #################################
  */
-PRIVATE INLINE int
-eval_int_loop(vrna_fold_compound_t  *vc,
-              int                   i,
-              int                   j,
-              int                   p,
-              int                   q)
-{
-  int           ij, u1, u2, cp, *rtype, *indx;
-  unsigned char type, type_2;
-  short         *S, *S2, si, sj, sp, sq;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  vrna_sc_t     *sc;
-
-  cp      = vc->cutpoint;
-  indx    = vc->jindx;
-  P       = vc->params;
-  md      = &(P->model_details);
-  S       = vc->sequence_encoding;
-  S2      = vc->sequence_encoding2;
-  si      = S[i + 1];
-  sj      = S[j - 1];
-  sp      = S[p - 1];
-  sq      = S[q + 1];
-  ij      = indx[j] + i;
-  rtype   = &(md->rtype[0]);
-  type    = (unsigned char)md->pair[S2[i]][S2[j]];
-  type_2  = rtype[(unsigned char)md->pair[S2[p]][S2[q]]];
-  u1      = p - i - 1;
-  u2      = j - q - 1;
-  sc      = vc->sc;
-
-  if (type == 0)
-    type = 7;
-
-  if (type_2 == 0)
-    type_2 = 7;
-
-  return ubf_eval_int_loop(i, j, p, q,
-                           i + 1, j - 1, p - 1, q + 1,
-                           si, sj, sp, sq,
-                           type, type_2, rtype,
-                           ij, cp,
-                           P, sc);
-}
-
-
 PRIVATE INLINE int
 eval_ext_int_loop(vrna_fold_compound_t  *vc,
                   int                   i,
@@ -766,7 +708,7 @@ wrap_eval_loop_pt(vrna_fold_compound_t  *vc,
       }
     }
 
-    energy = eval_int_loop(vc, i, j, p, q);
+    energy = vrna_eval_int_loop(vc, i, j, p, q);
   }
 
   return energy;
@@ -1164,7 +1106,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
 
             e_plus += num_g * E_MLstem(0, -1, -1, P);
 
-            e_minus = eval_int_loop(vc, r, s, elem_i, elem_j);
+            e_minus = vrna_eval_int_loop(vc, r, s, elem_i, elem_j);
 
             energy += e_plus - e_minus;
 
@@ -1299,7 +1241,7 @@ stack_energy(vrna_fold_compound_t *vc,
           }
         }
 
-        ee = eval_int_loop(vc, i, j, p, q);
+        ee = vrna_eval_int_loop(vc, i, j, p, q);
 
         type = rtype[type_2];
         break;
@@ -2261,7 +2203,6 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
     E_gquad_ali_en(p, L, l, (const short **)S, n_seq, gq_en, P);
     tmp_e   = gq_en[0];
     energy  += tmp_e;
-
     /* check if it's enclosed in a base pair */
     if (loop_idx[p] == 0) {
       q++;
@@ -2361,7 +2302,6 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
                      *  vrna_message_error("too few unpaired bases");
                      */
             e_minus = vrna_eval_hp_loop(vc, r, s);
-
             /* if we consider the G-Quadruplex, we have */
             if (num_g == 1) {
               /* a) an interior loop like structure */
@@ -2400,7 +2340,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
 
           /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
           case 1:
-            e_minus = eval_int_loop(vc, r, s, elem_i, elem_j);
+            e_minus = vrna_eval_int_loop(vc, r, s, elem_i, elem_j);
 
             for (cnt = 0; cnt < n_seq; cnt++) {
               type = md->pair[S[cnt][s]][S[cnt][r]];
@@ -2558,7 +2498,6 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
       q = s + 1;
     }
   }
-
   return en_covar;
 }
 

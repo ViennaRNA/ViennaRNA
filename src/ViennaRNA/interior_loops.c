@@ -99,6 +99,14 @@ eval_int_loop(vrna_fold_compound_t  *vc,
               int                   l);
 
 
+PRIVATE INLINE int
+eval_int_loop_comparative(vrna_fold_compound_t  *vc,
+                          int                   i,
+                          int                   j,
+                          int                   k,
+                          int                   l);
+
+
 PRIVATE FLT_OR_DBL
 exp_E_interior_loop(vrna_fold_compound_t  *vc,
                     int                   i,
@@ -177,6 +185,24 @@ BT_stack_window_comparative(vrna_fold_compound_t  *vc,
                             int                   *en,
                             vrna_bp_stack_t       *bp_stack,
                             int                   *stack_count);
+
+
+PRIVATE INLINE int
+ubf_eval_int_loop_comparative(int           col_i,
+                              int           col_j,
+                              int           col_p,
+                              int           col_q,
+                              unsigned char type,
+                              unsigned char type_2,
+                              int           *rtype,
+                              int           ij,
+                              int           cp,
+                              vrna_param_t  *P,
+                              short         *SS,
+                              short         *S5,
+                              short         *S3,
+                              unsigned int  *a2s,
+                              vrna_sc_t     *sc);
 
 
 PRIVATE unsigned char
@@ -279,6 +305,10 @@ vrna_eval_int_loop(vrna_fold_compound_t *vc,
       case VRNA_FC_TYPE_SINGLE:
         e = eval_int_loop(vc, i, j, k, l);
         break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        e = eval_int_loop_comparative(vc, i, j, k, l);
+        break;
     }
   }
 
@@ -336,6 +366,56 @@ eval_int_loop(vrna_fold_compound_t  *vc,
                         type, type2, rtype,
                         ij, cp,
                         P, sc);
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+eval_int_loop_comparative(vrna_fold_compound_t  *vc,
+                          int                   i,
+                          int                   j,
+                          int                   k,
+                          int                   l)
+{
+  unsigned int  **a2s;
+  int           s, ij, e, cp, *jindx, *rtype, type, type_2, n_seq;
+  short         **SS, **S5, **S3;
+  vrna_sc_t     **scs, *sc;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+
+  n_seq = vc->n_seq;
+  cp    = vc->cutpoint;
+  SS    = vc->S;
+  S5    = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
+  S3    = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
+  a2s   = vc->a2s;
+  jindx = vc->jindx;
+  scs   = vc->scs;
+  P     = vc->params;
+  md    = &(P->model_details);
+  rtype = &(md->rtype[0]);
+  ij    = jindx[j] + i;
+
+  e = INF;
+
+  for (e = 0, s = 0; s < n_seq; s++) {
+    type    = get_pair_type(SS[s][i], SS[s][j], md);
+    type_2  = get_pair_type(SS[s][k], SS[s][l], md); /* q,p not p,q! */
+
+    sc = (scs && scs[s]) ? scs[s] : NULL;
+
+    e += ubf_eval_int_loop_comparative(i, j, k, l,
+                                       type, type_2, rtype,
+                                       ij, cp,
+                                       P,
+                                       SS[s],
+                                       S5[s],
+                                       S3[s],
+                                       a2s[s],
+                                       sc);
+  }
 
   return e;
 }
