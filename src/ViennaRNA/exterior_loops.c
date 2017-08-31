@@ -1136,7 +1136,7 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
   unsigned int              **a2s;
   short                     **S, **S5, **S3;
   int                       en, i, j, ij, tt, length, *indx, *hc_up, *f5, *c, dangle_model,
-                            *ggg, with_gquad, turn, n_seq, s;
+                            *ggg, with_gquad, turn, n_seq, s, mm5, mm3;
   vrna_sc_t                 **scs;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -1343,7 +1343,9 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
 
                   for (s = 0; s < n_seq; s++) {
                     tt  = get_pair_type_md(S[s][i], S[s][j], md);
-                    en  += E_ExtLoop(tt, S5[s][i], S3[s][j], P);
+                    mm5 = (a2s[s][i] > 1) ? S5[s][i] : -1;
+                    mm3 = (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1;      /* why S[0][0] ??? */
+                    en  += E_ExtLoop(tt, mm5, mm3, P);
 
                     if (scs[s] && scs[s]->f)
                       en += scs[s]->f(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, scs[s]->data);
@@ -1368,7 +1370,9 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
 
                   for (s = 0; s < n_seq; s++) {
                     tt  = get_pair_type_md(S[s][i], S[s][j], md);
-                    en  += E_ExtLoop(tt, S5[s][i], S3[s][j], P);
+                    mm5 = (a2s[s][i] > 1) ? S5[s][i] : -1;
+                    mm3 = (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1;      /* why S[0][0] ??? */
+                    en  += E_ExtLoop(tt, mm5, mm3, P);
                   }
                   f5[j] = MIN2(f5[j], en);
                 }
@@ -2389,7 +2393,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
   unsigned int              **a2s;
   short                     **S, **S5, **S3;
   int                       length, fij, fi, jj, u, en, *my_f5, *my_c, *my_ggg, *idx,
-                            dangle_model, turn, with_gquad, n_seq, ss, tt;
+                            dangle_model, turn, with_gquad, n_seq, ss, tt, mm5, mm3;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
@@ -2519,7 +2523,9 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
 
           for (ss = 0; ss < n_seq; ss++) {
             tt  = get_pair_type_md(S[ss][u], S[ss][jj], md);
-            en  += E_ExtLoop(tt, (u > 1) ? S5[ss][u] : -1, (jj < length) ? S3[ss][jj] : -1, P);
+            mm5 = (a2s[ss][u] > 1) ? S5[ss][u] : -1;
+            mm3 = (a2s[ss][jj] < a2s[ss][S[0][0]]) ? S3[ss][jj] : -1;      /* why S[0][0] ??? */
+            en  += E_ExtLoop(tt, mm5, mm3, P);
           }
 
           if (scs) {
@@ -3579,8 +3585,8 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
           }
       }
     } else if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
-      vrna_sc_t       **scs = vc->scs;
-      unsigned int    **a2s = vc->a2s;
+      vrna_sc_t     **scs = vc->scs;
+      unsigned int  **a2s = vc->a2s;
       q = vc->exp_matrices->q;
       for (d = 0; d <= turn; d++)
         for (i = 1; i <= n - d; i++) {

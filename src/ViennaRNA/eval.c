@@ -1489,8 +1489,8 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
               break;
 
             case 2:
-              mm5     = (a2s[ss][p] > 1) && (tt != 0) ? S5[ss][p] : -1;
-              mm3     = (a2s[ss][q] < a2s[ss][S[0][0]]) ? S3[ss][q] : -1;                                 /* why S[0][0] ??? */
+              mm5     = (a2s[ss][p] > 1) ? S5[ss][p] : -1;
+              mm3     = (a2s[ss][q] < a2s[ss][S[0][0]]) ? S3[ss][q] : -1;  /* why S[0][0] ??? */
               energy  += E_ExtLoop(tt, mm5, mm3, P);
               break;
 
