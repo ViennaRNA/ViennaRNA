@@ -1393,7 +1393,8 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
             if (scs) {
               for (s = 0; s < n_seq; s++) {
                 tt  = get_pair_type_md(S[s][i], S[s][j], md);
-                en  += E_ExtLoop(tt, -1, S3[s][j], P);
+                mm3 = (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1;      /* why S[0][0] ??? */
+                en  += E_ExtLoop(tt, -1, mm3, P);
 
                 if (scs[s] && scs[s]->f)
                   en += scs[s]->f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, scs[s]->data);
@@ -1401,7 +1402,8 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
             } else {
               for (s = 0; s < n_seq; s++) {
                 tt  = get_pair_type_md(S[s][i], S[s][j], md);
-                en  += E_ExtLoop(tt, -1, S3[s][j], P);
+                mm3 = (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1;      /* why S[0][0] ??? */
+                en  += E_ExtLoop(tt, -1, mm3, P);
               }
             }
 
@@ -1449,7 +1451,8 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
 
                 for (s = 0; s < n_seq; s++) {
                   tt  = get_pair_type_md(S[s][i], S[s][j], md);
-                  en  += E_ExtLoop(tt, S5[s][i], -1, P);
+                  mm5 = (a2s[s][i] > 1) ? S5[s][i] : -1;
+                  en  += E_ExtLoop(tt, mm5, -1, P);
 
                   if (scs[s] && scs[s]->f)
                     en += scs[s]->f(1, length, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, scs[s]->data);
@@ -1475,7 +1478,8 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
 
                 for (s = 0; s < n_seq; s++) {
                   tt  = get_pair_type_md(S[s][i], S[s][j], md);
-                  en  += E_ExtLoop(tt, S5[s][i], -1, P);
+                  mm5 = (a2s[s][i] > 1) ? S5[s][i] : -1;
+                  en  += E_ExtLoop(tt, mm5, -1, P);
                 }
 
                 f5[length] = MIN2(f5[length], en);
