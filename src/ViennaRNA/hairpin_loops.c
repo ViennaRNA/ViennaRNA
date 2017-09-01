@@ -61,30 +61,10 @@ vrna_E_hp_loop(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx         = vc->hc->matrix;
-  hc_dat_local.mx_window  = vc->hc->matrix_local;
-  hc_dat_local.hc_up      = vc->hc->up_hp;
-  hc_dat_local.n          = vc->length;
-  hc_dat_local.sn         = vc->strand_number;
-
-  if (vc->hc->type == VRNA_HC_WINDOW) {
-    if (vc->hc->f) {
-      evaluate            = &hc_default_user_window;
-      hc_dat_local.hc_f   = vc->hc->f;
-      hc_dat_local.hc_dat = vc->hc->data;
-    } else {
-      evaluate = &hc_default_window;
-    }
-  } else {
-    if (vc->hc->f) {
-      evaluate            = &hc_default_user;
-      hc_dat_local.hc_f   = vc->hc->f;
-      hc_dat_local.hc_dat = vc->hc->data;
-    } else {
-      evaluate = &hc_default;
-    }
-  }
+  if (vc->hc->type == VRNA_HC_WINDOW)
+    evaluate = prepare_hc_default_window(vc, &hc_dat_local);
+  else
+    evaluate = prepare_hc_default(vc, &hc_dat_local);
 
   if ((i > 0) && (j > 0)) {
     /* is this base pair allowed to close a hairpin (like) loop ? */

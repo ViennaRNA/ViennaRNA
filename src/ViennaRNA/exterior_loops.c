@@ -167,18 +167,7 @@ E_ext_loop(int                  i,
   md                = &(P->model_details);
   hard_constraints  = vc->hc->matrix;
   sc                = vc->sc;
-
-  hc_dat_local.idx  = idx;
-  hc_dat_local.mx   = hard_constraints;
-  hc_dat_local.sn   = vc->strand_number;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate          = prepare_hc_default(vc, &hc_dat_local);
 
   e     = INF;
   ij    = idx[j] + i;
@@ -267,19 +256,7 @@ E_ext_loop_5(vrna_fold_compound_t *vc)
   turn          = P->model_details.min_loop_size;
   domains_up    = vc->domains_up;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
-
-  hc_dat_local.idx    = indx;
-  hc_dat_local.mx     = hc;
-  hc_dat_local.hc_up  = hc_up;
-  hc_dat_local.sn     = vc->strand_number;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate      = prepare_hc_default(vc, &hc_dat_local);
 
   f5[0] = 0;
   for (i = 1; i <= turn + 1; i++) {
@@ -881,19 +858,7 @@ E_ext_loop_5_comparative(vrna_fold_compound_t *vc)
   dangle_model  = md->dangles;
   with_gquad    = md->gquad;
   turn          = md->min_loop_size;
-
-  hc_dat_local.idx    = indx;
-  hc_dat_local.mx     = hc;
-  hc_dat_local.hc_up  = hc_up;
-  hc_dat_local.sn     = vc->strand_number;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate      = prepare_hc_default(vc, &hc_dat_local);
 
   f5[0] = 0;
   for (i = 1; i <= turn + 1; i++) {
@@ -1275,18 +1240,7 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
-
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ext;
-  hc_dat_local.sn         = fc->strand_number;
-
-  if (fc->hc->f) {
-    evaluate            = &hc_default_user_window;
-    hc_dat_local.hc_f   = fc->hc->f;
-    hc_dat_local.hc_dat = fc->hc->data;
-  } else {
-    evaluate = &hc_default_window;
-  }
+  evaluate      = prepare_hc_default_window(fc, &hc_dat_local);
 
   /* first case: i stays unpaired */
   if (evaluate(i, length, i + 1, length, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
@@ -1592,18 +1546,7 @@ E_ext_loop_3_comparative(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
-
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ext;
-  hc_dat_local.sn         = fc->strand_number;
-
-  if (fc->hc->f) {
-    evaluate            = &hc_default_user_window;
-    hc_dat_local.hc_f   = fc->hc->f;
-    hc_dat_local.hc_dat = fc->hc->data;
-  } else {
-    evaluate = &hc_default_window;
-  }
+  evaluate      = prepare_hc_default_window(fc, &hc_dat_local);
 
   /* first case: i stays unpaired */
   if (evaluate(i, length, i + 1, length, VRNA_DECOMP_EXT_EXT, &hc_dat_local))

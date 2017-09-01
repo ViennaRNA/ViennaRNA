@@ -51,6 +51,16 @@ hc_default_user_window(int            i,
                        void           *data);
 
 
+PRIVATE INLINE vrna_callback_hc_evaluate *
+prepare_hc_default(vrna_fold_compound_t *vc,
+                   struct default_data  *dat);
+
+
+PRIVATE INLINE vrna_callback_hc_evaluate *
+prepare_hc_default_window(vrna_fold_compound_t  *vc,
+                          struct default_data   *dat);
+
+
 PRIVATE INLINE
 int get_pair_type(int       i,
                   int       j,
@@ -169,4 +179,44 @@ hc_default_user_window(int            i,
   eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
+}
+
+
+PRIVATE INLINE vrna_callback_hc_evaluate *
+prepare_hc_default(vrna_fold_compound_t *vc,
+                   struct default_data  *dat)
+{
+  dat->idx    = vc->jindx;
+  dat->mx     = vc->hc->matrix;
+  dat->hc_up  = vc->hc->up_hp;
+  dat->n      = vc->length;
+  dat->sn     = vc->strand_number;
+
+  if (vc->hc->f) {
+    dat->hc_f   = vc->hc->f;
+    dat->hc_dat = vc->hc->data;
+    return &hc_default_user;
+  }
+
+  return &hc_default;
+}
+
+
+PRIVATE INLINE vrna_callback_hc_evaluate *
+prepare_hc_default_window(vrna_fold_compound_t  *vc,
+                          struct default_data   *dat)
+{
+  dat->idx        = vc->jindx;
+  dat->mx_window  = vc->hc->matrix_local;
+  dat->hc_up      = vc->hc->up_hp;
+  dat->n          = vc->length;
+  dat->sn         = vc->strand_number;
+
+  if (vc->hc->f) {
+    dat->hc_f   = vc->hc->f;
+    dat->hc_dat = vc->hc->data;
+    return &hc_default_user_window;
+  }
+
+  return &hc_default_window;
 }

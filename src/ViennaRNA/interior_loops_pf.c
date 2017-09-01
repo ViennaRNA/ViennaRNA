@@ -130,14 +130,7 @@ exp_E_int_loop(vrna_fold_compound_t *vc,
   scale       = vc->exp_matrices->scale;
   domains_up  = vc->domains_up;
   qbt1        = 0.;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate    = prepare_hc_default(vc, &hc_dat_local);
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
@@ -285,14 +278,7 @@ exp_E_int_loop_window(vrna_fold_compound_t  *vc,
   scale       = vc->exp_matrices->scale;
   domains_up  = vc->domains_up;
   qbt1        = 0.;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate    = prepare_hc_default(vc, &hc_dat_local);
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc[i][j - i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
@@ -467,13 +453,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
   if (hc_up[i + 1] < u1)
     return qbt1;
 
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate = prepare_hc_default(vc, &hc_dat_local);
 
   /* CONSTRAINED INTERIOR LOOP start */
   eval_loop =
@@ -583,14 +563,7 @@ exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
   qbt1        = 0.;
   jij         = jindx[j] + i;
   ij          = my_iindx[i] - j;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate    = prepare_hc_default(vc, &hc_dat_local);
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc[jij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {

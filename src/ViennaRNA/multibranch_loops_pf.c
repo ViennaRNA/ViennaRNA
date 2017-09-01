@@ -139,19 +139,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t *vc,
   hc            = vc->hc;
   expMLclosing  = pf_params->expMLclosing;
   qbt1          = 0.;
-
-  hc_dat_local.idx    = vc->jindx;
-  hc_dat_local.mx     = hc->matrix;
-  hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.sn     = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate      = prepare_hc_default(vc, &hc_dat_local);
 
   /* multiple stem loop contribution */
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML,
@@ -231,19 +219,7 @@ exp_E_mb_loop_fast_window(vrna_fold_compound_t  *vc,
   hc            = vc->hc;
   expMLclosing  = pf_params->expMLclosing;
   qbt1          = 0.;
-
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.sn         = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user_window;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default_window;
-  }
+  evaluate      = prepare_hc_default_window(vc, &hc_dat_local);
 
   /* multiple stem loop contribution */
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML,
@@ -317,19 +293,7 @@ exp_E_mb_loop_fast_comparative(vrna_fold_compound_t *vc,
   hc            = vc->hc;
   expMLclosing  = pf_params->expMLclosing;
   qbt1          = 0.;
-
-  hc_dat_local.idx    = vc->jindx;
-  hc_dat_local.mx     = hc->matrix;
-  hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.sn     = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate      = prepare_hc_default(vc, &hc_dat_local);
 
   /* multiple stem loop contribution */
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
@@ -560,42 +524,31 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  n                   = (int)vc->length;
-  strands             = vc->strands;
-  sn                  = vc->strand_number;
-  so                  = vc->strand_order;
-  ss                  = vc->strand_start;
-  se                  = vc->strand_end;
-  iidx                = vc->iindx;
-  ij                  = iidx[i] - j;
-  qqm                 = aux_mx->qqm;
-  qqm1                = aux_mx->qqm1;
-  qqmu                = aux_mx->qqmu;
-  qm                  = vc->exp_matrices->qm;
-  qb                  = vc->exp_matrices->qb;
-  G                   = vc->exp_matrices->G;
-  expMLbase           = vc->exp_matrices->expMLbase;
-  pf_params           = vc->exp_params;
-  md                  = &(pf_params->model_details);
-  hc                  = vc->hc;
-  sc                  = vc->sc;
-  domains_up          = vc->domains_up;
-  circular            = md->circ;
-  with_gquad          = md->gquad;
-  with_ud             = (domains_up && domains_up->exp_energy_cb);
-  hc_up_ml            = hc->up_ml;
-  hc_dat_local.idx    = vc->jindx;
-  hc_dat_local.mx     = hc->matrix;
-  hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.sn     = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  n           = (int)vc->length;
+  strands     = vc->strands;
+  sn          = vc->strand_number;
+  so          = vc->strand_order;
+  ss          = vc->strand_start;
+  se          = vc->strand_end;
+  iidx        = vc->iindx;
+  ij          = iidx[i] - j;
+  qqm         = aux_mx->qqm;
+  qqm1        = aux_mx->qqm1;
+  qqmu        = aux_mx->qqmu;
+  qm          = vc->exp_matrices->qm;
+  qb          = vc->exp_matrices->qb;
+  G           = vc->exp_matrices->G;
+  expMLbase   = vc->exp_matrices->expMLbase;
+  pf_params   = vc->exp_params;
+  md          = &(pf_params->model_details);
+  hc          = vc->hc;
+  sc          = vc->sc;
+  domains_up  = vc->domains_up;
+  circular    = md->circ;
+  with_gquad  = md->gquad;
+  with_ud     = (domains_up && domains_up->exp_energy_cb);
+  hc_up_ml    = hc->up_ml;
+  evaluate    = prepare_hc_default(vc, &hc_dat_local);
 
   qbt1    = 0;
   q_temp  = 0.;
@@ -920,20 +873,7 @@ exp_E_ml_fast_window(vrna_fold_compound_t *vc,
   with_gquad  = md->gquad;
   with_ud     = (domains_up && domains_up->exp_energy_cb);
   hc_up_ml    = hc->up_ml;
-
-
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.sn         = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user_window;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default_window;
-  }
+  evaluate    = prepare_hc_default_window(vc, &hc_dat_local);
 
   qbt1    = 0;
   q_temp  = 0.;
@@ -1205,19 +1145,7 @@ exp_E_ml_fast_comparative(vrna_fold_compound_t  *vc,
   scs       = vc->scs;
   circular  = md->circ;
   hc_up_ml  = hc->up_ml;
-
-  hc_dat_local.idx    = vc->jindx;
-  hc_dat_local.mx     = hc->matrix;
-  hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.sn     = sn;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate  = prepare_hc_default(vc, &hc_dat_local);
 
   q_temp = 0.;
 

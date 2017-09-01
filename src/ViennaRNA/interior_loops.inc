@@ -59,6 +59,11 @@ eval_interior_loop(vrna_fold_compound_t *vc,
                    int                  q);
 
 
+PRIVATE INLINE vrna_callback_hc_evaluate *
+prepare_hc_default(vrna_fold_compound_t *vc,
+                   struct default_data  *dat);
+
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -98,6 +103,20 @@ hc_default_user(int           i,
   struct default_data *dat = (struct default_data *)data;
 
   return dat->hc_f(i, j, k, l, d, dat->hc_dat);
+}
+
+
+PRIVATE INLINE vrna_callback_hc_evaluate *
+prepare_hc_default(vrna_fold_compound_t *vc,
+                   struct default_data  *dat)
+{
+  if (vc->hc->f) {
+    dat->hc_f   = vc->hc->f;
+    dat->hc_dat = vc->hc->data;
+    return &hc_default_user;
+  }
+
+  return &hc_default;
 }
 
 

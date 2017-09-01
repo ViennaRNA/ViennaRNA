@@ -269,14 +269,7 @@ E_int_loop(vrna_fold_compound_t *vc,
   with_gquad    = md->gquad;
   turn          = md->min_loop_size;
   domains_up    = vc->domains_up;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate      = prepare_hc_default(vc, &hc_dat_local);
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
@@ -676,14 +669,7 @@ E_int_loop_comparative(vrna_fold_compound_t *vc,
   turn          = md->min_loop_size;
   dangle_model  = md->dangles;
   types         = NULL;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate      = prepare_hc_default(vc, &hc_dat_local);
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
@@ -1138,27 +1124,20 @@ vrna_E_ext_int_loop(vrna_fold_compound_t  *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  length  = vc->length;
-  indx    = vc->jindx;
-  ptype   = vc->ptype;
-  c       = vc->matrices->c;
-  hc      = vc->hc->matrix;
-  hc_up   = vc->hc->up_int;
-  P       = vc->params;
-  md      = &(P->model_details);
-  turn    = md->min_loop_size;
-  types   = NULL;
-  ij      = indx[j] + i;
-  rtype   = &(md->rtype[0]);
-  e       = INF;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  length    = vc->length;
+  indx      = vc->jindx;
+  ptype     = vc->ptype;
+  c         = vc->matrices->c;
+  hc        = vc->hc->matrix;
+  hc_up     = vc->hc->up_int;
+  P         = vc->params;
+  md        = &(P->model_details);
+  turn      = md->min_loop_size;
+  types     = NULL;
+  ij        = indx[j] + i;
+  rtype     = &(md->rtype[0]);
+  e         = INF;
+  evaluate  = prepare_hc_default(vc, &hc_dat_local);
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
@@ -1305,14 +1284,7 @@ vrna_E_stack(vrna_fold_compound_t *vc,
   rtype             = &(md->rtype[0]);
   indx              = vc->jindx;
   hard_constraints  = vc->hc->matrix;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate          = prepare_hc_default(vc, &hc_dat_local);
 
   e         = INF;
   p         = i + 1;
@@ -1447,14 +1419,7 @@ E_stack_window(vrna_fold_compound_t *vc,
   md                = &(P->model_details);
   rtype             = &(md->rtype[0]);
   hard_constraints  = vc->hc->matrix_local;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate          = prepare_hc_default(vc, &hc_dat_local);
 
   e         = INF;
   p         = i + 1;

@@ -241,20 +241,7 @@ E_mb_loop_fast_comparative(vrna_fold_compound_t *vc,
   scs           = vc->scs;
   dangle_model  = md->dangles;
   e             = INF;
-
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx         = hc->matrix;
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.sn         = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate      = prepare_hc_default(vc, &hc_dat_local);
 
   /* multi-loop decomposition ------------------------*/
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
@@ -314,20 +301,7 @@ E_mb_loop_fast_comparative_window(vrna_fold_compound_t  *vc,
   scs           = vc->scs;
   dangle_model  = md->dangles;
   e             = INF;
-
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx         = hc->matrix;
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.sn         = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user_window;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default_window;
-  }
+  evaluate      = prepare_hc_default_window(vc, &hc_dat_local);
 
   /* multi-loop decomposition ------------------------*/
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
@@ -400,22 +374,10 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
   e       = INF;
   decomp  = INF;
 
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx         = hc->matrix;
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.sn         = vc->strand_number;
+  evaluate = prepare_hc_default(vc, &hc_dat_local);
 
   ij  = indx[j] + i;
   tt  = get_pair_type_md(S2[j], S2[i], md);
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
 
   if (strands == 1) {
     S_i1  = S[i + 1];
@@ -635,19 +597,7 @@ E_mb_loop_fast_window(vrna_fold_compound_t  *vc,
   e       = INF;
   decomp  = INF;
 
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx         = hc->matrix;
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.sn         = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user_window;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default_window;
-  }
+  evaluate = prepare_hc_default_window(vc, &hc_dat_local);
 
   S_i1  = S[i + 1];
   S_j1  = S[j - 1];
@@ -789,20 +739,7 @@ E_mb_loop_stack(vrna_fold_compound_t  *vc,
   sc    = vc->sc;
   e     = INF;
 
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx         = hc->matrix;
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.sn         = vc->strand_number;
-
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate = prepare_hc_default(vc, &hc_dat_local);
 
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
     decomp  = INF;
@@ -869,30 +806,16 @@ E_mb_loop_stack_window(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  hc    = vc->hc;
-  P     = vc->params;
-  md    = &(P->model_details);
-  turn  = md->min_loop_size;
-  rtype = &(md->rtype[0]);
-  c     = vc->matrices->c_local;
-  fML   = vc->matrices->fML_local;
-  sc    = vc->sc;
-  e     = INF;
-
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx         = hc->matrix;
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.sn         = vc->strand_number;
-
-
-  if (hc->f) {
-    evaluate            = &hc_default_user_window;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default_window;
-  }
+  hc        = vc->hc;
+  P         = vc->params;
+  md        = &(P->model_details);
+  turn      = md->min_loop_size;
+  rtype     = &(md->rtype[0]);
+  c         = vc->matrices->c_local;
+  fML       = vc->matrices->fML_local;
+  sc        = vc->sc;
+  e         = INF;
+  evaluate  = prepare_hc_default_window(vc, &hc_dat_local);
 
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
     ptype = vc->ptype_local;
@@ -996,19 +919,7 @@ extend_fm_3p(int                  i,
   domains_up    = vc->domains_up;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   e             = INF;
-
-  hc_dat_local.idx    = vc->jindx;
-  hc_dat_local.mx     = hc->matrix;
-  hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.sn     = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate      = prepare_hc_default(vc, &hc_dat_local);
 
   if (sn[i - 1] == sn[i]) {
     if (sn[j] == sn[j + 1]) {
@@ -1198,18 +1109,7 @@ extend_fm_3p_window(int                   i,
 
   type = get_pair_type_window(i, j, vc->ptype_local);
 
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.sn         = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user_window;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default_window;
-  }
+  evaluate = prepare_hc_default_window(vc, &hc_dat_local);
 
   if (sn[i - 1] == sn[i]) {
     if (sn[j] == sn[j + 1]) {
@@ -1339,19 +1239,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
   domains_up    = vc->domains_up;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   e             = INF;
-
-  hc_dat_local.idx    = vc->jindx;
-  hc_dat_local.mx     = hc->matrix;
-  hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.sn     = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate      = prepare_hc_default(vc, &hc_dat_local);
 
   /*
    *  extension with one unpaired nucleotide at the right (3' site)
@@ -1674,19 +1562,7 @@ E_ml_stems_fast_window(vrna_fold_compound_t *vc,
   turn          = md->min_loop_size;
   rtype         = &(md->rtype[0]);
   dangle_model  = md->dangles;
-
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.sn         = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user_window;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default_window;
-  }
+  evaluate      = prepare_hc_default_window(vc, &hc_dat_local);
 
   /*
    *  extension with one unpaired nucleotide at the right (3' site)
@@ -1889,19 +1765,7 @@ E_ml_stems_fast_comparative(vrna_fold_compound_t  *vc,
   a2s               = vc->a2s;
   ij                = indx[j] + i;
   e                 = INF;
-
-  hc_dat_local.idx    = vc->jindx;
-  hc_dat_local.mx     = hc->matrix;
-  hc_dat_local.hc_up  = hc->up_ml;
-  hc_dat_local.sn     = sn;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate          = prepare_hc_default(vc, &hc_dat_local);
 
   if (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
     energy = fML[ij + 1] + n_seq * P->MLbase;
@@ -2016,19 +1880,7 @@ E_ml_stems_fast_comparative_window(vrna_fold_compound_t *vc,
   turn              = md->min_loop_size;
   a2s               = vc->a2s;
   e                 = INF;
-
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ml;
-  hc_dat_local.sn         = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user_window;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default_window;
-  }
+  evaluate          = prepare_hc_default_window(vc, &hc_dat_local);
 
   if (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
     energy = fML[i + 1][j - (i + 1)] + n_seq * P->MLbase;

@@ -125,32 +125,10 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
     scale = vc->exp_matrices->scale;
     hc_up = vc->hc->up_ext;
 
-    if (vc->hc->type == VRNA_HC_WINDOW) {
-      hc_dat_local.mx_window  = vc->hc->matrix_local;
-      hc_dat_local.hc_up      = hc_up;
-      hc_dat_local.sn         = vc->strand_number;
-
-      if (vc->hc->f) {
-        evaluate            = &hc_default_user_window;
-        hc_dat_local.hc_f   = vc->hc->f;
-        hc_dat_local.hc_dat = vc->hc->data;
-      } else {
-        evaluate = &hc_default_window;
-      }
-    } else {
-      hc_dat_local.idx    = idx;
-      hc_dat_local.mx     = vc->hc->matrix;
-      hc_dat_local.hc_up  = hc_up;
-      hc_dat_local.sn     = vc->strand_number;
-
-      if (vc->hc->f) {
-        evaluate            = &hc_default_user;
-        hc_dat_local.hc_f   = vc->hc->f;
-        hc_dat_local.hc_dat = vc->hc->data;
-      } else {
-        evaluate = &hc_default;
-      }
-    }
+    if (vc->hc->type == VRNA_HC_WINDOW)
+      evaluate = prepare_hc_default_window(vc, &hc_dat_local);
+    else
+      evaluate = prepare_hc_default(vc, &hc_dat_local);
 
     /* allocate memory for helper arrays */
     aux_mx            = (vrna_mx_pf_aux_el_t *)vrna_alloc(sizeof(vrna_mx_pf_aux_el_t));
@@ -362,41 +340,30 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  n                   = (int)vc->length;
-  strands             = vc->strands;
-  sn                  = vc->strand_number;
-  so                  = vc->strand_order;
-  ss                  = vc->strand_start;
-  se                  = vc->strand_end;
-  iidx                = vc->iindx;
-  ij                  = iidx[i] - j;
-  qq                  = aux_mx->qq;
-  qq1                 = aux_mx->qq1;
-  qqu                 = aux_mx->qqu;
-  q                   = vc->exp_matrices->q;
-  qb                  = vc->exp_matrices->qb;
-  G                   = vc->exp_matrices->G;
-  scale               = vc->exp_matrices->scale;
-  pf_params           = vc->exp_params;
-  md                  = &(pf_params->model_details);
-  hc                  = vc->hc;
-  sc                  = vc->sc;
-  domains_up          = vc->domains_up;
-  circular            = md->circ;
-  with_gquad          = md->gquad;
-  with_ud             = (domains_up && domains_up->exp_energy_cb);
-  hc_dat_local.idx    = vc->jindx;
-  hc_dat_local.mx     = hc->matrix;
-  hc_dat_local.hc_up  = hc->up_ext;
-  hc_dat_local.sn     = vc->strand_number;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  n           = (int)vc->length;
+  strands     = vc->strands;
+  sn          = vc->strand_number;
+  so          = vc->strand_order;
+  ss          = vc->strand_start;
+  se          = vc->strand_end;
+  iidx        = vc->iindx;
+  ij          = iidx[i] - j;
+  qq          = aux_mx->qq;
+  qq1         = aux_mx->qq1;
+  qqu         = aux_mx->qqu;
+  q           = vc->exp_matrices->q;
+  qb          = vc->exp_matrices->qb;
+  G           = vc->exp_matrices->G;
+  scale       = vc->exp_matrices->scale;
+  pf_params   = vc->exp_params;
+  md          = &(pf_params->model_details);
+  hc          = vc->hc;
+  sc          = vc->sc;
+  domains_up  = vc->domains_up;
+  circular    = md->circ;
+  with_gquad  = md->gquad;
+  with_ud     = (domains_up && domains_up->exp_energy_cb);
+  evaluate    = prepare_hc_default(vc, &hc_dat_local);
 
   qbt1 = 0.;
 
@@ -546,18 +513,7 @@ exp_E_ext_fast_window(vrna_fold_compound_t  *vc,
   with_gquad  = md->gquad;
   turn        = md->min_loop_size;
   with_ud     = (domains_up && domains_up->exp_energy_cb);
-
-  hc_dat_local.mx_window  = hc->matrix_local;
-  hc_dat_local.hc_up      = hc->up_ext;
-  hc_dat_local.sn         = vc->strand_number;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user_window;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default_window;
-  }
+  evaluate    = prepare_hc_default_window(vc, &hc_dat_local);
 
   /*
    *  init exterior loop contributions for small segments [i, j]
@@ -718,36 +674,25 @@ exp_E_ext_fast_comparative(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  n                   = (int)vc->length;
-  n_seq               = vc->n_seq;
-  iidx                = vc->iindx;
-  ij                  = iidx[i] - j;
-  S                   = vc->S;
-  S5                  = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
-  S3                  = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
-  a2s                 = vc->a2s;
-  qq                  = aux_mx->qq;
-  qq1                 = aux_mx->qq1;
-  q                   = vc->exp_matrices->q;
-  qb                  = vc->exp_matrices->qb;
-  scale               = vc->exp_matrices->scale;
-  pf_params           = vc->exp_params;
-  md                  = &(pf_params->model_details);
-  hc                  = vc->hc;
-  scs                 = vc->scs;
-  circular            = md->circ;
-  hc_dat_local.idx    = vc->jindx;
-  hc_dat_local.mx     = hc->matrix;
-  hc_dat_local.hc_up  = hc->up_ext;
-  hc_dat_local.sn     = sn;
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  n         = (int)vc->length;
+  n_seq     = vc->n_seq;
+  iidx      = vc->iindx;
+  ij        = iidx[i] - j;
+  S         = vc->S;
+  S5        = vc->S5;               /* S5[s][i] holds next base 5' of i in sequence s */
+  S3        = vc->S3;               /* Sl[s][i] holds next base 3' of i in sequence s */
+  a2s       = vc->a2s;
+  qq        = aux_mx->qq;
+  qq1       = aux_mx->qq1;
+  q         = vc->exp_matrices->q;
+  qb        = vc->exp_matrices->qb;
+  scale     = vc->exp_matrices->scale;
+  pf_params = vc->exp_params;
+  md        = &(pf_params->model_details);
+  hc        = vc->hc;
+  scs       = vc->scs;
+  circular  = md->circ;
+  evaluate  = prepare_hc_default(vc, &hc_dat_local);
 
   qbt1 = 0.;
 
