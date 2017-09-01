@@ -116,6 +116,7 @@ pkginclude_HEADERS =  \
     dp_matrices.h \
     plot_structure.h \
     plot_aln.h \
+    plot_utils.h \
     boltzmann_sampling.h \
     equilibrium_probs.h \
     constraints_ligand.h \
@@ -208,6 +209,7 @@ libRNA_utils_la_SOURCES = \
     combinatorics.c
 
 libRNA_plotting_la_SOURCES = \
+    plot_utils.c \
     plot_aln.c \
     plot_layouts.c \
     plot_structure.c \

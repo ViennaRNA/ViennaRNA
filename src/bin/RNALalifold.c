@@ -21,6 +21,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/plot_aln.h"
 #include "ViennaRNA/plot_structure.h"
+#include "ViennaRNA/plot_utils.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/Lfold.h"
@@ -54,19 +55,6 @@ typedef struct {
   int       n_seq;
   int       dangle_model;
 } hit_data;
-
-
-PRIVATE char **annote(const char  *structure,
-                      const char  *AS[],
-                      vrna_md_t   *md);
-
-
-PRIVATE char **get_subalignment(const char  *AS[],
-                                int         i,
-                                int         j);
-
-
-PRIVATE void  delete_alignment(char *AS[]);
 
 
 PRIVATE void
@@ -599,9 +587,9 @@ print_hit_cb(int        start,
   }
 
   if ((en / (float)(end - start + 1)) <= threshold) {
-    sub   = get_subalignment((const char **)strings, start, end);
+    sub   = vrna_aln_slice((const char **)strings, (unsigned int)start, (unsigned int)end);
     cons  = (with_mis) ? consens_mis((const char **)sub) : consensus((const char **)sub);
-    A     = annote(ss, (const char **)sub, md);
+    A     = vrna_annotate_bp_covar((const char **)sub, ss, md);
 
 
     if (with_csv == 1)
@@ -681,135 +669,8 @@ print_hit_cb(int        start,
       free(id);
     }
 
-    delete_alignment(sub);
+    vrna_aln_free(sub);
   }
 
   free(ss);
-}
-
-
-PRIVATE char **
-annote(const char *structure,
-       const char *AS[],
-       vrna_md_t  *md)
-{
-  /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
-  char  *ps, *colorps, **A;
-  int   i, n, s, pairings, maxl;
-  short *ptable;
-  char  *colorMatrix[6][3] = {
-    { "0.0 1",  "0.0 0.6",  "0.0 0.2"   },  /* red    */
-    { "0.16 1", "0.16 0.6", "0.16 0.2"  },  /* ochre  */
-    { "0.32 1", "0.32 0.6", "0.32 0.2"  },  /* turquoise */
-    { "0.48 1", "0.48 0.6", "0.48 0.2"  },  /* green  */
-    { "0.65 1", "0.65 0.6", "0.65 0.2"  },  /* blue   */
-    { "0.81 1", "0.81 0.6", "0.81 0.2"  }   /* violet */
-  };
-
-  n     = strlen(AS[0]);
-  maxl  = 1024;
-
-  A       = (char **)vrna_alloc(sizeof(char *) * 2);
-  ps      = (char *)vrna_alloc(maxl);
-  colorps = (char *)vrna_alloc(maxl);
-  ptable  = vrna_ptable(structure);
-  for (i = 1; i <= n; i++) {
-    char  pps[64], ci = '\0', cj = '\0';
-    int   j, type, pfreq[8] = {
-      0, 0, 0, 0, 0, 0, 0, 0
-    }, vi = 0, vj = 0;
-    if ((j = ptable[i]) < i)
-      continue;
-
-    for (s = 0; AS[s] != NULL; s++) {
-      type =
-        md->pair[vrna_nucleotide_encode(AS[s][i - 1], md)][vrna_nucleotide_encode(AS[s][j - 1],
-                                                                                  md)];
-      pfreq[type]++;
-      if (type) {
-        if (AS[s][i - 1] != ci) {
-          ci = AS[s][i - 1];
-          vi++;
-        }
-
-        if (AS[s][j - 1] != cj) {
-          cj = AS[s][j - 1];
-          vj++;
-        }
-      }
-    }
-    for (pairings = 0, s = 1; s <= 7; s++)
-      if (pfreq[s])
-        pairings++;
-
-    if ((maxl - strlen(ps) < 192) || ((maxl - strlen(colorps)) < 64)) {
-      maxl    *= 2;
-      ps      = realloc(ps, maxl);
-      colorps = realloc(colorps, maxl);
-      if ((ps == NULL) || (colorps == NULL))
-        vrna_message_error("out of memory in realloc");
-    }
-
-    if (pfreq[0] <= 2 && pairings > 0) {
-      snprintf(pps, 64, "%d %d %s colorpair\n",
-               i, j, colorMatrix[pairings - 1][pfreq[0]]);
-      strcat(colorps, pps);
-    }
-
-    if (pfreq[0] > 0) {
-      snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
-      strcat(ps, pps);
-    }
-
-    if (vi > 1) {
-      snprintf(pps, 64, "%d cmark\n", i);
-      strcat(ps, pps);
-    }
-
-    if (vj > 1) {
-      snprintf(pps, 64, "%d cmark\n", j);
-      strcat(ps, pps);
-    }
-  }
-  free(ptable);
-  A[0]  = colorps;
-  A[1]  = ps;
-  return A;
-}
-
-
-PRIVATE char **
-get_subalignment(const char **AS,
-                 int        i,
-                 int        j)
-{
-  char  **sub;
-  int   n_seq, s;
-
-  /* get number of sequences in alignment */
-  for (n_seq = 0; AS[n_seq] != NULL; n_seq++);
-
-  sub = (char **)vrna_alloc(sizeof(char *) * (n_seq + 1));
-  for (s = 0; s < n_seq; s++)
-    sub[s] = vrna_alloc(sizeof(char) * (j - i + 2));
-  sub[s] = NULL;
-
-  /* copy subalignment */
-  for (s = 0; s < n_seq; s++) {
-    sub[s]              = memcpy(sub[s], AS[s] + i - 1, sizeof(char) * (j - i + 1));
-    sub[s][(j - i + 1)] = '\0';
-  }
-  return sub;
-}
-
-
-PRIVATE void
-delete_alignment(char **AS)
-{
-  int n_seq;
-
-  /* get number of sequences in alignment */
-  for (n_seq = 0; AS[n_seq] != NULL; n_seq++)
-    free(AS[n_seq]);
-  free(AS);
 }
