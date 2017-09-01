@@ -218,9 +218,17 @@ libRNA_plotting_la_SOURCES = \
 
 libRNA_loops_la_SOURCES = \
     exterior_loops.c \
+    exterior_loops_bt.c \
+    exterior_loops_pf.c \
     hairpin_loops.c \
+    hairpin_loops_bt.c \
+    hairpin_loops_pf.c \
     interior_loops.c \
-    multibranch_loops.c
+    interior_loops_bt.c \
+    interior_loops_pf.c \
+    multibranch_loops.c \
+    multibranch_loops_bt.c \
+    multibranch_loops_pf.c
 
 libRNA_params_la_SOURCES = \
     read_epars.c \
@@ -254,6 +262,10 @@ nodist_pkginclude_HEADERS = vrna_config.h
 EXTRA_DIST =  $(pkginclude_HEADERS) \
               circfold.inc \
               alicircfold.inc \
+              exterior_loops.inc \
+              hairpin_loops.inc \
+              interior_loops.inc \
+              multibranch_loops.inc \
               model_avg.inc \
               model_sd.inc \
               ${SVM_H} \
