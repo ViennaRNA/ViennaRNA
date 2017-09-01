@@ -444,7 +444,7 @@ pf_co(vrna_fold_compound_t *vc){
             q_temp *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
             temp += q_temp;
           }
-          for (; k > i; k--, kl++) {
+          for (k--, kl++; k > i; k--, kl++) {
             q_temp = qm[kl] * qqm[k];
             q_temp *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
             temp += q_temp;
@@ -460,7 +460,7 @@ pf_co(vrna_fold_compound_t *vc){
         if (j >= cp) {
           for (k = j; k > MAX2(i, cp); k--, kl++)
             temp += qm[kl] * qqm[k];
-          for (; k > i; k--, kl++)
+          for (k--, kl++; k > i; k--, kl++)
             temp += qm[kl] * qqm[k];
         } else {
           for (k = j; k > i; k--, kl++)
