@@ -2142,8 +2142,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
-            return 1;
+            return vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
           }
         }
 
@@ -2177,8 +2176,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
-            return 1;
+            return vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
           }
         }
 
@@ -2211,8 +2209,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
         if (fij == my_ggg[idx[jj] + 1]) {
           *i  = *j = -1;
           *k  = 0;
-          vrna_BT_gquad_mfe(vc, 1, jj, bp_stack, stack_count);
-          return 1;
+          return vrna_BT_gquad_mfe(vc, 1, jj, bp_stack, stack_count);
         }
       }
 
@@ -2270,8 +2267,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
-            return 1;
+            return vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
           }
         }
 
@@ -2478,8 +2474,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
-            return 1;
+            return vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
           }
         }
 
@@ -2516,8 +2511,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
-            return 1;
+            return vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
           }
         }
 
@@ -2645,8 +2639,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
-            return 1;
+            return vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
           }
         }
 
@@ -2680,8 +2673,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
-            return 1;
+            return vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
           }
         }
 
@@ -2715,8 +2707,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
-            return 1;
+            return vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
           }
         }
 
@@ -2973,8 +2964,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
-            return 1;
+            return vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
           }
         }
 
@@ -3004,8 +2994,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
-            return 1;
+            return vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
           }
         }
 
