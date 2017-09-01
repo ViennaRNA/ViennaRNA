@@ -951,6 +951,13 @@ backtrack(vrna_fold_compound_t  *vc,
             i = p;
             j = q;
             goto repeat1;
+          } else if (md->gquad) {
+            /*
+             * check whether last element on the bp_stack is involved in G-Quadruplex formation
+             * and increase output dot-bracket string length by 1 if necessary
+             */
+            if ((bp_stack[b].i == bp_stack[b].j) && (bp_stack[b].i < length))
+              dangle3 = 1;
           }
 
           continue;
