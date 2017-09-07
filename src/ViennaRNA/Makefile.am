@@ -262,8 +262,6 @@ noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
 nodist_pkginclude_HEADERS = vrna_config.h
 
 EXTRA_DIST =  $(pkginclude_HEADERS) \
-              circfold.inc \
-              alicircfold.inc \
               exterior_loops.inc \
               hairpin_loops.inc \
               interior_loops.inc \
