@@ -626,27 +626,6 @@ set_fold_compound(vrna_fold_compound_t  *vc,
 
       free(sequences);
 
-      /* BEGIN prepare sequence stuff */
-
-      /* 1. store initial strand order */
-      vc->strand_order = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->strands + 1));
-      for (cnt = 0; cnt < vc->strands; cnt++)
-        vc->strand_order[cnt] = cnt;
-
-      /* 2. mark start and end positions of sequences */
-      vc->strand_start  = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->strands + 1));
-      vc->strand_end    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->strands + 1));
-
-      vc->strand_start[0] = 1;
-      vc->strand_end[0]   = vc->strand_start[0] + vc->nucleotides[0].length - 1;
-
-      for (cnt = 1; cnt < vc->strands; cnt++) {
-        vc->strand_start[cnt] = vc->strand_end[cnt - 1] + 1;
-        vc->strand_end[cnt]   = vc->strand_start[cnt] + vc->nucleotides[cnt].length - 1;
-      }
-
-      /* END prepare sequence stuff */
-
       seq2          = strdup(sequence);
       seq           = vrna_cut_point_remove(seq2, &cp);                   /*  splice out the '&' if concatenated sequences and
                                                                            * reset cp... this should also be safe for
@@ -661,17 +640,6 @@ set_fold_compound(vrna_fold_compound_t  *vc,
       vc->length              = length = strlen(seq);
       vc->sequence_encoding   = vrna_seq_encode(seq, md_p);
       vc->sequence_encoding2  = vrna_seq_encode_simple(seq, md_p);
-
-      vc->strand_number = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->length + 2));
-      if (cp > 0) {
-        for (s = i = 0; i <= vc->length + 1; i++) {
-          /* this sets pos. 0 and n+1 as well */
-          if (i == vc->cutpoint)
-            s++;
-
-          vc->strand_number[i] = s;
-        }
-      }
 
       if (!(options & VRNA_OPTION_EVAL_ONLY)) {
         vc->ptype = (aux & WITH_PTYPE) ? vrna_ptypes(vc->sequence_encoding2, md_p) : NULL;
@@ -691,8 +659,6 @@ set_fold_compound(vrna_fold_compound_t  *vc,
       sequences = vc->sequences;
 
       vc->length = length = vc->length;
-
-      vc->strand_number = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->length + 1));
 
       vc->cons_seq  = consensus((const char **)sequences);
       vc->S_cons    = vrna_seq_encode_simple(vc->cons_seq, md_p);
@@ -732,6 +698,8 @@ set_fold_compound(vrna_fold_compound_t  *vc,
     default:                      /* do nothing ? */
       break;
   }
+
+  vrna_sequence_prepare(vc);
 
   if (!(options & VRNA_OPTION_WINDOW) && (vc->length <= vrna_sequence_length_max(options))) {
     vc->iindx = vrna_idx_row_wise(vc->length);

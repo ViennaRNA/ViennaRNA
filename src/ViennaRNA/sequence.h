@@ -49,6 +49,7 @@ int           vrna_sequence_remove(vrna_fold_compound_t *vc, unsigned int i);
 
 void          vrna_sequence_remove_all(vrna_fold_compound_t *vc);
 
+void          vrna_sequence_prepare(vrna_fold_compound_t *fc);
 
 /**
  *  @}

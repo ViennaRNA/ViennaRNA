@@ -109,6 +109,58 @@ vrna_sequence_remove_all( vrna_fold_compound_t *vc){
   }
 }
 
+
+PUBLIC void
+vrna_sequence_prepare(vrna_fold_compound_t *fc)
+{
+  unsigned int cnt, i;
+
+  if (fc) {
+    fc->strand_number = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->length + 2));
+
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        /* 1. store initial strand order */
+        fc->strand_order = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->strands + 1));
+        for (cnt = 0; cnt < fc->strands; cnt++)
+          fc->strand_order[cnt] = cnt;
+
+        /* 2. mark start and end positions of sequences */
+        fc->strand_start  = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->strands + 1));
+        fc->strand_end    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->strands + 1));
+
+        fc->strand_start[0] = 1;
+        fc->strand_end[0]   = fc->strand_start[0] + fc->nucleotides[0].length - 1;
+
+        for (cnt = 1; cnt < fc->strands; cnt++) {
+          fc->strand_start[cnt] = fc->strand_end[cnt - 1] + 1;
+          fc->strand_end[cnt]   = fc->strand_start[cnt] + fc->nucleotides[cnt].length - 1;
+          for (i = fc->strand_start[cnt]; i <= fc->strand_end[cnt]; i++)
+            fc->strand_number[i] = cnt;
+        }
+        /* this sets pos. n + 1 as well */
+        fc->strand_number[fc->length + 1] = fc->strands - 1;
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        /* for now, comparative structure prediction does not allow for RNA-RNA interactions */
+
+        /* 1. store initial strand order */
+        fc->strand_order = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
+
+        /* 2. mark start and end positions of sequences */
+        fc->strand_start = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
+        fc->strand_end = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
+        fc->strand_start[0] = 1;
+        fc->strand_end[0]   = fc->strand_start[0] + fc->length - 1;
+
+        break;
+    }
+  }
+}
+
+
 PRIVATE void
 set_sequence( vrna_seq_t *obj,
               const char *string,
