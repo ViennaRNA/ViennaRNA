@@ -612,6 +612,7 @@ vrna_eval_int_loop(vrna_fold_compound_t *vc,
                    int                  l);
 
 
+/* j < i indicates circular folding, i.e. collect contributions for exterior int loops */
 FLT_OR_DBL
 vrna_exp_E_int_loop(vrna_fold_compound_t  *vc,
                     int                   i,

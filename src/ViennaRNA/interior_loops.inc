@@ -28,12 +28,6 @@ hc_default_user(int           i,
 
 
 PRIVATE INLINE int
-get_pair_type(int       i,
-              int       j,
-              vrna_md_t *md);
-
-
-PRIVATE INLINE int
 ubf_eval_int_loop_comparative(int           col_i,
                               int           col_j,
                               int           col_p,
@@ -64,17 +58,53 @@ prepare_hc_default(vrna_fold_compound_t *vc,
                    struct default_data  *dat);
 
 
+PRIVATE INLINE int
+get_pair_type_md(int       i,
+                 int       j,
+                 vrna_md_t *md);
+
+
+PRIVATE INLINE int
+get_pair_type(int   ij,
+              char  *ptype);
+
+
+PRIVATE INLINE int
+get_pair_type_window(int  i,
+                     int  j,
+                     char **ptype);
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
 PRIVATE INLINE int
-get_pair_type(int       i,
-              int       j,
-              vrna_md_t *md)
+get_pair_type_md(int        i,
+                 int        j,
+                 vrna_md_t  *md)
 {
   int tt = md->pair[i][j];
+
+  return (tt == 0) ? 7 : tt;
+}
+
+
+PRIVATE INLINE int
+get_pair_type(int   ij,
+              char  *ptype)
+{
+  int tt = (int)ptype[ij];
+
+  return (tt == 0) ? 7 : tt;
+}
+
+
+PRIVATE INLINE int
+get_pair_type_window(int  i,
+                     int  j,
+                     char **ptype)
+{
+  int tt = (int)ptype[i][j - i];
 
   return (tt == 0) ? 7 : tt;
 }
@@ -217,8 +247,8 @@ eval_interior_loop(vrna_fold_compound_t *vc,
   se          = vc->strand_end;
   rtype       = &(md->rtype[0]);
   idx         = vc->jindx;
-  type        = get_pair_type(S2[i], S2[j], md);
-  type_2      = get_pair_type(S2[q], S2[p], md);
+  type        = get_pair_type_md(S2[i], S2[j], md);
+  type_2      = get_pair_type_md(S2[q], S2[p], md);
 
   i1  = i + 1;
   j1  = j - 1;
