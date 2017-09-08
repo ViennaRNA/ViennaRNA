@@ -144,6 +144,7 @@ libRNA_conv_la_SOURCES = \
     dist_vars.c \
     data_structures.c \
     part_func.c \
+    pf_fold.c \
     treedist.c \
     inverse.c \
     ProfileDist.c \
