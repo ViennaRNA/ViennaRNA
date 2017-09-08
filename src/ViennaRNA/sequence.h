@@ -33,7 +33,6 @@ typedef enum {
  *  @brief  Data structure representing a nucleotide sequence
  */
 struct vrna_sequence_s {
-
   vrna_seq_type_e type;       /**< @brief The type of sequence */
   char            *string;    /**< @brief The string representation of the sequence */
   short           *encoding;  /**< @brief The integer representation of the sequence */
@@ -41,15 +40,24 @@ struct vrna_sequence_s {
 };
 
 
-vrna_seq_t *  vrna_sequence(const char *string, unsigned int options);
+vrna_seq_t *vrna_sequence(const char    *string,
+                          unsigned int  options);
 
-int           vrna_sequence_add(vrna_fold_compound_t *vc, const char *string, unsigned int options);
 
-int           vrna_sequence_remove(vrna_fold_compound_t *vc, unsigned int i);
+int           vrna_sequence_add(vrna_fold_compound_t  *vc,
+                                const char            *string,
+                                unsigned int          options);
+
+
+int           vrna_sequence_remove(vrna_fold_compound_t *vc,
+                                   unsigned int         i);
+
 
 void          vrna_sequence_remove_all(vrna_fold_compound_t *vc);
 
+
 void          vrna_sequence_prepare(vrna_fold_compound_t *fc);
+
 
 /**
  *  @}
