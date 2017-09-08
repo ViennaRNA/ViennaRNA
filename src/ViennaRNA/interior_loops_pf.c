@@ -280,10 +280,10 @@ exp_E_ext_int_loop(vrna_fold_compound_t *vc,
                    int                  p,
                    int                  q)
 {
-  unsigned char     *hard_constraints;
+  unsigned char     *hard_constraints, eval;
   short             *S, *S2;
   int               k, l, n, pq, *my_iindx, *jindx, type, turn;
-  FLT_OR_DBL        qio, *qb, *scale;
+  FLT_OR_DBL        qio, qbt1, *qb, *scale;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
   vrna_hc_t         *hc;
@@ -317,60 +317,62 @@ exp_E_ext_int_loop(vrna_fold_compound_t *vc,
       if (hc->up_int[q + 1] < ln1)
         break;
 
+      if(ln1 + p - 1 > MAXLOOP)
+        break;
+
       lstart = ln1 + p - 1 + n - MAXLOOP;
       if (lstart < k + turn + 1)
         lstart = k + turn + 1;
 
       for (l = lstart; l <= n; l++) {
         FLT_OR_DBL  qloop;
-        int         ln2, type_2;
+        int ln2, ln3, type2;
+        ln2 = p - 1;
+        ln3 = n - l;
 
-        ln2 = (p - 1) + (n - l);
-
-        if (!(hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP))
+        if (hc->up_int[l + 1] < (ln2 + ln3))
           continue;
 
-        if ((ln1 + ln2) > MAXLOOP)
-          continue;
-
-        if (hc->up_int[l + 1] < ln2)
+        if ((ln1 + ln2 + ln3) > MAXLOOP)
           continue;
 
         if (qb[my_iindx[k] - l] == 0.)
           continue;
 
-        type_2  = get_pair_type_md(S2[l], S2[k], md);
-        qloop   = exp_E_IntLoop(ln1,
-                                ln2,
-                                type,
-                                type_2,
-                                S[q + 1],
-                                S[p - 1],
-                                S[k - 1],
-                                S[l + 1],
-                                pf_params);
+        eval = (hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ? 1 : 0;
+        if (hc->f)
+          eval = hc->f(p, q, k, l, VRNA_DECOMP_PAIR_IL, hc->data) ? eval : 0;
 
-        if (sc) {
-          if ((ln1 + ln2 == 0) && (sc->exp_energy_stack)) {
-            qloop *= sc->exp_energy_stack[p] *
-                     sc->exp_energy_stack[q] *
-                     sc->exp_energy_stack[k] *
-                     sc->exp_energy_stack[l];
+        if (eval) {
+          type2  = get_pair_type_md(S2[l], S2[k], md);
+          qbt1  = qb[my_iindx[k]-l] *
+                  exp_E_IntLoop(ln2 + ln3, ln1,
+                                type2, type,
+                                S[l+1], S[k-1],
+                                S[p-1], S[q+1],
+                                pf_params) *
+                  scale[ln1+ln2+ln3];
+
+          if (sc) {
+            if (sc->exp_energy_up) {
+              qbt1 *= sc->exp_energy_up[q + 1][ln1] *
+                      sc->exp_energy_up[l + 1][ln3] *
+                      sc->exp_energy_up[1][ln2];
+
+            }
+
+            if (sc->exp_f)
+              qbt1 *= sc->exp_f(p, q, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+
+            if (((ln1 + ln2 + ln3) == 0) && (sc->exp_energy_stack))
+              qbt1 *= sc->exp_energy_stack[p] *
+                      sc->exp_energy_stack[q] *
+                      sc->exp_energy_stack[k] *
+                      sc->exp_energy_stack[l];
           }
 
-          if (sc->exp_energy_up) {
-            qloop *= sc->exp_energy_up[q + 1][ln1];
-            if (l < n)
-              qloop *= sc->exp_energy_up[l + 1][n - l];
-
-            if (p > 1)
-              qloop *= sc->exp_energy_up[1][p - 1];
-          }
+          qio += qbt1;
         }
-
-        qio += qb[my_iindx[k] - l] *
-               qloop *
-               scale[ln1 + ln2];
       }
     } /* end of kl double loop */
   }

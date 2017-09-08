@@ -373,8 +373,8 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
       /* add soft constraints */
       if (sc) {
         if (sc->exp_energy_up)
-          q *= ((i > 1) ? sc->exp_energy_up[1][i - 1] : 1.) *
-               ((j < n) ? sc->exp_energy_up[j + 1][n - j] : 1.);
+          q *= sc->exp_energy_up[1][i - 1] *
+               sc->exp_energy_up[j + 1][n - j];
 
         if (sc->exp_f)
           q *= sc->exp_f(j, i, j, i, VRNA_DECOMP_PAIR_HP, sc->data);

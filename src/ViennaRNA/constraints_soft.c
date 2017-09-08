@@ -1049,15 +1049,17 @@ prepare_sc_up_mfe(vrna_fold_compound_t  *vc,
               for (i = 0; i <= n + 1; i++)
                 sc->energy_up[i] = NULL;
             } else {
-              for (i = 1; i <= n + 1; i++)
+              for (i = 1; i <= n; i++)
                 sc->energy_up[i] = (int *)vrna_realloc(sc->energy_up[i], sizeof(int) * (n - i + 2));
 
-              sc->energy_up[0]      = NULL;
+              sc->energy_up[0]     = (int *)vrna_realloc(sc->energy_up[0], sizeof(int));
+              sc->energy_up[n + 1] = (int *)vrna_realloc(sc->energy_up[n + 1], sizeof(int));
 
               /* now add soft constraints as stored in container for unpaired sc */
               for (i = 1; i <= n; i++)
                 populate_sc_up_mfe(vc, i, (n - i + 1));
 
+              sc->energy_up[0][0]     = 0;
               sc->energy_up[n + 1][0] = 0;
             }
 
@@ -1109,16 +1111,18 @@ prepare_sc_up_pf(vrna_fold_compound_t *vc,
               for (i = 0; i <= n + 1; i++)
                 sc->exp_energy_up[i] = NULL;
             } else {
-              for (i = 1; i <= n + 1; i++)
+              for (i = 1; i <= n; i++)
                 sc->exp_energy_up[i] =
                   (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[i],
                                              sizeof(FLT_OR_DBL) * (n - i + 2));
 
-              sc->exp_energy_up[0]      = NULL;
+              sc->exp_energy_up[0]     = (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[0], sizeof(FLT_OR_DBL));
+              sc->exp_energy_up[n + 1] = (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[n + 1], sizeof(FLT_OR_DBL));
 
               for (i = 1; i <= n; i++)
                 populate_sc_up_pf(vc, i, (n - i + 1));
 
+              sc->exp_energy_up[0][0]     = 1.;
               sc->exp_energy_up[n + 1][0] = 1.;
             }
 
