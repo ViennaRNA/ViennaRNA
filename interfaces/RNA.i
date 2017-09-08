@@ -35,6 +35,7 @@ extern "C" {
 #include  <ViennaRNA/equilibrium_probs.h>
 #include  <ViennaRNA/boltzmann_sampling.h>
 #include  <ViennaRNA/part_func_co.h>
+#include  <ViennaRNA/concentrations.h>
 #include  <ViennaRNA/naview.h>
 #include  <ViennaRNA/plot_layouts.h>
 #include  <ViennaRNA/plot_structure.h>
