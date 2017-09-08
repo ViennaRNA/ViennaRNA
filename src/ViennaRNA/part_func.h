@@ -4,6 +4,25 @@
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 
+
+/**
+ *  @brief Typename for the data structure that stores the dimer partition functions, #vrna_dimer_pf_s, as returned by vrna_pf_dimer()
+ *  @ingroup  pf_cofold
+ */
+typedef struct vrna_dimer_pf_s vrna_dimer_pf_t;
+
+
+#ifdef VRNA_BACKWARD_COMPAT
+
+/**
+ *  @brief Backward compatibility typedef for #vrna_dimer_pf_s
+ *  @ingroup  pf_cofold
+ */
+typedef struct vrna_dimer_pf_s cofoldF;
+
+#endif
+
+
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/centroid.h>
@@ -34,6 +53,19 @@
 # PARTITION FUNCTION COMPUTATION                #
 #################################################
 */
+
+/**
+ *  @brief  Data structure returned by vrna_pf_dimer()
+ *  @ingroup  pf_cofold
+ */
+struct vrna_dimer_pf_s {
+  /* free energies for: */
+  double  F0AB; /**< @brief Null model without DuplexInit */
+  double  FAB;  /**< @brief all states with DuplexInit correction */
+  double  FcAB; /**< @brief true hybrid states only */
+  double  FA;   /**< @brief monomer A */
+  double  FB;   /**< @brief monomer B */
+};
 
 /**
  *  @brief Compute the partition function @f$Q@f$ for a given RNA sequence, or sequence alignment
@@ -115,6 +147,25 @@ float vrna_pf_fold(const char *sequence, char *structure, vrna_ep_t **pl);
  *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
 float vrna_pf_circfold(const char *sequence, char *structure, vrna_ep_t **pl);
+
+/**
+ *  @brief  Calculate partition function and base pair probabilities of
+ *          nucleic acid/nucleic acid dimers
+ *
+ *  This is the cofold partition function folding.
+ *
+ *  @see    vrna_fold_compound() for how to retrieve the necessary data structure
+ *
+ *  @ingroup  pf_cofold
+ *  @param  vc        the fold compound data structure
+ *  @param  structure Will hold the structure or constraints
+ *  @return           vrna_dimer_pf_t structure containing a set of energies needed for
+ *                    concentration computations.
+ */
+vrna_dimer_pf_t
+vrna_pf_dimer(vrna_fold_compound_t  *vc,
+              char                  *structure);
+
 
 /*
 #################################################

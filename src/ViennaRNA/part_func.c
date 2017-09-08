@@ -168,6 +168,134 @@ vrna_pf(vrna_fold_compound_t  *vc,
   return free_energy;
 }
 
+PUBLIC vrna_dimer_pf_t
+vrna_pf_dimer(vrna_fold_compound_t  *vc,
+              char                  *structure)
+{
+  int               n;
+  FLT_OR_DBL        Q;
+  vrna_dimer_pf_t   X;
+  double            free_energy;
+  char              *sequence;
+  vrna_md_t         *md;
+  vrna_exp_param_t  *params;
+  vrna_mx_pf_t      *matrices;
+
+  if (!vrna_fold_compound_prepare(vc, VRNA_OPTION_PF | VRNA_OPTION_HYBRID)) {
+    vrna_message_warning("vrna_pf_dimer@part_func_co.c: Failed to prepare vrna_fold_compound");
+    X.FA = X.FB = X.FAB = X.F0AB = X.FcAB = 0;
+    return X;
+  }
+
+  params    = vc->exp_params;
+  n         = vc->length;
+  md        = &(params->model_details);
+  matrices  = vc->exp_matrices;
+  sequence  = vc->sequence;
+
+#ifdef _OPENMP
+  /* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
+
+#ifdef SUN4
+  nonstandard_arithmetic();
+#else
+#ifdef HP9
+  fpsetfastmode(1);
+#endif
+#endif
+
+  /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
+  md->min_loop_size = 0;
+
+  /* call user-defined recursion status callback function */
+  if (vc->stat_cb)
+    vc->stat_cb(VRNA_STATUS_PF_PRE, vc->auxdata);
+
+  fill_arrays(vc);
+
+  /* call user-defined recursion status callback function */
+  if (vc->stat_cb)
+    vc->stat_cb(VRNA_STATUS_PF_POST, vc->auxdata);
+
+  if (md->backtrack_type == 'C')
+    Q = matrices->qb[vc->iindx[1] - n];
+  else if (md->backtrack_type == 'M')
+    Q = matrices->qm[vc->iindx[1] - n];
+  else
+    Q = matrices->q[vc->iindx[1] - n];
+
+  /* ensemble free energy in Kcal/mol */
+  if (Q <= FLT_MIN)
+    vrna_message_warning("pf_scale too large");
+
+  free_energy = (-log(Q) - n * log(params->pf_scale)) * params->kT / 1000.0;
+  /* in case we abort because of floating point errors */
+  if (n > 1600)
+    vrna_message_info(stderr, "free energy = %8.2f", free_energy);
+
+  /* probability of molecules being bound together */
+
+  /* Computation of "real" Partition function */
+  /* Need that for concentrations */
+  if (vc->cutpoint > 0) {
+    double kT, QAB, QToT, Qzero;
+    kT    = params->kT / 1000.0;
+    Qzero = matrices->q[vc->iindx[1] - n];
+    QAB   =
+      (matrices->q[vc->iindx[1] - n] - matrices->q[vc->iindx[1] - (vc->cutpoint - 1)] *
+       matrices->q[vc->iindx[vc->cutpoint] - n]) * params->expDuplexInit;
+    /*correction for symmetry*/
+    if ((n - (vc->cutpoint - 1) * 2) == 0)
+      if ((strncmp(sequence, sequence + vc->cutpoint - 1, vc->cutpoint - 1)) == 0)
+        QAB /= 2;
+
+    QToT = matrices->q[vc->iindx[1] - (vc->cutpoint - 1)] *
+           matrices->q[vc->iindx[vc->cutpoint] - n] + QAB;
+    X.FAB   = -kT * (log(QToT) + n * log(params->pf_scale));
+    X.F0AB  = -kT * (log(Qzero) + n * log(params->pf_scale));
+    X.FcAB  = (QAB > 1e-17) ? -kT * (log(QAB) + n * log(params->pf_scale)) : 999;
+    X.FA    = -kT *
+              (log(matrices->q[vc->iindx[1] - (vc->cutpoint - 1)]) + (vc->cutpoint - 1) *
+               log(params->pf_scale));
+    X.FB = -kT *
+           (log(matrices->q[vc->iindx[vc->cutpoint] - n]) + (n - vc->cutpoint + 1) *
+            log(params->pf_scale));
+
+    /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]); */
+  } else {
+    X.FA    = X.FB = X.FAB = X.F0AB = free_energy;
+    X.FcAB  = 0;
+  }
+
+  /* backtracking to construct binding probabilities of pairs */
+  if (md->compute_bpp) {
+    vrna_pairing_probs(vc, structure);
+
+#ifdef  VRNA_BACKWARD_COMPAT
+
+    /*
+     *  Backward compatibility:
+     *  This block may be removed if deprecated functions
+     *  relying on the global variable "pr" vanish from within the package!
+     */
+    pr = vc->exp_matrices->probs;
+
+#endif
+  }
+
+#ifdef SUN4
+  standard_arithmetic();
+#else
+#ifdef HP9
+  fpsetfastmode(0);
+#endif
+#endif
+
+  return X;
+}
+
 
 PUBLIC int
 vrna_pf_float_precision(void){

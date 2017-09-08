@@ -77,6 +77,7 @@ pkginclude_HEADERS =  \
     alifold.h \
     aln_util.h \
     part_func_co.h \
+    concentrations.h \
     ProfileAln.h \
     LPfold.h \
     Lfold.h \
@@ -158,6 +159,7 @@ libRNA_conv_la_SOURCES = \
     Lfold.c \
     cofold.c \
     part_func_co.c \
+    concentrations.c \
     ProfileAln.c \
     duplex.c \
     alifold.c \
