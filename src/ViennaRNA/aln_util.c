@@ -23,6 +23,12 @@
 #include "ViennaRNA/aln_util.h"
 
 #define MAX_NUM_NAMES    500
+
+PRIVATE char **
+copy_alignment(const char   **alignment,
+               unsigned int options);
+
+
 int
 read_clustal(FILE *clust,
              char *AlignedSeqs[],
@@ -568,6 +574,70 @@ vrna_aln_free(char **alignment)
       free(alignment[n_seq]);
     free(alignment);
   }
+}
+
+
+PUBLIC char **
+vrna_aln_uppercase(const char **alignment)
+{
+  if (alignment)
+    return copy_alignment(alignment, VRNA_ALN_UPPERCASE);
+
+  return NULL;
+}
+
+
+PUBLIC char **
+vrna_aln_toRNA(const char **alignment)
+{
+  if (alignment)
+    return copy_alignment(alignment, VRNA_ALN_RNA);
+
+  return NULL;
+}
+
+
+PUBLIC char **
+vrna_aln_copy(const char    **alignment,
+              unsigned int  options)
+{
+  if (alignment)
+    return copy_alignment(alignment, options);
+
+  return NULL;
+}
+
+
+PRIVATE char **
+copy_alignment(const char   **alignment,
+               unsigned int options)
+{
+  char          **output = NULL;
+  unsigned int  s;
+
+  /* determine number of sequence in the alignment */
+  for (s = 0; alignment[s]; s++);
+
+  /* allocate memory for output alignment */
+  output = (char **)vrna_alloc(sizeof(char *) * (s + 1));
+
+  /* copy alignment and convert to uppercase */
+  for (s = 0; alignment[s]; s++) {
+    output[s] = strdup(alignment[s]);
+
+    if (options & VRNA_ALN_UPPERCASE)
+      /* convert to uppercase letters */
+      vrna_seq_toupper(output[s]);
+
+    if (options & VRNA_ALN_RNA)
+      /* convert DNA to RNA alphabet */
+      vrna_seq_toRNA(output[s]);
+  }
+
+  /* mark end of alignment */
+  output[s] = NULL;
+
+  return output;
 }
 
 

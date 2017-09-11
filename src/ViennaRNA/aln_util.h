@@ -26,6 +26,14 @@
 /** @brief Typename for the base pair info repesenting data structure #vrna_pinfo_s */
 typedef struct vrna_pinfo_s vrna_pinfo_t;
 
+
+#define VRNA_ALN_DEFAULT      0U
+#define VRNA_ALN_RNA          1U
+#define VRNA_ALN_DNA          2U
+#define VRNA_ALN_UPPERCASE    4U
+#define VRNA_ALN_LOWERCASE    8U
+
+
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
 
@@ -136,6 +144,48 @@ vrna_aln_slice(const char   **alignment,
  */
 void
 vrna_aln_free(char **alignment);
+
+
+/**
+ *  @brief  Create a copy of an alignment with only uppercase letters in the sequences
+ *
+ *  @see  vrna_aln_copy
+ *
+ *  @param  alignment   The input sequence alignment (last entry must be @em NULL terminated)
+ *  @return             A copy of the input alignment where lowercase sequence letters are replaced by uppercase letters
+ */
+char **
+vrna_aln_uppercase(const char **alignment);
+
+
+/**
+ *  @brief  Create a copy of an alignment where DNA alphabet is replaced by RNA alphabet
+ *
+ *  @see  vrna_aln_copy
+ *
+ *  @param  alignment   The input sequence alignment (last entry must be @em NULL terminated)
+ *  @return             A copy of the input alignment where DNA alphabet is replaced by RNA alphabet (T -> U)
+ */
+char **
+vrna_aln_toRNA(const char **alignment);
+
+
+/**
+ *  @brief  Make a copy of a multiple sequence alignment
+ *
+ *  This function allows one to create a copy of a multiple sequence alignment. The @p options parameter
+ *  additionally allows for sequence manipulation, such as converting DNA to RNA alphabet, and conversion
+ *  to uppercase letters.
+ *
+ *  @see  vrna_aln_copy(), #VRNA_ALN_RNA, #VRNA_ALN_UPPERCASE, #VRNA_ALN_DEFAULT
+ *
+ *  @param  alignment   The input sequence alignment (last entry must be @em NULL terminated)
+ *  @param  options     Option flags indicating whether the aligned sequences should be converted
+ *  @return             A (manipulated) copy of the input alignment
+ */
+char **
+vrna_aln_copy(const char    **alignment,
+              unsigned int  options);
 
 
 /**
