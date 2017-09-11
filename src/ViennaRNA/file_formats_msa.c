@@ -604,9 +604,6 @@ parse_stockholm_alignment(FILE  *fp,
               if (tmp_seq[i] == '.') /* replace '.' gaps with '-' */
                 tmp_seq[i] = '-';
 
-            /* convert sequence to uppercase letters */
-            vrna_seq_toupper(tmp_seq);
-
             if (seq_current == seq_num) {
               /* first time */
               add_sequence(tmp_name, tmp_seq,
@@ -763,7 +760,6 @@ parse_fasta_alignment(FILE  *fp,
 
       char *id = (char *)vrna_alloc(sizeof(char) * strlen(rec_id));
       (void)sscanf(rec_id, ">%s", id);
-      vrna_seq_toupper(rec_sequence);
 
       add_sequence(id, rec_sequence,
                    names, aln,
@@ -849,9 +845,6 @@ parse_clustal_alignment(FILE  *clust,
       for (i = 0; i < strlen(seq); i++)
         if (seq[i] == '.') /* replace '.' gaps with '-' */
           seq[i] = '-';
-
-      /* convert sequence to uppercase letters */
-      vrna_seq_toupper(seq);
 
       if (nn == seq_num) {
         /* first time */
@@ -967,8 +960,6 @@ parse_maf_alignment(FILE  *fp,
             tmp_name      = (char *)vrna_realloc(tmp_name, sizeof(char) * (strlen(tmp_name) + 1));
             tmp_sequence  =
               (char *)vrna_realloc(tmp_sequence, sizeof(char) * (strlen(tmp_sequence) + 1));
-
-            vrna_seq_toupper(tmp_sequence);
 
             add_sequence(tmp_name, tmp_sequence,
                          names, aln,
