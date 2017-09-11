@@ -43,6 +43,7 @@
 typedef struct {
   char      **names;
   char      **strings;
+  char      **strings_orig;
   char      *prefix;
   int       columns;
   vrna_md_t *md;
@@ -75,7 +76,7 @@ main(int  argc,
                                 **AS, **names, *filename_in, *id_prefix, *id_delim, *filename_delim,
                                 **input_files, *tmp_id, *tmp_structure, **shape_files,
                                 *shape_method;
-  unsigned int                  input_format_options, longest_string;
+  unsigned int                  input_format_options, longest_string, aln_options;
   int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id,
                                 mis, istty, alnPS, aln_columns, aln_out, ssPS, input_file_num,
                                 id_digits, with_shapes, *shape_file_association, verbose, s,
@@ -96,6 +97,7 @@ main(int  argc,
   aln_out                 = 0;
   aln_columns             = 60;
   input_format_options    = VRNA_FILE_FORMAT_MSA_CLUSTAL; /* default to ClustalW format */
+  aln_options             = VRNA_ALN_UPPERCASE;           /* we always require uppercase sequence letters internally */
   filename_in             = NULL;
   input_files             = NULL;
   input_file_num          = 0;
@@ -310,6 +312,10 @@ main(int  argc,
   if (args_info.threshold_given)
     e_max = (float)args_info.threshold_arg;
 
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if (!(args_info.noconv_given))
+    aln_options |= VRNA_ALN_RNA;
+
   /* free allocated memory of command line data structure */
   RNALalifold_cmdline_parser_free(&args_info);
 
@@ -370,7 +376,8 @@ main(int  argc,
   first_alignment_number = alignment_number;
 
   while (!feof(clust_file)) {
-    char *MSA_ID = NULL;
+    char  **MSA_orig  = NULL;
+    char  *MSA_ID     = NULL;
     fflush(stdout);
     if (istty && (clust_file == stdin)) {
       switch (input_format_options) {
@@ -434,13 +441,21 @@ main(int  argc,
 
     print_fasta_header(stdout, MSA_ID);
 
-    fc =
-      vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+    /*
+     *  store original alignment and create a new one for internal computations
+     *  which require all-uppercase letters, and RNA/DNA alphabet
+     */
+    MSA_orig  = AS;
+    AS        = vrna_aln_copy((const char **)MSA_orig, aln_options);
+    fc        = vrna_fold_compound_comparative((const char **)AS,
+                                               &md,
+                                               VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
     hit_data data;
 
     data.names        = names;
     data.strings      = AS;
+    data.strings_orig = MSA_orig;
     data.prefix       = MSA_ID;
     data.columns      = aln_columns;
     data.md           = &md;
@@ -483,12 +498,9 @@ main(int  argc,
     free(string);
     free(structure);
 
-    for (i = 0; AS[i]; i++) {
-      free(AS[i]);
-      free(names[i]);
-    }
-    free(AS);
-    free(names);
+    vrna_aln_free(AS);
+    vrna_aln_free(MSA_orig);
+    vrna_aln_free(names);
 
     vrna_fold_compound_free(fc);
     free(MSA_ID);
@@ -559,6 +571,7 @@ print_hit_cb(int        start,
   char      **A, *cons;
   char      **names;
   char      **strings;
+  char      **strings_orig;
   char      *prefix;
   char      *msg, *ss;
   int       columns, dangle_model;
@@ -568,6 +581,7 @@ print_hit_cb(int        start,
 
   names         = ((hit_data *)data)->names;
   strings       = ((hit_data *)data)->strings;
+  strings_orig  = ((hit_data *)data)->strings_orig;
   prefix        = ((hit_data *)data)->prefix;
   columns       = ((hit_data *)data)->columns;
   md            = ((hit_data *)data)->md;
@@ -628,14 +642,27 @@ print_hit_cb(int        start,
       tmp_string = vrna_filename_sanitize(fname, "_");
       free(fname);
       fname = tmp_string;
+      char **sub_orig = vrna_aln_slice((const char **)strings_orig,
+                                       (unsigned int)start,
+                                       (unsigned int)end);
 
-      vrna_file_PS_aln_sub(fname, (const char **)sub, (const char **)names, ss, start, -1, columns);
+      vrna_file_PS_aln_sub(fname,
+                           (const char **)sub_orig,
+                           (const char **)names,
+                           ss,
+                           start,
+                           -1,
+                           columns);
       free(fname);
+      vrna_aln_free(sub_orig);
     }
 
     if (with_stk) {
-      unsigned int options = VRNA_FILE_FORMAT_MSA_STOCKHOLM
-                             | VRNA_FILE_FORMAT_MSA_APPEND;
+      char          **sub_orig = vrna_aln_slice((const char **)strings_orig,
+                                                (unsigned int)start,
+                                                (unsigned int)end);
+      unsigned int  options = VRNA_FILE_FORMAT_MSA_STOCKHOLM |
+                              VRNA_FILE_FORMAT_MSA_APPEND;
       if (with_mis)
         options |= VRNA_FILE_FORMAT_MSA_MIS;
 
@@ -649,7 +676,7 @@ print_hit_cb(int        start,
 
         vrna_file_msa_write(fname,
                             (const char **)names,
-                            (const char **)sub,
+                            (const char **)sub_orig,
                             id,
                             ss,
                             "RNALalifold prediction",
@@ -659,7 +686,7 @@ print_hit_cb(int        start,
         id = vrna_strdup_printf("aln_%d_%d", start, end);
         vrna_file_msa_write("RNALalifold_results.stk",
                             (const char **)names,
-                            (const char **)sub,
+                            (const char **)sub_orig,
                             id,
                             ss,
                             "RNALalifold prediction",
@@ -667,6 +694,7 @@ print_hit_cb(int        start,
       }
 
       free(id);
+      vrna_aln_free(sub_orig);
     }
 
     vrna_aln_free(sub);
