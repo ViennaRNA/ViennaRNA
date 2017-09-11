@@ -42,6 +42,11 @@ details="This option can be used to minimize the output of additional informatio
 flag
 off
 
+option  "noconv"  -
+"Do not automatically substitute nucleotide \"T\" with \"U\"\n\n"
+flag
+off
+
 option  "color"   -
 "Produce a colored version of the consensus structure plot \"alirna.ps\" (default b&w only)\n\n"
 flag

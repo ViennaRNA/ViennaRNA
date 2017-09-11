@@ -57,8 +57,8 @@ main(int  argc,
 {
   struct RNAalifold_args_info args_info;
   FILE                        *clust_file;
-  unsigned int                input_type, options, longest_string,
-                              input_format_options;
+  unsigned int                input_type, options, longest_string, input_format_options,
+                              aln_options;
   char                        *input_string, *string, *structure, *cstruc, **AS, **names,
                               *constraints_file, **shape_files, *shape_method, *filename_plot,
                               *filename_dot, *filename_aln, *filename_out, *filename_in,
@@ -66,14 +66,13 @@ main(int  argc,
                               *aln_prefix, *id_delim, *filename_delim;
   int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci, endgaps,
                               aln_columns, mis, circular, doAlnPS, doColor, doMEA, n_back,
-                              istty_out,
-                              istty_in, eval_energy, pf, istty, *shape_file_association, quiet,
-                              tmp_number, batch, continuous_names, id_digits, auto_id, aln_out,
-                              input_file_num, consensus_constraint, enforceConstraints;
-  long int              alignment_number;
-  double                min_en, real_en, cov_en, MEAgamma, bppmThreshold;
-  vrna_md_t             md;
-  vrna_fold_compound_t  *vc;
+                              istty_out, istty_in, eval_energy, pf, istty, *shape_file_association,
+                              quiet, tmp_number, batch, continuous_names, id_digits, auto_id,
+                              aln_out, input_file_num, consensus_constraint, enforceConstraints;
+  long int                    alignment_number;
+  double                      min_en, real_en, cov_en, MEAgamma, bppmThreshold;
+  vrna_md_t                   md;
+  vrna_fold_compound_t        *vc;
 
   string      = NULL;
   structure   = NULL;
@@ -112,7 +111,8 @@ main(int  argc,
   input_files             = NULL;
   tmp_id                  = NULL;
   tmp_structure           = NULL;
-  input_format_options    = VRNA_FILE_FORMAT_MSA_CLUSTAL;                    /* default to ClustalW format */
+  input_format_options    = VRNA_FILE_FORMAT_MSA_CLUSTAL; /* default to ClustalW format */
+  aln_options             = VRNA_ALN_UPPERCASE;           /* we always require uppercase sequence letters internally */
   vc                      = NULL;
   clust_file              = stdin;
   continuous_names        = 0;
@@ -365,6 +365,10 @@ main(int  argc,
     filename_delim = NULL;
   }
 
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if (!(args_info.noconv_given))
+    aln_options |= VRNA_ALN_RNA;
+
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free(&args_info);
 
@@ -450,8 +454,11 @@ main(int  argc,
   }
 
   while (!feof(clust_file)) {
-    char *MSA_ID = NULL;
+    char  *MSA_ID     = NULL;
+    char  **MSA_orig  = NULL;
+
     fflush(stdout);
+
     if (istty && (clust_file == stdin)) {
       switch (input_format_options) {
         case VRNA_FILE_FORMAT_MSA_CLUSTAL:
@@ -546,6 +553,12 @@ main(int  argc,
      ##############################################################
      */
 
+    /*
+     *  store original alignment and create a new one for internal computations
+     *  which require all-uppercase letters, and RNA/DNA alphabet
+     */
+    MSA_orig  = AS;
+    AS        = vrna_aln_copy((const char **)MSA_orig, aln_options);
     length    = (int)strlen(AS[0]);
     structure = (char *)vrna_alloc((unsigned)length + 1);
 
@@ -689,7 +702,7 @@ main(int  argc,
     }
 
     if (doAlnPS)
-      vrna_file_PS_aln(filename_aln, (const char **)AS, (const char **)names, structure,
+      vrna_file_PS_aln(filename_aln, (const char **)MSA_orig, (const char **)names, structure,
                        aln_columns);
 
     if (aln_out) {
@@ -700,7 +713,7 @@ main(int  argc,
 
       vrna_file_msa_write((const char *)aln_prefix,
                           (const char **)names,
-                          (const char **)AS,
+                          (const char **)MSA_orig,
                           MSA_ID,
                           (const char *)structure,
                           "RNAalifold prediction",
@@ -873,12 +886,9 @@ main(int  argc,
     free(filename_out);
     vrna_fold_compound_free(vc);
 
-    for (i = 0; AS[i]; i++) {
-      free(AS[i]);
-      free(names[i]);
-    }
-    free(AS);
-    free(names);
+    vrna_aln_free(AS);
+    vrna_aln_free(MSA_orig);
+    vrna_aln_free(names);
 
     free(tmp_id);
     free(tmp_structure);
