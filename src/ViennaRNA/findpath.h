@@ -9,10 +9,10 @@
 
 /**
  *  @addtogroup   direct_paths
+ *  @{
+ *
  *  @brief Heuristics to explore direct, optimal (re-)folding paths between two secondary structures
  *
- *  @{
- *  @ingroup  direct_paths
  */
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */

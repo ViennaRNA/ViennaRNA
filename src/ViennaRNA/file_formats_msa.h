@@ -3,7 +3,6 @@
 
 /**
  *  @addtogroup   file_utils
- *
  *  @{
  *
  *  @file file_formats_msa.h

@@ -21,8 +21,8 @@
  */
 
 /**
+ *  @addtogroup  utils
  *  @{
- *  @ingroup  utils
  */
 
 #include <stdio.h>

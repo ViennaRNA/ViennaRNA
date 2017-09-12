@@ -5,12 +5,7 @@
  *  @file     loop_energies.h
  *  @ingroup  loops
  *  @brief    Energy evaluation for MFE and partition function calculations
- */
-
-/**
- *  @{
- *  @ingroup   loops
- * 
+ *
  *  <P>
  *  This file contains functions for the calculation of the free energy @f$\Delta G@f$
  *  of a hairpin- [ E_Hairpin() ] or interior-loop [ E_IntLoop()] .<BR>
@@ -21,6 +16,11 @@
  *  which return the Boltzmann weights @f$e^{-\Delta G/kT} @f$ for a hairpin- [ exp_E_Hairpin() ]
  *  or interior-loop [ exp_E_IntLoop() ].
  *  </P>
+ */
+
+/**
+ *  @addtogroup   loops
+ *  @{
  */
 
 

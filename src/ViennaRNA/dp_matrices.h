@@ -9,11 +9,11 @@
 
 /**
  *  @addtogroup dp_matrices   The Dynamic Programming Matrices
+ *  @{
+ *
  *  @brief  This module provides interfaces that deal with creation and destruction of
  *          dynamic programming matrices used within the RNAlib.
  *
- *  @{
- *  @ingroup  dp_matrices
  */
 
 /** @brief Typename for the Minimum Free Energy (MFE) DP matrices data structure #vrna_mx_mfe_s */

@@ -8,8 +8,8 @@
  */
 
 /**
+ *  @addtogroup  annotation_utils
  *  @{
- *  @ingroup  plotting_utils
  */
 
 

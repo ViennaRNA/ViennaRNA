@@ -24,8 +24,8 @@
  */
 
 /**
+ *  @addtoroup   plotting_utils
  *  @{
- *  @ingroup   plotting_utils
  */
 
 /* write PostScript drawing of structure to file with annotation */

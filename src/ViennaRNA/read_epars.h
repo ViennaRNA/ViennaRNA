@@ -9,13 +9,13 @@
 
 /**
  *  @addtogroup energy_parameters_rw
+ *  @{
+ *
  *  @brief  Read and Write energy parameter sets from and to text files
  *
  *  A default set of parameters, identical to the one described in
  *  @cite mathews:2004 and @cite turner:2010, is compiled into the library.
  *
- *  @{
- *  @ingroup  energy_parameters_rw
  */
 
 /**

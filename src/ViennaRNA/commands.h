@@ -9,8 +9,8 @@
  */
 
 /**
+ *  @addtogroup  file_utils
  *  @{
- *  @ingroup  file_utils
  */
 
 /** @brief Typename for the command repesenting data structure #vrna_command_s */

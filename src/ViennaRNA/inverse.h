@@ -9,10 +9,9 @@
 
 /**
  *  @addtogroup inverse_fold
- *  @brief RNA sequence design
- *  
  *  @{
- *  @ingroup  inverse_fold
+ *  
+ *  @brief RNA sequence design
  */
 
 /**

@@ -9,10 +9,10 @@
 
 /**
  *  @addtogroup   data_structures
+ *  @{
+ *
  *  @brief All datastructures and typedefs shared among the ViennaRNA Package can be found here
  *
- *  @{
- *  @ingroup data_structures
  */
 
 /* below are several convenience typedef's we use throughout the ViennaRNA library */

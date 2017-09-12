@@ -26,8 +26,8 @@
  */
 
 /**
+ *  @addtogroup   loops
  *  @{
- *  @ingroup   loops
  */
 
 /**

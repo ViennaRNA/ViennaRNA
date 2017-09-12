@@ -21,8 +21,8 @@
  */
 
 /**
+ *  @addtogroup   string_utils
  *  @{
- *  @ingroup   string_utils
  */
 
 #include <stdarg.h>

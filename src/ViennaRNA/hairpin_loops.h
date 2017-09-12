@@ -22,8 +22,8 @@
 
 /**
  *
+ *  @addtogroup   loops
  *  @{
- *  @ingroup   loops
  */
 
 

@@ -21,8 +21,8 @@
  */
 
 /**
+ *  @addtogroup   struct_utils
  *  @{
- *  @ingroup   struct_utils
  */
 
 #define VRNA_PLIST_TYPE_BASEPAIR      0

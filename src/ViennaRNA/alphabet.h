@@ -22,8 +22,8 @@
  */
 
 /**
+ *  @addtogroup utils
  *  @{
- *  @ingroup utils
  */
 
 #include <ViennaRNA/model.h>

@@ -9,6 +9,8 @@
 
 /**
  *  @addtogroup neighbors
+ *  @{
+ *
  *  @brief Different functions to generate structural neighbors of a secondary structure according to a particular Move Set.
  *
  *  This module contains methods to compute the neighbors of an RNA secondary structure. Neighbors of a given structure
@@ -104,8 +106,6 @@
  *  The same procedure can be applied for the other direction. This is taking all paired positions within the freed interval
  *  in order to look for pairs with valid positions in the intervals of the environment.
  *
- *  @{
- *  @ingroup  neighbors
  */
 
 typedef struct vrna_move_s vrna_move_t;
