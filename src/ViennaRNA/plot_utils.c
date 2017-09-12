@@ -46,16 +46,15 @@
  #################################
  */
 PUBLIC char **
-vrna_annotate_bp_covar(const char **alignment,
-                       const char *structure,
-                       vrna_md_t  *md)
+vrna_annotate_covar_struct(const char **alignment,
+                           const char *structure,
+                           vrna_md_t  *md_p)
 {
   /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
-  char  *ps, *colorps, **A;
-  int   i, n, s, pairings, maxl, a, b;
-  short *ptable;
-
-  char  *colorMatrix[6][3] = {
+  char      *ps, *colorps, **A;
+  int       i, n, s, pairings, maxl, a, b;
+  short     *ptable;
+  char      *colorMatrix[6][3] = {
     { "0.0 1",  "0.0 0.6",  "0.0 0.2"  },   /* red    */
     { "0.16 1", "0.16 0.6", "0.16 0.2" },   /* ochre  */
     { "0.32 1", "0.32 0.6", "0.32 0.2" },   /* turquoise */
@@ -63,9 +62,15 @@ vrna_annotate_bp_covar(const char **alignment,
     { "0.65 1", "0.65 0.6", "0.65 0.2" },   /* blue   */
     { "0.81 1", "0.81 0.6", "0.81 0.2" }    /* violet */
   };
+  vrna_md_t md;
 
-  if ((!alignment) || (!structure) || (!md))
+  if ((!alignment) || (!structure))
     return NULL;
+
+  if (md_p)
+    vrna_md_copy(&md, md_p);
+  else
+    vrna_md_set_default(&md);
 
   n     = strlen(alignment[0]);
   maxl  = 1024;
@@ -85,9 +90,9 @@ vrna_annotate_bp_covar(const char **alignment,
       continue;
 
     for (s = 0; alignment[s] != NULL; s++) {
-      a     = vrna_nucleotide_encode(toupper(alignment[s][i - 1]), md);
-      b     = vrna_nucleotide_encode(toupper(alignment[s][j - 1]), md);
-      type  = md->pair[a][b];
+      a     = vrna_nucleotide_encode(toupper(alignment[s][i - 1]), &md);
+      b     = vrna_nucleotide_encode(toupper(alignment[s][j - 1]), &md);
+      type  = md.pair[a][b];
       pfreq[type]++;
       if (type) {
         if (alignment[s][i - 1] != ci) {
@@ -143,19 +148,25 @@ vrna_annotate_bp_covar(const char **alignment,
 
 /* produce info for PS_color_dot_plot */
 PUBLIC vrna_cpair_t *
-vrna_annotate_pr_covar(const char **alignment,
-                       vrna_ep_t  *pl,
-                       vrna_ep_t  *mfel,
-                       double     threshold,
-                       vrna_md_t  *md)
+vrna_annotate_covar_pairs(const char  **alignment,
+                          vrna_ep_t   *pl,
+                          vrna_ep_t   *mfel,
+                          double      threshold,
+                          vrna_md_t   *md_p)
 {
   unsigned int  n_seq;
   int           i, n, s, a, b, z, j, c, pfreq[7];
   vrna_cpair_t  *cp;
   vrna_ep_t     *ptr;
+  vrna_md_t     md;
 
-  if ((!alignment) || (!pl) || (!mfel) || (!md))
+  if ((!alignment) || (!pl))
     return NULL;
+
+  if (md_p)
+    vrna_md_copy(&md, md_p);
+  else
+    vrna_md_set_default(&md);
 
   /* count number of sequences */
   for (n_seq = 0; alignment[n_seq] != NULL; n_seq++);
@@ -175,12 +186,12 @@ vrna_annotate_pr_covar(const char **alignment,
       for (z = 0; z < 7; z++)
         pfreq[z] = 0;
       for (s = 0; s < n_seq; s++) {
-        a = vrna_nucleotide_encode(toupper(alignment[s][cp[c].i - 1]), md);
-        b = vrna_nucleotide_encode(toupper(alignment[s][cp[c].j - 1]), md);
+        a = vrna_nucleotide_encode(toupper(alignment[s][cp[c].i - 1]), &md);
+        b = vrna_nucleotide_encode(toupper(alignment[s][cp[c].j - 1]), &md);
         if ((alignment[s][cp[c].j - 1] == '~') || (alignment[s][cp[c].i - 1] == '~'))
           continue;
 
-        pfreq[md->pair[a][b]]++;
+        pfreq[md.pair[a][b]]++;
       }
       for (z = 1; z < 7; z++)
         if (pfreq[z] > 0)
@@ -196,30 +207,33 @@ vrna_annotate_pr_covar(const char **alignment,
    *  check whether all MFE base pairs are present in above list, and
    *  insert them if they are missing
    */
-  for (ptr = mfel; ptr->i > 0; ptr++) {
-    int nofound = 1;
-    for (j = 0; j < c; j++) {
-      if ((cp[j].i == ptr->i) && (cp[j].j == ptr->j)) {
-        cp[j].mfe = 1;
-        nofound   = 0;
-        break;
+  if (mfel) {
+    for (ptr = mfel; ptr->i > 0; ptr++) {
+      int nofound = 1;
+      for (j = 0; j < c; j++) {
+        if ((cp[j].i == ptr->i) && (cp[j].j == ptr->j)) {
+          cp[j].mfe = 1;
+          nofound   = 0;
+          break;
+        }
+      }
+      if (nofound) {
+        vrna_message_warning("mfe base pair with very low prob in pf: %d %d",
+                             ptr->i,
+                             ptr->j);
+
+        cp        = (vrna_cpair_t *)vrna_realloc(cp, sizeof(vrna_cpair_t) * (c + 2));
+        cp[c].i   = ptr->i;
+        cp[c].j   = ptr->j;
+        cp[c].p   = 0.;
+        cp[c].hue = 0;
+        cp[c].sat = 0;
+        cp[c].mfe = 1;
+        c++;
+        cp[c].i = cp[c].j = 0;
       }
     }
-    if (nofound) {
-      vrna_message_warning("mfe base pair with very low prob in pf: %d %d",
-                           ptr->i,
-                           ptr->j);
-
-      cp        = (vrna_cpair_t *)vrna_realloc(cp, sizeof(vrna_cpair_t) * (c + 2));
-      cp[c].i   = ptr->i;
-      cp[c].j   = ptr->j;
-      cp[c].p   = 0.;
-      cp[c].hue = 0;
-      cp[c].sat = 0;
-      cp[c].mfe = 1;
-      c++;
-      cp[c].i = cp[c].j = 0;
-    }
   }
+
   return cp;
 }

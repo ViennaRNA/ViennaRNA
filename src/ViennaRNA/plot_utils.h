@@ -18,9 +18,9 @@
  *
  */
 char **
-vrna_annotate_bp_covar(const char **alignment,
-                       const char *structure,
-                       vrna_md_t  *md);
+vrna_annotate_covar_struct(const char **alignment,
+                           const char *structure,
+                           vrna_md_t  *md);
 
 
 /**
@@ -28,11 +28,11 @@ vrna_annotate_bp_covar(const char **alignment,
  *
  */
 vrna_cpair_t *
-vrna_annotate_pr_covar(const char **alignment,
-                       vrna_ep_t  *pl,
-                       vrna_ep_t  *mfel,
-                       double     threshold,
-                       vrna_md_t  *md);
+vrna_annotate_covar_pairs(const char  **alignment,
+                          vrna_ep_t   *pl,
+                          vrna_ep_t   *mfel,
+                          double      threshold,
+                          vrna_md_t   *md);
 
 
 /**

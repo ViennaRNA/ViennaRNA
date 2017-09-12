@@ -689,7 +689,7 @@ main(int  argc,
 
     if (!noPS) {
       char **A;
-      A = vrna_annotate_bp_covar((const char **)AS, structure, &md);
+      A = vrna_annotate_covar_struct((const char **)AS, structure, &md);
 
       if (doColor)
         (void)vrna_file_PS_rnaplot_a(string, structure, filename_plot, A[0], A[1], &md);
@@ -847,7 +847,7 @@ main(int  argc,
           print_aliout(vc, pl, bppmThreshold, mfe_struc, aliout);
 
         fclose(aliout);
-        cp = vrna_annotate_pr_covar((const char **)AS, pl, mfel, bppmThreshold, &md);
+        cp = vrna_annotate_covar_pairs((const char **)AS, pl, mfel, bppmThreshold, &md);
         (void)PS_color_dot_plot(string, cp, filename_dot);
         free(cp);
         free(pl);
