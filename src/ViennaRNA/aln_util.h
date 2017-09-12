@@ -32,6 +32,12 @@ typedef struct vrna_pinfo_s vrna_pinfo_t;
 #define VRNA_ALN_UPPERCASE    4U
 #define VRNA_ALN_LOWERCASE    8U
 
+/**
+ *  @brief  Flag indicating Shannon Entropy measure
+ *
+ *  Shannon Entropy is defined as @f$ H = - \sum_c p_c \cdot \log_2 p_c @f$
+ */
+#define VRNA_MEASURE_SHANNON_ENTROPY  1U
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #define VRNA_BACKWARD_COMPAT
@@ -70,20 +76,6 @@ struct vrna_pinfo_s {
   char      comp;   /**< @brief  1 iff pair is in mfe structure */
 };
 
-int read_clustal(FILE *clust,
-                 char *AlignedSeqs[],
-                 char *names[]);
-
-
-char *consensus(const char *AS[]);
-
-
-char *consens_mis(const char *AS[]);
-
-
-char *
-get_ungapped_sequence(const char *seq);
-
 
 /**
  *  @brief Get the mean pairwise identity in steps from ?to?(ident)
@@ -91,7 +83,8 @@ get_ungapped_sequence(const char *seq);
  *  @param alignment  Aligned sequences
  *  @return       The mean pairwise identity
  */
-int vrna_aln_mpi(const char **alignment);
+int
+vrna_aln_mpi(const char **alignment);
 
 
 /**
@@ -107,9 +100,10 @@ int vrna_aln_mpi(const char **alignment);
  *  \param  threshold   Do not include results with pair probabilities below threshold
  *  \return             The #vrna_pinfo_t array
  */
-vrna_pinfo_t *vrna_aln_pinfo(vrna_fold_compound_t *vc,
-                             const char           *structure,
-                             double               threshold);
+vrna_pinfo_t *
+vrna_aln_pinfo(vrna_fold_compound_t *vc,
+               const char           *structure,
+               double               threshold);
 
 
 int *
@@ -188,6 +182,65 @@ vrna_aln_copy(const char    **alignment,
 
 
 /**
+ *  @brief Compute base pair conservation of a consensus structure
+ *
+ *  This function computes the base pair conservation (fraction of canonical base pairs)
+ *  of a consensus structure given a multiple sequence alignment. The base pair types
+ *  that are considered canonical may be specified using the #vrna_md_t.pairs array.
+ *  Passing @em NULL as parameter @p md results in default pairing rules, i.e. canonical
+ *  Watson-Crick and GU Wobble pairs.
+ *
+ *  @param  alignment   The input sequence alignment (last entry must be @em NULL terminated)
+ *  @param  structure   The consensus structure in dot-bracket notation
+ *  @param  md          Model details that specify compatible base pairs (Maybe @em NULL)
+ *  @return             A 1-based vector of base pair conservations
+ */
+float *
+vrna_aln_conservation_struct(const char       **alignment,
+                             const char       *structure,
+                             const vrna_md_t  *md);
+
+
+/**
+ *  @brief Compute nucleotide conservation in an alignment
+ *
+ *  This function computes the conservation of nucleotides in alignment columns.
+ *  The simples measure is Shannon Entropy and can be selected by passing the
+ *  #VRNA_MEASURE_SHANNON_ENTROPY flag in the @p options parameter.
+ *
+ *  @note Currently, only #VRNA_MEASURE_SHANNON_ENTROPY is supported as
+ *        conservation measure.
+ *
+ *  @see #VRNA_MEASURE_SHANNON_ENTROPY
+ *
+ *  @param  alignment   The input sequence alignment (last entry must be @em NULL terminated)
+ *  @param  md          Model details that specify known nucleotides (Maybe @em NULL)
+ *  @param  options     A flag indicating which measure of conservation should be applied
+ *  @return             A 1-based vector of column conservations
+ */
+float *
+vrna_aln_conservation_col(const char      **alignment,
+                          const vrna_md_t *md_p,
+                          unsigned int    options);
+
+
+#ifdef VRNA_BACKWARD_COMPAT
+
+DEPRECATED(int read_clustal(FILE  *clust,
+                            char  *AlignedSeqs[],
+                            char  *names[]));
+
+
+DEPRECATED(char *consensus(const char *AS[]));
+
+
+DEPRECATED(char *consens_mis(const char *AS[]));
+
+
+DEPRECATED(char *get_ungapped_sequence(const char *seq));
+
+
+/**
  *  @brief Get the mean pairwise identity in steps from ?to?(ident)
  *
  *  @deprecated Use vrna_aln_mpi() as a replacement
@@ -223,13 +276,13 @@ DEPRECATED(int get_mpi(char *Alseq[],
  *  @param as
  *  @param circ    assume the molecules to be circular instead of linear (circ=0)
  */
-void encode_ali_sequence(const char     *sequence,
-                         short          *S,
-                         short          *s5,
-                         short          *s3,
-                         char           *ss,
-                         unsigned short *as,
-                         int            circ);
+DEPRECATED(void encode_ali_sequence(const char      *sequence,
+                                    short           *S,
+                                    short           *s5,
+                                    short           *s3,
+                                    char            *ss,
+                                    unsigned short  *as,
+                                    int             circ));
 
 
 /**
@@ -247,13 +300,13 @@ void encode_ali_sequence(const char     *sequence,
  *  @param Ss         A pointer to the array that contains the ungapped sequence
  *  @param circ       assume the molecules to be circular instead of linear (circ=0)
  */
-void  alloc_sequence_arrays(const char      **sequences,
-                            short           ***S,
-                            short           ***S5,
-                            short           ***S3,
-                            unsigned short  ***a2s,
-                            char            ***Ss,
-                            int             circ);
+DEPRECATED(void  alloc_sequence_arrays(const char     **sequences,
+                                       short          ***S,
+                                       short          ***S5,
+                                       short          ***S3,
+                                       unsigned short ***a2s,
+                                       char           ***Ss,
+                                       int            circ));
 
 
 /**
@@ -270,13 +323,14 @@ void  alloc_sequence_arrays(const char      **sequences,
  *  @param a2s        A pointer to the array that contains the alignment to sequence position mapping
  *  @param Ss         A pointer to the array that contains the ungapped sequence
  */
-void  free_sequence_arrays(unsigned int   n_seq,
-                           short          ***S,
-                           short          ***S5,
-                           short          ***S3,
-                           unsigned short ***a2s,
-                           char           ***Ss);
+DEPRECATED(void  free_sequence_arrays(unsigned int    n_seq,
+                                      short           ***S,
+                                      short           ***S5,
+                                      short           ***S3,
+                                      unsigned short  ***a2s,
+                                      char            ***Ss));
 
+#endif
 
 /**
  * @}
