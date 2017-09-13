@@ -33,6 +33,11 @@
  # PRIVATE VARIABLES             #
  #################################
  */
+PRIVATE char *info_set_uniq_ml =
+  "Activate unique multiloop decomposition by setting the"
+  " uniq_ML field of the model details structure to a non-zero"
+  " value before running vrna_pf()!";
+
 
 /*
  #################################
@@ -112,7 +117,16 @@ vrna_pbacktrack(vrna_fold_compound_t *vc)
   char    *structure  = NULL;
   double  prob        = 1.;
 
-  if (vc && vc->exp_params) {
+  if (vc) {
+    if (!vc->exp_params) {
+      vrna_message_warning("vrna_pbacktrack: DP matrices are missing! Call vrna_pf() first!");
+      return NULL;
+    } else if (!vc->exp_params->model_details.uniq_ML) {
+      vrna_message_warning("vrna_pbacktrack: Unique multiloop decomposition is unset!");
+      vrna_message_info(stderr, info_set_uniq_ml);
+      return NULL;
+    }
+
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
         if (vc->exp_params->model_details.circ)
@@ -166,25 +180,29 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
   ptype = vc->ptype;
   S1    = vc->sequence_encoding;
 
+  hard_constraints  = hc->matrix;
+  hc_up_ext         = hc->up_ext;
+
+  if (length > n) {
+    vrna_message_warning("vrna_pbacktrack5: 3'-end exceeds sequence length");
+    return NULL;
+  } else if (length < 1) {
+    vrna_message_warning("vrna_pbacktrack5: 3'-end too small");
+    return NULL;
+  } else if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) || (!pf_params)) {
+    vrna_message_warning("vrna_pbacktrack5: DP matrices are missing! Call vrna_pf() first!");
+    return NULL;
+  } else if ((!vc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
+    vrna_message_warning("vrna_pbacktrack5: Unique multiloop decomposition is unset!");
+    vrna_message_info(stderr, info_set_uniq_ml);
+    return NULL;
+  }
+
   q     = matrices->q;
   qb    = matrices->qb;
   q1k   = matrices->q1k;
   qln   = matrices->qln;
   scale = matrices->scale;
-
-  hard_constraints  = hc->matrix;
-  hc_up_ext         = hc->up_ext;
-
-  if (length > n)
-    vrna_message_error("part_func.c@pbacktrack5: 3'-end exceeds sequence length");
-  else if (length < 1)
-    vrna_message_error("part_func.c@pbacktrack5: 3'-end too small");
-
-  /*
-   * if (init_length<1)
-   *  vrna_message_error("can't backtrack without pf arrays.\n"
-   *          "Call pf_fold() before pbacktrack()");
-   */
 
   pstruc = vrna_alloc((length + 1) * sizeof(char));
 
@@ -772,6 +790,15 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
   jindx     = vc->jindx;
   S1        = vc->sequence_encoding;
 
+  if ((!matrices) || (!matrices->q) || (!qb) || (!qm) || (!pf_params)) {
+    vrna_message_warning("vrna_pbacktrack: DP matrices are missing! Call vrna_pf() first!");
+    return NULL;
+  } else if ((!vc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
+    vrna_message_warning("vrna_pbacktrack: Unique multiloop decomposition is unset!");
+    vrna_message_info(stderr, info_set_uniq_ml);
+    return NULL;
+  }
+
   qo    = matrices->qo;
   qmo   = matrices->qmo;
   qb    = matrices->qb;
@@ -913,36 +940,46 @@ pbacktrack_comparative(vrna_fold_compound_t *vc,
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
   vrna_exp_param_t  *pf_params  = vc->exp_params;
   vrna_mx_pf_t      *matrices   = vc->exp_matrices;
-  vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   vrna_hc_t         *hc         = vc->hc;
   vrna_sc_t         **sc        = vc->scs;
-  FLT_OR_DBL        *q          = matrices->q;
-  FLT_OR_DBL        *qb         = matrices->qb;
 
-  if ((matrices->q1k == NULL) || (matrices->qln == NULL)) {
-    free(matrices->q1k);
-    matrices->q1k = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
-    free(matrices->qln);
-    matrices->qln = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+
+  if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) || (!pf_params)) {
+    vrna_message_warning("vrna_pbacktrack: DP matrices are missing! Call vrna_pf() first!");
+    return NULL;
+  } else if ((!vc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
+    vrna_message_warning("vrna_pbacktrack: Unique multiloop decomposition is unset!");
+    vrna_message_info(stderr, info_set_uniq_ml);
+    return NULL;
   }
 
+  vrna_md_t   *md     = &(pf_params->model_details);
+  FLT_OR_DBL  *q      = matrices->q;
+  FLT_OR_DBL  *qb     = matrices->qb;
   FLT_OR_DBL  *q1k    = matrices->q1k;
   FLT_OR_DBL  *qln    = matrices->qln;
   FLT_OR_DBL  *scale  = matrices->scale;
-
-  for (k = 1; k <= n; k++) {
-    q1k[k]  = q[my_iindx[1] - k];
-    qln[k]  = q[my_iindx[k] - n];
-  }
-  q1k[0]      = 1.0;
-  qln[n + 1]  = 1.0;
 
   pstruc = vrna_alloc((n + 1) * sizeof(char));
 
   for (i = 0; i < n; i++)
     pstruc[i] = '.';
 
+  if ((!q1k) || (!qln)) {
+    free(q1k);
+    free(qln);
+    matrices->q1k = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+    matrices->qln = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+    q1k           = matrices->q1k;
+    qln           = matrices->qln;
+    for (k = 1; k <= n; k++) {
+      q1k[k]  = q[my_iindx[1] - k];
+      qln[k]  = q[my_iindx[k] - n];
+    }
+    q1k[0]      = 1.0;
+    qln[n + 1]  = 1.0;
+  }
 
   start = 1;
   while (start < n) {
