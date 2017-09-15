@@ -230,20 +230,24 @@ vrna_loopidx_from_ptable(const short *pt)
 PUBLIC char *
 vrna_db_from_ptable(short *pt)
 {
-  int   i;
-  char  *dotbracket = NULL;
+  unsigned int  n;
+  int           i;
+  char          *dotbracket = NULL;
 
   if (pt) {
-    dotbracket = (char *)vrna_alloc((pt[0] + 1) * sizeof(char));
-    memset(dotbracket, '.', pt[0]);
+    n = (unsigned int)pt[0];
+    if (n > 0) {
+      dotbracket = (char *)vrna_alloc((n + 1) * sizeof(char));
+      memset(dotbracket, '.', n);
 
-    for (i = 1; i <= pt[0]; i++) {
-      if (pt[i] > i) {
-        dotbracket[i - 1]     = '(';
-        dotbracket[pt[i] - 1] = ')';
+      for (i = 1; i <= n; i++) {
+        if (pt[i] > i) {
+          dotbracket[i - 1]     = '(';
+          dotbracket[pt[i] - 1] = ')';
+        }
       }
+      dotbracket[i - 1] = '\0';
     }
-    dotbracket[i - 1] = '\0';
   }
 
   return dotbracket;
@@ -536,29 +540,31 @@ vrna_letter_structure(char            *structure,
   int   n, k, x, y;
   char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-  memset(structure, '.', length);
-  structure[length] = '\0';
+  if (length > 0) {
+    memset(structure, '.', length);
+    structure[length] = '\0';
 
-  for (n = 0, k = 1; k <= bp[0].i; k++) {
-    y = bp[k].j;
-    x = bp[k].i;
-    if (x - 1 > 0 && y + 1 <= length) {
-      if (structure[x - 2] != ' ' && structure[y] == structure[x - 2]) {
-        structure[x - 1]  = structure[x - 2];
+    for (n = 0, k = 1; k <= bp[0].i; k++) {
+      y = bp[k].j;
+      x = bp[k].i;
+      if ((x - 1 > 0) && (y + 1 <= length)) {
+        if (structure[x - 2] != ' ' && structure[y] == structure[x - 2]) {
+          structure[x - 1]  = structure[x - 2];
+          structure[y - 1]  = structure[x - 1];
+          continue;
+        }
+      }
+
+      if ((structure[x] != ' ') && (structure[y - 2] == structure[x])) {
+        structure[x - 1]  = structure[x];
         structure[y - 1]  = structure[x - 1];
         continue;
       }
-    }
 
-    if (structure[x] != ' ' && structure[y - 2] == structure[x]) {
-      structure[x - 1]  = structure[x];
-      structure[y - 1]  = structure[x - 1];
-      continue;
+      n++;
+      structure[x - 1]  = alpha[n - 1];
+      structure[y - 1]  = alpha[n - 1];
     }
-
-    n++;
-    structure[x - 1]  = alpha[n - 1];
-    structure[y - 1]  = alpha[n - 1];
   }
 }
 
