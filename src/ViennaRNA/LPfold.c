@@ -1434,7 +1434,7 @@ get_deppp(vrna_fold_compound_t  *vc,
     }
   }
   /* write it to list of deppps */
-  for (i = 0; pl[i].i != 0; i++) ;
+  for (i = 0; pl[i].i != 0; i++);
   pl = (vrna_ep_t *)vrna_realloc(pl, (i + count + 1) * sizeof(vrna_ep_t));
   for (j = 0; j < count; j++) {
     pl[i + j].i = temp[j].i;
@@ -1641,25 +1641,34 @@ compute_pU(vrna_fold_compound_t       *vc,
         temp *= qqq;
 
         pU[k + ulength][ulength] += temp * pR[i5][j3];
+
+        if (options & VRNA_PROBS_WINDOW_UP_SPLIT)
+          pUM[k + ulength][ulength] += temp * pR[i5][j3];
       }
 
       /* add hairpins */
       if (hc->matrix_local[i5][j3 - i5] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
         temp                      = vrna_exp_E_hp_loop(vc, i5, j3);
         pU[k + ulength][ulength]  += temp * pR[i5][j3];
+
+        if (options & VRNA_PROBS_WINDOW_UP_SPLIT)
+          pUH[k + ulength][ulength] += temp * pR[i5][j3];
       }
     }
   }
-  /* code doubling to avoid if within loop */
+
+  /* Add Interior loop contribution to QBE (and QBI) */
   temp = 0.;
   for (len = winSize; len >= MAX2(ulength, MAXLOOP); len--)
     temp += QI5[k][len];
+
   for (; len > 0; len--) {
     temp      += QI5[k][len];
     QBI[len]  += temp;
-    QBE[len]  += temp; /* replace QBE with QI */
+    QBE[len]  += temp;
   }
-  /* Add Hairpinenergy to QBE */
+
+  /* Add Hairpin loop contribution to QBE (and QBH) */
   temp = 0.;
   for (obp = MIN2(n, k + winSize - 1); obp > k + ulength; obp--)
     temp += pR[k][obp] *
@@ -1668,11 +1677,9 @@ compute_pU(vrna_fold_compound_t       *vc,
   for (obp = MIN2(n, MIN2(k + winSize - 1, k + ulength)); obp > k + 1; obp--) {
     temp += pR[k][obp] *
             vrna_exp_E_hp_loop(vc, k, obp);
-
     QBH[obp - k - 1]  += temp;
-    QBE[obp - k - 1]  += temp; /* add hairpins to QBE (all in one array) */
+    QBE[obp - k - 1]  += temp;
   }
-  /* doubling the code to get the if out of the loop */
 
   /*
    * Add up Multiloopterms  qmb[l][m]+=prml[m]*dang;
@@ -1769,7 +1776,7 @@ compute_pU(vrna_fold_compound_t       *vc,
 
   /* open chain */
   if ((ulength >= winSize) && (k >= ulength)) {
-    if (sc) {
+    if (sc && sc->exp_energy_up) {
       pU[k][winSize] = scale[winSize] *
                        sc->exp_energy_up[k][winSize] /
                        q[k - winSize + 1][k];
