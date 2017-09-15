@@ -55,6 +55,8 @@ typedef struct {
   float     threshold;
   int       n_seq;
   int       dangle_model;
+  int       split_energies;
+  int       with_shapes;
 } hit_data;
 
 
@@ -80,7 +82,7 @@ main(int  argc,
   int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id,
                                 mis, istty, alnPS, aln_columns, aln_out, ssPS, input_file_num,
                                 id_digits, with_shapes, *shape_file_association, verbose, s,
-                                tmp_number;
+                                tmp_number, split_contributions;
   long int                      alignment_number, first_alignment_number;
   float                         e_max;
   vrna_md_t                     md;
@@ -109,6 +111,7 @@ main(int  argc,
   quiet                   = 0;
   auto_id                 = 0;
   e_max                   = -0.1; /* threshold in kcal/mol per nucleotide in a hit */
+  split_contributions     = 0;
 
   vrna_md_set_default(&md);
 
@@ -316,6 +319,9 @@ main(int  argc,
   if (!(args_info.noconv_given))
     aln_options |= VRNA_ALN_RNA;
 
+  if (args_info.split_contributions_given)
+    split_contributions = 1;
+
   /* free allocated memory of command line data structure */
   RNALalifold_cmdline_parser_free(&args_info);
 
@@ -453,20 +459,22 @@ main(int  argc,
 
     hit_data data;
 
-    data.names        = names;
-    data.strings      = AS;
-    data.strings_orig = MSA_orig;
-    data.prefix       = MSA_ID;
-    data.columns      = aln_columns;
-    data.md           = &md;
-    data.ss_eps       = ssPS;
-    data.msa_eps      = alnPS;
-    data.msa_stk      = aln_out;
-    data.csv          = csv;
-    data.mis          = mis;
-    data.threshold    = e_max;
-    data.n_seq        = n_seq;
-    data.dangle_model = md.dangles;
+    data.names          = names;
+    data.strings        = AS;
+    data.strings_orig   = MSA_orig;
+    data.prefix         = MSA_ID;
+    data.columns        = aln_columns;
+    data.md             = &md;
+    data.ss_eps         = ssPS;
+    data.msa_eps        = alnPS;
+    data.msa_stk        = aln_out;
+    data.csv            = csv;
+    data.mis            = mis;
+    data.threshold      = e_max;
+    data.n_seq          = n_seq;
+    data.dangle_model   = md.dangles;
+    data.split_energies = split_contributions;
+    data.with_shapes    = with_shapes;
 
     if (with_shapes) {
       for (s = 0; shape_file_association[s] != -1; s++);
@@ -576,22 +584,23 @@ print_hit_cb(int        start,
   char      *msg, *ss;
   int       columns, dangle_model;
   vrna_md_t *md;
-  int       with_ss, with_msa, with_stk, with_csv, with_mis;
+  int       with_ss, with_msa, with_stk, with_csv, with_mis, with_shapes, split_energies;
   float     threshold;
 
-  names         = ((hit_data *)data)->names;
-  strings       = ((hit_data *)data)->strings;
-  strings_orig  = ((hit_data *)data)->strings_orig;
-  prefix        = ((hit_data *)data)->prefix;
-  columns       = ((hit_data *)data)->columns;
-  md            = ((hit_data *)data)->md;
-  with_ss       = ((hit_data *)data)->ss_eps;
-  with_msa      = ((hit_data *)data)->msa_eps;
-  with_stk      = ((hit_data *)data)->msa_stk;
-  with_csv      = ((hit_data *)data)->csv;
-  with_mis      = ((hit_data *)data)->mis;
-  threshold     = ((hit_data *)data)->threshold;
-  dangle_model  = ((hit_data *)data)->dangle_model;
+  names           = ((hit_data *)data)->names;
+  strings         = ((hit_data *)data)->strings;
+  strings_orig    = ((hit_data *)data)->strings_orig;
+  prefix          = ((hit_data *)data)->prefix;
+  columns         = ((hit_data *)data)->columns;
+  md              = ((hit_data *)data)->md;
+  with_ss         = ((hit_data *)data)->ss_eps;
+  with_msa        = ((hit_data *)data)->msa_eps;
+  with_stk        = ((hit_data *)data)->msa_stk;
+  with_csv        = ((hit_data *)data)->csv;
+  with_mis        = ((hit_data *)data)->mis;
+  threshold       = ((hit_data *)data)->threshold;
+  dangle_model    = ((hit_data *)data)->dangle_model;
+  split_energies  = ((hit_data *)data)->split_energies;
 
   if ((dangle_model == 2) && (start > 1)) {
     ss = vrna_strdup_printf(".%s", structure);
@@ -606,10 +615,50 @@ print_hit_cb(int        start,
     A     = vrna_annotate_covar_struct((const char **)sub, ss, md);
 
 
-    if (with_csv == 1)
-      msg = vrna_strdup_printf(",%6.2f,%d,%d", en, start, end);
-    else
-      msg = vrna_strdup_printf(" (%6.2f) %4d - %4d", en, start, end);
+    if (split_energies) {
+      vrna_fold_compound_t  *sub_fc = vrna_fold_compound_comparative((const char **)sub,
+                                                                     md,
+                                                                     VRNA_OPTION_DEFAULT);
+      float                 real_en = vrna_eval_structure(sub_fc, ss);
+      with_shapes = ((hit_data *)data)->with_shapes;
+      if (with_shapes) {
+        float cov_en = vrna_eval_covar_structure(sub_fc, ss);
+        if (with_csv == 1) {
+          msg = vrna_strdup_printf(",%6.2f,%6.2f,%6.2f,%d,%d",
+                                   real_en,
+                                   -cov_en,
+                                   en - real_en + cov_en,
+                                   start,
+                                   end);
+        } else {
+          msg = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f + %6.2f) %4d - %4d",
+                                   en,
+                                   real_en,
+                                   -cov_en,
+                                   en - real_en + cov_en,
+                                   start,
+                                   end);
+        }
+      } else {
+        if (with_csv == 1) {
+          msg = vrna_strdup_printf(",%6.2f,%6.2f,%d,%d", real_en, en - real_en, start, end);
+        } else {
+          msg = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f) %4d - %4d",
+                                   en,
+                                   real_en,
+                                   en - real_en,
+                                   start,
+                                   end);
+        }
+      }
+
+      vrna_fold_compound_free(sub_fc);
+    } else {
+      if (with_csv == 1)
+        msg = vrna_strdup_printf(",%6.2f,%d,%d", en, start, end);
+      else
+        msg = vrna_strdup_printf(" (%6.2f) %4d - %4d", en, start, end);
+    }
 
     print_structure(stdout, ss, msg);
     free(msg);

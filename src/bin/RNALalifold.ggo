@@ -193,6 +193,16 @@ optional
 hidden
 
 
+option  "split-contributions"  -
+"Split the free energy contributions into separate parts\n"
+details="By default, only the total energy contribution for each hit is returned. Using\
+ this option, this contribution is split into individual parts, i.e. the Nearest Neighbor\
+ model energy, the covariance pseudo energy, and if applicable, a remaining pseudo energy\
+ derived from special constraints, such as probing signals like SHAPE.\n\n"
+flag
+off
+
+
 # Options
 section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
