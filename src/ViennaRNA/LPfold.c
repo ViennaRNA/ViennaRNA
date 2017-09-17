@@ -892,16 +892,26 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
       if (j > 2 * winSize + MAXLOOP + 1) {
         int start = j - (2 * winSize + MAXLOOP + 1);
         probability_correction(vc, start);
-        if (options & VRNA_PROBS_WINDOW_BPP)
-          cb(pR[start], MIN2(start + winSize, n), start, winSize, VRNA_PROBS_WINDOW_BPP, data);
+        if (options & VRNA_PROBS_WINDOW_BPP) {
+          cb(pR[start],
+             MIN2(start + winSize, n),
+             start,
+             winSize,
+             VRNA_PROBS_WINDOW_BPP,
+             data);
+        }
 
         if (options & VRNA_PROBS_WINDOW_STACKP) {
           int start = j - (2 * winSize - MAXLOOP);
           if (start > 1) {
             FLT_OR_DBL *stack_probs = compute_stack_probabilities(vc, start);
             stack_probs -= start + 1;
-            cb(stack_probs, MIN2(n - start + turn,
-                                 pairSize), start, winSize, VRNA_PROBS_WINDOW_STACKP, data);
+            cb(stack_probs,
+               MIN2(n - start + turn, pairSize),
+               start,
+               winSize,
+               VRNA_PROBS_WINDOW_STACKP,
+               data);
             stack_probs += start + 1;
             free(stack_probs);
           }
@@ -920,16 +930,26 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
 
   for (j = MAX2(n - winSize - MAXLOOP, 1); j <= n; j++) {
     probability_correction(vc, j);
-    if (options & VRNA_PROBS_WINDOW_BPP)
-      cb(pR[j], MIN2(j + winSize, n), j, winSize, VRNA_PROBS_WINDOW_BPP, data);
+    if (options & VRNA_PROBS_WINDOW_BPP) {
+      cb(pR[j],
+         MIN2(j + winSize, n),
+         j,
+         winSize,
+         VRNA_PROBS_WINDOW_BPP,
+         data);
+    }
 
     if ((options & VRNA_PROBS_WINDOW_STACKP) && j < n) {
       int start = j;
       if (start > 1) {
         FLT_OR_DBL *stack_probs = compute_stack_probabilities(vc, start);
         stack_probs -= start + 1;
-        cb(stack_probs, MIN2(n - start + turn,
-                             pairSize), start, winSize, VRNA_PROBS_WINDOW_STACKP, data);
+        cb(stack_probs,
+           MIN2(n - start + turn, pairSize),
+           start,
+           winSize,
+           VRNA_PROBS_WINDOW_STACKP,
+           data);
         stack_probs += start + 1;
         free(stack_probs);
       }
@@ -1689,23 +1709,23 @@ compute_pU(vrna_fold_compound_t       *vc,
   temp = 0.;
   if (sc && sc->exp_energy_up) {
     for (len = winSize; len >= ulength; len--)
-      temp += q2l[k][len]
-              * expMLbase[len]
-              * sc->exp_energy_up[k][len];
+      temp += q2l[k][len] *
+              expMLbase[len] *
+              sc->exp_energy_up[k][len];
     for (; len > 0; len--) {
-      temp += q2l[k][len]
-              * expMLbase[len]
-              * sc->exp_energy_up[k][len];
+      temp += q2l[k][len] *
+              expMLbase[len] *
+              sc->exp_energy_up[k][len];
       QBM[len]  += temp;
       QBE[len]  += temp; /* add (()()____) type cont. to I3 */
     }
   } else {
     for (len = winSize; len >= ulength; len--)
-      temp += q2l[k][len]
-              * expMLbase[len];
+      temp += q2l[k][len] *
+              expMLbase[len];
     for (; len > 0; len--) {
-      temp += q2l[k][len]
-              * expMLbase[len];
+      temp += q2l[k][len] *
+              expMLbase[len];
       QBM[len]  += temp;
       QBE[len]  += temp; /* add (()()____) type cont. to I3 */
     }
