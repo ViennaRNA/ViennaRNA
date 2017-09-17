@@ -1,0 +1,32 @@
+/**
+
+@page classified_dp   Classified DP variations
+
+@tableofcontents
+
+@section  classified_dp_intro   The Idea of Classified Dynamic Programming
+
+Usually, thermodynamic properties using the basic recursions for @ref mfe_algorithm,
+@ref pf_algorithm, and so forth, are computed over the entire structure space. However,
+sometimes it is desired to partition the structure space <em>a priori</em> and compute
+the above properties for each of the resulting partitions. This approach directly leads
+to <em>Classified Dynamic Programming</em>.
+
+@section  distance_classes  Distance Class Partitioning
+
+The secondary structure space is divided into partitions according to the base pair distance to two
+given reference structures and all relevant properties are calculated for each of the resulting partitions.
+
+@see For further details, we refer to Lorenz et al. 2009 @cite lorenz:2009
+
+@section  density_of_states   Density of States (DOS)
+
+@section  classified_dp_api   Classified DP API
+
+@htmlonly
+<hr>
+Go to the next Chapter <a href="design.html">&quot;RNA Sequence Design&quot;</a>
+@endhtmlonly
+
+*/
+

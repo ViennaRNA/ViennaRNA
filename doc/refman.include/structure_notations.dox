@@ -1,0 +1,236 @@
+/**
+
+@page rna_structure_notations  RNA Structure Notations
+
+@tableofcontents
+
+@section sec_structure_representations Representations of Secondary Structures
+
+The standard representation of a secondary structure in our library is
+the @ref dot-bracket-notation, where matching brackets symbolize base pairs
+and unpaired bases are shown as dots. Based on that notation, more elaborate
+representations have been developed to include additional information, such
+as the loop context a nucleotide belongs to and to annotated pseudo-knots.
+
+@see @ref dot-bracket-ext-notation, @ref wuss-notation
+
+Alternatively, one may find representations with two types of node labels,
+'P' for paired and 'U' for unpaired; a dot is then replaced by '(U)', and
+each closed bracket is assigned an additional identifier 'P'.
+We call this the expanded notation. In @cite fontana:1993b a condensed
+representation of the secondary structure is proposed, the so-called
+homeomorphically irreducible tree (HIT) representation. Here a stack is
+represented as a single pair of matching brackets labeled 'P' and
+weighted by the number of base pairs.  Correspondingly, a contiguous
+strain of unpaired bases is shown as one pair of matching brackets
+labeled 'U' and weighted by its length.  Generally any string consisting
+of matching brackets and identifiers is equivalent to a plane tree with
+as many different types of nodes as there are identifiers.
+
+Bruce Shapiro proposed a coarse grained representation @cite shapiro:1988,
+which, does not retain the full information of the secondary structure. He
+represents the different structure elements by single matching brackets
+and labels them as 'H' (hairpin loop), 'I' (interior loop), 'B'
+(bulge), 'M' (multi-loop), and 'S' (stack). We extend his alphabet by an
+extra letter for external elements 'E'. Again these identifiers may be
+followed by a weight corresponding to the number of unpaired bases or
+base pairs in the structure element.  All tree representations (except
+for the dot-bracket form) can be encapsulated into a virtual root
+(labeled 'R'), see the example below.
+
+The following example illustrates the different linear tree representations
+used by the package. All lines show the same secondary structure.
+
+@verbatim
+a) .((((..(((...)))..((..)))).)).
+   (U)(((((U)(U)((((U)(U)(U)P)P)P)(U)(U)(((U)(U)P)P)P)P)(U)P)P)(U)
+b) (U)(((U2)((U3)P3)(U2)((U2)P2)P2)(U)P2)(U)
+c) (((H)(H)M)B)
+   ((((((H)S)((H)S)M)S)B)S)
+   (((((((H)S)((H)S)M)S)B)S)E)
+d) ((((((((H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
+@endverbatim
+
+Above: Tree representations of secondary structures.  a) Full structure:
+the first line shows the more convenient condensed notation which is
+used by our programs; the second line shows the rather clumsy expanded
+notation for completeness, b) HIT structure, c) different versions of
+coarse grained structures: the second line is exactly Shapiro's
+representation, the first line is obtained by neglecting the stems.
+Since each loop is closed by a unique stem, these two lines are
+equivalent.  The third line is an extension taking into account also the
+external digits.  d) weighted coarse structure, this time including the
+virtual root.
+
+For the output of aligned structures from string editing, different
+representations are needed, where we put the label on both sides.
+The above examples for tree representations would then look like:
+
+@verbatim
+a) (UU)(P(P(P(P(UU)(UU)(P(P(P(UU)(UU)(UU)P)P)P)(UU)(UU)(P(P(UU)(U...
+b) (UU)(P2(P2(U2U2)(P2(U3U3)P3)(U2U2)(P2(U2U2)P2)P2)(UU)P2)(UU)
+c) (B(M(HH)(HH)M)B)
+   (S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)
+   (E(S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)E)
+d) (R(E2(S2(B1(S2(M4(S3(H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
+@endverbatim
+
+Aligned structures additionally contain the gap character '_'.
+
+
+@section   dot-bracket-notation  Dot-Bracket Notation (a.k.a. Dot-Parenthesis Notation)
+
+The Dot-Bracket notation as introduced already in the early times of the ViennaRNA Package
+denotes base pairs by matching pairs of parenthesis <tt>()</tt> and unpaired nucleotides
+by dots <tt>.</tt>.
+
+Example:
+A simple helix of size 4 enclosing a hairpin of size 4 is annotated as
+@verbatim
+((((....))))
+@endverbatim
+
+@see vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to()
+
+@section   dot-bracket-ext-notation  Extended Dot-Bracket Notation
+
+A more generalized version of the original Dot-Bracket notation may use additional pairs
+of brackets, such as <tt><></tt>, <tt>{}</tt>, and <tt>[]</tt>, and matching pairs of
+uppercase/lowercase letters. This allows for anotating pseudo-knots, since different
+pairs of brackets are not required to be nested.
+
+Example:
+The follwing annotations of a simple structure with two crossing helices of size 4 are equivalent:
+@verbatim
+<<<<[[[[....>>>>]]]]
+((((AAAA....))))aaaa
+AAAA{{{{....aaaa}}}}
+@endverbatim
+
+@see vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to()
+
+@section   wuss-notation   Washington University Secondary Structure (WUSS) notation
+
+The WUSS notation, as frequently used for consensus secondary structures in @ref msa-formats-stockholm
+allows for a fine-grained annotation of base pairs and unpaired nucleotides, including pseudo-knots.
+
+Below, you'll find a list of secondary structure elements and their corresponding WUSS annotation
+(See also the infernal user guide at http://eddylab.org/infernal/Userguide.pdf)
+
+@parblock
+  - <b>Base pairs</b>
+
+    Nested base pairs are annotated by matching pairs of the symbols <tt><></tt>,
+    <tt>()</tt>, <tt>{}</tt>, and <tt>[]</tt>. Each of the matching pairs
+    of parenthesis have their special meaning, however, when used as input in our programs,
+    e.g. structure constraint, these details are usually ignored. Furthermore, base pairs
+    that constitute as pseudo-knot are denoted by letters from the latin alphabet and are,
+    if not denoted otherwise, ignored entirely in our programs.
+
+  - <b>Hairpin loops</b>
+
+    Unpaired nucleotides that constitute the hairpin loop are indicated by underscores, <tt>_</tt>.
+
+    Example: <tt><<<<<_____>>>>></tt>
+
+  - <b>Bulges and interior loops</b>
+
+    Residues that constitute a bulge or interior loop are denoted by dashes, <tt>-</tt>.
+
+    Example: <tt>(((--<<_____>>-)))</tt>
+
+  - <b>Multibranch loops</b>
+
+    Unpaired nucleotides in multibranch loops are indicated by commas <tt>,</tt>.
+  
+    Example: <tt>(((,,<<_____>>,<<____>>)))</tt>
+
+  - <b>External residues</b>
+
+    Single stranded nucleotides in the exterior loop, i.e. not enclosed by any other pair are
+    denoted by colons, <tt>:</tt>.
+
+    Example: <tt><<<____>>>:::</tt>
+
+  - <b>Insertions</b>
+
+    In cases where an alignment represents the consensus with a known structure, insertions relative
+    to the known structure are denoted by periods, <tt>.</tt>. Regions where local structural
+    alignment was invoked, leaving regions of both target and query sequence unaligned, are indicated
+    by tildes, <tt>~</tt>.
+    @note These symbols only appear in alignments of a known (query) structure annotation to a target
+    sequence of unknown structure.
+
+  - <b>Pseudo-knots</b>
+
+    The WUSS notation allows for annotation of pseudo-knots using pairs of upper-case/lower-case letters.
+    @note Our programs and library functions usually ignore pseudo-knots entirely treating them as
+    unpaired nucleotides, if not stated otherwise.
+
+    Example:  <tt><<<_AAA___>>>aaa</tt>
+@endparblock
+
+@see vrna_db_from_WUSS()
+
+
+@section  structure_notations_examples    Examples for Structure Parsing and Conversion
+
+
+@section  structure_notations_api         Structure Parsing and Conversion API
+
+Several functions are provided for parsing structures and converting to
+different representations.
+
+@verbatim
+char  *expand_Full(const char *structure)
+@endverbatim
+@copybrief expand_Full()
+
+@verbatim
+char *b2HIT (const char *structure)
+@endverbatim
+@copybrief b2HIT()
+
+@verbatim
+char *b2C (const char *structure)
+@endverbatim
+@copybrief b2C()
+
+@verbatim
+char *b2Shapiro (const char *structure)
+@endverbatim
+@copybrief b2Shapiro()
+
+@verbatim
+char  *expand_Shapiro (const char *coarse);
+@endverbatim
+@copybrief expand_Shapiro()
+
+@verbatim
+char *add_root (const char *structure)
+@endverbatim
+@copybrief add_root()
+
+@verbatim
+char  *unexpand_Full (const char *ffull)
+@endverbatim
+@copybrief unexpand_Full()
+
+@verbatim
+char  *unweight (const char *wcoarse)
+@endverbatim
+@copybrief unweight()
+
+@verbatim
+void   unexpand_aligned_F (char *align[2])
+@endverbatim
+@copybrief unexpand_aligned_F()
+
+@verbatim
+void   parse_structure (const char *structure)
+@endverbatim
+@copybrief parse_structure()
+
+@see RNAstruct.h for prototypes and more detailed description
+
+*/

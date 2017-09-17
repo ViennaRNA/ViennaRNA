@@ -15,23 +15,7 @@
  *  This module provides the tools to add and modify unstructured domains to the production rules of the RNA folding grammar.
  *  Usually this functionality is utilized for incorporating ligand binding to unpaired stretches of an RNA.
  *
- *  Unstructured domains appear in the production rules of the RNA folding grammar
- *  whereever new unpaired nucleotides are attached to a growing substructure (see also @cite lorenz:2016b):
- *  @image html   Crecursion.svg
- *  @image latex  Crecursion.eps
- *
- *  The white boxes represent the stretch of RNA bound to the ligand and represented by a more or less specific
- *  sequence motif. The motif itself is considered unable to form basepairs. The additional production rule @em U
- *  is used to precompute the contribution of unpaired stretches possibly bound by one or more ligands. The
- *  auxiliary DP matrix for this production rule is filled right before processing the other (regular) production
- *  rules of the RNA folding grammar.
- *
- *  In a context with @ref domains_struc the grammar is extended as follows:
- *
- *  @image html   GCrecursion.svg
- *  @image latex  GCrecursion.eps
- *
- *  @bug  Although the additional production rule(s) for unstructured domains in the descriptions of this feature
+ *  @bug  Although the additional production rule(s) for unstructured domains as descibed in @ref domains_unstructured
  *        are always treated as 'segments possibly bound to one or more ligands', the current implementation requires
  *        that at least one ligand is bound. The default implementation already takes care of the required changes,
  *        however, upon using callback functions other than the default ones, one has to take care of this fact.
@@ -56,6 +40,28 @@
  *  the probabilities, but users of the unstructured domain feature are required to provide a mechanism to efficiently
  *  store/add the corresponding values into some external data structure.
  */
+
+
+/**
+ *  @addtogroup ligands_up
+ *
+ *  @brief  Add ligand binding to loop regions using the @ref domains_up feature
+ *
+ *  Sometime, certain ligands, like single strand binding (SSB) proteins, compete with intramolecular
+ *  base pairing of the RNA. In situations, where the dissociation constant of the ligand is known and
+ *  the ligand binds to a consecutive stretch of single-stranded nucleotides we can use the @ref domains_up
+ *  functionality to extend the RNA folding grammar. This module provides a convenience default implementation
+ *  that covers most of the application scenarios.
+ *
+ *  The function vrna_ud_add_motif() attaches a ligands sequence motif and corresponding binding free energy
+ *  to the list of known ligand motifs within a #vrna_fold_compound_t.domains_up attribute. The first call to
+ *  this function initializes the @ref domains_up feature with our default implementation. Subsequent calls of
+ *  secondary structure predciction algorithms with the modified #vrna_fold_compound_t then directly include
+ *  the competition of the ligand with regules base pairing. Since we utilize the unstructured domain extension,
+ *  The ligand binding model can be removed again using the vrna_ud_remove() function.
+ *
+ */
+
 
 /** @brief Typename for the ligand binding extension data structure #vrna_unstructured_domain_s
  *  @ingroup domains_up

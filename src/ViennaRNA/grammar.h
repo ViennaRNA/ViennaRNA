@@ -7,6 +7,12 @@
  *  @brief    Implementations for the RNA folding grammar
  */
 
+/**
+ * @addtogroup grammar
+ * @{
+ *    @brief  The RNA folding grammar as implemented in RNAlib
+*/
+
 #include <ViennaRNA/data_structures.h>
 
 typedef void (vrna_callback_gr_rule_aux)(vrna_fold_compound_t *vc, int i, int j, void *data);
@@ -27,5 +33,13 @@ struct vrna_gr_aux_s {
   vrna_callback_gr_free_auxdata *free_auxdata;
 };
 
+/**
+ * @}
+ */
+
+/**
+ *  @addtogroup domains
+ *  @brief This module covers simple and straight-forward extensions to the RNA folding grammar.
+*/
 
 #endif

@@ -45,7 +45,7 @@ typedef struct vrna_dimer_pf_s cofoldF;
  *  @brief    Partition function implementations
  * 
  *  This file includes (almost) all function declarations within the <b>RNAlib</b> that are related to
- *  Partion function folding...
+ *  Partion function computations
  */
 
 /*
@@ -53,6 +53,12 @@ typedef struct vrna_dimer_pf_s cofoldF;
 # PARTITION FUNCTION COMPUTATION                #
 #################################################
 */
+
+/**
+ *  @addtogroup pf_fold
+ *  @brief Compute the partition function and various equilibrium properties
+ *  derived from it.
+ */
 
 /**
  *  @brief  Data structure returned by vrna_pf_dimer()

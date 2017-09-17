@@ -1,0 +1,21 @@
+/**
+@page suboptimal_structures   Suboptimals and (other) Representative Structures
+
+@tableofcontents
+
+@section  sec_suboptimals   Suboptimal Secondary Structures
+
+
+@section  sec_samples   Sampling Secondary Structures from the Ensemble
+
+
+@section sec_suboptimals_api  Structure Enumeration and Sampling API
+
+@see @ref subopt_zuker, @ref subopt_wuchty, @ref subopt_stochbt, @ref mea_fold, @ref centroid_fold
+
+@htmlonly
+<hr>
+Go to the next Chapter <a href="rip.html">&quot;RNA-RNA Interaction&quot;</a>
+@endhtmlonly
+
+*/

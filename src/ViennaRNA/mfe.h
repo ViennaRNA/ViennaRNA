@@ -4,6 +4,17 @@
 #include <stdio.h>
 #include <ViennaRNA/data_structures.h>
 
+/**
+ *
+ *  @ingroup  mfe_fold
+ *  @file mfe.h
+ *  @brief Compute Minimum Free energy (MFE) and backtrace corresponding secondary
+ *         structures from RNA sequence data.
+ *
+ *  This file includes (almost) all function declarations within the RNAlib that are related to
+ *  MFE folding...
+ */
+
 
 /**
  *  @brief  The default callback for sliding window MFE structure predictions

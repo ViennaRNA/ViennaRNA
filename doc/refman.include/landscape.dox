@@ -1,0 +1,19 @@
+/**
+
+@page secondary_structure_landscape   RNA Secondary Structure Landscapes
+@brief                                A description of the implicit landscape-like network
+                                      of structures that appears upon modelling the transition
+                                      of one structure into another
+
+@tableofcontents
+
+@section  landscape_neighborhood    The Neighborhood of a Secondary Structure
+
+@section  landscape_api             The Secondary Structure Landscape API
+
+@htmlonly
+<hr>
+Go to the next Chapter <a href="mfe_algorithm.html">&quot;Minimum Free Energy Algorithm(s)&quot;</a>
+@endhtmlonly
+
+*/

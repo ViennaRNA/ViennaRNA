@@ -18,6 +18,11 @@
  *  @brief RNAsubopt and density of states declarations
  */
 
+/**
+ *  @addtogroup subopt_and_representatives
+ *  @brief Sample and enumerate suboptimal secondary structures from RNA sequence data.
+ */
+
 #define VRNA_BACKWARD_COMPAT
 
 /**

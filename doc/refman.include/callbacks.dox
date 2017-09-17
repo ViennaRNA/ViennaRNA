@@ -1,0 +1,34 @@
+/**
+
+@page callbacks  Callback Functions
+
+@tableofcontents
+
+With the new @ref newAPI we introduce so-called callback mechanisms for several functions.
+
+@section  callbacks_intro   The purpose of Callback mechanisms
+
+Using callback mechanisms, our library enables users not only to retrieve computed data without
+the need for parsing complicated data structures, but also allows one to tweak our implementation
+to do additional tasks without the requirement of a re-implementation of basic algorithms.
+
+Our implementation of the callback mechanisms always follows the same scheme:
+The user:
+- defines a function that complies with the interface we've defined, and
+- passes a pointer to said function to our implementations
+
+In addition to the specific arguments of our callback interfaces, virtually all callbacks
+receive an additional @em pass-through-pointer as their last argument. This enables one
+to:
+- encapsulate data, and
+- provide thread-safe operations,
+
+since this pointer is simply passed through by our library functions. It may therefore hold
+the address of an arbitrary, user-defined data structure.
+
+@section callback_descriptions  List of available Callbacks
+
+Below, you find an enumeration of the individual callback functions that are available
+in @em RNAlib.
+
+*/

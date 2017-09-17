@@ -6,6 +6,28 @@
  *  @ingroup  ligand_binding
  *  @brief    Functions for incorporation of ligands binding to hairpin and interior loop motifs using the soft constraints framework
  */
+
+/**
+ *  @addtogroup constraints_ligand
+ *
+ *  @brief  Ligand binding to specific hairpin/interior loop like motifs using the @ref soft_constraints feature
+ *
+ *  Here is an example that adds a theophylline binding motif. Free energy
+ *  contribution is derived from @f$k_d = 0.32 \mu mol / l @f$, taken from
+ *  Jenison et al. 1994
+ *
+ *  @image html   theo_aptamer.svg
+ *  @image latex  theo_aptamer.eps
+ *
+ *  @code{.c}
+vrna_sc_add_hi_motif( vc,
+                      "GAUACCAG&CCCUUGGCAGC",
+                      "(...((((&)...)))...)",
+                      -9.22, VRNA_OPTION_DEFAULT); @endcode
+ */
+
+
+
 typedef struct vrna_sc_motif_s  vrna_sc_motif_t;
 
 #include <ViennaRNA/data_structures.h>

@@ -1,0 +1,137 @@
+/**
+
+@page distance_measures   Distance Measures
+
+@tableofcontents
+
+A simple measure of dissimilarity between secondary structures of equal
+length is the base pair distance, given by the number of pairs present in
+only one of the two structures being compared. I.e. the number of base
+pairs that have to be opened or closed to transform one structure into the
+other. It is therefore particularly useful for comparing structures on the
+same sequence. It is implemented by
+
+@verbatim
+int bp_distance(const char *str1,
+                const char *str2)
+@endverbatim
+@copybrief bp_distance()
+
+For other cases a distance measure that allows for gaps is preferable.
+We can define distances between structures as edit distances between
+trees or their string representations. In the case of string distances
+this is the same as "sequence alignment". Given a set of edit operations
+and edit costs, the edit distance is given by the minimum sum of the
+costs along an edit path converting one object into the other. Edit
+distances like these always define a metric. The edit operations used by us
+are insertion, deletion and replacement of nodes.
+String editing does not pay attention to the matching of brackets, while
+in tree editing matching brackets represent a single node of the tree.
+Tree editing is therefore usually preferable, although somewhat
+slower. String edit distances are always smaller or equal to tree edit
+distances.
+
+The different level of detail in the structure representations defined
+above naturally leads to different measures of distance. For full
+structures we use a cost of 1 for deletion or insertion of an unpaired
+base and 2 for a base pair. Replacing an unpaired base for a pair incurs
+a cost of 1.
+
+Two cost matrices are provided for coarse grained structures:
+
+@verbatim
+/*  Null,   H,   B,   I,   M,   S,   E    */
+   {   0,   2,   2,   2,   2,   1,   1},   /* Null replaced */
+   {   2,   0,   2,   2,   2, INF, INF},   /* H    replaced */
+   {   2,   2,   0,   1,   2, INF, INF},   /* B    replaced */
+   {   2,   2,   1,   0,   2, INF, INF},   /* I    replaced */
+   {   2,   2,   2,   2,   0, INF, INF},   /* M    replaced */
+   {   1, INF, INF, INF, INF,   0, INF},   /* S    replaced */
+   {   1, INF, INF, INF, INF, INF,   0},   /* E    replaced */
+
+
+/* Null,   H,   B,   I,   M,   S,   E   */
+   {   0, 100,   5,   5,  75,   5,   5},   /* Null replaced */
+   { 100,   0,   8,   8,   8, INF, INF},   /* H    replaced */
+   {   5,   8,   0,   3,   8, INF, INF},   /* B    replaced */
+   {   5,   8,   3,   0,   8, INF, INF},   /* I    replaced */
+   {  75,   8,   8,   8,   0, INF, INF},   /* M    replaced */
+   {   5, INF, INF, INF, INF,   0, INF},   /* S    replaced */
+   {   5, INF, INF, INF, INF, INF,   0},   /* E    replaced */
+@endverbatim
+
+The lower matrix uses the costs given in @cite shapiro:1990.
+All distance functions use the following global variables:
+
+@verbatim
+int  cost_matrix;
+@endverbatim
+@copybrief cost_matrix
+
+@verbatim
+int   edit_backtrack;
+@endverbatim
+@copybrief edit_backtrack
+
+@verbatim
+char *aligned_line[4];
+@endverbatim
+@copybrief aligned_line
+
+@see utils.h, dist_vars.h and stringdist.h for more details
+
+@section  sec_tree_edit_distance  Functions for Tree Edit Distances
+
+@verbatim
+Tree   *make_tree (char *struc)
+@endverbatim
+@copybrief make_tree()
+
+@verbatim
+float   tree_edit_distance (Tree *T1,
+                            Tree *T2) 
+@endverbatim
+@copybrief tree_edit_distance()
+
+@verbatim
+void    free_tree(Tree *t)
+@endverbatim
+@copybrief free_tree()
+
+@see dist_vars.h and treedist.h for prototypes and more detailed descriptions
+
+@section  sec_string_alignment  Functions for String Alignment
+
+@verbatim
+swString *Make_swString (char *string)
+@endverbatim
+@copybrief Make_swString()
+
+@verbatim
+float     string_edit_distance (swString *T1,
+                                swString *T2)
+@endverbatim
+@copybrief string_edit_distance()
+
+@see dist_vars.h and stringdist.h for prototypes and more detailed descriptions
+
+@section sec_compare_base_pair_probs  Functions for Comparison of Base Pair Probabilities
+
+For comparison of base pair probability matrices, the matrices are first
+condensed into probability profiles which are the compared by alignment.
+
+@verbatim
+float *Make_bp_profile_bppm ( double *bppm,
+                              int length)
+@endverbatim
+@copybrief Make_bp_profile_bppm()
+
+@verbatim
+float profile_edit_distance ( const float *T1,
+                              const float *T2)
+@endverbatim
+@copybrief profile_edit_distance()
+
+@see ProfileDist.h for prototypes and more details of the above functions
+
+*/

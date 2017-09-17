@@ -1,0 +1,17 @@
+/**
+
+@page sequence_structure_data   Sequence and Structure Data
+
+@see struct_utils
+
+
+@page fold_compound_container   The 'Fold Compound'
+
+@see @ref fold_compound
+
+
+@page model_settings            Model Details
+
+@see @ref model_details
+
+*/

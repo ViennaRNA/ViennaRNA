@@ -1,0 +1,18 @@
+/**
+
+@page design  RNA Sequence Design
+
+@tableofcontents
+
+@section  design_intro  Generate Sequences that fold into particular Secondary Structures
+
+@section  design_api  RNA Sequence Design API
+
+@see @ref inverse_fold
+
+@htmlonly
+<hr>
+Go to the next Chapter <a href="structure_probing_data.html">&quot;Experimental Structure Probing Data&quot;</a>
+@endhtmlonly
+
+*/

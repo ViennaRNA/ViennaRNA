@@ -1,0 +1,20 @@
+/**
+
+@page   local_vs_global   Locally Stable Secondary Structures
+
+@tableofcontents
+
+@section  local_intro
+
+@section  local_mfe
+
+@section  local_pf
+
+@section  local_api   Locally Stable Secondary Structure API
+
+@htmlonly
+<hr>
+Go to the next Chapter <a href="consensus_structures.html">&quot;Comparative Structure Prediction&quot;</a>
+@endhtmlonly
+
+*/

@@ -1,0 +1,34 @@
+# STOCKHOLM 1.0
+
+#=GF AC   RF01293
+#=GF ID   ACA59
+#=GF DE   Small nucleolar RNA ACA59
+#=GF AU   Wilkinson A
+#=GF SE   Predicted; WAR; Wilkinson A
+#=GF SS   Predicted; WAR; Wilkinson A
+#=GF GA   43.00
+#=GF TC   44.90
+#=GF NC   40.30
+#=GF TP   Gene; snRNA; snoRNA; HACA-box;
+#=GF BM   cmbuild -F CM SEED
+#=GF CB   cmcalibrate --mpi CM
+#=GF SM   cmsearch --cpu 4 --verbose --nohmmonly -E 1000 -Z 549862.597050 CM SEQDB
+#=GF DR   snoRNABase; ACA59;
+#=GF DR   SO; 0001263; ncRNA_gene;
+#=GF DR   GO; 0006396; RNA processing;
+#=GF DR   GO; 0005730; nucleolus;
+#=GF RN   [1]
+#=GF RM   15199136
+#=GF RT   Human box H/ACA pseudouridylation guide RNA machinery.
+#=GF RA   Kiss AM, Jady BE, Bertrand E, Kiss T
+#=GF RL   Mol Cell Biol. 2004;24:5797-5807.
+#=GF WK   Small_nucleolar_RNA
+#=GF SQ   3
+
+
+AL031296.1/85969-86120     CUGCCUCACAACGUUUGUGCCUCAGUUACCCGUAGAUGUAGUGAGGGUAACAAUACUUACUCUCGUUGGUGAUAAGGAACAGCU
+AANU01225121.1/438-603     CUGCCUCACAACAUUUGUGCCUCAGUUACUCAUAGAUGUAGUGAGGGUGACAAUACUUACUCUCGUUGGUGAUAAGGAACAGCU
+AAWR02037329.1/29294-29150 ---CUCGACACCACU---GCCUCGGUUACCCAUCGGUGCAGUGCGGGUAGUAGUACCAAUGCUAAUUAGUUGUGAGGACCAACU
+#=GC SS_cons               -----((((,<<<<<<<<<___________>>>>>>>>>,,,,<<<<<<<______>>>>>>>,,,,,))))::::::::::::
+#=GC RF                    CUGCcccaCAaCacuuguGCCUCaGUUACcCauagguGuAGUGaGgGuggcAaUACccaCcCucgUUgGuggUaAGGAaCAgCU
+//
