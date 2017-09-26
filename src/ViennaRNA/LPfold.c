@@ -2096,22 +2096,37 @@ wrap_pf_foldLP(char             *sequence,
   vc      = NULL;
   ulength = 0;
 
-  /* we need vrna_exp_param_t datastructure to correctly init default hard constraints */
+  /*
+   *  if present, extract model details from provided parameters variable,
+   *  to properly initialize the fold compound. Otherwise use default
+   *  settings taken from deprecated global variables
+   */
   if (parameters)
-    md = parameters->model_details;
+    vrna_md_copy(&md, &(parameters->model_details));
   else
-    set_model_details(&md);   /* get global default parameters */
+    set_model_details(&md);
 
   md.compute_bpp  = 1;        /* turn on base pair probability computations */
   md.window_size  = winSize;  /* set size of sliding window */
   md.max_bp_span  = pairSize; /* set maximum base pair span */
 
-  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
+  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_DEFAULT | VRNA_OPTION_WINDOW);
 
-  /* prepare exp_params and set global pf_scale */
+  /*
+   *  if present, attach a copy of the parameters structure instead of the
+   *  default parameters but take care of re-setting it to (initialized)
+   *  model details
+   */
   free(vc->exp_params);
-  vc->exp_params            = vrna_exp_params(&md);
-  vc->exp_params->pf_scale  = pf_scale;
+  if (parameters) {
+    vrna_md_copy(&(parameters->model_details), &(vc->params->model_details));
+    vc->exp_params = vrna_exp_params_copy(parameters);
+  } else {
+    vc->exp_params = vrna_exp_params(&(vc->params->model_details));
+  }
+
+  /* propagate global pf_scale into vc->exp_params */
+  vc->exp_params->pf_scale = pf_scale;
 
   if (backward_compat_compound && backward_compat)
     vrna_fold_compound_free(backward_compat_compound);
