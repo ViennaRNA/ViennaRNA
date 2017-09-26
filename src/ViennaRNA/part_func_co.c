@@ -98,15 +98,6 @@ wrap_co_pf_fold(char *sequence,
   vc      = NULL;
   length  = strlen(sequence);
 
-  /* we need vrna_exp_param_t datastructure to correctly init default hard constraints */
-  if(parameters)
-    md = parameters->model_details;
-  else{
-    set_model_details(&md); /* get global default parameters */
-  }
-  md.compute_bpp    = calculate_bppm;
-  md.min_loop_size  = 0;
-
   seq = (char *)vrna_alloc(sizeof(char) * (length + 2));
   if(cut_point > -1){
     int i;
@@ -120,7 +111,37 @@ wrap_co_pf_fold(char *sequence,
     seq = strdup(sequence);
   }
 
-  vc = vrna_fold_compound(seq, &md, VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
+  /*
+   *  if present, extract model details from provided parameters variable,
+   *  to properly initialize the fold compound. Otherwise use default
+   *  settings taken from deprecated global variables
+   */
+  if (parameters)
+    vrna_md_copy(&md, &(parameters->model_details));
+  else
+    set_model_details(&md);
+
+  /* set min_loop_size and backtracing options */
+  md.compute_bpp = calculate_bppm;
+  md.min_loop_size  = 0;
+
+  vc = vrna_fold_compound(seq, &md, VRNA_OPTION_DEFAULT);
+
+  /*
+   *  if present, attach a copy of the parameters structure instead of the
+   *  default parameters but take care of re-setting it to (initialized)
+   *  model details
+   */
+  free(vc->exp_params);
+  if(parameters) {
+    vrna_md_copy(&(parameters->model_details), &(vc->params->model_details));
+    vc->exp_params = vrna_exp_params_copy(parameters);
+  } else {
+    vc->exp_params = vrna_exp_params(&(vc->params->model_details));
+  }
+
+  /* propagate global pf_scale into vc->exp_params */
+  vc->exp_params->pf_scale = pf_scale;
 
   if(is_constrained && structure){
     unsigned int constraint_options = 0;
