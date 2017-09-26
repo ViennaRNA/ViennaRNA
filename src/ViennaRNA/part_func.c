@@ -837,7 +837,7 @@ wrap_pf_fold( const char *sequence,
   vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_DEFAULT);
 
   /* prepare exp_params and set global pf_scale */
-  vc->exp_params = vrna_exp_params(&md);
+  vc->exp_params = vrna_exp_params(&(vc->params->model_details));
   vc->exp_params->pf_scale = pf_scale;
 
   if(is_constrained && structure){
