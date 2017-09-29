@@ -2,8 +2,7 @@
 
 @mainpage
 
-A Library for predicting and comparing RNA secondary structures
-===============================================================
+@section  introduction  A Library for predicting and comparing RNA secondary structures
 
 The core of the ViennaRNA Package (@cite lorenz:2011, @cite hofacker:1994)
 is formed by a collection of routines
@@ -25,13 +24,11 @@ http://www.tbi.univie.ac.at/RNA
 @date     1994-2017
 @authors  Ivo Hofacker, Peter Stadler, Ronny Lorenz, and so many more
 
-License
-=======
+@section  license License
 
 @verbinclude licence.txt
 
-Contributors
-============
+@section  contributors  Contributors
 
 @includedoc THANKS
 
