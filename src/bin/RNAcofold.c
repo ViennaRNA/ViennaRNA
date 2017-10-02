@@ -63,14 +63,16 @@ main(int  argc,
      char *argv[])
 {
   struct        RNAcofold_args_info args_info;
-  char                              *constraints_file, *structure, *cstruc, *rec_sequence,
+  char                              *constraints_file, *structure, *rec_sequence,
                                     *orig_sequence, *shape_file, *shape_method, *shape_conversion,
                                     *rec_id, **rec_rest, *Concfile, *id_prefix,
-                                    *command_file, *id_delim, *filename_delim, *tmp_string;
+                                    *command_file, *id_delim, *filename_delim, *tmp_string,
+                                    *csv_output_string, csv_output_delim;
   unsigned int                      rec_type, read_opt;
   int                               i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
                                     doT, doC, cofi, auto_id, id_digits, istty_in, istty_out, batch,
-                                    filename_full, canonicalBPonly, with_shapes, verbose;
+                                    filename_full, canonicalBPonly, with_shapes, verbose,
+                                    csv_output, csv_header;
   long int                          seq_number;
   double                            min_en, kT, *ConcAandB;
   plist                             *prAB, *prAA, *prBB, *prA, *prB, *mfAB, *mfAA, *mfBB, *mfA,
@@ -83,26 +85,29 @@ main(int  argc,
    # init variables and parameter options
    #############################################
    */
-  bppmThreshold   = 1e-5;
-  noconv          = 0;
-  noPS            = 0;
-  do_backtrack    = 1;
-  pf              = 0;
-  doT             = 0;      /* compute dimer free energies etc. */
-  doC             = 0;      /* toggle to compute concentrations */
-  cofi            = 0;      /* toggle concentrations stdin / file */
-  Concfile        = NULL;
-  structure       = NULL;
-  cstruc          = NULL;
-  rec_type        = read_opt = 0;
-  rec_id          = rec_sequence = orig_sequence = NULL;
-  rec_rest        = NULL;
-  auto_id         = 0;
-  command_file    = NULL;
-  commands        = NULL;
-  filename_full   = 0;
-  canonicalBPonly = 0;
-  verbose         = 0;
+  bppmThreshold     = 1e-5;
+  noconv            = 0;
+  noPS              = 0;
+  do_backtrack      = 1;
+  pf                = 0;
+  doT               = 0;      /* compute dimer free energies etc. */
+  doC               = 0;      /* toggle to compute concentrations */
+  cofi              = 0;      /* toggle concentrations stdin / file */
+  Concfile          = NULL;
+  structure         = NULL;
+  rec_type          = read_opt = 0;
+  rec_id            = rec_sequence = orig_sequence = NULL;
+  rec_rest          = NULL;
+  auto_id           = 0;
+  command_file      = NULL;
+  commands          = NULL;
+  filename_full     = 0;
+  canonicalBPonly   = 0;
+  verbose           = 0;
+  csv_output        = 0;    /* flag indicating whether we produce one-line outputs, a.k.a. CSV */
+  csv_output_string = NULL; /* string holding output in case we produce one-line outputs */
+  csv_output_delim  = ',';  /* delimiting character for one-line output */
+  csv_header        = 1;    /* print header for one-line output */
 
   set_model_details(&md);
   /*
@@ -202,6 +207,39 @@ main(int  argc,
   if (args_info.filename_full_given)
     filename_full = 1;
 
+  /* output format changes */
+  if (args_info.output_format_given) {
+    switch (*(args_info.output_format_arg)) {
+      case 'D':
+      /* fall-through */
+      case 'd':
+        csv_output = 1;
+        break;
+      case 'V':
+      /* fall-through */
+      case 'v':
+        csv_output = 0;
+        break;
+      default:
+        vrna_message_warning("unknown output format \"%c\", using defaults!",
+                             *(args_info.output_format_arg));
+        break;
+    }
+  }
+
+  /* one-line output delimiter */
+  if (args_info.csv_delim_given) {
+    csv_output_delim = *(args_info.csv_delim_arg);
+    if (!csv_output_delim) {
+      vrna_message_warning("Delimiting character for One-Line output is missing, using defaults!");
+      csv_output_delim = ',';
+    }
+  }
+
+  /* one-line output header */
+  if (args_info.csv_noheader_given)
+    csv_header = 0;
+
   /* free allocated memory of command line data structure */
   RNAcofold_cmdline_parser_free(&args_info);
 
@@ -240,6 +278,63 @@ main(int  argc,
 
   if (!fold_constrained)
     read_opt |= VRNA_INPUT_NO_REST;
+
+  if ((csv_output) && (csv_header)) {
+    /* compose header line for CSV output */
+    char *header = vrna_strdup_printf(
+      "seq_num%c"
+      "seq_id%c"
+      "seq%c"
+      "mfe_struct%c"
+      "mfe",
+      csv_output_delim,
+      csv_output_delim,
+      csv_output_delim,
+      csv_output_delim);
+
+    if (pf) {
+      if (do_backtrack) {
+        char *tmp = vrna_strdup_printf(
+          "%s%c"
+          "bpp_string%c"
+          "ensemble_energy",
+          header,
+          csv_output_delim,
+          csv_output_delim);
+        free(header);
+        header = tmp;
+      } else {
+        char *tmp = vrna_strdup_printf(
+          "%s%c"
+          "ensemble_energy",
+          header,
+          csv_output_delim);
+        free(header);
+        header = tmp;
+      }
+
+      if (doT) {
+        char *tmp = vrna_strdup_printf(
+          "%s%c"
+          "AB%c"
+          "AA%c"
+          "BB%c"
+          "A%c"
+          "B",
+          header,
+          csv_output_delim,
+          csv_output_delim,
+          csv_output_delim,
+          csv_output_delim,
+          csv_output_delim);
+        free(header);
+        header = tmp;
+      }
+    }
+
+    fprintf(stdout, "%s\n", header);
+    free(header);
+  }
 
   /*
    #############################################
@@ -287,10 +382,10 @@ main(int  argc,
       if (constraints_file) {
         vrna_constraints_add(vc, constraints_file, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
       } else {
-        cstruc  = NULL;
-        cstruc  = NULL;
         int           cp        = -1;
+        char          *cstruc   = NULL;
         unsigned int  coptions  = (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0;
+
         cstruc  = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
         cstruc  = vrna_cut_point_remove(cstruc, &cp);
         if (vc->cutpoint != cp) {
@@ -321,6 +416,8 @@ main(int  argc,
 
           vrna_constraints_add(vc, (const char *)structure, constraint_options);
         }
+
+        free(cstruc);
       }
     }
 
@@ -388,15 +485,30 @@ main(int  argc,
       pstring = strdup(orig_sequence);
       pstruct = vrna_cut_point_insert(structure, vc->cutpoint);
 
-      print_fasta_header(stdout, rec_id);
-      fprintf(stdout, "%s\n", orig_sequence);
+      if (csv_output) {
+        csv_output_string = vrna_strdup_printf(
+          "%ld%c"                         /* sequence number */
+          "%s%c"                          /* sequence id */
+          "\"%s\"%c"                      /* sequence */
+          "\"%s\"%c"                      /* MFE structure */
+          "%6.2f",                        /* MFE */
+          seq_number, csv_output_delim,
+          (rec_id) ? rec_id : "", csv_output_delim,
+          orig_sequence, csv_output_delim,
+          (pstruct) ? pstruct : "", csv_output_delim,
+          min_en);
+      } else {
+        print_fasta_header(stdout, rec_id);
+        fprintf(stdout, "%s\n", orig_sequence);
 
-      if (istty)
-        msg = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol", min_en);
-      else
-        msg = vrna_strdup_printf(" (%6.2f)", min_en);
+        if (istty)
+          msg = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol", min_en);
+        else
+          msg = vrna_strdup_printf(" (%6.2f)", min_en);
 
-      print_structure(stdout, pstruct, msg);
+        print_structure(stdout, pstruct, msg);
+      }
+
       (void)fflush(stdout);
 
       if (!noPS) {
@@ -455,38 +567,69 @@ main(int  argc,
       if (length > 2000)
         vrna_message_info(stderr, "scaling factor %f", vc->exp_params->pf_scale);
 
-      /* do we need to add hard constraints? */
-      if (cstruc != NULL)
-        strncpy(structure, cstruc, length + 1);
-
       /* compute partition function */
       AB = vrna_pf_dimer(vc, structure);
 
       if (do_backtrack) {
         char *costruc, *msg = NULL;
         costruc = vrna_cut_point_insert(structure, vc->cutpoint);
-        if (istty_in)
-          msg = vrna_strdup_printf("\n free energy of ensemble = %6.2f kcal/mol", AB.FAB);
-        else
-          msg = vrna_strdup_printf(" [%6.2f]", AB.FAB);
+        if (csv_output) {
+          msg = vrna_strdup_printf(
+            "%s%c"            /* mfe output we've collected earlier */
+            "\"%s\"%c"        /* pairing propensity */
+            "%6.2f",          /* free energy of ensemble */
+            csv_output_string, csv_output_delim,
+            costruc, csv_output_delim,
+            AB.FAB);
+          free(csv_output_string);
+          csv_output_string = msg;
+        } else {
+          if (istty_in)
+            msg = vrna_strdup_printf("\n free energy of ensemble = %6.2f kcal/mol", AB.FAB);
+          else
+            msg = vrna_strdup_printf(" [%6.2f]", AB.FAB);
 
-        print_structure(stdout, costruc, msg);
-        free(msg);
+          print_structure(stdout, costruc, msg);
+          free(msg);
+        }
+
         free(costruc);
         prAB = vrna_plist_from_probs(vc, bppmThreshold);
       } else {
-        char *msg = vrna_strdup_printf(" free energy of ensemble = %6.2f kcal/mol", AB.FAB);
-        print_structure(stdout, NULL, msg);
-        free(msg);
+        if (csv_output) {
+          char *msg = vrna_strdup_printf(
+            "%s%c"                  /* mfe output we've collected earlier */
+            "%6.2f",                /* free energy of ensemble */
+            csv_output_string, csv_output_delim,
+            AB.FAB);
+          free(csv_output_string);
+          csv_output_string = msg;
+        } else {
+          char *msg = vrna_strdup_printf(" free energy of ensemble = %6.2f kcal/mol", AB.FAB);
+          print_structure(stdout, NULL, msg);
+          free(msg);
+        }
       }
 
       {
-        char *msg = vrna_strdup_printf(" frequency of mfe structure in ensemble %g"
-                                       "; delta G binding=%6.2f",
-                                       exp((AB.FAB - min_en) / kT),
-                                       AB.FcAB - AB.FA - AB.FB);
-        print_structure(stdout, NULL, msg);
-        free(msg);
+        if (csv_output) {
+          char *msg = vrna_strdup_printf(
+            "%s%c"                /* output we've collected earlier */
+            "%g%c"                /* probability of MFE structure */
+            "%6.2f",              /* delta G binding */
+            csv_output_string, csv_output_delim,
+            exp((AB.FAB - min_en) / kT), csv_output_delim,
+            AB.FcAB - AB.FA - AB.FB);
+          free(csv_output_string);
+          csv_output_string = msg;
+        } else {
+          char *msg = vrna_strdup_printf(" frequency of mfe structure in ensemble %g"
+                                         "; delta G binding=%6.2f",
+                                         exp((AB.FAB - min_en) / kT),
+                                         AB.FcAB - AB.FA - AB.FB);
+          print_structure(stdout, NULL, msg);
+          free(msg);
+        }
       }
 
       /* if (doQ) make_probsum(length,fname); */ /*compute prob of base paired*/
@@ -542,14 +685,32 @@ main(int  argc,
           vrna_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, vc->exp_params);
         }
 
-        print_comment(stdout, "Free Energies:");
-        char *thead = NULL, *tline = NULL;
-        thead = strdup("AB\t\tAA\t\tBB\t\tA\t\tB");
-        tline = vrna_strdup_printf("%.6f\t%6f\t%6f\t%6f\t%6f",
-                                   AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB);
-        print_table(stdout, thead, tline);
-        free(thead);
-        free(tline);
+        if (csv_output) {
+          char *msg = vrna_strdup_printf(
+            "%s%c"                /* output we've collected earlier */
+            "%.6f%c"              /* AB */
+            "%.6f%c"              /* AA */
+            "%.6f%c"              /* BB */
+            "%.6f%c"              /* A */
+            "%.6f",               /* B */
+            csv_output_string, csv_output_delim,
+            AB.FcAB, csv_output_delim,
+            AA.FcAB, csv_output_delim,
+            BB.FcAB, csv_output_delim,
+            AB.FA, csv_output_delim,
+            AB.FB);
+          free(csv_output_string);
+          csv_output_string = msg;
+        } else {
+          print_comment(stdout, "Free Energies:");
+          char *thead = NULL, *tline = NULL;
+          thead = strdup("AB\t\tAA\t\tBB\t\tA\t\tB");
+          tline = vrna_strdup_printf("%.6f\t%6f\t%6f\t%6f\t%6f",
+                                     AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB);
+          print_table(stdout, thead, tline);
+          free(thead);
+          free(tline);
+        }
 
         if (doC) {
           do_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB, vc->exp_params);
@@ -690,13 +851,17 @@ main(int  argc,
       }
     }
 
+    if (csv_output)
+      fprintf(stdout, "%s\n", csv_output_string);
+
+    free(csv_output_string);
+
     if (!doT)
       vrna_mx_pf_free(vc);
 
     (void)fflush(stdout);
 
     /* clean up */
-    free(cstruc);
     free(rec_id);
     free(rec_sequence);
     free(orig_sequence);
@@ -708,7 +873,7 @@ main(int  argc,
       free(rec_rest);
     }
 
-    rec_id    = rec_sequence = orig_sequence = structure = cstruc = NULL;
+    rec_id    = rec_sequence = orig_sequence = structure = NULL;
     rec_rest  = NULL;
     vrna_fold_compound_free(vc);
 

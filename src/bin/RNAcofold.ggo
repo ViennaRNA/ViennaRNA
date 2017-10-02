@@ -133,6 +133,36 @@ flag
 off
 hidden
 
+option  "output-format" -
+"Change the default output format\n\n"
+details="The following output formats are currently supported:\n ViennaRNA format (V),\
+ Delimiter-separated format (D) also known as CSV format.\n\n"
+string
+typestr="format-character"
+default="V"
+optional
+hidden
+
+
+option  "csv-delim" -
+"Change the delimiting character for Delimiter-separated output format, such as CSV\n\n"
+details="Delimiter-separated output defaults to comma separated values (CSV), i.e.\
+ all data in one data set is delimited by a comma character. This option allows one to\
+ change the delimiting character to something else. Note, to switch to tab-separated\
+ data, use $'\\t' as delimiting character.\n\n"
+string
+typestr="delimiter"
+default=","
+optional
+hidden
+
+
+option  "csv-noheader" -
+"Do not print header for Delimiter-separated output, such as CSV\n\n"
+flag
+off
+hidden
+
 
 # Options
 section "Structure Constraints"
