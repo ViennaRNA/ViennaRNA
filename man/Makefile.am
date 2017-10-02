@@ -17,7 +17,7 @@ SUFFIXES = .1 .ggo
 vpath %.ggo = ../src/bin
 
 .ggo.1 :
-	$(manpages_verbose)./help2manWrapper.sh $< > $@
+	$(manpages_verbose)./help2manWrapper.sh $< | perl -pe 's/\\e\\e/\\e/g' > $@
 ##  $(eval $@_PROG_DIR=$(dir $< ))
 ##	$(eval $@_PROG=$(strip $(basename $(notdir $<) .ggo)))
 ##	$(manpages_verbose)help2man -N --help-option=--detailed-help \
