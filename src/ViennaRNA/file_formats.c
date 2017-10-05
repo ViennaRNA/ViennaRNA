@@ -56,15 +56,17 @@ elim_trailing_ws(char *string);
 #################################
 */
 
+/* eliminate whitespaces/non-printable characters at the end of a character string */
 PRIVATE void
-elim_trailing_ws(char *string){    /* eliminate whitespaces at the end of a character string */
-
+elim_trailing_ws(char *string)
+{
   int i, l = strlen(string);
 
   for(i = l-1; i >= 0; i--){
-    if      (string[i] == ' ')  continue;
-    else if (string[i] == '\t') continue;
-    else                        break;
+    if (isspace(string[i]) || (!isprint(string[i])))
+      continue;
+
+    break;
   }
   string[(i >= 0) ? (i+1) : 0] = '\0';
 }
