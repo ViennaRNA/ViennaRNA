@@ -346,6 +346,11 @@ Failed to statically link C program
 Please make sure that static variants for
 all libraries that are about to be linked
 into the executables are present!
+
+Checked compiler flag setup:
+ LDFLAGS = $LDFLAGS 
+ LIBS    = $LIBS
+ CLFAGS  = $CFLAGS
 ############################################]]) ],
                                       [enable_static_executables=no])
 
@@ -446,5 +451,3 @@ AC_DEFUN([RNA_ENABLE_SSE],[
   AC_SUBST(SIMD_CFLAGS)
   AC_SUBST(CONFIG_SSE_IMPLEMENTATION)
 ])
-
-
