@@ -586,6 +586,7 @@ hc_add_up(vrna_fold_compound_t  *vc,
         hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, (unsigned char)0);
       }
     } else {
+      type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
       hc_init_up_storage(vc->hc);
       vc->hc->up_storage[i] = (unsigned char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP
                                               | VRNA_CONSTRAINT_CONTEXT_HP_LOOP
