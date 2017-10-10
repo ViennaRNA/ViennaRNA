@@ -1118,32 +1118,39 @@ compute_probs(vrna_fold_compound_t        *vc,
 
   for (l = k + turn + 1; l <= MIN2(n, k + winSize - 1); l++) {
     int a;
-    pR[k][l]  = 0; /* set zero at start */
-    type      = ptype[k][l];
+    pR[k][l] = 0;  /* set zero at start */
+
+    type = ptype[k][l];
+    if (type == 0)
+      type = 7;
+
     if (qb[k][l] == 0)
       continue;
 
-    for (a = MAX2(1, l - winSize + 2); a < MIN2(k, n - winSize + 2); a++)
-      pR[k][l] += q[a][k - 1] *
-                  q[l + 1][a + winSize - 1] /
-                  q[a][a + winSize - 1];
+    /* Exterior loop cases */
+    if (hc->matrix_local[k][l - k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+      for (a = MAX2(1, l - winSize + 2); a < MIN2(k, n - winSize + 2); a++)
+        pR[k][l] += q[a][k - 1] *
+                    q[l + 1][a + winSize - 1] /
+                    q[a][a + winSize - 1];
 
-    if (l - k + 1 == winSize) {
-      pR[k][l] += 1. / q[k][l];
-    } else {
-      if (k + winSize - 1 <= n)    /* k outermost */
-        pR[k][l] += q[l + 1][k + winSize - 1] /
-                    q[k][k + winSize - 1];
+      if (l - k + 1 == winSize) {
+        pR[k][l] += 1. / q[k][l];
+      } else {
+        if (k + winSize - 1 <= n)    /* k outermost */
+          pR[k][l] += q[l + 1][k + winSize - 1] /
+                      q[k][k + winSize - 1];
 
-      if (l - winSize + 1 >= 1) /* l outermost */
-        pR[k][l] += q[l - winSize + 1][k - 1] /
-                    q[l - winSize + 1][l];
+        if (l - winSize + 1 >= 1) /* l outermost */
+          pR[k][l] += q[l - winSize + 1][k - 1] /
+                      q[l - winSize + 1][l];
+      }
+
+      pR[k][l] *= exp_E_ExtLoop(type,
+                                (k > 1) ? S1[k - 1] : -1,
+                                (l < n) ? S1[l + 1] : -1,
+                                pf_params);
     }
-
-    pR[k][l] *= exp_E_ExtLoop(type,
-                              (k > 1) ? S1[k - 1] : -1,
-                              (l < n) ? S1[l + 1] : -1,
-                              pf_params);
 
     if (hc->matrix_local[k][l - k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
       FLT_OR_DBL ppp;
@@ -1305,24 +1312,24 @@ compute_probs(vrna_fold_compound_t        *vc,
       if (qb[k][l] == 0.)
         continue;
 
-      tt = ptype[k][l];
-      if (tt == 0)
-        tt = 7;
-
-      if (options & VRNA_PROBS_WINDOW_UP) {
-        double dang;
-        /* coefficient for computations of unpairedarrays */
-        dang = qb[k][l] *
-               exp_E_MLstem(tt, S1[k - 1], S1[l + 1], pf_params) *
-               scale[2];
-
-        for (m = MIN2(k + winSize - 2, n); m >= l + 2; m--) {
-          qmb[l][m - l - 1] += prml[m] * dang;
-          q2l[l][m - l - 1] += (prml[m] - prm_l[m]) * dang;
-        }
-      }
-
       if (hc->matrix_local[k][l - k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+        tt = ptype[k][l];
+        if (tt == 0)
+          tt = 7;
+
+        if (options & VRNA_PROBS_WINDOW_UP) {
+          double dang;
+          /* coefficient for computations of unpairedarrays */
+          dang = qb[k][l] *
+                 exp_E_MLstem(tt, S1[k - 1], S1[l + 1], pf_params) *
+                 scale[2];
+
+          for (m = MIN2(k + winSize - 2, n); m >= l + 2; m--) {
+            qmb[l][m - l - 1] += prml[m] * dang;
+            q2l[l][m - l - 1] += (prml[m] - prm_l[m]) * dang;
+          }
+        }
+
         temp = prm_MLb;
 
         for (m = MIN2(k + winSize - 2, n); m >= l + 2; m--)
@@ -1334,18 +1341,18 @@ compute_probs(vrna_fold_compound_t        *vc,
                              (l < n) ? S1[l + 1] : -1,
                              pf_params) * scale[2];
         pR[k][l] += temp;
+      }
 
-        if (pR[k][l] > Qmax) {
-          Qmax = pR[k][l];
-          if (Qmax > max_real / 10.)
-            vrna_message_warning("P close to overflow: %d %d %g %g\n",
-                                 i, m, pR[k][l], qb[k][l]);
-        }
+      if (pR[k][l] > Qmax) {
+        Qmax = pR[k][l];
+        if (Qmax > max_real / 10.)
+          vrna_message_warning("P close to overflow: %d %d %g %g\n",
+                               i, m, pR[k][l], qb[k][l]);
+      }
 
-        if (pR[k][l] >= max_real) {
-          (*ov)++;
-          pR[k][l] = FLT_MAX;
-        }
+      if (pR[k][l] >= max_real) {
+        (*ov)++;
+        pR[k][l] = FLT_MAX;
       }
     } /* end for (l=..) */
   }
@@ -1707,70 +1714,87 @@ compute_pU(vrna_fold_compound_t       *vc,
    */
 
   temp = 0.;
+
+  /* add (()()____) type cont. to I3 */
   if (sc && sc->exp_energy_up) {
     for (len = winSize; len >= ulength; len--)
-      temp += q2l[k][len] *
-              expMLbase[len] *
-              sc->exp_energy_up[k][len];
+      if (hc->up_ml[k] >= len) {
+        temp += q2l[k][len] *
+                expMLbase[len] *
+                sc->exp_energy_up[k][len];
+      }
+
     for (; len > 0; len--) {
-      temp += q2l[k][len] *
-              expMLbase[len] *
-              sc->exp_energy_up[k][len];
+      if (hc->up_ml[k] >= len) {
+        temp += q2l[k][len] *
+                expMLbase[len] *
+                sc->exp_energy_up[k][len];
+      }
+
       QBM[len]  += temp;
-      QBE[len]  += temp; /* add (()()____) type cont. to I3 */
+      QBE[len]  += temp;
     }
   } else {
     for (len = winSize; len >= ulength; len--)
-      temp += q2l[k][len] *
-              expMLbase[len];
+      if (hc->up_ml[k] >= len)
+        temp += q2l[k][len] *
+                expMLbase[len];
+
     for (; len > 0; len--) {
-      temp += q2l[k][len] *
-              expMLbase[len];
-      QBM[len]  += temp;
-      QBE[len]  += temp; /* add (()()____) type cont. to I3 */
-    }
-  }
-
-  for (len = 1; len < ulength; len++) {
-    for (obp = k + len + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
-      /* add (()___()) */
-      temp = qmb[k][obp - k - 1] *
-             qm[k + len + 1 /*2*/][obp - 1] *
-             expMLbase[len];
-
-      if (sc)
-        if (sc->exp_energy_up)
-          temp *= sc->exp_energy_up[k][len];
+      if (hc->up_ml[k] >= len)
+        temp += q2l[k][len] *
+                expMLbase[len];
 
       QBM[len]  += temp;
       QBE[len]  += temp;
     }
   }
 
+  /* add (()___()) */
   for (len = 1; len < ulength; len++) {
-    for (obp = k + len + turn + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
-      if (ptype[k][obp]) {
-        /* add (___()()) */
-        temp = exp_E_MLstem(rtype[(unsigned char)ptype[k][obp]],
-                            S1[obp - 1],
-                            S1[k + 1],
-                            pf_params) *
-               scale[2] *
-               expMLbase[len] *
-               expMLclosing *
-               pR[k][obp] *
-               qm2[k + len + 1][obp - 1]; /* k:obp */
+    if (hc->up_ml[k] >= len) {
+      for (obp = k + len + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
+        temp = qmb[k][obp - k - 1] *
+               qm[k + len + 1 /*2*/][obp - 1] *
+               expMLbase[len];
 
-        if (sc) {
+        if (sc)
           if (sc->exp_energy_up)
-            temp *= sc->exp_energy_up[k + 1][len];
-
-          if (sc->exp_energy_bp)
-            temp *= sc->exp_energy_bp_local[k][obp - k];
-        }
+            temp *= sc->exp_energy_up[k][len];
 
         QBM[len]  += temp;
         QBE[len]  += temp;
+      }
+    }
+  }
+
+  /* add (___()()) */
+  for (len = 1; len < ulength; len++) {
+    if (hc->up_ml[k + 1] >= len) {
+      for (obp = k + len + turn + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
+        if (hc->matrix_local[k][obp - k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+          tt = rtype[ptype[k][obp]];
+          if (tt = 0)
+            tt = 7;
+
+          temp = exp_E_MLstem(tt, S1[obp - 1], S1[k + 1], pf_params) *
+                 scale[2] *
+                 expMLbase[len] *
+                 expMLclosing *
+                 pR[k][obp] *
+                 qm2[k + len + 1][obp - 1]; /* k:obp */
+
+          if (sc) {
+            if (sc->exp_energy_up)
+              temp *= sc->exp_energy_up[k + 1][len];
+
+            if (sc->exp_energy_bp)
+              temp *= sc->exp_energy_bp_local[k][obp - k];
+          }
+
+          QBM[len]  += temp;
+          QBE[len]  += temp;
+        }
       }
     }
   }
@@ -1790,12 +1814,12 @@ compute_pU(vrna_fold_compound_t       *vc,
       pUI[k + len][len] += pUI[k + len][len + 1] + QBI[len];
     }
     /* open chain */
-    if ((ulength >= winSize) && (k >= ulength))
+    if ((ulength >= winSize) && (k >= ulength) && (hc->up_ext[k - winSize + 1] >= winSize))
       pUO[k][winSize] = scale[winSize] / q[k - winSize + 1][k];
   }
 
   /* open chain */
-  if ((ulength >= winSize) && (k >= ulength)) {
+  if ((ulength >= winSize) && (k >= ulength) && (hc->up_ext[k - winSize + 1] >= winSize)) {
     if (sc && sc->exp_energy_up) {
       pU[k][winSize] = scale[winSize] *
                        sc->exp_energy_up[k][winSize] /
@@ -1812,44 +1836,49 @@ compute_pU(vrna_fold_compound_t       *vc,
   for (startu = MIN2(ulength, k); startu > 0; startu--) {
     temp = 0.;
     if (sc) {
-      for (i5 = MAX2(1, k - winSize + 2); i5 <= MIN2(k - startu, n - winSize + 1); i5++)
-        temp += q[i5][k - startu] *
-                q[k + 1][i5 + winSize - 1] *
-                scale[startu] *
-                sc->exp_energy_up[k - startu + 1][startu] /
-                q[i5][i5 + winSize - 1];
+      if (hc->up_ext[k - startu + 1] >= startu) {
+        for (i5 = MAX2(1, k - winSize + 2); i5 <= MIN2(k - startu, n - winSize + 1); i5++)
+          temp += q[i5][k - startu] *
+                  q[k + 1][i5 + winSize - 1] *
+                  scale[startu] *
+                  sc->exp_energy_up[k - startu + 1][startu] /
+                  q[i5][i5 + winSize - 1];
 
-      /* the 2 Cases where the borders are on the edge of the interval */
-      if ((k >= winSize) && (startu + 1 <= winSize)) {
-        temp += q[k - winSize + 1][k - startu] *
-                scale[startu] *
-                sc->exp_energy_up[k - startu + 1][startu] /
-                q[k - winSize + 1][k];
-      }
+        /* the 2 Cases where the borders are on the edge of the interval */
+        if ((k >= winSize) && (startu + 1 <= winSize)) {
+          temp += q[k - winSize + 1][k - startu] *
+                  scale[startu] *
+                  sc->exp_energy_up[k - startu + 1][startu] /
+                  q[k - winSize + 1][k];
+        }
 
-      if ((k <= n - winSize + startu) && (k - startu >= 0) && (k < n) && (startu + 1 <= winSize)) {
-        temp += q[k + 1][k - startu + winSize] *
-                scale[startu] *
-                sc->exp_energy_up[k - startu + 1][startu] /
-                q[k - startu + 1][k - startu + winSize];
+        if ((k <= n - winSize + startu) && (k - startu >= 0) && (k < n) &&
+            (startu + 1 <= winSize)) {
+          temp += q[k + 1][k - startu + winSize] *
+                  scale[startu] *
+                  sc->exp_energy_up[k - startu + 1][startu] /
+                  q[k - startu + 1][k - startu + winSize];
+        }
       }
     } else {
-      for (i5 = MAX2(1, k - winSize + 2); i5 <= MIN2(k - startu, n - winSize + 1); i5++)
-        temp += q[i5][k - startu] *
-                q[k + 1][i5 + winSize - 1] *
-                scale[startu] /
-                q[i5][i5 + winSize - 1];
+      if (hc->up_ext[k - startu + 1] >= startu) {
+        for (i5 = MAX2(1, k - winSize + 2); i5 <= MIN2(k - startu, n - winSize + 1); i5++)
+          temp += q[i5][k - startu] *
+                  q[k + 1][i5 + winSize - 1] *
+                  scale[startu] /
+                  q[i5][i5 + winSize - 1];
 
-      /* the 2 Cases where the borders are on the edge of the interval */
-      if ((k >= winSize) && (startu + 1 <= winSize))
-        temp += q[k - winSize + 1][k - startu] *
-                scale[startu] /
-                q[k - winSize + 1][k];
+        /* the 2 Cases where the borders are on the edge of the interval */
+        if ((k >= winSize) && (startu + 1 <= winSize))
+          temp += q[k - winSize + 1][k - startu] *
+                  scale[startu] /
+                  q[k - winSize + 1][k];
 
-      if ((k <= n - winSize + startu) && (k - startu >= 0) && (k < n) && (startu + 1 <= winSize))
-        temp += q[k + 1][k - startu + winSize] *
-                scale[startu] /
-                q[k - startu + 1][k - startu + winSize];
+        if ((k <= n - winSize + startu) && (k - startu >= 0) && (k < n) && (startu + 1 <= winSize))
+          temp += q[k + 1][k - startu + winSize] *
+                  scale[startu] /
+                  q[k - startu + 1][k - startu + winSize];
+      }
     }
 
     /* Divide by number of possible windows */
