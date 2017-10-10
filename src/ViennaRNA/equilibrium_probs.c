@@ -609,17 +609,18 @@ pf_create_bppm( vrna_fold_compound_t *vc,
             }
 
             probs[kl]  += temp;
+          }
 
-            if (probs[kl]>Qmax) {
-              Qmax = probs[kl];
-              if (Qmax>max_real/10.)
-                vrna_message_warning("P close to overflow: %d %d %g %g\n",
-                                            k, l, probs[kl], qb[kl]);
-            }
-            if (probs[kl]>=max_real) {
-              ov++;
-              probs[kl]=FLT_MAX;
-            }
+          if (probs[kl]>Qmax) {
+            Qmax = probs[kl];
+            if (Qmax>max_real/10.)
+              vrna_message_warning("P close to overflow: %d %d %g %g\n",
+                                   k, l, probs[kl], qb[kl]);
+          }
+
+          if (probs[kl]>=max_real) {
+            ov++;
+            probs[kl]=FLT_MAX;
           }
 
           /* rotate prm_MLbu entries required for unstructured domain feature */
