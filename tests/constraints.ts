@@ -5,7 +5,9 @@
 #include <ViennaRNA/file_formats.h>
 #include <ViennaRNA/constraints.h>
 
-static int deltaCompare(double a, double b)
+static int
+deltaCompare(double a,
+             double b)
 {
   if (fabs(a - b) < 1e-5)
     return 1;
@@ -14,7 +16,10 @@ static int deltaCompare(double a, double b)
   return 0;
 }
 
-static void writeTempFile(char *tempfile, const char *data)
+
+static void
+writeTempFile(char        *tempfile,
+              const char  *data)
 {
   FILE *f;
 
@@ -25,6 +30,7 @@ static void writeTempFile(char *tempfile, const char *data)
   fclose(f);
 }
 
+
 /* end of prologue */
 
 #suite Constraints
@@ -32,18 +38,41 @@ static void writeTempFile(char *tempfile, const char *data)
 #tcase  SoftConstraints
 
 #test test_vrna_sc_SHAPE_to_pr
-  int ret;
-  double negative_values[] = {0, -100, -1, -1e-10};
-  double hardcoded_range_values[] = { 0, 0.125, 0.25, 0.275, 0.3, 0.5, 0.7};
-  double upper_range_values[] = { 0, 0.8, 0.9, 1};
-  double upper_range_values2[] = { 0, 1.2, 1.7};
-  double cutoff_values_default[] = { 0, -1, 0.24, 0.25, 0.26 };
-  double cutoff_values[] = { 0, -1, 0.49, 0.50, 0.51 };
-  double skip_values[] = { 0, -1, 0.5, 2 };
-  double linear_values[] = { 0, -1, 0, 0.25, 0.5, 0.75, 1, 2 };
-  double linear_custom_values[] = { 0, -1, 0, 0.25, 0.5, 0.75, 1, 2 };
-  double log_values[] = { 0, -1, 0, 0.25, 0.5, 0.75, 1, 2 };
-  double log_values_custom[] = { 0, -1, 0, 0.25, 0.5, 0.75, 1, 2 };
+{
+  int     ret;
+  double  negative_values[] = {
+    0, -100, -1, -1e-10
+  };
+  double  hardcoded_range_values[] = {
+    0, 0.125, 0.25, 0.275, 0.3, 0.5, 0.7
+  };
+  double  upper_range_values[] = {
+    0, 0.8, 0.9, 1
+  };
+  double  upper_range_values2[] = {
+    0, 1.2, 1.7
+  };
+  double  cutoff_values_default[] = {
+    0, -1, 0.24, 0.25, 0.26
+  };
+  double  cutoff_values[] = {
+    0, -1, 0.49, 0.50, 0.51
+  };
+  double  skip_values[] = {
+    0, -1, 0.5, 2
+  };
+  double  linear_values[] = {
+    0, -1, 0, 0.25, 0.5, 0.75, 1, 2
+  };
+  double  linear_custom_values[] = {
+    0, -1, 0, 0.25, 0.5, 0.75, 1, 2
+  };
+  double  log_values[] = {
+    0, -1, 0, 0.25, 0.5, 0.75, 1, 2
+  };
+  double  log_values_custom[] = {
+    0, -1, 0, 0.25, 0.5, 0.75, 1, 2
+  };
 
   ret = vrna_sc_SHAPE_to_pr(NULL, NULL, 0, 0);
   ck_assert_int_eq(ret, 0);
@@ -142,13 +171,15 @@ static void writeTempFile(char *tempfile, const char *data)
   ck_assert(deltaCompare(log_values_custom[5], 1));
   ck_assert(deltaCompare(log_values_custom[6], 1));
   ck_assert(deltaCompare(log_values_custom[7], 1));
+}
 
 #test test_vrna_file_SHAPE_read
-  char tempfile[L_tmpnam + 1];
-  const size_t len = 5;
-  char sequence[len];
-  double values[len];
-  int ret;
+{
+  char          tempfile[L_tmpnam + 1];
+  const size_t  len = 5;
+  char          sequence[len];
+  double        values[len];
+  int           ret;
 
   //1 entry
   writeTempFile(tempfile, "1 A 0.5\n");
@@ -289,127 +320,130 @@ static void writeTempFile(char *tempfile, const char *data)
   ret = vrna_file_SHAPE_read(tempfile, 1, 0, sequence, values);
   ck_assert_int_eq(ret, 0);
   unlink(tempfile);
+}
 
 #test test_vrna_sc_SHAPE_parse_method
+{
   float p1, p2;
-  char method;
-  int ret;
+  char  method;
+  int   ret;
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method(NULL, &method, &p1, &p2);
   ck_assert_int_eq(ret, 0);
   ck_assert_int_eq(method, 0);
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("", &method, &p1, &p2);
   ck_assert_int_eq(ret, 0);
   ck_assert_int_eq(method, 0);
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("X", &method, &p1, &p2);
   ck_assert_int_eq(ret, 0);
   ck_assert_int_eq(method, 0);
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("D", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Dm", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Db", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Dmb", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, -0.6));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Dm3b4", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 3));
   ck_assert(deltaCompare(p2, 4));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Dm3.4b4.5", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 3.4));
   ck_assert(deltaCompare(p2, 4.5));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Dm3.4", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 3.4));
   ck_assert(deltaCompare(p2, -0.6));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Db4.5", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'D');
   ck_assert(deltaCompare(p1, 1.8));
   ck_assert(deltaCompare(p2, 4.5));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Z", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'Z');
   ck_assert(deltaCompare(p1, 0.89));
   ck_assert(deltaCompare(p2, 0));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Zb4.5", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'Z');
   ck_assert(deltaCompare(p1, 4.5));
   ck_assert(deltaCompare(p2, 0));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Zx", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'Z');
   ck_assert(deltaCompare(p1, 0.89));
   ck_assert(deltaCompare(p2, 0));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("W", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'W');
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Wb4.5", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'W');
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
 
-  p1 = p2 = method = 0;
+  p1  = p2 = method = 0;
   ret = vrna_sc_SHAPE_parse_method("Wx", &method, &p1, &p2);
   ck_assert_int_eq(ret, 1);
   ck_assert_int_eq(method, 'W');
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
+}
