@@ -44,8 +44,8 @@ class constraintsTest(unittest.TestCase):
 
         #add energy of -5 to basepair 1-9 if formed, prefed structure should now be ((.....))., with a energy of -4.90
         m = [[0 for x in range(11)] for y in range(11)]
-        m[1][9] = -5.0; # base 1-9 should get -5.0 if basepair
-        m[9][1] = -5.0; # base 1-9 should get -5.0 if basepair
+        m[1][9] = -5.0 # base 1-9 should get -5.0 if basepair
+        m[9][1] = -5.0 # base 1-9 should get -5.0 if basepair
 
 
         seq_sc = "CCCAAAAGGG"

@@ -136,7 +136,7 @@ sub up_split_callback {
 }
 
 
-print "test_pfl_fold\n";
+MsgChecking("whether pfl_fold() returns reasonable results");
 $bpp = RNA::pfl_fold($longseq, 200, 150, 0.01);
 
 # sanity check for base pair probabilities
@@ -155,7 +155,7 @@ ok($max_v <= 1.0);
 ok($max_pos == 300);
 
 
-print "test_pfl_fold_up\n";
+MsgChecking("whether pfl_fold_up() returns reasonable results");
 $up = RNA::pfl_fold_up($longseq, 10, 200, 150);
 
 # sanity check for unpaired probabilities
@@ -180,7 +180,7 @@ ok($min_v >= 0);
 ok($max_v <= 1.0);
 
 
-print "test_probs_window\n";
+MsgChecking("whether we can do the same with a single call to probs_window()");
 $md = new RNA::md();
 $md->{max_bp_span} = 150;
 $md->{window_size} = 200;
@@ -225,7 +225,7 @@ ok($min_v >= 0);
 ok($max_v <= 1.0);
 
 
-print "test_pfl_SHAPE\n";
+MsgChecking("whether probs_window() with SHAPE reactivity data and full-length window does the same as regular pf()");
 my @benchmark_set = ( "Lysine_riboswitch_T._martima", "TPP_riboswitch_E.coli" );
 
 for my $b (@benchmark_set) {
@@ -266,7 +266,7 @@ for my $b (@benchmark_set) {
 # Compute partition function and base pair probabilities both, using the implementation
 # for local structure prediction and global structure prediction.
 # When comparing both results, equilibrium probabilities must not have changed!
-print "test_probs_window_full\n";
+MsgChecking("whether probs_window() with full-length window does the same as regular pf()");
 @data = ();
 $md = new RNA::md();
 $md->{'max_bp_span'} = length($shortseq);
@@ -300,7 +300,7 @@ ok($equal_probabilities == 1);
 # line by -1 kcal/mol per nucleotide.
 # When comparing both results, equilibrium probabilities must not have changed,
 # except for free energy of the ensemble!
-print "test_pfl_sc\n";
+MsgChecking("whether lowering the entire ensemble by -1.0 kcal/mol per nucleotide using soft constraints doesn't change equilibrium pairing probabilities");
 $fc = new RNA::fold_compound($longseq, undef, RNA::OPTION_WINDOW);
 
 @data = ();
@@ -336,8 +336,7 @@ ok($equal_probabilities == 1);
 # Compute unpaired probabilities both, constrained and unconstrained, where the
 # constraint simply shifts the free energy base line by -1 kcal/mol per nucleotide.
 # When comparing both results, equilibrium probabilities must not have changed!
-print "test_probs_window_up\n";
-
+MsgChecking("whether lowering the entire ensemble by -1.0 kcal/mol per nucleotide using soft constraints doesn't change equilibrium unpaired probabilities");
 my $ulength = 45;
 
 $md = new RNA::md();
@@ -442,7 +441,7 @@ foreach my $i (1..length($shortseq)) {
 ok($max_diff < $allowed_diff);
 
 
-MsgChecking("Testing whether unpaired probabilties for short RNAs are identical to what we get from exhaustive enumeration");
+MsgChecking("whether unpaired probabilties for short RNAs are identical to what we get from exhaustive enumeration");
 RNA::init_rand();
 my $randseq_length = 20;
 $ulength = 5;
