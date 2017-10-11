@@ -22,6 +22,27 @@ typedef enum {
   INCREASED, DECREASED, SWITCHED
 } intervalType;
 
+
+vrna_move_t vrna_move_init(int pos_5, int pos_3){
+  return (vrna_move_t){ pos_5, pos_3, NULL };
+}
+
+
+/**
+ * delete all moves in a zero terminated list.
+ */
+void vrna_move_list_free(vrna_move_t *moves){
+  for(vrna_move_t *move = moves; move->pos_5 != 0; move++)
+  {
+	  if(move->next != NULL){
+		if(move->next->pos_5 != 0){
+			vrna_move_list_free(move->next);
+		}
+	  }
+  }
+  free(moves);
+}
+
 typedef void (shiftsInInterval)(const vrna_fold_compound_t *,
                                 int,
                                 int,
@@ -256,9 +277,7 @@ deletions(vrna_fold_compound_t  *vc,
 
   for (int i = 1; i <= len; i++) {
     if ((pt[i] != 0) & (pt[i] > i)) {
-      vrna_move_t *m = &listOfDeletionStructures[count];
-      m->pos_5  = -i;
-      m->pos_3  = -pt[i];
+      listOfDeletionStructures[count] = vrna_move_init(-i, -pt[i]);
       count++;
     }
   }
@@ -301,9 +320,7 @@ insertions(vrna_fold_compound_t *vc,
           continue;
 
         if ((pt[j] == 0) && is_compatible(vc, i, j)) {
-          vrna_move_t *m = &listOfInsertionStructures[count];
-          m->pos_5  = i;
-          m->pos_3  = j;
+          listOfInsertionStructures[count] = vrna_move_init(i, j);
           count++;
         }
       }
@@ -352,9 +369,7 @@ shift_bpins_to_right(const vrna_fold_compound_t *vc,
 
     /* test if it is a valid pair */
     if (((j - i) > mingap) && is_compatible(vc, i, j)) {
-      vrna_move_t *newMove = &structures[(*count)++];
-      newMove->pos_5  = i;
-      newMove->pos_3  = -j;
+      structures[(*count)++] = vrna_move_init(i, -j);
     }
   }
 }
@@ -397,9 +412,7 @@ shift_bpins_to_left(const vrna_fold_compound_t  *vc,
 
     /* test if it is a valid pair */
     if (((i - j) > mingap) && is_compatible(vc, j, i)) {
-      vrna_move_t *newMove = &structures[(*count)++];
-      newMove->pos_5  = -j;
-      newMove->pos_3  = i;
+      structures[(*count)++] = vrna_move_init(-j, i);
     }
   }
 }
@@ -475,9 +488,7 @@ shift_bpins_to_i_from_right(const vrna_fold_compound_t  *vc,
     while (j < length && (structure[j] > j)) {
       /* test if it is a valid pair */
       if (((j - i) > mingap) && is_compatible(vc, i, j)) {
-        vrna_move_t *newMove = &structures[(*count)++];
-        newMove->pos_5  = -i;
-        newMove->pos_3  = j;
+        structures[(*count)++] = vrna_move_init(-i, j);
       }
 
       j = structure[j];
@@ -486,9 +497,7 @@ shift_bpins_to_i_from_right(const vrna_fold_compound_t  *vc,
 
       /* test if it is a valid pair */
       if (((j - i) > mingap) && is_compatible(vc, i, j)) {
-        vrna_move_t *newMove = &structures[(*count)++];
-        newMove->pos_5  = -i;
-        newMove->pos_3  = j;
+        structures[(*count)++] = vrna_move_init(-i, j);
       }
     }
 
@@ -530,9 +539,7 @@ shift_bpins_to_i_from_left(const vrna_fold_compound_t *vc,
     while (j > stop && (structure[j] < j && structure[j] > 0)) {
       /* test if it is a valid pair */
       if (((i - j) > mingap) && is_compatible(vc, j, i)) {
-        vrna_move_t *newMove = &structures[(*count)++];
-        newMove->pos_5  = j;
-        newMove->pos_3  = -i;
+        structures[(*count)++] = vrna_move_init(j, -i);
       }
 
       j = structure[j];
@@ -541,9 +548,7 @@ shift_bpins_to_i_from_left(const vrna_fold_compound_t *vc,
 
       /* test if it is a valid pair */
       if (((i - j) > mingap) && is_compatible(vc, j, i)) {
-        vrna_move_t *newMove = &structures[(*count)++];
-        newMove->pos_5  = j;
-        newMove->pos_3  = -i;
+        structures[(*count)++] = vrna_move_init(j, -i);
       }
     }
 
@@ -732,10 +737,10 @@ generateInsertionsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compoun
     vrna_move_t *m = &resultList[i];
     m->pos_5  = abs(m->pos_5);
     m->pos_3  = abs(m->pos_3);
+    m->next = NULL;
   }
 
-  resultList[count].pos_5 = 0;
-  resultList[count].pos_3 = 0;
+  resultList[count] = vrna_move_init(0,0);
   resultList              = vrna_realloc(resultList, sizeof(vrna_move_t) * (count + 1));
   *length                 = count;
   return resultList;
@@ -1056,8 +1061,7 @@ generateShiftsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compound_t 
 
   free(currentStructure);
   /* add terminator */
-  allNewShifts[count].pos_5  = 0;
-  allNewShifts[count].pos_3  = 0;
+  allNewShifts[count] = vrna_move_init(0,0);
   *length                           = count;
   return allNewShifts;
 }
@@ -1132,8 +1136,7 @@ generateCrossingShifts(const vrna_fold_compound_t *vc,
 
   resultSize = count;
 
-  resultList[resultSize].pos_5  = 0;
-  resultList[resultSize].pos_3  = 0;
+  resultList[resultSize] = vrna_move_init(0,0);
   *length                       = resultSize;
   return resultList;
 }
@@ -1179,11 +1182,11 @@ generateCrossingInserts(const vrna_fold_compound_t  *vc,
     vrna_move_t *m = &resultList[i];
     m->pos_5  = abs(m->pos_5);
     m->pos_3  = abs(m->pos_3);
+    m->next = NULL;
   }
 
   resultList              = vrna_realloc(resultList, sizeof(vrna_move_t) * (count + 1));
-  resultList[count].pos_5 = 0;
-  resultList[count].pos_3 = 0;
+  resultList[count] = vrna_move_init(0,0);
   *length                 = count;
   return resultList;
 }
@@ -1280,9 +1283,7 @@ buildNeighborsForInsertionMove(const vrna_fold_compound_t *vc,
   int         newCount      = 0;
 
   /* insert current move as deletion */
-  vrna_move_t nm = {
-    -abs(curr_move->pos_5), -abs(curr_move->pos_3)
-  };
+  vrna_move_t nm = vrna_move_init(-abs(curr_move->pos_5), -abs(curr_move->pos_3));
 
   newMoves[newCount++] = nm;
 
@@ -1331,8 +1332,7 @@ buildNeighborsForInsertionMove(const vrna_fold_compound_t *vc,
   *size_neighbors = newCount;
   newMoves        =
     (vrna_move_t *)vrna_realloc(newMoves, sizeof(vrna_move_t) * (newCount + 1));
-  newMoves[newCount].pos_5  = 0;
-  newMoves[newCount].pos_3  = 0;
+  newMoves[newCount] = vrna_move_init(0,0);
   return newMoves;
 }
 
@@ -1398,17 +1398,13 @@ buildNeighborsForShiftMove(const vrna_fold_compound_t *vc,
   }
 
   /* insert current move as deletion */
-  vrna_move_t nm = {
-    -abs(curr_move->pos_5), -abs(curr_move->pos_3)
-  };
+  vrna_move_t nm = vrna_move_init(-abs(curr_move->pos_5), -abs(curr_move->pos_3));
   newMoves[newCount++] = nm;
 
   /* insert back shift */
   int         left      = MIN2(currentPositivePosition, previousPairedPosition);
   int         right     = MAX2(currentPositivePosition, previousPairedPosition);
-  vrna_move_t backShift = {
-    left, right
-  };
+  vrna_move_t backShift = vrna_move_init(left, right);
   if (previousPairedPosition == backShift.pos_5)
     backShift.pos_5 = -backShift.pos_5;
   else
@@ -1470,8 +1466,7 @@ buildNeighborsForShiftMove(const vrna_fold_compound_t *vc,
   *size_neighbors = newCount;
   newMoves        =
     (vrna_move_t *)vrna_realloc(newMoves, sizeof(vrna_move_t) * (newCount + 1));
-  newMoves[newCount].pos_5  = 0;
-  newMoves[newCount].pos_3  = 0;
+  newMoves[newCount] = vrna_move_init(0,0);
   return newMoves;
 }
 
@@ -1488,34 +1483,37 @@ vrna_move_apply(short             *pt,
   if (m->pos_5 < 0 && m->pos_3 < 0) {
     pt[-m->pos_5] = 0;
     pt[-m->pos_3] = 0;
-    return;
-  }
+  } else
 
   /* insertion */
   if (m->pos_5 > 0 && m->pos_3 > 0) {
     pt[m->pos_5]  = m->pos_3;
     pt[m->pos_3]  = m->pos_5;
-    return;
-  }
+  } else
 
   /* shift right */
-  if (m->pos_5 > 0 /*&& m->pos_3 < 0*/) {
+  if (m->pos_5 > 0 && m->pos_3 < 0) {
     short previousPairedPosition = pt[m->pos_5];
     pt[previousPairedPosition] = 0;
     short newPairedPosition = -m->pos_3;
     pt[m->pos_5]          = newPairedPosition;
     pt[newPairedPosition] = m->pos_5;
-    return;
-  }
+  } else
 
   /* shift left */
-  if (m->pos_5 < 0 /*&& m->pos_3 > 0*/) {
+  if (m->pos_5 < 0 && m->pos_3 > 0) {
     short previousPairedPosition = pt[m->pos_3];
     pt[previousPairedPosition] = 0;
     short newPairedPosition = -m->pos_5;
     pt[m->pos_3]          = newPairedPosition;
     pt[newPairedPosition] = m->pos_3;
-    return;
+  }
+
+  /* apply successive moves if m.next is a list */
+  if(m->next != NULL){
+	  for(vrna_move_t *move = m->next; move->pos_5 != 0; move++){
+		  vrna_move_apply(pt,move);
+	  }
   }
 }
 
@@ -1637,7 +1635,7 @@ vrna_loopidx_update(int               *loopIndices,
     return;
   } else {
     /* shift move: split it into one deletion and one insertion. */
-    vrna_move_t deletionMove;
+    vrna_move_t deletionMove = vrna_move_init(0,0);
     if (pos_5 > 0) {
       deletionMove.pos_5  = -pos_5;
       deletionMove.pos_3  = -pt[pos_5];
@@ -1654,7 +1652,7 @@ vrna_loopidx_update(int               *loopIndices,
     }
 
     vrna_move_t insertionMove = {
-      abs(pos_5), abs(pos_3)
+      abs(pos_5), abs(pos_3), NULL
     };
 
     vrna_loopidx_update(loopIndices, pt, length, &deletionMove);
@@ -1664,6 +1662,412 @@ vrna_loopidx_update(int               *loopIndices,
     free(tmppt);
     return;
   }
+}
+
+
+/**
+ * @brief Checks whether basepair (i,j) is outside-lonely, i.e. whether
+ *  (i-1,j+1) is not a basepair in the structure.
+ * @param pt structure as pair table
+ * @param i left index
+ * @param j right index
+ * @return 1 if (i,j) is outside-lonely, 0 if not
+ */
+static int isOutLonely(const short *pt, int i, int j)
+{
+    return i<=1 || pt[i-1] != j+1;
+}
+
+/**
+ * @brief Checks whether basepair (i,j) is inside-lonely, i.e. whether
+ *  (i+1,j-1) is not a basepair in the structure.
+ * @param pt structure as pair table
+ * @param i left index
+ * @param j right index
+ * @return 1 if (i,j) is inside-lonely, 0 if not
+ */
+static int isInsLonely(const short *pt, int i, int j)
+{
+    return pt[i+1] != j-1;
+}
+
+/**
+ * @brief Checks whether basepair (i,j) is lonely, i.e. whether it is inside-
+ *  or outside-lonely.
+ * @param pt structure as pair table
+ * @param i left index
+ * @param j right index
+ * @return 1 if (i,j) is lonely, 0 if not
+ */
+static int isLonely(const short *pt, int i, int j)
+{
+    return isOutLonely(pt, i, j) && isInsLonely(pt, i, j);
+}
+
+/**
+ * @brief Checks whether (i+1,j-1) is a basepair that would grow lonely (i.e.
+ *  becomes a lonely pair) if the basepair (i,j) was removed. It is not required
+ *  that (i,j) is currently contained in the structure.
+ * @param pt structure as pair table
+ * @param i left index
+ * @param j right index
+ * @return 1 if (i+1,j-1) is a basepair in the current structure and grows lonely
+ *  when removing (i,j), 0 if not
+ */
+static int insGrowLonely(const short *pt, int i, int j)
+{
+    return (pt[i+1]==j-1 && isInsLonely(pt, i+1, j-1)) ? 1 : 0;
+}
+
+/**
+ * @brief Checks whether (i-1,j+1) is a basepair that would grow lonely (i.e.
+ *  becomes a lonely pair) if the basepair (i,j) was removed. It is not required
+ *  that (i,j) is currently contained in the structure.
+ * @param pt structure as pair table
+ * @param i left index
+ * @param j right index
+ * @return 1 if (i-1,j+1) is a basepair in the current structure and grows lonely
+ *  when removing (i,j), 0 if not
+ */
+static int outGrowLonely(const short *pt, int i, int j)
+{
+    return (i>=1 && pt[i-1]==j+1 && isOutLonely(pt, i-1, j+1)) ? 1 : 0;
+}
+
+/**
+ * @brief Given an unpaired index i, find the first index j with i<j such that (i,j)
+ *  is a valid basepair in the current sequence and structure. To get all such
+ *  positions j, repeatedly call this function passing the index j returned by
+ *  the last call.
+ * @param pt structure as pair table
+ * @param length length of the structure
+ * @param i Left index, assumed to be unpaired
+ * @param j Last index such that (i,j) is a valid basepair. To get the first
+ *  such j, pass j=i. i<=j is assumed.
+ * @return next index k with i<=j<k such that (i,k) is a valid basepair, or
+ *  UNPRD if no such k exists
+ */
+static int vrna_move_nxt_val_bp_right(const vrna_fold_compound_t *vc, const short *pt,size_t length, int i, int j)
+{
+  int minLoopSize = vc->params->model_details.min_loop_size;
+    do /* jump over inner base pairs of current loop */
+    {
+        j++;
+        while(j<=length && pt[j] > j) // '('
+            j=pt[j]+1;
+        if( j>length || (pt[j]<=j && pt[j] > 0))// ')'  /* here, the current loop ends */
+            return 0; // return unpaired
+    } while( j-i<minLoopSize || !is_compatible(vc,i,j));
+
+    return j;
+}
+
+/**
+ * @brief Generate neighbors by inserting every possible basepair. Only canonical
+ *  structures (i.e. ones not containing lonely pairs) are generated. If
+ *  necessary, lonely 2-stacks are inserted. The resulting structures are pushed
+ *  onto the global structure stack.
+ */
+static vrna_move_t * vrna_move_noLP_bpins(const vrna_fold_compound_t *vc, const short *structure, int verbose) {
+    int minLoopSize = vc->params->model_details.min_loop_size;
+    /* estimate memory for structures. */
+    int         maxStructures = (vc->length * vc->length) / 2;
+    vrna_move_t *moves = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t)*(maxStructures+1));
+    int count = 0;
+    short *pt_tmp = vrna_ptable_copy(structure);
+
+    int i,j;
+    for( i=1; i<=vc->length; i++)
+        if( structure[i] == 0) /* position i is unpaired */
+        {
+            j=i;
+            while( (j = vrna_move_nxt_val_bp_right(vc,pt_tmp,vc->length,i, j)) != 0)
+            {
+                //close_bp( i, j);
+              vrna_move_t move = {i,j,NULL};
+              vrna_move_apply(pt_tmp, &move);
+
+              if( isLonely(pt_tmp, i, j))
+                {
+                    if(    j-i>minLoopSize+2 && pt_tmp[i+1]==0
+                            && pt_tmp[j-1]==0
+                            && is_compatible(vc, i+1, j-1)
+                            && isInsLonely (pt_tmp, i+1, j-1)
+                      )
+                    {   /* insert lonely stack */
+                        //close_bp( i+1, j-1);
+                      move.next = (vrna_move_t *)vrna_alloc(2*sizeof(vrna_move_t));
+                      move.next[0] = (vrna_move_t){i+1, j-1, NULL};
+                      move.next[1] = (vrna_move_t){0,0,NULL};
+
+                      vrna_move_apply(pt_tmp,move.next);
+                        if(verbose){
+                            char *tmp_structure = vrna_db_from_ptable(pt_tmp);
+                            fprintf( stderr, "pushing lsi %s\n", tmp_structure);
+                            free(tmp_structure);
+                        }
+                        //push( r2d->form);
+                        moves[count++] = move;
+                        //open_bp( i+1, j-1);
+                        pt_tmp[i+1] = 0;
+                        pt_tmp[j-1] = 0;
+                    }
+                }
+                else    /* bp not lonely, insert*/
+                {
+                    if(verbose){
+                        char *tmp_structure = vrna_db_from_ptable(pt_tmp);
+                        fprintf( stderr, "pushing lpi %s\n", tmp_structure);
+                        free(tmp_structure);
+                    }
+                    //push( r2d->form);
+                    moves[count++] = move;
+                }
+                //open_bp( i, j);
+              pt_tmp[i] = 0;
+              pt_tmp[j] = 0;
+            }
+        }
+    moves[count++] = (vrna_move_t){0,0,NULL};
+    moves = vrna_realloc(moves,(count+1)*sizeof(vrna_move_t));
+    free(pt_tmp);
+    return moves;
+}
+
+/**
+ * @brief Generate neighbors by deleting every possible basepair. Only canonical
+ *  structures (i.e. ones not containing lonely pairs) are generated. If
+ *  necessary, lonely 2-stacks are removed. The resulting structures are pushed
+ *  onto the global structure stack.
+ */
+static vrna_move_t * vrna_move_noLP_bpdel(const vrna_fold_compound_t *vc,const short *structure, int verbose) {
+
+  int         maxStructures             = vc->length / 2;
+  vrna_move_t *moves = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t)*(maxStructures+1));
+      int count = 0;
+      short *pt_tmp = vrna_ptable_copy(structure);
+
+    int i,j, ilg;
+    for( i=1; i<=vc->length; i++)
+        if( structure[i] > i)   // == '('
+        {
+            j = pt_tmp[i];
+            //open_bp( i, j);
+            vrna_move_t move = {-i,-j, NULL};
+            vrna_move_apply(pt_tmp, &move);
+
+            ilg = insGrowLonely(pt_tmp, i, j);     /* is structure inside-lonely-growing? */
+            if( ilg || outGrowLonely(pt_tmp, i,j))
+            {
+                if( ilg && isOutLonely(pt_tmp, i, j) ) /* only delete lonely stack on the inside */
+                {
+                    //open_bp( i+1, j-1);
+                  move.next = (vrna_move_t *)vrna_alloc(2*sizeof(vrna_move_t));
+                  move.next[0] = (vrna_move_t){-(i+1), -(j-1),NULL};
+                  move.next[1] = (vrna_move_t){0,0,NULL};
+                  vrna_move_apply(pt_tmp,move.next);
+
+                  if(verbose){
+                      char *tmp_structure = vrna_db_from_ptable(pt_tmp);
+                      fprintf( stderr, "pushing lsd %s\n", tmp_structure);
+                      free(tmp_structure);
+                    }
+
+                    //push( r2d->form);
+                  moves[count++] = move;
+                   // close_bp( i+1, j-1);
+                  pt_tmp[i+1] = j-1;
+                  pt_tmp[j-1] = i+1;
+                }
+            }
+            else    /* no lonely pairs arise */
+            {
+                if(verbose){
+                  char *tmp_structure = vrna_db_from_ptable(pt_tmp);
+                  fprintf( stderr, "pushing lpd %s\n", tmp_structure);
+                  free(tmp_structure);
+                }
+                //push( r2d->form);
+                moves[count++] = move;
+            }
+            //close_bp( i, j);
+            pt_tmp[i] = j;
+            pt_tmp[j] = i;
+        }
+    moves[count++] = (vrna_move_t){0,0,NULL};
+    moves = vrna_realloc(moves,(count+1)*sizeof(vrna_move_t));
+    free(pt_tmp);
+    return moves;
+}
+
+/**
+ * @brief Generate neighbors by shifting every possible basepair index. Only
+ *  canonical structures (i.e. ones not containing lonely pairs) are generated.
+ *  Only six special cases need to be checked. The resulting structures are
+ *  pushed onto the global structure stack.
+ */
+static vrna_move_t * vrna_move_noLP_bpshift(const vrna_fold_compound_t *vc, const short *structure, int verbose) {
+
+  int         maxStructures     = (vc->length * vc->length) / 2;
+  vrna_move_t *moves = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t)*(maxStructures+1));
+        int count = 0;
+        short *pt_tmp = vrna_ptable_copy(structure);
+
+    /* Outside: shift i to left or j to right */
+    int i, j, k;
+    for( i=1; i <= vc->length; i++)
+        if( structure[i] > i) // == '('        /* Handle each pair only once */
+        {
+            j = pt_tmp[i];
+            //open_bp( i, j);
+            vrna_move_t open_bp_1 = {-i,-j,NULL};
+            vrna_move_apply(pt_tmp, &open_bp_1);
+
+            if( pt_tmp[i+1]==j-1 && !isInsLonely(pt_tmp, i+1, j-1)) /* Outside & cross moves */
+            {
+                if( j < vc->length)
+                {
+                    k = pt_tmp[j+1];   /* i -- check only two possible pair (k+1,j)/(j,k+1) [cross] */
+                    if( k>=1 && k<vc->length && k!=i-1 && pt_tmp[k+1] == 0 && is_compatible(vc, k+1,j))
+                    {
+                        vrna_move_t shift_bp;
+                        if( k<j)        /* Shift i to left */
+                        {
+                            //close_bp( k+1, j);
+                          vrna_move_t close_bp = {k+1,j,NULL};
+                          shift_bp = (vrna_move_t){-(k+1), j, NULL};
+                          vrna_move_apply(pt_tmp, &close_bp);
+
+                          if(verbose){
+                              char *tmp_structure = vrna_db_from_ptable(pt_tmp);
+                                fprintf( stderr, "pushing sil %s\n", tmp_structure);
+                                free(tmp_structure);
+                            }
+                        }
+                        else            /* Cross i to right side */
+                        {
+                            //close_bp( j, k+1);
+                          vrna_move_t close_bp = {j,k+1,NULL};
+                          shift_bp = (vrna_move_t){j, -(k+1), NULL};
+                          vrna_move_apply(pt_tmp, &close_bp);
+
+                            if(verbose){
+                              char *tmp_structure = vrna_db_from_ptable(pt_tmp);
+                                fprintf( stderr, "pushing sic %s j=%d k+1=%d\n", tmp_structure, j, k+1);
+                                free(tmp_structure);
+                            }
+                        }
+                        //push( r2d->form);
+                        moves[count++] = shift_bp;
+
+                        if(k<j){
+                            //open_bp( k+1, j);
+                          vrna_move_t open_bp = {-(k+1),-j,NULL};
+                          vrna_move_apply(pt_tmp, &open_bp);
+                        }
+                        else{
+                            //open_bp( j, k+1);
+                          vrna_move_t open_bp = {-j,-(k+1),NULL};
+                          vrna_move_apply(pt_tmp, &open_bp);
+                        }
+                    }
+                }
+                if( i > 1)
+                {
+                    k = pt_tmp[i-1];  /* j -- check only two possible pair (i,k-1)/(k-1,i) [cross] */
+                    if( k>1 && k!=j+1 && pt_tmp[k-1] == 0 && is_compatible(vc, i,k-1))
+                    {
+                      vrna_move_t shift_bp;
+                        /*say "Shift j to right / cross: found candidate";*/
+                        if( i<k)
+                        {
+                            //close_bp( i, k-1);
+                          vrna_move_t close_bp = {i,k-1,NULL};
+                          shift_bp = (vrna_move_t){i, -(k-1), NULL};
+                          vrna_move_apply(pt_tmp, &close_bp);
+                          if(verbose){
+                              char *tmp_structure = vrna_db_from_ptable(pt_tmp);
+                                fprintf( stderr, "pushing sjr %s\n", tmp_structure);
+                                free(tmp_structure);
+                            }
+                        }
+                        else
+                        {
+                            //close_bp( k-1, i);
+                          vrna_move_t close_bp = {k-1, i, NULL};
+                          shift_bp = (vrna_move_t){-(k-1), i, NULL};
+                          vrna_move_apply(pt_tmp, &close_bp);
+                            if(verbose){
+                              char *tmp_structure = vrna_db_from_ptable(pt_tmp);
+                                fprintf( stderr, "pushing sjc %s\n", tmp_structure);
+                                free(tmp_structure);
+                            }
+                        }
+                        //push( r2d->form);
+                        moves[count++] = shift_bp;
+                        if( i<k){
+                            //open_bp( i, k-1);
+                          vrna_move_t open_bp = {-i,-(k-1),NULL};
+                          vrna_move_apply(pt_tmp, &open_bp);
+                        }
+                        else{
+                            //open_bp( k-1, i);
+                          vrna_move_t open_bp = {-(k-1),-i,NULL};
+                          vrna_move_apply(pt_tmp, &open_bp);
+                        }
+                    }
+                }
+            }
+            /* Inside: shift i to right or j to left */
+            if( i>1 && pt_tmp[i-1]==j+1 && !isOutLonely(pt_tmp, i-1, j+1))
+            {
+                k = pt_tmp[j-1];  /* i -- check only possible pair (k-1,j) */
+                if( k>i+1 && pt_tmp[k-1] == 0 && is_compatible(vc, k-1, j)) /* Shift i to right */
+                {
+                    //close_bp( k-1, j);
+                  vrna_move_t close_bp = {k-1,j,NULL};
+                  vrna_move_t shift_bp = (vrna_move_t){-(k-1), j, NULL};
+                  vrna_move_apply(pt_tmp, &close_bp);
+                    //push( r2d->form);
+                  moves[count++] = shift_bp;
+                  if(verbose){
+                      char *tmp_structure = vrna_db_from_ptable(pt_tmp);
+                        fprintf( stderr, "pushing sir %s\n", tmp_structure);
+                        free(tmp_structure);
+                    }
+                    //open_bp( k-1, j);
+                  vrna_move_t open_bp = {-(k-1), -j,NULL};
+                  vrna_move_apply(pt_tmp, &open_bp);
+                }
+                k = pt_tmp[i+1]; /* j -- check only possible pair (i,k+1) */
+                if( k>=1 && k<j-1 && pt_tmp[k+1] == 0 && is_compatible(vc, i,k+1))
+                {
+                    /* say "Shift j to left: found candidate"; */
+                    //close_bp( i, k+1);
+                  vrna_move_t close_bp = {i, k+1,NULL};
+                  vrna_move_t shift_bp = (vrna_move_t){i, -(k+1), NULL};
+                  vrna_move_apply(pt_tmp, &close_bp);
+                    //push( r2d->form);
+                  moves[count++] = shift_bp;
+                  if(verbose){
+                      char *tmp_structure = vrna_db_from_ptable(pt_tmp);
+                        fprintf( stderr, "pushing sjl %s\n", tmp_structure);
+                        free(tmp_structure);
+                    }
+                    //open_bp( i, k+1);
+                    vrna_move_t open_bp = {-i, -(k+1),NULL};
+                    vrna_move_apply(pt_tmp, &open_bp);
+                }
+            }
+            //close_bp( i, j);
+            vrna_move_t close_bp_1 = {i, j,NULL};
+            vrna_move_apply(pt_tmp, &close_bp_1);
+        }
+
+    moves[count++] = (vrna_move_t){0,0,NULL};
+    moves = vrna_realloc(moves,(count+1)*sizeof(vrna_move_t));
+    free(pt_tmp);
+    return moves;
 }
 
 
@@ -1682,35 +2086,67 @@ vrna_neighbors(vrna_fold_compound_t *vc,
   int         lengthDeletions=0;
   int         lengthInsertions=0;
 
-  if (options & VRNA_MOVESET_DELETION) {
-    /*  append deletion moves */
-    vrna_move_t *deletionList = deletions(vc, pt, &lengthDeletions);
-    totalLength += lengthDeletions;
-    moveSet     = (vrna_move_t *)vrna_realloc(moveSet, sizeof(vrna_move_t) * (totalLength + 1));
-    ptMoveSetEnd = moveSet;
-    memcpy(ptMoveSetEnd, deletionList, lengthDeletions * sizeof(vrna_move_t));
-    free(deletionList);
-  }
 
-  if (options & VRNA_MOVESET_INSERTION) {
-    /*  append insertion moves */
-    vrna_move_t *insertionList = insertions(vc, pt, &lengthInsertions);
-    totalLength += lengthInsertions;
-    moveSet     = (vrna_move_t *)vrna_realloc(moveSet, sizeof(vrna_move_t) * (totalLength + 1));
-    ptMoveSetEnd = moveSet + lengthDeletions;
-    memcpy(ptMoveSetEnd, insertionList, lengthInsertions * sizeof(vrna_move_t));
-    free(insertionList);
-  }
+  if (options & VRNA_MOVESET_NO_LP) {
+	  /* create noLP insertions and deletions */
+      moveSet = vrna_move_noLP_bpins(vc,pt,0);
+      size_t insertionSize = 0;
+      for(vrna_move_t *m = moveSet; m->pos_3 != 0; m++)
+        insertionSize++;
+      vrna_move_t *deletions_noLP = vrna_move_noLP_bpdel(vc,pt,0);
+      size_t deletionSize = 0;
+      for(vrna_move_t *m = deletions_noLP; m->pos_3 != 0; m++)
+        deletionSize++;
+      totalLength = insertionSize+deletionSize;
+      moveSet = (vrna_move_t *)vrna_realloc(moveSet,(totalLength+1)*sizeof(vrna_move_t));
+      ptMoveSetEnd = moveSet + insertionSize;
+      memcpy(ptMoveSetEnd,deletions_noLP,deletionSize*sizeof(vrna_move_t));
+      free(deletions_noLP);
 
-  if (options & VRNA_MOVESET_SHIFT) {
-    /*  append shift moves */
-    int         lengthShifts;
-    vrna_move_t *shiftList = shifts(vc, pt, &lengthShifts);
-    totalLength += lengthShifts;
-    moveSet     = (vrna_move_t *)vrna_realloc(moveSet, sizeof(vrna_move_t) * (totalLength + 1));
-    ptMoveSetEnd = moveSet + lengthInsertions + lengthDeletions;
-    memcpy(ptMoveSetEnd, shiftList, lengthShifts * sizeof(vrna_move_t));
-    free(shiftList);
+      /* add noLP shifts if requested */
+      if(options & VRNA_MOVESET_SHIFT) {
+    	vrna_move_t * noLP_shift_moveset = vrna_move_noLP_bpshift(vc,pt,0);
+    	int length_noLP_shifts = 0;
+        for(vrna_move_t *m = noLP_shift_moveset; m->pos_3 != 0; m++)
+        	length_noLP_shifts++;
+        totalLength = insertionSize+deletionSize+length_noLP_shifts;
+		 moveSet = (vrna_move_t *)vrna_realloc(moveSet,(totalLength+1)*sizeof(vrna_move_t));
+		 ptMoveSetEnd = moveSet + insertionSize+deletionSize;
+		 memcpy(ptMoveSetEnd,noLP_shift_moveset,length_noLP_shifts*sizeof(vrna_move_t));
+		 free(noLP_shift_moveset);
+      }
+  }
+  else{
+    if (options & VRNA_MOVESET_DELETION) {
+      /*  append deletion moves */
+      vrna_move_t *deletionList = deletions(vc, pt, &lengthDeletions);
+      totalLength += lengthDeletions;
+      moveSet     = (vrna_move_t *)vrna_realloc(moveSet, sizeof(vrna_move_t) * (totalLength + 1));
+      ptMoveSetEnd = moveSet;
+      memcpy(ptMoveSetEnd, deletionList, lengthDeletions * sizeof(vrna_move_t));
+      free(deletionList);
+    }
+
+    if (options & VRNA_MOVESET_INSERTION) {
+      /*  append insertion moves */
+      vrna_move_t *insertionList = insertions(vc, pt, &lengthInsertions);
+      totalLength += lengthInsertions;
+      moveSet     = (vrna_move_t *)vrna_realloc(moveSet, sizeof(vrna_move_t) * (totalLength + 1));
+      ptMoveSetEnd = moveSet + lengthDeletions;
+      memcpy(ptMoveSetEnd, insertionList, lengthInsertions * sizeof(vrna_move_t));
+      free(insertionList);
+    }
+
+    if (options & VRNA_MOVESET_SHIFT) {
+      /*  append shift moves */
+      int         lengthShifts;
+      vrna_move_t *shiftList = shifts(vc, pt, &lengthShifts);
+      totalLength += lengthShifts;
+      moveSet     = (vrna_move_t *)vrna_realloc(moveSet, sizeof(vrna_move_t) * (totalLength + 1));
+      ptMoveSetEnd = moveSet + lengthInsertions + lengthDeletions;
+      memcpy(ptMoveSetEnd, shiftList, lengthShifts * sizeof(vrna_move_t));
+      free(shiftList);
+    }
   }
 
   if(totalLength > 0){
@@ -1769,3 +2205,4 @@ vrna_neighbors_successive(const vrna_fold_compound_t  *vc,
 
   return newMoves;
 }
+
