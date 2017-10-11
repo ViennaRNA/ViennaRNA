@@ -10,7 +10,7 @@ import unittest
 
 kT = 0.61632077549999997
 # maximum allowed difference beteen compared probabilties
-allowed_diff = 1e-8
+allowed_diff = 1e-7
 
 # some sequences to work with
 shortseq = "UGGGAAUAGUCUCUUCCGAGUCUCGCGGGCGACGGGCGAUCUUCGAAAGUGGAAUCCGUA"
