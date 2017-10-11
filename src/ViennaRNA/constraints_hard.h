@@ -291,18 +291,35 @@ typedef unsigned char (vrna_callback_hc_evaluate)(int           i,
  */
 #define VRNA_CONSTRAINT_CONTEXT_NO_REMOVE     (unsigned char)0x80
 
+
 /**
- * @brief  Hard constraints flag, shortcut for all base pairs
+ *  @brief  Constraint context flag that forbids any loop
+ */
+#define VRNA_CONSTRAINT_CONTEXT_NONE          (unsigned char)0
+
+/**
+ *  @brief  Constraint context flag indicating base pairs that close any loop
+ */
+#define VRNA_CONSTRAINT_CONTEXT_CLOSING_LOOPS (unsigned char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP | \
+                                                              VRNA_CONSTRAINT_CONTEXT_HP_LOOP | \
+                                                              VRNA_CONSTRAINT_CONTEXT_INT_LOOP | \
+                                                              VRNA_CONSTRAINT_CONTEXT_MB_LOOP)
+
+/**
+ *  @brief  Constraint context flag indicating base pairs enclosed by any loop
+ */
+#define VRNA_CONSTRAINT_CONTEXT_ENCLOSED_LOOPS  (unsigned char)(VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC | \
+                                                                VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
+
+/**
+ * @brief  Constraint context flag indicating any loop context
  *
  *  @ingroup  hard_constraints
  *
  */
-#define VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS     (unsigned char)(VRNA_CONSTRAINT_CONTEXT_EXT_LOOP \
-                                                              | VRNA_CONSTRAINT_CONTEXT_HP_LOOP \
-                                                              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP \
-                                                              | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC \
-                                                              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP \
-                                                              | VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
+#define VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS     (unsigned char)(VRNA_CONSTRAINT_CONTEXT_CLOSING_LOOPS | \
+                                                              VRNA_CONSTRAINT_CONTEXT_ENCLOSED_LOOPS)
+
 
 /**
  *  @brief  The hard constraints type
@@ -479,8 +496,8 @@ void vrna_hc_init_window(vrna_fold_compound_t *vc);
 
 
 void
-vrna_hc_update(vrna_fold_compound_t *vc,
-               int                  i);
+vrna_hc_update(vrna_fold_compound_t *fc,
+               unsigned int         i);
 
 
 /**

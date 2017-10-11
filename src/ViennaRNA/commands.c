@@ -763,7 +763,7 @@ parse_constraints_line(const char     *line,
 
   /* default to all loop types */
   *loop     = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-  tmp_loop  = (unsigned char)0;
+  tmp_loop  = VRNA_CONSTRAINT_CONTEXT_NONE;
 
   /* now lets scan the entire line for content */
   while (!ret && (entries_seen < max_entries) &&
