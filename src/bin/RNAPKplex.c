@@ -278,8 +278,8 @@ main(int  argc,
       char    *mfe_struct = NULL;
 
       par         = vrna_params(&md);
-      constraint  = (char *)vrna_alloc(length + 1);
-      mfe_struct  = (char *)vrna_alloc(length + 1);
+      constraint  = (char *)vrna_alloc(sizeof(char) * (length + 1));
+      mfe_struct  = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
       mfe = mfe_pk = fold_par(s1, mfe_struct, par, 0, 0);
       /*      if(verbose)
