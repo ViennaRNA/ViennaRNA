@@ -215,7 +215,7 @@ vrna_filename_sanitize(const char *name,
     sanitized_name  = (char *)vrna_alloc(sizeof(char) * (strlen(name) + 1));
     start           = name;
     i               = 0;
-    while (ptr = strpbrk(start, illegal_chars)) {
+    while ((ptr = strpbrk(start, illegal_chars))) {
       /* find illegal chars */
       strncpy(sanitized_name + i, start, ptr - start);
       i += ptr - start;
