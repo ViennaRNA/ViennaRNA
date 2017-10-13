@@ -1774,7 +1774,7 @@ compute_pU(vrna_fold_compound_t       *vc,
       for (obp = k + len + turn + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
         if (hc->matrix_local[k][obp - k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
           tt = rtype[ptype[k][obp]];
-          if (tt = 0)
+          if (tt == 0)
             tt = 7;
 
           temp = exp_E_MLstem(tt, S1[obp - 1], S1[k + 1], pf_params) *
