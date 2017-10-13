@@ -52,7 +52,7 @@ PUBLIC int simple_xy_coordinates(short *pair_table, float *x, float *y)
   loop_size  =   (int*) vrna_alloc( 16+(length/5)*sizeof(int) );
   stack_size =   (int*) vrna_alloc( 16+(length/5)*sizeof(int) );
   lp = stk = 0;
-  loop(0, length+1, pair_table);
+  loop(0, length, pair_table);
   loop_size[lp] -= 2;     /* correct for cheating with function loop */
 
   alpha = INIT_ANGLE;

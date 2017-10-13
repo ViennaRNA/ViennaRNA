@@ -8,6 +8,7 @@ SWIG_tmaps = \
   $(srcdir)/../ptr2array.i
 
 SWIG_misc_src = \
+  $(srcdir)/../aln_utils.i \
   $(srcdir)/../combinatorics.i \
   $(srcdir)/../compare.i \
   $(srcdir)/../commands.i \
@@ -16,6 +17,7 @@ SWIG_misc_src = \
   $(srcdir)/../constraints_soft.i \
   $(srcdir)/../constraints_SHAPE.i \
   $(srcdir)/../constraints_ligand.i \
+  $(srcdir)/../data_structures.i \
   $(srcdir)/../duplex.i \
   $(srcdir)/../eval.i \
   $(srcdir)/../file_formats.i \

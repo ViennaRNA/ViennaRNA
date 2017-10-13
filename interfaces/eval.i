@@ -15,22 +15,22 @@
 
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
-    return vrna_eval_structure_pt($self,(const short*)&vc[0]);
+    return vrna_eval_structure_pt($self, (const short*)&vc[0]);
   }
   
   /*  compute free energy for structure given in dot-bracket notation, 
       but now with different FileHandler for verbose, NULL = STDOUT */
-  float eval_structure_verbose(char *structure, FILE *file){
+  float eval_structure_verbose(char *structure, FILE *nullfile = NULL){
 
-    return vrna_eval_structure_verbose($self,structure,file);
+    return vrna_eval_structure_verbose($self, structure, nullfile);
   }
   
   /* compute free energy for structure given in pairtable (verbose), with different FileHandler for verbose, Default value = NULL + STDOUT*/
-  int eval_structure_pt_verbose(std::vector<int> pt, FILE *file){
+  int eval_structure_pt_verbose(std::vector<int> pt, FILE *nullfile = NULL){
 
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
-    return vrna_eval_structure_pt_verbose($self,(const short*)&vc[0],file);
+    return vrna_eval_structure_pt_verbose($self, (const short*)&vc[0], nullfile);
   }
   
   /* compute covariance contributions for consensus structure given in dot-bracket notation */
@@ -44,21 +44,21 @@
 
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
-    return vrna_eval_loop_pt($self,i,(const short*)&vc[0]);
+    return vrna_eval_loop_pt($self, i, (const short*)&vc[0]);
   }
 
   /* returns the energy change by introducing a move on a given structure */
-  float eval_move(const char *structure,int m1, int m2){
+  float eval_move(const char *structure, int m1, int m2){
 
-    return vrna_eval_move($self,structure,m1,m2);
+    return vrna_eval_move($self, structure, m1, m2);
   }
 
   /* returns the energy change by introducing a move on a given pairtable */
-  int eval_move_pt(std::vector<int> pt,int m1, int m2){
+  int eval_move_pt(std::vector<int> pt, int m1, int m2){
 
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
-    return vrna_eval_move_pt($self,((short*)&vc[0]),m1,m2);   /*attention here no const short* as argument*/
+    return vrna_eval_move_pt($self, ((short*)&vc[0]), m1, m2);   /*attention here no const short* as argument*/
   }
 }
 

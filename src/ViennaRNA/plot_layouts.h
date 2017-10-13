@@ -5,9 +5,8 @@
  */
 
 /**
+ *  @addtogroup   plotting_utils
  *  @{
- *  @ingroup   plotting_utils
- *
  */
 #ifndef VIENNA_RNA_PACKAGE_PLOT_LAYOUTS_H
 #define VIENNA_RNA_PACKAGE_PLOT_LAYOUTS_H

@@ -5,15 +5,20 @@
 
 use strict;
 use warnings;
-use Test::More tests => 23;
+use Test::More tests => 37;
 use Data::Dumper;
 use FileHandle;
 
 use RNA;
-use RNApath;
+use RNAHelpers qw(:Paths :Messages);
 
 
-my $datadir = RNApath::getDataDirPath();
+my $datadir = getDataDirPath();
+
+my $kT = 0.61632077549999997;
+# maximum allowed difference beteen compared probabilties
+my $allowed_diff = 1e-7;
+# some sequences to work with
 my $shortseq = "UGGGAAUAGUCUCUUCCGAGUCUCGCGGGCGACGGGCGAUCUUCGAAAGUGGAAUCCGUA";
 my $longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU";
 my $md;
@@ -115,7 +120,23 @@ sub up_callback {
 }
 
 
-print "test_pfl_fold\n";
+sub up_split_callback {
+  my ($v, $v_size, $i, $maxsize, $what, $data) = @_;
+
+  if ($what & RNA::PROBS_WINDOW_UP) {
+    $what = $what & ~RNA::PROBS_WINDOW_UP;
+    # Non-split case:
+    $data->[$i] = $v if $what == RNA::ANY_LOOP;
+    # all the cases where probability is split into different loop contexts
+    $data->{'ext'}->[$i] = $v if $what == RNA::EXT_LOOP;
+    $data->{'hp'}->[$i] = $v if $what == RNA::HP_LOOP;
+    $data->{'int'}->[$i] = $v if $what == RNA::INT_LOOP;
+    $data->{'mb'}->[$i] = $v if $what == RNA::MB_LOOP;
+  }
+}
+
+
+MsgChecking("whether pfl_fold() returns reasonable results");
 $bpp = RNA::pfl_fold($longseq, 200, 150, 0.01);
 
 # sanity check for base pair probabilities
@@ -134,7 +155,7 @@ ok($max_v <= 1.0);
 ok($max_pos == 300);
 
 
-print "test_pfl_fold_up\n";
+MsgChecking("whether pfl_fold_up() returns reasonable results");
 $up = RNA::pfl_fold_up($longseq, 10, 200, 150);
 
 # sanity check for unpaired probabilities
@@ -159,7 +180,7 @@ ok($min_v >= 0);
 ok($max_v <= 1.0);
 
 
-print "test_probs_window\n";
+MsgChecking("whether we can do the same with a single call to probs_window()");
 $md = new RNA::md();
 $md->{max_bp_span} = 150;
 $md->{window_size} = 200;
@@ -204,7 +225,7 @@ ok($min_v >= 0);
 ok($max_v <= 1.0);
 
 
-print "test_pfl_SHAPE\n";
+MsgChecking("whether probs_window() with SHAPE reactivity data and full-length window does the same as regular pf()");
 my @benchmark_set = ( "Lysine_riboswitch_T._martima", "TPP_riboswitch_E.coli" );
 
 for my $b (@benchmark_set) {
@@ -245,7 +266,7 @@ for my $b (@benchmark_set) {
 # Compute partition function and base pair probabilities both, using the implementation
 # for local structure prediction and global structure prediction.
 # When comparing both results, equilibrium probabilities must not have changed!
-print "test_probs_window_full\n";
+MsgChecking("whether probs_window() with full-length window does the same as regular pf()");
 @data = ();
 $md = new RNA::md();
 $md->{'max_bp_span'} = length($shortseq);
@@ -279,7 +300,7 @@ ok($equal_probabilities == 1);
 # line by -1 kcal/mol per nucleotide.
 # When comparing both results, equilibrium probabilities must not have changed,
 # except for free energy of the ensemble!
-print "test_pfl_sc\n";
+MsgChecking("whether lowering the entire ensemble by -1.0 kcal/mol per nucleotide using soft constraints doesn't change equilibrium pairing probabilities");
 $fc = new RNA::fold_compound($longseq, undef, RNA::OPTION_WINDOW);
 
 @data = ();
@@ -315,8 +336,7 @@ ok($equal_probabilities == 1);
 # Compute unpaired probabilities both, constrained and unconstrained, where the
 # constraint simply shifts the free energy base line by -1 kcal/mol per nucleotide.
 # When comparing both results, equilibrium probabilities must not have changed!
-print "test_probs_window_up\n";
-
+MsgChecking("whether lowering the entire ensemble by -1.0 kcal/mol per nucleotide using soft constraints doesn't change equilibrium unpaired probabilities");
 my $ulength = 45;
 
 $md = new RNA::md();
@@ -354,3 +374,189 @@ foreach my $i (1..length($longseq)) {
   }
 }
 ok($equal_probabilities == 1);
+
+
+# Compute unpaired probabilities both, split into different loop contexts and full probability
+# for all loop contexts. This check verifies that the sum of the individual loop types actually
+# adds up to that obtained for any loop
+MsgChecking("whether individual loop context unpaired probabilities sum up properly");
+%data = ( 'ext' => [], 'hp' => [], 'int' => [], 'mb' => [] );
+@data = ();
+
+$md = new RNA::md();
+$md->{'max_bp_span'} = 150;
+$md->{'window_size'} = 200;
+
+$fc = new RNA::fold_compound($longseq, $md, RNA::OPTION_WINDOW);
+$fc->probs_window($ulength, RNA::PROBS_WINDOW_UP | RNA::PROBS_WINDOW_UP_SPLIT, \&up_split_callback, \%data);
+$fc->probs_window($ulength, RNA::PROBS_WINDOW_UP, \&up_split_callback, \@data);
+
+# sum up unpaired probabilities of individual loop contexts
+my $max_diff = 0;
+foreach my $i (1..length($longseq)) {
+  foreach my $u (1..$ulength) {
+    next if !defined($data{'ext'}->[$i][$u]);
+    my $diff = abs($data{'ext'}->[$i][$u] +
+                   $data{'hp'}->[$i][$u] +
+                   $data{'int'}->[$i][$u] +
+                   $data{'mb'}->[$i][$u] -
+                   $data[$i][$u]);
+
+    $max_diff = $diff if $diff > $max_diff;
+  }
+}
+ok($max_diff < $allowed_diff);
+
+
+MsgChecking("whether unpaired probabilities for u = 1 are identical to what we get using regular partition function method");
+@data = ();
+$ulength = 1;
+$md = new RNA::md();
+$md->{'max_bp_span'} = 150;
+$md->{'window_size'} = 200;
+
+$fc = new RNA::fold_compound($shortseq, $md, RNA::OPTION_WINDOW);
+$fc->probs_window($ulength, RNA::PROBS_WINDOW_UP, \&up_split_callback, \@data);
+
+# compute pairing probability and from that
+# unpaired probability for individual nucleotides
+$fc2 = new RNA::fold_compound($shortseq);
+$fc2->pf();
+$bpp = $fc2->bpp();
+
+my @p_single = (0) x (length($shortseq) + 1);
+
+foreach my $i (1..length($shortseq)) {
+  foreach my $j ($i..length($shortseq)) {
+    $p_single[$i] += $bpp->[$i][$j];
+    $p_single[$j] += $bpp->[$i][$j];
+  }
+}
+
+$max_diff = 0;
+foreach my $i (1..length($shortseq)) {
+  my $diff = abs((1. - $p_single[$i]) - $data[$i][1]);
+  $max_diff = $diff if $diff > $max_diff;
+}
+ok($max_diff < $allowed_diff);
+
+
+MsgChecking("whether unpaired probabilties for short RNAs are identical to what we get from exhaustive enumeration");
+RNA::init_rand();
+my $randseq_length = 20;
+$ulength = 5;
+$md = new RNA::md();
+$md->{'max_bp_span'} = $randseq_length;
+$md->{'window_size'} = $randseq_length;
+# turn off dangles due to scaling issues that prevent us
+# from comparing against exhaustive results
+$md->{'dangles'} = 0;
+
+# repreat the test 3 times
+foreach my $trial (0..2) {
+  %data = ( 'ext' => [], 'hp' => [], 'int' => [], 'mb' => [] );
+  my $randseq = RNA::random_string($randseq_length, "ACGU");
+
+  $fc = new RNA::fold_compound($randseq, $md, RNA::OPTION_WINDOW);
+  $fc->probs_window($ulength, RNA::PROBS_WINDOW_UP | RNA::PROBS_WINDOW_UP_SPLIT, \&up_split_callback, \%data);
+
+  # to not run into problems with undef values, fill up with 0 everything thats missing
+  foreach my $i (1..$randseq_length) {
+    foreach my $u (1..$ulength) {
+      $data{'ext'}->[$i]->[$u] = 0 if ! defined $data{'ext'}->[$i]->[$u];
+      $data{'hp'}->[$i]->[$u] = 0 if ! defined $data{'hp'}->[$i]->[$u];
+      $data{'int'}->[$i]->[$u] = 0 if ! defined $data{'int'}->[$i]->[$u];
+      $data{'mb'}->[$i]->[$u] = 0 if ! defined $data{'mb'}->[$i]->[$u];
+    }
+  }
+
+  # compute unpaired probabilities from exhaustive enumeration
+  my $pf = 0.0;
+  my @pu_ext = map { [ (0) x ($ulength + 1) ] } (0..$randseq_length);
+  my @pu_hp = map { [ (0) x ($ulength + 1) ] } (0..$randseq_length);
+  my @pu_int = map { [ (0) x ($ulength + 1) ] } (0..$randseq_length);
+  my @pu_mb = map { [ (0) x ($ulength + 1) ] } (0..$randseq_length);
+
+  # 1st, compute partition functions for loop contexts using subopt()
+  $fc = new RNA::fold_compound($randseq, $md);
+  foreach my $s (@{$fc->subopt(5000)}) {
+    $pf += exp(-$s->{energy} / $kT);
+    my $ss = RNA::db_to_element_string($s->{structure});
+    foreach my $u (1..$ulength) {
+      foreach my $j (1..$randseq_length) {
+        next if $j - $u < 0;
+        my $sub = substr($ss, $j - $u, $u), "\n";
+        $pu_ext[$j][$u] += exp(-$s->{energy}/$kT) if $sub eq ("e" x $u);
+        $pu_hp[$j][$u] += exp(-$s->{energy}/$kT) if $sub eq ("h" x $u);
+        $pu_int[$j][$u] += exp(-$s->{energy}/$kT) if $sub eq ("i" x $u);
+        $pu_mb[$j][$u] += exp(-$s->{energy}/$kT) if $sub eq ("m" x $u);
+      }
+    }
+  }
+
+  # 2nd, get unpaired probabilities
+  foreach my $i (1..$randseq_length) {
+    foreach my $u (1..$ulength) {
+      $pu_ext[$i][$u] = (defined $pu_ext[$i][$u]) ? $pu_ext[$i][$u] / $pf : 0.;
+      $pu_hp[$i][$u]  = (defined $pu_hp[$i][$u])  ? $pu_hp[$i][$u] / $pf  : 0.;
+      $pu_int[$i][$u] = (defined $pu_int[$i][$u]) ? $pu_int[$i][$u] / $pf : 0.;
+      $pu_mb[$i][$u]  = (defined $pu_mb[$i][$u])  ? $pu_mb[$i][$u] / $pf  : 0.;
+    }
+  }
+
+  # 3rd, compute maximum difference for each position
+  my @diff_ext = (0) x ($randseq_length + 1);
+  my @diff_hp = (0) x ($randseq_length + 1);
+  my @diff_int = (0) x ($randseq_length + 1);
+  my @diff_mb = (0) x ($randseq_length + 1);
+
+  foreach my $i (1..$randseq_length) {
+    foreach my $u (1..$ulength) {
+      my $diff;
+      $diff = abs($pu_ext[$i]->[$u] - $data{'ext'}->[$i]->[$u]);
+      $diff_ext[$i] = $diff if $diff > $diff_ext[$i];
+      $diff = abs($pu_hp[$i]->[$u] - $data{'hp'}->[$i]->[$u]);
+      $diff_hp[$i] = $diff if $diff > $diff_hp[$i];
+      $diff = abs($pu_int[$i]->[$u] - $data{'int'}->[$i]->[$u]);
+      $diff_int[$i] = $diff if $diff > $diff_int[$i];
+      $diff = abs($pu_mb[$i]->[$u] - $data{'mb'}->[$i]->[$u]);
+      $diff_mb[$i] = $diff if $diff > $diff_mb[$i];
+    }
+  }
+
+  # Finally, compute average difference
+  my $diff_ext_avg = 0;
+  my $diff_hp_avg = 0;
+  my $diff_int_avg = 0;
+  my $diff_mb_avg = 0;
+  $diff_ext_avg += $_ foreach @diff_ext;
+  $diff_hp_avg += $_ foreach @diff_hp;
+  $diff_int_avg += $_ foreach @diff_int;
+  $diff_mb_avg += $_ foreach @diff_mb;
+
+  $diff_ext_avg /= $randseq_length;
+  $diff_hp_avg /= $randseq_length;
+  $diff_int_avg /= $randseq_length;
+  $diff_mb_avg /= $randseq_length;
+
+  # compute variance
+  my $diff_ext_var = 0;
+  my $diff_hp_var = 0;
+  my $diff_int_var = 0;
+  my $diff_mb_var = 0;
+  $diff_ext_var += ($_ - $diff_ext_avg)**2 foreach @diff_ext;
+  $diff_hp_var += ($_ - $diff_hp_avg)**2 foreach @diff_hp;
+  $diff_int_var += ($_ - $diff_int_avg)**2 foreach @diff_int;
+  $diff_mb_var += ($_ - $diff_mb_avg)**2 foreach @diff_mb;
+
+  printf("\tTrial %d - Difference between pflfold unpaired probs and exhaustive enumeration\n", $trial);
+  printf("\tExterior loop    (avg, var)\t%g\t%g\n", $diff_ext_avg, $diff_ext_var);
+  printf("\tHairpin loop     (avg, var)\t%g\t%g\n", $diff_hp_avg, $diff_hp_var);
+  printf("\tInterior loop    (avg, var)\t%g\t%g\n", $diff_int_avg, $diff_int_var);
+  printf("\tMultibranch loop (avg, var)\t%g\t%g\n", $diff_mb_avg, $diff_mb_var);
+
+  ok($diff_ext_avg < $allowed_diff);
+  ok($diff_hp_avg < $allowed_diff);
+  ok($diff_int_avg < $allowed_diff);
+  ok($diff_mb_avg < $allowed_diff);
+}

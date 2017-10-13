@@ -318,7 +318,7 @@ main(int  argc,
                          ((n_back > 0) ? VRNA_OPTION_PF : 0));
     length = vc->length;
 
-    structure = (char *)vrna_alloc((char)length + 1);
+    structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if (fold_constrained) {
@@ -347,8 +347,6 @@ main(int  argc,
           vrna_message_error("Structure constraint is too long");
 
         if (cstruc) {
-          strncpy(structure, cstruc, sizeof(char) * (cl + 1));
-
           /* convert pseudo-dot-bracket to actual hard constraints */
           unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
 
@@ -358,7 +356,7 @@ main(int  argc,
           if (canonicalBPonly)
             constraint_options |= VRNA_CONSTRAINT_DB_CANONICAL_BP;
 
-          vrna_constraints_add(vc, (const char *)structure, constraint_options);
+          vrna_constraints_add(vc, (const char *)cstruc, constraint_options);
         }
       }
     }
@@ -398,8 +396,7 @@ main(int  argc,
 
     /* stochastic backtracking */
     if (n_back > 0) {
-      double  mfe, kT, ens_en;
-      char    *ss;
+      double mfe, kT, ens_en;
 
       if (vc->cutpoint != -1)
         vrna_message_error("Boltzmann sampling for cofolded structures not implemented (yet)!");
@@ -408,16 +405,12 @@ main(int  argc,
 
       fprintf(output, "%s\n", rec_sequence);
 
-      ss = (char *)vrna_alloc(strlen(rec_sequence) + 1);
-      strncpy(ss, structure, length);
-      mfe = vrna_mfe(vc, ss);
+      mfe = vrna_mfe(vc, structure);
       /* rescale Boltzmann factors according to predicted MFE */
       vrna_exp_params_rescale(vc, &mfe);
       /* ignore return value, we are not interested in the free energy */
-      ens_en  = vrna_pf(vc, ss);
+      ens_en  = vrna_pf(vc, structure);
       kT      = vc->exp_params->kT;
-
-      free(ss);
 
       for (i = 0; i < n_back; i++) {
         char *s, *e_string = NULL;

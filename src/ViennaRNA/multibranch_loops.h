@@ -18,9 +18,8 @@
  */
 
 /**
+ *  @addtogroup  loops
  *  @{
- *  @ingroup  loops
- *
  */
 
 /**

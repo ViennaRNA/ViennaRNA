@@ -21,7 +21,6 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/utils.h"
-#include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/file_formats.h"
@@ -30,15 +29,12 @@
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/constraints_SHAPE.h"
+#include "ViennaRNA/plot_utils.h"
 #include "RNAalifold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
-
-PRIVATE char **annote(const char  *structure,
-                      const char  *AS[]);
-
 
 PRIVATE void  print_pi(const vrna_pinfo_t pi,
                        FILE               *file);
@@ -55,25 +51,14 @@ PRIVATE void  mark_endgaps(char *seq,
                            char egap);
 
 
-PRIVATE cpair *make_color_pinfo(char    **sequences,
-                                plist   *pl,
-                                double  threshold,
-                                int     n_seq,
-                                plist   *mfel);
-
-
-PRIVATE void  dot_bracketify(char *string);
-
-
-/*--------------------------------------------------------------------------*/
 int
 main(int  argc,
      char *argv[])
 {
   struct RNAalifold_args_info args_info;
   FILE                        *clust_file;
-  unsigned int                input_type, options, longest_string,
-                              input_format_options;
+  unsigned int                input_type, options, longest_string, input_format_options,
+                              aln_options;
   char                        *input_string, *string, *structure, *cstruc, **AS, **names,
                               *constraints_file, **shape_files, *shape_method, *filename_plot,
                               *filename_dot, *filename_aln, *filename_out, *filename_in,
@@ -81,14 +66,13 @@ main(int  argc,
                               *aln_prefix, *id_delim, *filename_delim;
   int                         s, n_seq, i, length, noPS, with_shapes, verbose, with_sci, endgaps,
                               aln_columns, mis, circular, doAlnPS, doColor, doMEA, n_back,
-                              istty_out,
-                              istty_in, eval_energy, pf, istty, *shape_file_association, quiet,
-                              tmp_number, batch, continuous_names, id_digits, auto_id, aln_out,
-                              input_file_num, consensus_constraint, enforceConstraints;
-  long int              alignment_number;
-  double                min_en, real_en, cov_en, MEAgamma, bppmThreshold;
-  vrna_md_t             md;
-  vrna_fold_compound_t  *vc;
+                              istty_out, istty_in, eval_energy, pf, istty, *shape_file_association,
+                              quiet, tmp_number, batch, continuous_names, id_digits, auto_id,
+                              aln_out, input_file_num, consensus_constraint, enforceConstraints;
+  long int                    alignment_number;
+  double                      min_en, real_en, cov_en, MEAgamma, bppmThreshold;
+  vrna_md_t                   md;
+  vrna_fold_compound_t        *vc;
 
   string      = NULL;
   structure   = NULL;
@@ -127,7 +111,8 @@ main(int  argc,
   input_files             = NULL;
   tmp_id                  = NULL;
   tmp_structure           = NULL;
-  input_format_options    = VRNA_FILE_FORMAT_MSA_CLUSTAL;                    /* default to ClustalW format */
+  input_format_options    = VRNA_FILE_FORMAT_MSA_CLUSTAL; /* default to ClustalW format */
+  aln_options             = VRNA_ALN_UPPERCASE;           /* we always require uppercase sequence letters internally */
   vc                      = NULL;
   clust_file              = stdin;
   continuous_names        = 0;
@@ -380,6 +365,10 @@ main(int  argc,
     filename_delim = NULL;
   }
 
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if (!(args_info.noconv_given))
+    aln_options |= VRNA_ALN_RNA;
+
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free(&args_info);
 
@@ -394,8 +383,6 @@ main(int  argc,
 
   if (circular && gquad)
     vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
-
-  make_pair_matrix(); /* for make_color_pinfo */
 
   if (circular && noLonelyPairs)
     vrna_message_warning("Depending on the origin of the circular sequence, "
@@ -467,8 +454,11 @@ main(int  argc,
   }
 
   while (!feof(clust_file)) {
-    char *MSA_ID = NULL;
+    char  *MSA_ID     = NULL;
+    char  **MSA_orig  = NULL;
+
     fflush(stdout);
+
     if (istty && (clust_file == stdin)) {
       switch (input_format_options) {
         case VRNA_FILE_FORMAT_MSA_CLUSTAL:
@@ -563,8 +553,14 @@ main(int  argc,
      ##############################################################
      */
 
+    /*
+     *  store original alignment and create a new one for internal computations
+     *  which require all-uppercase letters, and RNA/DNA alphabet
+     */
+    MSA_orig  = AS;
+    AS        = vrna_aln_copy((const char **)MSA_orig, aln_options);
     length    = (int)strlen(AS[0]);
-    structure = (char *)vrna_alloc((unsigned)length + 1);
+    structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
     if (endgaps)
       for (i = 0; i < n_seq; i++)
@@ -583,24 +579,21 @@ main(int  argc,
     vc = vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_DEFAULT);
 
     if (fold_constrained) {
+      unsigned int constraint_options;
       if (cstruc) {
-        strncpy(structure, cstruc, length);
+        constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
         if (enforceConstraints)
-          vrna_constraints_add(vc,
-                               (const char *)structure,
-                               VRNA_CONSTRAINT_DB_DEFAULT | VRNA_CONSTRAINT_DB_ENFORCE_BP);
-        else
-          vrna_constraints_add(vc, (const char *)structure, VRNA_CONSTRAINT_DB_DEFAULT);
+          constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
+
+        vrna_constraints_add(vc, (const char *)cstruc, constraint_options);
       } else if (constraints_file) {
         vrna_constraints_add(vc, constraints_file, 0);
-      } else if (tmp_structure) {
-        dot_bracketify(tmp_structure);
+      } else if ((consensus_constraint) && (tmp_structure != NULL)) {
+        constraint_options = VRNA_CONSTRAINT_DB_DEFAULT | VRNA_CONSTRAINT_DB_WUSS;
         if (enforceConstraints)
-          vrna_constraints_add(vc,
-                               (const char *)tmp_structure,
-                               VRNA_CONSTRAINT_DB_DEFAULT | VRNA_CONSTRAINT_DB_ENFORCE_BP);
-        else
-          vrna_constraints_add(vc, (const char *)tmp_structure, VRNA_CONSTRAINT_DB_DEFAULT);
+          constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
+
+        vrna_constraints_add(vc, (const char *)tmp_structure, constraint_options);
       } else {
         vrna_message_warning("Constraint missing");
       }
@@ -639,7 +632,12 @@ main(int  argc,
     if (with_sci) {
       for (i = 0; AS[i] != NULL; i++) {
         char *seq = get_ungapped_sequence(AS[i]);
-        e_mean += vrna_fold(seq, NULL);
+        if (strlen(seq) > 0) {
+          vrna_fold_compound_t *fc = vrna_fold_compound(seq, &md, VRNA_OPTION_DEFAULT);
+          e_mean += vrna_mfe(fc, NULL);
+          vrna_fold_compound_free(fc);
+        }
+
         free(seq);
       }
       e_mean /= i;
@@ -690,7 +688,7 @@ main(int  argc,
 
     if (!noPS) {
       char **A;
-      A = annote(structure, (const char **)AS);
+      A = vrna_annotate_covar_struct((const char **)AS, structure, &md);
 
       if (doColor)
         (void)vrna_file_PS_rnaplot_a(string, structure, filename_plot, A[0], A[1], &md);
@@ -703,7 +701,7 @@ main(int  argc,
     }
 
     if (doAlnPS)
-      vrna_file_PS_aln(filename_aln, (const char **)AS, (const char **)names, structure,
+      vrna_file_PS_aln(filename_aln, (const char **)MSA_orig, (const char **)names, structure,
                        aln_columns);
 
     if (aln_out) {
@@ -714,7 +712,7 @@ main(int  argc,
 
       vrna_file_msa_write((const char *)aln_prefix,
                           (const char **)names,
-                          (const char **)AS,
+                          (const char **)MSA_orig,
                           MSA_ID,
                           (const char *)structure,
                           "RNAalifold prediction",
@@ -740,9 +738,6 @@ main(int  argc,
         vrna_message_info(stderr, "scaling factor %f\n", vc->exp_params->pf_scale);
 
       fflush(stdout);
-
-      if (cstruc != NULL)
-        strncpy(structure, cstruc, length + 1);
 
       energy = vrna_pf(vc, structure);
 
@@ -848,7 +843,7 @@ main(int  argc,
           print_aliout(vc, pl, bppmThreshold, mfe_struc, aliout);
 
         fclose(aliout);
-        cp = make_color_pinfo(AS, pl, bppmThreshold, n_seq, mfel);
+        cp = vrna_annotate_covar_pairs((const char **)AS, pl, mfel, bppmThreshold, &md);
         (void)PS_color_dot_plot(string, cp, filename_dot);
         free(cp);
         free(pl);
@@ -887,12 +882,9 @@ main(int  argc,
     free(filename_out);
     vrna_fold_compound_free(vc);
 
-    for (i = 0; AS[i]; i++) {
-      free(AS[i]);
-      free(names[i]);
-    }
-    free(AS);
-    free(names);
+    vrna_aln_free(AS);
+    vrna_aln_free(MSA_orig);
+    vrna_aln_free(names);
 
     free(tmp_id);
     free(tmp_structure);
@@ -954,31 +946,6 @@ main(int  argc,
 
 
 PRIVATE void
-dot_bracketify(char *string)
-{
-  int i;
-
-  if (string) {
-    for (i = 0; string[i] != '\0'; i++) {
-      switch (string[i]) {
-        case '<':
-        case '(':
-          string[i] = '(';
-          break;
-        case '>':
-        case ')':
-          string[i] = ')';
-          break;
-        default:
-          string[i] = '.';
-          break;
-      }
-    }
-  }
-}
-
-
-PRIVATE void
 mark_endgaps(char *seq,
              char egap)
 {
@@ -1017,95 +984,6 @@ print_pi(const vrna_pinfo_t pi,
 
 /*-------------------------------------------------------------------------*/
 
-PRIVATE char **
-annote(const char *structure,
-       const char *AS[])
-{
-  /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
-  char  *ps, *colorps, **A;
-  int   i, n, s, pairings, maxl;
-  short *ptable;
-  char  *colorMatrix[6][3] = {
-    { "0.0 1",  "0.0 0.6",  "0.0 0.2"   },  /* red    */
-    { "0.16 1", "0.16 0.6", "0.16 0.2"  },  /* ochre  */
-    { "0.32 1", "0.32 0.6", "0.32 0.2"  },  /* turquoise */
-    { "0.48 1", "0.48 0.6", "0.48 0.2"  },  /* green  */
-    { "0.65 1", "0.65 0.6", "0.65 0.2"  },  /* blue   */
-    { "0.81 1", "0.81 0.6", "0.81 0.2"  }   /* violet */
-  };
-
-  n     = strlen(AS[0]);
-  maxl  = 1024;
-
-  A       = (char **)vrna_alloc(sizeof(char *) * 2);
-  ps      = (char *)vrna_alloc(maxl);
-  colorps = (char *)vrna_alloc(maxl);
-  ptable  = vrna_ptable(structure);
-  for (i = 1; i <= n; i++) {
-    char  pps[64], ci = '\0', cj = '\0';
-    int   j, type, pfreq[8] = {
-      0, 0, 0, 0, 0, 0, 0, 0
-    }, vi = 0, vj = 0;
-    if ((j = ptable[i]) < i)
-      continue;
-
-    for (s = 0; AS[s] != NULL; s++) {
-      type = pair[encode_char(AS[s][i - 1])][encode_char(AS[s][j - 1])];
-      pfreq[type]++;
-      if (type) {
-        if (AS[s][i - 1] != ci) {
-          ci = AS[s][i - 1];
-          vi++;
-        }
-
-        if (AS[s][j - 1] != cj) {
-          cj = AS[s][j - 1];
-          vj++;
-        }
-      }
-    }
-    for (pairings = 0, s = 1; s <= 7; s++)
-      if (pfreq[s])
-        pairings++;
-
-    if ((maxl - strlen(ps) < 192) || ((maxl - strlen(colorps)) < 64)) {
-      maxl    *= 2;
-      ps      = (char *)vrna_realloc(ps, sizeof(char) * maxl);
-      colorps = (char *)vrna_realloc(colorps, sizeof(char) * maxl);
-      if ((ps == NULL) || (colorps == NULL))
-        vrna_message_error("out of memory in realloc");
-    }
-
-    if (pfreq[0] <= 2 && pairings > 0) {
-      snprintf(pps, 64, "%d %d %s colorpair\n",
-               i, j, colorMatrix[pairings - 1][pfreq[0]]);
-      strcat(colorps, pps);
-    }
-
-    if (pfreq[0] > 0) {
-      snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
-      strcat(ps, pps);
-    }
-
-    if (vi > 1) {
-      snprintf(pps, 64, "%d cmark\n", i);
-      strcat(ps, pps);
-    }
-
-    if (vj > 1) {
-      snprintf(pps, 64, "%d cmark\n", j);
-      strcat(ps, pps);
-    }
-  }
-  free(ptable);
-  A[0]  = colorps;
-  A[1]  = ps;
-  return A;
-}
-
-
-/*-------------------------------------------------------------------------*/
-
 PRIVATE void
 print_aliout(vrna_fold_compound_t *vc,
              plist                *pl,
@@ -1130,73 +1008,4 @@ print_aliout(vrna_fold_compound_t *vc,
 
   fprintf(aliout, "%s\n", mfe);
   free(pi);
-}
-
-
-PRIVATE cpair *
-make_color_pinfo(char   **sequences,
-                 plist  *pl,
-                 double threshold,
-                 int    n_seq,
-                 plist  *mfel)
-{
-  /* produce info for PS_color_dot_plot */
-  cpair *cp;
-  int   i, n, s, a, b, z, t, j, c;
-  int   pfreq[7];
-
-  for (n = 0; pl[n].i > 0; n++);
-  c   = 0;
-  cp  = (cpair *)vrna_alloc(sizeof(cpair) * (n + 1));
-  for (i = 0; i < n; i++) {
-    int ncomp = 0;
-    if (pl[i].p > threshold) {
-      cp[c].i = pl[i].i;
-      cp[c].j = pl[i].j;
-      cp[c].p = pl[i].p;
-      for (z = 0; z < 7; z++)
-        pfreq[z] = 0;
-      for (s = 0; s < n_seq; s++) {
-        a = encode_char(toupper(sequences[s][cp[c].i - 1]));
-        b = encode_char(toupper(sequences[s][cp[c].j - 1]));
-        if ((sequences[s][cp[c].j - 1] == '~') || (sequences[s][cp[c].i - 1] == '~'))
-          continue;
-
-        pfreq[pair[a][b]]++;
-      }
-      for (z = 1; z < 7; z++)
-        if (pfreq[z] > 0)
-          ncomp++;
-
-      cp[c].hue = (ncomp - 1.0) / 6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
-      cp[c].sat = 1 - MIN2(1.0, (float)(pfreq[0] * 2. /*pi[i].bp[0]*/ / (n_seq)));
-      c++;
-    }
-  }
-  for (t = 0; mfel[t].i > 0; t++) {
-    int nofound = 1;
-    for (j = 0; j < c; j++) {
-      if ((cp[j].i == mfel[t].i) && (cp[j].j == mfel[t].j)) {
-        cp[j].mfe = 1;
-        nofound   = 0;
-        break;
-      }
-    }
-    if (nofound) {
-      vrna_message_warning("mfe base pair with very low prob in pf: %d %d",
-                           mfel[t].i,
-                           mfel[t].j);
-
-      cp        = (cpair *)vrna_realloc(cp, sizeof(cpair) * (c + 2));
-      cp[c].i   = mfel[t].i;
-      cp[c].j   = mfel[t].j;
-      cp[c].p   = 0.;
-      cp[c].hue = 0;
-      cp[c].sat = 0;
-      cp[c].mfe = 1;
-      c++;
-      cp[c].i = cp[c].j = 0;
-    }
-  }
-  return cp;
 }

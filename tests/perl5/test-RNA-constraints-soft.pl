@@ -7,10 +7,10 @@ use Test::More tests => 4;
 
 use RNA;
 use warnings;
-use RNApath;
+use RNAHelpers qw(:Paths :Messages);
 
 
-my $datadir = RNApath::getDataDirPath();
+my $datadir = getDataDirPath();
 
 my $seq_con     = "CCCAAAAGGGCCCAAAAGGG";
 my $str_con     = "..........(((....)))";
@@ -44,7 +44,7 @@ sub mfe_window_callback {
 ##################################
 ##test_sc_set_up
 
-print "test_sc_set_up";
+MsgChecking("whether setting unpaired soft constraints to all nucleotides at once works");
 my $seq_sc  =      "CCCAAAAGGG";
 $fc         = new RNA::fold_compound($seq_sc);
 ($ss, $mfe) = $fc->mfe();
@@ -57,19 +57,31 @@ my @m= (0.0,-5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0);  #E 1 0 1 -5 ,  position 
 
 $fc->sc_set_up(\@m);
 ($ss,$mfe) = $fc->mfe();
-printf("%s [%6.2f] \n",$ss,$mfe);
-is(sprintf ("%6.2f",$mfe), sprintf("%6.2f",-5.70));
+printf("%s [%6.2f] \n", $ss, $mfe);
+is(sprintf ("%6.2f", $mfe), sprintf("%6.2f", -5.70));
 undef @m;
-##################################   !!!geht noch nicht
+##################################   We have no argin typemap for multidimensional lists yet, so this doesn't work
 #test_sc_set_bp
-print "test_sc_set_bp";
-
+#MsgChecking("whether setting base pair soft constraints to all nucleotides at once works");
+#
+#@m = ();
+#push @m, [(0) x (length($seq_sc) + 1)] for 0 .. length($seq_sc);
+#
+# add energy of -5 to basepair 1-9 if formed, prefered structure should now be ((.....))., with a energy of -4.90
+#$m[1][9] = -5.0; # base 1-9 should get -5.0 if basepair
+#$m[9][1] = -5.0; # base 1-9 should get -5.0 if basepair
+#
+#$fc = new RNA::fold_compound($seq_sc);
+#$fc->sc_set_bp(\@m);
+#($ss, $mfe) = $fc->mfe();
+#print("%s [%6.2f]\n", $ss, $mfe);
+#is(sprintf ("%6.2f", $mfe), sprintf("%6.2f", -4.90));
 
 
 ##################################
 ##test_sc_mfe_window_add_bp
 
-print "test_sc_mfe_window_bp";
+MsgChecking("whether adding base pair soft constraints works in conjunction with sliding-window MFE prediction");
 
 $fc = new RNA::fold_compound($seq_long, undef, RNA::OPTION_WINDOW);
 
@@ -110,7 +122,7 @@ ok($failed == 0);
 ##################################
 ##test_sc_mfe_window_add_bp
 
-print "test_sc_mfe_window_up";
+MsgChecking("whether adding unpaired soft constraints works in conjunction with sliding-window MFE prediction");
 
 $fc = new RNA::fold_compound($seq_long, undef, RNA::OPTION_WINDOW);
 
@@ -147,7 +159,7 @@ foreach my $hit (@data) {
         }
 
         # get corresponding subsequence
-        $s = substr($seq_long, $hit->{'start'} - 1 - $d, $hit->{'end'} - $hit->{'start'} + 2);
+        $s = substr($seq_long, $hit->{'start'} - 1 - $d, $hit->{'end'} - $hit->{'start'} + 1 + $d);
 
         # re-evaluate free energy of subsequence/hit
         $e = RNA::energy_of_struct($s, $ss);

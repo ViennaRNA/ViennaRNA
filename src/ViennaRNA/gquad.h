@@ -20,9 +20,9 @@
 
 /**
  *  @addtogroup gquads
- *  @brief Various functions related to G-quadruplex computations
  *  @{
- *  @ingroup gquads
+ *
+ *  @brief Various functions related to G-quadruplex computations
  */
 
 

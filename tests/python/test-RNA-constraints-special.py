@@ -21,7 +21,7 @@ class constraintsTest(unittest.TestCase):
         #structWithMotif=      "((((...((((((((......)))))...)))...))))...((.((((((((((.((((((.((.((((....)))).))..)))))).)))))))))))).."
         ret = fc.sc_add_hi_motif("GAUACCAG&CCCUUGGCAGC","(...((((&)...)))...)",-9.22)
         (ss,mfe) = fc.mfe()
-        print ret,"\t",ss, "[ %6.2f" %mfe ,"]"
+        print ret,"\t",ss, "[ %6.2f ]" % mfe
         self.assertEqual(ret,1)
 
 

@@ -1,0 +1,25 @@
+/**
+
+@fn vrna_db_flatten(char *string, unsigned int options)
+@scripting
+@parblock
+This function flattens an input structure string in-place!
+The second parameter is optional and defaults to #VRNA_BRACKETS_DEFAULT.
+
+An overloaded version of this function exists, where an additional second
+parameter can be passed to specify the target brackets, i.e. the type of
+matching pair characters all brackets will be flattened to.
+Therefore, in the scripting language interface this function is a replacement
+for vrna_db_flatten_to().
+@endparblock
+
+
+@fn void vrna_db_flatten_to(char *string, const char target[3], unsigned int options)
+@scripting
+@parblock
+This function is available as an overloaded version of vrna_db_flatten()
+@endparblock
+
+
+
+*/

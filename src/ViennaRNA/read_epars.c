@@ -16,6 +16,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/file_utils.h"
 #include "ViennaRNA/energy_const.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/read_epars.h"
@@ -28,6 +29,8 @@
 #define NST 0
 
 PRIVATE FILE *fp;
+
+PRIVATE char *last_param_file = NULL;
 
 PRIVATE void  display_array(int *p, int size, int line, FILE *fp);
 PRIVATE char  *get_array1(int *arr, int size);
@@ -82,6 +85,14 @@ PRIVATE void  rd_Tetraloop37(void);
 PRIVATE void  rd_Triloop37(void);
 PRIVATE void  rd_Hexaloop37(void);
 
+
+PUBLIC const char *
+last_parameter_file(void)
+{
+  return (const char *)last_param_file;
+}
+
+
 /*------------------------------------------------------------*/
 PUBLIC void read_parameter_file(const char fname[]){
   char        *line, ident[256];
@@ -97,7 +108,7 @@ PUBLIC void read_parameter_file(const char fname[]){
   }
 
   if (!(line = vrna_read_line(fp))) {
-    vrna_message_warning(" File %s is improper.\n", fname);
+    vrna_message_warning(" File %s is invalid.\n", fname);
     fclose(fp);
     return;
   }
@@ -108,6 +119,10 @@ PUBLIC void read_parameter_file(const char fname[]){
                           "Use INTERRUPT-key to stop.");
   }
   free(line);
+
+  /* store file name of parameter data set */
+  free(last_param_file);
+  last_param_file = vrna_basename(fname);
 
   while((line=vrna_read_line(fp))) {
 

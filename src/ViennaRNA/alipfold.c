@@ -169,32 +169,44 @@ wrap_alipf_fold(const char **sequences,
   float               free_energy;
   vrna_fold_compound_t  *vc;
   vrna_exp_param_t    *exp_params;
+  vrna_md_t             md;
 
   if(sequences == NULL) return 0.;
 
   for(n_seq=0;sequences[n_seq];n_seq++); /* count the sequences */
   
-  vc                  = NULL;
+  vc = NULL;
 
-  /* we need vrna_exp_param_t datastructure to correctly init default hard constraints */
-  if(parameters)
-    exp_params = vrna_exp_params_copy(parameters);
-  else{
-    vrna_md_t md;
-    set_model_details(&md); /* get global default parameters */
-    exp_params = vrna_exp_params_comparative(n_seq, &md);
-  }
-  exp_params->model_details.circ        = is_circular;
-  exp_params->model_details.compute_bpp = calculate_bppm;
+  /*
+   *  if present, extract model details from provided parameters variable,
+   *  to properly initialize the fold compound. Otherwise use default
+   *  settings taken from deprecated global variables
+   */
+  if (parameters)
+    vrna_md_copy(&md, &(parameters->model_details));
+  else
+    set_model_details(&md);
 
-  vc = vrna_fold_compound_comparative(sequences, &(exp_params->model_details), VRNA_OPTION_PF);
+  /* set circular and backtracing options */
+  md.circ        = is_circular;
+  md.compute_bpp = calculate_bppm;
 
-  if(parameters){ /* replace exp_params if necessary */
-    free(vc->exp_params);
-    vc->exp_params = exp_params;
+  vc = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_DEFAULT);
+
+  /*
+   *  if present, attach a copy of the parameters structure instead of the
+   *  default parameters but take care of re-setting it to (initialized)
+   *  model details
+   */
+  free(vc->exp_params);
+  if(parameters) {
+    vrna_md_copy(&(parameters->model_details), &(vc->params->model_details));
+    vc->exp_params = vrna_exp_params_copy(parameters);
   } else {
-    free(exp_params);
+    vc->exp_params = vrna_exp_params_comparative(n_seq, &(vc->params->model_details));
   }
+
+  /* propagate global pf_scale into vc->exp_params */
   vc->exp_params->pf_scale = pf_scale;
 
   if(is_constrained && structure){

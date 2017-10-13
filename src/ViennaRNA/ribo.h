@@ -8,8 +8,8 @@
  */
 
 /**
+ *  @addtogroup   file_utils
  *  @{
- *  @ingroup   file_utils
  */
 
 /**

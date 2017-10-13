@@ -2,13 +2,45 @@
 /* Structure Utitlities section          */
 /*#######################################*/
 
+/* first, the ignore list */
+%ignore pack_structure;
+%ignore unpack_structure;
+%ignore make_pair_table;
+%ignore make_pair_table_pk;
+%ignore copy_pair_table;
+%ignore alimake_pair_table;
+%ignore make_pair_table_snoop;
+%ignore make_loop_index_pt;
+%ignore bp_distance;
+%ignore make_referenceBP_array;
+%ignore compute_BPdifferences;
+%ignore parenthesis_structure;
+%ignore parenthesis_zuker;
+%ignore letter_structure;
+%ignore bppm_to_structure;
+%ignore bppm_symbol;
+%ignore plist;
+%ignore assign_plist_from_db;
+%ignore assign_plist_from_pr;
+
+%ignore vrna_hx_t;
+%ignore vrna_hx_s;
+%ignore vrna_ptable_from_string;
+%ignore vrna_db_flatten;
+%ignore vrna_db_flatten_to;
+%ignore vrna_db_from_WUSS;
+
+
+/* next, all the wrappers */
+
+
 /* compressing / decompressing dot-bracket strings */
 %rename (db_pack) vrna_db_pack;
 %newobject vrna_db_pack;
 
-%ignore pack_structure;
 %rename (pack_structure) my_pack_structure;
 %newobject my_pack_structure;
+
 %{
   char *my_pack_structure(const char *s){
     return vrna_db_pack(s);
@@ -19,7 +51,6 @@ char *my_pack_structure(const char *s);
 %rename (db_unpack) vrna_db_unpack;
 %newobject vrna_db_unpack;
 
-%ignore unpack_structure;
 %rename (unpack_structure) my_unpack_structure;
 %newobject my_unpack_structure;
 %{
@@ -63,11 +94,14 @@ char *my_unpack_structure(const char *packed);
 %}
 
 %rename (ptable) my_ptable;
+%rename (ptable_from_string) my_ptable_from_string;
 
 %{
 #include <vector>
 
-  std::vector<int> my_ptable(std::string str){
+  std::vector<int>
+  my_ptable(std::string str)
+  {
     short int* pt = vrna_ptable(str.c_str());
     std::vector<int> v_pt;
     int i;
@@ -78,10 +112,27 @@ char *my_unpack_structure(const char *packed);
     free(pt);
     return v_pt;
   }
+
+  std::vector<int>
+  my_ptable_from_string(std::string str,
+                        unsigned int options = VRNA_BRACKETS_DEFAULT)
+  {
+    short int         *pt;
+    int               i;
+    std::vector<int>  v_pt;
+
+    pt = vrna_ptable_from_string(str.c_str(), options);
+
+    for(i = 0; i <= pt[0]; i++)
+      v_pt.push_back(pt[i]);
+
+    free(pt);
+    return v_pt;
+  }
 %}
 
 std::vector<int> my_ptable(std::string str);
-
+std::vector<int> my_ptable_from_string(std::string str, unsigned int options = VRNA_BRACKETS_DEFAULT);
 
 /* pairtable with pseudoknots */
 %rename (ptable_pk) my_ptable_pk;
@@ -120,18 +171,6 @@ std::vector<int> my_ptable_pk(std::string str);
 char *my_db_from_ptable(std::vector<int> pt);
 
 
-/* pair table related functions */
-%ignore make_pair_table;
-%ignore make_pair_table_pk;
-%ignore copy_pair_table;
-%ignore alimake_pair_table;
-%ignore make_pair_table_snoop;
-%ignore make_loop_index_pt;
-
-%ignore vrna_hx_t;
-%ignore vrna_hx_s;
-
-%ignore bp_distance;
 %rename (bp_distance) my_bp_distance;
 %{
   int my_bp_distance(const char *str1, const char *str2){
@@ -139,14 +178,6 @@ char *my_db_from_ptable(std::vector<int> pt);
   }
 %}
 int my_bp_distance(const char *str1, const char *str2);
-
-%ignore make_referenceBP_array;
-%ignore compute_BPdifferences;
-%ignore parenthesis_structure;
-%ignore parenthesis_zuker;
-%ignore letter_structure;
-%ignore bppm_to_structure;
-%ignore bppm_symbol;
 
 
 /*
@@ -175,9 +206,6 @@ typedef struct {
 /*
  * wrap functions that deal with 'vrna_ep_t' I/O
  */
-%ignore plist;
-%ignore assign_plist_from_db;
-%ignore assign_plist_from_pr;
 
 %rename (plist) my_plist;
 
@@ -249,5 +277,50 @@ std::string db_from_plist(std::vector<vrna_ep_t> elem_probs, unsigned int length
 %constant int PLIST_TYPE_I_MOTIF  = VRNA_PLIST_TYPE_I_MOTIF;
 %constant int PLIST_TYPE_UD_MOTIF = VRNA_PLIST_TYPE_UD_MOTIF;
 %constant int PLIST_TYPE_STACK    = VRNA_PLIST_TYPE_STACK;
+
+
+/*
+ *  Wrap library routines for secondary structure annotations formats
+ *  dot-bracket, WUSS, etc.
+ */
+%{
+
+  void db_flatten(char *structure, unsigned int options = VRNA_BRACKETS_DEFAULT)
+  {
+    vrna_db_flatten(structure, options);
+  }
+
+  void db_flatten(char *structure, std::string target, unsigned int options = VRNA_BRACKETS_DEFAULT)
+  {
+    if (target.size() == 2)
+      vrna_db_flatten_to(structure, target.c_str(), options);
+    else
+      vrna_message_warning("db_flatten(): target pair must be string of exactly 2 characters!");
+  }
+
+  std::string
+  db_from_WUSS(std::string wuss)
+  {
+    char *c_str = vrna_db_from_WUSS(wuss.c_str());
+    std::string db = c_str;
+    free(c_str);
+    return db;
+  }
+%}
+
+void db_flatten(char *structure, unsigned int options = VRNA_BRACKETS_DEFAULT);
+void db_flatten(char *structure, std::string target, unsigned int options = VRNA_BRACKETS_DEFAULT);
+
+
+%constant unsigned int BRACKETS_RND   = VRNA_BRACKETS_RND;
+%constant unsigned int BRACKETS_ANG   = VRNA_BRACKETS_ANG;
+%constant unsigned int BRACKETS_SQR   = VRNA_BRACKETS_SQR;
+%constant unsigned int BRACKETS_CLY   = VRNA_BRACKETS_CLY;
+%constant unsigned int BRACKETS_ALPHA = VRNA_BRACKETS_ALPHA;
+%constant unsigned int BRACKETS_DEFAULT = VRNA_BRACKETS_DEFAULT;
+
+%newobject vrna_db_to_element_string;
+%rename (db_to_element_string) vrna_db_to_element_string;
+
 
 %include  <ViennaRNA/structure_utils.h>

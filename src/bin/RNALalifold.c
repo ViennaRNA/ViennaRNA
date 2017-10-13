@@ -21,6 +21,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/plot_aln.h"
 #include "ViennaRNA/plot_structure.h"
+#include "ViennaRNA/plot_utils.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/Lfold.h"
@@ -37,9 +38,12 @@
 
 #include "ViennaRNA/color_output.inc"
 
+#define DEFAULT_SPAN  70;
+
 typedef struct {
   char      **names;
   char      **strings;
+  char      **strings_orig;
   char      *prefix;
   int       columns;
   vrna_md_t *md;
@@ -51,20 +55,9 @@ typedef struct {
   float     threshold;
   int       n_seq;
   int       dangle_model;
+  int       split_energies;
+  int       with_shapes;
 } hit_data;
-
-
-PRIVATE char **annote(const char  *structure,
-                      const char  *AS[],
-                      vrna_md_t   *md);
-
-
-PRIVATE char **get_subalignment(const char  *AS[],
-                                int         i,
-                                int         j);
-
-
-PRIVATE void  delete_alignment(char *AS[]);
 
 
 PRIVATE void
@@ -81,32 +74,32 @@ main(int  argc,
 {
   FILE                          *clust_file;
   struct RNALalifold_args_info  args_info;
-  char                          *string, *structure, *ParamFile, *ns_bases, *prefix, *tmp_string,
+  char                          *string, *structure, *prefix, *tmp_string,
                                 **AS, **names, *filename_in, *id_prefix, *id_delim, *filename_delim,
                                 **input_files, *tmp_id, *tmp_structure, **shape_files,
                                 *shape_method;
-  unsigned int                  input_format_options, longest_string;
-  int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id, gquad,
+  unsigned int                  input_format_options, longest_string, aln_options;
+  int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id,
                                 mis, istty, alnPS, aln_columns, aln_out, ssPS, input_file_num,
                                 id_digits, with_shapes, *shape_file_association, verbose, s,
-                                tmp_number;
+                                tmp_number, split_contributions;
   long int                      alignment_number, first_alignment_number;
   float                         e_max;
   vrna_md_t                     md;
   vrna_fold_compound_t          *fc;
 
   clust_file              = stdin;
-  string                  = structure = ParamFile = ns_bases = prefix = NULL;
+  string                  = structure = prefix = NULL;
   mis                     = 0;
-  maxdist                 = 70;
+  maxdist                 = DEFAULT_SPAN;
   do_backtrack            = unchangednc = unchangedcv = 1;
-  dangles                 = 2;
   ribo                    = 0;
   alnPS                   = 0;
   ssPS                    = 0;
   aln_out                 = 0;
   aln_columns             = 60;
   input_format_options    = VRNA_FILE_FORMAT_MSA_CLUSTAL; /* default to ClustalW format */
+  aln_options             = VRNA_ALN_UPPERCASE;           /* we always require uppercase sequence letters internally */
   filename_in             = NULL;
   input_files             = NULL;
   input_file_num          = 0;
@@ -117,8 +110,8 @@ main(int  argc,
   verbose                 = 0;
   quiet                   = 0;
   auto_id                 = 0;
-  gquad                   = 0;
   e_max                   = -0.1; /* threshold in kcal/mol per nucleotide in a hit */
+  split_contributions     = 0;
 
   vrna_md_set_default(&md);
 
@@ -130,53 +123,22 @@ main(int  argc,
   if (RNALalifold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* get basic set of model details */
+  ggo_get_md_eval(args_info, md);
+  ggo_get_md_fold(args_info, md);
+
+  /* check dangle model */
+  if ((md.dangles < 0) || (md.dangles > 3)) {
+    vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+    md.dangles = 2;
+  }
+
   ggo_get_ID_manipulation(args_info,
                           auto_id,
                           id_prefix, "alignment",
                           id_delim, "_",
                           id_digits, 4,
                           alignment_number, 1);
-
-  /* temperature */
-  if (args_info.temp_given)
-    md.temperature = temperature = args_info.temp_arg;
-
-  /* structure constraint */
-  if (args_info.noTetra_given)
-    md.special_hp = tetra_loop = 0;
-
-  /* set dangle model */
-  if (args_info.dangles_given) {
-    if ((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning(
-        "required dangle model not implemented, falling back to default dangles=2");
-    else
-      md.dangles = dangles = args_info.dangles_arg;
-  }
-
-  /* do not allow weak pairs */
-  if (args_info.noLP_given)
-    md.noLP = noLonelyPairs = 1;
-
-  /* do not allow wobble pairs (GU) */
-  if (args_info.noGU_given)
-    md.noGU = noGU = 1;
-
-  /* do not allow weak closing pairs (AU,GU) */
-  if (args_info.noClosingGU_given)
-    md.noGUclosure = no_closingGU = 1;
-
-  /* set energy model */
-  if (args_info.energyModel_given)
-    md.energy_set = energy_set = args_info.energyModel_arg;
-
-  /* take another energy parameter set */
-  if (args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
-
-  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if (args_info.nsp_given)
-    ns_bases = strdup(args_info.nsp_arg);
 
   /* set cfactor */
   if (args_info.cfactor_given) {
@@ -190,10 +152,6 @@ main(int  argc,
     unchangednc = 0;
   }
 
-  /* set the maximum base pair span */
-  if (args_info.span_given)
-    md.max_bp_span = maxdist = args_info.span_arg;
-
   /* calculate most informative sequence */
   if (args_info.mis_given)
     mis = 1;
@@ -201,25 +159,20 @@ main(int  argc,
   if (args_info.csv_given)
     csv = 1;
 
-  if (args_info.ribosum_file_given) {
-    md.ribo     = ribo = 1;
-    RibosumFile = strdup(args_info.ribosum_file_arg);
-  }
-
-  if (args_info.ribosum_scoring_given) {
-    RibosumFile = NULL;
-    md.ribo     = ribo = 1;
-  }
-
-  /* gquadruplex support */
-  if (args_info.gquad_given)
-    md.gquad = gquad = 1;
-
   if (args_info.aln_given) {
     alnPS = aln_out = ssPS = 1;
     if (args_info.aln_arg)
       prefix = strdup(args_info.aln_arg);
   }
+
+  if (args_info.aln_EPS_ss_given)
+    ssPS = 1;
+
+  if (args_info.aln_EPS_given)
+    alnPS = 1;
+
+  if (args_info.aln_EPS_cols_given)
+    aln_columns = args_info.aln_EPS_cols_arg;
 
   if (args_info.aln_stk_given) {
     aln_out = 1;
@@ -235,14 +188,70 @@ main(int  argc,
     }
   }
 
-  if (args_info.aln_EPS_ss_given)
-    ssPS = 1;
+  if (args_info.ribosum_file_given) {
+    RibosumFile = strdup(args_info.ribosum_file_arg);
+    md.ribo     = ribo = 1;
+  }
 
-  if (args_info.aln_EPS_given)
-    alnPS = 1;
+  if (args_info.ribosum_scoring_given) {
+    RibosumFile = NULL;
+    md.ribo     = ribo = 1;
+  }
 
-  if (args_info.aln_EPS_cols_given)
-    aln_columns = args_info.aln_EPS_cols_arg;
+  if (args_info.verbose_given)
+    verbose = 1;
+
+  if (args_info.quiet_given) {
+    if (verbose)
+      vrna_message_warning(
+        "Can not be verbose and quiet at the same time! I keep on being chatty...");
+    else
+      quiet = 1;
+  }
+
+  /* SHAPE reactivity data */
+  if (args_info.shape_given) {
+    if (verbose)
+      vrna_message_info(stderr, "SHAPE reactivity data correction activated");
+
+    with_shapes             = 1;
+    shape_files             = (char **)vrna_alloc(sizeof(char *) * (args_info.shape_given + 1));
+    shape_file_association  = (int *)vrna_alloc(sizeof(int *) * (args_info.shape_given + 1));
+
+    /* find longest string in argument list */
+    longest_string = 0;
+    for (s = 0; s < args_info.shape_given; s++)
+      if (strlen(args_info.shape_arg[s]) > longest_string)
+        longest_string = strlen(args_info.shape_arg[s]);
+
+    tmp_string  = (char *)vrna_alloc(sizeof(char) * (longest_string + 1));
+    tmp_number  = 0;
+
+    for (s = 0; s < args_info.shape_given; s++) {
+      /* check whether we have int=string style that specifies a SHAPE file for a certain sequence number in the alignment */
+      if (sscanf(args_info.shape_arg[s], "%d=%s", &tmp_number, tmp_string) == 2) {
+        shape_files[s]            = strdup(tmp_string);
+        shape_file_association[s] = tmp_number - 1;
+      } else {
+        shape_files[s]            = strdup(args_info.shape_arg[s]);
+        shape_file_association[s] = s;
+      }
+
+      if (verbose) {
+        vrna_message_info(stderr,
+                          "Using SHAPE reactivity data provided in file %s for sequence %d",
+                          shape_files[s],
+                          shape_file_association[s] + 1);
+      }
+    }
+
+    shape_file_association[s] = -1;
+
+    free(tmp_string);
+  }
+
+  if (with_shapes)
+    shape_method = strdup(args_info.shapeMethod_arg);
 
   /* alignment file name given as unnamed option? */
   if (args_info.inputs_num == 1) {
@@ -303,63 +312,15 @@ main(int  argc,
     filename_delim = NULL;
   }
 
-  if (args_info.verbose_given)
-    verbose = 1;
-
-  if (args_info.quiet_given) {
-    if (verbose)
-      vrna_message_warning(
-        "Can not be verbose and quiet at the same time! I keep on being chatty...");
-    else
-      quiet = 1;
-  }
-
   if (args_info.threshold_given)
     e_max = (float)args_info.threshold_arg;
 
-  /* SHAPE reactivity data */
-  if (args_info.shape_given) {
-    if (verbose)
-      vrna_message_info(stderr, "SHAPE reactivity data correction activated");
+  /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
+  if (!(args_info.noconv_given))
+    aln_options |= VRNA_ALN_RNA;
 
-    with_shapes             = 1;
-    shape_files             = (char **)vrna_alloc(sizeof(char *) * (args_info.shape_given + 1));
-    shape_file_association  = (int *)vrna_alloc(sizeof(int *) * (args_info.shape_given + 1));
-
-    /* find longest string in argument list */
-    longest_string = 0;
-    for (s = 0; s < args_info.shape_given; s++)
-      if (strlen(args_info.shape_arg[s]) > longest_string)
-        longest_string = strlen(args_info.shape_arg[s]);
-
-    tmp_string  = (char *)vrna_alloc(sizeof(char) * (longest_string + 1));
-    tmp_number  = 0;
-
-    for (s = 0; s < args_info.shape_given; s++) {
-      /* check whether we have int=string style that specifies a SHAPE file for a certain sequence number in the alignment */
-      if (sscanf(args_info.shape_arg[s], "%d=%s", &tmp_number, tmp_string) == 2) {
-        shape_files[s]            = strdup(tmp_string);
-        shape_file_association[s] = tmp_number - 1;
-      } else {
-        shape_files[s]            = strdup(args_info.shape_arg[s]);
-        shape_file_association[s] = s;
-      }
-
-      if (verbose) {
-        vrna_message_info(stderr,
-                          "Using SHAPE reactivity data provided in file %s for sequence %d",
-                          shape_files[s],
-                          shape_file_association[s] + 1);
-      }
-    }
-
-    shape_file_association[s] = -1;
-
-    free(tmp_string);
-  }
-
-  if (with_shapes)
-    shape_method = strdup(args_info.shapeMethod_arg);
+  if (args_info.split_contributions_given)
+    split_contributions = 1;
 
   /* free allocated memory of command line data structure */
   RNALalifold_cmdline_parser_free(&args_info);
@@ -375,15 +336,13 @@ main(int  argc,
   if ((ribo == 1) && (unchangedcv))
     md.cv_fact = cv_fact = 0.6;
 
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
-
-  if (ns_bases != NULL)
-    vrna_md_set_nonstandards(&md, ns_bases);
-
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
-  md.max_bp_span = md.window_size = maxdist;
+  /* check whether the user wants a non-default base pair span */
+  if (md.max_bp_span != -1)
+    maxdist = md.window_size = md.max_bp_span;
+  else
+    md.max_bp_span = md.window_size = maxdist;
 
   /*
    #############################################
@@ -423,7 +382,8 @@ main(int  argc,
   first_alignment_number = alignment_number;
 
   while (!feof(clust_file)) {
-    char *MSA_ID = NULL;
+    char  **MSA_orig  = NULL;
+    char  *MSA_ID     = NULL;
     fflush(stdout);
     if (istty && (clust_file == stdin)) {
       switch (input_format_options) {
@@ -487,24 +447,34 @@ main(int  argc,
 
     print_fasta_header(stdout, MSA_ID);
 
-    fc =
-      vrna_fold_compound_comparative((const char **)AS, &md, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+    /*
+     *  store original alignment and create a new one for internal computations
+     *  which require all-uppercase letters, and RNA/DNA alphabet
+     */
+    MSA_orig  = AS;
+    AS        = vrna_aln_copy((const char **)MSA_orig, aln_options);
+    fc        = vrna_fold_compound_comparative((const char **)AS,
+                                               &md,
+                                               VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
 
     hit_data data;
 
-    data.names        = names;
-    data.strings      = AS;
-    data.prefix       = MSA_ID;
-    data.columns      = aln_columns;
-    data.md           = &md;
-    data.ss_eps       = ssPS;
-    data.msa_eps      = alnPS;
-    data.msa_stk      = aln_out;
-    data.csv          = csv;
-    data.mis          = mis;
-    data.threshold    = e_max;
-    data.n_seq        = n_seq;
-    data.dangle_model = md.dangles;
+    data.names          = names;
+    data.strings        = AS;
+    data.strings_orig   = MSA_orig;
+    data.prefix         = MSA_ID;
+    data.columns        = aln_columns;
+    data.md             = &md;
+    data.ss_eps         = ssPS;
+    data.msa_eps        = alnPS;
+    data.msa_stk        = aln_out;
+    data.csv            = csv;
+    data.mis            = mis;
+    data.threshold      = e_max;
+    data.n_seq          = n_seq;
+    data.dangle_model   = md.dangles;
+    data.split_energies = split_contributions;
+    data.with_shapes    = with_shapes;
 
     if (with_shapes) {
       for (s = 0; shape_file_association[s] != -1; s++);
@@ -536,12 +506,9 @@ main(int  argc,
     free(string);
     free(structure);
 
-    for (i = 0; AS[i]; i++) {
-      free(AS[i]);
-      free(names[i]);
-    }
-    free(AS);
-    free(names);
+    vrna_aln_free(AS);
+    vrna_aln_free(MSA_orig);
+    vrna_aln_free(names);
 
     vrna_fold_compound_free(fc);
     free(MSA_ID);
@@ -612,25 +579,28 @@ print_hit_cb(int        start,
   char      **A, *cons;
   char      **names;
   char      **strings;
+  char      **strings_orig;
   char      *prefix;
   char      *msg, *ss;
-  int       columns, n_seq, dangle_model;
+  int       columns, dangle_model;
   vrna_md_t *md;
-  int       with_ss, with_msa, with_stk, with_csv, with_mis;
+  int       with_ss, with_msa, with_stk, with_csv, with_mis, with_shapes, split_energies;
   float     threshold;
 
-  names         = ((hit_data *)data)->names;
-  strings       = ((hit_data *)data)->strings;
-  prefix        = ((hit_data *)data)->prefix;
-  columns       = ((hit_data *)data)->columns;
-  md            = ((hit_data *)data)->md;
-  with_ss       = ((hit_data *)data)->ss_eps;
-  with_msa      = ((hit_data *)data)->msa_eps;
-  with_stk      = ((hit_data *)data)->msa_stk;
-  with_csv      = ((hit_data *)data)->csv;
-  with_mis      = ((hit_data *)data)->mis;
-  threshold     = ((hit_data *)data)->threshold;
-  dangle_model  = ((hit_data *)data)->dangle_model;
+  names           = ((hit_data *)data)->names;
+  strings         = ((hit_data *)data)->strings;
+  strings_orig    = ((hit_data *)data)->strings_orig;
+  prefix          = ((hit_data *)data)->prefix;
+  columns         = ((hit_data *)data)->columns;
+  md              = ((hit_data *)data)->md;
+  with_ss         = ((hit_data *)data)->ss_eps;
+  with_msa        = ((hit_data *)data)->msa_eps;
+  with_stk        = ((hit_data *)data)->msa_stk;
+  with_csv        = ((hit_data *)data)->csv;
+  with_mis        = ((hit_data *)data)->mis;
+  threshold       = ((hit_data *)data)->threshold;
+  dangle_model    = ((hit_data *)data)->dangle_model;
+  split_energies  = ((hit_data *)data)->split_energies;
 
   if ((dangle_model == 2) && (start > 1)) {
     ss = vrna_strdup_printf(".%s", structure);
@@ -640,15 +610,55 @@ print_hit_cb(int        start,
   }
 
   if ((en / (float)(end - start + 1)) <= threshold) {
-    sub   = get_subalignment((const char **)strings, start, end);
+    sub   = vrna_aln_slice((const char **)strings, (unsigned int)start, (unsigned int)end);
     cons  = (with_mis) ? consens_mis((const char **)sub) : consensus((const char **)sub);
-    A     = annote(ss, (const char **)sub, md);
+    A     = vrna_annotate_covar_struct((const char **)sub, ss, md);
 
 
-    if (with_csv == 1)
-      msg = vrna_strdup_printf(",%6.2f,%d,%d", en, start, end);
-    else
-      msg = vrna_strdup_printf(" (%6.2f) %4d - %4d", en, start, end);
+    if (split_energies) {
+      vrna_fold_compound_t  *sub_fc = vrna_fold_compound_comparative((const char **)sub,
+                                                                     md,
+                                                                     VRNA_OPTION_DEFAULT);
+      float                 real_en = vrna_eval_structure(sub_fc, ss);
+      with_shapes = ((hit_data *)data)->with_shapes;
+      if (with_shapes) {
+        float cov_en = vrna_eval_covar_structure(sub_fc, ss);
+        if (with_csv == 1) {
+          msg = vrna_strdup_printf(",%6.2f,%6.2f,%6.2f,%d,%d",
+                                   real_en,
+                                   -cov_en,
+                                   en - real_en + cov_en,
+                                   start,
+                                   end);
+        } else {
+          msg = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f + %6.2f) %4d - %4d",
+                                   en,
+                                   real_en,
+                                   -cov_en,
+                                   en - real_en + cov_en,
+                                   start,
+                                   end);
+        }
+      } else {
+        if (with_csv == 1) {
+          msg = vrna_strdup_printf(",%6.2f,%6.2f,%d,%d", real_en, en - real_en, start, end);
+        } else {
+          msg = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f) %4d - %4d",
+                                   en,
+                                   real_en,
+                                   en - real_en,
+                                   start,
+                                   end);
+        }
+      }
+
+      vrna_fold_compound_free(sub_fc);
+    } else {
+      if (with_csv == 1)
+        msg = vrna_strdup_printf(",%6.2f,%d,%d", en, start, end);
+      else
+        msg = vrna_strdup_printf(" (%6.2f) %4d - %4d", en, start, end);
+    }
 
     print_structure(stdout, ss, msg);
     free(msg);
@@ -681,14 +691,27 @@ print_hit_cb(int        start,
       tmp_string = vrna_filename_sanitize(fname, "_");
       free(fname);
       fname = tmp_string;
+      char **sub_orig = vrna_aln_slice((const char **)strings_orig,
+                                       (unsigned int)start,
+                                       (unsigned int)end);
 
-      vrna_file_PS_aln_sub(fname, (const char **)sub, (const char **)names, ss, start, -1, columns);
+      vrna_file_PS_aln_sub(fname,
+                           (const char **)sub_orig,
+                           (const char **)names,
+                           ss,
+                           start,
+                           -1,
+                           columns);
       free(fname);
+      vrna_aln_free(sub_orig);
     }
 
     if (with_stk) {
-      unsigned int options = VRNA_FILE_FORMAT_MSA_STOCKHOLM
-                             | VRNA_FILE_FORMAT_MSA_APPEND;
+      char          **sub_orig = vrna_aln_slice((const char **)strings_orig,
+                                                (unsigned int)start,
+                                                (unsigned int)end);
+      unsigned int  options = VRNA_FILE_FORMAT_MSA_STOCKHOLM |
+                              VRNA_FILE_FORMAT_MSA_APPEND;
       if (with_mis)
         options |= VRNA_FILE_FORMAT_MSA_MIS;
 
@@ -702,7 +725,7 @@ print_hit_cb(int        start,
 
         vrna_file_msa_write(fname,
                             (const char **)names,
-                            (const char **)sub,
+                            (const char **)sub_orig,
                             id,
                             ss,
                             "RNALalifold prediction",
@@ -712,7 +735,7 @@ print_hit_cb(int        start,
         id = vrna_strdup_printf("aln_%d_%d", start, end);
         vrna_file_msa_write("RNALalifold_results.stk",
                             (const char **)names,
-                            (const char **)sub,
+                            (const char **)sub_orig,
                             id,
                             ss,
                             "RNALalifold prediction",
@@ -720,137 +743,11 @@ print_hit_cb(int        start,
       }
 
       free(id);
+      vrna_aln_free(sub_orig);
     }
 
-    delete_alignment(sub);
+    vrna_aln_free(sub);
   }
 
   free(ss);
-}
-
-
-PRIVATE char **
-annote(const char *structure,
-       const char *AS[],
-       vrna_md_t  *md)
-{
-  /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
-  char  *ps, *colorps, **A;
-  int   i, n, s, pairings, maxl;
-  short *ptable;
-  char  *colorMatrix[6][3] = {
-    { "0.0 1",  "0.0 0.6",  "0.0 0.2"   },  /* red    */
-    { "0.16 1", "0.16 0.6", "0.16 0.2"  },  /* ochre  */
-    { "0.32 1", "0.32 0.6", "0.32 0.2"  },  /* turquoise */
-    { "0.48 1", "0.48 0.6", "0.48 0.2"  },  /* green  */
-    { "0.65 1", "0.65 0.6", "0.65 0.2"  },  /* blue   */
-    { "0.81 1", "0.81 0.6", "0.81 0.2"  }   /* violet */
-  };
-
-  n     = strlen(AS[0]);
-  maxl  = 1024;
-
-  A       = (char **)vrna_alloc(sizeof(char *) * 2);
-  ps      = (char *)vrna_alloc(maxl);
-  colorps = (char *)vrna_alloc(maxl);
-  ptable  = vrna_ptable(structure);
-  for (i = 1; i <= n; i++) {
-    char  pps[64], ci = '\0', cj = '\0';
-    int   j, type, pfreq[8] = {
-      0, 0, 0, 0, 0, 0, 0, 0
-    }, vi = 0, vj = 0;
-    if ((j = ptable[i]) < i)
-      continue;
-
-    for (s = 0; AS[s] != NULL; s++) {
-      type =
-        md->pair[vrna_nucleotide_encode(AS[s][i - 1], md)][vrna_nucleotide_encode(AS[s][j - 1],
-                                                                                  md)];
-      pfreq[type]++;
-      if (type) {
-        if (AS[s][i - 1] != ci) {
-          ci = AS[s][i - 1];
-          vi++;
-        }
-
-        if (AS[s][j - 1] != cj) {
-          cj = AS[s][j - 1];
-          vj++;
-        }
-      }
-    }
-    for (pairings = 0, s = 1; s <= 7; s++)
-      if (pfreq[s])
-        pairings++;
-
-    if ((maxl - strlen(ps) < 192) || ((maxl - strlen(colorps)) < 64)) {
-      maxl    *= 2;
-      ps      = realloc(ps, maxl);
-      colorps = realloc(colorps, maxl);
-      if ((ps == NULL) || (colorps == NULL))
-        vrna_message_error("out of memory in realloc");
-    }
-
-    if (pfreq[0] <= 2 && pairings > 0) {
-      snprintf(pps, 64, "%d %d %s colorpair\n",
-               i, j, colorMatrix[pairings - 1][pfreq[0]]);
-      strcat(colorps, pps);
-    }
-
-    if (pfreq[0] > 0) {
-      snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
-      strcat(ps, pps);
-    }
-
-    if (vi > 1) {
-      snprintf(pps, 64, "%d cmark\n", i);
-      strcat(ps, pps);
-    }
-
-    if (vj > 1) {
-      snprintf(pps, 64, "%d cmark\n", j);
-      strcat(ps, pps);
-    }
-  }
-  free(ptable);
-  A[0]  = colorps;
-  A[1]  = ps;
-  return A;
-}
-
-
-PRIVATE char **
-get_subalignment(const char **AS,
-                 int        i,
-                 int        j)
-{
-  char  **sub;
-  int   n_seq, s;
-
-  /* get number of sequences in alignment */
-  for (n_seq = 0; AS[n_seq] != NULL; n_seq++);
-
-  sub = (char **)vrna_alloc(sizeof(char *) * (n_seq + 1));
-  for (s = 0; s < n_seq; s++)
-    sub[s] = vrna_alloc(sizeof(char) * (j - i + 2));
-  sub[s] = NULL;
-
-  /* copy subalignment */
-  for (s = 0; s < n_seq; s++) {
-    sub[s]              = memcpy(sub[s], AS[s] + i - 1, sizeof(char) * (j - i + 1));
-    sub[s][(j - i + 1)] = '\0';
-  }
-  return sub;
-}
-
-
-PRIVATE void
-delete_alignment(char **AS)
-{
-  int n_seq;
-
-  /* get number of sequences in alignment */
-  for (n_seq = 0; AS[n_seq] != NULL; n_seq++)
-    free(AS[n_seq]);
-  free(AS);
 }

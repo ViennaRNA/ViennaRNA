@@ -8,10 +8,8 @@
  */
 
 /**
+ *  @addtogroup  units
  *  @{
- *  @ingroup  units
- *
- *
  */
 
 /**

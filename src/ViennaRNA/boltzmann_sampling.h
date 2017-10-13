@@ -15,12 +15,14 @@
  *  @brief Sample a secondary structure of a subsequence from the Boltzmann ensemble according its probability
  *
  *  @ingroup subopt_stochbt
- *  @pre    The fold compound has to be obtained using the #VRNA_OPTION_HYBRID option in vrna_fold_compound()
+ *  @pre    Unique multiloop decomposition has to be active upon creation of @p vc with vrna_fold_compound()
+ *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
+ *          with vrna_md_t.uniq_ML = 1.
  *  @pre    vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @param  vc      The fold compound data structure
  *  @param  length  The length of the subsequence to consider (starting with 5' end)
- *  @return         A sampled secondary structure in dot-bracket notation
+ *  @return         A sampled secondary structure in dot-bracket notation (or NULL on error)
  */
 char *vrna_pbacktrack5(vrna_fold_compound_t *vc,
                        int                  length);
@@ -30,8 +32,9 @@ char *vrna_pbacktrack5(vrna_fold_compound_t *vc,
  *  @brief Sample a secondary structure (consensus structure) from the Boltzmann ensemble according its probability
  *
  *  @ingroup subopt_stochbt
- *  @pre    The dynamic programming (DP) matrices have to allow for unique multibranch loop decomposition, i.e.
- *          the vrna_md_t.uniq_ML flag has to be non-zero before calling vrna_fold_compound()
+ *  @pre    Unique multiloop decomposition has to be active upon creation of @p vc with vrna_fold_compound()
+ *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
+ *          with vrna_md_t.uniq_ML = 1.
  *  @pre    vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
@@ -41,7 +44,7 @@ char *vrna_pbacktrack5(vrna_fold_compound_t *vc,
  *        provided via the #vrna_fold_compound_t
  *
  *  @param  vc      The fold compound data structure
- *  @return         A sampled secondary structure in dot-bracket notation
+ *  @return         A sampled secondary structure in dot-bracket notation (or NULL on error)
  */
 char *vrna_pbacktrack(vrna_fold_compound_t *vc);
 

@@ -9,6 +9,8 @@
 
 /**
  *  @addtogroup neighbors
+ *  @{
+ *
  *  @brief Different functions to generate structural neighbors of a secondary structure according to a particular Move Set.
  *
  *  This module contains methods to compute the neighbors of an RNA secondary structure. Neighbors of a given structure
@@ -104,8 +106,6 @@
  *  The same procedure can be applied for the other direction. This is taking all paired positions within the freed interval
  *  in order to look for pairs with valid positions in the intervals of the environment.
  *
- *  @{
- *  @ingroup  neighbors
  */
 
 typedef struct vrna_move_s vrna_move_t;
@@ -129,6 +129,11 @@ typedef struct vrna_move_s vrna_move_t;
  *  @see vrna_neighbors(), vrna_neighbors_successive, vrna_path()
  */
 #define VRNA_MOVESET_SHIFT       16
+/**
+*  @brief Option flag indicating moves without lonely base pairs
+*  @see vrna_neighbors(), vrna_neighbors_successive, vrna_path()
+*/
+#define VRNA_MOVESET_NO_LP       32
 
 /**
  *  @brief Option flag indicating default move set, i.e. insertions/deletion of a base pair
@@ -151,7 +156,16 @@ typedef struct vrna_move_s vrna_move_t;
 struct vrna_move_s {
   int pos_5;  /**< The 5' position of a base pair, or any position of a shifted pair */
   int pos_3;  /**< The 3' position of a base pair, or any position of a shifted pair */
+  vrna_move_t *next; /**< The next base pair (if an elementary move changes more than one base pair)
+                          Has to be terminated with move 0,0 */
 };
+
+vrna_move_t vrna_move_init(int pos_5, int pos_3);
+
+/**
+ * delete all moves in a zero terminated list.
+ */
+void vrna_move_list_free(vrna_move_t *moves);
 
 /**
  * @brief Apply a particular move / transition to a secondary structure, i.e. transform a structure

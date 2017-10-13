@@ -36,6 +36,7 @@ class GeneralTests(unittest.TestCase):
     def test_plists(self):
         print("test_plists")
         plist = RNA.plist(struct1,0.6)
+        print(plist)
 
 
     def test_filename_sanitize_simple(self):

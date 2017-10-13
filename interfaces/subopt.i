@@ -78,13 +78,13 @@ namespace std {
 
 %{
 
-  SOLUTION *my_subopt(char *seq, char *constraint, int delta, FILE *fp){
-    return subopt(seq, constraint, delta, fp);
+  SOLUTION *my_subopt(char *seq, char *constraint, int delta, FILE *nullfile = NULL){
+    return subopt(seq, constraint, delta, nullfile);
   }
 
-  std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *fp){
+  std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NULL){
     std::vector<subopt_solution> ret;
-    SOLUTION *sol = subopt(seq, NULL, delta, fp);
+    SOLUTION *sol = subopt(seq, NULL, delta, nullfile);
     for(int i = 0; sol[i].structure != NULL; i++){
       subopt_solution a;
       a.energy = sol[i].energy;
@@ -96,58 +96,20 @@ namespace std {
        by swig, when the vector is destroyed
     */
     return ret;
-  }
-
-  std::vector<subopt_solution> my_subopt(char *seq, int delta){
-    std::vector<subopt_solution> ret;
-    SOLUTION *sol = subopt(seq, NULL, delta, NULL);
-    for(int i = 0; sol[i].structure != NULL; i++){
-      subopt_solution a;
-      a.energy = sol[i].energy;
-      a.structure = sol[i].structure;
-      ret.push_back(a);
-    }
-    free(sol);
-    /* The memory occupied by the individual structures will be free'd automatically
-       by swig, when the vector is destroyed
-    */
-    return ret;
-  }
-
-  SOLUTION *my_subopt(char *seq, char *constraint, int delta){
-    return subopt(seq, constraint, delta, NULL);
   }
 
 %}
 
 %newobject my_subopt;
 
-SOLUTION *my_subopt(char *seq, char *constraint, int delta, FILE *fp);
-std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *fp);
-std::vector<subopt_solution> my_subopt(char *seq, int delta);
-SOLUTION *my_subopt(char *seq, char *constraint, int delta);
+SOLUTION *my_subopt(char *seq, char *constraint, int delta, FILE *nullfile = NULL);
+std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NULL);
 
 %extend vrna_fold_compound_t {
 
-  std::vector<subopt_solution> subopt(int delta, int sorted=1){
+  std::vector<subopt_solution> subopt(int delta, int sorted = 1, FILE *nullfile = NULL){
     std::vector<subopt_solution> ret;
-    SOLUTION *sol = vrna_subopt($self, delta, sorted, NULL);
-    for(int i = 0; sol[i].structure != NULL; i++){
-      subopt_solution a;
-      a.energy = sol[i].energy;
-      a.structure = sol[i].structure;
-      ret.push_back(a);
-    }
-    free(sol);
-    /* The memory occupied by the individual structures will be free'd automatically
-       by swig, when the vector is destroyed
-    */
-    return ret;
-  }
-
-  std::vector<subopt_solution> subopt(int delta, int sorted, FILE *fp){
-    std::vector<subopt_solution> ret;
-    SOLUTION *sol = vrna_subopt($self, delta, sorted, fp);
+    SOLUTION *sol = vrna_subopt($self, delta, sorted, nullfile);
     for(int i = 0; sol[i].structure != NULL; i++){
       subopt_solution a;
       a.energy = sol[i].energy;

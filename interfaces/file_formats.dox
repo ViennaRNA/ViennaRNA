@@ -1,0 +1,63 @@
+/**
+
+@fn vrna_file_msa_detect_format(const char *fn, unsigned int options)
+@scripting
+@parblock
+This function exists as an overloaded version where the @p options parameter may be omitted!
+In that case, the @p options parameter defaults to #VRNA_FILE_FORMAT_MSA_DEFAULT.
+@endparblock
+
+
+@fn vrna_file_msa_read(const char *filename, char ***names, char ***aln, char **id, char **structure, unsigned int options)
+@scripting
+@parblock
+In the target scripting language, only the first and last argument, @p filename and @p options, are passed to the corresponding
+function. The other arguments, which serve as output in the C-library, are available as additional return values. Hence,
+a function call in python may look like this:
+
+```
+num_seq, names, aln, id, structure = RNA.file_msa_read("msa.stk", RNA.FILE_FORMAT_MSA_STOCKHOLM)
+```
+
+After successfully reading the first record, the variable @p num_seq contains the number of sequences in the alignment
+(the actual return value of the C-function), while the variables @p names, @p aln, @p id, and @p structure are lists
+of the sequence names and aligned sequences, as well as strings holding the alignment ID and the structure as stated
+in the <tt>SS_cons</tt> line, respectively. Note, the last two return values may be empty strings in case the alignment
+does not provide the required data.
+
+This function exists as an overloaded version where the @p options parameter may be omitted!
+In that case, the @p options parameter defaults to #VRNA_FILE_FORMAT_MSA_STOCKHOLM.
+@endparblock
+
+
+@fn vrna_file_msa_read_record(FILE *fp, char ***names, char ***aln, char **id, char **structure, unsigned int options)
+@scripting
+@parblock
+In the target scripting language, only the first and last argument, @p fp and @p options, are passed to the corresponding
+function. The other arguments, which serve as output in the C-library, are available as additional return values. Hence,
+a function call in python may look like this:
+
+```
+f = open('msa.stk', 'r')
+num_seq, names, aln, id, structure = RNA.file_msa_read_record(f, RNA.FILE_FORMAT_MSA_STOCKHOLM)
+f.close() 
+```
+
+After successfully reading the first record, the variable @p num_seq contains the number of sequences in the alignment
+(the actual return value of the C-function), while the variables @p names, @p aln, @p id, and @p structure are lists
+of the sequence names and aligned sequences, as well as strings holding the alignment ID and the structure as stated
+in the <tt>SS_cons</tt> line, respectively. Note, the last two return values may be empty strings in case the alignment
+does not provide the required data.
+
+This function exists as an overloaded version where the @p options parameter may be omitted!
+In that case, the @p options parameter defaults to #VRNA_FILE_FORMAT_MSA_STOCKHOLM.
+@endparblock
+
+
+@fn vrna_file_msa_write(const char *filename, const char **names, const char **aln, const char *id, const char *structure, const char *source, unsigned int options)
+@scripting
+@parblock
+In the target scripting language, this function exists as a set of overloaded versions, where the last four parameters
+may be omitted. If the @p options parameter is missing the options default to (#VRNA_FILE_FORMAT_MSA_STOCKHOLM | #VRNA_FILE_FORMAT_MSA_APPEND).
+@endparblock
+*/

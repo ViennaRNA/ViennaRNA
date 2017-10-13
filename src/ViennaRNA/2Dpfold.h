@@ -23,11 +23,11 @@
 
 /**
  *  @addtogroup kl_neighborhood_pf
+ *  @{
+ *
  *  @brief Compute the partition function and stochastically sample secondary structures for a partitioning of
  *  the secondary structure space according to the base pair distance to two fixed reference structures
  *
- *  @{
- *  @ingroup  kl_neighborhood_pf
  */
 
 #include <ViennaRNA/data_structures.h>

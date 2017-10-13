@@ -22,6 +22,8 @@
 
 /**
  *  @addtogroup pf_cofold
+ *  @{
+ *
  *  @brief Partition Function Cofolding
  *
  *  To simplify the implementation the partition function computation is done
@@ -55,8 +57,6 @@
  *  the equilibrium concentrations, given input concentrations of A and B, see
  *  e.g. Dimitrov & Zuker (2004)
  *
- *  @{
- *  @ingroup  pf_cofold
  */
 
 /** @brief Typename for the data structure that stores the dimer partition functions, #vrna_dimer_pf_s, as returned by vrna_pf_dimer() */

@@ -16,6 +16,7 @@
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/params.h"
 /**
  *** \file params.c
@@ -350,6 +351,11 @@ get_scaled_params(vrna_md_t *md)
 
   params = (vrna_param_t *)vrna_alloc(sizeof(vrna_param_t));
 
+  memset(params->param_file, '\0', 256);
+  if (last_parameter_file() != NULL) {
+    strncpy(params->param_file, last_parameter_file(), 255);
+  }
+
   params->model_details = *md;  /* copy over the model details */
   params->temperature   = md->temperature;
   tempf                 = ((params->temperature + K0) / Tmeasure);
@@ -490,6 +496,12 @@ get_scaled_exp_params(vrna_md_t *md,
   vrna_exp_param_t  *pf;
 
   pf                = (vrna_exp_param_t *)vrna_alloc(sizeof(vrna_exp_param_t));
+
+  memset(pf->param_file, '\0', 256);
+  if (last_parameter_file() != NULL) {
+    strncpy(pf->param_file, last_parameter_file(), 255);
+  }
+
   pf->model_details = *md;
   pf->temperature   = md->temperature;
   pf->alpha         = md->betaScale;

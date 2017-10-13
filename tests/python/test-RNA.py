@@ -247,7 +247,7 @@ class FoldCompoundTest(unittest.TestCase):
         fc=RNA.fold_compound(align)
         fc.pf()
         (sc,dist) = fc.centroid()
-        print  sc,"\tDistance of :  %6.2f" % dist
+        print sc, "\tDistance of :  %6.2f" % dist
         self.assertTrue(sc and dist)
 
 
@@ -259,7 +259,7 @@ class FoldCompoundTest(unittest.TestCase):
         print "%s [ %6.2f ]" % (ss, gfe)
         self.assertTrue(ss)
         bp_dis = fc.mean_bp_distance()
-        print seq1 ,"\t meanBPDistance : ", bp_dis
+        print seq1, "\t meanBPDistance : ", bp_dis
         self.assertTrue(bp_dis)
 
 
@@ -277,6 +277,4 @@ class FoldCompoundTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
 

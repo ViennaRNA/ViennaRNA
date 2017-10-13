@@ -392,15 +392,14 @@ off
 
 option  "dangles" d
 "How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="\nWith -d1 only unpaired bases can participate in at most one dangling end, this is the\
- default for mfe folding but unsupported for the partition function folding.\n\nWith -d2 this check is ignored,\
- dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
- default for partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly for\
- debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
- moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
- and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
- treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
- energy model.\n\n"
+details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
+ check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
+ any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
+ dangling ends altogether (mostly for debugging).\nWith -d3 mfe folding will allow coaxial stacking\
+ of adjacent helices in multi-loops. At the moment the implementation will not allow coaxial stacking\
+ of the two interior pairs in a loop of degree 3 and works only for mfe folding.\n\nNote that with\
+ -d1 and -d3 only the MFE computations will be using this setting while partition function uses\
+ -d2 setting, i.e. dangling ends will be treated differently.\n\n"
 int
 default="2"
 optional

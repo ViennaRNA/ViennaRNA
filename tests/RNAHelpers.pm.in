@@ -1,0 +1,28 @@
+package RNAHelpers;
+
+use strict;
+use Exporter;
+use warnings;
+
+use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+
+$VERSION     = 1.00;
+@ISA         = qw(Exporter);
+@EXPORT      = ();
+@EXPORT_OK   = qw(MsgChecking getDataDirPath);
+%EXPORT_TAGS = ( Messages => [qw(&MsgChecking)],
+                 Paths => [qw(&getDataDirPath)] );
+
+sub MsgChecking
+{
+  my $msg = shift;
+
+  printf("Checking %s...\n", $msg);
+}
+
+sub getDataDirPath
+{
+    return "@top_srcdir@/tests/data/";
+}
+
+1;

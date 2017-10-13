@@ -22,8 +22,8 @@
  */
 
 /**
+ *  @addtogroup   model_details
  *  @{
- *  @ingroup   model_details
  */
 
 #ifndef NBASES

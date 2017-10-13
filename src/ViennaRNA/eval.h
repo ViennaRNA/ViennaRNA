@@ -28,10 +28,10 @@
 
 /**
  *  @addtogroup eval
+ *  @{
+ *
  *  @brief Functions and variables related to free energy evaluation of sequence/structure pairs.
  *
- *  @{
- *  @ingroup  eval
  */
 
 /** @brief set to first pos of second seq for cofolding  */

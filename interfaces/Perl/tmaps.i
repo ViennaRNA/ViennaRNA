@@ -5,6 +5,12 @@
   else  $1 = NULL;
 }
 
+%typemap(typecheck) FILE * {
+  if (SvOK($input))
+    $1 = (sv_2io($input)) ? 1 : 0;
+}
+
+
 // This tells SWIG to treat char ** as a special case
 %typemap(in) char ** {
         AV *tempav;
@@ -39,12 +45,39 @@
         for (i = 0; i < len ; i++) {
             svs[i] = sv_newmortal();
             sv_setpv((SV*)svs[i], $1[i]);
-        };
+        }
         $result = newRV_noinc((SV*)av_make(len,svs));
         sv_2mortal( $result );
         free(svs);
         argvi++;
 }
+
+/**
+ *  Handle return parameters in argument list
+ */
+%typemap(argout)  std::vector<std::string> *OUTPUT {
+        SV **svs;
+        int i = 0;
+        svs = (SV **) malloc($1->size() * sizeof(SV *));
+        for (std::vector<std::string>::iterator it = $1->begin(); it != $1->end(); it++, i++) {
+            svs[i] = sv_newmortal();
+            sv_setpv((SV*)svs[i], it->c_str());
+        }
+        $result = newRV_noinc((SV*)av_make($1->size(), svs));
+        sv_2mortal( $result );
+        free(svs);
+        argvi++;
+}
+
+// We simply ignore input here
+%typemap(in,numinputs = 0) std::vector<std::string> *OUTPUT(std::vector<std::string> junk) {
+  $1 = &junk;
+}
+
+
+/**
+ *  Handle nested vectors in function return
+ */
 
 namespace std {
   class vector;

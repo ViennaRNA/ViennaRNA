@@ -32,6 +32,11 @@ details="This option can be used to minimize the output of additional informatio
 flag
 off
 
+option  "noconv"  -
+"Do not automatically substitute nucleotide \"T\" with \"U\"\n\n"
+flag
+off
+
 option  "input-format"  f
 "File format of the input multiple sequence alignment (MSA).\n"
 details="If this parameter is set, the input is considered to be in a particular\
@@ -188,6 +193,16 @@ optional
 hidden
 
 
+option  "split-contributions"  -
+"Split the free energy contributions into separate parts\n"
+details="By default, only the total energy contribution for each hit is returned. Using\
+ this option, this contribution is split into individual parts, i.e. the Nearest Neighbor\
+ model energy, the covariance pseudo energy, and if applicable, a remaining pseudo energy\
+ derived from special constraints, such as probing signals like SHAPE.\n\n"
+flag
+off
+
+
 # Options
 section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
@@ -225,7 +240,7 @@ section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"
 
-option  "span"  L
+option  "maxBPspan"  L
 "Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
  j-i>span will be allowed.\n\n"
 int
@@ -264,15 +279,14 @@ off
 
 option  "dangles" d
 "How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="\nWith -d1 only unpaired bases can participate in at most one dangling end, this is unsupported\
- for the partition function folding.\n\nWith -d2 this check is ignored,\
- dangling energies will be added for the bases adjacent to a helix on both sides in any case; this is the\
- default for partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly for\
- debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops. At the\
- moment the implementation will not allow coaxial stacking of the two interior pairs in a loop of degree 3\
- and works only for mfe folding.\n\nNote that by default (as well as with -d1 and -d3) pf and mfe folding\
- treat dangling ends differently. Use -d2 in addition to -p to ensure that both algorithms use the same\
- energy model.\n\n"
+details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
+ check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
+ any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
+ dangling ends altogether (mostly for debugging).\nWith -d3 mfe folding will allow coaxial stacking\
+ of adjacent helices in multi-loops. At the moment the implementation will not allow coaxial stacking\
+ of the two interior pairs in a loop of degree 3 and works only for mfe folding.\n\nNote that with\
+ -d1 and -d3 only the MFE computations will be using this setting while partition function uses\
+ -d2 setting, i.e. dangling ends will be treated differently.\n\n"
 int
 default="2"
 optional

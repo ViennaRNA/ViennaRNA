@@ -22,6 +22,8 @@
 
 /**
  *  @addtogroup energy_parameters
+ *  @{
+ *
  *  @brief All relevant functions to retrieve and copy pre-calculated energy parameter sets as well as
  *  reading/writing the energy parameter set from/to file(s).
  *
@@ -29,8 +31,6 @@
  *  necessary for the folding routines provided by RNAlib. Furthermore, the energy parameter set
  *  in the RNAlib can be easily exchanged by a user-defined one. It is also possible to write the
  *  current energy parameter set into a text file.
- *  @{
- *  @ingroup  energy_parameters
  */
 
 /** @brief Typename for the free energy parameter data structure #vrna_params */
@@ -93,6 +93,7 @@ struct vrna_param_s {
   double    temperature;      /**<  @brief  Temperature used for loop contribution scaling */
 
   vrna_md_t model_details;    /**<  @brief  Model details to be used in the recursions */
+  char      param_file[256];  /**<  @brief  The filename the parameters were derived from, or empty string if they represent the default */
 };
 
 /**
@@ -149,6 +150,7 @@ struct vrna_exp_param_s {
                              */
 
   vrna_md_t model_details;  /**<  @brief  Model details to be used in the recursions */
+  char      param_file[256];  /**<  @brief  The filename the parameters were derived from, or empty string if they represent the default */
 };
 
 

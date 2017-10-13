@@ -40,7 +40,7 @@ class GeneralTests(unittest.TestCase):
         (struct, mfe) = RNA.fold(seq1)
         self.assertEqual(struct,struct1)
         # check energy
-        self.assertTrue(abs(RNA.energy_of_struct(seq1,struct1) - mfe) < 0.0001)
+        self.assertTrue(abs(RNA.energy_of_struct(seq1, struct1) - mfe) < 0.0001)
 
 
     def test_constrained_folding(self):
@@ -48,7 +48,7 @@ class GeneralTests(unittest.TestCase):
         RNA.cvar.fold_constrained = 1
         (struct,cmfe) = RNA.fold(seq1,"....xx....xx....")
         self.assertEqual(struct,'(((..........)))')
-        self.assertTrue(abs(RNA.energy_of_struct(seq1,struct) - cmfe) < 0.0001)
+        self.assertTrue(abs(RNA.energy_of_struct(seq1, struct) - cmfe) < 0.0001)
         RNA.cvar.fold_constrained = 0
 
     def test_tree_distance(self):
@@ -122,6 +122,7 @@ class GeneralTests(unittest.TestCase):
         print("please check the two postscript files test_ss.ps and test_dp.ps")
         RNA.write_parameter_file("test.par")
 
+
     def test_different_symbol_set(self):
         print("test_different_symbol_set")
         RNA.cvar.symbolset = "GC"
@@ -130,32 +131,6 @@ class GeneralTests(unittest.TestCase):
         (ss, en) = RNA.fold(sinv)
         self.assertEqual(ss, struct1)
 
-    def test_suboptimal(self):
-        print("test_suboptimal")
-
-
-        RNA.free_pf_arrays()
-        RNA.free_arrays()
-        RNA.free_co_arrays()
-
-        RNA.cvar.subopt_sorted = 1
-        RNA.cvar.noLonelyPairs = 1
-        solution = RNA.subopt(seq1, None, 500, None)
-
-        print("%d suboptimals" % solution.size());
-        for x in range(0,solution.size()):
-        # the last access should produce a "value out of range" warning
-            if(solution.get(x).structure) :
-                print("%s,%6.2f" % (solution.get(x).structure,solution.get(x).energy))
-
-
-        ## test native array output of subopt()
-        solution = RNA.subopt(seq1, 500)
-        print("%d suboptimals " % len(solution))
-        for s in solution:
-            print("%s %6.2f" % (s.structure,s.energy))
-
-        solution = ""
 
     def test_eos_dimer(self):
         print("test_eos_dimer")
@@ -165,11 +140,12 @@ class GeneralTests(unittest.TestCase):
         RNA.cvar.cut_point = -1
         self.assertEqual(int(e*100+0.5), 70)
 
+
     def test_duplexfold(self):
         print("testing duplexfold()")
         duplex = RNA.duplexfold(seq1, seq2)
-
         self.assertEqual(duplex.structure, ".(((.....(((.&)))))).")
+
 
     def test_alifold(self):
         print("testing alifold()")
@@ -179,6 +155,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(css,"(((.(((...)))..))).")
         self.assertEqual(RNA.consens_mis(align), "SMBHBHYDRBGDVWmVKBB")
         RNA.free_alifold_arrays()
+
 
     def test_moveSets(self):
         print("test_moveSets")
@@ -202,6 +179,7 @@ class GeneralTests(unittest.TestCase):
 
         for c in (coords):
             print(c.X, ",", c.Y)
+
 
     def test_model_details_structure(self):
         print("test_model_details_parameter_structure")
@@ -234,6 +212,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(pf_params.get_temperature(),40.1)
         md = None
 
+
 class FoldCompoundTest(unittest.TestCase):
 
     def test_create_fold_compound_Single(self):
@@ -261,7 +240,7 @@ class FoldCompoundTest(unittest.TestCase):
         fc=RNA.fold_compound(align)
         fc.pf()
         (sc,dist) = fc.centroid()
-        print( sc,"\tDistance of :  %6.2f" % dist)
+        print(sc, "\tDistance of :  %6.2f" % dist)
         self.assertTrue(sc and dist)
 
 
@@ -270,10 +249,10 @@ class FoldCompoundTest(unittest.TestCase):
         print("test_pf")
         fc= RNA.fold_compound(seq1)
         (ss,gfe) = fc.pf()
-        print(ss, "[ %6.2f" %gfe ,"]")
+        print(ss, "[ %6.2f ]" % gfe)
         self.assertTrue(ss)
         bp_dis = fc.mean_bp_distance()
-        print(seq1 ,"\t meanBPDistance : ", bp_dis)
+        print(seq1, "\t meanBPDistance : ", bp_dis)
         self.assertTrue(bp_dis)
 
 
@@ -291,3 +270,4 @@ class FoldCompoundTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

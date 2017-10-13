@@ -21,8 +21,8 @@
  */
 
 /**
+ *  @addtogroup  plotting_utils
  *  @{
- *  @ingroup  plotting_utils
  */
 
 /**

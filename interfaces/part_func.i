@@ -104,6 +104,25 @@ extern char *pbacktrack(char *sequence);
 
 %include  <ViennaRNA/part_func.h>
 %include  <ViennaRNA/equilibrium_probs.h>
+
+/* attach stochastic backtracking functions as method of fold_compound */
+%newobject vrna_fold_compound_t::pbacktrack;
+
+%extend vrna_fold_compound_t {
+
+  char *
+  pbacktrack(void)
+  {
+    return vrna_pbacktrack($self);
+  }
+
+  char *
+  pbacktrack(int length)
+  {
+    return vrna_pbacktrack5($self, length);
+  }
+}
+
 %include  <ViennaRNA/boltzmann_sampling.h>
 
 /**********************************************/

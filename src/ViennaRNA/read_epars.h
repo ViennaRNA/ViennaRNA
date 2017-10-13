@@ -9,13 +9,13 @@
 
 /**
  *  @addtogroup energy_parameters_rw
+ *  @{
+ *
  *  @brief  Read and Write energy parameter sets from and to text files
  *
  *  A default set of parameters, identical to the one described in
  *  @cite mathews:2004 and @cite turner:2010, is compiled into the library.
  *
- *  @{
- *  @ingroup  energy_parameters_rw
  */
 
 /**
@@ -28,6 +28,15 @@ enum parset {
   MMI1N, MMI1N_H, MMI23, MMI23_H, MMM, MMM_H, MME, MME_H, D5, D5_H, D3, D3_H,
   INT11, INT11_H, INT21, INT21_H, INT22, INT22_H, ML, TL,
   TRI, HEX, NIN, MISC};
+
+
+/**
+ *  @brief Get the file name of the parameter file that was most recently loaded
+ *
+ *  @return The file name of the last parameter file, or NULL if parameters are still at defaults
+ */
+const char *
+last_parameter_file(void);
 
 /**
  *  @brief Read energy parameters from a file

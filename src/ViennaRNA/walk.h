@@ -13,9 +13,7 @@
 
 /**
  *  @addtogroup paths
- *
  *  @{
- *  @ingroup  paths
  */
 
 /**

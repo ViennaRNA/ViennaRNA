@@ -5,9 +5,9 @@
 
 %extend vrna_fold_compound_t {
 
-  float mfe_window(FILE *file=NULL){
+  float mfe_window(FILE *nullfile = NULL){
 
-    return vrna_mfe_window($self,file);
+    return vrna_mfe_window($self, nullfile);
   }
 
   /* ONLY possible if VRNA_WITH_SVM is set

@@ -2,20 +2,6 @@
 /* BEGIN interface for fold compound          */
 /**********************************************/
 
-/* ignore all data structures we handle elsewhere */
-%ignore PAIR;
-%ignore plist;
-%ignore cpair;
-%ignore sect;
-%ignore bondT;
-%ignore pu_contrib;
-%ignore interact;
-%ignore pu_out;
-%ignore constrain;
-%ignore folden;
-%ignore snoopT;
-%ignore dupVar;
-
 /* add callback binding methods for fold_compound */
 %include callbacks-fc.i
 %include callbacks-sc.i
@@ -120,12 +106,4 @@ typedef struct {} vrna_fold_compound_t;
 %constant unsigned int OPTION_EVAL_ONLY = VRNA_OPTION_EVAL_ONLY;
 %constant unsigned int OPTION_WINDOW    = VRNA_OPTION_WINDOW;
 
-%rename(basepair) vrna_basepair_t;
-
-typedef struct {
-  int i;
-  int j;
-} vrna_basepair_t;
-
-
-%include <ViennaRNA/data_structures.h>
+%include <ViennaRNA/fold_compound.h>

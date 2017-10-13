@@ -26,8 +26,8 @@
  */
 
 /**
+ *  @addtogroup   loops
  *  @{
- *  @ingroup   loops
  */
 
 /**
@@ -527,6 +527,13 @@ vrna_E_int_loop(vrna_fold_compound_t  *vc,
                 int                   j);
 
 
+/**
+ *  @brief Evaluate the free energy contribution of an interior loop with delimiting
+ *  base pairs @f$(i,j)@f$ and @f$(k,l)@f$
+ *
+ *  @note This function is polymorphic, i.e. it accepts #vrna_fold_compound_t of type
+ *        #VRNA_FC_TYPE_SINGLE as well as #VRNA_FC_TYPE_COMPARATIVE
+ */
 int
 vrna_eval_int_loop(vrna_fold_compound_t *vc,
                    int                  i,

@@ -84,6 +84,7 @@ pkginclude_HEADERS =  \
     ribo.h \
     findpath.h \
     data_structures.h \
+    fold_compound.h \
     MEA.h \
     mm.h \
     loop_energies.h \
@@ -115,6 +116,7 @@ pkginclude_HEADERS =  \
     dp_matrices.h \
     plot_structure.h \
     plot_aln.h \
+    plot_utils.h \
     boltzmann_sampling.h \
     equilibrium_probs.h \
     constraints_ligand.h \
@@ -137,6 +139,7 @@ pkginclude_HEADERS =  \
     ${JSON_H}
 
 libRNA_conv_la_SOURCES = \
+    fold_compound.c \
     dist_vars.c \
     data_structures.c \
     part_func.c \
@@ -206,6 +209,7 @@ libRNA_utils_la_SOURCES = \
     combinatorics.c
 
 libRNA_plotting_la_SOURCES = \
+    plot_utils.c \
     plot_aln.c \
     plot_layouts.c \
     plot_structure.c \
@@ -214,9 +218,17 @@ libRNA_plotting_la_SOURCES = \
 
 libRNA_loops_la_SOURCES = \
     exterior_loops.c \
+    exterior_loops_bt.c \
+    exterior_loops_pf.c \
     hairpin_loops.c \
+    hairpin_loops_bt.c \
+    hairpin_loops_pf.c \
     interior_loops.c \
-    multibranch_loops.c
+    interior_loops_bt.c \
+    interior_loops_pf.c \
+    multibranch_loops.c \
+    multibranch_loops_bt.c \
+    multibranch_loops_pf.c
 
 libRNA_params_la_SOURCES = \
     read_epars.c \
@@ -250,6 +262,10 @@ nodist_pkginclude_HEADERS = vrna_config.h
 EXTRA_DIST =  $(pkginclude_HEADERS) \
               circfold.inc \
               alicircfold.inc \
+              exterior_loops.inc \
+              hairpin_loops.inc \
+              interior_loops.inc \
+              multibranch_loops.inc \
               model_avg.inc \
               model_sd.inc \
               ${SVM_H} \

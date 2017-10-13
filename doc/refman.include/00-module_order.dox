@@ -172,8 +172,11 @@
  *  @defgroup   file_utils                Functions to Read/Write several File Formats for RNA Sequences, Structures, and Alignments
  *  @ingroup    utils
  *
- *  @defgroup   plotting_utils            Functions for Creating RNA Secondary Structures Plots, Dot-Plots, and More
+ *  @defgroup   plotting_utils            Functions for Creating Secondary Structure Plots, Dot-Plots, and More
  *  @ingroup    utils
+ *
+ *  @defgroup   annotation_utils          Functions to generate annotations for Secondary Structure Plots, Dot-Plots, and Others
+ *  @ingroup    plotting_utils
  *
  *  @defgroup   units                     Functions to convert between various units
  *  @ingroup    utils

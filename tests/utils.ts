@@ -8,7 +8,10 @@
 #tcase Sequence_Utils
 
 #test test_vrna_nucleotide_encode
-  vrna_md_t details = {0};
+{
+  vrna_md_t details = {
+    0
+  };
 
   ck_assert_int_eq(vrna_nucleotide_encode('\0', &details), 0);
   ck_assert_int_eq(vrna_nucleotide_encode('_', &details), 0);
@@ -33,11 +36,15 @@
   ck_assert_int_eq(vrna_nucleotide_encode('X', &details), 24);
   ck_assert_int_eq(vrna_nucleotide_encode('K', &details), 11);
   ck_assert_int_eq(vrna_nucleotide_encode('I', &details), 9);
+}
 
 #test test_vrna_nucleotide_decode
-  const char *characters = "_ACGUTXKI";
-  const char *p;
-  vrna_md_t details = {0};
+{
+  const char  *characters = "_ACGUTXKI";
+  const char  *p;
+  vrna_md_t   details = {
+    0
+  };
 
   ck_assert_int_eq(vrna_nucleotide_decode(0, &details), '_');
   ck_assert_int_eq(vrna_nucleotide_decode(1, &details), 'A');
@@ -61,10 +68,14 @@
   ck_assert_int_eq(vrna_nucleotide_decode(24, &details), 'X');
   ck_assert_int_eq(vrna_nucleotide_decode(11, &details), 'K');
   ck_assert_int_eq(vrna_nucleotide_decode(9, &details), 'I');
+}
 
 #test test_sequence_encoding
-  vrna_md_t details = {0};
-  short *data;
+{
+  vrna_md_t details = {
+    0
+  };
+  short     *data;
 
   data = vrna_seq_encode_simple("_AUGC", &details);
   ck_assert_int_eq(data[0], 5); //sequence length
@@ -84,15 +95,18 @@
   ck_assert_int_eq(data[4], 2);
   ck_assert_int_eq(data[5], 1); //value stored in data[1]
   free(data);
-
-  //@TODO: type = 1
-  //@TODO: details.energy_set = 1
+}
+//@TODO: type = 1
+//@TODO: details.energy_set = 1
 
 #tcase Model_Details
 
 #test test_vrna_md_update
-  vrna_md_t details = {0};
-  int i, j, count;
+{
+  vrna_md_t details = {
+    0
+  };
+  int       i, j, count;
 
   vrna_md_update(&details);
 
@@ -133,40 +147,46 @@
   ck_assert_int_eq(details.rtype[5], 6);
   ck_assert_int_eq(details.rtype[6], 5);
   ck_assert_int_eq(details.rtype[7], 7);
+}
 
-  //@TODO: details.noGU = 1
-  //@TODO: details.nonstandards
-  //@TODO: details.energyset = [1, 2, 3]
+//@TODO: details.noGU = 1
+//@TODO: details.nonstandards
+//@TODO: details.energyset = [1, 2, 3]
 
 #tcase Structure_Utils
 
 #test test_get_ptypes
-  vrna_md_t details = {0};
-  const int len = 12;
-  short sequence[] = {len, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1}; //ACGUACGUACGU
-  int i, j, count;
-  int *idx;
-  char *ptype;
+{
+  vrna_md_t details = {
+    0
+  };
+  const int len         = 12;
+  short     sequence[]  = {
+    len, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1
+  };                                                               //ACGUACGUACGU
+  int       i, j, count;
+  int       *idx;
+  char      *ptype;
 
   details.min_loop_size = TURN;
-  int results[][3] = {{7, 2, 1},
-                      {8, 1, 5},
-                      {8, 3, 3},
-                      {9, 4, 6},
-                      {10, 3, 2},
-                      {11, 2, 1},
-                      {11, 4, 4},
-                      {11, 6, 1},
-                      {12, 1, 5},
-                      {12, 3, 3},
-                      {12, 5, 5},
-                      {12, 7, 3},
-                      {0, 0, 0}};
+  int       results[][3] = { { 7,  2, 1 },
+                             { 8,  1, 5 },
+                             { 8,  3, 3 },
+                             { 9,  4, 6 },
+                             { 10, 3, 2 },
+                             { 11, 2, 1 },
+                             { 11, 4, 4 },
+                             { 11, 6, 1 },
+                             { 12, 1, 5 },
+                             { 12, 3, 3 },
+                             { 12, 5, 5 },
+                             { 12, 7, 3 },
+                             { 0,  0, 0 } };
 
   vrna_md_update(&details);
 
   ptype = get_ptypes(sequence, &details, 0);
-  idx = vrna_idx_col_wise(len);
+  idx   = vrna_idx_col_wise(len);
 
   for (i = 0; results[i][0]; ++i)
     ck_assert_int_eq(ptype[idx[results[i][0]] + results[i][1]], results[i][2]);
@@ -180,7 +200,7 @@
 
   free(idx);
   free(ptype);
-
-  //@TODO: extend alphabeth
-  //@TODO: details.noLP = 1
-  //@TODO: idx_type = 1
+}
+//@TODO: extend alphabeth
+//@TODO: details.noLP = 1
+//@TODO: idx_type = 1

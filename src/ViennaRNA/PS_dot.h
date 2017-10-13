@@ -28,8 +28,8 @@
  */
 
 /**
+ *  @addtogroup   plotting_utils
  *  @{
- *  @ingroup   plotting_utils
  */
 
 #define VRNA_PLOT_PROBABILITIES_BP        1U
