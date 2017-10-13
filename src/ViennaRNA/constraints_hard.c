@@ -863,7 +863,8 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                     const char            *constraint,
                     unsigned int          options)
 {
-  char          *hc, *sequence;
+  unsigned char *hc;
+  char          *sequence;
   short         *S;
   unsigned int  length, min_loop_size;
   int           n, i, j, hx, *stack, cut;
