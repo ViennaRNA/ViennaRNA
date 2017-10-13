@@ -375,7 +375,7 @@ main(int  argc,
                                                   VRNA_OPTION_MFE | VRNA_OPTION_HYBRID |
                                                   ((pf) ? VRNA_OPTION_PF : 0));
     length    = vc->length;
-    structure = (char *)vrna_alloc((unsigned)length + 1);
+    structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if (fold_constrained) {
@@ -404,8 +404,6 @@ main(int  argc,
           vrna_message_error("Structure constraint is too long");
 
         if (cstruc) {
-          strncpy(structure, cstruc, sizeof(char) * (cl + 1));
-
           unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
 
           if (enforceConstraints)
@@ -414,7 +412,7 @@ main(int  argc,
           if (canonicalBPonly)
             constraint_options |= VRNA_CONSTRAINT_DB_CANONICAL_BP;
 
-          vrna_constraints_add(vc, (const char *)structure, constraint_options);
+          vrna_constraints_add(vc, (const char *)cstruc, constraint_options);
         }
 
         free(cstruc);

@@ -310,7 +310,7 @@ main(int  argc,
     ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
 
     length    = (int)strlen(rec_sequence);
-    structure = (char *)vrna_alloc((unsigned)length + 1);
+    structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)

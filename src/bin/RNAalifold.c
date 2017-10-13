@@ -560,7 +560,7 @@ main(int  argc,
     MSA_orig  = AS;
     AS        = vrna_aln_copy((const char **)MSA_orig, aln_options);
     length    = (int)strlen(AS[0]);
-    structure = (char *)vrna_alloc((unsigned)length + 1);
+    structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
     if (endgaps)
       for (i = 0; i < n_seq; i++)
@@ -582,11 +582,10 @@ main(int  argc,
       unsigned int constraint_options;
       if (cstruc) {
         constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
-        strncpy(structure, cstruc, length);
         if (enforceConstraints)
           constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
 
-        vrna_constraints_add(vc, (const char *)structure, constraint_options);
+        vrna_constraints_add(vc, (const char *)cstruc, constraint_options);
       } else if (constraints_file) {
         vrna_constraints_add(vc, constraints_file, 0);
       } else if ((consensus_constraint) && (tmp_structure != NULL)) {
@@ -739,9 +738,6 @@ main(int  argc,
         vrna_message_info(stderr, "scaling factor %f\n", vc->exp_params->pf_scale);
 
       fflush(stdout);
-
-      if (cstruc != NULL)
-        strncpy(structure, cstruc, length + 1);
 
       energy = vrna_pf(vc, structure);
 

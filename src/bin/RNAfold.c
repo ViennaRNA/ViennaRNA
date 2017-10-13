@@ -371,8 +371,6 @@ main(int  argc,
           vrna_message_error("structure constraint is too long");
 
         if (cstruc) {
-          strncpy(structure, cstruc, sizeof(char) * (cl + 1));
-
           /** [Adding hard constraints from pseudo dot-bracket] */
           unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
 
@@ -382,7 +380,7 @@ main(int  argc,
           if (canonicalBPonly)
             constraint_options |= VRNA_CONSTRAINT_DB_CANONICAL_BP;
 
-          vrna_constraints_add(vc, (const char *)structure, constraint_options);
+          vrna_constraints_add(vc, (const char *)cstruc, constraint_options);
           /** [Adding hard constraints from pseudo dot-bracket] */
         }
       }
@@ -493,9 +491,6 @@ main(int  argc,
         vrna_message_info(stderr, "scaling factor %f", vc->exp_params->pf_scale);
 
       (void)fflush(output);
-
-      if (cstruc != NULL)
-        strncpy(pf_struc, cstruc, length + 1);
 
       energy = (double)vrna_pf(vc, pf_struc);
 

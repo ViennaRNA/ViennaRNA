@@ -14,8 +14,8 @@ as well as for Windows users are available from Download section of the <a href=
 Usually you'll just unpack, configure and make. To do this type:
 
 @verbatim
-tar -zxvf ViennaRNA-2.4.0.tar.gz
-cd ViennaRNA-2.4.0
+tar -zxvf ViennaRNA-2.4.2.tar.gz
+cd ViennaRNA-2.4.2
 ./configure
 make
 sudo make install

@@ -362,7 +362,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
         continue;
 
       /* try opening the shape data file */
-      if (fp = fopen(shape_files[s], "r")) {
+      if ((fp = fopen(shape_files[s], "r"))) {
         fclose(fp);
         n_data++;
       }

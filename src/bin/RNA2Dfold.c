@@ -197,9 +197,9 @@ main(int  argc,
       free(input_string);
     }
 
-    mfe_structure = (char *)vrna_alloc((unsigned)length + 1);
-    structure1    = (char *)vrna_alloc((unsigned)length + 1);
-    structure2    = (char *)vrna_alloc((unsigned)length + 1);
+    mfe_structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
+    structure1    = (char *)vrna_alloc(sizeof(char) * (length + 1));
+    structure2    = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
     input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
     if (input_type & VRNA_INPUT_QUIT) {

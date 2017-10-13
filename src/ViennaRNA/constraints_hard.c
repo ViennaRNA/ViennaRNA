@@ -47,9 +47,9 @@
  #################################
  */
 PRIVATE unsigned char
-default_pair_constraint(vrna_fold_compound_t *fc,
-                        int                  i,
-                        int                  j);
+default_pair_constraint(vrna_fold_compound_t  *fc,
+                        int                   i,
+                        int                   j);
 
 
 PRIVATE void
@@ -69,18 +69,20 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
 
 
 PRIVATE INLINE void
-apply_stored_bp_hc(unsigned char         *current,
-                   vrna_hc_bp_storage_t  *container,
-                   unsigned int          j);
+apply_stored_bp_hc(unsigned char        *current,
+                   vrna_hc_bp_storage_t *container,
+                   unsigned int         j);
+
 
 PRIVATE INLINE void
 populate_hc_up(vrna_fold_compound_t *fc,
-               unsigned int i);
+               unsigned int         i);
+
 
 PRIVATE INLINE void
 populate_hc_bp(vrna_fold_compound_t *fc,
-               unsigned int i,
-               unsigned int maxdist);
+               unsigned int         i,
+               unsigned int         maxdist);
 
 
 PRIVATE void
@@ -220,13 +222,13 @@ PUBLIC void
 vrna_hc_update(vrna_fold_compound_t *fc,
                unsigned int         i)
 {
-  unsigned int n, maxdist;
-  vrna_hc_t    *hc;
+  unsigned int  n, maxdist;
+  vrna_hc_t     *hc;
 
   if (fc) {
-    n         = fc->length;
-    maxdist   = fc->window_size;
-    hc        = fc->hc;
+    n       = fc->length;
+    maxdist = fc->window_size;
+    hc      = fc->hc;
 
     if (i > n) {
       vrna_message_warning("vrna_hc_update(): Position %u out of range!",
@@ -564,19 +566,18 @@ vrna_hc_add_from_db(vrna_fold_compound_t  *vc,
  # BEGIN OF STATIC HELPER FUNCTIONS  #
  #####################################
  */
-
 PRIVATE unsigned char
-default_pair_constraint(vrna_fold_compound_t *fc,
-                        int                  i,
-                        int                  j)
+default_pair_constraint(vrna_fold_compound_t  *fc,
+                        int                   i,
+                        int                   j)
 {
   unsigned char constraint, can_stack;
   short         *S;
   int           type;
   vrna_md_t     *md;
 
-  md         = &(fc->params->model_details);
-  constraint = VRNA_CONSTRAINT_CONTEXT_NONE;
+  md          = &(fc->params->model_details);
+  constraint  = VRNA_CONSTRAINT_CONTEXT_NONE;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -587,17 +588,17 @@ default_pair_constraint(vrna_fold_compound_t *fc,
           case 0:
             break;
           case 3:
-            /* fallthrough */
+          /* fallthrough */
           case 4:
             if (md->noGU) {
               break;
             } else if (md->noGUclosure) {
-              constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-              constraint &= ~(VRNA_CONSTRAINT_CONTEXT_HP_LOOP | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
+              constraint  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+              constraint  &= ~(VRNA_CONSTRAINT_CONTEXT_HP_LOOP | VRNA_CONSTRAINT_CONTEXT_MB_LOOP);
               break;
             }
 
-            /* else fallthrough */
+          /* else fallthrough */
           default:
             constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
             break;
@@ -608,7 +609,10 @@ default_pair_constraint(vrna_fold_compound_t *fc,
           can_stack = VRNA_CONSTRAINT_CONTEXT_NONE;
 
           /* can it be enclosed by another base pair? */
-          if ((i > 1) && (j < fc->length) && ((j - i + 2) < md->max_bp_span) && (md->pair[S[i - 1]][S[j + 1]]))
+          if ((i > 1) &&
+              (j < fc->length) &&
+              ((j - i + 2) < md->max_bp_span) &&
+              (md->pair[S[i - 1]][S[j + 1]]))
             can_stack = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
           /* can it enclose another base pair? */
@@ -618,15 +622,19 @@ default_pair_constraint(vrna_fold_compound_t *fc,
           constraint &= can_stack;
         }
       }
+
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
       if (((j - i + 1) <= md->max_bp_span) && ((j - i - 1) >= md->min_loop_size)) {
         int min_score = md->cv_fact * MINPSCORE;
-        int act_score = (fc->hc->type == VRNA_HC_WINDOW) ? fc->pscore_local[i][j - i] : fc->pscore[fc->jindx[j] + i];
+        int act_score = (fc->hc->type == VRNA_HC_WINDOW) ?
+                        fc->pscore_local[i][j - i] :
+                        fc->pscore[fc->jindx[j] + i];
         if (act_score >= min_score)
           constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
       }
+
       break;
   }
 
@@ -643,28 +651,27 @@ hc_init_up_storage(vrna_hc_t *hc)
     free(hc->up_storage);
     hc->up_storage = (unsigned char *)vrna_alloc(sizeof(unsigned char) * (hc->n + 2));
 
-    for (i = 1; i <= hc->n; i++) {
+    for (i = 1; i <= hc->n; i++)
       /* by default unpaired nucleotides are allowed in all contexts */
       hc->up_storage[i] = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-    }
   }
 }
 
 
 PRIVATE INLINE void
 populate_hc_up(vrna_fold_compound_t *fc,
-               unsigned int i)
+               unsigned int         i)
 {
   vrna_hc_t *hc = fc->hc;
 
   if (hc->type == VRNA_HC_WINDOW) {
-    if (hc->up_storage) {
+    if (hc->up_storage)
       /* We use user-defined constraints for unpaired nucleotides */
       hc->matrix_local[i][0] = hc->up_storage[i];
-    } else {
+    else
       /* ... or simply allow unpaired nucleotides in all contexts */
       hc->matrix_local[i][0] = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-    }
+
     hc_update_up_window(fc, i);
   } else {
     /* do something reasonable here... */
@@ -726,9 +733,9 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
 
 
 PRIVATE INLINE void
-apply_stored_bp_hc(unsigned char         *current,
-                   vrna_hc_bp_storage_t  *container,
-                   unsigned int          j)
+apply_stored_bp_hc(unsigned char        *current,
+                   vrna_hc_bp_storage_t *container,
+                   unsigned int         j)
 {
   unsigned int  cnt, set;
   unsigned char constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
@@ -757,8 +764,8 @@ apply_stored_bp_hc(unsigned char         *current,
 
 PRIVATE INLINE void
 populate_hc_bp(vrna_fold_compound_t *fc,
-               unsigned int i,
-               unsigned int maxdist)
+               unsigned int         i,
+               unsigned int         maxdist)
 {
   unsigned char constraint;
   unsigned int  j, k, n, turn;
@@ -863,7 +870,8 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                     const char            *constraint,
                     unsigned int          options)
 {
-  char          *hc, *sequence;
+  unsigned char *hc;
+  char          *sequence;
   short         *S;
   unsigned int  length, min_loop_size;
   int           n, i, j, hx, *stack, cut;
@@ -924,10 +932,14 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
             }
           }
 
-          if (options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
-            vrna_hc_add_bp(vc, i, j, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_ENFORCE);
-          else
+          if (options & VRNA_CONSTRAINT_DB_ENFORCE_BP) {
+            vrna_hc_add_bp(vc,
+                           i,
+                           j,
+                           VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_ENFORCE);
+          } else {
             vrna_hc_add_bp(vc, i, j, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+          }
         }
 
         break;
@@ -959,12 +971,19 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
         if (options & VRNA_CONSTRAINT_DB_INTRAMOL) {
           unsigned int l;
           if (cut > 1) {
-            if (j < cut)
+            if (j < cut) {
               for (l = MAX2(j + min_loop_size, cut); l <= length; l++)
-                vrna_hc_add_bp(vc, j, l, VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
-            else
+                vrna_hc_add_bp(vc,
+                               j,
+                               l,
+                               VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+            } else {
               for (l = 1; l < MIN2(cut, j - min_loop_size); l++)
-                vrna_hc_add_bp(vc, l, j, VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+                vrna_hc_add_bp(vc,
+                               l,
+                               j,
+                               VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+            }
           }
         }
 
@@ -977,14 +996,26 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
           if (cut > 1) {
             if (j < cut) {
               for (l = 1; l < j; l++)
-                vrna_hc_add_bp(vc, l, j, VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+                vrna_hc_add_bp(vc,
+                               l,
+                               j,
+                               VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
               for (l = i + 1; l < cut; l++)
-                vrna_hc_add_bp(vc, j, l, VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+                vrna_hc_add_bp(vc,
+                               j,
+                               l,
+                               VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
             } else {
               for (l = cut; l < i; l++)
-                vrna_hc_add_bp(vc, l, j, VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+                vrna_hc_add_bp(vc,
+                               l,
+                               j,
+                               VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
               for (l = i + 1; l <= length; l++)
-                vrna_hc_add_bp(vc, j, l, VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+                vrna_hc_add_bp(vc,
+                               j,
+                               l,
+                               VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
             }
           }
         }
