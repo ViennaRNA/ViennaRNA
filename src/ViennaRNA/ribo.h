@@ -15,17 +15,19 @@
 /**
  *  @brief Retrieve a RiboSum Scoring Matrix for a given Alignment
  *  \ingroup consensus_fold
- * 
+ *
  */
-float **get_ribosum(const char **Alseq,
-                    int n_seq,
-                    int length);
+float **get_ribosum(const char  **Alseq,
+                    int         n_seq,
+                    int         length);
+
 
 /**
  *  \brief Read a RiboSum or other user-defined Scoring Matrix and Store into global Memory
- * 
+ *
  */
-float   **readribosum(char *name);
+float **readribosum(char *name);
+
 
 /**
  *  @}
