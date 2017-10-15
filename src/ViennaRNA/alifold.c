@@ -1,11 +1,11 @@
 /*
-                  minimum free energy folding
-                  for a set of aligned sequences
-
-                  c Ivo Hofacker
-
-                  Vienna RNA package
-*/
+ *                minimum free energy folding
+ *                for a set of aligned sequences
+ *
+ *                c Ivo Hofacker
+ *
+ *                Vienna RNA package
+ */
 
 /**
 *** \file alifold.c
@@ -41,16 +41,16 @@
 #endif
 
 /*
-#################################
-# GLOBAL VARIABLES              #
-#################################
-*/
+ #################################
+ # GLOBAL VARIABLES              #
+ #################################
+ */
 
 /*
-#################################
-# PRIVATE VARIABLES             #
-#################################
-*/
+ #################################
+ # PRIVATE VARIABLES             #
+ #################################
+ */
 
 #ifdef  VRNA_BACKWARD_COMPAT
 
@@ -58,7 +58,7 @@
 
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
-PRIVATE int                 backward_compat           = 0;
+PRIVATE int                   backward_compat           = 0;
 
 #ifdef _OPENMP
 
@@ -69,29 +69,31 @@ PRIVATE int                 backward_compat           = 0;
 #endif
 
 /*
-#################################
-# PRIVATE FUNCTION DECLARATIONS #
-#################################
-*/
+ #################################
+ # PRIVATE FUNCTION DECLARATIONS #
+ #################################
+ */
 
 #ifdef  VRNA_BACKWARD_COMPAT
-PRIVATE float   wrap_alifold( const char **strings,
-                              char *structure,
-                              vrna_param_t *parameters,
-                              int is_constrained,
-                              int is_circular);
+PRIVATE float
+wrap_alifold(const char   **strings,
+             char         *structure,
+             vrna_param_t *parameters,
+             int          is_constrained,
+             int          is_circular);
+
+
 #endif
 
 /*
-#################################
-# BEGIN OF FUNCTION DEFINITIONS #
-#################################
-*/
-
+ #################################
+ # BEGIN OF FUNCTION DEFINITIONS #
+ #################################
+ */
 PUBLIC float
-vrna_alifold( const char **strings,
-              char *structure){
-
+vrna_alifold(const char **strings,
+             char       *structure)
+{
   float                 mfe;
   vrna_fold_compound_t  *vc;
   vrna_md_t             md;
@@ -106,10 +108,11 @@ vrna_alifold( const char **strings,
   return mfe;
 }
 
-PUBLIC float
-vrna_circalifold( const char **sequences,
-                  char *structure){
 
+PUBLIC float
+vrna_circalifold(const char **sequences,
+                 char       *structure)
+{
   float                 mfe;
   vrna_fold_compound_t  *vc;
   vrna_md_t             md;
@@ -126,7 +129,6 @@ vrna_circalifold( const char **sequences,
 }
 
 
-
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
@@ -134,35 +136,37 @@ vrna_circalifold( const char **sequences,
 #ifdef  VRNA_BACKWARD_COMPAT
 
 PRIVATE float
-wrap_alifold( const char **strings,
-              char *structure,
-              vrna_param_t *parameters,
-              int is_constrained,
-              int is_circular){
-
+wrap_alifold(const char   **strings,
+             char         *structure,
+             vrna_param_t *parameters,
+             int          is_constrained,
+             int          is_circular)
+{
   vrna_fold_compound_t  *vc;
   vrna_param_t          *P;
   float                 mfe;
 
 #ifdef _OPENMP
-/* Explicitly turn off dynamic threads */
+  /* Explicitly turn off dynamic threads */
   omp_set_dynamic(0);
 #endif
 
   /* we need the parameter structure for hard constraints */
-  if(parameters){
+  if (parameters) {
     P = vrna_params_copy(parameters);
   } else {
     vrna_md_t md;
     set_model_details(&md);
-    md.temperature = temperature;
-    P = vrna_params(&md);
+    md.temperature  = temperature;
+    P               = vrna_params(&md);
   }
+
   P->model_details.circ = is_circular;
 
   vc = vrna_fold_compound_comparative(strings, &(P->model_details), VRNA_OPTION_DEFAULT);
 
-  if(parameters){ /* replace params if necessary */
+  if (parameters) {
+    /* replace params if necessary */
     free(vc->params);
     vc->params = P;
   } else {
@@ -170,10 +174,10 @@ wrap_alifold( const char **strings,
   }
 
   /* handle hard constraints in pseudo dot-bracket format if passed via simple interface */
-  if(is_constrained && structure)
+  if (is_constrained && structure)
     vrna_constraints_add(vc, (const char *)structure, VRNA_CONSTRAINT_DB_DEFAULT);
 
-  if(backward_compat_compound && backward_compat)
+  if (backward_compat_compound && backward_compat)
     vrna_fold_compound_free(backward_compat_compound);
 
   backward_compat_compound  = vc;
@@ -183,14 +187,14 @@ wrap_alifold( const char **strings,
   mfe = vrna_mfe(vc, NULL);
 
   /* backtrack structure */
-  if(structure && vc->params->model_details.backtrack){
+  if (structure && vc->params->model_details.backtrack) {
     char            *ss;
     int             length;
     sect            bt_stack[MAXSECTORS];
     vrna_bp_stack_t *bp;
 
     length  = vc->length;
-    bp      = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4*(1+length/2))); /* add a guess of how many G's may be involved in a G quadruplex */
+    bp      = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2))); /* add a guess of how many G's may be involved in a G quadruplex */
 
     vrna_backtrack_from_intervals(vc, bp, bt_stack, 0);
 
@@ -198,8 +202,9 @@ wrap_alifold( const char **strings,
     strncpy(structure, ss, length + 1);
     free(ss);
 
-    if(base_pair)
+    if (base_pair)
       free(base_pair);
+
     base_pair = bp;
   }
 
@@ -208,37 +213,41 @@ wrap_alifold( const char **strings,
 
 
 PUBLIC void
-free_alifold_arrays(void){
-
-  if(backward_compat_compound && backward_compat){
+free_alifold_arrays(void)
+{
+  if (backward_compat_compound && backward_compat) {
     vrna_fold_compound_free(backward_compat_compound);
     backward_compat_compound  = NULL;
     backward_compat           = 0;
   }
 }
 
-PUBLIC float
-alifold(const char **strings,
-        char *structure){
 
+PUBLIC float
+alifold(const char  **strings,
+        char        *structure)
+{
   return wrap_alifold(strings, structure, NULL, fold_constrained, 0);
 }
 
-PUBLIC float circalifold( const char **strings,
-                          char *structure) {
 
+PUBLIC float
+circalifold(const char  **strings,
+            char        *structure)
+{
   return wrap_alifold(strings, structure, NULL, fold_constrained, 1);
 }
 
-PUBLIC void 
-update_alifold_params(void){
 
+PUBLIC void
+update_alifold_params(void)
+{
   vrna_fold_compound_t *v;
 
-  if(backward_compat_compound && backward_compat){
+  if (backward_compat_compound && backward_compat) {
     v = backward_compat_compound;
 
-    if(v->params)
+    if (v->params)
       free(v->params);
 
     vrna_md_t md;
@@ -247,21 +256,21 @@ update_alifold_params(void){
   }
 }
 
-PUBLIC float
-energy_of_ali_gquad_structure(const char **sequences,
-                              const char *structure,
-                              int n_seq,
-                              float *energy){
 
+PUBLIC float
+energy_of_ali_gquad_structure(const char  **sequences,
+                              const char  *structure,
+                              int         n_seq,
+                              float       *energy)
+{
   unsigned int  n;
   short         *pt;
   int           *loop_idx;
 
-  if(sequences[0] != NULL){
-    
+  if (sequences[0] != NULL) {
     vrna_fold_compound_t  *vc;
 
-    vrna_md_t md;
+    vrna_md_t             md;
     set_model_details(&md);
     md.gquad = 1;
 
@@ -271,25 +280,26 @@ energy_of_ali_gquad_structure(const char **sequences,
     energy[1] = vrna_eval_covar_structure(vc, structure);
 
     vrna_fold_compound_free(vc);
+  } else {
+    vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
   }
-  else vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
 
   return energy[0];
-
 }
 
-PUBLIC  float
-energy_of_alistruct(const char **sequences,
-                    const char *structure,
-                    int n_seq,
-                    float *energy){
 
-  short         *pt;
+PUBLIC float
+energy_of_alistruct(const char  **sequences,
+                    const char  *structure,
+                    int         n_seq,
+                    float       *energy)
+{
+  short *pt;
 
-  if(sequences[0] != NULL){
+  if (sequences[0] != NULL) {
     vrna_fold_compound_t  *vc;
 
-    vrna_md_t md;
+    vrna_md_t             md;
     set_model_details(&md);
 
     vc = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_EVAL_ONLY);
@@ -298,10 +308,12 @@ energy_of_alistruct(const char **sequences,
     energy[1] = vrna_eval_covar_structure(vc, structure);
 
     vrna_fold_compound_free(vc);
+  } else {
+    vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
   }
-  else vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
 
   return energy[0];
 }
+
 
 #endif
