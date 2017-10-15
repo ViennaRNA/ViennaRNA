@@ -66,7 +66,7 @@
 
 /**
  *  Convert/dump a Vienna 1.8.4 formatted energy parameter file
- * 
+ *
  *  The options argument allows one to control the different output modes.\n
  *  Currently available options are:\n
  *  #VRNA_CONVERT_OUTPUT_ALL, #VRNA_CONVERT_OUTPUT_HP, #VRNA_CONVERT_OUTPUT_STACK\n
@@ -77,18 +77,19 @@
  *  #VRNA_CONVERT_OUTPUT_INT, #VRNA_CONVERT_OUTPUT_ML, #VRNA_CONVERT_OUTPUT_MISC\n
  *  #VRNA_CONVERT_OUTPUT_SPECIAL_HP, #VRNA_CONVERT_OUTPUT_VANILLA, #VRNA_CONVERT_OUTPUT_NINIO\n
  *  #VRNA_CONVERT_OUTPUT_DUMP
- * 
+ *
  *  The defined options are fine for bitwise compare- and assignment-operations,
  *  e. g.: pass a collection of options as a single value like this:
  *  @verbatim convert_parameter_file(ifile, ofile, option_1 | option_2 | option_n) @endverbatim
- * 
+ *
  *  @param iname    The input file name (If NULL input is read from stdin)
  *  @param oname    The output file name (If NULL output is written to stdout)
  *  @param options  The options (as described above)
  */
-void convert_parameter_file(const char *iname,
-                            const char *oname,
-                            unsigned int options);
+void convert_parameter_file(const char    *iname,
+                            const char    *oname,
+                            unsigned int  options);
+
 
 /**
  *  @}
