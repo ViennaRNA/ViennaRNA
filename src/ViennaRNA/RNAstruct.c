@@ -80,7 +80,7 @@ PUBLIC char *
 b2HIT(const char *structure)
 {
   int   i, u, p, l;
-  char  *string, *temp, *HIT, tt[10];
+  char  *string, *temp, *HIT, tt[14];
 
   temp    = (char *)vrna_alloc(strlen(structure) * 4 + 4);
   string  = aux_struct(structure);
