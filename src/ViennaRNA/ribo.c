@@ -732,7 +732,6 @@ get_ribosum(const char  **Alseq,
 {
   int   i, j, k;
   float ident   = 0;
-  int   pairnum = 0;
   float minimum = 1;
   float maximum = 0.;
   int   min;
