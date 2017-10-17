@@ -263,14 +263,10 @@ energy_of_ali_gquad_structure(const char  **sequences,
                               int         n_seq,
                               float       *energy)
 {
-  unsigned int  n;
-  short         *pt;
-  int           *loop_idx;
-
   if (sequences[0] != NULL) {
     vrna_fold_compound_t  *vc;
-
     vrna_md_t             md;
+
     set_model_details(&md);
     md.gquad = 1;
 
@@ -294,8 +290,6 @@ energy_of_alistruct(const char  **sequences,
                     int         n_seq,
                     float       *energy)
 {
-  short *pt;
-
   if (sequences[0] != NULL) {
     vrna_fold_compound_t  *vc;
 
