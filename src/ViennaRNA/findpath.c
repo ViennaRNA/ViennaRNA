@@ -193,7 +193,7 @@ vrna_path_findpath_saddle(vrna_fold_compound_t  *vc,
   move_t      *bestpath = NULL;
   int         dir;
 
-  path_fwd  = 0;
+  path_fwd  = dir = 0;
   maxE      = INT_MAX - 1;
 
   maxl = 1;
