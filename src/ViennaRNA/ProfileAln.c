@@ -95,8 +95,10 @@ profile_aln(const float *T1,
   E       = newmat(length1, length2);
   F       = newmat(length1, length2);
 
-  E[0][0] = F[0][0] = open - ext;
-  S[0][0] = 0;
+  E[0][0]   = F[0][0] = open - ext;
+  S[0][0]   = 0;
+  tot_score = -9999.;
+
   for (i = 1; i <= length1; i++)
     F[i][0] = -9999;                          /* impossible */
   for (j = 1; j <= length2; j++)

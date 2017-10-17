@@ -54,6 +54,8 @@ profile_edit_distance(const float *T1,
   int   i, j, i1, j1, pos, length1, length2;
   float minus, plus, change, temp;
 
+  i_point   = NULL;
+  j_point   = NULL;
   length1   = (int)T1[0];
   length2   = (int)T2[0];
   distance  = (float **)vrna_alloc((length1 + 1) * sizeof(float *));
