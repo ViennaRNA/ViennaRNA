@@ -541,12 +541,10 @@ eval_ext_int_loop(vrna_fold_compound_t  *vc,
                   int                   p,
                   int                   q)
 {
-  int           e, u1, u2, length;
-  unsigned int  s, n_seq;
-  short         **SS, **S5, **S3;
-  unsigned int  **a2s;
   unsigned char type, type_2;
-  short         *S, si, sj, sp, sq;
+  short         **SS, **S5, **S3, *S, si, sj, sp, sq;
+  unsigned int  s, n_seq, **a2s;
+  int           e, length;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_sc_t     *sc, **scs;
@@ -1160,7 +1158,7 @@ stack_energy(vrna_fold_compound_t *vc,
   /* recursively calculate energy of substructure enclosed by (i,j) */
 
   int           ee, energy, j, p, q, type, *rtype, *types, cp, ss, n_seq;
-  char          *string, **Ss;
+  char          *string;
   short         *s, **S, **S5, **S3;
   unsigned int  **a2s;
   FILE          *out;
@@ -1199,7 +1197,6 @@ stack_energy(vrna_fold_compound_t *vc,
       S       = vc->S;
       S5      = vc->S5;                             /* S5[s][i] holds next base 5' of i in sequence s */
       S3      = vc->S3;                             /* Sl[s][i] holds next base 3' of i in sequence s */
-      Ss      = vc->Ss;
       a2s     = vc->a2s;
       n_seq   = vc->n_seq;
       types   = (int *)vrna_alloc(n_seq * sizeof(int));
@@ -2177,15 +2174,13 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
                           const short           *pt,
                           const int             *loop_idx)
 {
-  int           pos, cnt, tmp_e, energy, p, q, r, s, u, type, type2, gq_en[2];
+  int           pos, cnt, tmp_e, energy, p, q, r, s, u, type, gq_en[2];
   int           num_elem, num_g, elem_i, elem_j, up_mis;
   int           L, l[3];
 
   short         **S           = vc->S;
   short         **S5          = vc->S5;       /*S5[s][i] holds next base 5' of i in sequence s*/
   short         **S3          = vc->S3;       /*Sl[s][i] holds next base 3' of i in sequence s*/
-  char          **Ss          = vc->Ss;
-  unsigned int  **a2s         = vc->a2s;
   vrna_param_t  *P            = vc->params;
   vrna_md_t     *md           = &(P->model_details);
   int           n_seq         = vc->n_seq;
@@ -2673,7 +2668,6 @@ energy_of_structure(const char  *string,
                     const char  *structure,
                     int         verbosity_level)
 {
-  float                 en;
   vrna_fold_compound_t  *vc;
 
   vc = recycle_last_call(string, NULL);
@@ -2688,7 +2682,6 @@ energy_of_struct_par(const char   *string,
                      vrna_param_t *parameters,
                      int          verbosity_level)
 {
-  float                 en;
   vrna_fold_compound_t  *vc;
 
   vc = recycle_last_call(string, parameters);
@@ -2702,7 +2695,6 @@ energy_of_gquad_structure(const char  *string,
                           const char  *structure,
                           int         verbosity_level)
 {
-  float                 en;
   vrna_fold_compound_t  *vc;
 
   vc = recycle_last_call(string, NULL);
@@ -2719,7 +2711,6 @@ energy_of_gquad_struct_par(const char   *string,
                            vrna_param_t *parameters,
                            int          verbosity_level)
 {
-  float                 en;
   vrna_fold_compound_t  *vc;
 
   vc = recycle_last_call(string, parameters);
@@ -2784,7 +2775,6 @@ energy_of_circ_structure(const char *string,
                          const char *structure,
                          int        verbosity_level)
 {
-  float                 en;
   vrna_fold_compound_t  *vc;
 
   vc = recycle_last_call(string, NULL);
@@ -2801,7 +2791,6 @@ energy_of_circ_struct_par(const char    *string,
                           vrna_param_t  *parameters,
                           int           verbosity_level)
 {
-  float                 en;
   vrna_fold_compound_t  *vc;
 
   vc = recycle_last_call(string, parameters);
