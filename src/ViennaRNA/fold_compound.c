@@ -172,7 +172,6 @@ vrna_fold_compound(const char   *sequence,
                    vrna_md_t    *md_p,
                    unsigned int options)
 {
-  int                   i;
   unsigned int          length, aux_options;
   vrna_fold_compound_t  *vc;
   vrna_md_t             md;
@@ -247,7 +246,7 @@ vrna_fold_compound_comparative(const char   **sequences,
                                vrna_md_t    *md_p,
                                unsigned int options)
 {
-  int                   i, s, n_seq, length;
+  int                   s, n_seq, length;
   vrna_fold_compound_t  *vc;
   vrna_md_t             md;
   unsigned int          aux_options;
@@ -475,6 +474,10 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
         }
 
         break;
+
+      default:
+        /* not doing anything here... */
+        break;
     }
   }
 
@@ -492,6 +495,10 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
         if (vc->domains_up)                            /* turn on unique ML decomposition with qm1 array */
           vc->exp_params->model_details.uniq_ML = 1;
 
+        break;
+
+      default:
+        /* not doing anything here... */
         break;
     }
   }
