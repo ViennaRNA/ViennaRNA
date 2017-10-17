@@ -1544,7 +1544,7 @@ compute_pU(vrna_fold_compound_t       *vc,
    *  going down to $unpaired, to be unpaired, i.e. a list with entries from 1 to unpaired for
    *  every i, with the probability of a stretch of length x, starting at i-x+1, to be unpaired
    */
-  char              *sequence, **ptype;
+  char              **ptype;
   short             *S1;
   int               startu, i5, j3, len, obp, *rtype, turn, winSize, n, leftmost,
                     rightmost, tt;
@@ -1555,7 +1555,6 @@ compute_pU(vrna_fold_compound_t       *vc,
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
 
-  sequence      = vc->sequence;
   n             = vc->length;
   winSize       = vc->window_size;
   S1            = vc->sequence_encoding;
@@ -1773,7 +1772,7 @@ compute_pU(vrna_fold_compound_t       *vc,
     if (hc->up_ml[k + 1] >= len) {
       for (obp = k + len + turn + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
         if (hc->matrix_local[k][obp - k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-          tt = rtype[ptype[k][obp]];
+          tt = rtype[(unsigned int)ptype[k][obp]];
           if (tt == 0)
             tt = 7;
 
