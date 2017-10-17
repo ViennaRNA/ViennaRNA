@@ -163,7 +163,6 @@ wrap_alipf_fold(const char        **sequences,
   int                   i, n_seq;
   float                 free_energy;
   vrna_fold_compound_t  *vc;
-  vrna_exp_param_t      *exp_params;
   vrna_md_t             md;
 
   if (sequences == NULL)
