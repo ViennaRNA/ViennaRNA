@@ -314,7 +314,7 @@ vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
 PRIVATE INLINE void
 allocate_dp_matrices(vrna_fold_compound_t *fc)
 {
-  int       i, j, length, maxdist, **c, **fML, n_seq;
+  int       i, j, length, maxdist, **c, **fML;
   vrna_hc_t *hc;
   vrna_sc_t *sc;
 
@@ -1102,11 +1102,10 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
   short **S;
   char **strings, *prev, *ss;
-  int **pscore, i, j, length, energy, turn,
-      n_seq, **c, **fML, *f3, *cc, *cc1, *Fmi,
-      *DMLi, *DMLi1, *DMLi2, maxdist, prev_i, prev_j,
-      prev_en, prev_end, do_backtrack, with_gquad, new_c,
-      psc, stackEnergy, jjj, iii, eee, dangle_model;
+  int **pscore, i, j, length, energy, turn, n_seq, **c,
+      **fML, *f3, *cc, *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2,
+      maxdist, prev_i, prev_j, prev_en, prev_end, with_gquad,
+      new_c, psc, stackEnergy, dangle_model;
   float **dm;
   vrna_mx_mfe_t *matrices;
   vrna_param_t *P;
