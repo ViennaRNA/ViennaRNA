@@ -277,13 +277,16 @@ PRIVATE void make_ptable(const char *structure, int *table)
 /*-------------------------------------------------------------------------*/
 
 #define WALK(i,j) \
+  { \
     strncpy(wstruct, structure+i, j-i+1); \
     wstruct[j-i+1]='\0'; \
     strncpy(wstring, string+i, j-i+1); \
     wstring[j-i+1]='\0'; \
     dist=adaptive_walk(wstring, wstruct); \
     strncpy(string+i, wstring, j-i+1); \
-    if ((dist>0)&&(give_up)) goto adios
+    if ((dist>0)&&(give_up)) goto adios; \
+  }
+
 
 PUBLIC float inverse_fold(char *start, char *structure)
 {
