@@ -1276,17 +1276,17 @@ compute_probs(vrna_fold_compound_t        *vc,
             prmt1 *= sc->exp_energy_bp_local[k - 1][m - k + 1];
       }
 
-      /* l+1 is unpaired */
-      if (hc->up_ml[l + 1]) {
+      /* k-1 is unpaired */
+      if (hc->up_ml[k - 1]) {
         ppp = prm_l1[m] * expMLbase[1];
 
         if (sc)
           if (sc->exp_energy_up)
-            ppp *= sc->exp_energy_up[l + 1][1];
+            ppp *= sc->exp_energy_up[k - 1][1];
 
         prm_l[m] = ppp + prmt1;
       } else {
-        /* skip configuration where l+1 is unpaired */
+        /* skip configuration where k-1 is unpaired */
         prm_l[m] = prmt1;
       }
 
