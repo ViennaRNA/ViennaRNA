@@ -740,6 +740,7 @@ apply_stored_bp_hc(unsigned char        *current,
   unsigned int  cnt, set;
   unsigned char constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
+  set = 0;
   /* go through list of constraints for current position i */
   for (cnt = 0; container[cnt].interval_start != 0; cnt++) {
     if (container[cnt].interval_start > j)
@@ -820,7 +821,7 @@ hc_add_up(vrna_fold_compound_t  *vc,
         hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);
       }
     } else {
-      type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+      type = ~option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
       hc_init_up_storage(vc->hc);
       vc->hc->up_storage[i] = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
@@ -828,10 +829,10 @@ hc_add_up(vrna_fold_compound_t  *vc,
         hc_init_bp_storage(vc->hc);
         /* add constraints for all pairs (j, i) with j < i */
         for (j = 1; j < i; j++)
-          hc_store_bp(vc->hc->bp_storage, j, i, i, ~type);
+          hc_store_bp(vc->hc->bp_storage, j, i, i, type);
 
         /* add constraints for all pairs (i, j) with i < j */
-        hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, ~type);
+        hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, type);
       }
     }
   } else {
