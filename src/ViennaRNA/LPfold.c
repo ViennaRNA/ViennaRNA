@@ -1321,7 +1321,10 @@ compute_probs(vrna_fold_compound_t        *vc,
           double dang;
           /* coefficient for computations of unpairedarrays */
           dang = qb[k][l] *
-                 exp_E_MLstem(tt, S1[k - 1], S1[l + 1], pf_params) *
+                 exp_E_MLstem(tt,
+                              (k > 1) ? S1[k - 1] : -1,
+                              (l < n) ? S1[l + 1] : -1,
+                              pf_params) *
                  scale[2];
 
           for (m = MIN2(k + winSize - 2, n); m >= l + 2; m--) {
