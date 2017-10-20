@@ -142,6 +142,8 @@ main(int  argc,
                           id_digits, 4,
                           seq_number, 1);
 
+  ggo_get_md_part(args_info, md);
+
   /* temperature */
   if (args_info.temp_given)
     md.temperature = temperature = args_info.temp_arg;
@@ -218,9 +220,6 @@ main(int  argc,
   /* turn on binary output*/
   if (args_info.binaries_given)
     binaries = 1;
-
-  if (args_info.betaScale_given)
-    md.betaScale = betaScale = args_info.betaScale_arg;
 
   /* check for errorneous parameter options */
   if ((pairdist < 0) || (cutoff < 0.) || (unpaired < 0) || (winsize < 0)) {

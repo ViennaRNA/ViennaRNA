@@ -212,6 +212,16 @@ string
 typestr="paramfile"
 optional
 
+option  "pfScale" S
+"In the calculation of the partition function use pfScale * average_free_energy as\
+ an estimate for the ensemble free energy (used to avoid overflows).\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for longer folding windows.\n\n"
+double
+typestr="scaling factor"
+optional
+hidden
+
 option  "binaries"  b
 "Output accessibility profiles in binary format\n."
 details=" The binary files produced by RNAplfold do not need to be parsed\
