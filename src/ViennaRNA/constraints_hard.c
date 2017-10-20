@@ -65,6 +65,23 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
             int                   i,
             int                   start,
             int                   end,
+            unsigned char         loop_type,
+            unsigned char         replace);
+
+
+PRIVATE void
+hc_store_bp_override(vrna_hc_bp_storage_t  **container,
+            int                   i,
+            int                   start,
+            int                   end,
+            unsigned char         loop_type);
+
+
+PRIVATE void
+hc_store_bp_add(vrna_hc_bp_storage_t  **container,
+            int                   i,
+            int                   start,
+            int                   end,
             unsigned char         loop_type);
 
 
@@ -338,9 +355,9 @@ vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
         /* force pairing direction */
         hc_init_bp_storage(vc->hc);
         for (p = 1; p < i; p++)
-          hc_store_bp(vc->hc->bp_storage, p, i, i, t1);
+          hc_store_bp_add(vc->hc->bp_storage, p, i, i, t1);
 
-        hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, t2);
+        hc_store_bp_add(vc->hc->bp_storage, i, i + 1, vc->length, t2);
       } else {
         if (option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE) {
           /* only allow for possibly non-canonical pairs, do not enforce them */
@@ -383,7 +400,7 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
 
       if (vc->hc->type == VRNA_HC_WINDOW) {
         hc_init_bp_storage(vc->hc);
-        hc_store_bp(vc->hc->bp_storage, i, j, j, option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+        hc_store_bp_override(vc->hc->bp_storage, i, j, j, option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
 
         if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
           /*
@@ -391,15 +408,15 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
            * with any other nucleotide k
            */
           for (k = 1; k < i; k++)
-            hc_store_bp(vc->hc->bp_storage, k, i, j, VRNA_CONSTRAINT_CONTEXT_NONE);             /* (k, i), (k, i + 1), ..., (k, j) with 1 <= k < i */
+            hc_store_bp_add(vc->hc->bp_storage, k, i, j, VRNA_CONSTRAINT_CONTEXT_NONE);             /* (k, i), (k, i + 1), ..., (k, j) with 1 <= k < i */
 
-          hc_store_bp(vc->hc->bp_storage, i, i + 1, j - 1, VRNA_CONSTRAINT_CONTEXT_NONE);       /* (i, k), i < k < j */
+          hc_store_bp_add(vc->hc->bp_storage, i, i + 1, j - 1, VRNA_CONSTRAINT_CONTEXT_NONE);       /* (i, k), i < k < j */
 
           for (k = i + 1; k < j; k++)
-            hc_store_bp(vc->hc->bp_storage, k, j, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);    /* (i + 1, k), (i + 1, k), ..., (j - 1, k) with (j < k <= n */
+            hc_store_bp_add(vc->hc->bp_storage, k, j, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);    /* (i + 1, k), (i + 1, k), ..., (j - 1, k) with (j < k <= n */
 
-          hc_store_bp(vc->hc->bp_storage, i, j + 1, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);  /* (i, k), j < k <= n */
-          hc_store_bp(vc->hc->bp_storage, j, j + 1, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);  /* (j, k), j < k <= n */
+          hc_store_bp_add(vc->hc->bp_storage, i, j + 1, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);  /* (i, k), j < k <= n */
+          hc_store_bp_add(vc->hc->bp_storage, j, j + 1, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);  /* (j, k), j < k <= n */
         }
 
         if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
@@ -696,11 +713,34 @@ hc_init_bp_storage(vrna_hc_t *hc)
 
 
 PRIVATE void
-hc_store_bp(vrna_hc_bp_storage_t  **container,
+hc_store_bp_override(vrna_hc_bp_storage_t  **container,
             int                   i,
             int                   start,
             int                   end,
             unsigned char         loop_type)
+{
+  hc_store_bp(container, i, start, end, loop_type, 1);
+}
+
+
+PRIVATE void
+hc_store_bp_add(vrna_hc_bp_storage_t  **container,
+            int                   i,
+            int                   start,
+            int                   end,
+            unsigned char         loop_type)
+{
+  hc_store_bp(container, i, start, end, loop_type, 0);
+}
+
+
+PRIVATE void
+hc_store_bp(vrna_hc_bp_storage_t  **container,
+            int                   i,
+            int                   start,
+            int                   end,
+            unsigned char         loop_type,
+            unsigned char         replace)
 {
   int size, cnt = 0;
 
@@ -729,6 +769,7 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
   container[i][cnt].interval_start  = start;
   container[i][cnt].interval_end    = end;
   container[i][cnt].loop_type       = loop_type;
+  container[i][cnt].replace         = replace ? 1 : 0;
 }
 
 
@@ -737,10 +778,10 @@ apply_stored_bp_hc(unsigned char        *current,
                    vrna_hc_bp_storage_t *container,
                    unsigned int         j)
 {
-  unsigned int  cnt, set;
+  unsigned int  cnt, replace;
   unsigned char constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
-  set = 0;
+  replace = 0;
   /* go through list of constraints for current position i */
   for (cnt = 0; container[cnt].interval_start != 0; cnt++) {
     if (container[cnt].interval_start > j)
@@ -751,11 +792,13 @@ apply_stored_bp_hc(unsigned char        *current,
 
     /* constraint has interval [p,q] with p <= j <= q */
     constraint  &= container[cnt].loop_type;
-    set         = 1;
+
+    /* is this a replacement or addition constraint? */
+    replace = (container[cnt].replace) ? 1 : 0;
   }
 
-  if (set && (*current == VRNA_CONSTRAINT_CONTEXT_NONE))
-    /* overwrite if current constraint doesn't allow for pairing, i.e. is non-canonical */
+  if (replace)
+    /* overwrite current constraint */
     *current = constraint;
   else
     /* apply constraint to current (canonical) bp */
@@ -815,10 +858,10 @@ hc_add_up(vrna_fold_compound_t  *vc,
         hc_init_bp_storage(vc->hc);
         /* add constraints for all pairs (j, i) with j < i */
         for (j = 1; j < i; j++)
-          hc_store_bp(vc->hc->bp_storage, j, i, i, VRNA_CONSTRAINT_CONTEXT_NONE);
+          hc_store_bp_add(vc->hc->bp_storage, j, i, i, VRNA_CONSTRAINT_CONTEXT_NONE);
 
         /* add constraints for all pairs (i, j) with i < j */
-        hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);
+        hc_store_bp_add(vc->hc->bp_storage, i, i + 1, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);
       }
     } else {
       type = ~option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
@@ -829,10 +872,10 @@ hc_add_up(vrna_fold_compound_t  *vc,
         hc_init_bp_storage(vc->hc);
         /* add constraints for all pairs (j, i) with j < i */
         for (j = 1; j < i; j++)
-          hc_store_bp(vc->hc->bp_storage, j, i, i, type);
+          hc_store_bp_add(vc->hc->bp_storage, j, i, i, type);
 
         /* add constraints for all pairs (i, j) with i < j */
-        hc_store_bp(vc->hc->bp_storage, i, i + 1, vc->length, type);
+        hc_store_bp_add(vc->hc->bp_storage, i, i + 1, vc->length, type);
       }
     }
   } else {

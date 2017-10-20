@@ -343,6 +343,7 @@ typedef struct {
   int           interval_start;
   int           interval_end;
   unsigned char loop_type;
+  unsigned char replace : 1;
 } vrna_hc_bp_storage_t;
 
 /**
