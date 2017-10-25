@@ -2353,7 +2353,6 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
 
           /* 1.1. Exterior Hairpin Contribution */
           tmp2 += vrna_exp_E_hp_loop(vc, j, i);
-
           /* 1.2. Exterior Interior Loop Contribution */
           /* recycling of k and l... */
           if(hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
@@ -2396,10 +2395,10 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
                   type_2 = md->pair[S[s][l]][S[s][k]];
                   if (type_2 == 0) type_2 = 7;
                   qloop *= exp_E_IntLoop(ln1a, ln2a, type[s], type_2,
-                              S[s][j+1],
-                              S[s][i-1],
-                              S[s][(k>1) ? k-1 : n],
-                              S[s][l+1], pf_params);
+                              S3[s][j],
+                              S5[s][i],
+                              S5[s][k],
+                              S3[s][l], pf_params);
                 }
                 if(sc)
                   for(s = 0; s < n_seq; s++){
@@ -2443,7 +2442,7 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
               lstart = ln1+i-1+n-MAXLOOP;
               if(lstart<k+TURN+1) lstart = k + TURN + 1;
               for(l=lstart; l <= n; l++){
-                int ln2, type_2;
+                int ln2,ln2a,ln1a, type_2;
                 ln2 = i - 1 + n - l;
                 if(ln1+ln2>MAXLOOP)
                   continue;
@@ -2459,11 +2458,11 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
                 }
 
                 for (s=0; s<n_seq; s++){
-                  ln1 = a2s[s][k] - a2s[s][j+1];
-                  ln2 = a2s[s][i-1] + a2s[s][n] - a2s[s][l];
+                  ln1a = a2s[s][k] - a2s[s][j+1];
+                  ln2a = a2s[s][i-1] + a2s[s][n] - a2s[s][l];
                   type_2 = md->pair[S[s][l]][S[s][k]];
                   if (type_2 == 0) type_2 = 7;
-                  qloop *= exp_E_IntLoop(ln2, ln1, type_2, type[s],
+                  qloop *= exp_E_IntLoop(ln2a, ln1a, type_2, type[s],
                           S3[s][l],
                           S5[s][k],
                           S5[s][i],
@@ -2472,15 +2471,15 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
                 if(sc)
                   for(s = 0; s < n_seq; s++){
                     if(sc[s]){
-                      ln1 = a2s[s][k] - a2s[s][j+1];
-                      ln2 = a2s[s][i-1] + a2s[s][n] - a2s[s][l];
+                      ln1a = a2s[s][k] - a2s[s][j+1];
+                      ln2a = a2s[s][i-1] + a2s[s][n] - a2s[s][l];
 
                       if(sc[s]->exp_energy_up)
-                        qloop *=    sc[s]->exp_energy_up[a2s[s][j]+1][ln1]
+                        qloop *=    sc[s]->exp_energy_up[a2s[s][j]+1][ln1a]
                                   * ((l < n) ? sc[s]->exp_energy_up[a2s[s][l]+1][a2s[s][n] - a2s[s][l]] : 1.)
                                   * ((i > 1) ? sc[s]->exp_energy_up[1][a2s[s][i]-1] : 1.);
 
-                      if((ln1 + ln2 == 0) && sc[s]->exp_energy_stack){
+                      if((ln1a + ln2a == 0) && sc[s]->exp_energy_stack){
                         if(S[s][i] && S[s][j] && S[s][k] && S[s][l]){ /* don't allow gaps in stack */
                           qloop *=    sc[s]->exp_energy_stack[a2s[s][k]]
                                     * sc[s]->exp_energy_stack[a2s[s][l]]

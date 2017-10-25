@@ -655,7 +655,7 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
   type  = (int *)vrna_alloc(sizeof(int) * n_seq);
 
   /* calculate the qm2 matrix  */
-  for(k=1; k<n-TURN; k++){
+  for(k=1; k<n-TURN - 1; k++){
     qot = 0.;
     for (u=k+TURN+1; u<n-TURN-1; u++)
       qot += qm1[jindx[u]+k]*qm1[jindx[n]+(u+1)];
@@ -678,32 +678,9 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
       /* 1. exterior hairpin contribution  */
       /* Note, that we do not scale Hairpin Energy by u+2 but by u cause the scale  */
       /* for the closing pair was already done in the forward recursion              */
-      if(hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP){
-        if(hc->up_hp[q+1] > u){
-          for (qbt1=1,s=0; s<n_seq; s++) {
-            int rt;
-            char loopseq[10];
-            u   = a2s[s][n] - a2s[s][q] + a2s[s][p] - 1;
-            rt  = rtype[type[s]];
+      qbt1 = vrna_exp_E_hp_loop(vc, q, p);
+      qho += qb[my_iindx[p]-q] * qbt1;
 
-            if (u<9){
-              strcpy(loopseq , Ss[s] + a2s[s][q] - 1);
-              strncat(loopseq, Ss[s], a2s[s][p]);
-            }
-            qbt1 *= exp_E_Hairpin(u, rt, S3[s][q], S5[s][p], loopseq, pf_params);
-          }
-          if(sc)
-            for(s = 0; s < n_seq; s++){
-              if(sc[s]){
-                if(sc[s]->exp_energy_up){
-                  qbt1 *=   ((p > 1) ? sc[s]->exp_energy_up[1][a2s[s][p]-1] : 1.)
-                          * ((q < n) ? sc[s]->exp_energy_up[a2s[s][q]+1][a2s[s][n] - a2s[s][q]] : 1.);
-                }
-              }
-            }
-          qho += qb[my_iindx[p]-q] * qbt1 * scale[u];
-        }
-      }
       /* 2. exterior interior loop contribution*/
 
       if(hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP){
@@ -733,8 +710,8 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
             if (qb[my_iindx[k]-l]==0.){ qloop=0.; continue;}
 
             for (s=0; s<n_seq; s++){
-              int ln1a = a2s[s][k] - 1 - a2s[s][q];
-              int ln2a = a2s[s][n] - a2s[s][l] + a2s[s][p] - 1;
+              int ln1a = a2s[s][k] - a2s[s][q + 1];
+              int ln2a = a2s[s][n] - a2s[s][l] + a2s[s][p - 1];
               int rt = rtype[type[s]];
               type_2 = md->pair[S[s][l]][S[s][k]];
               if (type_2 == 0) type_2 = 7;
@@ -742,8 +719,8 @@ wrap_alipf_circ(vrna_fold_compound_t *vc,
             }
             if(sc)
               for(s = 0; s < n_seq; s++){
-                int ln1a = a2s[s][k] - 1 - a2s[s][q];
-                int ln2a = a2s[s][n] - a2s[s][l] + a2s[s][p] - 1;
+                int ln1a = a2s[s][k] - a2s[s][q + 1];
+                int ln2a = a2s[s][n] - a2s[s][l] + a2s[s][p - 1];
                 if(sc[s]){
                   if((ln1a+ln2a == 0) && (sc[s]->exp_energy_stack)){
                     if(S[s][p] && S[s][q] && S[s][k] && S[s][l]){ /* don't allow gaps in stack */
