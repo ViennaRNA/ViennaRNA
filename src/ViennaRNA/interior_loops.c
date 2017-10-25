@@ -1234,29 +1234,27 @@ vrna_E_ext_int_loop(vrna_fold_compound_t  *vc,
                 break;
 
               case VRNA_FC_TYPE_COMPARATIVE:
-                energy = 0;
                 for (s = 0; s < n_seq; s++) {
                   type_2 = get_pair_type(SS[s][q], SS[s][p], md); /* q,p not p,q! */
 
-                  sc = (scs && scs[s]) ? scs[s] : NULL;
-
-                  energy += ubf_eval_ext_int_loop(a2s[s][i],
-                                                  a2s[s][j],
-                                                  a2s[s][p],
-                                                  a2s[s][q],
-                                                  a2s[s][i - 1],
-                                                  a2s[s][j + 1],
-                                                  a2s[s][p - 1],
-                                                  a2s[s][q + 1],
-                                                  S3[s][j],
-                                                  S5[s][i],
-                                                  S5[s][p],
-                                                  S3[s][q],
-                                                  types[s],
-                                                  type_2,
-                                                  a2s[s][length],
-                                                  P,
-                                                  sc);
+                  sc      = (scs && scs[s]) ? scs[s] : NULL;
+                  energy  += ubf_eval_ext_int_loop(a2s[s][i],
+                                                   a2s[s][j],
+                                                   a2s[s][p],
+                                                   a2s[s][q],
+                                                   a2s[s][i - 1],
+                                                   a2s[s][j + 1],
+                                                   a2s[s][p - 1],
+                                                   a2s[s][q + 1],
+                                                   S3[s][j],
+                                                   S5[s][i],
+                                                   S5[s][p],
+                                                   S3[s][q],
+                                                   types[s],
+                                                   type_2,
+                                                   a2s[s][length],
+                                                   P,
+                                                   sc);
                 }
                 break;
             }
