@@ -137,14 +137,20 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
   md      = &(P->model_details);
   e       = INF;
 
+  u = vc->length - j + i - 1;
+
+  if (u < 3)
+    return e;
+
   switch (vc->type) {
     /* single sequences and cofolding hybrids */
     case  VRNA_FC_TYPE_SINGLE:
-      S     = vc->sequence_encoding;
-      S2    = vc->sequence_encoding2;
-      sc    = vc->sc;
-      u     = vc->length - j + i - 1;
-      type  = get_pair_type(S2[j], S2[i], md);
+      S           = vc->sequence_encoding;
+      S2          = vc->sequence_encoding2;
+      sc          = vc->sc;
+      u           = vc->length - j + i - 1;
+      type        = get_pair_type(S2[j], S2[i], md);
+      loopseq[0]  = '\0';
 
       /* maximum special hp loop size: 6 */
       if (u < 7) {
@@ -178,7 +184,8 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
 
       for (s = 0; s < n_seq; s++) {
         char loopseq[10];
-        u = a2s[s][length] - a2s[s][j] + a2s[s][i - 1];
+        u           = a2s[s][length] - a2s[s][j] + a2s[s][i - 1];
+        loopseq[0]  = '\0';
 
         if (u < 7) {
           strcpy(loopseq, Ss[s] + a2s[s][j] - 1);
