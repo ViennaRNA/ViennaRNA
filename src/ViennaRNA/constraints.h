@@ -85,6 +85,7 @@
  *
  */
 #define VRNA_DECOMP_PAIR_ML     (unsigned char)3
+#define VRNA_DECOMP_PAIR_ML_EXT     (unsigned char)23
 
 #define VRNA_DECOMP_PAIR_ML_OUTSIDE     (unsigned char)4
 /**

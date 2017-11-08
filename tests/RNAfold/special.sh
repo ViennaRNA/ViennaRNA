@@ -74,10 +74,34 @@ do
 done
 
 # Test circfold
-testline "MFE prediction (RNAfold -p0 --circ)"
+testline "MFE/PF prediction (RNAfold -p0 --circ)"
 RNAfold --noPS -c -p0 < ${DATADIR}/rnafold.small.seq > rnafold_special.fold
 diff=$(${DIFF} -I frequency ${RNAFOLD_RESULTSDIR}/rnafold.small.circ.gold rnafold_special.fold)
 if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
+
+# Test circfold with hard constraints
+testline "MFE/PF prediction (circular RNAs + Hard constraints)"
+RNAfold --noPS --commands=${DATADIR}/rnafold_hc.cmds -c -p0 < ${DATADIR}/rnafold.small.seq > rnafold_special.fold
+diff=$(${DIFF} ${RNAFOLD_RESULTSDIR}/rnafold.small.circ.hc.gold rnafold_special.fold)
+if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
+
+# Test circfold with soft constraints
+# Here, the idea is that shifting the free energy of each structure by -1kcal/mol per nucleotide (100nt)
+# does not change equilibrium probabilities
+testline "MFE/PF prediction (circular RNAs + Soft constraints)"
+for s in `cat ${DATADIR}/rnafold.small.seq`
+do
+  # compute base pair probabilities without soft constraints
+  echo $s | RNAfold --noPS -c -p > rnafold_special.fold
+  # move dot.ps to gold_standard
+  mv dot.ps dot_gold.ps
+  # compute base pair probabilities with soft constraints (shifting ensemble by -1kcal/mol per nucleotide)
+  echo $s | RNAfold --noPS -c -p --commands=${DATADIR}/rnafold_sc_lift.cmds > rnafold_special.fold
+  diff=$(${DIFF} -I CreationDate dot.ps dot_gold.ps)
+  rm dot.ps dot_gold.ps
+  if [ "x${diff}" != "x" ]; then break; fi
+done
+if [ "x${diff}" != "x" ]; then failed; echo -e "$diff"; else passed; fi
 
 # clean up
 rm rnafold_special.fold
