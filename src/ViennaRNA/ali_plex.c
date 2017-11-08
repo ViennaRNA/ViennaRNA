@@ -41,6 +41,7 @@
 #include <ctype.h>
 #include <string.h>
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/energy_const.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/fold.h"
@@ -50,15 +51,6 @@
 #include "ViennaRNA/plex.h"
 #include "ViennaRNA/ali_plex.h"
 
-
-#define PUBLIC
-#define PRIVATE static
-
-#define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */
-#define NEW_NINIO     1   /* new asymetry penalty */
-#define ARRAY 32          /*array size*/
-#define UNIT 100
-#define MINPSCORE -2 *UNIT
 /**
 *** Due to the great similarity between functions,
 *** more annotation can be found in plex.c
