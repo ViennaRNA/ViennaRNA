@@ -532,13 +532,14 @@ pf_circ(vrna_fold_compound_t *vc){
             lstart = k + turn + 1;
 
           for(l=lstart;l <= n; l++){
-            int ln2, type2;
-            ln2 = (p - 1) + (n - l);
+            int ln2, ln3, type2;
+            ln2 = p - 1;
+            ln3 = n - l;
 
-            if (hc->up_int[l + 1] < ln2)
+            if (hc->up_int[l + 1] < (ln2 + ln3))
               continue;
 
-            if ((ln1+ln2) > MAXLOOP)
+            if ((ln1+ln2 + ln3) > MAXLOOP)
               continue;
 
             eval = (hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ? 1 : 0;
@@ -549,22 +550,25 @@ pf_circ(vrna_fold_compound_t *vc){
               type2 = ptype[jindx[l] + k];
               qbt1  = qb[my_iindx[p]-q] *
                       qb[my_iindx[k]-l] *
-                      exp_E_IntLoop(ln2, ln1,
+                      exp_E_IntLoop(ln2 + ln3, ln1,
                                     rtype[type2], type,
                                     S1[l+1], S1[k-1],
                                     S1[p-1], S1[q+1],
                                     pf_params) *
-                      scale[ln1+ln2];
+                      scale[ln1+ln2+ln3];
 
               if (sc) {
-                if (sc->exp_energy_up)
+                if (sc->exp_energy_up) {
                   qbt1 *= sc->exp_energy_up[q + 1][ln1] *
-                          sc->exp_energy_up[l + 1][ln2];
+                          sc->exp_energy_up[l + 1][ln3] *
+                          sc->exp_energy_up[1][ln2];
+
+                }
 
                 if (sc->exp_f)
                   qbt1 *= sc->exp_f(p, q, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
 
-                if (((ln1 + ln2) == 0) && (sc->exp_energy_stack))
+                if (((ln1 + ln2 + ln3) == 0) && (sc->exp_energy_stack))
                   qbt1 *= sc->exp_energy_stack[p] *
                           sc->exp_energy_stack[q] *
                           sc->exp_energy_stack[k] *

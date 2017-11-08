@@ -2069,16 +2069,17 @@ bppm_circ(vrna_fold_compound_t *vc){
           /* 1.2.1. i,j  delimtis the "left" part of the interior loop    */
           /* (j,i) is "outer pair"                                        */
           for(k=1; k < i-turn-1; k++){
-            int ln1, lstart;
-            ln1 = k + n - j - 1;
+            int ln1, ln3, lstart;
+            ln1 = k - 1;
+            ln3 = n - j;
 
-            if (hc->up_int[j + 1] < ln1)
+            if (hc->up_int[j + 1] < (ln1 + ln3))
               break;
 
-            if(ln1>MAXLOOP)
+            if((ln1 + ln3) > MAXLOOP)
               break;
 
-            lstart = ln1+i-1-MAXLOOP;
+            lstart = (ln1 + ln3) + i - 1 - MAXLOOP;
             if(lstart<k+turn+1)
               lstart = k + turn + 1;
 
@@ -2089,7 +2090,7 @@ bppm_circ(vrna_fold_compound_t *vc){
               if (hc->up_int[l + 1] < ln2)
                 continue;
 
-              if(ln1+ln2>MAXLOOP)
+              if ((ln1 + ln2 + ln3) > MAXLOOP)
                 continue;
 
               eval = (hc_local[my_iindx[k] - l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ? 1 : 0;
@@ -2102,7 +2103,7 @@ bppm_circ(vrna_fold_compound_t *vc){
                   type_2 = 7;
 
                 tmp = qb[my_iindx[k] - l]
-                        * exp_E_IntLoop(ln1,
+                        * exp_E_IntLoop(ln1 + ln3,
                                         ln2,
                                         rt,
                                         rtype[type_2],
@@ -2111,17 +2112,18 @@ bppm_circ(vrna_fold_compound_t *vc){
                                         S1[k-1],
                                         S1[l+1],
                                         pf_params)
-                        * scale[ln1 + ln2];
+                        * scale[ln1 + ln2 + ln3];
 
                 if (sc) {
                   if (sc->exp_energy_up)
                     tmp *= sc->exp_energy_up[l + 1][ln2] *
-                           sc->exp_energy_up[j + 1][ln1];
+                           sc->exp_energy_up[j + 1][ln3] *
+                           sc->exp_energy_up[1][ln1];
 
                   if (sc->exp_f)
                     tmp *= sc->exp_f(k, l, i, j, VRNA_DECOMP_PAIR_IL, sc->data);
 
-                  if (((ln1 + ln2) == 0) && (sc->exp_energy_stack))
+                  if (((ln1 + ln2 + ln3) == 0) && (sc->exp_energy_stack))
                     tmp *= sc->exp_energy_stack[k] *
                            sc->exp_energy_stack[l] *
                            sc->exp_energy_stack[i] *
@@ -2149,13 +2151,14 @@ bppm_circ(vrna_fold_compound_t *vc){
               lstart = k + turn + 1;
 
             for(l=lstart; l <= n; l++){
-              int ln2, type_2;
-              ln2 = i - 1 + n - l;
+              int ln2, ln3, type_2;
+              ln2 = i - 1;
+              ln3 = n - l;
 
-              if (hc->up_int[l + 1] < ln2)
+              if (hc->up_int[l + 1] < (ln2 + ln3))
                 continue;
 
-              if(ln1+ln2>MAXLOOP)
+              if((ln1 + ln2 + ln3) > MAXLOOP)
                 continue;
 
               eval = (hc_local[my_iindx[k] - l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ? 1 : 0;
@@ -2168,7 +2171,7 @@ bppm_circ(vrna_fold_compound_t *vc){
                   type_2 = 7;
 
                 tmp = qb[my_iindx[k] - l] *
-                      exp_E_IntLoop(ln2,
+                      exp_E_IntLoop(ln2 + ln3,
                                     ln1,
                                     rtype[type_2],
                                     rt,
@@ -2177,17 +2180,18 @@ bppm_circ(vrna_fold_compound_t *vc){
                                     S1[i-1],
                                     S1[j+1],
                                     pf_params) *
-                      scale[ln1 + ln2];
+                      scale[ln1 + ln2 + ln3];
 
                 if (sc) {
                   if (sc->exp_energy_up)
                     tmp *= sc->exp_energy_up[j + 1][ln1] *
-                           sc->exp_energy_up[l + 1][ln2];
+                           sc->exp_energy_up[l + 1][ln3] *
+                           sc->exp_energy_up[1][ln2];
 
                   if (sc->exp_f)
                     tmp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
 
-                  if (((ln1 + ln2) == 0) && (sc->exp_energy_stack))
+                  if (((ln1 + ln2 + ln3) == 0) && (sc->exp_energy_stack))
                     tmp *= sc->exp_energy_stack[i] *
                            sc->exp_energy_stack[j] *
                            sc->exp_energy_stack[k] *
