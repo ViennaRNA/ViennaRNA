@@ -107,7 +107,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
   char          **Ss, loopseq[10];
   unsigned int  **a2s;
   short         *S, *S2, **SS, **S5, **S3;
-  int           u, e, s, type, n_seq, length, noGUclosure;
+  int           u1, u2, e, s, type, n_seq, length, noGUclosure;
   vrna_param_t  *P;
   vrna_sc_t     *sc, **scs;
   vrna_md_t     *md;
@@ -118,9 +118,10 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
   noGUclosure = md->noGUclosure;
   e           = INF;
 
-  u = vc->length - j + i - 1;
+  u1  = length - j;
+  u2  = i - 1;
 
-  if (u < 3)
+  if ((u1 + u2) < 3)
     return e;
 
   switch (vc->type) {
@@ -129,7 +130,6 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
       S           = vc->sequence_encoding;
       S2          = vc->sequence_encoding2;
       sc          = vc->sc;
-      u           = vc->length - j + i - 1;
       type        = get_pair_type(S2[j], S2[i], md);
       loopseq[0]  = '\0';
 
@@ -137,20 +137,17 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
         break;
 
       /* maximum special hp loop size: 6 */
-      if (u < 7) {
+      if ((u1 + u2) < 7) {
         strcpy(loopseq, vc->sequence + j - 1);
         strncat(loopseq, vc->sequence, i);
       }
 
-      e = E_Hairpin(u, type, S[j + 1], S[i - 1], loopseq, P);
+      e = E_Hairpin(u1 + u2, type, S[j + 1], S[i - 1], loopseq, P);
 
       if (sc) {
-        if (sc->energy_up) {
-          if (i > 1)
-            e += sc->energy_up[1][i - 1];
-          if (j < length)
-            e += sc->energy_up[j + 1][vc->length - j];
-        }
+        if (sc->energy_up)
+          e += sc->energy_up[j + 1][u1] +
+               sc->energy_up[1][u2];
 
         if (sc->f)
           e += sc->f(j, i, j, i, VRNA_DECOMP_PAIR_HP, sc->data);
@@ -171,30 +168,28 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
 
       for (s = 0; s < n_seq; s++) {
         char loopseq[10];
-        u           = a2s[s][length] - a2s[s][j] + a2s[s][i - 1];
+        u1          = a2s[s][length] - a2s[s][j];
+        u2          = a2s[s][i - 1];
         loopseq[0]  = '\0';
 
-        if (u < 7) {
+        if ((u1 + u2) < 7) {
           strcpy(loopseq, Ss[s] + a2s[s][j] - 1);
           strncat(loopseq, Ss[s], a2s[s][i]);
         }
 
-        if (u < 3) {
+        if ((u1 + u2) < 3) {
           e += 600;
         } else {
           type  = get_pair_type(SS[s][j], SS[s][i], md);
-          e     += E_Hairpin(u, type, S3[s][j], S5[s][i], loopseq, P);
+          e     += E_Hairpin(u1 + u2, type, S3[s][j], S5[s][i], loopseq, P);
         }
       }
       if (scs) {
         for (s = 0; s < n_seq; s++) {
           if (scs[s]) {
-            if (scs[s]->energy_up) {
-              if (i > 1)
-                e += scs[s]->energy_up[1][a2s[s][i - 1]];
-              if (j < length)
-                e += scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]];
-            }
+            if (scs[s]->energy_up)
+              e += scs[s]->energy_up[1][a2s[s][i - 1]] +
+                   scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]];
 
             if (scs[s]->f) {
               e += scs[s]->f(a2s[s][j],

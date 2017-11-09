@@ -330,12 +330,13 @@ postprocess_circular(vrna_fold_compound_t *vc,
   int           Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi, *fM_d3, *fM_d5, Md3i,
                 Md5i, FcMd3, FcMd5, FcH, FcI, FcM, Fc, *fM2, i, j, ij, u,
                 length, new_c, fm, type, *my_c, *my_fML, *indx, FcO, tmp,
-                dangle_model, turn, s;
+                dangle_model, turn, s, n_seq;
   vrna_param_t  *P;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc, **scs;
 
   length            = vc->length;
+  n_seq             = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
   P                 = vc->params;
   ptype             = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->ptype : NULL;
   indx              = vc->jindx;
@@ -434,115 +435,269 @@ postprocess_circular(vrna_fold_compound_t *vc,
    * to get a unique ML decomposition, just use fM1 instead of fML
    * below. However, that will not work with dangle_model==1
    */
-  if ((sc) && (sc->f)) {
-    if (hc->f) {
-      for (i=1; i<length-turn; i++) {
-        fM2[i] = INF;
-        for (u=i+turn; u<length-turn; u++) {
-          if (hc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
-            fm = sc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-            if ((fm != INF) && (my_fML[indx[u]+i] != INF) && (my_fML[indx[length]+u+1] != INF)) {
-              fm += my_fML[indx[u]+i] +
-                    my_fML[indx[length]+u+1];
-              fM2[i] = MIN2(fM2[i], fm);
+  if (hc->f) {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if ((sc) && (sc->f)) {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              if (hc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+                fm = sc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+                if ((fm != INF) && (my_fML[indx[u]+i] != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                  fm += my_fML[indx[u]+i] +
+                        my_fML[indx[length]+u+1];
+                  fM2[i] = MIN2(fM2[i], fm);
+                }
+              }
+            }
+          }
+        } else {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              if (hc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+                fm = my_fML[indx[u]+i];
+                if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                  fm += my_fML[indx[length]+u+1];
+                  fM2[i] = MIN2(fM2[i], fm);
+                }
+              }
             }
           }
         }
-      }
-    } else {
-      for (i=1; i<length-turn; i++) {
-        fM2[i] = INF;
-        for (u=i+turn; u<length-turn; u++) {
-          fm = sc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-          if ((fm != INF) && (my_fML[indx[u]+i] != INF) && (my_fML[indx[length]+u+1] != INF)) {
-            fm += my_fML[indx[u]+i] +
-                  my_fML[indx[length]+u+1];
-            fM2[i] = MIN2(fM2[i], fm);
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        if (scs) {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              if (hc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+                fm = my_fML[indx[u]+i];
+                if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                  fm += my_fML[indx[length]+u+1];
+
+                  for (s = 0; s < n_seq; s++)
+                    if ((scs[s]) && (sc->f))
+                      fm += scs[s]->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
+
+                  fM2[i] = MIN2(fM2[i], fm);
+                }
+              }
+            }
+          }
+        } else {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              if (hc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+                fm = my_fML[indx[u]+i];
+                if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                  fm += my_fML[indx[length]+u+1];
+                  fM2[i] = MIN2(fM2[i], fm);
+                }
+              }
+            }
           }
         }
-      }
+
+        break;
     }
   } else {
-    if (hc->f) {
-      for (i=1; i<length-turn; i++) {
-        fM2[i] = INF;
-        for (u=i+turn; u<length-turn; u++) {
-          if (hc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
-            fm = my_fML[indx[u]+i];
-            if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
-              fm += my_fML[indx[length]+u+1];
-              fM2[i] = MIN2(fM2[i], fm);
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if ((sc) && (sc->f)) {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              fm = sc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+              if ((fm != INF) && (my_fML[indx[u]+i] != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                fm += my_fML[indx[u]+i] +
+                      my_fML[indx[length]+u+1];
+                fM2[i] = MIN2(fM2[i], fm);
+              }
+            }
+          }
+        } else {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              fm = my_fML[indx[u]+i];
+              if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                fm += my_fML[indx[length]+u+1];
+                fM2[i] = MIN2(fM2[i], fm);
+              }
             }
           }
         }
-      }
-    } else {
-      for (i=1; i<length-turn; i++) {
-        fM2[i] = INF;
-        for (u=i+turn; u<length-turn; u++) {
-          fm = my_fML[indx[u]+i];
-          if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
-            fm += my_fML[indx[length]+u+1];
-            fM2[i] = MIN2(fM2[i], fm);
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        if (scs) {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              fm = my_fML[indx[u]+i];
+              if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                fm += my_fML[indx[length]+u+1];
+
+                for (s = 0; s < n_seq; s++)
+                  if ((sc) && (sc->f))
+                    fm += scs[s]->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
+
+                fM2[i] = MIN2(fM2[i], fm);
+              }
+            }
+          }
+        } else {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              fm = my_fML[indx[u]+i];
+              if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                fm += my_fML[indx[length]+u+1];
+                fM2[i] = MIN2(fM2[i], fm);
+              }
+            }
           }
         }
-      }
+
+        break;
     }
   }
 
-  if ((sc) && (sc->f)) {
-    if (hc->f) {
-      for (i=turn+1; i<length-2*turn; i++) {
-        if (hc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
-          fm = sc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-          if ((fm != INF) && (my_fML[indx[i]+1] != INF) && (fM2[i+1] != INF)) {
-            fm += my_fML[indx[i]+1] +
-                  fM2[i+1];
+  if (hc->f) {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if ((sc) && (sc->f)) {
+          for (i=turn+1; i<length-2*turn; i++) {
+            if (hc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+              fm = sc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+              if ((fm != INF) && (my_fML[indx[i]+1] != INF) && (fM2[i+1] != INF)) {
+                fm += my_fML[indx[i]+1] +
+                      fM2[i+1];
 
-            if (fm<FcM) {
-              FcM=fm; Mi=i;
+                if (fm<FcM) {
+                  FcM=fm; Mi=i;
+                }
+              }
+            }
+          }
+        } else {
+          for (i=turn+1; i<length-2*turn; i++) {
+            if (hc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+              fm = my_fML[indx[i]+1];
+              if ((fm != INF) && (fM2[i+1] != INF)) {
+                fm += fM2[i+1];
+
+                if (fm<FcM) {
+                  FcM=fm; Mi=i;
+                }
+              }
             }
           }
         }
-      }
-    } else {
-      for (i=turn+1; i<length-2*turn; i++) {
-        fm = sc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-        if ((fm != INF) && (my_fML[indx[i]+1] != INF) && (fM2[i+1] != INF)) {
-          fm += my_fML[indx[i]+1] +
-                fM2[i+1];
 
-          if (fm<FcM) {
-            FcM=fm; Mi=i;
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        if (scs) {
+          for (i=turn+1; i<length-2*turn; i++) {
+            if (hc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+              fm = my_fML[indx[i]+1];
+              if ((fm != INF) && (my_fML[indx[i]+1] != INF) && (fM2[i+1] != INF)) {
+                fm += fM2[i+1];
+
+                for (s = 0; s < n_seq; s++)
+                  if ((scs[s]) && (scs[s]->f))
+                    fm += scs[s]->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
+
+                if (fm < FcM) {
+                  FcM=fm; Mi=i;
+                }
+              }
+            }
+          }
+        } else {
+          for (i=turn+1; i<length-2*turn; i++) {
+            if (hc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+              fm = my_fML[indx[i]+1];
+              if ((fm != INF) && (fM2[i+1] != INF)) {
+                fm += fM2[i+1];
+
+                if (fm<FcM) {
+                  FcM=fm; Mi=i;
+                }
+              }
+            }
           }
         }
-      }
+
+        break;
     }
   } else {
-    if (hc->f) {
-      for (i=turn+1; i<length-2*turn; i++) {
-        if (hc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
-          fm = my_fML[indx[i]+1];
-          if ((fm != INF) && (fM2[i+1] != INF)) {
-            fm += fM2[i+1];
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if ((sc) && (sc->f)) {
+          for (i=turn+1; i<length-2*turn; i++) {
+            fm = sc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+            if ((fm != INF) && (my_fML[indx[i]+1] != INF) && (fM2[i+1] != INF)) {
+              fm += my_fML[indx[i]+1] +
+                    fM2[i+1];
 
-            if (fm<FcM) {
-              FcM=fm; Mi=i;
+              if (fm<FcM) {
+                FcM=fm; Mi=i;
+              }
+            }
+          }
+        } else {
+          for (i=turn+1; i<length-2*turn; i++) {
+            fm = my_fML[indx[i]+1];
+            if ((fm != INF) && (fM2[i+1] != INF)) {
+              fm += fM2[i+1];
+
+              if (fm<FcM) {
+                FcM=fm; Mi=i;
+              }
             }
           }
         }
-      }
-    } else {
-      for (i=turn+1; i<length-2*turn; i++) {
-        fm = my_fML[indx[i]+1];
-        if ((fm != INF) && (fM2[i+1] != INF)) {
-          fm += fM2[i+1];
 
-          if (fm<FcM) {
-            FcM=fm; Mi=i;
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        if (scs) {
+          for (i=turn+1; i<length-2*turn; i++) {
+            fm = my_fML[indx[i]+1];
+            if ((fm != INF) && (fM2[i+1] != INF)) {
+              fm += fM2[i+1];
+
+              for (s = 0; s < n_seq; s++)
+                if ((scs[s]) && (scs[s]->f))
+                  fm += scs[s]->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
+
+              if (fm<FcM) {
+                FcM=fm; Mi=i;
+              }
+            }
+          }
+        } else {
+          for (i=turn+1; i<length-2*turn; i++) {
+            fm = my_fML[indx[i]+1];
+            if ((fm != INF) && (fM2[i+1] != INF)) {
+              fm += fM2[i+1];
+
+              if (fm<FcM) {
+                FcM=fm; Mi=i;
+              }
+            }
           }
         }
-      }
+
+        break;
     }
   }
 
@@ -553,7 +708,7 @@ postprocess_circular(vrna_fold_compound_t *vc,
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        FcM += vc->n_seq * P->MLclosing;
+        FcM += n_seq * P->MLclosing;
         break;
     }
   }
@@ -1094,9 +1249,23 @@ postprocess_circular(vrna_fold_compound_t *vc,
         eee = my_fML[indx[u]+Mi+1] +
               my_fML[indx[length]+u+1];
 
-        if (sc) {
-          if (sc->f)
-            eee += sc->f(Mi + 1, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+        switch (vc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            if (sc) {
+              if (sc->f)
+                eee += sc->f(Mi + 1, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+            }
+
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            if (scs) {
+              for (s = 0; s < n_seq; s++)
+                if ((scs[s]) && (scs[s]->f))
+                  eee += scs[s]->f(Mi + 1, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
+            }
+
+            break;
         }
 
         if (fm == eee) {
