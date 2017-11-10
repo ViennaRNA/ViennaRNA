@@ -24,11 +24,12 @@ Alignment<R,L,AL>::Alignment(const Forest<L> *f1, const Forest<L> *f2, const boo
 
 }
 
+#if 0
 template<class R,class L,class AL>
 Alignment<R,L,AL>::~Alignment() {
     //TODO in unterklassen? delete mtrx_;
 }
-
+#endif
 
 // CYK style parser / bottom up matrix fill 
 template<class R, class L, class AL>
@@ -634,10 +635,10 @@ unsigned int AlignmentLinear<R,L,AL>::backtrace(ForestAli<L,AL> &f, CSFPair p, u
 
 						//std::cout << "score rep " << h_score << std::endl;
             if (score == h_score) {
-								int anchor = 0;
+								//int anchor = 0;
 								if (this->anchored_) {
 									if (this->f1_->getAnchor(p.i)==this->f2_->getAnchor(p.k)) {
-										anchor = this->f1_->getAnchor(p.i);
+										//anchor = this->f1_->getAnchor(p.i);
 										//if (anchor != 0) {
 										//	std::cout << "found an anchor" << std::endl;
 										//	exit(0);

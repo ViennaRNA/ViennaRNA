@@ -357,7 +357,6 @@ void progressiveAlign(std::vector<RNAProfileAlignment*> &inputList,
 Graph makePairsGraph(const RNAProfileAliMapType &inputMapProfile, const Algebra<double,RNA_Alphabet_Profile> *alg, const Matrix<double> *score_mtrx, double threshold) {
     Graph graph;
     RNAProfileAliMapType::const_iterator it,it2;
-    RNAProfileAlignment *f1=NULL,*f2=NULL;
 
     graph = NewGraph(score_mtrx->xDim());
 
@@ -367,10 +366,8 @@ Graph makePairsGraph(const RNAProfileAliMapType &inputMapProfile, const Algebra<
     }
 
     for (it=inputMapProfile.begin(); it!=inputMapProfile.end(); it++) {
-        f1=it->second;
         for (it2=inputMapProfile.begin(); it2->first<it->first; it2++) {
             double score;
-            f2=it2->second;
 
             score=score_mtrx->getAt(it->first-1,it2->first-1);
             if (alg->choice(score,threshold) != threshold) { // is it better than the threshold ?

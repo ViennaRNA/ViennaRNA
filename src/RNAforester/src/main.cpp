@@ -8,7 +8,7 @@
 #include "aligner.h"
 
 static const std::string AUTHOR = "Stefanie Schirmer, Matthias Hoechsmann ";
-static const std::string RNAFORESTER_VERSION = "2.0";
+static const std::string RNAFORESTER_VERSION = "2.0.1";
 static const std::string PROMPT = "Input string (upper or lower case); & to end for multiple alignments, @ to quit\n";
 static const std::string SCALE = "\e[22;36m....,....1....,....2....,....3....,....4....,....5....,....6....,....7....,....8\e[0;0m\n";
 
@@ -92,11 +92,7 @@ static void align(std::vector<RNAProfileAlignment*> & inputListMult, std::vector
             alignPairwiseSimple(inputListPW,score,options,anchoring);
         } 
 				else {
-						clock_t start, finish;
-						start = clock();
             alignPairwise(inputListPW,score,options,anchoring,xmlInfos);
-						finish = clock();
-						//std::cerr << "cpucyclesPerCodeblock " << ( (finish - start) ) << std::endl;
 				}
 				return;
     }
@@ -275,7 +271,6 @@ static void parseInputStream(Options &options, std::istream *inputStream, Score 
     unsigned long basePairCount, maxDepth;
     unsigned int forest_count = 1;
     bool multipleAlign = false;
-    bool showScale = false;
 		bool anchored = options.has(Options::Anchoring);
 
 		for (int lineNr = 0; ; lineNr++) {
@@ -380,7 +375,6 @@ static void parseInputStream(Options &options, std::istream *inputStream, Score 
 								else {
                     std::cerr << "The input sequence is neither an RNA/DNA string nor in vienna format." << std::endl;
                     std::cerr << "line: " << line << std::endl;
-                    showScale = true;
                     exit(EXIT_FAILURE);
                 }
 
@@ -413,7 +407,6 @@ static void parseInputStream(Options &options, std::istream *inputStream, Score 
                 }
 
                 forest_count++;
-                showScale = true;
             }
         }
 

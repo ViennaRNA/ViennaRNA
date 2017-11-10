@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_REVISION($Revision: 1.13 $)
-AC_INIT(RNAforester,2.0,sschirme@techfak.uni-bielefeld.de,RNAforester)
+AC_INIT(RNAforester,2.0.1,sschirme@techfak.uni-bielefeld.de,RNAforester)
 AC_PREREQ([2.59])
 
 AM_SILENT_RULES([yes])

@@ -3,8 +3,7 @@
 
 
 std::istream * parseXMLFile(std::string filename, std::istream *inputStream, RNAFuncs::AddXmlInfos & xmlInfos) {
-#ifdef HAVE_LIBXMLPLUSPLUS
-#ifdef HAVE_LIBXML2
+#if defined(HAVE_LIBXMLPLUSPLUS) && defined(HAVE_LIBXML2)
     // create Dom parser
     xmlpp::DomParser domParser;
     domParser.parse_file(filename);
@@ -88,7 +87,8 @@ std::istream * parseXMLFile(std::string filename, std::istream *inputStream, RNA
     //std::istringstream * inputString = new std::istringstream(foresterFormat);
     inputStream = new std::istringstream(foresterFormat);
     return inputStream;
-#endif
+#else
+    return NULL;
 #endif
 }
 
