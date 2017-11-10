@@ -1,5 +1,7 @@
 AC_INIT(kinwalker,2.0)
-AM_INIT_AUTOMAKE(-Wall -Werror foreign)
+
+AM_SILENT_RULES([yes])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 if test "$GCC" = yes; then
   AC_DEFINE(UNUSED, __attribute__ ((unused)), unsused argument avoids warning about unused variables)	
