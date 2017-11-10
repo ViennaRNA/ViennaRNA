@@ -12,7 +12,7 @@ AM_CPPFLAGS = -I${includedir}\
 							-I${srcdir}/utils\
 							-I${srcdir}/wmatch
 # C++ compiler flags 
-AM_CXXFLAGS = -Wall #-fmudflap -funwind-tables 
+AM_CXXFLAGS = -Wall -std=c++98 #-fmudflap -funwind-tables 
 # C++ linker flags
 #AM_LDFLAGS = -lmudflap
 

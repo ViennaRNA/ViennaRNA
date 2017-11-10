@@ -915,7 +915,6 @@ void RNAProfileAlignment::squigglePlot(const std::string &filename, SquigglePlot
     int id_PS,id;
     int ps_grey_colors[nugrey_colors_];
     int ps_color_red;
-    int ps_color_black;
     double xpos,ypos;
 
     std::vector<double> pairprob;
@@ -963,7 +962,6 @@ void RNAProfileAlignment::squigglePlot(const std::string &filename, SquigglePlot
         ps_grey_colors[i]=g2_ink(id_PS,grey_color,grey_color,grey_color);
     }
 
-    ps_color_black=g2_ink(id_PS,0,0,0);
     if (options.greyColors)
         ps_color_red=g2_ink(id_PS,0,0,0);
     else

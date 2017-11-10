@@ -54,7 +54,7 @@ protected:
 
 public:
 		Alignment(const Forest<L> *f1, const Forest<L> *f2, const bool topdown, const bool anchored, const bool printBacktrace);
-    ~Alignment();
+    virtual ~Alignment() {};
 
 		friend std::ostream& operator<<(std::ostream &out, const Alignment<R,L,AL> &ali) {
 			ali.print(out);
@@ -204,6 +204,8 @@ class AlignmentLinear : public Alignment<R,L,AL> {
 		bool computed(const unsigned long i, const unsigned long j) const { return mtrx_->computed(i,j); }; 
 		void setComputed(const unsigned long i, const unsigned long j) { mtrx_->setComputed(i,j); }; 
 
+    virtual ~AlignmentLinear() {};
+
     // virtual, for replacepair
     virtual inline R computeReplacementScore(CSFPair p, std::string & backtrack_as) const {
         backtrack_as = 'R';
@@ -270,7 +272,7 @@ class AlignmentLinear : public Alignment<R,L,AL> {
         //std::cout << "exit in computeDeletionScore" << std::endl;
         //exit(0);
     
-        unsigned int la = 0, ra = 0, lb = 0, rb = 0;
+        unsigned int lb = 0, rb = 0;
         lb = p.k;
 
         // alignment of children:
@@ -322,11 +324,11 @@ class AlignmentLinear : public Alignment<R,L,AL> {
     virtual inline R computeInsertionScoreRNA(CSFPair p, std::string & backtrack_as, unsigned int r, unsigned  int h) const {
       std::ostringstream backtrack_as_oss;
       backtrack_as_oss << "I";
+      R score = rnaAlg_->worst_score();
       if ((this->f2_->isInternalNode(p.k))) {
         
-        R score = rnaAlg_->worst_score();
         
-        unsigned int la = 0, ra = 0, lb = 0, rb = 0;
+        unsigned int la = 0, ra = 0;
         la = p.i;
 
         // alignment of children:
@@ -375,8 +377,8 @@ class AlignmentLinear : public Alignment<R,L,AL> {
         }
 
         backtrack_as = backtrack_as_oss.str();
-        return score;
       }
+      return score;
       //std::cout << "computed score insert " << rnaAlg_->insert(getMtrxVal(this->f1_->indexpos(p.i, r),     this->f2_->down(p.k)),
 		}
 
@@ -528,6 +530,7 @@ class AlignmentAffine : public Alignment<R,L,AL> {
 
 		bool computed(const unsigned long i, const unsigned long j) const { return mtrx_->computed(i,j); }; 
 		void setComputed(const unsigned long i, const unsigned long j) { mtrx_->setComputed(i,j); }; 
+    virtual ~AlignmentAffine() {};
 };
 
 #endif
