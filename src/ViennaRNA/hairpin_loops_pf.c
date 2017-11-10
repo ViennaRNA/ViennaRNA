@@ -324,7 +324,7 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
   char              **Ss, *sequence;
   unsigned int      **a2s;
   short             *S, **SS, **S5, **S3;
-  int               u, u1, ij, n, type, n_seq, s, *rtype, *idx, noGUclosure;
+  int               u1, u2, ij, n, type, n_seq, s, *rtype, *idx, noGUclosure;
   FLT_OR_DBL        q, qbt1, *scale;
   vrna_exp_param_t  *P;
   vrna_sc_t         *sc, **scs;
@@ -341,10 +341,11 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
   rtype       = &(md->rtype[0]);
 
   q   = 0.;
-  u   = n - j + i - 1;
+  u1  = n - j;
+  u2  = i - 1;
   ij  = idx[j] + i;
 
-  if (u < 3)
+  if ((u1 + u2) < 3)
     return q;
 
   switch (vc->type) {
@@ -363,24 +364,24 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
       /* get the loop sequence */
       char loopseq[10];
       loopseq[0] = '\0';
-      if (u < 7) {
+      if ((u1 + u2) < 7) {
         strcpy(loopseq, sequence + j - 1);
         strncat(loopseq, sequence, i);
       }
 
-      q = exp_E_Hairpin(u, type, S[j + 1], S[i - 1], loopseq, P);
+      q = exp_E_Hairpin(u1 + u2, type, S[j + 1], S[i - 1], loopseq, P);
 
       /* add soft constraints */
       if (sc) {
         if (sc->exp_energy_up)
-          q *= sc->exp_energy_up[1][i - 1] *
-               sc->exp_energy_up[j + 1][n - j];
+          q *= sc->exp_energy_up[1][u2] *
+               sc->exp_energy_up[j + 1][u1];
 
         if (sc->exp_f)
           q *= sc->exp_f(j, i, j, i, VRNA_DECOMP_PAIR_HP, sc->data);
       }
 
-      q *= scale[u];
+      q *= scale[u1 + u2];
 
       if (domains_up && domains_up->exp_energy_cb) {
         /* we always consider both, bound and unbound state */
@@ -403,24 +404,28 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
       qbt1  = 1.;
 
       for (s = 0; s < n_seq; s++) {
-        u1 = a2s[s][i - 1] + a2s[s][n] - a2s[s][j];
+        u1  = a2s[s][n] - a2s[s][j];
+        u2  = a2s[s][i - 1];
         char loopseq[10];
         loopseq[0] = '\0';
-        if (u1 < 7) {
+        if ((u1 + u2) < 7) {
           strcpy(loopseq, Ss[s] + a2s[s][j] - 1);
           strncat(loopseq, Ss[s], a2s[s][i]);
         }
 
         type  = get_pair_type(SS[s][j], SS[s][i], md);
-        qbt1  *= exp_E_Hairpin(u1, type, S3[s][j], S5[s][i], loopseq, P);
+        qbt1  *= exp_E_Hairpin(u1 + u2, type, S3[s][j], S5[s][i], loopseq, P);
       }
       /* add soft constraints */
       if (scs) {
         for (s = 0; s < n_seq; s++) {
           if (scs[s]) {
-            if (scs[s]->exp_energy_up)
-              qbt1 *= ((i > 1) ? scs[s]->exp_energy_up[a2s[s][1]][a2s[s][i] - a2s[s][1]] : 1.) *
-                      ((j < n) ? scs[s]->exp_energy_up[a2s[s][j] + 1][a2s[s][n] - a2s[s][j]] : 1.);
+            if (scs[s]->exp_energy_up) {
+              u1    = a2s[s][n] - a2s[s][j];
+              u2    = a2s[s][i - 1];
+              qbt1  *= scs[s]->exp_energy_up[a2s[s][1]][u2] *
+                       scs[s]->exp_energy_up[a2s[s][j + 1]][u1];
+            }
 
             if (scs[s]->exp_f) {
               qbt1 *= scs[s]->exp_f(a2s[s][j],
@@ -434,7 +439,7 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
         }
       }
 
-      q = qbt1 * scale[u];
+      q = qbt1 * scale[u1 + u2];
 
       break;
 
