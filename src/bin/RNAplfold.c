@@ -32,6 +32,42 @@
 
 #include "ViennaRNA/color_output.inc"
 
+#ifndef isnan
+#define isnan(x) \
+  (sizeof(x) == sizeof(long double) ? isnan_ld(x) \
+   : sizeof(x) == sizeof(double) ? isnan_d(x) \
+   : isnan_f(x))
+
+/* Use volatile tmp variable to prevent optimization by compiler. */
+static inline int
+isnan_f(float x)
+{
+  volatile float tmp = x;
+
+  return tmp != x;
+}
+
+
+static inline int
+isnan_d(double x)
+{
+  volatile double tmp = x;
+
+  return tmp != x;
+}
+
+
+static inline int
+isnan_ld(long double x)
+{
+  volatile long double tmp = x;
+
+  return tmp != x;
+}
+
+
+#endif /* ifndef isnan */
+
 typedef struct {
   float     cutoff;
   FILE      *pUfp;
@@ -48,6 +84,7 @@ typedef struct {
 } plfold_data;
 
 int unpaired;
+
 PRIVATE void
 putoutphakim_u(vrna_fold_compound_t *fc,
                double               **pU,
@@ -731,9 +768,18 @@ print_up_open(FILE    *fp,
   int cnt;
 
   fprintf(fp, "%d\t", i);
-  for (cnt = 1; cnt < pr_size; cnt++)
-    fprintf(fp, "%.7g\t", -log(pr[cnt]) * kT);
-  fprintf(fp, "%.7g", -log(pr[pr_size]) * kT);
+  for (cnt = 1; cnt < pr_size; cnt++) {
+    if (isnan(pr[cnt]) || (pr[cnt] == 0.))
+      fprintf(fp, "NA\t");
+    else
+      fprintf(fp, "%.7g\t", -log(pr[cnt]) * kT);
+  }
+
+  if (isnan(pr[pr_size]) || (pr[pr_size] == 0.))
+    fprintf(fp, "NA");
+  else
+    fprintf(fp, "%.7g", -log(pr[pr_size]) * kT);
+
   for (cnt = pr_size + 1; cnt <= ulength; cnt++)
     fprintf(fp, "\tNA");
   fprintf(fp, "\n");
@@ -750,9 +796,18 @@ print_up(FILE   *fp,
   int cnt;
 
   fprintf(fp, "%d\t", i);
-  for (cnt = 1; cnt < pr_size; cnt++)
-    fprintf(fp, "%.7g\t", pr[cnt]);
-  fprintf(fp, "%.7g", pr[pr_size]);
+  for (cnt = 1; cnt < pr_size; cnt++) {
+    if (isnan(pr[cnt]))
+      fprintf(fp, "NA\t");
+    else
+      fprintf(fp, "%.7g\t", pr[cnt]);
+  }
+
+  if (isnan(pr[pr_size]))
+    fprintf(fp, "NA");
+  else
+    fprintf(fp, "%.7g", pr[pr_size]);
+
   for (cnt = pr_size + 1; cnt <= ulength; cnt++)
     fprintf(fp, "\tNA");
   fprintf(fp, "\n");
