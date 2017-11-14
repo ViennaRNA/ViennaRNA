@@ -37,7 +37,7 @@ RNA_la_CFLAGS = $(RNA_CFLAGS) $(PERLXS_CFLAGS)
 RNA_la_CXXFLAGS = $(RNA_CXXFLAGS) -Wno-unused-label -Wno-unused-variable
 RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS)
 
-RNA_la_LIBADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PERLXS_LIBS)
+RNA_la_LIBADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PERLXS_LIBS) $(PERLXS_LDFLAGS)
 
 if VRNA_AM_SWITCH_SVM
 RNA_la_LIBADD += -lstdc++
@@ -53,7 +53,7 @@ RNA_la_CXXFLAGS += $(LTO_CXXFLAGS)
 RNA_la_LDFLAGS += $(LTO_LDFLAGS)
 endif
 
-RNA_la_LDFLAGS += -avoid-version -module -shared -export-dynamic -shrext $(PERL_SO) $(PERLXS_LDFLAGS)
+RNA_la_LDFLAGS += -avoid-version -module -shared -export-dynamic -shrext $(PERL_SO)
 
 SOURCES = $(srcdir)/RNA.pod
 

@@ -93,7 +93,9 @@
  *
  * @ingroup perturbation
  */
-typedef void (*progress_callback)(int iteration, double score, double *epsilon);
+typedef void (*progress_callback)(int     iteration,
+                                  double  score,
+                                  double  *epsilon);
 
 /**
  *  @brief Find a vector of perturbation energies that minimizes the discripancies between predicted and observed pairing probabilities and the amount of neccessary adjustments
@@ -134,18 +136,19 @@ typedef void (*progress_callback)(int iteration, double score, double *epsilon);
  *  @param callback           A pointer to a callback function used for reporting the current minimization progress
  *
  */
-void vrna_sc_minimize_pertubation(vrna_fold_compound_t *vc,
-                                  const double *q_prob_unpaired,
-                                  int objective_function,
-                                  double sigma_squared,
-                                  double tau_squared,
-                                  int algorithm,
-                                  int sample_size,
-                                  double *epsilon,
-                                  double initialStepSize,
-                                  double minStepSize,
-                                  double minImprovement,
-                                  double minimizerTolerance,
-                                  progress_callback callback);
+void vrna_sc_minimize_pertubation(vrna_fold_compound_t  *vc,
+                                  const double          *q_prob_unpaired,
+                                  int                   objective_function,
+                                  double                sigma_squared,
+                                  double                tau_squared,
+                                  int                   algorithm,
+                                  int                   sample_size,
+                                  double                *epsilon,
+                                  double                initialStepSize,
+                                  double                minStepSize,
+                                  double                minImprovement,
+                                  double                minimizerTolerance,
+                                  progress_callback     callback);
+
 
 #endif

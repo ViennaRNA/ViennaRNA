@@ -137,14 +137,20 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
   md      = &(P->model_details);
   e       = INF;
 
+  u = vc->length - j + i - 1;
+
+  if (u < 3)
+    return e;
+
   switch (vc->type) {
     /* single sequences and cofolding hybrids */
     case  VRNA_FC_TYPE_SINGLE:
-      S     = vc->sequence_encoding;
-      S2    = vc->sequence_encoding2;
-      sc    = vc->sc;
-      u     = vc->length - j + i - 1;
-      type  = get_pair_type(S2[j], S2[i], md);
+      S           = vc->sequence_encoding;
+      S2          = vc->sequence_encoding2;
+      sc          = vc->sc;
+      u           = vc->length - j + i - 1;
+      type        = get_pair_type(S2[j], S2[i], md);
+      loopseq[0]  = '\0';
 
       /* maximum special hp loop size: 6 */
       if (u < 7) {
@@ -155,9 +161,12 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
       e = E_Hairpin(u, type, S[j + 1], S[i - 1], loopseq, P);
 
       if (sc) {
-        if (sc->energy_up)
-          e += sc->energy_up[j + 1][vc->length - j] +
-               sc->energy_up[1][i - 1];
+        if (sc->energy_up) {
+          if (i > 1)
+            e += sc->energy_up[1][i - 1];
+          if (j < length)
+            e += sc->energy_up[j + 1][vc->length - j];
+        }
 
         if (sc->f)
           e += sc->f(j, i, j, i, VRNA_DECOMP_PAIR_HP, sc->data);
@@ -178,7 +187,8 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
 
       for (s = 0; s < n_seq; s++) {
         char loopseq[10];
-        u = a2s[s][length] - a2s[s][j] + a2s[s][i - 1];
+        u           = a2s[s][length] - a2s[s][j] + a2s[s][i - 1];
+        loopseq[0]  = '\0';
 
         if (u < 7) {
           strcpy(loopseq, Ss[s] + a2s[s][j] - 1);
@@ -195,10 +205,12 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
       if (scs) {
         for (s = 0; s < n_seq; s++) {
           if (scs[s]) {
-            if (scs[s]->energy_up)
-              e += ((i > 1) ? scs[s]->energy_up[1][a2s[s][i - 1]] : 0) +
-                   ((j <
-                     length) ? scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]] : 0);
+            if (scs[s]->energy_up) {
+              if (i > 1)
+                e += scs[s]->energy_up[1][a2s[s][i - 1]];
+              if (j < length)
+                e += scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]];
+            }
 
             if (scs[s]->f) {
               e += scs[s]->f(a2s[s][j],

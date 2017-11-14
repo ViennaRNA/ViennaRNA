@@ -291,6 +291,7 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
           continue;
 
         char loopseq[10];
+        loopseq[0] = '\0';
         if (u < 9)
           strncpy(loopseq, Ss[s] + a2s[s][i] - 1, 10);
 
@@ -362,6 +363,9 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
   u   = n - j + i - 1;
   ij  = idx[j] + i;
 
+  if (u < 3)
+    return q;
+
   switch (vc->type) {
     case VRNA_FC_TYPE_SINGLE:
       sequence  = vc->sequence;
@@ -377,6 +381,7 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
 
       /* get the loop sequence */
       char loopseq[10];
+      loopseq[0] = '\0';
       if (u < 7) {
         strcpy(loopseq, sequence + j - 1);
         strncat(loopseq, sequence, i);
@@ -417,8 +422,9 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
       qbt1  = 1.;
 
       for (s = 0; s < n_seq; s++) {
-        u1 = a2s[s][i] - 1 + a2s[s][n] - a2s[s][j];
+        u1 = a2s[s][i - 1] + a2s[s][n] - a2s[s][j];
         char loopseq[10];
+        loopseq[0] = '\0';
         if (u1 < 7) {
           strcpy(loopseq, Ss[s] + a2s[s][j] - 1);
           strncat(loopseq, Ss[s], a2s[s][i]);
@@ -427,7 +433,6 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
         type  = get_pair_type(SS[s][j], SS[s][i], md);
         qbt1  *= exp_E_Hairpin(u1, type, S3[s][j], S5[s][i], loopseq, P);
       }
-
       /* add soft constraints */
       if (scs) {
         for (s = 0; s < n_seq; s++) {

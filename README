@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/ViennaRNA/ViennaRNA.svg?branch=master)](https://travis-ci.org/ViennaRNA/ViennaRNA)
 
-This is Version 2.4.2 of the ViennaRNA Package.
+This is Version 2.4.3 of the ViennaRNA Package.
 ------------------------------------------------
 See the NEWS and Changelog files for differences to previous versions.
 
@@ -42,36 +42,36 @@ Please read the copyright notice in the file COPYING!
 
 The package should be easily portable. It is known to compile without
 modifications at least under
-SunOS 5.x, IRIX 5.x and 6.x, linux, and windows with the CygWin environment.
+SunOS 5.x, IRIX 5.x and 6.x, linux, and MS Windows with the Cygwin environment.
 Other UNIX flavors should present no problems.
 You need a compiler that understands ANSI C. See the INSTALL file for details.
 
 The following executables are provided:
-RNA2Dfold       Compute MFE structure, partition function and representative sample structures of k,l neighborhoods
-RNAaliduplex    Predict conserved RNA-RNA interactions between two alignments
-RNAalifold      Calculate secondary structures for a set of aligned RNA sequences
-RNAcofold       Calculate secondary structures of two RNAs with dimerization
-RNAdistance     Calculate distances between RNA secondary structures
-RNAduplex       Compute the structure upon hybridization of two RNA strands
-RNAeval         Evaluate free energy of RNA sequences with given secondary structure
-RNAfold         Calculate minimum free energy secondary structures and partition function of RNAs
-RNAheat         Calculate the specific heat (melting curve) of an RNA sequence
-RNAinverse      Find RNA sequences with given secondary structure (sequence design)
-RNALalifold     Calculate locally stable secondary structures for a set of aligned RNAs
-RNALfold        Calculate locally stable secondary structures of long RNAs
-RNApaln         RNA alignment based on sequence base pairing propensities
-RNApdist        Calculate distances between thermodynamic RNA secondary structures ensembles
-RNAparconv      Convert energy parameter files from ViennaRNA 1.8 to 2.0 format
-RNAPKplex       Predict RNA secondary structures including pseudoknots
-RNAplex         Find targets of a query RNA
-RNAplfold       Calculate average pair probabilities for locally stable secondary structures
-RNAplot         Draw RNA Secondary Structures in PostScript, SVG, or GML
-RNApvmin        Calculate a perturbation vector that minimizes discripancies between predicted and observed pairing probabilities
-RNAsnoop        Find targets of a query H/ACA snoRNA
-RNAsubopt       Calculate suboptimal secondary structures of RNAs
-RNAup           Calculate the thermodynamics of RNA-RNA interactions 
-AnalyseSeqs     Analyse sequence data
-AnalyseDists    Analyse distance matrices
+- `RNA2Dfold`       Compute MFE structure, partition function and representative sample structures of k,l neighborhoods
+- `RNAaliduplex`    Predict conserved RNA-RNA interactions between two alignments
+- `RNAalifold`      Calculate secondary structures for a set of aligned RNA sequences
+- `RNAcofold`       Calculate secondary structures of two RNAs with dimerization
+- `RNAdistance`     Calculate distances between RNA secondary structures
+- `RNAduplex`       Compute the structure upon hybridization of two RNA strands
+- `RNAeval`         Evaluate free energy of RNA sequences with given secondary structure
+- `RNAfold`         Calculate minimum free energy secondary structures and partition function of RNAs
+- `RNAheat`         Calculate the specific heat (melting curve) of an RNA sequence
+- `RNAinverse`      Find RNA sequences with given secondary structure (sequence design)
+- `RNALalifold`     Calculate locally stable secondary structures for a set of aligned RNAs
+- `RNALfold`        Calculate locally stable secondary structures of long RNAs
+- `RNApaln`         RNA alignment based on sequence base pairing propensities
+- `RNApdist`        Calculate distances between thermodynamic RNA secondary structures ensembles
+- `RNAparconv`      Convert energy parameter files from ViennaRNA 1.8 to 2.0 format
+- `RNAPKplex`       Predict RNA secondary structures including pseudoknots
+- `RNAplex`         Find targets of a query RNA
+- `RNAplfold`       Calculate average pair probabilities for locally stable secondary structures
+- `RNAplot`         Draw RNA Secondary Structures in PostScript, SVG, or GML
+- `RNApvmin`        Calculate a perturbation vector that minimizes discripancies between predicted and observed pairing probabilities
+- `RNAsnoop`        Find targets of a query H/ACA snoRNA
+- `RNAsubopt`       Calculate suboptimal secondary structures of RNAs
+- `RNAup`           Calculate the thermodynamics of RNA-RNA interactions 
+- `AnalyseSeqs`     Analyse sequence data
+- `AnalyseDists`    Analyse distance matrices
 
 A couple of useful utilities can be found in the src/Utils directory.
 
@@ -85,16 +85,17 @@ perldoc relplot.pl
 Since version 2.0 the build-in energy parameters (available as parameter
 file default.par as well) are taken from:
 
-D.H. Mathews et al. (2004),
+[D.H. Mathews et al. (2004)](https://doi.org/10.1073/pnas.0401799101),
 "Incorporating chemical modification constraints into a dynamic programming
 algorithm for prediction of RNA secondary structure",
 Proc. Natl. Acad. Sci. USA: 101, pp 7287-7292
 
 and
 
-D.H Turner et al. (2009), "NNDB: The nearest neighbor parameter database
+[D.H. Turner et al. (2009)](https://dx.doi.org/10.1093/nar/gkp892), 
+"NNDB: The nearest neighbor parameter database
 for predicting stability of nucleic acid secondary structure",
-Nucleic Acids Research: 38, pp 280-282
+Nucleic Acids Research: 38, pp 280-282.
 
 For backward compatibility we also provide energy parameters from Turner et al.
 1999 in the file 'rna_turner1999.par'. Additionally, a set of trained RNA energy
@@ -102,7 +103,7 @@ parameters from Andronescou et al. 2007 'rna_andronescou2007.par' and two sets
 of DNA parameters ('dna_mathews1999.par' and 'dna_mathews2004.par') are included
 in the package as well.
 The code very rarely uses static arrays, and all programs should work for 
-sequences up to a length of 32700 (if you have huge amounts of memory that
+sequences up to a length of 32,700 (if you have huge amounts of memory that
 is).
 
 If you're a commercial user and find these programs useful, please consider
@@ -110,7 +111,7 @@ supporting further developments with a donation.
 
 The most recent source code and documentation should always be available on
 the web at 
-http://www.tbi.univie.ac.at/RNA
+[http://www.tbi.univie.ac.at/RNA](http://www.tbi.univie.ac.at/RNA)
 
 We need your feedback! Send your comments, suggestions, and questions to
 rna@tbi.univie.ac.at

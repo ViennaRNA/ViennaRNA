@@ -1,10 +1,21 @@
 /* set up data structures for weighted match */
 
+void
+SetUp(Graph gptr, int type);
+
+void
+SetStandard(Graph graph);
+
+void
+SetEuclid(EuclidGraph graph);
+
+void
+SetMatrix(MatrixGraph graph);
+
 /* to add a new type, add new case in SetUp() and a Set_X() routine */
 
-SetUp (gptr,type)
-int gptr,type;
-
+void
+SetUp(Graph gptr, int type)
 {   int i,allocsize;
     Graph g;
     EuclidGraph xy;
@@ -41,8 +52,8 @@ int gptr,type;
 
 /* set up from Type 1 graph. */
 
-SetStandard(graph)
-Graph graph;
+void
+SetStandard(Graph graph)
 {   int elabel, adj_node, i, j;
     int u, v, currentedge;
     Edge edge;
@@ -87,8 +98,8 @@ Graph graph;
 
 /* set up from Euclidean graph */
 
-SetEuclid(graph)
-EuclidGraph graph;
+void
+SetEuclid(EuclidGraph graph)
 {   int i,j,currentedge;
 
     currentedge = U+2;
@@ -107,8 +118,8 @@ EuclidGraph graph;
 	    }
 }
 
-SetMatrix(graph)
-MatrixGraph graph;
+void
+SetMatrix(MatrixGraph graph)
 {   int i,j,currentedge;
 
     currentedge = U+2;

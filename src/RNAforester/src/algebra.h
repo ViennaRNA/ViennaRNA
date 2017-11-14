@@ -23,6 +23,7 @@ class AlgebraAffine : public Algebra<R,L> {
 	public:
     virtual R delO(L a,R down, R over) const =0;				/**< Result for the tree edit function 'delete' */
     virtual R insertO(R down,L b,R over) const =0;			/**< Result for the tree edit function 'insert' */
+    virtual ~AlgebraAffine() {};
 };
 
 // Extended Algebra for aligning RNA secondary structure trees where basepair replacements
@@ -45,6 +46,7 @@ public:
     virtual R insertPairAndBases(L lb, R down, L rb, R over) const = 0;
     virtual R insertPairAndLeftBase(L lb, R down, L ra, L rb, R over) const = 0;
     virtual R insertPairAndRightBase(L la, L lb, R down, L rb, R over) const = 0;
+    virtual ~RNA_Algebra() {};
 };
 
 template<class R, class L>
@@ -62,6 +64,7 @@ public:
     virtual R insertPairAndBases(L lb, R down, L rb, R over) const = 0;
     virtual R insertPairAndLeftBase(L lb, R down, L ra, L rb, R over) const = 0;
     virtual R insertPairAndRightBase(L la, L lb, R down, L rb, R over) const = 0;
+    virtual ~RNA_AlgebraAffine() {};
 
 };
 

@@ -1,0 +1,8 @@
+# Do not allow multibranch loops
+P 1 0 100 Mm
+
+# Force the first 3 nucleotides to be paired
+F 1 0 5
+
+# Prohibit nucleotides 6 to 15 from base pairing
+P 6 0 10

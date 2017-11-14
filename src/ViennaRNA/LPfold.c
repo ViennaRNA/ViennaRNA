@@ -1276,17 +1276,17 @@ compute_probs(vrna_fold_compound_t        *vc,
             prmt1 *= sc->exp_energy_bp_local[k - 1][m - k + 1];
       }
 
-      /* l+1 is unpaired */
-      if (hc->up_ml[l + 1]) {
+      /* k-1 is unpaired */
+      if (hc->up_ml[k - 1]) {
         ppp = prm_l1[m] * expMLbase[1];
 
         if (sc)
           if (sc->exp_energy_up)
-            ppp *= sc->exp_energy_up[l + 1][1];
+            ppp *= sc->exp_energy_up[k - 1][1];
 
         prm_l[m] = ppp + prmt1;
       } else {
-        /* skip configuration where l+1 is unpaired */
+        /* skip configuration where k-1 is unpaired */
         prm_l[m] = prmt1;
       }
 
@@ -1321,7 +1321,10 @@ compute_probs(vrna_fold_compound_t        *vc,
           double dang;
           /* coefficient for computations of unpairedarrays */
           dang = qb[k][l] *
-                 exp_E_MLstem(tt, S1[k - 1], S1[l + 1], pf_params) *
+                 exp_E_MLstem(tt,
+                              (k > 1) ? S1[k - 1] : -1,
+                              (l < n) ? S1[l + 1] : -1,
+                              pf_params) *
                  scale[2];
 
           for (m = MIN2(k + winSize - 2, n); m >= l + 2; m--) {
@@ -1544,7 +1547,7 @@ compute_pU(vrna_fold_compound_t       *vc,
    *  going down to $unpaired, to be unpaired, i.e. a list with entries from 1 to unpaired for
    *  every i, with the probability of a stretch of length x, starting at i-x+1, to be unpaired
    */
-  char              *sequence, **ptype;
+  char              **ptype;
   short             *S1;
   int               startu, i5, j3, len, obp, *rtype, turn, winSize, n, leftmost,
                     rightmost, tt;
@@ -1555,7 +1558,6 @@ compute_pU(vrna_fold_compound_t       *vc,
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
 
-  sequence      = vc->sequence;
   n             = vc->length;
   winSize       = vc->window_size;
   S1            = vc->sequence_encoding;
@@ -1773,7 +1775,7 @@ compute_pU(vrna_fold_compound_t       *vc,
     if (hc->up_ml[k + 1] >= len) {
       for (obp = k + len + turn + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
         if (hc->matrix_local[k][obp - k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-          tt = rtype[ptype[k][obp]];
+          tt = rtype[(unsigned int)ptype[k][obp]];
           if (tt == 0)
             tt = 7;
 

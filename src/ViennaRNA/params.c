@@ -259,7 +259,7 @@ vrna_exp_params_rescale(vrna_fold_compound_t  *vc,
                         double                *mfe)
 {
   vrna_exp_param_t  *pf;
-  double            kT;
+  double            e_per_nt, kT;
   vrna_md_t         *md;
 
   if (vc) {
@@ -288,12 +288,15 @@ vrna_exp_params_rescale(vrna_fold_compound_t  *vc,
       if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
         kT /= vc->n_seq;
 
-      if (mfe) {
-        kT            /= 1000.;
-        pf->pf_scale  = exp(-(md->sfact * *mfe) / kT / vc->length);
-      } else if (pf->pf_scale < 1.) {
-        /* mean energy for random sequences: 184.3*length cal */
-        pf->pf_scale = exp(-(-185 + (pf->temperature - 37.) * 7.27) / kT);
+      /* re-compute scaling factor if necessary */
+      if ((mfe) || (pf->pf_scale < 1.)) {
+        if (mfe)  /* use largest known Boltzmann factor for scaling */
+          e_per_nt = *mfe * 1000. / vc->length;
+        else      /* use mean energy for random sequences: 184.3*length cal for scaling */
+          e_per_nt = -185 + (pf->temperature - 37.) * 7.27;
+
+        /* apply user-defined scaling factor to allow scaling for unusually stable/unstable structure enembles */
+        pf->pf_scale = exp(-(md->sfact * e_per_nt) / kT);
       }
 
       if (pf->pf_scale < 1.)
@@ -352,9 +355,8 @@ get_scaled_params(vrna_md_t *md)
   params = (vrna_param_t *)vrna_alloc(sizeof(vrna_param_t));
 
   memset(params->param_file, '\0', 256);
-  if (last_parameter_file() != NULL) {
+  if (last_parameter_file() != NULL)
     strncpy(params->param_file, last_parameter_file(), 255);
-  }
 
   params->model_details = *md;  /* copy over the model details */
   params->temperature   = md->temperature;
@@ -495,12 +497,11 @@ get_scaled_exp_params(vrna_md_t *md,
   double            GT;
   vrna_exp_param_t  *pf;
 
-  pf                = (vrna_exp_param_t *)vrna_alloc(sizeof(vrna_exp_param_t));
+  pf = (vrna_exp_param_t *)vrna_alloc(sizeof(vrna_exp_param_t));
 
   memset(pf->param_file, '\0', 256);
-  if (last_parameter_file() != NULL) {
+  if (last_parameter_file() != NULL)
     strncpy(pf->param_file, last_parameter_file(), 255);
-  }
 
   pf->model_details = *md;
   pf->temperature   = md->temperature;

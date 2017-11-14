@@ -410,7 +410,7 @@ main(int  argc,
       vrna_exp_params_rescale(vc, &mfe);
       /* ignore return value, we are not interested in the free energy */
       ens_en  = vrna_pf(vc, structure);
-      kT      = vc->exp_params->kT;
+      kT      = vc->exp_params->kT / 1000.;
 
       for (i = 0; i < n_back; i++) {
         char *s, *e_string = NULL;

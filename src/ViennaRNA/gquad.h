@@ -230,7 +230,7 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *vc,
    * here we do some fancy stuff to backtrace the stacksize and linker lengths
    * of the g-quadruplex that should reside within position i,j
    */
-  short         *S, *S_cons;
+  short         *S;
   int           l[3], L, a, n_seq;
   vrna_param_t  *P;
 

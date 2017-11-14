@@ -32,27 +32,66 @@
 
 #include "ViennaRNA/color_output.inc"
 
+#ifndef isnan
+#define isnan(x) \
+  (sizeof(x) == sizeof(long double) ? isnan_ld(x) \
+   : sizeof(x) == sizeof(double) ? isnan_d(x) \
+   : isnan_f(x))
+
+/* Use volatile tmp variable to prevent optimization by compiler. */
+static inline int
+isnan_f(float x)
+{
+  volatile float tmp = x;
+
+  return tmp != x;
+}
+
+
+static inline int
+isnan_d(double x)
+{
+  volatile double tmp = x;
+
+  return tmp != x;
+}
+
+
+static inline int
+isnan_ld(long double x)
+{
+  volatile long double tmp = x;
+
+  return tmp != x;
+}
+
+
+#endif /* ifndef isnan */
+
 typedef struct {
-  float cutoff;
-  FILE  *pUfp;
-  FILE  *spup;
+  float     cutoff;
+  FILE      *pUfp;
+  FILE      *spup;
   vrna_ep_t *plist;
-  int        plist_cnt;
-  int   plexoutput;
-  int   simply_putout;
-  int   openenergies;
-  double  **pup;
-  int     ulength;
-  int     n;
-  double  kT;
+  int       plist_cnt;
+  int       plexoutput;
+  int       simply_putout;
+  int       openenergies;
+  double    **pup;
+  int       ulength;
+  int       n;
+  double    kT;
 } plfold_data;
 
 int unpaired;
-PRIVATE void putoutphakim_u(vrna_fold_compound_t *fc,
-                            double  **pU,
-                            int     length,
-                            int     ulength,
-                            FILE    *fp);
+
+PRIVATE void
+putoutphakim_u(vrna_fold_compound_t *fc,
+               double               **pU,
+               int                  length,
+               int                  ulength,
+               FILE                 *fp);
+
 
 PRIVATE void
 plfold_callback(FLT_OR_DBL    *pr,
@@ -62,21 +101,32 @@ plfold_callback(FLT_OR_DBL    *pr,
                 unsigned int  type,
                 void          *data);
 
+
 PRIVATE void
 prepare_up_file(plfold_data *data);
 
+
 PRIVATE void
-print_up_open(FILE *fp, int i, double *pr, int pr_size, int ulength, double kT);
+print_up_open(FILE    *fp,
+              int     i,
+              double  *pr,
+              int     pr_size,
+              int     ulength,
+              double  kT);
 
 
 PRIVATE void
-print_up(FILE *fp, int i, double *pr, int pr_size, int ulength);
+print_up(FILE   *fp,
+         int    i,
+         double *pr,
+         int    pr_size,
+         int    ulength);
 
 
 PRIVATE void
 print_pu_bin(vrna_fold_compound_t *fc,
-             plfold_data *data,
-             int ulength);
+             plfold_data          *data,
+             int                  ulength);
 
 
 /*--------------------------------------------------------------------------*/
@@ -141,6 +191,8 @@ main(int  argc,
                           id_delim, "_",
                           id_digits, 4,
                           seq_number, 1);
+
+  ggo_get_md_part(args_info, md);
 
   /* temperature */
   if (args_info.temp_given)
@@ -218,9 +270,6 @@ main(int  argc,
   /* turn on binary output*/
   if (args_info.binaries_given)
     binaries = 1;
-
-  if (args_info.betaScale_given)
-    md.betaScale = betaScale = args_info.betaScale_arg;
 
   /* check for errorneous parameter options */
   if ((pairdist < 0) || (cutoff < 0.) || (unpaired < 0) || (winsize < 0)) {
@@ -424,9 +473,9 @@ main(int  argc,
       ffname = tmp_string;
 
 
-      md.compute_bpp = 1;
-      md.window_size = winsize;
-      md.max_bp_span = pairdist;
+      md.compute_bpp  = 1;
+      md.window_size  = winsize;
+      md.max_bp_span  = pairdist;
 
       vrna_fold_compound_t *fc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_WINDOW);
 
@@ -438,7 +487,7 @@ main(int  argc,
       /* prepare data structure for callback */
       plfold_data data;
 
-      data.cutoff = cutoff;
+      data.cutoff         = cutoff;
       data.spup           = (simply_putout) ? fopen(fname2, "w") : NULL;
       data.plexoutput     = plexoutput;
       data.simply_putout  = simply_putout;
@@ -462,8 +511,8 @@ main(int  argc,
           data.pUfp       = NULL;
         }
       } else {
-        data.pup        = NULL;
-        data.pUfp       = NULL;
+        data.pup  = NULL;
+        data.pUfp = NULL;
       }
 
       /* prepare option flags */
@@ -500,10 +549,15 @@ main(int  argc,
             prepare_up_file(&data);
             if (openenergies) {
               for (i = 1; i <= length; i++)
-                 print_up_open(data.pUfp, i, data.pup[i], (i > unpaired) ? unpaired : i, unpaired, data.kT / 1000.);
+                print_up_open(data.pUfp,
+                              i,
+                              data.pup[i],
+                              (i > unpaired) ? unpaired : i,
+                              unpaired,
+                              data.kT / 1000.);
             } else {
               for (i = 1; i <= length; i++)
-                 print_up(data.pUfp, i, data.pup[i], (i > unpaired) ? unpaired : i, unpaired);
+                print_up(data.pUfp, i, data.pup[i], (i > unpaired) ? unpaired : i, unpaired);
             }
           }
 
@@ -568,12 +622,12 @@ main(int  argc,
 
 PRIVATE void
 print_pu_bin(vrna_fold_compound_t *fc,
-             plfold_data *data,
-             int ulength)
+             plfold_data          *data,
+             int                  ulength)
 {
-  unsigned int length;
-  int i, k, *p;
-  double  kT = fc->exp_params->kT / 1000.0;
+  unsigned int  length;
+  int           i, k, *p;
+  double        kT = fc->exp_params->kT / 1000.0;
 
   length = fc->length;
 
@@ -617,16 +671,17 @@ print_pu_bin(vrna_fold_compound_t *fc,
   free(p);
 }
 
+
 PRIVATE void
 prepare_up_file(plfold_data *data)
 {
   int i, *p;
 
-  if (data->openenergies) {
+  if (data->openenergies)
     fprintf(data->pUfp, "#opening energies\n #i$\tl=");
-  } else {
+  else
     fprintf(data->pUfp, "#unpaired probabilities\n #i$\tl=");
-  }
+
   for (i = 1; i <= data->ulength; i++)
     fprintf(data->pUfp, "%d\t", i);
   fprintf(data->pUfp, "\n");
@@ -641,7 +696,7 @@ plfold_callback(FLT_OR_DBL    *pr,
                 unsigned int  type,
                 void          *data)
 {
-  int cnt;
+  int         cnt;
   plfold_data *d;
 
   d = (plfold_data *)data;
@@ -649,13 +704,14 @@ plfold_callback(FLT_OR_DBL    *pr,
   if (type & VRNA_PROBS_WINDOW_BPP) {
     if (!d->simply_putout) {
       /* store pair probabilities in plist */
-      d->plist = (vrna_ep_t *)vrna_realloc(d->plist, sizeof(vrna_ep_t) * (d->plist_cnt + pr_size + 1));
+      d->plist = (vrna_ep_t *)vrna_realloc(d->plist,
+                                           sizeof(vrna_ep_t) * (d->plist_cnt + pr_size + 1));
 
       for (cnt = i + 1; cnt <= pr_size; cnt++) {
         if (pr[cnt] >= d->cutoff) {
-          d->plist[d->plist_cnt].i = i;
-          d->plist[d->plist_cnt].j = cnt;
-          d->plist[d->plist_cnt].p = pr[cnt];
+          d->plist[d->plist_cnt].i    = i;
+          d->plist[d->plist_cnt].j    = cnt;
+          d->plist[d->plist_cnt].p    = pr[cnt];
           d->plist[d->plist_cnt].type = VRNA_PLIST_TYPE_BASEPAIR;
           (d->plist_cnt)++;
         }
@@ -665,28 +721,26 @@ plfold_callback(FLT_OR_DBL    *pr,
       d->plist = (vrna_ep_t *)vrna_realloc(d->plist, sizeof(vrna_ep_t) * (d->plist_cnt + 1));
 
       /* add end-marker to last element */
-      d->plist[d->plist_cnt].i = 0;
-      d->plist[d->plist_cnt].j = 0;
-      d->plist[d->plist_cnt].p = 0.;
+      d->plist[d->plist_cnt].i    = 0;
+      d->plist[d->plist_cnt].j    = 0;
+      d->plist[d->plist_cnt].p    = 0.;
       d->plist[d->plist_cnt].type = VRNA_PLIST_TYPE_BASEPAIR;
     } else {
       /* print pair probabilities to output file handle */
-      for (cnt = i + 1; cnt <= pr_size; cnt++) {
-        if (pr[cnt] >= d->cutoff) {
+      for (cnt = i + 1; cnt <= pr_size; cnt++)
+        if (pr[cnt] >= d->cutoff)
           fprintf(d->spup, "%d  %d  %g\n", i, cnt, pr[cnt]);
-        }
-      }
     }
   }
 
   /* limit output to full unpaired probabilities */
-  if ((type & VRNA_PROBS_WINDOW_UP)  && ((type & VRNA_ANY_LOOP) == VRNA_ANY_LOOP)) {
+  if ((type & VRNA_PROBS_WINDOW_UP) && ((type & VRNA_ANY_LOOP) == VRNA_ANY_LOOP)) {
     if (!d->simply_putout) {
       /* store unpaired probabilities in an array */
 
       /* first allocate some memory */
-      d->pup[i] = (double *)vrna_realloc(d->pup[i], sizeof(double) * (max + 1));
-      d->pup[i][0] = 0.;
+      d->pup[i]     = (double *)vrna_realloc(d->pup[i], sizeof(double) * (max + 1));
+      d->pup[i][0]  = 0.;
       /* copy over unpaired probabilities */
       for (cnt = 1; cnt <= pr_size; cnt++)
         d->pup[i][cnt] = pr[cnt];
@@ -704,14 +758,28 @@ plfold_callback(FLT_OR_DBL    *pr,
 
 
 PRIVATE void
-print_up_open(FILE *fp, int i, double *pr, int pr_size, int ulength, double kT)
+print_up_open(FILE    *fp,
+              int     i,
+              double  *pr,
+              int     pr_size,
+              int     ulength,
+              double  kT)
 {
   int cnt;
 
   fprintf(fp, "%d\t", i);
-  for (cnt = 1; cnt < pr_size; cnt++)
-    fprintf(fp, "%.7g\t", -log(pr[cnt]) * kT);
-  fprintf(fp, "%.7g", -log(pr[pr_size]) * kT);
+  for (cnt = 1; cnt < pr_size; cnt++) {
+    if (isnan(pr[cnt]) || (pr[cnt] == 0.))
+      fprintf(fp, "NA\t");
+    else
+      fprintf(fp, "%.7g\t", -log(pr[cnt]) * kT);
+  }
+
+  if (isnan(pr[pr_size]) || (pr[pr_size] == 0.))
+    fprintf(fp, "NA");
+  else
+    fprintf(fp, "%.7g", -log(pr[pr_size]) * kT);
+
   for (cnt = pr_size + 1; cnt <= ulength; cnt++)
     fprintf(fp, "\tNA");
   fprintf(fp, "\n");
@@ -719,14 +787,27 @@ print_up_open(FILE *fp, int i, double *pr, int pr_size, int ulength, double kT)
 
 
 PRIVATE void
-print_up(FILE *fp, int i, double *pr, int pr_size, int ulength)
+print_up(FILE   *fp,
+         int    i,
+         double *pr,
+         int    pr_size,
+         int    ulength)
 {
   int cnt;
 
   fprintf(fp, "%d\t", i);
-  for (cnt = 1; cnt < pr_size; cnt++)
-    fprintf(fp, "%.7g\t", pr[cnt]);
-  fprintf(fp, "%.7g", pr[pr_size]);
+  for (cnt = 1; cnt < pr_size; cnt++) {
+    if (isnan(pr[cnt]))
+      fprintf(fp, "NA\t");
+    else
+      fprintf(fp, "%.7g\t", pr[cnt]);
+  }
+
+  if (isnan(pr[pr_size]))
+    fprintf(fp, "NA");
+  else
+    fprintf(fp, "%.7g", pr[pr_size]);
+
   for (cnt = pr_size + 1; cnt <= ulength; cnt++)
     fprintf(fp, "\tNA");
   fprintf(fp, "\n");
@@ -735,10 +816,10 @@ print_up(FILE *fp, int i, double *pr, int pr_size, int ulength)
 
 PRIVATE void
 putoutphakim_u(vrna_fold_compound_t *fc,
-               double **pU,
-               int    length,
-               int    ulength,
-               FILE   *fp)
+               double               **pU,
+               int                  length,
+               int                  ulength,
+               FILE                 *fp)
 {
   /*put out Fopen in dekacalories per mol, and F(cond,open) also in dekacal*/
   int   k;
