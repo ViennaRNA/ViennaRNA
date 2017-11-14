@@ -1,3 +1,20 @@
+v2.4.3
+  * Fix handling of dangling end contribution at sequence boundaries for sliding window base pair probability computations
+  * Fix handling of base pair hard constraints in sliding-window implementations
+  * Fix sliding-window pair probability computations with multibranch-loop unpaired constraints
+  * Fix sliding-window non-specific base pair hard constraint implementation
+  * Fix probability computation for stochastic backtracking in RNAsubopt --stochBT_en output
+  * Fix regression in comparative structure prediction for circular RNAs
+  * Fix LDFLAGS for scripting language interfaces in corresponding Makefiles
+  * Stabilize partition function scaling by always using sfact scaling factor from model details
+  * Add --pf_scale commandling parameter to RNAplfold
+  * Add constraint framework for single sequence circular RNA structure prediction
+  * Add RNAfold test suite to check for working implementation of constraints for circular RNAs
+  * Add a brief contribution guideline CONTRIBUTING.md
+  * Prevent RNAplfold from creating inf/-inf output when solution set is empty with particular hard constraints
+  * Include RNAforester v2.0.1
+
+
 v2.4.2
   * Fix G-Quadruplex energy corrections in comparative structure energy evaluations
   * Fix discrepancy in comparative exterior loop dangling end contribution of eval vs. MFE predictions

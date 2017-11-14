@@ -82,7 +82,7 @@ if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
 # Test circfold with hard constraints
 testline "MFE/PF prediction (circular RNAs + Hard constraints)"
 RNAfold --noPS --commands=${DATADIR}/rnafold_hc.cmds -c -p0 < ${DATADIR}/rnafold.small.seq > rnafold_special.fold
-diff=$(${DIFF} ${RNAFOLD_RESULTSDIR}/rnafold.small.circ.hc.gold rnafold_special.fold)
+diff=$(${DIFF} -I frequency ${RNAFOLD_RESULTSDIR}/rnafold.small.circ.hc.gold rnafold_special.fold)
 if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
 
 # Test circfold with soft constraints
