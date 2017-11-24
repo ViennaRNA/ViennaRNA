@@ -162,8 +162,9 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
   FLT_OR_DBL        *q, *qb, *q1k, *qln, *scale;
   char              *ptype;
   unsigned char     *hard_constraints;
-  short             *S1;
+  short             *S1, *S2;
   vrna_mx_pf_t      *matrices;
+  vrna_md_t         *md;
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
   vrna_exp_param_t  *pf_params;
@@ -171,6 +172,7 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
   n = vc->length;
 
   pf_params = vc->exp_params;
+  md        = &(vc->exp_params->model_details);
   my_iindx  = vc->iindx;
   jindx     = vc->jindx;
   matrices  = vc->exp_matrices;
@@ -179,6 +181,7 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
   sc    = vc->sc;
   ptype = vc->ptype;
   S1    = vc->sequence_encoding;
+  S2    = vc->sequence_encoding2;
 
   hard_constraints  = hc->matrix;
   hc_up_ext         = hc->up_ext;
@@ -225,10 +228,10 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
 #ifdef VRNA_WITH_BOUSTROPHEDON
   j = length;
   while (j > 1) {
-    /* find i position of first pair */
+    /* find j position of first pair */
     for (; j > 1; j--) {
       if (hc_up_ext[j]) {
-        r       = vrna_urn() * q[my_iindx[1] - j];
+        r       = vrna_urn() * q1k[j];
         q_temp  = q[my_iindx[1] - j + 1] * scale[1];
 
         if (sc) {
@@ -240,14 +243,14 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
         }
 
         if (r > q_temp)
-          break;                /* i is paired */
+          break;                /* j is paired */
       }
     }
-    if (j <= 1)
+    if (j <= md->min_loop_size + 1)
       break;         /* no more pairs */
 
     /* now find the pairing partner i */
-    r = vrna_urn() * (q[my_iindx[1] - j] - q_temp);
+    r = vrna_urn() * (q1k[j] - q_temp);
     u = j - 1;
 
     for (qt = 0, k = 1; k < j; k++) {
@@ -255,7 +258,7 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
       i = (int)(1 + (u - 1) * ((k - 1) % 2)) +
           (int)((1 - (2 * ((k - 1) % 2))) * ((k - 1) / 2));
       ij            = my_iindx[i] - j;
-      type          = ptype[jindx[j] + i];
+      type          = md->pair[S2[i]][S2[j]];
       hc_decompose  = hard_constraints[jindx[j] + i];
       if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         if (type == 0)
@@ -267,7 +270,7 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
                                      pf_params);
 
         if (i > 1) {
-          qkl *= q[my_iindx[1] - i + 1];
+          qkl *= q1k[i - 1];
           if (sc)
             if (sc->exp_f)
               qkl *= sc->exp_f(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);

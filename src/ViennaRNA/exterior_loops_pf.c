@@ -484,7 +484,7 @@ exp_E_ext_fast_window(vrna_fold_compound_t  *vc,
                       int                   j,
                       vrna_mx_pf_aux_el_t   *aux_mx)
 {
-  short                     *S1;
+  short                     *S1, *S2;
   int                       n, k, with_ud, u, circular, with_gquad, type, winSize, turn;
   FLT_OR_DBL                qbt1, **q, **qb, *qq, *qq1, **qqu, q_temp, *scale, q_temp2, **G;
   vrna_md_t                 *md;
@@ -593,7 +593,8 @@ exp_E_ext_fast_window(vrna_fold_compound_t  *vc,
   /* exterior loop part with stem (i, j) */
   if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
     S1      = vc->sequence_encoding;
-    type    = get_pair_type_md(S1[i], S1[j], md);
+    S2      = vc->sequence_encoding2;
+    type    = get_pair_type_md(S2[i], S2[j], md);
     q_temp  = qb[i][j] *
               exp_E_ExtLoop(type,
                             ((i > 1) || circular) ? S1[i - 1] : -1,
