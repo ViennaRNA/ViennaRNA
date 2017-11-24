@@ -18,13 +18,6 @@ vpath %.ggo = ../src/bin
 
 .ggo.1 :
 	$(manpages_verbose)./help2manWrapper.sh $< | perl -pe 's/\\e\\e/\\e/g' > $@
-##  $(eval $@_PROG_DIR=$(dir $< ))
-##	$(eval $@_PROG=$(strip $(basename $(notdir $<) .ggo)))
-##	$(manpages_verbose)help2man -N --help-option=--detailed-help \
-##  --opt-include=./include/ref_package.inc \
-##                --opt-include=./include/$($@_PROG).inc \
-##                --opt-include=./include/ref_energy_par.inc \
-##                "./cmdlopt.sh $($@_PROG_DIR)$($@_PROG)" > $@
 
 ct2db.1:  ../src/Utils/ct2db.ggo
 	$(manpages_verbose)help2man -N --help-option=--detailed-help \
