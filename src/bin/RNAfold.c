@@ -67,6 +67,98 @@ annotate_ud_motif(vrna_fold_compound_t  *vc,
 
 /*--------------------------------------------------------------------------*/
 
+static void
+postscript_layout(vrna_fold_compound_t *fc,
+                  const char *orig_sequence,
+                  const char *structure,
+                  const char *SEQ_ID,
+                  const char *ligandMotif,
+                  const char *id_delim,
+                  const char *filename_delim,
+                  int         verbose)
+{
+  char *tmp_string;
+
+        char *filename_plot = NULL;
+        char *annotation = NULL;
+        vrna_md_t *md = &(fc->params->model_details);
+
+        if (SEQ_ID) {
+          filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
+          tmp_string    = vrna_filename_sanitize(filename_plot, filename_delim);
+          free(filename_plot);
+          filename_plot = tmp_string;
+        } else {
+          filename_plot = strdup("rna.ps");
+        }
+
+
+        if (ligandMotif) {
+          char *annote = annotate_ligand_motif(fc, structure, "MFE", verbose);
+          vrna_strcat_printf(&annotation, "%s", annote);
+          free(annote);
+        }
+
+        if (fc->domains_up) {
+          char *a = annotate_ud_motif(fc, structure, "MFE", verbose);
+          vrna_strcat_printf(&annotation, "%s", a);
+          free(a);
+        }
+
+        (void)vrna_file_PS_rnaplot_a(orig_sequence, structure, filename_plot, annotation, NULL, md);
+
+        free(annotation);
+        free(filename_plot);
+}
+
+
+static void
+ImFeelingLucky(vrna_fold_compound_t *fc,
+               const char *orig_sequence,
+               const char *SEQ_ID,
+               int noPS,
+               const char *id_delim,
+               const char *filename_delim,
+               FILE *output,
+               int istty_in)
+{
+        char *tmp_string;
+        vrna_md_t *md = &(fc->params->model_details);
+
+        vrna_init_rand();
+
+        char  *filename_plot  = NULL;
+        char  *s              = vrna_pbacktrack(fc);
+        float e               = vrna_eval_structure(fc, (const char *)s);
+        if (output) {
+          char *energy_string = NULL;
+          if (istty_in)
+            energy_string = vrna_strdup_printf("\n free energy = %6.2f kcal/mol", e);
+          else
+            energy_string = vrna_strdup_printf(" (%6.2f)", e);
+
+          print_structure(output, s, energy_string);
+          free(energy_string);
+          (void)fflush(output);
+        }
+
+        if (SEQ_ID) {
+          filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
+          tmp_string    = vrna_filename_sanitize(filename_plot, filename_delim);
+          free(filename_plot);
+          filename_plot = tmp_string;
+        } else {
+          filename_plot = strdup("rna.ps");
+        }
+
+        if (!noPS)
+          (void)vrna_file_PS_rnaplot(orig_sequence, s, filename_plot, md);
+
+        free(s);
+        free(filename_plot);
+}
+
+
 int
 main(int  argc,
      char *argv[])
@@ -291,12 +383,14 @@ main(int  argc,
    # main loop: continue until end of file
    #############################################
    */
-  while (
-    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, input, read_opt))
-      & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
+  while (1) {
     char  *SEQ_ID         = NULL;
     char  *v_file_name    = NULL;
     int   maybe_multiline = 0;
+
+    rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, input, read_opt);
+    if (rec_type & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))
+      break; 
 
     /*
      ########################################################
@@ -439,37 +533,8 @@ main(int  argc,
         (void)fflush(output);
       }
 
-      if (!noPS) {
-        char *filename_plot = NULL;
-        if (SEQ_ID) {
-          filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
-          tmp_string    = vrna_filename_sanitize(filename_plot, filename_delim);
-          free(filename_plot);
-          filename_plot = tmp_string;
-        } else {
-          filename_plot = strdup("rna.ps");
-        }
-
-        char *annotation = NULL;
-
-        if (ligandMotif) {
-          char *annote = annotate_ligand_motif(vc, structure, "MFE", verbose);
-          vrna_strcat_printf(&annotation, "%s", annote);
-          free(annote);
-        }
-
-        if (vc->domains_up) {
-          char *a = annotate_ud_motif(vc, structure, "MFE", verbose);
-          vrna_strcat_printf(&annotation, "%s", a);
-          free(a);
-        }
-
-        (void)vrna_file_PS_rnaplot_a(orig_sequence, structure, filename_plot, annotation, NULL,
-                                     &md);
-
-        free(annotation);
-        free(filename_plot);
-      }
+      if (!noPS)
+        postscript_layout(vc, orig_sequence, structure, SEQ_ID, ligandMotif, id_delim, filename_delim, verbose);
     }
 
     if (length > 2000)
@@ -499,36 +564,14 @@ main(int  argc,
         vrna_message_info(stderr, "free energy = %8.2f", energy);
 
       if (lucky) {
-        vrna_init_rand();
-        char  *filename_plot  = NULL;
-        char  *s              = vrna_pbacktrack(vc);
-        min_en = vrna_eval_structure(vc, (const char *)s);
-        if (output) {
-          char *energy_string = NULL;
-          if (istty_in)
-            energy_string = vrna_strdup_printf("\n free energy = %6.2f kcal/mol", min_en);
-          else
-            energy_string = vrna_strdup_printf(" (%6.2f)", min_en);
-
-          print_structure(output, s, energy_string);
-          free(energy_string);
-          (void)fflush(output);
-        }
-
-        if (SEQ_ID) {
-          filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
-          tmp_string    = vrna_filename_sanitize(filename_plot, filename_delim);
-          free(filename_plot);
-          filename_plot = tmp_string;
-        } else {
-          filename_plot = strdup("rna.ps");
-        }
-
-        if (!noPS && (filename_plot))
-          (void)vrna_file_PS_rnaplot(orig_sequence, s, filename_plot, &md);
-
-        free(s);
-        free(filename_plot);
+        ImFeelingLucky( vc,
+                        orig_sequence,
+                        SEQ_ID,
+                        noPS,
+                        id_delim,
+                        filename_delim,
+                        output,
+                        istty_in);
       } else {
         if (md.compute_bpp) {
           if (output) {
