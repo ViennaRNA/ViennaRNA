@@ -443,6 +443,38 @@ vrna_aln_encode(const char    *sequence,
 }
 
 
+PUBLIC unsigned int
+vrna_get_ptype_md(int       i,
+                  int       j,
+                  vrna_md_t *md)
+{
+  unsigned int tt = (unsigned int)md->pair[i][j];
+
+  return (tt == 0) ? 7 : tt;
+}
+
+
+PUBLIC unsigned int
+vrna_get_ptype(int  ij,
+               char *ptype)
+{
+  unsigned int tt = (unsigned int)ptype[ij];
+
+  return (tt == 0) ? 7 : tt;
+}
+
+
+PUBLIC unsigned int
+vrna_get_ptype_window(int   i,
+                      int   j,
+                      char  **ptype)
+{
+  unsigned int tt = (unsigned int)ptype[i][j - i];
+
+  return (tt == 0) ? 7 : tt;
+}
+
+
 PRIVATE char *
 wrap_get_ptypes(const short *S,
                 vrna_md_t   *md)

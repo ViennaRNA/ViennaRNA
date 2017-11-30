@@ -1,5 +1,5 @@
 /*
- *  This file contains some utility functions required by both, MFE and
+ *  This file contains hard constraint wrappers required by both, MFE and
  *  partition function version of exterior loop evaluation
  */
 
@@ -59,60 +59,11 @@ prepare_hc_default_window(vrna_fold_compound_t  *vc,
                           struct default_data   *dat);
 
 
-PRIVATE INLINE int
-get_pair_type_md(int        i,
-                 int        j,
-                 vrna_md_t  *md);
-
-
-PRIVATE INLINE int
-get_pair_type(int   ij,
-              char  *ptype);
-
-
-PRIVATE INLINE int
-get_pair_type_window(int  i,
-                     int  j,
-                     char **ptype);
-
-
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PRIVATE INLINE int
-get_pair_type_md(int        i,
-                 int        j,
-                 vrna_md_t  *md)
-{
-  int tt = md->pair[i][j];
-
-  return (tt == 0) ? 7 : tt;
-}
-
-
-PRIVATE INLINE int
-get_pair_type(int   ij,
-              char  *ptype)
-{
-  int tt = (int)ptype[ij];
-
-  return (tt == 0) ? 7 : tt;
-}
-
-
-PRIVATE INLINE int
-get_pair_type_window(int  i,
-                     int  j,
-                     char **ptype)
-{
-  int tt = (int)ptype[i][j - i];
-
-  return (tt == 0) ? 7 : tt;
-}
-
-
 PRIVATE unsigned char
 hc_default(int            i,
            int            j,

@@ -106,6 +106,23 @@ void vrna_aln_encode(const char   *sequence,
                      vrna_md_t    *md);
 
 
+unsigned int
+vrna_get_ptype_md(int       i,
+                  int       j,
+                  vrna_md_t *md);
+
+
+unsigned int
+vrna_get_ptype(int  ij,
+               char *ptype);
+
+
+unsigned int
+vrna_get_ptype_window(int   i,
+                      int   j,
+                      char  **ptype);
+
+
 /**
  *  @}
  */

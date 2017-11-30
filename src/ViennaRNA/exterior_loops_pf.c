@@ -12,6 +12,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/structured_domains.h"
@@ -24,7 +25,7 @@
 # define INLINE
 #endif
 
-#include "exterior_loops.inc"
+#include "exterior_loops_hc.inc"
 
 /*
  #################################
@@ -329,8 +330,8 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
                vrna_mx_pf_aux_el_t  *aux_mx)
 {
   short                     *S1, *S2, s5, s3;
-  unsigned int              strands, *sn, *so, *ss, *se;
-  int                       n, *iidx, k, ij, kl, with_ud, u, circular, with_gquad, type;
+  unsigned int              strands, *sn, *so, *ss, *se, type;
+  int                       n, *iidx, k, ij, kl, with_ud, u, circular, with_gquad;
   FLT_OR_DBL                qbt1, *q, *qb, *qq, *qq1, **qqu, q_temp, *scale, q_temp2, *G;
   vrna_md_t                 *md;
   vrna_exp_param_t          *pf_params;
@@ -414,7 +415,7 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
   if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
     S1      = vc->sequence_encoding;
     S2      = vc->sequence_encoding2;
-    type    = get_pair_type_md(S2[i], S2[j], md);
+    type    = vrna_get_ptype_md(S2[i], S2[j], md);
     s5      = (((i > 1) || circular) && (sn[i] == sn[i - 1])) ? S1[i - 1] : -1;
     s3      = (((j < n) || circular) && (sn[j + 1] == sn[j])) ? S1[j + 1] : -1;
     q_temp  = qb[ij] *
@@ -485,7 +486,8 @@ exp_E_ext_fast_window(vrna_fold_compound_t  *vc,
                       vrna_mx_pf_aux_el_t   *aux_mx)
 {
   short                     *S1, *S2;
-  int                       n, k, with_ud, u, circular, with_gquad, type, winSize, turn;
+  unsigned int              type;
+  int                       n, k, with_ud, u, circular, with_gquad, winSize, turn;
   FLT_OR_DBL                qbt1, **q, **qb, *qq, *qq1, **qqu, q_temp, *scale, q_temp2, **G;
   vrna_md_t                 *md;
   vrna_exp_param_t          *pf_params;
@@ -594,7 +596,7 @@ exp_E_ext_fast_window(vrna_fold_compound_t  *vc,
   if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
     S1      = vc->sequence_encoding;
     S2      = vc->sequence_encoding2;
-    type    = get_pair_type_md(S2[i], S2[j], md);
+    type    = vrna_get_ptype_md(S2[i], S2[j], md);
     q_temp  = qb[i][j] *
               exp_E_ExtLoop(type,
                             ((i > 1) || circular) ? S1[i - 1] : -1,
@@ -664,8 +666,8 @@ exp_E_ext_fast_comparative(vrna_fold_compound_t *vc,
                            int                  j,
                            vrna_mx_pf_aux_el_t  *aux_mx)
 {
-  int                       n, s, n_seq, *iidx, k, ij, kl, u, circular, type;
-  unsigned int              **a2s;
+  int                       n, *iidx, k, ij, kl, u, circular;
+  unsigned int              **a2s, s, n_seq, type;
   short                     **S, **S5, **S3;
   FLT_OR_DBL                qbt1, *q, *qb, *qq, *qq1, q_temp, *scale;
   vrna_md_t                 *md;
@@ -718,7 +720,7 @@ exp_E_ext_fast_comparative(vrna_fold_compound_t *vc,
     q_temp = qb[ij];
 
     for (s = 0; s < n_seq; s++) {
-      type    = get_pair_type_md(S[s][i], S[s][j], md);
+      type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
       q_temp  *= exp_E_ExtLoop(type,
                                ((i > 1) || circular) ? S5[s][i] : -1,
                                ((j < n) || circular) ? S3[s][j] : -1,

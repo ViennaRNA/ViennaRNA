@@ -115,13 +115,6 @@ sc_user_f5_reduce_to_stem(int                   j,
 
 
 PRIVATE INLINE int
-sc_default_f5_reduce_to_stem_comparative(int                  j,
-                                         int                  k,
-                                         int                  l,
-                                         struct sc_wrapper_f5 *data);
-
-
-PRIVATE INLINE int
 sc_user_def_f5_reduce_to_stem_comparative(int                   j,
                                           int                   k,
                                           int                   l,
@@ -346,7 +339,6 @@ sc_default_f5_reduce(int                  j,
 {
   unsigned int  start_2, length_1, length_2;
   int           e_sc, **sc_up;
-  vrna_sc_t     *sc;
 
   sc_up = data->up;
 
@@ -512,7 +504,6 @@ sc_default_f5_split_in_ext_stem(int                   j,
 {
   unsigned int  start_1, length_1;
   int           e_sc, **sc_up;
-  vrna_sc_t     *sc;
 
   sc_up = data->up;
 
@@ -617,7 +608,6 @@ sc_default_f5_split_in_ext_stem1(int                  j,
 {
   unsigned int  start_1, start_2, length_1, length_2;
   int           e_sc, **sc_up;
-  vrna_sc_t     *sc;
 
   sc_up = data->up;
 
@@ -649,6 +639,7 @@ sc_default_f5_split_in_ext_stem1_comparative(int                  j,
   sc_up = data->up_comparative;
 
   e_sc = 0;
+  a2s  = data->a2s;
 
   for (s = 0; s < data->n_seq; s++) {
     if (sc_up[s]) {
