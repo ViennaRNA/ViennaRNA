@@ -1017,7 +1017,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
                            int                  *stack_count)
 {
   short                     **S, **S5, **S3;
-  unsigned int              type, ss, n_seq;
+  unsigned int              type, ss, n_seq, **a2s;
   int                       length, fij, cc, fj, ii, u, *f3, **c, **ggg,
                             dangle_model, turn, with_gquad;
   vrna_param_t              *P;
@@ -1031,6 +1031,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
   S             = vc->S;
   S5            = vc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
   S3            = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
+  a2s           = vc->a2s;
   P             = vc->params;
   md            = &(P->model_details);
   scs           = vc->scs;
@@ -1125,7 +1126,9 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
           cc = c[ii][u - ii];
           for (ss = 0; ss < n_seq; ss++) {
             type  = vrna_get_ptype_md(S[ss][ii], S[ss][u], md);
-            cc    += E_ExtLoop(type, (ii > 1) ? S5[ss][ii] : -1, (u < length) ? S3[ss][u] : -1, P);
+            cc    +=
+              E_ExtLoop(type, (a2s[ss][ii] > 1) ? S5[ss][ii] : -1,
+                        (a2s[ss][u] < a2s[ss][S[0][0]]) ? S3[ss][u] : -1, P);
           }
 
           if (fij == cc + f3[u + 1]) {
@@ -1380,7 +1383,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
 
   if (fc) {
     short                     **S, **S5, **S3;
-    unsigned int              tt, s, n_seq;
+    unsigned int              tt, s, n_seq, **a2s;
     int                       traced2, length, turn, dangle_model, with_gquad, maxdist, cc, **c,
                               **ggg, *f3, fij;
     vrna_param_t              *P;
@@ -1394,6 +1397,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
     S             = fc->S;
     S5            = fc->S5;   /* S5[s][start] holds next base 5' of start in sequence s */
     S3            = fc->S3;   /* Sl[s][start] holds next base 3' of start in sequence s */
+    a2s           = fc->a2s;
     f3            = fc->matrices->f3_local;
     c             = fc->matrices->c_local;
     ggg           = fc->matrices->ggg_local;
@@ -1492,7 +1496,11 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
 
             for (s = 0; s < n_seq; s++) {
               tt  = vrna_get_ptype_md(S[s][start], S[s][j], md);
-              cc  += E_ExtLoop(tt, (start > 1) ? S5[s][start] : -1, S3[s][j], P);
+              cc  +=
+                E_ExtLoop(tt,
+                          (a2s[s][start] > 1) ? S5[s][start] : -1,
+                          (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1,
+                          P);
             }
 
             if (fij == cc + f3[j + 1]) {
@@ -1517,7 +1525,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
             cc = c[start][j - start];
             for (s = 0; s < n_seq; s++) {
               tt  = vrna_get_ptype_md(S[s][start], S[s][j], md);
-              cc  += E_ExtLoop(tt, (start > 1) ? S5[s][start] :  -1, -1, P);
+              cc  += E_ExtLoop(tt, (a2s[s][start] > 1) ? S5[s][start] :  -1, -1, P);
             }
 
             if (fij == cc) {
