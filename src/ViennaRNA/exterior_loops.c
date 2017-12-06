@@ -33,14 +33,177 @@
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
+PRIVATE INLINE int
+reduce_f5_up(vrna_fold_compound_t       *vc,
+             int                        j,
+             vrna_callback_hc_evaluate  *evaluate,
+             struct default_data        *hc_dat_local,
+             struct sc_wrapper_f5       *sc_wrapper);
+
 
 PRIVATE INLINE int
-E_ext_loop_5(vrna_fold_compound_t *vc);
+reduce_f3_up(vrna_fold_compound_t       *vc,
+             int                        i,
+             vrna_callback_hc_evaluate  *evaluate,
+             struct default_data        *hc_dat_local,
+             struct sc_wrapper_f3       *sc_wrapper);
+
+
+PRIVATE INLINE int *
+get_stem_contributions_d0(vrna_fold_compound_t      *vc,
+                          int                       j,
+                          vrna_callback_hc_evaluate *evaluate,
+                          struct default_data       *hc_dat_local,
+                          struct sc_wrapper_f5      *sc_wrapper);
+
+
+PRIVATE INLINE int *
+f3_get_stem_contributions_d0(vrna_fold_compound_t       *vc,
+                             int                        i,
+                             vrna_callback_hc_evaluate  *evaluate,
+                             struct default_data        *hc_dat_local,
+                             struct sc_wrapper_f3       *sc_wrapper);
+
+
+PRIVATE INLINE int *
+get_stem_contributions_d2(vrna_fold_compound_t      *vc,
+                          int                       j,
+                          vrna_callback_hc_evaluate *evaluate,
+                          struct default_data       *hc_dat_local,
+                          struct sc_wrapper_f5      *sc_wrapper);
+
+
+PRIVATE INLINE int *
+f3_get_stem_contributions_d2(vrna_fold_compound_t       *vc,
+                             int                        i,
+                             vrna_callback_hc_evaluate  *evaluate,
+                             struct default_data        *hc_dat_local,
+                             struct sc_wrapper_f3       *sc_wrapper);
+
+
+PRIVATE INLINE int *
+get_stem_contributions_5(vrna_fold_compound_t       *vc,
+                         int                        j,
+                         vrna_callback_hc_evaluate  *evaluate,
+                         struct default_data        *hc_dat_local,
+                         struct sc_wrapper_f5       *sc_wrapper);
+
+
+PRIVATE INLINE int *
+f3_get_stem_contributions_5(vrna_fold_compound_t      *vc,
+                            int                       i,
+                            vrna_callback_hc_evaluate *evaluate,
+                            struct default_data       *hc_dat_local,
+                            struct sc_wrapper_f3      *sc_wrapper);
+
+
+PRIVATE INLINE int *
+get_stem_contributions_3(vrna_fold_compound_t       *vc,
+                         int                        j,
+                         vrna_callback_hc_evaluate  *evaluate,
+                         struct default_data        *hc_dat_local,
+                         struct sc_wrapper_f5       *sc_wrapper);
+
+
+PRIVATE INLINE int *
+f3_get_stem_contributions_3(vrna_fold_compound_t      *vc,
+                            int                       i,
+                            vrna_callback_hc_evaluate *evaluate,
+                            struct default_data       *hc_dat_local,
+                            struct sc_wrapper_f3      *sc_wrapper);
+
+
+PRIVATE INLINE int *
+get_stem_contributions_53(vrna_fold_compound_t      *vc,
+                          int                       j,
+                          vrna_callback_hc_evaluate *evaluate,
+                          struct default_data       *hc_dat_local,
+                          struct sc_wrapper_f5      *sc_wrapper);
+
+
+PRIVATE INLINE int *
+f3_get_stem_contributions_53(vrna_fold_compound_t       *vc,
+                             int                        i,
+                             vrna_callback_hc_evaluate  *evaluate,
+                             struct default_data        *hc_dat_local,
+                             struct sc_wrapper_f3       *sc_wrapper);
 
 
 PRIVATE INLINE int
-E_ext_loop_3(vrna_fold_compound_t *fc,
-             int                  i);
+decompose_f5_ext_stem(vrna_fold_compound_t  *vc,
+                      int                   j,
+                      int                   *stems);
+
+
+PRIVATE INLINE int
+decompose_f3_ext_stem(vrna_fold_compound_t  *vc,
+                      int                   i,
+                      int                   max_j,
+                      int                   *stems);
+
+
+PRIVATE INLINE int
+decompose_f5_ext_stem_d0(vrna_fold_compound_t       *vc,
+                         int                        j,
+                         vrna_callback_hc_evaluate  *evaluate,
+                         struct default_data        *hc_dat_local,
+                         struct sc_wrapper_f5       *sc_wrapper);
+
+
+PRIVATE INLINE int
+decompose_f3_ext_stem_d0(vrna_fold_compound_t       *vc,
+                         int                        i,
+                         vrna_callback_hc_evaluate  *evaluate,
+                         struct default_data        *hc_dat_local,
+                         struct sc_wrapper_f3       *sc_wrapper);
+
+
+PRIVATE INLINE int
+decompose_f5_ext_stem_d2(vrna_fold_compound_t       *vc,
+                         int                        j,
+                         vrna_callback_hc_evaluate  *evaluate,
+                         struct default_data        *hc_dat_local,
+                         struct sc_wrapper_f5       *sc_wrapper);
+
+
+PRIVATE INLINE int
+decompose_f3_ext_stem_d2(vrna_fold_compound_t       *vc,
+                         int                        i,
+                         vrna_callback_hc_evaluate  *evaluate,
+                         struct default_data        *hc_dat_local,
+                         struct sc_wrapper_f3       *sc_wrapper);
+
+
+PRIVATE INLINE int
+decompose_f5_ext_stem_d1(vrna_fold_compound_t       *vc,
+                         int                        j,
+                         vrna_callback_hc_evaluate  *evaluate,
+                         struct default_data        *hc_dat_local,
+                         struct sc_wrapper_f5       *sc_wrapper);
+
+
+PRIVATE INLINE int
+decompose_f3_ext_stem_d1(vrna_fold_compound_t       *vc,
+                         int                        i,
+                         vrna_callback_hc_evaluate  *evaluate,
+                         struct default_data        *hc_dat_local,
+                         struct sc_wrapper_f3       *sc_wrapper);
+
+
+PRIVATE INLINE int
+add_f5_gquad(vrna_fold_compound_t       *vc,
+             int                        j,
+             vrna_callback_hc_evaluate  *evaluate,
+             struct default_data        *hc_dat_local,
+             struct sc_wrapper_f5       *sc_wrapper);
+
+
+PRIVATE INLINE int
+add_f3_gquad(vrna_fold_compound_t       *vc,
+             int                        i,
+             vrna_callback_hc_evaluate  *evaluate,
+             struct default_data        *hc_dat_local,
+             struct sc_wrapper_f3       *sc_wrapper);
 
 
 /*
@@ -51,10 +214,86 @@ E_ext_loop_3(vrna_fold_compound_t *fc,
 PUBLIC int
 vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
 {
-  if (fc)
-    return E_ext_loop_5(fc);
+  if (fc) {
+    int                       en, j, length, *f5, dangle_model, with_gquad, turn;
+    vrna_param_t              *P;
+    vrna_callback_hc_evaluate *evaluate;
+    struct default_data       hc_dat_local;
+    struct sc_wrapper_f5      sc_wrapper;
 
-  return 0;
+    length        = (int)fc->length;
+    f5            = fc->matrices->f5;
+    P             = fc->params;
+    dangle_model  = P->model_details.dangles;
+    with_gquad    = P->model_details.gquad;
+    turn          = P->model_details.min_loop_size;
+    evaluate      = prepare_hc_default(fc, &hc_dat_local);
+
+    init_sc_wrapper(fc, &sc_wrapper);
+
+    f5[0] = 0;
+    for (j = 1; j <= turn + 1; j++)
+      f5[j] = reduce_f5_up(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
+
+    /*
+     *  duplicated code may be faster than conditions inside loop or even
+     *  using a function pointer ;)
+     */
+    switch (dangle_model) {
+      case 2:
+        for (j = turn + 2; j <= length; j++) {
+          /* extend previous solution(s) by adding an unpaired region */
+          f5[j] = reduce_f5_up(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
+
+          /* decompose into exterior loop part followed by a stem */
+          en    = decompose_f5_ext_stem_d2(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
+          f5[j] = MIN2(f5[j], en);
+
+          if (with_gquad) {
+            en    = add_f5_gquad(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
+            f5[j] = MIN2(f5[j], en);
+          }
+        }
+        break;
+
+      case 0:
+        for (j = turn + 2; j <= length; j++) {
+          /* extend previous solution(s) by adding an unpaired region */
+          f5[j] = reduce_f5_up(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
+
+          /* decompose into exterior loop part followed by a stem */
+          en    = decompose_f5_ext_stem_d0(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
+          f5[j] = MIN2(f5[j], en);
+
+          if (with_gquad) {
+            en    = add_f5_gquad(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
+            f5[j] = MIN2(f5[j], en);
+          }
+        }
+        break;
+
+      default:
+        for (j = turn + 2; j <= length; j++) {
+          /* extend previous solution(s) by adding an unpaired region */
+          f5[j] = reduce_f5_up(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
+
+          en    = decompose_f5_ext_stem_d1(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
+          f5[j] = MIN2(f5[j], en);
+
+          if (with_gquad) {
+            en    = add_f5_gquad(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
+            f5[j] = MIN2(f5[j], en);
+          }
+        }
+        break;
+    }
+
+    free_sc_wrapper(&sc_wrapper);
+
+    return f5[length];
+  }
+
+  return INF;
 }
 
 
@@ -62,10 +301,56 @@ PUBLIC int
 vrna_E_ext_loop_3(vrna_fold_compound_t  *fc,
                   int                   i)
 {
-  if (fc)
-    return E_ext_loop_3(fc, i);
+  if (fc) {
+    int                       e, en, dangle_model, with_gquad;
+    vrna_param_t              *P;
+    vrna_md_t                 *md;
+    vrna_callback_hc_evaluate *evaluate;
+    struct default_data       hc_dat_local;
+    struct sc_wrapper_f3      sc_wrapper;
 
-  return 0;
+    e = INF;
+
+    P             = fc->params;
+    md            = &(P->model_details);
+    dangle_model  = md->dangles;
+    with_gquad    = md->gquad;
+    evaluate      = prepare_hc_default_window(fc, &hc_dat_local);
+
+    init_sc_wrapper_f3(fc, i, &sc_wrapper);
+
+    /* first case: i stays unpaired */
+    e = reduce_f3_up(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
+
+    /* decompose into stem followed by exterior loop part */
+    switch (dangle_model) {
+      case 0:
+        en  = decompose_f3_ext_stem_d0(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
+        e   = MIN2(e, en);
+        break;
+
+      case 2:
+        en  = decompose_f3_ext_stem_d2(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
+        e   = MIN2(e, en);
+        break;
+
+      default:
+        en  = decompose_f3_ext_stem_d1(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
+        e   = MIN2(e, en);
+        break;
+    }
+
+    if (with_gquad) {
+      en  = add_f3_gquad(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
+      e   = MIN2(e, en);
+    }
+
+    free_sc_wrapper_f3(&sc_wrapper);
+
+    return e;
+  }
+
+  return INF;
 }
 
 
@@ -1010,7 +1295,7 @@ f3_get_stem_contributions_5(vrna_fold_compound_t      *vc,
   char                    **ptype;
   short                   *S1, **S, **S3, sj1;
   unsigned int            s, n_seq, **a2s, type;
-  int                     energy, j, max_j, turn, **c, *stems, mm5, length, maxdist;
+  int                     energy, j, max_j, turn, **c, *stems, length, maxdist;
   vrna_param_t            *P;
   vrna_md_t               *md;
 
@@ -1824,14 +2109,11 @@ decompose_f3_ext_stem(vrna_fold_compound_t  *vc,
                       int                   max_j,
                       int                   *stems)
 {
-  unsigned int  length;
-  int           e, j, *f3, turn, maxdist;
+  int e, j, *f3, turn;
 
-  length  = vc->length;
-  maxdist = vc->window_size;
-  f3      = vc->matrices->f3_local;
-  turn    = vc->params->model_details.min_loop_size;
-  e       = INF;
+  f3    = vc->matrices->f3_local;
+  turn  = vc->params->model_details.min_loop_size;
+  e     = INF;
 
   /* modular decomposition */
 #if VRNA_WITH_SSE_IMPLEMENTATION
@@ -2145,155 +2427,6 @@ add_f3_gquad(vrna_fold_compound_t       *vc,
 
   if (length <= i + maxdist)
     e = MIN2(e, ggg[i][length - i]);
-
-  return e;
-}
-
-
-PRIVATE INLINE int
-E_ext_loop_5(vrna_fold_compound_t *vc)
-{
-  int                       en, j, length, *f5, dangle_model, with_gquad, turn;
-  vrna_param_t              *P;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
-  struct sc_wrapper_f5      sc_wrapper;
-
-  length        = (int)vc->length;
-  f5            = vc->matrices->f5;
-  P             = vc->params;
-  dangle_model  = P->model_details.dangles;
-  with_gquad    = P->model_details.gquad;
-  turn          = P->model_details.min_loop_size;
-  evaluate      = prepare_hc_default(vc, &hc_dat_local);
-
-  init_sc_wrapper(vc, &sc_wrapper);
-
-  f5[0] = 0;
-  for (j = 1; j <= turn + 1; j++)
-    f5[j] = reduce_f5_up(vc, j, evaluate, &hc_dat_local, &sc_wrapper);
-
-  /*
-   *  duplicated code may be faster than conditions inside loop or even
-   *  using a function pointer ;)
-   */
-  switch (dangle_model) {
-    case 2:
-      for (j = turn + 2; j <= length; j++) {
-        /* extend previous solution(s) by adding an unpaired region */
-        f5[j] = reduce_f5_up(vc, j, evaluate, &hc_dat_local, &sc_wrapper);
-
-        /* decompose into exterior loop part followed by a stem */
-        en    = decompose_f5_ext_stem_d2(vc, j, evaluate, &hc_dat_local, &sc_wrapper);
-        f5[j] = MIN2(f5[j], en);
-
-        if (with_gquad) {
-          en    = add_f5_gquad(vc, j, evaluate, &hc_dat_local, &sc_wrapper);
-          f5[j] = MIN2(f5[j], en);
-        }
-      }
-      break;
-
-    case 0:
-      for (j = turn + 2; j <= length; j++) {
-        /* extend previous solution(s) by adding an unpaired region */
-        f5[j] = reduce_f5_up(vc, j, evaluate, &hc_dat_local, &sc_wrapper);
-
-        /* decompose into exterior loop part followed by a stem */
-        en    = decompose_f5_ext_stem_d0(vc, j, evaluate, &hc_dat_local, &sc_wrapper);
-        f5[j] = MIN2(f5[j], en);
-
-        if (with_gquad) {
-          en    = add_f5_gquad(vc, j, evaluate, &hc_dat_local, &sc_wrapper);
-          f5[j] = MIN2(f5[j], en);
-        }
-      }
-      break;
-
-    default:
-      for (j = turn + 2; j <= length; j++) {
-        /* extend previous solution(s) by adding an unpaired region */
-        f5[j] = reduce_f5_up(vc, j, evaluate, &hc_dat_local, &sc_wrapper);
-
-        en    = decompose_f5_ext_stem_d1(vc, j, evaluate, &hc_dat_local, &sc_wrapper);
-        f5[j] = MIN2(f5[j], en);
-
-        if (with_gquad) {
-          en    = add_f5_gquad(vc, j, evaluate, &hc_dat_local, &sc_wrapper);
-          f5[j] = MIN2(f5[j], en);
-        }
-      }
-      break;
-  }
-
-  free_sc_wrapper(&sc_wrapper);
-
-  return f5[length];
-}
-
-
-PRIVATE INLINE int
-E_ext_loop_3(vrna_fold_compound_t *fc,
-             int                  i)
-{
-  char                      **ptype;
-  short                     *S1;
-  unsigned int              type;
-  int                       e, en, dangle_model, *f3, j, turn, length, maxdist, with_gquad, **ggg,
-                            energy, **c;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_sc_t                 *sc;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
-  struct sc_wrapper_f3      sc_wrapper;
-
-  e = INF;
-
-  length        = fc->length;
-  maxdist       = fc->window_size;
-  S1            = fc->sequence_encoding;
-  ptype         = fc->ptype_local;
-  P             = fc->params;
-  md            = &(P->model_details);
-  sc            = fc->sc;
-  f3            = fc->matrices->f3_local;
-  c             = fc->matrices->c_local;
-  ggg           = fc->matrices->ggg_local;
-  dangle_model  = md->dangles;
-  turn          = md->min_loop_size;
-  with_gquad    = md->gquad;
-  evaluate      = prepare_hc_default_window(fc, &hc_dat_local);
-
-  init_sc_wrapper_f3(fc, i, &sc_wrapper);
-
-  /* first case: i stays unpaired */
-  e = reduce_f3_up(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
-
-  /* decompose into stem followed by exterior loop part */
-  switch (dangle_model) {
-    case 0:
-      en  = decompose_f3_ext_stem_d0(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
-      e   = MIN2(e, en);
-      break;
-
-    case 2:
-      en  = decompose_f3_ext_stem_d2(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
-      e   = MIN2(e, en);
-      break;
-
-    default:
-      en  = decompose_f3_ext_stem_d1(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
-      e   = MIN2(e, en);
-      break;
-  }
-
-  if (with_gquad) {
-    en  = add_f3_gquad(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
-    e   = MIN2(e, en);
-  }
-
-  free_sc_wrapper_f3(&sc_wrapper);
 
   return e;
 }
