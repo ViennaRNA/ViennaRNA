@@ -295,7 +295,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *vc,
   md      = &(P->model_details);
   ptype   = vc->ptype;
   rtype   = &(md->rtype[0]);
-  type    = rtype[(unsigned char)ptype[ij]];
+  type    = (unsigned char)ptype[ij];
   S1      = vc->sequence_encoding;
   S       = vc->sequence_encoding2;
   dangles = md->dangles;
