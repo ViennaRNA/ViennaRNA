@@ -82,51 +82,51 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *vc,
 
 
 PRIVATE INLINE int *
-get_stem_contributions_5(vrna_fold_compound_t       *vc,
-                         int                        j,
-                         vrna_callback_hc_evaluate  *evaluate,
-                         struct default_data        *hc_dat_local,
-                         struct sc_wrapper_f5       *sc_wrapper);
+f5_get_stem_contributions_d5(vrna_fold_compound_t       *vc,
+                             int                        j,
+                             vrna_callback_hc_evaluate  *evaluate,
+                             struct default_data        *hc_dat_local,
+                             struct sc_wrapper_f5       *sc_wrapper);
 
 
 PRIVATE INLINE int *
-f3_get_stem_contributions_5(vrna_fold_compound_t      *vc,
-                            int                       i,
-                            vrna_callback_hc_evaluate *evaluate,
-                            struct default_data       *hc_dat_local,
-                            struct sc_wrapper_f3      *sc_wrapper);
-
-
-PRIVATE INLINE int *
-get_stem_contributions_3(vrna_fold_compound_t       *vc,
-                         int                        j,
-                         vrna_callback_hc_evaluate  *evaluate,
-                         struct default_data        *hc_dat_local,
-                         struct sc_wrapper_f5       *sc_wrapper);
-
-
-PRIVATE INLINE int *
-f3_get_stem_contributions_3(vrna_fold_compound_t      *vc,
-                            int                       i,
-                            vrna_callback_hc_evaluate *evaluate,
-                            struct default_data       *hc_dat_local,
-                            struct sc_wrapper_f3      *sc_wrapper);
-
-
-PRIVATE INLINE int *
-get_stem_contributions_53(vrna_fold_compound_t      *vc,
-                          int                       j,
-                          vrna_callback_hc_evaluate *evaluate,
-                          struct default_data       *hc_dat_local,
-                          struct sc_wrapper_f5      *sc_wrapper);
-
-
-PRIVATE INLINE int *
-f3_get_stem_contributions_53(vrna_fold_compound_t       *vc,
+f3_get_stem_contributions_d3(vrna_fold_compound_t       *vc,
                              int                        i,
                              vrna_callback_hc_evaluate  *evaluate,
                              struct default_data        *hc_dat_local,
                              struct sc_wrapper_f3       *sc_wrapper);
+
+
+PRIVATE INLINE int *
+f5_get_stem_contributions_d3(vrna_fold_compound_t       *vc,
+                             int                        j,
+                             vrna_callback_hc_evaluate  *evaluate,
+                             struct default_data        *hc_dat_local,
+                             struct sc_wrapper_f5       *sc_wrapper);
+
+
+PRIVATE INLINE int *
+f3_get_stem_contributions_d5(vrna_fold_compound_t       *vc,
+                             int                        i,
+                             vrna_callback_hc_evaluate  *evaluate,
+                             struct default_data        *hc_dat_local,
+                             struct sc_wrapper_f3       *sc_wrapper);
+
+
+PRIVATE INLINE int *
+f5_get_stem_contributions_d53(vrna_fold_compound_t      *vc,
+                              int                       j,
+                              vrna_callback_hc_evaluate *evaluate,
+                              struct default_data       *hc_dat_local,
+                              struct sc_wrapper_f5      *sc_wrapper);
+
+
+PRIVATE INLINE int *
+f3_get_stem_contributions_d53(vrna_fold_compound_t      *vc,
+                              int                       i,
+                              vrna_callback_hc_evaluate *evaluate,
+                              struct default_data       *hc_dat_local,
+                              struct sc_wrapper_f3      *sc_wrapper);
 
 
 PRIVATE INLINE int
@@ -632,28 +632,20 @@ get_stem_contributions_d0(vrna_fold_compound_t      *vc,
     case VRNA_FC_TYPE_SINGLE:
       ptype = vc->ptype;
 
-      if (sc_spl_stem) {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            type      = vrna_get_ptype(ij, ptype);
-            stems[i]  = c[ij] +
-                        E_ExtLoop(type, -1, -1, P) +
-                        sc_spl_stem(j, i - 1, i, sc_wrapper);
-          }
-        }
-      } else {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            type      = vrna_get_ptype(ij, ptype);
-            stems[i]  = c[ij] +
-                        E_ExtLoop(type, -1, -1, P);
-          }
+      for (i = j - turn - 1; i > 1; i--, ij--) {
+        stems[i] = INF;
+        if ((c[ij] != INF) &&
+            (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
+          type      = vrna_get_ptype(ij, ptype);
+          stems[i]  = c[ij] +
+                      E_ExtLoop(type, -1, -1, P);
         }
       }
+
+      if (sc_spl_stem)
+        for (i = j - turn - 1; i > 1; i--)
+          if (stems[i] != INF)
+            stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
       stems[1]  = INF;
       ij        = indx[j] + 1;
@@ -674,32 +666,22 @@ get_stem_contributions_d0(vrna_fold_compound_t      *vc,
       n_seq = vc->n_seq;
       S     = vc->S;
 
-      if (sc_spl_stem) {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            stems[i] = c[ij] +
-                       sc_spl_stem(j, i - 1, i, sc_wrapper);
-            for (s = 0; s < n_seq; s++) {
-              type      = vrna_get_ptype_md(S[s][i], S[s][j], md);
-              stems[i]  += E_ExtLoop(type, -1, -1, P);
-            }
-          }
-        }
-      } else {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            stems[i] = c[ij];
-            for (s = 0; s < n_seq; s++) {
-              type      = vrna_get_ptype_md(S[s][i], S[s][j], md);
-              stems[i]  += E_ExtLoop(type, -1, -1, P);
-            }
+      for (i = j - turn - 1; i > 1; i--, ij--) {
+        stems[i] = INF;
+        if ((c[ij] != INF) &&
+            (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
+          stems[i] = c[ij];
+          for (s = 0; s < n_seq; s++) {
+            type      = vrna_get_ptype_md(S[s][i], S[s][j], md);
+            stems[i]  += E_ExtLoop(type, -1, -1, P);
           }
         }
       }
+
+      if (sc_spl_stem)
+        for (i = j - turn - 1; i > 1; i--)
+          if (stems[i] != INF)
+            stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
       stems[1]  = INF;
       ij        = indx[j] + 1;
@@ -731,9 +713,9 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *vc,
                              struct sc_wrapper_f3       *sc_wrapper)
 {
   char                    **ptype;
-  short                   **S;
+  short                   **S, *si;
   unsigned int            s, n_seq, type, length;
-  int                     energy, j, max_j, turn, **c, *stems, maxdist;
+  int                     energy, j, max_j, turn, *c, *stems, maxdist;
   vrna_param_t            *P;
   vrna_md_t               *md;
 
@@ -744,7 +726,8 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *vc,
   maxdist = vc->window_size;
   P       = vc->params;
   md      = &(P->model_details);
-  c       = vc->matrices->c_local;
+  c       = vc->matrices->c_local[i];
+  c       -= i;
   turn    = md->min_loop_size;
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
@@ -758,37 +741,29 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *vc,
       ptype = vc->ptype_local;
       max_j = MIN2(length - 1, i + maxdist);
 
-      if (sc_spl_stem) {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - i] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            type      = vrna_get_ptype_window(i, j, ptype);
-            stems[j]  = c[i][j - i] +
-                        E_ExtLoop(type, -1, -1, P) +
-                        sc_spl_stem(i, j, j + 1, sc_wrapper);
-          }
-        }
-      } else {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - i] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            type      = vrna_get_ptype_window(i, j, ptype);
-            stems[j]  = c[i][j - i] +
-                        E_ExtLoop(type, -1, -1, P);
-          }
+      for (j = i + turn + 1; j <= max_j; j++) {
+        stems[j] = INF;
+        if ((c[j] != INF) &&
+            (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
+          type      = vrna_get_ptype_window(i, j, ptype);
+          stems[j]  = c[j] +
+                      E_ExtLoop(type, -1, -1, P);
         }
       }
+
+      if (sc_spl_stem)
+        for (j = i + turn + 1; j <= max_j; j++)
+          if (stems[j] != INF)
+            stems[j] += sc_spl_stem(i, j, j + 1, sc_wrapper);
 
       if (length <= i + maxdist) {
         j         = length;
         stems[j]  = INF;
 
-        if ((c[i][j - i] != INF) && (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
+        if ((c[j] != INF) && (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
           type = vrna_get_ptype_window(i, j, ptype);
 
-          stems[j] = c[i][j - i] +
+          stems[j] = c[j] +
                      E_ExtLoop(type, -1, -1, P);
 
           if (sc_red_stem)
@@ -809,43 +784,36 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *vc,
       S     = vc->S;
       max_j = MIN2(length - 1, i + maxdist);
 
-      if (sc_spl_stem) {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - i] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            energy = c[i][j - i] +
-                     sc_spl_stem(i, j, j + 1, sc_wrapper);
-            for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
-              energy  += E_ExtLoop(type, -1, -1, P);
-            }
-            stems[j] = energy;
+      si = (short *)vrna_alloc(sizeof(short) * n_seq);
+      for (s = 0; s < n_seq; s++)
+        si[s] = S[s][i];
+
+      for (j = i + turn + 1; j <= max_j; j++) {
+        stems[j] = INF;
+        if ((c[j] != INF) &&
+            (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
+          energy = c[j];
+          for (s = 0; s < n_seq; s++) {
+            type    = vrna_get_ptype_md(si[s], S[s][j], md);
+            energy  += E_ExtLoop(type, -1, -1, P);
           }
-        }
-      } else {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - i] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            energy = c[i][j - i];
-            for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
-              energy  += E_ExtLoop(type, -1, -1, P);
-            }
-            stems[j] = energy;
-          }
+          stems[j] = energy;
         }
       }
+
+      if (sc_spl_stem)
+        for (j = i + turn + 1; j <= max_j; j++)
+          if (stems[j] != INF)
+            stems[j] += sc_spl_stem(i, j, j + 1, sc_wrapper);
 
       if (length <= i + maxdist) {
         j         = length;
         stems[j]  = INF;
 
-        if ((c[i][j - i] != INF) && (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
-          energy = c[i][j - i];
+        if ((c[j] != INF) && (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
+          energy = c[j];
           for (s = 0; s < n_seq; s++) {
-            type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
+            type    = vrna_get_ptype_md(si[s], S[s][j], md);
             energy  += E_ExtLoop(type, -1, -1, P);
           }
 
@@ -862,6 +830,8 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *vc,
         stems[i + maxdist + 1] = INF;
       }
 
+      free(si);
+
       break;
   }
 
@@ -877,7 +847,7 @@ get_stem_contributions_d2(vrna_fold_compound_t      *vc,
                           struct sc_wrapper_f5      *sc_wrapper)
 {
   char                    *ptype;
-  short                   *S, sj1, *si1, **SS, **S5, **S3, *s3j;
+  short                   *S, sj1, *si1, **SS, **S5, **S3, *s3j, *sj;
   unsigned int            s, n_seq, **a2s, type;
   int                     n, i, ij, *indx, turn, *c, *stems, mm5;
   vrna_param_t            *P;
@@ -906,28 +876,20 @@ get_stem_contributions_d2(vrna_fold_compound_t      *vc,
       si1   = S + j - turn - 2;
       sj1   = (j < n) ? S[j + 1] : -1;
 
-      if (sc_spl_stem) {
-        for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            type      = vrna_get_ptype(ij, ptype);
-            stems[i]  = c[ij] +
-                        E_ExtLoop(type, *si1, sj1, P) +
-                        sc_spl_stem(j, i - 1, i, sc_wrapper);
-          }
-        }
-      } else {
-        for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            type      = vrna_get_ptype(ij, ptype);
-            stems[i]  = c[ij] +
-                        E_ExtLoop(type, *si1, sj1, P);
-          }
+      for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
+        stems[i] = INF;
+        if ((c[ij] != INF) &&
+            (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
+          type      = vrna_get_ptype(ij, ptype);
+          stems[i]  = c[ij] +
+                      E_ExtLoop(type, *si1, sj1, P);
         }
       }
+
+      if (sc_spl_stem)
+        for (i = j - turn - 1; i > 1; i--)
+          if (stems[i] != INF)
+            stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
       stems[1]  = INF;
       ij        = indx[j] + 1;
@@ -952,37 +914,29 @@ get_stem_contributions_d2(vrna_fold_compound_t      *vc,
 
       /* pre-compute S3[s][j - 1] */
       s3j = (short *)vrna_alloc(sizeof(short) * n_seq);
-      for (s = 0; s < n_seq; s++)
-        s3j[s] = (a2s[s][j] < a2s[s][SS[0][0]]) ? S3[s][j] : -1;
+      sj  = (short *)vrna_alloc(sizeof(short) * n_seq);
+      for (s = 0; s < n_seq; s++) {
+        s3j[s]  = (a2s[s][j] < a2s[s][SS[0][0]]) ? S3[s][j] : -1;
+        sj[s]   = SS[s][j];
+      }
 
-      if (sc_spl_stem) {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            stems[i] = c[ij] +
-                       sc_spl_stem(j, i - 1, i, sc_wrapper);
-            for (s = 0; s < n_seq; s++) {
-              type      = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-              mm5       = (a2s[s][i] > 1) ? S5[s][i] : -1;
-              stems[i]  += E_ExtLoop(type, mm5, s3j[s], P);
-            }
-          }
-        }
-      } else {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            stems[i] = c[ij];
-            for (s = 0; s < n_seq; s++) {
-              type      = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-              mm5       = (a2s[s][i] > 1) ? S5[s][i] : -1;
-              stems[i]  += E_ExtLoop(type, mm5, s3j[s], P);
-            }
+      for (i = j - turn - 1; i > 1; i--, ij--) {
+        stems[i] = INF;
+        if ((c[ij] != INF) &&
+            (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
+          stems[i] = c[ij];
+          for (s = 0; s < n_seq; s++) {
+            type      = vrna_get_ptype_md(SS[s][i], sj[s], md);
+            mm5       = (a2s[s][i] > 1) ? S5[s][i] : -1;
+            stems[i]  += E_ExtLoop(type, mm5, s3j[s], P);
           }
         }
       }
+
+      if (sc_spl_stem)
+        for (i = j - turn - 1; i > 1; i--)
+          if (stems[i] != INF)
+            stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
       stems[1]  = INF;
       ij        = indx[j] + 1;
@@ -991,7 +945,7 @@ get_stem_contributions_d2(vrna_fold_compound_t      *vc,
         stems[1] = c[ij];
 
         for (s = 0; s < n_seq; s++) {
-          type      = vrna_get_ptype_md(SS[s][1], SS[s][j], md);
+          type      = vrna_get_ptype_md(SS[s][1], sj[s], md);
           stems[1]  += E_ExtLoop(type, -1, s3j[s], P);
         }
 
@@ -1000,6 +954,7 @@ get_stem_contributions_d2(vrna_fold_compound_t      *vc,
       }
 
       free(s3j);
+      free(sj);
 
       break;
   }
@@ -1016,9 +971,9 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *vc,
                              struct sc_wrapper_f3       *sc_wrapper)
 {
   char                    **ptype;
-  short                   **S, **S5, **S3, *S1, si1, sj1, *s5i1;
+  short                   **S, **S5, **S3, *S1, si1, sj1, *s5i1, *si;
   unsigned int            s, n_seq, type, length, **a2s;
-  int                     energy, j, max_j, turn, **c, *stems, maxdist;
+  int                     energy, j, max_j, turn, *c, *stems, maxdist;
   vrna_param_t            *P;
   vrna_md_t               *md;
 
@@ -1029,7 +984,8 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *vc,
   maxdist = vc->window_size;
   P       = vc->params;
   md      = &(P->model_details);
-  c       = vc->matrices->c_local;
+  c       = vc->matrices->c_local[i];
+  c       -= i;
   turn    = md->min_loop_size;
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
@@ -1045,39 +1001,30 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *vc,
       si1   = (i > 1) ? S1[i - 1] : -1;
       max_j = MIN2((int)length - 1, i + maxdist);
 
-      if (sc_spl_stem) {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - i] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            type      = vrna_get_ptype_window(i, j, ptype);
-            sj1       = S1[j + 1];
-            stems[j]  = c[i][j - i] +
-                        E_ExtLoop(type, si1, sj1, P) +
-                        sc_spl_stem(i, j, j + 1, sc_wrapper);
-          }
-        }
-      } else {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - i] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            type      = vrna_get_ptype_window(i, j, ptype);
-            sj1       = S1[j + 1];
-            stems[j]  = c[i][j - i] +
-                        E_ExtLoop(type, si1, sj1, P);
-          }
+      for (j = i + turn + 1; j <= max_j; j++) {
+        stems[j] = INF;
+        if ((c[j] != INF) &&
+            (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
+          type      = vrna_get_ptype_window(i, j, ptype);
+          sj1       = S1[j + 1];
+          stems[j]  = c[j] +
+                      E_ExtLoop(type, si1, sj1, P);
         }
       }
+
+      if (sc_spl_stem)
+        for (j = i + turn + 1; j <= max_j; j++)
+          if (stems[j] != INF)
+            stems[j] += sc_spl_stem(i, j, j + 1, sc_wrapper);
 
       if (length <= (unsigned int)(i + maxdist)) {
         j         = (int)length;
         stems[j]  = INF;
 
-        if ((c[i][j - i] != INF) && (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
+        if ((c[j] != INF) && (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
           type = vrna_get_ptype_window(i, j, ptype);
 
-          stems[j] = c[i][j - i] +
+          stems[j] = c[j] +
                      E_ExtLoop(type, si1, -1, P);
 
           if (sc_red_stem)
@@ -1095,49 +1042,40 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *vc,
       a2s   = vc->a2s;
       max_j = MIN2((int)length - 1, i + maxdist);
 
-      s5i1 = (short *)vrna_alloc(sizeof(short) * n_seq);
-      for (s = 0; s < n_seq; s++)
+      s5i1  = (short *)vrna_alloc(sizeof(short) * n_seq);
+      si    = (short *)vrna_alloc(sizeof(short) * n_seq);
+      for (s = 0; s < n_seq; s++) {
         s5i1[s] = (a2s[s][i] > 1) ? S5[s][i] : -1;
+        si[s]   = S[s][i];
+      }
 
-      if (sc_spl_stem) {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - i] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            energy = c[i][j - i] +
-                     sc_spl_stem(i, j, j + 1, sc_wrapper);
-            for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
-              sj1     = (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1;
-              energy  += E_ExtLoop(type, s5i1[s], sj1, P);
-            }
-            stems[j] = energy;
+      for (j = i + turn + 1; j <= max_j; j++) {
+        stems[j] = INF;
+        if ((c[j] != INF) &&
+            (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
+          energy = c[j];
+          for (s = 0; s < n_seq; s++) {
+            type    = vrna_get_ptype_md(si[s], S[s][j], md);
+            sj1     = (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1;
+            energy  += E_ExtLoop(type, s5i1[s], sj1, P);
           }
-        }
-      } else {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - i] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            energy = c[i][j - i];
-            for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
-              sj1     = (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1;
-              energy  += E_ExtLoop(type, s5i1[s], sj1, P);
-            }
-            stems[j] = energy;
-          }
+          stems[j] = energy;
         }
       }
+
+      if (sc_spl_stem)
+        for (j = i + turn + 1; j <= max_j; j++)
+          if (stems[j] != INF)
+            stems[j] += sc_spl_stem(i, j, j + 1, sc_wrapper);
 
       if (length <= (unsigned int)(i + maxdist)) {
         j         = (int)length;
         stems[j]  = INF;
 
-        if ((c[i][j - i] != INF) && (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
-          energy = c[i][j - i];
+        if ((c[j] != INF) && (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
+          energy = c[j];
           for (s = 0; s < n_seq; s++) {
-            type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
+            type    = vrna_get_ptype_md(si[s], S[s][j], md);
             energy  += E_ExtLoop(type, s5i1[s], -1, P);
           }
 
@@ -1149,6 +1087,7 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *vc,
       }
 
       free(s5i1);
+      free(si);
 
       break;
   }
@@ -1158,14 +1097,14 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *vc,
 
 
 PRIVATE INLINE int *
-get_stem_contributions_5(vrna_fold_compound_t       *vc,
-                         int                        j,
-                         vrna_callback_hc_evaluate  *evaluate,
-                         struct default_data        *hc_dat_local,
-                         struct sc_wrapper_f5       *sc_wrapper)
+f5_get_stem_contributions_d5(vrna_fold_compound_t       *vc,
+                             int                        j,
+                             vrna_callback_hc_evaluate  *evaluate,
+                             struct default_data        *hc_dat_local,
+                             struct sc_wrapper_f5       *sc_wrapper)
 {
   char                    *ptype;
-  short                   *S, *si1, **SS, **S5;
+  short                   *S, *si1, **SS, **S5, *sj;
   unsigned int            s, n_seq, **a2s, type;
   int                     i, ij, *indx, turn, *c, *stems, mm5;
   vrna_param_t            *P;
@@ -1192,28 +1131,20 @@ get_stem_contributions_5(vrna_fold_compound_t       *vc,
       ptype = vc->ptype;
       si1   = S + j - turn - 1;
 
-      if (sc_spl_stem) {
-        for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            type      = vrna_get_ptype(ij, ptype);
-            stems[i]  = c[ij] +
-                        E_ExtLoop(type, *si1, -1, P) +
-                        sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
-          }
-        }
-      } else {
-        for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            type      = vrna_get_ptype(ij, ptype);
-            stems[i]  = c[ij] +
-                        E_ExtLoop(type, *si1, -1, P);
-          }
+      for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
+        stems[i] = INF;
+        if ((c[ij] != INF) &&
+            (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
+          type      = vrna_get_ptype(ij, ptype);
+          stems[i]  = c[ij] +
+                      E_ExtLoop(type, *si1, -1, P);
         }
       }
+
+      if (sc_spl_stem)
+        for (i = j - turn - 1; i > 1; i--)
+          if (stems[i] != INF)
+            stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
       stems[1]  = INF;
       ij        = indx[j] + 2;
@@ -1234,34 +1165,28 @@ get_stem_contributions_5(vrna_fold_compound_t       *vc,
       SS    = vc->S;
       S5    = vc->S5;
       a2s   = vc->a2s;
-      if (sc_spl_stem) {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            stems[i] = c[ij] +
-                       sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
-            for (s = 0; s < n_seq; s++) {
-              type      = vrna_get_ptype_md(SS[s][i + 1], SS[s][j], md);
-              mm5       = (a2s[s][i + 1] > 1) ? S5[s][i + 1] : -1;
-              stems[i]  = E_ExtLoop(type, mm5, -1, P);
-            }
-          }
-        }
-      } else {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
-            stems[i] = c[ij];
-            for (s = 0; s < n_seq; s++) {
-              type      = vrna_get_ptype_md(SS[s][i + 1], SS[s][j], md);
-              mm5       = (a2s[s][i + 1] > 1) ? S5[s][i + 1] : -1;
-              stems[i]  = E_ExtLoop(type, mm5, -1, P);
-            }
+
+      sj = (short *)vrna_alloc(sizeof(short) * n_seq);
+      for (s = 0; s < n_seq; s++)
+        sj[s] = SS[s][j];
+
+      for (i = j - turn - 1; i > 1; i--, ij--) {
+        stems[i] = INF;
+        if ((c[ij] != INF) &&
+            (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
+          stems[i] = c[ij];
+          for (s = 0; s < n_seq; s++) {
+            type      = vrna_get_ptype_md(SS[s][i + 1], sj[s], md);
+            mm5       = (a2s[s][i + 1] > 1) ? S5[s][i + 1] : -1;
+            stems[i]  = E_ExtLoop(type, mm5, -1, P);
           }
         }
       }
+
+      if (sc_spl_stem)
+        for (i = j - turn - 1; i > 1; i--)
+          if (stems[i] != INF)
+            stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
       stems[1]  = INF;
       ij        = indx[j] + 2;
@@ -1269,7 +1194,7 @@ get_stem_contributions_5(vrna_fold_compound_t       *vc,
       if ((c[ij] != INF) && (evaluate(1, j, 2, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
         stems[1] = c[ij];
         for (s = 0; s < n_seq; s++) {
-          type      = vrna_get_ptype_md(SS[s][2], SS[s][j], md);
+          type      = vrna_get_ptype_md(SS[s][2], sj[s], md);
           mm5       = (a2s[s][2] > 1) ? S5[s][2] : -1;
           stems[i]  = E_ExtLoop(type, mm5, -1, P);
         }
@@ -1277,6 +1202,8 @@ get_stem_contributions_5(vrna_fold_compound_t       *vc,
         if (sc_red_stem)
           stems[1] += sc_red_stem(j, 2, j, sc_wrapper);
       }
+
+      free(sj);
 
       break;
   }
@@ -1286,16 +1213,16 @@ get_stem_contributions_5(vrna_fold_compound_t       *vc,
 
 
 PRIVATE INLINE int *
-f3_get_stem_contributions_5(vrna_fold_compound_t      *vc,
-                            int                       i,
-                            vrna_callback_hc_evaluate *evaluate,
-                            struct default_data       *hc_dat_local,
-                            struct sc_wrapper_f3      *sc_wrapper)
+f3_get_stem_contributions_d3(vrna_fold_compound_t       *vc,
+                             int                        i,
+                             vrna_callback_hc_evaluate  *evaluate,
+                             struct default_data        *hc_dat_local,
+                             struct sc_wrapper_f3       *sc_wrapper)
 {
   char                    **ptype;
-  short                   *S1, **S, **S3, sj1;
+  short                   *S1, **S, **S3, sj1, *si;
   unsigned int            s, n_seq, **a2s, type;
-  int                     energy, j, max_j, turn, **c, *stems, length, maxdist;
+  int                     energy, j, max_j, turn, *c, *stems, length, maxdist;
   vrna_param_t            *P;
   vrna_md_t               *md;
 
@@ -1306,7 +1233,8 @@ f3_get_stem_contributions_5(vrna_fold_compound_t      *vc,
   maxdist = vc->window_size;
   P       = vc->params;
   md      = &(P->model_details);
-  c       = vc->matrices->c_local;
+  c       = vc->matrices->c_local[i];
+  c       -= i;
   turn    = md->min_loop_size;
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
@@ -1321,36 +1249,28 @@ f3_get_stem_contributions_5(vrna_fold_compound_t      *vc,
       ptype = vc->ptype_local;
       max_j = MIN2(length - 1, i + maxdist + 1);
 
-      if (sc_spl_stem) {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - 1 - i] != INF) &&
-              (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            type      = vrna_get_ptype_window(i, j - 1, ptype);
-            stems[j]  = c[i][j - 1 - i] +
-                        E_ExtLoop(type, -1, S1[j], P) +
-                        sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
-          }
-        }
-      } else {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - 1 - i] != INF) &&
-              (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            type      = vrna_get_ptype_window(i, j - 1, ptype);
-            stems[j]  = c[i][j - 1 - i] +
-                        E_ExtLoop(type, -1, S1[j], P);
-          }
+      for (j = i + turn + 1; j <= max_j; j++) {
+        stems[j] = INF;
+        if ((c[j - 1] != INF) &&
+            (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
+          type      = vrna_get_ptype_window(i, j - 1, ptype);
+          stems[j]  = c[j - 1] +
+                      E_ExtLoop(type, -1, S1[j], P);
         }
       }
+
+      if (sc_spl_stem)
+        for (j = i + turn + 1; j <= max_j; j++)
+          if (stems[j] != INF)
+            stems[j] += sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
 
       if (length <= i + maxdist) {
         j = length;
 
-        if ((c[i][j - 1 - i] != INF) &&
+        if ((c[j - 1] != INF) &&
             (evaluate(i, j, i, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
           type      = vrna_get_ptype_window(i, j - 1, ptype);
-          stems[j]  = c[i][j - 1 - i] +
+          stems[j]  = c[j - 1] +
                       E_ExtLoop(type, -1, S1[j], P);
 
           if (sc_red_stem)
@@ -1367,45 +1287,37 @@ f3_get_stem_contributions_5(vrna_fold_compound_t      *vc,
       a2s   = vc->a2s;
       max_j = MIN2(length - 1, i + maxdist + 1);
 
-      if (sc_spl_stem) {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - 1 - i] != INF) &&
-              (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            energy = c[i][j - 1 - i] +
-                     sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
-            for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(S[s][i], S[s][j - 1], md);
-              sj1     = (a2s[s][j - 1] < a2s[s][S[0][0]]) ? S3[s][j - 1] : -1;
-              energy  += E_ExtLoop(type, -1, sj1, P);
-            }
-            stems[j] = energy;
+      si = (short *)vrna_alloc(sizeof(short) * n_seq);
+      for (s = 0; s < n_seq; s++)
+        si[s] = S[s][i];
+
+      for (j = i + turn + 1; j <= max_j; j++) {
+        stems[j] = INF;
+        if ((c[j - 1] != INF) &&
+            (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
+          energy = c[j - 1];
+          for (s = 0; s < n_seq; s++) {
+            type    = vrna_get_ptype_md(si[s], S[s][j - 1], md);
+            sj1     = (a2s[s][j - 1] < a2s[s][S[0][0]]) ? S3[s][j - 1] : -1;
+            energy  += E_ExtLoop(type, -1, sj1, P);
           }
-        }
-      } else {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i][j - 1 - i] != INF) &&
-              (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
-            energy = c[i][j - 1 - i];
-            for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(S[s][i], S[s][j - 1], md);
-              sj1     = (a2s[s][j - 1] < a2s[s][S[0][0]]) ? S3[s][j - 1] : -1;
-              energy  += E_ExtLoop(type, -1, sj1, P);
-            }
-            stems[j] = energy;
-          }
+          stems[j] = energy;
         }
       }
+
+      if (sc_spl_stem)
+        for (j = i + turn + 1; j <= max_j; j++)
+          if (stems[j] != INF)
+            stems[j] += sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
 
       if (length <= i + maxdist) {
         j = length;
 
-        if ((c[i][j - 1 - i] != INF) &&
+        if ((c[j - 1] != INF) &&
             (evaluate(i, j, i, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
-          energy = c[i][j - 1 - i];
+          energy = c[j - 1];
           for (s = 0; s < n_seq; s++) {
-            type    = vrna_get_ptype_md(S[s][i], S[s][j - 1], md);
+            type    = vrna_get_ptype_md(si[s], S[s][j - 1], md);
             sj1     = (a2s[s][j - 1] < a2s[s][S[0][0]]) ? S3[s][j - 1] : -1;
             energy  += E_ExtLoop(type, -1, sj1, P);
           }
@@ -1417,6 +1329,8 @@ f3_get_stem_contributions_5(vrna_fold_compound_t      *vc,
         }
       }
 
+      free(si);
+
       break;
   }
 
@@ -1425,14 +1339,14 @@ f3_get_stem_contributions_5(vrna_fold_compound_t      *vc,
 
 
 PRIVATE INLINE int *
-get_stem_contributions_3(vrna_fold_compound_t       *vc,
-                         int                        j,
-                         vrna_callback_hc_evaluate  *evaluate,
-                         struct default_data        *hc_dat_local,
-                         struct sc_wrapper_f5       *sc_wrapper)
+f5_get_stem_contributions_d3(vrna_fold_compound_t       *vc,
+                             int                        j,
+                             vrna_callback_hc_evaluate  *evaluate,
+                             struct default_data        *hc_dat_local,
+                             struct sc_wrapper_f5       *sc_wrapper)
 {
   char                    *ptype;
-  short                   *S, sj1, **SS, **S3, *s3j1;
+  short                   *S, sj1, **SS, **S3, *s3j1, *ssj1;
   unsigned int            s, n_seq, **a2s, type;
   int                     i, ij, *indx, turn, *c, *stems;
   vrna_param_t            *P;
@@ -1459,28 +1373,20 @@ get_stem_contributions_3(vrna_fold_compound_t       *vc,
       ptype = vc->ptype;
       sj1   = S[j];
 
-      if (sc_spl_stem) {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
-            type      = vrna_get_ptype(ij, ptype);
-            stems[i]  = c[ij] +
-                        E_ExtLoop(type, -1, sj1, P) +
-                        sc_spl_stem(j, i - 1, i, sc_wrapper);
-          }
-        }
-      } else {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
-            type      = vrna_get_ptype(ij, ptype);
-            stems[i]  = c[ij] +
-                        E_ExtLoop(type, -1, sj1, P);
-          }
+      for (i = j - turn - 1; i > 1; i--, ij--) {
+        stems[i] = INF;
+        if ((c[ij] != INF) &&
+            (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
+          type      = vrna_get_ptype(ij, ptype);
+          stems[i]  = c[ij] +
+                      E_ExtLoop(type, -1, sj1, P);
         }
       }
+
+      if (sc_spl_stem)
+        for (i = j - turn - 1; i > 1; i--)
+          if (stems[i] != INF)
+            stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
       stems[1]  = INF;
       ij        = indx[j - 1] + 1;
@@ -1503,36 +1409,29 @@ get_stem_contributions_3(vrna_fold_compound_t       *vc,
       a2s   = vc->a2s;
 
       /* pre-compute S3[s][j - 1] */
-      s3j1 = (short *)vrna_alloc(sizeof(short) * n_seq);
-      for (s = 0; s < n_seq; s++)
+      s3j1  = (short *)vrna_alloc(sizeof(short) * n_seq);
+      ssj1  = (short *)vrna_alloc(sizeof(short) * n_seq);
+      for (s = 0; s < n_seq; s++) {
         s3j1[s] = (a2s[s][j - 1] < a2s[s][SS[0][0]]) ? S3[s][j - 1] : -1;
+        ssj1[s] = SS[s][j - 1];
+      }
 
-      if (sc_spl_stem) {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
-            stems[i] = c[ij] +
-                       sc_spl_stem(j, i - 1, i, sc_wrapper);
-            for (s = 0; s < n_seq; s++) {
-              type      = vrna_get_ptype_md(SS[s][i], SS[s][j - 1], md);
-              stems[i]  += E_ExtLoop(type, -1, s3j1[s], P);
-            }
-          }
-        }
-      } else {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
-            stems[i] = c[ij];
-            for (s = 0; s < n_seq; s++) {
-              type      = vrna_get_ptype_md(SS[s][i], SS[s][j - 1], md);
-              stems[i]  += E_ExtLoop(type, -1, s3j1[s], P);
-            }
+      for (i = j - turn - 1; i > 1; i--, ij--) {
+        stems[i] = INF;
+        if ((c[ij] != INF) &&
+            (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
+          stems[i] = c[ij];
+          for (s = 0; s < n_seq; s++) {
+            type      = vrna_get_ptype_md(SS[s][i], ssj1[s], md);
+            stems[i]  += E_ExtLoop(type, -1, s3j1[s], P);
           }
         }
       }
+
+      if (sc_spl_stem)
+        for (i = j - turn - 1; i > 1; i--)
+          if (stems[i] != INF)
+            stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
       stems[1]  = INF;
       ij        = indx[j - 1] + 1;
@@ -1541,7 +1440,7 @@ get_stem_contributions_3(vrna_fold_compound_t       *vc,
         stems[1] = c[ij];
 
         for (s = 0; s < n_seq; s++) {
-          type      = vrna_get_ptype_md(SS[s][1], SS[s][j - 1], md);
+          type      = vrna_get_ptype_md(SS[s][1], ssj1[s], md);
           stems[1]  += E_ExtLoop(type, -1, s3j1[s], P);
         }
 
@@ -1550,6 +1449,7 @@ get_stem_contributions_3(vrna_fold_compound_t       *vc,
       }
 
       free(s3j1);
+      free(ssj1);
 
       break;
   }
@@ -1559,16 +1459,16 @@ get_stem_contributions_3(vrna_fold_compound_t       *vc,
 
 
 PRIVATE INLINE int *
-f3_get_stem_contributions_3(vrna_fold_compound_t      *vc,
-                            int                       i,
-                            vrna_callback_hc_evaluate *evaluate,
-                            struct default_data       *hc_dat_local,
-                            struct sc_wrapper_f3      *sc_wrapper)
+f3_get_stem_contributions_d5(vrna_fold_compound_t       *vc,
+                             int                        i,
+                             vrna_callback_hc_evaluate  *evaluate,
+                             struct default_data        *hc_dat_local,
+                             struct sc_wrapper_f3       *sc_wrapper)
 {
   char                    **ptype;
-  short                   *S1, **S, **S5, *s5i1, si;
+  short                   *S1, **S, **S5, *s5i1, si, *si1;
   unsigned int            s, n_seq, **a2s, type;
-  int                     energy, j, max_j, turn, **c, *stems, length, maxdist;
+  int                     energy, j, max_j, turn, *c, *stems, length, maxdist;
   vrna_param_t            *P;
   vrna_md_t               *md;
 
@@ -1579,7 +1479,8 @@ f3_get_stem_contributions_3(vrna_fold_compound_t      *vc,
   maxdist = vc->window_size;
   P       = vc->params;
   md      = &(P->model_details);
-  c       = vc->matrices->c_local;
+  c       = vc->matrices->c_local[i + 1];
+  c       -= i + 1;
   turn    = P->model_details.min_loop_size;
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
@@ -1595,37 +1496,29 @@ f3_get_stem_contributions_3(vrna_fold_compound_t      *vc,
       si    = S1[i];
       max_j = MIN2(length - 1, i + maxdist + 1);
 
-      if (sc_spl_stem) {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i + 1][j - i - 1] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
-            type      = vrna_get_ptype_window(i + 1, j, ptype);
-            stems[j]  = c[i + 1][j - i - 1] +
-                        E_ExtLoop(type, si, -1, P) +
-                        sc_spl_stem(i, j, j + 1, sc_wrapper);
-          }
-        }
-      } else {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i + 1][j - i - 1] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
-            type      = vrna_get_ptype_window(i + 1, j, ptype);
-            stems[j]  = c[i + 1][j - i - 1] +
-                        E_ExtLoop(type, si, -1, P);
-          }
+      for (j = i + turn + 1; j <= max_j; j++) {
+        stems[j] = INF;
+        if ((c[j] != INF) &&
+            (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
+          type      = vrna_get_ptype_window(i + 1, j, ptype);
+          stems[j]  = c[j] +
+                      E_ExtLoop(type, si, -1, P);
         }
       }
+
+      if (sc_spl_stem)
+        for (j = i + turn + 1; j <= max_j; j++)
+          if (stems[j] != INF)
+            stems[j] += sc_spl_stem(i, j, j + 1, sc_wrapper);
 
       if (length <= i + maxdist) {
         j         = length;
         stems[j]  = INF;
 
-        if ((c[i + 1][j - i - 1] != INF) &&
+        if ((c[j] != INF) &&
             (evaluate(i, j, i + 1, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
           type      = vrna_get_ptype_window(i + 1, j, ptype);
-          stems[j]  = c[i + 1][j - i - 1] +
+          stems[j]  = c[j] +
                       E_ExtLoop(type, si, -1, P);
 
           if (sc_red_stem)
@@ -1643,48 +1536,40 @@ f3_get_stem_contributions_3(vrna_fold_compound_t      *vc,
       max_j = MIN2(length - 1, i + maxdist + 1);
 
       /* pre-compute S5[s][i] */
-      s5i1 = (short *)vrna_alloc(sizeof(short) * n_seq);
-      for (s = 0; s < n_seq; s++)
+      s5i1  = (short *)vrna_alloc(sizeof(short) * n_seq);
+      si1   = (short *)vrna_alloc(sizeof(short) * n_seq);
+      for (s = 0; s < n_seq; s++) {
         s5i1[s] = (a2s[s][i + 1] > 1) ? S5[s][i + 1] : -1;
+        si1[s]  = S[s][i + 1];
+      }
 
-      if (sc_spl_stem) {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i + 1][j - i - 1] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
-            energy = c[i + 1][j - i - 1] +
-                     sc_spl_stem(i, j, j + 1, sc_wrapper);
-            for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(S[s][i + 1], S[s][j], md);
-              energy  += E_ExtLoop(type, s5i1[s], -1, P);
-            }
-            stems[j] = energy;
+      for (j = i + turn + 1; j <= max_j; j++) {
+        stems[j] = INF;
+        if ((c[j] != INF) &&
+            (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
+          energy = c[j];
+          for (s = 0; s < n_seq; s++) {
+            type    = vrna_get_ptype_md(si1[s], S[s][j], md);
+            energy  += E_ExtLoop(type, s5i1[s], -1, P);
           }
-        }
-      } else {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i + 1][j - i - 1] != INF) &&
-              (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
-            energy = c[i + 1][j - i - 1];
-            for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(S[s][i + 1], S[s][j], md);
-              energy  += E_ExtLoop(type, s5i1[s], -1, P);
-            }
-            stems[j] = energy;
-          }
+          stems[j] = energy;
         }
       }
+
+      if (sc_spl_stem)
+        for (j = i + turn + 1; j <= max_j; j++)
+          if (stems[j] != INF)
+            stems[j] += sc_spl_stem(i, j, j + 1, sc_wrapper);
 
       if (length <= i + maxdist) {
         j         = length;
         stems[j]  = INF;
 
-        if ((c[i + 1][j - i - 1] != INF) &&
+        if ((c[j] != INF) &&
             (evaluate(i, j, i + 1, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
-          energy = c[i + 1][j - i - 1];
+          energy = c[j];
           for (s = 0; s < n_seq; s++) {
-            type    = vrna_get_ptype_md(S[s][i + 1], S[s][j], md);
+            type    = vrna_get_ptype_md(si1[s], S[s][j], md);
             energy  += E_ExtLoop(type, s5i1[s], -1, P);
           }
 
@@ -1696,6 +1581,7 @@ f3_get_stem_contributions_3(vrna_fold_compound_t      *vc,
       }
 
       free(s5i1);
+      free(si1);
 
       break;
   }
@@ -1705,14 +1591,14 @@ f3_get_stem_contributions_3(vrna_fold_compound_t      *vc,
 
 
 PRIVATE INLINE int *
-get_stem_contributions_53(vrna_fold_compound_t      *vc,
-                          int                       j,
-                          vrna_callback_hc_evaluate *evaluate,
-                          struct default_data       *hc_dat_local,
-                          struct sc_wrapper_f5      *sc_wrapper)
+f5_get_stem_contributions_d53(vrna_fold_compound_t      *vc,
+                              int                       j,
+                              vrna_callback_hc_evaluate *evaluate,
+                              struct default_data       *hc_dat_local,
+                              struct sc_wrapper_f5      *sc_wrapper)
 {
   char                    *ptype;
-  short                   *S, *si1, sj1, **SS, **S5, **S3, *s3j1;
+  short                   *S, *si1, sj1, **SS, **S5, **S3, *s3j1, *ssj1;
   unsigned int            s, n_seq, **a2s, type;
   int                     i, ij, *indx, turn, *c, *stems;
   vrna_param_t            *P;
@@ -1740,28 +1626,20 @@ get_stem_contributions_53(vrna_fold_compound_t      *vc,
       sj1   = S[j];
       si1   = S + j - turn - 1;
 
-      if (sc_spl_stem) {
-        for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
-            type      = vrna_get_ptype(ij, ptype);
-            stems[i]  = c[ij] +
-                        E_ExtLoop(type, *si1, sj1, P) +
-                        sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
-          }
-        }
-      } else {
-        for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
-            type      = vrna_get_ptype(ij, ptype);
-            stems[i]  = c[ij] +
-                        E_ExtLoop(type, *si1, sj1, P);
-          }
+      for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
+        stems[i] = INF;
+        if ((c[ij] != INF) &&
+            (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
+          type      = vrna_get_ptype(ij, ptype);
+          stems[i]  = c[ij] +
+                      E_ExtLoop(type, *si1, sj1, P);
         }
       }
+
+      if (sc_spl_stem)
+        for (i = j - turn - 1; i > 1; i--)
+          if (stems[i] != INF)
+            stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
       stems[1]  = INF;
       ij        = indx[j - 1] + 2;
@@ -1785,36 +1663,29 @@ get_stem_contributions_53(vrna_fold_compound_t      *vc,
       a2s   = vc->a2s;
 
       /* pre-compute S3[s][j - 1] */
-      s3j1 = (short *)vrna_alloc(sizeof(short) * n_seq);
-      for (s = 0; s < n_seq; s++)
+      s3j1  = (short *)vrna_alloc(sizeof(short) * n_seq);
+      ssj1  = (short *)vrna_alloc(sizeof(short) * n_seq);
+      for (s = 0; s < n_seq; s++) {
         s3j1[s] = (a2s[s][j - 1] < a2s[s][SS[0][0]]) ? S3[s][j - 1] : -1;
+        ssj1[s] = SS[s][j - 1];
+      }
 
-      if (sc_spl_stem) {
-        for (i = j - turn - 1; i > 1; i--, ij--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
-            stems[i] = c[ij] +
-                       sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
-            for (s = 0; s < n_seq; s++) {
-              type      = vrna_get_ptype_md(SS[s][i + 1], SS[s][j - 1], md);
-              stems[i]  += E_ExtLoop(type, (a2s[s][i + 1] > 1) ? S5[s][i + 1] : -1, s3j1[s], P);
-            }
-          }
-        }
-      } else {
-        for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
-          stems[i] = INF;
-          if ((c[ij] != INF) &&
-              (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
-            stems[i] = c[ij];
-            for (s = 0; s < n_seq; s++) {
-              type      = vrna_get_ptype_md(SS[s][i + 1], SS[s][j - 1], md);
-              stems[i]  += E_ExtLoop(type, (a2s[s][i + 1] > 1) ? S5[s][i + 1] : -1, s3j1[s], P);
-            }
+      for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
+        stems[i] = INF;
+        if ((c[ij] != INF) &&
+            (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
+          stems[i] = c[ij];
+          for (s = 0; s < n_seq; s++) {
+            type      = vrna_get_ptype_md(SS[s][i + 1], ssj1[s], md);
+            stems[i]  += E_ExtLoop(type, (a2s[s][i + 1] > 1) ? S5[s][i + 1] : -1, s3j1[s], P);
           }
         }
       }
+
+      if (sc_spl_stem)
+        for (i = j - turn - 1; i > 1; i--)
+          if (stems[i] != INF)
+            stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
       stems[1]  = INF;
       ij        = indx[j - 1] + 2;
@@ -1822,7 +1693,7 @@ get_stem_contributions_53(vrna_fold_compound_t      *vc,
       if ((c[ij] != INF) && (evaluate(1, j, 2, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
         stems[1] = c[ij];
         for (s = 0; s < n_seq; s++) {
-          type      = vrna_get_ptype_md(SS[s][2], SS[s][j - 1], md);
+          type      = vrna_get_ptype_md(SS[s][2], ssj1[s], md);
           stems[1]  += E_ExtLoop(type, (a2s[s][2] > 1) ? S5[s][2] : -1, s3j1[s], P);
         }
 
@@ -1831,6 +1702,7 @@ get_stem_contributions_53(vrna_fold_compound_t      *vc,
       }
 
       free(s3j1);
+      free(ssj1);
 
       break;
   }
@@ -1840,16 +1712,16 @@ get_stem_contributions_53(vrna_fold_compound_t      *vc,
 
 
 PRIVATE INLINE int *
-f3_get_stem_contributions_53(vrna_fold_compound_t       *vc,
-                             int                        i,
-                             vrna_callback_hc_evaluate  *evaluate,
-                             struct default_data        *hc_dat_local,
-                             struct sc_wrapper_f3       *sc_wrapper)
+f3_get_stem_contributions_d53(vrna_fold_compound_t      *vc,
+                              int                       i,
+                              vrna_callback_hc_evaluate *evaluate,
+                              struct default_data       *hc_dat_local,
+                              struct sc_wrapper_f3      *sc_wrapper)
 {
   char                    **ptype;
-  short                   *S1, **S, **S5, **S3, *s5i1, si1, sj1;
+  short                   *S1, **S, **S5, **S3, *s5i1, si1, sj1, *ssi1;
   unsigned int            s, n_seq, **a2s, type;
-  int                     energy, j, max_j, turn, **c, *stems, length, maxdist;
+  int                     energy, j, max_j, turn, *c, *stems, length, maxdist;
   vrna_param_t            *P;
   vrna_md_t               *md;
 
@@ -1860,7 +1732,8 @@ f3_get_stem_contributions_53(vrna_fold_compound_t       *vc,
   maxdist = vc->window_size;
   P       = vc->params;
   md      = &(P->model_details);
-  c       = vc->matrices->c_local;
+  c       = vc->matrices->c_local[i + 1];
+  c       -= i + 1;
   turn    = md->min_loop_size;
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
@@ -1876,35 +1749,27 @@ f3_get_stem_contributions_53(vrna_fold_compound_t       *vc,
       si1   = S1[i];
       max_j = MIN2(length - 1, i + maxdist + 1);
 
-      if (sc_spl_stem) {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i + 1][j - i - 2] != INF) &&
-              (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
-            type      = vrna_get_ptype_window(i + 1, j - 1, ptype);
-            stems[j]  = c[i + 1][j - i - 2] +
-                        E_ExtLoop(type, si1, S1[j], P) +
-                        sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
-          }
-        }
-      } else {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i + 1][j - i - 2] != INF) &&
-              (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
-            type      = vrna_get_ptype_window(i + 1, j - 1, ptype);
-            stems[j]  = c[i + 1][j - i - 2] +
-                        E_ExtLoop(type, si1, S1[j], P);
-          }
+      for (j = i + turn + 1; j <= max_j; j++) {
+        stems[j] = INF;
+        if ((c[j - 1] != INF) &&
+            (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
+          type      = vrna_get_ptype_window(i + 1, j - 1, ptype);
+          stems[j]  = c[j - 1] +
+                      E_ExtLoop(type, si1, S1[j], P);
         }
       }
 
+      if (sc_spl_stem)
+        for (j = i + turn + 1; j <= max_j; j++)
+          if (stems[j] != INF)
+            stems[j] += sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
+
       if (length <= i + maxdist) {
         j = length;
-        if ((c[i + 1][j - i - 2] != INF) &&
+        if ((c[j - 1] != INF) &&
             (evaluate(i, length, i + 1, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
           type      = vrna_get_ptype_window(i + 1, j - 1, ptype);
-          stems[j]  = c[i + 1][j - i - 2] +
+          stems[j]  = c[j - 1] +
                       E_ExtLoop(type, si1, S1[j], P);
 
           if (sc_red_stem)
@@ -1922,48 +1787,39 @@ f3_get_stem_contributions_53(vrna_fold_compound_t       *vc,
       a2s   = vc->a2s;
       max_j = MIN2(length - 1, i + maxdist + 1);
 
-      s5i1 = (short *)vrna_alloc(sizeof(short) * n_seq);
-      for (s = 0; s < n_seq; s++)
+      s5i1  = (short *)vrna_alloc(sizeof(short) * n_seq);
+      ssi1  = (short *)vrna_alloc(sizeof(short) * n_seq);
+      for (s = 0; s < n_seq; s++) {
         s5i1[s] = (a2s[s][i + 1] > 1) ? S5[s][i + 1] : -1;
+        ssi1[s] = S[s][i + 1];
+      }
 
-      if (sc_spl_stem) {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i + 1][j - i - 2] != INF) &&
-              (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
-            energy = c[i + 1][j - i - 2] +
-                     sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
-            for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(S[s][i + 1], S[s][j - 1], md);
-              sj1     = (a2s[s][j - 1] < a2s[s][S[0][0]]) ? S3[s][j - 1] : -1;
-              energy  += E_ExtLoop(type, s5i1[s], sj1, P);
-            }
-            stems[j] = energy;
+      for (j = i + turn + 1; j <= max_j; j++) {
+        stems[j] = INF;
+        if ((c[j - 1] != INF) &&
+            (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
+          energy = c[j - 1];
+          for (s = 0; s < n_seq; s++) {
+            type    = vrna_get_ptype_md(ssi1[s], S[s][j - 1], md);
+            sj1     = (a2s[s][j - 1] < a2s[s][S[0][0]]) ? S3[s][j - 1] : -1;
+            energy  += E_ExtLoop(type, s5i1[s], sj1, P);
           }
-        }
-      } else {
-        for (j = i + turn + 1; j <= max_j; j++) {
-          stems[j] = INF;
-          if ((c[i + 1][j - i - 2] != INF) &&
-              (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
-            energy = c[i + 1][j - i - 2];
-            for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(S[s][i + 1], S[s][j - 1], md);
-              sj1     = (a2s[s][j - 1] < a2s[s][S[0][0]]) ? S3[s][j - 1] : -1;
-              energy  += E_ExtLoop(type, s5i1[s], sj1, P);
-            }
-            stems[j] = energy;
-          }
+          stems[j] = energy;
         }
       }
 
+      if (sc_spl_stem)
+        for (j = i + turn + 1; j <= max_j; j++)
+          if (stems[j] != INF)
+            stems[j] += sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
+
       if (length <= i + maxdist) {
         j = length;
-        if ((c[i + 1][j - i - 2] != INF) &&
+        if ((c[j - 1] != INF) &&
             (evaluate(i, length, i + 1, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
-          energy = c[i + 1][j - i - 2];
+          energy = c[j - 1];
           for (s = 0; s < n_seq; s++) {
-            type    = vrna_get_ptype_md(S[s][i + 1], S[s][j - 1], md);
+            type    = vrna_get_ptype_md(ssi1[s], S[s][j - 1], md);
             sj1     = (a2s[s][j - 1] < a2s[s][S[0][0]]) ? S3[s][j - 1] : -1;
             energy  += E_ExtLoop(type, s5i1[s], sj1, P);
           }
@@ -1976,158 +1832,12 @@ f3_get_stem_contributions_53(vrna_fold_compound_t       *vc,
       }
 
       free(s5i1);
+      free(ssi1);
 
       break;
   }
 
   return stems;
-}
-
-
-#ifdef VRNA_WITH_SSE_IMPLEMENTATION
-/* SSE modular decomposition -------------------------------*/
-#include <emmintrin.h>
-#include <smmintrin.h>
-
-PRIVATE INLINE int
-horizontal_min_Vec4i(__m128i x)
-{
-  __m128i min1  = _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 0, 3, 2));
-  __m128i min2  = _mm_min_epi32(x, min1);
-  __m128i min3  = _mm_shuffle_epi32(min2, _MM_SHUFFLE(0, 0, 0, 1));
-  __m128i min4  = _mm_min_epi32(min2, min3);
-
-  return _mm_cvtsi128_si32(min4);
-}
-
-
-PRIVATE INLINE int
-modular_decomposition(const int j,
-                      const int turn,
-                      const int *f5,
-                      const int *stems)
-{
-  int       i, decomp = INF;
-  __m128i   inf = _mm_set1_epi32(INF);
-
-  const int end = j - turn;
-
-  for (i = 2; i < end - 3; i += 4) {
-    __m128i   a     = _mm_loadu_si128((__m128i *)&f5[i - 1]);
-    __m128i   b     = _mm_loadu_si128((__m128i *)&stems[i]);
-    __m128i   c     = _mm_add_epi32(a, b);
-    __m128i   mask1 = _mm_cmplt_epi32(a, inf);
-    __m128i   mask2 = _mm_cmplt_epi32(b, inf);
-    __m128i   res   = _mm_or_si128(_mm_and_si128(mask1, c),
-                                   _mm_andnot_si128(mask1, a));
-
-    res = _mm_or_si128(_mm_and_si128(mask2, res),
-                       _mm_andnot_si128(mask2, b));
-    const int en = horizontal_min_Vec4i(res);
-    decomp = MIN2(decomp, en);
-  }
-
-  for (; i < end; i++) {
-    if ((f5[i - 1] != INF) && (stems[i] != INF)) {
-      const int en = f5[i - 1] + stems[i];
-      decomp = MIN2(decomp, en);
-    }
-  }
-
-  return decomp;
-}
-
-
-PRIVATE INLINE int
-modular_decomposition_3(const int i,
-                        const int max_j,
-                        const int turn,
-                        const int *f5,
-                        const int *stems)
-{
-  int     j, decomp = INF;
-  __m128i inf = _mm_set1_epi32(INF);
-
-  for (j = i + turn + 1; j < max_j - 3; j += 4) {
-    __m128i   a     = _mm_loadu_si128((__m128i *)&f5[j + 1]);
-    __m128i   b     = _mm_loadu_si128((__m128i *)&stems[j]);
-    __m128i   c     = _mm_add_epi32(a, b);
-    __m128i   mask1 = _mm_cmplt_epi32(a, inf);
-    __m128i   mask2 = _mm_cmplt_epi32(b, inf);
-    __m128i   res   = _mm_or_si128(_mm_and_si128(mask1, c),
-                                   _mm_andnot_si128(mask1, a));
-
-    res = _mm_or_si128(_mm_and_si128(mask2, res),
-                       _mm_andnot_si128(mask2, b));
-    const int en = horizontal_min_Vec4i(res);
-    decomp = MIN2(decomp, en);
-  }
-
-  for (; j <= max_j; j++) {
-    if ((f5[j + 1] != INF) && (stems[j] != INF)) {
-      const int en = f5[j + 1] + stems[j];
-      decomp = MIN2(decomp, en);
-    }
-  }
-
-  return decomp;
-}
-
-
-#endif
-
-PRIVATE INLINE int
-decompose_f5_ext_stem(vrna_fold_compound_t  *vc,
-                      int                   j,
-                      int                   *stems)
-{
-  int e, i, *f5, turn;
-
-  f5    = vc->matrices->f5;
-  turn  = vc->params->model_details.min_loop_size;
-  e     = INF;
-
-  /* modular decomposition */
-#if VRNA_WITH_SSE_IMPLEMENTATION
-  e = modular_decomposition(j, turn, f5, stems);
-#else
-  for (i = 2; i < j - turn; i++)
-    if ((f5[i - 1] != INF) && (stems[i] != INF)) {
-      const int en = f5[i - 1] + stems[i];
-      e = MIN2(e, en);
-    }
-
-#endif
-
-  return e;
-}
-
-
-PRIVATE INLINE int
-decompose_f3_ext_stem(vrna_fold_compound_t  *vc,
-                      int                   i,
-                      int                   max_j,
-                      int                   *stems)
-{
-  int e, j, *f3, turn;
-
-  f3    = vc->matrices->f3_local;
-  turn  = vc->params->model_details.min_loop_size;
-  e     = INF;
-
-  /* modular decomposition */
-#if VRNA_WITH_SSE_IMPLEMENTATION
-  e = modular_decomposition_3(i, max_j, turn, f3, stems);
-#else
-  for (j = i + turn + 1; j <= max_j; j++)
-    if ((f3[j + 1] != INF) && (stems[j] != INF)) {
-      const int en = stems[j] + f3[j + 1];
-      e = MIN2(e, en);
-    }
-
-#endif
-
-  return e;
 }
 
 
@@ -2258,7 +1968,7 @@ decompose_f5_ext_stem_d1(vrna_fold_compound_t       *vc,
   e = MIN2(e, ee);
 
   /* B) with dangling end contribution on 5' side of stem */
-  stems = get_stem_contributions_5(vc, j, evaluate, hc_dat_local, sc_wrapper);
+  stems = f5_get_stem_contributions_d5(vc, j, evaluate, hc_dat_local, sc_wrapper);
 
   /* 1st case, actual decompostion */
   ee = decompose_f5_ext_stem(vc, j, stems);
@@ -2271,7 +1981,7 @@ decompose_f5_ext_stem_d1(vrna_fold_compound_t       *vc,
   e = MIN2(e, ee);
 
   /* C) with dangling end contribution on 3' side of stem */
-  stems = get_stem_contributions_3(vc, j, evaluate, hc_dat_local, sc_wrapper);
+  stems = f5_get_stem_contributions_d3(vc, j, evaluate, hc_dat_local, sc_wrapper);
 
   /* 1st case, actual decompostion */
   ee = decompose_f5_ext_stem(vc, j, stems);
@@ -2284,7 +1994,7 @@ decompose_f5_ext_stem_d1(vrna_fold_compound_t       *vc,
   e = MIN2(e, ee);
 
   /* D) with dangling end contribution on both sides of stem */
-  stems = get_stem_contributions_53(vc, j, evaluate, hc_dat_local, sc_wrapper);
+  stems = f5_get_stem_contributions_d53(vc, j, evaluate, hc_dat_local, sc_wrapper);
 
   /* 1st case, actual decompostion */
   ee = decompose_f5_ext_stem(vc, j, stems);
@@ -2329,8 +2039,8 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t       *vc,
 
   e = MIN2(e, ee);
 
-  /* B) with dangling end contribution on 5' side of stem */
-  stems = f3_get_stem_contributions_5(vc, i, evaluate, hc_dat_local, sc_wrapper);
+  /* B) with dangling end contribution on 3' side of stem */
+  stems = f3_get_stem_contributions_d3(vc, i, evaluate, hc_dat_local, sc_wrapper);
 
   /* 1st case, actual decompostion */
   ee = decompose_f3_ext_stem(vc, i, MIN2(length - 1, i + maxdist + 1), stems);
@@ -2344,8 +2054,8 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t       *vc,
 
   e = MIN2(e, ee);
 
-  /* C) with dangling end contribution on 3' side of stem */
-  stems = f3_get_stem_contributions_3(vc, i, evaluate, hc_dat_local, sc_wrapper);
+  /* C) with dangling end contribution on 5' side of stem */
+  stems = f3_get_stem_contributions_d5(vc, i, evaluate, hc_dat_local, sc_wrapper);
 
   /* 1st case, actual decompostion */
   ee = decompose_f3_ext_stem(vc, i, MIN2(length - 1, i + maxdist + 1), stems);
@@ -2360,7 +2070,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t       *vc,
   e = MIN2(e, ee);
 
   /* D) with dangling end contribution on both sides of stem */
-  stems = f3_get_stem_contributions_53(vc, i, evaluate, hc_dat_local, sc_wrapper);
+  stems = f3_get_stem_contributions_d53(vc, i, evaluate, hc_dat_local, sc_wrapper);
 
   /* 1st case, actual decompostion */
   ee = decompose_f3_ext_stem(vc, i, MIN2(length - 1, i + maxdist + 1), stems);
@@ -2412,21 +2122,142 @@ add_f3_gquad(vrna_fold_compound_t       *vc,
              struct default_data        *hc_dat_local,
              struct sc_wrapper_f3       *sc_wrapper)
 {
-  int e, j, length, turn, *f3, **ggg, maxdist;
+  int e, j, length, turn, *f3, *ggg, maxdist;
 
   length  = (int)vc->length;
   maxdist = vc->window_size;
   f3      = vc->matrices->f3_local;
-  ggg     = vc->matrices->ggg_local;
+  ggg     = vc->matrices->ggg_local[i];
   turn    = vc->params->model_details.min_loop_size;
   e       = INF;
 
   for (j = i + turn + 1; (j < length) && (j <= i + maxdist); j++)
-    if ((f3[j + 1] != INF) && (ggg[i][j - i] != INF))
-      e = MIN2(e, f3[j + 1] + ggg[i][j - i]);
+    if ((f3[j + 1] != INF) && (ggg[j - i] != INF))
+      e = MIN2(e, f3[j + 1] + ggg[j - i]);
 
   if (length <= i + maxdist)
-    e = MIN2(e, ggg[i][length - i]);
+    e = MIN2(e, ggg[length - i]);
+
+  return e;
+}
+
+
+#ifdef VRNA_WITH_SSE_IMPLEMENTATION
+/* SSE modular decomposition -------------------------------*/
+#include <emmintrin.h>
+#include <smmintrin.h>
+
+PRIVATE INLINE int
+horizontal_min_Vec4i(__m128i x)
+{
+  __m128i min1  = _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 0, 3, 2));
+  __m128i min2  = _mm_min_epi32(x, min1);
+  __m128i min3  = _mm_shuffle_epi32(min2, _MM_SHUFFLE(0, 0, 0, 1));
+  __m128i min4  = _mm_min_epi32(min2, min3);
+
+  return _mm_cvtsi128_si32(min4);
+}
+
+
+#endif
+
+
+PRIVATE INLINE int
+decompose_f5_ext_stem(vrna_fold_compound_t  *vc,
+                      int                   j,
+                      int                   *stems)
+{
+  int e, i, *f5, turn;
+
+  f5    = vc->matrices->f5;
+  turn  = vc->params->model_details.min_loop_size;
+  e     = INF;
+
+  /* modular decomposition */
+#if VRNA_WITH_SSE_IMPLEMENTATION
+  __m128i   inf = _mm_set1_epi32(INF);
+
+  const int end = j - turn;
+
+  for (i = 2; i < end - 3; i += 4) {
+    __m128i   a     = _mm_loadu_si128((__m128i *)&f5[i - 1]);
+    __m128i   b     = _mm_loadu_si128((__m128i *)&stems[i]);
+    __m128i   c     = _mm_add_epi32(a, b);
+    __m128i   mask1 = _mm_cmplt_epi32(a, inf);
+    __m128i   mask2 = _mm_cmplt_epi32(b, inf);
+    __m128i   res   = _mm_or_si128(_mm_and_si128(mask1, c),
+                                   _mm_andnot_si128(mask1, a));
+
+    res = _mm_or_si128(_mm_and_si128(mask2, res),
+                       _mm_andnot_si128(mask2, b));
+    const int en = horizontal_min_Vec4i(res);
+    e = MIN2(e, en);
+  }
+
+  for (; i < end; i++) {
+    if ((f5[i - 1] != INF) && (stems[i] != INF)) {
+      const int en = f5[i - 1] + stems[i];
+      e = MIN2(e, en);
+    }
+  }
+#else
+  for (i = 2; i < j - turn; i++)
+    if ((f5[i - 1] != INF) && (stems[i] != INF)) {
+      const int en = f5[i - 1] + stems[i];
+      e = MIN2(e, en);
+    }
+
+#endif
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+decompose_f3_ext_stem(vrna_fold_compound_t  *vc,
+                      int                   i,
+                      int                   max_j,
+                      int                   *stems)
+{
+  int e, j, *f3, turn;
+
+  f3    = vc->matrices->f3_local;
+  turn  = vc->params->model_details.min_loop_size;
+  e     = INF;
+
+  /* modular decomposition */
+#if VRNA_WITH_SSE_IMPLEMENTATION
+  __m128i inf = _mm_set1_epi32(INF);
+
+  for (j = i + turn + 1; j < max_j - 3; j += 4) {
+    __m128i   a     = _mm_loadu_si128((__m128i *)&f3[j + 1]);
+    __m128i   b     = _mm_loadu_si128((__m128i *)&stems[j]);
+    __m128i   c     = _mm_add_epi32(a, b);
+    __m128i   mask1 = _mm_cmplt_epi32(a, inf);
+    __m128i   mask2 = _mm_cmplt_epi32(b, inf);
+    __m128i   res   = _mm_or_si128(_mm_and_si128(mask1, c),
+                                   _mm_andnot_si128(mask1, a));
+
+    res = _mm_or_si128(_mm_and_si128(mask2, res),
+                       _mm_andnot_si128(mask2, b));
+    const int en = horizontal_min_Vec4i(res);
+    e = MIN2(e, en);
+  }
+
+  for (; j <= max_j; j++) {
+    if ((f3[j + 1] != INF) && (stems[j] != INF)) {
+      const int en = f3[j + 1] + stems[j];
+      e = MIN2(e, en);
+    }
+  }
+#else
+  for (j = i + turn + 1; j <= max_j; j++)
+    if ((f3[j + 1] != INF) && (stems[j] != INF)) {
+      const int en = stems[j] + f3[j + 1];
+      e = MIN2(e, en);
+    }
+
+#endif
 
   return e;
 }
