@@ -9,7 +9,7 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
 
     if test "${PYTHON3}" != "no" ; then
       if test -z "${PYTHON3_CONFIG}" ; then
-        AC_PATH_PROGS([PYTHON3_CONFIG], [python3-config python35-config python3.5-config python34-config python3.4-config python33-config python3.3-config], [no])
+        AC_PATH_PROGS([PYTHON3_CONFIG], [python3-config python36-config python3.6-config python35-config python3.5-config python34-config python3.4-config python33-config python3.3-config], [no])
       fi
       AC_ARG_VAR(PYTHON3_CONFIG, [Path to Python3 config tool (e.g.: /usr/bin/python3-config)])
 
@@ -80,6 +80,46 @@ that it is installed and its directory is included in the search path.
                 else print('{1}{2}'.format(*imp.util.cache_from_source('',optimization=1).rpartition(imp.get_tag())))"`
         AC_SUBST(PYTHON3_CACHE_OPT1_EXT)
         AC_MSG_RESULT([$PYTHON3_CACHE_OPT1_EXT])
+
+        #
+        # final check to see if everything compiles alright
+        #
+        AC_MSG_CHECKING([for ability to link against Python3 library])
+        # save current global flags
+        ac_save_LIBS="$LIBS"
+        ac_save_CFLAGS="$CFLAGS"
+        ac_save_CPPFLAGS="$CPPFLAGS"
+        LIBS="$ac_save_LIBS $PYTHON3_LIBS"
+        CFLAGS="$ac_save_CFLAGS $PYTHON3_CFLAGS"
+        CPPFLAGS="$ac_save_CPPFLAGS $PYTHON3_INCLUDES"
+        AC_LANG_PUSH([C])
+        AC_LINK_IFELSE([
+                AC_LANG_PROGRAM([[#include <Python.h>]],
+                                [[Py_Initialize();]])
+                ],[python3_link_success=yes],[python3_link_success=no])
+        AC_LANG_POP([C])
+        # turn back to default flags
+        CPPFLAGS="$ac_save_CPPFLAGS"
+        LIBS="$ac_save_LIBS"
+        CFLAGS="$ac_save_CFLAGS"
+
+        AC_MSG_RESULT([$python3_link_success])
+
+        if test ! "x$python3_link_success" = "xyes"; then
+          AC_MSG_FAILURE([
+  Could not link test program to Python3. Maybe the main Python3 library has been
+  installed in some non-standard library path. If so, pass it to configure,
+  via the LIBS environment variable.
+  Example: ./configure LIBS="-L/usr/non-standard-path/python/lib"
+  ============================================================================
+   ERROR!
+   You probably have to install the development version of the Python 3 package
+   for your distribution.  The exact name of this package varies among them.
+  ============================================================================
+          ])
+            python3_enabled_but_failed="could not link to python3 library"
+        fi
+
     fi
   else
     python3_enabled_but_failed="python3 executable missing"
