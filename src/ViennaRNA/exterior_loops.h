@@ -194,6 +194,12 @@ vrna_exp_E_ext_fast(vrna_fold_compound_t  *vc,
                     vrna_mx_pf_aux_el_t   *aux_mx);
 
 
+void
+vrna_exp_E_ext_fast_update(vrna_fold_compound_t *fc,
+                           int                  j,
+                           vrna_mx_pf_aux_el_t  *aux_mx);
+
+
 /**
  * @}
  */

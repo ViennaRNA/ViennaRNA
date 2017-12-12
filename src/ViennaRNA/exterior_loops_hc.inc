@@ -111,6 +111,14 @@ hc_default(int            i,
 
       break;
 
+    case VRNA_DECOMP_EXT_EXT_EXT:
+      eval = (unsigned char)1;
+      di = l - k - 1;
+      if ((di != 0) && (dat->hc_up[k + 1] < di))
+        eval = (unsigned char)0;
+
+      break;
+
     case VRNA_DECOMP_EXT_STEM:
       kl = dat->idx[l] + k;
       if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
@@ -234,6 +242,14 @@ hc_default_window(int           i,
         if ((dj != 0) && (dat->hc_up[l + 1] < dj))
           eval = (unsigned char)0;
       }
+
+      break;
+
+    case VRNA_DECOMP_EXT_EXT_EXT:
+      eval = (unsigned char)1;
+      di = l - k - 1;
+      if ((di != 0) && (dat->hc_up[k + 1] < di))
+        eval = (unsigned char)0;
 
       break;
 

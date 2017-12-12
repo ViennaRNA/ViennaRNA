@@ -807,6 +807,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   /* start recursions */
   for (j = turn + 2; j <= n + winSize; j++) {
     if (j <= n) {
+      vrna_exp_E_ext_fast_update(vc, j, aux_mx_el);
       for (i = j - turn - 1; i >= MAX2(1, (j - winSize + 1)); i--) {
         hc_decompose  = hc->matrix_local[i][j - i];
         qbt1          = 0.;
