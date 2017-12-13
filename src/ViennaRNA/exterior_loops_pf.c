@@ -25,6 +25,8 @@
 # define INLINE
 #endif
 
+#define SPEEDUP_HC  1
+
 #include "exterior_loops_hc.inc"
 #include "exterior_loops_sc_pf.inc"
 
@@ -87,48 +89,22 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
  #################################
  */
 PUBLIC FLT_OR_DBL
-exp_E_Stem(int              type,
-           int              si1,
-           int              sj1,
-           int              extLoop,
-           vrna_exp_param_t *P)
-{
-  double  energy  = 1.0;
-  double  d5      = (si1 >= 0) ? P->expdangle5[type][si1] : 1.;
-  double  d3      = (sj1 >= 0) ? P->expdangle3[type][sj1] : 1.;
-
-  if (si1 >= 0 && sj1 >= 0)
-    energy = (extLoop) ? P->expmismatchExt[type][si1][sj1] : P->expmismatchM[type][si1][sj1];
-  else
-    energy = d5 * d3;
-
-  if (type > 2)
-    energy *= P->expTermAU;
-
-  if (!extLoop)
-    energy *= P->expMLintern[type];
-
-  return (FLT_OR_DBL)energy;
-}
-
-
-PUBLIC FLT_OR_DBL
-exp_E_ExtLoop(int               type,
-              int               si1,
-              int               sj1,
-              vrna_exp_param_t  *P)
+vrna_exp_E_ext_stem(unsigned int      type,
+                    int               n5d,
+                    int               n3d,
+                    vrna_exp_param_t  *p)
 {
   double energy = 1.0;
 
-  if (si1 >= 0 && sj1 >= 0)
-    energy = P->expmismatchExt[type][si1][sj1];
-  else if (si1 >= 0)
-    energy = P->expdangle5[type][si1];
-  else if (sj1 >= 0)
-    energy = P->expdangle3[type][sj1];
+  if (n5d >= 0 && n3d >= 0)
+    energy = p->expmismatchExt[type][n5d][n3d];
+  else if (n5d >= 0)
+    energy = p->expdangle5[type][n5d];
+  else if (n3d >= 0)
+    energy = p->expdangle3[type][n3d];
 
   if (type > 2)
-    energy *= P->expTermAU;
+    energy *= p->expTermAU;
 
   return (FLT_OR_DBL)energy;
 }
@@ -387,7 +363,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
                      struct sc_wrapper_pf       *sc_wrapper)
 {
   short             **S, **S5, **S3, *S1, *S2, s5, s3;
-  unsigned int      type, *sn, n, s, n_seq;
+  unsigned int      type, *sn, n, s, n_seq, **a2s;
   int               *idx, circular;
   FLT_OR_DBL        qbt, q_temp, qb;
   vrna_exp_param_t  *pf_params;
@@ -425,11 +401,12 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
         S     = fc->S;
         S5    = fc->S5;
         S3    = fc->S3;
+        a2s   = fc->a2s;
         for (s = 0; s < n_seq; s++) {
           type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
           q_temp  *= exp_E_ExtLoop(type,
-                                   ((i > 1) || circular) ? S5[s][i] : -1,
-                                   ((j < n) || circular) ? S3[s][j] : -1,
+                                   ((a2s[s][i] > 1) || circular) ? S5[s][i] : -1,
+                                   ((a2s[s][j] < a2s[s][S[0][0]]) || circular) ? S3[s][j] : -1,
                                    pf_params);
         }
         break;
@@ -521,6 +498,7 @@ split_ext_fast(vrna_fold_compound_t       *fc,
     for (k = j; k > i; k--)
       qqq[k] = qq[k] * sc_split(i, j, k, sc_wrapper);
   } else {
+    /* pre-process qq array */
     qqq = qq;
   }
 
@@ -541,13 +519,38 @@ split_ext_fast(vrna_fold_compound_t       *fc,
 
   ij1 = factor * (j - 1);
 
-  /* do actual decomposition */
+  /* do actual decomposition (skip hard constraint checks if we use default settings) */
+#if SPEEDUP_HC
+  /*
+   *  checking whether we actually are provided with hard constraints and
+   *  otherwise not evaluating the default ones within the loop drastically
+   *  increases speed. However, once we check for the split point between
+   *  strands in hard constraints, we have to think of something else...
+   */
+  if ((evaluate == &hc_default) || (evaluate == &hc_default_window)) {
+    for (k = j; k > i; k--) {
+      qbt += q[ij1] *
+             qqq[k];
+      ij1 -= factor;
+    }
+  } else {
+    for (k = j; k > i; k--)
+      if (evaluate(i, j, k - 1, k, VRNA_DECOMP_EXT_EXT_EXT, hc_dat_local)) {
+        qbt += q[ij1] *
+               qqq[k];
+        ij1 -= factor;
+      }
+  }
+
+#else
   for (k = j; k > i; k--)
     if (evaluate(i, j, k - 1, k, VRNA_DECOMP_EXT_EXT_EXT, hc_dat_local)) {
       qbt += q[ij1] *
              qqq[k];
       ij1 -= factor;
     }
+
+#endif
 
   if (qqq != qq) {
     qqq += i;
@@ -621,3 +624,48 @@ exp_E_ext_fast(vrna_fold_compound_t *vc,
 
   return qbt1;
 }
+
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+PUBLIC FLT_OR_DBL
+exp_E_Stem(int              type,
+           int              si1,
+           int              sj1,
+           int              extLoop,
+           vrna_exp_param_t *P)
+{
+  double  energy  = 1.0;
+  double  d5      = (si1 >= 0) ? P->expdangle5[type][si1] : 1.;
+  double  d3      = (sj1 >= 0) ? P->expdangle3[type][sj1] : 1.;
+
+  if (si1 >= 0 && sj1 >= 0)
+    energy = (extLoop) ? P->expmismatchExt[type][si1][sj1] : P->expmismatchM[type][si1][sj1];
+  else
+    energy = d5 * d3;
+
+  if (type > 2)
+    energy *= P->expTermAU;
+
+  if (!extLoop)
+    energy *= P->expMLintern[type];
+
+  return (FLT_OR_DBL)energy;
+}
+
+
+PUBLIC FLT_OR_DBL
+exp_E_ExtLoop(int               type,
+              int               si1,
+              int               sj1,
+              vrna_exp_param_t  *P)
+{
+  return vrna_exp_E_ext_stem(type, si1, sj1, P);
+}
+
+
+#endif

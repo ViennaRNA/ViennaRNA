@@ -73,7 +73,7 @@
 %extend vrna_fold_compound_t{
 
   int E_ext_loop(int i, int j){
-    return E_ext_loop(i, j, $self);
+    return vrna_E_ext_loop($self, i, j);
   }
 
   int eval_hp_loop(int i, int j){

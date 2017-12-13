@@ -355,57 +355,31 @@ vrna_E_ext_loop_3(vrna_fold_compound_t  *fc,
 
 
 PUBLIC int
-E_Stem(int          type,
-       int          si1,
-       int          sj1,
-       int          extLoop,
-       vrna_param_t *P)
-{
-  int energy  = 0;
-  int d5      = (si1 >= 0) ? P->dangle5[type][si1] : 0;
-  int d3      = (sj1 >= 0) ? P->dangle3[type][sj1] : 0;
-
-  if (type > 2)
-    energy += P->TerminalAU;
-
-  if (si1 >= 0 && sj1 >= 0)
-    energy += (extLoop) ? P->mismatchExt[type][si1][sj1] : P->mismatchM[type][si1][sj1];
-  else
-    energy += d5 + d3;
-
-  if (!extLoop)
-    energy += P->MLintern[type];
-
-  return energy;
-}
-
-
-PUBLIC int
-E_ExtLoop(int           type,
-          int           si1,
-          int           sj1,
-          vrna_param_t  *P)
+vrna_E_ext_stem(unsigned int  type,
+                int           n5d,
+                int           n3d,
+                vrna_param_t  *p)
 {
   int energy = 0;
 
-  if (si1 >= 0 && sj1 >= 0)
-    energy += P->mismatchExt[type][si1][sj1];
-  else if (si1 >= 0)
-    energy += P->dangle5[type][si1];
-  else if (sj1 >= 0)
-    energy += P->dangle3[type][sj1];
+  if (n5d >= 0 && n3d >= 0)
+    energy += p->mismatchExt[type][n5d][n3d];
+  else if (n5d >= 0)
+    energy += p->dangle5[type][n5d];
+  else if (n3d >= 0)
+    energy += p->dangle3[type][n3d];
 
   if (type > 2)
-    energy += P->TerminalAU;
+    energy += p->TerminalAU;
 
   return energy;
 }
 
 
 PUBLIC int
-E_ext_loop(int                  i,
-           int                  j,
-           vrna_fold_compound_t *vc)
+vrna_E_ext_loop(vrna_fold_compound_t  *vc,
+                int                   i,
+                int                   j)
 {
   char                      *ptype;
   short                     *S;
@@ -2261,3 +2235,60 @@ decompose_f3_ext_stem(vrna_fold_compound_t  *vc,
 
   return e;
 }
+
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+PUBLIC int
+E_Stem(int          type,
+       int          si1,
+       int          sj1,
+       int          extLoop,
+       vrna_param_t *P)
+{
+  int energy  = 0;
+  int d5      = (si1 >= 0) ? P->dangle5[type][si1] : 0;
+  int d3      = (sj1 >= 0) ? P->dangle3[type][sj1] : 0;
+
+  if (type > 2)
+    energy += P->TerminalAU;
+
+  if (si1 >= 0 && sj1 >= 0)
+    energy += (extLoop) ? P->mismatchExt[type][si1][sj1] : P->mismatchM[type][si1][sj1];
+  else
+    energy += d5 + d3;
+
+  if (!extLoop)
+    energy += P->MLintern[type];
+
+  return energy;
+}
+
+
+PUBLIC int
+E_ExtLoop(int           type,
+          int           si1,
+          int           sj1,
+          vrna_param_t  *P)
+{
+  int energy = 0;
+
+  if (si1 >= 0 && sj1 >= 0)
+    energy += P->mismatchExt[type][si1][sj1];
+  else if (si1 >= 0)
+    energy += P->dangle5[type][si1];
+  else if (sj1 >= 0)
+    energy += P->dangle3[type][sj1];
+
+  if (type > 2)
+    energy += P->TerminalAU;
+
+  return energy;
+}
+
+
+#endif
