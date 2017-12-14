@@ -5,13 +5,15 @@
 #define VRNA_BACKWARD_COMPAT
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -285,14 +287,14 @@ char *vrna_cut_point_remove(const char  *string,
  *  @brief Convert an input sequence to uppercase
  *  @deprecated   Use vrna_seq_toupper() instead!
  */
-DEPRECATED(void  str_uppercase(char *sequence));
+DEPRECATED(void  str_uppercase(char *sequence), "Use vrna_seq_toupper() instead");
 
 /**
  *  @brief Convert a DNA input sequence to RNA alphabet
  *
  *  @deprecated Use vrna_seq_toRNA() instead!
  */
-DEPRECATED(void str_DNA2RNA(char *sequence));
+DEPRECATED(void str_DNA2RNA(char *sequence), "Use vrna_seq_toRNA() instead");
 
 /**
  *  @brief Create a random string using characters from a specified symbol set
@@ -300,7 +302,8 @@ DEPRECATED(void str_DNA2RNA(char *sequence));
  *  @deprecated Use vrna_random_string() instead!
  */
 DEPRECATED(char *random_string(int        l,
-                               const char symbols[]));
+                               const char symbols[]),
+"Use vrna_random_string() instead");
 
 /**
  *  @brief Calculate hamming distance between two sequences
@@ -308,7 +311,8 @@ DEPRECATED(char *random_string(int        l,
  *  @deprecated Use vrna_hamming_distance() instead!
  */
 DEPRECATED(int hamming(const char *s1,
-                       const char *s2));
+                       const char *s2),
+"Use vrna_hamming_distance() instead");
 
 /**
  *  @brief Calculate hamming distance between two sequences up to a specified length
@@ -317,7 +321,8 @@ DEPRECATED(int hamming(const char *s1,
  */
 DEPRECATED(int hamming_bound(const char *s1,
                              const char *s2,
-                             int        n));
+                             int        n),
+"Use vrna_hamming_distance_bound() instead");
 
 #endif
 

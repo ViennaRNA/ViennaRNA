@@ -5,13 +5,15 @@
 #define VRNA_BACKWARD_COMPAT
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -115,7 +117,8 @@ void vrna_aln_encode(const char   *sequence,
 
 DEPRECATED(char *get_ptypes(const short   *S,
                             vrna_md_t     *md,
-                            unsigned int  idx_type));
+                            unsigned int  idx_type),
+          "Use vrna_pytpes() instead");
 
 #endif
 

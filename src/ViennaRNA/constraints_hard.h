@@ -2,13 +2,15 @@
 #define VIENNA_RNA_PACKAGE_CONSTRAINTS_HARD_H
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 
@@ -650,7 +652,8 @@ vrna_hc_add_from_db(vrna_fold_compound_t  *vc,
  *  @deprecated Use vrna_message_constraints() instead!
  *  @param option Option switch that tells which constraint help will be printed
  */
-DEPRECATED(void print_tty_constraint(unsigned int option));
+DEPRECATED(void print_tty_constraint(unsigned int option),
+          "Use vrna_message_constraint_options() instead");
 
 /**
  *  @brief Print structure constraint characters to stdout
@@ -658,7 +661,8 @@ DEPRECATED(void print_tty_constraint(unsigned int option));
  *
  *  @deprecated Use vrna_message_constraint_options_all() instead!
  */
-DEPRECATED(void print_tty_constraint_full(void));
+DEPRECATED(void print_tty_constraint_full(void),
+          "Use vrna_message_constraint_options_all() instead");
 
 /**
  *  @brief Insert constraining pair types according to constraint structure string
@@ -677,7 +681,8 @@ DEPRECATED(void constrain_ptypes(const char   *constraint,
                                  char         *ptype,
                                  int          *BP,
                                  int          min_loop_size,
-                                 unsigned int idx_type));
+                                 unsigned int idx_type),
+          "Use the new API and the hard constraint framework instead");
 
 #endif
 

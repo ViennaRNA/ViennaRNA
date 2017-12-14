@@ -30,13 +30,15 @@ typedef struct vrna_dimer_pf_s cofoldF;
 #include <ViennaRNA/boltzmann_sampling.h>
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -255,7 +257,8 @@ DEPRECATED(float   pf_fold_par(  const char *sequence,
                       vrna_exp_param_t *parameters,
                       int calculate_bppm,
                       int is_constrained,
-                      int is_circular));
+                      int is_circular),
+"Use the new API and vrna_pf() instead");
 
 /**
  *  @brief Compute the partition function @f$Q@f$ of an RNA sequence
@@ -297,7 +300,8 @@ DEPRECATED(float   pf_fold_par(  const char *sequence,
  *  @return           The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
 DEPRECATED(float   pf_fold(const char *sequence,
-                char *structure));
+                char *structure),
+"Use vrna_pf_fold() or vrna_pf() instead");
 
 /**
  *  @brief Compute the partition function of a circular RNA sequence
@@ -326,7 +330,8 @@ DEPRECATED(float   pf_fold(const char *sequence,
  *  @return         The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
  */
 DEPRECATED(float   pf_circ_fold( const char *sequence,
-                      char *structure));
+                      char *structure),
+"Use vrna_pf_circfold() or vrna_pf() instead");
 
 /**
  *  @brief Sample a secondary structure from the Boltzmann ensemble according its probability
@@ -338,9 +343,9 @@ DEPRECATED(float   pf_circ_fold( const char *sequence,
  *  @param  sequence  The RNA sequence
  *  @return           A sampled secondary structure in dot-bracket notation
  */
-DEPRECATED(char    *pbacktrack(char *sequence));
+DEPRECATED(char    *pbacktrack(char *sequence), "Use vrna_pbacktrack() instead");
 
-DEPRECATED(char    *pbacktrack5(char *sequence, int length));
+DEPRECATED(char    *pbacktrack5(char *sequence, int length), "Use vrna_pbacktrack5() instead");
 
 /**
  *  @brief Sample a secondary structure of a circular RNA from the Boltzmann ensemble according its probability
@@ -357,7 +362,7 @@ DEPRECATED(char    *pbacktrack5(char *sequence, int length));
  *  @param  sequence  The RNA sequence
  *  @return           A sampled secondary structure in dot-bracket notation
  */
-DEPRECATED(char    *pbacktrack_circ(char *sequence));
+DEPRECATED(char    *pbacktrack_circ(char *sequence), "Use vrna_pbacktrack() instead");
 
 /**
  *  @brief Free arrays for the partition function recursions
@@ -377,7 +382,7 @@ DEPRECATED(char    *pbacktrack_circ(char *sequence));
  *  @post   All memory allocated by pf_fold_par(), pf_fold() or pf_circ_fold() will be free'd
  *  @see    pf_fold_par(), pf_fold(), pf_circ_fold()
  */
-DEPRECATED(void  free_pf_arrays(void));
+DEPRECATED(void  free_pf_arrays(void), "This function is obsolete");
 
 /**
  *  @brief Recalculate energy parameters
@@ -389,7 +394,7 @@ DEPRECATED(void  free_pf_arrays(void));
  *  @ingroup pf_fold
  *
  */
-DEPRECATED(void  update_pf_params(int length));
+DEPRECATED(void  update_pf_params(int length), "This function is obsolete");
 
 /**
  *  @brief Recalculate energy parameters
@@ -398,7 +403,8 @@ DEPRECATED(void  update_pf_params(int length));
  *  @ingroup pf_fold
  *
  */
-DEPRECATED(void update_pf_params_par(int length, vrna_exp_param_t *parameters));
+DEPRECATED(void update_pf_params_par(int length, vrna_exp_param_t *parameters),
+"Use the new API with vrna_fold_compound_t instead");
 
 /**
  *  @brief Get a pointer to the base pair probability array
@@ -416,7 +422,8 @@ DEPRECATED(void update_pf_params_par(int length, vrna_exp_param_t *parameters));
  *
  *  @return A pointer to the base pair probability array
  */
-DEPRECATED(FLT_OR_DBL  *export_bppm(void));
+DEPRECATED(FLT_OR_DBL  *export_bppm(void),
+"Use the new API with vrna_fold_compound_t instead");
 
 
 /**
@@ -440,12 +447,14 @@ DEPRECATED(int get_pf_arrays(short **S_p,
                   FLT_OR_DBL **qb_p,
                   FLT_OR_DBL **qm_p,
                   FLT_OR_DBL **q1k_p,
-                  FLT_OR_DBL **qln_p));
+                  FLT_OR_DBL **qln_p),
+"Use the new API with vrna_fold_compound_t instead");
 
 /**
  *  @brief Get the free energy of a subsequence from the q[] array
  */
-DEPRECATED(double get_subseq_F(int i, int j));
+DEPRECATED(double get_subseq_F(int i, int j),
+"Use the new API with vrna_fold_compound_t instead");
 
 
 /**
@@ -459,7 +468,8 @@ DEPRECATED(double get_subseq_F(int i, int j));
  *  @param    length
  *  @return  mean base pair distance in thermodynamic ensemble
  */
-DEPRECATED(double  mean_bp_distance(int length));
+DEPRECATED(double  mean_bp_distance(int length),
+"Use vrna_mean_bp_distance() or vrna_mean_bp_distance_pr() instead");
 
 /**
  *  @brief Get the mean base pair distance in the thermodynamic ensemble
@@ -478,14 +488,15 @@ DEPRECATED(double  mean_bp_distance(int length));
  *  @param pr     The matrix containing the base pair probabilities
  *  @return       The mean pair distance of the structure ensemble
  */
-DEPRECATED(double mean_bp_distance_pr(int length, FLT_OR_DBL *pr));
+DEPRECATED(double mean_bp_distance_pr(int length, FLT_OR_DBL *pr),
+"Use vrna_mean_bp_distance() or vrna_mean_bp_distance_pr() instead");
 
 /**
  *  @brief  Get the probability of stacks
  *
  *  @deprecated   Use vrna_stack_prob() instead!
  */
-DEPRECATED(vrna_ep_t *stackProb(double cutoff));
+DEPRECATED(vrna_ep_t *stackProb(double cutoff), "Use vrna_stack_prob() instead");
 
 
 /**
@@ -493,27 +504,30 @@ DEPRECATED(vrna_ep_t *stackProb(double cutoff));
  * 
  *  @deprecated This function is obsolete and will be removed soon!
  */
-DEPRECATED(void init_pf_fold(int length));
+DEPRECATED(void init_pf_fold(int length), "This function is obsolete");
 
 /**
  *  @deprecated This function is deprecated and should not be used anymore as it is not threadsafe!
  *  @see get_centroid_struct_pl(), get_centroid_struct_pr()
  */
-DEPRECATED(char *centroid(int length, double *dist));
+DEPRECATED(char *centroid(int length, double *dist),
+"Use vrna_centroid() instead");
 
 /**
  *  @deprecated This function is deprecated and should not be used anymore as it is not threadsafe!
  *  @see vrna_centroid(), vrna_centroid_from_probs(), vrna_centroid_from_plist()
  */
 DEPRECATED(char *get_centroid_struct_gquad_pr(int length,
-                                  double *dist));
+                                  double *dist),
+"Use vrna_centroid() instead");
 
 /**
  *  get the mean pair distance of ensemble
  * 
  *  @deprecated This function is not threadsafe and should not be used anymore. Use @ref mean_bp_distance() instead!
  */
-DEPRECATED(double mean_bp_dist(int length));
+DEPRECATED(double mean_bp_dist(int length),
+"Use vrna_mean_bp_distance() or vrna_mean_bp_distance_pr() instead");
 
 /**
  *  @deprecated Use @ref exp_E_IntLoop() from loop_energies.h instead
@@ -525,7 +539,8 @@ DEPRECATED(double expLoopEnergy(int u1,
                                 short si1,
                                 short sj1,
                                 short sp1,
-                                short sq1));
+                                short sq1),
+"");
 
 /**
  *  @deprecated Use exp_E_Hairpin() from loop_energies.h instead
@@ -534,12 +549,14 @@ DEPRECATED(double expHairpinEnergy( int u,
                                     int type,
                                     short si1,
                                     short sj1,
-                                    const char *string));
+                                    const char *string),
+"");
 
 /* this doesn't work if free_pf_arrays() is called before */
 DEPRECATED(void assign_plist_gquad_from_pr(vrna_ep_t **pl,
                                 int length,
-                                double cut_off));
+                                double cut_off),
+"Use vrna_plist_from_probs() instead");
 
 #endif
 

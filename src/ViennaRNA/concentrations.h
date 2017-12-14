@@ -2,13 +2,15 @@
 #define VIENNA_RNA_PACKAGE_CONCENTRATIONS_H
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
@@ -118,6 +120,7 @@ DEPRECATED(vrna_dimer_conc_t *get_concentrations(double FEAB,
                                                  double FEBB,
                                                  double FEA,
                                                  double FEB,
-                                                 double *startconc));
+                                                 double *startconc),
+          "Use vrna_pf_dimer_concentrations() instead");
 
 #endif

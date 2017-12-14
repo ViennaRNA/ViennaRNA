@@ -2,13 +2,15 @@
 #define VIENNA_RNA_PACKAGE_PART_FUNC_CO_H
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
@@ -136,7 +138,8 @@ vrna_pf_co_fold(const char  *seq,
  *                    concentration computations.
  */
 DEPRECATED(vrna_dimer_pf_t co_pf_fold(char  *sequence,
-                                      char  *structure));
+                                      char  *structure),
+"Use vrna_pf_co_fold() or vrna_pf_dimer() instead");
 
 /**
  *  @brief Calculate partition function and base pair probabilities
@@ -161,7 +164,8 @@ DEPRECATED(vrna_dimer_pf_t co_pf_fold_par(char              *sequence,
                                           char              *structure,
                                           vrna_exp_param_t  *parameters,
                                           int               calculate_bppm,
-                                          int               is_constrained));
+                                          int               is_constrained),
+"Use the new API and vrna_pf_dimer() instead");
 
 /**
  *  DO NOT USE THIS FUNCTION ANYMORE
@@ -170,7 +174,8 @@ DEPRECATED(vrna_dimer_pf_t co_pf_fold_par(char              *sequence,
  */
 DEPRECATED(vrna_ep_t *get_plist(vrna_ep_t *pl,
                                 int       length,
-                                double    cut_off));
+                                double    cut_off),
+"Use vrna_plist() and vrna_plist_from_probs() instead");
 
 /**
  *  @brief Compute Boltzmann probabilities of dimerization without homodimers
@@ -197,13 +202,15 @@ DEPRECATED(void compute_probabilities(double    FAB,
                                       vrna_ep_t *prAB,
                                       vrna_ep_t *prA,
                                       vrna_ep_t *prB,
-                                      int       Alength));
+                                      int       Alength),
+"Use vrna_pf_dimer_probs() instead");
 
 /**
  *  DO NOT USE THIS FUNCTION ANYMORE
  *  @deprecated{ This function is deprecated and will be removed soon!}
  */
-DEPRECATED(void   init_co_pf_fold(int length));
+DEPRECATED(void   init_co_pf_fold(int length),
+"This function is obsolete");
 
 /**
  *  @brief Get a pointer to the base pair probability array
@@ -218,7 +225,8 @@ DEPRECATED(void   init_co_pf_fold(int length));
  *  @see vrna_idx_row_wise()
  *  @return A pointer to the base pair probability array
  */
-DEPRECATED(FLT_OR_DBL *export_co_bppm(void));
+DEPRECATED(FLT_OR_DBL *export_co_bppm(void),
+"Use the new API with vrna_fold_compound_t instead");
 
 /**
  *  @brief Free the memory occupied by co_pf_fold()
@@ -227,7 +235,8 @@ DEPRECATED(FLT_OR_DBL *export_co_bppm(void));
  *              See vrna_pf_dimer(), vrna_fold_compound(), and
  *              vrna_fold_compound_free() for an alternative
  */
-DEPRECATED(void free_co_pf_arrays(void));
+DEPRECATED(void free_co_pf_arrays(void),
+"This function is obsolete");
 
 /**
  *  @brief Recalculate energy parameters
@@ -239,7 +248,8 @@ DEPRECATED(void free_co_pf_arrays(void));
  *
  *  @param    length      Length of the current RNA sequence
  */
-DEPRECATED(void update_co_pf_params(int length));
+DEPRECATED(void update_co_pf_params(int length),
+"This function is obsolete");
 
 /**
  *  @brief Recalculate energy parameters
@@ -261,6 +271,7 @@ DEPRECATED(void update_co_pf_params(int length));
  *  @param    parameters  data structure containing the precomputed Boltzmann factors
  */
 DEPRECATED(void update_co_pf_params_par(int               length,
-                                        vrna_exp_param_t  *parameters));
+                                        vrna_exp_param_t  *parameters),
+"Use the new API with vrna_fold_compound_t instead");
 
 #endif

@@ -7,16 +7,6 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 
-#ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
-# else
-#  define DEPRECATED(func) func
-# endif
-#else
-# define DEPRECATED(func) func
-#endif
-
 /**
  *  @file     equilibrium_probs.h
  *  @ingroup  pf_fold

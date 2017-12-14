@@ -7,13 +7,15 @@
 #include <ViennaRNA/eval.h>
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
@@ -133,7 +135,8 @@ fold_par( const char *sequence,
           char *structure,
           vrna_param_t *parameters,
           int is_constrained,
-          int is_circular));
+          int is_circular),
+"Use the new API and vrna_mfe() instead");
 
 /**
  *  @brief Compute minimum free energy and an appropriate secondary structure of an RNA sequence
@@ -151,7 +154,8 @@ fold_par( const char *sequence,
  *         secondary structure in dot-bracket notation will be written to
  *  @return the minimum free energy (MFE) in kcal/mol
  */
-DEPRECATED(float fold( const char *sequence, char *structure));
+DEPRECATED(float fold( const char *sequence, char *structure),
+"Use vrna_fold() or vrna_mfe() instead");
 
 /**
  *  @brief Compute minimum free energy and an appropriate secondary structure of a circular RNA sequence
@@ -169,7 +173,8 @@ DEPRECATED(float fold( const char *sequence, char *structure));
  *         secondary structure in dot-bracket notation will be written to
  *  @return the minimum free energy (MFE) in kcal/mol
  */
-DEPRECATED(float circfold( const char *sequence, char *structure));
+DEPRECATED(float circfold( const char *sequence, char *structure),
+"Use vrna_circfold() or vrna_mfe() instead");
 
 
 /**
@@ -178,7 +183,8 @@ DEPRECATED(float circfold( const char *sequence, char *structure));
  *  @deprecated See vrna_fold(), vrna_circfold(), or vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  *
  */
-DEPRECATED(void free_arrays(void));
+DEPRECATED(void free_arrays(void),
+"This function is obsolete");
 
 
 
@@ -188,7 +194,8 @@ DEPRECATED(void free_arrays(void));
  *  @deprecated For non-default model settings use the new API with vrna_params_subst() and vrna_mfe() instead!
  *
  */
-DEPRECATED(void update_fold_params(void));
+DEPRECATED(void update_fold_params(void),
+"This function is obsolete");
 
 /**
  *  @brief Recalculate energy parameters
@@ -196,7 +203,8 @@ DEPRECATED(void update_fold_params(void));
  *  @deprecated For non-default model settings use the new API with vrna_params_subst() and vrna_mfe() instead!
  *
  */
-DEPRECATED(void update_fold_params_par(vrna_param_t *parameters));
+DEPRECATED(void update_fold_params_par(vrna_param_t *parameters),
+"Use the new API with vrna_fold_compound_t datastructure instead");
 
 /**
  *
@@ -209,7 +217,8 @@ export_fold_arrays( int **f5_p,
                     int **fML_p,
                     int **fM1_p,
                     int **indx_p,
-                    char **ptype_p));
+                    char **ptype_p),
+"Use the new API with vrna_fold_compound_t datastructure instead");
 
 /**
  *
@@ -223,7 +232,8 @@ export_fold_arrays_par( int **f5_p,
                         int **fM1_p,
                         int **indx_p,
                         char **ptype_p,
-                        vrna_param_t **P_p));
+                        vrna_param_t **P_p),
+"Use the new API with vrna_fold_compound_t datastructure instead");
 
 /**
  *
@@ -241,7 +251,8 @@ export_circfold_arrays( int *Fc_p,
                         int **fML_p,
                         int **fM1_p,
                         int **indx_p,
-                        char **ptype_p));
+                        char **ptype_p),
+"Use the new API with vrna_fold_compound_t datastructure instead");
 
 /**
  *
@@ -260,7 +271,8 @@ export_circfold_arrays_par( int *Fc_p,
                             int **fM1_p,
                             int **indx_p,
                             char **ptype_p,
-                            vrna_param_t **P_p));
+                            vrna_param_t **P_p),
+"Use the new API with vrna_fold_compound_t datastructure instead");
 
 
 
@@ -281,7 +293,8 @@ DEPRECATED(int LoopEnergy(int n1,
                           int si1,
                           int sj1,
                           int sp1,
-                          int sq1));
+                          int sq1),
+"This function is obsolete");
 
 /**
  *  @deprecated {This function is deprecated and will be removed soon.
@@ -291,21 +304,24 @@ DEPRECATED(int HairpinE(int size,
                         int type,
                         int si1,
                         int sj1,
-                        const char *string));
+                        const char *string),
+"Use E_Hairpin() instead");
 
 /**
  *  Allocate arrays for folding\n
  *  @deprecated See vrna_mfe() and #vrna_fold_compound_t for the usage of the new API!
  *
  */
-DEPRECATED(void initialize_fold(int length));
+DEPRECATED(void initialize_fold(int length),
+"This function is obsolete");
 
 /**
  *
  */
 DEPRECATED(char *backtrack_fold_from_pair(char *sequence,
                                           int i,
-                                          int j));
+                                          int j),
+"This function is obsolete. Consider using vrna_backtrack_from_intervals() instead");
 
 
 #endif

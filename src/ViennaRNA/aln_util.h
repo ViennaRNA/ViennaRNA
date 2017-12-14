@@ -2,13 +2,15 @@
 #define VIENNA_RNA_PACKAGE_ALN_UTIL_H
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -228,16 +230,20 @@ vrna_aln_conservation_col(const char      **alignment,
 
 DEPRECATED(int read_clustal(FILE  *clust,
                             char  *AlignedSeqs[],
-                            char  *names[]));
+                            char  *names[]),
+          "Use vrna_file_msa_read() and vrna_file_msa_read_record() instead");
 
 
-DEPRECATED(char *consensus(const char *AS[]));
+DEPRECATED(char *consensus(const char *AS[]),
+          "");
 
 
-DEPRECATED(char *consens_mis(const char *AS[]));
+DEPRECATED(char *consens_mis(const char *AS[]),
+          "");
 
 
-DEPRECATED(char *get_ungapped_sequence(const char *seq));
+DEPRECATED(char *get_ungapped_sequence(const char *seq),
+          "");
 
 
 /**
@@ -254,7 +260,8 @@ DEPRECATED(char *get_ungapped_sequence(const char *seq));
 DEPRECATED(int get_mpi(char *Alseq[],
                        int  n_seq,
                        int  length,
-                       int  *mini));
+                       int  *mini),
+          "Use vrna_aln_mpi() instead");
 
 /*
  #############################################################
@@ -282,7 +289,8 @@ DEPRECATED(void encode_ali_sequence(const char      *sequence,
                                     short           *s3,
                                     char            *ss,
                                     unsigned short  *as,
-                                    int             circ));
+                                    int             circ),
+          "This function is obsolete");
 
 
 /**
@@ -306,7 +314,8 @@ DEPRECATED(void  alloc_sequence_arrays(const char     **sequences,
                                        short          ***S3,
                                        unsigned short ***a2s,
                                        char           ***Ss,
-                                       int            circ));
+                                       int            circ),
+          "This function is obsolete");
 
 
 /**
@@ -328,7 +337,8 @@ DEPRECATED(void  free_sequence_arrays(unsigned int    n_seq,
                                       short           ***S5,
                                       short           ***S3,
                                       unsigned short  ***a2s,
-                                      char            ***Ss));
+                                      char            ***Ss),
+          "This fucntion is obsolete");
 
 #endif
 

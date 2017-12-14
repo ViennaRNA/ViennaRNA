@@ -5,13 +5,15 @@
 #define VRNA_BACKWARD_COMPAT
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -261,7 +263,8 @@ DEPRECATED(TwoDfold_vars *
            get_TwoDfold_variables(const char  *seq,
                                   const char  *structure1,
                                   const char  *structure2,
-                                  int         circ));
+                                  int         circ),
+           "Use the new API and corresponding functions vrna_fold_compound_TwoD(), etc. instead");
 
 /**
  *  @brief Destroy a TwoDfold_vars datastructure without memory loss
@@ -274,7 +277,8 @@ DEPRECATED(TwoDfold_vars *
  *  @param our_variables  A pointer to the datastructure to be destroyed
  */
 DEPRECATED(void
-           destroy_TwoDfold_variables(TwoDfold_vars *our_variables));
+           destroy_TwoDfold_variables(TwoDfold_vars *our_variables),
+           "Use the new API and vrna_fold_compound_free() instead");
 
 /**
  * @brief Compute MFE's and representative for distance partitioning
@@ -304,7 +308,8 @@ DEPRECATED(void
 DEPRECATED(TwoDfold_solution *
            TwoDfoldList(TwoDfold_vars *vars,
                         int           distance1,
-                        int           distance2));
+                        int           distance2),
+          "Use the new API and vrna_mfe_TwoD() instead");
 
 /**
  * @brief Backtrack a minimum free energy structure from a 5' section of specified length
@@ -329,14 +334,16 @@ DEPRECATED(TwoDfold_solution *
 DEPRECATED(char *TwoDfold_backtrack_f5(unsigned int   j,
                                        int            k,
                                        int            l,
-                                       TwoDfold_vars  *vars));
+                                       TwoDfold_vars  *vars),
+          "Use the new API and vrna_backtrack5_TwoD() instead");
 
 /**
  *
  */
 DEPRECATED(TwoDfold_solution **TwoDfold(TwoDfold_vars *our_variables,
                                         int           distance1,
-                                        int           distance2));
+                                        int           distance2),
+          "Use the new API and vrna_mfe_TwoD() instead");
 
 
 #endif

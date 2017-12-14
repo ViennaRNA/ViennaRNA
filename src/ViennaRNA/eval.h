@@ -7,13 +7,15 @@
 #include <ViennaRNA/params.h>   /* for deprecated functions */
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /* make this interface backward compatible with RNAlib < 2.2.0 */
@@ -430,7 +432,8 @@ vrna_eval_move_shift_pt(vrna_fold_compound_t  *vc,
  */
 DEPRECATED(float energy_of_structure(const char *string,
                                      const char *structure,
-                                     int        verbosity_level));
+                                     int        verbosity_level),
+          "Use vrna_eval_structure_simple() and vrna_eval_structure() instead");
 
 /**
  *  @brief Calculate the free energy of an already folded RNA
@@ -450,7 +453,8 @@ DEPRECATED(float energy_of_structure(const char *string,
 DEPRECATED(float energy_of_struct_par(const char    *string,
                                       const char    *structure,
                                       vrna_param_t  *parameters,
-                                      int           verbosity_level));
+                                      int           verbosity_level),
+          "Use vrna_eval_structure() instead");
 
 /**
  *  @brief Calculate the free energy of an already folded  circular RNA
@@ -472,7 +476,8 @@ DEPRECATED(float energy_of_struct_par(const char    *string,
  */
 DEPRECATED(float energy_of_circ_structure(const char  *string,
                                           const char  *structure,
-                                          int         verbosity_level));
+                                          int         verbosity_level),
+          "Use vrna_eval_circ_structure_simple() and vrna_eval_structure() instead");
 
 /**
  *  @brief Calculate the free energy of an already folded circular RNA
@@ -492,17 +497,20 @@ DEPRECATED(float energy_of_circ_structure(const char  *string,
 DEPRECATED(float energy_of_circ_struct_par(const char   *string,
                                            const char   *structure,
                                            vrna_param_t *parameters,
-                                           int          verbosity_level));
+                                           int          verbosity_level),
+          "Use vrna_eval_structure() instead");
 
 
 DEPRECATED(float energy_of_gquad_structure(const char *string,
                                            const char *structure,
-                                           int        verbosity_level));
+                                           int        verbosity_level),
+          "Use vrna_eval_structure_simple() instead");
 
 DEPRECATED(float energy_of_gquad_struct_par(const char    *string,
                                             const char    *structure,
                                             vrna_param_t  *parameters,
-                                            int           verbosity_level));
+                                            int           verbosity_level),
+          "Use vrna_eval_structure() instead");
 
 
 /**
@@ -529,7 +537,8 @@ DEPRECATED(int energy_of_structure_pt(const char  *string,
                                       short       *ptable,
                                       short       *s,
                                       short       *s1,
-                                      int         verbosity_level));
+                                      int         verbosity_level),
+          "Use vrna_eval_structure_pt_simple() and vrna_eval_structure_pt() instead");
 
 /**
  *  @brief Calculate the free energy of an already folded RNA
@@ -553,7 +562,8 @@ DEPRECATED(int energy_of_struct_pt_par(const char   *string,
                                        short        *s,
                                        short        *s1,
                                        vrna_param_t *parameters,
-                                       int          verbosity_level));
+                                       int          verbosity_level),
+          "Use vrna_eval_structure_pt() instead");
 
 
 /**
@@ -575,7 +585,8 @@ DEPRECATED(int energy_of_struct_pt_par(const char   *string,
 DEPRECATED(float energy_of_move(const char  *string,
                                 const char  *structure,
                                 int         m1,
-                                int         m2));
+                                int         m2),
+          "Use vrna_eval_move() instead");
 
 
 /**
@@ -600,7 +611,8 @@ DEPRECATED(int energy_of_move_pt(short  *pt,
                                  short  *s,
                                  short  *s1,
                                  int    m1,
-                                 int    m2));
+                                 int    m2),
+          "Use vrna_eval_move_pt_simple() and vrna_eval_move_pt() instead");
 
 /**
  * @brief Calculate energy of a loop
@@ -618,7 +630,8 @@ DEPRECATED(int energy_of_move_pt(short  *pt,
 DEPRECATED(int   loop_energy(short  *ptable,
                              short  *s,
                              short  *s1,
-                             int    i));
+                             int    i),
+          "Use vrna_eval_loop_pt() instead");
 
 /**
  *  Calculate the free energy of an already folded RNA
@@ -635,7 +648,8 @@ DEPRECATED(int   loop_energy(short  *ptable,
  *  @return          the free energy of the input structure given the input sequence in kcal/mol
  */
 DEPRECATED(float energy_of_struct(const char  *string,
-                                  const char  *structure));
+                                  const char  *structure),
+          "Use vrna_eval_structure_simple() instead");
 
 /**
  *  Calculate the free energy of an already folded RNA
@@ -656,7 +670,8 @@ DEPRECATED(float energy_of_struct(const char  *string,
 DEPRECATED(int energy_of_struct_pt(const char *string,
                                    short      *ptable,
                                    short      *s,
-                                   short      *s1));
+                                   short      *s1),
+          "Use vrna_eval_structure_pt_simple() instead");
 
 /**
  *  Calculate the free energy of an already folded  circular RNA
@@ -673,7 +688,8 @@ DEPRECATED(int energy_of_struct_pt(const char *string,
  *  @return          the free energy of the input structure given the input sequence in kcal/mol
  */
 DEPRECATED(float energy_of_circ_struct(const char *string,
-                                       const char *structure));
+                                       const char *structure),
+          "Use vrna_eval_circ_structure_simple() and vrna_eval_structure() instead");
 
 #endif
 
