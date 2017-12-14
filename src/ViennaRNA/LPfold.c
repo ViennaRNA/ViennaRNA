@@ -83,7 +83,7 @@ typedef void (add_QI5)(FLT_OR_DBL **,
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -2102,7 +2102,7 @@ backward_compat_callback(FLT_OR_DBL   *pr,
 }
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/

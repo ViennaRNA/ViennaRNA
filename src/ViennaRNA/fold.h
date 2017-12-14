@@ -18,9 +18,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file fold.h
  *  @ingroup  mfe_fold
@@ -85,7 +82,7 @@ float
 vrna_circfold(const char *sequence,
               char *structure);
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Compute minimum free energy and an appropriate secondary

@@ -1,9 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_EQUILIBRIUM_PROBS_H
 #define VIENNA_RNA_PACKAGE_EQUILIBRIUM_PROBS_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 

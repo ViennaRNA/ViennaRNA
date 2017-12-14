@@ -13,9 +13,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file     part_func_co.h
  *  @ingroup  pf_fold cofold pf_cofold
@@ -112,6 +109,8 @@ vrna_pf_co_fold(const char  *seq,
 /**
  *  @}
  */
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*
  #################################################
@@ -273,5 +272,7 @@ DEPRECATED(void update_co_pf_params(int length),
 DEPRECATED(void update_co_pf_params_par(int               length,
                                         vrna_exp_param_t  *parameters),
 "Use the new API with vrna_fold_compound_t instead");
+
+#endif
 
 #endif

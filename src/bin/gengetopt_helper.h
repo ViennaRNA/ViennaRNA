@@ -1,8 +1,5 @@
 /* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
-
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #define ggo_get_temperature(ggostruct, dest) ({ \
     if (ggostruct.temp_given) \

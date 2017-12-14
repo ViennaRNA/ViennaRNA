@@ -18,9 +18,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file     eval.h
  *  @ingroup  eval
@@ -410,7 +407,7 @@ vrna_eval_move_shift_pt(vrna_fold_compound_t  *vc,
                         short                 *structure);
 
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Calculate the free energy of an already folded RNA using global model detail settings

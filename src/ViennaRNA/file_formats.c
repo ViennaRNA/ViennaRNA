@@ -561,7 +561,7 @@ vrna_file_SHAPE_read( const char *file_name,
   return 1;
 }
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/

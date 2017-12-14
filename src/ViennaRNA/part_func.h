@@ -1,10 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_PART_FUNC_H
 #define VIENNA_RNA_PACKAGE_PART_FUNC_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
-
 /**
  *  @brief Typename for the data structure that stores the dimer partition functions, #vrna_dimer_pf_s, as returned by vrna_pf_dimer()
  *  @ingroup  pf_cofold
@@ -12,7 +8,7 @@
 typedef struct vrna_dimer_pf_s vrna_dimer_pf_t;
 
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Backward compatibility typedef for #vrna_dimer_pf_s
@@ -190,7 +186,7 @@ vrna_pf_dimer(vrna_fold_compound_t  *vc,
  */
 int vrna_pf_float_precision(void);
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*
 #################################################

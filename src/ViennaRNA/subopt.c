@@ -103,7 +103,7 @@ PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
  #################################
  */
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE SOLUTION *
 wrap_subopt(char          *seq,
@@ -2188,7 +2188,7 @@ old_subopt_store(const char *structure,
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PUBLIC SOLUTION *
 subopt(char *seq,

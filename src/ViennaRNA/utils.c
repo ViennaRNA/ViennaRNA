@@ -503,7 +503,7 @@ rj_mix(uint32_t a,
 }
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/

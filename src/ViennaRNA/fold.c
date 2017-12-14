@@ -32,7 +32,7 @@
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/fold.h"
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -54,7 +54,7 @@
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* some backward compatibility stuff */
 PRIVATE int                   backward_compat           = 0;
@@ -74,7 +74,7 @@ PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* wrappers for old API compatibility */
 PRIVATE float
@@ -150,7 +150,7 @@ vrna_circfold(const char  *string,
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE void
 wrap_array_export(int   **f5_p,

@@ -1241,7 +1241,7 @@ PS_dot_common(const char *seq,
   return(wastl);
 }
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/

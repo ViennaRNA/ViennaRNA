@@ -1,9 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H
 #define VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)
 #  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
@@ -141,8 +138,7 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
  *  @}
  */ /* End of group kl_neighborhood_stochbt */
 
-
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #define TwoDpfold_solution       vrna_sol_TwoD_pf_t         /* restore compatibility of struct rename */
 

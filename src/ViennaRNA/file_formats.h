@@ -13,9 +13,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file     file_formats.h
  *  @ingroup  file_utils
@@ -229,7 +226,7 @@ int vrna_file_SHAPE_read( const char *file_name,
                           double *values);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief  Extract a hard constraint encoded as pseudo dot-bracket string

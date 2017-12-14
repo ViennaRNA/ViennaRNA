@@ -15,9 +15,6 @@
  *
  */
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /* below are several convenience typedef's we use throughout the ViennaRNA library */
 
 /**
@@ -26,7 +23,7 @@
 typedef struct vrna_path_s vrna_path_t;
 
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* the following typedefs are for backward compatibility only */
 
@@ -106,7 +103,7 @@ vrna_path_t *vrna_path_findpath(vrna_fold_compound_t  *vc,
                                 int                   maxkeep);
 
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  \brief Find energy of a saddle point between 2 structures

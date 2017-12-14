@@ -1,9 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_STRUCT_UTILS_H
 #define VIENNA_RNA_PACKAGE_STRUCT_UTILS_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)
 #  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
@@ -430,7 +427,7 @@ vrna_hx_t *vrna_hx_merge(const vrna_hx_t  *list,
                          int              maxdist);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/

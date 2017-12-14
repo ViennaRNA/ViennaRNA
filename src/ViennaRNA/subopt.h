@@ -25,8 +25,6 @@
  *  @brief Sample and enumerate suboptimal secondary structures from RNA sequence data.
  */
 
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @brief Typename for the subopt solution list repesenting data structure #vrna_subopt_sol_s
  */
@@ -49,7 +47,7 @@ typedef struct vrna_subopt_sol_s   vrna_subopt_solution_t;
  */
 typedef void (vrna_subopt_callback)(const char *stucture, float energy, void *data);
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief  Backward compatibility typedef for #vrna_subopt_sol_s
@@ -222,7 +220,7 @@ extern  int     density_of_states[MAXDOS+1];
 
 /** @} */ /* End of group dos */
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Returns list of subopt structures or writes to fp

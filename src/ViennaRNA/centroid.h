@@ -16,9 +16,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file   centroid.h
  *  @ingroup subopt_and_representatives
@@ -81,7 +78,7 @@ char  *vrna_centroid_from_probs(int length,
                                 double *dist,
                                 FLT_OR_DBL *probs);
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Get the centroid structure of the ensemble

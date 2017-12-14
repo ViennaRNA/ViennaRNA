@@ -38,7 +38,7 @@
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*  below are the evil global variables that will vanish
  *  as soon as we drop backward compatibility in ViennaRNA
@@ -279,7 +279,7 @@ vrna_md_set_nonstandards(vrna_md_t  *md,
         }
         md->nonstandards[i] = '\0';
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
         free(nonstandards);
         nonstandards = vrna_alloc(33);
         memcpy(nonstandards, &(md->nonstandards[0]), 33 * sizeof(char));
@@ -290,7 +290,7 @@ vrna_md_set_nonstandards(vrna_md_t  *md,
     } else {
       /* remove nonstandards */
       md->nonstandards[0] = '\0';
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
       free(nonstandards);
       nonstandards = NULL;
 #endif
@@ -370,7 +370,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   /* update pair/rtype/alias arrays accordingly */
   vrna_md_update(&defaults);
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   temperature     = defaults.temperature;
   pf_scale        = VRNA_MODEL_DEFAULT_PF_SCALE;
   dangles         = defaults.dangles;
@@ -402,7 +402,7 @@ vrna_md_defaults_temperature(double T)
 {
   if (T >= -K0) {
     defaults.temperature = T;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
     temperature = T;
 #endif
   } else {
@@ -438,7 +438,7 @@ vrna_md_defaults_dangles(int d)
 {
   if ((d >= 0) && (d <= 3)) {
     defaults.dangles = d;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
     dangles = d;
 #endif
   } else {
@@ -459,7 +459,7 @@ PUBLIC void
 vrna_md_defaults_special_hp(int flag)
 {
   defaults.special_hp = flag ? 1 : 0;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   tetra_loop = defaults.special_hp;
 #endif
 }
@@ -476,7 +476,7 @@ PUBLIC void
 vrna_md_defaults_noLP(int flag)
 {
   defaults.noLP = flag ? 1 : 0;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   noLonelyPairs = defaults.noLP;
 #endif
 }
@@ -493,7 +493,7 @@ PUBLIC void
 vrna_md_defaults_noGU(int flag)
 {
   defaults.noGU = flag ? 1 : 0;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   noGU = defaults.noGU;
 #endif
   /* update pair/rtype/alias arrays accordingly */
@@ -512,7 +512,7 @@ PUBLIC void
 vrna_md_defaults_noGUclosure(int flag)
 {
   defaults.noGUclosure = flag ? 1 : 0;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   no_closingGU = defaults.noGUclosure;
 #endif
 }
@@ -529,7 +529,7 @@ PUBLIC void
 vrna_md_defaults_logML(int flag)
 {
   defaults.logML = flag ? 1 : 0;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   logML = defaults.logML;
 #endif
 }
@@ -546,7 +546,7 @@ PUBLIC void
 vrna_md_defaults_circ(int flag)
 {
   defaults.circ = flag ? 1 : 0;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   circ = defaults.circ;
 #endif
 }
@@ -563,7 +563,7 @@ PUBLIC void
 vrna_md_defaults_gquad(int flag)
 {
   defaults.gquad = flag ? 1 : 0;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   gquad = defaults.gquad;
 #endif
 }
@@ -580,7 +580,7 @@ PUBLIC void
 vrna_md_defaults_uniq_ML(int flag)
 {
   defaults.uniq_ML = flag ? 1 : 0;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   uniq_ML = defaults.uniq_ML;
 #endif
 }
@@ -598,7 +598,7 @@ vrna_md_defaults_energy_set(int e)
 {
   if ((e >= 0) && (e <= 3)) {
     defaults.energy_set = e;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
     energy_set = e;
 #endif
     /* update pair/rtype/alias arrays accordingly */
@@ -639,7 +639,7 @@ vrna_md_defaults_backtrack_type(char t)
     case 'C': /* fall through */
     case 'F':
       defaults.backtrack_type = t;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
       backtrack_type = t;
 #endif
       break;
@@ -662,7 +662,7 @@ vrna_md_defaults_compute_bpp(int flag)
 {
   if ((flag >= 0) && (flag <= 2)) {
     defaults.compute_bpp = flag;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
     do_backtrack = flag;
 #endif
   } else {
@@ -682,7 +682,7 @@ PUBLIC void
 vrna_md_defaults_max_bp_span(int span)
 {
   defaults.max_bp_span = (span <= 0) ? -1 : span;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   max_bp_span = defaults.max_bp_span;
 #endif
 }
@@ -727,7 +727,7 @@ PUBLIC void
 vrna_md_defaults_oldAliEn(int flag)
 {
   defaults.oldAliEn = flag ? 1 : 0;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   oldAliEn = defaults.oldAliEn;
 #endif
 }
@@ -744,7 +744,7 @@ PUBLIC void
 vrna_md_defaults_ribo(int flag)
 {
   defaults.ribo = flag ? 1 : 0;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   ribo = defaults.ribo;
 #endif
 }
@@ -761,7 +761,7 @@ PUBLIC void
 vrna_md_defaults_cv_fact(double factor)
 {
   defaults.cv_fact = factor;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   cv_fact = factor;
 #endif
 }
@@ -778,7 +778,7 @@ PUBLIC void
 vrna_md_defaults_nc_fact(double factor)
 {
   defaults.nc_fact = factor;
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
   nc_fact = factor;
 #endif
 }
@@ -924,7 +924,7 @@ fill_pair_matrices(vrna_md_t *md)
 }
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/

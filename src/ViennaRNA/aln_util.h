@@ -41,11 +41,7 @@ typedef struct vrna_pinfo_s vrna_pinfo_t;
  */
 #define VRNA_MEASURE_SHANNON_ENTROPY  1U
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
-
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* the following typedefs are for backward compatibility only */
 
@@ -226,7 +222,7 @@ vrna_aln_conservation_col(const char      **alignment,
                           unsigned int    options);
 
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 DEPRECATED(int read_clustal(FILE  *clust,
                             char  *AlignedSeqs[],

@@ -1,9 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_ALPHABET_H
 #define VIENNA_RNA_PACKAGE_ALPHABET_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)
 #  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
@@ -113,7 +110,7 @@ void vrna_aln_encode(const char   *sequence,
  *  @}
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 DEPRECATED(char *get_ptypes(const short   *S,
                             vrna_md_t     *md,

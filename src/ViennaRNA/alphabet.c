@@ -192,7 +192,7 @@ vrna_ptypes_prepare(vrna_fold_compound_t  *fc,
           if (!fc->ptype)
             fc->ptype = vrna_ptypes(fc->sequence_encoding2, &(fc->exp_params->model_details));
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
           /* backward compatibility ptypes */
           if (!fc->ptype_pf_compat)
             fc->ptype_pf_compat = get_ptypes(fc->sequence_encoding2,
@@ -483,7 +483,7 @@ wrap_get_ptypes(const short *S,
 }
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/

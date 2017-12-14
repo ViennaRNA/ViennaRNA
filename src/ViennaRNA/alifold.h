@@ -1,9 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_ALIFOLD_H
 #define VIENNA_RNA_PACKAGE_ALIFOLD_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/ribo.h>
@@ -153,7 +150,8 @@ float vrna_pf_alifold(const char **sequences, char *structure, vrna_ep_t **pl);
  */
 float vrna_pf_circalifold(const char **sequences, char *structure, vrna_ep_t **pl);
 
-#ifdef  VRNA_BACKWARD_COMPAT
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*
 #################################################

@@ -1,9 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_UTILS_H
 #define VIENNA_RNA_PACKAGE_UTILS_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)
 #  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
@@ -366,7 +363,7 @@ int *vrna_idx_col_wise(unsigned int length);
  *  @}
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 DEPRECATED(int   *get_indx(unsigned int length), "Use vrna_idx_col_wise() instead");
 

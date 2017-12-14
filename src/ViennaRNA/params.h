@@ -13,9 +13,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file     params.h
  *  @ingroup  energy_parameters
@@ -365,7 +362,7 @@ void vrna_params_prepare(vrna_fold_compound_t *vc,
                          unsigned int         options);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Old typename of #vrna_param_s

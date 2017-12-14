@@ -30,7 +30,7 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/cofold.h"
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -53,7 +53,7 @@
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* some backward compatibility stuff */
 PRIVATE int                   backward_compat           = 0;
@@ -96,7 +96,7 @@ PRIVATE void  doubleseq(vrna_fold_compound_t *vc);  /* do magic */
 PRIVATE void  halfseq(vrna_fold_compound_t *vc);    /* undo magic */
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* wrappers for old API compatibility */
 PRIVATE void      wrap_array_export(int   **f5_p,
@@ -1082,7 +1082,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc)
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE void
 wrap_array_export(int   **f5_p,

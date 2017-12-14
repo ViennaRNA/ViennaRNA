@@ -1,9 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_MODEL_H
 #define VIENNA_RNA_PACKAGE_MODEL_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file     model.h
  *  @ingroup  model_details
@@ -157,7 +154,7 @@ typedef struct vrna_md_s vrna_md_t;
 #define VRNA_MODEL_DEFAULT_ALI_NC_FACT    1.
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #ifndef MAXALPHA
 /**
@@ -733,7 +730,7 @@ double
 vrna_md_defaults_sfact_get(void);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #define model_detailsT        vrna_md_t               /* restore compatibility of struct rename */
 

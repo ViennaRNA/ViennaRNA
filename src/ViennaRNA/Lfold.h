@@ -7,9 +7,6 @@
  *  @brief    Functions for locally optimal MFE structure prediction
  */
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)
 #  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
@@ -124,7 +121,7 @@ float vrna_aliLfold_cb(const char               **AS,
                        void                     *data);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief The local analog to fold().

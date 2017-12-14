@@ -16,9 +16,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file plot_structure.h
  *  @ingroup   plotting_utils
@@ -136,7 +133,7 @@ int xrna_plot(char *string,
               char *structure,
               char *ssfile);
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Produce a secondary structure graph in PostScript and write it to 'filename'.

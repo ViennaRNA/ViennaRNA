@@ -17,9 +17,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file     cofold.h
  *  @ingroup  cofold
@@ -62,7 +59,7 @@ float
 vrna_cofold(const char *sequence,
             char *structure);
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Compute the minimum free energy of two interacting RNA molecules

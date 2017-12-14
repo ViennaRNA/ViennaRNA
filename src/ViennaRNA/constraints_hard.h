@@ -14,9 +14,6 @@
 #endif
 
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file       constraints_hard.h
  *  @ingroup    hard_constraints
@@ -643,7 +640,7 @@ vrna_hc_add_from_db(vrna_fold_compound_t  *vc,
                     unsigned int          options);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Print structure constraint characters to stdout.

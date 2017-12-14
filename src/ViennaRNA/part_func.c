@@ -115,7 +115,7 @@ vrna_pf(vrna_fold_compound_t  *vc,
     if (md->compute_bpp) {
       vrna_pairing_probs(vc, structure);
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
       /*
        *  Backward compatibility:
@@ -270,7 +270,7 @@ vrna_pf_dimer(vrna_fold_compound_t  *vc,
   if (md->compute_bpp) {
     vrna_pairing_probs(vc, structure);
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
     /*
      *  Backward compatibility:

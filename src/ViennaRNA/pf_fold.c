@@ -45,7 +45,7 @@ PUBLIC int st_back = 0;
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
@@ -64,7 +64,7 @@ PRIVATE int                   backward_compat           = 0;
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE float
 wrap_pf_fold(const char       *sequence,
@@ -160,7 +160,7 @@ vrna_pf_circfold(const char *seq,
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE double
 wrap_mean_bp_distance(FLT_OR_DBL  *p,

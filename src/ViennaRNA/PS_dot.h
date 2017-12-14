@@ -19,9 +19,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file PS_dot.h
  *  @ingroup   plotting_utils
@@ -122,7 +119,7 @@ int PS_dot_plot_turn( char *seq,
                       char *filename,
                       int winSize);
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  Wrapper to PS_dot_plot_list

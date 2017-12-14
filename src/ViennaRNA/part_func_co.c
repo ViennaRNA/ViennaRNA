@@ -29,7 +29,7 @@
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/part_func_co.h"
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -41,7 +41,7 @@
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 int     mirnatog      = 0;
 double  F_monomer[2]  = {
@@ -56,7 +56,7 @@ double  F_monomer[2]  = {
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
@@ -76,7 +76,7 @@ PRIVATE int                   backward_compat           = 0;
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE vrna_dimer_pf_t
 wrap_co_pf_fold(char              *sequence,
@@ -130,7 +130,7 @@ vrna_pf_co_fold(const char  *seq,
 }
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*
  *****************************************

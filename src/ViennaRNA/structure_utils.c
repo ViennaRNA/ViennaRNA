@@ -1208,8 +1208,7 @@ assign_elements_pair(short  *pt,
   }
 }
 
-
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/

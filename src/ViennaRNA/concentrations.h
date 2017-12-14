@@ -13,9 +13,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /**
  *  @file     concentrations.h
  *  @ingroup  pf_fold cofold pf_cofold
@@ -31,7 +28,7 @@
 typedef struct vrna_dimer_conc_s vrna_dimer_conc_t;
 
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Backward compatibility typedef for #vrna_dimer_conc_s

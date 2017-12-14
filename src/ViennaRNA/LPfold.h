@@ -233,7 +233,7 @@ vrna_probs_window(vrna_fold_compound_t        *fc,
                   void                        *data);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  \brief
