@@ -23,6 +23,15 @@ hc_default(int            i,
 
 
 PRIVATE unsigned char
+hc_sn(int            i,
+           int            j,
+           int            k,
+           int            l,
+           unsigned char  d,
+           void           *data);
+
+
+PRIVATE unsigned char
 hc_default_window(int           i,
                   int           j,
                   int           k,
@@ -33,6 +42,15 @@ hc_default_window(int           i,
 
 PRIVATE unsigned char
 hc_default_user(int           i,
+                int           j,
+                int           k,
+                int           l,
+                unsigned char d,
+                void          *data);
+
+
+PRIVATE unsigned char
+hc_default_sn_user(int           i,
                 int           j,
                 int           k,
                 int           l,
@@ -150,6 +168,57 @@ hc_default(int            i,
     default:
       vrna_message_error("hc_cb@exterior_loops.c: Unrecognized decomposition %d", d);
   }
+
+  return eval;
+}
+
+
+PRIVATE unsigned char
+hc_sn(int            i,
+      int            j,
+      int            k,
+      int            l,
+      unsigned char  d,
+      void           *data)
+{
+  unsigned int        *sn;
+  unsigned char       eval;
+  struct default_data *dat = (struct default_data *)data;
+
+  sn    = dat->sn;
+  eval  = (unsigned char)0;
+
+  /* for now with the 'old' cofold implementation, we allow for any decomposition */
+  return (unsigned char)1;
+
+  switch (d) {
+    case VRNA_DECOMP_EXT_EXT_STEM1:
+      if (sn[j - 1] != sn[j])
+        break;
+      /* fall through */
+    case VRNA_DECOMP_EXT_EXT_STEM:
+      /* fall through */
+    case VRNA_DECOMP_EXT_EXT_EXT:
+      if (sn[k] == sn[l])
+        eval = (unsigned char)1;
+      break;
+
+    case VRNA_DECOMP_EXT_STEM:
+      /* fall through */
+    case VRNA_DECOMP_EXT_EXT:
+      if ((sn[i] == sn[k]) && (sn[l] == sn[j]))
+        eval = (unsigned char)1;
+      break;
+
+    case VRNA_DECOMP_EXT_UP:
+      if (sn[i] == sn[j])
+        eval = (unsigned char)1;
+      break;
+
+    default:
+      vrna_message_error("hc_cb@exterior_loops.c: Unrecognized decomposition %d", d);
+  }
+
   return eval;
 }
 
@@ -271,6 +340,24 @@ hc_default_window(int           i,
     default:
       vrna_message_error("hc_cb@exterior_loops.c: Unrecognized decomposition %d", d);
   }
+
+  return eval;
+}
+
+
+PRIVATE unsigned char
+hc_default_sn(int           i,
+                  int           j,
+                  int           k,
+                  int           l,
+                  unsigned char d,
+                  void          *data)
+{
+  unsigned char eval;
+
+  eval  = hc_default(i, j, k, l, d, data);
+  eval  = hc_sn(i, j, k, l, d, data) ? eval : (unsigned char)0;
+
   return eval;
 }
 
@@ -294,6 +381,25 @@ hc_default_user(int           i,
 
 
 PRIVATE unsigned char
+hc_default_sn_user(int           i,
+                   int           j,
+                   int           k,
+                   int           l,
+                   unsigned char d,
+                   void          *data)
+{
+  unsigned char       eval;
+  struct default_data *dat = (struct default_data *)data;
+
+  eval  = hc_default(i, j, k, l, d, data);
+  eval  = hc_sn(i, j, k, l, d, data) ? eval : (unsigned char)0;
+  eval  = dat->hc_f(i, j, k, l, d, dat->hc_dat) ? eval : (unsigned char)0;
+
+  return eval;
+}
+
+
+PRIVATE unsigned char
 hc_default_user_window(int            i,
                        int            j,
                        int            k,
@@ -305,7 +411,7 @@ hc_default_user_window(int            i,
   struct default_data *dat = (struct default_data *)data;
 
   eval  = hc_default_window(i, j, k, l, d, data);
-  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
+  eval  = dat->hc_f(i, j, k, l, d, dat->hc_dat) ? eval : (unsigned char)0;
 
   return eval;
 }
@@ -318,15 +424,15 @@ prepare_hc_default(vrna_fold_compound_t *vc,
   dat->idx    = vc->jindx;
   dat->mx     = vc->hc->matrix;
   dat->hc_up  = vc->hc->up_ext;
-  dat->sn     = vc->strand_number;
+  dat->sn         = vc->strand_number;
 
   if (vc->hc->f) {
     dat->hc_f   = vc->hc->f;
     dat->hc_dat = vc->hc->data;
-    return &hc_default_user;
+    return (vc->strands == 1) ? &hc_default_user : &hc_default_sn_user;
   }
 
-  return &hc_default;
+  return (vc->strands == 1) ? &hc_default : &hc_default_sn;
 }
 
 
