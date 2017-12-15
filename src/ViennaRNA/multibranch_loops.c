@@ -346,6 +346,643 @@ E_mb_loop_fast_comparative_window(vrna_fold_compound_t  *vc,
 }
 
 
+struct sc_wrapper_ml;
+
+typedef int (sc_pair)(int                   i,
+                      int                   j,
+                      struct sc_wrapper_ml  *data);
+
+struct sc_wrapper_ml {
+  int                     *idx;
+  int                     **up;
+  int                     *bp;
+
+  sc_pair                 *pair;
+  sc_pair                 *pair5;
+  sc_pair                 *pair3;
+  sc_pair                 *pair53;
+
+  vrna_callback_sc_energy *user_cb;
+  void                    *user_data;
+};
+
+
+PRIVATE INLINE int
+sc_ml_pair_bp(int                   i,
+              int                   j,
+              struct sc_wrapper_ml  *data)
+{
+  return data->bp[data->idx[j] + i];
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair5_up(int                  i,
+               int                  j,
+               struct sc_wrapper_ml *data)
+{
+  return data->up[i + 1][1];
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair3_up(int                  i,
+               int                  j,
+               struct sc_wrapper_ml *data)
+{
+  return data->up[j - 1][1];
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair5_bp_up(int                   i,
+                  int                   j,
+                  struct sc_wrapper_ml  *data)
+{
+  return sc_ml_pair_bp(i, j, data) +
+         sc_ml_pair5_up(i, j, data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair3_bp_up(int                   i,
+                  int                   j,
+                  struct sc_wrapper_ml  *data)
+{
+  return sc_ml_pair_bp(i, j, data) +
+         sc_ml_pair3_up(i, j, data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair53_bp_up(int                  i,
+                   int                  j,
+                   struct sc_wrapper_ml *data)
+{
+  return sc_ml_pair_bp(i, j, data) +
+         sc_ml_pair5_up(i, j, data) +
+         sc_ml_pair3_up(i, j, data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair53_up(int                   i,
+                int                   j,
+                struct sc_wrapper_ml  *data)
+{
+  return sc_ml_pair5_up(i, j, data) +
+         sc_ml_pair3_up(i, j, data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair_user(int                   i,
+                int                   j,
+                struct sc_wrapper_ml  *data)
+{
+  return data->user_cb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair_bp_user(int                  i,
+                   int                  j,
+                   struct sc_wrapper_ml *data)
+{
+  return sc_ml_pair_bp(i, j, data) +
+         data->user_cb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair5_user(int                  i,
+                 int                  j,
+                 struct sc_wrapper_ml *data)
+{
+  return data->user_cb(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair5_bp_user(int                   i,
+                    int                   j,
+                    struct sc_wrapper_ml  *data)
+{
+  return sc_ml_pair_bp(i, j, data) +
+         data->user_cb(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair5_up_user(int                   i,
+                    int                   j,
+                    struct sc_wrapper_ml  *data)
+{
+  return sc_ml_pair5_up(i, j, data) +
+         data->user_cb(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair5_bp_up_user(int                  i,
+                       int                  j,
+                       struct sc_wrapper_ml *data)
+{
+  return sc_ml_pair_bp(i, j, data) +
+         sc_ml_pair5_up(i, j, data) +
+         data->user_cb(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair3_user(int                  i,
+                 int                  j,
+                 struct sc_wrapper_ml *data)
+{
+  return data->user_cb(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair3_bp_user(int                   i,
+                    int                   j,
+                    struct sc_wrapper_ml  *data)
+{
+  return sc_ml_pair_bp(i, j, data) +
+         data->user_cb(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair3_up_user(int                   i,
+                    int                   j,
+                    struct sc_wrapper_ml  *data)
+{
+  return sc_ml_pair3_up(i, j, data) +
+         data->user_cb(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair3_bp_up_user(int                  i,
+                       int                  j,
+                       struct sc_wrapper_ml *data)
+{
+  return sc_ml_pair_bp(i, j, data) +
+         sc_ml_pair3_up(i, j, data) +
+         data->user_cb(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair53_user(int                   i,
+                  int                   j,
+                  struct sc_wrapper_ml  *data)
+{
+  return data->user_cb(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair53_bp_user(int                  i,
+                     int                  j,
+                     struct sc_wrapper_ml *data)
+{
+  return sc_ml_pair_bp(i, j, data) +
+         data->user_cb(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair53_up_user(int                  i,
+                     int                  j,
+                     struct sc_wrapper_ml *data)
+{
+  return sc_ml_pair53_up(i, j, data) +
+         data->user_cb(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_pair53_bp_up_user(int                   i,
+                        int                   j,
+                        struct sc_wrapper_ml  *data)
+{
+  return sc_ml_pair_bp(i, j, data) +
+         sc_ml_pair53_up(i, j, data) +
+         data->user_cb(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, data->user_data);
+}
+
+
+PRIVATE INLINE void
+init_sc_wrapper(vrna_fold_compound_t  *fc,
+                struct sc_wrapper_ml  *sc_wrapper)
+{
+  vrna_sc_t *sc;
+
+  sc = fc->sc;
+
+  sc_wrapper->idx = fc->jindx;
+  sc_wrapper->up  = NULL;
+  sc_wrapper->bp  = NULL;
+
+  sc_wrapper->pair    = NULL;
+  sc_wrapper->pair5   = NULL;
+  sc_wrapper->pair3   = NULL;
+  sc_wrapper->pair53  = NULL;
+
+  sc_wrapper->user_cb   = NULL;
+  sc_wrapper->user_data = NULL;
+
+  if (sc) {
+    sc_wrapper->up        = sc->energy_up;
+    sc_wrapper->bp        = sc->energy_bp;
+    sc_wrapper->user_cb   = sc->f;
+    sc_wrapper->user_data = sc->data;
+
+    if (sc->f) {
+      if (sc->energy_bp) {
+        sc_wrapper->pair = &sc_ml_pair_bp_user;
+        if (sc->energy_up) {
+          sc_wrapper->pair5   = &sc_ml_pair5_bp_up_user;
+          sc_wrapper->pair3   = &sc_ml_pair3_bp_up_user;
+          sc_wrapper->pair53  = &sc_ml_pair53_bp_up_user;
+        } else {
+          sc_wrapper->pair5   = &sc_ml_pair5_bp_user;
+          sc_wrapper->pair3   = &sc_ml_pair3_bp_user;
+          sc_wrapper->pair53  = &sc_ml_pair53_bp_user;
+        }
+      } else if (sc->energy_up) {
+        sc_wrapper->pair    = &sc_ml_pair_user;
+        sc_wrapper->pair5   = &sc_ml_pair5_up_user;
+        sc_wrapper->pair3   = &sc_ml_pair3_up_user;
+        sc_wrapper->pair53  = &sc_ml_pair53_up_user;
+      } else {
+        sc_wrapper->pair    = &sc_ml_pair_user;
+        sc_wrapper->pair5   = &sc_ml_pair5_user;
+        sc_wrapper->pair3   = &sc_ml_pair3_user;
+        sc_wrapper->pair53  = &sc_ml_pair53_user;
+      }
+    } else if (sc->energy_bp) {
+      sc_wrapper->pair = &sc_ml_pair_bp;
+      if (sc->energy_up) {
+        sc_wrapper->pair5   = &sc_ml_pair5_bp_up;
+        sc_wrapper->pair3   = &sc_ml_pair3_bp_up;
+        sc_wrapper->pair53  = &sc_ml_pair53_bp_up;
+      } else {
+        sc_wrapper->pair5   = &sc_ml_pair_bp;
+        sc_wrapper->pair3   = &sc_ml_pair_bp;
+        sc_wrapper->pair53  = &sc_ml_pair_bp;
+      }
+    } else if (sc->energy_up) {
+      sc_wrapper->pair5   = &sc_ml_pair5_up;
+      sc_wrapper->pair3   = &sc_ml_pair3_up;
+      sc_wrapper->pair53  = &sc_ml_pair53_up;
+    }
+  }
+}
+
+
+PRIVATE INLINE int
+ml_pair_d0(vrna_fold_compound_t       *fc,
+           int                        i,
+           int                        j,
+           int                        *dmli1,
+           vrna_callback_hc_evaluate  *evaluate,
+           struct default_data        *hc_wrapper,
+           struct sc_wrapper_ml       *sc_wrapper)
+{
+  short         *S;
+  unsigned int  tt;
+  int           e;
+  vrna_param_t  *P;
+
+  e = INF;
+
+  if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
+    e = dmli1[j - 1];
+
+    if (e != INF) {
+      S   = fc->sequence_encoding2;
+      P   = fc->params;
+      tt  = vrna_get_ptype_md(S[j], S[i], &(P->model_details));
+      e   += E_MLstem(tt, -1, -1, P) +
+             P->MLclosing;
+
+      if (sc_wrapper->pair)
+        e += sc_wrapper->pair(i, j, sc_wrapper);
+    }
+  }
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+ml_pair_d2(vrna_fold_compound_t       *fc,
+           int                        i,
+           int                        j,
+           int                        *dmli1,
+           vrna_callback_hc_evaluate  *evaluate,
+           struct default_data        *hc_wrapper,
+           struct sc_wrapper_ml       *sc_wrapper)
+{
+  short         *S, *S2, si1, sj1;
+  unsigned int  tt, strands, *sn;
+  int           e;
+  vrna_param_t  *P;
+
+  e = INF;
+
+  if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
+    e = dmli1[j - 1];
+
+    if (e != INF) {
+      strands = fc->strands;
+      sn      = fc->strand_number;
+      S       = fc->sequence_encoding;
+      S2      = fc->sequence_encoding2;
+      P       = fc->params;
+      tt      = vrna_get_ptype_md(S2[j], S2[i], &(P->model_details));
+      si1     = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
+      sj1     = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
+
+      e += E_MLstem(tt, sj1, si1, P) +
+           P->MLclosing;
+
+      if (sc_wrapper->pair)
+        e += sc_wrapper->pair(i, j, sc_wrapper);
+    }
+  }
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+ml_pair5(vrna_fold_compound_t       *fc,
+         int                        i,
+         int                        j,
+         int                        *dmli2,
+         vrna_callback_hc_evaluate  *evaluate,
+         struct default_data        *hc_wrapper,
+         struct sc_wrapper_ml       *sc_wrapper)
+{
+  short         *S, *S2, si1;
+  unsigned int  tt, strands, *sn;
+  int           e;
+  vrna_param_t  *P;
+
+  e = INF;
+
+  if (evaluate(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
+    e = dmli2[j - 1];
+
+    if (e != INF) {
+      strands = fc->strands;
+      sn      = fc->strand_number;
+      S       = fc->sequence_encoding;
+      S2      = fc->sequence_encoding2;
+      P       = fc->params;
+      tt      = vrna_get_ptype_md(S2[j], S2[i], &(P->model_details));
+      si1     = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
+
+      e += E_MLstem(tt, -1, si1, P) +
+           P->MLclosing;
+
+      if (sc_wrapper->pair5)
+        e += sc_wrapper->pair5(i, j, sc_wrapper);
+    }
+  }
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+ml_pair3(vrna_fold_compound_t       *fc,
+         int                        i,
+         int                        j,
+         int                        *dmli1,
+         vrna_callback_hc_evaluate  *evaluate,
+         struct default_data        *hc_wrapper,
+         struct sc_wrapper_ml       *sc_wrapper)
+{
+  short         *S, *S2, sj1;
+  unsigned int  tt, strands, *sn;
+  int           e;
+  vrna_param_t  *P;
+
+  e = INF;
+
+  if (evaluate(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
+    e = dmli1[j - 2];
+
+    if (e != INF) {
+      strands = fc->strands;
+      sn      = fc->strand_number;
+      S       = fc->sequence_encoding;
+      S2      = fc->sequence_encoding2;
+      P       = fc->params;
+      tt      = vrna_get_ptype_md(S2[j], S2[i], &(P->model_details));
+      sj1     = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
+
+      e += E_MLstem(tt, sj1, -1, P) +
+           P->MLclosing;
+
+      if (sc_wrapper->pair3)
+        e += sc_wrapper->pair3(i, j, sc_wrapper);
+    }
+  }
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+ml_pair53(vrna_fold_compound_t      *fc,
+          int                       i,
+          int                       j,
+          int                       *dmli1,
+          int                       *dmli2,
+          vrna_callback_hc_evaluate *evaluate,
+          struct default_data       *hc_wrapper,
+          struct sc_wrapper_ml      *sc_wrapper)
+{
+  short         *S, *S2, si1, sj1;
+  unsigned int  tt, strands, *sn;
+  int           e;
+  vrna_param_t  *P;
+
+  e = INF;
+
+  if (evaluate(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
+    e = dmli2[j - 2];
+
+    if (e != INF) {
+      strands = fc->strands;
+      sn      = fc->strand_number;
+      S       = fc->sequence_encoding;
+      S2      = fc->sequence_encoding2;
+      P       = fc->params;
+      tt      = vrna_get_ptype_md(S2[j], S2[i], &(P->model_details));
+      si1     = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
+      sj1     = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
+
+      e += E_MLstem(tt, sj1, si1, P) +
+           P->MLclosing;
+
+      if (sc_wrapper->pair53)
+        e += sc_wrapper->pair53(i, j, sc_wrapper);
+    }
+  }
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+ml_pair_d1(vrna_fold_compound_t       *fc,
+           int                        i,
+           int                        j,
+           int                        *dmli1,
+           int                        *dmli2,
+           vrna_callback_hc_evaluate  *evaluate,
+           struct default_data        *hc_wrapper,
+           struct sc_wrapper_ml       *sc_wrapper)
+{
+  int e, en;
+
+  /* new closing pair (i,j) with mb part [i+1,j-1] */
+  e = ml_pair_d0(fc, i, j, dmli1, evaluate, hc_wrapper, sc_wrapper);
+
+  /* new closing pair (i,j) with mb part [i+2,j-1] */
+  en  = ml_pair5(fc, i, j, dmli2, evaluate, hc_wrapper, sc_wrapper);
+  e   = MIN2(e, en);
+
+  /* new closing pair (i,j) with mb part [i+1, j-2] */
+  en  = ml_pair3(fc, i, j, dmli1, evaluate, hc_wrapper, sc_wrapper);
+  e   = MIN2(e, en);
+
+  /* new closing pair (i,j) with mb part [i+2.j-2] */
+  en  = ml_pair53(fc, i, j, dmli1, dmli2, evaluate, hc_wrapper, sc_wrapper);
+  e   = MIN2(e, en);
+
+  return e;
+}
+
+
+PRIVATE int
+E_mb_loop_fake(vrna_fold_compound_t *vc,
+               int                  i,
+               int                  j)
+{
+  short                     S_i1, S_j1, *S, *S2;
+  unsigned int              strands, *sn, *so, *ss, *se;
+  int                       decomp, en, e, *indx, *fc, ij, dangle_model, tt, noGUclosure;
+  vrna_hc_t                 *hc;
+  vrna_sc_t                 *sc;
+  vrna_param_t              *P;
+  vrna_md_t                 *md;
+  vrna_callback_hc_evaluate *evaluate;
+  struct default_data       hc_dat_local;
+  struct sc_wrapper_ml      sc_wrapper;
+
+  S             = vc->sequence_encoding;
+  S2            = vc->sequence_encoding2;
+  indx          = vc->jindx;
+  strands       = vc->strands;
+  sn            = vc->strand_number;
+  so            = vc->strand_order;
+  ss            = vc->strand_start;
+  se            = vc->strand_end;
+  hc            = vc->hc;
+  sc            = vc->sc;
+  fc            = vc->matrices->fc;
+  P             = vc->params;
+  md            = &(P->model_details);
+  noGUclosure   = md->noGUclosure;
+  dangle_model  = md->dangles;
+
+  /* init values */
+  e       = INF;
+  decomp  = INF;
+
+  evaluate = prepare_hc_default_ext(vc, &hc_dat_local);
+
+  init_sc_wrapper(vc, &sc_wrapper);
+
+  ij  = indx[j] + i;
+  tt  = vrna_get_ptype_md(S2[j], S2[i], md);
+
+  if (noGUclosure && ((tt == 3) || (tt == 4)))
+    return e;
+
+  if (strands == 1) {
+    S_i1  = S[i + 1];
+    S_j1  = S[j - 1];
+  } else {
+    S_i1  = (sn[i] == sn[i + 1]) ? S[i + 1] : -1;
+    S_j1  = (sn[j - 1] == sn[j]) ? S[j - 1] : -1;
+  }
+
+  /* multibranch like cofold structure with cut somewhere between i and j */
+  if (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
+    if ((fc[i + 1] != INF) && (fc[j - 1] != INF)) {
+      decomp = fc[i + 1] +
+               fc[j - 1];
+      switch (dangle_model) {
+        case 0:
+          decomp += E_ExtLoop(tt, -1, -1, P);
+          break;
+
+        case 2:
+          decomp += E_ExtLoop(tt, S_j1, S_i1, P);
+          break;
+
+        default:
+          decomp += E_ExtLoop(tt, -1, -1, P);
+          break;
+      }
+    }
+  }
+
+  if (dangle_model % 2) {
+    /* dangles == 1 || dangles == 3 */
+    if (evaluate(i + 1, j - 1, i + 2, j - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
+      if ((fc[i + 2] != INF) && (fc[j - 1] != INF)) {
+        en = fc[i + 2] +
+             fc[j - 1] +
+             E_ExtLoop(tt, -1, S_i1, P);
+        decomp = MIN2(decomp, en);
+      }
+    }
+
+    if (evaluate(i + 1, j - 1, i + 1, j - 2, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
+      if ((fc[i + 1] != INF) && (fc[j - 2] != INF)) {
+        en = fc[i + 1] +
+             fc[j - 2] +
+             E_ExtLoop(tt, S_j1, -1, P);
+        decomp = MIN2(decomp, en);
+      }
+    }
+
+    if (evaluate(i + 1, j - 1, i + 2, j - 2, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
+      if ((fc[i + 2] != INF) && (fc[j - 2] != INF)) {
+        en = fc[i + 2] +
+             fc[j - 2] +
+             E_ExtLoop(tt, S_j1, S_i1, P);
+        decomp = MIN2(decomp, en);
+      }
+    }
+  }
+
+  e = MIN2(e, decomp);
+
+  return e;
+}
+
+
 PRIVATE int
 E_mb_loop_fast(vrna_fold_compound_t *vc,
                int                  i,
@@ -362,6 +999,7 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
+  struct sc_wrapper_ml      sc_wrapper;
 
   S             = vc->sequence_encoding;
   S2            = vc->sequence_encoding2;
@@ -385,196 +1023,37 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
 
   evaluate = prepare_hc_default(vc, &hc_dat_local);
 
+  init_sc_wrapper(vc, &sc_wrapper);
+
   ij  = indx[j] + i;
   tt  = vrna_get_ptype_md(S2[j], S2[i], md);
 
   if (noGUclosure && ((tt == 3) || (tt == 4)))
     return e;
 
-  if (strands == 1) {
-    S_i1  = S[i + 1];
-    S_j1  = S[j - 1];
-  } else {
-    S_i1  = (sn[i] == sn[i + 1]) ? S[i + 1] : -1;
-    S_j1  = (sn[j - 1] == sn[j]) ? S[j - 1] : -1;
+  switch (dangle_model) {
+    /* no dangles */
+    case 0:
+      decomp = ml_pair_d0(vc, i, j, dmli1, evaluate, &hc_dat_local, &sc_wrapper);
+      break;
+
+    /* double dangles */
+    case 2:
+      decomp = ml_pair_d2(vc, i, j, dmli1, evaluate, &hc_dat_local, &sc_wrapper);
+      break;
+
+    /* normal dangles, aka dangles = 1 || 3 */
+    default:
+      decomp = ml_pair_d1(vc, i, j, dmli1, dmli2, evaluate, &hc_dat_local, &sc_wrapper);
+      break;
   }
 
-  if ((S_i1 >= 0) && (S_j1 >= 0)) {
-    /* regular multi branch loop */
-    /* new closing pair (i,j) with mb part [i+1,j-1] */
-    if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-      decomp = dmli1[j - 1];
+  e = MIN2(e, decomp);
 
-      if (decomp != INF) {
-        switch (dangle_model) {
-          /* no dangles */
-          case 0:
-            decomp += E_MLstem(tt, -1, -1, P);
-            if (sc) {
-              if (sc->energy_bp)
-                decomp += sc->energy_bp[ij];
-
-              if (sc->f)
-                decomp += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, sc->data);
-            }
-
-            break;
-
-          /* double dangles */
-          case 2:
-            decomp += E_MLstem(tt, S_j1, S_i1, P);
-            if (sc) {
-              if (sc->energy_bp)
-                decomp += sc->energy_bp[ij];
-
-              if (sc->f)
-                decomp += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, sc->data);
-            }
-
-            break;
-
-          /* normal dangles, aka dangles = 1 || 3 */
-          default:
-            decomp += E_MLstem(tt, -1, -1, P);
-            if (sc) {
-              if (sc->energy_bp)
-                decomp += sc->energy_bp[ij];
-
-              if (sc->f)
-                decomp += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, sc->data);
-            }
-
-            break;
-        }
-      }
-    }
-
-    if (dangle_model % 2) {
-      /* dangles == 1 || dangles == 3 */
-      /* new closing pair (i,j) with mb part [i+2,j-1] */
-      if (evaluate(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-        if (dmli2[j - 1] != INF) {
-          en = dmli2[j - 1] +
-               E_MLstem(tt, -1, S_i1, P) +
-               P->MLbase;
-
-          if (sc) {
-            if (sc->energy_up)
-              en += sc->energy_up[i + 1][1];
-
-            if (sc->energy_bp)
-              en += sc->energy_bp[ij];
-
-            if (sc->f)
-              en += sc->f(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, sc->data);
-          }
-
-          decomp = MIN2(decomp, en);
-        }
-      }
-
-      /* new closing pair (i,j) with mb part [i+2.j-2] */
-      if (evaluate(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-        if (dmli2[j - 2] != INF) {
-          en = dmli2[j - 2] +
-               E_MLstem(tt, S_j1, S_i1, P) +
-               2 * P->MLbase;
-
-          if (sc) {
-            if (sc->energy_up)
-              en += sc->energy_up[i + 1][1] +
-                    sc->energy_up[j - 1][1];
-
-            if (sc->energy_bp)
-              en += sc->energy_bp[ij];
-
-            if (sc->f)
-              en += sc->f(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, sc->data);
-          }
-
-          decomp = MIN2(decomp, en);
-        }
-      }
-
-      /* new closing pair (i,j) with mb part [i+1, j-2] */
-      if (evaluate(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-        if (dmli1[j - 2] != INF) {
-          en = dmli1[j - 2] +
-               E_MLstem(tt, S_j1, -1, P) +
-               P->MLbase;
-          if (sc) {
-            if (sc->energy_up)
-              en += sc->energy_up[j - 1][1];
-
-            if (sc->energy_bp)
-              en += sc->energy_bp[ij];
-
-            if (sc->f)
-              en += sc->f(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, sc->data);
-          }
-
-          decomp = MIN2(decomp, en);
-        }
-      }
-    } /* end if dangles % 2 */
-
-    if (decomp != INF)
-      e = decomp + P->MLclosing;
-  } /* end regular multibranch loop */
-
+  /* add additional cases for possible strand nicks between i and j */
   if (sn[i] != sn[j]) {
-    /* multibrach like cofold structure with cut somewhere between i and j */
-    if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-      if ((fc[i + 1] != INF) && (fc[j - 1] != INF)) {
-        decomp = fc[i + 1] +
-                 fc[j - 1];
-        switch (dangle_model) {
-          case 0:
-            decomp += E_ExtLoop(tt, -1, -1, P);
-            break;
-
-          case 2:
-            decomp += E_ExtLoop(tt, S_j1, S_i1, P);
-            break;
-
-          default:
-            decomp += E_ExtLoop(tt, -1, -1, P);
-            break;
-        }
-      }
-    }
-
-    if (dangle_model % 2) {
-      /* dangles == 1 || dangles == 3 */
-      if (evaluate(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-        if ((fc[i + 2] != INF) && (fc[j - 1] != INF)) {
-          en = fc[i + 2] +
-               fc[j - 1] +
-               E_ExtLoop(tt, -1, S_i1, P);
-          decomp = MIN2(decomp, en);
-        }
-      }
-
-      if (evaluate(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-        if ((fc[i + 1] != INF) && (fc[j - 2] != INF)) {
-          en = fc[i + 1] +
-               fc[j - 2] +
-               E_ExtLoop(tt, S_j1, -1, P);
-          decomp = MIN2(decomp, en);
-        }
-      }
-
-      if (evaluate(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-        if ((fc[i + 2] != INF) && (fc[j - 2] != INF)) {
-          en = fc[i + 2] +
-               fc[j - 2] +
-               E_ExtLoop(tt, S_j1, S_i1, P);
-          decomp = MIN2(decomp, en);
-        }
-      }
-    }
-
-    e = MIN2(e, decomp);
+    decomp  = E_mb_loop_fake(vc, i, j);
+    e       = MIN2(e, decomp);
   }
 
   return e;

@@ -24,6 +24,15 @@ hc_default(int            i,
 
 
 PRIVATE unsigned char
+hc_default_sn(int            i,
+           int            j,
+           int            k,
+           int            l,
+           unsigned char  d,
+           void           *data);
+
+
+PRIVATE unsigned char
 hc_default_window(int           i,
                   int           j,
                   int           k,
@@ -43,6 +52,15 @@ hc_default_ext(int            i,
 
 PRIVATE unsigned char
 hc_default_user(int           i,
+                int           j,
+                int           k,
+                int           l,
+                unsigned char d,
+                void          *data);
+
+
+PRIVATE unsigned char
+hc_default_sn_user(int           i,
                 int           j,
                 int           k,
                 int           l,
@@ -168,6 +186,59 @@ hc_default(int            i,
           (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC))
         eval = (unsigned char)1;
 
+      break;
+
+    default:
+      vrna_message_error("hc_cb@multibranch_loops.c: Unrecognized decomposition %d", d);
+  }
+
+  return eval;
+}
+
+
+PRIVATE unsigned char
+hc_sn(int            i,
+           int            j,
+           int            k,
+           int            l,
+           unsigned char  d,
+           void           *data)
+{
+  unsigned int        *sn;
+  unsigned char       eval;
+  struct default_data *dat = (struct default_data *)data;
+
+  sn    = dat->sn;
+  eval  = (unsigned char)0;
+
+  switch (d) {
+    case VRNA_DECOMP_ML_ML_ML:
+      if (sn[k] == sn[l])
+        eval  = (unsigned char)1;
+      break;
+
+    case VRNA_DECOMP_ML_STEM:
+      /* fall through */
+    case VRNA_DECOMP_ML_ML:
+      if ((sn[i] == sn[k]) && (sn[l] == sn[j]))
+        eval = (unsigned char)1;
+      break;
+
+    case VRNA_DECOMP_PAIR_ML:
+      if ((sn[i] == sn[k]) && (sn[l] == sn[j]))
+        eval = (unsigned char)1;
+      break;
+
+    case VRNA_DECOMP_ML_COAXIAL:
+      if ((i == k - 1) && (sn[i] == sn[k]))
+        eval = (unsigned char)1;
+      else if ((l + 1 == j) && (sn[l] == sn[j]))
+        eval = (unsigned char)1;
+      break;
+
+    case VRNA_DECOMP_ML_COAXIAL_ENC:
+      if (sn[j] == sn[k])
+        eval = (unsigned char)1;
       break;
 
     default:
@@ -353,7 +424,7 @@ hc_default_ext(int            i,
         if ((dj != 0) && (dat->hc_up[l + 1] < dj))
           eval = (unsigned char)0;
 
-        if ((dat->sn[k] != dat->sn[k - 1]) || (dat->sn[l] != dat->sn[l + 1]))
+        if ((dat->sn[k] != dat->sn[i]) || (dat->sn[l] != dat->sn[j]))
           eval = (unsigned char)0;
       }
 
@@ -381,6 +452,23 @@ hc_default_ext(int            i,
 }
 
 
+PRIVATE INLINE unsigned char
+hc_default_sn(int           i,
+                  int           j,
+                  int           k,
+                  int           l,
+                  unsigned char d,
+                  void          *data)
+{
+  unsigned char       eval;
+
+  eval  = hc_default(i, j, k, l, d, data);
+  eval  = hc_sn(i, j, k, l, d, data) ? eval : (unsigned char)0;
+
+  return eval;
+}
+
+
 PRIVATE unsigned char
 hc_default_user(int           i,
                 int           j,
@@ -393,6 +481,25 @@ hc_default_user(int           i,
   struct default_data *dat = (struct default_data *)data;
 
   eval  = hc_default(i, j, k, l, d, data);
+  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
+
+  return eval;
+}
+
+
+PRIVATE unsigned char
+hc_default_sn_user(int           i,
+                int           j,
+                int           k,
+                int           l,
+                unsigned char d,
+                void          *data)
+{
+  unsigned char       eval;
+  struct default_data *dat = (struct default_data *)data;
+
+  eval  = hc_default(i, j, k, l, d, data);
+  eval  = hc_sn(i, j, k, l, d, data) ? eval : (unsigned char)0;
   eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
@@ -447,10 +554,10 @@ prepare_hc_default(vrna_fold_compound_t *vc,
   if (vc->hc->f) {
     dat->hc_f   = vc->hc->f;
     dat->hc_dat = vc->hc->data;
-    return &hc_default_user;
+    return (vc->strands == 1) ? &hc_default_user : &hc_default_sn_user;
   }
 
-  return &hc_default;
+  return (vc->strands == 1) ? &hc_default : hc_default_sn;
 }
 
 

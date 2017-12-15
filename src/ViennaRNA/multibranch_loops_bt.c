@@ -1757,10 +1757,9 @@ BT_mb_loop(vrna_fold_compound_t *vc,
 
   r = q - turn - 1;
 
-  if (evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-    /* is it a fake multi-loop? */
-    /* The following block actually has to reside outside evaluate() function! */
-    if (sn[*i] != sn[*j]) {
+  /* is it a fake multi-loop? */
+  if (sn[*i] != sn[*j]) {
+    if (evaluate_ext(*i, *j, *i, *j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
       int ii, jj;
       ii  = jj = 0;
       e   = my_fc[p] + my_fc[q];
@@ -1854,7 +1853,9 @@ BT_mb_loop(vrna_fold_compound_t *vc,
         return 1;
       }
     }
+  }
 
+  if (evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
     /* true multi loop? */
     *component1 = *component2 = 1;  /* both components are MB loop parts by default */
 
