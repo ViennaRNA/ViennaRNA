@@ -19,23 +19,41 @@ typedef struct {
 } vrna_path_t;
 
 %extend vrna_path_t {
-  vrna_path_t *get(int i) {
-    return $self+i;
-  }
-
-  int size() {
-    path_t *st;
-    for (st=$self; st->s; st++);
-    return (int)(st-$self);
-  }
-
   ~vrna_path_t() {
-    vrna_path_t *st;
-    for (st=$self; st->s; st++)
-      free(st->s);
+    free($self->s);
     free($self);
   }
 }
+
+%rename (get_path) my_get_path;
+
+
+%{
+  std::vector<vrna_path_t> my_get_path(std::string seq,
+                                       std::string s1,
+                                       std::string s2,
+                                       int         maxkeep)
+  {
+    std::vector<vrna_path_t>  v; /* fill vector with returned vrna_path_t*/
+    vrna_path_t *path_t, *ptr;
+
+    path_t = ptr = get_path(seq.c_str(), s1.c_str(), s2.c_str(), maxkeep);
+
+    while (ptr->s != NULL)
+    {
+        vrna_path_t p;
+        p.en = ptr->en;
+        p.s  = ptr->s;
+        v.push_back(p);
+        ptr++;
+        
+    }
+    free(path_t);
+    return v;
+  }
+%}
+std::vector<vrna_path_t> my_get_path(std::string seq, std::string s1, std::string s2, int maxkeep);
+%ignore get_path;
 
 
 %extend vrna_fold_compound_t{
@@ -65,7 +83,6 @@ typedef struct {
 
 }
 
-%newobject get_path;
 
 %include <ViennaRNA/findpath.h>;
 
