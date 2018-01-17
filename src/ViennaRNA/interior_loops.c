@@ -165,8 +165,8 @@ eval_int_loop(vrna_fold_compound_t  *vc,
 
   e = INF;
 
-  if ((sn[k] != sn[i]) || (sn[j] != sn[l]))
-    return e;
+  //if ((sn[k] != sn[i]) || (sn[j] != sn[l]))
+  //  return e;
 
   type  = get_pair_type_md(S2[i], S2[j], md);
   type2 = get_pair_type_md(S2[l], S2[k], md);
