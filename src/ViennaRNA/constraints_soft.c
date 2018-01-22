@@ -271,8 +271,7 @@ vrna_sc_prepare(vrna_fold_compound_t  *vc,
     if (options & VRNA_OPTION_PF) {
       prepare_sc_up_pf(vc, options);
       prepare_sc_bp_pf(vc, options);
-      if ((vc->sc) && (!vc->sc->exp_energy_stack))
-        vrna_sc_add_SHAPE_deigan(vc, NULL, 0, 0, VRNA_OPTION_PF);
+      vrna_sc_add_SHAPE_deigan(vc, NULL, 0, 0, VRNA_OPTION_PF);
     }
   }
 }
@@ -1051,6 +1050,7 @@ prepare_sc_up_mfe(vrna_fold_compound_t  *vc,
             } else {
               for (i = 1; i <= n; i++)
                 sc->energy_up[i] = (int *)vrna_realloc(sc->energy_up[i], sizeof(int) * (n - i + 2));
+
 
               sc->energy_up[0]     = (int *)vrna_realloc(sc->energy_up[0], sizeof(int));
               sc->energy_up[n + 1] = (int *)vrna_realloc(sc->energy_up[n + 1], sizeof(int));
