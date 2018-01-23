@@ -478,8 +478,9 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
         }
 
         /* resize to actual number of entries */
-        /* NO RESIZE until prepare_Boltzmann_weights_stack() knows the length of each sequence in the alignment */
-        //pseudo_energies           = vrna_realloc(pseudo_energies, sizeof(int) * (cnt + 2));
+        pseudo_energies           = vrna_realloc(
+                                      pseudo_energies,
+                                      sizeof(int) * (vc->a2s[ss][vc->length] + 1));
         vc->scs[ss]->energy_stack = pseudo_energies;
 #if 0
         if (options & VRNA_OPTION_PF) {
@@ -603,45 +604,45 @@ sc_parse_parameters(const char  *string,
 
 
 PRIVATE void
-prepare_Boltzmann_weights_stack(vrna_fold_compound_t *vc)
+prepare_Boltzmann_weights_stack(vrna_fold_compound_t *fc)
 {
   unsigned int  s, n_seq;
   int           i;
   vrna_sc_t     *sc, **scs;
 
-  switch (vc->type) {
+  switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
-      sc = vc->sc;
+      sc = fc->sc;
       if ((sc) && (sc->energy_stack)) {
         if (!sc->exp_energy_stack) {
-          sc->exp_energy_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
-          for (i = 0; i <= vc->length; ++i)
+          sc->exp_energy_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->length + 1));
+          for (i = 0; i <= fc->length; ++i)
             sc->exp_energy_stack[i] = 1.;
         }
 
-        for (i = 1; i <= vc->length; ++i)
+        for (i = 1; i <= fc->length; ++i)
           sc->exp_energy_stack[i] = (FLT_OR_DBL)exp(
-            -(sc->energy_stack[i] * 10.) / vc->exp_params->kT);
+            -(sc->energy_stack[i] * 10.) / fc->exp_params->kT);
       }
 
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
-      scs   = vc->scs;
-      n_seq = vc->n_seq;
+      scs   = fc->scs;
+      n_seq = fc->n_seq;
       if (scs) {
         for (s = 0; s < n_seq; s++) {
           if (scs[s] && scs[s]->energy_stack) {
             if (!scs[s]->exp_energy_stack) {
               scs[s]->exp_energy_stack =
-                (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
-              for (i = 0; i <= vc->length; i++)
+                (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->a2s[s][fc->length] + 1));
+              for (i = 0; i <= fc->a2s[s][fc->length]; i++)
                 scs[s]->exp_energy_stack[i] = 1.;
             }
 
-            for (i = 1; i <= vc->length; ++i)
+            for (i = 1; i <= fc->a2s[s][fc->length]; ++i)
               scs[s]->exp_energy_stack[i] = (FLT_OR_DBL)exp(
-                -(scs[s]->energy_stack[i] * 10.) / vc->exp_params->kT);
+                -(scs[s]->energy_stack[i] * 10.) / fc->exp_params->kT);
           }
         }
       }

@@ -622,10 +622,10 @@ exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
                   if (u1 + u2 == 0) {
                     if (S[s][i] && S[s][j] && S[s][k] && S[s][l]) {
                       /* don't allow gaps in stack */
-                      qloop *= scs[s]->exp_energy_stack[i] *
-                               scs[s]->exp_energy_stack[k] *
-                               scs[s]->exp_energy_stack[l] *
-                               scs[s]->exp_energy_stack[j];
+                      qloop *= scs[s]->exp_energy_stack[a2s[s][i]] *
+                               scs[s]->exp_energy_stack[a2s[s][k]] *
+                               scs[s]->exp_energy_stack[a2s[s][l]] *
+                               scs[s]->exp_energy_stack[a2s[s][j]];
                     }
                   }
                 }

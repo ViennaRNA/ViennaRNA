@@ -1157,10 +1157,9 @@ stack_energy(vrna_fold_compound_t *vc,
 {
   /* recursively calculate energy of substructure enclosed by (i,j) */
 
-  int           ee, energy, j, p, q, type, *rtype, *types, cp, ss, n_seq;
+  int           ee, energy, j, p, q, type, cp;
   char          *string;
-  short         *s, **S, **S5, **S3;
-  unsigned int  **a2s;
+  short         *s;
   FILE          *out;
   vrna_param_t  *P;
   vrna_md_t     *md;
@@ -1169,48 +1168,25 @@ stack_energy(vrna_fold_compound_t *vc,
   s       = vc->sequence_encoding2;
   P       = vc->params;
   md      = &(P->model_details);
-  rtype   = &(md->rtype[0]);
-  types   = NULL;
   energy  = 0;
   out     = (file) ? file : stdout;
 
   j = pt[i];
 
-  switch (vc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      string  = vc->sequence;
-      type    = md->pair[s[i]][s[j]];
-      if (type == 0) {
-        type = 7;
-        if (verbosity_level > verbosity_quiet) {
-          vrna_message_warning("bases %d and %d (%c%c) can't pair!",
-                               i, j,
-                               string[i - 1],
-                               string[j - 1]);
-        }
+  if (vc->type == VRNA_FC_TYPE_SINGLE) {
+    string  = vc->sequence;
+    if (md->pair[s[i]][s[j]] == 0) {
+      if (verbosity_level > verbosity_quiet) {
+        vrna_message_warning("bases %d and %d (%c%c) can't pair!",
+                             i, j,
+                             string[i - 1],
+                             string[j - 1]);
       }
-
-      break;
-
-    case VRNA_FC_TYPE_COMPARATIVE:
-      string  = vc->cons_seq;
-      S       = vc->S;
-      S5      = vc->S5;                             /* S5[s][i] holds next base 5' of i in sequence s */
-      S3      = vc->S3;                             /* Sl[s][i] holds next base 3' of i in sequence s */
-      a2s     = vc->a2s;
-      n_seq   = vc->n_seq;
-      types   = (int *)vrna_alloc(n_seq * sizeof(int));
-
-      for (ss = 0; ss < n_seq; ss++) {
-        types[ss] = md->pair[S[ss][i]][S[ss][j]];
-        if (types[ss] == 0)
-          types[ss] = 7;
-      }
-      break;
-
-    default:
-      return INF;
-      break;
+    }
+  } else if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
+    string  = vc->cons_seq;
+  } else {
+    return INF;
   }
 
   p = i;
@@ -1218,58 +1194,24 @@ stack_energy(vrna_fold_compound_t *vc,
 
   while (p < q) {
     /* process all stacks and interior loops */
-    int type_2;
     while (pt[++p] == 0);
     while (pt[--q] == 0);
     if ((pt[q] != (short)p) || (p > q))
       break;
 
     ee = 0;
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        type_2 = md->pair[s[q]][s[p]];
-        if (type_2 == 0) {
-          type_2 = 7;
-          if (verbosity_level > verbosity_quiet) {
-            vrna_message_warning("bases %d and %d (%c%c) can't pair!",
-                                 p, q,
-                                 string[p - 1],
-                                 string[q - 1]);
-          }
+    if (vc->type == VRNA_FC_TYPE_SINGLE) {
+      if (md->pair[s[q]][s[p]] == 0) {
+        if (verbosity_level > verbosity_quiet) {
+          vrna_message_warning("bases %d and %d (%c%c) can't pair!",
+                               p, q,
+                               string[p - 1],
+                               string[q - 1]);
         }
-
-        ee = vrna_eval_int_loop(vc, i, j, p, q);
-
-        type = rtype[type_2];
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        for (ss = 0; ss < n_seq; ss++) {
-          type_2 = md->pair[S[ss][q]][S[ss][p]];
-          if (type_2 == 0)
-            type_2 = 7;
-
-          ee += E_IntLoop(a2s[ss][p - 1] - a2s[ss][i],
-                          a2s[ss][j - 1] - a2s[ss][q],
-                          types[ss],
-                          type_2,
-                          S3[ss][i],
-                          S5[ss][j],
-                          S5[ss][p],
-                          S3[ss][q],
-                          P);
-        }
-
-        for (ss = 0; ss < n_seq; ss++) {
-          types[ss] = md->pair[S[ss][p]][S[ss][q]];
-          if (types[ss] == 0)
-            types[ss] = 7;
-        }
-        break;
-
-      default:
-        break;                             /* this should never happen */
+      }
     }
+
+    ee = vrna_eval_int_loop(vc, i, j, p, q);
 
     if (verbosity_level > 0)
       print_eval_int_loop(out, i, j, string[i - 1], string[j - 1],
@@ -1290,8 +1232,6 @@ stack_energy(vrna_fold_compound_t *vc,
 
     if (verbosity_level > 0)
       print_eval_hp_loop(out, i, j, string[i - 1], string[j - 1], ee);
-
-    free(types);
 
     return energy;
   }
@@ -1324,8 +1264,6 @@ stack_energy(vrna_fold_compound_t *vc,
   energy += ee;
   if (verbosity_level > 0)
     print_eval_mb_loop(out, i, j, string[i - 1], string[j - 1], ee);
-
-  free(types);
 
   return energy;
 }
