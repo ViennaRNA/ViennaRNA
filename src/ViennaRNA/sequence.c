@@ -57,7 +57,7 @@ vrna_sequence_add(vrna_fold_compound_t  *vc,
 {
   int ret = 0;
 
-  if (vc && string) {
+  if ((vc) && (vc->type == VRNA_FC_TYPE_SINGLE) && (string)) {
     vc->nucleotides =
       (vrna_seq_t *)vrna_realloc(vc->nucleotides, sizeof(vrna_seq_t) * (vc->strands + 1));
     set_sequence(&(vc->nucleotides[vc->strands]), string, options);
@@ -120,6 +120,15 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
   unsigned int cnt, i;
 
   if (fc) {
+    free(fc->strand_number);
+    free(fc->strand_order);
+    free(fc->strand_start);
+    free(fc->strand_end);
+
+    fc->strand_order  = NULL;
+    fc->strand_start  = NULL;
+    fc->strand_end    = NULL;
+
     fc->strand_number = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->length + 2));
 
     switch (fc->type) {
