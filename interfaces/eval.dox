@@ -60,4 +60,94 @@ This function is attached as method @b eval_hp_loop() to objects of type @em fol
 This function is attached as method @b eval_int_loop() to objects of type @em fold_compound
 @endparblock
 
+@fn int vrna_eval_structure_simple(const char *sequence, const char *structure)
+@scripting
+@parblock
+This function allows for two additional, optional arguments. The verbosity level and a file
+handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively. Therefore, it represents
+a wrapper for vrna_eval_structure_v().
+@endparblock
+
+@fn int vrna_eval_consensus_structure_simple(const char **alignment, const char *structure)
+@scripting
+@parblock
+This function is available through an overloadeded version of vrna_eval_structure_simple().
+Simply pass a sequence alignment as list of strings (including gaps) as first, and the
+consensus structure as second argument
+@endparblock
+
+@fn int vrna_eval_structure_verbose(const char *sequence, const char *structure, FILE *file)
+@scripting
+@parblock
+This function is not available. Use vrna_eval_structure_v() instead!
+@endparblock
+
+@fn int vrna_eval_consensus_structure_verbose(const char **alignment, const char *structure, FILE *file)
+@scripting
+@parblock
+This function is not available. Use vrna_eval_consensus_structure_v() instead!
+@endparblock
+
+@fn int vrna_eval_consensus_structure_v(const char **alignment, const char *structure, int verbosity_level, FILE *file)
+@scripting
+@parblock
+This function is available through an overloaded version of vrna_eval_structure_simple().
+Simply pass a sequence alignment as list of strings (including gaps) as first, and the
+consensus structure as second argument. The last two arguments are optional and default
+to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+@endparblock
+
+@fn int vrna_eval_structure_v(const char *sequence, const char *structure, int verbosity_level, FILE *file)
+@scripting
+@parblock
+This function is available through an overloaded version of vrna_eval_structure_simple().
+The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and NULL,
+respectively.
+@endparblock
+
+@fn int vrna_eval_structure_pt_simple(const char *sequence, const short *pt)
+@scripting
+@parblock
+This function allows for two additional, optional arguments. The verbosity level and a file
+handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively. Therefore, it represents
+a wrapper for vrna_eval_structure_pt_v().
+@endparblock
+
+@fn int vrna_eval_consensus_structure_pt_simple(const char **alignment, const short *pt)
+@scripting
+@parblock
+This function is available through an overloadeded version of vrna_eval_structure_pt_simple().
+Simply pass a sequence alignment as list of strings (including gaps) as first, and the
+consensus structure as second argument
+@endparblock
+
+@fn int vrna_eval_structure_pt_verbose(const char *sequence, const short *pt, FILE *file)
+@scripting
+@parblock
+This function is not available. Use vrna_eval_structure_pt_v() instead!
+@endparblock
+
+@fn int vrna_eval_consensus_structure_pt_verbose(const char **alignment, const short *pt, FILE *file)
+@scripting
+@parblock
+This function is not available. Use vrna_eval_consensus_structure_pt_v() instead!
+@endparblock
+
+@fn int vrna_eval_consensus_structure_pt_v(const char **alignment, const short *pt, int verbosity_level, FILE *file)
+@scripting
+@parblock
+This function is available through an overloaded version of vrna_eval_structure_pt_simple().
+Simply pass a sequence alignment as list of strings (including gaps) as first, and the
+consensus structure as second argument. The last two arguments are optional and default
+to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+@endparblock
+
+@fn int vrna_eval_structure_pt_v(const char *sequence, const short *pt, int verbosity_level, FILE *file)
+@scripting
+@parblock
+This function is available through an overloaded version of vrna_eval_structure_pt_simple().
+The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and NULL,
+respectively.
+@endparblock
+
 */

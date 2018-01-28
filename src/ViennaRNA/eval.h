@@ -114,6 +114,10 @@ float vrna_eval_structure_simple(const char *string,
                                  const char *structure);
 
 
+float vrna_eval_consensus_structure_simple(const char **alignment,
+                                           const char *structure);
+
+
 /**
  *  @brief Calculate the free energy of an already folded RNA and print contributions on a per-loop base.
  *
@@ -130,6 +134,11 @@ float vrna_eval_structure_simple(const char *string,
 float vrna_eval_structure_verbose(vrna_fold_compound_t  *vc,
                                   const char            *structure,
                                   FILE                  *file);
+
+
+float vrna_eval_consensus_structure_verbose(vrna_fold_compound_t  *vc,
+                                            const char            *structure,
+                                            FILE                  *file);
 
 
 /**
@@ -182,6 +191,11 @@ float vrna_eval_structure_simple_verbose(const char *string,
                                          FILE       *file);
 
 
+float vrna_eval_consensus_structure_simple_verbose(const char **alignment,
+                                                   const char *structure,
+                                                   FILE       *file);
+
+
 /**
  *  @brief Calculate the free energy of an already folded RNA and print contributions per loop.
  *
@@ -209,6 +223,12 @@ float vrna_eval_structure_simple_v(const char *string,
                                    const char *structure,
                                    int        verbosity_level,
                                    FILE       *file);
+
+
+float vrna_eval_consensus_structure_simple_v(const char **alignment,
+                                             const char *structure,
+                                             int        verbosity_level,
+                                             FILE       *file);
 
 
 /**
@@ -249,6 +269,10 @@ int vrna_eval_structure_pt(vrna_fold_compound_t *vc,
  */
 int vrna_eval_structure_pt_simple(const char  *string,
                                   const short *pt);
+
+
+int vrna_eval_consensus_structure_pt_simple(const char  **alignment,
+                                            const short *pt);
 
 
 /**
@@ -318,6 +342,11 @@ int vrna_eval_structure_pt_simple_verbose(const char  *string,
                                           FILE        *file);
 
 
+int vrna_eval_consensus_structure_pt_simple_verbose(const char  **alignment,
+                                                    const short *pt,
+                                                    FILE        *file);
+
+
 /**
  *  @brief Calculate the free energy of an already folded RNA
  *
@@ -346,6 +375,13 @@ int vrna_eval_structure_pt_simple_v(const char  *string,
                                     const short *pt,
                                     int         verbosity_level,
                                     FILE        *file);
+
+
+int
+vrna_eval_consensus_structure_pt_simple_v(const char  **alignment,
+                                          const short *pt,
+                                          int         verbosity_level,
+                                          FILE        *file);
 
 
 /**

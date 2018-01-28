@@ -67,6 +67,102 @@
 %ignore energy_of_gquad_struct_par;
 %ignore energy_of_struct_pt_par;
 
+
+%rename (eval_structure_simple) my_eval_structure_simple;
+%rename (eval_consensus_structure_simple) my_eval_consensus_structure_simple;
+%rename (eval_structure_pt_simple) my_eval_structure_pt_simple;
+%rename (eval_consensus_structure_pt_simple) my_eval_consensus_structure_pt_simple;
+
+%{
+
+  float
+  my_eval_structure_simple(std::string sequence,
+                           std::string structure,
+                           int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                           FILE        *file = NULL)
+  {
+    return vrna_eval_structure_simple_v(sequence.c_str(), structure.c_str(), verbosity_level, file);
+  }
+
+  float
+  my_eval_structure_simple(std::vector<std::string> alignment,
+                           std::string structure,
+                           int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                           FILE        *file = NULL)
+  {
+    std::vector<const char*>  vc;
+
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
+    vc.push_back(NULL); /* mark end of sequences */
+
+    return vrna_eval_consensus_structure_simple_v((const char **)&vc[0], structure.c_str(), verbosity_level, file);
+  }
+
+  float
+  my_eval_structure_pt_simple(std::string sequence,
+                              std::vector<int> pt,
+                              int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                              FILE        *file = NULL)
+  {
+    std::vector<short> vc;
+
+    transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
+
+    return vrna_eval_structure_pt_simple_v(sequence.c_str(), (const short*)&vc[0], verbosity_level, file);
+  }
+
+  float
+  my_eval_structure_pt_simple(std::vector<std::string> alignment,
+                              std::vector<int> pt,
+                              int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                              FILE        *file = NULL)
+  {
+    std::vector<const char*>  vc;
+    std::vector<short> ptv;
+
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
+    vc.push_back(NULL); /* mark end of sequences */
+
+    transform(pt.begin(), pt.end(), back_inserter(ptv), convert_vecint2vecshort);
+
+    return vrna_eval_consensus_structure_pt_simple_v((const char **)&vc[0], (const short*)&ptv[0], verbosity_level, file);
+  }
+
+%}
+
+
+float
+my_eval_structure_simple(std::string sequence,
+                         std::string structure,
+                           int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                           FILE        *file = NULL);
+
+float
+my_eval_structure_simple(std::vector<std::string> alignment,
+                         std::string structure,
+                           int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                           FILE        *file = NULL);
+
+float
+my_eval_structure_pt_simple(std::string sequence,
+                            std::vector<int> pt,
+                            int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                            FILE        *file = NULL);
+
+
+float
+my_eval_structure_pt_simple(std::vector<std::string> alignment,
+                            std::vector<int> pt,
+                            int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                            FILE        *file = NULL);
+
+
+%ignore vrna_eval_structure_simple;
+%ignore vrna_eval_consensus_structure_simple;
+%ignore vrna_eval_structure_pt_simple;
+%ignore vrna_eval_consensus_structure_pt_simple;
+
+
 %include  <ViennaRNA/eval.h>
 
 

@@ -100,11 +100,28 @@ vrna_eval_structure_simple(const char *string,
 
 
 PUBLIC float
+vrna_eval_consensus_structure_simple(const char **alignment,
+                                     const char *structure)
+{
+  return vrna_eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_QUIET, NULL);
+}
+
+
+PUBLIC float
 vrna_eval_structure_simple_verbose(const char *string,
                                    const char *structure,
                                    FILE       *file)
 {
   return vrna_eval_structure_simple_v(string, structure, VRNA_VERBOSITY_DEFAULT, file);
+}
+
+
+PUBLIC float
+vrna_eval_consensus_structure_simple_verbose(const char **alignment,
+                                             const char *structure,
+                                             FILE       *file)
+{
+  return vrna_eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_DEFAULT, file);
 }
 
 
@@ -117,7 +134,28 @@ vrna_eval_structure_simple_v(const char *string,
   float                 e;
 
   /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t  *fc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
+  vrna_fold_compound_t  *fc = vrna_fold_compound(string, NULL, VRNA_OPTION_DEFAULT);
+
+  /* evaluate structure */
+  e = vrna_eval_structure_v(fc, structure, verbosity_level, file);
+
+  /* free fold_compound */
+  vrna_fold_compound_free(fc);
+
+  return e;
+}
+
+
+PUBLIC float
+vrna_eval_consensus_structure_simple_v(const char **alignment,
+                                       const char *structure,
+                                       int        verbosity_level,
+                                       FILE       *file)
+{
+  float                 e;
+
+  /* create fold_compound with default parameters and without DP matrices */
+  vrna_fold_compound_t  *fc = vrna_fold_compound_comparative(alignment, NULL, VRNA_OPTION_DEFAULT);
 
   /* evaluate structure */
   e = vrna_eval_structure_v(fc, structure, verbosity_level, file);
@@ -155,11 +193,28 @@ vrna_eval_structure_pt_simple(const char  *string,
 
 
 PUBLIC int
+vrna_eval_consensus_structure_pt_simple(const char  **alignment,
+                                        const short *pt)
+{
+  return vrna_eval_consensus_structure_pt_simple_v(alignment, pt, VRNA_VERBOSITY_QUIET, NULL);
+}
+
+
+PUBLIC int
 vrna_eval_structure_pt_simple_verbose(const char  *string,
                                       const short *pt,
                                       FILE        *file)
 {
   return vrna_eval_structure_pt_simple_v(string, pt, VRNA_VERBOSITY_DEFAULT, file);
+}
+
+
+PUBLIC int
+vrna_eval_consensus_structure_pt_simple_verbose(const char  **alignment,
+                                                const short *pt,
+                                                FILE        *file)
+{
+  return vrna_eval_consensus_structure_pt_simple_v(alignment, pt, VRNA_VERBOSITY_DEFAULT, file);
 }
 
 
@@ -173,6 +228,27 @@ vrna_eval_structure_pt_simple_v(const char  *string,
 
   /* create fold_compound with default parameters and without DP matrices */
   vrna_fold_compound_t  *fc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
+
+  /* evaluate structure */
+  e = vrna_eval_structure_pt_v(fc, pt, verbosity_level, file);
+
+  /* free fold_compound */
+  vrna_fold_compound_free(fc);
+
+  return e;
+}
+
+
+PUBLIC int
+vrna_eval_consensus_structure_pt_simple_v(const char  **alignment,
+                                          const short *pt,
+                                          int         verbosity_level,
+                                          FILE        *file)
+{
+  int                   e;
+
+  /* create fold_compound with default parameters and without DP matrices */
+  vrna_fold_compound_t  *fc = vrna_fold_compound_comparative(alignment, NULL, VRNA_OPTION_DEFAULT);
 
   /* evaluate structure */
   e = vrna_eval_structure_pt_v(fc, pt, verbosity_level, file);
