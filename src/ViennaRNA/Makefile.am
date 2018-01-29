@@ -15,6 +15,7 @@ noinst_LTLIBRARIES =  libRNA_conv.la \
                       libRNA_plotting.la \
                       libRNA_params.la \
                       libRNA_loops.la \
+                      libRNA_eval.la \
                       libRNA_special_const.la
 
 # where to install the headers on the system
@@ -30,6 +31,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_utils.la \
     libRNA_plotting.la \
     libRNA_params.la \
+    libRNA_eval.la \
     libRNA_loops.la
 
 # Dummy C++ source to cause C++ linking.
@@ -180,7 +182,6 @@ libRNA_conv_la_SOURCES = \
     snoop.c \
     move_set.c \
     gquad.c \
-    eval.c \
     perturbation_fold.c \
     centroid.c \
     model.c \
@@ -193,6 +194,10 @@ libRNA_conv_la_SOURCES = \
     alphabet.c \
     sequence.c \
     unstructured_domains.c
+
+libRNA_eval_la_SOURCES = \
+    eval.c \
+    eval_wrappers.c
 
 libRNA_constraints_la_SOURCES = \
     constraints.c \

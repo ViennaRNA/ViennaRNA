@@ -18,6 +18,11 @@
 # define DEPRECATED(func, msg) func
 #endif
 
+
+#define VRNA_VERBOSITY_QUIET     -1     /* verbosity level for quiet operations */
+#define VRNA_VERBOSITY_DEFAULT    1     /* verbosity level for quiet operations */
+
+
 /**
  *  @file     eval.h
  *  @ingroup  eval
@@ -33,6 +38,7 @@
  *
  */
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 /** @brief set to first pos of second seq for cofolding  */
 extern int  cut_point;
 
@@ -40,6 +46,12 @@ extern int  cut_point;
  *  @brief verbose info from energy_of_struct
  */
 extern int  eos_debug;
+#endif
+
+/**
+ *  @name Basic Energy Evaluation Interface with Dot-Bracket Structure String
+ *  @{
+ */
 
 /**
  *  @brief Calculate the free energy of an already folded RNA
@@ -91,25 +103,6 @@ float vrna_eval_covar_structure(vrna_fold_compound_t  *vc,
 
 
 /**
- *  @brief Calculate the free energy of an already folded RNA
- *
- *  This function allows for energy evaluation of a given sequence/structure pair.
- *  In contrast to vrna_eval_structure() this function assumes default model details
- *  and default energy parameters in order to evaluate the free energy of the secondary
- *  structure. Therefore, it serves as a simple interface function for energy evaluation
- *  for situations where no changes on the energy model are required.
- *
- *  @see vrna_eval_structure(), vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
- *
- *  @param string           RNA sequence in uppercase letters
- *  @param structure        Secondary structure in dot-bracket notation
- *  @return                 The free energy of the input structure given the input sequence in kcal/mol
- */
-float vrna_eval_structure_simple(const char *string,
-                                 const char *structure);
-
-
-/**
  *  @brief Calculate the free energy of an already folded RNA and print contributions on a per-loop base.
  *
  *  This function is a simplyfied version of vrna_eval_structure_v() that uses the @em default
@@ -158,53 +151,14 @@ float vrna_eval_structure_v(vrna_fold_compound_t  *vc,
                             FILE                  *file);
 
 
-/**
- *  @brief Calculate the free energy of an already folded RNA and print contributions per loop.
- *
- *  This function is a simplyfied version of vrna_eval_structure_simple_v() that uses the @em default
- *  verbosity level.
- *
- *  @see  vrna_eval_structure_simple_v(), vrna_eval_structure_verbose(), vrna_eval_structure_pt(),
- *        vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose()
- *
- *  @param string           RNA sequence in uppercase letters
- *  @param structure        Secondary structure in dot-bracket notation
- *  @param file             A file handle where this function should print to (may be NULL).
- *  @return                 The free energy of the input structure given the input sequence in kcal/mol
- */
-float vrna_eval_structure_simple_verbose(const char *string,
-                                         const char *structure,
-                                         FILE       *file);
+/* End basic eval interface */
+/**@}*/
 
 
 /**
- *  @brief Calculate the free energy of an already folded RNA and print contributions per loop.
- *
- *  This function allows for detailed energy evaluation of a given sequence/structure pair.
- *  In contrast to vrna_eval_structure() this function prints detailed energy contributions
- *  based on individual loops to a file handle. If NULL is passed as file handle, this function
- *  defaults to print to stdout. Any positive @p verbosity_level activates potential warning message
- *  of the energy evaluting functions, while values @f$ \ge 1 @f$ allow for detailed control of what
- *  data is printed. A negative parameter @p verbosity_level turns off printing all together.
- *
- *  In contrast to vrna_eval_structure_verbose() this function assumes default model details
- *  and default energy parameters in order to evaluate the free energy of the secondary
- *  structure. Threefore, it serves as a simple interface function for energy evaluation
- *  for situations where no changes on the energy model are required.
- *
- *  @see vrna_eval_structure_verbose(), vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
- *
- *  @param string           RNA sequence in uppercase letters
- *  @param structure        Secondary structure in dot-bracket notation
- *  @param verbosity_level  The level of verbosity of this function
- *  @param file             A file handle where this function should print to (may be NULL).
- *  @return                 The free energy of the input structure given the input sequence in kcal/mol
+ *  @name Basic Energy Evaluation Interface with Structure Pair Table
+ *  @{
  */
-float vrna_eval_structure_simple_v(const char *string,
-                                   const char *structure,
-                                   int        verbosity_level,
-                                   FILE       *file);
-
 
 /**
  *  @brief Calculate the free energy of an already folded RNA
@@ -226,24 +180,6 @@ float vrna_eval_structure_simple_v(const char *string,
  */
 int vrna_eval_structure_pt(vrna_fold_compound_t *vc,
                            const short          *pt);
-
-
-/**
- *  @brief Calculate the free energy of an already folded RNA
- *
- *  In contrast to vrna_eval_structure_pt() this function assumes default model details
- *  and default energy parameters in order to evaluate the free energy of the secondary
- *  structure. Threefore, it serves as a simple interface function for energy evaluation
- *  for situations where no changes on the energy model are required.
- *
- *  @see vrna_ptable(), vrna_eval_structure_simple(), vrna_eval_structure_pt()
- *
- *  @param string           RNA sequence in uppercase letters
- *  @param pt               Secondary structure as pair_table
- *  @return                 The free energy of the input structure given the input sequence in 10cal/mol
- */
-int vrna_eval_structure_pt_simple(const char  *string,
-                                  const short *pt);
 
 
 /**
@@ -295,6 +231,489 @@ int vrna_eval_structure_pt_v(vrna_fold_compound_t *vc,
                              FILE                 *file);
 
 
+/* End basic eval interface with pair table */
+/**@}*/
+
+
+/**
+ *  @name Simplified Energy Evaluation with Sequence and Dot-Bracket Strings
+ *  @{
+ */
+
+/**
+ *  @brief Calculate the free energy of an already folded RNA
+ *
+ *  This function allows for energy evaluation of a given sequence/structure pair.
+ *  In contrast to vrna_eval_structure() this function assumes default model details
+ *  and default energy parameters in order to evaluate the free energy of the secondary
+ *  structure. Therefore, it serves as a simple interface function for energy evaluation
+ *  for situations where no changes on the energy model are required.
+ *
+ *  @see vrna_eval_structure(), vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
+ *
+ *  @param string           RNA sequence in uppercase letters
+ *  @param structure        Secondary structure in dot-bracket notation
+ *  @return                 The free energy of the input structure given the input sequence in kcal/mol
+ */
+float vrna_eval_structure_simple(const char *string,
+                                 const char *structure);
+
+
+/**
+ *  @brief  Evaluate the free energy of a sequence/structure pair where the sequence is circular
+ *
+ *  @see  vrna_eval_structure_simple(), vrna_eval_gquad_structure(), vrna_eval_circ_consensus_structure(),
+ *        vrna_eval_circ_structure_v(), vrna_eval_structure()
+ *
+ *  @param  string    RNA sequence in uppercase letters
+ *  @param  structure Secondary structure in dot-bracket notation
+ *  @return           The free energy of the structure given the circular input sequence in kcal/mol
+ */
+float vrna_eval_circ_structure(const char *string,
+                               const char *structure);
+
+
+/**
+ *  @brief  Evaluate the free energy of a sequence/structure pair where the structure may contain G-Quadruplexes
+ *
+ *  G-Quadruplexes are annotated as plus signs ('+') for each G involved in the motif. Linker sequences must
+ *  be denoted by dots ('.') as they are considered unpaired. Below is an example of a 2-layer G-quadruplex:
+ *  @code{.unparsed}
+ *  GGAAGGAAAGGAGG
+ *  ++..++...++.++
+ *  @endcode
+ *
+ *  @see  vrna_eval_structure_simple(), vrna_eval_circ_structure(), vrna_eval_gquad_consensus_structure(),
+ *        vrna_eval_gquad_structure_v(), vrna_eval_structure()
+ *
+ *  @param  string    RNA sequence in uppercase letters
+ *  @param  structure Secondary structure in dot-bracket notation
+ *  @return           The free energy of the structure including contributions of G-quadruplexes in kcal/mol
+ */
+float vrna_eval_gquad_structure(const char  *string,
+                                const char  *structure);
+
+
+/**
+ *  @brief  Evaluate the free energy of a sequence/structure pair where the sequence is circular and
+ *          the structure may contain G-Quadruplexes
+ *
+ *  G-Quadruplexes are annotated as plus signs ('+') for each G involved in the motif. Linker sequences must
+ *  be denoted by dots ('.') as they are considered unpaired. Below is an example of a 2-layer G-quadruplex:
+ *  @code{.unparsed}
+ *  GGAAGGAAAGGAGG
+ *  ++..++...++.++
+ *  @endcode
+ *
+ *  @see  vrna_eval_structure_simple(), vrna_eval_circ_gquad_consensus_structure(),
+ *        vrna_eval_circ_gquad_structure_v(), vrna_eval_structure()
+ *
+ *  @param  string    RNA sequence in uppercase letters
+ *  @param  structure Secondary structure in dot-bracket notation
+ *  @return           The free energy of the structure including contributions of G-quadruplexes in kcal/mol
+ */
+float vrna_eval_circ_gquad_structure(const char *string,
+                                     const char *structure);
+
+
+/**
+ *  @brief Calculate the free energy of an already folded RNA and print contributions per loop.
+ *
+ *  This function is a simplyfied version of vrna_eval_structure_simple_v() that uses the @em default
+ *  verbosity level.
+ *
+ *  @see  vrna_eval_structure_simple_v(), vrna_eval_structure_verbose(), vrna_eval_structure_pt(),
+ *        vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose()
+ *
+ *  @param string           RNA sequence in uppercase letters
+ *  @param structure        Secondary structure in dot-bracket notation
+ *  @param file             A file handle where this function should print to (may be NULL).
+ *  @return                 The free energy of the input structure given the input sequence in kcal/mol
+ */
+float vrna_eval_structure_simple_verbose(const char *string,
+                                         const char *structure,
+                                         FILE       *file);
+
+
+/**
+ *  @brief Calculate the free energy of an already folded RNA and print contributions per loop.
+ *
+ *  This function allows for detailed energy evaluation of a given sequence/structure pair.
+ *  In contrast to vrna_eval_structure() this function prints detailed energy contributions
+ *  based on individual loops to a file handle. If NULL is passed as file handle, this function
+ *  defaults to print to stdout. Any positive @p verbosity_level activates potential warning message
+ *  of the energy evaluting functions, while values @f$ \ge 1 @f$ allow for detailed control of what
+ *  data is printed. A negative parameter @p verbosity_level turns off printing all together.
+ *
+ *  In contrast to vrna_eval_structure_verbose() this function assumes default model details
+ *  and default energy parameters in order to evaluate the free energy of the secondary
+ *  structure. Threefore, it serves as a simple interface function for energy evaluation
+ *  for situations where no changes on the energy model are required.
+ *
+ *  @see vrna_eval_structure_verbose(), vrna_eval_structure_pt(), vrna_eval_structure_pt_verbose(),
+ *
+ *  @param string           RNA sequence in uppercase letters
+ *  @param structure        Secondary structure in dot-bracket notation
+ *  @param verbosity_level  The level of verbosity of this function
+ *  @param file             A file handle where this function should print to (may be NULL).
+ *  @return                 The free energy of the input structure given the input sequence in kcal/mol
+ */
+float vrna_eval_structure_simple_v(const char *string,
+                                   const char *structure,
+                                   int        verbosity_level,
+                                   FILE       *file);
+
+
+/**
+ *  @brief  Evaluate free energy of a sequence/structure pair, assume sequence to be circular and
+ *          print contributions per loop
+ *
+ *  This function is the same as vrna_eval_structure_simple_v() but assumes the input sequence
+ *  to be circularized.
+ *
+ *  @see  vrna_eval_structure_simple_v(), vrna_eval_circ_structure(), vrna_eval_structure_verbose()
+ *
+ *  @param string           RNA sequence in uppercase letters
+ *  @param structure        Secondary structure in dot-bracket notation
+ *  @param verbosity_level  The level of verbosity of this function
+ *  @param file             A file handle where this function should print to (may be NULL).
+ *  @return                 The free energy of the input structure given the input sequence in kcal/mol
+ */
+float vrna_eval_circ_structure_v(const char *string,
+                                 const char *structure,
+                                 int        verbosity_level,
+                                 FILE       *file);
+
+
+/**
+ *  @brief  Evaluate free energy of a sequence/structure pair, allow for G-Quadruplexes in the structure
+ *          and print contributions per loop
+ *
+ *  This function is the same as vrna_eval_structure_simple_v() but allows for annotated G-Quadruplexes
+ *  in the dot-bracket structure input.
+ *
+ *  G-Quadruplexes are annotated as plus signs ('+') for each G involved in the motif. Linker sequences must
+ *  be denoted by dots ('.') as they are considered unpaired. Below is an example of a 2-layer G-quadruplex:
+ *  @code{.unparsed}
+ *  GGAAGGAAAGGAGG
+ *  ++..++...++.++
+ *  @endcode
+ *
+ *  @see  vrna_eval_structure_simple_v(), vrna_eval_gquad_structure(), vrna_eval_structure_verbose()
+ *
+ *  @param string           RNA sequence in uppercase letters
+ *  @param structure        Secondary structure in dot-bracket notation
+ *  @param verbosity_level  The level of verbosity of this function
+ *  @param file             A file handle where this function should print to (may be NULL).
+ *  @return                 The free energy of the input structure given the input sequence in kcal/mol
+ */
+float vrna_eval_gquad_structure_v(const char  *string,
+                                  const char  *structure,
+                                  int         verbosity_level,
+                                  FILE        *file);
+
+
+/**
+ *  @brief  Evaluate free energy of a sequence/structure pair, assume sequence to be circular, allow
+ *          for G-Quadruplexes in the structure, and print contributions per loop
+ *
+ *  This function is the same as vrna_eval_structure_simple_v() but assumes the input sequence to
+ *  be circular and allows for annotated G-Quadruplexes in the dot-bracket structure input.
+ *
+ *  G-Quadruplexes are annotated as plus signs ('+') for each G involved in the motif. Linker sequences must
+ *  be denoted by dots ('.') as they are considered unpaired. Below is an example of a 2-layer G-quadruplex:
+ *  @code{.unparsed}
+ *  GGAAGGAAAGGAGG
+ *  ++..++...++.++
+ *  @endcode
+ *
+ *  @param string           RNA sequence in uppercase letters
+ *  @param structure        Secondary structure in dot-bracket notation
+ *  @param verbosity_level  The level of verbosity of this function
+ *  @param file             A file handle where this function should print to (may be NULL).
+ *  @return                 The free energy of the input structure given the input sequence in kcal/mol
+ */
+float vrna_eval_circ_gquad_structure_v(const char *string,
+                                       const char *structure,
+                                       int        verbosity_level,
+                                       FILE       *file);
+
+
+/* End simplified eval interface */
+/**@}*/
+
+
+/**
+ *  @name Simplified Energy Evaluation with Sequence Alignments and Consensus Structure Dot-Bracket String
+ *  @{
+ */
+
+/**
+ *  @brief Calculate the free energy of an already folded RNA sequence alignment
+ *
+ *  This function allows for energy evaluation for a given multiple sequence alignment
+ *  and consensus structure pair.
+ *  In contrast to vrna_eval_structure() this function assumes default model details
+ *  and default energy parameters in order to evaluate the free energy of the secondary
+ *  structure. Therefore, it serves as a simple interface function for energy evaluation
+ *  for situations where no changes on the energy model are required.
+ *
+ *  @note The free energy returned from this function already includes the covariation
+ *        pseudo energies that is used fir comparative structure prediction within this
+ *        library.
+ *
+ *  @see  vrna_eval_covar_structure(), vrna_eval_structure(), vrna_eval_structure_pt(),
+ *        vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose()
+ *
+ *  @param alignment        RNA sequence alignment in uppercase letters and hyphen ('-') to denote gaps
+ *  @param structure        Consensus Secondary structure in dot-bracket notation
+ *  @return                 The free energy of the consensus structure given the input alignment in kcal/mol
+ */
+float vrna_eval_consensus_structure_simple(const char **alignment,
+                                           const char *structure);
+
+
+/**
+ *  @brief  Evaluate the free energy of a multiple sequence alignment/consensus structure pair
+ *          where the sequences are circular
+ *
+ *  @note The free energy returned from this function already includes the covariation
+ *        pseudo energies that is used fir comparative structure prediction within this
+ *        library.
+ *
+ *  @see  vrna_eval_covar_structure(), vrna_eval_consensus_structure_simple(), vrna_eval_gquad_consensus_structure(),
+ *        vrna_eval_circ_structure(), vrna_eval_circ_consensus_structure_v(), vrna_eval_structure()
+ *
+ *  @param  alignment RNA sequence alignment in uppercase letters
+ *  @param  structure Consensus secondary structure in dot-bracket notation
+ *  @return           The free energy of the consensus structure given the circular input sequence in kcal/mol
+ */
+float vrna_eval_circ_consensus_structure(const char **alignment,
+                                         const char *structure);
+
+
+/**
+ *  @brief  Evaluate the free energy of a multiple sequence alignment/consensus structure pair
+ *          where the structure may contain G-Quadruplexes
+ *
+ *  G-Quadruplexes are annotated as plus signs ('+') for each G involved in the motif. Linker sequences must
+ *  be denoted by dots ('.') as they are considered unpaired. Below is an example of a 2-layer G-quadruplex:
+ *  @code{.unparsed}
+ *  GGAAGGAAAGGAGG
+ *  ++..++...++.++
+ *  @endcode
+ *
+ *  @note The free energy returned from this function already includes the covariation
+ *        pseudo energies that is used fir comparative structure prediction within this
+ *        library.
+ *
+ *  @see  vrna_eval_covar_structure(), vrna_eval_consensus_structure_simple(), vrna_eval_circ_consensus_structure(),
+ *        vrna_eval_gquad_structure(), vrna_eval_gquad_consensus_structure_v(), vrna_eval_structure()
+ *
+ *  @param  alignment RNA sequence alignment in uppercase letters
+ *  @param  structure Consensus secondary structure in dot-bracket notation
+ *  @return           The free energy of the consensus structure including contributions of G-quadruplexes in kcal/mol
+ */
+float vrna_eval_gquad_consensus_structure(const char  **alignment,
+                                          const char  *structure);
+
+
+/**
+ *  @brief  Evaluate the free energy of a multiple sequence alignment/consensus structure pair
+ *          where the sequence is circular and the structure may contain G-Quadruplexes
+ *
+ *  G-Quadruplexes are annotated as plus signs ('+') for each G involved in the motif. Linker sequences must
+ *  be denoted by dots ('.') as they are considered unpaired. Below is an example of a 2-layer G-quadruplex:
+ *  @code{.unparsed}
+ *  GGAAGGAAAGGAGG
+ *  ++..++...++.++
+ *  @endcode
+ *
+ *  @note The free energy returned from this function already includes the covariation
+ *        pseudo energies that is used fir comparative structure prediction within this
+ *        library.
+ *
+ *  @see  vrna_eval_covar_structure(), vrna_eval_consensus_structure_simple(), vrna_eval_circ_consensus_structure(),
+ *        vrna_eval_gquad_structure(), vrna_eval_circ_gquad_consensus_structure_v(), vrna_eval_structure()
+ *
+ *  @param  alignment RNA sequence alignment in uppercase letters
+ *  @param  structure Consensus secondary structure in dot-bracket notation
+ *  @return           The free energy of the consensus structure including contributions of G-quadruplexes in kcal/mol
+ */
+float vrna_eval_circ_gquad_consensus_structure(const char **alignment,
+                                               const char *structure);
+
+
+/**
+ *  @brief  Evaluate the free energy of a consensus structure for an RNA sequence alignment and print
+ *          contributions per loop.
+ *
+ *  This function is a simplyfied version of vrna_eval_consensus_structure_simple_v() that uses the
+ *  @em default verbosity level.
+ *
+ *  @note The free energy returned from this function already includes the covariation
+ *        pseudo energies that is used fir comparative structure prediction within this
+ *        library.
+ *
+ *  @see  vrna_eval_consensus_structure_simple_v(), vrna_eval_structure_verbose(), vrna_eval_structure_pt(),
+ *        vrna_eval_structure_pt_verbose()
+ *
+ *  @param alignment        RNA sequence alignment in uppercase letters. Gaps are denoted by hyphens ('-')
+ *  @param structure        Consensus secondary structure in dot-bracket notation
+ *  @param file             A file handle where this function should print to (may be NULL).
+ *  @return                 The free energy of the conensus structure given the aligned input sequences in kcal/mol
+ */
+float vrna_eval_consensus_structure_simple_verbose(const char **alignment,
+                                                   const char *structure,
+                                                   FILE       *file);
+
+
+/**
+ *  @brief  Evaluate the free energy of a consensus structure for an RNA sequence alignment and print
+ *          contributions per loop.
+ *
+ *  This function allows for detailed energy evaluation of a given sequence alignment/consensus
+ *  structure pair. In contrast to vrna_eval_consensus_structure_simple() this function prints
+ *  detailed energy contributions based on individual loops to a file handle. If NULL is passed
+ *  as file handle, this function defaults to print to stdout. Any positive @p verbosity_level
+ *  activates potential warning message of the energy evaluting functions, while values @f$ \ge 1 @f$
+ *  allow for detailed control of what data is printed. A negative parameter @p verbosity_level
+ *  turns off printing all together.
+ *
+ *  @note The free energy returned from this function already includes the covariation
+ *        pseudo energies that is used fir comparative structure prediction within this
+ *        library.
+ *
+ *  @see vrna_eval_consensus_structure(), vrna_eval_structure()
+ *
+ *  @param alignment        RNA sequence alignment in uppercase letters. Gaps are denoted by hyphens ('-')
+ *  @param structure        Consensus secondary structure in dot-bracket notation
+ *  @param verbosity_level  The level of verbosity of this function
+ *  @param file             A file handle where this function should print to (may be NULL).
+ *  @return                 The free energy of the consensus structure given the sequence alignment in kcal/mol
+ */
+float vrna_eval_consensus_structure_simple_v(const char **alignment,
+                                             const char *structure,
+                                             int        verbosity_level,
+                                             FILE       *file);
+
+
+/**
+ *  @brief  Evaluate the free energy of a consensus structure for an alignment of circular RNA sequences
+ *          and print contributions per loop.
+ *
+ *  This function is identical with vrna_eval_consensus_structure_simple_v() but assumed the
+ *  aligned sequences to be circular.
+ *
+ *  @note The free energy returned from this function already includes the covariation
+ *        pseudo energies that is used fir comparative structure prediction within this
+ *        library.
+ *
+ *  @see vrna_eval_consensus_structure_simple_v(), vrna_eval_circ_consensus_structure(), vrna_eval_structure()
+ *
+ *  @param alignment        RNA sequence alignment in uppercase letters. Gaps are denoted by hyphens ('-')
+ *  @param structure        Consensus secondary structure in dot-bracket notation
+ *  @param verbosity_level  The level of verbosity of this function
+ *  @param file             A file handle where this function should print to (may be NULL).
+ *  @return                 The free energy of the consensus structure given the sequence alignment in kcal/mol
+ */
+float vrna_eval_circ_consensus_structure_v(const char **alignment,
+                                           const char *structure,
+                                           int        verbosity_level,
+                                           FILE       *file);
+
+
+/**
+ *  @brief  Evaluate the free energy of a consensus structure for an RNA sequence alignment, allow for
+ *          annotated G-Quadruplexes in the structure and print contributions per loop.
+ *
+ *  This function is identical with vrna_eval_consensus_structure_simple_v() but allows for annotated
+ *  G-Quadruplexes in the consensus structure.
+ *
+ *  G-Quadruplexes are annotated as plus signs ('+') for each G involved in the motif. Linker sequences must
+ *  be denoted by dots ('.') as they are considered unpaired. Below is an example of a 2-layer G-quadruplex:
+ *  @code{.unparsed}
+ *  GGAAGGAAAGGAGG
+ *  ++..++...++.++
+ *  @endcode
+ *
+ *  @note The free energy returned from this function already includes the covariation
+ *        pseudo energies that is used fir comparative structure prediction within this
+ *        library.
+ *
+ *  @see vrna_eval_consensus_structure_simple_v(), vrna_eval_gquad_consensus_structure(), vrna_eval_structure()
+ *
+ *  @param alignment        RNA sequence alignment in uppercase letters. Gaps are denoted by hyphens ('-')
+ *  @param structure        Consensus secondary structure in dot-bracket notation
+ *  @param verbosity_level  The level of verbosity of this function
+ *  @param file             A file handle where this function should print to (may be NULL).
+ *  @return                 The free energy of the consensus structure given the sequence alignment in kcal/mol
+ */
+float vrna_eval_gquad_consensus_structure_v(const char  **alignment,
+                                            const char  *structure,
+                                            int         verbosity_level,
+                                            FILE        *file);
+
+
+/**
+ *  @brief  Evaluate the free energy of a consensus structure for an alignment of circular RNA sequences,
+ *          allow for annotated G-Quadruplexes in the structure and print contributions per loop.
+ *
+ *  This function is identical with vrna_eval_consensus_structure_simple_v() but assumes the sequences in
+ *  the alignment to be circular and allows for annotated G-Quadruplexes in the consensus structure.
+ *
+ *  G-Quadruplexes are annotated as plus signs ('+') for each G involved in the motif. Linker sequences must
+ *  be denoted by dots ('.') as they are considered unpaired. Below is an example of a 2-layer G-quadruplex:
+ *  @code{.unparsed}
+ *  GGAAGGAAAGGAGG
+ *  ++..++...++.++
+ *  @endcode
+ *
+ *  @note The free energy returned from this function already includes the covariation
+ *        pseudo energies that is used fir comparative structure prediction within this
+ *        library.
+ *
+ *  @see vrna_eval_consensus_structure_simple_v(), vrna_eval_circ_gquad_consensus_structure(), vrna_eval_structure()
+ *
+ *  @param alignment        RNA sequence alignment in uppercase letters. Gaps are denoted by hyphens ('-')
+ *  @param structure        Consensus secondary structure in dot-bracket notation
+ *  @param verbosity_level  The level of verbosity of this function
+ *  @param file             A file handle where this function should print to (may be NULL).
+ *  @return                 The free energy of the consensus structure given the sequence alignment in kcal/mol
+ */
+float vrna_eval_circ_gquad_consensus_structure_v(const char **alignment,
+                                                 const char *structure,
+                                                 int        verbosity_level,
+                                                 FILE       *file);
+
+
+/* End simplified comparative eval interface */
+/**@}*/
+
+
+/**
+ *  @name Simplified Energy Evaluation with Sequence String and Structure Pair Table
+ *  @{
+ */
+
+/**
+ *  @brief Calculate the free energy of an already folded RNA
+ *
+ *  In contrast to vrna_eval_structure_pt() this function assumes default model details
+ *  and default energy parameters in order to evaluate the free energy of the secondary
+ *  structure. Threefore, it serves as a simple interface function for energy evaluation
+ *  for situations where no changes on the energy model are required.
+ *
+ *  @see vrna_ptable(), vrna_eval_structure_simple(), vrna_eval_structure_pt()
+ *
+ *  @param string           RNA sequence in uppercase letters
+ *  @param pt               Secondary structure as pair_table
+ *  @return                 The free energy of the input structure given the input sequence in 10cal/mol
+ */
+int vrna_eval_structure_pt_simple(const char  *string,
+                                  const short *pt);
+
+
 /**
  *  @brief Calculate the free energy of an already folded RNA
  *
@@ -343,6 +762,53 @@ int vrna_eval_structure_pt_simple_v(const char  *string,
                                     FILE        *file);
 
 
+/* End simplified eval interface with pair table */
+/**@}*/
+
+/**
+ *  @name Simplified Energy Evaluation with Sequence Alignment and Consensus Structure Pair Table
+ *  @{
+ */
+
+/**
+ *  @brief  Evaluate the Free Energy of a Consensus Secondary Structure given a Sequence Alignment
+ *
+ *  @note The free energy returned from this function already includes the covariation
+ *        pseudo energies that is used fir comparative structure prediction within this
+ *        library.
+ *
+ *  @see  vrna_eval_consensus_structure_simple(), vrna_eval_structure_pt(), vrna_eval_structure(),
+ *        vrna_eval_covar_structure()
+ *
+ *  @param  alignment   RNA sequence alignment in uppercase letters. Gaps are denoted by hyphens ('-')
+ *  @param  pt          Secondary structure in pair table format
+ *  @return             Free energy of the consensus structure in 10cal/mol
+ */
+int vrna_eval_consensus_structure_pt_simple(const char  **alignment,
+                                            const short *pt);
+
+
+int vrna_eval_consensus_structure_pt_simple_verbose(const char  **alignment,
+                                                    const short *pt,
+                                                    FILE        *file);
+
+
+int
+vrna_eval_consensus_structure_pt_simple_v(const char  **alignment,
+                                          const short *pt,
+                                          int         verbosity_level,
+                                          FILE        *file);
+
+
+/* End simplified eval interface with pair table */
+/**@}*/
+
+
+/**
+ *  @name Basic Loop Energy Evaluation with Structure Pair Table
+ *  @{
+ */
+
 /**
  * @brief Calculate energy of a loop
  *
@@ -355,6 +821,32 @@ int vrna_eval_loop_pt(vrna_fold_compound_t  *vc,
                       int                   i,
                       const short           *pt);
 
+
+/**
+ * @brief Calculate energy of a loop
+ *
+ *  @param vc         A vrna_fold_compound_t containing the energy parameters and model details
+ *  @param i          position of covering base pair
+ *  @param pt         the pair table of the secondary structure
+ *  @param verbosity_level  The level of verbosity of this function
+ *  @returns          free energy of the loop in 10cal/mol
+ */
+int vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
+                        int                   i,
+                        const short           *pt,
+                        int                   verbosity_level);
+
+
+/* End basic loop eval interface with pair table */
+/**@}*/
+
+
+/**
+ *  @name Basic Energy Evaluation for atomic moves
+ *  Here, atomic moves are considered opening or closing a single base pair, as
+ *  well as shifting one pairing partner of an existing pair to a different location
+ *  @{
+ */
 
 /**
  * @brief Calculate energy of a move (closing or opening of a base pair)
@@ -407,7 +899,18 @@ vrna_eval_move_shift_pt(vrna_fold_compound_t  *vc,
                         short                 *structure);
 
 
+/* End eval move interface */
+/**@}*/
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+/**
+ *  @name Deprecated Energy Evaluation functions
+ *  Using the functions below is discouraged as they have been marked deprecated and will be removed
+ *  from the library in the (near) future!
+ *
+ *  @{
+ */
 
 /**
  *  @brief Calculate the free energy of an already folded RNA using global model detail settings
@@ -430,7 +933,7 @@ vrna_eval_move_shift_pt(vrna_fold_compound_t  *vc,
 DEPRECATED(float energy_of_structure(const char *string,
                                      const char *structure,
                                      int        verbosity_level),
-          "Use vrna_eval_structure_simple() and vrna_eval_structure() instead");
+           "Use vrna_eval_structure_simple() and vrna_eval_structure() instead");
 
 /**
  *  @brief Calculate the free energy of an already folded RNA
@@ -451,7 +954,7 @@ DEPRECATED(float energy_of_struct_par(const char    *string,
                                       const char    *structure,
                                       vrna_param_t  *parameters,
                                       int           verbosity_level),
-          "Use vrna_eval_structure() instead");
+           "Use vrna_eval_structure() instead");
 
 /**
  *  @brief Calculate the free energy of an already folded  circular RNA
@@ -474,7 +977,7 @@ DEPRECATED(float energy_of_struct_par(const char    *string,
 DEPRECATED(float energy_of_circ_structure(const char  *string,
                                           const char  *structure,
                                           int         verbosity_level),
-          "Use vrna_eval_circ_structure_simple() and vrna_eval_structure() instead");
+           "Use vrna_eval_circ_structure_simple() and vrna_eval_structure() instead");
 
 /**
  *  @brief Calculate the free energy of an already folded circular RNA
@@ -495,19 +998,19 @@ DEPRECATED(float energy_of_circ_struct_par(const char   *string,
                                            const char   *structure,
                                            vrna_param_t *parameters,
                                            int          verbosity_level),
-          "Use vrna_eval_structure() instead");
+           "Use vrna_eval_structure() instead");
 
 
 DEPRECATED(float energy_of_gquad_structure(const char *string,
                                            const char *structure,
                                            int        verbosity_level),
-          "Use vrna_eval_structure_simple() instead");
+           "Use vrna_eval_structure_simple() instead");
 
 DEPRECATED(float energy_of_gquad_struct_par(const char    *string,
                                             const char    *structure,
                                             vrna_param_t  *parameters,
                                             int           verbosity_level),
-          "Use vrna_eval_structure() instead");
+           "Use vrna_eval_structure() instead");
 
 
 /**
@@ -535,7 +1038,7 @@ DEPRECATED(int energy_of_structure_pt(const char  *string,
                                       short       *s,
                                       short       *s1,
                                       int         verbosity_level),
-          "Use vrna_eval_structure_pt_simple() and vrna_eval_structure_pt() instead");
+           "Use vrna_eval_structure_pt_simple() and vrna_eval_structure_pt() instead");
 
 /**
  *  @brief Calculate the free energy of an already folded RNA
@@ -560,7 +1063,7 @@ DEPRECATED(int energy_of_struct_pt_par(const char   *string,
                                        short        *s1,
                                        vrna_param_t *parameters,
                                        int          verbosity_level),
-          "Use vrna_eval_structure_pt() instead");
+           "Use vrna_eval_structure_pt() instead");
 
 
 /**
@@ -583,7 +1086,7 @@ DEPRECATED(float energy_of_move(const char  *string,
                                 const char  *structure,
                                 int         m1,
                                 int         m2),
-          "Use vrna_eval_move() instead");
+           "Use vrna_eval_move() instead");
 
 
 /**
@@ -609,7 +1112,7 @@ DEPRECATED(int energy_of_move_pt(short  *pt,
                                  short  *s1,
                                  int    m1,
                                  int    m2),
-          "Use vrna_eval_move_pt_simple() and vrna_eval_move_pt() instead");
+           "Use vrna_eval_move_pt_simple() and vrna_eval_move_pt() instead");
 
 /**
  * @brief Calculate energy of a loop
@@ -628,7 +1131,7 @@ DEPRECATED(int   loop_energy(short  *ptable,
                              short  *s,
                              short  *s1,
                              int    i),
-          "Use vrna_eval_loop_pt() instead");
+           "Use vrna_eval_loop_pt() instead");
 
 /**
  *  Calculate the free energy of an already folded RNA
@@ -646,7 +1149,7 @@ DEPRECATED(int   loop_energy(short  *ptable,
  */
 DEPRECATED(float energy_of_struct(const char  *string,
                                   const char  *structure),
-          "Use vrna_eval_structure_simple() instead");
+           "Use vrna_eval_structure_simple() instead");
 
 /**
  *  Calculate the free energy of an already folded RNA
@@ -668,7 +1171,7 @@ DEPRECATED(int energy_of_struct_pt(const char *string,
                                    short      *ptable,
                                    short      *s,
                                    short      *s1),
-          "Use vrna_eval_structure_pt_simple() instead");
+           "Use vrna_eval_structure_pt_simple() instead");
 
 /**
  *  Calculate the free energy of an already folded  circular RNA
@@ -686,7 +1189,10 @@ DEPRECATED(int energy_of_struct_pt(const char *string,
  */
 DEPRECATED(float energy_of_circ_struct(const char *string,
                                        const char *structure),
-          "Use vrna_eval_circ_structure_simple() and vrna_eval_structure() instead");
+           "Use vrna_eval_circ_structure_simple() and vrna_eval_structure() instead");
+
+/* End deprecated eval interface */
+/**@}*/
 
 #endif
 
