@@ -29,6 +29,12 @@
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/eval.h"
 
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -67,6 +73,24 @@ recycle_last_call(const char    *string,
                   vrna_param_t  *P);
 
 
+PRIVATE INLINE float
+eval_structure_simple_v(const char  *string,
+                        const char  *structure,
+                        int         verbosity_level,
+                        int         gquad,
+                        int         circular,
+                        FILE        *file);
+
+
+PRIVATE INLINE float
+eval_consensus_structure_simple_v(const char  **alignment,
+                                  const char  *structure,
+                                  int         verbosity_level,
+                                  int         gquad,
+                                  int         circular,
+                                  FILE        *file);
+
+
 #endif
 
 /*
@@ -95,7 +119,7 @@ PUBLIC float
 vrna_eval_structure_simple(const char *string,
                            const char *structure)
 {
-  return vrna_eval_structure_simple_v(string, structure, VRNA_VERBOSITY_QUIET, NULL);
+  return eval_structure_simple_v(string, structure, VRNA_VERBOSITY_QUIET, 0, 0, NULL);
 }
 
 
@@ -103,7 +127,55 @@ PUBLIC float
 vrna_eval_consensus_structure_simple(const char **alignment,
                                      const char *structure)
 {
-  return vrna_eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_QUIET, NULL);
+  return eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_QUIET, 0, 0, NULL);
+}
+
+
+PUBLIC float
+vrna_eval_gquad_structure(const char  *string,
+                          const char  *structure)
+{
+  return eval_structure_simple_v(string, structure, VRNA_VERBOSITY_QUIET, 1, 0, NULL);
+}
+
+
+PUBLIC float
+vrna_eval_gquad_consensus_structure(const char  **alignment,
+                                    const char  *structure)
+{
+  return eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_QUIET, 1, 0, NULL);
+}
+
+
+PUBLIC float
+vrna_eval_circ_structure(const char *string,
+                         const char *structure)
+{
+  return eval_structure_simple_v(string, structure, VRNA_VERBOSITY_QUIET, 0, 1, NULL);
+}
+
+
+PUBLIC float
+vrna_eval_circ_consensus_structure(const char **alignment,
+                                   const char *structure)
+{
+  return eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_QUIET, 0, 1, NULL);
+}
+
+
+PUBLIC float
+vrna_eval_circ_gquad_structure(const char *string,
+                               const char *structure)
+{
+  return eval_structure_simple_v(string, structure, VRNA_VERBOSITY_QUIET, 1, 1, NULL);
+}
+
+
+PUBLIC float
+vrna_eval_circ_gquad_consensus_structure(const char **alignment,
+                                         const char *structure)
+{
+  return eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_QUIET, 1, 1, NULL);
 }
 
 
@@ -112,7 +184,7 @@ vrna_eval_structure_simple_verbose(const char *string,
                                    const char *structure,
                                    FILE       *file)
 {
-  return vrna_eval_structure_simple_v(string, structure, VRNA_VERBOSITY_DEFAULT, file);
+  return eval_structure_simple_v(string, structure, VRNA_VERBOSITY_DEFAULT, 0, 0, file);
 }
 
 
@@ -121,7 +193,8 @@ vrna_eval_consensus_structure_simple_verbose(const char **alignment,
                                              const char *structure,
                                              FILE       *file)
 {
-  return vrna_eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_DEFAULT, file);
+  return eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_DEFAULT, 0, 0,
+                                           file);
 }
 
 
@@ -131,18 +204,7 @@ vrna_eval_structure_simple_v(const char *string,
                              int        verbosity_level,
                              FILE       *file)
 {
-  float                 e;
-
-  /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t  *fc = vrna_fold_compound(string, NULL, VRNA_OPTION_DEFAULT);
-
-  /* evaluate structure */
-  e = vrna_eval_structure_v(fc, structure, verbosity_level, file);
-
-  /* free fold_compound */
-  vrna_fold_compound_free(fc);
-
-  return e;
+  return eval_structure_simple_v(string, structure, verbosity_level, 0, 0, file);
 }
 
 
@@ -152,18 +214,67 @@ vrna_eval_consensus_structure_simple_v(const char **alignment,
                                        int        verbosity_level,
                                        FILE       *file)
 {
-  float                 e;
+  return eval_consensus_structure_simple_v(alignment, structure, verbosity_level, 0, 0, file);
+}
 
-  /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t  *fc = vrna_fold_compound_comparative(alignment, NULL, VRNA_OPTION_DEFAULT);
 
-  /* evaluate structure */
-  e = vrna_eval_structure_v(fc, structure, verbosity_level, file);
+PUBLIC float
+vrna_eval_circ_structure_v(const char *string,
+                           const char *structure,
+                           int        verbosity_level,
+                           FILE       *file)
+{
+  return eval_structure_simple_v(string, structure, verbosity_level, 0, 1, file);
+}
 
-  /* free fold_compound */
-  vrna_fold_compound_free(fc);
 
-  return e;
+PUBLIC float
+vrna_eval_circ_consensus_structure_v(const char **alignment,
+                                     const char *structure,
+                                     int        verbosity_level,
+                                     FILE       *file)
+{
+  return eval_consensus_structure_simple_v(alignment, structure, verbosity_level, 0, 1, file);
+}
+
+
+PUBLIC float
+vrna_eval_gquad_structure_v(const char  *string,
+                            const char  *structure,
+                            int         verbosity_level,
+                            FILE        *file)
+{
+  return eval_structure_simple_v(string, structure, verbosity_level, 1, 0, file);
+}
+
+
+PUBLIC float
+vrna_eval_gquad_consensus_structure_v(const char  **alignment,
+                                      const char  *structure,
+                                      int         verbosity_level,
+                                      FILE        *file)
+{
+  return eval_consensus_structure_simple_v(alignment, structure, verbosity_level, 1, 0, file);
+}
+
+
+PUBLIC float
+vrna_eval_circ_gquad_structure_v(const char *string,
+                                 const char *structure,
+                                 int        verbosity_level,
+                                 FILE       *file)
+{
+  return eval_structure_simple_v(string, structure, verbosity_level, 1, 1, file);
+}
+
+
+PUBLIC float
+vrna_eval_circ_gquad_consensus_structure_v(const char **alignment,
+                                           const char *structure,
+                                           int        verbosity_level,
+                                           FILE       *file)
+{
+  return eval_consensus_structure_simple_v(alignment, structure, verbosity_level, 1, 1, file);
 }
 
 
@@ -351,6 +462,64 @@ vrna_eval_loop_pt(vrna_fold_compound_t  *fc,
                   const short           *pt)
 {
   return vrna_eval_loop_pt_v(fc, i, pt, VRNA_VERBOSITY_QUIET);
+}
+
+
+PRIVATE INLINE float
+eval_structure_simple_v(const char  *string,
+                        const char  *structure,
+                        int         verbosity_level,
+                        int         gquad,
+                        int         circular,
+                        FILE        *file)
+{
+  float     e;
+  vrna_md_t md;
+
+  vrna_md_set_default(&md);
+
+  md.circ   = circular;
+  md.gquad  = gquad;
+
+  /* create fold_compound with default parameters and without DP matrices */
+  vrna_fold_compound_t *fc = vrna_fold_compound(string, &md, VRNA_OPTION_DEFAULT);
+
+  /* evaluate structure */
+  e = vrna_eval_structure_v(fc, structure, verbosity_level, file);
+
+  /* free fold_compound */
+  vrna_fold_compound_free(fc);
+
+  return e;
+}
+
+
+PRIVATE INLINE float
+eval_consensus_structure_simple_v(const char  **alignment,
+                                  const char  *structure,
+                                  int         verbosity_level,
+                                  int         gquad,
+                                  int         circular,
+                                  FILE        *file)
+{
+  float     e;
+  vrna_md_t md;
+
+  vrna_md_set_default(&md);
+
+  md.circ   = circular;
+  md.gquad  = gquad;
+
+  /* create fold_compound with default parameters and without DP matrices */
+  vrna_fold_compound_t *fc = vrna_fold_compound_comparative(alignment, &md, VRNA_OPTION_DEFAULT);
+
+  /* evaluate structure */
+  e = vrna_eval_structure_v(fc, structure, verbosity_level, file);
+
+  /* free fold_compound */
+  vrna_fold_compound_free(fc);
+
+  return e;
 }
 
 

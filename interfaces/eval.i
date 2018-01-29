@@ -68,10 +68,21 @@
 %ignore energy_of_struct_pt_par;
 
 
+/*
+  Below follow the wrappers for simplified energy evaluations
+  Here, we create a single overloaded wrapper that allows to:
+  1. use single sequences or sequence alignments as first parameter
+  2. omit file handle (last parameter)
+  3. omit verbosity level (third parameter)
+
+  Thus, we do not wrap all variations of a particular function
+  but provide a single one to rule them all!
+ */
 %rename (eval_structure_simple) my_eval_structure_simple;
-%rename (eval_consensus_structure_simple) my_eval_consensus_structure_simple;
+%rename (eval_circ_structure) my_eval_circ_structure;
+%rename (eval_gquad_structure) my_eval_gquad_structure;
+%rename (eval_circ_gquad_structure) my_eval_circ_gquad_structure;
 %rename (eval_structure_pt_simple) my_eval_structure_pt_simple;
-%rename (eval_consensus_structure_pt_simple) my_eval_consensus_structure_pt_simple;
 
 %{
 
@@ -82,6 +93,33 @@
                            FILE        *file = NULL)
   {
     return vrna_eval_structure_simple_v(sequence.c_str(), structure.c_str(), verbosity_level, file);
+  }
+
+  float
+  my_eval_circ_structure(std::string sequence,
+                         std::string structure,
+                         int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                         FILE        *file = NULL)
+  {
+    return vrna_eval_circ_structure_v(sequence.c_str(), structure.c_str(), verbosity_level, file);
+  }
+
+  float
+  my_eval_gquad_structure(std::string sequence,
+                          std::string structure,
+                          int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                          FILE        *file = NULL)
+  {
+    return vrna_eval_gquad_structure_v(sequence.c_str(), structure.c_str(), verbosity_level, file);
+  }
+
+  float
+  my_eval_circ_gquad_structure(std::string sequence,
+                               std::string structure,
+                               int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                               FILE        *file = NULL)
+  {
+    return vrna_eval_circ_gquad_structure_v(sequence.c_str(), structure.c_str(), verbosity_level, file);
   }
 
   float
@@ -96,6 +134,48 @@
     vc.push_back(NULL); /* mark end of sequences */
 
     return vrna_eval_consensus_structure_simple_v((const char **)&vc[0], structure.c_str(), verbosity_level, file);
+  }
+
+  float
+  my_eval_circ_structure(std::vector<std::string> alignment,
+                         std::string structure,
+                         int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                         FILE        *file = NULL)
+  {
+    std::vector<const char*>  vc;
+
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
+    vc.push_back(NULL); /* mark end of sequences */
+
+    return vrna_eval_circ_consensus_structure_v((const char **)&vc[0], structure.c_str(), verbosity_level, file);
+  }
+
+  float
+  my_eval_gquad_structure(std::vector<std::string> alignment,
+                          std::string structure,
+                          int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                          FILE        *file = NULL)
+  {
+    std::vector<const char*>  vc;
+
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
+    vc.push_back(NULL); /* mark end of sequences */
+
+    return vrna_eval_gquad_consensus_structure_v((const char **)&vc[0], structure.c_str(), verbosity_level, file);
+  }
+
+  float
+  my_eval_circ_gquad_structure(std::vector<std::string> alignment,
+                               std::string structure,
+                               int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                               FILE        *file = NULL)
+  {
+    std::vector<const char*>  vc;
+
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
+    vc.push_back(NULL); /* mark end of sequences */
+
+    return vrna_eval_circ_gquad_consensus_structure_v((const char **)&vc[0], structure.c_str(), verbosity_level, file);
   }
 
   float
@@ -138,10 +218,46 @@ my_eval_structure_simple(std::string sequence,
                            FILE        *file = NULL);
 
 float
+my_eval_circ_structure(std::string sequence,
+                       std::string structure,
+                       int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                       FILE        *file = NULL);
+
+float
+my_eval_gquad_structure(std::string sequence,
+                        std::string structure,
+                        int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                        FILE        *file = NULL);
+
+float
+my_eval_circ_gquad_structure(std::string sequence,
+                             std::string structure,
+                             int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                             FILE        *file = NULL);
+
+float
 my_eval_structure_simple(std::vector<std::string> alignment,
                          std::string structure,
                            int         verbosity_level = VRNA_VERBOSITY_QUIET,
                            FILE        *file = NULL);
+
+float
+my_eval_circ_structure(std::vector<std::string> alignment,
+                       std::string structure,
+                       int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                       FILE        *file = NULL);
+
+float
+my_eval_gquad_structure(std::vector<std::string> alignment,
+                        std::string structure,
+                        int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                        FILE        *file = NULL);
+
+float
+my_eval_circ_gquad_structure(std::vector<std::string> alignment,
+                             std::string structure,
+                             int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                             FILE        *file = NULL);
 
 float
 my_eval_structure_pt_simple(std::string sequence,
@@ -158,7 +274,23 @@ my_eval_structure_pt_simple(std::vector<std::string> alignment,
 
 
 %ignore vrna_eval_structure_simple;
+%ignore vrna_eval_structure_simple_v;
+%ignore vrna_eval_structure_simple_verbose;
+%ignore vrna_eval_circ_structure;
+%ignore vrna_eval_circ_structure_v;
+%ignore vrna_eval_gquad_structure;
+%ignore vrna_eval_gquad_structure_v;
+%ignore vrna_eval_circ_gquad_structure;
+%ignore vrna_eval_circ_gquad_structure_v;
 %ignore vrna_eval_consensus_structure_simple;
+%ignore vrna_eval_consensus_structure_simple_verbose;
+%ignore vrna_eval_consensus_structure_simple_v;
+%ignore vrna_eval_circ_consensus_structure;
+%ignore vrna_eval_circ_consensus_structure_v;
+%ignore vrna_eval_gquad_consensus_structure;
+%ignore vrna_eval_gquad_consensus_structure_v;
+%ignore vrna_eval_circ_gquad_consensus_structure;
+%ignore vrna_eval_circ_gquad_consensus_structure_v;
 %ignore vrna_eval_structure_pt_simple;
 %ignore vrna_eval_consensus_structure_pt_simple;
 
