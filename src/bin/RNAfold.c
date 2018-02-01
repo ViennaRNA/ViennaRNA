@@ -932,12 +932,12 @@ annotate_ligand_motif(vrna_fold_compound_t  *vc,
       if (motifs[c].i != motifs[c].k) {
         if (verbose) {
           vrna_message_info(stdout,
-                            "specified motif detected in %s structure: (%d,%d) (%d,%d)",
+                            "specified motif detected in %s structure: [%d:%d] & [%d:%d]",
                             structure_name,
                             motifs[c].i,
-                            motifs[c].j,
                             motifs[c].k,
-                            motifs[c].l);
+                            motifs[c].l,
+                            motifs[c].j);
         }
 
         annotation = vrna_strdup_printf(" %d %d %d %d 1. 0 0 BFmark",
@@ -948,7 +948,7 @@ annotate_ligand_motif(vrna_fold_compound_t  *vc,
       } else {
         if (verbose) {
           vrna_message_info(stdout,
-                            "specified motif detected in %s structure: (%d,%d)",
+                            "specified motif detected in %s structure: [%d:%d]",
                             structure_name,
                             motifs[c].i,
                             motifs[c].j);
@@ -999,7 +999,7 @@ annotate_ud_motif(vrna_fold_compound_t  *vc,
 
         if (verbose) {
           vrna_message_info(stdout,
-                            "ud motif %d detected in %s structure: (%d,%d)",
+                            "ud motif %d detected in %s structure: [%d:%d]",
                             motifs[m].number,
                             structure_name,
                             i,
