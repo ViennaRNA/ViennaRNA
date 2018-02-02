@@ -215,7 +215,8 @@ vrna_datastructures_HEADERS = \
     datastructures/basic.h \
     datastructures/lists.h \
     datastructures/char_stream.h \
-    datastructures/stream_output.h
+    datastructures/stream_output.h \
+    datastructures/hash_tables.h
 
 
 libRNA_conv_la_SOURCES = \
@@ -329,7 +330,8 @@ libRNA_datastructures_la_SOURCES = \
     datastructures/basic_datastructures.c \
     datastructures/lists.c \
     datastructures/char_stream.c \
-    datastructures/stream_output.c
+    datastructures/stream_output.c \
+    datastructures/hash_tables.c
 
 libRNA_special_const_la_SOURCES = \
     special_const.c
