@@ -1119,11 +1119,8 @@ compute_probs(vrna_fold_compound_t        *vc,
 
   for (l = k + turn + 1; l <= MIN2(n, k + winSize - 1); l++) {
     int a;
-    pR[k][l] = 0;  /* set zero at start */
-
-    type = ptype[k][l];
-    if (type == 0)
-      type = 7;
+    pR[k][l]  = 0; /* set zero at start */
+    type      = vrna_get_ptype_window(k, l + k, ptype);
 
     if (qb[k][l] == 0)
       continue;
@@ -1156,12 +1153,7 @@ compute_probs(vrna_fold_compound_t        *vc,
     if (hc->matrix_local[k][l - k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
       FLT_OR_DBL ppp;
 
-      type_2  = ptype[k][l];
-      type_2  = rtype[type_2];
-
-      if (type_2 == 0)
-        type_2 = 7;
-
+      type_2  = rtype[vrna_get_ptype_window(k, l + k, ptype)];
       ppp     = 0.;
       start_i = k - MAXLOOP - 1;
 
@@ -1197,10 +1189,7 @@ compute_probs(vrna_fold_compound_t        *vc,
             break;
 
           if (hc->matrix_local[i][m - i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-            type = ptype[i][m];
-            if (type == 0)
-              type = 7;
-
+            type = vrna_get_ptype_window(i, m + i, ptype);
             if (pR[i][m] > 0) {
               temp = pR[i][m] *
                      exp_E_IntLoop(u1,
@@ -1241,11 +1230,7 @@ compute_probs(vrna_fold_compound_t        *vc,
 
       for (i = MAX2(1, l - winSize + 2); i < k - 1 /* turn */; i++) {
         if (hc->matrix_local[i][m - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-          tt  = ptype[i][m];
-          tt  = rtype[tt];
-          if (tt == 0)
-            tt = 7;
-
+          tt  = rtype[vrna_get_ptype_window(i, m + i, ptype)];
           ppp = pR[i][m] *
                 exp_E_MLstem(tt, S1[m - 1], S1[i + 1], pf_params) *
                 qm[i + 1][k - 1];
@@ -1262,8 +1247,7 @@ compute_probs(vrna_fold_compound_t        *vc,
       prml[m] = prmt;
 
       if (hc->matrix_local[k - 1][m - k + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-        tt    = ptype[k - 1][m];
-        tt    = rtype[tt];
+        tt    = rtype[vrna_get_ptype_window(k - 1, m + k - 1, ptype)];
         prmt1 = pR[k - 1][m] *
                 expMLclosing *
                 exp_E_MLstem(tt,
@@ -1314,9 +1298,7 @@ compute_probs(vrna_fold_compound_t        *vc,
         continue;
 
       if (hc->matrix_local[k][l - k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
-        tt = ptype[k][l];
-        if (tt == 0)
-          tt = 7;
+        tt = vrna_get_ptype_window(k, l + k, ptype);
 
         if (options & VRNA_PROBS_WINDOW_UP) {
           double dang;
@@ -1465,7 +1447,7 @@ get_deppp(vrna_fold_compound_t  *vc,
     }
   }
   /* write it to list of deppps */
-  for (i = 0; pl[i].i != 0; i++);
+  for (i = 0; pl[i].i != 0; i++) ;
   pl = (vrna_ep_t *)vrna_realloc(pl, (i + count + 1) * sizeof(vrna_ep_t));
   for (j = 0; j < count; j++) {
     pl[i + j].i = temp[j].i;
@@ -1510,8 +1492,8 @@ compute_stack_probabilities(vrna_fold_compound_t  *vc,
 
   for (j = start + turn + 1; j <= max_j; j++) {
     if ((qb[start][j] * qb[start - 1][(j + 1)]) > 10e-200) {
-      type    = ptype[start - 1][j + 1];
-      type_2  = rtype[(unsigned char)ptype[start][j]];
+      type    = vrna_get_ptype_window(start - 1, j + 1 + start - 1, ptype);
+      type_2  = rtype[vrna_get_ptype_window(start, j + start, ptype)];
       tmp     = qb[start][j] /
                 qb[start - 1][(j + 1)] *
                 exp_E_IntLoop(0,
@@ -1598,12 +1580,8 @@ compute_pU(vrna_fold_compound_t       *vc,
     for (j3 = k + ulength + 1; j3 <= MIN2(n, i5 + winSize - 1); j3++) {
       /* Multiloops */
       if (hc->matrix_local[i5][j3 - i5] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-        tt  = ptype[i5][j3];
-        tt  = rtype[tt];
-        if (tt == 0)
-          tt = 7;
-
-        temp = 0.;
+        tt    = rtype[vrna_get_ptype_window(i5, j3 + i5, ptype)];
+        temp  = 0.;
         /*
          * (.. >-----|..........)
          * i5  j     j+ulength  j3
@@ -1776,16 +1754,13 @@ compute_pU(vrna_fold_compound_t       *vc,
     if (hc->up_ml[k + 1] >= len) {
       for (obp = k + len + turn + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
         if (hc->matrix_local[k][obp - k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-          tt = rtype[(unsigned int)ptype[k][obp]];
-          if (tt == 0)
-            tt = 7;
-
-          temp = exp_E_MLstem(tt, S1[obp - 1], S1[k + 1], pf_params) *
-                 scale[2] *
-                 expMLbase[len] *
-                 expMLclosing *
-                 pR[k][obp] *
-                 qm2[k + len + 1][obp - 1]; /* k:obp */
+          tt    = rtype[vrna_get_ptype_window(k, obp + k, ptype)];
+          temp  = exp_E_MLstem(tt, S1[obp - 1], S1[k + 1], pf_params) *
+                  scale[2] *
+                  expMLbase[len] *
+                  expMLclosing *
+                  pR[k][obp] *
+                  qm2[k + len + 1][obp - 1]; /* k:obp */
 
           if (sc) {
             if (sc->exp_energy_up)
