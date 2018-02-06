@@ -258,16 +258,13 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
       i = (int)(1 + (u - 1) * ((k - 1) % 2)) +
           (int)((1 - (2 * ((k - 1) % 2))) * ((k - 1) / 2));
       ij            = my_iindx[i] - j;
-      type          = md->pair[S2[i]][S2[j]];
       hc_decompose  = hard_constraints[jindx[j] + i];
       if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        if (type == 0)
-          type = 7;
-
-        qkl = qb[ij] * exp_E_ExtLoop(type,
-                                     (i > 1) ? S1[i - 1] : -1,
-                                     (j < n) ? S1[j + 1] : -1,
-                                     pf_params);
+        type  = vrna_get_ptype_md(S2[i], S2[j], md);
+        qkl   = qb[ij] * exp_E_ExtLoop(type,
+                                       (i > 1) ? S1[i - 1] : -1,
+                                       (j < n) ? S1[j + 1] : -1,
+                                       pf_params);
 
         if (i > 1) {
           qkl *= q1k[i - 1];
@@ -319,12 +316,9 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
     r = vrna_urn() * (qln[i] - q_temp);
     for (qt = 0, j = i + 1; j <= length; j++) {
       ij            = my_iindx[i] - j;
-      type          = ptype[jindx[j] + i];
+      type          = vrna_get_ptype(jindx[j] + i, ptype);
       hc_decompose  = hard_constraints[jindx[j] + i];
       if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        if (type == 0)
-          type = 7;
-
         qkl = qb[ij] * exp_E_ExtLoop(type,
                                      (i > 1) ? S1[i - 1] : -1,
                                      (j < n) ? S1[j + 1] : -1,
@@ -509,14 +503,10 @@ backtrack_qm1(int                   i,
     if (hard_constraints[il] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
       u = j - l;
       if (hc_up_ml[l + 1] >= u) {
-        type = ptype[il];
-
-        if (type == 0)
-          type = 7;
-
-        q_temp = qb[ii - l]
-                 * exp_E_MLstem(type, S1[i - 1], S1[l + 1], pf_params)
-                 * expMLbase[j - l];
+        type    = vrna_get_ptype(il, ptype);
+        q_temp  = qb[ii - l]
+                  * exp_E_MLstem(type, S1[i - 1], S1[l + 1], pf_params)
+                  * expMLbase[j - l];
 
         if (sc) {
           if (sc->exp_energy_up)
@@ -625,14 +615,10 @@ backtrack(int                   i,
 
     r             = vrna_urn() * qb[my_iindx[i] - j];
     tmp           = qb[my_iindx[i] - j];
-    type          = (unsigned char)ptype[jindx[j] + i];
+    type          = vrna_get_ptype(jindx[j] + i, ptype);
     hc_decompose  = hard_constraints[jindx[j] + i];
     if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
       /* hairpin contribution */
-
-      if (type == 0)
-        type = 7;
-
       u = j - i - 1;
 
       if (((type == 3) || (type == 4)) && noGUclosure) {
@@ -658,10 +644,6 @@ backtrack(int                   i,
 
     if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
       /* interior loop contributions */
-
-      if (type == 0)
-        type = 7;
-
       max_k = i + MAXLOOP + 1;
       max_k = MIN2(max_k, j - turn - 2);
       max_k = MIN2(max_k, i + 1 + hc_up_int[i + 1]);
@@ -674,11 +656,7 @@ backtrack(int                   i,
             break;
 
           if (hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
-            unsigned char type_2 = (unsigned char)ptype[jindx[l] + k];
-            type_2 = rtype[type_2];
-
-            if (type_2 == 0)
-              type_2 = 7;
+            unsigned int type_2 = rtype[vrna_get_ptype(jindx[l] + k, ptype)];
 
             /* add *scale[u1+u2+2] */
             q_temp = qb[kl]
@@ -736,7 +714,7 @@ backtrack(int                   i,
   {
     int         k, ii, jj, tt;
     FLT_OR_DBL  closingPair;
-    tt          = rtype[(unsigned char)ptype[jindx[j] + i]];
+    tt          = rtype[vrna_get_ptype(jindx[j] + i, ptype)];
     closingPair = pf_params->expMLclosing
                   * exp_E_MLstem(tt, S1[j - 1], S1[i + 1], pf_params)
                   * scale[2];
@@ -885,15 +863,17 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
             continue;
 
           type2 = rtype[type2];
-          qt    += qb[my_iindx[i] - j] * qb[my_iindx[k] - l] * exp_E_IntLoop(ln2,
-                                                                             ln1,
-                                                                             type2,
-                                                                             type,
-                                                                             S1[l + 1],
-                                                                             S1[k - 1],
-                                                                             S1[i - 1],
-                                                                             S1[j + 1],
-                                                                             pf_params) *
+          qt    += qb[my_iindx[i] - j] *
+                   qb[my_iindx[k] - l] *
+                   exp_E_IntLoop(ln2,
+                                 ln1,
+                                 type2,
+                                 type,
+                                 S1[l + 1],
+                                 S1[k - 1],
+                                 S1[i - 1],
+                                 S1[j + 1],
+                                 pf_params) *
                    scale[ln1 + ln2];
           /* found an exterior interior loop? also this time, we can go straight  */
           /* forward and backtracking the both enclosed parts and we're done      */
@@ -1012,11 +992,9 @@ pbacktrack_comparative(vrna_fold_compound_t *vc,
       if (qb[my_iindx[i] - j] > 0) {
         qkl = qb[my_iindx[i] - j] * qln[j + 1];  /*if psc too small qb=0!*/
         for (s = 0; s < n_seq; s++) {
-          xtype = md->pair[S[s][i]][S[s][j]];
-          if (xtype == 0)
-            xtype = 7;
-
-          qkl *= exp_E_ExtLoop(xtype, (i > 1) ? S5[s][i] : -1, (j < n) ? S3[s][j] : -1, pf_params);
+          xtype = vrna_get_ptype_md(S[s][i], S[s][j], md);
+          qkl   *=
+            exp_E_ExtLoop(xtype, (i > 1) ? S5[s][i] : -1, (j < n) ? S3[s][j] : -1, pf_params);
         }
         qt += qkl;                                                  /*?*exp(pscore[jindx[j]+i]/kTn)*/
         if (qt > r) {
@@ -1073,11 +1051,10 @@ backtrack_comparative(vrna_fold_compound_t  *vc,
     int         k, l, u, u1, u2, s;
     pstruc[i - 1] = '(';
     pstruc[j - 1] = ')';
-    for (s = 0; s < n_seq; s++) {
-      type[s] = md->pair[S[s][i]][S[s][j]];
-      if (type[s] == 0)
-        type[s] = 7;
-    }
+
+    for (s = 0; s < n_seq; s++)
+      type[s] = vrna_get_ptype_md(S[s][i], S[s][j], md);
+
     r = vrna_urn() * (qb[my_iindx[i] - j] / exp(pscore[jindx[j] + i] / kTn)); /*?*exp(pscore[jindx[j]+i]/kTn)*/
 
     qbt1 = 1.;
@@ -1116,19 +1093,16 @@ backtrack_comparative(vrna_fold_compound_t  *vc,
         for (s = 0; s < n_seq; s++) {
           u1      = a2s[s][k - 1] - a2s[s][i] /*??*/;
           u2      = a2s[s][j - 1] - a2s[s][l];
-          type_2  = md->pair[S[s][l]][S[s][k]];
-          if (type_2 == 0)
-            type_2 = 7;
-
-          qloop *= exp_E_IntLoop(u1,
-                                 u2,
-                                 type[s],
-                                 type_2,
-                                 S3[s][i],
-                                 S5[s][j],
-                                 S5[s][k],
-                                 S3[s][l],
-                                 pf_params);
+          type_2  = vrna_get_ptype_md(S[s][l], S[s][k], md);
+          qloop   *= exp_E_IntLoop(u1,
+                                   u2,
+                                   type[s],
+                                   type_2,
+                                   S3[s][i],
+                                   S5[s][j],
+                                   S5[s][k],
+                                   S3[s][l],
+                                   pf_params);
         }
 
         if (sc) {
@@ -1288,10 +1262,7 @@ backtrack_qm1_comparative(vrna_fold_compound_t  *vc,
 
     tempz = 1.;
     for (s = 0; s < n_seq; s++) {
-      xtype = md->pair[S[s][i]][S[s][l]];
-      if (xtype == 0)
-        xtype = 7;
-
+      xtype = vrna_get_ptype_md(S[s][i], S[s][l], md);
       tempz *= exp_E_MLstem(xtype, S5[s][i], S3[s][l], pf_params);
     }
     qt += qb[ii - l] * tempz * expMLbase[j - l];
