@@ -273,7 +273,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
     for (j = i + turn + 1; j <= maxj; j++) {
       int ij;
       ij            = indx[j] + i;
-      type          = (unsigned char)ptype[ij];
+      type          = vrna_get_ptype(ij, ptype);
       hc_decompose  = hard_constraints[ij];
       energy        = INF;
 
@@ -542,7 +542,7 @@ repeat1:
     if (canonical)
       cij = my_c[ij];
 
-    type = ptype[ij];
+    type = vrna_get_ptype(ij, ptype);
 
     if (noLP) {
       if (vrna_BT_stack(vc, &i, &j, &cij, bp_list, &b)) {
@@ -652,7 +652,7 @@ free_end(int                  *array,
   /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
   turn = 0;
 
-  for (j = start; inc *(i - j) > turn; j += inc) {
+  for (j = start; inc * (i - j) > turn; j += inc) {
     int   ii, jj;
     short si, sj;
     if (i > j) {
@@ -664,11 +664,8 @@ free_end(int                  *array,
       jj  = j;
     }                           /* inc<0 */
 
-    type = ptype[indx[jj] + ii];
     if (hard_constraints[indx[jj] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-      if (type == 0)
-        type = 7;
-
+      type    = vrna_get_ptype(indx[jj] + ii, ptype);
       si      = ((ii > 1) && (sn[ii - 1] == sn[ii])) ? S1[ii - 1] : -1;
       sj      = ((jj < length) && (sn[jj] == sn[jj + 1])) ? S1[jj + 1] : -1;
       energy  = c[indx[jj] + ii];
@@ -745,11 +742,7 @@ free_end(int                  *array,
       if (!(hard_constraints[indx[jj] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP))
         continue;
 
-      type = ptype[indx[jj] + ii];
-
-      if (type == 0)
-        type = 7;
-
+      type    = vrna_get_ptype(indx[jj] + ii, ptype);
       si      = (ii > left) && (sn[ii - 1] == sn[ii]) ? S1[ii - 1] : -1;
       sj      = (jj < right) && (sn[jj] == sn[jj + 1]) ? S1[jj + 1] : -1;
       energy  = c[indx[jj] + ii];
