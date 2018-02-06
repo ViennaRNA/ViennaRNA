@@ -772,10 +772,10 @@ postprocess_circular(vrna_fold_compound_t *vc,
 
         /* 2nd, test ML loops with closing pair (i + 1, length), 3' dangle pos 1 */
         for (i=2*turn+1; i<length-turn; i++) {
-          type = ptype[indx[length]+i+1];
           eval = (hard_constraints[indx[length] + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? 1 : 0;
           eval = hc->f(i + 1, length, 2, i, VRNA_DECOMP_PAIR_ML_EXT, hc->data) ? eval : 0;
           if (eval) {
+            type = vrna_get_ptype(indx[length]+i+1, ptype);
             fm = fM_d3[i];
             if ((fm != INF) && (my_c[indx[length]+i+1] != INF)) {
               fm += my_c[indx[length]+i+1] +
@@ -802,11 +802,11 @@ postprocess_circular(vrna_fold_compound_t *vc,
 
         /* 3rd, test ML loops with closing pair (i + 1, length), 5' dangle pos i, 3' dangle pos 1 */
         for (i=2*turn+1; i<length-turn; i++) {
-          type = ptype[indx[length]+i+1];
           eval = (hard_constraints[indx[length] + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? 1 : 0;
           eval = hc->up_ml[i] ? eval : 0;
           eval = hc->f(i + 1, length, 2, i - 1, VRNA_DECOMP_PAIR_ML_EXT, hc->data) ? eval : 0;
           if (eval) {
+            type = vrna_get_ptype(indx[length]+i+1, ptype);
             fm = fM_d3[i-1];
             if ((fm != INF) && (my_c[indx[length]+i+1] != INF)) {
               fm += my_c[indx[length]+i+1] +
@@ -874,7 +874,7 @@ postprocess_circular(vrna_fold_compound_t *vc,
           if(hard_constraints[indx[length] + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
             fm = fM_d3[i];
             if ((fm != INF) && (my_c[indx[length]+i+1] != INF)) {
-              type = ptype[indx[length]+i+1];
+              type = vrna_get_ptype(indx[length]+i+1, ptype);
               fm += my_c[indx[length]+i+1]+
                     E_MLstem(type, -1, S1[1], P) +
                     P->MLclosing;
@@ -903,7 +903,7 @@ postprocess_circular(vrna_fold_compound_t *vc,
             if(hc->up_ml[i]){
               fm = fM_d3[i-1];
               if ((fm != INF) && (my_c[indx[length]+i+1] != INF)) {
-                type = ptype[indx[length]+i+1];
+                type = vrna_get_ptype(indx[length]+i+1, ptype);
                 fm += my_c[indx[length]+i+1]+
                       E_MLstem(type, S1[i], S1[1], P) +
                       P->MLclosing;
@@ -978,7 +978,7 @@ postprocess_circular(vrna_fold_compound_t *vc,
           if(eval){
             fm = fM_d5[i+1];
             if ((fm != INF) && (my_c[indx[i]+1] != INF)) {
-              type = ptype[indx[i]+1];
+              type = vrna_get_ptype(indx[i]+1, ptype);
               fm += my_c[indx[i]+1] +
                     E_MLstem(type, S1[length], -1, P) +
                     P->MLclosing;
@@ -1009,7 +1009,7 @@ postprocess_circular(vrna_fold_compound_t *vc,
           if (eval) {
             fm = fM_d5[i+2];
             if ((fm != INF) && (my_c[indx[i]+1] != INF)) {
-              type = ptype[indx[i]+1];
+              type = vrna_get_ptype(indx[i]+1, ptype);
               fm += my_c[indx[i]+1] +
                     E_MLstem(type, S1[length], S1[i+1], P) +
                     P->MLclosing;
@@ -1082,7 +1082,7 @@ postprocess_circular(vrna_fold_compound_t *vc,
           if(hard_constraints[indx[i]+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
             fm = fM_d5[i+1];
             if ((fm != INF) && (my_c[indx[i]+1] != INF)) {
-              type = ptype[indx[i]+1];
+              type = vrna_get_ptype(indx[i]+1, ptype);
               fm += my_c[indx[i]+1] +
                     E_MLstem(type, S1[length], -1, P) +
                     P->MLclosing;
@@ -1111,7 +1111,7 @@ postprocess_circular(vrna_fold_compound_t *vc,
             if(hc->up_ml[i+1]){
               fm = fM_d5[i+2];
               if ((fm != INF) && (my_c[indx[i]+1] != INF)) {
-                type = ptype[indx[i]+1];
+                type = vrna_get_ptype(indx[i]+1, ptype);
                 fm += my_c[indx[i]+1] + 
                       E_MLstem(type, S1[length], S1[i+1], P) +
                       P->MLclosing;
