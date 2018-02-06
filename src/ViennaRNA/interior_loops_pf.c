@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <string.h>
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/exterior_loops.h"
@@ -176,7 +177,7 @@ exp_E_int_loop(vrna_fold_compound_t *vc,
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-    type        = get_pair_type(ij, ptype);
+    type        = vrna_get_ptype(ij, ptype);
     rtype       = &(md->rtype[0]);
     noGUclosure = md->noGUclosure;
     no_close    = (((type == 3) || (type == 4)) && noGUclosure);
@@ -206,7 +207,7 @@ exp_E_int_loop(vrna_fold_compound_t *vc,
           if (sn[j] != sn[l])
             break;
 
-          type_2 = rtype[get_pair_type(jindx[l] + k, ptype)];
+          type_2 = rtype[vrna_get_ptype(jindx[l] + k, ptype)];
 
           q_temp = qb[kl] *
                    scale[u1 + u2 + 2] *
@@ -306,7 +307,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *vc,
   qio               = 0.;
 
   if (hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-    type = get_pair_type_md(S2[q], S2[p], md);
+    type = vrna_get_ptype_md(S2[q], S2[p], md);
 
     for (k = q + 1; k < n; k++) {
       int ln1, lstart;
@@ -317,7 +318,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *vc,
       if (hc->up_int[q + 1] < ln1)
         break;
 
-      if(ln1 + p - 1 > MAXLOOP)
+      if (ln1 + p - 1 > MAXLOOP)
         break;
 
       lstart = ln1 + p - 1 + n - MAXLOOP;
@@ -326,7 +327,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *vc,
 
       for (l = lstart; l <= n; l++) {
         FLT_OR_DBL  qloop;
-        int ln2, ln3, type2;
+        int         ln2, ln3, type2;
         ln2 = p - 1;
         ln3 = n - l;
 
@@ -344,31 +345,31 @@ exp_E_ext_int_loop(vrna_fold_compound_t *vc,
           eval = hc->f(p, q, k, l, VRNA_DECOMP_PAIR_IL, hc->data) ? eval : 0;
 
         if (eval) {
-          type2  = get_pair_type_md(S2[l], S2[k], md);
-          qbt1  = qb[my_iindx[k]-l] *
+          type2 = vrna_get_ptype_md(S2[l], S2[k], md);
+          qbt1  = qb[my_iindx[k] - l] *
                   exp_E_IntLoop(ln2 + ln3, ln1,
                                 type2, type,
-                                S[l+1], S[k-1],
-                                S[p-1], S[q+1],
+                                S[l + 1], S[k - 1],
+                                S[p - 1], S[q + 1],
                                 pf_params) *
-                  scale[ln1+ln2+ln3];
+                  scale[ln1 + ln2 + ln3];
 
           if (sc) {
             if (sc->exp_energy_up) {
               qbt1 *= sc->exp_energy_up[q + 1][ln1] *
                       sc->exp_energy_up[l + 1][ln3] *
                       sc->exp_energy_up[1][ln2];
-
             }
 
             if (sc->exp_f)
               qbt1 *= sc->exp_f(p, q, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
 
-            if (((ln1 + ln2 + ln3) == 0) && (sc->exp_energy_stack))
+            if (((ln1 + ln2 + ln3) == 0) && (sc->exp_energy_stack)) {
               qbt1 *= sc->exp_energy_stack[p] *
                       sc->exp_energy_stack[q] *
                       sc->exp_energy_stack[k] *
                       sc->exp_energy_stack[l];
+            }
           }
 
           qio += qbt1;
@@ -424,7 +425,7 @@ exp_E_int_loop_window(vrna_fold_compound_t  *vc,
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc[i][j - i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-    type        = get_pair_type_window(i, j + i, ptype);
+    type        = vrna_get_ptype_window(i, j + i, ptype);
     rtype       = &(md->rtype[0]);
     noGUclosure = md->noGUclosure;
     no_close    = (((type == 3) || (type == 4)) && noGUclosure);
@@ -453,7 +454,7 @@ exp_E_int_loop_window(vrna_fold_compound_t  *vc,
           if (sn[j] != sn[l])
             break;
 
-          type_2 = rtype[get_pair_type_window(k, l + k, ptype)];
+          type_2 = rtype[vrna_get_ptype_window(k, l + k, ptype)];
 
           q_temp = qb[k][l] *
                    scale[u1 + u2 + 2] *
@@ -571,7 +572,7 @@ exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
     types = (int *)vrna_alloc(sizeof(int) * n_seq);
 
     for (s = 0; s < n_seq; s++)
-      types[s] = get_pair_type_md(S[s][i], S[s][j], md);
+      types[s] = vrna_get_ptype_md(S[s][i], S[s][j], md);
 
     /* prepare necessary variables */
     maxk  = i + MAXLOOP + 1;
@@ -599,7 +600,7 @@ exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
           for (s = 0; s < n_seq; s++) {
             u1      = a2s[s][k - 1] - a2s[s][i];
             u2      = a2s[s][j - 1] - a2s[s][l];
-            type_2  = get_pair_type_md(S[s][l], S[s][k], md);
+            type_2  = vrna_get_ptype_md(S[s][l], S[s][k], md);
 
             qloop *= exp_E_IntLoop(u1, u2,
                                    types[s], type_2, S3[s][i],
@@ -696,7 +697,7 @@ exp_E_ext_int_loop_comparative(vrna_fold_compound_t *vc,
   if (hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
     type = (int *)vrna_alloc(sizeof(int) * n_seq);
     for (s = 0; s < n_seq; s++)
-      type[s] = get_pair_type_md(S[s][q], S[s][p], md);
+      type[s] = vrna_get_ptype_md(S[s][q], S[s][p], md);
 
     for (k = q + 1; k < n; k++) {
       int ln1, lstart;
@@ -732,7 +733,7 @@ exp_E_ext_int_loop_comparative(vrna_fold_compound_t *vc,
         for (s = 0; s < n_seq; s++) {
           int ln1a  = a2s[s][k] - 1 - a2s[s][q];
           int ln2a  = a2s[s][n] - a2s[s][l] + a2s[s][p] - 1;
-          type_2  = get_pair_type_md(S[s][l], S[s][k], md);
+          type_2  = vrna_get_ptype_md(S[s][l], S[s][k], md);
           qloop   *=
             exp_E_IntLoop(ln1a,
                           ln2a,
@@ -844,9 +845,9 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
 
   /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
   if (eval_loop && evaluate(i, j, k, l, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
-    type    = get_pair_type(ij, ptype);
+    type    = vrna_get_ptype(ij, ptype);
     rtype   = &(md->rtype[0]);
-    type_2  = rtype[get_pair_type(jindx[l] + k, ptype)];
+    type_2  = rtype[vrna_get_ptype(jindx[l] + k, ptype)];
 
     q_temp = exp_E_IntLoop(u1, u2, type, type_2, S_i1, S_j1, S1[k - 1], S1[l + 1], pf_params) *
              scale[u1 + u2 + 2];

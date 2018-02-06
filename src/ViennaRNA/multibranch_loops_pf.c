@@ -10,6 +10,7 @@
 #include <string.h>
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/exterior_loops.h"
@@ -145,7 +146,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t *vc,
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML,
                &hc_dat_local) && (sn[i] == sn[i + 1]) && (sn[j - 1] == sn[j])) {
     rtype = &(md->rtype[0]);
-    tt    = rtype[get_pair_type(ij, ptype)];
+    tt    = rtype[vrna_get_ptype(ij, ptype)];
 
     qqqmmm = expMLclosing *
              exp_E_MLstem(tt, S1[j - 1], S1[i + 1], pf_params) *
@@ -225,7 +226,7 @@ exp_E_mb_loop_fast_window(vrna_fold_compound_t  *vc,
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML,
                &hc_dat_local) && (sn[i] == sn[i + 1]) && (sn[j - 1] == sn[j])) {
     rtype = &(md->rtype[0]);
-    tt    = rtype[get_pair_type_window(i, j + i, ptype)];
+    tt    = rtype[vrna_get_ptype_window(i, j + i, ptype)];
 
     qqqmmm = expMLclosing *
              exp_E_MLstem(tt, S1[j - 1], S1[i + 1], pf_params) *
@@ -306,7 +307,7 @@ exp_E_mb_loop_fast_comparative(vrna_fold_compound_t *vc,
     qqqmmm = 1.;
 
     for (s = 0; s < n_seq; s++) {
-      tt      = get_pair_type_md(S[s][j], S[s][i], md);
+      tt      = vrna_get_ptype_md(S[s][j], S[s][i], md);
       qqqmmm  *= exp_E_MLstem(tt, S5[s][j], S3[s][i], pf_params) *
                  expMLclosing;
     }
@@ -608,7 +609,7 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
   if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
     S1    = vc->sequence_encoding;
     S2    = vc->sequence_encoding2;
-    type  = get_pair_type_md(S2[i], S2[j], md);
+    type  = vrna_get_ptype_md(S2[i], S2[j], md);
 
     qbt1 = qb[ij] * exp_E_MLstem(type,
                                  ((i > 1) || circular) ? S1[i - 1] : -1,
@@ -673,6 +674,7 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
         for (k = j; k > MAX2(i, ss[sn[j]]); k--, kl++)
           if (hc->f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data))
             temp += qm[kl] * qqm[k];
+
         for (k--, kl++; k > i; k--, kl++)
           if (hc->f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc->data))
             temp += qm[kl] * qqm[k];
@@ -711,12 +713,12 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
     }
   }
 
-  maxk  = MIN2(i + hc_up_ml[i], j);
+  maxk = MIN2(i + hc_up_ml[i], j);
 
   if (sn[i] != sn[j]) /* we must not have the strand border within the unpaired segment */
     maxk = MIN2(maxk, se[sn[i]]);
 
-  ii    = maxk - i; /* length of unpaired stretch */
+  ii = maxk - i;    /* length of unpaired stretch */
   if (with_ud) {
     if (hc->f) {
       if (sc) {
@@ -932,7 +934,7 @@ exp_E_ml_fast_window(vrna_fold_compound_t *vc,
 
   if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
     S1    = vc->sequence_encoding;
-    type  = get_pair_type_md(S1[i], S1[j], md);
+    type  = vrna_get_ptype_md(S1[i], S1[j], md);
 
     qbt1 = qb[i][j] * exp_E_MLstem(type,
                                    ((i > 1) || circular) ? S1[i - 1] : -1,
@@ -1171,7 +1173,7 @@ exp_E_ml_fast_comparative(vrna_fold_compound_t  *vc,
     q_temp = qb[ij];
 
     for (s = 0; s < n_seq; s++) {
-      type    = get_pair_type_md(S[s][i], S[s][j], md);
+      type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
       q_temp  *= exp_E_MLstem(type,
                               ((i > 1) || circular) ? S5[s][i] : -1,
                               ((j < n) || circular) ? S3[s][j] : -1,

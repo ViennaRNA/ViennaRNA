@@ -61,28 +61,11 @@ prepare_hc_default_window(vrna_fold_compound_t  *vc,
                           struct default_data   *dat);
 
 
-PRIVATE INLINE
-int get_pair_type(int       i,
-                  int       j,
-                  vrna_md_t *md);
-
-
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PRIVATE INLINE int
-get_pair_type(int       i,
-              int       j,
-              vrna_md_t *md)
-{
-  int tt = md->pair[i][j];
-
-  return (tt == 0) ? 7 : tt;
-}
-
-
 PRIVATE unsigned char
 hc_default(int            i,
            int            j,

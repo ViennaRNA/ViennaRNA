@@ -10,6 +10,7 @@
 #include <string.h>
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/energy_par.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/exterior_loops.h"
@@ -135,28 +136,29 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t  *vc,
                       vrna_bp_stack_t       *bp_stack,
                       int                   *stack_count)
 {
+  int r = 0;
+
   if (vc) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
         if (vc->hc->type == VRNA_HC_WINDOW)
-          return BT_mb_loop_split_window(vc, i, j, k, l, c1, c2, bp_stack, stack_count);
+          r = BT_mb_loop_split_window(vc, i, j, k, l, c1, c2, bp_stack, stack_count);
         else
-          return BT_mb_loop_split(vc, i, j, k, l, c1, c2, bp_stack, stack_count);
+          r = BT_mb_loop_split(vc, i, j, k, l, c1, c2, bp_stack, stack_count);
 
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
         if (vc->hc->type == VRNA_HC_WINDOW)
-          return BT_mb_loop_split_window_comparative(vc, i, j, k, l, c1, c2, bp_stack, stack_count);
-
+          r = BT_mb_loop_split_window_comparative(vc, i, j, k, l, c1, c2, bp_stack, stack_count);
         else
-          return BT_mb_loop_split_comparative(vc, i, j, k, l, c1, c2, bp_stack, stack_count);
+          r = BT_mb_loop_split_comparative(vc, i, j, k, l, c1, c2, bp_stack, stack_count);
 
         break;
     }
   }
 
-  return 0;
+  return r;
 }
 
 
@@ -169,27 +171,29 @@ vrna_BT_mb_loop(vrna_fold_compound_t  *vc,
                 int                   *c1,
                 int                   *c2)
 {
+  int r = 0;
+
   if (vc) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
         if (vc->hc->type == VRNA_HC_WINDOW)
-          return BT_mb_loop_window(vc, i, j, k, en, c1, c2);
+          r = BT_mb_loop_window(vc, i, j, k, en, c1, c2);
         else
-          return BT_mb_loop(vc, i, j, k, en, c1, c2);
+          r = BT_mb_loop(vc, i, j, k, en, c1, c2);
 
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
         if (vc->hc->type == VRNA_HC_WINDOW)
-          return BT_mb_loop_window_comparative(vc, i, j, k, en, c1, c2);
+          r = BT_mb_loop_window_comparative(vc, i, j, k, en, c1, c2);
         else
-          return BT_mb_loop_comparative(vc, i, j, k, en, c1, c2);
+          r = BT_mb_loop_comparative(vc, i, j, k, en, c1, c2);
 
         break;
     }
   }
 
-  return 0;
+  return r;
 }
 
 
@@ -271,7 +275,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
       case 0:
         for (k = ii + turn + 1; k <= jj; k++) {
           if (evaluate(ii, jj, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
-            type = get_pair_type(idx[k] + ii, ptype);
+            type = vrna_get_ptype(idx[k] + ii, ptype);
 
             if (fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, -1, -1, P)) {
               bp_stack[++(*stack_count)].i  = ii;
@@ -297,7 +301,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
         for (k = ii + turn + 1; k <= jj; k++) {
           if (evaluate(ii, jj, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
             mm3   = (sn[k] == sn[k + 1]) ? S1[k + 1] : -1;
-            type  = get_pair_type(idx[k] + ii, ptype);
+            type  = vrna_get_ptype(idx[k] + ii, ptype);
 
             if (fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, mm5, mm3, P)) {
               bp_stack[++(*stack_count)].i  = ii;
@@ -322,7 +326,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
       default:
         for (k = ii + turn + 1; k <= jj; k++) {
           if (evaluate(ii, jj, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
-            type = get_pair_type(idx[k] + ii, ptype);
+            type = vrna_get_ptype(idx[k] + ii, ptype);
 
             if (fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, -1, -1, P)) {
               bp_stack[++(*stack_count)].i  = ii;
@@ -362,7 +366,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
           if (evaluate(ii, jj, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT1, &hc_dat_local)) {
             mm5   = (sn[ii] == sn[ii + 1]) ? S1[ii] : -1;
             mm3   = (sn[k] == sn[k + 1]) ? S1[k + 1] : -1;
-            type  = get_pair_type(idx[k] + ii + 1, ptype);
+            type  = vrna_get_ptype(idx[k] + ii + 1, ptype);
 
             en = my_c[idx[k] + ii + 1];
             if (sc)
@@ -382,7 +386,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
           if ((k < jj) && (evaluate(ii, jj, k, k + 2, VRNA_DECOMP_EXT_STEM_EXT1, &hc_dat_local))) {
             mm5   = (sn[ii] == sn[ii + 1]) ? S1[ii] : -1;
             mm3   = (sn[k] == sn[k + 1]) ? S1[k + 1] : -1;
-            type  = get_pair_type(idx[k] + ii + 1, ptype);
+            type  = vrna_get_ptype(idx[k] + ii + 1, ptype);
 
             en = my_c[idx[k] + ii + 1];
             if (sc)
@@ -442,7 +446,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
           }
 
           if (evaluate(ii, jj, k - 1, k, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
-            type = get_pair_type(idx[jj] + k, ptype);
+            type = vrna_get_ptype(idx[jj] + k, ptype);
 
             en = my_c[idx[jj] + k];
             if (sn[k] != sn[jj])
@@ -472,7 +476,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
 
           if (evaluate(ii, jj, k - 1, k, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
             mm5   = ((k > 1) && (sn[k - 1] == sn[k])) ? S1[k - 1] : -1;
-            type  = get_pair_type(idx[jj] + k, ptype);
+            type  = vrna_get_ptype(idx[jj] + k, ptype);
 
             en = my_c[idx[jj] + k];
             if (sn[k] != sn[jj])
@@ -501,7 +505,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
           }
 
           if (evaluate(ii, jj, k - 1, k, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
-            type = get_pair_type(idx[jj] + k, ptype);
+            type = vrna_get_ptype(idx[jj] + k, ptype);
 
             en = my_c[idx[jj] + k];
             if (sn[k] != sn[jj])
@@ -519,7 +523,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
 
           if ((k > 1) && (sn[k - 1] == sn[k]) &&
               evaluate(ii, jj, k - 2, k, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
-            type = get_pair_type(idx[jj] + k, ptype);
+            type = vrna_get_ptype(idx[jj] + k, ptype);
 
             en = my_c[idx[jj] + k];
             if (sn[k] != sn[jj])
@@ -543,7 +547,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
 
           if ((sn[jj - 1] == sn[jj]) &&
               evaluate(ii, jj, k - 1, k, VRNA_DECOMP_EXT_EXT_STEM1, &hc_dat_local)) {
-            type = get_pair_type(idx[jj - 1] + k, ptype);
+            type = vrna_get_ptype(idx[jj - 1] + k, ptype);
 
             mm3 = S1[jj];
             en  = my_c[idx[jj - 1] + k];
@@ -566,7 +570,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
 
           if ((k > ii) && (sn[jj - 1] == sn[jj]) &&
               evaluate(ii, jj, k - 2, k, VRNA_DECOMP_EXT_EXT_STEM1, &hc_dat_local)) {
-            type = get_pair_type(idx[jj - 1] + k, ptype);
+            type = vrna_get_ptype(idx[jj - 1] + k, ptype);
 
             mm3 = S1[jj];
             en  = my_c[idx[jj - 1] + k];
@@ -832,7 +836,7 @@ BT_mb_loop_split(vrna_fold_compound_t *vc,
     }
   }
 
-  type  = get_pair_type(ij, ptype);
+  type  = vrna_get_ptype(ij, ptype);
   en    = my_c[ij];
 
   if (sc)
@@ -887,7 +891,7 @@ BT_mb_loop_split(vrna_fold_compound_t *vc,
             tmp_en -= sc->f(ii, jj, ii + 1, jj, VRNA_DECOMP_ML_STEM, sc->data);
         }
 
-        type = get_pair_type(ij + 1, ptype);
+        type = vrna_get_ptype(ij + 1, ptype);
 
         if (tmp_en == my_c[ij + 1] + E_MLstem(type, S1[ii], -1, P) + P->MLbase) {
           *i          = *j = -1;
@@ -908,7 +912,7 @@ BT_mb_loop_split(vrna_fold_compound_t *vc,
             tmp_en -= sc->f(ii, jj, ii, jj - 1, VRNA_DECOMP_ML_STEM, sc->data);
         }
 
-        type = get_pair_type(idx[jj - 1] + ii, ptype);
+        type = vrna_get_ptype(idx[jj - 1] + ii, ptype);
 
         if (tmp_en == my_c[idx[jj - 1] + ii] + E_MLstem(type, -1, S1[jj], P) + P->MLbase) {
           *i          = *j = -1;
@@ -929,7 +933,7 @@ BT_mb_loop_split(vrna_fold_compound_t *vc,
             tmp_en -= sc->f(ii, jj, ii + 1, jj - 1, VRNA_DECOMP_ML_STEM, sc->data);
         }
 
-        type = get_pair_type(idx[jj - 1] + ii + 1, ptype);
+        type = vrna_get_ptype(idx[jj - 1] + ii + 1, ptype);
 
         if (tmp_en ==
             my_c[idx[jj - 1] + ii + 1] + E_MLstem(type, S1[ii], S1[jj], P) + 2 * P->MLbase) {
@@ -985,8 +989,8 @@ BT_mb_loop_split(vrna_fold_compound_t *vc,
     for (k1j = idx[jj] + ii + turn + 2, u = ii + 1 + turn; u <= jj - 2 - turn; u++, k1j++) {
       ik = idx[u] + ii;
       if (evaluate(ii, u, u + 1, jj, VRNA_DECOMP_ML_COAXIAL_ENC, &hc_dat_local)) {
-        type    = rtype[get_pair_type(ik, ptype)];
-        type_2  = rtype[get_pair_type(k1j, ptype)];
+        type    = rtype[vrna_get_ptype(ik, ptype)];
+        type_2  = rtype[vrna_get_ptype(k1j, ptype)];
 
         tmp_en = my_c[ik] +
                  my_c[k1j] +
@@ -1142,7 +1146,7 @@ BT_mb_loop_split_comparative(vrna_fold_compound_t *vc,
     case 0:
       if (evaluate(ii, jj, ii, jj, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
         for (ss = 0; ss < n_seq; ss++) {
-          tt  = get_pair_type_md(S[ss][ii], S[ss][jj], md);
+          tt  = vrna_get_ptype_md(S[ss][ii], S[ss][jj], md);
           en  += E_MLstem(tt, -1, -1, P);
         }
       }
@@ -1152,7 +1156,7 @@ BT_mb_loop_split_comparative(vrna_fold_compound_t *vc,
     case 2:
       if (evaluate(ii, jj, ii, jj, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
         for (ss = 0; ss < n_seq; ss++) {
-          tt  = get_pair_type_md(S[ss][ii], S[ss][jj], md);
+          tt  = vrna_get_ptype_md(S[ss][ii], S[ss][jj], md);
           en  += E_MLstem(tt, S5[ss][ii], S3[ss][jj], P);
         }
       }
@@ -1317,7 +1321,7 @@ BT_mb_loop_split_window(vrna_fold_compound_t  *vc,
     }
   }
 
-  type  = get_pair_type_window(ii, jj, ptype);
+  type  = vrna_get_ptype_window(ii, jj, ptype);
   en    = c[ii][jj - ii];
 
   if (sc)
@@ -1372,7 +1376,7 @@ BT_mb_loop_split_window(vrna_fold_compound_t  *vc,
             tmp_en -= sc->f(ii, jj, ii + 1, jj, VRNA_DECOMP_ML_STEM, sc->data);
         }
 
-        type = get_pair_type_window(ii + 1, jj, ptype);
+        type = vrna_get_ptype_window(ii + 1, jj, ptype);
 
         if (tmp_en == c[ii + 1][jj - (ii + 1)] + E_MLstem(type, S1[ii], -1, P) + P->MLbase) {
           *i          = *j = -1;
@@ -1393,7 +1397,7 @@ BT_mb_loop_split_window(vrna_fold_compound_t  *vc,
             tmp_en -= sc->f(ii, jj, ii, jj - 1, VRNA_DECOMP_ML_STEM, sc->data);
         }
 
-        type = get_pair_type_window(ii, jj - 1, ptype);
+        type = vrna_get_ptype_window(ii, jj - 1, ptype);
 
         if (tmp_en == c[ii][jj - 1 - ii] + E_MLstem(type, -1, S1[jj], P) + P->MLbase) {
           *i          = *j = -1;
@@ -1414,7 +1418,7 @@ BT_mb_loop_split_window(vrna_fold_compound_t  *vc,
             tmp_en -= sc->f(ii, jj, ii + 1, jj - 1, VRNA_DECOMP_ML_STEM, sc->data);
         }
 
-        type = get_pair_type_window(ii + 1, jj - 1, ptype);
+        type = vrna_get_ptype_window(ii + 1, jj - 1, ptype);
 
         if (tmp_en ==
             c[ii + 1][jj - 1 - (ii + 1)] + E_MLstem(type, S1[ii], S1[jj], P) + 2 * P->MLbase) {
@@ -1469,8 +1473,8 @@ BT_mb_loop_split_window(vrna_fold_compound_t  *vc,
     int tmp_en;
     for (u = ii + 1 + turn; u <= jj - 2 - turn; u++) {
       if (evaluate(ii, u, u + 1, jj, VRNA_DECOMP_ML_COAXIAL_ENC, &hc_dat_local)) {
-        type    = rtype[get_pair_type_window(ii, u, ptype)];
-        type_2  = rtype[get_pair_type_window(u + 1, jj, ptype)];
+        type    = rtype[vrna_get_ptype_window(ii, u, ptype)];
+        type_2  = rtype[vrna_get_ptype_window(u + 1, jj, ptype)];
 
         tmp_en = c[ii][u - ii] +
                  c[u + 1][jj - (u + 1)] +
@@ -1620,7 +1624,7 @@ BT_mb_loop_split_window_comparative(vrna_fold_compound_t  *vc,
       if (evaluate(ii, jj, ii, jj, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
         cc = 0;
         for (ss = 0; ss < n_seq; ss++) {
-          type  = get_pair_type_md(S[ss][ii], S[ss][jj], md);
+          type  = vrna_get_ptype_md(S[ss][ii], S[ss][jj], md);
           cc    += E_MLstem(type, -1, -1, P);
         }
 
@@ -1639,7 +1643,7 @@ BT_mb_loop_split_window_comparative(vrna_fold_compound_t  *vc,
       if (evaluate(ii, jj, ii, jj, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
         cc = 0;
         for (ss = 0; ss < n_seq; ss++) {
-          type  = get_pair_type_md(S[ss][ii], S[ss][jj], md);
+          type  = vrna_get_ptype_md(S[ss][ii], S[ss][jj], md);
           cc    += E_MLstem(type, (ii > 1) ? S5[ss][ii] : -1, (jj < length) ? S3[ss][jj] : -1, P);
         }
 
@@ -1741,7 +1745,7 @@ BT_mb_loop(vrna_fold_compound_t *vc,
   turn          = md->min_loop_size;
   ptype         = vc->ptype;
   rtype         = &(md->rtype[0]);
-  type          = get_pair_type(ij, ptype);
+  type          = vrna_get_ptype(ij, ptype);
   tt            = type;
   type          = rtype[type];
   dangle_model  = md->dangles;
@@ -1996,7 +2000,7 @@ BT_mb_loop(vrna_fold_compound_t *vc,
           if (dangle_model == 3) {
             tmp_en = e;
             if (evaluate(*i, *j, p, r, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
-              type_2 = rtype[get_pair_type(idx[r] + p, ptype)];
+              type_2 = rtype[vrna_get_ptype(idx[r] + p, ptype)];
 
               tmp_en = my_c[idx[r] + p] +
                        P->stack[tt][type_2] +
@@ -2016,7 +2020,7 @@ BT_mb_loop(vrna_fold_compound_t *vc,
             }
 
             if (evaluate(*i, *j, r + 1, q, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
-              type_2 = rtype[get_pair_type(idx[q] + r + 1, ptype)];
+              type_2 = rtype[vrna_get_ptype(idx[q] + r + 1, ptype)];
 
               tmp_en = my_c[idx[q] + r + 1] +
                        P->stack[tt][type_2] +
@@ -2123,14 +2127,14 @@ BT_mb_loop_comparative(vrna_fold_compound_t *vc,
     switch (dangle_model) {
       case 0:
         for (ss = 0; ss < n_seq; ss++) {
-          tt  = get_pair_type_md(S[ss][*j], S[ss][*i], md);
+          tt  = vrna_get_ptype_md(S[ss][*j], S[ss][*i], md);
           e   -= E_MLstem(tt, -1, -1, P);
         }
         break;
 
       case 2:
         for (ss = 0; ss < n_seq; ss++) {
-          tt  = get_pair_type_md(S[ss][*j], S[ss][*i], md);
+          tt  = vrna_get_ptype_md(S[ss][*j], S[ss][*i], md);
           e   -= E_MLstem(tt, S5[ss][*j], S3[ss][*i], P);
         }
         break;
@@ -2208,7 +2212,7 @@ BT_mb_loop_window(vrna_fold_compound_t  *vc,
   turn          = md->min_loop_size;
   ptype         = vc->ptype_local;
   rtype         = &(md->rtype[0]);
-  type          = get_pair_type_window(*i, *j, ptype);
+  type          = vrna_get_ptype_window(*i, *j, ptype);
   tt            = type;
   type          = rtype[type];
   dangle_model  = md->dangles;
@@ -2387,7 +2391,7 @@ BT_mb_loop_window(vrna_fold_compound_t  *vc,
           if (dangle_model == 3) {
             tmp_en = e;
             if (evaluate(*i, *j, p, r, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
-              type_2 = rtype[get_pair_type_window(p, r, ptype)];
+              type_2 = rtype[vrna_get_ptype_window(p, r, ptype)];
 
               tmp_en = c[p][r - p] +
                        P->stack[tt][type_2] +
@@ -2410,7 +2414,7 @@ BT_mb_loop_window(vrna_fold_compound_t  *vc,
             }
 
             if (evaluate(*i, *j, r + 1, q, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
-              type_2 = rtype[get_pair_type_window(r + 1, q, ptype)];
+              type_2 = rtype[vrna_get_ptype_window(r + 1, q, ptype)];
 
               tmp_en = c[r + 1][q - (r + 1)] +
                        P->stack[tt][type_2] +
@@ -2518,7 +2522,7 @@ BT_mb_loop_window_comparative(vrna_fold_compound_t  *vc,
     switch (dangle_model) {
       case 0:
         for (ss = 0; ss < n_seq; ss++) {
-          tt  = get_pair_type_md(S[ss][*j], S[ss][*i], md);
+          tt  = vrna_get_ptype_md(S[ss][*j], S[ss][*i], md);
           mm  += E_MLstem(tt, -1, -1, P);
         }
 
@@ -2550,7 +2554,7 @@ BT_mb_loop_window_comparative(vrna_fold_compound_t  *vc,
 
       case 2:
         for (ss = 0; ss < n_seq; ss++) {
-          tt  = get_pair_type_md(S[ss][*j], S[ss][*i], md);
+          tt  = vrna_get_ptype_md(S[ss][*j], S[ss][*i], md);
           mm  += E_MLstem(tt, S5[ss][*j], S3[ss][*i], P);
         }
 

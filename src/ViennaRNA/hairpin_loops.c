@@ -130,7 +130,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
       S           = vc->sequence_encoding;
       S2          = vc->sequence_encoding2;
       sc          = vc->sc;
-      type        = get_pair_type(S2[j], S2[i], md);
+      type        = vrna_get_ptype_md(S2[j], S2[i], md);
       loopseq[0]  = '\0';
 
       if (noGUclosure && ((type == 3) || (type == 4)))
@@ -180,7 +180,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
         if ((u1 + u2) < 3) {
           e += 600;
         } else {
-          type  = get_pair_type(SS[s][j], SS[s][i], md);
+          type  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
           e     += E_Hairpin(u1 + u2, type, S3[s][j], S5[s][i], loopseq, P);
         }
       }
@@ -261,7 +261,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
       S2    = vc->sequence_encoding2;
       sc    = vc->sc;
       u     = j - i - 1;
-      type  = get_pair_type(S2[i], S2[j], md);
+      type  = vrna_get_ptype_md(S2[i], S2[j], md);
 
       if (noGUclosure && ((type == 3) || (type == 4)))
         break;
@@ -322,7 +322,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
         if (u < 3) {
           e += 600;                          /* ??? really 600 ??? */
         } else {
-          type  = get_pair_type(SS[s][i], SS[s][j], md);
+          type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
           e     += E_Hairpin(u, type, S3[s][i], S5[s][j], Ss[s] + (a2s[s][i - 1]), P);
         }
       }
@@ -403,7 +403,7 @@ eval_hp_loop_fake(vrna_fold_compound_t  *vc,
       sc    = vc->sc;
       u     = j - i - 1;
       ij    = idx[j] + i;
-      type  = get_pair_type(S2[j], S2[i], md);
+      type  = vrna_get_ptype_md(S2[j], S2[i], md);
 
       if (noGUclosure && ((type == 3) || (type == 4)))
         break;

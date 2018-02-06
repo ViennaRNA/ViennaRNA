@@ -123,7 +123,7 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
       S2    = vc->sequence_encoding2;
       sc    = vc->sc;
       u     = j - i - 1;
-      type  = get_pair_type(S2[j], S2[i], md);
+      type  = vrna_get_ptype_md(S2[j], S2[i], md);
 
       temp = scale[2];
 
@@ -208,7 +208,7 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
       S     = vc->sequence_encoding;
       sc    = vc->sc;
       u     = j - i - 1;
-      type  = get_pair_type(S[i], S[j], md);
+      type  = vrna_get_ptype_md(S[i], S[j], md);
 
       if (type == 0)
         type = 7;
@@ -276,7 +276,7 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
         if (u < 9)
           strncpy(loopseq, Ss[s] + a2s[s][i] - 1, 10);
 
-        type = get_pair_type(SS[s][i], SS[s][j], md);
+        type = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
 
         qbt1 *= exp_E_Hairpin(u, type, S3[s][i], S5[s][j], loopseq, P);
       }
@@ -413,7 +413,7 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
           strncat(loopseq, Ss[s], a2s[s][i]);
         }
 
-        type  = get_pair_type(SS[s][j], SS[s][i], md);
+        type  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
         qbt1  *= exp_E_Hairpin(u1 + u2, type, S3[s][j], S5[s][i], loopseq, P);
       }
       /* add soft constraints */
