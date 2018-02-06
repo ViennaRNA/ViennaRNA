@@ -1067,12 +1067,8 @@ scan_interval(vrna_fold_compound_t  *vc,
 
     if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
       /* i,j may pair */
-      cij = c[ij];
-
-      type = ptype[ij];
-
-      if (type == 0)
-        type = 7;
+      cij   = c[ij];
+      type  = vrna_get_ptype(ij, ptype);
 
       switch (dangle_model) {
         case 0:
@@ -1149,10 +1145,7 @@ scan_interval(vrna_fold_compound_t  *vc,
 
         if (hard_constraints[k1j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
           short s5, s3;
-          type = ptype[k1j];
-
-          if (type == 0)
-            type = 7;
+          type = vrna_get_ptype(k1j, ptype);
 
           switch (dangle_model) {
             case 0:
@@ -1221,10 +1214,7 @@ scan_interval(vrna_fold_compound_t  *vc,
 
         if (hard_constraints[k1j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
           int s5, s3;
-          type = ptype[k1j];
-
-          if (type == 0)
-            type = 7;
+          type = vrna_get_ptype(k1j, ptype);
 
           switch (dangle_model) {
             case 0:
@@ -1319,10 +1309,7 @@ scan_interval(vrna_fold_compound_t  *vc,
       }
 
       if (hard_constraints[kj] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        type = ptype[kj];
-
-        if (type == 0)
-          type = 7;
+        type = vrna_get_ptype(kj, ptype);
 
         /* k and j pair */
         switch (dangle_model) {
@@ -1363,11 +1350,8 @@ scan_interval(vrna_fold_compound_t  *vc,
     }
 
     if (hard_constraints[kj] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-      type  = ptype[kj];
+      type  = vrna_get_ptype(kj, ptype);
       s5    = -1;
-
-      if (type == 0)
-        type = 7;
 
       switch (dangle_model) {
         case 0:
@@ -1448,11 +1432,7 @@ scan_interval(vrna_fold_compound_t  *vc,
           kl = indx[l] + k;         /* just confusing these indices ;-) */
 
           if (hard_constraints[kl] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-            type  = ptype[kl];
-            type  = rtype[type];
-
-            if (type == 0)
-              type = 7;
+            type = rtype[vrna_get_ptype(kl, ptype)];
 
             for (p = l + 1; p < j; p++) {
               int u1, qmin;
@@ -1474,10 +1454,7 @@ scan_interval(vrna_fold_compound_t  *vc,
                   break;
 
                 if (hard_constraints[indx[q] + p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-                  type_2 = rtype[(unsigned int)ptype[indx[q] + p]];
-
-                  if (type_2 == 0)
-                    type_2 = 7;
+                  type_2 = rtype[vrna_get_ptype(indx[q] + p, ptype)];
 
                   u2 = k - 1 + j - q;
                   if (u1 + u2 > MAXLOOP)
@@ -1607,10 +1584,7 @@ scan_interval(vrna_fold_compound_t  *vc,
       }
 
       if (hard_constraints[ik] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        type = ptype[ik];
-
-        if (type == 0)
-          type = 7;
+        type = vrna_get_ptype(ik, ptype);
 
         switch (dangle_model) {
           case 0:
@@ -1647,11 +1621,8 @@ scan_interval(vrna_fold_compound_t  *vc,
         repeat_gquad(vc, i, cp - 1, state, 0, 0, best_energy, threshold, env);
 
     if (hard_constraints[ik] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-      type  = ptype[ik];
+      type  = vrna_get_ptype(ik, ptype);
       s3    = -1;
-
-      if (type == 0)
-        type = 7;
 
       switch (dangle_model) {
         case 0:
@@ -1711,11 +1682,8 @@ scan_interval(vrna_fold_compound_t  *vc,
       }
 
       if (hard_constraints[kj] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        type            = ptype[kj];
+        type            = vrna_get_ptype(kj, ptype);
         element_energy  = 0;
-
-        if (type == 0)
-          type = 7;
 
         switch (dangle_model) {
           case 0:
@@ -1752,11 +1720,8 @@ scan_interval(vrna_fold_compound_t  *vc,
         repeat_gquad(vc, cp, j, state, 0, 0, best_energy, threshold, env);
 
     if (hard_constraints[kj] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-      type  = ptype[kj];
+      type  = vrna_get_ptype(kj, ptype);
       s5    = -1;
-
-      if (type == 0)
-        type = 7;
 
       switch (dangle_model) {
         case 0:
@@ -1911,13 +1876,10 @@ repeat(vrna_fold_compound_t *vc,
 
   ij = indx[j] + i;
 
-  type = ptype[ij];
+  type = vrna_get_ptype(ij, ptype);
   /*
    * if (type==0) fprintf(stderr, "repeat: Warning: %d %d can't pair\n", i,j);
    */
-
-  if (type == 0)
-    type = 7;
 
   no_close = (((type == 3) || (type == 4)) && noGUclosure);
 
@@ -1926,12 +1888,8 @@ repeat(vrna_fold_compound_t *vc,
       /* always consider the structure with additional stack */
       if (i + turn + 2 < j) {
         if (hc->matrix[indx[j - 1] + i + 1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
-          type_2 = rtype[(unsigned int)ptype[indx[j - 1] + i + 1]];
-
-          if (type_2 == 0)
-            type_2 = 7;
-
-          energy = 0;
+          type_2  = rtype[vrna_get_ptype(indx[j - 1] + i + 1, ptype)];
+          energy  = 0;
 
           if (ON_SAME_STRAND(i, i + 1, cp) && ON_SAME_STRAND(j - 1, j, cp)) {
             energy = E_IntLoop(0, 0, type, type_2, S1[i + 1], S1[j - 1], S1[i + 1], S1[j - 1], P);
@@ -1990,10 +1948,7 @@ repeat(vrna_fold_compound_t *vc,
         if (!(hc->matrix[indx[q] + p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC))
           continue;
 
-        type_2 = ptype[indx[q] + p];
-
-        if (type_2 == 0)
-          type_2 = 7;
+        type_2 = vrna_get_ptype(indx[q] + p, ptype);
 
         if (noGUclosure)
           if (no_close || (type_2 == 3) || (type_2 == 4))
@@ -2044,9 +1999,6 @@ repeat(vrna_fold_compound_t *vc,
     if (hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
       rt = rtype[type];
 
-      if (rt == 0)
-        rt = 7;
-
       element_energy = 0;
       switch (dangle_model) {
         case 0:
@@ -2070,9 +2022,6 @@ repeat(vrna_fold_compound_t *vc,
   rt  = rtype[type];
 
   if ((hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) && (i != cp - 1) && (j != cp)) {
-    if (rt == 0)
-      rt = 7;
-
     element_energy = mm;
     switch (dangle_model) {
       case 0:
