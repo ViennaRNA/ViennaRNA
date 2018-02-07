@@ -355,9 +355,9 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
                              unsigned int         options)
 {
   FILE          *fp;
-  float         reactivity, *reactivities, e1, weight;
+  float         reactivity, *reactivities, weight;
   char          *line, nucleotide, *sequence;
-  int           s, i, p, r, n_data, position, *pseudo_energies, n_seq;
+  int           s, i, r, n_data, position, *pseudo_energies, n_seq;
   unsigned int  **a2s;
 
   if (vc && (vc->type == VRNA_FC_TYPE_COMPARATIVE)) {
@@ -478,9 +478,9 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
         }
 
         /* resize to actual number of entries */
-        pseudo_energies           = vrna_realloc(
-                                      pseudo_energies,
-                                      sizeof(int) * (vc->a2s[ss][vc->length] + 1));
+        pseudo_energies = vrna_realloc(
+          pseudo_energies,
+          sizeof(int) * (vc->a2s[ss][vc->length] + 1));
         vc->scs[ss]->energy_stack = pseudo_energies;
 #if 0
         if (options & VRNA_OPTION_PF) {
