@@ -74,7 +74,7 @@ PUBLIC int
 vrna_sequence_remove(vrna_fold_compound_t *vc,
                      unsigned int         i)
 {
-  unsigned int  j, size;
+  unsigned int  size;
   int           ret = 0;
 
   if (vc) {
