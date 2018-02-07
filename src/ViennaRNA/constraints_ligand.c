@@ -258,7 +258,7 @@ vrna_sc_add_hi_motif( vrna_fold_compound_t *vc,
                       FLT_OR_DBL energy,
                       unsigned int options){
 
-    int                   i, cp, cp2;
+    int                   cp, cp2;
     char                  *sequence, *motif, *motif_alt;
     vrna_md_t             *md_p;
     ligand_data           *ldata;
@@ -524,7 +524,6 @@ expAptamerContribHairpin(int i, int j, int k, int l, unsigned char d, void *data
 static vrna_basepair_t *
 backtrack_int_motif(int i, int j, int k, int l, unsigned char d, void *data){
 
-  int                 bp_size = 15;
   vrna_basepair_t     *pairs = NULL;
   quadruple_position  *pos;
   ligand_data         *ldata;
@@ -534,34 +533,6 @@ backtrack_int_motif(int i, int j, int k, int l, unsigned char d, void *data){
     for(pos = ldata->positions; pos->i; pos++){
       if((pos->i == i) && (pos->j == j) && (pos->k == k) && (pos->l == l)){
         /* found motif in our list, lets create pairs */
-        char  *ptr;
-#if 0
-        int   actual_size = 0;
-        pairs = vrna_alloc(sizeof(vrna_basepair_t) * bp_size);
-
-        for(ptr=ldata->struct_motif_5; *ptr != '\0'; ptr++, i++){
-          if(*ptr == '.'){
-            pairs[actual_size].i = pairs[actual_size].j = i;
-            actual_size++;
-            if(actual_size == bp_size){
-              bp_size *= 2;
-              pairs = vrna_realloc(pairs, sizeof(vrna_basepair_t) * bp_size);
-            }
-          }
-        }
-        for(ptr=ldata->struct_motif_3; *ptr != '\0'; ptr++, l++){
-          if(*ptr == '.'){
-            pairs[actual_size].i = pairs[actual_size].j = l;
-            actual_size++;
-            if(actual_size == bp_size){
-              bp_size *= 2;
-              pairs = vrna_realloc(pairs, sizeof(vrna_basepair_t) * bp_size);
-            }
-          }
-        }
-        pairs = vrna_realloc(pairs, sizeof(vrna_basepair_t) * (actual_size + 1));
-        pairs[actual_size].i = pairs[actual_size].j = -1;
-#else
         pairs = vrna_alloc(sizeof(vrna_basepair_t) * (ldata->pair_count + 1));
         vrna_basepair_t *pptr;
         int             count;
@@ -570,7 +541,6 @@ backtrack_int_motif(int i, int j, int k, int l, unsigned char d, void *data){
           pairs[count].j = (pptr->j < 0) ? j + pptr->j : i + pptr->j - 1;
         }
         pairs[count].i = pairs[count].j = 0;
-#endif
 
         return pairs;
       }
@@ -614,7 +584,6 @@ scanForMotif( const char *seq,
               const char *motif2){
 
   int   i, j, k, l, l1, l2, n, cnt, cnt2;
-  char  *ptr;
   quadruple_position *pos;
   
   n     = (int) strlen(seq);
