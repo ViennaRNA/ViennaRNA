@@ -41,6 +41,7 @@ calculate_probability_unpaired(vrna_fold_compound_t *vc,
 }
 
 
+#if 0
 static double
 calculate_norm(double *vector,
                int    length)
@@ -54,6 +55,8 @@ calculate_norm(double *vector,
   return sqrt(sum);
 }
 
+
+#endif
 
 static void
 addSoftConstraint(vrna_fold_compound_t  *vc,
@@ -116,8 +119,8 @@ evaluate_perturbation_vector_score(vrna_fold_compound_t *vc,
                                    double               tau_squared,
                                    int                  objective_function)
 {
-  double  kT, ret = 0;
-  double  ret2 = 0.;
+  double  ret   = 0;
+  double  ret2  = 0.;
   double  *p_prob_unpaired;
   int     i;
   int     length = vc->length;
@@ -220,9 +223,8 @@ pairing_probabilities_from_sampling(vrna_fold_compound_t  *vc,
                                     double                *prob_unpaired,
                                     double                **conditional_prob_unpaired)
 {
-  double  kT;
-  int     length = vc->length;
-  int     i, j, s;
+  int length = vc->length;
+  int i, j, s;
 
   st_back = 1; /* is this really required? */
 
