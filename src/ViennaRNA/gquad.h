@@ -281,7 +281,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *vc,
                   vrna_bp_stack_t       *bp_stack,
                   int                   *stack_count)
 {
-  int           energy, dangles, *idx, ij, p, q, maxl, minl, c0, l1, *rtype, *ggg;
+  int           energy, dangles, *idx, ij, p, q, maxl, minl, c0, l1, *ggg;
   unsigned char type;
   char          *ptype;
   short         si, sj, *S, *S1;
@@ -294,7 +294,6 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *vc,
   P       = vc->params;
   md      = &(P->model_details);
   ptype   = vc->ptype;
-  rtype   = &(md->rtype[0]);
   type    = (unsigned char)ptype[ij];
   S1      = vc->sequence_encoding;
   S       = vc->sequence_encoding2;
