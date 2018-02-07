@@ -223,7 +223,6 @@ vrna_sc_init(vrna_fold_compound_t *vc)
 PUBLIC void
 vrna_sc_init_window(vrna_fold_compound_t *vc)
 {
-  unsigned int  s;
   vrna_sc_t     *sc;
 
   if (vc) {
@@ -296,34 +295,31 @@ vrna_sc_update(vrna_fold_compound_t *vc,
     } else {
       maxdist = MIN2(maxdist, n - i + 1);
 
-      switch (vc->type) {
-        case VRNA_FC_TYPE_SINGLE:
-          sc = vc->sc;
+      if (vc->type == VRNA_FC_TYPE_SINGLE) {
+        sc = vc->sc;
 
-          if (options & VRNA_OPTION_WINDOW) {
-            /* sliding-window mode, i.e. local structure prediction */
-            if (sc && (i > 0)) {
-              if (sc->up_storage) {
-                if (options & VRNA_OPTION_MFE)
-                  populate_sc_up_mfe(vc, i, maxdist);
+        if (options & VRNA_OPTION_WINDOW) {
+          /* sliding-window mode, i.e. local structure prediction */
+          if (sc && (i > 0)) {
+            if (sc->up_storage) {
+              if (options & VRNA_OPTION_MFE)
+                populate_sc_up_mfe(vc, i, maxdist);
 
-                if (options & VRNA_OPTION_PF)
-                  populate_sc_up_pf(vc, i, maxdist);
-              }
-
-              if (sc->bp_storage) {
-                if (options & VRNA_OPTION_MFE)
-                  populate_sc_bp_mfe(vc, i, maxdist);
-
-                if (options & VRNA_OPTION_PF)
-                  populate_sc_bp_pf(vc, i, maxdist);
-              }
+              if (options & VRNA_OPTION_PF)
+                populate_sc_up_pf(vc, i, maxdist);
             }
-          } else {
-            /* do nothing here, until we know what a reasonable action for global folding would be */
-          }
 
-          break;
+            if (sc->bp_storage) {
+              if (options & VRNA_OPTION_MFE)
+                populate_sc_bp_mfe(vc, i, maxdist);
+
+              if (options & VRNA_OPTION_PF)
+                populate_sc_bp_pf(vc, i, maxdist);
+            }
+          }
+        } else {
+          /* do nothing here, until we know what a reasonable action for global folding would be */
+        }
       }
     }
   }
@@ -361,8 +357,6 @@ vrna_sc_remove(vrna_fold_compound_t *vc)
 PUBLIC void
 vrna_sc_free(vrna_sc_t *sc)
 {
-  unsigned int i;
-
   if (sc) {
     free_sc_up(sc);
     free_sc_bp(sc);
@@ -726,7 +720,7 @@ populate_sc_bp_mfe(vrna_fold_compound_t *vc,
                    unsigned int         i,
                    unsigned int         maxdist)
 {
-  unsigned int  j, k, cnt, turn, n;
+  unsigned int  j, k, turn, n;
   int           e, *idx;
   vrna_sc_t     *sc;
 
@@ -779,7 +773,7 @@ populate_sc_bp_pf(vrna_fold_compound_t  *vc,
                   unsigned int          i,
                   unsigned int          maxdist)
 {
-  unsigned int      j, k, cnt, turn, n;
+  unsigned int      j, k, turn, n;
   int               e, *idx;
   FLT_OR_DBL        q;
   double            GT, kT;
@@ -842,11 +836,7 @@ sc_add_bp(vrna_fold_compound_t  *vc,
           FLT_OR_DBL            energy,
           unsigned int          options)
 {
-  unsigned int  n;
   vrna_sc_t     *sc;
-  int           *idx;
-
-  n = vc->length;
 
   if ((options & VRNA_OPTION_WINDOW) && (!vc->sc))
     vrna_sc_init_window(vc);
@@ -967,7 +957,6 @@ sc_reset_bp(vrna_fold_compound_t  *vc,
 {
   unsigned int  i, j, n;
   vrna_sc_t     *sc;
-  int           *idx;
 
   n = vc->length;
 
