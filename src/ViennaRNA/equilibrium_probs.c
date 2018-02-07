@@ -101,12 +101,12 @@ PRIVATE void
 pf_create_bppm( vrna_fold_compound_t *vc,
                 char *structure){
 
-  int n, i,j,k,l, ij, kl, ii, u, u1, u2, cnt, ov=0;
+  int n, i,j,k,l, ij, kl, ii, u, u1, u2, ov=0;
   unsigned char type, type_2, tt;
   FLT_OR_DBL  temp, Qmax=0, prm_MLb;
   FLT_OR_DBL  prmt, prmt1;
   FLT_OR_DBL  *tmp;
-  FLT_OR_DBL  tmp2, tmp_ud;
+  FLT_OR_DBL  tmp2;
   FLT_OR_DBL  expMLclosing;
   FLT_OR_DBL  *qb, *qm, *G, *probs, *scale, *expMLbase;
   FLT_OR_DBL  *q1k, *qln;
@@ -787,15 +787,10 @@ pf_co_bppm(vrna_fold_compound_t *vc,
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
   vrna_mx_pf_t      *matrices;
-  char              *sequence;
   unsigned char     *hard_constraints;
-  int               *hc_up_ext;
-  int               *hc_up_hp;
   int               *hc_up_int;
-  int               *hc_up_ml;
   int               *rtype;
 
-  sequence      = vc->sequence;
   n             = vc->length;
   cp            = vc->cutpoint;
   pf_params     = vc->exp_params;
@@ -824,10 +819,7 @@ pf_co_bppm(vrna_fold_compound_t *vc,
   sc  = vc->sc;
 
   hard_constraints  = hc->matrix;
-  hc_up_ext         = hc->up_ext;
-  hc_up_hp          = hc->up_hp;
   hc_up_int         = hc->up_int;
-  hc_up_ml          = hc->up_ml;
 
   /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
   turn = 0;
@@ -1275,20 +1267,15 @@ ud_outside_hp_loops( vrna_fold_compound_t *vc){
 
 
   int         i, j, k, l, kl, *my_iindx, u, n, cnt, *motif_list, *hc_up;
-  FLT_OR_DBL  *q1k, *qln, temp, *scale, outside, exp_motif_en, *probs, q1, q2;
+  FLT_OR_DBL  temp, outside, exp_motif_en, *probs, q1, q2;
 
-  vrna_sc_t   *sc;
   vrna_ud_t   *domains_up, *ud_bak;
 
   n           = vc->length;
   my_iindx    = vc->iindx;
-  q1k         = vc->exp_matrices->q1k;
-  qln         = vc->exp_matrices->qln;
   probs       = vc->exp_matrices->probs;
-  scale       = vc->exp_matrices->scale;
   hc_up       = vc->hc->up_hp;
   domains_up  = vc->domains_up;
-  sc          = vc->sc;
 
   for(i = 1; i <= n; i++){
     motif_list = vrna_ud_get_motif_size_at(vc, i, VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP);
@@ -1365,21 +1352,15 @@ PRIVATE INLINE void
 ud_outside_hp_loops2( vrna_fold_compound_t *vc){
 
 
-  int         i, j, k, l, kl, *my_iindx, u, u1, u2, n, cnt, *motif_list, *hc_up, turn, m;
-  FLT_OR_DBL  *q1k, *qln, temp, *scale, outside, exp_motif_en, *probs, q1, q2, **qq_ud, **pp_ud;
+  int         i, j, k, l, kl, *my_iindx, u, u1, u2, n, turn, m;
+  FLT_OR_DBL  temp, outside, exp_motif_en, *probs, q1, q2, **qq_ud, **pp_ud;
 
-  vrna_sc_t   *sc;
   vrna_ud_t   *domains_up, *ud_bak;
 
   n           = vc->length;
   my_iindx    = vc->iindx;
-  q1k         = vc->exp_matrices->q1k;
-  qln         = vc->exp_matrices->qln;
   probs       = vc->exp_matrices->probs;
-  scale       = vc->exp_matrices->scale;
-  hc_up       = vc->hc->up_hp;
   domains_up  = vc->domains_up;
-  sc          = vc->sc;
   turn        = vc->exp_params->model_details.min_loop_size;
 
   qq_ud = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
@@ -1458,21 +1439,16 @@ ud_outside_int_loops( vrna_fold_compound_t *vc){
 
   int         i, j, k, l, p, q, pq, kl, u, n, cnt, *motif_list, *my_iindx,
               *hc_up, kmin, pmax, qmin, lmax, turn;
-  FLT_OR_DBL  *q1k, *qln, temp, *scale, q1, q2, q3, exp_motif_en, outside,
+  FLT_OR_DBL  temp, q1, q2, q3, exp_motif_en, outside,
               *probs, *qb;
-  vrna_sc_t   *sc;
   vrna_ud_t   *domains_up, *ud_bak;
 
   n           = vc->length;
   my_iindx    = vc->iindx;
-  q1k         = vc->exp_matrices->q1k;
-  qln         = vc->exp_matrices->qln;
   qb          = vc->exp_matrices->qb;
   probs       = vc->exp_matrices->probs;
-  scale       = vc->exp_matrices->scale;
   hc_up       = vc->hc->up_int;
   domains_up  = vc->domains_up;
-  sc          = vc->sc;
   turn        = vc->exp_params->model_details.min_loop_size;
 
   for(i = 2; i <= n; i++){
@@ -1625,27 +1601,20 @@ PRIVATE INLINE void
 ud_outside_int_loops2( vrna_fold_compound_t *vc){
 
   unsigned char *hard_constraints, *hc_local;
-  int           i, j, k, l, p, q, pq, kl, u, n, cnt, *motif_list, *my_iindx,
-                *hc_up, kmin, pmax, qmin, lmax, turn, *jindx, u1, u2, uu1, uu2,
-                u2_max, m;
-  FLT_OR_DBL    *q1k, *qln, temp, *scale, q1, q2, q5, q3, exp_motif_en, outside,
+  int           i, j, k, l, p, q, pq, kl, u, n, *my_iindx, pmax, qmin, turn,
+                *jindx, u1, u2, uu1, uu2, u2_max, m;
+  FLT_OR_DBL    temp, q5, q3, exp_motif_en, outside,
                 *probs, *qb, qq1, qq2, *qqk, *qql, *qqp, **qq_ud, **pp_ud, temp5,
                 temp3;
-  vrna_sc_t     *sc;
   vrna_ud_t     *domains_up, *ud_bak;
 
   n           = vc->length;
   my_iindx    = vc->iindx;
   jindx       = vc->jindx;
-  q1k         = vc->exp_matrices->q1k;
-  qln         = vc->exp_matrices->qln;
   qb          = vc->exp_matrices->qb;
   probs       = vc->exp_matrices->probs;
-  scale       = vc->exp_matrices->scale;
-  hc_up       = vc->hc->up_int;
   hard_constraints = vc->hc->matrix;
   domains_up  = vc->domains_up;
-  sc          = vc->sc;
   turn        = vc->exp_params->model_details.min_loop_size;
 
   hc_local = (unsigned char *)vrna_alloc(sizeof(unsigned char) * (((n + 1) * (n + 2)) /2 + 2));
@@ -1804,13 +1773,12 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc){
   short             *S;
   int               i, j, k, l, kl, jkl, *my_iindx, u, n, cnt, *motif_list,
                     *hc_up, turn, tt, *jindx, *rtype, up, ud_max_size;
-  FLT_OR_DBL        *q1k, *qln, temp, *scale, outside, exp_motif_en, *probs,
-                    *qb, *qm, q1, q2, expMLclosing, *expMLbase, *qmli,
-                    exp_motif_ml_left, exp_motif_ml_right;
+  FLT_OR_DBL        temp, *scale, outside, exp_motif_en, *probs, *qb, *qm, expMLclosing,
+                    *expMLbase, *qmli, exp_motif_ml_left, exp_motif_ml_right;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
   vrna_sc_t         *sc;
-  vrna_ud_t         *domains_up, *ud_bak;
+  vrna_ud_t         *domains_up;
 
   n             = vc->length;
   S             = vc->sequence_encoding;
@@ -1819,8 +1787,6 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc){
   ptype         = vc->ptype;
   pf_params     = vc->exp_params;
   md            = &(vc->exp_params->model_details);
-  q1k           = vc->exp_matrices->q1k;
-  qln           = vc->exp_matrices->qln;
   qb            = vc->exp_matrices->qb;
   qm            = vc->exp_matrices->qm;
   probs         = vc->exp_matrices->probs;
@@ -2094,14 +2060,13 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc){
   short             *S;
   int               i, j, k, l, kl, jkl, *my_iindx, u, n, cnt, *motif_list,
                     *hc_up, turn, tt, *jindx, *rtype, up, ud_max_size;
-  FLT_OR_DBL        *q1k, *qln, temp, *scale, outside, exp_motif_en, *probs,
-                    *qb, *qm, q1, q2, expMLclosing, *expMLbase, *qmli,
-                    exp_motif_ml_left, exp_motif_ml_right, *qqi, *qqj,
-                    *qqmi, *qqmj;
+  FLT_OR_DBL        temp, *scale, outside, exp_motif_en, *probs, *qb, *qm,
+                    expMLclosing, *expMLbase, *qmli, exp_motif_ml_left,
+                    exp_motif_ml_right, *qqi, *qqj, *qqmi, *qqmj;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
   vrna_sc_t         *sc;
-  vrna_ud_t         *domains_up, *ud_bak;
+  vrna_ud_t         *domains_up;
 
   n             = vc->length;
   S             = vc->sequence_encoding;
@@ -2110,8 +2075,6 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc){
   ptype         = vc->ptype;
   pf_params     = vc->exp_params;
   md            = &(vc->exp_params->model_details);
-  q1k           = vc->exp_matrices->q1k;
-  qln           = vc->exp_matrices->qln;
   qb            = vc->exp_matrices->qb;
   qm            = vc->exp_matrices->qm;
   probs         = vc->exp_matrices->probs;
@@ -2423,7 +2386,7 @@ PRIVATE INLINE void
 bppm_circ(vrna_fold_compound_t *vc){
 
   unsigned char     type;
-  char              *ptype, *sequence;
+  char              *ptype;
   unsigned char     *hard_constraints, eval;
   short             *S, *S1;
   int               n, i,j,k,l, ij, *rtype, *my_iindx, *jindx, turn;
@@ -2454,8 +2417,6 @@ bppm_circ(vrna_fold_compound_t *vc){
   expMLbase         = matrices->expMLbase;
   qo                = matrices->qo;
   hard_constraints  = hc->matrix;
-  sequence          = vc->sequence;
-
 
   expMLclosing  = pf_params->expMLclosing;
   rtype         = &(pf_params->model_details.rtype[0]);
@@ -2637,6 +2598,7 @@ bppm_circ(vrna_fold_compound_t *vc){
         if (hc_local[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
           /* 1.3.1 Middle part                    */
           if((i>turn+2) && (j<n-turn-1)) {
+            tmp = 0;
             if ((sc) && (sc->exp_f)) {
               if (hc->f) {
                 if (hc->f(i, j, i - 1, j + 1, VRNA_DECOMP_PAIR_ML, hc->data) &&
@@ -2945,7 +2907,7 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
   FLT_OR_DBL Qmax=0.;
 #endif
   FLT_OR_DBL prmt,prmt1;
-  FLT_OR_DBL qbt1, *tmp, tmp2, tmp3;
+  FLT_OR_DBL *tmp, tmp2, tmp3;
 
   int             n_seq         = vc->n_seq;
   int             n             = vc->length;
@@ -2954,7 +2916,6 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
   short             **S               = vc->S;                                                                   
   short             **S5              = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/            
   short             **S3              = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/            
-  char              **Ss              = vc->Ss;
   unsigned int      **a2s             = vc->a2s;                                                                   
   vrna_exp_param_t  *pf_params        = vc->exp_params;
   vrna_mx_pf_t      *matrices         = vc->exp_matrices;
