@@ -158,7 +158,8 @@ PUBLIC void
 vrna_ptypes_prepare(vrna_fold_compound_t  *fc,
                     unsigned int          options)
 {
-  int i;
+  if (!fc)
+    return;
 
   if (options & VRNA_OPTION_MFE) {
     switch (fc->type) {
