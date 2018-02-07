@@ -584,8 +584,8 @@ set_fold_compound(vrna_fold_compound_t  *vc,
                   unsigned int          aux)
 {
   char          *sequence, **sequences, **ptr;
-  unsigned int  length, s, i;
-  int           cp, cnt;
+  unsigned int  length, s;
+  int           cp;
   char          *seq, *seq2;
   vrna_md_t     *md_p;
 
