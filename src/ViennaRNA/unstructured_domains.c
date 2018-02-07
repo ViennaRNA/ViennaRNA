@@ -868,8 +868,7 @@ PRIVATE void
 default_prod_rule(vrna_fold_compound_t *vc,
                   void *d){
 
-  int                             i,j,k,l,u,n,size,e_ext, e_hp, e_int, e_mb,en,en2,*idx;
-  unsigned int                    loop_type;
+  int                             i,j,k,l,u,n,e_ext, e_hp, e_int, e_mb,en,en2,*idx;
   vrna_ud_t                       *domains_up;
   struct ligands_up_data_default  *data;
 
@@ -879,7 +878,6 @@ default_prod_rule(vrna_fold_compound_t *vc,
   int           *energies_mb;
 
   n             = (int)vc->length;
-  size          = ((n+1)*(n+2))/2 + 1;
   idx           = vc->jindx;
   domains_up    = vc->domains_up;
   data          = (struct ligands_up_data_default *)d;
@@ -985,9 +983,8 @@ PRIVATE void
 default_exp_prod_rule(vrna_fold_compound_t *vc,
                       void *d){
 
-  int                             i,j,k,l,u,n,size,*idx;
-  unsigned int                    loop_type;
-  FLT_OR_DBL                      q_ext, q_hp, q_int, q_mb, q, qq;
+  int                             i,j,k,l,u,n,*idx;
+  FLT_OR_DBL                      q_ext, q_hp, q_int, q_mb, q;
   vrna_ud_t                       *domains_up;
   struct ligands_up_data_default  *data;
 
@@ -998,7 +995,6 @@ default_exp_prod_rule(vrna_fold_compound_t *vc,
   double        kT;
 
   n             = (int)vc->length;
-  size          = ((n+1)*(n+2))/2 + 1;
   idx           = vc->iindx;
   domains_up    = vc->domains_up;
   data          = (struct ligands_up_data_default *)d;
