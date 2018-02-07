@@ -156,11 +156,10 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
                  int                  length)
 {
   FLT_OR_DBL        r, qt, q_temp, qkl;
-  int               i, j, ij, n, k, u, start, type;
+  int               i, j, ij, n, k, u, type;
   char              *pstruc;
   int               *my_iindx, *jindx, hc_decompose, *hc_up_ext;
   FLT_OR_DBL        *q, *qb, *q1k, *qln, *scale;
-  char              *ptype;
   unsigned char     *hard_constraints;
   short             *S1, *S2;
   vrna_mx_pf_t      *matrices;
@@ -177,11 +176,10 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
   jindx     = vc->jindx;
   matrices  = vc->exp_matrices;
 
-  hc    = vc->hc;
-  sc    = vc->sc;
-  ptype = vc->ptype;
-  S1    = vc->sequence_encoding;
-  S2    = vc->sequence_encoding2;
+  hc  = vc->hc;
+  sc  = vc->sc;
+  S1  = vc->sequence_encoding;
+  S2  = vc->sequence_encoding2;
 
   hard_constraints  = hc->matrix;
   hc_up_ext         = hc->up_ext;
@@ -359,13 +357,12 @@ backtrack_qm(int                  i,
 {
   /* divide multiloop into qm and qm1  */
   FLT_OR_DBL    qmt, r, q_temp;
-  int           k, n, u, cnt, span, turn;
+  int           k, u, cnt, span, turn;
   FLT_OR_DBL    *qm, *qm1, *expMLbase;
   int           *my_iindx, *jindx, *hc_up_ml;
   vrna_sc_t     *sc;
   vrna_hc_t     *hc;
 
-  n = j;
   vrna_mx_pf_t  *matrices = vc->exp_matrices;
 
   my_iindx  = vc->iindx;
@@ -463,7 +460,7 @@ backtrack_qm1(int                   i,
               vrna_fold_compound_t  *vc)
 {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
-  int               ii, l, il, type, n, turn;
+  int               ii, l, il, type, turn;
   FLT_OR_DBL        qt, r, q_temp;
   FLT_OR_DBL        *qm1, *qb, *expMLbase;
   vrna_mx_pf_t      *matrices;
@@ -495,7 +492,6 @@ backtrack_qm1(int                   i,
 
   turn = pf_params->model_details.min_loop_size;
 
-  n   = j;
   r   = vrna_urn() * qm1[jindx[j] + i];
   ii  = my_iindx[i];
   for (qt = 0., l = j; l > i + turn; l--) {
@@ -572,10 +568,10 @@ backtrack(int                   i,
   char              *ptype, *sequence;
   unsigned char     *hard_constraints, hc_decompose;
   vrna_exp_param_t  *pf_params;
-  FLT_OR_DBL        *qb, *qm, *qm1, *scale, tmp;
+  FLT_OR_DBL        *qb, *qm, *qm1, *scale;
   FLT_OR_DBL        r, qbt1, qt, q_temp;
   vrna_mx_pf_t      *matrices;
-  int               *my_iindx, *jindx, *hc_up_int, *hc_up_hp;
+  int               *my_iindx, *jindx, *hc_up_int;
   vrna_sc_t         *sc;
   vrna_hc_t         *hc;
   short             *S1;
@@ -589,7 +585,6 @@ backtrack(int                   i,
 
   sc                = vc->sc;
   hc                = vc->hc;
-  hc_up_hp          = hc->up_hp;
   hc_up_int         = hc->up_int;
   hard_constraints  = hc->matrix;
 
@@ -602,8 +597,9 @@ backtrack(int                   i,
   int noGUclosure = pf_params->model_details.noGUclosure;
   int turn        = pf_params->model_details.min_loop_size;
   int *rtype      = &(pf_params->model_details.rtype[0]);
-  int n;
-  n = j;
+
+  qbt1 = 0.;
+
   do {
     int           k, l, kl, u, u1, u2, max_k, min_l;
     unsigned char type;
@@ -614,7 +610,6 @@ backtrack(int                   i,
     pstruc[j - 1] = ')';
 
     r             = vrna_urn() * qb[my_iindx[i] - j];
-    tmp           = qb[my_iindx[i] - j];
     type          = vrna_get_ptype(jindx[j] + i, ptype);
     hc_decompose  = hard_constraints[jindx[j] + i];
     if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
@@ -771,7 +766,7 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
   jindx     = vc->jindx;
   S1        = vc->sequence_encoding;
 
-  if ((!matrices) || (!matrices->q) || (!qb) || (!qm) || (!pf_params)) {
+  if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) || (!pf_params)) {
     vrna_message_warning("vrna_pbacktrack: DP matrices are missing! Call vrna_pf() first!");
     return NULL;
   } else if ((!vc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
@@ -924,9 +919,6 @@ pbacktrack_comparative(vrna_fold_compound_t *vc,
   vrna_exp_param_t  *pf_params  = vc->exp_params;
   vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   int               *my_iindx   = vc->iindx;
-  vrna_hc_t         *hc         = vc->hc;
-  vrna_sc_t         **sc        = vc->scs;
-
 
   if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) || (!pf_params)) {
     vrna_message_warning("vrna_pbacktrack: DP matrices are missing! Call vrna_pf() first!");
@@ -1032,7 +1024,6 @@ backtrack_comparative(vrna_fold_compound_t  *vc,
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
-  vrna_hc_t         *hc         = vc->hc;
   vrna_sc_t         **sc        = vc->scs;
   FLT_OR_DBL        *qb         = matrices->qb;
   FLT_OR_DBL        *qm         = matrices->qm;
@@ -1244,8 +1235,6 @@ backtrack_qm1_comparative(vrna_fold_compound_t  *vc,
   vrna_md_t         *md         = &(pf_params->model_details);
   int               *my_iindx   = vc->iindx;
   int               *jindx      = vc->jindx;
-  vrna_hc_t         *hc         = vc->hc;
-  vrna_sc_t         **sc        = vc->scs;
   FLT_OR_DBL        *qb         = matrices->qb;
   FLT_OR_DBL        *qm1        = matrices->qm1;
   FLT_OR_DBL        *expMLbase  = matrices->expMLbase;
