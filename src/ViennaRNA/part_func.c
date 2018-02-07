@@ -439,37 +439,35 @@ fill_arrays(vrna_fold_compound_t *vc)
 PRIVATE void
 postprocess_circular(vrna_fold_compound_t *vc)
 {
-  short             *S1;
   unsigned int      **a2s;
-  int               u, p, q, k, l, turn, n, *my_iindx, *jindx, s;
+  int               u, p, q, k, turn, n, *my_iindx, *jindx, s;
   FLT_OR_DBL        *scale, *qb, *qm, *qm1, *qm2, qo, qho, qio, qmo,
                     qbt1, qot, expMLclosing, n_seq;
-  unsigned char     *hard_constraints, eval;
+  unsigned char     eval;
   vrna_exp_param_t  *pf_params;
   vrna_mx_pf_t      *matrices;
   vrna_hc_t         *hc;
   vrna_sc_t         *sc, **scs;
 
-  n                 = vc->length;
-  n_seq             = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
-  matrices          = vc->exp_matrices;
-  my_iindx          = vc->iindx;
-  jindx             = vc->jindx;
-  S1                = vc->sequence_encoding;
-  pf_params         = vc->exp_params;
-  hc                = vc->hc;
-  qb                = matrices->qb;
-  qm                = matrices->qm;
-  qm1               = matrices->qm1;
-  qm2               = matrices->qm2;
-  scale             = matrices->scale;
-  expMLclosing      = pf_params->expMLclosing;
-  turn              = pf_params->model_details.min_loop_size;
-  hc                = vc->hc;
-  sc                = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sc : NULL;
-  scs               = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->scs : NULL;
-  hard_constraints  = hc->matrix;
-  qo                = qho = qio = qmo = 0.;
+  n             = vc->length;
+  n_seq         = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
+  matrices      = vc->exp_matrices;
+  my_iindx      = vc->iindx;
+  jindx         = vc->jindx;
+  pf_params     = vc->exp_params;
+  hc            = vc->hc;
+  qb            = matrices->qb;
+  qm            = matrices->qm;
+  qm1           = matrices->qm1;
+  qm2           = matrices->qm2;
+  scale         = matrices->scale;
+  expMLclosing  = pf_params->expMLclosing;
+  turn          = pf_params->model_details.min_loop_size;
+  hc            = vc->hc;
+  sc            = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sc : NULL;
+  scs           = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->scs : NULL;
+  a2s           = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->a2s : NULL;
+  qo            = qho = qio = qmo = 0.;
 
   for (p = 1; p < n; p++) {
     for (q = p + turn + 1; q <= n; q++) {
