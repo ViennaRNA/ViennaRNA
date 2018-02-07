@@ -728,8 +728,7 @@ mfe_matrices_alloc_window(vrna_mx_mfe_t *vars,
                           unsigned int  m,
                           unsigned int  alloc_vector)
 {
-  int           i;
-  unsigned int  n, lin_size;
+  unsigned int n, lin_size;
 
   n         = vars->length;
   lin_size  = n + 2;
@@ -1319,8 +1318,7 @@ pf_matrices_alloc_window(vrna_mx_pf_t *vars,
                          unsigned int m,
                          unsigned int alloc_vector)
 {
-  int           i;
-  unsigned int  n, lin_size;
+  unsigned int n, lin_size;
 
   n         = vars->length;
   lin_size  = n + 2;
