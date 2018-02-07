@@ -85,9 +85,6 @@ int             fold_constrained  = 0;    /* fold with constraints */
  # PRIVATE VARIABLES             #
  #################################
  */
-PRIVATE int       rtype[8] = {
-  0, 2, 1, 4, 3, 6, 5, 7
-};
 PRIVATE int       BP_pair[NBASES][NBASES] =
   /* _  A  C  G  U  X  K  I */
 { { 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -305,8 +302,6 @@ vrna_md_set_nonstandards(vrna_md_t  *md,
 PUBLIC void
 vrna_md_defaults_reset(vrna_md_t *md_p)
 {
-  int i = 0;
-
   /* first, reset to factory defaults */
   defaults.dangles          = VRNA_MODEL_DEFAULT_DANGLES;
   defaults.special_hp       = VRNA_MODEL_DEFAULT_SPECIAL_HP;
