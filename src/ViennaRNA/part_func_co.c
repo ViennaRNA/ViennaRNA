@@ -98,10 +98,8 @@ vrna_pf_co_fold(const char  *seq,
                 char        *structure,
                 vrna_ep_t   **pl)
 {
-  vrna_dimer_pf_t       X;
-
-  float                 free_energy;
   double                mfe;
+  vrna_dimer_pf_t       X;
   vrna_fold_compound_t  *vc;
   vrna_md_t             md;
 
@@ -177,7 +175,7 @@ wrap_co_pf_fold(char              *sequence,
     set_model_details(&md);
 
   /* set min_loop_size and backtracing options */
-  md.compute_bpp = calculate_bppm;
+  md.compute_bpp    = calculate_bppm;
   md.min_loop_size  = 0;
 
   vc = vrna_fold_compound(seq, &md, VRNA_OPTION_DEFAULT);
@@ -188,7 +186,7 @@ wrap_co_pf_fold(char              *sequence,
    *  model details
    */
   free(vc->exp_params);
-  if(parameters) {
+  if (parameters) {
     vrna_md_copy(&(parameters->model_details), &(vc->params->model_details));
     vc->exp_params = vrna_exp_params_copy(parameters);
   } else {
