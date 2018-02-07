@@ -201,7 +201,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
 {
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
 
-  unsigned int  strands, *sn, *so, *ss, *se;
+  unsigned int  strands, *sn, *ss, *se;
   int           i, j, length, energy;
   int           uniq_ML;
   int           no_close, type, maxj, *indx;
@@ -229,7 +229,6 @@ fill_arrays(vrna_fold_compound_t  *vc,
   uniq_ML           = P->model_details.uniq_ML;
   strands           = vc->strands;
   sn                = vc->strand_number;
-  so                = vc->strand_order;
   ss                = vc->strand_start;
   se                = vc->strand_end;
   hc                = vc->hc;
@@ -395,47 +394,25 @@ backtrack_co(sect                 bt_stack[],
    *  This is fast, since only few structure elements are recalculated.
    *  ------------------------------------------------------------------*/
 
-  unsigned int  strands, *sn, *so, *ss, *se;
-  int           i, j, ij, k, length, energy, en, new, ml0, ml5, ml3, ml53, no_close, type, type_2,
-                tt;
+  unsigned int  *se;
+  int           i, j, ij, k, length, no_close, type;
   char          *string = vc->sequence;
   vrna_param_t  *P      = vc->params;
   int           *indx   = vc->jindx;
   char          *ptype  = vc->ptype;
 
-  short         *S1               = vc->sequence_encoding;
-  short         *S                = vc->sequence_encoding2;
-  int           dangle_model      = P->model_details.dangles;
-  int           noLP              = P->model_details.noLP;
-  int           noGUclosure       = P->model_details.noGUclosure;
-  int           with_gquad        = P->model_details.gquad;
-  int           turn              = P->model_details.min_loop_size;
-  int           *rtype            = &(P->model_details.rtype[0]);
-  char          backtrack_type    = P->model_details.backtrack_type;
-  vrna_hc_t     *hc               = vc->hc;
-  vrna_sc_t     *sc               = vc->sc;
-  unsigned char *hard_constraints = hc->matrix;
+  int           noLP            = P->model_details.noLP;
+  int           noGUclosure     = P->model_details.noGUclosure;
+  char          backtrack_type  = P->model_details.backtrack_type;
 
   /* the folding matrices */
-  int           *my_f5, *my_c, *my_fML, *my_fc, *my_ggg;
+  int           *my_c;
 
   length  = vc->length;
-  my_f5   = vc->matrices->f5;
   my_c    = vc->matrices->c;
-  my_fML  = vc->matrices->fML;
-  my_fc   = vc->matrices->fc;
-  my_ggg  = vc->matrices->ggg;
-
-  strands = vc->strands;
-  sn      = vc->strand_number;
-  so      = vc->strand_order;
-  ss      = vc->strand_start;
   se      = vc->strand_end;
 
   /* int   b=0;*/
-
-  /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
-  turn = 0;
 
   length = strlen(string);
   if (s == 0) {
@@ -445,7 +422,7 @@ backtrack_co(sect                 bt_stack[],
   }
 
   while (s > 0) {
-    int ml, fij, fi, cij, traced, i1, j1, mm, p, q, jj = 0, gq = 0;
+    int ml, cij;
     int canonical = 1;     /* (i,j) closes a canonical structure */
 
     /* pop one element from stack */
@@ -596,7 +573,7 @@ free_end(int                  *array,
          int                  start,
          vrna_fold_compound_t *vc)
 {
-  unsigned int  strands, *sn, *so, *ss, *se;
+  unsigned int  *sn;
   int           inc, type, energy, en, length, j, left, right, dangle_model, with_gquad, *indx,
                 *c, *ggg, turn;
   vrna_param_t  *P;
@@ -616,11 +593,7 @@ free_end(int                  *array,
   S1                = vc->sequence_encoding;
   ptype             = vc->ptype;
   indx              = vc->jindx;
-  strands           = vc->strands;
   sn                = vc->strand_number;
-  so                = vc->strand_order;
-  ss                = vc->strand_start;
-  se                = vc->strand_end;
   matrices          = vc->matrices;
   c                 = matrices->c;
   ggg               = matrices->ggg;
