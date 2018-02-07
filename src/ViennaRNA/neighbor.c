@@ -920,12 +920,8 @@ generateShiftsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compound_t 
 
   if (t == INCREASED) {
     /* compute only pairs to one interval instead of two */
-    int i_left;
-    int i_right;
     if (positivePosition < previousPairedPosition) {
       /* [to pair][freed]   */
-      i_left  = positivePosition;
-      i_right = previousPairedPosition;
       pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc,
                                                                                previousPairedPosition,
                                                                                freedInterval.pos_5 - 1,
@@ -947,8 +943,6 @@ generateShiftsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compound_t 
                                                   &shift_bpins_to_left);
     } else {
       /* [freed][to pair] */
-      i_left  = previousPairedPosition;
-      i_right = positivePosition;
       pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc,
                                                                                 previousPairedPosition,
                                                                                 freedInterval.pos_3 + 1,
