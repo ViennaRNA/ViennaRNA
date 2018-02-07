@@ -334,7 +334,7 @@ vrna_db_from_WUSS(const char *wuss)
 {
   char          *db, *tmp;
   short         *pt;
-  unsigned int  i, n;
+  unsigned int  n;
 
   db = NULL;
 
@@ -678,7 +678,6 @@ vrna_db_from_plist(vrna_ep_t    *pairs,
 {
   vrna_ep_t *ptr;
   char      *structure = NULL;
-  int       i;
 
   if (n > 0) {
     structure = (char *)vrna_alloc(sizeof(char) * (n + 1));
