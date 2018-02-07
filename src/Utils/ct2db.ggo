@@ -16,6 +16,11 @@ option  "removePK"  p
 flag
 off
 
+option  "convertToRNA"  c
+"Replace all bases such that we have only the characters A, C, G, U or N for unknown bases.\n"
+flag
+off
+
 option  "verbose"   v
 "Be verbose\n"
 flag
