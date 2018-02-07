@@ -353,6 +353,7 @@ postprocess_circular(vrna_fold_compound_t *vc,
   fM2               = vc->matrices->fM2;
 
   Fc = FcO = FcH = FcI = FcM = FcMd3 = FcMd5 = INF;
+  Mi = Md5i = Md3i = Iq = Ip = Ij = Ii = Hj = Hi = 0;
 
   /* unfolded state */
   eval = (hc->up_ext[1] >= length) ? 1 : 0;
@@ -718,7 +719,7 @@ postprocess_circular(vrna_fold_compound_t *vc,
       add multibranch loop configurations for odd dangle models
       not supported for comparative prediction (yet)
   */
-  if ((vc->type == VRNA_FC_TYPE_SINGLE) && (dangle_model == 1) || (dangle_model == 3)) {
+  if ((vc->type == VRNA_FC_TYPE_SINGLE) && ((dangle_model == 1) || (dangle_model == 3))) {
     fM_d3 =  (int *) vrna_alloc(sizeof(int)*(length+2));
     fM_d5 =  (int *) vrna_alloc(sizeof(int)*(length+2));
 
