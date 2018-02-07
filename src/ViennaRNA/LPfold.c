@@ -188,12 +188,15 @@ store_bpp_callback(FLT_OR_DBL *pr,
                    void       *data);
 
 
+#if 0
 PRIVATE void
 store_stack_prob_callback(FLT_OR_DBL  *pr,
                           int         size,
                           int         k,
                           void        *data);
 
+
+#endif
 
 PRIVATE void
 print_pU_callback(double        *pU,
@@ -1954,6 +1957,7 @@ store_bpp_callback(FLT_OR_DBL *pr,
 }
 
 
+#if 0
 PRIVATE void
 store_stack_prob_callback(FLT_OR_DBL  *pr,
                           int         size,
@@ -1999,6 +2003,9 @@ store_stack_prob_callback(FLT_OR_DBL  *pr,
   ((default_cb_data *)data)->stack_prob_size      = pl_size;
   ((default_cb_data *)data)->stack_prob_max_size  = pl_max_size;
 }
+
+
+#endif
 
 
 PRIVATE void
