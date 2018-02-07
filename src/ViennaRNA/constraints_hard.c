@@ -70,19 +70,19 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
 
 
 PRIVATE void
-hc_store_bp_override(vrna_hc_bp_storage_t  **container,
-            int                   i,
-            int                   start,
-            int                   end,
-            unsigned char         loop_type);
+hc_store_bp_override(vrna_hc_bp_storage_t **container,
+                     int                  i,
+                     int                  start,
+                     int                  end,
+                     unsigned char        loop_type);
 
 
 PRIVATE void
 hc_store_bp_add(vrna_hc_bp_storage_t  **container,
-            int                   i,
-            int                   start,
-            int                   end,
-            unsigned char         loop_type);
+                int                   i,
+                int                   start,
+                int                   end,
+                unsigned char         loop_type);
 
 
 PRIVATE INLINE void
@@ -204,11 +204,10 @@ vrna_hc_init(vrna_fold_compound_t *vc)
 PUBLIC void
 vrna_hc_init_window(vrna_fold_compound_t *vc)
 {
-  unsigned int  i, n, window_size;
+  unsigned int  n;
   vrna_hc_t     *hc;
 
-  n           = vc->length;
-  window_size = vc->window_size;
+  n = vc->length;
 
   /* free previous hard constraints */
   vrna_hc_free(vc->hc);
@@ -274,8 +273,6 @@ vrna_hc_add_up(vrna_fold_compound_t *vc,
                int                  i,
                unsigned char        option)
 {
-  int j;
-
   if (vc) {
     if (vc->hc) {
       if ((i <= 0) || (i > vc->length)) {
@@ -388,8 +385,7 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
                int                  j,
                unsigned char        option)
 {
-  int           k, l;
-  unsigned char type;
+  int k, l;
 
   if (vc) {
     if (vc->hc) {
@@ -400,7 +396,8 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
 
       if (vc->hc->type == VRNA_HC_WINDOW) {
         hc_init_bp_storage(vc->hc);
-        hc_store_bp_override(vc->hc->bp_storage, i, j, j, option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+        hc_store_bp_override(vc->hc->bp_storage, i, j, j,
+                             option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
 
         if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
           /*
@@ -540,18 +537,13 @@ vrna_hc_add_from_db(vrna_fold_compound_t  *vc,
 {
   const char  *structure_constraint;
   char        *tmp;
-  int         i, d, ret;
-  vrna_md_t   *md;
+  int         ret;
 
   ret = 0; /* Failure */
 
   if (vc) {
     tmp = NULL;
-    if (vc->params)
-      md = &(vc->params->model_details);
-    else if (vc->exp_params)
-      md = &(vc->exp_params->model_details);
-    else
+    if ((!vc->params) && (!vc->exp_params))
       return ret;
 
     if (!vc->hc)
@@ -713,11 +705,11 @@ hc_init_bp_storage(vrna_hc_t *hc)
 
 
 PRIVATE void
-hc_store_bp_override(vrna_hc_bp_storage_t  **container,
-            int                   i,
-            int                   start,
-            int                   end,
-            unsigned char         loop_type)
+hc_store_bp_override(vrna_hc_bp_storage_t **container,
+                     int                  i,
+                     int                  start,
+                     int                  end,
+                     unsigned char        loop_type)
 {
   hc_store_bp(container, i, start, end, loop_type, 1);
 }
@@ -725,10 +717,10 @@ hc_store_bp_override(vrna_hc_bp_storage_t  **container,
 
 PRIVATE void
 hc_store_bp_add(vrna_hc_bp_storage_t  **container,
-            int                   i,
-            int                   start,
-            int                   end,
-            unsigned char         loop_type)
+                int                   i,
+                int                   start,
+                int                   end,
+                unsigned char         loop_type)
 {
   hc_store_bp(container, i, start, end, loop_type, 0);
 }
@@ -748,7 +740,7 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
     container[i] = (vrna_hc_bp_storage_t *)vrna_alloc(sizeof(vrna_hc_bp_storage_t) * 2);
   } else {
     /* find out total size of container */
-    for (size = 0; container[i][size].interval_start != 0; size++);
+    for (size = 0; container[i][size].interval_start != 0; size++) ;
 
     /* find position where we want to insert the new constraint */
     for (cnt = 0; cnt < size; cnt++) {
@@ -791,7 +783,7 @@ apply_stored_bp_hc(unsigned char        *current,
       continue; /* constraint for pairs (i,q) with q < j */
 
     /* constraint has interval [p,q] with p <= j <= q */
-    constraint  &= container[cnt].loop_type;
+    constraint &= container[cnt].loop_type;
 
     /* is this a replacement or addition constraint? */
     replace = (container[cnt].replace) ? 1 : 0;
@@ -914,7 +906,6 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                     const char            *constraint,
                     unsigned int          options)
 {
-  unsigned char *hc;
   char          *sequence;
   short         *S;
   unsigned int  length, min_loop_size;
@@ -927,7 +918,6 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
   sequence      = vc->sequence;
   length        = (int)vc->length;
   S             = vc->sequence_encoding2;
-  hc            = vc->hc->matrix;
   md            = &(vc->params->model_details);
   min_loop_size = md->min_loop_size;
   cut           = vc->cutpoint;
@@ -1044,18 +1034,18 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                                l,
                                j,
                                VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
-              for (l = i + 1; l < cut; l++)
+              for (l = j + 1; l < cut; l++)
                 vrna_hc_add_bp(vc,
                                j,
                                l,
                                VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
             } else {
-              for (l = cut; l < i; l++)
+              for (l = cut; l < j; l++)
                 vrna_hc_add_bp(vc,
                                l,
                                j,
                                VRNA_CONSTRAINT_CONTEXT_NONE | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
-              for (l = i + 1; l <= length; l++)
+              for (l = j + 1; l <= length; l++)
                 vrna_hc_add_bp(vc,
                                j,
                                l,
