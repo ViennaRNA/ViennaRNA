@@ -88,7 +88,6 @@ PRIVATE int cnt_move = 0;
 PRIVATE int     compare(short *lhs, short *rhs);
 PRIVATE int     find_min(short *arr[MAX_DEGEN], int begin, int end);
 PRIVATE int     equals(const short *first, const short *second);
-PRIVATE int     count_move(void);
 PRIVATE int     lone_base(short *pt, int i);
 PRIVATE void    free_degen(Encoded *Enc);
 PRIVATE inline void do_move(short *pt, int bp_left, int bp_right);
@@ -102,7 +101,6 @@ PRIVATE int     shifts(Encoded *Enc, struct_en *str, struct_en *minim);
 PRIVATE int     move_set(Encoded *Enc, struct_en *str);
 PRIVATE void    construct_moves(Encoded *Enc, short *structure);
 PRIVATE int     move_rset(Encoded *Enc, struct_en *str);
-PRIVATE int     find_lone_pair(short* str);
 
 
 /*
@@ -170,13 +168,6 @@ allocopy(short *src){
   copy_arr(res, src);
   return res;
 }
-
-PRIVATE int
-count_move(void){
-
-  return cnt_move;
-}
-
 
 
 /* frees all things allocated by degeneracy...*/
@@ -766,29 +757,6 @@ lone_base(short *pt, int i){
   return 1;
 }
 
-/* if the structure has lone pairs*/
-PRIVATE int
-find_lone_pair(short* str){
-
-  int i;
-  for(i=1; i<str[0]; i++) {
-    if (str[i]==0) continue; /* '.'*/
-
-    if (str[i]>str[str[i]]) {  /* '('*/
-      if (i+1==str[0] || str[i+1]==0 || str[i+1]<str[str[i+1]]) {
-        return i;
-      } else while (i+1!=str[0] && str[i+1]!=0 && str[i+1]>str[str[i+1]]) i++;
-    }
-
-    if (str[i]<str[str[i]]) {  /* ')'*/
-      if (i+1==str[0] || str[i+1]==0 || str[i+1]>str[str[i+1]]) {
-        return i;
-      } else while (i+1!=str[0] && str[i+1]!=0 && str[i+1]<str[str[i+1]]) i++;
-    }
-  }
-
-  return -1;
-}
 
 PUBLIC int
 move_standard(char *seq,
