@@ -2,6 +2,10 @@
 //%pragma(perl5)  modulecode="@EXPORT=qw(fold);"
 %pragma(perl5)  include="RNA.pod"
 
+// ignore SWIG Warning 312 from nested unions
+#pragma SWIG nowarn=312
+
+
 %{
 
 extern "C" {
