@@ -272,6 +272,7 @@ nodist_pkginclude_HEADERS = vrna_config.h
 EXTRA_DIST =  $(pkginclude_HEADERS) \
               exterior_loops_hc.inc \
               exterior_loops_sc.inc \
+              exterior_loops_sc_pf.inc \
               hairpin_loops.inc \
               interior_loops.inc \
               multibranch_loops.inc \
