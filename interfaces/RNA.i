@@ -72,6 +72,8 @@ extern "C" {
 #include  <ViennaRNA/multibranch_loops.h>
 
 #include  <ViennaRNA/combinatorics.h>
+
+#include  <ViennaRNA/walk.h>
 }
 
 %}
@@ -119,6 +121,7 @@ namespace std {
   %template(IntIntVector) std::vector<std::vector<int> > ;
   %template(ElemProbVector) std::vector<vrna_ep_t>;
   %template(PathVector) std::vector<vrna_path_t>;
+  %template(MoveVector) std::vector<vrna_move_t>;
 };
 
 %{
@@ -194,6 +197,7 @@ namespace std {
 %include commands.i
 %include combinatorics.i
 %include duplex.i
+%include walk.i
 %include findpath.i
 %include data_structures.i
 %include fold_compound.i

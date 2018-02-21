@@ -116,5 +116,5 @@ std::vector<vrna_path_t> my_get_path(std::string seq, std::string s1, std::strin
 }
 
 
-%include <ViennaRNA/findpath.h>;
+%include <ViennaRNA/findpath.h>
 

@@ -33,8 +33,9 @@ SWIG_misc_src = \
   $(srcdir)/../pf_window.i \
   $(srcdir)/../plotting.i \
   $(srcdir)/../subopt.i \
+  $(srcdir)/../structure_utils.i \
   $(srcdir)/../utils.i \
-  $(srcdir)/../structure_utils.i
+  $(srcdir)/../walk.i
 
 SWIG_module_name = RNA
 

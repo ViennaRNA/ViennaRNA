@@ -25,8 +25,9 @@ SOURCES = \
     pf_window.i \
     plotting.i \
     subopt.i \
-    utils.i \
     structure_utils.i \
+    utils.i \
+    walk.i \
     ptr2array.i \
     generic.mk
 
@@ -71,8 +72,9 @@ EXTRA_DIST = \
     pf_window.i \
     plotting.i \
     subopt.i \
-    utils.i \
     structure_utils.i \
+    utils.i \
+    walk.i \
     ptr2array.i \
     generic.mk \
     $(DOXYGEN_DOCUMENTATION)
