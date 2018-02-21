@@ -1699,17 +1699,17 @@ compute_pU(vrna_fold_compound_t       *vc,
   /* add (()()____) type cont. to I3 */
   if (sc && sc->exp_energy_up) {
     for (len = winSize; len >= ulength; len--)
-      if (hc->up_ml[k] >= len) {
+      if (hc->up_ml[k + 1] >= len) {
         temp += q2l[k][len] *
                 expMLbase[len] *
-                sc->exp_energy_up[k][len];
+                sc->exp_energy_up[k + 1][len];
       }
 
     for (; len > 0; len--) {
-      if (hc->up_ml[k] >= len) {
+      if (hc->up_ml[k + 1] >= len) {
         temp += q2l[k][len] *
                 expMLbase[len] *
-                sc->exp_energy_up[k][len];
+                sc->exp_energy_up[k + 1][len];
       }
 
       QBM[len]  += temp;
@@ -1717,12 +1717,12 @@ compute_pU(vrna_fold_compound_t       *vc,
     }
   } else {
     for (len = winSize; len >= ulength; len--)
-      if (hc->up_ml[k] >= len)
+      if (hc->up_ml[k + 1] >= len)
         temp += q2l[k][len] *
                 expMLbase[len];
 
     for (; len > 0; len--) {
-      if (hc->up_ml[k] >= len)
+      if (hc->up_ml[k + 1] >= len)
         temp += q2l[k][len] *
                 expMLbase[len];
 
@@ -1733,7 +1733,7 @@ compute_pU(vrna_fold_compound_t       *vc,
 
   /* add (()___()) */
   for (len = 1; len < ulength; len++) {
-    if (hc->up_ml[k] >= len) {
+    if (hc->up_ml[k + 1] >= len) {
       for (obp = k + len + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
         temp = qmb[k][obp - k - 1] *
                qm[k + len + 1 /*2*/][obp - 1] *
@@ -1741,7 +1741,7 @@ compute_pU(vrna_fold_compound_t       *vc,
 
         if (sc)
           if (sc->exp_energy_up)
-            temp *= sc->exp_energy_up[k][len];
+            temp *= sc->exp_energy_up[k + 1][len];
 
         QBM[len]  += temp;
         QBE[len]  += temp;
