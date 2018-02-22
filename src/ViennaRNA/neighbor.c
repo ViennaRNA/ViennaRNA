@@ -39,12 +39,14 @@ vrna_move_init(int  pos_5,
 void
 vrna_move_list_free(vrna_move_t *moves)
 {
-  for (vrna_move_t *move = moves; move->pos_5 != 0; move++) {
-    if (move->next != NULL)
-      if (move->next->pos_5 != 0)
-        vrna_move_list_free(move->next);
+  if (moves) {
+    for (vrna_move_t *move = moves; move->pos_5 != 0; move++) {
+      if (move->next != NULL)
+        if (move->next->pos_5 != 0)
+          vrna_move_list_free(move->next);
+    }
+    free(moves);
   }
-  free(moves);
 }
 
 

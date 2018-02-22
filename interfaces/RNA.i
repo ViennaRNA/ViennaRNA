@@ -73,6 +73,7 @@ extern "C" {
 
 #include  <ViennaRNA/combinatorics.h>
 
+#include  <ViennaRNA/neighbor.h>
 #include  <ViennaRNA/walk.h>
 }
 
@@ -197,6 +198,7 @@ namespace std {
 %include commands.i
 %include combinatorics.i
 %include duplex.i
+%include neighbor.i
 %include walk.i
 %include findpath.i
 %include data_structures.i

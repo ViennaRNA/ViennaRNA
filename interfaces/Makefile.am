@@ -20,6 +20,7 @@ SOURCES = \
     mfe.i \
     mfe_window.i \
     model_details.i \
+    neighbor.i \
     params.i \
     part_func.i \
     pf_window.i \
@@ -67,6 +68,7 @@ EXTRA_DIST = \
     mfe.i \
     mfe_window.i \
     model_details.i \
+    neighbor.i \
     params.i \
     part_func.i \
     pf_window.i \
