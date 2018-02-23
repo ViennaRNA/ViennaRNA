@@ -46,9 +46,11 @@ DOXYGEN_DOCUMENTATION = \
     grammar.dox \
     mfe.dox \
     model_details.dox \
+    neighbor.dox \
     params.dox \
     part_func.dox \
-    subopt.dox
+    subopt.dox \
+    walk.dox
 
 EXTRA_DIST = \
     RNA.i \
