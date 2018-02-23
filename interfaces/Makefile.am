@@ -39,6 +39,7 @@ DOXYGEN_DOCUMENTATION = \
     constraints_SHAPE.dox \
     constraints_soft.dox \
     eval.dox \
+    findpath.dox \
     fold_compound.dox \
     grammar.dox \
     mfe.dox \
