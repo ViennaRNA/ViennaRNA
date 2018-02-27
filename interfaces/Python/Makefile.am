@@ -31,7 +31,7 @@ EXTRA_DIST = \
   $(LANG_SPECIFIC_INTERFACE_FILES)
 
 _RNA_la_CFLAGS = $(RNA_CFLAGS) $(PYTHON2_CFLAGS)
-_RNA_la_CXXFLAGS = $(RNA_CXXFLAGS)
+_RNA_la_CXXFLAGS = $(RNA_CXXFLAGS) -Wno-unused-label -Wno-unused-variable
 _RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PYTHON2_INCLUDES)
 
 _RNA_la_LIBADD = $(LDADD) $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PYTHON2_LDFLAGS)
