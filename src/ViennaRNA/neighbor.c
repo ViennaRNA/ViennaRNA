@@ -19,7 +19,7 @@
 #endif
 
 typedef enum {
-  INCREASED, DECREASED, SWITCHED
+  UNDEFINED = -1, INCREASED, DECREASED, SWITCHED
 } intervalType;
 
 
@@ -791,7 +791,7 @@ computeFreedInterval(const short        *structure,
   int           positivePosition        = MAX2(m->pos_5, m->pos_3);
   int           newPairedPosition       = abs(MIN2(m->pos_5, m->pos_3));
   int           previousPairedPosition  = structure[positivePosition];
-  intervalType  t;
+  intervalType  t                       = UNDEFINED;
 
   /*    |  +)..-) //+ = newPairedPos; - = prevPaired; | = positivePosition (unchanged). */
   if (positivePosition < previousPairedPosition && positivePosition < newPairedPosition) {
