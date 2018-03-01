@@ -1,3 +1,126 @@
+#ifndef DATA_STRUCTURES_NONRED_H_
+#define DATA_STRUCTURES_NONRED_H_
+
+/* explanation: each node (tr_node) holds a pointer to a start of a linked
+ * list to the next node, link to previous node, Boltzmann's factor
+ * for given flat structure and itentifier, which corresponds to an id of
+ * chosen flat structure
+ */
+
+/* define node of a tree */
+typedef struct tr_node tr_node; 
+
+/* defines types for different sequence stetches/loops */
+typedef enum _type Type;
+enum stetch_type{
+	    NRT_NONE_TYPE = 0, 			/* nonetype: both 0 (root) */
+	    NRT_HAIRPIN = 1,			/* hairpin: both 0 (unused) */
+	    NRT_IT_LOOP = 2,			/* internal loop: (i', j') - closed pair */
+	    NRT_MT_LOOP = 3,			/* multiloop: K (second is 0 - unused) */
+	    NRT_EXT_LOOP = 4,			/* external loop: (i, j) */
+	    NRT_UNPAIRED_SG = 5,		/* unpaired positions: (first unpaired position - end known of stretch) */
+	    NRT_QM1_BRANCH = 6,			/* branch in multiloop in qm1: (i,j) */
+	    NRT_QM_PAIR = 7,			/* QM split on K with pairing within [i..k-1] : (k, 0)  */
+	    NRT_QM_UNPAIR = 8,			/* QM split on K with no pairing within [i..k-1] : (k, 0) */
+	};
+
+
+/* define elements of hashtable */
+typedef struct hash_node hash_node; /* list of arrays sorting triplets for every hashvalue*/
+		
+struct tr_node{
+			int type; 
+			int loop_spec_1; 
+			int loop_spec_2; 
+			int seqlen;
+			tr_node * parent; 
+			tr_node * child;  /* used when this node has at most one child */
+			hash_node * hash_tab; /* used when there is at least two children */
+			tr_node * next_in_hash; /* used for node that is next in hash table */
+			int hash_value; /* hash value computed for this node */
+			double weight;
+		};
+
+struct hash_node{
+			tr_node **array;
+			int hash_elemts;
+			int hash_size;
+		};
+		
+/* tree + hash functions */
+/** @brief creates a root of datastructure tree (hash table version) **/
+PRIVATE tr_node * create_root(int seqlen);
+
+/** @brief returns a weigh of node (type, loop_spec_1, loop_spec_2) if child of last_node, otherwise returns 0.0 **/
+PRIVATE double tr_node_weight(tr_node * last_node, int type, int loop_spec_1, int loop_spec_2);
+
+/** @brief sums weight of all children of par_node and returns it **/
+PRIVATE double total_weight_par(tr_node * par_node);
+
+/** @brief sums weight of all children of par_node with certain type and returns it **/
+PRIVATE double total_weight_par_type(int type, tr_node * par_node);
+
+/** @brief creates node (type, loop_spec_1, loop_spec_2) if not existing and returns pointer to it, 
+ * or returns pointer to exisiting case **/
+PRIVATE tr_node * add_if_nexists(int type, int loop_spec_1, int loop_spec_2, tr_node*par_node);
+
+/** @brief traces back from leaf to root while updating weights of leaf to all nodes in path, 
+ *  returns pointer to root **/
+PRIVATE tr_node * traceback_to_root(tr_node * leaf, double struct_weight);
+
+/** @brief destructor **/
+PRIVATE void free_all_nr(tr_node * root);
+
+/******************************************/
+/*       version with linked lists        */
+/******************************************/   
+
+typedef struct tllr_node tllr_node;
+
+struct tllr_node{
+			int type;
+			int loop_spec_1;
+			int loop_spec_2;
+			tllr_node* parent;		/* vertical chaining - ancestor */
+			tllr_node* head;		/* vertical chaining - successor */
+			tllr_node* next_node;	/*horizontal chaining - linked list */
+			double weight;
+};
+
+/* global variable for storing global nodes */
+tllr_node *nr_memory_allocated; 
+
+/* tree + linked list functions */
+/** @brief creates a root of datastructure tree (linked list version) **/
+PRIVATE tllr_node * create_ll_root();
+
+/** resets cursor to current_node and start of linked list **/
+PRIVATE void reset_cursor(tllr_node** memorized_node_prev, tllr_node** memorized_node_cur, tllr_node* current_node);
+
+/** @brief moves cursor to next node if current_node is identical to one in loop, otherwise does nothing **/
+PRIVATE void advance_cursor(tllr_node** memorized_node_prev, tllr_node** memorized_node_cur, int type, int loop_spec_1, int loop_spec_2);
+
+/** @brief returns a weigh of node (type, loop_spec_1, loop_spec_2) if child of last_node, otherwise returns 0.0 **/
+PRIVATE double get_weight(tllr_node* memorized_node_cur, int type, int loop_spec_1, int loop_spec_2);
+
+/** @brief sums weight of all children of par_node and returns it **/
+PRIVATE double get_weight_all(tllr_node * par_node);
+
+/** @brief sums weight of all children of par_node with certain type and returns it **/
+PRIVATE double get_weight_type_spec(int type, tllr_node * par_node);
+
+/** @brief creates node (type, loop_spec_1, loop_spec_2) if not existing and returns pointer to it, 
+ * or returns pointer to exisiting case **/
+PRIVATE tllr_node* add_if_nexists_ll(int type, int loop_spec_1, int loop_spec_2, tllr_node* memorized_node_prev, tllr_node* memorized_node_cur, tllr_node* parent_node);
+
+/** @brief traces back from leaf to root while updating weights of leaf to all nodes in path, 
+ *  returns pointer to root **/
+PRIVATE tllr_node * traceback_to_ll_root(tllr_node * leaf, double weight);
+
+/** @brief destructor **/
+PRIVATE void free_all_ll(tllr_node * root);
+
+
 /**************************************************/
 /*       data structure (tree + hash table)       */
 /**************************************************/
@@ -18,12 +141,12 @@
 #include <time.h>
 #include "data_structures_nonred.h"
 
-int pow_of_2_modulus(int numerator, int denominator){
+PRIVATE int pow_of_2_modulus(int numerator, int denominator){
 	return (numerator & (denominator-1));
 }
 
 /* creates new tree node with undefined weight with parent node */
-tr_node * create_tr_node(int type, int loop_spec_1, int loop_spec_2, int seqlen, tr_node * parent){
+PRIVATE tr_node * create_tr_node(int type, int loop_spec_1, int loop_spec_2, int seqlen, tr_node * parent){
   tr_node * new_tr_node = (tr_node *) malloc(sizeof(tr_node));
   new_tr_node->type = type;
   /* Types and properties specific to loops:
@@ -49,7 +172,7 @@ tr_node * create_tr_node(int type, int loop_spec_1, int loop_spec_2, int seqlen,
 }
 
 /* creates hash entry point (its start) */
-hash_node * init_hash(){
+PRIVATE hash_node * init_hash(){
 	int i;
 	hash_node* new_hash = (hash_node *) malloc(sizeof(hash_node));
 	new_hash->hash_elemts = 0;
@@ -62,14 +185,14 @@ hash_node * init_hash(){
 }
 
 /* creates root (start of a tree) */
-tr_node * create_root(int seqlen){
+PRIVATE tr_node * create_root(int seqlen){
   tr_node * root = create_tr_node(NRT_NONE_TYPE, 0, 0, seqlen, NULL);
   return root;  	
 }
 
 
 /* returns hash key for given triple of values */
-int hash_fci(int type, int loop_spec_1, int loop_spec_2, int seqlen){
+PRIVATE int hash_fci(int type, int loop_spec_1, int loop_spec_2, int seqlen){
 	int hash_f = 3*type + 11*loop_spec_1 + 50021*loop_spec_2;
 	//int hash_f = type + 9*loop_spec_1 + 9*(seqlen+1)*loop_spec_2;
 	return hash_f;
@@ -79,7 +202,7 @@ int hash_fci(int type, int loop_spec_1, int loop_spec_2, int seqlen){
 /* Expands hash when its load becomes higher than 50% number and relinks elements.
  * New size is lowest prime number higher than twice the size.
  * */
-void extend_hash(hash_node * hash_to_res){
+PRIVATE void extend_hash(hash_node * hash_to_res){
 	/* extends table */
 	tr_node * next;
 	tr_node * link;
@@ -130,7 +253,7 @@ void extend_hash(hash_node * hash_to_res){
 
 
 /* inserting new value into corresponding hash */
-void insert_val(hash_node * hash_t, int type, int loop_spec_1, int loop_spec_2, tr_node * inserted_node){
+PRIVATE void insert_val(hash_node * hash_t, int type, int loop_spec_1, int loop_spec_2, tr_node * inserted_node){
 	int hash_val, hash_val_mod;
 	
 	tr_node * ptr;
@@ -159,7 +282,7 @@ void insert_val(hash_node * hash_t, int type, int loop_spec_1, int loop_spec_2, 
 
 
 /* creates and inserts a new tr_node (along with creating hash) into tree */
-tr_node* insert_tr_node(int type, int loop_spec_1, int loop_spec_2, tr_node * last_node){  
+PRIVATE tr_node* insert_tr_node(int type, int loop_spec_1, int loop_spec_2, tr_node * last_node){  
   /* forge new tr_node */	  
   tr_node * new_tr_node = create_tr_node(type, loop_spec_1, loop_spec_2, last_node->seqlen, last_node);
   if (!last_node->child){ /* empty so no child yet - insert it directly */
@@ -182,7 +305,7 @@ tr_node* insert_tr_node(int type, int loop_spec_1, int loop_spec_2, tr_node * la
 
 
 /* tracks whether there is node in hash with given values */
-tr_node* access_val(tr_node *parent, int type, int loop_spec_1, int loop_spec_2){
+PRIVATE tr_node* access_val(tr_node *parent, int type, int loop_spec_1, int loop_spec_2){
 	tr_node * ptr = NULL;
 	if(!parent->hash_tab){ /* hash does not exist (at most one child) */
 		if(parent->child){ /* child exists (exactly one child) */
@@ -210,7 +333,7 @@ tr_node* access_val(tr_node *parent, int type, int loop_spec_1, int loop_spec_2)
 
 
 /* creates node with properties that don't already exist for given node */
-tr_node * add_if_nexists(int type, int loop_spec_1, int loop_spec_2, tr_node *last_node){
+PRIVATE tr_node * add_if_nexists(int type, int loop_spec_1, int loop_spec_2, tr_node *last_node){
   tr_node * new_tr_node = access_val(last_node, type, loop_spec_1, loop_spec_2);
   if(!new_tr_node){
 	new_tr_node = insert_tr_node(type, loop_spec_1, loop_spec_2, last_node);
@@ -220,7 +343,7 @@ tr_node * add_if_nexists(int type, int loop_spec_1, int loop_spec_2, tr_node *la
 
 
 /* returns weight of node if it exists; otherwise returns 0 */
-double tr_node_weight(tr_node * last_node, int type, int loop_spec_1, int loop_spec_2){
+PRIVATE double tr_node_weight(tr_node * last_node, int type, int loop_spec_1, int loop_spec_2){
   tr_node * next_node = access_val(last_node, type, loop_spec_1, loop_spec_2);
   if(next_node)
 	 return next_node->weight;  
@@ -230,7 +353,7 @@ double tr_node_weight(tr_node * last_node, int type, int loop_spec_1, int loop_s
 
 
 /* returns sum of all weights for given parent */ 
-double total_weight_par(tr_node * last_node){
+PRIVATE double total_weight_par(tr_node * last_node){
 	if((!last_node->hash_tab)&&(!last_node->child)){
 		return 0.;	
 	}
@@ -239,7 +362,7 @@ double total_weight_par(tr_node * last_node){
 
 
 /* returns sum of all weights for given parent and for given type*/
-double total_weight_par_type(int type, tr_node * last_node){
+PRIVATE double total_weight_par_type(int type, tr_node * last_node){
   tr_node *ptr = NULL;
   double weight_sum = 0.;
   int i;
@@ -264,14 +387,14 @@ double total_weight_par_type(int type, tr_node * last_node){
 
 
 /* updates weight of a given node */
-void update_weight(tr_node * node, double weight){
+PRIVATE void update_weight(tr_node * node, double weight){
   node->weight += weight;
 }
 
 
 
 /* tracebacks to root while updating values for each node passed through */
-tr_node * traceback_to_root(tr_node * leaf, double struct_weight){
+PRIVATE tr_node * traceback_to_root(tr_node * leaf, double struct_weight){
   update_weight(leaf, struct_weight);
   while(leaf->parent){  
 	update_weight(leaf->parent, struct_weight);
@@ -282,7 +405,7 @@ tr_node * traceback_to_root(tr_node * leaf, double struct_weight){
 
 
 /* destructor */
-void free_all_nr(tr_node * root){
+PRIVATE void free_all_nr(tr_node * root){
 	if(!root->hash_tab){
 		if(root->child)
 			free_all_nr(root->child);	
@@ -311,7 +434,7 @@ void free_all_nr(tr_node * root){
  * It is thus a bit faster.
  */
 
-tllr_node * create_tllr_node(int type, int loop_spec_1, int loop_spec_2, tllr_node * parent){
+PRIVATE tllr_node * create_tllr_node(int type, int loop_spec_1, int loop_spec_2, tllr_node * parent){
 	static int memory_index = 0;	
 	tllr_node * new_tllr_node = &nr_memory_allocated[memory_index];
 	new_tllr_node->type = type;
@@ -337,14 +460,14 @@ tllr_node * create_tllr_node(int type, int loop_spec_1, int loop_spec_2, tllr_no
 }
 
 /* creates root (start of a tree) */
-tllr_node* create_ll_root(){
+PRIVATE tllr_node* create_ll_root(){
 	tllr_node* root = create_tllr_node(NRT_NONE_TYPE, 0, 0, NULL);
 	return root;  	
 }
 
 /* inserts a tllr_node before 'next_node' and after previous node
  * Node cursor hols previous and current ll_node */
-tllr_node* insert_tllr_node(tllr_node* memorized_node_prev, tllr_node* memorized_node_cur, 
+PRIVATE tllr_node* insert_tllr_node(tllr_node* memorized_node_prev, tllr_node* memorized_node_cur, 
 							int type, int loop_spec_1, int loop_spec_2, tllr_node* parent_node){
 	tllr_node * new_node = create_tllr_node(type, loop_spec_1, loop_spec_2, parent_node);
 	
@@ -358,13 +481,13 @@ tllr_node* insert_tllr_node(tllr_node* memorized_node_prev, tllr_node* memorized
 }
 
 /* resets cursor to beginning of loop*/
-void reset_cursor(tllr_node** memorized_node_prev, tllr_node** memorized_node_cur, tllr_node* current_node){
+PRIVATE void reset_cursor(tllr_node** memorized_node_prev, tllr_node** memorized_node_cur, tllr_node* current_node){
 	(*memorized_node_prev) = NULL;
 	(*memorized_node_cur) = current_node->head;
 }
 
 /* advances pointer in loop if the identifier coincide with current pointer and returns weight */
-inline void advance_cursor(tllr_node** memorized_node_prev, tllr_node** memorized_node_cur, int type, int loop_spec_1, int loop_spec_2){
+PRIVATE inline void advance_cursor(tllr_node** memorized_node_prev, tllr_node** memorized_node_cur, int type, int loop_spec_1, int loop_spec_2){
 	if(*memorized_node_cur){
 		if((*memorized_node_cur)->type == type 
 		 && (*memorized_node_cur)->loop_spec_1 == loop_spec_1 
@@ -377,7 +500,7 @@ inline void advance_cursor(tllr_node** memorized_node_prev, tllr_node** memorize
 }
 
 /* gets weight of actual node */
-inline double get_weight(tllr_node* memorized_node_cur, int type, int loop_spec_1, int loop_spec_2){
+PRIVATE inline double get_weight(tllr_node* memorized_node_cur, int type, int loop_spec_1, int loop_spec_2){
 	double weight = 0;
 	if(memorized_node_cur){
 		if(memorized_node_cur->type == type 
@@ -390,7 +513,7 @@ inline double get_weight(tllr_node* memorized_node_cur, int type, int loop_spec_
 }
 
 /* get weight of all child nodes */
-double get_weight_all(tllr_node* last_node){
+PRIVATE double get_weight_all(tllr_node* last_node){
 	if(!last_node->head){
 		return 0;	
 	}	
@@ -398,7 +521,7 @@ double get_weight_all(tllr_node* last_node){
 }
 
 /* get weight of all child nodes of certain type */
-double get_weight_type_spec(int type, tllr_node* last_node){
+PRIVATE double get_weight_type_spec(int type, tllr_node* last_node){
 	double weight_total = 0;
 	tllr_node* ptr = last_node->head;
 	while(ptr){
@@ -411,7 +534,7 @@ double get_weight_type_spec(int type, tllr_node* last_node){
 }
 
 /* adds node if the current one isn't the one we want */
-inline tllr_node* add_if_nexists_ll(int type, int loop_spec_1, int loop_spec_2, tllr_node* memorized_node_prev, tllr_node* memorized_node_cur, tllr_node* parent_node){
+PRIVATE inline tllr_node* add_if_nexists_ll(int type, int loop_spec_1, int loop_spec_2, tllr_node* memorized_node_prev, tllr_node* memorized_node_cur, tllr_node* parent_node){
 	tllr_node* returned_node;
 	if(memorized_node_cur){
 		if(memorized_node_cur->type == type 
@@ -428,12 +551,12 @@ inline tllr_node* add_if_nexists_ll(int type, int loop_spec_1, int loop_spec_2, 
 }
 
 /* updates weight of a given node */
-void update_weight_ll(tllr_node * node, double weight){
+PRIVATE void update_weight_ll(tllr_node * node, double weight){
   node->weight += weight;
 }
 
 /* tracebacks to root while updating values for each node passed through */
-tllr_node * traceback_to_ll_root(tllr_node * leaf, double weight){
+PRIVATE tllr_node * traceback_to_ll_root(tllr_node * leaf, double weight){
   update_weight_ll(leaf, weight);
   while(leaf->parent){  
 	update_weight_ll(leaf->parent, weight);
@@ -443,7 +566,7 @@ tllr_node * traceback_to_ll_root(tllr_node * leaf, double weight){
 }
 
 /* destructor */
-void free_all_ll(tllr_node * root){
+PRIVATE void free_all_ll(tllr_node * root){
 	tllr_node* ptr;
 	if(root->head){
 		free_all_ll(root->head);
@@ -453,3 +576,5 @@ void free_all_ll(tllr_node * root){
 		free(root);	
 	} 
 }
+
+#endif

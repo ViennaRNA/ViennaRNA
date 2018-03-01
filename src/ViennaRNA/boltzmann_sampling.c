@@ -22,8 +22,10 @@
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/data_structures_nonred.h"
 #include "ViennaRNA/boltzmann_sampling.h"
+
+
+#include "ViennaRNA/data_structures_nonred.inc"
 
 /*
  #################################
