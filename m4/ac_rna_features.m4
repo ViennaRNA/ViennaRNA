@@ -99,6 +99,25 @@ AC_DEFUN([RNA_ENABLE_BOUSTROPHEDON],[
   AC_SUBST(CONFIG_BOUSTROPHEDON)
 ])
 
+#
+# Use hash for non-redundant sampling
+#
+
+AC_DEFUN([RNA_ENABLE_NR_SAMPLE_HASH],[
+
+  RNA_ADD_FEATURE([NRhash],
+                  [Hash for non-redundant sampling datas structure],
+                  [yes])
+
+  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
+  RNA_FEATURE_IF_ENABLED([NRhash],[
+    AC_DEFINE([VRNA_NR_SAMPLING_HASH], [1], [Use Hash for non-redundant sampling datas structure])
+    CONFIG_NR_SAMPLING="#define VRNA_NR_SAMPLING_HASH"
+  ])
+
+  AC_SUBST(CONFIG_NR_SAMPLING)
+])
+
 
 #
 # OpenMP support

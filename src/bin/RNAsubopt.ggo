@@ -281,6 +281,13 @@ int
 typestr="number"
 optional
 
+
+option "nonRedundant" N
+"Enable non-redundant sampling strategy.\n\n"
+flag
+off
+
+
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows). Needed by stochastic backtracking\n"

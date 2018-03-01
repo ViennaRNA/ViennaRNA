@@ -142,6 +142,7 @@ pkginclude_HEADERS =  \
     PS_dot.h \
     plot_structure.h \
     plot_aln.h \
+    data_structures_nonred.h\
     plot_utils.h \
     plot_layouts.h \
     naview.h \
@@ -279,6 +280,7 @@ libRNA_conv_la_SOURCES = \
     centroid.c \
     model.c \
     dp_matrices.c \
+    data_structures_nonred.c\
     boltzmann_sampling.c \
     equilibrium_probs.c \
     neighbor.c \

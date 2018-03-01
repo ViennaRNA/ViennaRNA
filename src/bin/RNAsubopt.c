@@ -54,7 +54,8 @@ main(int  argc,
   unsigned int                        rec_type, read_opt;
   int                                 i, length, cl, istty, delta, n_back, noconv, dos, zuker,
                                       with_shapes, verbose, enforceConstraints, st_back_en, batch,
-                                      tofile, filename_full, canonicalBPonly;
+                                      tofile, filename_full, canonicalBPonly, nonRedundant;
+  long int                            seq_number;
   double                              deltap;
   vrna_md_t                           md;
   dataset_id                          id_control;
@@ -76,6 +77,7 @@ main(int  argc,
   filename_full   = 0;
   canonicalBPonly = 0;
   commands        = NULL;
+  nonRedundant    = 0;
 
   set_model_details(&md);
 
@@ -212,6 +214,10 @@ main(int  argc,
   /* full filename from FASTA header support */
   if (args_info.filename_full_given)
     filename_full = 1;
+    
+  /* non-redundant backtracing */
+  if (args_info.nonRedundant_given)
+    nonRedundant = 1;
 
   if (args_info.commands_given)
     commands = vrna_file_commands_read(args_info.commands_arg,
@@ -423,19 +429,40 @@ main(int  argc,
       ens_en  = vrna_pf(vc, structure);
       kT      = vc->exp_params->kT / 1000.;
 
-      for (i = 0; i < n_back; i++) {
-        char *s, *e_string = NULL;
-        s = vrna_pbacktrack(vc);
-        if (st_back_en) {
-          double e, prob;
-          e         = vrna_eval_structure(vc, s);
-          prob      = exp((ens_en - e) / kT);
-          e_string  = vrna_strdup_printf(" %6.2f %6g", e, prob);
-        }
+      if (nonRedundant){
+		
+		  char **s_m;
+		  s_m = vrna_non_redundant_pbacktrack(vc, n_back);
+		  for (i = 0; i < n_back; i++) {
+			char *s, *e_string = NULL;
+			s = s_m[i];
+			if (st_back_en) {
+			  double e, prob;
+			  e         = vrna_eval_structure(vc, s);
+			  prob      = exp((ens_en - e) / kT);
+			  e_string  = vrna_strdup_printf(" %6.2f %6g", e, prob);
+			}
 
-        print_structure(output, s, e_string);
-        free(s);
-        free(e_string);
+			print_structure(output, s, e_string);
+			free(s);
+			free(e_string);
+			
+		  }
+      }else{
+		  for (i = 0; i < n_back; i++) {
+			char *s, *e_string = NULL;
+			s = vrna_pbacktrack(vc);
+			if (st_back_en) {
+			  double e, prob;
+			  e         = vrna_eval_structure(vc, s);
+			  prob      = exp((ens_en - e) / kT);
+			  e_string  = vrna_strdup_printf(" %6.2f %6g", e, prob);
+			}
+			print_structure(output, s, e_string);
+			free(s);
+			free(e_string);
+		  }		  
+
       }
     }
     /* normal subopt */

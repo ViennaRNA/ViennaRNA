@@ -33,8 +33,22 @@
  */
 char *vrna_pbacktrack5(vrna_fold_compound_t *vc,
                        int                  length);
-
-
+ 
+                      
+/**
+ *  @brief Samples multiple secondary structures non-redundantly from the Boltzmann ensemble according its probability
+ *
+ *  @ingroup subopt_stochbt
+ *  @pre    The fold compound has to be obtained using the #VRNA_OPTION_HYBRID option in vrna_fold_compound()
+ *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *
+ *  @param  vc      	The fold compound data structure
+ *  @param  num_samples The number of desired non-redundant samples
+ *  @return         	A list of sampled secondary structures in dot-bracket notation
+ */
+char **vrna_non_redundant_pbacktrack(vrna_fold_compound_t *vc,
+									 int				  num_samples);
+									 
 /**
  *  @brief Sample a secondary structure (consensus structure) from the Boltzmann ensemble according its probability
  *
