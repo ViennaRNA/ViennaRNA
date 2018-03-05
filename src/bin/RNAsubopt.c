@@ -40,23 +40,23 @@
 PRIVATE void putoutzuker(FILE                   *output,
                          vrna_subopt_solution_t *zukersolution);
 
+
 struct nr_en_data {
-  FILE               *output;
-  vrna_fold_compound_t *fc;
-  double             kT;
-  double             ens_en;
+  FILE                  *output;
+  vrna_fold_compound_t  *fc;
+  double                kT;
+  double                ens_en;
 };
 
 
 PRIVATE void
-print_nr_samples(const char  *structure,
-                 void        *data);
+print_nr_samples(const char *structure,
+                 void       *data);
 
 
 PRIVATE void
 print_nr_samples_en(const char  *structure,
-                   void        *data);
-
+                    void        *data);
 
 
 int
@@ -353,8 +353,7 @@ main(int  argc,
     /* parse the rest of the current dataset to obtain a structure constraint */
     if (fold_constrained) {
       if (constraints_file) {
-        vrna_constraints_add(vc, constraints_file,
-                             VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
+        vrna_constraints_add(vc, constraints_file, VRNA_OPTION_DEFAULT);
       } else {
         cstruc = NULL;
         int           cp        = -1;
@@ -450,10 +449,10 @@ main(int  argc,
       if (nonRedundant) {
         if (st_back_en) {
           struct nr_en_data dat;
-          dat.output = output;
-          dat.fc = vc;
-          dat.kT = kT;
-          dat.ens_en = ens_en;
+          dat.output  = output;
+          dat.fc      = vc;
+          dat.kT      = kT;
+          dat.ens_en  = ens_en;
 
           vrna_pbacktrack_nr_cb(vc, n_back, &print_nr_samples_en, (void *)&dat);
         } else {
@@ -582,12 +581,11 @@ main(int  argc,
 
 
 PRIVATE void
-print_nr_samples(const char  *structure,
-                 void        *data)
+print_nr_samples(const char *structure,
+                 void       *data)
 {
-  FILE *output = (FILE *)data;
-
-  print_structure(output, structure, NULL);
+  if (structure)
+    print_structure((FILE *)data, structure, NULL);
 }
 
 
@@ -595,19 +593,21 @@ PRIVATE void
 print_nr_samples_en(const char  *structure,
                     void        *data)
 {
-  struct nr_en_data *d = (struct nr_en_data *)data;
-  FILE *output = d->output;
-  vrna_fold_compound_t *fc = d->fc;
-  double kT                = d->kT;
-  double ens_en             = d->ens_en;
+  if (structure) {
+    struct nr_en_data     *d      = (struct nr_en_data *)data;
+    FILE                  *output = d->output;
+    vrna_fold_compound_t  *fc     = d->fc;
+    double                kT      = d->kT;
+    double                ens_en  = d->ens_en;
 
-  double e    = vrna_eval_structure(fc, structure);
-  double prob = exp((ens_en - e) / kT);
-  char *e_string  = vrna_strdup_printf(" %6.2f %6g", e, prob);
+    double                e         = vrna_eval_structure(fc, structure);
+    double                prob      = exp((ens_en - e) / kT);
+    char                  *e_string = vrna_strdup_printf(" %6.2f %6g", e, prob);
 
-  print_structure(output, structure, e_string);
+    print_structure(output, structure, e_string);
 
-  free(e_string);
+    free(e_string);
+  }
 }
 
 
