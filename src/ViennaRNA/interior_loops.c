@@ -213,7 +213,7 @@ eval_int_loop_comparative(vrna_fold_compound_t  *vc,
 
   for (e = 0, s = 0; s < n_seq; s++) {
     type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-    type_2  = vrna_get_ptype_md(SS[s][k], SS[s][l], md); /* q,p not p,q! */
+    type_2  = vrna_get_ptype_md(SS[s][l], SS[s][k], md); /* l,k not k,l! */
 
     sc = (scs && scs[s]) ? scs[s] : NULL;
 
