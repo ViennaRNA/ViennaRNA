@@ -563,7 +563,7 @@ main(int  argc,
             cnt = 0;
             add = 10;
             /* get size of pl1 */
-            for (size = 0, ptr = pl1; ptr->i; size++, ptr++) ;
+            for (size = 0, ptr = pl1; ptr->i; size++, ptr++);
 
             /* increase length of pl1 */
             pl1 = vrna_realloc(pl1, sizeof(vrna_ep_t) * (size + add + 1));
@@ -614,7 +614,7 @@ main(int  argc,
             add = 10;
             cnt = 0;
             /* get size of pl2 */
-            for (size = 0, ptr = pl2; ptr->i; size++, ptr++) ;
+            for (size = 0, ptr = pl2; ptr->i; size++, ptr++);
 
             /* increase length of pl2 */
             pl2 = vrna_realloc(pl2, sizeof(vrna_ep_t) * (size + add + 1));
@@ -877,7 +877,7 @@ add_ligand_motif(vrna_fold_compound_t *vc,
       if (*ptr == ',')
         break;
 
-      str[r++] = toupper(*ptr);
+      str[r++] = *ptr;
     }
     str[r]  = '\0';
     str     = vrna_realloc(str, sizeof(char) * (strlen(seq) + 1));
