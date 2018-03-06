@@ -2,13 +2,15 @@
 #define VIENNA_RNA_PACKAGE_ALN_UTIL_H
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -39,11 +41,7 @@ typedef struct vrna_pinfo_s vrna_pinfo_t;
  */
 #define VRNA_MEASURE_SHANNON_ENTROPY  1U
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
-
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* the following typedefs are for backward compatibility only */
 
@@ -224,20 +222,24 @@ vrna_aln_conservation_col(const char      **alignment,
                           unsigned int    options);
 
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 DEPRECATED(int read_clustal(FILE  *clust,
                             char  *AlignedSeqs[],
-                            char  *names[]));
+                            char  *names[]),
+          "Use vrna_file_msa_read() and vrna_file_msa_read_record() instead");
 
 
-DEPRECATED(char *consensus(const char *AS[]));
+DEPRECATED(char *consensus(const char *AS[]),
+          "");
 
 
-DEPRECATED(char *consens_mis(const char *AS[]));
+DEPRECATED(char *consens_mis(const char *AS[]),
+          "");
 
 
-DEPRECATED(char *get_ungapped_sequence(const char *seq));
+DEPRECATED(char *get_ungapped_sequence(const char *seq),
+          "");
 
 
 /**
@@ -254,7 +256,8 @@ DEPRECATED(char *get_ungapped_sequence(const char *seq));
 DEPRECATED(int get_mpi(char *Alseq[],
                        int  n_seq,
                        int  length,
-                       int  *mini));
+                       int  *mini),
+          "Use vrna_aln_mpi() instead");
 
 /*
  #############################################################
@@ -282,7 +285,8 @@ DEPRECATED(void encode_ali_sequence(const char      *sequence,
                                     short           *s3,
                                     char            *ss,
                                     unsigned short  *as,
-                                    int             circ));
+                                    int             circ),
+          "This function is obsolete");
 
 
 /**
@@ -306,7 +310,8 @@ DEPRECATED(void  alloc_sequence_arrays(const char     **sequences,
                                        short          ***S3,
                                        unsigned short ***a2s,
                                        char           ***Ss,
-                                       int            circ));
+                                       int            circ),
+          "This function is obsolete");
 
 
 /**
@@ -328,7 +333,8 @@ DEPRECATED(void  free_sequence_arrays(unsigned int    n_seq,
                                       short           ***S5,
                                       short           ***S3,
                                       unsigned short  ***a2s,
-                                      char            ***Ss));
+                                      char            ***Ss),
+          "This fucntion is obsolete");
 
 #endif
 

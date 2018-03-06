@@ -61,30 +61,10 @@ vrna_E_hp_loop(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  hc_dat_local.idx        = vc->jindx;
-  hc_dat_local.mx         = vc->hc->matrix;
-  hc_dat_local.mx_window  = vc->hc->matrix_local;
-  hc_dat_local.hc_up      = vc->hc->up_hp;
-  hc_dat_local.n          = vc->length;
-  hc_dat_local.cp         = vc->cutpoint;
-
-  if (vc->hc->type == VRNA_HC_WINDOW) {
-    if (vc->hc->f) {
-      evaluate            = &hc_default_user_window;
-      hc_dat_local.hc_f   = vc->hc->f;
-      hc_dat_local.hc_dat = vc->hc->data;
-    } else {
-      evaluate = &hc_default_window;
-    }
-  } else {
-    if (vc->hc->f) {
-      evaluate            = &hc_default_user;
-      hc_dat_local.hc_f   = vc->hc->f;
-      hc_dat_local.hc_dat = vc->hc->data;
-    } else {
-      evaluate = &hc_default;
-    }
-  }
+  if (vc->hc->type == VRNA_HC_WINDOW)
+    evaluate = prepare_hc_default_window(vc, &hc_dat_local);
+  else
+    evaluate = prepare_hc_default(vc, &hc_dat_local);
 
   if ((i > 0) && (j > 0)) {
     /* is this base pair allowed to close a hairpin (like) loop ? */
@@ -127,19 +107,21 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
   char          **Ss, loopseq[10];
   unsigned int  **a2s;
   short         *S, *S2, **SS, **S5, **S3;
-  int           u, e, s, type, n_seq, length;
+  int           u1, u2, e, s, type, n_seq, length, noGUclosure;
   vrna_param_t  *P;
   vrna_sc_t     *sc, **scs;
   vrna_md_t     *md;
 
-  length  = vc->length;
-  P       = vc->params;
-  md      = &(P->model_details);
-  e       = INF;
+  length      = vc->length;
+  P           = vc->params;
+  md          = &(P->model_details);
+  noGUclosure = md->noGUclosure;
+  e           = INF;
 
-  u = vc->length - j + i - 1;
+  u1  = length - j;
+  u2  = i - 1;
 
-  if (u < 3)
+  if ((u1 + u2) < 3)
     return e;
 
   switch (vc->type) {
@@ -148,25 +130,24 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
       S           = vc->sequence_encoding;
       S2          = vc->sequence_encoding2;
       sc          = vc->sc;
-      u           = vc->length - j + i - 1;
-      type        = get_pair_type(S2[j], S2[i], md);
+      type        = vrna_get_ptype_md(S2[j], S2[i], md);
       loopseq[0]  = '\0';
 
+      if (noGUclosure && ((type == 3) || (type == 4)))
+        break;
+
       /* maximum special hp loop size: 6 */
-      if (u < 7) {
+      if ((u1 + u2) < 7) {
         strcpy(loopseq, vc->sequence + j - 1);
         strncat(loopseq, vc->sequence, i);
       }
 
-      e = E_Hairpin(u, type, S[j + 1], S[i - 1], loopseq, P);
+      e = E_Hairpin(u1 + u2, type, S[j + 1], S[i - 1], loopseq, P);
 
       if (sc) {
-        if (sc->energy_up) {
-          if (i > 1)
-            e += sc->energy_up[1][i - 1];
-          if (j < length)
-            e += sc->energy_up[j + 1][vc->length - j];
-        }
+        if (sc->energy_up)
+          e += sc->energy_up[j + 1][u1] +
+               sc->energy_up[1][u2];
 
         if (sc->f)
           e += sc->f(j, i, j, i, VRNA_DECOMP_PAIR_HP, sc->data);
@@ -187,30 +168,28 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
 
       for (s = 0; s < n_seq; s++) {
         char loopseq[10];
-        u           = a2s[s][length] - a2s[s][j] + a2s[s][i - 1];
+        u1          = a2s[s][length] - a2s[s][j];
+        u2          = a2s[s][i - 1];
         loopseq[0]  = '\0';
 
-        if (u < 7) {
+        if ((u1 + u2) < 7) {
           strcpy(loopseq, Ss[s] + a2s[s][j] - 1);
           strncat(loopseq, Ss[s], a2s[s][i]);
         }
 
-        if (u < 3) {
+        if ((u1 + u2) < 3) {
           e += 600;
         } else {
-          type  = get_pair_type(SS[s][j], SS[s][i], md);
-          e     += E_Hairpin(u, type, S3[s][j], S5[s][i], loopseq, P);
+          type  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
+          e     += E_Hairpin(u1 + u2, type, S3[s][j], S5[s][i], loopseq, P);
         }
       }
       if (scs) {
         for (s = 0; s < n_seq; s++) {
           if (scs[s]) {
-            if (scs[s]->energy_up) {
-              if (i > 1)
-                e += scs[s]->energy_up[1][a2s[s][i - 1]];
-              if (j < length)
-                e += scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]];
-            }
+            if (scs[s]->energy_up)
+              e += scs[s]->energy_up[1][a2s[s][i - 1]] +
+                   scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]];
 
             if (scs[s]->f) {
               e += scs[s]->f(a2s[s][j],
@@ -257,7 +236,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
   unsigned int  **a2s;
   short         *S, *S2, **SS, **S5, **S3;
   unsigned int  *sn;
-  int           u, e, s, ij, type, *idx, n_seq, en;
+  int           u, e, s, ij, type, *idx, n_seq, en, noGUclosure;
   vrna_param_t  *P;
   vrna_sc_t     *sc, **scs;
   vrna_md_t     *md;
@@ -266,6 +245,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
   idx         = vc->jindx;
   P           = vc->params;
   md          = &(P->model_details);
+  noGUclosure = md->noGUclosure;
   sn          = vc->strand_number;
   domains_up  = vc->domains_up;
   e           = INF;
@@ -281,7 +261,10 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
       S2    = vc->sequence_encoding2;
       sc    = vc->sc;
       u     = j - i - 1;
-      type  = get_pair_type(S2[i], S2[j], md);
+      type  = vrna_get_ptype_md(S2[i], S2[j], md);
+
+      if (noGUclosure && ((type == 3) || (type == 4)))
+        break;
 
       e = E_Hairpin(u, type, S[i + 1], S[j - 1], vc->sequence + i - 1, P);
 
@@ -339,7 +322,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
         if (u < 3) {
           e += 600;                          /* ??? really 600 ??? */
         } else {
-          type  = get_pair_type(SS[s][i], SS[s][j], md);
+          type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
           e     += E_Hairpin(u, type, S3[s][i], S5[s][j], Ss[s] + (a2s[s][i - 1]), P);
         }
       }
@@ -398,7 +381,7 @@ eval_hp_loop_fake(vrna_fold_compound_t  *vc,
 {
   short         *S, *S2;
   unsigned int  *sn;
-  int           u, e, ij, type, *idx, en;
+  int           u, e, ij, type, *idx, en, noGUclosure;
   vrna_param_t  *P;
   vrna_sc_t     *sc;
   vrna_md_t     *md;
@@ -407,6 +390,7 @@ eval_hp_loop_fake(vrna_fold_compound_t  *vc,
   idx         = vc->jindx;
   P           = vc->params;
   md          = &(P->model_details);
+  noGUclosure = md->noGUclosure;
   sn          = vc->strand_number;
   domains_up  = vc->domains_up;
   e           = INF;
@@ -419,7 +403,10 @@ eval_hp_loop_fake(vrna_fold_compound_t  *vc,
       sc    = vc->sc;
       u     = j - i - 1;
       ij    = idx[j] + i;
-      type  = get_pair_type(S2[j], S2[i], md);
+      type  = vrna_get_ptype_md(S2[j], S2[i], md);
+
+      if (noGUclosure && ((type == 3) || (type == 4)))
+        break;
 
       /* hairpin-like exterior loop (for cofolding) */
       short si, sj;

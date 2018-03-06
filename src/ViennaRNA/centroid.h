@@ -5,17 +5,16 @@
 #include <ViennaRNA/structure_utils.h>
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
-
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
 
 /**
  *  @file   centroid.h
@@ -79,7 +78,7 @@ char  *vrna_centroid_from_probs(int length,
                                 double *dist,
                                 FLT_OR_DBL *probs);
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Get the centroid structure of the ensemble
@@ -88,7 +87,8 @@ char  *vrna_centroid_from_probs(int length,
  */
 DEPRECATED(char  *get_centroid_struct_pl(int length,
                               double *dist,
-                              vrna_ep_t *pl));
+                              vrna_ep_t *pl),
+          "Use vrna_centroid_from_plist() instead");
 
 /**
  *  @brief Get the centroid structure of the ensemble
@@ -97,7 +97,8 @@ DEPRECATED(char  *get_centroid_struct_pl(int length,
  */
 DEPRECATED(char  *get_centroid_struct_pr(int length,
                               double *dist,
-                              FLT_OR_DBL *pr));
+                              FLT_OR_DBL *pr),
+          "Use vrna_centroid_from_probs() instead");
 
 #endif
 

@@ -1,17 +1,16 @@
 #ifndef VIENNA_RNA_PACKAGE_ALPHABET_H
 #define VIENNA_RNA_PACKAGE_ALPHABET_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -107,15 +106,33 @@ void vrna_aln_encode(const char   *sequence,
                      vrna_md_t    *md);
 
 
+unsigned int
+vrna_get_ptype_md(int       i,
+                  int       j,
+                  vrna_md_t *md);
+
+
+unsigned int
+vrna_get_ptype(int  ij,
+               char *ptype);
+
+
+unsigned int
+vrna_get_ptype_window(int   i,
+                      int   j,
+                      char  **ptype);
+
+
 /**
  *  @}
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 DEPRECATED(char *get_ptypes(const short   *S,
                             vrna_md_t     *md,
-                            unsigned int  idx_type));
+                            unsigned int  idx_type),
+          "Use vrna_pytpes() instead");
 
 #endif
 

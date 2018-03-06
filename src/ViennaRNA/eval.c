@@ -50,24 +50,12 @@
  # GLOBAL VARIABLES              #
  #################################
  */
-PUBLIC int  cut_point = -1; /* set to first pos of second seq for cofolding */
-PUBLIC int  eos_debug = 0;  /* verbose info from energy_of_struct */
 
 /*
  #################################
  # PRIVATE VARIABLES             #
  #################################
  */
-PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
-
-PRIVATE int                   verbosity_default = 1;  /* default verbosity level */
-PRIVATE int                   verbosity_quiet   = -1; /* verbosity level for quiet operations */
-
-#ifdef _OPENMP
-
-#pragma omp threadprivate(backward_compat_compound)
-
-#endif
 
 /*
  #################################
@@ -137,13 +125,6 @@ wrap_eval_structure(vrna_fold_compound_t  *vc,
                     int                   verbosity);
 
 
-PRIVATE int
-wrap_eval_loop_pt(vrna_fold_compound_t  *vc,
-                  int                   i,
-                  const short           *pt,
-                  int                   verbosity);
-
-
 /* consensus structure variants below */
 PRIVATE int
 covar_energy_of_struct_pt(vrna_fold_compound_t  *vc,
@@ -179,163 +160,6 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC float
-vrna_eval_structure_simple(const char *string,
-                           const char *structure)
-{
-  return vrna_eval_structure_simple_v(string, structure, verbosity_quiet, NULL);
-}
-
-
-PUBLIC float
-vrna_eval_structure_simple_verbose(const char *string,
-                                   const char *structure,
-                                   FILE       *file)
-{
-  return vrna_eval_structure_simple_v(string, structure, verbosity_default, file);
-}
-
-
-PUBLIC float
-vrna_eval_structure_simple_v(const char *string,
-                             const char *structure,
-                             int        verbosity_level,
-                             FILE       *file)
-{
-  float                 e;
-
-  /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t  *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
-
-  /* evaluate structure */
-  e = vrna_eval_structure_v(vc, structure, verbosity_level, file);
-
-  /* free fold_compound */
-  vrna_fold_compound_free(vc);
-
-  return e;
-}
-
-
-PUBLIC int
-vrna_eval_structure_pt_simple(const char  *string,
-                              const short *pt)
-{
-  return vrna_eval_structure_pt_simple_v(string, pt, verbosity_quiet, NULL);
-}
-
-
-PUBLIC int
-vrna_eval_structure_pt_simple_verbose(const char  *string,
-                                      const short *pt,
-                                      FILE        *file)
-{
-  return vrna_eval_structure_pt_simple_v(string, pt, verbosity_default, file);
-}
-
-
-PUBLIC int
-vrna_eval_structure_pt_simple_v(const char  *string,
-                                const short *pt,
-                                int         verbosity_level,
-                                FILE        *file)
-{
-  int                   e;
-
-  /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t  *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
-
-  /* evaluate structure */
-  e = vrna_eval_structure_pt_v(vc, pt, verbosity_level, file);
-
-  /* free fold_compound */
-  vrna_fold_compound_free(vc);
-
-  return e;
-}
-
-
-PUBLIC int
-vrna_eval_move_pt_simple(const char *string,
-                         short      *pt,
-                         int        m1,
-                         int        m2)
-{
-  int                   e;
-
-  /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t  *vc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
-
-  /* evaluate structure */
-  e = vrna_eval_move_pt(vc, pt, m1, m2);
-
-  /* free fold_compound */
-  vrna_fold_compound_free(vc);
-
-  return e;
-}
-
-
-PUBLIC int
-vrna_eval_move_shift_pt(vrna_fold_compound_t  *vc,
-                        vrna_move_t           *m,
-                        short                 *structure)
-{
-  if ((m->pos_5 < 0 && m->pos_3 > 0) || (m->pos_5 > 0 && m->pos_3 < 0)) {
-    /* split shift move */
-    int         unchangedPosition = m->pos_5 > 0 ? m->pos_5 : m->pos_3;
-    int         insertedPosition  = m->pos_5 < 0 ? -m->pos_5 : -m->pos_3;
-    int         d1                = -structure[unchangedPosition];
-    int         d2                = -unchangedPosition;
-    vrna_move_t deletion;
-    if (d1 < d2) {
-      deletion.pos_5  = d2;
-      deletion.pos_3  = d1;
-    } else {
-      deletion.pos_5  = d1;
-      deletion.pos_3  = d2;
-    }
-
-    int         i1  = unchangedPosition;
-    int         i2  = insertedPosition;
-    vrna_move_t insertion;
-    if (i1 > i2) {
-      insertion.pos_5 = i2;
-      insertion.pos_3 = i1;
-    } else {
-      insertion.pos_5 = i1;
-      insertion.pos_3 = i2;
-    }
-
-    int   energy  = vrna_eval_move_pt(vc, structure, deletion.pos_5, deletion.pos_3);
-    short *tmpS   = vrna_ptable_copy(structure);
-    vrna_move_apply(tmpS, &deletion);
-    energy += vrna_eval_move_pt(vc, tmpS, insertion.pos_5, insertion.pos_3);
-    free(tmpS);
-    return energy;
-  } else {
-    return vrna_eval_move_pt(vc, structure, m->pos_5, m->pos_3);
-  }
-}
-
-
-PUBLIC float
-vrna_eval_structure(vrna_fold_compound_t  *vc,
-                    const char            *structure)
-{
-  return vrna_eval_structure_v(vc, structure, verbosity_quiet, NULL);
-}
-
-
-PUBLIC float
-vrna_eval_structure_verbose(vrna_fold_compound_t  *vc,
-                            const char            *structure,
-                            FILE                  *file)
-{
-  return vrna_eval_structure_v(vc, structure, verbosity_default, file);
-}
-
-
 PUBLIC float
 vrna_eval_structure_v(vrna_fold_compound_t  *vc,
                       const char            *structure,
@@ -385,23 +209,6 @@ vrna_eval_covar_structure(vrna_fold_compound_t  *vc,
 
 
 PUBLIC int
-vrna_eval_structure_pt(vrna_fold_compound_t *vc,
-                       const short          *pt)
-{
-  return vrna_eval_structure_pt_v(vc, pt, verbosity_quiet, NULL);
-}
-
-
-PUBLIC int
-vrna_eval_structure_pt_verbose(vrna_fold_compound_t *vc,
-                               const short          *pt,
-                               FILE                 *file)
-{
-  return vrna_eval_structure_pt_v(vc, pt, verbosity_default, file);
-}
-
-
-PUBLIC int
 vrna_eval_structure_pt_v(vrna_fold_compound_t *vc,
                          const short          *pt,
                          int                  verbosity_level,
@@ -419,32 +226,82 @@ vrna_eval_structure_pt_v(vrna_fold_compound_t *vc,
 
 
 PUBLIC int
-vrna_eval_loop_pt(vrna_fold_compound_t  *vc,
-                  int                   i,
-                  const short           *pt)
+vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
+                    int                   i,
+                    const short           *pt,
+                    int                   verbosity_level)
 {
-  return wrap_eval_loop_pt(vc, i, pt, verbosity_quiet);
-}
+  /* compute energy of a single loop closed by base pair (i,j) */
+  int           j, type, p, q, energy, cp;
+  short         *s;
+  vrna_param_t  *P;
+
+  energy = INF;
+
+  if (pt && vc) {
+    P   = vc->params;
+    cp  = vc->cutpoint;
+    s   = vc->sequence_encoding2;
+
+    vrna_sc_prepare(vc, VRNA_OPTION_MFE);
+
+    if (i == 0) {
+      /* evaluate exterior loop */
+      energy = energy_of_extLoop_pt(vc, 0, pt);
+      return energy;
+    }
+
+    j = pt[i];
+    if (j < i)
+      vrna_message_error("i is unpaired in loop_energy()");
+
+    type = P->model_details.pair[s[i]][s[j]];
+    if (type == 0) {
+      type = 7;
+      if (verbosity_level > VRNA_VERBOSITY_QUIET) {
+        vrna_message_warning("bases %d and %d (%c%c) can't pair!",
+                             i, j,
+                             vrna_nucleotide_decode(s[i], &(P->model_details)),
+                             vrna_nucleotide_decode(s[j], &(P->model_details)));
+      }
+    }
+
+    p = i;
+    q = j;
 
 
-PUBLIC float
-vrna_eval_move(vrna_fold_compound_t *vc,
-               const char           *structure,
-               int                  m1,
-               int                  m2)
-{
-  short *pt;
-  int   en;
+    while (pt[++p] == 0);
+    while (pt[--q] == 0);
+    if (p > q) {
+      /* Hairpin */
+      energy = vrna_eval_hp_loop(vc, i, j);
+    } else if (pt[q] != (short)p) {
+      /* multi-loop */
+      int ii;
+      ii      = cut_in_loop(i, (const short *)pt, cp);
+      energy  =
+        (ii == 0) ? energy_of_ml_pt(vc, i, (const short *)pt) : energy_of_extLoop_pt(vc,
+                                                                                     ii,
+                                                                                     (const short *)pt);
+    } else {
+      /* found interior loop */
+      int type_2;
+      type_2 = P->model_details.pair[s[q]][s[p]];
+      if (type_2 == 0) {
+        type_2 = 7;
+        if (verbosity_level > VRNA_VERBOSITY_QUIET) {
+          vrna_message_warning("bases %d and %d (%c%c) can't pair!",
+                               p, q,
+                               vrna_nucleotide_decode(s[p], &(P->model_details)),
+                               vrna_nucleotide_decode(s[q], &(P->model_details)));
+        }
+      }
 
-  if (strlen(structure) != vc->length)
-    vrna_message_error("vrna_eval_move: sequence and structure have unequal length");
+      energy = vrna_eval_int_loop(vc, i, j, p, q);
+    }
+  }
 
-  pt  = vrna_ptable(structure);
-  en  = vrna_eval_move_pt(vc, pt, m1, m2);
-
-  free(pt);
-
-  return (float)en / 100.;
+  return energy;
 }
 
 
@@ -507,7 +364,7 @@ vrna_eval_move_pt(vrna_fold_compound_t  *vc,
   if (!ON_SAME_STRAND(k, l, cp)) {
     int p, c;
     p = c = 0;
-    for (p = 1; p < cp; ) {
+    for (p = 1; p < cp;) {
       /* Count basepairs between two strands */
       if (pt[p] != 0) {
         if (ON_SAME_STRAND(p, pt[p], cp)) /* Skip stuff */
@@ -582,8 +439,8 @@ eval_ext_int_loop(vrna_fold_compound_t  *vc,
     case VRNA_FC_TYPE_COMPARATIVE:
       n_seq = vc->n_seq;
       SS    = vc->S;
-      S5    = vc->S5;                               /* S5[s][i] holds next base 5' of i in sequence s */
-      S3    = vc->S3;                               /* Sl[s][i] holds next base 3' of i in sequence s */
+      S5    = vc->S5;
+      S3    = vc->S3;
       a2s   = vc->a2s;
       n_seq = vc->n_seq;
       scs   = vc->scs;
@@ -593,7 +450,7 @@ eval_ext_int_loop(vrna_fold_compound_t  *vc,
         if (type == 0)
           type = 7;
 
-        type_2 = (unsigned char)md->pair[SS[s][q]][SS[s][p]];                              /* q,p not p,q! */
+        type_2 = (unsigned char)md->pair[SS[s][q]][SS[s][p]];
         if (type_2 == 0)
           type_2 = 7;
 
@@ -611,105 +468,6 @@ eval_ext_int_loop(vrna_fold_compound_t  *vc,
   }
 
   return e;
-}
-
-
-PRIVATE vrna_param_t *
-get_updated_params(vrna_param_t *parameters,
-                   int          compat)
-{
-  vrna_param_t *P = NULL;
-
-  if (parameters) {
-    P = vrna_params_copy(parameters);
-  } else {
-    vrna_md_t md;
-    if (compat)
-      set_model_details(&md);
-    else
-      vrna_md_set_default(&md);
-
-    md.temperature  = temperature;
-    P               = vrna_params(&md);
-  }
-
-  vrna_md_update(&(P->model_details));
-  return P;
-}
-
-
-PRIVATE int
-wrap_eval_loop_pt(vrna_fold_compound_t  *vc,
-                  int                   i,
-                  const short           *pt,
-                  int                   verbosity)
-{
-  /* compute energy of a single loop closed by base pair (i,j) */
-  int           j, type, p, q, energy, cp;
-  short         *s;
-  vrna_param_t  *P;
-
-  P   = vc->params;
-  cp  = vc->cutpoint;
-  s   = vc->sequence_encoding2;
-
-  vrna_sc_prepare(vc, VRNA_OPTION_MFE);
-
-  if (i == 0) {
-    /* evaluate exterior loop */
-    energy = energy_of_extLoop_pt(vc, 0, pt);
-    return energy;
-  }
-
-  j = pt[i];
-  if (j < i)
-    vrna_message_error("i is unpaired in loop_energy()");
-
-  type = P->model_details.pair[s[i]][s[j]];
-  if (type == 0) {
-    type = 7;
-    if (verbosity > verbosity_quiet) {
-      vrna_message_warning("bases %d and %d (%c%c) can't pair!",
-                           i, j,
-                           vrna_nucleotide_decode(s[i], &(P->model_details)),
-                           vrna_nucleotide_decode(s[j], &(P->model_details)));
-    }
-  }
-
-  p = i;
-  q = j;
-
-
-  while (pt[++p] == 0);
-  while (pt[--q] == 0);
-  if (p > q) {
-    /* Hairpin */
-    energy = vrna_eval_hp_loop(vc, i, j);
-  } else if (pt[q] != (short)p) {
-    /* multi-loop */
-    int ii;
-    ii      = cut_in_loop(i, (const short *)pt, cp);
-    energy  =
-      (ii == 0) ? energy_of_ml_pt(vc, i, (const short *)pt) : energy_of_extLoop_pt(vc, ii,
-                                                                                   (const short *)pt);
-  } else {
-    /* found interior loop */
-    int type_2;
-    type_2 = P->model_details.pair[s[q]][s[p]];
-    if (type_2 == 0) {
-      type_2 = 7;
-      if (verbosity > verbosity_quiet) {
-        vrna_message_warning("bases %d and %d (%c%c) can't pair!",
-                             p, q,
-                             vrna_nucleotide_decode(s[p], &(P->model_details)),
-                             vrna_nucleotide_decode(s[q], &(P->model_details)));
-      }
-    }
-
-    energy = vrna_eval_int_loop(vc, i, j, p, q);
-  }
-
-  return energy;
 }
 
 
@@ -1157,10 +915,9 @@ stack_energy(vrna_fold_compound_t *vc,
 {
   /* recursively calculate energy of substructure enclosed by (i,j) */
 
-  int           ee, energy, j, p, q, type, *rtype, *types, cp, ss, n_seq;
+  int           ee, energy, j, p, q, type, cp;
   char          *string;
-  short         *s, **S, **S5, **S3;
-  unsigned int  **a2s;
+  short         *s;
   FILE          *out;
   vrna_param_t  *P;
   vrna_md_t     *md;
@@ -1169,48 +926,25 @@ stack_energy(vrna_fold_compound_t *vc,
   s       = vc->sequence_encoding2;
   P       = vc->params;
   md      = &(P->model_details);
-  rtype   = &(md->rtype[0]);
-  types   = NULL;
   energy  = 0;
   out     = (file) ? file : stdout;
 
   j = pt[i];
 
-  switch (vc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      string  = vc->sequence;
-      type    = md->pair[s[i]][s[j]];
-      if (type == 0) {
-        type = 7;
-        if (verbosity_level > verbosity_quiet) {
-          vrna_message_warning("bases %d and %d (%c%c) can't pair!",
-                               i, j,
-                               string[i - 1],
-                               string[j - 1]);
-        }
+  if (vc->type == VRNA_FC_TYPE_SINGLE) {
+    string = vc->sequence;
+    if (md->pair[s[i]][s[j]] == 0) {
+      if (verbosity_level > VRNA_VERBOSITY_QUIET) {
+        vrna_message_warning("bases %d and %d (%c%c) can't pair!",
+                             i, j,
+                             string[i - 1],
+                             string[j - 1]);
       }
-
-      break;
-
-    case VRNA_FC_TYPE_COMPARATIVE:
-      string  = vc->cons_seq;
-      S       = vc->S;
-      S5      = vc->S5;                             /* S5[s][i] holds next base 5' of i in sequence s */
-      S3      = vc->S3;                             /* Sl[s][i] holds next base 3' of i in sequence s */
-      a2s     = vc->a2s;
-      n_seq   = vc->n_seq;
-      types   = (int *)vrna_alloc(n_seq * sizeof(int));
-
-      for (ss = 0; ss < n_seq; ss++) {
-        types[ss] = md->pair[S[ss][i]][S[ss][j]];
-        if (types[ss] == 0)
-          types[ss] = 7;
-      }
-      break;
-
-    default:
-      return INF;
-      break;
+    }
+  } else if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
+    string = vc->cons_seq;
+  } else {
+    return INF;
   }
 
   p = i;
@@ -1218,58 +952,24 @@ stack_energy(vrna_fold_compound_t *vc,
 
   while (p < q) {
     /* process all stacks and interior loops */
-    int type_2;
     while (pt[++p] == 0);
     while (pt[--q] == 0);
     if ((pt[q] != (short)p) || (p > q))
       break;
 
     ee = 0;
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        type_2 = md->pair[s[q]][s[p]];
-        if (type_2 == 0) {
-          type_2 = 7;
-          if (verbosity_level > verbosity_quiet) {
-            vrna_message_warning("bases %d and %d (%c%c) can't pair!",
-                                 p, q,
-                                 string[p - 1],
-                                 string[q - 1]);
-          }
+    if (vc->type == VRNA_FC_TYPE_SINGLE) {
+      if (md->pair[s[q]][s[p]] == 0) {
+        if (verbosity_level > VRNA_VERBOSITY_QUIET) {
+          vrna_message_warning("bases %d and %d (%c%c) can't pair!",
+                               p, q,
+                               string[p - 1],
+                               string[q - 1]);
         }
-
-        ee = vrna_eval_int_loop(vc, i, j, p, q);
-
-        type = rtype[type_2];
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        for (ss = 0; ss < n_seq; ss++) {
-          type_2 = md->pair[S[ss][q]][S[ss][p]];
-          if (type_2 == 0)
-            type_2 = 7;
-
-          ee += E_IntLoop(a2s[ss][p - 1] - a2s[ss][i],
-                          a2s[ss][j - 1] - a2s[ss][q],
-                          types[ss],
-                          type_2,
-                          S3[ss][i],
-                          S5[ss][j],
-                          S5[ss][p],
-                          S3[ss][q],
-                          P);
-        }
-
-        for (ss = 0; ss < n_seq; ss++) {
-          types[ss] = md->pair[S[ss][p]][S[ss][q]];
-          if (types[ss] == 0)
-            types[ss] = 7;
-        }
-        break;
-
-      default:
-        break;                             /* this should never happen */
+      }
     }
+
+    ee = vrna_eval_int_loop(vc, i, j, p, q);
 
     if (verbosity_level > 0)
       print_eval_int_loop(out, i, j, string[i - 1], string[j - 1],
@@ -1290,8 +990,6 @@ stack_energy(vrna_fold_compound_t *vc,
 
     if (verbosity_level > 0)
       print_eval_hp_loop(out, i, j, string[i - 1], string[j - 1], ee);
-
-    free(types);
 
     return energy;
   }
@@ -1324,8 +1022,6 @@ stack_energy(vrna_fold_compound_t *vc,
   energy += ee;
   if (verbosity_level > 0)
     print_eval_mb_loop(out, i, j, string[i - 1], string[j - 1], ee);
-
-  free(types);
 
   return energy;
 }
@@ -1398,8 +1094,8 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
 
     case VRNA_FC_TYPE_COMPARATIVE:
       S     = vc->S;
-      S5    = vc->S5;                                 /* S5[s][i] holds next base 5' of i in sequence s */
-      S3    = vc->S3;                                 /* Sl[s][i] holds next base 3' of i in sequence s */
+      S5    = vc->S5;
+      S3    = vc->S3;
       a2s   = vc->a2s;
       n_seq = vc->n_seq;
       scs   = vc->scs;
@@ -2179,8 +1875,8 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
   int           L, l[3];
 
   short         **S           = vc->S;
-  short         **S5          = vc->S5;       /*S5[s][i] holds next base 5' of i in sequence s*/
-  short         **S3          = vc->S3;       /*Sl[s][i] holds next base 3' of i in sequence s*/
+  short         **S5          = vc->S5;
+  short         **S3          = vc->S3;
   vrna_param_t  *P            = vc->params;
   vrna_md_t     *md           = &(P->model_details);
   int           n_seq         = vc->n_seq;
@@ -2543,332 +2239,4 @@ stack_energy_covar_pt(vrna_fold_compound_t  *vc,
   }
 
   return energy;
-}
-
-
-/*
- #################################
- # DEPRECATED functions below    #
- #################################
- */
-PRIVATE vrna_fold_compound_t *
-recycle_last_call(const char    *string,
-                  vrna_param_t  *P)
-{
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             *md;
-  int                   cleanup;
-  char                  *seq;
-
-  vc      = NULL;
-  cleanup = 0;
-
-  if (P) {
-    md = &(P->model_details);
-  } else {
-    md = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
-    set_model_details(md);
-    cleanup = 1;
-  }
-
-  if (string) {
-    if (backward_compat_compound) {
-      if (!strcmp(string, backward_compat_compound->sequence)) {
-        /* check if sequence is the same as before */
-        md->window_size = (int)backward_compat_compound->length;
-        if (!memcmp(md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t))) /* check if model_details are the same as before */
-          vc = backward_compat_compound;                                                        /* re-use previous vrna_fold_compound_t */
-      }
-    }
-  }
-
-  /* prepare a new global vrna_fold_compound_t with current settings */
-  if (!vc) {
-    vrna_fold_compound_free(backward_compat_compound);
-    seq                       = vrna_cut_point_insert(string, cut_point);
-    backward_compat_compound  = vc = vrna_fold_compound(seq, md, VRNA_OPTION_EVAL_ONLY);
-    if (P) {
-      free(vc->params);
-      vc->params = get_updated_params(P, 1);
-    }
-
-    free(seq);
-  }
-
-  if (cleanup)
-    free(md);
-
-  return vc;
-}
-
-
-PUBLIC float
-energy_of_struct(const char *string,
-                 const char *structure)
-{
-  float                 en;
-  vrna_fold_compound_t  *vc;
-
-  vc = recycle_last_call(string, NULL);
-
-  if (eos_debug > 0)
-    en = vrna_eval_structure_verbose(vc, structure, NULL);
-  else
-    en = vrna_eval_structure(vc, structure);
-
-  return en;
-}
-
-
-PUBLIC int
-energy_of_struct_pt(const char  *string,
-                    short       *pt,
-                    short       *s,
-                    short       *s1)
-{
-  int                   en;
-  vrna_fold_compound_t  *vc;
-
-  if (pt && string) {
-    if (pt[0] != (short)strlen(string))
-      vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
-
-    vc  = recycle_last_call(string, NULL);
-    en  = eval_pt(vc, pt, NULL, eos_debug);
-
-    return en;
-  } else {
-    return INF;
-  }
-}
-
-
-PUBLIC float
-energy_of_circ_struct(const char  *string,
-                      const char  *structure)
-{
-  float                 en;
-  vrna_fold_compound_t  *vc;
-
-  vc = recycle_last_call(string, NULL);
-
-  vc->params->model_details.circ = 1;
-
-  if (eos_debug > 0)
-    en = vrna_eval_structure_verbose(vc, structure, NULL);
-  else
-    en = vrna_eval_structure(vc, structure);
-
-  return en;
-}
-
-
-PUBLIC float
-energy_of_structure(const char  *string,
-                    const char  *structure,
-                    int         verbosity_level)
-{
-  vrna_fold_compound_t  *vc;
-
-  vc = recycle_last_call(string, NULL);
-
-  return vrna_eval_structure_v(vc, structure, verbosity_level, NULL);
-}
-
-
-PUBLIC float
-energy_of_struct_par(const char   *string,
-                     const char   *structure,
-                     vrna_param_t *parameters,
-                     int          verbosity_level)
-{
-  vrna_fold_compound_t  *vc;
-
-  vc = recycle_last_call(string, parameters);
-
-  return vrna_eval_structure_v(vc, structure, verbosity_level, NULL);
-}
-
-
-PUBLIC float
-energy_of_gquad_structure(const char  *string,
-                          const char  *structure,
-                          int         verbosity_level)
-{
-  vrna_fold_compound_t  *vc;
-
-  vc = recycle_last_call(string, NULL);
-
-  vc->params->model_details.gquad = 1;
-
-  return vrna_eval_structure_v(vc, structure, verbosity_level, NULL);
-}
-
-
-PUBLIC float
-energy_of_gquad_struct_par(const char   *string,
-                           const char   *structure,
-                           vrna_param_t *parameters,
-                           int          verbosity_level)
-{
-  vrna_fold_compound_t  *vc;
-
-  vc = recycle_last_call(string, parameters);
-
-  vc->params->model_details.gquad = 1;
-
-  return vrna_eval_structure_v(vc, structure, verbosity_level, NULL);
-}
-
-
-PUBLIC int
-energy_of_structure_pt(const char *string,
-                       short      *pt,
-                       short      *s,
-                       short      *s1,
-                       int        verbosity_level)
-{
-  int                   en;
-  vrna_fold_compound_t  *vc;
-
-  if (pt && string) {
-    if (pt[0] != (short)strlen(string))
-      vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
-
-    vc  = recycle_last_call(string, NULL);
-    en  = eval_pt(vc, pt, NULL, verbosity_level);
-
-    return en;
-  } else {
-    return INF;
-  }
-}
-
-
-PUBLIC int
-energy_of_struct_pt_par(const char    *string,
-                        short         *pt,
-                        short         *s,
-                        short         *s1,
-                        vrna_param_t  *parameters,
-                        int           verbosity_level)
-{
-  int                   en;
-  vrna_fold_compound_t  *vc;
-
-  if (pt && string) {
-    if (pt[0] != (short)strlen(string))
-      vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
-
-    vc  = recycle_last_call(string, parameters);
-    en  = eval_pt(vc, pt, NULL, verbosity_level);
-
-    return en;
-  } else {
-    return INF;
-  }
-}
-
-
-PUBLIC float
-energy_of_circ_structure(const char *string,
-                         const char *structure,
-                         int        verbosity_level)
-{
-  vrna_fold_compound_t  *vc;
-
-  vc = recycle_last_call(string, NULL);
-
-  vc->params->model_details.circ = 1;
-
-  return vrna_eval_structure_v(vc, structure, verbosity_level, NULL);
-}
-
-
-PUBLIC float
-energy_of_circ_struct_par(const char    *string,
-                          const char    *structure,
-                          vrna_param_t  *parameters,
-                          int           verbosity_level)
-{
-  vrna_fold_compound_t  *vc;
-
-  vc = recycle_last_call(string, parameters);
-
-  vc->params->model_details.circ = 1;
-
-  return vrna_eval_structure_v(vc, structure, verbosity_level, NULL);
-}
-
-
-PUBLIC int
-loop_energy(short *pt,
-            short *s,
-            short *s1,
-            int   i)
-{
-  int                   en, u;
-  char                  *seq;
-  vrna_md_t             md;
-  vrna_fold_compound_t  *vc;
-
-  set_model_details(&md);
-
-  /* convert encoded sequence back to actual string */
-  seq = (char *)vrna_alloc(sizeof(char) * (s[0] + 1));
-  for (u = 1; u <= s[0]; u++)
-    seq[u - 1] = vrna_nucleotide_decode(s[u], &md);
-  seq[u - 1] = '\0';
-
-  vc  = recycle_last_call(seq, NULL);
-  en  = wrap_eval_loop_pt(vc, i, pt, eos_debug);
-
-  free(seq);
-
-  return en;
-}
-
-
-PUBLIC float
-energy_of_move(const char *string,
-               const char *structure,
-               int        m1,
-               int        m2)
-{
-  float                 en;
-  vrna_fold_compound_t  *vc;
-
-  vc  = recycle_last_call(string, NULL);
-  en  = vrna_eval_move(vc, structure, m1, m2);
-
-  return en;
-}
-
-
-PUBLIC int
-energy_of_move_pt(short *pt,
-                  short *s,
-                  short *s1,
-                  int   m1,
-                  int   m2)
-{
-  int                   en, u;
-  char                  *seq;
-  vrna_md_t             md;
-  vrna_fold_compound_t  *vc;
-
-  set_model_details(&md);
-
-  /* convert encoded sequence back to actual string */
-  seq = (char *)vrna_alloc(sizeof(char) * (s[0] + 1));
-  for (u = 1; u <= s[0]; u++)
-    seq[u - 1] = vrna_nucleotide_decode(s[u], &md);
-  seq[u - 1] = '\0';
-
-  vc  = recycle_last_call(seq, NULL);
-  en  = vrna_eval_move_pt(vc, pt, m1, m2);
-
-  free(seq);
-
-  return en;
 }

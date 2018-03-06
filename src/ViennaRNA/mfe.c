@@ -1,5 +1,3 @@
-/** \file **/
-
 /*
  *                minimum free energy
  *                RNA secondary structure prediction
@@ -36,10 +34,23 @@
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/mfe.h"
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
+
+struct aux_arrays {
+  int *cc;    /* auxilary arrays for canonical structures     */
+  int *cc1;   /* auxilary arrays for canonical structures     */
+  int *Fmi;   /* holds row i of fML (avoids jumps in memory)  */
+  int *DMLi;  /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
+  int *DMLi1; /*                MIN(fML[i+1,k]+fML[k+1,j])    */
+  int *DMLi2; /*                MIN(fML[i+2,k]+fML[k+1,j])    */
+};
+
 
 /*
  #################################
@@ -59,26 +70,41 @@
  #################################
  */
 
-PRIVATE int   fill_arrays(vrna_fold_compound_t *vc);
+PRIVATE int
+fill_arrays(vrna_fold_compound_t *vc);
 
 
-PRIVATE void  fill_arrays_circ(vrna_fold_compound_t *vc,
-                               sect                 bt_stack[],
-                               int                  *bt);
+PRIVATE int
+postprocess_circular(vrna_fold_compound_t *vc,
+                     sect                 bt_stack[],
+                     int                  *bt);
 
 
-PRIVATE void  backtrack(vrna_fold_compound_t  *vc,
-                        vrna_bp_stack_t       *bp_stack,
-                        sect                  bt_stack[],
-                        int                   s);
+PRIVATE void
+backtrack(vrna_fold_compound_t  *vc,
+          vrna_bp_stack_t       *bp_stack,
+          sect                  bt_stack[],
+          int                   s);
 
 
-PRIVATE int   fill_arrays_comparative(vrna_fold_compound_t *vc);
+PRIVATE INLINE int
+decompose_pair(vrna_fold_compound_t *vc,
+               int                  i,
+               int                  j,
+               struct aux_arrays    *aux);
 
 
-PRIVATE void  fill_arrays_comparative_circ(vrna_fold_compound_t *vc,
-                                           sect                 bt_stack[],
-                                           int                  *bt);
+PRIVATE INLINE struct aux_arrays *
+get_aux_arrays(unsigned int length);
+
+
+PRIVATE INLINE void
+rotate_aux_arrays(struct aux_arrays *aux,
+                  unsigned int      length);
+
+
+PRIVATE INLINE void
+free_aux_arrays(struct aux_arrays *aux);
 
 
 /*
@@ -111,38 +137,18 @@ vrna_mfe(vrna_fold_compound_t *vc,
     if (vc->stat_cb)
       vc->stat_cb(VRNA_STATUS_MFE_PRE, vc->auxdata);
 
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        energy = fill_arrays(vc);
-        if (vc->params->model_details.circ) {
-          fill_arrays_circ(vc, bt_stack, &s);
-          energy = vc->matrices->Fc;
-        }
+    energy = fill_arrays(vc);
 
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        energy = fill_arrays_comparative(vc);
-        if (vc->params->model_details.circ) {
-          fill_arrays_comparative_circ(vc, bt_stack, &s);
-          energy = vc->matrices->Fc;
-        }
-
-        break;
-
-      default:
-        vrna_message_warning("unrecognized fold compound type");
-        return mfe;
-        break;
-    }
-
+    if (vc->params->model_details.circ)
+      energy = postprocess_circular(vc, bt_stack, &s);
 
     /* call user-defined recursion status callback function */
     if (vc->stat_cb)
       vc->stat_cb(VRNA_STATUS_MFE_POST, vc->auxdata);
 
     if (structure && vc->params->model_details.backtrack) {
-      bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2))); /* add a guess of how many G's may be involved in a G quadruplex */
+      /* add a guess of how many G's may be involved in a G quadruplex */
+      bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));
 
       backtrack(vc, bp, bt_stack, s);
 
@@ -152,12 +158,19 @@ vrna_mfe(vrna_fold_compound_t *vc,
       free(bp);
     }
 
-    if (vc->params->model_details.backtrack_type == 'C')
-      mfe = (float)vc->matrices->c[vc->jindx[length] + 1] / 100.;
-    else if (vc->params->model_details.backtrack_type == 'M')
-      mfe = (float)vc->matrices->fML[vc->jindx[length] + 1] / 100.;
-    else
-      mfe = (float)energy / 100.;
+    switch (vc->params->model_details.backtrack_type) {
+      case 'C':
+        mfe = (float)vc->matrices->c[vc->jindx[length] + 1] / 100.;
+        break;
+
+      case 'M':
+        mfe = (float)vc->matrices->fML[vc->jindx[length] + 1] / 100.;
+        break;
+
+      default:
+        mfe = (float)energy / 100.;
+        break;
+    }
 
     if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
       mfe /= (float)vc->n_seq;
@@ -167,49 +180,47 @@ vrna_mfe(vrna_fold_compound_t *vc,
 }
 
 
-/**
-*** fill "c", "fML" and "f5" arrays and return  optimal energy
-**/
+PUBLIC void
+vrna_backtrack_from_intervals(vrna_fold_compound_t  *vc,
+                              vrna_bp_stack_t       *bp_stack,
+                              sect                  bt_stack[],
+                              int                   s)
+{
+  if (vc)
+    backtrack(vc, bp_stack, bt_stack, s);
+}
+
+
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
+
+/* fill DP matrices */
 PRIVATE int
 fill_arrays(vrna_fold_compound_t *vc)
 {
-  unsigned char type;
-  char          *ptype;
-  unsigned char *hard_constraints;
-  int           i, j, ij, length, energy, new_c, stackEnergy, no_close, turn,
-                noGUclosure, noLP, uniq_ML, dangle_model, *indx, *f5,
-                *c, *fML, *fM1, hc_decompose, *cc, *cc1, *Fmi, *DMLi,
-                *DMLi1, *DMLi2;
-  vrna_param_t  *P;
-  vrna_mx_mfe_t *matrices;
-  vrna_hc_t     *hc;
-  vrna_ud_t     *domains_up;
+  int               i, j, ij, length, turn, uniq_ML, *indx, *f5, *c, *fML, *fM1;
+  vrna_param_t      *P;
+  vrna_mx_mfe_t     *matrices;
+  vrna_ud_t         *domains_up;
+  struct aux_arrays *helper_arrays;
 
-  length            = (int)vc->length;
-  ptype             = vc->ptype;
-  indx              = vc->jindx;
-  P                 = vc->params;
-  noGUclosure       = P->model_details.noGUclosure;
-  noLP              = P->model_details.noLP;
-  uniq_ML           = P->model_details.uniq_ML;
-  dangle_model      = P->model_details.dangles;
-  turn              = P->model_details.min_loop_size;
-  hc                = vc->hc;
-  hard_constraints  = hc->matrix;
-  matrices          = vc->matrices;
-  f5                = matrices->f5;
-  c                 = matrices->c;
-  fML               = matrices->fML;
-  fM1               = matrices->fM1;
-  domains_up        = vc->domains_up;
+  length      = (int)vc->length;
+  indx        = vc->jindx;
+  P           = vc->params;
+  uniq_ML     = P->model_details.uniq_ML;
+  turn        = P->model_details.min_loop_size;
+  matrices    = vc->matrices;
+  f5          = matrices->f5;
+  c           = matrices->c;
+  fML         = matrices->fML;
+  fM1         = matrices->fM1;
+  domains_up  = vc->domains_up;
 
   /* allocate memory for all helper arrays */
-  cc    = (int *)vrna_alloc(sizeof(int) * (length + 2));  /* auxilary arrays for canonical structures     */
-  cc1   = (int *)vrna_alloc(sizeof(int) * (length + 2));  /* auxilary arrays for canonical structures     */
-  Fmi   = (int *)vrna_alloc(sizeof(int) * (length + 1));  /* holds row i of fML (avoids jumps in memory)  */
-  DMLi  = (int *)vrna_alloc(sizeof(int) * (length + 1));  /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
-  DMLi1 = (int *)vrna_alloc(sizeof(int) * (length + 1));  /*                MIN(fML[i+1,k]+fML[k+1,j])    */
-  DMLi2 = (int *)vrna_alloc(sizeof(int) * (length + 1));  /*                MIN(fML[i+2,k]+fML[k+1,j])    */
+  helper_arrays = get_aux_arrays(length);
 
   if ((turn < 0) || (turn > length))
     turn = length; /* does this make any sense? */
@@ -217,11 +228,6 @@ fill_arrays(vrna_fold_compound_t *vc)
   /* pre-processing ligand binding production rule(s) */
   if (domains_up && domains_up->prod_cb)
     domains_up->prod_cb(vc, domains_up->data);
-
-  /* prefill helper arrays */
-  for (j = 0; j <= length; j++)
-    Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
-
 
   /* prefill matrices with init contributions */
   for (j = 1; j <= length; j++)
@@ -232,236 +238,1063 @@ fill_arrays(vrna_fold_compound_t *vc)
     }
 
   /* start recursion */
-
   if (length <= turn) {
     /* clean up memory */
-    free(cc);
-    free(cc1);
-    free(Fmi);
-    free(DMLi);
-    free(DMLi1);
-    free(DMLi2);
+    free_aux_arrays(helper_arrays);
+
     /* return free energy of unfolded chain */
     return 0;
   }
 
-  for (i = length - turn - 1; i >= 1; i--) {
-    /* i,j in [1..length] */
+  /*
+   *  counter = 7
+   *
+   *  Please increment the above counter if you tried optimizing or even getting rid of
+   *  the switch statement below but only realized that everything else results in longer
+   *  execution time!
+   */
+  switch (vc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      for (i = length - turn - 1; i >= 1; i--) {
+        for (j = i + turn + 1; j <= length; j++) {
+          ij = indx[j] + i;
 
-    for (j = i + turn + 1; j <= length; j++) {
-      ij            = indx[j] + i;
-      type          = (unsigned char)ptype[ij];
-      hc_decompose  = hard_constraints[ij];
-      energy        = INF;
+          /* decompose subsegment [i, j] with pair (i, j) */
+          c[ij] = decompose_pair(vc, i, j, helper_arrays);
 
-      no_close = (((type == 3) || (type == 4)) && noGUclosure);
+          /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
+          fML[ij] = vrna_E_ml_stems_fast(vc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
 
-      if (hc_decompose) {
-        /* we evaluate this pair */
-        new_c = INF;
+          if (uniq_ML)
+            /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
+            fM1[ij] = E_ml_rightmost_stem(i, j, vc);
+        } /* end of j-loop */
 
-        if (!no_close) {
-          /* check for hairpin loop */
-          energy  = vrna_E_hp_loop(vc, i, j);
-          new_c   = MIN2(new_c, energy);
+        rotate_aux_arrays(helper_arrays, length);
+      } /* end of i-loop */
+        /* calculate energies of 5' fragments */
+      (void)vrna_E_ext_loop_5(vc);
+      break;
 
-          /* check for multibranch loops */
-          energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
-          new_c   = MIN2(new_c, energy);
-        }
+    case VRNA_FC_TYPE_COMPARATIVE:
+      for (i = length - turn - 1; i >= 1; i--) {
+        for (j = i + turn + 1; j <= length; j++) {
+          ij = indx[j] + i;
 
-        if (dangle_model == 3) {
-          /* coaxial stacking */
-          energy  = vrna_E_mb_loop_stack(vc, i, j);
-          new_c   = MIN2(new_c, energy);
-        }
+          /* decompose subsegment [i, j] with pair (i, j) */
+          c[ij] = decompose_pair(vc, i, j, helper_arrays);
 
-        /* check for interior loops */
-        energy  = vrna_E_int_loop(vc, i, j);
-        new_c   = MIN2(new_c, energy);
+          /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
+          fML[ij] = vrna_E_ml_stems_fast(vc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
 
-        /* remember stack energy for --noLP option */
-        if (noLP) {
-          stackEnergy = vrna_E_stack(vc, i, j);
-          new_c       = MIN2(new_c, cc1[j - 1] + stackEnergy);
-          cc[j]       = new_c;
-          c[ij]       = cc1[j - 1] + stackEnergy;
-        } else {
-          c[ij] = new_c;
-        }
-      } /* end >> if (pair) << */
-      else {
-        c[ij] = INF;
-      }
+          if (uniq_ML)
+            /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
+            fM1[ij] = E_ml_rightmost_stem(i, j, vc);
+        } /* end of j-loop */
 
-      /* done with c[i,j], now compute fML[i,j] and fM1[i,j] */
+        rotate_aux_arrays(helper_arrays, length);
+      } /* end of i-loop */
 
-      fML[ij] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
+      /* calculate energies of 5' fragments */
+      (void)vrna_E_ext_loop_5(vc);
 
-      if (uniq_ML)   /* compute fM1 for unique decomposition */
-        fM1[ij] = E_ml_rightmost_stem(i, j, vc);
-    } /* end of j-loop */
-
-    {
-      int *FF; /* rotate the auxilliary arrays */
-      FF    = DMLi2;
-      DMLi2 = DMLi1;
-      DMLi1 = DMLi;
-      DMLi  = FF;
-      FF    = cc1;
-      cc1   = cc;
-      cc    = FF;
-      for (j = 1; j <= length; j++)
-        cc[j] = Fmi[j] = DMLi[j] = INF;
-    }
-  } /* end of i-loop */
-
-  /* calculate energies of 5' fragments */
-  (void)vrna_E_ext_loop_5(vc);
-
-  /* clean up memory */
-  free(cc);
-  free(cc1);
-  free(Fmi);
-  free(DMLi);
-  free(DMLi1);
-  free(DMLi2);
-
-  return f5[length];
-}
-
-
-#include "circfold.inc"
-
-
-/**
-*** the actual forward recursion to fill the energy arrays
-**/
-PRIVATE int
-fill_arrays_comparative(vrna_fold_compound_t *vc)
-{
-  unsigned char *hard_constraints;
-  short         **S;
-  int           i, j, turn, energy, stackEnergy, new_c, s, *cc,
-                *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2, n_seq, length, *indx,
-                *c, *f5, *fML, *pscore;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  vrna_hc_t     *hc;
-
-  n_seq             = vc->n_seq;
-  length            = vc->length;
-  S                 = vc->S;
-  P                 = vc->params;
-  md                = &(P->model_details);
-  indx              = vc->jindx;          /* index for moving in the triangle matrices c[] and fMl[] */
-  c                 = vc->matrices->c;    /* energy array, given that i-j pair */
-  f5                = vc->matrices->f5;   /* energy of 5' end */
-  fML               = vc->matrices->fML;  /* multi-loop auxiliary energy array */
-  pscore            = vc->pscore;         /* precomputed array of pair types */
-  turn              = md->min_loop_size;
-  hc                = vc->hc;
-  hard_constraints  = hc->matrix;
-
-  /* allocate some memory for helper arrays */
-  cc    = (int *)vrna_alloc(sizeof(int) * (length + 2));  /* linear array for calculating canonical structures */
-  cc1   = (int *)vrna_alloc(sizeof(int) * (length + 2));  /*   "     "        */
-  Fmi   = (int *)vrna_alloc(sizeof(int) * (length + 1));  /* holds row i of fML (avoids jumps in memory) */
-  DMLi  = (int *)vrna_alloc(sizeof(int) * (length + 1));  /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-  DMLi1 = (int *)vrna_alloc(sizeof(int) * (length + 1));  /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-  DMLi2 = (int *)vrna_alloc(sizeof(int) * (length + 1));  /*             MIN(fML[i+2,k]+fML[k+1,j])  */
-
-
-  if ((turn < 0) || (turn > length))
-    turn = length;
-
-  /* init energies */
-  for (j = 1; j <= length; j++) {
-    Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
-    for (i = (j > turn ? (j - turn) : 1); i < j; i++)
-      c[indx[j] + i] = fML[indx[j] + i] = INF;
+      break;
   }
 
-  /* begin recursions */
-  for (i = length - turn - 1; i >= 1; i--) {
-    /* i,j in [1..length] */
-    for (j = i + turn + 1; j <= length; j++) {
-      int ij, psc;
-      ij = indx[j] + i;
-
-      psc = pscore[indx[j] + i];
-      if (hard_constraints[ij]) {
-        /* a pair to consider */
-        new_c = INF;
-
-        /* hairpin ----------------------------------------------*/
-        energy  = vrna_E_hp_loop(vc, i, j);
-        new_c   = MIN2(new_c, energy);
-
-        /* check for multibranch loops */
-        energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
-        new_c   = MIN2(new_c, energy);
-
-        /* check for interior loops */
-        energy  = vrna_E_int_loop(vc, i, j);
-        new_c   = MIN2(new_c, energy);
-
-        /* remember stack energy for --noLP option */
-        if (md->noLP) {
-          stackEnergy = vrna_E_stack(vc, i, j);
-          new_c       = MIN2(new_c, cc1[j - 1] + stackEnergy);
-          cc[j]       = new_c - psc; /* add covariance bonnus/penalty */
-          c[ij]       = cc1[j - 1] + stackEnergy - psc;
-        } else {
-          c[ij] = new_c - psc;       /* add covariance bonnus/penalty */
-        }
-      } /* end >> if (pair) << */
-      else {
-        c[ij] = INF;
-      }
-
-      /* done with c[i,j], now compute fML[i,j] */
-      fML[ij] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
-    } /* END for j */
-
-    {
-      int *FF; /* rotate the auxilliary arrays */
-      FF    = DMLi2;
-      DMLi2 = DMLi1;
-      DMLi1 = DMLi;
-      DMLi  = FF;
-      FF    = cc1;
-      cc1   = cc;
-      cc    = FF;
-      for (j = 1; j <= length; j++)
-        cc[j] = Fmi[j] = DMLi[j] = INF;
-    }
-  } /* END for i */
-
-  /* calculate energies of 5' and 3' fragments */
-  (void)vrna_E_ext_loop_5(vc);
-
-  free(cc);
-  free(cc1);
-  free(Fmi);
-  free(DMLi);
-  free(DMLi1);
-  free(DMLi2);
+  /* clean up memory */
+  free_aux_arrays(helper_arrays);
 
   return f5[length];
 }
 
 
-#include "ViennaRNA/alicircfold.inc"
-
-PUBLIC void
-vrna_backtrack_from_intervals(vrna_fold_compound_t  *vc,
-                              vrna_bp_stack_t       *bp_stack,
-                              sect                  bt_stack[],
-                              int                   s)
+/* post-processing step for circular RNAs */
+PRIVATE int
+postprocess_circular(vrna_fold_compound_t *vc,
+                     sect                 bt_stack[],
+                     int                  *bt)
 {
-  if (vc)
-    backtrack(vc, bp_stack, bt_stack, s);
+  /*
+   * auxiliarry arrays:
+   * fM2 = multiloop region with exactly two stems, extending to 3' end
+   * for stupid dangles=1 case we also need:
+   * fM_d3 = multiloop region with >= 2 stems, starting at pos 2
+   *         (a pair (k,n) will form 3' dangle with pos 1)
+   * fM_d5 = multiloop region with >= 2 stems, extending to pos n-1
+   *         (a pair (1,k) will form a 5' dangle with pos n)
+   */
+  unsigned char *hard_constraints, eval;
+  char          *ptype;
+  short         *S1;
+  unsigned int  **a2s;
+  int           Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi, *fM_d3, *fM_d5, Md3i,
+                Md5i, FcMd3, FcMd5, FcH, FcI, FcM, Fc, *fM2, i, j, ij, u,
+                length, new_c, fm, type, *my_c, *my_fML, *indx, FcO, tmp,
+                dangle_model, turn, s, n_seq;
+  vrna_param_t  *P;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc, **scs;
+
+  length            = vc->length;
+  n_seq             = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
+  P                 = vc->params;
+  ptype             = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->ptype : NULL;
+  indx              = vc->jindx;
+  S1                = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding : NULL;
+  a2s               = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->a2s : NULL;
+  hc                = vc->hc;
+  sc                = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sc : NULL;
+  scs               = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->scs : NULL;
+  dangle_model      = P->model_details.dangles;
+  turn              = P->model_details.min_loop_size;
+  hard_constraints  = hc->matrix;
+  my_c              = vc->matrices->c;
+  my_fML            = vc->matrices->fML;
+  fM2               = vc->matrices->fM2;
+
+  Fc = FcO = FcH = FcI = FcM = FcMd3 = FcMd5 = INF;
+  Mi = Md5i = Md3i = Iq = Ip = Ij = Ii = Hj = Hi = 0;
+
+  /* unfolded state */
+  eval = (hc->up_ext[1] >= length) ? 1 : 0;
+  if (hc->f)
+    eval = (hc->f(1, length, 1, length, VRNA_DECOMP_EXT_UP, hc->data)) ? eval : 0;
+
+  if (eval) {
+    Fc = 0; /* base line for unfolded state */
+
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if(sc){
+          if(sc->energy_up)
+            Fc += sc->energy_up[1][length];
+
+          if (sc->f)
+            Fc += sc->f(1, length, 1, length, VRNA_DECOMP_EXT_UP, sc->data);
+        }
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        if (scs) {
+          for (s = 0; s < vc->n_seq; s++)
+            if (scs[s]) {
+              if (scs[s]->energy_up)
+                Fc += scs[s]->energy_up[1][a2s[s][length]];
+            }
+        }
+
+        break;
+    }
+    FcO = Fc;
+  } else {
+    Fc = INF;
+  }
+
+  for (i = 1; i < length; i++)
+    for (j = i + turn + 1; j <= length; j++) {
+      u = length - j + i - 1;
+      if (u < turn)
+        continue;
+
+      ij = indx[j] + i;
+
+      if (!hard_constraints[ij])
+        continue;
+
+      /* exterior hairpin case */
+      new_c = vrna_E_hp_loop(vc, j, i);
+      if (new_c != INF)
+        new_c += my_c[ij];
+
+      if (new_c < FcH) {
+        FcH = new_c;
+        Hi  = i;
+        Hj  = j;
+      }
+
+      /* exterior interior loop case */
+      ip = iq = 0;
+      new_c = vrna_E_ext_int_loop(vc, i, j, &ip, &iq);
+      if (new_c != INF)
+        new_c += my_c[ij];
+
+      if (ip != 0) {
+        if (new_c < FcI) {
+          FcI = new_c;
+          Ii  = i;
+          Ij  = j;
+          Ip  = ip;
+          Iq  = iq;
+        }
+      }
+    } /* end of i,j loop */
+  Fc = MIN2(Fc, FcH);
+  Fc = MIN2(Fc, FcI);
+
+  /*
+   * compute the fM2 array (multi loops with exactly 2 helices)
+   * to get a unique ML decomposition, just use fM1 instead of fML
+   * below. However, that will not work with dangle_model==1
+   */
+  if (hc->f) {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if ((sc) && (sc->f)) {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              if (hc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+                fm = sc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+                if ((fm != INF) && (my_fML[indx[u]+i] != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                  fm += my_fML[indx[u]+i] +
+                        my_fML[indx[length]+u+1];
+                  fM2[i] = MIN2(fM2[i], fm);
+                }
+              }
+            }
+          }
+        } else {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              if (hc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+                fm = my_fML[indx[u]+i];
+                if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                  fm += my_fML[indx[length]+u+1];
+                  fM2[i] = MIN2(fM2[i], fm);
+                }
+              }
+            }
+          }
+        }
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        if (scs) {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              if (hc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+                fm = my_fML[indx[u]+i];
+                if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                  fm += my_fML[indx[length]+u+1];
+
+                  for (s = 0; s < n_seq; s++)
+                    if ((scs[s]) && (sc->f))
+                      fm += scs[s]->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
+
+                  fM2[i] = MIN2(fM2[i], fm);
+                }
+              }
+            }
+          }
+        } else {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              if (hc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+                fm = my_fML[indx[u]+i];
+                if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                  fm += my_fML[indx[length]+u+1];
+                  fM2[i] = MIN2(fM2[i], fm);
+                }
+              }
+            }
+          }
+        }
+
+        break;
+    }
+  } else {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if ((sc) && (sc->f)) {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              fm = sc->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+              if ((fm != INF) && (my_fML[indx[u]+i] != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                fm += my_fML[indx[u]+i] +
+                      my_fML[indx[length]+u+1];
+                fM2[i] = MIN2(fM2[i], fm);
+              }
+            }
+          }
+        } else {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              fm = my_fML[indx[u]+i];
+              if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                fm += my_fML[indx[length]+u+1];
+                fM2[i] = MIN2(fM2[i], fm);
+              }
+            }
+          }
+        }
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        if (scs) {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              fm = my_fML[indx[u]+i];
+              if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                fm += my_fML[indx[length]+u+1];
+
+                for (s = 0; s < n_seq; s++)
+                  if ((sc) && (sc->f))
+                    fm += scs[s]->f(i, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
+
+                fM2[i] = MIN2(fM2[i], fm);
+              }
+            }
+          }
+        } else {
+          for (i=1; i<length-turn; i++) {
+            fM2[i] = INF;
+            for (u=i+turn; u<length-turn; u++) {
+              fm = my_fML[indx[u]+i];
+              if ((fm != INF) && (my_fML[indx[length]+u+1] != INF)) {
+                fm += my_fML[indx[length]+u+1];
+                fM2[i] = MIN2(fM2[i], fm);
+              }
+            }
+          }
+        }
+
+        break;
+    }
+  }
+
+  if (hc->f) {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if ((sc) && (sc->f)) {
+          for (i=turn+1; i<length-2*turn; i++) {
+            if (hc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+              fm = sc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+              if ((fm != INF) && (my_fML[indx[i]+1] != INF) && (fM2[i+1] != INF)) {
+                fm += my_fML[indx[i]+1] +
+                      fM2[i+1];
+
+                if (fm<FcM) {
+                  FcM=fm; Mi=i;
+                }
+              }
+            }
+          }
+        } else {
+          for (i=turn+1; i<length-2*turn; i++) {
+            if (hc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+              fm = my_fML[indx[i]+1];
+              if ((fm != INF) && (fM2[i+1] != INF)) {
+                fm += fM2[i+1];
+
+                if (fm<FcM) {
+                  FcM=fm; Mi=i;
+                }
+              }
+            }
+          }
+        }
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        if (scs) {
+          for (i=turn+1; i<length-2*turn; i++) {
+            if (hc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+              fm = my_fML[indx[i]+1];
+              if ((fm != INF) && (my_fML[indx[i]+1] != INF) && (fM2[i+1] != INF)) {
+                fm += fM2[i+1];
+
+                for (s = 0; s < n_seq; s++)
+                  if ((scs[s]) && (scs[s]->f))
+                    fm += scs[s]->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
+
+                if (fm < FcM) {
+                  FcM=fm; Mi=i;
+                }
+              }
+            }
+          }
+        } else {
+          for (i=turn+1; i<length-2*turn; i++) {
+            if (hc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+              fm = my_fML[indx[i]+1];
+              if ((fm != INF) && (fM2[i+1] != INF)) {
+                fm += fM2[i+1];
+
+                if (fm<FcM) {
+                  FcM=fm; Mi=i;
+                }
+              }
+            }
+          }
+        }
+
+        break;
+    }
+  } else {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if ((sc) && (sc->f)) {
+          for (i=turn+1; i<length-2*turn; i++) {
+            fm = sc->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+            if ((fm != INF) && (my_fML[indx[i]+1] != INF) && (fM2[i+1] != INF)) {
+              fm += my_fML[indx[i]+1] +
+                    fM2[i+1];
+
+              if (fm<FcM) {
+                FcM=fm; Mi=i;
+              }
+            }
+          }
+        } else {
+          for (i=turn+1; i<length-2*turn; i++) {
+            fm = my_fML[indx[i]+1];
+            if ((fm != INF) && (fM2[i+1] != INF)) {
+              fm += fM2[i+1];
+
+              if (fm<FcM) {
+                FcM=fm; Mi=i;
+              }
+            }
+          }
+        }
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        if (scs) {
+          for (i=turn+1; i<length-2*turn; i++) {
+            fm = my_fML[indx[i]+1];
+            if ((fm != INF) && (fM2[i+1] != INF)) {
+              fm += fM2[i+1];
+
+              for (s = 0; s < n_seq; s++)
+                if ((scs[s]) && (scs[s]->f))
+                  fm += scs[s]->f(1, length, i, i + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
+
+              if (fm<FcM) {
+                FcM=fm; Mi=i;
+              }
+            }
+          }
+        } else {
+          for (i=turn+1; i<length-2*turn; i++) {
+            fm = my_fML[indx[i]+1];
+            if ((fm != INF) && (fM2[i+1] != INF)) {
+              fm += fM2[i+1];
+
+              if (fm<FcM) {
+                FcM=fm; Mi=i;
+              }
+            }
+          }
+        }
+
+        break;
+    }
+  }
+
+  if (FcM != INF) {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        FcM += P->MLclosing;
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        FcM += n_seq * P->MLclosing;
+        break;
+    }
+  }
+  Fc = MIN2(Fc, FcM);
+
+  /*
+      add multibranch loop configurations for odd dangle models
+      not supported for comparative prediction (yet)
+  */
+  if ((vc->type == VRNA_FC_TYPE_SINGLE) && ((dangle_model == 1) || (dangle_model == 3))) {
+    fM_d3 =  (int *) vrna_alloc(sizeof(int)*(length+2));
+    fM_d5 =  (int *) vrna_alloc(sizeof(int)*(length+2));
+
+    for (i=turn+1; i<length-turn; i++)
+      fM_d3[i] = INF;
+
+    for (i=turn+1; i<length-turn; i++)
+      fM_d5[i] = INF;
+
+    if (hc->f) {
+      if (hc->up_ml[1]) {
+        /* 1st, construct fM_d3 array */
+        for (i=turn+1; i<length-turn; i++) {
+          if (hc->f(1, i, 2, i, VRNA_DECOMP_ML_ML, hc->data)) {
+            for (u=2+turn; u<i-turn; u++) {
+              if (hc->f(2, i, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+                fm = my_fML[indx[u]+2];
+
+                /* skip configurations that violate (hard) constraints */
+                if ((fm == INF) || (my_fML[indx[i]+u+1] == INF))
+                  continue;
+
+                fm += my_fML[indx[i]+u+1];
+
+                if (sc) {
+                  if (sc->energy_up)
+                    fm += sc->energy_up[1][1];
+
+                  if (sc->f) {
+                    tmp = sc->f(1, i, 2, i, VRNA_DECOMP_ML_ML, sc->data);
+
+                    if (tmp == INF)
+                      continue;
+
+                    fm += tmp;
+
+                    tmp = sc->f(2, i, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+
+                    if (tmp == INF)
+                      continue;
+
+                    fm += tmp;
+                  }
+                }
+
+                fM_d3[i] = MIN2(fM_d3[i], fm);
+              }
+            }
+          }
+        }
+
+        /* 2nd, test ML loops with closing pair (i + 1, length), 3' dangle pos 1 */
+        for (i=2*turn+1; i<length-turn; i++) {
+          eval = (hard_constraints[indx[length] + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? 1 : 0;
+          eval = hc->f(i + 1, length, 2, i, VRNA_DECOMP_PAIR_ML_EXT, hc->data) ? eval : 0;
+          if (eval) {
+            type = vrna_get_ptype(indx[length]+i+1, ptype);
+            fm = fM_d3[i];
+            if ((fm != INF) && (my_c[indx[length]+i+1] != INF)) {
+              fm += my_c[indx[length]+i+1] +
+                    E_MLstem(type, -1, S1[1], P) +
+                    P->MLclosing;
+
+              if (sc) {
+                if (sc->f) {
+                  tmp = sc->f(i+1, length, 2, i, VRNA_DECOMP_PAIR_ML_EXT, sc->data);
+
+                  if (tmp == INF)
+                    continue;
+
+                  fm += tmp;
+                }
+              }
+
+              if (fm<FcMd3) {
+                FcMd3=fm; Md3i=i;
+              }
+            }
+          }
+        }
+
+        /* 3rd, test ML loops with closing pair (i + 1, length), 5' dangle pos i, 3' dangle pos 1 */
+        for (i=2*turn+1; i<length-turn; i++) {
+          eval = (hard_constraints[indx[length] + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? 1 : 0;
+          eval = hc->up_ml[i] ? eval : 0;
+          eval = hc->f(i + 1, length, 2, i - 1, VRNA_DECOMP_PAIR_ML_EXT, hc->data) ? eval : 0;
+          if (eval) {
+            type = vrna_get_ptype(indx[length]+i+1, ptype);
+            fm = fM_d3[i-1];
+            if ((fm != INF) && (my_c[indx[length]+i+1] != INF)) {
+              fm += my_c[indx[length]+i+1] +
+                    E_MLstem(type, S1[i], S1[1], P) +
+                    P->MLclosing;
+
+              if (sc) {
+                if (sc->energy_up)
+                  fm += sc->energy_up[i][1];
+
+                if (sc->f) {
+                  tmp = sc->f(i + 1, length, 2, i - 1, VRNA_DECOMP_PAIR_ML_EXT, sc->data);
+
+                  if (tmp == INF)
+                    continue;
+
+                  fm += tmp;
+                }
+              }
+
+              if (fm<FcMd3) {
+                FcMd3=fm; Md3i=-i;
+              }
+            }
+          }
+        }
+      }
+    } else {
+      if (hc->up_ml[1]) {
+        /* 1st, construct fM_d3 array */
+        for (i=turn+1; i<length-turn; i++) {
+          for (u=2+turn; u<i-turn; u++) {
+            fm = my_fML[indx[u]+2];
+            if ((fm != INF) && (my_fML[indx[i]+u+1] != INF)) {
+              fm += my_fML[indx[i]+u+1];
+
+              if (sc) {
+                if (sc->energy_up)
+                  fm += sc->energy_up[1][1];
+
+                if (sc->f) {
+                  tmp = sc->f(1, i, 2, i, VRNA_DECOMP_ML_ML, sc->data);
+
+                  if (tmp == INF)
+                    continue;
+
+                  fm += tmp;
+
+                  tmp = sc->f(2, i, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+
+                  if (tmp == INF)
+                    continue;
+
+                  fm += tmp;
+                }
+              }
+
+              fM_d3[i] = MIN2(fM_d3[i], fm);
+            }
+          }
+        }
+
+        /* 2nd, test ML loops with closing pair (i + 1, length), 3' dangle pos 1 */
+        for (i=2*turn+1; i<length-turn; i++) {
+          if(hard_constraints[indx[length] + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+            fm = fM_d3[i];
+            if ((fm != INF) && (my_c[indx[length]+i+1] != INF)) {
+              type = vrna_get_ptype(indx[length]+i+1, ptype);
+              fm += my_c[indx[length]+i+1]+
+                    E_MLstem(type, -1, S1[1], P) +
+                    P->MLclosing;
+
+              if (sc) {
+                if (sc->f) {
+                  tmp = sc->f(i + 1, length, 2, i, VRNA_DECOMP_PAIR_ML_EXT, sc->data);
+
+                  if (tmp == INF)
+                    continue;
+
+                  fm += tmp;
+                }
+              }
+
+              if (fm<FcMd3) {
+                FcMd3=fm; Md3i=i;
+              }
+            }
+          }
+        }
+
+        /* 3rd, test ML loops with closing pair (i + 1, length), 5' dangle pos i, 3' dangle pos 1 */
+        for (i=2*turn+1; i<length-turn; i++) {
+          if(hard_constraints[indx[length] + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+            if(hc->up_ml[i]){
+              fm = fM_d3[i-1];
+              if ((fm != INF) && (my_c[indx[length]+i+1] != INF)) {
+                type = vrna_get_ptype(indx[length]+i+1, ptype);
+                fm += my_c[indx[length]+i+1]+
+                      E_MLstem(type, S1[i], S1[1], P) +
+                      P->MLclosing;
+
+                if (sc) {
+                  if (sc->energy_up)
+                    fm += sc->energy_up[i][1];
+
+                  if(sc->f) {
+                    tmp = sc->f(i + 1, length, 2, i - 1, VRNA_DECOMP_PAIR_ML_EXT, sc->data);
+
+                    if (tmp == INF)
+                      continue;
+
+                    fm += tmp;
+                  }
+                }
+
+                if (fm<FcMd3) {
+                  FcMd3=fm; Md3i=-i;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (hc->f) {
+      if (hc->up_ml[length]) {
+        /* 1st, construct fM_d5 array */
+        for (i=turn+1; i<length-turn; i++) {
+          if (hc->f(i, length, i, length - 1, VRNA_DECOMP_ML_ML, hc->data)) {
+            for (u=i+turn; u<length-turn; u++) {
+              if (hc->f(i, length - 1, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
+                fm = my_fML[indx[u]+i];
+                if ((fm != INF) && (my_fML[indx[length-1]+u+1] != INF)) {
+                  fm += my_fML[indx[length-1]+u+1];
+
+                  if (sc) {
+                    if (sc->energy_up)
+                      fm += sc->energy_up[length][1];
+
+                    if (sc->f) {
+                      tmp = sc->f(i, length, i, length - 1, VRNA_DECOMP_ML_ML, sc->data);
+
+                      if (tmp == INF)
+                        continue;
+
+                      fm += tmp;
+
+                      tmp = sc->f(i, length - 1, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+
+                      if (tmp == INF)
+                        continue;
+
+                      fm += tmp;
+                    }
+                  }
+
+                  fM_d5[i] = MIN2(fM_d5[i], fm);
+                }
+              }
+            }
+          }
+        }
+
+        /* 2nd, test ML loops with closing pair (1, i), 5' dangle pos n */
+        for (i=turn+1; i<length-2*turn; i++) {
+          eval = (hard_constraints[indx[i]+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? 1 : 0;
+          eval = hc->f(1, i, i + 1, length - 1, VRNA_DECOMP_PAIR_ML_EXT, hc->data) ? eval : 0;
+          if(eval){
+            fm = fM_d5[i+1];
+            if ((fm != INF) && (my_c[indx[i]+1] != INF)) {
+              type = vrna_get_ptype(indx[i]+1, ptype);
+              fm += my_c[indx[i]+1] +
+                    E_MLstem(type, S1[length], -1, P) +
+                    P->MLclosing;
+
+              if (sc) {
+                if (sc->f) {
+                  tmp = sc->f(1, i, i + 1, length - 1, VRNA_DECOMP_PAIR_ML_EXT, sc->data);
+
+                  if (tmp == INF)
+                    continue;
+
+                  fm += tmp;
+                }
+              }
+
+              if (fm<FcMd5) {
+                FcMd5=fm; Md5i=i;
+              }
+            }
+          }
+        }
+
+        /* 3rd, test ML loops with closing pair (1, i), 5' dangle pos n, 3' dangle pos i + 1 */
+        for (i=turn+1; i<length-2*turn; i++) {
+          eval = (hard_constraints[indx[i]+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? 1 : 0;
+          eval = hc->f(1, i, i + 1, length - 1, VRNA_DECOMP_PAIR_ML_EXT, hc->data) ? eval : 0;
+          eval = hc->up_ml[i+1] ? eval : 0;
+          if (eval) {
+            fm = fM_d5[i+2];
+            if ((fm != INF) && (my_c[indx[i]+1] != INF)) {
+              type = vrna_get_ptype(indx[i]+1, ptype);
+              fm += my_c[indx[i]+1] +
+                    E_MLstem(type, S1[length], S1[i+1], P) +
+                    P->MLclosing;
+
+              if (sc) {
+                if (sc->energy_up)
+                  fm += sc->energy_up[i + 1][1];
+
+                if (sc->f) {
+                  tmp = sc->f(i, length - 1, i + 1, length - 1, VRNA_DECOMP_ML_ML, sc->data);
+
+                  if (tmp == INF)
+                    continue;
+
+                  fm += tmp;
+
+                  tmp = sc->f(1, i, i + 2, length - 1, VRNA_DECOMP_PAIR_ML_EXT, sc->data);
+
+                  if (tmp == INF)
+                    continue;
+
+                  fm += tmp;
+                }
+              }
+
+              if (fm<FcMd5) {
+                FcMd5=fm; Md5i=-i;
+              }
+            }
+          }
+        }
+      }
+    } else {
+      if (hc->up_ml[length]) {
+        /* 1st, construct fM_d5 array */
+        for (i=turn+1; i<length-turn; i++) {
+          for (u=i+turn; u<length-turn; u++) {
+            fm = my_fML[indx[u]+i];
+            if ((fm != INF) && (my_fML[indx[length-1]+u+1] != INF)) {
+              fm += my_fML[indx[length-1]+u+1];
+
+              if (sc) {
+                if (sc->energy_up)
+                  fm += sc->energy_up[length][1];
+
+                if (sc->f) {
+                  tmp = sc->f(i, length, i, length - 1, VRNA_DECOMP_ML_ML, sc->data);
+
+                  if (tmp == INF)
+                    continue;
+
+                  fm += tmp;
+
+                  tmp = sc->f(i, length - 1, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+
+                  if (tmp == INF)
+                    continue;
+
+                  fm += tmp;
+                }
+              }
+
+              fM_d5[i] = MIN2(fM_d5[i], fm);
+            }
+          }
+        }
+
+        /* 2nd, test ML loops with closing pair (1, i), 5' dangle pos n */
+        for (i=turn+1; i<length-2*turn; i++) {
+          if(hard_constraints[indx[i]+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+            fm = fM_d5[i+1];
+            if ((fm != INF) && (my_c[indx[i]+1] != INF)) {
+              type = vrna_get_ptype(indx[i]+1, ptype);
+              fm += my_c[indx[i]+1] +
+                    E_MLstem(type, S1[length], -1, P) +
+                    P->MLclosing;
+
+              if (sc) {
+                if (sc->f) {
+                  tmp = sc->f(1, i, i + 1, length - 1, VRNA_DECOMP_PAIR_ML_EXT, sc->data);
+
+                  if (tmp == INF)
+                    continue;
+
+                  fm += tmp;
+                }
+              }
+
+              if (fm<FcMd5) {
+                FcMd5=fm; Md5i=i;
+              }
+            }
+          }
+        }
+
+        /* 3rd, test ML loops with closing pair (1, i), 5' dangle pos n, 3' dangle pos i + 1 */
+        for (i=turn+1; i<length-2*turn; i++) {
+          if(hard_constraints[indx[i]+1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP){
+            if(hc->up_ml[i+1]){
+              fm = fM_d5[i+2];
+              if ((fm != INF) && (my_c[indx[i]+1] != INF)) {
+                type = vrna_get_ptype(indx[i]+1, ptype);
+                fm += my_c[indx[i]+1] + 
+                      E_MLstem(type, S1[length], S1[i+1], P) +
+                      P->MLclosing;
+
+                if (sc) {
+                  if (sc->energy_up)
+                    fm += sc->energy_up[i + 1][1];
+
+                  if (sc->f) {
+                    tmp = sc->f(i, length - 1, i + 1, length - 1, VRNA_DECOMP_ML_ML, sc->data);
+
+                    if (tmp == INF)
+                      continue;
+
+                    fm += tmp;
+
+                    tmp = sc->f(1, i, i + 2, length - 1, VRNA_DECOMP_PAIR_ML_EXT, sc->data);
+
+                    if (tmp == INF)
+                      continue;
+
+                    fm += tmp;
+                  }
+                }
+
+                if (fm<FcMd5) {
+                  FcMd5=fm; Md5i=-i;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (FcMd5<MIN2(Fc,FcMd3)) {
+      int real_i, sc_en = 0;
+
+      /* looks like we have to do this ... */
+      bt_stack[++(*bt)].i = 1;
+      bt_stack[(*bt)].j = (Md5i>0)?Md5i:-Md5i;
+      bt_stack[(*bt)].ml = 2;
+      i = (Md5i>0)?Md5i+1 : -Md5i+2; /* let's backtrack fm_d5[Md5i+1] */
+      real_i = (Md5i > 0) ? i : i - 1;
+
+      if ((sc) && (sc->energy_up))
+        sc_en += sc->energy_up[length][1];
+
+      for (u=i+turn; u<length-turn; u++) {
+        fm = my_fML[indx[u]+i] +
+             my_fML[indx[length-1]+u+1] +
+             sc_en;
+
+        if (sc) {
+          if (sc->energy_up)
+            fm += sc->energy_up[real_i][i - real_i];
+
+          if (sc->f)
+            fm += sc->f(real_i, length, i, length - 1, VRNA_DECOMP_ML_ML, sc->data) +
+                  sc->f(i, length - 1, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+        }
+
+        if (fM_d5[i] == fm) {
+          bt_stack[++(*bt)].i = i;
+          bt_stack[(*bt)].j = u;
+          bt_stack[(*bt)].ml = 1;
+          bt_stack[++(*bt)].i =u+1;
+          bt_stack[(*bt)].j = length-1;
+          bt_stack[(*bt)].ml = 1;
+          break;
+        }
+      }
+      Fc = FcMd5;
+    } else if (FcMd3<Fc) {
+      int real_i, sc_en = 0;
+      /* here we go again... */
+      bt_stack[++(*bt)].i = (Md3i>0)?Md3i+1:-Md3i+1;
+      bt_stack[(*bt)].j = length;
+      bt_stack[(*bt)].ml = 2;
+      i = (Md3i>0)? Md3i : -Md3i-1; /* let's backtrack fm_d3[Md3i] */
+      real_i = (Md3i > 0) ? i : i + 1;
+
+      if ((sc) && (sc->energy_up))
+        sc_en += sc->energy_up[1][1];
+
+      for (u=2+turn; u<i-turn; u++) {
+        fm = my_fML[indx[u]+2] +
+             my_fML[indx[i]+u+1] +
+             sc_en;
+
+        if (sc) {
+          if (sc->energy_up)
+            fm += sc->energy_up[real_i][real_i - i];
+
+          if (sc->f)
+            fm += sc->f(1, real_i, 2, i, VRNA_DECOMP_ML_ML, sc->data) +
+                  sc->f(2, i, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+        }
+
+        if (fM_d3[i] == fm) {
+          bt_stack[++(*bt)].i = 2;
+          bt_stack[(*bt)].j = u;
+          bt_stack[(*bt)].ml = 1;
+          bt_stack[++(*bt)].i =u+1;
+          bt_stack[(*bt)].j = i;
+          bt_stack[(*bt)].ml = 1;
+          break;
+        }
+      }
+      Fc = FcMd3;
+    }
+    free(fM_d3);
+    free(fM_d5);
+  }
+  
+  if(Fc < INF){
+    if (FcH==Fc) {
+      bt_stack[++(*bt)].i = Hi;
+      bt_stack[(*bt)].j = Hj;
+      bt_stack[(*bt)].ml = 2;
+    }
+    else if (FcI==Fc) {
+      bt_stack[++(*bt)].i = Ii;
+      bt_stack[(*bt)].j = Ij;
+      bt_stack[(*bt)].ml = 2;
+      bt_stack[++(*bt)].i = Ip;
+      bt_stack[(*bt)].j = Iq;
+      bt_stack[(*bt)].ml = 2;
+    }
+    else if (FcM==Fc) { /* grumpf we found a Multiloop */
+      int eee;
+      /* backtrack in fM2 */
+      fm = fM2[Mi+1];
+      for (u=Mi+turn+1; u<length-turn; u++) {
+        eee = my_fML[indx[u]+Mi+1] +
+              my_fML[indx[length]+u+1];
+
+        switch (vc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            if (sc) {
+              if (sc->f)
+                eee += sc->f(Mi + 1, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+            }
+
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            if (scs) {
+              for (s = 0; s < n_seq; s++)
+                if ((scs[s]) && (scs[s]->f))
+                  eee += scs[s]->f(Mi + 1, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
+            }
+
+            break;
+        }
+
+        if (fm == eee) {
+                bt_stack[++(*bt)].i=Mi+1;
+                bt_stack[(*bt)].j=u;
+                bt_stack[(*bt)].ml = 1;
+                bt_stack[++(*bt)].i=u+1;
+                bt_stack[(*bt)].j=length;
+                bt_stack[(*bt)].ml = 1;
+                break;
+        }
+      }
+      bt_stack[++(*bt)].i = 1;
+      bt_stack[(*bt)].j = Mi;
+      bt_stack[(*bt)].ml = 1;
+    } else if (Fc == FcO) { /* unstructured */
+      bt_stack[++(*bt)].i = 1;
+      bt_stack[(*bt)].j = 1;
+      bt_stack[(*bt)].ml = 0;
+    }
+  } else {
+    /* forbidden, i.e. no configuration fulfills constraints */
+  }
+  vc->matrices->FcH = FcH;
+  vc->matrices->FcI = FcI;
+  vc->matrices->FcM = FcM;
+  vc->matrices->Fc  = Fc;
+  return Fc;
 }
 
 
@@ -479,9 +1312,8 @@ backtrack(vrna_fold_compound_t  *vc,
           sect                  bt_stack[],
           int                   s)
 {
-  unsigned char type;
-  char          *ptype, backtrack_type;
-  int           i, j, ij, k, length, no_close, b, *my_c, *indx, noLP, noGUclosure, *pscore;
+  char          backtrack_type;
+  int           i, j, ij, k, length, b, *my_c, *indx, noLP, *pscore;
   vrna_param_t  *P;
 
   b               = 0;
@@ -490,8 +1322,6 @@ backtrack(vrna_fold_compound_t  *vc,
   indx            = vc->jindx;
   P               = vc->params;
   noLP            = P->model_details.noLP;
-  noGUclosure     = P->model_details.noGUclosure;
-  ptype           = vc->ptype;
   pscore          = vc->pscore;         /* covariance scores for comparative structure prediction */
   backtrack_type  = P->model_details.backtrack_type;
 
@@ -589,31 +1419,11 @@ repeat1:
 
     canonical = 1;
 
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        type = (unsigned char)ptype[ij];
-        if (type == 0)
-          type = 7;
+    if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
+      cij += pscore[indx[j] + i];
 
-        no_close = (((type == 3) || (type == 4)) && noGUclosure);
-
-        if (no_close) {
-          if (cij == FORBIDDEN)
-            continue;
-        } else {
-          if (vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &b))
-            continue;
-        }
-
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        cij += pscore[indx[j] + i];
-        if (vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &b))
-          continue;
-
-        break;
-    }
+    if (vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &b))
+      continue;
 
     if (vrna_BT_int_loop(vc, &i, &j, cij, bp_stack, &b)) {
       if (i < 0)
@@ -640,4 +1450,120 @@ repeat1:
   } /* end of infinite while loop */
 
   bp_stack[0].i = b;    /* save the total number of base pairs */
+}
+
+
+PRIVATE INLINE int
+decompose_pair(vrna_fold_compound_t *vc,
+               int                  i,
+               int                  j,
+               struct aux_arrays    *aux)
+{
+  unsigned char hc_decompose;
+  int           e, new_c, energy, stackEnergy, ij, dangle_model, noLP,
+                *DMLi1, *DMLi2, *cc, *cc1;
+
+  ij            = vc->jindx[j] + i;
+  dangle_model  = vc->params->model_details.dangles;
+  noLP          = vc->params->model_details.noLP;
+  hc_decompose  = vc->hc->matrix[ij];
+  DMLi1         = aux->DMLi1;
+  DMLi2         = aux->DMLi2;
+  cc            = aux->cc;
+  cc1           = aux->cc1;
+  e             = INF;
+
+  /* do we evaluate this pair? */
+  if (hc_decompose) {
+    new_c = INF;
+
+    /* check for hairpin loop */
+    energy  = vrna_E_hp_loop(vc, i, j);
+    new_c   = MIN2(new_c, energy);
+
+    /* check for multibranch loops */
+    energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
+    new_c   = MIN2(new_c, energy);
+
+    if (dangle_model == 3) {
+      /* coaxial stacking */
+      energy  = vrna_E_mb_loop_stack(vc, i, j);
+      new_c   = MIN2(new_c, energy);
+    }
+
+    /* check for interior loops */
+    energy  = vrna_E_int_loop(vc, i, j);
+    new_c   = MIN2(new_c, energy);
+
+    /* remember stack energy for --noLP option */
+    if (noLP) {
+      stackEnergy = vrna_E_stack(vc, i, j);
+      new_c       = MIN2(new_c, cc1[j - 1] + stackEnergy);
+      cc[j]       = new_c;
+      if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
+        cc[j] -= vc->pscore[ij];
+
+      e = cc1[j - 1] + stackEnergy;
+    } else {
+      e = new_c;
+    }
+
+    if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
+      e -= vc->pscore[ij];
+  } /* end >> if (pair) << */
+
+  return e;
+}
+
+
+PRIVATE INLINE struct aux_arrays *
+get_aux_arrays(unsigned int length)
+{
+  unsigned int      j;
+  struct aux_arrays *aux = (struct aux_arrays *)vrna_alloc(sizeof(struct aux_arrays));
+
+  aux->cc     = (int *)vrna_alloc(sizeof(int) * (length + 2));  /* auxilary arrays for canonical structures     */
+  aux->cc1    = (int *)vrna_alloc(sizeof(int) * (length + 2));  /* auxilary arrays for canonical structures     */
+  aux->Fmi    = (int *)vrna_alloc(sizeof(int) * (length + 1));  /* holds row i of fML (avoids jumps in memory)  */
+  aux->DMLi   = (int *)vrna_alloc(sizeof(int) * (length + 1));  /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
+  aux->DMLi1  = (int *)vrna_alloc(sizeof(int) * (length + 1));  /*                MIN(fML[i+1,k]+fML[k+1,j])    */
+  aux->DMLi2  = (int *)vrna_alloc(sizeof(int) * (length + 1));  /*                MIN(fML[i+2,k]+fML[k+1,j])    */
+
+  /* prefill helper arrays */
+  for (j = 0; j <= length; j++)
+    aux->Fmi[j] = aux->DMLi[j] = aux->DMLi1[j] = aux->DMLi2[j] = INF;
+
+  return aux;
+}
+
+
+PRIVATE INLINE void
+rotate_aux_arrays(struct aux_arrays *aux,
+                  unsigned int      length)
+{
+  unsigned int  j;
+  int           *FF;
+
+  FF          = aux->DMLi2;
+  aux->DMLi2  = aux->DMLi1;
+  aux->DMLi1  = aux->DMLi;
+  aux->DMLi   = FF;
+  FF          = aux->cc1;
+  aux->cc1    = aux->cc;
+  aux->cc     = FF;
+  for (j = 1; j <= length; j++)
+    aux->cc[j] = aux->Fmi[j] = aux->DMLi[j] = INF;
+}
+
+
+PRIVATE INLINE void
+free_aux_arrays(struct aux_arrays *aux)
+{
+  free(aux->cc);
+  free(aux->cc1);
+  free(aux->Fmi);
+  free(aux->DMLi);
+  free(aux->DMLi1);
+  free(aux->DMLi2);
+  free(aux);
 }

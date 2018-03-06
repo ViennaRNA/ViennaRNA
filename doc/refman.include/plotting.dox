@@ -1,0 +1,134 @@
+/**
+
+@page  plots     Plotting
+
+@tableofcontents
+
+Create Plots of Secondary Structures, Feature Motifs, and Sequence Alignments
+
+@section utils_ss Producing secondary structure graphs
+
+@verbatim
+int PS_rna_plot ( char *string,
+                  char *structure,
+                  char *file)
+@endverbatim
+@copybrief PS_rna_plot()
+
+@verbatim
+int PS_rna_plot_a (
+            char *string,
+            char *structure,
+            char *file,
+            char *pre,
+            char *post)
+@endverbatim
+@copybrief PS_rna_plot_a()
+
+@verbatim
+int gmlRNA (char *string,
+            char *structure,
+            char *ssfile,
+            char option)
+@endverbatim
+@copybrief gmlRNA()
+
+@verbatim
+int ssv_rna_plot (char *string,
+                  char *structure,
+                  char *ssfile)
+@endverbatim
+@copybrief ssv_rna_plot()
+
+@verbatim
+int svg_rna_plot (char *string,
+                  char *structure,
+                  char *ssfile)
+@endverbatim
+@copybrief svg_rna_plot()
+
+@verbatim
+int xrna_plot ( char *string,
+                char *structure,
+                char *ssfile)
+@endverbatim
+@copybrief xrna_plot()
+
+@verbatim
+int rna_plot_type
+@endverbatim
+@copybrief rna_plot_type
+
+Two low-level functions provide direct access to the graph lauyouting
+algorithms:
+
+@verbatim
+int simple_xy_coordinates ( short *pair_table,
+                            float *X,
+                            float *Y)
+@endverbatim
+@copybrief simple_xy_coordinates()
+
+@verbatim
+int naview_xy_coordinates ( short *pair_table,
+                            float *X,
+                            float *Y)
+@endverbatim
+@copybrief naview_xy_coordinates()
+
+@see PS_dot.h and naview.h for more detailed descriptions.
+
+@htmlonly
+<hr>
+<a href="#toc">Table of Contents</a>
+<hr>
+@endhtmlonly
+
+@section utils_dot Producing (colored) dot plots for base pair probabilities
+
+@verbatim
+int PS_color_dot_plot ( char *string,
+                        cpair *pi,
+                        char *filename)
+@endverbatim
+@copybrief PS_color_dot_plot()
+
+@verbatim
+int PS_color_dot_plot_turn (char *seq,
+                            cpair *pi,
+                            char *filename,
+                            int winSize)
+@endverbatim
+@copybrief PS_color_dot_plot_turn()
+
+@verbatim
+int PS_dot_plot_list (char *seq,
+                      char *filename,
+                      plist *pl,
+                      plist *mf,
+                      char *comment)
+@endverbatim
+@copybrief PS_dot_plot_list()
+
+@verbatim
+int PS_dot_plot_turn (char *seq,
+                      struct plist *pl,
+                      char *filename,
+                      int winSize)
+@endverbatim
+@copybrief PS_dot_plot_turn()
+
+@see PS_dot.h for more detailed descriptions.
+
+@section utils_aln Producing (colored) alignments
+
+@verbatim
+int PS_color_aln (
+            const char *structure,
+            const char *filename,
+            const char *seqs[],
+            const char *names[])
+@endverbatim
+@copybrief PS_color_aln()
+
+ */

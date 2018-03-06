@@ -30,7 +30,7 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/cofold.h"
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -53,7 +53,7 @@
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* some backward compatibility stuff */
 PRIVATE int                   backward_compat           = 0;
@@ -96,7 +96,7 @@ PRIVATE void  doubleseq(vrna_fold_compound_t *vc);  /* do magic */
 PRIVATE void  halfseq(vrna_fold_compound_t *vc);    /* undo magic */
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* wrappers for old API compatibility */
 PRIVATE void      wrap_array_export(int   **f5_p,
@@ -201,9 +201,9 @@ fill_arrays(vrna_fold_compound_t  *vc,
 {
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
 
-  unsigned int  *sn;
+  unsigned int  strands, *sn, *ss, *se;
   int           i, j, length, energy;
-  int           cp, uniq_ML;
+  int           uniq_ML;
   int           no_close, type, maxj, *indx;
   int           *my_f5, *my_c, *my_fML, *my_fM1, *my_fc;
   int           *cc, *cc1;  /* auxilary arrays for canonical structures     */
@@ -227,7 +227,10 @@ fill_arrays(vrna_fold_compound_t  *vc,
   noGUclosure       = P->model_details.noGUclosure;
   noLP              = P->model_details.noLP;
   uniq_ML           = P->model_details.uniq_ML;
+  strands           = vc->strands;
   sn                = vc->strand_number;
+  ss                = vc->strand_start;
+  se                = vc->strand_end;
   hc                = vc->hc;
   hard_constraints  = hc->matrix;
   matrices          = vc->matrices;
@@ -236,7 +239,6 @@ fill_arrays(vrna_fold_compound_t  *vc,
   my_fML            = matrices->fML;
   my_fM1            = matrices->fM1;
   my_fc             = matrices->fc;
-  cp                = vc->cutpoint;
   turn              = P->model_details.min_loop_size;
 
   /* allocate memory for all helper arrays */
@@ -266,11 +268,11 @@ fill_arrays(vrna_fold_compound_t  *vc,
   for (i = length - turn - 1; i >= 1; i--) {
     /* i,j in [1..length] */
 
-    maxj = (zuker) ? (MIN2(i + cp - 1, length)) : length;
+    maxj = (zuker) ? (MIN2(i + se[0], length)) : length;
     for (j = i + turn + 1; j <= maxj; j++) {
       int ij;
       ij            = indx[j] + i;
-      type          = (unsigned char)ptype[ij];
+      type          = vrna_get_ptype(ij, ptype);
       hc_decompose  = hard_constraints[ij];
       energy        = INF;
 
@@ -329,12 +331,12 @@ fill_arrays(vrna_fold_compound_t  *vc,
         my_fM1[ij] = E_ml_rightmost_stem(i, j, vc);
     }
 
-    if (i == cp)
+    if (i == se[0] + 1)
       for (j = i; j <= maxj; j++)
-        free_end(my_fc, j, cp, vc);
+        free_end(my_fc, j, ss[1], vc);
 
-    if (i < cp)
-      free_end(my_fc, i, cp - 1, vc);
+    if (i <= se[0])
+      free_end(my_fc, i, se[0], vc);
 
     {
       int *FF; /* rotate the auxilliary arrays */
@@ -355,16 +357,16 @@ fill_arrays(vrna_fold_compound_t  *vc,
   for (i = 1; i <= length; i++)
     free_end(my_f5, i, 1, vc);
 
-  if (cp > 0) {
-    mfe1  = my_f5[cp - 1];
+  if (strands > 1) {
+    mfe1  = my_f5[se[0]];
     mfe2  = my_fc[length];
     /* add DuplexInit, check whether duplex*/
-    for (i = cp; i <= length; i++)
+    for (i = ss[1]; i <= length; i++)
       my_f5[i] = MIN2(my_f5[i] + P->DuplexInit, my_fc[i] + my_fc[1]);
   }
 
   energy = my_f5[length];
-  if (cp < 1)
+  if (strands == 1)
     mfe1 = mfe2 = energy;
 
   /* clean up memory */
@@ -392,41 +394,25 @@ backtrack_co(sect                 bt_stack[],
    *  This is fast, since only few structure elements are recalculated.
    *  ------------------------------------------------------------------*/
 
-  int           i, j, ij, k, length, energy, en, new, ml0, ml5, ml3, ml53, no_close, type, type_2,
-                tt;
+  unsigned int  *se;
+  int           i, j, ij, k, length, no_close, type;
   char          *string = vc->sequence;
   vrna_param_t  *P      = vc->params;
   int           *indx   = vc->jindx;
   char          *ptype  = vc->ptype;
 
-  short         *S1               = vc->sequence_encoding;
-  short         *S                = vc->sequence_encoding2;
-  int           dangle_model      = P->model_details.dangles;
-  int           noLP              = P->model_details.noLP;
-  int           noGUclosure       = P->model_details.noGUclosure;
-  int           with_gquad        = P->model_details.gquad;
-  int           turn              = P->model_details.min_loop_size;
-  int           *rtype            = &(P->model_details.rtype[0]);
-  char          backtrack_type    = P->model_details.backtrack_type;
-  int           cp                = vc->cutpoint;
-  vrna_hc_t     *hc               = vc->hc;
-  vrna_sc_t     *sc               = vc->sc;
-  unsigned char *hard_constraints = hc->matrix;
+  int           noLP            = P->model_details.noLP;
+  int           noGUclosure     = P->model_details.noGUclosure;
+  char          backtrack_type  = P->model_details.backtrack_type;
 
   /* the folding matrices */
-  int           *my_f5, *my_c, *my_fML, *my_fc, *my_ggg;
+  int           *my_c;
 
   length  = vc->length;
-  my_f5   = vc->matrices->f5;
   my_c    = vc->matrices->c;
-  my_fML  = vc->matrices->fML;
-  my_fc   = vc->matrices->fc;
-  my_ggg  = vc->matrices->ggg;
+  se      = vc->strand_end;
 
   /* int   b=0;*/
-
-  /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
-  turn = 0;
 
   length = strlen(string);
   if (s == 0) {
@@ -436,7 +422,7 @@ backtrack_co(sect                 bt_stack[],
   }
 
   while (s > 0) {
-    int ml, fij, fi, cij, traced, i1, j1, mm, p, q, jj = 0, gq = 0;
+    int ml, cij;
     int canonical = 1;     /* (i,j) closes a canonical structure */
 
     /* pop one element from stack */
@@ -505,7 +491,7 @@ backtrack_co(sect                 bt_stack[],
         int lower, k, p, q;
         p     = i;
         q     = j;
-        lower = (i < cp) ? 1 : 0;
+        lower = (i <= se[0]) ? 1 : 0;
 
         if (vrna_BT_mb_loop_fake(vc, &k, &i, &j, bp_list, &b)) {
           if (k > 0) {
@@ -533,7 +519,7 @@ repeat1:
     if (canonical)
       cij = my_c[ij];
 
-    type = ptype[ij];
+    type = vrna_get_ptype(ij, ptype);
 
     if (noLP) {
       if (vrna_BT_stack(vc, &i, &j, &cij, bp_list, &b)) {
@@ -588,7 +574,7 @@ free_end(int                  *array,
          vrna_fold_compound_t *vc)
 {
   unsigned int  *sn;
-  int           inc, type, energy, en, length, j, left, right, cp, dangle_model, with_gquad, *indx,
+  int           inc, type, energy, en, length, j, left, right, dangle_model, with_gquad, *indx,
                 *c, *ggg, turn;
   vrna_param_t  *P;
   short         *S1;
@@ -598,7 +584,6 @@ free_end(int                  *array,
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
-  cp                = vc->cutpoint;
   P                 = vc->params;
   dangle_model      = P->model_details.dangles;
   with_gquad        = P->model_details.gquad;
@@ -640,7 +625,7 @@ free_end(int                  *array,
   /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
   turn = 0;
 
-  for (j = start; inc *(i - j) > turn; j += inc) {
+  for (j = start; inc * (i - j) > turn; j += inc) {
     int   ii, jj;
     short si, sj;
     if (i > j) {
@@ -652,11 +637,8 @@ free_end(int                  *array,
       jj  = j;
     }                           /* inc<0 */
 
-    type = ptype[indx[jj] + ii];
     if (hard_constraints[indx[jj] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-      if (type == 0)
-        type = 7;
-
+      type    = vrna_get_ptype(indx[jj] + ii, ptype);
       si      = ((ii > 1) && (sn[ii - 1] == sn[ii])) ? S1[ii - 1] : -1;
       sj      = ((jj < length) && (sn[jj] == sn[jj + 1])) ? S1[jj + 1] : -1;
       energy  = c[indx[jj] + ii];
@@ -733,11 +715,7 @@ free_end(int                  *array,
       if (!(hard_constraints[indx[jj] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP))
         continue;
 
-      type = ptype[indx[jj] + ii];
-
-      if (type == 0)
-        type = 7;
-
+      type    = vrna_get_ptype(indx[jj] + ii, ptype);
       si      = (ii > left) && (sn[ii - 1] == sn[ii]) ? S1[ii - 1] : -1;
       sj      = (jj < right) && (sn[jj] == sn[jj + 1]) ? S1[jj + 1] : -1;
       energy  = c[indx[jj] + ii];
@@ -809,6 +787,8 @@ doubleseq(vrna_fold_compound_t *vc)
   vc->length                = (unsigned int)strlen(vc->sequence);
   vc->cutpoint              = length + 1;
 
+  vc->strands = 2;
+
   free(vc->strand_number);
   vc->strand_number = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->length + 1));
   for (s = i = 0; i <= vc->length; i++) {
@@ -817,6 +797,20 @@ doubleseq(vrna_fold_compound_t *vc)
 
     vc->strand_number[i] = s;
   }
+
+  free(vc->strand_order);
+  free(vc->strand_start);
+  free(vc->strand_end);
+  vc->strand_order    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->strands + 1));
+  vc->strand_start    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->strands + 1));
+  vc->strand_end      = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->strands + 1));
+  vc->strand_order[0] = 0;
+  vc->strand_order[1] = 1;
+  vc->strand_start[0] = 1;
+  vc->strand_end[0]   = vc->strand_start[0] + length - 1;
+  vc->strand_start[1] = vc->strand_end[0] + 1;
+  vc->strand_end[1]   = vc->strand_start[1] + length - 1;
+
 
   vc->sequence_encoding = vrna_realloc(vc->sequence_encoding, sizeof(short) * (vc->length + 2));
   memcpy(vc->sequence_encoding + length + 1, vc->sequence_encoding + 1, sizeof(short) * length);
@@ -853,8 +847,15 @@ halfseq(vrna_fold_compound_t *vc)
   vc->sequence[halflength]  = '\0';
   vc->length                = (unsigned int)strlen(vc->sequence);
   vc->cutpoint              = -1;
+  vc->strands               = 1;
   vc->strand_number         = (unsigned int *)vrna_realloc(vc->strand_number,
                                                            sizeof(unsigned int) * (vc->length + 1));
+  vc->strand_order = (unsigned int *)vrna_realloc(vc->strand_order,
+                                                  sizeof(unsigned int) * (vc->strands + 1));
+  vc->strand_start = (unsigned int *)vrna_realloc(vc->strand_start,
+                                                  sizeof(unsigned int) * (vc->strands + 1));
+  vc->strand_end = (unsigned int *)vrna_realloc(vc->strand_end,
+                                                sizeof(unsigned int) * (vc->strands + 1));
 
   vc->sequence_encoding =
     vrna_realloc(vc->sequence_encoding, sizeof(short) * (vc->length + 2));
@@ -1047,7 +1048,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc)
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE void
 wrap_array_export(int   **f5_p,

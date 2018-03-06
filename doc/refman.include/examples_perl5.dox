@@ -1,0 +1,37 @@
+/**
+
+@page  examples_perl5     Perl5 Examples
+
+@tableofcontents
+
+Hello World Examples 
+====================
+
+Using the flat interface
+------------------------
+
+- MFE prediction
+@include  helloworld_mfe.pl
+
+Using the object oriented interface
+-----------------------------------
+
+- MFE prediction
+@include  oo_example1.pl
+
+Changing the Model Settings
+===========================
+
+Using the flat interface
+------------------------
+
+- MFE prediction at different temperature and dangle model
+@include  helloworld_nondefault.pl
+
+Using the object oriented interface
+-----------------------------------
+
+- MFE prediction at different temperature and dangle model
+@include  oo_mfe_nondefault.pl
+
+*/

@@ -1,9 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_ALIFOLD_H
 #define VIENNA_RNA_PACKAGE_ALIFOLD_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/ribo.h>
@@ -13,13 +10,15 @@
 #include <ViennaRNA/boltzmann_sampling.h>
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -151,7 +150,8 @@ float vrna_pf_alifold(const char **sequences, char *structure, vrna_ep_t **pl);
  */
 float vrna_pf_circalifold(const char **sequences, char *structure, vrna_ep_t **pl);
 
-#ifdef  VRNA_BACKWARD_COMPAT
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*
 #################################################
@@ -180,7 +180,8 @@ float vrna_pf_circalifold(const char **sequences, char *structure, vrna_ep_t **p
  *                    (will be overwritten by a consensus structure that exhibits the MFE)
  *  @return           The free energy score in kcal/mol
  */
-DEPRECATED(float alifold( const char **strings, char *structure));
+DEPRECATED(float alifold( const char **strings, char *structure),
+          "Use vrna_alifold() or vrna_mfe() instead");
 
 /**
  *  @brief Compute MFE and according structure of an alignment of sequences assuming the sequences are circular instead of linear
@@ -195,7 +196,8 @@ DEPRECATED(float alifold( const char **strings, char *structure));
  *                    (will be overwritten by a consensus structure that exhibits the MFE)
  *  @return           The free energy score in kcal/mol
  */
-DEPRECATED(float circalifold( const char **strings, char *structure));
+DEPRECATED(float circalifold( const char **strings, char *structure),
+          "Use vrna_alicircfold() or vrna_mfe() instead");
 
 /**
  *  @brief Free the memory occupied by MFE alifold functions
@@ -203,14 +205,15 @@ DEPRECATED(float circalifold( const char **strings, char *structure));
  *  @deprecated Usage of this function is discouraged! It only
  *  affects memory being free'd that was allocated by an old API
  *  function before. Release of memory occupied by the newly introduced
- *  #vrna_fold_compound_t is handled by vrna_vrna_fold_compound_free()
+ *  #vrna_fold_compound_t is handled by vrna_fold_compound_free()
  *
- *  @see vrna_vrna_fold_compound_free()
+ *  @see vrna_fold_compound_free()
  *
  *  @ingroup consensus_mfe_fold
  * 
  */
-DEPRECATED(void free_alifold_arrays(void));
+DEPRECATED(void free_alifold_arrays(void),
+          "This function is obsolete");
 
 /**
  *  @brief Calculate the free energy of a consensus structure given a set of aligned sequences
@@ -227,9 +230,11 @@ DEPRECATED(void free_alifold_arrays(void));
  *  @returns free energy in kcal/mol
  * 
  */
-DEPRECATED(float energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy));
+DEPRECATED(float energy_of_alistruct(const char **sequences, const char *structure, int n_seq, float *energy),
+           "Use vrna_eval_structure() and vrna_eval_covar_structure() instead");
 
-DEPRECATED(float energy_of_ali_gquad_structure(const char **sequences, const char *structure, int n_seq, float *energy));
+DEPRECATED(float energy_of_ali_gquad_structure(const char **sequences, const char *structure, int n_seq, float *energy),
+          "Use vrna_eval_structure() and vrna_eval_covar_structure() instead");
 
 /**
  *  @brief This variable controls the weight of the covariance term in the
@@ -241,7 +246,8 @@ DEPRECATED(float energy_of_ali_gquad_structure(const char **sequences, const cha
  *
  *  Default is 1.
  */
-DEPRECATED(extern  double  cv_fact);
+DEPRECATED(extern  double  cv_fact,
+          "Use the cv_fact attribute of the vrna_md_t datastructure instead");
 /**
  *  @brief This variable controls the magnitude of the penalty for non-compatible sequences in
  *  the covariance term of alignment folding algorithms.
@@ -252,7 +258,8 @@ DEPRECATED(extern  double  cv_fact);
  *
  *  Default is 1.
  */
-DEPRECATED(extern  double  nc_fact);
+DEPRECATED(extern  double  nc_fact,
+          "Use the nc_fact attribute of the vrna_md_t datastructure instead");
 
 /**
  *  @brief
@@ -276,7 +283,8 @@ DEPRECATED(float alipf_fold_par( const char **sequences,
                       vrna_exp_param_t *parameters,
                       int calculate_bppm,
                       int is_constrained,
-                      int is_circular));
+                      int is_circular),
+          "Use vrna_pf_alifold() or vrna_pf() instead");
 
 /**
  *  @brief
@@ -296,7 +304,8 @@ DEPRECATED(float alipf_fold_par( const char **sequences,
  *  @param pl
  *  @return
  */
-DEPRECATED(float alipf_fold( const char **sequences, char *structure, vrna_ep_t **pl));
+DEPRECATED(float alipf_fold( const char **sequences, char *structure, vrna_ep_t **pl),
+          "Use vrna_pf_alifold() or vrna_pf() instead");
 
 /**
  *  @brief
@@ -310,7 +319,8 @@ DEPRECATED(float alipf_fold( const char **sequences, char *structure, vrna_ep_t 
  *  @param pl
  *  @return
  */
-DEPRECATED(float alipf_circ_fold(const char **sequences, char *structure, vrna_ep_t **pl));
+DEPRECATED(float alipf_circ_fold(const char **sequences, char *structure, vrna_ep_t **pl),
+          "Use vrna_pf_circalifold() or vrna_pf() instead");
 
 
 /**
@@ -331,7 +341,8 @@ DEPRECATED(float alipf_circ_fold(const char **sequences, char *structure, vrna_e
  *
  *  @return A pointer to the base pair probability array
  */
-DEPRECATED(FLT_OR_DBL *export_ali_bppm(void));
+DEPRECATED(FLT_OR_DBL *export_ali_bppm(void),
+          "Use the new API with vrna_fold_compound_t datastructure instead");
 
 /**
  *  @brief Free the memory occupied by folding matrices allocated by alipf_fold, alipf_circ_fold, etc.
@@ -345,7 +356,8 @@ DEPRECATED(FLT_OR_DBL *export_ali_bppm(void));
  *  @see #vrna_fold_compound_t, vrna_vrna_fold_compound_free()
  *
  */
-DEPRECATED(void  free_alipf_arrays(void));
+DEPRECATED(void  free_alipf_arrays(void),
+          "This function is obsolete");
 
 /**
  *  @brief Sample a consensus secondary structure from the Boltzmann ensemble according its probability
@@ -357,7 +369,8 @@ DEPRECATED(void  free_alipf_arrays(void));
  *  @param  prob  to be described (berni)
  *  @return       A sampled consensus secondary structure in dot-bracket notation
  */
-DEPRECATED(char  *alipbacktrack(double *prob));
+DEPRECATED(char  *alipbacktrack(double *prob),
+          "Use the new API and vrna_pbacktrack() instead");
 
 /**
  *  @brief Get pointers to (almost) all relavant arrays used in alifold's partition function computation
@@ -394,7 +407,8 @@ DEPRECATED(int get_alipf_arrays(short ***S_p,
                      FLT_OR_DBL **qm_p,
                      FLT_OR_DBL **q1k_p,
                      FLT_OR_DBL **qln_p,
-                     short **pscore));
+                     short **pscore),
+          "Use the new API with vrna_fold_compound_t datastructure instead");
 
 
 /**
@@ -408,7 +422,8 @@ DEPRECATED(int get_alipf_arrays(short ***S_p,
  *  to lump all folding related necessities together, including the energy parameters. Use
  *  vrna_update_fold_params() to update the energy parameters within a #vrna_fold_compound_t.
  */
-DEPRECATED(void update_alifold_params(void));
+DEPRECATED(void update_alifold_params(void),
+          "Use the new API with vrna_fold_compound_t datastructure instead");
 
 #endif
 

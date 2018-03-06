@@ -2,6 +2,10 @@
 //%pragma(perl5)  modulecode="@EXPORT=qw(fold);"
 %pragma(perl5)  include="RNA.pod"
 
+// ignore SWIG Warning 312 from nested unions
+#pragma SWIG nowarn=312
+
+
 %{
 
 extern "C" {
@@ -35,6 +39,7 @@ extern "C" {
 #include  <ViennaRNA/equilibrium_probs.h>
 #include  <ViennaRNA/boltzmann_sampling.h>
 #include  <ViennaRNA/part_func_co.h>
+#include  <ViennaRNA/concentrations.h>
 #include  <ViennaRNA/naview.h>
 #include  <ViennaRNA/plot_layouts.h>
 #include  <ViennaRNA/plot_structure.h>
@@ -67,6 +72,9 @@ extern "C" {
 #include  <ViennaRNA/multibranch_loops.h>
 
 #include  <ViennaRNA/combinatorics.h>
+
+#include  <ViennaRNA/neighbor.h>
+#include  <ViennaRNA/walk.h>
 }
 
 %}
@@ -113,6 +121,8 @@ namespace std {
   %template(DoubleDoubleVector) std::vector< std::vector<double> > ;
   %template(IntIntVector) std::vector<std::vector<int> > ;
   %template(ElemProbVector) std::vector<vrna_ep_t>;
+  %template(PathVector) std::vector<vrna_path_t>;
+  %template(MoveVector) std::vector<vrna_move_t>;
 };
 
 %{
@@ -188,6 +198,8 @@ namespace std {
 %include commands.i
 %include combinatorics.i
 %include duplex.i
+%include neighbor.i
+%include walk.i
 %include findpath.i
 %include data_structures.i
 %include fold_compound.i

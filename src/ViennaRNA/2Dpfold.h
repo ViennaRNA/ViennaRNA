@@ -1,17 +1,16 @@
 #ifndef VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H
 #define VIENNA_RNA_PACKAGE_TWO_D_PF_FOLD_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -139,8 +138,7 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
  *  @}
  */ /* End of group kl_neighborhood_stochbt */
 
-
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #define TwoDpfold_solution       vrna_sol_TwoD_pf_t         /* restore compatibility of struct rename */
 
@@ -275,7 +273,8 @@ DEPRECATED(TwoDpfold_vars *
            get_TwoDpfold_variables(const char *seq,
                                    const char *structure1,
                                    char       *structure2,
-                                   int        circ));
+                                   int        circ),
+          "Use the new API and vrna_fold_compound_TwoD() instead");
 
 /**
  * @brief Free all memory occupied by a TwoDpfold_vars datastructure
@@ -291,7 +290,8 @@ DEPRECATED(TwoDpfold_vars *
  * @param vars   the datastructure to be free'd
  */
 DEPRECATED(void
-           destroy_TwoDpfold_variables(TwoDpfold_vars *vars));
+           destroy_TwoDpfold_variables(TwoDpfold_vars *vars),
+           "Use the new API and vrna_fold_compound_free() instead");
 
 /**
  * @brief Compute the partition function for all distance classes
@@ -320,7 +320,8 @@ DEPRECATED(void
 DEPRECATED(TwoDpfold_solution *
            TwoDpfoldList(TwoDpfold_vars *vars,
                          int            maxDistance1,
-                         int            maxDistance2));
+                         int            maxDistance2),
+          "Use the new API and vrna_pf_TwoD() instead");
 
 /**
  *  @brief Sample secondary structure representatives from a set of distance classes according to their
@@ -346,7 +347,8 @@ DEPRECATED(TwoDpfold_solution *
 DEPRECATED(char *
            TwoDpfold_pbacktrack(TwoDpfold_vars  *vars,
                                 int             d1,
-                                int             d2));
+                                int             d2),
+          "Use the new API and vrna_pbacktrack_TwoD() instead");
 
 /**
  * @brief Sample secondary structure representatives with a specified length from a set of distance classes according to their
@@ -375,7 +377,8 @@ DEPRECATED(char *
            TwoDpfold_pbacktrack5(TwoDpfold_vars *vars,
                                  int            d1,
                                  int            d2,
-                                 unsigned int   length));
+                                 unsigned int   length),
+          "Use the new API and vrna_pbacktrack5_TwoD() instead");
 
 /**
  * @brief
@@ -384,7 +387,8 @@ DEPRECATED(char *
  */
 DEPRECATED(FLT_OR_DBL **TwoDpfold(TwoDpfold_vars  *our_variables,
                                   int             maxDistance1,
-                                  int             maxDistance2));
+                                  int             maxDistance2),
+          "Use the new API and vrna_pf_TwoD() instead");
 
 /**
  * @brief
@@ -393,7 +397,8 @@ DEPRECATED(FLT_OR_DBL **TwoDpfold(TwoDpfold_vars  *our_variables,
  */
 DEPRECATED(FLT_OR_DBL **TwoDpfold_circ(TwoDpfold_vars *our_variables,
                                        int            maxDistance1,
-                                       int            maxDistance2));
+                                       int            maxDistance2),
+          "Use the new API and vrna_pf_TwoD() instead");
 
 #endif
 

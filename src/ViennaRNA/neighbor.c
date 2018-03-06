@@ -19,7 +19,7 @@
 #endif
 
 typedef enum {
-  INCREASED, DECREASED, SWITCHED
+  UNDEFINED = -1, INCREASED, DECREASED, SWITCHED
 } intervalType;
 
 
@@ -39,12 +39,14 @@ vrna_move_init(int  pos_5,
 void
 vrna_move_list_free(vrna_move_t *moves)
 {
-  for (vrna_move_t *move = moves; move->pos_5 != 0; move++) {
-    if (move->next != NULL)
-      if (move->next->pos_5 != 0)
-        vrna_move_list_free(move->next);
+  if (moves) {
+    for (vrna_move_t *move = moves; move->pos_5 != 0; move++) {
+      if (move->next != NULL)
+        if (move->next->pos_5 != 0)
+          vrna_move_list_free(move->next);
+    }
+    free(moves);
   }
-  free(moves);
 }
 
 
@@ -789,7 +791,7 @@ computeFreedInterval(const short        *structure,
   int           positivePosition        = MAX2(m->pos_5, m->pos_3);
   int           newPairedPosition       = abs(MIN2(m->pos_5, m->pos_3));
   int           previousPairedPosition  = structure[positivePosition];
-  intervalType  t;
+  intervalType  t                       = UNDEFINED;
 
   /*    |  +)..-) //+ = newPairedPos; - = prevPaired; | = positivePosition (unchanged). */
   if (positivePosition < previousPairedPosition && positivePosition < newPairedPosition) {
@@ -918,12 +920,8 @@ generateShiftsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compound_t 
 
   if (t == INCREASED) {
     /* compute only pairs to one interval instead of two */
-    int i_left;
-    int i_right;
     if (positivePosition < previousPairedPosition) {
       /* [to pair][freed]   */
-      i_left  = positivePosition;
-      i_right = previousPairedPosition;
       pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc,
                                                                                previousPairedPosition,
                                                                                freedInterval.pos_5 - 1,
@@ -945,8 +943,6 @@ generateShiftsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compound_t 
                                                   &shift_bpins_to_left);
     } else {
       /* [freed][to pair] */
-      i_left  = previousPairedPosition;
-      i_right = positivePosition;
       pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(vc,
                                                                                 previousPairedPosition,
                                                                                 freedInterval.pos_3 + 1,

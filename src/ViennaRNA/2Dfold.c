@@ -3176,6 +3176,10 @@ mfe_circ(vrna_fold_compound_t *vc)
   int min_k_real, max_k_real, min_k_real_fcH, max_k_real_fcH, min_k_real_fcI, max_k_real_fcI, min_k_real_fcM, max_k_real_fcM;
   int *min_l_real, *max_l_real, *min_l_real_fcH, *max_l_real_fcH, *min_l_real_fcI, *max_l_real_fcI, *min_l_real_fcM, *max_l_real_fcM;
 
+  max_l_real_fcM = min_l_real_fcM = NULL;
+  max_l_real_fcI = min_l_real_fcI = NULL;
+  max_l_real_fcH = min_l_real_fcH = NULL;
+  max_l_real = min_l_real = NULL;
   min_k = min_l = 0;
 
   max_k = mm1[my_iindx[1] - seq_length] + referenceBPs1[my_iindx[1] - seq_length];
@@ -4051,8 +4055,6 @@ get_TwoDfold_variables(const char *seq,
 {
   vrna_md_t md;
   TwoDfold_vars *vars;
-  vrna_fold_compound_t *c;
-  vrna_mx_mfe_t *m;
 
   set_model_details(&md);
   md.circ = circ;

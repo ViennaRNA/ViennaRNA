@@ -246,6 +246,10 @@ provide the motif itself, and binding free energy:
 .ft
 .fi
 
+Adding the --verbose option to the above call of RNAfold also prints the sequence
+position of each motif found in the MFE structure. In case interior-loop like motifs
+are provided, two intervals are printed denoting the 5' and 3' part, respectively.
+
 .I Ligand binding contributions to unpaired segments of the RNA structure
 
 The extension of the RNA folding grammar with unstructured domains allows for an easy

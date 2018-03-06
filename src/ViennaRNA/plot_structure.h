@@ -5,17 +5,16 @@
 #include <ViennaRNA/plot_layouts.h>
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
-
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
 
 /**
  *  @file plot_structure.h
@@ -134,14 +133,15 @@ int xrna_plot(char *string,
               char *structure,
               char *ssfile);
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Produce a secondary structure graph in PostScript and write it to 'filename'.
  *
  *  @deprecated   Use vrna_file_PS_rnaplot() instead!
  */
-DEPRECATED(int PS_rna_plot(char *string, char *structure, char *file));
+DEPRECATED(int PS_rna_plot(char *string, char *structure, char *file),
+"Use vrna_file_PS_rnaplot() instead");
 
 /**
  *  @brief Produce a secondary structure graph in PostScript including additional
@@ -149,7 +149,8 @@ DEPRECATED(int PS_rna_plot(char *string, char *structure, char *file));
  *
  *  @deprecated   Use vrna_file_PS_rnaplot_a() instead!
  */
-DEPRECATED(int PS_rna_plot_a(char *string, char *structure, char *file, char *pre, char *post));
+DEPRECATED(int PS_rna_plot_a(char *string, char *structure, char *file, char *pre, char *post),
+"Use vrna_file_PS_rnaplot_a() instead");
 
 /**
  *  @brief Produce a secondary structure graph in PostScript including additional
@@ -157,7 +158,8 @@ DEPRECATED(int PS_rna_plot_a(char *string, char *structure, char *file, char *pr
  *
  *  @deprecated   Use vrna_file_PS_rnaplot_a() instead!
  */
-DEPRECATED(int PS_rna_plot_a_gquad(char *string, char *structure, char *ssfile, char *pre, char *post));
+DEPRECATED(int PS_rna_plot_a_gquad(char *string, char *structure, char *ssfile, char *pre, char *post),
+"Use vrna_file_PS_rnaplot_a() instead");
 
 #endif
 

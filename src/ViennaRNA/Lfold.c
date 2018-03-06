@@ -184,7 +184,7 @@ vrna_aliLfold_cb(const char               **AS,
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PUBLIC float
 Lfold(const char  *string,

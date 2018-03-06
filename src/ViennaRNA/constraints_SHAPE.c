@@ -313,23 +313,33 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
   int         i;
   FLT_OR_DBL  *values;
 
-  if (vc && (vc->type == VRNA_FC_TYPE_SINGLE)) {
-    if (reactivities) {
-      values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
+  if (vc) {
+    if (!reactivities) {
+      if (options & VRNA_OPTION_PF) {
+        prepare_Boltzmann_weights_stack(vc);
+        return 1;
+      }
+    } else {
+      switch (vc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
 
-      /* first convert the values according to provided slope and intercept values */
-      for (i = 1; i <= vc->length; ++i)
-        values[i] = reactivities[i] < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivities[i] + 1) + b);
+          /* first convert the values according to provided slope and intercept values */
+          for (i = 1; i <= vc->length; ++i)
+            values[i] = reactivities[i] < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivities[i] + 1) + b);
 
-      /* always store soft constraints in plain format */
-      vrna_sc_set_stack(vc, (const FLT_OR_DBL *)values, options);
-      free(values);
+          /* always store soft constraints in plain format */
+          vrna_sc_set_stack(vc, (const FLT_OR_DBL *)values, options);
+          free(values);
+
+          return 1; /* success */
+
+        case VRNA_FC_TYPE_COMPARATIVE:
+          vrna_message_warning("vrna_sc_add_SHAPE_deigan() not implemented for comparative prediction! "
+                               "Use vrna_sc_add_SHAPE_deigan_ali() instead!");
+          break;
+      }
     }
-
-    if (options & VRNA_OPTION_PF)
-      prepare_Boltzmann_weights_stack(vc);
-
-    return 1; /* success */
   }
 
   return 0; /* error */
@@ -345,9 +355,9 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
                              unsigned int         options)
 {
   FILE          *fp;
-  float         reactivity, *reactivities, e1, weight;
+  float         reactivity, *reactivities, weight;
   char          *line, nucleotide, *sequence;
-  int           s, i, p, r, n_data, position, *pseudo_energies, n_seq;
+  int           s, i, r, n_data, position, *pseudo_energies, n_seq;
   unsigned int  **a2s;
 
   if (vc && (vc->type == VRNA_FC_TYPE_COMPARATIVE)) {
@@ -374,14 +384,20 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
       int ss = shape_file_association[s]; /* actual sequence number in alignment */
 
       if (ss >= n_seq) {
-        vrna_message_warning("SHAPE file association exceeds sequence number in alignment");
+        vrna_message_warning("Failed to associate SHAPE file \"%s\" with sequence %d in alignment! "
+                             "Alignment has only %d sequences!",
+                             shape_files[s],
+                             ss,
+                             n_seq);
         continue;
       }
 
       /* read the shape file */
       if (!(fp = fopen(shape_files[s], "r"))) {
-        vrna_message_warning("SHAPE data file %d could not be opened. No shape data will be used.",
-                             s);
+        vrna_message_warning("Failed to open SHAPE data file \"%d\"! "
+                             "No shape data will be used for sequence %d.",
+                             s,
+                             ss + 1);
       } else {
         reactivities  = (float *)vrna_alloc(sizeof(float) * (vc->length + 1));
         sequence      = (char *)vrna_alloc(sizeof(char) * (vc->length + 1));
@@ -393,20 +409,23 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
         while ((line = vrna_read_line(fp))) {
           r = sscanf(line, "%d %c %f", &position, &nucleotide, &reactivity);
           if (r) {
-            if ((position <= 0) || (position > vc->length))
-              vrna_message_error("provided shape data outside of sequence scope");
-
-            switch (r) {
-              case 1:
-                nucleotide = 'N';
-              /* fall through */
-              case 2:
-                reactivity = -1.;
-              /* fall through */
-              default:
-                sequence[position - 1]  = nucleotide;
-                reactivities[position]  = reactivity;
-                break;
+            if (position <= 0) {
+              vrna_message_warning("SHAPE data for position %d outside alignment!", position);
+            } else if (position > vc->length) {
+              vrna_message_warning("SHAPE data for position %d outside alignment!", position);
+            } else {
+              switch (r) {
+                case 1:
+                  nucleotide = 'N';
+                /* fall through */
+                case 2:
+                  reactivity = -1.;
+                /* fall through */
+                default:
+                  sequence[position - 1]  = nucleotide;
+                  reactivities[position]  = reactivity;
+                  break;
+              }
             }
           }
 
@@ -419,8 +438,8 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
         /* double check information by comparing the sequence read from */
         char *tmp_seq = get_ungapped_sequence(vc->sequences[shape_file_association[s]]);
         if (strcmp(tmp_seq, sequence))
-          vrna_message_warning("Input sequence %d differs from sequence provided via SHAPE file!\n",
-                               shape_file_association[s]);
+          vrna_message_warning("Input sequence %d differs from sequence provided via SHAPE file!",
+                               shape_file_association[s] + 1);
 
         free(tmp_seq);
 
@@ -459,9 +478,11 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
         }
 
         /* resize to actual number of entries */
-        pseudo_energies           = vrna_realloc(pseudo_energies, sizeof(int) * (cnt + 2));
+        pseudo_energies = vrna_realloc(
+          pseudo_energies,
+          sizeof(int) * (vc->a2s[ss][vc->length] + 1));
         vc->scs[ss]->energy_stack = pseudo_energies;
-
+#if 0
         if (options & VRNA_OPTION_PF) {
           FLT_OR_DBL *exp_pe = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
           for (i = 0; i <= vc->length; i++)
@@ -479,6 +500,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
           vc->scs[ss]->exp_energy_stack = exp_pe;
         }
 
+#endif
         free(reactivities);
       }
     }
@@ -582,19 +604,49 @@ sc_parse_parameters(const char  *string,
 
 
 PRIVATE void
-prepare_Boltzmann_weights_stack(vrna_fold_compound_t *vc)
+prepare_Boltzmann_weights_stack(vrna_fold_compound_t *fc)
 {
-  int       i;
-  vrna_sc_t *sc = vc->sc;
+  unsigned int  s, n_seq;
+  int           i;
+  vrna_sc_t     *sc, **scs;
 
-  if (sc->energy_stack) {
-    if (!sc->exp_energy_stack) {
-      sc->exp_energy_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
-      for (i = 0; i <= vc->length; ++i)
-        sc->exp_energy_stack[i] = 1.;
-    }
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      sc = fc->sc;
+      if ((sc) && (sc->energy_stack)) {
+        if (!sc->exp_energy_stack) {
+          sc->exp_energy_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->length + 1));
+          for (i = 0; i <= fc->length; ++i)
+            sc->exp_energy_stack[i] = 1.;
+        }
 
-    for (i = 1; i <= vc->length; ++i)
-      sc->exp_energy_stack[i] = (FLT_OR_DBL)exp(-(sc->energy_stack[i] * 10.) / vc->exp_params->kT);
+        for (i = 1; i <= fc->length; ++i)
+          sc->exp_energy_stack[i] = (FLT_OR_DBL)exp(
+            -(sc->energy_stack[i] * 10.) / fc->exp_params->kT);
+      }
+
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      scs   = fc->scs;
+      n_seq = fc->n_seq;
+      if (scs) {
+        for (s = 0; s < n_seq; s++) {
+          if (scs[s] && scs[s]->energy_stack) {
+            if (!scs[s]->exp_energy_stack) {
+              scs[s]->exp_energy_stack =
+                (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->a2s[s][fc->length] + 1));
+              for (i = 0; i <= fc->a2s[s][fc->length]; i++)
+                scs[s]->exp_energy_stack[i] = 1.;
+            }
+
+            for (i = 1; i <= fc->a2s[s][fc->length]; ++i)
+              scs[s]->exp_energy_stack[i] = (FLT_OR_DBL)exp(
+                -(scs[s]->energy_stack[i] * 10.) / fc->exp_params->kT);
+          }
+        }
+      }
+
+      break;
   }
 }

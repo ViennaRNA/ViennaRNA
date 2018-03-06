@@ -7,17 +7,16 @@
  *  @brief    Functions for locally optimal MFE structure prediction
  */
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 #include <ViennaRNA/mfe.h>
@@ -122,7 +121,7 @@ float vrna_aliLfold_cb(const char               **AS,
                        void                     *data);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief The local analog to fold().
@@ -136,7 +135,8 @@ float vrna_aliLfold_cb(const char               **AS,
  */
 DEPRECATED(float Lfold(const char *string,
                        char       *structure,
-                       int        maxdist));
+                       int        maxdist),
+"Use vrna_Lfold() or vrna_Lfold_cb() instead");
 
 /**
  *  @brief
@@ -149,7 +149,8 @@ DEPRECATED(float Lfoldz(const char  *string,
                         char        *structure,
                         int         maxdist,
                         int         zsc,
-                        double      min_z));
+                        double      min_z),
+"Use vrna_Lfoldz() or vrna_Lfoldz_cb() instead");
 
 /**
  *  @brief
@@ -161,15 +162,17 @@ DEPRECATED(float Lfoldz(const char  *string,
  *  @param maxdist
  *  @return
  */
-float aliLfold(const char **AS,
+DEPRECATED(float aliLfold(const char **AS,
                char       *structure,
-               int        maxdist);
+               int        maxdist),
+"Use vrna_aliLfold() or vrna_aliLfold_cb() instead");
 
 
-float aliLfold_cb(const char                **AS,
+DEPRECATED(float aliLfold_cb(const char                **AS,
                   int                       maxdist,
                   vrna_mfe_window_callback  *cb,
-                  void                      *data);
+                  void                      *data),
+"Use vrna_aliLfold() or vrna_aliLfold_cb() instead");
 
 
 #endif

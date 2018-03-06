@@ -1,8 +1,12 @@
 [![Build Status](https://travis-ci.org/ViennaRNA/ViennaRNA.svg?branch=master)](https://travis-ci.org/ViennaRNA/ViennaRNA)
 
-This is Version 2.4.3 of the ViennaRNA Package.
-------------------------------------------------
-See the NEWS and Changelog files for differences to previous versions.
+# ViennaRNA Package
+
+## Version 2.4.4
+
+See the [NEWS](NEWS) and [Changelog](Changelog) files for changes between versions.
+
+## About
 
 The ViennaRNA Package consists of a few stand alone programs and a 
 library that you can link your own programs with. 
@@ -36,17 +40,34 @@ There is also a set of programs for analyzing sequence and distance
 data using split decomposition, statistical geometry, and cluster methods.
 They are not maintained any more and not built by default.
 
-See the NEWS and Changelog files for changes between versions.
+The code very rarely uses static arrays, and all programs should work for 
+sequences up to a length of 32,700 (if you have huge amounts of memory that
+is).
 
-Please read the copyright notice in the file COPYING!
+## Copyright
+
+Please read the copyright notice in the file [COPYING](COPYING)!
+
+If you're a commercial user and find these programs useful, please consider
+supporting further developments with a donation.
+
+## Availability
+
+The most recent source code and documentation should always be available through
+the [official ViennaRNA website](https://www.tbi.univie.ac.at/RNA) and through
+[github](https://github.com/ViennaRNA/ViennaRNA).
+
+## Compatibility
 
 The package should be easily portable. It is known to compile without
 modifications at least under
-SunOS 5.x, IRIX 5.x and 6.x, linux, and MS Windows with the Cygwin environment.
+SunOS 5.x, IRIX 5.x and 6.x, Linux, and MS Windows with the Cygwin environment.
 Other UNIX flavors should present no problems.
-You need a compiler that understands ANSI C. See the INSTALL file for details.
+You need a compiler that understands ANSI C. See the [INSTALL](INSTALL) file for details.
 
-The following executables are provided:
+## Executable Programs
+
+The following executable programs are provided:
 - `RNA2Dfold`       Compute MFE structure, partition function and representative sample structures of k,l neighborhoods
 - `RNAaliduplex`    Predict conserved RNA-RNA interactions between two alignments
 - `RNAalifold`      Calculate secondary structures for a set of aligned RNA sequences
@@ -80,10 +101,31 @@ switches rather than menus to be easily usable in pipes.
 
 For more detailed information see the man pages. Perl utilities contain
 POD documentation that can be read by typing e.g.
+```
 perldoc relplot.pl
+```
 
-Since version 2.0 the build-in energy parameters (available as parameter
-file default.par as well) are taken from:
+## References
+
+If you use our software package, you may want to cite
+
+[R. Lorenz et al. (2004)](https://almob.biomedcentral.com/articles/10.1186/1748-7188-6-26),
+"ViennaRNA Package 2.0", Algorithms for Molecular Biology, 6:26
+
+and
+
+[I.L. Hofacker (1994)](https://link.springer.com/article/10.1007/BF00818163),
+"Fast folding and comparison of RNA secondary structures",
+Monatshefte fuer Chemie, Volume 125, Issue 2, pp 167-188
+
+
+*Note, that the individual executable programs state their own list of references
+in the corresponding man-pages.*
+
+### Energy Parameters
+
+Since version 2.0 the build-in energy parameters, also available as parameter
+file [rna_turner2004.par](misc/rna_turner2004.par), are taken from:
 
 [D.H. Mathews et al. (2004)](https://doi.org/10.1073/pnas.0401799101),
 "Incorporating chemical modification constraints into a dynamic programming
@@ -98,23 +140,16 @@ for predicting stability of nucleic acid secondary structure",
 Nucleic Acids Research: 38, pp 280-282.
 
 For backward compatibility we also provide energy parameters from Turner et al.
-1999 in the file 'rna_turner1999.par'. Additionally, a set of trained RNA energy
-parameters from Andronescou et al. 2007 'rna_andronescou2007.par' and two sets
-of DNA parameters ('dna_mathews1999.par' and 'dna_mathews2004.par') are included
+1999 in the file [rna_turner1999.par](misc/rna_turner1999.par). Additionally,
+a set of trained RNA energy parameters from Andronescou et al. 2007,
+[rna_andronescou2007.par](misc/rna_andronescou2007.par) and two sets
+of DNA parameters, [dna_mathews1999.par](misc/dna_mathews1999.par) and
+[dna_mathews2004.par](misc/dna_mathews2004.par), are included
 in the package as well.
-The code very rarely uses static arrays, and all programs should work for 
-sequences up to a length of 32,700 (if you have huge amounts of memory that
-is).
 
-If you're a commercial user and find these programs useful, please consider
-supporting further developments with a donation.
-
-The most recent source code and documentation should always be available on
-the web at 
-[http://www.tbi.univie.ac.at/RNA](http://www.tbi.univie.ac.at/RNA)
+## Contact
 
 We need your feedback! Send your comments, suggestions, and questions to
 rna@tbi.univie.ac.at
 
 Ivo Hofacker, Spring 2006
-

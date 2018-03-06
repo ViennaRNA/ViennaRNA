@@ -1,0 +1,36 @@
+/**
+
+@page helloworld_swig HelloWorld (Perl/Python)
+
+@tableofcontents
+
+@section helloworld_perl  Perl5
+
+Simple MFE prediction for a given sequence
+------------------------------------------
+@include helloworld_mfe.pl
+
+Simple MFE prediction for a multiple sequence alignment
+-------------------------------------------------------
+@include  helloworld_mfe_comparative.pl
+
+Deviating from the Default Model
+--------------------------------
+@include helloworld_nondefault.pl
+
+
+@section helloworld_python    Python
+
+Simple MFE prediction for a given sequence
+------------------------------------------
+@include helloworld_mfe.py
+
+Simple MFE prediction for a multiple sequence alignment
+-------------------------------------------------------
+@include  helloworld_mfe_comparative.py
+
+Deviating from the Default Model
+--------------------------------
+@include helloworld_nondefault.py
+
+*/

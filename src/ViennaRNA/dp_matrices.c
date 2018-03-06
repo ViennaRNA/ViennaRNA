@@ -366,7 +366,7 @@ vrna_mx_prepare(vrna_fold_compound_t  *vc,
       if (realloc) /* Add DP matrices, if not they are not present */
         ret &= vrna_mx_pf_add(vc, mx_type, options);
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
       else   /* re-compute pf_scale and MLbase contributions (for RNAup)*/
         vrna_exp_params_rescale(vc, NULL);
 
@@ -728,8 +728,7 @@ mfe_matrices_alloc_window(vrna_mx_mfe_t *vars,
                           unsigned int  m,
                           unsigned int  alloc_vector)
 {
-  int           i;
-  unsigned int  n, lin_size;
+  unsigned int n, lin_size;
 
   n         = vars->length;
   lin_size  = n + 2;
@@ -1319,8 +1318,7 @@ pf_matrices_alloc_window(vrna_mx_pf_t *vars,
                          unsigned int m,
                          unsigned int alloc_vector)
 {
-  int           i;
-  unsigned int  n, lin_size;
+  unsigned int n, lin_size;
 
   n         = vars->length;
   lin_size  = n + 2;

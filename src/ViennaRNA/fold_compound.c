@@ -102,9 +102,15 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc)
     free(vc->jindx);
     free(vc->params);
     free(vc->exp_params);
+
     free(vc->strand_number);
+    free(vc->strand_order);
+    free(vc->strand_start);
+    free(vc->strand_end);
+
     vrna_hc_free(vc->hc);
     vrna_ud_remove(vc);
+    vrna_sequence_remove_all(vc);
 
     /* now distinguish the vc type */
     switch (vc->type) {
@@ -195,7 +201,10 @@ vrna_fold_compound(const char   *sequence,
   vc->sequence    = strdup(sequence);
   vc->params      = NULL;
   vc->exp_params  = NULL;
-  aux_options     = 0L;
+  vc->nucleotides = NULL;
+  vc->strands     = 0;
+
+  aux_options = 0L;
 
 
   /* get a copy of the model details */
@@ -285,6 +294,8 @@ vrna_fold_compound_comparative(const char   **sequences,
     vc->sequences[s] = strdup(sequences[s]);
   vc->params      = NULL;
   vc->exp_params  = NULL;
+  vc->nucleotides = NULL;
+  vc->strands     = 0;
 
   /* get a copy of the model details */
   if (md_p)
@@ -377,6 +388,8 @@ vrna_fold_compound_TwoD(const char    *sequence,
   vc->sequence    = strdup(sequence);
   vc->params      = NULL;
   vc->exp_params  = NULL;
+  vc->nucleotides = NULL;
+  vc->strands     = 0;
 
   /* get a copy of the model details */
   if (md_p)
@@ -570,9 +583,9 @@ set_fold_compound(vrna_fold_compound_t  *vc,
                   unsigned int          options,
                   unsigned int          aux)
 {
-  char          *sequence, **sequences;
-  unsigned int  length, s, i;
-  int           cp;                           /* cut point for cofold */
+  char          *sequence, **sequences, **ptr;
+  unsigned int  length, s;
+  int           cp;
   char          *seq, *seq2;
   vrna_md_t     *md_p;
 
@@ -590,6 +603,10 @@ set_fold_compound(vrna_fold_compound_t  *vc,
   vc->free_auxdata  = NULL;
 
   vc->strand_number = NULL;
+  vc->strand_order  = NULL;
+  vc->strand_start  = NULL;
+  vc->strand_end    = NULL;
+
   vc->domains_struc = NULL;
   vc->domains_up    = NULL;
   vc->aux_grammar   = NULL;
@@ -597,6 +614,17 @@ set_fold_compound(vrna_fold_compound_t  *vc,
   switch (vc->type) {
     case VRNA_FC_TYPE_SINGLE:
       sequence = vc->sequence;
+
+      /* split input sequences at default delimiter '&' */
+      sequences = vrna_strsplit(sequence, NULL);
+
+      /* add individual sequences to fold compound */
+      for (ptr = sequences; *ptr; ptr++) {
+        vrna_sequence_add(vc, *ptr, VRNA_SEQUENCE_RNA);
+        free(*ptr);
+      }
+
+      free(sequences);
 
       seq2          = strdup(sequence);
       seq           = vrna_cut_point_remove(seq2, &cp);                   /*  splice out the '&' if concatenated sequences and
@@ -612,17 +640,6 @@ set_fold_compound(vrna_fold_compound_t  *vc,
       vc->length              = length = strlen(seq);
       vc->sequence_encoding   = vrna_seq_encode(seq, md_p);
       vc->sequence_encoding2  = vrna_seq_encode_simple(seq, md_p);
-
-      vc->strand_number = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->length + 2));
-      if (cp > 0) {
-        for (s = i = 0; i <= vc->length + 1; i++) {
-          /* this sets pos. 0 and n+1 as well */
-          if (i == vc->cutpoint)
-            s++;
-
-          vc->strand_number[i] = s;
-        }
-      }
 
       if (!(options & VRNA_OPTION_EVAL_ONLY)) {
         vc->ptype = (aux & WITH_PTYPE) ? vrna_ptypes(vc->sequence_encoding2, md_p) : NULL;
@@ -642,8 +659,6 @@ set_fold_compound(vrna_fold_compound_t  *vc,
       sequences = vc->sequences;
 
       vc->length = length = vc->length;
-
-      vc->strand_number = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (vc->length + 1));
 
       vc->cons_seq  = consensus((const char **)sequences);
       vc->S_cons    = vrna_seq_encode_simple(vc->cons_seq, md_p);
@@ -683,6 +698,8 @@ set_fold_compound(vrna_fold_compound_t  *vc,
     default:                      /* do nothing ? */
       break;
   }
+
+  vrna_sequence_prepare(vc);
 
   if (!(options & VRNA_OPTION_WINDOW) && (vc->length <= vrna_sequence_length_max(options))) {
     vc->iindx = vrna_idx_row_wise(vc->length);

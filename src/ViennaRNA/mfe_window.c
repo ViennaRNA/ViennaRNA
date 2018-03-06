@@ -631,7 +631,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
     /* i,j in [1..length] */
     for (j = i + turn + 1; j <= length && j <= i + maxdist; j++) {
       hc_decompose  = hc->matrix_local[i][j - i];
-      type          = ptype[i][j - i];
+      type          = vrna_get_ptype_window(i, j, ptype);
 
       no_close = (((type == 3) || (type == 4)) && noGUclosure);
 
@@ -1018,9 +1018,7 @@ repeat1:
 
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        type = ptype[i][j - i];
-        if (type == 0)
-          type = 7;
+        type = vrna_get_ptype_window(i, j, ptype);
 
         no_close = (((type == 3) || (type == 4)) && noGUclosure);
 

@@ -20,13 +20,15 @@ SOURCES = \
     mfe.i \
     mfe_window.i \
     model_details.i \
+    neighbor.i \
     params.i \
     part_func.i \
     pf_window.i \
     plotting.i \
     subopt.i \
-    utils.i \
     structure_utils.i \
+    utils.i \
+    walk.i \
     ptr2array.i \
     generic.mk
 
@@ -39,13 +41,16 @@ DOXYGEN_DOCUMENTATION = \
     constraints_SHAPE.dox \
     constraints_soft.dox \
     eval.dox \
+    findpath.dox \
     fold_compound.dox \
     grammar.dox \
     mfe.dox \
     model_details.dox \
+    neighbor.dox \
     params.dox \
     part_func.dox \
-    subopt.dox
+    subopt.dox \
+    walk.dox
 
 EXTRA_DIST = \
     RNA.i \
@@ -65,13 +70,15 @@ EXTRA_DIST = \
     mfe.i \
     mfe_window.i \
     model_details.i \
+    neighbor.i \
     params.i \
     part_func.i \
     pf_window.i \
     plotting.i \
     subopt.i \
-    utils.i \
     structure_utils.i \
+    utils.i \
+    walk.i \
     ptr2array.i \
     generic.mk \
     $(DOXYGEN_DOCUMENTATION)

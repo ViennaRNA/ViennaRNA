@@ -155,8 +155,7 @@ vrna_mkdir_p(const char *path)
 PUBLIC char *
 vrna_basename(const char *path)
 {
-  char  *name, *p, *ptr;
-  int   pos;
+  char *name, *ptr;
 
   name = NULL;
 
@@ -248,7 +247,8 @@ vrna_filename_sanitize(const char *name,
       /* try to leave file suffix, i.e. everything after last dot '.', intact */
       if ((suff = strrchr(sanitized_name, '.')) && (sanitized_name + n - suff < 255)) {
         unsigned int n_suff = sanitized_name + n - suff;
-        memmove(sanitized_name + (255 - n_suff), sanitized_name + n - n_suff, sizeof(char) * n_suff);
+        memmove(sanitized_name + (255 - n_suff), sanitized_name + n - n_suff,
+                sizeof(char) * n_suff);
       }
 
       sanitized_name      = (char *)vrna_realloc(sanitized_name, sizeof(char) * 256);

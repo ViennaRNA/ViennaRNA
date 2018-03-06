@@ -2,17 +2,16 @@
 #define VIENNA_RNA_PACKAGE_PARAMS_H
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
-
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
 
 /**
  *  @file     params.h
@@ -363,7 +362,7 @@ void vrna_params_prepare(vrna_fold_compound_t *vc,
                          unsigned int         options);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Old typename of #vrna_param_s
@@ -377,7 +376,8 @@ typedef struct vrna_param_s paramT;
  */
 typedef struct vrna_exp_param_s pf_paramT;
 
-DEPRECATED(vrna_param_t *get_parameter_copy(vrna_param_t *par));
+DEPRECATED(vrna_param_t *get_parameter_copy(vrna_param_t *par),
+"Use vrna_params_copy() instead");
 
 /**
  *  get a data structure of type @ref vrna_exp_param_t which contains
@@ -388,7 +388,8 @@ DEPRECATED(vrna_param_t *get_parameter_copy(vrna_param_t *par));
  *
  *  @return The data structure containing Boltzmann weights for use in partition function calculations
  */
-DEPRECATED(vrna_exp_param_t *get_scaled_pf_parameters(void));
+DEPRECATED(vrna_exp_param_t *get_scaled_pf_parameters(void),
+"Use vrna_params() instead");
 
 /**
  *  @brief Get precomputed Boltzmann factors of the loop type
@@ -418,7 +419,8 @@ DEPRECATED(vrna_exp_param_t *get_scaled_pf_parameters(void));
 DEPRECATED(vrna_exp_param_t *get_boltzmann_factors(double     temperature,
                                                    double     betaScale,
                                                    vrna_md_t  md,
-                                                   double     pf_scale));
+                                                   double     pf_scale),
+"Use vrna_exp_params() instead");
 
 /**
  *  @brief Get a copy of already precomputed Boltzmann factors
@@ -430,7 +432,8 @@ DEPRECATED(vrna_exp_param_t *get_boltzmann_factors(double     temperature,
  *  @param  parameters  The input data structure that shall be copied
  *  @return             A copy of the provided Boltzmann factor data set
  */
-DEPRECATED(vrna_exp_param_t *get_boltzmann_factor_copy(vrna_exp_param_t *parameters));
+DEPRECATED(vrna_exp_param_t *get_boltzmann_factor_copy(vrna_exp_param_t *parameters),
+"Use vrna_exp_params_copy() instead");
 
 /**
  *  @brief Get precomputed Boltzmann factors of the loop type
@@ -439,7 +442,8 @@ DEPRECATED(vrna_exp_param_t *get_boltzmann_factor_copy(vrna_exp_param_t *paramet
  *  @deprecated Use vrna_exp_params_comparative() instead!
  *
  */
-DEPRECATED(vrna_exp_param_t *get_scaled_alipf_parameters(unsigned int n_seq));
+DEPRECATED(vrna_exp_param_t *get_scaled_alipf_parameters(unsigned int n_seq),
+"Use vrna_exp_params_comparative() instead");
 
 /**
  *  @brief Get precomputed Boltzmann factors of the loop type
@@ -453,7 +457,8 @@ DEPRECATED(vrna_exp_param_t *get_boltzmann_factors_ali(unsigned int n_seq,
                                                        double       temperature,
                                                        double       betaScale,
                                                        vrna_md_t    md,
-                                                       double       pf_scale));
+                                                       double       pf_scale),
+"Use vrna_exp_params_comparative() instead");
 
 /**
  * @brief Get precomputed energy contributions for all the known loop types
@@ -466,7 +471,8 @@ DEPRECATED(vrna_exp_param_t *get_boltzmann_factors_ali(unsigned int n_seq,
  *
  * @return     A set of precomputed energy contributions
  */
-DEPRECATED(vrna_param_t *scale_parameters(void));
+DEPRECATED(vrna_param_t *scale_parameters(void),
+"Use vrna_params() instead");
 
 /**
  * @brief Get precomputed energy contributions for all the known loop types
@@ -485,13 +491,14 @@ DEPRECATED(vrna_param_t *scale_parameters(void));
  *  @return             precomputed energy contributions and model settings
  */
 DEPRECATED(vrna_param_t *get_scaled_parameters(double     temperature,
-                                               vrna_md_t  md));
+                                               vrna_md_t  md),
+"Usee vrna_params() instead");
 
-DEPRECATED(vrna_param_t *copy_parameters(void));
-DEPRECATED(vrna_param_t *set_parameters(vrna_param_t *dest));
-DEPRECATED(vrna_exp_param_t *scale_pf_parameters(void));
-DEPRECATED(vrna_exp_param_t *copy_pf_param(void));
-DEPRECATED(vrna_exp_param_t *set_pf_param(vrna_param_t *dest));
+DEPRECATED(vrna_param_t *copy_parameters(void), "Use vrna_params_copy() instead");
+DEPRECATED(vrna_param_t *set_parameters(vrna_param_t *dest), "Use vrna_params_copy() instead");
+DEPRECATED(vrna_exp_param_t *scale_pf_parameters(void), "Use vrna_exp_params() instead");
+DEPRECATED(vrna_exp_param_t *copy_pf_param(void), "Use vrna_exp_params_copy() instead");
+DEPRECATED(vrna_exp_param_t *set_pf_param(vrna_param_t *dest), "Use vrna_exp_params_copy() instead");
 
 #endif
 

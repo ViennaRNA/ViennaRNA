@@ -1,0 +1,26 @@
+/**
+
+@page helloworld  HelloWorld
+
+Below, you'll find some more or less simple C programs showing first
+steps into using @em RNAlib. A complete list of example C programs
+can be found in the @ref examples_c section.
+
+
+Simple MFE prediction for a given sequence
+------------------------------------------
+@examplefileC{helloworld_mfe.c}
+
+Simple MFE prediction for a multiple sequence alignment
+-------------------------------------------------------
+@examplefileC{helloworld_mfe_comparative.c}
+
+Simple Base Pair Probability computation
+----------------------------------------
+@examplefileC{helloworld_probabilities.c}
+
+Deviating from the Default Model
+--------------------------------
+@examplefileC{fold_compound_md.c}
+
+*/

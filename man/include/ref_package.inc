@@ -9,6 +9,10 @@ I.L. Hofacker, W. Fontana, P.F. Stadler, S. Bonhoeffer, M. Tacker, P. Schuster (
 "Fast Folding and Comparison of RNA Secondary Structures",
 Monatshefte f. Chemie: 125, pp 167-188
 
+R. Lorenz, I.L. Hofacker, P.F. Stadler (2016),
+"RNA folding with hard and soft constraints",
+Algorithms for Molecular Biology 11:1 pp 1-13
+
 [REPORTING BUGS]
 
 If in doubt our program is right, nature is at fault.

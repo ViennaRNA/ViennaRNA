@@ -262,7 +262,6 @@ svm_load_model_string(char *modelString)
   char              *key, *value, *field;
   char              c;
   int               dataStart, elements;
-  int               isColon;
   struct svm_node   *x_space = NULL;
 
   model = (struct svm_model *)vrna_alloc(sizeof(struct svm_model));

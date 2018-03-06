@@ -1,0 +1,58 @@
+/**
+@page pf_algorithm  Partition Function and Equilibrium Probabilitiy Algorithm(s)
+
+@tableofcontents
+
+@section sec_pf_intro Equilibrium Ensemble Statistics
+
+In contrast to methods that compute the property of a single structure in the ensemble,
+e.g. @ref mfe_algorithm , the partition function algorithms always consider the entire
+equilibrium ensemble. For that purpose, the McCaskill algorithm @cite mccaskill:1990 and
+its variants can be used to efficiently compute
+
+- the partition function, and from that
+- various equilibrium probabilities, for instance base pair probabilities, probabilities of
+  individual structure motifs, and many more.
+
+The principal idea behind this approach is that in equilibrium, statistical mechanics
+and polymer theory tells us that the frequency or probability @f$p(s)@f$ of a particular
+state @f$s@f$ depends on its energy @f$E(s)@f$ and follows a Boltzmann distribution, i.e.
+@f[
+p(s) \propto e^{-\beta E(s)} \text{ with } \beta = \frac{1}{kT}
+@f]
+where @f$k \approx 1.987 \cdot 10^{-3} \frac{kcal}{mol~K}@f$ is the Boltzmann constant,
+and @f$T@f$ the thermodynamic temperature. From that relation, the actual probability
+of state @f$s@f$ can then be obtained using a proper scaling factor, the <em>canonical
+partition function</em>
+@f[
+Z = \sum_{s \in \Omega} e^{-\beta E(s)}
+@f]
+where @f$\Omega@f$ is the finite set of all states. Finally, the equilibrium probability
+of state @f$s@f$ can be computed as
+@f[
+p(s) = \frac{e^{-\beta E(s)}}{Z}
+@f]
+
+Instead of enumerating all states exhaustively to compute @f$Z@f$ one can apply the
+@ref sec_recursions again for an efficient computation in cubic time. An <em>outside</em>
+variant of the same recursions is then used to compute probabilities for base pairs,
+stretches of consecutive unpaired nucleotides, or structural motifs.
+
+@see  Further details of the Partition function and Base Pair Probability algorithm
+      can be obtained from McCaskill 1990 @cite mccaskill:1990
+
+@section sec_pf_api Partition Function and Equilibrium Probability API
+
+We implement a wide variety of variants of the partition function algorithm according to
+McCaskill 1990 @cite mccaskill:1990. See the corresponding submodules for specific implementation
+details.
+
+@see @ref pf_fold, @ref consensus_pf_fold, @ref pf_cofold, @ref up_cofold, @ref local_pf_fold,
+     @ref kl_neighborhood_pf
+
+@htmlonly
+<hr>
+Go to the next Chapter <a href="suboptimal_structures.html">&quot;Suboptimals and (other) Representative Structures&quot;</a>
+@endhtmlonly
+
+*/

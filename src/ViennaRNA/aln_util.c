@@ -577,7 +577,7 @@ copy_alignment(const char   **alignment,
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #define MAX_NUM_NAMES    500
 

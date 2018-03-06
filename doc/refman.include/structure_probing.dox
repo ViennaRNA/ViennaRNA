@@ -1,0 +1,21 @@
+/**
+
+@page structure_probing_data          Experimental Structure Probing Data
+
+@tableofcontents
+
+@section  structure_probing_intro Guide the Structure Prediction using Experimental Data
+
+@subsection structure_probing_SHAPE   SHAPE reactivities
+
+
+@section  structure_probing_api       Structure Probing Data API
+
+@see @ref probing_data, @ref SHAPE_reactivities, @ref pertubation
+
+@htmlonly
+<hr>
+Go to the next Chapter <a href="ligand_binding.html">&quot;Ligand Binding&quot;</a>
+@endhtmlonly
+
+*/

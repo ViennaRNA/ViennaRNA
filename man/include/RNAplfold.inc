@@ -19,6 +19,10 @@ Stephan H Bernhart, Ivo L Hofacker, Peter F Stadler, Ronny Lorenz
 
 [>REFERENCES]
 
+S. H. Bernhart, U. Mueckstein, and I.L. Hofacker (2011),
+"RNA Accessibility in cubic time",
+Algorithms Mol Biol. 6: 3.
+
 S. H. Bernhart, I.L. Hofacker, and P.F. Stadler (2006),
 "Local Base Pairing Probabilities in Large RNAs",
 Bioinformatics: 22, pp 614-615

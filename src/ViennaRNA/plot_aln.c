@@ -626,13 +626,3 @@ aliPS_color_aln(const char  *structure,
 
   return 0;
 }
-
-
-#ifdef VRNA_BACKWARD_COMPAT
-
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
-
-
-#endif

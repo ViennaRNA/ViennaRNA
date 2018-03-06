@@ -3,13 +3,15 @@
 #define VIENNA_RNA_PACKAGE_SUBOPT_H
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -18,7 +20,10 @@
  *  @brief RNAsubopt and density of states declarations
  */
 
-#define VRNA_BACKWARD_COMPAT
+/**
+ *  @addtogroup subopt_and_representatives
+ *  @brief Sample and enumerate suboptimal secondary structures from RNA sequence data.
+ */
 
 /**
  *  @brief Typename for the subopt solution list repesenting data structure #vrna_subopt_sol_s
@@ -42,7 +47,7 @@ typedef struct vrna_subopt_sol_s   vrna_subopt_solution_t;
  */
 typedef void (vrna_subopt_callback)(const char *stucture, float energy, void *data);
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief  Backward compatibility typedef for #vrna_subopt_sol_s
@@ -215,7 +220,7 @@ extern  int     density_of_states[MAXDOS+1];
 
 /** @} */ /* End of group dos */
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Returns list of subopt structures or writes to fp
@@ -234,14 +239,16 @@ extern  int     density_of_states[MAXDOS+1];
  *  @param  fp
  *  @return
  */
-DEPRECATED(SOLUTION *subopt (char *seq, char *structure, int delta, FILE *fp));
+DEPRECATED(SOLUTION *subopt (char *seq, char *structure, int delta, FILE *fp),
+"Use vrna_subopt() or vrna_subopt_cb() instead");
 
 /**
  *  @brief Returns list of subopt structures or writes to fp
  * 
  *  @ingroup subopt_wuchty
  */
-DEPRECATED(SOLUTION *subopt_par(char *seq, char *structure, vrna_param_t *parameters, int delta, int is_constrained, int is_circular, FILE *fp));
+DEPRECATED(SOLUTION *subopt_par(char *seq, char *structure, vrna_param_t *parameters, int delta, int is_constrained, int is_circular, FILE *fp),
+"Use vrna_subopt() or vrna_subopt_cb() instead");
 
 /**
  *  @brief Returns list of circular subopt structures or writes to fp
@@ -257,7 +264,8 @@ DEPRECATED(SOLUTION *subopt_par(char *seq, char *structure, vrna_param_t *parame
  *  @param  fp
  *  @return
  */
-DEPRECATED(SOLUTION *subopt_circ(char *seq, char *sequence, int delta, FILE *fp));
+DEPRECATED(SOLUTION *subopt_circ(char *seq, char *sequence, int delta, FILE *fp),
+"Use vrna_subopt() or vrna_subopt_cb() instead");
 
 /**
  *  @brief Compute Zuker type suboptimal structures
@@ -273,7 +281,8 @@ DEPRECATED(SOLUTION *subopt_circ(char *seq, char *sequence, int delta, FILE *fp)
  *  @param  string  RNA sequence
  *  @return         List of zuker suboptimal structures
  */
-DEPRECATED(SOLUTION  *zukersubopt(const char *string));
+DEPRECATED(SOLUTION  *zukersubopt(const char *string),
+"Use vrna_subopt_zuker() instead");
 
 /**
  *  @brief Compute Zuker type suboptimal structures
@@ -283,7 +292,8 @@ DEPRECATED(SOLUTION  *zukersubopt(const char *string));
  *  @deprecated use vrna_zukersubopt() instead
  *
  */
-DEPRECATED(SOLUTION  *zukersubopt_par(const char *string, vrna_param_t *parameters));
+DEPRECATED(SOLUTION  *zukersubopt_par(const char *string, vrna_param_t *parameters),
+"Use vrna_subopt_zuker() instead");
 
 
 #endif

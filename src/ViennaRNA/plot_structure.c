@@ -1210,7 +1210,7 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
   return 1; /* success */
 }
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/

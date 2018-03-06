@@ -55,12 +55,8 @@ PUBLIC unsigned short xsubi[3];
  # PRIVATE VARIABLES             #
  #################################
  */
-PRIVATE char          scale1[]  = "....,....1....,....2....,....3....,....4";
-PRIVATE char          scale2[]  = "....,....5....,....6....,....7....,....8";
-PRIVATE char          *inbuf    = NULL;
-PRIVATE char          *inbuf2   = NULL;
-PRIVATE unsigned int  typebuf2  = 0;
-
+PRIVATE char  scale1[]  = "....,....1....,....2....,....3....,....4";
+PRIVATE char  scale2[]  = "....,....5....,....6....,....7....,....8";
 
 /*
  #################################
@@ -503,7 +499,7 @@ rj_mix(uint32_t a,
 }
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/

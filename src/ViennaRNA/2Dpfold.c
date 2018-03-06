@@ -1246,6 +1246,9 @@ pf2D_circ(vrna_fold_compound_t *vc)
     int k_min_Q_M2, k_max_Q_M2, l_min_Q_M2, l_max_Q_M2;
     int k_min_post_m2, k_max_post_m2, *l_min_post_m2, *l_max_post_m2;
     int update_m2 = 0;
+
+    l_min_post_m2 = l_max_post_m2 = NULL;
+
     if (!matrices->Q_M2[k]) {
       update_m2   = 1;
       k_min_Q_M2  = l_min_Q_M2 = 0;
@@ -1353,6 +1356,11 @@ pf2D_circ(vrna_fold_compound_t *vc)
   int min_k_real, max_k_real, min_k_real_qcH, max_k_real_qcH, min_k_real_qcI, max_k_real_qcI, min_k_real_qcM, max_k_real_qcM;
   int *min_l_real, *max_l_real, *min_l_real_qcH, *max_l_real_qcH, *min_l_real_qcI, *max_l_real_qcI, *min_l_real_qcM, *max_l_real_qcM;
   int update_c, update_cH, update_cI, update_cM;
+
+  max_l_real_qcM = min_l_real_qcM = NULL;
+  max_l_real_qcI = min_l_real_qcI = NULL;
+  max_l_real_qcH = min_l_real_qcH = NULL;
+  max_l_real = min_l_real = NULL;
 
   update_c = update_cH = update_cI = update_cM = 0;
 
@@ -1926,6 +1934,8 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
   Q_rem   = matrices->Q_rem;
   Q_B_rem = matrices->Q_B_rem;
 
+  cnt1 = cnt2 = cnt3 = cnt4 = -1;
+
   if (md->circ) {
     if (n != length)
       vrna_message_error("vrna_pbacktrack_TwoD@2Dfold.c: cotranscriptional backtracking for circular RNAs not supported!");
@@ -2269,11 +2279,7 @@ pbacktrack_circ(vrna_fold_compound_t  *vc,
              **Q_c, **Q_cH, **Q_cI, **Q_cM,
              Q_c_rem, Q_cH_rem, Q_cI_rem, Q_cM_rem;
   vrna_mx_pf_t *matrices;
-  vrna_md_t *md;
-  vrna_exp_param_t *pf_params;
 
-  pf_params     = vc->exp_params;
-  md            = &(pf_params->model_details);
   matrices      = vc->exp_matrices;
   n             = vc->length;
   maxD1         = vc->maxD1;
@@ -2892,11 +2898,9 @@ backtrack_qcM(vrna_fold_compound_t  *vc,
              ***Q_M, ***Q_M2, **Q_cM,
              *Q_M_rem, *Q_M2_rem, Q_cM_rem;
   vrna_exp_param_t *pf_params;
-  vrna_md_t *md;
   vrna_mx_pf_t *matrices;
 
   pf_params     = vc->exp_params;
-  md            = &(pf_params->model_details);
   matrices      = vc->exp_matrices;
   n             = vc->length;
   my_iindx      = vc->iindx;
@@ -3077,15 +3081,9 @@ backtrack_qm2(vrna_fold_compound_t  *vc,
   FLT_OR_DBL r, qt, qot,
              ***Q_M2, ***Q_M1,
              *Q_M2_rem, *Q_M1_rem;
-
-  vrna_exp_param_t *pf_params;      /* holds all [unscaled] pf parameters */
-  vrna_md_t *md;
   vrna_mx_pf_t *matrices;
 
-  pf_params = vc->exp_params;
-  md        = &(pf_params->model_details);
   matrices  = vc->exp_matrices;
-
   n             = vc->length;
   my_iindx      = vc->iindx;
   jindx         = vc->jindx;
@@ -3300,6 +3298,8 @@ backtrack(vrna_fold_compound_t  *vc,
   Q_M_rem   = matrices->Q_M_rem;
   Q_M1_rem  = matrices->Q_M1_rem;
 
+  cnt1 = cnt2 = cnt3 = cnt4 = -1;
+
   do {
     double r, qbt1 = 0.;
     unsigned int k, l, u, u1;
@@ -3310,6 +3310,7 @@ backtrack(vrna_fold_compound_t  *vc,
 
     r   = 0.;
     ij  = my_iindx[i] - j;
+    l   = INF;
 
     if (d1 == -1) {
       r = vrna_urn() * Q_B_rem[ij];
@@ -3658,11 +3659,9 @@ backtrack_qm1(vrna_fold_compound_t  *vc,
   int *my_iindx, *jindx, cnt1, cnt2;
 
   vrna_exp_param_t *pf_params;      /* holds all [unscaled] pf parameters */
-  vrna_md_t *md;
   vrna_mx_pf_t *matrices;
 
   pf_params     = vc->exp_params;
-  md            = &(pf_params->model_details);
   matrices      = vc->exp_matrices;
   maxD1         = vc->maxD1;
   maxD2         = vc->maxD2;
@@ -3697,6 +3696,7 @@ backtrack_qm1(vrna_fold_compound_t  *vc,
   int type;
 
   r = 0.;
+  cnt1 = cnt2 = -1;
 
   /* find qm1 contribution */
   if (d1 == -1) {
@@ -3779,11 +3779,9 @@ backtrack_qm(vrna_fold_compound_t *vc,
   int *my_iindx, *jindx, cnt1, cnt2, cnt3, cnt4;
 
   vrna_exp_param_t *pf_params;      /* holds all [unscaled] pf parameters */
-  vrna_md_t *md;
   vrna_mx_pf_t *matrices;
 
   pf_params     = vc->exp_params;
-  md            = &(pf_params->model_details);
   matrices      = vc->exp_matrices;
   maxD1         = vc->maxD1;
   maxD2         = vc->maxD2;
@@ -3813,6 +3811,10 @@ backtrack_qm(vrna_fold_compound_t *vc,
 
   double qmt = 0;
   unsigned int k;
+
+  cnt1 = cnt2 = cnt3 = cnt4 = -1;
+  r = 0.;
+
   while (j > i) {
     /* now backtrack  [i ... j] in qm[] */
 
@@ -4322,8 +4324,6 @@ get_TwoDpfold_variables(const char  *seq,
 {
   vrna_md_t md;
   TwoDpfold_vars *vars;
-  vrna_fold_compound_t *c;
-  vrna_mx_mfe_t *m;
 
   set_model_details(&md);
   md.circ = circ;

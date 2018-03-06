@@ -215,6 +215,76 @@ ubf_eval_int_loop(int           i,
 }
 
 
+PRIVATE INLINE int
+ubf_eval_int_loop2(int            i,
+                   int            j,
+                   int            p,
+                   int            q,
+                   int            i1,
+                   int            j1,
+                   int            p1,
+                   int            q1,
+                   short          si,
+                   short          sj,
+                   short          sp,
+                   short          sq,
+                   unsigned char  type,
+                   unsigned char  type_2,
+                   int            *rtype,
+                   int            ij,
+                   unsigned int   *sn,
+                   unsigned int   *ss,
+                   vrna_param_t   *P,
+                   vrna_sc_t      *sc)
+{
+  int energy, u1, u2;
+
+  u1  = p1 - i;
+  u2  = j1 - q;
+
+  if ((sn[i] == sn[p]) && (sn[q] == sn[j])) {
+    /* regular interior loop */
+    energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
+  } else {
+    /* interior loop like cofold structure */
+    short Si, Sj;
+    Si      = (sn[i1] == sn[i]) ? si : -1;
+    Sj      = (sn[j] == sn[j1]) ? sj : -1;
+    energy  = E_IntLoop_Co(rtype[type], rtype[type_2],
+                           i, j, p, q,
+                           ss[1],
+                           Si, Sj,
+                           sp, sq,
+                           P->model_details.dangles,
+                           P);
+  }
+
+  /* add soft constraints */
+  if (sc) {
+    if (sc->energy_up)
+      energy += sc->energy_up[i1][u1]
+                + sc->energy_up[q1][u2];
+
+    if (sc->energy_bp)
+      energy += sc->energy_bp[ij];
+
+    if (sc->energy_stack)
+      if (u1 + u2 == 0) {
+        int a = sc->energy_stack[i]
+                + sc->energy_stack[p]
+                + sc->energy_stack[q]
+                + sc->energy_stack[j];
+        energy += a;
+      }
+
+    if (sc->f)
+      energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+  }
+
+  return energy;
+}
+
+
 /*
  *  ugly but fast exterior interior loop evaluation
  *
@@ -542,6 +612,7 @@ vrna_eval_int_loop(vrna_fold_compound_t *vc,
                    int                  l);
 
 
+/* j < i indicates circular folding, i.e. collect contributions for exterior int loops */
 FLT_OR_DBL
 vrna_exp_E_int_loop(vrna_fold_compound_t  *vc,
                     int                   i,

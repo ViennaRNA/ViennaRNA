@@ -228,8 +228,11 @@ TAB_SIZE               = 2
 # newlines.
 
 ALIASES                =
-ALIASES               += "scripting=\xrefitem wrappers \"SWIG Wrapper Notes\" \"SWIG Wrapper Notes\""
-ALIASES               += "callback=\xrefitem callbacks \"Notes on Callback Functions\" \"Notes on Callback Functions\""
+ALIASES               += scripting="\xrefitem wrappers \"SWIG Wrapper Notes\" \"SWIG Wrapper Notes\""
+ALIASES               += callback="\xrefitem callbacks \"Notes on Callback Functions\" \"Notes on Callback Functions\""
+ALIASES               += examplefileC{1}="\include \1 \see <tt>examples/\1</tt> in the source code tarball"
+ALIASES               += examplefilePerl{1}="\include \1 \see <tt>examples/Perl/\1</tt> in the source code tarball"
+ALIASES               += examplefilePython{1}="\include \1 \see <tt>examples/Python/\1</tt> in the source code tarball"
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -677,7 +680,7 @@ FILE_VERSION_FILTER    =
 # DoxygenLayout.xml, doxygen will parse it automatically even if the LAYOUT_FILE
 # tag is left empty.
 
-LAYOUT_FILE            =
+LAYOUT_FILE            = DoxygenLayout.xml
 
 # The CITE_BIB_FILES tag can be used to specify one or more bib files containing
 # the reference definitions. This must be a list of .bib files. The .bib
@@ -828,7 +831,13 @@ EXCLUDE_SYMBOLS        =
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           = @top_srcdir@/examples @top_srcdir@/src/bin @top_srcdir@/src/ViennaRNA
+EXAMPLE_PATH           = @top_srcdir@/examples \
+                         @top_srcdir@/examples/Perl5 \
+                         @top_srcdir@/examples/Python \
+                         @top_srcdir@/examples/files \
+                         @top_srcdir@/src/bin \
+                         @top_srcdir@/src/ViennaRNA \
+                         @top_srcdir@/
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and
@@ -1156,7 +1165,7 @@ HTML_DYNAMIC_SECTIONS  = YES
 # Minimum value: 0, maximum value: 9999, default value: 100.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_INDEX_NUM_ENTRIES = 100
+HTML_INDEX_NUM_ENTRIES = 1
 
 # If the GENERATE_DOCSET tag is set to YES, additional index files will be
 # generated that can be used as input for Apple's Xcode 3 integrated development
@@ -1355,7 +1364,7 @@ ECLIPSE_DOC_ID         = org.doxygen.Project
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-DISABLE_INDEX          = NO
+DISABLE_INDEX          = YES
 
 # The GENERATE_TREEVIEW tag is used to specify whether a tree-like index
 # structure should be generated to display hierarchical information. If the tag
@@ -1498,7 +1507,7 @@ SEARCHENGINE           = YES
 # The default value is: NO.
 # This tag requires that the tag SEARCHENGINE is set to YES.
 
-SERVER_BASED_SEARCH    = NO
+SERVER_BASED_SEARCH    = YES
 
 # When EXTERNAL_SEARCH tag is enabled doxygen will no longer generate the PHP
 # script for searching. Instead the search results are written to an XML file
@@ -1514,7 +1523,7 @@ SERVER_BASED_SEARCH    = NO
 # The default value is: NO.
 # This tag requires that the tag SEARCHENGINE is set to YES.
 
-EXTERNAL_SEARCH        = NO
+EXTERNAL_SEARCH        = YES
 
 # The SEARCHENGINE_URL should point to a search engine hosted by a web server
 # which will return the search results when EXTERNAL_SEARCH is enabled.
