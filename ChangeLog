@@ -1,3 +1,32 @@
+v2.4.4
+  * Change verbose output for soft-constraints derived ligand binding motifs in RNAfold
+  * Allow for lowercase letters in ct2db input
+  * Fix bug in interior-like G-Quadruplex MFE computation for single sequences
+  * Fix autoconf switch to enable deprecation warnings
+  * Fix bug in eval_int_loop() that prevented propagation of energy evaluation for loops with nick in strands
+  * Fix several bugs for SHAPE reactivity related comparative partition function computations
+  * Fix annotation of PostScript output for soft-constraint derived ligand binding motifs in RNAfold
+  * Fix constraint indices for multibranch loops in unpaired probability computations of LPfold.c
+  * Fix dangling end contributions in comparative partition function for exterior loops
+  * API: Add simplified interface for vrna_pf_dimer()
+  * API: Move concentraton dependent implementation for co-folding to separate compile unit
+  * API: Add new API functions for exterior loop evaluations
+  * API: Add simplified interfaces for energy evaluation with G-Quadruplexes and circular RNAs
+  * API: Add findpath functions that allow for specification of an upper bound for the saddle point
+  * Add configure-time linker check for Python3 interface
+  * Add automatic CPP suggestions for deprecated function substitutes
+  * Major restucturing and constraints feature additions in loop type dependent energy evaluation functions
+  * Major restructuring in MFE implementations
+  * Major restructuring in PF implementations
+  * Minor fixes in Boltzmann sampling implementation
+  * SWIG: Fix wrappers for findpath() implementation
+  * SWIG: Add tons of energy evaluation wrappers
+  * SWIG: Fix configure-time check of Perl5 interface build capabilities
+  * SWIG: Wrap functions from walk.c and neighbor.c
+  * DOC: Add some missing references to manpages of executable programs
+  * REFMAN: Heavy re-ordering of the RNAlib reference manual
+
+
 v2.4.3
   * Fix handling of dangling end contribution at sequence boundaries for sliding window base pair probability computations
   * Fix handling of base pair hard constraints in sliding-window implementations
