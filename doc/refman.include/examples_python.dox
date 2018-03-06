@@ -1,0 +1,17 @@
+/**
+
+@page  examples_python   Python Examples
+
+MFE Prediction (flat interface)
+-------------------------------
+@include  helloworld_mfe.py
+
+MFE Prediction (object oriented interface)
+------------------------------------------
+@include  oo_example1.py
+
+@include  subopt.py
+
+@include  maximum_matching.py
+
+*/

@@ -81,7 +81,7 @@ that it is installed and its directory is included in the search path.
         #
         # final check to see if everything compiles alright
         #
-        AC_MSG_CHECKING([consistency of all components of python development environment])
+        AC_MSG_CHECKING([for ability to link against Python2 library])
         # save current global flags
         ac_save_LIBS="$LIBS"
         ac_save_CFLAGS="$CFLAGS"
@@ -93,16 +93,16 @@ that it is installed and its directory is included in the search path.
         AC_LINK_IFELSE([
                 AC_LANG_PROGRAM([[#include <Python.h>]],
                                 [[Py_Initialize();]])
-                ],[pythonexists=yes],[pythonexists=no])
+                ],[python2_link_success=yes],[python2_link_success=no])
         AC_LANG_POP([C])
         # turn back to default flags
         CPPFLAGS="$ac_save_CPPFLAGS"
         LIBS="$ac_save_LIBS"
         CFLAGS="$ac_save_CFLAGS"
 
-        AC_MSG_RESULT([$pythonexists])
+        AC_MSG_RESULT([$python2_link_success])
 
-        if test ! "x$pythonexists" = "xyes"; then
+        if test ! "x$python2_link_success" = "xyes"; then
           AC_MSG_FAILURE([
   Could not link test program to Python2. Maybe the main Python2 library has been
   installed in some non-standard library path. If so, pass it to configure,
@@ -110,7 +110,7 @@ that it is installed and its directory is included in the search path.
   Example: ./configure LIBS="-L/usr/non-standard-path/python/lib"
   ============================================================================
    ERROR!
-   You probably have to install the development version of the Python package
+   You probably have to install the development version of the Python 2 package
    for your distribution.  The exact name of this package varies among them.
   ============================================================================
           ])

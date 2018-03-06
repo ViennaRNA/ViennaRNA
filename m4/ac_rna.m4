@@ -137,7 +137,7 @@ AS_IF([test $with_python = "yes"],[
   ],[
     _python2_arch_dir=""
     _python2_lib_dir=""
-    _python2_install="Not to be installed"
+    _python2_install="Not to be installed $python2_enabled_but_failed"
 ])
 AS_IF([test $with_python3 = "yes"],[
   eval _python3_arch_dir=$(eval printf "%s" ${py3execdir})
@@ -145,7 +145,7 @@ AS_IF([test $with_python3 = "yes"],[
   ],[
     _python3_arch_dir=""
     _python3_lib_dir=""
-    _python3_install="Not to be installed"
+    _python3_install="Not to be installed $python3_enabled_but_failed"
 ])
 AS_IF([test "x$enable_universal_binary" != "xno"],[
   _osx_arch=$osx_arch

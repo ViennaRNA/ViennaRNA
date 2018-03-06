@@ -1,0 +1,18 @@
+/**
+
+@page structure_motifs  (Tertiary) Structure Motifs
+
+@tableofcontents
+
+@section  structure_motifs_intro  Incorporating Higher-Order (Tertiary) Structure Motifs
+
+@section  structure_motif_gquad   RNA G-Quadruplexes
+
+@section  structure_motif_api   (Tertiary) Structure Motif API
+
+@htmlonly
+<hr>
+Go to the next Chapter <a href="basic_data_structures.html">&quot;Basic Data Structrues&quot;</a>
+@endhtmlonly
+
+*/

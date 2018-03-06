@@ -43,11 +43,8 @@ typedef float FLT_OR_DBL;
 typedef double FLT_OR_DBL;
 #endif
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
 
-
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* the following typedefs are for backward compatibility only */
 

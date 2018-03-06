@@ -1,0 +1,101 @@
+/**
+
+@page  examples_c  C Examples
+
+@tableofcontents
+
+@section  ex_c_simple Hello World Examples
+
+helloworld_mfe.c
+----------------
+
+The following is an example showing the minimal requirements to
+compute the Minimum Free Energy (MFE) and corresponding
+secondary structure of an RNA sequence
+
+@examplefileC{helloworld_mfe.c}
+
+
+helloworld_mfe_comparative.c
+----------------------------
+
+Instead of using a single sequence as done above, this example predicts
+a consensus structure for a multiple sequence alignment
+
+@examplefileC{helloworld_mfe_comparative.c}
+
+
+helloworld_probabilities.c
+--------------------------
+
+This example shows how to compute the partition function
+and base pair probabilities with minimal implementation
+effort.
+
+@examplefileC{helloworld_probabilities.c}
+
+
+@section  ex_c_fc  First Steps with the Fold Compound
+
+fold_compound_mfe.c
+-------------------
+
+Instead of calling the simple MFE folding interface vrna_fold(), this example
+shows how to first create a #vrna_fold_compound_t container with the RNA sequence
+to finally compute the MFE using this container. This is especially useful if
+non-default model settings are applied or the dynamic programming (DP) matrices
+of the MFE prediction are required for post-processing operations, or other tasks
+on the same sequence will be performed.
+
+@examplefileC{fold_compound_mfe.c}
+
+
+fold_compound_md.c
+------------------
+
+In the following, we change the model settings (model details) to a temperature
+of 25 Degree Celcius, and activate G-Quadruplex precition.
+
+@examplefileC{fold_compound_md.c}
+
+
+@section  ex_c_callbacks      Writing Callback Functions
+
+callback_subopt.c
+-----------------
+
+Here is a basic example how to use the callback mechanism in vrna_subopt_cb().
+It simply defines a callback function (see interface definition for ::vrna_subopt_callback)
+that prints the result and increases a counter variable.
+
+@examplefileC{callback_subopt.c}
+
+
+@section  ex_c_sc             Application of Soft Constraints
+
+soft_constraints_up.c
+---------------------
+
+In this example, a random RNA sequence is generated to predict its MFE under the
+constraint that a particular nucleotide receives an additional bonus energy if it
+remains unpaired.
+
+@examplefileC{soft_constraints_up.c}
+
+
+@section  ex_c_other          Other Examples
+
+example1.c
+----------
+
+A more extensive example including MFE, Partition Function, and Centroid structure
+prediction.
+
+@examplefileC{example1.c}
+
+@section  ex_c_deprecated     Deprecated Examples
+
+@examplefileC{example_old.c}
+
+
+*/

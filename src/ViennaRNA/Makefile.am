@@ -15,6 +15,7 @@ noinst_LTLIBRARIES =  libRNA_conv.la \
                       libRNA_plotting.la \
                       libRNA_params.la \
                       libRNA_loops.la \
+                      libRNA_eval.la \
                       libRNA_special_const.la
 
 # where to install the headers on the system
@@ -30,6 +31,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_utils.la \
     libRNA_plotting.la \
     libRNA_params.la \
+    libRNA_eval.la \
     libRNA_loops.la
 
 # Dummy C++ source to cause C++ linking.
@@ -77,6 +79,7 @@ pkginclude_HEADERS =  \
     alifold.h \
     aln_util.h \
     part_func_co.h \
+    concentrations.h \
     ProfileAln.h \
     LPfold.h \
     Lfold.h \
@@ -124,6 +127,7 @@ pkginclude_HEADERS =  \
     constraints_hard.h \
     constraints_soft.h \
     alphabet.h \
+    sequence.h \
     grammar.h \
     structured_domains.h \
     unstructured_domains.h \
@@ -143,6 +147,7 @@ libRNA_conv_la_SOURCES = \
     dist_vars.c \
     data_structures.c \
     part_func.c \
+    pf_fold.c \
     treedist.c \
     inverse.c \
     ProfileDist.c \
@@ -156,6 +161,7 @@ libRNA_conv_la_SOURCES = \
     Lfold.c \
     cofold.c \
     part_func_co.c \
+    concentrations.c \
     ProfileAln.c \
     duplex.c \
     alifold.c \
@@ -176,7 +182,6 @@ libRNA_conv_la_SOURCES = \
     snoop.c \
     move_set.c \
     gquad.c \
-    eval.c \
     perturbation_fold.c \
     centroid.c \
     model.c \
@@ -187,7 +192,12 @@ libRNA_conv_la_SOURCES = \
     walk.c \
     ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC} \
     alphabet.c \
+    sequence.c \
     unstructured_domains.c
+
+libRNA_eval_la_SOURCES = \
+    eval.c \
+    eval_wrappers.c
 
 libRNA_constraints_la_SOURCES = \
     constraints.c \
@@ -260,9 +270,9 @@ noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
 nodist_pkginclude_HEADERS = vrna_config.h
 
 EXTRA_DIST =  $(pkginclude_HEADERS) \
-              circfold.inc \
-              alicircfold.inc \
-              exterior_loops.inc \
+              exterior_loops_hc.inc \
+              exterior_loops_sc.inc \
+              exterior_loops_sc_pf.inc \
               hairpin_loops.inc \
               interior_loops.inc \
               multibranch_loops.inc \

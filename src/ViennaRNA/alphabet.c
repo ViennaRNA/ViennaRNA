@@ -158,7 +158,8 @@ PUBLIC void
 vrna_ptypes_prepare(vrna_fold_compound_t  *fc,
                     unsigned int          options)
 {
-  int i;
+  if (!fc)
+    return;
 
   if (options & VRNA_OPTION_MFE) {
     switch (fc->type) {
@@ -192,7 +193,7 @@ vrna_ptypes_prepare(vrna_fold_compound_t  *fc,
           if (!fc->ptype)
             fc->ptype = vrna_ptypes(fc->sequence_encoding2, &(fc->exp_params->model_details));
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
           /* backward compatibility ptypes */
           if (!fc->ptype_pf_compat)
             fc->ptype_pf_compat = get_ptypes(fc->sequence_encoding2,
@@ -443,6 +444,38 @@ vrna_aln_encode(const char    *sequence,
 }
 
 
+PUBLIC unsigned int
+vrna_get_ptype_md(int       i,
+                  int       j,
+                  vrna_md_t *md)
+{
+  unsigned int tt = (unsigned int)md->pair[i][j];
+
+  return (tt == 0) ? 7 : tt;
+}
+
+
+PUBLIC unsigned int
+vrna_get_ptype(int  ij,
+               char *ptype)
+{
+  unsigned int tt = (unsigned int)ptype[ij];
+
+  return (tt == 0) ? 7 : tt;
+}
+
+
+PUBLIC unsigned int
+vrna_get_ptype_window(int   i,
+                      int   j,
+                      char  **ptype)
+{
+  unsigned int tt = (unsigned int)ptype[i][j - i];
+
+  return (tt == 0) ? 7 : tt;
+}
+
+
 PRIVATE char *
 wrap_get_ptypes(const short *S,
                 vrna_md_t   *md)
@@ -483,7 +516,7 @@ wrap_get_ptypes(const short *S,
 }
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/

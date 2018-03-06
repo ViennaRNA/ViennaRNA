@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <string.h>
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/exterior_loops.h"
@@ -152,7 +153,8 @@ BT_stack(vrna_fold_compound_t *vc,
   char                      *ptype;
   unsigned char             eval_loop;
   unsigned int              *sn;
-  int                       ij, p, q, *idx, *my_c, *rtype, cp;
+  unsigned int              *ss;
+  int                       ij, p, q, *idx, *my_c, *rtype;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
@@ -160,28 +162,21 @@ BT_stack(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  cp    = vc->cutpoint;
-  idx   = vc->jindx;
-  P     = vc->params;
-  md    = &(P->model_details);
-  hc    = vc->hc;
-  sc    = vc->sc;
-  sn    = vc->strand_number;
-  my_c  = vc->matrices->c;
-  ij    = idx[*j] + *i;
-  ptype = vc->ptype;
-  type  = (unsigned char)ptype[ij];
-  rtype = &(md->rtype[0]);
-  p     = *i + 1;
-  q     = *j - 1;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  idx       = vc->jindx;
+  P         = vc->params;
+  md        = &(P->model_details);
+  hc        = vc->hc;
+  sc        = vc->sc;
+  sn        = vc->strand_number;
+  ss        = vc->strand_start;
+  my_c      = vc->matrices->c;
+  ij        = idx[*j] + *i;
+  ptype     = vc->ptype;
+  type      = (unsigned char)ptype[ij];
+  rtype     = &(md->rtype[0]);
+  p         = *i + 1;
+  q         = *j - 1;
+  evaluate  = prepare_hc_default(vc, &hc_dat_local);
 
   if (my_c[ij] == *en) {
     /*  always true, if (i.j) closes canonical structure,
@@ -211,7 +206,7 @@ BT_stack(vrna_fold_compound_t *vc,
         sj  = (sn[*j] == sn[q]) ? S[q] : -1;
         *en -= E_IntLoop_Co(rtype[type], rtype[type_2],
                             *i, *j, p, q,
-                            cp,
+                            ss[1],
                             si, sj,
                             S[p - 1], S[q + 1],
                             md->dangles,
@@ -264,25 +259,18 @@ BT_stack_comparative(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  n_seq = vc->n_seq;
-  S     = vc->S;
-  P     = vc->params;
-  md    = &(P->model_details);
-  hc    = vc->hc;
-  scs   = vc->scs;
-  c     = vc->matrices->c;
-  idx   = vc->jindx;
-  ij    = idx[*j] + *i;
-  p     = *i + 1;
-  q     = *j - 1;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  n_seq     = vc->n_seq;
+  S         = vc->S;
+  P         = vc->params;
+  md        = &(P->model_details);
+  hc        = vc->hc;
+  scs       = vc->scs;
+  c         = vc->matrices->c;
+  idx       = vc->jindx;
+  ij        = idx[*j] + *i;
+  p         = *i + 1;
+  q         = *j - 1;
+  evaluate  = prepare_hc_default(vc, &hc_dat_local);
 
   if (c[ij] == *en) {
     /*  always true, if (i.j) closes canonical structure,
@@ -293,8 +281,8 @@ BT_stack_comparative(vrna_fold_compound_t *vc,
 
     if (eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
       for (ss = 0; ss < n_seq; ss++) {
-        type    = get_pair_type(S[ss][*i], S[ss][*j], md);
-        type_2  = get_pair_type(S[ss][q], S[ss][p], md);
+        type    = vrna_get_ptype_md(S[ss][*i], S[ss][*j], md);
+        type_2  = vrna_get_ptype_md(S[ss][q], S[ss][p], md);
         *en     -= P->stack[type][type_2];
       }
 
@@ -346,24 +334,17 @@ BT_stack_window(vrna_fold_compound_t  *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  P     = vc->params;
-  md    = &(P->model_details);
-  hc    = vc->hc;
-  sc    = vc->sc;
-  c     = vc->matrices->c_local;
-  ptype = vc->ptype_local;
-  type  = (unsigned char)ptype[*i][*j - *i];
-  rtype = &(md->rtype[0]);
-  p     = *i + 1;
-  q     = *j - 1;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  P         = vc->params;
+  md        = &(P->model_details);
+  hc        = vc->hc;
+  sc        = vc->sc;
+  c         = vc->matrices->c_local;
+  ptype     = vc->ptype_local;
+  type      = (unsigned char)ptype[*i][*j - *i];
+  rtype     = &(md->rtype[0]);
+  p         = *i + 1;
+  q         = *j - 1;
+  evaluate  = prepare_hc_default(vc, &hc_dat_local);
 
   if (c[*i][*j - *i] == *en) {
     /*  always true, if (i.j) closes canonical structure,
@@ -427,23 +408,16 @@ BT_stack_window_comparative(vrna_fold_compound_t  *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  n_seq = vc->n_seq;
-  S     = vc->S;
-  P     = vc->params;
-  md    = &(P->model_details);
-  hc    = vc->hc;
-  scs   = vc->scs;
-  c     = vc->matrices->c_local;
-  p     = *i + 1;
-  q     = *j - 1;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  n_seq     = vc->n_seq;
+  S         = vc->S;
+  P         = vc->params;
+  md        = &(P->model_details);
+  hc        = vc->hc;
+  scs       = vc->scs;
+  c         = vc->matrices->c_local;
+  p         = *i + 1;
+  q         = *j - 1;
+  evaluate  = prepare_hc_default(vc, &hc_dat_local);
 
   if (c[*i][*j - *i] == *en) {
     /*  always true, if (i.j) closes canonical structure,
@@ -454,8 +428,8 @@ BT_stack_window_comparative(vrna_fold_compound_t  *vc,
 
     if (eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
       for (ss = 0; ss < n_seq; ss++) {
-        type    = get_pair_type(S[ss][*i], S[ss][*j], md);
-        type_2  = get_pair_type(S[ss][q], S[ss][p], md);
+        type    = vrna_get_ptype_md(S[ss][*i], S[ss][*j], md);
+        type_2  = vrna_get_ptype_md(S[ss][q], S[ss][p], md);
         *en     -= P->stack[type][type_2];
       }
 
@@ -559,14 +533,7 @@ BT_int_loop(vrna_fold_compound_t  *vc,
   noGUclosure = md->noGUclosure;
   no_close    = (((type == 3) || (type == 4)) && noGUclosure);
   domains_up  = vc->domains_up;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate    = prepare_hc_default(vc, &hc_dat_local);
 
   if (hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
     if (type == 0)
@@ -732,34 +699,27 @@ BT_int_loop_comparative(vrna_fold_compound_t  *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  n_seq   = vc->n_seq;
-  S_cons  = vc->S_cons;
-  S       = vc->S;
-  S5      = vc->S5;
-  S3      = vc->S3;
-  a2s     = vc->a2s;
-  idx     = vc->jindx;
-  P       = vc->params;
-  md      = &(P->model_details);
-  hc      = vc->hc;
-  scs     = vc->scs;
-  my_c    = vc->matrices->c;
-  ggg     = vc->matrices->ggg;
-  turn    = md->min_loop_size;
-  ij      = idx[*j] + *i;
-
-  if (vc->hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = vc->hc->f;
-    hc_dat_local.hc_dat = vc->hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  n_seq     = vc->n_seq;
+  S_cons    = vc->S_cons;
+  S         = vc->S;
+  S5        = vc->S5;
+  S3        = vc->S3;
+  a2s       = vc->a2s;
+  idx       = vc->jindx;
+  P         = vc->params;
+  md        = &(P->model_details);
+  hc        = vc->hc;
+  scs       = vc->scs;
+  my_c      = vc->matrices->c;
+  ggg       = vc->matrices->ggg;
+  turn      = md->min_loop_size;
+  ij        = idx[*j] + *i;
+  evaluate  = prepare_hc_default(vc, &hc_dat_local);
 
   if (hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
     type = (int *)vrna_alloc(n_seq * sizeof(int));
     for (ss = 0; ss < n_seq; ss++)
-      type[ss] = get_pair_type(S[ss][*i], S[ss][*j], md);
+      type[ss] = vrna_get_ptype_md(S[ss][*i], S[ss][*j], md);
 
     for (p = *i + 1; p <= MIN2(*j - 2 - turn, *i + MAXLOOP + 1); p++) {
       minq = *j - *i + p - MAXLOOP - 2;
@@ -781,7 +741,7 @@ BT_int_loop_comparative(vrna_fold_compound_t  *vc,
         for (ss = energy = 0; ss < n_seq; ss++) {
           int u1  = a2s[ss][p - 1] - a2s[ss][*i];
           int u2  = a2s[ss][*j - 1] - a2s[ss][q];
-          type_2  = get_pair_type(S[ss][q], S[ss][p], md); /* q,p not p,q */
+          type_2  = vrna_get_ptype_md(S[ss][q], S[ss][p], md); /* q,p not p,q */
           energy  += E_IntLoop(u1,
                                u2,
                                type[ss],
@@ -861,7 +821,7 @@ BT_int_loop_comparative(vrna_fold_compound_t  *vc,
      */
     type = (int *)vrna_alloc(n_seq * sizeof(int));
     for (ss = 0; ss < n_seq; ss++)
-      type[ss] = get_pair_type(S[ss][*i], S[ss][*j], md);
+      type[ss] = vrna_get_ptype_md(S[ss][*i], S[ss][*j], md);
 
     if (backtrack_GQuad_IntLoop_comparative(en, *i, *j, type, S_cons, S5, S3, ggg, idx, &p, &q,
                                             n_seq,
@@ -917,14 +877,7 @@ BT_int_loop_window(vrna_fold_compound_t *vc,
   rtype       = &(md->rtype[0]);
   type        = ptype[*i][*j - *i];
   no_close    = (((type == 3) || (type == 4)) && noGUclosure);
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  evaluate    = prepare_hc_default(vc, &hc_dat_local);
 
   if (hc->matrix_local[*i][*j - *i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
     if (type == 0)
@@ -1061,33 +1014,26 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  n_seq   = vc->n_seq;
-  S_cons  = vc->S_cons;
-  S       = vc->S;
-  S5      = vc->S5;       /* S5[s][i] holds next base 5' of i in sequence s */
-  S3      = vc->S3;       /* Sl[s][i] holds next base 3' of i in sequence s */
-  a2s     = vc->a2s;
-  P       = vc->params;
-  md      = &(P->model_details);
-  hc      = vc->hc;
-  scs     = vc->scs;
-  c       = vc->matrices->c_local;
-  ggg     = vc->matrices->ggg_local;
-  turn    = md->min_loop_size;
-  rtype   = &(md->rtype[0]);
-
-  if (hc->f) {
-    evaluate            = &hc_default_user;
-    hc_dat_local.hc_f   = hc->f;
-    hc_dat_local.hc_dat = hc->data;
-  } else {
-    evaluate = &hc_default;
-  }
+  n_seq     = vc->n_seq;
+  S_cons    = vc->S_cons;
+  S         = vc->S;
+  S5        = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
+  S3        = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
+  a2s       = vc->a2s;
+  P         = vc->params;
+  md        = &(P->model_details);
+  hc        = vc->hc;
+  scs       = vc->scs;
+  c         = vc->matrices->c_local;
+  ggg       = vc->matrices->ggg_local;
+  turn      = md->min_loop_size;
+  rtype     = &(md->rtype[0]);
+  evaluate  = prepare_hc_default(vc, &hc_dat_local);
 
   if (hc->matrix_local[*i][*j - *i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
     type = (int *)vrna_alloc(n_seq * sizeof(int));
     for (ss = 0; ss < n_seq; ss++)
-      type[ss] = get_pair_type(S[ss][*i], S[ss][*j], md);
+      type[ss] = vrna_get_ptype_md(S[ss][*i], S[ss][*j], md);
 
     for (p = *i + 1; p <= MIN2(*j - 2 - turn, *i + MAXLOOP + 1); p++) {
       minq = *j - *i + p - MAXLOOP - 2;
@@ -1107,13 +1053,13 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
           continue;
 
         for (ss = energy = 0; ss < n_seq; ss++) {
-          type_2  = get_pair_type(S[ss][q], S[ss][p], md); /* q,p not p,q! */
+          type_2  = vrna_get_ptype_md(S[ss][q], S[ss][p], md); /* q,p not p,q! */
           sc      = (scs && scs[ss]) ? scs[ss] : NULL;
           energy  += ubf_eval_int_loop_comparative(*i, *j, p, q,
                                                    type[ss],
                                                    type_2,
                                                    rtype,
-                                                   0, -1,
+                                                   0,
                                                    P,
                                                    S[ss],
                                                    S5[ss],
@@ -1159,7 +1105,7 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
      */
     type = (int *)vrna_alloc(n_seq * sizeof(int));
     for (ss = 0; ss < n_seq; ss++)
-      type[ss] = get_pair_type(S[ss][*i], S[ss][*j], md);
+      type[ss] = vrna_get_ptype_md(S[ss][*i], S[ss][*j], md);
 
     if (backtrack_GQuad_IntLoop_L_comparative(en, *i, *j, type, S_cons, S5, S3, ggg, &p, &q, n_seq,
                                               P)) {

@@ -14,16 +14,6 @@
  *  \brief Here all all declarations of the global variables used throughout RNAlib
  */
 
-#ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
-# else
-#  define DEPRECATED(func) func
-# endif
-#else
-# define DEPRECATED(func) func
-#endif
-
 /**
  *  \brief Global switch to activate/deactivate folding with structure constraints
  */

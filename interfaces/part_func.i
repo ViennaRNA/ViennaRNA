@@ -225,6 +225,7 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
 }
 
 %include  <ViennaRNA/part_func_co.h>
+%include  <ViennaRNA/concentrations.h>
 
 
 %extend vrna_fold_compound_t{

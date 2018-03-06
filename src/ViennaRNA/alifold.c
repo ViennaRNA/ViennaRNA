@@ -52,7 +52,7 @@
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
 
@@ -74,7 +74,7 @@ PRIVATE int                   backward_compat           = 0;
  #################################
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 PRIVATE float
 wrap_alifold(const char   **strings,
              char         *structure,
@@ -133,7 +133,7 @@ vrna_circalifold(const char **sequences,
 /*# deprecated functions below              #*/
 /*###########################################*/
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE float
 wrap_alifold(const char   **strings,

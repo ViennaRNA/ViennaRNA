@@ -557,10 +557,10 @@ main(int  argc,
 
           if (ligandMotif) {
             /* append motif positions to the plists of base pair probabilities */
-            vrna_ep_t *ptr;
-            int       a, b, c, d, cnt, size, add;
+            int             cnt, size, add;
+            vrna_ep_t       *ptr;
+            vrna_sc_motif_t *motifs, *m_ptr;
             cnt = 0;
-            a   = 1;
             add = 10;
             /* get size of pl1 */
             for (size = 0, ptr = pl1; ptr->i; size++, ptr++);
@@ -568,40 +568,43 @@ main(int  argc,
             /* increase length of pl1 */
             pl1 = vrna_realloc(pl1, sizeof(vrna_ep_t) * (size + add + 1));
 
-            while (vrna_sc_get_hi_motif(vc, &a, &b, &c, &d)) {
-              if (c == 0) {
-                /* hairpin motif */
-                pl1[size + cnt].i     = a;
-                pl1[size + cnt].j     = b;
-                pl1[size + cnt].p     = 0.95 * 0.95;
-                pl1[size + cnt].type  = VRNA_PLIST_TYPE_H_MOTIF;
-                cnt++;
-                if (cnt == add) {
-                  add += 10;
-                  /* increase length of pl1 */
-                  pl1 = vrna_realloc(pl1, sizeof(vrna_ep_t) * (size + add + 1));
-                }
-              } else {
-                /* interior loop motif */
-                pl1[size + cnt].i     = a;
-                pl1[size + cnt].j     = b;
-                pl1[size + cnt].p     = 0.95 * 0.95;
-                pl1[size + cnt].type  = VRNA_PLIST_TYPE_I_MOTIF;
-                cnt++;
-                pl1[size + cnt].i     = c;
-                pl1[size + cnt].j     = d;
-                pl1[size + cnt].p     = 0.95 * 0.95;
-                pl1[size + cnt].type  = VRNA_PLIST_TYPE_I_MOTIF;
-                cnt++;
-                if (cnt == add) {
-                  add += 10;
-                  /* increase length of pl1 */
-                  pl1 = vrna_realloc(pl1, sizeof(vrna_ep_t) * (size + add + 1));
+            motifs = vrna_sc_ligand_get_all_motifs(vc);
+            if (motifs) {
+              for (m_ptr = motifs; m_ptr->i; m_ptr++) {
+                if (m_ptr->i == m_ptr->k) {
+                  /* hairpin motif */
+                  pl1[size + cnt].i     = m_ptr->i;
+                  pl1[size + cnt].j     = m_ptr->j;
+                  pl1[size + cnt].p     = 0.95 * 0.95;
+                  pl1[size + cnt].type  = VRNA_PLIST_TYPE_H_MOTIF;
+                  cnt++;
+                  if (cnt == add) {
+                    add += 10;
+                    /* increase length of pl1 */
+                    pl1 = vrna_realloc(pl1, sizeof(vrna_ep_t) * (size + add + 1));
+                  }
+                } else {
+                  /* interior loop motif */
+                  pl1[size + cnt].i     = m_ptr->i;
+                  pl1[size + cnt].j     = m_ptr->j;
+                  pl1[size + cnt].p     = 0.95 * 0.95;
+                  pl1[size + cnt].type  = VRNA_PLIST_TYPE_I_MOTIF;
+                  cnt++;
+                  pl1[size + cnt].i     = m_ptr->k;
+                  pl1[size + cnt].j     = m_ptr->l;
+                  pl1[size + cnt].p     = 0.95 * 0.95;
+                  pl1[size + cnt].type  = VRNA_PLIST_TYPE_I_MOTIF;
+                  cnt++;
+                  if (cnt == add) {
+                    add += 10;
+                    /* increase length of pl1 */
+                    pl1 = vrna_realloc(pl1, sizeof(vrna_ep_t) * (size + add + 1));
+                  }
                 }
               }
-
-              a = b;
+              free(motifs);
             }
+
             /* resize pl1 to actual needs */
             pl1               = vrna_realloc(pl1, sizeof(vrna_ep_t) * (size + cnt + 1));
             pl1[size + cnt].i = 0;
@@ -609,7 +612,6 @@ main(int  argc,
 
             /* now scan for the motif in MFE structure again */
             add = 10;
-            a   = 1;
             cnt = 0;
             /* get size of pl2 */
             for (size = 0, ptr = pl2; ptr->i; size++, ptr++);
@@ -617,13 +619,13 @@ main(int  argc,
             /* increase length of pl2 */
             pl2 = vrna_realloc(pl2, sizeof(vrna_ep_t) * (size + add + 1));
 
-            vrna_sc_motif_t *motifs = vrna_sc_ligand_detect_motifs(vc, structure);
+            motifs = vrna_sc_ligand_detect_motifs(vc, structure);
             if (motifs) {
-              for (c = 0; motifs[c].i != 0; c++) {
-                if (motifs[c].i == motifs[c].k) {
+              for (m_ptr = motifs; m_ptr->i; m_ptr++) {
+                if (m_ptr->i == m_ptr->k) {
                   /* hairpin motif */
-                  pl2[size + cnt].i     = motifs[c].i;
-                  pl2[size + cnt].j     = motifs[c].j;
+                  pl2[size + cnt].i     = m_ptr->i;
+                  pl2[size + cnt].j     = m_ptr->j;
                   pl2[size + cnt].p     = 0.95 * 0.95;
                   pl2[size + cnt].type  = VRNA_PLIST_TYPE_H_MOTIF;
                   cnt++;
@@ -634,13 +636,13 @@ main(int  argc,
                   }
                 } else {
                   /* interior loop motif */
-                  pl2[size + cnt].i     = motifs[c].i;
-                  pl2[size + cnt].j     = motifs[c].j;
+                  pl2[size + cnt].i     = m_ptr->i;
+                  pl2[size + cnt].j     = m_ptr->j;
                   pl2[size + cnt].p     = 0.95 * 0.95;
                   pl2[size + cnt].type  = VRNA_PLIST_TYPE_I_MOTIF;
                   cnt++;
-                  pl2[size + cnt].i     = motifs[c].k;
-                  pl2[size + cnt].j     = motifs[c].l;
+                  pl2[size + cnt].i     = m_ptr->k;
+                  pl2[size + cnt].j     = m_ptr->l;
                   pl2[size + cnt].p     = 0.95 * 0.95;
                   pl2[size + cnt].type  = VRNA_PLIST_TYPE_I_MOTIF;
                   cnt++;
@@ -866,8 +868,7 @@ add_ligand_motif(vrna_fold_compound_t *vc,
       if (*ptr == ',')
         break;
 
-      seq[r++] = *ptr;
-      toupper(seq[r - 1]);
+      seq[r++] = toupper(*ptr);
     }
     seq[r]  = '\0';
     seq     = vrna_realloc(seq, sizeof(char) * (strlen(seq) + 1));
@@ -915,48 +916,46 @@ annotate_ligand_motif(vrna_fold_compound_t  *vc,
                       const char            *structure_name,
                       int                   verbose)
 {
-  int             a, b, c, d;
   char            *annote;
+  vrna_sc_motif_t *motifs, *m_ptr;
 
-  a       = 1;
   annote  = NULL;
-
-  vrna_sc_motif_t *motifs = vrna_sc_ligand_detect_motifs(vc, structure);
+  motifs  = vrna_sc_ligand_detect_motifs(vc, structure);
 
   if (motifs) {
-    for (c = 0; motifs[c].i != 0; c++) {
+    for (m_ptr = motifs; m_ptr->i; m_ptr++) {
       char *tmp_string, *annotation;
       annotation  = NULL;
       tmp_string  = annote;
 
-      if (motifs[c].i != motifs[c].k) {
+      if (m_ptr->i != m_ptr->k) {
         if (verbose) {
           vrna_message_info(stdout,
-                            "specified motif detected in %s structure: (%d,%d) (%d,%d)",
+                            "specified motif detected in %s structure: [%d:%d] & [%d:%d]",
                             structure_name,
-                            motifs[c].i,
-                            motifs[c].j,
-                            motifs[c].k,
-                            motifs[c].l);
+                            m_ptr->i,
+                            m_ptr->k,
+                            m_ptr->l,
+                            m_ptr->j);
         }
 
         annotation = vrna_strdup_printf(" %d %d %d %d 1. 0 0 BFmark",
-                                        motifs[c].i,
-                                        motifs[c].j,
-                                        motifs[c].k,
-                                        motifs[c].l);
+                                        m_ptr->i,
+                                        m_ptr->j,
+                                        m_ptr->k,
+                                        m_ptr->l);
       } else {
         if (verbose) {
           vrna_message_info(stdout,
-                            "specified motif detected in %s structure: (%d,%d)",
+                            "specified motif detected in %s structure: [%d:%d]",
                             structure_name,
-                            motifs[c].i,
-                            motifs[c].j);
+                            m_ptr->i,
+                            m_ptr->j);
         }
 
         annotation = vrna_strdup_printf(" %d %d 1. 0 0 Fomark",
-                                        motifs[c].i,
-                                        motifs[c].j);
+                                        m_ptr->i,
+                                        m_ptr->j);
       }
 
       if (tmp_string)
@@ -999,7 +998,7 @@ annotate_ud_motif(vrna_fold_compound_t  *vc,
 
         if (verbose) {
           vrna_message_info(stdout,
-                            "ud motif %d detected in %s structure: (%d,%d)",
+                            "ud motif %d detected in %s structure: [%d:%d]",
                             motifs[m].number,
                             structure_name,
                             i,

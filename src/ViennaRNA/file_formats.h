@@ -2,17 +2,16 @@
 #define VIENNA_RNA_PACKAGE_FILE_FORMATS_H
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
-
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
 
 /**
  *  @file     file_formats.h
@@ -227,7 +226,7 @@ int vrna_file_SHAPE_read( const char *file_name,
                           double *values);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief  Extract a hard constraint encoded as pseudo dot-bracket string
@@ -245,7 +244,8 @@ int vrna_file_SHAPE_read( const char *file_name,
  *  @param  option  The option flags that define the behavior and recognition pattern of
  *                  this function
  */
-DEPRECATED(void vrna_extract_record_rest_constraint( char **cstruc, const char **lines, unsigned int option));
+DEPRECATED(void vrna_extract_record_rest_constraint( char **cstruc, const char **lines, unsigned int option),
+          "This function is obsolete");
 
 /** @brief Extract a dot-bracket structure string from (multiline)character array
  *
@@ -253,7 +253,8 @@ DEPRECATED(void vrna_extract_record_rest_constraint( char **cstruc, const char *
  */
 DEPRECATED(char *extract_record_rest_structure( const char **lines,
                                                 unsigned int length,
-                                                unsigned int option));
+                                                unsigned int option),
+          "Use vrna_extract_record_rest_structure() instead");
 
 /**
  *  @brief  Get a data record from stdin
@@ -264,10 +265,12 @@ DEPRECATED(char *extract_record_rest_structure( const char **lines,
 DEPRECATED(unsigned int read_record(char **header,
                                     char **sequence,
                                     char  ***rest,
-                                    unsigned int options));
+                                    unsigned int options),
+          "Use vrna_file_fasta_read_record() instead");
 
 
-DEPRECATED(unsigned int get_multi_input_line(char **string, unsigned int options));
+DEPRECATED(unsigned int get_multi_input_line(char **string, unsigned int options),
+          "This function is obsolete");
 
 #endif
 

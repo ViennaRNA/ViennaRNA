@@ -2,13 +2,15 @@
 #define VIENNA_RNA_PACKAGE_PROFILEDIST_H
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 #include <ViennaRNA/data_structures.h>
@@ -61,6 +63,7 @@ void  free_profile(float *T);
  *  \deprecated This function is deprecated and will be removed soon! See \ref Make_bp_profile_bppm() for a replacement
  *
  */
-DEPRECATED(float *Make_bp_profile(int length));
+DEPRECATED(float *Make_bp_profile(int length),
+"Use Make_bp_profile_bppm() instead");
 
 #endif

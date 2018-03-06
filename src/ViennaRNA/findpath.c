@@ -58,7 +58,7 @@ typedef struct intermediate {
  */
 PRIVATE int                   BP_dist;
 PRIVATE move_t                *path = NULL;
-PRIVATE int                   path_fwd; /* 1: struc1->struc2, else struc2 -> struc1 */
+PRIVATE int                   path_fwd; /* 1: s1->s2, else s2 -> s1 */
 
 PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 
@@ -109,8 +109,8 @@ usage(void);
 
 PRIVATE int
 find_path_once(vrna_fold_compound_t *vc,
-               const char           *struc1,
-               const char           *struc2,
+               const char           *s1,
+               const char           *s2,
                int                  maxE,
                int                  maxl);
 
@@ -145,9 +145,9 @@ free_path(vrna_path_t *path)
 
 PUBLIC int
 find_saddle(const char  *seq,
-            const char  *struc1,
-            const char  *struc2,
-            int         max)
+            const char  *s1,
+            const char  *s2,
+            int         width)
 {
   int                   maxE;
   char                  *sequence;
@@ -176,7 +176,7 @@ find_saddle(const char  *seq,
     free(sequence);
   }
 
-  maxE = vrna_path_findpath_saddle(vc, struc1, struc2, max);
+  maxE = vrna_path_findpath_saddle(vc, s1, s2, width);
 
   return maxE;
 }
@@ -184,29 +184,39 @@ find_saddle(const char  *seq,
 
 PUBLIC int
 vrna_path_findpath_saddle(vrna_fold_compound_t  *vc,
-                          const char            *struc1,
-                          const char            *struc2,
-                          int                   max)
+                          const char            *s1,
+                          const char            *s2,
+                          int                   width)
 {
-  int         maxl, maxE;
+  return vrna_path_findpath_saddle_ub(vc, s1, s2, width, INT_MAX - 1);
+}
+
+
+PUBLIC int
+vrna_path_findpath_saddle_ub(vrna_fold_compound_t *vc,
+                             const char           *s1,
+                             const char           *s2,
+                             int                  width,
+                             int                  maxE)
+{
+  int         maxl;
   const char  *tmp;
   move_t      *bestpath = NULL;
   int         dir;
 
-  path_fwd  = dir = 0;
-  maxE      = INT_MAX - 1;
+  path_fwd = dir = 0;
 
   maxl = 1;
   do {
     int saddleE;
     path_fwd = !path_fwd;
-    if (maxl > max)
-      maxl = max;
+    if (maxl > width)
+      maxl = width;
 
     if (path)
       free(path);
 
-    saddleE = find_path_once(vc, struc1, struc2, maxE, maxl);
+    saddleE = find_path_once(vc, s1, s2, maxE, maxl);
     if (saddleE < maxE) {
       maxE = saddleE;
       if (bestpath)
@@ -220,11 +230,11 @@ vrna_path_findpath_saddle(vrna_fold_compound_t  *vc,
       path = NULL;
     }
 
-    tmp     = struc1;
-    struc1  = struc2;
-    struc2  = tmp;
-    maxl    *= 2;
-  } while (maxl < 2 * max);
+    tmp   = s1;
+    s1    = s2;
+    s2    = tmp;
+    maxl  *= 2;
+  } while (maxl < 2 * width);
 
   /* (re)set some globals */
   path      = bestpath;
@@ -275,66 +285,80 @@ PUBLIC vrna_path_t *
 vrna_path_findpath(vrna_fold_compound_t *vc,
                    const char           *s1,
                    const char           *s2,
-                   int                  maxkeep)
+                   int                  width)
+{
+  return vrna_path_findpath_ub(vc, s1, s2, width, INT_MAX - 1);
+}
+
+
+PUBLIC vrna_path_t *
+vrna_path_findpath_ub(vrna_fold_compound_t  *vc,
+                      const char            *s1,
+                      const char            *s2,
+                      int                   width,
+                      int                   maxE)
 {
   int         E, d;
   vrna_path_t *route = NULL;
 
-  E = vrna_path_findpath_saddle(vc, s1, s2, maxkeep);
+  E = vrna_path_findpath_saddle_ub(vc, s1, s2, maxE, width);
 
-  route = (vrna_path_t *)vrna_alloc((BP_dist + 2) * sizeof(vrna_path_t));
+  /* did we find a better path than one with saddle maxE? */
+  if (E < maxE) {
+    route = (vrna_path_t *)vrna_alloc((BP_dist + 2) * sizeof(vrna_path_t));
 
-  qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
+    qsort(path, BP_dist, sizeof(move_t), compare_moves_when);
 
-  if (path_fwd) {
-    /* memorize start of path */
-    route[0].s  = strdup(s1);
-    route[0].en = vrna_eval_structure(vc, s1);
+    if (path_fwd) {
+      /* memorize start of path */
+      route[0].s  = strdup(s1);
+      route[0].en = vrna_eval_structure(vc, s1);
 
-    for (d = 0; d < BP_dist; d++) {
-      int i, j;
-      route[d + 1].s  = strdup(route[d].s);
-      i               = path[d].i;
-      j               = path[d].j;
-      if (i < 0) {
-        /* delete */
-        route[d + 1].s[(-i) - 1] = route[d + 1].s[(-j) - 1] = '.';
-      } else {
-        route[d + 1].s[i - 1] = '(';
-        route[d + 1].s[j - 1] = ')';
+      for (d = 0; d < BP_dist; d++) {
+        int i, j;
+        route[d + 1].s  = strdup(route[d].s);
+        i               = path[d].i;
+        j               = path[d].j;
+        if (i < 0) {
+          /* delete */
+          route[d + 1].s[(-i) - 1] = route[d + 1].s[(-j) - 1] = '.';
+        } else {
+          route[d + 1].s[i - 1] = '(';
+          route[d + 1].s[j - 1] = ')';
+        }
+
+        route[d + 1].en = path[d].E / 100.0;
       }
+    } else {
+      /* memorize start of path */
 
-      route[d + 1].en = path[d].E / 100.0;
-    }
-  } else {
-    /* memorize start of path */
+      route[BP_dist].s  = strdup(s2);
+      route[BP_dist].en = vrna_eval_structure(vc, s2);
 
-    route[BP_dist].s  = strdup(s2);
-    route[BP_dist].en = vrna_eval_structure(vc, s2);
+      for (d = 0; d < BP_dist; d++) {
+        int i, j;
+        route[BP_dist - d - 1].s  = strdup(route[BP_dist - d].s);
+        i                         = path[d].i;
+        j                         = path[d].j;
+        if (i < 0) {
+          /* delete */
+          route[BP_dist - d - 1].s[(-i) - 1] = route[BP_dist - d - 1].s[(-j) - 1] = '.';
+        } else {
+          route[BP_dist - d - 1].s[i - 1] = '(';
+          route[BP_dist - d - 1].s[j - 1] = ')';
+        }
 
-    for (d = 0; d < BP_dist; d++) {
-      int i, j;
-      route[BP_dist - d - 1].s  = strdup(route[BP_dist - d].s);
-      i                         = path[d].i;
-      j                         = path[d].j;
-      if (i < 0) {
-        /* delete */
-        route[BP_dist - d - 1].s[(-i) - 1] = route[BP_dist - d - 1].s[(-j) - 1] = '.';
-      } else {
-        route[BP_dist - d - 1].s[i - 1] = '(';
-        route[BP_dist - d - 1].s[j - 1] = ')';
+        route[BP_dist - d - 1].en = path[d].E / 100.0;
       }
-
-      route[BP_dist - d - 1].en = path[d].E / 100.0;
     }
-  }
 
 #if _DEBUG_FINDPATH_
-  fprintf(stderr, "\n%s\n%s\n%s\n\n", seq, s1, s2);
-  for (d = 0; d <= BP_dist; d++)
-    fprintf(stderr, "%s %6.2f\n", route[d].s, route[d].en);
-  fprintf(stderr, "%d\n", *num_entry);
+    fprintf(stderr, "\n%s\n%s\n%s\n\n", seq, s1, s2);
+    for (d = 0; d <= BP_dist; d++)
+      fprintf(stderr, "%s %6.2f\n", route[d].s, route[d].en);
+    fprintf(stderr, "%d\n", *num_entry);
 #endif
+  }
 
   free(path);
   path = NULL;
@@ -406,8 +430,8 @@ try_moves(vrna_fold_compound_t  *vc,
 
 PRIVATE int
 find_path_once(vrna_fold_compound_t *vc,
-               const char           *struc1,
-               const char           *struc2,
+               const char           *s1,
+               const char           *s2,
                int                  maxE,
                int                  maxl)
 {
@@ -416,9 +440,9 @@ find_path_once(vrna_fold_compound_t *vc,
   int             i, len, d, dist = 0, result;
   intermediate_t  *current, *next;
 
-  pt1 = vrna_ptable(struc1);
-  pt2 = vrna_ptable(struc2);
-  len = (int)strlen(struc1);
+  pt1 = vrna_ptable(s1);
+  pt2 = vrna_ptable(s2);
+  len = (int)strlen(s1);
 
   mlist = (move_t *)vrna_alloc(sizeof(move_t) * len); /* bp_dist < n */
 

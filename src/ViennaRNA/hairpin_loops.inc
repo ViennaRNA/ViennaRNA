@@ -8,7 +8,7 @@ struct default_data {
   int                       *idx;
   unsigned char             *mx;
   unsigned char             **mx_window;
-  int                       cp;
+  unsigned int              *sn;
   int                       *hc_up;
   void                      *hc_dat;
   vrna_callback_hc_evaluate *hc_f;
@@ -51,10 +51,14 @@ hc_default_user_window(int            i,
                        void           *data);
 
 
-PRIVATE INLINE
-int get_pair_type(int       i,
-                  int       j,
-                  vrna_md_t *md);
+PRIVATE INLINE vrna_callback_hc_evaluate *
+prepare_hc_default(vrna_fold_compound_t *vc,
+                   struct default_data  *dat);
+
+
+PRIVATE INLINE vrna_callback_hc_evaluate *
+prepare_hc_default_window(vrna_fold_compound_t  *vc,
+                          struct default_data   *dat);
 
 
 /*
@@ -62,17 +66,6 @@ int get_pair_type(int       i,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PRIVATE INLINE int
-get_pair_type(int       i,
-              int       j,
-              vrna_md_t *md)
-{
-  int tt = md->pair[i][j];
-
-  return (tt == 0) ? 7 : tt;
-}
-
-
 PRIVATE unsigned char
 hc_default(int            i,
            int            j,
@@ -169,4 +162,44 @@ hc_default_user_window(int            i,
   eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
+}
+
+
+PRIVATE INLINE vrna_callback_hc_evaluate *
+prepare_hc_default(vrna_fold_compound_t *vc,
+                   struct default_data  *dat)
+{
+  dat->idx    = vc->jindx;
+  dat->mx     = vc->hc->matrix;
+  dat->hc_up  = vc->hc->up_hp;
+  dat->n      = vc->length;
+  dat->sn     = vc->strand_number;
+
+  if (vc->hc->f) {
+    dat->hc_f   = vc->hc->f;
+    dat->hc_dat = vc->hc->data;
+    return &hc_default_user;
+  }
+
+  return &hc_default;
+}
+
+
+PRIVATE INLINE vrna_callback_hc_evaluate *
+prepare_hc_default_window(vrna_fold_compound_t  *vc,
+                          struct default_data   *dat)
+{
+  dat->idx        = vc->jindx;
+  dat->mx_window  = vc->hc->matrix_local;
+  dat->hc_up      = vc->hc->up_hp;
+  dat->n          = vc->length;
+  dat->sn         = vc->strand_number;
+
+  if (vc->hc->f) {
+    dat->hc_f   = vc->hc->f;
+    dat->hc_dat = vc->hc->data;
+    return &hc_default_user_window;
+  }
+
+  return &hc_default_window;
 }

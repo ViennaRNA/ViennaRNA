@@ -28,13 +28,15 @@ SWIG_misc_src = \
   $(srcdir)/../mfe.i \
   $(srcdir)/../mfe_window.i \
   $(srcdir)/../model_details.i \
+  $(srcdir)/../neighbor.i \
   $(srcdir)/../params.i \
   $(srcdir)/../part_func.i \
   $(srcdir)/../pf_window.i \
   $(srcdir)/../plotting.i \
   $(srcdir)/../subopt.i \
+  $(srcdir)/../structure_utils.i \
   $(srcdir)/../utils.i \
-  $(srcdir)/../structure_utils.i
+  $(srcdir)/../walk.i
 
 SWIG_module_name = RNA
 

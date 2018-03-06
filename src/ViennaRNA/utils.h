@@ -1,17 +1,16 @@
 #ifndef VIENNA_RNA_PACKAGE_UTILS_H
 #define VIENNA_RNA_PACKAGE_UTILS_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -364,11 +363,11 @@ int *vrna_idx_col_wise(unsigned int length);
  *  @}
  */
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-DEPRECATED(int   *get_indx(unsigned int length));
+DEPRECATED(int   *get_indx(unsigned int length), "Use vrna_idx_col_wise() instead");
 
-DEPRECATED(int   *get_iindx(unsigned int length));
+DEPRECATED(int   *get_iindx(unsigned int length), "Use vrna_idx_row_wise() instead");
 
 /**
  *  @brief Read a line of arbitrary length from a stream
@@ -382,7 +381,7 @@ DEPRECATED(int   *get_iindx(unsigned int length));
  *  @param  fp  A file pointer to the stream where the function should read from
  *  @return     A pointer to the resulting string
  */
-DEPRECATED(char  *get_line(FILE *fp));
+DEPRECATED(char  *get_line(FILE *fp), "Use vrna_read_line() instead");
 
 /**
  *  @brief Print a line to @e stdout that asks for an input sequence
@@ -390,7 +389,7 @@ DEPRECATED(char  *get_line(FILE *fp));
  *  There will also be a ruler (scale line) printed that helps orientation of the sequence positions
  *  @deprecated Use vrna_message_input_seq_simple() instead!
  */
-DEPRECATED(void print_tty_input_seq(void));
+DEPRECATED(void print_tty_input_seq(void), "Use vrna_message_input_seq_simple() instead");
 
 /**
  *  @brief Print a line with a user defined string and a ruler to stdout.
@@ -400,7 +399,7 @@ DEPRECATED(void print_tty_input_seq(void));
  * 
  *  @deprecated Use vrna_message_input_seq() instead!
  */
-DEPRECATED(void print_tty_input_seq_str(const char *s));
+DEPRECATED(void print_tty_input_seq_str(const char *s), "Use vrna_message_input_seq() instead");
 
 /**
  *  @brief Print a warning message
@@ -409,62 +408,62 @@ DEPRECATED(void print_tty_input_seq_str(const char *s));
  *
  *  @deprecated Use vrna_message_warning() instead!
  */
-DEPRECATED(void warn_user(const char message[]));
+DEPRECATED(void warn_user(const char message[]), "Use vrna_message_warning() instead");
 
 /**
  *  @brief Die with an error message
  *
  *  @deprecated Use vrna_message_error() instead!
  */
-DEPRECATED(void nrerror(const char message[]));
+DEPRECATED(void nrerror(const char message[]), "Use vrna_message_error() instead()");
 
 /**
  *  @brief Allocate space safely
  *
  *  @deprecated Use vrna_alloc() instead!
  */
-DEPRECATED(void *space(unsigned size));
+DEPRECATED(void *space(unsigned size), "Use vrna_alloc() instead");
 
 /**
  *  @brief Reallocate space safely
  *
  *  @deprecated Use vrna_realloc() instead!
  */
-DEPRECATED(void *xrealloc(void *p, unsigned size));
+DEPRECATED(void *xrealloc(void *p, unsigned size), "Use vrna_realloc() instead");
 
 /**
  *  @brief  Make random number seeds
  *  @deprecated Use vrna_init_rand() instead!
  */
-DEPRECATED(void init_rand(void));
+DEPRECATED(void init_rand(void), "Use vrna_init_rand() instead");
 
 /**
  *  @brief get a random number from [0..1]
  *
  *  @deprecated Use vrna_urn() instead!
  */
-DEPRECATED(double urn(void));
+DEPRECATED(double urn(void), "Use vrna_urn() instead");
 
 /**
  *  @brief Generates a pseudo random integer in a specified range
  *
  *  @deprecated Use vrna_int_urn() instead!
  */
-DEPRECATED(int int_urn(int from, int to));
+DEPRECATED(int int_urn(int from, int to), "Use vrna_int_urn() instead()");
 
 /**
  *  @brief  Inefficient `cp`
  *
  *  @deprecated Use vrna_file_copy() instead!
  */
-DEPRECATED(void filecopy(FILE *from, FILE *to));
+DEPRECATED(void filecopy(FILE *from, FILE *to), "Use vrna_file_copy() instead");
 
 /**
  *  @brief Get a timestamp
  *
  *  @deprecated Use vrna_time_stamp() instead!
  */
-DEPRECATED(char *time_stamp(void));
+DEPRECATED(char *time_stamp(void), "Use vrna_time_stamp() instead");
 
 #endif
 

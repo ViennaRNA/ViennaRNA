@@ -1,20 +1,8 @@
 #ifndef VIENNA_RNA_PACKAGE_EQUILIBRIUM_PROBS_H
 #define VIENNA_RNA_PACKAGE_EQUILIBRIUM_PROBS_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #include <ViennaRNA/data_structures.h>
-
-#ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
-# else
-#  define DEPRECATED(func) func
-# endif
-#else
-# define DEPRECATED(func) func
-#endif
+#include <ViennaRNA/params.h>
 
 /**
  *  @file     equilibrium_probs.h
@@ -77,5 +65,35 @@ double vrna_mean_bp_distance(vrna_fold_compound_t *vc);
  *  @return         A list of stacks with enclosing base pair @f$(i,j)@f$ and probabiltiy @f$ p @f$
  */
 vrna_ep_t *vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff);
+
+/**
+ *  @brief Compute Boltzmann probabilities of dimerization without homodimers
+ *
+ *  Given the pair probabilities and free energies (in the null model) for a
+ *  dimer AB and the two constituent monomers A and B, compute the conditional pair
+ *  probabilities given that a dimer AB actually forms.
+ *  Null model pair probabilities are given as a list as produced by
+ *  vrna_plist_from_probs(), the dimer probabilities 'prAB' are modified in place.
+ *
+ *  @ingroup pf_cofold
+ *
+ *  @param FAB        free energy of dimer AB
+ *  @param FA         free energy of monomer A
+ *  @param FB         free energy of monomer B
+ *  @param prAB       pair probabilities for dimer
+ *  @param prA        pair probabilities monomer
+ *  @param prB        pair probabilities monomer
+ *  @param Alength    Length of molecule A
+ *  @param exp_params The precomputed Boltzmann factors
+ */
+void  vrna_pf_dimer_probs(double                  FAB,
+                          double                  FA,
+                          double                  FB,
+                          vrna_ep_t               *prAB,
+                          const vrna_ep_t         *prA,
+                          const vrna_ep_t         *prB,
+                          int                     Alength,
+                          const vrna_exp_param_t  *exp_params);
+
 
 #endif

@@ -1,0 +1,36 @@
+/**
+
+@page  mfe_algorithm  Minimum Free Energy Algorithm(s)
+@brief                Computing the Minimum Free Energy (MFE), i.e. the most stable
+                      conformation in thermodynamic equilibrium
+
+@tableofcontents
+
+@section  zuker_algorithm   Zuker's Algorithm
+
+Our library provides fast dynamic programming Minimum Free Energy (MFE)
+folding algorithms derived from the decomposition scheme as described by
+"Zuker & Stiegler (1981)" @cite zuker:1981.
+
+@section  circular_folding  MFE for circular RNAs
+
+Folding of @em circular RNA sequences is handled as a post-processing step
+of the forward recursions. See @cite hofacker:2006 for further details.
+
+
+@section  mfe_algorithm_api   MFE Algorithm API
+
+We provide interfaces for the prediction of
+
+- MFE and corresponding secondary structure for single sequences,
+- consensus MFE structures of sequence alignments, and
+- MFE structure for two hybridized RNA strands
+
+@see @ref mfe_fold, @ref consensus_mfe_fold, @ref mfe_cofold, @ref kl_neighborhood_mfe
+
+@htmlonly
+<hr>
+Go to the next Chapter <a href="pf_algorithm.html">&quot;Partition Function and Equilibrium Probabilitiy Algorithm(s)&quot;</a>
+@endhtmlonly
+
+*/

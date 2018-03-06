@@ -15,9 +15,6 @@
  *
  */
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 /* below are several convenience typedef's we use throughout the ViennaRNA library */
 
 /**
@@ -26,7 +23,7 @@
 typedef struct vrna_path_s vrna_path_t;
 
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* the following typedefs are for backward compatibility only */
 
@@ -51,8 +48,7 @@ struct vrna_path_s {
 
 
 /**
- *  \brief Find energy of a saddle point between 2 structures
- *  (search only direct path)
+ *  @brief Find energy of a saddle point between 2 structures (search only direct path)
  *
  *  This function uses an inplementation of the @em findpath algorithm @cite flamm:2001
  *  for near-optimal direct refolding path prediction.
@@ -61,21 +57,81 @@ struct vrna_path_s {
  *  The #vrna_fold_compound_t does not require memory for any DP matrices,
  *  but requires all most basic init values as one would get from a call like this:
  *  @code{.c}
- * vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_EVAL_ONLY);
+ * vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_DEFAULT);
  *  @endcode
  *
- *  @see vrna_fold_compound(), #vrna_fold_compound_t, vrna_path_findpath()
+ *  @see vrna_path_findpath_saddle_ub(), vrna_fold_compound(), #vrna_fold_compound_t, vrna_path_findpath()
  *
  *  @param vc     The #vrna_fold_compound_t with precomputed sequence encoding and model details
- *  @param struc1 The start structure in dot-brakcet notation
- *  @param struc2 The target structure in dot-bracket notation
- *  @param max    A number specifying how many strutures are being kept at each step during the search
+ *  @param s1     The start structure in dot-bracket notation
+ *  @param s2     The target structure in dot-bracket notation
+ *  @param width  A number specifying how many strutures are being kept at each step during the search
  *  @returns      The saddle energy in 10cal/mol
  */
 int vrna_path_findpath_saddle(vrna_fold_compound_t  *vc,
-                              const char            *struc1,
-                              const char            *struc2,
-                              int                   max);
+                              const char            *s1,
+                              const char            *s2,
+                              int                   width);
+
+
+/**
+ *  @brief Find energy of a saddle point between 2 structures (search only direct path)
+ *
+ *  This function uses an inplementation of the @em findpath algorithm @cite flamm:2001
+ *  for near-optimal direct refolding path prediction.
+ *
+ *  Model details, and energy parameters are used as provided via the parameter 'vc'.
+ *  The #vrna_fold_compound_t does not require memory for any DP matrices,
+ *  but requires all most basic init values as one would get from a call like this:
+ *  @code{.c}
+ * vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_DEFAULT);
+ *  @endcode
+ *
+ *  @warning  The argument @p maxE (@f$E_{max}@f$) enables one to specify an upper bound, or maximum free
+ *            energy for the saddle point between the two input structures. If no path
+ *            with @f$E_{saddle} < E_{max}@f$ is found, the function simply returns @p maxE
+ *
+ *  @see  vrna_path_findpath_saddle(), vrna_fold_compound(), #vrna_fold_compound_t, vrna_path_findpath()
+ *
+ *  @param vc     The #vrna_fold_compound_t with precomputed sequence encoding and model details
+ *  @param s1 The start structure in dot-bracket notation
+ *  @param s2 The target structure in dot-bracket notation
+ *  @param width  A number specifying how many strutures are being kept at each step during the search
+ *  @param maxE   An upper bound for the saddle point energy in 10cal/mol
+ *  @returns      The saddle energy in 10cal/mol
+ */
+int vrna_path_findpath_saddle_ub(vrna_fold_compound_t *vc,
+                                 const char           *s1,
+                                 const char           *s2,
+                                 int                  width,
+                                 int                  maxE);
+
+
+/**
+ *  @brief Find refolding path between 2 structures (search only direct path)
+ *
+ *  This function uses an inplementation of the @em findpath algorithm @cite flamm:2001
+ *  for near-optimal direct refolding path prediction.
+ *
+ *  Model details, and energy parameters are used as provided via the parameter 'vc'.
+ *  The #vrna_fold_compound_t does not require memory for any DP matrices,
+ *  but requires all most basic init values as one would get from a call like this:
+ *  @code{.c}
+ * vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_DEFAULT);
+ *  @endcode
+ *
+ *  @see vrna_path_findpath_ub(), vrna_fold_compound(), #vrna_fold_compound_t, vrna_path_findpath_saddle()
+ *
+ *  @param vc       The #vrna_fold_compound_t with precomputed sequence encoding and model details
+ *  @param s1       The start structure in dot-bracket notation
+ *  @param s2       The target structure in dot-bracket notation
+ *  @param width    A number specifying how many strutures are being kept at each step during the search
+ *  @returns        The saddle energy in 10cal/mol
+ */
+vrna_path_t *vrna_path_findpath(vrna_fold_compound_t  *vc,
+                                const char            *s1,
+                                const char            *s2,
+                                int                   width);
 
 
 /**
@@ -89,41 +145,47 @@ int vrna_path_findpath_saddle(vrna_fold_compound_t  *vc,
  *  The #vrna_fold_compound_t does not require memory for any DP matrices,
  *  but requires all most basic init values as one would get from a call like this:
  *  @code{.c}
- * vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_EVAL_ONLY);
+ * vc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_DEFAULT);
  *  @endcode
  *
- *  @see vrna_fold_compound(), #vrna_fold_compound_t, vrna_path_findpath_saddle()
+ *  @warning  The argument @p maxE enables one to specify an upper bound, or maximum free
+ *            energy for the saddle point between the two input structures. If no path
+ *            with @f$E_{saddle} < E_{max}@f$ is found, the function simply returns @em NULL
+ *
+ *  @see vrna_path_findpath(), vrna_fold_compound(), #vrna_fold_compound_t, vrna_path_findpath_saddle()
  *
  *  @param vc       The #vrna_fold_compound_t with precomputed sequence encoding and model details
- *  @param s1       The start structure in dot-brakcet notation
+ *  @param s1       The start structure in dot-bracket notation
  *  @param s2       The target structure in dot-bracket notation
- *  @param maxkeep  A number specifying how many strutures are being kept at each step during the search
+ *  @param width    A number specifying how many strutures are being kept at each step during the search
+ *  @param maxE     An upper bound for the saddle point energy in 10cal/mol
  *  @returns        The saddle energy in 10cal/mol
  */
-vrna_path_t *vrna_path_findpath(vrna_fold_compound_t  *vc,
-                                const char            *s1,
-                                const char            *s2,
-                                int                   maxkeep);
+vrna_path_t *vrna_path_findpath_ub(vrna_fold_compound_t *vc,
+                                   const char           *s1,
+                                   const char           *s2,
+                                   int                  width,
+                                   int                  maxE);
 
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  \brief Find energy of a saddle point between 2 structures
  *  (search only direct path)
  *
  *  \param seq RNA sequence
- *  \param struc1 A pointer to the character array where the first
+ *  \param s1 A pointer to the character array where the first
  *         secondary structure in dot-bracket notation will be written to
- *  \param struc2 A pointer to the character array where the second
+ *  \param s2 A pointer to the character array where the second
  *         secondary structure in dot-bracket notation will be written to
- *  \param max integer how many strutures are being kept during the search
+ *  \param width integer how many strutures are being kept during the search
  *  \returns the saddle energy in 10cal/mol
  */
 int find_saddle(const char  *seq,
-                const char  *struc1,
-                const char  *struc2,
-                int         max);
+                const char  *s1,
+                const char  *s2,
+                int         width);
 
 
 /**
@@ -143,13 +205,13 @@ void    free_path(vrna_path_t *path);
  *         secondary structure in dot-bracket notation will be written to
  *  \param s2 A pointer to the character array where the second
  *         secondary structure in dot-bracket notation will be written to
- *  \param maxkeep integer how many strutures are being kept during the search
+ *  \param width integer how many strutures are being kept during the search
  *  \returns direct refolding path between two structures
  */
 vrna_path_t *get_path(const char  *seq,
                       const char  *s1,
                       const char  *s2,
-                      int         maxkeep);
+                      int         width);
 
 
 #endif

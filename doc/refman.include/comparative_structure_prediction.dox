@@ -1,0 +1,25 @@
+/**
+
+@page consensus_structures    Comparative Structure Prediction
+
+@tableofcontents
+
+@section  consensus_structure_intro   Incorporate Evolutionary Information
+
+Consensus structures can be predicted by a modified version of the
+fold() algorithm that takes a set of aligned sequences instead
+of a single sequence. The energy function consists of the mean energy
+averaged over the sequences, plus a covariance term that favors pairs
+with consistent and compensatory mutations and penalizes pairs that
+cannot be formed by all structures. For details see @cite hofacker:2002 and
+@cite bernhart:2008.
+
+@section  consensus_structure_api   Comparative Structure Prediction API
+
+@htmlonly
+<hr>
+Go to the next Chapter <a href="classified_dp.html">&quot;Classified DP variations&quot;</a>
+@endhtmlonly
+
+*/
+

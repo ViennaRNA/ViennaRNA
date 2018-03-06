@@ -2,7 +2,9 @@ doxygen_verbose = $(doxygen_verbose_@AM_V@)
 doxygen_verbose_ = $(doxygen_verbose_@AM_DEFAULT_V@)
 doxygen_verbose_0 = @echo "  DOC      $@";
 
-pkgdata_DATA = viennarna.bib
+pkgdata_DATA = \
+    viennarna.bib \
+    DoxygenLayout.xml
 
 clean_latex = \
 { \

@@ -1,0 +1,32 @@
+/**
+
+@page   ligand_binding  Ligand Binding
+
+@tableofcontents
+
+@section  ligand_binding_intro  Small Molecules and Proteins that bind to specific RNA Structures
+
+
+@section  ligand_binding_api
+
+In our library, we provide two different ways to incorporate ligand binding to RNA structures:
+
+- @ref ligands_up, and
+- @ref constraints_ligand
+
+The first approach is implemented as an actual extension of the folding grammar. It adds
+auxiliary derivation rules for each case when consecutive unpaired nucleotides are evaluated.
+Therefore, this model is applicable to ligand binding to any loop context.
+
+The second approach, on the other hand, uses the soft-constraints feature to change the energy
+evaluation of hairpin- or interior-loops. Hence, it can only be appleid when a ligand binds to
+a hairpin-like, or interior-loop like motif.
+
+@see @ref ligands_up, @ref constraints_ligand
+
+@htmlonly
+<hr>
+Go to the next Chapter <a href="structure_motifs.html">&quot;(Tertiary) Structure Motifs&quot;</a>
+@endhtmlonly
+
+*/

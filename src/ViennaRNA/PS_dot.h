@@ -8,17 +8,16 @@
 #include <ViennaRNA/plot_aln.h>
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
-
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
 
 /**
  *  @file PS_dot.h
@@ -120,7 +119,7 @@ int PS_dot_plot_turn( char *seq,
                       char *filename,
                       int winSize);
 
-#ifdef VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  Wrapper to PS_dot_plot_list
@@ -138,7 +137,8 @@ int PS_dot_plot_turn( char *seq,
  *  @deprecated This function is deprecated and will be removed soon! Use @ref PS_dot_plot_list() instead!
  */
 DEPRECATED(int PS_dot_plot( char *string,
-                            char *file));
+                            char *file),
+"Use vrna_plot_dp_EPS() instead");
 
 #endif
 

@@ -540,7 +540,7 @@ const char    success[] = {
 unsigned int  success_len = 2829;
 
 const char    injector[] = {
-  0x6f, 0x4f, 0x55, 0x4f, 0x6f
+  0x6f, 0x4f, 0x55, 0x4f, 0x6f, 0x0
 };
 unsigned int  injector_len = 5;
 

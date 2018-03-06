@@ -42,13 +42,15 @@ typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
 #include <ViennaRNA/params.h>
 
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 
@@ -231,7 +233,7 @@ vrna_probs_window(vrna_fold_compound_t        *fc,
                   void                        *data);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  \brief
@@ -240,7 +242,8 @@ vrna_probs_window(vrna_fold_compound_t        *fc,
  *
  *  \param  length
  */
-DEPRECATED(void update_pf_paramsLP(int length));
+DEPRECATED(void update_pf_paramsLP(int length),
+"This function is obsolete");
 
 
 /**
@@ -250,7 +253,8 @@ DEPRECATED(void update_pf_paramsLP(int length));
  *
  */
 DEPRECATED(void update_pf_paramsLP_par(int              length,
-                                       vrna_exp_param_t *parameters));
+                                       vrna_exp_param_t *parameters),
+"Use the new API with vrna_folc_compound_t instead");
 
 
 /**
@@ -297,7 +301,8 @@ DEPRECATED(vrna_ep_t *pfl_fold(char          *sequence,
                                double        **pU,
                                vrna_ep_t     **dpp2,
                                FILE          *pUfp,
-                               FILE          *spup));
+                               FILE          *spup),
+"Use vrna_pfl_fold(), vrna_pfl_fold_cb(), vrna_pfl_fold_up(), or vrna_pfl_fold_up_cb() instead");
 
 
 /**
@@ -314,7 +319,8 @@ DEPRECATED(vrna_ep_t *pfl_fold_par(char              *sequence,
                                       vrna_ep_t         **dpp2,
                                       FILE              *pUfp,
                                       FILE              *spup,
-                                      vrna_exp_param_t  *parameters));
+                                      vrna_exp_param_t  *parameters),
+"Use the new API and vrna_probs_window() instead");
 
 
 DEPRECATED(void putoutpU_prob_par(double            **pU,
@@ -322,7 +328,8 @@ DEPRECATED(void putoutpU_prob_par(double            **pU,
                                   int               ulength,
                                   FILE              *fp,
                                   int               energies,
-                                  vrna_exp_param_t  *parameters));
+                                  vrna_exp_param_t  *parameters),
+"");
 
 
 /**
@@ -343,7 +350,8 @@ DEPRECATED(void    putoutpU_prob(double **pU,
                                  int    length,
                                  int    ulength,
                                  FILE   *fp,
-                                 int    energies));
+                                 int    energies),
+"");
 
 
 DEPRECATED(void putoutpU_prob_bin_par(double            **pU,
@@ -351,7 +359,8 @@ DEPRECATED(void putoutpU_prob_bin_par(double            **pU,
                                       int               ulength,
                                       FILE              *fp,
                                       int               energies,
-                                      vrna_exp_param_t  *parameters));
+                                      vrna_exp_param_t  *parameters),
+"");
 
 
 /**
@@ -372,7 +381,8 @@ DEPRECATED(void    putoutpU_prob_bin(double **pU,
                                      int    length,
                                      int    ulength,
                                      FILE   *fp,
-                                     int    energies));
+                                     int    energies),
+"");
 
 
 /**
@@ -380,7 +390,8 @@ DEPRECATED(void    putoutpU_prob_bin(double **pU,
  *  was declared PUBLIC before.
  *  Anyway, never use this function as it will be removed soon and does nothing at all
  */
-DEPRECATED(void init_pf_foldLP(int length));
+DEPRECATED(void init_pf_foldLP(int length),
+"This function is obsolete");
 
 #endif
 

@@ -1,17 +1,16 @@
 #ifndef VIENNA_RNA_PACKAGE_STRUCT_UTILS_H
 #define VIENNA_RNA_PACKAGE_STRUCT_UTILS_H
 
-/* make this interface backward compatible with RNAlib < 2.2.0 */
-#define VRNA_BACKWARD_COMPAT
-
 #ifdef VRNA_WARN_DEPRECATED
-# ifdef __GNUC__
-#  define DEPRECATED(func) func __attribute__ ((deprecated))
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
 # else
-#  define DEPRECATED(func) func
+#  define DEPRECATED(func, msg) func
 # endif
 #else
-# define DEPRECATED(func) func
+# define DEPRECATED(func, msg) func
 #endif
 
 /**
@@ -428,7 +427,7 @@ vrna_hx_t *vrna_hx_merge(const vrna_hx_t  *list,
                          int              maxdist);
 
 
-#ifdef  VRNA_BACKWARD_COMPAT
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
 /*# deprecated functions below              #*/
@@ -453,7 +452,8 @@ vrna_hx_t *vrna_hx_merge(const vrna_hx_t  *list,
  */
 DEPRECATED(void assign_plist_from_db(vrna_ep_t  **pl,
                                      const char *struc,
-                                     float      pr));
+                                     float      pr),
+"Use vrna_plist() instead");
 
 /**
  *  @brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
@@ -467,7 +467,8 @@ DEPRECATED(void assign_plist_from_db(vrna_ep_t  **pl,
  *  @param struc    The secondary structure in dot-bracket notation
  *  @return         The binary encoded structure
  */
-DEPRECATED(char *pack_structure(const char *struc));
+DEPRECATED(char *pack_structure(const char *struc),
+"Use vrna_db_pack() instead");
 
 /**
  *  @brief Unpack secondary structure previously packed with pack_structure()
@@ -479,7 +480,8 @@ DEPRECATED(char *pack_structure(const char *struc));
  *  @param packed   The binary encoded packed secondary structure
  *  @return         The unpacked secondary structure in dot-bracket notation
  */
-DEPRECATED(char *unpack_structure(const char *packed));
+DEPRECATED(char *unpack_structure(const char *packed),
+"Use vrna_db_unpack() instead");
 
 /**
  *  @brief Create a pair table of a secondary structure
@@ -492,9 +494,11 @@ DEPRECATED(char *unpack_structure(const char *packed));
  *  @param  structure The secondary structure in dot-bracket notation
  *  @return           A pointer to the created pair_table
  */
-DEPRECATED(short *make_pair_table(const char *structure));
+DEPRECATED(short *make_pair_table(const char *structure),
+"Use vrna_ptable() instead");
 
-DEPRECATED(short *make_pair_table_pk(const char *structure));
+DEPRECATED(short *make_pair_table_pk(const char *structure),
+"Use vrna_ptable_from_string() instead");
 
 /**
  *  @brief Get an exact copy of a pair table
@@ -504,14 +508,16 @@ DEPRECATED(short *make_pair_table_pk(const char *structure));
  *  @param pt The pair table to be copied
  *  @return   A pointer to the copy of 'pt'
  */
-DEPRECATED(short *copy_pair_table(const short *pt));
+DEPRECATED(short *copy_pair_table(const short *pt),
+"Use vrna_ptable_copy() instead");
 
 /**
 *** Pair table for snoop align
 ***
 *** @deprecated Use vrna_pt_ali_get() instead!
 **/
-DEPRECATED(short *alimake_pair_table(const char *structure));
+DEPRECATED(short *alimake_pair_table(const char *structure),
+"Use vrna_pt_ali_get() instead");
 
 /**
 *** returns a newly allocated table, such that:  table[i]=j if (i.j) pair or
@@ -519,9 +525,11 @@ DEPRECATED(short *alimake_pair_table(const char *structure));
 *** The special pseudoknotted H/ACA-mRNA structure is taken into account.
 *** @deprecated Use vrna_pt_snoop_get() instead!
 **/
-DEPRECATED(short *make_pair_table_snoop(const char *structure));
+DEPRECATED(short *make_pair_table_snoop(const char *structure),
+"Use vrna_pt_snoop_get() instead");
 
-DEPRECATED(int *make_loop_index_pt(short *pt));
+DEPRECATED(int *make_loop_index_pt(short *pt),
+"Use vrna_loopidx_from_ptable() instead");
 
 /**
  *  @brief Compute the "base pair" distance between two secondary structures s1 and s2.
@@ -536,7 +544,8 @@ DEPRECATED(int *make_loop_index_pt(short *pt));
  *  @return       The base pair distance between str1 and str2
  */
 DEPRECATED(int bp_distance(const char *str1,
-                           const char *str2));
+                           const char *str2),
+"Use vrna_bp_distance() instead");
 
 /**
  *  @brief Make a reference base pair count matrix
@@ -547,7 +556,9 @@ DEPRECATED(int bp_distance(const char *str1,
  *  @deprecated Use vrna_refBPcnt_matrix() instead
  */
 DEPRECATED(unsigned int *make_referenceBP_array(short         *reference_pt,
-                                                unsigned int  turn));
+                                                unsigned int  turn),
+"Use vrna_refBPcnt_matrix() instead");
+
 /**
  *  @brief Make a reference base pair distance matrix
  *
@@ -558,7 +569,8 @@ DEPRECATED(unsigned int *make_referenceBP_array(short         *reference_pt,
  */
 DEPRECATED(unsigned int *compute_BPdifferences(short        *pt1,
                                                short        *pt2,
-                                               unsigned int turn));
+                                               unsigned int turn),
+"Use vrna_refBPdist_matrix() instead");
 
 /**
  *  @brief Create a vrna_ep_t from a probability matrix
@@ -582,7 +594,8 @@ DEPRECATED(unsigned int *compute_BPdifferences(short        *pt1,
 DEPRECATED(void  assign_plist_from_pr(vrna_ep_t   **pl,
                                       FLT_OR_DBL  *probs,
                                       int         length,
-                                      double      cutoff));
+                                      double      cutoff),
+"Use vrna_plist_from_probs() instead");
 
 /**
  *  @brief Create a dot-backet/parenthesis structure from backtracking stack
@@ -593,7 +606,8 @@ DEPRECATED(void  assign_plist_from_pr(vrna_ep_t   **pl,
  */
 DEPRECATED(void parenthesis_structure(char            *structure,
                                       vrna_bp_stack_t *bp,
-                                      int             length));
+                                      int             length),
+"Use vrna_parenthesis_structure() instead");
 
 /**
  *  @brief Create a dot-backet/parenthesis structure from backtracking stack
@@ -605,11 +619,13 @@ DEPRECATED(void parenthesis_structure(char            *structure,
  */
 DEPRECATED(void parenthesis_zuker(char            *structure,
                                   vrna_bp_stack_t *bp,
-                                  int             length));
+                                  int             length),
+"Use vrna_parenthesis_zuker() instead");
 
 DEPRECATED(void letter_structure(char             *structure,
                                  vrna_bp_stack_t  *bp,
-                                 int              length));
+                                 int              length),
+"Use vrna_letter_structure() instead");
 
 /**
  *  @brief Create a dot-bracket like structure string from base pair probability matrix
@@ -617,13 +633,15 @@ DEPRECATED(void letter_structure(char             *structure,
  */
 DEPRECATED(void  bppm_to_structure(char         *structure,
                                    FLT_OR_DBL   *pr,
-                                   unsigned int length));
+                                   unsigned int length),
+"Use vrna_db_from_probs() instead");
 
 /**
  *  @brief Get a pseudo dot bracket notation for a given probability information
  *  @deprecated Use vrna_bpp_symbol() instead!
  */
-DEPRECATED(char    bppm_symbol(const float *x));
+DEPRECATED(char    bppm_symbol(const float *x),
+"Use vrna_bpp_symbol() instead");
 
 #endif
 

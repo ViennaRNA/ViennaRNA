@@ -100,6 +100,7 @@ typedef void (vrna_callback_recursion_status)(unsigned char status,
 
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/params.h>
+#include <ViennaRNA/sequence.h>
 #include <ViennaRNA/dp_matrices.h>
 #include <ViennaRNA/constraints.h>
 #include <ViennaRNA/grammar.h>
@@ -145,6 +146,12 @@ struct vrna_fc_s {
                                      */
 
   unsigned int      *strand_number; /**<  @brief  The strand number a particular nucleotide is associated with */
+  unsigned int      *strand_order;
+  unsigned int      *strand_start;
+  unsigned int      *strand_end;
+
+  unsigned int      strands;
+  vrna_seq_t        *nucleotides;
 
   vrna_hc_t         *hc;            /**<  @brief  The hard constraints data structure used for structure prediction */
 
@@ -202,95 +209,95 @@ struct vrna_fc_s {
     struct {
 #endif
 
-  /**
-   *  @name Data fields available for single/hybrid structure prediction
-   *  @{
-   */
-  char *sequence;                   /**<  @brief  The input sequence string
-                                     *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
-                                     */
-  short *sequence_encoding;         /**<  @brief  Numerical encoding of the input sequence
-                                     *    @see    vrna_sequence_encode()
-                                     *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
-                                     */
-  short *sequence_encoding2;
-  char *ptype;                      /**<  @brief  Pair type array
-                                     *
-                                     *    Contains the numerical encoding of the pair type for each pair (i,j) used
-                                     *    in MFE, Partition function and Evaluation computations.
-                                     *    @note This array is always indexed via jindx, in contrast to previously
-                                     *    different indexing between mfe and pf variants!
-                                     *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
-                                     *    @see    vrna_idx_col_wise(), vrna_ptypes()
-                                     */
-  char *ptype_pf_compat;            /**<  @brief  ptype array indexed via iindx
-                                     *    @deprecated  This attribute will vanish in the future!
-                                     *    It's meant for backward compatibility only!
-                                     *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
-                                     */
-  vrna_sc_t *sc;                    /**<  @brief  The soft constraints for usage in structure prediction and evaluation
-                                     *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
-                                     */
+      /**
+       *  @name Data fields available for single/hybrid structure prediction
+       *  @{
+       */
+      char *sequence;                   /**<  @brief  The input sequence string
+                                         *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
+                                         */
+      short *sequence_encoding;         /**<  @brief  Numerical encoding of the input sequence
+                                         *    @see    vrna_sequence_encode()
+                                         *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
+                                         */
+      short *sequence_encoding2;
+      char *ptype;                      /**<  @brief  Pair type array
+                                         *
+                                         *    Contains the numerical encoding of the pair type for each pair (i,j) used
+                                         *    in MFE, Partition function and Evaluation computations.
+                                         *    @note This array is always indexed via jindx, in contrast to previously
+                                         *    different indexing between mfe and pf variants!
+                                         *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
+                                         *    @see    vrna_idx_col_wise(), vrna_ptypes()
+                                         */
+      char *ptype_pf_compat;            /**<  @brief  ptype array indexed via iindx
+                                         *    @deprecated  This attribute will vanish in the future!
+                                         *    It's meant for backward compatibility only!
+                                         *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
+                                         */
+      vrna_sc_t *sc;                    /**<  @brief  The soft constraints for usage in structure prediction and evaluation
+                                         *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
+                                         */
 
-  /**
-   *  @}
-   */
+      /**
+       *  @}
+       */
 
 #ifndef VRNA_DISABLE_C11_FEATURES
-  /* C11 support for unnamed unions/structs */
-};
-struct {
+      /* C11 support for unnamed unions/structs */
+    };
+    struct {
 #endif
 
-  /**
-   *  @name Data fields for consensus structure prediction
-   *  @{
-   */
-  char            **sequences;      /**<  @brief  The aligned sequences
-                                     *    @note   The end of the alignment is indicated by a NULL pointer in the second dimension
-                                     *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
-                                     */
-  unsigned int    n_seq;            /**<  @brief  The number of sequences in the alignment
-                                     *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
-                                     */
-  char            *cons_seq;        /**<  @brief  The consensus sequence of the aligned sequences
-                                     *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
-                                     */
-  short           *S_cons;          /**<  @brief  Numerical encoding of the consensus sequence
-                                     *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
-                                     */
-  short           **S;              /**<  @brief  Numerical encoding of the sequences in the alignment
-                                     *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
-                                     */
-  short           **S5;             /**<  @brief    S5[s][i] holds next base 5' of i in sequence s
-                                     *    @warning  Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
-                                     */
-  short           **S3;             /**<  @brief    Sl[s][i] holds next base 3' of i in sequence s
-                                     *    @warning  Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
-                                     */
-  char            **Ss;
-  unsigned int    **a2s;
-  int             *pscore;            /**<  @brief  Precomputed array of pair types expressed as pairing scores
-                                       *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
-                                       */
-  int             **pscore_local;     /**<  @brief  Precomputed array of pair types expressed as pairing scores
-                                       *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
-                                       */
-  short           *pscore_pf_compat;  /**<  @brief  Precomputed array of pair types expressed as pairing scores indexed via iindx
-                                       *    @deprecated  This attribute will vanish in the future!
-                                       *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
-                                       */
-  vrna_sc_t       **scs;              /**<  @brief  A set of soft constraints (for each sequence in the alignment)
-                                       *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
-                                       */
-  int             oldAliEn;
+      /**
+       *  @name Data fields for consensus structure prediction
+       *  @{
+       */
+      char          **sequences;        /**<  @brief  The aligned sequences
+                                         *    @note   The end of the alignment is indicated by a NULL pointer in the second dimension
+                                         *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
+                                         */
+      unsigned int  n_seq;              /**<  @brief  The number of sequences in the alignment
+                                         *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
+                                         */
+      char          *cons_seq;          /**<  @brief  The consensus sequence of the aligned sequences
+                                         *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
+                                         */
+      short         *S_cons;            /**<  @brief  Numerical encoding of the consensus sequence
+                                         *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
+                                         */
+      short         **S;                /**<  @brief  Numerical encoding of the sequences in the alignment
+                                         *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
+                                         */
+      short         **S5;               /**<  @brief    S5[s][i] holds next base 5' of i in sequence s
+                                         *    @warning  Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
+                                         */
+      short         **S3;               /**<  @brief    Sl[s][i] holds next base 3' of i in sequence s
+                                         *    @warning  Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
+                                         */
+      char          **Ss;
+      unsigned int  **a2s;
+      int           *pscore;              /**<  @brief  Precomputed array of pair types expressed as pairing scores
+                                           *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
+                                           */
+      int           **pscore_local;       /**<  @brief  Precomputed array of pair types expressed as pairing scores
+                                           *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
+                                           */
+      short         *pscore_pf_compat;    /**<  @brief  Precomputed array of pair types expressed as pairing scores indexed via iindx
+                                           *    @deprecated  This attribute will vanish in the future!
+                                           *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
+                                           */
+      vrna_sc_t     **scs;                /**<  @brief  A set of soft constraints (for each sequence in the alignment)
+                                           *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
+                                           */
+      int           oldAliEn;
 
-  /**
-   *  @}
-   */
+      /**
+       *  @}
+       */
 #ifndef VRNA_DISABLE_C11_FEATURES
-};
-};
+    };
+  };
 #endif
 
   /**

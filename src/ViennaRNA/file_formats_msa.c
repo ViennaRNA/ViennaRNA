@@ -224,8 +224,7 @@ vrna_file_msa_read(const char   *filename,
                    unsigned int options)
 {
   FILE      *fp;
-  char      *line = NULL;
-  int       i, n, seq_num, r, verb_level;
+  int       i, seq_num, r, verb_level;
   long int  fp_position;
 
   verb_level  = 1; /* we default to be very verbose */
@@ -311,7 +310,7 @@ vrna_file_msa_read_record(FILE          *fp,
                           unsigned int  options)
 {
   const char          *parser_name;
-  int                 i, r, n, seq_num, verb_level;
+  int                 i, r, seq_num, verb_level;
   aln_parser_function *parser;
 
   verb_level  = 1; /* we default to be very verbose */
@@ -406,10 +405,11 @@ vrna_file_msa_write(const char    *filename,
   if (filename && names && aln) {
     /* we require at least a filename, the sequence identifiers (names), and the alignment */
     FILE                *fp;
-    int                 i, r, n, seq_num;
+    int                 i, r, seq_num;
     const char          *writer_name;
     aln_writer_function *writer;
 
+    r           = 0;
     seq_num     = 0;
     writer_name = NULL;
     writer      = NULL;
@@ -491,10 +491,9 @@ parse_stockholm_alignment(FILE  *fp,
                           int   verbosity)
 {
   char  *line = NULL;
-  int   i, n, seq_num, seq_length, has_record, seq_current;
+  int   i, n, seq_num, seq_current;
 
   seq_num     = 0;
-  seq_length  = 0;
   seq_current = 0;
 
   if (!fp) {
@@ -522,7 +521,6 @@ parse_stockholm_alignment(FILE  *fp,
   while ((line = vrna_read_line(fp))) {
     if (strstr(line, "STOCKHOLM 1.0")) {
       inrecord    = 1;
-      has_record  = 1;
       free(line);
       break;
     }
@@ -596,7 +594,6 @@ parse_stockholm_alignment(FILE  *fp,
         /* should be sequence */
         default:
         {
-          int   tmp_l;
           char  *tmp_name = (char *)vrna_alloc(sizeof(char) * (n + 1));
           char  *tmp_seq  = (char *)vrna_alloc(sizeof(char) * (n + 1));
           if (sscanf(line, "%s %s", tmp_name, tmp_seq) == 2) {
@@ -651,8 +648,6 @@ stockholm_next_line:
      */
     return -1;
   }
-
-stockholm_exit:
 
   free(line);
 
@@ -802,7 +797,7 @@ parse_clustal_alignment(FILE  *clust,
                         int   verbosity)
 {
   char  *line, *name, *seq;
-  int   n, r, nn = 0, seq_num = 0, i;
+  int   n, nn = 0, seq_num = 0, i;
 
   if ((line = vrna_read_line(clust)) == NULL)
     return -1;
@@ -900,10 +895,9 @@ parse_maf_alignment(FILE  *fp,
                     int   verbosity)
 {
   char  *line = NULL, *tmp_name, *tmp_sequence, strand;
-  int   i, n, seq_num, seq_length, start, length, src_length;
+  int   n, seq_num, start, length, src_length;
 
   seq_num     = 0;
-  seq_length  = 0;
 
   if (!fp) {
     if (verbosity >= 0)
@@ -1134,14 +1128,6 @@ add_sequence(const char *id,
   (*names)[seq_num - 1] = strdup(id);
   (*aln)                = (char **)vrna_realloc(*aln, sizeof(char *) * (seq_num));
   (*aln)[seq_num - 1]   = strdup(seq);
-}
-
-
-PRIVATE void
-append_sequence(char  *seq,
-                char  **aln,
-                int   seq_num)
-{
 }
 
 
