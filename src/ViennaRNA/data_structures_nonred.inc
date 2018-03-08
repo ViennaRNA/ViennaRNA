@@ -483,7 +483,9 @@ total_weight_par_type(int     type,
 
   if (!last_node->hash_tab) {
     if (last_node->child)
-      return last_node->child->weight;
+      if (last_node->child->type == type){ 
+        return last_node->child->weight;
+      }
   } else {
     for (i = 0; i < last_node->hash_tab->hash_size; i++) {
       ptr = last_node->hash_tab->array[i];
