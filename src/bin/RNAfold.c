@@ -40,6 +40,7 @@
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/commands.h"
+#include "ViennaRNA/equilibrium_probs.h"
 #include "RNAfold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
@@ -210,7 +211,7 @@ main(int  argc,
 {
   FILE                              *input, *output;
   struct          RNAfold_args_info args_info;
-  char                              *buf, *rec_sequence, *rec_id, **rec_rest, *structure, *cstruc,
+  char                              *buf, *rec_sequence, *rec_id, **rec_rest, *mfe_structure, *cstruc,
                                     *orig_sequence, *constraints_file, *shape_file, *shape_method,
                                     *shape_conversion, *infile, *outfile, *tmp_string, *ligandMotif,
                                     *id_prefix, *command_file, *id_delim, *filename_delim;
@@ -220,12 +221,12 @@ main(int  argc,
                                     verbose, istty_in, filename_full, num_input,
                                     canonicalBPonly, tofile;
   long int                          seq_number;
-  double                            energy, min_en, kT, MEAgamma, bppmThreshold;
+  double                            energy, min_en, MEAgamma, bppmThreshold;
   vrna_cmd_t                        *commands;
   vrna_md_t                         md;
 
   rec_type        = read_opt = 0;
-  rec_id          = buf = rec_sequence = structure = cstruc = orig_sequence = NULL;
+  rec_id          = buf = rec_sequence = mfe_structure = cstruc = orig_sequence = NULL;
   rec_rest        = NULL;
   pf              = 0;
   noPS            = 0;
@@ -489,7 +490,7 @@ main(int  argc,
     if (istty)
       vrna_message_info(stdout, "length = %d\n", length);
 
-    structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
+    mfe_structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if (fold_constrained)
@@ -524,7 +525,7 @@ main(int  argc,
      # begin actual computations
      ########################################################
      */
-    min_en = (double)vrna_mfe(vc, structure);
+    min_en = (double)vrna_mfe(vc, mfe_structure);
 
     /* check whether the constraint allows for any solution */
     if ((fold_constrained && constraints_file) || (commands)) {
@@ -549,13 +550,13 @@ main(int  argc,
         else
           msg = vrna_strdup_printf(" (%6.2f)", min_en);
 
-        print_structure(output, structure, msg);
+        print_structure(output, mfe_structure, msg);
 
         if ((ligandMotif) && (verbose))
-          print_ligand_motifs(vc, structure, "MFE", output);
+          print_ligand_motifs(vc, mfe_structure, "MFE", output);
 
         if ((vc->domains_up) && (verbose))
-          print_ud_motifs(vc, structure, "MFE", output);
+          print_ud_motifs(vc, mfe_structure, "MFE", output);
 
         free(msg);
         (void)fflush(output);
@@ -564,7 +565,7 @@ main(int  argc,
       if (!noPS) {
         postscript_layout(vc,
                           orig_sequence,
-                          structure,
+                          mfe_structure,
                           SEQ_ID,
                           ligandMotif,
                           id_delim,
@@ -577,16 +578,15 @@ main(int  argc,
       vrna_mx_mfe_free(vc);
 
     if (pf) {
-      char *pf_struc = (char *)vrna_alloc((unsigned)length + 1);
-      if (vc->params->model_details.dangles == 1) {
+      char *pf_struc = (char *)vrna_alloc(sizeof(char) * (length + 1));
+      if (vc->params->model_details.dangles % 2) {
+        int dang_bak = vc->params->model_details.dangles;
         vc->params->model_details.dangles = 2;   /* recompute with dangles as in pf_fold() */
-        min_en                            = vrna_eval_structure(vc, structure);
-        vc->params->model_details.dangles = 1;
+        min_en                            = vrna_eval_structure(vc, mfe_structure);
+        vc->params->model_details.dangles = dang_bak;
       }
 
       vrna_exp_params_rescale(vc, &min_en);
-
-      kT = vc->exp_params->kT / 1000.;
 
       if (length > 2000)
         vrna_message_info(stderr, "scaling factor %f", vc->exp_params->pf_scale);
@@ -626,11 +626,11 @@ main(int  argc,
 
           /* generate initial element probability lists for dot-plot */
           pl1 = vrna_plist_from_probs(vc, bppmThreshold);
-          pl2 = vrna_plist(structure, 0.95 * 0.95);
+          pl2 = vrna_plist(mfe_structure, 0.95 * 0.95);
 
           /* add ligand motif annotation if necessary */
           if (ligandMotif)
-            add_ligand_motifs_dot(vc, &pl1, &pl2, structure);
+            add_ligand_motifs_dot(vc, &pl1, &pl2, mfe_structure);
 
           /* generate dot-plot file name */
           if (SEQ_ID) {
@@ -701,11 +701,11 @@ main(int  argc,
           if (md.compute_bpp) {
             msg = vrna_strdup_printf(" frequency of mfe structure in ensemble %g"
                                      "; ensemble diversity %-6.2f",
-                                     exp((energy - min_en) / kT),
+                                     vrna_pr_structure(vc, mfe_structure),
                                      vrna_mean_bp_distance(vc));
           } else {
             msg = vrna_strdup_printf(" frequency of mfe structure in ensemble %g;",
-                                     exp((energy - min_en) / kT));
+                                     vrna_pr_structure(vc, mfe_structure));
           }
 
           print_structure(output, NULL, msg);
@@ -729,7 +729,7 @@ main(int  argc,
     free(rec_id);
     free(rec_sequence);
     free(orig_sequence);
-    free(structure);
+    free(mfe_structure);
 
     /* free the rest of current dataset */
     if (rec_rest) {
@@ -738,7 +738,7 @@ main(int  argc,
       free(rec_rest);
     }
 
-    rec_id    = rec_sequence = structure = cstruc = NULL;
+    rec_id    = rec_sequence = mfe_structure = cstruc = NULL;
     rec_rest  = NULL;
 
     if (with_shapes || (constraints_file && (!batch)))
