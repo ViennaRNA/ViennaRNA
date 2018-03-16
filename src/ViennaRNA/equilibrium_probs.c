@@ -23,6 +23,7 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/mfe.h"
+#include "ViennaRNA/eval.h"
 #include "ViennaRNA/part_func.h"
 
 /*
@@ -71,6 +72,61 @@ wrap_mean_bp_distance(FLT_OR_DBL *p,
 # BEGIN OF FUNCTION DEFINITIONS #
 #################################
 */
+PUBLIC double
+vrna_pr_structure(vrna_fold_compound_t *fc,
+                  const char *structure)
+{
+  if (fc && fc->exp_params && fc->exp_matrices && fc->exp_matrices->q) {
+    unsigned int n;
+    double e, kT, Q, dG, p;
+    vrna_exp_param_t *params = fc->exp_params;
+    n = fc->length;
+    
+    if (fc->params->model_details.dangles % 2) {
+      /* only compute probabilities with dangles = 2 || 0 */
+      int dang_bak = fc->params->model_details.dangles;
+      fc->params->model_details.dangles = 2;
+      e  = (double)vrna_eval_structure(fc, structure);
+      fc->params->model_details.dangles = dang_bak;
+    } else {
+      e = (double)vrna_eval_structure(fc, structure);
+    }
+
+    kT = params->kT / 1000.;
+    Q  = params->model_details.circ ? fc->exp_matrices->qo : fc->exp_matrices->q[fc->iindx[1] - n];
+
+    dG = (-log(Q) - n * log(params->pf_scale)) * kT;
+    p = exp((dG - e) / kT);
+
+    return p;
+  }
+  
+  return -1.;
+}
+
+
+PUBLIC double
+vrna_pr_energy(vrna_fold_compound_t *fc,
+               double               e)
+{
+  if (fc && fc->exp_params && fc->exp_matrices && fc->exp_matrices->q) {
+    unsigned int n;
+    double kT, Q, dG, p;
+    vrna_exp_param_t *params = fc->exp_params;
+    n = fc->length;
+
+    kT = params->kT / 1000.;
+    Q  = params->model_details.circ ? fc->exp_matrices->qo : fc->exp_matrices->q[fc->iindx[1] - n];
+
+    dG = (-log(Q) - n * log(params->pf_scale)) * kT;
+    p = exp((dG - e) / kT);
+
+    return p;
+  }
+  
+  return -1.;
+}
+
 
 void
 vrna_pairing_probs( vrna_fold_compound_t *vc,
