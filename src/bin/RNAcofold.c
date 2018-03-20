@@ -253,7 +253,7 @@ main(int  argc,
       "G-Quadruplex support is currently not available for partition function computations");
 
   if (command_file != NULL)
-    commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_DEFAULTS);
+    commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
   istty_in  = isatty(fileno(stdin));
   istty_out = isatty(fileno(stdout));
@@ -429,7 +429,7 @@ main(int  argc,
     }
 
     if (commands)
-      vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_DEFAULTS);
+      vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
     if (istty) {
       if (cut_point == -1) {
