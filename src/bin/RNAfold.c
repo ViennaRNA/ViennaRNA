@@ -112,6 +112,14 @@ apply_constraints(vrna_fold_compound_t  *fc,
                   int                   canonicalBPonly);
 
 
+static char *
+generate_filename(const char *pattern,
+                  const char *def_name,
+                  const char *id,
+                  const char *id_delim,
+                  const char *filename_delim);
+
+
 /*--------------------------------------------------------------------------*/
 
 static void
@@ -130,14 +138,11 @@ postscript_layout(vrna_fold_compound_t  *fc,
   char      *annotation     = NULL;
   vrna_md_t *md             = &(fc->params->model_details);
 
-  if (SEQ_ID) {
-    filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
-    tmp_string    = vrna_filename_sanitize(filename_plot, filename_delim);
-    free(filename_plot);
-    filename_plot = tmp_string;
-  } else {
-    filename_plot = strdup("rna.ps");
-  }
+  filename_plot = generate_filename("%s%sss.ps",
+                                    "rna.ps",
+                                    SEQ_ID,
+                                    id_delim,
+                                    filename_delim);
 
   if (ligandMotif) {
     char *annote = annotate_ligand_motif(fc, structure);
@@ -188,20 +193,40 @@ ImFeelingLucky(vrna_fold_compound_t *fc,
     (void)fflush(output);
   }
 
-  if (SEQ_ID) {
-    filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, id_delim);
-    tmp_string    = vrna_filename_sanitize(filename_plot, filename_delim);
+  if (!noPS) {
+    filename_plot = generate_filename("%s%sss.ps",
+                                      "rna.ps",
+                                      SEQ_ID,
+                                      id_delim,
+                                      filename_delim);
+
+    (void)vrna_file_PS_rnaplot(orig_sequence, s, filename_plot, md);
     free(filename_plot);
-    filename_plot = tmp_string;
-  } else {
-    filename_plot = strdup("rna.ps");
   }
 
-  if (!noPS)
-    (void)vrna_file_PS_rnaplot(orig_sequence, s, filename_plot, md);
-
   free(s);
-  free(filename_plot);
+}
+
+
+static char *
+generate_filename(const char *pattern,
+                  const char *def_name,
+                  const char *id,
+                  const char *id_delim,
+                  const char *filename_delim)
+{
+  char *filename, *ptr;
+
+  if (id) {
+    filename = vrna_strdup_printf(pattern, id, id_delim);
+    ptr      = vrna_filename_sanitize(filename, filename_delim);
+    free(filename);
+    filename = ptr;
+  } else {
+    filename = strdup(def_name);
+  }
+
+  return filename;
 }
 
 
@@ -637,14 +662,11 @@ main(int  argc,
             add_ligand_motifs_dot(vc, &pl1, &pl2, mfe_structure);
 
           /* generate dot-plot file name */
-          if (SEQ_ID) {
-            filename_dotplot  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
-            tmp_string        = vrna_filename_sanitize(filename_dotplot, filename_delim);
-            free(filename_dotplot);
-            filename_dotplot = tmp_string;
-          } else {
-            filename_dotplot = strdup("dot.ps");
-          }
+          filename_dotplot = generate_filename("%s%sdp.ps",
+                                               "dot.ps",
+                                               SEQ_ID,
+                                               id_delim,
+                                               filename_delim);
 
           if (filename_dotplot) {
             vrna_plot_dp_EPS(filename_dotplot,
@@ -660,15 +682,11 @@ main(int  argc,
 
           /* compute stack probabilities and generate dot-plot */
           if (md.compute_bpp == 2) {
-            char *filename_stackplot = NULL;
-            if (SEQ_ID) {
-              filename_stackplot  = vrna_strdup_printf("%s%sdp2.ps", SEQ_ID, id_delim);
-              tmp_string          = vrna_filename_sanitize(filename_stackplot, filename_delim);
-              free(filename_stackplot);
-              filename_stackplot = tmp_string;
-            } else {
-              filename_stackplot = strdup("dot2.ps");
-            }
+            char *filename_stackplot = generate_filename("%s%sdp2.ps",
+                                                         "dot2.ps",
+                                                         SEQ_ID,
+                                                         id_delim,
+                                                         filename_delim);
 
             pl2 = vrna_stack_prob(vc, 1e-5);
 
