@@ -5,6 +5,8 @@
 #ifdef SWIGPYTHON
 %{
 
+#include <stdexcept>
+
 typedef struct {
   PyObject *cb;
   PyObject *data;
@@ -27,13 +29,30 @@ bind_subopt_callback(PyObject *PyFunc, PyObject *data){
 static void
 python_wrap_subopt_cb(const char *structure, float energy, void *data){
 
-  PyObject *func, *arglist, *result;
+  PyObject *func, *arglist, *result, *err;
   python_subopt_callback_t *cb = (python_subopt_callback_t *)data;
 
   func = cb->cb;
   /* compose argument list */
   arglist = Py_BuildValue("(z,d,O)", structure, (double)energy, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Subopt callback must take exactly 3 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing subopt callback" );
+      }
+    }
+    PyErr_Clear();
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
 

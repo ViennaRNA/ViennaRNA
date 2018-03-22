@@ -6,6 +6,8 @@
 #ifdef SWIGPYTHON
 %{
 
+#include <stdexcept>
+
 typedef struct {
   PyObject  *cb_f;
   PyObject  *cb_bt;
@@ -24,10 +26,27 @@ delete_py_sc_callback(void * data){
   py_sc_callback_t *cb = (py_sc_callback_t *)data;
   /* first delete user data */
   if(cb->delete_data != Py_None){
-    PyObject *func, *arglist, *result;
+    PyObject *func, *arglist, *result, *err;
     func = cb->delete_data;
     arglist = Py_BuildValue("O", cb->data);
     result  = PyObject_CallObject(func, arglist);
+
+    /* BEGIN recognizing errors in callback execution */
+    if (result == NULL) {
+      if ((err = PyErr_Occurred())) {
+        /* print error message */
+        PyErr_Print();
+        /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+        if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+          throw std::runtime_error( "Generic soft constraint delete_data() callback must take exactly 1 argument" );
+        } else {
+          throw std::runtime_error( "Some error occurred while executing generic soft constraint delete_data() callback" );
+        }
+      }
+      PyErr_Clear();
+    }
+    /* END recognizing errors in callback execution */
+
     Py_DECREF(arglist);
     Py_XDECREF(result);
   }
@@ -150,10 +169,27 @@ sc_add_pydata(vrna_fold_compound_t *vc,
     cb = (py_sc_callback_t *)vc->sc->data;
     if(cb->data != Py_None){
       if(cb->delete_data != Py_None){
-        PyObject *func, *arglist, *result;
+        PyObject *func, *arglist, *result, *err;
         func    = cb->delete_data;
         arglist = Py_BuildValue("O", cb->data);
         result  = PyObject_CallObject(func, arglist);
+
+        /* BEGIN recognizing errors in callback execution */
+        if (result == NULL) {
+          if ((err = PyErr_Occurred())) {
+            /* print error message */
+            PyErr_Print();
+            /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+            if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+              throw std::runtime_error( "Generic soft constraint delete_data() callback must take exactly 1 argument" );
+            } else {
+              throw std::runtime_error( "Some error occurred while executing generic soft constraint delete_data() callback" );
+            }
+          }
+          PyErr_Clear();
+        }
+        /* END recognizing errors in callback execution */
+
         Py_DECREF(arglist);
         Py_XDECREF(result);
       }
@@ -189,16 +225,38 @@ py_wrap_sc_f_callback(int i,
                       void *data){
 
   int ret;
-  PyObject *func, *arglist, *result;
+  PyObject *func, *arglist, *result, *err;
   py_sc_callback_t *cb = (py_sc_callback_t *)data;
 
+  ret  = 0;
   func = cb->cb_f;
+
   /* compose argument list */
   arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
-  ret = (int)PyInt_AsLong(result);
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Generic soft constraint callbacks must take exactly 6 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing generic soft constraint callback" );
+      }
+    }
+    PyErr_Clear();
+  } else if (result == Py_None) {
+    throw std::runtime_error( "Generic soft constraint callback must return pseudo energy value" );
+  } else {
+    ret = (int)PyInt_AsLong(result);
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
+
   return ret;
 }
 
@@ -211,15 +269,30 @@ py_wrap_sc_bt_callback( int i,
                         void *data){
 
   int c, len, num_pairs;
-  PyObject *func, *arglist, *result, *bp;
+  PyObject *func, *arglist, *result, *bp, *err;
   py_sc_callback_t *cb = (py_sc_callback_t *)data;
   vrna_basepair_t *ptr, *pairs = NULL;
   func = cb->cb_bt;
   /* compose argument list */
   arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
-  if((result == NULL) || (result == Py_None))
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Generic soft constraint callbacks must take exactly 6 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing generic soft constraint callback" );
+      }
+    }
+    PyErr_Clear();
     return NULL;
+  }
+  /* END recognizing errors in callback execution */
 
   if(PyList_Check(result)){
     len       = 10;
@@ -284,14 +357,34 @@ py_wrap_sc_exp_f_callback(int i,
                           void *data){
 
   FLT_OR_DBL ret;
-  PyObject *func, *arglist, *result;
+  PyObject *func, *arglist, *result, *err;
   py_sc_callback_t *cb = (py_sc_callback_t *)data;
 
   func = cb->cb_exp_f;
   /* compose argument list */
   arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
-  ret = (FLT_OR_DBL)PyFloat_AsDouble(result);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Generic soft constraint callbacks must take exactly 6 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing generic soft constraint callback" );
+      }
+    }
+    PyErr_Clear();
+  } else if (result == Py_None) {
+    throw std::runtime_error( "Generic soft constraint callback must return Boltzmann weighted pseudo energy value" );
+  } else {
+    ret = (FLT_OR_DBL)PyFloat_AsDouble(result);
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return ret;
