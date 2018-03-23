@@ -133,6 +133,7 @@ pkginclude_HEADERS =  \
     unstructured_domains.h \
     file_formats_msa.h \
     file_utils.h \
+    char_stream.h \
     commands.h \
     units.h \
     combinatorics.h \
@@ -214,6 +215,7 @@ libRNA_utils_la_SOURCES = \
     file_utils.c \
     file_formats.c \
     file_formats_msa.c \
+    char_stream.c \
     commands.c \
     units.c \
     combinatorics.c
