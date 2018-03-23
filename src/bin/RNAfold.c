@@ -113,11 +113,10 @@ apply_constraints(vrna_fold_compound_t  *fc,
 
 
 static char *
-generate_filename(const char *pattern,
-                  const char *def_name,
-                  const char *id,
-                  const char *id_delim,
-                  const char *filename_delim);
+generate_filename(const char  *pattern,
+                  const char  *def_name,
+                  const char  *id,
+                  const char  *filename_delim);
 
 
 /*--------------------------------------------------------------------------*/
@@ -128,7 +127,6 @@ postscript_layout(vrna_fold_compound_t  *fc,
                   const char            *structure,
                   const char            *SEQ_ID,
                   const char            *ligandMotif,
-                  const char            *id_delim,
                   const char            *filename_delim,
                   int                   verbose)
 {
@@ -141,7 +139,6 @@ postscript_layout(vrna_fold_compound_t  *fc,
   filename_plot = generate_filename("%s%sss.ps",
                                     "rna.ps",
                                     SEQ_ID,
-                                    id_delim,
                                     filename_delim);
 
   if (ligandMotif) {
@@ -168,7 +165,6 @@ ImFeelingLucky(vrna_fold_compound_t *fc,
                const char           *orig_sequence,
                const char           *SEQ_ID,
                int                  noPS,
-               const char           *id_delim,
                const char           *filename_delim,
                FILE                 *output,
                int                  istty_in)
@@ -197,7 +193,6 @@ ImFeelingLucky(vrna_fold_compound_t *fc,
     filename_plot = generate_filename("%s%sss.ps",
                                       "rna.ps",
                                       SEQ_ID,
-                                      id_delim,
                                       filename_delim);
 
     (void)vrna_file_PS_rnaplot(orig_sequence, s, filename_plot, md);
@@ -209,17 +204,16 @@ ImFeelingLucky(vrna_fold_compound_t *fc,
 
 
 static char *
-generate_filename(const char *pattern,
-                  const char *def_name,
-                  const char *id,
-                  const char *id_delim,
-                  const char *filename_delim)
+generate_filename(const char  *pattern,
+                  const char  *def_name,
+                  const char  *id,
+                  const char  *filename_delim)
 {
   char *filename, *ptr;
 
   if (id) {
-    filename = vrna_strdup_printf(pattern, id, id_delim);
-    ptr      = vrna_filename_sanitize(filename, filename_delim);
+    filename  = vrna_strdup_printf(pattern, id, filename_delim);
+    ptr       = vrna_filename_sanitize(filename, filename_delim);
     free(filename);
     filename = ptr;
   } else {
@@ -240,16 +234,16 @@ main(int  argc,
                                     *cstruc,
                                     *orig_sequence, *constraints_file, *shape_file, *shape_method,
                                     *shape_conversion, *infile, *outfile, *tmp_string, *ligandMotif,
-                                    *id_prefix, *command_file, *id_delim, *filename_delim;
+                                    *command_file, *filename_delim;
   unsigned int                      rec_type, read_opt;
   int                               i, length, istty, pf, noPS, noconv, enforceConstraints,
-                                    batch, auto_id, id_digits, doMEA, lucky, with_shapes,
-                                    verbose, istty_in, filename_full, num_input,
-                                    canonicalBPonly, tofile;
-  long int                          seq_number;
+                                    batch, doMEA, lucky, with_shapes, verbose, istty_in,
+                                    filename_full,
+                                    num_input, canonicalBPonly, tofile;
   double                            energy, min_en, MEAgamma, bppmThreshold;
   vrna_cmd_t                        *commands;
   vrna_md_t                         md;
+  dataset_id                        id_control;
 
   rec_type        = read_opt = 0;
   rec_id          = buf = rec_sequence = mfe_structure = cstruc = orig_sequence = NULL;
@@ -263,7 +257,6 @@ main(int  argc,
   lucky           = 0;
   doMEA           = 0;
   verbose         = 0;
-  auto_id         = 0;
   tofile          = 0;
   outfile         = NULL;
   infile          = NULL;
@@ -303,13 +296,7 @@ main(int  argc,
   /* SHAPE reactivity data */
   ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
 
-  /* parse options for ID manipulation */
-  ggo_get_ID_manipulation(args_info,
-                          auto_id,
-                          id_prefix, "sequence",
-                          id_delim, "_",
-                          id_digits, 4,
-                          seq_number, 1);
+  ggo_get_id_control(args_info, id_control, "Sequence", "sequence", "_", 4, 1);
 
   ggo_get_constraints_settings(args_info,
                                fold_constrained,
@@ -379,10 +366,10 @@ main(int  argc,
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
     filename_delim = strdup(args_info.filename_delim_arg);
-  else
-    filename_delim = strdup(id_delim);
+  else if (get_id_delim(id_control))
+    filename_delim = strdup(get_id_delim(id_control));
 
-  if (isspace(*filename_delim)) {
+  if ((filename_delim) && isspace(*filename_delim)) {
     free(filename_delim);
     filename_delim = NULL;
   }
@@ -475,7 +462,8 @@ main(int  argc,
     }
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
+    set_next_id(&rec_id, id_control);
+    SEQ_ID = fileprefix_from_id(rec_id, id_control, filename_full);
 
     if (tofile) {
       /* prepare the file name */
@@ -597,7 +585,6 @@ main(int  argc,
                           mfe_structure,
                           SEQ_ID,
                           ligandMotif,
-                          id_delim,
                           filename_delim,
                           verbose);
       }
@@ -633,7 +620,6 @@ main(int  argc,
                        orig_sequence,
                        SEQ_ID,
                        noPS,
-                       id_delim,
                        filename_delim,
                        output,
                        istty_in);
@@ -665,7 +651,6 @@ main(int  argc,
           filename_dotplot = generate_filename("%s%sdp.ps",
                                                "dot.ps",
                                                SEQ_ID,
-                                               id_delim,
                                                filename_delim);
 
           if (filename_dotplot) {
@@ -685,7 +670,6 @@ main(int  argc,
             char *filename_stackplot = generate_filename("%s%sdp2.ps",
                                                          "dot2.ps",
                                                          SEQ_ID,
-                                                         id_delim,
                                                          filename_delim);
 
             pl2 = vrna_stack_prob(vc, 1e-5);
@@ -770,8 +754,6 @@ main(int  argc,
 
     free(SEQ_ID);
 
-    ID_number_increase(&seq_number, "Sequence");
-
     /* print user help for the next round if we get input from tty */
     if (istty) {
       if (fold_constrained) {
@@ -791,11 +773,11 @@ main(int  argc,
   free(ligandMotif);
   free(shape_method);
   free(shape_conversion);
-  free(id_prefix);
-  free(id_delim);
   free(filename_delim);
   free(command_file);
   vrna_commands_free(commands);
+
+  free_id_data(id_control);
 
   return EXIT_SUCCESS;
 }
