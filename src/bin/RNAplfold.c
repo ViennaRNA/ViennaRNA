@@ -138,19 +138,19 @@ main(int  argc,
   FILE                        *pUfp, *spup;
   struct RNAplfold_args_info  args_info;
   char                        *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id,
-                              **rec_rest, *orig_sequence, *id_prefix, *id_delim, *filename_delim,
-                              *command_file, *shape_file, *shape_method, *shape_conversion;
+                              **rec_rest, *orig_sequence, *filename_delim, *command_file,
+                              *shape_file, *shape_method, *shape_conversion;
   unsigned int                rec_type, read_opt;
   int                         length, istty, winsize, pairdist, tempwin, temppair, tempunpaired,
-                              noconv, i, plexoutput, simply_putout, openenergies, binaries, auto_id,
-                              id_digits, filename_full, with_shapes, verbose;
-  long int                    seq_number;
+                              noconv, i, plexoutput, simply_putout, openenergies, binaries,
+                              filename_full, with_shapes, verbose;
   float                       cutoff;
   double                      **pup, betaScale;
   vrna_ep_t                   *pl, *dpp;
   vrna_exp_param_t            *pf_parameters;
   vrna_md_t                   md;
   vrna_cmd_t                  *commands;
+  dataset_id                  id_control;
 
   pUfp          = NULL;
   spup          = NULL;
@@ -170,7 +170,6 @@ main(int  argc,
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
   pf_parameters = NULL;
-  auto_id       = 0;
   filename_full = 0;
   command_file  = NULL;
   commands      = NULL;
@@ -193,12 +192,7 @@ main(int  argc,
   ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
 
   /* parse options for ID manipulation */
-  ggo_get_ID_manipulation(args_info,
-                          auto_id,
-                          id_prefix, "sequence",
-                          id_delim, "_",
-                          id_digits, 4,
-                          seq_number, 1);
+  ggo_get_id_control(args_info, id_control, "Sequence", "sequence", "_", 4, 1);
 
   ggo_get_md_part(args_info, md);
 
@@ -288,10 +282,10 @@ main(int  argc,
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
     filename_delim = strdup(args_info.filename_delim_arg);
-  else
-    filename_delim = strdup(id_delim);
+  else if (get_id_delim(id_control))
+    filename_delim = strdup(get_id_delim(id_control));
 
-  if (isspace(*filename_delim)) {
+  if ((filename_delim) && isspace(*filename_delim)) {
     free(filename_delim);
     filename_delim = NULL;
   }
@@ -364,7 +358,8 @@ main(int  argc,
       rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
+    set_next_id(&rec_id, id_control);
+    SEQ_ID = fileprefix_from_id(rec_id, id_control, filename_full);
 
     length    = (int)strlen(rec_sequence);
     structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
@@ -453,15 +448,15 @@ main(int  argc,
       if (!SEQ_ID)
         SEQ_ID = strdup("plfold");
 
-      fname1  = vrna_strdup_printf("%s%slunp", SEQ_ID, id_delim);
-      fname2  = vrna_strdup_printf("%s%sbasepairs", SEQ_ID, id_delim);
-      fname3  = vrna_strdup_printf("%s%suplex", SEQ_ID, id_delim);
+      fname1  = vrna_strdup_printf("%s%slunp", SEQ_ID, filename_delim);
+      fname2  = vrna_strdup_printf("%s%sbasepairs", SEQ_ID, filename_delim);
+      fname3  = vrna_strdup_printf("%s%suplex", SEQ_ID, filename_delim);
       fname4  =
-        (binaries) ? vrna_strdup_printf("%s%sopenen%sbin", SEQ_ID, id_delim,
-                                        id_delim) : vrna_strdup_printf("%s%sopenen",
-                                                                       SEQ_ID,
-                                                                       id_delim);
-      ffname = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, id_delim);
+        (binaries) ? vrna_strdup_printf("%s%sopenen%sbin", SEQ_ID, filename_delim,
+                                        filename_delim) : vrna_strdup_printf("%s%sopenen",
+                                                                             SEQ_ID,
+                                                                             filename_delim);
+      ffname = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, filename_delim);
 
       /* sanitize filenames */
       tmp_string = vrna_filename_sanitize(fname1, filename_delim);
@@ -623,20 +618,18 @@ main(int  argc,
     rec_id    = rec_sequence = orig_sequence = NULL;
     rec_rest  = NULL;
 
-    ID_number_increase(&seq_number, "Sequence");
-
     /* print user help for the next round if we get input from tty */
     if (istty)
       vrna_message_input_seq_simple();
   }
 
-  free(id_prefix);
-  free(id_delim);
   free(filename_delim);
   free(command_file);
   free(shape_method);
   free(shape_conversion);
   vrna_commands_free(commands);
+
+  free_id_data(id_control);
 
   return EXIT_SUCCESS;
 }

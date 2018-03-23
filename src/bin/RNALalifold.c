@@ -75,18 +75,18 @@ main(int  argc,
   FILE                          *clust_file;
   struct RNALalifold_args_info  args_info;
   char                          *string, *structure, *prefix, *tmp_string,
-                                **AS, **names, *filename_in, *id_prefix, *id_delim, *filename_delim,
-                                **input_files, *tmp_id, *tmp_structure, **shape_files,
-                                *shape_method;
+                                **AS, **names, *filename_in, *filename_delim, **input_files,
+                                *tmp_id, *tmp_structure, **shape_files, *shape_method;
   unsigned int                  input_format_options, longest_string, aln_options;
-  int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, auto_id,
-                                mis, istty, alnPS, aln_columns, aln_out, ssPS, input_file_num,
-                                id_digits, with_shapes, *shape_file_association, verbose, s,
-                                tmp_number, split_contributions;
-  long int                      alignment_number, first_alignment_number;
+  int                           n_seq, i, maxdist, unchangednc, unchangedcv, quiet, mis, istty,
+                                alnPS, aln_columns, aln_out, ssPS, input_file_num, with_shapes,
+                                *shape_file_association, verbose, s, tmp_number,
+                                split_contributions;
+  long int                      first_alignment_number;
   float                         e_max;
   vrna_md_t                     md;
   vrna_fold_compound_t          *fc;
+  dataset_id                    id_control;
 
   clust_file              = stdin;
   string                  = structure = prefix = NULL;
@@ -109,7 +109,6 @@ main(int  argc,
   with_shapes             = 0;
   verbose                 = 0;
   quiet                   = 0;
-  auto_id                 = 0;
   e_max                   = -0.1; /* threshold in kcal/mol per nucleotide in a hit */
   split_contributions     = 0;
 
@@ -133,12 +132,7 @@ main(int  argc,
     md.dangles = 2;
   }
 
-  ggo_get_ID_manipulation(args_info,
-                          auto_id,
-                          id_prefix, "alignment",
-                          id_delim, "_",
-                          id_digits, 4,
-                          alignment_number, 1);
+  ggo_get_id_control(args_info, id_control, "Alignment", "alignment", "_", 4, 1);
 
   /* set cfactor */
   if (args_info.cfactor_given) {
@@ -304,10 +298,10 @@ main(int  argc,
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
     filename_delim = strdup(args_info.filename_delim_arg);
-  else
-    filename_delim = strdup(id_delim);
+  else if (get_id_delim(id_control))
+    filename_delim = strdup(get_id_delim(id_control));
 
-  if (isspace(*filename_delim)) {
+  if ((filename_delim) && isspace(*filename_delim)) {
     free(filename_delim);
     filename_delim = NULL;
   }
@@ -379,7 +373,7 @@ main(int  argc,
     input_format_options = format_guess;
   }
 
-  first_alignment_number = alignment_number;
+  first_alignment_number = get_current_id(id_control);
 
   while (!feof(clust_file)) {
     char  **MSA_orig  = NULL;
@@ -440,10 +434,7 @@ main(int  argc,
     }
 
     /* construct alignment ID */
-    if (tmp_id && (!auto_id)) /* we've read an ID from file, so we use it */
-      MSA_ID = strdup(tmp_id);
-    else if (auto_id)         /* we have nuffin', Jon Snow (...so we simply generate an ID) */
-      MSA_ID = vrna_strdup_printf("%s%s%0*ld", id_prefix, id_delim, id_digits, alignment_number);
+    MSA_ID = fileprefix_from_id_alifold(tmp_id, id_control, 0);
 
     print_fasta_header(stdout, MSA_ID);
 
@@ -515,14 +506,12 @@ main(int  argc,
     free(tmp_id);
     free(tmp_structure);
 
-    ID_number_increase(&alignment_number, "Alignment");
-
     /* break after first record if constraint folding and not explicitly instructed otherwise */
     if (with_shapes)
       break;
   } /* end of input */
 
-  if (first_alignment_number == alignment_number) {
+  if (first_alignment_number == get_current_id(id_control)) {
     char *format = NULL;
     switch (input_format_options) {
       case VRNA_FILE_FORMAT_MSA_CLUSTAL:
@@ -558,9 +547,9 @@ main(int  argc,
     free(input_files[i]);
   free(input_files);
 
-  free(id_prefix);
-  free(id_delim);
   free(filename_delim);
+
+  free_id_data(id_control);
 
   return EXIT_SUCCESS;
 }
