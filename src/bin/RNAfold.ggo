@@ -52,6 +52,7 @@ details="The default behavior of RNAfold is to read input from stdin or the file
  other supplied input filename.\n\n"
 string
 typestr="<filename>"
+multiple
 optional
 
 
