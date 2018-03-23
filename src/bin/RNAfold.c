@@ -41,6 +41,7 @@
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/commands.h"
 #include "ViennaRNA/equilibrium_probs.h"
+#include "ViennaRNA/char_stream.h"
 #include "RNAfold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
@@ -86,7 +87,7 @@ static void
 print_ligand_motifs(vrna_fold_compound_t  *vc,
                     const char            *structure,
                     const char            *structure_name,
-                    FILE                  *output);
+                    vrna_cstr_t           buf);
 
 
 static void add_ligand_motif(vrna_fold_compound_t *vc,
@@ -104,7 +105,7 @@ static void
 print_ud_motifs(vrna_fold_compound_t  *vc,
                 const char            *structure,
                 const char            *structure_name,
-                FILE                  *output);
+                vrna_cstr_t           buf);
 
 
 static void
@@ -124,14 +125,14 @@ compute_MEA(vrna_fold_compound_t  *fc,
             double                MEAgamma,
             const char            *ligandMotif,
             int                   verbose,
-            FILE                  *output);
+            vrna_cstr_t           buf);
 
 
 static void
 compute_centroid(vrna_fold_compound_t *fc,
                  const char           *ligandMotif,
                  int                  verbose,
-                 FILE                 *output);
+                 vrna_cstr_t          buf);
 
 
 static void
@@ -178,13 +179,13 @@ postscript_layout(vrna_fold_compound_t  *fc,
 
   if (ligandMotif) {
     char *annote = annotate_ligand_motif(fc, structure);
-    vrna_strcat_printf(&annotation, "%s", annote);
+    vrna_strcat_printf(&annotation, annote);
     free(annote);
   }
 
   if (fc->domains_up) {
     char *a = annotate_ud_motif(fc, structure);
-    vrna_strcat_printf(&annotation, "%s", a);
+    vrna_strcat_printf(&annotation, a);
     free(a);
   }
 
@@ -201,7 +202,7 @@ ImFeelingLucky(vrna_fold_compound_t *fc,
                const char           *SEQ_ID,
                int                  noPS,
                const char           *filename_delim,
-               FILE                 *output,
+               vrna_cstr_t          buf,
                int                  istty_in)
 {
   vrna_md_t *md = &(fc->params->model_details);
@@ -211,17 +212,11 @@ ImFeelingLucky(vrna_fold_compound_t *fc,
   char      *filename_plot  = NULL;
   char      *s              = vrna_pbacktrack(fc);
   float     e               = vrna_eval_structure(fc, (const char *)s);
-  if (output) {
-    char *energy_string = NULL;
-    if (istty_in)
-      energy_string = vrna_strdup_printf("\n free energy = %6.2f kcal/mol", e);
-    else
-      energy_string = vrna_strdup_printf(" (%6.2f)", e);
 
-    print_structure(output, s, energy_string);
-    free(energy_string);
-    (void)fflush(output);
-  }
+  vrna_cstr_printf_structure(buf,
+                             s,
+                             (istty_in) ? "\n free energy = %6.2f kcal/mol" : " (%6.2f)",
+                             e);
 
   if (!noPS) {
     filename_plot = generate_filename("%s%sss.ps",
@@ -461,7 +456,11 @@ main(int  argc,
     vrna_message_warning("depending on the origin of the circular sequence, some structures may be missed when using --noLP\n"
                          "Try rotating your sequence a few times");
 
-  /* process input files or handle input from stdin */
+  /*
+   ################################################
+   # process input files or handle input from stdin
+   ################################################
+   */
   if (num_input > 0) {
     for (int i = 0; i < num_input; i++) {
       FILE *input_stream = fopen((const char *)input_files[i], "r");
@@ -495,6 +494,44 @@ main(int  argc,
 }
 
 
+FILE *
+get_output_stream(struct options  *opt,
+                  const char      *SEQ_ID,
+                  const char      *input_filename)
+{
+  FILE *output = NULL;
+
+  if (opt->tofile) {
+    char *v_file_name, *tmp_string;
+
+    /* prepare the file name */
+    if (opt->output_file)
+      v_file_name = vrna_strdup_printf("%s", opt->output_file);
+    else
+      v_file_name = (SEQ_ID) ?
+                    vrna_strdup_printf("%s.fold", SEQ_ID) :
+                    vrna_strdup_printf("RNAfold_output.fold");
+
+    tmp_string = vrna_filename_sanitize(v_file_name, opt->filename_delim);
+    free(v_file_name);
+    v_file_name = tmp_string;
+
+    if (input_filename && !strcmp(input_filename, v_file_name))
+      vrna_message_error("Input and output file names are identical");
+
+    output = fopen((const char *)v_file_name, "a");
+    if (!output)
+      vrna_message_error("Failed to open file for writing");
+
+    free(v_file_name);
+  } else {
+    output = stdout;
+  }
+
+  return output;
+}
+
+
 /* main loop that processes an input stream */
 void
 process_input(FILE            *input_stream,
@@ -525,17 +562,18 @@ process_input(FILE            *input_stream,
 
   /* main loop that processes each record obtained from input stream */
   while (1) {
-    FILE          *output = NULL;
-    double        energy, min_en;
-    char          *SEQ_ID = NULL;
-    char          *v_file_name = NULL;
-    int           maybe_multiline = 0;
-    char          *rec_sequence, *rec_id, **rec_rest, *mfe_structure, *orig_sequence,
-                  *tmp_string;
+    FILE          *output;
+    char          *SEQ_ID, *rec_sequence, *rec_id, **rec_rest,
+                  *mfe_structure, *orig_sequence;
     unsigned int  rec_type, length;
+    int           maybe_multiline;
+    double        energy, min_en;
 
-    rec_id    = mfe_structure = orig_sequence = tmp_string = NULL;
-    rec_rest  = NULL;
+    output          = NULL;
+    SEQ_ID          = rec_id = NULL;
+    mfe_structure   = orig_sequence = NULL;
+    rec_rest        = NULL;
+    maybe_multiline = 0;
 
     rec_type = vrna_file_fasta_read_record(&rec_id,
                                            &rec_sequence,
@@ -561,28 +599,7 @@ process_input(FILE            *input_stream,
     set_next_id(&rec_id, opt->id_control);
     SEQ_ID = fileprefix_from_id(rec_id, opt->id_control, opt->filename_full);
 
-    if (opt->tofile) {
-      /* prepare the file name */
-      if (opt->output_file)
-        v_file_name = vrna_strdup_printf("%s", opt->output_file);
-      else
-        v_file_name = (SEQ_ID) ?
-                      vrna_strdup_printf("%s.fold", SEQ_ID) :
-                      vrna_strdup_printf("RNAfold_output.fold");
-
-      tmp_string = vrna_filename_sanitize(v_file_name, opt->filename_delim);
-      free(v_file_name);
-      v_file_name = tmp_string;
-
-      if (input_filename && !strcmp(input_filename, v_file_name))
-        vrna_message_error("Input and output file names are identical");
-
-      output = fopen((const char *)v_file_name, "a");
-      if (!output)
-        vrna_message_error("Failed to open file for writing");
-    } else {
-      output = stdout;
-    }
+    output = get_output_stream(opt, SEQ_ID, input_filename);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!opt->noconv)
@@ -638,6 +655,14 @@ process_input(FILE            *input_stream,
      # begin actual computations
      ########################################################
      */
+
+    /* retrieve string stream bound to output, 6*length should be enough memory to start with */
+    vrna_cstr_t rec_output = vrna_cstr(6 * length, output);
+
+    /* put header + sequence into output string stream */
+    vrna_cstr_print_fasta_header(rec_output, rec_id);
+    vrna_cstr_printf(rec_output, "%s\n", orig_sequence);
+
     min_en = (double)vrna_mfe(vc, mfe_structure);
 
     /* check whether the constraint allows for any solution */
@@ -650,29 +675,18 @@ process_input(FILE            *input_stream,
       }
     }
 
-    if (output) {
-      print_fasta_header(output, rec_id);
-      fprintf(output, "%s\n", orig_sequence);
-    }
-
     if (!opt->lucky) {
-      if (output) {
-        char *msg = NULL;
-        if (istty_in && istty_out)
-          msg = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol", min_en);
-        else
-          msg = vrna_strdup_printf(" (%6.2f)", min_en);
+      vrna_cstr_printf_structure(rec_output,
+                                 mfe_structure,
+                                 (istty_in && istty_out) ?  "\n minimum free energy = %6.2f kcal/mol" : " (%6.2f)",
+                                 min_en);
 
-        print_structure(output, mfe_structure, msg);
+      if (opt->verbose) {
+        if (opt->ligandMotif)
+          print_ligand_motifs(vc, mfe_structure, "MFE", rec_output);
 
-        if ((opt->ligandMotif) && (opt->verbose))
-          print_ligand_motifs(vc, mfe_structure, "MFE", output);
-
-        if ((vc->domains_up) && (opt->verbose))
-          print_ud_motifs(vc, mfe_structure, "MFE", output);
-
-        free(msg);
-        (void)fflush(output);
+        if (vc->domains_up)
+          print_ud_motifs(vc, mfe_structure, "MFE", rec_output);
       }
 
       if (!opt->noPS) {
@@ -703,8 +717,6 @@ process_input(FILE            *input_stream,
       if (length > 2000)
         vrna_message_info(stderr, "scaling factor %f", vc->exp_params->pf_scale);
 
-      (void)fflush(output);
-
       energy = (double)vrna_pf(vc, pf_struc);
 
       /* in case we abort because of floating point errors */
@@ -717,20 +729,14 @@ process_input(FILE            *input_stream,
                        SEQ_ID,
                        opt->noPS,
                        opt->filename_delim,
-                       output,
+                       rec_output,
                        istty_in && istty_out);
       } else {
         if (opt->md.compute_bpp) {
-          if (output) {
-            char *msg = NULL;
-            if (istty_in && istty_out)
-              msg = vrna_strdup_printf("\n free energy of ensemble = %6.2f kcal/mol", energy);
-            else
-              msg = vrna_strdup_printf(" [%6.2f]", energy);
-
-            print_structure(output, pf_struc, msg);
-            free(msg);
-          }
+          vrna_cstr_printf_structure(rec_output,
+                                     pf_struc,
+                                     (istty_in && istty_out) ? "\n free energy of ensemble = %6.2f kcal/mol" : " [%6.2f]",
+                                     energy);
 
           char  *filename_dotplot = NULL;
           plist *pl1, *pl2;
@@ -781,7 +787,7 @@ process_input(FILE            *input_stream,
           free(pl1);
 
           /* compute centroid structure */
-          compute_centroid(vc, opt->ligandMotif, opt->verbose, output);
+          compute_centroid(vc, opt->ligandMotif, opt->verbose, rec_output);
 
           /* compute MEA structure */
           if (opt->MEA) {
@@ -789,44 +795,41 @@ process_input(FILE            *input_stream,
                         opt->MEAgamma,
                         opt->ligandMotif,
                         opt->verbose,
-                        output);
+                        rec_output);
           }
         } else {
-          char *msg = vrna_strdup_printf(" free energy of ensemble = %6.2f kcal/mol", energy);
-          print_structure(output, NULL, msg);
-          free(msg);
+          vrna_cstr_printf_structure(rec_output,
+                                     NULL,
+                                     " free energy of ensemble = %6.2f kcal/mol",
+                                     energy);
         }
 
         /* finalize enemble properties for this sequence input */
-        if (output) {
-          char *msg = NULL;
-          if (opt->md.compute_bpp) {
-            msg = vrna_strdup_printf(" frequency of mfe structure in ensemble %g"
+        if (opt->md.compute_bpp) {
+          vrna_cstr_printf_structure(rec_output,
+                                     NULL,
+                                     " frequency of mfe structure in ensemble %g"
                                      "; ensemble diversity %-6.2f",
                                      vrna_pr_structure(vc, mfe_structure),
                                      vrna_mean_bp_distance(vc));
-          } else {
-            msg = vrna_strdup_printf(" frequency of mfe structure in ensemble %g;",
+        } else {
+          vrna_cstr_printf_structure(rec_output,
+                                     NULL,
+                                     " frequency of mfe structure in ensemble %g;",
                                      vrna_pr_structure(vc, mfe_structure));
-          }
-
-          print_structure(output, NULL, msg);
-          free(msg);
         }
       }
 
       free(pf_struc);
     }
 
-    if (output)
-      (void)fflush(output);
+    /* print what we'ce collected in output charstream */
+    vrna_cstr_fflush(rec_output);
 
     if (opt->tofile && output) {
       fclose(output);
       output = NULL;
     }
-
-    free(v_file_name);
 
     /* clean up */
     vrna_fold_compound_free(vc);
@@ -844,6 +847,9 @@ process_input(FILE            *input_stream,
 
     rec_id    = rec_sequence = mfe_structure = NULL;
     rec_rest  = NULL;
+
+    /* free output vrna_cstr_t */
+    vrna_cstr_free(rec_output);
 
     if (opt->shape || (opt->constraint_file && (!opt->constraint_batch)))
       break;
@@ -914,7 +920,7 @@ compute_MEA(vrna_fold_compound_t  *fc,
             double                MEAgamma,
             const char            *ligandMotif,
             int                   verbose,
-            FILE                  *output)
+            vrna_cstr_t           rec_output)
 {
   char  *structure;
   float mea, mea_en;
@@ -935,17 +941,14 @@ compute_MEA(vrna_fold_compound_t  *fc,
     mea = MEA(pl, structure, MEAgamma);
 
   mea_en = vrna_eval_structure(fc, (const char *)structure);
-  if (output) {
-    char *msg = vrna_strdup_printf(" {%6.2f MEA=%.2f}", mea_en, mea);
-    print_structure(output, structure, msg);
-    free(msg);
-  }
+
+  vrna_cstr_printf_structure(rec_output, structure, " {%6.2f MEA=%.2f}", mea_en, mea);
 
   if ((ligandMotif) && (verbose))
-    print_ligand_motifs(fc, structure, "MEA", output);
+    print_ligand_motifs(fc, structure, "MEA", rec_output);
 
   if ((fc->domains_up) && (verbose))
-    print_ud_motifs(fc, structure, "MEA", output);
+    print_ud_motifs(fc, structure, "MEA", rec_output);
 
   free(pl);
   free(structure);
@@ -956,7 +959,7 @@ static void
 compute_centroid(vrna_fold_compound_t *fc,
                  const char           *ligandMotif,
                  int                  verbose,
-                 FILE                 *output)
+                 vrna_cstr_t          rec_output)
 {
   char    *cent;
   double  cent_en, dist;
@@ -964,17 +967,13 @@ compute_centroid(vrna_fold_compound_t *fc,
   cent    = vrna_centroid(fc, &dist);
   cent_en = vrna_eval_structure(fc, (const char *)cent);
 
-  if (output) {
-    char *msg = vrna_strdup_printf(" {%6.2f d=%.2f}", cent_en, dist);
-    print_structure(output, cent, msg);
-    free(msg);
-  }
+  vrna_cstr_printf_structure(rec_output, cent, " {%6.2f d=%.2f}", cent_en, dist);
 
   if ((ligandMotif) && (verbose))
-    print_ligand_motifs(fc, cent, "centroid", output);
+    print_ligand_motifs(fc, cent, "centroid", rec_output);
 
   if ((fc->domains_up) && (verbose))
-    print_ud_motifs(fc, cent, "centroid", output);
+    print_ud_motifs(fc, cent, "centroid", rec_output);
 
   free(cent);
 }
@@ -1093,7 +1092,7 @@ static void
 print_ligand_motifs(vrna_fold_compound_t  *vc,
                     const char            *structure,
                     const char            *structure_name,
-                    FILE                  *output)
+                    vrna_cstr_t           buf)
 {
   vrna_sc_motif_t *motifs, *m_ptr;
 
@@ -1102,19 +1101,21 @@ print_ligand_motifs(vrna_fold_compound_t  *vc,
   if (motifs) {
     for (m_ptr = motifs; m_ptr->i; m_ptr++) {
       if (m_ptr->i != m_ptr->k) {
-        vrna_message_info(output,
-                          "specified motif detected in %s structure: [%d:%d] & [%d:%d]",
-                          structure_name,
-                          m_ptr->i,
-                          m_ptr->k,
-                          m_ptr->l,
-                          m_ptr->j);
+        /* put annotation into output vrna_cstr_t */
+        vrna_cstr_message_info(buf,
+                               "specified motif detected in %s structure: [%d:%d] & [%d:%d]",
+                               structure_name,
+                               m_ptr->i,
+                               m_ptr->k,
+                               m_ptr->l,
+                               m_ptr->j);
       } else {
-        vrna_message_info(output,
-                          "specified motif detected in %s structure: [%d:%d]",
-                          structure_name,
-                          m_ptr->i,
-                          m_ptr->j);
+        /* put annotation into output vrna_cstr_t */
+        vrna_cstr_message_info(buf,
+                               "specified motif detected in %s structure: [%d:%d]",
+                               structure_name,
+                               m_ptr->i,
+                               m_ptr->j);
       }
     }
   }
@@ -1167,7 +1168,7 @@ static void
 print_ud_motifs(vrna_fold_compound_t  *vc,
                 const char            *structure,
                 const char            *structure_name,
-                FILE                  *output)
+                vrna_cstr_t           buf)
 {
   int m, i, size;
 
@@ -1181,13 +1182,13 @@ print_ud_motifs(vrna_fold_compound_t  *vc,
         i     = motifs[m].start;
         size  = vc->domains_up->motif_size[motifs[m].number];
 
-        vrna_message_info(output,
-                          "ud motif %d detected in %s structure: [%d:%d]",
-                          motifs[m].number,
-                          structure_name,
-                          i,
-                          i + size - 1);
-
+        /* put annotation into output vrna_cstr_t */
+        vrna_cstr_message_info(buf,
+                               "ud motif %d detected in %s structure: [%d:%d]",
+                               motifs[m].number,
+                               structure_name,
+                               i,
+                               i + size - 1);
         m++;
       }
     }
@@ -1233,7 +1234,7 @@ add_ligand_motifs_to_list(vrna_ep_t       **list,
   add = 10;
 
   /* get current size of list */
-  for (size = 0, ptr = (*list); ptr->i; size++, ptr++) ;
+  for (size = 0, ptr = (*list); ptr->i; size++, ptr++);
 
   /* increase length of list */
   (*list) = vrna_realloc((*list), sizeof(vrna_ep_t) * (size + add + 1));
