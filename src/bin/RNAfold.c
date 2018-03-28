@@ -941,13 +941,13 @@ process_record(struct record_data *record)
                                    NULL,
                                    " frequency of mfe structure in ensemble %g"
                                    "; ensemble diversity %-6.2f",
-                                   vrna_pr_structure(vc, mfe_structure),
+                                   vrna_pr_energy(vc, min_en),
                                    vrna_mean_bp_distance(vc));
       } else {
         vrna_cstr_printf_structure(rec_output,
                                    NULL,
                                    " frequency of mfe structure in ensemble %g;",
-                                   vrna_pr_structure(vc, mfe_structure));
+                                   vrna_pr_energy(vc, min_en));
       }
     }
 
