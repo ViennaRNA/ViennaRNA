@@ -13,6 +13,12 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/stream_output.h"
 
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
+
 #define QUEUE_OVERHEAD  32
 
 
@@ -27,8 +33,53 @@ struct vrna_ordered_stream_s {
   void                        *auxdata;
 #if VRNA_WITH_PTHREADS
   pthread_mutex_t             mtx;
+  pthread_cond_t              flush_cond;
+  pthread_t                   flush_thread;
 #endif
 };
+
+PRIVATE INLINE void
+flush_output(struct vrna_ordered_stream_s *queue)
+{
+  unsigned int j;
+
+  /* process all consecutive blocks available from the start */
+  for (j = queue->start; (queue->data[j]) && (j <= queue->end); j++) {
+    /* process output callback */
+    if (queue->output)
+      queue->output(queue->auxdata, j, queue->data[j]);
+
+    queue->start++;
+  }
+
+  if (queue->end < queue->start)
+    queue->end = queue->start;
+}
+
+
+#if VRNA_WITH_PTHREADS
+
+PRIVATE void *
+flush_thread(void *data)
+{
+  struct vrna_ordered_stream_s *queue;
+
+  queue = (struct vrna_ordered_stream_s *)data;
+
+  pthread_mutex_lock(&queue->mtx);
+
+  do {
+    pthread_cond_wait(&queue->flush_cond, &queue->mtx);
+    flush_output(queue);
+  } while (1);
+
+  pthread_mutex_unlock(&queue->mtx);
+  pthread_exit(NULL);
+}
+
+
+#endif
+
 
 struct vrna_ordered_stream_s *
 vrna_ostream_init(vrna_callback_stream_output *output,
@@ -47,7 +98,11 @@ vrna_ostream_init(vrna_callback_stream_output *output,
   queue->data     = (void **)vrna_alloc(sizeof(void *) * QUEUE_OVERHEAD);
 
 #if VRNA_WITH_PTHREADS
+  /* init semaphores */
   pthread_mutex_init(&queue->mtx, NULL);
+  pthread_cond_init(&queue->flush_cond, NULL);
+  /* create flush thread */
+  pthread_create(&queue->flush_thread, NULL, flush_thread, (void *)queue);
 #endif
 
   return queue;
@@ -58,13 +113,20 @@ void
 vrna_ostream_free(struct vrna_ordered_stream_s *queue)
 {
   if (queue) {
+#if VRNA_WITH_PTHREADS
+    /* flush buffer */
+    pthread_cond_signal(&queue->flush_cond);
+    /* destroy flush thread */
+    pthread_cancel(queue->flush_thread);
+    /* destroy semaphores */
+    pthread_mutex_destroy(&queue->mtx);
+    pthread_cond_destroy(&queue->flush_cond);
+#endif
+    /* free remaining memory */
     queue->data += queue->shift;
     free(queue->data);
-#if VRNA_WITH_PTHREADS
-    pthread_mutex_lock(&queue->mtx);
-    pthread_mutex_unlock(&queue->mtx);
-    pthread_mutex_destroy(&queue->mtx);
-#endif
+    /* free ostream itself */
+    free(queue);
   }
 }
 
@@ -80,7 +142,7 @@ vrna_ostream_request(struct vrna_ordered_stream_s *queue,
 #if VRNA_WITH_PTHREADS
       pthread_mutex_lock(&queue->mtx);
 #elif defined (_OPENMP)
-#   pragma omp critical (vrna_ostream_access)
+#     pragma omp critical (vrna_ostream_access)
       {
 #endif
       /* check whether we have to increase memory */
@@ -89,7 +151,8 @@ vrna_ostream_request(struct vrna_ordered_stream_s *queue,
       if (queue->size < new_size) {
         /*
          *  Check whether we can simply move data around to get more space.
-         *  We do this only, if more than half of the first buffer is empty
+         *  We do this only, if more than half of the first buffer is empty.
+         *  Otherwise, we simply increase the buffer to fit incoming data.
          */
         if ((queue->start - queue->shift > (queue->size / 2)) &&
             ((new_size - queue->start) < queue->size)) {
@@ -161,24 +224,18 @@ vrna_ostream_provide(struct vrna_ordered_stream_s *queue,
       {
 #endif
       if (i == queue->start) {
+#if VRNA_WITH_PTHREADS
+        pthread_cond_signal(&queue->flush_cond);
+#else
         /* process all consecutive blocks available from the start */
-        for (j = queue->start; (queue->data[j]) && (j <= queue->end); j++) {
-          /* process output callback */
-          if (queue->output)
-            queue->output(queue->auxdata, j, queue->data[j]);
-
-          queue->start++;
-        }
-
-        if (queue->end < queue->start)
-          queue->end = queue->start;
+        flush_output(queue);
+#endif
       }
 
 #if VRNA_WITH_PTHREADS
       pthread_mutex_unlock(&queue->mtx);
 #elif defined (_OPENMP)
-    }
-
+      }
 #endif
     }
   }
