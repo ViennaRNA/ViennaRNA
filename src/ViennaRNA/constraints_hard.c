@@ -157,7 +157,7 @@ vrna_message_constraint_options(unsigned int option)
     printf("x : base must not pair\n");
 
   if (option & VRNA_CONSTRAINT_DB_ANG_BRACK)
-    printf("< : base i is paired with a base j<i\n> : base i is paired with a base j>i\n");
+    printf("< : base i is paired downstream with a base i < j\n> : base i is paired upstream with a base j < i\n");
 
   if (option & VRNA_CONSTRAINT_DB_RND_BRACK)
     printf("matching brackets ( ): base i pairs base j\n");
@@ -978,24 +978,24 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
 
         break;
 
-      /* pairs upstream */
-      case '<':
-        if (options & VRNA_CONSTRAINT_DB_ANG_BRACK) {
-          vrna_hc_add_bp_nonspecific(vc, j, -1, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
-          if (!(options & VRNA_CONSTRAINT_DB_ENFORCE_BP))
-            /* (re-)allow this nucleotide to stay unpaired for nostalgic reasons */
-            vrna_hc_add_up(vc, j, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
-        }
-
-        break;
-
       /* pairs downstream */
-      case '>':
+      case '<':
         if (options & VRNA_CONSTRAINT_DB_ANG_BRACK) {
           vrna_hc_add_bp_nonspecific(vc, j, 1, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
           if (!(options & VRNA_CONSTRAINT_DB_ENFORCE_BP))
             /* (re-)allow this nucleotide to stay unpaired for nostalgic reasons */
-            vrna_hc_add_up(vc, j, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+            vrna_hc_add_up(vc, j, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+        }
+
+        break;
+
+      /* pairs upstream */
+      case '>':
+        if (options & VRNA_CONSTRAINT_DB_ANG_BRACK) {
+          vrna_hc_add_bp_nonspecific(vc, j, -1, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+          if (!(options & VRNA_CONSTRAINT_DB_ENFORCE_BP))
+            /* (re-)allow this nucleotide to stay unpaired for nostalgic reasons */
+            vrna_hc_add_up(vc, j, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
         }
 
         break;
