@@ -47,6 +47,8 @@ perl_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int
   func  = cb->cb;
 
   if(func && SvOK(func)){
+    SV *err_tmp;
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -102,7 +104,12 @@ perl_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int
 
     PUTBACK;
 
-    perl_call_sv(func, G_VOID);
+    perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+      croak ("Some error occurred while executing sliding window partition function callback - %s\n", SvPV_nolen(err_tmp));
+    }
 
     FREETMPS;
     LEAVE;
