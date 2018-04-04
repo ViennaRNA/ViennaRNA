@@ -803,8 +803,10 @@ process_record(struct record_data *record)
 
 
   /* convert DNA alphabet to RNA if not explicitely switched off */
-  if (!opt->noconv)
+  if (!opt->noconv) {
     vrna_seq_toRNA(rec_sequence);
+    vrna_seq_toRNA(record->sequence);
+  }
 
   /* convert sequence to uppercase letters only */
   vrna_seq_toupper(rec_sequence);
