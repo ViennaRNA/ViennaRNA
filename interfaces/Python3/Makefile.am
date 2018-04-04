@@ -57,7 +57,7 @@ endif
 
 if HAS_SWIG
 
-$(SWIG_wrapper): $(SWIG_src)
+$(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES)
 	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
                   -DPY3 \
