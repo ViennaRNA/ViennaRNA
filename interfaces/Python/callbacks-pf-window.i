@@ -75,9 +75,9 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
       PyErr_Print();
       /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
       if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
-        throw std::runtime_error( "Sliding window Partition Function callback must take exactly 6 arguments" );
+        throw std::runtime_error( "Sliding window partition function callback must take exactly 6 arguments" );
       } else {
-        throw std::runtime_error( "Some error occurred while executing sliding window MFE callback" );
+        throw std::runtime_error( "Some error occurred while executing sliding window partition function callback" );
       }
     }
     PyErr_Clear();

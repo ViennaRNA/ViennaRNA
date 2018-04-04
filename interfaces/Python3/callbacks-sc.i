@@ -372,14 +372,14 @@ py_wrap_sc_exp_f_callback(int i,
       PyErr_Print();
       /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
       if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
-        throw std::runtime_error( "Generic soft constraint callbacks must take exactly 6 arguments" );
+        throw std::runtime_error( "Generic soft constraint callbacks (partition function) must take exactly 6 arguments" );
       } else {
-        throw std::runtime_error( "Some error occurred while executing generic soft constraint callback" );
+        throw std::runtime_error( "Some error occurred while executing generic soft constraint callback (partition function)" );
       }
     }
     PyErr_Clear();
   } else if (result == Py_None) {
-    throw std::runtime_error( "Generic soft constraint callback must return Boltzmann weighted pseudo energy value" );
+    throw std::runtime_error( "Generic soft constraint callback (partition function) must return Boltzmann weighted pseudo energy value" );
   } else {
     ret = (FLT_OR_DBL)PyFloat_AsDouble(result);
   }
