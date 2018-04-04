@@ -181,6 +181,12 @@ static void fc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *Py
 
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
+
+%feature("autodoc") add_auxdata;
+%feature("kwargs") add_auxdata;
+%feature("autodoc") add_callback;
+%feature("kwargs") add_callback;
+
   PyObject *add_auxdata(PyObject *data, PyObject *PyFuncOrNone=Py_None){
     fc_add_pydata($self, data, PyFuncOrNone);
     Py_RETURN_NONE;

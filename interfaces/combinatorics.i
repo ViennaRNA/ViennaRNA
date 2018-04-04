@@ -32,6 +32,11 @@
   }
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_enumerate_necklaces;
+%feature("kwargs") my_enumerate_necklaces;
+#endif
+
 std::vector<std::vector<int> > my_enumerate_necklaces( std::vector<unsigned int> entity_counts);
 
 %include  <ViennaRNA/combinatorics.h>

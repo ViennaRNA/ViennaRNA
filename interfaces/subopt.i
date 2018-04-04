@@ -107,6 +107,11 @@ std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NU
 
 %extend vrna_fold_compound_t {
 
+#ifdef SWIGPYTHON
+%feature("autodoc") subopt;
+%feature("kwargs") subopt;
+#endif
+
   std::vector<subopt_solution> subopt(int delta, int sorted = 1, FILE *nullfile = NULL){
     std::vector<subopt_solution> ret;
     SOLUTION *sol = vrna_subopt($self, delta, sorted, nullfile);

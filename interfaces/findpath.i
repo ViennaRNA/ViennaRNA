@@ -53,6 +53,12 @@ typedef struct {
     return v;
   }
 %}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_get_path;
+%feature("kwargs") my_get_path;
+#endif
+
 std::vector<vrna_path_t> my_get_path(std::string seq, std::string s1, std::string s2, int maxkeep);
 %ignore get_path;
 
@@ -60,6 +66,9 @@ std::vector<vrna_path_t> my_get_path(std::string seq, std::string s1, std::strin
 %extend vrna_fold_compound_t{
   
 #ifdef SWIGPYTHON
+%feature("autodoc") path_findpath;
+%feature("kwargs") path_findpath;
+%feature("autodoc") path_findpath_saddle;
 %feature("kwargs") path_findpath_saddle;
 
   PyObject *

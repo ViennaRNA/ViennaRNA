@@ -64,6 +64,9 @@ python_wrap_subopt_cb(const char *structure, float energy, void *data){
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
 
+%feature("autodoc") subopt_cb;
+%feature("kwargs") subopt_cb;
+
   PyObject *subopt_cb(int delta, PyObject *PyFunc, PyObject *data = Py_None){
 
     python_subopt_callback_t *cb = bind_subopt_callback(PyFunc, data);

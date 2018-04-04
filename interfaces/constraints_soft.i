@@ -4,6 +4,17 @@
 
 %extend vrna_fold_compound_t {
 
+#ifdef SWIGPYTHON
+%feature("autodoc") sc_set_bp;
+%feature("kwargs") sc_set_bp;
+%feature("autodoc") sc_set_up;
+%feature("kwargs") sc_set_up;
+%feature("autodoc") sc_set_stack;
+%feature("kwargs") sc_set_stack;
+%feature("autodoc") sc_add_stack;
+%feature("kwargs") sc_add_stack;
+#endif
+
   void
   sc_remove()
   {

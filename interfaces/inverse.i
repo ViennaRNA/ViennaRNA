@@ -22,6 +22,11 @@
   }
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_inverse_fold;
+%feature("kwargs") my_inverse_fold;
+#endif
+
 %newobject my_inverse_fold;
 char * my_inverse_fold(char *start, const char *target, float *OUTPUT);
 
@@ -40,6 +45,11 @@ char * my_inverse_fold(char *start, const char *target, float *OUTPUT);
     return(seq);
   }
 %}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_inverse_pf_fold;
+%feature("kwargs") my_inverse_pf_fold;
+#endif
 
 %newobject my_inverse_pf_fold;
 char * my_inverse_pf_fold(char *start, const char *target, float *OUTPUT);

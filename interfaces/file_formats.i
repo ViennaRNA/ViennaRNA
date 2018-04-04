@@ -164,6 +164,17 @@ std::vector<double> my_file_SHAPE_read( const char *file_name,
 
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_file_msa_detect_format;
+%feature("kwargs") my_file_msa_detect_format;
+%feature("autodoc") my_file_msa_write;
+%feature("kwargs") my_file_msa_write;
+%feature("autodoc") my_file_msa_read;
+%feature("kwargs") my_file_msa_read;
+%feature("autodoc") my_file_msa_read_record;
+%feature("kwargs") my_file_msa_read_record;
+#endif
+
 unsigned int my_file_msa_detect_format( std::string   filename,
                                         unsigned int  options = VRNA_FILE_FORMAT_MSA_DEFAULT);
 

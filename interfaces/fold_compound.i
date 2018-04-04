@@ -36,6 +36,11 @@ typedef struct {} vrna_fold_compound_t;
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
 
+#ifdef SWIGPYTHON
+%feature("autodoc") centroid;
+%feature("kwargs") centroid;
+#endif
+
   /* the default constructor, *md and option are optional, for single sequences*/
   vrna_fold_compound_t( const char *sequence,
                         vrna_md_t *md=NULL,

@@ -470,6 +470,15 @@ static void ud_set_prob_cb( vrna_fold_compound_t *vc, PyObject *setter, PyObject
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
 
+%feature("autodoc") ud_set_data;
+%feature("kwargs") ud_set_data;
+%feature("autodoc") ud_set_prod_rule_cb;
+%feature("kwargs") ud_set_prod_rule_cb;
+%feature("autodoc") ud_set_exp_prod_rule_cb;
+%feature("kwargs") ud_set_exp_prod_rule_cb;
+%feature("autodoc") ud_set_prob_cb;
+%feature("kwargs") ud_set_prob_cb;
+
   PyObject *ud_set_data(PyObject *data, PyObject *PyFuncOrNone=Py_None){
     ud_set_pydata($self, data, PyFuncOrNone);
     Py_RETURN_NONE;

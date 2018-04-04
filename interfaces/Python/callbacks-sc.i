@@ -400,6 +400,15 @@ static void sc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *Py
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
 
+%feature("autodoc") sc_add_data;
+%feature("kwargs") sc_add_data;
+%feature("autodoc") sc_add_f;
+%feature("kwargs") sc_add_f;
+%feature("autodoc") sc_add_bt;
+%feature("kwargs") sc_add_bt;
+%feature("autodoc") sc_add_exp_f;
+%feature("kwargs") sc_add_exp_f;
+
   PyObject *sc_add_data(PyObject *data, PyObject *PyFuncOrNone=Py_None){
     sc_add_pydata($self, data, PyFuncOrNone);
     Py_RETURN_NONE;

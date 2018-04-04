@@ -37,6 +37,11 @@ typedef struct {
 
 %extend vrna_fold_compound_t{
 
+#ifdef SWIGPYTHON
+%feature("autodoc") neighbors;
+%feature("kwargs") neighbors;
+#endif
+
   std::vector<vrna_move_t>
   neighbors(std::vector<int> pt,
             unsigned int options = VRNA_MOVESET_DEFAULT)

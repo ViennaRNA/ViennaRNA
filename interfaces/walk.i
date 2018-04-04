@@ -6,6 +6,15 @@
 
 #include <vector>
 
+#ifdef SWIGPYTHON
+%feature("autodoc") path;
+%feature("kwargs") path;
+%feature("autodoc") path_gradient;
+%feature("kwargs") path_gradient;
+%feature("autodoc") path_random;
+%feature("kwargs") path_random;
+#endif
+
   std::vector<vrna_move_t>
   path(std::vector<int> &pt,
        unsigned int steps,

@@ -5,6 +5,11 @@
 
 %extend vrna_fold_compound_t {
 
+#ifdef SWIGPYTHON
+%feature("autodoc") mfe_window;
+%feature("kwargs") mfe_window;
+#endif
+
   float mfe_window(FILE *nullfile = NULL){
 
     return vrna_mfe_window($self, nullfile);

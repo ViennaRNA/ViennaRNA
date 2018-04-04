@@ -61,15 +61,30 @@ namespace std {
 
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_file_commands_read;
+%feature("kwargs") my_file_commands_read;
+#endif
+
 std::vector<vrna_cmd_t> my_file_commands_read(std::string filename, unsigned int options = VRNA_CMD_PARSE_DEFAULTS);
 
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
 
+#ifdef SWIGPYTHON
+%feature("autodoc") commands_apply;
+%feature("kwargs") commands_apply;
+#endif
+
   int commands_apply(std::vector<vrna_cmd_t> commands, unsigned int options = VRNA_CMD_PARSE_DEFAULTS){
 
     return vrna_commands_apply($self, &(commands[0]), options);
   }
+
+#ifdef SWIGPYTHON
+%feature("autodoc") file_commands_apply;
+%feature("kwargs") file_commands_apply;
+#endif
 
   int file_commands_apply(std::string filename, unsigned int options = VRNA_CMD_PARSE_DEFAULTS){
 
