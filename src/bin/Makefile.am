@@ -1,9 +1,9 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-AM_CFLAGS = $(RNA_CFLAGS)
-AM_CXXFLAGS = $(RNA_CXXFLAGS)
+AM_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
+AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src
-AM_LDFLAGS = $(RNA_LDFLAGS)
+AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
 if VRNA_AM_SWITCH_STATIC_EXECUTABLES
 AM_LDFLAGS += -all-static
@@ -42,10 +42,8 @@ RNALfold_LDADD += -lstdc++
 RNALalifold_LDADD += -lstdc++
 endif
 
-# Link with -pthreads or alike flags if parallel input processing is enabled
-RNAfold_CFLAGS = $(AM_CFLAGS)
+# Link with cthreadpool if parallel input processing is enabled
 RNAfold_LDADD = $(LDADD)
-RNAfold_LDFLAGS = $(AM_LDFLAGS)
 
 if VRNA_AM_SWITCH_PTHREADS
 AM_CPPFLAGS += -I$(top_srcdir)/src/cthreadpool
@@ -53,15 +51,11 @@ AM_CPPFLAGS += -I$(top_srcdir)/src/cthreadpool
 noinst_LTLIBRARIES += libthreadpool.la
 
 libthreadpool_la_SOURCES = ../cthreadpool/thpool.c
-libthreadpool_la_CFLAGS = $(PTHREAD_CFLAGS)
 libthreadpool_la_LDFLAGS = \
         avoid-version \
-        -static \
-        $(PTHREAD_LIBS)
+        -static
 
-RNAfold_CFLAGS += $(PTHREAD_CFLAGS)
 RNAfold_LDADD += libthreadpool.la
-RNAfold_LDFLAGS += $(PTHREAD_LIBS)
 
 endif
 
