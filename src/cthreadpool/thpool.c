@@ -8,7 +8,16 @@
  *
  ********************************/
 
-#define _POSIX_C_SOURCE 200809L
+#if defined(__APPLE__)
+#   include <AvailabilityMacros.h>
+#else
+#   ifndef _POSIX_C_SOURCE
+#       define _POSIX_C_SOURCE 200809L
+#   elif _POSIX_C_SOURCE < 200809L
+#       error "Valid _POSIX_C_SOURCE version required."
+#   endif
+#endif
+
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
