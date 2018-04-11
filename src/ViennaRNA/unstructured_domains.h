@@ -71,6 +71,7 @@ typedef struct vrna_unstructured_domain_s  vrna_ud_t;
 typedef struct vrna_unstructured_domain_motif_s  vrna_ud_motif_t;
 
 #include <ViennaRNA/data_structures.h>
+#include "ViennaRNA/structure_utils.h"
 
 /**
  *  @brief Callback to retrieve binding free energy of a ligand bound to an unpaired sequence segment
@@ -241,6 +242,19 @@ struct vrna_unstructured_domain_motif_s {
   int number;
 };
 
+
+vrna_ud_motif_t *
+vrna_ud_motifs_centroid(vrna_fold_compound_t *fc,
+                        const char *structure);
+
+vrna_ud_motif_t *
+vrna_ud_motifs_MEA(vrna_fold_compound_t *fc,
+                   const char      *structure,
+                   vrna_ep_t       *probability_list);
+
+vrna_ud_motif_t *
+vrna_ud_motifs_MFE(vrna_fold_compound_t *fc,
+                   const char           *structure);
 
 /**
  *  @brief  Add an unstructured domain motif, e.g. for ligand binding
