@@ -118,12 +118,12 @@ static void add_ligand_motif(vrna_fold_compound_t *vc,
 
 static char *
 annotate_ud_motif(vrna_fold_compound_t  *vc,
-                  const char            *structure);
+                  vrna_ud_motif_t       *motifs);
 
 
 static void
 print_ud_motifs(vrna_fold_compound_t  *vc,
-                const char            *structure,
+                vrna_ud_motif_t       *motifs,
                 const char            *structure_name,
                 vrna_cstr_t           buf);
 
@@ -219,9 +219,11 @@ postscript_layout(vrna_fold_compound_t  *fc,
   }
 
   if (fc->domains_up) {
-    char *a = annotate_ud_motif(fc, structure);
+    vrna_ud_motif_t *m  = vrna_ud_motifs_MFE(fc, structure);
+    char            *a  = annotate_ud_motif(fc, m);
     vrna_strcat_printf(&annotation, a);
     free(a);
+    free(m);
   }
 
   THREADSAFE_FILE_OUTPUT(
@@ -850,8 +852,11 @@ process_record(struct record_data *record)
       if (opt->ligandMotif)
         print_ligand_motifs(vc, mfe_structure, "MFE", rec_output);
 
-      if (vc->domains_up)
-        print_ud_motifs(vc, mfe_structure, "MFE", rec_output);
+      if (vc->domains_up) {
+        vrna_ud_motif_t *m = vrna_ud_motifs_MFE(vc, mfe_structure);
+        print_ud_motifs(vc, m, "MFE", rec_output);
+        free(m);
+      }
     }
 
     if (!opt->noPS) {
@@ -1096,8 +1101,11 @@ compute_MEA(vrna_fold_compound_t  *fc,
   if ((ligandMotif) && (verbose))
     print_ligand_motifs(fc, structure, "MEA", rec_output);
 
-  if ((fc->domains_up) && (verbose))
-    print_ud_motifs(fc, structure, "MEA", rec_output);
+  if ((fc->domains_up) && (verbose)) {
+    vrna_ud_motif_t *m = vrna_ud_motifs_MEA(fc, structure, pl);
+    print_ud_motifs(fc, m, "MEA", rec_output);
+    free(m);
+  }
 
   free(pl);
   free(structure);
@@ -1121,8 +1129,11 @@ compute_centroid(vrna_fold_compound_t *fc,
   if ((ligandMotif) && (verbose))
     print_ligand_motifs(fc, cent, "centroid", rec_output);
 
-  if ((fc->domains_up) && (verbose))
-    print_ud_motifs(fc, cent, "centroid", rec_output);
+  if ((fc->domains_up) && (verbose)) {
+    vrna_ud_motif_t *m = vrna_ud_motifs_centroid(fc, cent);
+    print_ud_motifs(fc, m, "centroid", rec_output);
+    free(m);
+  }
 
   free(cent);
 }
@@ -1275,7 +1286,7 @@ print_ligand_motifs(vrna_fold_compound_t  *vc,
 
 static char *
 annotate_ud_motif(vrna_fold_compound_t  *vc,
-                  const char            *structure)
+                  vrna_ud_motif_t       *motifs)
 {
   int   m, i, size;
   char  *annote;
@@ -1283,30 +1294,24 @@ annotate_ud_motif(vrna_fold_compound_t  *vc,
   m       = 0;
   annote  = NULL;
 
-  if (vc->domains_up) {
-    vrna_ud_motif_t *motifs = vrna_ud_detect_motifs(vc, structure);
+  if (motifs) {
+    while (motifs[m].start != 0) {
+      char  *tmp_string = annote;
+      i     = motifs[m].start;
+      size  = vc->domains_up->motif_size[motifs[m].number];
+      char  *annotation;
 
-    if (motifs) {
-      while (motifs[m].start != 0) {
-        char  *tmp_string = annote;
-        i     = motifs[m].start;
-        size  = vc->domains_up->motif_size[motifs[m].number];
-        char  *annotation;
+      annotation = vrna_strdup_printf(" %d %d 12 0.4 0.65 0.95 omark", i, i + size - 1);
 
-        annotation = vrna_strdup_printf(" %d %d 12 0.4 0.65 0.95 omark", i, i + size - 1);
+      if (tmp_string)
+        annote = vrna_strdup_printf("%s %s", tmp_string, annotation);
+      else
+        annote = strdup(annotation);
 
-        if (tmp_string)
-          annote = vrna_strdup_printf("%s %s", tmp_string, annotation);
-        else
-          annote = strdup(annotation);
-
-        free(tmp_string);
-        free(annotation);
-        m++;
-      }
+      free(tmp_string);
+      free(annotation);
+      m++;
     }
-
-    free(motifs);
   }
 
   return annote;
@@ -1315,7 +1320,7 @@ annotate_ud_motif(vrna_fold_compound_t  *vc,
 
 static void
 print_ud_motifs(vrna_fold_compound_t  *vc,
-                const char            *structure,
+                vrna_ud_motif_t       *motifs,
                 const char            *structure_name,
                 vrna_cstr_t           buf)
 {
@@ -1323,26 +1328,20 @@ print_ud_motifs(vrna_fold_compound_t  *vc,
 
   m = 0;
 
-  if (vc->domains_up) {
-    vrna_ud_motif_t *motifs = vrna_ud_detect_motifs(vc, structure);
+  if (motifs) {
+    while (motifs[m].start != 0) {
+      i     = motifs[m].start;
+      size  = vc->domains_up->motif_size[motifs[m].number];
 
-    if (motifs) {
-      while (motifs[m].start != 0) {
-        i     = motifs[m].start;
-        size  = vc->domains_up->motif_size[motifs[m].number];
-
-        /* put annotation into output vrna_cstr_t */
-        vrna_cstr_message_info(buf,
-                               "ud motif %d detected in %s structure: [%d:%d]",
-                               motifs[m].number,
-                               structure_name,
-                               i,
-                               i + size - 1);
-        m++;
-      }
+      /* put annotation into output vrna_cstr_t */
+      vrna_cstr_message_info(buf,
+                             "ud motif %d detected in %s structure: [%d:%d]",
+                             motifs[m].number,
+                             structure_name,
+                             i,
+                             i + size - 1);
+      m++;
     }
-
-    free(motifs);
   }
 }
 
