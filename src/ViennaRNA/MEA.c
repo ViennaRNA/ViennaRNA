@@ -104,7 +104,6 @@ MEA_seq(plist             *p,
   plist         *pp, *pl;
   short         *S          = NULL;
   int           with_gquad  = 0;
-
   List          *C;
   double        MEA, *Mi, *Mi1, *tmp, *pu;
   struct MEAdat bdat;
@@ -224,8 +223,10 @@ prune_sort(plist  *p,
     pu[i] = 1.;
 
   for (pc = p; pc->i > 0; pc++) {
-    pu[pc->i] -= pc->p;
-    pu[pc->j] -= pc->p;
+    if (pc->type == VRNA_PLIST_TYPE_BASEPAIR) {
+      pu[pc->i] -= pc->p;
+      pu[pc->j] -= pc->p;
+    }
   }
 
   if (gq) {
@@ -255,13 +256,15 @@ prune_sort(plist  *p,
     if (pc->i > n)
       vrna_message_error("mismatch between plist and structure in MEA()");
 
-    if (pc->p * 2 * gamma > pu[pc->i] + pu[pc->j]) {
-      if (nump + 1 >= size) {
-        size  += size / 2 + 1;
-        pp    = vrna_realloc(pp, size * sizeof(plist));
-      }
+    if (pc->type == VRNA_PLIST_TYPE_BASEPAIR) {
+      if (pc->p * 2 * gamma > pu[pc->i] + pu[pc->j]) {
+        if (nump + 1 >= size) {
+          size  += size / 2 + 1;
+          pp    = vrna_realloc(pp, size * sizeof(plist));
+        }
 
-      pp[nump++] = *pc;
+        pp[nump++] = *pc;
+      }
     }
   }
   pp[nump].i = pp[nump].j = pp[nump].p = 0;
