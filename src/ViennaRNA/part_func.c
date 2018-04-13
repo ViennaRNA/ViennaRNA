@@ -46,7 +46,7 @@
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE void
+PRIVATE int
 fill_arrays(vrna_fold_compound_t *fc);
 
 
@@ -91,10 +91,8 @@ vrna_pf(vrna_fold_compound_t  *fc,
 
 #ifdef SUN4
     nonstandard_arithmetic();
-#else
-#ifdef HP9
+#elif defined(HP9)
     fpsetfastmode(1);
-#endif
 #endif
 
     /* call user-defined recursion status callback function */
@@ -105,7 +103,14 @@ vrna_pf(vrna_fold_compound_t  *fc,
     if ((fc->aux_grammar) && (fc->aux_grammar->cb_proc))
       fc->aux_grammar->cb_proc(fc, VRNA_STATUS_PF_PRE, fc->aux_grammar->data);
 
-    fill_arrays(fc);
+    if (!fill_arrays(fc)) {
+#ifdef SUN4
+      standard_arithmetic();
+#elif defined(HP9)
+      fpsetfastmode(0);
+#endif
+      return (float)(INF / 100.);
+    }
 
     if (md->circ)
       /* do post processing step for circular RNAs */
@@ -162,10 +167,8 @@ vrna_pf(vrna_fold_compound_t  *fc,
 
 #ifdef SUN4
     standard_arithmetic();
-#else
-#ifdef HP9
+#elif defined(HP9)
     fpsetfastmode(0);
-#endif
 #endif
   }
 
@@ -205,10 +208,8 @@ vrna_pf_dimer(vrna_fold_compound_t  *fc,
 
 #ifdef SUN4
   nonstandard_arithmetic();
-#else
-#ifdef HP9
+#elif defined(HP9)
   fpsetfastmode(1);
-#endif
 #endif
 
   /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
@@ -218,7 +219,18 @@ vrna_pf_dimer(vrna_fold_compound_t  *fc,
   if (fc->stat_cb)
     fc->stat_cb(VRNA_STATUS_PF_PRE, fc->auxdata);
 
-  fill_arrays(fc);
+  if (!fill_arrays(fc)) {
+    X.FA    = X.FB = X.FAB = X.F0AB = (float)(INF / 100.);
+    X.FcAB  = 0;
+
+#ifdef SUN4
+  standard_arithmetic();
+#elif defined(HP9)
+  fpsetfastmode(0);
+#endif
+
+    return X;
+  }
 
   /* call user-defined recursion status callback function */
   if (fc->stat_cb)
@@ -292,10 +304,8 @@ vrna_pf_dimer(vrna_fold_compound_t  *fc,
 
 #ifdef SUN4
   standard_arithmetic();
-#else
-#ifdef HP9
+#elif defined(HP9)
   fpsetfastmode(0);
-#endif
 #endif
 
   return X;
@@ -314,7 +324,7 @@ vrna_pf_float_precision(void)
  # STATIC helper functions below #
  #################################
  */
-PRIVATE void
+PRIVATE int
 fill_arrays(vrna_fold_compound_t *fc)
 {
   unsigned char       *hard_constraints;
@@ -436,9 +446,15 @@ fill_arrays(vrna_fold_compound_t *fc)
           vrna_message_warning("Q close to overflow: %d %d %g", i, j, temp);
       }
 
-      if (temp >= max_real)
-        vrna_message_error("overflow in pf_fold while calculating q[%d,%d]\n"
-                           "use larger pf_scale", i, j);
+      if (temp >= max_real) {
+        vrna_message_warning("overflow while computing partition function for segment q[%d,%d]\n"
+                             "use larger pf_scale", i, j);
+
+        vrna_exp_E_ml_fast_free(aux_mx_ml);
+        vrna_exp_E_ext_fast_free(aux_mx_el);
+
+        return 0; /* failure */
+      }
     }
 
     /* rotate auxiliary arrays */
@@ -459,6 +475,8 @@ fill_arrays(vrna_fold_compound_t *fc)
   /* free memory occupied by auxiliary arrays for fast exterior/multibranch loops */
   vrna_exp_E_ml_fast_free(aux_mx_ml);
   vrna_exp_E_ext_fast_free(aux_mx_el);
+
+  return 1;
 }
 
 

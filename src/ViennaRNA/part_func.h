@@ -88,6 +88,10 @@ struct vrna_dimer_pf_s {
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
  *
+ *  @note This function may return #INF / 100. in case of contradicting constraints
+ *        or numerical over-/underflow. In the latter case, a corresponding warning
+ *        will be issued to @p stdout.
+ *
  *  @see #vrna_fold_compound_t, vrna_fold_compound(), vrna_pf_fold(), vrna_pf_circfold(),
  *        vrna_fold_compound_comparative(), vrna_pf_alifold(), vrna_pf_circalifold(),
  *        vrna_db_from_probs(), vrna_exp_params(), vrna_aln_pinfo()
@@ -157,6 +161,11 @@ float vrna_pf_circfold(const char *sequence, char *structure, vrna_ep_t **pl);
  *          nucleic acid/nucleic acid dimers
  *
  *  This is the cofold partition function folding.
+ *
+ *  @note This function may return #INF / 100. for the @p FA, @p FB, @p FAB, @p F0AB
+ *        members of the output data structure in case of contradicting constraints
+ *        or numerical over-/underflow. In the latter case, a corresponding warning
+ *        will be issued to @p stdout.
  *
  *  @see    vrna_fold_compound() for how to retrieve the necessary data structure
  *
