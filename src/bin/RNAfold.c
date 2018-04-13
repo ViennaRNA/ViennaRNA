@@ -725,7 +725,9 @@ process_input(FILE            *input_stream,
     if (opt->shape || (opt->constraint_file && (!opt->constraint_batch)))
       break;
 
+#if 0
     WAIT_FOR_FREE_SLOT(opt->jobs);
+#endif
 
     /* print user help for the next round if we get input from tty */
     if (istty_in && istty_out) {
