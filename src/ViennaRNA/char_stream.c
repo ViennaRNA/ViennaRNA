@@ -104,7 +104,7 @@ vrna_cstr_fflush(struct vrna_cstr_s *buf)
 {
   if (buf) {
     if (buf->output) {
-      fprintf(buf->output, buf->string);
+      fprintf(buf->output, "%s", buf->string);
       (void)fflush(buf->output);
     }
 
