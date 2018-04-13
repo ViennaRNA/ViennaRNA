@@ -27,15 +27,12 @@ struct vrna_ordered_stream_s {
   unsigned int                end;
   unsigned int                size;
   unsigned int                shift;
-  unsigned int                cancel;
 
   vrna_callback_stream_output *output;
   void                        **data;
   void                        *auxdata;
 #if VRNA_WITH_PTHREADS
   pthread_mutex_t             mtx;
-  pthread_cond_t              flush_cond;
-  pthread_t                   flush_thread;
 #endif
 };
 
@@ -55,34 +52,10 @@ flush_output(struct vrna_ordered_stream_s *queue)
   }
 
   if (queue->end < queue->start) {
-    queue->data[j]  = NULL;
-    queue->end      = queue->start;
+    queue->data[queue->start] = NULL;
+    queue->end                = queue->start;
   }
 }
-
-
-#if VRNA_WITH_PTHREADS
-
-PRIVATE void *
-flush_thread(void *data)
-{
-  struct vrna_ordered_stream_s *queue;
-
-  queue = (struct vrna_ordered_stream_s *)data;
-
-  pthread_mutex_lock(&queue->mtx);
-
-  do {
-    pthread_cond_wait(&queue->flush_cond, &queue->mtx);
-    flush_output(queue);
-  } while (!queue->cancel);
-
-  pthread_mutex_unlock(&queue->mtx);
-  pthread_exit(NULL);
-}
-
-
-#endif
 
 
 struct vrna_ordered_stream_s *
@@ -99,21 +72,10 @@ vrna_ostream_init(vrna_callback_stream_output *output,
   queue->shift    = 0;
   queue->output   = output;
   queue->auxdata  = auxdata;
-  queue->cancel   = 0;
   queue->data     = (void **)vrna_alloc(sizeof(void *) * QUEUE_OVERHEAD);
 
 #if VRNA_WITH_PTHREADS
-  pthread_attr_t attr;
-  /* Initialize and set thread detached attribute */
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  /* init semaphores */
   pthread_mutex_init(&queue->mtx, NULL);
-  pthread_cond_init(&queue->flush_cond, NULL);
-  /* create flush thread */
-  pthread_create(&queue->flush_thread, &attr, flush_thread, (void *)queue);
-  pthread_attr_destroy(&attr);
 #endif
   return queue;
 }
@@ -124,20 +86,11 @@ vrna_ostream_free(struct vrna_ordered_stream_s *queue)
 {
   if (queue) {
 #if VRNA_WITH_PTHREADS
-    void *status;
-
-    /* flush buffer and signal flush thread to cancel */
     pthread_mutex_lock(&queue->mtx);
-    queue->cancel = 1;
-    pthread_cond_signal(&queue->flush_cond);
+#endif
+    flush_output(queue);
+#if VRNA_WITH_PTHREADS
     pthread_mutex_unlock(&queue->mtx);
-
-    /* wait for the thread to actually being cancelled */
-    int rc = pthread_join(queue->flush_thread, &status);
-
-    /* destroy semaphores */
-    pthread_cond_destroy(&queue->flush_cond);
-    pthread_mutex_destroy(&queue->mtx);
 #endif
     /* free remaining memory */
     queue->data += queue->shift;
@@ -155,30 +108,28 @@ vrna_ostream_request(struct vrna_ordered_stream_s *queue,
   unsigned int i;
 
   if (queue) {
-    if (num >= queue->end) {
 #if VRNA_WITH_PTHREADS
-      pthread_mutex_lock(&queue->mtx);
-#elif defined (_OPENMP)
-#     pragma omp critical (vrna_ostream_access)
-      {
+    pthread_mutex_lock(&queue->mtx);
 #endif
+    if (num >= queue->end) {
       /* check whether we have to increase memory */
       unsigned int new_size = num - queue->shift + 1;
 
-      if (queue->size < new_size) {
+      if (queue->size < new_size + 1) {
         /*
          *  Check whether we can simply move data around to get more space.
          *  We do this only, if more than half of the first buffer is empty.
          *  Otherwise, we simply increase the buffer to fit incoming data.
          */
-        if ((queue->start - queue->shift > (queue->size / 2)) &&
-            ((new_size - queue->start) < queue->size)) {
+        unsigned int mem_unavail = queue->start - queue->shift;
+        if ((mem_unavail > (queue->size / 2)) &&
+            (new_size - mem_unavail < queue->size + 1)) {
           /* reset pointer shift */
           queue->data += queue->shift;
 
           /* move remaining data to the front */
           queue->data = memmove(queue->data,
-                                queue->data + queue->start - queue->shift,
+                                queue->data + mem_unavail,
                                 sizeof(void *) * (queue->end - queue->start + 1));
 
           /* reset start and pointer shifts */
@@ -203,13 +154,11 @@ vrna_ostream_request(struct vrna_ordered_stream_s *queue,
         queue->data[i] = NULL;
 
       queue->end = num;
-#if VRNA_WITH_PTHREADS
-      pthread_mutex_unlock(&queue->mtx);
-#elif defined (_OPENMP)
     }
 
+#if VRNA_WITH_PTHREADS
+    pthread_mutex_unlock(&queue->mtx);
 #endif
-    }
   }
 }
 
@@ -224,9 +173,6 @@ vrna_ostream_provide(struct vrna_ordered_stream_s *queue,
   if (queue) {
 #if VRNA_WITH_PTHREADS
     pthread_mutex_lock(&queue->mtx);
-#elif defined (_OPENMP)
-#   pragma omp critical (vrna_ostream_access)
-    {
 #endif
     if ((queue->end < i) || (i < queue->start)) {
       vrna_message_warning(
@@ -241,21 +187,13 @@ vrna_ostream_provide(struct vrna_ordered_stream_s *queue,
       /* store data */
       queue->data[i] = data;
 
-      if (i == queue->start) {
-#if VRNA_WITH_PTHREADS
-        pthread_cond_signal(&queue->flush_cond);
-#else
-        /* process all consecutive blocks available from the start */
+      /* process all consecutive blocks available from the start */
+      if (i == queue->start)
         flush_output(queue);
-#endif
-      }
     }
 
 #if VRNA_WITH_PTHREADS
     pthread_mutex_unlock(&queue->mtx);
-#elif defined (_OPENMP)
-  }
-
 #endif
   }
 }
