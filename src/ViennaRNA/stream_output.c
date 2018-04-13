@@ -44,7 +44,7 @@ flush_output(struct vrna_ordered_stream_s *queue)
   unsigned int j;
 
   /* process all consecutive blocks available from the start */
-  for (j = queue->start; (queue->data[j]) && (j <= queue->end); j++) {
+  for (j = queue->start; (j <= queue->end) && (queue->data[j]); j++) {
     /* process output callback */
     if (queue->output)
       queue->output(queue->auxdata, j, queue->data[j]);
@@ -52,8 +52,10 @@ flush_output(struct vrna_ordered_stream_s *queue)
     queue->start++;
   }
 
-  if (queue->end < queue->start)
+  if (queue->end < queue->start) {
     queue->end = queue->start;
+    queue->data[queue->start] = NULL;
+  }
 }
 
 
