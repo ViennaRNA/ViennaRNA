@@ -78,6 +78,8 @@ get_auto_id(struct id_data *dat)
 {
   if (dat)
     return dat->auto_id;
+
+  return 0;
 }
 
 
@@ -108,8 +110,8 @@ get_id_delim(struct id_data *dat)
 {
   if (dat)
     return (const char *)dat->delimiter;
-  else
-    return NULL;
+
+  return NULL;
 }
 
 
