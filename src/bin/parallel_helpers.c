@@ -26,13 +26,13 @@ num_proc_cores(int  *num_cores,
   long        nprocs      = -1;
   long        nprocs_max  = -1;
 
-#ifdef _WIN32
+#if defined(_WIN32)
   long        curslotno;
   SYSTEM_INFO info;
   GetSystemInfo(&info);
 #endif
 
-#ifdef _SC_NPROCESSORS_ONLN
+#if defined(_SC_NPROCESSORS_ONLN)
   nprocs = sysconf(_SC_NPROCESSORS_ONLN);
 
   if (nprocs < 1)
@@ -48,7 +48,7 @@ num_proc_cores(int  *num_cores,
 
   return 1; /* success */
 
-#elif defined _SC_NPROC_ONLN
+#elif defined(_SC_NPROC_ONLN)
   nprocs = sysconf(_SC_NPROC_ONLN);
 
   if (nprocs < 1)
@@ -64,7 +64,7 @@ num_proc_cores(int  *num_cores,
 
   return 1; /* success */
 
-#elif defined _SC_CRAY_NCPU
+#elif defined(_SC_CRAY_NCPU)
   nprocs = sysconf(_SC_CRAY_NCPU);
 
   if (nprocs < 1)
@@ -75,7 +75,7 @@ num_proc_cores(int  *num_cores,
 
   return 1; /* success */
 
-#elif defined _WIN32
+#elif defined(_WIN32)
   num_procs = info.dwNumberOfProcessors;
 
   nprocs_max = 0;
@@ -88,6 +88,32 @@ num_proc_cores(int  *num_cores,
 
   *num_cores      = (int)nprocs;
   *num_cores_conf = (int)nprocs_max;
+
+  return 1; /* success */
+
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+  int     mib[4];
+  int     numCPU;
+  size_t  len = sizeof(numCPU);
+
+  /* set the mib for hw.ncpu */
+  mib[0]  = CTL_HW;
+  mib[1]  = HW_AVAILCPU; /* alternatively, try HW_NCPU; */
+
+  /* get the number of CPUs from the system */
+  sysctl(mib, 2, &numCPU, &len, NULL, 0);
+
+  if (numCPU < 1) {
+    mib[1] = HW_NCPU;
+    sysctl(mib, 2, &numCPU, &len, NULL, 0);
+    if (numCPU < 1)
+      numCPU = 1;
+  }
+
+  *num_cores      = numCPU;
+  *num_cores_conf = numCPU;
+
+  return 1; /* success */
 
 #else
   return 0;
