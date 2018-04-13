@@ -9,13 +9,23 @@ if VRNA_AM_SWITCH_STATIC_EXECUTABLES
 AM_LDFLAGS += -all-static
 endif
 
-noinst_LTLIBRARIES =  libhelpers_ids.la
+noinst_LTLIBRARIES =  libhelpers.la
 
-libhelpers_ids_la_SOURCES = input_id_helpers.c
-libhelpers_ids_la_LDFLAGS = \
+libhelpers_la_SOURCES = input_id_helpers.c \
+                        parallel_helpers.c
+
+libhelpers_la_LDFLAGS = \
         -avoid-version \
         -static \
         $(LTO_LDFLAGS)
+
+# Link with cthreadpool if parallel input processing is enabled
+if VRNA_AM_SWITCH_PTHREADS
+
+AM_CPPFLAGS += -I$(top_srcdir)/src/cthreadpool
+libhelpers_la_SOURCES += ../cthreadpool/thpool.c
+
+endif
 
 bin_PROGRAMS = \
         RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
@@ -25,11 +35,12 @@ bin_PROGRAMS = \
 
 LDADD = \
         $(top_builddir)/src/ViennaRNA/libRNA_conv.la \
-        libhelpers_ids.la
+        libhelpers.la
 
 noinst_HEADERS = \
         gengetopt_helper.h \
         input_id_helpers.h \
+        parallel_helpers.h \
         $(top_srcdir)/src/cthreadpool/thpool.h
 
 SUFFIXES = _cmdl.c _cmdl.h .ggo
@@ -40,23 +51,6 @@ RNALalifold_LDADD = $(LDADD)
 if VRNA_AM_SWITCH_SVM
 RNALfold_LDADD += -lstdc++
 RNALalifold_LDADD += -lstdc++
-endif
-
-# Link with cthreadpool if parallel input processing is enabled
-RNAfold_LDADD = $(LDADD)
-
-if VRNA_AM_SWITCH_PTHREADS
-AM_CPPFLAGS += -I$(top_srcdir)/src/cthreadpool
-
-noinst_LTLIBRARIES += libthreadpool.la
-
-libthreadpool_la_SOURCES = ../cthreadpool/thpool.c
-libthreadpool_la_LDFLAGS = \
-        avoid-version \
-        -static
-
-RNAfold_LDADD += libthreadpool.la
-
 endif
 
 GENGETOPT_CMDL = \

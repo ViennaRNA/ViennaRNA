@@ -49,63 +49,8 @@
 #include "RNAfold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
+#include "parallel_helpers.h"
 
-
-#if VRNA_WITH_PTHREADS
-
-#include <pthread.h>
-#include "thpool.h"
-
-pthread_mutex_t output_mutex;
-pthread_mutex_t output_file_mutex;
-
-#define THREADSAFE_FILE_OUTPUT(a) { \
-    pthread_mutex_lock(&output_file_mutex); \
-    (a); \
-    pthread_mutex_unlock(&output_file_mutex); \
-}
-
-#define THREADSAFE_STREAM_OUTPUT(a) { \
-    pthread_mutex_lock(&output_mutex); \
-    (a); \
-    pthread_mutex_unlock(&output_mutex); \
-}
-
-#define INIT_PARALLELIZATION(a) \
-  pthread_mutex_init(&output_mutex, NULL); \
-  pthread_mutex_init(&output_file_mutex, NULL); \
-  /* initialize thread pool */ \
-  threadpool worker_pool = thpool_init(a);
-
-#define UNINIT_PARALLELIZATION  \
-  thpool_wait(worker_pool); \
-  pthread_mutex_lock(&output_mutex); \
-  pthread_mutex_unlock(&output_mutex); \
-  pthread_mutex_destroy(&output_mutex); \
-  pthread_mutex_lock(&output_file_mutex); \
-  pthread_mutex_unlock(&output_file_mutex); \
-  pthread_mutex_destroy(&output_file_mutex); \
-  thpool_destroy(worker_pool);
-
-#define RUN_IN_PARALLEL(fun, data)  { \
-    thpool_add_work(worker_pool, (void *)&fun, (void *)data); \
-}
-
-#define WAIT_FOR_FREE_SLOT(a) { \
-    while (thpool_num_threads_working(worker_pool) == (a)) \
-      sleep(1); \
-}
-
-#else
-
-#define THREADSAFE_FILE_OUTPUT(a)   { (a); }
-#define THREADSAFE_STREAM_OUTPUT(a)   { (a); }
-#define INIT_PARALLELIZATION(a)
-#define UNINIT_PARALLELIZATION
-#define RUN_IN_PARALLEL(fun, data)  { fun(data); }
-#define WAIT_FOR_FREE_SLOT(a)
-
-#endif
 
 struct options {
   int         filename_full;
@@ -153,8 +98,9 @@ struct record_data {
 };
 
 
-static char *annotate_ligand_motif(vrna_fold_compound_t *vc,
-                                   const char           *structure);
+static char *
+annotate_ligand_motif(vrna_fold_compound_t  *vc,
+                      const char            *structure);
 
 
 static void
@@ -418,7 +364,7 @@ init_default_options(struct options *opt)
   opt->jobs         = 1;
   opt->tofile       = 0;
   opt->output_file  = NULL;
-  opt->keep_order   = 0;
+  opt->keep_order   = 1;
 }
 
 
@@ -537,14 +483,27 @@ main(int  argc,
 
   if (args_info.jobs_given) {
 #if VRNA_WITH_PTHREADS
-    opt.jobs = MIN2(1024, MAX2(1, args_info.jobs_arg));
+    if (args_info.jobs_arg == 0) {
+      /* use maximum of concurrent threads */
+      int proc_cores, proc_cores_conf;
+      if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
+        opt.jobs = proc_cores_conf;
+      } else {
+        vrna_message_warning("Could not determine number of available processor cores!\n"
+                             "Defaulting to serial computation");
+        opt.jobs = 1;
+      }
+    } else {
+      opt.jobs = MIN2(512, MAX2(1, args_info.jobs_arg));
+    }
+
 #else
     vrna_message_warning(
       "This version of RNAfold has been built without parallel input processing capabilities");
 #endif
 
-    if (args_info.keep_order_given)
-      opt.keep_order = 1;
+    if (args_info.unordered_given)
+      opt.keep_order = 0;
   }
 
   input_files = collect_unnamed_options(&args_info, &num_input);
@@ -567,6 +526,9 @@ main(int  argc,
   if (opt.md.circ && opt.md.noLP)
     vrna_message_warning("depending on the origin of the circular sequence, some structures may be missed when using --noLP\n"
                          "Try rotating your sequence a few times");
+
+  if ((opt.verbose) && (opt.jobs > 1))
+    vrna_message_info(stderr, "Preparing %d parallel computation slots", opt.jobs);
 
   /*
    ################################################
