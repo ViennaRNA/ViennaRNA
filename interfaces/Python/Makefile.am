@@ -30,8 +30,8 @@ EXTRA_DIST = \
   $(SWIG_module_name).py \
   $(LANG_SPECIFIC_INTERFACE_FILES)
 
-_RNA_la_CFLAGS = $(RNA_CFLAGS) $(PYTHON2_CFLAGS)
-_RNA_la_CXXFLAGS = $(RNA_CXXFLAGS) -Wno-unused-label -Wno-unused-variable
+_RNA_la_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS) $(PYTHON2_CFLAGS)
+_RNA_la_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS) -Wno-unused-label -Wno-unused-variable
 _RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PYTHON2_INCLUDES)
 
 _RNA_la_LIBADD = $(LDADD) $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PYTHON2_LDFLAGS)
@@ -42,7 +42,14 @@ _RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
 RNA_CPPFLAGS += -DVRNA_WITH_SVM
 endif
 
-_RNA_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -shrext $(PYTHON2_SO)
+_RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
+                  $(PTHREAD_LIBS) \
+                  -avoid-version \
+                  -module \
+                  -shared \
+                  -export-dynamic \
+                  -shrext \
+                  $(PYTHON2_SO)
 
 if VRNA_AM_SWITCH_LTO
 _RNA_la_CFLAGS += $(LTO_CFLAGS)
