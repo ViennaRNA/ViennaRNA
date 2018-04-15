@@ -630,7 +630,7 @@ vrna_plist(const char *struc,
       (pl)[k].i       = i;
       (pl)[k].j       = pt[i];
       (pl)[k].p       = pr;
-      (pl)[k++].type  = 0;
+      (pl)[k++].type  = VRNA_PLIST_TYPE_BASEPAIR;
     }
   }
 
@@ -826,7 +826,7 @@ wrap_get_plist(vrna_mx_pf_t     *matrices,
         (pl)[count].i       = i;
         (pl)[count].j       = j;
         (pl)[count].p       = (float)probs[index[i] - j];
-        (pl)[count++].type  = 1;
+        (pl)[count++].type  = VRNA_PLIST_TYPE_GQUAD;
         /* now add the probabilies of it's actual pairing patterns */
         vrna_ep_t *inner, *ptr;
         inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
@@ -843,7 +843,7 @@ wrap_get_plist(vrna_mx_pf_t     *matrices,
 
           (pl)[k].i     = ptr->i;
           (pl)[k].j     = ptr->j;
-          (pl)[k].type  = 0;
+          (pl)[k].type  = VRNA_PLIST_TYPE_GQUAD;
           if (k == count) {
             (pl)[k].p = ptr->p;
             count++;
@@ -855,7 +855,7 @@ wrap_get_plist(vrna_mx_pf_t     *matrices,
         (pl)[count].i       = i;
         (pl)[count].j       = j;
         (pl)[count].p       = (float)probs[index[i] - j];
-        (pl)[count++].type  = 0;
+        (pl)[count++].type  = VRNA_PLIST_TYPE_BASEPAIR;
       }
     }
   }
@@ -1206,6 +1206,7 @@ assign_elements_pair(short  *pt,
       break;
   }
 }
+
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
