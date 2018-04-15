@@ -119,3 +119,19 @@ num_proc_cores(int  *num_cores,
   return 0;
 #endif
 }
+
+
+int
+max_user_threads(void)
+{
+  int threadm = -1;
+
+#if defined(_WIN32)
+  /* currently not implmeneted, so let's limit to some arbitrary value */
+  threadm = 128;
+#else
+  threadm = (int)sysconf(_SC_CHILD_MAX);
+#endif
+
+  return threadm;
+}

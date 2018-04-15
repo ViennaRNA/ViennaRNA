@@ -78,4 +78,8 @@ num_proc_cores(int  *num_cores,
                int  *num_cores_conf);
 
 
+int
+max_user_threads(void);
+
+
 #endif
