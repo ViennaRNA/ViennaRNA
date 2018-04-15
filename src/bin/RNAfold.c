@@ -485,20 +485,22 @@ main(int  argc,
 
   if (args_info.jobs_given) {
 #if VRNA_WITH_PTHREADS
+    int thread_max = max_user_threads();
     if (args_info.jobs_arg == 0) {
       /* use maximum of concurrent threads */
       int proc_cores, proc_cores_conf;
       if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
-        opt.jobs = proc_cores_conf;
+        opt.jobs = MIN2(thread_max, proc_cores_conf);
       } else {
         vrna_message_warning("Could not determine number of available processor cores!\n"
                              "Defaulting to serial computation");
         opt.jobs = 1;
       }
     } else {
-      opt.jobs = MIN2(512, MAX2(1, args_info.jobs_arg));
+      opt.jobs = MIN2(thread_max, args_info.jobs_arg);
     }
 
+    opt.jobs = MAX2(1, opt.jobs);
 #else
     vrna_message_warning(
       "This version of RNAfold has been built without parallel input processing capabilities");
