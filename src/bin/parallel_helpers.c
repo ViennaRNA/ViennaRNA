@@ -27,7 +27,6 @@ num_proc_cores(int  *num_cores,
   long        nprocs_max  = -1;
 
 #if defined(_WIN32)
-  long        curslotno;
   SYSTEM_INFO info;
   GetSystemInfo(&info);
 #endif
@@ -76,7 +75,7 @@ num_proc_cores(int  *num_cores,
   return 1; /* success */
 
 #elif defined(_WIN32)
-  num_procs = info.dwNumberOfProcessors;
+  nprocs = info.dwNumberOfProcessors;
 
   nprocs_max = 0;
 
