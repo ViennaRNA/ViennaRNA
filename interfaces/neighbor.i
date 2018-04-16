@@ -2,6 +2,10 @@
 /* BEGIN interface for neighbor generation          */
 /****************************************************/
 
+#ifdef SWIGPERL5
+%rename(_next) vrna_move_s::next;
+#endif
+
 /* scripting language access through 'move' instead of 'vrna_move_t' */
 %rename(move) vrna_move_t;
 
