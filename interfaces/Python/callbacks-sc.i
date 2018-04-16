@@ -360,6 +360,7 @@ py_wrap_sc_exp_f_callback(int i,
   PyObject *func, *arglist, *result, *err;
   py_sc_callback_t *cb = (py_sc_callback_t *)data;
 
+  ret  = 1.;
   func = cb->cb_exp_f;
   /* compose argument list */
   arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
