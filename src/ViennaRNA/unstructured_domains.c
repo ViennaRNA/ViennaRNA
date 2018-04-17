@@ -1483,8 +1483,8 @@ backtrack_MEA_matrix(vrna_fold_compound_t *fc,
                      float                *pu,
                      unsigned int         type)
 {
-  unsigned int    i, u, m, d, motif_cnt, motif_size;
-  float           mea, p;
+  unsigned int    i, u, m, d, motif_cnt, motif_size, found;
+  float           mea, p, prec;
   vrna_ud_t       *domains_up;
   vrna_ud_motif_t *motif_list;
 
@@ -1494,13 +1494,16 @@ backtrack_MEA_matrix(vrna_fold_compound_t *fc,
   motif_list  = (vrna_ud_motif_t *)vrna_alloc(sizeof(vrna_ud_motif_t) * (motif_size + 1));
 
   for (d = to - from + 1, i = from; i <= to;) {
-    mea = mx[i];
-    p   = pu[i];
+    prec  = FLT_EPSILON * mx[i];
+    mea   = mx[i];
+    p     = pu[i];
+    found = 0;
 
     if (i < to)
       p += mx[i + 1];
 
-    if (mea == p) {
+    if (mea <= p + prec) {
+      /* nibble-off unpaired nucleotides */
       i++;
       d--;
       continue;
@@ -1519,7 +1522,7 @@ backtrack_MEA_matrix(vrna_fold_compound_t *fc,
           if (u < d)
             p += mx[i + u];
 
-          if (p == mea) {
+          if (mea <= p + prec) {
             motif_list[motif_cnt].start   = i;
             motif_list[motif_cnt].number  = m;
             motif_cnt++;
@@ -1533,10 +1536,18 @@ backtrack_MEA_matrix(vrna_fold_compound_t *fc,
 
             i += u;
             d -= u;
+
+            found = 1;
             break;
           }
         }
       }
+    }
+
+    if (!found) {
+      vrna_message_warning("Backtracking failed in unstructured domains MEA\n");
+      motif_cnt = 0;
+      break;
     }
   }
 
