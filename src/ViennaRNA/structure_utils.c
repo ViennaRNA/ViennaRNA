@@ -944,6 +944,7 @@ wrap_plist(vrna_fold_compound_t *vc,
             (pl)[k].p += ptr->p;
           }
         }
+        free(inner);
       } else {
         (pl)[count].i       = i;
         (pl)[count].j       = j;
