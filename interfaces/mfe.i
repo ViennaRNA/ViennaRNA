@@ -204,6 +204,13 @@ char *my_alifold(std::vector<std::string> alignment, char *constraints, float *O
 
 %extend vrna_fold_compound_t {
 
+#ifdef SWIGPYTHON
+%feature("autodoc") mfe;
+%feature("kwargs") mfe;
+%feature("autodoc") mfe_dimer;
+%feature("kwargs") mfe_dimer;
+#endif
+
   char *mfe(float *OUTPUT){
 
     char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));

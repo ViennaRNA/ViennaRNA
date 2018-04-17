@@ -96,4 +96,11 @@ void  vrna_pf_dimer_probs(double                  FAB,
                           const vrna_exp_param_t  *exp_params);
 
 
+double
+vrna_pr_structure(vrna_fold_compound_t *fc,
+                  const char *structure);
+double
+vrna_pr_energy(vrna_fold_compound_t *vc,
+               double e);
+
 #endif

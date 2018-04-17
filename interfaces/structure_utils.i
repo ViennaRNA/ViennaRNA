@@ -46,6 +46,11 @@
     return vrna_db_pack(s);
   }
 %}
+#ifdef SWIGPYTHON
+%feature("autodoc") my_pack_structure;
+%feature("kwargs") my_pack_structure;
+#endif
+
 char *my_pack_structure(const char *s);
 
 %rename (db_unpack) vrna_db_unpack;
@@ -58,6 +63,11 @@ char *my_pack_structure(const char *s);
     return vrna_db_unpack(packed);
   }
 %}
+#ifdef SWIGPYTHON
+%feature("autodoc") my_unpack_structure;
+%feature("kwargs") my_unpack_structure;
+#endif
+
 char *my_unpack_structure(const char *packed);
 
 %inline %{
@@ -131,6 +141,13 @@ char *my_unpack_structure(const char *packed);
   }
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_ptable;
+%feature("kwargs") my_ptable;
+%feature("autodoc") my_ptable_from_string;
+%feature("kwargs") my_ptable_from_string;
+#endif
+
 std::vector<int> my_ptable(std::string str);
 std::vector<int> my_ptable_from_string(std::string str, unsigned int options = VRNA_BRACKETS_DEFAULT);
 
@@ -153,6 +170,11 @@ std::vector<int> my_ptable_from_string(std::string str, unsigned int options = V
   }
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_ptable_pk;
+%feature("kwargs") my_ptable_pk;
+#endif
+
 std::vector<int> my_ptable_pk(std::string str);
 
 
@@ -168,6 +190,11 @@ std::vector<int> my_ptable_pk(std::string str);
   }
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_db_from_ptable;
+%feature("kwargs") my_db_from_ptable;
+#endif
+
 char *my_db_from_ptable(std::vector<int> pt);
 
 
@@ -177,6 +204,12 @@ char *my_db_from_ptable(std::vector<int> pt);
     return vrna_bp_distance(str1,str2);
   }
 %}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_bp_distance;
+%feature("kwargs") my_bp_distance;
+#endif
+
 int my_bp_distance(const char *str1, const char *str2);
 
 
@@ -240,12 +273,25 @@ typedef struct {
   }
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_plist;
+%feature("kwargs") my_plist;
+%feature("autodoc") db_from_plist;
+%feature("kwargs") db_from_plist;
+#endif
+
 std::vector<vrna_ep_t> my_plist(std::string structure, float pr);
 std::string db_from_plist(std::vector<vrna_ep_t> elem_probs, unsigned int length);
 
 
 %extend vrna_fold_compound_t {
 #include <vector>
+
+#ifdef SWIGPYTHON
+%feature("autodoc") plist_from_probs;
+%feature("kwargs") plist_from_probs;
+#endif
+
   std::vector<vrna_ep_t> plist_from_probs(double cutoff) {
     std::vector<vrna_ep_t > ep_v;
     vrna_ep_t               *ptr, *plist;

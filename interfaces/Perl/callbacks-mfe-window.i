@@ -49,6 +49,8 @@ perl_wrap_mfe_window_cb(int start, int end, const char *stucture, float energy, 
   func  = cb->cb;
 
   if(func && SvOK(func)){
+    SV *err_tmp;
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -70,7 +72,13 @@ perl_wrap_mfe_window_cb(int start, int end, const char *stucture, float energy, 
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    perl_call_sv(func, G_VOID);
+    perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+      croak ("Some error occurred while executing sliding window MFE callback - %s\n", SvPV_nolen(err_tmp));
+    }
+
     FREETMPS;
     LEAVE;
   }
@@ -88,6 +96,8 @@ perl_wrap_mfe_window_zscore_cb(int start, int end, const char *stucture, float e
   func  = cb->cb;
 
   if(func && SvOK(func)){
+    SV *err_tmp;
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -112,7 +122,13 @@ perl_wrap_mfe_window_zscore_cb(int start, int end, const char *stucture, float e
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    perl_call_sv(func, G_VOID);
+    perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+      croak ("Some error occurred while executing sliding window MFE callback (z-score) - %s\n", SvPV_nolen(err_tmp));
+    }
+
     FREETMPS;
     LEAVE;
   }

@@ -17,8 +17,8 @@ as well as for Windows users are available from Download section of the <a href=
 Usually you'll just unpack, configure and make. To do this type:
 
 @verbatim
-tar -zxvf ViennaRNA-2.4.4.tar.gz
-cd ViennaRNA-2.4.4
+tar -zxvf ViennaRNA-2.4.5.tar.gz
+cd ViennaRNA-2.4.5
 ./configure
 make
 sudo make install
@@ -164,6 +164,19 @@ To do so, add the following configure option
 
 @verbatim
 ./configure --disable-openmp
+@endverbatim
+
+@subsection config_pthread  POSIX threads (pthread) support
+
+To enable concurrent computation of multiple input data in RNAfold, and for our implementation of the concurrent unordered
+insert, ordered output flush data structure vrna_ostream_t we make use of POSIX threads. This should be supported on
+all modern platforms and usually does not pose any problems. Unfortunately, we use a threadpool implementation that
+is not compatible with Microsoft Windows yet. Thus, POSIX thread support can not be activated for Windows builds until
+we have fixed this problem. If you want to compile RNAfold and RNAlib without POSIX threads support for any other reasons,
+add the following configure option
+
+@verbatim
+./configure --disable-pthreads
 @endverbatim
 
 @subsection config_boustrophedon  Stochastic backtracking using Boustrophedon scheme

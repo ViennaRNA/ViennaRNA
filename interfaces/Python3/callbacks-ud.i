@@ -6,6 +6,8 @@
 #ifdef SWIGPYTHON
 %{
 
+#include <stdexcept>
+
 typedef struct {
   PyObject  *prod_rule;
   PyObject  *exp_prod_rule;
@@ -47,10 +49,27 @@ delete_py_ud_callback(void * data){
   py_ud_callback_t *cb = (py_ud_callback_t *)data;
   /* first delete user data */
   if(cb->delete_data != Py_None){
-    PyObject *func, *arglist, *result;
+    PyObject *func, *arglist, *result, *err;
     func = cb->delete_data;
     arglist = Py_BuildValue("O", cb->data);
     result  = PyObject_CallObject(func, arglist);
+
+    /* BEGIN recognizing errors in callback execution */
+    if (result == NULL) {
+      if ((err = PyErr_Occurred())) {
+        /* print error message */
+        PyErr_Print();
+        /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+        if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+          throw std::runtime_error( "Unstructured domains delete_data() callback must take exactly 1 argument" );
+        } else {
+          throw std::runtime_error( "Some error occurred while executing unstructured domains delete_data() callback" );
+        }
+      }
+      PyErr_Clear();
+    }
+    /* END recognizing errors in callback execution */
+
     Py_DECREF(arglist);
     Py_XDECREF(result);
   }
@@ -80,10 +99,27 @@ ud_set_pydata(vrna_fold_compound_t *vc,
     cb = (py_ud_callback_t *)vc->domains_up->data;
     if(cb->data != Py_None){
       if(cb->delete_data != Py_None){
-        PyObject *func, *arglist, *result;
+        PyObject *func, *arglist, *result, *err;
         func    = cb->delete_data;
         arglist = Py_BuildValue("O", cb->data);
         result  = PyObject_CallObject(func, arglist);
+
+        /* BEGIN recognizing errors in callback execution */
+        if (result == NULL) {
+          if ((err = PyErr_Occurred())) {
+            /* print error message */
+            PyErr_Print();
+            /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+            if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+              throw std::runtime_error( "Unstructured domains  delete_data() callback must take exactly 1 argument" );
+            } else {
+              throw std::runtime_error( "Some error occurred while executing unstructured domains delete_data() callback" );
+            }
+          }
+          PyErr_Clear();
+        }
+        /* END recognizing errors in callback execution */
+
         Py_DECREF(arglist);
         Py_XDECREF(result);
       }
@@ -191,14 +227,30 @@ static void
 py_wrap_ud_prod_rule( vrna_fold_compound_t *vc,
                       void *data){
 
-  int ret;
-  PyObject *func, *arglist, *result;
+  PyObject *func, *arglist, *result, *err;
   py_ud_callback_t *cb = (py_ud_callback_t *)data;
 
   func = cb->prod_rule;
   /* compose argument list */
   arglist = Py_BuildValue("(O,O)", vc, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Unstructured domains production rule callback must take exactly 2 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing unstructured domains production rule callback" );
+      }
+    }
+    PyErr_Clear();
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return /*void*/;
@@ -209,14 +261,30 @@ static void
 py_wrap_ud_exp_prod_rule( vrna_fold_compound_t *vc,
                           void *data){
 
-  int ret;
-  PyObject *func, *arglist, *result;
+  PyObject *func, *arglist, *result, *err;
   py_ud_callback_t *cb = (py_ud_callback_t *)data;
 
   func = cb->exp_prod_rule;
   /* compose argument list */
   arglist = Py_BuildValue("(O,O)", vc, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Unstructured domains production rule callback (partition function) must take exactly 2 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing unstructured domains production rule callback (partition function)" );
+      }
+    }
+    PyErr_Clear();
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return /*void*/;
@@ -231,14 +299,35 @@ py_wrap_ud_energy(vrna_fold_compound_t *vc,
                   void *data){
 
   int ret;
-  PyObject *func, *arglist, *result;
+  PyObject *func, *arglist, *result, *err;
   py_ud_callback_t *cb = (py_ud_callback_t *)data;
 
+  ret  = 0;
   func = cb->energy;
   /* compose argument list */
   arglist = Py_BuildValue("(O,i,i,I,O)", vc, i, j, looptype, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
-  ret = (int)PyLong_AsLong(result);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Unstructured domains energy callback must take exactly 5 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing unstructured domains energy callback" );
+      }
+    }
+    PyErr_Clear();
+  } else if (result == Py_None) {
+    throw std::runtime_error( "Unstructured domains energy callback must return pseudo energy value" );
+  } else {
+    ret = (int)PyLong_AsLong(result);
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return ret;
@@ -253,14 +342,35 @@ py_wrap_ud_exp_energy(vrna_fold_compound_t *vc,
                       void *data){
 
   FLT_OR_DBL ret;
-  PyObject *func, *arglist, *result;
+  PyObject *func, *arglist, *result, *err;
   py_ud_callback_t *cb = (py_ud_callback_t *)data;
 
+  ret  = 1.;
   func = cb->exp_energy;
   /* compose argument list */
   arglist = Py_BuildValue("(O,i,i,I,O)", vc, i, j, looptype, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
-  ret = (FLT_OR_DBL)PyFloat_AsDouble(result);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Unstructured domains energy callback (partition function) must take exactly 5 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing unstructured domains energy callback (partition function)" );
+      }
+    }
+    PyErr_Clear();
+  } else if (result == Py_None) {
+    throw std::runtime_error( "Unstructured domains energy callback (partition function) must return Boltzmann weighted pseudo energy value" );
+  } else {
+    ret = (FLT_OR_DBL)PyFloat_AsDouble(result);
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return ret;
@@ -275,13 +385,30 @@ py_wrap_ud_prob_add(vrna_fold_compound_t *vc,
                     FLT_OR_DBL prob,
                     void *data){
 
-  PyObject *func, *arglist, *result;
+  PyObject *func, *arglist, *result, *err;
   py_ud_callback_t *cb = (py_ud_callback_t *)data;
 
   func = cb->prob_add;
   /* compose argument list */
   arglist = Py_BuildValue("(O,i,i,I,d,O)", vc, i, j, looptype, (double)prob, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Unstructured domains add_probability() callback must take exactly 6 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing unstructured domains add_probability() callback" );
+      }
+    }
+    PyErr_Clear();
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return;
@@ -296,15 +423,37 @@ py_wrap_ud_prob_get(vrna_fold_compound_t *vc,
                     int motif,
                     void *data){
 
-  int ret;
-  PyObject *func, *arglist, *result;
+  FLT_OR_DBL ret;
+  PyObject *func, *arglist, *result, *err;
   py_ud_callback_t *cb = (py_ud_callback_t *)data;
 
   func = cb->prob_get;
+  ret  = 1.;
+
   /* compose argument list */
   arglist = Py_BuildValue("(O,i,i,I,i,O)", vc, i, j, looptype, motif, (cb->data) ? cb->data : Py_None);
   result  =  PyObject_CallObject(func, arglist);
-  ret     = (int)PyLong_AsLong(result);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Unstructured domains get_probability() callback must take exactly 6 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing unstructured domains get_probability() callback" );
+      }
+    }
+    PyErr_Clear();
+  } else if (result == Py_None) {
+    throw std::runtime_error( "Unstructured domains get_probability() callback must return probability" );
+  } else {
+    ret = (FLT_OR_DBL)PyFloat_AsDouble(result);
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return ret;
@@ -319,6 +468,15 @@ static void ud_set_prob_cb( vrna_fold_compound_t *vc, PyObject *setter, PyObject
 
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
+
+%feature("autodoc") ud_set_data;
+%feature("kwargs") ud_set_data;
+%feature("autodoc") ud_set_prod_rule_cb;
+%feature("kwargs") ud_set_prod_rule_cb;
+%feature("autodoc") ud_set_exp_prod_rule_cb;
+%feature("kwargs") ud_set_exp_prod_rule_cb;
+%feature("autodoc") ud_set_prob_cb;
+%feature("kwargs") ud_set_prob_cb;
 
   PyObject *ud_set_data(PyObject *data, PyObject *PyFuncOrNone=Py_None){
     ud_set_pydata($self, data, PyFuncOrNone);

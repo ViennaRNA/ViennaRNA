@@ -3,10 +3,10 @@ AUTOMAKE_OPTIONS = subdir-objects
 bin_PROGRAMS = AnalyseDists AnalyseSeqs
 man_MANS = AnalyseDists.1 AnalyseSeqs.1
 
-AM_CFLAGS = $(RNA_CFLAGS)
-AM_CXXFLAGS = $(RNA_CXXFLAGS)
+AM_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
+AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src -I$(top_srcdir) -I$(top_builddir)
-AM_LDFLAGS = $(RNA_LDFLAGS)
+AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
 if VRNA_AM_SWITCH_STATIC_EXECUTABLES
 AM_LDFLAGS += -all-static

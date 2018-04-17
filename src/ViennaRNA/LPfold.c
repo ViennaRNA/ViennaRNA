@@ -1816,7 +1816,7 @@ compute_pU(vrna_fold_compound_t       *vc,
    */
   for (startu = MIN2(ulength, k); startu > 0; startu--) {
     temp = 0.;
-    // check whether soft constraint unpaired contributions available
+    /* check whether soft constraint unpaired contributions available */
     if (sc && sc->exp_energy_up) {
       if (hc->up_ext[k - startu + 1] >= startu) {
         for (i5 = MAX2(1, k - winSize + 2); i5 <= MIN2(k - startu, n - winSize + 1); i5++)

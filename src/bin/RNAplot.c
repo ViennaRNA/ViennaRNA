@@ -29,15 +29,14 @@ main(int  argc,
 {
   struct RNAplot_args_info  args_info;
   char                      *structure, *pre, *post, *ffname, *tmp_string,
-                            *id_prefix, *id_delim, *filename_delim,
-                            *rec_sequence, *rec_id, **rec_rest, format[5] = "ps";
+                            *filename_delim, *rec_sequence, *rec_id, **rec_rest,
+                            format[5] = "ps";
   unsigned int              rec_type, read_opt;
-  int                       i, istty, auto_id, id_digits, filename_full;
-  long int                  seq_number;
+  int                       i, istty, filename_full;
   vrna_md_t                 md;
+  dataset_id                id_control;
 
   structure     = pre = post = NULL;
-  auto_id       = 0;
   filename_full = 0;
   vrna_md_set_default(&md);
 
@@ -50,12 +49,7 @@ main(int  argc,
     exit(1);
 
   /* parse options for ID manipulation */
-  ggo_get_ID_manipulation(args_info,
-                          auto_id,
-                          id_prefix, "sequence",
-                          id_delim, "_",
-                          id_digits, 4,
-                          seq_number, 1);
+  ggo_get_id_control(args_info, id_control, "Sequence", "sequence", "_", 4, 1);
 
   if (args_info.layout_type_given)
     rna_plot_type = args_info.layout_type_arg;
@@ -74,10 +68,10 @@ main(int  argc,
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
     filename_delim = strdup(args_info.filename_delim_arg);
-  else
-    filename_delim = strdup(id_delim);
+  else if (get_id_delim(id_control))
+    filename_delim = strdup(get_id_delim(id_control));
 
-  if (isspace(*filename_delim)) {
+  if ((filename_delim) && isspace(*filename_delim)) {
     free(filename_delim);
     filename_delim = NULL;
   }
@@ -123,7 +117,8 @@ main(int  argc,
     }
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
+    set_next_id(&rec_id, id_control);
+    SEQ_ID = fileprefix_from_id(rec_id, id_control, filename_full);
 
     structure = vrna_extract_record_rest_structure((const char **)rec_rest,
                                                    0,
@@ -136,7 +131,7 @@ main(int  argc,
       vrna_message_error("sequence and structure have unequal length");
 
     if (SEQ_ID)
-      ffname = vrna_strdup_printf("%s%sss", SEQ_ID, id_delim);
+      ffname = vrna_strdup_printf("%s%sss", SEQ_ID, filename_delim);
     else
       ffname = vrna_strdup_printf("rna");
 
@@ -200,16 +195,14 @@ main(int  argc,
     free(ffname);
     ffname = NULL;
 
-    ID_number_increase(&seq_number, "Sequence");
-
     /* print user help for the next round if we get input from tty */
     if (istty)
       vrna_message_input_seq("Input sequence (upper or lower case) followed by structure");
   }
 
-  free(id_prefix);
-  free(id_delim);
   free(filename_delim);
+
+  free_id_data(id_control);
 
   return EXIT_SUCCESS;
 }

@@ -41,24 +41,19 @@ main(int  argc,
 {
   struct RNAeval_args_info  args_info;
   char                      *string, *structure, *orig_sequence, *tmp, *rec_sequence,
-                            *rec_id, **rec_rest, *shape_file, *shape_method, *id_delim,
-                            *shape_conversion, *id_prefix;
+                            *rec_id, **rec_rest, *shape_file, *shape_method, *shape_conversion;
   unsigned int              rec_type, read_opt;
   int                       i, length1, with_shapes, istty, noconv, verbose,
-                            auto_id, id_digits, filename_full;
-  long int                  seq_number;
+                            filename_full;
   float                     energy;
   vrna_md_t                 md;
+  dataset_id                id_control;
 
   string        = orig_sequence = NULL;
   noconv        = 0;
   verbose       = 0;
   gquad         = 0;
   dangles       = 2;
-  seq_number    = 1;
-  id_prefix     = NULL;
-  auto_id       = 0;
-  id_digits     = 4;
   filename_full = 0;
 
   /* apply default model details */
@@ -85,12 +80,7 @@ main(int  argc,
   /* SHAPE reactivity data */
   ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
 
-  ggo_get_ID_manipulation(args_info,
-                          auto_id,
-                          id_prefix, "sequence",
-                          id_delim, "_",
-                          id_digits, 4,
-                          seq_number, 1);
+  ggo_get_id_control(args_info, id_control, "Sequence", "sequence", "_", 4, 1);
 
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given)
@@ -142,7 +132,7 @@ main(int  argc,
      # init everything according to the data we've read
      ########################################################
      */
-    char  *SEQ_ID         = NULL, *msg = NULL;
+    char  *SEQ_ID = NULL, *msg = NULL;
     int   maybe_multiline = 0;
 
     if (rec_id) {
@@ -152,7 +142,8 @@ main(int  argc,
     }
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
+    set_next_id(&rec_id, id_control);
+    SEQ_ID = fileprefix_from_id(rec_id, id_control, filename_full);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)
@@ -187,22 +178,24 @@ main(int  argc,
 
     free(tmp);
 
-    if (with_shapes)
+    if (with_shapes) {
       vrna_constraints_add_SHAPE(vc,
                                  shape_file,
                                  shape_method,
                                  shape_conversion,
                                  verbose,
                                  VRNA_OPTION_MFE);
+    }
 
     if (istty) {
-      if (vc->cutpoint == -1)
+      if (vc->cutpoint == -1) {
         vrna_message_info(stdout, "length = %d", length1);
-      else
+      } else {
         vrna_message_info(stdout,
                           "length1 = %d\nlength2 = %d",
                           vc->cutpoint - 1,
                           length1 - vc->cutpoint + 1);
+      }
     }
 
     /*
@@ -257,16 +250,13 @@ main(int  argc,
     if (with_shapes)
       break;
 
-    ID_number_increase(&seq_number, "Sequence");
-
     /* print user help for the next round if we get input from tty */
     if (istty)
       vrna_message_input_seq("Use '&' to connect 2 sequences that shall form a complex.\n"
                              "Input sequence (upper or lower case) followed by structure");
   }
 
-  free(id_prefix);
-  free(id_delim);
+  free_id_data(id_control);
 
   return EXIT_SUCCESS;
 }

@@ -27,5 +27,8 @@ typedef struct {
   int j;
 } vrna_basepair_t;
 
+#ifdef SWIGPERL5
+%rename(_next) node::next;
+#endif
 
 %include <ViennaRNA/data_structures.h>

@@ -1,3 +1,27 @@
+v2.4.5
+  * Allow for arbitrary number of input files in RNAfold
+  * Allow for parallel processing of input data in RNAfold (UNIX only, no Windows support yet)
+  * Add SHAPE reactivity support through commandline options for RNAplfold
+  * Fix unstructured domain motif detection in MFE, centroid, and MEA structures computed by RNAfold
+  * Limit allowed set of commands in command file for RNAcofold to hard and soft constraints
+  * API: Add functions to compute equilibrium probability of particular secondary structures
+  * API: Add dynamic string stream data type and associated functions
+  * API: Add priority-queue like data structure with unordered fill capability and ordered output callback execution
+  * API: Add functions to detect unstructured domain motifs in MFE, centroid, and MEA structures
+  * API: Fix bug in sliding-window partition function computation with SHAPE reactivity and Deigan et al. conversion method
+  * API: Fix application of '<' and '>' constraint symbols in dot-bracket provided constraints (was broken since v2.4.2)
+  * API: Fix MEA structure computation in the presence of unstructured domains
+  * API: Stabilize order of probability entries in EPS dot-plot files
+  * Fix compiler warnings on wrong type of printf() in naview.c
+  * Define VRNA_VERSION macro as string literal and add macros for major, minor, and patch numbers
+  * Stabilize parallel make of Mac OS X installer
+  * Add energy parameter set from Langdon et al. 2018
+  * Add autoconf checks for POSIX threads compiler/linker support
+  * SWIG: Fix 'next' is a perl keyword warnings for Perl5 wrapper
+  * SWIG: Catch errors and throw execptions whenever scripting language provided callback functions are not applicable or fail
+  * SWIG: Add keyword arguments and autodoc feature for Python/Python3 wrappers
+
+
 v2.4.4
   * Change verbose output for soft-constraints derived ligand binding motifs in RNAfold
   * Allow for lowercase letters in ct2db input

@@ -5,6 +5,11 @@
 
 %extend vrna_fold_compound_t {
 
+#ifdef SWIGPYTHON
+%feature("autodoc") constraints_add;
+%feature("kwargs") constraints_add;
+#endif
+
   void constraints_add(const char *constraint, unsigned int options=VRNA_OPTION_MFE){
     vrna_constraints_add($self,constraint, options);
   }

@@ -73,6 +73,13 @@
   }
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_pfl_fold;
+%feature("kwargs") my_pfl_fold;
+%feature("autodoc") pfl_fold_up;
+%feature("kwargs") pfl_fold_up;
+#endif
+
 std::vector<vrna_ep_t> my_pfl_fold(std::string sequence, int w, int L, double cutoff);
 std::vector<std::vector<double> > pfl_fold_up(std::string sequence,
                                               int ulength,

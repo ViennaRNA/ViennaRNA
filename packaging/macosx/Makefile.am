@@ -260,13 +260,13 @@ staging-python:
       --resources ./resources \
       ./"${VRNA_PKG_FILE}"
 
-disk_image:
+disk_image: "${VRNA_PKG_FILE}"
 	$(prepare_verbose)$(MKDIR_P) disk_image
 	$(AM_V_at)cp "${VRNA_PKG_FILE}" disk_image
 	$(AM_V_at)cp $(top_srcdir)/README $(top_srcdir)/NEWS $(top_srcdir)/ChangeLog $(top_srcdir)/AUTHORS $(top_srcdir)/THANKS disk_image/ 
 	$(AM_V_at)cp $(top_srcdir)/COPYING disk_image/License
 
-"${MACOSX_DMG_FILE}": "${VRNA_PKG_FILE}" disk_image
+"${MACOSX_DMG_FILE}": disk_image
 	$(dmg_verbose)$(HDIUTIL) create -ov -fs HFSX -layout SPUD -format UDZO \
     -volname ${MACOSX_DMG_NAME} -srcfolder disk_image \
     -imagekey zlib-level=9 -scrub "${MACOSX_DMG_FILE}"

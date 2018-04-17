@@ -33,8 +33,8 @@ nobase_dist_perlmod_DATA = \
   RNA/Utils.pm \
   RNA/Params.pm
 
-RNA_la_CFLAGS = $(RNA_CFLAGS) $(PERLXS_CFLAGS)
-RNA_la_CXXFLAGS = $(RNA_CXXFLAGS) -Wno-unused-label -Wno-unused-variable
+RNA_la_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS) $(PERLXS_CFLAGS)
+RNA_la_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS) -Wno-unused-label -Wno-unused-variable
 RNA_la_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src $(PERL_EXT_CPPFLAGS) $(SWIG_PERL_CPPFLAGS) $(PERLXS_CFLAGS)
 
 RNA_la_LIBADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la $(PERLXS_LIBS) $(PERLXS_LDFLAGS)
@@ -53,7 +53,14 @@ RNA_la_CXXFLAGS += $(LTO_CXXFLAGS)
 RNA_la_LDFLAGS += $(LTO_LDFLAGS)
 endif
 
-RNA_la_LDFLAGS += -avoid-version -module -shared -export-dynamic -shrext $(PERL_SO)
+RNA_la_LDFLAGS += -Xcompiler $(PTHREAD_CFLAGS) \
+                  $(PTHREAD_LIBS) \
+                  -avoid-version \
+                  -module \
+                  -shared \
+                  -export-dynamic \
+                  -shrext \
+                  $(PERL_SO)
 
 SOURCES = $(srcdir)/RNA.pod
 

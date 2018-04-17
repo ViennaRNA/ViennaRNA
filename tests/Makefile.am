@@ -1,9 +1,9 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src
-AM_CFLAGS = $(RNA_CFLAGS) @CHECK_CFLAGS@ -I$(top_builddir)/src/
-AM_CXXFLAGS = $(RNA_CXXFLAGS)
-AM_LDFLAGS = $(RNA_LDFLAGS)
+AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/src/
+AM_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS) @CHECK_CFLAGS@ 
+AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)
+AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
 LDADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la @CHECK_LIBS@
 

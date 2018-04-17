@@ -137,6 +137,17 @@ namespace std {
   }
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_duplexfold;
+%feature("kwargs") my_duplexfold;
+%feature("autodoc") my_duplex_subopt;
+%feature("kwargs") my_duplex_subopt;
+%feature("autodoc") my_aliduplexfold;
+%feature("kwargs") my_aliduplexfold;
+%feature("autodoc") aliduplex_subopt;
+%feature("kwargs") aliduplex_subopt;
+#endif
+
 duplexT my_duplexfold(std::string s1, std::string s2);
 
 std::vector<duplex_list_t> my_duplex_subopt(std::string s1, std::string s2, int delta, int w);

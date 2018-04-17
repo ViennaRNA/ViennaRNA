@@ -257,6 +257,9 @@ formats, and various output file formats produced by our library.
 @defgroup   file_utils                Functions to Read/Write several File Formats for RNA Sequences, Structures, and Alignments
 @ingroup    utils
 
+@defgroup   buffer_utils              Functions that provide dynamically buffered stream-like data structures
+@ingroup    utils
+
 @defgroup   plotting_utils            Functions for Creating Secondary Structure Plots, Dot-Plots, and More
 @ingroup    utils
 

@@ -32,6 +32,11 @@
   }
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") get_xy_coordinates;
+%feature("kwargs") get_xy_coordinates;
+#endif
+
 COORDINATE *get_xy_coordinates(const char *structure);
 
 %extend COORDINATE {
@@ -112,6 +117,13 @@ COORDINATE *get_xy_coordinates(const char *structure);
 
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_simple_circplot_coordinates;
+%feature("kwargs") my_simple_circplot_coordinates;
+%feature("autodoc") my_naview_xy_coordinates;
+%feature("kwargs") my_naview_xy_coordinates;
+#endif
+
 std::vector<COORDINATE> my_simple_xy_coordinates(std::string);
 std::vector<COORDINATE> my_simple_circplot_coordinates(std::string);
 std::vector<COORDINATE> my_naview_xy_coordinates(std::string);
@@ -164,6 +176,11 @@ std::vector<COORDINATE> my_naview_xy_coordinates(std::string);
   }
 
 %}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_PS_rna_plot_snoop_a;
+%feature("kwargs") my_PS_rna_plot_snoop_a;
+#endif
 
 int my_PS_rna_plot_snoop_a( std::string sequence,
                             std::string structure,
@@ -271,6 +288,13 @@ int file_PS_rnaplot_a(std::string sequence,
   }
 
 %}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_PS_color_aln;
+%feature("kwargs") my_PS_color_aln;
+%feature("autodoc") my_aliPS_color_aln;
+%feature("kwargs") my_aliPS_color_aln;
+#endif
 
 int my_PS_color_aln(std::string structure,
                     std::string filename,
