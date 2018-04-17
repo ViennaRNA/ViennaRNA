@@ -22,6 +22,10 @@ AC_DEFUN([RNA_GET_FEATURE],[
     AC_RNA_APPEND_VAR_COMMA($1, [OpenMP])
     _features_active=1
   ])
+  AS_IF([test "x$enable_pthreads" != "xno"], [
+    AC_RNA_APPEND_VAR_COMMA($1, [Pthread])
+    _features_active=1
+  ])
   AS_IF([test "x$enable_lto" = "xyes"], [
     AC_RNA_APPEND_VAR_COMMA($1, [LTO])
     _features_active=1
@@ -191,6 +195,36 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
   AC_SUBST(OPENMP_CXXFLAGS)
 ])
 
+
+AC_DEFUN([RNA_ENABLE_PTHREADS],[
+  RNA_ADD_FEATURE([pthreads],
+                  [Parallel input processing support],
+                  [yes])
+
+  RNA_FEATURE_IF_ENABLED([pthreads],[
+    case "${host_os}" in
+
+      cygwin*|*mingw*)
+        ## deactivate pthreads support for Windows
+        AC_MSG_WARN([Deactivating POSIX thread support since our implementation does not support Windows (yet)!])
+        enable_pthreads="no"
+        ;;
+
+      *)
+        ## probe for pthreads availability for any other OS
+        AX_PTHREAD([
+          AC_DEFINE([VRNA_WITH_PTHREADS], [1], [Use pthreads for parallel input processing])
+        ], [
+          enable_pthreads="no"
+        ])
+        ;;
+    esac
+  ])
+
+  AC_SUBST(PTHREAD_LIBS)
+  AC_SUBST(PTHREAD_CFLAGS)
+  AM_CONDITIONAL(VRNA_AM_SWITCH_PTHREADS, test "x$enable_pthreads" = "xyes")
+])
 
 #
 # C11 feature support

@@ -342,7 +342,7 @@ static void dump_loops(void)
   struct loop *lp;
   struct connection *cp,**cpp;
 
-  printf("\nRoot loop is #%ld\n",(root-loops)+1);
+  printf("\nRoot loop is #%d\n",(int)(root-loops)+1);
   for (il=0; il < loop_count; il++) {
     lp = &loops[il];
     printf("Loop %d has %d connections:\n",il+1,lp->nconnection);

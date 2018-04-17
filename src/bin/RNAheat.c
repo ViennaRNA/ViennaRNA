@@ -55,13 +55,11 @@ main(int  argc,
 {
   struct RNAheat_args_info  args_info;
   char                      *ns_bases, *c, *ParamFile, *rec_sequence, *rec_id, **rec_rest,
-                            *orig_sequence,
-                            *id_prefix, *id_delim;
+                            *orig_sequence;
   unsigned int              rec_type, read_opt;
-  int                       i, length, sym, mpoints, istty, noconv, auto_id, id_digits,
-                            filename_full;
-  long int                  seq_number;
+  int                       i, length, sym, mpoints, istty, noconv, filename_full;
   float                     T_min, T_max, h;
+  dataset_id                id_control;
 
   ParamFile     = ns_bases = NULL;
   T_min         = 0.;
@@ -73,7 +71,6 @@ main(int  argc,
   rec_type      = read_opt = 0;
   rec_id        = rec_sequence = orig_sequence = NULL;
   rec_rest      = NULL;
-  auto_id       = 0;
   filename_full = 0;
 
   /*
@@ -85,12 +82,7 @@ main(int  argc,
     exit(1);
 
   /* parse options for ID manipulation */
-  ggo_get_ID_manipulation(args_info,
-                          auto_id,
-                          id_prefix, "sequence",
-                          id_delim, "_",
-                          id_digits, 4,
-                          seq_number, 1);
+  ggo_get_id_control(args_info, id_control, "Sequence", "sequence", "_", 4, 1);
 
   /* do not take special tetra loop energies into account */
   if (args_info.noTetra_given)
@@ -215,7 +207,8 @@ main(int  argc,
       rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
+    set_next_id(&rec_id, id_control);
+    SEQ_ID = fileprefix_from_id(rec_id, id_control, filename_full);
 
     length = (int)strlen(rec_sequence);
 
@@ -251,15 +244,12 @@ main(int  argc,
     rec_id    = rec_sequence = orig_sequence = NULL;
     rec_rest  = NULL;
 
-    ID_number_increase(&seq_number, "Sequence");
-
     /* print user help for the next round if we get input from tty */
     if (istty)
       vrna_message_input_seq_simple();
   }
 
-  free(id_prefix);
-  free(id_delim);
+  free_id_data(id_control);
 
   return EXIT_SUCCESS;
 }

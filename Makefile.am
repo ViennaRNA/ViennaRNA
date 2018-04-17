@@ -11,4 +11,6 @@ pkgconfig_DATA = RNAlib2.pc
 
 EXTRA_DIST =  INSTALL.configure \
               examples \
-              packaging/debian
+              packaging/debian \
+              packaging/make_windows_installer.sh \
+              license.txt

@@ -120,6 +120,11 @@ short *encode_seq(char *sequence);
     return structure;   
   }
 %}
+#ifdef SWIGPYTHON
+%feature("autodoc")my_move_standard ;
+%feature("kwargs") my_move_standard;
+#endif
+
 %newobject my_move_standard;
 char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,int verbosity_level, int shifts, int noLP);
 %ignore move_standard;

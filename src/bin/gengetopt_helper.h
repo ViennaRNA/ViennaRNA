@@ -255,6 +255,33 @@
   })
 
 
+#define ggo_get_id_control(ggostruct,\
+                           id_ctrl,\
+                           identifier,\
+                           default_prefix,\
+                           default_delimiter,\
+                           default_digits,\
+                           default_start) ({ \
+  id_ctrl = init_id_data(identifier, default_prefix, default_delimiter, default_digits, default_start); \
+  if (ggostruct.auto_id_given)    { set_auto_id(id_ctrl, 1); } \
+  if (ggostruct.id_prefix_given)  { set_id_prefix(id_ctrl, ggostruct.id_prefix_arg); set_auto_id(id_ctrl, 1); } \
+  if (ggostruct.id_delim_given)   { set_id_delim(id_ctrl, ggostruct.id_delim_arg); } \
+  if (ggostruct.id_digits_given)  { if ((ggostruct.id_digits_arg > 0) && (ggostruct.id_digits_arg < 19)) { \
+                                      set_id_digits(id_ctrl, ggostruct.id_digits_arg); \
+                                    } else { \
+                                      vrna_message_warning("ID number digits (%d) out of allowed range! Using defaults...", ggostruct.id_digits_arg); \
+                                    } \
+                                  } \
+  if (ggostruct.id_start_given) { set_auto_id(id_ctrl, 1); \
+                                  if ((ggostruct.id_start_arg >= 0) && (ggostruct.id_start_arg <= LONG_MAX)) { \
+                                    set_id_start(id_ctrl, ggostruct.id_start_arg); \
+                                  } else { \
+                                    vrna_message_warning("ID number start (%ld) out of allowed range! Using defaults...", ggostruct.id_start_arg); \
+                                  } \
+                                } \
+})
+
+
 #define ggo_get_constraints_settings(ggostruct, \
                                      constraint_switch, \
                                      constraint_file, \

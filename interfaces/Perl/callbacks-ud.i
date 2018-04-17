@@ -54,13 +54,22 @@ delete_perl_ud_callback(void * data){
   /* first delete user data */
   if(cb->data && SvOK(cb->data)){
     if(cb->delete_data && SvOK(cb->delete_data)){
+      SV *err_tmp;
+
       dSP;
       ENTER;
       SAVETMPS;
       PUSHMARK(sp);
       XPUSHs(cb->data);
       PUTBACK;
-      perl_call_sv(cb->delete_data, G_VOID);
+      perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+      /* Check the eval first */
+      err_tmp = ERRSV;
+      if (SvTRUE(err_tmp)) {
+        croak ("Some error occurred while executing unstructured domains delete_data() callback - %s\n", SvPV_nolen(err_tmp));
+      }
+
       FREETMPS;
       LEAVE;
       SvREFCNT_dec(cb->delete_data);
@@ -111,6 +120,8 @@ ud_set_data(vrna_fold_compound_t *vc,
     cb = (perl5_ud_callback_t *)vc->domains_up->data;
     if(cb->data && SvOK(cb->data)){
       if(cb->delete_data && SvOK(cb->delete_data)){
+        SV *err_tmp;
+
         /* call Perl subroutine */
         dSP;
         ENTER;
@@ -118,7 +129,14 @@ ud_set_data(vrna_fold_compound_t *vc,
         PUSHMARK(sp);
         XPUSHs(cb->data);
         PUTBACK;
-        perl_call_sv(cb->delete_data, G_VOID);
+        perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+        /* Check the eval first */
+        err_tmp = ERRSV;
+        if (SvTRUE(err_tmp)) {
+          croak ("Some error occurred while executing unstructured domains delete_data() callback - %s\n", SvPV_nolen(err_tmp));
+        }
+
         FREETMPS;
         LEAVE;
         SvREFCNT_dec(cb->delete_data);
@@ -264,6 +282,8 @@ perl5_wrap_ud_prod_rule(vrna_fold_compound_t *vc,
   func = cb->prod_rule;
 
   if(func && SvOK(func)){
+    SV *err_tmp;
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -272,7 +292,14 @@ perl5_wrap_ud_prod_rule(vrna_fold_compound_t *vc,
     if(cb->data && SvOK(cb->data))  /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    perl_call_sv(func, G_VOID);
+    perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    /* Check the eval first */
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+      croak ("Some error occurred while executing unstructured domains production rule callback - %s\n", SvPV_nolen(err_tmp));
+    }
+
     FREETMPS;
     LEAVE;
   }
@@ -290,6 +317,8 @@ perl5_wrap_ud_exp_prod_rule(vrna_fold_compound_t *vc,
   func = cb->exp_prod_rule;
 
   if(func && SvOK(func)){
+    SV *err_tmp;
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -298,7 +327,14 @@ perl5_wrap_ud_exp_prod_rule(vrna_fold_compound_t *vc,
     if(cb->data && SvOK(cb->data))  /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    perl_call_sv(func, G_VOID);
+    perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    /* Check the eval first */
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+      croak ("Some error occurred while executing unstructured domains production rule callback (partition function) - %s\n", SvPV_nolen(err_tmp));
+    }
+
     FREETMPS;
     LEAVE;
   }
@@ -315,7 +351,7 @@ perl5_wrap_ud_energy( vrna_fold_compound_t *vc,
                       void *data){
 
   int ret, count;
-  SV *func;
+  SV *func, *err_tmp;
   perl5_ud_callback_t *cb = (perl5_ud_callback_t *)data;
 
   func = cb->energy;
@@ -323,6 +359,8 @@ perl5_wrap_ud_energy( vrna_fold_compound_t *vc,
   ret = 0;
 
   if(func && SvOK(func)){
+    I32 ax; /* expected by ST(x) macro */
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -341,15 +379,33 @@ perl5_wrap_ud_energy( vrna_fold_compound_t *vc,
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    count = perl_call_sv(func, G_SCALAR);
+    count = perl_call_sv(func, G_EVAL | G_ARRAY);
 
     SPAGAIN; /* refresh local copy of the perl stack pointer */
 
-    if (count != 1)
-      croak("ud_energy_callback function did not return a single value\n");
+    /* prepare the stack such that we can use the ST(x) macro */
+    SP -= count;
+    ax = (SP - PL_stack_base) + 1;
 
-    ret = POPi;
+    /* Check the eval first */
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+       croak ("Some error occurred while executing unstructured domains energy callback - %s\n", SvPV_nolen(err_tmp));
+       POPs;
+    } else {
+      /* we expect a single value to be returned */
+      if (count != 1) { /* more or less than 1 return value */
+        croak("Unstructured domains energy callback must return exactly 1 item\n");
+      } else if (!SvOK(ST(0))) { /* return value is undefined */
+        croak("Unstructured domains energy callback must not return undef\n");
+      } else if (!SvIOK(ST(0))) { /* return value is not an integer scalar */
+        croak("Unstructured domains energy callback must return pseudo energy value\n");
+      } else {
+        ret = SvIV(ST(0));
+      }
+    }
 
+    PUTBACK;
     FREETMPS;
     LEAVE;
   }
@@ -367,7 +423,7 @@ perl5_wrap_ud_exp_energy( vrna_fold_compound_t *vc,
 
   int count;
   FLT_OR_DBL ret;
-  SV *func;
+  SV *func, *err_tmp;
 
   perl_sc_callback_t *cb = (perl_sc_callback_t *)data;
 
@@ -375,6 +431,8 @@ perl5_wrap_ud_exp_energy( vrna_fold_compound_t *vc,
   ret = 1.0;
 
   if(SvOK(func)){
+    I32 ax; /* expected by ST(x) macro */
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -393,15 +451,33 @@ perl5_wrap_ud_exp_energy( vrna_fold_compound_t *vc,
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    count = perl_call_sv(func, G_SCALAR);
+    count = perl_call_sv(func, G_EVAL | G_ARRAY);
 
     SPAGAIN; /* refresh local copy of the perl stack pointer */
 
-    if (count != 1)
-      croak("ud_exp_energy_callback function did not return a single value\n");
+    /* prepare the stack such that we can use the ST(x) macro */
+    SP -= count;
+    ax = (SP - PL_stack_base) + 1;
 
-    ret = (FLT_OR_DBL)POPn;
+    /* Check the eval first */
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+       croak ("Some error occurred while executing unstructured domains energy callback (partition function) - %s\n", SvPV_nolen(err_tmp));
+       POPs;
+    } else {
+      /* we expect a single value to be returned */
+      if (count != 1) { /* more or less than 1 return value */
+        croak("Unstructured domains energy callback (partition function) must return exactly 1 item\n");
+      } else if (!SvOK(ST(0))) { /* return value is undefined */
+        croak("Unstructured domains energy callback (partition function) must not return undef\n");
+      } else if (!SvNOK(ST(0))) { /* return value is not an integer scalar */
+        croak("Unstructured domains energy callback (partition function) must return Boltzmann weighted pseudo energy value\n");
+      } else {
+        ret = (FLT_OR_DBL)SvNV(ST(0));
+      }
+    }
 
+    PUTBACK;
     FREETMPS;
     LEAVE;
   }
@@ -423,6 +499,8 @@ perl5_wrap_ud_prob_add( vrna_fold_compound_t *vc,
   func = cb->prob_add;
 
   if(func && SvOK(func)){
+    SV *err_tmp;
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -444,7 +522,14 @@ perl5_wrap_ud_prob_add( vrna_fold_compound_t *vc,
     if(cb->data && SvOK(cb->data))  /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    perl_call_sv(func, G_VOID);
+    perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    /* Check the eval first */
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+      croak ("Some error occurred while executing unstructured domains add_probability() callback - %s\n", SvPV_nolen(err_tmp));
+    }
+
     FREETMPS;
     LEAVE;
   }
@@ -463,13 +548,15 @@ perl5_wrap_ud_prob_get( vrna_fold_compound_t *vc,
 
   int count;
   FLT_OR_DBL ret;
-  SV *func;
+  SV *func, *err_tmp;
   perl5_ud_callback_t *cb = (perl5_ud_callback_t *)data;
 
   func  = cb->prob_add;
   ret   = 0.;
 
   if(SvOK(func)){
+    I32 ax; /* expected by ST(x) macro */
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -491,15 +578,33 @@ perl5_wrap_ud_prob_get( vrna_fold_compound_t *vc,
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    count = perl_call_sv(func, G_SCALAR);
+    count = perl_call_sv(func, G_EVAL | G_ARRAY);
 
     SPAGAIN; /* refresh local copy of the perl stack pointer */
 
-    if (count != 1)
-      croak("ud_probs_get_callback function did not return a single value\n");
+    /* prepare the stack such that we can use the ST(x) macro */
+    SP -= count;
+    ax = (SP - PL_stack_base) + 1;
 
-    ret = (FLT_OR_DBL)POPn;
+    /* Check the eval first */
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+      croak ("Some error occurred while executing unstructured domains get_probability() callback - %s\n", SvPV_nolen(err_tmp));
+      POPs;
+    } else {
+      /* we expect a single value to be returned */
+      if (count != 1) { /* more or less than 1 return value */
+        croak("Unstructured domains get_probability() callback must return exactly 1 item\n");
+      } else if (!SvOK(ST(0))) { /* return value is undefined */
+        croak("Unstructured domains get_probability() callback must not return undef\n");
+      } else if (!SvNOK(ST(0))) { /* return value is not an integer scalar */
+        croak("Unstructured domains get_probability() callback must return probability\n");
+      } else {
+        ret = (FLT_OR_DBL)SvNV(ST(0));
+      }
+    }
 
+    PUTBACK;
     FREETMPS;
     LEAVE;
   }

@@ -23,6 +23,11 @@
 
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_consensus;
+%feature("kwargs") my_consensus;
+#endif
+
 std::string
 my_consensus(std::vector<std::string> alignment);
 
@@ -50,6 +55,11 @@ my_consensus(std::vector<std::string> alignment);
 
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_consensus_mis;
+%feature("kwargs") my_consensus_mis;
+#endif
+
 std::string
 my_consensus_mis(std::vector<std::string> alignment);
 
@@ -74,6 +84,11 @@ my_consensus_mis(std::vector<std::string> alignment);
   }
 
 %}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_aln_mpi;
+%feature("kwargs") my_aln_mpi;
+#endif
 
 int
 my_aln_mpi(std::vector<std::string> alignment);
@@ -121,6 +136,11 @@ my_aln_mpi(std::vector<std::string> alignment);
 
 %}
 
+#ifdef SWIGPYTHON
+%feature("autodoc") my_aln_pscore;
+%feature("kwargs") my_aln_pscore;
+#endif
+
 std::vector<std::vector<int> >
 my_aln_pscore(std::vector<std::string> alignment,
               vrna_md_t *md = NULL);
@@ -155,7 +175,6 @@ my_aln_pscore(std::vector<std::string> alignment,
 
     return conservation;
   }
-
   std::vector<double>
   my_aln_conservation_col(std::vector<std::string> alignment,
                           vrna_md_t                *md = NULL,
@@ -180,6 +199,14 @@ my_aln_pscore(std::vector<std::string> alignment,
     return conservation;
   }
 %}
+
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_aln_conservation_struct;
+%feature("autodoc") my_aln_conservation_col;
+%feature("kwargs") my_aln_conservation_struct;
+%feature("kwargs") my_aln_conservation_col;
+#endif
 
 std::vector<double>
 my_aln_conservation_struct(std::vector<std::string> alignment,

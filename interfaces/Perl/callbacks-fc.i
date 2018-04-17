@@ -28,6 +28,8 @@ delete_perl_callback(void * data){
   /* first delete user data */
   if(cb->data && SvOK(cb->data)){
     if(cb->delete_data && SvOK(cb->delete_data)){
+      SV *err_tmp;
+      
       /* call Perl subroutine */
       dSP;
       ENTER;
@@ -35,7 +37,13 @@ delete_perl_callback(void * data){
       PUSHMARK(sp);
       XPUSHs(cb->data);
       PUTBACK;
-      perl_call_sv(cb->delete_data, G_VOID);
+      perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+      err_tmp = ERRSV;
+      if (SvTRUE(err_tmp)) {
+        croak ("Some error occurred while executing fold compound delete_data() callback - %s\n", SvPV_nolen(err_tmp));
+      }
+
       FREETMPS;
       LEAVE;
       SvREFCNT_dec(cb->delete_data);
@@ -75,6 +83,8 @@ fc_add_perl_data(vrna_fold_compound_t *vc,
     cb = (perl_callback_t *)vc->auxdata;
     if(cb->data && SvOK(cb->data)){
       if(cb->delete_data && SvOK(cb->delete_data)){
+        SV *err_tmp;
+
         /* call Perl subroutine */
         dSP;
         ENTER;
@@ -82,7 +92,13 @@ fc_add_perl_data(vrna_fold_compound_t *vc,
         PUSHMARK(sp);
         XPUSHs(cb->data);
         PUTBACK;
-        perl_call_sv(cb->delete_data, G_VOID);
+        perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+        err_tmp = ERRSV;
+        if (SvTRUE(err_tmp)) {
+          croak ("Some error occurred while executing fold compound delete_data() callback - %s\n", SvPV_nolen(err_tmp));
+        }
+
         FREETMPS;
         LEAVE;
         SvREFCNT_dec(cb->delete_data);
@@ -150,6 +166,8 @@ perl_wrap_fc_status_callback( unsigned char status,
   func = cb->cb;
 
   if(func && SvOK(func)){
+    SV *err_tmp;
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -161,7 +179,13 @@ perl_wrap_fc_status_callback( unsigned char status,
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    perl_call_sv(func, G_VOID);
+    perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+      croak ("Some error occurred while executing fold compound callback - %s\n", SvPV_nolen(err_tmp));
+    }
+
     FREETMPS;
     LEAVE;
   }

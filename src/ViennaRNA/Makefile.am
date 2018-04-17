@@ -1,9 +1,9 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-AM_CFLAGS = $(RNA_CFLAGS) $(SIMD_CFLAGS)
-AM_CXXFLAGS = $(RNA_CXXFLAGS)
+AM_CFLAGS = $(RNA_CFLAGS) $(SIMD_CFLAGS) $(PTHREAD_CFLAGS)
+AM_CXXFLAGS = $(RNA_CXXFLAGS) $(SIMD_CFLAGS) $(PTHREAD_CFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC}
-AM_LDFLAGS = $(RNA_LDFLAGS)
+AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
 # the library names to build
 lib_LTLIBRARIES = libRNA.la
@@ -24,7 +24,7 @@ libRNA_la_SOURCES =
 
 # ldflags to avoid version information
 libRNA_la_LIBADD = libRNA_conv.la
-libRNA_la_LDFLAGS = -avoid-version -static $(LTO_LDFLAGS)
+libRNA_la_LDFLAGS = -avoid-version -static $(LTO_LDFLAGS) $(PTHREAD_LIBS)
 
 libRNA_conv_la_LIBADD = \
     libRNA_constraints.la \
@@ -133,9 +133,11 @@ pkginclude_HEADERS =  \
     unstructured_domains.h \
     file_formats_msa.h \
     file_utils.h \
+    char_stream.h \
     commands.h \
     units.h \
     combinatorics.h \
+    stream_output.h \
     neighbor.h \
     walk.h \
     ${SVM_UTILS_H} \
@@ -214,9 +216,11 @@ libRNA_utils_la_SOURCES = \
     file_utils.c \
     file_formats.c \
     file_formats_msa.c \
+    char_stream.c \
     commands.c \
     units.c \
-    combinatorics.c
+    combinatorics.c \
+    stream_output.c
 
 libRNA_plotting_la_SOURCES = \
     plot_utils.c \

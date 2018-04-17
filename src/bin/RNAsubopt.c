@@ -47,14 +47,14 @@ main(int  argc,
   char                                *rec_sequence, *rec_id,
                                       **rec_rest, *orig_sequence, *constraints_file, *cstruc,
                                       *structure, *shape_file, *shape_method, *shape_conversion,
-                                      *id_prefix, *id_delim, *infile, *outfile, *filename_delim;
+                                      *infile, *outfile, *filename_delim;
   unsigned int                        rec_type, read_opt;
   int                                 i, length, cl, istty, delta, n_back, noconv, dos, zuker,
                                       with_shapes, verbose, enforceConstraints, st_back_en, batch,
-                                      auto_id, id_digits, tofile, filename_full, canonicalBPonly;
-  long int                            seq_number;
+                                      tofile, filename_full, canonicalBPonly;
   double                              deltap;
   vrna_md_t                           md;
+  dataset_id                          id_control;
 
   do_backtrack    = 1;
   delta           = 100;
@@ -65,7 +65,6 @@ main(int  argc,
   cstruc          = structure = NULL;
   verbose         = 0;
   st_back_en      = 0;
-  auto_id         = 0;
   infile          = NULL;
   outfile         = NULL;
   output          = NULL;
@@ -87,12 +86,7 @@ main(int  argc,
     exit(1);
 
   /* parse options for ID manipulation */
-  ggo_get_ID_manipulation(args_info,
-                          auto_id,
-                          id_prefix, "sequence",
-                          id_delim, "_",
-                          id_digits, 4,
-                          seq_number, 1);
+  ggo_get_id_control(args_info, id_control, "Sequence", "sequence", "_", 4, 1);
 
   /* get basic set of model details */
   ggo_get_md_eval(args_info, md);
@@ -200,10 +194,10 @@ main(int  argc,
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
     filename_delim = strdup(args_info.filename_delim_arg);
-  else
-    filename_delim = strdup(id_delim);
+  else if (get_id_delim(id_control))
+    filename_delim = strdup(get_id_delim(id_control));
 
-  if (isspace(*filename_delim)) {
+  if ((filename_delim) && isspace(*filename_delim)) {
     free(filename_delim);
     filename_delim = NULL;
   }
@@ -278,7 +272,8 @@ main(int  argc,
     }
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
+    set_next_id(&rec_id, id_control);
+    SEQ_ID = fileprefix_from_id(rec_id, id_control, filename_full);
 
     if (tofile) {
       /* prepare the file name */
@@ -501,8 +496,6 @@ main(int  argc,
     if (with_shapes || (constraints_file && (!batch)))
       break;
 
-    ID_number_increase(&seq_number, "Sequence");
-
     /* print user help for the next round if we get input from tty */
     if (istty) {
       if (!zuker)
@@ -525,9 +518,9 @@ main(int  argc,
 
   free(shape_method);
   free(shape_conversion);
-  free(id_prefix);
-  free(id_delim);
   free(filename_delim);
+
+  free_id_data(id_control);
 
   return EXIT_SUCCESS;
 }

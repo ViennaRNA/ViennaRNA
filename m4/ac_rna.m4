@@ -50,6 +50,7 @@ RNA_ENABLE_SVM
 RNA_ENABLE_JSON
 RNA_ENABLE_GSL
 RNA_ENABLE_OPENMP
+RNA_ENABLE_PTHREADS
 RNA_ENABLE_BOUSTROPHEDON
 RNA_ENABLE_FLOATPF
 RNA_ENABLE_DEPRECATION_WARNINGS
@@ -95,6 +96,18 @@ RNA_ENABLE_TUTORIAL([tutorial])
 ## Enable Unit tests  ##
 ##--------------------##
 RNA_ENABLE_UNIT_TESTS
+
+##--------------------##
+## Prepare Version    ##
+## Macros             ##
+##--------------------##
+VRNA_VERSION_MAJOR=vrna_version_major
+VRNA_VERSION_MINOR=vrna_version_minor
+VRNA_VERSION_PATCH=vrna_version_patch
+
+AC_SUBST(VRNA_VERSION_MAJOR)
+AC_SUBST(VRNA_VERSION_MINOR)
+AC_SUBST(VRNA_VERSION_PATCH)
 
 ##------------------##
 ## Prepare files    ##

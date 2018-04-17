@@ -29,13 +29,22 @@ delete_perl_sc_callback(void * data){
   /* first delete user data */
   if(cb->data && SvOK(cb->data)){
     if(cb->delete_data && SvOK(cb->delete_data)){
+      SV *err_tmp;
+
       dSP;
       ENTER;
       SAVETMPS;
       PUSHMARK(sp);
       XPUSHs(cb->data);
       PUTBACK;
-      perl_call_sv(cb->delete_data, G_VOID);
+      perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+      /* Check the eval first */
+      err_tmp = ERRSV;
+      if (SvTRUE(err_tmp)) {
+        croak ("Some error occurred while executing generic soft constraint delete_data() callback - %s\n", SvPV_nolen(err_tmp));
+      }
+
       FREETMPS;
       LEAVE;
       SvREFCNT_dec(cb->delete_data);
@@ -198,13 +207,22 @@ sc_add_perl_data( vrna_fold_compound_t *vc,
     cb = (perl_sc_callback_t *)vc->sc->data;
     if(cb->data && SvOK(cb->data)){
       if(cb->delete_data && SvOK(cb->delete_data)){
+        SV *err_tmp;
+
         dSP;
         ENTER;
         SAVETMPS;
         PUSHMARK(sp);
         XPUSHs(cb->data);
         PUTBACK;
-        perl_call_sv(cb->delete_data, G_VOID);
+        perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+        /* Check the eval first */
+        err_tmp = ERRSV;
+        if (SvTRUE(err_tmp)) {
+          croak ("Some error occurred while executing generic soft constraint delete_data() callback - %s\n", SvPV_nolen(err_tmp));
+        }
+
         FREETMPS;
         LEAVE;
         SvREFCNT_dec(cb->delete_data);
@@ -242,7 +260,8 @@ perl_wrap_sc_f_callback(int i,
                         void *data){
 
   int ret, count;
-  SV *func;
+  SV *func, *err_tmp;
+
   perl_sc_callback_t *cb = (perl_sc_callback_t *)data;
 
   func = cb->cb_f;
@@ -250,6 +269,8 @@ perl_wrap_sc_f_callback(int i,
   ret = 0;
 
   if(func && SvOK(func)){
+    I32 ax; /* expected by ST(x) macro */
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -274,15 +295,34 @@ perl_wrap_sc_f_callback(int i,
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    count = perl_call_sv(func, G_SCALAR);
+
+    count = perl_call_sv(func, G_EVAL | G_ARRAY);
 
     SPAGAIN; /* refresh local copy of the perl stack pointer */
 
-    if (count != 1)
-      croak("sc_f_callback function did not return a single value\n");
+    /* prepare the stack such that we can use the ST(x) macro */
+    SP -= count;
+    ax = (SP - PL_stack_base) + 1;
 
-    ret = POPi;
+    /* Check the eval first */
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+       croak ("Some error occurred while executing generic soft constraint callback - %s\n", SvPV_nolen(err_tmp));
+       POPs;
+    } else {
+      /* we expect a single value to be returned */
+      if (count != 1) { /* more or less than 1 return value */
+        croak("Generic soft constraint callback must return exactly 1 item\n");
+      } else if (!SvOK(ST(0))) { /* return value is undefined */
+        croak("Generic soft constraint callback must not return undef\n");
+      } else if (!SvIOK(ST(0))) { /* return value is not an integer scalar */
+        croak("Generic soft constraint callback must return pseudo energy value\n");
+      } else {
+        ret = SvIV(ST(0));
+      }
+    }
 
+    PUTBACK;
     FREETMPS;
     LEAVE;
   }
@@ -300,7 +340,7 @@ perl_wrap_sc_exp_f_callback(int i,
 
   int count;
   FLT_OR_DBL ret;
-  SV *func;
+  SV *func, *err_tmp;
 
   perl_sc_callback_t *cb = (perl_sc_callback_t *)data;
 
@@ -308,6 +348,8 @@ perl_wrap_sc_exp_f_callback(int i,
   ret = 1.0;
 
   if(SvOK(func)){
+    I32 ax; /* expected by ST(x) macro */
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -332,15 +374,34 @@ perl_wrap_sc_exp_f_callback(int i,
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    count = perl_call_sv(func, G_SCALAR);
+
+    count = perl_call_sv(func, G_EVAL | G_ARRAY);
 
     SPAGAIN; /* refresh local copy of the perl stack pointer */
 
-    if (count != 1)
-      croak("sc_exp_f_callback function did not return a single value\n");
+    /* prepare the stack such that we can use the ST(x) macro */
+    SP -= count;
+    ax = (SP - PL_stack_base) + 1;
 
-    ret = (FLT_OR_DBL)POPn;
+    /* Check the eval first */
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+       croak ("Some error occurred while executing generic soft constraint callback (partition function) - %s\n", SvPV_nolen(err_tmp));
+       POPs;
+    } else {
+      /* we expect a single value to be returned */
+      if (count != 1) { /* more or less than 1 return value */
+        croak("Generic soft constraint callback (partition function) must return exactly 1 item\n");
+      } else if (!SvOK(ST(0))) { /* return value is undefined */
+        croak("Generic soft constraint callback (partition function) must not return undef\n");
+      } else if (!SvIOK(ST(0))) { /* return value is not an integer scalar */
+        croak("Generic soft constraint callback (partition function) must return Boltzmann weighted pseudo energy value\n");
+      } else {
+        ret = SvIV(ST(0));
+      }
+    }
 
+    PUTBACK;
     FREETMPS;
     LEAVE;
   }
@@ -357,7 +418,7 @@ perl_wrap_sc_bt_callback( int i,
                           void *data){
 
   int c, count, len, num_pairs;
-  SV *func, *bp;
+  SV *func, *bp, *err_tmp;
   perl_sc_callback_t *cb = (perl_sc_callback_t *)data;
   vrna_basepair_t *ptr, *pairs = NULL;
   func = cb->cb_bt;
@@ -386,61 +447,71 @@ perl_wrap_sc_bt_callback( int i,
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    count = perl_call_sv(func, G_ARRAY);
+    count = perl_call_sv(func, G_EVAL | G_ARRAY);
 
     SPAGAIN;
 
-    if(count == 0){ /* no additional base pairs */
+    /* Check the eval first */
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+      croak ("Some error occurred while executing generic soft constraint backtrack callback - %s\n", SvPV_nolen(err_tmp));
+      POPs;
       PUTBACK;
       FREETMPS;
       LEAVE;
       return NULL;
-    }
+    } else if (count == 0){ /* no additional base pairs */
+      PUTBACK;
+      FREETMPS;
+      LEAVE;
+      return NULL;
+    } else {
 
-    /* when we get here, we should have got an array of something */
-    len       = 10;
-    num_pairs = 0;
-    pairs     = (vrna_basepair_t *)vrna_alloc(sizeof(vrna_basepair_t) * len);
-    /* result should be list of pairs */
-    for(c=0; c < count; c++){
-      /* pop SV off the stack */
-      bp = POPs;
-      /* if list entry is defined and a reference */
-      if(SvOK(bp) && SvROK(bp)){
-        /* maybe the user was so kind to create a list of vrna_basepair_t? */
-        if(SWIG_ConvertPtr(bp, (void **) &ptr, SWIGTYPE_p_vrna_basepair_t, SWIG_POINTER_EXCEPTION) == 0){
-          pairs[num_pairs] = *ptr;
-          num_pairs++;
-        } /* check whether we've got a reference to a hash */
-        else if(SvTYPE(SvRV(bp)) == SVt_PVHV){
-          HV *pair = (HV*)SvRV(bp);
-          /* check whether the hash has 'i' and 'j' keys */
-          if(hv_exists(pair, "i", 1) && hv_exists(pair, "j", 1)){
-            pairs[num_pairs].i = (int)SvIV(* hv_fetch(pair, "i", 1, 0));
-            pairs[num_pairs].j = (int)SvIV(* hv_fetch(pair, "j", 1, 0));
+      /* when we get here, we should have got an array of something */
+      len       = 10;
+      num_pairs = 0;
+      pairs     = (vrna_basepair_t *)vrna_alloc(sizeof(vrna_basepair_t) * len);
+      /* result should be list of pairs */
+      for(c=0; c < count; c++){
+        /* pop SV off the stack */
+        bp = POPs;
+        /* if list entry is defined and a reference */
+        if(SvOK(bp) && SvROK(bp)){
+          /* maybe the user was so kind to create a list of vrna_basepair_t? */
+          if(SWIG_ConvertPtr(bp, (void **) &ptr, SWIGTYPE_p_vrna_basepair_t, SWIG_POINTER_EXCEPTION) == 0){
+            pairs[num_pairs] = *ptr;
             num_pairs++;
-          }
-        }
-        /* check whether we've got a refrence to an array */
-        else if(SvTYPE(SvRV(bp)) == SVt_PVAV){
-          AV *pair = (AV*)SvRV(bp);
-          if(av_len(pair) == 1){ /* size of array must be 2, av_len() returns highest index */
-            SV **pair_i = av_fetch(pair, 0, 0);
-            SV **pair_j = av_fetch(pair, 1, 0);
-            if(pair_i && pair_j){
-              pairs[num_pairs].i = (int)SvIV(* pair_i);
-              pairs[num_pairs].j = (int)SvIV(* pair_j);
+          } /* check whether we've got a reference to a hash */
+          else if(SvTYPE(SvRV(bp)) == SVt_PVHV){
+            HV *pair = (HV*)SvRV(bp);
+            /* check whether the hash has 'i' and 'j' keys */
+            if(hv_exists(pair, "i", 1) && hv_exists(pair, "j", 1)){
+              pairs[num_pairs].i = (int)SvIV(* hv_fetch(pair, "i", 1, 0));
+              pairs[num_pairs].j = (int)SvIV(* hv_fetch(pair, "j", 1, 0));
               num_pairs++;
             }
           }
-        } else {
-          continue;
+          /* check whether we've got a refrence to an array */
+          else if(SvTYPE(SvRV(bp)) == SVt_PVAV){
+            AV *pair = (AV*)SvRV(bp);
+            if(av_len(pair) == 1){ /* size of array must be 2, av_len() returns highest index */
+              SV **pair_i = av_fetch(pair, 0, 0);
+              SV **pair_j = av_fetch(pair, 1, 0);
+              if(pair_i && pair_j){
+                pairs[num_pairs].i = (int)SvIV(* pair_i);
+                pairs[num_pairs].j = (int)SvIV(* pair_j);
+                num_pairs++;
+              }
+            }
+          } else {
+            continue;
+          }
         }
-      }
-      /* increase length if necessary */
-      if(num_pairs == len){
-        len = (int)(1.2 * len);
-        pairs = (vrna_basepair_t *)vrna_realloc(pairs, sizeof(vrna_basepair_t)*len);
+        /* increase length if necessary */
+        if(num_pairs == len){
+          len = (int)(1.2 * len);
+          pairs = (vrna_basepair_t *)vrna_realloc(pairs, sizeof(vrna_basepair_t)*len);
+        }
       }
     }
     /* put end marker in list */

@@ -6,6 +6,8 @@
 #ifdef SWIGPYTHON
 %{
 
+#include <stdexcept>
+
 typedef struct {
   PyObject  *cb;
   PyObject  *data;
@@ -21,10 +23,27 @@ delete_pycallback(void * data){
   /* first delete user data */
   if(cb->data != Py_None){
     if(cb->delete_data != Py_None){
-      PyObject *func, *arglist, *result;
+      PyObject *func, *arglist, *result, *err;
       func = cb->delete_data;
       arglist = Py_BuildValue("O", cb->data);
       result  = PyObject_CallObject(func, arglist);
+
+      /* BEGIN recognizing errors in callback execution */
+      if (result == NULL) {
+        if ((err = PyErr_Occurred())) {
+          /* print error message */
+          PyErr_Print();
+          /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+          if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+            throw std::runtime_error( "Fold compound delete_data() callback must take exactly 1 argument" );
+          } else {
+            throw std::runtime_error( "Some error occurred while executing fold compound delete_data() callback" );
+          }
+        }
+        PyErr_Clear();
+      }
+      /* END recognizing errors in callback execution */
+
       Py_DECREF(arglist);
       Py_XDECREF(result);
       Py_XDECREF(cb->delete_data);
@@ -77,10 +96,27 @@ fc_add_pydata(vrna_fold_compound_t *vc,
     cb = (pycallback_t *)vc->auxdata;
     if(cb->data != Py_None){
       if(cb->delete_data != Py_None){
-        PyObject *func, *arglist, *result;
+        PyObject *func, *arglist, *result, *err;
         func    = cb->delete_data;
         arglist = Py_BuildValue("O", cb->data);
         result  = PyObject_CallObject(func, arglist);
+
+        /* BEGIN recognizing errors in callback execution */
+        if (result == NULL) {
+          if ((err = PyErr_Occurred())) {
+            /* print error message */
+            PyErr_Print();
+            /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+            if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+              throw std::runtime_error( "Fold compound delete_data() callback must take exactly 1 argument" );
+            } else {
+              throw std::runtime_error( "Some error occurred while executing fold compound delete_data() callback" );
+            }
+          }
+          PyErr_Clear();
+        }
+        /* END recognizing errors in callback execution */
+
         Py_DECREF(arglist);
         Py_XDECREF(result);
       }
@@ -109,13 +145,30 @@ static void
 py_wrap_fc_status_callback( unsigned char status,
                             void *data){
 
-  PyObject *func, *arglist, *result;
+  PyObject *func, *arglist, *result, *err;
   pycallback_t *cb = (pycallback_t *)data;
 
   func = cb->cb;
   /* compose argument list */
   arglist = Py_BuildValue("(B,O)", status, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Fold compound callback must take exactly 2 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing fold compound callback" );
+      }
+    }
+    PyErr_Clear();
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
   return /*void*/;
@@ -128,6 +181,12 @@ static void fc_add_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *Py
 
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
+
+%feature("autodoc") add_auxdata;
+%feature("kwargs") add_auxdata;
+%feature("autodoc") add_callback;
+%feature("kwargs") add_callback;
+
   PyObject *add_auxdata(PyObject *data, PyObject *PyFuncOrNone=Py_None){
     fc_add_pydata($self, data, PyFuncOrNone);
     Py_RETURN_NONE;

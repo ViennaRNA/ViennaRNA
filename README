@@ -2,9 +2,9 @@
 
 # ViennaRNA Package
 
-## Version 2.4.4
+## Version 2.4.5
 
-See the [NEWS](NEWS) and [Changelog](Changelog) files for changes between versions.
+See the [NEWS](NEWS) and [ChangeLog](ChangeLog) files for changes between versions.
 
 ## About
 
@@ -142,7 +142,9 @@ Nucleic Acids Research: 38, pp 280-282.
 For backward compatibility we also provide energy parameters from Turner et al.
 1999 in the file [rna_turner1999.par](misc/rna_turner1999.par). Additionally,
 a set of trained RNA energy parameters from Andronescou et al. 2007,
-[rna_andronescou2007.par](misc/rna_andronescou2007.par) and two sets
+[rna_andronescou2007.par](misc/rna_andronescou2007.par), a set of RNA energy
+parameters obtained by graft and grow genetic programming from Langdon
+et al. 2018, [rna_langdon2018.par](misc/rna_langdon2018.par), and two sets
 of DNA parameters, [dna_mathews1999.par](misc/dna_mathews1999.par) and
 [dna_mathews2004.par](misc/dna_mathews2004.par), are included
 in the package as well.

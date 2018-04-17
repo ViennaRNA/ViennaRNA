@@ -64,16 +64,15 @@ main(int  argc,
   FILE                        *input, *output;
   struct  RNALfold_args_info  args_info;
   char                        *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest,
-                              *command_file, *orig_sequence, *infile, *outfile, *id_prefix,
-                              *id_delim, *filename_delim, *shape_file, *shape_method,
-                              *shape_conversion;
+                              *command_file, *orig_sequence, *infile, *outfile, *filename_delim,
+                              *shape_file, *shape_method, *shape_conversion;
   unsigned int                rec_type, read_opt;
-  int                         length, istty, noconv, maxdist, zsc, tofile, auto_id, id_digits,
-                              filename_full, with_shapes, verbose;
-  long int                    seq_number;
+  int                         length, istty, noconv, maxdist, zsc, tofile, filename_full,
+                              with_shapes, verbose;
   double                      min_en, min_z;
   vrna_md_t                   md;
   vrna_cmd_t                  *commands;
+  dataset_id                  id_control;
 
   ParamFile     = ns_bases = NULL;
   do_backtrack  = 1;
@@ -92,7 +91,6 @@ main(int  argc,
   output        = NULL;
   tofile        = 0;
   filename_full = 0;
-  auto_id       = 0;
   command_file  = NULL;
   commands      = NULL;
 
@@ -108,12 +106,8 @@ main(int  argc,
     exit(1);
 
   /* parse options for ID manipulation */
-  ggo_get_ID_manipulation(args_info,
-                          auto_id,
-                          id_prefix, "sequence",
-                          id_delim, "_",
-                          id_digits, 4,
-                          seq_number, 1);
+  ggo_get_id_control(args_info, id_control, "Sequence", "sequence", "_", 4, 1);
+
   /* temperature */
   if (args_info.temp_given)
     md.temperature = temperature = args_info.temp_arg;
@@ -196,10 +190,10 @@ main(int  argc,
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
     filename_delim = strdup(args_info.filename_delim_arg);
-  else
-    filename_delim = strdup(id_delim);
+  else if (get_id_delim(id_control))
+    filename_delim = strdup(get_id_delim(id_control));
 
-  if (isspace(*filename_delim)) {
+  if ((filename_delim) && isspace(*filename_delim)) {
     free(filename_delim);
     filename_delim = NULL;
   }
@@ -277,7 +271,8 @@ main(int  argc,
       rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
 
     /* construct the sequence ID */
-    ID_generate(SEQ_ID, rec_id, auto_id, id_prefix, id_delim, id_digits, seq_number, filename_full);
+    set_next_id(&rec_id, id_control);
+    SEQ_ID = fileprefix_from_id(rec_id, id_control, filename_full);
 
     if (tofile) {
       /* prepare the file name */
@@ -387,8 +382,6 @@ main(int  argc,
     if (with_shapes)
       break;
 
-    ID_number_increase(&seq_number, "Sequence");
-
     /* print user help for the next round if we get input from tty */
 
     if (istty)
@@ -398,11 +391,11 @@ main(int  argc,
   if (infile && input)
     fclose(input);
 
-  free(id_delim);
-  free(id_prefix);
   free(filename_delim);
   free(command_file);
   vrna_commands_free(commands);
+
+  free_id_data(id_control);
 
   return EXIT_SUCCESS;
 }

@@ -2,6 +2,10 @@
 /* BEGIN interface for neighbor generation          */
 /****************************************************/
 
+#ifdef SWIGPERL5
+%rename(_next) vrna_move_s::next;
+#endif
+
 /* scripting language access through 'move' instead of 'vrna_move_t' */
 %rename(move) vrna_move_t;
 
@@ -36,6 +40,11 @@ typedef struct {
 }
 
 %extend vrna_fold_compound_t{
+
+#ifdef SWIGPYTHON
+%feature("autodoc") neighbors;
+%feature("kwargs") neighbors;
+#endif
 
   std::vector<vrna_move_t>
   neighbors(std::vector<int> pt,

@@ -38,7 +38,7 @@ outfile "Install-ViennaRNA-${VERSION}_32bit.exe"
 !insertmacro MUI_PAGE_WELCOME
 
 #Page license
-!insertmacro MUI_PAGE_LICENSE "..\licence.txt"
+!insertmacro MUI_PAGE_LICENSE "..\license.txt"
 
 #Page Install mode
 !insertmacro MULTIUSER_PAGE_INSTALLMODE

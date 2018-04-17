@@ -5,6 +5,15 @@
   
 %extend vrna_fold_compound_t {
 
+#ifdef SWIGPYTHON
+%feature("autodoc") sc_add_SHAPE_deigan;
+%feature("kwargs") sc_add_SHAPE_deigan;
+%feature("autodoc") sc_add_SHAPE_deigan_ali;
+%feature("kwargs") sc_add_SHAPE_deigan_ali;
+%feature("autodoc") sc_add_SHAPE_zarringhalam;
+%feature("kwargs") sc_add_SHAPE_zarringhalam;
+#endif
+
   int sc_add_SHAPE_deigan(std::vector<double> reactivities,
                           double m,
                           double b,

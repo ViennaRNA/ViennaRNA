@@ -2,7 +2,11 @@
 #define VIENNA_RNA_PACKAGE_CONFIG_H
 
 /* version number */
-#define VRNA_VERSION  @VERSION@
+#define VRNA_VERSION  "@VERSION@"
+
+#define VRNA_VERSION_MAJOR  @VRNA_VERSION_MAJOR@
+#define VRNA_VERSION_MINOR  @VRNA_VERSION_MINOR@
+#define VRNA_VERSION_PATCH  @VRNA_VERSION_PATCH@
 
 /*
  * The following pre-processor definitions specify whether

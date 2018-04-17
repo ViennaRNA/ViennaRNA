@@ -4,6 +4,17 @@
 
 %extend vrna_fold_compound_t {
 
+#ifdef SWIGPYTHON
+%feature("autodoc") hc_add_up;
+%feature("kwargs") hc_add_up;
+%feature("autodoc") hc_add_bp_nonspecific;
+%feature("kwargs") hc_add_bp_nonspecific;
+%feature("autodoc") hc_add_bp;
+%feature("kwargs") hc_add_bp;
+%feature("autodoc") hc_add_from_db;
+%feature("kwargs") hc_add_from_db;
+#endif
+
   void hc_init(){
     vrna_hc_init($self);
   }

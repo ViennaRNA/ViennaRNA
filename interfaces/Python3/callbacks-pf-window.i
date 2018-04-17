@@ -5,6 +5,8 @@
 #ifdef SWIGPYTHON
 %{
 
+#include <stdexcept>
+
 typedef struct {
   PyObject *cb;
   PyObject *data;
@@ -27,7 +29,7 @@ bind_pf_window_callback(PyObject *PyFunc, PyObject *data){
 static void
 python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int type, void *data){
 
-  PyObject *func, *arglist, *result, *pr_list;
+  PyObject *func, *arglist, *result, *pr_list, *err;
   python_pf_window_callback_t *cb = (python_pf_window_callback_t *)data;
 
   func = cb->cb;
@@ -65,6 +67,23 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
   /* compose argument list */
   arglist = Py_BuildValue("(O, i, i, i, i, O)", pr_list, pr_size, i, max, type, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Sliding window partition function callback must take exactly 6 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing sliding window partition function callback" );
+      }
+    }
+    PyErr_Clear();
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
 
@@ -75,6 +94,9 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
 
 /* now we bind vrna_probs_window() as method to the fold_compound object using the above callback wrapper */
 %extend vrna_fold_compound_t {
+
+%feature("autodoc") probs_window;
+%feature("kwargs") probs_window;
 
   void probs_window(int ulength, unsigned int options, PyObject *PyFunc, PyObject *data = Py_None) {
     python_pf_window_callback_t *cb = bind_pf_window_callback(PyFunc, data);
@@ -99,8 +121,12 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
     free(cb);
   }
 
-
 %}
+
+%feature("autodoc") pfl_fold_cb;
+%feature("kwargs") pfl_fold_cb;
+%feature("autodoc") pfl_fold_up_cb;
+%feature("kwargs") pfl_fold_up_cb;
 
 void pfl_fold_cb(std::string sequence, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None);
 void pfl_fold_up_cb(std::string sequence, int ulength, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None);

@@ -1086,12 +1086,25 @@ EPS_print_linear_data(FILE            *eps,
 static int sort_plist_by_type_desc(const void *p1, const void *p2){
   if(((plist*)p1)->type > ((plist*)p2)->type) return -1;
   if(((plist*)p1)->type < ((plist*)p2)->type) return 1;
+
+  /* same type?, order by position (ascending) */
+  if (((plist*)p1)->i > ((plist*)p2)->i) return 1;
+  if (((plist*)p1)->i < ((plist*)p2)->i) return -1;
+  if (((plist*)p1)->j > ((plist*)p2)->j) return 1;
+  if (((plist*)p1)->j < ((plist*)p2)->j) return -1;
+
   return 0;
 }
 
 static int sort_plist_by_prob_asc(const void *p1, const void *p2){
   if(((plist*)p1)->p > ((plist*)p2)->p) return 1;
   if(((plist*)p1)->p < ((plist*)p2)->p) return -1;
+
+  /* same probability?, order by position (ascending) */
+  if (((plist*)p1)->i > ((plist*)p2)->i) return 1;
+  if (((plist*)p1)->i < ((plist*)p2)->i) return -1;
+  if (((plist*)p1)->j > ((plist*)p2)->j) return 1;
+  if (((plist*)p1)->j < ((plist*)p2)->j) return -1;
   return 0;
 }
 

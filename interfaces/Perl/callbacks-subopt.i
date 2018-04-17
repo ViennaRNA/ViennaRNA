@@ -45,6 +45,8 @@ perl_wrap_subopt_cb(const char *stucture, float energy, void *data){
   func  = cb->cb;
 
   if(func && SvOK(func)){
+    SV *err_tmp;
+
     /* call Perl subroutine */
     dSP;
     ENTER;
@@ -60,7 +62,13 @@ perl_wrap_subopt_cb(const char *stucture, float energy, void *data){
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
-    perl_call_sv(func, G_VOID);
+    perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    err_tmp = ERRSV;
+    if (SvTRUE(err_tmp)) {
+      croak ("Some error occurred while executing subopt callback - %s\n", SvPV_nolen(err_tmp));
+    }
+
     FREETMPS;
     LEAVE;
   }

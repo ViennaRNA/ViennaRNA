@@ -5,6 +5,8 @@
 #ifdef SWIGPYTHON
 %{
 
+#include <stdexcept>
+
 typedef struct {
   PyObject *cb;
   PyObject *data;
@@ -31,13 +33,30 @@ bind_mfe_window_callback(PyObject *PyFunc, PyObject *data){
 static void
 python_wrap_mfe_window_cb(int start, int end, const char *structure, float energy, void *data){
 
-  PyObject *func, *arglist, *result;
+  PyObject *func, *arglist, *result, *err;
   python_mfe_window_callback_t *cb = (python_mfe_window_callback_t *)data;
 
   func = cb->cb;
   /* compose argument list */
   arglist = Py_BuildValue("(i, i, z, d,O)", start, end, structure, (double)energy, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Sliding window MFE callback must take exactly 5 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing sliding window MFE callback" );
+      }
+    }
+    PyErr_Clear();
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
 
@@ -48,13 +67,30 @@ python_wrap_mfe_window_cb(int start, int end, const char *structure, float energ
 static void
 python_wrap_mfe_window_zscore_cb(int start, int end, const char *structure, float energy, float zscore, void *data){
 
-  PyObject *func, *arglist, *result;
+  PyObject *func, *arglist, *result, *err;
   python_mfe_window_callback_t *cb = (python_mfe_window_callback_t *)data;
 
   func = cb->cb;
   /* compose argument list */
   arglist = Py_BuildValue("(i, i, z, d, d, O)", start, end, structure, (double)energy, (double)zscore, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+
+  /* BEGIN recognizing errors in callback execution */
+  if (result == NULL) {
+    if ((err = PyErr_Occurred())) {
+      /* print error message */
+      PyErr_Print();
+      /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
+      if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
+        throw std::runtime_error( "Sliding window MFE callback (z-score) must take exactly 6 arguments" );
+      } else {
+        throw std::runtime_error( "Some error occurred while executing sliding window MFE callback (z-score)" );
+      }
+    }
+    PyErr_Clear();
+  }
+  /* END recognizing errors in callback execution */
+
   Py_DECREF(arglist);
   Py_XDECREF(result);
 
@@ -67,6 +103,9 @@ python_wrap_mfe_window_zscore_cb(int start, int end, const char *structure, floa
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
 
+%feature("autodoc") mfe_window_cb;
+%feature("kwargs") mfe_window_cb;
+
   float mfe_window_cb(PyObject *PyFunc, PyObject *data = Py_None) {
     float en;
     python_mfe_window_callback_t *cb = bind_mfe_window_callback(PyFunc, data);
@@ -76,6 +115,9 @@ python_wrap_mfe_window_zscore_cb(int start, int end, const char *structure, floa
   }
 
 #ifdef VRNA_WITH_SVM
+%feature("autodoc") mfe_window_score_cb;
+%feature("kwargs") mfe_window_score_cb;
+
   float mfe_window_score_cb(double min_z, PyObject *PyFunc, PyObject *data = Py_None) {
     float en;
     python_mfe_window_callback_t *cb = bind_mfe_window_callback(PyFunc, data);
@@ -123,13 +165,21 @@ python_wrap_mfe_window_zscore_cb(int start, int end, const char *structure, floa
 
 %}
 
+%feature("autodoc") my_Lfold_cb;
+%feature("kwargs") my_Lfold_cb;
+
 float my_Lfold_cb(char *string, int window_size, PyObject *PyFunc, PyObject *data);
 %ignore vrna_Lfold_cb;
 
 #ifdef VRNA_WITH_SVM
+%feature("autodoc") my_Lfoldz_cb;
+%feature("kwargs") my_Lfoldz_cb;
+
 float my_Lfoldz_cb(char *string, int window_size, double min_z, PyObject *PyFunc, PyObject *data);
 %ignore vrna_Lfoldz_cb;
 #endif
+
+%feature("autodoc") my_aliLfold_cb;
 
 float my_aliLfold_cb(std::vector<std::string> alignment, int window_size, PyObject *PyFunc, PyObject *data);
 %ignore vrna_aliLfold_cb;
