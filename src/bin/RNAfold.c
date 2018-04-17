@@ -561,6 +561,7 @@ main(int  argc,
   free(input_files);
   free(opt.constraint_file);
   free(opt.ligandMotif);
+  free(opt.shape_file);
   free(opt.shape_method);
   free(opt.shape_conversion);
   free(opt.filename_delim);
