@@ -202,11 +202,23 @@ AC_DEFUN([RNA_ENABLE_PTHREADS],[
                   [yes])
 
   RNA_FEATURE_IF_ENABLED([pthreads],[
-    AX_PTHREAD([
-      AC_DEFINE([VRNA_WITH_PTHREADS], [1], [Use pthreads for parallel input processing])
-    ], [
-      enable_pthreads="no"
-    ])
+    case "${host_os}" in
+
+      cygwin*|*mingw*)
+        ## deactivate pthreads support for Windows
+        AC_MSG_WARN([Deactivating POSIX thread support since our implementation does not support Windows (yet)!])
+        enable_pthreads="no"
+        ;;
+
+      *)
+        ## probe for pthreads availability for any other OS
+        AX_PTHREAD([
+          AC_DEFINE([VRNA_WITH_PTHREADS], [1], [Use pthreads for parallel input processing])
+        ], [
+          enable_pthreads="no"
+        ])
+        ;;
+    esac
   ])
 
   AC_SUBST(PTHREAD_LIBS)
