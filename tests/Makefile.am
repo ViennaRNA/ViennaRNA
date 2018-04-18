@@ -181,7 +181,9 @@ EXECUTABLE_TESTS  = \
                   RNAfold/special.sh \
                   RNAfold/long.sh \
                   RNAcofold/general.sh \
-                  RNAcofold/partfunc.sh
+                  RNAcofold/partfunc.sh \
+                  RNAalifold/general.sh \
+                  RNAalifold/partfunc.sh
 
 endif
 
@@ -201,6 +203,8 @@ endif
 
 EXTRA_DIST =  data \
               RNAfold/results \
+              RNAcofold/results \
+              RNAalifold/results \
               ${CHECKMK_FILES} ${CHECK_CFILES} \
               ${PERL_TESTS} \
               ${PYTHON2_TESTS} \
