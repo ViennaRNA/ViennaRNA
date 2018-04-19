@@ -30,6 +30,7 @@
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/constraints_SHAPE.h"
 #include "ViennaRNA/plot_utils.h"
+#include "ViennaRNA/char_stream.h"
 #include "RNAalifold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
@@ -119,17 +120,20 @@ postscript_layout(const char      *filename,
 static void
 Boltzmann_sampling(vrna_fold_compound_t *fc,
                    double               dG,
-                   struct options       *opt);
+                   struct options       *opt,
+                   vrna_cstr_t          rec_output);
 
 
 static void
 compute_MEA(vrna_fold_compound_t  *fc,
-            struct options        *opt);
+            struct options        *opt,
+            vrna_cstr_t           rec_output);
 
 
 static void
 compute_centroid(vrna_fold_compound_t *fc,
-                 struct options       *opt);
+                 struct options       *opt,
+                 vrna_cstr_t          rec_output);
 
 
 static void
@@ -495,12 +499,12 @@ main(int  argc,
     char          *input_string = NULL;
     unsigned int  input_type    = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
 
-    if (input_type & VRNA_INPUT_QUIT) {
+    if (input_type & VRNA_INPUT_QUIT)
       return EXIT_FAILURE;
-    } else if ((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)) {
+    else if ((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0))
       opt.constraint = strdup(input_string);
-      free(input_string);
-    }
+
+    free(input_string);
   }
 
   /*
@@ -735,62 +739,68 @@ process_input(FILE            *input_stream,
                          consens_mis((const char **)alignment) :
                          consensus((const char **)alignment);
 
-    /* put header + sequence into output string stream */
+    /* retrieve string stream bound to output, 6*length should be enough memory to start with */
+    vrna_cstr_t rec_output = vrna_cstr(6 * n, stdout);
 
-    print_fasta_header(stdout, MSA_ID);
-    fprintf(stdout, "%s\n", consensus_sequence);
+    /* put header + sequence into output string stream */
+    vrna_cstr_print_fasta_header(rec_output, MSA_ID);
+    vrna_cstr_printf(rec_output, "%s\n", consensus_sequence);
 
     mfe_structure = (char *)vrna_alloc(sizeof(char) * (n + 1));
     min_en        = vrna_mfe(vc, mfe_structure);
     real_en       = vrna_eval_structure(vc, mfe_structure);
     cov_en        = vrna_eval_covar_structure(vc, mfe_structure);
 
-
-    char  *energy_string  = NULL;
-    char  *e_individual   = NULL;
-
-    if (opt->shape) {
-      e_individual = vrna_strdup_printf("%6.2f + %6.2f + %6.2f",
-                                        DBL_ROUND(real_en, 2),
-                                        DBL_ROUND(-cov_en, 2),
-                                        DBL_ROUND(min_en - real_en + cov_en, 2));
-    } else {
-      e_individual = vrna_strdup_printf("%6.2f + %6.2f",
-                                        DBL_ROUND(real_en, 2),
-                                        DBL_ROUND(min_en - real_en, 2));
-    }
-
     if (opt->sci) {
       double sci = compute_sci((const char **)alignment, &(opt->md), min_en);
 
-      if (istty_in) {
-        energy_string = vrna_strdup_printf(
-          "\n minimum free energy = %6.2f kcal/mol (%s)\n SCI = %2.4f",
-          DBL_ROUND(min_en, 2),
-          e_individual,
-          DBL_ROUND(sci, 4));
+      if (opt->shape) {
+        vrna_cstr_printf_structure(rec_output,
+                                   mfe_structure,
+                                   istty_in ?
+                                   "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f + %6.2f)\n SCI = %2.4f" :
+                                   " (%6.2f = %6.2f + %6.2f + %6.2f) [sci = %2.4f]",
+                                   DBL_ROUND(min_en,
+                                             2),
+                                   DBL_ROUND(real_en, 2),
+                                   DBL_ROUND(-cov_en, 2),
+                                   DBL_ROUND(min_en - real_en + cov_en, 2),
+                                   DBL_ROUND(sci, 4));
       } else {
-        energy_string = vrna_strdup_printf(" (%6.2f = %s) [sci = %2.4f]",
-                                           DBL_ROUND(min_en, 2),
-                                           e_individual,
-                                           sci);
+        vrna_cstr_printf_structure(rec_output,
+                                   mfe_structure,
+                                   istty_in ?
+                                   "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)\n SCI = %2.4f" :
+                                   " (%6.2f = %6.2f + %6.2f) [sci = %2.4f]",
+                                   DBL_ROUND(min_en,
+                                             2),
+                                   DBL_ROUND(real_en, 2),
+                                   DBL_ROUND(min_en - real_en, 2),
+                                   DBL_ROUND(sci, 4));
       }
     } else {
-      if (istty_in) {
-        energy_string = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol (%s)",
-                                           DBL_ROUND(min_en, 2),
-                                           e_individual);
+      if (opt->shape) {
+        vrna_cstr_printf_structure(rec_output,
+                                   mfe_structure,
+                                   istty_in ?
+                                   "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f + %6.2f)" :
+                                   " (%6.2f = %6.2f + %6.2f + %6.2f)",
+                                   DBL_ROUND(min_en,
+                                             2),
+                                   DBL_ROUND(real_en, 2),
+                                   DBL_ROUND(-cov_en, 2),
+                                   DBL_ROUND(min_en - real_en + cov_en, 2));
       } else {
-        energy_string = vrna_strdup_printf(" (%6.2f = %s)",
-                                           DBL_ROUND(min_en, 2),
-                                           e_individual);
+        vrna_cstr_printf_structure(rec_output,
+                                   mfe_structure,
+                                   istty_in ?
+                                   "\n minimum free energy = %6.2f kcal/mol (%6.2f + %6.2f)" :
+                                   " (%6.2f = %6.2f + %6.2f)",
+                                   DBL_ROUND(min_en, 2),
+                                   DBL_ROUND(real_en, 2),
+                                   DBL_ROUND(min_en - real_en, 2));
       }
     }
-
-    print_structure(stdout, mfe_structure, energy_string);
-
-    free(energy_string);
-    free(e_individual);
 
     if (!opt->noPS) {
       postscript_layout(filename_plot,
@@ -825,34 +835,28 @@ process_input(FILE            *input_stream,
 
       energy = vrna_pf(vc, pairing_propensity);
 
-
-      if (opt->n_back > 0)
-        Boltzmann_sampling(vc, energy, opt);
-
-      if (opt->md.compute_bpp) {
+      if (opt->n_back > 0) {
+        Boltzmann_sampling(vc, energy, opt, rec_output);
+      } else if (opt->md.compute_bpp) {
         FILE  *aliout;
         cpair *cp;
         plist *pl, *mfel;
-        char  *msg = NULL;
 
-        if (istty_in)
-          msg = vrna_strdup_printf("\n free energy of ensemble = %6.2f kcal/mol",
+        vrna_cstr_printf_structure(rec_output,
+                                   pairing_propensity,
+                                   istty_in ?
+                                   "\n free energy of ensemble = %6.2f kcal/mol" :
+                                   " [%6.2f]",
                                    DBL_ROUND(energy, 2));
-        else
-          msg = vrna_strdup_printf(" [%6.2f]",
-                                   DBL_ROUND(energy, 2));
-
-        print_structure(stdout, pairing_propensity, msg);
-        free(msg);
 
         pl    = vrna_plist_from_probs(vc, opt->bppmThreshold);
         mfel  = vrna_plist(mfe_structure, 0.95 * 0.95);
 
         if (!opt->md.circ)
-          compute_centroid(vc, opt);
+          compute_centroid(vc, opt, rec_output);
 
         if (opt->MEA)
-          compute_MEA(vc, opt);
+          compute_MEA(vc, opt, rec_output);
 
         aliout = fopen(filename_out, "w");
         if (!aliout)
@@ -870,27 +874,20 @@ process_input(FILE            *input_stream,
         free(cp);
         free(pl);
         free(mfel);
-      } else {
-        char *msg = vrna_strdup_printf(" free energy of ensemble = %6.2f kcal/mol",
-                                       DBL_ROUND(energy, 2));
-        print_structure(stdout, NULL, msg);
-        free(msg);
-      }
 
-      {
-        char *msg = NULL;
-        if (opt->md.compute_bpp) {
-          msg = vrna_strdup_printf(" frequency of mfe structure in ensemble %g"
+        vrna_cstr_printf_structure(rec_output,
+                                   NULL,
+                                   " frequency of mfe structure in ensemble %g"
                                    "; ensemble diversity %-6.2f",
                                    vrna_pr_energy(vc, min_en),
                                    vrna_mean_bp_distance(vc));
-        } else {
-          msg = vrna_strdup_printf(" frequency of mfe structure in ensemble %g;",
+      } else {
+        vrna_cstr_printf_structure(rec_output,
+                                   NULL,
+                                   " free energy of ensemble = %6.2f kcal/mol\n"
+                                   " frequency of mfe structure in ensemble %g;",
+                                   DBL_ROUND(energy, 2),
                                    vrna_pr_energy(vc, min_en));
-        }
-
-        print_structure(stdout, NULL, msg);
-        free(msg);
       }
 
       free(pairing_propensity);
@@ -919,6 +916,9 @@ process_input(FILE            *input_stream,
 
       free(filename);
     }
+
+    vrna_cstr_fflush(rec_output);
+    vrna_cstr_close(rec_output);
 
     free(consensus_sequence);
     free(mfe_structure);
@@ -1059,13 +1059,14 @@ postscript_layout(const char      *filename,
 static void
 Boltzmann_sampling(vrna_fold_compound_t *fc,
                    double               dG,
-                   struct options       *opt)
+                   struct options       *opt,
+                   vrna_cstr_t          rec_output)
 {
   unsigned int i;
 
   /*stochastic sampling*/
   for (i = 0; i < opt->n_back; i++) {
-    char    *s, *e_string = NULL;
+    char    *s;
     double  kT, prob;
 
     prob  = 1.;
@@ -1074,21 +1075,26 @@ Boltzmann_sampling(vrna_fold_compound_t *fc,
 
     if (opt->eval_en) {
       double e = (double)vrna_eval_structure(fc, s);
-      e         -= (double)vrna_eval_covar_structure(fc, s);
-      prob      = exp((dG - e) / kT);
-      e_string  = vrna_strdup_printf(" %6g %.2f", prob, -1 * (kT * log(prob) - dG));
+      e     -= (double)vrna_eval_covar_structure(fc, s);
+      prob  = exp((dG - e) / kT);
+      vrna_cstr_printf_structure(rec_output,
+                                 s,
+                                 " %6g %.2f",
+                                 prob,
+                                 -1 * (kT * log(prob) - dG));
+    } else {
+      vrna_cstr_printf_structure(rec_output, s, NULL);
     }
 
-    print_structure(stdout, s, e_string);
     free(s);
-    free(e_string);
   }
 }
 
 
 static void
 compute_MEA(vrna_fold_compound_t  *fc,
-            struct options        *opt)
+            struct options        *opt,
+            vrna_cstr_t           rec_output)
 {
   char  *MEA_structure;
   float mea, *ens;
@@ -1110,15 +1116,16 @@ compute_MEA(vrna_fold_compound_t  *fc,
   ens[0]  = vrna_eval_structure(fc, MEA_structure);
   ens[1]  = vrna_eval_covar_structure(fc, MEA_structure);
 
-  char *energy_string = vrna_strdup_printf(" {%6.2f = %6.2f + %6.2f MEA=%.2f}",
-                                           DBL_ROUND(ens[0] - ens[1], 2),
-                                           DBL_ROUND(ens[0], 2),
-                                           DBL_ROUND((-1) * ens[1], 2),
-                                           mea);
-  print_structure(stdout, MEA_structure, energy_string);
+  vrna_cstr_printf_structure(rec_output,
+                             MEA_structure,
+                             " {%6.2f = %6.2f + %6.2f MEA=%.2f}",
+                             DBL_ROUND(ens[0] - ens[1], 2),
+                             DBL_ROUND(ens[0], 2),
+                             DBL_ROUND((-1) * ens[1], 2),
+                             mea);
 
   /* cleanup */
-  free(energy_string);
+  free(MEA_structure);
   free(ens);
   free(pl);
 }
@@ -1126,7 +1133,8 @@ compute_MEA(vrna_fold_compound_t  *fc,
 
 static void
 compute_centroid(vrna_fold_compound_t *fc,
-                 struct options       *opt)
+                 struct options       *opt,
+                 vrna_cstr_t          rec_output)
 {
   char    *centroid_structure;
   float   *ens;
@@ -1140,15 +1148,15 @@ compute_centroid(vrna_fold_compound_t *fc,
   ens[0]  = vrna_eval_structure(fc, centroid_structure);
   ens[1]  = vrna_eval_covar_structure(fc, centroid_structure);
 
-  char *energy_string = vrna_strdup_printf(" {%6.2f = %6.2f + %6.2f d=%.2f}",
-                                           DBL_ROUND(ens[0] - ens[1], 2),
-                                           DBL_ROUND(ens[0], 2),
-                                           DBL_ROUND((-1) * ens[1], 2),
-                                           dist);
-  print_structure(stdout, centroid_structure, energy_string);
+  vrna_cstr_printf_structure(rec_output,
+                             centroid_structure,
+                             " {%6.2f = %6.2f + %6.2f d=%.2f}",
+                             DBL_ROUND(ens[0] - ens[1], 2),
+                             DBL_ROUND(ens[0], 2),
+                             DBL_ROUND((-1) * ens[1], 2),
+                             dist);
 
   /* cleanup */
-  free(energy_string);
   free(centroid_structure);
   free(ens);
 }
