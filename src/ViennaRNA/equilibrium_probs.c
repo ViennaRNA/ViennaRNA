@@ -96,6 +96,15 @@ vrna_pr_structure(vrna_fold_compound_t *fc,
     Q  = params->model_details.circ ? fc->exp_matrices->qo : fc->exp_matrices->q[fc->iindx[1] - n];
 
     dG = (-log(Q) - n * log(params->pf_scale)) * kT;
+
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
+      /* add covariance term */
+      e -= vrna_eval_covar_structure(fc, structure);
+
+      /* divide ensemble free energy by number of sequences */
+      dG /= fc->n_seq;
+    }
+
     p = exp((dG - e) / kT);
 
     return p;
@@ -119,6 +128,10 @@ vrna_pr_energy(vrna_fold_compound_t *fc,
     Q  = params->model_details.circ ? fc->exp_matrices->qo : fc->exp_matrices->q[fc->iindx[1] - n];
 
     dG = (-log(Q) - n * log(params->pf_scale)) * kT;
+
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+      dG /= fc->n_seq;
+
     p = exp((dG - e) / kT);
 
     return p;
