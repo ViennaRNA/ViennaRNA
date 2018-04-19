@@ -12,7 +12,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
     def test_file_msa_detect_format_stk(self):
         print("test_file_msa_detect_STOCKHOLM_format")
-        msa_format = RNA.file_msa_detect_format(datadir + "/RFAM_seed.stk")
+        msa_format = RNA.file_msa_detect_format(datadir + "/rfam_seed_selected.stk")
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_STOCKHOLM)
 
 
@@ -43,7 +43,7 @@ class file_utils_msa_Test(unittest.TestCase):
     def test_file_msa_read_stk(self):
         print("test_file_msa_read_stk")
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
-            RNA.file_msa_read(datadir + "/RFAM_seed.stk",
+            RNA.file_msa_read(datadir + "/rfam_seed_selected.stk",
                               RNA.FILE_FORMAT_MSA_STOCKHOLM | \
                               RNA.FILE_FORMAT_MSA_SILENT)
 
@@ -109,7 +109,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
     def test_file_msa_read_multi_stk(self):
         print("test_file_msa_read_multi_stk")
-        f = open(datadir + "/RFAM_seed.stk", 'r')
+        f = open(datadir + "/rfam_seed_selected.stk", 'r')
         counter = 0
         while True:
             n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \

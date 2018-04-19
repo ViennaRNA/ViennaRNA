@@ -26,7 +26,7 @@ my $counter;
 # test detecting MSA formats
 #
 MsgChecking("whether we are able to detect STOCKHOLM 1.0 alignment format");
-$msa_format = RNA::file_msa_detect_format($datadir . "/RFAM_seed.stk");
+$msa_format = RNA::file_msa_detect_format($datadir . "/rfam_seed_selected.stk");
 is($msa_format, RNA::FILE_FORMAT_MSA_STOCKHOLM);
 
 MsgChecking("whether we are able to detect CLUSTAL alignment format");
@@ -49,7 +49,7 @@ is($msa_format, RNA::FILE_FORMAT_MSA_UNKNOWN);
 # test reading MSA from different file types
 #
 MsgChecking("whether we are able to parse STOCKHOLM 1.0 alignment format");
-($n_seq, $sequence_identifiers, $alignment, $alignment_id, $consensus_structure) = RNA::file_msa_read($datadir . "/RFAM_seed.stk",
+($n_seq, $sequence_identifiers, $alignment, $alignment_id, $consensus_structure) = RNA::file_msa_read($datadir . "/rfam_seed_selected.stk",
                                                                                                       RNA::FILE_FORMAT_MSA_STOCKHOLM | RNA::FILE_FORMAT_MSA_SILENT);
 
 # first alignment in test file has 712 sequences
@@ -64,7 +64,7 @@ ok(length($consensus_structure) == length($alignment->[0]));
 
 # lets parse the entire STOCKHOLM file now, it contains multiple alignments
 MsgChecking("whether we are able to parse multi STOCKHOLM 1.0 alignment format");
-open $fh, "<" . $datadir . "/RFAM_seed.stk";
+open $fh, "<" . $datadir . "/rfam_seed_selected.stk";
 
 $counter = 0;
 while ( (($n_seq, $sequence_identifiers, $alignment, $alignment_id, $consensus_structure) = RNA::file_msa_read_record($fh)) && ($n_seq != -1)) {

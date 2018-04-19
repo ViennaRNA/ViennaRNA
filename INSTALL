@@ -64,12 +64,8 @@ Memory requirements for a sequence of length n will be approximately
  4*n^2 bytes for the minimum free energy alone.
   
 
-The readseq program is not integrated in the build process. If desired,
-install readseq manually, following the instructions in the readseq
-directory.
-
 There are man pages for all executables, the library is documented in
-./doc/RNAlib-2.3.3.pdf as well as a set of HTML pages in
+./doc/RNAlib-2.4.6.pdf as well as a set of HTML pages in
 ./doc/html/index.html. Documentation in HTML can also be found at
 http://www.tbi.univie.ac.at/RNA/
 

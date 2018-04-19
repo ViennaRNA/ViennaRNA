@@ -1,3 +1,12 @@
+v2.4.6
+  * Stabilize rounding of free energy output in RNAalifold
+  * API: Fix potential rounding errors for comparative free energies in eval.c and mfe.c
+  * API: Fix regression in exterior loop dangling end contributions for comparative base pair probabilities and Boltzmann sampling (introduced with v2.4.4)
+  * API: Fix regression with hard constrained base pairs for comparative structure prediction (introduced with v2.4.4)
+  * TESTS: Add basic tests for RNAalifold executable
+  * TESTS: Ignore 'frequency of MFE structure' in RNAcofold partition function checks
+
+
 v2.4.5
   * Allow for arbitrary number of input files in RNAfold
   * Allow for parallel processing of input data in RNAfold (UNIX only, no Windows support yet)
