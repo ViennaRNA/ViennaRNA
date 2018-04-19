@@ -168,12 +168,13 @@ vrna_mfe(vrna_fold_compound_t *vc,
         break;
 
       default:
-        mfe = (float)energy / 100.;
+        if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
+          mfe = (float)energy / (100. * (float)vc->n_seq);
+        else
+          mfe = (float)energy / 100.;
         break;
     }
 
-    if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
-      mfe /= (float)vc->n_seq;
   }
 
   return mfe;

@@ -190,21 +190,18 @@ vrna_eval_covar_structure(vrna_fold_compound_t  *vc,
   vc->params->model_details.gquad = 0;
 
   if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
-    res = (int)((float)covar_energy_of_struct_pt(vc, pt) / (float)vc->n_seq);
+    res = covar_energy_of_struct_pt(vc, pt);
 
     vc->params->model_details.gquad = gq;
     if (gq) {
       loop_idx  = vrna_loopidx_from_ptable(pt);
-      res       -=
-        (int)((float)covar_en_corr_of_loop_gquad(vc, 1, vc->length, structure, pt,
-                                                 (const int *)loop_idx) / (float)vc->n_seq);
+      res       -= covar_en_corr_of_loop_gquad(vc, 1, vc->length, structure, pt, (const int *)loop_idx);
       free(loop_idx);
     }
   }
 
   free(pt);
-
-  return (float)res / 100.;
+  return (float)res / (100. * (float)vc->n_seq);
 }
 
 
@@ -478,9 +475,10 @@ wrap_eval_structure(vrna_fold_compound_t  *vc,
                     FILE                  *file,
                     int                   verbosity)
 {
-  int res, gq, L, l[3];
+  int   res, gq, L, l[3];
+  float energy;
 
-  res                             = INF;
+  energy                          = (float)INF / 100.;
   gq                              = vc->params->model_details.gquad;
   vc->params->model_details.gquad = 0;
 
@@ -499,31 +497,30 @@ wrap_eval_structure(vrna_fold_compound_t  *vc,
 
         res += en_corr_of_loop_gquad(vc, 1, vc->length, structure, pt, file, verbosity);
       }
-
+      energy = (float)res / 100.;
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
       if (vc->params->model_details.circ)
-        res = (int)((float)eval_circ_pt(vc, pt, file, verbosity) / (float)vc->n_seq);
+        res = eval_circ_pt(vc, pt, file, verbosity);
       else
-        res = (int)((float)eval_pt(vc, pt, file, verbosity) / (float)vc->n_seq);
+        res = eval_pt(vc, pt, file, verbosity);
 
       vc->params->model_details.gquad = gq;
 
       if (gq) {
         int *loop_idx = vrna_loopidx_from_ptable(pt);
-        res +=
-          (int)((float)en_corr_of_loop_gquad_ali(vc, 1, vc->length, structure, pt,
-                                                 (const int *)loop_idx) / (float)vc->n_seq);
+        res += en_corr_of_loop_gquad_ali(vc, 1, vc->length, structure, pt, (const int *)loop_idx);
         free(loop_idx);
       }
-
+      energy = (float)res / (100. * (float)vc->n_seq);
       break;
 
     default:                      /* do nothing */
       break;
   }
-  return (float)res / 100.;
+
+  return energy;
 }
 
 
