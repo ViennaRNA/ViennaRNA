@@ -22,6 +22,7 @@ export DIFF=@DIFF@
 
 # set results directories
 export RNAFOLD_RESULTSDIR=RNAfold/results
+export RNAALIFOLD_RESULTSDIR=RNAalifold/results
 export RNACOFOLD_RESULTSDIR=RNAcofold/results
 
 # misc/ directory

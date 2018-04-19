@@ -36,6 +36,8 @@
 
 #include "ViennaRNA/color_output.inc"
 
+#define DBL_ROUND(a, digits) (round((a) * pow(10., (double)(digits))) / pow(10., (double)(digits)))
+
 PRIVATE void  print_pi(const vrna_pinfo_t pi,
                        FILE               *file);
 
@@ -640,31 +642,37 @@ main(int  argc,
 
     if (with_shapes) {
       e_individual = vrna_strdup_printf("%6.2f + %6.2f + %6.2f",
-                                        real_en,
-                                        -cov_en,
-                                        min_en - real_en + cov_en);
+                                        DBL_ROUND(real_en, 2),
+                                        DBL_ROUND(-cov_en, 2),
+                                        DBL_ROUND(min_en - real_en + cov_en, 2));
     } else {
-      e_individual = vrna_strdup_printf("%6.2f + %6.2f", real_en, min_en - real_en);
+      e_individual = vrna_strdup_printf("%6.2f + %6.2f",
+                                        DBL_ROUND(real_en, 2),
+                                        DBL_ROUND(min_en - real_en, 2));
     }
 
     if (istty_in) {
       if (with_sci) {
         energy_string = vrna_strdup_printf(
           "\n minimum free energy = %6.2f kcal/mol (%s)\n SCI = %2.4f",
-          min_en,
+          DBL_ROUND(min_en, 2),
           e_individual,
-          sci);
+          DBL_ROUND(sci, 4));
       } else {
         energy_string = vrna_strdup_printf("\n minimum free energy = %6.2f kcal/mol (%s)",
-                                           min_en, e_individual);
+                                           DBL_ROUND(min_en, 2),
+                                           e_individual);
       }
     } else {
       if (with_sci)
         energy_string = vrna_strdup_printf(" (%6.2f = %s) [sci = %2.4f]",
-                                           min_en, e_individual, sci);
+                                           DBL_ROUND(min_en, 2),
+                                           e_individual,
+                                           sci);
       else
         energy_string = vrna_strdup_printf(" (%6.2f = %s)",
-                                           min_en, e_individual);
+                                           DBL_ROUND(min_en, 2),
+                                           e_individual);
     }
 
     print_structure(stdout, structure, energy_string);
@@ -709,7 +717,7 @@ main(int  argc,
     vrna_mx_mfe_free(vc);
 
     if (pf) {
-      float energy, kT;
+      double energy, kT;
       char  *mfe_struc;
 
       mfe_struc = strdup(structure);
@@ -768,14 +776,17 @@ main(int  argc,
       if (do_backtrack) {
         char *msg = NULL;
         if (istty_in)
-          msg = vrna_strdup_printf("\n free energy of ensemble = %6.2f kcal/mol", energy);
+          msg = vrna_strdup_printf("\n free energy of ensemble = %6.2f kcal/mol",
+                                   DBL_ROUND(energy, 2));
         else
-          msg = vrna_strdup_printf(" [%6.2f]", energy);
+          msg = vrna_strdup_printf(" [%6.2f]",
+                                   DBL_ROUND(energy, 2));
 
         print_structure(stdout, structure, msg);
         free(msg);
       } else {
-        char *msg = vrna_strdup_printf(" free energy of ensemble = %6.2f kcal/mol", energy);
+        char *msg = vrna_strdup_printf(" free energy of ensemble = %6.2f kcal/mol",
+                                       DBL_ROUND(energy, 2));
         print_structure(stdout, NULL, msg);
         free(msg);
       }
@@ -798,7 +809,10 @@ main(int  argc,
           ens[1]  = vrna_eval_covar_structure(vc, cent);
 
           char *energy_string = vrna_strdup_printf(" {%6.2f = %6.2f + %6.2f d=%.2f}",
-                                                   ens[0] - ens[1], ens[0], (-1) * ens[1], dist);
+                                                   DBL_ROUND(ens[0] - ens[1], 2),
+                                                   DBL_ROUND(ens[0], 2),
+                                                   DBL_ROUND((-1) * ens[1], 2),
+                                                   dist);
           print_structure(stdout, cent, energy_string);
           free(energy_string);
           free(cent);
@@ -815,7 +829,10 @@ main(int  argc,
           ens[1]  = vrna_eval_covar_structure(vc, structure);
 
           char *energy_string = vrna_strdup_printf(" {%6.2f = %6.2f + %6.2f MEA=%.2f}",
-                                                   ens[0] - ens[1], ens[0], (-1) * ens[1], mea);
+                                                   DBL_ROUND(ens[0] - ens[1], 2),
+                                                   DBL_ROUND(ens[0], 2),
+                                                   DBL_ROUND((-1) * ens[1], 2),
+                                                   mea);
           print_structure(stdout, structure, energy_string);
           free(energy_string);
           free(ens);

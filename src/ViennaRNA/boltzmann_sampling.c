@@ -916,6 +916,7 @@ pbacktrack_comparative(vrna_fold_compound_t *vc,
   short             **S         = vc->S;
   short             **S5        = vc->S5;     /*S5[s][i] holds next base 5' of i in sequence s*/
   short             **S3        = vc->S3;     /*Sl[s][i] holds next base 3' of i in sequence s*/
+  unsigned int      **a2s       = vc->a2s;
   vrna_exp_param_t  *pf_params  = vc->exp_params;
   vrna_mx_pf_t      *matrices   = vc->exp_matrices;
   int               *my_iindx   = vc->iindx;
@@ -986,7 +987,10 @@ pbacktrack_comparative(vrna_fold_compound_t *vc,
         for (s = 0; s < n_seq; s++) {
           xtype = vrna_get_ptype_md(S[s][i], S[s][j], md);
           qkl   *=
-            exp_E_ExtLoop(xtype, (i > 1) ? S5[s][i] : -1, (j < n) ? S3[s][j] : -1, pf_params);
+            exp_E_ExtLoop(xtype,
+                          (a2s[s][i] > 1) ? S5[s][i] : -1,
+                          (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1,
+                          pf_params);
         }
         qt += qkl;                                                  /*?*exp(pscore[jindx[j]+i]/kTn)*/
         if (qt > r) {

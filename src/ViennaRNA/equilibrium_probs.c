@@ -3253,7 +3253,10 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
           for (s=0; s<n_seq; s++) {
             int typ;
             typ = vrna_get_ptype_md(S[s][i], S[s][j], md);
-            probs[ij] *= exp_E_ExtLoop(typ, (i>1) ? S5[s][i] : -1, (j<n) ? S3[s][j] : -1, pf_params);
+            probs[ij] *= exp_E_ExtLoop(typ,
+                                       (a2s[s][i] > 1) ? S5[s][i] : -1,
+                                       (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1,
+                                        pf_params);
           }
         } else
           probs[ij] = 0;

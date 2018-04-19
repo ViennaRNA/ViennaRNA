@@ -424,7 +424,7 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
         }
       } else {
         /* reset ptype in case (i,j) is a non-canonical pair */
-        if (option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS) {
+        if ((vc->type == VRNA_FC_TYPE_SINGLE) && (option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)) {
           if (vc->hc->matrix[vc->jindx[j] + i])
             if (vc->ptype[vc->jindx[j] + i] == 0)
               vc->ptype[vc->jindx[j] + i] = 7;
