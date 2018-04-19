@@ -144,7 +144,7 @@ get_filename(const char     *id,
              struct options *opt);
 
 
-void
+int
 process_input(FILE            *input_stream,
               const char      *input_filename,
               struct options  *opt);
@@ -509,28 +509,33 @@ main(int  argc,
    ################################################
    */
   if (num_input > 0) {
-    for (int i = 0; i < num_input; i++) {
-      FILE *input_stream = fopen((const char *)input_files[i], "r");
+    int i, skip;
+    for (skip = i = 0; i < num_input; i++) {
+      if (!skip) {
+        FILE *input_stream = fopen((const char *)input_files[i], "r");
 
-      if (!input_stream)
-        vrna_message_error("Unable to open %d. input file \"%s\" for reading",
-                           i + 1,
-                           input_files[i]);
+        if (!input_stream)
+          vrna_message_error("Unable to open %d. input file \"%s\" for reading",
+                             i + 1,
+                             input_files[i]);
 
-      if (opt.verbose) {
-        vrna_message_info(stderr,
-                          "Processing %d. input file \"%s\"",
-                          i + 1,
-                          input_files[i]);
+        if (opt.verbose) {
+          vrna_message_info(stderr,
+                            "Processing %d. input file \"%s\"",
+                            i + 1,
+                            input_files[i]);
+        }
+
+        if (process_input(input_stream, (const char *)input_files[i], &opt) == 0)
+          skip = 1;
+
+        fclose(input_stream);
       }
 
-      process_input(input_stream, (const char *)input_files[i], &opt);
-
-      fclose(input_stream);
       free(input_files[i]);
     }
   } else {
-    process_input(stdin, NULL, &opt);
+    (void)process_input(stdin, NULL, &opt);
   }
 
   /* check whether we've actually processed any alignment so far */
@@ -570,7 +575,7 @@ main(int  argc,
 }
 
 
-void
+int
 process_input(FILE            *input_stream,
               const char      *input_filename,
               struct options  *opt)
@@ -583,48 +588,33 @@ process_input(FILE            *input_stream,
     unsigned int format_guess = vrna_file_msa_detect_format(input_filename, opt->input_format);
 
     if (format_guess == VRNA_FILE_FORMAT_MSA_UNKNOWN) {
-      char *format = NULL;
+      char *msg = "Your input file is missing sequences! "
+                  "Either your file is empty, or not in %s format!";
 
       switch (opt->input_format) {
         case VRNA_FILE_FORMAT_MSA_CLUSTAL:
-          format = strdup("Clustal");
+          vrna_message_error(msg, "Clustal");
           break;
 
         case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
-          format = strdup("Stockholm");
+          vrna_message_error(msg, "Stockholm");
           break;
 
         case VRNA_FILE_FORMAT_MSA_FASTA:
-          format = strdup("FASTA");
+          vrna_message_error(msg, "FASTA");
           break;
 
         case VRNA_FILE_FORMAT_MSA_MAF:
-          format = strdup("MAF");
+          vrna_message_error(msg, "MAF");
           break;
 
         default:
-          format = strdup("Unknown");
+          vrna_message_error(msg, "Unknown");
           break;
       }
-
-      vrna_message_error("Your input file is missing sequences! "
-                         "Either your file is empty, or not in %s format!",
-                         format);
-      free(format);
     }
 
     input_format = format_guess;
-  }
-
-  if (opt->aln_out) {
-    if (!opt->aln_out_prefix) {
-      opt->aln_out_prefix = strdup("RNAalifold_results.stk");
-    } else {
-      char *tmp = vrna_strdup_printf("%s.stk", opt->aln_out_prefix);
-      free(opt->aln_out_prefix);
-      opt->aln_out_prefix = vrna_filename_sanitize(tmp, opt->filename_delim);
-      free(tmp);
-    }
   }
 
   /* process input stream */
@@ -818,18 +808,6 @@ process_input(FILE            *input_stream,
                        opt->aln_PS_cols);
     }
 
-    if (opt->aln_out) {
-      vrna_file_msa_write((const char *)opt->aln_out_prefix,
-                          (const char **)names,
-                          (const char **)MSA_orig,
-                          MSA_ID,
-                          (const char *)mfe_structure,
-                          "RNAalifold prediction",
-                          (opt->mis ? VRNA_FILE_FORMAT_MSA_MIS : 0) |
-                          VRNA_FILE_FORMAT_MSA_STOCKHOLM |
-                          VRNA_FILE_FORMAT_MSA_APPEND);
-    }
-
     /* free mfe arrays */
     vrna_mx_mfe_free(vc);
 
@@ -918,6 +896,30 @@ process_input(FILE            *input_stream,
       free(pairing_propensity);
     } /* end partition function block */
 
+    /* write output multiple sequence alignment */
+    if (opt->aln_out) {
+      char *filename = NULL;
+      if (!opt->aln_out_prefix) {
+        filename = strdup("RNAalifold_results.stk");
+      } else {
+        char *tmp = vrna_strdup_printf("%s.stk", opt->aln_out_prefix);
+        filename = vrna_filename_sanitize(tmp, opt->filename_delim);
+        free(tmp);
+      }
+
+      vrna_file_msa_write((const char *)filename,
+                          (const char **)names,
+                          (const char **)MSA_orig,
+                          MSA_ID,
+                          (const char *)mfe_structure,
+                          "RNAalifold prediction",
+                          (opt->mis ? VRNA_FILE_FORMAT_MSA_MIS : 0) |
+                          VRNA_FILE_FORMAT_MSA_STOCKHOLM |
+                          VRNA_FILE_FORMAT_MSA_APPEND);
+
+      free(filename);
+    }
+
     free(consensus_sequence);
     free(mfe_structure);
     free(filename_plot);
@@ -937,8 +939,10 @@ process_input(FILE            *input_stream,
 
     /* break after first record if fold_constrained and not explicitly instructed otherwise */
     if (opt->shape || (fold_constrained && (!(opt->constraint_batch || opt->constraint_SScons))))
-      break;
+      return 0;
   }
+
+  return 1;
 }
 
 
