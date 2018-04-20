@@ -102,7 +102,7 @@ struct record_data {
 
 struct output_stream {
   vrna_cstr_t data;
-  int         requires_close;
+  int         individual;
 };
 
 
@@ -197,15 +197,17 @@ flush_cstr_callback(void          *auxdata,
 {
   struct output_stream *s = (struct output_stream *)data;
 
-  /* flush data[k] */
-  vrna_cstr_fflush(s->data);
-  /* free/close data[k] */
-  if (s->requires_close)
-    vrna_cstr_close(s->data);
-  else
-    vrna_cstr_free(s->data);
+  if (s) {
+    /* flush data[k] */
+    vrna_cstr_fflush(s->data);
+    /* free/close data[k] */
+    if (s->individual)
+      vrna_cstr_close(s->data);
+    else
+      vrna_cstr_free(s->data);
 
-  free(s);
+    free(s);
+  }
 }
 
 
@@ -672,7 +674,7 @@ get_output_stream(unsigned int    init_size,
 
     /* actually initialize vrna_cstr_t of the stream */
     o_stream->data = vrna_cstr(init_size, output);
-    o_stream->requires_close = (individual_stream) ? 1 : 0;
+    o_stream->individual = (individual_stream) ? 1 : 0;
   }));
 
   return o_stream;
@@ -1037,10 +1039,19 @@ process_record(struct record_data *record)
   }
 
   /* print what we've collected in output charstream */
-  if (opt->output_queue)
+  if (opt->output_queue) {
+    if (o_stream->individual) {
+      /* output immediately */
+      ATOMIC_BLOCK(flush_cstr_callback(NULL, record->number, (void *)o_stream));
+
+      /* use dummy element for insert into queue */
+      o_stream = NULL;
+    }
+
     vrna_ostream_provide(opt->output_queue, record->number, (void *)o_stream);
-  else
+  } else {
     ATOMIC_BLOCK(flush_cstr_callback(NULL, record->number, (void *)o_stream));
+  }
 
   /* clean up */
   vrna_fold_compound_free(vc);

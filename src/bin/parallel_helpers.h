@@ -11,6 +11,16 @@ pthread_mutex_t output_file_mutex;
 unsigned int    max_threads;
 threadpool      worker_pool;
 
+#define ATOMIC_BLOCK(a) { \
+    if (max_threads > 1) { \
+      pthread_mutex_lock(&output_file_mutex); \
+      (a); \
+      pthread_mutex_unlock(&output_file_mutex); \
+    } else { \
+      (a); \
+    } \
+}
+
 #define THREADSAFE_FILE_OUTPUT(a) { \
     if (max_threads > 1) { \
       pthread_mutex_lock(&output_file_mutex); \
@@ -64,6 +74,7 @@ threadpool      worker_pool;
 
 #else
 
+#define ATOMIC_BLOCK(a)             { (a); }
 #define THREADSAFE_FILE_OUTPUT(a)   { (a); }
 #define THREADSAFE_STREAM_OUTPUT(a)   { (a); }
 #define INIT_PARALLELIZATION(a)
