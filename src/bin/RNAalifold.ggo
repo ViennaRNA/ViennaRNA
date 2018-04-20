@@ -1,7 +1,7 @@
 # Name of your program
 package "RNAalifold" # don't use package if you're using automake
 purpose "calculate secondary structures for a set of aligned RNAs"
-usage   "RNAalifold [options] <file1.aln>"
+usage   "RNAalifold [options] [<input0.aln>] [<input1.aln>]..."
 
 # Version of your program
 # version "2.0"   # don't use version if you're using automake
@@ -43,15 +43,14 @@ flag
 off
 
 option  "jobs"  j
-"Split batch input into jobs and start processing in parallel using multiple threads.\n"
+"Split batch input into jobs and start processing in parallel using multiple threads. A value of 0\
+ indicates to use as many parallel threads as computation cores are available.\n"
 details="Default processing of input data is performed in a serial fashion, i.e. one alignment at\
  a time. Using this switch, a user can instead start the computation for many alignments in the\
  input in parallel. RNAalifold will create as many parallel computation slots as specified and\
- assigns input alignments of an input file to the available slots. Note, that this increases\
- memory consumption since each jobs requires its own dynamic programming matrices. Also note,\
- that individual input files are still being processed sequentially, i.e. alignments of the next\
- input file have to wait for all alignments of the current file to be finished. A value of 0\
- indicates to use as many parallel threads as computation cores are available.\n\n"
+ assigns input alignments of the input file(s) to the available slots. Note, that this increases\
+ memory consumption since input alignments have to be kept in memory until an empty compute slot\
+ is available and each running job requires its own dynamic programming matrices.\n\n"
 int
 default="0"
 typestr="number"
@@ -71,6 +70,7 @@ details="When parallel input processing (--jobs flag) is enabled, the order in w
  individual results but print them as soon as they have been computated.\n\n"
 flag
 off
+hidden
 dependon="jobs"
 
 

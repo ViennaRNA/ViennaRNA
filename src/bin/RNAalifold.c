@@ -44,53 +44,55 @@
 #define DBL_ROUND(a, digits) (round((a) * pow(10., (double)(digits))) / pow(10., (double)(digits)))
 
 struct options {
-  unsigned int  input_format;
-  int           filename_full;
-  char          *filename_delim;
-  int           pf;
-  int           noPS;
-  int           noconv;
-  int           MEA;
-  double        MEAgamma;
-  double        bppmThreshold;
-  int           verbose;
-  int           quiet;
-  int           jobs;
-  int           keep_order;
-  vrna_md_t     md;
+  unsigned int    input_format;
+  int             filename_full;
+  char            *filename_delim;
+  int             pf;
+  int             noPS;
+  int             noconv;
+  int             MEA;
+  double          MEAgamma;
+  double          bppmThreshold;
+  int             verbose;
+  int             quiet;
+  vrna_md_t       md;
 
-  dataset_id    id_control;
-  int           continuous_names;
+  dataset_id      id_control;
+  int             continuous_names;
 
-  int           n_back;
-  int           eval_en;
+  int             n_back;
+  int             eval_en;
 
-  int           color;
-  int           aln_PS;
-  int           aln_PS_cols;
-  int           mis;
-  int           sci;
-  int           endgaps;
+  int             color;
+  int             aln_PS;
+  int             aln_PS_cols;
+  int             mis;
+  int             sci;
+  int             endgaps;
 
-  int           aln_out;
-  char          *aln_out_prefix;
+  int             aln_out;
+  char            *aln_out_prefix;
 
-  char          *constraint;
-  char          *constraint_file;
-  int           constraint_SScons;
-  int           constraint_batch;
-  int           constraint_enforce;
+  char            *constraint;
+  char            *constraint_file;
+  int             constraint_SScons;
+  int             constraint_batch;
+  int             constraint_enforce;
 
-  int           shape;
-  char          **shape_files;
-  char          *shape_method;
-  int           *shape_file_association;
+  int             shape;
+  char            **shape_files;
+  char            *shape_method;
+  int             *shape_file_association;
+
+  int             jobs;
+  int             keep_order;
+  unsigned int    next_record_number;
+  vrna_ostream_t  output_queue;
 };
 
 
 struct record_data {
   unsigned int    number;
-
   char            *MSA_ID;
   char            **alignment;
   char            **names;
@@ -99,25 +101,33 @@ struct record_data {
 
   int             tty;
   FILE            *output;
-  vrna_ostream_t  output_queue;
 
   struct options  *options;
 };
 
 
-PRIVATE void  print_pi(const vrna_pinfo_t pi,
-                       FILE               *file);
+struct output_stream {
+  vrna_cstr_t data;
+  vrna_cstr_t err;
+};
 
 
-PRIVATE void  print_aliout(vrna_fold_compound_t *vc,
-                           plist                *pl,
-                           double               threshold,
-                           const char           *mfe,
-                           FILE                 *aliout);
+PRIVATE void
+print_pi(const vrna_pinfo_t pi,
+         FILE               *file);
 
 
-PRIVATE void  mark_endgaps(char *seq,
-                           char egap);
+PRIVATE void
+print_aliout(vrna_fold_compound_t *vc,
+             plist                *pl,
+             double               threshold,
+             const char           *mfe,
+             FILE                 *aliout);
+
+
+PRIVATE void
+mark_endgaps(char *seq,
+             char egap);
 
 
 static void
@@ -201,8 +211,6 @@ init_default_options(struct options *opt)
   opt->bppmThreshold  = 1e-6;
   opt->verbose        = 0;
   opt->quiet          = 0;
-  opt->jobs           = 1;
-  opt->keep_order     = 1;
   set_model_details(&(opt->md));
 
   opt->continuous_names = 0;
@@ -230,6 +238,11 @@ init_default_options(struct options *opt)
   opt->shape_files            = NULL;
   opt->shape_file_association = NULL;
   opt->shape_method           = NULL;
+
+  opt->jobs               = 1;
+  opt->keep_order         = 1;
+  opt->next_record_number = 0;
+  opt->output_queue       = NULL;
 }
 
 
@@ -251,12 +264,6 @@ collect_unnamed_options(struct RNAalifold_args_info *ggostruct,
 
   return input_files;
 }
-
-
-struct output_stream {
-  vrna_cstr_t data;
-  vrna_cstr_t err;
-};
 
 
 void
@@ -573,6 +580,9 @@ main(int  argc,
 
   first_alignment_number = get_current_id(opt.id_control);
 
+  if (opt.keep_order)
+    opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
+
   /*
    ################################################
    # read constraint from stdin
@@ -600,6 +610,8 @@ main(int  argc,
    # process input files or handle input from stdin
    ################################################
    */
+  INIT_PARALLELIZATION(opt.jobs);
+
   if (num_input > 0) {
     int i, skip;
     for (skip = i = 0; i < num_input; i++) {
@@ -629,6 +641,16 @@ main(int  argc,
   } else {
     (void)process_input(stdin, NULL, &opt);
   }
+
+  UNINIT_PARALLELIZATION
+
+  /*
+   ################################################
+   # post processing
+   ################################################
+   */
+  vrna_ostream_free(opt.output_queue);
+
 
   /* check whether we've actually processed any alignment so far */
   if (first_alignment_number == get_current_id(opt.id_control)) {
@@ -672,11 +694,9 @@ process_input(FILE            *input_stream,
               const char      *input_filename,
               struct options  *opt)
 {
-  int             ret           = 1;
-  unsigned int    record_number = 0;
-  unsigned int    input_format  = opt->input_format;
-  int             istty_in      = isatty(fileno(input_stream));
-  vrna_ostream_t  queue         = NULL;
+  int           ret           = 1;
+  unsigned int  input_format  = opt->input_format;
+  int           istty_in      = isatty(fileno(input_stream));
 
   /* detect input file format if reading from file */
   if (input_filename) {
@@ -711,11 +731,6 @@ process_input(FILE            *input_stream,
 
     input_format = format_guess;
   }
-
-  if (opt->keep_order)
-    queue = vrna_ostream_init(&flush_cstr_callback, NULL);
-
-  INIT_PARALLELIZATION(opt->jobs);
 
   /* process input stream */
   while (!feof(input_stream)) {
@@ -781,7 +796,7 @@ process_input(FILE            *input_stream,
     /* prepare record data structure */
     struct record_data *record = (struct record_data *)vrna_alloc(sizeof(struct record_data));
 
-    record->number  = record_number;
+    record->number  = opt->next_record_number;
     record->MSA_ID  = fileprefix_from_id_alifold(tmp_id,
                                                  opt->id_control,
                                                  opt->continuous_names);
@@ -790,14 +805,13 @@ process_input(FILE            *input_stream,
     record->consensus_structure = tmp_structure;
     record->n_seq               = (unsigned int)n_seq;
 
-    record->tty           = istty_in;
-    record->output        = stdout;
-    record->output_queue  = queue;
+    record->tty     = istty_in;
+    record->output  = stdout;
 
     record->options = opt;
 
-    if (queue)
-      vrna_ostream_request(queue, record_number++);
+    if (opt->output_queue)
+      vrna_ostream_request(opt->output_queue, opt->next_record_number++);
 
     /* process the record we've just read */
     RUN_IN_PARALLEL(process_record, record);
@@ -807,16 +821,9 @@ process_input(FILE            *input_stream,
     /* break after first record if fold_constrained and not explicitly instructed otherwise */
     if (opt->shape || (fold_constrained && (!(opt->constraint_batch || opt->constraint_SScons)))) {
       ret = 0;
-      goto exit_process_input;
+      break;
     }
   }
-
-exit_process_input:
-
-  UNINIT_PARALLELIZATION
-
-  vrna_ostream_free(queue);
-
 
   return ret;
 }
@@ -1076,16 +1083,10 @@ process_record(struct record_data *record)
   }
 
   /* print what we've collected in output charstream */
-  if (record->output_queue) {
-    vrna_ostream_provide(record->output_queue, record->number, (void *)o_stream);
-  } else {
-    vrna_cstr_fflush(o_stream->err);
-    vrna_cstr_close(o_stream->err);
-
-    vrna_cstr_fflush(o_stream->data);
-    vrna_cstr_close(o_stream->data);
-    free(o_stream);
-  }
+  if (opt->output_queue)
+    vrna_ostream_provide(opt->output_queue, record->number, (void *)o_stream);
+  else
+    THREADSAFE_STREAM_OUTPUT(flush_cstr_callback(NULL, record->number, (void *)o_stream));
 
   free(consensus_sequence);
   free(mfe_structure);
