@@ -7,7 +7,6 @@ usage "RNAfold [OPTIONS] [<input0.fa>] [<input1.fa>]..."
 
 #version "2.0"   # don't use version if you're using automake
 
-
 # command line options passed to gengetopt
 args "--file-name=RNAfold_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAfold_cmdline_parser --arg-struct-name=RNAfold_args_info"
 
@@ -45,15 +44,14 @@ flag
 off
 
 option  "jobs"  j
-"Split batch input into jobs and start processing in parallel using multiple threads.\n"
+"Split batch input into jobs and start processing in parallel using multiple threads. A value of 0\
+ indicates to use as many parallel threads as computation cores are available.\n"
 details="Default processing of input data is performed in a serial fashion, i.e. one sequence at\
  a time. Using this switch, a user can instead start the computation for many sequences in the\
  input in parallel. RNAfold will create as many parallel computation slots as specified and\
- assigns input sequences of an input file to the available slots. Note, that this increases\
- memory consumption since each jobs requires its own dynamic programming matrices. Also note,\
- that individual input files are still being processed sequentially, i.e. sequences of the next\
- input file have to wait for all sequences of the current file to be finished. A value of 0\
- indicates to use as many parallel threads as computation cores are available.\n\n"
+ assigns input sequences of the input file(s) to the available slots. Note, that this increases\
+ memory consumption since input alignments have to be kept in memory until an empty compute slot\
+ is available and each running job requires its own dynamic programming matrices.\n\n"
 int
 default="0"
 typestr="number"
@@ -263,27 +261,23 @@ typestr="<filename>"
 optional
 
 option  "shapeMethod" -
-"Select method to incorporate SHAPE reactivity data.\n"
-details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
-'D': Convert by using a linear equation according to Deigan et al 2009. \
-The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
-This method is recognized by a capital 'D' in the provided parameter, i.e.: \
---shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
-non-default value if necessary, otherwise m=1.8 and b=-0.6. \
-To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
-parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
-parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
-
-'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
-SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
-Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
-The magnitude of the penalties can affected by adjusting the factor beta \
-(e.g. --shapeMethod=\"Zb0.8\").
-
-'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
-Perturbation vectors can be calculated by using RNApvmin.\n\n"
+"Select SHAPE reactivity data incorporation strategy.\n"
+details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n\n\
+ 'D': Convert by using a linear equation according to Deigan et al 2009. Derived pseudo energy terms\
+ will be applied for every nucleotide involved in a stacked pair. This method is recognized by a capital\
+ 'D' in the provided parameter, i.e.: --shapeMethod=\"D\" is the default setting. The slope 'm' and the\
+ intercept 'b' can be set to a non-default value if necessary, otherwise m=1.8 and b=-0.6. To alter these\
+ parameters, e.g. m=1.9 and b=-0.7, use a parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You\
+ may also provide only one of the two parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".\n\n\
+ 'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012.\
+ SHAPE reactivities will be converted to pairing probabilities by using linear mapping.\
+ Aberration from the observed pairing probabilities will be penalized during the folding recursion.\
+ The magnitude of the penalties can affected by adjusting the factor beta\
+ (e.g. --shapeMethod=\"Zb0.8\").\n\n\
+ 'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012.\
+ Perturbation vectors can be calculated by using RNApvmin.\n\n"
 string
-typestr="[D/Z/W] + [optional parameters]"
+typestr="D|Z|W"
 dependon="shape"
 default="D"
 optional
@@ -298,7 +292,7 @@ The following methods can be used to convert SHAPE reactivities into the probabi
 'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
 'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
 string
-typestr="M/C/S/L/O  + [optional parameters]"
+typestr="M|C|S|L|O"
 default="O"
 optional
 

@@ -562,6 +562,8 @@ main(int  argc,
    # process input files or handle input from stdin
    ################################################
    */
+  INIT_PARALLELIZATION(opt.jobs);
+
   if (num_input > 0) {
     int i, skip;
     for (skip = i = 0; i < num_input; i++) {
@@ -590,6 +592,14 @@ main(int  argc,
   } else {
     (void)process_input(stdin, NULL, &opt);
   }
+
+  UNINIT_PARALLELIZATION
+
+  /*
+   ################################################
+   # post processing
+   ################################################
+   */
 
   /* close output stream if necessary */
   if ((opt.output_stream) && (opt.output_stream != stdout))
@@ -681,18 +691,6 @@ get_output_stream(unsigned int    init_size,
 }
 
 
-int
-is_single_output_stream(struct options *opt)
-{
-  int truth = 0;
-
-  if ((!opt->tofile) || ((opt->tofile) && (opt->output_file)))
-    truth = 1;
-
-  return truth;
-}
-
-
 /* main loop that processes an input stream */
 int
 process_input(FILE            *input_stream,
@@ -721,8 +719,6 @@ process_input(FILE            *input_stream,
 
   if (!fold_constrained)
     read_opt |= VRNA_INPUT_NO_REST;
-
-  INIT_PARALLELIZATION(opt->jobs);
 
   /* main loop that processes each record obtained from input stream */
   do {
@@ -776,7 +772,7 @@ process_input(FILE            *input_stream,
 
     if (opt->shape || (opt->constraint_file && (!opt->constraint_batch))) {
       ret = 0;
-      goto exit_process_input;
+      break;
     }
 
     /* print user help for the next round if we get input from tty */
@@ -790,10 +786,6 @@ process_input(FILE            *input_stream,
       }
     }
   } while (1);
-
-exit_process_input:
-
-  UNINIT_PARALLELIZATION
 
   return ret;
 }
