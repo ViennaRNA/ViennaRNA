@@ -31,6 +31,7 @@
 #include "ViennaRNA/constraints_SHAPE.h"
 #include "ViennaRNA/plot_utils.h"
 #include "ViennaRNA/char_stream.h"
+#include "ViennaRNA/stream_output.h"
 #include "RNAalifold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
@@ -51,6 +52,7 @@ struct options {
   double        bppmThreshold;
   int           verbose;
   int           quiet;
+  int           keep_order;
   vrna_md_t     md;
 
   dataset_id    id_control;
@@ -89,11 +91,13 @@ struct record_data {
   char            **alignment;
   char            **names;
   char            *consensus_structure;
+  unsigned int    n_seq;
 
   int             tty;
   FILE            *output;
+  vrna_ostream_t  output_queue;
+
   struct options  *options;
-  unsigned int    n_seq;
 };
 
 
@@ -174,6 +178,12 @@ process_record(struct record_data *record);
 
 
 void
+flush_cstr_callback(void          *auxdata,
+                    unsigned int  i,
+                    void          *data);
+
+
+void
 init_default_options(struct options *opt)
 {
   opt->input_format   = VRNA_FILE_FORMAT_MSA_CLUSTAL; /* default to ClustalW format */
@@ -187,6 +197,7 @@ init_default_options(struct options *opt)
   opt->bppmThreshold  = 1e-6;
   opt->verbose        = 0;
   opt->quiet          = 0;
+  opt->keep_order     = 1;
   set_model_details(&(opt->md));
 
   opt->continuous_names = 0;
@@ -234,6 +245,18 @@ collect_unnamed_options(struct RNAalifold_args_info *ggostruct,
   }
 
   return input_files;
+}
+
+
+void
+flush_cstr_callback(void          *auxdata,
+                    unsigned int  i,
+                    void          *data)
+{
+  /* flush data[k] */
+  vrna_cstr_fflush((vrna_cstr_t)data);
+  /* free data[k] */
+  vrna_cstr_free((vrna_cstr_t)data);
 }
 
 
@@ -603,9 +626,11 @@ process_input(FILE            *input_stream,
               const char      *input_filename,
               struct options  *opt)
 {
-  unsigned int  alignment_number  = 0;
-  unsigned int  input_format      = opt->input_format;
-  int           istty_in          = isatty(fileno(input_stream));
+  int             ret           = 1;
+  unsigned int    record_number = 0;
+  unsigned int    input_format  = opt->input_format;
+  int             istty_in      = isatty(fileno(input_stream));
+  vrna_ostream_t  queue         = NULL;
 
   /* detect input file format if reading from file */
   if (input_filename) {
@@ -640,6 +665,9 @@ process_input(FILE            *input_stream,
 
     input_format = format_guess;
   }
+
+  if (opt->keep_order)
+    queue = vrna_ostream_init(&flush_cstr_callback, NULL);
 
   /* process input stream */
   while (!feof(input_stream)) {
@@ -706,7 +734,7 @@ process_input(FILE            *input_stream,
     /* prepare record data structure */
     struct record_data *record = (struct record_data *)vrna_alloc(sizeof(struct record_data));
 
-    record->number  = alignment_number;
+    record->number  = record_number;
     record->MSA_ID  = fileprefix_from_id_alifold(tmp_id,
                                                  opt->id_control,
                                                  opt->continuous_names);
@@ -715,9 +743,14 @@ process_input(FILE            *input_stream,
     record->consensus_structure = tmp_structure;
     record->n_seq               = (unsigned int)n_seq;
 
-    record->tty     = istty_in;
-    record->output  = stdout;
+    record->tty           = istty_in;
+    record->output        = stdout;
+    record->output_queue  = queue;
+
     record->options = opt;
+
+    if (queue)
+      vrna_ostream_request(queue, record_number++);
 
     /* process the record we've just read */
     process_record(record);
@@ -725,11 +758,17 @@ process_input(FILE            *input_stream,
     free(tmp_id);
 
     /* break after first record if fold_constrained and not explicitly instructed otherwise */
-    if (opt->shape || (fold_constrained && (!(opt->constraint_batch || opt->constraint_SScons))))
-      return 0;
+    if (opt->shape || (fold_constrained && (!(opt->constraint_batch || opt->constraint_SScons)))) {
+      ret = 0;
+      goto exit_process_input;
+    }
   }
 
-  return 1;
+exit_process_input:
+
+  vrna_ostream_free(queue);
+
+  return ret;
 }
 
 
@@ -963,8 +1002,13 @@ process_record(struct record_data *record)
     free(filename);
   }
 
-  vrna_cstr_fflush(rec_output);
-  vrna_cstr_close(rec_output);
+  /* print what we've collected in output charstream */
+  if (record->output_queue) {
+    vrna_ostream_provide(record->output_queue, record->number, (void *)rec_output);
+  } else {
+    vrna_cstr_fflush(rec_output);
+    vrna_cstr_close(rec_output);
+  }
 
   free(consensus_sequence);
   free(mfe_structure);
