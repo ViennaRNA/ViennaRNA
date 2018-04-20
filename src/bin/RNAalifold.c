@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <limits.h>
+
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/fold_vars.h"
@@ -32,9 +33,11 @@
 #include "ViennaRNA/plot_utils.h"
 #include "ViennaRNA/char_stream.h"
 #include "ViennaRNA/stream_output.h"
+
 #include "RNAalifold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
+#include "parallel_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -52,6 +55,7 @@ struct options {
   double        bppmThreshold;
   int           verbose;
   int           quiet;
+  int           jobs;
   int           keep_order;
   vrna_md_t     md;
 
@@ -197,6 +201,7 @@ init_default_options(struct options *opt)
   opt->bppmThreshold  = 1e-6;
   opt->verbose        = 0;
   opt->quiet          = 0;
+  opt->jobs           = 1;
   opt->keep_order     = 1;
   set_model_details(&(opt->md));
 
@@ -248,15 +253,29 @@ collect_unnamed_options(struct RNAalifold_args_info *ggostruct,
 }
 
 
+struct output_stream {
+  vrna_cstr_t data;
+  vrna_cstr_t err;
+};
+
+
 void
 flush_cstr_callback(void          *auxdata,
                     unsigned int  i,
                     void          *data)
 {
+  struct output_stream *s = (struct output_stream *)data;
+
+  /* flush errors first */
+  vrna_cstr_fflush(s->err);
+  vrna_cstr_free(s->err);
+
   /* flush data[k] */
-  vrna_cstr_fflush((vrna_cstr_t)data);
+  vrna_cstr_fflush(s->data);
   /* free data[k] */
-  vrna_cstr_free((vrna_cstr_t)data);
+  vrna_cstr_free(s->data);
+
+  free(s);
 }
 
 
@@ -509,6 +528,33 @@ main(int  argc,
   if (args_info.noconv_given)
     opt.noconv = 1;
 
+  if (args_info.jobs_given) {
+#if VRNA_WITH_PTHREADS
+    int thread_max = max_user_threads();
+    if (args_info.jobs_arg == 0) {
+      /* use maximum of concurrent threads */
+      int proc_cores, proc_cores_conf;
+      if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
+        opt.jobs = MIN2(thread_max, proc_cores_conf);
+      } else {
+        vrna_message_warning("Could not determine number of available processor cores!\n"
+                             "Defaulting to serial computation");
+        opt.jobs = 1;
+      }
+    } else {
+      opt.jobs = MIN2(thread_max, args_info.jobs_arg);
+    }
+
+    opt.jobs = MAX2(1, opt.jobs);
+#else
+    vrna_message_warning(
+      "This version of RNAfold has been built without parallel input processing capabilities");
+#endif
+
+    if (args_info.unordered_given)
+      opt.keep_order = 0;
+  }
+
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free(&args_info);
 
@@ -669,6 +715,8 @@ process_input(FILE            *input_stream,
   if (opt->keep_order)
     queue = vrna_ostream_init(&flush_cstr_callback, NULL);
 
+  INIT_PARALLELIZATION(opt->jobs);
+
   /* process input stream */
   while (!feof(input_stream)) {
     char  **alignment, **names, *tmp_id, *tmp_structure;
@@ -707,8 +755,7 @@ process_input(FILE            *input_stream,
       }
     }
 
-    if (opt->quiet)
-      input_format |= VRNA_FILE_FORMAT_MSA_QUIET;
+    input_format |= VRNA_FILE_FORMAT_MSA_QUIET;
 
     /* read record from input file */
     n_seq = vrna_file_msa_read_record(input_stream,
@@ -753,7 +800,7 @@ process_input(FILE            *input_stream,
       vrna_ostream_request(queue, record_number++);
 
     /* process the record we've just read */
-    process_record(record);
+    RUN_IN_PARALLEL(process_record, record);
 
     free(tmp_id);
 
@@ -766,7 +813,10 @@ process_input(FILE            *input_stream,
 
 exit_process_input:
 
+  UNINIT_PARALLELIZATION
+
   vrna_ostream_free(queue);
+
 
   return ret;
 }
@@ -780,6 +830,9 @@ process_record(struct record_data *record)
   double                min_en, real_en, cov_en;
   struct options        *opt;
   vrna_fold_compound_t  *vc;
+  struct output_stream  *o_stream;
+
+  o_stream = (struct output_stream *)vrna_alloc(sizeof(struct output_stream));
 
   opt   = record->options;
   n_seq = record->n_seq;
@@ -813,6 +866,18 @@ process_record(struct record_data *record)
   if (opt->shape)
     apply_SHAPE_data(vc, opt);
 
+  /* retrieve string stream bound to stdout, 6*length should be enough memory to start with */
+  o_stream->data = vrna_cstr(6 * n, stdout);
+  /* retrieve string stream bound to stderr for any info messages */
+  o_stream->err = vrna_cstr(n, stderr);
+
+  if (!opt->quiet) {
+    vrna_cstr_message_info(o_stream->err,
+                           "%u sequences; length of alignment %u.",
+                           n_seq,
+                           n);
+  }
+
   /*
    ########################################################
    # begin actual calculations
@@ -824,12 +889,9 @@ process_record(struct record_data *record)
                        consens_mis((const char **)alignment) :
                        consensus((const char **)alignment);
 
-  /* retrieve string stream bound to output, 6*length should be enough memory to start with */
-  vrna_cstr_t rec_output = vrna_cstr(6 * n, stdout);
-
   /* put header + sequence into output string stream */
-  vrna_cstr_print_fasta_header(rec_output, record->MSA_ID);
-  vrna_cstr_printf(rec_output, "%s\n", consensus_sequence);
+  vrna_cstr_print_fasta_header(o_stream->data, record->MSA_ID);
+  vrna_cstr_printf(o_stream->data, "%s\n", consensus_sequence);
 
   mfe_structure = (char *)vrna_alloc(sizeof(char) * (n + 1));
   min_en        = vrna_mfe(vc, mfe_structure);
@@ -840,7 +902,7 @@ process_record(struct record_data *record)
     double sci = compute_sci((const char **)alignment, &(opt->md), min_en);
 
     if (opt->shape) {
-      vrna_cstr_printf_structure(rec_output,
+      vrna_cstr_printf_structure(o_stream->data,
                                  mfe_structure,
                                  record->tty ?
                                  "\n minimum free energy = %6.2f kcal/mol "
@@ -852,7 +914,7 @@ process_record(struct record_data *record)
                                  DBL_ROUND(min_en - real_en + cov_en, 2),
                                  DBL_ROUND(sci, 4));
     } else {
-      vrna_cstr_printf_structure(rec_output,
+      vrna_cstr_printf_structure(o_stream->data,
                                  mfe_structure,
                                  record->tty ?
                                  "\n minimum free energy = %6.2f kcal/mol "
@@ -865,7 +927,7 @@ process_record(struct record_data *record)
     }
   } else {
     if (opt->shape) {
-      vrna_cstr_printf_structure(rec_output,
+      vrna_cstr_printf_structure(o_stream->data,
                                  mfe_structure,
                                  record->tty ?
                                  "\n minimum free energy = %6.2f kcal/mol "
@@ -876,7 +938,7 @@ process_record(struct record_data *record)
                                  DBL_ROUND(-cov_en, 2),
                                  DBL_ROUND(min_en - real_en + cov_en, 2));
     } else {
-      vrna_cstr_printf_structure(rec_output,
+      vrna_cstr_printf_structure(o_stream->data,
                                  mfe_structure,
                                  record->tty ?
                                  "\n minimum free energy = %6.2f kcal/mol "
@@ -897,11 +959,12 @@ process_record(struct record_data *record)
   }
 
   if (opt->aln_PS) {
-    vrna_file_PS_aln(filename_aln,
-                     (const char **)record->alignment,
-                     (const char **)record->names,
-                     mfe_structure,
-                     opt->aln_PS_cols);
+    THREADSAFE_FILE_OUTPUT(
+      vrna_file_PS_aln(filename_aln,
+                       (const char **)record->alignment,
+                       (const char **)record->names,
+                       mfe_structure,
+                       opt->aln_PS_cols));
   }
 
   /* free mfe arrays */
@@ -916,18 +979,20 @@ process_record(struct record_data *record)
     vrna_exp_params_rescale(vc, &min_en);
 
     if ((n > 2000) && (!opt->quiet))
-      vrna_message_info(stderr, "scaling factor %f\n", vc->exp_params->pf_scale);
+      vrna_cstr_message_info(o_stream->err,
+                             "scaling factor %f\n",
+                             vc->exp_params->pf_scale);
 
     energy = vrna_pf(vc, pairing_propensity);
 
     if (opt->n_back > 0) {
-      Boltzmann_sampling(vc, energy, opt, rec_output);
+      Boltzmann_sampling(vc, energy, opt, o_stream->data);
     } else if (opt->md.compute_bpp) {
       FILE  *aliout;
       cpair *cp;
       plist *pl, *mfel;
 
-      vrna_cstr_printf_structure(rec_output,
+      vrna_cstr_printf_structure(o_stream->data,
                                  pairing_propensity,
                                  record->tty ?
                                  "\n free energy of ensemble = %6.2f kcal/mol" :
@@ -938,36 +1003,43 @@ process_record(struct record_data *record)
       mfel  = vrna_plist(mfe_structure, 0.95 * 0.95);
 
       if (!opt->md.circ)
-        compute_centroid(vc, opt, rec_output);
+        compute_centroid(vc, opt, o_stream->data);
 
       if (opt->MEA)
-        compute_MEA(vc, opt, rec_output);
+        compute_MEA(vc, opt, o_stream->data);
 
-      aliout = fopen(filename_out, "w");
-      if (!aliout)
-        vrna_message_warning("can't open %s ... skipping output", filename_out);
-      else
-        print_aliout(vc, pl, opt->bppmThreshold, mfe_structure, aliout);
+      THREADSAFE_FILE_OUTPUT({
+        aliout = fopen(filename_out, "w");
+        if (!aliout)
+          vrna_message_warning("can't open %s ... skipping output", filename_out);
+        else
+          print_aliout(vc, pl, opt->bppmThreshold, mfe_structure, aliout);
 
-      fclose(aliout);
+        fclose(aliout);
+      });
+
       cp = vrna_annotate_covar_pairs((const char **)alignment,
                                      pl,
                                      mfel,
                                      opt->bppmThreshold,
                                      &(opt->md));
-      (void)PS_color_dot_plot(consensus_sequence, cp, filename_dot);
+
+      THREADSAFE_FILE_OUTPUT((void)PS_color_dot_plot(consensus_sequence,
+                                                     cp,
+                                                     filename_dot));
+
       free(cp);
       free(pl);
       free(mfel);
 
-      vrna_cstr_printf_structure(rec_output,
+      vrna_cstr_printf_structure(o_stream->data,
                                  NULL,
                                  " frequency of mfe structure in ensemble %g"
                                  "; ensemble diversity %-6.2f",
                                  vrna_pr_energy(vc, min_en),
                                  vrna_mean_bp_distance(vc));
     } else {
-      vrna_cstr_printf_structure(rec_output,
+      vrna_cstr_printf_structure(o_stream->data,
                                  NULL,
                                  " free energy of ensemble = %6.2f kcal/mol\n"
                                  " frequency of mfe structure in ensemble %g;",
@@ -989,25 +1061,30 @@ process_record(struct record_data *record)
       free(tmp);
     }
 
-    vrna_file_msa_write((const char *)filename,
-                        (const char **)record->names,
-                        (const char **)record->alignment,
-                        record->MSA_ID,
-                        (const char *)mfe_structure,
-                        "RNAalifold prediction",
-                        (opt->mis ? VRNA_FILE_FORMAT_MSA_MIS : 0) |
-                        VRNA_FILE_FORMAT_MSA_STOCKHOLM |
-                        VRNA_FILE_FORMAT_MSA_APPEND);
+    THREADSAFE_FILE_OUTPUT(
+      vrna_file_msa_write((const char *)filename,
+                          (const char **)record->names,
+                          (const char **)record->alignment,
+                          record->MSA_ID,
+                          (const char *)mfe_structure,
+                          "RNAalifold prediction",
+                          (opt->mis ? VRNA_FILE_FORMAT_MSA_MIS : 0) |
+                          VRNA_FILE_FORMAT_MSA_STOCKHOLM |
+                          VRNA_FILE_FORMAT_MSA_APPEND));
 
     free(filename);
   }
 
   /* print what we've collected in output charstream */
   if (record->output_queue) {
-    vrna_ostream_provide(record->output_queue, record->number, (void *)rec_output);
+    vrna_ostream_provide(record->output_queue, record->number, (void *)o_stream);
   } else {
-    vrna_cstr_fflush(rec_output);
-    vrna_cstr_close(rec_output);
+    vrna_cstr_fflush(o_stream->err);
+    vrna_cstr_close(o_stream->err);
+
+    vrna_cstr_fflush(o_stream->data);
+    vrna_cstr_close(o_stream->data);
+    free(o_stream);
   }
 
   free(consensus_sequence);
@@ -1118,19 +1195,21 @@ postscript_layout(const char      *filename,
   A = vrna_annotate_covar_struct(alignment, consensus_structure, &(opt->md));
 
   if (opt->color) {
-    (void)vrna_file_PS_rnaplot_a(consensus_sequence,
-                                 consensus_structure,
-                                 filename,
-                                 A[0],
-                                 A[1],
-                                 &(opt->md));
+    THREADSAFE_FILE_OUTPUT(
+      (void)vrna_file_PS_rnaplot_a(consensus_sequence,
+                                   consensus_structure,
+                                   filename,
+                                   A[0],
+                                   A[1],
+                                   &(opt->md)));
   } else {
-    (void)vrna_file_PS_rnaplot_a(consensus_sequence,
-                                 consensus_structure,
-                                 filename,
-                                 NULL,
-                                 A[1],
-                                 &(opt->md));
+    THREADSAFE_FILE_OUTPUT(
+      (void)vrna_file_PS_rnaplot_a(consensus_sequence,
+                                   consensus_structure,
+                                   filename,
+                                   NULL,
+                                   A[1],
+                                   &(opt->md)));
   }
 
   free(A[0]);
