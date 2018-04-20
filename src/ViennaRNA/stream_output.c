@@ -23,42 +23,46 @@
 
 
 struct vrna_ordered_stream_s {
-  unsigned int                start;
-  unsigned int                end;
-  unsigned int                size;
-  unsigned int                shift;
+  unsigned int                start;      /* first element index in queue, i.e. start of queue */
+  unsigned int                end;        /* last element index in queue */
+  unsigned int                size;       /* available memory size for 'data' and 'provided' */
+  unsigned int                shift;      /* pointer offset for 'data' and 'provided' */
 
-  vrna_callback_stream_output *output;
-  void                        **data;
-  void                        *auxdata;
+  vrna_callback_stream_output *output;    /* callback to execute if consecutive elements from head are available */
+  void                        **data;     /* actual data passed to the callback */
+  unsigned char               *provided;  /* for simplicity we use unsigned char instead of single bits per element */
+  void                        *auxdata;   /* auxiliary data passed to the callback */
 #if VRNA_WITH_PTHREADS
-  pthread_mutex_t             mtx;
+  pthread_mutex_t             mtx;        /* semaphore to provide concurrent access */
 #endif
 };
+
 
 PRIVATE INLINE void
 flush_output(struct vrna_ordered_stream_s *queue)
 {
   unsigned int j;
 
-  /* process all consecutive blocks available from the start */
-  for (j = queue->start; (j <= queue->end) && (queue->data[j]); j++) {
-    /* process output callback */
-    if (queue->output)
+  /* flush all consecutive blocks available from the start of queue */
+
+  /* 1. process output callback */
+  if (queue->output)
+    for (j = queue->start; (j <= queue->end) && (queue->provided[j]); j++)
       queue->output(queue->auxdata, j, queue->data[j]);
 
-    queue->data[j] = NULL;
+  /* 2. move start of queue */
+  while ((queue->start <= queue->end) && (queue->provided[queue->start]))
     queue->start++;
-  }
 
+  /* 3. set empty queue condition if necessary */
   if (queue->end < queue->start) {
-    queue->data[queue->start] = NULL;
-    queue->end                = queue->start;
+    queue->provided[queue->start] = 0;
+    queue->end                    = queue->start;
   }
 }
 
 
-struct vrna_ordered_stream_s *
+PUBLIC struct vrna_ordered_stream_s *
 vrna_ostream_init(vrna_callback_stream_output *output,
                   void                        *auxdata)
 {
@@ -73,35 +77,54 @@ vrna_ostream_init(vrna_callback_stream_output *output,
   queue->output   = output;
   queue->auxdata  = auxdata;
   queue->data     = (void **)vrna_alloc(sizeof(void *) * QUEUE_OVERHEAD);
+  queue->provided = (unsigned char *)vrna_alloc(sizeof(unsigned char) * QUEUE_OVERHEAD);
 
 #if VRNA_WITH_PTHREADS
   pthread_mutex_init(&queue->mtx, NULL);
 #endif
+
   return queue;
 }
 
 
-void
+PUBLIC void
 vrna_ostream_free(struct vrna_ordered_stream_s *queue)
 {
   if (queue) {
 #if VRNA_WITH_PTHREADS
     pthread_mutex_lock(&queue->mtx);
 #endif
+
     flush_output(queue);
+
 #if VRNA_WITH_PTHREADS
     pthread_mutex_unlock(&queue->mtx);
 #endif
+
     /* free remaining memory */
-    queue->data += queue->shift;
+    queue->data     += queue->shift;
+    queue->provided += queue->shift;
     free(queue->data);
+    free(queue->provided);
+
     /* free ostream itself */
     free(queue);
   }
 }
 
 
-void
+PUBLIC int
+vrna_ostream_threadsafe(void)
+{
+#if VRNA_WITH_PTHREADS
+  return 1;
+#else
+  return 0;
+#endif
+}
+
+
+PUBLIC void
 vrna_ostream_request(struct vrna_ordered_stream_s *queue,
                      unsigned int                 num)
 {
@@ -125,33 +148,44 @@ vrna_ostream_request(struct vrna_ordered_stream_s *queue,
         if ((mem_unavail > (queue->size / 2)) &&
             (new_size - mem_unavail < queue->size + 1)) {
           /* reset pointer shift */
-          queue->data += queue->shift;
+          queue->data     += queue->shift;
+          queue->provided += queue->shift;
 
           /* move remaining data to the front */
           queue->data = memmove(queue->data,
                                 queue->data + mem_unavail,
                                 sizeof(void *) * (queue->end - queue->start + 1));
 
+          /* move provider bitmask to the front */
+          queue->provided = memmove(queue->provided,
+                                    queue->provided + mem_unavail,
+                                    sizeof(unsigned char) * (queue->end - queue->start + 1));
+
           /* reset start and pointer shifts */
-          queue->shift  = queue->start;
-          queue->data   -= queue->start;
+          queue->shift    = queue->start;
+          queue->data     -= queue->start;
+          queue->provided -= queue->start;
         } else {
           /* increase stream buffer size */
           new_size += QUEUE_OVERHEAD;
           /* reset pointer shift */
-          queue->data += queue->shift;
+          queue->data     += queue->shift;
+          queue->provided += queue->shift;
 
           /* reallocate memory blocks */
-          queue->data = (void **)vrna_realloc(queue->data, sizeof(void *) * new_size);
+          queue->data     = (void **)vrna_realloc(queue->data, sizeof(void *) * new_size);
+          queue->provided =
+            (unsigned char *)vrna_realloc(queue->provided, sizeof(void *) * new_size);
           queue->size = new_size;
 
           /* restore pointer shift */
-          queue->data -= queue->shift;
+          queue->data     -= queue->shift;
+          queue->provided -= queue->shift;
         }
       }
 
       for (i = queue->end + 1; i <= num; i++)
-        queue->data[i] = NULL;
+        queue->provided[i] = 0;
 
       queue->end = num;
     }
@@ -163,7 +197,7 @@ vrna_ostream_request(struct vrna_ordered_stream_s *queue,
 }
 
 
-void
+PUBLIC void
 vrna_ostream_provide(struct vrna_ordered_stream_s *queue,
                      unsigned int                 i,
                      void                         *data)
@@ -183,14 +217,13 @@ vrna_ostream_provide(struct vrna_ordered_stream_s *queue,
       return;
     }
 
-    if (data) {
-      /* store data */
-      queue->data[i] = data;
+    /* store data */
+    queue->data[i]      = data;
+    queue->provided[i]  = 1;
 
-      /* process all consecutive blocks available from the start */
-      if (i == queue->start)
-        flush_output(queue);
-    }
+    /* process all consecutive blocks available from the start */
+    if (i == queue->start)
+      flush_output(queue);
 
 #if VRNA_WITH_PTHREADS
     pthread_mutex_unlock(&queue->mtx);

@@ -60,6 +60,10 @@ void
 vrna_ostream_free(vrna_ostream_t dat);
 
 
+int
+vrna_ostream_threadsafe(void);
+
+
 /**
  *  @brief  Request index in ordered output stream
  *
