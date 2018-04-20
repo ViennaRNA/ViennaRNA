@@ -18,7 +18,13 @@
 #   endif
 #endif
 
-#include <unistd.h>
+#if defined(_WIN32)
+#   include <windows.h>
+#   define sleep(a) Sleep(a)
+#else
+#   include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -319,6 +325,8 @@ static void* thread_do(struct thread* thread_p){
 	pthread_setname_np(thread_name);
 #elif defined(__FreeBSD__) || defined(__OpenBSD__)
     pthread_set_name_np(thread_p->pthread, thread_name);
+#elif defined(_WIN32)
+    pthread_setname_np(thread_p->pthread, thread_name);
 #else
 	err("thread_do(): pthread_setname_np is not supported on this system");
 #endif
