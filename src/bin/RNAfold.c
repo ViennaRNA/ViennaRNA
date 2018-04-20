@@ -171,7 +171,7 @@ generate_filename(const char  *pattern,
                   const char  *filename_delim);
 
 
-void
+int
 process_input(FILE            *input_stream,
               const char      *input_filename,
               struct options  *opt);
@@ -540,22 +540,32 @@ main(int  argc,
    ################################################
    */
   if (num_input > 0) {
-    for (int i = 0; i < num_input; i++) {
-      FILE *input_stream = fopen((const char *)input_files[i], "r");
-      if (!input_stream)
-        vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
-                           input_files[i]);
+    int i, skip;
+    for (skip = i = 0; i < num_input; i++) {
+      if (!skip) {
+        FILE *input_stream = fopen((const char *)input_files[i], "r");
 
-      if (opt.verbose)
-        vrna_message_info(stderr, "Processing %d. input file \"%s\"", i + 1, input_files[i]);
+        if (!input_stream)
+          vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
+                             input_files[i]);
 
-      process_input(input_stream, (const char *)input_files[i], &opt);
+        if (opt.verbose) {
+          vrna_message_info(stderr,
+                            "Processing %d. input file \"%s\"",
+                            i + 1,
+                            input_files[i]);
+        }
 
-      fclose(input_stream);
+        if (process_input(input_stream, (const char *)input_files[i], &opt) == 0)
+          skip = 1;
+
+        fclose(input_stream);
+      }
+
       free(input_files[i]);
     }
   } else {
-    process_input(stdin, NULL, &opt);
+    (void)process_input(stdin, NULL, &opt);
   }
 
   free(input_files);
@@ -631,11 +641,12 @@ is_single_output_stream(struct options *opt)
 
 
 /* main loop that processes an input stream */
-void
+int
 process_input(FILE            *input_stream,
               const char      *input_filename,
               struct options  *opt)
 {
+  int           ret       = 1;
   int           istty_in  = isatty(fileno(input_stream));
   int           istty_out = isatty(fileno(stdout));
 
@@ -727,12 +738,10 @@ process_input(FILE            *input_stream,
 
     RUN_IN_PARALLEL(process_record, record);
 
-    if (opt->shape || (opt->constraint_file && (!opt->constraint_batch)))
-      break;
-
-#if 0
-    WAIT_FOR_FREE_SLOT(opt->jobs);
-#endif
+    if (opt->shape || (opt->constraint_file && (!opt->constraint_batch))) {
+      ret = 0;
+      goto exit_process_input;
+    }
 
     /* print user help for the next round if we get input from tty */
     if (istty_in && istty_out) {
@@ -746,6 +755,8 @@ process_input(FILE            *input_stream,
     }
   } while (1);
 
+exit_process_input:
+
   UNINIT_PARALLELIZATION
 
   vrna_ostream_free(queue);
@@ -753,6 +764,8 @@ process_input(FILE            *input_stream,
 
   if ((output_stream) && (output_stream != stdout))
     fclose(output_stream);
+
+  return ret;
 }
 
 
