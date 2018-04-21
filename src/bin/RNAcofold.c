@@ -33,6 +33,39 @@
 
 #include "ViennaRNA/color_output.inc"
 
+struct options {
+  int             filename_full;
+  char            *filename_delim;
+  int             pf;
+  int             doT;
+  int             doC;
+  int             noPS;
+  int             noconv;
+  double          bppmThreshold;
+  int             verbose;
+  vrna_md_t       md;
+  vrna_cmd_t                        *commands;
+
+  dataset_id                        id_control;
+
+  char            *concentration_file;
+
+  char            *constraint_file;
+  int             constraint_batch;
+  int             constraint_enforce;
+  int             constraint_canonical;
+
+  int             shape;
+  char            *shape_file;
+  char            *shape_method;
+  char            *shape_conversion;
+
+  int             csv_output;
+  int             csv_header;
+  char            csv_output_delim;
+};
+
+
 PRIVATE vrna_dimer_pf_t do_partfunc(char      *string,
                                     int       length,
                                     int       Switch,
@@ -58,55 +91,69 @@ PRIVATE double bppmThreshold;
 
 /*--------------------------------------------------------------------------*/
 
+void
+init_default_options(struct options *opt)
+{
+  opt->filename_full = 0;
+  opt->filename_delim = NULL;
+  opt->pf = 0;
+  opt->doT = 0; /* compute dimer free energies etc. */
+  opt->noPS = 0;
+  opt->noconv = 0;
+  opt->bppmThreshold = 1e-5;
+  opt->verbose = 0;
+  opt->commands = NULL;
+  opt->id_control = NULL;
+  set_model_details(&(opt->md));
+
+  opt->doC = 0; /* toggle to compute concentrations */
+  opt->concentration_file     = NULL;
+
+  opt->constraint_file = NULL;
+  opt->constraint_batch = 0;
+  opt->constraint_enforce = 0;
+  opt->constraint_canonical = 0;
+
+  opt->shape = 0;
+  opt->shape_file = NULL;
+  opt->shape_method = NULL;
+  opt->shape_conversion = NULL;
+
+  opt->csv_output = 0;  /* flag indicating whether we produce one-line outputs, a.k.a. CSV */
+  opt->csv_header = 1;  /* print header for one-line output */
+  opt->csv_output_delim = ',';  /* delimiting character for one-line output */
+}
+
+
 int
 main(int  argc,
      char *argv[])
 {
   struct        RNAcofold_args_info args_info;
-  char                              *constraints_file, *structure, *rec_sequence,
-                                    *orig_sequence, *shape_file, *shape_method, *shape_conversion,
-                                    *rec_id, **rec_rest, *Concfile, *command_file, *filename_delim,
-                                    *tmp_string, *csv_output_string, csv_output_delim;
+  char                              *structure, *rec_sequence, *orig_sequence, *rec_id, **rec_rest,
+                                    *command_file, *tmp_string, *csv_output_string;
   unsigned int                      rec_type, read_opt;
-  int                               i, length, cl, pf, istty, noconv, noPS, enforceConstraints,
-                                    doT, doC, cofi, istty_in, istty_out, batch, filename_full,
-                                    canonicalBPonly, with_shapes, verbose, csv_output, csv_header;
-  double                            min_en, kT, *ConcAandB;
+  int                               i, length, cl, istty, istty_in, istty_out;
+  double                            min_en, kT, *concentrations;
   plist                             *prAB, *prAA, *prBB, *prA, *prB, *mfAB, *mfAA, *mfBB, *mfA,
                                     *mfB;
-  vrna_md_t                         md;
-  vrna_cmd_t                        *commands;
-  dataset_id                        id_control;
+  struct options                    opt;
 
   /*
    #############################################
    # init variables and parameter options
    #############################################
    */
-  bppmThreshold     = 1e-5;
-  noconv            = 0;
-  noPS              = 0;
-  do_backtrack      = 1;
-  pf                = 0;
-  doT               = 0;      /* compute dimer free energies etc. */
-  doC               = 0;      /* toggle to compute concentrations */
-  cofi              = 0;      /* toggle concentrations stdin / file */
-  Concfile          = NULL;
+  init_default_options(&opt);
+
   structure         = NULL;
   rec_type          = read_opt = 0;
   rec_id            = rec_sequence = orig_sequence = NULL;
   rec_rest          = NULL;
   command_file      = NULL;
-  commands          = NULL;
-  filename_full     = 0;
-  canonicalBPonly   = 0;
-  verbose           = 0;
-  csv_output        = 0;    /* flag indicating whether we produce one-line outputs, a.k.a. CSV */
-  csv_output_string = NULL; /* string holding output in case we produce one-line outputs */
-  csv_output_delim  = ',';  /* delimiting character for one-line output */
-  csv_header        = 1;    /* print header for one-line output */
 
-  set_model_details(&md);
+  csv_output_string = NULL; /* string holding output in case we produce one-line outputs */
+
   /*
    #############################################
    # check the command line prameters
@@ -116,88 +163,88 @@ main(int  argc,
     exit(1);
 
   /* get basic set of model details */
-  ggo_get_md_eval(args_info, md);
-  ggo_get_md_fold(args_info, md);
-  ggo_get_md_part(args_info, md);
+  ggo_get_md_eval(args_info, opt.md);
+  ggo_get_md_fold(args_info, opt.md);
+  ggo_get_md_part(args_info, opt.md);
 
   /* check dangle model */
-  if ((md.dangles < 0) || (md.dangles > 3)) {
+  if ((opt.md.dangles < 0) || (opt.md.dangles > 3)) {
     vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
-    md.dangles = dangles = 2;
+    opt.md.dangles = dangles = 2;
   }
 
   /* SHAPE reactivity data */
-  ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
+  ggo_get_SHAPE(args_info, opt.shape, opt.shape_file, opt.shape_method, opt.shape_conversion);
 
-  ggo_get_id_control(args_info, id_control, "Sequence", "sequence", "_", 4, 1);
+  ggo_get_id_control(args_info, opt.id_control, "Sequence", "sequence", "_", 4, 1);
 
   ggo_get_constraints_settings(args_info,
                                fold_constrained,
-                               constraints_file,
-                               enforceConstraints,
-                               batch);
+                               opt.constraint_file,
+                               opt.constraint_enforce,
+                               opt.constraint_batch);
 
   /* enforce canonical base pairs in any case? */
   if (args_info.canonicalBPonly_given)
-    canonicalBPonly = 1;
+    opt.constraint_canonical = 1;
 
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given)
-    noconv = 1;
+    opt.noconv = 1;
 
   /*  */
   if (args_info.noPS_given)
-    noPS = 1;
+    opt.noPS = 1;
 
   /* concentrations from stdin */
   if (args_info.concentrations_given)
-    doC = doT = pf = 1;
+    opt.doC = opt.doT = opt.pf = 1;
 
   /* set the bppm threshold for the dotplot */
   if (args_info.bppmThreshold_given)
-    bppmThreshold = MIN2(1., MAX2(0., args_info.bppmThreshold_arg));
+    opt.bppmThreshold = MIN2(1., MAX2(0., args_info.bppmThreshold_arg));
 
   /* concentrations in file */
   if (args_info.concfile_given) {
-    Concfile  = strdup(args_info.concfile_arg);
-    doC       = cofi = doT = pf = 1;
+    opt.concentration_file  = strdup(args_info.concfile_arg);
+    opt.doC       = opt.doT = opt.pf = 1;
   }
 
   /* partition function settings */
   if (args_info.partfunc_given) {
-    pf = 1;
+    opt.pf = 1;
     if (args_info.partfunc_arg != -1)
-      md.compute_bpp = do_backtrack = args_info.partfunc_arg;
+      opt.md.compute_bpp = args_info.partfunc_arg;
   }
 
   if (args_info.all_pf_given) {
-    doT = pf = 1;
+    opt.doT = opt.pf = 1;
     if (args_info.all_pf_arg != 1)
-      md.compute_bpp = do_backtrack = args_info.all_pf_arg;
+      opt.md.compute_bpp = args_info.all_pf_arg;
     else
-      md.compute_bpp = do_backtrack = 1;
+      opt.md.compute_bpp = 1;
   }
 
   if (args_info.verbose_given)
-    verbose = 1;
+    opt.verbose = 1;
 
   if (args_info.commands_given)
     command_file = strdup(args_info.commands_arg);
 
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
-    filename_delim = strdup(args_info.filename_delim_arg);
-  else if (get_id_delim(id_control))
-    filename_delim = strdup(get_id_delim(id_control));
+    opt.filename_delim = strdup(args_info.filename_delim_arg);
+  else if (get_id_delim(opt.id_control))
+    opt.filename_delim = strdup(get_id_delim(opt.id_control));
 
-  if ((filename_delim) && isspace(*filename_delim)) {
-    free(filename_delim);
-    filename_delim = NULL;
+  if ((opt.filename_delim) && isspace(*(opt.filename_delim))) {
+    free(opt.filename_delim);
+    opt.filename_delim = NULL;
   }
 
   /* full filename from FASTA header support */
   if (args_info.filename_full_given)
-    filename_full = 1;
+    opt.filename_full = 1;
 
   /* output format changes */
   if (args_info.output_format_given) {
@@ -205,12 +252,12 @@ main(int  argc,
       case 'D':
       /* fall-through */
       case 'd':
-        csv_output = 1;
+        opt.csv_output = 1;
         break;
       case 'V':
       /* fall-through */
       case 'v':
-        csv_output = 0;
+        opt.csv_output = 0;
         break;
       default:
         vrna_message_warning("unknown output format \"%c\", using defaults!",
@@ -221,16 +268,16 @@ main(int  argc,
 
   /* one-line output delimiter */
   if (args_info.csv_delim_given) {
-    csv_output_delim = *(args_info.csv_delim_arg);
-    if (!csv_output_delim) {
+    opt.csv_output_delim = *(args_info.csv_delim_arg);
+    if (!opt.csv_output_delim) {
       vrna_message_warning("Delimiting character for One-Line output is missing, using defaults!");
-      csv_output_delim = ',';
+      opt.csv_output_delim = ',';
     }
   }
 
   /* one-line output header */
   if (args_info.csv_noheader_given)
-    csv_header = 0;
+    opt.csv_header = 0;
 
   /* free allocated memory of command line data structure */
   RNAcofold_cmdline_parser_free(&args_info);
@@ -240,12 +287,12 @@ main(int  argc,
    # begin initializing
    #############################################
    */
-  if (pf && gquad)
+  if (opt.pf && opt.md.gquad)
     vrna_message_error(
       "G-Quadruplex support is currently not available for partition function computations");
 
   if (command_file != NULL)
-    commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
+    opt.commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
   istty_in  = isatty(fileno(stdin));
   istty_out = isatty(fileno(stdout));
@@ -271,7 +318,7 @@ main(int  argc,
   if (!fold_constrained)
     read_opt |= VRNA_INPUT_NO_REST;
 
-  if ((csv_output) && (csv_header)) {
+  if ((opt.csv_output) && (opt.csv_header)) {
     /* compose header line for CSV output */
     char *header = vrna_strdup_printf(
       "seq_num%c"
@@ -279,20 +326,20 @@ main(int  argc,
       "seq%c"
       "mfe_struct%c"
       "mfe",
-      csv_output_delim,
-      csv_output_delim,
-      csv_output_delim,
-      csv_output_delim);
+      opt.csv_output_delim,
+      opt.csv_output_delim,
+      opt.csv_output_delim,
+      opt.csv_output_delim);
 
-    if (pf) {
-      if (do_backtrack) {
+    if (opt.pf) {
+      if (opt.md.compute_bpp) {
         char *tmp = vrna_strdup_printf(
           "%s%c"
           "bpp_string%c"
           "ensemble_energy",
           header,
-          csv_output_delim,
-          csv_output_delim);
+          opt.csv_output_delim,
+          opt.csv_output_delim);
         free(header);
         header = tmp;
       } else {
@@ -300,12 +347,12 @@ main(int  argc,
           "%s%c"
           "ensemble_energy",
           header,
-          csv_output_delim);
+          opt.csv_output_delim);
         free(header);
         header = tmp;
       }
 
-      if (doT) {
+      if (opt.doT) {
         char *tmp = vrna_strdup_printf(
           "%s%c"
           "AB%c"
@@ -314,11 +361,11 @@ main(int  argc,
           "A%c"
           "B",
           header,
-          csv_output_delim,
-          csv_output_delim,
-          csv_output_delim,
-          csv_output_delim,
-          csv_output_delim);
+          opt.csv_output_delim,
+          opt.csv_output_delim,
+          opt.csv_output_delim,
+          opt.csv_output_delim,
+          opt.csv_output_delim);
         free(header);
         header = tmp;
       }
@@ -351,11 +398,11 @@ main(int  argc,
     }
 
     /* construct the sequence ID */
-    set_next_id(&rec_id, id_control);
-    SEQ_ID = fileprefix_from_id(rec_id, id_control, filename_full);
+    set_next_id(&rec_id, opt.id_control);
+    SEQ_ID = fileprefix_from_id(rec_id, opt.id_control, opt.filename_full);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
-    if (!noconv)
+    if (!opt.noconv)
       vrna_seq_toRNA(rec_sequence);
 
     /* store case-unmodified sequence */
@@ -364,16 +411,16 @@ main(int  argc,
     vrna_seq_toupper(rec_sequence);
 
     vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence,
-                                                  &md,
+                                                  &(opt.md),
                                                   VRNA_OPTION_MFE | VRNA_OPTION_HYBRID |
-                                                  ((pf) ? VRNA_OPTION_PF : 0));
+                                                  ((opt.pf) ? VRNA_OPTION_PF : 0));
     length    = vc->length;
     structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
     /* parse the rest of the current dataset to obtain a structure constraint */
     if (fold_constrained) {
-      if (constraints_file) {
-        vrna_constraints_add(vc, constraints_file, VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+      if (opt.constraint_file) {
+        vrna_constraints_add(vc, opt.constraint_file, VRNA_OPTION_MFE | ((opt.pf) ? VRNA_OPTION_PF : 0));
       } else {
         int           cp        = -1;
         char          *cstruc   = NULL;
@@ -399,10 +446,10 @@ main(int  argc,
         if (cstruc) {
           unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
 
-          if (enforceConstraints)
+          if (opt.constraint_enforce)
             constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
 
-          if (canonicalBPonly)
+          if (opt.constraint_canonical)
             constraint_options |= VRNA_CONSTRAINT_DB_CANONICAL_BP;
 
           vrna_constraints_add(vc, (const char *)cstruc, constraint_options);
@@ -412,17 +459,17 @@ main(int  argc,
       }
     }
 
-    if (with_shapes) {
+    if (opt.shape) {
       vrna_constraints_add_SHAPE(vc,
-                                 shape_file,
-                                 shape_method,
-                                 shape_conversion,
-                                 verbose,
-                                 VRNA_OPTION_MFE | ((pf) ? VRNA_OPTION_PF : 0));
+                                 opt.shape_file,
+                                 opt.shape_method,
+                                 opt.shape_conversion,
+                                 opt.verbose,
+                                 VRNA_OPTION_MFE | ((opt.pf) ? VRNA_OPTION_PF : 0));
     }
 
-    if (commands)
-      vrna_commands_apply(vc, commands, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
+    if (opt.commands)
+      vrna_commands_apply(vc, opt.commands, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
     if (istty) {
       if (cut_point == -1) {
@@ -435,19 +482,19 @@ main(int  argc,
       }
     }
 
-    if (doC) {
+    if (opt.doC) {
       FILE *fp;
-      if (cofi) {
+      if (opt.concentration_file) {
         /* read from file */
-        fp = fopen(Concfile, "r");
+        fp = fopen(opt.concentration_file, "r");
         if (fp == NULL)
-          vrna_message_error("could not open concentration file %s", Concfile);
+          vrna_message_error("could not open concentration file %s", opt.concentration_file);
 
-        ConcAandB = read_concentrations(fp);
+        concentrations = read_concentrations(fp);
         fclose(fp);
       } else {
         printf("Please enter concentrations [mol/l]\n format: ConcA ConcB\n return to end\n");
-        ConcAandB = read_concentrations(stdin);
+        concentrations = read_concentrations(stdin);
       }
     }
 
@@ -462,7 +509,7 @@ main(int  argc,
     mfAB    = vrna_plist(structure, 0.95);
 
     /* check whether the constraint allows for any solution */
-    if (fold_constrained && constraints_file) {
+    if ((fold_constrained && opt.constraint_file) || (opt.commands)) {
       if (min_en == (double)(INF / 100.)) {
         vrna_message_error(
           "Supplied structure constraints create empty solution set for sequence:\n%s",
@@ -476,17 +523,17 @@ main(int  argc,
       pstring = strdup(orig_sequence);
       pstruct = vrna_cut_point_insert(structure, vc->cutpoint);
 
-      if (csv_output) {
+      if (opt.csv_output) {
         csv_output_string = vrna_strdup_printf(
           "%ld%c"                         /* sequence number */
           "%s%c"                          /* sequence id */
           "\"%s\"%c"                      /* sequence */
           "\"%s\"%c"                      /* MFE structure */
           "%6.2f",                        /* MFE */
-          get_current_id(id_control), csv_output_delim,
-          (rec_id) ? rec_id : "", csv_output_delim,
-          orig_sequence, csv_output_delim,
-          (pstruct) ? pstruct : "", csv_output_delim,
+          get_current_id(opt.id_control), opt.csv_output_delim,
+          (rec_id) ? rec_id : "", opt.csv_output_delim,
+          orig_sequence, opt.csv_output_delim,
+          (pstruct) ? pstruct : "", opt.csv_output_delim,
           min_en);
       } else {
         print_fasta_header(stdout, rec_id);
@@ -502,11 +549,11 @@ main(int  argc,
 
       (void)fflush(stdout);
 
-      if (!noPS) {
+      if (!opt.noPS) {
         char *filename_plot = NULL, *annot = NULL;
         if (SEQ_ID) {
-          filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, filename_delim);
-          tmp_string    = vrna_filename_sanitize(filename_plot, filename_delim);
+          filename_plot = vrna_strdup_printf("%s%sss.ps", SEQ_ID, opt.filename_delim);
+          tmp_string    = vrna_filename_sanitize(filename_plot, opt.filename_delim);
           free(filename_plot);
           filename_plot = tmp_string;
         } else {
@@ -522,7 +569,7 @@ main(int  argc,
         }
 
         if (filename_plot)
-          (void)vrna_file_PS_rnaplot_a(pstring, pstruct, filename_plot, annot, NULL, &md);
+          (void)vrna_file_PS_rnaplot_a(pstring, pstruct, filename_plot, annot, NULL, &(opt.md));
 
         free(filename_plot);
         free(annot);
@@ -537,7 +584,7 @@ main(int  argc,
       vrna_mx_mfe_free(vc);
 
     /* compute partition function */
-    if (pf) {
+    if (opt.pf) {
       vrna_dimer_pf_t AB, AA, BB;
 
       prAB  = NULL;
@@ -546,7 +593,7 @@ main(int  argc,
       prA   = NULL;
       prB   = NULL;
 
-      if (md.dangles == 1) {
+      if (opt.md.dangles == 1) {
         vc->params->model_details.dangles = dangles = 2;   /* recompute with dangles as in pf_fold() */
         min_en                            = vrna_eval_structure(vc, structure);
         vc->params->model_details.dangles = dangles = 1;
@@ -561,16 +608,16 @@ main(int  argc,
       /* compute partition function */
       AB = vrna_pf_dimer(vc, structure);
 
-      if (do_backtrack) {
+      if (opt.md.compute_bpp) {
         char *costruc, *msg = NULL;
         costruc = vrna_cut_point_insert(structure, vc->cutpoint);
-        if (csv_output) {
+        if (opt.csv_output) {
           msg = vrna_strdup_printf(
             "%s%c"            /* mfe output we've collected earlier */
             "\"%s\"%c"        /* pairing propensity */
             "%6.2f",          /* free energy of ensemble */
-            csv_output_string, csv_output_delim,
-            costruc, csv_output_delim,
+            csv_output_string, opt.csv_output_delim,
+            costruc, opt.csv_output_delim,
             AB.FAB);
           free(csv_output_string);
           csv_output_string = msg;
@@ -587,11 +634,11 @@ main(int  argc,
         free(costruc);
         prAB = vrna_plist_from_probs(vc, bppmThreshold);
       } else {
-        if (csv_output) {
+        if (opt.csv_output) {
           char *msg = vrna_strdup_printf(
             "%s%c"                  /* mfe output we've collected earlier */
             "%6.2f",                /* free energy of ensemble */
-            csv_output_string, csv_output_delim,
+            csv_output_string, opt.csv_output_delim,
             AB.FAB);
           free(csv_output_string);
           csv_output_string = msg;
@@ -603,13 +650,13 @@ main(int  argc,
       }
 
       {
-        if (csv_output) {
+        if (opt.csv_output) {
           char *msg = vrna_strdup_printf(
             "%s%c"                /* output we've collected earlier */
             "%g%c"                /* probability of MFE structure */
             "%6.2f",              /* delta G binding */
-            csv_output_string, csv_output_delim,
-            exp((AB.FAB - min_en) / kT), csv_output_delim,
+            csv_output_string, opt.csv_output_delim,
+            exp((AB.FAB - min_en) / kT), opt.csv_output_delim,
             AB.FcAB - AB.FA - AB.FB);
           free(csv_output_string);
           csv_output_string = msg;
@@ -625,7 +672,7 @@ main(int  argc,
 
       /* if (doQ) make_probsum(length,fname); */ /*compute prob of base paired*/
       /* free_co_arrays(); */
-      if (doT) {
+      if (opt.doT) {
         /* cofold of all dimers, monomers */
         int     Blength, Alength;
         char    *Astring, *Bstring, *orig_Astring, *orig_Bstring;
@@ -640,8 +687,8 @@ main(int  argc,
           continue;
         }
 
-        if (dangles == 1)
-          dangles = 2;
+        if (opt.md.dangles == 1)
+          opt.md.dangles = 2;
 
         kT = vc->exp_params->kT / 1000.;
 
@@ -659,24 +706,24 @@ main(int  argc,
         strncat(orig_Bstring, orig_sequence + Alength + 1, Blength);
 
         /* compute AA dimer */
-        AA = do_partfunc(Astring, Alength, 2, (do_backtrack) ? &prAA : NULL, &mfAA, &md, kT);
+        AA = do_partfunc(Astring, Alength, 2, (opt.md.compute_bpp) ? &prAA : NULL, &mfAA, &(opt.md), kT);
         /* compute BB dimer */
-        BB = do_partfunc(Bstring, Blength, 2, (do_backtrack) ? &prBB : NULL, &mfBB, &md, kT);
+        BB = do_partfunc(Bstring, Blength, 2, (opt.md.compute_bpp) ? &prBB : NULL, &mfBB, &(opt.md), kT);
         /*free_co_pf_arrays();*/
 
         /* compute A monomer */
-        do_partfunc(Astring, Alength, 1, (do_backtrack) ? &prA : NULL, &mfA, &md, kT);
+        do_partfunc(Astring, Alength, 1, (opt.md.compute_bpp) ? &prA : NULL, &mfA, &(opt.md), kT);
 
         /* compute B monomer */
-        do_partfunc(Bstring, Blength, 1, (do_backtrack) ? &prB : NULL, &mfB, &md, kT);
+        do_partfunc(Bstring, Blength, 1, (opt.md.compute_bpp) ? &prB : NULL, &mfB, &(opt.md), kT);
 
-        if (do_backtrack) {
+        if (opt.md.compute_bpp) {
           vrna_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, vc->exp_params);
           vrna_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, vc->exp_params);
           vrna_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, vc->exp_params);
         }
 
-        if (csv_output) {
+        if (opt.csv_output) {
           char *msg = vrna_strdup_printf(
             "%s%c"                /* output we've collected earlier */
             "%.6f%c"              /* AB */
@@ -684,11 +731,11 @@ main(int  argc,
             "%.6f%c"              /* BB */
             "%.6f%c"              /* A */
             "%.6f",               /* B */
-            csv_output_string, csv_output_delim,
-            AB.FcAB, csv_output_delim,
-            AA.FcAB, csv_output_delim,
-            BB.FcAB, csv_output_delim,
-            AB.FA, csv_output_delim,
+            csv_output_string, opt.csv_output_delim,
+            AB.FcAB, opt.csv_output_delim,
+            AA.FcAB, opt.csv_output_delim,
+            BB.FcAB, opt.csv_output_delim,
+            AB.FA, opt.csv_output_delim,
             AB.FB);
           free(csv_output_string);
           csv_output_string = msg;
@@ -703,21 +750,21 @@ main(int  argc,
           free(tline);
         }
 
-        if (doC) {
-          do_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, ConcAandB, vc->exp_params);
-          free(ConcAandB);/*freeen*/
+        if (opt.doC) {
+          do_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, concentrations, vc->exp_params);
+          free(concentrations);/*freeen*/
         }
 
         /*output of the 5 dot plots*/
 
-        if (do_backtrack) {
+        if (opt.md.compute_bpp) {
           char  *comment      = NULL;
           char  *fname_dot    = NULL;
           char  *filename_dot = NULL;
 
           if (SEQ_ID) {
-            filename_dot  = vrna_strdup_printf("%s%sdp5.ps", SEQ_ID, filename_delim);
-            tmp_string    = vrna_filename_sanitize(filename_dot, filename_delim);
+            filename_dot  = vrna_strdup_printf("%s%sdp5.ps", SEQ_ID, opt.filename_delim);
+            tmp_string    = vrna_filename_sanitize(filename_dot, opt.filename_delim);
             free(filename_dot);
             filename_dot = tmp_string;
           } else {
@@ -815,15 +862,15 @@ main(int  argc,
       } /*end if(doT)*/
     }   /*end if(pf)*/
 
-    if (do_backtrack) {
-      if (!doT) {
-        if (pf) {
+    if (opt.md.compute_bpp) {
+      if (!opt.doT) {
+        if (opt.pf) {
           int   cp;
           char  *seq          = vrna_cut_point_remove(rec_sequence, &cp);
           char  *filename_dot = NULL;
           if (SEQ_ID) {
-            filename_dot  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, filename_delim);
-            tmp_string    = vrna_filename_sanitize(filename_dot, filename_delim);
+            filename_dot  = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, opt.filename_delim);
+            tmp_string    = vrna_filename_sanitize(filename_dot, opt.filename_delim);
             free(filename_dot);
             filename_dot = tmp_string;
           } else {
@@ -842,12 +889,12 @@ main(int  argc,
       }
     }
 
-    if (csv_output)
+    if (opt.csv_output)
       fprintf(stdout, "%s\n", csv_output_string);
 
     free(csv_output_string);
 
-    if (!doT)
+    if (!opt.doT)
       vrna_mx_pf_free(vc);
 
     (void)fflush(stdout);
@@ -870,7 +917,7 @@ main(int  argc,
 
     free(SEQ_ID);
 
-    if (with_shapes || (constraints_file && (!batch)))
+    if (opt.shape || (opt.constraint_file && (!opt.constraint_batch)))
       break;
 
     /* print user help for the next round if we get input from tty */
@@ -889,12 +936,12 @@ main(int  argc,
   }
 
   free(command_file);
-  vrna_commands_free(commands);
+  vrna_commands_free(opt.commands);
 
-  free(filename_delim);
-  free(Concfile);
+  free(opt.filename_delim);
+  free(opt.concentration_file);
 
-  free_id_data(id_control);
+  free_id_data(opt.id_control);
 
   return EXIT_SUCCESS;
 }
