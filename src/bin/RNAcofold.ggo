@@ -3,13 +3,13 @@ package "RNAcofold" # don't use package if you're using automake
 
 purpose "calculate secondary structures of two RNAs with dimerization"
 
-#usage "RNAcofold [options]\n"
+#usage "RNAcofold [options] [<input0.fa>] [<input1.fa>]...\n"
 # Version of your program
 #version "2.0"   # don't use version if you're using automake
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAcofold_cmdl --include-getopt --default-optional --func-name=RNAcofold_cmdline_parser --arg-struct-name=RNAcofold_args_info"
+args "--file-name=RNAcofold_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAcofold_cmdline_parser --arg-struct-name=RNAcofold_args_info"
 
 
 description "The program works much like RNAfold, but allows one to specify two RNA sequences which are\
