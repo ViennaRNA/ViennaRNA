@@ -81,6 +81,42 @@ vrna_cstr_vprintf_structure(struct vrna_cstr_s  *buf,
                             va_list             args);
 
 
+void
+vrna_cstr_printf_comment(struct vrna_cstr_s *buf,
+                         const char         *format,
+                         ...);
+
+
+void
+vrna_cstr_vprintf_comment(struct vrna_cstr_s  *buf,
+                          const char          *format,
+                          va_list             args);
+
+
+void
+vrna_cstr_printf_thead(struct vrna_cstr_s *buf,
+                       const char         *format,
+                       ...);
+
+
+void
+vrna_cstr_vprintf_thead(struct vrna_cstr_s  *buf,
+                        const char          *format,
+                        va_list             args);
+
+
+void
+vrna_cstr_printf_tbody(struct vrna_cstr_s *buf,
+                       const char         *format,
+                       ...);
+
+
+void
+vrna_cstr_vprintf_tbody(struct vrna_cstr_s  *buf,
+                        const char          *format,
+                        va_list             args);
+
+
 /**
  *  @}
  */

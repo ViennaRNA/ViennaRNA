@@ -305,3 +305,135 @@ vrna_cstr_vprintf_structure(struct vrna_cstr_s  *buf,
   if ((structure) || ((format) && (*format != '\0')))
     vrna_cstr_printf(buf, "\n");
 }
+
+
+PUBLIC void
+vrna_cstr_printf_comment(struct vrna_cstr_s *buf,
+                         const char         *format,
+                         ...)
+
+{
+  va_list args;
+
+  if (!buf)
+    return;
+
+  va_start(args, format);
+  vrna_cstr_vprintf_comment(buf, format, args);
+  va_end(args); /* Each va_start() or va_copy() needs a va_end() */
+}
+
+
+PUBLIC void
+vrna_cstr_vprintf_comment(struct vrna_cstr_s  *buf,
+                          const char          *format,
+                          va_list             args)
+{
+  if (!buf)
+    return;
+
+  if ((format) && (*format != '\0')) {
+#ifndef VRNA_WITHOUT_TTY_COLORS
+    if (buf->istty) {
+      vrna_cstr_printf(buf, ANSI_COLOR_CYAN);
+      vrna_cstr_vprintf(buf, format, args);
+      vrna_cstr_printf(buf, ANSI_COLOR_RESET);
+    } else {
+#endif
+      vrna_cstr_vprintf(buf, format, args);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+    }
+#endif
+  }
+
+  if ((format) && (*format != '\0'))
+    vrna_cstr_printf(buf, "\n");
+}
+
+
+PUBLIC void
+vrna_cstr_printf_thead(struct vrna_cstr_s *buf,
+                       const char         *format,
+                       ...)
+
+{
+  va_list args;
+
+  if (!buf)
+    return;
+
+  va_start(args, format);
+  vrna_cstr_vprintf_thead(buf, format, args);
+  va_end(args); /* Each va_start() or va_copy() needs a va_end() */
+}
+
+
+PUBLIC void
+vrna_cstr_vprintf_thead(struct vrna_cstr_s  *buf,
+                        const char          *format,
+                        va_list             args)
+{
+  if (!buf)
+    return;
+
+  if ((format) && (*format != '\0')) {
+#ifndef VRNA_WITHOUT_TTY_COLORS
+    if (buf->istty) {
+      vrna_cstr_printf(buf, ANSI_COLOR_UNDERLINE ANSI_COLOR_BRIGHT);
+      vrna_cstr_vprintf(buf, format, args);
+      vrna_cstr_printf(buf, ANSI_COLOR_RESET);
+    } else {
+#endif
+      vrna_cstr_vprintf(buf, format, args);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+    }
+#endif
+  }
+
+  if ((format) && (*format != '\0'))
+    vrna_cstr_printf(buf, "\n");
+}
+
+
+PUBLIC void
+vrna_cstr_printf_tbody(struct vrna_cstr_s *buf,
+                       const char         *format,
+                       ...)
+
+{
+  va_list args;
+
+  if (!buf)
+    return;
+
+  va_start(args, format);
+  vrna_cstr_vprintf_tbody(buf, format, args);
+  va_end(args); /* Each va_start() or va_copy() needs a va_end() */
+}
+
+
+PUBLIC void
+vrna_cstr_vprintf_tbody(struct vrna_cstr_s  *buf,
+                        const char          *format,
+                        va_list             args)
+{
+  if (!buf)
+    return;
+
+  if ((format) && (*format != '\0')) {
+#ifndef VRNA_WITHOUT_TTY_COLORS
+    if (buf->istty) {
+      vrna_cstr_printf(buf, ANSI_COLOR_GREEN);
+      vrna_cstr_vprintf(buf, format, args);
+      vrna_cstr_printf(buf, ANSI_COLOR_RESET);
+    } else {
+#endif
+      vrna_cstr_vprintf(buf, format, args);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+    }
+#endif
+  }
+
+  if ((format) && (*format != '\0'))
+    vrna_cstr_printf(buf, "\n");
+}
