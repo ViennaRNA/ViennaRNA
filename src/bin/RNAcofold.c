@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
+
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params.h"
@@ -28,11 +29,13 @@
 #include "ViennaRNA/structure_utils.h"
 #include "ViennaRNA/read_epars.h"
 #include "ViennaRNA/char_stream.h"
+#include "ViennaRNA/stream_output.h"
+
 #include "RNAcofold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
-
 #include "ViennaRNA/color_output.inc"
+#include "parallel_helpers.h"
 
 struct options {
   int             filename_full;
@@ -65,7 +68,10 @@ struct options {
   int             csv_header;
   char            csv_output_delim;
 
+  int             jobs;
+  int             keep_order;
   unsigned int    next_record_number;
+  vrna_ostream_t  output_queue;
 };
 
 
@@ -169,7 +175,10 @@ init_default_options(struct options *opt)
   opt->csv_header = 1;  /* print header for one-line output */
   opt->csv_output_delim = ',';  /* delimiting character for one-line output */
 
+  opt->jobs               = 1;
+  opt->keep_order         = 1;
   opt->next_record_number = 0;
+  opt->output_queue       = NULL;
 }
 
 
@@ -220,23 +229,15 @@ main(int  argc,
   struct        RNAcofold_args_info args_info;
   char                      **input_files;
   int                       num_input;
-  char                              *command_file;
-  struct options                    opt;
-
-  /*
-   #############################################
-   # init variables and parameter options
-   #############################################
-   */
-  init_default_options(&opt);
+  struct  options           opt;
 
   num_input = 0;
 
-  command_file      = NULL;
+  init_default_options(&opt);
 
   /*
    #############################################
-   # check the command line prameters
+   # check the command line parameters
    #############################################
    */
   if (RNAcofold_cmdline_parser(argc, argv, &args_info) != 0)
@@ -309,7 +310,7 @@ main(int  argc,
     opt.verbose = 1;
 
   if (args_info.commands_given)
-    command_file = strdup(args_info.commands_arg);
+    opt.commands = vrna_file_commands_read(args_info.commands_arg, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
@@ -359,6 +360,33 @@ main(int  argc,
   if (args_info.csv_noheader_given)
     opt.csv_header = 0;
 
+  if (args_info.jobs_given) {
+#if VRNA_WITH_PTHREADS
+    int thread_max = max_user_threads();
+    if (args_info.jobs_arg == 0) {
+      /* use maximum of concurrent threads */
+      int proc_cores, proc_cores_conf;
+      if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
+        opt.jobs = MIN2(thread_max, proc_cores_conf);
+      } else {
+        vrna_message_warning("Could not determine number of available processor cores!\n"
+                             "Defaulting to serial computation");
+        opt.jobs = 1;
+      }
+    } else {
+      opt.jobs = MIN2(thread_max, args_info.jobs_arg);
+    }
+
+    opt.jobs = MAX2(1, opt.jobs);
+#else
+    vrna_message_warning(
+      "This version of RNAfold has been built without parallel input processing capabilities");
+#endif
+
+    if (args_info.unordered_given)
+      opt.keep_order = 0;
+  }
+
   input_files = collect_unnamed_options(&args_info, &num_input);
 
   /* free allocated memory of command line data structure */
@@ -373,17 +401,22 @@ main(int  argc,
     vrna_message_error(
       "G-Quadruplex support is currently not available for partition function computations");
 
-  if (command_file != NULL)
-    opt.commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
-
   if ((opt.csv_output) && (opt.csv_header))
     write_csv_header(stdout, &opt);
+
+  if ((opt.verbose) && (opt.jobs > 1))
+    vrna_message_info(stderr, "Preparing %d parallel computation slots", opt.jobs);
+
+  if (opt.keep_order)
+    opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
 
   /*
    ################################################
    # process input files or handle input from stdin
    ################################################
    */
+  INIT_PARALLELIZATION(opt.jobs);
+
   if (num_input > 0) {
     int i, skip;
     for (skip = i = 0; i < num_input; i++) {
@@ -413,12 +446,22 @@ main(int  argc,
     (void)process_input(stdin, NULL, &opt);
   }
 
+  UNINIT_PARALLELIZATION
+
+  /*
+   ################################################
+   # post processing
+   ################################################
+   */
+  vrna_ostream_free(opt.output_queue);
+
   free(input_files);
-
-  free(command_file);
-  vrna_commands_free(opt.commands);
-
+  free(opt.constraint_file);
+  free(opt.shape_file);
+  free(opt.shape_method);
+  free(opt.shape_conversion);
   free(opt.filename_delim);
+  vrna_commands_free(opt.commands);
   free(opt.concentration_file);
 
   free_id_data(opt.id_control);
@@ -511,7 +554,10 @@ process_input(FILE            *input_stream,
     record->tty             = istty_in && istty_out;
     record->input_filename  = (input_filename) ? strdup(input_filename) : NULL;
 
-    process_record(record);
+    if (opt->output_queue)
+      vrna_ostream_request(opt->output_queue, opt->next_record_number++);
+
+    RUN_IN_PARALLEL(process_record, record);
 
     if (opt->shape || (opt->constraint_file && (!opt->constraint_batch))) {
       ret = 0;
@@ -677,7 +723,7 @@ process_record(struct record_data *record)
   }
 
   {
-    char *pstruct, *msg = NULL;
+    char *pstruct;
     pstruct = vrna_cut_point_insert(mfe_structure, vc->cutpoint);
 
     if (opt->csv_output) {
@@ -705,7 +751,6 @@ process_record(struct record_data *record)
       postscript_layout(vc, record->sequence, pstruct, record->SEQ_ID, opt);
 
     free(pstruct);
-    free(msg);
   }
 
   if (n > 2000)
@@ -793,10 +838,10 @@ process_record(struct record_data *record)
         vrna_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, vc->exp_params);
         vrna_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, vc->exp_params);
       }
-    }
 
-    if (opt->doC)
-      conc_result = vrna_pf_dimer_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, concentrations, vc->exp_params);
+      if (opt->doC)
+        conc_result = vrna_pf_dimer_concentrations(AB.FcAB, AA.FcAB, BB.FcAB, AB.FA, AB.FB, concentrations, vc->exp_params);
+    }
 
     /* done with computations, let's produce output */
     if (opt->md.compute_bpp) {
@@ -891,7 +936,13 @@ process_record(struct record_data *record)
         fname_dot = vrna_strdup_printf("AB%s", filename_dot);
         seq       = vrna_strdup_printf("%s%s", orig_Astring, orig_Bstring);
         comment   = vrna_strdup_printf("\n%%Heterodimer AB FreeEnergy= %.9f\n", AB.FcAB);
-        (void)vrna_plot_dp_PS_list(seq, Alength + 1, fname_dot, prAB, mfAB, comment);
+        THREADSAFE_FILE_OUTPUT(
+          (void)vrna_plot_dp_PS_list(seq,
+                                     Alength + 1,
+                                     fname_dot,
+                                     prAB,
+                                     mfAB,
+                                     comment));
         free(comment);
         free(seq);
         free(fname_dot);
@@ -900,7 +951,13 @@ process_record(struct record_data *record)
         fname_dot = vrna_strdup_printf("AA%s", filename_dot);
         seq       = vrna_strdup_printf("%s%s", orig_Astring, orig_Astring);
         comment   = vrna_strdup_printf("\n%%Homodimer AA FreeEnergy= %.9f\n", AA.FcAB);
-        (void)vrna_plot_dp_PS_list(seq, Alength + 1, fname_dot, prAA, mfAA, comment);
+        THREADSAFE_FILE_OUTPUT(
+          (void)vrna_plot_dp_PS_list(seq,
+                                     Alength + 1,
+                                     fname_dot,
+                                     prAA,
+                                     mfAA,
+                                     comment));
         free(comment);
         free(seq);
         free(fname_dot);
@@ -909,7 +966,13 @@ process_record(struct record_data *record)
         fname_dot = vrna_strdup_printf("BB%s", filename_dot);
         seq       = vrna_strdup_printf("%s%s", orig_Bstring, orig_Bstring);
         comment   = vrna_strdup_printf("\n%%Homodimer BB FreeEnergy= %.9f\n", BB.FcAB);
-        (void)vrna_plot_dp_PS_list(seq, Blength + 1, fname_dot, prBB, mfBB, comment);
+        THREADSAFE_FILE_OUTPUT(
+          (void)vrna_plot_dp_PS_list(seq,
+                                     Blength + 1,
+                                     fname_dot,
+                                     prBB,
+                                     mfBB,
+                                     comment));
         free(comment);
         free(seq);
         free(fname_dot);
@@ -917,14 +980,26 @@ process_record(struct record_data *record)
         /*A dot plot*/
         fname_dot = vrna_strdup_printf("A%s", filename_dot);
         comment   = vrna_strdup_printf("\n%%Monomer A FreeEnergy= %.9f\n", AB.FA);
-        (void)vrna_plot_dp_PS_list(orig_Astring, -1, fname_dot, prA, mfA, comment);
+        THREADSAFE_FILE_OUTPUT(
+          (void)vrna_plot_dp_PS_list(orig_Astring,
+                                     -1,
+                                     fname_dot,
+                                     prA,
+                                     mfA,
+                                     comment));
         free(fname_dot);
         free(comment);
 
         /*B monomer dot plot*/
         fname_dot = vrna_strdup_printf("B%s", filename_dot);
         comment   = vrna_strdup_printf("\n%%Monomer B FreeEnergy= %.9f\n", AB.FB);
-        (void)vrna_plot_dp_PS_list(orig_Bstring, -1, fname_dot, prB, mfB, comment);
+        THREADSAFE_FILE_OUTPUT(
+          (void)vrna_plot_dp_PS_list(orig_Bstring,
+                                     -1,
+                                     fname_dot,
+                                     prB,
+                                     mfB,
+                                     comment));
         free(fname_dot);
         free(comment);
 
@@ -933,7 +1008,13 @@ process_record(struct record_data *record)
         char  *filename_dot = get_filename(record->SEQ_ID, "dp.ps", "dot.ps", opt);
 
         if (filename_dot)
-          (void)vrna_plot_dp_PS_list(record->sequence, vc->cutpoint, filename_dot, prAB, mfAB, "doof");
+          THREADSAFE_FILE_OUTPUT(
+            (void)vrna_plot_dp_PS_list(record->sequence,
+                                       vc->cutpoint,
+                                       filename_dot,
+                                       prAB,
+                                       mfAB,
+                                       "doof"));
 
         free(filename_dot);
       }
@@ -974,7 +1055,11 @@ cleanup_record:
   if ((!opt->doC) && (opt->csv_output)) /* end of data set in case we output as CSV */
     vrna_cstr_printf(o_stream->data, "\n");
 
-  flush_cstr_callback(NULL, 0, (void *)o_stream);
+  if (opt->output_queue) {
+    vrna_ostream_provide(opt->output_queue, record->number, (void *)o_stream);
+  } else {
+    flush_cstr_callback(NULL, 0, (void *)o_stream);
+  }
 
   /* clean up */
   free(record->SEQ_ID);
@@ -1204,7 +1289,13 @@ postscript_layout(vrna_fold_compound_t *fc,
   }
 
   if (filename_plot)
-    (void)vrna_file_PS_rnaplot_a(orig_sequence, structure, filename_plot, annot, NULL, &(opt->md));
+    THREADSAFE_FILE_OUTPUT(
+      (void)vrna_file_PS_rnaplot_a(orig_sequence,
+                                   structure,
+                                   filename_plot,
+                                   annot,
+                                   NULL,
+                                   &(opt->md)));
 
   free(filename_plot);
   free(annot);
