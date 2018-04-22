@@ -25,6 +25,8 @@
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func_co.h"
 #include "ViennaRNA/part_func.h"
+#include "ViennaRNA/centroid.h"
+#include "ViennaRNA/MEA.h"
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/structure_utils.h"
 #include "ViennaRNA/read_epars.h"
@@ -46,6 +48,9 @@ struct options {
   int             doC;
   int             noPS;
   int             noconv;
+  int             centroid;
+  int             MEA;
+  double          MEAgamma;
   double          bppmThreshold;
   int             verbose;
   vrna_md_t       md;
@@ -145,6 +150,17 @@ get_filename(const char     *id,
              struct options *opt);
 
 
+static void
+compute_centroid(vrna_fold_compound_t *fc,
+                 vrna_cstr_t          rec_output);
+
+
+static void
+compute_MEA(vrna_fold_compound_t  *fc,
+            double                MEAgamma,
+            vrna_cstr_t           rec_output);
+
+
 /*--------------------------------------------------------------------------*/
 
 void
@@ -156,6 +172,9 @@ init_default_options(struct options *opt)
   opt->doT            = 0; /* compute dimer free energies etc. */
   opt->noPS           = 0;
   opt->noconv         = 0;
+  opt->centroid       = 0;  /* off by default due to historical reasons */
+  opt->MEA            = 0;
+  opt->MEAgamma       = 1.;
   opt->bppmThreshold  = 1e-5;
   opt->verbose        = 0;
   opt->commands       = NULL;
@@ -307,6 +326,30 @@ main(int  argc,
     if (args_info.all_pf_arg != 1)
       opt.md.compute_bpp = args_info.all_pf_arg;
     else
+      opt.md.compute_bpp = 1;
+  }
+
+  /* MEA (maximum expected accuracy) settings */
+  if (args_info.MEA_given) {
+    opt.MEA = 1;
+
+    if (args_info.MEA_arg != -1)
+      opt.MEAgamma = args_info.MEA_arg;
+
+    if (!opt.pf)
+      opt.pf = 1;
+
+    if (!opt.md.compute_bpp)
+      opt.md.compute_bpp = 1;
+  }
+
+  if (args_info.centroid_given) {
+    opt.centroid = 1;
+
+    if (!opt.pf)
+      opt.pf = 1;
+
+    if (!opt.md.compute_bpp)
       opt.md.compute_bpp = 1;
   }
 
@@ -796,8 +839,52 @@ process_record(struct record_data *record)
     /* compute partition function */
     AB = AA = BB = vrna_pf_dimer(vc, pairing_propensity);
 
-    if (opt->md.compute_bpp)
+    if (opt->md.compute_bpp) {
+      char *costruc;
       prAB = vrna_plist_from_probs(vc, opt->bppmThreshold);
+
+      costruc = vrna_cut_point_insert(pairing_propensity, vc->cutpoint);
+      if (opt->csv_output) {
+        vrna_cstr_printf(o_stream->data,
+                         "%c"
+                         "\"%s\"%c" /* pairing propensity */
+                         "%6.2f",   /* free energy of ensemble */
+                         opt->csv_output_delim,
+                         costruc,
+                         opt->csv_output_delim,
+                         AB.FAB);
+      } else {
+        vrna_cstr_printf_structure(o_stream->data,
+                                   costruc,
+                                   record->tty ? "\n free energy of ensemble = %6.2f kcal/mol" : " [%6.2f]",
+                                   AB.FAB);
+      }
+
+      free(costruc);
+    } else if (opt->csv_output) {
+      vrna_cstr_printf(o_stream->data,
+                       "%c"
+                       "%6.2f", /* free energy of ensemble */
+                       opt->csv_output_delim,
+                       AB.FAB);
+    } else {
+      vrna_cstr_printf_structure(o_stream->data,
+                                 NULL,
+                                 " free energy of ensemble = %6.2f kcal/mol",
+                                 AB.FAB);
+    }
+
+    /* compute MEA structure */
+    if (opt->centroid)
+      compute_centroid(vc,
+                       o_stream->data);
+
+    /* compute MEA structure */
+    if (opt->MEA) {
+      compute_MEA(vc,
+                  opt->MEAgamma,
+                  o_stream->data);
+    }
 
     if (opt->doT) {
       if (vc->cutpoint <= 0) {
@@ -852,40 +939,6 @@ process_record(struct record_data *record)
                                                    concentrations,
                                                    vc->exp_params);
       }
-    }
-
-    /* done with computations, let's produce output */
-    if (opt->md.compute_bpp) {
-      char *costruc;
-      costruc = vrna_cut_point_insert(pairing_propensity, vc->cutpoint);
-      if (opt->csv_output) {
-        vrna_cstr_printf(o_stream->data,
-                         "%c"
-                         "\"%s\"%c" /* pairing propensity */
-                         "%6.2f",   /* free energy of ensemble */
-                         opt->csv_output_delim,
-                         costruc,
-                         opt->csv_output_delim,
-                         AB.FAB);
-      } else {
-        vrna_cstr_printf_structure(o_stream->data,
-                                   costruc,
-                                   record->tty ? "\n free energy of ensemble = %6.2f kcal/mol" : " [%6.2f]",
-                                   AB.FAB);
-      }
-
-      free(costruc);
-    } else if (opt->csv_output) {
-      vrna_cstr_printf(o_stream->data,
-                       "%c"
-                       "%6.2f", /* free energy of ensemble */
-                       opt->csv_output_delim,
-                       AB.FAB);
-    } else {
-      vrna_cstr_printf_structure(o_stream->data,
-                                 NULL,
-                                 " free energy of ensemble = %6.2f kcal/mol",
-                                 AB.FAB);
     }
 
     if (opt->csv_output) {
@@ -1167,6 +1220,62 @@ write_csv_header(FILE           *output,
 
   vrna_cstr_fflush(stream);
   vrna_cstr_close(stream);
+}
+
+
+static void
+compute_MEA(vrna_fold_compound_t  *fc,
+            double                MEAgamma,
+            vrna_cstr_t           rec_output)
+{
+  char  *structure, *mea_structure;
+  float mea, mea_en;
+  /*  this is a hack since vrna_plist_from_probs() always resolves g-quad pairs,
+   *  while MEA_seq() still expects unresolved gquads */
+  int   gq = fc->exp_params->model_details.gquad;
+
+  /* we need to create a string as long as the sequence for the MEA implementation :( */
+  structure = strdup(fc->sequence);
+
+  fc->exp_params->model_details.gquad = 0;
+  plist *pl = vrna_plist_from_probs(fc, 1e-4 / (1 + MEAgamma));
+  fc->exp_params->model_details.gquad = gq;
+
+  if (gq)
+    mea = MEA_seq(pl, fc->sequence, structure, MEAgamma, fc->exp_params);
+  else
+    mea = MEA(pl, structure, MEAgamma);
+
+  mea_en = vrna_eval_structure(fc, (const char *)structure);
+
+  /* insert cut point */
+  mea_structure = vrna_cut_point_insert(structure, fc->cutpoint);
+
+  vrna_cstr_printf_structure(rec_output, mea_structure, " {%6.2f MEA=%.2f}", mea_en, mea);
+
+  free(pl);
+  free(structure);
+  free(mea_structure);
+}
+
+
+static void
+compute_centroid(vrna_fold_compound_t *fc,
+                 vrna_cstr_t          rec_output)
+{
+  char    *cent, *centroid_structure;
+  double  cent_en, dist;
+
+  cent    = vrna_centroid(fc, &dist);
+  cent_en = vrna_eval_structure(fc, (const char *)cent);
+
+  /* insert cut point */
+  centroid_structure = vrna_cut_point_insert(cent, fc->cutpoint);
+
+  vrna_cstr_printf_structure(rec_output, centroid_structure, " {%6.2f d=%.2f}", cent_en, dist);
+
+  free(cent);
+  free(centroid_structure);
 }
 
 

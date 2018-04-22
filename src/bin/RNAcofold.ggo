@@ -353,6 +353,30 @@ string
 typestr="filename"
 optional
 
+option  "centroid"  -
+"Compute the centroid structure.\n"
+details="Additionally to the MFE structure, compute the centroid representative of the structure ensemble.\
+ Here, we apply the base pair distance as distance measure, and report the structure that minimizes its\
+ Boltzmann weighted base pair distance to the rest of the ensemble. Computing the centroid structure\
+ requires equilibrium base pair probabilities. Therefore, this option implies the -p switch. For historical\
+ reasons, the centroid structure output is deactivated by default.\n\n"
+flag
+off
+
+option  "MEA"   -
+"Calculate an MEA (maximum expected accuracy) structure, where the expected accuracy is computed from the\
+ pair probabilities: each base pair (i,j) gets a score 2*gamma*p_ij and the score of an unpaired base is\
+ given by the probability of not forming a pair.\n"
+details="The parameter gamma tunes the importance of correctly\
+ predicted pairs versus unpaired bases. Thus, for small values of gamma the MEA structure will contain\
+ only pairs with very high probability.\nUsing --MEA implies -p for\
+ computing the pair probabilities.\n\n"
+float
+typestr="gamma"
+default="1."
+argoptional
+optional
+
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows).\n"
