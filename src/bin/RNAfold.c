@@ -804,12 +804,6 @@ process_record(struct record_data *record)
 
   opt = record->options;
 
-  /* retrieve string stream, 6*length should be enough memory to start with */
-  o_stream = get_output_stream(6 * length,
-                               opt,
-                               record->SEQ_ID,
-                               record->input_filename);
-
   rec_sequence = strdup(record->sequence);
 
   /* convert DNA alphabet to RNA if not explicitely switched off */
@@ -824,6 +818,12 @@ process_record(struct record_data *record)
   vc = vrna_fold_compound(rec_sequence, &(opt->md), VRNA_OPTION_DEFAULT);
 
   length = vc->length;
+
+  /* retrieve string stream, 6*length should be enough memory to start with */
+  o_stream = get_output_stream(6 * length,
+                               opt,
+                               record->SEQ_ID,
+                               record->input_filename);
 
   if (record->tty)
     vrna_message_info(stdout, "length = %d\n", length);
