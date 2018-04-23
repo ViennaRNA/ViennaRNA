@@ -279,7 +279,8 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               exterior_loops_sc_pf.inc \
               hairpin_loops.inc \
               interior_loops.inc \
-              multibranch_loops.inc \
+              multibranch_loops_hc.inc \
+              multibranch_loops_sc.inc \
               model_avg.inc \
               model_sd.inc \
               ${SVM_H} \

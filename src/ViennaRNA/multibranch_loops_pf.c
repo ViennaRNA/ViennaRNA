@@ -25,7 +25,7 @@
 # define INLINE
 #endif
 
-#include "multibranch_loops.inc"
+#include "multibranch_loops_hc.inc"
 
 /*
  #################################
@@ -143,8 +143,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t *vc,
   evaluate      = prepare_hc_default(vc, &hc_dat_local);
 
   /* multiple stem loop contribution */
-  if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML,
-               &hc_dat_local) && (sn[i] == sn[i + 1]) && (sn[j - 1] == sn[j])) {
+  if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
     rtype = &(md->rtype[0]);
     tt    = rtype[vrna_get_ptype(ij, ptype)];
 
@@ -223,8 +222,7 @@ exp_E_mb_loop_fast_window(vrna_fold_compound_t  *vc,
   evaluate      = prepare_hc_default_window(vc, &hc_dat_local);
 
   /* multiple stem loop contribution */
-  if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML,
-               &hc_dat_local) && (sn[i] == sn[i + 1]) && (sn[j - 1] == sn[j])) {
+  if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
     rtype = &(md->rtype[0]);
     tt    = rtype[vrna_get_ptype_window(i, j + i, ptype)];
 

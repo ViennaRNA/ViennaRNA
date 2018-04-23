@@ -25,7 +25,7 @@
 # define INLINE
 #endif
 
-#include "multibranch_loops.inc"
+#include "multibranch_loops_hc.inc"
 
 /*
  #################################
