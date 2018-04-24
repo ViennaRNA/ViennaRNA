@@ -23,6 +23,8 @@ struct sc_wrapper_ml {
   sc_red                  *red_stem;
   sc_red                  *red_ml;
 
+  sc_red                  *decomp_ml;
+
   vrna_callback_sc_energy *user_cb;
   void                    *user_data;
 
@@ -676,6 +678,41 @@ sc_ml_reduce_ml_up_user_comparative(int i,
 }
 
 
+PRIVATE INLINE int
+sc_ml_decomp_ml_user(int i,
+                     int j,
+                     int k,
+                     int l,
+                     struct sc_wrapper_ml *data)
+{
+  return data->user_cb(i, j, k, l,
+                       VRNA_DECOMP_ML_ML_ML,
+                       data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_decomp_ml_user_comparative(int i,
+                                 int j,
+                                 int k,
+                                 int l,
+                                 struct sc_wrapper_ml *data)
+{
+  unsigned int s;
+  int          e;
+
+  e = 0;
+
+  for (s = 0; s < data->n_seq; s++)
+    if (data->user_cb_comparative[s])
+      e += data->user_cb_comparative[s](i, j, k, l,
+                                        VRNA_DECOMP_ML_ML_ML,
+                                        data->user_data_comparative[s]);
+
+  return e;
+}
+
+
 PRIVATE INLINE void
 init_sc_wrapper(vrna_fold_compound_t  *fc,
                 struct sc_wrapper_ml  *sc_wrapper)
@@ -694,7 +731,11 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
   sc_wrapper->pair5     = NULL;
   sc_wrapper->pair3     = NULL;
   sc_wrapper->pair53    = NULL;
+
   sc_wrapper->red_stem  = NULL;
+  sc_wrapper->red_ml    = NULL;
+
+  sc_wrapper->decomp_ml = NULL;
 
   sc_wrapper->user_cb   = NULL;
   sc_wrapper->user_data = NULL;
@@ -712,8 +753,9 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
         sc_wrapper->user_data = sc->data;
 
         if (sc->f) {
-          sc_wrapper->red_stem = &sc_ml_reduce_stem_user;
-          sc_wrapper->red_ml   = &sc_ml_reduce_ml_user;
+          sc_wrapper->red_stem  = &sc_ml_reduce_stem_user;
+          sc_wrapper->red_ml    = &sc_ml_reduce_ml_user;
+          sc_wrapper->decomp_ml = &sc_ml_decomp_ml_user;
 
           if (sc->energy_bp) {
             sc_wrapper->pair = &sc_ml_pair_bp_user;
@@ -810,8 +852,10 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
 
         /* bind the correct wrapper functions */
         if (provides_sc_user_cb) {
-          sc_wrapper->red_stem = &sc_ml_reduce_stem_user_comparative;
-          sc_wrapper->red_ml   = &sc_ml_reduce_ml_user_comparative;
+          sc_wrapper->red_stem  = &sc_ml_reduce_stem_user_comparative;
+          sc_wrapper->red_ml    = &sc_ml_reduce_ml_user_comparative;
+          sc_wrapper->decomp_ml = &sc_ml_decomp_ml_user_comparative;
+
           if (provides_sc_bp) {
             sc_wrapper->pair    = &sc_ml_pair_bp_user_comparative;
             if (provides_sc_up) {
