@@ -91,6 +91,25 @@ vrna_exp_E_ext_stem(unsigned int      type,
                     vrna_exp_param_t  *p);
 
 
+/**
+ *  @brief Evaluate the free energy of a base pair in the exterior loop
+ *
+ *  Evalue the free energy of a base pair connecting two nucleotides in the exterior
+ *  loop and take hard constraints into account.
+ *
+ *  Typically, this is simply dangling end contributions of the adjacent
+ *  nucleotides, potentially a terminal A-U mismatch penalty, and maybe some
+ *  generic soft constraint contribution for that decomposition.
+ *
+ *  @note   For dangles == 1 || 3 this function also evaluates the three additional
+ *          pairs (i + 1, j), (i, j - 1), and (i + 1, j - 1) and returns the minimum
+ *          for all four possibilities in total.
+ *
+ *  @param  fc    Fold compound to work on (defines the model and parameters)
+ *  @param  i     5' position of the base pair
+ *  @param  j     3' position of the base pair
+ *  @return       Free energy contribution that arises when this pair is formed in the exterior loop
+ */
 int
 vrna_E_ext_loop(vrna_fold_compound_t  *vc,
                 int                   i,
