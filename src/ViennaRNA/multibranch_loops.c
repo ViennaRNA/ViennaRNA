@@ -51,14 +51,6 @@ E_mb_loop_fast_window(vrna_fold_compound_t  *vc,
 
 
 PRIVATE int
-E_mb_loop_fast_comparative(vrna_fold_compound_t *vc,
-                           int                  i,
-                           int                  j,
-                           int                  *dmli1,
-                           int                  *dmli2);
-
-
-PRIVATE int
 E_mb_loop_fast_comparative_window(vrna_fold_compound_t  *vc,
                                   int                   i,
                                   int                   j,
@@ -129,6 +121,37 @@ PRIVATE int E_mb_loop_stack_window(vrna_fold_compound_t *vc,
                                    int                  j);
 
 
+PRIVATE INLINE int
+ml_pair5(vrna_fold_compound_t       *fc,
+         int                        i,
+         int                        j,
+         int                        *dmli2,
+         vrna_callback_hc_evaluate  *evaluate,
+         struct default_data        *hc_wrapper,
+         struct sc_wrapper_ml       *sc_wrapper);
+
+
+PRIVATE INLINE int
+ml_pair3(vrna_fold_compound_t       *fc,
+         int                        i,
+         int                        j,
+         int                        *dmli1,
+         vrna_callback_hc_evaluate  *evaluate,
+         struct default_data        *hc_wrapper,
+         struct sc_wrapper_ml       *sc_wrapper);
+
+
+PRIVATE INLINE int
+ml_pair53(vrna_fold_compound_t      *fc,
+          int                       i,
+          int                       j,
+          int                       *dmli1,
+          int                       *dmli2,
+          vrna_callback_hc_evaluate *evaluate,
+          struct default_data       *hc_wrapper,
+          struct sc_wrapper_ml      *sc_wrapper);
+
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -157,7 +180,7 @@ vrna_E_mb_loop_fast(vrna_fold_compound_t  *vc,
         if (vc->hc->type == VRNA_HC_WINDOW)
           e = E_mb_loop_fast_comparative_window(vc, i, j, dmli1, dmli2);
         else
-          e = E_mb_loop_fast_comparative(vc, i, j, dmli1, dmli2);
+          e = E_mb_loop_fast(vc, i, j, dmli1, dmli2);
 
         break;
     }
@@ -226,67 +249,30 @@ vrna_E_mb_loop_stack(vrna_fold_compound_t *vc,
 }
 
 
-PRIVATE int
-E_mb_loop_fast_comparative(vrna_fold_compound_t *vc,
-                           int                  i,
-                           int                  j,
-                           int                  *dmli1,
-                           int                  *dmli2)
+PUBLIC int
+E_ml_rightmost_stem(int                   i,
+                    int                   j,
+                    vrna_fold_compound_t  *vc)
 {
-  short                     **S, **S5, **S3;
-  int                       *indx, e, decomp, s, n_seq, dangle_model, tt;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 **scs;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  if ((vc) && (vc->matrices) && (vc->matrices->fM1)) {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        return extend_fm_3p(i, j, vc->matrices->fM1, vc);
 
-  n_seq         = vc->n_seq;
-  indx          = vc->jindx;
-  P             = vc->params;
-  md            = &(P->model_details);
-  hc            = vc->hc;
-  scs           = vc->scs;
-  dangle_model  = md->dangles;
-  e             = INF;
-  evaluate      = prepare_hc_default(vc, &hc_dat_local);
-
-  /* multi-loop decomposition ------------------------*/
-  if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-    decomp = dmli1[j - 1];
-
-    S   = vc->S;
-    S5  = vc->S5;       /* S5[s][i] holds next base 5' of i in sequence s */
-    S3  = vc->S3;       /* Sl[s][i] holds next base 3' of i in sequence s */
-
-    if (dangle_model) {
-      for (s = 0; s < n_seq; s++) {
-        tt      = vrna_get_ptype_md(S[s][j], S[s][i], md);
-        decomp  += E_MLstem(tt, S5[s][j], S3[s][i], P);
-      }
-    } else {
-      for (s = 0; s < n_seq; s++) {
-        tt      = vrna_get_ptype_md(S[s][j], S[s][i], md);
-        decomp  += E_MLstem(tt, -1, -1, P);
-      }
+      case VRNA_FC_TYPE_COMPARATIVE:
+        return extend_fm_3p_comparative(i, j, vc->matrices->fM1, vc);
     }
-
-    if (scs) {
-      for (s = 0; s < n_seq; s++) {
-        if (scs[s])
-          if (scs[s]->energy_bp)
-            decomp += scs[s]->energy_bp[indx[j] + i];
-      }
-    }
-
-    e = decomp + n_seq * P->MLclosing;
   }
 
-  return e;
+  return INF;
 }
 
 
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
 PRIVATE int
 E_mb_loop_fast_comparative_window(vrna_fold_compound_t  *vc,
                                   int                   i,
@@ -356,10 +342,11 @@ ml_pair_d0(vrna_fold_compound_t       *fc,
            struct default_data        *hc_wrapper,
            struct sc_wrapper_ml       *sc_wrapper)
 {
-  short         *S;
-  unsigned int  tt;
+  short         *S, **SS;
+  unsigned int  tt, s, n_seq;
   int           e;
   vrna_param_t  *P;
+  vrna_md_t     *md;
 
   e = INF;
 
@@ -367,177 +354,35 @@ ml_pair_d0(vrna_fold_compound_t       *fc,
     e = dmli1[j - 1];
 
     if (e != INF) {
-      S   = fc->sequence_encoding2;
       P   = fc->params;
-      tt  = vrna_get_ptype_md(S[j], S[i], &(P->model_details));
-      e   += E_MLstem(tt, -1, -1, P) +
-             P->MLclosing;
+      md  = &(P->model_details);
+
+      switch (fc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          S   = fc->sequence_encoding2;
+          tt  = vrna_get_ptype_md(S[j], S[i], md);
+
+          if (md->noGUclosure && ((tt == 3) || (tt == 4)))
+            return INF; /* not allowed */
+
+          e += E_MLstem(tt, -1, -1, P) +
+               P->MLclosing;
+          break;
+
+        case VRNA_FC_TYPE_COMPARATIVE:
+          n_seq = fc->n_seq;
+          SS    = fc->S;
+          for (s = 0; s < n_seq; s++) {
+            tt  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
+            e   += E_MLstem(tt, -1, -1, P);
+          }
+
+          e += n_seq * P->MLclosing;
+          break;
+      }
 
       if (sc_wrapper->pair)
         e += sc_wrapper->pair(i, j, sc_wrapper);
-    }
-  }
-
-  return e;
-}
-
-
-PRIVATE INLINE int
-ml_pair_d2(vrna_fold_compound_t       *fc,
-           int                        i,
-           int                        j,
-           int                        *dmli1,
-           vrna_callback_hc_evaluate  *evaluate,
-           struct default_data        *hc_wrapper,
-           struct sc_wrapper_ml       *sc_wrapper)
-{
-  short         *S, *S2, si1, sj1;
-  unsigned int  tt, strands, *sn;
-  int           e;
-  vrna_param_t  *P;
-
-  e = INF;
-
-  if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
-    e = dmli1[j - 1];
-
-    if (e != INF) {
-      strands = fc->strands;
-      sn      = fc->strand_number;
-      S       = fc->sequence_encoding;
-      S2      = fc->sequence_encoding2;
-      P       = fc->params;
-      tt      = vrna_get_ptype_md(S2[j], S2[i], &(P->model_details));
-      si1     = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
-      sj1     = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
-
-      e += E_MLstem(tt, sj1, si1, P) +
-           P->MLclosing;
-
-      if (sc_wrapper->pair)
-        e += sc_wrapper->pair(i, j, sc_wrapper);
-    }
-  }
-
-  return e;
-}
-
-
-PRIVATE INLINE int
-ml_pair5(vrna_fold_compound_t       *fc,
-         int                        i,
-         int                        j,
-         int                        *dmli2,
-         vrna_callback_hc_evaluate  *evaluate,
-         struct default_data        *hc_wrapper,
-         struct sc_wrapper_ml       *sc_wrapper)
-{
-  short         *S, *S2, si1;
-  unsigned int  tt, strands, *sn;
-  int           e;
-  vrna_param_t  *P;
-
-  e = INF;
-
-  if (evaluate(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
-    e = dmli2[j - 1];
-
-    if (e != INF) {
-      strands = fc->strands;
-      sn      = fc->strand_number;
-      S       = fc->sequence_encoding;
-      S2      = fc->sequence_encoding2;
-      P       = fc->params;
-      tt      = vrna_get_ptype_md(S2[j], S2[i], &(P->model_details));
-      si1     = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
-
-      e += E_MLstem(tt, -1, si1, P) +
-           P->MLclosing;
-
-      if (sc_wrapper->pair5)
-        e += sc_wrapper->pair5(i, j, sc_wrapper);
-    }
-  }
-
-  return e;
-}
-
-
-PRIVATE INLINE int
-ml_pair3(vrna_fold_compound_t       *fc,
-         int                        i,
-         int                        j,
-         int                        *dmli1,
-         vrna_callback_hc_evaluate  *evaluate,
-         struct default_data        *hc_wrapper,
-         struct sc_wrapper_ml       *sc_wrapper)
-{
-  short         *S, *S2, sj1;
-  unsigned int  tt, strands, *sn;
-  int           e;
-  vrna_param_t  *P;
-
-  e = INF;
-
-  if (evaluate(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
-    e = dmli1[j - 2];
-
-    if (e != INF) {
-      strands = fc->strands;
-      sn      = fc->strand_number;
-      S       = fc->sequence_encoding;
-      S2      = fc->sequence_encoding2;
-      P       = fc->params;
-      tt      = vrna_get_ptype_md(S2[j], S2[i], &(P->model_details));
-      sj1     = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
-
-      e += E_MLstem(tt, sj1, -1, P) +
-           P->MLclosing;
-
-      if (sc_wrapper->pair3)
-        e += sc_wrapper->pair3(i, j, sc_wrapper);
-    }
-  }
-
-  return e;
-}
-
-
-PRIVATE INLINE int
-ml_pair53(vrna_fold_compound_t      *fc,
-          int                       i,
-          int                       j,
-          int                       *dmli1,
-          int                       *dmli2,
-          vrna_callback_hc_evaluate *evaluate,
-          struct default_data       *hc_wrapper,
-          struct sc_wrapper_ml      *sc_wrapper)
-{
-  short         *S, *S2, si1, sj1;
-  unsigned int  tt, strands, *sn;
-  int           e;
-  vrna_param_t  *P;
-
-  e = INF;
-
-  if (evaluate(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
-    e = dmli2[j - 2];
-
-    if (e != INF) {
-      strands = fc->strands;
-      sn      = fc->strand_number;
-      S       = fc->sequence_encoding;
-      S2      = fc->sequence_encoding2;
-      P       = fc->params;
-      tt      = vrna_get_ptype_md(S2[j], S2[i], &(P->model_details));
-      si1     = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
-      sj1     = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
-
-      e += E_MLstem(tt, sj1, si1, P) +
-           P->MLclosing;
-
-      if (sc_wrapper->pair53)
-        e += sc_wrapper->pair53(i, j, sc_wrapper);
     }
   }
 
@@ -576,6 +421,267 @@ ml_pair_d1(vrna_fold_compound_t       *fc,
 }
 
 
+PRIVATE INLINE int
+ml_pair_d2(vrna_fold_compound_t       *fc,
+           int                        i,
+           int                        j,
+           int                        *dmli1,
+           vrna_callback_hc_evaluate  *evaluate,
+           struct default_data        *hc_wrapper,
+           struct sc_wrapper_ml       *sc_wrapper)
+{
+  short         *S, *S2, **SS, **S5, **S3, si1, sj1;
+  unsigned int  tt, strands, *sn, s, n_seq;
+  int           e;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+
+  e = INF;
+
+  if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
+    e = dmli1[j - 1];
+
+    if (e != INF) {
+      P   = fc->params;
+      md  = &(P->model_details);
+
+      switch (fc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          strands = fc->strands;
+          sn      = fc->strand_number;
+          S       = fc->sequence_encoding;
+          S2      = fc->sequence_encoding2;
+          tt      = vrna_get_ptype_md(S2[j], S2[i], md);
+
+          if (md->noGUclosure && ((tt == 3) || (tt == 4)))
+            return INF; /* not allowed */
+
+          si1 = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
+          sj1 = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
+
+          e += E_MLstem(tt, sj1, si1, P) +
+               P->MLclosing;
+          break;
+
+        case VRNA_FC_TYPE_COMPARATIVE:
+          n_seq = fc->n_seq;
+          SS    = fc->S;
+          S5    = fc->S5;
+          S3    = fc->S3;
+
+          for (s = 0; s < n_seq; s++) {
+            tt  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
+            e   += E_MLstem(tt, S5[s][j], S3[s][i], P);
+          }
+
+          e += n_seq * P->MLclosing;
+          break;
+      }
+
+      if (sc_wrapper->pair)
+        e += sc_wrapper->pair(i, j, sc_wrapper);
+    }
+  }
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+ml_pair5(vrna_fold_compound_t       *fc,
+         int                        i,
+         int                        j,
+         int                        *dmli2,
+         vrna_callback_hc_evaluate  *evaluate,
+         struct default_data        *hc_wrapper,
+         struct sc_wrapper_ml       *sc_wrapper)
+{
+  short         *S, *S2, **SS, **S3, si1;
+  unsigned int  tt, strands, *sn, n_seq, s;
+  int           e;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+
+  e = INF;
+
+  if (evaluate(i, j, i + 2, j - 1, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
+    e = dmli2[j - 1];
+
+    if (e != INF) {
+      P   = fc->params;
+      md  = &(P->model_details);
+
+      switch (fc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          strands = fc->strands;
+          sn      = fc->strand_number;
+          S       = fc->sequence_encoding;
+          S2      = fc->sequence_encoding2;
+          tt      = vrna_get_ptype_md(S2[j], S2[i], md);
+
+          if (md->noGUclosure && ((tt == 3) || (tt == 4)))
+            return INF; /* not allowed */
+
+          si1 = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
+
+          e += E_MLstem(tt, -1, si1, P) +
+               P->MLclosing;
+          break;
+
+        case VRNA_FC_TYPE_COMPARATIVE:
+          n_seq = fc->n_seq;
+          SS    = fc->S;
+          S3    = fc->S3;
+
+          for (s = 0; s < n_seq; s++) {
+            tt  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
+            e   += E_MLstem(tt, -1, S3[s][i], P);
+          }
+
+          e += n_seq * P->MLclosing;
+          break;
+      }
+
+      if (sc_wrapper->pair5)
+        e += sc_wrapper->pair5(i, j, sc_wrapper);
+    }
+  }
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+ml_pair3(vrna_fold_compound_t       *fc,
+         int                        i,
+         int                        j,
+         int                        *dmli1,
+         vrna_callback_hc_evaluate  *evaluate,
+         struct default_data        *hc_wrapper,
+         struct sc_wrapper_ml       *sc_wrapper)
+{
+  short         *S, *S2, **SS, **S5, sj1;
+  unsigned int  tt, strands, *sn, n_seq, s;
+  int           e;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+
+  e = INF;
+
+  if (evaluate(i, j, i + 1, j - 2, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
+    e = dmli1[j - 2];
+
+    if (e != INF) {
+      P   = fc->params;
+      md  = &(P->model_details);
+
+      switch (fc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          strands = fc->strands;
+          sn      = fc->strand_number;
+          S       = fc->sequence_encoding;
+          S2      = fc->sequence_encoding2;
+          tt      = vrna_get_ptype_md(S2[j], S2[i], md);
+
+          if (md->noGUclosure && ((tt == 3) || (tt == 4)))
+            return INF; /* not allowed */
+
+          sj1 = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
+
+          e += E_MLstem(tt, sj1, -1, P) +
+               P->MLclosing;
+          break;
+
+        case VRNA_FC_TYPE_COMPARATIVE:
+          n_seq = fc->n_seq;
+          SS    = fc->S;
+          S5    = fc->S5;
+
+          for (s = 0; s < n_seq; s++) {
+            tt  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
+            e   += E_MLstem(tt, S5[s][j], -1, P);
+          }
+
+          e += n_seq * P->MLclosing;
+          break;
+      }
+
+      if (sc_wrapper->pair3)
+        e += sc_wrapper->pair3(i, j, sc_wrapper);
+    }
+  }
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+ml_pair53(vrna_fold_compound_t      *fc,
+          int                       i,
+          int                       j,
+          int                       *dmli1,
+          int                       *dmli2,
+          vrna_callback_hc_evaluate *evaluate,
+          struct default_data       *hc_wrapper,
+          struct sc_wrapper_ml      *sc_wrapper)
+{
+  short         *S, *S2, **SS, **S3, **S5, si1, sj1;
+  unsigned int  tt, strands, *sn, n_seq, s;
+  int           e;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+
+  e = INF;
+
+  if (evaluate(i, j, i + 2, j - 2, VRNA_DECOMP_PAIR_ML, hc_wrapper)) {
+    e = dmli2[j - 2];
+
+    if (e != INF) {
+      P   = fc->params;
+      md  = &(P->model_details);
+
+      switch (fc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          strands = fc->strands;
+          sn      = fc->strand_number;
+          S       = fc->sequence_encoding;
+          S2      = fc->sequence_encoding2;
+          tt      = vrna_get_ptype_md(S2[j], S2[i], &(P->model_details));
+
+          if (md->noGUclosure && ((tt == 3) || (tt == 4)))
+            return INF; /* not allowed */
+
+          si1 = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
+          sj1 = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
+
+          e += E_MLstem(tt, sj1, si1, P) +
+               P->MLclosing;
+          break;
+
+        case VRNA_FC_TYPE_COMPARATIVE:
+          n_seq = fc->n_seq;
+          SS    = fc->S;
+          S5    = fc->S5;
+          S3    = fc->S3;
+
+          for (s = 0; s < n_seq; s++) {
+            tt  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
+            e   += E_MLstem(tt, S5[s][j], S3[s][i], P);
+          }
+
+          e += n_seq * P->MLclosing;
+          break;
+      }
+
+      if (sc_wrapper->pair53)
+        e += sc_wrapper->pair53(i, j, sc_wrapper);
+    }
+  }
+
+  return e;
+}
+
+
 PRIVATE int
 E_mb_loop_fake(vrna_fold_compound_t *vc,
                int                  i,
@@ -590,7 +696,6 @@ E_mb_loop_fake(vrna_fold_compound_t *vc,
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
-  struct sc_wrapper_ml      sc_wrapper;
 
   S             = vc->sequence_encoding;
   S2            = vc->sequence_encoding2;
@@ -613,8 +718,6 @@ E_mb_loop_fake(vrna_fold_compound_t *vc,
   decomp  = INF;
 
   evaluate = prepare_hc_default_ext(vc, &hc_dat_local);
-
-  init_sc_wrapper(vc, &sc_wrapper);
 
   ij  = indx[j] + i;
   tt  = vrna_get_ptype_md(S2[j], S2[i], md);
@@ -694,31 +797,22 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
                int                  *dmli1,
                int                  *dmli2)
 {
-  short                     S_i1, S_j1, *S, *S2;
   unsigned int              strands, *sn, *so, *ss, *se;
-  int                       decomp, en, e, *indx, *fc, ij, dangle_model, tt, noGUclosure;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 *sc;
+  int                       decomp, e, *fc, dangle_model;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
   struct sc_wrapper_ml      sc_wrapper;
 
-  S             = vc->sequence_encoding;
-  S2            = vc->sequence_encoding2;
-  indx          = vc->jindx;
   strands       = vc->strands;
   sn            = vc->strand_number;
   so            = vc->strand_order;
   ss            = vc->strand_start;
   se            = vc->strand_end;
-  hc            = vc->hc;
-  sc            = vc->sc;
   fc            = vc->matrices->fc;
   P             = vc->params;
   md            = &(P->model_details);
-  noGUclosure   = md->noGUclosure;
   dangle_model  = md->dangles;
 
   /* init values */
@@ -728,12 +822,6 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
   evaluate = prepare_hc_default(vc, &hc_dat_local);
 
   init_sc_wrapper(vc, &sc_wrapper);
-
-  ij  = indx[j] + i;
-  tt  = vrna_get_ptype_md(S2[j], S2[i], md);
-
-  if (noGUclosure && ((tt == 3) || (tt == 4)))
-    return e;
 
   switch (dangle_model) {
     /* no dangles */
@@ -752,10 +840,12 @@ E_mb_loop_fast(vrna_fold_compound_t *vc,
       break;
   }
 
+  free_sc_wrapper(&sc_wrapper);
+
   e = MIN2(e, decomp);
 
   /* add additional cases for possible strand nicks between i and j */
-  if (sn[i] != sn[j]) {
+  if ((fc->type == VRNA_FC_TYPE_SINGLE) && (sn[i] != sn[j])) {
     decomp  = E_mb_loop_fake(vc, i, j);
     e       = MIN2(e, decomp);
   }
@@ -1064,25 +1154,6 @@ E_mb_loop_stack_window(vrna_fold_compound_t *vc,
   }
 
   return e;
-}
-
-
-PUBLIC int
-E_ml_rightmost_stem(int                   i,
-                    int                   j,
-                    vrna_fold_compound_t  *vc)
-{
-  if ((vc) && (vc->matrices) && (vc->matrices->fM1)) {
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        return extend_fm_3p(i, j, vc->matrices->fM1, vc);
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        return extend_fm_3p_comparative(i, j, vc->matrices->fM1, vc);
-    }
-  }
-
-  return INF;
 }
 
 
