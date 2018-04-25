@@ -83,10 +83,13 @@ E_ml_stems_fast_window(vrna_fold_compound_t *vc,
 
 
 PRIVATE int
-extend_fm_3p(int                  i,
-             int                  j,
-             int                  *fm,
-             vrna_fold_compound_t *vc);
+extend_fm_3p(int                        i,
+             int                        j,
+             int                        *fm,
+             vrna_fold_compound_t       *vc,
+             vrna_callback_hc_evaluate  *evaluate,
+             struct default_data        *hc_data,
+             struct sc_wrapper_ml       *sc_wrapper);
 
 
 PRIVATE int
@@ -233,10 +236,24 @@ E_ml_rightmost_stem(int                   i,
                     int                   j,
                     vrna_fold_compound_t  *vc)
 {
-  if ((vc) && (vc->matrices) && (vc->matrices->fM1))
-    return extend_fm_3p(i, j, vc->matrices->fM1, vc);
+  int e;
 
-  return INF;
+  e = INF;
+
+  if ((vc) && (vc->matrices) && (vc->matrices->fM1)) {
+    struct default_data       hc_dat_local;
+    struct sc_wrapper_ml      sc_wrapper;
+    vrna_callback_hc_evaluate *evaluate;
+
+    evaluate = prepare_hc_default(vc, &hc_dat_local);
+    init_sc_wrapper(vc, &sc_wrapper);
+
+    e = extend_fm_3p(i, j, vc->matrices->fM1, vc, evaluate, &hc_dat_local, &sc_wrapper);
+
+    free_sc_wrapper(&sc_wrapper);
+  }
+
+  return e;
 }
 
 
@@ -1170,23 +1187,23 @@ E_mb_loop_stack_window(vrna_fold_compound_t *vc,
  * This function can be used for fM and fM1
  */
 PRIVATE int
-extend_fm_3p(int                  i,
-             int                  j,
-             int                  *fm,
-             vrna_fold_compound_t *vc)
+extend_fm_3p(int                        i,
+             int                        j,
+             int                        *fm,
+             vrna_fold_compound_t       *vc,
+             vrna_callback_hc_evaluate  *evaluate,
+             struct default_data        *hc_dat_local,
+             struct sc_wrapper_ml       *sc_wrapper)
 {
-  short                     *S, **SS, **S5, **S3;
-  unsigned int              *sn, n_seq, s, **a2s;
-  int                       en, en2, length, *indx, *c, *ggg, ij, type,
-                            dangle_model, with_gquad, e, u, k, cnt, with_ud;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 *sc, **scs;
-  vrna_ud_t                 *domains_up;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
-  struct sc_wrapper_ml      sc_wrapper;
+  short         *S, **SS, **S5, **S3;
+  unsigned int  *sn, n_seq, s, **a2s;
+  int           en, en2, length, *indx, *c, *ggg, ij, type,
+                dangle_model, with_gquad, e, u, k, cnt, with_ud;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc, **scs;
+  vrna_ud_t     *domains_up;
 
   n_seq         = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
   length        = vc->length;
@@ -1210,10 +1227,8 @@ extend_fm_3p(int                  i,
   domains_up    = vc->domains_up;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   e             = INF;
-  evaluate      = prepare_hc_default(vc, &hc_dat_local);
-  init_sc_wrapper(vc, &sc_wrapper);
 
-  if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+  if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, hc_dat_local)) {
     en = c[ij];
     if (en != INF) {
       switch (vc->type) {
@@ -1242,8 +1257,8 @@ extend_fm_3p(int                  i,
           break;
       }
 
-      if (sc_wrapper.red_stem)
-        en += sc_wrapper.red_stem(i, j, i, j, &sc_wrapper);
+      if (sc_wrapper->red_stem)
+        en += sc_wrapper->red_stem(i, j, i, j, sc_wrapper);
 
       e = MIN2(e, en);
     }
@@ -1261,7 +1276,7 @@ extend_fm_3p(int                  i,
     }
   }
 
-  if (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
+  if (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_ML, hc_dat_local)) {
     if (fm[indx[j - 1] + i] != INF) {
       en = P->MLbase;
 
@@ -1270,8 +1285,8 @@ extend_fm_3p(int                  i,
 
       en += fm[indx[j - 1] + i];
 
-      if (sc_wrapper.red_ml)
-        en += sc_wrapper.red_ml(i, j, i, j - 1, &sc_wrapper);
+      if (sc_wrapper->red_ml)
+        en += sc_wrapper->red_ml(i, j, i, j - 1, sc_wrapper);
 
       e = MIN2(e, en);
     }
@@ -1281,7 +1296,7 @@ extend_fm_3p(int                  i,
     for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
       u = domains_up->uniq_motif_size[cnt];
       k = j - u + 1;
-      if ((k > i) && (evaluate(i, j, i, k - 1, VRNA_DECOMP_ML_ML, &hc_dat_local))) {
+      if ((k > i) && (evaluate(i, j, i, k - 1, VRNA_DECOMP_ML_ML, hc_dat_local))) {
         if (fm[indx[k - 1] + i] != INF) {
           en = u * P->MLbase;
 
@@ -1298,8 +1313,8 @@ extend_fm_3p(int                  i,
           if (en2 != INF) {
             en += en2;
 
-            if (sc_wrapper.red_ml)
-              en += sc_wrapper.red_ml(i, j, i, k - 1, &sc_wrapper);
+            if (sc_wrapper->red_ml)
+              en += sc_wrapper->red_ml(i, j, i, k - 1, sc_wrapper);
 
             e = MIN2(e, en);
           }
@@ -1307,8 +1322,6 @@ extend_fm_3p(int                  i,
       }
     }
   }
-
-  free_sc_wrapper(&sc_wrapper);
 
   return e;
 }
@@ -1554,7 +1567,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
    *  extension with one unpaired nucleotide at the right (3' site)
    *  or full branch of (i,j)
    */
-  e = extend_fm_3p(i, j, fm, vc);
+  e = extend_fm_3p(i, j, fm, vc, evaluate, &hc_dat_local, &sc_wrapper);
 
   /*
    *  extension with one unpaired nucleotide at 5' site
