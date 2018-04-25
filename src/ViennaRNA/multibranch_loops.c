@@ -96,14 +96,16 @@ extend_fm_3p_window(int                   i,
                     vrna_fold_compound_t  *vc);
 
 
-PRIVATE int E_mb_loop_stack(vrna_fold_compound_t  *vc,
-                            int                   i,
-                            int                   j);
+PRIVATE int
+E_mb_loop_stack(vrna_fold_compound_t  *vc,
+                int                   i,
+                int                   j);
 
 
-PRIVATE int E_mb_loop_stack_window(vrna_fold_compound_t *vc,
-                                   int                  i,
-                                   int                  j);
+PRIVATE int
+E_mb_loop_stack_window(vrna_fold_compound_t *vc,
+                       int                  i,
+                       int                  j);
 
 
 PRIVATE INLINE int
@@ -152,22 +154,18 @@ vrna_E_mb_loop_fast(vrna_fold_compound_t  *vc,
   int e = INF;
 
   if (vc) {
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        if (vc->hc->type == VRNA_HC_WINDOW)
+    if (vc->hc->type == VRNA_HC_WINDOW) {
+      switch (vc->type) {
+        case VRNA_FC_TYPE_SINGLE:
           e = E_mb_loop_fast_window(vc, i, j, dmli1, dmli2);
-        else
-          e = E_mb_loop_fast(vc, i, j, dmli1, dmli2);
+          break;
 
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        if (vc->hc->type == VRNA_HC_WINDOW)
+        case VRNA_FC_TYPE_COMPARATIVE:
           e = E_mb_loop_fast_comparative_window(vc, i, j, dmli1, dmli2);
-        else
-          e = E_mb_loop_fast(vc, i, j, dmli1, dmli2);
-
-        break;
+          break;
+      }
+    } else {
+      e = E_mb_loop_fast(vc, i, j, dmli1, dmli2);
     }
   }
 
@@ -185,22 +183,18 @@ vrna_E_ml_stems_fast(vrna_fold_compound_t *vc,
   int e = INF;
 
   if (vc) {
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        if (vc->hc->type == VRNA_HC_WINDOW)
+    if (vc->hc->type == VRNA_HC_WINDOW) {
+      switch (vc->type) {
+        case VRNA_FC_TYPE_SINGLE:
           e = E_ml_stems_fast_window(vc, i, j, fmi, dmli);
-        else
-          e = E_ml_stems_fast(vc, i, j, fmi, dmli);
+          break;
 
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        if (vc->hc->type == VRNA_HC_WINDOW)
+        case VRNA_FC_TYPE_COMPARATIVE:
           e = E_ml_stems_fast_comparative_window(vc, i, j, fmi, dmli);
-        else
-          e = E_ml_stems_fast(vc, i, j, fmi, dmli);
-
-        break;
+          break;
+      }
+    } else {
+      e = E_ml_stems_fast(vc, i, j, fmi, dmli);
     }
   }
 
@@ -216,17 +210,17 @@ vrna_E_mb_loop_stack(vrna_fold_compound_t *vc,
   int e = INF;
 
   if (vc) {
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        if (vc->hc->type == VRNA_HC_WINDOW)
+    if (vc->hc->type == VRNA_HC_WINDOW) {
+      switch (vc->type) {
+        case VRNA_FC_TYPE_SINGLE:
           e = E_mb_loop_stack_window(vc, i, j);
-        else
-          e = E_mb_loop_stack(vc, i, j);
+          break;
 
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        break;
+        case VRNA_FC_TYPE_COMPARATIVE:
+          break;
+      }
+    } else {
+      e = E_mb_loop_stack(vc, i, j);
     }
   }
 
@@ -982,30 +976,42 @@ E_mb_loop_stack(vrna_fold_compound_t  *vc,
                 int                   j)
 {
   char                      *ptype;
+  short                     **SS;
+  unsigned int              n_seq, s, *tt;
   int                       *c, *fML, e, decomp, en, i1k, k1j1, ij, k, *indx, turn,
                             type, type_2, *rtype;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 *sc;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
+  struct sc_wrapper_ml      sc_wrapper;
 
+  n_seq = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
+  SS    = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S;
   indx  = vc->jindx;
-  hc    = vc->hc;
   P     = vc->params;
   md    = &(P->model_details);
   turn  = md->min_loop_size;
-  rtype = &(md->rtype[0]);
   c     = vc->matrices->c;
   fML   = vc->matrices->fML;
-  ptype = vc->ptype;
+  ptype = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->ptype : NULL;
+  rtype = (vc->type == VRNA_FC_TYPE_SINGLE) ? &(md->rtype[0]) : NULL;
+  tt    = NULL;
+  type  = 0;
   ij    = indx[j] + i;
-  type  = vrna_get_ptype(ij, ptype);
-  sc    = vc->sc;
   e     = INF;
 
   evaluate = prepare_hc_default(vc, &hc_dat_local);
+  init_sc_wrapper(vc, &sc_wrapper);
+
+  /* prepare type(s) for enclosing pair (i, j) */
+  if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
+    tt = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
+    for (s = 0; s < n_seq; s++)
+      tt[s] = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
+  } else {
+    type = vrna_get_ptype(ij, ptype);
+  }
 
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
     decomp  = INF;
@@ -1014,45 +1020,68 @@ E_mb_loop_stack(vrna_fold_compound_t  *vc,
       i1k = indx[k] + i + 1;
 
       if (evaluate(i, j, i + 1, k, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
-        type_2 = rtype[vrna_get_ptype(i1k, ptype)];
-
         en = c[i1k] +
-             P->stack[type][type_2] +
              fML[k1j1];
 
-        if (sc)
-          if (sc->f)
-            en += sc->f(i, j, i + 1, k, VRNA_DECOMP_ML_COAXIAL, sc->data);
+        switch (vc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            type_2  = rtype[vrna_get_ptype(i1k, ptype)];
+            en      += P->stack[type][type_2];
+
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            for (s = 0; s < n_seq; s++) {
+              type_2  = vrna_get_ptype_md(SS[s][k], SS[s][i + 1], md);
+              en      += P->stack[tt[s]][type_2];
+            }
+
+            break;
+        }
+
+        if (sc_wrapper.coaxial_cls)
+          en += sc_wrapper.coaxial_cls(i, j, i + 1, k, &sc_wrapper);
 
         decomp = MIN2(decomp, en);
       }
 
       if (evaluate(i, j, k + 1, j - 1, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
-        type_2 = rtype[vrna_get_ptype(k1j1, ptype)];
-
         en = c[k1j1] +
-             P->stack[type][type_2] +
              fML[i1k];
 
-        if (sc)
-          if (sc->f)
-            en += sc->f(i, j, k + 1, j - 1, VRNA_DECOMP_ML_COAXIAL, sc->data);
+        switch (vc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            type_2  = rtype[vrna_get_ptype(k1j1, ptype)];
+            en      += P->stack[type][type_2];
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            for (s = 0; s < n_seq; s++) {
+              type_2  = vrna_get_ptype_md(SS[s][j - 1], SS[s][k + 1], md);
+              en      += P->stack[tt[s]][type_2];
+            }
+
+            break;
+        }
+
+        if (sc_wrapper.coaxial_cls)
+          en += sc_wrapper.coaxial_cls(i, j, k + 1, j - 1, &sc_wrapper);
 
         decomp = MIN2(decomp, en);
       }
     }
     /* no TermAU penalty if coax stack */
-    decomp += 2 * P->MLintern[1] + P->MLclosing;
-    if (sc) {
-      if (sc->energy_bp)
-        decomp += sc->energy_bp[ij];
+    decomp += (2 * P->MLintern[1] + P->MLclosing) *
+              n_seq;
 
-      if (sc->f)
-        decomp += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, sc->data);
-    }
+    if (sc_wrapper.pair)
+      decomp += sc_wrapper.pair(i, j, &sc_wrapper);
 
     e = decomp;
   }
+
+  free_sc_wrapper(&sc_wrapper);
+  free(tt);
 
   return e;
 }
@@ -1744,16 +1773,31 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
     for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++) {
       ik = indx[k] + i;
       if (evaluate(i, k, k + 1, j, VRNA_DECOMP_ML_COAXIAL_ENC, &hc_dat_local)) {
-        type    = rtype[vrna_get_ptype(ik, ptype)];
-        type_2  = rtype[vrna_get_ptype(k1j, ptype)];
-
         en = c[ik] +
-             c[k1j] +
-             P->stack[type][type_2];
+             c[k1j];
 
-        if (sc)
-          if (sc->f)
-            en += sc->f(i, k, k + 1, j, VRNA_DECOMP_ML_COAXIAL_ENC, sc->data);
+        switch (vc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            type    = rtype[vrna_get_ptype(ik, ptype)];
+            type_2  = rtype[vrna_get_ptype(k1j, ptype)];
+
+            en += P->stack[type][type_2];
+
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            for (s = 0; s < n_seq; s++) {
+              type    = vrna_get_ptype_md(SS[s][k], SS[s][i], md);
+              type_2  = vrna_get_ptype_md(SS[s][j], SS[s][k + 1], md);
+
+              en += P->stack[type][type_2];
+            }
+
+            break;
+        }
+
+        if (sc_wrapper.coaxial_enc)
+          en += sc_wrapper.coaxial_enc(i, k, k + 1, j, &sc_wrapper);
 
         decomp = MIN2(decomp, en);
       }
@@ -1763,22 +1807,38 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
     for (; k <= j - 2 - turn; k++, k1j++) {
       ik = indx[k] + i;
       if (evaluate(i, k, k + 1, j, VRNA_DECOMP_ML_COAXIAL_ENC, &hc_dat_local)) {
-        type    = rtype[vrna_get_ptype(ik, ptype)];
-        type_2  = rtype[vrna_get_ptype(k1j, ptype)];
-
         en = c[ik] +
-             c[k1j] +
-             P->stack[type][type_2];
+             c[k1j];
 
-        if (sc)
-          if (sc->f)
-            en += sc->f(i, k, k + 1, j, VRNA_DECOMP_ML_COAXIAL, sc->data);
+        switch (vc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            type    = rtype[vrna_get_ptype(ik, ptype)];
+            type_2  = rtype[vrna_get_ptype(k1j, ptype)];
+
+            en += P->stack[type][type_2];
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            for (s = 0; s < n_seq; s++) {
+              type    = vrna_get_ptype_md(SS[s][k], SS[s][i], md);
+              type_2  = vrna_get_ptype_md(SS[s][j], SS[s][k + 1], md);
+
+              en += P->stack[type][type_2];
+            }
+
+            break;
+        }
+
+        if (sc_wrapper.coaxial_enc)
+          en += sc_wrapper.coaxial_enc(i, k, k + 1, j, &sc_wrapper);
 
         decomp = MIN2(decomp, en);
       }
     }
 
-    decomp += 2 * P->MLintern[1];        /* no TermAU penalty if coax stack */
+    /* no TermAU penalty if coax stack */
+    decomp += 2 * P->MLintern[1] *
+              n_seq;
 #if 0
     /*
      * This is needed for Y shaped ML loops with coax stacking of
@@ -1793,6 +1853,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
   }
 
   fmi[j] = e;
+
+  free_sc_wrapper(&sc_wrapper);
 
   return e;
 }

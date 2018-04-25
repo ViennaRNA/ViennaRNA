@@ -12,8 +12,9 @@ typedef int (sc_red)(int                   i,
 
 struct sc_wrapper_ml {
   int                     *idx;
-  int                     **up;
-  int                     *bp;
+  int                     **up;   /* unpaired constraints */
+  int                     *bp;    /* base pair constraints */
+  int                     *stack; /* stack constraints (per nucleotide) */
 
   sc_pair                 *pair;
   sc_pair                 *pair5;
@@ -24,6 +25,8 @@ struct sc_wrapper_ml {
   sc_red                  *red_ml;
 
   sc_red                  *decomp_ml;
+  sc_red                  *coaxial_cls;
+  sc_red                  *coaxial_enc;
 
   vrna_callback_sc_energy *user_cb;
   void                    *user_data;
@@ -33,6 +36,7 @@ struct sc_wrapper_ml {
   unsigned int              **a2s;
   int                       ***up_comparative;
   int                       **bp_comparative;
+  int                       **stack_comparative;
 
   vrna_callback_sc_energy   **user_cb_comparative;
   void                      **user_data_comparative;
@@ -713,6 +717,161 @@ sc_ml_decomp_ml_user_comparative(int i,
 }
 
 
+PRIVATE INLINE int
+sc_ml_coax_stack(int i,
+                 int j,
+                 int k,
+                 int l,
+                 struct sc_wrapper_ml *data)
+{
+  return data->stack[i] +
+         data->stack[j] +
+         data->stack[k] +
+         data->stack[l];
+}
+
+
+PRIVATE INLINE int
+sc_ml_coax_stack_comparative(int i,
+                             int j,
+                             int k,
+                             int l,
+                             struct sc_wrapper_ml *data)
+{
+  unsigned int s;
+  int          e;
+
+  e = 0;
+
+  for (s = 0; s < data->n_seq; s++)
+    if (data->stack_comparative[s])
+      e += data->stack_comparative[s][data->a2s[s][i]] +
+           data->stack_comparative[s][data->a2s[s][j]] +
+           data->stack_comparative[s][data->a2s[s][k]] +
+           data->stack_comparative[s][data->a2s[s][l]];
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+sc_ml_coax_closing_user(int i,
+                        int j,
+                        int k,
+                        int l,
+                        struct sc_wrapper_ml *data)
+{
+  return data->user_cb(i, j, k, l,
+                       VRNA_DECOMP_ML_COAXIAL,
+                       data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_coax_closing_user_comparative(int i,
+                                          int j,
+                                          int k,
+                                          int l,
+                                          struct sc_wrapper_ml *data)
+{
+  unsigned int s;
+  int          e;
+
+  e = 0;
+
+  for (s = 0; s < data->n_seq; s++)
+    if (data->user_cb_comparative[s])
+      e += data->user_cb_comparative[s](i, j, k, l,
+                                        VRNA_DECOMP_ML_COAXIAL,
+                                        data->user_data_comparative[s]);
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+sc_ml_coax_closing_stack_user(int i,
+                              int j,
+                              int k,
+                              int l,
+                              struct sc_wrapper_ml *data)
+{
+  return sc_ml_coax_stack(i, j, k, l, data) +
+         sc_ml_coax_closing_user(i, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_coax_closing_stack_user_comparative(int i,
+                                          int j,
+                                          int k,
+                                          int l,
+                                          struct sc_wrapper_ml *data)
+{
+  return sc_ml_coax_stack_comparative(i, j, k, l, data) +
+         sc_ml_coax_closing_user_comparative(i, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_coax_enclosed_user(int i,
+                         int j,
+                         int k,
+                         int l,
+                         struct sc_wrapper_ml *data)
+{
+  return data->user_cb(i, j, k, l,
+                       VRNA_DECOMP_ML_COAXIAL_ENC,
+                       data->user_data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_coax_enclosed_user_comparative(int i,
+                                           int j,
+                                           int k,
+                                           int l,
+                                           struct sc_wrapper_ml *data)
+{
+  unsigned int s;
+  int          e;
+
+  e = 0;
+
+  for (s = 0; s < data->n_seq; s++)
+    if (data->user_cb_comparative[s])
+      e += data->user_cb_comparative[s](i, j, k, l,
+                                        VRNA_DECOMP_ML_COAXIAL_ENC,
+                                        data->user_data_comparative[s]);
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+sc_ml_coax_enclosed_stack_user(int i,
+                               int j,
+                               int k,
+                               int l,
+                               struct sc_wrapper_ml *data)
+{
+  return sc_ml_coax_stack(i, j, k, l, data) +
+         sc_ml_coax_enclosed_user(i, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ml_coax_enclosed_stack_user_comparative(int i,
+                                           int j,
+                                           int k,
+                                           int l,
+                                           struct sc_wrapper_ml *data)
+{
+  return sc_ml_coax_stack_comparative(i, j, k, l, data) +
+         sc_ml_coax_enclosed_user_comparative(i, j, k, l, data);
+}
+
+
 PRIVATE INLINE void
 init_sc_wrapper(vrna_fold_compound_t  *fc,
                 struct sc_wrapper_ml  *sc_wrapper)
@@ -726,6 +885,8 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
   sc_wrapper->up_comparative = NULL;
   sc_wrapper->bp  = NULL;
   sc_wrapper->bp_comparative = NULL;
+  sc_wrapper->stack = NULL;
+  sc_wrapper->stack_comparative = NULL;
 
   sc_wrapper->pair      = NULL;
   sc_wrapper->pair5     = NULL;
@@ -736,6 +897,8 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
   sc_wrapper->red_ml    = NULL;
 
   sc_wrapper->decomp_ml = NULL;
+  sc_wrapper->coaxial_cls = NULL;
+  sc_wrapper->coaxial_enc = NULL;
 
   sc_wrapper->user_cb   = NULL;
   sc_wrapper->user_data = NULL;
@@ -749,13 +912,22 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
       if (sc) {
         sc_wrapper->up        = sc->energy_up;
         sc_wrapper->bp        = sc->energy_bp;
+        sc_wrapper->stack     = sc->energy_stack;
         sc_wrapper->user_cb   = sc->f;
         sc_wrapper->user_data = sc->data;
 
         if (sc->f) {
-          sc_wrapper->red_stem  = &sc_ml_reduce_stem_user;
-          sc_wrapper->red_ml    = &sc_ml_reduce_ml_user;
-          sc_wrapper->decomp_ml = &sc_ml_decomp_ml_user;
+          sc_wrapper->red_stem    = &sc_ml_reduce_stem_user;
+          sc_wrapper->red_ml      = &sc_ml_reduce_ml_user;
+          sc_wrapper->decomp_ml   = &sc_ml_decomp_ml_user;
+
+          if (sc->energy_stack) {
+            sc_wrapper->coaxial_cls = &sc_ml_coax_closing_stack_user;
+            sc_wrapper->coaxial_enc = &sc_ml_coax_enclosed_stack_user;
+          } else {
+            sc_wrapper->coaxial_cls = &sc_ml_coax_closing_user;
+            sc_wrapper->coaxial_enc = &sc_ml_coax_enclosed_user;
+          }
 
           if (sc->energy_bp) {
             sc_wrapper->pair = &sc_ml_pair_bp_user;
@@ -784,25 +956,32 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
             sc_wrapper->pair3   = &sc_ml_pair3_user;
             sc_wrapper->pair53  = &sc_ml_pair53_user;
           }
-        } else if (sc->energy_bp) {
-          sc_wrapper->pair = &sc_ml_pair_bp;
-          if (sc->energy_up) {
-            sc_wrapper->pair5   = &sc_ml_pair5_bp_up;
-            sc_wrapper->pair3   = &sc_ml_pair3_bp_up;
-            sc_wrapper->pair53  = &sc_ml_pair53_bp_up;
+        } else {
+          if (sc->energy_stack) {
+            sc_wrapper->coaxial_cls = &sc_ml_coax_stack;
+            sc_wrapper->coaxial_enc = &sc_ml_coax_stack;
+          }
+
+          if (sc->energy_bp) {
+            sc_wrapper->pair = &sc_ml_pair_bp;
+            if (sc->energy_up) {
+              sc_wrapper->pair5   = &sc_ml_pair5_bp_up;
+              sc_wrapper->pair3   = &sc_ml_pair3_bp_up;
+              sc_wrapper->pair53  = &sc_ml_pair53_bp_up;
+
+              sc_wrapper->red_ml  = &sc_ml_reduce_ml;
+            } else {
+              sc_wrapper->pair5   = &sc_ml_pair_bp;
+              sc_wrapper->pair3   = &sc_ml_pair_bp;
+              sc_wrapper->pair53  = &sc_ml_pair_bp;
+            }
+          } else if (sc->energy_up) {
+            sc_wrapper->pair5   = &sc_ml_pair5_up;
+            sc_wrapper->pair3   = &sc_ml_pair3_up;
+            sc_wrapper->pair53  = &sc_ml_pair53_up;
 
             sc_wrapper->red_ml  = &sc_ml_reduce_ml;
-          } else {
-            sc_wrapper->pair5   = &sc_ml_pair_bp;
-            sc_wrapper->pair3   = &sc_ml_pair_bp;
-            sc_wrapper->pair53  = &sc_ml_pair_bp;
           }
-        } else if (sc->energy_up) {
-          sc_wrapper->pair5   = &sc_ml_pair5_up;
-          sc_wrapper->pair3   = &sc_ml_pair3_up;
-          sc_wrapper->pair53  = &sc_ml_pair53_up;
-
-          sc_wrapper->red_ml  = &sc_ml_reduce_ml;
         }
       }
       break;
@@ -813,16 +992,20 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
       sc_wrapper->a2s   = fc->a2s;
 
       if (scs) {
-        unsigned int s, provides_sc_up, provides_sc_bp, provides_sc_user_cb;
+        unsigned int s, provides_sc_up, provides_sc_bp, provides_sc_user_cb, provides_sc_stack;
         
         provides_sc_up      = 0;
         provides_sc_bp      = 0;
         provides_sc_user_cb = 0;
+        provides_sc_stack   = 0;
 
         sc_wrapper->up_comparative        = (int ***)vrna_alloc(
                                               sizeof(int **) *
                                               fc->n_seq);
         sc_wrapper->bp_comparative        = (int **)vrna_alloc(
+                                              sizeof(int *) *
+                                              fc->n_seq);
+        sc_wrapper->stack_comparative     = (int **)vrna_alloc(
                                               sizeof(int *) *
                                               fc->n_seq);
         sc_wrapper->user_cb_comparative   = (vrna_callback_sc_energy **)vrna_alloc(
@@ -836,6 +1019,7 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
           if (scs[s]) {
             sc_wrapper->up_comparative[s]         = scs[s]->energy_up;
             sc_wrapper->bp_comparative[s]         = scs[s]->energy_bp;
+            sc_wrapper->stack_comparative[s]      = scs[s]->energy_stack;
             sc_wrapper->user_cb_comparative[s]    = scs[s]->f;
             sc_wrapper->user_data_comparative[s]  = scs[s]->data;
 
@@ -847,14 +1031,25 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
 
             if (scs[s]->f)
               provides_sc_user_cb = 1;
+
+            if (scs[s]->energy_stack)
+              provides_sc_stack = 1;
           }
         }
 
         /* bind the correct wrapper functions */
         if (provides_sc_user_cb) {
-          sc_wrapper->red_stem  = &sc_ml_reduce_stem_user_comparative;
-          sc_wrapper->red_ml    = &sc_ml_reduce_ml_user_comparative;
-          sc_wrapper->decomp_ml = &sc_ml_decomp_ml_user_comparative;
+          sc_wrapper->red_stem    = &sc_ml_reduce_stem_user_comparative;
+          sc_wrapper->red_ml      = &sc_ml_reduce_ml_user_comparative;
+          sc_wrapper->decomp_ml   = &sc_ml_decomp_ml_user_comparative;
+
+          if (provides_sc_stack) {
+            sc_wrapper->coaxial_cls = &sc_ml_coax_closing_stack_user_comparative;
+            sc_wrapper->coaxial_enc = &sc_ml_coax_enclosed_stack_user_comparative;
+          } else {
+            sc_wrapper->coaxial_cls = &sc_ml_coax_closing_user_comparative;
+            sc_wrapper->coaxial_enc = &sc_ml_coax_enclosed_user_comparative;
+          }
 
           if (provides_sc_bp) {
             sc_wrapper->pair    = &sc_ml_pair_bp_user_comparative;
@@ -882,24 +1077,32 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
             sc_wrapper->pair3   = &sc_ml_pair3_user_comparative;
             sc_wrapper->pair53  = &sc_ml_pair53_user_comparative;
           }
-        } else if (provides_sc_bp) {
-          sc_wrapper->pair    = &sc_ml_pair_bp_comparative;
-          if (provides_sc_up) {
-            sc_wrapper->pair5   = &sc_ml_pair5_bp_up_comparative;
-            sc_wrapper->pair3   = &sc_ml_pair3_bp_up_comparative;
-            sc_wrapper->pair53  = &sc_ml_pair53_bp_up_comparative;
-
-            sc_wrapper->red_ml  = &sc_ml_reduce_ml_comparative;
-          } else {
-            sc_wrapper->pair5   = &sc_ml_pair_bp_comparative;
-            sc_wrapper->pair3   = &sc_ml_pair_bp_comparative;
-            sc_wrapper->pair53  = &sc_ml_pair_bp_comparative;
+        } else {
+          if (provides_sc_stack) {
+            sc_wrapper->coaxial_cls = &sc_ml_coax_stack_comparative;
+            sc_wrapper->coaxial_enc = &sc_ml_coax_stack_comparative;
           }
-        } else if (provides_sc_up) {
-          sc_wrapper->pair5   = &sc_ml_pair5_up_comparative;
-          sc_wrapper->pair3   = &sc_ml_pair3_up_comparative;
-          sc_wrapper->pair53  = &sc_ml_pair53_up_comparative;
-          sc_wrapper->red_ml  = &sc_ml_reduce_ml_comparative;
+
+          if (provides_sc_bp) {
+            sc_wrapper->pair    = &sc_ml_pair_bp_comparative;
+
+            if (provides_sc_up) {
+              sc_wrapper->pair5   = &sc_ml_pair5_bp_up_comparative;
+              sc_wrapper->pair3   = &sc_ml_pair3_bp_up_comparative;
+              sc_wrapper->pair53  = &sc_ml_pair53_bp_up_comparative;
+
+              sc_wrapper->red_ml  = &sc_ml_reduce_ml_comparative;
+            } else {
+              sc_wrapper->pair5   = &sc_ml_pair_bp_comparative;
+              sc_wrapper->pair3   = &sc_ml_pair_bp_comparative;
+              sc_wrapper->pair53  = &sc_ml_pair_bp_comparative;
+            }
+          } else if (provides_sc_up) {
+            sc_wrapper->pair5   = &sc_ml_pair5_up_comparative;
+            sc_wrapper->pair3   = &sc_ml_pair3_up_comparative;
+            sc_wrapper->pair53  = &sc_ml_pair53_up_comparative;
+            sc_wrapper->red_ml  = &sc_ml_reduce_ml_comparative;
+          }
         }
       }
 
@@ -913,6 +1116,7 @@ free_sc_wrapper(struct sc_wrapper_ml *sc_wrapper)
 {
   free(sc_wrapper->up_comparative);
   free(sc_wrapper->bp_comparative);
+  free(sc_wrapper->stack_comparative);
   free(sc_wrapper->user_cb_comparative);
   free(sc_wrapper->user_data_comparative);
 }
