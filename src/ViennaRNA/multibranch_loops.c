@@ -1709,36 +1709,40 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
   /* modular decomposition -------------------------------*/
   stop = (strands > 1) ? (se[0]) : (j - 2 - turn);
 
-  int *fmi_tmp = (int *)vrna_alloc(sizeof(int) * (MAX2(stop, j) - i + 2));
-  fmi_tmp -= i;
+  /* use fmi pointer that we may extend to include hard/soft constraints if necessary */
+  int *fmi_tmp = fmi;
 
   if (hc->f) {
+    int *fmi_tmp = (int *)vrna_alloc(sizeof(int) * (MAX2(stop, j) - i + 2));
+    fmi_tmp -= i;
+
     for (k = i + 1 + turn; k <= stop; k++) {
-      if ((fmi[k] != INF) &&
-          hc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
-        fmi_tmp[k] = fmi[k];
-      else
+      fmi_tmp[k] = fmi[k];
+      if (!hc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
         fmi_tmp[k] = INF;
     }
 
     k++;
     for (; k <= j - 2 - turn; k++) {
-      if ((fmi[k] != INF) &&
-          hc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
-        fmi_tmp[k] = fmi[k];
-      else
+      fmi_tmp[k] = fmi[k];
+      if (!hc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
         fmi_tmp[k] = INF;
     }
-  } else {
-    for (k = i + 1 + turn; k <= stop; k++)
-      fmi_tmp[k] = fmi[k];
-
-    k++;
-    for (; k <= j - 2 - turn; k++)
-      fmi_tmp[k] = fmi[k];
   }
 
   if (sc_wrapper.decomp_ml) {
+    if (fmi_tmp == fmi) {
+      int *fmi_tmp = (int *)vrna_alloc(sizeof(int) * (MAX2(stop, j) - i + 2));
+      fmi_tmp -= i;
+
+      for (k = i + 1 + turn; k <= stop; k++)
+        fmi_tmp[k] = fmi[k];
+
+      k++;
+      for (; k <= j - 2 - turn; k++)
+        fmi_tmp[k] = fmi[k];
+    }
+
     for (k = i + 1 + turn; k <= stop; k++)
       if (fmi_tmp[k] != INF)
         fmi_tmp[k] += sc_wrapper.decomp_ml(i, j, k, k + 1, &sc_wrapper);
@@ -1772,8 +1776,11 @@ E_ml_stems_fast(vrna_fold_compound_t  *vc,
   }
 #endif
   /* end modular decomposition -------------------------------*/
-  fmi_tmp += i;
-  free(fmi_tmp);
+
+  if (fmi_tmp != fmi) {
+    fmi_tmp += i;
+    free(fmi_tmp);
+  }
 
   dmli[j] = decomp;               /* store for use in fast ML decompositon */
   e       = MIN2(e, decomp);
