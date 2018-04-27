@@ -24,12 +24,12 @@ hc_default(int            i,
 
 
 PRIVATE unsigned char
-hc_default_sn(int            i,
-           int            j,
-           int            k,
-           int            l,
-           unsigned char  d,
-           void           *data);
+hc_default_sn(int           i,
+              int           j,
+              int           k,
+              int           l,
+              unsigned char d,
+              void          *data);
 
 
 PRIVATE unsigned char
@@ -60,12 +60,12 @@ hc_default_user(int           i,
 
 
 PRIVATE unsigned char
-hc_default_sn_user(int           i,
-                int           j,
-                int           k,
-                int           l,
-                unsigned char d,
-                void          *data);
+hc_default_sn_user(int            i,
+                   int            j,
+                   int            k,
+                   int            l,
+                   unsigned char  d,
+                   void           *data);
 
 
 PRIVATE unsigned char
@@ -197,12 +197,12 @@ hc_default(int            i,
 
 
 PRIVATE unsigned char
-hc_sn(int            i,
-           int            j,
-           int            k,
-           int            l,
-           unsigned char  d,
-           void           *data)
+hc_sn(int           i,
+      int           j,
+      int           k,
+      int           l,
+      unsigned char d,
+      void          *data)
 {
   unsigned int        *sn;
   unsigned char       eval;
@@ -214,19 +214,22 @@ hc_sn(int            i,
   switch (d) {
     case VRNA_DECOMP_ML_ML_ML:
       if (sn[k] == sn[l])
-        eval  = (unsigned char)1;
+        eval = (unsigned char)1;
+
       break;
 
     case VRNA_DECOMP_ML_STEM:
-      /* fall through */
+    /* fall through */
     case VRNA_DECOMP_ML_ML:
       if ((sn[i] == sn[k]) && (sn[l] == sn[j]))
         eval = (unsigned char)1;
+
       break;
 
     case VRNA_DECOMP_PAIR_ML:
       if ((sn[i] == sn[k]) && (sn[l] == sn[j]))
         eval = (unsigned char)1;
+
       break;
 
     case VRNA_DECOMP_ML_COAXIAL:
@@ -234,11 +237,13 @@ hc_sn(int            i,
         eval = (unsigned char)1;
       else if ((l + 1 == j) && (sn[l] == sn[j]))
         eval = (unsigned char)1;
+
       break;
 
     case VRNA_DECOMP_ML_COAXIAL_ENC:
       if (sn[j] == sn[k])
         eval = (unsigned char)1;
+
       break;
 
     default:
@@ -454,13 +459,13 @@ hc_default_ext(int            i,
 
 PRIVATE INLINE unsigned char
 hc_default_sn(int           i,
-                  int           j,
-                  int           k,
-                  int           l,
-                  unsigned char d,
-                  void          *data)
+              int           j,
+              int           k,
+              int           l,
+              unsigned char d,
+              void          *data)
 {
-  unsigned char       eval;
+  unsigned char eval;
 
   eval  = hc_default(i, j, k, l, d, data);
   eval  = hc_sn(i, j, k, l, d, data) ? eval : (unsigned char)0;
@@ -488,12 +493,12 @@ hc_default_user(int           i,
 
 
 PRIVATE unsigned char
-hc_default_sn_user(int           i,
-                int           j,
-                int           k,
-                int           l,
-                unsigned char d,
-                void          *data)
+hc_default_sn_user(int            i,
+                   int            j,
+                   int            k,
+                   int            l,
+                   unsigned char  d,
+                   void           *data)
 {
   unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
@@ -546,18 +551,27 @@ PRIVATE INLINE vrna_callback_hc_evaluate *
 prepare_hc_default(vrna_fold_compound_t *vc,
                    struct default_data  *dat)
 {
-  dat->idx    = vc->jindx;
-  dat->mx     = vc->hc->matrix;
-  dat->hc_up  = vc->hc->up_ml;
-  dat->sn     = vc->strand_number;
+  dat->idx        = vc->jindx;
+  dat->mx         = vc->hc->matrix;
+  dat->mx_window  = vc->hc->matrix_local;
+  dat->hc_up      = vc->hc->up_ml;
+  dat->sn         = vc->strand_number;
 
   if (vc->hc->f) {
     dat->hc_f   = vc->hc->f;
     dat->hc_dat = vc->hc->data;
-    return (vc->strands == 1) ? &hc_default_user : &hc_default_sn_user;
+    return (vc->hc->type == VRNA_HC_WINDOW) ?
+           &hc_default_user_window :
+           ((vc->strands == 1) ?
+            &hc_default_user :
+            &hc_default_sn_user);
   }
 
-  return (vc->strands == 1) ? &hc_default : hc_default_sn;
+  return (vc->hc->type == VRNA_HC_WINDOW) ?
+         &hc_default_window :
+         ((vc->strands == 1) ?
+          &hc_default :
+          hc_default_sn);
 }
 
 
