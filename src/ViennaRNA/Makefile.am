@@ -281,6 +281,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               interior_loops.inc \
               multibranch_loops_hc.inc \
               multibranch_loops_sc.inc \
+              multibranch_loops_sc_pf.inc \
               model_avg.inc \
               model_sd.inc \
               ${SVM_H} \
