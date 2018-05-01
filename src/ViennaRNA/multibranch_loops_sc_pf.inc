@@ -1,34 +1,34 @@
 struct sc_wrapper_exp_ml;
 
-typedef FLT_OR_DBL (sc_pair)(int i,
-                             int j,
+typedef FLT_OR_DBL (sc_pair)(int                      i,
+                             int                      j,
                              struct sc_wrapper_exp_ml *data);
 
 
-typedef FLT_OR_DBL  (sc_red)(int i,
-                             int j,
-                             int k,
-                             int l,
-                             struct sc_wrapper_exp_ml *data);
+typedef FLT_OR_DBL (sc_red)(int                       i,
+                            int                       j,
+                            int                       k,
+                            int                       l,
+                            struct sc_wrapper_exp_ml  *data);
 
 
 struct sc_wrapper_exp_ml {
-  unsigned int n_seq;
-  unsigned int **a2s;
+  unsigned int                n_seq;
+  unsigned int                **a2s;
 
-  int          *idx;
+  int                         *idx;
 
-  FLT_OR_DBL   **up;
-  FLT_OR_DBL   ***up_comparative;
-  FLT_OR_DBL   *bp;
-  FLT_OR_DBL   **bp_comparative;
-  FLT_OR_DBL   **bp_local;
-  FLT_OR_DBL   ***bp_local_comparative;
+  FLT_OR_DBL                  **up;
+  FLT_OR_DBL                  ***up_comparative;
+  FLT_OR_DBL                  *bp;
+  FLT_OR_DBL                  **bp_comparative;
+  FLT_OR_DBL                  **bp_local;
+  FLT_OR_DBL                  ***bp_local_comparative;
 
-  sc_pair      *pair;
-  sc_red       *red_stem;
-  sc_red       *red_ml;
-  sc_red       *decomp_ml;
+  sc_pair                     *pair;
+  sc_red                      *red_stem;
+  sc_red                      *red_ml;
+  sc_red                      *decomp_ml;
 
   vrna_callback_sc_exp_energy *user_cb;
   void                        *user_data;
@@ -39,8 +39,8 @@ struct sc_wrapper_exp_ml {
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_pair_bp(int i,
-           int j,
+sc_pair_bp(int                      i,
+           int                      j,
            struct sc_wrapper_exp_ml *data)
 {
   return data->bp[data->idx[j] + i];
@@ -48,12 +48,12 @@ sc_pair_bp(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_pair_bp_comparative(int i,
-                       int j,
+sc_pair_bp_comparative(int                      i,
+                       int                      j,
                        struct sc_wrapper_exp_ml *data)
 {
-  unsigned int s;
-  FLT_OR_DBL   sc;
+  unsigned int  s;
+  FLT_OR_DBL    sc;
 
   sc = 1.;
 
@@ -66,8 +66,8 @@ sc_pair_bp_comparative(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_pair_bp_local(int i,
-                 int j,
+sc_pair_bp_local(int                      i,
+                 int                      j,
                  struct sc_wrapper_exp_ml *data)
 {
   return data->bp_local[i][j - i];
@@ -75,12 +75,12 @@ sc_pair_bp_local(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_pair_bp_local_comparative(int i,
-                             int j,
+sc_pair_bp_local_comparative(int                      i,
+                             int                      j,
                              struct sc_wrapper_exp_ml *data)
 {
-  unsigned int s;
-  FLT_OR_DBL   sc;
+  unsigned int  s;
+  FLT_OR_DBL    sc;
 
   sc = 1.;
 
@@ -93,8 +93,8 @@ sc_pair_bp_local_comparative(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_pair_user(int i,
-             int j,
+sc_pair_user(int                      i,
+             int                      j,
              struct sc_wrapper_exp_ml *data)
 {
   return data->user_cb(i, j, i + 1, j - 1,
@@ -104,12 +104,12 @@ sc_pair_user(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_pair_user_comparative(int i,
-                         int j,
+sc_pair_user_comparative(int                      i,
+                         int                      j,
                          struct sc_wrapper_exp_ml *data)
 {
-  unsigned int s;
-  FLT_OR_DBL   sc;
+  unsigned int  s;
+  FLT_OR_DBL    sc;
 
   sc = 1.;
 
@@ -124,9 +124,9 @@ sc_pair_user_comparative(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_pair_bp_user(int i,
-                int j,
-                struct sc_wrapper_exp_ml *data)
+sc_pair_bp_user(int                       i,
+                int                       j,
+                struct sc_wrapper_exp_ml  *data)
 {
   return sc_pair_bp(i, j, data) *
          sc_pair_user(i, j, data);
@@ -134,9 +134,9 @@ sc_pair_bp_user(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_pair_bp_user_comparative(int i,
-                            int j,
-                            struct sc_wrapper_exp_ml *data)
+sc_pair_bp_user_comparative(int                       i,
+                            int                       j,
+                            struct sc_wrapper_exp_ml  *data)
 {
   return sc_pair_bp_comparative(i, j, data) *
          sc_pair_user_comparative(i, j, data);
@@ -144,9 +144,9 @@ sc_pair_bp_user_comparative(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_pair_bp_local_user(int i,
-                      int j,
-                      struct sc_wrapper_exp_ml *data)
+sc_pair_bp_local_user(int                       i,
+                      int                       j,
+                      struct sc_wrapper_exp_ml  *data)
 {
   return sc_pair_bp_local(i, j, data) *
          sc_pair_user(i, j, data);
@@ -154,9 +154,9 @@ sc_pair_bp_local_user(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_pair_bp_local_user_comparative(int i,
-                                  int j,
-                                  struct sc_wrapper_exp_ml *data)
+sc_pair_bp_local_user_comparative(int                       i,
+                                  int                       j,
+                                  struct sc_wrapper_exp_ml  *data)
 {
   return sc_pair_bp_local_comparative(i, j, data) *
          sc_pair_user_comparative(i, j, data);
@@ -164,15 +164,15 @@ sc_pair_bp_local_user_comparative(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_reduce_up(int i,
-             int j,
-             int k,
-             int l,
+sc_reduce_up(int                      i,
+             int                      j,
+             int                      k,
+             int                      l,
              struct sc_wrapper_exp_ml *data)
 {
-  int l1 = k - i;
-  int l2 = j - l;
-  FLT_OR_DBL  sc = 1.;
+  int         l1  = k - i;
+  int         l2  = j - l;
+  FLT_OR_DBL  sc  = 1.;
 
   if (l1 > 0)
     sc *= data->up[i][l1];
@@ -185,23 +185,23 @@ sc_reduce_up(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_reduce_up_comparative(int i,
-                         int j,
-                         int k,
-                         int l,
+sc_reduce_up_comparative(int                      i,
+                         int                      j,
+                         int                      k,
+                         int                      l,
                          struct sc_wrapper_exp_ml *data)
 {
-  unsigned int s;
-  int l1, l2, start2;
-  FLT_OR_DBL  sc;
+  unsigned int  s;
+  int           l1, l2, start2;
+  FLT_OR_DBL    sc;
 
   sc = 1.;
 
   for (s = 0; s < data->n_seq; s++) {
     if (data->up_comparative[s]) {
-      l1 = data->a2s[s][k] - data->a2s[s][i];
-      l2 = data->a2s[s][j] - data->a2s[s][l];
-      start2 = data->a2s[s][l] + 1;
+      l1      = data->a2s[s][k] - data->a2s[s][i];
+      l2      = data->a2s[s][j] - data->a2s[s][l];
+      start2  = data->a2s[s][l] + 1;
 
       if (l1 > 0)
         sc *= data->up_comparative[s][data->a2s[s][i]][l1];
@@ -216,11 +216,11 @@ sc_reduce_up_comparative(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_reduce_ml_user(int i,
-                  int j,
-                  int k,
-                  int l,
-                  struct sc_wrapper_exp_ml *data)
+sc_reduce_ml_user(int                       i,
+                  int                       j,
+                  int                       k,
+                  int                       l,
+                  struct sc_wrapper_exp_ml  *data)
 {
   return data->user_cb(i, j, k, l,
                        VRNA_DECOMP_ML_ML,
@@ -229,11 +229,11 @@ sc_reduce_ml_user(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_reduce_ml_user_comparative(int i,
-                              int j,
-                              int k,
-                              int l,
-                              struct sc_wrapper_exp_ml *data)
+sc_reduce_ml_user_comparative(int                       i,
+                              int                       j,
+                              int                       k,
+                              int                       l,
+                              struct sc_wrapper_exp_ml  *data)
 {
   unsigned int  s;
   FLT_OR_DBL    sc;
@@ -251,10 +251,10 @@ sc_reduce_ml_user_comparative(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_reduce_ml_up_user(int i,
-                     int j,
-                     int k,
-                     int l,
+sc_reduce_ml_up_user(int                      i,
+                     int                      j,
+                     int                      k,
+                     int                      l,
                      struct sc_wrapper_exp_ml *data)
 {
   return sc_reduce_up(i, j, k, l, data) *
@@ -263,10 +263,10 @@ sc_reduce_ml_up_user(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_reduce_ml_up_user_comparative(int i,
-                                 int j,
-                                 int k,
-                                 int l,
+sc_reduce_ml_up_user_comparative(int                      i,
+                                 int                      j,
+                                 int                      k,
+                                 int                      l,
                                  struct sc_wrapper_exp_ml *data)
 {
   return sc_reduce_up_comparative(i, j, k, l, data) *
@@ -275,11 +275,11 @@ sc_reduce_ml_up_user_comparative(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_reduce_stem_user(int i,
-                    int j,
-                    int k,
-                    int l,
-                    struct sc_wrapper_exp_ml *data)
+sc_reduce_stem_user(int                       i,
+                    int                       j,
+                    int                       k,
+                    int                       l,
+                    struct sc_wrapper_exp_ml  *data)
 {
   return data->user_cb(i, j, k, l,
                        VRNA_DECOMP_ML_STEM,
@@ -288,14 +288,14 @@ sc_reduce_stem_user(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_reduce_stem_user_comparative(int i,
-                                int j,
-                                int k,
-                                int l,
-                                struct sc_wrapper_exp_ml *data)
+sc_reduce_stem_user_comparative(int                       i,
+                                int                       j,
+                                int                       k,
+                                int                       l,
+                                struct sc_wrapper_exp_ml  *data)
 {
-  unsigned int s;
-  FLT_OR_DBL   sc;
+  unsigned int  s;
+  FLT_OR_DBL    sc;
 
   sc = 1.;
 
@@ -310,10 +310,10 @@ sc_reduce_stem_user_comparative(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_reduce_stem_up_user(int i,
-                       int j,
-                       int k,
-                       int l,
+sc_reduce_stem_up_user(int                      i,
+                       int                      j,
+                       int                      k,
+                       int                      l,
                        struct sc_wrapper_exp_ml *data)
 {
   return sc_reduce_up(i, j, k, l, data) *
@@ -322,10 +322,10 @@ sc_reduce_stem_up_user(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_reduce_stem_up_user_comparative(int i,
-                                   int j,
-                                   int k,
-                                   int l,
+sc_reduce_stem_up_user_comparative(int                      i,
+                                   int                      j,
+                                   int                      k,
+                                   int                      l,
                                    struct sc_wrapper_exp_ml *data)
 {
   return sc_reduce_up_comparative(i, j, k, l, data) *
@@ -334,11 +334,11 @@ sc_reduce_stem_up_user_comparative(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_decomp_ml_user(int i,
-                  int j,
-                  int k,
-                  int l,
-                  struct sc_wrapper_exp_ml *data)
+sc_decomp_ml_user(int                       i,
+                  int                       j,
+                  int                       k,
+                  int                       l,
+                  struct sc_wrapper_exp_ml  *data)
 {
   return data->user_cb(i, j, k, l,
                        VRNA_DECOMP_ML_ML_ML,
@@ -347,14 +347,14 @@ sc_decomp_ml_user(int i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_decomp_ml_user_comparative(int i,
-                              int j,
-                              int k,
-                              int l,
-                              struct sc_wrapper_exp_ml *data)
+sc_decomp_ml_user_comparative(int                       i,
+                              int                       j,
+                              int                       k,
+                              int                       l,
+                              struct sc_wrapper_exp_ml  *data)
 {
-  unsigned int s;
-  FLT_OR_DBL   sc;
+  unsigned int  s;
+  FLT_OR_DBL    sc;
 
   sc = 1.;
 
@@ -367,8 +367,9 @@ sc_decomp_ml_user_comparative(int i,
   return sc;
 }
 
+
 PRIVATE INLINE void
-init_sc_wrapper(vrna_fold_compound_t  *fc,
+init_sc_wrapper(vrna_fold_compound_t      *fc,
                 struct sc_wrapper_exp_ml  *sc_wrapper)
 {
   unsigned char sliding_window;
@@ -390,10 +391,10 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
   sc_wrapper->user_cb_comparative   = NULL;
   sc_wrapper->user_data_comparative = NULL;
 
-  sc_wrapper->pair                  = NULL;
-  sc_wrapper->red_stem              = NULL;
-  sc_wrapper->red_ml                = NULL;
-  sc_wrapper->decomp_ml             = NULL;
+  sc_wrapper->pair      = NULL;
+  sc_wrapper->red_stem  = NULL;
+  sc_wrapper->red_ml    = NULL;
+  sc_wrapper->decomp_ml = NULL;
 
   sliding_window = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
 
@@ -413,9 +414,9 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
         sc_wrapper->user_data = sc->data;
 
         if (sliding_window)
-          sc_wrapper->bp_local  = sc->exp_energy_bp_local;
+          sc_wrapper->bp_local = sc->exp_energy_bp_local;
         else
-          sc_wrapper->bp        = sc->exp_energy_bp;
+          sc_wrapper->bp = sc->exp_energy_bp;
 
         if (sc->exp_energy_up)
           provides_sc_up = 1;
@@ -455,12 +456,12 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
             sc_wrapper->pair = &sc_pair_bp;
 
           if (provides_sc_up) {
-            sc_wrapper->red_stem = &sc_reduce_up;
-            sc_wrapper->red_ml = &sc_reduce_up;
+            sc_wrapper->red_stem  = &sc_reduce_up;
+            sc_wrapper->red_ml    = &sc_reduce_up;
           }
         } else if (provides_sc_up) {
-          sc_wrapper->red_stem = &sc_reduce_up;
-          sc_wrapper->red_ml = &sc_reduce_up;
+          sc_wrapper->red_stem  = &sc_reduce_up;
+          sc_wrapper->red_ml    = &sc_reduce_up;
         }
       }
 
@@ -479,7 +480,7 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
         provides_sc_user  = 0;
 
         sc_wrapper->up_comparative = (FLT_OR_DBL ***)vrna_alloc(
-          sizeof(FLT_OR_DBL **) *
+          sizeof(FLT_OR_DBL * *) *
           fc->n_seq);
 
         sc_wrapper->bp_comparative = (FLT_OR_DBL **)vrna_alloc(
@@ -487,7 +488,7 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
           fc->n_seq);
 
         sc_wrapper->bp_local_comparative = (FLT_OR_DBL ***)vrna_alloc(
-          sizeof(FLT_OR_DBL **) *
+          sizeof(FLT_OR_DBL * *) *
           fc->n_seq);
 
         sc_wrapper->user_cb_comparative = (vrna_callback_sc_exp_energy **)vrna_alloc(
@@ -500,9 +501,10 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
 
         for (s = 0; s < fc->n_seq; s++) {
           if (scs[s]) {
-            sc_wrapper->up_comparative[s]         = scs[s]->exp_energy_up;
-            sc_wrapper->bp_comparative[s]         = (sliding_window) ? NULL : scs[s]->exp_energy_bp;
-            sc_wrapper->bp_local_comparative[s]   = (sliding_window) ? scs[s]->exp_energy_bp_local : NULL;
+            sc_wrapper->up_comparative[s]       = scs[s]->exp_energy_up;
+            sc_wrapper->bp_comparative[s]       = (sliding_window) ? NULL : scs[s]->exp_energy_bp;
+            sc_wrapper->bp_local_comparative[s] =
+              (sliding_window) ? scs[s]->exp_energy_bp_local : NULL;
             sc_wrapper->user_cb_comparative[s]    = scs[s]->exp_f;
             sc_wrapper->user_data_comparative[s]  = scs[s]->data;
 
@@ -512,8 +514,9 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
             if (sliding_window) {
               if (scs[s]->exp_energy_bp_local)
                 provides_sc_bp = 1;
-            } else if (scs[s]->exp_energy_bp)
+            } else if (scs[s]->exp_energy_bp) {
               provides_sc_bp = 1;
+            }
 
             if (scs[s]->exp_f)
               provides_sc_user = 1;
@@ -535,8 +538,8 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
           }
 
           if (provides_sc_up) {
-            sc_wrapper->red_stem = &sc_reduce_stem_up_user_comparative;
-            sc_wrapper->red_ml = &sc_reduce_ml_up_user_comparative;
+            sc_wrapper->red_stem  = &sc_reduce_stem_up_user_comparative;
+            sc_wrapper->red_ml    = &sc_reduce_ml_up_user_comparative;
           }
         } else if (provides_sc_bp) {
           if (sliding_window)
@@ -545,12 +548,12 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
             sc_wrapper->pair = &sc_pair_bp_comparative;
 
           if (provides_sc_up) {
-            sc_wrapper->red_stem = &sc_reduce_up_comparative;
-            sc_wrapper->red_ml = &sc_reduce_up_comparative;
+            sc_wrapper->red_stem  = &sc_reduce_up_comparative;
+            sc_wrapper->red_ml    = &sc_reduce_up_comparative;
           }
         } else if (provides_sc_up) {
-          sc_wrapper->red_stem = &sc_reduce_up_comparative;
-          sc_wrapper->red_ml = &sc_reduce_up_comparative;
+          sc_wrapper->red_stem  = &sc_reduce_up_comparative;
+          sc_wrapper->red_ml    = &sc_reduce_up_comparative;
         }
       }
 
