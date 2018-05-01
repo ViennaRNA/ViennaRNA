@@ -1,0 +1,180 @@
+/*
+ *  This file contains some utility functions required by both, MFE and
+ *  partition function version of interior loop evaluation
+ */
+
+typedef unsigned char (eval_hc)(int   i,
+                                int   j,
+                                int   k,
+                                int   l,
+                                void  *data);
+
+struct default_data {
+  int                       *idx;
+  unsigned char             *mx;
+  unsigned char             **mx_local;
+  int                       *up;
+
+  void                      *hc_dat;
+  vrna_callback_hc_evaluate *hc_f;
+};
+
+
+PRIVATE unsigned char
+hc_default(int  i,
+           int  j,
+           int  k,
+           int  l,
+           void *data);
+
+
+PRIVATE unsigned char
+hc_default_user(int   i,
+                int   j,
+                int   k,
+                int   l,
+                void  *data);
+
+
+PRIVATE INLINE int
+ubf_eval_int_loop_comparative(int           col_i,
+                              int           col_j,
+                              int           col_p,
+                              int           col_q,
+                              unsigned char type,
+                              unsigned char type_2,
+                              int           *rtype,
+                              int           ij,
+                              vrna_param_t  *P,
+                              short         *SS,
+                              short         *S5,
+                              short         *S3,
+                              unsigned int  *a2s,
+                              vrna_sc_t     *sc);
+
+
+PRIVATE INLINE eval_hc *
+prepare_hc_default(vrna_fold_compound_t *vc,
+                   struct default_data  *dat);
+
+
+/*
+ #################################
+ # BEGIN OF FUNCTION DEFINITIONS #
+ #################################
+ */
+PRIVATE unsigned char
+hc_default(int  i,
+           int  j,
+           int  k,
+           int  l,
+           void *data)
+{
+#if 0
+  struct default_data *dat = (struct default_data *)data;
+#endif
+
+  return (unsigned char)1;
+}
+
+
+PRIVATE unsigned char
+hc_default_user(int   i,
+                int   j,
+                int   k,
+                int   l,
+                void  *data)
+{
+  struct default_data *dat = (struct default_data *)data;
+
+  return dat->hc_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, dat->hc_dat);
+}
+
+
+PRIVATE INLINE eval_hc *
+prepare_hc_default(vrna_fold_compound_t *vc,
+                   struct default_data  *dat)
+{
+  dat->idx      = vc->jindx;
+  dat->mx       = (vc->hc->type == VRNA_HC_WINDOW) ? NULL : vc->hc->matrix;
+  dat->mx_local = (vc->hc->type == VRNA_HC_WINDOW) ? vc->hc->matrix_local : NULL;
+  dat->up       = vc->hc->up_int;
+  dat->hc_f     = NULL;
+  dat->hc_dat   = NULL;
+
+  if (vc->hc->f) {
+    dat->hc_f   = vc->hc->f;
+    dat->hc_dat = vc->hc->data;
+    return &hc_default_user;
+  }
+
+  return &hc_default;
+}
+
+
+PRIVATE INLINE int
+ubf_eval_int_loop_comparative(int           col_i,
+                              int           col_j,
+                              int           col_p,
+                              int           col_q,
+                              unsigned char type,
+                              unsigned char type_2,
+                              int           *rtype,
+                              int           ij,
+                              vrna_param_t  *P,
+                              short         *SS,
+                              short         *S5,
+                              short         *S3,
+                              unsigned int  *a2s,
+                              vrna_sc_t     *sc)
+{
+  short si, sj, sp, sq;
+  int   energy, u1, u2;
+  int   i, j, p, q, i1, j1, p1, q1;
+
+  i   = a2s[col_i];
+  j   = a2s[col_j];
+  p   = a2s[col_p];
+  q   = a2s[col_q];
+  i1  = a2s[col_i + 1];
+  j1  = a2s[col_j - 1];
+  p1  = a2s[col_p - 1];
+  q1  = a2s[col_q + 1];
+
+  si  = S3[col_i];
+  sj  = S5[col_j];
+  sp  = S5[col_p];
+  sq  = S3[col_q];
+
+  u1  = p1 - i;
+  u2  = j1 - q;
+
+  energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
+
+  /* add soft constraints */
+  if (sc) {
+    if (sc->energy_up)
+      energy += sc->energy_up[i1][u1]
+                + sc->energy_up[q1][u2];
+
+    if (sc->energy_bp)
+      energy += sc->energy_bp[ij];
+
+    if (sc->energy_stack) {
+      if (u1 + u2 == 0) {
+        if (SS[col_i] && SS[col_j] && SS[col_p] && SS[col_q]) {
+          /* no gap allowed */
+          energy += sc->energy_stack[i] +
+                    sc->energy_stack[p] +
+                    sc->energy_stack[q] +
+                    sc->energy_stack[j];
+        }
+      }
+    }
+
+    if (sc->f)
+      energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
+  }
+
+  return energy;
+}

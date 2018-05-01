@@ -24,7 +24,7 @@
 # define INLINE
 #endif
 
-#include "interior_loops.inc"
+#include "interior_loops_hc.inc"
 
 /*
  #################################
@@ -149,18 +149,18 @@ BT_stack(vrna_fold_compound_t *vc,
          vrna_bp_stack_t      *bp_stack,
          int                  *stack_count)
 {
-  unsigned char             type, type_2;
-  char                      *ptype;
-  unsigned char             eval_loop;
-  unsigned int              *sn;
-  unsigned int              *ss;
-  int                       ij, p, q, *idx, *my_c, *rtype;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 *sc;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  unsigned char       type, type_2;
+  char                *ptype;
+  unsigned char       eval_loop;
+  unsigned int        *sn;
+  unsigned int        *ss;
+  int                 ij, p, q, *idx, *my_c, *rtype;
+  vrna_param_t        *P;
+  vrna_md_t           *md;
+  vrna_hc_t           *hc;
+  vrna_sc_t           *sc;
+  eval_hc             *evaluate;
+  struct default_data hc_dat_local;
 
   idx       = vc->jindx;
   P         = vc->params;
@@ -185,7 +185,7 @@ BT_stack(vrna_fold_compound_t *vc,
     eval_loop = (hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
                 && (hc->matrix[idx[q] + p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
 
-    if (eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
+    if (eval_loop && evaluate(*i, *j, p, q, &hc_dat_local)) {
       type_2  = ptype[idx[q] + p];
       type_2  = rtype[type_2];
 
@@ -248,16 +248,16 @@ BT_stack_comparative(vrna_fold_compound_t *vc,
                      vrna_bp_stack_t      *bp_stack,
                      int                  *stack_count)
 {
-  short                     **S;
-  int                       type, type_2;
-  unsigned char             eval_loop;
-  int                       p, q, *c, n_seq, ss, ij, *idx;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 **scs;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  short               **S;
+  int                 type, type_2;
+  unsigned char       eval_loop;
+  int                 p, q, *c, n_seq, ss, ij, *idx;
+  vrna_param_t        *P;
+  vrna_md_t           *md;
+  vrna_hc_t           *hc;
+  vrna_sc_t           **scs;
+  eval_hc             *evaluate;
+  struct default_data hc_dat_local;
 
   n_seq     = vc->n_seq;
   S         = vc->S;
@@ -279,7 +279,7 @@ BT_stack_comparative(vrna_fold_compound_t *vc,
     eval_loop = (hc->matrix[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
                 && (hc->matrix[idx[q] + p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
 
-    if (eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
+    if (eval_loop && evaluate(*i, *j, p, q, &hc_dat_local)) {
       for (ss = 0; ss < n_seq; ss++) {
         type    = vrna_get_ptype_md(S[ss][*i], S[ss][*j], md);
         type_2  = vrna_get_ptype_md(S[ss][q], S[ss][p], md);
@@ -323,16 +323,16 @@ BT_stack_window(vrna_fold_compound_t  *vc,
                 vrna_bp_stack_t       *bp_stack,
                 int                   *stack_count)
 {
-  unsigned char             type, type_2;
-  char                      **ptype;
-  unsigned char             eval_loop;
-  int                       p, q, **c, *rtype;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 *sc;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  unsigned char       type, type_2;
+  char                **ptype;
+  unsigned char       eval_loop;
+  int                 p, q, **c, *rtype;
+  vrna_param_t        *P;
+  vrna_md_t           *md;
+  vrna_hc_t           *hc;
+  vrna_sc_t           *sc;
+  eval_hc             *evaluate;
+  struct default_data hc_dat_local;
 
   P         = vc->params;
   md        = &(P->model_details);
@@ -353,7 +353,7 @@ BT_stack_window(vrna_fold_compound_t  *vc,
     eval_loop = (hc->matrix_local[*i][*j - *i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
                 && (hc->matrix_local[p][q - p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
 
-    if (eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
+    if (eval_loop && evaluate(*i, *j, p, q, &hc_dat_local)) {
       type_2  = ptype[p][q - p];
       type_2  = rtype[type_2];
 
@@ -397,16 +397,16 @@ BT_stack_window_comparative(vrna_fold_compound_t  *vc,
                             vrna_bp_stack_t       *bp_stack,
                             int                   *stack_count)
 {
-  int                       type, type_2;
-  unsigned char             eval_loop;
-  short                     **S;
-  int                       p, q, **c, n_seq, ss;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 **scs;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  int                 type, type_2;
+  unsigned char       eval_loop;
+  short               **S;
+  int                 p, q, **c, n_seq, ss;
+  vrna_param_t        *P;
+  vrna_md_t           *md;
+  vrna_hc_t           *hc;
+  vrna_sc_t           **scs;
+  eval_hc             *evaluate;
+  struct default_data hc_dat_local;
 
   n_seq     = vc->n_seq;
   S         = vc->S;
@@ -426,7 +426,7 @@ BT_stack_window_comparative(vrna_fold_compound_t  *vc,
     eval_loop = (hc->matrix_local[*i][*j - *i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
                 && (hc->matrix_local[p][q - p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
 
-    if (eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
+    if (eval_loop && evaluate(*i, *j, p, q, &hc_dat_local)) {
       for (ss = 0; ss < n_seq; ss++) {
         type    = vrna_get_ptype_md(S[ss][*i], S[ss][*j], md);
         type_2  = vrna_get_ptype_md(S[ss][q], S[ss][p], md);
@@ -502,20 +502,20 @@ BT_int_loop(vrna_fold_compound_t  *vc,
             vrna_bp_stack_t       *bp_stack,
             int                   *stack_count)
 {
-  unsigned char             type, type_2;
-  char                      *ptype;
-  unsigned char             eval_loop;
-  short                     *S1;
-  unsigned int              *sn;
-  int                       ij, p, q, minq, turn, *idx, noGUclosure, no_close,
-                            energy, new, *my_c, *rtype;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 *sc;
-  vrna_ud_t                 *domains_up;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  unsigned char       type, type_2;
+  char                *ptype;
+  unsigned char       eval_loop;
+  short               *S1;
+  unsigned int        *sn;
+  int                 ij, p, q, minq, turn, *idx, noGUclosure, no_close,
+                      energy, new, *my_c, *rtype;
+  vrna_param_t        *P;
+  vrna_md_t           *md;
+  vrna_hc_t           *hc;
+  vrna_sc_t           *sc;
+  vrna_ud_t           *domains_up;
+  eval_hc             *evaluate;
+  struct default_data hc_dat_local;
 
   idx         = vc->jindx;
   P           = vc->params;
@@ -555,7 +555,7 @@ BT_int_loop(vrna_fold_compound_t  *vc,
           type_2    = (unsigned char)ptype[idx[q] + p];
           eval_loop = hc->matrix[idx[q] + p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
 
-          if (!(eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)))
+          if (!(eval_loop && evaluate(*i, *j, p, q, &hc_dat_local)))
             continue;
 
           type_2 = rtype[type_2];
@@ -570,7 +570,7 @@ BT_int_loop(vrna_fold_compound_t  *vc,
 
           /* continue unless stack */
 
-          energy  = eval_interior_loop(vc, *i, *j, p, q);
+          energy  = vrna_eval_int_loop(vc, *i, *j, p, q);
           new     = energy + my_c[idx[q] + p];
 
           if (new == en) {
@@ -610,7 +610,7 @@ BT_int_loop(vrna_fold_compound_t  *vc,
 
           eval_loop = hc->matrix[idx[q] + p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
 
-          if (!(eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)))
+          if (!(eval_loop && evaluate(*i, *j, p, q, &hc_dat_local)))
             continue;
 
           type_2 = rtype[type_2];
@@ -687,17 +687,17 @@ BT_int_loop_comparative(vrna_fold_compound_t  *vc,
                         vrna_bp_stack_t       *bp_stack,
                         int                   *stack_count)
 {
-  unsigned char             eval_loop;
-  unsigned int              **a2s;
-  short                     **S, **S5, **S3, *S_cons;
-  int                       ij, p, q, minq, turn, *idx,
-                            energy, new, *my_c, *ggg, n_seq, ss, *type, type_2;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 **scs;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  unsigned char       eval_loop;
+  unsigned int        **a2s;
+  short               **S, **S5, **S3, *S_cons;
+  int                 ij, p, q, minq, turn, *idx,
+                      energy, new, *my_c, *ggg, n_seq, ss, *type, type_2;
+  vrna_param_t        *P;
+  vrna_md_t           *md;
+  vrna_hc_t           *hc;
+  vrna_sc_t           **scs;
+  eval_hc             *evaluate;
+  struct default_data hc_dat_local;
 
   n_seq     = vc->n_seq;
   S_cons    = vc->S_cons;
@@ -735,7 +735,7 @@ BT_int_loop_comparative(vrna_fold_compound_t  *vc,
 
         eval_loop = hc->matrix[idx[q] + p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
 
-        if (!(eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)))
+        if (!(eval_loop && evaluate(*i, *j, p, q, &hc_dat_local)))
           continue;
 
         for (ss = energy = 0; ss < n_seq; ss++) {
@@ -847,19 +847,19 @@ BT_int_loop_window(vrna_fold_compound_t *vc,
                    vrna_bp_stack_t      *bp_stack,
                    int                  *stack_count)
 {
-  int                       type, type_2;
-  char                      **ptype;
-  unsigned char             eval_loop;
-  short                     *S, *S1;
-  unsigned int              *sn;
-  int                       p, q, minq, turn, maxdist, noGUclosure, no_close,
-                            energy, new, **c, **ggg, *rtype, u1, u2;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 *sc;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  int                 type, type_2;
+  char                **ptype;
+  unsigned char       eval_loop;
+  short               *S, *S1;
+  unsigned int        *sn;
+  int                 p, q, minq, turn, maxdist, noGUclosure, no_close,
+                      energy, new, **c, **ggg, *rtype, u1, u2;
+  vrna_param_t        *P;
+  vrna_md_t           *md;
+  vrna_hc_t           *hc;
+  vrna_sc_t           *sc;
+  eval_hc             *evaluate;
+  struct default_data hc_dat_local;
 
   S1          = vc->sequence_encoding;
   S           = vc->sequence_encoding2;
@@ -901,7 +901,7 @@ BT_int_loop_window(vrna_fold_compound_t *vc,
 
         eval_loop = hc->matrix_local[p][q - p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
 
-        if (!(eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)))
+        if (!(eval_loop && evaluate(*i, *j, p, q, &hc_dat_local)))
           continue;
 
         type_2  = ptype[p][q - p];
@@ -1002,17 +1002,17 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
                                vrna_bp_stack_t      *bp_stack,
                                int                  *stack_count)
 {
-  unsigned char             eval_loop;
-  unsigned int              **a2s;
-  short                     **S, **SS, **S5, **S3, *S_cons;
-  int                       *type, type_2, *rtype;
-  int                       p, q, minq, turn, energy, new, **c, **ggg, n_seq, ss;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 **scs, *sc;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  unsigned char       eval_loop;
+  unsigned int        **a2s;
+  short               **S, **S5, **S3, *S_cons;
+  int                 *type, type_2, *rtype;
+  int                 p, q, minq, turn, energy, new, **c, **ggg, n_seq, ss;
+  vrna_param_t        *P;
+  vrna_md_t           *md;
+  vrna_hc_t           *hc;
+  vrna_sc_t           **scs, *sc;
+  eval_hc             *evaluate;
+  struct default_data hc_dat_local;
 
   n_seq     = vc->n_seq;
   S_cons    = vc->S_cons;
@@ -1049,7 +1049,7 @@ BT_int_loop_window_comparative(vrna_fold_compound_t *vc,
 
         eval_loop = hc->matrix_local[p][q - p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
 
-        if (!(eval_loop && evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)))
+        if (!(eval_loop && evaluate(*i, *j, p, q, &hc_dat_local)))
           continue;
 
         for (ss = energy = 0; ss < n_seq; ss++) {

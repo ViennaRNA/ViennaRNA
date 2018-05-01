@@ -24,7 +24,8 @@
 # define INLINE
 #endif
 
-#include "interior_loops.inc"
+#include "interior_loops_hc.inc"
+#include "interior_loops_sc.inc"
 
 /*
  #################################
@@ -33,37 +34,27 @@
  */
 
 PRIVATE int
-E_int_loop(vrna_fold_compound_t *vc,
-           int                  i,
-           int                  j);
+E_internal_loop(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j);
 
 
 PRIVATE int
-E_int_loop_window(vrna_fold_compound_t  *vc,
-                  int                   i,
-                  int                   j);
+E_ext_internal_loop(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    int                   *ip,
+                    int                   *iq);
 
 
 PRIVATE int
-E_stack_window(vrna_fold_compound_t *vc,
-               int                  i,
-               int                  j);
-
-
-PRIVATE int
-E_int_loop_comparative(vrna_fold_compound_t *vc,
-                       int                  i,
-                       int                  j);
-
-
-PRIVATE int
-E_int_loop_comparative_window(vrna_fold_compound_t  *vc,
-                              int                   i,
-                              int                   j);
+E_stack(vrna_fold_compound_t  *fc,
+        int                   i,
+        int                   j);
 
 
 PRIVATE INLINE int
-eval_int_loop(vrna_fold_compound_t  *vc,
+eval_int_loop(vrna_fold_compound_t  *fc,
               int                   i,
               int                   j,
               int                   k,
@@ -71,11 +62,11 @@ eval_int_loop(vrna_fold_compound_t  *vc,
 
 
 PRIVATE INLINE int
-eval_int_loop_comparative(vrna_fold_compound_t  *vc,
-                          int                   i,
-                          int                   j,
-                          int                   k,
-                          int                   l);
+eval_ext_int_loop(vrna_fold_compound_t  *fc,
+                  int                   i,
+                  int                   j,
+                  int                   k,
+                  int                   l);
 
 
 /*
@@ -84,38 +75,51 @@ eval_int_loop_comparative(vrna_fold_compound_t  *vc,
  #################################
  */
 PUBLIC int
-vrna_E_int_loop(vrna_fold_compound_t  *vc,
+vrna_E_int_loop(vrna_fold_compound_t  *fc,
                 int                   i,
                 int                   j)
 {
   int e = INF;
 
-  if (vc) {
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        if (vc->hc->type == VRNA_HC_WINDOW)
-          e = E_int_loop_window(vc, i, j);
-        else
-          e = E_int_loop(vc, i, j);
-
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        if (vc->hc->type == VRNA_HC_WINDOW)
-          e = E_int_loop_comparative_window(vc, i, j);
-        else
-          e = E_int_loop_comparative(vc, i, j);
-
-        break;
-    }
-  }
+  if (fc)
+    e = E_internal_loop(fc, i, j);
 
   return e;
 }
 
 
 PUBLIC int
-vrna_eval_int_loop(vrna_fold_compound_t *vc,
+vrna_E_ext_int_loop(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    int                   *ip,
+                    int                   *iq)
+{
+  int e = INF;
+
+  if (fc)
+    e = E_ext_internal_loop(fc, i, j, ip, iq);
+
+  return e;
+}
+
+
+PUBLIC int
+vrna_E_stack(vrna_fold_compound_t *fc,
+             int                  i,
+             int                  j)
+{
+  int e = INF;
+
+  if ((fc) && (i > 0) && (i < j))
+    e = E_stack(fc, i, j);
+
+  return e;
+}
+
+
+PUBLIC int
+vrna_eval_int_loop(vrna_fold_compound_t *fc,
                    int                  i,
                    int                  j,
                    int                  k,
@@ -123,1053 +127,761 @@ vrna_eval_int_loop(vrna_fold_compound_t *vc,
 {
   int e = INF;
 
-  if (vc) {
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        e = eval_int_loop(vc, i, j, k, l);
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        e = eval_int_loop_comparative(vc, i, j, k, l);
-        break;
-    }
-  }
+  if (fc)
+    e = eval_int_loop(fc, i, j, k, l);
 
   return e;
 }
 
 
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
 PRIVATE INLINE int
-eval_int_loop(vrna_fold_compound_t  *vc,
+eval_int_loop(vrna_fold_compound_t  *fc,
               int                   i,
               int                   j,
               int                   k,
               int                   l)
 {
-  unsigned int  *sn, *ss;
-  int           ij, e, *jindx, *rtype, type, type2;
-  short         *S, *S2;
-  vrna_sc_t     *sc;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
+  unsigned int          *sn, *ss, n_seq, s, **a2s;
+  int                   e, *rtype, type, type2, with_ud;
+  short                 *S, *S2, **SS, **S5, **S3;
+  vrna_param_t          *P;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  struct sc_wrapper_int sc_wrapper;
 
-  jindx = vc->jindx;
-  sc    = vc->sc;
-  P     = vc->params;
-  md    = &(P->model_details);
-  sn    = vc->strand_number;
-  ss    = vc->strand_start;
-  rtype = &(md->rtype[0]);
-  ij    = jindx[j] + i;
-  S     = vc->sequence_encoding;
-  S2    = vc->sequence_encoding2;
+  n_seq       = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
+  P           = fc->params;
+  md          = &(P->model_details);
+  sn          = fc->strand_number;
+  ss          = fc->strand_start;
+  rtype       = &(md->rtype[0]);
+  S           = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : NULL;
+  S2          = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
+  SS          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
+  S5          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
+  S3          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
+  a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
+  domains_up  = fc->domains_up;
+  with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0;
+  e           = INF;
 
-  e = INF;
+  init_sc_wrapper(fc, &sc_wrapper);
 
-  //if ((sn[k] != sn[i]) || (sn[j] != sn[l]))
-  //  return e;
+  {
+    int energy, e5, e3, u1, u2;
 
-  type  = vrna_get_ptype_md(S2[i], S2[j], md);
-  type2 = vrna_get_ptype_md(S2[l], S2[k], md);
+    energy = 0;
 
-  e = ubf_eval_int_loop2(i, j, k, l,
-                         i + 1, j - 1, k - 1, l + 1,
-                         S[i + 1], S[j - 1], S[k - 1], S[l + 1],
-                         type, type2, rtype,
-                         ij, sn, ss,
-                         P, sc);
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        type  = vrna_get_ptype_md(S2[i], S2[j], md);
+        type2 = vrna_get_ptype_md(S2[l], S2[k], md);
+
+        u1  = k - i - 1;
+        u2  = j - l - 1;
+
+        if ((sn[i] == sn[k]) && (sn[l] == sn[j])) {
+          /* regular interior loop */
+          energy = E_IntLoop(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
+        } else {
+          /* interior loop like cofold structure */
+          short Si, Sj;
+          Si      = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
+          Sj      = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
+          energy  = E_IntLoop_Co(rtype[type], rtype[type2],
+                                 i, j, k, l,
+                                 ss[1],
+                                 Si, Sj,
+                                 S[k - 1], S[l + 1],
+                                 md->dangles,
+                                 P);
+        }
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        for (s = 0; s < n_seq; s++) {
+          type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
+          type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+          u1      = a2s[s][k - 1] - a2s[s][i];
+          u2      = a2s[s][j - 1] - a2s[s][l];
+          energy  += E_IntLoop(u1, u2, type, type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l], P);
+        }
+
+        break;
+    }
+
+    /* add soft constraints */
+    if (sc_wrapper.pair)
+      energy += sc_wrapper.pair(i, j, k, l, &sc_wrapper);
+
+    e = energy;
+
+    if (with_ud) {
+      e5 = e3 = 0;
+
+      u1  = k - i - 1;
+      u2  = j - l - 1;
+
+      if (u1 > 0) {
+        e5 = domains_up->energy_cb(fc,
+                                   i + 1, k - 1,
+                                   VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                   domains_up->data);
+      }
+
+      if (u2 > 0) {
+        e3 = domains_up->energy_cb(fc,
+                                   l + 1, j - 1,
+                                   VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                   domains_up->data);
+      }
+
+      e = MIN2(e, energy + e5);
+      e = MIN2(e, energy + e3);
+      e = MIN2(e, energy + e5 + e3);
+    }
+  }
+
+  free_sc_wrapper(&sc_wrapper);
 
   return e;
 }
 
 
 PRIVATE INLINE int
-eval_int_loop_comparative(vrna_fold_compound_t  *vc,
-                          int                   i,
-                          int                   j,
-                          int                   k,
-                          int                   l)
+eval_ext_int_loop(vrna_fold_compound_t  *fc,
+                  int                   i,
+                  int                   j,
+                  int                   k,
+                  int                   l)
 {
-  unsigned int  **a2s;
-  int           s, ij, e, *jindx, *rtype, type, type_2, n_seq;
-  short         **SS, **S5, **S3;
-  vrna_sc_t     **scs, *sc;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
+  unsigned int          n, n_seq, s, **a2s;
+  int                   e, type, type2, with_ud;
+  short                 *S, *S2, **SS, **S5, **S3;
+  vrna_param_t          *P;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  struct sc_wrapper_int sc_wrapper;
 
-  n_seq = vc->n_seq;
-  SS    = vc->S;
-  S5    = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
-  S3    = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
-  a2s   = vc->a2s;
-  jindx = vc->jindx;
-  scs   = vc->scs;
-  P     = vc->params;
-  md    = &(P->model_details);
-  rtype = &(md->rtype[0]);
-  ij    = jindx[j] + i;
+  n           = fc->length;
+  n_seq       = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
+  P           = fc->params;
+  md          = &(P->model_details);
+  S           = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : NULL;
+  S2          = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
+  SS          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
+  S5          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
+  S3          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
+  a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
+  domains_up  = fc->domains_up;
+  with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0;
+  e           = INF;
+
+  init_sc_wrapper(fc, &sc_wrapper);
+
+  {
+    int energy, e5, e3, u1, u2, u3;
+
+    energy = 0;
+
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        type  = vrna_get_ptype_md(S2[j], S2[i], md);
+        type2 = vrna_get_ptype_md(S2[l], S2[k], md);
+
+        u1  = i - 1;
+        u2  = k - j - 1;
+        u3  = n - l;
+
+        /* regular interior loop */
+        energy = E_IntLoop(u2, u1 + u3, type, type2, S[j + 1], S[i - 1], S[k - 1], S[l + 1], P);
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        for (s = 0; s < n_seq; s++) {
+          type    = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
+          type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+          u1      = a2s[s][i - 1];
+          u2      = a2s[s][k - 1] - a2s[s][j];
+          u3      = a2s[s][n] - a2s[s][l];
+          energy  += E_IntLoop(u2, u1 + u3, type, type2, S3[s][j], S5[s][i], S5[s][k], S3[s][l], P);
+        }
+
+        break;
+    }
+
+    /* add soft constraints */
+    if (sc_wrapper.pair_ext)
+      energy += sc_wrapper.pair_ext(i, j, k, l, &sc_wrapper);
+
+    e = energy;
+
+    if (with_ud) {
+      e5 = e3 = 0;
+
+      u1  = i - 1;
+      u2  = k - j - 1;
+      u3  = n - l;
+
+      if (u2 > 0) {
+        e5 = domains_up->energy_cb(fc,
+                                   j + 1, k - 1,
+                                   VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                   domains_up->data);
+      }
+
+      if (u1 + u3 > 0) {
+        e3 = domains_up->energy_cb(fc,
+                                   l + 1, i - 1,
+                                   VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                   domains_up->data);
+      }
+
+      e = MIN2(e, energy + e5);
+      e = MIN2(e, energy + e3);
+      e = MIN2(e, energy + e5 + e3);
+    }
+  }
+
+  free_sc_wrapper(&sc_wrapper);
+
+  return e;
+}
+
+
+PRIVATE int
+E_internal_loop(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j)
+{
+  unsigned char         sliding_window, hc_decompose, *hc_mx, **hc_mx_local;
+  char                  *ptype, **ptype_local;
+  short                 *S, **SS, **S5, **S3;
+  unsigned int          *sn, *ss, **a2s, n_seq, s;
+  int                   e, eee, *idx, ij, *c, *ggg, *rtype, with_ud, with_gquad, noclose,
+                        *hc_up, **c_local, **ggg_local;
+  vrna_param_t          *P;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  struct default_data   hc_dat_local;
+  eval_hc               *evaluate;
+  struct sc_wrapper_int sc_wrapper;
+
+  evaluate = prepare_hc_default(fc, &hc_dat_local);
+  init_sc_wrapper(fc, &sc_wrapper);
 
   e = INF;
 
-  for (e = 0, s = 0; s < n_seq; s++) {
-    type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-    type_2  = vrna_get_ptype_md(SS[s][l], SS[s][k], md); /* l,k not k,l! */
+  sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
+  sn              = fc->strand_number;
+  ss              = fc->strand_start;
+  n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
+  idx             = fc->jindx;
+  ij              = (sliding_window) ? 0 : idx[j] + i;
+  hc_mx           = (sliding_window) ? NULL : fc->hc->matrix;
+  hc_mx_local     = (sliding_window) ? fc->hc->matrix_local : NULL;
+  hc_up           = fc->hc->up_int;
+  ptype           = (fc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? NULL : fc->ptype) : NULL;
+  ptype_local     =
+    (fc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? fc->ptype_local : NULL) : NULL;
+  S           = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : NULL;
+  SS          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
+  S5          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
+  S3          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
+  a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
+  c           = (sliding_window) ? NULL : fc->matrices->c;
+  ggg         = (sliding_window) ? NULL : fc->matrices->ggg;
+  c_local     = (sliding_window) ? fc->matrices->c_local : NULL;
+  ggg_local   = (sliding_window) ? fc->matrices->ggg_local : NULL;
+  P           = fc->params;
+  md          = &(P->model_details);
+  rtype       = &(md->rtype[0]);
+  domains_up  = fc->domains_up;
+  with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0;
+  with_gquad  = md->gquad;
 
-    sc = (scs && scs[s]) ? scs[s] : NULL;
-
-    e += ubf_eval_int_loop_comparative(i, j, k, l,
-                                       type, type_2, rtype,
-                                       ij,
-                                       P,
-                                       SS[s],
-                                       S5[s],
-                                       S3[s],
-                                       a2s[s],
-                                       sc);
-  }
-
-  return e;
-}
-
-
-PRIVATE int
-E_int_loop(vrna_fold_compound_t *vc,
-           int                  i,
-           int                  j)
-{
-  unsigned char             type, type_2;
-  char                      *ptype, *ptype_pq;
-  unsigned char             *hc_pq, *hc, eval_loop;
-  short                     *S, S_i1, S_j1, *S_p1, *S_q1;
-  unsigned int              *sn, *so, *ss, *se;
-  int                       q, p, j_q, p_i, pq, *c_pq, max_q, max_p, tmp,
-                            *rtype, noGUclosure, no_close, energy,
-                            *indx, *hc_up, ij, hc_decompose, e, *c, *ggg,
-                            with_gquad, turn;
-  vrna_sc_t                 *sc;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_ud_t                 *domains_up;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
-
-  indx          = vc->jindx;
-  hc            = vc->hc->matrix;
-  hc_up         = vc->hc->up_int;
-  P             = vc->params;
-  ij            = indx[j] + i;
-  hc_decompose  = hc[ij];
-  e             = INF;
-  sn            = vc->strand_number;
-  so            = vc->strand_order;
-  ss            = vc->strand_start;
-  se            = vc->strand_end;
-  c             = vc->matrices->c;
-  ggg           = vc->matrices->ggg;
-  md            = &(P->model_details);
-  with_gquad    = md->gquad;
-  turn          = md->min_loop_size;
-  domains_up    = vc->domains_up;
-  evaluate      = prepare_hc_default(vc, &hc_dat_local);
-
-  /* CONSTRAINED INTERIOR LOOP start */
+  hc_decompose = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[ij];
   if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-    /* prepare necessary variables */
-    rtype       = &(md->rtype[0]);
+    unsigned int  type, type2, has_nick, *tt;
+    int           k, l, kl, last_k, first_l, u1, u2, turn, noGUclosure;
+
+    has_nick    = sn[i] != sn[j] ? 1 : 0;
+    turn        = md->min_loop_size;
     noGUclosure = md->noGUclosure;
-    max_q       = i + turn + 2;
-    max_q       = MAX2(max_q, j - MAXLOOP - 1);
+    tt          = NULL;
+    type        = 0;
 
-    ptype     = vc->ptype;
-    type      = (unsigned char)ptype[ij];
-    no_close  = (((type == 3) || (type == 4)) && noGUclosure);
-    S         = vc->sequence_encoding;
+    if (fc->type == VRNA_FC_TYPE_SINGLE)
+      type = sliding_window ?
+             vrna_get_ptype_window(i, j, ptype_local) :
+             vrna_get_ptype(ij, ptype);
 
-    S_i1  = S[i + 1];
-    S_j1  = S[j - 1];
-    sc    = vc->sc;
+    noclose = ((noGUclosure) && (type == 3 || type == 4)) ? 1 : 0;
 
-    if (type == 0)
-      type = 7;
-
-    if (domains_up && domains_up->energy_cb) {
-      for (q = j - 1; q >= max_q; q--) {
-        j_q = j - q - 1;
-
-        if (hc_up[q + 1] < j_q)
-          break;
-
-        pq    = indx[q] + i + 1;
-        p_i   = 0;
-        max_p = i + 1;
-        tmp   = i + 1 + MAXLOOP - j_q;
-        max_p = MAX2(max_p, tmp);
-        tmp   = q - turn;
-        max_p = MIN2(max_p, tmp);
-        tmp   = i + 1 + hc_up[i + 1];
-        max_p = MIN2(max_p, tmp);
-        c_pq  = c + pq;
-
-        ptype_pq  = ptype + pq;
-        S_p1      = S + i;
-        S_q1      = S + q + 1;
-
-        hc_pq = hc + pq;
-
-        for (p = i + 1; p <= max_p; p++) {
-          eval_loop = *hc_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
-          /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-          if (eval_loop && evaluate(i, j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
-            energy = *c_pq;
-            if (energy != INF) {
-              type_2 = rtype[(unsigned char)*ptype_pq];
-
-              if (type_2 == 0)
-                type_2 = 7;
-
-              if (noGUclosure)
-                if (no_close || (type_2 == 3) || (type_2 == 4))
-                  if ((p > i + 1) || (q < j - 1))
-                    continue;
-
-              /* continue unless stack */
-
-              energy  += eval_interior_loop(vc, i, j, p, q);
-              e       = MIN2(e, energy);
-            }
-          }
-
-          hc_pq++;    /* get hc[pq + 1] */
-          c_pq++;     /* get c[pq + 1] */
-          p_i++;      /* increase unpaired region [i+1...p-1] */
-
-          ptype_pq++; /* get ptype[pq + 1] */
-          S_p1++;
-
-          pq++;
-        } /* end q-loop */
-      }   /* end p-loop */
-    } else {
-      for (q = j - 1; q >= max_q; q--) {
-        j_q = j - q - 1;
-
-        if (hc_up[q + 1] < j_q)
-          break;
-
-        pq    = indx[q] + i + 1;
-        p_i   = 0;
-        max_p = i + 1;
-        tmp   = i + 1 + MAXLOOP - j_q;
-        max_p = MAX2(max_p, tmp);
-        tmp   = q - turn;
-        max_p = MIN2(max_p, tmp);
-        tmp   = i + 1 + hc_up[i + 1];
-        max_p = MIN2(max_p, tmp);
-        hc_pq = hc + pq;
-        c_pq  = c + pq;
-
-        ptype_pq  = ptype + pq;
-        S_p1      = S + i;
-        S_q1      = S + q + 1;
-
-        for (p = i + 1; p <= max_p; p++) {
-          eval_loop = *hc_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
-          /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-          if (eval_loop && evaluate(i, j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
-            energy = *c_pq;
-            if (energy != INF) {
-              type_2 = rtype[(unsigned char)*ptype_pq];
-
-              if (noGUclosure)
-                if (no_close || (type_2 == 3) || (type_2 == 4))
-                  if ((p > i + 1) || (q < j - 1))
-                    continue;
-
-              /* continue unless stack */
-
-              if (type_2 == 0)
-                type_2 = 7;
-
-              energy += ubf_eval_int_loop2(i, j, p, q,
-                                           i + 1, j - 1, p - 1, q + 1,
-                                           S_i1, S_j1, *S_p1, *S_q1,
-                                           type, type_2, rtype,
-                                           ij, sn, ss,
-                                           P, sc);
-              e = MIN2(e, energy);
-            }
-          }
-
-          hc_pq++;    /* get hc[pq + 1] */
-          c_pq++;     /* get c[pq + 1] */
-          p_i++;      /* increase unpaired region [i+1...p-1] */
-
-          ptype_pq++; /* get ptype[pq + 1] */
-          S_p1++;
-
-          pq++;
-        } /* end q-loop */
-      }   /* end p-loop */
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
+      tt = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
+      for (s = 0; s < n_seq; s++)
+        tt[s] = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
     }
 
-    if (with_gquad) {
-      /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-      if ((!no_close) && (sn[j] == sn[i])) {
-        energy  = E_GQuad_IntLoop(i, j, type, S, ggg, indx, P);
-        e       = MIN2(e, energy);
-      }
-    }
-  }
+    /* handle stacks separately */
+    k = i + 1;
+    l = j - 1;
+    if (k < l) {
+      kl            = (sliding_window) ? 0 : idx[l] + k;
+      hc_decompose  = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[kl];
+      if ((hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
+          (evaluate(i, j, k, l, &hc_dat_local))) {
+        eee = (sliding_window) ? c_local[k][l - k] : c[kl];
 
-  return e;
-}
+        switch (fc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            type2 = sliding_window ?
+                    rtype[vrna_get_ptype_window(k, l, ptype_local)] :
+                    rtype[vrna_get_ptype(kl, ptype)];
 
-
-PRIVATE int
-E_int_loop_window(vrna_fold_compound_t  *vc,
-                  int                   i,
-                  int                   j)
-{
-  char          **ptype;
-  unsigned char hc_decompose, eval_loop;
-  short         *S1, si1, sj1, *sp, sp1;
-  int           e, p, q, minq, turn, noGUclosure, type, type_2, no_close, energy, *rtype, **c,
-                **ggg, with_gquad;
-
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  vrna_hc_t     *hc;
-  vrna_sc_t     *sc;
-
-  e             = INF;
-  S1            = vc->sequence_encoding;
-  P             = vc->params;
-  md            = &(P->model_details);
-  c             = vc->matrices->c_local;
-  ggg           = vc->matrices->ggg_local;
-  hc            = vc->hc;
-  sc            = vc->sc;
-  ptype         = vc->ptype_local;
-  type          = ptype[i][j - i];
-  turn          = md->min_loop_size;
-  with_gquad    = md->gquad;
-  noGUclosure   = md->noGUclosure;
-  hc_decompose  = hc->matrix_local[i][j - i];
-  rtype         = &(md->rtype[0]);
-
-  if (type == 0)
-    type = 7;
-
-  no_close = (((type == 3) || (type == 4)) && noGUclosure);
-
-  if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-    int tmp, maxp;
-    maxp  = j - 2 - turn;
-    tmp   = i + MAXLOOP + 1;
-    if (maxp > tmp)
-      maxp = tmp;
-
-    tmp = i + 1 + hc->up_int[i + 1];
-    if (maxp > tmp)
-      maxp = tmp;
-
-    si1 = S1[i + 1];
-    sj1 = S1[j - 1];
-    sp  = S1 + i;
-    for (p = i + 1; p <= maxp; p++, sp++) {
-      int u1, u2;
-      sp1 = S1[p - 1];
-      u1  = p - i - 1;
-
-      minq  = j - i + p - MAXLOOP - 2;
-      tmp   = p + 1 + turn;
-      if (minq < tmp)
-        minq = tmp;
-
-      char          *ptype_p = ptype[p];
-      ptype_p -= p;
-      int           *c_p = c[p];
-      c_p -= p;
-      unsigned char *hc_p = hc->matrix_local[p];
-      hc_p -= p;
-
-      u2 = j - minq - 1;
-      /* seek to minimal q value according to hard constraints */
-      while (hc->up_int[minq] < u2) {
-        u2--;
-        minq++;
-        if (minq >= j)
-          break;
-      }
-
-      /* duplicated code is faster than conditions in loop */
-      if (hc->f) {
-        for (q = minq; q < j; q++) {
-          eval_loop = hc_p[q] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
-          /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-          if (eval_loop && hc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, hc->data)) {
-            energy = c_p[q];
-
-            if (energy < INF) {
-              type_2 = ptype_p[q];
-
-              if (type_2 == 0)
-                type_2 = 7;
-
-              type_2 = rtype[type_2];
-
-              if ((noGUclosure) && (no_close || (type_2 == 3) || (type_2 == 4)))
-                if ((p > i + 1) || (q < j - 1))
-                  goto E_int_loop_window_next_q_hc;
-
-              /* continue unless stack */
-
-              energy += E_IntLoop(u1,
-                                  u2,
-                                  type,
-                                  type_2,
-                                  si1,
-                                  sj1,
-                                  sp1,
-                                  S1[q + 1],
+            if ((has_nick) && ((sn[i] != sn[i + 1]) || (sn[j - 1] != sn[j]))) {
+              /* interior loop like cofold structure */
+              short Si, Sj;
+              Si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
+              Sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
+              eee += E_IntLoop_Co(rtype[type], rtype[type2],
+                                  i, j, k, l,
+                                  ss[1],
+                                  Si, Sj,
+                                  S[i], S[j],
+                                  md->dangles,
                                   P);
-
-              /* add soft constraints */
-              if (sc) {
-                if (sc->energy_up)
-                  energy += sc->energy_up[i + 1][u1] +
-                            sc->energy_up[q + 1][u2];
-
-                if (sc->energy_bp_local)
-                  energy += sc->energy_bp_local[i][j - i];
-
-                if (sc->energy_stack) {
-                  if (u1 + u2 == 0) {
-                    energy += sc->energy_stack[i] +
-                              sc->energy_stack[p] +
-                              sc->energy_stack[q] +
-                              sc->energy_stack[j];
-                  }
-                }
-
-                if (sc->f)
-                  energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
-              }
-
-              e = MIN2(e, energy);
+            } else {
+              eee += E_IntLoop(0, 0, type, type2, S[i + 1], S[j - 1], S[i], S[j], P);
             }
-          }
 
-E_int_loop_window_next_q_hc:
-          u2--;
-        } /* end q-loop */
-      } else {
-        for (q = minq; q < j; q++) {
-          /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-          if (hc_p[q] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
-            energy = c_p[q];
+            break;
 
-            if (energy < INF) {
-              type_2 = ptype_p[q];
-
-              if (type_2 == 0)
-                type_2 = 7;
-
-              type_2 = rtype[type_2];
-
-              if ((noGUclosure) && (no_close || (type_2 == 3) || (type_2 == 4)))
-                if ((p > i + 1) || (q < j - 1))
-                  goto E_int_loop_window_next_q;
-
-              /* continue unless stack */
-
-              energy += E_IntLoop(u1,
-                                  u2,
-                                  type,
-                                  type_2,
-                                  si1,
-                                  sj1,
-                                  sp1,
-                                  S1[q + 1],
-                                  P);
-
-              if (sc) {
-                if (sc->energy_up)
-                  energy += sc->energy_up[i + 1][u1] +
-                            sc->energy_up[q + 1][u2];
-
-                if (sc->energy_bp_local)
-                  energy += sc->energy_bp_local[i][j - i];
-
-                if (sc->energy_stack) {
-                  if (u1 + u2 == 0) {
-                    energy += sc->energy_stack[i] +
-                              sc->energy_stack[p] +
-                              sc->energy_stack[q] +
-                              sc->energy_stack[j];
-                  }
-                }
-
-                if (sc->f)
-                  energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
-              }
-
-              e = MIN2(e, energy);
-            }
-          }
-
-E_int_loop_window_next_q:
-          u2--;
-        } /* end q-loop */
-      }   /* end if (hc->f) */
-    }     /* end p-loop */
-  }
-
-  if (with_gquad) {
-    /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-    if (!no_close) {
-      energy  = E_GQuad_IntLoop_L(i, j, type, S1, ggg, vc->window_size, P);
-      e       = MIN2(e, energy);
-    }
-  }
-
-  return e;
-}
-
-
-PRIVATE int
-E_int_loop_comparative(vrna_fold_compound_t *vc,
-                       int                  i,
-                       int                  j)
-{
-  unsigned char             type, type_2;
-  unsigned char             *hc_pq, *hc, eval_loop;
-  unsigned int              **a2s;
-  short                     **SS, **S5, **S3, *S_cons;
-  int                       q, p, j_q, p_i, u, pq, *c_pq, min_q, max_q, max_p, tmp,
-                            *rtype, *types, dangle_model, energy, c0, s, n_seq,
-                            *indx, *hc_up, ij, hc_decompose, e, *c, *ggg, with_gquad,
-                            turn;
-  vrna_sc_t                 *sc, **scs;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
-
-  indx          = vc->jindx;
-  hc            = vc->hc->matrix;
-  hc_up         = vc->hc->up_int;
-  P             = vc->params;
-  ij            = indx[j] + i;
-  hc_decompose  = hc[ij];
-  e             = INF;
-  c             = vc->matrices->c;
-  ggg           = vc->matrices->ggg;
-  md            = &(P->model_details);
-  with_gquad    = md->gquad;
-  turn          = md->min_loop_size;
-  dangle_model  = md->dangles;
-  types         = NULL;
-  evaluate      = prepare_hc_default(vc, &hc_dat_local);
-
-  /* CONSTRAINED INTERIOR LOOP start */
-  if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-    SS      = vc->S;
-    S5      = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
-    S3      = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
-    a2s     = vc->a2s;
-    S_cons  = vc->S_cons;
-    scs     = vc->scs;
-    n_seq   = vc->n_seq;
-    types   = (int *)vrna_alloc(sizeof(int) * n_seq);
-
-    for (s = 0; s < n_seq; s++)
-      types[s] = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-
-    /* prepare necessary variables */
-    rtype = &(md->rtype[0]);
-    max_q = i + turn + 2;
-    max_q = MAX2(max_q, j - MAXLOOP - 1);
-
-    for (q = j - 1; q >= max_q; q--) {
-      j_q = j - q - 1;
-
-      if (hc_up[q + 1] < j_q)
-        break;
-
-      pq    = indx[q] + i + 1;
-      p_i   = 0;
-      max_p = i + 1;
-      tmp   = i + 1 + MAXLOOP - j_q;
-      max_p = MAX2(max_p, tmp);
-      tmp   = q - turn;
-      max_p = MIN2(max_p, tmp);
-      tmp   = i + 1 + hc_up[i + 1];
-      max_p = MIN2(max_p, tmp);
-      hc_pq = hc + pq;
-      c_pq  = c + pq;
-
-      for (p = i + 1; p <= max_p; p++) {
-        eval_loop = *hc_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
-        /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-        if (eval_loop && evaluate(i, j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
-          energy = *c_pq;
-          if (energy != INF) {
+          case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
-              type_2 = vrna_get_ptype_md(SS[s][q], SS[s][p], md); /* q,p not p,q! */
-
-              sc = (scs && scs[s]) ? scs[s] : NULL;
-
-              energy += ubf_eval_int_loop_comparative(i, j, p, q,
-                                                      types[s], type_2, rtype,
-                                                      ij,
-                                                      P,
-                                                      SS[s],
-                                                      S5[s],
-                                                      S3[s],
-                                                      a2s[s],
-                                                      sc);
+              type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+              eee   += E_IntLoop(0, 0, tt[s], type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l], P);
             }
-            e = MIN2(e, energy);
+
+            break;
+        }
+
+        if (sc_wrapper.pair)
+          eee += sc_wrapper.pair(i, j, k, l, &sc_wrapper);
+
+        e = MIN2(e, eee);
+      }
+    }
+
+    if (!noclose) {
+      /* only proceed if the enclosing pair is allowed */
+
+      /* handle bulges in 5' side */
+      l = j - 1;
+      if (l > i + 2) {
+        last_k = l - turn - 1;
+
+        if (last_k > i + 1 + MAXLOOP)
+          last_k = i + 1 + MAXLOOP;
+
+        if (last_k > i + 1 + hc_up[i + 1])
+          last_k = i + 1 + hc_up[i + 1];
+
+        u1 = 1;
+
+        k   = i + 2;
+        kl  = (sliding_window) ? 0 : idx[l] + k;
+        for (; k <= last_k; k++, u1++, kl++) {
+          hc_decompose = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[kl];
+          if ((hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
+              (evaluate(i, j, k, l, &hc_dat_local))) {
+            eee = (sliding_window) ? c_local[k][l - k] : c[kl];
+
+            switch (fc->type) {
+              case VRNA_FC_TYPE_SINGLE:
+                type2 = sliding_window ?
+                        rtype[vrna_get_ptype_window(k, l, ptype_local)] :
+                        rtype[vrna_get_ptype(kl, ptype)];
+
+                if ((noGUclosure) && (type2 == 3 || type2 == 4))
+                  continue;
+
+                if ((has_nick) && ((sn[i] != sn[k]) || (sn[j - 1] != sn[j]))) {
+                  /* interior loop like cofold structure */
+                  short Si, Sj;
+                  Si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
+                  Sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
+                  eee += E_IntLoop_Co(rtype[type], rtype[type2],
+                                      i, j, k, l,
+                                      ss[1],
+                                      Si, Sj,
+                                      S[k - 1], S[j],
+                                      md->dangles,
+                                      P);
+                } else {
+                  eee += E_IntLoop(u1, 0, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
+                }
+
+                break;
+
+              case VRNA_FC_TYPE_COMPARATIVE:
+                for (s = 0; s < n_seq; s++) {
+                  int u1_local = a2s[s][k - 1] - a2s[s][i];
+                  type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+                  eee   +=
+                    E_IntLoop(u1_local, 0, tt[s], type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l], P);
+                }
+
+                break;
+            }
+
+            if (sc_wrapper.pair)
+              eee += sc_wrapper.pair(i, j, k, l, &sc_wrapper);
+
+            e = MIN2(e, eee);
+
+            if (with_ud) {
+              eee += domains_up->energy_cb(fc,
+                                           i + 1, k - 1,
+                                           VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                           domains_up->data);
+              e = MIN2(e, eee);
+            }
           }
         }
-
-        hc_pq++;    /* get hc[pq + 1] */
-        c_pq++;     /* get c[pq + 1] */
-        p_i++;      /* increase unpaired region [i+1...p-1] */
-
-        pq++;
-      } /* end q-loop */
-    }   /* end p-loop */
-
-
-    if (with_gquad) {
-      /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-      energy = 0;
-      for (s = 0; s < n_seq; s++) {
-        type = types[s];
-        if (dangle_model == 2)
-          energy += P->mismatchI[type][S3[s][i]][S5[s][j]];
-
-        if (type > 2)
-          energy += P->TerminalAU;
-      }
-      for (p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++) {
-        u = p - i - 1;
-        if (u > MAXLOOP)
-          break;
-
-        if (S_cons[p] != 3)
-          continue;
-
-        min_q = j - i + p - MAXLOOP - 2;
-        c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-        min_q = MAX2(c0, min_q);
-        c0    = j - 1;
-        max_q = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-        max_q = MIN2(c0, max_q);
-        for (q = min_q; q < max_q; q++) {
-          if (S_cons[q] != 3)
-            continue;
-
-          c0  = energy + ggg[indx[q] + p] + n_seq * P->internal_loop[u + j - q - 1];
-          e   = MIN2(e, c0);
-        }
       }
 
-      p = i + 1;
-      if (S_cons[p] == 3) {
-        if (p < j - VRNA_GQUAD_MIN_BOX_SIZE) {
-          min_q = j - i + p - MAXLOOP - 2;
-          c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-          min_q = MAX2(c0, min_q);
-          c0    = j - 3;
-          max_q = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-          max_q = MIN2(c0, max_q);
-          for (q = min_q; q < max_q; q++) {
-            if (S_cons[q] != 3)
-              continue;
+      /* handle bulges in 3' side */
+      k = i + 1;
+      if (k < j - 2) {
+        first_l = k + turn + 1;
+        if (first_l < j - 1 - MAXLOOP)
+          first_l = j - 1 - MAXLOOP;
 
-            c0  = energy + ggg[indx[q] + p] + n_seq * P->internal_loop[j - q - 1];
-            e   = MIN2(e, c0);
-          }
-        }
-      }
-
-      q = j - 1;
-      if (S_cons[q] == 3) {
-        for (p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++) {
-          u = p - i - 1;
-          if (u > MAXLOOP)
+        u2 = 1;
+        for (l = j - 2; l >= first_l; l--, u2++) {
+          if (u2 > hc_up[l + 1])
             break;
 
-          if (S_cons[p] != 3)
-            continue;
+          kl = (sliding_window) ? 0 : idx[l] + k;
 
-          c0  = energy + ggg[indx[q] + p] + n_seq * P->internal_loop[u];
-          e   = MIN2(e, c0);
+          hc_decompose = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[kl];
+          if ((hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
+              (evaluate(i, j, k, l, &hc_dat_local))) {
+            eee = (sliding_window) ? c_local[k][l - k] : c[kl];
+
+            switch (fc->type) {
+              case VRNA_FC_TYPE_SINGLE:
+                type2 = sliding_window ?
+                        rtype[vrna_get_ptype_window(k, l, ptype_local)] :
+                        rtype[vrna_get_ptype(kl, ptype)];
+
+                if ((noGUclosure) && (type2 == 3 || type2 == 4))
+                  continue;
+
+                if ((has_nick) && ((sn[i] != sn[i + 1]) || (sn[j] != sn[l]))) {
+                  /* interior loop like cofold structure */
+                  short Si, Sj;
+                  Si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
+                  Sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
+                  eee += E_IntLoop_Co(rtype[type], rtype[type2],
+                                      i, j, k, l,
+                                      ss[1],
+                                      Si, Sj,
+                                      S[i], S[l + 1],
+                                      md->dangles,
+                                      P);
+                } else {
+                  eee += E_IntLoop(0, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
+                }
+
+                break;
+
+              case VRNA_FC_TYPE_COMPARATIVE:
+                for (s = 0; s < n_seq; s++) {
+                  int u2_local = a2s[s][j - 1] - a2s[s][l];
+                  type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+                  eee   +=
+                    E_IntLoop(0, u2_local, tt[s], type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l], P);
+                }
+
+                break;
+            }
+
+            if (sc_wrapper.pair)
+              eee += sc_wrapper.pair(i, j, k, l, &sc_wrapper);
+
+            e = MIN2(e, eee);
+
+            if (with_ud) {
+              eee += domains_up->energy_cb(fc,
+                                           l + 1, j - 1,
+                                           VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                           domains_up->data);
+              e = MIN2(e, eee);
+            }
+          }
         }
       }
+
+      /* last but not least, all other internal loops */
+      first_l = i + 2 + turn + 1;
+      if (first_l < j - 1 - MAXLOOP)
+        first_l = j - 1 - MAXLOOP;
+
+      u2 = 1;
+      for (l = j - 2; l >= first_l; l--, u2++) {
+        if (u2 > hc_up[l + 1])
+          break;
+
+        last_k = l - turn - 1;
+
+        if (last_k > i + 1 + MAXLOOP - u2)
+          last_k = i + 1 + MAXLOOP - u2;
+
+        if (last_k > i + 1 + hc_up[i + 1])
+          last_k = i + 1 + hc_up[i + 1];
+
+        u1  = 1;
+        k   = i + 2;
+        kl  = (sliding_window) ? 0 : idx[l] + k;
+        for (; k <= last_k; k++, u1++, kl++) {
+          hc_decompose = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[kl];
+          if ((hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
+              (evaluate(i, j, k, l, &hc_dat_local))) {
+            eee = (sliding_window) ? c_local[k][l - k] : c[kl];
+
+            switch (fc->type) {
+              case VRNA_FC_TYPE_SINGLE:
+                type2 = sliding_window ?
+                        rtype[vrna_get_ptype_window(k, l, ptype_local)] :
+                        rtype[vrna_get_ptype(kl, ptype)];
+
+                if ((noGUclosure) && (type2 == 3 || type2 == 4))
+                  continue;
+
+                if ((has_nick) && ((sn[i] != sn[k]) || (sn[j] != sn[l]))) {
+                  /* interior loop like cofold structure */
+                  short Si, Sj;
+                  Si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
+                  Sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
+                  eee += E_IntLoop_Co(rtype[type], rtype[type2],
+                                      i, j, k, l,
+                                      ss[1],
+                                      Si, Sj,
+                                      S[k - 1], S[l + 1],
+                                      md->dangles,
+                                      P);
+                } else {
+                  eee += E_IntLoop(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
+                }
+
+                break;
+
+              case VRNA_FC_TYPE_COMPARATIVE:
+                for (s = 0; s < n_seq; s++) {
+                  int u1_local  = a2s[s][k - 1] - a2s[s][i];
+                  int u2_local  = a2s[s][j - 1] - a2s[s][l];
+                  type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+                  eee   += E_IntLoop(u1_local,
+                                     u2_local,
+                                     tt[s],
+                                     type2,
+                                     S3[s][i],
+                                     S5[s][j],
+                                     S5[s][k],
+                                     S3[s][l],
+                                     P);
+                }
+
+                break;
+            }
+
+            if (sc_wrapper.pair)
+              eee += sc_wrapper.pair(i, j, k, l, &sc_wrapper);
+
+            e = MIN2(e, eee);
+
+            if (with_ud) {
+              int e5, e3;
+
+              e5 = domains_up->energy_cb(fc,
+                                         i + 1, k - 1,
+                                         VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                         domains_up->data);
+              e3 = domains_up->energy_cb(fc,
+                                         l + 1, j - 1,
+                                         VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
+                                         domains_up->data);
+
+              e = MIN2(e, eee + e5);
+              e = MIN2(e, eee + e3);
+              e = MIN2(e, eee + e5 + e3);
+            }
+          }
+        }
+      }
+
+      if (with_gquad) {
+        int   c0, u, last_l;
+        short *S_cons;
+
+        switch (fc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
+            eee = INF;
+
+            if (sliding_window)
+              eee = E_GQuad_IntLoop_L(i, j, type, S, ggg_local, fc->window_size, P);
+            else if (sn[j] == sn[i])
+              eee = E_GQuad_IntLoop(i, j, type, S, ggg, idx, P);
+
+            e = MIN2(e, eee);
+
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            S_cons = fc->S_cons;
+            /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
+            eee = 0;
+            for (s = 0; s < n_seq; s++) {
+              type = tt[s];
+              if (md->dangles == 2)
+                eee += P->mismatchI[type][S3[s][i]][S5[s][j]];
+
+              if (type > 2)
+                eee += P->TerminalAU;
+            }
+            for (k = i + 2; k < j - VRNA_GQUAD_MIN_BOX_SIZE; k++) {
+              u = k - i - 1;
+              if (u > MAXLOOP)
+                break;
+
+              if (S_cons[k] != 3)
+                continue;
+
+              first_l = j - i + k - MAXLOOP - 2;
+              c0      = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+              first_l = MAX2(c0, first_l);
+              c0      = j - 1;
+              last_l  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+              last_l  = MIN2(c0, last_l);
+              for (l = first_l; l < last_l; l++) {
+                if (S_cons[l] != 3)
+                  continue;
+
+                c0  = (sliding_window) ? ggg_local[k][l - k] : ggg[idx[l] + k];
+                c0  += eee +
+                       n_seq *
+                       P->internal_loop[u + j - l - 1];
+                e = MIN2(e, c0);
+              }
+            }
+
+            k = i + 1;
+            if (S_cons[k] == 3) {
+              if (k < j - VRNA_GQUAD_MIN_BOX_SIZE) {
+                first_l = j - i + k - MAXLOOP - 2;
+                c0      = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                first_l = MAX2(c0, first_l);
+                c0      = j - 3;
+                last_l  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+                last_l  = MIN2(c0, last_l);
+                for (l = first_l; l < last_l; l++) {
+                  if (S_cons[l] != 3)
+                    continue;
+
+                  c0  = (sliding_window) ? ggg_local[k][l - k] : ggg[idx[l] + k];
+                  c0  += eee +
+                         n_seq *
+                         P->internal_loop[j - l - 1];
+                  e = MIN2(e, c0);
+                }
+              }
+            }
+
+            l = j - 1;
+            if (S_cons[l] == 3) {
+              for (k = i + 4; k < j - VRNA_GQUAD_MIN_BOX_SIZE; k++) {
+                u = k - i - 1;
+                if (u > MAXLOOP)
+                  break;
+
+                if (S_cons[k] != 3)
+                  continue;
+
+                c0  = (sliding_window) ? ggg_local[k][l - k] : ggg[idx[l] + k];
+                c0  += eee +
+                       n_seq *
+                       P->internal_loop[u];
+                e = MIN2(e, c0);
+              }
+            }
+
+            break;
+        }
+      }
+
+      free(tt);
     }
   }
 
-  free(types);
+  free_sc_wrapper(&sc_wrapper);
+
   return e;
 }
 
 
 PRIVATE int
-E_int_loop_comparative_window(vrna_fold_compound_t  *vc,
-                              int                   i,
-                              int                   j)
-{
-  unsigned char type, type_2;
-  unsigned char eval_loop;
-  unsigned int  **a2s;
-  short         **SS, **S5, **S3, *S_cons;
-  int           q, p, j_q, p_i, u, min_q, max_q, max_p, tmp,
-                *rtype, *types, dangle_model, energy, c0, s, n_seq,
-                *hc_up, hc_decompose, e, **c, **ggg, with_gquad,
-                turn;
-  vrna_sc_t     **scs;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  vrna_hc_t     *hc;
-
-  P             = vc->params;
-  hc            = vc->hc;
-  hc_up         = hc->up_int;
-  hc_decompose  = hc->matrix_local[i][j - i];
-  e             = INF;
-  c             = vc->matrices->c_local;
-  ggg           = vc->matrices->ggg_local;
-  md            = &(P->model_details);
-  with_gquad    = md->gquad;
-  turn          = md->min_loop_size;
-  dangle_model  = md->dangles;
-  types         = NULL;
-
-  /* CONSTRAINED INTERIOR LOOP start */
-  if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-    SS      = vc->S;
-    S5      = vc->S5;     /* S5[s][i] holds next base 5' of i in sequence s */
-    S3      = vc->S3;     /* Sl[s][i] holds next base 3' of i in sequence s */
-    a2s     = vc->a2s;
-    S_cons  = vc->S_cons;
-    scs     = vc->scs;
-    n_seq   = vc->n_seq;
-    types   = (int *)vrna_alloc(sizeof(int) * n_seq);
-
-    for (s = 0; s < n_seq; s++)
-      types[s] = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-
-    /* prepare necessary variables */
-    rtype = &(md->rtype[0]);
-
-    int tmp;
-    max_p = j - 2 - turn;
-    tmp   = i + MAXLOOP + 1;
-    if (max_p > tmp)
-      max_p = tmp;
-
-    tmp = i + 1 + hc->up_int[i + 1];
-    if (max_p > tmp)
-      max_p = tmp;
-
-    if (scs) {
-      for (p = i + 1; p <= max_p; p++) {
-        min_q = j - i + p - MAXLOOP - 2;
-        tmp   = p + 1 + turn;
-        if (min_q < tmp)
-          min_q = tmp;
-
-        int           *c_p = c[p];
-        c_p -= p;
-        unsigned char *hc_p = hc->matrix_local[p];
-        hc_p -= p;
-
-        j_q = j - min_q - 1;
-        /* seek to minimal q value according to hard constraints */
-        while (hc->up_int[min_q] < j_q) {
-          j_q--;
-          min_q++;
-          if (min_q >= j)
-            break;
-        }
-
-        if (hc->f) {
-          for (q = min_q; q < j; q++) {
-            /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-            eval_loop = hc_p[q] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
-            if (eval_loop && hc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, hc->data)) {
-              energy = c_p[q];
-
-              if (energy < INF) {
-                for (s = 0; s < n_seq; s++) {
-                  type_2 = vrna_get_ptype_md(SS[s][q], SS[s][p], md); /* q,p not p,q! */
-
-                  energy += ubf_eval_int_loop_comparative(i, j, p, q,
-                                                          types[s], type_2, rtype,
-                                                          0,
-                                                          P,
-                                                          SS[s],
-                                                          S5[s],
-                                                          S3[s],
-                                                          a2s[s],
-                                                          scs[s]);
-                }
-                e = MIN2(e, energy);
-              }
-            }
-
-            j_q--;
-          } /* end q-loop */
-        } else {
-          for (q = min_q; q < j; q++) {
-            /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-            if (hc_p[q] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
-              energy = c_p[q];
-
-              if (energy < INF) {
-                for (s = 0; s < n_seq; s++) {
-                  type_2 = vrna_get_ptype_md(SS[s][q], SS[s][p], md); /* q,p not p,q! */
-
-                  energy += ubf_eval_int_loop_comparative(i, j, p, q,
-                                                          types[s], type_2, rtype,
-                                                          0,
-                                                          P,
-                                                          SS[s],
-                                                          S5[s],
-                                                          S3[s],
-                                                          a2s[s],
-                                                          scs[s]);
-                }
-                e = MIN2(e, energy);
-              }
-            }
-
-            j_q--;
-          } /* end q-loop */
-        }
-      }     /* end p-loop */
-    } else {
-      for (p = i + 1; p <= max_p; p++) {
-        min_q = j - i + p - MAXLOOP - 2;
-        tmp   = p + 1 + turn;
-        if (min_q < tmp)
-          min_q = tmp;
-
-        int           *c_p = c[p];
-        c_p -= p;
-        unsigned char *hc_p = hc->matrix_local[p];
-        hc_p -= p;
-
-        j_q = j - min_q - 1;
-        /* seek to minimal q value according to hard constraints */
-        while (hc->up_int[min_q] < j_q) {
-          j_q--;
-          min_q++;
-          if (min_q >= j)
-            break;
-        }
-
-        if (hc->f) {
-          for (q = min_q; q < j; q++) {
-            /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-            eval_loop = hc_p[q] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
-            if (eval_loop && hc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, hc->data)) {
-              energy = c_p[q];
-
-              if (energy < INF) {
-                for (s = 0; s < n_seq; s++) {
-                  type_2 = vrna_get_ptype_md(SS[s][q], SS[s][p], md); /* q,p not p,q! */
-
-                  energy += ubf_eval_int_loop_comparative(i, j, p, q,
-                                                          types[s], type_2, rtype,
-                                                          0,
-                                                          P,
-                                                          SS[s],
-                                                          S5[s],
-                                                          S3[s],
-                                                          a2s[s],
-                                                          NULL);
-                }
-                e = MIN2(e, energy);
-              }
-            }
-
-            j_q--;
-          } /* end q-loop */
-        } else {
-          for (q = min_q; q < j; q++) {
-            /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-            if (hc_p[q] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
-              energy = c_p[q];
-
-              if (energy < INF) {
-                for (s = 0; s < n_seq; s++) {
-                  type_2 = vrna_get_ptype_md(SS[s][q], SS[s][p], md); /* q,p not p,q! */
-
-                  energy += ubf_eval_int_loop_comparative(i, j, p, q,
-                                                          types[s], type_2, rtype,
-                                                          0,
-                                                          P,
-                                                          SS[s],
-                                                          S5[s],
-                                                          S3[s],
-                                                          a2s[s],
-                                                          NULL);
-                }
-                e = MIN2(e, energy);
-              }
-            }
-
-            j_q--;
-          } /* end q-loop */
-        }
-      }     /* end p-loop */
-    }
-
-    if (with_gquad) {
-      /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-      energy = 0;
-      for (s = 0; s < n_seq; s++) {
-        type = types[s];
-        if (dangle_model == 2)
-          energy += P->mismatchI[type][S3[s][i]][S5[s][j]];
-
-        if (type > 2)
-          energy += P->TerminalAU;
-      }
-      for (p = i + 2; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++) {
-        u = p - i - 1;
-        if (u > MAXLOOP)
-          break;
-
-        if (S_cons[p] != 3)
-          continue;
-
-        min_q = j - i + p - MAXLOOP - 2;
-        c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-        min_q = MAX2(c0, min_q);
-        c0    = j - 1;
-        max_q = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-        max_q = MIN2(c0, max_q);
-        for (q = min_q; q < max_q; q++) {
-          if (S_cons[q] != 3)
-            continue;
-
-          c0  = energy + ggg[p][q - p] + n_seq * P->internal_loop[u + j - q - 1];
-          e   = MIN2(e, c0);
-        }
-      }
-
-      p = i + 1;
-      if (S_cons[p] == 3) {
-        if (p < j - VRNA_GQUAD_MIN_BOX_SIZE) {
-          min_q = j - i + p - MAXLOOP - 2;
-          c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-          min_q = MAX2(c0, min_q);
-          c0    = j - 3;
-          max_q = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-          max_q = MIN2(c0, max_q);
-          for (q = min_q; q < max_q; q++) {
-            if (S_cons[q] != 3)
-              continue;
-
-            c0  = energy + ggg[p][q - p] + n_seq * P->internal_loop[j - q - 1];
-            e   = MIN2(e, c0);
-          }
-        }
-      }
-
-      q = j - 1;
-      if (S_cons[q] == 3) {
-        for (p = i + 4; p < j - VRNA_GQUAD_MIN_BOX_SIZE; p++) {
-          u = p - i - 1;
-          if (u > MAXLOOP)
-            break;
-
-          if (S_cons[p] != 3)
-            continue;
-
-          c0  = energy + ggg[p][q - p] + n_seq * P->internal_loop[u];
-          e   = MIN2(e, c0);
-        }
-      }
-    }
-  }
-
-  free(types);
-  return e;
-}
-
-
-PUBLIC int
-vrna_E_ext_int_loop(vrna_fold_compound_t  *vc,
+E_ext_internal_loop(vrna_fold_compound_t  *fc,
                     int                   i,
                     int                   j,
                     int                   *ip,
                     int                   *iq)
 {
-  unsigned char             type, type_2;
-  int                       ij, q, p, e, s, u1, u2, qmin, energy, *rtype, *types,
-                            length, *indx, *hc_up, *c, turn, n_seq;
-  char                      *ptype;
-  unsigned char             *hc, eval_loop;
-  unsigned int              **a2s;
-  short                     *S, **SS, **S5, **S3;
-  vrna_md_t                 *md;
-  vrna_param_t              *P;
-  vrna_sc_t                 *sc, **scs;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  int                 ij, q, p, e, s, u1, u2, qmin, energy,
+                      length, *indx, *hc_up, *c, turn, n_seq;
+  unsigned char       *hc, eval_loop;
+  unsigned int        *tt;
+  short               **SS;
+  vrna_md_t           *md;
+  vrna_param_t        *P;
+  eval_hc             *evaluate;
+  struct default_data hc_dat_local;
 
-  length    = vc->length;
-  indx      = vc->jindx;
-  ptype     = vc->ptype;
-  c         = vc->matrices->c;
-  hc        = vc->hc->matrix;
-  hc_up     = vc->hc->up_int;
-  P         = vc->params;
-  md        = &(P->model_details);
-  turn      = md->min_loop_size;
-  types     = NULL;
-  ij        = indx[j] + i;
-  rtype     = &(md->rtype[0]);
-  e         = INF;
-  evaluate  = prepare_hc_default(vc, &hc_dat_local);
+  n_seq   = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
+  SS      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
+  length  = fc->length;
+  indx    = fc->jindx;
+  c       = fc->matrices->c;
+  hc      = fc->hc->matrix;
+  hc_up   = fc->hc->up_int;
+  P       = fc->params;
+  md      = &(P->model_details);
+  turn    = md->min_loop_size;
+  tt      = NULL;
+  ij      = indx[j] + i;
+
+  e = INF;
+
+  evaluate = prepare_hc_default(fc, &hc_dat_local);
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
     /* prepare necessary variables */
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        type = rtype[(unsigned char)ptype[ij]];
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
+      tt = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
 
-        if (type == 0)
-          type = 7;
-
-        S   = vc->sequence_encoding;
-        sc  = vc->sc;
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        SS    = vc->S;
-        S5    = vc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
-        S3    = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
-        a2s   = vc->a2s;
-        scs   = vc->scs;
-        n_seq = vc->n_seq;
-        types = (int *)vrna_alloc(sizeof(int) * n_seq);
-
-        for (s = 0; s < n_seq; s++)
-          types[s] = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
-        break;
-
-      default:
-        return e;
-        break;
+      for (s = 0; s < n_seq; s++)
+        tt[s] = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
     }
 
     for (p = j + 1; p < length; p++) {
@@ -1192,51 +904,14 @@ vrna_E_ext_int_loop(vrna_fold_compound_t  *vc,
         if (u1 + u2 > MAXLOOP)
           continue;
 
-        eval_loop = hc[indx[q] + p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
+        int pq = indx[q] + p;
 
-        if (eval_loop && evaluate(i, j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
-          energy = c[indx[q] + p];
+        eval_loop = hc[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
+
+        if (eval_loop && evaluate(i, j, p, q, &hc_dat_local)) {
+          energy = c[pq];
           if (energy < INF) {
-            switch (vc->type) {
-              case VRNA_FC_TYPE_SINGLE:
-                type_2 = rtype[(unsigned char)ptype[indx[q] + p]];
-
-                if (type_2 == 0)
-                  type_2 = 7;
-
-                energy += ubf_eval_ext_int_loop(i, j, p, q,
-                                                i - 1, j + 1, p - 1, q + 1,
-                                                S[j + 1], S[i - 1], S[p - 1], S[q + 1],
-                                                type, type_2,
-                                                length,
-                                                P, sc);
-                break;
-
-              case VRNA_FC_TYPE_COMPARATIVE:
-                for (s = 0; s < n_seq; s++) {
-                  type_2 = vrna_get_ptype_md(SS[s][q], SS[s][p], md); /* q,p not p,q! */
-
-                  sc      = (scs && scs[s]) ? scs[s] : NULL;
-                  energy  += ubf_eval_ext_int_loop(a2s[s][i],
-                                                   a2s[s][j],
-                                                   a2s[s][p],
-                                                   a2s[s][q],
-                                                   a2s[s][i - 1],
-                                                   a2s[s][j + 1],
-                                                   a2s[s][p - 1],
-                                                   a2s[s][q + 1],
-                                                   S3[s][j],
-                                                   S5[s][i],
-                                                   S5[s][p],
-                                                   S3[s][q],
-                                                   types[s],
-                                                   type_2,
-                                                   a2s[s][length],
-                                                   P,
-                                                   sc);
-                }
-                break;
-            }
+            energy += eval_ext_int_loop(fc, i, j, p, q);
 
             if (energy < e) {
               e = energy;
@@ -1251,67 +926,71 @@ vrna_E_ext_int_loop(vrna_fold_compound_t  *vc,
     }
   }
 
-  free(types);
+  free(tt);
 
   return e;
 }
 
 
-PUBLIC int
-vrna_E_stack(vrna_fold_compound_t *vc,
-             int                  i,
-             int                  j)
+PRIVATE int
+E_stack(vrna_fold_compound_t  *fc,
+        int                   i,
+        int                   j)
 {
-  unsigned char             type, type_2;
-  char                      *ptype;
-  unsigned char             *hard_constraints, eval_loop;
-  unsigned int              **a2s;
-  short                     *S, **SS;
-  unsigned int              *sn, *ss;
-  int                       e, ij, pq, p, q, s, n_seq, *rtype, *indx;
-  vrna_sc_t                 *sc, **scs;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  unsigned char         sliding_window, hc_decompose_ij, hc_decompose_pq,
+                        *hc_mx, **hc_mx_local, eval_loop;
+  char                  *ptype, **ptype_local;
+  short                 *S, **SS;
+  unsigned int          *sn, *ss, type, type_2;
+  int                   e, ij, pq, p, q, s, n_seq, *rtype, *indx;
+  vrna_param_t          *P;
+  vrna_md_t             *md;
+  eval_hc               *evaluate;
+  struct default_data   hc_dat_local;
+  struct sc_wrapper_int sc_wrapper;
 
-  if (vc->hc->type == VRNA_HC_WINDOW)
-    return E_stack_window(vc, i, j);
+  e               = INF;
+  sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
+  p               = i + 1;
+  q               = j - 1;
+  n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
+  sn              = fc->strand_number;
+  ss              = fc->strand_start;
+  S               = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : NULL;
+  SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
+  ptype           = (fc->type == VRNA_FC_TYPE_SINGLE) ?
+                    (sliding_window ? NULL : fc->ptype) :
+                    NULL;
+  ptype_local = (fc->type == VRNA_FC_TYPE_SINGLE) ?
+                (sliding_window ? fc->ptype_local : NULL) :
+                NULL;
+  P           = fc->params;
+  md          = &(P->model_details);
+  rtype       = &(md->rtype[0]);
+  indx        = (sliding_window) ? NULL : fc->jindx;
+  hc_mx       = (sliding_window) ? NULL : fc->hc->matrix;
+  hc_mx_local = (sliding_window) ? fc->hc->matrix_local : NULL;
+  ij          = (sliding_window) ? 0 : indx[j] + i;
+  pq          = (sliding_window) ? 0 : indx[q] + p;
+  evaluate    = prepare_hc_default(fc, &hc_dat_local);
 
-  P                 = vc->params;
-  md                = &(P->model_details);
-  sn                = vc->strand_number;
-  ss                = vc->strand_start;
-  rtype             = &(md->rtype[0]);
-  indx              = vc->jindx;
-  hard_constraints  = vc->hc->matrix;
-  evaluate          = prepare_hc_default(vc, &hc_dat_local);
+  init_sc_wrapper(fc, &sc_wrapper);
 
-  e         = INF;
-  p         = i + 1;
-  q         = j - 1;
-  ij        = indx[j] + i;
-  pq        = indx[q] + p;
-  eval_loop = (hard_constraints[pq] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
-              (hard_constraints[ij] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP);
+  hc_decompose_ij = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[ij];
+  hc_decompose_pq = (sliding_window) ? hc_mx_local[p][q - p] : hc_mx[pq];
 
-  if ((j - i - 1) < 2)
-    return e;
+  eval_loop = (hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
+              (hc_decompose_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP);
 
-  if (eval_loop && evaluate(i, j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
-    switch (vc->type) {
+  if (eval_loop && evaluate(i, j, p, q, &hc_dat_local)) {
+    switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        S       = vc->sequence_encoding;
-        ptype   = vc->ptype;
-        type    = (unsigned char)ptype[ij];
-        type_2  = rtype[(unsigned char)ptype[pq]];
-        sc      = vc->sc;
-
-        if (type == 0)
-          type = 7;
-
-        if (type_2 == 0)
-          type_2 = 7;
+        type = sliding_window ?
+               vrna_get_ptype_window(i, j, ptype_local) :
+               vrna_get_ptype(ij, ptype);
+        type_2 = sliding_window ?
+                 rtype[vrna_get_ptype_window(p, q, ptype_local)] :
+                 rtype[vrna_get_ptype(pq, ptype)];
 
         if ((sn[p] == sn[i]) && (sn[j] == sn[q])) {
           /* regular stack */
@@ -1330,181 +1009,25 @@ vrna_E_stack(vrna_fold_compound_t *vc,
                              P);
         }
 
-        /* add soft constraints */
-        if (sc) {
-          if (sc->energy_bp)
-            e += sc->energy_bp[ij];
-
-          if (sc->energy_stack) {
-            e += sc->energy_stack[i] +
-                 sc->energy_stack[p] +
-                 sc->energy_stack[q] +
-                 sc->energy_stack[j];
-          }
-
-          if (sc->f)
-            e += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
-        }
-
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        n_seq = vc->n_seq;
-        SS    = vc->S;
-        a2s   = vc->a2s;
-        scs   = vc->scs;
-        e     = 0;
+        e = 0;
         for (s = 0; s < n_seq; s++) {
           type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
           type_2  = vrna_get_ptype_md(SS[s][q], SS[s][p], md);  /* q,p not p,q! */
           e       += P->stack[type][type_2];
         }
 
-        if (scs) {
-          for (s = 0; s < n_seq; s++) {
-            if (scs[s]) {
-              if (scs[s]->energy_bp)
-                e += scs[s]->energy_bp[ij];
-
-              if (scs[s]->energy_stack) {
-                if (SS[s][i] && SS[s][j] && SS[s][p] && SS[s][q]) {
-                  /* don't allow gaps in stack */
-                  e += scs[s]->energy_stack[a2s[s][i]] +
-                       scs[s]->energy_stack[a2s[s][p]] +
-                       scs[s]->energy_stack[a2s[s][q]] +
-                       scs[s]->energy_stack[a2s[s][j]];
-                }
-              }
-
-              if (scs[s]->f) {
-                e +=
-                  scs[s]->f(a2s[s][i],
-                            a2s[s][j],
-                            a2s[s][p],
-                            a2s[s][q],
-                            VRNA_DECOMP_PAIR_IL,
-                            scs[s]->data);
-              }
-            }
-          }
-        }
-
-        break;
-
-      default:
         break;
     }
+
+    /* add soft constraints */
+    if (sc_wrapper.pair)
+      e += sc_wrapper.pair(i, j, p, q, &sc_wrapper);
   }
 
-  return e;
-}
-
-
-PRIVATE int
-E_stack_window(vrna_fold_compound_t *vc,
-               int                  i,
-               int                  j)
-{
-  char                      **ptype;
-  unsigned char             **hard_constraints, eval_loop;
-  unsigned int              **a2s;
-  short                     **SS;
-  int                       e, p, q, *rtype, type, type_2, s, n_seq;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_sc_t                 *sc, **scs;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
-
-  P                 = vc->params;
-  md                = &(P->model_details);
-  rtype             = &(md->rtype[0]);
-  hard_constraints  = vc->hc->matrix_local;
-  evaluate          = prepare_hc_default(vc, &hc_dat_local);
-
-  e         = INF;
-  p         = i + 1;
-  q         = j - 1;
-  eval_loop = (hard_constraints[p][q - p] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
-              (hard_constraints[i][j - i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP);
-
-  if ((j - i - 1) < 2)
-    return e;
-
-  if (eval_loop && evaluate(i, j, p, q, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        ptype   = vc->ptype_local;
-        type    = ptype[i][j - i];
-        type_2  = rtype[ptype[p][q - p]];
-        sc      = vc->sc;
-
-        if (type == 0)
-          type = 7;
-
-        if (type_2 == 0)
-          type_2 = 7;
-
-        /* regular stack */
-        e = P->stack[type][type_2];
-
-        /* add soft constraints */
-        if (sc) {
-          if (sc->energy_stack) {
-            e += sc->energy_stack[i] +
-                 sc->energy_stack[p] +
-                 sc->energy_stack[q] +
-                 sc->energy_stack[j];
-          }
-
-          if (sc->f)
-            e += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
-        }
-
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        n_seq = vc->n_seq;
-        SS    = vc->S;
-        a2s   = vc->a2s;
-        scs   = vc->scs;
-        e     = 0;
-        for (s = 0; s < n_seq; s++) {
-          type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-          type_2  = vrna_get_ptype_md(SS[s][q], SS[s][p], md);  /* q,p not p,q! */
-          e       += P->stack[type][type_2];
-        }
-
-        /* add soft constraints */
-        if (scs) {
-          for (s = 0; s < n_seq; s++) {
-            if (scs[s]) {
-              if (scs[s]->energy_stack) {
-                if (SS[s][i] && SS[s][j] && SS[s][p] && SS[s][q]) {
-                  /* don't allow gaps in stack */
-                  e += scs[s]->energy_stack[a2s[s][i]] +
-                       scs[s]->energy_stack[a2s[s][p]] +
-                       scs[s]->energy_stack[a2s[s][q]] +
-                       scs[s]->energy_stack[a2s[s][j]];
-                }
-              }
-
-              if (scs[s]->f) {
-                e +=
-                  scs[s]->f(a2s[s][i],
-                            a2s[s][j],
-                            a2s[s][p],
-                            a2s[s][q],
-                            VRNA_DECOMP_PAIR_IL,
-                            scs[s]->data);
-              }
-            }
-          }
-        }
-
-        break;
-    }
-  }
+  free_sc_wrapper(&sc_wrapper);
 
   return e;
 }

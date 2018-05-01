@@ -566,24 +566,24 @@ E_IntLoop_Co(int          type,
     return energy + tmm + tmm_2;
 
   /* now we may have non-double dangles only */
-  if (i + 2 < p) {
-    if (q + 2 < j)
+  if (p - i > 2) {
+    if (j - q > 2)
       energy += tmm + tmm_2;
-    else if (q + 2 == j)
+    else if (j - q == 2)
       energy += (cj && cq) ? MIN2(tmm + d5_2, tmm_2 + d3) : tmm + tmm_2;
     else
       energy += d3 + d5_2;
-  } else if (i + 2 == p) {
-    if (q + 2 < j)
+  } else if (p - i == 2) {
+    if (j - q > 2)
       energy += (ci && cp) ? MIN2(tmm + d3_2, tmm_2 + d5) : tmm + tmm_2;
-    else if (q + 2 == j)
+    else if (j - q == 2)
       energy += MIN2(tmm, MIN2(tmm_2, MIN2(d5 + d5_2, d3 + d3_2)));
     else
       energy += MIN2(d3, d5_2);
   } else {
-    if (q + 2 < j)
+    if (j - q > 2)
       energy += d5 + d3_2;
-    else if (q + 2 == j)
+    else if (j - q == 2)
       energy += MIN2(d5, d3_2);
   }
 

@@ -24,7 +24,7 @@
 # define INLINE
 #endif
 
-#include "interior_loops.inc"
+#include "interior_loops_hc.inc"
 
 /*
  #################################
@@ -137,21 +137,21 @@ exp_E_int_loop(vrna_fold_compound_t *vc,
                int                  i,
                int                  j)
 {
-  unsigned char             type, type_2;
-  char                      *ptype;
-  unsigned char             *hc, eval_loop;
-  short                     *S1, S_i1, S_j1;
-  unsigned int              *sn;
-  int                       k, l, u1, u2, kl, maxk, minl, *rtype, noGUclosure,
-                            no_close, *my_iindx, *jindx, *hc_up, ij,
-                            with_gquad, turn;
-  FLT_OR_DBL                qbt1, q_temp, *qb, *G, *scale;
-  vrna_sc_t                 *sc;
-  vrna_exp_param_t          *pf_params;
-  vrna_md_t                 *md;
-  vrna_ud_t                 *domains_up;
-  vrna_callback_hc_evaluate *evaluate;
-  struct  default_data      hc_dat_local;
+  unsigned char         type, type_2;
+  char                  *ptype;
+  unsigned char         *hc, eval_loop;
+  short                 *S1, S_i1, S_j1;
+  unsigned int          *sn;
+  int                   k, l, u1, u2, kl, maxk, minl, *rtype, noGUclosure,
+                        no_close, *my_iindx, *jindx, *hc_up, ij,
+                        with_gquad, turn;
+  FLT_OR_DBL            qbt1, q_temp, *qb, *G, *scale;
+  vrna_sc_t             *sc;
+  vrna_exp_param_t      *pf_params;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  eval_hc               *evaluate;
+  struct  default_data  hc_dat_local;
 
   ptype       = vc->ptype;
   S1          = vc->sequence_encoding;
@@ -203,7 +203,7 @@ exp_E_int_loop(vrna_fold_compound_t *vc,
            VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) ? (unsigned char)1 : (unsigned char)0;
 
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-        if (eval_loop && evaluate(i, j, k, l, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
+        if (eval_loop && evaluate(i, j, k, l, &hc_dat_local)) {
           if (sn[j] != sn[l])
             break;
 
@@ -387,21 +387,21 @@ exp_E_int_loop_window(vrna_fold_compound_t  *vc,
                       int                   i,
                       int                   j)
 {
-  unsigned char             type, type_2;
-  char                      **ptype;
-  unsigned char             **hc, eval_loop;
-  short                     *S1, S_i1, S_j1;
-  unsigned int              *sn;
-  int                       k, l, u1, u2, maxk, minl, *rtype, noGUclosure,
-                            no_close, *my_iindx, *jindx, *hc_up,
-                            with_gquad, turn;
-  FLT_OR_DBL                qbt1, q_temp, **qb, **G, *scale;
-  vrna_sc_t                 *sc;
-  vrna_exp_param_t          *pf_params;
-  vrna_md_t                 *md;
-  vrna_ud_t                 *domains_up;
-  vrna_callback_hc_evaluate *evaluate;
-  struct  default_data      hc_dat_local;
+  unsigned char         type, type_2;
+  char                  **ptype;
+  unsigned char         **hc, eval_loop;
+  short                 *S1, S_i1, S_j1;
+  unsigned int          *sn;
+  int                   k, l, u1, u2, maxk, minl, *rtype, noGUclosure,
+                        no_close, *my_iindx, *jindx, *hc_up,
+                        with_gquad, turn;
+  FLT_OR_DBL            qbt1, q_temp, **qb, **G, *scale;
+  vrna_sc_t             *sc;
+  vrna_exp_param_t      *pf_params;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  eval_hc               *evaluate;
+  struct  default_data  hc_dat_local;
 
   ptype       = vc->ptype_local;
   S1          = vc->sequence_encoding;
@@ -450,7 +450,7 @@ exp_E_int_loop_window(vrna_fold_compound_t  *vc,
            VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) ? (unsigned char)1 : (unsigned char)0;
 
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-        if (eval_loop && evaluate(i, j, k, l, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
+        if (eval_loop && evaluate(i, j, k, l, &hc_dat_local)) {
           if (sn[j] != sn[l])
             break;
 
@@ -532,18 +532,18 @@ exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
                            int                  i,
                            int                  j)
 {
-  unsigned char             type_2;
-  unsigned char             *hc, eval_loop;
-  unsigned int              **a2s;
-  short                     **S, **S5, **S3;
-  int                       n_seq, s, ij, jij, k, l, u1, u2, kl, maxk, minl, *types,
-                            turn, with_gquad, *hc_up, *jindx, *my_iindx;
-  FLT_OR_DBL                qbt1, *qb, *scale, qloop;
-  vrna_sc_t                 **scs;
-  vrna_exp_param_t          *pf_params;
-  vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  unsigned char       type_2;
+  unsigned char       *hc, eval_loop;
+  unsigned int        **a2s;
+  short               **S, **S5, **S3;
+  int                 n_seq, s, ij, jij, k, l, u1, u2, kl, maxk, minl, *types,
+                      turn, with_gquad, *hc_up, *jindx, *my_iindx;
+  FLT_OR_DBL          qbt1, *qb, *scale, qloop;
+  vrna_sc_t           **scs;
+  vrna_exp_param_t    *pf_params;
+  vrna_md_t           *md;
+  eval_hc             *evaluate;
+  struct default_data hc_dat_local;
 
   types       = NULL;
   my_iindx    = vc->iindx;
@@ -594,7 +594,7 @@ exp_E_int_loop_comparative(vrna_fold_compound_t *vc,
            VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) ? (unsigned char)1 : (unsigned char)0;
 
         /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-        if (eval_loop && evaluate(i, j, k, l, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
+        if (eval_loop && evaluate(i, j, k, l, &hc_dat_local)) {
           qloop = 1.;
 
           for (s = 0; s < n_seq; s++) {
@@ -793,19 +793,19 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
                     int                   k,
                     int                   l)
 {
-  unsigned char             type, type_2;
-  char                      *ptype;
-  unsigned char             *hc, eval_loop;
-  short                     *S1, S_i1, S_j1;
-  unsigned int              *sn;
-  int                       u1, u2, *rtype, *my_iindx, *jindx, *hc_up, ij;
-  FLT_OR_DBL                qbt1, q_temp, *scale;
-  vrna_sc_t                 *sc;
-  vrna_exp_param_t          *pf_params;
-  vrna_md_t                 *md;
-  vrna_ud_t                 *domains_up;
-  vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  unsigned char       type, type_2;
+  char                *ptype;
+  unsigned char       *hc, eval_loop;
+  short               *S1, S_i1, S_j1;
+  unsigned int        *sn;
+  int                 u1, u2, *rtype, *my_iindx, *jindx, *hc_up, ij;
+  FLT_OR_DBL          qbt1, q_temp, *scale;
+  vrna_sc_t           *sc;
+  vrna_exp_param_t    *pf_params;
+  vrna_md_t           *md;
+  vrna_ud_t           *domains_up;
+  eval_hc             *evaluate;
+  struct default_data hc_dat_local;
 
   ptype       = vc->ptype;
   S1          = vc->sequence_encoding;
@@ -844,7 +844,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
       VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) ? (unsigned char)1 : (unsigned char)0;
 
   /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-  if (eval_loop && evaluate(i, j, k, l, VRNA_DECOMP_PAIR_IL, &hc_dat_local)) {
+  if (eval_loop && evaluate(i, j, k, l, &hc_dat_local)) {
     type    = vrna_get_ptype(ij, ptype);
     rtype   = &(md->rtype[0]);
     type_2  = rtype[vrna_get_ptype(jindx[l] + k, ptype)];
