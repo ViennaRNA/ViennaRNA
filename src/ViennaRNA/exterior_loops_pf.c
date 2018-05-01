@@ -30,6 +30,14 @@
 #include "exterior_loops_hc.inc"
 #include "exterior_loops_sc_pf.inc"
 
+struct vrna_mx_pf_aux_el_s {
+  FLT_OR_DBL  *qq;
+  FLT_OR_DBL  *qq1;
+
+  int         qqu_size;
+  FLT_OR_DBL  **qqu;
+};
+
 /*
  #################################
  # PRIVATE FUNCTION DECLARATIONS #
@@ -37,20 +45,20 @@
  */
 
 PRIVATE INLINE FLT_OR_DBL
-reduce_ext_ext_fast(vrna_fold_compound_t      *fc,
-                    int                       i,
-                    int                       j,
-                    vrna_mx_pf_aux_el_t       *aux_mx,
-                    vrna_callback_hc_evaluate *evaluate,
-                    struct default_data       *hc_dat_local,
-                    struct sc_wrapper_pf      *sc_wrapper);
+reduce_ext_ext_fast(vrna_fold_compound_t        *fc,
+                    int                         i,
+                    int                         j,
+                    struct vrna_mx_pf_aux_el_s  *aux_mx,
+                    vrna_callback_hc_evaluate   *evaluate,
+                    struct default_data         *hc_dat_local,
+                    struct sc_wrapper_pf        *sc_wrapper);
 
 
 PRIVATE INLINE FLT_OR_DBL
 reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
                      int                        i,
                      int                        j,
-                     vrna_mx_pf_aux_el_t        *aux_mx,
+                     struct vrna_mx_pf_aux_el_s *aux_mx,
                      vrna_callback_hc_evaluate  *evaluate,
                      struct default_data        *hc_dat_local,
                      struct sc_wrapper_pf       *sc_wrapper);
@@ -60,7 +68,7 @@ PRIVATE INLINE FLT_OR_DBL
 reduce_ext_up_fast(vrna_fold_compound_t       *fc,
                    int                        i,
                    int                        j,
-                   vrna_mx_pf_aux_el_t        *aux_mx,
+                   struct vrna_mx_pf_aux_el_s *aux_mx,
                    vrna_callback_hc_evaluate  *evaluate,
                    struct default_data        *hc_dat_local,
                    struct sc_wrapper_pf       *sc_wrapper);
@@ -70,17 +78,17 @@ PRIVATE INLINE FLT_OR_DBL
 split_ext_fast(vrna_fold_compound_t       *fc,
                int                        i,
                int                        j,
-               vrna_mx_pf_aux_el_t        *aux_mx,
+               struct vrna_mx_pf_aux_el_s *aux_mx,
                vrna_callback_hc_evaluate  *evaluate,
                struct default_data        *hc_dat_local,
                struct sc_wrapper_pf       *sc_wrapper);
 
 
 PRIVATE FLT_OR_DBL
-exp_E_ext_fast(vrna_fold_compound_t *vc,
-               int                  i,
-               int                  j,
-               vrna_mx_pf_aux_el_t  *aux_mx);
+exp_E_ext_fast(vrna_fold_compound_t       *vc,
+               int                        i,
+               int                        j,
+               struct vrna_mx_pf_aux_el_s *aux_mx);
 
 
 /*
@@ -110,10 +118,10 @@ vrna_exp_E_ext_stem(unsigned int      type,
 }
 
 
-PUBLIC vrna_mx_pf_aux_el_t *
+PUBLIC struct vrna_mx_pf_aux_el_s *
 vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
 {
-  vrna_mx_pf_aux_el_t *aux_mx = NULL;
+  struct vrna_mx_pf_aux_el_s *aux_mx = NULL;
 
   if (vc) {
     unsigned int              u;
@@ -138,7 +146,8 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
     init_sc_wrapper_pf(vc, &sc_wrapper);
 
     /* allocate memory for helper arrays */
-    aux_mx            = (vrna_mx_pf_aux_el_t *)vrna_alloc(sizeof(vrna_mx_pf_aux_el_t));
+    aux_mx =
+      (struct vrna_mx_pf_aux_el_s *)vrna_alloc(sizeof(struct vrna_mx_pf_aux_el_s));
     aux_mx->qq        = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
     aux_mx->qq1       = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
     aux_mx->qqu_size  = 0;
@@ -183,10 +192,9 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
 
 
 PUBLIC void
-vrna_exp_E_ext_fast_rotate(vrna_fold_compound_t *vc,
-                           vrna_mx_pf_aux_el_t  *aux_mx)
+vrna_exp_E_ext_fast_rotate(struct vrna_mx_pf_aux_el_s *aux_mx)
 {
-  if (vc && aux_mx) {
+  if (aux_mx) {
     int         u;
     FLT_OR_DBL  *tmp;
 
@@ -206,10 +214,9 @@ vrna_exp_E_ext_fast_rotate(vrna_fold_compound_t *vc,
 
 
 PUBLIC void
-vrna_exp_E_ext_fast_free(vrna_fold_compound_t *vc,
-                         vrna_mx_pf_aux_el_t  *aux_mx)
+vrna_exp_E_ext_fast_free(struct vrna_mx_pf_aux_el_s *aux_mx)
 {
-  if (vc && aux_mx) {
+  if (aux_mx) {
     int u;
 
     free(aux_mx->qq);
@@ -228,10 +235,10 @@ vrna_exp_E_ext_fast_free(vrna_fold_compound_t *vc,
 
 
 PUBLIC FLT_OR_DBL
-vrna_exp_E_ext_fast(vrna_fold_compound_t  *vc,
-                    int                   i,
-                    int                   j,
-                    vrna_mx_pf_aux_el_t   *aux_mx)
+vrna_exp_E_ext_fast(vrna_fold_compound_t        *vc,
+                    int                         i,
+                    int                         j,
+                    struct vrna_mx_pf_aux_el_s  *aux_mx)
 {
   if (vc) {
     if (j < i) {
@@ -267,9 +274,9 @@ vrna_exp_E_ext_fast(vrna_fold_compound_t  *vc,
 
 
 PUBLIC void
-vrna_exp_E_ext_fast_update(vrna_fold_compound_t *fc,
-                           int                  j,
-                           vrna_mx_pf_aux_el_t  *aux_mx)
+vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
+                           int                        j,
+                           struct vrna_mx_pf_aux_el_s *aux_mx)
 {
   int                       k, turn;
   FLT_OR_DBL                **q;
@@ -296,13 +303,13 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t *fc,
 
 
 PRIVATE INLINE FLT_OR_DBL
-reduce_ext_ext_fast(vrna_fold_compound_t      *fc,
-                    int                       i,
-                    int                       j,
-                    vrna_mx_pf_aux_el_t       *aux_mx,
-                    vrna_callback_hc_evaluate *evaluate,
-                    struct default_data       *hc_dat_local,
-                    struct sc_wrapper_pf      *sc_wrapper)
+reduce_ext_ext_fast(vrna_fold_compound_t        *fc,
+                    int                         i,
+                    int                         j,
+                    struct vrna_mx_pf_aux_el_s  *aux_mx,
+                    vrna_callback_hc_evaluate   *evaluate,
+                    struct default_data         *hc_dat_local,
+                    struct sc_wrapper_pf        *sc_wrapper)
 {
   int           u;
   FLT_OR_DBL    q_temp, q_temp2, q, *qq1, **qqu, *scale;
@@ -357,7 +364,7 @@ PRIVATE INLINE FLT_OR_DBL
 reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
                      int                        i,
                      int                        j,
-                     vrna_mx_pf_aux_el_t        *aux_mx,
+                     struct vrna_mx_pf_aux_el_s *aux_mx,
                      vrna_callback_hc_evaluate  *evaluate,
                      struct default_data        *hc_dat_local,
                      struct sc_wrapper_pf       *sc_wrapper)
@@ -426,7 +433,7 @@ PRIVATE INLINE FLT_OR_DBL
 reduce_ext_up_fast(vrna_fold_compound_t       *fc,
                    int                        i,
                    int                        j,
-                   vrna_mx_pf_aux_el_t        *aux_mx,
+                   struct vrna_mx_pf_aux_el_s *aux_mx,
                    vrna_callback_hc_evaluate  *evaluate,
                    struct default_data        *hc_dat_local,
                    struct sc_wrapper_pf       *sc_wrapper)
@@ -468,7 +475,7 @@ PRIVATE INLINE FLT_OR_DBL
 split_ext_fast(vrna_fold_compound_t       *fc,
                int                        i,
                int                        j,
-               vrna_mx_pf_aux_el_t        *aux_mx,
+               struct vrna_mx_pf_aux_el_s *aux_mx,
                vrna_callback_hc_evaluate  *evaluate,
                struct default_data        *hc_dat_local,
                struct sc_wrapper_pf       *sc_wrapper)
@@ -562,10 +569,10 @@ split_ext_fast(vrna_fold_compound_t       *fc,
 
 
 PRIVATE FLT_OR_DBL
-exp_E_ext_fast(vrna_fold_compound_t *vc,
-               int                  i,
-               int                  j,
-               vrna_mx_pf_aux_el_t  *aux_mx)
+exp_E_ext_fast(vrna_fold_compound_t       *vc,
+               int                        i,
+               int                        j,
+               struct vrna_mx_pf_aux_el_s *aux_mx)
 {
   int                       *iidx, ij, with_ud, with_gquad;
   FLT_OR_DBL                qbt1, *qq, **qqu, *G, **G_local;

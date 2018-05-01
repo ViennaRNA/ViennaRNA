@@ -28,50 +28,7 @@
  *  @see vrna_exp_E_ml_fast_init(), vrna_exp_E_ml_fast_rotate(),
  *  vrna_exp_E_ml_fast_free(), vrna_exp_E_ml_fast()
  */
-typedef struct {
-  FLT_OR_DBL  *qqm;
-  FLT_OR_DBL  *qqm1;
-
-  int         qqmu_size;
-  FLT_OR_DBL  **qqmu;
-} vrna_mx_pf_aux_ml_t;
-
-
-/**
- *  @def E_MLstem(A,B,C,D)
- *  <H2>Compute the Energy contribution of a Multiloop stem</H2>
- *  This definition is a wrapper for the E_Stem() funtion.
- *  It is substituted by an E_Stem() funtion call with argument
- *  extLoop=0, so the energy contribution returned reflects a
- *  stem introduced in a multiloop.<BR>
- *  As for the parameters B (si1) and C (sj1) of the substituted
- *  E_Stem() function, you can inhibit to take 5'-, 3'-dangles
- *  or mismatch contributions to be taken into account by passing
- *  -1 to these parameters.
- *
- *  @see    E_Stem()
- *  @param  A The pair type of the stem-closing pair
- *  @param  B The 5'-mismatching nucleotide
- *  @param  C The 3'-mismatching nucleotide
- *  @param  D The datastructure containing scaled energy parameters
- *  @return   The energy contribution of the introduced multiloop stem
- */
-PRIVATE INLINE int E_MLstem(int           type,
-                            int           si1,
-                            int           sj1,
-                            vrna_param_t  *P);
-
-
-/**
- *  @def exp_E_MLstem(A,B,C,D)
- *  This is the partition function variant of @ref E_MLstem()
- *  @see E_MLstem()
- *  @return The Boltzmann weighted energy contribution of the introduced multiloop stem
- */
-PRIVATE INLINE FLT_OR_DBL exp_E_MLstem(int              type,
-                                       int              si1,
-                                       int              sj1,
-                                       vrna_exp_param_t *P);
+typedef struct vrna_mx_pf_aux_ml_s *vrna_mx_pf_aux_ml_t;
 
 
 /**
@@ -79,9 +36,10 @@ PRIVATE INLINE FLT_OR_DBL exp_E_MLstem(int              type,
  *
  *  Computes total free energy for coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1)
  */
-int vrna_E_mb_loop_stack(vrna_fold_compound_t *vc,
-                         int                  i,
-                         int                  j);
+int
+vrna_E_mb_loop_stack(vrna_fold_compound_t *vc,
+                     int                  i,
+                     int                  j);
 
 
 /**
@@ -141,28 +99,34 @@ FLT_OR_DBL
 vrna_exp_E_mb_loop_fast(vrna_fold_compound_t  *vc,
                         int                   i,
                         int                   j,
-                        FLT_OR_DBL            *qqm1);
+                        vrna_mx_pf_aux_ml_t   aux_mx);
 
 
-vrna_mx_pf_aux_ml_t *
+vrna_mx_pf_aux_ml_t
 vrna_exp_E_ml_fast_init(vrna_fold_compound_t *vc);
 
 
 void
-vrna_exp_E_ml_fast_rotate(vrna_fold_compound_t  *vc,
-                          vrna_mx_pf_aux_ml_t   *aux_mx);
+vrna_exp_E_ml_fast_rotate(vrna_mx_pf_aux_ml_t aux_mx);
 
 
 void
-vrna_exp_E_ml_fast_free(vrna_fold_compound_t  *vc,
-                        vrna_mx_pf_aux_ml_t   *aux_mx);
+vrna_exp_E_ml_fast_free(vrna_mx_pf_aux_ml_t aux_mx);
+
+
+const FLT_OR_DBL *
+vrna_exp_E_ml_fast_qqm(struct vrna_mx_pf_aux_ml_s *aux_mx);
+
+
+const FLT_OR_DBL *
+vrna_exp_E_ml_fast_qqm1(struct vrna_mx_pf_aux_ml_s *aux_mx);
 
 
 FLT_OR_DBL
 vrna_exp_E_ml_fast(vrna_fold_compound_t *vc,
                    int                  i,
                    int                  j,
-                   vrna_mx_pf_aux_ml_t  *aux_mx);
+                   vrna_mx_pf_aux_ml_t  aux_mx);
 
 
 /*
@@ -202,11 +166,53 @@ vrna_BT_mb_loop(vrna_fold_compound_t  *vc,
                 int                   *component2);
 
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /*
  ########################################
  # BEGIN OF INLINE FUNCTION DEFINITIONS #
  ########################################
  */
+
+/**
+ *  @def E_MLstem(A,B,C,D)
+ *  <H2>Compute the Energy contribution of a Multiloop stem</H2>
+ *  This definition is a wrapper for the E_Stem() funtion.
+ *  It is substituted by an E_Stem() funtion call with argument
+ *  extLoop=0, so the energy contribution returned reflects a
+ *  stem introduced in a multiloop.<BR>
+ *  As for the parameters B (si1) and C (sj1) of the substituted
+ *  E_Stem() function, you can inhibit to take 5'-, 3'-dangles
+ *  or mismatch contributions to be taken into account by passing
+ *  -1 to these parameters.
+ *
+ *  @see    E_Stem()
+ *  @param  A The pair type of the stem-closing pair
+ *  @param  B The 5'-mismatching nucleotide
+ *  @param  C The 3'-mismatching nucleotide
+ *  @param  D The datastructure containing scaled energy parameters
+ *  @return   The energy contribution of the introduced multiloop stem
+ */
+PRIVATE INLINE int
+E_MLstem(int          type,
+         int          si1,
+         int          sj1,
+         vrna_param_t *P);
+
+
+/**
+ *  @def exp_E_MLstem(A,B,C,D)
+ *  This is the partition function variant of @ref E_MLstem()
+ *  @see E_MLstem()
+ *  @return The Boltzmann weighted energy contribution of the introduced multiloop stem
+ */
+PRIVATE INLINE FLT_OR_DBL
+exp_E_MLstem(int              type,
+             int              si1,
+             int              sj1,
+             vrna_exp_param_t *P);
+
+
 PRIVATE INLINE int
 E_MLstem(int          type,
          int          si1,
@@ -253,6 +259,8 @@ exp_E_MLstem(int              type,
   return (FLT_OR_DBL)energy;
 }
 
+
+#endif
 
 /**
  * @}

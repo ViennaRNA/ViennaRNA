@@ -34,13 +34,7 @@
  *  @see vrna_exp_E_ext_fast_init(), vrna_exp_E_ext_fast_rotate(),
  *  vrna_exp_E_ext_fast_free(), vrna_exp_E_ext_fast()
  */
-typedef struct {
-  FLT_OR_DBL  *qq;
-  FLT_OR_DBL  *qq1;
-
-  int         qqu_size;
-  FLT_OR_DBL  **qqu;
-} vrna_mx_pf_aux_el_t;
+typedef struct vrna_mx_pf_aux_el_s *vrna_mx_pf_aux_el_t;
 
 
 /**
@@ -150,31 +144,29 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
                        int                  maxdist);
 
 
-vrna_mx_pf_aux_el_t *
+struct vrna_mx_pf_aux_el_s *
 vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc);
 
 
 void
-vrna_exp_E_ext_fast_rotate(vrna_fold_compound_t *vc,
-                           vrna_mx_pf_aux_el_t  *aux_mx);
+vrna_exp_E_ext_fast_rotate(struct vrna_mx_pf_aux_el_s *aux_mx);
 
 
 void
-vrna_exp_E_ext_fast_free(vrna_fold_compound_t *vc,
-                         vrna_mx_pf_aux_el_t  *aux_mx);
+vrna_exp_E_ext_fast_free(struct vrna_mx_pf_aux_el_s *aux_mx);
 
 
 FLT_OR_DBL
-vrna_exp_E_ext_fast(vrna_fold_compound_t  *vc,
-                    int                   i,
-                    int                   j,
-                    vrna_mx_pf_aux_el_t   *aux_mx);
+vrna_exp_E_ext_fast(vrna_fold_compound_t        *vc,
+                    int                         i,
+                    int                         j,
+                    struct vrna_mx_pf_aux_el_s  *aux_mx);
 
 
 void
-vrna_exp_E_ext_fast_update(vrna_fold_compound_t *fc,
-                           int                  j,
-                           vrna_mx_pf_aux_el_t  *aux_mx);
+vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
+                           int                        j,
+                           struct vrna_mx_pf_aux_el_s *aux_mx);
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY

@@ -735,8 +735,8 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   vrna_mx_pf_t        *matrices;
   vrna_hc_t           *hc;
   helper_arrays       aux_arrays;
-  vrna_mx_pf_aux_el_t *aux_mx_el;
-  vrna_mx_pf_aux_ml_t *aux_mx_ml;
+  vrna_mx_pf_aux_el_t aux_mx_el;
+  vrna_mx_pf_aux_ml_t aux_mx_ml;
 
   ov    = 0;
   Qmax  = 0;
@@ -823,7 +823,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
           /* process interior loop(s) */
           qbt1 += vrna_exp_E_int_loop(vc, i, j);
           /* process multibranch loop(s) */
-          qbt1 += vrna_exp_E_mb_loop_fast(vc, i, j, aux_mx_ml->qqm1);
+          qbt1 += vrna_exp_E_mb_loop_fast(vc, i, j, aux_mx_ml);
         }
 
         qb[i][j] = qbt1;
@@ -832,10 +832,11 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
         qm[i][j] = vrna_exp_E_ml_fast(vc, i, j, aux_mx_ml);
         if ((options & VRNA_PROBS_WINDOW_UP) && (ulength > 0)) {
           /* new qm2 computation done here */
+          const FLT_OR_DBL *qqm = vrna_exp_E_ml_fast_qqm(aux_mx_ml);
           temp = 0.0;
           for (k = i + 1; k <= j; k++)
             temp += qm[i][k - 1] *
-                    aux_mx_ml->qqm[k];
+                    qqm[k];
           qm2[i][j] = temp;
         }
 
@@ -883,8 +884,8 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
       }
 
       /* rotate auxiliary arrays */
-      vrna_exp_E_ext_fast_rotate(vc, aux_mx_el);
-      vrna_exp_E_ml_fast_rotate(vc, aux_mx_ml);
+      vrna_exp_E_ext_fast_rotate(aux_mx_el);
+      vrna_exp_E_ml_fast_rotate(aux_mx_ml);
     }
 
     if (j > winSize) {
@@ -969,8 +970,8 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   free_helper_arrays(vc, ulength, &aux_arrays, options);
 
   /* free memory occupied by auxiliary arrays for fast exterior/multibranch loops */
-  vrna_exp_E_ml_fast_free(vc, aux_mx_ml);
-  vrna_exp_E_ext_fast_free(vc, aux_mx_el);
+  vrna_exp_E_ml_fast_free(aux_mx_ml);
+  vrna_exp_E_ext_fast_free(aux_mx_el);
 
   free(Fwindow);
 }
@@ -1450,7 +1451,7 @@ get_deppp(vrna_fold_compound_t  *vc,
     }
   }
   /* write it to list of deppps */
-  for (i = 0; pl[i].i != 0; i++) ;
+  for (i = 0; pl[i].i != 0; i++);
   pl = (vrna_ep_t *)vrna_realloc(pl, (i + count + 1) * sizeof(vrna_ep_t));
   for (j = 0; j < count; j++) {
     pl[i + j].i = temp[j].i;

@@ -28,6 +28,15 @@
 #include "multibranch_loops_hc.inc"
 #include "multibranch_loops_sc_pf.inc"
 
+struct vrna_mx_pf_aux_ml_s {
+  FLT_OR_DBL  *qqm;
+  FLT_OR_DBL  *qqm1;
+
+  int         qqmu_size;
+  FLT_OR_DBL  **qqmu;
+};
+
+
 /*
  #################################
  # PRIVATE FUNCTION DECLARATIONS #
@@ -35,17 +44,17 @@
  */
 
 PRIVATE FLT_OR_DBL
-exp_E_mb_loop_fast(vrna_fold_compound_t *vc,
-                   int                  i,
-                   int                  j,
-                   FLT_OR_DBL           *qqm1);
+exp_E_mb_loop_fast(vrna_fold_compound_t       *vc,
+                   int                        i,
+                   int                        j,
+                   struct vrna_mx_pf_aux_ml_s *aux_mx);
 
 
 PRIVATE FLT_OR_DBL
-exp_E_ml_fast(vrna_fold_compound_t  *vc,
-              int                   i,
-              int                   j,
-              vrna_mx_pf_aux_ml_t   *aux_mx);
+exp_E_ml_fast(vrna_fold_compound_t        *vc,
+              int                         i,
+              int                         j,
+              struct vrna_mx_pf_aux_ml_s  *aux_mx);
 
 
 /*
@@ -54,25 +63,25 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
  #################################
  */
 PUBLIC FLT_OR_DBL
-vrna_exp_E_mb_loop_fast(vrna_fold_compound_t  *vc,
-                        int                   i,
-                        int                   j,
-                        FLT_OR_DBL            *qqm1)
+vrna_exp_E_mb_loop_fast(vrna_fold_compound_t        *vc,
+                        int                         i,
+                        int                         j,
+                        struct vrna_mx_pf_aux_ml_s  *aux_mx)
 {
   FLT_OR_DBL q = 0.;
 
-  if ((vc) && (qqm1))
-    q = exp_E_mb_loop_fast(vc, i, j, qqm1);
+  if ((vc) && (aux_mx))
+    q = exp_E_mb_loop_fast(vc, i, j, aux_mx);
 
   return q;
 }
 
 
 PUBLIC FLT_OR_DBL
-vrna_exp_E_ml_fast(vrna_fold_compound_t *vc,
-                   int                  i,
-                   int                  j,
-                   vrna_mx_pf_aux_ml_t  *aux_mx)
+vrna_exp_E_ml_fast(vrna_fold_compound_t       *vc,
+                   int                        i,
+                   int                        j,
+                   struct vrna_mx_pf_aux_ml_s *aux_mx)
 {
   FLT_OR_DBL q = 0.;
 
@@ -83,10 +92,10 @@ vrna_exp_E_ml_fast(vrna_fold_compound_t *vc,
 }
 
 
-PUBLIC vrna_mx_pf_aux_ml_t *
+PUBLIC struct vrna_mx_pf_aux_ml_s *
 vrna_exp_E_ml_fast_init(vrna_fold_compound_t *vc)
 {
-  vrna_mx_pf_aux_ml_t *aux_mx = NULL;
+  struct vrna_mx_pf_aux_ml_s *aux_mx = NULL;
 
   if (vc) {
     int         i, j, d, n, u, turn, ij, *iidx;
@@ -98,7 +107,8 @@ vrna_exp_E_ml_fast_init(vrna_fold_compound_t *vc)
     qm    = vc->exp_matrices->qm;
 
     /* allocate memory for helper arrays */
-    aux_mx            = (vrna_mx_pf_aux_ml_t *)vrna_alloc(sizeof(vrna_mx_pf_aux_ml_t));
+    aux_mx =
+      (struct vrna_mx_pf_aux_ml_s *)vrna_alloc(sizeof(struct vrna_mx_pf_aux_ml_s));
     aux_mx->qqm       = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
     aux_mx->qqm1      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
     aux_mx->qqmu_size = 0;
@@ -142,10 +152,9 @@ vrna_exp_E_ml_fast_init(vrna_fold_compound_t *vc)
 
 
 PUBLIC void
-vrna_exp_E_ml_fast_rotate(vrna_fold_compound_t  *vc,
-                          vrna_mx_pf_aux_ml_t   *aux_mx)
+vrna_exp_E_ml_fast_rotate(struct vrna_mx_pf_aux_ml_s *aux_mx)
 {
-  if (vc && aux_mx) {
+  if (aux_mx) {
     int         u;
     FLT_OR_DBL  *tmp;
 
@@ -165,10 +174,9 @@ vrna_exp_E_ml_fast_rotate(vrna_fold_compound_t  *vc,
 
 
 PUBLIC void
-vrna_exp_E_ml_fast_free(vrna_fold_compound_t  *vc,
-                        vrna_mx_pf_aux_ml_t   *aux_mx)
+vrna_exp_E_ml_fast_free(struct vrna_mx_pf_aux_ml_s *aux_mx)
 {
-  if (vc && aux_mx) {
+  if (aux_mx) {
     int u;
 
     free(aux_mx->qqm);
@@ -186,23 +194,43 @@ vrna_exp_E_ml_fast_free(vrna_fold_compound_t  *vc,
 }
 
 
+PUBLIC const FLT_OR_DBL *
+vrna_exp_E_ml_fast_qqm(struct vrna_mx_pf_aux_ml_s *aux_mx)
+{
+  if (aux_mx)
+    return (const FLT_OR_DBL *)aux_mx->qqm;
+
+  return NULL;
+}
+
+
+PUBLIC const FLT_OR_DBL *
+vrna_exp_E_ml_fast_qqm1(struct vrna_mx_pf_aux_ml_s *aux_mx)
+{
+  if (aux_mx)
+    return (const FLT_OR_DBL *)aux_mx->qqm1;
+
+  return NULL;
+}
+
+
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #
  #####################################
  */
 PRIVATE FLT_OR_DBL
-exp_E_mb_loop_fast(vrna_fold_compound_t *vc,
-                   int                  i,
-                   int                  j,
-                   FLT_OR_DBL           *qqm1)
+exp_E_mb_loop_fast(vrna_fold_compound_t       *vc,
+                   int                        i,
+                   int                        j,
+                   struct vrna_mx_pf_aux_ml_s *aux_mx)
 {
   unsigned char             sliding_window;
   char                      *ptype, **ptype_local;
   short                     *S1, **SS, **S5, **S3;
   unsigned int              *sn, n_seq, s, *se;
   int                       ij, k, kl, *my_iindx, *jindx, *rtype, tt;
-  FLT_OR_DBL                qbt1, temp, qqqmmm, *qm, **qm_local, *scale, expMLclosing;
+  FLT_OR_DBL                qbt1, temp, qqqmmm, *qm, **qm_local, *scale, expMLclosing, *qqm1;
   vrna_hc_t                 *hc;
   vrna_exp_param_t          *pf_params;
   vrna_md_t                 *md;
@@ -210,6 +238,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t *vc,
   struct default_data       hc_dat_local;
   struct sc_wrapper_exp_ml  sc_wrapper;
 
+  qqm1            = aux_mx->qqm1;
   sliding_window  = (vc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n_seq           = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
   se              = vc->strand_end;
@@ -336,10 +365,10 @@ exp_E_mb_loop_fast(vrna_fold_compound_t *vc,
 
 
 PRIVATE FLT_OR_DBL
-exp_E_ml_fast(vrna_fold_compound_t  *vc,
-              int                   i,
-              int                   j,
-              vrna_mx_pf_aux_ml_t   *aux_mx)
+exp_E_ml_fast(vrna_fold_compound_t        *vc,
+              int                         i,
+              int                         j,
+              struct vrna_mx_pf_aux_ml_s  *aux_mx)
 {
   unsigned char             sliding_window;
   short                     *S1, *S2, **SS, **S5, **S3;
@@ -416,7 +445,8 @@ exp_E_ml_fast(vrna_fold_compound_t  *vc,
                     domains_up->exp_energy_cb(vc,
                                               j - u + 1,
                                               j,
-                                              VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                              VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP |
+                                              VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
                                               domains_up->data) *
                     expMLbase[u];
 
