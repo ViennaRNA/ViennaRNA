@@ -25,7 +25,8 @@
 # define INLINE
 #endif
 
-#include "hairpin_loops.inc"
+#include "hairpin_loops_hc.inc"
+#include "hairpin_loops_sc.inc"
 
 /*
  #################################
@@ -104,19 +105,22 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
                       int                   i,
                       int                   j)
 {
-  char          **Ss, loopseq[10];
-  unsigned int  **a2s;
-  short         *S, *S2, **SS, **S5, **S3;
-  int           u1, u2, e, s, type, n_seq, length, noGUclosure;
-  vrna_param_t  *P;
-  vrna_sc_t     *sc, **scs;
-  vrna_md_t     *md;
+  char                  **Ss, loopseq[10];
+  unsigned int          **a2s;
+  short                 *S, *S2, **SS, **S5, **S3;
+  int                   u1, u2, e, s, type, n_seq, length, noGUclosure;
+  vrna_param_t          *P;
+  vrna_sc_t             *sc, **scs;
+  vrna_md_t             *md;
+  struct sc_wrapper_hp  sc_wrapper;
 
   length      = vc->length;
   P           = vc->params;
   md          = &(P->model_details);
   noGUclosure = md->noGUclosure;
   e           = INF;
+
+  init_sc_wrapper(vc, &sc_wrapper);
 
   u1  = length - j;
   u2  = i - 1;
@@ -143,15 +147,6 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
       }
 
       e = E_Hairpin(u1 + u2, type, S[j + 1], S[i - 1], loopseq, P);
-
-      if (sc) {
-        if (sc->energy_up)
-          e += sc->energy_up[j + 1][u1] +
-               sc->energy_up[1][u2];
-
-        if (sc->f)
-          e += sc->f(j, i, j, i, VRNA_DECOMP_PAIR_HP, sc->data);
-      }
 
       break;
 
@@ -184,24 +179,6 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
           e     += E_Hairpin(u1 + u2, type, S3[s][j], S5[s][i], loopseq, P);
         }
       }
-      if (scs) {
-        for (s = 0; s < n_seq; s++) {
-          if (scs[s]) {
-            if (scs[s]->energy_up)
-              e += scs[s]->energy_up[1][a2s[s][i - 1]] +
-                   scs[s]->energy_up[a2s[s][j + 1]][a2s[s][length] - a2s[s][j]];
-
-            if (scs[s]->f) {
-              e += scs[s]->f(a2s[s][j],
-                             a2s[s][i],
-                             a2s[s][j],
-                             a2s[s][i],
-                             VRNA_DECOMP_PAIR_HP,
-                             scs[s]->data);
-            }
-          }
-        }
-      }
 
       break;
 
@@ -209,6 +186,12 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
     default:
       break;
   }
+
+  if (e != INF)
+    if (sc_wrapper.pair_ext)
+      e += sc_wrapper.pair_ext(i, j, &sc_wrapper);
+
+  free_sc_wrapper(&sc_wrapper);
 
   return e;
 }
@@ -232,15 +215,16 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
                   int                   i,
                   int                   j)
 {
-  char          **Ss;
-  unsigned int  **a2s;
-  short         *S, *S2, **SS, **S5, **S3;
-  unsigned int  *sn;
-  int           u, e, s, ij, type, *idx, n_seq, en, noGUclosure;
-  vrna_param_t  *P;
-  vrna_sc_t     *sc, **scs;
-  vrna_md_t     *md;
-  vrna_ud_t     *domains_up;
+  char                  **Ss;
+  unsigned int          **a2s;
+  short                 *S, *S2, **SS, **S5, **S3;
+  unsigned int          *sn;
+  int                   u, e, s, ij, type, *idx, n_seq, en, noGUclosure;
+  vrna_param_t          *P;
+  vrna_sc_t             *sc, **scs;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  struct sc_wrapper_hp  sc_wrapper;
 
   idx         = vc->jindx;
   P           = vc->params;
@@ -252,6 +236,8 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
 
   if (sn[j] != sn[i])
     return eval_hp_loop_fake(vc, i, j);
+
+  init_sc_wrapper(vc, &sc_wrapper);
 
   /* regular hairpin loop */
   switch (vc->type) {
@@ -267,43 +253,6 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
         break;
 
       e = E_Hairpin(u, type, S[i + 1], S[j - 1], vc->sequence + i - 1, P);
-
-      /* add soft constraints */
-      if (sc) {
-        if (sc->energy_up)
-          e += sc->energy_up[i + 1][u];
-
-        switch (sc->type) {
-          case VRNA_SC_DEFAULT:
-            if (sc->energy_bp) {
-              ij  = idx[j] + i;
-              e   += sc->energy_bp[ij];
-            }
-
-            break;
-
-          case VRNA_SC_WINDOW:
-            if (sc->energy_bp_local)
-              e += sc->energy_bp_local[i][j - i];
-
-            break;
-        }
-
-        if (sc->f)
-          e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
-      }
-
-      /* consider possible ligand binding */
-      if (domains_up && domains_up->energy_cb) {
-        en = domains_up->energy_cb(vc,
-                                   i + 1, j - 1,
-                                   VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
-                                   domains_up->data);
-        if (en != INF)
-          en += e;
-
-        e = MIN2(e, en);
-      }
 
       break;
 
@@ -327,48 +276,31 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
         }
       }
 
-      if (scs) {
-        for (s = 0; s < n_seq; s++) {
-          if (scs[s]) {
-            u = a2s[s][j - 1] - a2s[s][i];
-
-            if (scs[s]->energy_up)
-              e += scs[s]->energy_up[a2s[s][i + 1]][u];
-
-            switch (scs[s]->type) {
-              case VRNA_SC_DEFAULT:
-                if (scs[s]->energy_bp) {
-                  ij  = idx[j] + i;
-                  e   += scs[s]->energy_bp[ij];
-                }
-
-                break;
-
-              case VRNA_SC_WINDOW:
-                if (scs[s]->energy_bp_local)
-                  e += scs[s]->energy_bp_local[i][j - i];
-
-                break;
-            }
-
-            if (scs[s]->f) {
-              e += scs[s]->f(a2s[s][i],
-                             a2s[s][j],
-                             a2s[s][i],
-                             a2s[s][j],
-                             VRNA_DECOMP_PAIR_HP,
-                             scs[s]->data);
-            }
-          }
-        }
-      }
-
       break;
 
     /* nothing */
     default:
       break;
   }
+
+  if (e != INF) {
+    if (sc_wrapper.pair)
+      e += sc_wrapper.pair(i, j, &sc_wrapper);
+
+    /* consider possible ligand binding */
+    if (domains_up && domains_up->energy_cb) {
+      en = domains_up->energy_cb(vc,
+                                 i + 1, j - 1,
+                                 VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
+                                 domains_up->data);
+      if (en != INF)
+        en += e;
+
+      e = MIN2(e, en);
+    }
+  }
+
+  free_sc_wrapper(&sc_wrapper);
 
   return e;
 }

@@ -25,7 +25,7 @@
 # define INLINE
 #endif
 
-#include "hairpin_loops.inc"
+#include "hairpin_loops_hc.inc"
 
 /*
  #################################

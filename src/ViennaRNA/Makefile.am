@@ -277,7 +277,9 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               exterior_loops_hc.inc \
               exterior_loops_sc.inc \
               exterior_loops_sc_pf.inc \
-              hairpin_loops.inc \
+              hairpin_loops_hc.inc \
+              hairpin_loops_sc.inc \
+              hairpin_loops_sc_pf.inc \
               interior_loops.inc \
               multibranch_loops_hc.inc \
               multibranch_loops_sc.inc \
