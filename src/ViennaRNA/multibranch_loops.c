@@ -1040,11 +1040,13 @@ extend_fm_3p(int                        i,
 
 
 #ifdef VRNA_WITH_SSE_IMPLEMENTATION
-/* SSE modular decomposition -------------------------------*/
 #include <emmintrin.h>
 #include <smmintrin.h>
 
-//http://stackoverflow.com/questions/9877700/getting-max-value-in-a-m128i-vector-with-sse
+/*
+ *  SSE minimum
+ *  see also: http://stackoverflow.com/questions/9877700/getting-max-value-in-a-m128i-vector-with-sse
+ */
 int
 horizontal_min_Vec4i(__m128i x)
 {
@@ -1057,55 +1059,6 @@ horizontal_min_Vec4i(__m128i x)
 }
 
 
-PRIVATE int
-modular_decomposition(const int i,
-                      const int ij,
-                      const int j,
-                      const int turn,
-                      const int *fmi,
-                      const int *fm)
-{
-  int       k       = i + turn + 1;
-  int       k1j     = ij + turn + 2; //indx[j] + i + 1; //indx[j] + i + turn + 2;
-  const int stop    = j - 2 - turn;
-  int       decomp  = INF;
-  {
-    const int end = 1 + stop - k;
-    int       i;
-    __m128i   inf = _mm_set1_epi32(INF);
-
-    for (i = 0; i < end - 3; i += 4) {
-      __m128i   a = _mm_loadu_si128((__m128i *)&fmi[k + i]);
-      __m128i   b = _mm_loadu_si128((__m128i *)&fm[k1j + i]);
-      __m128i   c = _mm_add_epi32(a, b);
-      /* deactivate this part if you are sure to not use any hard constraints */
-#if 1
-      __m128i   mask1 = _mm_cmplt_epi32(a, inf);
-      __m128i   mask2 = _mm_cmplt_epi32(b, inf);
-      __m128i   res   = _mm_or_si128(_mm_and_si128(mask1, c),
-                                     _mm_andnot_si128(mask1, a));
-
-      res = _mm_or_si128(_mm_and_si128(mask2, res),
-                         _mm_andnot_si128(mask2, b));
-      const int en = horizontal_min_Vec4i(res);
-#else
-      const int en = horizontal_min_Vec4i(c);
-#endif
-      decomp = MIN2(decomp, en);
-    }
-    for (; i < end; i++) {
-      if ((fmi[k + i] != INF) && (fm[k1j + i] != INF)) {
-        const int en = fmi[k + i] + fm[k1j + i];
-        decomp = MIN2(decomp, en);
-      }
-    }
-  }
-
-  return decomp;
-}
-
-
-/* End SSE modular decomposition -------------------------------*/
 #endif
 
 
@@ -1328,59 +1281,40 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   }
 
   /* modular decomposition -------------------------------*/
-  stop = (strands > 1) ? (se[0]) : (j - 2 - turn);
 
   /* use fmi pointer that we may extend to include hard/soft constraints if necessary */
   int *fmi_tmp = fmi;
 
   if (hc->f) {
-    int *fmi_tmp = (int *)vrna_alloc(sizeof(int) * (MAX2(stop, j) - i + 2));
+    int *fmi_tmp = (int *)vrna_alloc(sizeof(int) * (j - i + 2));
     fmi_tmp -= i;
 
     /* copy data */
-    for (k = i + 1 + turn; k <= stop; k++)
-      fmi_tmp[k] = fmi[k];
-
-    for (k++; k <= j - 2 - turn; k++)
+    for (k = i + 1 + turn; k <= j - 2 - turn; k++)
       fmi_tmp[k] = fmi[k];
 
     /* mask unavailable decompositions */
-    for (k = i + 1 + turn; k <= stop; k++)
-      if (!hc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
-        fmi_tmp[k] = INF;
-
-    for (k++; k <= j - 2 - turn; k++)
+    for (k = i + 1 + turn; k <= j - 2 - turn; k++)
       if (!hc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
         fmi_tmp[k] = INF;
   }
 
   if (sc_wrapper.decomp_ml) {
     if (fmi_tmp == fmi - (sliding_window ? i : 0)) {
-      int *fmi_tmp = (int *)vrna_alloc(sizeof(int) * (MAX2(stop, j) - i + 2));
+      int *fmi_tmp = (int *)vrna_alloc(sizeof(int) * (j - i + 2));
       fmi_tmp -= i;
 
       /* copy data */
-      for (k = i + 1 + turn; k <= stop; k++)
-        fmi_tmp[k] = fmi[k];
-
-      for (k++; k <= j - 2 - turn; k++)
+      for (k = i + 1 + turn; k <= j - 2 - turn; k++)
         fmi_tmp[k] = fmi[k];
     }
 
-    for (k = i + 1 + turn; k <= stop; k++)
-      if (fmi_tmp[k] != INF)
-        fmi_tmp[k] += sc_wrapper.decomp_ml(i, j, k, k + 1, &sc_wrapper);
-
-    k++;
-    for (; k <= j - 2 - turn; k++)
+    for (k = i + 1 + turn; k <= j - 2 - turn; k++)
       if (fmi_tmp[k] != INF)
         fmi_tmp[k] += sc_wrapper.decomp_ml(i, j, k, k + 1, &sc_wrapper);
   }
 
   /* modular decomposition -------------------------------*/
-#ifdef VRNA_WITH_SSE_IMPLEMENTATION
-  decomp = modular_decomposition(i, ij, j, turn, fmi_tmp, fc->matrices->fML);
-#else
   if (sliding_window) {
     for (decomp = INF, k = i + 1 + turn; k <= j - 2 - turn; k++) {
       if ((fmi_tmp[k] != INF) && (fm_local[k + 1][j - (k + 1)] != INF)) {
@@ -1389,26 +1323,70 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       }
     }
   } else {
-    k1j = indx[j] + i + turn + 2;
-    for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++) {
-      if ((fmi_tmp[k] != INF) && (fm[k1j] != INF)) {
-        en      = fmi_tmp[k] + fm[k1j];
-        decomp  = MIN2(decomp, en);
-      }
-    }
+    decomp  = INF;
+    k       = i + turn + 1;
+    if (k >= j)
+      k = j - 1;
 
-    k++;
-    k1j++;
+    k1j = indx[j] + k + 1;
 
-    for (; k <= j - 2 - turn; k++, k1j++) {
-      if ((fmi_tmp[k] != INF) && (fm[k1j] != INF)) {
-        en      = fmi_tmp[k] + fm[k1j];
-        decomp  = MIN2(decomp, en);
+    /*
+     *  loop over entire range but skip decompositions with in-between strand nick,
+     *  this should be faster than evaluating hard constraints callback for each
+     *  decomposition
+     */
+    while (1) {
+      int last_nt = se[sn[k - 1]];  /* go to last nucleotide of current strand */
+      if (last_nt > j - turn - 2)
+        last_nt = j - turn - 2;     /* at most go to last possible decomposition split before reaching j */
+
+      if (last_nt < i)
+        last_nt = i; /* do not start before i */
+
+      const int stop = last_nt;
+#ifdef VRNA_WITH_SSE_IMPLEMENTATION
+      const int end = 1 + stop - k;
+      int       cnt;
+      __m128i   inf = _mm_set1_epi32(INF);
+
+      for (cnt = 0; cnt < end - 3; cnt += 4) {
+        __m128i   a     = _mm_loadu_si128((__m128i *)&fmi_tmp[k + cnt]);
+        __m128i   b     = _mm_loadu_si128((__m128i *)&fm[k1j + cnt]);
+        __m128i   c     = _mm_add_epi32(a, b);
+        __m128i   mask1 = _mm_cmplt_epi32(a, inf);
+        __m128i   mask2 = _mm_cmplt_epi32(b, inf);
+        __m128i   res   = _mm_or_si128(_mm_and_si128(mask1, c),
+                                       _mm_andnot_si128(mask1, a));
+
+        res = _mm_or_si128(_mm_and_si128(mask2, res),
+                           _mm_andnot_si128(mask2, b));
+        const int en = horizontal_min_Vec4i(res);
+        decomp = MIN2(decomp, en);
       }
+
+      for (; cnt < end; cnt++) {
+        if ((fmi[k + cnt] != INF) && (fm[k1j + cnt] != INF)) {
+          const int en = fmi[k + cnt] + fm[k1j + cnt];
+          decomp = MIN2(decomp, en);
+        }
+      }
+#else
+      for (; k <= stop; k++, k1j++) {
+        if ((fmi_tmp[k] != INF) && (fm[k1j] != INF)) {
+          en      = fmi_tmp[k] + fm[k1j];
+          decomp  = MIN2(decomp, en);
+        }
+      }
+#endif
+
+      k++;
+      k1j++;
+
+      if (k > j - turn - 2)
+        break;
     }
   }
 
-#endif
   /* end modular decomposition -------------------------------*/
 
   if (fmi_tmp != fmi) {
@@ -1443,71 +1421,64 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       }
     } else {
       int ik;
-      k1j = indx[j] + i + turn + 2;
-      for (decomp = INF, k = i + 1 + turn; k <= stop; k++, k1j++) {
-        ik = indx[k] + i;
-        if (evaluate(i, k, k + 1, j, VRNA_DECOMP_ML_COAXIAL_ENC, &hc_dat_local)) {
-          en = c[ik] +
-               c[k1j];
+      k1j     = indx[j] + i + turn + 2;
+      decomp  = INF;
+      k       = i + turn + 1;
+      if (k >= j)
+        k = j - 1;
 
-          switch (fc->type) {
-            case VRNA_FC_TYPE_SINGLE:
-              type    = rtype[vrna_get_ptype(ik, ptype)];
-              type_2  = rtype[vrna_get_ptype(k1j, ptype)];
+      /*
+       *  loop over entire range but skip decompositions with in-between strand nick,
+       *  this should be faster than evaluating hard constraints callback for each
+       *  decomposition
+       */
+      while (1) {
+        int last_nt = se[sn[k - 1]];  /* go to last nucleotide of current strand */
+        if (last_nt > j - turn - 2)
+          last_nt = j - turn - 2;     /* at most go to last possible decomposition split before reaching j */
 
-              en += P->stack[type][type_2];
+        if (last_nt < i)
+          last_nt = i; /* do not start before i */
 
-              break;
+        const int stop = last_nt;
+        for (; k <= stop; k++, k1j++) {
+          ik = indx[k] + i;
+          if (evaluate(i, k, k + 1, j, VRNA_DECOMP_ML_COAXIAL_ENC, &hc_dat_local)) {
+            en = c[ik] +
+                 c[k1j];
 
-            case VRNA_FC_TYPE_COMPARATIVE:
-              for (s = 0; s < n_seq; s++) {
-                type    = vrna_get_ptype_md(SS[s][k], SS[s][i], md);
-                type_2  = vrna_get_ptype_md(SS[s][j], SS[s][k + 1], md);
-
-                en += P->stack[type][type_2];
-              }
-
-              break;
-          }
-
-          if (sc_wrapper.coaxial_enc)
-            en += sc_wrapper.coaxial_enc(i, k, k + 1, j, &sc_wrapper);
-
-          decomp = MIN2(decomp, en);
-        }
-      }
-      k++;
-      k1j++;
-      for (; k <= j - 2 - turn; k++, k1j++) {
-        ik = indx[k] + i;
-        if (evaluate(i, k, k + 1, j, VRNA_DECOMP_ML_COAXIAL_ENC, &hc_dat_local)) {
-          en = c[ik] +
-               c[k1j];
-
-          switch (fc->type) {
-            case VRNA_FC_TYPE_SINGLE:
-              type    = rtype[vrna_get_ptype(ik, ptype)];
-              type_2  = rtype[vrna_get_ptype(k1j, ptype)];
-
-              en += P->stack[type][type_2];
-              break;
-
-            case VRNA_FC_TYPE_COMPARATIVE:
-              for (s = 0; s < n_seq; s++) {
-                type    = vrna_get_ptype_md(SS[s][k], SS[s][i], md);
-                type_2  = vrna_get_ptype_md(SS[s][j], SS[s][k + 1], md);
+            switch (fc->type) {
+              case VRNA_FC_TYPE_SINGLE:
+                type    = rtype[vrna_get_ptype(ik, ptype)];
+                type_2  = rtype[vrna_get_ptype(k1j, ptype)];
 
                 en += P->stack[type][type_2];
-              }
 
-              break;
+                break;
+
+              case VRNA_FC_TYPE_COMPARATIVE:
+                for (s = 0; s < n_seq; s++) {
+                  type    = vrna_get_ptype_md(SS[s][k], SS[s][i], md);
+                  type_2  = vrna_get_ptype_md(SS[s][j], SS[s][k + 1], md);
+
+                  en += P->stack[type][type_2];
+                }
+
+                break;
+            }
+
+            if (sc_wrapper.coaxial_enc)
+              en += sc_wrapper.coaxial_enc(i, k, k + 1, j, &sc_wrapper);
+
+            decomp = MIN2(decomp, en);
           }
-
-          if (sc_wrapper.coaxial_enc)
-            en += sc_wrapper.coaxial_enc(i, k, k + 1, j, &sc_wrapper);
-
-          decomp = MIN2(decomp, en);
         }
+
+        k++;
+        k1j++;
+
+        if (k > j - turn - 2)
+          break;
       }
     }
 
