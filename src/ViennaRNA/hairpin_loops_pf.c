@@ -95,7 +95,7 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
                       int                   j)
 {
   short             *S, *S2, s5, s3;
-  unsigned int      strands, *sn, *so, *ss, *se;
+  unsigned int      *sn, *ss, *se;
   int               u, type, *iidx;
   FLT_OR_DBL        qq, temp, *q, *scale;
   vrna_exp_param_t  *pf_params;
@@ -108,9 +108,7 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *vc,
   md          = &(pf_params->model_details);
   q           = vc->exp_matrices->q;
   scale       = vc->exp_matrices->scale;
-  strands     = vc->strands;
   sn          = vc->strand_number;
-  so          = vc->strand_order;
   ss          = vc->strand_start;
   se          = vc->strand_end;
   domains_up  = vc->domains_up;
@@ -185,15 +183,13 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
   unsigned int              **a2s;
   short                     *S, *S2, **SS, **S5, **S3;
   unsigned int              *sn;
-  int                       u, type, n_seq, s, *iidx;
+  int                       u, type, n_seq, s;
   FLT_OR_DBL                q, qbt1, *scale;
   vrna_exp_param_t          *P;
-  vrna_sc_t                 *sc, **scs;
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
   struct sc_wrapper_exp_hp  sc_wrapper;
 
-  iidx        = vc->iindx;
   P           = vc->exp_params;
   md          = &(P->model_details);
   sn          = vc->strand_number;
@@ -210,7 +206,6 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
     case VRNA_FC_TYPE_SINGLE:
       S     = vc->sequence_encoding;
       S2    = vc->sequence_encoding2;
-      sc    = vc->sc;
       u     = j - i - 1;
       type  = vrna_get_ptype_md(S2[i], S2[j], md);
 
@@ -230,7 +225,6 @@ exp_eval_hp_loop(vrna_fold_compound_t *vc,
       S3    = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
       Ss    = vc->Ss;
       a2s   = vc->a2s;
-      scs   = vc->scs;
       n_seq = vc->n_seq;
       qbt1  = 1.;
 
@@ -284,29 +278,25 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
   char                      **Ss, *sequence;
   unsigned int              **a2s;
   short                     *S, *S2, **SS, **S5, **S3;
-  int                       u1, u2, ij, n, type, n_seq, s, *rtype, *idx, noGUclosure;
+  int                       u1, u2, n, type, n_seq, s, noGUclosure;
   FLT_OR_DBL                q, qbt1, *scale;
   vrna_exp_param_t          *P;
-  vrna_sc_t                 *sc, **scs;
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
   struct sc_wrapper_exp_hp  sc_wrapper;
 
   n           = vc->length;
-  idx         = vc->jindx;
   P           = vc->exp_params;
   md          = &(P->model_details);
   noGUclosure = md->noGUclosure;
   scale       = vc->exp_matrices->scale;
   domains_up  = vc->domains_up;
-  rtype       = &(md->rtype[0]);
 
   init_sc_wrapper(vc, &sc_wrapper);
 
   q   = 0.;
   u1  = n - j;
   u2  = i - 1;
-  ij  = idx[j] + i;
 
   if ((u1 + u2) < 3)
     return q;
@@ -316,7 +306,6 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
       sequence  = vc->sequence;
       S         = vc->sequence_encoding;
       S2        = vc->sequence_encoding2;
-      sc        = vc->sc;
       type      = vrna_get_ptype_md(S2[j], S2[i], md);
 
       if (((type == 3) || (type == 4)) && noGUclosure)
@@ -340,7 +329,6 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *vc,
       S3    = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
       Ss    = vc->Ss;
       a2s   = vc->a2s;
-      scs   = vc->scs;
       n_seq = vc->n_seq;
       qbt1  = 1.;
 

@@ -362,6 +362,8 @@ sc_pair_ext_user_comparative(int                      i,
       sc *= data->user_cb_comparative[s](j, i, j, i,
                                          VRNA_DECOMP_PAIR_HP,
                                          data->user_data_comparative[s]);
+
+  return sc;
 }
 
 

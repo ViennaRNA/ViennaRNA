@@ -110,7 +110,6 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
   short                 *S, *S2, **SS, **S5, **S3;
   int                   u1, u2, e, s, type, n_seq, length, noGUclosure;
   vrna_param_t          *P;
-  vrna_sc_t             *sc, **scs;
   vrna_md_t             *md;
   struct sc_wrapper_hp  sc_wrapper;
 
@@ -133,7 +132,6 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
     case  VRNA_FC_TYPE_SINGLE:
       S           = vc->sequence_encoding;
       S2          = vc->sequence_encoding2;
-      sc          = vc->sc;
       type        = vrna_get_ptype_md(S2[j], S2[i], md);
       loopseq[0]  = '\0';
 
@@ -157,7 +155,6 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
       S3    = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
       Ss    = vc->Ss;
       a2s   = vc->a2s;
-      scs   = vc->scs;
       n_seq = vc->n_seq;
       e     = 0;
 
@@ -219,14 +216,12 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
   unsigned int          **a2s;
   short                 *S, *S2, **SS, **S5, **S3;
   unsigned int          *sn;
-  int                   u, e, s, ij, type, *idx, n_seq, en, noGUclosure;
+  int                   u, e, s, type, n_seq, en, noGUclosure;
   vrna_param_t          *P;
-  vrna_sc_t             *sc, **scs;
   vrna_md_t             *md;
   vrna_ud_t             *domains_up;
   struct sc_wrapper_hp  sc_wrapper;
 
-  idx         = vc->jindx;
   P           = vc->params;
   md          = &(P->model_details);
   noGUclosure = md->noGUclosure;
@@ -245,7 +240,6 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
     case  VRNA_FC_TYPE_SINGLE:
       S     = vc->sequence_encoding;
       S2    = vc->sequence_encoding2;
-      sc    = vc->sc;
       u     = j - i - 1;
       type  = vrna_get_ptype_md(S2[i], S2[j], md);
 
@@ -263,7 +257,6 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
       S3    = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
       Ss    = vc->Ss;
       a2s   = vc->a2s;
-      scs   = vc->scs;
       n_seq = vc->n_seq;
 
       for (e = s = 0; s < n_seq; s++) {

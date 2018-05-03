@@ -534,10 +534,8 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
                int                  j)
 {
   short                     S_i1, S_j1, *S, *S2;
-  unsigned int              strands, *sn, *so, *ss, *se;
-  int                       decomp, en, e, *indx, *fC, ij, dangle_model, tt, noGUclosure;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 *sc;
+  unsigned int              strands, *sn;
+  int                       decomp, en, e, *fC, dangle_model, tt, noGUclosure;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
@@ -545,14 +543,8 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
 
   S             = fc->sequence_encoding;
   S2            = fc->sequence_encoding2;
-  indx          = fc->jindx;
   strands       = fc->strands;
   sn            = fc->strand_number;
-  so            = fc->strand_order;
-  ss            = fc->strand_start;
-  se            = fc->strand_end;
-  hc            = fc->hc;
-  sc            = fc->sc;
   fC            = fc->matrices->fc;
   P             = fc->params;
   md            = &(P->model_details);
@@ -565,8 +557,7 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
 
   evaluate = prepare_hc_default_ext(fc, &hc_dat_local);
 
-  ij  = indx[j] + i;
-  tt  = vrna_get_ptype_md(S2[j], S2[i], md);
+  tt = vrna_get_ptype_md(S2[j], S2[i], md);
 
   if (noGUclosure && ((tt == 3) || (tt == 4)))
     return e;
@@ -643,7 +634,7 @@ E_mb_loop_fast(vrna_fold_compound_t *fc,
                int                  *dmli1,
                int                  *dmli2)
 {
-  unsigned int              strands, *sn, *so, *ss, *se;
+  unsigned int              *sn;
   int                       decomp, e, dangle_model;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -651,11 +642,7 @@ E_mb_loop_fast(vrna_fold_compound_t *fc,
   struct default_data       hc_dat_local;
   struct sc_wrapper_ml      sc_wrapper;
 
-  strands       = fc->strands;
   sn            = fc->strand_number;
-  so            = fc->strand_order;
-  ss            = fc->strand_start;
-  se            = fc->strand_end;
   P             = fc->params;
   md            = &(P->model_details);
   dangle_model  = md->dangles;
@@ -903,13 +890,11 @@ extend_fm_3p(int                        i,
              struct sc_wrapper_ml       *sc_wrapper)
 {
   short         *S, **SS, **S5, **S3;
-  unsigned int  *sn, n_seq, s, **a2s, sliding_window;
+  unsigned int  *sn, n_seq, s, sliding_window;
   int           en, en2, length, *indx, *c, **c_local, **fm_local, *ggg, **ggg_local, ij, type,
                 dangle_model, with_gquad, e, u, k, cnt, with_ud;
   vrna_param_t  *P;
   vrna_md_t     *md;
-  vrna_hc_t     *hc;
-  vrna_sc_t     *sc, **scs;
   vrna_ud_t     *domains_up;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -919,12 +904,8 @@ extend_fm_3p(int                        i,
   SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
   S5              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
   S3              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
-  a2s             = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
   indx            = (sliding_window) ? NULL : fc->jindx;
   sn              = fc->strand_number;
-  hc              = fc->hc;
-  sc              = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sc : NULL;
-  scs             = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->scs;
   c               = (sliding_window) ? NULL : fc->matrices->c;
   ggg             = (sliding_window) ? NULL : fc->matrices->ggg;
   c_local         = (sliding_window) ? fc->matrices->c_local : NULL;
@@ -1071,8 +1052,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
 {
   char                      *ptype, **ptype_local;
   short                     *S, **SS, **S5, **S3;
-  unsigned int              strands, *sn, *so, *ss, *se, n_seq, s;
-  int                       k, en, decomp, mm5, mm3, type_2, k1j, stop, length, *indx,
+  unsigned int              *sn, *se, n_seq, s;
+  int                       k, en, decomp, mm5, mm3, type_2, k1j, length, *indx,
                             *c, *fm, ij, dangle_model, turn, type, *rtype, circular, e, u,
                             cnt, with_ud, sliding_window, **c_local, **fm_local;
   vrna_hc_t                 *hc;
@@ -1096,10 +1077,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   S3            = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
   indx          = (sliding_window) ? NULL : fc->jindx;
   n_seq         = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
-  strands       = fc->strands;
   sn            = fc->strand_number;
-  so            = fc->strand_order;
-  ss            = fc->strand_start;
   se            = fc->strand_end;
   hc            = fc->hc;
   sc            = fc->sc;
@@ -1181,10 +1159,14 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
 
   if (dangle_model % 2) {
     /* dangle_model = 1 || 3 */
+    mm5 = mm3 = -1;
 
     if (fc->type == VRNA_FC_TYPE_SINGLE) {
-      mm5 = ((i > 1) || circular) ? S[i] : -1;
-      mm3 = ((j < length) || circular) ? S[j] : -1;
+      if ((i > 1) || circular)
+        mm5 = S[i];
+
+      if ((j < length) || circular)
+        mm3 = S[j];
     }
 
     if (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {

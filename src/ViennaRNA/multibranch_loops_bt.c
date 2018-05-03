@@ -108,12 +108,11 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
 {
   char                      *ptype;
   short                     mm5, mm3, *S1;
-  unsigned int              strands, *sn, *so, *ss, *se;
+  unsigned int              *sn, *se;
   int                       length, ii, jj, k, en, fij, fi, *my_c, *my_fc, *my_ggg,
                             *idx, with_gquad, dangle_model, turn, type;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
   vrna_sc_t                 *sc;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
@@ -121,12 +120,8 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
   length        = vc->length;
   P             = vc->params;
   md            = &(P->model_details);
-  strands       = vc->strands;
   sn            = vc->strand_number;
-  so            = vc->strand_order;
-  ss            = vc->strand_start;
   se            = vc->strand_end;
-  hc            = vc->hc;
   sc            = vc->sc;
   S1            = vc->sequence_encoding;
   ptype         = vc->ptype;
@@ -226,9 +221,8 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
 
       default:
         for (k = ii + turn + 1; k <= jj; k++) {
+          type = vrna_get_ptype(idx[k] + ii, ptype);
           if (evaluate(ii, jj, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
-            type = vrna_get_ptype(idx[k] + ii, ptype);
-
             if (fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, -1, -1, P)) {
               bp_stack[++(*stack_count)].i  = ii;
               bp_stack[(*stack_count)].j    = k;
@@ -521,8 +515,6 @@ BT_mb_loop_split(vrna_fold_compound_t *vc,
                             with_ud, type, type_2, en2, **c_local, **fML_local, **ggg_local;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
-  vrna_sc_t                 *sc;
   vrna_ud_t                 *domains_up;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
@@ -532,8 +524,6 @@ BT_mb_loop_split(vrna_fold_compound_t *vc,
   n_seq           = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
   P               = vc->params;
   md              = &(P->model_details);
-  hc              = vc->hc;
-  sc              = vc->sc;
   idx             = (sliding_window) ? NULL : vc->jindx;
   ptype           = (vc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? NULL : vc->ptype) : NULL;
   ptype_local     = (sliding_window) ? vc->ptype_local : NULL;
@@ -959,7 +949,7 @@ BT_mb_loop_split(vrna_fold_compound_t *vc,
 
   /* 3. last chance! Maybe coax stack */
   if (dangle_model == 3) {
-    int ik, k1j, tmp_en;
+    int ik, k1j;
     k1j = (sliding_window) ? 0 : idx[jj] + ii + turn + 2;
     for (u = ii + 1 + turn; u <= jj - 2 - turn; u++, k1j++) {
       ik = (sliding_window) ? 0 : idx[u] + ii;
@@ -1023,12 +1013,11 @@ BT_mb_loop(vrna_fold_compound_t *vc,
   unsigned char             sliding_window;
   char                      *ptype, **ptype_local;
   short                     s5, s3, *S1, **SS, **S5, **S3;
-  unsigned int              strands, *sn, *so, *ss, *se, n_seq, s, *tt;
+  unsigned int              *sn, *se, n_seq, s, *tt;
   int                       ij, p, q, r, e, eee, tmp_en, *idx, turn, dangle_model,
                             *my_c, *my_fML, *my_fc, *rtype, type, type_2, **c_local, **fML_local;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  vrna_hc_t                 *hc;
   vrna_sc_t                 *sc;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
@@ -1046,12 +1035,8 @@ BT_mb_loop(vrna_fold_compound_t *vc,
   S3              = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S3;
   P               = vc->params;
   md              = &(P->model_details);
-  strands         = vc->strands;
   sn              = vc->strand_number;
-  so              = vc->strand_order;
-  ss              = vc->strand_start;
   se              = vc->strand_end;
-  hc              = vc->hc;
   sc              = vc->sc;
   my_c            = (sliding_window) ? NULL : vc->matrices->c;
   my_fML          = (sliding_window) ? NULL : vc->matrices->fML;

@@ -383,7 +383,7 @@ vrna_E_ext_loop(vrna_fold_compound_t  *vc,
 {
   char                      *ptype;
   short                     *S;
-  unsigned int              strands, *sn, type;
+  unsigned int              type;
   int                       ij, en, e, *idx;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -391,8 +391,6 @@ vrna_E_ext_loop(vrna_fold_compound_t  *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  strands   = vc->strands;
-  sn        = vc->strand_number;
   S         = vc->sequence_encoding;
   idx       = vc->jindx;
   ptype     = vc->ptype;

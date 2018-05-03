@@ -1018,7 +1018,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
 {
   short                     **S, **S5, **S3;
   unsigned int              type, ss, n_seq, **a2s;
-  int                       length, fij, cc, fj, ii, u, *f3, **c, **ggg,
+  int                       fij, cc, fj, ii, u, *f3, **c, **ggg,
                             dangle_model, turn, with_gquad;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -1026,7 +1026,6 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  length        = vc->length;
   n_seq         = vc->n_seq;
   S             = vc->S;
   S5            = vc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
