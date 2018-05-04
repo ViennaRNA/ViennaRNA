@@ -26,29 +26,32 @@
  */
 
 
-int         E_gquad(int L,
-                    int l[3],
-                    vrna_param_t * P);
-
-FLT_OR_DBL  exp_E_gquad(int L,
-                        int l[3],
-                        vrna_exp_param_t * pf);
-
-int         E_gquad_ali(int i,
-                        int L,
-                        int l[3],
-                        const short **S,
-                        int n_seq,
-                        vrna_param_t * P);
+int         E_gquad(int           L,
+                    int           l[3],
+                    vrna_param_t  *P);
 
 
-void E_gquad_ali_en(int i,
-                    int L,
-                    int l[3],
-                    const short **S,
-                    int n_seq,
-                    int en[2],
-                    vrna_param_t * P);
+FLT_OR_DBL  exp_E_gquad(int               L,
+                        int               l[3],
+                        vrna_exp_param_t  *pf);
+
+
+int         E_gquad_ali(int           i,
+                        int           L,
+                        int           l[3],
+                        const short   **S,
+                        int           n_seq,
+                        vrna_param_t  *P);
+
+
+void E_gquad_ali_en(int           i,
+                    int           L,
+                    int           l[3],
+                    const short   **S,
+                    int           n_seq,
+                    int           en[2],
+                    vrna_param_t  *P);
+
 
 /**
  *  @brief Get a triangular matrix prefilled with minimum free energy
@@ -93,12 +96,13 @@ void        vrna_gquad_mx_local_update(vrna_fold_compound_t *vc,
                                        int                  start);
 
 
-void get_gquad_pattern_mfe(short *S,
-                           int i,
-                           int j,
-                           vrna_param_t * P,
-                           int *L,
-                           int l[3]);
+void get_gquad_pattern_mfe(short        *S,
+                           int          i,
+                           int          j,
+                           vrna_param_t *P,
+                           int          *L,
+                           int          l[3]);
+
 
 void
 get_gquad_pattern_exhaustive(short        *S,
@@ -110,12 +114,13 @@ get_gquad_pattern_exhaustive(short        *S,
                              int          threshold);
 
 
-void get_gquad_pattern_pf(short *S,
-                          int i,
-                          int j,
-                          vrna_exp_param_t * pf,
-                          int *L,
-                          int l[3]);
+void get_gquad_pattern_pf(short             *S,
+                          int               i,
+                          int               j,
+                          vrna_exp_param_t  *pf,
+                          int               *L,
+                          int               l[3]);
+
 
 plist *get_plist_gquad_from_pr(short            *S,
                                int              gi,
@@ -126,15 +131,16 @@ plist *get_plist_gquad_from_pr(short            *S,
                                vrna_exp_param_t *pf);
 
 
-plist *get_plist_gquad_from_pr_max(short *S,
-                                   int gi,
-                                   int gj,
-                                   FLT_OR_DBL * G,
-                                   FLT_OR_DBL * probs,
-                                   FLT_OR_DBL * scale,
-                                   int *L,
-                                   int l[3],
-                                   vrna_exp_param_t * pf);
+plist *get_plist_gquad_from_pr_max(short            *S,
+                                   int              gi,
+                                   int              gj,
+                                   FLT_OR_DBL       *G,
+                                   FLT_OR_DBL       *probs,
+                                   FLT_OR_DBL       *scale,
+                                   int              *L,
+                                   int              l[3],
+                                   vrna_exp_param_t *pf);
+
 
 plist *get_plist_gquad_from_db(const char *structure,
                                float      pr);
@@ -150,14 +156,15 @@ int         get_gquad_layer_count(short *S,
                                   int   j);
 
 
-void get_gquad_pattern_mfe_ali(short **S,
-                               short *S_cons,
-                               int n_seq,
-                               int i,
-                               int j,
-                               vrna_param_t * P,
-                               int *L,
-                               int l[3]);
+void get_gquad_pattern_mfe_ali(short        **S,
+                               short        *S_cons,
+                               int          n_seq,
+                               int          i,
+                               int          j,
+                               vrna_param_t *P,
+                               int          *L,
+                               int          l[3]);
+
 
 /**
  *  given a dot-bracket structure (possibly) containing gquads encoded
@@ -169,7 +176,10 @@ void get_gquad_pattern_mfe_ali(short **S,
  *  end2 = parse_gquad(struc+end1, &L, l); end2+=end1; ... ;
  *  end3 = parse_gquad(struc+end2, &L, l); end3+=end2; ... ;
  */
-int parse_gquad(const char *struc, int *L, int l[3]);
+int parse_gquad(const char  *struc,
+                int         *L,
+                int         l[3]);
+
 
 INLINE PRIVATE int backtrack_GQuad_IntLoop(int          c,
                                            int          i,
@@ -186,7 +196,7 @@ INLINE PRIVATE int backtrack_GQuad_IntLoop(int          c,
 INLINE PRIVATE int backtrack_GQuad_IntLoop_comparative(int          c,
                                                        int          i,
                                                        int          j,
-                                                       int          *type,
+                                                       unsigned int *type,
                                                        short        *S_cons,
                                                        short        **S5,
                                                        short        **S3,
@@ -493,7 +503,7 @@ INLINE PRIVATE int
 backtrack_GQuad_IntLoop_comparative(int           c,
                                     int           i,
                                     int           j,
-                                    int           *type,
+                                    unsigned int  *type,
                                     short         *S_cons,
                                     short         **S5,
                                     short         **S3,
@@ -713,7 +723,7 @@ INLINE PRIVATE int
 backtrack_GQuad_IntLoop_L_comparative(int           c,
                                       int           i,
                                       int           j,
-                                      int           *type,
+                                      unsigned int  *type,
                                       short         *S_cons,
                                       short         **S5,
                                       short         **S3,
