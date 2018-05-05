@@ -51,7 +51,7 @@ reduce_ext_ext_fast(vrna_fold_compound_t        *fc,
                     struct vrna_mx_pf_aux_el_s  *aux_mx,
                     vrna_callback_hc_evaluate   *evaluate,
                     struct default_data         *hc_dat_local,
-                    struct sc_wrapper_pf        *sc_wrapper);
+                    struct sc_wrapper_exp_ext   *sc_wrapper);
 
 
 PRIVATE INLINE FLT_OR_DBL
@@ -61,7 +61,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
                      struct vrna_mx_pf_aux_el_s *aux_mx,
                      vrna_callback_hc_evaluate  *evaluate,
                      struct default_data        *hc_dat_local,
-                     struct sc_wrapper_pf       *sc_wrapper);
+                     struct sc_wrapper_exp_ext  *sc_wrapper);
 
 
 PRIVATE INLINE FLT_OR_DBL
@@ -71,7 +71,7 @@ reduce_ext_up_fast(vrna_fold_compound_t       *fc,
                    struct vrna_mx_pf_aux_el_s *aux_mx,
                    vrna_callback_hc_evaluate  *evaluate,
                    struct default_data        *hc_dat_local,
-                   struct sc_wrapper_pf       *sc_wrapper);
+                   struct sc_wrapper_exp_ext  *sc_wrapper);
 
 
 PRIVATE INLINE FLT_OR_DBL
@@ -81,7 +81,7 @@ split_ext_fast(vrna_fold_compound_t       *fc,
                struct vrna_mx_pf_aux_el_s *aux_mx,
                vrna_callback_hc_evaluate  *evaluate,
                struct default_data        *hc_dat_local,
-               struct sc_wrapper_pf       *sc_wrapper);
+               struct sc_wrapper_exp_ext  *sc_wrapper);
 
 
 PRIVATE FLT_OR_DBL
@@ -129,7 +129,7 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
     FLT_OR_DBL                *q, **q_local;
     vrna_callback_hc_evaluate *evaluate;
     struct default_data       hc_dat_local;
-    struct sc_wrapper_pf      sc_wrapper;
+    struct sc_wrapper_exp_ext sc_wrapper;
     vrna_ud_t                 *domains_up;
 
     n           = (int)vc->length;
@@ -282,7 +282,7 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
   FLT_OR_DBL                **q;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
-  struct sc_wrapper_pf      sc_wrapper;
+  struct sc_wrapper_exp_ext sc_wrapper;
 
   /*
    *  init exterior loop contributions for small segments [i, j]
@@ -309,7 +309,7 @@ reduce_ext_ext_fast(vrna_fold_compound_t        *fc,
                     struct vrna_mx_pf_aux_el_s  *aux_mx,
                     vrna_callback_hc_evaluate   *evaluate,
                     struct default_data         *hc_dat_local,
-                    struct sc_wrapper_pf        *sc_wrapper)
+                    struct sc_wrapper_exp_ext   *sc_wrapper)
 {
   int           u;
   FLT_OR_DBL    q_temp, q_temp2, q, *qq1, **qqu, *scale;
@@ -367,7 +367,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
                      struct vrna_mx_pf_aux_el_s *aux_mx,
                      vrna_callback_hc_evaluate  *evaluate,
                      struct default_data        *hc_dat_local,
-                     struct sc_wrapper_pf       *sc_wrapper)
+                     struct sc_wrapper_exp_ext  *sc_wrapper)
 {
   short             **S, **S5, **S3, *S1, *S2, s5, s3;
   unsigned int      type, *sn, n, s, n_seq, **a2s;
@@ -436,7 +436,7 @@ reduce_ext_up_fast(vrna_fold_compound_t       *fc,
                    struct vrna_mx_pf_aux_el_s *aux_mx,
                    vrna_callback_hc_evaluate  *evaluate,
                    struct default_data        *hc_dat_local,
-                   struct sc_wrapper_pf       *sc_wrapper)
+                   struct sc_wrapper_exp_ext  *sc_wrapper)
 {
   int           u;
   FLT_OR_DBL    qbt, q_temp, *scale;
@@ -478,7 +478,7 @@ split_ext_fast(vrna_fold_compound_t       *fc,
                struct vrna_mx_pf_aux_el_s *aux_mx,
                vrna_callback_hc_evaluate  *evaluate,
                struct default_data        *hc_dat_local,
-               struct sc_wrapper_pf       *sc_wrapper)
+               struct sc_wrapper_exp_ext  *sc_wrapper)
 {
   int         *idx, k, ij1;
   FLT_OR_DBL  qbt, *q, *qq, *qqq;
@@ -581,7 +581,7 @@ exp_E_ext_fast(vrna_fold_compound_t       *vc,
   vrna_ud_t                 *domains_up;
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
-  struct sc_wrapper_pf      sc_wrapper;
+  struct sc_wrapper_exp_ext sc_wrapper;
 
   qq          = aux_mx->qq;
   qqu         = aux_mx->qqu;
