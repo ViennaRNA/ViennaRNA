@@ -20,7 +20,7 @@ vpath %.ggo = ../src/bin
 	$(manpages_verbose)./help2manWrapper.sh $< | perl -pe 's/\\e\\e/\\e/g' > $@
 
 ct2db.1:  ../src/Utils/ct2db.ggo
-	$(manpages_verbose)help2man -N --help-option=--detailed-help \
+	$(manpages_verbose)$(HELP2MAN) -N --help-option=--detailed-help \
                 --opt-include=./include/ref_package.inc \
                 "./cmdlopt.sh ../src/Utils/ct2db" > ct2db.1
 
