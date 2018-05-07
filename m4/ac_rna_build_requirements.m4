@@ -20,6 +20,11 @@ AC_DEFUN([RNA_CHECK_SRC_BUILDERS], [
     AC_PATH_PROG([XXD], [xxd], [no])
     AC_SUBST([XXD])
     AM_CONDITIONAL(VRNA_AM_SWITCH_HAS_XXD, test "x$XXD" != "xno")
+
+    AC_ARG_VAR([GENGETOPT], [the 'gengetopt' program to generate command line argument parsers for executable programs])
+    AC_PATH_PROG([GENGETOPT], [gengetopt], [no])
+    AC_SUBST([GENGETOPT])
+    AM_CONDITIONAL(VRNA_AM_SWITCH_HAS_GENGETOPT, test "x$GENGETOPT" != "xno")
 ])
 
 

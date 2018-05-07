@@ -97,7 +97,7 @@ EXTRA_DIST = \
 # how we make the commandline interface parser
 ## See checkmk man page for details about *.ts files
 .ggo_cmdl.c:
-	$(AM_V_GEN)gengetopt -i $<
+	$(AM_V_GEN)$(GENGETOPT) -i $<
 
 _cmdl.c_cmdl.h :
 
