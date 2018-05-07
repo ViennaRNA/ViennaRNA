@@ -20,6 +20,8 @@
 #include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/plot_aln.h"
 
+#include "static/templates_postscript.h"
+
 /*
  #################################
  # PRIVATE MACROS                #
@@ -101,31 +103,6 @@ vrna_file_PS_aln_sub(const char *filename,
     { "0.81 1", "0.81 0.6", "0.81 0.2" } /* violet */
   };
 
-  const char  *alnPlotHeader =
-    "%%!PS-Adobe-3.0 EPSF-3.0\n"
-    "%%%%BoundingBox: %i %i %i %i\n"
-    "%%%%EndComments\n"
-    "%% draws Vienna RNA like colored boxes\n"
-    "/box { %% x1 y1 x2 y2 hue saturation\n"
-    "  gsave\n"
-    "  dup 0.3 mul 1 exch sub sethsbcolor\n"
-    "  exch 3 index sub exch 2 index sub rectfill\n"
-    "  grestore\n"
-    "} def\n"
-    "%% draws a box in current color\n"
-    "/box2 { %% x1 y1 x2 y2\n"
-    "  exch 3 index sub exch 2 index sub rectfill\n"
-    "} def\n"
-    "/string { %% (Text) x y\n"
-    " 6 add\n"
-    " moveto\n"
-    "  show\n"
-    "} def\n"
-    "0 %i translate\n"
-    "1 -1 scale\n"
-    "/Courier findfont\n"
-    "[10 0 0 -10 0 0] makefont setfont\n";
-
   vrna_md_t md;
 
   set_model_details(&md);
@@ -188,7 +165,18 @@ vrna_file_PS_aln_sub(const char *filename,
   imageHeight = startY + ceil((float)length / columnWidth) * ((N + 2) * lineStep + blockStep + consStep + ssStep + rulerStep);
 
   /* Write postscript header including correct bounding box */
-  fprintf(outfile, alnPlotHeader, 0, 0, (int)imageWidth, (int)imageHeight, (int)imageHeight);
+  fprintf(outfile,
+          "%%!PS-Adobe-3.0 EPSF-3.0\n"
+          "%%%%BoundingBox: %d %d %d %d\n"
+          "%%%%EndComments\n",
+          0, 0, (int)imageWidth, (int)imageHeight);
+
+  fprintf(outfile, "%s", PS_aln_macro_base);
+  fprintf(outfile, "0 %d translate\n"
+                   "1 -1 scale\n"
+                   "/Courier findfont\n"
+                   "[10 0 0 -10 0 0] makefont setfont\n",
+                   (int)imageHeight);
 
   /* Create ruler and secondary structure lines */
   i = 0;
@@ -376,31 +364,6 @@ aliPS_color_aln(const char  *structure,
     { "0.81 1", "0.81 0.6", "0.81 0.2" } /* violet */
   };
 
-  const char  *alnPlotHeader =
-    "%%!PS-Adobe-3.0 EPSF-3.0\n"
-    "%%%%BoundingBox: %i %i %i %i\n"
-    "%%%%EndComments\n"
-    "%% draws Vienna RNA like colored boxes\n"
-    "/box { %% x1 y1 x2 y2 hue saturation\n"
-    "  gsave\n"
-    "  dup 0.3 mul 1 exch sub sethsbcolor\n"
-    "  exch 3 index sub exch 2 index sub rectfill\n"
-    "  grestore\n"
-    "} def\n"
-    "%% draws a box in current color\n"
-    "/box2 { %% x1 y1 x2 y2\n"
-    "  exch 3 index sub exch 2 index sub rectfill\n"
-    "} def\n"
-    "/string { %% (Text) x y\n"
-    " 6 add\n"
-    " moveto\n"
-    "  show\n"
-    "} def\n"
-    "0 %i translate\n"
-    "1 -1 scale\n"
-    "/Courier findfont\n"
-    "[10 0 0 -10 0 0] makefont setfont\n";
-
   vrna_md_t md;
 
   set_model_details(&md);
@@ -470,7 +433,18 @@ aliPS_color_aln(const char  *structure,
   imageHeight = startY + ceil((float)length / columnWidth) * ((N + 2) * lineStep + blockStep + consStep + ssStep + rulerStep);
 
   /* Write postscript header including correct bounding box */
-  fprintf(outfile, alnPlotHeader, 0, 0, (int)imageWidth, (int)imageHeight, (int)imageHeight);
+  fprintf(outfile,
+          "%%!PS-Adobe-3.0 EPSF-3.0\n"
+          "%%%%BoundingBox: %d %d %d %d\n"
+          "%%%%EndComments\n",
+          0, 0, (int)imageWidth, (int)imageHeight);
+
+  fprintf(outfile, "%s", PS_aln_macro_base);
+  fprintf(outfile, "0 %d translate\n"
+                   "1 -1 scale\n"
+                   "/Courier findfont\n"
+                   "[10 0 0 -10 0 0] makefont setfont\n",
+                   (int)imageHeight);
 
   /* Create ruler and secondary structure lines */
   i = 0;

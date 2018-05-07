@@ -5,6 +5,8 @@ AM_CXXFLAGS = $(RNA_CXXFLAGS) $(SIMD_CFLAGS) $(PTHREAD_CFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC}
 AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
+SUBDIRS = static
+
 # the library names to build
 lib_LTLIBRARIES = libRNA.la
 
@@ -254,7 +256,7 @@ libRNA_special_const_la_SOURCES = \
     special_const.c
 
 # static library for subpackages
-BUILT_SOURCES = libRNA.a
+all-local:      libRNA.a
 
 libRNA.a: libRNA.la
 	$(AM_V_GEN)( \

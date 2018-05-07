@@ -64,16 +64,6 @@ RNA_ENABLE_SSE
 RNA_FEATURE_POST
 
 ##--------------------##
-## Enable Subpackages ##
-##--------------------##
-
-RNA_ENABLE_PKG_KINFOLD
-RNA_ENABLE_PKG_FORESTER
-RNA_ENABLE_PKG_CLUSTER
-RNA_ENABLE_PKG_KINWALKER
-RNA_ENABLE_PKG_RNALOCMIN
-
-##--------------------##
 ## Enable scripting   ##
 ## language interface ##
 ##--------------------##
@@ -97,6 +87,21 @@ RNA_ENABLE_TUTORIAL([tutorial])
 ##--------------------##
 RNA_ENABLE_UNIT_TESTS
 
+##----------------------------------##
+## Check general build dependencies ##
+##----------------------------------##
+RNA_CHECK_BUILD_REQUIREMENTS
+
+##--------------------##
+## Enable Subpackages ##
+##--------------------##
+
+RNA_ENABLE_PKG_KINFOLD
+RNA_ENABLE_PKG_FORESTER
+RNA_ENABLE_PKG_CLUSTER
+RNA_ENABLE_PKG_KINWALKER
+RNA_ENABLE_PKG_RNALOCMIN
+
 ##--------------------##
 ## Prepare Version    ##
 ## Macros             ##
@@ -118,6 +123,7 @@ AC_CONFIG_FILES([misc/Makefile])
 AC_CONFIG_FILES([interfaces/Makefile])
 AC_CONFIG_FILES([Makefile RNAlib2.pc])
 AC_CONFIG_FILES([src/Utils/Makefile src/bin/Makefile src/Makefile src/ViennaRNA/Makefile])
+AC_CONFIG_FILES([src/ViennaRNA/static/Makefile])
 AC_CONFIG_FILES([man/Makefile doc/Makefile RNA-Tutorial/Makefile])
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 AC_CONFIG_FILES([packaging/viennarna.spec packaging/PKGBUILD])
