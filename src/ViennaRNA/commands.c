@@ -124,6 +124,7 @@ typedef struct {
 
 
 typedef struct {
+  char          *motif_name;
   char          *motif;
   float         motif_en;
   unsigned int  loop_type;
@@ -305,6 +306,7 @@ vrna_commands_free(vrna_cmd_t *commands)
         case VRNA_CMD_UD:
         {
           ud_struct *d = (ud_struct *)ptr->data;
+          free(d->motif_name);
           free(d->motif);
           free(ptr->data);
         }
@@ -326,7 +328,7 @@ apply_ud(vrna_fold_compound_t *vc,
 {
   ud_struct *d = (ud_struct *)data;
 
-  vrna_ud_add_motif(vc, d->motif, d->motif_en, d->loop_type);
+  vrna_ud_add_motif(vc, d->motif, d->motif_en, d->motif_name, d->loop_type);
 
   return 1;
 }
@@ -492,14 +494,15 @@ parse_ud_command(const char *line)
   unsigned int  loop_type;
   ud_struct     *data;
 
-  buffer        = (char *)vrna_alloc(sizeof(char) * (strlen(line) + 1));
-  data          = (ud_struct *)vrna_alloc(sizeof(ud_struct));
-  data->motif   = NULL;
-  ret           = 0;  /* error indicator */
-  entries_seen  = 0;  /* entries seen so far */
-  max_entries   = 3;  /* expected number of entries */
-  pos           = 2;  /* position relative to start of line */
-  pp            = 0;
+  buffer            = (char *)vrna_alloc(sizeof(char) * (strlen(line) + 1));
+  data              = (ud_struct *)vrna_alloc(sizeof(ud_struct));
+  data->motif_name  = NULL;
+  data->motif       = NULL;
+  ret               = 0;  /* error indicator */
+  entries_seen      = 0;  /* entries seen so far */
+  max_entries       = 3;  /* expected number of entries */
+  pos               = 2;  /* position relative to start of line */
+  pp                = 0;
 
   while (!ret && (entries_seen < max_entries) && (sscanf(line + pos, "%s%n", buffer, &pp) == 1)) {
     pos += pp;
@@ -551,15 +554,14 @@ parse_ud_command(const char *line)
   free(buffer);
 
   if (ret) {
+    free(data->motif_name);
     free(data->motif);
     free(data);
     return NULL;
   }
 
-  if (data->loop_type == 0) {
+  if (data->loop_type == 0)
     data->loop_type = VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS;
-    vrna_message_warning("");
-  }
 
   return (void *)data;
 }

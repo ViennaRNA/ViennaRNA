@@ -227,7 +227,7 @@ typedef FLT_OR_DBL (vrna_callback_ud_probs_get)(vrna_fold_compound_t  *vc,
 struct vrna_unstructured_domain_s {
   /*
    **********************************
-   * Keep track of all added motifs
+   * Keep track of all motifs added
    **********************************
    */
   int           uniq_motif_count;                   /**<  @brief The unique number of motifs of different lengths */
@@ -235,6 +235,7 @@ struct vrna_unstructured_domain_s {
 
   int           motif_count;                        /**<  @brief Total number of distinguished motifs */
   char          **motif;                            /**<  @brief Motif sequences */
+  char          **motif_name;                       /**<  @brief Motif identifier/name */
   unsigned int  *motif_size;                        /**<  @brief Motif lengths */
   double        *motif_en;                          /**<  @brief Ligand binding free energy contribution */
   unsigned int  *motif_type;                        /**<  @brief Type of motif, i.e. loop type the ligand binds to */
@@ -265,17 +266,71 @@ struct vrna_unstructured_domain_motif_s {
 };
 
 
+/**
+ *  @brief Detect unstructured domains in centroid structure
+ *
+ *  Given a centroid structure and a set of unstructured domains compute
+ *  the list of unstructured domain motifs present in the centroid.
+ *  Since we do not explicitly annotate unstructured domain motifs in
+ *  dot-bracket strings, this function can be used to check for the
+ *  presence and location of unstructured domain motifs under the
+ *  assumption that the dot-bracket string is the centroid structure
+ *  of the equiibrium ensemble.
+ *
+ *  @see vrna_centroid()
+ *  @ingroup domains_up
+ *
+ *  @param  fc        The fold_compound data structure with pre-computed equilibrium probabilities and model settings
+ *  @param  structure The centroid structure in dot-bracket notation
+ *  @return           A list of unstructured domain motifs (possibly NULL). The last element terminates the list with @p start=0, @p number=-1
+ */
 vrna_ud_motif_t *
 vrna_ud_motifs_centroid(vrna_fold_compound_t  *fc,
                         const char            *structure);
 
 
+/**
+ *  @brief Detect unstructured domains in MEA structure
+ *
+ *  Given an MEA structure and a set of unstructured domains compute
+ *  the list of unstructured domain motifs present in the MEA structure.
+ *  Since we do not explicitly annotate unstructured domain motifs in
+ *  dot-bracket strings, this function can be used to check for the
+ *  presence and location of unstructured domain motifs under the
+ *  assumption that the dot-bracket string is the MEA structure
+ *  of the equiibrium ensemble.
+ *
+ *  @see MEA()
+ *  @ingroup domains_up
+ *
+ *  @param  fc        The fold_compound data structure with pre-computed equilibrium probabilities and model settings
+ *  @param  structure The MEA structure in dot-bracket notation
+ *  @return           A list of unstructured domain motifs (possibly NULL). The last element terminates the list with @p start=0, @p number=-1
+ */
 vrna_ud_motif_t *
 vrna_ud_motifs_MEA(vrna_fold_compound_t *fc,
                    const char           *structure,
                    vrna_ep_t            *probability_list);
 
 
+/**
+ *  @brief Detect unstructured domains in MFE structure
+ *
+ *  Given an MFE structure and a set of unstructured domains compute
+ *  the list of unstructured domain motifs present in the MFE structure.
+ *  Since we do not explicitly annotate unstructured domain motifs in
+ *  dot-bracket strings, this function can be used to check for the
+ *  presence and location of unstructured domain motifs under the
+ *  assumption that the dot-bracket string is the MFE structure
+ *  of the equiibrium ensemble.
+ *
+ *  @see vrna_mfe()
+ *  @ingroup domains_up
+ *
+ *  @param  fc        The fold_compound data structure with model settings
+ *  @param  structure The MFE structure in dot-bracket notation
+ *  @return           A list of unstructured domain motifs (possibly NULL). The last element terminates the list with @p start=0, @p number=-1
+ */
 vrna_ud_motif_t *
 vrna_ud_motifs_MFE(vrna_fold_compound_t *fc,
                    const char           *structure);
@@ -299,15 +354,17 @@ vrna_ud_motifs_MFE(vrna_fold_compound_t *fc,
  *
  *  @ingroup domains_up
  *
- *  @param  vc        The #vrna_fold_compound_t data structure the ligand motif should be bound to
- *  @param  motif     The sequence motif the ligand binds to
- *  @param  motif_en  The binding free energy of the ligand in kcal/mol
- *  @param  loop_type The loop type the ligand binds to
+ *  @param  vc          The #vrna_fold_compound_t data structure the ligand motif should be bound to
+ *  @param  motif       The sequence motif the ligand binds to
+ *  @param  motif_en    The binding free energy of the ligand in kcal/mol
+ *  @param  motif_name  The name/id of the motif (may be @p NULL)
+ *  @param  loop_type   The loop type the ligand binds to
  *
  */
 void  vrna_ud_add_motif(vrna_fold_compound_t  *vc,
                         const char            *motif,
                         double                motif_en,
+                        const char            *motif_name,
                         unsigned int          loop_type);
 
 

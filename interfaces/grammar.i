@@ -12,8 +12,11 @@
 %feature("kwargs") ud_add_motif;
 #endif
 
-  void ud_add_motif(std::string motif, double motif_en, unsigned int options=VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS){
-    vrna_ud_add_motif($self, motif.c_str(), motif_en, options);
+  void ud_add_motif(std::string motif, double motif_en, std::string name="", unsigned int options=VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS){
+    if (name == "")
+      vrna_ud_add_motif($self, motif.c_str(), motif_en, NULL, options);
+    else
+      vrna_ud_add_motif($self, motif.c_str(), motif_en, name.c_str(), options);
   }
 
   void ud_remove(void){
