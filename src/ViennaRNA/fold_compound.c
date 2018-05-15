@@ -84,6 +84,18 @@ add_params(vrna_fold_compound_t *vc,
            unsigned int         options);
 
 
+PRIVATE vrna_fold_compound_t *
+init_fc_single(void);
+
+
+PRIVATE vrna_fold_compound_t *
+init_fc_comparative(void);
+
+
+PRIVATE INLINE void
+nullify(vrna_fold_compound_t *fc);
+
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -195,14 +207,10 @@ vrna_fold_compound(const char   *sequence,
       "vrna_fold_compound@data_structures.c: sequence length of %d exceeds addressable range",
       length);
 
-  vc              = vrna_alloc(sizeof(vrna_fold_compound_t));
-  vc->type        = VRNA_FC_TYPE_SINGLE;
-  vc->length      = length;
-  vc->sequence    = strdup(sequence);
-  vc->params      = NULL;
-  vc->exp_params  = NULL;
-  vc->nucleotides = NULL;
-  vc->strands     = 0;
+  vc = init_fc_single();
+
+  vc->length    = length;
+  vc->sequence  = strdup(sequence);
 
   aux_options = 0L;
 
@@ -284,18 +292,13 @@ vrna_fold_compound_comparative(const char   **sequences,
       vrna_message_error(
         "vrna_fold_compound_comparative@data_structures.c: uneqal sequence lengths in alignment");
 
-  vc        = vrna_alloc(sizeof(vrna_fold_compound_t));
-  vc->type  = VRNA_FC_TYPE_COMPARATIVE;
+  vc = init_fc_comparative();
 
   vc->n_seq     = n_seq;
   vc->length    = length;
   vc->sequences = vrna_alloc(sizeof(char *) * (vc->n_seq + 1));
   for (s = 0; sequences[s]; s++)
     vc->sequences[s] = strdup(sequences[s]);
-  vc->params      = NULL;
-  vc->exp_params  = NULL;
-  vc->nucleotides = NULL;
-  vc->strands     = 0;
 
   /* get a copy of the model details */
   if (md_p)
@@ -382,14 +385,9 @@ vrna_fold_compound_TwoD(const char    *sequence,
   if (l != length)
     vrna_message_error("vrna_fold_compound_TwoD: sequence and s2 differ in length");
 
-  vc              = vrna_alloc(sizeof(vrna_fold_compound_t));
-  vc->type        = VRNA_FC_TYPE_SINGLE;
-  vc->length      = length;
-  vc->sequence    = strdup(sequence);
-  vc->params      = NULL;
-  vc->exp_params  = NULL;
-  vc->nucleotides = NULL;
-  vc->strands     = 0;
+  vc            = init_fc_single();
+  vc->length    = length;
+  vc->sequence  = strdup(sequence);
 
   /* get a copy of the model details */
   if (md_p)
@@ -595,22 +593,6 @@ set_fold_compound(vrna_fold_compound_t  *vc,
 
   md_p = &(vc->params->model_details);
 
-  /* some default init values */
-  vc->matrices      = NULL;
-  vc->exp_matrices  = NULL;
-  vc->hc            = NULL;
-  vc->auxdata       = NULL;
-  vc->free_auxdata  = NULL;
-
-  vc->strand_number = NULL;
-  vc->strand_order  = NULL;
-  vc->strand_start  = NULL;
-  vc->strand_end    = NULL;
-
-  vc->domains_struc = NULL;
-  vc->domains_up    = NULL;
-  vc->aux_grammar   = NULL;
-
   switch (vc->type) {
     case VRNA_FC_TYPE_SINGLE:
       sequence = vc->sequence;
@@ -646,12 +628,8 @@ set_fold_compound(vrna_fold_compound_t  *vc,
         /* backward compatibility ptypes */
         vc->ptype_pf_compat =
           (aux & WITH_PTYPE_COMPAT) ? get_ptypes(vc->sequence_encoding2, md_p, 1) : NULL;
-      } else {
-        vc->ptype           = NULL;
-        vc->ptype_pf_compat = NULL;
       }
 
-      vc->sc = NULL;
       free(seq2);
       break;
 
@@ -692,7 +670,6 @@ set_fold_compound(vrna_fold_compound_t  *vc,
       vc->Ss[vc->n_seq]   = NULL;
       vc->S[vc->n_seq]    = NULL;
 
-      vc->scs = NULL;
       break;
 
     default:                      /* do nothing ? */
@@ -704,9 +681,6 @@ set_fold_compound(vrna_fold_compound_t  *vc,
   if (!(options & VRNA_OPTION_WINDOW) && (vc->length <= vrna_sequence_length_max(options))) {
     vc->iindx = vrna_idx_row_wise(vc->length);
     vc->jindx = vrna_idx_col_wise(vc->length);
-  } else {
-    vc->iindx = NULL;
-    vc->jindx = NULL;
   }
 }
 
@@ -893,5 +867,114 @@ make_pscores(vrna_fold_compound_t *vc)
     for (i = 1; i < n; i++)
       for (j = i; j <= n; j++)
         vc->pscore_pf_compat[my_iindx[i] - j] = (short)pscore[indx[j] + i];
+  }
+}
+
+
+PRIVATE vrna_fold_compound_t *
+init_fc_single(void)
+{
+  vrna_fold_compound_t  init = {
+    .type = VRNA_FC_TYPE_SINGLE
+  };
+  vrna_fold_compound_t  *fc = vrna_alloc(sizeof(vrna_fold_compound_t));
+
+  if (fc) {
+    memcpy(fc, &init, sizeof(vrna_fold_compound));
+    nullify(fc);
+  }
+
+  return fc;
+}
+
+
+PRIVATE vrna_fold_compound_t *
+init_fc_comparative(void)
+{
+  vrna_fold_compound_t  init = {
+    .type = VRNA_FC_TYPE_COMPARATIVE
+  };
+  vrna_fold_compound_t  *fc = vrna_alloc(sizeof(vrna_fold_compound_t));
+
+  if (fc) {
+    memcpy(fc, &init, sizeof(vrna_fold_compound));
+    nullify(fc);
+  }
+
+  return fc;
+}
+
+
+PRIVATE INLINE void
+nullify(vrna_fold_compound_t *fc)
+{
+  if (fc) {
+    fc->length        = 0;
+    fc->strands       = 0;
+    fc->cutpoint      = -1;
+    fc->strand_number = NULL;
+    fc->strand_order  = NULL;
+    fc->strand_start  = NULL;
+    fc->strand_end    = NULL;
+    fc->nucleotides   = NULL;
+
+    fc->hc            = NULL;
+    fc->matrices      = NULL;
+    fc->exp_matrices  = NULL;
+    fc->params        = NULL;
+    fc->exp_params    = NULL;
+    fc->iindx         = NULL;
+    fc->jindx         = NULL;
+
+    fc->stat_cb       = NULL;
+    fc->auxdata       = NULL;
+    fc->free_auxdata  = NULL;
+
+    fc->domains_struc = NULL;
+    fc->domains_up    = NULL;
+    fc->aux_grammar   = NULL;
+
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        fc->sequence            = NULL;
+        fc->sequence_encoding   = NULL;
+        fc->sequence_encoding2  = NULL;
+        fc->ptype               = NULL;
+        fc->ptype_pf_compat     = NULL;
+        fc->sc                  = NULL;
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        fc->sequences         = NULL;
+        fc->n_seq             = 0;
+        fc->cons_seq          = NULL;
+        fc->S_cons            = NULL;
+        fc->S                 = NULL;
+        fc->S5                = NULL;
+        fc->S3                = NULL;
+        fc->Ss                = NULL;
+        fc->a2s               = NULL;
+        fc->pscore            = NULL;
+        fc->pscore_local      = NULL;
+        fc->pscore_pf_compat  = NULL;
+        fc->scs               = NULL;
+        fc->oldAliEn          = 0;
+
+        break;
+    }
+
+    fc->maxD1         = 0;
+    fc->maxD2         = 0;
+    fc->reference_pt1 = NULL;
+    fc->reference_pt2 = NULL;
+    fc->referenceBPs1 = NULL;
+    fc->referenceBPs2 = NULL;
+    fc->bpdist        = NULL;
+    fc->mm1           = NULL;
+    fc->mm2           = NULL;
+
+    fc->window_size = -1;
+    fc->ptype_local = NULL;
   }
 }

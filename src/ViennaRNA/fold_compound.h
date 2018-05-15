@@ -133,7 +133,7 @@ struct vrna_fc_s {
    *  @name Common data fields
    *  @{
    */
-  vrna_fc_type_e type;              /**<  @brief  The type of the #vrna_fold_compound_t.
+  const vrna_fc_type_e type;        /**<  @brief  The type of the #vrna_fold_compound_t.
                                      * @details Currently possible values are #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE
                                      * @warning Do not edit this attribute, it will be automagically set by
                                      *      the corresponding get() methods for the #vrna_fold_compound_t.
