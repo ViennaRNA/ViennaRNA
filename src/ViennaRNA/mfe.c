@@ -137,14 +137,14 @@ vrna_mfe(vrna_fold_compound_t *vc,
     if (vc->stat_cb)
       vc->stat_cb(VRNA_STATUS_MFE_PRE, vc->auxdata);
 
+    /* call user-defined grammar pre-condition callback function */
+    if ((vc->aux_grammar) && (vc->aux_grammar->cb_proc))
+      vc->aux_grammar->cb_proc(vc, VRNA_STATUS_MFE_PRE, vc->aux_grammar->data);
+
     energy = fill_arrays(vc);
 
     if (vc->params->model_details.circ)
       energy = postprocess_circular(vc, bt_stack, &s);
-
-    /* call user-defined recursion status callback function */
-    if (vc->stat_cb)
-      vc->stat_cb(VRNA_STATUS_MFE_POST, vc->auxdata);
 
     if (structure && vc->params->model_details.backtrack) {
       /* add a guess of how many G's may be involved in a G quadruplex */
@@ -157,6 +157,14 @@ vrna_mfe(vrna_fold_compound_t *vc,
       free(ss);
       free(bp);
     }
+
+    /* call user-defined recursion status callback function */
+    if (vc->stat_cb)
+      vc->stat_cb(VRNA_STATUS_MFE_POST, vc->auxdata);
+
+    /* call user-defined grammar post-condition callback function */
+    if ((vc->aux_grammar) && (vc->aux_grammar->cb_proc))
+      vc->aux_grammar->cb_proc(vc, VRNA_STATUS_MFE_POST, vc->aux_grammar->data);
 
     switch (vc->params->model_details.backtrack_type) {
       case 'C':
@@ -172,9 +180,9 @@ vrna_mfe(vrna_fold_compound_t *vc,
           mfe = (float)energy / (100. * (float)vc->n_seq);
         else
           mfe = (float)energy / 100.;
+
         break;
     }
-
   }
 
   return mfe;
@@ -202,7 +210,7 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t  *vc,
 PRIVATE int
 fill_arrays(vrna_fold_compound_t *vc)
 {
-  int               i, j, ij, length, turn, uniq_ML, *indx, *f5, *c, *fML, *fM1;
+  int               i, j, ij, length, turn, uniq_ML, e, *indx, *f5, *c, *fML, *fM1;
   vrna_param_t      *P;
   vrna_mx_mfe_t     *matrices;
   vrna_ud_t         *domains_up;
@@ -247,60 +255,40 @@ fill_arrays(vrna_fold_compound_t *vc)
     return 0;
   }
 
-  /*
-   *  counter = 7
-   *
-   *  Please increment the above counter if you tried optimizing or even getting rid of
-   *  the switch statement below but only realized that everything else results in longer
-   *  execution time!
-   */
-  switch (vc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      for (i = length - turn - 1; i >= 1; i--) {
-        for (j = i + turn + 1; j <= length; j++) {
-          ij = indx[j] + i;
+  for (i = length - turn - 1; i >= 1; i--) {
+    for (j = i + turn + 1; j <= length; j++) {
+      ij = indx[j] + i;
 
-          /* decompose subsegment [i, j] with pair (i, j) */
-          c[ij] = decompose_pair(vc, i, j, helper_arrays);
+      /* decompose subsegment [i, j] with pair (i, j) */
+      c[ij] = decompose_pair(vc, i, j, helper_arrays);
 
-          /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
-          fML[ij] = vrna_E_ml_stems_fast(vc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
+      /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
+      e = vrna_E_ml_stems_fast(vc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
 
-          if (uniq_ML)
-            /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
-            fM1[ij] = E_ml_rightmost_stem(i, j, vc);
-        } /* end of j-loop */
+      if ((vc->aux_grammar) && (vc->aux_grammar->cb_aux_m)) {
+        int ee = vc->aux_grammar->cb_aux_m(vc, i, j, vc->aux_grammar->data);
+        e = MIN2(e, ee);
+      }
 
-        rotate_aux_arrays(helper_arrays, length);
-      } /* end of i-loop */
-        /* calculate energies of 5' fragments */
-      (void)vrna_E_ext_loop_5(vc);
-      break;
+      fML[ij] = e;
 
-    case VRNA_FC_TYPE_COMPARATIVE:
-      for (i = length - turn - 1; i >= 1; i--) {
-        for (j = i + turn + 1; j <= length; j++) {
-          ij = indx[j] + i;
+      if (uniq_ML) {
+        /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
+        e = E_ml_rightmost_stem(i, j, vc);
 
-          /* decompose subsegment [i, j] with pair (i, j) */
-          c[ij] = decompose_pair(vc, i, j, helper_arrays);
+        if ((vc->aux_grammar) && (vc->aux_grammar->cb_aux_m1)) {
+          int ee = vc->aux_grammar->cb_aux_m1(vc, i, j, vc->aux_grammar->data);
+          e = MIN2(e, ee);
+        }
 
-          /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
-          fML[ij] = vrna_E_ml_stems_fast(vc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
+        fM1[ij] = e;
+      }
+    } /* end of j-loop */
 
-          if (uniq_ML)
-            /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
-            fM1[ij] = E_ml_rightmost_stem(i, j, vc);
-        } /* end of j-loop */
-
-        rotate_aux_arrays(helper_arrays, length);
-      } /* end of i-loop */
-
-      /* calculate energies of 5' fragments */
-      (void)vrna_E_ext_loop_5(vc);
-
-      break;
-  }
+    rotate_aux_arrays(helper_arrays, length);
+  } /* end of i-loop */
+    /* calculate energies of 5' fragments */
+  (void)vrna_E_ext_loop_5(vc);
 
   /* clean up memory */
   free_aux_arrays(helper_arrays);
@@ -1507,6 +1495,12 @@ decompose_pair(vrna_fold_compound_t *vc,
       e = cc1[j - 1] + stackEnergy;
     } else {
       e = new_c;
+    }
+
+    /* finally, check for auxiliary grammar rule(s) */
+    if ((vc->aux_grammar) && (vc->aux_grammar->cb_aux_c)) {
+      energy = vc->aux_grammar->cb_aux_c(vc, i, j, vc->aux_grammar->data);
+      new_c  = MIN2(new_c, energy);
     }
 
     if (vc->type == VRNA_FC_TYPE_COMPARATIVE)

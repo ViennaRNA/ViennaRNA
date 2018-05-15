@@ -144,6 +144,19 @@ vrna_exp_E_ml_fast_init(vrna_fold_compound_t *vc)
 
           qm[ij] = 0.;
         }
+
+      if ((vc->aux_grammar) && (vc->aux_grammar->cb_aux_exp_m)) {
+        for (d = 0; d <= turn; d++)
+          for (i = 1; i <= n - d; i++) {
+            j   = i + d;
+            ij  = iidx[i] - j;
+
+            if (j > n)
+              continue;
+
+            qm[ij] += vc->aux_grammar->cb_aux_exp_m(vc, i, j, vc->aux_grammar->data);
+          }
+      }
     }
   }
 

@@ -184,6 +184,16 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc)
 
           q[ij] = reduce_ext_up_fast(vc, i, j, aux_mx, evaluate, &hc_dat_local, &sc_wrapper);
         }
+
+      if ((vc->aux_grammar) && (vc->aux_grammar->cb_aux_exp_f)) {
+        for (d = 0; d <= turn; d++)
+          for (i = 1; i <= n - d; i++) {
+            j   = i + d;
+            ij  = iidx[i] - j;
+
+            q[ij] += vc->aux_grammar->cb_aux_exp_f(vc, i, j, vc->aux_grammar->data);
+          }
+      }
     }
   }
 

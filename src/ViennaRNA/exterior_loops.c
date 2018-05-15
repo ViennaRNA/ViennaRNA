@@ -236,11 +236,12 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
     for (j = 1; j <= turn + 1; j++)
       f5[j] = reduce_f5_up(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
 
-    if ((grammar) && (grammar->cb_aux_f))
+    if ((grammar) && (grammar->cb_aux_f)) {
       for (j = 1; j <= turn + 1; j++) {
-        en = grammar->cb_aux_f(fc, 1, j, grammar->auxdata);
+        en    = grammar->cb_aux_f(fc, 1, j, grammar->data);
         f5[j] = MIN2(f5[j], en);
       }
+    }
 
     /*
      *  duplicated code may be faster than conditions inside loop or even
@@ -262,7 +263,7 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
           }
 
           if ((grammar) && (grammar->cb_aux_f)) {
-            en = grammar->cb_aux_f(fc, 1, j, grammar->auxdata);
+            en    = grammar->cb_aux_f(fc, 1, j, grammar->data);
             f5[j] = MIN2(f5[j], en);
           }
         }
@@ -283,7 +284,7 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
           }
 
           if ((grammar) && (grammar->cb_aux_f)) {
-            en = grammar->cb_aux_f(fc, 1, j, grammar->auxdata);
+            en    = grammar->cb_aux_f(fc, 1, j, grammar->data);
             f5[j] = MIN2(f5[j], en);
           }
         }
@@ -303,7 +304,7 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
           }
 
           if ((grammar) && (grammar->cb_aux_f)) {
-            en = grammar->cb_aux_f(fc, 1, j, grammar->auxdata);
+            en    = grammar->cb_aux_f(fc, 1, j, grammar->data);
             f5[j] = MIN2(f5[j], en);
           }
         }

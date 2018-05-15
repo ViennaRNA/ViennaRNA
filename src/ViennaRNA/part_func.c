@@ -101,15 +101,15 @@ vrna_pf(vrna_fold_compound_t  *vc,
     if (vc->stat_cb)
       vc->stat_cb(VRNA_STATUS_PF_PRE, vc->auxdata);
 
+    /* call user-defined grammar pre-condition callback function */
+    if ((vc->aux_grammar) && (vc->aux_grammar->cb_proc))
+      vc->aux_grammar->cb_proc(vc, VRNA_STATUS_PF_PRE, vc->aux_grammar->data);
+
     fill_arrays(vc);
 
     if (md->circ)
       /* do post processing step for circular RNAs */
       postprocess_circular(vc);
-
-    /* call user-defined recursion status callback function */
-    if (vc->stat_cb)
-      vc->stat_cb(VRNA_STATUS_PF_POST, vc->auxdata);
 
     /* calculate base pairing probability matrix (bppm)  */
     if (md->compute_bpp) {
@@ -126,6 +126,14 @@ vrna_pf(vrna_fold_compound_t  *vc,
 
 #endif
     }
+
+    /* call user-defined recursion status callback function */
+    if (vc->stat_cb)
+      vc->stat_cb(VRNA_STATUS_PF_POST, vc->auxdata);
+
+    /* call user-defined grammar post-condition callback function */
+    if ((vc->aux_grammar) && (vc->aux_grammar->cb_proc))
+      vc->aux_grammar->cb_proc(vc, VRNA_STATUS_PF_POST, vc->aux_grammar->data);
 
     switch (md->backtrack_type) {
       case 'C':
@@ -385,6 +393,9 @@ fill_arrays(vrna_fold_compound_t *vc)
         /* process multibranch loop(s) */
         qbt1 += vrna_exp_E_mb_loop_fast(vc, i, j, aux_mx_ml);
 
+        if ((vc->aux_grammar) && (vc->aux_grammar->cb_aux_exp_c))
+          qbt1 += vc->aux_grammar->cb_aux_exp_c(vc, i, j, vc->aux_grammar->data);
+
         if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
           qbt1 *= exp(pscore[jindx[j] + i] / kTn);
       }
@@ -392,13 +403,32 @@ fill_arrays(vrna_fold_compound_t *vc)
       qb[ij] = qbt1;
 
       /* Multibranch loop */
-      qm[ij] = vrna_exp_E_ml_fast(vc, i, j, aux_mx_ml);
+      temp = vrna_exp_E_ml_fast(vc, i, j, aux_mx_ml);
 
-      if (qm1)
-        qm1[jindx[j] + i] = vrna_exp_E_ml_fast_qqm(aux_mx_ml)[i]; /* for stochastic backtracking and circfold */
+      /* apply auxiliary grammar rule for multibranch loop case */
+      if ((vc->aux_grammar) && (vc->aux_grammar->cb_aux_exp_m))
+        temp += vc->aux_grammar->cb_aux_exp_m(vc, i, j, vc->aux_grammar->data);
+
+      qm[ij] = temp;
+
+      if (qm1) {
+        temp = vrna_exp_E_ml_fast_qqm(aux_mx_ml)[i]; /* for stochastic backtracking and circfold */
+
+        /* apply auxiliary grammar rule for multibranch loop (M1) case */
+        if ((vc->aux_grammar) && (vc->aux_grammar->cb_aux_exp_m1))
+          temp += vc->aux_grammar->cb_aux_exp_m1(vc, i, j, vc->aux_grammar->data);
+
+        qm1[jindx[j] + i] = temp;
+      }
 
       /* Exterior loop */
-      q[ij] = temp = vrna_exp_E_ext_fast(vc, i, j, aux_mx_el);
+      temp = vrna_exp_E_ext_fast(vc, i, j, aux_mx_el);
+
+      /* apply auxiliary grammar rule for exterior loop case */
+      if ((vc->aux_grammar) && (vc->aux_grammar->cb_aux_exp_f))
+        temp += vc->aux_grammar->cb_aux_exp_f(vc, i, j, vc->aux_grammar->data);
+
+      q[ij] = temp;
 
       if (temp > Qmax) {
         Qmax = temp;
