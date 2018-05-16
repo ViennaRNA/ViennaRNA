@@ -1,4 +1,4 @@
-/drawseq_turn {"
+/drawseq_turn {
 % print sequence at bottom
    gsave
    len 2 sqrt div dup neg 0.28 add exch 0.78 sub translate
@@ -24,7 +24,7 @@
      dup len exch sub moveto  %moveto diagonal?
      dup len winSize sub le
      {dup dup len exch sub dup winSize exch sub len add exch lineto}
-     {dup dup len exch sub len exch lineto}ifelse"
+     {dup dup len exch sub len exch lineto}ifelse
      stroke pop pop
   } for
   len log 0.9 sub cvi 10 exch exp  % grid spacing
