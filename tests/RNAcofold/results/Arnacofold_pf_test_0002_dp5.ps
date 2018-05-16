@@ -1,7 +1,7 @@
 %!PS-Adobe-3.0 EPSF-3.0
 %%Title: RNA Dot Plot
-%%Creator: ViennaRNA-2.3.5
-%%CreationDate: Fri Aug 11 13:54:03 2017
+%%Creator: ViennaRNA-2.4.6
+%%CreationDate: Wed May 16 23:38:40 2018
 %%BoundingBox: 66 211 518 662
 %%DocumentFonts: Helvetica
 %%Pages: 1
@@ -11,28 +11,22 @@
 % 
 %Monomer A FreeEnergy= -13.664173477
 
+%%BeginProlog
 %This file contains the square roots of the base pair probabilities in the form
 % i  j  sqrt(p(i,j)) ubox
-
-%%BeginProlog
 /DPdict 100 dict def
 DPdict begin
 /logscale false def
 /lpmin 1e-05 log def
-
 /DataVisible  [ true true true true] def
 /DataTitles   [ false false false false ] def
-
 /min { 2 copy gt { exch } if pop } bind def
-
 /max { 2 copy lt { exch } if pop } bind def
-
 /box { %size x y box - draws box centered on x,y
    2 index 0.5 mul sub            % x -= 0.5
    exch 2 index 0.5 mul sub exch  % y -= 0.5
    3 -1 roll dup rectfill
 } bind def
-
 /ubox {
    logscale {
       log dup add lpmin div 1 exch sub dup 0 lt { pop 0 } if
@@ -40,14 +34,11 @@ DPdict begin
    3 1 roll
    exch len exch sub 1 add box
 } bind def
-
 /lbox {
    3 1 roll
    len exch sub 1 add box
 } bind def
-
-/drawseq {
-% print sequence along all 4 sides
+/drawseq { % print sequence along all 4 sides
 [ [0.7 -0.3 0 ]
   [0.7 0.7 len add 0]
   [-0.3 len sub -0.4 -90]
@@ -63,10 +54,10 @@ DPdict begin
    grestore
   } forall
 } bind def
-
 /drawgrid{
   gsave
-  0.5 dup translate  0.01 setlinewidth
+  0.5 dup translate
+  0.01 setlinewidth
   len log 0.9 sub cvi 10 exch exp  % grid spacing
   dup 1 gt {
      dup dup 20 div dup 2 array astore exch 40 div setdash
@@ -89,11 +80,10 @@ DPdict begin
     -1 exch moveto len 1 add exch lineto
     stroke
   } if
-  %% draw diagonal
+  % draw diagonal
   0 len moveto len 0 lineto stroke
   grestore
 } bind def
-
 /drawTitle {
   currentdict /DPtitle known {
     % center title text
@@ -101,7 +91,6 @@ DPdict begin
     360 705 moveto DPtitle dup stringwidth pop 2 div neg 0 rmoveto show
   } if
 } bind def
-
 /prepareCoords {
   0 1 3 {
     % check whether we want to display current data
@@ -118,7 +107,6 @@ DPdict begin
   len add 3 add 700 exch div dup scale
   exch 1 add exch 1 add translate
 } bind def
-
 /utri{ % i j prob utri
   gsave
   0.5 dup translate
@@ -131,7 +119,6 @@ DPdict begin
   moveto lineto lineto closepath fill
   grestore
 } bind def
-
 /uUDmotif{ % i j uUDmotif
   gsave
   0.5 dup translate
@@ -156,7 +143,6 @@ DPdict begin
   moveto lineto lineto closepath fill
   grestore
 } bind def
-
 /uHmotif{ % i j uHmotif
   gsave
   0.5 dup translate
@@ -210,74 +196,61 @@ DPdict begin
 /drawDataSquareBottom { % x v n dataSquareBottom draw box
   len add 2 add exch lbox
 } bind def
-
 /drawDataSquareTop { % x v n dataSquareBottom draw box
   neg 1 sub exch lbox
 } bind def
-
 /drawDataSquareLeft { % y v n dataSquareBottom draw box
   neg 1 sub 3 1 roll lbox
 } bind def
-
 /drawDataSquareRight { % y v n dataSquareBottom draw box
   % use size x y box to draw box
   2 add len add 3 1 roll lbox
 } bind def
-
 /drawDataSquareBottomHSB { % x v h s b n dataSquareBottomHSB draw box
   % use size x y box to draw box
   len add 2 add 5 1 roll sethsbcolor lbox
 } bind def
-
 /drawDataSquareTopHSB { % x v h s b n dataSquareBottomHSB draw box
   % use size x y box to draw box
   neg 1 sub 5 1 roll sethsbcolor lbox
 } bind def
-
 /drawDataSquareLeftHSB { % x v h s b n dataSquareLeftHSB draw box
   % use size x y box to draw box
   neg 1 sub 6 1 roll sethsbcolor lbox
 } bind def
-
 /drawDataSquareRightHSB { % x v h s b n dataSquareLeftHSB draw box
   % use size x y box to draw box
   2 add len add 6 1 roll sethsbcolor lbox
 } bind def
-
 /drawDataTitleBottom {
   /Helvetica findfont 0.95 scalefont setfont
   0 -1.4 3 -1 roll sub moveto 
   dup stringwidth pop neg 0 rmoveto   
   show
 } bind def
-
 /drawDataTitleTop {
   /Helvetica findfont 0.95 scalefont setfont
   0 len 1.6 add 3 -1 roll add moveto 
   dup stringwidth pop neg 0 rmoveto   
   show
 } bind def
-
 /drawDataTitleLeft {
   /Helvetica findfont 0.95 scalefont setfont
   neg 1.4 sub len 1 add moveto 
   dup stringwidth pop 0 exch rmoveto -90 rotate
   show 90 rotate
 } bind def
-
 /drawDataTitleRight {
   /Helvetica findfont 0.95 scalefont setfont
   1.6 add len add len 1 add moveto 
   dup stringwidth pop 0 exch rmoveto -90 rotate
   show 90 rotate
 } bind def
-
 % do not modify the arrays below unless you know what you're doing!
 /DataSource     [ /topData /leftData /bottomData /rightData ] def
 /DataDrawBox    [ /drawDataSquareTop  /drawDataSquareLeft /drawDataSquareBottom /drawDataSquareRight] def
 /DataDrawBoxHSB [ /drawDataSquareTopHSB /drawDataSquareLeftHSB /drawDataSquareBottomHSB /drawDataSquareRightHSB ] def
 /DataDrawTitle  [ /drawDataTitleTop /drawDataTitleLeft /drawDataTitleBottom /drawDataTitleRight ] def
-
 % this is the logic to parse the auxiliary linear data
 % given in arrays topData, leftData, bottomData, and rightData
 % See also the Boolean arrays DataVisible and DataTitles that
@@ -294,24 +267,20 @@ DPdict begin
         currentdict exch get dup length 1 sub 0 1 3 -1 roll {
           dup dup
           % now on stack: j a i i i
-
           % load data set, i.e. a[i]
           4 -1 roll         % j i i i a
           dup 3 -1 roll get dup % j i i a a[i] a[i]
-
           % 1. check whether we need to process data set title
           6 -1 roll dup 7 1 roll DataTitles exch get {
             % get current title drawing function key
             6 -1 roll dup 7 1 roll DataDrawTitle exch get
             % now on stack: ... j i i a a[i] a[i] title_draw_key
-
             % get current title and execute drawing function
             exch 0 get exch currentdict exch get 5 -1 roll exch exec
           } { % remove unused variables
               pop 3 -1 roll pop
           } ifelse
           % now on stack: ... j i a a[i]
-
           % 2. process actual data a[k] for 1 <= k < n
           dup length 1 sub 1 exch getinterval { 
             % on stack: j i a a[i][k]
@@ -339,7 +308,6 @@ DPdict begin
     } if
   } for
 } bind def
-
 end
 %EndProlog
 
