@@ -13,11 +13,11 @@
     n = strlen(target);
     seq = vrna_random_string(n, symbolset);
     if (start)
-      strncpy(seq, start, strlen(start));
+      strncpy(seq, start, n);
     *cost = inverse_fold(seq, target);
     if (start)
       /* for backward compatibility modify start */
-      strncpy(start, seq, strlen(start));
+      strncpy(start, seq, n);
     return(seq);
   }
 %}
@@ -37,11 +37,12 @@ char * my_inverse_fold(char *start, const char *target, float *OUTPUT);
     int n;
     n = strlen(target);
     seq = vrna_random_string(n, symbolset);
-    if (start) strncpy(seq, start, n);
+    if (start)
+      strncpy(seq, start, n);
     *cost = inverse_pf_fold(seq, target);
     if (start)
       /* for backward compatibility modify start */
-      strncpy(start, seq, strlen(start));
+      strncpy(start, seq, n);
     return(seq);
   }
 %}

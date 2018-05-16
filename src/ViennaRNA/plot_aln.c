@@ -152,7 +152,7 @@ vrna_file_PS_aln_sub(const char *filename,
   seqsX = namesX + maxName * fontWidth + nameStep;
 
   /* calculate number of digits of the alignment length */
-  snprintf(tmpBuffer, length, "%i", length);
+  snprintf(tmpBuffer, length, "%d", length);
   maxNum = strlen(tmpBuffer);
 
 
@@ -181,14 +181,14 @@ vrna_file_PS_aln_sub(const char *filename,
   /* Create ruler and secondary structure lines */
   i = 0;
   /* Init all with dots */
-  for (i = 0; i < (length); i++)
+  for (i = 0; i < length; i++)
     ruler[i] = '.';
   i = 0;
   for (i = 0; i < length; i++) {
     /* Write number every 10th position, leave out block breaks */
     if ((i + start) % 10 == 0 && (i + start) % columnWidth != 0) {
-      snprintf(tmpBuffer, length, "%i", i + start);
-      strncpy(ruler + i, tmpBuffer, strlen(tmpBuffer));
+      snprintf(tmpBuffer, length, "%d", i + start);
+      strncpy(ruler + i, tmpBuffer, maxNum);
     }
   }
   ruler[length] = '\0';
@@ -420,7 +420,7 @@ aliPS_color_aln(const char  *structure,
   seqsX = namesX + maxName * fontWidth + nameStep;
 
   /* calculate number of digits of the alignment length */
-  snprintf(tmpBuffer, length, "%i", length);
+  snprintf(tmpBuffer, length, "%d", length);
   maxNum = strlen(tmpBuffer);
 
 
@@ -455,8 +455,8 @@ aliPS_color_aln(const char  *structure,
   for (i = 0; i < length; i++) {
     /* Write number every 10th position, leave out block breaks */
     if ((i + 1) % 10 == 0 && (i + 1) % columnWidth != 0) {
-      snprintf(tmpBuffer, length, "%i", i + 1);
-      strncpy(ruler + i, tmpBuffer, strlen(tmpBuffer));
+      snprintf(tmpBuffer, length, "%d", i + 1);
+      strncpy(ruler + i, tmpBuffer, maxNum);
     }
   }
   ruler[length] = '\0';

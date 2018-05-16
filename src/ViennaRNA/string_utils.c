@@ -313,11 +313,10 @@ vrna_cut_point_remove(const char  *string,
 
   if (string) {
     len = strlen(string);
-    copy = (char *)vrna_alloc(len + 1);
-    (void)strncpy(copy, string, len);
+    copy = strdup(string);
     if ((pos = strchr(copy, '&'))) {
       *cp = (int)(pos - copy) + 1;
-      if (*cp >= strlen(copy))
+      if (*cp >= len)
         *cp = -1;
 
       if (strchr(pos + 1, '&'))
