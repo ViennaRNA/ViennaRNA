@@ -238,10 +238,15 @@ wrap_pf_fold(const char       *sequence,
 PUBLIC vrna_ep_t *
 stackProb(double cutoff)
 {
-  if (!(backward_compat_compound && backward_compat))
-    vrna_message_error("stackProb: run pf_fold() first!");
-  else if (!backward_compat_compound->exp_matrices->probs)
-    vrna_message_error("stackProb: probs==NULL!");
+  if (!(backward_compat_compound && backward_compat)) {
+    vrna_message_warning("stackProb: "
+                         "run pf_fold() first!");
+    return NULL;
+  } else if (!backward_compat_compound->exp_matrices->probs) {
+    vrna_message_warning("stackProb: "
+                         "probs == NULL!");
+    return NULL;
+  }
 
   return vrna_stack_prob(backward_compat_compound, cutoff);
 }
@@ -251,8 +256,11 @@ PUBLIC char *
 centroid(int    length,
          double *dist)
 {
-  if (pr == NULL)
-    vrna_message_error("pr==NULL. You need to call pf_fold() before centroid()");
+  if (pr == NULL) {
+    vrna_message_warning("centroid: "
+                         "pr == NULL. You need to call pf_fold() before centroid()");
+    return NULL;
+  }
 
   return vrna_centroid_from_probs(length, dist, pr);
 }
@@ -269,8 +277,11 @@ mean_bp_dist(int length)
   int     i, j, *my_iindx;
   double  d = 0;
 
-  if (pr == NULL)
-    vrna_message_error("pr==NULL. You need to call pf_fold() before mean_bp_dist()");
+  if (pr == NULL) {
+    vrna_message_warning("mean_bp_dist: "
+                         "pr == NULL. You need to call pf_fold() before mean_bp_dist()");
+    return d;
+  }
 
   my_iindx = vrna_idx_row_wise(length);
 
@@ -298,7 +309,9 @@ get_subseq_F(int  i,
                1000.0;
       }
 
-  vrna_message_error("call pf_fold() to fill q[] array before calling get_subseq_F()");
+  vrna_message_warning("get_subseq_F: "
+                       "call pf_fold() to fill q[] array before calling get_subseq_F()");
+
   return 0.; /* we will never get to this point */
 }
 
@@ -632,7 +645,9 @@ mean_bp_distance(int length)
       if (backward_compat_compound->exp_matrices->probs)
         return vrna_mean_bp_distance(backward_compat_compound);
 
-  vrna_message_error("mean_bp_distance: you need to call vrna_pf_fold first");
+  vrna_message_warning("mean_bp_distance: "
+                       "you need to call vrna_pf_fold first");
+
   return 0.; /* we will never get to this point */
 }
 
@@ -644,9 +659,11 @@ mean_bp_distance_pr(int         length,
   double  d       = 0;
   int     *index  = vrna_idx_row_wise((unsigned int)length);
 
-  if (p == NULL)
-    vrna_message_error(
-      "p==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
+  if (p == NULL) {
+    vrna_message_warning("mean_bp_distance_pr: "
+                         "p == NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
+    return d;
+  }
 
   d = wrap_mean_bp_distance(p, length, index, TURN);
 
