@@ -56,8 +56,11 @@ vrna_centroid_from_plist( int length,
   int i;
   char *centroid;
 
-  if (pl==NULL)
-    vrna_message_error("vrna_centroid_from_plist@centroid.c: pl==NULL!");
+  if (pl == NULL) {
+    vrna_message_warning("vrna_centroid_from_plist: "
+                         "pl == NULL!");
+    return NULL;
+  }
 
   *dist = 0.;
   centroid = (char *) vrna_alloc((length+1)*sizeof(char));
@@ -89,8 +92,11 @@ vrna_centroid_from_probs( int length,
   char  *centroid;
   int   *index = vrna_idx_row_wise(length);
 
-  if (probs == NULL)
-    vrna_message_error("vrna_centroid_from_probs@centroid.c: probs==NULL!");
+  if (probs == NULL) {
+    vrna_message_warning("vrna_centroid_from_probs: "
+                         "probs == NULL!");
+    return NULL;
+  }
 
   *dist = 0.;
   centroid = (char *) vrna_alloc((length+1)*sizeof(char));
@@ -129,9 +135,13 @@ vrna_centroid(vrna_fold_compound_t *vc,
 
 
   if(!vc){
-    vrna_message_error("vrna_centroid@centroid.c: run vrna_pf_fold first!");
-  } else if( !vc->exp_matrices->probs){
-    vrna_message_error("vrna_centroid@centroid.c: probs==NULL!");
+    vrna_message_warning("vrna_centroid: "
+                         "run vrna_pf_fold first!");
+    return NULL;
+  } else if( !vc->exp_matrices->probs) {
+    vrna_message_warning("vrna_centroid: "
+                         "probs == NULL!");
+    return NULL;
   }
 
   length      = vc->length;
