@@ -189,7 +189,9 @@ hc_default(int            i,
       break;
 
     default:
-      vrna_message_error("hc_cb@multibranch_loops.c: Unrecognized decomposition %d", d);
+      vrna_message_warning("hc_cb@multibranch_loops.c: "
+                           "Unrecognized decomposition %d",
+                           d);
   }
 
   return eval;
@@ -247,7 +249,9 @@ hc_sn(int           i,
       break;
 
     default:
-      vrna_message_error("hc_cb@multibranch_loops.c: Unrecognized decomposition %d", d);
+      vrna_message_warning("hc_cb@multibranch_loops.c: "
+                           "Unrecognized decomposition %d",
+                           d);
   }
 
   return eval;
@@ -332,7 +336,9 @@ hc_default_window(int           i,
       break;
 
     default:
-      vrna_message_error("hc_cb@multibranch_loops.c: Unrecognized decomposition %d", d);
+      vrna_message_warning("hc_cb@multibranch_loops.c: "
+                           "Unrecognized decomposition %d",
+                           d);
   }
 
   return eval;
@@ -451,7 +457,9 @@ hc_default_ext(int            i,
       break;
 
     default:
-      vrna_message_error("hc_cb@multibranch_loops.c: Unrecognized decomposition %d", d);
+      vrna_message_warning("hc_cb@multibranch_loops.c: "
+                           "Unrecognized decomposition %d",
+                           d);
   }
   return eval;
 }
