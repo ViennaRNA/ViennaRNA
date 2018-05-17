@@ -153,14 +153,16 @@ PRIVATE vrna_mx_pf_t *get_pf_matrices_alloc(unsigned int    n,
                                             unsigned int    alloc_vector);
 
 
-PRIVATE void            add_pf_matrices(vrna_fold_compound_t  *vc,
-                                        vrna_mx_type_e        type,
-                                        unsigned int          alloc_vector);
+PRIVATE int
+add_pf_matrices(vrna_fold_compound_t  *vc,
+                vrna_mx_type_e        type,
+                unsigned int          alloc_vector);
 
 
-PRIVATE void            add_mfe_matrices(vrna_fold_compound_t *vc,
-                                         vrna_mx_type_e       type,
-                                         unsigned int         alloc_vector);
+PRIVATE int
+add_mfe_matrices(vrna_fold_compound_t *vc,
+                 vrna_mx_type_e       type,
+                 unsigned int         alloc_vector);
 
 
 /*
@@ -265,12 +267,10 @@ vrna_mx_mfe_add(vrna_fold_compound_t  *vc,
                                           mx_type,
                                           options);
     vrna_mx_mfe_free(vc);
-    add_mfe_matrices(vc, mx_type, mx_alloc_vector);
-  } else {
-    return 0;
+    return add_mfe_matrices(vc, mx_type, mx_alloc_vector);
   }
 
-  return 1;
+  return 0;
 }
 
 
@@ -286,12 +286,10 @@ vrna_mx_pf_add(vrna_fold_compound_t *vc,
                                           mx_type,
                                           options | VRNA_OPTION_PF);
     vrna_mx_pf_free(vc);
-    add_pf_matrices(vc, mx_type, mx_alloc_vector);
-  } else {
-    return 0;
+    return add_pf_matrices(vc, mx_type, mx_alloc_vector);
   }
 
-  return 1;
+  return 0;
 }
 
 
@@ -467,7 +465,7 @@ get_mx_pf_alloc_vector_current(vrna_mx_pf_t   *mx,
 }
 
 
-PRIVATE void
+PRIVATE int
 add_pf_matrices(vrna_fold_compound_t  *vc,
                 vrna_mx_type_e        mx_type,
                 unsigned int          alloc_vector)
@@ -475,14 +473,21 @@ add_pf_matrices(vrna_fold_compound_t  *vc,
   if (vc) {
     switch (mx_type) {
       case VRNA_MX_WINDOW:
-        vc->exp_matrices =
-          get_pf_matrices_alloc(vc->length, vc->window_size, mx_type, alloc_vector);
+        vc->exp_matrices = get_pf_matrices_alloc(vc->length,
+                                                 vc->window_size,
+                                                 mx_type,
+                                                 alloc_vector);
         break;
       default:
-        vc->exp_matrices =
-          get_pf_matrices_alloc(vc->length, vc->length, mx_type, alloc_vector);
+        vc->exp_matrices = get_pf_matrices_alloc(vc->length,
+                                                 vc->length,
+                                                 mx_type,
+                                                 alloc_vector);
         break;
     }
+
+    if (!vc->exp_matrices)
+      return 0;
 
     if (vc->exp_params->model_details.gquad) {
       switch (vc->type) {
@@ -499,10 +504,12 @@ add_pf_matrices(vrna_fold_compound_t  *vc,
 
     vrna_exp_params_rescale(vc, NULL);
   }
+
+  return 1;
 }
 
 
-PRIVATE void
+PRIVATE int
 add_mfe_matrices(vrna_fold_compound_t *vc,
                  vrna_mx_type_e       mx_type,
                  unsigned int         alloc_vector)
@@ -516,6 +523,9 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
         vc->matrices = get_mfe_matrices_alloc(vc->length, vc->length, mx_type, alloc_vector);
         break;
     }
+
+    if (!vc->matrices)
+      return 0;
 
     if (vc->params->model_details.gquad) {
       switch (vc->type) {
@@ -542,6 +552,8 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
       }
     }
   }
+
+  return 1;
 }
 
 
@@ -553,9 +565,12 @@ get_mfe_matrices_alloc(unsigned int   n,
 {
   vrna_mx_mfe_t *vars;
 
-  if ((int)(n * m) >= (int)INT_MAX)
-    vrna_message_error(
-      "get_mfe_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
+  if ((int)(n * m) >= (int)INT_MAX) {
+    vrna_message_warning("get_mfe_matrices_alloc: "
+                         "sequence length %d exceeds addressable range",
+                         n);
+    return NULL;
+  }
 
   vars          = (vrna_mx_mfe_t *)vrna_alloc(sizeof(vrna_mx_mfe_t));
   vars->length  = n;
@@ -591,9 +606,12 @@ get_pf_matrices_alloc(unsigned int    n,
   unsigned int  lin_size;
   vrna_mx_pf_t  *vars;
 
-  if ((int)(n * m) >= (int)INT_MAX)
-    vrna_message_error(
-      "get_pf_matrices_alloc@data_structures.c: sequence length exceeds addressable range");
+  if ((int)(n * m) >= (int)INT_MAX) {
+    vrna_message_warning("get_pf_matrices_alloc: "
+                         "sequence length %d exceeds addressable range",
+                         n);
+    return NULL;
+  }
 
   lin_size      = n + 2;
   vars          = (vrna_mx_pf_t *)vrna_alloc(sizeof(vrna_mx_pf_t));
