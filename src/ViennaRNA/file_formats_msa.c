@@ -185,7 +185,9 @@ vrna_file_msa_detect_format(const char    *filename,
 
   if (!(fp = fopen(filename, "r"))) {
     if (!(options & VRNA_FILE_FORMAT_MSA_SILENT))
-      vrna_message_warning("Alignment file could not be opened!");
+      vrna_message_warning("vrna_file_msa_detect_format: "
+                           "Can't open alignment file \"%s\"!",
+                           filename);
 
     return format;
   }
@@ -204,10 +206,14 @@ vrna_file_msa_detect_format(const char    *filename,
           break;
         }
       } else {
-        vrna_message_error("Something unexpected happened while parsing the alignment file");
+        vrna_message_warning("vrna_file_msa_detect_format: "
+                             "Something unexpected happened while parsing the alignment file");
+        goto msa_detect_format_exit;
       }
     }
   }
+
+msa_detect_format_exit:
 
   fclose(fp);
 
@@ -238,7 +244,9 @@ vrna_file_msa_read(const char   *filename,
 
   if (!(fp = fopen(filename, "r"))) {
     if (verb_level >= 0)
-      vrna_message_warning("Alignment file could not be opened!");
+      vrna_message_warning("vrna_file_msa_read: "
+                           "Can't open alignment file \"%s\"!",
+                           filename);
 
     return seq_num;
   }
@@ -271,23 +279,25 @@ vrna_file_msa_read(const char   *filename,
         if (r > 0)
           break;
       } else {
-        vrna_message_error("Something unexpected happened while parsing the alignment file");
+        vrna_message_warning("vrna_file_msa_read: "
+                             "Something unexpected happened while parsing the alignment file");
+        goto msa_read_exit;
       }
     }
   }
 
-  fclose(fp);
-
   if (r == -1) {
     if (verb_level >= 0)
-      vrna_message_warning("Alignment file parser is unknown (or not specified?)");
+      vrna_message_warning("vrna_file_msa_read: "
+                           "Alignment file parser is unknown (or not specified?)");
   } else {
     seq_num = r;
 
     if ((seq_num > 0) && (!(options & VRNA_FILE_FORMAT_MSA_NOCHECK))) {
       if (!check_alignment((const char **)(*names), (const char **)(*aln), seq_num, verb_level)) {
         if (verb_level >= 0)
-          vrna_message_warning("Alignment did not pass sanity checks!");
+          vrna_message_warning("vrna_file_msa_read: "
+                               "Alignment did not pass sanity checks!");
 
         /* discard the data we've read! */
         free_msa_record(names, aln, id, structure);
@@ -296,6 +306,10 @@ vrna_file_msa_read(const char   *filename,
       }
     }
   }
+
+msa_read_exit:
+
+  fclose(fp);
 
   return seq_num;
 }
