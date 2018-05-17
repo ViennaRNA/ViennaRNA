@@ -199,13 +199,18 @@ vrna_fold_compound(const char   *sequence,
 
   /* sanity check */
   length = strlen(sequence);
-  if (length == 0)
-    vrna_message_error("vrna_fold_compound@data_structures.c: sequence length must be greater 0");
+  if (length == 0) {
+    vrna_message_warning("vrna_fold_compound@data_structures.c: "
+                         "sequence length must be greater 0");
+    return NULL;
+  }
 
-  if (length > vrna_sequence_length_max(options))
-    vrna_message_error(
-      "vrna_fold_compound@data_structures.c: sequence length of %d exceeds addressable range",
-      length);
+  if (length > vrna_sequence_length_max(options)) {
+    vrna_message_warning("vrna_fold_compound@data_structures.c: "
+                         "sequence length of %d exceeds addressable range",
+                         length);
+    return NULL;
+  }
 
   fc = init_fc_single();
 
@@ -279,18 +284,21 @@ vrna_fold_compound_comparative(const char   **sequences,
 
   length = strlen(sequences[0]);
   /* sanity check */
-  if (length == 0)
-    vrna_message_error(
-      "vrna_fold_compound_comparative@data_structures.c: sequence length must be greater 0");
-  else if (length > vrna_sequence_length_max(options))
-    vrna_message_error(
-      "vrna_fold_compound_comparative@data_structures.c: sequence length of %d exceeds addressable range",
-      length);
+  if (length == 0) {
+    vrna_message_warning("vrna_fold_compound_comparative: "
+                         "sequence length must be greater 0");
+  } else if (length > vrna_sequence_length_max(options)) {
+    vrna_message_warning("vrna_fold_compound_comparative: "
+                         "sequence length of %d exceeds addressable range",
+                         length);
+  }
 
   for (s = 0; s < n_seq; s++)
-    if (strlen(sequences[s]) != length)
-      vrna_message_error(
-        "vrna_fold_compound_comparative@data_structures.c: uneqal sequence lengths in alignment");
+    if (strlen(sequences[s]) != length) {
+      vrna_message_warning("vrna_fold_compound_comparative: "
+                           "uneqal sequence lengths in alignment");
+      return NULL;
+    }
 
   fc = init_fc_comparative();
 
@@ -370,20 +378,30 @@ vrna_fold_compound_TwoD(const char    *sequence,
 
   /* sanity check */
   length = strlen(sequence);
-  if (length == 0)
-    vrna_message_error("vrna_fold_compound_TwoD: sequence length must be greater 0");
-  else if (length > vrna_sequence_length_max(options))
-    vrna_message_error(
-      "vrna_fold_compound_TwoD@data_structures.c: sequence length of %d exceeds addressable range",
-      length);
+  if (length == 0) {
+    vrna_message_warning("vrna_fold_compound_TwoD: "
+                         "sequence length must be greater 0");
+    return NULL;
+  } else if (length > vrna_sequence_length_max(options)) {
+    vrna_message_warning("vrna_fold_compound_TwoD: "
+                         "sequence length of %d exceeds addressable range",
+                         length);
+    return NULL;
+  }
 
   l = strlen(s1);
-  if (l != length)
-    vrna_message_error("vrna_fold_compound_TwoD: sequence and s1 differ in length");
+  if (l != length) {
+    vrna_message_warning("vrna_fold_compound_TwoD: "
+                         "sequence and s1 differ in length");
+    return NULL;
+  }
 
   l = strlen(s2);
-  if (l != length)
-    vrna_message_error("vrna_fold_compound_TwoD: sequence and s2 differ in length");
+  if (l != length) {
+    vrna_message_warning("vrna_fold_compound_TwoD: "
+                         "sequence and s2 differ in length");
+    return NULL;
+  }
 
   fc            = init_fc_single();
   fc->length    = length;
@@ -796,65 +814,6 @@ make_pscores(vrna_fold_compound_t *fc)
           j++;
         }
       }
-  }
-
-  if (fold_constrained && (structure != NULL)) {
-    int psij, hx, hx2, *stack, *stack2;
-    stack   = vrna_alloc(sizeof(int) * (n + 1));
-    stack2  = vrna_alloc(sizeof(int) * (n + 1));
-
-    for (hx = hx2 = 0, j = 1; j <= n; j++) {
-      switch (structure[j - 1]) {
-        case 'x': /* can't pair */
-          for (l = 1; l < j - turn; l++)
-            pscore[indx[j] + l] = NONE;
-          for (l = j + turn + 1; l <= n; l++)
-            pscore[indx[l] + j] = NONE;
-          break;
-        case '(':
-          stack[hx++] = j;
-        /* fallthrough */
-        case '[':
-          stack2[hx2++] = j;
-        /* fallthrough */
-        case '<': /* pairs upstream */
-          for (l = 1; l < j - turn; l++)
-            pscore[indx[j] + l] = NONE;
-          break;
-        case ']':
-          if (hx2 <= 0)
-            vrna_message_error("unbalanced brackets in constraints\n%s", structure);
-
-          i                   = stack2[--hx2];
-          pscore[indx[j] + i] = NONE;
-          break;
-        case ')':
-          if (hx <= 0)
-            vrna_message_error("unbalanced brackets in constraints\n%s", structure);
-
-          i     = stack[--hx];
-          psij  = pscore[indx[j] + i]; /* store for later */
-          for (k = j; k <= n; k++)
-            for (l = i; l <= j; l++)
-              pscore[indx[k] + l] = NONE;
-          for (l = i; l <= j; l++)
-            for (k = 1; k <= i; k++)
-              pscore[indx[l] + k] = NONE;
-          for (k = i + 1; k < j; k++)
-            pscore[indx[k] + i] = pscore[indx[j] + k] = NONE;
-          pscore[indx[j] + i] = (psij > 0) ? psij : 0;
-        /* fallthrough */
-        case '>': /* pairs downstream */
-          for (l = j + turn + 1; l <= n; l++)
-            pscore[indx[l] + j] = NONE;
-          break;
-      }
-    }
-    if (hx != 0)
-      vrna_message_error("unbalanced brackets in constraint string\n%s", structure);
-
-    free(stack);
-    free(stack2);
   }
 
   /*free dm */
