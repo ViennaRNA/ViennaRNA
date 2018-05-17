@@ -477,7 +477,7 @@ vrna_fold_compound_TwoD(const char    *sequence,
 
 
 int
-vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
+vrna_fold_compound_prepare(vrna_fold_compound_t *fc,
                            unsigned int         options);
 
 
@@ -486,10 +486,10 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
  *
  *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_mx_mfe_free(), vrna_mx_pf_free()
  *
- *  @param  vc  The #vrna_fold_compound_t that is to be erased from memory
+ *  @param  fc  The #vrna_fold_compound_t that is to be erased from memory
  */
 void
-vrna_fold_compound_free(vrna_fold_compound_t *vc);
+vrna_fold_compound_free(vrna_fold_compound_t *fc);
 
 
 /**
@@ -505,11 +505,11 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc);
  *        on any pre-existing data that is already attached.
  *
  *  @see vrna_callback_free_auxdata()
- *  @param  vc    The fold_compound the arbitrary data pointer should be associated with
+ *  @param  fc    The fold_compound the arbitrary data pointer should be associated with
  *  @param  data  A pointer to an arbitrary data structure
  *  @param  f     A pointer to function that free's memory occupied by the arbitrary data (May be NULL)
  */
-void vrna_fold_compound_add_auxdata(vrna_fold_compound_t        *vc,
+void vrna_fold_compound_add_auxdata(vrna_fold_compound_t        *fc,
                                     void                        *data,
                                     vrna_callback_free_auxdata  *f);
 
@@ -526,10 +526,10 @@ void vrna_fold_compound_add_auxdata(vrna_fold_compound_t        *vc,
  *  @see  vrna_callback_recursion_status(), #vrna_fold_compound_t,
  *        #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
  *
- *  @param  vc    The fold_compound the callback function should be attached to
+ *  @param  fc    The fold_compound the callback function should be attached to
  *  @param  f     The pointer to the recursion status callback function
  */
-void vrna_fold_compound_add_callback(vrna_fold_compound_t           *vc,
+void vrna_fold_compound_add_callback(vrna_fold_compound_t           *fc,
                                      vrna_callback_recursion_status *f);
 
 

@@ -19,18 +19,24 @@ typedef int (vrna_callback_gr_rule)(vrna_fold_compound_t  *vc,
                                     int                   i,
                                     int                   j,
                                     void                  *data);
+
+
 typedef FLT_OR_DBL (vrna_callback_gr_rule_exp)(vrna_fold_compound_t *vc,
                                                int                  i,
                                                int                  j,
                                                void                 *data);
 
+
 typedef void (vrna_callback_gr_cond)(vrna_fold_compound_t *fc,
                                      unsigned char        stage,
                                      void                 *data);
 
+
 typedef void (vrna_callback_gr_free_data)(void *data);
 
+
 typedef struct vrna_gr_aux_s vrna_gr_aux_t;
+
 
 struct vrna_gr_aux_s {
   vrna_callback_gr_cond       *cb_proc; /**< @brief A callback for pre- and post-processing of auxiliary grammar rules */

@@ -47,7 +47,7 @@
  *
  */
 PUBLIC int
-vrna_BT_hp_loop(vrna_fold_compound_t  *vc,
+vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
                 int                   i,
                 int                   j,
                 int                   en,
@@ -61,20 +61,20 @@ vrna_BT_hp_loop(vrna_fold_compound_t  *vc,
 
   u = j - i - 1;
 
-  if (vc->hc->up_hp[i + 1] < u)
+  if (fc->hc->up_hp[i + 1] < u)
     return 0;
 
-  e = vrna_E_hp_loop(vc, i, j);
+  e = vrna_E_hp_loop(fc, i, j);
 
   if (e == en) {
-    switch (vc->type) {
+    switch (fc->type) {
       case  VRNA_FC_TYPE_SINGLE:
-        sc = vc->sc;
+        sc = fc->sc;
         break;
 
       case  VRNA_FC_TYPE_COMPARATIVE:
-        if (vc->scs)
-          sc = vc->scs[0];
+        if (fc->scs)
+          sc = fc->scs[0];
 
         break;
 

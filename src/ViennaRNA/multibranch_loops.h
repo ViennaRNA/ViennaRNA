@@ -37,7 +37,7 @@ typedef struct vrna_mx_pf_aux_ml_s *vrna_mx_pf_aux_ml_t;
  *  Computes total free energy for coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1)
  */
 int
-vrna_E_mb_loop_stack(vrna_fold_compound_t *vc,
+vrna_E_mb_loop_stack(vrna_fold_compound_t *fc,
                      int                  i,
                      int                  j);
 
@@ -45,7 +45,7 @@ vrna_E_mb_loop_stack(vrna_fold_compound_t *vc,
 /**
  *  @brief  Backtrack the decomposition of a multi branch loop closed by @f$ (i,j) @f$
  *
- *  @param    vc          The #vrna_fold_compound_t filled with all relevant data for backtracking
+ *  @param    fc          The #vrna_fold_compound_t filled with all relevant data for backtracking
  *  @param    i           5' position of base pair closing the loop (will be set to 5' position
  *                        of leftmost decomposed block upon successful backtracking)
  *  @param    j           3' position of base pair closing the loop (will be set to 3' position
@@ -58,7 +58,7 @@ vrna_E_mb_loop_stack(vrna_fold_compound_t *vc,
  *  @returns              1, if backtracking succeeded, 0 otherwise.
  */
 int
-vrna_BT_mb_loop(vrna_fold_compound_t  *vc,
+vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
                 int                   *i,
                 int                   *j,
                 int                   *k,
@@ -68,7 +68,7 @@ vrna_BT_mb_loop(vrna_fold_compound_t  *vc,
 
 
 int
-vrna_E_mb_loop_fast(vrna_fold_compound_t  *vc,
+vrna_E_mb_loop_fast(vrna_fold_compound_t  *fc,
                     int                   i,
                     int                   j,
                     int                   *dmli1,
@@ -76,7 +76,7 @@ vrna_E_mb_loop_fast(vrna_fold_compound_t  *vc,
 
 
 int
-vrna_E_mb_loop_stack(vrna_fold_compound_t *vc,
+vrna_E_mb_loop_stack(vrna_fold_compound_t *fc,
                      int                  i,
                      int                  j);
 
@@ -84,11 +84,11 @@ vrna_E_mb_loop_stack(vrna_fold_compound_t *vc,
 int
 E_ml_rightmost_stem(int                   i,
                     int                   j,
-                    vrna_fold_compound_t  *vc);
+                    vrna_fold_compound_t  *fc);
 
 
 int
-vrna_E_ml_stems_fast(vrna_fold_compound_t *vc,
+vrna_E_ml_stems_fast(vrna_fold_compound_t *fc,
                      int                  i,
                      int                  j,
                      int                  *fmi,
@@ -96,14 +96,14 @@ vrna_E_ml_stems_fast(vrna_fold_compound_t *vc,
 
 
 FLT_OR_DBL
-vrna_exp_E_mb_loop_fast(vrna_fold_compound_t  *vc,
+vrna_exp_E_mb_loop_fast(vrna_fold_compound_t  *fc,
                         int                   i,
                         int                   j,
                         vrna_mx_pf_aux_ml_t   aux_mx);
 
 
 vrna_mx_pf_aux_ml_t
-vrna_exp_E_ml_fast_init(vrna_fold_compound_t *vc);
+vrna_exp_E_ml_fast_init(vrna_fold_compound_t *fc);
 
 
 void
@@ -123,7 +123,7 @@ vrna_exp_E_ml_fast_qqm1(struct vrna_mx_pf_aux_ml_s *aux_mx);
 
 
 FLT_OR_DBL
-vrna_exp_E_ml_fast(vrna_fold_compound_t *vc,
+vrna_exp_E_ml_fast(vrna_fold_compound_t *fc,
                    int                  i,
                    int                  j,
                    vrna_mx_pf_aux_ml_t  aux_mx);
@@ -136,7 +136,7 @@ vrna_exp_E_ml_fast(vrna_fold_compound_t *vc,
  */
 
 int
-vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
+vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
                      int                  *u,
                      int                  *i,
                      int                  *j,
@@ -145,7 +145,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *vc,
 
 
 int
-vrna_BT_mb_loop_split(vrna_fold_compound_t  *vc,
+vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
                       int                   *i,
                       int                   *j,
                       int                   *k,
@@ -157,7 +157,7 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t  *vc,
 
 
 int
-vrna_BT_mb_loop(vrna_fold_compound_t  *vc,
+vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
                 int                   *i,
                 int                   *j,
                 int                   *k,

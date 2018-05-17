@@ -54,7 +54,7 @@ ubf_eval_int_loop_comparative(int           col_i,
 
 
 PRIVATE INLINE eval_hc *
-prepare_hc_default(vrna_fold_compound_t *vc,
+prepare_hc_default(vrna_fold_compound_t *fc,
                    struct default_data  *dat);
 
 
@@ -92,19 +92,19 @@ hc_default_user(int   i,
 
 
 PRIVATE INLINE eval_hc *
-prepare_hc_default(vrna_fold_compound_t *vc,
+prepare_hc_default(vrna_fold_compound_t *fc,
                    struct default_data  *dat)
 {
-  dat->idx      = vc->jindx;
-  dat->mx       = (vc->hc->type == VRNA_HC_WINDOW) ? NULL : vc->hc->matrix;
-  dat->mx_local = (vc->hc->type == VRNA_HC_WINDOW) ? vc->hc->matrix_local : NULL;
-  dat->up       = vc->hc->up_int;
+  dat->idx      = fc->jindx;
+  dat->mx       = (fc->hc->type == VRNA_HC_WINDOW) ? NULL : fc->hc->matrix;
+  dat->mx_local = (fc->hc->type == VRNA_HC_WINDOW) ? fc->hc->matrix_local : NULL;
+  dat->up       = fc->hc->up_int;
   dat->hc_f     = NULL;
   dat->hc_dat   = NULL;
 
-  if (vc->hc->f) {
-    dat->hc_f   = vc->hc->f;
-    dat->hc_dat = vc->hc->data;
+  if (fc->hc->f) {
+    dat->hc_f   = fc->hc->f;
+    dat->hc_dat = fc->hc->data;
     return &hc_default_user;
   }
 

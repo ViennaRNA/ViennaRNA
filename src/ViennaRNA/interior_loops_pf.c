@@ -34,19 +34,19 @@
  */
 
 PRIVATE FLT_OR_DBL
-exp_E_int_loop(vrna_fold_compound_t *vc,
+exp_E_int_loop(vrna_fold_compound_t *fc,
                int                  i,
                int                  j);
 
 
 PRIVATE FLT_OR_DBL
-exp_E_ext_int_loop(vrna_fold_compound_t *vc,
+exp_E_ext_int_loop(vrna_fold_compound_t *fc,
                    int                  p,
                    int                  q);
 
 
 PRIVATE FLT_OR_DBL
-exp_E_interior_loop(vrna_fold_compound_t  *vc,
+exp_E_interior_loop(vrna_fold_compound_t  *fc,
                     int                   i,
                     int                   j,
                     int                   k,
@@ -59,25 +59,25 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
  #################################
  */
 PUBLIC FLT_OR_DBL
-vrna_exp_E_int_loop(vrna_fold_compound_t  *vc,
+vrna_exp_E_int_loop(vrna_fold_compound_t  *fc,
                     int                   i,
                     int                   j)
 {
   FLT_OR_DBL q = 0.;
 
-  if ((vc) && (i > 0) && (j > 0)) {
+  if ((fc) && (i > 0) && (j > 0)) {
     if (j < i) {
       /* Note: j < i indicates that we want to evaluate exterior int loop (for circular RNAs)! */
-      if (vc->hc->type == VRNA_HC_WINDOW) {
+      if (fc->hc->type == VRNA_HC_WINDOW) {
         vrna_message_warning(
           "vrna_exp_E_int_loop: invalid sequence positions for pair (i,j) = (%d,%d)!",
           i,
           j);
       } else {
-        q = exp_E_ext_int_loop(vc, j, i);
+        q = exp_E_ext_int_loop(fc, j, i);
       }
     } else {
-      q = exp_E_int_loop(vc, i, j);
+      q = exp_E_int_loop(fc, i, j);
     }
   }
 
@@ -86,14 +86,14 @@ vrna_exp_E_int_loop(vrna_fold_compound_t  *vc,
 
 
 PUBLIC FLT_OR_DBL
-vrna_exp_E_interior_loop(vrna_fold_compound_t *vc,
+vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
                          int                  i,
                          int                  j,
                          int                  k,
                          int                  l)
 {
-  if (vc)
-    return exp_E_interior_loop(vc, i, j, k, l);
+  if (fc)
+    return exp_E_interior_loop(fc, i, j, k, l);
 
   return 0.;
 }
@@ -704,7 +704,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
 
 
 PRIVATE FLT_OR_DBL
-exp_E_interior_loop(vrna_fold_compound_t  *vc,
+exp_E_interior_loop(vrna_fold_compound_t  *fc,
                     int                   i,
                     int                   j,
                     int                   k,
@@ -724,25 +724,25 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
   struct default_data       hc_dat_local;
   struct sc_wrapper_exp_int sc_wrapper;
 
-  sliding_window  = (vc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
-  n_seq           = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
-  ptype           = (vc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? NULL : vc->ptype) : NULL;
+  sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
+  n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
+  ptype           = (fc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? NULL : fc->ptype) : NULL;
   ptype_local     =
-    (vc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? vc->ptype_local : NULL) : NULL;
-  S1          = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding : NULL;
-  SS          = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S;
-  S5          = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S5;
-  S3          = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S3;
-  a2s         = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->a2s;
-  jindx       = vc->jindx;
-  hc_mx       = (sliding_window) ? NULL : vc->hc->matrix;
-  hc_mx_local = (sliding_window) ? vc->hc->matrix_local : NULL;
-  hc_up       = vc->hc->up_int;
-  pf_params   = vc->exp_params;
-  sn          = vc->strand_number;
+    (fc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? fc->ptype_local : NULL) : NULL;
+  S1          = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : NULL;
+  SS          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
+  S5          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
+  S3          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
+  a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
+  jindx       = fc->jindx;
+  hc_mx       = (sliding_window) ? NULL : fc->hc->matrix;
+  hc_mx_local = (sliding_window) ? fc->hc->matrix_local : NULL;
+  hc_up       = fc->hc->up_int;
+  pf_params   = fc->exp_params;
+  sn          = fc->strand_number;
   md          = &(pf_params->model_details);
-  scale       = vc->exp_matrices->scale;
-  domains_up  = vc->domains_up;
+  scale       = fc->exp_matrices->scale;
+  domains_up  = fc->domains_up;
   rtype       = &(md->rtype[0]);
   qbt1        = 0.;
   u1          = k - i - 1;
@@ -757,9 +757,9 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
   if (hc_up[i + 1] < u1)
     return qbt1;
 
-  evaluate = prepare_hc_default(vc, &hc_dat_local);
+  evaluate = prepare_hc_default(fc, &hc_dat_local);
 
-  init_sc_wrapper(vc, &sc_wrapper);
+  init_sc_wrapper(fc, &sc_wrapper);
 
   ij              = (sliding_window) ? 0 : jindx[j] + i;
   kl              = (sliding_window) ? 0 : jindx[l] + k;
@@ -773,7 +773,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
   if (eval_loop && evaluate(i, j, k, l, &hc_dat_local)) {
     q_temp = 0;
 
-    switch (vc->type) {
+    switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
         type = (sliding_window) ?
                vrna_get_ptype_window(i, j, ptype_local) :
@@ -830,14 +830,14 @@ exp_E_interior_loop(vrna_fold_compound_t  *vc,
       qq5 = qq3 = 0.;
 
       if (u1 > 0) {
-        qq5 = domains_up->exp_energy_cb(vc,
+        qq5 = domains_up->exp_energy_cb(fc,
                                         i + 1, k - 1,
                                         VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
                                         domains_up->data);
       }
 
       if (u2 > 0) {
-        qq3 = domains_up->exp_energy_cb(vc,
+        qq3 = domains_up->exp_energy_cb(fc,
                                         l + 1, j - 1,
                                         VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
                                         domains_up->data);

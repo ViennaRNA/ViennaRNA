@@ -55,7 +55,7 @@
  *  @param  type  The pair type of the base pair closing the hairpin
  *  @param  si1   The 5'-mismatching nucleotide
  *  @param  sj1   The 3'-mismatching nucleotide
- *  @param  string  The sequence of the loop
+ *  @param  string  The sequence of the loop (May be @NULL, otherwise mst be at least @f$size + 2@f$ long)
  *  @param  P     The datastructure containing scaled energy parameters
  *  @return The Free energy of the Hairpin-loop in dcal/mol
  */
@@ -82,7 +82,7 @@ E_Hairpin(int           size,
  *  @param  type    The pair type of the base pair closing the hairpin
  *  @param  si1     The 5'-mismatching nucleotide
  *  @param  sj1     The 3'-mismatching nucleotide
- *  @param  string  The sequence of the loop
+ *  @param  string  The sequence of the loop (May be @NULL, otherwise mst be at least @f$size + 2@f$ long)
  *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
  *  @return The Boltzmann weight of the Hairpin-loop
  */
@@ -118,27 +118,30 @@ E_Hairpin(int           size,
   if (size < 3)
     return energy;            /* should only be the case when folding alignments */
 
-  if (P->model_details.special_hp) {
+  if ((string) && (P->model_details.special_hp)) {
     if (size == 4) {
       /* check for tetraloop bonus */
       char tl[7] = {
         0
       }, *ts;
-      strncpy(tl, string, 6);
+      memcpy(tl, string, sizeof(char) * 6);
+      tl[6] = '\0';
       if ((ts = strstr(P->Tetraloops, tl)))
         return P->Tetraloop_E[(ts - P->Tetraloops) / 7];
     } else if (size == 6) {
       char tl[9] = {
         0
       }, *ts;
-      strncpy(tl, string, 8);
+      memcpy(tl, string, sizeof(char) * 8);
+      tl[8] = '\0';
       if ((ts = strstr(P->Hexaloops, tl)))
         return energy = P->Hexaloop_E[(ts - P->Hexaloops) / 9];
     } else if (size == 3) {
       char tl[6] = {
-        0, 0, 0, 0, 0, 0
+        0
       }, *ts;
-      strncpy(tl, string, 5);
+      memcpy(tl, string, sizeof(char) * 5);
+      tl[5] = '\0';
       if ((ts = strstr(P->Triloops, tl)))
         return P->Triloop_E[(ts - P->Triloops) / 6];
 
@@ -164,13 +167,13 @@ E_Hairpin(int           size,
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
  *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
- *  @param vc   The #vrna_fold_compound_t that stores all relevant model settings
+ *  @param fc   The #vrna_fold_compound_t that stores all relevant model settings
  *  @param i    The 5' nucleotide of the base pair (3' to evaluate the pair as exterior hairpin loop)
  *  @param j    The 3' nucleotide of the base pair (5' to evaluate the pair as exterior hairpin loop)
  *  @returns    The free energy of the hairpin loop in 10cal/mol
  */
 int
-vrna_E_hp_loop(vrna_fold_compound_t *vc,
+vrna_E_hp_loop(vrna_fold_compound_t *fc,
                int                  i,
                int                  j);
 
@@ -184,7 +187,7 @@ vrna_E_hp_loop(vrna_fold_compound_t *vc,
  *
  */
 int
-vrna_E_ext_hp_loop(vrna_fold_compound_t *vc,
+vrna_E_ext_hp_loop(vrna_fold_compound_t *fc,
                    int                  i,
                    int                  j);
 
@@ -196,7 +199,7 @@ vrna_E_ext_hp_loop(vrna_fold_compound_t *vc,
  *
  */
 int
-vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
+vrna_eval_ext_hp_loop(vrna_fold_compound_t  *fc,
                       int                   i,
                       int                   j);
 
@@ -209,13 +212,13 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *vc,
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
  *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
- *  @param  vc  The #vrna_fold_compound_t for the particular energy evaluation
+ *  @param  fc  The #vrna_fold_compound_t for the particular energy evaluation
  *  @param  i   5'-position of the base pair
  *  @param  j   3'-position of the base pair
  *  @returns    Free energy of the hairpin loop closed by @f$ (i,j) @f$ in deka-kal/mol
  */
 int
-vrna_eval_hp_loop(vrna_fold_compound_t  *vc,
+vrna_eval_hp_loop(vrna_fold_compound_t  *fc,
                   int                   i,
                   int                   j);
 
@@ -245,12 +248,13 @@ exp_E_Hairpin(int               u,
   if (u < 3)
     return (FLT_OR_DBL)q;         /* should only be the case when folding alignments */
 
-  if (P->model_details.special_hp) {
+  if ((string) && (P->model_details.special_hp)) {
     if (u == 4) {
       char tl[7] = {
-        0, 0, 0, 0, 0, 0, 0
+        0
       }, *ts;
-      strncpy(tl, string, 6);
+      memcpy(tl, string, sizeof(char) * 6);
+      tl[6] = '\0';
       if ((ts = strstr(P->Tetraloops, tl))) {
         if (type != 7)
           return (FLT_OR_DBL)(P->exptetra[(ts - P->Tetraloops) / 7]);
@@ -259,16 +263,18 @@ exp_E_Hairpin(int               u,
       }
     } else if (u == 6) {
       char tl[9] = {
-        0, 0, 0, 0, 0, 0, 0, 0, 0
+        0
       }, *ts;
-      strncpy(tl, string, 8);
+      memcpy(tl, string, sizeof(char) * 8);
+      tl[8] = '\0';
       if ((ts = strstr(P->Hexaloops, tl)))
         return (FLT_OR_DBL)(P->exphex[(ts - P->Hexaloops) / 9]);
     } else if (u == 3) {
       char tl[6] = {
-        0, 0, 0, 0, 0, 0
+        0
       }, *ts;
-      strncpy(tl, string, 5);
+      memcpy(tl, string, sizeof(char) * 5);
+      tl[5] = '\0';
       if ((ts = strstr(P->Triloops, tl)))
         return (FLT_OR_DBL)(P->exptri[(ts - P->Triloops) / 6]);
 
@@ -295,7 +301,7 @@ exp_E_Hairpin(int               u,
  *
  */
 FLT_OR_DBL
-vrna_exp_E_hp_loop(vrna_fold_compound_t *vc,
+vrna_exp_E_hp_loop(vrna_fold_compound_t *fc,
                    int                  i,
                    int                  j);
 
@@ -308,7 +314,7 @@ vrna_exp_E_hp_loop(vrna_fold_compound_t *vc,
  *
  */
 int
-vrna_BT_hp_loop(vrna_fold_compound_t  *vc,
+vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
                 int                   i,
                 int                   j,
                 int                   en,

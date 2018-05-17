@@ -34,7 +34,7 @@
  */
 
 PRIVATE int
-BT_int_loop(vrna_fold_compound_t  *vc,
+BT_int_loop(vrna_fold_compound_t  *fc,
             int                   *i,
             int                   *j,
             int                   en,
@@ -43,7 +43,7 @@ BT_int_loop(vrna_fold_compound_t  *vc,
 
 
 PRIVATE int
-BT_stack(vrna_fold_compound_t *vc,
+BT_stack(vrna_fold_compound_t *fc,
          int                  *i,
          int                  *j,
          int                  *en,
@@ -57,37 +57,37 @@ BT_stack(vrna_fold_compound_t *vc,
  #################################
  */
 PUBLIC int
-vrna_BT_int_loop(vrna_fold_compound_t *vc,
+vrna_BT_int_loop(vrna_fold_compound_t *fc,
                  int                  *i,
                  int                  *j,
                  int                  en,
                  vrna_bp_stack_t      *bp_stack,
                  int                  *stack_count)
 {
-  if (vc)
-    return BT_int_loop(vc, i, j, en, bp_stack, stack_count);
+  if (fc)
+    return BT_int_loop(fc, i, j, en, bp_stack, stack_count);
 
   return 0;
 }
 
 
 PUBLIC int
-vrna_BT_stack(vrna_fold_compound_t  *vc,
+vrna_BT_stack(vrna_fold_compound_t  *fc,
               int                   *i,
               int                   *j,
               int                   *en,
               vrna_bp_stack_t       *bp_stack,
               int                   *stack_count)
 {
-  if (vc)
-    return BT_stack(vc, i, j, en, bp_stack, stack_count);
+  if (fc)
+    return BT_stack(fc, i, j, en, bp_stack, stack_count);
 
   return 0;
 }
 
 
 PRIVATE int
-BT_stack(vrna_fold_compound_t *vc,
+BT_stack(vrna_fold_compound_t *fc,
          int                  *i,
          int                  *j,
          int                  *en,
@@ -106,27 +106,27 @@ BT_stack(vrna_fold_compound_t *vc,
   struct default_data   hc_dat_local;
   struct sc_wrapper_int sc_wrapper;
 
-  sliding_window  = (vc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
-  n_seq           = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
-  sn              = vc->strand_number;
-  ss              = vc->strand_start;
-  SS              = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S;
-  ptype           = (sliding_window) ? NULL : vc->ptype;
-  ptype_local     = (sliding_window) ? vc->ptype_local : NULL;
-  idx             = (sliding_window) ? NULL : vc->jindx;
-  P               = vc->params;
+  sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
+  n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
+  sn              = fc->strand_number;
+  ss              = fc->strand_start;
+  SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
+  ptype           = (sliding_window) ? NULL : fc->ptype;
+  ptype_local     = (sliding_window) ? fc->ptype_local : NULL;
+  idx             = (sliding_window) ? NULL : fc->jindx;
+  P               = fc->params;
   md              = &(P->model_details);
-  hc              = vc->hc;
-  my_c            = (sliding_window) ? NULL : vc->matrices->c;
-  c_local         = (sliding_window) ? vc->matrices->c_local : NULL;
+  hc              = fc->hc;
+  my_c            = (sliding_window) ? NULL : fc->matrices->c;
+  c_local         = (sliding_window) ? fc->matrices->c_local : NULL;
   ij              = (sliding_window) ? 0 : idx[*j] + *i;
   rtype           = &(md->rtype[0]);
   p               = *i + 1;
   q               = *j - 1;
   ret             = 0;
-  evaluate        = prepare_hc_default(vc, &hc_dat_local);
+  evaluate        = prepare_hc_default(fc, &hc_dat_local);
 
-  init_sc_wrapper(vc, &sc_wrapper);
+  init_sc_wrapper(fc, &sc_wrapper);
 
   eee = (sliding_window) ? c_local[*i][*j - *i] : my_c[ij];
 
@@ -141,7 +141,7 @@ BT_stack(vrna_fold_compound_t *vc,
                 (hc_decompose_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
 
     if (eval_loop && evaluate(*i, *j, p, q, &hc_dat_local)) {
-      switch (vc->type) {
+      switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
           type = (sliding_window) ?
                  vrna_get_ptype_window(*i, *j, ptype_local) :
@@ -156,7 +156,7 @@ BT_stack(vrna_fold_compound_t *vc,
           } else {
             /* stack like cofold structure */
             short si, sj, *S;
-            S   = vc->sequence_encoding;
+            S   = fc->sequence_encoding;
             si  = (sn[p] == sn[*i]) ? S[p] : -1;
             sj  = (sn[*j] == sn[q]) ? S[q] : -1;
             *en -= E_IntLoop_Co(rtype[type], rtype[type_2],
@@ -176,7 +176,7 @@ BT_stack(vrna_fold_compound_t *vc,
             type_2  = vrna_get_ptype_md(SS[s][q], SS[s][p], md);
             *en     -= P->stack[type][type_2];
           }
-          *en += (sliding_window) ? vc->pscore_local[*i][*j - *i] : vc->pscore[ij];
+          *en += (sliding_window) ? fc->pscore_local[*i][*j - *i] : fc->pscore[ij];
 
           break;
       }
@@ -199,7 +199,7 @@ BT_stack(vrna_fold_compound_t *vc,
 
 
 PRIVATE int
-BT_int_loop(vrna_fold_compound_t  *vc,
+BT_int_loop(vrna_fold_compound_t  *fc,
             int                   *i,
             int                   *j,
             int                   en,
@@ -219,21 +219,21 @@ BT_int_loop(vrna_fold_compound_t  *vc,
   struct default_data hc_dat_local;
 
   ret             = 0;
-  sliding_window  = (vc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
-  n_seq           = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
-  sn              = vc->strand_number;
-  S2              = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding2 : NULL;
-  SS              = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S;
-  idx             = (sliding_window) ? NULL : vc->jindx;
-  P               = vc->params;
+  sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
+  n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
+  sn              = fc->strand_number;
+  S2              = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
+  SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
+  idx             = (sliding_window) ? NULL : fc->jindx;
+  P               = fc->params;
   md              = &(P->model_details);
-  hc              = vc->hc;
-  my_c            = (sliding_window) ? NULL : vc->matrices->c;
-  c_local         = (sliding_window) ? vc->matrices->c_local : NULL;
+  hc              = fc->hc;
+  my_c            = (sliding_window) ? NULL : fc->matrices->c;
+  c_local         = (sliding_window) ? fc->matrices->c_local : NULL;
   turn            = md->min_loop_size;
   ij              = (sliding_window) ? 0 : idx[*j] + *i;
   tt              = NULL;
-  evaluate        = prepare_hc_default(vc, &hc_dat_local);
+  evaluate        = prepare_hc_default(fc, &hc_dat_local);
 
   hc_decompose_ij = (sliding_window) ? hc->matrix_local[*i][*j - *i] : hc->matrix[ij];
 
@@ -263,11 +263,11 @@ BT_int_loop(vrna_fold_compound_t  *vc,
                  c_local[p][q - p] :
                  my_c[idx[q] + p];
 
-        energy += vrna_eval_int_loop(vc, *i, *j, p, q);
+        energy += vrna_eval_int_loop(fc, *i, *j, p, q);
 
         if (energy == en) {
           vrna_sc_t *sc =
-            (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sc : (vc->scs ? vc->scs[0] : NULL);
+            (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sc : (fc->scs ? fc->scs[0] : NULL);
 
           bp_stack[++(*stack_count)].i  = p;
           bp_stack[(*stack_count)].j    = q;
@@ -299,18 +299,18 @@ BT_int_loop(vrna_fold_compound_t  *vc,
        * kind and the enclosed pair is not a canonical one but a g-quadruplex
        * that should then be decomposed further...
        */
-      switch (vc->type) {
+      switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
           type = (sliding_window) ?
-                 vrna_get_ptype_window(*i, *j, vc->ptype_local) :
-                 vrna_get_ptype(ij, vc->ptype);
+                 vrna_get_ptype_window(*i, *j, fc->ptype_local) :
+                 vrna_get_ptype(ij, fc->ptype);
           no_close = (((type == 3) || (type == 4)) && md->noGUclosure);
 
           if (sliding_window) {
             if ((!no_close) && (sn[*j] == sn[*i])) {
-              if (backtrack_GQuad_IntLoop_L(en, *i, *j, type, S2, vc->matrices->ggg_local,
-                                            vc->window_size, &p, &q, P)) {
-                if (vrna_BT_gquad_mfe(vc, p, q, bp_stack, stack_count)) {
+              if (backtrack_GQuad_IntLoop_L(en, *i, *j, type, S2, fc->matrices->ggg_local,
+                                            fc->window_size, &p, &q, P)) {
+                if (vrna_BT_gquad_mfe(fc, p, q, bp_stack, stack_count)) {
                   *i  = *j = -1; /* tell the calling block to continue backtracking with next block */
                   ret = 1;
                 }
@@ -318,7 +318,7 @@ BT_int_loop(vrna_fold_compound_t  *vc,
             }
           } else {
             if ((!no_close) && (sn[*j] == sn[*i])) {
-              if (vrna_BT_gquad_int(vc, *i, *j, en, bp_stack, stack_count)) {
+              if (vrna_BT_gquad_int(fc, *i, *j, en, bp_stack, stack_count)) {
                 *i  = *j = -1; /* tell the calling block to continue backtracking with next block */
                 ret = 1;
               }
@@ -334,20 +334,20 @@ BT_int_loop(vrna_fold_compound_t  *vc,
             tt[s] = vrna_get_ptype_md(SS[s][*i], SS[s][*j], md);
 
           if (sliding_window) {
-            if (backtrack_GQuad_IntLoop_L_comparative(en, *i, *j, tt, vc->S_cons, vc->S5, vc->S3,
-                                                      vc->matrices->ggg_local, &p, &q, n_seq,
+            if (backtrack_GQuad_IntLoop_L_comparative(en, *i, *j, tt, fc->S_cons, fc->S5, fc->S3,
+                                                      fc->matrices->ggg_local, &p, &q, n_seq,
                                                       P)) {
-              if (vrna_BT_gquad_mfe(vc, p, q, bp_stack, stack_count)) {
+              if (vrna_BT_gquad_mfe(fc, p, q, bp_stack, stack_count)) {
                 *i  = *j = -1; /* tell the calling block to continue backtracking with next block */
                 ret = 1;
               }
             }
           } else {
-            if (backtrack_GQuad_IntLoop_comparative(en, *i, *j, tt, vc->S_cons, vc->S5, vc->S3,
-                                                    vc->matrices->ggg, idx, &p, &q,
+            if (backtrack_GQuad_IntLoop_comparative(en, *i, *j, tt, fc->S_cons, fc->S5, fc->S3,
+                                                    fc->matrices->ggg, idx, &p, &q,
                                                     n_seq,
                                                     P)) {
-              if (vrna_BT_gquad_mfe(vc, p, q, bp_stack, stack_count)) {
+              if (vrna_BT_gquad_mfe(fc, p, q, bp_stack, stack_count)) {
                 *i  = *j = -1; /* tell the calling block to continue backtracking with next block */
                 ret = 1;
               }

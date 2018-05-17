@@ -68,12 +68,12 @@ hc_default_user_window(int            i,
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default(vrna_fold_compound_t *vc,
+prepare_hc_default(vrna_fold_compound_t *fc,
                    struct default_data  *dat);
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default_window(vrna_fold_compound_t  *vc,
+prepare_hc_default_window(vrna_fold_compound_t  *fc,
                           struct default_data   *dat);
 
 
@@ -418,36 +418,36 @@ hc_default_user_window(int            i,
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default(vrna_fold_compound_t *vc,
+prepare_hc_default(vrna_fold_compound_t *fc,
                    struct default_data  *dat)
 {
-  dat->idx    = vc->jindx;
-  dat->mx     = vc->hc->matrix;
-  dat->hc_up  = vc->hc->up_ext;
-  dat->sn         = vc->strand_number;
+  dat->idx    = fc->jindx;
+  dat->mx     = fc->hc->matrix;
+  dat->hc_up  = fc->hc->up_ext;
+  dat->sn         = fc->strand_number;
 
-  if (vc->hc->f) {
-    dat->hc_f   = vc->hc->f;
-    dat->hc_dat = vc->hc->data;
-    return (vc->strands == 1) ? &hc_default_user : &hc_default_sn_user;
+  if (fc->hc->f) {
+    dat->hc_f   = fc->hc->f;
+    dat->hc_dat = fc->hc->data;
+    return (fc->strands == 1) ? &hc_default_user : &hc_default_sn_user;
   }
 
-  return (vc->strands == 1) ? &hc_default : &hc_default_sn;
+  return (fc->strands == 1) ? &hc_default : &hc_default_sn;
 }
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default_window(vrna_fold_compound_t  *vc,
+prepare_hc_default_window(vrna_fold_compound_t  *fc,
                           struct default_data   *dat)
 {
-  dat->idx        = vc->jindx;
-  dat->mx_window  = vc->hc->matrix_local;
-  dat->hc_up      = vc->hc->up_ext;
-  dat->sn         = vc->strand_number;
+  dat->idx        = fc->jindx;
+  dat->mx_window  = fc->hc->matrix_local;
+  dat->hc_up      = fc->hc->up_ext;
+  dat->sn         = fc->strand_number;
 
-  if (vc->hc->f) {
-    dat->hc_f   = vc->hc->f;
-    dat->hc_dat = vc->hc->data;
+  if (fc->hc->f) {
+    dat->hc_f   = fc->hc->f;
+    dat->hc_dat = fc->hc->data;
     return &hc_default_user_window;
   }
 

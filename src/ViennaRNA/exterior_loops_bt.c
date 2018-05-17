@@ -53,7 +53,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
 
 
 PRIVATE int
-BT_ext_loop_f3(vrna_fold_compound_t *vc,
+BT_ext_loop_f3(vrna_fold_compound_t *fc,
                int                  *k,
                int                  maxdist,
                int                  *i,
@@ -63,7 +63,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
 
 
 PRIVATE int
-BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
+BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
                            int                  *k,
                            int                  maxdist,
                            int                  *i,
@@ -160,7 +160,7 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
 
 
 PRIVATE int
-BT_ext_loop_f5(vrna_fold_compound_t *vc,
+BT_ext_loop_f5(vrna_fold_compound_t *fc,
                int                  *k,
                int                  *i,
                int                  *j,
@@ -179,23 +179,23 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  length        = vc->length;
-  P             = vc->params;
+  length        = fc->length;
+  P             = fc->params;
   md            = &(P->model_details);
-  sn            = vc->strand_number;
-  sc            = vc->sc;
-  my_f5         = vc->matrices->f5;
-  my_c          = vc->matrices->c;
-  my_ggg        = vc->matrices->ggg;
-  domains_up    = vc->domains_up;
-  idx           = vc->jindx;
-  ptype         = vc->ptype;
-  S1            = vc->sequence_encoding;
+  sn            = fc->strand_number;
+  sc            = fc->sc;
+  my_f5         = fc->matrices->f5;
+  my_c          = fc->matrices->c;
+  my_ggg        = fc->matrices->ggg;
+  domains_up    = fc->domains_up;
+  idx           = fc->jindx;
+  ptype         = fc->ptype;
+  S1            = fc->sequence_encoding;
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
-  evaluate      = prepare_hc_default(vc, &hc_dat_local);
+  evaluate      = prepare_hc_default(fc, &hc_dat_local);
 
   jj = *k;
 
@@ -235,7 +235,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
         u   = domains_up->uniq_motif_size[cnt];
         ii  = jj - u + 1;
         if ((ii > 0) && evaluate(1, jj, 1, jj - u, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
-          en = domains_up->energy_cb(vc,
+          en = domains_up->energy_cb(fc,
                                      ii,
                                      jj,
                                      VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
@@ -305,7 +305,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            return vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
+            return vrna_BT_gquad_mfe(fc, u, jj, bp_stack, stack_count);
           }
         }
 
@@ -339,7 +339,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            return vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
+            return vrna_BT_gquad_mfe(fc, u, jj, bp_stack, stack_count);
           }
         }
 
@@ -372,7 +372,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
         if (fij == my_ggg[idx[jj] + 1]) {
           *i  = *j = -1;
           *k  = 0;
-          return vrna_BT_gquad_mfe(vc, 1, jj, bp_stack, stack_count);
+          return vrna_BT_gquad_mfe(fc, 1, jj, bp_stack, stack_count);
         }
       }
 
@@ -430,7 +430,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            return vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
+            return vrna_BT_gquad_mfe(fc, u, jj, bp_stack, stack_count);
           }
         }
 
@@ -546,7 +546,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *vc,
 
 
 PRIVATE int
-BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
+BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
                            int                  *k,
                            int                  *i,
                            int                  *j,
@@ -564,22 +564,22 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  n_seq         = vc->n_seq;
-  S             = vc->S;
-  S5            = vc->S5;
-  S3            = vc->S3;
-  a2s           = vc->a2s;
-  P             = vc->params;
+  n_seq         = fc->n_seq;
+  S             = fc->S;
+  S5            = fc->S5;
+  S3            = fc->S3;
+  a2s           = fc->a2s;
+  P             = fc->params;
   md            = &(P->model_details);
-  scs           = vc->scs;
-  my_f5         = vc->matrices->f5;
-  my_c          = vc->matrices->c;
-  my_ggg        = vc->matrices->ggg;
-  idx           = vc->jindx;
+  scs           = fc->scs;
+  my_f5         = fc->matrices->f5;
+  my_c          = fc->matrices->c;
+  my_ggg        = fc->matrices->ggg;
+  idx           = fc->jindx;
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
-  evaluate      = prepare_hc_default(vc, &hc_dat_local);
+  evaluate      = prepare_hc_default(fc, &hc_dat_local);
 
   jj = *k;
 
@@ -623,7 +623,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            return vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
+            return vrna_BT_gquad_mfe(fc, u, jj, bp_stack, stack_count);
           }
         }
 
@@ -660,7 +660,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            return vrna_BT_gquad_mfe(vc, u, jj, bp_stack, stack_count);
+            return vrna_BT_gquad_mfe(fc, u, jj, bp_stack, stack_count);
           }
         }
 
@@ -699,7 +699,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *vc,
 
 
 PRIVATE int
-BT_ext_loop_f3(vrna_fold_compound_t *vc,
+BT_ext_loop_f3(vrna_fold_compound_t *fc,
                int                  *k,
                int                  maxdist,
                int                  *i,
@@ -718,19 +718,19 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  length        = vc->length;
-  P             = vc->params;
+  length        = fc->length;
+  P             = fc->params;
   md            = &(P->model_details);
-  sc            = vc->sc;
-  f3            = vc->matrices->f3_local;
-  c             = vc->matrices->c_local;
-  ggg           = vc->matrices->ggg_local;
-  ptype         = vc->ptype_local;
-  S1            = vc->sequence_encoding;
+  sc            = fc->sc;
+  f3            = fc->matrices->f3_local;
+  c             = fc->matrices->c_local;
+  ggg           = fc->matrices->ggg_local;
+  ptype         = fc->ptype_local;
+  S1            = fc->sequence_encoding;
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
-  evaluate      = prepare_hc_default_window(vc, &hc_dat_local);
+  evaluate      = prepare_hc_default_window(fc, &hc_dat_local);
 
   ii = *k;
 
@@ -774,7 +774,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            return vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
+            return vrna_BT_gquad_mfe(fc, ii, u, bp_stack, stack_count);
           }
         }
 
@@ -808,7 +808,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            return vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
+            return vrna_BT_gquad_mfe(fc, ii, u, bp_stack, stack_count);
           }
         }
 
@@ -842,7 +842,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            return vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
+            return vrna_BT_gquad_mfe(fc, ii, u, bp_stack, stack_count);
           }
         }
 
@@ -1008,7 +1008,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *vc,
 
 
 PRIVATE int
-BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
+BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
                            int                  *k,
                            int                  maxdist,
                            int                  *i,
@@ -1026,21 +1026,21 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
-  n_seq         = vc->n_seq;
-  S             = vc->S;
-  S5            = vc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
-  S3            = vc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
-  a2s           = vc->a2s;
-  P             = vc->params;
+  n_seq         = fc->n_seq;
+  S             = fc->S;
+  S5            = fc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
+  S3            = fc->S3;   /* Sl[s][i] holds next base 3' of i in sequence s */
+  a2s           = fc->a2s;
+  P             = fc->params;
   md            = &(P->model_details);
-  scs           = vc->scs;
-  f3            = vc->matrices->f3_local;
-  c             = vc->matrices->c_local;
-  ggg           = vc->matrices->ggg_local;
+  scs           = fc->scs;
+  f3            = fc->matrices->f3_local;
+  c             = fc->matrices->c_local;
+  ggg           = fc->matrices->ggg_local;
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
-  evaluate      = prepare_hc_default_window(vc, &hc_dat_local);
+  evaluate      = prepare_hc_default_window(fc, &hc_dat_local);
 
   ii = *k;
 
@@ -1087,7 +1087,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            return vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
+            return vrna_BT_gquad_mfe(fc, ii, u, bp_stack, stack_count);
           }
         }
 
@@ -1117,7 +1117,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *vc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            return vrna_BT_gquad_mfe(vc, ii, u, bp_stack, stack_count);
+            return vrna_BT_gquad_mfe(fc, ii, u, bp_stack, stack_count);
           }
         }
 

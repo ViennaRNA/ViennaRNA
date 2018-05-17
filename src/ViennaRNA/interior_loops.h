@@ -592,7 +592,7 @@ E_IntLoop_Co(int          type,
 
 
 int
-vrna_E_int_loop(vrna_fold_compound_t  *vc,
+vrna_E_int_loop(vrna_fold_compound_t  *fc,
                 int                   i,
                 int                   j);
 
@@ -605,7 +605,7 @@ vrna_E_int_loop(vrna_fold_compound_t  *vc,
  *        #VRNA_FC_TYPE_SINGLE as well as #VRNA_FC_TYPE_COMPARATIVE
  */
 int
-vrna_eval_int_loop(vrna_fold_compound_t *vc,
+vrna_eval_int_loop(vrna_fold_compound_t *fc,
                    int                  i,
                    int                  j,
                    int                  k,
@@ -614,13 +614,13 @@ vrna_eval_int_loop(vrna_fold_compound_t *vc,
 
 /* j < i indicates circular folding, i.e. collect contributions for exterior int loops */
 FLT_OR_DBL
-vrna_exp_E_int_loop(vrna_fold_compound_t  *vc,
+vrna_exp_E_int_loop(vrna_fold_compound_t  *fc,
                     int                   i,
                     int                   j);
 
 
 FLT_OR_DBL
-vrna_exp_E_interior_loop(vrna_fold_compound_t *vc,
+vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
                          int                  i,
                          int                  j,
                          int                  k,
@@ -628,7 +628,7 @@ vrna_exp_E_interior_loop(vrna_fold_compound_t *vc,
 
 
 int
-vrna_E_ext_int_loop(vrna_fold_compound_t  *vc,
+vrna_E_ext_int_loop(vrna_fold_compound_t  *fc,
                     int                   i,
                     int                   j,
                     int                   *ip,
@@ -636,7 +636,7 @@ vrna_E_ext_int_loop(vrna_fold_compound_t  *vc,
 
 
 int
-vrna_E_stack(vrna_fold_compound_t *vc,
+vrna_E_stack(vrna_fold_compound_t *fc,
              int                  i,
              int                  j);
 
@@ -646,7 +646,7 @@ vrna_E_stack(vrna_fold_compound_t *vc,
  *
  */
 int
-vrna_BT_stack(vrna_fold_compound_t  *vc,
+vrna_BT_stack(vrna_fold_compound_t  *fc,
               int                   *i,
               int                   *j,
               int                   *en,
@@ -659,7 +659,7 @@ vrna_BT_stack(vrna_fold_compound_t  *vc,
  *
  */
 int
-vrna_BT_int_loop(vrna_fold_compound_t *vc,
+vrna_BT_int_loop(vrna_fold_compound_t *fc,
                  int                  *i,
                  int                  *j,
                  int                  en,

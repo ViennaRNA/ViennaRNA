@@ -105,13 +105,13 @@ vrna_exp_E_ext_stem(unsigned int      type,
  *  @return       Free energy contribution that arises when this pair is formed in the exterior loop
  */
 int
-vrna_E_ext_loop(vrna_fold_compound_t  *vc,
+vrna_E_ext_loop(vrna_fold_compound_t  *fc,
                 int                   i,
                 int                   j);
 
 
 int
-vrna_E_ext_loop_5(vrna_fold_compound_t *vc);
+vrna_E_ext_loop_5(vrna_fold_compound_t *fc);
 
 
 int
@@ -120,7 +120,7 @@ vrna_E_ext_loop_3(vrna_fold_compound_t  *fc,
 
 
 int
-vrna_BT_ext_loop_f5(vrna_fold_compound_t  *vc,
+vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
                     int                   *k,
                     int                   *i,
                     int                   *j,
@@ -129,7 +129,7 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t  *vc,
 
 
 int
-vrna_BT_ext_loop_f3(vrna_fold_compound_t  *vc,
+vrna_BT_ext_loop_f3(vrna_fold_compound_t  *fc,
                     int                   *k,
                     int                   maxdist,
                     int                   *i,
@@ -145,7 +145,7 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
 
 
 struct vrna_mx_pf_aux_el_s *
-vrna_exp_E_ext_fast_init(vrna_fold_compound_t *vc);
+vrna_exp_E_ext_fast_init(vrna_fold_compound_t *fc);
 
 
 void
@@ -157,7 +157,7 @@ vrna_exp_E_ext_fast_free(struct vrna_mx_pf_aux_el_s *aux_mx);
 
 
 FLT_OR_DBL
-vrna_exp_E_ext_fast(vrna_fold_compound_t        *vc,
+vrna_exp_E_ext_fast(vrna_fold_compound_t        *fc,
                     int                         i,
                     int                         j,
                     struct vrna_mx_pf_aux_el_s  *aux_mx);
