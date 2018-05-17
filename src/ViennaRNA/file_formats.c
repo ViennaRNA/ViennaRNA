@@ -82,9 +82,13 @@ vrna_file_helixlist(const char *seq,
   vrna_hx_t   *list;
   FILE *out;
 
-  if(strlen(seq) != strlen(db))
-    vrna_message_error("vrna_file_helixlist: sequence and structure have unequal length!");
-
+  if(strlen(seq) != strlen(db)) {
+    vrna_message_warning("vrna_file_helixlist: "
+                         "sequence and structure have unequal length (%d vs. %d)!",
+                         strlen(seq),
+                         strlen(db));
+    return;
+  }
   out   = (file) ? file : stdout;
   pt    = vrna_ptable(db);
   list  = vrna_hx_from_ptable(pt);
@@ -108,8 +112,13 @@ vrna_file_connect(const char *seq,
   int i, power_d;
   FILE *out = (file) ? file : stdout;
 
-  if(strlen(seq) != strlen(db))
-    vrna_message_error("vrna_file_connect: sequence and structure have unequal length!");
+  if(strlen(seq) != strlen(db)) {
+    vrna_message_warning("vrna_file_connect: "
+                         "sequence and structure have unequal length (%d vs. %d)!",
+                         strlen(seq),
+                         strlen(db));
+    return;
+  }
 
   short *pt = vrna_ptable(db);
 
@@ -169,8 +178,13 @@ vrna_file_bpseq(const char *seq,
   int i;
   FILE *out = (file) ? file : stdout;
 
-  if(strlen(seq) != strlen(db))
-    vrna_message_error("vrna_file_bpseq: sequence and structure have unequal length!");
+  if(strlen(seq) != strlen(db)) {
+    vrna_message_warning("vrna_file_bpseq: "
+                         "sequence and structure have unequal length (%d vs. %d)!",
+                         strlen(seq),
+                         strlen(db));
+    return;
+  }
 
   short *pt = vrna_ptable(db);
 
@@ -401,7 +415,11 @@ vrna_file_fasta_read_record( char **header,
     return_type  |= VRNA_INPUT_SEQUENCE; /* remember that we've read a sequence */
     *sequence     = input_string;
     input_string  = NULL;
-  } else vrna_message_error("sequence input missing");
+  } else {
+    vrna_message_warning("vrna_file_fasta_read_record: "
+                         "sequence input missing!");
+    return VRNA_INPUT_ERROR;
+  }
 
   /* read the rest until we find user abort, EOF, new sequence or new fasta header */
   if(!(options & VRNA_INPUT_NO_REST)){
