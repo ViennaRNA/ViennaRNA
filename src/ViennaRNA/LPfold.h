@@ -103,6 +103,8 @@ typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
  *  @note This function uses default model settings! For custom model settings, we refer to
  *        the function vrna_probs_window().
  *
+ *  @note In case of any computation errors, this function returns @p NULL
+ *
  *  @see    vrna_probs_window(), vrna_pfl_fold_cb(), vrna_pfl_fold_up()
  *
  *  @ingroup  local_pf_fold
@@ -110,7 +112,7 @@ typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
  *  @param  window_size   The size of the sliding window
  *  @param  max_bp_span   The maximum distance along the backbone between two nucleotides that form a base pairs
  *  @param  cutoff        A cutoff value that omits all pairs with lower probability
- *  @return               A list of base pair probabilities, terminated by an entry with #vrna_ep_t.i and #vrna_ep_t.j set to 0
+ *  @return               A list of base pair probabilities, terminated by an entry with @ref vrna_ep_t.i and @ref vrna_ep_t.j set to 0
  */
 vrna_ep_t *
 vrna_pfl_fold(const char  *sequence,
@@ -140,8 +142,9 @@ vrna_pfl_fold(const char  *sequence,
  *  @param  max_bp_span   The maximum distance along the backbone between two nucleotides that form a base pairs
  *  @param  cb            The callback function which collects the pair probability data for further processing
  *  @param  data          Some arbitrary data structure that is passed to the callback @p cb
+ *  @return               0 on failure, non-zero on success
  */
-void
+int
 vrna_pfl_fold_cb(const char                 *sequence,
                  int                        window_size,
                  int                        max_bp_span,
@@ -201,9 +204,9 @@ vrna_pfl_fold_up(const char *sequence,
  *  @param  max_bp_span   The maximum distance along the backbone between two nucleotides that form a base pairs
  *  @param  cb            The callback function which collects the pair probability data for further processing
  *  @param  data          Some arbitrary data structure that is passed to the callback @p cb
- *  @return               The probabilities to be unpaired for any segment not exceeding @p ulength
+ *  @return               0 on failure, non-zero on success
  */
-void
+int
 vrna_pfl_fold_up_cb(const char                  *sequence,
                     int                         ulength,
                     int                         window_size,
@@ -224,8 +227,9 @@ vrna_pfl_fold_up_cb(const char                  *sequence,
  *  @param  cb            The callback function which collects the pair probability data for further processing
  *  @param  data          Some arbitrary data structure that is passed to the callback @p cb
  *  @param  options       Option flags to control the behavior of this function
+ *  @return               0 on failure, non-zero on success
  */
-void
+int
 vrna_probs_window(vrna_fold_compound_t        *fc,
                   int                         ulength,
                   unsigned int                options,

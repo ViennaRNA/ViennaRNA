@@ -537,7 +537,13 @@ main(int  argc,
         plfold_opt |= VRNA_PROBS_WINDOW_UP;
 
       /* perform recursions */
-      vrna_probs_window(fc, unpaired, plfold_opt, &plfold_callback, (void *)&data);
+      int r = vrna_probs_window(fc, unpaired, plfold_opt, &plfold_callback, (void *)&data);
+
+      if (!r) {
+        vrna_message_warning("Something bad happened while processing the input! "
+                             "Aborting now...");
+        goto rnaplfold_exit;
+      }
 
       if (!simply_putout) {
         /* create dot plot output */
@@ -622,6 +628,8 @@ main(int  argc,
     if (istty)
       vrna_message_input_seq_simple();
   }
+
+rnaplfold_exit:
 
   free(filename_delim);
   free(command_file);
