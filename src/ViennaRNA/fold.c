@@ -430,7 +430,9 @@ backtrack_fold_from_pair(char *sequence,
     length  = strlen(sequence);
     bp      = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (1 + length / 2));
   } else {
-    vrna_message_error("backtrack_fold_from_pair@fold.c: no sequence given");
+    vrna_message_warning("backtrack_fold_from_pair: "
+                         "no sequence given");
+    return NULL;
   }
 
   bt_stack[1].i   = i;
