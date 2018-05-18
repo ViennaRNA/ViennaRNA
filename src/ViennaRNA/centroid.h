@@ -33,7 +33,7 @@
  *  @ingroup              centroid_fold
  *  @param[in]    vc      The fold compound data structure
  *  @param[out]   dist    A pointer to the distance variable where the centroid distance will be written to
- *  @return               The centroid structure of the ensemble in dot-bracket notation (@NULL on error)
+ *  @return               The centroid structure of the ensemble in dot-bracket notation (@p NULL on error)
  */
 char *vrna_centroid(vrna_fold_compound_t  *vc,
                     double                *dist);
@@ -53,7 +53,7 @@ char *vrna_centroid(vrna_fold_compound_t  *vc,
  *  @param[in]  length  The length of the sequence
  *  @param[out] dist    A pointer to the distance variable where the centroid distance will be written to
  *  @param[in]  pl      A pair list containing base pair probability information about the ensemble
- *  @return             The centroid structure of the ensemble in dot-bracket notation (@NULL on error)
+ *  @return             The centroid structure of the ensemble in dot-bracket notation (@p NULL on error)
  */
 char *vrna_centroid_from_plist(int        length,
                                double     *dist,
@@ -74,7 +74,7 @@ char *vrna_centroid_from_plist(int        length,
  *  @param[in]    length  The length of the sequence
  *  @param[out]   dist    A pointer to the distance variable where the centroid distance will be written to
  *  @param[in]    probs   An upper triangular matrix containing base pair probabilities (access via iindx @ref vrna_idx_row_wise() )
- *  @return               The centroid structure of the ensemble in dot-bracket notation (@NULL on error)
+ *  @return               The centroid structure of the ensemble in dot-bracket notation (@p NULL on error)
  */
 char *vrna_centroid_from_probs(int        length,
                                double     *dist,

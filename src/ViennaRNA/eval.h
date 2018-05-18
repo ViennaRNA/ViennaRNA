@@ -859,7 +859,7 @@ int vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
  *  @param structure  secondary structure in dot-bracket notation
  *  @param m1         first coordinate of base pair
  *  @param m2         second coordinate of base pair
- *  @returns          energy change of the move in kcal/mol
+ *  @returns          energy change of the move in kcal/mol (#INF / 100. upon any error)
  */
 float vrna_eval_move(vrna_fold_compound_t *vc,
                      const char           *structure,

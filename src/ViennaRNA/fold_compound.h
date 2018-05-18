@@ -391,15 +391,14 @@ struct vrna_fc_s {
  *  based on the content of the generated #vrna_fold_compound_t. Passing NULL will instruct the function
  *  to use default model details.
  *  The third parameter @p options may be used to specify dynamic programming (DP) matrix requirements.
- *  Use the macros:
  *
- *  - #VRNA_OPTION_MFE
- *  - #VRNA_OPTION_PF
- *  - #VRNA_OPTION_WINDOW
- *  - #VRNA_OPTION_EVAL_ONLY
- *  - #VRNA_OPTION_DEFAULT
+ *  #### Options ####
+ *  * #VRNA_OPTION_DEFAULT  - @copybrief #VRNA_OPTION_DEFAULT
+ *  * #VRNA_OPTION_MFE      - @copybrief #VRNA_OPTION_MFE
+ *  * #VRNA_OPTION_PF       - @copybrief #VRNA_OPTION_PF
+ *  * #VRNA_OPTION_WINDOW   - @copybrief #VRNA_OPTION_WINDOW
  *
- *  to specify the required type of computations that will be performed with the #vrna_fold_compound_t.
+ *  The above options may be OR-ed together.
  *
  *  If you just need the folding compound serving as a container for your data, you can simply pass
  *  #VRNA_OPTION_DEFAULT to the @p option parameter. This creates a #vrna_fold_compound_t without DP
@@ -411,13 +410,12 @@ struct vrna_fc_s {
  *  @note The sequence string must be uppercase, and should contain only RNA (resp. DNA) alphabet depending
  *        on what energy parameter set is used
  *
- *  @see  vrna_fold_compound_free(), vrna_fold_compound_comparative(), #vrna_md_t, #VRNA_OPTION_MFE,
- *        #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY, #VRNA_OPTION_WINDOW
+ *  @see  vrna_fold_compound_free(), vrna_fold_compound_comparative(), #vrna_md_t
  *
  *  @param    sequence    A single sequence, or two concatenated sequences seperated by an '&' character
  *  @param    md_p        An optional set of model details
  *  @param    options     The options for DP matrices memory allocation
- *  @return               A prefilled vrna_fold_compound_t that can be readily used for computations
+ *  @return               A prefilled vrna_fold_compound_t ready to be used for computations (may be @p NULL on error)
  */
 vrna_fold_compound_t *
 vrna_fold_compound(const char   *sequence,
@@ -435,14 +433,14 @@ vrna_fold_compound(const char   *sequence,
  *  based on the content of the generated #vrna_fold_compound_t. Passing NULL will instruct the function
  *  to use default model details.
  *  The third parameter @p options may be used to specify dynamic programming (DP) matrix requirements.
- *  Use the macros:
  *
- *  - #VRNA_OPTION_MFE
- *  - #VRNA_OPTION_PF
- *  - #VRNA_OPTION_EVAL_ONLY
- *  - #VRNA_OPTION_DEFAULT
+ *  #### Options ####
+ *  * #VRNA_OPTION_DEFAULT  - @copybrief #VRNA_OPTION_DEFAULT
+ *  * #VRNA_OPTION_MFE      - @copybrief #VRNA_OPTION_MFE
+ *  * #VRNA_OPTION_PF       - @copybrief #VRNA_OPTION_PF
+ *  * #VRNA_OPTION_WINDOW   - @copybrief #VRNA_OPTION_WINDOW
  *
- *  to specify the required type of computations that will be performed with the #vrna_fold_compound_t.
+ *  The above options may be OR-ed together.
  *
  *  If you just need the folding compound serving as a container for your data, you can simply pass
  *  #VRNA_OPTION_DEFAULT to the @p option parameter. This creates a #vrna_fold_compound_t without DP
@@ -460,7 +458,7 @@ vrna_fold_compound(const char   *sequence,
  *  @param    sequences   A sequence alignment including 'gap' characters
  *  @param    md_p        An optional set of model details
  *  @param    options     The options for DP matrices memory allocation
- *  @return               A prefilled vrna_fold_compound_t that can be readily used for computations
+ *  @return               A prefilled vrna_fold_compound_t ready to be used for computations (may be @p NULL on error)
  */
 vrna_fold_compound_t *
 vrna_fold_compound_comparative(const char   **sequences,
