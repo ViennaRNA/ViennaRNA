@@ -63,8 +63,10 @@ pkginclude_HEADERS =  \
     RNAstruct.h \
     dist_vars.h \
     mfe.h \
+    mfe_window.h \
     fold.h \
     part_func.h \
+    part_func_window.h \
     stringdist.h \
     edit_cost.h \
     fold_vars.h \
@@ -152,17 +154,19 @@ libRNA_conv_la_SOURCES = \
     dist_vars.c \
     data_structures.c \
     part_func.c \
+    part_func_wrappers.c \
     pf_fold.c \
     treedist.c \
     inverse.c \
     ProfileDist.c \
     RNAstruct.c \
     mfe.c \
+    mfe_window.c \
+    mfe_wrappers.c \
     fold.c \
     stringdist.c \
     subopt.c \
     list.c \
-    mfe_window.c \
     Lfold.c \
     cofold.c \
     part_func_co.c \

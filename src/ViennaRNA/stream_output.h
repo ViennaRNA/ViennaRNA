@@ -3,7 +3,7 @@
 
 /**
  *  @file     stream_output.h
- *  @ingroup  buffer_utils
+ *  @ingroup  utils, buffer_utils
  *  @brief    An implementation of a buffered, ordered stream output data structure
  */
 

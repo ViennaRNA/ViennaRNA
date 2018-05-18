@@ -27,7 +27,7 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/aln_util.h"
-#include "ViennaRNA/mfe.h"
+#include "ViennaRNA/mfe_window.h"
 
 
 #ifdef VRNA_WITH_SVM

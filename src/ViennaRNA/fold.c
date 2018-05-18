@@ -109,42 +109,6 @@ wrap_array_export_circ(int  *Fc_p,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC float
-vrna_fold(const char  *string,
-          char        *structure)
-{
-  float                 mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-  vc  = vrna_fold_compound(string, &md, 0);
-  mfe = vrna_mfe(vc, structure);
-
-  vrna_fold_compound_free(vc);
-
-  return mfe;
-}
-
-
-PUBLIC float
-vrna_circfold(const char  *string,
-              char        *structure)
-{
-  float                 mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-  md.circ = 1;
-  vc      = vrna_fold_compound(string, &md, 0);
-  mfe     = vrna_mfe(vc, structure);
-
-  vrna_fold_compound_free(vc);
-
-  return mfe;
-}
-
 
 /*###########################################*/
 /*# deprecated functions below              #*/

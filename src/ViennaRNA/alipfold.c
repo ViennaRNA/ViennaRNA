@@ -15,6 +15,8 @@
 #include "config.h"
 #endif
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -83,73 +85,6 @@ wrap_alipf_fold(const char        **sequences,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC float
-vrna_pf_alifold(const char  **strings,
-                char        *structure,
-                vrna_ep_t   **pl)
-{
-  float                 free_energy;
-  double                mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-
-  /* no need to backtrack MFE structure */
-  md.backtrack = 0;
-
-  if (!pl) /* no need for pair probability computations if we do not store them somewhere */
-    md.compute_bpp = 0;
-
-  vc  = vrna_fold_compound_comparative(strings, &md, VRNA_OPTION_DEFAULT);
-  mfe = (double)vrna_pf(vc, structure);
-  vrna_exp_params_rescale(vc, &mfe);
-  free_energy = vrna_pf(vc, structure);
-
-  /* fill plist */
-  if (pl)
-    *pl = vrna_plist_from_probs(vc, /*cut_off:*/ 1e-6);
-
-  vrna_fold_compound_free(vc);
-
-  return free_energy;
-}
-
-
-PUBLIC float
-vrna_pf_circalifold(const char  **sequences,
-                    char        *structure,
-                    vrna_ep_t   **pl)
-{
-  float                 free_energy;
-  double                mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-  md.circ = 1;
-
-  /* no need to backtrack MFE structure */
-  md.backtrack = 0;
-
-  if (!pl) /* no need for pair probability computations if we do not store them somewhere */
-    md.compute_bpp = 0;
-
-  vc  = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_DEFAULT);
-  mfe = (double)vrna_mfe(vc, structure);
-  vrna_exp_params_rescale(vc, &mfe);
-  free_energy = vrna_pf(vc, structure);
-
-  /* fill plist */
-  if (pl)
-    *pl = vrna_plist_from_probs(vc, /*cut_off:*/ 1e-6);
-
-  vrna_fold_compound_free(vc);
-
-  return free_energy;
-}
-
-
 /*-----------------------------------------------------------------*/
 PRIVATE float
 wrap_alipf_fold(const char        **sequences,
@@ -382,3 +317,5 @@ free_alipf_arrays(void)
     iindx                     = NULL;
   }
 }
+
+#endif

@@ -15,13 +15,14 @@
 
 /**
  *  @file     string_utils.h
- *  @ingroup  utils
+ *  @ingroup  utils, string_utils
  *  @brief    General utility- and helper-functions for RNA sequence and structure strings used throughout the ViennaRNA Package
  */
 
 /**
  *  @addtogroup   string_utils
  *  @{
+ *  @brief  Functions to parse, convert, manipulate, create, and compare (nucleic acid sequence) strings.
  */
 
 #include <stdarg.h>

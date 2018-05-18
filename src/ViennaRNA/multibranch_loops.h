@@ -5,6 +5,21 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 #ifdef __GNUC__
 # define INLINE inline
 #else
@@ -13,22 +28,21 @@
 
 /**
  *  @file     multibranch_loops.h
- *  @ingroup  loops
+ *  @ingroup  eval, eval_loops, eval_loops_mb
  *  @brief    Energy evaluation of multibranch loops for MFE and partition function calculations
  */
 
 /**
- *  @addtogroup  loops
+ *  @addtogroup  eval_loops_mb
  *  @{
+ *  @brief  Functions to evaluate the free energy contributions for mutlibranch loops
  */
 
+
 /**
- *  @brief  Auxiliary helper arrays for fast exterior loop computations
- *
- *  @see vrna_exp_E_ml_fast_init(), vrna_exp_E_ml_fast_rotate(),
- *  vrna_exp_E_ml_fast_free(), vrna_exp_E_ml_fast()
+ *  @name Basic free energy interface
+ *  @{
  */
-typedef struct vrna_mx_pf_aux_ml_s *vrna_mx_pf_aux_ml_t;
 
 
 /**
@@ -40,31 +54,6 @@ int
 vrna_E_mb_loop_stack(vrna_fold_compound_t *fc,
                      int                  i,
                      int                  j);
-
-
-/**
- *  @brief  Backtrack the decomposition of a multi branch loop closed by @f$ (i,j) @f$
- *
- *  @param    fc          The #vrna_fold_compound_t filled with all relevant data for backtracking
- *  @param    i           5' position of base pair closing the loop (will be set to 5' position
- *                        of leftmost decomposed block upon successful backtracking)
- *  @param    j           3' position of base pair closing the loop (will be set to 3' position
- *                        of rightmost decomposed block upon successful backtracking)
- *  @param    k           Split position that delimits leftmost from rightmost block, [i,k] and
- *                        [k+1, j], respectively. (Will be set upon successful backtracking)
- *  @param    en          The energy contribution of the substructure enclosed by @f$ (i,j) @f$
- *  @param    component1  Type of leftmost block (1 = ML, 2 = C)
- *  @param    component2  Type of rightmost block (1 = ML, 2 = C)
- *  @returns              1, if backtracking succeeded, 0 otherwise.
- */
-int
-vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
-                int                   *i,
-                int                   *j,
-                int                   *k,
-                int                   en,
-                int                   *component1,
-                int                   *component2);
 
 
 int
@@ -93,6 +82,25 @@ vrna_E_ml_stems_fast(vrna_fold_compound_t *fc,
                      int                  j,
                      int                  *fmi,
                      int                  *dmli);
+
+
+/* End basic interface */
+/**@}*/
+
+
+/**
+ *  @name Boltzmann weight (partition function) interface
+ *  @{
+ */
+
+
+/**
+ *  @brief  Auxiliary helper arrays for fast exterior loop computations
+ *
+ *  @see vrna_exp_E_ml_fast_init(), vrna_exp_E_ml_fast_rotate(),
+ *  vrna_exp_E_ml_fast_free(), vrna_exp_E_ml_fast()
+ */
+typedef struct vrna_mx_pf_aux_ml_s *vrna_mx_pf_aux_ml_t;
 
 
 FLT_OR_DBL
@@ -129,11 +137,43 @@ vrna_exp_E_ml_fast(vrna_fold_compound_t *fc,
                    vrna_mx_pf_aux_ml_t  aux_mx);
 
 
-/*
- #################################
- # Backtracking functions below  #
- #################################
+/* End partition function interface */
+/**@}*/
+
+/**
+ * @}
  */
+
+
+/**
+ *  @addtogroup mfe_backtracking
+ *  @{
+ */
+
+/**
+ *  @brief  Backtrack the decomposition of a multi branch loop closed by @f$ (i,j) @f$
+ *
+ *  @param    fc          The #vrna_fold_compound_t filled with all relevant data for backtracking
+ *  @param    i           5' position of base pair closing the loop (will be set to 5' position
+ *                        of leftmost decomposed block upon successful backtracking)
+ *  @param    j           3' position of base pair closing the loop (will be set to 3' position
+ *                        of rightmost decomposed block upon successful backtracking)
+ *  @param    k           Split position that delimits leftmost from rightmost block, [i,k] and
+ *                        [k+1, j], respectively. (Will be set upon successful backtracking)
+ *  @param    en          The energy contribution of the substructure enclosed by @f$ (i,j) @f$
+ *  @param    component1  Type of leftmost block (1 = ML, 2 = C)
+ *  @param    component2  Type of rightmost block (1 = ML, 2 = C)
+ *  @returns              1, if backtracking succeeded, 0 otherwise.
+ */
+int
+vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
+                int                   *i,
+                int                   *j,
+                int                   *k,
+                int                   en,
+                int                   *component1,
+                int                   *component2);
+
 
 int
 vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
@@ -156,22 +196,16 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
                       int                   *stack_count);
 
 
-int
-vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
-                int                   *i,
-                int                   *j,
-                int                   *k,
-                int                   en,
-                int                   *component1,
-                int                   *component2);
+/**
+ * @}
+ */
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-/*
- ########################################
- # BEGIN OF INLINE FUNCTION DEFINITIONS #
- ########################################
+/**
+ *  @addtogroup   eval_deprecated
+ *  @{
  */
 
 /**
@@ -197,26 +231,6 @@ PRIVATE INLINE int
 E_MLstem(int          type,
          int          si1,
          int          sj1,
-         vrna_param_t *P);
-
-
-/**
- *  @def exp_E_MLstem(A,B,C,D)
- *  This is the partition function variant of @ref E_MLstem()
- *  @see E_MLstem()
- *  @return The Boltzmann weighted energy contribution of the introduced multiloop stem
- */
-PRIVATE INLINE FLT_OR_DBL
-exp_E_MLstem(int              type,
-             int              si1,
-             int              sj1,
-             vrna_exp_param_t *P);
-
-
-PRIVATE INLINE int
-E_MLstem(int          type,
-         int          si1,
-         int          sj1,
          vrna_param_t *P)
 {
   int energy = 0;
@@ -237,6 +251,12 @@ E_MLstem(int          type,
 }
 
 
+/**
+ *  @def exp_E_MLstem(A,B,C,D)
+ *  This is the partition function variant of @ref E_MLstem()
+ *  @see E_MLstem()
+ *  @return The Boltzmann weighted energy contribution of the introduced multiloop stem
+ */
 PRIVATE INLINE FLT_OR_DBL
 exp_E_MLstem(int              type,
              int              si1,

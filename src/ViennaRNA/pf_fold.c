@@ -12,6 +12,12 @@
 #include "config.h"
 #endif
 
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,8 +51,6 @@ PUBLIC int st_back = 0;
  #################################
  */
 
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
-
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 PRIVATE int                   backward_compat           = 0;
@@ -57,14 +61,11 @@ PRIVATE int                   backward_compat           = 0;
 
 #endif
 
-#endif
-
 /*
  #################################
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE float
 wrap_pf_fold(const char       *sequence,
@@ -81,86 +82,12 @@ wrap_mean_bp_distance(FLT_OR_DBL  *p,
                       int         *index,
                       int         turn);
 
-
-#endif
-
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC float
-vrna_pf_fold(const char *seq,
-             char       *structure,
-             vrna_ep_t  **pl)
-{
-  float                 free_energy;
-  double                mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
 
-  vrna_md_set_default(&md);
-
-  /* no need to backtrack MFE structure */
-  md.backtrack = 0;
-
-  if (!pl) /* no need for pair probability computations if we do not store them somewhere */
-    md.compute_bpp = 0;
-
-  vc  = vrna_fold_compound(seq, &md, 0);
-  mfe = (double)vrna_mfe(vc, NULL);
-  vrna_exp_params_rescale(vc, &mfe);
-  free_energy = vrna_pf(vc, structure);
-
-  /* fill plist */
-  if (pl)
-    *pl = vrna_plist_from_probs(vc, /*cut_off:*/ 1e-6);
-
-  vrna_fold_compound_free(vc);
-
-  return free_energy;
-}
-
-
-PUBLIC float
-vrna_pf_circfold(const char *seq,
-                 char       *structure,
-                 vrna_ep_t  **pl)
-{
-  float                 free_energy;
-  double                mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-  md.circ = 1;
-
-  /* no need to backtrack MFE structure */
-  md.backtrack = 0;
-
-  if (!pl) /* no need for pair probability computations if we do not store them somewhere */
-    md.compute_bpp = 0;
-
-  vc  = vrna_fold_compound(seq, &md, 0);
-  mfe = (double)vrna_mfe(vc, NULL);
-  vrna_exp_params_rescale(vc, &mfe);
-  free_energy = vrna_pf(vc, structure);
-
-  /* fill plist */
-  if (pl)
-    *pl = vrna_plist_from_probs(vc, /*cut_off:*/ 1e-6);
-
-  vrna_fold_compound_free(vc);
-
-  return free_energy;
-}
-
-
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
-
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE double
 wrap_mean_bp_distance(FLT_OR_DBL  *p,

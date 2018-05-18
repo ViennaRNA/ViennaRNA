@@ -15,14 +15,15 @@
 
 /**
  *  @file     alphabet.h
- *  @ingroup  utils
+ *  @ingroup  utils, alphabet_utils
  *  @brief    Functions to process, convert, and generally handle different nucleotide
  *            and/or base pair alphabets
  */
 
 /**
- *  @addtogroup utils
+ *  @addtogroup alphabet_utils
  *  @{
+ *  @brief  Functions to cope with various aspects related to the nucleotide sequence alphabet
  */
 
 #include <ViennaRNA/model.h>

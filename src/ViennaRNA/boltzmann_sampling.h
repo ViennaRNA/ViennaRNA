@@ -11,10 +11,17 @@
  *  A.k.a. Stochastic backtracking
  */
 
+
+/**
+ *  @addtogroup subopt_stochbt
+ *  @{
+ *  @brief  Functions to draw random structure samples from the ensemble according to their
+ *          equilibrium probability
+ */
+
 /**
  *  @brief Sample a secondary structure of a subsequence from the Boltzmann ensemble according its probability
  *
- *  @ingroup subopt_stochbt
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p vc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
  *          with vrna_md_t.uniq_ML = 1.
@@ -31,7 +38,6 @@ char *vrna_pbacktrack5(vrna_fold_compound_t *vc,
 /**
  *  @brief Sample a secondary structure (consensus structure) from the Boltzmann ensemble according its probability
  *
- *  @ingroup subopt_stochbt
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p vc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
  *          with vrna_md_t.uniq_ML = 1.
@@ -47,6 +53,9 @@ char *vrna_pbacktrack5(vrna_fold_compound_t *vc,
  *  @return         A sampled secondary structure in dot-bracket notation (or NULL on error)
  */
 char *vrna_pbacktrack(vrna_fold_compound_t *vc);
+
+
+/**@}*/
 
 
 #endif

@@ -15,13 +15,14 @@
 
 /**
  *  @file     file_formats.h
- *  @ingroup  file_utils
+ *  @ingroup  file_utils, file_formats
  *  @brief    Read and write different file formats for RNA sequences, structures
  */
 
 /**
- *  @addtogroup  file_utils
+ *  @addtogroup  file_formats
  *  @{
+ *  @brief  Functions to read/write different file formats for nucleic acid sequences and secondary structures
  */
 
 #include <stdio.h>

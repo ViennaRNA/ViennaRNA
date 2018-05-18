@@ -15,6 +15,8 @@
 #include "config.h"
 #endif
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -52,7 +54,6 @@
  #################################
  */
 
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
 
@@ -66,15 +67,12 @@ PRIVATE int                   backward_compat           = 0;
 
 #endif
 
-#endif
-
 /*
  #################################
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
 
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 PRIVATE float
 wrap_alifold(const char   **strings,
              char         *structure,
@@ -83,57 +81,15 @@ wrap_alifold(const char   **strings,
              int          is_circular);
 
 
-#endif
-
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC float
-vrna_alifold(const char **strings,
-             char       *structure)
-{
-  float                 mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-
-  vc  = vrna_fold_compound_comparative(strings, &md, VRNA_OPTION_DEFAULT);
-  mfe = vrna_mfe(vc, structure);
-
-  vrna_fold_compound_free(vc);
-
-  return mfe;
-}
-
-
-PUBLIC float
-vrna_circalifold(const char **sequences,
-                 char       *structure)
-{
-  float                 mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-  md.circ = 1;
-
-  vc  = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_DEFAULT);
-  mfe = vrna_mfe(vc, structure);
-
-  vrna_fold_compound_free(vc);
-
-  return mfe;
-}
-
 
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
-
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE float
 wrap_alifold(const char   **strings,

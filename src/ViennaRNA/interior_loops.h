@@ -2,10 +2,25 @@
 #define VIENNA_RNA_PACKAGE_INTERIOR_LOOPS_H
 
 #include <ViennaRNA/utils.h>
-#include "ViennaRNA/energy_par.h"
+#include <ViennaRNA/energy_par.h>
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/constraints.h>
+
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -13,22 +28,140 @@
 # define INLINE
 #endif
 
+/**
+ *  @file     interior_loops.h
+ *  @ingroup  eval, eval_loops, eval_loops_int
+ *  @brief    Energy evaluation of interior loops for MFE and partition function calculations
+ */
+
+/**
+ *  @addtogroup   eval_loops_int
+ *  @{
+ *  @brief  Functions to evaluate the free energy contributions for internal loops
+ */
+
+
+/**
+ *  @name Basic free energy interface
+ *  @{
+ */
+int
+vrna_E_int_loop(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j);
+
+
+/**
+ *  @brief Evaluate the free energy contribution of an interior loop with delimiting
+ *  base pairs @f$(i,j)@f$ and @f$(k,l)@f$
+ *
+ *  @note This function is polymorphic, i.e. it accepts #vrna_fold_compound_t of type
+ *        #VRNA_FC_TYPE_SINGLE as well as #VRNA_FC_TYPE_COMPARATIVE
+ */
+int
+vrna_eval_int_loop(vrna_fold_compound_t *fc,
+                   int                  i,
+                   int                  j,
+                   int                  k,
+                   int                  l);
+
+
+int
+vrna_E_ext_int_loop(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    int                   *ip,
+                    int                   *iq);
+
+
+int
+vrna_E_stack(vrna_fold_compound_t *fc,
+             int                  i,
+             int                  j);
+
+
+/* End basic interface */
+/**@}*/
+
+
+/**
+ *  @name Boltzmann weight (partition function) interface
+ *  @{
+ */
+
+
+/* j < i indicates circular folding, i.e. collect contributions for exterior int loops */
+FLT_OR_DBL
+vrna_exp_E_int_loop(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j);
+
+
+FLT_OR_DBL
+vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
+                         int                  i,
+                         int                  j,
+                         int                  k,
+                         int                  l);
+
+
+/* End partition function interface */
+/**@}*/
+
+/**
+ * @}
+ */
+
+
+/**
+ *  @addtogroup mfe_backtracking
+ *  @{
+ */
+
+
+/**
+ *  @brief Backtrack a stacked pair closed by @f$ (i,j) @f$
+ *
+ */
+int
+vrna_BT_stack(vrna_fold_compound_t  *fc,
+              int                   *i,
+              int                   *j,
+              int                   *en,
+              vrna_bp_stack_t       *bp_stack,
+              int                   *stack_count);
+
+
+/**
+ *  @brief Backtrack an interior loop closed by @f$ (i,j) @f$
+ *
+ */
+int
+vrna_BT_int_loop(vrna_fold_compound_t *fc,
+                 int                  *i,
+                 int                  *j,
+                 int                  en,
+                 vrna_bp_stack_t      *bp_stack,
+                 int                  *stack_count);
+
+
+/**
+ * @}
+ */
+
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+/**
+ *  @addtogroup   eval_deprecated
+ *  @{
+ */
+
+
 #ifdef ON_SAME_STRAND
 #undef ON_SAME_STRAND
 #endif
 
 #define ON_SAME_STRAND(I, J, C)  (((I) >= (C)) || ((J) < (C)))
-
-/**
- *  @file     interior_loops.h
- *  @ingroup  loops
- *  @brief    Energy evaluation of interior loops for MFE and partition function calculations
- */
-
-/**
- *  @addtogroup   loops
- *  @{
- */
 
 /**
  *  <H2>Compute the Energy of an interior-loop</H2>
@@ -129,12 +262,6 @@ PRIVATE INLINE int E_IntLoop_Co(int           type,
                                 int           dangles,
                                 vrna_param_t  *P);
 
-
-/*
- #################################
- # BEGIN OF FUNCTION DEFINITIONS #
- #################################
- */
 
 /*
  *  ugly but fast interior loop evaluation
@@ -591,85 +718,10 @@ E_IntLoop_Co(int          type,
 }
 
 
-int
-vrna_E_int_loop(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j);
-
-
-/**
- *  @brief Evaluate the free energy contribution of an interior loop with delimiting
- *  base pairs @f$(i,j)@f$ and @f$(k,l)@f$
- *
- *  @note This function is polymorphic, i.e. it accepts #vrna_fold_compound_t of type
- *        #VRNA_FC_TYPE_SINGLE as well as #VRNA_FC_TYPE_COMPARATIVE
- */
-int
-vrna_eval_int_loop(vrna_fold_compound_t *fc,
-                   int                  i,
-                   int                  j,
-                   int                  k,
-                   int                  l);
-
-
-/* j < i indicates circular folding, i.e. collect contributions for exterior int loops */
-FLT_OR_DBL
-vrna_exp_E_int_loop(vrna_fold_compound_t  *fc,
-                    int                   i,
-                    int                   j);
-
-
-FLT_OR_DBL
-vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
-                         int                  i,
-                         int                  j,
-                         int                  k,
-                         int                  l);
-
-
-int
-vrna_E_ext_int_loop(vrna_fold_compound_t  *fc,
-                    int                   i,
-                    int                   j,
-                    int                   *ip,
-                    int                   *iq);
-
-
-int
-vrna_E_stack(vrna_fold_compound_t *fc,
-             int                  i,
-             int                  j);
-
-
-/**
- *  @brief Backtrack a stacked pair closed by @f$ (i,j) @f$
- *
- */
-int
-vrna_BT_stack(vrna_fold_compound_t  *fc,
-              int                   *i,
-              int                   *j,
-              int                   *en,
-              vrna_bp_stack_t       *bp_stack,
-              int                   *stack_count);
-
-
-/**
- *  @brief Backtrack an interior loop closed by @f$ (i,j) @f$
- *
- */
-int
-vrna_BT_int_loop(vrna_fold_compound_t *fc,
-                 int                  *i,
-                 int                  *j,
-                 int                  en,
-                 vrna_bp_stack_t      *bp_stack,
-                 int                  *stack_count);
-
-
 /**
  * @}
  */
 
+#endif
 
 #endif

@@ -15,13 +15,14 @@
 
 /**
  *  @file     structure_utils.h
- *  @ingroup  utils
+ *  @ingroup  utils, struct_utils
  *  @brief    Various utility- and helper-functions for secondary structure parsing, converting, etc.
  */
 
 /**
  *  @addtogroup   struct_utils
  *  @{
+ *  @brief  Functions to create, parse, convert, manipulate, and compare secondary structure representations
  */
 
 #define VRNA_PLIST_TYPE_BASEPAIR      0
@@ -395,7 +396,7 @@ vrna_ep_t *vrna_plist(const char  *struc,
  *  equal to 0. This condition should be used to stop looping over its
  *  entries
  *
- *  @ingroup            pf_fold
+ *  @ingroup              part_func_global
  *  @param[in]  vc        The fold compound
  *  @param[in]  cut_off   The cutoff value
  *  @return               A pointer to the plist that is to be created
@@ -445,6 +446,8 @@ vrna_hx_t *vrna_hx_merge(const vrna_hx_t  *list,
  *  entries
  *
  *  @deprecated   Use vrna_plist() instead
+ *
+ *  @ingroup part_func_global_deprecated
  *
  *  @param pl     A pointer to the #vrna_ep_t that is to be created
  *  @param struc  The secondary structure in dot-bracket notation
@@ -585,7 +588,8 @@ DEPRECATED(unsigned int *compute_BPdifferences(short        *pt1,
  *  @note This function is threadsafe
  *  @deprecated Use vrna_plist_from_probs() instead!
  *
- *  @ingroup            pf_fold
+ *  @ingroup part_func_global_deprecated
+ *
  *  @param[out] pl      A pointer to the vrna_ep_t that is to be created
  *  @param[in]  probs   The probability matrix used for creating the plist
  *  @param[in]  length  The length of the RNA sequence

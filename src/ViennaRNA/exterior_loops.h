@@ -5,6 +5,9 @@
 #include <ViennaRNA/params.h>
 
 #ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
 # if defined(__clang__)
 #  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
 # elif defined(__GNUC__)
@@ -18,23 +21,21 @@
 
 /**
  *  @file     exterior_loops.h
- *  @ingroup  loops
+ *  @ingroup  eval, eval_loops, eval_loops_ext
  *  @brief    Energy evaluation of exterior loops for MFE and partition function calculations
  */
 
 /**
- *  @addtogroup   loops
+ *  @addtogroup   eval_loops_ext
  *  @{
- *
+ *  @brief  Functions to evaluate the free energy contributions for exterior loops
  */
 
+
 /**
- *  @brief  Auxiliary helper arrays for fast exterior loop computations
- *
- *  @see vrna_exp_E_ext_fast_init(), vrna_exp_E_ext_fast_rotate(),
- *  vrna_exp_E_ext_fast_free(), vrna_exp_E_ext_fast()
+ *  @name Basic free energy interface
+ *  @{
  */
-typedef struct vrna_mx_pf_aux_el_s *vrna_mx_pf_aux_el_t;
 
 
 /**
@@ -59,30 +60,6 @@ vrna_E_ext_stem(unsigned int  type,
                 int           n5d,
                 int           n3d,
                 vrna_param_t  *p);
-
-
-/**
- *  @brief  Evaluate a stem branching off the exterior loop (Boltzmann factor version)
- *
- *  Given a base pair @f$(i,j)@f$ encoded by @em type, compute the energy contribution
- *  including dangling-end/terminal-mismatch contributions. Instead of returning the
- *  energy contribution per-se, this function returns the corresponding Boltzmann factor.
- *  If either of the adjacent nucleotides @f$(i - 1)@f$ and @f$(j+1)@f$ must not
- *  contribute stacking energy, the corresponding encoding must be @f$-1@f$.
- *
- *  @see vrna_E_ext_stem()
- *
- *  @param  type  The base pair encoding
- *  @param  n5d   The encoded nucleotide directly adjacent at the 5' side of the base pair (may be -1)
- *  @param  n3d   The encoded nucleotide directly adjacent at the 3' side of the base pair (may be -1)
- *  @param  p     The pre-computed energy parameters (Boltzmann factor version)
- *  @return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
- */
-FLT_OR_DBL
-vrna_exp_E_ext_stem(unsigned int      type,
-                    int               n5d,
-                    int               n3d,
-                    vrna_exp_param_t  *p);
 
 
 /**
@@ -119,29 +96,47 @@ vrna_E_ext_loop_3(vrna_fold_compound_t  *fc,
                   int                   i);
 
 
-int
-vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
-                    int                   *k,
-                    int                   *i,
-                    int                   *j,
-                    vrna_bp_stack_t       *bp_stack,
-                    int                   *stack_count);
+/* End basic interface */
+/**@}*/
 
 
-int
-vrna_BT_ext_loop_f3(vrna_fold_compound_t  *fc,
-                    int                   *k,
-                    int                   maxdist,
-                    int                   *i,
-                    int                   *j,
-                    vrna_bp_stack_t       *bp_stack,
-                    int                   *stack_count);
+/**
+ *  @name Boltzmann weight (partition function) interface
+ *  @{
+ */
 
 
-int
-vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
-                       int                  *i,
-                       int                  maxdist);
+/**
+ *  @brief  Auxiliary helper arrays for fast exterior loop computations
+ *
+ *  @see vrna_exp_E_ext_fast_init(), vrna_exp_E_ext_fast_rotate(),
+ *  vrna_exp_E_ext_fast_free(), vrna_exp_E_ext_fast()
+ */
+typedef struct vrna_mx_pf_aux_el_s *vrna_mx_pf_aux_el_t;
+
+
+/**
+ *  @brief  Evaluate a stem branching off the exterior loop (Boltzmann factor version)
+ *
+ *  Given a base pair @f$(i,j)@f$ encoded by @em type, compute the energy contribution
+ *  including dangling-end/terminal-mismatch contributions. Instead of returning the
+ *  energy contribution per-se, this function returns the corresponding Boltzmann factor.
+ *  If either of the adjacent nucleotides @f$(i - 1)@f$ and @f$(j+1)@f$ must not
+ *  contribute stacking energy, the corresponding encoding must be @f$-1@f$.
+ *
+ *  @see vrna_E_ext_stem()
+ *
+ *  @param  type  The base pair encoding
+ *  @param  n5d   The encoded nucleotide directly adjacent at the 5' side of the base pair (may be -1)
+ *  @param  n3d   The encoded nucleotide directly adjacent at the 3' side of the base pair (may be -1)
+ *  @param  p     The pre-computed energy parameters (Boltzmann factor version)
+ *  @return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
+ */
+FLT_OR_DBL
+vrna_exp_E_ext_stem(unsigned int      type,
+                    int               n5d,
+                    int               n3d,
+                    vrna_exp_param_t  *p);
 
 
 struct vrna_mx_pf_aux_el_s *
@@ -169,7 +164,55 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
                            struct vrna_mx_pf_aux_el_s *aux_mx);
 
 
+/* End partition function interface */
+/**@}*/
+
+
+/**
+ * @}
+ */
+
+
+/**
+ *  @addtogroup mfe_backtracking
+ *  @{
+ */
+
+int
+vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
+                    int                   *k,
+                    int                   *i,
+                    int                   *j,
+                    vrna_bp_stack_t       *bp_stack,
+                    int                   *stack_count);
+
+
+int
+vrna_BT_ext_loop_f3(vrna_fold_compound_t  *fc,
+                    int                   *k,
+                    int                   maxdist,
+                    int                   *i,
+                    int                   *j,
+                    vrna_bp_stack_t       *bp_stack,
+                    int                   *stack_count);
+
+
+int
+vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
+                       int                  *i,
+                       int                  maxdist);
+
+
+/**
+ * @}
+ */
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+/**
+ *  @addtogroup   eval_deprecated
+ *  @{
+ */
 
 /**
  *  @brief Compute the energy contribution of a stem branching off a loop-region

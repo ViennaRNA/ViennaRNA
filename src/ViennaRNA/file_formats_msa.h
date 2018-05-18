@@ -2,15 +2,18 @@
 #define VIENNA_RNA_PACKAGE_FILE_FORMATS_MSA_H
 
 /**
- *  @addtogroup   file_utils
- *  @{
- *
  *  @file file_formats_msa.h
+ *  @ingroup  utils, file_utils, file_formats_msa
  *  @brief Functions dealing with file formats for Multiple Sequence Alignments (MSA)
- *
  */
 
 #include <stdio.h>
+
+/**
+ *  @addtogroup   file_formats_msa
+ *  @{
+ *  @brief  Functions to read/write multiple sequence alignments (MSA) in various file formats
+ */
 
 /**
  *  @brief  Option flag indicating ClustalW formatted files

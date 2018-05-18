@@ -28,7 +28,7 @@
 #include "ViennaRNA/loop_energies.h"
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/Lfold.h"
-
+#include "ViennaRNA/part_func_window.h"
 
 /*
  #################################
@@ -281,36 +281,6 @@ vrna_pfl_fold(const char  *sequence,
 }
 
 
-PUBLIC int
-vrna_pfl_fold_cb(const char                 *sequence,
-                 int                        window_size,
-                 int                        max_bp_span,
-                 vrna_probs_window_callback *cb,
-                 void                       *data)
-{
-  unsigned int          options;
-  int                   r;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);       /* get default parameters */
-
-  md.compute_bpp  = 1;            /* turn on base pair probability computations */
-  md.window_size  = window_size;  /* set size of sliding window */
-  md.max_bp_span  = max_bp_span;  /* set maximum base pair span */
-
-  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
-
-  options = VRNA_PROBS_WINDOW_BPP; /* always compute base pair probabilities */
-
-  r = vrna_probs_window(vc, 0, options, cb, data);
-
-  vrna_fold_compound_free(vc);
-
-  return r;
-}
-
-
 PUBLIC double **
 vrna_pfl_fold_up(const char *sequence,
                  int        ulength,
@@ -349,37 +319,6 @@ vrna_pfl_fold_up(const char *sequence,
   }
 
   return pU;
-}
-
-
-PUBLIC int
-vrna_pfl_fold_up_cb(const char                  *sequence,
-                    int                         ulength,
-                    int                         window_size,
-                    int                         max_bp_span,
-                    vrna_probs_window_callback  *cb,
-                    void                        *data)
-{
-  unsigned int          options;
-  int                   r;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);       /* get default parameters */
-
-  md.compute_bpp  = 1;            /* turn on base pair probability computations */
-  md.window_size  = window_size;  /* set size of sliding window */
-  md.max_bp_span  = max_bp_span;  /* set maximum base pair span */
-
-  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
-
-  options = VRNA_PROBS_WINDOW_UP; /* compute unpaired probabilties */
-
-  r = vrna_probs_window(vc, ulength, options, cb, data);
-
-  vrna_fold_compound_free(vc);
-
-  return r;
 }
 
 

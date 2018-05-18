@@ -3,16 +3,14 @@
 
 /**
  *  @file     file_utils.h
- *  @ingroup  file_utils
+ *  @ingroup  utils, file_utils
  *  @brief    Several utilities for file handling
  */
 
 /**
  *  @addtogroup file_utils
  *  @{
- *
- *  @brief      Functions dealing with file formats for RNA sequences, structures, and alignments
- *
+ *  @brief      Functions to parse, write, and convert various file formats and to deal with file system related issues
  */
 
 /**

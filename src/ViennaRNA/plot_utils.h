@@ -3,15 +3,23 @@
 
 /**
  *  @file     plot_utils.h
- *  @ingroup  plotting_utils
+ *  @ingroup  utils, plotting_utils
  *  @brief    Various utilities to assist in plotting secondary structures and consensus structures
  */
 
 /**
- *  @addtogroup  annotation_utils
+ *  @addtogroup  plotting_utils
  *  @{
+ *  @brief  Functions for Creating Secondary Structure Plots, Dot-Plots, and More
+ *  @}
  */
 
+
+/**
+ *  @addtogroup  annotation_utils
+ *  @{
+ *  @brief  Functions to generate annotations for Secondary Structure Plots, Dot-Plots, and Others
+ */
 
 /**
  *  @brief  Produce covariance annotation for an alignment given a secondary structure

@@ -1,6 +1,8 @@
 #ifndef VIENNA_RNA_PACKAGE_FOLD_H
 #define VIENNA_RNA_PACKAGE_FOLD_H
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 #include <ViennaRNA/mfe.h>
@@ -20,69 +22,14 @@
 
 /**
  *  @file fold.h
- *  @ingroup  mfe_fold
+ *  @ingroup  mfe_global_deprecated
  *  @brief MFE calculations for single RNA sequences
  */
 
 /**
- *  @addtogroup mfe_fold_single
+ *  @addtogroup mfe_global_deprecated
  *  @{
- *
- *  @brief This module contains all functions and variables related to the calculation
- *  of global minimum free energy structures for single sequences.
- *
  */
-
-/**
- *  @brief Compute Minimum Free Energy (MFE), and a corresponding secondary structure for an RNA sequence
- *
- *  This simplified interface to vrna_mfe() computes the MFE and, if required, a secondary structure for an
- *  RNA sequence using default options. Memory required for dynamic programming (DP) matrices will
- *  be allocated and free'd on-the-fly. Hence, after return of this function, the recursively filled
- *  matrices are not available any more for any post-processing, e.g. suboptimal backtracking, etc.
- *
- *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe(),
- *  and the data structure #vrna_fold_compound_t instead.
- *
- *  @see vrna_circfold(), vrna_mfe(), vrna_fold_compound(), #vrna_fold_compound_t
- *
- *  @param sequence   RNA sequence
- *  @param structure  A pointer to the character array where the
- *         secondary structure in dot-bracket notation will be written to
- *  @return the minimum free energy (MFE) in kcal/mol
- */
-float
-vrna_fold(const char *sequence,
-          char *structure);
-
-/**
- *  @brief Compute Minimum Free Energy (MFE), and a corresponding secondary structure for a circular RNA sequence
- *
- *  This simplified interface to vrna_mfe() computes the MFE and, if required, a secondary structure for a
- *  circular RNA sequence using default options. Memory required for dynamic programming (DP) matrices will
- *  be allocated and free'd on-the-fly. Hence, after return of this function, the recursively filled
- *  matrices are not available any more for any post-processing, e.g. suboptimal backtracking, etc.
- *
- *  Folding of circular RNA sequences is handled as a post-processing step of the forward
- *  recursions. See @cite hofacker:2006 for further details.
- *
- *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe(),
- *  and the data structure #vrna_fold_compound_t instead.
- *
- *  @see vrna_fold(), vrna_mfe(), vrna_fold_compound(), #vrna_fold_compound_t
- *
- *  @param sequence   RNA sequence
- *  @param structure  A pointer to the character array where the
- *         secondary structure in dot-bracket notation will be written to
- *  @return the minimum free energy (MFE) in kcal/mol
- */
-float
-vrna_circfold(const char *sequence,
-              char *structure);
-
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Compute minimum free energy and an appropriate secondary

@@ -125,27 +125,6 @@ PRIVATE SOLUTION *wrap_zukersubopt(const char   *string,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC float
-vrna_cofold(const char  *seq,
-            char        *structure)
-{
-  float                 mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-  md.min_loop_size = 0;  /* set min loop length to 0 */
-
-  /* get compound structure */
-  vc = vrna_fold_compound(seq, &md, 0);
-
-  mfe = vrna_mfe_dimer(vc, structure);
-
-  vrna_fold_compound_free(vc);
-
-  return mfe;
-}
-
 
 PUBLIC float
 vrna_mfe_dimer(vrna_fold_compound_t *vc,

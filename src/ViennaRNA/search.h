@@ -3,13 +3,15 @@
 
 /**
  *  @file     search.h
- *  @ingroup  utils
+ *  @ingroup  utils, search_utils
  *  @brief    Various implementations of efficient search algoithms
  */
 
 /**
- *  @addtogroup   utils
+ *  @addtogroup   search_utils
  *  @{
+ *  @brief  Implementations of various search algorithms to detect strings of objects
+ *          within other strings of objects
  */
 
 /**

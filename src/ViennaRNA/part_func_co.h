@@ -15,7 +15,7 @@
 
 /**
  *  @file     part_func_co.h
- *  @ingroup  pf_fold cofold pf_cofold
+ *  @ingroup  part_func_global_deprecated
  *  @brief    Partition function for two RNA sequences
  */
 
@@ -37,15 +37,6 @@
  *  As for folding one RNA molecule, this computes the partition function
  *  of all possible structures and the base pair probabilities. Uses the
  *  same global #pf_scale variable to avoid overflows.
- *
- *  To simplify the implementation the partition function computation is done
- *  internally in a null model that does not include the duplex initiation
- *  energy, i.e. the entropic penalty for producing a dimer from two
- *  monomers). The resulting free energies and pair probabilities are initially
- *  relative to that null model. In a second step the free energies can be
- *  corrected to include the dimerization penalty, and the pair probabilities
- *  can be divided into the conditional pair probabilities given that a re
- *  dimer is formed or not formed.
  *
  *  After computing the partition functions of all possible dimeres one
  *  can compute the probabilities of base pairs, the concentrations out of
@@ -75,38 +66,6 @@ extern int    mirnatog;
 extern double F_monomer[2];
 
 /**
- *  @brief  Calculate partition function and base pair probabilities of
- *          nucleic acid/nucleic acid dimers
- *
- *  This simplified interface to vrna_pf_dimer() computes the partition
- *  function and, if required, base pair probabilities for an RNA-RNA
- *  interaction using default options. Memory required for dynamic
- *  programming (DP) matrices will be allocated and free'd on-the-fly.
- *  Hence, after return of this function, the recursively filled matrices
- *  are not available any more for any post-processing.
- *
- *  @note In case you want to use the filled DP matrices for any subsequent
- *        post-processing step, or you require other conditions than
- *        specified by the default model details, use vrna_pf_dimer(),
- *        and the data structure #vrna_fold_compound_t instead.
- *
- *  @see  vrna_pf_dimer()
- *
- *  @ingroup  pf_cofold
- *  @param seq        Two concatenated RNA sequences with a delimiting '&' in between
- *  @param structure  A pointer to the character array where position-wise pairing propensity
- *                    will be stored. (Maybe NULL)
- *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
- *  @return           vrna_dimer_pf_t structure containing a set of energies needed for
- *                    concentration computations.
- */
-vrna_dimer_pf_t
-vrna_pf_co_fold(const char  *seq,
-                char        *structure,
-                vrna_ep_t   **pl);
-
-
-/**
  *  @}
  */
 
@@ -131,6 +90,8 @@ vrna_pf_co_fold(const char  *seq,
  *
  *  @deprecated{Use vrna_pf_dimer() instead!}
  *
+ *  @ingroup part_func_global_deprecated
+ *
  *  @param  sequence  Concatenated RNA sequences
  *  @param  structure Will hold the structure or constraints
  *  @return           vrna_dimer_pf_t structure containing a set of energies needed for
@@ -149,6 +110,8 @@ DEPRECATED(vrna_dimer_pf_t co_pf_fold(char  *sequence,
  *  @deprecated Use vrna_pf_dimer() instead!
  *
  *  @see get_boltzmann_factors(), co_pf_fold()
+ *
+ *  @ingroup part_func_global_deprecated
  *
  *  @param sequence       Concatenated RNA sequences
  *  @param structure      Pointer to the structure constraint
@@ -187,6 +150,8 @@ DEPRECATED(vrna_ep_t *get_plist(vrna_ep_t *pl,
  *
  *  @deprecated{ Use vrna_pf_dimer_probs() instead!}
  *
+ *  @ingroup part_func_global_deprecated
+ *
  *  @param FAB      free energy of dimer AB
  *  @param FEA      free energy of monomer A
  *  @param FEB      free energy of monomer B
@@ -207,6 +172,7 @@ DEPRECATED(void compute_probabilities(double    FAB,
 /**
  *  DO NOT USE THIS FUNCTION ANYMORE
  *  @deprecated{ This function is deprecated and will be removed soon!}
+ *  @ingroup part_func_global_deprecated
  */
 DEPRECATED(void   init_co_pf_fold(int length),
 "This function is obsolete");
@@ -221,6 +187,8 @@ DEPRECATED(void   init_co_pf_fold(int length),
  *              probability array is available through the #vrna_fold_compound_t data
  *              structure, and its associated #vrna_mx_pf_t member.
  *
+ *  @ingroup part_func_global_deprecated
+ *
  *  @see vrna_idx_row_wise()
  *  @return A pointer to the base pair probability array
  */
@@ -233,6 +201,7 @@ DEPRECATED(FLT_OR_DBL *export_co_bppm(void),
  *  @deprecated This function will be removed for the new API soon!
  *              See vrna_pf_dimer(), vrna_fold_compound(), and
  *              vrna_fold_compound_free() for an alternative
+ *  @ingroup part_func_global_deprecated
  */
 DEPRECATED(void free_co_pf_arrays(void),
 "This function is obsolete");
@@ -244,6 +213,8 @@ DEPRECATED(void free_co_pf_arrays(void),
  *  the current model settings.
  *
  *  @deprecated   Use vrna_exp_params_subst() instead!
+ *
+ *  @ingroup part_func_global_deprecated
  *
  *  @param    length      Length of the current RNA sequence
  */
@@ -265,6 +236,8 @@ DEPRECATED(void update_co_pf_params(int length),
  *  values are taken from this data structure during subsequent calculations.
  *
  *  @deprecated   Use vrna_exp_params_subst() instead!
+ *
+ *  @ingroup part_func_global_deprecated
  *
  *  @param    length      Length of the current RNA sequence
  *  @param    parameters  data structure containing the precomputed Boltzmann factors

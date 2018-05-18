@@ -3,14 +3,15 @@
 
 /**
  *  @file     commands.h
- *  @ingroup  file_utils
+ *  @ingroup  utils, file_utils, command_files
  *  @brief    Parse and apply different commands that alter the behavior of
  *  secondary structure prediction and evaluation
  */
 
 /**
- *  @addtogroup  file_utils
+ *  @addtogroup  command_files
  *  @{
+ *  @brief  Functions to parse and interpret the content of @ref constraint-formats-file
  */
 
 /** @brief Typename for the command repesenting data structure #vrna_command_s */

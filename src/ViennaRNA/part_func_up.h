@@ -9,7 +9,7 @@
 
 /**
  *  @file     part_func_up.h
- *  @ingroup  pf_fold cofold pf_cofold
+ *  @ingroup  cofold pf_cofold
  *  @brief    Implementations for accessibility and RNA-RNA interaction as a stepwise process
  */
 

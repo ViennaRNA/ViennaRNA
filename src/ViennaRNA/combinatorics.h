@@ -3,13 +3,14 @@
 
 /**
  *  @file     combinatorics.h
- *  @ingroup  utils
- *  @brief     Various implementations that deal with combinatorial aspects of RNA/DNA folding
+ *  @ingroup  utils, combinatorics_utils
+ *  @brief    Various implementations that deal with combinatorial aspects of objects
  */
 
 /**
- *  @addtogroup   utils
+ *  @addtogroup   combinatorics_utils
  *  @{
+ *  @brief  Implementations to solve various combinatorial aspects for strings of objects
  */
 
 /**

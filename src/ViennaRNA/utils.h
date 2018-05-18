@@ -157,6 +157,115 @@ void  *vrna_realloc(void *p, unsigned size);
 #endif
 
 /**
+ *  @brief  Initialize seed for random number generator
+ */
+void vrna_init_rand(void);
+
+/**
+ * @brief Current 48 bit random number
+ *
+ *  This variable is used by vrna_urn(). These should be set to some
+ *  random number seeds before the first call to vrna_urn().
+ *
+ *  @see vrna_urn()
+ */
+extern unsigned short xsubi[3];
+
+/**
+ *  @brief get a random number from [0..1]
+ *
+ *  @see  vrna_int_urn(), vrna_init_rand()
+ *  @note Usually implemented by calling @e erand48().
+ *  @return   A random number in range [0..1]
+ */
+double vrna_urn(void);
+
+/**
+ *  @brief Generates a pseudo random integer in a specified range
+ *
+ *  @see  vrna_urn(), vrna_init_rand()
+ *  @param from   The first number in range
+ *  @param to     The last number in range
+ *  @return       A pseudo random number in range [from, to]
+ */
+int vrna_int_urn(int from, int to);
+
+/**
+ *  @brief Get a timestamp
+ *
+ *  Returns a string containing the current date in the format
+ *  @verbatim Fri Mar 19 21:10:57 1993 @endverbatim
+ *
+ *  @return A string containing the timestamp
+ */
+char  *vrna_time_stamp(void);
+
+/**
+ *  Retrieve a line from 'stdin' savely while skipping comment characters and
+ *  other features
+ *  This function returns the type of input it has read if recognized.
+ *  An option argument allows one to switch between different reading modes.\n
+ *  Currently available options are:\n
+ *  #VRNA_INPUT_NOPRINT_COMMENTS, #VRNA_INPUT_NOSKIP_COMMENTS, #VRNA_INPUT_NOELIM_WS_SUFFIX
+ * 
+ *  pass a collection of options as one value like this:
+ *  @verbatim get_input_line(string, option_1 | option_2 | option_n) @endverbatim
+ * 
+ *  If the function recognizes the type of input, it will report it in the return
+ *  value. It also reports if a user defined 'quit' command (@-sign on 'stdin')
+ *  was given. Possible return values are:\n
+ *  #VRNA_INPUT_FASTA_HEADER, #VRNA_INPUT_ERROR, #VRNA_INPUT_MISC, #VRNA_INPUT_QUIT
+ * 
+ *  @param string   A pointer to the character array that contains the line read
+ *  @param options  A collection of options for switching the functions behavior
+ *  @return         A flag with information about what has been read
+ */
+unsigned int get_input_line(char **string,
+                            unsigned int options);
+
+
+/**
+ *  @brief Get an index mapper array (iindx) for accessing the energy matrices, e.g. in partition function related functions.
+ *
+ *  Access of a position "(i,j)" is then accomplished by using @verbatim (i,j) ~ iindx[i]-j @endverbatim
+ *  This function is necessary as most of the two-dimensional energy matrices are actually one-dimensional arrays throughout
+ *  the ViennaRNA Package
+ * 
+ *  Consult the implemented code to find out about the mapping formula ;)
+ * 
+ *  @see vrna_idx_col_wise()
+ *  @param length The length of the RNA sequence
+ *  @return       The mapper array
+ */
+int *vrna_idx_row_wise(unsigned int length);
+
+/**
+ *  @brief Get an index mapper array (indx) for accessing the energy matrices, e.g. in MFE related functions.
+ *
+ *  Access of a position "(i,j)" is then accomplished by using @verbatim (i,j) ~ indx[j]+i @endverbatim
+ *  This function is necessary as most of the two-dimensional energy matrices are actually one-dimensional arrays throughout
+ *  the ViennaRNAPackage
+ * 
+ *  Consult the implemented code to find out about the mapping formula ;)
+ * 
+ *  @see vrna_idx_row_wise()
+ *  @param length The length of the RNA sequence
+ *  @return       The mapper array
+ * 
+ */
+int *vrna_idx_col_wise(unsigned int length);
+
+/**
+ *  @}
+ */
+
+/**
+ *  @addtogroup  message_utils
+ *  @{
+ *  @brief  Functions to print various kind of messages
+ */
+
+/**
  *  @brief Print an error message and die
  *
  *  This function is a wrapper to @em fprintf(stderr, ...) that
@@ -243,74 +352,6 @@ void vrna_message_vinfo(FILE *fp, const char *format, va_list args);
 
 
 /**
- *  @brief  Initialize seed for random number generator
- */
-void vrna_init_rand(void);
-
-/**
- * @brief Current 48 bit random number
- *
- *  This variable is used by vrna_urn(). These should be set to some
- *  random number seeds before the first call to vrna_urn().
- *
- *  @see vrna_urn()
- */
-extern unsigned short xsubi[3];
-
-/**
- *  @brief get a random number from [0..1]
- *
- *  @see  vrna_int_urn(), vrna_init_rand()
- *  @note Usually implemented by calling @e erand48().
- *  @return   A random number in range [0..1]
- */
-double vrna_urn(void);
-
-/**
- *  @brief Generates a pseudo random integer in a specified range
- *
- *  @see  vrna_urn(), vrna_init_rand()
- *  @param from   The first number in range
- *  @param to     The last number in range
- *  @return       A pseudo random number in range [from, to]
- */
-int vrna_int_urn(int from, int to);
-
-/**
- *  @brief Get a timestamp
- *
- *  Returns a string containing the current date in the format
- *  @verbatim Fri Mar 19 21:10:57 1993 @endverbatim
- *
- *  @return A string containing the timestamp
- */
-char  *vrna_time_stamp(void);
-
-/**
- *  Retrieve a line from 'stdin' savely while skipping comment characters and
- *  other features
- *  This function returns the type of input it has read if recognized.
- *  An option argument allows one to switch between different reading modes.\n
- *  Currently available options are:\n
- *  #VRNA_INPUT_NOPRINT_COMMENTS, #VRNA_INPUT_NOSKIP_COMMENTS, #VRNA_INPUT_NOELIM_WS_SUFFIX
- * 
- *  pass a collection of options as one value like this:
- *  @verbatim get_input_line(string, option_1 | option_2 | option_n) @endverbatim
- * 
- *  If the function recognizes the type of input, it will report it in the return
- *  value. It also reports if a user defined 'quit' command (@-sign on 'stdin')
- *  was given. Possible return values are:\n
- *  #VRNA_INPUT_FASTA_HEADER, #VRNA_INPUT_ERROR, #VRNA_INPUT_MISC, #VRNA_INPUT_QUIT
- * 
- *  @param string   A pointer to the character array that contains the line read
- *  @param options  A collection of options for switching the functions behavior
- *  @return         A flag with information about what has been read
- */
-unsigned int get_input_line(char **string,
-                            unsigned int options);
-
-
-/**
  *  @brief Print a line to @e stdout that asks for an input sequence
  *
  *  There will also be a ruler (scale line) printed that helps orientation of the sequence positions
@@ -327,37 +368,6 @@ void vrna_message_input_seq_simple(void);
  *  @param s A user defined string that will be printed to stdout
  */
 void vrna_message_input_seq(const char *s);
-
-/**
- *  @brief Get an index mapper array (iindx) for accessing the energy matrices, e.g. in partition function related functions.
- *
- *  Access of a position "(i,j)" is then accomplished by using @verbatim (i,j) ~ iindx[i]-j @endverbatim
- *  This function is necessary as most of the two-dimensional energy matrices are actually one-dimensional arrays throughout
- *  the ViennaRNA Package
- * 
- *  Consult the implemented code to find out about the mapping formula ;)
- * 
- *  @see vrna_idx_col_wise()
- *  @param length The length of the RNA sequence
- *  @return       The mapper array
- */
-int *vrna_idx_row_wise(unsigned int length);
-
-/**
- *  @brief Get an index mapper array (indx) for accessing the energy matrices, e.g. in MFE related functions.
- *
- *  Access of a position "(i,j)" is then accomplished by using @verbatim (i,j) ~ indx[j]+i @endverbatim
- *  This function is necessary as most of the two-dimensional energy matrices are actually one-dimensional arrays throughout
- *  the ViennaRNAPackage
- * 
- *  Consult the implemented code to find out about the mapping formula ;)
- * 
- *  @see vrna_idx_row_wise()
- *  @param length The length of the RNA sequence
- *  @return       The mapper array
- * 
- */
-int *vrna_idx_col_wise(unsigned int length);
 
 /**
  *  @}

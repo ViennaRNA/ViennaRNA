@@ -15,13 +15,14 @@
 
 /**
  *  @file aln_util.h
- *  @ingroup utils
+ *  @ingroup utils, aln_utils
  *  @brief Various utility- and helper-functions for sequence alignments and comparative structure prediction
  */
 
 /**
  *  @addtogroup aln_utils
  *  @{
+ *  @brief  Functions to extract features from and to manipulate multiple sequence alignments
  */
 
 /** @brief Typename for the base pair info repesenting data structure #vrna_pinfo_s */

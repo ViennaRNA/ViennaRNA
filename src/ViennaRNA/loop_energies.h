@@ -3,7 +3,7 @@
 
 /**
  *  @file     loop_energies.h
- *  @ingroup  loops
+ *  @ingroup  eval, eval_loops
  *  @brief    Energy evaluation for MFE and partition function calculations
  *
  *  <P>
@@ -19,7 +19,7 @@
  */
 
 /**
- *  @addtogroup   loops
+ *  @addtogroup   eval_loops
  *  @{
  */
 

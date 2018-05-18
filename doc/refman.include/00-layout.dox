@@ -88,85 +88,93 @@ formats, and various output file formats produced by our library.
 
 /**
 
-@defgroup   eval                      Free energy evaluation
+@defgroup   eval                      Free Energy Evaluation
 
-@defgroup   loops                     Process and evaluate individual loops
+@defgroup   eval_loops                Energy Evaluation for Individual Loops
 @ingroup    eval
 
-@defgroup   grammar                   The RNA folding grammar
+@defgroup   eval_move                 Energy Evaluation for Atomic Moves
+@ingroup    eval
 
-@defgroup   model_details             Fine-tuning of the implemented models
+@defgroup   eval_deprecated           Deprecated Interface for Free Energy Evaluation
+@ingroup    eval
+
+@defgroup   grammar                   The RNA Folding Grammar
+
+@defgroup   model_details             Fine-tuning of the Implemented Models
 @ingroup    grammar
 
-@defgroup   energy_parameters         Energy parameters
+@defgroup   energy_parameters         Energy Parameters
 @ingroup    grammar
 
-@defgroup   domains                   Extending the folding grammar with additional domains
+@defgroup   domains                   Extending the Folding Grammar with Additional Domains
 @ingroup    grammar
 
-@defgroup   domains_up                Unstructured domains
+@defgroup   domains_up                Unstructured Domains
 @ingroup    domains
 
-@defgroup   domains_struc             Structured domains
+@defgroup   domains_struc             Structured Domains
 @ingroup    domains
 
-@defgroup   constraints               Constraining the RNA folding grammar
+@defgroup   constraints               Constraining the RNA Folding Grammar
 @ingroup    grammar
 
-@defgroup   hard_constraints          Hard constraints
+@defgroup   hard_constraints          Hard Constraints
 @ingroup    constraints
 
-@defgroup   soft_constraints          Soft constraints
+@defgroup   soft_constraints          Soft Constraints
 @ingroup    constraints
 
-@defgroup   landscape                 The RNA secondary structure landscape
+@defgroup   landscape                 The RNA Secondary Structure Landscape
 
-@defgroup   mfe_fold                  Minimum Free Energy (MFE) algorithms
+@defgroup   mfe                       Minimum Free Energy (MFE) Algorithms
 
-@defgroup   pf_fold                   Partition function and equilibrium properties
+@defgroup   pf_fold                   Partition Function and Equilibrium Properties
 
-@defgroup   subopt_and_representatives  Suboptimals and representative structures
+@defgroup   mfe_global                Global MFE Prediction
+@ingroup    mfe
 
-@defgroup   subopt_zuker              Suboptimal structures sensu Stiegler et al. 1984 / Zuker et al. 1989
+@defgroup   mfe_window                Local (sliding window) MFE Prediction
+@ingroup    mfe
+
+@defgroup   mfe_backtracking          Backtracking MFE structures
+@ingroup    mfe
+
+@defgroup   part_func_global          Global Partition Function and Equilibrium Probabilities
+@ingroup    pf_fold
+
+@defgroup   part_func_window          Local (sliding window) Partition Function and Equilibrium Probabilities
+@ingroup    pf_fold
+
+@defgroup   subopt_and_representatives  Suboptimals and Representative Structures
+
+@defgroup   subopt_zuker              Suboptimal Structures sensu Stiegler et al. 1984 / Zuker et al. 1989
 @ingroup    subopt_and_representatives
 
-@defgroup   subopt_wuchty             Suboptimal structures within an energy band arround the MFE
+@defgroup   subopt_wuchty             Suboptimal Structures within an Energy Band around the MFE
 @ingroup    subopt_and_representatives
 
-@defgroup   subopt_stochbt            Structure sampling from the ensemble
+@defgroup   subopt_stochbt            Random Structure Samples from the Ensemble
 @ingroup    subopt_and_representatives
 
-@defgroup   mea_fold                  Compute the structure with maximum expected accuracy (MEA)
+@defgroup   mea_fold                  Compute the Structure with Maximum Expected Accuracy (MEA)
 @ingroup    subopt_and_representatives
 
-@defgroup   centroid_fold             Compute the centroid structure
+@defgroup   centroid_fold             Compute the Centroid Structure
 @ingroup    subopt_and_representatives
 
-@defgroup   cofold                    RNA-RNA interaction
+@defgroup   cofold                    RNA-RNA Interaction
 
-@defgroup   local_fold                Locally stable structures
+@defgroup   class_fold                Classified Dynamic Programming Variants
 
-@defgroup   consensus_fold            Comparative structure prediction
-
-@defgroup   consensus_mfe_fold        MFE Consensus Structures for Sequence Alignment(s)
-@ingroup    consensus_fold mfe_fold
-
-@defgroup   consensus_pf_fold         Partition Function and Base Pair Probabilities for Sequence Alignment(s)
-@ingroup    consensus_fold pf_fold
-
-@defgroup   consensus_stochbt         Stochastic Backtracking of Consensus Structures from Sequence Alignment(s)
-@ingroup    consensus_fold subopt_stochbt
-
-@defgroup   class_fold                Classified Dynamic Programming variants
-
-@defgroup   kl_neighborhood           Distance based partitioning of the Secondary Structure Space
+@defgroup   kl_neighborhood           Distance Based Partitioning of the Secondary Structure Space
 @ingroup    class_fold
 
-@defgroup   kl_neighborhood_mfe       Calculating MFE representatives of a Distance Based Partitioning
-@ingroup    kl_neighborhood mfe_fold
+@defgroup   kl_neighborhood_mfe       Computing MFE representatives of a Distance Based Partitioning
+@ingroup    kl_neighborhood mfe_global
 
-@defgroup   kl_neighborhood_pf        Calculate Partition Functions of a Distance Based Partitioning
-@ingroup    kl_neighborhood pf_fold
+@defgroup   kl_neighborhood_pf        Computing Partition Functions of a Distance Based Partitioning
+@ingroup    kl_neighborhood part_func_global
 
 @defgroup   kl_neighborhood_stochbt   Stochastic Backtracking of Structures from Distance Based Partitioning
 @ingroup    kl_neighborhood subopt_stochbt
@@ -176,59 +184,69 @@ formats, and various output file formats produced by our library.
 
 @defgroup   inverse_fold              Inverse Folding (Design)
 
-@defgroup   neighbors                 Neighborhood relation and move sets for secondary structures
+@defgroup   neighbors                 Neighborhood Relation and Move Sets for Secondary Structures
 @ingroup    landscape
 
-@defgroup   paths                     Refolding paths of secondary structures
+@defgroup   paths                     Refolding Paths of Secondary Structures
 @ingroup    landscape
 
-@defgroup   probing_data              Experimental structure probing data
-@brief                                Include experimental structure probing data to guide structure predictions
+@defgroup   probing_data              Experimental Structure Probing Data
+@brief                                Include Experimental Structure Probing Data to Guide Structure Predictions
 
-@defgroup   SHAPE_reactivities        SHAPE reactivity data
+@defgroup   SHAPE_reactivities        SHAPE Reactivity Data
 @ingroup    probing_data
 
-@defgroup   perturbation              Generate soft constraints from data
+@defgroup   perturbation              Generate Soft Constraints from Data
 @ingroup    probing_data
 
-@defgroup   ligand_binding            Ligands binding to RNA structures
-@brief                                Simple extensions to model ligand binding to RNA structures
+@defgroup   ligand_binding            Ligands Binding to RNA Structures
+@brief                                Simple Extensions to Model Ligand Binding to RNA Structures
 
-@defgroup   ligands_up                Ligands binding to unstructured domains
+@defgroup   ligands_up                Ligands Binding to Unstructured Domains
 @ingroup    ligand_binding
 
-@defgroup   constraints_ligand        Incorporating ligands binding to specific sequence/structure motifs using soft constraints
+@defgroup   constraints_ligand        Incorporating Ligands Binding to Specific Sequence/Structure Motifs using Soft Constraints
 @ingroup    ligand_binding
 
-@defgroup   paired_modules            Complex structured modules
+@defgroup   paired_modules            Complex Structured Modules
 
-@defgroup   gquads                    G-quadruplexes
+@defgroup   gquads                    G-Quadruplexes
 @ingroup    paired_modules
 
 @defgroup   data_structures           Data Structures and Preprocessor Macros
 
 @defgroup   utils                     Utilities
 
-@defgroup   mfe_fold_single           MFE Structures of single Nucleic Acid Sequences
-@ingroup    mfe_fold
+@defgroup   eval_loops_ext            Exterior Loops
+@ingroup    eval_loops
 
-@defgroup   mfe_cofold                MFE Structures of two hybridized Sequences
-@ingroup    cofold mfe_fold
+@defgroup   eval_loops_hp             Hairpin Loops
+@ingroup    eval_loops
 
-@defgroup   pf_cofold                 Partition Function for two hybridized Sequences
-@ingroup    cofold pf_fold
+@defgroup   eval_loops_int            Internal Loops
+@ingroup    eval_loops
 
-@defgroup   up_cofold                 Partition Function for two hybridized Sequences as a stepwise Process
-@ingroup    cofold pf_fold
+@defgroup   eval_loops_mb             Multibranch Loops
+@ingroup    eval_loops
 
-@defgroup   local_mfe_fold            Local MFE Structure Prediction and Z-scores
-@ingroup    local_fold mfe_fold
 
-@defgroup   local_pf_fold             Partition Function and Equilibrium Probabilities for Locally Stable Secondary Structures
-@ingroup    local_fold pf_fold
+@defgroup   mfe_global_deprecated     Deprecated Interface for Global MFE Prediction
+@ingroup    mfe_global
 
-@defgroup   local_consensus_fold      Local MFE Consensus Structure Prediction for Sequence Alignments
-@ingroup    local_fold consensus_fold
+@defgroup   mfe_window_deprecated     Deprecated Interface for Local (Sliding Window) MFE Prediction
+@ingroup    mfe_window
+
+@defgroup   part_func_global_deprecated Deprecated Interface for Global Partition Function Computation
+@ingroup    part_func_global
+
+@defgroup   part_func_window_deprecated  Deprecated Interface for Local (Sliding Window) Partition Function Computation
+@ingroup    part_func_window
+
+@defgroup   pf_cofold                 Partition Function for Two Hybridized Sequences
+@ingroup    cofold
+
+@defgroup   up_cofold                 Partition Function for two Hybridized Sequences as a Stepwise Process
+@ingroup    cofold
 
 @defgroup   energy_parameters_rw      Reading/Writing Energy Parameter Sets from/to File
 @ingroup    energy_parameters
@@ -242,31 +260,52 @@ formats, and various output file formats produced by our library.
 @defgroup   dp_matrices               The Dynamic Programming Matrices
 @ingroup    data_structures
 
-@defgroup   direct_paths              Direct refolding paths between two secondary structures
+@defgroup   direct_paths              Direct Refolding Paths between two Secondary Structures
 @ingroup    paths
 
-@defgroup   string_utils              Parsing, converting, and comparing sequences
+@defgroup   alphabet_utils            Utilities to deal with Nucleotide Alphabets
 @ingroup    utils
 
-@defgroup   struct_utils              Parsing, converting, comparing secondary structures
+@defgroup   string_utils              (Nucleic Acid Sequence) String Utilitites
 @ingroup    utils
 
-@defgroup   aln_utils                 Utilities for sequence alignments
+@defgroup   struct_utils              Secondary Structure Utilities
 @ingroup    utils
 
-@defgroup   file_utils                Functions to Read/Write several File Formats for RNA Sequences, Structures, and Alignments
+@defgroup   aln_utils                 Multiple Sequence Alignment Utilities
 @ingroup    utils
 
-@defgroup   buffer_utils              Functions that provide dynamically buffered stream-like data structures
+@defgroup   file_utils                Files and I/O
 @ingroup    utils
 
-@defgroup   plotting_utils            Functions for Creating Secondary Structure Plots, Dot-Plots, and More
+@defgroup   file_formats              Nucleic Acid Sequences and Structures
+@ingroup    file_utils
+
+@defgroup   file_formats_msa          Multiple Sequence Alignments
+@ingroup    file_utils
+
+@defgroup   command_files             Command Files
+@ingroup    file_utils
+
+@defgroup   plotting_utils            Plotting
 @ingroup    utils
 
-@defgroup   annotation_utils          Functions to generate annotations for Secondary Structure Plots, Dot-Plots, and Others
+@defgroup   annotation_utils          Annotation
 @ingroup    plotting_utils
 
-@defgroup   units                     Functions to convert between various units
+@defgroup   search_utils              Search Algorithms
+@ingroup    utils
+
+@defgroup   combinatorics_utils       Combinatorics Algorithms
+@ingroup    utils
+
+@defgroup   buffer_utils              Buffers
+@ingroup    utils
+
+@defgroup   message_utils             Messages
+@ingroup    utils
+
+@defgroup   units                     Unit Conversion
 @ingroup    utils
 
 */

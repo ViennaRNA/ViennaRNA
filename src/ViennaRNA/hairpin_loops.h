@@ -7,6 +7,21 @@
 #include <ViennaRNA/data_structures.h>
 #include <ViennaRNA/params.h>
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 #ifdef __GNUC__
 # define INLINE inline
 #else
@@ -16,15 +31,85 @@
 /**
  *
  *  @file     hairpin_loops.h
- *  @ingroup  loops
+ *  @ingroup  eval, eval_loops, eval_loops_hp
  *  @brief    Energy evaluation of hairpin loops for MFE and partition function calculations
  */
 
 /**
  *
- *  @addtogroup   loops
+ *  @addtogroup   eval_loops_hp
+ *  @{
+ *  @brief  Functions to evaluate the free energy contributions for hairpin loops
+ */
+
+
+/**
+ *  @name Basic free energy interface
  *  @{
  */
+
+
+/**
+ *  @brief  Evaluate the free energy of a hairpin loop
+ *          and consider hard constraints if they apply
+ *
+ *  This function evaluates the free energy of a hairpin loop
+ *
+ *  In case the base pair is not allowed due to a constraint
+ *  conflict, this function returns #INF.
+ *
+ *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
+ *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
+ *
+ *  @param fc   The #vrna_fold_compound_t that stores all relevant model settings
+ *  @param i    The 5' nucleotide of the base pair (3' to evaluate the pair as exterior hairpin loop)
+ *  @param j    The 3' nucleotide of the base pair (5' to evaluate the pair as exterior hairpin loop)
+ *  @returns    The free energy of the hairpin loop in 10cal/mol
+ */
+int
+vrna_E_hp_loop(vrna_fold_compound_t *fc,
+               int                  i,
+               int                  j);
+
+
+/**
+ *  @brief  Evaluate the free energy of an exterior hairpin loop
+ *          and consider possible hard constraints
+ *
+ *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
+ *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
+ *
+ */
+int
+vrna_E_ext_hp_loop(vrna_fold_compound_t *fc,
+                   int                  i,
+                   int                  j);
+
+
+/**
+ *  @brief Evaluate free energy of an exterior hairpin loop
+ */
+int
+vrna_eval_ext_hp_loop(vrna_fold_compound_t  *fc,
+                      int                   i,
+                      int                   j);
+
+
+/**
+ *  @brief Evaluate free energy of a hairpin loop
+ *
+ *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
+ *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
+ *
+ *  @param  fc  The #vrna_fold_compound_t for the particular energy evaluation
+ *  @param  i   5'-position of the base pair
+ *  @param  j   3'-position of the base pair
+ *  @returns    Free energy of the hairpin loop closed by @f$ (i,j) @f$ in deka-kal/mol
+ */
+int
+vrna_eval_hp_loop(vrna_fold_compound_t  *fc,
+                  int                   i,
+                  int                   j);
 
 
 /**
@@ -58,47 +143,6 @@
  *  @param  string  The sequence of the loop (May be @NULL, otherwise mst be at least @f$size + 2@f$ long)
  *  @param  P     The datastructure containing scaled energy parameters
  *  @return The Free energy of the Hairpin-loop in dcal/mol
- */
-PRIVATE INLINE int
-E_Hairpin(int           size,
-          int           type,
-          int           si1,
-          int           sj1,
-          const char    *string,
-          vrna_param_t  *P);
-
-
-/**
- *  @brief Compute Boltzmann weight @f$e^{-\Delta G/kT} @f$ of a hairpin loop
- *
- *  multiply by scale[u+2]
- *  @see get_scaled_pf_parameters()
- *  @see vrna_exp_param_t
- *  @see E_Hairpin()
- *  @warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
- *  Energy evaluation may change due to updates in global variable "tetra_loop"
- *
- *  @param  u       The size of the loop (number of unpaired nucleotides)
- *  @param  type    The pair type of the base pair closing the hairpin
- *  @param  si1     The 5'-mismatching nucleotide
- *  @param  sj1     The 3'-mismatching nucleotide
- *  @param  string  The sequence of the loop (May be @NULL, otherwise mst be at least @f$size + 2@f$ long)
- *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
- *  @return The Boltzmann weight of the Hairpin-loop
- */
-PRIVATE INLINE FLT_OR_DBL
-exp_E_Hairpin(int               u,
-              int               type,
-              short             si1,
-              short             sj1,
-              const char        *string,
-              vrna_exp_param_t  *P);
-
-
-/*
- #################################
- # BEGIN OF FUNCTION DEFINITIONS #
- #################################
  */
 PRIVATE INLINE int
 E_Hairpin(int           size,
@@ -155,78 +199,33 @@ E_Hairpin(int           size,
 }
 
 
-/**
- *  @brief  Evaluate the free energy of a hairpin loop
- *          and consider hard constraints if they apply
- *
- *  This function evaluates the free energy of a hairpin loop
- *
- *  In case the base pair is not allowed due to a constraint
- *  conflict, this function returns #INF.
- *
- *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
- *
- *  @param fc   The #vrna_fold_compound_t that stores all relevant model settings
- *  @param i    The 5' nucleotide of the base pair (3' to evaluate the pair as exterior hairpin loop)
- *  @param j    The 3' nucleotide of the base pair (5' to evaluate the pair as exterior hairpin loop)
- *  @returns    The free energy of the hairpin loop in 10cal/mol
- */
-int
-vrna_E_hp_loop(vrna_fold_compound_t *fc,
-               int                  i,
-               int                  j);
+/* End basic interface */
+/**@}*/
 
 
 /**
- *  @brief  Evaluate the free energy of an exterior hairpin loop
- *          and consider possible hard constraints
- *
- *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
- *
+ *  @name Boltzmann weight (partition function) interface
+ *  @{
  */
-int
-vrna_E_ext_hp_loop(vrna_fold_compound_t *fc,
-                   int                  i,
-                   int                  j);
 
 
 /**
- *  @brief Evaluate free energy of an exterior hairpin loop
+ *  @brief Compute Boltzmann weight @f$e^{-\Delta G/kT} @f$ of a hairpin loop
  *
- *  @ingroup loops
+ *  multiply by scale[u+2]
+ *  @see get_scaled_pf_parameters()
+ *  @see vrna_exp_param_t
+ *  @see E_Hairpin()
+ *  @warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
+ *  Energy evaluation may change due to updates in global variable "tetra_loop"
  *
- */
-int
-vrna_eval_ext_hp_loop(vrna_fold_compound_t  *fc,
-                      int                   i,
-                      int                   j);
-
-
-/**
- *  @brief Evaluate free energy of a hairpin loop
- *
- *  @ingroup loops
- *
- *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
- *
- *  @param  fc  The #vrna_fold_compound_t for the particular energy evaluation
- *  @param  i   5'-position of the base pair
- *  @param  j   3'-position of the base pair
- *  @returns    Free energy of the hairpin loop closed by @f$ (i,j) @f$ in deka-kal/mol
- */
-int
-vrna_eval_hp_loop(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j);
-
-
-/*
- *************************************
- * Partition function variants below *
- *************************************
+ *  @param  u       The size of the loop (number of unpaired nucleotides)
+ *  @param  type    The pair type of the base pair closing the hairpin
+ *  @param  si1     The 5'-mismatching nucleotide
+ *  @param  sj1     The 3'-mismatching nucleotide
+ *  @param  string  The sequence of the loop (May be @NULL, otherwise mst be at least @f$size + 2@f$ long)
+ *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
+ *  @return The Boltzmann weight of the Hairpin-loop
  */
 PRIVATE INLINE FLT_OR_DBL
 exp_E_Hairpin(int               u,
@@ -306,6 +305,20 @@ vrna_exp_E_hp_loop(vrna_fold_compound_t *fc,
                    int                  j);
 
 
+/* End partition function interface */
+/**@}*/
+
+
+/**
+ * @}
+ */
+
+
+/**
+ *  @addtogroup mfe_backtracking
+ *  @{
+ */
+
 /**
  *  @brief Backtrack a hairpin loop closed by @f$ (i,j) @f$
  *
@@ -326,5 +339,17 @@ vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
  * @}
  */
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+/**
+ *  @addtogroup   eval_deprecated
+ *  @{
+ */
+
+/**
+ * @}
+ */
+
+#endif
 
 #endif

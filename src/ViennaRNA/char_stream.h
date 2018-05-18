@@ -3,13 +3,14 @@
 
 /**
  *  @file     char_stream.h
- *  @ingroup  buffer_utils
+ *  @ingroup  utils, buffer_utils
  *  @brief    Implementation of a dynamic, buffered character stream
  */
 
 /**
  *  @addtogroup   buffer_utils
  *  @{
+ *  @brief Functions that provide dynamically buffered stream-like data structures
  */
 
 #include <stdarg.h>
