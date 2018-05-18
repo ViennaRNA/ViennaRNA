@@ -44,7 +44,7 @@ vrna_lookup_hash(void *x, vrna_hash_table *ht) /* returns NULL unless x is in th
 {
   unsigned int hashval;
 
-  hashval = ht->Hash_function (x);
+  hashval = ht->Hash_function (x, ht->Hash_size);
   if (ht->Hash_table[hashval] == NULL)
     return NULL;
   while (ht->Hash_table[hashval]) {
@@ -62,7 +62,7 @@ vrna_write_hash(void *x, vrna_hash_table *ht) /* returns 1 if x already was in t
 {
   unsigned int hashval;
 
-  hashval = ht->Hash_function (x);
+  hashval = ht->Hash_function (x, ht->Hash_size);
   if (hashval < ht->Hash_size) {
     void *entry = ht->Hash_table[hashval];
     while (entry != NULL) {
@@ -100,7 +100,7 @@ vrna_delete_hash(void *x, vrna_hash_table *ht) /* doesn't work in case of collis
 { /* doesn't free anything ! */
   unsigned int hashval;
 
-  hashval = ht->Hash_function (x);
+  hashval = ht->Hash_function (x, ht->Hash_size);
   while (ht->Hash_table[hashval]) {
     if (ht->Compare_function (x, ht->Hash_table[hashval]) == 0) {
       ht->Hash_table[hashval] = NULL;
@@ -168,7 +168,7 @@ vrna_delete_hash(void *x, vrna_hash_table *ht) /* doesn't work in case of collis
  --------------------------------------------------------------------
  */
 unsigned
-vrna_standard_hash_function(void *x, vrna_hash_table *ht)
+vrna_standard_hash_function(void *x, unsigned long hashtable_size)
 {
   register unsigned char *k; /* the key */
   register unsigned length; /* the length of the key */
@@ -222,7 +222,7 @@ vrna_standard_hash_function(void *x, vrna_hash_table *ht)
   }
   mix(a, b, c);
   /*-------------------------------------------- report the result */
-  return (c & ht->Hash_size);
+  return (c & hashtable_size);
 }
 
 int

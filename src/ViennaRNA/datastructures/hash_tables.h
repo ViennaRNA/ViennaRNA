@@ -6,7 +6,7 @@
 
 
 typedef int (vrna_hash_entry_comparison)(void *hash_entry_a, void *hash_entry_b);
-typedef unsigned (vrna_hash_function)(void *hash_entry);
+typedef unsigned (vrna_hash_function)(void *hash_entry, unsigned long hashtable_size);
 typedef int (vrna_free_hash_entry)(void *hash_entry);
 
 typedef struct _hash_table {
@@ -59,7 +59,7 @@ void vrna_free_hash_table(vrna_hash_table *ht);
 
 /* modify hash_f(), hash_comp() and the typedef of hash_entry to suit your application */
 int vrna_standard_hash_comparison(void *x, void *y);
-unsigned vrna_standard_hash_function (void *x, vrna_hash_table *ht);
+unsigned vrna_standard_hash_function (void *x, unsigned long hashtable_size);
 int vrna_standard_free_hash_entry(void *hash_entry);
 
 typedef struct _hash_entry {
