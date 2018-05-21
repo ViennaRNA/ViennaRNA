@@ -74,6 +74,7 @@ pkginclude_HEADERS =  \
     inverse.h \
     PS_dot.h \
     utils.h \
+    search.h \
     params.h \
     subopt.h \
     cofold.h \
@@ -222,6 +223,7 @@ libRNA_utils_la_SOURCES = \
     commands.c \
     units.c \
     combinatorics.c \
+    search.c \
     stream_output.c
 
 libRNA_plotting_la_SOURCES = \
