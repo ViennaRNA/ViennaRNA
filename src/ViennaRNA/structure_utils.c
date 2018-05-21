@@ -61,7 +61,7 @@ flatten_brackets(char       *string,
                  const char target[3]);
 
 
-PRIVATE INLINE void
+PRIVATE INLINE int
 extract_pairs(short       *pt,
               const char  *structure,
               const char  *pair);
@@ -98,7 +98,12 @@ vrna_db_pack(const char *struc)
           p += 2;
           break;
         default:
-          vrna_message_error("pack_structure: illegal character in structure");
+          vrna_message_warning("vrna_db_pack: "
+                               "illegal character %c at position %d in structure\n%s",
+                               struc[i],
+                               i + 1,
+                               struc);
+          return NULL;
       }
       if (i < l)
         i++;
@@ -217,8 +222,12 @@ vrna_loopidx_from_ptable(const short *pt)
       else
         l = 0;                    /* external loop has index 0 */
 
-      if (hx < 0)
-        vrna_message_error("unbalanced brackets in make_pair_table");
+      if (hx < 0) {
+        vrna_message_warning("vrna_loopidx_from_ptable: "
+                             "unbalanced brackets in make_pair_table");
+        free(stack);
+        return NULL;
+      }
     }
   }
   loop[0] = nl;
@@ -294,9 +303,10 @@ vrna_ptable_from_string(const char    *string,
   n = strlen(string);
 
   if (n > SHRT_MAX) {
-    vrna_message_error("Structure too long to be converted to pair table (n=%d, max=%d)",
-                       n,
-                       SHRT_MAX);
+    vrna_message_warning("vrna_ptable_from_string: "
+                         "Structure too long to be converted to pair table (n=%d, max=%d)",
+                         n,
+                         SHRT_MAX);
     return NULL;
   }
 
@@ -304,24 +314,39 @@ vrna_ptable_from_string(const char    *string,
   pt[0] = (short)n;
 
 
-  if (options & VRNA_BRACKETS_RND)
-    extract_pairs(pt, string, "()");
+  if ((options & VRNA_BRACKETS_RND) &&
+      (!extract_pairs(pt, string, "()"))) {
+    free(pt);
+    return NULL;
+  }
 
-  if (options & VRNA_BRACKETS_ANG)
-    extract_pairs(pt, string, "<>");
+  if ((options & VRNA_BRACKETS_ANG) &&
+      (!extract_pairs(pt, string, "<>"))) {
+    free(pt);
+    return NULL;
+  }
 
-  if (options & VRNA_BRACKETS_CLY)
-    extract_pairs(pt, string, "{}");
+  if ((options & VRNA_BRACKETS_CLY) &&
+      (!extract_pairs(pt, string, "{}"))) {
+    free(pt);
+    return NULL;
+  }
 
-  if (options & VRNA_BRACKETS_SQR)
-    extract_pairs(pt, string, "[]");
+  if ((options & VRNA_BRACKETS_SQR) &&
+      (!extract_pairs(pt, string, "[]"))) {
+    free(pt);
+    return NULL;
+  }
 
   if (options & VRNA_BRACKETS_ALPHA) {
     for (i = 65; i < 91; i++) {
       pairs[0]  = (char)i;
       pairs[1]  = (char)(i + 7);
       pairs[2]  = '\0';
-      extract_pairs(pt, string, pairs);
+      if (!extract_pairs(pt, string, pairs)) {
+        free(pt);
+        return NULL;
+      }
     }
   }
 
@@ -664,11 +689,13 @@ vrna_plist_from_probs(vrna_fold_compound_t  *vc,
                       double                cut_off)
 {
   if (!vc)
-    vrna_message_error("vrna_pl_get_from_pr: run vrna_pf_fold first!");
+    vrna_message_warning("vrna_pl_get_from_pr: run vrna_pf_fold first!");
   else if (!vc->exp_matrices->probs)
-    vrna_message_error("vrna_pl_get_from_pr: probs==NULL!");
+    vrna_message_warning("vrna_pl_get_from_pr: probs==NULL!");
+  else
+    return wrap_plist(vc, cut_off);
 
-  return wrap_plist(vc, cut_off);
+  return NULL;
 }
 
 
@@ -741,7 +768,7 @@ flatten_brackets(char       *string,
 
 
 /* requires that pt[0] already contains the length of the string! */
-PRIVATE INLINE void
+PRIVATE INLINE int
 extract_pairs(short       *pt,
               const char  *structure,
               const char  *pair)
@@ -764,22 +791,29 @@ extract_pairs(short       *pt,
     } else if (*ptr == close) {
       j = stack[--hx];
 
-      if (hx < 0)
-        vrna_message_error("%s\nunbalanced brackets '%2s' found while extracting base pairs",
-                           structure,
-                           pair);
+      if (hx < 0) {
+        vrna_message_warning("%s\nunbalanced brackets '%2s' found while extracting base pairs",
+                             structure,
+                             pair);
+        free(stack);
+        return 0;
+      }
 
       pt[i] = j;
       pt[j] = i;
     }
   }
 
-  if (hx != 0)
-    vrna_message_error("%s\nunbalanced brackets '%2s' found while extracting base pairs",
-                       structure,
-                       pair);
-
   free(stack);
+
+  if (hx != 0) {
+    vrna_message_warning("%s\nunbalanced brackets '%2s' found while extracting base pairs",
+                         structure,
+                         pair);
+    return 0;
+  }
+
+  return 1; /* success */
 }
 
 
