@@ -166,8 +166,13 @@ vrna_eval_structure_v(vrna_fold_compound_t  *vc,
                       int                   verbosity_level,
                       FILE                  *file)
 {
-  if (strlen(structure) != vc->length)
-    vrna_message_error("vrna_eval_structure_*: string and structure have unequal length");
+  if (strlen(structure) != vc->length) {
+    vrna_message_warning("vrna_eval_structure_*: "
+                         "string and structure have unequal length (%d vs. %d)",
+                         vc->length,
+                         strlen(structure));
+    return (float)INF / 100.;
+  }
 
   short *pt = vrna_ptable(structure);
   float en  = wrap_eval_structure(vc, structure, pt, file, verbosity_level);
@@ -195,7 +200,12 @@ vrna_eval_covar_structure(vrna_fold_compound_t  *vc,
     vc->params->model_details.gquad = gq;
     if (gq) {
       loop_idx  = vrna_loopidx_from_ptable(pt);
-      res       -= covar_en_corr_of_loop_gquad(vc, 1, vc->length, structure, pt, (const int *)loop_idx);
+      res       -= covar_en_corr_of_loop_gquad(vc,
+                                               1,
+                                               vc->length,
+                                               structure,
+                                               pt,
+                                               (const int *)loop_idx);
       free(loop_idx);
     }
   }
@@ -212,8 +222,13 @@ vrna_eval_structure_pt_v(vrna_fold_compound_t *vc,
                          FILE                 *file)
 {
   if (pt && vc) {
-    if (pt[0] != (short)vc->length)
-      vrna_message_error("vrna_eval_structure_*: string and structure have unequal length");
+    if (pt[0] != (short)vc->length) {
+      vrna_message_warning("vrna_eval_structure_*: "
+                           "string and structure have unequal length (%d vs. %d)",
+                           vc->length,
+                           pt[0]);
+      return INF;
+    }
 
     return eval_pt(vc, pt, file, verbosity_level);
   } else {
@@ -249,8 +264,12 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
     }
 
     j = pt[i];
-    if (j < i)
-      vrna_message_error("i is unpaired in loop_energy()");
+    if (j < i) {
+      vrna_message_warning("vrna_eval_loop_pt*: "
+                           "i = %d is unpaired in loop_energy()",
+                           i);
+      return INF;
+    }
 
     type = P->model_details.pair[s[i]][s[j]];
     if (type == 0) {
@@ -326,11 +345,14 @@ vrna_eval_move_pt(vrna_fold_compound_t  *vc,
     if (pt[j] < k)
       break;              /* found it */
 
-    if (pt[j] > j)
+    if (pt[j] > j) {
       j = pt[j];          /* skip substructure */
-    else
-      vrna_message_error("illegal move or broken pair table in vrna_eval_move_pt()\n"
-                         "%d %d %d %d ", m1, m2, j, pt[j]);
+    } else {
+      vrna_message_warning("vrna_eval_move_pt: "
+                           "illegal move or broken pair table in vrna_eval_move_pt()\n"
+                           "%d %d %d %d ", m1, m2, j, pt[j]);
+      return INF;
+    }
   }
   i       = (j <= len) ? pt[j] : 0;
   en_pre  = vrna_eval_loop_pt(vc, i, (const short *)pt);
@@ -497,6 +519,7 @@ wrap_eval_structure(vrna_fold_compound_t  *vc,
 
         res += en_corr_of_loop_gquad(vc, 1, vc->length, structure, pt, file, verbosity);
       }
+
       energy = (float)res / 100.;
       break;
 
@@ -513,6 +536,7 @@ wrap_eval_structure(vrna_fold_compound_t  *vc,
         res += en_corr_of_loop_gquad_ali(vc, 1, vc->length, structure, pt, (const int *)loop_idx);
         free(loop_idx);
       }
+
       energy = (float)res / (100. * (float)vc->n_seq);
       break;
 
@@ -731,8 +755,6 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for (r = p - 1; !pt[r] && (r >= i); r--);
-      if (r < i)
-        vrna_message_error("this should not happen");
 
       if (r < pt[r]) {
         /* found the enclosing pair */
@@ -744,8 +766,6 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
         r       = pt[r] - 1;
         /* seek for next pairing base 5' of r */
         for (; !pt[r] && (r >= i); r--);
-        if (r < i)
-          vrna_message_error("so nich");
 
         if (r < pt[r]) {
           /* found the enclosing pair */
@@ -760,8 +780,6 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
 
             r--;
           }
-          if (r < i)
-            vrna_message_error("so nich");
 
           s = pt[r]; /* found the enclosing pair */
         }
@@ -790,9 +808,6 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
           }
         } else {
           /* we must have found a stem */
-          if (!(u < pt[u]))
-            vrna_message_error("wtf!");
-
           num_elem++;
           elem_i  = u;
           elem_j  = pt[u];
@@ -801,97 +816,91 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
         }
       }
 
-      if (u != s) {
-        vrna_message_error("what the heck");
-      } else {
-        int e_minus, e_plus;
+      /* here, u == s */
+      int e_minus, e_plus;
 
-        e_plus = e_minus = 0;
+      e_plus = e_minus = 0;
 
-        /* we are done since we've found no other 3' structure element */
-        switch (num_elem) {
-          /* g-quad was misinterpreted as hairpin closed by (r,s) */
-          case 0:   /* if(num_g == 1)
-                     * if((p-r-1 == 0) || (s-q-1 == 0))
-                     *  vrna_message_error("too few unpaired bases");
-                     */
-            e_minus = vrna_eval_hp_loop(vc, r, s);
+      /* we are done since we've found no other 3' structure element */
+      switch (num_elem) {
+        /* g-quad was misinterpreted as hairpin closed by (r,s) */
+        case 0:
+          e_minus = vrna_eval_hp_loop(vc, r, s);
+          if (verbosity_level > 0)
+            print_eval_hp_loop_revert(out, r, s, sequence[r - 1], sequence[s - 1], e_minus);
+
+          type = md->pair[s2[r]][s2[s]];
+
+          /* if we consider the G-Quadruplex, we have */
+          if (num_g == 1) {
+            /* a) an interior loop like structure */
+            if (dangles == 2)
+              e_plus += P->mismatchI[type][s1[r + 1]][s1[s - 1]];
+
+            if (type > 2)
+              e_plus += P->TerminalAU;
+
+            e_plus += P->internal_loop[s - r - 1 - up_mis];
             if (verbosity_level > 0)
-              print_eval_hp_loop_revert(out, r, s, sequence[r - 1], sequence[s - 1], e_minus);
+              print_eval_int_loop(out, r, s, sequence[r - 1], sequence[s - 1], p, q,
+                                  sequence[p - 1], sequence[q - 1], e_plus);
+          } else {
+            /* or b) a multibranch loop like structure */
+            e_plus = P->MLclosing
+                     + E_MLstem(rtype[type], s1[s - 1], s1[r + 1], P)
+                     + num_g * E_MLstem(0, -1, -1, P)
+                     + (s - r - 1 - up_mis) * P->MLbase;
 
-            type = md->pair[s2[r]][s2[s]];
-
-            /* if we consider the G-Quadruplex, we have */
-            if (num_g == 1) {
-              /* a) an interior loop like structure */
-              if (dangles == 2)
-                e_plus += P->mismatchI[type][s1[r + 1]][s1[s - 1]];
-
-              if (type > 2)
-                e_plus += P->TerminalAU;
-
-              e_plus += P->internal_loop[s - r - 1 - up_mis];
-              if (verbosity_level > 0)
-                print_eval_int_loop(out, r, s, sequence[r - 1], sequence[s - 1], p, q,
-                                    sequence[p - 1], sequence[q - 1], e_plus);
-            } else {
-              /* or b) a multibranch loop like structure */
-              e_plus = P->MLclosing
-                       + E_MLstem(rtype[type], s1[s - 1], s1[r + 1], P)
-                       + num_g * E_MLstem(0, -1, -1, P)
-                       + (s - r - 1 - up_mis) * P->MLbase;
-
-              if (verbosity_level > 0)
-                print_eval_mb_loop(out, r, s, sequence[r - 1], sequence[s - 1], e_plus);
-            }
-
-            energy += e_plus - e_minus;
-            break;
-
-          /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
-          case 1:
-            type    = md->pair[s2[r]][s2[s]];
-            type2   = md->pair[s2[elem_i]][s2[elem_j]];
-            e_plus  = P->MLclosing
-                      + E_MLstem(rtype[type], s1[s - 1], s1[r + 1], P)
-                      + (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase
-                      + E_MLstem(type2, s1[elem_i - 1], s1[elem_j + 1], P);
-
-            e_plus += num_g * E_MLstem(0, -1, -1, P);
-
-            e_minus = vrna_eval_int_loop(vc, r, s, elem_i, elem_j);
-
-            energy += e_plus - e_minus;
-
-            if (verbosity_level > 0) {
-              print_eval_int_loop_revert(out,
-                                         r,
-                                         s,
-                                         sequence[r - 1],
-                                         sequence[j - 1],
-                                         elem_i,
-                                         elem_j,
-                                         sequence[elem_i - 1],
-                                         sequence[elem_j - 1],
-                                         e_minus);
+            if (verbosity_level > 0)
               print_eval_mb_loop(out, r, s, sequence[r - 1], sequence[s - 1], e_plus);
-            }
+          }
 
-            break;
+          energy += e_plus - e_minus;
+          break;
 
-          /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
-          default:
-            e_minus = (up_mis) * P->MLbase;
-            e_plus  = num_g * E_MLstem(0, -1, -1, P);
-            energy  += e_plus - e_minus;
+        /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
+        case 1:
+          type    = md->pair[s2[r]][s2[s]];
+          type2   = md->pair[s2[elem_i]][s2[elem_j]];
+          e_plus  = P->MLclosing
+                    + E_MLstem(rtype[type], s1[s - 1], s1[r + 1], P)
+                    + (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase
+                    + E_MLstem(type2, s1[elem_i - 1], s1[elem_j + 1], P);
 
-            if (verbosity_level > 0) {
-              print_eval_mb_loop_revert(out, r, s, sequence[r - 1], sequence[s - 1], e_minus);
-              print_eval_mb_loop(out, r, s, sequence[r - 1], sequence[s - 1], e_plus);
-            }
+          e_plus += num_g * E_MLstem(0, -1, -1, P);
 
-            break;
-        }
+          e_minus = vrna_eval_int_loop(vc, r, s, elem_i, elem_j);
+
+          energy += e_plus - e_minus;
+
+          if (verbosity_level > 0) {
+            print_eval_int_loop_revert(out,
+                                       r,
+                                       s,
+                                       sequence[r - 1],
+                                       sequence[j - 1],
+                                       elem_i,
+                                       elem_j,
+                                       sequence[elem_i - 1],
+                                       sequence[elem_j - 1],
+                                       e_minus);
+            print_eval_mb_loop(out, r, s, sequence[r - 1], sequence[s - 1], e_plus);
+          }
+
+          break;
+
+        /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
+        default:
+          e_minus = (up_mis) * P->MLbase;
+          e_plus  = num_g * E_MLstem(0, -1, -1, P);
+          energy  += e_plus - e_minus;
+
+          if (verbosity_level > 0) {
+            print_eval_mb_loop_revert(out, r, s, sequence[r - 1], sequence[s - 1], e_minus);
+            print_eval_mb_loop(out, r, s, sequence[r - 1], sequence[s - 1], e_plus);
+          }
+
+          break;
       }
 
       q = s + 1;
@@ -1904,8 +1913,6 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for (r = p - 1; !pt[r] && (r >= i); r--);
-      if (r < i)
-        vrna_message_error("this should not happen");
 
       if (r < pt[r]) {
         /* found the enclosing pair */
@@ -1917,8 +1924,6 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
         r       = pt[r] - 1;
         /* seek for next pairing base 5' of r */
         for (; !pt[r] && (r >= i); r--);
-        if (r < i)
-          vrna_message_error("so nich");
 
         if (r < pt[r]) {
           /* found the enclosing pair */
@@ -1933,8 +1938,6 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
 
             r--;
           }
-          if (r < i)
-            vrna_message_error("so nich");
 
           s = pt[r]; /* found the enclosing pair */
         }
@@ -1960,9 +1963,6 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
           }
         } else {
           /* we must have found a stem */
-          if (!(u < pt[u]))
-            vrna_message_error("wtf!");
-
           num_elem++;
           elem_i  = u;
           elem_j  = pt[u];
@@ -1975,73 +1975,41 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
           u = pt[u] + 1;
         }
       }
-      if (u != s) {
-        vrna_message_error("what the ...");
-      } else {
-        int e_minus, e_plus, e_temp;
 
-        e_plus = e_minus = 0;
+      /* here, u == s */
+      int e_minus, e_plus, e_temp;
 
-        /* we are done since we've found no other 3' structure element */
-        switch (num_elem) {
-          /* g-quad was misinterpreted as hairpin closed by (r,s) */
-          case 0:   /* if(num_g == 1)
-                     * if((p-r-1 == 0) || (s-q-1 == 0))
-                     *  vrna_message_error("too few unpaired bases");
-                     */
-            e_minus = vrna_eval_hp_loop(vc, r, s);
-            /* if we consider the G-Quadruplex, we have */
-            if (num_g == 1) {
-              /* a) an interior loop like structure */
-              for (cnt = 0; cnt < n_seq; cnt++) {
-                type = md->pair[S[cnt][r]][S[cnt][s]];
-                if (type == 0)
-                  type = 7;
+      e_plus = e_minus = 0;
 
-                if (dangle_model == 2)
-                  e_plus += P->mismatchI[type][S3[cnt][r]][S5[cnt][s]];
+      /* we are done since we've found no other 3' structure element */
+      switch (num_elem) {
+        /* g-quad was misinterpreted as hairpin closed by (r,s) */
+        case 0:
+          e_minus = vrna_eval_hp_loop(vc, r, s);
+          /* if we consider the G-Quadruplex, we have */
+          if (num_g == 1) {
+            /* a) an interior loop like structure */
+            for (cnt = 0; cnt < n_seq; cnt++) {
+              type = md->pair[S[cnt][r]][S[cnt][s]];
+              if (type == 0)
+                type = 7;
 
-                if (type > 2)
-                  e_plus += P->TerminalAU;
-              }
+              if (dangle_model == 2)
+                e_plus += P->mismatchI[type][S3[cnt][r]][S5[cnt][s]];
 
-              e_plus += n_seq * P->internal_loop[s - r - 1 - up_mis];
-            } else {
-              /* or b) a multibranch loop like structure */
-              for (cnt = 0; cnt < n_seq; cnt++) {
-                type = md->pair[S[cnt][s]][S[cnt][r]];
-                if (type == 0)
-                  type = 7;
-
-                e_plus += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
-              }
-
-              e_temp = num_g * E_MLstem(0, -1, -1, P) +
-                       P->MLclosing +
-                       (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase;
-
-              e_plus += n_seq * e_temp;
+              if (type > 2)
+                e_plus += P->TerminalAU;
             }
 
-            energy += e_plus - e_minus;
-            break;
-
-          /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
-          case 1:
-            e_minus = vrna_eval_int_loop(vc, r, s, elem_i, elem_j);
-
+            e_plus += n_seq * P->internal_loop[s - r - 1 - up_mis];
+          } else {
+            /* or b) a multibranch loop like structure */
             for (cnt = 0; cnt < n_seq; cnt++) {
               type = md->pair[S[cnt][s]][S[cnt][r]];
               if (type == 0)
                 type = 7;
 
               e_plus += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
-
-              type = md->pair[S[cnt][elem_i]][S[cnt][elem_j]];
-              if (type == 0)
-                type = 7;
-
-              e_plus += E_MLstem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
             }
 
             e_temp = num_g * E_MLstem(0, -1, -1, P) +
@@ -2049,18 +2017,45 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
                      (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase;
 
             e_plus += n_seq * e_temp;
+          }
 
-            energy += e_plus - e_minus;
+          energy += e_plus - e_minus;
+          break;
 
-            break;
-          /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
-          default:
-            e_minus = (up_mis) * P->MLbase * n_seq;
-            e_plus  = num_g * E_MLstem(0, -1, -1, P) * n_seq;
-            energy  += e_plus - e_minus;
+        /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
+        case 1:
+          e_minus = vrna_eval_int_loop(vc, r, s, elem_i, elem_j);
 
-            break;
-        }
+          for (cnt = 0; cnt < n_seq; cnt++) {
+            type = md->pair[S[cnt][s]][S[cnt][r]];
+            if (type == 0)
+              type = 7;
+
+            e_plus += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
+
+            type = md->pair[S[cnt][elem_i]][S[cnt][elem_j]];
+            if (type == 0)
+              type = 7;
+
+            e_plus += E_MLstem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
+          }
+
+          e_temp = num_g * E_MLstem(0, -1, -1, P) +
+                   P->MLclosing +
+                   (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase;
+
+          e_plus += n_seq * e_temp;
+
+          energy += e_plus - e_minus;
+
+          break;
+        /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
+        default:
+          e_minus = (up_mis) * P->MLbase * n_seq;
+          e_plus  = num_g * E_MLstem(0, -1, -1, P) * n_seq;
+          energy  += e_plus - e_minus;
+
+          break;
       }
 
       q = s + 1;
@@ -2111,8 +2106,6 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
 
       /* seek for first pairing base located 5' of the g-quad */
       for (r = p - 1; !pt[r] && (r >= i); r--);
-      if (r < i)
-        vrna_message_error("this should not happen");
 
       if (r < pt[r]) {
         /* found the enclosing pair */
@@ -2122,8 +2115,6 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
         r = pt[r] - 1;
         /* seek for next pairing base 5' of r */
         for (; !pt[r] && (r >= i); r--);
-        if (r < i)
-          vrna_message_error("so nich");
 
         if (r < pt[r]) {
           /* found the enclosing pair */
@@ -2138,8 +2129,6 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
 
             r--;
           }
-          if (r < i)
-            vrna_message_error("so nich");
 
           s = pt[r]; /* found the enclosing pair */
         }
@@ -2164,9 +2153,6 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
           }
         } else {
           /* we must have found a stem */
-          if (!(u < pt[u]))
-            vrna_message_error("wtf!");
-
           num_elem++;
           en_covar += covar_en_corr_of_loop_gquad(vc,
                                                   u,
@@ -2177,11 +2163,7 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
           u = pt[u] + 1;
         }
       }
-      if (u != s) {
-        vrna_message_error("what the ...");
-      } else {
-        /* we are done since we've found no other 3' structure element */
-      }
+      /* we are done since we've found no other 3' structure element */
 
       q = s + 1;
     }
