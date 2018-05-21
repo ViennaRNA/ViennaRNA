@@ -3,8 +3,11 @@
 /******************************************************/
 
 %ignore vrna_enumerate_necklaces;
+%ignore vrna_rotational_symmetry_num;
+%ignore vrna_rotational_symmetry;
 
 %rename (enumerate_necklaces) my_enumerate_necklaces;
+%rename (rotational_symmetry) my_rotational_symmetry;
 
 %{
   std::vector<std::vector<int> >
@@ -30,13 +33,26 @@
     }
     return permutations;
   }
+
+
+  unsigned int
+  my_rotational_symmetry(std::string string)
+  {
+    return vrna_rotational_symmetry(string.c_str());
+  }
+
+
+  unsigned int
+  my_rotational_symmetry(std::vector<unsigned int> string)
+  {
+    return vrna_rotational_symmetry_num((unsigned int*)&string[0], string.size());
+  }
+
 %}
 
-#ifdef SWIGPYTHON
-%feature("autodoc") my_enumerate_necklaces;
-%feature("kwargs") my_enumerate_necklaces;
-#endif
-
 std::vector<std::vector<int> > my_enumerate_necklaces( std::vector<unsigned int> entity_counts);
+
+unsigned int                   my_rotational_symmetry(std::vector<unsigned int> string);
+unsigned int                   my_rotational_symmetry(std::string string);
 
 %include  <ViennaRNA/combinatorics.h>

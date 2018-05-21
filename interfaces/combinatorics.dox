@@ -7,4 +7,18 @@ This function is available as global function @b enumerate_necklaces() which acc
 input, an produces list of lists output.
 @endparblock
 
+@fn unsigned int vrna_rotational_symmetry_num(const unsigned int *string, size_t string_length)
+@scripting
+@parblock
+This function is available through an overloaded version of the global function @b rotational_symmetry().
+Note, that in the target language the length of the list @p string is always known a-priori, so
+the parameter @p string_length must be omitted.
+@endparblock
+
+@fn unsigned int vrna_rotational_symmetry(const char *string)
+@scripting
+@parblock
+This function is available as global function @b rotational_symmetry().
+@endparblock
+
 */

@@ -32,6 +32,39 @@ vrna_enumerate_necklaces(const unsigned int *type_counts);
 
 
 /**
+ *  @brief Determine the order of rotational symmetry for a string of objects represented
+ *         by natural numbers
+ *
+ *  The algorithm applies a fast search of the provided string within itself, assuming
+ *  the end of the string wraps around to connect with it's start.
+ *  For example, a string of the form @p 011011 has rotational symmetry
+ *  of order @p 2
+ *
+ *  @param  string        The string of elements encoded as natural numbers
+ *  @param  string_length The length of the string
+ *  @return               The order of rotational symmetry
+ */
+unsigned int
+vrna_rotational_symmetry_num(const unsigned int *string,
+                             size_t             string_length);
+
+
+/**
+ *  @brief Determine the order of rotational symmetry for a NULL-terminated string of ASCII characters
+ *
+ *  The algorithm applies a fast search of the provided string within itself, assuming
+ *  the end of the string wraps around to connect with it's start.
+ *  For example, a string of the form @p AABAAB has rotational symmetry
+ *  of order @p 2
+ *
+ *  @param  string        A NULL-terminated string of characters
+ *  @return               The order of rotational symmetry
+ */
+unsigned int
+vrna_rotational_symmetry(const char *string);
+
+
+/**
  *  @}
  */
 #endif

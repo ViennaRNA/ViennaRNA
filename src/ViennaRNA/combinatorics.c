@@ -15,8 +15,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "ViennaRNA/utils.h"
+#include "ViennaRNA/search.h"
 #include "ViennaRNA/combinatorics.h"
 
 /*
@@ -152,8 +154,9 @@ vrna_enumerate_necklaces(const unsigned int *entity_counts)
   /* resize results list to actual requirements */
   for (i = result_count; i < result_size; i++)
     free(result[i]);
-  result                = (unsigned int **)vrna_realloc(result, sizeof(unsigned int *) * (result_count + 1));
-  result[result_count]  = NULL;
+  result =
+    (unsigned int **)vrna_realloc(result, sizeof(unsigned int *) * (result_count + 1));
+  result[result_count] = NULL;
 
   /* cleanup memory */
   free(r);
@@ -161,6 +164,106 @@ vrna_enumerate_necklaces(const unsigned int *entity_counts)
   perm_list_destroy(a);
 
   return result;
+}
+
+
+PUBLIC const unsigned int
+vrna_rotational_symmetry_num(const unsigned int *string,
+                             size_t             string_length)
+{
+  const unsigned int  *ptr;
+  unsigned int        matches, max;
+  size_t              *badchars, shift, i;
+
+  if (!string)
+    return 0;
+
+  if (string_length == 0)
+    return 0;
+
+  /* any string is at least order 1 */
+  matches = 1;
+
+  /* strings of length 1 are order 1 */
+  if (string_length == 1)
+    return matches;
+
+  /* determine largest number/character in string */
+  max = string[0];
+  for (i = 1; i < string_length; i++)
+    max = MAX2(max, string[i]);
+
+  badchars  = vrna_search_BM_BCT_num(string, string_length, max);
+  shift     = 1; /* skip trivial symmetry */
+
+  /* detect order of rotational symmetry */
+  while (shift <= string_length) {
+    ptr = vrna_search_BMH_num(string,
+                              string_length,
+                              string,
+                              string_length,
+                              shift,
+                              badchars,
+                              1);
+    if (!ptr)
+      break;
+
+    matches++;
+    shift = ptr - string + 1;
+  }
+
+  free(badchars);
+
+  return matches;
+}
+
+
+PUBLIC unsigned int
+vrna_rotational_symmetry(const char *string)
+{
+  const char    *ptr;
+  unsigned int  matches;
+  size_t        *badchars, shift, i, string_length;
+
+  if (!string)
+    return 0;
+
+  string_length = strlen(string);
+
+  if (string_length == 0)
+    return 0;
+
+  /* any string is at least order 1 */
+  matches = 1;
+
+  /* strings of length 1 are order 1 */
+  if (string_length == 1)
+    return matches;
+
+  /* determine largest number/character in string */
+  badchars = vrna_search_BM_BCT(string);
+
+  shift = 1; /* skip trivial symmetry */
+
+  /* detect order of rotational symmetry */
+  while (shift <= string_length) {
+    ptr = vrna_search_BMH(string,
+                          string_length,
+                          string,
+                          string_length,
+                          shift,
+                          badchars,
+                          1);
+    if (!ptr)
+      break;
+
+    matches++;
+    shift = ptr - string + 1;
+  }
+
+  free(badchars);
+
+  return matches;
 }
 
 
@@ -268,7 +371,8 @@ sawada_fast_finish_perm(struct necklace_content *content,
   /* adjust results list size if necessary */
   if ((*result_count + 1) == (*result_size)) {
     *result_size  *= 1.2;
-    (*results)    = (unsigned int **)vrna_realloc(*results, sizeof(unsigned int *) * (*result_size));
+    (*results)    =
+      (unsigned int **)vrna_realloc(*results, sizeof(unsigned int *) * (*result_size));
     for (i = *result_count + 1; i < *result_size; i++)
       (*results)[i] = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + 1));
   }
