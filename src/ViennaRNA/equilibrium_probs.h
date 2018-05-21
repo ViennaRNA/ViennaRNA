@@ -21,7 +21,7 @@
 #################################################
 */
 
-void  vrna_pairing_probs(vrna_fold_compound_t *vc, char *structure);
+int  vrna_pairing_probs(vrna_fold_compound_t *vc, char *structure);
 
 /**
  *  @ingroup part_func_global

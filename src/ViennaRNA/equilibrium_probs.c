@@ -43,9 +43,9 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-PRIVATE void  pf_create_bppm(vrna_fold_compound_t *vc, char *structure);
-PRIVATE void  pf_co_bppm(vrna_fold_compound_t *vc, char *structure);
-PRIVATE void  alipf_create_bppm(vrna_fold_compound_t *vc, char *structure);
+PRIVATE int  pf_create_bppm(vrna_fold_compound_t *vc, char *structure);
+PRIVATE int  pf_co_bppm(vrna_fold_compound_t *vc, char *structure);
+PRIVATE int  alipf_create_bppm(vrna_fold_compound_t *vc, char *structure);
 PRIVATE INLINE void bppm_circ(vrna_fold_compound_t *vc);
 
 PRIVATE INLINE void ud_outside_ext_loops(vrna_fold_compound_t *vc);
@@ -141,21 +141,23 @@ vrna_pr_energy(vrna_fold_compound_t *fc,
 }
 
 
-void
+PUBLIC int
 vrna_pairing_probs( vrna_fold_compound_t *vc,
                     char *structure){
+
+  int ret = 0;
 
   if (vc) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
         if (vc->cutpoint != -1)
-          pf_co_bppm(vc, structure);
+          ret = pf_co_bppm(vc, structure);
         else
-          pf_create_bppm(vc, structure);
+          ret = pf_create_bppm(vc, structure);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        alipf_create_bppm(vc, structure);
+        ret = alipf_create_bppm(vc, structure);
         break;
 
       default:
@@ -163,10 +165,12 @@ vrna_pairing_probs( vrna_fold_compound_t *vc,
         break;
     }
   }
+
+  return ret;
 }
 
 /* calculate base pairing probs */
-PRIVATE void
+PRIVATE int
 pf_create_bppm( vrna_fold_compound_t *vc,
                 char *structure){
 
@@ -801,9 +805,10 @@ pf_create_bppm( vrna_fold_compound_t *vc,
 
     free(hc_local);
   } /* end if 'check for forward recursion' */
-  else
-    vrna_message_error("bppm calculations have to be done after calling forward recursion\n");
-
+  else {
+    vrna_message_warning("bppm calculations have to be done after calling forward recursion");
+    return 0;
+  }
 #if 0
   if(with_ud_outside){
     for(i = 1; i <= n; i++)
@@ -832,12 +837,12 @@ pf_create_bppm( vrna_fold_compound_t *vc,
   }
 #endif
 
-  return;
+  return 1;
 }
 
 
 /* outside recursion of pf cofolding */
-PRIVATE void
+PRIVATE int
 pf_co_bppm(vrna_fold_compound_t *vc,
            char                 *structure)
 {
@@ -1270,11 +1275,17 @@ pf_co_bppm(vrna_fold_compound_t *vc,
     free(prm_l1);
     free(prml);
   }   /* end if (do_backtrack) */
+  else {
+    vrna_message_warning("bppm calculations have to be done after calling forward recursion");
+    return 0;
+  }
 
   if (ov > 0)
     vrna_message_warning("%d overflows occurred while backtracking;\n"
                          "you might try a smaller pf_scale than %g\n",
                          ov, pf_params->pf_scale);
+
+  return 1;
 }
 
 
@@ -2885,9 +2896,12 @@ vrna_mean_bp_distance_pr( int length,
   int *index = vrna_idx_row_wise((unsigned int) length);
   double d;
 
-  if (p==NULL)
-    vrna_message_error("vrna_mean_bp_distance_pr: p==NULL. You need to supply a valid probability matrix");
-
+  if (!p) {
+    vrna_message_warning("vrna_mean_bp_distance_pr: "
+                         "p == NULL. "
+                         "You need to supply a valid probability matrix");
+    return (double)INF/100.;
+  }
   d = wrap_mean_bp_distance(p, length, index, TURN);
 
   free(index);
@@ -2898,17 +2912,19 @@ PUBLIC double
 vrna_mean_bp_distance(vrna_fold_compound_t *vc){
 
   if(!vc){
-    vrna_message_error("vrna_mean_bp_distance: run vrna_pf_fold first!");
+    vrna_message_warning("vrna_mean_bp_distance: run vrna_pf_fold first!");
   } else if(!vc->exp_matrices){
-    vrna_message_error("vrna_mean_bp_distance: exp_matrices==NULL!");
+    vrna_message_warning("vrna_mean_bp_distance: exp_matrices == NULL!");
   } else if( !vc->exp_matrices->probs){
-    vrna_message_error("vrna_mean_bp_distance: probs==NULL!");
+    vrna_message_warning("vrna_mean_bp_distance: probs==NULL!");
+  } else {
+    return wrap_mean_bp_distance( vc->exp_matrices->probs,
+                                  vc->length,
+                                  vc->iindx,
+                                  vc->exp_params->model_details.min_loop_size);
   }
 
-  return wrap_mean_bp_distance( vc->exp_matrices->probs,
-                                vc->length,
-                                vc->iindx,
-                                vc->exp_params->model_details.min_loop_size);
+  return (double)INF/100.;
 }
 
 PUBLIC vrna_ep_t *
@@ -2965,7 +2981,7 @@ vrna_stack_prob(vrna_fold_compound_t *vc, double cutoff){
 }
 
 
-PRIVATE void
+PRIVATE int
 alipf_create_bppm(vrna_fold_compound_t *vc,
                   char *structure){
 
@@ -3477,6 +3493,8 @@ alipf_create_bppm(vrna_fold_compound_t *vc,
   free(prm_l);
   free(prm_l1);
   free(prml);
+
+  return 1;
 }
 
 
