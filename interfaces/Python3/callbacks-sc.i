@@ -232,8 +232,32 @@ py_wrap_sc_f_callback(int i,
   func = cb->cb_f;
 
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_i, *py_j, *py_k, *py_l, *py_d;
+  py_i   = PyLong_FromLong(i);
+  py_j   = PyLong_FromLong(j);
+  py_k   = PyLong_FromLong(k);
+  py_l   = PyLong_FromLong(l);
+  py_d   = PyLong_FromLong(d);
+  result = PyObject_CallFunctionObjArgs(func,
+                                        py_i,
+                                        py_j,
+                                        py_k,
+                                        py_l,
+                                        py_d,
+                                        (cb->data) ? cb->data : Py_None,
+                                        NULL);
+
+  Py_DECREF(py_i);
+  Py_DECREF(py_j);
+  Py_DECREF(py_k);
+  Py_DECREF(py_l);
+  Py_DECREF(py_d);
+#endif
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
     if ((err = PyErr_Occurred())) {
@@ -247,14 +271,13 @@ py_wrap_sc_f_callback(int i,
       }
     }
     PyErr_Clear();
-  } else if (result == Py_None) {
-    throw std::runtime_error( "Generic soft constraint callback must return pseudo energy value" );
+  } else if (PyLong_Check(result)) {
+    ret = (int)PyLong_AsLong(result);
   } else {
-    ret = (int)PyInt_AsLong(result);
+    throw std::runtime_error( "Generic soft constraint callback must return pseudo energy value in 10 cal/mol");
   }
   /* END recognizing errors in callback execution */
 
-  Py_DECREF(arglist);
   Py_XDECREF(result);
 
   return ret;
@@ -274,8 +297,32 @@ py_wrap_sc_bt_callback( int i,
   vrna_basepair_t *ptr, *pairs = NULL;
   func = cb->cb_bt;
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_i, *py_j, *py_k, *py_l, *py_d;
+  py_i   = PyLong_FromLong(i);  
+  py_j   = PyLong_FromLong(j);  
+  py_k   = PyLong_FromLong(k);  
+  py_l   = PyLong_FromLong(l);  
+  py_d   = PyLong_FromLong(d);  
+  result = PyObject_CallFunctionObjArgs(func,
+                                        py_i,
+                                        py_j,
+                                        py_k,
+                                        py_l,
+                                        py_d,
+                                        (cb->data) ? cb->data : Py_None,
+                                        NULL);
+
+  Py_DECREF(py_i);
+  Py_DECREF(py_j);
+  Py_DECREF(py_k);
+  Py_DECREF(py_l);
+  Py_DECREF(py_d);
+#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -343,7 +390,6 @@ py_wrap_sc_bt_callback( int i,
     pairs[num_pairs].i = pairs[num_pairs].j = 0;
     pairs = (vrna_basepair_t *)vrna_realloc(pairs, sizeof(vrna_basepair_t)*(num_pairs+1));
   }
-  Py_DECREF(arglist);
   Py_XDECREF(result);
   return pairs;
 }
@@ -363,8 +409,32 @@ py_wrap_sc_exp_f_callback(int i,
   ret  = 1.;
   func = cb->cb_exp_f;
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(i,i,i,i,i,O)", i, j, k, l, (int)d, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_i, *py_j, *py_k, *py_l, *py_d;
+  py_i = PyLong_FromLong(i);
+  py_j = PyLong_FromLong(j);
+  py_k = PyLong_FromLong(k);
+  py_l = PyLong_FromLong(l);
+  py_d = PyLong_FromLong(d);
+
+  result = PyObject_CallFunctionObjArgs(func,
+                                        py_i,
+                                        py_j,
+                                        py_k,
+                                        py_l,
+                                        py_d,
+                                        (cb->data) ? cb->data : Py_None,
+                                        NULL);
+  Py_DECREF(py_i);
+  Py_DECREF(py_j);
+  Py_DECREF(py_k);
+  Py_DECREF(py_l);
+  Py_DECREF(py_d);
+#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -386,7 +456,6 @@ py_wrap_sc_exp_f_callback(int i,
   }
   /* END recognizing errors in callback execution */
 
-  Py_DECREF(arglist);
   Py_XDECREF(result);
   return ret;
 }

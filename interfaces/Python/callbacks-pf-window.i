@@ -65,8 +65,30 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
   }
 
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(O, i, i, i, i, O)", pr_list, pr_size, i, max, type, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_size, *py_i, *py_max, *py_type;
+  py_size = PyInt_FromLong(pr_size);
+  py_i    = PyInt_FromLong(i);
+  py_max  = PyInt_FromLong(max);
+  py_type = PyInt_FromLong(type);
+  result  = PyObject_CallFunctionObjArgs(func,
+                                         pr_list,
+                                         py_size,
+                                         py_i,
+                                         py_max,
+                                         py_type,
+                                         (cb->data) ? cb->data : Py_None,
+                                         NULL);
+
+  Py_DECREF(py_size);
+  Py_DECREF(py_i);
+  Py_DECREF(py_max);
+  Py_DECREF(py_type);
+#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -84,7 +106,6 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
   }
   /* END recognizing errors in callback execution */
 
-  Py_DECREF(arglist);
   Py_XDECREF(result);
 
   return /*void*/;

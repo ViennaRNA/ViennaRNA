@@ -34,8 +34,23 @@ python_wrap_subopt_cb(const char *structure, float energy, void *data){
 
   func = cb->cb;
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(z,d,O)", structure, (double)energy, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_structure, *py_energy;
+  py_structure = (structure) ? PyString_FromString(structure) : Py_None;
+  py_energy    = PyFloat_FromDouble((double)energy);
+  result       = PyObject_CallFunctionObjArgs(func,
+                                              py_structure,
+                                              py_energy,
+                                              (cb->data) ? cb->data : Py_None,
+                                              NULL);
+
+  Py_DECREF(py_structure);
+  Py_DECREF(py_energy);
+#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -53,7 +68,6 @@ python_wrap_subopt_cb(const char *structure, float energy, void *data){
   }
   /* END recognizing errors in callback execution */
 
-  Py_DECREF(arglist);
   Py_XDECREF(result);
 
   return /*void*/;

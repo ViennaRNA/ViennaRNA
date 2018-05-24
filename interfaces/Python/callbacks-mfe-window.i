@@ -38,8 +38,29 @@ python_wrap_mfe_window_cb(int start, int end, const char *structure, float energ
 
   func = cb->cb;
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(i, i, z, d,O)", start, end, structure, (double)energy, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_start, *py_end, *py_structure, *py_energy;
+  py_start      = PyInt_FromLong(start);
+  py_end        = PyInt_FromLong(end);
+  py_structure  = PyString_FromString(structure);
+  py_energy     = PyFloat_FromDouble((double)energy);
+  result        = PyObject_CallFunctionObjArgs(func,
+                                               py_start,
+                                               py_end,
+                                               py_structure,
+                                               py_energy,
+                                               (cb->data) ? cb->data : Py_None,
+                                               NULL);
+
+  Py_DECREF(py_start);
+  Py_DECREF(py_end);
+  Py_DECREF(py_structure);
+  Py_DECREF(py_energy);
+#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -57,7 +78,6 @@ python_wrap_mfe_window_cb(int start, int end, const char *structure, float energ
   }
   /* END recognizing errors in callback execution */
 
-  Py_DECREF(arglist);
   Py_XDECREF(result);
 
   return /*void*/;
@@ -72,8 +92,32 @@ python_wrap_mfe_window_zscore_cb(int start, int end, const char *structure, floa
 
   func = cb->cb;
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(i, i, z, d, d, O)", start, end, structure, (double)energy, (double)zscore, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_start, *py_end, *py_structure, *py_energy, *py_zscore;
+  py_start      = PyInt_FromLong(start);
+  py_end        = PyInt_FromLong(end);
+  py_structure  = PyString_FromString(structure);
+  py_energy     = PyFloat_FromDouble((double)energy);
+  py_zscore     = PyFloat_FromDouble((double)zscore);
+  result        = PyObject_CallFunctionObjArgs(func,
+                                               py_start,
+                                               py_end,
+                                               py_structure,
+                                               py_energy,
+                                               py_zscore,
+                                               (cb->data) ? cb->data : Py_None,
+                                               NULL);
+
+  Py_DECREF(py_start);
+  Py_DECREF(py_end);
+  Py_DECREF(py_structure);
+  Py_DECREF(py_energy);
+  Py_DECREF(py_zscore);
+#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -91,7 +135,6 @@ python_wrap_mfe_window_zscore_cb(int start, int end, const char *structure, floa
   }
   /* END recognizing errors in callback execution */
 
-  Py_DECREF(arglist);
   Py_XDECREF(result);
 
   return /*void*/;
