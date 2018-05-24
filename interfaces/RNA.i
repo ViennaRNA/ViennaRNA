@@ -14,6 +14,7 @@ extern "C" {
 #include  <ViennaRNA/fold_compound.h>
 #include  <ViennaRNA/dp_matrices.h>
 #include  <ViennaRNA/alphabet.h>
+#include  <ViennaRNA/sequence.h>
 #include  <ViennaRNA/grammar.h>
 #include  <ViennaRNA/unstructured_domains.h>
 #include  <ViennaRNA/structured_domains.h>
@@ -194,6 +195,7 @@ namespace std {
 %include inverse.i
 %include compare.i
 %include file_formats.i
+%include sequence.i
 %include grammar.i
 %include commands.i
 %include combinatorics.i
