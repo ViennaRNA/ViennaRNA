@@ -712,7 +712,6 @@ make_pscores(vrna_fold_compound_t *fc)
 
 #define NONE -10000 /* score for forbidden pairs */
 
-  char      *structure = NULL;
   int       i, j, k, l, s, max_span, turn;
   float     **dm;
   int       olddm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs */

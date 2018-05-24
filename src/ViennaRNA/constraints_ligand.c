@@ -448,9 +448,7 @@ split_sequence(const char *string,
       (*seq2)[l - cp + 1] = '\0';
     }
   } else {
-    *seq1 = vrna_alloc(sizeof(char) * (l + 1));
-    strncpy(*seq1, string, l);
-    (*seq1)[l] = '\0';
+    *seq1 = strdup(string);
   }
 }
 

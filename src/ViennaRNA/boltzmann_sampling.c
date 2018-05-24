@@ -1058,9 +1058,11 @@ backtrack_comparative(vrna_fold_compound_t  *vc,
       if (a2s[s][i] < 1)
         continue;
 
-      char loopseq[10];
+      char loopseq[10] = {
+        0
+      };
       if (u < 9)
-        strncpy(loopseq, Ss[s] + a2s[s][i] - 1, 10);
+        strncpy(loopseq, Ss[s] + a2s[s][i] - 1, 9);
 
       qbt1 *= exp_E_Hairpin(u, type[s], S3[s][i], S5[s][j], loopseq, pf_params);
     }

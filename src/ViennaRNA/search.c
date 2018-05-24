@@ -128,8 +128,7 @@ vrna_search_BMH(const char    *needle,
                 unsigned char cyclic)
 {
   const char  *hit;
-  char        max;
-  size_t      *bc, i;
+  size_t      *bc;
 
   if ((!needle) || (!haystack) || (start > haystack_size))
     return NULL;
@@ -272,7 +271,7 @@ get_BM_BCT(const char *needle,
                              max); \
         return NULL; \
       } \
-      shift += bad_chars[val]; \
+      shift += bad_chars[(size_t)val]; \
     } \
 }
 

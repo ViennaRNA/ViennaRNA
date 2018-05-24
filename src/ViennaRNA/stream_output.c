@@ -202,8 +202,6 @@ vrna_ostream_provide(struct vrna_ordered_stream_s *queue,
                      unsigned int                 i,
                      void                         *data)
 {
-  unsigned int j;
-
   if (queue) {
 #if VRNA_WITH_PTHREADS
     pthread_mutex_lock(&queue->mtx);

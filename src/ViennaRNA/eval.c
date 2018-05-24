@@ -112,11 +112,6 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
                       int                   verbosity_level);
 
 
-PRIVATE vrna_param_t *
-get_updated_params(vrna_param_t *parameters,
-                   int          compat);
-
-
 PRIVATE float
 wrap_eval_structure(vrna_fold_compound_t  *vc,
                     const char            *structure,
@@ -921,7 +916,7 @@ stack_energy(vrna_fold_compound_t *vc,
 {
   /* recursively calculate energy of substructure enclosed by (i,j) */
 
-  int           ee, energy, j, p, q, type, cp;
+  int           ee, energy, j, p, q, cp;
   char          *string;
   short         *s;
   FILE          *out;
@@ -1009,6 +1004,8 @@ stack_energy(vrna_fold_compound_t *vc,
     while (pt[++p] == 0);
   }
 
+  ee = 0;
+
   switch (vc->type) {
     case VRNA_FC_TYPE_SINGLE:
     {
@@ -1020,9 +1017,6 @@ stack_energy(vrna_fold_compound_t *vc,
     case VRNA_FC_TYPE_COMPARATIVE:
       ee = energy_of_ml_pt(vc, i, pt);
       break;
-
-    default:
-      break;                             /* this should never happen */
   }
 
   energy += ee;
@@ -1067,6 +1061,15 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
   P             = vc->params;
   md            = &(P->model_details);
   dangle_model  = md->dangles;
+  s             = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding2 : NULL;
+  s1            = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding : NULL;
+  sc            = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sc : NULL;
+  S             = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S;
+  S5            = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S5;
+  S3            = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S3;
+  a2s           = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->a2s;
+  n_seq         = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
+  scs           = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->scs;
 
   energy  = 0;
   bonus   = 0;
@@ -1084,9 +1087,6 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
 
   switch (vc->type) {
     case VRNA_FC_TYPE_SINGLE:
-      s   = vc->sequence_encoding2;
-      s1  = vc->sequence_encoding;
-      sc  = vc->sc;
 
       /* add soft constraints for first unpaired nucleotides */
       if (sc) {
@@ -1099,12 +1099,6 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
-      S     = vc->S;
-      S5    = vc->S5;
-      S3    = vc->S3;
-      a2s   = vc->a2s;
-      n_seq = vc->n_seq;
-      scs   = vc->scs;
 
       /* add soft constraints for first unpaired nucleotides */
       if (scs) {
@@ -1293,6 +1287,15 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
   dangle_model  = md->dangles;
   logML         = md->logML;
   rtype         = &(md->rtype[0]);
+  s             = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding2 : NULL;
+  s1            = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding : NULL;
+  sc            = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sc : NULL;
+  S             = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S;
+  S5            = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S5;
+  S3            = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->S3;
+  a2s           = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->a2s;
+  n_seq         = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
+  scs           = (vc->type == VRNA_FC_TYPE_SINGLE) ? NULL : vc->scs;
 
   bonus = 0;
 
@@ -1305,9 +1308,6 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
 
   switch (vc->type) {
     case VRNA_FC_TYPE_SINGLE:
-      s   = vc->sequence_encoding2;
-      s1  = vc->sequence_encoding;
-      sc  = vc->sc;
 
       if (i != 0) {
         /* (i,j) is closing pair of multibranch loop, add soft constraints */
@@ -1319,12 +1319,6 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
-      S     = vc->S;
-      S5    = vc->S5;
-      S3    = vc->S3;
-      a2s   = vc->a2s;
-      n_seq = vc->n_seq;
-      scs   = vc->scs;
 
       if ((dangle_model % 2) || (dangle_model > 2) || (dangle_model < 0)) {
         vrna_message_warning(
