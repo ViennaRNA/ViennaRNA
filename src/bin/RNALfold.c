@@ -71,7 +71,7 @@ main(int  argc,
                               with_shapes, verbose;
   double                      min_en, min_z;
   vrna_md_t                   md;
-  vrna_cmd_t                  *commands;
+  vrna_cmd_t                  commands;
   dataset_id                  id_control;
 
   ParamFile     = ns_bases = NULL;

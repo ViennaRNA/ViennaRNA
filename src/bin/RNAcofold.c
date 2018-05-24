@@ -54,7 +54,7 @@ struct options {
   double          bppmThreshold;
   int             verbose;
   vrna_md_t       md;
-  vrna_cmd_t      *commands;
+  vrna_cmd_t      commands;
 
   dataset_id      id_control;
 

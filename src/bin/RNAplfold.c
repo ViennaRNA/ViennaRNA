@@ -149,7 +149,7 @@ main(int  argc,
   vrna_ep_t                   *pl, *dpp;
   vrna_exp_param_t            *pf_parameters;
   vrna_md_t                   md;
-  vrna_cmd_t                  *commands;
+  vrna_cmd_t                  commands;
   dataset_id                  id_control;
 
   pUfp          = NULL;

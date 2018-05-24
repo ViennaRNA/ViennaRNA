@@ -44,6 +44,7 @@
 #include "ViennaRNA/equilibrium_probs.h"
 #include "ViennaRNA/char_stream.h"
 #include "ViennaRNA/stream_output.h"
+#include "ViennaRNA/combinatorics.h"
 #include "ViennaRNA/color_output.inc"
 
 #include "RNAfold_cmdl.h"
@@ -64,7 +65,7 @@ struct options {
   double          bppmThreshold;
   int             verbose;
   char            *ligandMotif;
-  vrna_cmd_t      *cmds;
+  vrna_cmd_t      cmds;
   vrna_md_t       md;
   dataset_id      id_control;
 
@@ -794,7 +795,6 @@ process_input(FILE            *input_stream,
 static void
 process_record(struct record_data *record)
 {
-  FILE                  *output;
   unsigned int          length;
   struct options        *opt;
   char                  *rec_sequence, *mfe_structure;
@@ -818,6 +818,11 @@ process_record(struct record_data *record)
   vc = vrna_fold_compound(rec_sequence, &(opt->md), VRNA_OPTION_DEFAULT);
 
   length = vc->length;
+
+  if ((opt->md.circ) && (vrna_rotational_symmetry(rec_sequence) > 1))
+    vrna_message_warning("Input sequence %ld is rotationally symmetric! "
+                         "Symmetry correction might be required to compute actual MFE and equilibrium properties!",
+                         record->number);
 
   /* retrieve string stream, 6*length should be enough memory to start with */
   o_stream = get_output_stream(6 * length,
