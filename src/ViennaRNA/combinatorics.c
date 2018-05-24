@@ -167,26 +167,51 @@ vrna_enumerate_necklaces(const unsigned int *entity_counts)
 }
 
 
-PUBLIC const unsigned int
+PUBLIC unsigned int
 vrna_rotational_symmetry_num(const unsigned int *string,
                              size_t             string_length)
 {
+  return vrna_rotational_symmetry_pos_num(string,
+                                          string_length,
+                                          NULL);
+}
+
+
+PUBLIC unsigned int
+vrna_rotational_symmetry_pos_num(const unsigned int *string,
+                                 size_t             string_length,
+                                 unsigned int       **positions)
+{
   const unsigned int  *ptr;
-  unsigned int        matches, max;
+  unsigned int        matches, max, shifts_size;
   size_t              *badchars, shift, i;
 
-  if (!string)
-    return 0;
+  if ((!string) || (string_length == 0)) {
+    if (positions)
+      *positions = NULL;
 
-  if (string_length == 0)
     return 0;
+  }
 
   /* any string is at least order 1 */
   matches = 1;
 
+  if (positions) {
+    shifts_size = 10; /* initial guess for the order of rotational symmetry */
+    *positions  = vrna_alloc(sizeof(unsigned int) * shifts_size);
+
+    /* store trivial symmetry */
+    (*positions)[matches - 1] = 0;
+  }
+
   /* strings of length 1 are order 1 */
-  if (string_length == 1)
+  if (string_length == 1) {
+    /* resize positions array to actual length */
+    if (positions)
+      *positions = vrna_realloc(*positions, sizeof(unsigned int) * matches);
+
     return matches;
+  }
 
   /* determine largest number/character in string */
   max = string[0];
@@ -197,19 +222,28 @@ vrna_rotational_symmetry_num(const unsigned int *string,
   shift     = 1; /* skip trivial symmetry */
 
   /* detect order of rotational symmetry */
-  while (shift <= string_length) {
-    ptr = vrna_search_BMH_num(string,
-                              string_length,
-                              string,
-                              string_length,
-                              shift,
-                              badchars,
-                              1);
-    if (!ptr)
-      break;
 
-    matches++;
-    shift = ptr - string + 1;
+  /*
+   *  Note, that finding the smallest shift s of the string that
+   *  results in an identity mapping of the string to itself
+   *  already determines the order of rotational symmetry R, i.e.
+   *  R = n / r where n is the length of the string
+   */
+  ptr = vrna_search_BMH_num(string,
+                            string_length,
+                            string,
+                            string_length,
+                            shift,
+                            badchars,
+                            1);
+  if (ptr) {
+    shift   = ptr - string;
+    matches = string_length / shift;
+    if (positions) {
+      *positions = vrna_realloc(*positions, sizeof(unsigned int) * matches);
+      for (i = 0; i < matches; i++)
+        (*positions)[i] = i * shift;
+    }
   }
 
   free(badchars);
@@ -221,24 +255,54 @@ vrna_rotational_symmetry_num(const unsigned int *string,
 PUBLIC unsigned int
 vrna_rotational_symmetry(const char *string)
 {
+  return vrna_rotational_symmetry_pos(string,
+                                      NULL);
+}
+
+
+PUBLIC unsigned int
+vrna_rotational_symmetry_pos(const char   *string,
+                             unsigned int **positions)
+{
   const char    *ptr;
-  unsigned int  matches;
+  unsigned int  matches, shifts_size;
   size_t        *badchars, shift, i, string_length;
 
-  if (!string)
+  if (!string) {
+    if (positions)
+      *positions = NULL;
+
     return 0;
+  }
 
   string_length = strlen(string);
 
-  if (string_length == 0)
+  if (string_length == 0) {
+    if (positions)
+      *positions = NULL;
+
     return 0;
+  }
 
   /* any string is at least order 1 */
   matches = 1;
 
+  if (positions) {
+    shifts_size = 10; /* initial guess for the order of rotational symmetry */
+    *positions  = vrna_alloc(sizeof(unsigned int) * shifts_size);
+
+    /* store trivial symmetry */
+    (*positions)[matches - 1] = 0;
+  }
+
   /* strings of length 1 are order 1 */
-  if (string_length == 1)
+  if (string_length == 1) {
+    /* resize positions array to actual length */
+    if (positions)
+      *positions = vrna_realloc(*positions, sizeof(unsigned int) * matches);
+
     return matches;
+  }
 
   /* determine largest number/character in string */
   badchars = vrna_search_BM_BCT(string);
@@ -246,24 +310,187 @@ vrna_rotational_symmetry(const char *string)
   shift = 1; /* skip trivial symmetry */
 
   /* detect order of rotational symmetry */
-  while (shift <= string_length) {
-    ptr = vrna_search_BMH(string,
-                          string_length,
-                          string,
-                          string_length,
-                          shift,
-                          badchars,
-                          1);
-    if (!ptr)
-      break;
 
-    matches++;
-    shift = ptr - string + 1;
+  /*
+   *  Note, that finding the smallest shift s of the string that
+   *  results in an identity mapping of the string to itself
+   *  already determines the order of rotational symmetry R, i.e.
+   *  R = n / r where n is the length of the string
+   */
+  ptr = vrna_search_BMH(string,
+                        string_length,
+                        string,
+                        string_length,
+                        shift,
+                        badchars,
+                        1);
+
+  if (ptr) {
+    shift   = ptr - string;
+    matches = string_length / shift;
+    if (positions) {
+      *positions = vrna_realloc(*positions, sizeof(unsigned int) * matches);
+      for (i = 0; i < matches; i++)
+        (*positions)[i] = i * shift;
+    }
   }
 
   free(badchars);
 
   return matches;
+}
+
+
+/**
+ * @brief Compute the order of rotational symmetry for a secondary structure @p s
+ *
+ * This is the size of the stabilizer of @p s, i.e. the set of cyclic permutations
+ * of the strand identifiers of the base pairs in @p s that map @p s onto
+ * itself.
+ */
+PUBLIC unsigned int
+vrna_rotational_symmetry_db(vrna_fold_compound_t  *fc,
+                            const char            *structure)
+{
+  return vrna_rotational_symmetry_db_pos(fc,
+                                         structure,
+                                         NULL);
+}
+
+
+PUBLIC unsigned int
+vrna_rotational_symmetry_db_pos(vrna_fold_compound_t  *fc,
+                                const char            *structure,
+                                unsigned int          **positions)
+{
+  unsigned int n, permutations;
+
+  permutations = 0;
+
+  if (positions)
+    *positions = NULL;
+
+  if ((fc) && (structure)) {
+    n = strlen(structure);
+    if (fc->length != n) {
+      vrna_message_warning("vrna_rotational_symmetry_db*: "
+                           "Sequence and structure have unequal lengths (%d vs. %d)",
+                           fc->length,
+                           n);
+    } else {
+      unsigned int  *shifts, s, r, i, j, ii, jj, string_permutations;
+      short         *pt;
+
+      /* any structure has rotational symmetry of at least order 1, i.e. identity */
+      string_permutations = permutations = 1;
+
+      if (positions) {
+        *positions = vrna_alloc(sizeof(unsigned int));
+        /* store trivial symmetry, i.e. identity */
+        (*positions)[0] = 0;
+      }
+
+      /* single strands only exhibit rotational symmetry if the string is circular */
+      if ((fc->strands == 1) && (fc->params->model_details.circ)) {
+        /* compute rotational symmetry for the circular sequence */
+        string_permutations = vrna_rotational_symmetry_pos(fc->sequence,
+                                                           &shifts);
+      } else if (fc->strands > 1) {
+        /* determine rotational symmetry of the current strand permutation */
+        string_permutations = vrna_rotational_symmetry_pos_num(fc->strand_order,
+                                                               fc->strands,
+                                                               &shifts);
+      }
+
+      /*
+       *  There are no rotationally symmetric structures if the strand ordering is
+       *  not rotationally symmetric, i.e. string_permutations == 1
+       */
+      if (string_permutations > 1) {
+        /*
+         *  For each cyclic permutation of the strand(s), we check if the structure
+         *  is also an identify mapping. For that purpose, we simply convert the
+         *  structure into a pair table, perform the permutation and check for
+         *  identity with the initial structure
+         */
+        pt  = vrna_ptable(structure);
+        s   = 0;
+
+        for (r = 1; r < string_permutations; r++) {
+          /*
+           *  initial shift is given by smallest shift on sequence level
+           *  Here, we distinguish circular RNAs from multi stranded ones
+           *  as we've stored the shifts on sequence level and strand level,
+           *  respectively.
+           */
+          if (fc->strands == 1) {
+            /*
+             *  1. Circular string, i.e. shifts[r] already contains the shifts in
+             *  nucleotide positions
+             */
+            s += shifts[r] - shifts[r - 1];
+          } else {
+            /*
+             * 2. For multiple strands, we have to compute the actual nucleotide shift, since
+             * shifts[r] represents a shift by the first shifts[r] strands, i.e. their total
+             * length in nucleotides
+             */
+            for (i = shifts[r - 1]; i < shifts[r]; i++)
+              s += fc->nucleotides[fc->strand_order[i]].length;
+          }
+
+          /*
+           *  Finally, go through the structure and decrease rot_s if the rotationally
+           *  symmetric arrangement of the strand(s) still leads to an asymetry of the
+           *  structure.
+           */
+          for (i = 1; i <= n; i++) {
+            j   = pt[i]; /* pairing partner of i (1-based), or 0 if unpaired */
+            ii  = (i + s);
+            if (ii > n)
+              ii = (ii % (n + 1)) + 1;  /* position i' in the image of rotation by s */
+
+            jj = pt[ii];                /* pairing partner of i' (1-based), or 0 if unpaired */
+
+            /* i is paired? */
+            if (j != 0) {
+              j += s;
+              if (j > n)
+                j = (j % (n + 1)) + 1;  /* pairing partner of i (1-based) in the image of rotation by s */
+            }
+
+            /* finally check if j is identical to jj, and stop loop in case of mismatch */
+            if (j != jj)
+              break;
+          }
+
+          /* check whether we had a match of the structure under current permutation */
+          if (i == n + 1) {
+            /*
+             *  now, we know the minimal shift to retrieve an identical structure, so
+             *  the order of rotational symmetry is given by multiples of that shift
+             */
+            permutations = fc->length / s;
+
+            /* store permutation if structure was matches successfully */
+            if (positions) {
+              *positions = vrna_realloc(*positions, sizeof(unsigned int) * permutations);
+              for (i = 0; i < permutations; i++)
+                (*positions)[i] = i * s;
+            }
+
+            /* we are finished */
+            break;
+          }
+        }
+        free(pt);
+      }
+
+      free(shifts);
+    }
+  }
+
+  return permutations;
 }
 
 
@@ -409,6 +636,9 @@ sawada_fast(unsigned int            t,
     unsigned int      *result = (*results)[*result_count];
     struct perm_list  *ptr, *before, *after;
     ptr = perm_list_head(a);
+
+    after = before = NULL;
+
     unsigned int      j   = ptr->value;
     unsigned int      sp  = s;
     while (j >= result[t - p]) {

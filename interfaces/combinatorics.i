@@ -35,24 +35,66 @@
   }
 
 
-  unsigned int
+  std::vector<unsigned int>
   my_rotational_symmetry(std::string string)
   {
-    return vrna_rotational_symmetry(string.c_str());
+    std::vector<unsigned int> positions;
+    unsigned int i, r, *pos;
+    
+    r = vrna_rotational_symmetry_pos(string.c_str(), &pos);
+
+    if (r)
+      for (i = 0; i < r; i++)
+        positions.push_back(pos[i]);
+
+    free(pos);
+
+    return positions;
   }
 
 
-  unsigned int
+  std::vector<unsigned int>
   my_rotational_symmetry(std::vector<unsigned int> string)
   {
-    return vrna_rotational_symmetry_num((unsigned int*)&string[0], string.size());
+    std::vector<unsigned int> positions;
+    unsigned int i, r, *pos;
+    
+    r = vrna_rotational_symmetry_pos_num((unsigned int*)&string[0], string.size(), &pos);
+
+    if (r)
+      for (i = 0; i < r; i++)
+        positions.push_back(pos[i]);
+
+    free(pos);
+
+    return positions;
   }
 
 %}
 
 std::vector<std::vector<int> > my_enumerate_necklaces( std::vector<unsigned int> entity_counts);
+std::vector<unsigned int>      my_rotational_symmetry(std::vector<unsigned int> string);
+std::vector<unsigned int>      my_rotational_symmetry(std::string string);
 
-unsigned int                   my_rotational_symmetry(std::vector<unsigned int> string);
-unsigned int                   my_rotational_symmetry(std::string string);
+
+%extend vrna_fold_compound_t {
+
+  std::vector<unsigned int>
+  rotational_symmetry_db(std::string structure) {
+    std::vector<unsigned int> positions;
+    unsigned int i, r, *pos;
+
+    r = vrna_rotational_symmetry_db_pos($self, structure.c_str(), &pos);
+
+    if (r)
+      for (i = 0; i < r; i++)
+        positions.push_back(pos[i]);
+
+    free(pos);
+
+    return positions;
+  }
+}
+
 
 %include  <ViennaRNA/combinatorics.h>
