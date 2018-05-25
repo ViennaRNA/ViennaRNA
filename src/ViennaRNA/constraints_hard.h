@@ -202,8 +202,6 @@ typedef unsigned char (vrna_callback_hc_evaluate)(int           i,
  *  This secondary structure notation for RNAs is usually used as consensus secondary structure (SS_cons) entry
  *  in Stockholm formatted files
  *
- *  @note See @ref
- *
  *  @ingroup  hard_constraints
  */
 #define VRNA_CONSTRAINT_DB_WUSS                 33554432U
@@ -609,7 +607,7 @@ void vrna_hc_add_f(vrna_fold_compound_t       *vc,
  *
  *  @param  vc        The fold compound the generic hard constraint function should be bound to
  *  @param  data      A pointer to the data structure that holds required data for function 'f'
- *  @param  free_data A pointer to a function that free's the memory occupied by @data (Maybe NULL)
+ *  @param  f         A pointer to a function that free's the memory occupied by @p data (Maybe @p NULL)
  */
 void vrna_hc_add_data(vrna_fold_compound_t        *vc,
                       void                        *data,

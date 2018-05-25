@@ -19,10 +19,6 @@
 #endif
 
 
-#define VRNA_VERBOSITY_QUIET     -1     /* verbosity level for quiet operations */
-#define VRNA_VERBOSITY_DEFAULT    1     /* verbosity level for quiet operations */
-
-
 /**
  *  @file     eval.h
  *  @ingroup  eval
@@ -52,6 +48,19 @@
  *  Finally, @p verbose options exist for some functions that allow one to print the
  *  (individual) free energy contributions to some @p FILE stream.
  */
+
+
+/**
+ *  @brief  Quiet level verbosity setting
+ */
+#define VRNA_VERBOSITY_QUIET     -1
+
+
+/**
+ *  @brief  Default level verbosity setting
+ */
+#define VRNA_VERBOSITY_DEFAULT    1
+
 
 /**
  *  @name Basic Energy Evaluation Interface with Dot-Bracket Structure String

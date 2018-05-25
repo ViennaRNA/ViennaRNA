@@ -23,7 +23,7 @@
  */
 
 /**
- *  @addtoroup   plotting_utils
+ *  @addtogroup   plotting_utils
  *  @{
  */
 

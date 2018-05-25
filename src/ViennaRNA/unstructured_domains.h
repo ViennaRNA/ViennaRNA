@@ -15,7 +15,7 @@
  *  This module provides the tools to add and modify unstructured domains to the production rules of the RNA folding grammar.
  *  Usually this functionality is utilized for incorporating ligand binding to unpaired stretches of an RNA.
  *
- *  @bug  Although the additional production rule(s) for unstructured domains as descibed in @ref domains_unstructured
+ *  @bug  Although the additional production rule(s) for unstructured domains as descibed in @ref sec_domains_up
  *        are always treated as 'segments possibly bound to one or more ligands', the current implementation requires
  *        that at least one ligand is bound. The default implementation already takes care of the required changes,
  *        however, upon using callback functions other than the default ones, one has to take care of this fact.
@@ -282,7 +282,8 @@ struct vrna_unstructured_domain_motif_s {
  *
  *  @param  fc        The fold_compound data structure with pre-computed equilibrium probabilities and model settings
  *  @param  structure The centroid structure in dot-bracket notation
- *  @return           A list of unstructured domain motifs (possibly NULL). The last element terminates the list with @p start=0, @p number=-1
+ *  @return           A list of unstructured domain motifs (possibly NULL). The last element terminates the list with
+ *                    @p start=0, @p number=-1
  */
 vrna_ud_motif_t *
 vrna_ud_motifs_centroid(vrna_fold_compound_t  *fc,
@@ -303,9 +304,11 @@ vrna_ud_motifs_centroid(vrna_fold_compound_t  *fc,
  *  @see MEA()
  *  @ingroup domains_up
  *
- *  @param  fc        The fold_compound data structure with pre-computed equilibrium probabilities and model settings
- *  @param  structure The MEA structure in dot-bracket notation
- *  @return           A list of unstructured domain motifs (possibly NULL). The last element terminates the list with @p start=0, @p number=-1
+ *  @param  fc                The fold_compound data structure with pre-computed equilibrium probabilities and model settings
+ *  @param  structure         The MEA structure in dot-bracket notation
+ *  @param  probability_list  The list of probabilities to extract the MEA structure from
+ *  @return                   A list of unstructured domain motifs (possibly NULL). The last element terminates the list
+ *                            with @p start=0, @p number=-1
  */
 vrna_ud_motif_t *
 vrna_ud_motifs_MEA(vrna_fold_compound_t *fc,
@@ -405,7 +408,7 @@ void  vrna_ud_remove(vrna_fold_compound_t *vc);
  *  @brief  Attach an auxiliary data structure
  *
  *  This function binds an arbitrary, auxiliary data structure for user-implemented ligand binding.
- *  The optional callback @p free will be passed the bound data structure whenever the #vrna_fold_compound_t
+ *  The optional callback @p free_cb will be passed the bound data structure whenever the #vrna_fold_compound_t
  *  is removed from memory to avoid memory leaks.
  *
  *  @see vrna_ud_set_prod_rule_cb(), vrna_ud_set_exp_prod_rule_cb(),

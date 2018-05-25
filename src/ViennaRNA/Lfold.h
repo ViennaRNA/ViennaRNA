@@ -56,11 +56,6 @@ DEPRECATED(float Lfoldz(const char  *string,
  *  @brief
  *
  *  @ingroup mfe_window_deprecated
- *
- *  @param strings
- *  @param structure
- *  @param maxdist
- *  @return
  */
 DEPRECATED(float aliLfold(const char **AS,
                char       *structure,

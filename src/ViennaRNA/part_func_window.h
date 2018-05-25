@@ -236,7 +236,7 @@ vrna_probs_window(vrna_fold_compound_t        *fc,
  *  @param  window_size   The size of the sliding window
  *  @param  max_bp_span   The maximum distance along the backbone between two nucleotides that form a base pairs
  *  @param  cutoff        A cutoff value that omits all pairs with lower probability
- *  @return               A list of base pair probabilities, terminated by an entry with @ref vrna_ep_t.i and @ref vrna_ep_t.j set to 0
+ *  @return               A list of base pair probabilities, terminated by an entry with #vrna_ep_t.i and #vrna_ep_t.j set to 0
  */
 vrna_ep_t *
 vrna_pfl_fold(const char  *sequence,

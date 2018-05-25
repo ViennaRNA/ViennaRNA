@@ -139,6 +139,9 @@ typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int           i,
                                                       void          *data);
 
 
+/**
+ *  @brief  The type of a soft constraint
+ */
 typedef enum {
   VRNA_SC_DEFAULT,  /**<  @brief  Default Soft Constraints */
   VRNA_SC_WINDOW    /**<  @brief  Soft Constraints suitable for local structure prediction using

@@ -29,10 +29,33 @@
 typedef struct vrna_pinfo_s vrna_pinfo_t;
 
 
+/**
+ *  @brief  Use default alignment settings
+ */
 #define VRNA_ALN_DEFAULT      0U
+
+
+/**
+ *  @brief  Convert to RNA alphabet
+ */
 #define VRNA_ALN_RNA          1U
+
+
+/**
+ *  @brief  Convert to DNA alphabet
+ */
 #define VRNA_ALN_DNA          2U
+
+
+/**
+ *  @brief  Convert to uppercase nucleotide letters
+ */
 #define VRNA_ALN_UPPERCASE    4U
+
+
+/**
+ *  @brief  Convert to lowercase nucleotide letters
+ */
 #define VRNA_ALN_LOWERCASE    8U
 
 /**
@@ -185,7 +208,7 @@ vrna_aln_copy(const char    **alignment,
  *
  *  This function computes the base pair conservation (fraction of canonical base pairs)
  *  of a consensus structure given a multiple sequence alignment. The base pair types
- *  that are considered canonical may be specified using the #vrna_md_t.pairs array.
+ *  that are considered canonical may be specified using the #vrna_md_t.pair array.
  *  Passing @em NULL as parameter @p md results in default pairing rules, i.e. canonical
  *  Watson-Crick and GU Wobble pairs.
  *

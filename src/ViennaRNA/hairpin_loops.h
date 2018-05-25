@@ -140,7 +140,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *fc,
  *  @param  type  The pair type of the base pair closing the hairpin
  *  @param  si1   The 5'-mismatching nucleotide
  *  @param  sj1   The 3'-mismatching nucleotide
- *  @param  string  The sequence of the loop (May be @NULL, otherwise mst be at least @f$size + 2@f$ long)
+ *  @param  string  The sequence of the loop (May be @p NULL, otherwise mst be at least @f$size + 2@f$ long)
  *  @param  P     The datastructure containing scaled energy parameters
  *  @return The Free energy of the Hairpin-loop in dcal/mol
  */
@@ -223,7 +223,7 @@ E_Hairpin(int           size,
  *  @param  type    The pair type of the base pair closing the hairpin
  *  @param  si1     The 5'-mismatching nucleotide
  *  @param  sj1     The 3'-mismatching nucleotide
- *  @param  string  The sequence of the loop (May be @NULL, otherwise mst be at least @f$size + 2@f$ long)
+ *  @param  string  The sequence of the loop (May be @p NULL, otherwise mst be at least @f$size + 2@f$ long)
  *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
  *  @return The Boltzmann weight of the Hairpin-loop
  */

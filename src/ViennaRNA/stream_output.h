@@ -73,7 +73,7 @@ vrna_ostream_threadsafe(void);
  *
  *  @see vrna_ostream_init(), vrna_ostream_provide(), vrna_ostream_free()
  *
- *  @params dat   The output stream for which the index is requested
+ *  @param  dat   The output stream for which the index is requested
  *  @param  num   The index to request data for
  */
 void

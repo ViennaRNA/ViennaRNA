@@ -131,26 +131,26 @@ Below, you'll find a list of secondary structure elements and their correspondin
 
     Unpaired nucleotides that constitute the hairpin loop are indicated by underscores, <tt>_</tt>.
 
-    Example: <tt><<<<<_____>>>>></tt>
+    Example: @code<<<<<_____>>>>>@endcode
 
   - <b>Bulges and interior loops</b>
 
     Residues that constitute a bulge or interior loop are denoted by dashes, <tt>-</tt>.
 
-    Example: <tt>(((--<<_____>>-)))</tt>
+    Example: @code(((--<<_____>>-)))@endcode
 
   - <b>Multibranch loops</b>
 
     Unpaired nucleotides in multibranch loops are indicated by commas <tt>,</tt>.
   
-    Example: <tt>(((,,<<_____>>,<<____>>)))</tt>
+    Example: @code(((,,<<_____>>,<<____>>)))@endcode
 
   - <b>External residues</b>
 
     Single stranded nucleotides in the exterior loop, i.e. not enclosed by any other pair are
     denoted by colons, <tt>:</tt>.
 
-    Example: <tt><<<____>>>:::</tt>
+    Example: @code<<<____>>>:::@endcode
 
   - <b>Insertions</b>
 
@@ -167,7 +167,7 @@ Below, you'll find a list of secondary structure elements and their correspondin
     @note Our programs and library functions usually ignore pseudo-knots entirely treating them as
     unpaired nucleotides, if not stated otherwise.
 
-    Example:  <tt><<<_AAA___>>>aaa</tt>
+    Example:  @code<<<_AAA___>>>aaa@endcode
 @endparblock
 
 @see vrna_db_from_WUSS()

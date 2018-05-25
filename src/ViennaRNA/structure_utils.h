@@ -25,11 +25,40 @@
  *  @brief  Functions to create, parse, convert, manipulate, and compare secondary structure representations
  */
 
+
+/**
+ *  @brief  A Base Pair element
+ */
 #define VRNA_PLIST_TYPE_BASEPAIR      0
+
+
+/**
+ *  @brief  A G-Quadruplex element
+ */
 #define VRNA_PLIST_TYPE_GQUAD         1
+
+
+/**
+ *  @brief  A Hairpin loop motif element
+ */
 #define VRNA_PLIST_TYPE_H_MOTIF       2
+
+
+/**
+ *  @brief  An Internal loop motif element
+ */
 #define VRNA_PLIST_TYPE_I_MOTIF       3
+
+
+/**
+ *  @brief  An Unstructured Domain motif element
+ */
 #define VRNA_PLIST_TYPE_UD_MOTIF      4
+
+
+/**
+ *  @brief  A Base Pair stack element
+ */
 #define VRNA_PLIST_TYPE_STACK         5
 
 /**
@@ -85,7 +114,7 @@
 typedef struct vrna_hx_s vrna_hx_t;
 
 /**
- *  @brief Convenience typedef for data structure #vrna_pp_s
+ *  @brief Convenience typedef for data structure #vrna_elem_prob_s
  */
 typedef struct vrna_elem_prob_s vrna_ep_t;
 
@@ -113,10 +142,10 @@ struct vrna_hx_s {
  *  #VRNA_PLIST_TYPE_UD_MOTIF, #VRNA_PLIST_TYPE_STACK
  */
 struct vrna_elem_prob_s {
-  int   i;
-  int   j;
-  float p;
-  int   type;
+  int   i;  /**<  @brief  Start position (usually 5' nucleotide that starts the element, e.g. base pair) */
+  int   j;  /**<  @brief  End position (usually 3' nucleotide that ends the element, e.g. base pair) */
+  float p;  /**<  @brief  Probability of the element */
+  int   type;  /**<  @brief  Type of the element */
 };
 
 /**
@@ -232,9 +261,9 @@ int *vrna_loopidx_from_ptable(const short *pt);
  *  @brief Substitute pairs of brackets in a string with parenthesis
  *
  *  This function can be used to replace brackets of unusual types,
- *  such as angular brackets @verb <> @endverb , to dot-bracket format.
+ *  such as angular brackets @p <> , to dot-bracket format.
  *  The @p options parameter is used tpo specify which types of brackets
- *  will be replaced by round parenthesis @verb () @endverb.
+ *  will be replaced by round parenthesis @p () .
  *
  *  @see vrna_db_flatten_to(),
  *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
@@ -252,8 +281,8 @@ vrna_db_flatten(char          *structure,
  *  @brief Substitute pairs of brackets in a string with another type of pair characters
  *
  *  This function can be used to replace brackets in a structure annotation string,
- *  such as square brackets @verb [] @endverb , to another type of pair characters,
- *  e.g. angular brackets @verb <> @endverb.
+ *  such as square brackets @p [] , to another type of pair characters,
+ *  e.g. angular brackets @p <> .
  *
  *  The @p target array must contain a character for the 'pair open' annotation at
  *  position 0, and one for 'pair close' at position 1. T@p options parameter is used
@@ -263,7 +292,7 @@ vrna_db_flatten(char          *structure,
  *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
  *       #VRNA_BRACKETS_DEFAULT
  *
- *  @param  structure   The structure string where brackets are flattened in-place
+ *  @param  string      The structure string where brackets are flattened in-place
  *  @param  target      The new pair characters the string will be flattened to
  *  @param  options     A bitmask to specify which types of brackets should be flattened out
  */

@@ -89,7 +89,7 @@ char *vrna_dirname(const char *path);
  *        only consists of invalid characters which are simply removed!
  *
  *  @param  name        The input file name
- *  @param  replacment  The replacement character, or NULL
+ *  @param  replacement The replacement character, or NULL
  *  @return             The sanitized file name, or NULL
  */
 char *vrna_filename_sanitize(const char *name,

@@ -100,7 +100,7 @@ char *vrna_strdup_printf(const char *format,
  *  @see vrna_strdup_printf(), vrna_strcat_printf(), vrna_strcat_vprintf()
  *
  *  @param  format  The format string (See also asprintf)
- *  @param  ...     The list of variables used to fill the format string
+ *  @param  argp    The list of arguments to fill the format string
  *  @return         The formatted, null-terminated string, or NULL if something has gone wrong
  */
 char *vrna_strdup_vprintf(const char  *format,
@@ -139,7 +139,7 @@ int vrna_strcat_printf(char       **dest,
  *
  *  @param  dest    The address of a char *pointer where the formatted string is to be appended
  *  @param  format  The format string (See also sprintf)
- *  @param  ...     The list of variables used to fill the format string
+ *  @param  args    The list of argument to fill the format string
  *  @return         The number of characters in the final string, or -1 on error
  */
 int vrna_strcat_vprintf(char        **dest,

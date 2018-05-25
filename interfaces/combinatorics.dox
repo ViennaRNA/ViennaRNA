@@ -16,7 +16,7 @@ Note, that in the target language the length of the list @p string is always kno
 the parameter @p string_length must be omitted.
 @endparblock
 
-@fn unsigned int vrna_rotational_symmetry_pos_num(const unsigned int *string, size_t string_length, unsigned int **position)
+@fn unsigned int vrna_rotational_symmetry_pos_num(const unsigned int *string, size_t string_length, unsigned int **positions)
 @scripting
 @parblock
 This function is available as global function @b rotational_symmetry(). See vrna_rotational_symmetry_pos()
@@ -32,7 +32,7 @@ This function is available as global function @b rotational_symmetry(). See vrna
 for details.
 @endparblock
 
-@fn unsigned int vrna_  rotational_symmetry_pos(const char *string, unsigned int **position)
+@fn unsigned int vrna_  rotational_symmetry_pos(const char *string, unsigned int **positions)
 @scripting
 @parblock
 This function is available as overloaded global function @b rotational_symmetry(). It merges
@@ -50,7 +50,7 @@ This function is attached as method @b rotational_symmetry_db() to objects of ty
 (i.e. #vrna_fold_compound_t). See vrna_rotational_symmetry_db_pos() for details.
 @endparblock
 
-@fn unsigned int vrna_rotational_symmetry_db_pos(vrna_fold_compound_t *fc, const char *structure, unsigned int **position)
+@fn unsigned int vrna_rotational_symmetry_db_pos(vrna_fold_compound_t *fc, const char *structure, unsigned int **positions)
 @scripting
 @parblock
 This function is attached as method @b rotational_symmetry_db() to objects of type @p fold_compound
