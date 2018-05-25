@@ -1,5 +1,9 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
+ggo_verbose = $(ggo_verbose_@AM_V@)
+ggo_verbose_ = $(ggo_verbose_@AM_DEFAULT_V@)
+ggo_verbose_0 = @echo "  GGO      $@";
+
 AM_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
 AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src
@@ -99,7 +103,7 @@ if VRNA_AM_SWITCH_HAS_GENGETOPT
 # how we make the commandline interface parser
 ## See checkmk man page for details about *.ts files
 .ggo_cmdl.c:
-	$(AM_V_GEN)$(GENGETOPT) -i $<
+	$(ggo_verbose)$(GENGETOPT) -i $<
 
 _cmdl.c_cmdl.h :
 

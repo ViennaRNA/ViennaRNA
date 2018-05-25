@@ -1,5 +1,9 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
+xxd_verbose = $(xxd_verbose_@AM_V@)
+xxd_verbose_ = $(xxd_verbose_@AM_DEFAULT_V@)
+xxd_verbose_0 = @echo "  XXD      $@";
+
 SUFFIXES = .ps .hex
 
 TEMPLATE_HEADER_FILES = \
@@ -17,7 +21,7 @@ if VRNA_AM_SWITCH_HAS_XXD
 
 ## The rule for generating .hex files from .ps
 .ps.hex:
-	$(AM_V_GEN)$(XXD) -i < $< > $@ && echo ',0x00' >> $@
+	$(xxd_verbose)$(XXD) -i < $< > $@ && echo ',0x00' >> $@
 
 templates_postscript.h: $(PS_TEMPLATE_FILES_HEX)
 
