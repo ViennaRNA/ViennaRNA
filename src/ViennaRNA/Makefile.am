@@ -55,11 +55,12 @@ nodist_EXTRA_libRNA_la_SOURCES =
 endif
 
 if VRNA_AM_SWITCH_SVM
-  SVM_SRC     = ../@LIBSVM_DIR@/svm.cpp
-  SVM_INC     = -I$(top_srcdir)/src/@LIBSVM_DIR@
-  SVM_H       = ../@LIBSVM_DIR@/svm.h
-  SVM_UTILS   = utils/svm.c
-  SVM_UTILS_H = utils/svm.h svm_utils.h
+  SVM_SRC         = ../@LIBSVM_DIR@/svm.cpp
+  SVM_INC         = -I$(top_srcdir)/src/@LIBSVM_DIR@
+  SVM_H           = ../@LIBSVM_DIR@/svm.h
+  SVM_UTILS       = utils/svm.c
+  SVM_UTILS_H     = utils/svm.h
+  SVM_UTILS_H_OLD = svm_utils.h
 endif
 
 if VRNA_AM_SWITCH_JSON
@@ -155,7 +156,7 @@ pkginclude_HEADERS =  \
     combinatorics.h \
     neighbor.h \
     walk.h \
-    ${SVM_UTILS_H} \
+    ${SVM_UTILS_H_OLD} \
     ${SVM_H} \
     ${JSON_H}
 
@@ -179,7 +180,8 @@ vrna_utils_HEADERS = \
     utils/basic.h \
     utils/strings.h \
     utils/structures.h \
-    utils/alignments.h
+    utils/alignments.h \
+    ${SVM_UTILS_H}
 
 
 vrna_search_HEADERS = \
@@ -214,7 +216,6 @@ vrna_datastructures_HEADERS = \
     datastructures/lists.h \
     datastructures/char_stream.h \
     datastructures/stream_output.h
-
 
 
 libRNA_conv_la_SOURCES = \
@@ -265,7 +266,8 @@ libRNA_conv_la_SOURCES = \
     equilibrium_probs.c \
     neighbor.c \
     walk.c \
-    ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC} \
+    ${SVM_SRC} \
+    ${JSON_SRC} \
     alphabet.c \
     sequence.c \
     unstructured_domains.c
@@ -292,7 +294,8 @@ libRNA_utils_la_SOURCES = \
     search/BoyerMoore.c \
     commands.c \
     units.c \
-    combinatorics.c
+    combinatorics.c \
+    ${SVM_UTILS}
 
 libRNA_plotting_la_SOURCES = \
     plotting/alignments.c \
