@@ -48,7 +48,7 @@
 #include "config.h"
 #endif
 
-#include "ViennaRNA/energy_const.h"
+#include "ViennaRNA/params/default.h"
 
 #define NST 0     /* Energy for nonstandard stacked pairs */
 #define DEF -50   /* Default terminal mismatch, used for I */

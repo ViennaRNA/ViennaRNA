@@ -16,8 +16,8 @@
 #include "ViennaRNA/utils/svm.h"
 
 
-#include "ViennaRNA/model_avg.inc"  /* defines avg_model_string */
-#include "ViennaRNA/model_sd.inc"   /* defines sd_model_string */
+#include "ViennaRNA/params/svm_model_avg.inc"  /* defines avg_model_string */
+#include "ViennaRNA/params/svm_model_sd.inc"   /* defines sd_model_string */
 
 
 PRIVATE struct svm_model  *avg_model;

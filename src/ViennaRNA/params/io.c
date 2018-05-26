@@ -15,11 +15,11 @@
 #include <string.h>
 #include <math.h>
 #include <stdarg.h>
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/file_utils.h"
-#include "ViennaRNA/energy_const.h"
-#include "ViennaRNA/energy_par.h"
-#include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/io/utils.h"
+#include "ViennaRNA/params/constants.h"
+#include "ViennaRNA/params/default.h"
+#include "ViennaRNA/params/io.h"
 
 #define PUBLIC
 #define PRIVATE   static

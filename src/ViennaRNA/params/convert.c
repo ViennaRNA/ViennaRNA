@@ -18,15 +18,15 @@
 #include <string.h>
 #include <math.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/params/io.h"
 #include "ViennaRNA/pair_mat.h"
 
 #include "1.8.4_epars.h"
 #include "1.8.4_intloops.h"
 
-#include "ViennaRNA/convert_epars.h"
+#include "ViennaRNA/params/convert.h"
 
 enum parset_184 {
   UNKNOWN_184= -1, QUIT_184,

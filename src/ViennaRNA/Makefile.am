@@ -58,7 +58,6 @@ if VRNA_AM_SWITCH_JSON
 endif
 
 pkginclude_HEADERS =  \
-    energy_par.h \
     pair_mat.h \
     RNAstruct.h \
     dist_vars.h \
@@ -72,9 +71,7 @@ pkginclude_HEADERS =  \
     fold_vars.h \
     profiledist.h \
     treedist.h \
-    energy_const.h \
     inverse.h \
-    params.h \
     subopt.h \
     cofold.h \
     duplex.h \
@@ -98,8 +95,6 @@ pkginclude_HEADERS =  \
     multibranch_loops.h \
     2Dfold.h \
     2Dpfold.h \
-    read_epars.h \
-    convert_epars.h \
     PKplex.h\
     ali_plex.h \
     plex.h \
@@ -156,6 +151,16 @@ pkginclude_HEADERS =  \
     io/utils.h \
     io/file_formats.h \
     io/file_formats_msa.h \
+    energy_par.h \
+    energy_const.h \
+    params.h \
+    read_epars.h \
+    convert_epars.h \
+    params/default.h \
+    params/constants.h \
+    params/basic.h \
+    params/io.h \
+    params/convert.h \
     char_stream.h \
     commands.h \
     units.h \
@@ -271,10 +276,10 @@ libRNA_loops_la_SOURCES = \
     multibranch_loops_pf.c
 
 libRNA_params_la_SOURCES = \
-    read_epars.c \
-    energy_par.c \
-    params.c \
-    convert_epars.c
+    params/io.c \
+    params/default.c \
+    params/basic.c \
+    params/convert.c
 
 libRNA_special_const_la_SOURCES = \
     special_const.c
@@ -292,9 +297,17 @@ libRNA.a: libRNA.la
 clean-local:
 	-rm -f libRNA.a
 
-noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
-                  intl22.h intl22dH.h list.h\
-                  1.8.4_epars.h 1.8.4_intloops.h ${SVM_H} ${JSON_H}\
+noinst_HEADERS  = params/intl11.h \
+                  params/intl11dH.h \
+                  params/intl21.h \
+                  params/intl21dH.h \
+                  params/intl22.h \
+                  params/intl22dH.h \
+                  params/1.8.4_epars.h \
+                  params/1.8.4_intloops.h \
+                  list.h\
+                  ${SVM_H} \
+                  ${JSON_H}\
                   special_const.h
 
 nodist_pkginclude_HEADERS = vrna_config.h
@@ -312,8 +325,8 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               multibranch_loops_hc.inc \
               multibranch_loops_sc.inc \
               multibranch_loops_sc_pf.inc \
-              model_avg.inc \
-              model_sd.inc \
+              params/svm_model_avg.inc \
+              params/svm_model_sd.inc \
               ${SVM_H} \
               ${JSON_H} \
               color_output.inc \

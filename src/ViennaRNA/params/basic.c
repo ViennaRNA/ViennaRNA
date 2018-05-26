@@ -13,13 +13,14 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/read_epars.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/io.h"
+#include "ViennaRNA/params/basic.h"
+
 /**
- *** \file params.c
+ *** \file ViennaRNA/params/basic.c
  *** <P>
  *** This file provides functions that return temperature scaled energy parameters and
  *** Boltzmann weights packed in datastructures
