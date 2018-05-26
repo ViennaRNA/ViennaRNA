@@ -1,5 +1,5 @@
 /*
- *  structure_utils.c
+ *  ViennaRNA/utils/structures.c
  *
  *  Various functions to convert, parse, encode secondary structures
  *
@@ -18,10 +18,10 @@
 #include <limits.h>
 
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params.h"
 #include "ViennaRNA/gquad.h"
-#include "ViennaRNA/structure_utils.h"
+#include "ViennaRNA/utils/structures.h"
 
 #ifdef __GNUC__
 # define INLINE inline

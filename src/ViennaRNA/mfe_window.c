@@ -31,8 +31,7 @@
 
 
 #ifdef VRNA_WITH_SVM
-#include "svm.h"
-#include "svm_utils.h"
+#include "ViennaRNA/utils/svm.h"
 #endif
 
 #ifdef __GNUC__

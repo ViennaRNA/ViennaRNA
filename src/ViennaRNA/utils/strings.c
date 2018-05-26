@@ -1,5 +1,5 @@
 /*
- *                             string_utils.c
+ *    ViennaRNA/utils/strings.c
  *
  *               c  Ivo L Hofacker and Walter Fontana
  *                        Vienna RNA package
@@ -19,8 +19,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/string_utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 
 /*
  #################################

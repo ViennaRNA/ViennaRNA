@@ -1,5 +1,5 @@
 /*
- *                             utils.c
+ *    ViennaRNA/utils/basic.c
  *
  *               c  Ivo L Hofacker and Walter Fontana
  *                        Vienna RNA package
@@ -28,7 +28,7 @@
 #include <unistd.h>
 #endif
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 
 #ifdef WITH_DMALLOC
 #include "dmalloc.h"

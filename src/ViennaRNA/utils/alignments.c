@@ -1,6 +1,7 @@
 /*
- *                             aln_util.c
- *             Helper functions frelated to alignments
+ *    ViennaRNA/utils/alignments.c
+ *
+ *    Helper functions related to alignments
  */
 
 #ifdef HAVE_CONFIG_H
@@ -15,12 +16,12 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/ribo.h"
-#include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/utils/alignments.h"
 
 /*
  #################################

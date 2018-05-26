@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 AM_CFLAGS = $(RNA_CFLAGS) $(SIMD_CFLAGS) $(PTHREAD_CFLAGS)
 AM_CXXFLAGS = $(RNA_CXXFLAGS) $(SIMD_CFLAGS) $(PTHREAD_CFLAGS)
-AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC}
+AM_CPPFLAGS = $(RNA_CPPFLAGS) ${SVM_INC} -I$(top_srcdir)/src ${JSON_INC}
 AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
 SUBDIRS = static
@@ -47,8 +47,8 @@ if VRNA_AM_SWITCH_SVM
   SVM_SRC     = ../@LIBSVM_DIR@/svm.cpp
   SVM_INC     = -I$(top_srcdir)/src/@LIBSVM_DIR@
   SVM_H       = ../@LIBSVM_DIR@/svm.h
-  SVM_UTILS   = svm_utils.c
-  SVM_UTILS_H = svm_utils.h
+  SVM_UTILS   = utils/svm.c
+  SVM_UTILS_H = utils/svm.h svm_utils.h
 endif
 
 if VRNA_AM_SWITCH_JSON
@@ -75,14 +75,12 @@ pkginclude_HEADERS =  \
     energy_const.h \
     inverse.h \
     PS_dot.h \
-    utils.h \
     search.h \
     params.h \
     subopt.h \
     cofold.h \
     duplex.h \
     alifold.h \
-    aln_util.h \
     part_func_co.h \
     concentrations.h \
     ProfileAln.h \
@@ -117,8 +115,14 @@ pkginclude_HEADERS =  \
     eval.h \
     perturbation_fold.h \
     centroid.h\
+    utils.h \
     structure_utils.h \
     string_utils.h \
+    aln_util.h \
+    utils/basic.h \
+    utils/strings.h \
+    utils/structures.h \
+    utils/alignments.h \
     model.h \
     dp_matrices.h \
     plot_structure.h \
@@ -224,10 +228,10 @@ libRNA_constraints_la_SOURCES = \
     constraints/ligand.c
 
 libRNA_utils_la_SOURCES = \
-    utils.c \
-    aln_util.c \
-    string_utils.c \
-    structure_utils.c \
+    utils/basic.c \
+    utils/strings.c \
+    utils/structures.c \
+    utils/alignments.c \
     io/utils.c \
     io/file_formats.c \
     io/file_formats_msa.c \
