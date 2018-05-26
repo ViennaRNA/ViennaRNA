@@ -93,6 +93,11 @@ pkginclude_HEADERS =  \
     hairpin_loops.h \
     interior_loops.h \
     multibranch_loops.h \
+    loops/all.h \
+    loops/external.h \
+    loops/hairpin.h \
+    loops/internal.h \
+    loops/multibranch.h \
     2Dfold.h \
     2Dpfold.h \
     PKplex.h\
@@ -262,18 +267,18 @@ libRNA_plotting_la_SOURCES = \
     plotting/naview.c
 
 libRNA_loops_la_SOURCES = \
-    exterior_loops.c \
-    exterior_loops_bt.c \
-    exterior_loops_pf.c \
-    hairpin_loops.c \
-    hairpin_loops_bt.c \
-    hairpin_loops_pf.c \
-    interior_loops.c \
-    interior_loops_bt.c \
-    interior_loops_pf.c \
-    multibranch_loops.c \
-    multibranch_loops_bt.c \
-    multibranch_loops_pf.c
+    loops/external.c \
+    loops/external_bt.c \
+    loops/external_pf.c \
+    loops/hairpin.c \
+    loops/hairpin_bt.c \
+    loops/hairpin_pf.c \
+    loops/internal.c \
+    loops/internal_bt.c \
+    loops/internal_pf.c \
+    loops/multibranch.c \
+    loops/multibranch_bt.c \
+    loops/multibranch_pf.c
 
 libRNA_params_la_SOURCES = \
     params/io.c \
@@ -313,18 +318,18 @@ noinst_HEADERS  = params/intl11.h \
 nodist_pkginclude_HEADERS = vrna_config.h
 
 EXTRA_DIST =  $(pkginclude_HEADERS) \
-              exterior_loops_hc.inc \
-              exterior_loops_sc.inc \
-              exterior_loops_sc_pf.inc \
-              hairpin_loops_hc.inc \
-              hairpin_loops_sc.inc \
-              hairpin_loops_sc_pf.inc \
-              interior_loops_hc.inc \
-              interior_loops_sc.inc \
-              interior_loops_sc_pf.inc \
-              multibranch_loops_hc.inc \
-              multibranch_loops_sc.inc \
-              multibranch_loops_sc_pf.inc \
+              loops/external_hc.inc \
+              loops/external_sc.inc \
+              loops/external_sc_pf.inc \
+              loops/hairpin_hc.inc \
+              loops/hairpin_sc.inc \
+              loops/hairpin_sc_pf.inc \
+              loops/internal_hc.inc \
+              loops/internal_sc.inc \
+              loops/internal_sc_pf.inc \
+              loops/multibranch_hc.inc \
+              loops/multibranch_sc.inc \
+              loops/multibranch_sc_pf.inc \
               params/svm_model_avg.inc \
               params/svm_model_sd.inc \
               ${SVM_H} \

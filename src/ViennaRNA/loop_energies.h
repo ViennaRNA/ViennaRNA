@@ -1,41 +1,17 @@
-#ifndef VIENNA_RNA_PACKAGE_LOOP_ENERGIES_H
-#define VIENNA_RNA_PACKAGE_LOOP_ENERGIES_H
+#ifndef VIENNA_RNA_PACKAGE_LOOPS_ALL_DEPRECATED_H
+#define VIENNA_RNA_PACKAGE_LOOPS_ALL_DEPRECATED_H
 
 /**
- *  @file     loop_energies.h
- *  @ingroup  eval, eval_loops
- *  @brief    Energy evaluation for MFE and partition function calculations
- *
- *  <P>
- *  This file contains functions for the calculation of the free energy @f$\Delta G@f$
- *  of a hairpin- [ E_Hairpin() ] or interior-loop [ E_IntLoop()] .<BR>
- *  The unit of the free energy returned is @f$10^{-2} * \mathrm{kcal}/\mathrm{mol}@f$
- *  </P>
- *  <P>
- *  In case of computing the partition function, this file also supplies functions
- *  which return the Boltzmann weights @f$e^{-\Delta G/kT} @f$ for a hairpin- [ exp_E_Hairpin() ]
- *  or interior-loop [ exp_E_IntLoop() ].
- *  </P>
+ *  @file ViennaRNA/loop_energies.h
+ *  @brief      Use ViennaRNA/loops/all.h instead
+ *  @deprecated Use ViennaRNA/loops/all.h instead
  */
 
-/**
- *  @addtogroup   eval_loops
- *  @{
- */
-
-
-/* below we include the loop type specific energy evaluation functions */
-
-#include <ViennaRNA/exterior_loops.h>
-
-#include <ViennaRNA/hairpin_loops.h>
-
-#include <ViennaRNA/interior_loops.h>
-
-#include <ViennaRNA/multibranch_loops.h>
-
-/**
- * @}
- */
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+# ifdef VRNA_WARN_DEPRECATED
+#warning "Including deprecated header file <ViennaRNA/loop_energies.h>! Use <ViennaRNA/loops/all.h> instead!"
+# endif
+#include <ViennaRNA/loops/all.h>
+#endif
 
 #endif

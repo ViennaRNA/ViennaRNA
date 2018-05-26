@@ -8,16 +8,17 @@
 #include <ctype.h>
 #include <string.h>
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/data_structures.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/constraints.h"
-#include "ViennaRNA/exterior_loops.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/loops/external.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/hairpin_loops.h"
+#include "ViennaRNA/loops/hairpin.h"
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -25,7 +26,7 @@
 # define INLINE
 #endif
 
-#include "hairpin_loops_hc.inc"
+#include "hairpin_hc.inc"
 
 /*
  #################################

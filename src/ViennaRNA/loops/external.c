@@ -10,14 +10,15 @@
 #include <limits.h>
 
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/energy_par.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/params/default.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/exterior_loops.h"
+#include "ViennaRNA/loops/external.h"
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -25,8 +26,8 @@
 # define INLINE
 #endif
 
-#include "exterior_loops_hc.inc"
-#include "exterior_loops_sc.inc"
+#include "external_hc.inc"
+#include "external_sc.inc"
 
 /*
  #################################

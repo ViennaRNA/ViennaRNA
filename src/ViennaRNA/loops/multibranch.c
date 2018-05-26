@@ -8,16 +8,17 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/energy_par.h"
-#include "ViennaRNA/constraints.h"
-#include "ViennaRNA/exterior_loops.h"
+#include "ViennaRNA/params/default.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/loops/external.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/multibranch_loops.h"
+#include "ViennaRNA/loops/multibranch.h"
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -25,8 +26,8 @@
 # define INLINE
 #endif
 
-#include "multibranch_loops_hc.inc"
-#include "multibranch_loops_sc.inc"
+#include "multibranch_hc.inc"
+#include "multibranch_sc.inc"
 
 /*
  #################################
