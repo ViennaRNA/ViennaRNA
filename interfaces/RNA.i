@@ -10,7 +10,7 @@
 
 extern "C" {
 #include  <ViennaRNA/model.h>
-#include  <ViennaRNA/data_structures.h>
+#include  <ViennaRNA/datastructures/basic.h>
 #include  <ViennaRNA/fold_compound.h>
 #include  <ViennaRNA/dp_matrices.h>
 #include  <ViennaRNA/alphabet.h>
