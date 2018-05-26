@@ -18,4 +18,4 @@
   }
 }
 
-%include  <ViennaRNA/constraints_ligand.h>
+%include  <ViennaRNA/constraints/ligand.h>

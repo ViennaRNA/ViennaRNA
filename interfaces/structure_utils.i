@@ -369,4 +369,4 @@ void db_flatten(char *structure, std::string target, unsigned int options = VRNA
 %rename (db_to_element_string) vrna_db_to_element_string;
 
 
-%include  <ViennaRNA/structure_utils.h>
+%include  <ViennaRNA/utils/structures.h>

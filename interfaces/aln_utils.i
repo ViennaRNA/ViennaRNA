@@ -233,4 +233,4 @@ my_aln_conservation_col(std::vector<std::string> alignment,
 %constant unsigned int ALN_LOWERCASE            = VRNA_ALN_LOWERCASE;
 %constant unsigned int MEASURE_SHANNON_ENTROPY  = VRNA_MEASURE_SHANNON_ENTROPY;
 
-%include  <ViennaRNA/aln_util.h>
+%include  <ViennaRNA/utils/alignments.h>
