@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /* two helper macros to indicate whether a function should be exported in
 the library or stays hidden */

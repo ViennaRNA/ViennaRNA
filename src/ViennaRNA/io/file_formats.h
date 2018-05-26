@@ -27,7 +27,7 @@
 
 #include <stdio.h>
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  *  @brief Print a secondary structure as helix list

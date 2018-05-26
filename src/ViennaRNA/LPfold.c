@@ -18,7 +18,7 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>    /* #defines FLT_MAX ... */
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"

@@ -3,7 +3,7 @@
 
 #include <ViennaRNA/utils/basic.h>
 #include <ViennaRNA/params/default.h>
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/constraints/hard.h>
 #include <ViennaRNA/constraints/soft.h>

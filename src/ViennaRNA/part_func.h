@@ -19,7 +19,7 @@ typedef struct vrna_dimer_pf_s cofoldF;
 #endif
 
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/centroid.h>
 #include <ViennaRNA/equilibrium_probs.h>

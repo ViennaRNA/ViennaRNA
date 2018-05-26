@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_ALI_PLEX_H
 #define VIENNA_RNA_PACKAGE_ALI_PLEX_H
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 /**
 *** aliLduplexfold computes the duplexes between two alignments
 **/

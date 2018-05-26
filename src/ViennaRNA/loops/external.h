@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_LOOPS_EXTERNAL_H
 #define VIENNA_RNA_PACKAGE_LOOPS_EXTERNAL_H
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
 
 #ifdef VRNA_WARN_DEPRECATED

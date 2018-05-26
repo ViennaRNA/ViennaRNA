@@ -25,7 +25,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/eval.h"

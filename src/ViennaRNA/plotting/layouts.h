@@ -11,7 +11,7 @@
  *  @addtogroup   plotting_utils
  *  @{
  */
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/plotting/naview.h>
 
 #ifndef PI

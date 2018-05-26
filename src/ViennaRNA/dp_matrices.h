@@ -21,7 +21,7 @@ typedef struct  vrna_mx_mfe_s vrna_mx_mfe_t;
 /** @brief Typename for the Partition Function (PF) DP matrices data structure #vrna_mx_pf_s */
 typedef struct  vrna_mx_pf_s vrna_mx_pf_t;
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  *  @brief  An enumerator that is used to specify the type of a polymorphic Dynamic Programming (DP)

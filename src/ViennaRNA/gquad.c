@@ -16,7 +16,7 @@
 #include <string.h>
 
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/alignments.h"

@@ -13,7 +13,7 @@
  *    @brief  The RNA folding grammar as implemented in RNAlib
  */
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 typedef int (vrna_callback_gr_rule)(vrna_fold_compound_t  *vc,
                                     int                   i,

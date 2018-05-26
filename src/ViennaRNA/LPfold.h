@@ -13,7 +13,7 @@
  *  2011 @cite bernhart:2011
  */
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/part_func_window.h>
 

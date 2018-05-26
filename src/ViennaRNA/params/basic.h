@@ -38,7 +38,7 @@ typedef struct  vrna_param_s vrna_param_t;
 typedef struct  vrna_exp_param_s vrna_exp_param_t;
 
 #include <ViennaRNA/params/constants.h>
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/model.h>
 
 #define   VRNA_GQUAD_MAX_STACK_SIZE     7

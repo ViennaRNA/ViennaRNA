@@ -2,7 +2,7 @@
 #define VIENNA_RNA_PACKAGE_MFE_H
 
 #include <stdio.h>
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  *

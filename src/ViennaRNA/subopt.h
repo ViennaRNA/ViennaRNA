@@ -57,7 +57,7 @@ typedef struct vrna_subopt_sol_s   SOLUTION;
 
 #endif
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
 
 

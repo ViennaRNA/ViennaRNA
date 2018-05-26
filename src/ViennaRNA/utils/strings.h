@@ -26,7 +26,7 @@
  */
 
 #include <stdarg.h>
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  * @brief Stringify a macro after expansion

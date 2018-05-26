@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/gquad.h"

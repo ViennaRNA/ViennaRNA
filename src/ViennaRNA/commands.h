@@ -18,7 +18,7 @@
 typedef struct vrna_command_s *vrna_cmd_t;
 
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  * @brief Command parse/apply flag indicating hard constraints

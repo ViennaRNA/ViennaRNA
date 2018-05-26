@@ -70,7 +70,7 @@ typedef struct vrna_unstructured_domain_s vrna_ud_t;
 
 typedef struct vrna_unstructured_domain_motif_s vrna_ud_motif_t;
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/utils/structures.h>
 
 /**

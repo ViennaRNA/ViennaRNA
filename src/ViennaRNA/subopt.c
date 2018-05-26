@@ -21,7 +21,7 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "list.h"
+#include "ViennaRNA/datastructures/lists.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/loops/all.h"

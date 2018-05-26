@@ -4,7 +4,7 @@
 #include <math.h>
 #include <string.h>
 #include <ViennaRNA/utils/basic.h>
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
 
 #ifdef VRNA_WARN_DEPRECATED

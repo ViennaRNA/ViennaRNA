@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_CONSTRAINTS_SOFT_H
 #define VIENNA_RNA_PACKAGE_CONSTRAINTS_SOFT_H
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/constraints/basic.h>
 
 /**

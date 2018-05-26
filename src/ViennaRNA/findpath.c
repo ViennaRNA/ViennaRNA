@@ -10,7 +10,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/findpath.h"
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/fold.h"

@@ -120,7 +120,7 @@ typedef struct vrna_elem_prob_s vrna_ep_t;
 
 #include <stdio.h>
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  *  @brief  Data structure representing an entry of a helix list

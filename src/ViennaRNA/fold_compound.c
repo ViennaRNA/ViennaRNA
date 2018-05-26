@@ -27,7 +27,7 @@
 #include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/params/default.h"
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/gquad.h"

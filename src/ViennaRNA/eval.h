@@ -2,7 +2,7 @@
 #define VIENNA_RNA_PACKAGE_EVAL_H
 
 #include <stdio.h>
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include "ViennaRNA/neighbor.h"
 #include <ViennaRNA/params/basic.h>   /* for deprecated functions */
 

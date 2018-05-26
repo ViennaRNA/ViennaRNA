@@ -19,7 +19,7 @@
 #include <ctype.h>
 
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/mfe_window.h"
 #include "ViennaRNA/Lfold.h"
 

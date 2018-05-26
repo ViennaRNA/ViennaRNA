@@ -2,7 +2,7 @@
 #define VIENNA_RNA_PACKAGE_LOOPS_MULTIBRANCH_H
 
 #include <ViennaRNA/utils/basic.h>
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
 
 #ifdef VRNA_WARN_DEPRECATED

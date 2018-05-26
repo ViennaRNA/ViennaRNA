@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_CENTROID_H
 #define VIENNA_RNA_PACKAGE_CENTROID_H
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/utils/structures.h>
 
 #ifdef VRNA_WARN_DEPRECATED
