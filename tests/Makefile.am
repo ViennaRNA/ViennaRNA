@@ -1,5 +1,9 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
+checkmk_verbose   = $(checkmk_verbose_@AM_V@)
+checkmk_verbose_  = $(checkmk_verbose_@AM_DEFAULT_V@)
+checkmk_verbose_0 = @echo "  CHECKMK  $@";
+
 AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src -I$(top_builddir)/src/
 AM_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS) @CHECK_CFLAGS@ 
 AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)
@@ -197,7 +201,7 @@ TESTS = \
 ## Below are the rules how to create the test suite executables
 ## See checkmk man page for details about *.ts files
 .ts.c:
-	$(AM_V_GEN)checkmk $< > $@
+	$(checkmk_verbose)checkmk $< > $@
 
 endif
 
