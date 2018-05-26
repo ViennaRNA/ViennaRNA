@@ -7,13 +7,14 @@ AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
 SUBDIRS = static
 
-vrna_constraintsdir = $(pkgincludedir)/constraints
-vrna_paramsdir      = $(pkgincludedir)/params
-vrna_utilsdir       = $(pkgincludedir)/utils
-vrna_iodir          = $(pkgincludedir)/io
-vrna_searchdir      = $(pkgincludedir)/search
-vrna_plottingdir    = $(pkgincludedir)/plotting
-vrna_loopsdir       = $(pkgincludedir)/loops
+vrna_constraintsdir     = $(pkgincludedir)/constraints
+vrna_paramsdir          = $(pkgincludedir)/params
+vrna_utilsdir           = $(pkgincludedir)/utils
+vrna_iodir              = $(pkgincludedir)/io
+vrna_searchdir          = $(pkgincludedir)/search
+vrna_plottingdir        = $(pkgincludedir)/plotting
+vrna_loopsdir           = $(pkgincludedir)/loops
+vrna_datastructuresdir  = $(pkgincludedir)/datastructures
 
 # the library names to build
 lib_LTLIBRARIES = libRNA.la
@@ -21,6 +22,7 @@ lib_LTLIBRARIES = libRNA.la
 # convenience library
 noinst_LTLIBRARIES =  libRNA_conv.la \
                       libRNA_constraints.la \
+                      libRNA_datastructures.la \
                       libRNA_utils.la \
                       libRNA_plotting.la \
                       libRNA_params.la \
@@ -38,6 +40,7 @@ libRNA_la_LDFLAGS = -avoid-version -static $(LTO_LDFLAGS) $(PTHREAD_LIBS)
 
 libRNA_conv_la_LIBADD = \
     libRNA_constraints.la \
+    libRNA_datastructures.la \
     libRNA_utils.la \
     libRNA_plotting.la \
     libRNA_params.la \
@@ -93,6 +96,8 @@ pkginclude_HEADERS =  \
     ribo.h \
     findpath.h \
     data_structures.h \
+    char_stream.h \
+    stream_output.h \
     fold_compound.h \
     MEA.h \
     mm.h \
@@ -145,11 +150,9 @@ pkginclude_HEADERS =  \
     params.h \
     read_epars.h \
     convert_epars.h \
-    char_stream.h \
     commands.h \
     units.h \
     combinatorics.h \
-    stream_output.h \
     neighbor.h \
     walk.h \
     ${SVM_UTILS_H} \
@@ -206,10 +209,17 @@ vrna_params_HEADERS = \
     params/convert.h
 
 
+vrna_datastructures_HEADERS = \
+    datastructures/basic.h \
+    datastructures/lists.h \
+    datastructures/char_stream.h \
+    datastructures/stream_output.h
+
+
+
 libRNA_conv_la_SOURCES = \
     fold_compound.c \
     dist_vars.c \
-    data_structures.c \
     part_func.c \
     part_func_wrappers.c \
     pf_fold.c \
@@ -223,7 +233,6 @@ libRNA_conv_la_SOURCES = \
     fold.c \
     stringdist.c \
     subopt.c \
-    list.c \
     Lfold.c \
     cofold.c \
     part_func_co.c \
@@ -281,11 +290,9 @@ libRNA_utils_la_SOURCES = \
     io/file_formats.c \
     io/file_formats_msa.c \
     search/BoyerMoore.c \
-    char_stream.c \
     commands.c \
     units.c \
-    combinatorics.c \
-    stream_output.c
+    combinatorics.c
 
 libRNA_plotting_la_SOURCES = \
     plotting/alignments.c \
@@ -314,6 +321,12 @@ libRNA_params_la_SOURCES = \
     params/default.c \
     params/basic.c \
     params/convert.c
+
+libRNA_datastructures_la_SOURCES = \
+    datastructures/basic.c \
+    datastructures/lists.c \
+    datastructures/char_stream.c \
+    datastructures/stream_output.c
 
 libRNA_special_const_la_SOURCES = \
     special_const.c

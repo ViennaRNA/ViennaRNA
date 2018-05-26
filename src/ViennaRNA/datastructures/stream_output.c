@@ -11,7 +11,7 @@
 #endif
 
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/stream_output.h"
+#include "ViennaRNA/datastructures/stream_output.h"
 
 #ifdef __GNUC__
 # define INLINE inline

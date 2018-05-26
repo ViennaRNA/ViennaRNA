@@ -770,6 +770,7 @@ INPUT                  =  @top_srcdir@/doc/refman.include/ \
                           @top_srcdir@/src/ViennaRNA/plotting \
                           @top_srcdir@/src/ViennaRNA/utils \
                           @top_srcdir@/src/ViennaRNA/search \
+                          @top_srcdir@/src/ViennaRNA/datastructures \
                           @top_srcdir@/interfaces
 
 # This tag can be used to specify the character encoding of the source files

@@ -15,7 +15,7 @@
 #include <stdint.h>
 
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/char_stream.h"
+#include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/color_output.inc"
 
 #define CSTR_OVERHEAD 4096
