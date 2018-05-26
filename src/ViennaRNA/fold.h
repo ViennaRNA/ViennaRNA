@@ -4,7 +4,7 @@
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/params.h>
+#include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/mfe.h>
 #include <ViennaRNA/eval.h>
 

@@ -19,8 +19,8 @@
 #include <ctype.h>
 
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/file_formats_msa.h"

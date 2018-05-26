@@ -2,7 +2,7 @@
 #define VIENNA_RNA_PACKAGE_GQUAD_H
 
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/params.h>
+#include <ViennaRNA/params/basic.h>
 
 #ifndef INLINE
 #ifdef __GNUC__

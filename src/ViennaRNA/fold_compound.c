@@ -23,19 +23,23 @@
 #include <string.h>
 #include <limits.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/structure_utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/gquad.h"
-#include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/ribo.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/mm.h"
+#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/fold_compound.h"
 
 /*
  #################################

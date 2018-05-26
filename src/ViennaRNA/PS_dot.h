@@ -13,6 +13,7 @@
 # endif
 #include <ViennaRNA/plotting/probabilities.h>
 #include <ViennaRNA/plotting/layouts.h>
+#include <ViennaRNA/plotting/structures.h>
 #endif
 
 #endif

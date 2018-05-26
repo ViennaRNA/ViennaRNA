@@ -12,7 +12,7 @@
 
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/mfe_window.h"
 

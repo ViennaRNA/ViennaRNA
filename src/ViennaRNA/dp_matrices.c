@@ -20,11 +20,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "data_structures.h"
-#include "model.h"
-#include "utils.h"
-#include "gquad.h"
-#include "dp_matrices.h"
+#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/model.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/gquad.h"
+#include "ViennaRNA/dp_matrices.h"
 
 /*
  #################################

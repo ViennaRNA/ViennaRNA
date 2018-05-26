@@ -79,16 +79,17 @@ typedef struct vrna_bp_stack_s bondT;
 
 #endif
 
-#include <ViennaRNA/energy_const.h>
+#include <ViennaRNA/params/constants.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/model.h>
-#include <ViennaRNA/params.h>
+#include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/dp_matrices.h>
-#include <ViennaRNA/constraints.h>
+#include <ViennaRNA/constraints/hard.h>
+#include <ViennaRNA/constraints/soft.h>
 #include <ViennaRNA/grammar.h>
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/structure_utils.h"
+#include "ViennaRNA/utils/structures.h"
 
 /*
  * ############################################################

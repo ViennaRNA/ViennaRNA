@@ -28,7 +28,7 @@
 #include "ViennaRNA/dist_vars.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/part_func.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/profiledist.h"
 #include "ViennaRNA/ProfileAln.h"
 

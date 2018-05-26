@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <ViennaRNA/data_structures.h>
 #include "ViennaRNA/neighbor.h"
-#include <ViennaRNA/params.h>   /* for deprecated functions */
+#include <ViennaRNA/params/basic.h>   /* for deprecated functions */
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)

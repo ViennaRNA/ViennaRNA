@@ -21,6 +21,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/io.h"
+#include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/pair_mat.h"
 
 #include "1.8.4_epars.h"

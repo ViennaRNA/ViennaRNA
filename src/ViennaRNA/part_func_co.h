@@ -50,7 +50,7 @@
  */
 
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/params.h>
+#include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/part_func.h>
 #include <ViennaRNA/equilibrium_probs.h>
 #include <ViennaRNA/concentrations.h>

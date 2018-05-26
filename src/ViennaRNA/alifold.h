@@ -2,11 +2,11 @@
 #define VIENNA_RNA_PACKAGE_ALIFOLD_H
 
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/params.h>
+#include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/ribo.h>
 #include <ViennaRNA/mfe.h>
 #include <ViennaRNA/part_func.h>
-#include <ViennaRNA/aln_util.h>
+#include <ViennaRNA/utils/alignments.h>
 #include <ViennaRNA/boltzmann_sampling.h>
 
 #ifdef VRNA_WARN_DEPRECATED

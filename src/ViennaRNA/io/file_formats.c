@@ -19,9 +19,9 @@
 #include <ctype.h>
 
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/io/utils.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints/hard.h"
 #if VRNA_WITH_JSON_SUPPORT
 # include <json/json.h>
 #endif

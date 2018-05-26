@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/search/BoyerMoore.h"
 
 /*

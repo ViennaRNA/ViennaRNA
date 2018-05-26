@@ -38,7 +38,7 @@ typedef struct vrna_dimer_conc_s ConcEnt;
 #endif
 
 #include <ViennaRNA/fold_compound.h>
-#include <ViennaRNA/params.h>
+#include <ViennaRNA/params/basic.h>
 
 /**
  *  @brief  Data structure for concentration dependency computations

@@ -28,6 +28,7 @@
 #include <unistd.h>
 #endif
 
+#include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/utils/basic.h"
 
 #ifdef WITH_DMALLOC

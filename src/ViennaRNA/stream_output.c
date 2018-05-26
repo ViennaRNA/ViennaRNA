@@ -10,7 +10,7 @@
 # include <pthread.h>
 #endif
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/stream_output.h"
 
 #ifdef __GNUC__

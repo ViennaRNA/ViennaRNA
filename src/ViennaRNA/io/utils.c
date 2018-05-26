@@ -21,7 +21,8 @@
 #include <errno.h>
 #include <libgen.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/io/utils.h"
 
 #define PRIVATE  static

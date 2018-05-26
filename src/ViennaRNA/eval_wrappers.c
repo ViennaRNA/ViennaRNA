@@ -23,10 +23,13 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/eval.h"
 
 #ifdef __GNUC__

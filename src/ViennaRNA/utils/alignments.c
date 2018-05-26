@@ -17,10 +17,13 @@
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/ribo.h"
+#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/utils/alignments.h"
 
 /*

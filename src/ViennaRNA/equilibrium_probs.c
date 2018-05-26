@@ -16,15 +16,18 @@
 #include <float.h>    /* #defines FLT_MAX ... */
 #include <limits.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/gquad.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/eval.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/part_func.h"
+#include "ViennaRNA/equilibrium_probs.h"
 
 /*
 #################################

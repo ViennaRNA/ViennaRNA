@@ -15,7 +15,7 @@
 #include <math.h>
 #include "ViennaRNA/edit_cost.h"
 #include "ViennaRNA/dist_vars.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 
 PUBLIC float
 string_edit_distance(swString *T1,

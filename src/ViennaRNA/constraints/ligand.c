@@ -15,9 +15,9 @@
 #include <string.h>
 #include <math.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/constraints.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/constraints/ligand.h"

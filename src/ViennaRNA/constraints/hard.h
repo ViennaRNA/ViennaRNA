@@ -20,6 +20,7 @@
  *  @brief      Functions and data structures for handling of secondary structure hard constraints
  */
 #include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/constraints/basic.h>
 
 /**
  *  @addtogroup hard_constraints

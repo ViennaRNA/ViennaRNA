@@ -33,7 +33,7 @@
  */
 
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/params.h>
+#include <ViennaRNA/params/basic.h>
 
 /**
  *  @brief Solution element returned from vrna_mfe_TwoD()

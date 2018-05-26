@@ -19,15 +19,16 @@
 #include <math.h>
 #include <float.h>    /* #defines FLT_MAX ... */
 #include "ViennaRNA/data_structures.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/PS_dot.h"
+#include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/part_func.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/Lfold.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/part_func_window.h"
 
 /*

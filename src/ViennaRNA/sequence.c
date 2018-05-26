@@ -12,8 +12,8 @@
 #include <string.h>
 
 #include "ViennaRNA/data_structures.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/string_utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/sequence.h"
 

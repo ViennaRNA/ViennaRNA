@@ -16,8 +16,7 @@
 #include "config.h"
 #endif
 
-#include "ViennaRNA/data_structures.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 
 /*
  #################################

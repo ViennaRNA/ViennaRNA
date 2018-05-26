@@ -18,6 +18,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/plotting/alignments.h"
 
 #include "static/templates_postscript.h"

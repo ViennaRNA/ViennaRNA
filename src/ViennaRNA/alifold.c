@@ -29,14 +29,14 @@
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/eval.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/default.h"
+#include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/alifold.h"
-#include "ViennaRNA/aln_util.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/loops/all.h"
 
 #ifdef _OPENMP
 #include <omp.h>

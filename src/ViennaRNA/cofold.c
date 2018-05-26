@@ -20,14 +20,17 @@
 #include <string.h>
 #include <limits.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/subopt.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/gquad.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/cofold.h"
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY

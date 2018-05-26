@@ -12,13 +12,15 @@
 #include <string.h>
 #include <limits.h>
 
-#include "ViennaRNA/energy_par.h"
-#include "ViennaRNA/energy_const.h" /* defines MINPSCORE */
+#include "ViennaRNA/params/default.h"
+#include "ViennaRNA/params/constants.h" /* defines MINPSCORE */
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/aln_util.h"
-#include "ViennaRNA/file_formats.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/io/utils.h"
+#include "ViennaRNA/io/file_formats.h"
+#include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/constraints/SHAPE.h"
 

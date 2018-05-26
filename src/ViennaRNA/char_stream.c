@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/char_stream.h"
 #include "ViennaRNA/color_output.inc"
 

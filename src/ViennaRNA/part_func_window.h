@@ -66,7 +66,7 @@ typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
                                           void          *data);
 
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/params.h>
+#include <ViennaRNA/params/basic.h>
 
 /**
  *  @brief  Exterior loop

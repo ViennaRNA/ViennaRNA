@@ -20,6 +20,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/plotting/layouts.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/plotting/structures.h"
 
 #include "static/templates_postscript.h"

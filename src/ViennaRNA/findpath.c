@@ -12,12 +12,13 @@
 #include "ViennaRNA/findpath.h"
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/structure_utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/structures.h"
 
 #ifdef _OPENMP
 #include <omp.h>

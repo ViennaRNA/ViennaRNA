@@ -14,7 +14,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/centroid.h"

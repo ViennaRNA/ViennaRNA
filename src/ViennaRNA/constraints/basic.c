@@ -12,8 +12,9 @@
 #include <string.h>
 #include <limits.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/io/file_formats.h"
+#include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/commands.h"
 #include "ViennaRNA/constraints/basic.h"
 

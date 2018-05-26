@@ -21,7 +21,7 @@
 #include <float.h>
 #include <math.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/unstructured_domains.h"

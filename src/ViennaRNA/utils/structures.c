@@ -19,7 +19,7 @@
 
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/utils/structures.h"
 

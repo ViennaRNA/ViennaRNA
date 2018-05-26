@@ -19,8 +19,10 @@
 #include <ctype.h>
 
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/commands.h"
 
 /**

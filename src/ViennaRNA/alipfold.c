@@ -24,17 +24,17 @@
 #include <float.h>    /* #defines FLT_MIN */
 #include <limits.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/PS_dot.h"
+#include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/ribo.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/part_func.h"
-#include "ViennaRNA/structure_utils.h"
+#include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/alifold.h"
 
 #ifdef _OPENMP

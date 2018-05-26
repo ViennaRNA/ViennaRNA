@@ -22,8 +22,9 @@
 #include <string.h>
 #include <limits.h>
 
-#include "ViennaRNA/energy_const.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/params/constants.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/model.h"
 
 /*

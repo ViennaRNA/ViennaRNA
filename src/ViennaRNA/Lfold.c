@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/mfe_window.h"
 #include "ViennaRNA/Lfold.h"

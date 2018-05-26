@@ -25,16 +25,18 @@
 #include <unistd.h>
 #include <limits.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/structure_utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/constraints.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/cofold.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/eval.h"
 
 #include "ViennaRNA/color_output.inc"

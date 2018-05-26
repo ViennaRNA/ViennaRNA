@@ -2,15 +2,6 @@
 #include "config.h"
 #endif
 
-#include "perturbation_fold.h"
-#include "eval.h"
-#include "fold_vars.h"
-#include "constraints.h"
-#include "fold.h"
-#include "part_func.h"
-#include "utils.h"
-#include "params.h"
-
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -20,6 +11,16 @@
 #ifdef VRNA_WITH_GSL
 #include <gsl/gsl_multimin.h>
 #endif
+
+#include "ViennaRNA/eval.h"
+#include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/fold.h"
+#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/perturbation_fold.h"
 
 static void
 calculate_probability_unpaired(vrna_fold_compound_t *vc,
