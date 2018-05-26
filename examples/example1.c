@@ -3,8 +3,8 @@
 #include <string.h>
 
 #include  <ViennaRNA/data_structures.h>
-#include  <ViennaRNA/params.h>
-#include  <ViennaRNA/utils.h>
+#include  <ViennaRNA/params/basic.h>
+#include  <ViennaRNA/utils/basic.h>
 #include  <ViennaRNA/eval.h>
 #include  <ViennaRNA/fold.h>
 #include  <ViennaRNA/part_func.h>

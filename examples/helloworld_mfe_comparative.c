@@ -3,8 +3,8 @@
 #include <string.h>
 
 #include <ViennaRNA/alifold.h>
-#include <ViennaRNA/aln_util.h>
-#include <ViennaRNA/utils.h>
+#include <ViennaRNA/utils/basic.h>
+#include <ViennaRNA/utils/alignments.h>
 
 int
 main()

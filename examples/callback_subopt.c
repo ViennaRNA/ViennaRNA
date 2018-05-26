@@ -2,9 +2,9 @@
 #include <stdio.h>
 
 #include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/utils/basic.h>
+#include <ViennaRNA/utils/strings.h>
 #include <ViennaRNA/subopt.h>
-#include <ViennaRNA/string_utils.h>
-#include <ViennaRNA/utils.h>
 
 
 void

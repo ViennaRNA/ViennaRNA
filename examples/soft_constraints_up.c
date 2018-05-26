@@ -2,10 +2,10 @@
 #include <stdio.h>
 
 #include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/utils/basic.h>
+#include <ViennaRNA/utils/strings.h>
+#include <ViennaRNA/constraints/soft.h>
 #include <ViennaRNA/mfe.h>
-#include <ViennaRNA/string_utils.h>
-#include <ViennaRNA/constraints_soft.h>
-#include <ViennaRNA/utils.h>
 
 int
 main()
