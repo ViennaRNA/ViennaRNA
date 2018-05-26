@@ -1,7 +1,7 @@
 /*
- *  search.c
+ *  ViennaRNA/search/BoyerMoore.c
  *
- *  Various implementations of efficient search algorithms
+ *  Variations of the Boyer-Moore search algorithms
  *
  *  (c) 2018, Ronny Lorenz
  *
@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include "ViennaRNA/utils.h"
-#include "ViennaRNA/search.h"
+#include "ViennaRNA/search/BoyerMoore.h"
 
 /*
  #################################

@@ -75,7 +75,6 @@ pkginclude_HEADERS =  \
     energy_const.h \
     inverse.h \
     PS_dot.h \
-    search.h \
     params.h \
     subopt.h \
     cofold.h \
@@ -123,6 +122,7 @@ pkginclude_HEADERS =  \
     utils/strings.h \
     utils/structures.h \
     utils/alignments.h \
+    search/BoyerMoore.h \
     model.h \
     dp_matrices.h \
     plot_structure.h \
@@ -235,11 +235,11 @@ libRNA_utils_la_SOURCES = \
     io/utils.c \
     io/file_formats.c \
     io/file_formats_msa.c \
+    search/BoyerMoore.c \
     char_stream.c \
     commands.c \
     units.c \
     combinatorics.c \
-    search.c \
     stream_output.c
 
 libRNA_plotting_la_SOURCES = \

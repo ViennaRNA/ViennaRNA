@@ -18,7 +18,7 @@
 #include <string.h>
 
 #include "ViennaRNA/utils.h"
-#include "ViennaRNA/search.h"
+#include "ViennaRNA/search/BoyerMoore.h"
 #include "ViennaRNA/combinatorics.h"
 
 /*

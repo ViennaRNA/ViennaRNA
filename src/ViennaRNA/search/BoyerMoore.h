@@ -1,10 +1,10 @@
-#ifndef VIENNA_RNA_PACKAGE_SEARCH_H
-#define VIENNA_RNA_PACKAGE_SEARCH_H
+#ifndef VIENNA_RNA_PACKAGE_SEARCH_BOYER_MOORE_H
+#define VIENNA_RNA_PACKAGE_SEARCH_BOYER_MOORE_H
 
 /**
- *  @file     search.h
+ *  @file     ViennaRNA/search/BoyerMoore.h
  *  @ingroup  utils, search_utils
- *  @brief    Various implementations of efficient search algoithms
+ *  @brief    Variants of the Boyer-Moore string search algorithm
  */
 
 /**
