@@ -1,5 +1,5 @@
 /*
-    file_formats.c
+    io/file_formats.c
 
     Various functions dealing with file formats for RNA sequences, structures, and alignments
 
@@ -20,12 +20,12 @@
 
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
-#include "ViennaRNA/file_utils.h"
+#include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/constraints.h"
 #if VRNA_WITH_JSON_SUPPORT
 # include <json/json.h>
 #endif
-#include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/io/file_formats.h"
 
 #define DEBUG
 /*

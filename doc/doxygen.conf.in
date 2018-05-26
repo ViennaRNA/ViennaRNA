@@ -764,6 +764,7 @@ WARN_LOGFILE           = doxygen.warnings
 INPUT                  =  @top_srcdir@/doc/refman.include/ \
                           @top_srcdir@/src/ViennaRNA \
                           @top_srcdir@/src/ViennaRNA/constraints \
+                          @top_srcdir@/src/ViennaRNA/io \
                           @top_srcdir@/interfaces
 
 # This tag can be used to specify the character encoding of the source files

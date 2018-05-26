@@ -1,5 +1,5 @@
 /*
- *                             file_utils.c
+ *                             io/utils.c
  *
  *               c  Ronny Lorenz
  *               Vienna RNA package
@@ -22,7 +22,7 @@
 #include <libgen.h>
 
 #include "ViennaRNA/utils.h"
-#include "ViennaRNA/file_utils.h"
+#include "ViennaRNA/io/utils.h"
 
 #define PRIVATE  static
 #define PUBLIC

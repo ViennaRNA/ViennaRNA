@@ -120,7 +120,6 @@ pkginclude_HEADERS =  \
     structure_utils.h \
     string_utils.h \
     model.h \
-    file_formats.h \
     dp_matrices.h \
     plot_structure.h \
     plot_aln.h \
@@ -141,8 +140,12 @@ pkginclude_HEADERS =  \
     grammar.h \
     structured_domains.h \
     unstructured_domains.h \
-    file_formats_msa.h \
     file_utils.h \
+    file_formats.h \
+    file_formats_msa.h \
+    io/utils.h \
+    io/file_formats.h \
+    io/file_formats_msa.h \
     char_stream.h \
     commands.h \
     units.h \
@@ -225,9 +228,9 @@ libRNA_utils_la_SOURCES = \
     aln_util.c \
     string_utils.c \
     structure_utils.c \
-    file_utils.c \
-    file_formats.c \
-    file_formats_msa.c \
+    io/utils.c \
+    io/file_formats.c \
+    io/file_formats_msa.c \
     char_stream.c \
     commands.c \
     units.c \
