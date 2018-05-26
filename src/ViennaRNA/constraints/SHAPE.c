@@ -19,8 +19,8 @@
 #include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/params.h"
-#include "ViennaRNA/constraints.h"
-#include "ViennaRNA/constraints_SHAPE.h"
+#include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/constraints/SHAPE.h"
 
 /*
  #################################

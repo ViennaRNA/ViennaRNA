@@ -15,7 +15,7 @@
 #include "ViennaRNA/utils.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/commands.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints/basic.h"
 
 
 /*

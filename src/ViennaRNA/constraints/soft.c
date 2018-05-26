@@ -20,7 +20,7 @@
 #include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/params.h"
-#include "ViennaRNA/constraints_soft.h"
+#include "ViennaRNA/constraints/soft.h"
 
 
 #ifndef INLINE

@@ -19,7 +19,8 @@
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/constraints.h"
 #include "ViennaRNA/eval.h"
-#include "ViennaRNA/constraints_ligand.h"
+#include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/constraints/ligand.h"
 
 
 /*

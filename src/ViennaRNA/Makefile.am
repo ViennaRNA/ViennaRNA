@@ -131,6 +131,11 @@ pkginclude_HEADERS =  \
     constraints_SHAPE.h \
     constraints_hard.h \
     constraints_soft.h \
+    constraints/basic.h \
+    constraints/ligand.h \
+    constraints/SHAPE.h \
+    constraints/hard.h \
+    constraints/soft.h \
     alphabet.h \
     sequence.h \
     grammar.h \
@@ -209,11 +214,11 @@ libRNA_eval_la_SOURCES = \
     eval_wrappers.c
 
 libRNA_constraints_la_SOURCES = \
-    constraints.c \
-    constraints_SHAPE.c \
-    constraints_hard.c \
-    constraints_soft.c \
-    constraints_ligand.c
+    constraints/basic.c \
+    constraints/SHAPE.c \
+    constraints/hard.c \
+    constraints/soft.c \
+    constraints/ligand.c
 
 libRNA_utils_la_SOURCES = \
     utils.c \

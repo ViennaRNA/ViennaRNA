@@ -19,8 +19,8 @@
 #include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/file_formats.h"
 #include "ViennaRNA/params.h"
-#include "ViennaRNA/constraints.h"
-#include "ViennaRNA/constraints_hard.h"
+#include "ViennaRNA/constraints/basic.h"
+#include "ViennaRNA/constraints/hard.h"
 
 
 #ifdef __GNUC__
