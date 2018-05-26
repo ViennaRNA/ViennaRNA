@@ -74,7 +74,6 @@ pkginclude_HEADERS =  \
     treedist.h \
     energy_const.h \
     inverse.h \
-    PS_dot.h \
     params.h \
     subopt.h \
     cofold.h \
@@ -97,13 +96,11 @@ pkginclude_HEADERS =  \
     hairpin_loops.h \
     interior_loops.h \
     multibranch_loops.h \
-    naview.h \
     2Dfold.h \
     2Dpfold.h \
     read_epars.h \
     convert_epars.h \
     PKplex.h\
-    plot_layouts.h \
     ali_plex.h \
     plex.h \
     snofold.h \
@@ -125,9 +122,18 @@ pkginclude_HEADERS =  \
     search/BoyerMoore.h \
     model.h \
     dp_matrices.h \
+    PS_dot.h \
     plot_structure.h \
     plot_aln.h \
     plot_utils.h \
+    plot_layouts.h \
+    naview.h \
+    plotting/alignments.h \
+    plotting/layouts.h \
+    plotting/probabilities.h \
+    plotting/structures.h \
+    plotting/utils.h \
+    plotting/naview.h \
     boltzmann_sampling.h \
     equilibrium_probs.h \
     constraints_ligand.h \
@@ -243,12 +249,12 @@ libRNA_utils_la_SOURCES = \
     stream_output.c
 
 libRNA_plotting_la_SOURCES = \
-    plot_utils.c \
-    plot_aln.c \
-    plot_layouts.c \
-    plot_structure.c \
-    naview.c \
-    PS_dot.c
+    plotting/alignments.c \
+    plotting/layouts.c \
+    plotting/probabilities.c \
+    plotting/structures.c \
+    plotting/utils.c \
+    plotting/naview.c
 
 libRNA_loops_la_SOURCES = \
     exterior_loops.c \

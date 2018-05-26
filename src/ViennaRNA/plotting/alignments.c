@@ -15,10 +15,10 @@
 #include <string.h>
 #include <ctype.h>
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/aln_util.h"
-#include "ViennaRNA/plot_aln.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/plotting/alignments.h"
 
 #include "static/templates_postscript.h"
 

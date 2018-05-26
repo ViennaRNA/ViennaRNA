@@ -13,8 +13,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/structure_utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/plotting/utils.h"
 
 /*
  #################################

@@ -42,8 +42,8 @@
 #include <string.h>
 #include <math.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/naview.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/plotting/naview.h"
 
 typedef int LOGICAL;
 #define logical LOGICAL

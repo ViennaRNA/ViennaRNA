@@ -12,8 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/plot_layouts.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/plotting/layouts.h"
 
 #ifdef _OPENMP
 #include <omp.h>

@@ -14,13 +14,13 @@
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/utils.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/aln_util.h"
 #include "ViennaRNA/gquad.h"
-#include "ViennaRNA/plot_layouts.h"
-#include "ViennaRNA/plot_structure.h"
+#include "ViennaRNA/plotting/layouts.h"
+#include "ViennaRNA/plotting/structures.h"
 
 #include "static/templates_postscript.h"
 
