@@ -7,7 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/io/utils.h"
 #include "StrEdit_CostMatrix.h"
 
 #define  PUBLIC

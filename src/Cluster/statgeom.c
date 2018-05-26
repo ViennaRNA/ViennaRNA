@@ -13,7 +13,7 @@
 #include <strings.h>
 #include <string.h>
 #include <ctype.h>
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "PS3D.h"
 #include "distance_matrix.h"
 

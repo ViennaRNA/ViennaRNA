@@ -8,9 +8,10 @@
 #include "ViennaRNA/data_structures.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/MEA.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/structure_utils.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/io/utils.h"
 #include "ct2db_cmdl.h"
 
 int

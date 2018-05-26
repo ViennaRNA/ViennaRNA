@@ -10,7 +10,7 @@
 #include "cluster.h"
 #include "distance_matrix.h"
 #include "treeplot.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 
 
 #define PUBLIC

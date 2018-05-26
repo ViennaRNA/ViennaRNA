@@ -16,14 +16,16 @@
 #include <string.h>
 #include <math.h>
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_const.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/LPfold.h"
-#include "ViennaRNA/PS_dot.h"
+#include "ViennaRNA/plotting/probabilities.h"
+#include "ViennaRNA/plotting/structures.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/read_epars.h"
-#include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/params/io.h"
+#include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/PKplex.h"
 #include "RNAPKplex_cmdl.h"
 

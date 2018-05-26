@@ -11,7 +11,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/io/utils.h"
 #define PRIVATE static
 #define PUBLIC
 

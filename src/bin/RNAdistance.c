@@ -18,8 +18,10 @@
 #include "ViennaRNA/RNAstruct.h"
 #include "ViennaRNA/treedist.h"
 #include "ViennaRNA/stringdist.h"
-#include "ViennaRNA/structure_utils.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/data_structures.h"
 #include "RNAdistance_cmdl.h"
 
