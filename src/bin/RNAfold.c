@@ -44,8 +44,8 @@
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/commands.h"
 #include "ViennaRNA/equilibrium_probs.h"
-#include "ViennaRNA/char_stream.h"
-#include "ViennaRNA/stream_output.h"
+#include "ViennaRNA/datastructures/char_stream.h"
+#include "ViennaRNA/datastructures/stream_output.h"
 #include "ViennaRNA/combinatorics.h"
 #include "ViennaRNA/color_output.inc"
 

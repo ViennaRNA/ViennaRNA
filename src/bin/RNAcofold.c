@@ -35,8 +35,8 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/params/io.h"
-#include "ViennaRNA/char_stream.h"
-#include "ViennaRNA/stream_output.h"
+#include "ViennaRNA/datastructures/char_stream.h"
+#include "ViennaRNA/datastructures/stream_output.h"
 
 #include "RNAcofold_cmdl.h"
 #include "gengetopt_helper.h"

@@ -9,7 +9,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/fold_vars.h"

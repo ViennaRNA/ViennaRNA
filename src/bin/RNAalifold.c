@@ -38,8 +38,8 @@
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/constraints/SHAPE.h"
 #include "ViennaRNA/plotting/utils.h"
-#include "ViennaRNA/char_stream.h"
-#include "ViennaRNA/stream_output.h"
+#include "ViennaRNA/datastructures/char_stream.h"
+#include "ViennaRNA/datastructures/stream_output.h"
 
 #include "RNAalifold_cmdl.h"
 #include "gengetopt_helper.h"

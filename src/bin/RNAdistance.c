@@ -22,7 +22,7 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/io/utils.h"
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "RNAdistance_cmdl.h"
 
 #define MAXNUM      1000    /* max number of structs for distance matrix */

@@ -19,7 +19,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/utils/basic.h"
