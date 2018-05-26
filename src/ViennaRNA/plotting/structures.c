@@ -23,7 +23,7 @@
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/plotting/structures.h"
 
-#include "static/templates_postscript.h"
+#include "ViennaRNA/static/templates_postscript.h"
 
 /*
 #################################

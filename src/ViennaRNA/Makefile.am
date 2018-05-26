@@ -7,6 +7,14 @@ AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
 SUBDIRS = static
 
+vrna_constraintsdir = $(pkgincludedir)/constraints
+vrna_paramsdir      = $(pkgincludedir)/params
+vrna_utilsdir       = $(pkgincludedir)/utils
+vrna_iodir          = $(pkgincludedir)/io
+vrna_searchdir      = $(pkgincludedir)/search
+vrna_plottingdir    = $(pkgincludedir)/plotting
+vrna_loopsdir       = $(pkgincludedir)/loops
+
 # the library names to build
 lib_LTLIBRARIES = libRNA.la
 
@@ -93,11 +101,6 @@ pkginclude_HEADERS =  \
     hairpin_loops.h \
     interior_loops.h \
     multibranch_loops.h \
-    loops/all.h \
-    loops/external.h \
-    loops/hairpin.h \
-    loops/internal.h \
-    loops/multibranch.h \
     2Dfold.h \
     2Dpfold.h \
     PKplex.h\
@@ -115,11 +118,6 @@ pkginclude_HEADERS =  \
     structure_utils.h \
     string_utils.h \
     aln_util.h \
-    utils/basic.h \
-    utils/strings.h \
-    utils/structures.h \
-    utils/alignments.h \
-    search/BoyerMoore.h \
     model.h \
     dp_matrices.h \
     PS_dot.h \
@@ -128,23 +126,12 @@ pkginclude_HEADERS =  \
     plot_utils.h \
     plot_layouts.h \
     naview.h \
-    plotting/alignments.h \
-    plotting/layouts.h \
-    plotting/probabilities.h \
-    plotting/structures.h \
-    plotting/utils.h \
-    plotting/naview.h \
     boltzmann_sampling.h \
     equilibrium_probs.h \
     constraints_ligand.h \
     constraints_SHAPE.h \
     constraints_hard.h \
     constraints_soft.h \
-    constraints/basic.h \
-    constraints/ligand.h \
-    constraints/SHAPE.h \
-    constraints/hard.h \
-    constraints/soft.h \
     alphabet.h \
     sequence.h \
     grammar.h \
@@ -153,19 +140,11 @@ pkginclude_HEADERS =  \
     file_utils.h \
     file_formats.h \
     file_formats_msa.h \
-    io/utils.h \
-    io/file_formats.h \
-    io/file_formats_msa.h \
     energy_par.h \
     energy_const.h \
     params.h \
     read_epars.h \
     convert_epars.h \
-    params/default.h \
-    params/constants.h \
-    params/basic.h \
-    params/io.h \
-    params/convert.h \
     char_stream.h \
     commands.h \
     units.h \
@@ -176,6 +155,56 @@ pkginclude_HEADERS =  \
     ${SVM_UTILS_H} \
     ${SVM_H} \
     ${JSON_H}
+
+vrna_constraints_HEADERS = \
+    constraints/basic.h \
+    constraints/ligand.h \
+    constraints/SHAPE.h \
+    constraints/hard.h \
+    constraints/soft.h
+
+
+vrna_loops_HEADERS = \
+    loops/all.h \
+    loops/external.h \
+    loops/hairpin.h \
+    loops/internal.h \
+    loops/multibranch.h
+
+
+vrna_utils_HEADERS = \
+    utils/basic.h \
+    utils/strings.h \
+    utils/structures.h \
+    utils/alignments.h
+
+
+vrna_search_HEADERS = \
+    search/BoyerMoore.h
+
+
+vrna_plotting_HEADERS = \
+    plotting/alignments.h \
+    plotting/layouts.h \
+    plotting/probabilities.h \
+    plotting/structures.h \
+    plotting/utils.h \
+    plotting/naview.h
+
+
+vrna_io_HEADERS = \
+    io/utils.h \
+    io/file_formats.h \
+    io/file_formats_msa.h
+
+
+vrna_params_HEADERS = \
+    params/default.h \
+    params/constants.h \
+    params/basic.h \
+    params/io.h \
+    params/convert.h
+
 
 libRNA_conv_la_SOURCES = \
     fold_compound.c \

@@ -22,7 +22,7 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/plotting/probabilities.h"
 
-#include "static/templates_postscript.h"
+#include "ViennaRNA/static/templates_postscript.h"
 
 /*
 #################################
