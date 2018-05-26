@@ -4,8 +4,8 @@
 #include <math.h>
 
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/string_utils.h>
-#include <ViennaRNA/constraints_soft.h>
+#include <ViennaRNA/utils/strings.h>
+#include <ViennaRNA/constraints/soft.h>
 
 #suite Constraints
 
