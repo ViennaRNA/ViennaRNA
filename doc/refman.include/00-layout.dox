@@ -213,8 +213,6 @@ formats, and various output file formats produced by our library.
 @defgroup   gquads                    G-Quadruplexes
 @ingroup    paired_modules
 
-@defgroup   data_structures           Data Structures and Preprocessor Macros
-
 @defgroup   utils                     Utilities
 
 @defgroup   eval_loops_ext            Exterior Loops
@@ -253,12 +251,6 @@ formats, and various output file formats produced by our library.
 
 @defgroup   energy_parameters_convert Converting Energy Parameter Files
 @ingroup    energy_parameters_rw
-
-@defgroup   fold_compound             The Fold Compound
-@ingroup    data_structures
-
-@defgroup   dp_matrices               The Dynamic Programming Matrices
-@ingroup    data_structures
 
 @defgroup   direct_paths              Direct Refolding Paths between two Secondary Structures
 @ingroup    paths
@@ -299,7 +291,7 @@ formats, and various output file formats produced by our library.
 @defgroup   combinatorics_utils       Combinatorics Algorithms
 @ingroup    utils
 
-@defgroup   buffer_utils              Buffers
+@defgroup   data_structures           (Abstract) Data Structures
 @ingroup    utils
 
 @defgroup   message_utils             Messages
@@ -307,5 +299,17 @@ formats, and various output file formats produced by our library.
 
 @defgroup   units                     Unit Conversion
 @ingroup    utils
+
+@defgroup   fold_compound             The Fold Compound
+@ingroup    data_structures
+
+@defgroup   dp_matrices               The Dynamic Programming Matrices
+@ingroup    data_structures
+
+@defgroup   hash_table_utils          Hash Tables
+@ingroup    data_structures
+
+@defgroup   buffer_utils              Buffers
+@ingroup    data_structures
 
 */
