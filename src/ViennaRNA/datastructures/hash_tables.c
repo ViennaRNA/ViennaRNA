@@ -5,18 +5,31 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/datastructures/hash_tables.h"
 
 
+struct vrna_hash_table_s {
+  unsigned int                hash_bits;
+  unsigned long               Hash_size;
+  /* must be power of 2^hash_bits -1 (example: HASHSIZE 67108864 -1 = 2^26 -1 )*/
+  void                        **Hash_table;
+  unsigned long               Collisions;
+  vrna_hash_entry_comparison  *Compare_function;
+  vrna_hash_function          *Hash_function;
+  vrna_free_hash_entry        *Free_hash_entry;
+};
+
 /* ----------------------------------------------------------------- */
 
-vrna_hash_table *
-vrna_initialize_hash_table(unsigned int               hash_bits,
-                           vrna_hash_entry_comparison *compare_function,
-                           vrna_hash_function         *hash_function,
-                           vrna_free_hash_entry       *free_hash_entry)
+struct vrna_hash_table_s *
+vrna_hash_init(unsigned int               hash_bits,
+               vrna_hash_entry_comparison *compare_function,
+               vrna_hash_function         *hash_function,
+               vrna_free_hash_entry       *free_hash_entry)
 {
-  vrna_hash_table *ht = malloc(sizeof(vrna_hash_table));
+  struct vrna_hash_table_s *ht = malloc(sizeof(struct vrna_hash_table_s));
 
   ht->Compare_function  = compare_function;
   ht->Hash_function     = hash_function;
@@ -33,20 +46,10 @@ vrna_initialize_hash_table(unsigned int               hash_bits,
 /* ----------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------- */
-int
-vrna_standard_hash_comparison(void  *x,
-                              void  *y)
-{
-  return strcmp(((vrna_standard_hash_entry *)x)->structure,
-                ((vrna_standard_hash_entry *)y)->structure);
-}
-
-
-/* ----------------------------------------------------------------- */
 
 void *
-vrna_lookup_hash(void             *x,
-                 vrna_hash_table  *ht)         /* returns NULL unless x is in the hash */
+vrna_hash_get(struct vrna_hash_table_s  *ht,
+              void                      *x)           /* returns NULL unless x is in the hash */
 {
   unsigned int hashval;
 
@@ -67,8 +70,8 @@ vrna_lookup_hash(void             *x,
 /* ----------------------------------------------------------------- */
 
 int
-vrna_write_hash(void            *x,
-                vrna_hash_table *ht)          /* returns 1 if x already was in the hash */
+vrna_hash_insert(struct vrna_hash_table_s *ht,
+                 void                     *x)         /* returns 1 if x already was in the hash */
 {
   unsigned int hashval;
 
@@ -84,7 +87,11 @@ vrna_write_hash(void            *x,
     }
     ht->Hash_table[hashval] = x;
   } else {
-    printf(stderr, "Error: The hash table is too small: %d %d\n", hashval, ht->Hash_size);
+    vrna_message_warning("vrna_hash_insert: "
+                         "The hash table (size %d) is too small for entry with key %d",
+                         ht->Hash_size,
+                         hashval);
+    return -1;
   }
 
   return 0;
@@ -92,25 +99,39 @@ vrna_write_hash(void            *x,
 
 
 void
-vrna_free_hash_table(vrna_hash_table *ht)
+vrna_hash_clear(struct vrna_hash_table_s *ht)
 {
   unsigned int i;
 
-  for (i = 0; i < ht->Hash_size + 1; i++) {
-    if (ht->Hash_table[i]) {
-      ht->Free_hash_entry(ht->Hash_table[i]);
-      ht->Hash_table[i] = NULL;
+  if (ht) {
+    for (i = 0; i < ht->Hash_size + 1; i++) {
+      if (ht->Hash_table[i]) {
+        ht->Free_hash_entry(ht->Hash_table[i]);
+        ht->Hash_table[i] = NULL;
+      }
     }
+
+    ht->Collisions = 0;
   }
-  free(ht->Hash_table);
+}
+
+
+void
+vrna_hash_free(struct vrna_hash_table_s *ht)
+{
+  if (ht) {
+    vrna_hash_clear(ht);
+    free(ht->Hash_table);
+    free(ht);
+  }
 }
 
 
 /* ----------------------------------------------------------------- */
 
 void
-vrna_delete_hash(void             *x,
-                 vrna_hash_table  *ht)         /* doesn't work in case of collisions */
+vrna_hash_remove(struct vrna_hash_table_s *ht,
+                 void                     *x)         /* doesn't work in case of collisions */
 {
   /* doesn't free anything ! */
   unsigned int hashval;
@@ -242,6 +263,16 @@ vrna_standard_hash_function(void          *x,
   mix(a, b, c);
   /*-------------------------------------------- report the result */
   return c & hashtable_size;
+}
+
+
+/* ----------------------------------------------------------------- */
+int
+vrna_standard_hash_comparison(void  *x,
+                              void  *y)
+{
+  return strcmp(((vrna_standard_hash_entry *)x)->structure,
+                ((vrna_standard_hash_entry *)y)->structure);
 }
 
 
