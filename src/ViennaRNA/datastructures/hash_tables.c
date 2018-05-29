@@ -72,9 +72,25 @@ vrna_hash_init(unsigned int               hash_bits,
 }
 
 
-/* ----------------------------------------------------------------- */
+unsigned long
+vrna_hash_table_size(struct vrna_hash_table_s *ht)
+{
+  if (ht)
+    return ht->Hash_size;
 
-/* ----------------------------------------------------------------- */
+  return 0L;
+}
+
+
+unsigned long
+vrna_hash_table_collisions(struct vrna_hash_table_s *ht)
+{
+  if (ht)
+    return ht->Collisions;
+
+  return 0L;
+}
+
 
 PUBLIC void *
 vrna_hash_get(struct vrna_hash_table_s  *ht,

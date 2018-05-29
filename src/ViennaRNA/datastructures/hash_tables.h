@@ -99,6 +99,26 @@ vrna_hash_init(unsigned int               b,
 
 
 /**
+ *  @brief  Get the size of the hash table
+ *
+ *  @param  ht  The hash table
+ *  @return     The size of the hash table, i.e. the maximum number of entries
+ */
+unsigned long
+vrna_hash_table_size(vrna_hash_table_t ht);
+
+
+/**
+ *  @brief  Get the number of collisions in the hash table
+ *
+ *  @param  ht  The hash table
+ *  @return     The number of collisions in the hash table
+ */
+unsigned long
+vrna_hash_table_collisions(struct vrna_hash_table_s *ht);
+
+
+/**
  *  @brief  Get an element from the hash table
  *
  *  This function takes an object @p x and performs a look-up whether
