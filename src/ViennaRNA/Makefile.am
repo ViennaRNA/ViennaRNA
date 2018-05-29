@@ -58,7 +58,7 @@ if VRNA_AM_SWITCH_SVM
   SVM_SRC         = ../@LIBSVM_DIR@/svm.cpp
   SVM_INC         = -I$(top_srcdir)/src/@LIBSVM_DIR@
   SVM_H           = ../@LIBSVM_DIR@/svm.h
-  SVM_UTILS       = utils/svm.c
+  SVM_UTILS       = utils/svm_utils.c
   SVM_UTILS_H     = utils/svm.h
   SVM_UTILS_H_OLD = svm_utils.h
 endif
@@ -277,18 +277,18 @@ libRNA_eval_la_SOURCES = \
     eval_wrappers.c
 
 libRNA_constraints_la_SOURCES = \
-    constraints/basic.c \
+    constraints/constraints.c \
     constraints/SHAPE.c \
     constraints/hard.c \
     constraints/soft.c \
     constraints/ligand.c
 
 libRNA_utils_la_SOURCES = \
-    utils/basic.c \
-    utils/strings.c \
-    utils/structures.c \
-    utils/alignments.c \
-    io/utils.c \
+    utils/utils.c \
+    utils/string_utils.c \
+    utils/structure_utils.c \
+    utils/msa_utils.c \
+    io/io_utils.c \
     io/file_formats.c \
     io/file_formats_msa.c \
     search/BoyerMoore.c \
@@ -302,7 +302,7 @@ libRNA_plotting_la_SOURCES = \
     plotting/layouts.c \
     plotting/probabilities.c \
     plotting/structures.c \
-    plotting/utils.c \
+    plotting/plot_utils.c \
     plotting/naview.c
 
 libRNA_loops_la_SOURCES = \
@@ -322,11 +322,11 @@ libRNA_loops_la_SOURCES = \
 libRNA_params_la_SOURCES = \
     params/io.c \
     params/default.c \
-    params/basic.c \
+    params/params.c \
     params/convert.c
 
 libRNA_datastructures_la_SOURCES = \
-    datastructures/basic.c \
+    datastructures/basic_datastructures.c \
     datastructures/lists.c \
     datastructures/char_stream.c \
     datastructures/stream_output.c
