@@ -11,23 +11,23 @@
 
 
 struct vrna_hash_table_s {
-  unsigned int                hash_bits;
-  unsigned long               Hash_size;
+  unsigned int                      hash_bits;
+  unsigned long                     Hash_size;
   /* must be power of 2^hash_bits -1 (example: HASHSIZE 67108864 -1 = 2^26 -1 )*/
-  void                        **Hash_table;
-  unsigned long               Collisions;
-  vrna_hash_entry_comparison  *Compare_function;
-  vrna_hash_function          *Hash_function;
-  vrna_free_hash_entry        *Free_hash_entry;
+  void                              **Hash_table;
+  unsigned long                     Collisions;
+  vrna_callback_ht_compare_entries  *Compare_function;
+  vrna_callback_ht_hash_function    *Hash_function;
+  vrna_callback_ht_free_entry       *Free_hash_entry;
 };
 
 /* ----------------------------------------------------------------- */
 
 PUBLIC struct vrna_hash_table_s *
-vrna_hash_init(unsigned int               hash_bits,
-               vrna_hash_entry_comparison *compare_function,
-               vrna_hash_function         *hash_function,
-               vrna_free_hash_entry       *free_hash_entry)
+vrna_ht_init(unsigned int                     hash_bits,
+             vrna_callback_ht_compare_entries *compare_function,
+             vrna_callback_ht_hash_function   *hash_function,
+             vrna_callback_ht_free_entry      *free_hash_entry)
 {
   struct vrna_hash_table_s *ht = NULL;
 
@@ -46,11 +46,11 @@ vrna_hash_init(unsigned int               hash_bits,
       /*
        *  Fall-back to expect dot-bracket structure string and
        *  free energy value as entries in hash table, i.e. pointers
-       *  to vrna_hash_entry_db_t
+       *  to vrna_ht_entry_db_t
        */
-      ht->Compare_function  = &vrna_hash_db_comp;
-      ht->Hash_function     = &vrna_hash_db_hash_func;
-      ht->Free_hash_entry   = &vrna_hash_db_free_entry;
+      ht->Compare_function  = &vrna_ht_db_comp;
+      ht->Hash_function     = &vrna_ht_db_hash_func;
+      ht->Free_hash_entry   = &vrna_ht_db_free_entry;
     } else if ((compare_function) &&
                (hash_function) &&
                (free_hash_entry)) {
@@ -73,7 +73,7 @@ vrna_hash_init(unsigned int               hash_bits,
 
 
 unsigned long
-vrna_hash_table_size(struct vrna_hash_table_s *ht)
+vrna_ht_size(struct vrna_hash_table_s *ht)
 {
   if (ht)
     return ht->Hash_size;
@@ -83,7 +83,7 @@ vrna_hash_table_size(struct vrna_hash_table_s *ht)
 
 
 unsigned long
-vrna_hash_table_collisions(struct vrna_hash_table_s *ht)
+vrna_ht_collisions(struct vrna_hash_table_s *ht)
 {
   if (ht)
     return ht->Collisions;
@@ -93,8 +93,8 @@ vrna_hash_table_collisions(struct vrna_hash_table_s *ht)
 
 
 PUBLIC void *
-vrna_hash_get(struct vrna_hash_table_s  *ht,
-              void                      *x)           /* returns NULL unless x is in the hash */
+vrna_ht_get(struct vrna_hash_table_s  *ht,
+            void                      *x)             /* returns NULL unless x is in the hash */
 {
   unsigned int hashval;
 
@@ -118,8 +118,8 @@ vrna_hash_get(struct vrna_hash_table_s  *ht,
 /* ----------------------------------------------------------------- */
 
 PUBLIC int
-vrna_hash_insert(struct vrna_hash_table_s *ht,
-                 void                     *x)         /* returns 1 if x already was in the hash */
+vrna_ht_insert(struct vrna_hash_table_s *ht,
+               void                     *x)         /* returns 1 if x already was in the hash */
 {
   unsigned int hashval;
 
@@ -137,7 +137,7 @@ vrna_hash_insert(struct vrna_hash_table_s *ht,
       ht->Hash_table[hashval] = x;
       return 0; /* success */
     } else {
-      vrna_message_warning("vrna_hash_insert: "
+      vrna_message_warning("vrna_ht_insert: "
                            "The hash table (size %d) is too small for entry with key %d",
                            ht->Hash_size,
                            hashval);
@@ -149,7 +149,7 @@ vrna_hash_insert(struct vrna_hash_table_s *ht,
 
 
 PUBLIC void
-vrna_hash_clear(struct vrna_hash_table_s *ht)
+vrna_ht_clear(struct vrna_hash_table_s *ht)
 {
   unsigned int i;
 
@@ -167,10 +167,10 @@ vrna_hash_clear(struct vrna_hash_table_s *ht)
 
 
 PUBLIC void
-vrna_hash_free(struct vrna_hash_table_s *ht)
+vrna_ht_free(struct vrna_hash_table_s *ht)
 {
   if (ht) {
-    vrna_hash_clear(ht);
+    vrna_ht_clear(ht);
     free(ht->Hash_table);
     free(ht);
   }
@@ -180,8 +180,8 @@ vrna_hash_free(struct vrna_hash_table_s *ht)
 /* ----------------------------------------------------------------- */
 
 PUBLIC void
-vrna_hash_remove(struct vrna_hash_table_s *ht,
-                 void                     *x)         /* doesn't work in case of collisions */
+vrna_ht_remove(struct vrna_hash_table_s *ht,
+               void                     *x)           /* doesn't work in case of collisions */
 {
   /* doesn't free anything ! */
   unsigned int hashval;
@@ -259,8 +259,8 @@ vrna_hash_remove(struct vrna_hash_table_s *ht,
  * --------------------------------------------------------------------
  */
 PUBLIC unsigned int
-vrna_hash_db_hash_func(void           *x,
-                       unsigned long  hashtable_size)
+vrna_ht_db_hash_func(void           *x,
+                     unsigned long  hashtable_size)
 {
   register unsigned char  *k;           /* the key */
   register unsigned int   length;       /* the length of the key */
@@ -268,7 +268,7 @@ vrna_hash_db_hash_func(void           *x,
   register unsigned int   a, b, c, len;
 
   /* Set up the internal state */
-  k   = ((vrna_hash_entry_db_t *)x)->structure;
+  k   = ((vrna_ht_entry_db_t *)x)->structure;
   len = length = (unsigned int)strlen(k);
   a   = b = 0x9e3779b9; /* the golden ratio; an arbitrary value */
   c   = initval;        /* the previous hash value */
@@ -324,17 +324,17 @@ vrna_hash_db_hash_func(void           *x,
 
 /* ----------------------------------------------------------------- */
 PUBLIC int
-vrna_hash_db_comp(void  *x,
-                  void  *y)
+vrna_ht_db_comp(void  *x,
+                void  *y)
 {
-  return strcmp(((vrna_hash_entry_db_t *)x)->structure,
-                ((vrna_hash_entry_db_t *)y)->structure);
+  return strcmp(((vrna_ht_entry_db_t *)x)->structure,
+                ((vrna_ht_entry_db_t *)y)->structure);
 }
 
 
 PUBLIC int
-vrna_hash_db_free_entry(void *hash_entry)
+vrna_ht_db_free_entry(void *hash_entry)
 {
-  free(((vrna_hash_entry_db_t *)hash_entry)->structure);
+  free(((vrna_ht_entry_db_t *)hash_entry)->structure);
   return 0;
 }
