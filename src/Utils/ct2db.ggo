@@ -17,7 +17,7 @@ flag
 off
 
 option  "convertToRNA"  c
-"Replace all bases such that we have only the characters A, C, G, U or N for unknown bases.\n"
+"Substitute all nucleotides with their RNA alphabet counter parts, i.e. convert to characters A, C, G, U or N for unknown bases.\n"
 flag
 off
 
