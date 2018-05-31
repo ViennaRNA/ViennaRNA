@@ -642,6 +642,33 @@ default_pair_constraint(vrna_fold_compound_t  *fc,
                         fc->pscore[fc->jindx[j] + i];
         if (act_score >= min_score)
           constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+
+        if (md->noLP) {
+          /* check, whether this nucleotide can actually stack with anything or only forms isolated pairs */
+          can_stack = VRNA_CONSTRAINT_CONTEXT_NONE;
+
+          /* can it be enclosed by another base pair? */
+          if ((i > 1) &&
+              (j < fc->length) &&
+              ((j - i + 2) < md->max_bp_span)) {
+            int outer_pscore = (fc->hc->type == VRNA_HC_WINDOW) ?
+                                fc->pscore_local[i - 1][j - i + 2] :
+                                fc->pscore[fc->jindx[j + 1] + i - 1];
+            if (outer_pscore >= min_score)
+              can_stack = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+          }
+
+          /* can it enclose another base pair? */
+          if ((i + 2 < j) && ((j - i - 2) > md->min_loop_size)) {
+            int inner_pscore = (fc->hc->type == VRNA_HC_WINDOW) ?
+                                fc->pscore_local[i + 1][j - i - 2] :
+                                fc->pscore[fc->jindx[j - 1] + i + 1];
+            if (inner_pscore >= min_score)
+              can_stack = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+          }
+
+          constraint &= can_stack;
+        }
       }
 
       break;
