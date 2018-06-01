@@ -1269,7 +1269,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   int *fmi_tmp = fmi;
 
   if (hc->f) {
-    int *fmi_tmp = (int *)vrna_alloc(sizeof(int) * (j - i + 2));
+    fmi_tmp = (int *)vrna_alloc(sizeof(int) * (j - i + 2));
     fmi_tmp -= i;
 
     /* copy data */
@@ -1284,7 +1284,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
 
   if (sc_wrapper.decomp_ml) {
     if (fmi_tmp == fmi - (sliding_window ? i : 0)) {
-      int *fmi_tmp = (int *)vrna_alloc(sizeof(int) * (j - i + 2));
+      fmi_tmp = (int *)vrna_alloc(sizeof(int) * (j - i + 2));
       fmi_tmp -= i;
 
       /* copy data */
