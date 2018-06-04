@@ -33,6 +33,7 @@ BUILT_SOURCES = \
 
 
 EXTRA_DIST = \
+    ps_templates.txt \
     $(TEMPLATE_HEADER_FILES) \
     $(POSTSCRIPT_FILES) \
     ${BUILT_SOURCES}
