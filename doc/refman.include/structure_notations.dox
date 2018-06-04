@@ -14,70 +14,6 @@ as the loop context a nucleotide belongs to and to annotated pseudo-knots.
 
 @see @ref dot-bracket-ext-notation, @ref wuss-notation
 
-Alternatively, one may find representations with two types of node labels,
-'P' for paired and 'U' for unpaired; a dot is then replaced by '(U)', and
-each closed bracket is assigned an additional identifier 'P'.
-We call this the expanded notation. In @cite fontana:1993b a condensed
-representation of the secondary structure is proposed, the so-called
-homeomorphically irreducible tree (HIT) representation. Here a stack is
-represented as a single pair of matching brackets labeled 'P' and
-weighted by the number of base pairs.  Correspondingly, a contiguous
-strain of unpaired bases is shown as one pair of matching brackets
-labeled 'U' and weighted by its length.  Generally any string consisting
-of matching brackets and identifiers is equivalent to a plane tree with
-as many different types of nodes as there are identifiers.
-
-Bruce Shapiro proposed a coarse grained representation @cite shapiro:1988,
-which, does not retain the full information of the secondary structure. He
-represents the different structure elements by single matching brackets
-and labels them as 'H' (hairpin loop), 'I' (interior loop), 'B'
-(bulge), 'M' (multi-loop), and 'S' (stack). We extend his alphabet by an
-extra letter for external elements 'E'. Again these identifiers may be
-followed by a weight corresponding to the number of unpaired bases or
-base pairs in the structure element.  All tree representations (except
-for the dot-bracket form) can be encapsulated into a virtual root
-(labeled 'R'), see the example below.
-
-The following example illustrates the different linear tree representations
-used by the package. All lines show the same secondary structure.
-
-@verbatim
-a) .((((..(((...)))..((..)))).)).
-   (U)(((((U)(U)((((U)(U)(U)P)P)P)(U)(U)(((U)(U)P)P)P)P)(U)P)P)(U)
-b) (U)(((U2)((U3)P3)(U2)((U2)P2)P2)(U)P2)(U)
-c) (((H)(H)M)B)
-   ((((((H)S)((H)S)M)S)B)S)
-   (((((((H)S)((H)S)M)S)B)S)E)
-d) ((((((((H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
-@endverbatim
-
-Above: Tree representations of secondary structures.  a) Full structure:
-the first line shows the more convenient condensed notation which is
-used by our programs; the second line shows the rather clumsy expanded
-notation for completeness, b) HIT structure, c) different versions of
-coarse grained structures: the second line is exactly Shapiro's
-representation, the first line is obtained by neglecting the stems.
-Since each loop is closed by a unique stem, these two lines are
-equivalent.  The third line is an extension taking into account also the
-external digits.  d) weighted coarse structure, this time including the
-virtual root.
-
-For the output of aligned structures from string editing, different
-representations are needed, where we put the label on both sides.
-The above examples for tree representations would then look like:
-
-@verbatim
-a) (UU)(P(P(P(P(UU)(UU)(P(P(P(UU)(UU)(UU)P)P)P)(UU)(UU)(P(P(UU)(U...
-b) (UU)(P2(P2(U2U2)(P2(U3U3)P3)(U2U2)(P2(U2U2)P2)P2)(UU)P2)(UU)
-c) (B(M(HH)(HH)M)B)
-   (S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)
-   (E(S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)E)
-d) (R(E2(S2(B1(S2(M4(S3(H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
-@endverbatim
-
-Aligned structures additionally contain the gap character '_'.
-
-
 @section   dot-bracket-notation  Dot-Bracket Notation (a.k.a. Dot-Parenthesis Notation)
 
 The Dot-Bracket notation as introduced already in the early times of the ViennaRNA Package
@@ -171,6 +107,81 @@ Below, you'll find a list of secondary structure elements and their correspondin
 @endparblock
 
 @see vrna_db_from_WUSS()
+
+
+@section sec_structure_representations_tree  Tree Representations of Secondary Structures
+
+Alternatively, one may find representations with two types of node labels,
+'P' for paired and 'U' for unpaired; a dot is then replaced by '(U)', and
+each closed bracket is assigned an additional identifier 'P'.
+We call this the expanded notation. In @cite fontana:1993b a condensed
+representation of the secondary structure is proposed, the so-called
+homeomorphically irreducible tree (HIT) representation. Here a stack is
+represented as a single pair of matching brackets labeled 'P' and
+weighted by the number of base pairs.  Correspondingly, a contiguous
+strain of unpaired bases is shown as one pair of matching brackets
+labeled 'U' and weighted by its length.  Generally any string consisting
+of matching brackets and identifiers is equivalent to a plane tree with
+as many different types of nodes as there are identifiers.
+
+Bruce Shapiro proposed a coarse grained representation @cite shapiro:1988,
+which, does not retain the full information of the secondary structure. He
+represents the different structure elements by single matching brackets
+and labels them as
+
+- @p H  (hairpin loop),
+- @p I  (interior loop),
+- @p B  (bulge),
+- @p M  (multi-loop), and
+- @p S  (stack).
+
+We extend his alphabet by an extra letter for external elements @p E.
+Again these identifiers may be followed by a weight corresponding to the
+number of unpaired bases or base pairs in the structure element.  All tree
+representations (except for the dot-bracket form) can be encapsulated into
+a virtual root (labeled @p R).
+
+The following example illustrates the different linear tree representations
+used by the package:
+
+Consider the secondary structure represented by the dot-bracket string (full tree)
+@verbatim .((..(((...)))..((..)))). @endverbatim which is the most convenient
+condensed notation used by our programs and library functions.
+
+Then, the following tree representations are equivalent:
+
+- Expanded tree:
+  @verbatim ((U)(((U)(U)((((U)(U)(U)P)P)P)(U)(U)(((U)(U)P)P)P)P)(U)R) @endverbatim
+- HIT representation (Fontana et al. 1993 @cite fontana:1993b):
+  @verbatim ((U1)((U2)((U3)P3)(U2)((U2)P2)P2)(U1)R) @endverbatim
+- Coarse Grained Tree Representation (Shapiro 1988 @cite shapiro:1988):
+  + Short (with root node @p R, without stem nodes @p S):
+    @verbatim ((H)((H)M)R) @endverbatim
+  + Full (with root node @p R):
+    @verbatim (((((H)S)((H)S)M)S)R) @endverbatim
+  + Extended (with root node @p R, with external nodes @p E):
+    @verbatim ((((((H)S)((H)S)M)S)E)R) @endverbatim
+  + Weighted (with root node @p R, with external nodes @p E):
+    @verbatim ((((((H3)S3)((H2)S2)M4)S2)E2)R) @endverbatim
+
+The Expanded tree is rather clumsy and mostly included for the sake of
+completeness. The different versions of Coarse Grained Tree Representations
+are variatios of Shapiro's linear tree notation.
+
+For the output of aligned structures from string editing, different
+representations are needed, where we put the label on both sides.
+The above examples for tree representations would then look like:
+
+@verbatim
+a) (UU)(P(P(P(P(UU)(UU)(P(P(P(UU)(UU)(UU)P)P)P)(UU)(UU)(P(P(UU)(U...
+b) (UU)(P2(P2(U2U2)(P2(U3U3)P3)(U2U2)(P2(U2U2)P2)P2)(UU)P2)(UU)
+c) (B(M(HH)(HH)M)B)
+   (S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)
+   (E(S(B(S(M(S(HH)S)(S(HH)S)M)S)B)S)E)
+d) (R(E2(S2(B1(S2(M4(S3(H3)S3)((H2)S2)M4)S2)B1)S2)E2)R)
+@endverbatim
+
+Aligned structures additionally contain the gap character '_'.
 
 
 @section  structure_notations_examples    Examples for Structure Parsing and Conversion

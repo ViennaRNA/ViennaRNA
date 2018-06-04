@@ -325,8 +325,16 @@ std::string db_from_plist(std::vector<vrna_ep_t> elem_probs, unsigned int length
 %constant int PLIST_TYPE_STACK    = VRNA_PLIST_TYPE_STACK;
 
 
+%constant unsigned int STRUCTURE_TREE_HIT            = VRNA_STRUCTURE_TREE_HIT;
+%constant unsigned int STRUCTURE_TREE_SHAPIRO_SHORT  = VRNA_STRUCTURE_TREE_SHAPIRO_SHORT;
+%constant unsigned int STRUCTURE_TREE_SHAPIRO        = VRNA_STRUCTURE_TREE_SHAPIRO;
+%constant unsigned int STRUCTURE_TREE_SHAPIRO_EXT    = VRNA_STRUCTURE_TREE_SHAPIRO_EXT;
+%constant unsigned int STRUCTURE_TREE_SHAPIRO_WEIGHT = VRNA_STRUCTURE_TREE_SHAPIRO_WEIGHT;
+%constant unsigned int STRUCTURE_TREE_EXPANDED       = VRNA_STRUCTURE_TREE_EXPANDED;
+
+
 /*
- *  Wrap library routines for secondary structure annotations formats
+ *  Wrap more library routines for secondary structure representation formats
  *  dot-bracket, WUSS, etc.
  */
 %{
@@ -352,10 +360,48 @@ std::string db_from_plist(std::vector<vrna_ep_t> elem_probs, unsigned int length
     free(c_str);
     return db;
   }
+
+  std::string
+  db_to_tree_string(std::string   structure,
+                    unsigned int  type)
+  {
+    char *c_str = vrna_db_to_tree_string(structure.c_str(), type);
+    std::string tree = c_str;
+    free(c_str);
+    return tree;
+  }
+
+  std::string
+  tree_string_unweight(std::string structure)
+  {
+    char *c_str = vrna_tree_string_unweight(structure.c_str());
+    std::string tree = c_str;
+    free(c_str);
+    return tree;
+  }
+
+  std::string
+  tree_string_to_db(std::string structure)
+  {
+    char *c_str = vrna_tree_string_to_db(structure.c_str());
+    std::string db = c_str;
+    free(c_str);
+    return db;
+  }
+
 %}
 
-void db_flatten(char *structure, unsigned int options = VRNA_BRACKETS_DEFAULT);
-void db_flatten(char *structure, std::string target, unsigned int options = VRNA_BRACKETS_DEFAULT);
+#ifdef SWIGPYTHON
+%feature("autodoc") db_to_tree_string;
+%feature("kwargs") db_to_tree_string;
+#endif
+
+void        db_flatten(char *structure, unsigned int options = VRNA_BRACKETS_DEFAULT);
+void        db_flatten(char *structure, std::string target, unsigned int options = VRNA_BRACKETS_DEFAULT);
+std::string db_from_WUSS(std::string wuss);
+std::string db_to_tree_string(std::string structure, unsigned int type);
+std::string tree_string_unweight(std::string structure);
+std::string tree_string_to_db(std::string structure);
 
 
 %constant unsigned int BRACKETS_RND   = VRNA_BRACKETS_RND;

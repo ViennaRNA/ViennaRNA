@@ -264,6 +264,9 @@ formats, and various output file formats produced by our library.
 @defgroup   struct_utils              Secondary Structure Utilities
 @ingroup    utils
 
+@defgroup   struct_utils_deprecated   Deprecated Interface for Secondary Structure Utilities
+@ingroup    struct_utils
+
 @defgroup   aln_utils                 Multiple Sequence Alignment Utilities
 @ingroup    utils
 

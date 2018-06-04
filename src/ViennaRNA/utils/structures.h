@@ -142,10 +142,10 @@ struct vrna_hx_s {
  *  #VRNA_PLIST_TYPE_UD_MOTIF, #VRNA_PLIST_TYPE_STACK
  */
 struct vrna_elem_prob_s {
-  int   i;  /**<  @brief  Start position (usually 5' nucleotide that starts the element, e.g. base pair) */
-  int   j;  /**<  @brief  End position (usually 3' nucleotide that ends the element, e.g. base pair) */
-  float p;  /**<  @brief  Probability of the element */
-  int   type;  /**<  @brief  Type of the element */
+  int   i;    /**<  @brief  Start position (usually 5' nucleotide that starts the element, e.g. base pair) */
+  int   j;    /**<  @brief  End position (usually 3' nucleotide that ends the element, e.g. base pair) */
+  float p;    /**<  @brief  Probability of the element */
+  int   type; /**<  @brief  Type of the element */
 };
 
 /**
@@ -457,6 +457,126 @@ vrna_hx_t *vrna_hx_merge(const vrna_hx_t  *list,
                          int              maxdist);
 
 
+/**
+ *  @name Tree Representations for Secondary structures
+ *  @{
+ *  Secondary structures can be readily represented as trees, where internal
+ *  nodes represent base pairs, and leaves represent unpaired nucleotides.
+ *  The dot-bracket structure string already is a tree represented by a string
+ *  of parenthesis (base pairs) and dots for the leaf nodes (unpaired nucleotides).
+ *
+ *  See @ref sec_structure_representations_tree for a detailed description on
+ *  tree representation of secondary structures.
+ */
+
+/**
+ *  @brief  Homeomorphically Irreducible Tree (HIT) representation of a secondary structure
+ *  @see    vrna_db_to_tree_string()
+ */
+#define   VRNA_STRUCTURE_TREE_HIT             1U
+
+
+/**
+ *  @brief  (short) Coarse Grained representation of a secondary structure
+ *  @see    vrna_db_to_tree_string()
+ */
+#define   VRNA_STRUCTURE_TREE_SHAPIRO_SHORT   2U
+
+
+/**
+ *  @brief  (full)  Coarse Grained representation of a secondary structure
+ *  @see    vrna_db_to_tree_string()
+ */
+#define   VRNA_STRUCTURE_TREE_SHAPIRO         3U
+
+
+/**
+ *  @brief  (extended) Coarse Grained representation of a secondary structure
+ *  @see    vrna_db_to_tree_string()
+ */
+#define   VRNA_STRUCTURE_TREE_SHAPIRO_EXT     4U
+
+
+/**
+ *  @brief  (weighted) Coarse Grained representation of a secondary structure
+ *  @see    vrna_db_to_tree_string()
+ */
+#define   VRNA_STRUCTURE_TREE_SHAPIRO_WEIGHT  5U
+
+/**
+ *  @brief  Expanded Tree representation of a secondary structure
+ *  @see    vrna_db_to_tree_string()
+ */
+#define   VRNA_STRUCTURE_TREE_EXPANDED        6U
+
+
+/**
+ *  @brief  Convert a Dot-Bracket structure string into tree string representation
+ *
+ *  This function allows one to convert a secondary structure in dot-bracket notation
+ *  into one of the various tree representations for secondary structures. The resulting
+ *  tree is then represented as a string of parenthesis and node symbols, similar to
+ *  to the Newick format.
+ *
+ *  Currently we support conversion into the following formats, denoted by the value
+ *  of parameter @p type:
+ *  * #VRNA_STRUCTURE_TREE_HIT            - @copybrief #VRNA_STRUCTURE_TREE_HIT
+ *                                          (See also Fontana et al. 1993 @cite fontana:1993b)
+ *  * #VRNA_STRUCTURE_TREE_SHAPIRO_SHORT  - @copybrief #VRNA_STRUCTURE_TREE_SHAPIRO_SHORT
+ *                                          (same as Shapiro 1988 @cite shapiro:1988, but with root node @p R and without @p S nodes for the stems)
+ *  * #VRNA_STRUCTURE_TREE_SHAPIRO        - @copybrief #VRNA_STRUCTURE_TREE_SHAPIRO
+ *                                          (See also Shapiro 1988 @cite shapiro:1988)
+ *  * #VRNA_STRUCTURE_TREE_SHAPIRO_EXT    - @copybrief #VRNA_STRUCTURE_TREE_SHAPIRO_EXT
+ *                                          (same as Shapiro 1988 @cite shapiro:1988, but external nodes denoted as @p E )
+ *  * #VRNA_STRUCTURE_TREE_SHAPIRO_WEIGHT - @copybrief #VRNA_STRUCTURE_TREE_SHAPIRO_WEIGHT
+ *                                          (same as #VRNA_STRUCTURE_TREE_SHAPIRO_EXT but with additional weights
+ *                                          for number of unpaired nucleotides in loop, and number of pairs in stems)
+ *  * #VRNA_STRUCTURE_TREE_EXPANDED       - @copybrief #VRNA_STRUCTURE_TREE_EXPANDED
+ *
+ *  @see  @ref sec_structure_representations_tree
+ *
+ *  @param  structure   The null-terminated dot-bracket structure string
+ *  @param  type        A switch to determine the type of tree string representation
+ *  @return             A tree representation of the input @p structure
+ */
+char *
+vrna_db_to_tree_string(const char   *structure,
+                       unsigned int type);
+
+
+/**
+ *  @brief  Remove weights from a linear string tree representation of a secondary structure
+ *
+ *  This function strips the weights of a linear string tree representation such as @p HIT,
+ *  or Coarse Grained Tree sensu Shapiro @cite shapiro:1988
+ *
+ *  @see vrna_db_to_tree_string()
+ *
+ *  @param  structure   A linear string tree representation of a secondary structure with weights
+ *  @return             A linear string tree representation of a secondary structure without weights
+ */
+char *
+vrna_tree_string_unweight(const char *structure);
+
+
+/**
+ *  @brief  Convert a linear tree string representation of a secondary structure back to Dot-Bracket notation
+ *
+ *  @warning  This function only accepts <em>Expanded</em> and <em>HIT</em> tree representations!
+ *
+ *  @see vrna_db_to_tree_string(), #VRNA_STRUCTURE_TREE_EXPANDED, #VRNA_STRUCTURE_TREE_HIT,
+ *       @ref sec_structure_representations_tree
+ *
+ *  @param  tree  A linear tree string representation of a secondary structure
+ *  @return       A dot-bracket notation of the secondary structure provided in @p tree
+ */
+char *
+vrna_tree_string_to_db(const char *tree);
+
+
+/* End tree representations */
+/**@}*/
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/
@@ -485,7 +605,7 @@ vrna_hx_t *vrna_hx_merge(const vrna_hx_t  *list,
 DEPRECATED(void assign_plist_from_db(vrna_ep_t  **pl,
                                      const char *struc,
                                      float      pr),
-"Use vrna_plist() instead");
+           "Use vrna_plist() instead");
 
 /**
  *  @brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
@@ -496,11 +616,12 @@ DEPRECATED(void assign_plist_from_db(vrna_ep_t  **pl,
  *  Useful for programs that need to keep many structures in memory.
  *
  *  @deprecated     Use vrna_db_pack() as a replacement
+ *  @ingroup        struct_utils_deprecated
  *  @param struc    The secondary structure in dot-bracket notation
  *  @return         The binary encoded structure
  */
 DEPRECATED(char *pack_structure(const char *struc),
-"Use vrna_db_pack() instead");
+           "Use vrna_db_pack() instead");
 
 /**
  *  @brief Unpack secondary structure previously packed with pack_structure()
@@ -509,11 +630,12 @@ DEPRECATED(char *pack_structure(const char *struc),
  *  the familiar dot-bracket notation.
  *
  *  @deprecated     Use vrna_db_unpack() as a replacement
+ *  @ingroup        struct_utils_deprecated
  *  @param packed   The binary encoded packed secondary structure
  *  @return         The unpacked secondary structure in dot-bracket notation
  */
 DEPRECATED(char *unpack_structure(const char *packed),
-"Use vrna_db_unpack() instead");
+           "Use vrna_db_unpack() instead");
 
 /**
  *  @brief Create a pair table of a secondary structure
@@ -522,46 +644,50 @@ DEPRECATED(char *unpack_structure(const char *packed),
  *  or 0 if i is unpaired, table[0] contains the length of the structure.
  *
  *  @deprecated Use vrna_ptable() instead
+ *  @ingroup        struct_utils_deprecated
  *
  *  @param  structure The secondary structure in dot-bracket notation
  *  @return           A pointer to the created pair_table
  */
 DEPRECATED(short *make_pair_table(const char *structure),
-"Use vrna_ptable() instead");
+           "Use vrna_ptable() instead");
 
 DEPRECATED(short *make_pair_table_pk(const char *structure),
-"Use vrna_ptable_from_string() instead");
+           "Use vrna_ptable_from_string() instead");
 
 /**
  *  @brief Get an exact copy of a pair table
  *
  *  @deprecated Use vrna_ptable_copy() instead
+ *  @ingroup        struct_utils_deprecated
  *
  *  @param pt The pair table to be copied
  *  @return   A pointer to the copy of 'pt'
  */
 DEPRECATED(short *copy_pair_table(const short *pt),
-"Use vrna_ptable_copy() instead");
+           "Use vrna_ptable_copy() instead");
 
 /**
-*** Pair table for snoop align
-***
-*** @deprecated Use vrna_pt_ali_get() instead!
-**/
+ *  Pair table for snoop align
+ *
+ *  @deprecated Use vrna_pt_ali_get() instead!
+ *  @ingroup        struct_utils_deprecated
+ */
 DEPRECATED(short *alimake_pair_table(const char *structure),
-"Use vrna_pt_ali_get() instead");
+           "Use vrna_pt_ali_get() instead");
 
 /**
-*** returns a newly allocated table, such that:  table[i]=j if (i.j) pair or
-*** 0 if i is unpaired, table[0] contains the length of the structure.
-*** The special pseudoknotted H/ACA-mRNA structure is taken into account.
-*** @deprecated Use vrna_pt_snoop_get() instead!
-**/
+ *  returns a newly allocated table, such that:  table[i]=j if (i.j) pair or
+ *  0 if i is unpaired, table[0] contains the length of the structure.
+ *  The special pseudoknotted H/ACA-mRNA structure is taken into account.
+ *  @deprecated Use vrna_pt_snoop_get() instead!
+ *  @ingroup        struct_utils_deprecated
+ */
 DEPRECATED(short *make_pair_table_snoop(const char *structure),
-"Use vrna_pt_snoop_get() instead");
+           "Use vrna_pt_snoop_get() instead");
 
 DEPRECATED(int *make_loop_index_pt(short *pt),
-"Use vrna_loopidx_from_ptable() instead");
+           "Use vrna_loopidx_from_ptable() instead");
 
 /**
  *  @brief Compute the "base pair" distance between two secondary structures s1 and s2.
@@ -571,13 +697,14 @@ DEPRECATED(int *make_loop_index_pt(short *pt),
  *  same as edit distance with open-pair close-pair as move-set
  *
  *  @deprecated   Use vrna_bp_distance instead
+ *  @ingroup        struct_utils_deprecated
  *  @param str1   First structure in dot-bracket notation
  *  @param str2   Second structure in dot-bracket notation
  *  @return       The base pair distance between str1 and str2
  */
 DEPRECATED(int bp_distance(const char *str1,
                            const char *str2),
-"Use vrna_bp_distance() instead");
+           "Use vrna_bp_distance() instead");
 
 /**
  *  @brief Make a reference base pair count matrix
@@ -586,10 +713,11 @@ DEPRECATED(int bp_distance(const char *str1,
  *  structure for each interval [i,j] with i<j. Access it via iindx!!!
  *
  *  @deprecated Use vrna_refBPcnt_matrix() instead
+ *  @ingroup        struct_utils_deprecated
  */
 DEPRECATED(unsigned int *make_referenceBP_array(short         *reference_pt,
                                                 unsigned int  turn),
-"Use vrna_refBPcnt_matrix() instead");
+           "Use vrna_refBPcnt_matrix() instead");
 
 /**
  *  @brief Make a reference base pair distance matrix
@@ -598,11 +726,12 @@ DEPRECATED(unsigned int *make_referenceBP_array(short         *reference_pt,
  *  reference structures for each interval [i,j] with i<j. Access it via iindx!!!
  *
  *  @deprecated Use vrna_refBPdist_matrix() instead
+ *  @ingroup        struct_utils_deprecated
  */
 DEPRECATED(unsigned int *compute_BPdifferences(short        *pt1,
                                                short        *pt2,
                                                unsigned int turn),
-"Use vrna_refBPdist_matrix() instead");
+           "Use vrna_refBPdist_matrix() instead");
 
 /**
  *  @brief Create a vrna_ep_t from a probability matrix
@@ -628,53 +757,57 @@ DEPRECATED(void  assign_plist_from_pr(vrna_ep_t   **pl,
                                       FLT_OR_DBL  *probs,
                                       int         length,
                                       double      cutoff),
-"Use vrna_plist_from_probs() instead");
+           "Use vrna_plist_from_probs() instead");
 
 /**
  *  @brief Create a dot-backet/parenthesis structure from backtracking stack
  *
  *  @deprecated use vrna_parenthesis_structure() instead
+ *  @ingroup        struct_utils_deprecated
  *
  *  @note This function is threadsafe
  */
 DEPRECATED(void parenthesis_structure(char            *structure,
                                       vrna_bp_stack_t *bp,
                                       int             length),
-"Use vrna_parenthesis_structure() instead");
+           "Use vrna_parenthesis_structure() instead");
 
 /**
  *  @brief Create a dot-backet/parenthesis structure from backtracking stack
  *  obtained by zuker suboptimal calculation in cofold.c
  *
  *  @deprecated use vrna_parenthesis_zuker instead
+ *  @ingroup        struct_utils_deprecated
  *
  *  @note This function is threadsafe
  */
 DEPRECATED(void parenthesis_zuker(char            *structure,
                                   vrna_bp_stack_t *bp,
                                   int             length),
-"Use vrna_parenthesis_zuker() instead");
+           "Use vrna_parenthesis_zuker() instead");
 
 DEPRECATED(void letter_structure(char             *structure,
                                  vrna_bp_stack_t  *bp,
                                  int              length),
-"Use vrna_letter_structure() instead");
+           "Use vrna_letter_structure() instead");
 
 /**
  *  @brief Create a dot-bracket like structure string from base pair probability matrix
  *  @deprecated Use vrna_db_from_probs() instead!
+ *  @ingroup        struct_utils_deprecated
  */
 DEPRECATED(void  bppm_to_structure(char         *structure,
                                    FLT_OR_DBL   *pr,
                                    unsigned int length),
-"Use vrna_db_from_probs() instead");
+           "Use vrna_db_from_probs() instead");
 
 /**
  *  @brief Get a pseudo dot bracket notation for a given probability information
  *  @deprecated Use vrna_bpp_symbol() instead!
+ *  @ingroup        struct_utils_deprecated
  */
 DEPRECATED(char    bppm_symbol(const float *x),
-"Use vrna_bpp_symbol() instead");
+           "Use vrna_bpp_symbol() instead");
 
 #endif
 

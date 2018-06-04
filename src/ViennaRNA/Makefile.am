@@ -288,6 +288,7 @@ libRNA_utils_la_SOURCES = \
     utils/utils.c \
     utils/string_utils.c \
     utils/structure_utils.c \
+    utils/structure_tree.c \
     utils/msa_utils.c \
     io/io_utils.c \
     io/file_formats.c \
