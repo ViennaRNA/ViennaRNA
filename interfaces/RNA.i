@@ -51,16 +51,21 @@ extern "C" {
 #include  <ViennaRNA/loops/internal.h>
 #include  <ViennaRNA/loops/multibranch.h>
 
-#undef fold
 #include  <ViennaRNA/mfe.h>
+#include  <ViennaRNA/mfe_window.h>
 #include  <ViennaRNA/fold.h>
 #include  <ViennaRNA/eval.h>
 #include  <ViennaRNA/cofold.h>
+#include  <ViennaRNA/alifold.h>
+
 #include  <ViennaRNA/part_func.h>
+#include  <ViennaRNA/part_func_window.h>
+#include  <ViennaRNA/part_func_co.h>
 #include  <ViennaRNA/equilibrium_probs.h>
 #include  <ViennaRNA/boltzmann_sampling.h>
-#include  <ViennaRNA/part_func_co.h>
 #include  <ViennaRNA/concentrations.h>
+#include  <ViennaRNA/LPfold.h>
+
 #include  <ViennaRNA/inverse.h>
 #include  <ViennaRNA/RNAstruct.h>
 #include  <ViennaRNA/treedist.h>
@@ -70,10 +75,7 @@ extern "C" {
 #include  <ViennaRNA/pair_mat.h>
 #include  <ViennaRNA/subopt.h>
 #include  <ViennaRNA/duplex.h>
-#include  <ViennaRNA/alifold.h>
 #include  <ViennaRNA/findpath.h>
-#include  <ViennaRNA/Lfold.h>
-#include  <ViennaRNA/LPfold.h>
 #include  <ViennaRNA/move_set.h>
 
 #include  <ViennaRNA/combinatorics.h>

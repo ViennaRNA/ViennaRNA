@@ -1,6 +1,6 @@
 /*
-  Various wrappers to create simplified interfaces for Minimum Free Energy
-  prediction
+ * Various wrappers to create simplified interfaces for Minimum Free Energy
+ * prediction
  */
 
 #ifdef HAVE_CONFIG_H
@@ -53,6 +53,7 @@ vrna_circfold(const char  *string,
 
   return mfe;
 }
+
 
 /* wrappers for multiple sequence alignments */
 
@@ -221,6 +222,8 @@ vrna_Lfoldz_cb(const char                       *string,
 }
 
 
+#endif
+
 /* wrappers for local MFE prediction using multiple sequence alignments */
 PUBLIC float
 vrna_aliLfold(const char  **AS,
@@ -269,5 +272,3 @@ vrna_aliLfold_cb(const char               **AS,
 
   return energy;
 }
-
-#endif

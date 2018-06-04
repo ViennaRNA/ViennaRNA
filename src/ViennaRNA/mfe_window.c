@@ -19,8 +19,6 @@
 #include <string.h>
 #include <limits.h>
 
-#include <svm.h>
-
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/params/constants.h" /* defines MINPSCORE */
@@ -35,6 +33,7 @@
 
 
 #ifdef VRNA_WITH_SVM
+#include <svm.h>
 #include "ViennaRNA/utils/svm.h"
 #endif
 

@@ -31,14 +31,13 @@
  */
 
 
-
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
 
 PUBLIC float
 Lfold(const char  *string,
-      char        *structure,
+      const char  *structure,
       int         window_size)
 {
   float                 energy;
@@ -60,9 +59,11 @@ Lfold(const char  *string,
 }
 
 
+#ifdef VRNA_WITH_SVM
+
 PUBLIC float
 Lfoldz(const char *string,
-       char       *structure,
+       const char *structure,
        int        window_size,
        int        zsc,
        double     min_z)
@@ -78,11 +79,7 @@ Lfoldz(const char *string,
 
   vc = vrna_fold_compound(string, &md, VRNA_OPTION_WINDOW);
 
-#ifndef VRNA_WITH_SVM
-  energy = vrna_mfe_window(vc, NULL);
-#else
   energy = (zsc) ? vrna_mfe_window_zscore(vc, min_z, NULL) : vrna_mfe_window(vc, NULL);
-#endif
 
   vrna_fold_compound_free(vc);
 
@@ -90,9 +87,12 @@ Lfoldz(const char *string,
 }
 
 
+#endif
+
+
 PUBLIC float
 aliLfold(const char *AS[],
-         char       *structure,
+         const char *structure,
          int        maxdist)
 {
   float                 en;

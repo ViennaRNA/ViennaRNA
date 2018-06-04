@@ -34,10 +34,11 @@
  *  @deprecated Use vrna_mfe_window() instead!
  */
 DEPRECATED(float Lfold(const char *string,
-                       char       *structure,
+                       const char *structure,
                        int        maxdist),
-"Use vrna_Lfold() or vrna_Lfold_cb() instead");
+           "Use vrna_Lfold() or vrna_Lfold_cb() instead");
 
+#ifdef VRNA_WITH_SVM
 /**
  *  @brief
  *
@@ -46,21 +47,22 @@ DEPRECATED(float Lfold(const char *string,
  *  @deprecated Use vrna_mfe_window_zscore() instead!
  */
 DEPRECATED(float Lfoldz(const char  *string,
-                        char        *structure,
+                        const char  *structure,
                         int         maxdist,
                         int         zsc,
                         double      min_z),
-"Use vrna_Lfoldz() or vrna_Lfoldz_cb() instead");
+           "Use vrna_Lfoldz() or vrna_Lfoldz_cb() instead");
+#endif
 
 /**
  *  @brief
  *
  *  @ingroup mfe_window_deprecated
  */
-DEPRECATED(float aliLfold(const char **AS,
-               char       *structure,
-               int        maxdist),
-"Use vrna_aliLfold() or vrna_aliLfold_cb() instead");
+DEPRECATED(float aliLfold(const char  **AS,
+                          const char  *structure,
+                          int         maxdist),
+           "Use vrna_aliLfold() or vrna_aliLfold_cb() instead");
 
 
 /**
@@ -69,11 +71,11 @@ DEPRECATED(float aliLfold(const char **AS,
  *  @ingroup mfe_window_deprecated
  *
  */
-DEPRECATED(float aliLfold_cb(const char                **AS,
-                  int                       maxdist,
-                  vrna_mfe_window_callback  *cb,
-                  void                      *data),
-"Use vrna_aliLfold() or vrna_aliLfold_cb() instead");
+DEPRECATED(float aliLfold_cb(const char               **AS,
+                             int                      maxdist,
+                             vrna_mfe_window_callback *cb,
+                             void                     *data),
+           "Use vrna_aliLfold() or vrna_aliLfold_cb() instead");
 
 
 #endif
