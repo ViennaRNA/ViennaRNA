@@ -52,7 +52,7 @@ vrna_cstr(size_t  size,
   buf->string = (char *)vrna_alloc(sizeof(char) * size);
   buf->size   = size;
   buf->output = (output) ? output : stdout;
-  buf->istty  = isatty(fileno(output));
+  buf->istty  = isatty(fileno(buf->output));
 
   if (buf->string == NULL) {
     free(buf);
