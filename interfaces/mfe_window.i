@@ -25,7 +25,5 @@
 
 /* tell swig that these functions return objects that require memory management */
 
-%include <ViennaRNA/mfe.h>
-
-
+%include <ViennaRNA/mfe_window.h>
 %include <ViennaRNA/Lfold.h>
