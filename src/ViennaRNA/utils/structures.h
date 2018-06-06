@@ -13,9 +13,13 @@
 # define DEPRECATED(func, msg) func
 #endif
 
+#include <stdio.h>
+
+#include <ViennaRNA/datastructures/basic.h>
+
 /**
  *  @file     ViennaRNA/utils/structures.h
- *  @ingroup  utils, struct_utils
+ *  @ingroup  struct_utils
  *  @brief    Various utility- and helper-functions for secondary structure parsing, converting, etc.
  */
 
@@ -27,39 +31,23 @@
 
 
 /**
- *  @brief  A Base Pair element
+ *  @brief Convenience typedef for data structure #vrna_hx_s
+ *  @ingroup  struct_utils_helix_list
  */
-#define VRNA_PLIST_TYPE_BASEPAIR      0
+typedef struct vrna_hx_s vrna_hx_t;
 
 
 /**
- *  @brief  A G-Quadruplex element
+ *  @brief Convenience typedef for data structure #vrna_elem_prob_s
+ *  @ingroup  struct_utils_plist
  */
-#define VRNA_PLIST_TYPE_GQUAD         1
+typedef struct vrna_elem_prob_s vrna_ep_t;
 
 
 /**
- *  @brief  A Hairpin loop motif element
+ *  @addtogroup struct_utils_dot_bracket
+ *  @{
  */
-#define VRNA_PLIST_TYPE_H_MOTIF       2
-
-
-/**
- *  @brief  An Internal loop motif element
- */
-#define VRNA_PLIST_TYPE_I_MOTIF       3
-
-
-/**
- *  @brief  An Unstructured Domain motif element
- */
-#define VRNA_PLIST_TYPE_UD_MOTIF      4
-
-
-/**
- *  @brief  A Base Pair stack element
- */
-#define VRNA_PLIST_TYPE_STACK         5
 
 /**
  *  @brief  Bitflag to indicate secondary structure notations using uppercase/lowercase letters from the latin alphabet
@@ -68,12 +56,14 @@
  */
 #define VRNA_BRACKETS_ALPHA    4U
 
+
 /**
  *  @brief  Bitflag to indicate secondary structure notations using round brackets (parenthesis), <tt>()</tt>
  *
  *  @see  vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to()
  */
 #define VRNA_BRACKETS_RND      8U
+
 
 /**
  *  @brief  Bitflag to indicate secondary structure notations using curly brackets, <tt>{}</tt>
@@ -82,6 +72,7 @@
  */
 #define VRNA_BRACKETS_CLY      16U
 
+
 /**
  *  @brief  Bitflag to indicate secondary structure notations using angular brackets, <tt><></tt>
  *
@@ -89,12 +80,14 @@
  */
 #define VRNA_BRACKETS_ANG      32U
 
+
 /**
  *  @brief  Bitflag to indicate secondary structure notations using square brackets, <tt>[]</tt>
  *
  *  @see  vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to()
  */
 #define VRNA_BRACKETS_SQR      64U
+
 
 /**
  *  @brief  Default bitmask to indicate secondary structure notation using any pair of brackets
@@ -107,46 +100,6 @@
    VRNA_BRACKETS_ANG | \
    VRNA_BRACKETS_SQR)
 
-
-/**
- *  @brief Convenience typedef for data structure #vrna_hx_s
- */
-typedef struct vrna_hx_s vrna_hx_t;
-
-/**
- *  @brief Convenience typedef for data structure #vrna_elem_prob_s
- */
-typedef struct vrna_elem_prob_s vrna_ep_t;
-
-#include <stdio.h>
-
-#include <ViennaRNA/datastructures/basic.h>
-
-/**
- *  @brief  Data structure representing an entry of a helix list
- */
-struct vrna_hx_s {
-  unsigned int  start;
-  unsigned int  end;
-  unsigned int  length;
-  unsigned int  up5;
-  unsigned int  up3;
-};
-
-/**
- *  @brief  Data structure representing a single entry of an element probability list
- *          (e.g. list of pair probabilities)
- *
- *  @see vrna_plist(), vrna_plist_from_probs(), vrna_db_from_plist(),
- *  #VRNA_PLIST_TYPE_BASEPAIR, #VRNA_PLIST_TYPE_GQUAD, #VRNA_PLIST_TYPE_H_MOTIF, #VRNA_PLIST_TYPE_I_MOTIF,
- *  #VRNA_PLIST_TYPE_UD_MOTIF, #VRNA_PLIST_TYPE_STACK
- */
-struct vrna_elem_prob_s {
-  int   i;    /**<  @brief  Start position (usually 5' nucleotide that starts the element, e.g. base pair) */
-  int   j;    /**<  @brief  End position (usually 3' nucleotide that ends the element, e.g. base pair) */
-  float p;    /**<  @brief  Probability of the element */
-  int   type; /**<  @brief  Type of the element */
-};
 
 /**
  *  @brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
@@ -177,7 +130,105 @@ char *vrna_db_unpack(const char *packed);
 
 
 /**
- *  @brief Create a pair table of a secondary structure
+ *  @brief Substitute pairs of brackets in a string with parenthesis
+ *
+ *  This function can be used to replace brackets of unusual types,
+ *  such as angular brackets @p <> , to dot-bracket format.
+ *  The @p options parameter is used tpo specify which types of brackets
+ *  will be replaced by round parenthesis @p () .
+ *
+ *  @see vrna_db_flatten_to(),
+ *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
+ *       #VRNA_BRACKETS_DEFAULT
+ *
+ *  @param  structure   The structure string where brackets are flattened in-place
+ *  @param  options     A bitmask to specify which types of brackets should be flattened out
+ */
+void
+vrna_db_flatten(char          *structure,
+                unsigned int  options);
+
+
+/**
+ *  @brief Substitute pairs of brackets in a string with another type of pair characters
+ *
+ *  This function can be used to replace brackets in a structure annotation string,
+ *  such as square brackets @p [] , to another type of pair characters,
+ *  e.g. angular brackets @p <> .
+ *
+ *  The @p target array must contain a character for the 'pair open' annotation at
+ *  position 0, and one for 'pair close' at position 1. T@p options parameter is used
+ *  to specify which types of brackets will be replaced by the new pairs.
+ *
+ *  @see vrna_db_flatten(),
+ *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
+ *       #VRNA_BRACKETS_DEFAULT
+ *
+ *  @param  string      The structure string where brackets are flattened in-place
+ *  @param  target      The new pair characters the string will be flattened to
+ *  @param  options     A bitmask to specify which types of brackets should be flattened out
+ */
+void
+vrna_db_flatten_to(char         *string,
+                   const char   target[3],
+                   unsigned int options);
+
+
+/**
+ *  @brief Convert a pair table into dot-parenthesis notation
+ *
+ *  @param pt The pair table to be copied
+ *  @return   A char pointer to the dot-bracket string
+ */
+char *vrna_db_from_ptable(short *pt);
+
+
+/**
+ *  @brief  Convert a WUSS annotation string to dot-bracket format
+ *
+ *  @note This function flattens all brackets, and treats pseudo-knots annotated
+ *        by matching pairs of upper/lowercase letters as unpaired nucleotides
+ *
+ *  @see @ref wuss-notation
+ *
+ *  @param  wuss  The input string in WUSS notation
+ *  @return       A dot-bracket notation of the input secondary structure
+ */
+char *vrna_db_from_WUSS(const char *wuss);
+
+
+/**
+ *  @brief  Convert a list of base pairs into dot-bracket notation
+ *
+ *  @see vrna_plist()
+ *  @param  pairs   A #vrna_ep_t containing the pairs to be included in
+ *                  the dot-bracket string
+ *  @param  n       The length of the structure (number of nucleotides)
+ *  @return         The dot-bracket string containing the provided base pairs
+ */
+char *vrna_db_from_plist(vrna_ep_t    *pairs,
+                         unsigned int n);
+
+
+/**
+ *  @brief  Convert a secondary structure in dot-bracket notation to a nucleotide annotation of loop contexts
+ *
+ *  @param  structure   The secondary structure in dot-bracket notation
+ *  @return             A string annotating each nucleotide according to it's structural context
+ */
+char *vrna_db_to_element_string(const char *structure);
+
+
+/* End dot-bracket interface */
+/**@}*/
+
+/**
+ *  @addtogroup struct_utils_pair_table
+ *  @{
+ */
+
+/**
+ *  @brief Create a pair table from a dot-bracket notation of a secondary structure
  *
  *  Returns a newly allocated table, such that table[i]=j if (i.j) pair
  *  or 0 if i is unpaired, table[0] contains the length of the structure.
@@ -251,78 +302,150 @@ short *vrna_pt_ali_get(const char *structure);
 short *vrna_pt_snoop_get(const char *structure);
 
 
+/* End pair table interface */
+/**@}*/
+
+
+/**
+ *  @addtogroup struct_utils_plist
+ *  @{
+ */
+
+/**
+ *  @brief  A Base Pair element
+ */
+#define VRNA_PLIST_TYPE_BASEPAIR      0
+
+
+/**
+ *  @brief  A G-Quadruplex element
+ */
+#define VRNA_PLIST_TYPE_GQUAD         1
+
+
+/**
+ *  @brief  A Hairpin loop motif element
+ */
+#define VRNA_PLIST_TYPE_H_MOTIF       2
+
+
+/**
+ *  @brief  An Internal loop motif element
+ */
+#define VRNA_PLIST_TYPE_I_MOTIF       3
+
+
+/**
+ *  @brief  An Unstructured Domain motif element
+ */
+#define VRNA_PLIST_TYPE_UD_MOTIF      4
+
+
+/**
+ *  @brief  A Base Pair stack element
+ */
+#define VRNA_PLIST_TYPE_STACK         5
+
+
+/**
+ *  @brief  Data structure representing a single entry of an element probability list
+ *          (e.g. list of pair probabilities)
+ *
+ *  @see vrna_plist(), vrna_plist_from_probs(), vrna_db_from_plist(),
+ *  #VRNA_PLIST_TYPE_BASEPAIR, #VRNA_PLIST_TYPE_GQUAD, #VRNA_PLIST_TYPE_H_MOTIF, #VRNA_PLIST_TYPE_I_MOTIF,
+ *  #VRNA_PLIST_TYPE_UD_MOTIF, #VRNA_PLIST_TYPE_STACK
+ */
+struct vrna_elem_prob_s {
+  int   i;    /**<  @brief  Start position (usually 5' nucleotide that starts the element, e.g. base pair) */
+  int   j;    /**<  @brief  End position (usually 3' nucleotide that ends the element, e.g. base pair) */
+  float p;    /**<  @brief  Probability of the element */
+  int   type; /**<  @brief  Type of the element */
+};
+
+/**
+ *  @brief Create a #vrna_ep_t from a dot-bracket string
+ *
+ *  The dot-bracket string is parsed and for each base pair an
+ *  entry in the plist is created. The probability of each pair in
+ *  the list is set by a function parameter.
+ *
+ *  The end of the plist is marked by sequence positions i as well as j
+ *  equal to 0. This condition should be used to stop looping over its
+ *  entries
+ *
+ *  @param struc  The secondary structure in dot-bracket notation
+ *  @param pr     The probability for each base pair used in the plist
+ *  @return       The plist array
+ */
+vrna_ep_t *vrna_plist(const char  *struc,
+                      float       pr);
+
+
+/**
+ *  @brief Create a #vrna_ep_t from base pair probability matrix
+ *
+ *  The probability matrix provided via the #vrna_fold_compound_t is parsed
+ *  and all pair probabilities above the given threshold are used to create
+ *  an entry in the plist
+ *
+ *  The end of the plist is marked by sequence positions i as well as j
+ *  equal to 0. This condition should be used to stop looping over its
+ *  entries
+ *
+ *  @ingroup              part_func_global
+ *  @param[in]  vc        The fold compound
+ *  @param[in]  cut_off   The cutoff value
+ *  @return               A pointer to the plist that is to be created
+ */
+vrna_ep_t *vrna_plist_from_probs(vrna_fold_compound_t *vc,
+                                 double               cut_off);
+
+
+/* End pair list interface */
+/**@}*/
+
+
+/**
+ *  @addtogroup struct_utils_helix_list
+ *  @{
+ */
+
+/**
+ *  @brief  Data structure representing an entry of a helix list
+ */
+struct vrna_hx_s {
+  unsigned int  start;
+  unsigned int  end;
+  unsigned int  length;
+  unsigned int  up5;
+  unsigned int  up3;
+};
+
+
+/**
+ *  @brief  Convert a pair table representation of a secondary structure into a helix list
+ *
+ *  @param  pt  The secondary structure in pair table representation
+ *  @return     The secondary structure represented as a helix list
+ */
+vrna_hx_t *vrna_hx_from_ptable(short *pt);
+
+
+/**
+ *  @brief  Create a merged helix list from another helix list
+ */
+vrna_hx_t *vrna_hx_merge(const vrna_hx_t  *list,
+                         int              maxdist);
+
+
+/* End helix list interface */
+/**@}*/
+
+
 /**
  *  @brief Get a loop index representation of a structure
  */
 int *vrna_loopidx_from_ptable(const short *pt);
-
-
-/**
- *  @brief Substitute pairs of brackets in a string with parenthesis
- *
- *  This function can be used to replace brackets of unusual types,
- *  such as angular brackets @p <> , to dot-bracket format.
- *  The @p options parameter is used tpo specify which types of brackets
- *  will be replaced by round parenthesis @p () .
- *
- *  @see vrna_db_flatten_to(),
- *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
- *       #VRNA_BRACKETS_DEFAULT
- *
- *  @param  structure   The structure string where brackets are flattened in-place
- *  @param  options     A bitmask to specify which types of brackets should be flattened out
- */
-void
-vrna_db_flatten(char          *structure,
-                unsigned int  options);
-
-
-/**
- *  @brief Substitute pairs of brackets in a string with another type of pair characters
- *
- *  This function can be used to replace brackets in a structure annotation string,
- *  such as square brackets @p [] , to another type of pair characters,
- *  e.g. angular brackets @p <> .
- *
- *  The @p target array must contain a character for the 'pair open' annotation at
- *  position 0, and one for 'pair close' at position 1. T@p options parameter is used
- *  to specify which types of brackets will be replaced by the new pairs.
- *
- *  @see vrna_db_flatten(),
- *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
- *       #VRNA_BRACKETS_DEFAULT
- *
- *  @param  string      The structure string where brackets are flattened in-place
- *  @param  target      The new pair characters the string will be flattened to
- *  @param  options     A bitmask to specify which types of brackets should be flattened out
- */
-void
-vrna_db_flatten_to(char         *string,
-                   const char   target[3],
-                   unsigned int options);
-
-
-/**
- *  @brief Convert a pair table into dot-parenthesis notation
- *
- *  @param pt The pair table to be copied
- *  @return   A char pointer to the dot-bracket string
- */
-char *vrna_db_from_ptable(short *pt);
-
-
-/**
- *  @brief  Convert a WUSS annotation string to dot-bracket format
- *
- *  @note This function flattens all brackets, and treats pseudo-knots annotated
- *        by matching pairs of upper/lowercase letters as unpaired nucleotides
- *
- *  @see @ref wuss-notation
- *
- *  @param  wuss  The input string in WUSS notation
- *  @return       A dot-bracket notation of the input secondary structure
- */
-char *vrna_db_from_WUSS(const char *wuss);
 
 
 /**
@@ -396,69 +519,7 @@ void vrna_letter_structure(char             *structure,
 
 
 /**
- *  @brief Create a #vrna_ep_t from a dot-bracket string
- *
- *  The dot-bracket string is parsed and for each base pair an
- *  entry in the plist is created. The probability of each pair in
- *  the list is set by a function parameter.
- *
- *  The end of the plist is marked by sequence positions i as well as j
- *  equal to 0. This condition should be used to stop looping over its
- *  entries
- *
- *  @param struc  The secondary structure in dot-bracket notation
- *  @param pr     The probability for each base pair used in the plist
- *  @return       The plist array
- */
-vrna_ep_t *vrna_plist(const char  *struc,
-                      float       pr);
-
-
-/**
- *  @brief Create a #vrna_ep_t from base pair probability matrix
- *
- *  The probability matrix provided via the #vrna_fold_compound_t is parsed
- *  and all pair probabilities above the given threshold are used to create
- *  an entry in the plist
- *
- *  The end of the plist is marked by sequence positions i as well as j
- *  equal to 0. This condition should be used to stop looping over its
- *  entries
- *
- *  @ingroup              part_func_global
- *  @param[in]  vc        The fold compound
- *  @param[in]  cut_off   The cutoff value
- *  @return               A pointer to the plist that is to be created
- */
-vrna_ep_t *vrna_plist_from_probs(vrna_fold_compound_t *vc,
-                                 double               cut_off);
-
-
-/**
- *  @brief  Convert a list of base pairs into dot-bracket notation
- *
- *  @see vrna_plist()
- *  @param  pairs   A #vrna_ep_t containing the pairs to be included in
- *                  the dot-bracket string
- *  @param  n       The length of the structure (number of nucleotides)
- *  @return         The dot-bracket string containing the provided base pairs
- */
-char *vrna_db_from_plist(vrna_ep_t    *pairs,
-                         unsigned int n);
-
-
-char *vrna_db_to_element_string(const char *structure);
-
-
-vrna_hx_t *vrna_hx_from_ptable(short *pt);
-
-
-vrna_hx_t *vrna_hx_merge(const vrna_hx_t  *list,
-                         int              maxdist);
-
-
-/**
- *  @name Tree Representations for Secondary structures
+ *  @addtogroup struct_utils_tree
  *  @{
  *  Secondary structures can be readily represented as trees, where internal
  *  nodes represent base pairs, and leaves represent unpaired nucleotides.
