@@ -432,7 +432,7 @@ backtrack_co(sect                 bt_stack[],
 
           continue;
         } else {
-          vrna_message_error("backtrack failed in f5\n%s", string);
+          vrna_message_error("backtrack failed in f5, segment [%d,%d]\n", i, j);
         }
       }
       break;
@@ -589,9 +589,13 @@ free_end(int                  *array,
     else
       array[i] = array[i - inc];
 
-    if (sc)
+    if (sc) {
       if (sc->energy_up)
         array[i] += sc->energy_up[i][1];
+
+      if (sc->f)
+        array[i] += sc->f(start, i, start, i - 1, VRNA_DECOMP_EXT_EXT, sc->data);
+    }
   } else {
     array[i] = INF;
   }
@@ -624,6 +628,10 @@ free_end(int                  *array,
       si      = ((ii > 1) && (sn[ii - 1] == sn[ii])) ? S1[ii - 1] : -1;
       sj      = ((jj < length) && (sn[jj] == sn[jj + 1])) ? S1[jj + 1] : -1;
       energy  = c[indx[jj] + ii];
+
+      if ((sc) && (sc->f))
+        energy += sc->f(start, jj, ii - 1, ii, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
+
       if (energy != INF) {
         switch (dangle_model) {
           case 0:
