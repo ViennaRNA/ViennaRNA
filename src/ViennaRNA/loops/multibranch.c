@@ -1100,11 +1100,6 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
 
   init_sc_wrapper(fc, &sc_wrapper);
 
-  if (sliding_window) {
-    fmi   -= i;
-    dmli  -= i;
-  }
-
   /*
    *  extension with one unpaired nucleotide at the right (3' site)
    *  or full branch of (i,j)
@@ -1264,6 +1259,10 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   }
 
   /* modular decomposition -------------------------------*/
+  if (sliding_window) {
+    fmi   -= i;
+    dmli  -= i;
+  }
 
   /* use fmi pointer that we may extend to include hard/soft constraints if necessary */
   int *fmi_tmp = fmi;
@@ -1283,7 +1282,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   }
 
   if (sc_wrapper.decomp_ml) {
-    if (fmi_tmp == fmi - (sliding_window ? i : 0)) {
+    if (fmi_tmp == fmi) {
       fmi_tmp = (int *)vrna_alloc(sizeof(int) * (j - i + 2));
       fmi_tmp -= i;
 
