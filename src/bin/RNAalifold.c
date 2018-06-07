@@ -900,8 +900,8 @@ process_record(struct record_data *record)
 
   /* generate consensus sequence */
   consensus_sequence = (opt->mis) ?
-                       consens_mis((const char **)alignment) :
-                       consensus((const char **)alignment);
+                       vrna_aln_consensus_mis((const char **)alignment, &(opt->md)) :
+                       vrna_aln_consensus_sequence((const char **)alignment, &(opt->md));
 
   /* put header + sequence into output string stream */
   vrna_cstr_print_fasta_header(o_stream->data, record->MSA_ID);
@@ -1171,7 +1171,7 @@ compute_sci(const char  **alignment,
   sci = e_mean = 0.;
 
   for (i = 0; alignment[i]; i++) {
-    char *seq = get_ungapped_sequence(alignment[i]);
+    char *seq = vrna_seq_ungapped(alignment[i]);
 
     if (strlen(seq) > 0) {
       vrna_fold_compound_t *fc = vrna_fold_compound(seq, md, VRNA_OPTION_DEFAULT);

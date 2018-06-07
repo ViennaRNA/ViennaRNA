@@ -72,6 +72,7 @@ typedef struct vrna_pinfo_s vrna_pinfo_t;
 /**
  *  @brief Old typename of #vrna_pinfo_s
  *  @deprecated Use #vrna_pinfo_t instead!
+ *  @ingroup  aln_utils_deprecated
  */
 typedef struct vrna_pinfo_s pair_info;
 
@@ -246,31 +247,70 @@ vrna_aln_conservation_col(const char      **alignment,
                           unsigned int    options);
 
 
+/**
+ *  @brief  Compute the consensus sequence for a given multiple sequence alignment
+ *
+ *  @param  alignment   The input sequence alignment (last entry must be @em NULL terminated)
+ *  @param  md_p        Model details that specify known nucleotides (Maybe @em NULL)
+ *  @return             The consensus sequence of the alignment, i.e. the most frequent nucleotide for each alignment column
+ */
+char *
+vrna_aln_consensus_sequence(const char      **alignment,
+                            const vrna_md_t *md_p);
+
+/**
+ *  @brief  Compute the Most Informative Sequence (MIS) for a given multiple sequence alignment
+ *
+ *  The most informative sequence (MIS) @cite freyhult:2005 displays for each alignment column
+ *  the nucleotides with frequency greater than the background frequency, projected into IUPAC
+ *  notation. Columns where gaps are over-represented are in lower case.
+ *
+ *  @param  alignment   The input sequence alignment (last entry must be @em NULL terminated)
+ *  @param  md_p        Model details that specify known nucleotides (Maybe @em NULL)
+ *  @return             The most informative sequence for the alignment
+ */
+char *
+vrna_aln_consensus_mis(const char       **alignment,
+                       const vrna_md_t  *md_p);
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
+/**
+ *  @ingroup  aln_utils_deprecated
+ */
 DEPRECATED(int read_clustal(FILE  *clust,
                             char  *AlignedSeqs[],
                             char  *names[]),
           "Use vrna_file_msa_read() and vrna_file_msa_read_record() instead");
 
 
+/**
+ *  @ingroup  aln_utils_deprecated
+ */
 DEPRECATED(char *consensus(const char *AS[]),
-          "");
+          "Use vrna_aln_consensus_sequence() instead!");
 
 
+/**
+ *  @ingroup  aln_utils_deprecated
+ */
 DEPRECATED(char *consens_mis(const char *AS[]),
-          "");
+          "Use vrna_aln_consensus_mis() instead!");
 
 
+/**
+ *  @ingroup  aln_utils_deprecated
+ */
 DEPRECATED(char *get_ungapped_sequence(const char *seq),
-          "");
+          "Use vrna_seq_ungapped() instead!");
 
 
 /**
  *  @brief Get the mean pairwise identity in steps from ?to?(ident)
  *
  *  @deprecated Use vrna_aln_mpi() as a replacement
- *
+ *  @ingroup  aln_utils_deprecated
  *  @param Alseq
  *  @param n_seq  The number of sequences in the alignment
  *  @param length The length of the alignment
@@ -295,6 +335,7 @@ DEPRECATED(int get_mpi(char *Alseq[],
  *  this function assumes that in S, S5, s3, ss and as enough
  *  space is already allocated (size must be at least sequence length+2)
  *
+ *  @ingroup  aln_utils_deprecated
  *  @param sequence The gapped sequence from the alignment
  *  @param S        pointer to an array that holds encoded sequence
  *  @param s5      pointer to an array that holds the next base 5' of alignment position i
@@ -320,6 +361,7 @@ DEPRECATED(void encode_ali_sequence(const char      *sequence,
  *
  *  @see free_sequence_arrays()
  *
+ *  @ingroup  aln_utils_deprecated
  *  @param sequences  The aligned sequences
  *  @param S          A pointer to the array of encoded sequences
  *  @param S5         A pointer to the array that contains the next 5' nucleotide of a sequence position
@@ -345,6 +387,7 @@ DEPRECATED(void  alloc_sequence_arrays(const char     **sequences,
  *
  *  @see alloc_sequence_arrays()
  *
+ *  @ingroup  aln_utils_deprecated
  *  @param n_seq      The number of aligned sequences
  *  @param S          A pointer to the array of encoded sequences
  *  @param S5         A pointer to the array that contains the next 5' nucleotide of a sequence position

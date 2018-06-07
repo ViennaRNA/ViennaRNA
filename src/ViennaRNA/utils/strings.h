@@ -245,6 +245,16 @@ void vrna_seq_toupper(char *sequence);
 
 
 /**
+ *  @brief  Remove gap characters from a nucleotide sequence
+ *
+ *  @param  sequence  The original, null-terminated nucleotide sequence
+ *  @return           A copy of the input sequence with all gap characters removed
+ */
+char *
+vrna_seq_ungapped(const char *seq);
+
+
+/**
  *  @brief Add a separating '&' character into a string according to cut-point position
  *
  *  If the cut-point position is less or equal to zero, this function just

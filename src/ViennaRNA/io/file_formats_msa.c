@@ -726,7 +726,9 @@ write_stockholm_alignment(FILE          *fp,
         fprintf(fp, "%-*s  %s\n", longest_name, names[s], aln[s]);
 
       /* output reference sequence */
-      char *cons = (options & VRNA_FILE_FORMAT_MSA_MIS) ? consens_mis(aln) : consensus(aln);
+      char *cons = (options & VRNA_FILE_FORMAT_MSA_MIS) ?
+                    vrna_aln_consensus_mis(aln, NULL) :
+                    vrna_aln_consensus_sequence(aln, NULL);
       fprintf(fp, "%-*s  %s\n", longest_name, "#=GC RF", cons);
       free(cons);
 

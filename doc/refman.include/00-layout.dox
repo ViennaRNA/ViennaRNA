@@ -285,6 +285,9 @@ formats, and various output file formats produced by our library.
 @defgroup   aln_utils                 Multiple Sequence Alignment Utilities
 @ingroup    utils
 
+@defgroup   aln_utils_deprecated      Deprecated Interface for Multiple Sequence Alignment Utilities
+@ingroup    aln_utils
+
 @defgroup   file_utils                Files and I/O
 @ingroup    utils
 

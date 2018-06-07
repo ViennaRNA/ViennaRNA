@@ -383,6 +383,35 @@ vrna_strsplit(const char  *string,
 }
 
 
+PUBLIC char *
+vrna_seq_ungapped(const char *seq)
+{
+  char  *tmp_sequence, *b;
+  int   i;
+
+  tmp_sequence = NULL;
+
+  if (seq) {
+    tmp_sequence = strdup(seq);
+
+    b = tmp_sequence;
+    i = 0;
+    do {
+      if ((*b == '-') || (*b == '_') || (*b == '~') || (*b == '.'))
+        continue;
+
+      tmp_sequence[i] = *b;
+      i++;
+    } while (*(++b));
+
+    tmp_sequence    = (char *)vrna_realloc(tmp_sequence, (i + 1) * sizeof(char));
+    tmp_sequence[i] = '\0';
+  }
+
+  return tmp_sequence;
+}
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/

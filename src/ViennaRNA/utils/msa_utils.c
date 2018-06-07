@@ -539,6 +539,150 @@ vrna_aln_conservation_col(const char      **alignment,
 }
 
 
+PUBLIC char *
+vrna_aln_consensus_sequence(const char **alignment,
+                            const vrna_md_t *md_p)
+{
+  /* simple consensus sequence (most frequent character) */
+  char          *consensus;
+  unsigned int  i, n, s, n_seq;
+  vrna_md_t     md;
+
+  consensus = NULL;
+
+  if (alignment) {
+    n = strlen(alignment[0]);
+    if (n > 0) {
+      /* check alignment for consistency */
+      for (s = 1; alignment[s]; s++) {
+        if (strlen(alignment[s]) != n) {
+          vrna_message_warning("vrna_aln_consensus_sequence: "
+                               "Length of aligned sequence #%d does not match length of first sequence\n"
+                               "%s\n\n",
+                               s + 1,
+                               alignment[s]);
+          return NULL;
+        }
+      }
+
+      n_seq = s;
+
+      if (md_p)
+        vrna_md_copy(&md, md_p);
+      else
+        vrna_md_set_default(&md);
+
+      consensus  = (char *)vrna_alloc((n + 1) * sizeof(char));
+
+      for (i = 0; i < n; i++) {
+        int c, fm;
+        int freq[8] = {
+          0, 0, 0, 0, 0, 0, 0, 0
+        };
+
+        for (s = 0; s < n_seq; s++)
+          freq[vrna_nucleotide_encode(alignment[s][i], &md)]++;
+
+        for (s = c = fm = 0; s < 8; s++) /* find the most frequent char */
+          if (freq[s] > fm) {
+            c = s;
+            fm = freq[c];
+          }
+
+        if (s > 4)
+          s++;        /* skip T */
+
+        consensus[i] = vrna_nucleotide_decode(c, &md);
+      }
+    }
+  }
+
+  return consensus;
+}
+
+
+PUBLIC char *
+vrna_aln_consensus_mis(const char       **alignment,
+                       const vrna_md_t  *md_p)
+{
+  /*
+   *  MIS displays the 'most informative sequence' (Freyhult et al 2004),
+   *  elements in columns with frequency greater than the background
+   *  frequency are projected into iupac notation. Columns where gaps are
+   *  over-represented are in lower case.
+   */
+  char          *mis, c;
+  unsigned int  i, n, s, n_seq;
+  unsigned int  bgfreq[8] = {
+    0, 0, 0, 0, 0, 0, 0, 0
+  };
+  vrna_md_t     md;
+
+  mis = NULL;
+
+  if (alignment) {
+    n = strlen(alignment[0]);
+    if (n > 0) {
+      /* check alignment for consistency */
+      for (s = 1; alignment[s]; s++) {
+        if (strlen(alignment[s]) != n) {
+          vrna_message_warning("vrna_aln_consensus_mis: "
+                               "Length of aligned sequence #%d does not match length of first sequence\n"
+                               "%s\n\n",
+                               s + 1,
+                               alignment[s]);
+          return NULL;
+        }
+      }
+
+      n_seq = s;
+
+      if (md_p)
+        vrna_md_copy(&md, md_p);
+      else
+        vrna_md_set_default(&md);
+
+      mis = (char *)vrna_alloc((n + 1) * sizeof(char));
+
+      /* determien backgroud frequencies */
+      for (i = 0; i < n; i++)
+        for (s = 0; s < n_seq; s++) {
+          c = vrna_nucleotide_encode(alignment[s][i], &md);
+          if (c > 4)
+            c = 5;
+
+          bgfreq[c]++;
+        }
+
+      /* generate MIS */
+      for (i = 0; i < n; i++) {
+        unsigned int freq[8] = {
+          0, 0, 0, 0, 0, 0, 0, 0
+        };
+        int code = 0;
+        for (s = 0; s < n_seq; s++) {
+          c = vrna_nucleotide_encode(alignment[s][i], &md);
+          if (c > 4)
+            c = 5;
+
+          freq[c]++;
+        }
+        for (c = 4; c > 0; c--) {
+          code <<= 1;
+          if (freq[c] * n >= bgfreq[c])
+            code++;
+        }
+        mis[i] = IUP[code];
+        if (freq[0] * n > bgfreq[0])
+          mis[i] = tolower(IUP[code]);
+      }
+    }
+  }
+
+  return mis;
+}
+
+
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #
