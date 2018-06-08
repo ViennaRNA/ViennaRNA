@@ -38,7 +38,17 @@ that it is installed and its directory is included in the search path.
         AC_MSG_RESULT([$PYTHON3_LIBS])
 
         AC_MSG_CHECKING([for Python3 ld flags])
-        PYTHON3_LDFLAGS=`$PYTHON3_CONFIG --ldflags 2> /dev/null`
+        case "$host" in
+          # Handle OSX Python extensions differently
+          # see: http://blog.tim-smith.us/2015/09/python-extension-modules-os-x/
+          #
+          *-darwin* | *-macos10*)
+            PYTHON3_LDFLAGS="-bundle -undefined dynamic_lookup"
+            ;;
+          *)
+            PYTHON3_LDFLAGS=`${PYTHON3_CONFIG} --ldflags 2> /dev/null`
+            ;;
+        esac
         AC_SUBST(PYTHON3_LDFLAGS)
         AC_MSG_RESULT([$PYTHON3_LDFLAGS])
 
@@ -86,10 +96,10 @@ that it is installed and its directory is included in the search path.
         #
         AC_MSG_CHECKING([for ability to link against Python3 library])
         # save current global flags
-        ac_save_LIBS="$LIBS"
         ac_save_CFLAGS="$CFLAGS"
         ac_save_CPPFLAGS="$CPPFLAGS"
-        LIBS="$ac_save_LIBS $PYTHON3_LIBS"
+        ac_save_LDFLAGS="$LDFLAGS"
+        LDFLAGS="$ac_save_LDFLAGS $PYTHON3_LDFLAGS"
         CFLAGS="$ac_save_CFLAGS $PYTHON3_CFLAGS"
         CPPFLAGS="$ac_save_CPPFLAGS $PYTHON3_INCLUDES"
         AC_LANG_PUSH([C])
@@ -100,8 +110,8 @@ that it is installed and its directory is included in the search path.
         AC_LANG_POP([C])
         # turn back to default flags
         CPPFLAGS="$ac_save_CPPFLAGS"
-        LIBS="$ac_save_LIBS"
         CFLAGS="$ac_save_CFLAGS"
+        LDFLAGS="$ac_save_LDFLAGS"
 
         AC_MSG_RESULT([$python3_link_success])
 
