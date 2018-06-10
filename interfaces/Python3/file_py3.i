@@ -29,6 +29,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ *  Modifications to synchronize Python IO stream and C FILE * stream
+ *  inspired by matplotlib and implemented 2018 by Ronny Lorenz
+ */
+
 %{
 #include <unistd.h>
 #include <fcntl.h>
