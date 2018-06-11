@@ -97,6 +97,16 @@ char *vrna_filename_sanitize(const char *name,
 
 
 /**
+ *  @brief  Check if a file already exists in the file system
+ *
+ *  @param  filename  The name of (path to) the file to check for existence
+ *  @return           0 if it doesn't exists, 1 otherwise
+ */
+int
+vrna_file_exists(const char *filename);
+
+
+/**
  *  @}
  */
 

@@ -264,6 +264,22 @@ vrna_filename_sanitize(const char *name,
 }
 
 
+PUBLIC int
+vrna_file_exists(const char *filename)
+{
+  int           r = 0;
+
+#ifdef _WIN32
+  struct _stat  buf;
+  r = _stat(filename, &buf) == 0 ? 1 : 0;
+#else
+  struct stat   buf;
+  r = stat(filename, &buf) == 0 ? 1 : 0;
+#endif
+  return r;
+}
+
+
 #ifdef _WIN32
 PRIVATE int
 is_drive_char(const char c)
