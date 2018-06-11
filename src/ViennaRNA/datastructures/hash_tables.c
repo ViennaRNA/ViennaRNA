@@ -262,10 +262,10 @@ PUBLIC unsigned int
 vrna_ht_db_hash_func(void           *x,
                      unsigned long  hashtable_size)
 {
-  register unsigned char  *k;           /* the key */
-  register unsigned int   length;       /* the length of the key */
-  register unsigned int   initval = 0;  /* the previous hash, or an arbitrary value */
-  register unsigned int   a, b, c, len;
+  register char         *k;           /* the key */
+  register unsigned int length;       /* the length of the key */
+  register unsigned int initval = 0;  /* the previous hash, or an arbitrary value */
+  register unsigned int a, b, c, len;
 
   /* Set up the internal state */
   k   = ((vrna_ht_entry_db_t *)x)->structure;
@@ -275,13 +275,19 @@ vrna_ht_db_hash_func(void           *x,
 
   /*---------------------------------------- handle most of the key */
   while (len >= 12) {
-    a +=
-      (k[0] + ((unsigned int)k[1] << 8) + ((unsigned int)k[2] << 16) + ((unsigned int)k[3] << 24));
-    b +=
-      (k[4] + ((unsigned int)k[5] << 8) + ((unsigned int)k[6] << 16) + ((unsigned int)k[7] << 24));
-    c +=
-      (k[8] + ((unsigned int)k[9] << 8) + ((unsigned int)k[10] << 16) +
-       ((unsigned int)k[11] << 24));
+    a += ((unsigned int)k[0] +
+          ((unsigned int)k[1] << 8) +
+          ((unsigned int)k[2] << 16) +
+          ((unsigned int)k[3] << 24));
+    b += ((unsigned int)k[4] +
+          ((unsigned int)k[5] << 8) +
+          ((unsigned int)k[6] << 16) +
+          ((unsigned int)k[7] << 24));
+    c += ((unsigned int)k[8] +
+          ((unsigned int)k[9] << 8) +
+          ((unsigned int)k[10] << 16) +
+          ((unsigned int)k[11] << 24));
+
     mix(a, b, c);
     k   += 12;
     len -= 12;
@@ -313,7 +319,7 @@ vrna_ht_db_hash_func(void           *x,
     case 2:
       a += ((unsigned int)k[1] << 8);
     case 1:
-      a += k[0];
+      a += (unsigned int)k[0];
       /* case 0: nothing left to add */
   }
   mix(a, b, c);
