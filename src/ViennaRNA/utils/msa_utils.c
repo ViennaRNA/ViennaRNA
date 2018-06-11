@@ -540,7 +540,7 @@ vrna_aln_conservation_col(const char      **alignment,
 
 
 PUBLIC char *
-vrna_aln_consensus_sequence(const char **alignment,
+vrna_aln_consensus_sequence(const char      **alignment,
                             const vrna_md_t *md_p)
 {
   /* simple consensus sequence (most frequent character) */
@@ -585,7 +585,7 @@ vrna_aln_consensus_sequence(const char **alignment,
 
         for (s = c = fm = 0; s < 8; s++) /* find the most frequent char */
           if (freq[s] > fm) {
-            c = s;
+            c  = s;
             fm = freq[c];
           }
 
@@ -611,7 +611,8 @@ vrna_aln_consensus_mis(const char       **alignment,
    *  frequency are projected into iupac notation. Columns where gaps are
    *  over-represented are in lower case.
    */
-  char          *mis, c;
+  char          *mis;
+  unsigned char c;
   unsigned int  i, n, s, n_seq;
   unsigned int  bgfreq[8] = {
     0, 0, 0, 0, 0, 0, 0, 0
@@ -647,7 +648,7 @@ vrna_aln_consensus_mis(const char       **alignment,
       /* determien backgroud frequencies */
       for (i = 0; i < n; i++)
         for (s = 0; s < n_seq; s++) {
-          c = vrna_nucleotide_encode(alignment[s][i], &md);
+          c = (unsigned char)vrna_nucleotide_encode(alignment[s][i], &md);
           if (c > 4)
             c = 5;
 
@@ -656,12 +657,13 @@ vrna_aln_consensus_mis(const char       **alignment,
 
       /* generate MIS */
       for (i = 0; i < n; i++) {
-        unsigned int freq[8] = {
+        int           code    = 0;
+        unsigned int  freq[8] = {
           0, 0, 0, 0, 0, 0, 0, 0
         };
-        int code = 0;
+
         for (s = 0; s < n_seq; s++) {
-          c = vrna_nucleotide_encode(alignment[s][i], &md);
+          c = (unsigned char)vrna_nucleotide_encode(alignment[s][i], &md);
           if (c > 4)
             c = 5;
 
