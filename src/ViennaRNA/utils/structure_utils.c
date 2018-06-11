@@ -1222,6 +1222,7 @@ assign_elements_pair(short  *pt,
 
     case 1:   /* interior loop */
       elements[i - 1] = elements[j - 1] = 'I';
+      p               = 0;
       for (k = i + 1; k < j; k++) {
         if (!pt[k]) {
           elements[k - 1] = 'i';
@@ -1230,7 +1231,10 @@ assign_elements_pair(short  *pt,
           k = pt[k];
         }
       }
-      assign_elements_pair(pt, p, pt[p], elements);
+
+      if (p)
+        assign_elements_pair(pt, p, pt[p], elements);
+
       break;
 
     default:  /* multibranch loop */
