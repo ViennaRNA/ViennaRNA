@@ -240,6 +240,7 @@ fail_dispose_file:
 
 %typemap(in, noblock = 1, fragment = "obj_to_file") FILE *(PyObject *pyfile, long int start_position) {
   if($input == Py_None){
+    pyfile = NULL;
     $1 = NULL;
     start_position = -1;
   } else {
