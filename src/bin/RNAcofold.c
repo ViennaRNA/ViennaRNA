@@ -683,6 +683,15 @@ process_record(struct record_data *record)
     }
   }
 
+
+  if (vc->cutpoint == vc->length / 2 + 1) {
+    if (!strncmp(vc->sequence, vc->sequence + vc->cutpoint - 1, vc->cutpoint - 1)) {
+      vrna_cstr_message_warning(o_stream->err,
+                                "Both input strands are identical, thus inducing rotationally symmetry! "
+                                "Symmetry correction might be required to compute actual MFE!");
+    }
+  }
+
   mfe_structure = (char *)vrna_alloc(sizeof(char) * (n + 1));
 
   /* parse the rest of the current dataset to obtain a structure constraint */

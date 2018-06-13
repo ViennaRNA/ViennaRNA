@@ -64,6 +64,18 @@ vrna_cstr_message_vinfo(vrna_cstr_t buf,
 
 
 void
+vrna_cstr_message_warning(struct vrna_cstr_s *buf,
+                          const char         *format,
+                          ...);
+
+
+void
+vrna_cstr_message_vwarning(struct vrna_cstr_s  *buf,
+                           const char          *format,
+                           va_list             args);
+
+
+void
 vrna_cstr_print_fasta_header(vrna_cstr_t  buf,
                              const char   *head);
 
