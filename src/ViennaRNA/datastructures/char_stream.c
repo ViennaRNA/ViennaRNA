@@ -244,6 +244,45 @@ vrna_cstr_message_vinfo(struct vrna_cstr_s  *buf,
 }
 
 PUBLIC void
+vrna_cstr_message_warning(struct vrna_cstr_s *buf,
+                          const char         *format,
+                          ...)
+{
+  va_list args;
+
+  if ((!buf) || (!format))
+    return;
+
+  va_start(args, format);
+  vrna_cstr_message_vwarning(buf, format, args);
+  va_end(args); /* Each va_start() or va_copy() needs a va_end() */
+}
+
+
+PUBLIC void
+vrna_cstr_message_vwarning(struct vrna_cstr_s  *buf,
+                           const char          *format,
+                           va_list             args)
+{
+  if ((!buf) || (!format))
+    return;
+
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (buf->istty) {
+    vrna_cstr_printf(buf, ANSI_COLOR_MAGENTA_B "WARNING: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT);
+    vrna_cstr_vprintf(buf, format, args);
+    vrna_cstr_printf(buf, ANSI_COLOR_RESET "\n");
+  } else {
+#endif
+    vrna_cstr_printf(buf, "WARNING: ");
+    vrna_cstr_vprintf(buf, format, args);
+    vrna_cstr_printf(buf, "\n");
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  }
+#endif
+}
+
+PUBLIC void
 vrna_cstr_print_fasta_header(struct vrna_cstr_s *buf,
                              const char         *head)
 {
