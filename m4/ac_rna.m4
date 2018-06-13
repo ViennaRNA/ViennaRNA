@@ -64,16 +64,6 @@ RNA_ENABLE_SSE
 RNA_FEATURE_POST
 
 ##--------------------##
-## Enable Subpackages ##
-##--------------------##
-
-RNA_ENABLE_PKG_KINFOLD
-RNA_ENABLE_PKG_FORESTER
-RNA_ENABLE_PKG_CLUSTER
-RNA_ENABLE_PKG_KINWALKER
-RNA_ENABLE_PKG_RNALOCMIN
-
-##--------------------##
 ## Enable scripting   ##
 ## language interface ##
 ##--------------------##
@@ -97,6 +87,21 @@ RNA_ENABLE_TUTORIAL([tutorial])
 ##--------------------##
 RNA_ENABLE_UNIT_TESTS
 
+##----------------------------------##
+## Check general build dependencies ##
+##----------------------------------##
+RNA_CHECK_BUILD_REQUIREMENTS
+
+##--------------------##
+## Enable Subpackages ##
+##--------------------##
+
+RNA_ENABLE_PKG_KINFOLD
+RNA_ENABLE_PKG_FORESTER
+RNA_ENABLE_PKG_CLUSTER
+RNA_ENABLE_PKG_KINWALKER
+RNA_ENABLE_PKG_RNALOCMIN
+
 ##--------------------##
 ## Prepare Version    ##
 ## Macros             ##
@@ -118,6 +123,7 @@ AC_CONFIG_FILES([misc/Makefile])
 AC_CONFIG_FILES([interfaces/Makefile])
 AC_CONFIG_FILES([Makefile RNAlib2.pc])
 AC_CONFIG_FILES([src/Utils/Makefile src/bin/Makefile src/Makefile src/ViennaRNA/Makefile])
+AC_CONFIG_FILES([src/ViennaRNA/static/Makefile])
 AC_CONFIG_FILES([man/Makefile doc/Makefile RNA-Tutorial/Makefile])
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 AC_CONFIG_FILES([packaging/viennarna.spec packaging/PKGBUILD])
@@ -212,63 +218,88 @@ AS_IF([test "x$_macosx_enabled" != "x"], [
 
 AC_MSG_NOTICE([
 
-################################################
-#         ViennaRNA Package ${PACKAGE_VERSION}             ##
-#                                             ##
-# configured successfully with the following  ##
-# options:                                    ##
-################################################
+======================================
+    ViennaRNA Package ${PACKAGE_VERSION}
+======================================
 
+Sub Packages
+------------
+  * Kinfold                   : ${with_kinfold:-no}
+  * RNAforester               : ${with_forester:-no}
+  * Analyse{Dists,Seqs}       : ${with_cluster:-no}
+  * RNAlocmin                 : ${with_rnalocmin:-no}
+  * Kinwalker                 : ${with_kinwalker:-no}
 
-  * Extra Programs:
+Extra Libraries
+---------------
+  * Support Vector Machine    : ${with_svm:-no}
+  * GNU Scientific Library    : ${with_gsl:-no}
+  * JSON                      : ${with_json:-no}
 
-    ( ${_packages_enabled} )
+Features
+--------
+  * Boustrophedon             : ${enable_boustrophedon:-no}
+  * C11 features              : ${enable_c11:-no}
+  * TTY colors                : ${enable_tty_colors:-no}
+  * Float Precision(PF}       : ${enable_floatpf:-no}
+  * Deprecation Warnings      : ${enable_warn_deprecated:-no}
 
-  * Other Options:
+Optimizations
+-------------
+  * Streaming SIMD Extension  : ${enable_sse:-no}
+  * Link Time Optimization    : ${enable_lto:-no}
+  * POSIX Threads             : ${enable_pthreads:-no}
+  * OpenMP                    : ${enable_openmp:-no}
 
-    ( ${_features_enabled} )
+Scripting Language Interfaces
+-----------------------------
+  * Perl 5                    : ${with_perl:-no}
+  * Python 2                  : ${with_python:-no}
+  * Python 3                  : ${with_python3:-no}
 
-  * RNAlib Scripting Language Interfaces:
+Documentation
+-------------
+  * Reference Manual (PDF)    : ${with_doc_pdf:-no}
+  * Reference Manual (HTML)   : ${with_doc_html:-no}
+  * Tutorial (PDF)            : ${with_tutorial_pdf:-no}
+  * Tutorial (HTML)           : ${with_tutorial_html:-no}
 
-    ( ${_swig_languages_enabled} )
+Unit Tests
+----------
+  * Executable Programs       : ${enable_unittests:-no}
+  * C-Library                 : ${with_check:-no}
+  * Perl 5 Interface          : ${enable_check_perl:-no}
+  * Python 2 Interface        : ${enable_check_python:-no}
+  * Python 3 Interface        : ${enable_check_python3:-no}
 
-  * RNAlib Documentation:
+MacOS X
+-------
+  * Universal Binary          : ${osx_arch:-no}
+  * Installer                 : ${enable_macosx_installer:-no}
+  * SDK                       : ${enable_macosx_sdk:-no}
 
-    ( ${_refman_enabled} )
+Install Directories
+-------------------
+  * Executables               : $_bindir
+  * Libraries                 : $_libdir
+  * Header files              : $_includedir
+  * Extra Data                : $_datadir
+  * Man pages                 : $_mandir
+  * Documentation             : $_docdir
+      (HTML)                  : $(eval printf "%s" $_htmldir)
+      (PDF)                   : $(eval printf "%s" $_pdfdir)
+  * Perl5 Interface           : $_perl_install
+      (binaries)              : $_perl_arch_dir
+      (scripts)               : $_perl_lib_dir
+  * Python2 Interface         : $_python2_install
+      (binaries)              : $_python2_arch_dir
+      (scripts)               : $_python2_lib_dir
+  * Python3 Interface         : $_python3_install
+      (binaries)              : $_python3_arch_dir
+      (scripts)               : $_python3_lib_dir
 
-  * Tutorial:
-  
-    ( ${_tutorial_enabled} )
-
-  * Unit Tests will be performed for:
-
-    ( ${_unit_tests_enabled} )
-
-
-##############################################
-# Files will be installed in the following  ##
-# directories:                              ##
-##############################################
-
-  Executables:        $_bindir
-  Libraries:          $_libdir
-  Header files:       $_includedir
-  Extra Data:         $_datadir
-  Man pages:          $_mandir
-  Documentation:      $_docdir
-    (HTML):           $(eval printf "%s" $_htmldir)
-    (PDF):            $(eval printf "%s" $_pdfdir)
-  Perl5 Interface:    $_perl_install
-    (binaries):       $_perl_arch_dir
-    (scripts):        $_perl_lib_dir
-  Python2 Interface:  $_python2_install
-    (binaries):       $_python2_arch_dir
-    (scripts):        $_python2_lib_dir
-  Python3 Interface:  $_python3_install
-    (binaries):       $_python3_arch_dir
-    (scripts):        $_python3_lib_dir
+You can run 'make', 'make check' and 'make install' now!
 ])
-
 ])
 
 

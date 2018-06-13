@@ -18,18 +18,21 @@
 #include <time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/ali_plex.h"
 #include "ViennaRNA/alifold.h"
-#include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/plex.h"
-#include "ViennaRNA/PS_dot.h"
-#include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/plotting/probabilities.h"
+#include "ViennaRNA/plotting/alignments.h"
+#include "ViennaRNA/params/io.h"
+#include "ViennaRNA/io/utils.h"
 #include "RNAplex_cmdl.h"
 
 

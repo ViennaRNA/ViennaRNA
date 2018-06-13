@@ -1,7 +1,8 @@
 #include <stdlib.h>
 
 #include <ViennaRNA/model.h>
-#include <ViennaRNA/utils.h>
+#include <ViennaRNA/utils/basic.h>
+#include <ViennaRNA/alphabet.h>
 
 #suite Utilities
 

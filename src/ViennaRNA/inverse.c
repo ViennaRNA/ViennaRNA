@@ -28,7 +28,7 @@
 #include "ViennaRNA/treedist.h"
 #include "ViennaRNA/RNAstruct.h"
 #endif
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 

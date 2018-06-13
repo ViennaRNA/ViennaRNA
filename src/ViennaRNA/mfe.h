@@ -2,12 +2,12 @@
 #define VIENNA_RNA_PACKAGE_MFE_H
 
 #include <stdio.h>
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  *
- *  @ingroup  mfe_fold
  *  @file mfe.h
+ *  @ingroup  mfe, mfe_global
  *  @brief Compute Minimum Free energy (MFE) and backtrace corresponding secondary
  *         structures from RNA sequence data.
  *
@@ -15,39 +15,44 @@
  *  MFE folding...
  */
 
+/**
+ *  @addtogroup mfe
+ *  @{
+ *  @brief  Predicting the Minimum Free Energy (MFE) and a corresponding (consensus) secondary structure
+ *
+ *  In a nutshell we provide two different flavors for MFE prediction:
+ *  * @ref mfe_global - to compute the MFE for the entire sequence
+ *  * @ref mfe_window - to compute MFEs for each window using a sliding window approach
+ *
+ *  Each of these flavors, again, provides two implementations to either compute the MFE based on
+ *  *  single RNA (DNA) sequence(s), or
+ *  *  a comparative approach using multiple sequence alignments (MSA).
+ *
+ *  For the latter, a consensus secondary structure is predicted and our implementations compute
+ *  an average of free energies for each sequence in the MSA plus an additional covariance
+ *  pseudo-energy term.
+ *
+ *  The implementations for @ref mfe_backtracking are generally agnostic with respect to whether
+ *  local or global structure prediction is in place.
+ *  @}
+ */
+
 
 /**
- *  @brief  The default callback for sliding window MFE structure predictions
+ *  @addtogroup  mfe_global
+ *  @{
+ *  @brief  Variations of the global Minimum Free Energy (MFE) prediction algorithm
  *
- *  @ingroup mfe_fold
- *
- *  @callback
- *  @parblock
- *  This function will be called for each hit in a sliding window MFE prediction.
- *  @endparblock
- *  @see vrna_mfe_window()
- *
- *  @param start provides the first position of the hit (1-based, relative to entire sequence/alignment)
- *  @param end provides the last position of the hit (1-based, relative to the entire sequence/alignment)
- *  @param structure provides the (sub)structure in dot-bracket notation
- *  @param en is the free energy of the structure hit in kcal/mol
- *  @param data is some arbitrary data pointer passed through by the function executing the callback
+ *  We provide implementations of the global MFE prediction algorithm for
+ *  * Single sequences,
+ *  * Multiple sequence alignments (MSA), and
+ *  * RNA-RNA hybrids
  */
-typedef void (vrna_mfe_window_callback)(int         start,
-                                        int         end,
-                                        const char  *structure,
-                                        float       en,
-                                        void        *data);
 
-
-#ifdef VRNA_WITH_SVM
-typedef void (vrna_mfe_window_zscore_callback)(int        start,
-                                               int        end,
-                                               const char *structure,
-                                               float      en,
-                                               float      zscore,
-                                               void       *data);
-#endif
+/**
+ *  @name Basic global MFE prediction interface
+ *  @{
+ */
 
 /**
  *  @brief Compute minimum free energy and an appropriate secondary
@@ -61,8 +66,6 @@ typedef void (vrna_mfe_window_zscore_callback)(int        start,
  *  block of memory with a size of at least @f$\mathrm{strlen}(\mathrm{sequence})+1@f$ to
  *  store the backtracked MFE structure. (For consensus structures, this is the length of
  *  the alignment + 1. If @p NULL is passed, no backtracking will be performed.
- *
- *  @ingroup mfe_fold
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -86,8 +89,6 @@ vrna_mfe(vrna_fold_compound_t *vc,
  *
  *  The code is analog to the vrna_mfe() function.
  *
- *  @ingroup mfe_cofold
- *
  *  @param    vc  fold compound
  *  @param    structure Will hold the barcket dot structure of the dimer molecule
  *  @return   minimum free energy of the structure
@@ -95,89 +96,164 @@ vrna_mfe(vrna_fold_compound_t *vc,
 float vrna_mfe_dimer(vrna_fold_compound_t *vc,
                      char                 *structure);
 
+/* End basic MFE interface */
+/**@}*/
+
 
 /**
- *  @brief Local MFE prediction using a sliding window approach.
- *
- *  Computes minimum free energy structures using a sliding window
- *  approach, where base pairs may not span outside the window.
- *  In contrast to vrna_mfe(), where a maximum base pair span
- *  may be set using the #vrna_md_t.max_bp_span attribute and one
- *  globally optimal structure is predicted, this function uses a
- *  sliding window to retrieve all locally optimal structures within
- *  each window.
- *  The size of the sliding window is set in the #vrna_md_t.window_size
- *  attribute, prior to the retrieval of the #vrna_fold_compound_t
- *  using vrna_fold_compound() with option #VRNA_OPTION_WINDOW
- *
- *  The predicted structures are written on-the-fly, either to
- *  stdout, if a NULL pointer is passed as file parameter, or to
- *  the corresponding filehandle.
- *
- *  @ingroup local_mfe_fold
- *
- *  @see  vrna_fold_compound(), vrna_mfe_window_zscore(), vrna_mfe(),
- *        vrna_Lfold(), vrna_Lfoldz(),
- *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
- *
- *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
- *  @param  file      The output file handle where predictions are written to (maybe NULL)
+ *  @name Simplified global MFE prediction using sequence(s) or multiple sequence alignment(s)
+ *  @{
  */
-float vrna_mfe_window(vrna_fold_compound_t  *vc,
-                      FILE                  *file);
 
-
-float vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
-                         vrna_mfe_window_callback *cb,
-                         void                     *data);
-
-
-#ifdef VRNA_WITH_SVM
 /**
- *  @brief Local MFE prediction using a sliding window approach (with z-score cut-off)
+ *  @brief Compute Minimum Free Energy (MFE), and a corresponding secondary structure for an RNA sequence
  *
- *  Computes minimum free energy structures using a sliding window
- *  approach, where base pairs may not span outside the window.
- *  This function is the z-score version of vrna_mfe_window(), i.e.
- *  only predictions above a certain z-score cut-off value are
- *  printed.
- *  As for vrna_mfe_window(), the size of the sliding window is set in
- *  the #vrna_md_t.window_size attribute, prior to the retrieval of
- *  the #vrna_fold_compound_t using vrna_fold_compound() with option
- *  #VRNA_OPTION_WINDOW.
+ *  This simplified interface to vrna_mfe() computes the MFE and, if required, a secondary structure for an
+ *  RNA sequence using default options. Memory required for dynamic programming (DP) matrices will
+ *  be allocated and free'd on-the-fly. Hence, after return of this function, the recursively filled
+ *  matrices are not available any more for any post-processing, e.g. suboptimal backtracking, etc.
  *
- *  The predicted structures are written on-the-fly, either to
- *  stdout, if a NULL pointer is passed as file parameter, or to
- *  the corresponding filehandle.
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe(),
+ *  and the data structure #vrna_fold_compound_t instead.
  *
- *  @ingroup local_mfe_fold
+ *  @see vrna_circfold(), vrna_mfe()
  *
- *  @see  vrna_fold_compound(), vrna_mfe_window_zscore(), vrna_mfe(),
- *        vrna_Lfold(), vrna_Lfoldz(),
- *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
- *
- *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
- *  @param  min_z     The minimal z-score for a predicted structure to appear in the output
- *  @param  file      The output file handle where predictions are written to (maybe NULL)
+ *  @param sequence   RNA sequence
+ *  @param structure  A pointer to the character array where the
+ *         secondary structure in dot-bracket notation will be written to
+ *  @return the minimum free energy (MFE) in kcal/mol
  */
-float vrna_mfe_window_zscore(vrna_fold_compound_t *vc,
-                             double               min_z,
-                             FILE                 *file);
+float
+vrna_fold(const char *sequence,
+          char *structure);
 
+/**
+ *  @brief Compute Minimum Free Energy (MFE), and a corresponding secondary structure for a circular RNA sequence
+ *
+ *  This simplified interface to vrna_mfe() computes the MFE and, if required, a secondary structure for a
+ *  circular RNA sequence using default options. Memory required for dynamic programming (DP) matrices will
+ *  be allocated and free'd on-the-fly. Hence, after return of this function, the recursively filled
+ *  matrices are not available any more for any post-processing, e.g. suboptimal backtracking, etc.
+ *
+ *  Folding of circular RNA sequences is handled as a post-processing step of the forward
+ *  recursions. See @cite hofacker:2006 for further details.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  @see vrna_fold(), vrna_mfe()
+ *
+ *  @param sequence   RNA sequence
+ *  @param structure  A pointer to the character array where the
+ *         secondary structure in dot-bracket notation will be written to
+ *  @return the minimum free energy (MFE) in kcal/mol
+ */
+float
+vrna_circfold(const char *sequence,
+              char *structure);
 
-float vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
-                                double                          min_z,
-                                vrna_mfe_window_zscore_callback *cb,
-                                void                            *data);
+/**
+ *  @brief  Compute Minimum Free Energy (MFE), and a corresponding consensus secondary structure
+ *          for an RNA sequence alignment using a comparative method
+ *
+ *  This simplified interface to vrna_mfe() computes the MFE and, if required, a consensus secondary
+ *  structure for an RNA sequence alignment using default options. Memory required for dynamic programming
+ *  (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of this function, the
+ *  recursively filled matrices are not available any more for any post-processing, e.g. suboptimal
+ *  backtracking, etc.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  @see vrna_circalifold(), vrna_mfe()
+ *
+ *  @param sequences  RNA sequence alignment
+ *  @param structure  A pointer to the character array where the
+ *         secondary structure in dot-bracket notation will be written to
+ *  @return the minimum free energy (MFE) in kcal/mol
+ */
+float
+vrna_alifold( const char **sequences,
+              char *structure);
 
+/**
+ *  @brief  Compute Minimum Free Energy (MFE), and a corresponding consensus secondary structure
+ *          for a sequence alignment of circular RNAs using a comparative method
+ *
+ *  This simplified interface to vrna_mfe() computes the MFE and, if required, a consensus secondary
+ *  structure for an RNA sequence alignment using default options. Memory required for dynamic programming
+ *  (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of this function, the
+ *  recursively filled matrices are not available any more for any post-processing, e.g. suboptimal
+ *  backtracking, etc.
+ *
+ *  Folding of circular RNA sequences is handled as a post-processing step of the forward
+ *  recursions. See @cite hofacker:2006 for further details.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  @see vrna_alifold(), vrna_mfe()
+ *
+ *  @param sequences  Sequence alignment of circular RNAs
+ *  @param structure  A pointer to the character array where the
+ *         secondary structure in dot-bracket notation will be written to
+ *  @return the minimum free energy (MFE) in kcal/mol
+ */
+float
+vrna_circalifold( const char **sequences,
+                  char *structure);
 
-#endif
+/**
+ *  @brief Compute Minimum Free Energy (MFE), and a corresponding secondary structure for two dimerized RNA sequences
+ *
+ *  This simplified interface to vrna_mfe() computes the MFE and, if required, a secondary structure for
+ *  two RNA sequences upon dimerization using default options. Memory required for dynamic programming
+ *  (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of this function, the
+ *  recursively filled matrices are not available any more for any post-processing, e.g. suboptimal
+ *  backtracking, etc.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_mfe(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  @see vrna_mfe_dimer(), vrna_fold_compound(), #vrna_fold_compound_t, vrna_cut_point_insert()
+ *
+ *  @param sequence   two RNA sequences separated by the '&' character
+ *  @param structure  A pointer to the character array where the
+ *         secondary structure in dot-bracket notation will be written to
+ *  @return the minimum free energy (MFE) in kcal/mol
+ */
+float
+vrna_cofold(const char *sequence,
+            char *structure);
 
+/* End simplified global MFE interface */
+/**@}*/
+
+/* End group mfe_global */
+/**@}*/
+
+/**
+ *  @addtogroup mfe_backtracking
+ *  @{
+ *  @brief   Backtracking related interfaces
+ */
+
+/**
+ *  @brief
+ */
 void
 vrna_backtrack_from_intervals(vrna_fold_compound_t  *vc,
                               vrna_bp_stack_t       *bp_stack,
                               sect                  bt_stack[],
                               int                   s);
+
+/**@}*/
+
 
 
 #endif

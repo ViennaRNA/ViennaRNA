@@ -1,6 +1,6 @@
 /**
 
-@fn vrna_file_msa_detect_format(const char *fn, unsigned int options)
+@fn vrna_file_msa_detect_format(const char *filename, unsigned int options)
 @scripting
 @parblock
 This function exists as an overloaded version where the @p options parameter may be omitted!

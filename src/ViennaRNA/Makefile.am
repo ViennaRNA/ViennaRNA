@@ -2,8 +2,19 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 AM_CFLAGS = $(RNA_CFLAGS) $(SIMD_CFLAGS) $(PTHREAD_CFLAGS)
 AM_CXXFLAGS = $(RNA_CXXFLAGS) $(SIMD_CFLAGS) $(PTHREAD_CFLAGS)
-AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src ${SVM_INC} ${JSON_INC}
+AM_CPPFLAGS = $(RNA_CPPFLAGS) ${SVM_INC} -I$(top_srcdir)/src ${JSON_INC}
 AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
+
+SUBDIRS = static
+
+vrna_constraintsdir     = $(pkgincludedir)/constraints
+vrna_paramsdir          = $(pkgincludedir)/params
+vrna_utilsdir           = $(pkgincludedir)/utils
+vrna_iodir              = $(pkgincludedir)/io
+vrna_searchdir          = $(pkgincludedir)/search
+vrna_plottingdir        = $(pkgincludedir)/plotting
+vrna_loopsdir           = $(pkgincludedir)/loops
+vrna_datastructuresdir  = $(pkgincludedir)/datastructures
 
 # the library names to build
 lib_LTLIBRARIES = libRNA.la
@@ -11,6 +22,7 @@ lib_LTLIBRARIES = libRNA.la
 # convenience library
 noinst_LTLIBRARIES =  libRNA_conv.la \
                       libRNA_constraints.la \
+                      libRNA_datastructures.la \
                       libRNA_utils.la \
                       libRNA_plotting.la \
                       libRNA_params.la \
@@ -28,6 +40,7 @@ libRNA_la_LDFLAGS = -avoid-version -static $(LTO_LDFLAGS) $(PTHREAD_LIBS)
 
 libRNA_conv_la_LIBADD = \
     libRNA_constraints.la \
+    libRNA_datastructures.la \
     libRNA_utils.la \
     libRNA_plotting.la \
     libRNA_params.la \
@@ -42,11 +55,12 @@ nodist_EXTRA_libRNA_la_SOURCES =
 endif
 
 if VRNA_AM_SWITCH_SVM
-  SVM_SRC     = ../@LIBSVM_DIR@/svm.cpp
-  SVM_INC     = -I$(top_srcdir)/src/@LIBSVM_DIR@
-  SVM_H       = ../@LIBSVM_DIR@/svm.h
-  SVM_UTILS   = svm_utils.c
-  SVM_UTILS_H = svm_utils.h
+  SVM_SRC         = ../@LIBSVM_DIR@/svm.cpp
+  SVM_INC         = -I$(top_srcdir)/src/@LIBSVM_DIR@
+  SVM_H           = ../@LIBSVM_DIR@/svm.h
+  SVM_UTILS       = utils/svm_utils.c
+  SVM_UTILS_H     = utils/svm.h
+  SVM_UTILS_H_OLD = svm_utils.h
 endif
 
 if VRNA_AM_SWITCH_JSON
@@ -56,28 +70,24 @@ if VRNA_AM_SWITCH_JSON
 endif
 
 pkginclude_HEADERS =  \
-    energy_par.h \
     pair_mat.h \
     RNAstruct.h \
     dist_vars.h \
     mfe.h \
+    mfe_window.h \
     fold.h \
     part_func.h \
+    part_func_window.h \
     stringdist.h \
     edit_cost.h \
     fold_vars.h \
     profiledist.h \
     treedist.h \
-    energy_const.h \
     inverse.h \
-    PS_dot.h \
-    utils.h \
-    params.h \
     subopt.h \
     cofold.h \
     duplex.h \
     alifold.h \
-    aln_util.h \
     part_func_co.h \
     concentrations.h \
     ProfileAln.h \
@@ -87,6 +97,8 @@ pkginclude_HEADERS =  \
     ribo.h \
     findpath.h \
     data_structures.h \
+    char_stream.h \
+    stream_output.h \
     fold_compound.h \
     MEA.h \
     mm.h \
@@ -95,13 +107,9 @@ pkginclude_HEADERS =  \
     hairpin_loops.h \
     interior_loops.h \
     multibranch_loops.h \
-    naview.h \
     2Dfold.h \
     2Dpfold.h \
-    read_epars.h \
-    convert_epars.h \
     PKplex.h\
-    plot_layouts.h \
     ali_plex.h \
     plex.h \
     snofold.h \
@@ -112,14 +120,18 @@ pkginclude_HEADERS =  \
     eval.h \
     perturbation_fold.h \
     centroid.h\
+    utils.h \
     structure_utils.h \
     string_utils.h \
+    aln_util.h \
     model.h \
-    file_formats.h \
     dp_matrices.h \
+    PS_dot.h \
     plot_structure.h \
     plot_aln.h \
     plot_utils.h \
+    plot_layouts.h \
+    naview.h \
     boltzmann_sampling.h \
     equilibrium_probs.h \
     constraints_ligand.h \
@@ -131,35 +143,98 @@ pkginclude_HEADERS =  \
     grammar.h \
     structured_domains.h \
     unstructured_domains.h \
-    file_formats_msa.h \
     file_utils.h \
-    char_stream.h \
+    file_formats.h \
+    file_formats_msa.h \
+    energy_par.h \
+    energy_const.h \
+    params.h \
+    read_epars.h \
+    convert_epars.h \
     commands.h \
     units.h \
     combinatorics.h \
-    stream_output.h \
     neighbor.h \
     walk.h \
-    ${SVM_UTILS_H} \
+    ${SVM_UTILS_H_OLD} \
     ${SVM_H} \
     ${JSON_H}
+
+vrna_constraints_HEADERS = \
+    constraints/basic.h \
+    constraints/ligand.h \
+    constraints/SHAPE.h \
+    constraints/hard.h \
+    constraints/soft.h
+
+
+vrna_loops_HEADERS = \
+    loops/all.h \
+    loops/external.h \
+    loops/hairpin.h \
+    loops/internal.h \
+    loops/multibranch.h
+
+
+vrna_utils_HEADERS = \
+    utils/basic.h \
+    utils/strings.h \
+    utils/structures.h \
+    utils/alignments.h \
+    ${SVM_UTILS_H}
+
+
+vrna_search_HEADERS = \
+    search/BoyerMoore.h
+
+
+vrna_plotting_HEADERS = \
+    plotting/alignments.h \
+    plotting/layouts.h \
+    plotting/probabilities.h \
+    plotting/structures.h \
+    plotting/utils.h \
+    plotting/naview.h
+
+
+vrna_io_HEADERS = \
+    io/utils.h \
+    io/file_formats.h \
+    io/file_formats_msa.h
+
+
+vrna_params_HEADERS = \
+    params/default.h \
+    params/constants.h \
+    params/basic.h \
+    params/io.h \
+    params/convert.h
+
+
+vrna_datastructures_HEADERS = \
+    datastructures/basic.h \
+    datastructures/lists.h \
+    datastructures/char_stream.h \
+    datastructures/stream_output.h \
+    datastructures/hash_tables.h
+
 
 libRNA_conv_la_SOURCES = \
     fold_compound.c \
     dist_vars.c \
-    data_structures.c \
     part_func.c \
+    part_func_wrappers.c \
     pf_fold.c \
     treedist.c \
     inverse.c \
     ProfileDist.c \
     RNAstruct.c \
     mfe.c \
+    mfe_window.c \
+    mfe_wrappers.c \
     fold.c \
     stringdist.c \
     subopt.c \
-    list.c \
-    mfe_window.c \
     Lfold.c \
     cofold.c \
     part_func_co.c \
@@ -192,7 +267,8 @@ libRNA_conv_la_SOURCES = \
     equilibrium_probs.c \
     neighbor.c \
     walk.c \
-    ${SVM_SRC} ${SVM_UTILS} ${JSON_SRC} \
+    ${SVM_SRC} \
+    ${JSON_SRC} \
     alphabet.c \
     sequence.c \
     unstructured_domains.c
@@ -202,59 +278,67 @@ libRNA_eval_la_SOURCES = \
     eval_wrappers.c
 
 libRNA_constraints_la_SOURCES = \
-    constraints.c \
-    constraints_SHAPE.c \
-    constraints_hard.c \
-    constraints_soft.c \
-    constraints_ligand.c
+    constraints/constraints.c \
+    constraints/SHAPE.c \
+    constraints/hard.c \
+    constraints/soft.c \
+    constraints/ligand.c
 
 libRNA_utils_la_SOURCES = \
-    utils.c \
-    aln_util.c \
-    string_utils.c \
-    structure_utils.c \
-    file_utils.c \
-    file_formats.c \
-    file_formats_msa.c \
-    char_stream.c \
+    utils/utils.c \
+    utils/string_utils.c \
+    utils/structure_utils.c \
+    utils/structure_tree.c \
+    utils/msa_utils.c \
+    io/io_utils.c \
+    io/file_formats.c \
+    io/file_formats_msa.c \
+    search/BoyerMoore.c \
     commands.c \
     units.c \
     combinatorics.c \
-    stream_output.c
+    ${SVM_UTILS}
 
 libRNA_plotting_la_SOURCES = \
-    plot_utils.c \
-    plot_aln.c \
-    plot_layouts.c \
-    plot_structure.c \
-    naview.c \
-    PS_dot.c
+    plotting/alignments.c \
+    plotting/layouts.c \
+    plotting/probabilities.c \
+    plotting/structures.c \
+    plotting/plot_utils.c \
+    plotting/naview.c
 
 libRNA_loops_la_SOURCES = \
-    exterior_loops.c \
-    exterior_loops_bt.c \
-    exterior_loops_pf.c \
-    hairpin_loops.c \
-    hairpin_loops_bt.c \
-    hairpin_loops_pf.c \
-    interior_loops.c \
-    interior_loops_bt.c \
-    interior_loops_pf.c \
-    multibranch_loops.c \
-    multibranch_loops_bt.c \
-    multibranch_loops_pf.c
+    loops/external.c \
+    loops/external_bt.c \
+    loops/external_pf.c \
+    loops/hairpin.c \
+    loops/hairpin_bt.c \
+    loops/hairpin_pf.c \
+    loops/internal.c \
+    loops/internal_bt.c \
+    loops/internal_pf.c \
+    loops/multibranch.c \
+    loops/multibranch_bt.c \
+    loops/multibranch_pf.c
 
 libRNA_params_la_SOURCES = \
-    read_epars.c \
-    energy_par.c \
-    params.c \
-    convert_epars.c
+    params/io.c \
+    params/default.c \
+    params/params.c \
+    params/convert.c
+
+libRNA_datastructures_la_SOURCES = \
+    datastructures/basic_datastructures.c \
+    datastructures/lists.c \
+    datastructures/char_stream.c \
+    datastructures/stream_output.c \
+    datastructures/hash_tables.c
 
 libRNA_special_const_la_SOURCES = \
     special_const.c
 
 # static library for subpackages
-BUILT_SOURCES = libRNA.a
+all-local:      libRNA.a
 
 libRNA.a: libRNA.la
 	$(AM_V_GEN)( \
@@ -266,22 +350,36 @@ libRNA.a: libRNA.la
 clean-local:
 	-rm -f libRNA.a
 
-noinst_HEADERS  = intl11.h intl11dH.h intl21.h intl21dH.h \
-                  intl22.h intl22dH.h list.h\
-                  1.8.4_epars.h 1.8.4_intloops.h ${SVM_H} ${JSON_H}\
+noinst_HEADERS  = params/intl11.h \
+                  params/intl11dH.h \
+                  params/intl21.h \
+                  params/intl21dH.h \
+                  params/intl22.h \
+                  params/intl22dH.h \
+                  params/1.8.4_epars.h \
+                  params/1.8.4_intloops.h \
+                  list.h\
+                  ${SVM_H} \
+                  ${JSON_H}\
                   special_const.h
 
 nodist_pkginclude_HEADERS = vrna_config.h
 
 EXTRA_DIST =  $(pkginclude_HEADERS) \
-              exterior_loops_hc.inc \
-              exterior_loops_sc.inc \
-              exterior_loops_sc_pf.inc \
-              hairpin_loops.inc \
-              interior_loops.inc \
-              multibranch_loops.inc \
-              model_avg.inc \
-              model_sd.inc \
+              loops/external_hc.inc \
+              loops/external_sc.inc \
+              loops/external_sc_pf.inc \
+              loops/hairpin_hc.inc \
+              loops/hairpin_sc.inc \
+              loops/hairpin_sc_pf.inc \
+              loops/internal_hc.inc \
+              loops/internal_sc.inc \
+              loops/internal_sc_pf.inc \
+              loops/multibranch_hc.inc \
+              loops/multibranch_sc.inc \
+              loops/multibranch_sc_pf.inc \
+              params/svm_model_avg.inc \
+              params/svm_model_sd.inc \
               ${SVM_H} \
               ${JSON_H} \
               color_output.inc \

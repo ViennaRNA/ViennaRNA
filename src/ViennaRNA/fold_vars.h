@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_FOLD_VARS_H
 #define VIENNA_RNA_PACKAGE_FOLD_VARS_H
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 /*  For now, we include model.h by default to provide backwards compatibility
     However, this will most likely change, since fold_vars.h is scheduled to
     vanish from the sources at latest in ViennaRNA Package v3

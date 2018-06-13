@@ -19,10 +19,34 @@
 #include <ctype.h>
 
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/commands.h"
 
+/**
+ *  @brief Types of commands within a list of #vrna_command_s structures
+ */
+typedef enum {
+  VRNA_CMD_ERROR  = -1,
+  VRNA_CMD_LAST   = 0,
+  VRNA_CMD_HC,
+  VRNA_CMD_SC,
+  VRNA_CMD_MOTIF,
+  VRNA_CMD_UD,
+  VRNA_CMD_SD
+} vrna_command_e;
+
+
+/**
+ *  @brief List element for commands ready for application to a #vrna_fold_compound_t
+ *  @see vrna_file_commands_read(), vrna_commands_apply(), vrna_commands_free()
+ */
+struct vrna_command_s {
+  vrna_command_e  type;
+  void            *data;
+};
 
 typedef void *(command_parser_function)(const char *line);
 
@@ -31,10 +55,10 @@ typedef void *(command_parser_function)(const char *line);
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE vrna_cmd_t parse_command(const char   *line,
-                                 int          line_number,
-                                 const char   *filename,
-                                 unsigned int options);
+PRIVATE struct vrna_command_s parse_command(const char    *line,
+                                            int           line_number,
+                                            const char    *filename,
+                                            unsigned int  options);
 
 
 PRIVATE void *parse_ud_command(const char *line);
@@ -124,6 +148,7 @@ typedef struct {
 
 
 typedef struct {
+  char          *motif_name;
   char          *motif;
   float         motif_en;
   unsigned int  loop_type;
@@ -140,8 +165,8 @@ vrna_file_commands_apply(vrna_fold_compound_t *vc,
                          unsigned int         options)
 {
   /** [Applying commands from file] */
-  int         r;
-  vrna_cmd_t  *cmds;
+  int                   r;
+  struct vrna_command_s *cmds;
 
   cmds  = vrna_file_commands_read(filename, options);
   r     = vrna_commands_apply(vc, cmds, options);
@@ -153,14 +178,14 @@ vrna_file_commands_apply(vrna_fold_compound_t *vc,
 }
 
 
-PUBLIC vrna_cmd_t *
+PUBLIC struct vrna_command_s *
 vrna_file_commands_read(const char    *filename,
                         unsigned int  options)
 {
-  FILE        *fp;
-  char        *line;
-  int         num_commands, max_commands, line_number, valid;
-  vrna_cmd_t  cmd, *output;
+  FILE                  *fp;
+  char                  *line;
+  int                   num_commands, max_commands, line_number, valid;
+  struct vrna_command_s cmd, *output;
 
   line_number   = 0;
   num_commands  = 0;
@@ -172,7 +197,7 @@ vrna_file_commands_read(const char    *filename,
     return NULL;
   }
 
-  output = (vrna_cmd_t *)vrna_alloc(sizeof(vrna_cmd_t) * max_commands);
+  output = (struct vrna_command_s *)vrna_alloc(sizeof(struct vrna_command_s) * max_commands);
 
   /* let's go through the file line by line and parse the commands */
   while ((line = vrna_read_line(fp))) {
@@ -228,7 +253,9 @@ vrna_file_commands_read(const char    *filename,
         /* increase length of command list if necessary */
         if (num_commands == max_commands) {
           max_commands  *= 1.2;
-          output        = (vrna_cmd_t *)vrna_realloc(output, sizeof(vrna_cmd_t) * max_commands);
+          output        = (struct vrna_command_s *)vrna_realloc(output,
+                                                                sizeof(struct vrna_command_s) *
+                                                                max_commands);
         }
       } else if ((!(options & VRNA_CMD_PARSE_SILENT)) && (!(cmd.type == VRNA_CMD_ERROR))) {
         /* errors have been reported earlier */
@@ -243,8 +270,9 @@ vrna_file_commands_read(const char    *filename,
   }
 
   /* mark end of command list */
-  output =
-    (vrna_cmd_t *)vrna_realloc(output, sizeof(vrna_cmd_t) * (num_commands + 1));
+  output = (struct vrna_command_s *)vrna_realloc(output,
+                                                 sizeof(struct vrna_command_s) *
+                                                 (num_commands + 1));
   output[num_commands].type = VRNA_CMD_LAST;
   output[num_commands].data = NULL;
 
@@ -257,11 +285,11 @@ vrna_file_commands_read(const char    *filename,
 
 PUBLIC int
 vrna_commands_apply(vrna_fold_compound_t  *vc,
-                    vrna_cmd_t            *commands,
+                    struct vrna_command_s *commands,
                     unsigned int          options)
 {
-  int         r = 0;
-  vrna_cmd_t  *ptr;
+  int                   r = 0;
+  struct vrna_command_s *ptr;
 
   if (vc && commands) {
     for (ptr = commands; ptr->type != VRNA_CMD_LAST; ptr++) {
@@ -295,9 +323,9 @@ vrna_commands_apply(vrna_fold_compound_t  *vc,
 
 
 PUBLIC void
-vrna_commands_free(vrna_cmd_t *commands)
+vrna_commands_free(struct vrna_command_s *commands)
 {
-  vrna_cmd_t *ptr;
+  struct vrna_command_s *ptr;
 
   if (commands) {
     for (ptr = commands; ptr->type != VRNA_CMD_LAST; ptr++) {
@@ -305,6 +333,7 @@ vrna_commands_free(vrna_cmd_t *commands)
         case VRNA_CMD_UD:
         {
           ud_struct *d = (ud_struct *)ptr->data;
+          free(d->motif_name);
           free(d->motif);
           free(ptr->data);
         }
@@ -326,7 +355,7 @@ apply_ud(vrna_fold_compound_t *vc,
 {
   ud_struct *d = (ud_struct *)data;
 
-  vrna_ud_add_motif(vc, d->motif, d->motif_en, d->loop_type);
+  vrna_ud_add_motif(vc, d->motif, d->motif_en, d->motif_name, d->loop_type);
 
   return 1;
 }
@@ -431,15 +460,15 @@ apply_soft_constraint(vrna_fold_compound_t  *vc,
 }
 
 
-PRIVATE vrna_cmd_t
+PRIVATE struct vrna_command_s
 parse_command(const char    *line,
               int           line_number,
               const char    *filename,
               unsigned int  options)
 {
-  vrna_cmd_t  cmd;
-  int         i, r;
-  char        command[3];
+  struct vrna_command_s cmd;
+  int                   i, r;
+  char                  command[3];
 
   command[0]  = '\0';
   i           = NUM_COMMANDS;
@@ -492,14 +521,15 @@ parse_ud_command(const char *line)
   unsigned int  loop_type;
   ud_struct     *data;
 
-  buffer        = (char *)vrna_alloc(sizeof(char) * (strlen(line) + 1));
-  data          = (ud_struct *)vrna_alloc(sizeof(ud_struct));
-  data->motif   = NULL;
-  ret           = 0;  /* error indicator */
-  entries_seen  = 0;  /* entries seen so far */
-  max_entries   = 3;  /* expected number of entries */
-  pos           = 2;  /* position relative to start of line */
-  pp            = 0;
+  buffer            = (char *)vrna_alloc(sizeof(char) * (strlen(line) + 1));
+  data              = (ud_struct *)vrna_alloc(sizeof(ud_struct));
+  data->motif_name  = NULL;
+  data->motif       = NULL;
+  ret               = 0;  /* error indicator */
+  entries_seen      = 0;  /* entries seen so far */
+  max_entries       = 3;  /* expected number of entries */
+  pos               = 2;  /* position relative to start of line */
+  pp                = 0;
 
   while (!ret && (entries_seen < max_entries) && (sscanf(line + pos, "%s%n", buffer, &pp) == 1)) {
     pos += pp;
@@ -551,15 +581,14 @@ parse_ud_command(const char *line)
   free(buffer);
 
   if (ret) {
+    free(data->motif_name);
     free(data->motif);
     free(data);
     return NULL;
   }
 
-  if (data->loop_type == 0) {
+  if (data->loop_type == 0)
     data->loop_type = VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS;
-    vrna_message_warning("");
-  }
 
   return (void *)data;
 }

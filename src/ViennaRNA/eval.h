@@ -2,9 +2,9 @@
 #define VIENNA_RNA_PACKAGE_EVAL_H
 
 #include <stdio.h>
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 #include "ViennaRNA/neighbor.h"
-#include <ViennaRNA/params.h>   /* for deprecated functions */
+#include <ViennaRNA/params/basic.h>   /* for deprecated functions */
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)
@@ -17,10 +17,6 @@
 #else
 # define DEPRECATED(func, msg) func
 #endif
-
-
-#define VRNA_VERBOSITY_QUIET     -1     /* verbosity level for quiet operations */
-#define VRNA_VERBOSITY_DEFAULT    1     /* verbosity level for quiet operations */
 
 
 /**
@@ -36,17 +32,35 @@
  *
  *  @brief Functions and variables related to free energy evaluation of sequence/structure pairs.
  *
+ *  Several different functions to evaluate the free energy of a particular secondary structure
+ *  under a particular set of parameters and the Nearest Neighbor Energy model are available.
+ *  For most of them, two different forms of representations for the secondary structure may
+ *  be used:
+ *  * The Dot-Bracket string
+ *  * A pair table representation
+ *
+ *  Furthermore, the evaluation functions are divided into @p basic and @p simplified variants,
+ *  where @p basic functions require the use of a #vrna_fold_compound_t data structure holding
+ *  the sequence string, and model configuration (settings and parameters). The @p simplified
+ *  functions, on the other hand, provide often used default model settings that may be called
+ *  directly with only sequence and structure data.
+ *
+ *  Finally, @p verbose options exist for some functions that allow one to print the
+ *  (individual) free energy contributions to some @p FILE stream.
  */
 
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
-/** @brief set to first pos of second seq for cofolding  */
-extern int  cut_point;
 
 /**
- *  @brief verbose info from energy_of_struct
+ *  @brief  Quiet level verbosity setting
  */
-extern int  eos_debug;
-#endif
+#define VRNA_VERBOSITY_QUIET     -1
+
+
+/**
+ *  @brief  Default level verbosity setting
+ */
+#define VRNA_VERBOSITY_DEFAULT    1
+
 
 /**
  *  @name Basic Energy Evaluation Interface with Dot-Bracket Structure String
@@ -805,8 +819,22 @@ vrna_eval_consensus_structure_pt_simple_v(const char  **alignment,
 
 
 /**
- *  @name Basic Loop Energy Evaluation with Structure Pair Table
+ * @}
+ */
+
+
+/**
+ *  @addtogroup eval_loops
  *  @{
+ *  @brief  Functions to evaluate the free energy of particular types of loops
+ *
+ *  To assess the free energy contribution of a particular loop within a
+ *  secondary structure, two variants are provided:
+ *  * The @p bare free energy @f$E@f$ (usually in deka-calories, i.e. multiples of @f$10 cal/mol@f$), and
+ *  * The <tt>Boltzmann weight</tt> @f$q = exp(-\beta E)@f$ of the free energy @f$E@f$
+ *    (with @f$\beta = \frac{1}{RT}@f$, gas constant @f$R@f$ and temperature @f$T@f$)
+ *
+ *  The latter is usually required for partition function computations.
  */
 
 /**
@@ -837,15 +865,25 @@ int vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
                         int                   verbosity_level);
 
 
-/* End basic loop eval interface with pair table */
-/**@}*/
+/**
+ * @}
+ */
 
 
 /**
- *  @name Basic Energy Evaluation for atomic moves
- *  Here, atomic moves are considered opening or closing a single base pair, as
- *  well as shifting one pairing partner of an existing pair to a different location
+ *  @addtogroup eval_move
  *  @{
+ *  @brief  Functions to evaluate the free energy change of a structure after application of
+ *          (a set of) atomic moves
+ *
+ *  Here, atomic moves are not to be confused with moves of actual physical atoms. Instead,
+ *  an atomic move is considered the smallest conformational change a secondary structure
+ *  can undergo to form another, distinguishable structure. We currently support the
+ *  following moves
+ *  #### Atomic Moves: ####
+ *  - Opening (dissociation) of a single base pair
+ *  - Closing (formation) of a single base pair
+ *  - Shifting one pairing partner of an existing pair to a different location
  */
 
 /**
@@ -859,7 +897,7 @@ int vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
  *  @param structure  secondary structure in dot-bracket notation
  *  @param m1         first coordinate of base pair
  *  @param m2         second coordinate of base pair
- *  @returns          energy change of the move in kcal/mol
+ *  @returns          energy change of the move in kcal/mol (#INF / 100. upon any error)
  */
 float vrna_eval_move(vrna_fold_compound_t *vc,
                      const char           *structure,
@@ -899,18 +937,31 @@ vrna_eval_move_shift_pt(vrna_fold_compound_t  *vc,
                         short                 *structure);
 
 
-/* End eval move interface */
-/**@}*/
+/**
+ * @}
+ */
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
- *  @name Deprecated Energy Evaluation functions
+ *  @addtogroup eval_deprecated
+ *  @{
+ *  @brief  Deprecated Energy Evaluation functions
+ *
  *  Using the functions below is discouraged as they have been marked deprecated and will be removed
  *  from the library in the (near) future!
  *
- *  @{
  */
+
+/**
+ *  @brief first pos of second seq for cofolding
+ */
+extern int  cut_point;
+
+/**
+ *  @brief verbose info from energy_of_struct
+ */
+extern int  eos_debug;
 
 /**
  *  @brief Calculate the free energy of an already folded RNA using global model detail settings
@@ -1190,9 +1241,6 @@ DEPRECATED(int energy_of_struct_pt(const char *string,
 DEPRECATED(float energy_of_circ_struct(const char *string,
                                        const char *structure),
            "Use vrna_eval_circ_structure_simple() and vrna_eval_structure() instead");
-
-/* End deprecated eval interface */
-/**@}*/
 
 #endif
 

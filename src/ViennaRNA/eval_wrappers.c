@@ -23,10 +23,13 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/eval.h"
 
 #ifdef __GNUC__
@@ -444,8 +447,13 @@ vrna_eval_move(vrna_fold_compound_t *fc,
   short *pt;
   int   en;
 
-  if (strlen(structure) != fc->length)
-    vrna_message_error("vrna_eval_move: sequence and structure have unequal length");
+  if (strlen(structure) != fc->length) {
+    vrna_message_warning("vrna_eval_move: "
+                         "sequence and structure have unequal length (%d vs. %d)",
+                         fc->length,
+                         strlen(structure));
+    return (float)(INF / 100.);
+  }
 
   pt  = vrna_ptable(structure);
   en  = vrna_eval_move_pt(fc, pt, m1, m2);
@@ -612,8 +620,13 @@ energy_of_struct_pt(const char  *string,
   vrna_fold_compound_t  *fc;
 
   if (pt && string) {
-    if (pt[0] != (short)strlen(string))
-      vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
+    if (pt[0] != (short)strlen(string)) {
+      vrna_message_warning("energy_of_struct_pt: "
+                           "string and structure have unequal length (%d vs. %d)",
+                           strlen(string),
+                           pt[0]);
+      return INF;
+    }
 
     fc  = recycle_last_call(string, NULL);
     en  = vrna_eval_structure_pt_v(fc, pt, eos_debug, NULL);
@@ -714,8 +727,13 @@ energy_of_structure_pt(const char *string,
   vrna_fold_compound_t  *fc;
 
   if (pt && string) {
-    if (pt[0] != (short)strlen(string))
-      vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
+    if (pt[0] != (short)strlen(string)) {
+      vrna_message_warning("energy_of_structure_pt: "
+                           "string and structure have unequal length (%d vs. %d)",
+                           strlen(string),
+                           pt[0]);
+      return INF;
+    }
 
     fc  = recycle_last_call(string, NULL);
     en  = vrna_eval_structure_pt_v(fc, pt, verbosity_level, NULL);
@@ -739,8 +757,13 @@ energy_of_struct_pt_par(const char    *string,
   vrna_fold_compound_t  *fc;
 
   if (pt && string) {
-    if (pt[0] != (short)strlen(string))
-      vrna_message_error("energy_of_structure_pt: string and structure have unequal length");
+    if (pt[0] != (short)strlen(string)) {
+      vrna_message_warning("energy_of_struct_pt_par: "
+                           "string and structure have unequal length (%d vs. %d)",
+                           strlen(string),
+                           pt[0]);
+      return INF;
+    }
 
     fc  = recycle_last_call(string, parameters);
     en  = vrna_eval_structure_pt_v(fc, pt, verbosity_level, NULL);

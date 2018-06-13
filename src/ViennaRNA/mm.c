@@ -12,11 +12,11 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/params/basic.h"
 
 /* the encoded string MUST have the length of the sequence at position 0!!! */
 PUBLIC unsigned int

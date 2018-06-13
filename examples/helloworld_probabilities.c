@@ -4,7 +4,7 @@
 
 #include <ViennaRNA/fold.h>
 #include <ViennaRNA/part_func.h>
-#include <ViennaRNA/utils.h>
+#include <ViennaRNA/utils/basic.h>
 
 int
 main()

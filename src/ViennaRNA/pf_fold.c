@@ -12,6 +12,12 @@
 #include "config.h"
 #endif
 
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,12 +25,13 @@
 #include <float.h>    /* #defines FLT_MAX ... */
 #include <limits.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/gquad.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/part_func.h"
 
@@ -45,8 +52,6 @@ PUBLIC int st_back = 0;
  #################################
  */
 
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
-
 /* some backward compatibility stuff */
 PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 PRIVATE int                   backward_compat           = 0;
@@ -57,14 +62,11 @@ PRIVATE int                   backward_compat           = 0;
 
 #endif
 
-#endif
-
 /*
  #################################
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE float
 wrap_pf_fold(const char       *sequence,
@@ -81,86 +83,12 @@ wrap_mean_bp_distance(FLT_OR_DBL  *p,
                       int         *index,
                       int         turn);
 
-
-#endif
-
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC float
-vrna_pf_fold(const char *seq,
-             char       *structure,
-             vrna_ep_t  **pl)
-{
-  float                 free_energy;
-  double                mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
 
-  vrna_md_set_default(&md);
-
-  /* no need to backtrack MFE structure */
-  md.backtrack = 0;
-
-  if (!pl) /* no need for pair probability computations if we do not store them somewhere */
-    md.compute_bpp = 0;
-
-  vc  = vrna_fold_compound(seq, &md, 0);
-  mfe = (double)vrna_mfe(vc, NULL);
-  vrna_exp_params_rescale(vc, &mfe);
-  free_energy = vrna_pf(vc, structure);
-
-  /* fill plist */
-  if (pl)
-    *pl = vrna_plist_from_probs(vc, /*cut_off:*/ 1e-6);
-
-  vrna_fold_compound_free(vc);
-
-  return free_energy;
-}
-
-
-PUBLIC float
-vrna_pf_circfold(const char *seq,
-                 char       *structure,
-                 vrna_ep_t  **pl)
-{
-  float                 free_energy;
-  double                mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-  md.circ = 1;
-
-  /* no need to backtrack MFE structure */
-  md.backtrack = 0;
-
-  if (!pl) /* no need for pair probability computations if we do not store them somewhere */
-    md.compute_bpp = 0;
-
-  vc  = vrna_fold_compound(seq, &md, 0);
-  mfe = (double)vrna_mfe(vc, NULL);
-  vrna_exp_params_rescale(vc, &mfe);
-  free_energy = vrna_pf(vc, structure);
-
-  /* fill plist */
-  if (pl)
-    *pl = vrna_plist_from_probs(vc, /*cut_off:*/ 1e-6);
-
-  vrna_fold_compound_free(vc);
-
-  return free_energy;
-}
-
-
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
-
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE double
 wrap_mean_bp_distance(FLT_OR_DBL  *p,
@@ -238,10 +166,15 @@ wrap_pf_fold(const char       *sequence,
 PUBLIC vrna_ep_t *
 stackProb(double cutoff)
 {
-  if (!(backward_compat_compound && backward_compat))
-    vrna_message_error("stackProb: run pf_fold() first!");
-  else if (!backward_compat_compound->exp_matrices->probs)
-    vrna_message_error("stackProb: probs==NULL!");
+  if (!(backward_compat_compound && backward_compat)) {
+    vrna_message_warning("stackProb: "
+                         "run pf_fold() first!");
+    return NULL;
+  } else if (!backward_compat_compound->exp_matrices->probs) {
+    vrna_message_warning("stackProb: "
+                         "probs == NULL!");
+    return NULL;
+  }
 
   return vrna_stack_prob(backward_compat_compound, cutoff);
 }
@@ -251,8 +184,11 @@ PUBLIC char *
 centroid(int    length,
          double *dist)
 {
-  if (pr == NULL)
-    vrna_message_error("pr==NULL. You need to call pf_fold() before centroid()");
+  if (pr == NULL) {
+    vrna_message_warning("centroid: "
+                         "pr == NULL. You need to call pf_fold() before centroid()");
+    return NULL;
+  }
 
   return vrna_centroid_from_probs(length, dist, pr);
 }
@@ -269,8 +205,11 @@ mean_bp_dist(int length)
   int     i, j, *my_iindx;
   double  d = 0;
 
-  if (pr == NULL)
-    vrna_message_error("pr==NULL. You need to call pf_fold() before mean_bp_dist()");
+  if (pr == NULL) {
+    vrna_message_warning("mean_bp_dist: "
+                         "pr == NULL. You need to call pf_fold() before mean_bp_dist()");
+    return d;
+  }
 
   my_iindx = vrna_idx_row_wise(length);
 
@@ -298,7 +237,9 @@ get_subseq_F(int  i,
                1000.0;
       }
 
-  vrna_message_error("call pf_fold() to fill q[] array before calling get_subseq_F()");
+  vrna_message_warning("get_subseq_F: "
+                       "call pf_fold() to fill q[] array before calling get_subseq_F()");
+
   return 0.; /* we will never get to this point */
 }
 
@@ -632,7 +573,9 @@ mean_bp_distance(int length)
       if (backward_compat_compound->exp_matrices->probs)
         return vrna_mean_bp_distance(backward_compat_compound);
 
-  vrna_message_error("mean_bp_distance: you need to call vrna_pf_fold first");
+  vrna_message_warning("mean_bp_distance: "
+                       "you need to call vrna_pf_fold first");
+
   return 0.; /* we will never get to this point */
 }
 
@@ -644,9 +587,11 @@ mean_bp_distance_pr(int         length,
   double  d       = 0;
   int     *index  = vrna_idx_row_wise((unsigned int)length);
 
-  if (p == NULL)
-    vrna_message_error(
-      "p==NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
+  if (p == NULL) {
+    vrna_message_warning("mean_bp_distance_pr: "
+                         "p == NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
+    return d;
+  }
 
   d = wrap_mean_bp_distance(p, length, index, TURN);
 

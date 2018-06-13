@@ -1,5 +1,9 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
+ggo_verbose = $(ggo_verbose_@AM_V@)
+ggo_verbose_ = $(ggo_verbose_@AM_DEFAULT_V@)
+ggo_verbose_0 = @echo "  GGO      $@";
+
 AM_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
 AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src
@@ -93,13 +97,18 @@ EXTRA_DIST = \
         ${HELPER_FILES}
 
 
+if VRNA_AM_SWITCH_HAS_GENGETOPT
+
 ## Below are the rules how to create the test suite executables
 # how we make the commandline interface parser
 ## See checkmk man page for details about *.ts files
 .ggo_cmdl.c:
-	$(AM_V_GEN)gengetopt -i $<
+	$(ggo_verbose)$(GENGETOPT) -i $<
 
 _cmdl.c_cmdl.h :
+
+endif
+
 
 # remove all generated man pages
 maintainer-clean-local:

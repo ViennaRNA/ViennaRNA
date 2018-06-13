@@ -1,3 +1,41 @@
+v2.4.7
+  * Allow for parallel processing across multiple input files in RNAfold
+  * Allow for arbitrary number of input files in RNAalifold
+  * Allow for parallel processing of input data in RNAalifold
+  * Allow for arbitrary number of input files in RNAcofold
+  * Allow for parallel processing of input data in RNAcofold
+  * Enable parallel processing in RNAfold, RNAcofold, RNAalifold for MS Windows build
+  * Add centroid and MEA structure computation to RNAcofold
+  * Add configure time check for LTO capabilities of the linker
+  * Include ligand binding energies in centroid and MEA structure output of RNAfold
+  * Refactor ct2db program to process multiple structures from single .ct file
+  * API: Enable processing of comparative fold_compound with vrna_pr_*() functions
+  * API: Refactor vrna_ostream_t to enable NULL input in vrna_ostream_provide()
+  * API: Major refactoring in loop energy evaluations (MFE and PF)
+  * API: Make vrna_mx_pf_aux_el_t and vrna_mx_pf_aux_ml_s opaque pointers
+  * API: Make fold_compound field `type` a const attribute
+  * API: Refactor MFE post-processing for circular RNAs
+  * API: Add motif name/id support for unstructured domains
+  * API: Remove major part of implicit exit() calls in RNAlib
+  * API: Add implementations of Boyer-Moore-Horspool search algorithm
+  * API: Add implementations to determine number of rotational symmetry for strings (of objects)
+  * API: Make vrna_cmd_t an opaque pointer
+  * API: Move headers for constraints, datastructures, io, loop energy evaluation, energy parameters, plotting, search, and utilities into separate subdirectories (backward compatibility is maintained)
+  * API: Add hash table data structure
+  * API: Fix discrepancy between comparative and single sequence --noLP predictions
+  * API: Add functions to replace 'old API' interface of RNAstruct.h
+  * API: Add functions to replace 'old API' interface of aln_util.h
+  * API: Add generic soft constraints support to suboptimal structure prediction sensu Wuchty et al.
+  * SWIG: Refactor callback execution for Python 2 / 3 interface to reduce overhead
+  * SWIG: Fix configure-time check for Python 3 interface build
+  * SWIG: Fix Python 3 IO file stream to C FILE * conversion
+  * Cosmetic changes in final configure notice
+  * Major changes in source tree structure of the library
+  * Add autoconf checks for maintainer tools
+  * Generate C strings from static PostScript files at configure time (for structure- and dot plots)
+  * REFMAN: Large updates in API documentation and structure of reference manual
+
+
 v2.4.6
   * Stabilize rounding of free energy output in RNAalifold
   * API: Fix potential rounding errors for comparative free energies in eval.c and mfe.c

@@ -110,7 +110,7 @@
 
 typedef struct vrna_move_s vrna_move_t;
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  *  @brief Option flag indicating insertion move

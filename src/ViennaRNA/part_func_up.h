@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_PART_FUNC_UP_H
 #define VIENNA_RNA_PACKAGE_PART_FUNC_UP_H
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 #define   RNA_UP_MODE_1   1U
 #define   RNA_UP_MODE_2   2U
@@ -9,7 +9,7 @@
 
 /**
  *  @file     part_func_up.h
- *  @ingroup  pf_fold cofold pf_cofold
+ *  @ingroup  cofold pf_cofold
  *  @brief    Implementations for accessibility and RNA-RNA interaction as a stepwise process
  */
 

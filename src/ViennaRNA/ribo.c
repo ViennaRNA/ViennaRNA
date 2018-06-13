@@ -4,7 +4,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/io/utils.h"
+
 #include "ViennaRNA/ribo.h"
 
 static float  dm_12_5[7][7] =

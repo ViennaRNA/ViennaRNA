@@ -1,0 +1,16 @@
+% draws Vienna RNA like colored boxes
+/box { % x1 y1 x2 y2 hue saturation
+  gsave
+  dup 0.3 mul 1 exch sub sethsbcolor
+  exch 3 index sub exch 2 index sub rectfill
+  grestore
+} def
+% draws a box in current color
+/box2 { % x1 y1 x2 y2
+  exch 3 index sub exch 2 index sub rectfill
+} def
+/string { % (Text) x y
+ 6 add
+ moveto
+  show
+} def

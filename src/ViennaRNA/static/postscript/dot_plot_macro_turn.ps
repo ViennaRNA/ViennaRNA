@@ -1,0 +1,51 @@
+/drawseq_turn {
+% print sequence at bottom
+   gsave
+   len 2 sqrt div dup neg 0.28 add exch 0.78 sub translate
+    0 1 len 1 sub {
+     dup dup 2 sqrt mul 0 moveto
+     sequence exch 1 getinterval
+     show
+    } for
+   grestore
+} bind def
+/drawgrid_turn{
+  0.01 setlinewidth
+  len log 0.9 sub cvi 10 exch exp  % grid spacing
+  dup 1 gt {
+     dup dup 20 div dup 2 array astore exch 40 div setdash
+  } { [0.3 0.7] 0.1 setdash } ifelse
+  0 exch len {    %for (0, gridspacing, len) 
+     dup dup      %duplicate what - gridspacing??
+     dup len exch sub moveto     %moveto diagonal?
+     dup winSize gt
+     {dup dup len exch sub winSize add lineto}
+     {dup len lineto}ifelse
+     dup len exch sub moveto  %moveto diagonal?
+     dup len winSize sub le
+     {dup dup len exch sub dup winSize exch sub len add exch lineto}
+     {dup dup len exch sub len exch lineto}ifelse
+     stroke pop pop
+  } for
+  len log 0.9 sub cvi 10 exch exp  % grid spacing
+      dup 1 gt {
+          dup dup 20 div dup 2 array astore exch 40 div setdash
+      } { [0.3 0.7] 0.1 setdash } ifelse
+      0 exch len {    %for (0, gridspacing, len) 
+     dup dup      %duplicate what - gridspacing??
+     dup len exch sub moveto     %moveto diagonal?
+     len exch sub 0.7 sub exch 0.7 sub exch lineto
+     stroke
+   }for
+ winSize len moveto  len winSize  lineto stroke
+  [] 0 setdash
+  0.04 setlinewidth 
+  currentdict /cutpoint known {
+    cutpoint 1 sub
+    dup dup -1 moveto len 1 add lineto
+    len exch sub dup
+    -1 exch moveto len 1 add exch lineto
+   stroke
+  } if
+  0.5 neg dup translate
+} bind def

@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_DUPLEX_H
 #define VIENNA_RNA_PACKAGE_DUPLEX_H
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  *  @file     duplex.h

@@ -1,6 +1,6 @@
 /**
 
-@fn vrna_db_flatten(char *string, unsigned int options)
+@fn vrna_db_flatten(char *structure, unsigned int options)
 @scripting
 @parblock
 This function flattens an input structure string in-place!

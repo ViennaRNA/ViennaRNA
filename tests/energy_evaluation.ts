@@ -1,6 +1,6 @@
-#include <ViennaRNA/params.h>
-#include <ViennaRNA/utils.h>
-#include <ViennaRNA/loop_energies.h>
+#include <ViennaRNA/params/basic.h>
+#include <ViennaRNA/utils/basic.h>
+#include <ViennaRNA/loops/all.h>
 
 #suite Energy_Evaluating_Functions
 

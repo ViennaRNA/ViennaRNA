@@ -17,15 +17,15 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/pair_mat.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/subopt.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/duplex.h"
 
 #ifdef _OPENMP

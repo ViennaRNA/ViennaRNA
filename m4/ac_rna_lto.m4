@@ -158,6 +158,37 @@ We will disable LTO support now!
         ])
       ])
 
+      ## peform a linker test
+      AS_IF([ test "x$ac_lto_supported" != "xno" ], [
+            AC_MSG_CHECKING([whether the linker supports Link time Optimization (LTO)])
+            # save current global flags
+            ac_save_LDFLAGS="$LDFLAGS"
+            ac_save_CPPFLAGS="$CPPFLAGS"
+            ac_save_CFLAGS="$CFLAGS"
+            LDFLAGS="$ac_save_LDFLAGS ${LTO_LDFLAGS}"
+            CPPFLAGS="$ac_save_CPPFLAGS  ${LTO_CFLAGS}"
+            CFLAGS="$ac_save_CFLAGS  ${LTO_CFLAGS}"
+
+            AC_LANG_PUSH([C])
+            AC_LINK_IFELSE([
+                    AC_LANG_PROGRAM([[#include <stdlib.h>]],
+                                    [[printf("bla");]])
+                    ],[lto_link_success=yes],[lto_link_success=no])
+            AC_LANG_POP([C])
+
+            # turn back to default flags
+            LDFLAGS="$ac_save_LDFLAGS"
+            CPPFLAGS="$ac_save_CPPFLAGS"
+            CFLAGS="$ac_save_CFLAGS"
+
+            AC_MSG_RESULT([$lto_link_success])
+            AS_IF([test "x$lto_link_success" != "xyes"],[
+                    enable_lto="no"
+                    ac_lto_supported="no"
+                    AC_MSG_WARN([Your linker does not support Link Time Optimizaton! Disabling LTO support!])
+                  ])
+      ])
+
       ## append -flto flag if all checks went fine
       AS_IF([ test "x$ac_lto_supported" != "xno" ], [
         RNA_LDFLAGS="${RNA_LDFLAGS} ${LTO_LDFLAGS}"

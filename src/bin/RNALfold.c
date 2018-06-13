@@ -17,14 +17,16 @@
 #include <string.h>
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/data_structures.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/datastructures/basic.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/params/io.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/Lfold.h"
-#include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/io/file_formats.h"
+#include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/commands.h"
-#include "ViennaRNA/constraints_SHAPE.h"
+#include "ViennaRNA/constraints/SHAPE.h"
 #include "RNALfold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
@@ -71,7 +73,7 @@ main(int  argc,
                               with_shapes, verbose;
   double                      min_en, min_z;
   vrna_md_t                   md;
-  vrna_cmd_t                  *commands;
+  vrna_cmd_t                  commands;
   dataset_id                  id_control;
 
   ParamFile     = ns_bases = NULL;

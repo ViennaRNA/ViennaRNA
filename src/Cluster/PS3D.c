@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 
 #define PUBLIC
 #define PRIVATE    static

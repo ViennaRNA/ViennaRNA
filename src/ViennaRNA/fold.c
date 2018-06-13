@@ -22,14 +22,15 @@
 #include <string.h>
 #include <limits.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/default.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/gquad.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/fold.h"
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
@@ -109,42 +110,6 @@ wrap_array_export_circ(int  *Fc_p,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC float
-vrna_fold(const char  *string,
-          char        *structure)
-{
-  float                 mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-  vc  = vrna_fold_compound(string, &md, 0);
-  mfe = vrna_mfe(vc, structure);
-
-  vrna_fold_compound_free(vc);
-
-  return mfe;
-}
-
-
-PUBLIC float
-vrna_circfold(const char  *string,
-              char        *structure)
-{
-  float                 mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-  md.circ = 1;
-  vc      = vrna_fold_compound(string, &md, 0);
-  mfe     = vrna_mfe(vc, structure);
-
-  vrna_fold_compound_free(vc);
-
-  return mfe;
-}
-
 
 /*###########################################*/
 /*# deprecated functions below              #*/
@@ -430,7 +395,9 @@ backtrack_fold_from_pair(char *sequence,
     length  = strlen(sequence);
     bp      = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (1 + length / 2));
   } else {
-    vrna_message_error("backtrack_fold_from_pair@fold.c: no sequence given");
+    vrna_message_warning("backtrack_fold_from_pair: "
+                         "no sequence given");
+    return NULL;
   }
 
   bt_stack[1].i   = i;

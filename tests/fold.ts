@@ -3,9 +3,9 @@
 
 #include <ViennaRNA/fold_vars.h>
 #include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/utils.h>
-#include <ViennaRNA/structure_utils.h>
-#include <ViennaRNA/constraints.h>
+#include <ViennaRNA/utils/basic.h>
+#include <ViennaRNA/utils/structures.h>
+#include <ViennaRNA/constraints/basic.h>
 #include <ViennaRNA/fold.h>
 #include <ViennaRNA/part_func.h>
 

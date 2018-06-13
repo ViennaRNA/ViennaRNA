@@ -13,7 +13,7 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /** \file profiledist.h  */
 

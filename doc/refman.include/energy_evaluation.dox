@@ -40,7 +40,7 @@ While we implement some functions that decompose a secondary structure into
 its individual loops, the majority of methods provided in @RNAlib are dedicated
 to free energy evaluation. The corresponding modules are:
 
-@see @ref eval, @ref loops
+@see @ref eval, @ref eval_loops
 
 
 @section  sec_energy_parameters       Free Energy Parameters

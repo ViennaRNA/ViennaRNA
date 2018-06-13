@@ -18,13 +18,17 @@
 #include <time.h>
 #include "ViennaRNA/snofold.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/snoop.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/PS_dot.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/aln_util.h"
+#include "ViennaRNA/plotting/alignments.h"
+#include "ViennaRNA/plotting/probabilities.h"
+#include "ViennaRNA/plotting/structures.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/io/utils.h"
 #include "RNAsnoop_cmdl.h"
 static void  aliprint_struc(snoopT      *dup,
                             const char  **s1,

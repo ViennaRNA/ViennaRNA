@@ -5,7 +5,7 @@
 
 
 #include <ViennaRNA/fold_compound.h>
-#include <ViennaRNA/structure_utils.h>
+#include <ViennaRNA/utils/structures.h>
 #include "ViennaRNA/eval.h"
 
 typedef struct {

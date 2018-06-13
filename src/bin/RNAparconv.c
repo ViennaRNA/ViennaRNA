@@ -19,8 +19,8 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/convert_epars.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/convert.h"
 #include "RNAparconv_cmdl.h"
 
 int

@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <ViennaRNA/neighbor.h>
 #include <ViennaRNA/model.h>
-#include <ViennaRNA/utils.h>
-#include <ViennaRNA/structure_utils.h>
+#include <ViennaRNA/utils/basic.h>
+#include <ViennaRNA/utils/structures.h>
 #include <ViennaRNA/data_structures.h>
 #include <stdarg.h>
 

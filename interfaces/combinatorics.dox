@@ -7,4 +7,58 @@ This function is available as global function @b enumerate_necklaces() which acc
 input, an produces list of lists output.
 @endparblock
 
+@fn unsigned int vrna_rotational_symmetry_num(const unsigned int *string, size_t string_length)
+@scripting
+@parblock
+This function is available as global function @b rotational_symmetry(). See vrna_rotational_symmetry_pos()
+for details.
+Note, that in the target language the length of the list @p string is always known a-priori, so
+the parameter @p string_length must be omitted.
+@endparblock
+
+@fn unsigned int vrna_rotational_symmetry_pos_num(const unsigned int *string, size_t string_length, unsigned int **positions)
+@scripting
+@parblock
+This function is available as global function @b rotational_symmetry(). See vrna_rotational_symmetry_pos()
+for details.
+Note, that in the target language the length of the list @p string is always known a-priori, so
+the parameter @p string_length must be omitted.
+@endparblock
+
+@fn unsigned int vrna_rotational_symmetry(const char *string)
+@scripting
+@parblock
+This function is available as global function @b rotational_symmetry(). See vrna_rotational_symmetry_pos()
+for details.
+@endparblock
+
+@fn unsigned int vrna_  rotational_symmetry_pos(const char *string, unsigned int **positions)
+@scripting
+@parblock
+This function is available as overloaded global function @b rotational_symmetry(). It merges
+the functionalities of vrna_rotational_symmetry(), vrna_rotational_symmetry_pos(),
+vrna_rotational_symmetry_num(), and vrna_rotational_symmetry_pos_num(). In contrast to our
+C-implementation, this function doesn't return the order of rotational symmetry as a single
+value, but returns a list of cyclic permutation shifts that result in a rotationally symmetric
+string. The length of the list then determines the order of rotational symmetry.
+@endparblock
+
+@fn unsigned int vrna_rotational_symmetry_db(vrna_fold_compound_t *fc, const char *structure)
+@scripting
+@parblock
+This function is attached as method @b rotational_symmetry_db() to objects of type @p fold_compound
+(i.e. #vrna_fold_compound_t). See vrna_rotational_symmetry_db_pos() for details.
+@endparblock
+
+@fn unsigned int vrna_rotational_symmetry_db_pos(vrna_fold_compound_t *fc, const char *structure, unsigned int **positions)
+@scripting
+@parblock
+This function is attached as method @b rotational_symmetry_db() to objects of type @p fold_compound
+(i.e. #vrna_fold_compound_t). Thus, the first argument must be omitted. In contrast to our
+C-implementation, this function doesn't simply return the order of rotational symmetry of the
+secondary structure, but returns the list @p position of cyclic permutation shifts that result
+in a rotationally symmetric structure. The length of the list then determines the order of rotational
+symmetry.
+@endparblock
+
 */

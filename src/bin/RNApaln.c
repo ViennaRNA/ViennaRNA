@@ -19,11 +19,13 @@
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/dist_vars.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/profiledist.h"
 #include "ViennaRNA/ProfileAln.h"
-#include "ViennaRNA/read_epars.h"
-#include "ViennaRNA/PS_dot.h"
+#include "ViennaRNA/params/io.h"
+#include "ViennaRNA/io/utils.h"
+#include "ViennaRNA/plotting/probabilities.h"
 #include "RNApaln_cmdl.h"
 
 #define MAXLENGTH  10000

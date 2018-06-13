@@ -123,31 +123,34 @@ perl_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int
 /* now we bind vrna_probs_window() as method to the fold_compound object using the above callback wrapper */
 %extend vrna_fold_compound_t {
 
-  void probs_window(int ulength, unsigned int options, SV *PerlFunc, SV *PerlData = NULL) {
+  int probs_window(int ulength, unsigned int options, SV *PerlFunc, SV *PerlData = NULL) {
     perl_pf_window_callback_t *cb = bind_pf_window_callback(PerlFunc, PerlData);
-    vrna_probs_window($self, ulength, options, &perl_wrap_pf_window_cb, (void *)cb);
+    int r = vrna_probs_window($self, ulength, options, &perl_wrap_pf_window_cb, (void *)cb);
     free(cb);
+    return r;
   }
 }
 
 
 %{
 
-  void pfl_fold_cb(std::string sequence, int window_size, int max_bp_span, SV *PerlFunc, SV *PerlData = NULL) {
+  int pfl_fold_cb(std::string sequence, int window_size, int max_bp_span, SV *PerlFunc, SV *PerlData = NULL) {
     perl_pf_window_callback_t *cb = bind_pf_window_callback(PerlFunc, PerlData);
-    vrna_pfl_fold_cb(sequence.c_str(), window_size, max_bp_span, &perl_wrap_pf_window_cb, (void *)cb);
+    int r = vrna_pfl_fold_cb(sequence.c_str(), window_size, max_bp_span, &perl_wrap_pf_window_cb, (void *)cb);
     free(cb);
+    return r;
   }
 
-  void pfl_fold_up_cb(std::string sequence, int ulength, int window_size, int max_bp_span, SV *PerlFunc, SV *PerlData = NULL) {
+  int pfl_fold_up_cb(std::string sequence, int ulength, int window_size, int max_bp_span, SV *PerlFunc, SV *PerlData = NULL) {
     perl_pf_window_callback_t *cb = bind_pf_window_callback(PerlFunc, PerlData);
-    vrna_pfl_fold_up_cb(sequence.c_str(), ulength, window_size, max_bp_span, &perl_wrap_pf_window_cb, (void *)cb);
+    int r = vrna_pfl_fold_up_cb(sequence.c_str(), ulength, window_size, max_bp_span, &perl_wrap_pf_window_cb, (void *)cb);
     free(cb);
+    return r;
   }
 
 %}
 
-void pfl_fold_cb(std::string sequence, int window_size, int max_bp_span, SV *PerlFunc, SV *PerlData = NULL);
-void pfl_fold_up_cb(std::string sequence, int ulength, int window_size, int max_bp_span, SV *PerlFunc, SV *PerlData = NULL);
+int pfl_fold_cb(std::string sequence, int window_size, int max_bp_span, SV *PerlFunc, SV *PerlData = NULL);
+int pfl_fold_up_cb(std::string sequence, int ulength, int window_size, int max_bp_span, SV *PerlFunc, SV *PerlData = NULL);
 
 #endif

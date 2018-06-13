@@ -75,6 +75,86 @@
 }
 
 
+%typemap(argout)  std::vector<unsigned int> *OUTPUT {
+        SV **svs;
+        int i = 0;
+        svs = (SV **) malloc($1->size() * sizeof(SV *));
+        for (std::vector<unsigned int>::iterator it = $1->begin(); it != $1->end(); it++, i++) {
+            svs[i] = sv_newmortal();
+            sv_setiv((SV*)svs[i], *it);
+        }
+        $result = newRV_noinc((SV*)av_make($1->size(), svs));
+        sv_2mortal( $result );
+        free(svs);
+        argvi++;
+}
+
+// We simply ignore input here
+%typemap(in,numinputs = 0) std::vector<unsigned int> *OUTPUT(std::vector<unsigned int> junk) {
+  $1 = &junk;
+}
+
+
+%typemap(argout)  std::vector<int> *OUTPUT {
+        SV **svs;
+        int i = 0;
+        svs = (SV **) malloc($1->size() * sizeof(SV *));
+        for (std::vector<int>::iterator it = $1->begin(); it != $1->end(); it++, i++) {
+            svs[i] = sv_newmortal();
+            sv_setiv((SV*)svs[i], *it);
+        }
+        $result = newRV_noinc((SV*)av_make($1->size(), svs));
+        sv_2mortal( $result );
+        free(svs);
+        argvi++;
+}
+
+// We simply ignore input here
+%typemap(in,numinputs = 0) std::vector<int> *OUTPUT(std::vector<int> junk) {
+  $1 = &junk;
+}
+
+
+%typemap(argout)  std::vector<float> *OUTPUT {
+        SV **svs;
+        int i = 0;
+        svs = (SV **) malloc($1->size() * sizeof(SV *));
+        for (std::vector<float>::iterator it = $1->begin(); it != $1->end(); it++, i++) {
+            svs[i] = sv_newmortal();
+            sv_setnv((SV*)svs[i], (double)*it);
+        }
+        $result = newRV_noinc((SV*)av_make($1->size(), svs));
+        sv_2mortal( $result );
+        free(svs);
+        argvi++;
+}
+
+// We simply ignore input here
+%typemap(in,numinputs = 0) std::vector<float> *OUTPUT(std::vector<float> junk) {
+  $1 = &junk;
+}
+
+
+%typemap(argout)  std::vector<double> *OUTPUT {
+        SV **svs;
+        int i = 0;
+        svs = (SV **) malloc($1->size() * sizeof(SV *));
+        for (std::vector<double>::iterator it = $1->begin(); it != $1->end(); it++, i++) {
+            svs[i] = sv_newmortal();
+            sv_setnv((SV*)svs[i], *it);
+        }
+        $result = newRV_noinc((SV*)av_make($1->size(), svs));
+        sv_2mortal( $result );
+        free(svs);
+        argvi++;
+}
+
+// We simply ignore input here
+%typemap(in,numinputs = 0) std::vector<double> *OUTPUT(std::vector<double> junk) {
+  $1 = &junk;
+}
+
+
 /**
  *  Handle nested vectors in function return
  */
