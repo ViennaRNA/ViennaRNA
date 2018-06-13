@@ -29,7 +29,7 @@
  *
  */
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  *  @brief Solution element returned from vrna_pf_TwoD()

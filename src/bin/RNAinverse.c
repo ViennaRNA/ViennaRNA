@@ -18,9 +18,10 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/read_epars.h"
-#include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/params/io.h"
+#include "ViennaRNA/io/file_formats.h"
 #include "RNAinverse_cmdl.h"
 
 #include "ViennaRNA/color_output.inc"

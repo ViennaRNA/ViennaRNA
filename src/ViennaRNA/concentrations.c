@@ -18,7 +18,7 @@
 #include <float.h>    /* #defines FLT_MAX ... */
 #include <limits.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/concentrations.h"
 

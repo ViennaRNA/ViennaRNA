@@ -1,42 +1,17 @@
-#ifndef VIENNA_RNA_PACKAGE_PLOT_UTILS_H
-#define VIENNA_RNA_PACKAGE_PLOT_UTILS_H
+#ifndef VIENNA_RNA_PACKAGE_PLOT_UTILS_DEPRECATED_H
+#define VIENNA_RNA_PACKAGE_PLOT_UTILS_DEPRECATED_H
 
 /**
- *  @file     plot_utils.h
- *  @ingroup  plotting_utils
- *  @brief    Various utilities to assist in plotting secondary structures and consensus structures
+ *  @file ViennaRNA/plot_utils.h
+ *  @brief      Use ViennaRNA/plotting/utils.h instead
+ *  @deprecated Use ViennaRNA/plotting/utils.h instead
  */
 
-/**
- *  @addtogroup  annotation_utils
- *  @{
- */
-
-
-/**
- *  @brief  Produce covariance annotation for an alignment given a secondary structure
- *
- */
-char **
-vrna_annotate_covar_struct(const char **alignment,
-                           const char *structure,
-                           vrna_md_t  *md);
-
-
-/**
- *  @brief  Produce covariance annotation for an alignment given a set of base pairs
- *
- */
-vrna_cpair_t *
-vrna_annotate_covar_pairs(const char  **alignment,
-                          vrna_ep_t   *pl,
-                          vrna_ep_t   *mfel,
-                          double      threshold,
-                          vrna_md_t   *md);
-
-
-/**
- * @}
- */
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+# ifdef VRNA_WARN_DEPRECATED
+#warning "Including deprecated header file <ViennaRNA/plot_utils.h>! Use <ViennaRNA/plotting/utils.h> instead!"
+# endif
+#include <ViennaRNA/plotting/utils.h>
+#endif
 
 #endif

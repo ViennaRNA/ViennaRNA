@@ -2,7 +2,7 @@
 #define VIENNA_RNA_PACKAGE_PAIR_MAT_H
 
 #include <ctype.h>
-#include <ViennaRNA/utils.h>
+#include <ViennaRNA/utils/basic.h>
 #include <ViennaRNA/fold_vars.h>
 
 #define NBASES 8

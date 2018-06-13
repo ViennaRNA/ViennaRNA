@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include "ViennaRNA/utils.h"
+
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 
 #include "input_id_helpers.h"
 

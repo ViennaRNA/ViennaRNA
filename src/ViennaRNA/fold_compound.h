@@ -99,10 +99,11 @@ typedef void (vrna_callback_recursion_status)(unsigned char status,
 
 
 #include <ViennaRNA/model.h>
-#include <ViennaRNA/params.h>
+#include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/sequence.h>
 #include <ViennaRNA/dp_matrices.h>
-#include <ViennaRNA/constraints.h>
+#include <ViennaRNA/constraints/hard.h>
+#include <ViennaRNA/constraints/soft.h>
 #include <ViennaRNA/grammar.h>
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
@@ -133,7 +134,7 @@ struct vrna_fc_s {
    *  @name Common data fields
    *  @{
    */
-  vrna_fc_type_e type;              /**<  @brief  The type of the #vrna_fold_compound_t.
+  const vrna_fc_type_e type;        /**<  @brief  The type of the #vrna_fold_compound_t.
                                      * @details Currently possible values are #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE
                                      * @warning Do not edit this attribute, it will be automagically set by
                                      *      the corresponding get() methods for the #vrna_fold_compound_t.
@@ -391,15 +392,14 @@ struct vrna_fc_s {
  *  based on the content of the generated #vrna_fold_compound_t. Passing NULL will instruct the function
  *  to use default model details.
  *  The third parameter @p options may be used to specify dynamic programming (DP) matrix requirements.
- *  Use the macros:
  *
- *  - #VRNA_OPTION_MFE
- *  - #VRNA_OPTION_PF
- *  - #VRNA_OPTION_WINDOW
- *  - #VRNA_OPTION_EVAL_ONLY
- *  - #VRNA_OPTION_DEFAULT
+ *  #### Options ####
+ *  * #VRNA_OPTION_DEFAULT  - @copybrief #VRNA_OPTION_DEFAULT
+ *  * #VRNA_OPTION_MFE      - @copybrief #VRNA_OPTION_MFE
+ *  * #VRNA_OPTION_PF       - @copybrief #VRNA_OPTION_PF
+ *  * #VRNA_OPTION_WINDOW   - @copybrief #VRNA_OPTION_WINDOW
  *
- *  to specify the required type of computations that will be performed with the #vrna_fold_compound_t.
+ *  The above options may be OR-ed together.
  *
  *  If you just need the folding compound serving as a container for your data, you can simply pass
  *  #VRNA_OPTION_DEFAULT to the @p option parameter. This creates a #vrna_fold_compound_t without DP
@@ -411,13 +411,12 @@ struct vrna_fc_s {
  *  @note The sequence string must be uppercase, and should contain only RNA (resp. DNA) alphabet depending
  *        on what energy parameter set is used
  *
- *  @see  vrna_fold_compound_free(), vrna_fold_compound_comparative(), #vrna_md_t, #VRNA_OPTION_MFE,
- *        #VRNA_OPTION_PF, #VRNA_OPTION_EVAL_ONLY, #VRNA_OPTION_WINDOW
+ *  @see  vrna_fold_compound_free(), vrna_fold_compound_comparative(), #vrna_md_t
  *
  *  @param    sequence    A single sequence, or two concatenated sequences seperated by an '&' character
  *  @param    md_p        An optional set of model details
  *  @param    options     The options for DP matrices memory allocation
- *  @return               A prefilled vrna_fold_compound_t that can be readily used for computations
+ *  @return               A prefilled vrna_fold_compound_t ready to be used for computations (may be @p NULL on error)
  */
 vrna_fold_compound_t *
 vrna_fold_compound(const char   *sequence,
@@ -435,14 +434,14 @@ vrna_fold_compound(const char   *sequence,
  *  based on the content of the generated #vrna_fold_compound_t. Passing NULL will instruct the function
  *  to use default model details.
  *  The third parameter @p options may be used to specify dynamic programming (DP) matrix requirements.
- *  Use the macros:
  *
- *  - #VRNA_OPTION_MFE
- *  - #VRNA_OPTION_PF
- *  - #VRNA_OPTION_EVAL_ONLY
- *  - #VRNA_OPTION_DEFAULT
+ *  #### Options ####
+ *  * #VRNA_OPTION_DEFAULT  - @copybrief #VRNA_OPTION_DEFAULT
+ *  * #VRNA_OPTION_MFE      - @copybrief #VRNA_OPTION_MFE
+ *  * #VRNA_OPTION_PF       - @copybrief #VRNA_OPTION_PF
+ *  * #VRNA_OPTION_WINDOW   - @copybrief #VRNA_OPTION_WINDOW
  *
- *  to specify the required type of computations that will be performed with the #vrna_fold_compound_t.
+ *  The above options may be OR-ed together.
  *
  *  If you just need the folding compound serving as a container for your data, you can simply pass
  *  #VRNA_OPTION_DEFAULT to the @p option parameter. This creates a #vrna_fold_compound_t without DP
@@ -460,7 +459,7 @@ vrna_fold_compound(const char   *sequence,
  *  @param    sequences   A sequence alignment including 'gap' characters
  *  @param    md_p        An optional set of model details
  *  @param    options     The options for DP matrices memory allocation
- *  @return               A prefilled vrna_fold_compound_t that can be readily used for computations
+ *  @return               A prefilled vrna_fold_compound_t ready to be used for computations (may be @p NULL on error)
  */
 vrna_fold_compound_t *
 vrna_fold_compound_comparative(const char   **sequences,
@@ -477,7 +476,7 @@ vrna_fold_compound_TwoD(const char    *sequence,
 
 
 int
-vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
+vrna_fold_compound_prepare(vrna_fold_compound_t *fc,
                            unsigned int         options);
 
 
@@ -486,10 +485,10 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *vc,
  *
  *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_mx_mfe_free(), vrna_mx_pf_free()
  *
- *  @param  vc  The #vrna_fold_compound_t that is to be erased from memory
+ *  @param  fc  The #vrna_fold_compound_t that is to be erased from memory
  */
 void
-vrna_fold_compound_free(vrna_fold_compound_t *vc);
+vrna_fold_compound_free(vrna_fold_compound_t *fc);
 
 
 /**
@@ -505,11 +504,11 @@ vrna_fold_compound_free(vrna_fold_compound_t *vc);
  *        on any pre-existing data that is already attached.
  *
  *  @see vrna_callback_free_auxdata()
- *  @param  vc    The fold_compound the arbitrary data pointer should be associated with
+ *  @param  fc    The fold_compound the arbitrary data pointer should be associated with
  *  @param  data  A pointer to an arbitrary data structure
  *  @param  f     A pointer to function that free's memory occupied by the arbitrary data (May be NULL)
  */
-void vrna_fold_compound_add_auxdata(vrna_fold_compound_t        *vc,
+void vrna_fold_compound_add_auxdata(vrna_fold_compound_t        *fc,
                                     void                        *data,
                                     vrna_callback_free_auxdata  *f);
 
@@ -526,10 +525,10 @@ void vrna_fold_compound_add_auxdata(vrna_fold_compound_t        *vc,
  *  @see  vrna_callback_recursion_status(), #vrna_fold_compound_t,
  *        #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
  *
- *  @param  vc    The fold_compound the callback function should be attached to
+ *  @param  fc    The fold_compound the callback function should be attached to
  *  @param  f     The pointer to the recursion status callback function
  */
-void vrna_fold_compound_add_callback(vrna_fold_compound_t           *vc,
+void vrna_fold_compound_add_callback(vrna_fold_compound_t           *fc,
                                      vrna_callback_recursion_status *f);
 
 

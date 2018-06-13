@@ -8,7 +8,7 @@
 #include <string.h>
 #include <math.h>
 #include "distance_matrix.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 
 #define PUBLIC
 #define PRIVATE  static

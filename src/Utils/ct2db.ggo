@@ -16,6 +16,11 @@ option  "removePK"  p
 flag
 off
 
+option  "convertToRNA"  c
+"Substitute all nucleotides with their RNA alphabet counter parts, i.e. convert to characters A, C, G, U or N for unknown bases.\n"
+flag
+off
+
 option  "verbose"   v
 "Be verbose\n"
 flag

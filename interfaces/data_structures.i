@@ -31,4 +31,4 @@ typedef struct {
 %rename(_next) node::next;
 #endif
 
-%include <ViennaRNA/data_structures.h>
+%include <ViennaRNA/datastructures/basic.h>

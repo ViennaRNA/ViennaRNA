@@ -19,8 +19,8 @@ typedef struct vrna_dimer_pf_s cofoldF;
 #endif
 
 
-#include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/params.h>
+#include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/centroid.h>
 #include <ViennaRNA/equilibrium_probs.h>
 #include <ViennaRNA/boltzmann_sampling.h>
@@ -39,7 +39,7 @@ typedef struct vrna_dimer_pf_s cofoldF;
 
 /**
  *  @file     part_func.h
- *  @ingroup  pf_fold
+ *  @ingroup  pf_fold, part_func_global
  *  @brief    Partition function implementations
  * 
  *  This file includes (almost) all function declarations within the <b>RNAlib</b> that are related to
@@ -54,13 +54,43 @@ typedef struct vrna_dimer_pf_s cofoldF;
 
 /**
  *  @addtogroup pf_fold
- *  @brief Compute the partition function and various equilibrium properties
- *  derived from it.
+ *  @{
+ *  @brief Compute the partition function to assess various equilibrium properties
+ *
+ *  Similar to our @ref mfe, we provide two different flavors for partition
+ *  function computations:
+ *  * @ref part_func_global - to compute the partition function for a full length sequence
+ *  * @ref part_func_window - to compute the partition function of each window using a sliding window approach
+ *
+ *  While the global partition function approach supports predictions using single sequences as
+ *  well as consensus partition functions for multiple sequence alignments (MSA), we currently
+ *  do not support MSA input for the local variant.
+ *
+ *  Comparative prediction computes an average of the free energy contributions plus an additional
+ *  covariance pseudo-energy term, exactly as we do for the @ref mfe implementation.
+ *
+ *  Boltzmann weights for the free energy contributions of individual loops can be
+ *  found in @ref eval_loops.
+ *
+ *  Our implementations also provide a stochastic backtracking procedure to draw
+ *  @ref subopt_stochbt according to their equilibrium probabilty.
+ *  @}
+ */
+
+
+/**
+ *  @addtogroup part_func_global
+ *  @{
+ *  @brief  Variations of the global partition function algorithm
+ *
+ *  We provide implementations of the global partition function algorithm for
+ *  * Single sequences,
+ *  * Multiple sequence alignments (MSA), and
+ *  * RNA-RNA hybrids
  */
 
 /**
  *  @brief  Data structure returned by vrna_pf_dimer()
- *  @ingroup  pf_cofold
  */
 struct vrna_dimer_pf_s {
   /* free energies for: */
@@ -70,6 +100,11 @@ struct vrna_dimer_pf_s {
   double  FA;   /**< @brief monomer A */
   double  FB;   /**< @brief monomer B */
 };
+
+/**
+ *  @name Basic global partition function interface
+ *  @{
+ */
 
 /**
  *  @brief Compute the partition function @f$Q@f$ for a given RNA sequence, or sequence alignment
@@ -83,10 +118,12 @@ struct vrna_dimer_pf_s {
  *  be computed (saving CPU time), otherwise after calculations took place #pr will
  *  contain the probability that bases @a i and @a j pair.
  * 
- *  @ingroup pf_fold
- *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
+ *
+ *  @note This function may return #INF / 100. in case of contradicting constraints
+ *        or numerical over-/underflow. In the latter case, a corresponding warning
+ *        will be issued to @p stdout.
  *
  *  @see #vrna_fold_compound_t, vrna_fold_compound(), vrna_pf_fold(), vrna_pf_circfold(),
  *        vrna_fold_compound_comparative(), vrna_pf_alifold(), vrna_pf_circalifold(),
@@ -100,10 +137,38 @@ struct vrna_dimer_pf_s {
 float vrna_pf(vrna_fold_compound_t *vc, char *structure);
 
 /**
+ *  @brief  Calculate partition function and base pair probabilities of
+ *          nucleic acid/nucleic acid dimers
+ *
+ *  This is the cofold partition function folding.
+ *
+ *  @note This function may return #INF / 100. for the @p FA, @p FB, @p FAB, @p F0AB
+ *        members of the output data structure in case of contradicting constraints
+ *        or numerical over-/underflow. In the latter case, a corresponding warning
+ *        will be issued to @p stdout.
+ *
+ *  @see    vrna_fold_compound() for how to retrieve the necessary data structure
+ *
+ *  @param  vc        the fold compound data structure
+ *  @param  structure Will hold the structure or constraints
+ *  @return           vrna_dimer_pf_t structure containing a set of energies needed for
+ *                    concentration computations.
+ */
+vrna_dimer_pf_t
+vrna_pf_dimer(vrna_fold_compound_t  *vc,
+              char                  *structure);
+
+/* End basic global interface */
+/**@}*/
+
+/**
+ *  @name Simplified global partition function computation using sequence(s) or multiple sequence alignment(s)
+ *  @{
+ */
+
+/**
  *  @brief  Compute Partition function @f$Q@f$ (and base pair probabilities) for an RNA
  *          sequence using a comparative method
- *
- *  @ingroup pf_fold
  *
  *  This simplified interface to vrna_pf() computes the partition function and, if required,
  *  base pair probabilities for an RNA sequence using default options. Memory required for
@@ -128,8 +193,6 @@ float vrna_pf_fold(const char *sequence, char *structure, vrna_ep_t **pl);
  *  @brief  Compute Partition function @f$Q@f$ (and base pair probabilities) for a circular
  *          RNA sequences using a comparative method
  *
- *  @ingroup pf_fold
- *
  *  This simplified interface to vrna_pf() computes the partition function and, if required,
  *  base pair probabilities for a circular RNA sequence using default options. Memory required for
  *  dynamic programming (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of
@@ -153,23 +216,91 @@ float vrna_pf_fold(const char *sequence, char *structure, vrna_ep_t **pl);
 float vrna_pf_circfold(const char *sequence, char *structure, vrna_ep_t **pl);
 
 /**
+ *  @brief  Compute Partition function @f$Q@f$ (and base pair probabilities) for an RNA
+ *          sequence alignment using a comparative method
+ *
+ *  This simplified interface to vrna_pf() computes the partition function and, if required,
+ *  base pair probabilities for an RNA sequence alignment using default options. Memory required for
+ *  dynamic programming (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of
+ *  this function, the recursively filled matrices are not available any more for any post-processing.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_pf(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  @see vrna_pf_circalifold(), vrna_pf(), vrna_fold_compound_comparative(), #vrna_fold_compound_t
+ *
+ *  @param sequences  RNA sequence alignment
+ *  @param structure  A pointer to the character array where position-wise pairing propensity
+ *                    will be stored. (Maybe NULL)
+ *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
+ *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
+ */
+float vrna_pf_alifold(const char **sequences, char *structure, vrna_ep_t **pl);
+
+/**
+ *  @brief  Compute Partition function @f$Q@f$ (and base pair probabilities) for an alignment
+ *          of circular RNA sequences using a comparative method
+ *
+ *  This simplified interface to vrna_pf() computes the partition function and, if required,
+ *  base pair probabilities for an RNA sequence alignment using default options. Memory required for
+ *  dynamic programming (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of
+ *  this function, the recursively filled matrices are not available any more for any post-processing.
+ *
+ *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
+ *  you require other conditions than specified by the default model details, use vrna_pf(),
+ *  and the data structure #vrna_fold_compound_t instead.
+ *
+ *  Folding of circular RNA sequences is handled as a post-processing step of the forward
+ *  recursions. See @cite hofacker:2006 for further details.
+ *
+ *  @see vrna_pf_alifold(), vrna_pf(), vrna_fold_compound_comparative(), #vrna_fold_compound_t
+ *
+ *  @param sequences  Sequence alignment of circular RNAs
+ *  @param structure  A pointer to the character array where position-wise pairing propensity
+ *                    will be stored. (Maybe NULL)
+ *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
+ *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
+ */
+float vrna_pf_circalifold(const char **sequences, char *structure, vrna_ep_t **pl);
+
+
+/**
  *  @brief  Calculate partition function and base pair probabilities of
  *          nucleic acid/nucleic acid dimers
  *
- *  This is the cofold partition function folding.
+ *  This simplified interface to vrna_pf_dimer() computes the partition
+ *  function and, if required, base pair probabilities for an RNA-RNA
+ *  interaction using default options. Memory required for dynamic
+ *  programming (DP) matrices will be allocated and free'd on-the-fly.
+ *  Hence, after return of this function, the recursively filled matrices
+ *  are not available any more for any post-processing.
  *
- *  @see    vrna_fold_compound() for how to retrieve the necessary data structure
+ *  @note In case you want to use the filled DP matrices for any subsequent
+ *        post-processing step, or you require other conditions than
+ *        specified by the default model details, use vrna_pf_dimer(),
+ *        and the data structure #vrna_fold_compound_t instead.
+ *
+ *  @see  vrna_pf_dimer()
  *
  *  @ingroup  pf_cofold
- *  @param  vc        the fold compound data structure
- *  @param  structure Will hold the structure or constraints
+ *  @param seq        Two concatenated RNA sequences with a delimiting '&' in between
+ *  @param structure  A pointer to the character array where position-wise pairing propensity
+ *                    will be stored. (Maybe NULL)
+ *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
  *  @return           vrna_dimer_pf_t structure containing a set of energies needed for
  *                    concentration computations.
  */
 vrna_dimer_pf_t
-vrna_pf_dimer(vrna_fold_compound_t  *vc,
-              char                  *structure);
+vrna_pf_co_fold(const char  *seq,
+                char        *structure,
+                vrna_ep_t   **pl);
 
+
+/* End simplified global interface */
+/**@}*/
+
+/**@}*/
 
 /*
 #################################################
@@ -180,6 +311,8 @@ vrna_pf_dimer(vrna_fold_compound_t  *vc,
 /**
  *  @brief  Find out whether partition function computations are using
  *          single precision floating points
+ *
+ *  @ingroup  pf_fold
  *
  *  @see #FLT_OR_DBL
  *  @return  1 if single precision is used, 0 otherwise
@@ -226,7 +359,7 @@ extern  int st_back;
  *  be computed (saving CPU time), otherwise after calculations took place #pr will
  *  contain the probability that bases @a i and @a j pair.
  * 
- *  @ingroup pf_fold
+ *  @ingroup part_func_global_deprecated
  *
  *  @deprecated Use vrna_pf() instead
  *
@@ -274,7 +407,7 @@ DEPRECATED(float   pf_fold_par(  const char *sequence,
  *  be computed (saving CPU time), otherwise #pr will contain the probability
  *  that bases @a i and @a j pair.
  * 
- *  @ingroup pf_fold
+ *  @ingroup part_func_global_deprecated
  *
  *  @note   The global array #pr is deprecated and the user who wants the calculated
  *          base pair probabilities for further computations is advised to use the function
@@ -302,7 +435,7 @@ DEPRECATED(float   pf_fold(const char *sequence,
 /**
  *  @brief Compute the partition function of a circular RNA sequence
  * 
- *  @ingroup pf_fold
+ *  @ingroup part_func_global_deprecated
  *
  *  @note           The global array #pr is deprecated and the user who wants the calculated
  *                  base pair probabilities for further computations is advised to use the function
@@ -372,8 +505,8 @@ DEPRECATED(char    *pbacktrack_circ(char *sequence), "Use vrna_pbacktrack() inst
  *  
  *  @deprecated See vrna_fold_compound_t and its related functions for how to free memory
  *  occupied by the dynamic programming matrices
- *
- *  @ingroup pf_fold
+ * 
+ *  @ingroup part_func_global_deprecated
  *
  *  @post   All memory allocated by pf_fold_par(), pf_fold() or pf_circ_fold() will be free'd
  *  @see    pf_fold_par(), pf_fold(), pf_circ_fold()
@@ -387,7 +520,8 @@ DEPRECATED(void  free_pf_arrays(void), "This function is obsolete");
  *  after a change in folding parameters like #temperature
  *
  *  @deprecated Use vrna_exp_params_subst() instead
- *  @ingroup pf_fold
+ * 
+ *  @ingroup part_func_global_deprecated
  *
  */
 DEPRECATED(void  update_pf_params(int length), "This function is obsolete");
@@ -396,7 +530,8 @@ DEPRECATED(void  update_pf_params(int length), "This function is obsolete");
  *  @brief Recalculate energy parameters
  *
  *  @deprecated Use vrna_exp_params_subst() instead
- *  @ingroup pf_fold
+ * 
+ *  @ingroup part_func_global_deprecated
  *
  */
 DEPRECATED(void update_pf_params_par(int length, vrna_exp_param_t *parameters),
@@ -404,7 +539,8 @@ DEPRECATED(void update_pf_params_par(int length, vrna_exp_param_t *parameters),
 
 /**
  *  @brief Get a pointer to the base pair probability array
- *  @ingroup  pf_fold
+ * 
+ *  @ingroup part_func_global_deprecated
  *
  *  Accessing the base pair probabilities for a pair (i,j) is achieved by
  *  @code
@@ -424,8 +560,9 @@ DEPRECATED(FLT_OR_DBL  *export_bppm(void),
 
 /**
  *  @brief Get the pointers to (almost) all relavant computation arrays used in partition function computation
+ * 
+ *  @ingroup part_func_global_deprecated
  *
- *  @ingroup    pf_fold
  *  @pre        In order to assign meaningful pointers, you have to call pf_fold_par() or pf_fold() first!
  *  @see        pf_fold_par(), pf_fold(), pf_circ_fold()
  *  @param[out] S_p       A pointer to the 'S' array (integer representation of nucleotides)
@@ -448,6 +585,8 @@ DEPRECATED(int get_pf_arrays(short **S_p,
 
 /**
  *  @brief Get the free energy of a subsequence from the q[] array
+ * 
+ *  @ingroup part_func_global_deprecated
  */
 DEPRECATED(double get_subseq_F(int i, int j),
 "Use the new API with vrna_fold_compound_t instead");
@@ -456,7 +595,7 @@ DEPRECATED(double get_subseq_F(int i, int j),
 /**
  *  @brief Get the mean base pair distance of the last partition function computation
  * 
- *  @ingroup pf_fold
+ *  @ingroup part_func_global_deprecated
  *
  *  @deprecated Use vrna_mean_bp_distance() or vrna_mean_bp_distance_pr() instead!
  *  @see vrna_mean_bp_distance(), vrna_mean_bp_distance_pr()
@@ -478,7 +617,7 @@ DEPRECATED(double  mean_bp_distance(int length),
  * 
  *  @deprecated Use vrna_mean_bp_distance() or vrna_mean_bp_distance_pr() instead!
  * 
- *  @ingroup pf_fold
+ *  @ingroup part_func_global_deprecated
  *
  *  @param length The length of the sequence
  *  @param pr     The matrix containing the base pair probabilities
@@ -491,6 +630,8 @@ DEPRECATED(double mean_bp_distance_pr(int length, FLT_OR_DBL *pr),
  *  @brief  Get the probability of stacks
  *
  *  @deprecated   Use vrna_stack_prob() instead!
+ * 
+ *  @ingroup part_func_global_deprecated
  */
 DEPRECATED(vrna_ep_t *stackProb(double cutoff), "Use vrna_stack_prob() instead");
 
@@ -499,6 +640,8 @@ DEPRECATED(vrna_ep_t *stackProb(double cutoff), "Use vrna_stack_prob() instead")
  *  @brief Allocate space for pf_fold()
  * 
  *  @deprecated This function is obsolete and will be removed soon!
+ * 
+ *  @ingroup part_func_global_deprecated
  */
 DEPRECATED(void init_pf_fold(int length), "This function is obsolete");
 

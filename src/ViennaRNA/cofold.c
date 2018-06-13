@@ -20,14 +20,17 @@
 #include <string.h>
 #include <limits.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/subopt.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/gquad.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/cofold.h"
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
@@ -125,27 +128,6 @@ PRIVATE SOLUTION *wrap_zukersubopt(const char   *string,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC float
-vrna_cofold(const char  *seq,
-            char        *structure)
-{
-  float                 mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-  md.min_loop_size = 0;  /* set min loop length to 0 */
-
-  /* get compound structure */
-  vc = vrna_fold_compound(seq, &md, 0);
-
-  mfe = vrna_mfe_dimer(vc, structure);
-
-  vrna_fold_compound_free(vc);
-
-  return mfe;
-}
-
 
 PUBLIC float
 vrna_mfe_dimer(vrna_fold_compound_t *vc,
@@ -450,7 +432,7 @@ backtrack_co(sect                 bt_stack[],
 
           continue;
         } else {
-          vrna_message_error("backtrack failed in f5\n%s", string);
+          vrna_message_error("backtrack failed in f5, segment [%d,%d]\n", i, j);
         }
       }
       break;
@@ -607,9 +589,13 @@ free_end(int                  *array,
     else
       array[i] = array[i - inc];
 
-    if (sc)
+    if (sc) {
       if (sc->energy_up)
         array[i] += sc->energy_up[i][1];
+
+      if (sc->f)
+        array[i] += sc->f(start, i, start, i - 1, VRNA_DECOMP_EXT_EXT, sc->data);
+    }
   } else {
     array[i] = INF;
   }
@@ -642,6 +628,10 @@ free_end(int                  *array,
       si      = ((ii > 1) && (sn[ii - 1] == sn[ii])) ? S1[ii - 1] : -1;
       sj      = ((jj < length) && (sn[jj] == sn[jj + 1])) ? S1[jj + 1] : -1;
       energy  = c[indx[jj] + ii];
+
+      if ((sc) && (sc->f))
+        energy += sc->f(start, jj, ii - 1, ii, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
+
       if (energy != INF) {
         switch (dangle_model) {
           case 0:

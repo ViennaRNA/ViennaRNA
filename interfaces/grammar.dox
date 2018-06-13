@@ -12,7 +12,7 @@ This function is attached as method @b ud_add_motif() to objects of type @em fol
 This function is attached as method @b ud_remove() to objects of type @em fold_compound
 @endparblock
 
-@fn void  vrna_ud_set_data(vrna_fold_compound_t  *vc, void *data, vrna_callback_free_auxdata  *free)
+@fn void  vrna_ud_set_data(vrna_fold_compound_t  *vc, void *data, vrna_callback_free_auxdata *free_cb)
 @scripting
 @parblock
 This function is attached as method @b ud_set_data() to objects of type @em fold_compound

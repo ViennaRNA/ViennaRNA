@@ -44,4 +44,4 @@
   }
 }
 
-%include  <ViennaRNA/constraints_SHAPE.h>
+%include  <ViennaRNA/constraints/SHAPE.h>

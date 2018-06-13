@@ -3,13 +3,14 @@
 
 /**
  *  @file     units.h
- *  @ingroup  units
+ *  @ingroup  utils, units
  *  @brief    Physical Units and Functions to convert them into each other
  */
 
 /**
  *  @addtogroup  units
  *  @{
+ *  @brief  Functions to convert between various physical units
  */
 
 /**

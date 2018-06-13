@@ -29,6 +29,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ *  Modifications to synchronize Python IO stream and C FILE * stream
+ *  inspired by matplotlib and implemented 2018 by Ronny Lorenz
+ */
+
 %{
 #include <unistd.h>
 #include <fcntl.h>
@@ -53,23 +58,71 @@ fdfl_to_str(int fdfl) {
 }
 }
 
+#if 0
+#define SWIG_FILE3_DEBUG
+#endif
+
 %fragment("obj_to_file","header", fragment="fdfl_to_str") {
 FILE *
-obj_to_file(PyObject *obj) {
+obj_to_file(PyObject *obj, long int *start_position) {
 %#if PY_VERSION_HEX >= 0x03000000
-  int fd, fdfl;
+  int fd, fd2, fdfl;
+  long int position;
   FILE *fp;
+  PyObject *ret, *os;
   if (!PyLong_Check(obj) &&                                /* is not an integer */
       PyObject_HasAttrString(obj, "fileno") &&             /* has fileno method */
       (PyObject_CallMethod(obj, "flush", NULL) != NULL) && /* flush() succeeded */
       ((fd = PyObject_AsFileDescriptor(obj)) != -1) &&     /* got file descriptor */
       ((fdfl = fcntl(fd, F_GETFL)) != -1)                  /* got descriptor flags */
     ) {
-    fp = fdopen(dup(fd), fdfl_to_str(fdfl)); /* the FILE* must be flushed
-                                                and closed after being used */
+    os = PyImport_ImportModule("os");
+    if (os == NULL)
+      return NULL;
+
+    ret = PyObject_CallMethod(os, (char *)"dup", (char *)"i", fd);
+    Py_DECREF(os);
+
+    if (ret == NULL)
+      return NULL;
+
+    fd2 = (int)PyNumber_AsSsize_t(ret, NULL);
+    Py_DECREF(ret);
+
+    fp = fdopen(fd2, fdfl_to_str(fdfl)); /* the FILE* must be flushed
+                                            and closed after being used */
+    if (fp == NULL)
+      PyErr_SetString(PyExc_IOError, "Failed to get FILE * from Python file object");
+
+    *start_position = ftell(fp);
+
+    if (*start_position == -1) {
+      /* fp is stream */
+      return fp;
+    }
+
+    ret = PyObject_CallMethod(obj, (char *)"tell", (char *)"");
+    if (ret == NULL) {
+      fclose(fp);
+      return NULL;
+    }
+
+    position = PyNumber_AsSsize_t(ret, PyExc_OverflowError);
+    Py_DECREF(ret);
+
+    if (PyErr_Occurred()) {
+      fclose(fp);
+      return NULL;
+    }
+
+    if (fseek(fp, position, SEEK_SET) == -1) {
+      PyErr_SetString(PyExc_IOError, "Failed to seek FILE * to PyObject position");
+      return NULL;
+    }
+
 #ifdef SWIG_FILE3_DEBUG
-    fprintf(stderr, "opening fd %d (fl %d \"%s\") as FILE %p\n",
-            fd, fdfl, fdfl_to_str(fdfl), (void *)fp);
+    fprintf(stderr, "opening fd %d (fl %d \"%s\") as FILE %p, start_position %ld, position: %ld\n",
+            fd, fdfl, fdfl_to_str(fdfl), (void *)fp, *start_position, position);
 #endif
     return fp;
   }
@@ -81,18 +134,57 @@ obj_to_file(PyObject *obj) {
 /* returns -1 if error occurred */
 %fragment("dispose_file", "header") {
 int
-dispose_file(FILE **fp) {
+dispose_file(FILE **fp, PyObject *pyfile, long int start_position) {
+  if (*fp == NULL)
+    return 0;
+
+  int fd;
+  long int position;
+  PyObject *ret, *exc_type, *exc_value, *exc_tb;
+
+  exc_type = exc_value = exc_tb = NULL;
+  PyErr_Fetch(&exc_type, &exc_value, &exc_tb);
+
+  position = ftell(*fp);
+
 #ifdef SWIG_FILE3_DEBUG
-  fprintf(stderr, "flushing FILE %p\n", (void *)fp);
+  fprintf(stderr, "flushing FILE %p, start_position %ld, position %ld\n",
+          (void *)fp,
+          start_position,
+          position);
 #endif
-  if (*fp == NULL) {
-    return 0;
+
+  if (!((fflush(*fp) == 0) &&
+        (fclose(*fp) == 0)))
+    return -1;
+
+  *fp = NULL;
+
+  fd = PyObject_AsFileDescriptor(pyfile);
+  if (fd == -1)
+    goto fail_dispose_file;
+
+  if (lseek(fd, start_position, SEEK_SET) != -1) {
+    if (position == -1) {
+      PyErr_SetString(PyExc_IOError, "Failed to obtain FILE * position");
+      goto fail_dispose_file;
+    }
+
+    ret = PyObject_CallMethod(pyfile, (char *)"seek", (char *)"ii", position, 0);
+    if (ret == NULL)
+      goto fail_dispose_file;
+
+    Py_DECREF(ret);
   }
-  if ((fflush(*fp) == 0) &&  /* flush file */
-      (fclose(*fp) == 0)) {  /* close file */
-    *fp = NULL;
-    return 0;
-  }
+
+  PyErr_Restore(exc_type, exc_value, exc_tb);
+  return 0;
+
+fail_dispose_file:
+  Py_XDECREF(exc_type);
+  Py_XDECREF(exc_value);
+  Py_XDECREF(exc_tb);
+  
   return -1;
 }
 }
@@ -146,16 +238,19 @@ dispose_file(FILE **fp) {
   }
 }
 
-%typemap(in, noblock = 1, fragment = "obj_to_file") FILE * {
+%typemap(in, noblock = 1, fragment = "obj_to_file") FILE *(PyObject *pyfile, long int start_position) {
   if($input == Py_None){
+    pyfile = NULL;
     $1 = NULL;
+    start_position = -1;
   } else {
-    $1 = obj_to_file($input);
+    pyfile = $input;
+    $1 = obj_to_file($input, &start_position);
   }
 }
 
 %typemap(freearg, noblock = 1, fragment = "dispose_file") FILE* {
-  if (dispose_file(&$1) == -1) {
+  if (dispose_file(&$1, pyfile$argnum, start_position$argnum) == -1) {
     SWIG_exception_fail(SWIG_IOError, "closing file in method '" "$symname" "', argument "
                         "$argnum"" of type '" "$type""'");
   }

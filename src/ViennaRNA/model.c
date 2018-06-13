@@ -22,8 +22,9 @@
 #include <string.h>
 #include <limits.h>
 
-#include "ViennaRNA/energy_const.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/params/constants.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/model.h"
 
 /*
@@ -142,11 +143,17 @@ PRIVATE vrna_md_t defaults = {
  */
 
 /* Fill the base pair type encodings according to the model details */
-PRIVATE void fill_pair_matrices(vrna_md_t *md);
+PRIVATE void
+fill_pair_matrices(vrna_md_t *md);
 
 
-PRIVATE void copy_nonstandards(vrna_md_t  *md,
-                               const char *ns);
+PRIVATE void
+copy_nonstandards(vrna_md_t  *md,
+                  const char *ns);
+
+
+PRIVATE void
+prepare_default_pairs(vrna_md_t *md);
 
 
 /*
@@ -829,27 +836,7 @@ fill_pair_matrices(vrna_md_t *md)
   /* start setting actual base pair type encodings */
   switch (md->energy_set) {
     case  0:
-      for (i = 0; i < 5; i++)
-        md->alias[i] = (short)i;
-
-      md->alias[5]  = 3;          /* X <-> G */
-      md->alias[6]  = 2;          /* K <-> C */
-      md->alias[7]  = 0;          /* I <-> default base '@' */
-
-      for (i = 0; i < NBASES; i++)
-        for (j = 0; j < NBASES; j++)
-          md->pair[i][j] = BP_pair[i][j];
-
-      if (md->noGU)
-        md->pair[3][4] = md->pair[4][3] = 0;
-
-      if (md->nonstandards[0] != '\0') {
-        /* allow nonstandard bp's (encoded by type=7) */
-        for (i = 0; i < (int)strlen(md->nonstandards); i += 2)
-          md->pair[vrna_nucleotide_encode(md->nonstandards[i], md)]
-          [vrna_nucleotide_encode(md->nonstandards[i + 1], md)] = 7;
-      }
-
+      prepare_default_pairs(md);
       break;
 
     case 1:
@@ -898,7 +885,12 @@ fill_pair_matrices(vrna_md_t *md)
       break;
 
     default:
-      vrna_message_error("Which energy_set are YOU using??");
+      vrna_message_warning("vrna_md_update: "
+                           "Unknown energy_set = %d. "
+                           "Using defaults!",
+                           md->energy_set);
+      md->energy_set = 0;
+      prepare_default_pairs(md);
       break;
   }
 
@@ -916,6 +908,34 @@ fill_pair_matrices(vrna_md_t *md)
    *  for(j = 0; j < NBASES; j++)
    *   md->rtype[md->pair[i][j]] = md->pair[j][i];
    */
+}
+
+
+PRIVATE void
+prepare_default_pairs(vrna_md_t *md)
+{
+  unsigned int i, j;
+
+  for (i = 0; i < 5; i++)
+    md->alias[i] = (short)i;
+
+  md->alias[5]  = 3;          /* X <-> G */
+  md->alias[6]  = 2;          /* K <-> C */
+  md->alias[7]  = 0;          /* I <-> default base '@' */
+
+  for (i = 0; i < NBASES; i++)
+    for (j = 0; j < NBASES; j++)
+      md->pair[i][j] = BP_pair[i][j];
+
+  if (md->noGU)
+    md->pair[3][4] = md->pair[4][3] = 0;
+
+  if (md->nonstandards[0] != '\0') {
+    /* allow nonstandard bp's (encoded by type=7) */
+    for (i = 0; i < strlen(md->nonstandards); i += 2)
+      md->pair[vrna_nucleotide_encode(md->nonstandards[i], md)]
+      [vrna_nucleotide_encode(md->nonstandards[i + 1], md)] = 7;
+  }
 }
 
 

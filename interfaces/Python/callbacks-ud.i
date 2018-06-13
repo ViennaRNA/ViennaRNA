@@ -306,8 +306,31 @@ py_wrap_ud_energy(vrna_fold_compound_t *vc,
   ret  = 0;
   func = cb->energy;
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(O,i,i,I,O)", vc, i, j, looptype, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_vc, *py_i, *py_j, *py_looptype;
+  py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
+                                   SWIGTYPE_p_vrna_fold_compound_t,
+                                   SWIG_POINTER_NEW);
+  py_i        = PyInt_FromLong(i);
+  py_j        = PyInt_FromLong(j);
+  py_looptype = PyInt_FromLong(looptype);
+  result      = PyObject_CallFunctionObjArgs(func,
+                                             py_vc,
+                                             py_i,
+                                             py_j,
+                                             py_looptype,
+                                             (cb->data) ? cb->data : Py_None,
+                                             NULL);
+
+  Py_DECREF(py_vc);
+  Py_DECREF(py_i);
+  Py_DECREF(py_j);
+  Py_DECREF(py_looptype);
+#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -329,7 +352,6 @@ py_wrap_ud_energy(vrna_fold_compound_t *vc,
   }
   /* END recognizing errors in callback execution */
 
-  Py_DECREF(arglist);
   Py_XDECREF(result);
   return ret;
 }
@@ -349,8 +371,31 @@ py_wrap_ud_exp_energy(vrna_fold_compound_t *vc,
   ret  = 1.;
   func = cb->exp_energy;
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(O,i,i,I,O)", vc, i, j, looptype, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_vc, *py_i, *py_j, *py_looptype;
+  py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
+                                   SWIGTYPE_p_vrna_fold_compound_t,
+                                   SWIG_POINTER_NEW);
+  py_i        = PyInt_FromLong(i);
+  py_j        = PyInt_FromLong(j);
+  py_looptype = PyInt_FromLong(looptype);
+  result      = PyObject_CallFunctionObjArgs(func,
+                                             py_vc,
+                                             py_i,
+                                             py_j,
+                                             py_looptype,
+                                             (cb->data) ? cb->data : Py_None,
+                                             NULL);
+
+  Py_DECREF(py_vc);
+  Py_DECREF(py_i);
+  Py_DECREF(py_j);
+  Py_DECREF(py_looptype);
+#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -372,7 +417,6 @@ py_wrap_ud_exp_energy(vrna_fold_compound_t *vc,
   }
   /* END recognizing errors in callback execution */
 
-  Py_DECREF(arglist);
   Py_XDECREF(result);
   return ret;
 }
@@ -391,8 +435,34 @@ py_wrap_ud_prob_add(vrna_fold_compound_t *vc,
 
   func = cb->prob_add;
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(O,i,i,I,d,O)", vc, i, j, looptype, (double)prob, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_vc, *py_i, *py_j, *py_looptype, *py_prob;
+  py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
+                                   SWIGTYPE_p_vrna_fold_compound_t,
+                                   SWIG_POINTER_NEW);
+  py_i        = PyInt_FromLong(i);
+  py_j        = PyInt_FromLong(j);
+  py_looptype = PyInt_FromLong(looptype);
+  py_prob     = PyFloat_FromDouble((double)prob);
+  result      = PyObject_CallFunctionObjArgs(func,
+                                             py_vc,
+                                             py_i,
+                                             py_j,
+                                             py_looptype,
+                                             py_prob,
+                                             (cb->data) ? cb->data : Py_None,
+                                             NULL);
+
+  Py_DECREF(py_vc);
+  Py_DECREF(py_i);
+  Py_DECREF(py_j);
+  Py_DECREF(py_looptype);
+  Py_DECREF(py_prob);
+#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -410,7 +480,6 @@ py_wrap_ud_prob_add(vrna_fold_compound_t *vc,
   }
   /* END recognizing errors in callback execution */
 
-  Py_DECREF(arglist);
   Py_XDECREF(result);
   return;
 }
@@ -432,8 +501,34 @@ py_wrap_ud_prob_get(vrna_fold_compound_t *vc,
   ret  = 1.;
 
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(O,i,i,I,i,O)", vc, i, j, looptype, motif, (cb->data) ? cb->data : Py_None);
   result  =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_vc, *py_i, *py_j, *py_looptype, *py_motif;
+  py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
+                                   SWIGTYPE_p_vrna_fold_compound_t,
+                                   SWIG_POINTER_NEW);
+  py_i        = PyInt_FromLong(i);
+  py_j        = PyInt_FromLong(j);
+  py_looptype = PyInt_FromLong(looptype);
+  py_motif    = PyInt_FromLong(motif);
+  result      = PyObject_CallFunctionObjArgs(func,
+                                             py_vc,
+                                             py_i,
+                                             py_j,
+                                             py_looptype,
+                                             py_motif,
+                                             (cb->data) ? cb->data : Py_None,
+                                             NULL);
+
+  Py_DECREF(py_vc);
+  Py_DECREF(py_i);
+  Py_DECREF(py_j);
+  Py_DECREF(py_looptype);
+  Py_DECREF(py_motif);
+#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -455,7 +550,6 @@ py_wrap_ud_prob_get(vrna_fold_compound_t *vc,
   }
   /* END recognizing errors in callback execution */
 
-  Py_DECREF(arglist);
   Py_XDECREF(result);
   return ret;
 }

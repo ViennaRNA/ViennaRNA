@@ -35,7 +35,7 @@ typedef struct vrna_path_s path_t;
 
 #endif
 
-#include <ViennaRNA/data_structures.h>
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  *  @brief  An element of a refolding path list

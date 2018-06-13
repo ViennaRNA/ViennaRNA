@@ -37,5 +37,5 @@
 %constant int DECOMP_EXT_EXT_STEM     = (int)VRNA_DECOMP_EXT_EXT_STEM;
 %constant int DECOMP_EXT_EXT_STEM1    = (int)VRNA_DECOMP_EXT_EXT_STEM1;
 
-%include  <ViennaRNA/constraints.h>
+%include  <ViennaRNA/constraints/basic.h>
 

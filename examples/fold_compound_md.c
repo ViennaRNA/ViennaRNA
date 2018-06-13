@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <ViennaRNA/mfe.h>
-#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/model.h>
-#include <ViennaRNA/string_utils.h>
-#include <ViennaRNA/utils.h>
+#include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/utils/basic.h>
+#include <ViennaRNA/utils/strings.h>
+#include <ViennaRNA/mfe.h>
 
 int
 main()

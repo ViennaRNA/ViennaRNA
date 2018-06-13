@@ -15,12 +15,12 @@
 #include <math.h>
 #include <string.h>
 
-#include "fold_vars.h"
-#include "data_structures.h"
-#include "energy_const.h"
-#include "utils.h"
-#include "aln_util.h"
-#include "gquad.h"
+#include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/datastructures/basic.h"
+#include "ViennaRNA/params/constants.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/gquad.h"
 
 #ifndef INLINE
 #ifdef __GNUC__

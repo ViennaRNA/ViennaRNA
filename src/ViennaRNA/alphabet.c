@@ -16,7 +16,7 @@
 #include <string.h>
 #include <limits.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/alphabet.h"
 
 /*

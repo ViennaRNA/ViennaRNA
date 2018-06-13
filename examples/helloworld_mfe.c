@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include <ViennaRNA/fold.h>
-#include <ViennaRNA/utils.h>
+#include <ViennaRNA/utils/basic.h>
 
 int
 main()

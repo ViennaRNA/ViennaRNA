@@ -20,11 +20,11 @@
 #include <string.h>
 #include <time.h>
 
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/loops/all.h"
 
 #include "ViennaRNA/pair_mat.h"
 

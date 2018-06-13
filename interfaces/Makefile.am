@@ -25,8 +25,9 @@ SOURCES = \
     part_func.i \
     pf_window.i \
     plotting.i \
-    subopt.i \
+    sequence.i \
     structure_utils.i \
+    subopt.i \
     utils.i \
     walk.i \
     ptr2array.i \
@@ -75,8 +76,9 @@ EXTRA_DIST = \
     part_func.i \
     pf_window.i \
     plotting.i \
-    subopt.i \
+    sequence.i \
     structure_utils.i \
+    subopt.i \
     utils.i \
     walk.i \
     ptr2array.i \

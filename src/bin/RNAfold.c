@@ -27,23 +27,26 @@
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/PS_dot.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/file_utils.h"
-#include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/plotting/probabilities.h"
+#include "ViennaRNA/plotting/structures.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/io/utils.h"
+#include "ViennaRNA/params/io.h"
 #include "ViennaRNA/centroid.h"
 #include "ViennaRNA/MEA.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/constraints.h"
-#include "ViennaRNA/constraints_SHAPE.h"
-#include "ViennaRNA/constraints_ligand.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/constraints/basic.h"
+#include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/constraints/ligand.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/file_formats.h"
+#include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/commands.h"
 #include "ViennaRNA/equilibrium_probs.h"
-#include "ViennaRNA/char_stream.h"
-#include "ViennaRNA/stream_output.h"
+#include "ViennaRNA/datastructures/char_stream.h"
+#include "ViennaRNA/datastructures/stream_output.h"
+#include "ViennaRNA/combinatorics.h"
 #include "ViennaRNA/color_output.inc"
 
 #include "RNAfold_cmdl.h"
@@ -53,35 +56,38 @@
 
 
 struct options {
-  int         filename_full;
-  char        *filename_delim;
-  int         pf;
-  int         noPS;
-  int         noconv;
-  int         lucky;
-  int         MEA;
-  double      MEAgamma;
-  double      bppmThreshold;
-  int         verbose;
-  char        *ligandMotif;
-  vrna_cmd_t  *cmds;
-  vrna_md_t   md;
-  dataset_id  id_control;
+  int             filename_full;
+  char            *filename_delim;
+  int             pf;
+  int             noPS;
+  int             noconv;
+  int             lucky;
+  int             MEA;
+  double          MEAgamma;
+  double          bppmThreshold;
+  int             verbose;
+  char            *ligandMotif;
+  vrna_cmd_t      cmds;
+  vrna_md_t       md;
+  dataset_id      id_control;
 
-  char        *constraint_file;
-  int         constraint_batch;
-  int         constraint_enforce;
-  int         constraint_canonical;
+  char            *constraint_file;
+  int             constraint_batch;
+  int             constraint_enforce;
+  int             constraint_canonical;
 
-  int         shape;
-  char        *shape_file;
-  char        *shape_method;
-  char        *shape_conversion;
+  int             shape;
+  char            *shape_file;
+  char            *shape_method;
+  char            *shape_conversion;
 
-  int         jobs;
-  int         tofile;
-  char        *output_file;
-  int         keep_order;
+  int             jobs;
+  int             tofile;
+  char            *output_file;
+  int             keep_order;
+  FILE            *output_stream;
+  unsigned int    next_record_number;
+  vrna_ostream_t  output_queue;
 };
 
 struct record_data {
@@ -90,11 +96,16 @@ struct record_data {
   char            *sequence;
   char            *SEQ_ID;
   char            **rest;
+  char            *input_filename;
   int             multiline_input;
   struct options  *options;
   int             tty;
-  FILE            *output;
-  vrna_ostream_t  output_queue;
+};
+
+
+struct output_stream {
+  vrna_cstr_t data;
+  int         individual;
 };
 
 
@@ -171,7 +182,7 @@ generate_filename(const char  *pattern,
                   const char  *filename_delim);
 
 
-void
+int
 process_input(FILE            *input_stream,
               const char      *input_filename,
               struct options  *opt);
@@ -187,10 +198,19 @@ flush_cstr_callback(void          *auxdata,
                     unsigned int  i,
                     void          *data)
 {
-  /* flush data[k] */
-  vrna_cstr_fflush((vrna_cstr_t)data);
-  /* free data[k] */
-  vrna_cstr_free((vrna_cstr_t)data);
+  struct output_stream *s = (struct output_stream *)data;
+
+  if (s) {
+    /* flush data[k] */
+    vrna_cstr_fflush(s->data);
+    /* free/close data[k] */
+    if (s->individual)
+      vrna_cstr_close(s->data);
+    else
+      vrna_cstr_free(s->data);
+
+    free(s);
+  }
 }
 
 
@@ -363,10 +383,13 @@ init_default_options(struct options *opt)
   opt->shape_method     = NULL;
   opt->shape_conversion = NULL;
 
-  opt->jobs         = 1;
-  opt->tofile       = 0;
-  opt->output_file  = NULL;
-  opt->keep_order   = 1;
+  opt->jobs               = 1;
+  opt->tofile             = 0;
+  opt->output_file        = NULL;
+  opt->keep_order         = 1;
+  opt->output_stream      = NULL;
+  opt->next_record_number = 0;
+  opt->output_queue       = NULL;
 }
 
 
@@ -534,29 +557,58 @@ main(int  argc,
   if ((opt.verbose) && (opt.jobs > 1))
     vrna_message_info(stderr, "Preparing %d parallel computation slots", opt.jobs);
 
+  if (opt.keep_order)
+    opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
+
   /*
    ################################################
    # process input files or handle input from stdin
    ################################################
    */
+  INIT_PARALLELIZATION(opt.jobs);
+
   if (num_input > 0) {
-    for (int i = 0; i < num_input; i++) {
-      FILE *input_stream = fopen((const char *)input_files[i], "r");
-      if (!input_stream)
-        vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
-                           input_files[i]);
+    int i, skip;
+    for (skip = i = 0; i < num_input; i++) {
+      if (!skip) {
+        FILE *input_stream = fopen((const char *)input_files[i], "r");
 
-      if (opt.verbose)
-        vrna_message_info(stderr, "Processing %d. input file \"%s\"", i + 1, input_files[i]);
+        if (!input_stream)
+          vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
+                             input_files[i]);
 
-      process_input(input_stream, (const char *)input_files[i], &opt);
+        if (opt.verbose) {
+          vrna_message_info(stderr,
+                            "Processing %d. input file \"%s\"",
+                            i + 1,
+                            input_files[i]);
+        }
 
-      fclose(input_stream);
+        if (process_input(input_stream, (const char *)input_files[i], &opt) == 0)
+          skip = 1;
+
+        fclose(input_stream);
+      }
+
       free(input_files[i]);
     }
   } else {
-    process_input(stdin, NULL, &opt);
+    (void)process_input(stdin, NULL, &opt);
   }
+
+  UNINIT_PARALLELIZATION
+
+  /*
+   ################################################
+   # post processing
+   ################################################
+   */
+
+  /* close output stream if necessary */
+  if ((opt.output_stream) && (opt.output_stream != stdout))
+    fclose(opt.output_stream);
+
+  vrna_ostream_free(opt.output_queue);
 
   free(input_files);
   free(opt.constraint_file);
@@ -573,73 +625,86 @@ main(int  argc,
 }
 
 
-FILE *
-get_output_stream(FILE            *prev_stream,
+struct output_stream *
+get_output_stream(unsigned int    init_size,
                   struct options  *opt,
                   const char      *SEQ_ID,
                   const char      *input_filename)
 {
-  FILE *output = prev_stream;
+  struct output_stream  *o_stream;
+  FILE                  *output;
+  int                   individual_stream;
 
-  if ((!opt->tofile) && (output != stdout)) {
-    output = stdout;
-  } else if (opt->tofile) {
-    char *v_file_name, *tmp_string;
+  individual_stream = 0; /* we default to using a single output sink */
 
-    v_file_name = NULL;
+  o_stream = (struct output_stream *)vrna_alloc(sizeof(struct output_stream));
 
-    if ((opt->output_file) && (!output)) {
-      v_file_name = vrna_strdup_printf("%s", opt->output_file);
-      tmp_string  = vrna_filename_sanitize(v_file_name, opt->filename_delim);
-      free(v_file_name);
-      v_file_name = tmp_string;
-    } else if ((!opt->output_file) && (!SEQ_ID) && (!output)) {
-      v_file_name = vrna_strdup_printf("RNAfold_output.fold");
-      tmp_string  = vrna_filename_sanitize(v_file_name, opt->filename_delim);
-      free(v_file_name);
-      v_file_name = tmp_string;
-    } else if (SEQ_ID) {
-      v_file_name = vrna_strdup_printf("%s.fold", SEQ_ID);
+  /* in case we do parallel processing of input, let's block access to the opt->output_stream pointer */
+  ATOMIC_BLOCK(({
+    /* default to stream that we've already opened */
+    output = opt->output_stream;
+
+    if ((!opt->tofile) && (!output)) {
+      output = stdout;
+      opt->output_stream = stdout;
+    } else if (opt->tofile) {
+      char *filename, *tmp;
+
+      tmp = filename = NULL;
+
+      if ((!opt->output_file) && (SEQ_ID)) {
+        /* need to open new individual output file */
+        tmp = vrna_strdup_printf("%s.fold", SEQ_ID);
+        individual_stream = 1;
+
+        filename = vrna_filename_sanitize(tmp, opt->filename_delim);
+
+        if ((input_filename) && !strcmp(input_filename, filename))
+          vrna_message_error("Input and output file names are identical");
+
+        if (!(output = fopen(filename, "a")))
+          vrna_message_error("Failed to open file for writing");
+      } else if (!output) {
+        /* we need to open global output file */
+        tmp = (opt->output_file) ?
+              vrna_strdup_printf("%s", opt->output_file) :
+              vrna_strdup_printf("RNAfold_output.fold");
+
+        filename = vrna_filename_sanitize(tmp, opt->filename_delim);
+
+        if ((input_filename) && !strcmp(input_filename, filename))
+          vrna_message_error("Input and output file names are identical");
+
+        if (!(output = fopen(filename, "a")))
+          vrna_message_error("Failed to open file for writing");
+
+        opt->output_stream = output;
+      }
+
+      free(tmp);
+      free(filename);
     }
 
-    if (v_file_name) {
-      if (input_filename && !strcmp(input_filename, v_file_name))
-        vrna_message_error("Input and output file names are identical");
+    /* actually initialize vrna_cstr_t of the stream */
+    o_stream->data = vrna_cstr(init_size, output);
+    o_stream->individual = (individual_stream) ? 1 : 0;
+  }));
 
-      output = fopen((const char *)v_file_name, "a");
-      if (!output)
-        vrna_message_error("Failed to open file for writing");
-
-      free(v_file_name);
-    }
-  }
-
-  return output;
-}
-
-
-int
-is_single_output_stream(struct options *opt)
-{
-  int truth = 0;
-
-  if ((!opt->tofile) || ((opt->tofile) && (opt->output_file)))
-    truth = 1;
-
-  return truth;
+  return o_stream;
 }
 
 
 /* main loop that processes an input stream */
-void
+int
 process_input(FILE            *input_stream,
               const char      *input_filename,
               struct options  *opt)
 {
+  int           ret       = 1;
   int           istty_in  = isatty(fileno(input_stream));
   int           istty_out = isatty(fileno(stdout));
 
-  unsigned int  read_opt = 0, record_number = 0;
+  unsigned int  read_opt = 0;
 
   /* print user help if we get input from tty */
   if (istty_in && istty_out) {
@@ -657,15 +722,6 @@ process_input(FILE            *input_stream,
 
   if (!fold_constrained)
     read_opt |= VRNA_INPUT_NO_REST;
-
-  FILE            *output_stream = NULL;
-
-  vrna_ostream_t  queue = NULL;
-
-  if ((opt->keep_order) && (is_single_output_stream(opt)))
-    queue = vrna_ostream_init(&flush_cstr_callback, NULL);
-
-  INIT_PARALLELIZATION(opt->jobs);
 
   /* main loop that processes each record obtained from input stream */
   do {
@@ -702,7 +758,7 @@ process_input(FILE            *input_stream,
 
     struct record_data *record = (struct record_data *)vrna_alloc(sizeof(struct record_data));
 
-    record->number          = record_number;
+    record->number          = opt->next_record_number;
     record->sequence        = rec_sequence;
     record->SEQ_ID          = fileprefix_from_id(rec_id, opt->id_control, opt->filename_full);
     record->id              = rec_id;
@@ -710,29 +766,17 @@ process_input(FILE            *input_stream,
     record->multiline_input = maybe_multiline;
     record->options         = opt;
     record->tty             = istty_in && istty_out;
-    record->output          = output_stream = get_output_stream(output_stream,
-                                                                opt,
-                                                                record->SEQ_ID,
-                                                                input_filename);
+    record->input_filename  = (input_filename) ? strdup(input_filename) : NULL;
 
-    if ((opt->keep_order) && (opt->tofile) && (!opt->output_file) && (!record->SEQ_ID) && (!queue))
-      queue = vrna_ostream_init(&flush_cstr_callback, NULL);
-
-    if (queue) {
-      record->output_queue = queue;
-      vrna_ostream_request(queue, record_number++);
-    } else {
-      record->output_queue = NULL;
-    }
+    if (opt->output_queue)
+      vrna_ostream_request(opt->output_queue, opt->next_record_number++);
 
     RUN_IN_PARALLEL(process_record, record);
 
-    if (opt->shape || (opt->constraint_file && (!opt->constraint_batch)))
+    if (opt->shape || (opt->constraint_file && (!opt->constraint_batch))) {
+      ret = 0;
       break;
-
-#if 0
-    WAIT_FOR_FREE_SLOT(opt->jobs);
-#endif
+    }
 
     /* print user help for the next round if we get input from tty */
     if (istty_in && istty_out) {
@@ -746,30 +790,23 @@ process_input(FILE            *input_stream,
     }
   } while (1);
 
-  UNINIT_PARALLELIZATION
-
-  vrna_ostream_free(queue);
-
-
-  if ((output_stream) && (output_stream != stdout))
-    fclose(output_stream);
+  return ret;
 }
 
 
 static void
 process_record(struct record_data *record)
 {
-  FILE                  *output;
   unsigned int          length;
   struct options        *opt;
   char                  *rec_sequence, *mfe_structure;
   double                min_en, energy;
   vrna_fold_compound_t  *vc;
+  struct output_stream  *o_stream;
 
-  output        = record->output;
-  rec_sequence  = strdup(record->sequence);
-  opt           = record->options;
+  opt = record->options;
 
+  rec_sequence = strdup(record->sequence);
 
   /* convert DNA alphabet to RNA if not explicitely switched off */
   if (!opt->noconv) {
@@ -783,6 +820,17 @@ process_record(struct record_data *record)
   vc = vrna_fold_compound(rec_sequence, &(opt->md), VRNA_OPTION_DEFAULT);
 
   length = vc->length;
+
+  if ((opt->md.circ) && (vrna_rotational_symmetry(rec_sequence) > 1))
+    vrna_message_warning("Input sequence %ld is rotationally symmetric! "
+                         "Symmetry correction might be required to compute actual MFE and equilibrium properties!",
+                         record->number);
+
+  /* retrieve string stream, 6*length should be enough memory to start with */
+  o_stream = get_output_stream(6 * length,
+                               opt,
+                               record->SEQ_ID,
+                               record->input_filename);
 
   if (record->tty)
     vrna_message_info(stdout, "length = %d\n", length);
@@ -826,12 +874,10 @@ process_record(struct record_data *record)
    ########################################################
    */
 
-  /* retrieve string stream bound to output, 6*length should be enough memory to start with */
-  vrna_cstr_t rec_output = vrna_cstr(6 * length, output);
 
   /* put header + sequence into output string stream */
-  vrna_cstr_print_fasta_header(rec_output, record->id);
-  vrna_cstr_printf(rec_output, "%s\n", record->sequence);
+  vrna_cstr_print_fasta_header(o_stream->data, record->id);
+  vrna_cstr_printf(o_stream->data, "%s\n", record->sequence);
 
   min_en = (double)vrna_mfe(vc, mfe_structure);
 
@@ -846,18 +892,18 @@ process_record(struct record_data *record)
   }
 
   if (!opt->lucky) {
-    vrna_cstr_printf_structure(rec_output,
+    vrna_cstr_printf_structure(o_stream->data,
                                mfe_structure,
                                record->tty ?  "\n minimum free energy = %6.2f kcal/mol" : " (%6.2f)",
                                min_en);
 
     if (opt->verbose) {
       if (opt->ligandMotif)
-        print_ligand_motifs(vc, mfe_structure, "MFE", rec_output);
+        print_ligand_motifs(vc, mfe_structure, "MFE", o_stream->data);
 
       if (vc->domains_up) {
         vrna_ud_motif_t *m = vrna_ud_motifs_MFE(vc, mfe_structure);
-        print_ud_motifs(vc, m, "MFE", rec_output);
+        print_ud_motifs(vc, m, "MFE", o_stream->data);
         free(m);
       }
     }
@@ -902,110 +948,108 @@ process_record(struct record_data *record)
                      record->SEQ_ID,
                      opt->noPS,
                      opt->filename_delim,
-                     rec_output,
+                     o_stream->data,
                      record->tty);
-    } else {
-      if (opt->md.compute_bpp) {
-        vrna_cstr_printf_structure(rec_output,
-                                   pf_struc,
-                                   record->tty ? "\n free energy of ensemble = %6.2f kcal/mol" : " [%6.2f]",
-                                   energy);
+    } else if (opt->md.compute_bpp) {
+      vrna_cstr_printf_structure(o_stream->data,
+                                 pf_struc,
+                                 record->tty ? "\n free energy of ensemble = %6.2f kcal/mol" : " [%6.2f]",
+                                 energy);
 
-        char  *filename_dotplot = NULL;
-        plist *pl1, *pl2;
+      char  *filename_dotplot = NULL;
+      plist *pl1, *pl2;
 
-        /* generate initial element probability lists for dot-plot */
-        pl1 = vrna_plist_from_probs(vc, opt->bppmThreshold);
-        pl2 = vrna_plist(mfe_structure, 0.95 * 0.95);
+      /* generate initial element probability lists for dot-plot */
+      pl1 = vrna_plist_from_probs(vc, opt->bppmThreshold);
+      pl2 = vrna_plist(mfe_structure, 0.95 * 0.95);
 
-        /* add ligand motif annotation if necessary */
-        if (opt->ligandMotif)
-          add_ligand_motifs_dot(vc, &pl1, &pl2, mfe_structure);
+      /* add ligand motif annotation if necessary */
+      if (opt->ligandMotif)
+        add_ligand_motifs_dot(vc, &pl1, &pl2, mfe_structure);
 
-        /* generate dot-plot file name */
-        filename_dotplot = generate_filename("%s%sdp.ps",
-                                             "dot.ps",
-                                             record->SEQ_ID,
-                                             opt->filename_delim);
+      /* generate dot-plot file name */
+      filename_dotplot = generate_filename("%s%sdp.ps",
+                                           "dot.ps",
+                                           record->SEQ_ID,
+                                           opt->filename_delim);
 
-        if (filename_dotplot) {
+      if (filename_dotplot) {
+        THREADSAFE_FILE_OUTPUT(
+          vrna_plot_dp_EPS(filename_dotplot,
+                           record->sequence,
+                           pl1,
+                           pl2,
+                           NULL,
+                           VRNA_PLOT_PROBABILITIES_DEFAULT));
+      }
+
+      free(filename_dotplot);
+      free(pl2);
+
+      /* compute stack probabilities and generate dot-plot */
+      if (opt->md.compute_bpp == 2) {
+        char *filename_stackplot = generate_filename("%s%sdp2.ps",
+                                                     "dot2.ps",
+                                                     record->SEQ_ID,
+                                                     opt->filename_delim);
+
+        pl2 = vrna_stack_prob(vc, 1e-5);
+
+        if (filename_stackplot) {
           THREADSAFE_FILE_OUTPUT(
-            vrna_plot_dp_EPS(filename_dotplot,
-                             record->sequence,
-                             pl1,
-                             pl2,
-                             NULL,
-                             VRNA_PLOT_PROBABILITIES_DEFAULT));
+            PS_dot_plot_list(record->sequence, filename_stackplot, pl1, pl2,
+                             "Probabilities for stacked pairs (i,j)(i+1,j-1)"));
         }
 
-        free(filename_dotplot);
         free(pl2);
-
-        /* compute stack probabilities and generate dot-plot */
-        if (opt->md.compute_bpp == 2) {
-          char *filename_stackplot = generate_filename("%s%sdp2.ps",
-                                                       "dot2.ps",
-                                                       record->SEQ_ID,
-                                                       opt->filename_delim);
-
-          pl2 = vrna_stack_prob(vc, 1e-5);
-
-          if (filename_stackplot) {
-            THREADSAFE_FILE_OUTPUT(
-              PS_dot_plot_list(record->sequence, filename_stackplot, pl1, pl2,
-                               "Probabilities for stacked pairs (i,j)(i+1,j-1)"));
-          }
-
-          free(pl2);
-          free(filename_stackplot);
-        }
-
-        free(pl1);
-
-        /* compute centroid structure */
-        compute_centroid(vc, opt->ligandMotif, opt->verbose, rec_output);
-
-        /* compute MEA structure */
-        if (opt->MEA) {
-          compute_MEA(vc,
-                      opt->MEAgamma,
-                      opt->ligandMotif,
-                      opt->verbose,
-                      rec_output);
-        }
-      } else {
-        vrna_cstr_printf_structure(rec_output,
-                                   NULL,
-                                   " free energy of ensemble = %6.2f kcal/mol",
-                                   energy);
+        free(filename_stackplot);
       }
 
-      /* finalize enemble properties for this sequence input */
-      if (opt->md.compute_bpp) {
-        vrna_cstr_printf_structure(rec_output,
-                                   NULL,
-                                   " frequency of mfe structure in ensemble %g"
-                                   "; ensemble diversity %-6.2f",
-                                   vrna_pr_energy(vc, min_en),
-                                   vrna_mean_bp_distance(vc));
-      } else {
-        vrna_cstr_printf_structure(rec_output,
-                                   NULL,
-                                   " frequency of mfe structure in ensemble %g;",
-                                   vrna_pr_energy(vc, min_en));
+      free(pl1);
+
+      /* compute centroid structure */
+      compute_centroid(vc, opt->ligandMotif, opt->verbose, o_stream->data);
+
+      /* compute MEA structure */
+      if (opt->MEA) {
+        compute_MEA(vc,
+                    opt->MEAgamma,
+                    opt->ligandMotif,
+                    opt->verbose,
+                    o_stream->data);
       }
+
+      vrna_cstr_printf_structure(o_stream->data,
+                                 NULL,
+                                 " frequency of mfe structure in ensemble %g"
+                                 "; ensemble diversity %-6.2f",
+                                 vrna_pr_energy(vc, min_en),
+                                 vrna_mean_bp_distance(vc));
+    } else {
+      vrna_cstr_printf_structure(o_stream->data,
+                                 NULL,
+                                 " free energy of ensemble = %6.2f kcal/mol\n"
+                                 " frequency of mfe structure in ensemble %g;",
+                                 energy,
+                                 vrna_pr_energy(vc, min_en));
     }
 
     free(pf_struc);
   }
 
   /* print what we've collected in output charstream */
-  if (record->output_queue) {
-    vrna_ostream_provide(record->output_queue, record->number, (void *)rec_output);
+  if (opt->output_queue) {
+    if (o_stream->individual) {
+      /* output immediately */
+      ATOMIC_BLOCK(flush_cstr_callback(NULL, record->number, (void *)o_stream));
+
+      /* use dummy element for insert into queue */
+      o_stream = NULL;
+    }
+
+    vrna_ostream_provide(opt->output_queue, record->number, (void *)o_stream);
   } else {
-    THREADSAFE_STREAM_OUTPUT(vrna_cstr_fflush(rec_output));
-    /* free output vrna_cstr_t */
-    vrna_cstr_close(rec_output);
+    ATOMIC_BLOCK(flush_cstr_callback(NULL, record->number, (void *)o_stream));
   }
 
   /* clean up */
@@ -1022,6 +1066,8 @@ process_record(struct record_data *record)
       free(record->rest[i]);
     free(record->rest);
   }
+
+  free(record->input_filename);
 
   free(record);
 }

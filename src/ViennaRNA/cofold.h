@@ -1,8 +1,8 @@
 #ifndef VIENNA_RNA_PACKAGE_COFOLD_H
 #define VIENNA_RNA_PACKAGE_COFOLD_H
 
-#include <ViennaRNA/data_structures.h>
-#include <ViennaRNA/params.h>
+#include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/mfe.h>
 
 #ifdef VRNA_WARN_DEPRECATED
@@ -19,45 +19,9 @@
 
 /**
  *  @file     cofold.h
- *  @ingroup  cofold
+ *  @ingroup mfe_global_deprecated
  *  @brief    MFE implementations for RNA-RNA interaction
  */
-
-/**
- *  @addtogroup mfe_cofold
- *  @{
- *
- *  @brief MFE version of cofolding routines
- *  This file includes (almost) all function declarations within the <b>RNAlib</b> that are related to
- *  MFE Cofolding...
- *  This also includes the Zuker suboptimals calculations, since they are implemented using the cofold
- *  routines.
- *
- */
-
-/**
- *  @brief Compute Minimum Free Energy (MFE), and a corresponding secondary structure for two dimerized RNA sequences
- *
- *  This simplified interface to vrna_mfe() computes the MFE and, if required, a secondary structure for
- *  two RNA sequences upon dimerization using default options. Memory required for dynamic programming
- *  (DP) matrices will be allocated and free'd on-the-fly. Hence, after return of this function, the
- *  recursively filled matrices are not available any more for any post-processing, e.g. suboptimal
- *  backtracking, etc.
- *
- *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe(),
- *  and the data structure #vrna_fold_compound_t instead.
- *
- *  @see vrna_mfe_dimer(), vrna_fold_compound(), #vrna_fold_compound_t, vrna_cut_point_insert()
- *
- *  @param sequence   two RNA sequences separated by the '&' character
- *  @param structure  A pointer to the character array where the
- *         secondary structure in dot-bracket notation will be written to
- *  @return the minimum free energy (MFE) in kcal/mol
- */
-float
-vrna_cofold(const char *sequence,
-            char *structure);
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
@@ -67,7 +31,7 @@ vrna_cofold(const char *sequence,
  *  The code is analog to the fold() function. If #cut_point ==-1 results
  *  should be the same as with fold().
  *
- *  @ingroup mfe_cofold
+ *  @ingroup mfe_global_deprecated
  *
  *  @deprecated use vrna_mfe_dimer() instead
  *
@@ -85,6 +49,7 @@ cofold( const char *sequence,
  *
  *  @deprecated use vrna_mfe_dimer() instead
  *
+ *  @ingroup mfe_global_deprecated
  */
 DEPRECATED(float
 cofold_par( const char *string,
@@ -101,6 +66,8 @@ cofold_par( const char *string,
  *
  *  @note folding matrices now reside in the fold compound, and should be free'd there
  *  @see  vrna_fc_destroy(), vrna_mfe_dimer()
+ *
+ *  @ingroup mfe_global_deprecated
  */
 DEPRECATED(void free_co_arrays(void),
           "This function is obsolete");
@@ -108,6 +75,8 @@ DEPRECATED(void free_co_arrays(void),
 /**
  *  @brief Recalculate parameters
  *  @deprecated See vrna_params_subst() for an alternative using the new API
+ *
+ *  @ingroup mfe_global_deprecated
  */
 DEPRECATED(void update_cofold_params(void),
           "This function is obsolete");
@@ -115,6 +84,8 @@ DEPRECATED(void update_cofold_params(void),
 /**
  *  @brief Recalculate parameters
  *  @deprecated See vrna_params_subst() for an alternative using the new API
+ *
+ *  @ingroup mfe_global_deprecated
  */
 DEPRECATED(void update_cofold_params_par(vrna_param_t *parameters),
           "Use the new API with vrna_fold_compound_t instead");
@@ -131,6 +102,7 @@ DEPRECATED(void update_cofold_params_par(vrna_param_t *parameters),
  *
  *  @see vrna_mfe_dimer() for the new API
  *
+ *  @ingroup mfe_global_deprecated
  *  @param  f5_p    A pointer to the 'f5' array, i.e. array conatining best free energy in interval [1,j]
  *  @param  c_p     A pointer to the 'c' array, i.e. array containing best free energy in interval [i,j] given that i pairs with j
  *  @param  fML_p   A pointer to the 'M' array, i.e. array containing best free energy in interval [i,j] for any multiloop segment with at least one stem
@@ -161,6 +133,7 @@ DEPRECATED(void export_cofold_arrays_gq(int **f5_p,
  *
  *  @see vrna_mfe_dimer() for the new API
  *
+ *  @ingroup mfe_global_deprecated
  *  @param  f5_p    A pointer to the 'f5' array, i.e. array conatining best free energy in interval [1,j]
  *  @param  c_p     A pointer to the 'c' array, i.e. array containing best free energy in interval [i,j] given that i pairs with j
  *  @param  fML_p   A pointer to the 'M' array, i.e. array containing best free energy in interval [i,j] for any multiloop segment with at least one stem
@@ -186,6 +159,7 @@ DEPRECATED(void export_cofold_arrays( int **f5_p,
  *  Export monomer free energies out of cofold arrays
  *  @deprecated{This function is obsolete and will be removed soon!}
  *
+ *  @ingroup mfe_global_deprecated
  *  @param e1 A pointer to a variable where the energy of molecule A will be written to
  *  @param e2 A pointer to a variable where the energy of molecule B will be written to
  */
@@ -196,15 +170,12 @@ DEPRECATED(void get_monomere_mfes( float *e1, float *e2),
 /**
  *  allocate arrays for folding
  *  @deprecated{This function is obsolete and will be removed soon!}
+ *
+ *  @ingroup mfe_global_deprecated
  */
 DEPRECATED(void initialize_cofold(int length),
           "This function is obsolete");
 
 #endif
-
-/**
- *  @}
- */
-
 
 #endif

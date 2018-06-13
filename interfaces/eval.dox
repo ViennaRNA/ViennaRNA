@@ -48,7 +48,7 @@ This function is attached as method @b eval_move() to objects of type @em fold_c
 This function is attached as method @b eval_move_pt() to objects of type @em fold_compound
 @endparblock
 
-@fn int vrna_eval_hp_loop(vrna_fold_compound_t *vc, int i, int j)
+@fn int vrna_eval_hp_loop(vrna_fold_compound_t *fc, int i, int j)
 @scripting
 @parblock
 This function is attached as method @b eval_hp_loop() to objects of type @em fold_compound
@@ -60,7 +60,7 @@ This function is attached as method @b eval_hp_loop() to objects of type @em fol
 This function is attached as method @b eval_int_loop() to objects of type @em fold_compound
 @endparblock
 
-@fn int vrna_eval_structure_simple(const char *sequence, const char *structure)
+@fn int vrna_eval_structure_simple(const char *string, const char *structure)
 @scripting
 @parblock
 In the target scripting language, this function serves as a wrapper for vrna_eval_structure_simple_v()
@@ -68,7 +68,7 @@ and, thus, allows for two additional, optional arguments, the verbosity level an
 handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 @endparblock
 
-@fn int vrna_eval_circ_structure(const char *sequence, const char *structure)
+@fn int vrna_eval_circ_structure(const char *string, const char *structure)
 @scripting
 @parblock
 In the target scripting language, this function serves as a wrapper for vrna_eval_circ_structure_v()
@@ -76,7 +76,7 @@ and, thus, allows for two additional, optional arguments, the verbosity level an
 handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 @endparblock
 
-@fn int vrna_eval_gquad_structure(const char *sequence, const char *structure)
+@fn int vrna_eval_gquad_structure(const char *string, const char *structure)
 @scripting
 @parblock
 In the target scripting language, this function serves as a wrapper for vrna_eval_gquad_structure_v()
@@ -84,7 +84,7 @@ and, thus, allows for two additional, optional arguments, the verbosity level an
 handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 @endparblock
 
-@fn int vrna_eval_circ_gquad_structure(const char *sequence, const char *structure)
+@fn int vrna_eval_circ_gquad_structure(const char *string, const char *structure)
 @scripting
 @parblock
 In the target scripting language, this function serves as a wrapper for vrna_eval_circ_gquad_structure_v()
@@ -124,7 +124,7 @@ Simply pass a sequence alignment as list of strings (including gaps) as first, a
 consensus structure as second argument
 @endparblock
 
-@fn int vrna_eval_structure_simple_verbose(const char *sequence, const char *structure, FILE *file)
+@fn int vrna_eval_structure_simple_verbose(const char *string, const char *structure, FILE *file)
 @scripting
 @parblock
 This function is not available. Use vrna_eval_structure_simple_v() instead!
@@ -136,7 +136,7 @@ This function is not available. Use vrna_eval_structure_simple_v() instead!
 This function is not available. Use vrna_eval_consensus_structure_simple_v() instead!
 @endparblock
 
-@fn int vrna_eval_structure_simple_v(const char *sequence, const char *structure, int verbosity_level, FILE *file)
+@fn int vrna_eval_structure_simple_v(const char *string, const char *structure, int verbosity_level, FILE *file)
 @scripting
 @parblock
 This function is available through an overloaded version of vrna_eval_structure_simple().
@@ -144,7 +144,7 @@ The last two arguments for this function are optional and default to #VRNA_VERBO
 respectively.
 @endparblock
 
-@fn int vrna_eval_circ_structure_v(const char *sequence, const char *structure, int verbosity_level, FILE *file)
+@fn int vrna_eval_circ_structure_v(const char *string, const char *structure, int verbosity_level, FILE *file)
 @scripting
 @parblock
 This function is available through an overloaded version of vrna_eval_circ_structure().
@@ -152,7 +152,7 @@ The last two arguments for this function are optional and default to #VRNA_VERBO
 respectively.
 @endparblock
 
-@fn int vrna_eval_gquad_structure_v(const char *sequence, const char *structure, int verbosity_level, FILE *file)
+@fn int vrna_eval_gquad_structure_v(const char *string, const char *structure, int verbosity_level, FILE *file)
 @scripting
 @parblock
 This function is available through an overloaded version of vrna_eval_gquad_structure().
@@ -160,7 +160,7 @@ The last two arguments for this function are optional and default to #VRNA_VERBO
 respectively.
 @endparblock
 
-@fn int vrna_eval_circ_gquad_structure_v(const char *sequence, const char *structure, int verbosity_level, FILE *file)
+@fn int vrna_eval_circ_gquad_structure_v(const char *string, const char *structure, int verbosity_level, FILE *file)
 @scripting
 @parblock
 This function is available through an overloaded version of vrna_eval_circ_gquad_structure().
@@ -204,7 +204,7 @@ consensus structure as second argument. The last two arguments are optional and 
 to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 @endparblock
 
-@fn int vrna_eval_structure_pt_simple(const char *sequence, const short *pt)
+@fn int vrna_eval_structure_pt_simple(const char *string, const short *pt)
 @scripting
 @parblock
 In the target scripting language, this function serves as a wrapper for vrna_eval_structure_pt_v()

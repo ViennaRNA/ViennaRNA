@@ -14,7 +14,7 @@
 #include <ctype.h>
 #include "ViennaRNA/edit_cost.h"
 #include "ViennaRNA/dist_vars.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 
 #define PRIVATE  static
 #define PUBLIC

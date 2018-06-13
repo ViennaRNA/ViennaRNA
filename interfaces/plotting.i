@@ -132,7 +132,7 @@ std::vector<COORDINATE> my_naview_xy_coordinates(std::string);
 %ignore simple_circplot_coordinates;
 %ignore naview_xy_coordinates;
 
-%include <ViennaRNA/plot_layouts.h>
+%include <ViennaRNA/plotting/layouts.h>
 
 
 
@@ -212,7 +212,7 @@ int file_PS_rnaplot_a(std::string sequence,
 
 %ignore PS_rna_plot_snoop_a;
 
-%include <ViennaRNA/plot_structure.h>
+%include <ViennaRNA/plotting/structures.h>
 
 
 /*#######################################*/
@@ -335,10 +335,10 @@ int file_PS_aln_sub(std::string filename,
 %ignore PS_color_aln;
 %ignore aliPS_color_aln;
 
-%include <ViennaRNA/plot_aln.h>
+%include <ViennaRNA/plotting/alignments.h>
 
 
-%include <ViennaRNA/PS_dot.h>
+%include <ViennaRNA/plotting/probabilities.h>
 
 /*#################################*/
 /* END get coordinates for xy plot */

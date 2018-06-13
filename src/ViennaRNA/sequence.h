@@ -2,12 +2,14 @@
 #define VIENNA_RNA_PACKAGE_SEQUENCE_H
 
 /**
- *  @{
- *
  *  @file sequence.h
  *  @brief  Functions and data structures related to sequence representations
- *
- *  @ingroup utils
+ *  @ingroup utils, alphabet_utils
+ */
+
+/**
+ *  @addtogroup alphabet_utils
+ *  @{
  */
 
 

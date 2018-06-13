@@ -18,17 +18,18 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>    /* #defines FLT_MAX ... */
-#include "ViennaRNA/data_structures.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/datastructures/basic.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/PS_dot.h"
+#include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/part_func.h"
-#include "ViennaRNA/params.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/params/basic.h"
+#include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/Lfold.h"
-
+#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/part_func_window.h"
 
 /*
  #################################
@@ -281,33 +282,6 @@ vrna_pfl_fold(const char  *sequence,
 }
 
 
-PUBLIC void
-vrna_pfl_fold_cb(const char                 *sequence,
-                 int                        window_size,
-                 int                        max_bp_span,
-                 vrna_probs_window_callback *cb,
-                 void                       *data)
-{
-  unsigned int          options;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);       /* get default parameters */
-
-  md.compute_bpp  = 1;            /* turn on base pair probability computations */
-  md.window_size  = window_size;  /* set size of sliding window */
-  md.max_bp_span  = max_bp_span;  /* set maximum base pair span */
-
-  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
-
-  options = VRNA_PROBS_WINDOW_BPP; /* always compute base pair probabilities */
-
-  vrna_probs_window(vc, 0, options, cb, data);
-
-  vrna_fold_compound_free(vc);
-}
-
-
 PUBLIC double **
 vrna_pfl_fold_up(const char *sequence,
                  int        ulength,
@@ -346,34 +320,6 @@ vrna_pfl_fold_up(const char *sequence,
   }
 
   return pU;
-}
-
-
-PUBLIC void
-vrna_pfl_fold_up_cb(const char                  *sequence,
-                    int                         ulength,
-                    int                         window_size,
-                    int                         max_bp_span,
-                    vrna_probs_window_callback  *cb,
-                    void                        *data)
-{
-  unsigned int          options;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);       /* get default parameters */
-
-  md.compute_bpp  = 1;            /* turn on base pair probability computations */
-  md.window_size  = window_size;  /* set size of sliding window */
-  md.max_bp_span  = max_bp_span;  /* set maximum base pair span */
-
-  vc = vrna_fold_compound(sequence, &md, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
-
-  options = VRNA_PROBS_WINDOW_UP; /* compute unpaired probabilties */
-
-  vrna_probs_window(vc, ulength, options, cb, data);
-
-  vrna_fold_compound_free(vc);
 }
 
 
@@ -719,7 +665,7 @@ rotate_constraints(vrna_fold_compound_t *fc,
 }
 
 
-PUBLIC void
+PUBLIC int
 vrna_probs_window(vrna_fold_compound_t        *vc,
                   int                         ulength,
                   unsigned int                options,
@@ -735,18 +681,19 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   vrna_mx_pf_t        *matrices;
   vrna_hc_t           *hc;
   helper_arrays       aux_arrays;
-  vrna_mx_pf_aux_el_t *aux_mx_el;
-  vrna_mx_pf_aux_ml_t *aux_mx_ml;
+  vrna_mx_pf_aux_el_t aux_mx_el;
+  vrna_mx_pf_aux_ml_t aux_mx_ml;
 
   ov    = 0;
   Qmax  = 0;
 
   if ((!vc) || (!cb))
-    return;
+    return 0; /* failure */
 
   if (!vrna_fold_compound_prepare(vc, VRNA_OPTION_PF | VRNA_OPTION_WINDOW)) {
-    vrna_message_warning("vrna_probs_window@LPfold.c: Failed to prepare vrna_fold_compound");
-    return;
+    vrna_message_warning("vrna_probs_window: "
+                         "Failed to prepare vrna_fold_compound");
+    return 0; /* failure */
   }
 
   /* here space for initializing everything */
@@ -795,7 +742,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
 
     free_helper_arrays(vc, ulength, &aux_arrays, options);
 
-    return;
+    return 1; /* success */
   }
 
   init_dp_matrices(vc, options);
@@ -823,7 +770,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
           /* process interior loop(s) */
           qbt1 += vrna_exp_E_int_loop(vc, i, j);
           /* process multibranch loop(s) */
-          qbt1 += vrna_exp_E_mb_loop_fast(vc, i, j, aux_mx_ml->qqm1);
+          qbt1 += vrna_exp_E_mb_loop_fast(vc, i, j, aux_mx_ml);
         }
 
         qb[i][j] = qbt1;
@@ -832,10 +779,11 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
         qm[i][j] = vrna_exp_E_ml_fast(vc, i, j, aux_mx_ml);
         if ((options & VRNA_PROBS_WINDOW_UP) && (ulength > 0)) {
           /* new qm2 computation done here */
+          const FLT_OR_DBL *qqm = vrna_exp_E_ml_fast_qqm(aux_mx_ml);
           temp = 0.0;
           for (k = i + 1; k <= j; k++)
             temp += qm[i][k - 1] *
-                    aux_mx_ml->qqm[k];
+                    qqm[k];
           qm2[i][j] = temp;
         }
 
@@ -845,12 +793,26 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
         if (temp > Qmax) {
           Qmax = temp;
           if (Qmax > max_real / 10.)
-            vrna_message_warning("Q close to overflow: %d %d %g\n", i, j, temp);
+            vrna_message_warning("vrna_probs_window: "
+                                 "Q close to overflow: %d %d %g\n",
+                                 i,
+                                 j,
+                                 temp);
         }
 
-        if (temp >= max_real)
-          vrna_message_error("overflow in pf_fold while calculating q[%d,%d]\n"
-                             "use larger pf_scale", i, j);
+        if (temp >= max_real) {
+          vrna_message_warning("vrna_probs_window: "
+                               "overflow while computing partition function for segment q[%d,%d]\n"
+                               "use larger pf_scale",
+                               i,
+                               j);
+
+          vrna_exp_E_ml_fast_free(aux_mx_ml);
+          vrna_exp_E_ext_fast_free(aux_mx_el);
+          free_helper_arrays(vc, ulength, &aux_arrays, options);
+
+          return 0; /* failure */
+        }
       } /* end for i */
 
       /*
@@ -883,8 +845,8 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
       }
 
       /* rotate auxiliary arrays */
-      vrna_exp_E_ext_fast_rotate(vc, aux_mx_el);
-      vrna_exp_E_ml_fast_rotate(vc, aux_mx_ml);
+      vrna_exp_E_ext_fast_rotate(aux_mx_el);
+      vrna_exp_E_ml_fast_rotate(aux_mx_ml);
     }
 
     if (j > winSize) {
@@ -961,18 +923,22 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   }
 
   if (ov > 0)
-    vrna_message_warning("%d overflows occurred while backtracking;\n"
+    vrna_message_warning("vrna_probs_window: "
+                         "%d overflows occurred while backtracking;\n"
                          "you might try a smaller pf_scale than %g\n",
-                         ov, pf_params->pf_scale);
+                         ov,
+                         pf_params->pf_scale);
 
   free_dp_matrices(vc, options);
   free_helper_arrays(vc, ulength, &aux_arrays, options);
 
   /* free memory occupied by auxiliary arrays for fast exterior/multibranch loops */
-  vrna_exp_E_ml_fast_free(vc, aux_mx_ml);
-  vrna_exp_E_ext_fast_free(vc, aux_mx_el);
+  vrna_exp_E_ml_fast_free(aux_mx_ml);
+  vrna_exp_E_ext_fast_free(aux_mx_el);
 
   free(Fwindow);
+
+  return 1; /* success */
 }
 
 
@@ -1450,7 +1416,7 @@ get_deppp(vrna_fold_compound_t  *vc,
     }
   }
   /* write it to list of deppps */
-  for (i = 0; pl[i].i != 0; i++) ;
+  for (i = 0; pl[i].i != 0; i++);
   pl = (vrna_ep_t *)vrna_realloc(pl, (i + count + 1) * sizeof(vrna_ep_t));
   for (j = 0; j < count; j++) {
     pl[i + j].i = temp[j].i;
@@ -2103,7 +2069,7 @@ wrap_pf_foldLP(char             *sequence,
                FILE             *spup,
                vrna_exp_param_t *parameters)
 {
-  int                   ulength;
+  int                   ulength, r;
   vrna_fold_compound_t  *vc;
   vrna_md_t             md;
   default_cb_data       data;
@@ -2175,7 +2141,10 @@ wrap_pf_foldLP(char             *sequence,
   if (ulength > 0)
     options |= VRNA_PROBS_WINDOW_UP;
 
-  vrna_probs_window(vc, ulength, options, &backward_compat_callback, (void *)&data);
+  r = vrna_probs_window(vc, ulength, options, &backward_compat_callback, (void *)&data);
+
+  if (!r)
+    return NULL;
 
   if (dpp2 && (*dpp2)) {
     data.stack_prob = (vrna_ep_t *)vrna_realloc(data.stack_prob,

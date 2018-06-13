@@ -18,9 +18,11 @@
 #include "ViennaRNA/RNAstruct.h"
 #include "ViennaRNA/treedist.h"
 #include "ViennaRNA/stringdist.h"
-#include "ViennaRNA/structure_utils.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/io/utils.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "RNAdistance_cmdl.h"
 
 #define MAXNUM      1000    /* max number of structs for distance matrix */

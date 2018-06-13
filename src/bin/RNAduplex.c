@@ -16,8 +16,9 @@
 #include <string.h>
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/read_epars.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/params/io.h"
 #include "ViennaRNA/subopt.h"
 #include "ViennaRNA/duplex.h"
 #include "RNAduplex_cmdl.h"

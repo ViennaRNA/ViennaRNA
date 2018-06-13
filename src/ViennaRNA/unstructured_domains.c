@@ -21,7 +21,7 @@
 #include <float.h>
 #include <math.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/unstructured_domains.h"
@@ -185,6 +185,7 @@ PRIVATE void
 add_ligand_motif(vrna_fold_compound_t *vc,
                  const char           *motif,
                  double               motif_en,
+                 const char           *motif_name,
                  unsigned int         loop_type);
 
 
@@ -405,20 +406,20 @@ vrna_ud_motifs_MEA(vrna_fold_compound_t *fc,
                    const char           *structure,
                    vrna_ep_t            *probability_list)
 {
-  unsigned int    from, to, i, j, k, m, n, s, motifs_size, motifs_count, t, num_segments;
-  vrna_ep_t       *ptr;
-  vrna_ud_motif_t *motifs;
-  vrna_ud_t       *domains_up;
+  unsigned int            from, to, i, n, s, motifs_size, motifs_count, t, num_segments;
+  float                   *pu, *mx;
+  vrna_ep_t               *ptr;
+  vrna_ud_motif_t         *motifs;
+  struct binding_segment  *segments;
 
   motifs = NULL;
 
   if ((fc) && (fc->domains_up) && (fc->domains_up->probs_get) && (structure) &&
       (probability_list)) {
-    n           = fc->length;
-    domains_up  = fc->domains_up;
-    struct binding_segment  *segments = extract_binding_segments(structure, &num_segments);
-    float                   *pu       = (float *)vrna_alloc(sizeof(float) * (n + 1));
-    float                   *mx       = (float *)vrna_alloc(sizeof(float) * (n + 1));
+    n         = fc->length;
+    segments  = extract_binding_segments(structure, &num_segments);
+    pu        = (float *)vrna_alloc(sizeof(float) * (n + 1));
+    mx        = (float *)vrna_alloc(sizeof(float) * (n + 1));
 
     /* determine probabilities to be unpaired */
     for (i = 1; i <= n; i++)
@@ -495,18 +496,17 @@ PUBLIC vrna_ud_motif_t *
 vrna_ud_motifs_MFE(vrna_fold_compound_t *fc,
                    const char           *structure)
 {
-  unsigned int    from, to, i, j, k, m, n, s, motifs_size, motifs_count, t, num_segments;
-  vrna_ep_t       *ptr;
-  vrna_ud_motif_t *motifs;
-  vrna_ud_t       *domains_up;
+  unsigned int            from, to, i, n, s, motifs_size, motifs_count, t, num_segments;
+  int                     *mx;
+  vrna_ud_motif_t         *motifs;
+  struct binding_segment  *segments;
 
   motifs = NULL;
 
   if ((fc) && (fc->domains_up) && (fc->domains_up->probs_get) && (structure)) {
-    n           = fc->length;
-    domains_up  = fc->domains_up;
-    struct binding_segment  *segments = extract_binding_segments(structure, &num_segments);
-    int                     *mx       = (int *)vrna_alloc(sizeof(int) * (n + 1));
+    n         = fc->length;
+    segments  = extract_binding_segments(structure, &num_segments);
+    mx        = (int *)vrna_alloc(sizeof(int) * (n + 1));
 
     motifs_count  = 0;
     motifs_size   = 10;
@@ -648,6 +648,7 @@ PUBLIC void
 vrna_ud_add_motif(vrna_fold_compound_t  *vc,
                   const char            *motif,
                   double                motif_en,
+                  const char            *motif_name,
                   unsigned int          loop_type)
 {
   if (vc) {
@@ -659,7 +660,7 @@ vrna_ud_add_motif(vrna_fold_compound_t  *vc,
       vrna_ud_set_prob_cb(vc, &default_probs_add, &default_probs_get);
     }
 
-    add_ligand_motif(vc, motif, motif_en, loop_type);
+    add_ligand_motif(vc, motif, motif_en, motif_name, loop_type);
   }
 }
 
@@ -789,7 +790,7 @@ ud_get_motifs_MFE(vrna_fold_compound_t    *fc,
     int             *mx;
     vrna_ud_motif_t **ptr, *ptr2, ***alternatives;
 
-    alternatives  = (vrna_ud_motif_t ***)vrna_alloc(sizeof(vrna_ud_motif_t * *) * segments_num);
+    alternatives  = (vrna_ud_motif_t ***)vrna_alloc(sizeof(vrna_ud_motif_t **) * segments_num);
     alt_cnt       = 0;
 
     /* collect optimal configurations for each segment */
@@ -913,11 +914,10 @@ vrna_ud_extract_motifs(vrna_fold_compound_t *fc,
   motif_lists = NULL;
 
   if ((fc) && (fc->domains_up) && (structure)) {
-    unsigned int            pos, start, stop, segments_num, segments_length;
+    unsigned int            segments_num;
     struct binding_segment  *segments;
 
-    segments_length = 15;
-    segments        = extract_binding_segments(structure, &segments_num);
+    segments = extract_binding_segments(structure, &segments_num);
 
     if (!energy) {
       /* get MFE arrangement(s) */
@@ -982,9 +982,16 @@ remove_ligands_up(vrna_fold_compound_t *vc)
   if (vc->domains_up->free_data)
     vc->domains_up->free_data(vc->domains_up->data);
 
+  /* free motif sequences */
   for (i = 0; i < vc->domains_up->motif_count; i++)
     free(vc->domains_up->motif[i]);
+
+  /* free motif names */
+  for (i = 0; i < vc->domains_up->motif_count; i++)
+    free(vc->domains_up->motif_name[i]);
+
   free(vc->domains_up->motif);
+  free(vc->domains_up->motif_name);
   free(vc->domains_up->motif_size);
   free(vc->domains_up->motif_en);
   free(vc->domains_up->motif_type);
@@ -1006,6 +1013,7 @@ init_ligands_up(vrna_fold_compound_t *vc)
   vc->domains_up->uniq_motif_size   = NULL;
   vc->domains_up->motif_count       = 0;
   vc->domains_up->motif             = NULL;
+  vc->domains_up->motif_name        = NULL;
   vc->domains_up->motif_size        = NULL;
   vc->domains_up->motif_en          = NULL;
   vc->domains_up->motif_type        = NULL;
@@ -1102,8 +1110,8 @@ fill_MFE_matrix(vrna_fold_compound_t  *fc,
                 unsigned int          to,
                 unsigned int          type)
 {
-  unsigned int  i, j, d, m;
-  int           k, u, e, ee;
+  unsigned int  i, d, m;
+  int           u, e, ee;
   vrna_ud_t     *domains_up;
 
   domains_up = fc->domains_up;
@@ -1162,7 +1170,7 @@ backtrack_MFE_matrix(vrna_fold_compound_t *fc,
   motif_size  = 10;
   motif_list  = (vrna_ud_motif_t *)vrna_alloc(sizeof(vrna_ud_motif_t) * (motif_size + 1));
 
-  for (d = to - from + 1, i = from; i < to;) {
+  for (d = to - from + 1, i = from; i < to; ) {
     e   = mx[i];
     ee  = mx[i + 1];
 
@@ -1228,7 +1236,7 @@ backtrack_MFE_matrix(vrna_fold_compound_t *fc,
           if (e == ee) {
             /* determine actual motif number and add this motif to list */
             for (k = 0; k < domains_up->motif_count; k++)
-              if ((domains_up->motif_type[k] & type) && (domains_up->motif_size[k] == u))
+              if ((domains_up->motif_type[k] & type) && (domains_up->motif_size[k] == 1))
                 if (ee == (int)roundf(domains_up->motif_en[k] * 100.))
                   break;
 
@@ -1493,7 +1501,7 @@ backtrack_MEA_matrix(vrna_fold_compound_t *fc,
   motif_size  = 10;
   motif_list  = (vrna_ud_motif_t *)vrna_alloc(sizeof(vrna_ud_motif_t) * (motif_size + 1));
 
-  for (d = to - from + 1, i = from; i <= to;) {
+  for (d = to - from + 1, i = from; i <= to; ) {
     prec  = FLT_EPSILON * mx[i];
     mea   = mx[i];
     p     = pu[i];
@@ -1577,6 +1585,7 @@ PRIVATE void
 add_ligand_motif(vrna_fold_compound_t *vc,
                  const char           *motif,
                  double               motif_en,
+                 const char           *motif_name,
                  unsigned int         loop_type)
 {
   unsigned int  i, n, same_size;
@@ -1605,19 +1614,28 @@ add_ligand_motif(vrna_fold_compound_t *vc,
   ud->motif = (char **)vrna_realloc(ud->motif,
                                     sizeof(char *) *
                                     (ud->motif_count + 1));
-  ud->motif[ud->motif_count]  = strdup(motif);
-  ud->motif_size              = (unsigned int *)vrna_realloc(ud->motif_size,
-                                                             sizeof(unsigned int *) *
-                                                             (ud->motif_count + 1));
+  ud->motif[ud->motif_count] = strdup(motif);
+
+  ud->motif_name = (char **)vrna_realloc(ud->motif_name,
+                                         sizeof(char *) *
+                                         (ud->motif_count + 1));
+  ud->motif_name[ud->motif_count] = (motif_name) ? strdup(motif) : NULL;
+
+  ud->motif_size = (unsigned int *)vrna_realloc(ud->motif_size,
+                                                sizeof(unsigned int *) *
+                                                (ud->motif_count + 1));
   ud->motif_size[ud->motif_count] = n;
-  ud->motif_en                    = (double *)vrna_realloc(ud->motif_en,
-                                                           sizeof(double) *
-                                                           (ud->motif_count + 1));
+
+  ud->motif_en = (double *)vrna_realloc(ud->motif_en,
+                                        sizeof(double) *
+                                        (ud->motif_count + 1));
   ud->motif_en[ud->motif_count] = motif_en;
-  ud->motif_type                = (unsigned int *)vrna_realloc(ud->motif_type,
-                                                               sizeof(double) *
-                                                               (ud->motif_count + 1));
+
+  ud->motif_type = (unsigned int *)vrna_realloc(ud->motif_type,
+                                                sizeof(double) *
+                                                (ud->motif_count + 1));
   ud->motif_type[ud->motif_count] = loop_type;
+
   ud->motif_count++;
 }
 
@@ -2076,7 +2094,6 @@ default_prod_rule(vrna_fold_compound_t  *vc,
                   void                  *d)
 {
   int                             i, j, k, l, u, n, e_ext, e_hp, e_int, e_mb, en, en2, *idx;
-  vrna_ud_t                       *domains_up;
   struct ligands_up_data_default  *data;
 
   int                             *energies_ext;
@@ -2084,10 +2101,9 @@ default_prod_rule(vrna_fold_compound_t  *vc,
   int                             *energies_int;
   int                             *energies_mb;
 
-  n           = (int)vc->length;
-  idx         = vc->jindx;
-  domains_up  = vc->domains_up;
-  data        = (struct ligands_up_data_default *)d;
+  n     = (int)vc->length;
+  idx   = vc->jindx;
+  data  = (struct ligands_up_data_default *)d;
 
   prepare_default_data(vc, data);
   prepare_matrices(vc, data);

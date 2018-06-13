@@ -323,7 +323,7 @@ my_eval_structure_pt_simple(std::vector<std::string> alignment,
 
 }
 
-%include  <ViennaRNA/exterior_loops.h>
-%include  <ViennaRNA/hairpin_loops.h>
-%include  <ViennaRNA/interior_loops.h>
-%include  <ViennaRNA/multibranch_loops.h>
+%include  <ViennaRNA/loops/external.h>
+%include  <ViennaRNA/loops/hairpin.h>
+%include  <ViennaRNA/loops/internal.h>
+%include  <ViennaRNA/loops/multibranch.h>

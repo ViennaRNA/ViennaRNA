@@ -4,8 +4,8 @@
 #include <math.h>
 
 #include "ViennaRNA/pair_mat.h"
-#include "ViennaRNA/file_utils.h"
-#include "ViennaRNA/structure_utils.h"
+#include "ViennaRNA/io/utils.h"
+#include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/move_set.h"
 #include "ViennaRNA/eval.h"

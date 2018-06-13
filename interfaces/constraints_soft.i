@@ -125,4 +125,4 @@
 
 }
 
-%include  <ViennaRNA/constraints_soft.h>
+%include  <ViennaRNA/constraints/soft.h>

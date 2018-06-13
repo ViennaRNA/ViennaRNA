@@ -17,17 +17,19 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/snofold.h"
 #include "ViennaRNA/pair_mat.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/snoop.h"
-#include "ViennaRNA/PS_dot.h"
+#include "ViennaRNA/plotting/probabilities.h"
+#include "ViennaRNA/plotting/structures.h"
 /* #include "ViennaRNA/fold.h" */
 #include "ViennaRNA/duplex.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/loops/all.h"
 
 
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */

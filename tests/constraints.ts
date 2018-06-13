@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include <ViennaRNA/file_formats.h>
-#include <ViennaRNA/constraints.h>
+#include <ViennaRNA/io/file_formats.h>
+#include <ViennaRNA/constraints/basic.h>
+#include <ViennaRNA/constraints/SHAPE.h>
 
 static int
 deltaCompare(double a,

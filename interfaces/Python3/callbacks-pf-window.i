@@ -65,8 +65,30 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
   }
 
   /* compose argument list */
+#if 0
   arglist = Py_BuildValue("(O, i, i, i, i, O)", pr_list, pr_size, i, max, type, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
+  Py_DECREF(arglist);
+#else
+  PyObject *py_size, *py_i, *py_max, *py_type;
+  py_size = PyLong_FromLong(pr_size);
+  py_i    = PyLong_FromLong(i);
+  py_max  = PyLong_FromLong(max);
+  py_type = PyLong_FromLong(type);
+  result  = PyObject_CallFunctionObjArgs(func,
+                                         pr_list,
+                                         py_size,
+                                         py_i,
+                                         py_max,
+                                         py_type,
+                                         (cb->data) ? cb->data : Py_None,
+                                         NULL);
+
+  Py_DECREF(py_size);
+  Py_DECREF(py_i);
+  Py_DECREF(py_max);
+  Py_DECREF(py_type);
+#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -84,7 +106,6 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
   }
   /* END recognizing errors in callback execution */
 
-  Py_DECREF(arglist);
   Py_XDECREF(result);
 
   return /*void*/;
@@ -98,10 +119,11 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
 %feature("autodoc") probs_window;
 %feature("kwargs") probs_window;
 
-  void probs_window(int ulength, unsigned int options, PyObject *PyFunc, PyObject *data = Py_None) {
+  int probs_window(int ulength, unsigned int options, PyObject *PyFunc, PyObject *data = Py_None) {
     python_pf_window_callback_t *cb = bind_pf_window_callback(PyFunc, data);
-    vrna_probs_window($self, ulength, options, &python_wrap_pf_window_cb, (void *)cb);
+    int r = vrna_probs_window($self, ulength, options, &python_wrap_pf_window_cb, (void *)cb);
     free(cb);
+    return r;
   }
 }
 
@@ -109,16 +131,18 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
 /* Also add wrappers for the 'simple' callback interface of pfl_fold_*_cb() functions */
 %{
 
-  void pfl_fold_cb(std::string sequence, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None) {
+  int pfl_fold_cb(std::string sequence, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None) {
     python_pf_window_callback_t *cb = bind_pf_window_callback(PyFunc, data);
-    vrna_pfl_fold_cb(sequence.c_str(), window_size, max_bp_span, &python_wrap_pf_window_cb, (void *)cb);
+    int r = vrna_pfl_fold_cb(sequence.c_str(), window_size, max_bp_span, &python_wrap_pf_window_cb, (void *)cb);
     free(cb);
+    return r;
   }
 
-  void pfl_fold_up_cb(std::string sequence, int ulength, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None) {
+  int pfl_fold_up_cb(std::string sequence, int ulength, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None) {
     python_pf_window_callback_t *cb = bind_pf_window_callback(PyFunc, data);
-    vrna_pfl_fold_up_cb(sequence.c_str(), ulength, window_size, max_bp_span, &python_wrap_pf_window_cb, (void *)cb);
+    int r = vrna_pfl_fold_up_cb(sequence.c_str(), ulength, window_size, max_bp_span, &python_wrap_pf_window_cb, (void *)cb);
     free(cb);
+    return r;
   }
 
 %}
@@ -128,7 +152,7 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
 %feature("autodoc") pfl_fold_up_cb;
 %feature("kwargs") pfl_fold_up_cb;
 
-void pfl_fold_cb(std::string sequence, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None);
-void pfl_fold_up_cb(std::string sequence, int ulength, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None);
+int pfl_fold_cb(std::string sequence, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None);
+int pfl_fold_up_cb(std::string sequence, int ulength, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None);
 
 #endif

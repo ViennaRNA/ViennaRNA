@@ -11,9 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ViennaRNA/data_structures.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/string_utils.h"
+#include "ViennaRNA/datastructures/basic.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/sequence.h"
 
@@ -157,7 +157,16 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        /* for now, comparative structure prediction does not allow for RNA-RNA interactions */
+        /*
+         *  for now, comparative structure prediction does not allow for RNA-RNA interactions,
+         *  so we pretend working on a single strand
+         */
+        fc->strands     = 1;
+        fc->nucleotides = (vrna_seq_t *)vrna_realloc(fc->nucleotides,
+                                                     sizeof(vrna_seq_t) * (fc->strands + 1));
+        fc->nucleotides[0].string = NULL;
+        fc->nucleotides[0].type   = VRNA_SEQ_RNA;
+        fc->nucleotides[0].length = fc->length;
 
         /* 1. store initial strand order */
         fc->strand_order = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);

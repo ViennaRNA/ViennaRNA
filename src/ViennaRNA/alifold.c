@@ -15,6 +15,8 @@
 #include "config.h"
 #endif
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -23,18 +25,18 @@
 #include <limits.h>
 
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/data_structures.h"
+#include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/eval.h"
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
-#include "ViennaRNA/params.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/default.h"
+#include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/alifold.h"
-#include "ViennaRNA/aln_util.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/loops/all.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -52,7 +54,6 @@
  #################################
  */
 
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
 
@@ -66,15 +67,12 @@ PRIVATE int                   backward_compat           = 0;
 
 #endif
 
-#endif
-
 /*
  #################################
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
 
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 PRIVATE float
 wrap_alifold(const char   **strings,
              char         *structure,
@@ -83,57 +81,15 @@ wrap_alifold(const char   **strings,
              int          is_circular);
 
 
-#endif
-
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC float
-vrna_alifold(const char **strings,
-             char       *structure)
-{
-  float                 mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-
-  vc  = vrna_fold_compound_comparative(strings, &md, VRNA_OPTION_DEFAULT);
-  mfe = vrna_mfe(vc, structure);
-
-  vrna_fold_compound_free(vc);
-
-  return mfe;
-}
-
-
-PUBLIC float
-vrna_circalifold(const char **sequences,
-                 char       *structure)
-{
-  float                 mfe;
-  vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
-
-  vrna_md_set_default(&md);
-  md.circ = 1;
-
-  vc  = vrna_fold_compound_comparative(sequences, &md, VRNA_OPTION_DEFAULT);
-  mfe = vrna_mfe(vc, structure);
-
-  vrna_fold_compound_free(vc);
-
-  return mfe;
-}
-
 
 /*###########################################*/
 /*# deprecated functions below              #*/
 /*###########################################*/
-
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PRIVATE float
 wrap_alifold(const char   **strings,
@@ -277,7 +233,9 @@ energy_of_ali_gquad_structure(const char  **sequences,
 
     vrna_fold_compound_free(vc);
   } else {
-    vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
+    vrna_message_warning("energy_of_ali_gquad_structure: "
+                         "no sequences in alignment!");
+    return (float)(INF / 100.);
   }
 
   return energy[0];
@@ -303,7 +261,9 @@ energy_of_alistruct(const char  **sequences,
 
     vrna_fold_compound_free(vc);
   } else {
-    vrna_message_error("energy_of_alistruct(): no sequences in alignment!");
+    vrna_message_warning("energy_of_alistruct(): "
+                         "no sequences in alignment!");
+    return (float)(INF / 100.);
   }
 
   return energy[0];

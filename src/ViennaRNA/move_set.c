@@ -13,7 +13,7 @@
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 
 #include "ViennaRNA/move_set.h"
 

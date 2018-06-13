@@ -14,12 +14,14 @@
 #include <string.h>
 #include <math.h>
 
-#include "ViennaRNA/utils.h"
-#include "ViennaRNA/energy_par.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/loop_energies.h"
+#include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/gquad.h"
-#include "ViennaRNA/constraints.h"
+#include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/boltzmann_sampling.h"
 
 /*
@@ -1058,9 +1060,11 @@ backtrack_comparative(vrna_fold_compound_t  *vc,
       if (a2s[s][i] < 1)
         continue;
 
-      char loopseq[10];
+      char loopseq[10] = {
+        0
+      };
       if (u < 9)
-        strncpy(loopseq, Ss[s] + a2s[s][i] - 1, 10);
+        strncpy(loopseq, Ss[s] + a2s[s][i] - 1, 9);
 
       qbt1 *= exp_E_Hairpin(u, type[s], S3[s][i], S5[s][j], loopseq, pf_params);
     }

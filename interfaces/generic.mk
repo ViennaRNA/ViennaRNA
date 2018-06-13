@@ -33,6 +33,7 @@ SWIG_misc_src = \
   $(srcdir)/../part_func.i \
   $(srcdir)/../pf_window.i \
   $(srcdir)/../plotting.i \
+  $(srcdir)/../sequence.i \
   $(srcdir)/../subopt.i \
   $(srcdir)/../structure_utils.i \
   $(srcdir)/../utils.i \

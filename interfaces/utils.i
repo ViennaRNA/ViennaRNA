@@ -26,7 +26,7 @@
 %ignore time_stamp;
 
 
-%include  <ViennaRNA/utils.h>
+%include  <ViennaRNA/utils/basic.h>
 /**********************************************/
 /* BEGIN interface for string utilities       */
 /**********************************************/
@@ -92,7 +92,7 @@ short *encode_seq(char *sequence) {
 }
 %}
 short *encode_seq(char *sequence);
-%include  <ViennaRNA/string_utils.h>
+%include  <ViennaRNA/utils/strings.h>
 
 /**********************************************/
 /* BEGIN interface for structure utilities    */
@@ -160,7 +160,7 @@ char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,
 std::string my_filename_sanitize(std::string name);
 std::string my_filename_sanitize(std::string name, char c);
 
-%include  <ViennaRNA/file_utils.h>
+%include  <ViennaRNA/io/utils.h>
 
 
 

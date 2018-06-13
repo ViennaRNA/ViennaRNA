@@ -64,4 +64,4 @@
 %constant unsigned int CONSTRAINT_CONTEXT_CLOSING_LOOPS   = VRNA_CONSTRAINT_CONTEXT_CLOSING_LOOPS;
 %constant unsigned int CONSTRAINT_CONTEXT_ENCLOSED_LOOPS  = VRNA_CONSTRAINT_CONTEXT_ENCLOSED_LOOPS;
 
-%include  <ViennaRNA/constraints_hard.h>
+%include  <ViennaRNA/constraints/hard.h>

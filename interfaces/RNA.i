@@ -10,41 +10,62 @@
 
 extern "C" {
 #include  <ViennaRNA/model.h>
-#include  <ViennaRNA/data_structures.h>
+#include  <ViennaRNA/datastructures/basic.h>
 #include  <ViennaRNA/fold_compound.h>
 #include  <ViennaRNA/dp_matrices.h>
 #include  <ViennaRNA/alphabet.h>
+#include  <ViennaRNA/sequence.h>
 #include  <ViennaRNA/grammar.h>
 #include  <ViennaRNA/unstructured_domains.h>
 #include  <ViennaRNA/structured_domains.h>
 #include  <ViennaRNA/commands.h>
 
-#include  <ViennaRNA/utils.h>
-#include  <ViennaRNA/structure_utils.h>
-#include  <ViennaRNA/string_utils.h>
+#include  <ViennaRNA/utils/basic.h>
+#include  <ViennaRNA/utils/structures.h>
+#include  <ViennaRNA/utils/strings.h>
+#include  <ViennaRNA/utils/alignments.h>
 #include  <ViennaRNA/fold_vars.h>
 
-#include  <ViennaRNA/constraints.h>
-#include  <ViennaRNA/constraints_hard.h>
-#include  <ViennaRNA/constraints_soft.h>
-#include  <ViennaRNA/constraints_SHAPE.h>
-#include  <ViennaRNA/constraints_ligand.h>
+#include  <ViennaRNA/params/constants.h>
+#include  <ViennaRNA/params/basic.h>
+#include  <ViennaRNA/params/io.h>
 
-#undef fold
+#include  <ViennaRNA/constraints/basic.h>
+#include  <ViennaRNA/constraints/hard.h>
+#include  <ViennaRNA/constraints/soft.h>
+#include  <ViennaRNA/constraints/SHAPE.h>
+#include  <ViennaRNA/constraints/ligand.h>
+
+#include  <ViennaRNA/plotting/naview.h>
+#include  <ViennaRNA/plotting/layouts.h>
+#include  <ViennaRNA/plotting/structures.h>
+#include  <ViennaRNA/plotting/alignments.h>
+#include  <ViennaRNA/plotting/probabilities.h>
+
+#include  <ViennaRNA/io/file_formats.h>
+#include  <ViennaRNA/io/file_formats_msa.h>
+#include  <ViennaRNA/io/utils.h>
+
+#include  <ViennaRNA/loops/external.h>
+#include  <ViennaRNA/loops/hairpin.h>
+#include  <ViennaRNA/loops/internal.h>
+#include  <ViennaRNA/loops/multibranch.h>
+
 #include  <ViennaRNA/mfe.h>
+#include  <ViennaRNA/mfe_window.h>
 #include  <ViennaRNA/fold.h>
 #include  <ViennaRNA/eval.h>
 #include  <ViennaRNA/cofold.h>
+#include  <ViennaRNA/alifold.h>
+
 #include  <ViennaRNA/part_func.h>
+#include  <ViennaRNA/part_func_window.h>
+#include  <ViennaRNA/part_func_co.h>
 #include  <ViennaRNA/equilibrium_probs.h>
 #include  <ViennaRNA/boltzmann_sampling.h>
-#include  <ViennaRNA/part_func_co.h>
 #include  <ViennaRNA/concentrations.h>
-#include  <ViennaRNA/naview.h>
-#include  <ViennaRNA/plot_layouts.h>
-#include  <ViennaRNA/plot_structure.h>
-#include  <ViennaRNA/plot_aln.h>
-#include  <ViennaRNA/PS_dot.h>
+#include  <ViennaRNA/LPfold.h>
+
 #include  <ViennaRNA/inverse.h>
 #include  <ViennaRNA/RNAstruct.h>
 #include  <ViennaRNA/treedist.h>
@@ -53,23 +74,9 @@ extern "C" {
 #include  <ViennaRNA/dist_vars.h>
 #include  <ViennaRNA/pair_mat.h>
 #include  <ViennaRNA/subopt.h>
-#include  <ViennaRNA/energy_const.h>
-#include  <ViennaRNA/params.h>
 #include  <ViennaRNA/duplex.h>
-#include  <ViennaRNA/alifold.h>
-#include  <ViennaRNA/aln_util.h>
 #include  <ViennaRNA/findpath.h>
-#include  <ViennaRNA/Lfold.h>
-#include  <ViennaRNA/LPfold.h>
-#include  <ViennaRNA/read_epars.h>
 #include  <ViennaRNA/move_set.h>
-#include  <ViennaRNA/file_formats.h>
-#include  <ViennaRNA/file_formats_msa.h>
-
-#include  <ViennaRNA/exterior_loops.h>
-#include  <ViennaRNA/hairpin_loops.h>
-#include  <ViennaRNA/interior_loops.h>
-#include  <ViennaRNA/multibranch_loops.h>
 
 #include  <ViennaRNA/combinatorics.h>
 
@@ -194,6 +201,7 @@ namespace std {
 %include inverse.i
 %include compare.i
 %include file_formats.i
+%include sequence.i
 %include grammar.i
 %include commands.i
 %include combinatorics.i

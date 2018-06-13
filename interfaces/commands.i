@@ -2,63 +2,39 @@
 /* BEGIN interface for commands               */
 /**********************************************/
 
-%inline %{
-  typedef enum {
-    CMD_ERROR = VRNA_CMD_ERROR,
-    CMD_LAST  = VRNA_CMD_LAST,
-    CMD_HC    = VRNA_CMD_HC,
-    CMD_SC    = VRNA_CMD_SC,
-    CMD_MOTIF = VRNA_CMD_MOTIF,
-    CMD_UD    = VRNA_CMD_UD,
-    CMD_SD    = VRNA_CMD_SD
-  } command_e;
-%}
+%ignore vrna_cmd_t;
+%ignore vrna_command_s;
 
-%rename (cmd) vrna_cmd_t;
+%rename (cmd)  vrna_command_s;
 
-typedef struct { vrna_command_e type; } vrna_cmd_t;
+typedef struct {} vrna_command_s;
 
-namespace std {
-  %template(CmdVector) std::vector<vrna_cmd_t>;
-};
+%nodefaultdtor vrna_command_s;
 
-%nodefaultctor vrna_cmd_t;
-
-%extend vrna_cmd_t {
-  ~vrna_cmd_t(){
-    /* convert vector back into array */
-    vrna_cmd_t *cmds = (vrna_cmd_t *)vrna_alloc(sizeof(vrna_cmd_t) * 2);
-    cmds[0].type = $self->type;
-    cmds[0].data = $self->data;
-    cmds[1].type = VRNA_CMD_LAST;
-    vrna_commands_free(cmds);
+%extend vrna_command_s {
+  vrna_command_s() {
+    vrna_command_s *c = NULL;
+    return c;
   }
-
+  ~vrna_command_s(){
+    vrna_commands_free($self);
+  }
 }
+
 
 %rename (file_commands_read)  my_file_commands_read;
 %rename (commands_free)       my_commands_free;
 
 %{
+  struct vrna_command_s *
+  my_file_commands_read(std::string   filename,
+                        unsigned int  options = VRNA_CMD_PARSE_DEFAULTS)
+  {
+    int i;
 
-  std::vector<vrna_cmd_t> my_file_commands_read(std::string filename, unsigned int options = VRNA_CMD_PARSE_DEFAULTS){
-    int                     i;
-    std::vector<vrna_cmd_t> cmd_list;
-    vrna_cmd_t              *commands;
-
-    commands = vrna_file_commands_read(filename.c_str(), options);
-
-    for(i = 0; commands[i].type != VRNA_CMD_LAST; i++){
-      cmd_list.push_back(commands[i]);
-    }
-
-    cmd_list.push_back(commands[i]);
-
-    free(commands);
-
-    return cmd_list;
+    return vrna_file_commands_read(filename.c_str(),
+                                   options);
   }
-
 %}
 
 #ifdef SWIGPYTHON
@@ -66,7 +42,9 @@ namespace std {
 %feature("kwargs") my_file_commands_read;
 #endif
 
-std::vector<vrna_cmd_t> my_file_commands_read(std::string filename, unsigned int options = VRNA_CMD_PARSE_DEFAULTS);
+struct vrna_command_s *
+my_file_commands_read(std::string   filename,
+                      unsigned int  options = VRNA_CMD_PARSE_DEFAULTS);
 
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
@@ -76,9 +54,13 @@ std::vector<vrna_cmd_t> my_file_commands_read(std::string filename, unsigned int
 %feature("kwargs") commands_apply;
 #endif
 
-  int commands_apply(std::vector<vrna_cmd_t> commands, unsigned int options = VRNA_CMD_PARSE_DEFAULTS){
-
-    return vrna_commands_apply($self, &(commands[0]), options);
+  int
+  commands_apply(struct vrna_command_s  *commands,
+                 unsigned int           options = VRNA_CMD_PARSE_DEFAULTS)
+  {
+    return vrna_commands_apply($self,
+                               commands,
+                               options);
   }
 
 #ifdef SWIGPYTHON
@@ -86,11 +68,14 @@ std::vector<vrna_cmd_t> my_file_commands_read(std::string filename, unsigned int
 %feature("kwargs") file_commands_apply;
 #endif
 
-  int file_commands_apply(std::string filename, unsigned int options = VRNA_CMD_PARSE_DEFAULTS){
-
-    return vrna_file_commands_apply($self, filename.c_str(), options);
+  int
+  file_commands_apply(std::string   filename,
+                      unsigned int  options = VRNA_CMD_PARSE_DEFAULTS)
+  {
+    return vrna_file_commands_apply($self,
+                                    filename.c_str(),
+                                    options);
   }
-
 }
 
 
