@@ -1,4 +1,8 @@
+![GitHub release](https://img.shields.io/github/release/ViennaRNA/ViennaRNA.svg)
 [![Build Status](https://travis-ci.org/ViennaRNA/ViennaRNA.svg?branch=master)](https://travis-ci.org/ViennaRNA/ViennaRNA)
+[![Github All Releases](https://img.shields.io/github/downloads/ViennaRNA/ViennaRNA/total.svg)](https://github.com/ViennaRNA/ViennaRNA/releases)
+[![Conda](https://img.shields.io/conda/v/bioconda/viennarna.svg)](https://anaconda.org/bioconda/viennarna)
+[![AUR](https://img.shields.io/aur/version/viennarna.svg)](https://aur.archlinux.org/packages/viennarna/)
 
 # ViennaRNA Package
 
