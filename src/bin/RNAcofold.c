@@ -647,6 +647,8 @@ process_record(struct record_data *record)
   struct options        *opt;
   struct output_stream  *o_stream;
 
+  mfAB            = mfAA = mfBB = mfA = mfB = NULL;
+  prAB            = prAA = prBB = prA = prB = NULL;
   concentrations  = NULL;
   opt             = record->options;
   o_stream        = (struct output_stream *)vrna_alloc(sizeof(struct output_stream));
