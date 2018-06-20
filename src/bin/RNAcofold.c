@@ -535,9 +535,9 @@ process_input(FILE            *input_stream,
   ret       = 1;
   read_opt  = 0;
 
-  istty_in  = isatty(fileno(stdin));
+  istty_in  = isatty(fileno(input_stream));
   istty_out = isatty(fileno(stdout));
-  istty     = isatty(fileno(stdout)) && isatty(fileno(stdin));
+  istty     = istty_in && istty_out;
 
   /* print user help if we get input from tty */
   if (istty) {
@@ -605,7 +605,7 @@ process_input(FILE            *input_stream,
     record->rest            = rec_rest;
     record->multiline_input = maybe_multiline;
     record->options         = opt;
-    record->tty             = istty_in && istty_out;
+    record->tty             = istty;
     record->input_filename  = (input_filename) ? strdup(input_filename) : NULL;
 
     if (opt->output_queue)
