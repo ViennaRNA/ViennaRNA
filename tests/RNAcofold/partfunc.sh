@@ -16,9 +16,14 @@ function testline {
 }
 
 # Test partition function folding (centroid, MEA, base pair- and stack probabilities)
+testline "Partition function (centroid, MEA)"
+RNAcofold --noPS -p --centroid --MEA < ${DATADIR}/rnacofold.small.seq > rnacofold_pf.fold
+diff=$(${DIFF} -I frequency ${RNACOFOLD_RESULTSDIR}/rnacofold.small.pf.gold rnacofold_pf.fold)
+if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
+
 testline "Partition function (centroid, dimers, monomers)"
 RNAcofold --noPS -a < ${DATADIR}/rnacofold.small.seq > rnacofold_pf.fold
-diff=$(${DIFF} -I frequency ${RNACOFOLD_RESULTSDIR}/rnacofold.small.pf.gold rnacofold_pf.fold)
+diff=$(${DIFF} -I frequency ${RNACOFOLD_RESULTSDIR}/rnacofold.small.pf.full.gold rnacofold_pf.fold)
 if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
 
 testline "Partition function (base pair probabilities - Hetero-dimer)"
