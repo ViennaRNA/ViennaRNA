@@ -98,18 +98,26 @@ vrna_sequence_remove(vrna_fold_compound_t *vc,
 
 
 PUBLIC void
-vrna_sequence_remove_all(vrna_fold_compound_t *vc)
+vrna_sequence_remove_all(vrna_fold_compound_t *fc)
 {
   unsigned int i;
 
-  if (vc) {
-    for (i = 0; i < vc->strands; i++)
-      free_sequence_data(&(vc->nucleotides[i]));
+  if (fc) {
+    for (i = 0; i < fc->strands; i++)
+      free_sequence_data(&(fc->nucleotides[i]));
 
-    free(vc->nucleotides);
+    free(fc->nucleotides);
+    free(fc->strand_number);
+    free(fc->strand_order);
+    free(fc->strand_start);
+    free(fc->strand_end);
 
-    vc->nucleotides = NULL;
-    vc->strands     = 0;
+    fc->strands       = 0;
+    fc->nucleotides   = NULL;
+    fc->strand_number = NULL;
+    fc->strand_order  = NULL;
+    fc->strand_start  = NULL;
+    fc->strand_end    = NULL;
   }
 }
 
