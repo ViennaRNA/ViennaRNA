@@ -24,6 +24,7 @@
  */
 PRIVATE void set_sequence(vrna_seq_t    *obj,
                           const char    *string,
+                          vrna_md_t     *md,
                           unsigned int  options);
 
 
@@ -43,7 +44,7 @@ vrna_sequence(const char    *string,
 
   if (string) {
     data = (vrna_seq_t *)vrna_alloc(sizeof(vrna_seq_t));
-    set_sequence(data, string, options);
+    set_sequence(data, string, NULL, options);
   }
 
   return data;
@@ -55,13 +56,61 @@ vrna_sequence_add(vrna_fold_compound_t  *vc,
                   const char            *string,
                   unsigned int          options)
 {
+  unsigned int add_length;
   int ret = 0;
 
   if ((vc) && (vc->type == VRNA_FC_TYPE_SINGLE) && (string)) {
-    vc->nucleotides =
-      (vrna_seq_t *)vrna_realloc(vc->nucleotides, sizeof(vrna_seq_t) * (vc->strands + 1));
-    set_sequence(&(vc->nucleotides[vc->strands]), string, options);
+    add_length = strlen(string);
+    
+    /* add the sequence to the nucleotides container */
+    vc->nucleotides = (vrna_seq_t *)vrna_realloc(vc->nucleotides,
+                                                 sizeof(vrna_seq_t) *
+                                                 (vc->strands + 1));
+    set_sequence(&(vc->nucleotides[vc->strands]),
+                 string,
+                 &(vc->params->model_details),
+                 options);
+
+    /* increase strands counter */
     vc->strands++;
+
+    /* add new sequence to initial order of all strands */
+    vc->sequence = (char *)vrna_realloc(vc->sequence,
+                                        sizeof(char) *
+                                        (vc->length + add_length + 1));
+    memcpy(vc->sequence + vc->length,
+           vc->nucleotides[vc->strands - 1].string,
+           add_length * sizeof(char));
+    vc->sequence[vc->length + add_length] = '\0';
+
+    /* add encoding for new strand */
+    vc->sequence_encoding = (short *)vrna_realloc(vc->sequence_encoding,
+                                                  sizeof(short) *
+                                                  (vc->length + add_length + 2));
+
+    memcpy(vc->sequence_encoding + vc->length + 1,
+           vc->nucleotides[vc->strands - 1].encoding + 1,
+           add_length * sizeof(short));
+
+    /* restore circular encoding */
+    vc->sequence_encoding[vc->length + add_length + 1]  = vc->sequence_encoding[1];
+    vc->sequence_encoding[0]                            = vc->sequence_encoding[vc->length + add_length];
+
+    /* add encoding2 (simple encoding) for new strand */
+    vc->sequence_encoding2 = (short *)vrna_realloc(vc->sequence_encoding2,
+                                                   sizeof(short) *
+                                                   (vc->length + add_length + 2));
+    short *enc = vrna_seq_encode_simple(vc->nucleotides[vc->strands - 1].string,
+                                        &(vc->params->model_details));
+    memcpy(vc->sequence_encoding2 + vc->length + 1,
+           enc + 1,
+           add_length * sizeof(short));
+    free(enc);
+    vc->sequence_encoding2[vc->length + add_length + 1] = vc->sequence_encoding2[1];
+    vc->sequence_encoding2[0] = (short)(vc->length + add_length);
+
+    /* finally, increase length property of the fold compound */
+    vc->length = vc->length + add_length;
 
     ret = 1;
   }
@@ -194,6 +243,7 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
 PRIVATE void
 set_sequence(vrna_seq_t   *obj,
              const char   *string,
+             vrna_md_t    *md,
              unsigned int options)
 {
   obj->string = strdup(string);
@@ -205,7 +255,7 @@ set_sequence(vrna_seq_t   *obj,
       obj->type = VRNA_SEQ_RNA;
   }
 
-  obj->encoding = vrna_seq_encode(obj->string, NULL);
+  obj->encoding = vrna_seq_encode(obj->string, md);
 }
 
 

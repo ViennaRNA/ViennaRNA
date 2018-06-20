@@ -119,11 +119,6 @@ vrna_fold_compound_free(vrna_fold_compound_t *fc)
     free(fc->params);
     free(fc->exp_params);
 
-    free(fc->strand_number);
-    free(fc->strand_order);
-    free(fc->strand_start);
-    free(fc->strand_end);
-
     vrna_hc_free(fc->hc);
     vrna_ud_remove(fc);
     vrna_sequence_remove_all(fc);
@@ -621,6 +616,9 @@ set_fold_compound(vrna_fold_compound_t  *fc,
     case VRNA_FC_TYPE_SINGLE:
       sequence = fc->sequence;
 
+      fc->sequence  = NULL;
+      fc->length    = 0;
+
       /* split input sequences at default delimiter '&' */
       sequences = vrna_strsplit(sequence, NULL);
 
@@ -632,20 +630,12 @@ set_fold_compound(vrna_fold_compound_t  *fc,
 
       free(sequences);
 
-      seq2          = strdup(sequence);
-      seq           = vrna_cut_point_remove(seq2, &cp);                   /*  splice out the '&' if concatenated sequences and
-                                                                           * reset cp... this should also be safe for
-                                                                           * single sequences */
-      fc->cutpoint  = cp;
+      if (fc->strands > 1) {
+        fc->cutpoint = fc->nucleotides[0].length + 1;
 
-      if ((cp > 0) && (md_p->min_loop_size == TURN))
-        md_p->min_loop_size = 0;                              /* is it safe to set this here? */
-
-      free(fc->sequence);
-      fc->sequence            = seq;
-      fc->length              = length = strlen(seq);
-      fc->sequence_encoding   = vrna_seq_encode(seq, md_p);
-      fc->sequence_encoding2  = vrna_seq_encode_simple(seq, md_p);
+        if (md_p->min_loop_size == TURN)
+          md_p->min_loop_size = 0;                              /* is it safe to set this here? */
+      }
 
       if (!(options & VRNA_OPTION_EVAL_ONLY)) {
         fc->ptype = (aux & WITH_PTYPE) ? vrna_ptypes(fc->sequence_encoding2, md_p) : NULL;
@@ -654,7 +644,6 @@ set_fold_compound(vrna_fold_compound_t  *fc,
           (aux & WITH_PTYPE_COMPAT) ? get_ptypes(fc->sequence_encoding2, md_p, 1) : NULL;
       }
 
-      free(seq2);
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
