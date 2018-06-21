@@ -137,7 +137,7 @@ int
 main(int  argc,
      char *argv[])
 {
-  FILE                        *pUfp, *spup;
+  FILE                        *pUfp;
   struct RNAplfold_args_info  args_info;
   char                        *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id,
                               **rec_rest, *orig_sequence, *filename_delim, *command_file,
@@ -147,23 +147,17 @@ main(int  argc,
                               noconv, i, plexoutput, simply_putout, openenergies, binaries,
                               filename_full, with_shapes, verbose;
   float                       cutoff;
-  double                      **pup, betaScale;
-  vrna_ep_t                   *pl, *dpp;
   vrna_exp_param_t            *pf_parameters;
   vrna_md_t                   md;
   vrna_cmd_t                  commands;
   dataset_id                  id_control;
 
   pUfp          = NULL;
-  spup          = NULL;
-  pup           = NULL; /*prob of being unpaired, lengthwise*/
-  dpp           = NULL;
   dangles       = 2;
   cutoff        = 0.01;
   winsize       = 70;
   pairdist      = 0;
   unpaired      = 0;
-  betaScale     = 1.;
   simply_putout = plexoutput = openenergies = noconv = 0;
   binaries      = 0;
   tempwin       = temppair = tempunpaired = 0;
@@ -286,6 +280,8 @@ main(int  argc,
     filename_delim = strdup(args_info.filename_delim_arg);
   else if (get_id_delim(id_control))
     filename_delim = strdup(get_id_delim(id_control));
+  else
+    filename_delim = NULL;
 
   if ((filename_delim) && isspace(*filename_delim)) {
     free(filename_delim);
@@ -700,7 +696,7 @@ print_pu_bin(vrna_fold_compound_t *fc,
 PRIVATE void
 prepare_up_file(plfold_data *data)
 {
-  int i, *p;
+  int i;
 
   if (data->openenergies)
     fprintf(data->pUfp, "#opening energies\n #i$\tl=");
@@ -709,6 +705,7 @@ prepare_up_file(plfold_data *data)
 
   for (i = 1; i <= data->ulength; i++)
     fprintf(data->pUfp, "%d\t", i);
+
   fprintf(data->pUfp, "\n");
 }
 
