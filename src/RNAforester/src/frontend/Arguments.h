@@ -45,8 +45,7 @@ private:
 
 
     // explodes a delimited string into its tokens.
-    static void ExplodeString(const std::string& str, std::vector<std::string>& tokens, char delimiter)
-    throw(std::bad_alloc);
+    static void ExplodeString(const std::string& str, std::vector<std::string>& tokens, char delimiter);
 
     // finds the index of the argument arg.
     int findArgument(const std::string& arg) const throw();
@@ -68,19 +67,16 @@ private:
 
 public:
 
-    static void setArgumentsWithSpaces(const std::string& args)
-    throw(std::bad_alloc);
+    static void setArgumentsWithSpaces(const std::string& args);
 
-    Arguments(int argc, const char** argv)
-    throw(std::bad_alloc);
+    Arguments(int argc, const char** argv);
 
     unsigned int size() const throw();
 
-    bool has(const std::string& arg) const throw(std::bad_alloc);
+    bool has(const std::string& arg) const;
 
     template<class A, class B> bool get
-    (const std::string& arg, A& value, const B& default_value) const
-    throw(std::bad_alloc) {
+    (const std::string& arg, A& value, const B& default_value) const {
         int index = findArgument(arg);
 
         if (index == -1) {
