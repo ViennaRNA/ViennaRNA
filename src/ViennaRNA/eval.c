@@ -629,7 +629,7 @@ eval_circ_pt(vrna_fold_compound_t *vc,
   }
 
   /* find first stem */
-  for (i = 1; pt[i] == 0; i++);
+  for (i = 1; (i <= length) && (!pt[i]); i++);
   j = pt[i];
 
   /* evaluate exterior loop itself */
@@ -1406,7 +1406,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
             /* seek to the next stem */
             p       = q + 1;
             q_prev  = q_prev2 = q;
-            while (p <= j && !pt[p])
+            while (p < j && !pt[p])
               p++;
             u += p - q - 1;                                     /* add unpaired nucleotides */
 
@@ -1446,7 +1446,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
             /* seek to the next stem */
             p       = q + 1;
             q_prev  = q_prev2 = q;
-            while (p <= j && !pt[p])
+            while (p < j && !pt[p])
               p++;
 
             /* add unpaired nucleotides and possible soft constraints */
@@ -1501,7 +1501,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
             /* seek to the next stem */
             p       = q + 1;
             q_prev  = q_prev2 = q;
-            while (p <= j && !pt[p])
+            while (p < j && !pt[p])
               p++;
             u += p - q - 1;                                     /* add unpaired nucleotides */
 
@@ -1544,7 +1544,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
             /* seek to the next stem */
             p       = q + 1;
             q_prev  = q_prev2 = q;
-            while (p <= j && !pt[p])
+            while (p < j && !pt[p])
               p++;
 
             /* add unpaired nucleotides and possible soft constraints */
@@ -1750,7 +1750,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
         /* seek to the next stem */
         p       = q + 1;
         q_prev  = q_prev2 = q;
-        while (p <= j && !pt[p])
+        while (p < j && !pt[p])
           p++;
         u += p - q - 1;         /* add unpaired nucleotides */
 
