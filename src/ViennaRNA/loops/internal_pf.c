@@ -539,7 +539,8 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   short                     *S, *S2, **SS, **S5, **S3;
   unsigned int              *tt, n_seq, s, **a2s, type, type2;
   int                       ij, kl, k, l, u1, u2, u3, qmin, with_ud,
-                            length, *my_iindx, *indx, *hc_up, turn;
+                            length, *my_iindx, *indx, *hc_up, turn,
+                            u1_local, u2_local, u3_local;
   FLT_OR_DBL                q, q_temp, *qb, *scale;
   vrna_exp_param_t          *pf_params;
   vrna_md_t                 *md;
@@ -636,19 +637,19 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
 
             case VRNA_FC_TYPE_COMPARATIVE:
               for (s = 0; s < n_seq; s++) {
-                type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
-                u1    = a2s[s][i - 1];
-                u2    = a2s[s][k - 1] - a2s[s][j];
-                u3    = a2s[s][length] - a2s[s][l];
-                l     *= exp_E_IntLoop(u2,
-                                       u1 + u3,
-                                       tt[s],
-                                       type2,
-                                       S3[s][j],
-                                       S5[s][i],
-                                       S5[s][k],
-                                       S3[s][l],
-                                       pf_params);
+                type2     = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+                u1_local  = a2s[s][i - 1];
+                u2_local  = a2s[s][k - 1] - a2s[s][j];
+                u3_local  = a2s[s][length] - a2s[s][l];
+                q_temp    *= exp_E_IntLoop(u2_local,
+                                           u1_local + u3_local,
+                                           tt[s],
+                                           type2,
+                                           S3[s][j],
+                                           S5[s][i],
+                                           S5[s][k],
+                                           S3[s][l],
+                                           pf_params);
               }
               break;
           }
