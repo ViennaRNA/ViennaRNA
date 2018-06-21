@@ -51,7 +51,7 @@ main(int  argc,
 {
   float     *T[MAXSEQ];
   int       i, j, istty, n = 0;
-  int       type, length, taxa_list = 0;
+  int       type, taxa_list = 0;
   float     dist;
   FILE      *somewhere = NULL;
   char      *structure;
@@ -267,8 +267,7 @@ command_line(int        argc,
              char       *argv[],
              vrna_md_t  *md)
 {
-  int                         i, sym;
-  char                        *ns_bases   = NULL, *c;
+  char                        *ns_bases   = NULL;
   char                        *ParamFile  = NULL;
   struct  RNApdist_args_info  args_info;
 
