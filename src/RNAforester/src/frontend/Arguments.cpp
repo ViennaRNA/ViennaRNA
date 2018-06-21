@@ -28,8 +28,7 @@ std::vector<std::string> Arguments::s_spaceArgs;
 //   Explodes a string into tokens, which it adds to a vector.
 //   (This function is taken from the AFA library, also by Jared Davis)
 //
-void Arguments::ExplodeString(const std::string& str, std::vector<std::string>& tokens, char delimiter)
-throw(std::bad_alloc) {
+void Arguments::ExplodeString(const std::string& str, std::vector<std::string>& tokens, char delimiter) {
     std::string::size_type next, prev = 0;
 
     do {
@@ -89,14 +88,13 @@ int Arguments::findArgument(const std::string& arg) const throw() {
 //   spaces vector.  keeps the vector sorted.
 //
 #include <iostream>
-void Arguments::setArgumentsWithSpaces(const std::string& args)
-throw(std::bad_alloc) {
+void Arguments::setArgumentsWithSpaces(const std::string& args) {
     ExplodeString(args, s_spaceArgs, '|');
     std::sort(s_spaceArgs.begin(), s_spaceArgs.end());
 }
 
 
-Arguments::Arguments(int argc, const char** argv) throw(std::bad_alloc) {
+Arguments::Arguments(int argc, const char** argv) {
     // start at 1 to skip program's name.
     for (int i = 1; i < argc; ++i) {
         // Extract this token.
@@ -169,7 +167,7 @@ unsigned int Arguments::size() const throw() {
 //   Cycle through the tokens of argument and return true if any of them
 //   are found.
 //
-bool Arguments::has(const std::string& argument) const throw(std::bad_alloc) {
+bool Arguments::has(const std::string& argument) const {
     return findArgument(argument) != -1;
 }
 
