@@ -92,13 +92,11 @@ testline "MFE/PF prediction (circular RNAs + Soft constraints)"
 for s in `cat ${DATADIR}/rnafold.small.seq`
 do
   # compute base pair probabilities without soft constraints
-  echo $s | RNAfold --noPS -c -p > rnafold_special.fold
-  # move dot.ps to gold_standard
-  mv dot.ps dot_gold.ps
+  echo $s | RNAfold --noPS -c -p --id-prefix="test_circ" > rnafold_special.fold
   # compute base pair probabilities with soft constraints (shifting ensemble by -1kcal/mol per nucleotide)
-  echo $s | RNAfold --noPS -c -p --commands=${DATADIR}/rnafold_sc_lift.cmds > rnafold_special.fold
-  diff=$(${DIFF} -I CreationDate dot.ps dot_gold.ps)
-  rm dot.ps dot_gold.ps
+  echo $s | RNAfold --noPS -c -p --id-prefix="test_circ_sc" --commands=${DATADIR}/rnafold_sc_lift.cmds > rnafold_special.fold
+  diff=$(${DIFF} -I CreationDate -I test_circ test_circ_sc_0001_dp.ps test_circ_0001_dp.ps)
+  rm test_circ_0001_dp.ps test_circ_sc_0001_dp.ps
   if [ "x${diff}" != "x" ]; then break; fi
 done
 if [ "x${diff}" != "x" ]; then failed; echo -e "$diff"; else passed; fi
