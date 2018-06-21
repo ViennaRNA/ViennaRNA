@@ -85,8 +85,6 @@ read_line(char                    *line,
 {
   char  *ptr, c;
   int   col       = 0;
-  int   i         = -1;
-  int   j         = -1;
   int   first_int = -1;
 
   ptr = strtok(line, " \t");
@@ -175,9 +173,12 @@ read_ct_file(FILE               *file,
     };
     read_line(line, &head, &index_line);
 
-    if (index_line.index_i != -1 && index_line.base != '\0' && index_line.index_minus_one != -1 &&
-        index_line.index_plus_one != -1
-        && index_line.pair_index_j != -1 && index_line.natural_number_index != -1) {
+    if ((index_line.index_i != -1) &&
+        (index_line.base != '\0') &&
+        (index_line.index_minus_one != -1) &&
+        (index_line.index_plus_one != -1) &&
+        (index_line.pair_index_j != -1) &&
+        (index_line.natural_number_index != -1)) {
       /* now we can be sure that a index line has been pared. */
       if (index_line.index_i == 1) {
         /* if it is the first line, the previous line was the header. */
@@ -295,7 +296,7 @@ convert_ct_structure_to_db(char       *sequence,
   int   length = strlen(sequence);
 
   if (ct2db_params->pkfree) {
-    float             mea, MEAgamma;
+    float             MEAgamma;
     MEAgamma = 2.0;
     vrna_exp_param_t  *params = vrna_exp_params(NULL);
     /* printf("length %d %d\n", pairs_length,strlen(sequence)); */
@@ -304,7 +305,7 @@ convert_ct_structure_to_db(char       *sequence,
     structure[length] = '\0';
     /* strcpy(structure, seq); */
 
-    mea = MEA_seq(pairs, sequence, structure, MEAgamma, params);
+    (void) MEA_seq(pairs, sequence, structure, MEAgamma, params);
 
     char  *structure_tmp  = vrna_db_from_plist(pairs, length);
     int   d               = vrna_bp_distance((const char *)structure, (const char *)structure_tmp);
