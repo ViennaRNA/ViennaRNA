@@ -310,7 +310,7 @@ vrna_ptable_from_string(const char    *string,
     return NULL;
   }
 
-  pt    = (short *)vrna_alloc(sizeof(short) * (n + 1));
+  pt    = (short *)vrna_alloc(sizeof(short) * (n + 2));
   pt[0] = (short)n;
 
 
