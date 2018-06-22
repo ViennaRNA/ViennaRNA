@@ -1,4 +1,70 @@
-See Changelog for details.
+
+Version 2.4.0
+-------------
+
+With version 2.4 sliding-window structure prediction receives the constraint framework!
+Starting with this version, the sliding-window secondary structure prediction implementations
+as available through RNALfold, RNAplfold, and RNALalifold are constraints-aware. Thus, they
+can readily incorporate RNA structure probing data, such as from SHAPE experiments, etc. 
+
+See the Changelog for version 2.4.0 for a complete list of new features and bugfixes.
+
+Version 2.3.0
+-------------
+
+This version introduces the unstructured domain extension of the RNA folding grammar! This
+extension adds RNA-ligand interactions, e.g. RNA-protein, for unpaired stretches in RNA
+secondary structures. The feature is easy to use through the command file interface in RNAfold.
+
+See the Changelog for version 2.3.0 for a complete list of new features and bugfixes.
+
+
+Version 2.2.0
+-------------
+
+After almost a year without a new release, we are happy to announce many new features. This
+version officially introduces (generic) hard- and soft-constraints for many of the folding
+algorithms. Thus, chemical probing constraints, such as derived from SHAPE experiments, can
+be easily incorporated into RNAfold, RNAalifold, and RNAsubopt. Furthermore, RNAfold and the
+RNAlib interface allow for a simple way to incorporate ligand binding to specific hairpin- or
+interior-loop motifs. This version also introduces the new v3.0 API of the RNAlib C-library,
+that will eventually replace the current interface in the future.
+
+See the Changelog for version 2.2.0 for a complete list of new features and bugfixes.
+
+
+Version 2.1.9
+-------------
+
+This is a major bugfix release that changes the way how the ViennaRNA Package handles
+dangling end and terminal mismatch contributions for exterior-, and multibranch loops. We strongly
+recommend upgrading your installation to this or a newer version to obtain predictions that are
+better comparable to RNAstructure or UNAFold.
+
+Please see the Changelog for version 2.1.9 for further details on the actual changes to the
+underlying energy parameters.
+
+
+Version 2.1.7
+-------------
+
+For a long time, Mac OS X users were not able to correctly build the Perl/Python interface of the
+ViennaRNA Package. Starting with v2.1.7, this limitation has been removed, and the interface should
+compile and work as expected.
+
+Please see the Install Notes for Mac OS X users for further details.
+
+
+Version 2.1.0
+-------------
+
+Since ViennaRNA Package Version 2.1.0 we have enabled G-Quadruplex prediction support into
+RNAfold, RNAcofold, RNALfold, RNAalifold, RNAeval and RNAplot.
+
+See the changelog for details.
+
+
+## Older news
 
 Version 2.0
 ------------
