@@ -794,13 +794,13 @@ print_up_open(FILE    *fp,
     if (isnan(pr[cnt]) || (pr[cnt] == 0.))
       fprintf(fp, "NA\t");
     else
-      fprintf(fp, "%.6g\t", -log(pr[cnt]) * kT);
+      fprintf(fp, "%.7g\t", -log(pr[cnt]) * kT);
   }
 
   if (isnan(pr[pr_size]) || (pr[pr_size] == 0.))
     fprintf(fp, "NA");
   else
-    fprintf(fp, "%.6g", -log(pr[pr_size]) * kT);
+    fprintf(fp, "%.7g", -log(pr[pr_size]) * kT);
 
   for (cnt = pr_size + 1; cnt <= ulength; cnt++)
     fprintf(fp, "\tNA");
@@ -822,13 +822,13 @@ print_up(FILE   *fp,
     if (isnan(pr[cnt]))
       fprintf(fp, "NA\t");
     else
-      fprintf(fp, "%.6g\t", pr[cnt]);
+      fprintf(fp, "%.7g\t", pr[cnt]);
   }
 
   if (isnan(pr[pr_size]))
     fprintf(fp, "NA");
   else
-    fprintf(fp, "%.6g", pr[pr_size]);
+    fprintf(fp, "%.7g", pr[pr_size]);
 
   for (cnt = pr_size + 1; cnt <= ulength; cnt++)
     fprintf(fp, "\tNA");
