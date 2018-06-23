@@ -306,7 +306,10 @@ read_multiple_input_lines(char **string,
                         if(state == 2){ inbuf2 = line; return VRNA_INPUT_CONSTRAINT;}
                         else{
                           *string = (char *)vrna_realloc(*string, sizeof(char) * (str_length + l + 1));
-                          strcpy(*string + str_length, line);
+                          memcpy(*string + str_length,
+                                 line,
+                                 sizeof(char) * l);
+                          (*string)[str_length + l] = '\0';
                           state = 1;
                         }
                         break;
@@ -326,7 +329,10 @@ read_multiple_input_lines(char **string,
                       }
                       else{
                         *string = (char *)vrna_realloc(*string, sizeof(char) * (str_length + l + 1));
-                        strcpy(*string + str_length, line);
+                        memcpy(*string + str_length,
+                               line,
+                               sizeof(char) * l);
+                        (*string)[str_length + l] = '\0';
                         state = 2;
                       }
                     }
@@ -344,7 +350,10 @@ read_multiple_input_lines(char **string,
                       }
                       else{
                         *string = (char *)vrna_realloc(*string, sizeof(char) * (str_length + l + 1));
-                        strcpy(*string + str_length, line);
+                        memcpy(*string + str_length,
+                               line,
+                               sizeof(char) * l);
+                        (*string)[str_length + l] = '\0';
                         state = 1;
                       }
                     }

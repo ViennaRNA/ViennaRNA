@@ -93,7 +93,7 @@ main(int  argc,
                           *orig_target;
   int                     i, j, length1, length2, length_target, sym, istty,
                           rotated, noconv, max_u, **unpaired_values, ulength_num;
-  double                  energy, min_en, sfact;
+  double                  min_en, sfact;
 
   /* variables for output */
   pu_contrib              *unstr_out, *unstr_short, *unstr_target, *contrib1, *contrib2;
@@ -704,7 +704,7 @@ main(int  argc,
     if (cstruc1 != NULL)
       strncpy(structure, cstruc1, length1 + 1);
 
-    energy    = pf_fold(s1, structure);
+    (void) pf_fold(s1, structure);
     unstr_out = pf_unstru(s1, wplus);
     free_pf_arrays();
 
@@ -758,7 +758,7 @@ main(int  argc,
           if (cstruc_target != NULL)
             strncpy(structure, cstruc_target, length_target + 1);
 
-          energy        = pf_fold(s_target, structure);
+          (void) pf_fold(s_target, structure);
           unstr_target  = pf_unstru(s_target, wplus);
           free_pf_arrays();                     /* for arrays for pf_fold(...) */
         }

@@ -1,3 +1,15 @@
+v2.4.8
+  * Fix compilation of RNAforester with C++17 standard
+  * Fix tty input detection in RNAcofold
+  * Fix bad memory access with RNAcofold -p
+  * API: Fix incorrect unpaired probability computations in vrna_probs_window()
+  * API: Fix potential out-of-bounds access situations (for circular RNA folding) in eval.c
+  * API: Fix comparative exterior internal loop partition function computation for circfold
+  * SWIG: Fix false-positive use of uninitialized value in Python3/file_py3.i
+  * TESTS: Add tests for special features in RNAalifold
+  * TESTS: Add test case for RNAcofold -p
+
+
 v2.4.7
   * Allow for parallel processing across multiple input files in RNAfold
   * Allow for arbitrary number of input files in RNAalifold

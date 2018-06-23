@@ -1636,7 +1636,7 @@ compute_pU(vrna_fold_compound_t       *vc,
 
   /* Add Interior loop contribution to QBE (and QBI) */
   temp = 0.;
-  for (len = winSize; len >= MAX2(ulength, MAXLOOP); len--)
+  for (len = winSize; len > MAX2(ulength, MAXLOOP); len--)
     temp += QI5[k][len];
 
   for (; len > 0; len--) {
@@ -1751,11 +1751,11 @@ compute_pU(vrna_fold_compound_t       *vc,
    * and the unpaired stretch is AT LEAST len long, we start to add that to
    * the old unpaired thingies;
    */
-  for (len = 1; len < MIN2(MAX2(ulength, MAXLOOP), n - k); len++)
+  for (len = 1; len <= MIN2(MAX2(ulength, MAXLOOP), n - k); len++)
     pU[k + len][len] += pU[k + len][len + 1] + QBE[len];
 
   if (options & VRNA_PROBS_WINDOW_UP_SPLIT) {
-    for (len = 1; len < MIN2(MAX2(ulength, MAXLOOP), n - k); len++) {
+    for (len = 1; len <= MIN2(MAX2(ulength, MAXLOOP), n - k); len++) {
       pUH[k + len][len] += pUH[k + len][len + 1] + QBH[len];
       pUM[k + len][len] += pUM[k + len][len + 1] + QBM[len];
       pUI[k + len][len] += pUI[k + len][len + 1] + QBI[len];

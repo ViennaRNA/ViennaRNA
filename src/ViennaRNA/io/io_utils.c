@@ -81,7 +81,7 @@ vrna_read_line(FILE *fp)
   /* reads lines of arbitrary length from fp */
 
   char  s[512], *line, *cp;
-  int   len = 0, size = 0, l;
+  int   len = 0, size = 0, l, l2;
 
   line = NULL;
   do {
@@ -92,13 +92,17 @@ vrna_read_line(FILE *fp)
     if (cp != NULL)
       *cp = '\0';
 
-    l = len + (int)strlen(s);
+    l2  = (int)strlen(s);
+    l   = len + l2;
     if (l + 1 > size) {
       size  = (int)((l + 1) * 1.2);
       line  = (char *)vrna_realloc(line, size * sizeof(char));
     }
+    memcpy(line + len,
+           s,
+           sizeof(char) * l2);
 
-    strcat(line + len, s);
+    line[l] = '\0';
     len = l;
   } while (cp == NULL);
 

@@ -198,6 +198,8 @@ main(int  argc,
     filename_delim = strdup(args_info.filename_delim_arg);
   else if (get_id_delim(id_control))
     filename_delim = strdup(get_id_delim(id_control));
+  else
+    filename_delim = NULL;
 
   if ((filename_delim) && isspace(*filename_delim)) {
     free(filename_delim);

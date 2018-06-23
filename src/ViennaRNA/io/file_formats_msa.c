@@ -587,10 +587,15 @@ parse_stockholm_alignment(FILE  *fp,
               char *ss = (char *)vrna_alloc(sizeof(char) * n);
               if (sscanf(line, "#=GC SS_cons %s", ss) == 1) {
                 /* always append consensus structure */
-                int prev_len = (*structure) ? strlen(*structure) : 0;
-                *structure =
-                  (char *)vrna_realloc(*structure, sizeof(char) * (prev_len + strlen(ss) + 1));
-                strcpy(*structure + prev_len, ss);
+                unsigned int prev_len = (*structure) ? strlen(*structure) : 0;
+                unsigned int ss_len   = strlen(ss);
+                *structure = (char *)vrna_realloc(*structure,
+                                                  sizeof(char) *
+                                                  (prev_len + ss_len + 1));
+                memcpy(*structure + prev_len,
+                       ss,
+                       sizeof(char) * ss_len);
+                (*structure)[prev_len + ss_len] = '\0';
               }
 
               free(ss);
@@ -632,12 +637,18 @@ parse_stockholm_alignment(FILE  *fp,
                 free(tmp_seq);
                 return 0;
               }
+              unsigned int tmp_seq_len = strlen(tmp_seq);
+              unsigned int current_len = strlen((*aln)[seq_current]);
 
               (*aln)[seq_current] = (char *)vrna_realloc((*aln)[seq_current],
-                                                         strlen(tmp_seq) +
-                                                         strlen((*aln)[seq_current]) +
+                                                         current_len +
+                                                         tmp_seq_len +
                                                          1);
-              strcat((*aln)[seq_current], tmp_seq);
+              memcpy((*aln)[seq_current] + current_len,
+                     tmp_seq,
+                     sizeof(char) * tmp_seq_len);
+
+              (*aln)[seq_current][current_len + tmp_seq_len] = '\0';
             }
           }
 
@@ -874,11 +885,18 @@ parse_clustal_alignment(FILE  *clust,
           return 0;
         }
 
+        unsigned int current_len = strlen((*aln)[nn]);
+        unsigned int seq_len     = strlen(seq);
+
         (*aln)[nn] = (char *)vrna_realloc((*aln)[nn],
-                                          strlen(seq) +
-                                          strlen((*aln)[nn]) +
+                                          current_len +
+                                          seq_len +
                                           1);
-        strcat((*aln)[nn], seq);
+        memcpy((*aln)[nn] + current_len,
+               seq,
+               sizeof(char) * seq_len);
+
+        (*aln)[nn][current_len + seq_len] = '\0';
       }
 
       nn++;

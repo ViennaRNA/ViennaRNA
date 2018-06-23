@@ -83,7 +83,6 @@ PRIVATE void  EPS_print_title(FILE *eps, const char *title);
 PRIVATE void  EPS_print_seq(FILE *eps, const char *sequence);
 PRIVATE void  EPS_print_header(FILE *eps, int bbox[4], const char *comment, unsigned int options);
 PRIVATE void  EPS_print_ud_data(FILE *eps, plist *pl, plist *mf);
-PRIVATE void  EPS_print_sd_motif_data(FILE *eps, plist *pl, plist *mf);
 PRIVATE void  EPS_print_sc_motif_data(FILE *eps, plist *pl, plist *mf);
 PRIVATE void  EPS_print_bpp_data(FILE *eps, plist *pl, plist *mf);
 PRIVATE void  EPS_print_linear_data_top(FILE *eps, const char **data_title, vrna_data_lin_t **data);
@@ -161,7 +160,6 @@ vrna_plot_dp_PS_list( char *seq,
 
   FILE *wastl;
   int pl_size, gq_num;
-  double tmp;
   plist *pl1;
 
   wastl = PS_dot_common(seq, cp, wastlfile, comment, 0, DP_MACRO_ALL);
@@ -202,12 +200,10 @@ vrna_plot_dp_EPS( const char              *filename,
 
   char            **lintoptitle,**linbottomtitle,**linlefttitle,**linrighttitle,
                   *c, *comment, *title;
-  int             pl_size, gq_num, i, lintop_num, lintop_size, linbottom_num,
+  int             i, lintop_num, lintop_size, linbottom_num,
                   linbottom_size, linleft_num, linleft_size, linright_num,
                   linright_size, bbox[4];
-  double          tmp;
   FILE            *fh;
-  plist           *pl1;
   vrna_data_lin_t **lintop, **linbottom, **linleft, **linright, *ud_lin, *access;
 
   fh = fopen(filename, "w");
@@ -450,8 +446,6 @@ EPS_footer(FILE *eps){
 PRIVATE void
 EPS_print_title(FILE *eps, const char *title){
 
-  unsigned int i;
-
   fprintf(eps,"/DPtitle {\n  (%s)\n} def\n\n", title);
 }
 
@@ -552,7 +546,6 @@ EPS_print_sc_motif_data(FILE          *eps,
                         vrna_ep_t  *pl,
                         vrna_ep_t  *mf){
 
-  int     pl_size;
   double  tmp;
   plist   *pl1;
 
@@ -608,7 +601,6 @@ EPS_print_bpp_data( FILE          *eps,
                     vrna_ep_t  *pl,
                     vrna_ep_t  *mf){
 
-  int     pl_size;
   double  tmp;
   plist   *pl1;
 
@@ -636,7 +628,6 @@ EPS_print_ud_data(FILE          *eps,
                   vrna_ep_t  *pl,
                   vrna_ep_t  *mf){
 
-  int     pl_size;
   double  tmp;
   plist   *pl1;
 
@@ -753,7 +744,7 @@ static int sort_plist_by_prob_asc(const void *p1, const void *p2){
 PRIVATE vrna_data_lin_t *
 plist_to_accessibility(plist *pl, unsigned int length){
 
-  int   n, i;
+  int   i;
   plist *ptr;
 
   vrna_data_lin_t *data = NULL;
@@ -781,7 +772,7 @@ plist_to_accessibility(plist *pl, unsigned int length){
 PRIVATE vrna_data_lin_t *
 plist_to_ud_motif_prob(plist *pl, unsigned int length){
 
-  int   n, i;
+  int   i;
   plist *ptr;
 
   vrna_data_lin_t *data = NULL;
@@ -838,7 +829,6 @@ PS_dot_common(const char *seq,
   /* write PS header etc for all dot plot variants */
   FILE *wastl;
   char *name, *c;
-  int i;
 
   wastl = fopen(wastlfile,"w");
   if (wastl==NULL) {

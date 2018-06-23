@@ -603,7 +603,6 @@ PRIVATE void
 command_line(int  argc,
              char *argv[])
 {
-  int                                 i;
   struct        RNAdistance_args_info args_info;
 
   /* default values */

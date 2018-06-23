@@ -495,7 +495,7 @@ int main(int argc, const char **argv) {
         e.showError();
         return(EXIT_FAILURE);
     }
-		catch (std::bad_alloc e) {
+		catch (const std::bad_alloc &e) {
 				std::cout << "Alignment computation aborted, out of memory." << std::endl;
         return(EXIT_FAILURE);
 		}

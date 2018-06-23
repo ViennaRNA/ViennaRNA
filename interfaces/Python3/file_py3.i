@@ -238,11 +238,9 @@ fail_dispose_file:
   }
 }
 
-%typemap(in, noblock = 1, fragment = "obj_to_file") FILE *(PyObject *pyfile, long int start_position) {
+%typemap(in, noblock = 1, fragment = "obj_to_file") FILE *(PyObject *pyfile = NULL, long int start_position = -1) {
   if($input == Py_None){
-    pyfile = NULL;
     $1 = NULL;
-    start_position = -1;
   } else {
     pyfile = $input;
     $1 = obj_to_file($input, &start_position);

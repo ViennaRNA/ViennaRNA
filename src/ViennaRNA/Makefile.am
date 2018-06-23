@@ -232,6 +232,7 @@ libRNA_conv_la_SOURCES = \
     mfe.c \
     mfe_window.c \
     mfe_wrappers.c \
+    mfe_window_wrappers.c \
     fold.c \
     stringdist.c \
     subopt.c \
