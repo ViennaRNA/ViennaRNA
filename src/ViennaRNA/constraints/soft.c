@@ -786,7 +786,7 @@ populate_sc_bp_pf(vrna_fold_compound_t  *vc,
   kT          = exp_params->kT;
   turn        = exp_params->model_details.min_loop_size;
   sc          = vc->sc;
-  idx         = vc->iindx;
+  idx         = vc->jindx;
 
   if (sc->bp_storage[i]) {
     for (k = turn + 1; k < maxdist; k++) {
@@ -802,7 +802,7 @@ populate_sc_bp_pf(vrna_fold_compound_t  *vc,
 
       switch (sc->type) {
         case VRNA_SC_DEFAULT:
-          sc->exp_energy_bp[idx[i] - j] = q;
+          sc->exp_energy_bp[idx[j] + i] = q;
           break;
 
         case VRNA_SC_WINDOW:
