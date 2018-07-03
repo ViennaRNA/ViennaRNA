@@ -564,6 +564,7 @@ recycle_last_call(const char    *string,
       if (!strcmp(string, backward_compat_compound->sequence)) {
         /* check if sequence is the same as before */
         md->window_size = (int)backward_compat_compound->length;
+        md->max_bp_span = (int)backward_compat_compound->length;
         /* check if model_details are the same as before */
         if (!memcmp(md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t)))
           /* re-use previous vrna_fold_compound_t */
