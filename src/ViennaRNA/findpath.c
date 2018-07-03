@@ -112,8 +112,8 @@ PRIVATE int
 find_path_once(vrna_fold_compound_t *vc,
                const char           *s1,
                const char           *s2,
-               int                  maxE,
-               int                  maxl);
+               int                  maxl,
+               int                  maxE);
 
 
 PRIVATE int
@@ -153,7 +153,7 @@ find_saddle(const char  *seq,
   int                   maxE;
   char                  *sequence;
   vrna_fold_compound_t  *vc;
-  vrna_md_t             md;
+  vrna_md_t             md, *md_p;
 
   vc = NULL;
   set_model_details(&md);
@@ -161,9 +161,11 @@ find_saddle(const char  *seq,
   if (backward_compat_compound) {
     if (!strcmp(seq, backward_compat_compound->sequence)) {
       /* check if sequence is the same as before */
-      md.window_size = backward_compat_compound->length;
-      if (!memcmp(&md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t)))  /* check if model_details are the same as before */
-        vc = backward_compat_compound;                                                          /* re-use previous vrna_fold_compound_t */
+      md.window_size  = backward_compat_compound->length;
+      md.max_bp_span  = backward_compat_compound->length;
+      md_p            = &(backward_compat_compound->params->model_details);
+      if (!memcmp(&md, md_p, sizeof(vrna_md_t)))  /* check if model_details are the same as before */
+        vc = backward_compat_compound;            /* re-use previous vrna_fold_compound_t */
     }
   }
 
@@ -217,7 +219,7 @@ vrna_path_findpath_saddle_ub(vrna_fold_compound_t *vc,
     if (path)
       free(path);
 
-    saddleE = find_path_once(vc, s1, s2, maxE, maxl);
+    saddleE = find_path_once(vc, s1, s2, maxl, maxE);
     if (saddleE < maxE) {
       maxE = saddleE;
       if (bestpath)
@@ -251,18 +253,21 @@ get_path(const char *seq,
          const char *s2,
          int        maxkeep)
 {
-  vrna_path_t           *route    = NULL;
+  vrna_path_t           *route = NULL;
   char                  *sequence = NULL;
-  vrna_fold_compound_t  *vc       = NULL;
-  vrna_md_t             md;
+  vrna_fold_compound_t  *vc = NULL;
+  vrna_md_t             md, *md_p;
 
   set_model_details(&md);
 
   if (backward_compat_compound) {
     if (!strcmp(seq, backward_compat_compound->sequence)) {
       /* check if sequence is the same as before */
-      if (!memcmp(&md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t)))  /* check if model_details are the same as before */
-        vc = backward_compat_compound;                                                          /* re-use previous vrna_fold_compound_t */
+      md.window_size  = backward_compat_compound->length;
+      md.max_bp_span  = backward_compat_compound->length;
+      md_p            = &(backward_compat_compound->params->model_details);
+      if (!memcmp(&md, md_p, sizeof(vrna_md_t)))  /* check if model_details are the same as before */
+        vc = backward_compat_compound;            /* re-use previous vrna_fold_compound_t */
     }
   }
 
@@ -302,7 +307,7 @@ vrna_path_findpath_ub(vrna_fold_compound_t  *vc,
   int         E, d;
   vrna_path_t *route = NULL;
 
-  E = vrna_path_findpath_saddle_ub(vc, s1, s2, maxE, width);
+  E = vrna_path_findpath_saddle_ub(vc, s1, s2, width, maxE);
 
   /* did we find a better path than one with saddle maxE? */
   if (E < maxE) {
@@ -433,8 +438,8 @@ PRIVATE int
 find_path_once(vrna_fold_compound_t *vc,
                const char           *s1,
                const char           *s2,
-               int                  maxE,
-               int                  maxl)
+               int                  maxl,
+               int                  maxE)
 {
   short           *pt1, *pt2;
   move_t          *mlist;
