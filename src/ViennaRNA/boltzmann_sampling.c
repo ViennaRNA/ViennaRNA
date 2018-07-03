@@ -628,6 +628,9 @@ backtrack(int                   i,
           if (sc->exp_energy_up)
             q_temp *= sc->exp_energy_up[i + 1][u];
 
+          if (sc->exp_energy_bp)
+            q_temp *= sc->exp_energy_bp[jindx[j] + i];
+
           if (sc->exp_f)
             q_temp *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
         }
@@ -673,6 +676,9 @@ backtrack(int                   i,
                 q_temp *= sc->exp_energy_up[i + 1][u1]
                           * sc->exp_energy_up[l + 1][u2];
 
+              if (sc->exp_energy_bp)
+                q_temp *= sc->exp_energy_bp[jindx[j] + i];
+
               if (sc->exp_energy_stack) {
                 if ((i + 1 == k) && (j - 1 == l)) {
                   q_temp *= sc->exp_energy_stack[i]
@@ -715,9 +721,13 @@ backtrack(int                   i,
     closingPair = pf_params->expMLclosing
                   * exp_E_MLstem(tt, S1[j - 1], S1[i + 1], pf_params)
                   * scale[2];
-    if (sc)
+    if (sc) {
+      if (sc->exp_energy_bp)
+        q_temp *= sc->exp_energy_bp[jindx[j] + i];
+
       if (sc->exp_f)
         closingPair *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_ML, sc->data);
+    }
 
     i++;
     j--;
