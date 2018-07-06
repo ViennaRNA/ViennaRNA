@@ -28,8 +28,10 @@
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/constraints/SHAPE.h"
 #include "ViennaRNA/io/file_formats.h"
+#include "ViennaRNA/io/file_formats_msa.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/cofold.h"
+#include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"
 #include "RNAeval_cmdl.h"
@@ -38,12 +40,15 @@
 
 #include "ViennaRNA/color_output.inc"
 
+#define DBL_ROUND(a, digits) (round((a) * pow(10., (double)(digits))) / pow(10., (double)(digits)))
 
 struct options {
+  unsigned int    msa_format;
   int             filename_full;
   int             noconv;
   int             verbose;
   int             aln;
+  int             mis;
   vrna_md_t       md;
   dataset_id      id_control;
 
@@ -72,6 +77,18 @@ struct record_data {
 };
 
 
+struct record_data_msa {
+  unsigned int    number;
+  char            *MSA_ID;
+  char            **alignment;
+  char            **names;
+  char            *structure;
+  unsigned int    n_seq;
+  struct options  *options;
+  int             tty;
+};
+
+
 struct output_stream {
   vrna_cstr_t data;
   vrna_cstr_t err;
@@ -94,13 +111,19 @@ static void
 process_record(struct record_data *record);
 
 
+static void
+process_alignment_record(struct record_data_msa *record);
+
+
 void
 init_default_options(struct options *opt)
 {
+  opt->msa_format     = VRNA_FILE_FORMAT_MSA_STOCKHOLM;
   opt->filename_full  = 0;
   opt->noconv         = 0;
   opt->verbose        = 0;
   opt->aln            = 0;
+  opt->mis            = 0;
   vrna_md_set_default(&(opt->md));
 
   opt->shape            = 0;
@@ -206,8 +229,6 @@ main(int  argc,
   /* SHAPE reactivity data */
   ggo_get_SHAPE(args_info, opt.shape, opt.shape_file, opt.shape_method, opt.shape_conversion);
 
-  ggo_get_id_control(args_info, opt.id_control, "Sequence", "sequence", "_", 4, 1);
-
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given)
     opt.noconv = 1;
@@ -220,8 +241,16 @@ main(int  argc,
   if (args_info.verbose_given)
     opt.verbose = 1;
 
+  if (args_info.msa_given)
+    opt.aln = 1;
+
   input_files = collect_unnamed_options(&args_info, &num_input);
   input_files = append_input_files(&args_info, input_files, &num_input);
+
+  if (opt.aln)
+    ggo_get_id_control(args_info, opt.id_control, "Alignment", "alignment", "_", 4, 1);
+  else
+    ggo_get_id_control(args_info, opt.id_control, "Sequence", "sequence", "_", 4, 1);
 
   /* free allocated memory of command line data structure */
   RNAeval_cmdline_parser_free(&args_info);
@@ -236,6 +265,13 @@ main(int  argc,
 
   if (opt.keep_order)
     opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
+
+  int (*processing_func)(FILE *stream, const char *filename, struct options *opt);
+
+  if (opt.aln)
+    processing_func = &process_alignment_input;
+  else
+    processing_func = &process_input;
 
   /*
    ################################################
@@ -252,7 +288,7 @@ main(int  argc,
           vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
                              input_files[i]);
 
-        if (process_input(input_stream, (const char *)input_files[i], &opt) == 0)
+        if (processing_func(input_stream, (const char *)input_files[i], &opt) == 0)
           skip = 1;
 
         fclose(input_stream);
@@ -261,7 +297,7 @@ main(int  argc,
       free(input_files[i]);
     }
   } else {
-    (void)process_input(stdin, NULL, &opt);
+    (void)processing_func(stdin, NULL, &opt);
   }
 
   /*
@@ -374,7 +410,137 @@ process_alignment_input(FILE            *input_stream,
                         const char      *input_filename,
                         struct options  *opt)
 {
-  return 1;
+  int           ret           = 1;
+  unsigned int  input_format  = opt->msa_format;
+  int           istty_in      = isatty(fileno(input_stream));
+
+  /* detect input file format if reading from file */
+  if (input_filename) {
+    unsigned int format_guess = vrna_file_msa_detect_format(input_filename, opt->msa_format);
+
+    if (format_guess == VRNA_FILE_FORMAT_MSA_UNKNOWN) {
+      char *msg = "Your input file is missing sequences! "
+                  "Either your file is empty, or not in %s format!";
+
+      switch (opt->msa_format) {
+        case VRNA_FILE_FORMAT_MSA_CLUSTAL:
+          vrna_message_error(msg, "Clustal");
+          break;
+
+        case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
+          vrna_message_error(msg, "Stockholm");
+          break;
+
+        case VRNA_FILE_FORMAT_MSA_FASTA:
+          vrna_message_error(msg, "FASTA");
+          break;
+
+        case VRNA_FILE_FORMAT_MSA_MAF:
+          vrna_message_error(msg, "MAF");
+          break;
+
+        default:
+          vrna_message_error(msg, "Unknown");
+          break;
+      }
+    }
+
+    input_format = format_guess;
+  }
+
+  /* process input stream */
+  while (!feof(input_stream)) {
+    char  **alignment, **names, *tmp_id, *tmp_structure;
+    int   n_seq;
+
+    names         = NULL;
+    alignment     = NULL;
+    tmp_id        = NULL;
+    tmp_structure = NULL;
+
+    if (istty_in) {
+      switch (input_format) {
+        case VRNA_FILE_FORMAT_MSA_CLUSTAL:
+          vrna_message_input_seq("Input aligned sequences in ClustalW format\n"
+                                 "press Ctrl+d when finished to indicate the end of your input)");
+          break;
+
+        case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
+          vrna_message_input_seq("Input aligned sequences in Stockholm format (Insert one alignment at a time!)\n"
+                                 "press Ctrl+d when finished to indicate the end of your input)");
+          break;
+
+        case VRNA_FILE_FORMAT_MSA_FASTA:
+          vrna_message_input_seq("Input aligned sequences in FASTA format\n"
+                                 "press Ctrl+d when finished to indicate the end of your input)");
+          break;
+
+        case VRNA_FILE_FORMAT_MSA_MAF:
+          vrna_message_input_seq("Input aligned sequences in MAF format (Insert one alignment at a time!)\n"
+                                 "press Ctrl+d when finished to indicate the end of your input)");
+          break;
+
+        default:
+          vrna_message_error("Which input format are you using?");
+          break;
+      }
+    }
+
+    input_format |= VRNA_FILE_FORMAT_MSA_QUIET;
+
+    /* read record from input file */
+    n_seq = vrna_file_msa_read_record(input_stream,
+                                      &names,
+                                      &alignment,
+                                      &tmp_id,
+                                      &tmp_structure,
+                                      input_format);
+
+    if (n_seq <= 0) {
+      /* skip empty alignments */
+      free(names);
+      free(alignment);
+      free(tmp_id);
+      free(tmp_structure);
+      names         = NULL;
+      alignment     = NULL;
+      tmp_id        = NULL;
+      tmp_structure = NULL;
+      continue;
+    }
+
+    /* prepare record data structure */
+    struct record_data_msa *record =
+      (struct record_data_msa *)vrna_alloc(sizeof(struct record_data_msa));
+
+    record->number  = opt->next_record_number;
+    record->MSA_ID  = fileprefix_from_id_alifold(tmp_id,
+                                                 opt->id_control,
+                                                 1);
+    record->alignment = alignment;
+    record->names     = names;
+    record->structure = tmp_structure;
+    record->n_seq     = (unsigned int)n_seq;
+
+    record->tty = istty_in;
+
+    record->options = opt;
+
+    if (opt->output_queue)
+      vrna_ostream_request(opt->output_queue, opt->next_record_number++);
+
+    /* process the record we've just read */
+    process_alignment_record(record);
+
+    free(tmp_id);
+
+    if (opt->shape) {
+      ret = 0;
+      break;
+    }
+  }
+
+  return ret;
 }
 
 
@@ -424,7 +590,7 @@ process_record(struct record_data *record)
                                            (record->multiline_input) ? VRNA_OPTION_MULTILINE : 0);
 
   if (!tmp)
-    vrna_cstr_printf(o_stream->err, "structure missing for record %d\n", record->number);
+    vrna_message_error("structure missing for record %d\n", record->number);
 
   {
     int cp = -1;
@@ -492,6 +658,87 @@ process_record(struct record_data *record)
   }
 
   free(record->input_filename);
+
+  free(record);
+}
+
+
+static void
+process_alignment_record(struct record_data_msa *record)
+{
+  char                  **alignment, *consensus_sequence, *structure;
+  unsigned int          n, n_seq;
+  double                energy, real_en, cov_en;
+  struct options        *opt;
+  vrna_fold_compound_t  *vc;
+  struct output_stream  *o_stream;
+
+  o_stream = (struct output_stream *)vrna_alloc(sizeof(struct output_stream));
+
+  opt       = record->options;
+  n_seq     = record->n_seq;
+  structure = vrna_db_from_WUSS(record->structure);
+
+  /*
+   *  create a new alignment for internal computations
+   *  which require all-uppercase letters, and RNA/DNA alphabet
+   */
+  alignment = vrna_aln_copy((const char **)record->alignment,
+                            VRNA_ALN_UPPERCASE |
+                            (opt->noconv ? 0 : VRNA_ALN_RNA));
+
+  vc = vrna_fold_compound_comparative((const char **)alignment,
+                                      &(opt->md),
+                                      VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
+  n = vc->length;
+
+  /* retrieve string stream bound to stdout, 6*length should be enough memory to start with */
+  o_stream->data = vrna_cstr(6 * n, stdout);
+  /* retrieve string stream bound to stderr for any info messages */
+  o_stream->err = vrna_cstr(n, stderr);
+
+  /*
+   ########################################################
+   # begin actual calculations
+   ########################################################
+   */
+
+  /* generate consensus sequence */
+  consensus_sequence = (opt->mis) ?
+                       vrna_aln_consensus_mis((const char **)alignment, &(opt->md)) :
+                       vrna_aln_consensus_sequence((const char **)alignment, &(opt->md));
+
+  /* put header + sequence into output string stream */
+  vrna_cstr_print_fasta_header(o_stream->data, record->MSA_ID);
+  vrna_cstr_printf(o_stream->data, "%s\n", consensus_sequence);
+
+  real_en = vrna_eval_structure_v(vc, structure, opt->verbose, NULL);
+  cov_en  = vrna_eval_covar_structure(vc, structure);
+
+  vrna_cstr_printf_structure(o_stream->data,
+                             structure,
+                             record->tty ?
+                             "\n energy = %6.2f kcal/mol "
+                             "(%6.2f + %6.2f)" :
+                             " (%6.2f = %6.2f + %6.2f)",
+                             DBL_ROUND(real_en - cov_en, 2),
+                             DBL_ROUND(real_en, 2),
+                             DBL_ROUND(-cov_en, 2));
+
+  /* print what we've collected in output charstream */
+  if (opt->output_queue)
+    vrna_ostream_provide(opt->output_queue, record->number, (void *)o_stream);
+  else
+    flush_cstr_callback(NULL, record->number, (void *)o_stream);
+
+  vrna_fold_compound_free(vc);
+  vrna_aln_free(alignment);
+  vrna_aln_free(record->alignment);
+  vrna_aln_free(record->names);
+  free(consensus_sequence);
+  free(record->MSA_ID);
+  free(record->structure);
+  free(structure);
 
   free(record);
 }

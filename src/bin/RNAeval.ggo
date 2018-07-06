@@ -44,6 +44,16 @@ multiple
 optional
 
 
+option  "msa"   -
+"Input is multiple sequence alignment\n"
+details="Using this flag indicates that the input is a multiple sequence alignment (MSA)\
+ instead of (a) single sequence(s). Note, that only STOCKHOLM format allows one to specify\
+ a consensus structure. For other MSA formats, the structure input must precede the alignment\
+ on a single line. Multiple MAF alignments in a single file are (currently) not supported!\n\n"
+flag
+off
+
+
 option  "auto-id"  -
 "Automatically generate an ID for each sequence.\n"
 details="The default mode of RNAeval is to automatically determine an ID from the input sequence\

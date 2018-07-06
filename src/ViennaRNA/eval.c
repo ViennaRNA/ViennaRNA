@@ -569,7 +569,7 @@ eval_pt(vrna_fold_compound_t  *vc,
            'M' ? energy_of_ml_pt(vc, 0, pt) : energy_of_extLoop_pt(vc, 0, pt);
 
   if (verbosity_level > 0)
-    print_eval_ext_loop(out, energy);
+    print_eval_ext_loop(out, (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? (int)energy / (int)vc->n_seq : energy);
 
   for (i = 1; i <= length; i++) {
     if (pt[i] == 0)
@@ -680,7 +680,7 @@ eval_circ_pt(vrna_fold_compound_t *vc,
   }
 
   if (verbosity_level > 0)
-    print_eval_ext_loop(out, en0);
+    print_eval_ext_loop(out,  (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? (int)en0 / (int)vc->n_seq : en0);
 
   energy += en0;
 
@@ -977,7 +977,7 @@ stack_energy(vrna_fold_compound_t *vc,
     if (verbosity_level > 0)
       print_eval_int_loop(out, i, j, string[i - 1], string[j - 1],
                           p, q, string[p - 1], string[q - 1],
-                          ee);
+                          (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? (int)ee / (int)vc->n_seq : ee);
 
     energy  += ee;
     i       = p;
@@ -992,7 +992,7 @@ stack_energy(vrna_fold_compound_t *vc,
     energy  += ee;
 
     if (verbosity_level > 0)
-      print_eval_hp_loop(out, i, j, string[i - 1], string[j - 1], ee);
+      print_eval_hp_loop(out, i, j, string[i - 1], string[j - 1], (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? (int)ee / (int)vc->n_seq : ee);
 
     return energy;
   }
@@ -1023,7 +1023,7 @@ stack_energy(vrna_fold_compound_t *vc,
 
   energy += ee;
   if (verbosity_level > 0)
-    print_eval_mb_loop(out, i, j, string[i - 1], string[j - 1], ee);
+    print_eval_mb_loop(out, i, j, string[i - 1], string[j - 1],  (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? (int)ee / (int)vc->n_seq : ee);
 
   return energy;
 }
