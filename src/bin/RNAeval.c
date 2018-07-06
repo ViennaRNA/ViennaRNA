@@ -34,11 +34,12 @@
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"
+#include "ViennaRNA/color_output.inc"
+
 #include "RNAeval_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
-
-#include "ViennaRNA/color_output.inc"
+#include "parallel_helpers.h"
 
 #define DBL_ROUND(a, digits) (round((a) * pow(10., (double)(digits))) / pow(10., (double)(digits)))
 
@@ -241,8 +242,60 @@ main(int  argc,
   if (args_info.verbose_given)
     opt.verbose = 1;
 
-  if (args_info.msa_given)
+  if (args_info.msa_given) {
     opt.aln = 1;
+
+    /* set cfactor */
+    if (args_info.cfactor_given)
+      opt.md.cv_fact = cv_fact = args_info.cfactor_arg;
+
+    /* set nfactor */
+    if (args_info.nfactor_given)
+      opt.md.nc_fact = nc_fact = args_info.nfactor_arg;
+
+    if (args_info.mis_given)
+      opt.mis = 1;
+
+    if (args_info.old_given)
+      opt.md.oldAliEn = 1;
+
+    if (args_info.ribosum_file_given) {
+      RibosumFile = strdup(args_info.ribosum_file_arg);
+      opt.md.ribo = 1;
+    }
+
+    if (args_info.ribosum_scoring_given) {
+      RibosumFile = NULL;
+      opt.md.ribo = 1;
+    }
+  }
+
+  if (args_info.jobs_given) {
+#if VRNA_WITH_PTHREADS
+    int thread_max = max_user_threads();
+    if (args_info.jobs_arg == 0) {
+      /* use maximum of concurrent threads */
+      int proc_cores, proc_cores_conf;
+      if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
+        opt.jobs = MIN2(thread_max, proc_cores_conf);
+      } else {
+        vrna_message_warning("Could not determine number of available processor cores!\n"
+                             "Defaulting to serial computation");
+        opt.jobs = 1;
+      }
+    } else {
+      opt.jobs = MIN2(thread_max, args_info.jobs_arg);
+    }
+
+    opt.jobs = MAX2(1, opt.jobs);
+#else
+    vrna_message_warning(
+      "This version of RNAeval has been built without parallel input processing capabilities");
+#endif
+
+    if (args_info.unordered_given)
+      opt.keep_order = 0;
+  }
 
   input_files = collect_unnamed_options(&args_info, &num_input);
   input_files = append_input_files(&args_info, input_files, &num_input);
@@ -266,7 +319,9 @@ main(int  argc,
   if (opt.keep_order)
     opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
 
-  int (*processing_func)(FILE *stream, const char *filename, struct options *opt);
+  int (*processing_func)(FILE           *stream,
+                         const char     *filename,
+                         struct options *opt);
 
   if (opt.aln)
     processing_func = &process_alignment_input;
@@ -278,6 +333,8 @@ main(int  argc,
    # process input files or handle input from stdin
    ################################################
    */
+  INIT_PARALLELIZATION(opt.jobs);
+
   if (num_input > 0) {
     int i, skip;
     for (skip = i = 0; i < num_input; i++) {
@@ -300,12 +357,15 @@ main(int  argc,
     (void)processing_func(stdin, NULL, &opt);
   }
 
+  UNINIT_PARALLELIZATION
+
   /*
    ################################################
    # post processing
    ################################################
    */
   vrna_ostream_free(opt.output_queue);
+
 
   free(input_files);
   free(opt.shape_file);
@@ -388,7 +448,7 @@ process_input(FILE            *input_stream,
     if (opt->output_queue)
       vrna_ostream_request(opt->output_queue, opt->next_record_number++);
 
-    process_record(record);
+    RUN_IN_PARALLEL(process_record, record);
 
     if (opt->shape) {
       ret = 0;
@@ -530,7 +590,7 @@ process_alignment_input(FILE            *input_stream,
       vrna_ostream_request(opt->output_queue, opt->next_record_number++);
 
     /* process the record we've just read */
-    process_alignment_record(record);
+    RUN_IN_PARALLEL(process_alignment_record, record);
 
     free(tmp_id);
 
@@ -635,8 +695,6 @@ process_record(struct record_data *record)
                              energy);
   free(pstruct);
 
-  (void)fflush(stdout);
-
   if (opt->output_queue)
     vrna_ostream_provide(opt->output_queue, record->number, (void *)o_stream);
   else
@@ -674,6 +732,9 @@ process_alignment_record(struct record_data_msa *record)
   struct output_stream  *o_stream;
 
   o_stream = (struct output_stream *)vrna_alloc(sizeof(struct output_stream));
+
+  if (!record->structure)
+    vrna_message_error("structure missing for record %d\n", record->number);
 
   opt       = record->options;
   n_seq     = record->n_seq;
