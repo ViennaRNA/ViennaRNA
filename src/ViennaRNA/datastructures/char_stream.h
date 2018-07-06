@@ -64,15 +64,15 @@ vrna_cstr_message_vinfo(vrna_cstr_t buf,
 
 
 void
-vrna_cstr_message_warning(struct vrna_cstr_s *buf,
-                          const char         *format,
+vrna_cstr_message_warning(struct vrna_cstr_s  *buf,
+                          const char          *format,
                           ...);
 
 
 void
-vrna_cstr_message_vwarning(struct vrna_cstr_s  *buf,
-                           const char          *format,
-                           va_list             args);
+vrna_cstr_message_vwarning(struct vrna_cstr_s *buf,
+                           const char         *format,
+                           va_list            args);
 
 
 void
@@ -128,6 +128,85 @@ void
 vrna_cstr_vprintf_tbody(struct vrna_cstr_s  *buf,
                         const char          *format,
                         va_list             args);
+
+
+void
+vrna_cstr_print_eval_sd_corr(struct vrna_cstr_s *buf);
+
+
+void
+vrna_cstr_print_eval_ext_loop(struct vrna_cstr_s  *buf,
+                              int                 energy);
+
+
+void
+vrna_cstr_print_eval_hp_loop(struct vrna_cstr_s *buf,
+                             int                i,
+                             int                j,
+                             char               si,
+                             char               sj,
+                             int                energy);
+
+
+void
+vrna_cstr_print_eval_hp_loop_revert(struct vrna_cstr_s  *buf,
+                                    int                 i,
+                                    int                 j,
+                                    char                si,
+                                    char                sj,
+                                    int                 energy);
+
+
+void
+vrna_cstr_print_eval_int_loop(struct vrna_cstr_s  *buf,
+                              int                 i,
+                              int                 j,
+                              char                si,
+                              char                sj,
+                              int                 k,
+                              int                 l,
+                              char                sk,
+                              char                sl,
+                              int                 energy);
+
+
+void
+vrna_cstr_print_eval_int_loop_revert(struct vrna_cstr_s *buf,
+                                     int                i,
+                                     int                j,
+                                     char               si,
+                                     char               sj,
+                                     int                k,
+                                     int                l,
+                                     char               sk,
+                                     char               sl,
+                                     int                energy);
+
+
+void
+vrna_cstr_print_eval_mb_loop(struct vrna_cstr_s *buf,
+                             int                i,
+                             int                j,
+                             char               si,
+                             char               sj,
+                             int                energy);
+
+
+void
+vrna_cstr_print_eval_mb_loop_revert(struct vrna_cstr_s  *buf,
+                                    int                 i,
+                                    int                 j,
+                                    char                si,
+                                    char                sj,
+                                    int                 energy);
+
+
+void
+vrna_cstr_print_eval_gquad(struct vrna_cstr_s *buf,
+                           int                i,
+                           int                L,
+                           int                l[3],
+                           int                energy);
 
 
 /**
