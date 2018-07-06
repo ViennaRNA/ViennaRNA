@@ -1,14 +1,14 @@
 # Name of your program
 package "RNAeval" # don't use package if you're using automake
 purpose "calculate energy of RNA sequences with given secondary structure"
-#usage "RNAeval [options]\n"
+usage "RNAeval [OPTIONS] [<input0.fa>] [<input1.fa>]..."
 
 # Version of your program
 #version "2.0"   # don't use version if you're using automake
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAeval_cmdl --include-getopt --default-optional --func-name=RNAeval_cmdline_parser --arg-struct-name=RNAeval_args_info"
+args "--file-name=RNAeval_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAeval_cmdline_parser --arg-struct-name=RNAeval_args_info"
 
 
 description "Evaluates the free energy of an RNA molecule in fixed secondary structure.\
@@ -32,6 +32,17 @@ option "verbose" v
 "Print out energy contribution of each loop in the structure.\n\n"
 flag
 off
+
+option  "infile"  i
+"Read a file instead of reading from stdin\n"
+details="The default behavior of RNAeval is to read input from stdin or the file(s) that follow(s)\
+ the RNAeval command. Using this parameter the user can specify input file names where data\
+ is read from. Note, that any additional files supplied to RNAeval are still processed as well.\n\n"
+string
+typestr="<filename>"
+multiple
+optional
+
 
 option  "auto-id"  -
 "Automatically generate an ID for each sequence.\n"
