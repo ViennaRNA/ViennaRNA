@@ -624,9 +624,9 @@ process_record(struct record_data *record)
    ########################################################
    */
   vrna_cstr_print_fasta_header(o_stream->data, record->id);
-  vrna_cstr_printf(o_stream->data, "%s\n", record->sequence);
 
-  energy = vrna_eval_structure_v(vc, structure, opt->verbose, NULL);
+  energy = vrna_eval_structure_cstr(vc, structure, opt->verbose, o_stream->data);
+  vrna_cstr_printf(o_stream->data, "%s\n", record->sequence);
 
   char *pstruct = vrna_cut_point_insert(structure, vc->cutpoint);
   vrna_cstr_printf_structure(o_stream->data,
@@ -710,11 +710,11 @@ process_alignment_record(struct record_data_msa *record)
 
   /* put header + sequence into output string stream */
   vrna_cstr_print_fasta_header(o_stream->data, record->MSA_ID);
-  vrna_cstr_printf(o_stream->data, "%s\n", consensus_sequence);
 
-  real_en = vrna_eval_structure_v(vc, structure, opt->verbose, NULL);
+  real_en = vrna_eval_structure_cstr(vc, structure, opt->verbose, o_stream->data);
   cov_en  = vrna_eval_covar_structure(vc, structure);
 
+  vrna_cstr_printf(o_stream->data, "%s\n", consensus_sequence);
   vrna_cstr_printf_structure(o_stream->data,
                              structure,
                              record->tty ?
