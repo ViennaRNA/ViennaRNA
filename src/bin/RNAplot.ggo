@@ -3,14 +3,14 @@ package "RNAplot" # don't use package if you're using automake
 
 purpose "Draw RNA Secondary Structures"
 
-#usage "RNAplot [options]\n"
+usage "RNAplot [OPTIONS] [<input0>] [<input1>]..."
 
 # Version of your program
 #version "2.0"   # don't use version if you're using automake
 
 
 # command line options passed to gengetopt
-args "--file-name=RNAplot_cmdl --include-getopt --default-optional --func-name=RNAplot_cmdline_parser --arg-struct-name=RNAplot_args_info"
+args "--file-name=RNAplot_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAplot_cmdline_parser --arg-struct-name=RNAplot_args_info"
 
 
 description "The program reads RNA sequences and structures from stdin in the format as produced by\
@@ -20,6 +20,73 @@ description "The program reads RNA sequences and structures from stdin in the fo
  \"rna.ps\" is used.\nExisting files of the same name will be overwritten.\n"
 
 # Options
+option  "jobs"  j
+"Split batch input into jobs and start processing in parallel using multiple threads. A value of 0\
+ indicates to use as many parallel threads as computation cores are available.\n"
+details="Default processing of input data is performed in a serial fashion, i.e. one sequence at\
+ a time. Using this switch, a user can instead start the computation for many sequences in the\
+ input in parallel. RNAplot will create as many parallel computation slots as specified and\
+ assigns input sequences of the input file(s) to the available slots. Note, that this increases\
+ memory consumption since input alignments have to be kept in memory until an empty compute slot\
+ is available and each running job requires its own dynamic programming matrices.\n\n"
+int
+default="0"
+typestr="number"
+argoptional
+optional
+
+
+option  "infile"  i
+"Read a file instead of reading from stdin\n"
+details="The default behavior of RNAplot is to read input from stdin or the file(s) that follow(s)\
+ the RNAplot command. Using this parameter the user can specify input file names where data\
+ is read from. Note, that any additional files supplied to RNAplot are still processed as well.\n\n"
+string
+typestr="<filename>"
+multiple
+optional
+
+
+option  "msa"   -
+"Input is multiple sequence alignment\n"
+details="Using this flag indicates that the input is a multiple sequence alignment (MSA)\
+ instead of (a) single sequence(s). Note, that only STOCKHOLM format allows one to specify\
+ a consensus structure. For other MSA formats, the structure input must precede the alignment\
+ on a single line. Multiple MAF alignments in a single file are (currently) not supported!\n\n"
+flag
+off
+
+
+option  "mis"             -
+"Output \"most informative sequence\" instead of simple consensus: For each column of the alignment output\
+ the set of nucleotides with frequence greater than average in IUPAC notation.\n\n"
+flag
+dependon="msa"
+off
+
+
+option  "covar"           -
+"Annotate covariance of base pairs in consensus structure\n\n"
+flag
+dependon="msa"
+off
+
+option  "aln"             -
+"Produce a colored and structure annotated alignment in PostScript format in the file \"aln.ps\" in the\
+ current directory.\n\n"
+flag
+dependon="msa"
+off
+
+
+option  "aln-EPS-cols"        -
+"Number of columns in colored EPS alignment output.\n\n"
+int
+default="60"
+optional
+dependon="msa"
+hidden
+
 option  "layout-type"  t
 "Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"
 int
