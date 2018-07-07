@@ -252,7 +252,7 @@ main(int  argc,
     opt.jobs = MAX2(1, opt.jobs);
 #else
     vrna_message_warning(
-      "This version of RNAeval has been built without parallel input processing capabilities");
+      "This version of RNAplot has been built without parallel input processing capabilities");
 #endif
   }
 
