@@ -1,7 +1,7 @@
 # Name of your program
 package "RNAeval" # don't use package if you're using automake
 purpose "calculate energy of RNA sequences with given secondary structure"
-usage "RNAeval [OPTIONS] [<input0.fa>] [<input1.fa>]..."
+usage "RNAeval [OPTIONS] [<input0>] [<input1>]..."
 
 # Version of your program
 #version "2.0"   # don't use version if you're using automake
