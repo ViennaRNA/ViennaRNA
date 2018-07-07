@@ -80,7 +80,8 @@ off
 
 
 option  "aln-EPS-cols"        -
-"Number of columns in colored EPS alignment output.\n\n"
+"Number of columns in colored EPS alignment output.\n"
+details="A value less than 1 indicates that the output should not be wrapped at all.\n\n"
 int
 default="60"
 optional
