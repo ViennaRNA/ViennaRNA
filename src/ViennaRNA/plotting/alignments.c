@@ -115,7 +115,6 @@ vrna_file_PS_aln_sub(const char *filename,
     return 0;
   }
 
-  columnWidth = (columns <= 0) ? 60 : columns;  /* Display long alignments in blocks of this size */
   fontWidth   = 6;                              /* Font metrics */
   fontHeight  = 6.5;
   lineStep    = fontHeight + 2;                 /* distance between lines */
@@ -131,6 +130,9 @@ vrna_file_PS_aln_sub(const char *filename,
 
   /* Number of columns of the alignment */
   length = strlen(seqs[0]);
+
+  /* Display long alignments in blocks of this size */
+  columnWidth = (columns <= 0) ? length : columns;
 
   /* Allocate memory for various strings, length*2 is (more than)
    *     enough for all of them */
