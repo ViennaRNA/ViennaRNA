@@ -72,6 +72,7 @@ flag
 off
 hidden
 dependon="jobs"
+hidden
 
 
 option  "noconv"  -
@@ -337,7 +338,7 @@ optional
 
 option  "mis"             -
 "Output \"most informative sequence\" instead of simple consensus: For each column of the alignment output\
- the set of nucleotides with frequence greater than average in IUPAC notation.\n\n"
+ the set of nucleotides with frequency greater than average in IUPAC notation.\n\n"
 flag
 off
 

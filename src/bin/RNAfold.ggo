@@ -72,6 +72,7 @@ details="When parallel input processing (--jobs flag) is enabled, the order in w
 flag
 off
 dependon="jobs"
+hidden
 
 
 option  "infile"  i

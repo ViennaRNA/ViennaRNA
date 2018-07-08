@@ -13,11 +13,16 @@ usage "RNAplot [OPTIONS] [<input0>] [<input1>]..."
 args "--file-name=RNAplot_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAplot_cmdline_parser --arg-struct-name=RNAplot_args_info"
 
 
-description "The program reads RNA sequences and structures from stdin in the format as produced by\
- RNAfold and produces drawings of the secondary structure graph.\nThe coordinates are produced using\
- either E. Bruccoleri's naview routines, or a simple radial layout method.\n\nIf the sequence was\
- preceded by a line of the form\n\n>name\n\nthe output file will be named \"name_ss.ps\" otherwise\
- \"rna.ps\" is used.\nExisting files of the same name will be overwritten.\n"
+description "The program reads (aligned) RNA sequences and structures in the format as produced by\
+ RNAfold or Stockholm 1.0 and produces drawings of the secondary structure graph.\nCoordinates for\
+ the structure graphs are produced using either E. Bruccoleri's naview routines, or a simple radial\
+ layout method.\nFor aligned sequences and consensus structures (--msa option) the graph may be\
+ annotated by covariance information. Additionally, a color-annotated EPS alignment figure can be\
+ produced, similar to that obtained by RNAalifold and RNALalifold.\nIf the sequence was preceded by\
+ a FASTA header, or if the multiple sequence alignment contains an ID field, these IDs will be taken\
+ as names for the output file(s): \"name_ss.ps\" and \"name_aln.ps\". Otherwise \"rna.ps\" and \"aln.ps\"\
+ will be used. This behavior may be over-ruled by explicitly setting a filename prefix using the --auto-id\
+ option.\nExisting files of the same name will be overwritten.\n"
 
 # Options
 option  "jobs"  j
@@ -48,18 +53,17 @@ optional
 
 
 option  "msa"   -
-"Input is multiple sequence alignment\n"
+"Input is multiple sequence alignment in Stockholm 1.0 format\n"
 details="Using this flag indicates that the input is a multiple sequence alignment (MSA)\
  instead of (a) single sequence(s). Note, that only STOCKHOLM format allows one to specify\
- a consensus structure. For other MSA formats, the structure input must precede the alignment\
- on a single line. Multiple MAF alignments in a single file are (currently) not supported!\n\n"
+ a consensus structure. Therefore, this is the only supported MSA format for now!\n\n"
 flag
 off
 
 
 option  "mis"             -
 "Output \"most informative sequence\" instead of simple consensus: For each column of the alignment output\
- the set of nucleotides with frequence greater than average in IUPAC notation.\n\n"
+ the set of nucleotides with frequency greater than average in IUPAC notation.\n\n"
 flag
 dependon="msa"
 off

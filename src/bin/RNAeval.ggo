@@ -1,6 +1,6 @@
 # Name of your program
 package "RNAeval" # don't use package if you're using automake
-purpose "calculate energy of RNA sequences with given secondary structure"
+purpose "Determine the free energy of a (consensus) secondary structure for (an alignment of) RNA sequence(s)"
 usage "RNAeval [OPTIONS] [<input0>] [<input1>]..."
 
 # Version of your program
@@ -11,9 +11,10 @@ usage "RNAeval [OPTIONS] [<input0>] [<input1>]..."
 args "--file-name=RNAeval_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAeval_cmdline_parser --arg-struct-name=RNAeval_args_info"
 
 
-description "Evaluates the free energy of an RNA molecule in fixed secondary structure.\
- Sequences and structures are read alternately from stdin. The energy in Kcal/Mol is written\
- to stdout.\nThe program will continue to read new sequences and structures until a line\
+description "Evaluates the free energy of a particular (consensus) secondary structure for\
+ an (an alignment of) RNA molecule(s). The energy unit is kcal/mol and contains a covariance\
+ pseudo-energy term for multiple sequence alignments (--msa option) and corresponding consensus\
+ structures.\nThe program will continue to read new sequences and structures until a line\
  consisting of the single character \"@\" or an end of file condition is encountered.\nIf\
  the input sequence or structure contains the separator character \"&\" the program calculates\
  the energy of the co-folding of two RNA strands, where the \"&\" marks the boundary between\
@@ -62,6 +63,7 @@ details="When parallel input processing (--jobs flag) is enabled, the order in w
 flag
 off
 dependon="jobs"
+hidden
 
 
 option  "infile"  i
@@ -76,11 +78,10 @@ optional
 
 
 option  "msa"   -
-"Input is multiple sequence alignment\n"
+"Input is multiple sequence alignment in Stockholm 1.0 format\n"
 details="Using this flag indicates that the input is a multiple sequence alignment (MSA)\
  instead of (a) single sequence(s). Note, that only STOCKHOLM format allows one to specify\
- a consensus structure. For other MSA formats, the structure input must precede the alignment\
- on a single line. Multiple MAF alignments in a single file are (currently) not supported!\n\n"
+ a consensus structure. Therefore, this is the only supported MSA format for now!\n\n"
 flag
 off
 
@@ -249,7 +250,7 @@ optional
 
 option  "mis"             -
 "Output \"most informative sequence\" instead of simple consensus: For each column of the alignment output\
- the set of nucleotides with frequence greater than average in IUPAC notation.\n\n"
+ the set of nucleotides with frequency greater than average in IUPAC notation.\n\n"
 flag
 dependon="msa"
 off
