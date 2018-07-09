@@ -159,6 +159,12 @@ int
 optional
 hidden
 
+option  "gquad" g
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm.\n\n"
+flag
+off
+
+
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n\n"
