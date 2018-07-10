@@ -77,7 +77,7 @@ multiple
 optional
 
 
-option  "msa"   -
+option  "msa"   a
 "Input is multiple sequence alignment in Stockholm 1.0 format\n"
 details="Using this flag indicates that the input is a multiple sequence alignment (MSA)\
  instead of (a) single sequence(s). Note, that only STOCKHOLM format allows one to specify\
