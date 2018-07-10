@@ -583,7 +583,7 @@ parse_stockholm_alignment(FILE  *fp,
             }
           } else if (strncmp(line, "#=GC", 4) == 0) {
             /* found per-column annotation */
-            if ((structure != NULL) && (strncmp(line, "#=GC SS_cons", 12) == 0)) {
+            if ((structure != NULL) && (strncmp(line, "#=GC SS_cons ", 13) == 0)) {
               char *ss = (char *)vrna_alloc(sizeof(char) * n);
               if (sscanf(line, "#=GC SS_cons %s", ss) == 1) {
                 /* always append consensus structure */
