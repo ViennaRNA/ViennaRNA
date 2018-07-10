@@ -96,6 +96,7 @@ vrna_mfe(vrna_fold_compound_t *vc,
 float vrna_mfe_dimer(vrna_fold_compound_t *vc,
                      char                 *structure);
 
+
 /* End basic MFE interface */
 /**@}*/
 
@@ -125,8 +126,9 @@ float vrna_mfe_dimer(vrna_fold_compound_t *vc,
  *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_fold(const char *sequence,
-          char *structure);
+vrna_fold(const char  *sequence,
+          char        *structure);
+
 
 /**
  *  @brief Compute Minimum Free Energy (MFE), and a corresponding secondary structure for a circular RNA sequence
@@ -151,8 +153,9 @@ vrna_fold(const char *sequence,
  *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_circfold(const char *sequence,
-              char *structure);
+vrna_circfold(const char  *sequence,
+              char        *structure);
+
 
 /**
  *  @brief  Compute Minimum Free Energy (MFE), and a corresponding consensus secondary structure
@@ -176,8 +179,9 @@ vrna_circfold(const char *sequence,
  *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_alifold( const char **sequences,
-              char *structure);
+vrna_alifold(const char **sequences,
+             char       *structure);
+
 
 /**
  *  @brief  Compute Minimum Free Energy (MFE), and a corresponding consensus secondary structure
@@ -204,8 +208,9 @@ vrna_alifold( const char **sequences,
  *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_circalifold( const char **sequences,
-                  char *structure);
+vrna_circalifold(const char **sequences,
+                 char       *structure);
+
 
 /**
  *  @brief Compute Minimum Free Energy (MFE), and a corresponding secondary structure for two dimerized RNA sequences
@@ -228,8 +233,9 @@ vrna_circalifold( const char **sequences,
  *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_cofold(const char *sequence,
-            char *structure);
+vrna_cofold(const char  *sequence,
+            char        *structure);
+
 
 /* End simplified global MFE interface */
 /**@}*/
@@ -246,14 +252,14 @@ vrna_cofold(const char *sequence,
 /**
  *  @brief
  */
-void
+int
 vrna_backtrack_from_intervals(vrna_fold_compound_t  *vc,
                               vrna_bp_stack_t       *bp_stack,
                               sect                  bt_stack[],
                               int                   s);
 
-/**@}*/
 
+/**@}*/
 
 
 #endif

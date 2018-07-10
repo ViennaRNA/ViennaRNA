@@ -93,7 +93,7 @@ fill_fM_d3(vrna_fold_compound_t *fc,
            int                  *fM_d3);
 
 
-PRIVATE void
+PRIVATE int
 backtrack(vrna_fold_compound_t  *fc,
           vrna_bp_stack_t       *bp_stack,
           sect                  bt_stack[],
@@ -163,11 +163,14 @@ vrna_mfe(vrna_fold_compound_t *fc,
       /* add a guess of how many G's may be involved in a G quadruplex */
       bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));
 
-      backtrack(fc, bp, bt_stack, s);
+      if (backtrack(fc, bp, bt_stack, s) != 0) {
+        ss = vrna_db_from_bp_stack(bp, length);
+        strncpy(structure, ss, length + 1);
+        free(ss);
+      } else {
+        memset(structure, '\0', sizeof(char) * (length + 1));
+      }
 
-      ss = vrna_db_from_bp_stack(bp, length);
-      strncpy(structure, ss, length + 1);
-      free(ss);
       free(bp);
     }
 
@@ -202,14 +205,16 @@ vrna_mfe(vrna_fold_compound_t *fc,
 }
 
 
-PUBLIC void
+PUBLIC int
 vrna_backtrack_from_intervals(vrna_fold_compound_t  *fc,
                               vrna_bp_stack_t       *bp_stack,
                               sect                  bt_stack[],
                               int                   s)
 {
   if (fc)
-    backtrack(fc, bp_stack, bt_stack, s);
+    return backtrack(fc, bp_stack, bt_stack, s);
+
+  return 0;
 }
 
 
@@ -1527,16 +1532,17 @@ fill_fM_d3(vrna_fold_compound_t *fc,
 *** normally s=0.
 *** If s>0 then s items have been already pushed onto the bt_stack
 **/
-PRIVATE void
+PRIVATE int
 backtrack(vrna_fold_compound_t  *fc,
           vrna_bp_stack_t       *bp_stack,
           sect                  bt_stack[],
           int                   s)
 {
   char          backtrack_type;
-  int           i, j, ij, k, length, b, *my_c, *indx, noLP, *pscore;
+  int           i, j, ij, k, length, b, *my_c, *indx, noLP, *pscore, ret;
   vrna_param_t  *P;
 
+  ret             = 1;
   b               = 0;
   length          = fc->length;
   my_c            = fc->matrices->c;
@@ -1581,7 +1587,9 @@ backtrack(vrna_fold_compound_t  *fc,
 
           continue;
         } else {
-          vrna_message_error("backtracking failed in f5, segment [%d,%d]\n", i, j);
+          vrna_message_warning("backtracking failed in f5, segment [%d,%d]\n", i, j);
+          ret = 0;
+          goto backtrack_exit;
         }
       }
       break;
@@ -1605,7 +1613,8 @@ backtrack(vrna_fold_compound_t  *fc,
 
           continue;
         } else {
-          vrna_message_error("backtracking failed in fML, segment [%d,%d]\n", i, j);
+          ret = 0;
+          goto backtrack_exit;
         }
       }
       break;
@@ -1619,8 +1628,8 @@ backtrack(vrna_fold_compound_t  *fc,
         break;
 
       default:
-        vrna_message_error("Backtracking failed due to unrecognized DP matrix!");
-        break;
+        ret = 0;
+        goto backtrack_exit;
     }
 
 repeat1:
@@ -1664,13 +1673,19 @@ repeat1:
       bt_stack[s].j   = j;
       bt_stack[s].ml  = comp2;
     } else {
-      vrna_message_error("backtracking failed in repeat, segment [%d,%d]\n", i, j);
+      vrna_message_warning("backtracking failed in repeat, segment [%d,%d]\n", i, j);
+      ret = 0;
+      goto backtrack_exit;
     }
 
     /* end of repeat: --------------------------------------------------*/
   } /* end of infinite while loop */
 
+backtrack_exit:
+
   bp_stack[0].i = b;    /* save the total number of base pairs */
+
+  return ret;
 }
 
 
