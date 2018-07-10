@@ -519,25 +519,25 @@ process_alignment_input(FILE            *input_stream,
     tmp_structure = NULL;
 
     if (istty_in) {
-      switch (input_format) {
+      switch (input_format & (~VRNA_FILE_FORMAT_MSA_QUIET)) {
         case VRNA_FILE_FORMAT_MSA_CLUSTAL:
           vrna_message_input_seq("Input aligned sequences in ClustalW format\n"
-                                 "press Ctrl+d when finished to indicate the end of your input)");
+                                 "(press Ctrl+d when finished to indicate the end of your input)");
           break;
 
         case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
           vrna_message_input_seq("Input aligned sequences in Stockholm format (Insert one alignment at a time!)\n"
-                                 "press Ctrl+d when finished to indicate the end of your input)");
+                                 "(Note, Stockholm entries always end with a line that only contains '//'");
           break;
 
         case VRNA_FILE_FORMAT_MSA_FASTA:
           vrna_message_input_seq("Input aligned sequences in FASTA format\n"
-                                 "press Ctrl+d when finished to indicate the end of your input)");
+                                 "(press Ctrl+d when finished to indicate the end of your input)");
           break;
 
         case VRNA_FILE_FORMAT_MSA_MAF:
           vrna_message_input_seq("Input aligned sequences in MAF format (Insert one alignment at a time!)\n"
-                                 "press Ctrl+d when finished to indicate the end of your input)");
+                                 "(Note, a MAF alignment always ends with an empty line)");
           break;
 
         default:
