@@ -12,6 +12,9 @@ utils
 energy_evaluation
 constraints
 eval_structure
+walk
+neighbor
+constraints_soft
 
 # ignore perl5 unit test output
 test_ss.ps
@@ -21,7 +24,7 @@ test.par
 # ignore all tests we copy over from interfaces/Perl/RNA/t
 perl5/test-RNA-Design.t
 
-RNApath.pm
+RNAHelpers.pm
 RNApath.py
 RNApath.pyc
 __pycache__
