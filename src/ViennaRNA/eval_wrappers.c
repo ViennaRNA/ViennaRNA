@@ -481,6 +481,8 @@ eval_structure_simple_v(const char  *string,
                         int         circular,
                         FILE        *file)
 {
+  char      *str;
+  int       cp;
   float     e;
   vrna_md_t md;
 
@@ -492,11 +494,15 @@ eval_structure_simple_v(const char  *string,
   /* create fold_compound with default parameters and without DP matrices */
   vrna_fold_compound_t *fc = vrna_fold_compound(string, &md, VRNA_OPTION_DEFAULT);
 
+  /* splice-out '&' strand break identifier, if present in structure */
+  str = vrna_cut_point_remove(structure, &cp);
+
   /* evaluate structure */
-  e = vrna_eval_structure_v(fc, structure, verbosity_level, file);
+  e = vrna_eval_structure_v(fc, str, verbosity_level, file);
 
   /* free fold_compound */
   vrna_fold_compound_free(fc);
+  free(str);
 
   return e;
 }
@@ -510,6 +516,8 @@ eval_consensus_structure_simple_v(const char  **alignment,
                                   int         circular,
                                   FILE        *file)
 {
+  char      *str;
+  int       cp;
   float     e;
   vrna_md_t md;
 
@@ -521,11 +529,15 @@ eval_consensus_structure_simple_v(const char  **alignment,
   /* create fold_compound with default parameters and without DP matrices */
   vrna_fold_compound_t *fc = vrna_fold_compound_comparative(alignment, &md, VRNA_OPTION_DEFAULT);
 
+  /* splice-out '&' strand break identifier, if present in structure */
+  str = vrna_cut_point_remove(structure, &cp);
+
   /* evaluate structure */
-  e = vrna_eval_structure_v(fc, structure, verbosity_level, file);
+  e = vrna_eval_structure_v(fc, str, verbosity_level, file);
 
   /* free fold_compound */
   vrna_fold_compound_free(fc);
+  free(str);
 
   return e;
 }
