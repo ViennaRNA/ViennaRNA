@@ -62,7 +62,7 @@ deploy:
   file:
   - "${DIST_GZIP}"
   - "${DIST_ZIP}"
-  - ChangeLog
+  - CHANGELOG.md
   on:
     repo: ViennaRNA/ViennaRNA
     tags: true
