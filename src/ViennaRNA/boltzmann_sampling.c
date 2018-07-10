@@ -1311,16 +1311,19 @@ backtrack(int                   i,
     hc_decompose  = hard_constraints[n * i + j];
 
     /* hairpin contribution */
-    qbt1 = vrna_exp_E_hp_loop(vc, i, j);
+    q_temp = vrna_exp_E_hp_loop(vc, i, j);
 
-    if(current_node){
+    if (current_node) {
         fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_HAIRPIN, 0, 0) *
                qbr /
                (*den);
-        qbt1 -= fbds;
+        qbt1 += (q_temp - fbds);
+    } else {
+      qbt1 += q_temp;
     }
 
     if (qbt1 >= r) {
+      /* found the hairpin we're done */
       if (current_node) {
         *den *= q_temp / qbr;
 #ifdef VRNA_NR_SAMPLING_HASH
@@ -1484,7 +1487,6 @@ backtrack(int                   i,
           qbt1  += q_temp;
         }
 
-
         if (qt >= r)
           break;
 
@@ -1513,7 +1515,7 @@ backtrack(int                   i,
         if (qt >= r)
           break;
 
-#ifndef VRNA_NR_SAMPLING_HASH
+#ifndef VRNA_NR_SAMPLING_HASH      
         if (current_node)
           advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_MT_LOOP, k, 0);
 #endif
