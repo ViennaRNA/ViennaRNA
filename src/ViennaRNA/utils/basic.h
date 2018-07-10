@@ -365,6 +365,8 @@ void vrna_message_input_seq_simple(void);
  */
 void vrna_message_input_seq(const char *s);
 
+void vrna_message_input_msa(const char *s);
+
 /**
  *  @}
  */

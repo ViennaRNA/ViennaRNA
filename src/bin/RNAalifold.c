@@ -598,7 +598,7 @@ main(int  argc,
   if (fold_constrained && (!opt.constraint_file) && (!opt.constraint_SScons)) {
     if (isatty(fileno(stdin))) {
       vrna_message_constraint_options_all();
-      vrna_message_input_seq("");
+      vrna_message_input_msa("");
     }
 
     char          *input_string = NULL;
@@ -752,22 +752,22 @@ process_input(FILE            *input_stream,
     if (istty_in) {
       switch (input_format & (~VRNA_FILE_FORMAT_MSA_QUIET)) {
         case VRNA_FILE_FORMAT_MSA_CLUSTAL:
-          vrna_message_input_seq("Input aligned sequences in ClustalW format\n"
+          vrna_message_input_msa("Input aligned sequences in ClustalW format\n"
                                  "(press Ctrl+d when finished to indicate the end of your input)");
           break;
 
         case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
-          vrna_message_input_seq("Input aligned sequences in Stockholm format (Insert one alignment at a time!)\n"
+          vrna_message_input_msa("Input aligned sequences in Stockholm format (Insert one alignment at a time!)\n"
                                  "(Note, Stockholm entries always end with a line that only contains '//'");
           break;
 
         case VRNA_FILE_FORMAT_MSA_FASTA:
-          vrna_message_input_seq("Input aligned sequences in FASTA format\n"
+          vrna_message_input_msa("Input aligned sequences in FASTA format\n"
                                  "(press Ctrl+d when finished to indicate the end of your input)");
           break;
 
         case VRNA_FILE_FORMAT_MSA_MAF:
-          vrna_message_input_seq("Input aligned sequences in MAF format (Insert one alignment at a time!)\n"
+          vrna_message_input_msa("Input aligned sequences in MAF format (Insert one alignment at a time!)\n"
                                  "(Note, a MAF alignment always ends with an empty line)");
           break;
 
