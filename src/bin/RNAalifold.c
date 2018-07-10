@@ -909,6 +909,17 @@ process_record(struct record_data *record)
 
   mfe_structure = (char *)vrna_alloc(sizeof(char) * (n + 1));
   min_en        = vrna_mfe(vc, mfe_structure);
+
+  /* check whether the constraint allows for any solution */
+  if (fold_constrained) {
+    if (min_en == (double)(INF / 100.)) {
+      vrna_message_error(
+        "Supplied structure constraints create empty solution set for alignment Nr. %d",
+        record->number);
+      exit(EXIT_FAILURE);
+    }
+  }
+
   real_en       = vrna_eval_structure(vc, mfe_structure);
   cov_en        = vrna_eval_covar_structure(vc, mfe_structure);
 

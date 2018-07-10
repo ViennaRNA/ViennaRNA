@@ -882,7 +882,7 @@ process_record(struct record_data *record)
   min_en = (double)vrna_mfe(vc, mfe_structure);
 
   /* check whether the constraint allows for any solution */
-  if ((fold_constrained && opt->constraint_file) || (opt->cmds)) {
+  if ((fold_constrained) || (opt->cmds)) {
     if (min_en == (double)(INF / 100.)) {
       vrna_message_error(
         "Supplied structure constraints create empty solution set for sequence:\n%s",
