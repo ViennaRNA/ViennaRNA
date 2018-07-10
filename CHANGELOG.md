@@ -1,16 +1,53 @@
-v2.4.8
+# Changelog
+
+Below, you'll find a list of notable changes for each version of the ViennaRNA Package.
+
+## Version 2.4.x
+
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.8...HEAD)
+
+#### Programs
+  * Fix interactive mode behavior for multiple sequence alignment input in `RNAalifold`, `RNALalifold`
+  * Allow for Stockholm formatted multiple sequence alignment input in `RNAeval` and `RNAplot`
+  * Allow for multiple input files in `RNAeval` and `RNAplot`
+  * Allow for parallel processing of input batch jobs in `RNAeval` and `RNAplot`
+  * Add `-g` option to activate G-Quadruplex support in `RNAheat`
+  * Warn on unsatisfiable hard constraints from dot-bracket string input in `RNAfold`, `RNAcofold`, and `RNAalifold`
+
+#### Library
+  * Fix parameter order bug in `vrna_path_findpath*` functions that resulted in too large search widths
+  * Fix wrong application of base pair soft constraints in partition function computations
+  * Fix position ruler string in EPS alignment output files
+  * Fix MFE backtracking errors that might appear under specific hard constrained base pair patterns
+  * Refrain from reading anything other than `#=GC SS_cons` to retrieve structures when parsing Stockholm 1.0 format
+  * Complete soft constraints additions to Boltzmann sampling implementation for single sequences
+  * Allow for disabling alignment wrapping in `vrna_file_PS_aln*` functions
+  * Do not remove G-Quadruplex annotation from WUSS formatted structure strings upon calls to `vrna_db_from_WUSS`
+  * Enable G-Quadruplex related average loop energy correction terms in verbose output of `vrna_eval_*` functions
+  * Speed-up backward compatibility layer for energy evaluation functions that unnecessarily slowed down third-party tools using the old API
+  * Allow for passing dot-bracket strings with `'&'` strand-end identifier to simple `vrna_eval_*` functions
+  * Remove implicit `exit()` calls from global MFE backtracking implementation.
+
+
+### [v2.4.8](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.7...v2.4.8) (2018-06-23)
+
+#### Programs
   * Fix compilation of RNAforester with C++17 standard
   * Fix tty input detection in RNAcofold
   * Fix bad memory access with RNAcofold -p
+
+#### Library
   * API: Fix incorrect unpaired probability computations in vrna_probs_window()
   * API: Fix potential out-of-bounds access situations (for circular RNA folding) in eval.c
   * API: Fix comparative exterior internal loop partition function computation for circfold
   * SWIG: Fix false-positive use of uninitialized value in Python3/file_py3.i
+
+#### Package
   * TESTS: Add tests for special features in RNAalifold
   * TESTS: Add test case for RNAcofold -p
 
 
-v2.4.7
+### [v2.4.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.6...v2.4.7) (2018-06-13)
   * Allow for parallel processing across multiple input files in RNAfold
   * Allow for arbitrary number of input files in RNAalifold
   * Allow for parallel processing of input data in RNAalifold
@@ -48,7 +85,7 @@ v2.4.7
   * REFMAN: Large updates in API documentation and structure of reference manual
 
 
-v2.4.6
+### [v2.4.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.5...v2.4.6) (2018-04-19)
   * Stabilize rounding of free energy output in RNAalifold
   * API: Fix potential rounding errors for comparative free energies in eval.c and mfe.c
   * API: Fix regression in exterior loop dangling end contributions for comparative base pair probabilities and Boltzmann sampling (introduced with v2.4.4)
@@ -57,7 +94,7 @@ v2.4.6
   * TESTS: Ignore 'frequency of MFE structure' in RNAcofold partition function checks
 
 
-v2.4.5
+### [v2.4.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.4...v2.4.5) (2018-04-17)
   * Allow for arbitrary number of input files in RNAfold
   * Allow for parallel processing of input data in RNAfold (UNIX only, no Windows support yet)
   * Add SHAPE reactivity support through commandline options for RNAplfold
@@ -81,7 +118,7 @@ v2.4.5
   * SWIG: Add keyword arguments and autodoc feature for Python/Python3 wrappers
 
 
-v2.4.4
+### [v2.4.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.3...v2.4.4) (2018-03-06)
   * Change verbose output for soft-constraints derived ligand binding motifs in RNAfold
   * Allow for lowercase letters in ct2db input
   * Fix bug in interior-like G-Quadruplex MFE computation for single sequences
@@ -110,7 +147,7 @@ v2.4.4
   * REFMAN: Heavy re-ordering of the RNAlib reference manual
 
 
-v2.4.3
+### [v2.4.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.2...v2.4.3) (2017-11-14)
   * Fix handling of dangling end contribution at sequence boundaries for sliding window base pair probability computations
   * Fix handling of base pair hard constraints in sliding-window implementations
   * Fix sliding-window pair probability computations with multibranch-loop unpaired constraints
@@ -127,7 +164,7 @@ v2.4.3
   * Include RNAforester v2.0.1
 
 
-v2.4.2
+### [v2.4.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.1...v2.4.2) (2017-10-13)
   * Fix G-Quadruplex energy corrections in comparative structure energy evaluations
   * Fix discrepancy in comparative exterior loop dangling end contribution of eval vs. MFE predictions
   * Fix regression in RNAup unstructuredness and interaction energy computations
@@ -156,7 +193,7 @@ v2.4.2
   * REFMAN: Fix formula to image conversion in HTML output
 
 
-v2.4.1
+### [v2.4.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.0...v2.4.1) (2017-08-23)
   * Fix memory leak in fold_compound methods of SWIG interface
   * Fix memory leaks in double ** returning functions of SWIG Perl5 interface
   * Fix memory leak in vrna_ep_t to-string() function of SWIG interface
@@ -167,7 +204,7 @@ v2.4.1
   * Add SHAPE reactivity support to RNALalifold
 
 
-v2.4.0
+### [v2.4.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.5...v2.4.0) (2017-08-01)
   * Bump libsvm to version 3.22
   * Print G-Quadruplex corrections in verbose mode of RNAeval
   * Change behavior of RNAfold --outfile option to something more predictable
@@ -226,7 +263,10 @@ v2.4.0
   * Remove obsolete scripts ct2b.pl and colorrna.pl from src/Utils directory
   * Remove old RNAfold tutorial
 
-v2.3.5
+
+## Version 2.3.x
+
+### [v2.3.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.4...v2.3.5) (2017-04-14)
   * Fix duplication of output filename prefix in RNAfold
   * Add V3.0 API for sliding window partition function (a.k.a. RNAPLfold)
   * Add G-Quadruplex prediction to RNALalifold
@@ -237,7 +277,7 @@ v2.3.5
   * Split move set in neighbor.c
 
 
-v2.3.4
+### [v2.3.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.3...v2.3.4) (2017-03-10)
   * Fix G-Quadruplex probability computation for single sequences
   * Fix double-free when using SHAPE reactivity data in RNAalifold
   * Fix out-of-bounds access in strand_number array
@@ -265,12 +305,12 @@ v2.3.4
   * Add command line parameters to RNAsubopt to allow for specification of input/output files
 
 
-v2.3.3
+### [v2.3.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.2...v2.3.3) (2017-01-24)
   * Fix multiloop contributions for comparative partition function
   * Fix building python2 extension module for OSX
 
 
-v2.3.2
+### [v2.3.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.1...v2.3.2) (2017-01-18)
   * Fix pair probability plist creation with G-Quadruplexes
   * Allow for specification of python2/3-config at configure time
   * Fix init of vrna_md_t data structure after call to set_model_details()
@@ -282,9 +322,9 @@ v2.3.2
   * Report SCI of 0 in RNAalifold when sum of single sequence MFEs is 0
   * Avoid multiple includes of pair_mat.h
   * Add configure flag to build entirely static executables
-  
 
-v2.3.1
+
+### [v2.3.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.0...v2.3.1) (2016-11-15)
   * Add description for how to use unstructured domains through command files to reference manual and RNAfold manpage
   * Fix compilation issue for Windows platforms with MingW
   * Add missing newline in non-TTY-color output of vrna_message_info()
@@ -294,7 +334,7 @@ v2.3.1
   * Several fixes and improvements for SWIG generated scripting language interface(s)
 
 
-v2.3.0
+### [v2.3.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.10...v2.3.0) (2016-11-01)
   * Add grammar extension with structured and unstructured domains
   * Add default implementation for unstructured domains to allow for ligand/protein binding to unpaired structure segments (MFE and PF for single sequences)
   * Introduced command files that subsume constraint definition files (currently used in RNAfold and RNAcofold)
@@ -316,7 +356,9 @@ v2.3.0
   * Fix bug in interior loop computations when hard constraints result in non-canonical base pairs
 
 
-v 2.2.10
+## Version 2.2.x
+
+### [v2.2.10](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.9...v2.2.10) (2016-09-06)
   * Do not 'forget' subopt results when output is not written to file handle and sorting is switched off
   * Fix bad memory access in vrna_subopt() with sorted output
   * Add SWIG wrappers for vrna_subopt_cb()
@@ -324,7 +366,7 @@ v 2.2.10
   * Fix autoconf checks to allow for cross compilation again
 
 
-v 2.2.9
+### [v2.2.9](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.8...v2.2.9) (2016-09-01)
   * Fix bug in partition function scaling for backward compatibility of ali_pf_fold()
   * Stabilize v3.0 API when building RNAlib and third party program linking against it with compilers that use different C/C++ standards
   * Add details on how to link against RNAlib to the reference manual
@@ -345,7 +387,7 @@ v 2.2.9
   * Add various new commandline options to manipulate sequence/alignment IDs in RNAfold, RNAcofold and RNAalifold
 
 
-v 2.2.8
+### [v2.2.8](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.7...v2.2.8) (2016-08-01)
   * Fix bad memory access in RNAalifold
   * Fix regression in RNAalifold to restore covariance contribution ratio determination for circular RNA alignments
   * Changed output of RNAsubopt in energy-band enumeration mode to print MFE and energy range in kcal/mol instead of 10cal/mol
@@ -370,14 +412,14 @@ v 2.2.8
   * Fix --with-*/--without-* and --enable-*/--disable-* configure script behavior
 
 
-v 2.2.7
+### [v2.2.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.6...v2.2.7) (2016-06-30)
   * Fix partition function scaling for long sequences in RNAfold, RNAalifold, and RNAup
   * Fix backtracking issue in RNAcofold when --noLP option is activated
   * Fix hard constraints issue for circular RNAs in generating suboptimal structures
   * Rebuild reference manual only when actually required
 
 
-v 2.2.6
+### [v2.2.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.5...v2.2.6) (2016-06-19)
   * Plugged memory leak in RNAcofold
   * Fixed partition function rescaling bug in RNAup
   * Fixed bug in RNALfold with window sizes larger than sequence length
@@ -390,7 +432,7 @@ v 2.2.6
   * Some changes to allow for compilation with newer compilers, such as gcc 6.1
 
 
-v 2.2.5
+### [v2.2.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.4...v2.2.5) (2016-04-09)
   * Fixed regression in RNAcofold that prohibited output of concentration computations
   * Fixed behavior of RNAfold and RNAcofold when hard constraints create empty solution set (programs now abort with error message)
   * Added optional Python 3 interface
@@ -406,22 +448,22 @@ v 2.2.5
   * Added new utility script RNAdesign.pl
 
 
-v 2.2.4
+### [v2.2.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.3...v2.2.4) (2016-02-19)
   * Fixed bug in RNAsubopt that occasionally produced cofolded structures twice
   * Removed debugging output in preparations of consensus structure prediction datastructures
 
 
-v 2.2.3
+### [v2.2.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.2...v2.2.3) (2016-02-13)
   * Added postscipt annotations for found ligand motifs in RNAfold
   * Added more documentation for the constraints features in RNAfold and RNAalifold
   * Restore backward compatibility of get_alipf_arrays()
 
 
-v 2.2.2
+### [v2.2.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.1...v2.2.2) (2016-02-08)
   * Fix regression bug that occasionally prevented backtracking with RNAcofold --noLP
 
 
-v 2.2.1
+### [v2.2.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.0...v2.2.1) (2016-02-06)
   * Fix regression bug that made RNAcofold -a unusable
   * Fix regression bug that prohibited RNAfold to compute the MEA structure when G-Quadruplex support was switched on
   * Fix bug in Kinfold to enable loading energy parameters from file
@@ -432,7 +474,7 @@ v 2.2.1
   * Install architecture dependent and independent files of the perl and python interface to their correct file system locations
 
 
-v 2.2.0
+### [v2.2.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.9...v2.2.0) (2016-01-25)
   * RNAforester is now of version 2.0
   * New program RNApvmin to compute pseudo-energy pertubation vector that minimizes discrepancy between observed and predicted pairing probabilities
   * SHAPE reactivity support for RNAfold, RNAsubopt, and RNAalifold
@@ -455,7 +497,9 @@ v 2.2.0
   * Large changes in directory structure of the source code files
 
 
-v 2.1.9
+## Version 2.1.x
+
+### [v2.1.9](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.8...v2.1.9)
   * Fixed integer underflow bug in RNALfold
   * Added Sequence Conservation index (SCI) option to RNAalifold
   * Fixed bug in energy evaluation of dangling ends / terminal mismatches of exterior loops and multibranch loops
@@ -464,7 +508,7 @@ v 2.1.9
   * Fixed bug in alifold backtracking for larger G-Quadruplexes
 
 
-v 2.1.8
+### [v2.1.8](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.7...v2.1.8)
   * Repaired incorporation of RNAinverse user provided alphabet
   * Fix missing FASTA ID in RNAeval output
   * prevent race condition in parallel calls of Lfold()
@@ -472,7 +516,7 @@ v 2.1.8
   * Added latest version of switch.pl
 
 
-v 2.1.7
+### [v2.1.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.6...v2.1.7)
   * Fixed bug in RNALfold -z
   * Python and Perl interface are compiling again under MacOSX
   * Fixed handling of C arrays in Python interface
@@ -480,7 +524,7 @@ v 2.1.7
   * Make relplot.pl work with RNAcofold output
 
 
-v 2.1.6
+### [v2.1.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.5...v2.1.6)
   * New commandline switches allow for elimination of non-canonical base pairs from constraint structures in RNAfold, RNAalifold and RNAsubopt
   * updated moveset functions
   * final fix for discrepancy of tri-loop evaluation between partition function and mfe
@@ -488,16 +532,16 @@ v 2.1.6
   * New program ct2db allows for conversion of .ct files into dot-bracket notation (incl. pseudo-knot removal)
 
 
-v 2.1.5
+### [v2.1.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.4...v2.1.5)
   * Fix for discrepancy between special hairpin loop evaluation in partition functions and MFE
 
 
-v 2.1.4
+### [v2.1.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.3...v2.1.4)
   * Fix of G-quadruplex support in subopt()
   * Fix for discrepancy between special hairpin loop evaluation in partition functions and MFE
 
 
-v 2.1.3
+### [v2.1.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.2...v2.1.3)
   * RNAfold: Bugfix for ignoring user specified energy parameter files
   * RNAcofold: Bugfix for crashing upon constrained folding without specifying a constraint structure
   * RNAsubopt: Added G-quadruplex support
@@ -506,7 +550,7 @@ v 2.1.3
   * Added G-quadruplex support in subopt()
 
 
-v 2.1.2
+### [v2.1.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.1...v2.1.2)
   * RNAfold: Bugfix for randomly missing probabilities in dot-plot during batch job execution
   * RNAeval: Bugfix for misinterpreted G-quadruplex containing sequences where the quadruplex starts at nucleotide 1
   * RNAsubopt: Slight changes to the output of stochastic backtracking and zuker subopt
@@ -516,11 +560,11 @@ v 2.1.2
   * Provision of python2 interface support. 
 
 
-v 2.1.1
+### [v2.1.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.0...v2.1.1)
   * Bugfix to restore backward compatibility with ViennaRNA Package 1.8.x API (this bug also affected proper usage of the the perl interface)
 
 
-v 2.1.0
+### [v2.1.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.7...v2.1.0)
   * G-Quadruplex support in RNAfold, RNAcofold, RNALfold, RNAalifold, RNAeval and RNAplot
   * LPfold got a new option to output its computations in split-mode
   * several G-Quadruplex related functions were introduced with this release
@@ -529,29 +573,31 @@ v 2.1.0
   * different numeric approach was implement for concentration dependend co-folding to avoid instabilities which occured under certain circumstances
 
 
-v 2.0.7
+## Version 2.0.x
+
+### [v2.0.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.6...v2.0.7)
   * Bugfix for RNAplfold where segfault happened upon usage of -O option
   * Corrected misbehavior of RNAeval and RNAplot in tty mode
 
 
-v 2.0.6
+### [v2.0.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.5...v2.0.6)
   * Bugfix for bad type casting with gcc under MacOSX (resulted in accidental "sequence too long" errors)
   * Bugfix for disappearing tri-/hexaloop contributions when read in from certain parameter files
   * Bugfix for RNALfold that segfaulted on short strange sequences like AT+ repeats
   * Change of RNA2Dfold output format for stochastic backtracking
 
 
-v 2.0.5
+### [v2.0.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.4...v2.0.5)
   * Restored z-score computation capabilities in RNALfold
 
 
-v 2.0.4
+### [v2.0.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.3...v2.0.4)
   * Bugfix for RNAcofold partition function
   * Perl wrapper compatibility to changed RNAlib has been restored
   * Backward compatibility for partition function calls has been restored 
 
 
-v 2.0.3
+### [v2.0.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.2...v2.0.3)
   * Bugfix for RNAalifold partition function and base pair probabilities in v2.0.3b
   * Added Boltzmann factor scaling in RNAsubopt, RNAalifold, RNAplfold and RNAcofold
   * Bugfix for alipfold() in v2.0.3b
@@ -560,306 +606,370 @@ v 2.0.3
   * Added pkg-config file in the distribution to allow easy checks for certain RNAlib2 versions, compiler flags and linker flags.
 
 
-v 2.0.2
+### [v2.0.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.1...v2.0.2)
   * added support for Boltzmann factor scaling in RNAfold
   * fixed fastaheader to filename bug
   * plugged some memory leaks
 
 
-v 2.0.1
+### [v2.0.1]()
   * First official release of version 2.0
   * included latest bugfixes
 
 
-__History__
+## History
 
 2011-03-10  Ronny Lorenz  <ronny@tbi.univie.ac.at>
-	* new naming scheme for all shipped energy parameter files
-	* fixed bugs that appear while compiling with gcc under MacOS X
-	* fixed bug in RNAup --interaction-first where the longer of the first two
-	  sequences was taken as target
-	* added full FASTA input support to RNAfold, RNAcofold, RNAheat, RNAplfold
-	  RNALfoldz, RNAsubopt and RNALfold
+
+  * new naming scheme for all shipped energy parameter files
+  * fixed bugs that appear while compiling with gcc under MacOS X
+  * fixed bug in RNAup --interaction-first where the longer of the first two
+    sequences was taken as target
+  * added full FASTA input support to RNAfold, RNAcofold, RNAheat, RNAplfold
+    RNALfoldz, RNAsubopt and RNALfold
+
 
 2010-11-24  Ronny Lorenz  <ronny@tbi.univie.ac.at>
-	* first full pre-release of version 2.0
+
+  * first full pre-release of version 2.0
+
 
 2009-11-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
-	* Fix memory corruption in PS_color_aln()
+
+  * Fix memory corruption in PS_color_aln()
+
 
 2009-09-09  Ivo Hofacker  <ivo@tbi.univie.ac.at>
-	* Fix bug in RNAplfold when -u and -L parameters are equal
-	* Fix double call to free_arrays() in RNAfold.c
-	* Improve drawing of cofolded structures
-	
+
+  * Fix bug in RNAplfold when -u and -L parameters are equal
+  * Fix double call to free_arrays() in RNAfold.c
+  * Improve drawing of cofolded structures
+
 
 2009-05-14  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
- * Fix occasional segfault in RNAalifold's print_aliout() 
+  * Fix occasional segfault in RNAalifold's print_aliout() 
 
 
 2009-02-24  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* Add -MEA options to RNAfold and RNAalifold
-	* change energy_of_alistruct to return float not void
+  * Add -MEA options to RNAfold and RNAalifold
+  * change energy_of_alistruct to return float not void
+
 
 2009-02-24  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* RNAfold will draw structures unless -noPS is used (no more
-	  "structure too long" messages)
-	* Restore the "alifold.out" output from RNAalifold -p
-	* RNAalifold -circ did not work due to wrong return type
-	* Accessibility calculation with RNAplfold would give wrong
-	  results for u<=30
+  * RNAfold will draw structures unless -noPS is used (no more
+    "structure too long" messages)
+  * Restore the "alifold.out" output from RNAalifold -p
+  * RNAalifold -circ did not work due to wrong return type
+  * Accessibility calculation with RNAplfold would give wrong
+    results for u<=30
+
 
 2008-12-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* Add zuker style suboptimals to RNAsubopt (-z)
-	* get_line() should be much faster when reading huge sequences
-	  (e.g. whole chromosomes for RNALfold)
+  * Add zuker style suboptimals to RNAsubopt (-z)
+  * get_line() should be much faster when reading huge sequences
+    (e.g. whole chromosomes for RNALfold)
+
 
 2008-08-12  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* Add Ribosum matrices for covariance scoring in RNAalifold
+  * Add Ribosum matrices for covariance scoring in RNAalifold
+
 
 2008-06-27  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* Change RNAalifold to used berni's new energy evaluation w/o gaps
-	* Add stochastic backtracking in RNAalifold
+  * Change RNAalifold to used berni's new energy evaluation w/o gaps
+  * Add stochastic backtracking in RNAalifold
+
 
 2008-07-04  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* modify output of RNAup (again).
-	  Program reading RNAup output will have to updated!
+  * modify output of RNAup (again).
+    Program reading RNAup output will have to updated!
+
 
 2008-07-02  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* RNAplfold now computes accessibilities for all regions up to a
-	  max length simultaneously. Slightly slower when only 1 value is
-	  needed, but much faster if all of them are wanted.
-	  This entails a new output format. Programs reading accessibility
-	  output from RNAplfold need to be updated!
+  * RNAplfold now computes accessibilities for all regions up to a
+    max length simultaneously. Slightly slower when only 1 value is
+    needed, but much faster if all of them are wanted.
+    This entails a new output format. Programs reading accessibility
+    output from RNAplfold need to be updated!
+
 
 2008-03-31  Stephan Bernhart  <berni@tbi.univie.ac.at>
 
-	* add cofolding to RNAsubopt
+  * add cofolding to RNAsubopt
+
 
 2008-01-08  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* ensure circfold works even for open chain
+  * ensure circfold works even for open chain
+
 
 2007-12-13  Ulli Mueckstein  <ulli@tbi.univie.ac.at>
 
-	* upate RNAup related files
-	  RNAup can now include the intramolecular structure of both
-	  molecules and handles constraints.
+  * upate RNAup related files
+    RNAup can now include the intramolecular structure of both
+    molecules and handles constraints.
+
 
 2007-12-05  Ronny Lorenz  <ronny@tbi.univie.ac.at>
 
-	* add circfold variants in part_func.c alipfold.c subopt.c
+  * add circfold variants in part_func.c alipfold.c subopt.c
+
 
 2007-09-19  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* compute the controid structure of the ensemble in RNAfold -p
-	* fix a missing factor 2 in mean_bp_dist().
-	  CAUTION ensemble diversities returned by RNAfold -p are now
-	  twice as large as in earlier versions.
+  * compute the controid structure of the ensemble in RNAfold -p
+  * fix a missing factor 2 in mean_bp_dist().
+    CAUTION ensemble diversities returned by RNAfold -p are now
+    twice as large as in earlier versions.
+
 
 2007-09-04  Ivo Hofacker  <ivo@blini.tbi.univie.ac.at>
 
-	* fix a bug in Lfold() where base number n-max-4 would never pair
+  * fix a bug in Lfold() where base number n-max-4 would never pair
+
 
 2007-08-26  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add RNAaliduplex the alignment version of RNAduplex
-	* introduce a minimal distance between hits produced by	duplex_subopt()
+  * add RNAaliduplex the alignment version of RNAduplex
+  * introduce a minimal distance between hits produced by  duplex_subopt()
+
 
 2007-07-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add a loop_energy() function to compute energy of a single loop
+  * add a loop_energy() function to compute energy of a single loop
+
 
 2007-06-23  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add aliLfold() and RNALalifold, alignment variant of Lfold()
+  * add aliLfold() and RNALalifold, alignment variant of Lfold()
+
 
 2007-04-30  Ivo Hofacker  <ivo@tbi.univie.ac.at>
-	* add RNAup to distribution
+
+  * add RNAup to distribution
+
 
 2007-04-15  Ivo Hofacker  <ivo@tbi.univie.ac.at>
-	* fix segfault in colorps output (thanks to Andres Varon)
+
+  * fix segfault in colorps output (thanks to Andres Varon)
+
 
 2007-03-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
-	* avoid unnormalized doubles in scale[], big speedup for pf_fold()
-	  on very long sequences
+
+  * avoid unnormalized doubles in scale[], big speedup for pf_fold()
+    on very long sequences
+
 
 2007-02-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* RNAalifold can now produce colored structure plots and
-	  alignment plots
+  * RNAalifold can now produce colored structure plots and
+    alignment plots
+
 
 2007-02-01 Ivo Hofacker <ivo@tbi.univie.ac.at>
 
-	* Fix segfault in RNAplfold because of missing prototype
+  * Fix segfault in RNAplfold because of missing prototype
+
 
 2006-12-01 Ivo Hofacker <ivo@tbi.univie.ac.at>
 
-	* RNAduplex would segfault when no structure base pairs are possible
+  * RNAduplex would segfault when no structure base pairs are possible
+
 
 2006-08-22  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add computation stacking probabilities using RNAfold -p2
-	* add -noPS option for NRAfold to supress drawing structures
+  * add computation stacking probabilities using RNAfold -p2
+  * add -noPS option for NRAfold to supress drawing structures
+
 
 2006-08-09  Stephan Bernhart  <berni@tbi.univie.ac.at>
 
-	* RNAplfold can now compute probabilites of unpaired regions
-	  (scanning version of RNAup)
+  * RNAplfold can now compute probabilites of unpaired regions
+    (scanning version of RNAup)
+
 
 2006-06-14  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* compile library with -fpic (if available) for use as shared
-	  library in the Perl module.
-	* fix another bug when calling Lfold() repeatedly
-	* fix switch cmdline parsing in RNAalifold (-mis implied -4)
-	* fix bug in cofold() with dangles=0
+  * compile library with -fpic (if available) for use as shared
+    library in the Perl module.
+  * fix another bug when calling Lfold() repeatedly
+  * fix switch cmdline parsing in RNAalifold (-mis implied -4)
+  * fix bug in cofold() with dangles=0
+
 
 2006-05-08  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* fix segfault in Lfold() when calling repeatedly
-	* fix structure parsing in RNAstruct.c
-	  (thanks to Michael Pheasant for reporting both bugs)
-	* add duplexfold() and alifold() to Perl module
-	* distinguish window size and max pair span in LPfold
+  * fix segfault in Lfold() when calling repeatedly
+  * fix structure parsing in RNAstruct.c
+    (thanks to Michael Pheasant for reporting both bugs)
+  * add duplexfold() and alifold() to Perl module
+  * distinguish window size and max pair span in LPfold
+
 
 2006-04-05  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* fix performance bug in co_pf_fold()
-	* use relative error for termination of Newton iteration
+  * fix performance bug in co_pf_fold()
+  * use relative error for termination of Newton iteration
+
 
 2006-03-02  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add circular folding in alifold()
+  * add circular folding in alifold()
+
 
 2006-01-18  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* cleanup berni partition cofold code, including several bug fixes
+  * cleanup berni partition cofold code, including several bug fixes
+
 
 2006-01-16  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* update RNAplfold to working version
-	* add PS_dot_plot_turn() in  PS_dot.c
+  * update RNAplfold to working version
+  * add PS_dot_plot_turn() in  PS_dot.c
+
 
 2005-11-07  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add new utilities colorna and coloraln
+  * add new utilities colorna and coloraln
+
 
 2005-10-11  Christoph Flamm  <xtof@tbi.univie.ac.at>
 
-	* adapt PS_rna_plot() for drawing co-folded structures
+  * adapt PS_rna_plot() for drawing co-folded structures
+
 
 2005-07-24  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* fix a few memory problems in structure comparison routines
+  * fix a few memory problems in structure comparison routines
+
 
 2005-04-30  Ivo Hofacker  <ivo@blini.tbi.univie.ac.at>
 
-	* add folding of circular RNAs
+  * add folding of circular RNAs
+
 
 2005-03-11  Ivo Hofacker  <ivo@blini.tbi.univie.ac.at>
 
-	* add -mis option to RNAalifold to give "most informative
-	  sequence" as consensus
+  * add -mis option to RNAalifold to give "most informative
+    sequence" as consensus
+
 
 2005-02-10  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* move alifold() into the library
+  * move alifold() into the library
+
 
 2004-12-22  Stephan Bernhart  <berni@tbi.univie.ac.at>
 
-	* add partition function version of RNAcofold
+  * add partition function version of RNAcofold
+
 
 2004-12-23  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add RNApaln for fast structural alignments (RNApdist improvement)
+  * add RNApaln for fast structural alignments (RNApdist improvement)
+
 
 2004-08-12  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* fix constrained folding in stochastic backtracking
+  * fix constrained folding in stochastic backtracking
+
 
 2004-07-21  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add RNAduplex, to compute hybrid structures without
-	  intra-molecular pairs
+  * add RNAduplex, to compute hybrid structures without
+    intra-molecular pairs
+
 
 2004-02-09  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* fix bug in fold that caused segfaults when using Intel compiler
-	* add computation of ensemble diversity to RNAfold
+  * fix bug in fold that caused segfaults when using Intel compiler
+  * add computation of ensemble diversity to RNAfold
+
 
 2003-09-10  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add annotation options to RNAplot
+  * add annotation options to RNAplot
+
 
 2003-08-04  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* stochastic backtracking finally works. Try e.g.
-	  RNAsubopt -p 10
+  * stochastic backtracking finally works. Try e.g.
+    RNAsubopt -p 10
+
 
 2003-07-18  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add relplot.pl and rotate_ss.pl utilities for reliability
-	  annotation and rotation of rna structure plots
+  * add relplot.pl and rotate_ss.pl utilities for reliability
+    annotation and rotation of rna structure plots
+
 
 2003-01-29  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add RNALfold program to compute locally optimal structures with
-	  maximum pair span.
-	* add RNAcofold for computing hybrid structure
+  * add RNALfold program to compute locally optimal structures with
+    maximum pair span.
+  * add RNAcofold for computing hybrid structure
+
 
 2002-11-07  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* change Make_bp_profile() and profile_edit_distance() to use
-	  simple (float *) arrays; makes Perl access much easier.
-	  RNApdist -B now works again
+  * change Make_bp_profile() and profile_edit_distance() to use
+    simple (float *) arrays; makes Perl access much easier.
+    RNApdist -B now works again
+
 
 2002-10-28  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* Improved Perl module with pod documentation; allow to write
-	  things like
-	  ($structure, $energy) = RNA::fold($seq);
-	  Compatibility warning: the ptrvalue() and related functions are
-	  gone, see the pod documentation for alternatives.
+  * Improved Perl module with pod documentation; allow to write
+    things like
+    ($structure, $energy) = RNA::fold($seq);
+    Compatibility warning: the ptrvalue() and related functions are
+    gone, see the pod documentation for alternatives.
+
 
 2002-10-29  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* added svg structure plots in PS_dot.c and RNAplot
+  * added svg structure plots in PS_dot.c and RNAplot
+
 
 2002-08-15  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* Improve reading of clustal files (alifold)
-	* add a sample alifold.cgi script
+  * Improve reading of clustal files (alifold)
+  * add a sample alifold.cgi script
+
 
 2001-09-18  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* moved suboptimal folding into the library, thus it's now
-	  accessible from the Perl module
+  * moved suboptimal folding into the library, thus it's now
+    accessible from the Perl module
+
 
 2001-08-31  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* added co-folding support in energy_of_struct(), and thus RNAeval
+  * added co-folding support in energy_of_struct(), and thus RNAeval
+
 
 2001-04-30  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* switch from handcrafted makefiles to automake and autoconf
+  * switch from handcrafted makefiles to automake and autoconf
+
 
 2001-04-05  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* added PS_rna_plot_a to produce structure plots with annotation
+  * added PS_rna_plot_a to produce structure plots with annotation
+
 
 2001-03-03  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add alifold; predict consensus structures from alignment
+  * add alifold; predict consensus structures from alignment
+
 
 2000-09-28  Ivo Hofacker  <ivo@tbi.univie.ac.at>
 
-	* add -d3 option to RNAfold for co-axial stacking
+  * add -d3 option to RNAfold for co-axial stacking
