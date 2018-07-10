@@ -114,7 +114,7 @@ struct vrna_dimer_pf_s {
  *  bases that are essentially unpaired, weakly paired, strongly paired without
  *  preference, weakly upstream (downstream) paired, or strongly up-
  *  (down-)stream paired bases, respectively.
- *  If the parameter calculate_bppm is set to 0 base pairing probabilities will not
+ *  If the model's compute_bpp is set to 0 base pairing probabilities will not
  *  be computed (saving CPU time), otherwise after calculations took place #pr will
  *  contain the probability that bases @a i and @a j pair.
  * 
