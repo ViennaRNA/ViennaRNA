@@ -113,7 +113,7 @@ perldoc relplot.pl
 
 If you use our software package, you may want to cite
 
-[R. Lorenz et al. (2004)](https://almob.biomedcentral.com/articles/10.1186/1748-7188-6-26),
+[R. Lorenz et al. (2011)](https://almob.biomedcentral.com/articles/10.1186/1748-7188-6-26),
 "ViennaRNA Package 2.0", Algorithms for Molecular Biology, 6:26
 
 and
