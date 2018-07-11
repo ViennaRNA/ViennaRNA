@@ -59,6 +59,6 @@ if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
 
 # clean up
 rm rnacofold_pf.fold ABdot5.ps AAdot5.ps BBdot5.ps Adot5.ps Bdot5.ps rnacofold_concentrations.fold
-rm ABrnacofold_pf_test_00*dp5.ps AArnacofold_pf_test_00*dp5.ps BBrnacofold_pf_test_00*dp5.ps Arnacofold_pf_test_00*dp5.ps Brnacofold_pf_test_00*dp5.ps
+rm ABrnacofold_pf_test_00*dp5.ps AArnacofold_pf_test_00*dp5.ps BBrnacofold_pf_test_00*dp5.ps Arnacofold_pf_test_00*dp5.ps Brnacofold_pf_test_00*dp5.ps dot.ps
 
 exit ${RETURN}
