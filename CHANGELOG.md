@@ -4,7 +4,10 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.4.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.8...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.9...HEAD)
+
+
+### [v2.4.9](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.8...v2.4.9) (2018-07-11)
 
 #### Programs
   * Fix interactive mode behavior for multiple sequence alignment input in `RNAalifold`, `RNALalifold`
