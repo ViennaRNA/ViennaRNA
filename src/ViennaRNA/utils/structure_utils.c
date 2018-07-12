@@ -359,6 +359,7 @@ vrna_db_from_WUSS(const char *wuss)
 {
   char          *db, *tmp;
   short         *pt;
+  int           pos, L, l[3], i, p, q;
   unsigned int  n;
 
   db = NULL;
@@ -380,6 +381,25 @@ vrna_db_from_WUSS(const char *wuss)
 
     /* convert back to dot-bracket (replaces all special characters for unpaired positions) */
     db = vrna_db_from_ptable(pt);
+
+    /* check for G-Quadruplexes, annotated as G quartets */
+    q = 1;
+    while ((pos = parse_gquad(wuss + q - 1, &L, l)) > 0) {
+      q += pos - 1;
+      p = q - 4 * L - l[0] - l[1] - l[2] + 1;
+
+      if (q > n)
+        break;
+
+      /* re-insert G-Quadruplex */
+      for (i = 0; i < L; i++) {
+        db[p + i - 1]                                 = '+';
+        db[p + L + l[0] + i - 1]                      = '+';
+        db[p + (2 * L) + l[0] + l[1] + i - 1]         = '+';
+        db[p + (3 * L) + l[0] + l[1] + l[2] + i - 1]  = '+';
+      }
+      q++;
+    }
 
     free(pt);
     free(tmp);

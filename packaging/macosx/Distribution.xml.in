@@ -15,7 +15,7 @@
     <background file="ohm.png" mime-type="image/png" alignment="right" scaling="none" />
     <title>@PACKAGE_NAME@ Package @PACKAGE_VERSION@</title>
     <welcome file="welcome.txt" mime-type="text/plain" />
-    <readme file="README" mime-type="text/plain" />
+    <readme file="README.md" mime-type="text/plain" />
     <license file="COPYING" mime-type="text/plain" />
     <conclusion file="conclusion.html" mime-type="text/html" />
      <choices-outline>

@@ -396,6 +396,25 @@ vrna_message_input_seq(const char *s)
   (void)fflush(stdout);
 }
 
+PUBLIC void
+vrna_message_input_msa(const char *s)
+{
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (isatty(fileno(stdout))) {
+    printf("\n" ANSI_COLOR_CYAN "%s; Ctrl-c to quit" ANSI_COLOR_RESET "\n", s);
+    printf(ANSI_COLOR_BRIGHT "%s%s" ANSI_COLOR_RESET "\n", scale1, scale2);
+  } else {
+#endif
+  printf("\n%s; Ctrl-c to quit\n", s);
+  printf("%s%s\n", scale1, scale2);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+}
+
+
+#endif
+  (void)fflush(stdout);
+}
+
 PUBLIC int *
 vrna_idx_row_wise(unsigned int length)
 {

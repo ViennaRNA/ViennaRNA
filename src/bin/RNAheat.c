@@ -126,6 +126,8 @@ main(int  argc,
   if (args_info.nsp_given)
     ns_bases = strdup(args_info.nsp_arg);
 
+  ggo_get_gquad(args_info, gquad);
+
   /* Tmin */
   if (args_info.Tmin_given)
     T_min = args_info.Tmin_arg;

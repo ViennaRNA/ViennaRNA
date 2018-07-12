@@ -13,4 +13,7 @@ EXTRA_DIST =  INSTALL.configure \
               examples \
               packaging/debian \
               packaging/make_windows_installer.sh \
-              license.txt
+              license.txt \
+              README.md \
+              CHANGELOG.md
+
