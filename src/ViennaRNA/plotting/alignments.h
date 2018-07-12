@@ -22,6 +22,9 @@ int PS_color_aln(const char *structure,
                  const char *names[]);
 
 
+/**
+ *  @param columns  The number of columns before the alignment is wrapped as a new block (values less than 1 indicate no wrapping)
+ */
 int
 vrna_file_PS_aln(const char *filename,
                  const char **seqs,
@@ -30,6 +33,9 @@ vrna_file_PS_aln(const char *filename,
                  int        columns);
 
 
+/**
+ *  @param columns  The number of columns before the alignment is wrapped as a new block (values less than 1 indicate no wrapping)
+ */
 int
 vrna_file_PS_aln_sub(const char *filename,
                      const char **seqs,

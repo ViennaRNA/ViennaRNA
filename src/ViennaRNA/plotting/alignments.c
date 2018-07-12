@@ -88,7 +88,7 @@ vrna_file_PS_aln_sub(const char *filename,
   char        *tmpBuffer, *ssEscaped, *ruler, *cons;
   char        c;
   float       fontWidth, fontHeight, imageHeight, imageWidth, tmpColumns;
-  int         length, maxName, maxNum, currPos;
+  int         length, maxName, maxNum, currPos, num;
   float       lineStep, blockStep, consStep, ssStep, rulerStep, nameStep, numberStep;
   float       maxConsBar, startY, namesX, seqsX, currY;
   float       score, barHeight, xx, yy;
@@ -115,7 +115,6 @@ vrna_file_PS_aln_sub(const char *filename,
     return 0;
   }
 
-  columnWidth = (columns <= 0) ? 60 : columns;  /* Display long alignments in blocks of this size */
   fontWidth   = 6;                              /* Font metrics */
   fontHeight  = 6.5;
   lineStep    = fontHeight + 2;                 /* distance between lines */
@@ -131,6 +130,9 @@ vrna_file_PS_aln_sub(const char *filename,
 
   /* Number of columns of the alignment */
   length = strlen(seqs[0]);
+
+  /* Display long alignments in blocks of this size */
+  columnWidth = (columns <= 0) ? length : columns;
 
   /* Allocate memory for various strings, length*2 is (more than)
    *     enough for all of them */
@@ -180,16 +182,16 @@ vrna_file_PS_aln_sub(const char *filename,
                    (int)imageHeight);
 
   /* Create ruler and secondary structure lines */
-  i = 0;
   /* Init all with dots */
-  for (i = 0; i < length; i++)
-    ruler[i] = '.';
-  i = 0;
+  memset(ruler, '.', sizeof(char) * length);
+
   for (i = 0; i < length; i++) {
     /* Write number every 10th position, leave out block breaks */
-    if ((i + start) % 10 == 0 && (i + start) % columnWidth != 0) {
+    if (((i + start) % 10 == 0) && ((i + start) % columnWidth != 0)) {
       snprintf(tmpBuffer, length, "%d", i + start);
-      strncpy(ruler + i, tmpBuffer, maxNum);
+      num = strlen(tmpBuffer);
+      if (i + num <= length)
+        memcpy(ruler + i, tmpBuffer, num);
     }
   }
   ruler[length] = '\0';

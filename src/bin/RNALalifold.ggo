@@ -86,7 +86,8 @@ typestr="prefix"
 optional
 
 option  "aln-EPS-cols"        -
-"Number of columns in colored EPS alignment output.\n\n"
+"Number of columns in colored EPS alignment output.\n"
+details="A value less than 1 indicates that the output should not be wrapped at all.\n\n"
 int
 default="60"
 optional
@@ -256,7 +257,7 @@ optional
 
 option  "mis" -
 "Output \"most informative sequence\" instead of simple consensus: For each column of the alignment\
- output the set of nucleotides with frequence greater than average in IUPAC notation.\n\n"
+ output the set of nucleotides with frequency greater than average in IUPAC notation.\n\n"
 flag
 off
 

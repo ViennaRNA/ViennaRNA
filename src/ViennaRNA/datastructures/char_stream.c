@@ -236,16 +236,18 @@ vrna_cstr_message_vinfo(struct vrna_cstr_s  *buf,
     vrna_cstr_printf(buf, ANSI_COLOR_RESET "\n");
   } else {
 #endif
-    vrna_cstr_vprintf(buf, format, args);
-    vrna_cstr_printf(buf, "\n");
+  vrna_cstr_vprintf(buf, format, args);
+  vrna_cstr_printf(buf, "\n");
 #ifndef VRNA_WITHOUT_TTY_COLORS
-  }
+}
+
+
 #endif
 }
 
 PUBLIC void
-vrna_cstr_message_warning(struct vrna_cstr_s *buf,
-                          const char         *format,
+vrna_cstr_message_warning(struct vrna_cstr_s  *buf,
+                          const char          *format,
                           ...)
 {
   va_list args;
@@ -260,9 +262,9 @@ vrna_cstr_message_warning(struct vrna_cstr_s *buf,
 
 
 PUBLIC void
-vrna_cstr_message_vwarning(struct vrna_cstr_s  *buf,
-                           const char          *format,
-                           va_list             args)
+vrna_cstr_message_vwarning(struct vrna_cstr_s *buf,
+                           const char         *format,
+                           va_list            args)
 {
   if ((!buf) || (!format))
     return;
@@ -274,11 +276,13 @@ vrna_cstr_message_vwarning(struct vrna_cstr_s  *buf,
     vrna_cstr_printf(buf, ANSI_COLOR_RESET "\n");
   } else {
 #endif
-    vrna_cstr_printf(buf, "WARNING: ");
-    vrna_cstr_vprintf(buf, format, args);
-    vrna_cstr_printf(buf, "\n");
+  vrna_cstr_printf(buf, "WARNING: ");
+  vrna_cstr_vprintf(buf, format, args);
+  vrna_cstr_printf(buf, "\n");
 #ifndef VRNA_WITHOUT_TTY_COLORS
-  }
+}
+
+
 #endif
 }
 
@@ -292,7 +296,7 @@ vrna_cstr_print_fasta_header(struct vrna_cstr_s *buf,
       vrna_cstr_printf(buf, ANSI_COLOR_YELLOW ">%s" ANSI_COLOR_RESET "\n", head);
     else
 #endif
-      vrna_cstr_printf(buf, ">%s\n", head);
+    vrna_cstr_printf(buf, ">%s\n", head);
   }
 }
 
@@ -335,9 +339,10 @@ vrna_cstr_vprintf_structure(struct vrna_cstr_s  *buf,
       vrna_cstr_printf(buf, ANSI_COLOR_RESET);
     } else {
 #endif
-      vrna_cstr_vprintf(buf, format, args);
+    vrna_cstr_vprintf(buf, format, args);
 #ifndef VRNA_WITHOUT_TTY_COLORS
-    }
+  }
+
 #endif
   }
 
@@ -379,9 +384,10 @@ vrna_cstr_vprintf_comment(struct vrna_cstr_s  *buf,
       vrna_cstr_printf(buf, ANSI_COLOR_RESET);
     } else {
 #endif
-      vrna_cstr_vprintf(buf, format, args);
+    vrna_cstr_vprintf(buf, format, args);
 #ifndef VRNA_WITHOUT_TTY_COLORS
-    }
+  }
+
 #endif
   }
 
@@ -423,9 +429,10 @@ vrna_cstr_vprintf_thead(struct vrna_cstr_s  *buf,
       vrna_cstr_printf(buf, ANSI_COLOR_RESET);
     } else {
 #endif
-      vrna_cstr_vprintf(buf, format, args);
+    vrna_cstr_vprintf(buf, format, args);
 #ifndef VRNA_WITHOUT_TTY_COLORS
-    }
+  }
+
 #endif
   }
 
@@ -467,12 +474,364 @@ vrna_cstr_vprintf_tbody(struct vrna_cstr_s  *buf,
       vrna_cstr_printf(buf, ANSI_COLOR_RESET);
     } else {
 #endif
-      vrna_cstr_vprintf(buf, format, args);
+    vrna_cstr_vprintf(buf, format, args);
 #ifndef VRNA_WITHOUT_TTY_COLORS
-    }
+  }
+
 #endif
   }
 
   if ((format) && (*format != '\0'))
     vrna_cstr_printf(buf, "\n");
+}
+
+
+PUBLIC void
+vrna_cstr_print_eval_sd_corr(struct vrna_cstr_s *buf)
+{
+  if (!buf)
+    return;
+
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (buf->istty) {
+    vrna_cstr_printf(buf,
+                     ANSI_COLOR_BRIGHT "Correcting for presence of structured domains" ANSI_COLOR_RESET "\n");
+  } else {
+#endif
+  vrna_cstr_printf(buf, "Correcting for presence of structured domains\n");
+#ifndef VRNA_WITHOUT_TTY_COLORS
+}
+
+
+#endif
+}
+
+PUBLIC void
+vrna_cstr_print_eval_ext_loop(struct vrna_cstr_s  *buf,
+                              int                 energy)
+{
+  if (!buf)
+    return;
+
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (buf->istty) {
+    vrna_cstr_printf(buf,
+                     ANSI_COLOR_CYAN "External loop" ANSI_COLOR_RESET
+                     "                           : "
+                     ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
+                     energy);
+  } else {
+#endif
+  vrna_cstr_printf(buf,
+                   "External loop"
+                   "                           : "
+                   "%5d\n",
+                   energy);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+}
+
+
+#endif
+}
+
+
+PUBLIC void
+vrna_cstr_print_eval_hp_loop(struct vrna_cstr_s *buf,
+                             int                i,
+                             int                j,
+                             char               si,
+                             char               sj,
+                             int                energy)
+{
+  if (!buf)
+    return;
+
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (buf->istty) {
+    vrna_cstr_printf(buf,
+                     ANSI_COLOR_CYAN "Hairpin  loop" ANSI_COLOR_RESET
+                     " (%3d,%3d) "
+                     ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                     "              : "
+                     ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
+                     i, j,
+                     si, sj,
+                     energy);
+  } else {
+#endif
+  vrna_cstr_printf(buf,
+                   "Hairpin  loop"
+                   " (%3d,%3d) %c%c              : "
+                   "%5d\n",
+                   i, j,
+                   si, sj,
+                   energy);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+}
+
+
+#endif
+}
+
+
+PUBLIC void
+vrna_cstr_print_eval_hp_loop_revert(struct vrna_cstr_s  *buf,
+                                    int                 i,
+                                    int                 j,
+                                    char                si,
+                                    char                sj,
+                                    int                 energy)
+{
+  if (!buf)
+    return;
+
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (buf->istty) {
+    vrna_cstr_printf(buf,
+                     ANSI_COLOR_MAGENTA "Hairpin  loop" ANSI_COLOR_RESET
+                     " (%3d,%3d) "
+                     ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                     "              : "
+                     ANSI_COLOR_RED "%5d" ANSI_COLOR_RESET "\n",
+                     i, j,
+                     si, sj,
+                     -energy);
+  } else {
+#endif
+  vrna_cstr_printf(buf,
+                   "Hairpin  loop"
+                   " (%3d,%3d) %c%c              : "
+                   "%5d\n",
+                   i, j,
+                   si, sj,
+                   -energy);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+}
+
+
+#endif
+}
+
+
+PUBLIC void
+vrna_cstr_print_eval_int_loop(struct vrna_cstr_s  *buf,
+                              int                 i,
+                              int                 j,
+                              char                si,
+                              char                sj,
+                              int                 k,
+                              int                 l,
+                              char                sk,
+                              char                sl,
+                              int                 energy)
+{
+  if (!buf)
+    return;
+
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (buf->istty) {
+    vrna_cstr_printf(buf,
+                     ANSI_COLOR_CYAN "Interior loop" ANSI_COLOR_RESET
+                     " (%3d,%3d) "
+                     ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                     "; (%3d,%3d) "
+                     ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                     ": "
+                     ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
+                     i, j,
+                     si, sj,
+                     k, l,
+                     sk, sl,
+                     energy);
+  } else {
+#endif
+  vrna_cstr_printf(buf,
+                   "Interior loop"
+                   " (%3d,%3d) "
+                   "%c%c"
+                   "; (%3d,%3d) "
+                   "%c%c"
+                   ": "
+                   "%5d\n",
+                   i, j,
+                   si, sj,
+                   k, l,
+                   sk, sl,
+                   energy);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+}
+
+
+#endif
+}
+
+
+PUBLIC void
+vrna_cstr_print_eval_int_loop_revert(struct vrna_cstr_s *buf,
+                                     int                i,
+                                     int                j,
+                                     char               si,
+                                     char               sj,
+                                     int                k,
+                                     int                l,
+                                     char               sk,
+                                     char               sl,
+                                     int                energy)
+{
+  if (!buf)
+    return;
+
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (buf->istty) {
+    vrna_cstr_printf(buf,
+                     ANSI_COLOR_MAGENTA "Interior loop" ANSI_COLOR_RESET
+                     " (%3d,%3d) "
+                     ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                     "; (%3d,%3d) "
+                     ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                     ": "
+                     ANSI_COLOR_RED "%5d" ANSI_COLOR_RESET "\n",
+                     i, j,
+                     si, sj,
+                     k, l,
+                     sk, sl,
+                     -energy);
+  } else {
+#endif
+  vrna_cstr_printf(buf,
+                   "Interior loop"
+                   " (%3d,%3d) "
+                   "%c%c"
+                   "; (%3d,%3d) "
+                   "%c%c"
+                   ": "
+                   "%5d\n",
+                   i, j,
+                   si, sj,
+                   k, l,
+                   sk, sl,
+                   -energy);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+}
+
+
+#endif
+}
+
+
+PUBLIC void
+vrna_cstr_print_eval_mb_loop(struct vrna_cstr_s *buf,
+                             int                i,
+                             int                j,
+                             char               si,
+                             char               sj,
+                             int                energy)
+{
+  if (!buf)
+    return;
+
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (buf->istty) {
+    vrna_cstr_printf(buf,
+                     ANSI_COLOR_CYAN "Multi    loop" ANSI_COLOR_RESET
+                     " (%3d,%3d) "
+                     ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                     "              : "
+                     ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
+                     i, j,
+                     si, sj,
+                     energy);
+  } else {
+#endif
+  vrna_cstr_printf(buf,
+                   "Multi    loop"
+                   " (%3d,%3d) %c%c              : "
+                   "%5d\n",
+                   i, j,
+                   si, sj,
+                   energy);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+}
+
+
+#endif
+}
+
+
+PUBLIC void
+vrna_cstr_print_eval_mb_loop_revert(struct vrna_cstr_s  *buf,
+                                    int                 i,
+                                    int                 j,
+                                    char                si,
+                                    char                sj,
+                                    int                 energy)
+{
+  if (!buf)
+    return;
+
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (buf->istty) {
+    vrna_cstr_printf(buf,
+                     ANSI_COLOR_MAGENTA "Multi    loop" ANSI_COLOR_RESET
+                     " (%3d,%3d) "
+                     ANSI_COLOR_BRIGHT "%c%c" ANSI_COLOR_RESET
+                     "              : "
+                     ANSI_COLOR_RED "%5d" ANSI_COLOR_RESET "\n",
+                     i, j,
+                     si, sj,
+                     -energy);
+  } else {
+#endif
+  vrna_cstr_printf(buf,
+                   "Multi    loop"
+                   " (%3d,%3d) %c%c              : "
+                   "%5d\n",
+                   i, j,
+                   si, sj,
+                   -energy);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+}
+
+
+#endif
+}
+
+
+PUBLIC void
+vrna_cstr_print_eval_gquad(struct vrna_cstr_s *buf,
+                           int                i,
+                           int                L,
+                           int                l[3],
+                           int                energy)
+{
+  if (!buf)
+    return;
+
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (buf->istty) {
+    vrna_cstr_printf(buf,
+                     ANSI_COLOR_CYAN "G-Quadruplex " ANSI_COLOR_RESET
+                     " (%3d,%3d) "
+                     ANSI_COLOR_BRIGHT "L%d  " ANSI_COLOR_RESET
+                     "(%2d,%2d,%2d)  : "
+                     ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
+                     i, i + 4 * L + l[0] + l[1] + l[2] - 1,
+                     L, l[0], l[1], l[2],
+                     energy);
+  } else {
+#endif
+  vrna_cstr_printf(buf,
+                   "G-Quadruplex "
+                   " (%3d,%3d) "
+                   "L%d  "
+                   "(%2d,%2d,%2d)  : "
+                   "%5d\n",
+                   i, i + 4 * L + l[0] + l[1] + l[2] - 1,
+                   L, l[0], l[1], l[2],
+                   energy);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+}
+
+
+#endif
 }

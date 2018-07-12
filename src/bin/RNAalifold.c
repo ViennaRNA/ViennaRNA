@@ -598,7 +598,7 @@ main(int  argc,
   if (fold_constrained && (!opt.constraint_file) && (!opt.constraint_SScons)) {
     if (isatty(fileno(stdin))) {
       vrna_message_constraint_options_all();
-      vrna_message_input_seq("");
+      vrna_message_input_msa("");
     }
 
     char          *input_string = NULL;
@@ -750,25 +750,25 @@ process_input(FILE            *input_stream,
     tmp_structure = NULL;
 
     if (istty_in) {
-      switch (input_format) {
+      switch (input_format & (~VRNA_FILE_FORMAT_MSA_QUIET)) {
         case VRNA_FILE_FORMAT_MSA_CLUSTAL:
-          vrna_message_input_seq("Input aligned sequences in ClustalW format\n"
-                                 "press Ctrl+d when finished to indicate the end of your input)");
+          vrna_message_input_msa("Input aligned sequences in ClustalW format\n"
+                                 "(press Ctrl+d when finished to indicate the end of your input)");
           break;
 
         case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
-          vrna_message_input_seq("Input aligned sequences in Stockholm format (Insert one alignment at a time!)\n"
-                                 "press Ctrl+d when finished to indicate the end of your input)");
+          vrna_message_input_msa("Input aligned sequences in Stockholm format (Insert one alignment at a time!)\n"
+                                 "(Note, Stockholm entries always end with a line that only contains '//'");
           break;
 
         case VRNA_FILE_FORMAT_MSA_FASTA:
-          vrna_message_input_seq("Input aligned sequences in FASTA format\n"
-                                 "press Ctrl+d when finished to indicate the end of your input)");
+          vrna_message_input_msa("Input aligned sequences in FASTA format\n"
+                                 "(press Ctrl+d when finished to indicate the end of your input)");
           break;
 
         case VRNA_FILE_FORMAT_MSA_MAF:
-          vrna_message_input_seq("Input aligned sequences in MAF format (Insert one alignment at a time!)\n"
-                                 "press Ctrl+d when finished to indicate the end of your input)");
+          vrna_message_input_msa("Input aligned sequences in MAF format (Insert one alignment at a time!)\n"
+                                 "(Note, a MAF alignment always ends with an empty line)");
           break;
 
         default:
@@ -909,6 +909,17 @@ process_record(struct record_data *record)
 
   mfe_structure = (char *)vrna_alloc(sizeof(char) * (n + 1));
   min_en        = vrna_mfe(vc, mfe_structure);
+
+  /* check whether the constraint allows for any solution */
+  if (fold_constrained) {
+    if (min_en == (double)(INF / 100.)) {
+      vrna_message_error(
+        "Supplied structure constraints create empty solution set for alignment Nr. %d",
+        record->number);
+      exit(EXIT_FAILURE);
+    }
+  }
+
   real_en       = vrna_eval_structure(vc, mfe_structure);
   cov_en        = vrna_eval_covar_structure(vc, mfe_structure);
 

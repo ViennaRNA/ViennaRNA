@@ -105,7 +105,7 @@ all: $(DISK_IMAGE)
 ##
 resources:
 	$(prepare_verbose)$(MKDIR_P) ./resources
-	$(prepare_verbose)cp $(top_srcdir)/README $(top_srcdir)/COPYING ./resources/ 
+	$(prepare_verbose)cp $(top_srcdir)/README.md $(top_srcdir)/COPYING ./resources/ 
 
 ##
 ## prepare Core staging directory
@@ -263,7 +263,7 @@ staging-python:
 disk_image: "${VRNA_PKG_FILE}"
 	$(prepare_verbose)$(MKDIR_P) disk_image
 	$(AM_V_at)cp "${VRNA_PKG_FILE}" disk_image
-	$(AM_V_at)cp $(top_srcdir)/README $(top_srcdir)/NEWS $(top_srcdir)/ChangeLog $(top_srcdir)/AUTHORS $(top_srcdir)/THANKS disk_image/ 
+	$(AM_V_at)cp $(top_srcdir)/README.md $(top_srcdir)/NEWS $(top_srcdir)/CHANGELOG.md $(top_srcdir)/AUTHORS $(top_srcdir)/THANKS disk_image/ 
 	$(AM_V_at)cp $(top_srcdir)/COPYING disk_image/License
 
 "${MACOSX_DMG_FILE}": disk_image

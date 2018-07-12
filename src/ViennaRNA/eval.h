@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/datastructures/char_stream.h>
 #include "ViennaRNA/neighbor.h"
 #include <ViennaRNA/params/basic.h>   /* for deprecated functions */
 
@@ -164,6 +165,12 @@ float vrna_eval_structure_v(vrna_fold_compound_t  *vc,
                             int                   verbosity_level,
                             FILE                  *file);
 
+
+float
+vrna_eval_structure_cstr(vrna_fold_compound_t  *vc,
+                         const char            *structure,
+                         int                   verbosity_level,
+                         vrna_cstr_t           output_stream);
 
 /* End basic eval interface */
 /**@}*/

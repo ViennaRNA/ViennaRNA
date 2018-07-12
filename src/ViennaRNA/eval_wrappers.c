@@ -481,6 +481,8 @@ eval_structure_simple_v(const char  *string,
                         int         circular,
                         FILE        *file)
 {
+  char      *str;
+  int       cp;
   float     e;
   vrna_md_t md;
 
@@ -492,11 +494,15 @@ eval_structure_simple_v(const char  *string,
   /* create fold_compound with default parameters and without DP matrices */
   vrna_fold_compound_t *fc = vrna_fold_compound(string, &md, VRNA_OPTION_DEFAULT);
 
+  /* splice-out '&' strand break identifier, if present in structure */
+  str = vrna_cut_point_remove(structure, &cp);
+
   /* evaluate structure */
-  e = vrna_eval_structure_v(fc, structure, verbosity_level, file);
+  e = vrna_eval_structure_v(fc, str, verbosity_level, file);
 
   /* free fold_compound */
   vrna_fold_compound_free(fc);
+  free(str);
 
   return e;
 }
@@ -510,6 +516,8 @@ eval_consensus_structure_simple_v(const char  **alignment,
                                   int         circular,
                                   FILE        *file)
 {
+  char      *str;
+  int       cp;
   float     e;
   vrna_md_t md;
 
@@ -521,11 +529,15 @@ eval_consensus_structure_simple_v(const char  **alignment,
   /* create fold_compound with default parameters and without DP matrices */
   vrna_fold_compound_t *fc = vrna_fold_compound_comparative(alignment, &md, VRNA_OPTION_DEFAULT);
 
+  /* splice-out '&' strand break identifier, if present in structure */
+  str = vrna_cut_point_remove(structure, &cp);
+
   /* evaluate structure */
-  e = vrna_eval_structure_v(fc, structure, verbosity_level, file);
+  e = vrna_eval_structure_v(fc, str, verbosity_level, file);
 
   /* free fold_compound */
   vrna_fold_compound_free(fc);
+  free(str);
 
   return e;
 }
@@ -564,6 +576,7 @@ recycle_last_call(const char    *string,
       if (!strcmp(string, backward_compat_compound->sequence)) {
         /* check if sequence is the same as before */
         md->window_size = (int)backward_compat_compound->length;
+        md->max_bp_span = (int)backward_compat_compound->length;
         /* check if model_details are the same as before */
         if (!memcmp(md, &(backward_compat_compound->params->model_details), sizeof(vrna_md_t)))
           /* re-use previous vrna_fold_compound_t */

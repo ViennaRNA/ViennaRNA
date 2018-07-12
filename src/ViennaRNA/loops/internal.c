@@ -442,43 +442,45 @@ E_internal_loop(vrna_fold_compound_t  *fc,
           (evaluate(i, j, k, l, &hc_dat_local))) {
         eee = (sliding_window) ? c_local[k][l - k] : c[kl];
 
-        switch (fc->type) {
-          case VRNA_FC_TYPE_SINGLE:
-            type2 = sliding_window ?
-                    rtype[vrna_get_ptype_window(k, l, ptype_local)] :
-                    rtype[vrna_get_ptype(kl, ptype)];
+        if (eee != INF) {
+          switch (fc->type) {
+            case VRNA_FC_TYPE_SINGLE:
+              type2 = sliding_window ?
+                      rtype[vrna_get_ptype_window(k, l, ptype_local)] :
+                      rtype[vrna_get_ptype(kl, ptype)];
 
-            if ((has_nick) && ((sn[i] != sn[i + 1]) || (sn[j - 1] != sn[j]))) {
-              /* interior loop like cofold structure */
-              short Si, Sj;
-              Si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
-              Sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
-              eee += E_IntLoop_Co(rtype[type], rtype[type2],
-                                  i, j, k, l,
-                                  ss[1],
-                                  Si, Sj,
-                                  S[i], S[j],
-                                  md->dangles,
-                                  P);
-            } else {
-              eee += E_IntLoop(0, 0, type, type2, S[i + 1], S[j - 1], S[i], S[j], P);
-            }
+              if ((has_nick) && ((sn[i] != sn[i + 1]) || (sn[j - 1] != sn[j]))) {
+                /* interior loop like cofold structure */
+                short Si, Sj;
+                Si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
+                Sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
+                eee += E_IntLoop_Co(rtype[type], rtype[type2],
+                                    i, j, k, l,
+                                    ss[1],
+                                    Si, Sj,
+                                    S[i], S[j],
+                                    md->dangles,
+                                    P);
+              } else {
+                eee += E_IntLoop(0, 0, type, type2, S[i + 1], S[j - 1], S[i], S[j], P);
+              }
 
-            break;
+              break;
 
-          case VRNA_FC_TYPE_COMPARATIVE:
-            for (s = 0; s < n_seq; s++) {
-              type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
-              eee   += E_IntLoop(0, 0, tt[s], type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l], P);
-            }
+            case VRNA_FC_TYPE_COMPARATIVE:
+              for (s = 0; s < n_seq; s++) {
+                type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+                eee   += E_IntLoop(0, 0, tt[s], type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l], P);
+              }
 
-            break;
+              break;
+          }
+
+          if (sc_wrapper.pair)
+            eee += sc_wrapper.pair(i, j, k, l, &sc_wrapper);
+
+          e = MIN2(e, eee);
         }
-
-        if (sc_wrapper.pair)
-          eee += sc_wrapper.pair(i, j, k, l, &sc_wrapper);
-
-        e = MIN2(e, eee);
       }
     }
 

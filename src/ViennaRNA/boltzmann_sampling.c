@@ -540,19 +540,33 @@ backtrack_qm2(int                   k,
   int         u, turn;
   FLT_OR_DBL  *qm1, *qm2;
   int         *jindx;
+  vrna_sc_t   *sc;
 
   jindx = vc->jindx;
   qm1   = vc->exp_matrices->qm1;
   qm2   = vc->exp_matrices->qm2;
   turn  = vc->exp_params->model_details.min_loop_size;
+  sc    = vc->sc;
 
   r = vrna_urn() * qm2[k];
   /* we have to search for our barrier u between qm1 and qm1  */
-  for (qom2t = 0., u = k + turn + 1; u < n - turn - 1; u++) {
-    qom2t += qm1[jindx[u] + k] * qm1[jindx[n] + (u + 1)];
-    if (qom2t > r)
-      break;
+  if ((sc) && (sc->exp_f)) {
+    for (qom2t = 0., u = k + turn + 1; u < n - turn - 1; u++) {
+      qom2t +=  qm1[jindx[u] + k] *
+                qm1[jindx[n] + (u + 1)] *
+                sc->exp_f(k, n, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+
+      if (qom2t > r)
+        break;
+    }
+  } else {
+    for (qom2t = 0., u = k + turn + 1; u < n - turn - 1; u++) {
+      qom2t += qm1[jindx[u] + k] * qm1[jindx[n] + (u + 1)];
+      if (qom2t > r)
+        break;
+    }
   }
+
   if (u == n - turn)
     vrna_message_error("backtrack failed in qm2");
 
@@ -614,30 +628,12 @@ backtrack(int                   i,
     r             = vrna_urn() * qb[my_iindx[i] - j];
     type          = vrna_get_ptype(jindx[j] + i, ptype);
     hc_decompose  = hard_constraints[jindx[j] + i];
-    if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
-      /* hairpin contribution */
-      u = j - i - 1;
 
-      if (((type == 3) || (type == 4)) && noGUclosure) {
-        qbt1 = 0;
-      } else {
-        q_temp =
-          exp_E_Hairpin(u, type, S1[i + 1], S1[j - 1], sequence + i - 1, pf_params) * scale[u + 2];
+    /* hairpin contribution */
+    qbt1 = vrna_exp_E_hp_loop(vc, i, j);
 
-        if (sc) {
-          if (sc->exp_energy_up)
-            q_temp *= sc->exp_energy_up[i + 1][u];
-
-          if (sc->exp_f)
-            q_temp *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
-        }
-
-        qbt1 = q_temp;
-      }
-
-      if (qbt1 >= r)
-        return;            /* found the hairpin we're done */
-    }
+    if (qbt1 >= r)
+      return;            /* found the hairpin we're done */
 
     if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
       /* interior loop contributions */
@@ -672,6 +668,9 @@ backtrack(int                   i,
               if (sc->exp_energy_up)
                 q_temp *= sc->exp_energy_up[i + 1][u1]
                           * sc->exp_energy_up[l + 1][u2];
+
+              if (sc->exp_energy_bp)
+                q_temp *= sc->exp_energy_bp[jindx[j] + i];
 
               if (sc->exp_energy_stack) {
                 if ((i + 1 == k) && (j - 1 == l)) {
@@ -715,26 +714,45 @@ backtrack(int                   i,
     closingPair = pf_params->expMLclosing
                   * exp_E_MLstem(tt, S1[j - 1], S1[i + 1], pf_params)
                   * scale[2];
-    if (sc)
+    if (sc) {
+      if (sc->exp_energy_bp)
+        q_temp *= sc->exp_energy_bp[jindx[j] + i];
+
       if (sc->exp_f)
         closingPair *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_ML, sc->data);
+    }
 
     i++;
     j--;
     /* find the first split index */
     ii  = my_iindx[i];  /* ii-j=[i,j] */
     jj  = jindx[j];     /* jj+i=[j,i] */
-    for (qt = qbt1, k = i + 1; k < j; k++) {
-      q_temp = qm[ii - (k - 1)] * qm1[jj + k] * closingPair;
 
-      if (sc)
-        if (sc->exp_f)
-          q_temp *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+    if ((sc) && (sc->exp_f)) {
+      for (qt = qbt1, k = i + 1; k < j; k++) {
+        q_temp =  qm[ii - (k - 1)] *
+                  qm1[jj + k] *
+                  closingPair *
+                  sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
 
-      qt    += q_temp;
-      qbt1  += q_temp;
-      if (qt >= r)
-        break;
+        qt    += q_temp;
+        qbt1  += q_temp;
+
+        if (qt >= r)
+          break;
+      }
+    } else {
+      for (qt = qbt1, k = i + 1; k < j; k++) {
+        q_temp =  qm[ii - (k - 1)] *
+                  qm1[jj + k] *
+                  closingPair;
+
+        qt    += q_temp;
+        qbt1  += q_temp;
+
+        if (qt >= r)
+          break;
+      }
     }
     if (k >= j)
       vrna_message_error("backtrack failed, can't find split index ");
@@ -750,7 +768,7 @@ backtrack(int                   i,
 PRIVATE char *
 wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
 {
-  FLT_OR_DBL        r, qt;
+  FLT_OR_DBL        r, qt, q_temp;
   int               i, j, k, l, n;
   vrna_exp_param_t  *pf_params;
   FLT_OR_DBL        qo, qmo;
@@ -758,8 +776,8 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
   char              *sequence, *ptype, *pstruc;
   int               *my_iindx, *jindx;
   short             *S1;
-
   vrna_mx_pf_t      *matrices;
+  vrna_sc_t         *sc;
 
   pf_params = vc->exp_params;
   matrices  = vc->exp_matrices;
@@ -767,6 +785,7 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
   my_iindx  = vc->iindx;
   jindx     = vc->jindx;
   S1        = vc->sequence_encoding;
+  sc        = vc->sc;
 
   if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) || (!pf_params)) {
     vrna_message_warning("vrna_pbacktrack: DP matrices are missing! Call vrna_pf() first!");
@@ -804,6 +823,15 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
     pstruc[i] = '.';
 
   qt  = 1.0 * scale[n];
+  /* add soft constraints for open chain configuration */
+  if (sc) {
+    if (sc->exp_energy_up)
+      qt *= sc->exp_energy_up[1][n];
+
+    if (sc->exp_f)
+      qt *= sc->exp_f(1, n, 1, n, VRNA_DECOMP_EXT_UP, sc->data);
+  }
+
   r   = vrna_urn() * qo;
 
   /* open chain? */
@@ -831,7 +859,8 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
       }
 
       qt += qb[my_iindx[i] - j] *
-            exp_E_Hairpin(u, type, S1[j + 1], S1[i - 1], loopseq, pf_params) * scale[u];
+            vrna_exp_E_hp_loop(vc, j, i);
+
       /* found a hairpin? so backtrack in the enclosed part and we're done  */
       if (qt > r) {
         backtrack(i, j, pstruc, vc);
@@ -850,28 +879,49 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
           lstart = k + turn + 1;
 
         for (l = lstart; (l <= n); l++) {
-          int ln2, type2;
-          ln2 = (i - 1) + (n - l);
-          if ((ln1 + ln2) > MAXLOOP)
+          int ln2, ln3, type2;
+          ln2 = (i - 1);
+          ln3 = (n - l);
+          if ((ln1 + ln2 + ln3) > MAXLOOP)
             continue;
 
           type2 = ptype[jindx[l] + k];
           if (!type)
             continue;
 
-          type2 = rtype[type2];
-          qt    += qb[my_iindx[i] - j] *
-                   qb[my_iindx[k] - l] *
-                   exp_E_IntLoop(ln2,
-                                 ln1,
-                                 type2,
-                                 type,
-                                 S1[l + 1],
-                                 S1[k - 1],
-                                 S1[i - 1],
-                                 S1[j + 1],
-                                 pf_params) *
-                   scale[ln1 + ln2];
+          type2   = rtype[type2];
+          q_temp  = qb[my_iindx[i] - j] *
+                    qb[my_iindx[k] - l] *
+                    exp_E_IntLoop(ln2 + ln3,
+                                  ln1,
+                                  type2,
+                                  type,
+                                  S1[l + 1],
+                                  S1[k - 1],
+                                  S1[i - 1],
+                                  S1[j + 1],
+                                  pf_params) *
+                    scale[ln1 + ln2 + ln3];
+
+          if (sc) {
+            if (sc->exp_energy_up) {
+              q_temp *= sc->exp_energy_up[1][ln2] *
+                        sc->exp_energy_up[l + 1][ln3] *
+                        sc->exp_energy_up[j + 1][ln1];
+            }
+
+            if ((sc->exp_energy_stack) && (ln1 + ln2 + ln3 == 0)) {
+              q_temp *= sc->exp_energy_stack[i] *
+                        sc->exp_energy_stack[j] *
+                        sc->exp_energy_stack[k] *
+                        sc->exp_energy_stack[l];
+            }
+
+            if (sc->exp_f)
+              q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+          }
+
+          qt  += q_temp;
           /* found an exterior interior loop? also this time, we can go straight  */
           /* forward and backtracking the both enclosed parts and we're done      */
           if (qt > r) {
@@ -887,13 +937,29 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
     /* as we reach this part, we have to search for our barrier between qm and qm2  */
     qt  = 0.;
     r   = vrna_urn() * qmo;
-    for (k = turn + 2; k < n - 2 * turn - 3; k++) {
-      qt += qm[my_iindx[1] - k] * qm2[k + 1] * expMLclosing;
-      /* backtrack in qm and qm2 if we've found a valid barrier k  */
-      if (qt > r) {
-        backtrack_qm(1, k, pstruc, vc);
-        backtrack_qm2(k + 1, n, pstruc, vc);
-        return pstruc;
+    if ((sc) && (sc->exp_f)) {
+      for (k = turn + 2; k < n - 2 * turn - 3; k++) {
+        qt += qm[my_iindx[1] - k] *
+              qm2[k + 1] *
+              expMLclosing *
+              sc->exp_f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+
+        /* backtrack in qm and qm2 if we've found a valid barrier k  */
+        if (qt > r) {
+          backtrack_qm(1, k, pstruc, vc);
+          backtrack_qm2(k + 1, n, pstruc, vc);
+          return pstruc;
+        }
+      }
+    } else {
+      for (k = turn + 2; k < n - 2 * turn - 3; k++) {
+        qt += qm[my_iindx[1] - k] * qm2[k + 1] * expMLclosing;
+        /* backtrack in qm and qm2 if we've found a valid barrier k  */
+        if (qt > r) {
+          backtrack_qm(1, k, pstruc, vc);
+          backtrack_qm2(k + 1, n, pstruc, vc);
+          return pstruc;
+        }
       }
     }
   }

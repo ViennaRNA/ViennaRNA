@@ -1,4 +1,4 @@
-![GitHub release](https://img.shields.io/github/release/ViennaRNA/ViennaRNA.svg)
+[![GitHub release](https://img.shields.io/github/release/ViennaRNA/ViennaRNA.svg)](https://www.tbi.univie.ac.at/RNA/#download)
 [![Build Status](https://travis-ci.org/ViennaRNA/ViennaRNA.svg?branch=master)](https://travis-ci.org/ViennaRNA/ViennaRNA)
 [![Github All Releases](https://img.shields.io/github/downloads/ViennaRNA/ViennaRNA/total.svg)](https://github.com/ViennaRNA/ViennaRNA/releases)
 [![Conda](https://img.shields.io/conda/v/bioconda/viennarna.svg)](https://anaconda.org/bioconda/viennarna)
@@ -6,9 +6,9 @@
 
 # ViennaRNA Package
 
-## Version 2.4.8
+## Version 2.4.9
 
-See the [NEWS](NEWS) and [ChangeLog](ChangeLog) files for changes between versions.
+See the [NEWS](NEWS) and [CHANGELOG.md](CHANGELOG.md) files for changes between versions.
 
 ## About
 
@@ -113,7 +113,7 @@ perldoc relplot.pl
 
 If you use our software package, you may want to cite
 
-[R. Lorenz et al. (2004)](https://almob.biomedcentral.com/articles/10.1186/1748-7188-6-26),
+[R. Lorenz et al. (2011)](https://almob.biomedcentral.com/articles/10.1186/1748-7188-6-26),
 "ViennaRNA Package 2.0", Algorithms for Molecular Biology, 6:26
 
 and
