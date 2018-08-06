@@ -309,15 +309,8 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
         current_node = traceback_to_ll_root(current_node, den);
 #endif
       }
-
       /* print warning if we've aborted backtracking too early */
       if ((i > 0) && (i < num_samples)) {
-        den = vc->exp_matrices->q[vc->iindx[1] - vc->length];
-#ifdef VRNA_NR_SAMPLING_HASH
-        current_node = traceback_to_root(current_node, den);
-#else
-        current_node = traceback_to_ll_root(current_node, den);
-#endif
         vrna_message_warning("vrna_pbacktrack_nr*(): Stopped backtracking after %d samples due to numeric instabilities!\n"
                              "Coverage of partition function so far: %f%%",
                              i,
