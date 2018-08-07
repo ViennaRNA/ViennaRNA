@@ -282,17 +282,19 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
         NULL, 0
       };
       NR_NODE *current_node;
-
+	  NR_NODE *root_node;	
+	
       den       = 0;
       part_fci  = vc->exp_matrices->q[vc->iindx[1] - vc->length];
 
 #ifdef VRNA_NR_SAMPLING_HASH
-      current_node = create_root(vc->length);
+      root_node = create_root(vc->length);
 #else
       memory_dat.nr_memory_allocated = vrna_alloc(vc->length * num_samples * sizeof(NR_NODE));  // memory pre-allocation
-      current_node = create_ll_root(&memory_dat);
+      root_node = create_ll_root(&memory_dat);
+      
 #endif
-
+      current_node = root_node;	
 
       for (i = 0; i < num_samples; i++) {
         den = vc->exp_matrices->q[vc->iindx[1] - vc->length];
@@ -314,7 +316,7 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
         vrna_message_warning("vrna_pbacktrack_nr*(): Stopped backtracking after %d samples due to numeric instabilities!\n"
                              "Coverage of partition function so far: %f%%",
                              i,
-                             100. * current_node->weight / part_fci);
+                             100. * root_node->weight / part_fci);
       }
 
 #ifdef VRNA_NR_SAMPLING_HASH
@@ -1555,8 +1557,10 @@ backtrack(int                   i,
     }
 
     if (k >= j) {
-      if (current_node)
+      if (current_node){
         return 0; /* backtrack failed for non-redundant mode most likely due to numerical instabilities */
+        
+	  }
       else
         vrna_message_error("backtrack failed, can't find split index ");
     }
