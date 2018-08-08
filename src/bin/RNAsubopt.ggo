@@ -252,7 +252,7 @@ optional
 option  "sorted"  s
 "Sort the suboptimal structures by energy.\n"
 details="Since the sort in is done in memory, this becomes impractical when the number of structures produced\
- goes into millions. In such cases better pipe the output through \"sort +1n\".\n\n"
+ goes into millions. In such cases better pipe the output through \"sort -k 2,2n -k 1,1dr\".\n\n"
 flag
 off
 
