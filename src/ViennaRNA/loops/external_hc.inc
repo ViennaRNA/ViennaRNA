@@ -165,6 +165,13 @@ hc_default(int            i,
       eval  = (dat->hc_up[i] >= di) ? (unsigned char)1 : (unsigned char)0;
       break;
 
+    case VRNA_DECOMP_EXT_STEM_OUTSIDE:
+      kl = dat->idx[l] + k;
+      if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)
+        eval = (unsigned char)1;
+
+      break;
+
     default:
       vrna_message_warning("hc_cb@exterior_loops.c: "
                            "Unrecognized decomposition %d",
