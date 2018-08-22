@@ -4,10 +4,10 @@
  */
 
 struct default_data {
-  int                       *idx;
   unsigned char             *mx;
   unsigned char             **mx_window;
   unsigned int              *sn;
+  unsigned int              n;
   int                       *hc_up;
   void                      *hc_dat;
   vrna_callback_hc_evaluate *hc_f;
@@ -114,13 +114,15 @@ hc_default(int            i,
            unsigned char  d,
            void           *data)
 {
-  int                 ij, kl, di, dj, u;
   unsigned char       eval;
+  unsigned int        n;
+  int                 di, dj, u;
   struct default_data *dat = (struct default_data *)data;
 
   eval  = (unsigned char)0;
   di    = k - i;
   dj    = j - l;
+  n     = dat->n;
 
   switch (d) {
     case VRNA_DECOMP_ML_ML_ML:
@@ -145,8 +147,7 @@ hc_default(int            i,
       break;
 
     case VRNA_DECOMP_ML_STEM:
-      kl = dat->idx[l] + k;
-      if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+      if (dat->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
         eval = (unsigned char)1;
         if ((di != 0) && (dat->hc_up[i] < di))
           eval = (unsigned char)0;
@@ -158,8 +159,7 @@ hc_default(int            i,
       break;
 
     case VRNA_DECOMP_PAIR_ML:
-      ij = dat->idx[j] + i;
-      if (dat->mx[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+      if (dat->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
         eval = (unsigned char)1;
         di--;
         dj--;
@@ -173,17 +173,14 @@ hc_default(int            i,
       break;
 
     case VRNA_DECOMP_ML_COAXIAL:
-      kl = dat->idx[l] + k;
-      if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
+      if (dat->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
         eval = (unsigned char)1;
 
       break;
 
     case VRNA_DECOMP_ML_COAXIAL_ENC:
-      ij  = dat->idx[j] + i;
-      kl  = dat->idx[l] + k;
-      if ((dat->mx[ij] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) &&
-          (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC))
+      if ((dat->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) &&
+          (dat->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC))
         eval = (unsigned char)1;
 
       break;
@@ -353,17 +350,19 @@ hc_default_ext(int            i,
                unsigned char  d,
                void           *data)
 {
-  int                 kl, di, dj;
+  unsigned int        n;
+  int                 di, dj;
   unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
 
   eval  = (unsigned char)0;
   di    = k - i;
   dj    = j - l;
+  n     = dat->n;
+
   switch (d) {
     case VRNA_DECOMP_EXT_EXT_STEM:
-      kl = dat->idx[j] + l;
-      if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+      if (dat->mx[n * j + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         eval = (unsigned char)1;
         if (i != l) {
           /* otherwise, stem spans from i to j */
@@ -376,8 +375,7 @@ hc_default_ext(int            i,
       break;
 
     case VRNA_DECOMP_EXT_STEM_EXT:
-      kl = dat->idx[k] + i;
-      if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+      if (dat->mx[n * i + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         eval = (unsigned char)1;
         if (j != k) {
           /* otherwise, stem spans from i to j */
@@ -390,8 +388,7 @@ hc_default_ext(int            i,
       break;
 
     case VRNA_DECOMP_EXT_EXT_STEM1:
-      kl = dat->idx[j - 1] + l;
-      if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+      if (dat->mx[n * (j - 1) + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         eval = (unsigned char)1;
 
         if (dat->hc_up[j] == 0)
@@ -409,8 +406,7 @@ hc_default_ext(int            i,
       break;
 
     case VRNA_DECOMP_EXT_STEM_EXT1:
-      kl = dat->idx[k] + i + 1;
-      if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+      if (dat->mx[n * (i + 1) + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         eval = (unsigned char)1;
         if (dat->hc_up[i] == 0)
           eval = (unsigned char)0;
@@ -426,8 +422,7 @@ hc_default_ext(int            i,
       break;
 
     case VRNA_DECOMP_EXT_STEM:
-      kl = dat->idx[l] + k;
-      if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+      if (dat->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         eval = (unsigned char)1;
         if ((di != 0) && (dat->hc_up[i] < di))
           eval = (unsigned char)0;
@@ -559,8 +554,8 @@ PRIVATE INLINE vrna_callback_hc_evaluate *
 prepare_hc_default(vrna_fold_compound_t *fc,
                    struct default_data  *dat)
 {
-  dat->idx        = fc->jindx;
-  dat->mx         = fc->hc->matrix;
+  dat->mx         = fc->hc->mx;
+  dat->n          = fc->hc->n;
   dat->mx_window  = fc->hc->matrix_local;
   dat->hc_up      = fc->hc->up_ml;
   dat->sn         = fc->strand_number;
@@ -587,7 +582,6 @@ PRIVATE INLINE vrna_callback_hc_evaluate *
 prepare_hc_default_window(vrna_fold_compound_t  *fc,
                           struct default_data   *dat)
 {
-  dat->idx        = fc->jindx;
   dat->mx_window  = fc->hc->matrix_local;
   dat->hc_up      = fc->hc->up_ml;
   dat->sn         = fc->strand_number;
@@ -606,8 +600,8 @@ PRIVATE INLINE vrna_callback_hc_evaluate *
 prepare_hc_default_ext(vrna_fold_compound_t *fc,
                        struct default_data  *dat)
 {
-  dat->idx    = fc->jindx;
-  dat->mx     = fc->hc->matrix;
+  dat->mx     = fc->hc->mx;
+  dat->n      = fc->hc->n;
   dat->hc_up  = fc->hc->up_ext;
   dat->sn     = fc->strand_number;
 

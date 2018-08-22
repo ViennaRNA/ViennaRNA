@@ -5,7 +5,6 @@
 
 struct default_data {
   int                       n;
-  int                       *idx;
   unsigned char             *mx;
   unsigned char             **mx_window;
   unsigned int              *sn;
@@ -74,7 +73,7 @@ hc_default(int            i,
            unsigned char  d,
            void           *data)
 {
-  int                 ij, u, p, q;
+  int                 u, p, q;
   unsigned char       eval;
   struct default_data *dat = (struct default_data *)data;
 
@@ -92,8 +91,7 @@ hc_default(int            i,
     u = dat->n - q + p - 1;
   }
 
-  ij = dat->idx[q] + p;
-  if (dat->mx[ij] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
+  if (dat->mx[dat->n * p + q] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
     eval = (unsigned char)1;
     if (dat->hc_up[i + 1] < u)
       eval = (unsigned char)0;
@@ -169,8 +167,7 @@ PRIVATE INLINE vrna_callback_hc_evaluate *
 prepare_hc_default(vrna_fold_compound_t *fc,
                    struct default_data  *dat)
 {
-  dat->idx    = fc->jindx;
-  dat->mx     = fc->hc->matrix;
+  dat->mx     = fc->hc->mx;
   dat->hc_up  = fc->hc->up_hp;
   dat->n      = fc->length;
   dat->sn     = fc->strand_number;
@@ -189,7 +186,6 @@ PRIVATE INLINE vrna_callback_hc_evaluate *
 prepare_hc_default_window(vrna_fold_compound_t  *fc,
                           struct default_data   *dat)
 {
-  dat->idx        = fc->jindx;
   dat->mx_window  = fc->hc->matrix_local;
   dat->hc_up      = fc->hc->up_hp;
   dat->n          = fc->length;

@@ -98,7 +98,7 @@ BT_stack(vrna_fold_compound_t *fc,
   unsigned char         sliding_window, eval_loop, hc_decompose_ij, hc_decompose_pq;
   char                  *ptype, **ptype_local;
   short                 **SS;
-  unsigned int          n_seq, s, *sn, *ss, type, type_2;
+  unsigned int          n, n_seq, s, *sn, *ss, type, type_2;
   int                   ret, eee, ij, p, q, *idx, *my_c, **c_local, *rtype;
   vrna_param_t          *P;
   vrna_md_t             *md;
@@ -108,6 +108,7 @@ BT_stack(vrna_fold_compound_t *fc,
   struct sc_wrapper_int sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
+  n               = fc->length;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   sn              = fc->strand_number;
   ss              = fc->strand_start;
@@ -135,8 +136,8 @@ BT_stack(vrna_fold_compound_t *fc,
     /*  always true, if (i.j) closes canonical structure,
      * thus (i+1.j-1) must be a pair
      */
-    hc_decompose_ij = (sliding_window) ? hc->matrix_local[*i][*j - *i] : hc->matrix[ij];
-    hc_decompose_pq = (sliding_window) ? hc->matrix_local[p][q - p] : hc->matrix[idx[q] + p];
+    hc_decompose_ij = (sliding_window) ? hc->matrix_local[*i][*j - *i] : hc->mx[n * (*i) + (*j)];
+    hc_decompose_pq = (sliding_window) ? hc->matrix_local[p][q - p] : hc->mx[n * p + q];
 
     eval_loop = (hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
                 (hc_decompose_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
@@ -210,7 +211,7 @@ BT_int_loop(vrna_fold_compound_t  *fc,
   unsigned char       sliding_window, hc_decompose_ij, hc_decompose_pq;
   unsigned char       eval_loop;
   short               *S2, **SS;
-  unsigned int        n_seq, s, *sn, type, *tt;
+  unsigned int        n, n_seq, s, *sn, type, *tt;
   int                 ij, p, q, minq, turn, *idx, no_close, energy, *my_c,
                       **c_local, ret;
   vrna_param_t        *P;
@@ -221,6 +222,7 @@ BT_int_loop(vrna_fold_compound_t  *fc,
 
   ret             = 0;
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
+  n               = fc->length;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   sn              = fc->strand_number;
   S2              = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
@@ -236,7 +238,7 @@ BT_int_loop(vrna_fold_compound_t  *fc,
   tt              = NULL;
   evaluate        = prepare_hc_default(fc, &hc_dat_local);
 
-  hc_decompose_ij = (sliding_window) ? hc->matrix_local[*i][*j - *i] : hc->matrix[ij];
+  hc_decompose_ij = (sliding_window) ? hc->matrix_local[*i][*j - *i] : hc->mx[n * (*i) + (*j)];
 
   if (hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
     for (p = *i + 1; p <= MIN2(*j - 2 - turn, *i + MAXLOOP + 1); p++) {
@@ -253,7 +255,7 @@ BT_int_loop(vrna_fold_compound_t  *fc,
 
         hc_decompose_pq = (sliding_window) ?
                           hc->matrix_local[p][q - p] :
-                          hc->matrix[idx[q] + p];
+                          hc->mx[n * p + q];
 
         eval_loop = hc_decompose_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
 
