@@ -1,28 +1,3 @@
-
-AC_DEFUN([RNA_GET_UNIT_TESTS],[
-  ## collect the unit tests we gonna perform
-  _unittests_active=0
-  AS_IF([test "x$with_check" = "xyes"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [C-Library])
-    _unittests_active=1
-  ])
-  AS_IF([test "x$enable_check_perl" = "xyes"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [Perl 5])
-    _unittests_active=1
-  ])
-  AS_IF([test "x$enable_check_python" = "xyes"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [Python 2])
-    _unittests_active=1
-  ])
-  AS_IF([test "x$enable_check_python3" = "xyes"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [Python 3])
-    _unittests_active=1
-  ])
-  AS_IF([test "x$enable_unittests" = "xno" || test "$_unittests_active" -eq "0"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [None])
-  ])
-])
-
 #
 # Unit tests with libcheck
 #

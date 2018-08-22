@@ -1,13 +1,6 @@
 # RNA_ENABLE_TUTORIAL(PROJECT_NAME, [documentation-output-directory])
 #
 #
-AC_DEFUN([RNA_GET_TUTORIAL],[
-  ## collect the subpackages/programs we gonna build
-  AS_IF([test "x$with_tutorial" != "xyes"], [ AC_RNA_APPEND_VAR_COMMA($1, [None]) ])
-  AS_IF([test "x$with_tutorial_pdf" = "xyes"], [ AC_RNA_APPEND_VAR_COMMA($1, [PDF]) ])
-  AS_IF([test "x$with_tutorial_html" = "xyes"], [ AC_RNA_APPEND_VAR_COMMA($1, [HTML]) ])
-])
-
 AC_DEFUN([RNA_ENABLE_TUTORIAL],[
 
 RNA_ADD_PACKAGE([tutorial_pdf],
