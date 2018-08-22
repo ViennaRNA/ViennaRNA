@@ -33,13 +33,13 @@ vrna_maximum_matching(vrna_fold_compound_t *fc)
   idx   = fc->jindx;
   turn  = fc->params->model_details.min_loop_size;
   hc    = fc->hc;
-  mx    = hc->matrix;
+  mx    = hc->mx;
   hc_up = (unsigned char *)vrna_alloc(sizeof(unsigned char) * n);
   mm    = (int *)vrna_alloc(sizeof(int) * (n * n));
 
   /* comply with hard constraints for unpaired positions */
   for (i = n - 1; i >= 0; i--)
-    if (mx[idx[i + 1] + i + 1] & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
+    if (mx[n * (i + 1) + i + 1] & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
       hc_up[i] = 1;
 
   /* initialize DP matrix */
@@ -55,7 +55,7 @@ vrna_maximum_matching(vrna_fold_compound_t *fc)
       max = -1;
 
       /* 1st case: i pairs with j */
-      if (mx[idx[j + 1] + i + 1] & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS) {
+      if (mx[n * (i + 1) + j + 1] & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS) {
         max2 = mm[n * (i + 1) + j - 1];
 
         if (max2 != -1) {
