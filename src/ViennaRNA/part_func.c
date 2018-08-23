@@ -471,19 +471,20 @@ decompose_pair(vrna_fold_compound_t *fc,
                int                  j,
                vrna_mx_pf_aux_ml_t  aux_mx_ml)
 {
-  int         ij, *jindx, *pscore;
-  FLT_OR_DBL  contribution;
-  double      kTn;
-  vrna_hc_t   *hc;
+  unsigned int  n;
+  int           *jindx, *pscore;
+  FLT_OR_DBL    contribution;
+  double        kTn;
+  vrna_hc_t     *hc;
 
   contribution  = 0.;
+  n             = fc->length;
   pscore        = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->pscore : NULL;
   jindx         = fc->jindx;
-  ij            = jindx[j] + i;
   kTn           = fc->exp_params->kT / 10.;  /* kT in cal/mol */
   hc            = fc->hc;
 
-  if (hc->matrix[ij]) {
+  if (hc->mx[j * n + i]) {
     /* process hairpin loop(s) */
     contribution += vrna_exp_E_hp_loop(fc, i, j);
     /* process interior loop(s) */
