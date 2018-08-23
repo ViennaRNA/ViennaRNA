@@ -183,7 +183,7 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
   S1  = vc->sequence_encoding;
   S2  = vc->sequence_encoding2;
 
-  hard_constraints  = hc->matrix;
+  hard_constraints  = hc->mx;
   hc_up_ext         = hc->up_ext;
 
   if (length > n) {
@@ -258,7 +258,7 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
       i = (int)(1 + (u - 1) * ((k - 1) % 2)) +
           (int)((1 - (2 * ((k - 1) % 2))) * ((k - 1) / 2));
       ij            = my_iindx[i] - j;
-      hc_decompose  = hard_constraints[jindx[j] + i];
+      hc_decompose  = hard_constraints[n * j + i];
       if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         type  = vrna_get_ptype_md(S2[i], S2[j], md);
         qkl   = qb[ij] * exp_E_ExtLoop(type,
@@ -317,7 +317,7 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
     for (qt = 0, j = i + 1; j <= length; j++) {
       ij            = my_iindx[i] - j;
       type          = vrna_get_ptype(jindx[j] + i, ptype);
-      hc_decompose  = hard_constraints[jindx[j] + i];
+      hc_decompose  = hard_constraints[n * i + j];
       if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         qkl = qb[ij] * exp_E_ExtLoop(type,
                                      (i > 1) ? S1[i - 1] : -1,
@@ -462,6 +462,7 @@ backtrack_qm1(int                   i,
               vrna_fold_compound_t  *vc)
 {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
+  unsigned int      n;
   int               ii, l, il, type, turn;
   FLT_OR_DBL        qt, r, q_temp;
   FLT_OR_DBL        *qm1, *qb, *expMLbase;
@@ -474,7 +475,7 @@ backtrack_qm1(int                   i,
   vrna_hc_t         *hc;
   vrna_exp_param_t  *pf_params;
 
-
+  n         = vc->length;
   pf_params = vc->exp_params;
   my_iindx  = vc->iindx;
   jindx     = vc->jindx;
@@ -484,7 +485,7 @@ backtrack_qm1(int                   i,
   sc                = vc->sc;
   hc                = vc->hc;
   hc_up_ml          = hc->up_ml;
-  hard_constraints  = hc->matrix;
+  hard_constraints  = hc->mx;
 
   matrices  = vc->exp_matrices;
   qb        = matrices->qb;
@@ -498,7 +499,7 @@ backtrack_qm1(int                   i,
   ii  = my_iindx[i];
   for (qt = 0., l = j; l > i + turn; l--) {
     il = jindx[l] + i;
-    if (hard_constraints[il] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+    if (hard_constraints[n * i + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
       u = j - l;
       if (hc_up_ml[l + 1] >= u) {
         type    = vrna_get_ptype(il, ptype);
@@ -587,11 +588,13 @@ backtrack(int                   i,
   FLT_OR_DBL        *qb, *qm, *qm1, *scale;
   FLT_OR_DBL        r, qbt1, qt, q_temp;
   vrna_mx_pf_t      *matrices;
+  unsigned int      n;
   int               *my_iindx, *jindx, *hc_up_int;
   vrna_sc_t         *sc;
   vrna_hc_t         *hc;
   short             *S1;
 
+  n         = vc->length;
   sequence  = vc->sequence;
   pf_params = vc->exp_params;
   ptype     = vc->ptype;
@@ -602,7 +605,7 @@ backtrack(int                   i,
   sc                = vc->sc;
   hc                = vc->hc;
   hc_up_int         = hc->up_int;
-  hard_constraints  = hc->matrix;
+  hard_constraints  = hc->mx;
 
   matrices  = vc->exp_matrices;
   qb        = matrices->qb;
@@ -627,7 +630,7 @@ backtrack(int                   i,
 
     r             = vrna_urn() * qb[my_iindx[i] - j];
     type          = vrna_get_ptype(jindx[j] + i, ptype);
-    hc_decompose  = hard_constraints[jindx[j] + i];
+    hc_decompose  = hard_constraints[n * i + j];
 
     /* hairpin contribution */
     qbt1 = vrna_exp_E_hp_loop(vc, i, j);
@@ -648,7 +651,7 @@ backtrack(int                   i,
           if (hc_up_int[l + 1] < u2)
             break;
 
-          if (hard_constraints[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
+          if (hard_constraints[n * k + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
             unsigned int type_2 = rtype[vrna_get_ptype(jindx[l] + k, ptype)];
 
             /* add *scale[u1+u2+2] */
