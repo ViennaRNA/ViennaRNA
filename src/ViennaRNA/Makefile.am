@@ -95,6 +95,7 @@ pkginclude_HEADERS =  \
     fold.h \
     part_func.h \
     part_func_window.h \
+    pf_multifold.h \
     stringdist.h \
     edit_cost.h \
     fold_vars.h \
@@ -264,6 +265,7 @@ libRNA_conv_la_SOURCES = \
     part_func.c \
     part_func_wrappers.c \
     pf_fold.c \
+    pf_multifold.c \
     treedist.c \
     inverse.c \
     ProfileDist.c \
