@@ -17,7 +17,7 @@ function testline {
 
 # Test G-Quadruplex feature
 testline "G-Quadruplex feature (MFE, centroid, MEA)"
-RNAalifold -q --noPS -g --auto-id --id-prefix="rnaalifold_gquad_test" \
+RNAalifold -q --noPS -g --auto-id --id-prefix="rnaalifold_gquad_test" -p --MEA \
   ${DATADIR}/adam10_5utr.aln \
   ${DATADIR}/bcl-2_5utr.aln \
   ${DATADIR}/crem_5utr.aln \
@@ -49,6 +49,6 @@ if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
 
 
 # clean up
-rm rnaalifold_special.fold
+rm rnaalifold_special.fold rnaalifold_gquad*_dp.ps rnaalifold_gquad*_ali.out
 
 exit ${RETURN}

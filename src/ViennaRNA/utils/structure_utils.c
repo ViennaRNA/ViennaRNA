@@ -1081,7 +1081,7 @@ wrap_plist(vrna_fold_compound_t *vc,
   vrna_mx_pf_t      *matrices;
   vrna_exp_param_t  *pf_params;
 
-  S         = vc->sequence_encoding2;
+  S         = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding2 : vc->S_cons;
   index     = vc->iindx;
   length    = vc->length;
   pf_params = vc->exp_params;
@@ -1118,9 +1118,10 @@ wrap_plist(vrna_fold_compound_t *vc,
         (pl)[count].j       = j;
         (pl)[count].p       = (float)probs[index[i] - j];
         (pl)[count++].type  = VRNA_PLIST_TYPE_GQUAD;
+
         /* now add the probabilies of it's actual pairing patterns */
         vrna_ep_t *inner, *ptr;
-        inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
+        inner = vrna_get_plist_gquad_from_pr(vc, i, j);
         for (ptr = inner; ptr->i != 0; ptr++) {
           if (count == n * length - 1) {
             n   *= 2;

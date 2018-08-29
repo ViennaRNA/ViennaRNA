@@ -170,6 +170,11 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
 
 
 PRIVATE void
+compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
+                                        int                   l);
+
+
+PRIVATE void
 compute_bpp_multibranch(vrna_fold_compound_t  *fc,
                         int                   l,
                         helper_arrays         *ml_helpers,
@@ -527,11 +532,13 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                             FLT_OR_DBL            *Qmax,
                             int                   *ov);
 
-    compute_bpp_int =
-      (vc->type == VRNA_FC_TYPE_SINGLE) ? &compute_bpp_internal : &compute_bpp_internal_comparative;
-    compute_bpp_mul =
-      (vc->type ==
-       VRNA_FC_TYPE_SINGLE) ? &compute_bpp_multibranch : &compute_bpp_multibranch_comparative;
+    if (vc->type == VRNA_FC_TYPE_SINGLE) {
+      compute_bpp_int = &compute_bpp_internal;
+      compute_bpp_mul = &compute_bpp_multibranch;
+    } else {
+      compute_bpp_int = &compute_bpp_internal_comparative;
+      compute_bpp_mul = &compute_bpp_multibranch_comparative;
+    }
 
     Qmax = 0;
 
@@ -638,10 +645,12 @@ pf_create_bppm(vrna_fold_compound_t *vc,
             probs[ij] *= qb[ij];
             if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
               probs[ij] *= exp(-pscore[jindx[j] + i] / kTn);
+          } else if (G[ij] > 0.) {
+            probs[ij] +=  q1k[i - 1] *
+                          G[ij] *
+                          qln[j + 1] /
+                          q1k[n];
           }
-
-          if (G[ij] > 0.)
-            probs[ij] += q1k[i - 1] * G[ij] * qln[j + 1] / q1k[n];
         } else {
           if (qb[ij] > 0.) {
             probs[ij] *= qb[ij];
@@ -1232,11 +1241,8 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
 
   free(tt);
 
-#if 0
   if (md->gquad)
-    compute_gquad_prob_internal(fc, l);
-
-#endif
+    compute_gquad_prob_internal_comparative(fc, l);
 }
 
 
@@ -1531,9 +1537,9 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
   unsigned char     tt;
   short             **S, **S5, **S3;
   unsigned int      **a2s, s, n_seq;
-  int               i, j, k, n, ii, kl, ll, turn, *my_iindx, *jindx, *pscore;
-  FLT_OR_DBL        temp, pp, prm_MLb, prmt, prmt1, *qb, *probs, *qm, *scale,
-                    *expMLbase, expMLclosing;
+  int               i, j, k, n, ii, kl, ll, turn, *my_iindx, *jindx, *pscore, with_gquad;
+  FLT_OR_DBL        temp, pp, prm_MLb, prmt, prmt1, *qb, *probs, *qm, *G, *scale,
+                    *expMLbase, expMLclosing, expMLstem;
   double            max_real, kTn;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
@@ -1554,12 +1560,15 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
   turn          = md->min_loop_size;
   qb            = fc->exp_matrices->qb;
   qm            = fc->exp_matrices->qm;
+  G             = fc->exp_matrices->G;
   probs         = fc->exp_matrices->probs;
   scale         = fc->exp_matrices->scale;
   expMLbase     = fc->exp_matrices->expMLbase;
   expMLclosing  = pf_params->expMLclosing;
+  with_gquad    = md->gquad;
   hc            = fc->hc;
   scs           = fc->scs;
+  expMLstem     = (with_gquad) ? (FLT_OR_DBL)pow(exp_E_MLstem(0, -1, -1, pf_params), (double)n_seq) : 0;
 
   prm_MLb   = 0.;
   max_real  = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
@@ -1652,18 +1661,29 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
 
       ml_helpers->prml[i] = ml_helpers->prml[i] + ml_helpers->prm_l[i];
 
-      if (qb[kl] == 0.)
-        continue;
+      if (with_gquad) {
+        if ((qb[kl] == 0.) && (G[kl] == 0.))
+          continue;
+      } else {
+        if (qb[kl] == 0.)
+          continue;
+      }
 
       temp = prm_MLb;
 
       for (i = 1; i <= k - 2; i++)
         temp += ml_helpers->prml[i] * qm[my_iindx[i + 1] - (k - 1)];
 
-      for (s = 0; s < n_seq; s++) {
-        tt    = vrna_get_ptype_md(S[s][k], S[s][l], md);
-        temp  *= exp_E_MLstem(tt, S5[s][k], S3[s][l], pf_params);
+      if ((with_gquad) && (qb[kl] == 0.)) {
+        temp *= G[kl] *
+                expMLstem;
+      } else {
+        for (s = 0; s < n_seq; s++) {
+          tt    = vrna_get_ptype_md(S[s][k], S[s][l], md);
+          temp  *= exp_E_MLstem(tt, S5[s][k], S3[s][l], pf_params);
+        }
       }
+
       probs[kl] += temp * scale[2] * exp(pscore[jindx[l] + k] / kTn);
     } else {
       /* (k,l) not allowed to be substem of multiloop closed by (i,j) */
@@ -1788,6 +1808,150 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
                  * qe
                  * (FLT_OR_DBL)expintern[u2]
                  * pf_params->expmismatchI[type][S1[i + 1]][S1[j - 1]]
+                 * scale[u2 + 2];
+      }
+      probs[kl] += tmp2 * G[kl];
+    }
+  }
+}
+
+
+PRIVATE void
+compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
+                                        int                   l)
+{
+  unsigned char     type;
+  short             *S_cons, **S, **S5, **S3;
+  unsigned int      **a2s, s, n_seq;
+  int               i, j, k, n, ij, kl, u1, u2, u1_local, u2_local, *my_iindx, *jindx;
+  FLT_OR_DBL        tmp2, qe, *G, *qb, *probs, *scale;
+  vrna_exp_param_t  *pf_params;
+  vrna_md_t         *md;
+
+  n         = (int)fc->length;
+  n_seq     = fc->n_seq;
+  S         = fc->S;
+  S_cons    = fc->S_cons;
+  S5        = fc->S5;
+  S3        = fc->S3;
+  a2s       = fc->a2s;
+  my_iindx  = fc->iindx;
+  jindx     = fc->jindx;
+  pf_params = fc->exp_params;
+  G         = fc->exp_matrices->G;
+  qb        = fc->exp_matrices->qb;
+  probs     = fc->exp_matrices->probs;
+  scale     = fc->exp_matrices->scale;
+  md        = &(pf_params->model_details);
+
+  /* 2.5. bonding k,l as gquad enclosed by i,j */
+  double *expintern = &(pf_params->expinternal[0]);
+
+  if (l < n - 3) {
+    for (k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
+      kl = my_iindx[k] - l;
+      if (G[kl] == 0.)
+        continue;
+
+      tmp2  = 0.;
+      i     = k - 1;
+      for (j = MIN2(l + MAXLOOP + 1, n); j > l + 3; j--) {
+        ij    = my_iindx[i] - j;
+        if (qb[ij] == 0.)
+          continue;
+
+        qe  = 1.;
+        u1  = j - l - 1;
+
+        for (s = 0; s < n_seq; s++) {
+          type      = vrna_get_ptype_md(S[s][i], S[s][j], md);
+          u1_local  = a2s[s][j - 1] - a2s[s][l];
+          qe        *=  (FLT_OR_DBL)expintern[u1_local];
+
+          if (md->dangles == 2)
+            qe *=  (FLT_OR_DBL)pf_params->expmismatchI[type][S3[s][i]][S5[s][j]];
+
+          if (type > 2)
+            qe *= (FLT_OR_DBL)pf_params->expTermAU;
+        }
+
+        tmp2  += probs[ij]
+                 * qe
+                 * scale[u1 + 2];
+      }
+      probs[kl] += tmp2 * G[kl];
+    }
+  }
+
+  if (l < n - 1) {
+    for (k = 3; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
+      kl = my_iindx[k] - l;
+      if (G[kl] == 0.)
+        continue;
+
+      tmp2 = 0.;
+      for (i = MAX2(1, k - MAXLOOP - 1); i <= k - 2; i++) {
+        u1 = k - i - 1;
+        for (j = l + 2; j <= MIN2(l + MAXLOOP - u1 + 1, n); j++) {
+          ij    = my_iindx[i] - j;
+          if (qb[ij] == 0.)
+            continue;
+
+          qe  = 1.;
+          u2  = j - l - 1;
+
+          for (s = 0; s < n_seq; s++) {
+            type      = vrna_get_ptype_md(S[s][i], S[s][j], md);
+            u1_local  = a2s[s][k - 1] - a2s[s][i];
+            u2_local  = a2s[s][j - 1] - a2s[s][l];
+            qe        *= (FLT_OR_DBL)expintern[u1_local + u2_local];
+
+            if (md->dangles == 2)
+              qe *= (FLT_OR_DBL)pf_params->expmismatchI[type][S3[s][i]][S5[s][j]];
+
+            if (type > 2)
+              qe *= (FLT_OR_DBL)pf_params->expTermAU;
+          }
+
+          tmp2  += probs[ij]
+                   * qe
+                   * scale[u1 + u2 + 2];
+        }
+      }
+      probs[kl] += tmp2 * G[kl];
+    }
+  }
+
+  if (l < n) {
+    for (k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
+      kl = my_iindx[k] - l;
+      if (G[kl] == 0.)
+        continue;
+
+      tmp2  = 0.;
+      j     = l + 1;
+      for (i = MAX2(1, k - MAXLOOP - 1); i < k - 3; i++) {
+        ij    = my_iindx[i] - j;
+        if (qb[ij] == 0.)
+          continue;
+
+        qe  = 1.;
+        u2  = k - i - 1;
+
+        for (s = 0; s < n_seq; s++) {
+          type      = vrna_get_ptype_md(S[s][i], S[s][j], md);
+          u2_local  = a2s[s][k - 1] - a2s[s][i];
+          qe        *= (FLT_OR_DBL)expintern[u2_local];
+
+          if (md->dangles == 2)
+            qe *= (FLT_OR_DBL)pf_params->expmismatchI[type][S3[s][i]][S5[s][j]];
+
+          if (type > 2)
+            qe *= (FLT_OR_DBL)pf_params->expTermAU;
+        }
+
+        tmp2  += probs[ij]
+                 * qe
                  * scale[u2 + 2];
       }
       probs[kl] += tmp2 * G[kl];

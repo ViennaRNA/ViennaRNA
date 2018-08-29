@@ -517,21 +517,32 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
         hc_mx -= n * k;
       }
 
-      if (with_gquad) {
+      if ((with_gquad) && (!noclose)) {
         switch (fc->type) {
           case VRNA_FC_TYPE_SINGLE:
-            if (!noclose) {
-              if (sliding_window) {
-                /* no G-Quadruplex support for sliding window partition function yet! */
-              } else if (sn[j] == sn[i]) {
-                qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, scale, my_iindx, pf_params);
-              }
+            if (sliding_window) {
+              /* no G-Quadruplex support for sliding window partition function yet! */
+            } else if (sn[j] == sn[i]) {
+              qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, scale, my_iindx, pf_params);
             }
 
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
-            /* no G-Quadruplex support for comparative partition function yet! */
+            if (sliding_window) {
+              /* no G-Quadruplex support for sliding window partition function yet! */
+            } else {
+              qbt1 += exp_E_GQuad_IntLoop_comparative(i, j,
+                                                      tt,
+                                                      fc->S_cons,
+                                                      S5, S3, a2s,
+                                                      G,
+                                                      scale,
+                                                      my_iindx,
+                                                      (int)n_seq,
+                                                      pf_params);
+            }
+
             break;
         }
       }

@@ -753,103 +753,28 @@ E_internal_loop(vrna_fold_compound_t  *fc,
       }
 
       if (with_gquad) {
-        int   c0, u, last_l;
-        short *S_cons;
+        /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
+        eee = INF;
 
         switch (fc->type) {
           case VRNA_FC_TYPE_SINGLE:
-            /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-            eee = INF;
-
             if (sliding_window)
               eee = E_GQuad_IntLoop_L(i, j, type, S, ggg_local, fc->window_size, P);
             else if (sn[j] == sn[i])
               eee = E_GQuad_IntLoop(i, j, type, S, ggg, idx, P);
 
-            e = MIN2(e, eee);
-
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
-            S_cons = fc->S_cons;
-            /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-            eee = 0;
-            for (s = 0; s < n_seq; s++) {
-              type = tt[s];
-              if (md->dangles == 2)
-                eee += P->mismatchI[type][S3[s][i]][S5[s][j]];
-
-              if (type > 2)
-                eee += P->TerminalAU;
-            }
-            for (k = i + 2; k < j - VRNA_GQUAD_MIN_BOX_SIZE; k++) {
-              u = k - i - 1;
-              if (u > MAXLOOP)
-                break;
-
-              if (S_cons[k] != 3)
-                continue;
-
-              first_l = j - i + k - MAXLOOP - 2;
-              c0      = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-              first_l = MAX2(c0, first_l);
-              c0      = j - 1;
-              last_l  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-              last_l  = MIN2(c0, last_l);
-              for (l = first_l; l < last_l; l++) {
-                if (S_cons[l] != 3)
-                  continue;
-
-                c0  = (sliding_window) ? ggg_local[k][l - k] : ggg[idx[l] + k];
-                c0  += eee +
-                       n_seq *
-                       P->internal_loop[u + j - l - 1];
-                e = MIN2(e, c0);
-              }
-            }
-
-            k = i + 1;
-            if (S_cons[k] == 3) {
-              if (k < j - VRNA_GQUAD_MIN_BOX_SIZE) {
-                first_l = j - i + k - MAXLOOP - 2;
-                c0      = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-                first_l = MAX2(c0, first_l);
-                c0      = j - 3;
-                last_l  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-                last_l  = MIN2(c0, last_l);
-                for (l = first_l; l < last_l; l++) {
-                  if (S_cons[l] != 3)
-                    continue;
-
-                  c0  = (sliding_window) ? ggg_local[k][l - k] : ggg[idx[l] + k];
-                  c0  += eee +
-                         n_seq *
-                         P->internal_loop[j - l - 1];
-                  e = MIN2(e, c0);
-                }
-              }
-            }
-
-            l = j - 1;
-            if (S_cons[l] == 3) {
-              for (k = i + 4; k < j - VRNA_GQUAD_MIN_BOX_SIZE; k++) {
-                u = k - i - 1;
-                if (u > MAXLOOP)
-                  break;
-
-                if (S_cons[k] != 3)
-                  continue;
-
-                c0  = (sliding_window) ? ggg_local[k][l - k] : ggg[idx[l] + k];
-                c0  += eee +
-                       n_seq *
-                       P->internal_loop[u];
-                e = MIN2(e, c0);
-              }
-            }
+            if (sliding_window)
+              eee = E_GQuad_IntLoop_L_comparative(i, j, tt, fc->S_cons, S5, S3, a2s, ggg_local, n_seq, P);
+            else
+              eee = E_GQuad_IntLoop_comparative(i, j, tt, fc->S_cons, S5, S3, a2s, ggg, idx, n_seq, P);
 
             break;
         }
+
+        e = MIN2(e, eee);
       }
 
       free(tt);

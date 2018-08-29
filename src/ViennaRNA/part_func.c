@@ -371,11 +371,26 @@ fill_arrays(vrna_fold_compound_t *fc)
     domains_up->exp_prod_cb(fc, domains_up->data);
 
   /* no G-Quadruplexes for comparative partition function (yet) */
-  if (with_gquad && (!(fc->type == VRNA_FC_TYPE_COMPARATIVE))) {
+  if (with_gquad) {
     free(fc->exp_matrices->G);
-    fc->exp_matrices->G = get_gquad_pf_matrix(fc->sequence_encoding2,
-                                              fc->exp_matrices->scale,
-                                              fc->exp_params);
+    fc->exp_matrices->G = NULL;
+
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        fc->exp_matrices->G = get_gquad_pf_matrix(fc->sequence_encoding2,
+                                                  fc->exp_matrices->scale,
+                                                  fc->exp_params);
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        fc->exp_matrices->G = get_gquad_pf_matrix_comparative(fc->S_cons,
+                                                              fc->S,
+                                                              fc->a2s,
+                                                              fc->exp_matrices->scale,
+                                                              fc->n_seq,
+                                                              fc->exp_params);
+        break;
+    }
   }
 
   /* init auxiliary arrays for fast exterior/multibranch loops */

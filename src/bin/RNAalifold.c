@@ -920,8 +920,8 @@ process_record(struct record_data *record)
     }
   }
 
-  real_en       = vrna_eval_structure(vc, mfe_structure);
-  cov_en        = vrna_eval_covar_structure(vc, mfe_structure);
+  real_en = vrna_eval_structure(vc, mfe_structure);
+  cov_en  = vrna_eval_covar_structure(vc, mfe_structure);
 
   if (opt->sci) {
     double sci = compute_sci((const char **)alignment, &(opt->md), min_en);
@@ -1278,19 +1278,26 @@ compute_MEA(vrna_fold_compound_t  *fc,
             vrna_cstr_t           rec_output)
 {
   char  *MEA_structure;
+  int   gq;
   float mea, *ens;
   plist *pl;
 
   MEA_structure = (char *)vrna_alloc(sizeof(char) * (fc->length + 1));
+  gq            = fc->exp_params->model_details.gquad;
 
   /* MEA() determines the length of the RNA from the strlen() of the input structure */
   MEA_structure = memset(MEA_structure, '.', fc->length);
 
   /* retieve plist */
-  pl = vrna_plist_from_probs(fc, 1e-4 / (1 + opt->MEAgamma));
+  fc->exp_params->model_details.gquad = 0;
+  pl                                  = vrna_plist_from_probs(fc, 1e-4 / (1 + opt->MEAgamma));
+  fc->exp_params->model_details.gquad = gq;
 
   /* compute MEA */
-  mea = MEA(pl, MEA_structure, opt->MEAgamma);
+  if (gq)
+    mea = MEA_seq(pl, fc->cons_seq, MEA_structure, opt->MEAgamma, fc->exp_params);
+  else
+    mea = MEA(pl, MEA_structure, opt->MEAgamma);
 
   /* evaluate MEA structure */
   ens     = (float *)vrna_alloc(2 * sizeof(float));

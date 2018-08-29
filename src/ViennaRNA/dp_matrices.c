@@ -543,7 +543,11 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
             case VRNA_MX_WINDOW:                              /* do nothing, since we handle memory somewhere else */
               break;
             default:
-              vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons, vc->S, vc->n_seq, vc->params);
+              vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons,
+                                                       vc->S,
+                                                       vc->a2s,
+                                                       vc->n_seq,
+                                                       vc->params);
               break;
           }
           break;
@@ -1444,7 +1448,7 @@ pf_matrices_alloc_2Dfold(vrna_mx_pf_t *vars,
   vars->Q_cM_rem  = 0.;
 
   if (alloc_vector & ALLOC_F) {
-    vars->Q       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **) * size);
+    vars->Q       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
     vars->l_min_Q = (int **)vrna_alloc(sizeof(int *) * size);
     vars->l_max_Q = (int **)vrna_alloc(sizeof(int *) * size);
     vars->k_min_Q = (int *)vrna_alloc(sizeof(int) * size);
@@ -1453,7 +1457,7 @@ pf_matrices_alloc_2Dfold(vrna_mx_pf_t *vars,
   }
 
   if (alloc_vector & ALLOC_C) {
-    vars->Q_B       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **) * size);
+    vars->Q_B       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
     vars->l_min_Q_B = (int **)vrna_alloc(sizeof(int *) * size);
     vars->l_max_Q_B = (int **)vrna_alloc(sizeof(int *) * size);
     vars->k_min_Q_B = (int *)vrna_alloc(sizeof(int) * size);
@@ -1462,7 +1466,7 @@ pf_matrices_alloc_2Dfold(vrna_mx_pf_t *vars,
   }
 
   if (alloc_vector & ALLOC_FML) {
-    vars->Q_M       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **) * size);
+    vars->Q_M       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
     vars->l_min_Q_M = (int **)vrna_alloc(sizeof(int *) * size);
     vars->l_max_Q_M = (int **)vrna_alloc(sizeof(int *) * size);
     vars->k_min_Q_M = (int *)vrna_alloc(sizeof(int) * size);
@@ -1471,7 +1475,7 @@ pf_matrices_alloc_2Dfold(vrna_mx_pf_t *vars,
   }
 
   if (alloc_vector & ALLOC_UNIQ) {
-    vars->Q_M1        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **) * size);
+    vars->Q_M1        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
     vars->l_min_Q_M1  = (int **)vrna_alloc(sizeof(int *) * size);
     vars->l_max_Q_M1  = (int **)vrna_alloc(sizeof(int *) * size);
     vars->k_min_Q_M1  = (int *)vrna_alloc(sizeof(int) * size);
@@ -1480,7 +1484,7 @@ pf_matrices_alloc_2Dfold(vrna_mx_pf_t *vars,
   }
 
   if (alloc_vector & ALLOC_CIRC) {
-    vars->Q_M2        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **) * lin_size);
+    vars->Q_M2        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * lin_size);
     vars->l_min_Q_M2  = (int **)vrna_alloc(sizeof(int *) * lin_size);
     vars->l_max_Q_M2  = (int **)vrna_alloc(sizeof(int *) * lin_size);
     vars->k_min_Q_M2  = (int *)vrna_alloc(sizeof(int) * lin_size);
