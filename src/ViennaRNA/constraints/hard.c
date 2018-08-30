@@ -1080,8 +1080,10 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
       /* must pair, i.e. may not be unpaired */
       case '|':
         if (options & VRNA_CONSTRAINT_DB_PIPE) {
+#if 0
           /* historically, this flag does nothing, except when constraint enforcement is active */
           if (options & VRNA_CONSTRAINT_DB_ENFORCE_BP) {
+#endif
             bp_unspecific[num_bp_unspecific].i        = j;  /* position */
             bp_unspecific[num_bp_unspecific].j        = 0;  /* direction */
             bp_unspecific[num_bp_unspecific].options  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
@@ -1094,7 +1096,9 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                                                                  sizeof(struct hc_bp) *
                                                                  size_bp_unspecific);
             }
+#if 0
           }
+#endif
         }
 
         break;
