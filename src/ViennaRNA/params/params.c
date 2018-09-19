@@ -370,6 +370,9 @@ get_scaled_params(vrna_md_t *md)
       params->gquad[i][j] = (int)GQuadAlpha_T * (i - 1) + (int)(((double)GQuadBeta_T) * log(j - 2));
     }
 
+  params->gquadLayerMismatch    = (int)((double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * tempf);
+  params->gquadLayerMismatchMax = GQuadLayerMismatchMax;
+
   for (i = 0; i < 31; i++)
     params->hairpin[i] = hairpindH[i] - (hairpindH[i] - hairpin37[i]) * tempf;
   for (i = 0; i <= MIN2(30, MAXLOOP); i++) {
@@ -519,6 +522,10 @@ get_scaled_exp_params(vrna_md_t *md,
            log(((double)j) - 2.);
       pf->expgquad[i][j] = exp(-GT * 10. / kT);
     }
+
+  GT = (double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT;
+  pf->expgquadLayerMismatch = exp(-GT * 10. / kT);
+  pf->gquadLayerMismatchMax = GQuadLayerMismatchMax;
 
   /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i = 0; i < 31; i++) {
@@ -702,6 +709,10 @@ get_exp_params_ali(vrna_md_t    *md,
            log(((double)j) - 2.);
       pf->expgquad[i][j] = exp(-GT * 10. / kTn);
     }
+
+  GT = (double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT;
+  pf->expgquadLayerMismatch = exp(-GT * 10. / kTn);
+  pf->gquadLayerMismatchMax = GQuadLayerMismatchMax;
 
   /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i = 0; i < 31; i++) {

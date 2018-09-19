@@ -300,6 +300,16 @@ E_gquad_ali_penalty(int           i,
                     vrna_param_t  *P);
 
 
+PRIVATE
+FLT_OR_DBL
+exp_E_gquad_ali_penalty(int               i,
+                        int               L,
+                        int               l[3],
+                        const short       **S,
+                        unsigned int      n_seq,
+                        vrna_exp_param_t  *P);
+
+
 PRIVATE void
 count_gquad_layer_mismatches(int          i,
                              int          L,
@@ -1305,10 +1315,29 @@ E_gquad_ali_penalty(int           i,
 
   count_gquad_layer_mismatches(i, L, l, S, n_seq, mm);
 
-  if (mm[1] > VRNA_GQUAD_MISMATCH_NUM_ALI)
+  if (mm[1] > P->gquadLayerMismatchMax)
     return INF;
   else
-    return VRNA_GQUAD_MISMATCH_PENALTY * mm[0];
+    return P->gquadLayerMismatch * mm[0];
+}
+
+
+PRIVATE FLT_OR_DBL
+exp_E_gquad_ali_penalty(int               i,
+                        int               L,
+                        int               l[3],
+                        const short       **S,
+                        unsigned int      n_seq,
+                        vrna_exp_param_t  *pf)
+{
+  unsigned int mm[2];
+
+  count_gquad_layer_mismatches(i, L, l, S, n_seq, mm);
+
+  if (mm[1] > pf->gquadLayerMismatchMax)
+    return (FLT_OR_DBL)0.;
+  else
+    return (FLT_OR_DBL)pow(pf->expgquadLayerMismatch, (double)mm[0]);
 }
 
 
@@ -1536,7 +1565,8 @@ gquad_pf_ali(int  i,
 {
   short                   **S;
   unsigned int            **a2s;
-  int                     u1, u2, u3, s, n_seq, penalty;
+  int                     u1, u2, u3, s, n_seq;
+  FLT_OR_DBL              penalty;
   vrna_exp_param_t        *pf;
   struct gquad_ali_helper *gq_help;
 
@@ -1545,9 +1575,9 @@ gquad_pf_ali(int  i,
   a2s     = gq_help->a2s;
   n_seq   = gq_help->n_seq;
   pf      = gq_help->pf;
-  penalty = E_gquad_ali_penalty(i, L, l, (const short **)S, (unsigned int)n_seq, NULL);
+  penalty = exp_E_gquad_ali_penalty(i, L, l, (const short **)S, (unsigned int)n_seq, pf);
 
-  if (penalty != INF) {
+  if (penalty != 0.) {
     double  kTn = pf->kT;
     double  q   = 1.;
     for (s = 0; s < n_seq; s++) {
@@ -1556,7 +1586,7 @@ gquad_pf_ali(int  i,
       u3  = a2s[s][i + 3 * L + l[0] + l[1] + l[2] - 1] - a2s[s][i + 3 * L + l[0] + l[1] - 1];
       q   *= pf->expgquad[L][u1 + u2 + u3];
     }
-    *((FLT_OR_DBL *)data) += q * exp(-(double)penalty * 10. / kTn);
+    *((FLT_OR_DBL *)data) += q * penalty;
   }
 }
 
