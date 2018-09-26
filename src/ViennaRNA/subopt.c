@@ -1599,7 +1599,7 @@ scan_interval(vrna_fold_compound_t  *vc,
     int ik, s5, s3, tmp_en;
 
     if ((hc->up_ext[i]) &&
-        (fc[k + 1] != INF)) {
+        (fc[i + 1] != INF)) {
       tmp_en = 0;
 
       if (sc) {
