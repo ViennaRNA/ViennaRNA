@@ -1055,7 +1055,7 @@ PRIVATE INLINE
 int
 E_GQuad_IntLoop_comparative(int           i,
                             int           j,
-                            int           *tt,
+                            unsigned int  *tt,
                             short         *S_cons,
                             short         **S5,
                             short         **S3,
@@ -1065,9 +1065,9 @@ E_GQuad_IntLoop_comparative(int           i,
                             int           n_seq,
                             vrna_param_t  *P)
 {
-  int       eee, energy, ge, dangles, p, q, l1, u1, u2, minq, maxq, c0, type, s;
-  short     si, sj;
-  vrna_md_t *md;
+  unsigned int  type;
+  int           eee, energy, ge, p, q, l1, u1, u2, minq, maxq, c0, s;
+  vrna_md_t     *md;
 
   md      = &(P->model_details);
   energy  = 0;
@@ -1179,7 +1179,7 @@ PRIVATE INLINE
 int
 E_GQuad_IntLoop_L_comparative(int           i,
                               int           j,
-                              int           *tt,
+                              unsigned int  *tt,
                               short         *S_cons,
                               short         **S5,
                               short         **S3,
@@ -1188,9 +1188,9 @@ E_GQuad_IntLoop_L_comparative(int           i,
                               int           n_seq,
                               vrna_param_t  *P)
 {
-  int       eee, energy, ge, dangles, p, q, l1, u1, u2, minq, maxq, c0, type, s;
-  short     si, sj;
-  vrna_md_t *md;
+  unsigned int  type;
+  int           eee, energy, ge, p, q, l1, u1, u2, minq, maxq, c0, s;
+  vrna_md_t     *md;
 
   md      = &(P->model_details);
   energy  = 0;
@@ -1605,7 +1605,7 @@ PRIVATE INLINE
 FLT_OR_DBL
 exp_E_GQuad_IntLoop_comparative(int               i,
                                 int               j,
-                                int               *tt,
+                                unsigned int      *tt,
                                 short             *S_cons,
                                 short             **S5,
                                 short             **S3,
@@ -1616,11 +1616,11 @@ exp_E_GQuad_IntLoop_comparative(int               i,
                                 int               n_seq,
                                 vrna_exp_param_t  *pf)
 {
-  int         k, l, minl, maxl, u, u1, u2, r, s, type;
-  FLT_OR_DBL  q, qe, qqq;
-  double      *expintern;
-  short       si, sj;
-  vrna_md_t   *md;
+  unsigned int  type;
+  int           k, l, minl, maxl, u, u1, u2, r, s;
+  FLT_OR_DBL    q, qe, qqq;
+  double        *expintern;
+  vrna_md_t     *md;
 
   q         = 0;
   qe        = 1.;
