@@ -160,7 +160,7 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
   FLT_OR_DBL        r, qt, q_temp, qkl;
   int               i, j, ij, n, k, u, type;
   char              *pstruc;
-  int               *my_iindx, *jindx, hc_decompose, *hc_up_ext;
+  int               *my_iindx, hc_decompose, *hc_up_ext;
   FLT_OR_DBL        *q, *qb, *q1k, *qln, *scale;
   unsigned char     *hard_constraints;
   short             *S1, *S2;
@@ -175,7 +175,6 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
   pf_params = vc->exp_params;
   md        = &(vc->exp_params->model_details);
   my_iindx  = vc->iindx;
-  jindx     = vc->jindx;
   matrices  = vc->exp_matrices;
 
   hc  = vc->hc;
@@ -582,7 +581,7 @@ backtrack(int                   i,
           char                  *pstruc,
           vrna_fold_compound_t  *vc)
 {
-  char              *ptype, *sequence;
+  char              *ptype;
   unsigned char     *hard_constraints, hc_decompose;
   vrna_exp_param_t  *pf_params;
   FLT_OR_DBL        *qb, *qm, *qm1, *scale;
@@ -595,7 +594,6 @@ backtrack(int                   i,
   short             *S1;
 
   n         = vc->length;
-  sequence  = vc->sequence;
   pf_params = vc->exp_params;
   ptype     = vc->ptype;
   S1        = vc->sequence_encoding;
@@ -613,14 +611,13 @@ backtrack(int                   i,
   qm1       = matrices->qm1;
   scale     = matrices->scale;
 
-  int noGUclosure = pf_params->model_details.noGUclosure;
   int turn        = pf_params->model_details.min_loop_size;
   int *rtype      = &(pf_params->model_details.rtype[0]);
 
   qbt1 = 0.;
 
   do {
-    int           k, l, kl, u, u1, u2, max_k, min_l;
+    int           k, l, kl, u1, u2, max_k, min_l;
     unsigned char type;
     k = i;
     l = j;

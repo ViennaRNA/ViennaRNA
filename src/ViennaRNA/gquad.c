@@ -1578,8 +1578,7 @@ gquad_pf_ali(int  i,
   penalty = exp_E_gquad_ali_penalty(i, L, l, (const short **)S, (unsigned int)n_seq, pf);
 
   if (penalty != 0.) {
-    double  kTn = pf->kT;
-    double  q   = 1.;
+    double q = 1.;
     for (s = 0; s < n_seq; s++) {
       u1  = a2s[s][i + L + l[0] - 1] - a2s[s][i + L - 1];
       u2  = a2s[s][i + 2 * L + l[0] + l[1] - 1] - a2s[s][i + 2 * L + l[0] - 1];

@@ -1432,11 +1432,9 @@ PRIVATE void
 hc_update_up(vrna_fold_compound_t *vc)
 {
   unsigned int  i, n, u;
-  int           *idx;
   vrna_hc_t     *hc;
 
   n   = vc->length;
-  idx = vc->jindx;
   hc  = vc->hc;
 
   if (hc->type == VRNA_HC_WINDOW) {

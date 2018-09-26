@@ -565,8 +565,8 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   unsigned char             *hc_mx, eval_loop;
   short                     *S, *S2, **SS, **S5, **S3;
   unsigned int              *tt, n_seq, s, **a2s, type, type2;
-  int                       ij, kl, k, l, u1, u2, u3, qmin, with_ud,
-                            n, *my_iindx, *indx, *hc_up, turn,
+  int                       k, l, u1, u2, u3, qmin, with_ud,
+                            n, *my_iindx, *hc_up, turn,
                             u1_local, u2_local, u3_local;
   FLT_OR_DBL                q, q_temp, *qb, *scale;
   vrna_exp_param_t          *pf_params;
@@ -585,7 +585,6 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   S3          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
   a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
   my_iindx    = fc->iindx;
-  indx        = fc->jindx;
   qb          = fc->exp_matrices->qb;
   scale       = fc->exp_matrices->scale;
   hc_mx       = fc->hc->mx;
@@ -595,7 +594,6 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   turn        = md->min_loop_size;
   type        = 0;
   tt          = NULL;
-  ij          = indx[j] + i;
   domains_up  = fc->domains_up;
   with_ud     = ((domains_up) && (domains_up->exp_energy_cb)) ? 1 : 0;
 
@@ -637,8 +635,6 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
 
         if (u1 + u2 + u3 > MAXLOOP)
           continue;
-
-        kl = indx[l] + k;
 
         eval_loop = hc_mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
 
@@ -744,7 +740,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
   unsigned char             *hc_mx, **hc_mx_local, eval_loop, hc_decompose_ij, hc_decompose_kl;
   short                     *S1, **SS, **S5, **S3;
   unsigned int              n, *sn, n_seq, s, **a2s;
-  int                       u1, u2, *rtype, *jindx, *hc_up, ij, kl;
+  int                       u1, u2, *rtype, *jindx, *hc_up;
   FLT_OR_DBL                qbt1, q_temp, *scale;
   vrna_exp_param_t          *pf_params;
   vrna_md_t                 *md;
@@ -791,8 +787,6 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
 
   init_sc_wrapper(fc, &sc_wrapper);
 
-  ij              = (sliding_window) ? 0 : jindx[j] + i;
-  kl              = (sliding_window) ? 0 : jindx[l] + k;
   hc_decompose_ij = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[n * i + j];
   hc_decompose_kl = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[n * k + l];
   eval_loop       = ((hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
@@ -807,7 +801,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
       case VRNA_FC_TYPE_SINGLE:
         type = (sliding_window) ?
                vrna_get_ptype_window(i, j, ptype_local) :
-               vrna_get_ptype(ij, ptype);
+               vrna_get_ptype(jindx[j] + i, ptype);
         type2 = (sliding_window) ?
                 rtype[vrna_get_ptype_window(k, l, ptype_local)] :
                 rtype[vrna_get_ptype(jindx[l] + k, ptype)];

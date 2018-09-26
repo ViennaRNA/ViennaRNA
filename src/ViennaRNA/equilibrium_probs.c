@@ -1821,9 +1821,9 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
                                         int                   l)
 {
   unsigned char     type;
-  short             *S_cons, **S, **S5, **S3;
+  short             **S, **S5, **S3;
   unsigned int      **a2s, s, n_seq;
-  int               i, j, k, n, ij, kl, u1, u2, u1_local, u2_local, *my_iindx, *jindx;
+  int               i, j, k, n, ij, kl, u1, u2, u1_local, u2_local, *my_iindx;
   FLT_OR_DBL        tmp2, qe, *G, *qb, *probs, *scale;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
@@ -1831,12 +1831,10 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
   n         = (int)fc->length;
   n_seq     = fc->n_seq;
   S         = fc->S;
-  S_cons    = fc->S_cons;
   S5        = fc->S5;
   S3        = fc->S3;
   a2s       = fc->a2s;
   my_iindx  = fc->iindx;
-  jindx     = fc->jindx;
   pf_params = fc->exp_params;
   G         = fc->exp_matrices->G;
   qb        = fc->exp_matrices->qb;

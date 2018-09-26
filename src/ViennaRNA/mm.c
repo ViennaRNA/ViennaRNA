@@ -20,17 +20,14 @@
 
 #include "ViennaRNA/mm.h"
 
-#define CACHE_OPT 1
-
 PUBLIC int
 vrna_maximum_matching(vrna_fold_compound_t *fc)
 {
   unsigned char *mx, *hc_up;
-  int           i, j, l, n, turn, *idx, *mm, max, max2, max3;
+  int           i, j, l, n, turn, *mm, max, max2, max3;
   vrna_hc_t     *hc;
 
   n     = (int)fc->length;
-  idx   = fc->jindx;
   turn  = fc->params->model_details.min_loop_size;
   hc    = fc->hc;
   mx    = hc->mx;
@@ -122,44 +119,11 @@ vrna_maximum_matching_simple(const char *sequence)
 PUBLIC unsigned int
 maximumMatching(const char *string)
 {
-  int                   i, j, l, length;
-  unsigned int          max = 0, max2;
-  unsigned int          *mm;   /* holds maximum matching on subsequence [i,j] */
+  unsigned int max;
 
-#if CACHE_OPT
   vrna_fold_compound_t  *fc = vrna_fold_compound(string, NULL, VRNA_OPTION_DEFAULT);
   max = (unsigned int)vrna_maximum_matching(fc);
   vrna_fold_compound_free(fc);
-#else
-  length = (int)strlen(string);
-
-  make_pair_matrix();
-  short *encodedString  = encode_sequence(string, 0);
-  int   *iindx          = vrna_idx_row_wise(length);
-
-  mm = (unsigned int *)vrna_alloc(sizeof(unsigned int) * ((length * (length + 1)) / 2 + 2));
-
-  for (j = 1; j <= length; j++)
-    for (i = (j > TURN ? (j - TURN) : 1); i < j; i++)
-      mm[iindx[i] - j] = 0;
-
-
-  for (i = length - TURN - 1; i > 0; i--)
-    for (j = i + TURN + 1; j <= length; j++) {
-      max = mm[iindx[i] - j + 1];
-
-      for (l = j - TURN - 1; l >= i; l--)
-        if (pair[encodedString[l]][encodedString[j]])
-          max = MAX2(max, ((l > i) ? mm[iindx[i] - l + 1] : 0) + 1 + mm[iindx[l + 1] - j + 1]);
-
-      mm[iindx[i] - j] = max;
-    }
-
-  max = mm[iindx[1] - length];
-  free(iindx);
-  free(encodedString);
-  free(mm);
-#endif
 
   return max;
 }

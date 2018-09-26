@@ -1076,7 +1076,7 @@ wrap_plist(vrna_fold_compound_t *vc,
 {
   short             *S;
   int               i, j, k, n, m, count, gquad, length, *index;
-  FLT_OR_DBL        *probs, *G, *scale;
+  FLT_OR_DBL        *probs;
   vrna_ep_t         *pl;
   vrna_mx_pf_t      *matrices;
   vrna_exp_param_t  *pf_params;
@@ -1087,8 +1087,6 @@ wrap_plist(vrna_fold_compound_t *vc,
   pf_params = vc->exp_params;
   matrices  = vc->exp_matrices;
   probs     = matrices->probs;
-  G         = matrices->G;
-  scale     = matrices->scale;
   gquad     = pf_params->model_details.gquad;
 
   count = 0;

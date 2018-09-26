@@ -794,7 +794,7 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
                     int                   *ip,
                     int                   *iq)
 {
-  int                 ij, q, p, e, s, u1, u2, qmin, energy,
+  int                 q, p, e, s, u1, u2, qmin, energy,
                       n, *indx, *hc_up, *c, turn, n_seq;
   unsigned char       *hc, eval_loop;
   unsigned int        *tt;
@@ -815,7 +815,6 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
   md    = &(P->model_details);
   turn  = md->min_loop_size;
   tt    = NULL;
-  ij    = indx[j] + i;
 
   e = INF;
 
