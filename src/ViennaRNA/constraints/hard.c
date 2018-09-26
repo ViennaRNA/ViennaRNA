@@ -369,30 +369,30 @@ vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
         if (option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE) {
           /* only allow for possibly non-canonical pairs, do not enforce them */
           for (p = 1; p < i; p++) {
-            hc->matrix[vc->jindx[i] + p] |= t1;
-            hc->mx[n * i + p] |= t1;
-            hc->mx[n * p + i] |= t1;
+            hc->matrix[vc->jindx[i] + p]  |= t1;
+            hc->mx[n * i + p]             |= t1;
+            hc->mx[n * p + i]             |= t1;
           }
           for (p = i + 1; p <= vc->length; p++) {
-            hc->matrix[vc->jindx[p] + i] |= t2;
-            hc->mx[n * i + p] |= t2;
-            hc->mx[n * p + i] |= t2;
+            hc->matrix[vc->jindx[p] + i]  |= t2;
+            hc->mx[n * i + p]             |= t2;
+            hc->mx[n * p + i]             |= t2;
           }
         } else {
           /* force pairing direction */
           for (p = 1; p < i; p++) {
-            hc->matrix[vc->jindx[i] + p] &= t1;
-            hc->mx[n * i + p] &= t1;
-            hc->mx[n * p + i] &= t1;
+            hc->matrix[vc->jindx[i] + p]  &= t1;
+            hc->mx[n * i + p]             &= t1;
+            hc->mx[n * p + i]             &= t1;
           }
           for (p = i + 1; p <= vc->length; p++) {
-            hc->matrix[vc->jindx[p] + i] &= t2;
-            hc->mx[n * i + p] &= t2;
-            hc->mx[n * p + i] &= t2;
+            hc->matrix[vc->jindx[p] + i]  &= t2;
+            hc->mx[n * i + p]             &= t2;
+            hc->mx[n * p + i]             &= t2;
           }
           /* nucleotide mustn't be unpaired */
-          hc->matrix[vc->jindx[i] + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
-          hc->mx[n * i + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+          hc->matrix[vc->jindx[i] + i]  = VRNA_CONSTRAINT_CONTEXT_NONE;
+          hc->mx[n * i + i]             = VRNA_CONSTRAINT_CONTEXT_NONE;
         }
 
         hc_update_up(vc);
@@ -415,7 +415,14 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
   if (vc) {
     if (vc->hc) {
       if ((i <= 0) || (j <= i) || (j > vc->length)) {
-        vrna_message_warning("vrna_hc_add_bp: position out of range, not doing anything");
+        vrna_message_warning("vrna_hc_add_bp: position out of range, omitting constraint");
+        return;
+      } else if ((j - i - 1) < vc->params->model_details.min_loop_size) {
+        vrna_message_warning(
+          "vrna_hc_add_bp: Pairing partners (%d, %d) violate minimum loop size settings of %dnt, omitting constraint",
+          i,
+          j,
+          vc->params->model_details.min_loop_size);
         return;
       }
 
@@ -462,9 +469,9 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
               vc->ptype[vc->jindx[j] + i] = 7;
         }
 
-        hc->matrix[vc->jindx[j] + i] = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-        hc->mx[n * i + j] = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-        hc->mx[n * j + i] = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+        hc->matrix[vc->jindx[j] + i]  = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+        hc->mx[n * i + j]             = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+        hc->mx[n * j + i]             = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
         if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
           /*
@@ -830,7 +837,7 @@ hc_store_bp(vrna_hc_bp_storage_t  **container,
     container[i] = (vrna_hc_bp_storage_t *)vrna_alloc(sizeof(vrna_hc_bp_storage_t) * 2);
   } else {
     /* find out total size of container */
-    for (size = 0; container[i][size].interval_start != 0; size++) ;
+    for (size = 0; container[i][size].interval_start != 0; size++);
 
     /* find position where we want to insert the new constraint */
     for (cnt = 0; cnt < size; cnt++) {
@@ -913,9 +920,9 @@ populate_hc_bp(vrna_fold_compound_t *fc,
     if ((hc->bp_storage) && (hc->bp_storage[i]))
       apply_stored_bp_hc(&constraint, hc->bp_storage[i], j);
 
-    if (hc->type == VRNA_HC_WINDOW)
+    if (hc->type == VRNA_HC_WINDOW) {
       hc->matrix_local[i][j - i] = constraint;
-    else {
+    } else {
       hc->matrix[fc->jindx[j] + i] = constraint;
 
       hc->mx[n * i + j] = constraint;
@@ -1080,25 +1087,18 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
       /* must pair, i.e. may not be unpaired */
       case '|':
         if (options & VRNA_CONSTRAINT_DB_PIPE) {
-#if 0
-          /* historically, this flag does nothing, except when constraint enforcement is active */
-          if (options & VRNA_CONSTRAINT_DB_ENFORCE_BP) {
-#endif
-            bp_unspecific[num_bp_unspecific].i        = j;  /* position */
-            bp_unspecific[num_bp_unspecific].j        = 0;  /* direction */
-            bp_unspecific[num_bp_unspecific].options  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+          bp_unspecific[num_bp_unspecific].i        = j;  /* position */
+          bp_unspecific[num_bp_unspecific].j        = 0;  /* direction */
+          bp_unspecific[num_bp_unspecific].options  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
-            num_bp_unspecific++;
+          num_bp_unspecific++;
 
-            if (num_bp_unspecific == size_bp_unspecific) {
-              size_bp_unspecific  *= 1.4;
-              bp_unspecific       = (struct hc_bp *)vrna_realloc(bp_unspecific,
-                                                                 sizeof(struct hc_bp) *
-                                                                 size_bp_unspecific);
-            }
-#if 0
+          if (num_bp_unspecific == size_bp_unspecific) {
+            size_bp_unspecific  *= 1.4;
+            bp_unspecific       = (struct hc_bp *)vrna_realloc(bp_unspecific,
+                                                               sizeof(struct hc_bp) *
+                                                               size_bp_unspecific);
           }
-#endif
         }
 
         break;
@@ -1131,6 +1131,15 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                                    i, j);
               break;
             }
+          }
+
+          if ((j - i - 1) < md->min_loop_size) {
+            vrna_message_warning("vrna_hc_add_from_db: "
+                                 "Pairing partners (%d, %d) violate minimum loop size settings of %dnt, omitting constraint",
+                                 i,
+                                 j,
+                                 md->min_loop_size);
+            break;
           }
 
           bp[num_bp].i        = i;
